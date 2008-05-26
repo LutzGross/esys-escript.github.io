@@ -106,7 +106,8 @@ if error>REL_TOL*Lsup(u_ex): raise RuntimeError("solution error %s is too big."%
 """
 
 
-for n in [10000, 50000, 100000]:
+#for n in [10000, 50000, 100000]:
+for n in [100000]:
 # for n in [1000, 10000]:
  #for prop in [ (1,2), (2,2), (1,3), (2,3) ]:
  for prop in [ (1,2), (1,3) ]:
@@ -120,7 +121,7 @@ for n in [10000, 50000, 100000]:
 		q=1
 	  else:
 		q=dim
-          NE=int(float(n/dim)**(1./dim)/o)+1
+          NE=int(float(n/q-1)**(1./dim)/o+0.5)
           prog+="NE=%d\n"%NE
           if dim==2:
               if o==1:
@@ -148,8 +149,12 @@ for n in [10000, 50000, 100000]:
       prog+=SOLVE_AND_TEST 
       # run code:
       print >> file("__prog","w"), prog
-      for CHUNK in [1,10,100,1000,10000, 100000]:
-       for CHUNK_PCG in [1,10,100,1000,10000, 100000]:
+      # activate for dynamic
+      # for CHUNK in [1,10,100,1000,10000, 100000]:
+      #   for CHUNK_PCG in [1,10,100,1000,10000, 100000]:
+      # activate for static
+      for CHUNK in [-1]:
+       for CHUNK_PCG in [-1]:
         if CHUNK*NUM_THREADS <= n and CHUNK_PCG*NUM_THREADS <=n:
          time_per_iter=0
          for i in range(REPEAT):
