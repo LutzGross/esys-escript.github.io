@@ -55,6 +55,7 @@ namespace esysUtils
     \brief
     Default Constructor. Creates an exception with no message.
     */
+    ESYSUTILS_DLL_API
     EsysException();
 
     /**
@@ -63,6 +64,7 @@ namespace esysUtils
      
     @param exceptionReason Input - Exception message.
     */
+    ESYSUTILS_DLL_API
     EsysException(const std::string &exceptionReason);
 
     /**
@@ -71,6 +73,7 @@ namespace esysUtils
 
     @param cStr - Exception message.
     */
+    ESYSUTILS_DLL_API
     EsysException( const char *cStr );
 
     /**
@@ -79,10 +82,25 @@ namespace esysUtils
 
     @param other Input - EsysException
     */
+    ESYSUTILS_DLL_API
     EsysException(const EsysException &other);
 
     /// Destructor
-    virtual ~EsysException() THROW();
+    ESYSUTILS_DLL_API
+    virtual ~EsysException() THROW_ANY;
+
+    /**
+    \brief
+    Assignment needed to override any automatic assignment
+    of std::exception, which can potentially copy around char *'s,
+    causeing trouble in some implementations of STL.
+    It will only copy the reason string, and update the message.
+
+    @return re-assigned exception.
+    */
+    ESYSUTILS_DLL_API
+    virtual EsysException &
+    operator=(const EsysException &other) THROW_ANY;
 
     /**
     \brief
@@ -91,6 +109,7 @@ namespace esysUtils
 
     @return the exception message.
     */
+    inline
     const std::string & toString() const;
 
     /**
@@ -100,6 +119,7 @@ namespace esysUtils
 
     @return the name of the exception.
     */
+    ESYSUTILS_DLL_API
     virtual const std::string & exceptionName() const;
 
     /**
@@ -108,6 +128,7 @@ namespace esysUtils
      
     @return the string for the exception reason.
     */
+    inline
     const std::string& reason() const;
 
     /**
@@ -116,6 +137,7 @@ namespace esysUtils
     This allows ousiders to modify m_reason, but the practice is discouraged.
     If string insertions are required, use string methods.
     */
+    inline
     void setReason(const std::string &new_reason);
 
     /**
@@ -125,13 +147,16 @@ namespace esysUtils
 
     @return a description of the exception.
     */
-     virtual const char* what() const THROW();
+    ESYSUTILS_DLL_API
+    inline
+    virtual const char* what() const THROW_ANY;
 
 
     /**
     \brief
     update m_exceptionMessage after a reason update.
     **/
+    inline
     void updateMessage();
 
 
@@ -160,40 +185,34 @@ namespace esysUtils
   @param inException Input - The exception to be inserted into the output 
   stream.
   */ 
+  ESYSUTILS_DLL_API
   std::ostream &operator<<(std::ostream &output, EsysException &inException);
 
 
   ////////////////////////////////////////////////////////////////////
 
-  inline
   const std::string & EsysException::reason() const
   {
     return m_reason;
   }
   
   // return the message as a std::string
-  inline
   const std::string & EsysException::toString() const
   {
     return m_exceptionMessage;
   }
 
-  inline
   void EsysException::setReason(const std::string &new_reason)
   {
     m_reason = new_reason;
     updateMessage();
   }
 
-  inline
-  const char*  EsysException::what() const THROW()
+  const char*  EsysException::what() const THROW_ANY
   {
     return m_exceptionMessage.c_str();
   }
 
-
-
-  inline
   void EsysException::updateMessage()
   {
     m_exceptionMessage = exceptionName() + ": " + m_reason;

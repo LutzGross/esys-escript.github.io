@@ -26,7 +26,7 @@
 #endif
 
 void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escriptDataC* in) {
-    dim_t n,i,k,l, mpiSize;
+    dim_t n,k,l, mpiSize;
     dim_t numComps=getDataPointSize(out);
     Paso_Coupler *coupler=NULL;
     type_t in_data_type=getFunctionSpaceType(in);
@@ -108,7 +108,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
               }
 
            } else if (out_data_type == FINLEY_REDUCED_NODES) {
-              #pragma omp parallel for private(n,i) schedule(static)
+              #pragma omp parallel for private(n) schedule(static)
               for (n=0;n<nodes->reducedNodesMapping->numTargets;n++) {
                    memcpy(getSampleDataFast(out,n),
                           getSampleDataFast(in,nodes->reducedNodesMapping->map[n]),
@@ -125,7 +125,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
 
            } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
 	      int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
-              #pragma omp parallel for private(n,i) schedule(static)
+              #pragma omp parallel for private(n) schedule(static)
               for (n=0;n<nComps;n++) {
                    memcpy(getSampleDataFast(out,n),
                           getSampleDataFast(in,nodes->reducedDegreesOfFreedomMapping->map[n]),

@@ -52,7 +52,6 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
   dim_t n_block=A->row_block_size;
   index_t num_colors=0, *mis_marker=NULL;
   register double A11,A12,A13,A21,A22,A23,A31,A32,A33,D;
-  register double mainA11,mainA12,mainA13,mainA21,mainA22,mainA23,mainA31,mainA32,mainA33;
   register double S11,S12,S13,S21,S22,S23,S31,S32,S33;
   register index_t i,iptr_main,iptr,iptr_ik,k,iptr_kj,j,iptr_ij,color,color2;
   double time0,time_color,time_fac;

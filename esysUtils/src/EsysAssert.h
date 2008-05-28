@@ -60,6 +60,7 @@ namespace esysUtils {
       return *this;
     }
     
+    inline
     const std::string &toString() const
     {
       return m_msg;
@@ -69,7 +70,9 @@ namespace esysUtils {
       std::string m_msg;
   };
 
-  inline std::ostream& operator<<(std::ostream& oStream, const ErrStream& errStream)
+  inline
+  inline std::ostream& operator<<(std::ostream& oStream,
+                                  const ErrStream& errStream)
   {
     oStream << errStream.toString();
     return oStream;

@@ -74,7 +74,7 @@ void Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(Paso_SparseMatrix* A, double*
 }
 void Paso_SparseMatrix_nullifyRowsAndCols_CSC(Paso_SparseMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value) {
   index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-  index_t ir,icol,iptr,icb,irb,irow,ic,l;
+  index_t icol,iptr,icb,irb,irow,ic,l;
   #pragma omp parallel for private(l,irow, iptr,icol,ic,irb,icb) schedule(static)
   for (ic=0;ic< A->pattern->numOutput;ic++) {
 	for (iptr=A->pattern->ptr[ic]-index_offset;iptr<A->pattern->ptr[ic+1]-index_offset; iptr++) {
@@ -98,7 +98,7 @@ void Paso_SparseMatrix_nullifyRowsAndCols_CSC(Paso_SparseMatrix* A, double* mask
 }
 void Paso_SparseMatrix_nullifyRowsAndCols_CSR(Paso_SparseMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value) {
   index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-  index_t ir,icol,iptr,icb,irb,irow,ic,l;
+  index_t ir,icol,iptr,icb,irb,irow,l;
   #pragma omp parallel for private(l,irow, iptr,icol,ir,irb,icb) schedule(static)
   for (ir=0;ir< A->pattern->numOutput;ir++) {
 	for (iptr=A->pattern->ptr[ir]-index_offset;iptr<A->pattern->ptr[ir+1]-index_offset; iptr++) {
@@ -140,7 +140,7 @@ void Paso_SparseMatrix_nullifyRows_CSR_BLK1(Paso_SparseMatrix* A, double* mask_r
 }
 void Paso_SparseMatrix_nullifyRows_CSR(Paso_SparseMatrix* A, double* mask_row, double main_diagonal_value) {
   index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-  index_t ir,icol,iptr,icb,irb,irow,ic,l;
+  index_t ir,icol,iptr,icb,irb,irow,l;
   #pragma omp parallel for private(l,irow, iptr,icol,ir,irb,icb) schedule(static)
   for (ir=0;ir< A->pattern->numOutput;ir++) {
 	for (iptr=A->pattern->ptr[ir]-index_offset;iptr<A->pattern->ptr[ir+1]-index_offset; iptr++) {

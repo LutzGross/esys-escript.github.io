@@ -85,7 +85,7 @@ void print_data( FILE *fp, int n_perline, int width, int nval, char *fmt, void *
 {
 	double *data = ptr;
 	int entries_done = 0;
-	int padding, i, j;
+	int padding, i;
 	char pad_fmt[10];
 
 	padding = 80 - n_perline*width;

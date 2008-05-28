@@ -34,7 +34,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
   double version = 1.0;
   int format = 0, size = sizeof(double);
   dim_t numNodes, totalNumElements=0, numTags=0, numNodesPerElement, numNodesPerElement2, element_dim;
-  index_t e, i0, j, gmsh_type, partition_id, itmp, final_element_type,  elementary_id;
+  index_t e, i0, j, gmsh_type, partition_id, itmp, elementary_id;
   index_t numElements=0, numFaceElements=0, *id=NULL, *tag=NULL, *vertices=NULL;
   Finley_Mesh *mesh_p=NULL;
   char line[LenString_MAX+1];

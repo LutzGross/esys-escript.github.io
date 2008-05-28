@@ -65,8 +65,8 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   Finley_resetError();
 
   {
-  int iam, numCPUs;
 #ifdef Paso_MPI
+  int iam, numCPUs;
   iam = elements->elementDistribution->MPIInfo->rank;
   numCPUs = elements->elementDistribution->MPIInfo->size;
 #endif
