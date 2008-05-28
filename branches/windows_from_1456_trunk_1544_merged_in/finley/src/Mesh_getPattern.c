@@ -63,8 +63,8 @@ Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_
 Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order) {
   double time0;
   Paso_SystemMatrixPattern* out=NULL;
-  Paso_Pattern *main_pattern = NULL, *couple_pattern=NULL;
-  Paso_Coupler *coupler;
+  Paso_Pattern *main_pattern = NULL, *col_couple_pattern=NULL, *row_couple_pattern=NULL;
+  Paso_Connector *col_connector, *row_connector;
   Finley_IndexList* index_list=NULL;
   Finley_NodeMapping *colMap=NULL, *rowMap=NULL;
   Paso_Distribution *colDistribution=NULL, *rowDistribution=NULL;
@@ -76,20 +76,22 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
   if (reduce_col_order) {
        colMap=mesh->Nodes->reducedDegreesOfFreedomMapping;
        colDistribution=mesh->Nodes->reducedDegreesOfFreedomDistribution;
-       coupler=mesh->Nodes->reducedDegreesOfFreedomCoupler;
+       col_connector=mesh->Nodes->reducedDegreesOfFreedomConnector;
 
   } else {
        colMap=mesh->Nodes->degreesOfFreedomMapping;
        colDistribution=mesh->Nodes->degreesOfFreedomDistribution;
-       coupler=mesh->Nodes->degreesOfFreedomCoupler;
+       col_connector=mesh->Nodes->degreesOfFreedomConnector;
   }
      
   if (reduce_row_order) {
       rowMap=mesh->Nodes->reducedDegreesOfFreedomMapping;
       rowDistribution=mesh->Nodes->reducedDegreesOfFreedomDistribution;
+      row_connector=mesh->Nodes->reducedDegreesOfFreedomConnector;
   } else {
       rowMap=mesh->Nodes->degreesOfFreedomMapping;
       rowDistribution=mesh->Nodes->degreesOfFreedomDistribution;
+      row_connector=mesh->Nodes->degreesOfFreedomConnector;
   }
 
   index_list=TMPMEMALLOC(rowMap->numTargets,Finley_IndexList);
@@ -115,16 +117,26 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
      }
  
      /* create pattern */
-     main_pattern=Finley_IndexList_createPattern(Paso_Distribution_getMyNumComponents(rowDistribution),index_list,0,Paso_Distribution_getMyNumComponents(colDistribution),0);
-     couple_pattern=Finley_IndexList_createPattern(Paso_Distribution_getMyNumComponents(rowDistribution),index_list,Paso_Distribution_getMyNumComponents(colDistribution),colMap->numTargets,-Paso_Distribution_getMyNumComponents(colDistribution));
+     main_pattern=Finley_IndexList_createPattern(0,Paso_Distribution_getMyNumComponents(rowDistribution),index_list,
+                                                 0,Paso_Distribution_getMyNumComponents(colDistribution),
+                                                 0);
+     col_couple_pattern=Finley_IndexList_createPattern(0,Paso_Distribution_getMyNumComponents(rowDistribution),index_list,
+                                                 Paso_Distribution_getMyNumComponents(colDistribution),colMap->numTargets,
+                                                 -Paso_Distribution_getMyNumComponents(colDistribution));
+     row_couple_pattern=Finley_IndexList_createPattern(Paso_Distribution_getMyNumComponents(rowDistribution),rowMap->numTargets,index_list,
+                                                       0,Paso_Distribution_getMyNumComponents(colDistribution),
+                                                       0);
+
      /* if everthing is in order we can create the return value */
      if (Finley_noError()) {
           out=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,
                                              rowDistribution,
                                              colDistribution,
                                              main_pattern,
-                                             couple_pattern,
-                                             coupler);
+                                             col_couple_pattern,
+                                             row_couple_pattern,
+                                             col_connector,
+                                             row_connector);
      }
      /* clean up */
      if (index_list!=NULL) {
@@ -133,7 +145,8 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
      }
      TMPMEMFREE(index_list);
      Paso_Pattern_free(main_pattern);
-     Paso_Pattern_free(couple_pattern);
+     Paso_Pattern_free(col_couple_pattern);
+     Paso_Pattern_free(row_couple_pattern);
   }
   #ifdef Finley_TRACE
   printf("timing: mesh to matrix pattern: %.4e sec\n",Finley_timer()-time0);

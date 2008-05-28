@@ -166,5 +166,8 @@ cd <my esys dir>/doc/examples
 mpirun -np 4 <my esys dir>/lib/pythonMPI poisson.py
 \end{verbatim}
 
+When running an MPI job the standard output of process zero goes to the screen, while the standard output of the other processes
+is automatically redirected to files with names like stdout_cpu_0001.out.
+
 \section{Getting Help}
 Please direct any questions you might have to \url{mailto:esys@esscc.uq.edu.au}.

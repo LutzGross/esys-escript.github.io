@@ -140,59 +140,50 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
             Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
             if (! Paso_noError()) return;
           
-            time_iter=Paso_timer();
-            Paso_SystemMatrix_allocBuffer(A);
-            /* get an initial guess by evaluating the preconditioner */
-#pragma omp parallel
-            {
-               Paso_Solver_solvePreconditioner(A,x,b);
-            }
-            /* start the iteration process :*/
-            r=TMPMEMALLOC(numEqua,double);
-            Paso_checkPtr(r);
-            if (Paso_noError()) {
-               totIter = 0;
-               finalizeIteration = FALSE;
-               last_norm2_of_residual=norm2_of_b;
-               last_norm_max_of_residual=norm_max_of_b;
-               while (! finalizeIteration) {
-                  cntIter = options->iter_max - totIter;
-                  finalizeIteration = TRUE;
-                  /*     Set initial residual. */
-                  norm2_of_residual = 0;
-                  norm_max_of_residual = 0;
-#pragma omp parallel private(norm2_of_residual_local,norm_max_of_residual_local)
-                  {
-#pragma omp for private(i) schedule(static)
-                     for (i = 0; i < numEqua; i++) {
-                        r[i]=b[i];
-                     }
+              time_iter=Paso_timer();
+              /* get an initial guess by evaluating the preconditioner */
+              Paso_Solver_solvePreconditioner(A,x,b);
+              /* start the iteration process :*/
+              r=TMPMEMALLOC(numEqua,double);
+              Paso_checkPtr(r);
+              if (Paso_noError()) {
+                 totIter = 0;
+                 finalizeIteration = FALSE;
+                 last_norm2_of_residual=norm2_of_b;
+                 last_norm_max_of_residual=norm_max_of_b;
+                 while (! finalizeIteration) {
+                    cntIter = options->iter_max - totIter;
+                    finalizeIteration = TRUE;
+                    /*     Set initial residual. */
+                    norm2_of_residual = 0;
+                    norm_max_of_residual = 0;
+                    #pragma omp parallel for private(i) schedule(static)
+                    for (i = 0; i < numEqua; i++) r[i]=b[i];
+                    Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A, x, DBLE(1), r);
              
-                     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A, x, DBLE(1), r);
-             
-                     norm2_of_residual_local = 0;
-                     norm_max_of_residual_local = 0;
-#pragma omp for private(i) schedule(static)
-                     for (i = 0; i < numEqua; i++) {
-                        norm2_of_residual_local+= r[i] * r[i];
-                        norm_max_of_residual_local=MAX(ABS(scaling[i]*r[i]),norm_max_of_residual_local);
-                     }
-#pragma omp critical
-                     {
-                        norm2_of_residual += norm2_of_residual_local;
-                        norm_max_of_residual = MAX(norm_max_of_residual_local,norm_max_of_residual);
-                     }
-                  }
-                  /* TODO: use one call */
-#ifdef PASO_MPI
-                  {
-                     loc_norm = norm2_of_residual;
-                     MPI_Allreduce(&loc_norm,&norm2_of_residual, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-                     loc_norm = norm_max_of_residual;
-                     MPI_Allreduce(&loc_norm,&norm_max_of_residual, 1, MPI_DOUBLE, MPI_MAX, A->mpi_info->comm);
-                  }
-#endif
-                  norm2_of_residual =sqrt(norm2_of_residual);
+                    #pragma omp parallel private(norm2_of_residual_local,norm_max_of_residual_local)
+                    {
+                       norm2_of_residual_local = 0;
+                       norm_max_of_residual_local = 0;
+                       #pragma omp for private(i) schedule(static)
+                       for (i = 0; i < numEqua; i++) {
+                              norm2_of_residual_local+= r[i] * r[i];
+                              norm_max_of_residual_local=MAX(ABS(scaling[i]*r[i]),norm_max_of_residual_local);
+                       }
+                       #pragma omp critical
+                       {
+                          norm2_of_residual += norm2_of_residual_local;
+                          norm_max_of_residual = MAX(norm_max_of_residual_local,norm_max_of_residual);
+                       }
+                    }
+                    /* TODO: use one call */
+                    #ifdef PASO_MPI
+                        loc_norm = norm2_of_residual;
+                        MPI_Allreduce(&loc_norm,&norm2_of_residual, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+                        loc_norm = norm_max_of_residual;
+                        MPI_Allreduce(&loc_norm,&norm_max_of_residual, 1, MPI_DOUBLE, MPI_MAX, A->mpi_info->comm);
+                    #endif
+                    norm2_of_residual =sqrt(norm2_of_residual);
              
                   if (options->verbose) printf("Step %5d: l2/lmax-norm of residual is  %e/%e",totIter,norm2_of_residual,norm_max_of_residual);
                   if (totIter>0 && norm2_of_residual>=last_norm2_of_residual &&  norm_max_of_residual>=last_norm_max_of_residual) {
@@ -239,27 +230,20 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                               if (options->verbose) printf("Breakdown at iter %d (residual = %e). Restarting ...\n", cntIter+totIter, tol);
                               finalizeIteration = FALSE;
                            }
-                        } else if (errorCode == SOLVER_MEMORY_ERROR) {
-                           Paso_setError(MEMORY_ERROR,"memory allocation failed.");
-                           if (options->verbose) printf("Memory allocation failed!\n");
-                        } else if (errorCode !=SOLVER_NO_ERROR ) {
-                           Paso_setError(SYSTEM_ERROR,"unidentified error in iterative solver.");
-                           if (options->verbose) printf("Unidentified error!\n");
-                        }
-                     } else {
-                        if (options->verbose) printf(". convergence! \n");
-                     }
-                  }
-               } /* while */
-            }
-            MEMFREE(r);
-            Paso_SystemMatrix_freeBuffer(A);
-            time_iter=Paso_timer()-time_iter;
-            if (options->verbose)  {
-               printf("timing: solver: %.4e sec\n",time_iter);
-               if (totIter>0) printf("timing: per iteration step: %.4e sec\n",time_iter/totIter);
-            }
-         }
+                      } else {
+                         if (options->verbose) printf(". convergence! \n");
+                      }
+                   }
+                 } /* while */
+              }
+              MEMFREE(r);
+              time_iter=Paso_timer()-time_iter;
+              if (options->verbose)  {
+                 printf("timing: solver: %.4e sec\n",time_iter);
+                 if (totIter>0) printf("timing: per iteration step: %.4e sec\n",time_iter/totIter);
+              }
+           }
+        }
       }
    }
    Performance_stopMonitor(pp,PERFORMANCE_ALL);

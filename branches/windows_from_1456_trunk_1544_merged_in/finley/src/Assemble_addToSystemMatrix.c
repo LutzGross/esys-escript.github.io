@@ -37,8 +37,8 @@ void  Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in,dim_t NN_Equa,inde
                                         dim_t NN_Sol,index_t* Nodes_Sol, dim_t num_Sol, double* array) {
   index_t index_offset=(in->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
   dim_t k_Equa,j_Equa,j_Sol,k_Sol,i_Equa,i_Sol,l_col,l_row,ic,ir,k,i_row, i_col;
-  index_t *mainBlock_ptr, *mainBlock_index, *coupleBlock_ptr, *coupleBlock_index;
-  double *mainBlock_val, *coupleBlock_val;
+  index_t *mainBlock_ptr, *mainBlock_index, *col_coupleBlock_ptr, *col_coupleBlock_index, *row_coupleBlock_ptr, *row_coupleBlock_index;
+  double *mainBlock_val, *row_coupleBlock_val, *col_coupleBlock_val;
   dim_t row_block_size=in->row_block_size;
   dim_t col_block_size=in->col_block_size;
   dim_t block_size=in->block_size;
@@ -103,9 +103,12 @@ void  Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in,dim_t NN_Equa,inde
          mainBlock_ptr=in->mainBlock->pattern->ptr;
          mainBlock_index=in->mainBlock->pattern->index;
          mainBlock_val=in->mainBlock->val;
-         coupleBlock_ptr=in->coupleBlock->pattern->ptr;
-         coupleBlock_index=in->coupleBlock->pattern->index;
-         coupleBlock_val=in->coupleBlock->val;
+         col_coupleBlock_ptr=in->col_coupleBlock->pattern->ptr;
+         col_coupleBlock_index=in->col_coupleBlock->pattern->index;
+         col_coupleBlock_val=in->col_coupleBlock->val;
+         row_coupleBlock_ptr=in->row_coupleBlock->pattern->ptr;
+         row_coupleBlock_index=in->row_coupleBlock->pattern->index;
+         row_coupleBlock_val=in->row_coupleBlock->val;
 
          for (k_Equa=0;k_Equa<NN_Equa;++k_Equa) { /* Down columns of array */
                 j_Equa=Nodes_Equa[k_Equa];
@@ -134,14 +137,14 @@ void  Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in,dim_t NN_Equa,inde
                                    }
                                }
                            } else {
-	                       for (k=coupleBlock_ptr[i_row]-index_offset;k<coupleBlock_ptr[i_row+1]-index_offset;++k) {
-	                           if (coupleBlock_index[k] == i_col-numMyCols) {
+	                       for (k=col_coupleBlock_ptr[i_row]-index_offset;k<col_coupleBlock_ptr[i_row+1]-index_offset;++k) {
+	                           if (col_coupleBlock_index[k] == i_col-numMyCols) {
                                      /* Entry array(k_Sol, j_Equa) is a block (row_block_size x col_block_size) */
                                      for (ic=0;ic<col_block_size;++ic) { 
                                            i_Sol=ic+col_block_size*l_col;
                                            for (ir=0;ir<row_block_size;++ir) {
                                               i_Equa=ir+row_block_size*l_row;
-		                              coupleBlock_val[k*block_size+ir+row_block_size*ic]+=
+		                              col_coupleBlock_val[k*block_size+ir+row_block_size*ic]+=
                                                       array[INDEX4(i_Equa,i_Sol,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)];
                                            }
                                      }
@@ -151,7 +154,30 @@ void  Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in,dim_t NN_Equa,inde
                            }
                         }
                       }
-                    } /* end i_row check */
+                    } else {
+                      for (k_Sol=0;k_Sol<NN_Sol;++k_Sol) { /* Across rows of array */
+                        j_Sol=Nodes_Sol[k_Sol];
+                        for (l_col=0;l_col<num_subblocks_Sol;++l_col) {
+                           i_col=j_Sol*num_subblocks_Sol+index_offset+l_col;
+                           if (i_col < numMyCols + index_offset ) {
+	                       for (k=row_coupleBlock_ptr[i_row-numMyRows]-index_offset;k<row_coupleBlock_ptr[i_row-numMyRows+1]-index_offset;++k) {
+	                           if (row_coupleBlock_index[k] == i_col) {
+                                     /* Entry array(k_Sol, j_Equa) is a block (row_block_size x col_block_size) */
+                                     for (ic=0;ic<col_block_size;++ic) { 
+                                           i_Sol=ic+col_block_size*l_col;
+                                           for (ir=0;ir<row_block_size;++ir) {
+                                              i_Equa=ir+row_block_size*l_row;
+		                              row_coupleBlock_val[k*block_size+ir+row_block_size*ic]+=
+                                                      array[INDEX4(i_Equa,i_Sol,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)];
+                                           }
+                                     }
+                                     break;
+                                   }
+                               }
+                           }
+                        }
+                      }
+                    }
               }
         }
    }

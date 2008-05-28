@@ -83,7 +83,6 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
 /* barrier synchronization is performed before the evaluation to make sure that the input vector is available */
 void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
     Paso_Solver_Preconditioner* prec=(Paso_Solver_Preconditioner*) A->solver;
-    #pragma omp barrier
     switch (prec->type) {
         default:
         case PASO_JACOBI:

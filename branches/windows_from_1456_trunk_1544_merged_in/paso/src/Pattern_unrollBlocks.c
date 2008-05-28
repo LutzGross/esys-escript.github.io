@@ -68,7 +68,7 @@ Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern* pattern, \
            #pragma omp for private(i) schedule(static)
            for (i=0;i<new_numOutput+1;++i) ptr[i]=index_offset_out;
    
-           #pragma omp master
+           #pragma omp single
            ptr[new_numOutput]=new_len+index_offset_out;
    
            #pragma omp for private(i,k) schedule(static) 

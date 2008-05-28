@@ -84,6 +84,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("blocktimer_increment",blocktimer_increment);
   def("blocktimer_time",blocktimer_time);
   def("getVersion",escript::getSvnVersion);
+  def("printParallelThreadCounts",escript::printParallelThreadCnt);
 
 
   //
