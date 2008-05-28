@@ -36,14 +36,13 @@ __url__="http://www.iservo.edu.au/esys/escript"
 __version__="$Revision: 859 $"
 __date__="$Date: 2006-09-26 12:19:18 +1000 (Tue, 26 Sep 2006) $"
 
-import unittest, sys
+import unittest
 
 from esys.escript import *
 from esys.finley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE
 OPTIMIZE=False
-SOLVER_VERBOSE=False 
-# setNumberOfThreads(2)
+SOLVER_VERBOSE=False
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
@@ -67,11 +66,8 @@ REL_TOL=1.e-6
 FAC_DIAG=1.
 FAC_OFFDIAG=-0.4
 
-
 class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
      def test_solve(self):
-	# Tell about how many MPI CPUs and OpenMP threads
-        printParallelThreadCounts()
         domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
         x=Solution(domain).getX()
         # --- set exact solution ----

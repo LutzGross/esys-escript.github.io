@@ -53,14 +53,17 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   double sampleAvg[NCOMP_MAX], *values, rtmp;
   size_t len_txt_buffer, max_len_names, txt_buffer_in_use;
   FILE * fileHandle_p = NULL;
-  int mpi_size, i_data, i,j , cellType;
-  dim_t nDim, globalNumPoints, numCells, globalNumCells, numVTKNodesPerElement, myNumPoints, numPointsPerSample, rank, nComp, nCompReqd, shape, NN, numCellFactor, myNumCells, max_name_len;
-  bool_t do_write, *isCellCentered=NULL,write_celldata=FALSE,write_pointdata=FALSE;
+  int mpi_size, i, j, cellType;
+  dim_t i_data;
+  dim_t nDim, globalNumPoints, numCells, globalNumCells, numVTKNodesPerElement;
+  dim_t myNumPoints, numPointsPerSample, rank, nComp, nCompReqd;
+  dim_t shape, NN, numCellFactor, myNumCells, max_name_len;
+  bool_t *isCellCentered=NULL,write_celldata=FALSE,write_pointdata=FALSE;
   bool_t set_scalar=FALSE,set_vector=FALSE, set_tensor=FALSE;
   index_t myFirstNode, myLastNode, *globalNodeIndex, k, *node_index, myFirstCell;
   #ifdef PASO_MPI
   int ierr;
-  int amode = MPI_MODE_CREATE | MPI_MODE_WRONLY |  MPI_MODE_SEQUENTIAL; 
+  int amode = MPI_MODE_CREATE | MPI_MODE_WRONLY |  MPI_MODE_SEQUENTIAL;
   MPI_File mpi_fileHandle_p;
   MPI_Status mpi_status;
   MPI_Request mpi_req;
@@ -128,7 +131,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
             /*   MPI_Info_set(mpi_info, "direct_write",          "true"); */
           #endif
           ierr=MPI_File_open(mesh_p->Nodes->MPIInfo->comm, (char*)filename_p, amode,mpi_info, &mpi_fileHandle_p);
-          if (ierr != MPI_SUCCESS) {
+          if (! ierr) {
 	      perror(filename_p);
               sprintf(error_msg, "saveVTK: File %s could not be opened for writing in parallel.", filename_p);
               Finley_setError(IO_ERROR,error_msg);
@@ -590,6 +593,8 @@ void Finley_Mesh_saveVTK(const char * filename_p,
     } else {
        fprintf(fileHandle_p,tags_End_Offset_and_Start_Type);
     }
+    
+      
      /* write element type */
      sprintf(tmp_buffer, INT_NEWLINE_FORMAT, cellType);
      if ( mpi_size > 1) {
@@ -959,11 +964,9 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                MPI_Info_free(&mpi_info);
                #undef MPIO_HINTS
              #endif
+             MPI_File_close(&mpi_fileHandle_p);
           #endif
         }
-        #ifdef PASO_MPI
-           MPI_File_close(&mpi_fileHandle_p);
-        #endif
      } else {
          fprintf(fileHandle_p,footer);
          fclose(fileHandle_p);

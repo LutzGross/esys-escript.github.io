@@ -79,8 +79,6 @@ void Paso_SparseMatrix_saveHB_CSC(Paso_SparseMatrix *, FILE*);
 Paso_SparseMatrix* Paso_SparseMatrix_getSubmatrix(Paso_SparseMatrix* A,dim_t,dim_t,index_t*,index_t*);
 void Paso_SparseMatrix_setValues(Paso_SparseMatrix*,double);
 void Paso_SparseMatrix_saveMM_CSC(Paso_SparseMatrix *, FILE *);
-void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(double alpha, dim_t nRows, dim_t row_block_size, dim_t col_block_size, index_t* ptr, index_t* index, double* val, double* in, double beta, double* out);
-
 
 /*
 void Paso_SparseMatrix_add(Paso_SparseMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);

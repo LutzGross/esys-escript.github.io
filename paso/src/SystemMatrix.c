@@ -49,18 +49,14 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->row_distribution=NULL;
      out->col_distribution=NULL;
      out->mpi_info=Paso_MPIInfo_getReference(pattern->mpi_info);
-     out->row_coupler=NULL;
-     out->col_coupler=NULL;
      out->mainBlock=NULL;
-     out->row_coupleBlock=NULL;
-     out->col_coupleBlock=NULL;
+     out->coupleBlock=NULL;
      out->normalizer_is_valid=FALSE;
      out->normalizer=NULL; 
      out->solver_package=PASO_PASO;  
      out->solver=NULL;  
      out->trilinos_data=NULL;
      out->reference_counter=1;
-
 
      pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? PATTERN_FORMAT_OFFSET1:  PATTERN_FORMAT_DEFAULT;
      /* ====== compressed sparse columns === */
@@ -102,8 +98,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->logical_col_block_size=col_block_size;
      out->logical_block_size=out->logical_row_block_size*out->logical_block_size;
      out->block_size=out->row_block_size*out->col_block_size;
-     out->col_coupler=Paso_Coupler_alloc(pattern->col_connector,out->col_block_size);
-     out->row_coupler=Paso_Coupler_alloc(pattern->row_connector,out->row_block_size);
      /* this should be bypassed if trilinos is used */
      if (type & MATRIX_FORMAT_TRILINOS_CRS) {
         #ifdef TRILINOS
@@ -112,8 +106,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      } else {
         out->solver_package=PASO_PASO;  
         out->mainBlock=Paso_SparseMatrix_alloc(type,out->pattern->mainPattern,row_block_size,col_block_size);
-        out->col_coupleBlock=Paso_SparseMatrix_alloc(type,out->pattern->col_couplePattern,row_block_size,col_block_size);
-        out->row_coupleBlock=Paso_SparseMatrix_alloc(type,out->pattern->row_couplePattern,row_block_size,col_block_size);
+        out->coupleBlock=Paso_SparseMatrix_alloc(type,out->pattern->couplePattern,row_block_size,col_block_size);
         /* allocate memory for matrix entries */
         if (type & MATRIX_FORMAT_CSC) {
            n_norm = out->mainBlock->numCols * out->col_block_size;
@@ -158,11 +151,8 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
         Paso_Distribution_free(in->row_distribution);
         Paso_Distribution_free(in->col_distribution);
         Paso_MPIInfo_free(in->mpi_info);
-        Paso_Coupler_free(in->row_coupler);
-        Paso_Coupler_free(in->col_coupler);
         Paso_SparseMatrix_free(in->mainBlock);
-        Paso_SparseMatrix_free(in->col_coupleBlock);
-        Paso_SparseMatrix_free(in->row_coupleBlock);
+        Paso_SparseMatrix_free(in->coupleBlock);
         MEMFREE(in->normalizer);
         Paso_solve_free(in); 
         #ifdef TRILINOS
@@ -175,32 +165,22 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
      }
    }
 }
-void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A,double* in)
+void Paso_SystemMatrix_allocBuffer(Paso_SystemMatrix* A) {
+   if (! Paso_Coupler_bufferIsAllocated(A->pattern->coupler) ) {
+       Paso_Coupler_allocBuffer(A->pattern->coupler,A->col_block_size);
+   }
+}
+void Paso_SystemMatrix_freeBuffer(Paso_SystemMatrix* A) {
+    Paso_Coupler_freeBuffer(A->pattern->coupler);
+}
+void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A,const double* in)
 {
-  Paso_SystemMatrix_startColCollect(A,in);
+  Paso_Coupler_startCollect(A->pattern->coupler, in);
 }
 double* Paso_SystemMatrix_finishCollect(Paso_SystemMatrix* A)
 {
- return Paso_SystemMatrix_finishColCollect(A);
-}
-
-void  Paso_SystemMatrix_startColCollect(Paso_SystemMatrix* A,double* in)
-{
-  Paso_Coupler_startCollect(A->col_coupler, in);
-}
-double* Paso_SystemMatrix_finishColCollect(Paso_SystemMatrix* A)
-{
- Paso_Coupler_finishCollect(A->col_coupler);
- return A->col_coupler->recv_buffer;
-}
-void  Paso_SystemMatrix_startRowCollect(Paso_SystemMatrix* A,double* in)
-{
-  Paso_Coupler_startCollect(A->row_coupler, in);
-}
-double* Paso_SystemMatrix_finishRowCollect(Paso_SystemMatrix* A)
-{
- Paso_Coupler_finishCollect(A->row_coupler);
- return A->row_coupler->recv_buffer;
+ Paso_Coupler_finishCollect(A->pattern->coupler);
+ return A->pattern->coupler->recv_buffer;
 }
 
 dim_t Paso_SystemMatrix_getTotalNumRows(const Paso_SystemMatrix* A){

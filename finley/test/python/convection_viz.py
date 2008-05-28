@@ -8,7 +8,7 @@
 # The output of convection.py consists of VTK files state.i1.vtu ... state.i2.vtu
 # Specify range of file names:   state.i1.vtu ... state.i2.vtu
 i1 = 0
-i2 = 499
+i2 = 271
 
 
 ################################################################################
@@ -71,9 +71,7 @@ for filName in filList:
 
   # Create a Camera
   cam1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
-  cam1.elevation(angle = 0)
-  cam1.roll(angle = 45)
-  cam1.elevation(angle = -65)
+  cam1.elevation(angle = -60)
 
   # Render the jpg image for this input file
   s.render(image_name = imgName)

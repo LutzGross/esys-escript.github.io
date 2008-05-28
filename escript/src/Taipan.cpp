@@ -335,10 +335,9 @@ Taipan::dump_stats() {
 
   assert(totalElements >= 0);
 
-  float elMb=statTable->allocated_elements*8.0/1048576;
-  float deelMb=statTable->deallocated_elements*8.0/1048576;
-  float tszMb=statTable->max_tab_size*8.0/1048576;
-#ifdef TAIPAN_STATS
+  double elMb=statTable->allocated_elements*8.0/1048576;
+  double deelMb=statTable->deallocated_elements*8.0/1048576;
+  double tszMb=statTable->max_tab_size*8.0/1048576;
   cout << "======= escript Mem Stats ===========================" << endl;
   cout << "Total Num requests:             " << statTable->requests << endl;
   cout << "Total Num releases:             " << statTable->frees << endl;
@@ -350,7 +349,6 @@ Taipan::dump_stats() {
   cout << "Curr Num arrays:                " << num_arrays() << endl;
   cout << "Curr Num elements in buffer:    " << num_elements() << endl;
   cout << "==================================================" << endl;
-#endif
 }
 
 void

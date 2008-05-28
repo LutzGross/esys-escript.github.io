@@ -28,7 +28,7 @@
 
 void Finley_ElementFile_createColoring(Finley_ElementFile* in,dim_t numNodes, index_t* degreeOfFreedom) {
     dim_t e,i,numUncoloredElements,n,len,NN;
-    index_t *maskDOF,color,min_id,max_id;
+    index_t *maskDOF,min_id,max_id;
     bool_t independent;
 
     if (in==NULL) return;

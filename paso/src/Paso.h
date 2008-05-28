@@ -59,8 +59,5 @@ void Paso_setError(Paso_ErrorCodeType err,char* msg);
 bool_t Paso_noError(void);
 Paso_ErrorCodeType Paso_getErrorType(void);
 char* Paso_getErrorMessage(void);
-#ifndef _OPENMP 
-int omp_get_max_threads(void);
-#endif
 
 #endif /* #ifndef INC_PASO */

@@ -77,7 +77,7 @@ void Finley_IndexList_insertElementsWithRowRange(Finley_IndexList* index_list, i
                                                  Finley_ElementFile* elements, index_t* row_map, index_t* col_map)
 {
   index_t color;
-  dim_t e,kr,kc,i,icol,irow, NN;
+  dim_t e,kr,kc,icol,irow, NN;
   if (elements!=NULL) {
     NN=elements->numNodes;
     for (color=elements->minColor;color<=elements->maxColor;color++) {
@@ -171,36 +171,36 @@ void Finley_IndexList_free(Finley_IndexList* in) {
 }
 
 /* creates a Paso_pattern from a range of indices */
-Paso_Pattern* Finley_IndexList_createPattern(dim_t n0, dim_t n,Finley_IndexList* index_list,index_t range_min,index_t range_max,index_t index_offset)
+Paso_Pattern* Finley_IndexList_createPattern(dim_t n,Finley_IndexList* index_list,index_t range_min,index_t range_max,index_t index_offset)
 {
    dim_t *ptr=NULL;
    register dim_t s,i,itmp;
    index_t *index=NULL;
    Paso_Pattern* out=NULL;
 
-   ptr=MEMALLOC(n+1-n0,index_t);
+   ptr=MEMALLOC(n+1,index_t);
    if (! Finley_checkPtr(ptr) ) {
        /* get the number of connections per row */
        #pragma omp parallel for schedule(static) private(i)
-       for(i=n0;i<n;++i) {
-              ptr[i-n0]=Finley_IndexList_count(&index_list[i],range_min,range_max);
+       for(i=0;i<n;++i) {
+              ptr[i]=Finley_IndexList_count(&index_list[i],range_min,range_max);
        }
        /* accumulate ptr */
        s=0;
-       for(i=n0;i<n;++i) {
-               itmp=ptr[i-n0];
-               ptr[i-n0]=s;
+       for(i=0;i<n;++i) {
+               itmp=ptr[i];
+               ptr[i]=s;
                s+=itmp;
        }
-       ptr[n-n0]=s;
+       ptr[n]=s;
        /* fill index */
-       index=MEMALLOC(ptr[n-n0],index_t);
+       index=MEMALLOC(ptr[n],index_t);
        if (! Finley_checkPtr(index)) {
               #pragma omp parallel for schedule(static)
-              for(i=n0;i<n;++i) {
-                  Finley_IndexList_toArray(&index_list[i],&index[ptr[i-n0]],range_min,range_max,index_offset);
+              for(i=0;i<n;++i) {
+                  Finley_IndexList_toArray(&index_list[i],&index[ptr[i]],range_min,range_max,index_offset);
               }
-              out=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,n-n0,ptr,index);
+              out=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,n,ptr,index);
        }
   }
   if (! Finley_noError()) {

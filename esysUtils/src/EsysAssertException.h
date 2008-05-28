@@ -19,7 +19,6 @@
 
 #include "EsysException.h"
 
-
 namespace esysUtils {
 
   /**
@@ -42,41 +41,62 @@ namespace esysUtils {
     \brief
     Default constructor for the exception.
     */
+    ESYSUTILS_DLL_API
+    inline
     EsysAssertException() : Parent() { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
+    ESYSUTILS_DLL_API
+    inline
     EsysAssertException(const char *cstr) : Parent(cstr) { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
+    ESYSUTILS_DLL_API
+    inline
     EsysAssertException(const std::string &str) :
     Parent(str) { updateMessage();}
     /**
     \brief
     Copy Constructor for the exception.
     */
+    ESYSUTILS_DLL_API
+    inline
     EsysAssertException(const EsysAssertException &other) : Parent(other)
       {
         updateMessage();
       }
 
+    ESYSUTILS_DLL_API
+    inline virtual
+    EsysAssertException &
+    operator=(const EsysAssertException &other) THROW_ANY
+        {
+           Parent::operator=(other);
+           updateMessage();   
+           return *this;
+        }
+
 
     /// Destructor
-    virtual ~EsysAssertException() THROW() {}
+    ESYSUTILS_DLL_API
+    virtual ~EsysAssertException() THROW_ANY {}
 
     /**
     \brief
     Returns the name of the exception.
     */
+    ESYSUTILS_DLL_API
     virtual const std::string & exceptionName() const;
 
     /**
     \brief
     Builds a formatted message and throws an EsysAssertException.
     */
+    ESYSUTILS_DLL_API
     static void assertFailure (const std::string& assertion,
                                const std::string& date,
                                const std::string& file,

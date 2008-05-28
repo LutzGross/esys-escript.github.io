@@ -326,15 +326,15 @@ void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b) {
      } else {
         /* b->[b_F,b_C]     */
         if (n_block==1) {
-           #pragma omp parallel for private(i) schedule(static)
+           #pragma omp for private(i) schedule(static)
            for (i=0;i<rilu->n_F;++i) rilu->b_F[i]=b[rilu->rows_in_F[i]];
-           #pragma omp parallel for private(i) schedule(static)
+           #pragma omp for private(i) schedule(static)
            for (i=0;i<rilu->n_C;++i) rilu->b_C[i]=b[rilu->rows_in_C[i]];
         } else {
-           #pragma omp parallel for private(i,k) schedule(static)
+           #pragma omp for private(i,k) schedule(static)
            for (i=0;i<rilu->n_F;++i) 
                  for (k=0;k<n_block;k++) rilu->b_F[rilu->n_block*i+k]=b[n_block*rilu->rows_in_F[i]+k];
-           #pragma omp parallel for private(i,k) schedule(static)
+           #pragma omp for private(i,k) schedule(static)
            for (i=0;i<rilu->n_C;++i) 
                  for (k=0;k<n_block;k++) rilu->b_C[rilu->n_block*i+k]=b[n_block*rilu->rows_in_C[i]+k];
         }
@@ -350,7 +350,7 @@ void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b) {
         Paso_Solver_applyBlockDiagonalMatrix(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,rilu->x_F,rilu->b_F);
         /* x<-[x_F,x_C]     */
         if (n_block==1) {
-           #pragma omp parallel for private(i) schedule(static)
+           #pragma omp for private(i) schedule(static)
            for (i=0;i<rilu->n;++i) {
               if (rilu->mask_C[i]>-1) {
                   x[i]=rilu->x_C[rilu->mask_C[i]];
@@ -359,7 +359,7 @@ void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b) {
               }
            }
         } else {
-           #pragma omp parallel for private(i,k) schedule(static)
+           #pragma omp for private(i,k) schedule(static)
            for (i=0;i<rilu->n;++i) {
                  if (rilu->mask_C[i]>-1) {
                      for (k=0;k<n_block;k++) x[n_block*i+k]=rilu->x_C[n_block*rilu->mask_C[i]+k];

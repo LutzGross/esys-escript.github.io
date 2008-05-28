@@ -34,10 +34,6 @@
 #include <math.h>
 #endif
 
-#if (defined __OPENMP)
-#include <omp.h>
-#endif
-
 #include <float.h>
 #include <stdio.h>
 #include <limits.h>
@@ -81,12 +77,6 @@ typedef int err_t;
 #define MIN3(_arg1_,_arg2_,_arg3_) MIN(_arg1_,MIN(_arg2_,_arg3_))
 #define ABS(_arg_) MAX((_arg_),-(_arg_))
 #define SIGN(_arg_) ((_arg_)>0 ?  1  : ((_arg_)<0 ? -1 : 0 ))
-#define SWAP(_a0_,_a1_,_type_) { \
-                                _type_ s; \
-                                s=(_a0_); \
-                                _a0_= (_a1_); \
-                                _a1_=s; \
-                               }
 /**************************************************************/
 
 /*    memory allocation:                                      */

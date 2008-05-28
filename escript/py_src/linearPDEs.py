@@ -2422,7 +2422,7 @@ class TransportPDE(object):
      def solve(self,dt,**kwarg):
            if self.__useSUPG:
                 if self.__reassemble:
-                    self.__pde.setValue(D=self.__M,d=self.__d,d_contact=self.__d_contact,q=self.__q) # ,r=self.__r)
+                    self.__pde.setValue(D=self.__M,d=self.__d,d_contact=self.__d_contact,q=self.__q)
                     self.__reassemble=False
                 dt2=self.getSafeTimeStepSize()
                 nn=max(math.ceil(dt/self.getSafeTimeStepSize()),1.)
@@ -2447,7 +2447,6 @@ class TransportPDE(object):
             X=0
             Y=self.__M*u0
             X=0
-            self.__pde.setValue(r=u0)
             if not self.__A.isEmpty():
                X=X+dt*util.matrixmult(self.__A,g)
             if not self.__B.isEmpty():

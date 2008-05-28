@@ -88,12 +88,6 @@ double Paso_timer(void) {
 #endif
   return out;
 }
-#ifndef _OPENMP 
-int omp_get_max_threads(void) {
-  return 1;
-}
-#endif
-
 
 /* return the error code */
 Paso_ErrorCodeType Paso_getErrorType(void) {

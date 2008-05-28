@@ -68,10 +68,20 @@ namespace escript {
    {
    }
 
+   DataArrayView &
+   DataArrayView::operator=(const DataArrayView& other)
+   {
+      m_data = other.m_data;
+      m_offset = other.m_offset;
+      m_shape = other.m_shape;
+      m_noValues = other.m_noValues;
+      return *this;
+   }
+
    bool
    DataArrayView::isEmpty() const
    {
-      return (m_data==0);
+      return (m_data==NULL);
    }
 
    void

@@ -24,7 +24,10 @@
 /* allocate memory for an mpi_comm, and find the communicator details */
 Paso_MPIInfo* Paso_MPIInfo_alloc( MPI_Comm comm )
 {
-  int error;
+  #ifdef PASO_MPI
+    int error;
+  #endif
+
   Paso_MPIInfo *out=NULL;
 
   out = MEMALLOC( 1, Paso_MPIInfo );

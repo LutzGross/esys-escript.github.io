@@ -31,7 +31,7 @@ except KeyError:
 
 NE=6
 TOL=1.e-5
-VERBOSE=False or True
+VERBOSE=False
 
 from esys.escript import *
 from esys.escript.models import StokesProblemCartesian
@@ -763,7 +763,7 @@ class Test_Simple3DModels(unittest.TestCase):
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_Simple2DModels))
-   # suite.addTest(unittest.makeSuite(Test_Simple3DModels))
+   suite.addTest(unittest.makeSuite(Test_Simple3DModels))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
 

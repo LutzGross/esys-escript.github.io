@@ -163,12 +163,9 @@ void finley::SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
   fprintf(stdout, "\tmainBlock numRows %d\n", mat->mainBlock->numRows);
   fprintf(stdout, "\tmainBlock numCols %d\n", mat->mainBlock->numCols);
   fprintf(stdout, "\tmainBlock pattern numOutput %d\n", mat->mainBlock->pattern->numOutput);
-  fprintf(stdout, "\tcol_coupleBlock numRows %d\n", mat->col_coupleBlock->numRows);
-  fprintf(stdout, "\tcol_coupleBlock numCols %d\n", mat->col_coupleBlock->numCols);
-  fprintf(stdout, "\tcol_coupleBlock pattern numOutput %d\n", mat->col_coupleBlock->pattern->numOutput);
-  fprintf(stdout, "\trow_coupleBlock numRows %d\n", mat->row_coupleBlock->numRows);
-  fprintf(stdout, "\trow_coupleBlock numCols %d\n", mat->row_coupleBlock->numCols);
-  fprintf(stdout, "\trow_coupleBlock pattern numOutput %d\n", mat->row_coupleBlock->pattern->numOutput);
+  fprintf(stdout, "\tcoupleBlock numRows %d\n", mat->coupleBlock->numRows);
+  fprintf(stdout, "\tcoupleBlock numCols %d\n", mat->coupleBlock->numCols);
+  fprintf(stdout, "\tcoupleBlock pattern numOutput %d\n", mat->coupleBlock->pattern->numOutput);
   fprintf(stdout, "\trow_block_size %d\n", mat->row_block_size);
   fprintf(stdout, "\tcol_block_size %d\n", mat->col_block_size);
   fprintf(stdout, "\tblock_size %d\n", mat->block_size);

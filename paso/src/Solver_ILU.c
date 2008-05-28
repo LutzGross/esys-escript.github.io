@@ -52,7 +52,6 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
   dim_t n_block=A->row_block_size;
   index_t num_colors=0, *mis_marker=NULL;
   register double A11,A12,A13,A21,A22,A23,A31,A32,A33,D;
-  register double mainA11,mainA12,mainA13,mainA21,mainA22,mainA23,mainA31,mainA32,mainA33;
   register double S11,S12,S13,S21,S22,S23,S31,S32,S33;
   register index_t i,iptr_main,iptr,iptr_ik,k,iptr_kj,j,iptr_ij,color,color2;
   double time0,time_color,time_fac;
@@ -353,12 +352,12 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b) {
      
      
      /* copy x into b*/
-     #pragma omp parallel for private(i) schedule(static)
+     #pragma omp for private(i) schedule(static)
      for (i=0;i<n*n_block;++i) x[i]=b[i];
      /* forward substitution */
      for (color=0;color<ilu->num_colors;++color) {
            if (n_block==1) {
-              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,R1,iptr_main)
+              #pragma omp for schedule(static) private(i,iptr_ik,k,S1,R1,iptr_main)
               for (i = 0; i < n; ++i) {
                    if (ilu->colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */                     
@@ -375,7 +374,7 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b) {
                    }
               }
            } else if (n_block==2) {
-              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,iptr_main,S1,S2,R1,R2)
+              #pragma omp for schedule(static) private(i,iptr_ik,k,iptr_main,S1,S2,R1,R2)
               for (i = 0; i < n; ++i) {
                    if (ilu->colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
@@ -397,7 +396,7 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b) {
 
               }
            } else if (n_block==3) {
-              #pragma omp parallel for schedule(static) private(i,iptr_ik,iptr_main,k,S1,S2,S3,R1,R2,R3)
+              #pragma omp for schedule(static) private(i,iptr_ik,iptr_main,k,S1,S2,S3,R1,R2,R3)
               for (i = 0; i < n; ++i) {
                    if (ilu->colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
@@ -422,11 +421,12 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b) {
                  }
               }
            }
+           #pragma omp barrier
      }
      /* backward substitution */
      for (color=(ilu->num_colors)-1;color>-1;--color) {
            if (n_block==1) {
-              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,R1)
+              #pragma omp for schedule(static) private(i,iptr_ik,k,S1,R1)
               for (i = 0; i < n; ++i) {
                    if (ilu->colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
@@ -442,7 +442,7 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b) {
                    }
               }
            } else if (n_block==2) {
-              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,S2,R1,R2)
+              #pragma omp for schedule(static) private(i,iptr_ik,k,S1,S2,R1,R2)
               for (i = 0; i < n; ++i) {
                    if (ilu->colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
@@ -462,7 +462,7 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b) {
                    }
               }
            } else if (n_block==3) {
-              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,S2,S3,R1,R2,R3)
+              #pragma omp for schedule(static) private(i,iptr_ik,k,S1,S2,S3,R1,R2,R3)
               for (i = 0; i < n; ++i) {
                    if (ilu->colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */

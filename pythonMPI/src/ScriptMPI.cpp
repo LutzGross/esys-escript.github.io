@@ -25,7 +25,6 @@ extern "C"{
 
 int main( int argc, char **argv ) {
   int status = 0;
-  int provided;
   Paso_MPIInfo *mpi_info=NULL;
   try
   {

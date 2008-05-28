@@ -33,8 +33,6 @@
 
 typedef struct Paso_SharedComponents {
 
-  dim_t local_length;        /* local array length shared */
-
   dim_t numNeighbors;        /* number of processor sharing values with this processor */
 
   index_t* offsetInShared; /* offsetInSharedInput[i] points to the first input value in array shared
@@ -53,8 +51,7 @@ typedef struct Paso_SharedComponents {
 } Paso_SharedComponents;
 
 
-Paso_SharedComponents* Paso_SharedComponents_alloc(dim_t local_length,
-                                                   dim_t numNeighbors,
+Paso_SharedComponents* Paso_SharedComponents_alloc(dim_t numNeighbors,
                                                    Paso_MPI_rank* neighbor,
                                                    index_t* shared,
                                                    index_t* offsetInShared,

@@ -27,7 +27,7 @@
 
 void Finley_ElementFile_markNodes(index_t* mask,index_t offset,Finley_ElementFile* in,bool_t useLinear) {
    dim_t i,NN,NN2,e;
-   index_t color,*lin_node,*id=NULL;
+   index_t *lin_node,*id=NULL;
    if (in!=NULL) {
      id=TMPMEMALLOC(in->ReferenceElement->Type->numNodes, index_t);
      if (! Finley_checkPtr(id) ){

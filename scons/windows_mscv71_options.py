@@ -14,6 +14,7 @@
 #######################################################
 #
 
+
 import os
 
 source_root = os.path.realpath('.')
@@ -24,11 +25,11 @@ libinstall = os.path.join(source_root,'lib')
 exinstall = os.path.join(source_root,'examples')
 
 # locations of include files for python
-python_root = 'C:/python25'
+python_root = 'C:/python24'
 python_cmd = os.path.join(python_root,'python')
 python_path =  os.path.join(python_root,'include')
 python_lib_path = os.path.join(python_root,'libs')
-python_lib = 'python25'
+python_lib = 'python24'
 
 # locations of libraries for boost
 dotdot = os.path.realpath('..')
@@ -50,11 +51,16 @@ cc_defines = ['_USE_MATH_DEFINES']
 cc_common_flags = '/FD /EHsc /GR /wd4068 '
 cc_flags  = cc_common_flags + '/O2 /Op /MT /W3'
 
-cc_flags_debug  = cc_common_flags + '/Od /RTC1 /MTd /ZI'
+cc_flags_debug  = cc_common_flags + '/Od /RTC1 /MTd /ZI /Yd /Y-'
 
 # c++ flags to use
 cxx_flags = ''
 cxx_flags_debug = ''
+
+# linker flags to use
+#link_flags = ''
+link_flags_debug = '/debug /incremental:no /opt:ref /opt:icf'
+
 # static library archiver flags to use
 #ar_flags = 'crus'
 

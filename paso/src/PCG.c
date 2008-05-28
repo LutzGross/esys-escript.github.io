@@ -63,12 +63,6 @@
 *  ==============================================================
 */
 
-/* #define PASO_DYNAMIC_SCHEDULING_MVM */
-
-#if defined PASO_DYNAMIC_SCHEDULING_MVM && defined __OPENMP 
-#define USE_DYNAMIC_SCHEDULING
-#endif
-
 err_t Paso_Solver_PCG(
     Paso_SystemMatrix * A,
     double * r,
@@ -77,30 +71,21 @@ err_t Paso_Solver_PCG(
     double * tolerance,
     Paso_Performance* pp) {
 
+
   /* Local variables */
-  dim_t num_iter=0,maxit,num_iter_global, chunk_size=-1, len,rest, n_chunks, np, ipp;
-  register double ss,ss1;
-  dim_t i0, istart, iend;
+  dim_t num_iter=0,maxit,num_iter_global;
+  dim_t i0;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   err_t status = SOLVER_NO_ERROR;
   dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
   double *resid = tolerance, *rs=NULL, *p=NULL, *v=NULL, *x2=NULL ;
   double tau_old,tau,beta,delta,gamma_1,gamma_2,alpha,sum_1,sum_2,sum_3,sum_4,sum_5,tol;
-  double norm_of_residual,norm_of_residual_global, loc_sum[2], sum[2];
-  register double r_tmp,d,rs_tmp,x2_tmp,x_tmp;
-  char* chksz_chr;
-  np=omp_get_max_threads();
-
-#ifdef USE_DYNAMIC_SCHEDULING
-    chksz_chr=getenv("PASO_CHUNK_SIZE_PCG");
-    if (chksz_chr!=NULL) sscanf(chksz_chr, "%d",&chunk_size);
-    chunk_size=MIN(MAX(1,chunk_size),n/np);
-    n_chunks=n/chunk_size;
-    if (n_chunks*chunk_size<n) n_chunks+=1;
-#else
-    len=n/np;
-    rest=n-len*np;
+#ifdef PASO_MPI
+  double loc_sum[2], sum[2];
 #endif
+  double norm_of_residual,norm_of_residual_global;
+  register double d;
+
 /*                                                                 */
 /*-----------------------------------------------------------------*/
 /*                                                                 */
@@ -122,38 +107,35 @@ err_t Paso_Solver_PCG(
   } else {
     maxit = *iter;
     tol = *resid;
-    Performance_startMonitor(pp,PERFORMANCE_SOLVER);
-    /* initialize data */
-    #pragma omp parallel private(i0, istart, iend, ipp)
+    #pragma omp parallel firstprivate(maxit,tol,convergeFlag,maxIterFlag,breakFlag) \
+                                           private(tau_old,tau,beta,delta,gamma_1,gamma_2,alpha,norm_of_residual,num_iter)
     {
-       #ifdef USE_DYNAMIC_SCHEDULING
-           #pragma omp for schedule(dynamic, 1)
-           for (ipp=0; ipp < n_chunks; ++ipp) {
-              istart=chunk_size*ipp;
-              iend=MIN(istart+chunk_size,n);
-       #else
-           #pragma omp for schedule(static)
-           for (ipp=0; ipp <np; ++ipp) {
-               istart=len*ipp+MIN(ipp,rest);
-               iend=len*(ipp+1)+MIN(ipp+1,rest);
-       #endif
-               #pragma ivdep
-               for (i0=istart;i0<iend;i0++) {
-                 rs[i0]=r[i0];
-                 x2[i0]=x[i0];
-                 p[i0]=0;
-                 v[i0]=0;
-               } 
-       #ifdef USE_DYNAMIC_SCHEDULING
-         }
-       #else
-         }
-       #endif
-    }
-    num_iter=0;
-    /* start of iteration */
-    while (!(convergeFlag || maxIterFlag || breakFlag)) {
+       Performance_startMonitor(pp,PERFORMANCE_SOLVER);
+       /* initialize data */
+       #pragma omp for private(i0) schedule(static)
+       for (i0=0;i0<n;i0++) {
+          rs[i0]=r[i0];
+          x2[i0]=x[i0];
+       } 
+       #pragma omp for private(i0) schedule(static)
+       for (i0=0;i0<n;i0++) {
+          p[i0]=0;
+          v[i0]=0;
+       } 
+       num_iter=0;
+       tau = 0;
+       /* start of iteration */
+       while (!(convergeFlag || maxIterFlag || breakFlag)) {
            ++(num_iter);
+           #pragma omp barrier
+           #pragma omp master
+           {
+	       sum_1 = 0;
+	       sum_2 = 0;
+	       sum_3 = 0;
+	       sum_4 = 0;
+	       sum_5 = 0;
+           }
            /* v=prec(r)  */
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
@@ -161,208 +143,105 @@ err_t Paso_Solver_PCG(
            Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
            /* tau=v*r    */
-	   sum_1 = 0;
-           #pragma omp parallel private(i0, istart, iend, ipp, ss)
-           {
-                  ss=0;
-                  #ifdef USE_DYNAMIC_SCHEDULING
-                      #pragma omp for schedule(dynamic, 1)
-                      for (ipp=0; ipp < n_chunks; ++ipp) {
-                         istart=chunk_size*ipp;
-                         iend=MIN(istart+chunk_size,n);
-                  #else
-                      #pragma omp for schedule(static) 
-                      for (ipp=0; ipp <np; ++ipp) {
-                          istart=len*ipp+MIN(ipp,rest);
-                          iend=len*(ipp+1)+MIN(ipp+1,rest);
-                  #endif
- 			  #pragma ivdep
-                          for (i0=istart;i0<iend;i0++) ss+=v[i0]*r[i0];
-                  #ifdef USE_DYNAMIC_SCHEDULING
-                    }
-                  #else
-                    }
-                  #endif
-                  #pragma omp critical
-                  {
-                     sum_1+=ss;
-                  }
-           }
+           #pragma omp for private(i0) reduction(+:sum_1) schedule(static)
+           for (i0=0;i0<n;i0++) sum_1+=v[i0]*r[i0]; /* Limit to local values of v[] and r[] */
            #ifdef PASO_MPI
 	        /* In case we have many MPI processes, each of which may have several OMP threads:
 	           OMP master participates in an MPI reduction to get global sum_1 */
-	        loc_saum[0] = sum_1;
-	        MPI_Allreduce(loc_sum, &sum_1, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+                #pragma omp master
+	        {
+	          loc_sum[0] = sum_1;
+	          MPI_Allreduce(loc_sum, &sum_1, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+	        }
            #endif
            tau_old=tau;
            tau=sum_1;
            /* p=v+beta*p */
-           #pragma omp parallel private(i0, istart, iend, ipp,beta)
-           {
-                  #ifdef USE_DYNAMIC_SCHEDULING
-                      #pragma omp for schedule(dynamic, 1)
-                      for (ipp=0; ipp < n_chunks; ++ipp) {
-                         istart=chunk_size*ipp;
-                         iend=MIN(istart+chunk_size,n);
-                  #else
-                      #pragma omp for schedule(static)
-                      for (ipp=0; ipp <np; ++ipp) {
-                          istart=len*ipp+MIN(ipp,rest);
-                          iend=len*(ipp+1)+MIN(ipp+1,rest);
-                  #endif
-                          if (num_iter==1) {
- 			      #pragma ivdep
-                              for (i0=istart;i0<iend;i0++) p[i0]=v[i0];
-                          } else {
-                              beta=tau/tau_old;
- 			      #pragma ivdep
-                              for (i0=istart;i0<iend;i0++) p[i0]=v[i0]+beta*p[i0];
-                          }
-                  #ifdef USE_DYNAMIC_SCHEDULING
-                    }
-                  #else
-                    }
-                  #endif
+           if (num_iter==1) {
+               #pragma omp for private(i0)  schedule(static)
+               for (i0=0;i0<n;i0++) p[i0]=v[i0];
+           } else {
+               beta=tau/tau_old;
+               #pragma omp for private(i0)  schedule(static)
+               for (i0=0;i0<n;i0++) p[i0]=v[i0]+beta*p[i0];
            }
            /* v=A*p */
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_MVM);
 	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, p,ZERO,v);
+	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, p,ZERO,v);
            Performance_stopMonitor(pp,PERFORMANCE_MVM);
            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
-
            /* delta=p*v */
-	   sum_2 = 0;
-           #pragma omp parallel private(i0, istart, iend, ipp,ss)
-           {
-                  ss=0;
-                  #ifdef USE_DYNAMIC_SCHEDULING
-                      #pragma omp for schedule(dynamic, 1)
-                      for (ipp=0; ipp < n_chunks; ++ipp) {
-                         istart=chunk_size*ipp;
-                         iend=MIN(istart+chunk_size,n);
-                  #else
-                      #pragma omp for schedule(static)
-                      for (ipp=0; ipp <np; ++ipp) {
-                          istart=len*ipp+MIN(ipp,rest);
-                          iend=len*(ipp+1)+MIN(ipp+1,rest);
-                  #endif
- 			  #pragma ivdep
-                          for (i0=istart;i0<iend;i0++) ss+=v[i0]*p[i0];
-                  #ifdef USE_DYNAMIC_SCHEDULING
-                    }
-                  #else
-                    }
-                  #endif
-                  #pragma omp critical
-                  {
-                             sum_2+=ss;
-                  }
-           }
+           #pragma omp for private(i0) reduction(+:sum_2) schedule(static)
+           for (i0=0;i0<n;i0++) sum_2+=v[i0]*p[i0];
            #ifdef PASO_MPI
-	      loc_sum[0] = sum_2;
-	      MPI_Allreduce(loc_sum, &sum_2, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+               #pragma omp master
+	       {
+	         loc_sum[0] = sum_2;
+	         MPI_Allreduce(loc_sum, &sum_2, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+	       }
            #endif
            delta=sum_2;
-           alpha=tau/delta;
+
    
            if (! (breakFlag = (ABS(delta) <= TOLERANCE_FOR_SCALARS))) {
+               alpha=tau/delta;
                /* smoother */
-	       sum_3 = 0;
-	       sum_4 = 0;
-               #pragma omp parallel private(i0, istart, iend, ipp,d, ss, ss1)
-               {
-                  ss=0;
-                  ss1=0;
-                  #ifdef USE_DYNAMIC_SCHEDULING
-                      #pragma omp for schedule(dynamic, 1)
-                      for (ipp=0; ipp < n_chunks; ++ipp) {
-                         istart=chunk_size*ipp;
-                         iend=MIN(istart+chunk_size,n);
-                  #else
-                      #pragma omp for schedule(static)
-                      for (ipp=0; ipp <np; ++ipp) {
-                          istart=len*ipp+MIN(ipp,rest);
-                          iend=len*(ipp+1)+MIN(ipp+1,rest);
-                  #endif
- 			  #pragma ivdep
-                          for (i0=istart;i0<iend;i0++) {
-                                r[i0]-=alpha*v[i0];
-                                d=r[i0]-rs[i0];
-                                ss+=d*d;
-                                ss1+=d*rs[i0];
-                          }
-                  #ifdef USE_DYNAMIC_SCHEDULING
-                    }
-                  #else
-                    }
-                  #endif
-                  #pragma omp critical
-                  {
-                     sum_3+=ss;
-                     sum_4+=ss1;
-                  }
+               #pragma omp for private(i0) schedule(static)
+               for (i0=0;i0<n;i0++) r[i0]-=alpha*v[i0];
+               #pragma omp for private(i0,d) reduction(+:sum_3,sum_4) schedule(static)
+               for (i0=0;i0<n;i0++) {
+                     d=r[i0]-rs[i0];
+                     sum_3+=d*d;
+                     sum_4+=d*rs[i0];
                }
                #ifdef PASO_MPI
-	           loc_sum[0] = sum_3;
-	           loc_sum[1] = sum_4;
-	           MPI_Allreduce(loc_sum, sum, 2, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-	           sum_3=sum[0];
-	           sum_4=sum[1];
+                   #pragma omp master
+	           {
+	             loc_sum[0] = sum_3;
+	             loc_sum[1] = sum_4;
+	             MPI_Allreduce(loc_sum, sum, 2, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+	             sum_3=sum[0];
+	             sum_4=sum[1];
+	           }
                 #endif
-	        sum_5 = 0;
-                #pragma omp parallel private(i0, istart, iend, ipp, ss, gamma_1,gamma_2)
-                {
-                  gamma_1= ( (ABS(sum_3)<= ZERO) ? 0 : -sum_4/sum_3) ;
-                  gamma_2= ONE-gamma_1;
-                  ss=0;
-                  #ifdef USE_DYNAMIC_SCHEDULING
-                      #pragma omp for schedule(dynamic, 1)
-                      for (ipp=0; ipp < n_chunks; ++ipp) {
-                         istart=chunk_size*ipp;
-                         iend=MIN(istart+chunk_size,n);
-                  #else
-                      #pragma omp for schedule(static)
-                      for (ipp=0; ipp <np; ++ipp) {
-                          istart=len*ipp+MIN(ipp,rest);
-                          iend=len*(ipp+1)+MIN(ipp+1,rest);
-                  #endif
- 			  #pragma ivdep
-                          for (i0=istart;i0<iend;i0++) {
-                              rs[i0]=gamma_2*rs[i0]+gamma_1*r[i0];
-                              x2[i0]+=alpha*p[i0];
-                              x[i0]=gamma_2*x[i0]+gamma_1*x2[i0];
-                              ss+=rs[i0]*rs[i0];
-                          }
-                  #ifdef USE_DYNAMIC_SCHEDULING
-                    }
-                  #else
-                    }
-                  #endif
-                  #pragma omp critical
-                  {
-                      sum_5+=ss;
-                  }
+                gamma_1= ( (ABS(sum_3)<= ZERO) ? 0 : -sum_4/sum_3) ;
+                gamma_2= ONE-gamma_1;
+                #pragma omp for private(i0) schedule(static)
+                for (i0=0;i0<n;++i0) {
+                  rs[i0]=gamma_2*rs[i0]+gamma_1*r[i0];
+                  x2[i0]+=alpha*p[i0];
+                  x[i0]=gamma_2*x[i0]+gamma_1*x2[i0];
                 }
+                #pragma omp for private(i0) reduction(+:sum_5) schedule(static)
+                for (i0=0;i0<n;++i0) sum_5+=rs[i0]*rs[i0];
                 #ifdef PASO_MPI
-	           loc_sum[0] = sum_5;
-	           MPI_Allreduce(loc_sum, &sum_5, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+                   #pragma omp master
+	           {
+	              loc_sum[0] = sum_5;
+	              MPI_Allreduce(loc_sum, &sum_5, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+	           }
                 #endif
                 norm_of_residual=sqrt(sum_5);
                 convergeFlag = norm_of_residual <= tol;
                 maxIterFlag = num_iter == maxit;
                 breakFlag = (ABS(tau) <= TOLERANCE_FOR_SCALARS);
            }
-    }
-    /* end of iteration */
-    num_iter_global=num_iter;
-    norm_of_residual_global=norm_of_residual;
-    if (maxIterFlag) {
-         status = SOLVER_MAXITER_REACHED;
-    } else if (breakFlag) {
-         status = SOLVER_BREAKDOWN;
-    }
-    Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
+       }
+       /* end of iteration */
+       #pragma omp master
+       {
+           num_iter_global=num_iter;
+           norm_of_residual_global=norm_of_residual;
+           if (maxIterFlag) {
+               status = SOLVER_MAXITER_REACHED;
+           } else if (breakFlag) {
+               status = SOLVER_BREAKDOWN;
+           }
+       }
+       Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
+    }  /* end of parallel region */
     TMPMEMFREE(rs);
     TMPMEMFREE(x2);
     TMPMEMFREE(v);

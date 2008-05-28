@@ -107,7 +107,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	Paso_SystemMatrixPattern *pattern = NULL;
 	Paso_SystemMatrix *out = NULL;
         Paso_SharedComponents *send =NULL;
-        Paso_Connector *connector=NULL;
+        Paso_Coupler *coupler=NULL;
 	int i, curr_row;
 	MM_typecode matrixCode;
         Paso_MPIInfo* mpi_info=Paso_MPIInfo_alloc( MPI_COMM_WORLD);
@@ -198,10 +198,10 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
         input_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
         mainPattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,M,row_ptr,row_ind);
         couplePattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,M,NULL,NULL);
-        send=Paso_SharedComponents_alloc(M,0,NULL,NULL,NULL,1,0,mpi_info);
-        connector=Paso_Connector_alloc(send,send);
+        send=Paso_SharedComponents_alloc(0,NULL,NULL,NULL,1,0,mpi_info);
+        coupler=Paso_Coupler_alloc(send,send);
         pattern=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,output_dist,input_dist,
-                                               mainPattern,couplePattern,couplePattern,connector,connector);
+                                               mainPattern,couplePattern,coupler);
 
  	out = Paso_SystemMatrix_alloc(MATRIX_FORMAT_DEFAULT, pattern, 1, 1);
 	/* copy values and cleanup temps */
@@ -210,7 +210,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
         Paso_SystemMatrixPattern_free(pattern);
         Paso_Pattern_free(mainPattern);
         Paso_Pattern_free(couplePattern);
-        Paso_Connector_free(connector);
+        Paso_Coupler_free(coupler);
         Paso_Distribution_free(output_dist);
         Paso_Distribution_free(input_dist);
 	Paso_SharedComponents_free(send);
@@ -230,7 +230,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	Paso_SystemMatrixPattern *pattern = NULL;
 	Paso_SystemMatrix *out = NULL;
         Paso_SharedComponents *send =NULL;
-        Paso_Connector *connector=NULL;
+        Paso_Coupler *coupler=NULL;
 	index_t *col_ind = NULL;
 	index_t *row_ind = NULL;
 	index_t *col_ptr = NULL;
@@ -316,10 +316,10 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
         input_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
         mainPattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,N,col_ptr,col_ind);
         couplePattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,N,NULL,NULL);
-        send=Paso_SharedComponents_alloc(N,0,NULL,NULL,NULL,1,0,mpi_info);
-        connector=Paso_Connector_alloc(send,send);
+        send=Paso_SharedComponents_alloc(0,NULL,NULL,NULL,1,0,mpi_info);
+        coupler=Paso_Coupler_alloc(send,send);
         pattern=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,output_dist,input_dist,
-                                               mainPattern,couplePattern,couplePattern,connector,connector);
+                                               mainPattern,couplePattern,coupler);
  	out = Paso_SystemMatrix_alloc(MATRIX_FORMAT_CSC, pattern, 1, 1);
 	/* copy values and cleanup temps */
 	for( i=0; i<nz; i++ )
@@ -328,7 +328,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
         Paso_SystemMatrixPattern_free(pattern);
         Paso_Pattern_free(mainPattern);
         Paso_Pattern_free(couplePattern);
-        Paso_Connector_free(connector);
+        Paso_Coupler_free(coupler);
         Paso_Distribution_free(output_dist);
         Paso_Distribution_free(input_dist);
 	Paso_SharedComponents_free(send);

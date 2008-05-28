@@ -33,7 +33,7 @@
 void Performance_open(Paso_Performance* pp,int verbose) {
    #ifdef PAPI
       int i,j;
-      #pragma omp single
+      #pragma omp master 
       {
          pp->event_set=PAPI_NULL;
          /* Initialize the PAPI library */
@@ -90,7 +90,7 @@ int  Performance_getEventIndex(Paso_Performance* pp, int event_id) {
 void Performance_close(Paso_Performance* pp,int verbose) {
     #ifdef PAPI
       long_long values[PERFORMANCE_NUM_EVENTS];
-      #pragma omp single
+      #pragma omp master 
       {
         if (Paso_noError() && verbose) {
            int i;
@@ -158,7 +158,7 @@ void Performance_startMonitor(Paso_Performance* pp,int monitor) {
        int i;
        long_long values[PERFORMANCE_NUM_EVENTS];
        #pragma omp barrier
-       #pragma omp single
+       #pragma omp master 
        {
           /* Start counting events in the Event Set */
           PAPI_read(pp->event_set,values);
@@ -177,7 +177,7 @@ void Performance_stopMonitor(Paso_Performance* pp,int monitor) {
        int i;
        long_long values[PERFORMANCE_NUM_EVENTS];
        #pragma omp barrier
-       #pragma omp single
+       #pragma omp master 
        {
           /* Add the counters in the Event Set */
           PAPI_read(pp->event_set,values);
@@ -188,3 +188,7 @@ void Performance_stopMonitor(Paso_Performance* pp,int monitor) {
        }
     #endif
 }
+/*
+ * $Log$
+ */
+

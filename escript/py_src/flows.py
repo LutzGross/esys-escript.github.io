@@ -36,7 +36,7 @@ __date__="$Date:$"
 from escript import *
 import util
 from linearPDEs import LinearPDE
-from pdetools import HomogeneousSaddlePointProblem,Projector
+from pdetools import HomogeneousSaddlePointProblem
 
 class StokesProblemCartesian(HomogeneousSaddlePointProblem):
       """
@@ -82,7 +82,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 		for j in range(self.domain.getDim()):
 			A[i,j,j,i] += 1. 
 			A[i,j,i,j] += 1.
-	self.__pde_prec.setValue(D=1/self.eta) 
+	self.__pde_prec.setValue(D=1./self.eta)
         self.__pde_u.setValue(A=A*self.eta,q=fixed_u_mask,Y=f,y=surface_stress)
 
       def B(self,arg):
@@ -96,17 +96,6 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          s1=util.interpolate(p1,Function(self.domain))
          return util.integrate(s0*s1)
 
-      def inner_a(self,a0,a1):
-         p0=util.interpolate(a0[1],Function(self.domain))
-         p1=util.interpolate(a1[1],Function(self.domain))
-         alfa=(1/self.vol)*util.integrate(p0)
-         beta=(1/self.vol)*util.integrate(p1)
-	 v0=util.grad(a0[0])
-	 v1=util.grad(a1[0])
-	 #print "NORM",alfa,beta,util.integrate((p0-alfa)*(p1-beta))+util.integrate(util.inner(v0,v1))
-         return util.integrate((p0-alfa)*(p1-beta)+((1/self.eta)**2)*util.inner(v0,v1))
-
-
       def getStress(self,u):
          mg=util.grad(u)
          return 2.*self.eta*util.symmetric(mg)
@@ -119,34 +108,17 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          self.__pde_u.setValue(X=-self.getStress(u)-p*util.kronecker(self.domain))
          return  self.__pde_u.getSolution(verbose=self.show_details)
 
-
       def solve_prec(self,p):
-	 #proj=Projector(domain=self.domain, reduce = True, fast=False)
          self.__pde_prec.setTolerance(self.getSubProblemTolerance())
          self.__pde_prec.setValue(Y=p)
          q=self.__pde_prec.getSolution(verbose=self.show_details)
          return q
-
-      def solve_prec1(self,p):
-	 #proj=Projector(domain=self.domain, reduce = True, fast=False)
-         self.__pde_prec.setTolerance(self.getSubProblemTolerance())
-         self.__pde_prec.setValue(Y=p)
-         q=self.__pde_prec.getSolution(verbose=self.show_details)
-	 q0=util.interpolate(q,Function(self.domain))
-         print util.inf(q*q0),util.sup(q*q0)
-         q-=(1/self.vol)*util.integrate(q0)
-         print util.inf(q*q0),util.sup(q*q0)
-         return q
-
       def stoppingcriterium(self,Bv,v,p):
           n_r=util.sqrt(self.inner(Bv,Bv))
-          n_v=util.sqrt(util.integrate(util.length(util.grad(v))**2))
-          if self.verbose: print "PCG step %s: L2(div(v)) = %s, L2(grad(v))=%s"%(self.iter,n_r,n_v) 
-          if self.iter == 0: self.__n_v=n_v;
-          self.__n_v, n_v_old =n_v, self.__n_v
+          n_v=util.Lsup(v)
+          if self.verbose: print "PCG step %s: L2(div(v)) = %s, Lsup(v)=%s"%(self.iter,n_r,n_v) 
           self.iter+=1
-          print abs(n_v_old-self.__n_v), n_v, self.getTolerance()
-          if self.iter>1 and n_r <= n_v*self.getTolerance() and abs(n_v_old-self.__n_v) <= n_v * self.getTolerance():
+          if n_r <= self.vol**(1./2.-1./self.domain.getDim())*n_v*self.getTolerance():
               if self.verbose: print "PCG terminated after %s steps."%self.iter
               return True
           else:

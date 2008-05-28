@@ -474,7 +474,7 @@ class IterationHistory(object):
 
        """
        self.history.append(norm_r)
-       if self.verbose: print "iter: %s:  inner(rhat,r) = %e"#(len(self.history)-1, self.history[-1])
+       if self.verbose: print "iter: %s:  inner(rhat,r) = %e"%(len(self.history)-1, self.history[-1])
        return self.history[-1]<=self.tolerance * self.history[0]
 
    def stoppingcriterium2(self,norm_r,norm_b,solver="GMRES",TOL=None):
@@ -493,7 +493,7 @@ class IterationHistory(object):
        if TOL==None:
           TOL=self.tolerance
        self.history.append(norm_r)
-       if self.verbose: print "iter: %s:  norm(r) = %e"#(len(self.history)-1, self.history[-1])
+       if self.verbose: print "iter: %s:  norm(r) = %e"%(len(self.history)-1, self.history[-1])
        return self.history[-1]<=TOL * norm_b
 
 def PCG(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
@@ -581,18 +581,15 @@ def givapp(c,s,vin):
             vrot[i:i+2]=w1,w2
     return vrot
 
-##############################################
 def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100, iter_restart=20):
-################################################
    m=iter_restart
    iter=0
-   xc=x
    while True:
       if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached"%iter_max
-      xc,stopped=GMRESm(b*1, Aprod, Msolve, bilinearform, stoppingcriterium, x=xc*1, iter_max=iter_max-iter, iter_restart=m)
+      x,stopped=GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=x, iter_max=iter_max-iter, iter_restart=m)
       if stopped: break
       iter+=iter_restart	
-   return xc
+   return x
 
 def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100, iter_restart=20):
    iter=0
@@ -602,7 +599,7 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
    norm_b=math.sqrt(r_dot_r)
 
    if x==None:
-      x=0*b
+      x=0
    else: 
       r=Msolve(b-Aprod(x))
       r_dot_r = bilinearform(r, r)
@@ -618,11 +615,11 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
    
    v.append(r/rho)
    g[0]=rho
-
    while not (stoppingcriterium(rho,norm_b) or iter==iter_restart-1):
 
 	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
 
+	
 	p=Msolve(Aprod(v[iter]))
 
 	v.append(p)
@@ -630,36 +627,36 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
 	v_norm1=math.sqrt(bilinearform(v[iter+1], v[iter+1]))  
 
 # Modified Gram-Schmidt	
-	for j in range(iter+1): 
+	for j in range(iter+1):
 	  h[j][iter]=bilinearform(v[j],v[iter+1])   
-	  v[iter+1]-=h[j][iter]*v[j]
+	  v[iter+1]+=(-1.)*h[j][iter]*v[j]
        
 	h[iter+1][iter]=math.sqrt(bilinearform(v[iter+1],v[iter+1])) 
 	v_norm2=h[iter+1][iter]
 
+
 # Reorthogonalize if needed
 	if v_norm1 + 0.001*v_norm2 == v_norm1:   #Brown/Hindmarsh condition (default)
-   	 for j in range(iter+1):  
+   	 for j in range(iter+1):
 	    hr=bilinearform(v[j],v[iter+1])
-      	    h[j][iter]=h[j][iter]+hr 
-      	    v[iter+1] -= hr*v[j]
+      	    h[j][iter]=h[j][iter]+hr #vhat
+      	    v[iter+1] +=(-1.)*hr*v[j]
 
    	 v_norm2=math.sqrt(bilinearform(v[iter+1], v[iter+1]))  
 	 h[iter+1][iter]=v_norm2
 
 #   watch out for happy breakdown 
-        if not v_norm2 == 0:
+        if v_norm2 != 0:
          v[iter+1]=v[iter+1]/h[iter+1][iter]
 
 #   Form and store the information for the new Givens rotation
 	if iter > 0 :
-		hhat=numarray.zeros(iter+1,numarray.Float64)
-		for i in range(iter+1) : hhat[i]=h[i][iter]
+		hhat=[]
+		for i in range(iter+1) : hhat.append(h[i][iter])
 		hhat=givapp(c[0:iter],s[0:iter],hhat);
 	        for i in range(iter+1) : h[i][iter]=hhat[i]
 
 	mu=math.sqrt(h[iter][iter]*h[iter][iter]+h[iter+1][iter]*h[iter+1][iter])
-
 	if mu!=0 :
 		c[iter]=h[iter][iter]/mu
 		s[iter]=-h[iter+1][iter]/mu
@@ -668,7 +665,6 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
 		g[iter:iter+2]=givapp(c[iter],s[iter],g[iter:iter+2])
 
 # Update the residual norm
-               
         rho=abs(g[iter+1])
 	iter+=1
 
@@ -687,7 +683,7 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
      for i in range(iter-1):
 	xhat += v[i]*y[i]
    else : xhat=v[0] 
-
+    
    x += xhat
    if iter<iter_restart-1: 
       stopped=True 
@@ -695,7 +691,6 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
       stopped=False
 
    return x,stopped
-
 
 ######################################################
 def dirder(x, w, bilinearform, Aprod, Msolve, f0, b ):
@@ -739,7 +734,7 @@ def FDGMRES(f0, Aprod, Msolve, bilinearform, stoppingcriterium, xc=None, x=None,
    r=b
 
    if x==None:
-      x=0*f0
+      x=0
    else:
       r=-dirder(xc,x,bilinearform,Aprod,Msolve,f0,b)-f0   
       
@@ -832,9 +827,8 @@ def FDGMRES(f0, Aprod, Msolve, bilinearform, stoppingcriterium, xc=None, x=None,
 
    return x,stopped
 
-#################################################
 def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
-#################################################
+
     #
     #  minres solves the system of linear equations Ax = b
     #  where A is a symmetric matrix (possibly indefinite or singular)
@@ -864,7 +858,7 @@ def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
 
     r1    = b
     y = Msolve(b)
-    beta1 = bilinearform(y,b)
+    beta1 = bilinearform(b,y)
  
     if beta1< 0: raise NegativeNorm,"negative norm."
 
@@ -926,12 +920,12 @@ def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
           y = y - (beta/oldb)*r1
 
         alfa   = bilinearform(v,y)              # alphak
-        y      += (- alfa/beta)*r2 
+        y      = (- alfa/beta)*r2 + y
         r1     = r2
         r2     = y
         y = Msolve(r2)
         oldb   = beta                           # oldb = betak
-        beta   = bilinearform(y,r2)             # beta = betak+1^2
+        beta   = bilinearform(r2,y)             # beta = betak+1^2
         if beta < 0: raise NegativeNorm,"negative norm."
 
         beta   = math.sqrt( beta )
@@ -966,7 +960,7 @@ def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
         w1    = w2 
         w2    = w 
         w     = (v - oldeps*w1 - delta*w2) * denom
-        x     +=  phi*w
+        x     = x  +  phi*w
 
         # Go round again.
 
@@ -985,12 +979,11 @@ def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
         rnorm  = phibar
 
     return x
+    
+def NewtonGMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium,x=None, iter_max=100,iter_restart=20):
 
-######################################    
-def NewtonGMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium,x=None, iter_max=100,iter_restart=20,atol=1.e-2,rtol=1.e-4):
-#####################################
     gamma=.9
-    lmaxit=100
+    lmaxit=40
     etamax=.5
 
     n = 1 #len(x)
@@ -1008,11 +1001,13 @@ def NewtonGMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium,x=None, iter_m
     f0=-Msolve(r)
     fnrm=math.sqrt(bilinearform(f0,f0))/math.sqrt(n)
     fnrmo=1
+    atol=1.e-2
+    rtol=1.e-4
     stop_tol=atol + rtol*fnrm
     #
     # main iteration loop
     #
-    while not stoppingcriterium(fnrm*1,stop_tol,'NewtonGMRES',TOL=1.):
+    while not stoppingcriterium(fnrm,stop_tol,'NewtonGMRES',TOL=1.):
 
             if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max 
 	    #
@@ -1026,11 +1021,12 @@ def NewtonGMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium,x=None, iter_m
 	    #
     	    # compute the step using a GMRES(m) routine especially designed for this purpose
 	    #
-            initer=0
+            initer=0 
             while True:
-               xc,stopped=FDGMRES(f0*1, Aprod, Msolve, bilinearform, stoppingcriterium, xc=x*1, iter_max=lmaxit-initer, iter_restart=iter_restart, TOL=etamax)
+               xc,stopped=FDGMRES(f0, Aprod, Msolve, bilinearform, stoppingcriterium, xc=x, iter_max=lmaxit-initer, iter_restart=iter_restart, TOL=etamax)
                if stopped: break
                initer+=iter_restart
+	    xold=x
 	    x+=xc
 	    f0=-Msolve(Aprod(x))
 	    fnrm=math.sqrt(bilinearform(f0,f0))/math.sqrt(n)
@@ -1205,13 +1201,8 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       other=1.*other
-       if isinstance(other,float):
-	for i in range(len(self)):
+       for i in range(len(self)):
            out.append(self[i]*other)
-       else:
-        for i in range(len(self)):
-           out.append(self[i]*other[i])
        return ArithmeticTuple(*tuple(out))
 
    def __rmul__(self,other):
@@ -1224,13 +1215,8 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       other=1.*other
-       if isinstance(other,float):
-	for i in range(len(self)):
+       for i in range(len(self)):
            out.append(other*self[i])
-       else:
-        for i in range(len(self)):
-           out.append(other[i]*self[i])
        return ArithmeticTuple(*tuple(out))
 
 #########################
@@ -1246,13 +1232,8 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       other=1.*other
-       if isinstance(other,float):
-	for i in range(len(self)):
-           out.append(self[i]*(1./other))
-       else:
-        for i in range(len(self)):
-           out.append(self[i]*(1./other[i]))
+       for i in range(len(self)):
+           out.append(self[i]/other)
        return ArithmeticTuple(*tuple(out))
 
    def __rdiv__(self,other):
@@ -1265,13 +1246,8 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       other=1.*other
-       if isinstance(other,float):
-        for i in range(len(self)):
-           out.append(other*(1./self[i]))
-       else:
-        for i in range(len(self)):
-           out.append(other[i]*(1./self[i]))
+       for i in range(len(self)):
+           out.append(other/self[i])
        return ArithmeticTuple(*tuple(out))
   
 ##########################################33
@@ -1288,60 +1264,6 @@ class ArithmeticTuple(object):
        for i in range(len(self)):
            self.__items[i]+=other[i]
        return self
-
-   def __add__(self,other):
-       """
-       add other to self
-
-       @param other: increment
-       @type other: C{ArithmeticTuple}
-       """
-#      if not isinstance(other,float):
-       if len(self) != len(other):
-          raise ValueError,"tuple length must match."
-       for i in range(len(self)):
-          self.__items[i]+=other[i]
-#       else:
-#        for i in range(len(self)):
-#           self.__items[i]+=other
-
-       return self
-
-   def __sub__(self,other):
-       """
-       subtract other from self
-
-       @param other: increment
-       @type other: C{ArithmeticTuple}
-       """
-       if len(self) != len(other):
-           raise ValueError,"tuple length must match."
-       for i in range(len(self)):
-           self.__items[i]-=other[i]
-       return self
-   
-   def __isub__(self,other):
-       """
-       subtract other from self
-
-       @param other: increment
-       @type other: C{ArithmeticTuple}
-       """
-       if len(self) != len(other):
-           raise ValueError,"tuple length must match."
-       for i in range(len(self)):
-           self.__items[i]-=other[i]
-       return self
-
-   def __neg__(self):
-       """
-       negate 
-
-       """
-       for i in range(len(self)):
-           self.__items[i]=-self.__items[i]
-       return self
-
 
 class HomogeneousSaddlePointProblem(object):
       """
@@ -1414,12 +1336,6 @@ class HomogeneousSaddlePointProblem(object):
 
       def __inner_p(self,p1,p2):
          return self.inner(p1,p2)
-      
-      def __inner_a(self,a1,a2):
-         return self.inner_a(a1,a2)
-
-      def __inner_a1(self,a1,a2):
-         return self.inner(a1[1],a2[1])
 
       def __stoppingcriterium(self,norm_r,r,p):
           return self.stoppingcriterium(r[1],r[0],p)
@@ -1449,12 +1365,18 @@ class HomogeneousSaddlePointProblem(object):
               # which leads to BA^-1B^*p = BA^-1f  
 
 	      # Az=f is solved as A(z-v)=f-Av (z-v = 0 on fixed_u_mask)	     
+
+	       
 	      self.__z=v+self.solve_A(v,p*0)
-              Bz=self.B(self.__z) 
+
+              Bz=self.B(self.__z)
               #
 	      #   solve BA^-1B^*p = Bz 
               #
+              #   note that the residual r=Bz-BA^-1B^*p = B(z-A^-1B^*p) = Bv
               #
+              #   with                    Av=Az-B^*p = f - B^*p (v=z on fixed_u_mask)
+              #                           A(v-z)=Az-B^*p-Az = f -Az - B^*p (v-z=0 on fixed_u_mask)
               #
               self.iter=0
 	      if solver=='GMRES':   	
@@ -1467,7 +1389,7 @@ class HomogeneousSaddlePointProblem(object):
 
 	      if solver=='NewtonGMRES':   	
                 if self.verbose: print "enter NewtonGMRES method (iter_max=%s)"%max_iter
-                p=NewtonGMRES(Bz,self.__Aprod_Newton,self.__Msolve2,self.__inner_p,self.__stoppingcriterium2,iter_max=max_iter, x=p*1.,atol=0,rtol=self.getTolerance())
+                p=NewtonGMRES(Bz,self.__Aprod_Newton,self.__Msolve2,self.__inner_p,self.__stoppingcriterium2,iter_max=max_iter, x=p*1.)
                 # solve Au=f-B^*p 
                 #       A(u-v)=f-B^*p-Av
                 #       u=v+(u-v)
@@ -1490,31 +1412,10 @@ class HomogeneousSaddlePointProblem(object):
                 #       u=v+(u-v)
 		u=v+self.solve_A(v,p)
               
-	      if solver=='GMRESC':   	
-                if self.verbose: print "enter GMRES coupled method (iter_max=%s)"%max_iter
-                p0=self.solve_prec1(Bz)
-	        #alfa=(1/self.vol)*util.integrate(util.interpolate(p,escript.Function(self.domain)))
-                #p-=alfa
-                x=GMRES(ArithmeticTuple(self.__z*1.,p0*1),self.__Anext,self.__Mempty,self.__inner_a,self.__stoppingcriterium2,iter_max=max_iter, x=ArithmeticTuple(v*1,p*1),iter_restart=20)
-                #x=NewtonGMRES(ArithmeticTuple(self.__z*1.,p0*1),self.__Aprod_Newton2,self.__Mempty,self.__inner_a,self.__stoppingcriterium2,iter_max=max_iter, x=ArithmeticTuple(v*1,p*1),atol=0,rtol=self.getTolerance())
-
-                # solve Au=f-B^*p 
-                #       A(u-v)=f-B^*p-Av
-                #       u=v+(u-v)
-         	p=x[1]
-		u=v+self.solve_A(v,p)		
-		#p=x[1]
-		#u=x[0]
-
               if solver=='PCG':
-                #   note that the residual r=Bz-BA^-1B^*p = B(z-A^-1B^*p) = Bv
-                #
-                #   with                    Av=Az-B^*p = f - B^*p (v=z on fixed_u_mask)
-                #                           A(v-z)= f -Az - B^*p (v-z=0 on fixed_u_mask)
                 if self.verbose: print "enter PCG method (iter_max=%s)"%max_iter
                 p,r=PCG(ArithmeticTuple(self.__z*1.,Bz),self.__Aprod,self.__Msolve,self.__inner,self.__stoppingcriterium,iter_max=max_iter, x=p)
 	        u=r[0]  
-                print "DIFF=",util.integrate(p)
 
               print "RESULT div(u)=",util.Lsup(self.B(u)),util.Lsup(u)
 
@@ -1524,48 +1425,26 @@ class HomogeneousSaddlePointProblem(object):
           return self.solve_prec(r[1])
 
       def __Msolve2(self,r):
-          return self.solve_prec(r*1)
-
-      def __Mempty(self,r):
-          return r
+          return self.solve_prec(r)
 
 
       def __Aprod(self,p):
           # return BA^-1B*p 
-          #solve Av =B^*p as Av =f-Az-B^*(-p)
+          #solve Av =-B^*p as Av =f-Az-B^*p
           v=self.solve_A(self.__z,-p)
           return ArithmeticTuple(v, self.B(v))
 
-      def __Anext(self,x):
-          # return next v,p 
-          #solve Av =-B^*p as Av =f-Az-B^*p
-
-	  pc=x[1]
-          v=self.solve_A(self.__z,-pc)
-	  p=self.solve_prec1(self.B(v))
-
-          return ArithmeticTuple(v,p)
-
-
       def __Aprod2(self,p):
           # return BA^-1B*p 
-          #solve Av =B^*p as Av =f-Az-B^*(-p)
+          #solve Av =-B^*p as Av =f-Az-B^*p
 	  v=self.solve_A(self.__z,-p)
           return self.B(v)
 
       def __Aprod_Newton(self,p):
-          # return BA^-1B*p - Bz 
+          # return BA^-1B*p 
           #solve Av =-B^*p as Av =f-Az-B^*p
 	  v=self.solve_A(self.__z,-p)
           return self.B(v-self.__z)
-
-      def __Aprod_Newton2(self,x):
-          # return BA^-1B*p - Bz 
-          #solve Av =-B^*p as Av =f-Az-B^*p
-          pc=x[1]
-	  v=self.solve_A(self.__z,-pc)
-          p=self.solve_prec1(self.B(v-self.__z))
-          return ArithmeticTuple(v,p)
 
 class SaddlePointProblem(object):
    """
@@ -1754,8 +1633,8 @@ class SaddlePointProblem(object):
             norm_u_new = util.Lsup(u_new)
             p_new=p+self.relaxation*g_new
             norm_p_new = util.sqrt(self.inner(p_new,p_new))
-            self.trace("%s th step: f = %s, f/u = %s, g = %s, g/p = %s, relaxation = %s."%(self.iter, norm_f_new ,norm_f_new/norm_u_new, norm_g_new, norm_g_new/norm_p_new, self.relaxation))
 
+            self.trace("step %d: f = %e, f/u = %e, g = %e, g/p = %e, relaxation = %e."%(self.iter, norm_f_new ,norm_f_new/norm_u_new, norm_g_new, norm_g_new/norm_p_new, self.relaxation))
             if self.iter>1:
                dg2=g_new-g
                df2=f_new-f

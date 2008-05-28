@@ -126,10 +126,10 @@ void Finley_NodeFile_freeTable(Finley_NodeFile* in) {
     in->degreesOfFreedomDistribution=NULL;
     Paso_Distribution_free(in->reducedDegreesOfFreedomDistribution);
     in->reducedDegreesOfFreedomDistribution=NULL;
-    Paso_Connector_free(in->degreesOfFreedomConnector);
-    in->degreesOfFreedomConnector=NULL;
-    Paso_Connector_free(in->reducedDegreesOfFreedomConnector);
-    in->reducedDegreesOfFreedomConnector=NULL;
+    Paso_Coupler_free(in->degreesOfFreedomCoupler);
+    in->degreesOfFreedomCoupler=NULL;
+    Paso_Coupler_free(in->reducedDegreesOfFreedomCoupler);
+    in->reducedDegreesOfFreedomCoupler=NULL;
 
     in->numNodes=0;
   }

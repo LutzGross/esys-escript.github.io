@@ -25,7 +25,6 @@ from esys.escript.linearPDEs import LinearSinglePDE, TransportPDE
 from esys.finley import Rectangle, Brick
 from math import pi, ceil
 NE=128
-NE=4
 DIM=2
 THETA=0.5
 OMEGA0=1.
@@ -41,15 +40,12 @@ if DIM==2:
   dom=Rectangle(NE,NE)
 else:
   dom=Brick(NE,NE,NE)
-u0=dom.getX()[0]
-# saveVTK("u.%s.xml"%0,u=u0)
-# print "XX"*80
 dom.setX(2*dom.getX()-1)
 
 # set initial value 
 x=dom.getX()
 r=sqrt(x[0]**2+(x[1]-1./3.)**2)
-# u0=whereNegative(r-1./3.)*wherePositive(wherePositive(abs(x[0])-0.05)+wherePositive(x[1]-0.5))
+u0=whereNegative(r-1./3.)*wherePositive(wherePositive(abs(x[0])-0.05)+wherePositive(x[1]-0.5))
 
 x=Function(dom).getX()
 if DIM == 2:
@@ -69,13 +65,13 @@ if TEST_SUPG:
    u_supg=u0*1.
 
 c=0
-# saveVTK("u.%s.xml"%c,u=u0)
+saveVTK("u.%s.xml"%c,u=u0)
 fc.setInitialSolution(u0)
 t=T0
 print "QUALITY FCT: time = %s pi"%(t/pi),inf(u0),sup(u0),integrate(u0)
 while t<T_END:
     print "time step t=",t+dt	
-    u=fc.solve(dt, verbose=True)
+    u=fc.solve(dt)	
     print "QUALITY FCT: time = %s pi"%(t+dt/pi),inf(u),sup(u),integrate(u)
     if TEST_SUPG:
         #========== supg tests ================
@@ -92,7 +88,7 @@ while t<T_END:
     t+=dt
     if TEST_SUPG: 
        print "QUALITY SUPG: time = %s pi"%(t/pi),inf(u_supg),sup(u_supg),integrate(u_supg)
-       # saveVTK("u2.%s.xml"%c,u=u,u_supg=u_supg)
+       saveVTK("u2.%s.xml"%c,u=u,u_supg=u_supg)
     else:
        # saveVTK("u.%s.xml"%c,u=u)
        pass

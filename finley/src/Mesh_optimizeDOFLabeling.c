@@ -29,7 +29,7 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
      register index_t k;
      dim_t mpiSize, myNumVertices,len, p, i;
      Paso_Pattern *pattern=NULL;
-     Paso_MPI_rank myRank,dest,source,current_rank, rank;
+     Paso_MPI_rank myRank,dest,source,current_rank;
      Finley_IndexList* index_list=NULL;
      #ifdef PASO_MPI
      MPI_Status status;
@@ -72,7 +72,7 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
                                                         in->Nodes->globalDegreesOfFreedom);
            }
            /* create the local matrix pattern */
-           pattern=Finley_IndexList_createPattern(0,myNumVertices,index_list,myFirstVertex, myLastVertex,-myFirstVertex);
+           pattern=Finley_IndexList_createPattern(myNumVertices,index_list,myFirstVertex, myLastVertex,-myFirstVertex);
 
            /* clean up index list */
            if (index_list!=NULL) {

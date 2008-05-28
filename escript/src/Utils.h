@@ -33,12 +33,6 @@ namespace escript {
 
   /**
      \brief
-     print a message about how many MPI CPUs and OpenMP threads we're using
-  */
-  ESCRIPT_DLL_API void printParallelThreadCnt();
-
-  /**
-     \brief
      set the number of threads 
   */
   ESCRIPT_DLL_API void setNumberOfThreads(const int num_threads);

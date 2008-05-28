@@ -33,7 +33,6 @@ void Finley_Shape_Point1(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 1
   #define DIM 0
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     S(1,i)=1.;
   }
@@ -46,9 +45,8 @@ void Finley_Shape_Point1(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Line2(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 2
   #define DIM 1
-  register double x;
+  double x;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     S(1,i)=1.-x;
@@ -65,9 +63,8 @@ void Finley_Shape_Line2(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Line3(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 3
   #define DIM 1
-  register double x;
+  double x;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     S(1,i)=(2.*x -1. )*(x -1.);
@@ -86,9 +83,8 @@ void Finley_Shape_Line3(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Line4(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 4
   #define DIM 1
-  register double x;
+  double x;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     S(1,i)=(10.)+(-5.5)*x+(9.)*x*x+(-4.5)*x*x*x ;
@@ -109,9 +105,8 @@ void Finley_Shape_Line4(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Tri3(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 3
   #define DIM 2
-  register double x,y;
+  double x,y;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
@@ -134,9 +129,8 @@ void Finley_Shape_Tri3(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Tri6(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 6
   #define DIM 2
-  register double x,y;
+  double x,y;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
@@ -168,9 +162,8 @@ void Finley_Shape_Tri6(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Tri9(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 9
   #define DIM 2
-  register double x,y;
+  double x,y;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
@@ -211,9 +204,8 @@ void Finley_Shape_Tri9(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Tri10(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 10
   #define DIM 2
-  register double x,y;
+  double x,y;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
@@ -257,9 +249,8 @@ void Finley_Shape_Tri10(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Rec4(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 4
   #define DIM 2
-  register double x,y;
+  double x,y;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
@@ -285,9 +276,8 @@ void Finley_Shape_Rec4(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Rec8(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 8
   #define DIM 2
-  register double x,y;
+  double x,y;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
@@ -325,9 +315,8 @@ void Finley_Shape_Rec8(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Rec9(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 9
   #define DIM 2
-  register double x,y;
+  double x,y;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
@@ -368,9 +357,8 @@ void Finley_Shape_Rec9(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Rec12(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 12
   #define DIM 2
-  register double x,y;
+  double x,y;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
@@ -420,9 +408,8 @@ void Finley_Shape_Rec12(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Rec16(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 16
   #define DIM 2
-  register double x,y;
+  double x,y;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
@@ -484,9 +471,8 @@ void Finley_Shape_Rec16(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Tet4(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 4
   #define DIM 3
-  register double x,y,z;
+  double x,y,z;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
@@ -517,9 +503,8 @@ void Finley_Shape_Tet4(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Tet10(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 10
   #define DIM 3
-  register double x,y,z;
+  double x,y,z;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
@@ -585,9 +570,8 @@ void Finley_Shape_Tet10(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Tet16(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 16
   #define DIM 3
-  register double x,y,z;
+  double x,y,z;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
@@ -666,9 +650,8 @@ void Finley_Shape_Tet16(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Hex8(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 8
   #define DIM 3
-  register double x,y,z;
+  double x,y,z;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
@@ -715,9 +698,8 @@ void Finley_Shape_Hex8(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Hex20(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 20
   #define DIM 3
-  register double x,y,z;
+  double x,y,z;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
@@ -812,9 +794,8 @@ void Finley_Shape_Hex20(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Hex27(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 27
   #define DIM 3
-  register double x,y,z;
+  double x,y,z;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
@@ -937,9 +918,8 @@ void Finley_Shape_Hex27(int NumV,double* v,double* s,double* dsdv) {
 void Finley_Shape_Hex32(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 32
   #define DIM 3
-  register double x,y,z;
+  double x,y,z;
   int i;
-  #pragma ivdep
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
