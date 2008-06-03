@@ -14,7 +14,6 @@
 #######################################################
 #
 
-
 import os
 
 source_root = os.path.realpath('.')
@@ -65,4 +64,4 @@ link_flags_debug = '/debug /incremental:no /opt:ref /opt:icf'
 #ar_flags = 'crus'
 
 # system specific libraries to link with
-sys_libs = []
+sys_libs = ["C:/Program Files/Microsoft Visual Studio .NET 2003/Vc7/PlatformSDK/Lib/Ws2_32"]

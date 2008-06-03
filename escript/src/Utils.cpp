@@ -24,6 +24,10 @@
 #include <mpi.h>
 #endif
 
+#ifdef  _WIN32
+#include <WinSock2.h>
+#endif
+
 namespace escript {
 
 int getSvnVersion() 

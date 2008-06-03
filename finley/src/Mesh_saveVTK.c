@@ -51,7 +51,8 @@ void Finley_Mesh_saveVTK(const char * filename_p,
 {
   char error_msg[LenErrorMsg_MAX], *txt_buffer=NULL, tmp_buffer[LEN_TMP_BUFFER];
   double sampleAvg[NCOMP_MAX], *values, rtmp;
-  size_t len_txt_buffer, max_len_names, txt_buffer_in_use;
+  size_t txt_buffer_in_use;
+  dim_t len_txt_buffer,  max_len_names;
   FILE * fileHandle_p = NULL;
   int mpi_size, i, j, cellType;
   dim_t i_data;
@@ -230,7 +231,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
          } else {
            write_pointdata=TRUE;
          }
-         max_len_names =MAX(max_len_names,strlen(names_p[i_data]));
+         max_len_names =MAX(max_len_names,(dim_t)strlen(names_p[i_data]));
        }
      }
      nodetype = (nodetype == FINLEY_UNKNOWN) ? FINLEY_NODES : nodetype;
@@ -400,12 +401,12 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   /*   allocate text buffer              */
   /*                                     */
   max_name_len=0;
-  for (i_data =0 ;i_data<num_data;++i_data) max_name_len=MAX(max_name_len,strlen(names_p[i_data]));
+  for (i_data =0 ;i_data<num_data;++i_data) max_name_len=MAX(max_name_len,(dim_t)strlen(names_p[i_data]));
   len_txt_buffer= strlen(tags_header) + 3 * LEN_PRINTED_INT_FORMAT + (30+3*max_name_len); /* header */
   if (mpi_size > 1) len_txt_buffer=MAX(len_txt_buffer, myNumPoints * LEN_TMP_BUFFER);
   if (mpi_size > 1) len_txt_buffer=MAX(len_txt_buffer, numCellFactor*myNumCells*(LEN_PRINTED_INT_FORMAT*numVTKNodesPerElement+1));
   len_txt_buffer=MAX(len_txt_buffer,200+3*max_len_names);
-  len_txt_buffer=MAX(len_txt_buffer, strlen(tag_Float_DataArray) + LEN_PRINTED_INT_FORMAT + max_len_names);
+  len_txt_buffer=MAX(len_txt_buffer, (dim_t)strlen(tag_Float_DataArray) + LEN_PRINTED_INT_FORMAT + max_len_names);
   if (mpi_size > 1) len_txt_buffer=MAX(len_txt_buffer, numCellFactor*myNumCells*LEN_PRINTED_FLOAT_TENSOR_FORMAT);
   if (mpi_size > 1) len_txt_buffer=MAX(len_txt_buffer, myNumPoints*LEN_PRINTED_FLOAT_TENSOR_FORMAT);
   txt_buffer=TMPMEMALLOC(len_txt_buffer+1,char);
