@@ -13,9 +13,12 @@ headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 
 lib_name = 'esysUtils'
 
-local_env.Append(LIBS = boost_lib)
+local_env.Append(LIBS = [boost_lib, python_lib])
 
-lib = local_env.StaticLibrary(lib_name, sources)
+local_env.Append(CPPDEFINES = 'ESYSUTILS_EXPORTS')
+
+#lib = local_env.StaticLibrary(lib_name, sources)
+lib = local_env.SharedLibrary(lib_name, sources)
 
 include_path = Dir(lib_name, incinstall)
 

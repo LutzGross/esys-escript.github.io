@@ -76,7 +76,7 @@ err_t Paso_Solver_GMRES(
 
   double *AP,**X_PRES,**R_PRES,**P_PRES;
   double *P_PRES_dot_AP,*R_PRES_dot_P_PRES,*BREAKF,*ALPHA;
-  double P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5,P_PRES_dot_AP6,R_PRES_dot_P,abs_RP,breakf0;
+  double P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5,P_PRES_dot_AP6,R_PRES_dot_P,breakf0;
   double tol,Factor,sum_BREAKF,gamma,SC1,SC2,norm_of_residual,diff,L2_R,Norm_of_residual_global;
   double *save_XPRES, *save_P_PRES, *save_R_PRES,save_R_PRES_dot_P_PRES;
   dim_t maxit,Num_iter_global,num_iter_restart,num_iter;

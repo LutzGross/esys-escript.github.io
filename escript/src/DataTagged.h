@@ -146,6 +146,14 @@ class DataTagged : public DataAbstract {
 
   /**
      \brief
+     Destructor
+  */
+  ESCRIPT_DLL_API
+  inline virtual
+  ~DataTagged() {};
+
+  /**
+     \brief
      getSampleDataByTag
 
      Description:

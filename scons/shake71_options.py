@@ -7,53 +7,70 @@
 #     http://www.opensource.org/licenses/osl-3.0.php
 #
 
-# Configuration for shake71 (Linux)
+# flag the MPI settings
+# useMPI = 'yes' 
+# trilinos_path="/home/Work/trilinos-6/include"
+# trilinos_lib_path="/home/Work/trilinos-6/lib"
+# trilinos_libs=["aztecoo", "teuchos", "epetra"]
 
-# ParMETIS
-parmetis_path		= '/home/Work/Escript.x86_64/parmetis-3.1/include'
-parmetis_lib_path	= '/home/Work/Escript.x86_64/parmetis-3.1/lib'
-parmetis_lib		= ['parmetis', 'metis']
 
-# Python
-python_path		= '/home/Work/Escript.x86_64/python-2.4.4/include/python2.4'
-python_lib_path		= '/home/Work/Escript.x86_64/python-2.4.4/lib'
-python_lib		= 'python2.4'
+# TODO: Variables named *_path should be *_include
 
-# Boost
-boost_path		= '/home/Work/Escript.x86_64/boost_1_33/include/boost-1_33'
-boost_lib_path		= '/home/Work/Escript.x86_64/boost_1_33/lib'
-boost_lib		= 'boost_python-gcc-mt'
+# locations of libs etc used by mkl
+# mkl_path = '/opt/intel/mkl80.019/include'
+# mkl_lib_path ='/opt/intel/mkl80.019/lib/64'
+# mkl_libs = ['mkl_solver', 'mkl_lapack', 'mkl_ipf']
 
-# Documentation
-doxygen_path		= '/usr/bin'
-epydoc_path		= '/usr/bin'
+mpi_path = '/home/Work/mpich2-1.0.5p4/include'
+mpi_lib_path = '/home/Work/mpich2-1.0.5p4/lib'
+mpi_libs = ['mpich', 'rt']
+mpi_run = 'mpirun -np 1'
 
-# NetCDF
-useNetCDF		= "yes"
-netCDF_path		= "/home/Work/Escript.x86_64/netcdf-3.6.2/include"
-netCDF_lib_path		= "/home/Work/Escript.x86_64/netcdf-3.6.2/lib"
-netCDF_libs		= [ 'netcdf_c++', 'netcdf']
+# locations of libs etc used by SCSL
+# scsl_path = '/usr/include'
+# scsl_lib_path = '/usr/lib'
+# scsl_libs = ['scs_mp']
+# scsl_libs_MPI = [ 'scs', 'mpi' ]
 
-# MPI
-mpi_path		= '/home/Work/mpich2-1.0.5p4/include'
-mpi_lib_path		= '/home/Work/mpich2-1.0.5p4/lib'
-mpi_libs		= ['mpich', 'rt']
-mpi_run			= 'mpirun -np 1'
+# Location of ParMETIS library
+parmetis_path = '/home/Work/Downloads/ParMetis-3.1'
+parmetis_lib_path = '/home/Work/Downloads/ParMetis-3.1'
+parmetis_lib = ['parmetis', 'metis']
 
-# PAPI
-# papi_instrument_solver	= 0
-# papi_path		= '/sw/.../include'
-# papi_lib_path		= '/sw/.../lib'
-# papi_libs		= ['papi']
+# locations of include files for python
+# python_path = '/data/raid2/toolspp4/python/2.4.1/gcc-3.3.6/include/python2.4'
+# python_lib_path = '/data/raid2/toolspp4/python/2.4.1/gcc-3.3.6/lib'
+# python_lib = 'python2.4'
 
-# C flags (also used by C++)
-# cc_flags		= '-O -fPIC'
-# cc_flags_debug	= '-g -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
+# locations of libraries for boost
+# boost_path = '/data/raid2/toolspp4/boost/1.33.1/python-2.4.1/gcc-3.3.6/include'
+# boost_lib_path = '/data/raid2/toolspp4/boost/1.33.1/python-2.4.1/gcc-3.3.6/lib'
+# boost_lib = 'boost_python-mt'
 
-# C++ flags
-# cxx_flags		= '-fPIC'
-# cxx_flags_debug	= '-DDOASSERT -UDOPROF -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
+# locations of doc building executables
+doxygen_path = '/usr/bin'
+epydoc_path = '/usr/bin'
 
-# System-specific libraries to link with
-# sys_libs		= []
+# locations of netcdf
+useNetCDF="yes"
+netCDF_path = "/home/Work/netcdf-3.6.1/include"
+netCDF_lib_path = "/home/Work/netcdf-3.6.1/lib"
+netCDF_libs = [ 'netcdf_c++', 'netcdf']
+
+# locations of PAPI
+# papi_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/include'
+# papi_lib_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/lib'
+# papi_libs = [ 'papi' ]
+
+# Comment all this stuff
+# c flags to use
+# cc_flags  = '-O -fPIC'
+# cc_flags_debug  = '-g -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
+
+# c++ flags to use
+# cxx_flags = '-fPIC'
+# cxx_flags_debug = '-DDOASSERT -UDOPROF -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
+
+# system specific libraries to link with
+# sys_libs = []
 

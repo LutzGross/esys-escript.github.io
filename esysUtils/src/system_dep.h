@@ -36,17 +36,19 @@
 
 #ifdef _WIN32
 
-#ifndef INTERFACE_STATIC_LIB
-#ifdef ESYSUTILS_EXPORTS
-#define ESYSUTILS_DLL_API __declspec(dllexport)
+#   ifndef INTERFACE_STATIC_LIB
+#      ifdef ESYSUTILS_EXPORTS
+#         define ESYSUTILS_DLL_API __declspec(dllexport)
+#      else
+#         define ESYSUTILS_DLL_API __declspec(dllimport)
+#      endif
+#   endif
+#   define THROW(ARG)
+#   define THROW_ANY // Stupid windows compilers complain about THROW()
 #else
-#define ESYSUTILS_DLL_API __declspec(dllimport)
-#endif
-#endif
-#define THROW(ARG)
-#else
-#define ESYSUTILS_DLL_API
-# define THROW(ARG) throw(ARG)
+#   define ESYSUTILS_DLL_API
+#   define THROW(ARG) throw(ARG)
+#   define THROW_ANY throw()
 #endif
 
 

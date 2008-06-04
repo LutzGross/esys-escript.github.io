@@ -77,7 +77,7 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_System
      Paso_SystemMatrixType matrix_type=MATRIX_FORMAT_DEFAULT+MATRIX_FORMAT_BLK1;  /* at the moment only block size 1 is supported */
      Paso_FCTransportProblem* out=NULL;
      dim_t n,i;
-     index_t iptr,iptr_main,k;
+     index_t iptr,iptr_main;
 
      if ((theta<0.) || (theta >1.)) {
         Paso_setError(TYPE_ERROR,"Paso_FCTransportProblem_alloc: theta needs to be between 0. and. 1.");

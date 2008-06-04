@@ -59,4 +59,4 @@ cxx_flags_debug = ''
 #ar_flags = 'crus'
 
 # system specific libraries to link with
-sys_libs = []
+sys_libs = ["C:/Program Files/Microsoft Visual Studio .NET 2003/Vc7/PlatformSDK/Lib/Ws2_32"]

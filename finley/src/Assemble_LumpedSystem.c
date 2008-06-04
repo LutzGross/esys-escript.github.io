@@ -41,13 +41,15 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
   bool_t reducedIntegrationOrder=FALSE, expandedD;
   char error_msg[LenErrorMsg_MAX];
   Assemble_Parameters p;
-  double time0;
   dim_t dimensions[ESCRIPT_MAX_DATA_RANK], k, e, len_EM_lumpedMat, q, s;
   type_t funcspace;
   index_t color,*row_index=NULL;
   double *S=NULL, *EM_lumpedMat=NULL, *Vol=NULL, *D_p=NULL, *lumpedMat_p=NULL;
-  register double rtmp, m_t, diagS;
+  register double rtmp;
   size_t len_EM_lumpedMat_size;
+#ifdef NEW_LUMPING /* HRZ lumping */
+  register double m_t, diagS;
+#endif
 
   Finley_resetError();
 
@@ -302,7 +304,4 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
        THREAD_MEMFREE(row_index);
     } /* end parallel region */
   }
-  #ifdef Finley_TRACE
-  printf("timing: assemblage lumped PDE: %.4e sec\n",Finley_timer()-time0);
-  #endif
 }

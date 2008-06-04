@@ -86,8 +86,11 @@ err_t Paso_Solver_PCG(
   dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
   double *resid = tolerance, *rs=NULL, *p=NULL, *v=NULL, *x2=NULL ;
   double tau_old,tau,beta,delta,gamma_1,gamma_2,alpha,sum_1,sum_2,sum_3,sum_4,sum_5,tol;
-  double norm_of_residual,norm_of_residual_global, loc_sum[2], sum[2];
-  register double r_tmp,d,rs_tmp,x2_tmp,x_tmp;
+#ifdef PASO_MPI
+  double loc_sum[2], sum[2];
+#endif
+  double norm_of_residual,norm_of_residual_global;
+  register double d;
   char* chksz_chr;
   np=omp_get_max_threads();
 
@@ -191,7 +194,7 @@ err_t Paso_Solver_PCG(
            #ifdef PASO_MPI
 	        /* In case we have many MPI processes, each of which may have several OMP threads:
 	           OMP master participates in an MPI reduction to get global sum_1 */
-	        loc_sum[0] = sum_1;
+	        loc_saum[0] = sum_1;
 	        MPI_Allreduce(loc_sum, &sum_1, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
            #endif
            tau_old=tau;

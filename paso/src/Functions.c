@@ -44,7 +44,12 @@ err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, co
 
 err_t Paso_FunctionCall(Paso_Function * F,double* value, const double* arg) 
 { 
+   err_t err=0;
 
+   /* Not yet please */
+   err = 1;
+
+   return err;
 }
 
 

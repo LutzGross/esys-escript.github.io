@@ -22,8 +22,8 @@ mkl_libs = ['mkl_solver', 'mkl_lapack', 'mkl_ipf']
 ### scsl_libs = ['scs_mp']
 
 # locations of include files for python
-python_path = '/home/escript/python-2.4.4/include/python2.4'
-python_lib_path = '/home/escript/python-2.4.4/lib'
+python_path = '/home/escript/python-2.4.3/include/python2.4'
+python_lib_path = '/home/escript/python-2.4.3/lib'
 python_lib = 'python2.4'
 
 # locations of libraries for boost (on ac use module load something/boost)

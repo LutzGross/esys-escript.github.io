@@ -44,7 +44,7 @@
 
 void Paso_FCTransportProblem_setLowOrderOperator(Paso_FCTransportProblem * fc) {
   dim_t n=Paso_SystemMatrix_getTotalNumRows(fc->transport_matrix),i;
-  index_t color, iptr_ij,j,iptr_ji;
+  index_t iptr_ij,j,iptr_ji;
   Paso_SystemMatrixPattern *pattern;
   register double d_ij, sum, rtmp1, rtmp2;
 
