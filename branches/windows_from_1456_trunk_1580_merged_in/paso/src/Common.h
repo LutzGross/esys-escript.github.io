@@ -131,8 +131,7 @@ typedef int err_t;
      }                                                                      \
   } while(0)
 
-#elseif defined(_WIN32)
-
+#elif defined(_WIN32)
 
   #include <python.h>
 
