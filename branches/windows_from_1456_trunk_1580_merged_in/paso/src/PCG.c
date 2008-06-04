@@ -194,7 +194,7 @@ err_t Paso_Solver_PCG(
            #ifdef PASO_MPI
 	        /* In case we have many MPI processes, each of which may have several OMP threads:
 	           OMP master participates in an MPI reduction to get global sum_1 */
-	        loc_saum[0] = sum_1;
+	        loc_sum[0] = sum_1;
 	        MPI_Allreduce(loc_sum, &sum_1, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
            #endif
            tau_old=tau;
