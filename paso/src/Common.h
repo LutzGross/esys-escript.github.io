@@ -132,10 +132,25 @@ typedef int err_t;
   } while(0)
 
 #elseif defined(_WIN32)
-  #define TMPMEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
-  #define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
-  #define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
-  #define MEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
+
+
+  #include <python.h>
+
+  // Do this to stop people using these on Windows.
+  #ifdef PyObject_NEW
+  # undef PyObject_NEW
+  # define PyObject_NEW PyObject_New 
+  #endif
+
+  #ifdef PyObject_DEL
+  # undef PyObject_DEL
+  # define PyObject_DEL PyObject_Del
+  #endif
+
+  #define TMPMEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*)  PyMem_Malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
+  #define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { PyMem_Free(_PTR_); (_PTR_) = NULL; }
+  #define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*)  PyMem_Malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
+  #define MEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { PyMem_Free(_PTR_); (_PTR_) = NULL; }
   #define THREAD_MEMALLOC(_LENGTH_,_TYPE_) TMPMEMALLOC(_LENGTH_,_TYPE_)
   #define THREAD_MEMFREE(_PTR_) TMPMEMFREE(_PTR_)
   #define MEMREALLOC(_POINTER_,_LENGTH_,_TYPE_)                             \
@@ -143,12 +158,12 @@ typedef int err_t;
   {                                                                         \
      if( (_POINTER_)!=NULL )                                                \
      {                                                                      \
-        _POINTER_ = (_TYPE_*)realloc((void*)(_POINTER_),                    \
+        _POINTER_ = (_TYPE_*)PyMem_Realloc((void*)(_POINTER_),              \
                                      ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); \
      }                                                                      \
      else                                                                   \
      {                                                                      \
-        _POINTER_ = (_TYPE_*)malloc( ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); \
+        _POINTER_ = (_TYPE_*)PyMem_Malloc( ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); \
      }                                                                      \
   } while(0)
 
