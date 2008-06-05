@@ -154,16 +154,27 @@ err_t Paso_Solver_PCG(
        #endif
     }
     num_iter=0;
+
+    /* PGH */
+    /* without this we get a use of an unititialised var below */
+    tau = 0;
+
     /* start of iteration */
     while (!(convergeFlag || maxIterFlag || breakFlag)) {
            ++(num_iter);
+
+           /* PGH */
+           /* The next lines were commented out before I got here */
            /* v=prec(r)  */
+           /* tau=v*r; */
+           /* leading to the use of an unititialised var below */
+
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
            Paso_Solver_solvePreconditioner(A,v,r);
            Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
-           /* tau=v*r    */
+
 	   sum_1 = 0;
            #pragma omp parallel private(i0, istart, iend, ipp, ss)
            {
