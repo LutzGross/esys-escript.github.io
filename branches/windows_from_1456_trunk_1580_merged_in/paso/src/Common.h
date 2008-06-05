@@ -143,18 +143,6 @@ typedef int err_t;
     #define _DEBUG
   #endif
 
-
-  // Do this to stop people using these on Windows.
-  #ifdef PyObject_NEW
-  # undef PyObject_NEW
-  # define PyObject_NEW PyObject_New 
-  #endif
-
-  #ifdef PyObject_DEL
-  # undef PyObject_DEL
-  # define PyObject_DEL PyObject_Del
-  #endif
-
   #define TMPMEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*)  PyMem_Malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
   #define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { PyMem_Free(_PTR_); (_PTR_) = NULL; }
   #define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*)  PyMem_Malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
