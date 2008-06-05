@@ -11,6 +11,8 @@
 #endif
 
 #include "escript/blocktimer.h"
+#include "malloc.h"
+#include "string.h"
 
 #ifdef PASO_MPI
 #include "mpi.h"
