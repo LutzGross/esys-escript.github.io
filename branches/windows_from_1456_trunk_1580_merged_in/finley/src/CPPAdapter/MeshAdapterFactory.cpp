@@ -471,7 +471,13 @@ namespace finley {
     // to Finley_Mesh_read
     Finley_Mesh* fMesh=0;
     // Win32 refactor
-    char *fName = ((fileName.size()+1)>0) ? TMPMEMALLOC((fileName.size()+1),char) : (char*)NULL;
+    if( fileName.size() == 0 )
+    {
+       throw DataException("Null file name!");
+    }
+
+    char *fName = TMPMEMALLOC(fileName.size()+1,char);
+	
     strcpy(fName,fileName.c_str());
     double blocktimer_start = blocktimer_time();
 
@@ -496,7 +502,13 @@ namespace finley {
     // to Finley_Mesh_read
     Finley_Mesh* fMesh=0;
     // Win32 refactor
-    char *fName = ((fileName.size()+1)>0) ? TMPMEMALLOC((fileName.size()+1),char) : (char*)NULL;
+    if( fileName.size() == 0 )
+    {
+       throw DataException("Null file name!");
+    }
+
+    char *fName = TMPMEMALLOC(fileName.size()+1,char);
+	
     strcpy(fName,fileName.c_str());
     double blocktimer_start = blocktimer_time();
 
@@ -522,7 +534,13 @@ namespace finley {
     // to Finley_Mesh_read
     Finley_Mesh* fMesh=0;
     // Win32 refactor
-    char *fName = ((fileName.size()+1)>0) ? TMPMEMALLOC((fileName.size()+1),char) : (char*)NULL;
+    if( fileName.size() == 0 )
+    {
+       throw DataException("Null file name!");
+    }
+
+    char *fName = TMPMEMALLOC(fileName.size()+1,char);
+	
     strcpy(fName,fileName.c_str());
     double blocktimer_start = blocktimer_time();
 
