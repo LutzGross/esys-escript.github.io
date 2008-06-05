@@ -133,7 +133,16 @@ typedef int err_t;
 
 #elif defined(_WIN32)
 
+  #ifdef _DEBUG
+    #define TMP_DEF_FLAG
+    #undef _DEBUG
+  #endif
   #include <python.h>
+  #ifdef TMP_DEF_FLAG
+    #undef TMP_DEF_FLAG
+    #define _DEBUG
+  #endif
+
 
   // Do this to stop people using these on Windows.
   #ifdef PyObject_NEW
