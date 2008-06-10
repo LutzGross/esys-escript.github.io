@@ -57,7 +57,16 @@ namespace finley {
     AbstractContinuousDomain* temp;
     Finley_Mesh *mesh_p=NULL;
     char error_msg[LenErrorMsg_MAX];
-    char *fName = Paso_MPI_appendRankToFileName(strdup(fileName.c_str()), mpi_info->size, mpi_info->rank);
+
+    // I don't think the strdup is needed since Paso_MPI_appendRankToFileName
+    // does it's own allocation.
+    // char *fName = Paso_MPI_appendRankToFileName(strdup(fileName.c_str()),
+    //                                             mpi_info->size,
+    //                                             mpi_info->rank);
+
+    char *fName = Paso_MPI_appendRankToFileName(fileName.c_str(),
+                                                mpi_info->size,
+                                                mpi_info->rank);
 
     double blocktimer_start = blocktimer_time();
     Finley_resetError();
