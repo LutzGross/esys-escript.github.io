@@ -133,14 +133,15 @@ typedef int err_t;
 
 #elif defined(_WIN32)
 
+  /* A little hokey-pokey to avoid windows looking for pythonxx_d.lib */
   #ifdef _DEBUG
-    #define TMP_DEF_FLAG
+    #define TMP_DEF_FLAG _DEBUG
     #undef _DEBUG
   #endif
   #include <python.h>
   #ifdef TMP_DEF_FLAG
+    #define _DEBUG TMP_DEF_FLAG
     #undef TMP_DEF_FLAG
-    #define _DEBUG
   #endif
 
   #define TMPMEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*)  PyMem_Malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
