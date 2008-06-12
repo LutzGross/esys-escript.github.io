@@ -297,19 +297,22 @@ namespace escript {
       return (*m_data)[m_offset+i];
    }
 
-   DataArrayView::ShapeType
+   DataArrayView::ShapeType DataArrayView::return_shape;
+
+   const DataArrayView::ShapeType &
    DataArrayView::getResultSliceShape(const RegionType& region)
    {
       int dimSize;
       RegionType::const_iterator i;
-      ShapeType result;
+      // ShapeType result;
+      return_shape.clear();
       for (i=region.begin();i!=region.end();i++) {
          dimSize=((i->second)-(i->first));
          if (dimSize!=0) {
-            result.push_back(dimSize);
+            return_shape.push_back(dimSize);
          }
       }
-      return result;
+      return return_shape;
    }
 
    DataArrayView::RegionType
@@ -860,18 +863,18 @@ namespace escript {
 
    }
 
-   DataArrayView::ShapeType
+   const DataArrayView::ShapeType &
    DataArrayView::determineResultShape(const DataArrayView& left,
                                        const DataArrayView& right)
    {
-      ShapeType temp;
+      return_shape.clear();
       for (int i=0; i<(left.getRank()-1); i++) {
-         temp.push_back(left.getShape()[i]);
+         return_shape.push_back(left.getShape()[i]);
       }
       for (int i=1; i<right.getRank(); i++) {
-         temp.push_back(right.getShape()[i]);
+         return_shape.push_back(right.getShape()[i]);
       }
-      return temp;
+      return return_shape;
    }
 
    bool operator==(const DataArrayView& left, const DataArrayView& right)
