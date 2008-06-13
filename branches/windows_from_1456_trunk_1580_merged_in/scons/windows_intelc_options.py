@@ -34,7 +34,7 @@ python_lib = 'python25'
 dotdot = os.path.realpath('..')
 boost_path = os.path.join(dotdot,'boost-1.33')
 boost_lib_path = os.path.join(boost_path,'windows_binary','lib')
-boost_lib = 'boost_python-vc71-mt-s-1_33_1.lib'
+boost_lib = 'boost_python-vc71-mt-1_33_1.lib'
 
 # locations of netcdf
 useNetCDF = "no"
