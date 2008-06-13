@@ -34,7 +34,7 @@ python_lib = 'python24'
 dotdot = os.path.realpath('..')
 boost_path = os.path.join(dotdot,'boost-1.33')
 boost_lib_path = os.path.join(boost_path,'windows_binary','lib')
-boost_lib = 'boost_python-vc71-mt-s-1_33_1.lib'
+boost_lib = 'boost_python-vc71-mt-1_33_1.lib'
 
 # locations of netcdf
 useNetCDF = "no"
@@ -64,4 +64,4 @@ link_flags_debug = '/debug /incremental:no /opt:ref /opt:icf'
 #ar_flags = 'crus'
 
 # system specific libraries to link with
-sys_libs = []
+sys_libs = ["C:/Program Files/Microsoft Visual Studio .NET 2003/Vc7/PlatformSDK/Lib/Ws2_32"]
