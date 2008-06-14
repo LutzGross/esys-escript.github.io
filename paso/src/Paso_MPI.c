@@ -164,7 +164,7 @@ int Paso_MPIInfo_initialized( void )
 }
 
 /* Append MPI rank to file name if multiple MPI processes */
-char *Paso_MPI_appendRankToFileName(char *fileName, int mpi_size, int mpi_rank) {
+char *Paso_MPI_appendRankToFileName(const char *fileName, int mpi_size, int mpi_rank) {
   /* Make plenty of room for the mpi_rank number and terminating '\0' */
   char *newFileName = TMPMEMALLOC(strlen(fileName)+20,char);
   strncpy(newFileName, fileName, strlen(fileName)+1);
