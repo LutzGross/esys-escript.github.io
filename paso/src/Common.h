@@ -28,15 +28,14 @@
 /**************************************************************/
 
 /* some system values */
+/* FIXME: This is not satisfactory. _ECC, __INTEL_COMPILER, and other               */
+/*        intel compiler pre-defines need to be handled (__ICL, __ICC come to mind) */
 #if ( defined __INTEL_COMPILER )
 #include <mathimf.h>
 #else
 #include <math.h>
 #endif
 
-#if (defined __OPENMP)
-#include <omp.h>
-#endif
 
 #include <float.h>
 #include <stdio.h>
@@ -88,105 +87,94 @@ typedef int err_t;
                                 _a1_=s; \
                                }
 /**************************************************************/
-
 /*    memory allocation:                                      */
+/*    Wise to not use PASO_MALLOC/FREE/REALLOC and            */
+/*    PASO_THREAD... directly. These are only for tailoring   */
+/*    the main macros that follow                             */
+/**************************************************************/
 
-/*
-	This is useful for seeing what memory is being allocated if you get an "Out of memory" error
-#define TMPMEMALLOC(_LENGTH_,_TYPE_) (printf("TMPMEMALLOC at %s %d #bytes=%d*%d=%d\n", __FILE__, __LINE__, _LENGTH_, sizeof(_TYPE_), ((size_t)(_LENGTH_) * sizeof(_TYPE_))) , (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_)))
+#if defined(_WIN32) // Use python for memory management on windows.
 
-	This is useful for seeing where memory is being freed if you get an "glibc detected...free" error
-#define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { printf("TMPMEMFREE AAA %s %d\n", __FILE__, __LINE__); free(_PTR_); (_PTR_) = NULL; printf("TMPMEMFREE BBB %s %d\n", __FILE__, __LINE__); }
-*/
-
-
-#if defined(__ECC)
-  /*#define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_)); if( !(_LENGTH_) ) printf( "Trying malloc(0) at %s %d\n", __FILE__, __LINE__ ); //else printf( "malloc(%d) at %s %d\n", _LENGTH_, __FILE__, __LINE__ );*/
-  #define TMPMEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
-  #define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
-  #define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
-  #define MEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
-  #ifdef _OPENMP
-      #define THREAD_MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) kmp_malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
-      #define THREAD_MEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { kmp_free(_PTR_); (_PTR_) = NULL; }
-  #else
-     #define THREAD_MEMALLOC(_LENGTH_,_TYPE_) TMPMEMALLOC(_LENGTH_,_TYPE_)
-     #define THREAD_MEMFREE(_PTR_) TMPMEMFREE(_PTR_)
-  #endif
-
-  /* do {} while(0) -  an old trick for bracketing a macro that */
-  /* makes sure a semi-colon does no harm.                      */
-
-  #define MEMREALLOC(_POINTER_,_LENGTH_,_TYPE_)                             \
-  do                                                                        \
-  {                                                                         \
-     if( (_POINTER_)!=NULL )                                                \
-     {                                                                      \
-        _POINTER_ = (_TYPE_*)realloc((void*)(_POINTER_),                    \
-                                     ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); \
-     }                                                                      \
-     else                                                                   \
-     {                                                                      \
-        _POINTER_ = (_TYPE_*)malloc( ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); \
-     }                                                                      \
-  } while(0)
-
-#elif defined(_WIN32)
-
-  /* A little hokey-pokey to avoid windows looking for pythonxx_d.lib */
-  #ifdef _DEBUG
-    #define TMP_DEF_FLAG _DEBUG
-    #undef _DEBUG
-  #endif
   #include <python.h>
-  #ifdef TMP_DEF_FLAG
-    #define _DEBUG TMP_DEF_FLAG
-    #undef TMP_DEF_FLAG
-  #endif
 
-  #define TMPMEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*)  PyMem_Malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
-  #define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { PyMem_Free(_PTR_); (_PTR_) = NULL; }
-  #define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*)  PyMem_Malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
-  #define MEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { PyMem_Free(_PTR_); (_PTR_) = NULL; }
-  #define THREAD_MEMALLOC(_LENGTH_,_TYPE_) TMPMEMALLOC(_LENGTH_,_TYPE_)
-  #define THREAD_MEMFREE(_PTR_) TMPMEMFREE(_PTR_)
-  #define MEMREALLOC(_POINTER_,_LENGTH_,_TYPE_)                             \
-  do                                                                        \
-  {                                                                         \
-     if( (_POINTER_)!=NULL )                                                \
-     {                                                                      \
-        _POINTER_ = (_TYPE_*)PyMem_Realloc((void*)(_POINTER_),              \
-                                     ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); \
-     }                                                                      \
-     else                                                                   \
-     {                                                                      \
-        _POINTER_ = (_TYPE_*)PyMem_Malloc( ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); \
-     }                                                                      \
-  } while(0)
+  #define PASO_MALLOC PyMem_Malloc
+  #define PASO_FREE PyMem_Free
+  #define PASO_REALLOC PyMem_Realloc
 
 #else
-  #define TMPMEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
-  #define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
-  #define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
-  #define MEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
-  #define THREAD_MEMALLOC(_LENGTH_,_TYPE_) TMPMEMALLOC(_LENGTH_,_TYPE_)
-  #define THREAD_MEMFREE(_PTR_) TMPMEMFREE(_PTR_)
-  #define MEMREALLOC(_POINTER_,_LENGTH_,_TYPE_)                             \
-  do                                                                        \
-  {                                                                         \
-     if( (_POINTER_)!=NULL )                                                \
-     {                                                                      \
-        _POINTER_ = (_TYPE_*)realloc((void*)(_POINTER_),                    \
-                                     ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); \
-     }                                                                      \
-     else                                                                   \
-     {                                                                      \
-        _POINTER_ = (_TYPE_*)malloc( ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); \
-     }                                                                      \
-  } while(0)
+
+  #include <malloc.h>
+
+  #define PASO_MALLOC malloc
+  #define PASO_FREE free
+  #define PASO_REALLOC realloc
 
 #endif
 
-#define TMPMEMALLOC_AND_PASOCHECK(_LENGTH_,_TYPE_) ( MEMALLOC(_LENGTH_,_TYPE_); 
+
+/* FIXME: This is not satisfactory. _ECC, __INTEL_COMPILER, and other               */
+/*        intel compiler pre-defines need to be handled (__ICL, __ICC come to mind) */
+/*        Also, _WIN32 may take this branch one day...                              */
+/*        SO KEEP ALL THREAD_MEMALLOC/FREEs CONFINED TO THE PASO LIBRARY.           */
+
+#if defined(__ECC) && defined(_OPENMP) // ECC version of intel compiler with openmp.
+  #include <omp.h>
+  #define PASO_THREAD_MALLOC kmp_malloc
+  #define PASO_THREAD_FREE kmp_free
+#else
+  #define PASO_THREAD_MALLOC PASO_MALLOC
+  #define PASO_THREAD_FREE PASO_FREE
+#endif
+
+/******************The main macros ************************************/ 
+
+#define MEMALLOC(_LENGTH_,_TYPE_)                                     \
+  (_TYPE_*) PASO_MALLOC(((size_t)(_LENGTH_))*sizeof(_TYPE_))
+
+/* do {} while(0) -  an old trick for bracketing a macro that */
+/* makes sure a semi-colon does no harm.                      */
+
+#define MEMFREE(_PTR_)                                                  \
+do                                                                      \
+{                                                                       \
+  if ((void *)(_PTR_) != NULL ) { PASO_FREE(_PTR_); (_PTR_) = NULL; }   \
+} while(0)
+
+#define MEMREALLOC(_POINTER_,_LENGTH_,_TYPE_)                             \
+do                                                                        \
+{                                                                         \
+   if( (_POINTER_)!=NULL )                                                \
+   {                                                                      \
+      _POINTER_ = (_TYPE_*)PASO_REALLOC((void*)(_POINTER_),               \
+                                   ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); \
+   }                                                                      \
+   else                                                                   \
+   {                                                                      \
+      _POINTER_ = (_TYPE_*)PASO_MALLOC( ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); \
+   }                                                                      \
+} while(0)
+
+#define TMPMEMALLOC MEMALLOC
+#define TMPMEMFREE MEMFREE
+
+#define THREAD_MEMALLOC(_LENGTH_,_TYPE_)                          \
+   (_TYPE_*) PASO_THREAD_MALLOC/**/(((size_t)(_LENGTH_))*sizeof(_TYPE_))
+
+#define THREAD_MEMFREE(_PTR_)                                                \
+do                                                                           \
+{                                                                            \
+  if ((void *)(_PTR_) != NULL ) { PASO_THREAD_FREE(_PTR_); (_PTR_) = NULL; } \
+} while(0)
+
+
+/*
+	This was useful for seeing what memory is being allocated if you get an "Out of memory" error
+        if used again, bracket with do {} while(0)
+#define TMPMEMALLOC(_LENGTH_,_TYPE_) (printf("TMPMEMALLOC at %s %d #bytes=%d*%d=%d\n", __FILE__, __LINE__, _LENGTH_, sizeof(_TYPE_), ((size_t)(_LENGTH_) * sizeof(_TYPE_))) , (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_)))
+
+	This was useful for seeing where memory is being freed if you get an "glibc detected...free" error
+        if used again, bracket with do {} while(0)
+#define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { printf("TMPMEMFREE AAA %s %d\n", __FILE__, __LINE__); free(_PTR_); (_PTR_) = NULL; printf("TMPMEMFREE BBB %s %d\n", __FILE__, __LINE__); }
+*/
 
 #endif /* #ifndef INC_PASO_COMMON */
