@@ -560,7 +560,7 @@ class DataArrayView {
   */
   ESCRIPT_DLL_API
   static
-  const ShapeType &
+  ShapeType
   getResultSliceShape(const RegionType& region);
 
   /**
@@ -876,7 +876,7 @@ class DataArrayView {
   */
   ESCRIPT_DLL_API
   static
-  const ShapeType &
+  ShapeType
   determineResultShape(const DataArrayView& left,
                        const DataArrayView& right);
 
@@ -1523,16 +1523,6 @@ class DataArrayView {
   // This can be derived from m_shape by multiplying the size of each dimension, but
   // is stored here for convenience.
   int m_noValues;
-
-  // FIXME: this breaks thread safety.
-  // For some reason I cannot yet grok, windows hates returning
-  // any structure by value across dll boundaries. This is a fix for
-  // getResultSliceShape and determineResultShape
-  // these methods no longer return a copy of a temporary;
-  // but instead return a reference to this class member.
-  // It is class-wide static because the two methods in question are static.
-  static DataArrayView::ShapeType return_shape;
-
 };
 
 ESCRIPT_DLL_API bool operator==(const DataArrayView& left, const DataArrayView& right);
