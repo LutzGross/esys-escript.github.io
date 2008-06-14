@@ -28,8 +28,10 @@
 /**************************************************************/
 
 /* some system values */
-/* FIXME: This is not satisfactory. _ECC, __INTEL_COMPILER, and other               */
-/*        intel compiler pre-defines need to be handled (__ICL, __ICC come to mind) */
+/* FIXME: This is not satisfactory.                                */
+/* _ECC, __INTEL_COMPILER, and other                               */
+/* intel compiler pre-defines need to be handled                   */
+/* (__ICL, __ICC come to mind)                                     */
 #if ( defined __INTEL_COMPILER )
 #include <mathimf.h>
 #else
@@ -112,10 +114,12 @@ typedef int err_t;
 #endif
 
 
-/* FIXME: This is not satisfactory. _ECC, __INTEL_COMPILER, and other               */
-/*        intel compiler pre-defines need to be handled (__ICL, __ICC come to mind) */
-/*        Also, _WIN32 may take this branch one day...                              */
-/*        SO KEEP ALL THREAD_MEMALLOC/FREEs CONFINED TO THE PASO LIBRARY.           */
+/* FIXME: This is not satisfactory.                                */
+/* _ECC, __INTEL_COMPILER, and other                               */
+/* intel compiler pre-defines need to be handled                   */
+/* (__ICL, __ICC come to mind)                                     */
+/* Also, _WIN32 may take this branch one day...                    */
+/* SO KEEP ALL THREAD_MEMALLOC/FREEs CONFINED TO THE PASO LIBRARY. */
 
 #if defined(__ECC) && defined(_OPENMP) // ECC version of intel compiler with openmp.
   #include <omp.h>
