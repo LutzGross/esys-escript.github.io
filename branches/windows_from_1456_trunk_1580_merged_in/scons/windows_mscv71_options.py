@@ -14,7 +14,7 @@
 #######################################################
 #
 
-import os
+import sys, os
 
 source_root = os.path.realpath('.')
 
@@ -23,12 +23,13 @@ incinstall = os.path.join(source_root,'include')
 libinstall = os.path.join(source_root,'lib')
 exinstall = os.path.join(source_root,'examples')
 
-# locations of include files for python
-python_root = 'C:/python24'
+# locations of files for python
+py_vers = '%s%s'%(sys.version_info[0],sys.version_info[1])
+python_root = 'C:/python' + py_vers
 python_cmd = os.path.join(python_root,'python')
 python_path =  os.path.join(python_root,'include')
 python_lib_path = os.path.join(python_root,'libs')
-python_lib = 'python24'
+python_lib = 'python' + py_vers
 
 # locations of libraries for boost
 dotdot = os.path.realpath('..')
