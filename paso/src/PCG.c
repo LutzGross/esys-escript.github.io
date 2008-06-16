@@ -78,7 +78,7 @@ err_t Paso_Solver_PCG(
     Paso_Performance* pp) {
 
   /* Local variables */
-  dim_t num_iter=0,maxit,num_iter_global, chunk_size=-1, len,rest, n_chunks, np, ipp;
+  dim_t num_iter=0,maxit,num_iter_global, chunk_size=-1, len,rest, np, ipp;
   register double ss,ss1;
   dim_t i0, istart, iend;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
@@ -91,16 +91,23 @@ err_t Paso_Solver_PCG(
 #endif
   double norm_of_residual,norm_of_residual_global;
   register double d;
-  char* chksz_chr;
-  np=omp_get_max_threads();
+
+  /* Should not be any executable code before this ifdef */
 
 #ifdef USE_DYNAMIC_SCHEDULING
+
+    /* Watch out for these declarations (see above) */
+    char* chksz_chr;
+    dim_t n_chunks;
+
     chksz_chr=getenv("PASO_CHUNK_SIZE_PCG");
     if (chksz_chr!=NULL) sscanf(chksz_chr, "%d",&chunk_size);
+    np=omp_get_max_threads();
     chunk_size=MIN(MAX(1,chunk_size),n/np);
     n_chunks=n/chunk_size;
     if (n_chunks*chunk_size<n) n_chunks+=1;
 #else
+    np=omp_get_max_threads();
     len=n/np;
     rest=n-len*np;
 #endif
