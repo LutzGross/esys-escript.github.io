@@ -17,9 +17,11 @@ local_env.Append(LIBS = [boost_lib, python_lib])
 
 
 lib = local_env.StaticLibrary(lib_name, sources)
-local_env.Append(CPPDEFINES = 'INTERFACE_STATIC_LIB')
-#lib = local_env.SharedLibrary(lib_name, sources)
+
+# NOTE: to use this you need to edit system_dep.h
+#       to switch on the declspecs.
 #local_env.Append(CPPDEFINES = 'ESYSUTILS_EXPORTS')
+#lib = local_env.SharedLibrary(lib_name, sources)
 
 include_path = Dir(lib_name, incinstall)
 
