@@ -107,8 +107,6 @@ class Movie:
 		# will be deleted automatically once the movie has been generated. 
 		# However, if a paramter file name was specified, the file will be 
 		# maintained.
-		print '#'*50
-		print 'ppmtompeg ' + self.__parameter_file
 		system('ppmtompeg ' + self.__parameter_file)
 		if(self.__parameter_file == "make_movie"):
 			system('rm ' + self.__parameter_file)
