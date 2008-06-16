@@ -42,6 +42,8 @@
 #      else
 #         define ESYSUTILS_DLL_API __declspec(dllimport)
 #      endif
+#   else
+#      define ESYSUTILS_DLL_API
 #   endif
 #   define THROW(ARG)
 #   define THROW_ANY // Stupid windows compilers complain about THROW()
