@@ -26,24 +26,19 @@
 
 #ifdef _WIN32
 
-#   ifdef _DEBUG
-#      define TMP_DEF_FLAG
-#      undef _DEBUG
-#   endif
 #   include <python.h>
-#   ifdef TMP_DEF_FLAG
-#      undef TMP_DEF_FLAG
-#   define _DEBUG
-#   endif
+
 #   define ESYS_MALLOC PyMem_Malloc
 #   define ESYS_FREE PyMem_Free
 #   define ESYS_REALLOC PyMem_Realloc
 
 #else
+
 #   include <malloc.h>
-#   define ESYS_MALLOC malloc
-#   define ESYS_FREE free
-#   define ESYS_REALLOC realloc
+
+#   define ESYS_MALLOC ::malloc
+#   define ESYS_FREE ::free
+#   define ESYS_REALLOC ::realloc
 
 #endif
 
