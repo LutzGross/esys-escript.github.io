@@ -122,7 +122,7 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_System
                     out->u[i]=0.;
                  }
                  /* identify the main diagonals */
-                 #pragma omp for schedule(static) private(i,iptr,iptr_main,k)
+                 #pragma omp for schedule(static) private(i,iptr,iptr_main)
                  for (i = 0; i < n; ++i) {
                         iptr_main=pattern->mainPattern->ptr[0]-1;
                         for (iptr=pattern->mainPattern->ptr[i];iptr<pattern->mainPattern->ptr[i+1]; iptr++) {
