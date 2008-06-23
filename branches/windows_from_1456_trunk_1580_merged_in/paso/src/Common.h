@@ -95,7 +95,7 @@ typedef int err_t;
 /*    the main macros that follow                             */
 /**************************************************************/
 
-#if defined(_WIN32) // Use python for memory management on windows.
+#if defined(_WIN32) /* Use python for memory management on windows. */
 
   #include <python.h>
 
@@ -121,7 +121,7 @@ typedef int err_t;
 /* Also, _WIN32 may take this branch one day...                    */
 /* SO KEEP ALL THREAD_MEMALLOC/FREEs CONFINED TO THE PASO LIBRARY. */
 
-#if defined(__ECC) && defined(_OPENMP) // ECC version of intel compiler with openmp.
+#if defined(__ECC) && defined(_OPENMP) /* ECC version of intel compiler with openmp. */
   #include <omp.h>
   #define PASO_THREAD_MALLOC kmp_malloc
   #define PASO_THREAD_FREE kmp_free
