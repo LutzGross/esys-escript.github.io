@@ -4,13 +4,12 @@
 # in the proper place so the ESSCC twiki can find it. The build command is
 #	scons docs
 
-# Run this nightly on shake71 via cron, such as at 1:00 AM every night, with
-# 0      1    *    *     0-6      /home/Work/Documentation_Escript/autodocs.sh >& /home/Work/Documentation_Escript/log
+# If this fails make sure you have logged in to the repository and can
+# do password-less svn to shake200.  Verify that you can do it by hand
+# with the exact same svn checkout command (full host name) as used below.
 
-# This will have an error occasionally because svn checkout fails. 
-# The problem may be that the certificate has expired.  If that's the
-# case try an svn checkout (or svn list) by hand and accept the
-# certificate.  Then the problem will be resolved.
+# Run this nightly on shake71 via cron using:
+# 0 1 * * 0-6 /home/Work/EscriptDev/Documentation/autodocs.sh > /home/Work/EscriptDev/Documentation/log 2>&1
 
 # Requires:
 #	svn checkout from shake200
@@ -20,12 +19,12 @@
 #	latex
 #	latex2html
 
-DIR="/home/Work/Documentation_Escript"
+DIR="/home/Work/EscriptDev/Documentation"
 
 START=`date '+%Y/%m/%d %H:%M'`
 RunDate=`date '+%Y_%m_%d'`
 
-scons='/home/Work/scons-0.96.92/bin/scons'
+scons='/home/ksteube/s/InstallArea/bin/scons'
 
 finish () {
   # state will be 'FAILURE' or 'SUCCESS'
@@ -33,14 +32,14 @@ finish () {
   date
   # Clean up the sandbox
   cd $DIR
-  ### /bin/rm -rf sandbox
+  /bin/rm -rf sandbox
   END=`date '+%Y/%m/%d %H:%M'`
   cat << END_MSG | mail -s "ESYS_TESTS docs $RunDate $state" k.steube@uq.edu.au
 $2.
 The tests ran from $START to $END
-See the log file /home/Work/Documentation_Escript/log for info
+See the log file $DIR/log for info
 This mail was sent by $0
-running via cron as $USER on `hostname`.
+running via cron as $LOGNAME on `hostname`.
 END_MSG
   if [ "x$state" = "xFAILURE" ]; then
     exit 1
@@ -56,11 +55,10 @@ cd $DIR			|| finish FAILURE "Could not cd to $DIR"
 mkdir sandbox		|| finish FAILURE "Could not mkdir sandbox"
 cd sandbox		|| finish FAILURE "Could not cd to sandbox"
 
-echo "Checking out esys13/trunk"
+echo "Checking out esys13/trunk from Subversion"
 svn checkout https://shake200.esscc.uq.edu.au/svn/esys13/trunk || finish FAILURE "Could not checkout esys13/trunk"
 
-export PATH="/home/Work/latex2html-2002-2-1/bin:$PATH"
-export LD_LIBRARY_PATH="$DIR/sandbox/trunk/lib:/home/Work/VTK-4.4.2/lib"
+export LD_LIBRARY_PATH="$DIR/sandbox/trunk/lib"
 export PYTHONPATH="$DIR/sandbox/trunk"
 
 # Generate documentation
