@@ -69,7 +69,7 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
   Finley_NodeMapping *colMap=NULL, *rowMap=NULL;
   Paso_Distribution *colDistribution=NULL, *rowDistribution=NULL;
   
-  index_t i,j;
+  index_t i;
   Finley_resetError();
   time0=Finley_timer();
 

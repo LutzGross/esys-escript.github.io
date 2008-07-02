@@ -21,10 +21,10 @@
 *   (Version 1.01, 5/2003)
 */
 
+#include "Common.h"
 #include "mmio.h"
 
 #include <string.h>
-#include <malloc.h>
 #include <ctype.h>
 
 
@@ -75,9 +75,9 @@ int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
 
     /* reseve memory for matrices */
 
-    I = (int *) malloc(nz * sizeof(int));
-    J = (int *) malloc(nz * sizeof(int));
-    val = (double *) malloc(nz * sizeof(double));
+    I = MEMALLOC(nz, int);
+    J = MEMALLOC(nz, int);
+    val = MEMALLOC(nz, double);
 
     *val_ = val;
     *I_ = I;
@@ -369,20 +369,20 @@ int mm_read_mtx_crd(char *fname, int *M, int *N, int *nz, int **I, int **J,
         return ret_code;
 
 
-    *I = (int *)  malloc(*nz * sizeof(int));
-    *J = (int *)  malloc(*nz * sizeof(int));
+    *I = MEMALLOC(*nz, int);
+    *J = MEMALLOC(*nz, int);
     *val = NULL;
 
     if (mm_is_complex(*matcode))
     {
-        *val = (double *) malloc(*nz * 2 * sizeof(double));
+        *val = MEMALLOC(*nz * 2, double);
         ret_code = mm_read_mtx_crd_data(f, *M, *N, *nz, *I, *J, *val,
                 *matcode);
         if (ret_code != 0) return ret_code;
     }
     else if (mm_is_real(*matcode))
     {
-        *val = (double *) malloc(*nz * sizeof(double));
+        *val = MEMALLOC(*nz, double);
         ret_code = mm_read_mtx_crd_data(f, *M, *N, *nz, *I, *J, *val,
                 *matcode);
         if (ret_code != 0) return ret_code;

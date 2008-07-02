@@ -50,8 +50,6 @@ Paso_Distribution* Paso_Distribution_alloc( Paso_MPIInfo *mpi_info,
 
 void Paso_Distribution_free( Paso_Distribution *in )
 {
-  index_t i;
-
   if (in != NULL) {
     --(in->reference_counter);
     if (in->reference_counter<=0) {

@@ -30,7 +30,7 @@
 
 void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* elements,escriptDataC* data,escriptDataC* interpolated_data) {
   double* local_data=NULL,*S=NULL,*data_array; 
-  index_t dof_offset,*resort_nodesi, NN, NS;
+  index_t dof_offset, NN, NS;
   bool_t reduced_integration=FALSE;
   dim_t q,i,NS_DOF,NN_DOF,numNodes,e, numQuad;
   Finley_RefElement* reference_element=NULL;

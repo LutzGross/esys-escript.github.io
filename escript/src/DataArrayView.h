@@ -105,6 +105,7 @@ class DataArrayView {
 
      Description:
      Copy constructor for DataArrayView.
+     FIXME: See later FIXME.
 
      \param other - Input -
                 DataArrayView to copy.
@@ -113,6 +114,31 @@ class DataArrayView {
   */
   ESCRIPT_DLL_API
   DataArrayView(const DataArrayView& other);
+
+
+  /**
+     \brief
+     Destructor.
+     FIXME: See later FIXME.
+
+     NOTE: Be explicit because of the raw pointer member.
+  */
+  ESCRIPT_DLL_API
+  inline virtual
+  ~DataArrayView() { };
+
+  /**
+     \brief
+     FIXME: See later FIXME.
+
+     NOTE: Be explicit because of the raw pointer member.
+  */
+  ESCRIPT_DLL_API
+  virtual
+  DataArrayView &
+  operator=( const DataArrayView &other);
+
+
 
   /**
      \brief
@@ -1462,6 +1488,22 @@ class DataArrayView {
   // The data values for the view.
   // NOTE: This points to data external to the view.
   // This is just a pointer to an array of ValueType.
+  // FIXME: JUST a pointer eh?
+  //        All raw pointers to shared memory need to be replaced... really.
+  //        Using smart pointers, you can get efficient direct access
+  //        to pointers if you need it, 
+  //        and you can control it.
+  //        Do it & huge amounts of pain will go away. 
+  //        Use boost and the 
+  //        typedef boost::shared_ptr<ValueType> ValuePointer;
+  //        kind of pattern.
+  //        Oh, "using namepace std" is addictive &
+  //        bad for your long term health.
+  //        Use protection, and get used to "std::".
+  //        If you have foo::bar::har::get_my_car::... driving you crazy,
+  //        try using "namespace MySpace = foo::bar::har::..."
+  //        and then use MySpace::
+  //
   ValueType* m_data;
 
   //
@@ -1481,7 +1523,6 @@ class DataArrayView {
   // This can be derived from m_shape by multiplying the size of each dimension, but
   // is stored here for convenience.
   int m_noValues;
-
 };
 
 ESCRIPT_DLL_API bool operator==(const DataArrayView& left, const DataArrayView& right);

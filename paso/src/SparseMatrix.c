@@ -39,7 +39,6 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
 
   double time0;
   Paso_SparseMatrix*out=NULL;
-  dim_t n_norm,i;
   Paso_SparseMatrixType pattern_format_out;
 
   Paso_resetError();

@@ -33,12 +33,12 @@ void Finley_NodeFile_gatherEntries(dim_t n, index_t* index, index_t min_index, i
                                    index_t* globalDegreesOfFreedom_out, index_t* globalDegreesOfFreedom_in, 
                                    dim_t numDim, double* Coordinates_out, double* Coordinates_in)
 {
-   dim_t i,j;
+   dim_t i;
    register index_t k;
    register const index_t range=max_index-min_index;
    const  size_t numDim_size=(size_t)numDim*sizeof(double);
 
-   #pragma omp parallel for private(i,j,k) schedule(static)
+   #pragma omp parallel for private(i,k) schedule(static)
    for (i=0;i<n;i++) {
       k=index[i]-min_index;
       if ((k>=0) && (k <range)) {

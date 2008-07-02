@@ -24,6 +24,10 @@
 #include <mpi.h>
 #endif
 
+#ifdef  _WIN32
+#include <WinSock2.h>
+#endif
+
 namespace escript {
 
 int getSvnVersion() 
@@ -34,31 +38,6 @@ int getSvnVersion()
   return 0;
 #endif
 }
-
-/* This is probably not very robust, but it works on Savanna today and is useful for performance analysis */
-int get_core_id() {
-  int processor_num=-1;
-#ifdef CORE_ID1
-  FILE *fp;
-  int i, count_spaces=0;
-  char fname[100];
-  char buf[1000];
-
-  sprintf(fname, "/proc/%d/stat", getpid());
-  fp = fopen(fname, "r");
-  if (fp == NULL) return(-1);
-  fgets(buf, 1000, fp);
-  fclose(fp);
-
-  for (i=strlen(buf)-1; i>=0; i--) {
-    if (buf[i] == ' ') count_spaces++;
-    if (count_spaces == 4) break;
-  }
-  processor_num = atoi(&buf[i+1]);
-#endif
-  return(processor_num);
-}
-
 
 void printParallelThreadCnt() 
 {
@@ -81,8 +60,7 @@ void printParallelThreadCnt()
     omp_iam = omp_get_thread_num(); /* Call in a parallel region */
     omp_num = omp_get_num_threads();
     #endif
-    printf("printParallelThreadCounts: MPI=%03d/%03d OpenMP=%03d/%03d running on %s core %d\n",
-      mpi_iam, mpi_num, omp_iam, omp_num, hname, get_core_id());
+    printf("printParallelThreadCounts: MPI=%d/%d OpenMP=%d/%d running on %s\n", mpi_iam, mpi_num, omp_iam, omp_num, hname);
   }
 }
 

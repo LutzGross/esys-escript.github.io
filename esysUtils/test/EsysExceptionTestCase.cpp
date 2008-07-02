@@ -40,6 +40,14 @@ public:
    // Copy Constructor.
    DerivedEx(const DerivedEx &other): Parent(other) { updateMessage(); } 
 
+   inline virtual DerivedEx &
+   operator=(const DerivedEx &other) THROW_ANY
+      {
+         Parent::operator=(other);
+         updateMessage();
+         return *this;
+      }
+
    /// Return the exception name
    virtual const string & exceptionName() const
       {
@@ -257,7 +265,10 @@ void EsysExceptionTestCase::testCase2() {
 	  throw ex4;
        	}
  	catch (exception& e) {
-  	  cout << e.what() << endl;
+          // cout << e.what() << endl;
+          assert(e.what() == string("DerivedException: Exception caught"
+                                    " as std::exception")
+                 );
   	}
 	catch (...) {
            //

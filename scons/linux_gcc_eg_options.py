@@ -26,6 +26,9 @@ boost_path = '/usr/include'
 boost_lib_path = '/usr/lib'
 boost_lib = 'boost_python'
 
+useNetCDF = 'yes'
+netCDF_libs = ['netcdf', 'netcdf_c++']
+
 # locations of doc building executables
 doxygen_path = '/usr/bin'
 epydoc_path = '/usr/bin'
