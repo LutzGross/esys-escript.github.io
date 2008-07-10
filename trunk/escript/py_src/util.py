@@ -5046,11 +5046,13 @@ def interpolate(arg,where):
     """
     if isinstance(arg,Symbol):
        return Interpolate_Symbol(arg,where)
-    else:
+    elif isinstance(arg,escript.Data):
        if where == arg.getFunctionSpace():
           return arg
        else:
           return escript.Data(arg,where)
+    else:
+       return escript.Data(arg,where)
 
 class Interpolate_Symbol(DependendSymbol):
    """
