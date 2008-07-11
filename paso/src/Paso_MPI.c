@@ -24,7 +24,10 @@
 /* allocate memory for an mpi_comm, and find the communicator details */
 Paso_MPIInfo* Paso_MPIInfo_alloc( MPI_Comm comm )
 {
-  int error;
+  #ifdef PASO_MPI
+    int error;
+  #endif
+
   Paso_MPIInfo *out=NULL;
 
   out = MEMALLOC( 1, Paso_MPIInfo );
@@ -161,8 +164,9 @@ int Paso_MPIInfo_initialized( void )
 }
 
 /* Append MPI rank to file name if multiple MPI processes */
-char *Paso_MPI_appendRankToFileName(char *fileName, int mpi_size, int mpi_rank) {
-  char *newFileName = TMPMEMALLOC(4096,char);
+char *Paso_MPI_appendRankToFileName(const char *fileName, int mpi_size, int mpi_rank) {
+  /* Make plenty of room for the mpi_rank number and terminating '\0' */
+  char *newFileName = TMPMEMALLOC(strlen(fileName)+20,char);
   strncpy(newFileName, fileName, strlen(fileName)+1);
   if (mpi_size>1) sprintf(newFileName+strlen(newFileName), ".%04d", mpi_rank);
   return(newFileName);

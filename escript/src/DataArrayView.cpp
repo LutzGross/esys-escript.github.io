@@ -68,10 +68,20 @@ namespace escript {
    {
    }
 
+   DataArrayView &
+   DataArrayView::operator=(const DataArrayView& other)
+   {
+      m_data = other.m_data;
+      m_offset = other.m_offset;
+      m_shape = other.m_shape;
+      m_noValues = other.m_noValues;
+      return *this;
+   }
+
    bool
    DataArrayView::isEmpty() const
    {
-      return (m_data==0);
+      return (m_data==NULL);
    }
 
    void
@@ -291,8 +301,8 @@ namespace escript {
    DataArrayView::getResultSliceShape(const RegionType& region)
    {
       int dimSize;
-      RegionType::const_iterator i;
       ShapeType result;
+      RegionType::const_iterator i;
       for (i=region.begin();i!=region.end();i++) {
          dimSize=((i->second)-(i->first));
          if (dimSize!=0) {
@@ -854,14 +864,14 @@ namespace escript {
    DataArrayView::determineResultShape(const DataArrayView& left,
                                        const DataArrayView& right)
    {
-      ShapeType temp;
+      ShapeType result;
       for (int i=0; i<(left.getRank()-1); i++) {
-         temp.push_back(left.getShape()[i]);
+         result.push_back(left.getShape()[i]);
       }
       for (int i=1; i<right.getRank(); i++) {
-         temp.push_back(right.getShape()[i]);
+         result.push_back(right.getShape()[i]);
       }
-      return temp;
+      return result;
    }
 
    bool operator==(const DataArrayView& left, const DataArrayView& right)

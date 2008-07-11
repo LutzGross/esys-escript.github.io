@@ -26,7 +26,7 @@
 #include "SparseMatrix.h"
 
 void Paso_SparseMatrix_addRow_CSR_OFFSET0(Paso_SparseMatrix* A, double* array) {
-   dim_t ir,irow,ic,icb,irb;
+   dim_t ir,irow,icb,irb;
    index_t iptr;
    register double fac;
    #pragma omp parallel for private(ir,irb,irow,fac,iptr,icb) schedule(static)

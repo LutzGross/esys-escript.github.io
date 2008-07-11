@@ -777,13 +777,12 @@ DataExpanded::reorderByReferenceIDs(int *reference_ids)
                  break;
               }
          }
-         if (not matched) {
+         if (! matched) {
             throw DataException("Error - DataExpanded::reorderByReferenceIDs: unable to reorder sample data by reference ids");
          }
      }
    }
 }
-
 
 
 }  // end of namespace

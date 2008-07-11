@@ -67,16 +67,14 @@ FunctionSpace::getDomain() const
   return *m_domain;
 }
 
-const std::string &
+std::string
 FunctionSpace::toString() const
 {
   std::stringstream temp;
   temp << m_domain->functionSpaceTypeAsString(m_functionSpaceType)
        << " on " << m_domain->getDescription();
 
-  type_str = temp.str();
-
-  return type_str;
+  return temp.str();
 }
 
 
@@ -90,10 +88,7 @@ FunctionSpace::toPyString() const
   temp << m_domain->functionSpaceTypeAsString(m_functionSpaceType)
        << " on " << m_domain->getDescription();
 
-  //toString();
-  type_str = temp.str();
-
-  return cvtr(type_str);
+  return cvtr(temp.str());
 }
 #endif
 

@@ -3,6 +3,7 @@ The tests are now bundled with the rest of the software.  You can run
 them by hand with
 
 	scons run_tests		(C++ tests only)
+	scons py_tests		(python tests only)
 	scons all_tests		(C++ and python tests)
 
 The target run_tests takes about 15 minutes to run on ess.  The target

@@ -69,7 +69,21 @@ namespace finley
 
     /// Destructor
     FINLEY_DLL_API
-    virtual ~FinleyAdapterException() THROW() {}
+    virtual ~FinleyAdapterException() THROW_ANY {}
+
+    /**
+    \brief
+    Assignment operator.
+    */
+    FINLEY_DLL_API
+    inline virtual FinleyAdapterException &
+    operator=(const FinleyAdapterException &other ) THROW_ANY
+       {
+         Parent::operator=(other);
+         updateMessage();
+         return *this;
+       }
+
     /**
     \brief
     Returns the name of the exception.
