@@ -125,13 +125,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   fs_definer.def("setTags",&escript::FunctionSpace::setTags);
   fs_definer.def("getTagFromDataPointNo",
                  &escript::FunctionSpace::getTagFromDataPointNo);
-#ifdef DEBUG_PY_STRINGS
-  fs_definer.def("__str__",&escript::FunctionSpace::toPyString);
-#else
-  fs_definer.def("__str__",
-                 &escript::FunctionSpace::toString,
-                 return_value_policy<copy_const_reference>());
-#endif
+  fs_definer.def("__str__", &escript::FunctionSpace::toString);
   fs_definer.def(self == self);
   fs_definer.def(self != self);
   //

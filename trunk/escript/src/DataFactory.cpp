@@ -14,6 +14,7 @@
  *******************************************************/
 
 #include "DataFactory.h"
+#include "esysUtils/esys_malloc.h"
 
 #include <boost/python/extract.hpp>
 #include <iostream>
@@ -116,7 +117,7 @@ load(const std::string fileName,
        } else if (strncmp(type_str, "expanded", strlen("expanded")) == 0 ) {
            type =2;
        }
-       free(type_str);
+       esysUtils::free(type_str);
    } else {
       if (! (type_att=dataFile.get_att("type_id")) )
   	throw DataException("Error - load:: cannot recover type attribute from escript netCDF file.");
@@ -191,34 +192,34 @@ load(const std::string fileName,
          throw DataException("Error - load:: unable to recover number of tags from netCDF file.");
       ntags=tags_dim->size();
       dims[rank]=ntags;
-      int *tags = (int *) malloc(ntags*sizeof(int));
+      int *tags = (int *) esysUtils::malloc(ntags*sizeof(int));
       if (! ( tags_var = dataFile.get_var("tags")) )
       {
-         free(tags);
+         esysUtils::free(tags);
          throw DataException("Error - load:: unable to find tags in netCDF file.");
       }
       if (! tags_var->get(tags, ntags) ) 
       {
-         free(tags);
+         esysUtils::free(tags);
          throw DataException("Error - load:: unable to recover tags from netCDF file.");
       }
 
       DataVector data(len_data_point * ntags, 0., len_data_point * ntags);
       if (!(var = dataFile.get_var("data")))
       {
-         free(tags);
+         esysUtils::free(tags);
          throw DataException("Error - load:: unable to find data in netCDF file.");
       }
       if (! var->get(&(data[0]), dims) ) 
       {
-         free(tags);
+         esysUtils::free(tags);
          throw DataException("Error - load:: unable to recover data from netCDF file.");
       }
       out=Data(DataArrayView(data,shape,0),function_space);
       for (int t=1; t<ntags; ++t) {
          out.setTaggedValueFromCPP(tags[t],DataArrayView(data,shape,t*len_data_point));
       }
-      free(tags);
+      esysUtils::free(tags);
    } else if (type == 2) {
       /* expanded data */
       if ( ! (ndims == rank + 2) )
@@ -236,10 +237,10 @@ load(const std::string fileName,
       if (! ( ids_var = dataFile.get_var("id")) )
          throw DataException("Error - load:: unable to find reference ids in netCDF file.");
       const int* ids_p=function_space.borrowSampleReferenceIDs();
-      int *ids_of_nc = (int *)malloc(num_samples*sizeof(int));
+      int *ids_of_nc = (int *)esysUtils::malloc(num_samples*sizeof(int));
       if (! ids_var->get(ids_of_nc, (long) num_samples) ) 
       {
-         free(ids_of_nc);
+         esysUtils::free(ids_of_nc);
          throw DataException("Error - load:: unable to recover ids from netCDF file.");
       }
       // check order:
@@ -256,7 +257,7 @@ load(const std::string fileName,
       }
       /* if (failed>=0) 
       {
-         free(ids_of_nc);
+         esysUtils::free(ids_of_nc);
          throw DataException("Error - load:: data ordering in netCDF file does not match ordering of FunctionSpace.");
       } */
       // get the data:
@@ -265,12 +266,12 @@ load(const std::string fileName,
       out=Data(0,shape,function_space,true);
       if (!(var = dataFile.get_var("data")))
       {
-         free(ids_of_nc);
+         esysUtils::free(ids_of_nc);
          throw DataException("Error - load:: unable to find data in netCDF file.");
       }
       if (! var->get(&(out.getDataPoint(0,0).getData()[0]), dims) ) 
       {
-         free(ids_of_nc);
+         esysUtils::free(ids_of_nc);
          throw DataException("Error - load:: unable to recover data from netCDF file.");
       }
       if (failed>=0) {
@@ -279,7 +280,7 @@ load(const std::string fileName,
            out.borrowData()->reorderByReferenceIDs(ids_of_nc);
         } 
         catch (std::exception& e) {
-           free(ids_of_nc);
+           esysUtils::free(ids_of_nc);
            throw DataException("Error - load:: unable to reorder data in netCDF file.");
         }
       }

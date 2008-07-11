@@ -61,18 +61,16 @@
 
 #ifdef _WIN32
 
-#ifndef INTERFACE_STATIC_LIB
-# ifdef ESCRIPT_EXPORTS
-#   define ESCRIPT_DLL_API __declspec(dllexport)
-#  else
-#   define ESCRIPT_DLL_API __declspec(dllimport)
-# endif
-#endif
+#   ifndef INTERFACE_STATIC_LIB
+#      ifdef ESCRIPT_EXPORTS
+#         define ESCRIPT_DLL_API __declspec(dllexport)
+#      else
+#         define ESCRIPT_DLL_API __declspec(dllimport)
+#      endif
+#   endif
 
-#define THROW(ARG)
 #else
-# define ESCRIPT_DLL_API
+#   define ESCRIPT_DLL_API
 #endif
 
-# define THROW(ARG) throw(ARG)
 #endif

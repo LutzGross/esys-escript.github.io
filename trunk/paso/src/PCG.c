@@ -78,7 +78,7 @@ err_t Paso_Solver_PCG(
     Paso_Performance* pp) {
 
   /* Local variables */
-  dim_t num_iter=0,maxit,num_iter_global, chunk_size=-1, len,rest, n_chunks, np, ipp;
+  dim_t num_iter=0,maxit,num_iter_global, chunk_size=-1, len,rest, np, ipp;
   register double ss,ss1;
   dim_t i0, istart, iend;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
@@ -86,18 +86,28 @@ err_t Paso_Solver_PCG(
   dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
   double *resid = tolerance, *rs=NULL, *p=NULL, *v=NULL, *x2=NULL ;
   double tau_old,tau,beta,delta,gamma_1,gamma_2,alpha,sum_1,sum_2,sum_3,sum_4,sum_5,tol;
-  double norm_of_residual,norm_of_residual_global, loc_sum[2], sum[2];
-  register double r_tmp,d,rs_tmp,x2_tmp,x_tmp;
-  char* chksz_chr;
-  np=omp_get_max_threads();
+#ifdef PASO_MPI
+  double loc_sum[2], sum[2];
+#endif
+  double norm_of_residual,norm_of_residual_global;
+  register double d;
+
+  /* Should not be any executable code before this ifdef */
 
 #ifdef USE_DYNAMIC_SCHEDULING
+
+    /* Watch out for these declarations (see above) */
+    char* chksz_chr;
+    dim_t n_chunks;
+
     chksz_chr=getenv("PASO_CHUNK_SIZE_PCG");
     if (chksz_chr!=NULL) sscanf(chksz_chr, "%d",&chunk_size);
+    np=omp_get_max_threads();
     chunk_size=MIN(MAX(1,chunk_size),n/np);
     n_chunks=n/chunk_size;
     if (n_chunks*chunk_size<n) n_chunks+=1;
 #else
+    np=omp_get_max_threads();
     len=n/np;
     rest=n-len*np;
 #endif
@@ -151,16 +161,27 @@ err_t Paso_Solver_PCG(
        #endif
     }
     num_iter=0;
+
+    /* PGH */
+    /* without this we get a use of an unititialised var below */
+    tau = 0;
+
     /* start of iteration */
     while (!(convergeFlag || maxIterFlag || breakFlag)) {
            ++(num_iter);
+
+           /* PGH */
+           /* The next lines were commented out before I got here */
            /* v=prec(r)  */
+           /* tau=v*r; */
+           /* leading to the use of an unititialised var below */
+
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
            Paso_Solver_solvePreconditioner(A,v,r);
            Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
-           /* tau=v*r    */
+
 	   sum_1 = 0;
            #pragma omp parallel private(i0, istart, iend, ipp, ss)
            {

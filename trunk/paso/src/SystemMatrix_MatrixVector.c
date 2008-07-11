@@ -39,7 +39,6 @@ void  Paso_SystemMatrix_MatrixVector(double alpha,
                                      double* out) {
 
   double *snd_buffer=NULL, *rcv_buffer=NULL;
-  dim_t N;
   Paso_MPIInfo *mpi_info=A->mpi_info;
 
   if (A->type & MATRIX_FORMAT_CSC) {

@@ -29,25 +29,23 @@
 // In particular it has a acosh and other similar functions which aren't implemented in Visual C++ math.h
 // Note you will get a compile time error if any other header (including system ones) includes math.h whilst mathimf.h
 // has been included. As a result system_dep.h must be included FIRST at all times (this prevents math.h from being included).
-#include <mathimf.h>
+#   include <mathimf.h>
 #else
-#include <math.h>
+#   include <math.h>
 #endif
 
 #ifdef _WIN32
 
-#ifndef INTERFACE_STATIC_LIB
-#ifdef FINLEY_EXPORTS
-#define FINLEY_DLL_API __declspec(dllexport)
-#else
-#define FINLEY_DLL_API __declspec(dllimport)
-#endif
-#endif
+#   ifndef INTERFACE_STATIC_LIB
+#      ifdef FINLEY_EXPORTS
+#         define FINLEY_DLL_API __declspec(dllexport)
+#      else
+#         define FINLEY_DLL_API __declspec(dllimport)
+#      endif
+#   endif
 
-#define THROW(ARG)
 #else
-#define FINLEY_DLL_API
-# define THROW(ARG) throw(ARG)
+#   define FINLEY_DLL_API
 #endif
 
 

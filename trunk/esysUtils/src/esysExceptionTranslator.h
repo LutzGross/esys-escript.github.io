@@ -28,6 +28,7 @@ namespace esysUtils {
      \brief
      Function which translates an EsysException into a python exception
   */
+  ESYSUTILS_DLL_API
   void esysExceptionTranslator(EsysException const& e);
 } // end of namespace
 
