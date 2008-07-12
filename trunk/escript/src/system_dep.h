@@ -73,4 +73,13 @@
 #   define ESCRIPT_DLL_API
 #endif
 
+/* you'll need this one day. */
+#ifndef const
+# if (defined __STDC__ && __STDC__) || defined __cplusplus
+#  define __const	const
+# else
+#  define __const
+# endif
+#endif
+
 #endif

@@ -485,10 +485,13 @@ else:
         env.Append(CXXFLAGS = flags)
      except KeyError:
         pass
+
+# Impassioned plea - please do this sort of thing in the options files.
 try:
      if env['CC'] == 'gcc': env.Append(CCFLAGS = "-pedantic-errors -Wno-long-long")
 except:
      pass
+
 if dodebug:
      try:
         flags = env['link_flags_debug']

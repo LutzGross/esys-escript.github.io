@@ -56,7 +56,7 @@ blocktimer_initialize()
 }
 
 void
-blocktimer_increment(char *name, double start_time)
+blocktimer_increment(__const char *name, double start_time)
 {
 #ifdef BLOCKTIMER
   int id;
@@ -71,7 +71,7 @@ blocktimer_increment(char *name, double start_time)
 }
 
 int
-blocktimer_getOrCreateTimerId(char *name)
+blocktimer_getOrCreateTimerId(__const char *name)
 {
   int id=0;
 #ifdef BLOCKTIMER
