@@ -86,24 +86,24 @@ namespace finley {
     }
 
     // Read NetCDF integer attributes
-    int mpi_size			= NetCDF_Get_Int_Attribute(&dataFile, fName, "mpi_size");
-    int mpi_rank			= NetCDF_Get_Int_Attribute(&dataFile, fName, "mpi_rank");
-    int numDim				= NetCDF_Get_Int_Attribute(&dataFile, fName, "numDim");
-    int order				= NetCDF_Get_Int_Attribute(&dataFile, fName, "order");
-    int reduced_order			= NetCDF_Get_Int_Attribute(&dataFile, fName, "reduced_order");
-    int numNodes			= NetCDF_Get_Int_Attribute(&dataFile, fName, "numNodes");
-    int num_Elements			= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_Elements");
-    int num_FaceElements		= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_FaceElements");
-    int num_ContactElements		= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_ContactElements");
-    int num_Points			= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_Points");
-    int num_Elements_numNodes		= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_Elements_numNodes");
-    int Elements_TypeId			= NetCDF_Get_Int_Attribute(&dataFile, fName, "Elements_TypeId");
-    int num_FaceElements_numNodes	= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_FaceElements_numNodes");
-    int FaceElements_TypeId		= NetCDF_Get_Int_Attribute(&dataFile, fName, "FaceElements_TypeId");
-    int num_ContactElements_numNodes	= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_ContactElements_numNodes");
-    int ContactElements_TypeId		= NetCDF_Get_Int_Attribute(&dataFile, fName, "ContactElements_TypeId");
-    int Points_TypeId			= NetCDF_Get_Int_Attribute(&dataFile, fName, "Points_TypeId");
-    int num_Tags			= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_Tags");
+    int mpi_size			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"mpi_size");
+    int mpi_rank			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"mpi_rank");
+    int numDim				= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"numDim");
+    int order				= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"order");
+    int reduced_order			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"reduced_order");
+    int numNodes			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"numNodes");
+    int num_Elements			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Elements");
+    int num_FaceElements		= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_FaceElements");
+    int num_ContactElements		= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_ContactElements");
+    int num_Points			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Points");
+    int num_Elements_numNodes		= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Elements_numNodes");
+    int Elements_TypeId			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"Elements_TypeId");
+    int num_FaceElements_numNodes	= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_FaceElements_numNodes");
+    int FaceElements_TypeId		= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"FaceElements_TypeId");
+    int num_ContactElements_numNodes	= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_ContactElements_numNodes");
+    int ContactElements_TypeId		= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"ContactElements_TypeId");
+    int Points_TypeId			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"Points_TypeId");
+    int num_Tags			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Tags");
 
     // Verify size and rank
     if (mpi_info->size != mpi_size) {
