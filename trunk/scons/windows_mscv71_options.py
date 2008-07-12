@@ -38,10 +38,11 @@ boost_lib_path = os.path.join(boost_path,'windows_binary','lib')
 boost_lib = 'boost_python-vc71-mt-1_33_1.lib'
 
 # locations of netcdf
-useNetCDF = "no"
-netCDF_path = os.path.realpath(".")
-netCDF_lib_path = os.path.realpath(".")
-netCDF_libs = [ ]
+useNetCDF = "yes"
+netCDF_root = os.path.join(dotdot,"netcdf")
+netCDF_path = os.path.join(netCDF_root,"src","include")
+netCDF_lib_path = os.path.join(netCDF_root,'lib')
+netCDF_libs = ["netcdf", "netcdf_cpp" ]
 
 cc_defines = ['_USE_MATH_DEFINES']
 # c flags to use
