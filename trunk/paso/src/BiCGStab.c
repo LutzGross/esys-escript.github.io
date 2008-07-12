@@ -86,7 +86,7 @@ err_t Paso_Solver_BiCGStab(
   /* Local variables */
   double *rtld=NULL,*p=NULL,*v=NULL,*t=NULL,*phat=NULL,*shat=NULL,*s=NULL, *buf1=NULL, *buf0=NULL;
   double beta,norm_of_residual,sum_1,sum_2,sum_3,sum_4,norm_of_residual_global;
-  double alpha, omega, omegaNumtr, omegaDenumtr, rho, tol, rho1, loc_sum[2], sum[2];
+  double alpha, omega, omegaNumtr, omegaDenumtr, rho, tol, rho1;
 #ifdef PASO_MPI
   double loc_sum[2], sum[2];
 #endif
