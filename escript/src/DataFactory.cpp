@@ -279,7 +279,7 @@ load(const std::string fileName,
            std::cout << "Information - load: start reordering data from netCDF file " << fileName << std::endl;
            out.borrowData()->reorderByReferenceIDs(ids_of_nc);
         } 
-        catch (std::exception& e) {
+        catch (std::exception&) {
            esysUtils::free(ids_of_nc);
            throw DataException("Error - load:: unable to reorder data in netCDF file.");
         }
