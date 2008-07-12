@@ -107,7 +107,7 @@ void MeshAdapter::dump(const std::string& fileName) const
 {
 #ifdef USE_NETCDF
    const NcDim* ncdims[12];
-   NcVar *ids, *data;
+   NcVar *ids;
    int *int_ptr;
    Finley_Mesh *mesh = m_finleyMesh.get();
    Finley_TagMap* tag_map;
