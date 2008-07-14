@@ -28,24 +28,23 @@
 /**************************************************************/
 
 #include "Common.h"
+#include "Paso_MPI.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 /**************************************************************/
 
 index_t Paso_Util_cumsum(dim_t,index_t*);
-void Paso_copyDouble(dim_t n,double* source, double* target);
 bool_t Paso_Util_isAny(dim_t N,index_t* array,index_t value);
+void Paso_zeroes(const dim_t n, double* x);
+void Paso_Update(const dim_t n, const double a, double* x, const double b, const double* y);
+void Paso_LinearCombination(const dim_t n, double*z, const double a,const double* x, const double b, const double* y);
+double Paso_InnerProduct(const dim_t n,const double* x, const double* y, Paso_MPIInfo* mpiinfo);
+double Paso_l2(const dim_t n, const double* x, Paso_MPIInfo* mpiinfo);
+void ApplyGivensRotations(const dim_t n,double* v,const double* c,const double* s);
+void Paso_Copy(const dim_t n, double* out, const double* in);
+
+#define Paso_copyShortDouble(n, source, target)  memcpy(target,source,sizeof(double)*(size_t)n)
 
 #endif /* #ifndef INC_PASO_UTIL */
-
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:39  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:48  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

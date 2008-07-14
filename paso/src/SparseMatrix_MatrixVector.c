@@ -29,10 +29,10 @@
 #endif
 
 /* CSC format with offset 0*/
-void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(double alpha,
-                                                 Paso_SparseMatrix* A,
-                                                 double* in,
-                                                 double beta,
+void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha,
+                                                 const Paso_SparseMatrix* A,
+                                                 const double* in,
+                                                 const double beta,
                                                  double* out) {
 
   register index_t ir,icol,iptr,icb,irb,irow,ic;
@@ -100,10 +100,10 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(double alpha,
 }
 
 /* CSC format with offset 1*/
-void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(double alpha,
-                                                 Paso_SparseMatrix* A,
-                                                 double* in,
-                                                 double beta,
+void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(const double alpha,
+                                                 const Paso_SparseMatrix* A,
+                                                 const double* in,
+                                                 const double beta,
                                                  double* out) {
 
   register index_t ir,icol,iptr,icb,irb,irow,ic;
@@ -170,10 +170,10 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(double alpha,
   return;
 }
 /* CSR format with offset 1*/
-void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha,
-    Paso_SparseMatrix* A,
-    double* in,
-    double beta,
+void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha,
+    const Paso_SparseMatrix* A,
+    const double* in,
+    const double beta,
     double* out) {
 
   register index_t ir,icol,iptr,icb,irb,irow,ic;
@@ -253,10 +253,10 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha,
   return;
 }
 /* CSR format with offset 0*/
-void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha,
-                                                 Paso_SparseMatrix* A,
-                                                 double* in,
-                                                 double beta,
+void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(const double alpha,
+                                                 const Paso_SparseMatrix* A,
+                                                 const double* in,
+                                                 const double beta,
                                                  double* out) 
 {
 /*#define PASO_DYNAMIC_SCHEDULING_MVM */
@@ -310,15 +310,15 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha,
    }
 }
 /* CSR format with offset 0*/
-void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(double alpha,
-                                                        dim_t nRows,
-                                                        dim_t row_block_size,
-                                                        dim_t col_block_size,
-                                                        index_t* ptr,
-                                                        index_t* index,
-                                                        double* val,
-                                                        double* in,
-                                                        double beta,
+void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(const double alpha,
+                                                        const dim_t nRows,
+                                                        const dim_t row_block_size,
+                                                        const dim_t col_block_size,
+                                                        const index_t* ptr,
+                                                        const index_t* index,
+                                                        const double* val,
+                                                        const double* in,
+                                                        const double beta,
                                                         double* out) 
 {
     register index_t ir,icol,iptr,icb,irb,irow,ic,Aiptr;

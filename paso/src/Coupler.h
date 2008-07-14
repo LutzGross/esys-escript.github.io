@@ -68,7 +68,7 @@ void Paso_Connector_free(Paso_Connector*);
 
 Paso_Coupler* Paso_Coupler_alloc(Paso_Connector*, dim_t blockSize);
 Paso_Coupler* Paso_Coupler_getReference(Paso_Coupler*);
-void Paso_Coupler_startCollect(Paso_Coupler* self,double* in);
+void Paso_Coupler_startCollect(Paso_Coupler* self,const double* in);
 double* Paso_Coupler_finishCollect(Paso_Coupler* self);
 void Paso_Coupler_free(Paso_Coupler* in);
 #define Paso_Coupler_borrowLocalData(_in_) (_in_)->data

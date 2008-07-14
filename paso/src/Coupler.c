@@ -195,14 +195,13 @@ void Paso_Coupler_free(Paso_Coupler* in) {
 }
 
 
-void Paso_Coupler_startCollect(Paso_Coupler* coupler,double* in)
+void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
 {
   Paso_MPIInfo *mpi_info = coupler->mpi_info;  
   dim_t block_size=coupler->block_size;
   size_t block_size_size=block_size*sizeof(double);
   dim_t i;
-  coupler->data=in;
-  coupler->data=in;
+  coupler->data=(double*) in;
   if ( mpi_info->size>1) {
      /* start reveiving input */
      {

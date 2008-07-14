@@ -81,61 +81,63 @@ void SystemMatrixAdapter::ypAx(escript::Data& y,escript::Data& x) const
 
 int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
    switch (option) {
-   case  ESCRIPT_DEFAULT:
-      return PASO_DEFAULT;
-   case  ESCRIPT_DIRECT:
-      return PASO_DIRECT;
-   case  ESCRIPT_CHOLEVSKY:
-      return PASO_CHOLEVSKY;
-   case  ESCRIPT_PCG:
-      return PASO_PCG;
-   case  ESCRIPT_CR:
-      return PASO_CR;
-   case  ESCRIPT_CGS:
-      return PASO_CGS;
-   case  ESCRIPT_BICGSTAB:
-      return PASO_BICGSTAB;
-   case  ESCRIPT_SSOR:
-      return PASO_SSOR;
-   case  ESCRIPT_ILU0:
-      return PASO_ILU0;
-   case  ESCRIPT_ILUT:
-      return PASO_ILUT;
-   case  ESCRIPT_JACOBI:
-      return PASO_JACOBI;
-   case  ESCRIPT_GMRES:
-      return PASO_GMRES;
-   case  ESCRIPT_PRES20:
-      return PASO_PRES20;
-   case  ESCRIPT_NO_REORDERING:
-      return PASO_NO_REORDERING;
-   case  ESCRIPT_MINIMUM_FILL_IN:
-      return PASO_MINIMUM_FILL_IN;
-   case  ESCRIPT_NESTED_DISSECTION:
-      return PASO_NESTED_DISSECTION;
-   case  ESCRIPT_SCSL:
-      return PASO_SCSL;
-   case  ESCRIPT_MKL:
-      return PASO_MKL;
-   case  ESCRIPT_UMFPACK:
-      return PASO_UMFPACK;
-   case  ESCRIPT_ITERATIVE:
-      return PASO_ITERATIVE;
-   case  ESCRIPT_PASO:
-      return PASO_PASO;
-   case  ESCRIPT_LUMPING:
-      return PASO_LUMPING;
-   case  ESCRIPT_AMG:
-      return PASO_AMG;
-   case  ESCRIPT_RILU:
-      return PASO_RILU;
-   case  ESCRIPT_TRILINOS:
-      return PASO_TRILINOS;
-   default:
-      stringstream temp;
-      temp << "Error - Cannot map option value "<< option << " onto Paso";
-      throw FinleyAdapterException(temp.str());
-   }
+       case  ESCRIPT_DEFAULT:
+          return PASO_DEFAULT;
+       case  ESCRIPT_DIRECT:
+          return PASO_DIRECT;
+       case  ESCRIPT_CHOLEVSKY:
+          return PASO_CHOLEVSKY;
+       case  ESCRIPT_PCG:
+          return PASO_PCG;
+       case  ESCRIPT_CR:
+          return PASO_CR;
+       case  ESCRIPT_CGS:
+          return PASO_CGS;
+       case  ESCRIPT_BICGSTAB:
+          return PASO_BICGSTAB;
+       case  ESCRIPT_SSOR:
+          return PASO_SSOR;
+       case  ESCRIPT_ILU0:
+          return PASO_ILU0;
+       case  ESCRIPT_ILUT:
+          return PASO_ILUT;
+       case  ESCRIPT_JACOBI:
+          return PASO_JACOBI;
+       case  ESCRIPT_GMRES:
+          return PASO_GMRES;
+       case  ESCRIPT_PRES20:
+          return PASO_PRES20;
+       case  ESCRIPT_NO_REORDERING:
+          return PASO_NO_REORDERING;
+       case  ESCRIPT_MINIMUM_FILL_IN:
+          return PASO_MINIMUM_FILL_IN;
+       case  ESCRIPT_NESTED_DISSECTION:
+          return PASO_NESTED_DISSECTION;
+       case  ESCRIPT_SCSL:
+          return PASO_SCSL;
+       case  ESCRIPT_MKL:
+          return PASO_MKL;
+       case  ESCRIPT_UMFPACK:
+          return PASO_UMFPACK;
+       case  ESCRIPT_ITERATIVE:
+          return PASO_ITERATIVE;
+       case  ESCRIPT_PASO:
+          return PASO_PASO;
+       case  ESCRIPT_LUMPING:
+          return PASO_LUMPING;
+       case  ESCRIPT_AMG:
+          return PASO_AMG;
+       case  ESCRIPT_RILU:
+          return PASO_RILU;
+       case  ESCRIPT_TRILINOS:
+          return PASO_TRILINOS;
+       case  ESCRIPT_NONLINEAR_GMRES:
+          return PASO_NONLINEAR_GMRES;
+       default:
+           stringstream temp;
+           temp << "Error - Cannot map option value "<< option << " onto Paso";
+           throw FinleyAdapterException(temp.str());
+    }
 }
 
 void finley::SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const

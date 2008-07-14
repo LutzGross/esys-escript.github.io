@@ -32,10 +32,10 @@
 /*  raw scaled vector update operation: out = alpha * A * in + beta * out */
 
 
-void  Paso_SystemMatrix_MatrixVector(double alpha,
+void  Paso_SystemMatrix_MatrixVector(const double alpha,
                                      Paso_SystemMatrix* A,
-                                     double* in,
-                                     double beta,
+                                     const double* in,
+                                     const double beta,
                                      double* out) {
 
   double *snd_buffer=NULL, *rcv_buffer=NULL;
@@ -71,10 +71,10 @@ void  Paso_SystemMatrix_MatrixVector(double alpha,
   }
 }
 
-void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha,
+void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(const double alpha,
                                                  Paso_SystemMatrix* A,
-                                                 double* in,
-                                                 double beta,
+                                                 const double* in,
+                                                 const double beta,
                                                  double* out)
 {
   double *remote_values=NULL;

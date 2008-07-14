@@ -46,6 +46,9 @@ index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry) 
         case PASO_GMRES:
             out=PASO_GMRES;
             break;
+        case PASO_NONLINEAR_GMRES:
+            out=PASO_NONLINEAR_GMRES;
+            break;
         default:
             if (symmetry) {
                out=PASO_PCG;

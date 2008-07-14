@@ -57,53 +57,64 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
    dim_t numEqua = Paso_SystemMatrix_getTotalNumRows(A);
    double blocktimer_start = blocktimer_time();
  
-   tolerance=MAX(options->tolerance,EPSILON);
-   Paso_resetError();
-   method=Paso_Options_getSolver(options->method,PASO_PASO,options->symmetric);
-   /* check matrix type */
-   if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1) || (A->type & MATRIX_FORMAT_SYM) ) {
-      Paso_setError(TYPE_ERROR,"Iterative solver requires CSR format with unsymmetric storage scheme and index offset 0.");
-   }
-   if (A->col_block_size != A->row_block_size) {
-      Paso_setError(TYPE_ERROR,"Iterative solver requires row and column block sizes to be equal.");
-   }
-   if (Paso_SystemMatrix_getGlobalNumCols(A) != Paso_SystemMatrix_getGlobalNumRows(A)) {
-      Paso_setError(TYPE_ERROR,"Iterative solver requires requires a square matrix.");
-      return;
-   }
-   Performance_startMonitor(pp,PERFORMANCE_ALL);
-   if (Paso_noError()) {
-      /* get normalization */
-      scaling=Paso_SystemMatrix_borrowNormalization(A);
-      if (Paso_noError()) {
-         /* get the norm of the right hand side */
-         norm2_of_b=0.;
-         norm_max_of_b=0.;
-#pragma omp parallel private(norm2_of_b_local,norm_max_of_b_local) 
-         { 
-            norm2_of_b_local=0.;
-            norm_max_of_b_local=0.;
-#pragma omp for private(i) schedule(static)
-            for (i = 0; i < numEqua ; ++i) {
-               norm2_of_b_local += b[i] * b[i];
-               norm_max_of_b_local = MAX(ABS(scaling[i]*b[i]),norm_max_of_b_local);
-            }
-#pragma omp critical
-            {
-               norm2_of_b += norm2_of_b_local;
-               norm_max_of_b = MAX(norm_max_of_b_local,norm_max_of_b);
-            }
-         }
-         /* TODO: use one call */
-#ifdef PASO_MPI
-         {
-            loc_norm = norm2_of_b;
-            MPI_Allreduce(&loc_norm,&norm2_of_b, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-            loc_norm = norm_max_of_b;
-            MPI_Allreduce(&loc_norm,&norm_max_of_b, 1, MPI_DOUBLE, MPI_MAX, A->mpi_info->comm);
-         }
-#endif
-         norm2_of_b=sqrt(norm2_of_b);
+     tolerance=MAX(options->tolerance,EPSILON);
+     Paso_resetError();
+     method=Paso_Options_getSolver(options->method,PASO_PASO,options->symmetric);
+     /* check matrix type */
+     if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1) || (A->type & MATRIX_FORMAT_SYM) ) {
+       Paso_setError(TYPE_ERROR,"Iterative solver requires CSR format with unsymmetric storage scheme and index offset 0.");
+     }
+     if (A->col_block_size != A->row_block_size) {
+        Paso_setError(TYPE_ERROR,"Iterative solver requires row and column block sizes to be equal.");
+     }
+     if (Paso_SystemMatrix_getGlobalNumCols(A) != Paso_SystemMatrix_getGlobalNumRows(A)) {
+        Paso_setError(TYPE_ERROR,"Iterative solver requires requires a square matrix.");
+        return;
+     }
+     /* this for testing only */
+     if (method==PASO_NONLINEAR_GMRES) {
+        Paso_Function* F=NULL;
+        F=Paso_Function_LinearSystem_alloc(A,b,options);
+        errorCode=Paso_Solver_NewtonGMRES(F,x,options,pp);
+        if (errorCode==NO_ERROR) {
+           Paso_setError(SYSTEM_ERROR,"Paso_Solver_NewtonGMRES: an error has occured.");
+        }
+        Paso_Function_LinearSystem_free(F);
+     }
+     /* ========================= */
+     Performance_startMonitor(pp,PERFORMANCE_ALL);
+     if (Paso_noError()) {
+        /* get normalization */
+        scaling=Paso_SystemMatrix_borrowNormalization(A);
+        if (Paso_noError()) {
+           /* get the norm of the right hand side */
+           norm2_of_b=0.;
+           norm_max_of_b=0.;
+           #pragma omp parallel private(norm2_of_b_local,norm_max_of_b_local) 
+           { 
+                norm2_of_b_local=0.;
+                norm_max_of_b_local=0.;
+                #pragma omp for private(i) schedule(static)
+                for (i = 0; i < numEqua ; ++i) {
+                      norm2_of_b_local += b[i] * b[i];
+                      norm_max_of_b_local = MAX(ABS(scaling[i]*b[i]),norm_max_of_b_local);
+                }
+                #pragma omp critical
+                {
+                   norm2_of_b += norm2_of_b_local;
+                   norm_max_of_b = MAX(norm_max_of_b_local,norm_max_of_b);
+                }
+           }
+           /* TODO: use one call */
+           #ifdef PASO_MPI
+           {
+               loc_norm = norm2_of_b;
+               MPI_Allreduce(&loc_norm,&norm2_of_b, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+               loc_norm = norm_max_of_b;
+               MPI_Allreduce(&loc_norm,&norm_max_of_b, 1, MPI_DOUBLE, MPI_MAX, A->mpi_info->comm);
+           }
+           #endif
+           norm2_of_b=sqrt(norm2_of_b);
     
          /* if norm2_of_b==0 we are ready: x=0 */
          if (norm2_of_b <=0.) {
@@ -239,7 +250,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
               MEMFREE(r);
               time_iter=Paso_timer()-time_iter;
               if (options->verbose)  {
-                 printf("timing: solver: %.4e sec\n",time_iter);
+                 printf("\ntiming: solver: %.4e sec\n",time_iter);
                  if (totIter>0) printf("timing: per iteration step: %.4e sec\n",time_iter/totIter);
               }
            }

@@ -89,15 +89,15 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType,Paso_SystemMatr
 Paso_SystemMatrix* Paso_SystemMatrix_reference(Paso_SystemMatrix*);
 void Paso_SystemMatrix_free(Paso_SystemMatrix*);
 
-void Paso_SystemMatrix_MatrixVector(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
-void Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
+void Paso_SystemMatrix_MatrixVector(const double alpha, Paso_SystemMatrix* A, const double* in, const double beta, double* out);
+void Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha, Paso_SystemMatrix* A, const double* in, const double beta, double* out);
 void Paso_solve(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
 void Paso_solve_free(Paso_SystemMatrix* in);
-void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A,double* in);
+void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A,const double* in);
 double* Paso_SystemMatrix_finishCollect(Paso_SystemMatrix* A);
-void  Paso_SystemMatrix_startColCollect(Paso_SystemMatrix* A,double* in);
+void  Paso_SystemMatrix_startColCollect(Paso_SystemMatrix* A,const double* in);
 double* Paso_SystemMatrix_finishColCollect(Paso_SystemMatrix* A);
-void  Paso_SystemMatrix_startRowCollect(Paso_SystemMatrix* A,double* in);
+void  Paso_SystemMatrix_startRowCollect(Paso_SystemMatrix* A,const double* in);
 double* Paso_SystemMatrix_finishRowCollect(Paso_SystemMatrix* A);
 void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
 double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A);
