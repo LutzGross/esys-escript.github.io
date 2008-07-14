@@ -24,6 +24,9 @@
 /**************************************************************/
 
 #include "SparseMatrix.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 /* CSC format with offset 0*/
 void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(double alpha,
@@ -258,15 +261,17 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha,
 {
 /*#define PASO_DYNAMIC_SCHEDULING_MVM */
 
-#if defined PASO_DYNAMIC_SCHEDULING_MVM && defined __OPENMP 
+#if defined PASO_DYNAMIC_SCHEDULING_MVM && defined _OPENMP 
 #define USE_DYNAMIC_SCHEDULING
 #endif
 
     char* chksz_chr=NULL;
     dim_t chunk_size=1;
     dim_t nrow=A->numRows;
-    dim_t np, len, rest, irow, local_n, p, n_chunks;
+    dim_t np=1, len, rest, irow, local_n, p, n_chunks;
+#ifdef _OPENMP
     np=omp_get_max_threads();
+#endif
 #ifdef USE_DYNAMIC_SCHEDULING
     chksz_chr=getenv("PASO_CHUNK_SIZE_MVM");
     if (chksz_chr!=NULL) sscanf(chksz_chr, "%d",&chunk_size);

@@ -91,13 +91,13 @@ err_t Paso_Solver_NewtonGMRES(
           * the iteration counter (itc)
           */
          itc++;
-         if (debug) printf("iteration step %d: norm of F =%d\n",itc,fnrm);
+         if (debug) printf("iteration step %d: norm of F =%e\n",itc,fnrm);
          /*
           * call GMRES to get increment
           */
          gmres_iter=lmaxit;
          gmres_tol=eta;
-         if (debug) printf("GMRES called with tolerance = %d\n",eta);
+         if (debug) printf("GMRES called with tolerance = %e\n",eta);
          Status=Paso_Solver_NLGMRES(F,f,x,step,&gmres_iter,&gmres_tol,pp);
          itc+=gmres_iter;
          if ((Status==SOLVER_NO_ERROR) || (Status==SOLVER_MAXITER_REACHED)) {

@@ -159,7 +159,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
           n_substeps=1;
        }
        dt2=dt/n_substeps;
-       printf("%d time steps of size is %e (theta = %e, dt_max=%e).\n",n_substeps, dt2,fctp->theta, dt_max);
+       printf("%ld time steps of size is %e (theta = %e, dt_max=%e).\n",n_substeps, dt2,fctp->theta, dt_max);
        /* 
  	* seperate source into positive and negative part:
  	*/
@@ -185,7 +185,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
         tolerance=options->tolerance;
         while(n<n_substeps && Paso_noError()) {
 
-            printf("substep step %d at t=%e\n",n+1,t);
+            printf("substep step %ld at t=%e\n",n+1,t);
             /*
              * b^n[i]=m u^n[i] + dt2*(1-theta) sum_{j <> i} l_{ij}*(u^n[j]-u^n[i]) + dt2*sourceP[i]
              *
@@ -255,7 +255,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                m=0;
                converged=FALSE;
                while ( (!converged) && (m<max_m) && Paso_noError()) {
-                    printf("iteration step %d\n",m+1);
+                    printf("iteration step %ld\n",m+1);
                     /*
                      *  set the ant diffusion fluxes:
                      *
@@ -348,7 +348,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                        norm_du*=omega;
                        converged=(norm_du <= tolerance * norm_u);
                        m++;
-                       printf("iteration step %d: norm u and du_m : %e %e\n",m,norm_u,norm_du);
+                       printf("iteration step %ld: norm u and du_m : %e %e\n",m,norm_u,norm_du);
                        /* TODO: check if du_m has been redu_mced */
                        Paso_Coupler_finishCollect(u_m_coupler);
                     } /* end of inner iteration */
