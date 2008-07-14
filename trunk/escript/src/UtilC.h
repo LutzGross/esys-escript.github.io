@@ -51,6 +51,7 @@
 #define ESCRIPT_AMG 22
 #define ESCRIPT_RILU 23
 #define ESCRIPT_TRILINOS 24
+#define ESCRIPT_NONLINEAR_GMRES 25
 
 /* keyword in solver options relevant for lineraPDE class */
 #define ESCRIPT_TOLERANCE_KEY "tolerance"

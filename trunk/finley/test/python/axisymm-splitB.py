@@ -49,8 +49,6 @@ pressureStep2=LinearSinglePDE(dom)
 pressureStep2.setReducedOrderOn() 
 pressureStep2.setValue(q=whereZero(x[0]-L)+whereZero(x[1]-H))
 
-
-
 momentumStep3=LinearPDESystem(dom)
 momentumStep3.setValue(q=whereZero(x[0])*[1.,0.]+whereZero(x[1])*[0.,1.])
 #
@@ -58,8 +56,8 @@ momentumStep3.setValue(q=whereZero(x[0])*[1.,0.]+whereZero(x[1])*[0.,1.])
 #
 U=Vector(0.,Solution(dom)) 
 p=ro*g*(L-ReducedSolution(dom).getX()[0])*(H-ReducedSolution(dom).getX()[1])/3 
-# p=ro*g*(H-ReducedSolution(dom).getX()[1])
-stress=Tensor(0.,Function(dom))
+p=ro*g*(H-ReducedSolution(dom).getX()[1])
+dev_stress=Tensor(0.,Function(dom))
 
 t=dt
 istep=0
@@ -78,12 +76,13 @@ while istep < nstep:
     sigma_d=(sign(inner(t_d,U))*alpha_w*t_d-n_d)*Pen*clip(inner(n_d,U),0.)
     print "	sigma_d =",inf(sigma_d),sup(sigma_d)
 
-    momentumStep1.setValue(D=ro*kronecker(dom),
-                           Y=ro*U+dt*((stress[:,0]-p*teta3*kronecker(dom)[:,0])/r+[0.,-ro*g]), 
-                           # Y=r*ro*U+dt*r*[0.,-ro*g], 
-                           X=-dt*(stress-teta3*p*kronecker(dom)), 
-                           y=sigma_d*face_mask)
+    momentumStep1.setValue(D=r*ro*kronecker(dom),
+                           Y=r*ro*U+dt*r*[0.,-ro*g], 
+                           X=-dt*r*(dev_stress-teta3*p*kronecker(dom)), 
+                           y=sigma_d*face_mask*r_b)
     U_star=momentumStep1.getSolution()
+    saveVTK("u.xml",u=U_star,u0=U)
+    1/0
     #
     #  step 2:
     #
@@ -123,7 +122,7 @@ while istep < nstep:
     m=whereNegative(eta*gamma-alpha*p_pos) 
     eta_d=m*eta+(1.-m)*alpha*p_pos/(gamma+small)  
     print "	viscosity =",inf(eta_d),sup(eta_d) 
-    stress=eta_d*(symmetric(gg)-2./3.*vol*kronecker(dom))
+    dev_stress=eta_d*(symmetric(gg)-2./3.*vol*kronecker(dom))
     #
     # step size control:
     #

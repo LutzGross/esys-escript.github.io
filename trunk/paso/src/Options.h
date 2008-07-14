@@ -54,6 +54,7 @@
 #define PASO_RILU 22
 #define PASO_AMG 23
 #define PASO_TRILINOS 24
+#define PASO_NONLINEAR_GMRES 25
 
 
 typedef struct {
@@ -85,24 +86,6 @@ typedef struct {
 void Paso_Options_setDefaults(Paso_Options* in);
 index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry);
 index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry);
-
+#define Paso_Options_copy(in,out) memcpy((Paso_Options*)out,(Paso_Options*)in,sizeof(Paso_Options))
 
 #endif /* #ifndef INC_PASO_OPTIONS */
-
-
-
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:38  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.2  2005/09/07 00:59:08  gross
- * some inconsistent renaming fixed to make the linking work.
- *
- * Revision 1.1.2.1  2005/09/05 06:29:46  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

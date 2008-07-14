@@ -175,7 +175,7 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
      }
    }
 }
-void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A,double* in)
+void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A,const double* in)
 {
   Paso_SystemMatrix_startColCollect(A,in);
 }
@@ -184,7 +184,7 @@ double* Paso_SystemMatrix_finishCollect(Paso_SystemMatrix* A)
  return Paso_SystemMatrix_finishColCollect(A);
 }
 
-void  Paso_SystemMatrix_startColCollect(Paso_SystemMatrix* A,double* in)
+void  Paso_SystemMatrix_startColCollect(Paso_SystemMatrix* A,const double* in)
 {
   Paso_Coupler_startCollect(A->col_coupler, in);
 }
@@ -193,7 +193,7 @@ double* Paso_SystemMatrix_finishColCollect(Paso_SystemMatrix* A)
  Paso_Coupler_finishCollect(A->col_coupler);
  return A->col_coupler->recv_buffer;
 }
-void  Paso_SystemMatrix_startRowCollect(Paso_SystemMatrix* A,double* in)
+void  Paso_SystemMatrix_startRowCollect(Paso_SystemMatrix* A,const double* in)
 {
   Paso_Coupler_startCollect(A->row_coupler, in);
 }

@@ -490,6 +490,7 @@ class LinearPDE(object):
    AMG= 22
    RILU = 23
    TRILINOS = 24
+   NONLINEAR_GMRES = 25
 
    SMALL_TOLERANCE=1.e-13
    __PACKAGE_KEY="package"

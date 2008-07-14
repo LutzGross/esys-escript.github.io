@@ -111,9 +111,11 @@ Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SparseMatrix * A_p);
 void Paso_Solver_solveJacobi(Paso_Solver_Jacobi * prec, double * x, double * b);
 void Paso_Solver_Jacobi_free(Paso_Solver_Jacobi * in);
 
-err_t Paso_Solver_NLGMRES(Paso_Function * F, const double* f0, const double* x0, double * x, dim_t *iter, double* tolerance, Paso_Performance* pp);
+err_t Paso_Solver_GMRES2(Paso_Function * F, const double* f0, const double* x0, double * x, dim_t *iter, double* tolerance, Paso_Performance* pp);
 err_t Paso_Solver_NewtonGMRES(Paso_Function *F, double *x, Paso_Options* options, Paso_Performance* pp);
 
-
+Paso_Function * Paso_Function_LinearSystem_alloc(Paso_SystemMatrix* A, double* b, Paso_Options* options);
+err_t Paso_Function_LinearSystem_call(Paso_Function * F,double* value, const double* arg);
+void Paso_Function_LinearSystem_free(Paso_Function * F);
 
 #endif /* #ifndef INC_SOLVER */

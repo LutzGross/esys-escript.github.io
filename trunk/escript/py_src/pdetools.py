@@ -1044,10 +1044,8 @@ def NewtonGMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium,x=None, iter_m
 	        etanew=gamma*rat*rat
 	        if gamma*etaold*etaold > .1 :
 	            etanew=max(etanew,gamma*etaold*etaold)
-	        
 	        etamax=min(etanew,etamax)
 	        etamax=max(etamax,.5*stop_tol/fnrm)
-
     return x
 
 def TFQMR(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):

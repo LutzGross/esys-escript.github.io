@@ -1,8 +1,10 @@
 from esys.escript import *
-from esys.escript.models import TemperatureCartesian, StokesProblemCartesian
+from esys.escript.models import TemperatureCartesian, PlateMantelModel
 from esys.finley import Rectangle, Brick, LoadMesh
 from optparse import OptionParser
 from math import pi, ceil
+
+
 def removeRestartDirectory(dir_name):
    if os.path.isdir(dir_name):
        for root, dirs, files in os.walk(dir_name, topdown=False):
@@ -21,6 +23,7 @@ if (len(sys.argv)>=3):
 else:
  NE=20
 NE=64
+NE=20
 
 if (len(sys.argv)>=2):
  solver=sys.argv[1]
@@ -33,21 +36,46 @@ else:
  extratol=1
 extratol=0.1
 
-DIM=3
+
+DIM=2
 H=1.
-L=2*H
-THETA=0.5
-TOL=1.e-3
+L=4*H
+THETA=0.5 # time stepping THETA=0.5 cranck nicolson
+TOL=1.e-4
 PERTURBATION=0.1
+DT=1.e-4
+DT_MIN=1.e-5
 T_END=0.1
 DT_OUT=T_END/500
 Dn_OUT=2
-VERBOSE=False
-RA=1.e6 # Rayleigh number
-A=22 # Arenious number 
-DI = 0.  # dissipation number
+VERBOSE=True
 SUPG=False
 create_restartfiles_every_step=10
+if True:
+   # this is a simple linear Stokes model:
+   RA=1.e6 # Rayleigh number
+   A=22 # Arenious number 
+   DI = 0.  # dissipation number 
+   MU=None
+   ETA0=1.
+   TAU0=None
+   N=None
+   NPL=None
+   ETAP0=ETA0
+   TAUY=None
+   useJAUMANNSTRESS=False
+else:
+   RA=1.e4 # Rayleigh number
+   A=22 # Arenious number 
+   DI = 0.  # dissipation number 
+   MU=1.e4
+   ETA0=1.
+   TAU0=0.866*10**2.5 
+   N=3
+   NPL=14
+   TAUY=TAU0
+   ETAP0=ETA0
+   useJAUMANNSTRESS=True
 
 print "total number of elements = ",NE**DIM*int(L/H)**(DIM-1)
 
@@ -76,18 +104,19 @@ if restart:
       dom=LoadMesh("mesh.nc")
    except:
       pass
-   ff=open(os.path.join(f,"stamp.%d"%dom.getMPIRank()),"r").read().split(";")
-   t=float(ff[0])
-   t_out=float(ff[1])
-   n_out=int(ff[2])
-   n=int(ff[3])
-   out_count=int(ff[4])
-   dt=float(ff[5])
+   FF=open(os.path.join(f,"stamp.%d"%dom.getMPIRank()),"r").read().split(";")
+   t=float(FF[0])
+   t_out=float(FF[1])
+   n_out=int(FF[2])
+   n=int(FF[3])
+   out_count=int(FF[4])
+   dt=float(FF[5])
+   stress=load(os.path.join(f,"stress.nc"),dom)
    v=load(os.path.join(f,"v.nc"),dom)
    p=load(os.path.join(f,"p.nc"),dom)
    T=load(os.path.join(f,"T.nc"),dom)
    if n>1:
-      dt_a=float(ff[6])
+      dt_a=float(FF[6])
       a=load(os.path.join(f,"a.nc"),dom)
    else:
       dt_a=None
@@ -112,17 +141,21 @@ else:
 
   T=1.-x[DIM-1]+PERTURBATION*T
   v=Vector(0,Solution(dom))
+  stress=Tensor(0,Function(dom))
+  x2=ReducedSolution(dom).getX()
+  p=-RA*(x2[DIM-1]-0.5*x2[DIM-1]**2)
   if dom.getMPIRank() ==0: nusselt_file=open("nusselt.csv","w")
   t=0
   t_out=0
   n_out=0
   n=0
   out_count=0
-  dt=None
+  dt=DT
   a=None
   dt_a=None
 
 vol=integrate(1.,Function(dom))
+p-=integrate(p)/vol
 x=dom.getX()
 #
 #   set up heat problem:
@@ -135,15 +168,9 @@ heat.setInitialTemperature(T)
 print "initial Temperature range ",inf(T),sup(T)
 heat.setValue(rhocp=Scalar(1.,Function(dom)),k=Scalar(1.,Function(dom)),given_T_mask=fixed_T_at)
 #
-#   set up velovity problem
+#   velocity constraints:
 #
-sp=StokesProblemCartesian(dom)
-sp.setTolerance(TOL*extratol)
-sp.setToleranceReductionFactor(TOL)
 x2=ReducedSolution(dom).getX()
-p=-RA*(x2[DIM-1]-0.5*x2[DIM-1]**2)
-p-=integrate(p)/vol
-
 fixed_v_mask=Vector(0,Solution(dom))
 for d in range(DIM):
     if d == DIM-1: 
@@ -151,20 +178,24 @@ for d in range(DIM):
     else:
        ll = L
     fixed_v_mask+=(whereZero(x[d])+whereZero(x[d]-ll))*unitVector(d,DIM)
-
+#
+#   set up velovity problem
+#
+sp=PlateMantelModel(dom,stress,v,p,t,useJaumannStress=useJAUMANNSTRESS)
+sp.initialize(mu=MU, tau_0=TAU0, n=N, eta_Y=ETAP0, tau_Y=TAU0, n_Y=NPL, q=fixed_v_mask)
+sp.setTolerance(TOL*extratol)
+sp.setToleranceReductionFactor(TOL)
 #
 #  let the show begin:
 #
 while t<T_END:
     v_last=v*1
     print "============== solve for v ========================"
-    viscosity=exp(A*(1./(1+T.interpolate(Function(dom)))-1./2.))
-    print "viscosity range :", inf(viscosity), sup(viscosity)
-    sp.initialize(f=T*(RA*unitVector(DIM-1,DIM)),eta=viscosity,fixed_u_mask=fixed_v_mask)
-    v,p=sp.solve(v,p,show_details=VERBOSE, verbose=True,max_iter=500,solver='PCG')
-    # v,p=sp.solve(v,p,show_details=VERBOSE, verbose=True,max_iter=500,solver='GMRES')
-    #v,p=sp.solve(v,p,show_details=VERBOSE, verbose=True,max_iter=500,solver='MINRES')
-    # v,p=sp.solve(v,p,show_details=VERBOSE, verbose=True,max_iter=500,solver=solver)
+    FF=exp(A*(1./(1+T.interpolate(Function(dom)))-1./2.))
+    print "viscosity range :", inf(FF)*ETA0, sup(FF)*ETA0
+    sp.initialize(eta_N=ETA0*FF, eta_0=ETA0*FF, F=T*(RA*unitVector(DIM-1,DIM)))
+    sp.update(dt,max_inner_iter=20, verbose=VERBOSE, show_details=False, tol=10., solver='PCG')
+    v=sp.getVelocity()
 
     for d in range(DIM):
          print "range %d-velocity"%d,inf(v[d]),sup(v[d])
@@ -174,10 +205,12 @@ while t<T_END:
       out_count+=1
       t_out+=DT_OUT
       n_out+=Dn_OUT
-    Nu=1.+integrate(viscosity*length(grad(v))**2)/(RA*vol)
+    # calculation of nusselt number:
+    se=sp.getStrainEnergy()
+    Nu=1.+integrate(se)/(RA*vol)
     if dom.getMPIRank() ==0: nusselt_file.write("%e %e\n"%(t,Nu))
-    heat.setValue(v=interpolate(v,ReducedSolution(dom)),Q=DI/RA*viscosity*length(symmetric(grad(v)))**2)
-    print "nusselt number = ",Nu,n
+    heat.setValue(v=interpolate(v,ReducedSolution(dom)),Q=DI/RA*se)
+    print "nusselt number = ",Nu
     if n>0:
         a,a_alt = (v_last-v)/dt, a
         dt_a,dt_a_alt = dt, dt_a
@@ -190,6 +223,7 @@ while t<T_END:
        dt=min(dt_new,heat.getSafeTimeStepSize())
     else:
        dt=heat.getSafeTimeStepSize()
+    dt=max(DT_MIN,dt)
     print n,". time step t=",t," step size ",dt
     print "============== solve for T ========================"
     T=heat.solve(dt, verbose=VERBOSE)	
@@ -208,8 +242,9 @@ while t<T_END:
 
          print "Write restart files to ",new_restart_dir
          if not os.path.isdir(new_restart_dir): os.mkdir(new_restart_dir)
-         v.dump(os.path.join(new_restart_dir,"v.nc"))
-         p.dump(os.path.join(new_restart_dir,"p.nc"))
+         sp.getStress().dump(os.path.join(new_restart_dir,"stress.nc"))
+         sp.getVelocity().dump(os.path.join(new_restart_dir,"v.nc"))
+         sp.getPressure().dump(os.path.join(new_restart_dir,"p.nc"))
          T.dump(os.path.join(new_restart_dir,"T.nc"))
          if n>1:
              file(os.path.join(new_restart_dir,"stamp.%d"%dom.getMPIRank()),"w").write("%e; %e; %s; %s; %s; %e; %e;\n"%(t, t_out, n_out, n, out_count, dt, dt_a))

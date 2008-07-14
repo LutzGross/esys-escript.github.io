@@ -63,10 +63,10 @@ typedef struct Paso_SparseMatrix {
 Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType,Paso_Pattern*,dim_t,dim_t);
 Paso_SparseMatrix* Paso_SparseMatrix_getReference(Paso_SparseMatrix*);
 void Paso_SparseMatrix_free(Paso_SparseMatrix*);
-void Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(double alpha, Paso_SparseMatrix* A, double* in, double beta, double* out);
-void Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(double alpha, Paso_SparseMatrix* A, double* in, double beta, double* out);
-void Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha, Paso_SparseMatrix* A, double* in, double beta, double* out);
-void Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha, Paso_SparseMatrix* A, double* in, double beta, double* out);
+void Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
+void Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
+void Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
+void Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
 void Paso_SparseMatrix_copy(Paso_SparseMatrix*,double*);
 void Paso_SparseMatrix_addAbsRow_CSR_OFFSET0(Paso_SparseMatrix*,double*);
 void Paso_SparseMatrix_addRow_CSR_OFFSET0(Paso_SparseMatrix*,double*);
@@ -79,7 +79,7 @@ void Paso_SparseMatrix_saveHB_CSC(Paso_SparseMatrix *, FILE*);
 Paso_SparseMatrix* Paso_SparseMatrix_getSubmatrix(Paso_SparseMatrix* A,dim_t,dim_t,index_t*,index_t*);
 void Paso_SparseMatrix_setValues(Paso_SparseMatrix*,double);
 void Paso_SparseMatrix_saveMM_CSC(Paso_SparseMatrix *, FILE *);
-void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(double alpha, dim_t nRows, dim_t row_block_size, dim_t col_block_size, index_t* ptr, index_t* index, double* val, double* in, double beta, double* out);
+void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(const double alpha, const dim_t nRows, const dim_t row_block_size, const dim_t col_block_size, const index_t* ptr, const index_t* index, const double* val, const double* in, const double beta, double* out);
 
 
 /*

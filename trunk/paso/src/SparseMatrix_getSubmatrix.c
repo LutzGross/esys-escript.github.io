@@ -62,7 +62,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getSubmatrix(Paso_SparseMatrix* A,int n_row
                            #pragma ivdep
                            for (m=out->pattern->ptr[i]-index_offset;m<out->pattern->ptr[i+1]-index_offset;++m) {
                                if (out->pattern->index[m]==tmp+index_offset) {
-                                   Paso_copyDouble(A->block_size,&(A->val[k*A->block_size]),&(out->val[m*A->block_size]));
+                                   Paso_copyShortDouble(A->block_size,&(A->val[k*A->block_size]),&(out->val[m*A->block_size]));
                                    break;
                                }
                            }

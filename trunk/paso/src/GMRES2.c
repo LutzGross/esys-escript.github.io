@@ -14,7 +14,7 @@
 *  Purpose
 *  =======
 *
-*  FGMRES solves the non-linear system f0+J_0*d=0 
+*  GMRES2 solves the non-linear system f0+J_0*d=0 
 *  where f0=F(x0), J_0 is the jacobian of F at x0.
 *
 *  Convergence test: norm(f0+J_0*d)<=tolerance*norm(f0)
@@ -49,12 +49,12 @@
 
 #include "Common.h"
 #include "Solver.h"
-#include "Util.h"
+#include "PasoUtil.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
-err_t Paso_Solver_NLGMRES(
+err_t Paso_Solver_GMRES2(
     Paso_Function * F,
     const double* f0,
     const double* x0,
@@ -64,7 +64,8 @@ err_t Paso_Solver_NLGMRES(
     Paso_Performance* pp) 
 {
   double static RENORMALIZATION_CONST=0.001;
-  dim_t l=(*iter)+1, iter_max=*iter,k=0,n=F->local_n,i,j;
+  dim_t l=(*iter)+1, iter_max=*iter,k=0,i,j;
+  const dim_t n=F->n;
   double rel_tol=*tolerance, abs_tol, normf0, normv, normv2, hh, hr, nu, norm_of_residual=0.;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   double *h=NULL, **v=NULL, *c=NULL,*s=NULL,*g=NULL, *work=NULL;
@@ -87,17 +88,9 @@ err_t Paso_Solver_NLGMRES(
 
   if (h==NULL || v ==NULL || c== NULL || s == NULL || g== NULL || work==NULL) {
      Status=SOLVER_MEMORY_ERROR;
-  } else {
-     for (i=0;i<iter_max;i++) v[i]=NULL;
-     for (i=0;i<iter_max;i++) {
-       v[i]=TMPMEMALLOC(n,double);
-       if (v[i]==NULL) {
-          Status=SOLVER_MEMORY_ERROR;
-          break;
-       }
-     }
   }
   if ( Status ==SOLVER_NO_ERROR ) {
+     for (i=0;i<iter_max;i++) v[i]=NULL;
      /*     
       *  the show begins:
       */
@@ -106,65 +99,74 @@ err_t Paso_Solver_NLGMRES(
       convergeFlag=(ABS(normf0)<=0);
       if (! convergeFlag) {
           abs_tol=rel_tol*normf0;
-          Paso_zeroes(n,v[0]);
-          Paso_Update(n,1.,v[0],-1./normf0,f0);
-          g[0]=normf0;
-          while(! (breakFlag || maxIterFlag || convergeFlag)) {
+          v[0]=TMPMEMALLOC(n,double);
+          if (v[0]==NULL) {
+             Status=SOLVER_MEMORY_ERROR;
+          } else {
+             Paso_zeroes(n,v[0]);
+             Paso_Update(n,1.,v[0],-1./normf0,f0);
+             g[0]=normf0;
+          }
+          while(! (breakFlag || maxIterFlag || convergeFlag || (Status !=SOLVER_NO_ERROR) )) {
                k++;
-               /*
-               *      call directional derivative function
-               */
-               Paso_FunctionDerivative(v[k],v[k-1],F,f0,x0,work);
-               normv=Paso_l2(n,v[k],F->mpi_info);
-               /*
-                * Modified Gram-Schmidt
-                */
-                for (j=0;j<k;j++){
-                   hh=Paso_InnerProduct(n,v[j],v[k],F->mpi_info);
-                   Paso_Update(n,1.,v[k],(-hh),v[j]);
-                   h[INDEX2(j,k-1,l)]=hh;
-                }
-                normv2=Paso_l2(n,v[k],F->mpi_info);
-                h[INDEX2(k,k-1,l)]=normv2;
-                /*
-                 * reorthogonalize
-                 */
-                if (! (normv + RENORMALIZATION_CONST*normv2 > normv)) {
-                     for (j=0;j<k;j++){
-                         hr=Paso_InnerProduct(n,v[j],v[k],F->mpi_info);
-	                 h[INDEX2(j,k-1,l)]+=hr;
-                         Paso_Update(n,1.,v[k],(-hr),v[j]);
-                     }
-                     normv2=Paso_l2(n,v[k],F->mpi_info);
-                     h[INDEX2(k,k-1,l)]=normv2;
-                 }
-                /* 
-                 *   watch out for happy breakdown
-                 */
-                if(normv2 > 0.) {
-                   Paso_Update(n,1./normv2,v[k],0.,v[k]);
-                } 
-                /*
-                 *   Form and store the information for the new Givens rotation
-                 */
-                ApplyGivensRotations(k,&h[INDEX2(0,k-1,l)],c,s);
-                /*
-                 *  Don't divide by zero if solution has  been found
-                 */
-                g[k]=0;
-                nu=sqrt(h[INDEX2(k-1,k-1,l)]*h[INDEX2(k-1,k-1,l)]+h[INDEX2(k,k-1,l)]*h[INDEX2(k,k-1,l)]);
-                if (nu>0) {
-                    c[k-1]=h[INDEX2(k-1,k-1,l)]/nu;
-                    s[k-1]=-h[k,k-1]/nu;
-                    h[INDEX2(k-1,k-1,l)]=c[k-1]*h[INDEX2(k-1,k-1,l)]-s[k-1]*h[k,k-1];
-                    h[INDEX2(k,k-1,l)]=0;
-                    ApplyGivensRotations(2,&(g[k-1]),&(c[k-1]),&(s[k-1]));
-                }
-                norm_of_residual=fabs(g[k]);
-                maxIterFlag = (k>=iter_max);
-                convergeFlag = (fabs(g[k]) <= abs_tol);
-                printf("FGMRES step %d: error %e (tol=%e)\n",
-                       k,fabs(g[k]),abs_tol);
+               v[k]=TMPMEMALLOC(n,double);
+               if (v[k]==NULL) {
+                  Status=SOLVER_MEMORY_ERROR;
+               } else {
+                  /*
+                  *      call directional derivative function
+                  */
+                  Paso_FunctionDerivative(v[k],v[k-1],F,f0,x0,work);
+                  normv=Paso_l2(n,v[k],F->mpi_info);
+                  /*
+                   * Modified Gram-Schmidt
+                   */
+                   for (j=0;j<k;j++){
+                      hh=Paso_InnerProduct(n,v[j],v[k],F->mpi_info);
+                      Paso_Update(n,1.,v[k],(-hh),v[j]);
+                      h[INDEX2(j,k-1,l)]=hh;
+                   }
+                   normv2=Paso_l2(n,v[k],F->mpi_info);
+                   h[INDEX2(k,k-1,l)]=normv2;
+                   /*
+                    * reorthogonalize
+                    */
+                   if (! (normv + RENORMALIZATION_CONST*normv2 > normv)) {
+                        for (j=0;j<k;j++){
+                            hr=Paso_InnerProduct(n,v[j],v[k],F->mpi_info);
+	                    h[INDEX2(j,k-1,l)]+=hr;
+                            Paso_Update(n,1.,v[k],(-hr),v[j]);
+                        }
+                        normv2=Paso_l2(n,v[k],F->mpi_info);
+                        h[INDEX2(k,k-1,l)]=normv2;
+                    }
+                   /* 
+                    *   watch out for happy breakdown
+                    */
+                   if(normv2 > 0.) {
+                      Paso_Update(n,1./normv2,v[k],0.,v[k]);
+                   } 
+                   /*
+                    *   Form and store the information for the new Givens rotation
+                    */
+                   ApplyGivensRotations(k,&h[INDEX2(0,k-1,l)],c,s);
+                   /*
+                    *  Don't divide by zero if solution has  been found
+                    */
+                   g[k]=0;
+                   nu=sqrt(h[INDEX2(k-1,k-1,l)]*h[INDEX2(k-1,k-1,l)]+h[INDEX2(k,k-1,l)]*h[INDEX2(k,k-1,l)]);
+                   if (nu>0) {
+                       c[k-1]=h[INDEX2(k-1,k-1,l)]/nu;
+                       s[k-1]=-h[k,k-1]/nu;
+                       h[INDEX2(k-1,k-1,l)]=c[k-1]*h[INDEX2(k-1,k-1,l)]-s[k-1]*h[k,k-1];
+                       h[INDEX2(k,k-1,l)]=0;
+                       ApplyGivensRotations(2,&(g[k-1]),&(c[k-1]),&(s[k-1]));
+                   }
+                   norm_of_residual=fabs(g[k]);
+                   maxIterFlag = (k>=iter_max);
+                   convergeFlag = (fabs(g[k]) <= abs_tol);
+                   printf("GMRES2 step %d: error %e (tol=%e)\n",k,fabs(g[k]),abs_tol);
+              }
           }
       }
       /*
@@ -183,7 +185,7 @@ err_t Paso_Solver_NLGMRES(
   *  clean up:
   */
   if ( v !=NULL) {
-    for (i=0;i<iter_max;i++) TMPMEMFREE(v);
+    for (i=0;i<iter_max;i++) TMPMEMFREE(v[i]);
   }
   TMPMEMFREE(h);
   TMPMEMFREE(v);
@@ -195,3 +197,4 @@ err_t Paso_Solver_NLGMRES(
   *tolerance=norm_of_residual;
   return Status;
 }
+
