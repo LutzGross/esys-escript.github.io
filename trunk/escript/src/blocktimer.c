@@ -74,6 +74,7 @@ int
 blocktimer_getOrCreateTimerId(__const char *name)
 {
   int id=0;
+  char *tmp_str;
 #ifdef BLOCKTIMER
   static int nextId = 0;		/* Next timer ID to assign */
   ENTRY item, *found_item;
@@ -81,7 +82,7 @@ blocktimer_getOrCreateTimerId(__const char *name)
   if (!g_initialized) { return(0); }
 
   /* Has a timer with 'name' already been defined? */
-  item.key = name;
+  item.key = (char *)name;
   item.data = (void *) NULL;
   found_item = hsearch(item, FIND);
 
@@ -99,11 +100,14 @@ blocktimer_getOrCreateTimerId(__const char *name)
       exit(1);
     }
     *idTmp = nextId++;
-    item.key = name;
+    item.key = (char *)name;
     item.data = (void *) idTmp;
     hsearch(item, ENTER);
     id = *idTmp;
-    g_names[id] = (char *)strdup(name);
+    /* Make a copy of the name and save with other names */
+    tmp_str = malloc(strlen(name)+1);
+    strcpy(tmp_str, name);
+    g_names[id] = tmp_str;
   }
 
 #endif /* BLOCKTIMER */
