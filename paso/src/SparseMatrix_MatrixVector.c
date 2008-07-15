@@ -268,7 +268,12 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(const double alpha,
     char* chksz_chr=NULL;
     dim_t chunk_size=1;
     dim_t nrow=A->numRows;
-    dim_t np=1, len, rest, irow, local_n, p, n_chunks;
+    dim_t np=1, len, rest, irow, local_n, p;
+
+#ifdef USE_DYNAMIC_SCHEDULING
+    dim_t n_chunks;
+#endif
+
 #ifdef _OPENMP
     np=omp_get_max_threads();
 #endif
