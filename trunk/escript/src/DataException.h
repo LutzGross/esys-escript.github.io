@@ -67,7 +67,7 @@ namespace escript
       }
 
     ESCRIPT_DLL_API
-    inline virtual DataException &
+    inline DataException &
     operator=(const DataException &other ) THROW_ANY
        {
          Parent::operator=(other);
