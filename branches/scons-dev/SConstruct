@@ -9,6 +9,7 @@
 # TODO How to modify CCFLAGS for only one file? Look for example with Program(...)
 # TODO use USE_VTK in saveVTK to enable/disable this method
 # TODO set CPPDEFINES and CXXDEFINES the same
+# TODO configure for both 96.91 and 98.03
 
 EnsureSConsVersion(0,96,91)
 EnsurePythonVersion(2,3)
@@ -61,7 +62,6 @@ opts.AddOptions(
   ('pyinstall', 'where the esys python modules will be installed',       os.path.join(prefix,"esys")),
 # Compilation options
   BoolOption('dodebug', 'Do you want a debug build?', 'no'),
-  BoolOption('bounds_check', 'Do you want extra array bounds checking?', 'no'),
   ('options_file', "File of paths/options. Default: scons/<hostname>_options.py", options_file),
   ('cc_defines','C/C++ defines to use', None),
 
@@ -73,9 +73,8 @@ opts.AddOptions(
   ('cp_debug', 'C++ compiler debug flags to use', '-DEFAULT_6'),
   ('omp_flags', 'OpenMP compiler flags to use (Release build)', '-DEFAULT_7'),
   ('omp_flags_debug', 'OpenMP compiler flags to use (Debug build)', '-DEFAULT_8'),
-
-  ('ar_flags', 'Static library archiver flags to use', ''),
   ('sys_libs', 'System libraries to link with', []),
+  ('ar_flags', 'Static library archiver flags to use', ''),
 # Python
   PathOption('python_path', 'Path to Python includes', sys.prefix+'/include/'+python_version),
   PathOption('python_lib_path', 'Path to Python libs', sys.prefix+'/lib'),
@@ -130,16 +129,10 @@ opts.AddOptions(
   PathOption('blas_lib_path', 'Path to BLAS libs', None),
   ('blas_libs', 'BLAS libraries to link with', []),
 )
-#=================================================================================================
-#
-#   Note: On the Altix the intel compilers are not automatically
-#   detected by scons intelc.py script. The Altix has a different directory
-#   path and in some locations the "modules" facility is used to support
-#   multiple compiler versions. This forces the need to import the users PATH
-#   environment which isn't the "scons way"
-#   This doesn't impact linux and windows which will use the default compiler (g++ or msvc, or the intel compiler if it is installed on both platforms)
-#   FIXME: Perhaps a modification to intelc.py will allow better support for ia64 on altix
-#
+
+# Specify which compilers to use (intelc uses regular expressions
+# improperly and emits a warning about failing to find the compilers. 
+# It can be safely ignored)
 
 if IS_WINDOWS_PLATFORM:
       env = Environment(tools = ['default', 'msvc'], options = opts)
@@ -154,7 +147,7 @@ else:
       env = Environment(tools = ['default'], options = opts)
 Help(opts.GenerateHelpText(env))
 
-# Default compiler options (may be over-ridden in hostname_options.py)
+# Default compiler options (override allowed in hostname_options.py, but should not be necessary)
 if env["CC"] == "icc":
   # Intel compilers
   cc_flags		= "-ansi -wd161 -w1 -vec-report0 -DBLOCKTIMER -DCORE_ID1"
@@ -203,10 +196,10 @@ try:
    global_revision = re.sub("[^0-9]", "", global_revision)
 except:
    global_revision="-1"
-if global_revision == "": global_revision="0"
+if global_revision == "": global_revision="-2"
 env.Append(CPPDEFINES = ["SVN_VERSION="+global_revision])
 
-############ Copy environment variables ########################
+############ Copy environment variables into scons env #########
 
 try: env['ENV']['OMP_NUM_THREADS'] = os.environ['OMP_NUM_THREADS']
 except KeyError: env['ENV']['OMP_NUM_THREADS'] = 1
@@ -232,24 +225,27 @@ except KeyError: pass
 try: env['ENV']['HOME'] = os.environ['HOME']
 except KeyError: pass
 
+# A few creature conveniences
 libinstall = env['libinstall']
 incinstall = env['incinstall']
 pyinstall  = env['pyinstall']
 sys_libs   = env['sys_libs']
 
+# Configure for test suite: python run_testname.py
 env.PrependENVPath('PYTHONPATH', prefix)
 env.PrependENVPath('LD_LIBRARY_PATH', libinstall)
 
 ############ Set up paths for Configure() ######################
 
-# Add -I<Escript>/trunk/include
+# Add gcc option -I<Escript>/trunk/include
 env.Append(CPPPATH		= [Dir('include')])
 
-# Add -L<Escript>/trunk/lib
+# Add gcc option -L<Escript>/trunk/lib
 env.Append(LIBPATH		= [Dir('lib')])
 
 # Create a Configure() environment only for checking existence of
-# libraries and headers. Throw it away then build the real environment.
+# libraries and headers.  Later we throw it away then build the real
+# environment.
 try:
   conf = Configure(env.Clone())	# scons-98.03
 except AttributeError:
@@ -272,29 +268,29 @@ conf.env.Append(CPPPATH	= [env['parmetis_path']])
 conf.env.Append(LIBS	= [env['parmetis_libs']])
 conf.env.Append(LIBPATH	= [env['parmetis_lib_path']])
 
-############ numarray ##########################################
+############ numarray (required) ###############################
 
 try: from numarray import identity
 except ImportError: sys.exit(1)
 
-############ python ############################################
+############ python (required) #################################
 
 if not conf.CheckCHeader('Python.h'): sys.exit(1)
 if not conf.CheckFunc('Py_Main'): sys.exit(1)
 
-############ boost #############################################
+############ boost (required) ##################################
 
 if not conf.CheckCXXHeader('boost/python.hpp'): sys.exit(1)
 if not conf.CheckFunc('PyObject_SetAttr'): sys.exit(1)
 
-############ NetCDF ############################################
+############ NetCDF (optional) #################################
 
 env['useNetCDF'] = 1
 
 if env['useNetCDF'] and not conf.CheckCHeader('netcdf.h'): env['useNetCDF'] = 0
 if env['useNetCDF'] and not conf.CheckFunc('nc_open'): env['useNetCDF'] = 0
 
-############ VTK ###############################################
+############ VTK (optional) ####################################
 
 try:
   import vtk
@@ -302,12 +298,12 @@ try:
 except ImportError:
   useVTK = 0
 
-############ MPI ###############################################
+############ MPI (optional) ####################################
 
 if env['useMPI'] and not conf.CheckCHeader('mpi.h'): env['useMPI'] = 0
 if env['useMPI'] and not conf.CheckFunc('MPI_Init'): env['useMPI'] = 0
 
-############ ParMETIS ##########################################
+############ ParMETIS (optional) ###############################
 
 env['useParMETIS'] = 1
 if not env['useMPI']: env['useParMETIS'] = 0
@@ -323,14 +319,11 @@ if env['dodebug']:
   env.Append(CCFLAGS		= env['cc_debug'])
   env.Append(CCFLAGS		= env['omp_flags_debug'])
   env.Append(CCFLAGS		= env['cc_flags'])
+  env.Append(CPPDEFINES		= ['BOUNDS_CHECK'])
 else:
   env.Append(CCFLAGS		= env['cc_optim'])
   env.Append(CCFLAGS		= env['omp_flags'])
   env.Append(CCFLAGS		= env['cc_flags'])
-
-# Enable extra array bounds checking
-if env['bounds_check']:
-  env.Append(CPPDEFINES		= ['BOUNDS_CHECK'])
 
 # Python
 env.Append(CPPPATH		= [env['python_path']])
@@ -404,28 +397,6 @@ if not IS_WINDOWS_PLATFORM:
   if env['dodebug']:		env.Execute("touch " + libinstall + "/Compiled.with.debug")
   if env['useMPI']:		env.Execute("touch " + libinstall + "/Compiled.with.mpi")
   if env['omp_flags'] != '':	env.Execute("touch " + libinstall + "/Compiled.with.OpenMP")
-  if env['bounds_check']:	env.Execute("touch " + libinstall + "/Compiled.with.bounds_check")
-
-# ============= Build targets ======================================================================
-
-# Python install - esys __init__.py
-# init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
-
-# build_target = env.Alias('build', [libinstall, incinstall, pyinstall, init_target])
-# env.Default(build_target)
-
-# env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_doxygen', 'guide_pdf', 'guide_html'])
-# env.Alias('build_tests',build_target)    # target to build all C++ tests
-# env.Alias('build_py_tests',build_target) # target to build all python tests
-# env.Alias('build_all_tests', ['build_tests', 'build_py_tests'] ) # target to build all python tests
-# env.Alias('run_tests', 'build_tests')   # target to run all C++ test
-# env.Alias('py_tests', 'build_py_tests') # target to run all python tests
-# env.Alias('all_tests', ['run_tests', 'py_tests']) # target to run all C++ and python tests
-
-# syslib_install_target = env.installDirectory(sys_libinstall,libinstall)
-# syspy_install_target = env.installDirectory(sys_pyinstall,pyinstall,recursive=True)
-
-# install_target = env.Alias("install", env.Flatten([syslib_install_target, syspy_install_target]) )
 
 Export(["env", "env_mpi", "incinstall", "libinstall", "pyinstall", "sys_libs", "prefix" ])
 
@@ -441,23 +412,23 @@ env.SConscript(dirs = ['pyvisi/py_src'], build_dir='build/$PLATFORM/pyvisi', dup
 env.SConscript(dirs = ['pycad/py_src'], build_dir='build/$PLATFORM/pycad', duplicate=0)
 env.SConscript(dirs = ['pythonMPI/src'], build_dir='build/$PLATFORM/pythonMPI', duplicate=0)
 
+############ Targets to build and install libraries ############
+
 target_init = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
 env.Alias('target_init', [target_init])
 
-env.Alias('build_cppunittest', ['target_install_cppunittest_headers', 'target_cppunittest_a',])
-env.Alias('install_cppunittest', ['build_cppunittest', 'target_install_cppunittest_a',])
+# The headers have to be installed prior to build in order to satisfy #include <paso/Common.h>
+env.Alias('build_esysUtils', ['target_install_esysUtils_headers', 'target_esysUtils_a'])
+env.Alias('install_esysUtils', ['build_esysUtils', 'target_install_esysUtils_a'])
 
-env.Alias('build_esysUtils', ['target_install_esysUtils_headers', 'target_esysUtils_a',])
-env.Alias('install_esysUtils', ['build_esysUtils', 'target_install_esysUtils_a',])
+env.Alias('build_paso', ['target_install_paso_headers', 'target_paso_a'])
+env.Alias('install_paso', ['build_paso', 'target_install_paso_a'])
 
-env.Alias('build_paso', ['target_install_paso_headers', 'target_paso_a',])
-env.Alias('install_paso', ['build_paso', 'target_install_paso_a',])
+env.Alias('build_escript', ['target_install_escript_headers', 'target_escript_so', 'target_escriptcpp_so'])
+env.Alias('install_escript', ['build_escript', 'target_install_escript_so', 'target_install_escriptcpp_so', 'target_install_escript_py'])
 
-env.Alias('build_escript', ['target_install_escript_headers', 'target_escript_so', 'target_escriptcpp_so',])
-env.Alias('install_escript', ['build_escript', 'target_install_escript_so', 'target_install_escriptcpp_so', 'target_install_escript_py',])
-
-env.Alias('build_finley', ['target_install_finley_headers', 'target_finley_so', 'target_finleycpp_so',])
-env.Alias('install_finley', ['build_finley', 'target_install_finley_so', 'target_install_finleycpp_so', 'target_install_finley_py',])
+env.Alias('build_finley', ['target_install_finley_headers', 'target_finley_so', 'target_finleycpp_so'])
+env.Alias('install_finley', ['build_finley', 'target_install_finley_so', 'target_install_finleycpp_so', 'target_install_finley_py'])
 
 # Now gather all the above into a couple easy targets: build_all and install_all
 build_all_list = []
@@ -483,4 +454,15 @@ env.Alias('build_all', build_all_list)
 env.Alias('install_all', install_all_list)
 
 env.Default('install_all')
+
+############ Targets to build and run the test suite ###########
+
+env.Alias('build_cppunittest', ['target_install_cppunittest_headers', 'target_cppunittest_a'])
+env.Alias('install_cppunittest', ['build_cppunittest', 'target_install_cppunittest_a'])
+env.Alias('run_tests', ['install_all', 'target_install_cppunittest_a'])
+env.Alias('all_tests', ['install_all', 'target_install_cppunittest_a', 'run_tests', 'py_tests'])
+
+############ Targets to build the documentation ################
+
+env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_doxygen', 'guide_pdf', 'guide_html'])
 
