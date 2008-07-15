@@ -112,7 +112,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
     expandedD=isExpanded(D);
     S=p.row_jac->ReferenceElement->S;
 
-    #pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp, m_t, diagS)
+    #pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp)
     {
        EM_lumpedMat=THREAD_MEMALLOC(len_EM_lumpedMat,double);
        row_index=THREAD_MEMALLOC(p.row_NN,index_t);
@@ -132,10 +132,12 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                            *           Number of PDEs: 1
                            *  D_p varies over element: True
                            */
+                          #pragma omp parallel private(m_t)
                           m_t=0; /* mass of the element: m_t */
                           for (q=0;q<p.numQuad;q++) {
                               m_t+=Vol[q]*D_p[q];
                           }                           
+                          #pragma omp parallel private(diagS)
                           diagS=0; /* diagonal sum: S */
                           for (s=0;s<p.row_NS;s++) {
                               rtmp=0;
