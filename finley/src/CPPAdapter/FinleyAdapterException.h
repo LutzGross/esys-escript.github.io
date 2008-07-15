@@ -76,7 +76,7 @@ namespace finley
     Assignment operator.
     */
     FINLEY_DLL_API
-    inline virtual FinleyAdapterException &
+    inline FinleyAdapterException &
     operator=(const FinleyAdapterException &other ) THROW_ANY
        {
          Parent::operator=(other);

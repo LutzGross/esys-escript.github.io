@@ -73,7 +73,7 @@ namespace Bruce {
     Assignment operator.
     */
     BRUCE_DLL_API
-    inline virtual BruceException &
+    inline BruceException &
     operator=(const BruceException &other ) THROW_ANY
        {
          Parent::operator=(other);

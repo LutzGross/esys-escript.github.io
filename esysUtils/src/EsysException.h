@@ -99,7 +99,7 @@ namespace esysUtils
     @return re-assigned exception.
     */
     ESYSUTILS_DLL_API
-    virtual EsysException &
+    EsysException &
     operator=(const EsysException &other) THROW_ANY;
 
     /**

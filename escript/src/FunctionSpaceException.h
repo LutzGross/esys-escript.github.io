@@ -68,7 +68,7 @@ namespace escript
       }
 
     ESCRIPT_DLL_API
-    inline virtual FunctionSpaceException &
+    inline FunctionSpaceException &
     operator=(const FunctionSpaceException &other ) THROW_ANY
        {
          Parent::operator=(other);

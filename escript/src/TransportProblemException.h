@@ -68,7 +68,7 @@ namespace escript
       }
 
     ESCRIPT_DLL_API
-    inline virtual TransportProblemException &
+    inline TransportProblemException &
     operator=(const TransportProblemException &other ) THROW_ANY
        {
          Parent::operator=(other);

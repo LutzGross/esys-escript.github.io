@@ -72,7 +72,7 @@ namespace esysUtils {
       }
 
     ESYSUTILS_DLL_API
-    inline virtual
+    inline 
     EsysAssertException &
     operator=(const EsysAssertException &other) THROW_ANY
         {
