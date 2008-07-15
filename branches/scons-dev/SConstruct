@@ -61,7 +61,9 @@ opts.AddOptions(
   ('libinstall', 'where the esys libraries will be installed',           os.path.join(prefix,"lib")),
   ('pyinstall', 'where the esys python modules will be installed',       os.path.join(prefix,"esys")),
 # Compilation options
-  BoolOption('dodebug', 'Do you want a debug build?', 'no'),
+  BoolOption('dodebug', 'For backwards compatibility', 'no'),
+  BoolOption('usedebug', 'Do you want a debug build?', 'no'),
+  BoolOption('usevtk', 'Do you want to use VTK?', 'yes'),
   ('options_file', "File of paths/options. Default: scons/<hostname>_options.py", options_file),
   ('cc_defines','C/C++ defines to use', None),
 
@@ -76,28 +78,29 @@ opts.AddOptions(
   ('sys_libs', 'System libraries to link with', []),
   ('ar_flags', 'Static library archiver flags to use', ''),
 # Python
-  PathOption('python_path', 'Path to Python includes', sys.prefix+'/include/'+python_version),
-  PathOption('python_lib_path', 'Path to Python libs', sys.prefix+'/lib'),
-  ('python_lib', 'Python libraries to link with', python_version),
+  PathOption('python_path', 'Path to Python includes', '/usr/include/'+python_version),
+  PathOption('python_lib_path', 'Path to Python libs', usr_lib),
+  ('python_lib', 'Python libraries to link with', [python_version]),
   ('python_cmd', 'Python command', 'python'),
 # Boost
   PathOption('boost_path', 'Path to Boost includes', "/usr/include"),
   PathOption('boost_lib_path', 'Path to Boost libs', usr_lib),
   ('boost_lib', 'Boost libraries to link with', ['boost_python']),
-# netCDF
-  ('useNetCDF', 'switch on/off the usage of netCDF', '1'),
+# NetCDF
+  BoolOption('usenetcdf', 'switch on/off the usage of netCDF', 'yes'),
   PathOption('netCDF_path', 'Path to netCDF includes', '/usr/include'),
   PathOption('netCDF_lib_path', 'Path to netCDF libs', usr_lib),
   ('netCDF_libs', 'netCDF C++ libraries to link with', ['netcdf_c++', 'netcdf']),
 # MPI
-  BoolOption('useMPI', 'Compile parallel version using MPI', 'no'),
+  BoolOption('useMPI', 'For backwards compatibility', 'no'),
+  BoolOption('usempi', 'Compile parallel version using MPI', 'no'),
   ('MPICH_IGNORE_CXX_SEEK', 'name of macro to ignore MPI settings of C++ SEEK macro (for MPICH)' , 'MPICH_IGNORE_CXX_SEEK'),
   PathOption('mpi_path', 'Path to MPI includes', '/usr/include'),
   ('mpi_run', 'mpirun name' , 'mpiexec -np 1'),
   PathOption('mpi_lib_path', 'Path to MPI libs (needs to be added to the LD_LIBRARY_PATH)', usr_lib),
   ('mpi_libs', 'MPI libraries to link with (needs to be shared!)', ['mpich' , 'pthread', 'rt']),
 # ParMETIS
-  BoolOption('useParMETIS', 'Compile parallel version using ParMETIS', 'no'),
+  BoolOption('useparmetis', 'Compile parallel version using ParMETIS', 'yes'),
   ('parmetis_path', 'Path to ParMETIS includes', '/usr/include'),
   ('parmetis_lib_path', 'Path to ParMETIS library', usr_lib),
   ('parmetis_libs', 'ParMETIS library to link with', []),
@@ -105,7 +108,7 @@ opts.AddOptions(
   PathOption('papi_path', 'Path to PAPI includes', None),
   PathOption('papi_lib_path', 'Path to PAPI libs', None),
   ('papi_libs', 'PAPI libraries to link with', []),
-  ('papi_instrument_solver', 'use PAPI in Solver.c to instrument each iteration of the solver', False),
+  BoolOption('papi_instrument_solver', 'use PAPI in Solver.c to instrument each iteration of the solver', False),
 # MKL
   PathOption('mkl_path', 'Path to MKL includes', None),
   PathOption('mkl_lib_path', 'Path to MKL libs', None),
@@ -235,6 +238,10 @@ sys_libs   = env['sys_libs']
 env.PrependENVPath('PYTHONPATH', prefix)
 env.PrependENVPath('LD_LIBRARY_PATH', libinstall)
 
+# Backwards compatibility (we now use usedebug=yes and usempi=yes)
+if env['dodebug']: env['usedebug'] = 1
+if env['useMPI']: env['usempi'] = 1
+
 ############ Set up paths for Configure() ######################
 
 # Add gcc option -I<Escript>/trunk/include
@@ -252,28 +259,23 @@ except AttributeError:
   conf = Configure(env.Copy())	# scons-96.92
 
 # Must add all paths at first or Configure() can't cache results
-conf.env.Append(CPPPATH	= [env['python_path']])
-conf.env.Append(LIBS	= [env['python_lib']])
-conf.env.Append(LIBPATH	= [env['python_lib_path']])
-conf.env.Append(CPPPATH	= [env['boost_path']])
-conf.env.Append(LIBS	= [env['boost_lib']])
-conf.env.Append(LIBPATH	= [env['boost_lib_path']])
-conf.env.Append(CPPPATH	= [env['netCDF_path']])
-conf.env.Append(LIBS	= [env['netCDF_libs']])
-conf.env.Append(LIBPATH	= [env['netCDF_lib_path']])
-conf.env.Append(CPPPATH	= [env['mpi_path']])
-conf.env.Append(LIBS	= [env['mpi_libs']])
-conf.env.Append(LIBPATH	= [env['mpi_lib_path']])
-conf.env.Append(CPPPATH	= [env['parmetis_path']])
-conf.env.Append(LIBS	= [env['parmetis_libs']])
-conf.env.Append(LIBPATH	= [env['parmetis_lib_path']])
+conf.env.Append(CPPPATH		= [env['python_path']])
+conf.env.Append(LIBS		= [env['python_lib']])
+conf.env.Append(LIBPATH		= [env['python_lib_path']])
+conf.env.Append(CPPPATH		= [env['boost_path']])
+conf.env.Append(LIBS		= [env['boost_lib']])
+conf.env.Append(LIBPATH		= [env['boost_lib_path']])
+if env['usenetcdf']:
+  conf.env.Append(CPPPATH	= [env['netCDF_path']])
+  conf.env.Append(LIBS		= [env['netCDF_libs']])
+  conf.env.Append(LIBPATH	= [env['netCDF_lib_path']])
 
 ############ numarray (required) ###############################
 
 try: from numarray import identity
 except ImportError: sys.exit(1)
 
-############ python (required) #################################
+############ python libraries (required) #######################
 
 if not conf.CheckCHeader('Python.h'): sys.exit(1)
 if not conf.CheckFunc('Py_Main'): sys.exit(1)
@@ -285,37 +287,43 @@ if not conf.CheckFunc('PyObject_SetAttr'): sys.exit(1)
 
 ############ NetCDF (optional) #################################
 
-env['useNetCDF'] = 1
-
-if env['useNetCDF'] and not conf.CheckCHeader('netcdf.h'): env['useNetCDF'] = 0
-if env['useNetCDF'] and not conf.CheckFunc('nc_open'): env['useNetCDF'] = 0
+if env['usenetcdf'] and not conf.CheckCHeader('netcdf.h'): env['usenetcdf'] = 0
+if env['usenetcdf'] and not conf.CheckFunc('nc_open'): env['usenetcdf'] = 0
 
 ############ VTK (optional) ####################################
 
-try:
-  import vtk
-  useVTK = 1
-except ImportError:
-  useVTK = 0
+if env['usevtk']:
+  try:
+    import vtk
+  except ImportError:
+    env['usevtk'] = 0
 
 ############ MPI (optional) ####################################
 
-if env['useMPI'] and not conf.CheckCHeader('mpi.h'): env['useMPI'] = 0
-if env['useMPI'] and not conf.CheckFunc('MPI_Init'): env['useMPI'] = 0
+if env['useMPI']:
+  conf.env.Append(CPPPATH	= [env['mpi_path']])
+  conf.env.Append(LIBS		= [env['mpi_libs']])
+  conf.env.Append(LIBPATH	= [env['mpi_lib_path']])
+  if not conf.CheckCHeader('mpi.h'): env['useMPI'] = 0
+  if not conf.CheckFunc('MPI_Init'): env['useMPI'] = 0
 
 ############ ParMETIS (optional) ###############################
 
-env['useParMETIS'] = 1
-if not env['useMPI']: env['useParMETIS'] = 0
-if env['useParMETIS'] and not conf.CheckCHeader('parmetis.h'): env['useParMETIS'] = 0
-if env['useParMETIS'] and not conf.CheckFunc('ParMETIS_V3_PartGeomKway'): env['useParMETIS'] = 0
+if not env['useMPI']: env['useparmetis'] = 0
+
+if env['useparmetis']:
+  conf.env.Append(CPPPATH	= [env['parmetis_path']])
+  conf.env.Append(LIBS		= [env['parmetis_libs']])
+  conf.env.Append(LIBPATH	= [env['parmetis_lib_path']])
+  if not conf.CheckCHeader('parmetis.h'): env['useparmetis'] = 0
+  if not conf.CheckFunc('ParMETIS_V3_PartGeomKway'): env['useparmetis'] = 0
 
 ############ Configure finished, now modify environment ########
 
 conf.Finish()
 
 # Enable debug
-if env['dodebug']:
+if env['usedebug']:
   env.Append(CCFLAGS		= env['cc_debug'])
   env.Append(CCFLAGS		= env['omp_flags_debug'])
   env.Append(CCFLAGS		= env['cc_flags'])
@@ -336,21 +344,21 @@ env.Append(LIBPATH		= [env['boost_lib_path']])
 env.Append(LIBS			= [env['boost_lib']])
 
 # NetCDF
-if env['useNetCDF']:
+if env['usenetcdf']:
   env.Append(CPPPATH		= [env['netCDF_path']])
   env.Append(LIBPATH		= [env['netCDF_lib_path']])
   env.Append(LIBS		= [env['netCDF_libs']])
   env.Append(CPPDEFINES		= ['USE_NETCDF'])
 
 # VTK
-if useVTK:
+if env['usevtk']:
   env.Append(CPPDEFINES		= ['USE_VTK'])
 
 # MS Windows
 if IS_WINDOWS_PLATFORM:
   env.PrependENVPath('PATH',	[env['boost_lib_path']])
   env.PrependENVPath('PATH',	libinstall)
-  if env['useNetCDF']:
+  if env['usenetcdf']:
     env.PrependENVPath('PATH',	[env['netCDF_lib_path']])
 
 # Create a modified environment for MPI programs
@@ -367,7 +375,7 @@ if env_mpi['useMPI']:
   env_mpi.Append(CPPDEFINES	= ['PASO_MPI', 'MPI_NO_CPPBIND', env_mpi['MPICH_IGNORE_CXX_SEEK']])
 
 # ParMETIS
-if env_mpi['useParMETIS']:
+if env_mpi['useparmetis']:
   env_mpi.Append(CPPPATH	= [env['parmetis_path']])
   env_mpi.Append(LIBPATH	= [env['parmetis_lib_path']])
   env_mpi.Append(LIBS		= [env['parmetis_libs']])
@@ -394,7 +402,7 @@ env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
 # ============= Remember what options were used in the compile =====================================
 if not IS_WINDOWS_PLATFORM:
   env.Execute("/bin/rm -f " + libinstall + "/Compiled.with.*")
-  if env['dodebug']:		env.Execute("touch " + libinstall + "/Compiled.with.debug")
+  if env['usedebug']:		env.Execute("touch " + libinstall + "/Compiled.with.debug")
   if env['useMPI']:		env.Execute("touch " + libinstall + "/Compiled.with.mpi")
   if env['omp_flags'] != '':	env.Execute("touch " + libinstall + "/Compiled.with.OpenMP")
 
