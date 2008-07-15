@@ -11,12 +11,9 @@ python_src = [x for x in filenames if os.path.splitext(x)[1] in ['.py']]
 pyc = local_env.PyCompile(python_src)
 
 local_env.Depends(pyc, dep_lib)
-local_env.Install(pyinstall+'/modellib', pyc)
 
-# get all the python files in the release tar file
-release_py = [ env.File("SConscript"), ] + [ env.File(x) for x in python_src ]
-env.Zip(src_zipfile, release_py)
-env.Tar(src_tarfile, release_py)
+tmp1 = local_env.Install(pyinstall+'/modellib', pyc)
+env.Alias('target_install_modellib_py', [tmp1])
 
 # Call the unit tests SConscript
 local_env.SConscript(dirs = ['#/modellib/test/python'], build_dir='#/build/$PLATFORM/modellib/test/python', duplicate=0)

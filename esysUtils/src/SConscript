@@ -1,32 +1,35 @@
 import os
 Import('*')
 
-local_env=env.Copy()
+local_env=env_mpi.Copy()
 
-# get the relevant file names:
-src_dir = local_env.Dir('.').srcnode().abspath
-filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h", ".c", ".cpp"] ]
-
-sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
-headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
-# Filter out sources that should not be in the list automatically
+sources = """
+	EsysAssertException.cpp
+	EsysException.cpp
+	esysExceptionTranslator.cpp
+""".split()
+headers = """
+	EsysAssert.h
+	EsysAssertException.h
+	EsysException.h
+	EsysTypes.h
+	esys_malloc.h
+	esysExceptionTranslator.h
+	system_dep.h
+""".split()
 
 lib_name = 'esysUtils'
 
-local_env.Append(LIBS = [boost_lib, python_lib])
-
-
 lib = local_env.StaticLibrary(lib_name, sources)
-
-# NOTE: to use this you need to edit system_dep.h
-#       to switch on the declspecs.
-#local_env.Append(CPPDEFINES = 'ESYSUTILS_EXPORTS')
-#lib = local_env.SharedLibrary(lib_name, sources)
+env.Alias('target_esysUtils_a', lib)
 
 include_path = Dir(lib_name, incinstall)
 
-local_env.Install(include_path, headers )
-local_env.Install(libinstall, lib)
+tmp1 = local_env.Install(include_path, headers )
+env.Alias('target_install_esysUtils_headers', [tmp1])
+
+tmp3 = local_env.Install(libinstall, lib)
+env.Alias('target_install_esysUtils_a', tmp3)
 
 # Call the unit tests SConscript 
 # export the lib target since tests will depend on it
@@ -37,10 +40,4 @@ dep_lib = [libinstall+'/'+str(x) for x in lib]
 Export('dep_lib')
 
 local_env.SConscript(dirs = ['#/esysUtils/test'], build_dir='#/build/$PLATFORM/esysUtils/test', duplicate=0)
-
-
-# add source files to release
-release_srcfiles = [ env.File(x) for x in filenames ] + [env.File("SConscript"), ]
-env.Zip(src_zipfile, release_srcfiles)
-env.Tar(src_tarfile, release_srcfiles)
 

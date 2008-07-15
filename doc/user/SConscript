@@ -19,28 +19,31 @@ tex_dir = local_env.Dir('.').srcnode().abspath
 tex= [ env.File(x) for x in os.listdir(tex_dir) if not x.startswith('.') and not os.path.isdir(tex_dir+os.path.sep+x) and os.path.splitext(x)[1] in ['.tex', '.bib', '.sty', '.cfg', '.cls'] ] + \
      [ env.File('figures'+os.path.sep+x) for x in os.listdir(tex_dir+os.path.sep+'figures') if not x.startswith('.') ]
 
-env.Command(guide_pdf,tex,
+env.Command(prefix+'/release/doc/user/guide.pdf',tex,
             [ "latex %s guide.tex"%latexmode,  \
               "bibtex guide",                  \
               "makeindex guide",               \
               "latex %s guide"%latexmode,      \
               "latex %s guide"%latexmode,      \
-              "dvipdf guide.dvi %s"%guide_pdf  ],
+              "dvipdf guide.dvi %s"%prefix+'/release/doc/user/guide.pdf' ],
             chdir=tex_dir)
+env.Alias('guide_pdf', prefix+'/release/doc/user/guide.pdf')
 
 
-env.Command(guide_html_index,tex,
-            "latex2html -top_navigation                                               \
+env.Command(prefix+'/release/doc/user/html/index.htm',tex,			      \
+		        ["latex2html -top_navigation                                  \
                         -bottom_navigation                                            \
                         -index_in_navigation                                          \
                         -contents_in_navigation                                       \
                         -next_page_in_navigation                                      \
                         -previous_page_in_navigation                                  \
-                        -title \"esys user's guide\"                                  \
+                        -title \"esys users guide\"                                   \
                         -noshow_section_numbers                                       \
-                        -dir %s -mkdir                                                \
+                        -dir \"../../release/doc/user/html\" -mkdir		      \
                         -address \"esys@esscc.uq.edu.au\"                             \
                         -antialias_text -antialias -transparent                       \
                         -noshort_extn                                                 \
-                        -up_url \"http://www.access.edu.au/escript\", -up_title \"escript\" guide.tex"%os.path.splitext(str(guide_html_index))[0],
-            chdir=tex_dir)
+                        -up_url \"http://www.access.edu.au/escript\",		      \
+			-up_title \"escript\" guide.tex"], chdir=tex_dir)
+env.Alias('guide_html', prefix+'/release/doc/user/html/index.htm')
+
