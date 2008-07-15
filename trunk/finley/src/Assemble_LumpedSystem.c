@@ -47,7 +47,10 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
   double *S=NULL, *EM_lumpedMat=NULL, *Vol=NULL, *D_p=NULL, *lumpedMat_p=NULL;
   register double rtmp;
   size_t len_EM_lumpedMat_size;
+
+#ifdef NEW_LUMPING
   register double m_t, diagS;
+#endif
 
   Finley_resetError();
 
