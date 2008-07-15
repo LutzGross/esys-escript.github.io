@@ -1,15 +1,9 @@
-# Scons configuration file for documentation
-
 #          Copyright 2006 by ACcESS MNRF                   
 #                                                          
 #              http://www.access.edu.au                    
 #       Primary Business: Queensland, Australia            
 #  Licensed under the Open Software License version 3.0    
 #     http://www.opensource.org/licenses/osl-3.0.php       
-#                                                          
-#
-#
-# set appropriate defaults for configuration variables
 
 import os
 Import('*')
@@ -20,11 +14,13 @@ local_env=env.Copy()
 src_dir = local_env.Dir('examples').srcnode().abspath
 example_files = os.popen("find " + src_dir + " -name .svn -prune -o -type f -print").read().split(None)
 
-env.Zip(examples_zipfile, example_files)
-env.Tar(examples_tarfile, example_files)
+env.Zip('#release/doc/escript_examples.zip', example_files)
+env.Alias('examples_zipfile', '#release/doc/escript_examples.zip')
 
-# Call the doc build using SConscript
+env.Tar('#release/doc/escript_examples.tar.gz', example_files)
+env.Alias('examples_tarfile', '#release/doc/escript_examples.tar.gz')
+
 local_env.SConscript(dirs = ['#/doc/user'], build_dir='#/build/$PLATFORM/doc/user', duplicate=1)
-
 local_env.SConscript(dirs = ['#/doc/epydoc'], build_dir='#/build/$PLATFORM/doc/epydoc', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/doxygen'], build_dir='#/build/$PLATFORM/doc/doxygen', duplicate=1)
+

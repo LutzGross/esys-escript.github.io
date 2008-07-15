@@ -1,5 +1,6 @@
 Import('*')
 local_env=env.Copy()
+
 src_dir = local_env.Dir('.').srcnode().abspath
 import os
 filenames = os.listdir(src_dir)
@@ -35,17 +36,6 @@ local_env['ENV']['ESCRIPT_TEST_DATA_ROOT']=env.Dir('#/escript/test/python').srcn
 local_env['ENV']['ESCRIPT_WORKDIR']=env.Dir('#/build/$PLATFORM/escript/test/python').srcnode().abspath
 env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in alltestruns])
 env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
-
-# get all the python files in the release tar file
-release_pyfiles = [ env.File("SConscript"), ]
-release_datafiles=[]  # FIXIT: is there a better way?
-for d in testdata_dir:
-   release_datafiles+=[ d+"/"+x for x in os.listdir(local_env.Dir(d).srcnode().abspath) if not x.startswith('.')]
-release_testfiles = [ env.File(x) for x in testfiles + testruns ] + [ env.File(x) for x in release_datafiles ]
-env.Zip(src_zipfile, release_pyfiles)
-env.Tar(src_tarfile, release_pyfiles)
-env.Zip(test_zipfile, release_testfiles)
-env.Tar(test_tarfile, release_testfiles)
 
 #
 # run all tests:

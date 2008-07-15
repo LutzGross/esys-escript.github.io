@@ -12,8 +12,8 @@ filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h",
 
 sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 
-local_env.Append(LIBS=[python_lib, boost_lib, 'finley', 'escript', 'paso', 'esysUtils', 'CppUnitTest'] + \
-		  scsl_libs + mkl_libs + umf_libs + sys_libs + mpi_libs)
+local_env.Append(LIBS=['finley', 'escript', 'paso', 'esysUtils', 'CppUnitTest'] + \
+		  local_env['scsl_libs'] + local_env['mkl_libs'] + local_env['umf_libs'] + sys_libs)
 
 # compile test
 program = local_env.Program(program_name, sources)
@@ -23,14 +23,5 @@ env.Alias('build_tests', program)
 local_env.RunUnitTest(program_name)
 test_targets = os.path.splitext(program_name)[0]+'.passed'
 Alias("run_tests", test_targets)
-
-release_srcfiles = [ env.File("SConscript"), ]
-release_testfiles = [ env.File(x) for x in  filenames ]
-env.Zip(src_zipfile, release_srcfiles)
-env.Tar(src_tarfile, release_srcfiles)
-env.Zip(test_zipfile, release_testfiles)
-env.Tar(test_tarfile, release_testfiles)
-
-
 
 local_env.SConscript(dirs = ['#/finley/test/python'], build_dir='python', duplicate=0)

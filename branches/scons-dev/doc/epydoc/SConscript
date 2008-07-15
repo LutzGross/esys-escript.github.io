@@ -1,17 +1,13 @@
-# Scons configuration file for epydoc python docs
-
 #          Copyright 2006 by ACcESS MNRF                   
 #                                                          
 #              http://www.access.edu.au                    
 #       Primary Business: Queensland, Australia            
 #  Licensed under the Open Software License version 3.0    
 #     http://www.opensource.org/licenses/osl-3.0.php       
-#                                                          
-#
-#
 
 import os
 Import('*')
 
-env.Command(api_epydoc, pyinstall, "epydoc --html -o $TARGET esys esys")
+env.Command(prefix+'/release/doc/epydoc', pyinstall, [Mkdir(prefix+'/release/doc/epydoc'), "epydoc --html -o $TARGET esys"])
+env.Alias('api_epydoc', prefix+'/release/doc/epydoc')
 
