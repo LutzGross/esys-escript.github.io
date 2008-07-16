@@ -59,7 +59,7 @@ err_t Paso_Function_LinearSystem_call(Paso_Function * F,double* value, const dou
     Paso_SystemMatrix* A=(Paso_SystemMatrix*)(F->more);
 printf("F B\n");
     Paso_Copy(F->n,F->tmp,F->b); /* tmp=b */
-printf("F C %d %d %d\n",A,arg,F->tmp);
+printf("F C %#lx %#lx %#lx\n",A,arg,F->tmp);
     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(-ONE, A, arg,ONE, F->tmp); /* tmp=(tmp-A*arg) */
 printf("F D \n");
     Paso_Solver_solvePreconditioner(A,value,F->tmp); /* value=P*tmp */

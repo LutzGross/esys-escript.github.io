@@ -64,9 +64,9 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType,Paso_Pattern*,d
 Paso_SparseMatrix* Paso_SparseMatrix_getReference(Paso_SparseMatrix*);
 void Paso_SparseMatrix_free(Paso_SparseMatrix*);
 void Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
-void Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
-void Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
-void Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
+void Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
+void Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
+void Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
 void Paso_SparseMatrix_copy(Paso_SparseMatrix*,double*);
 void Paso_SparseMatrix_addAbsRow_CSR_OFFSET0(Paso_SparseMatrix*,double*);
 void Paso_SparseMatrix_addRow_CSR_OFFSET0(Paso_SparseMatrix*,double*);

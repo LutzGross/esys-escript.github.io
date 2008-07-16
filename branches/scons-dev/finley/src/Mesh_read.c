@@ -236,13 +236,18 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 
   Paso_MPIInfo *mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
   dim_t numNodes, numDim, numEle, i0, i1;
-  index_t tag_key;
   Finley_Mesh *mesh_p=NULL;
   char name[LenString_MAX],element_type[LenString_MAX],frm[20];
   char error_msg[LenErrorMsg_MAX];
   double time0=Finley_timer();
   FILE *fileHandle_p = NULL;
-  ElementTypeId typeID, faceTypeID, contactTypeID, pointTypeID;
+  ElementTypeId typeID;
+
+#if 0 /* comment out the rest of the un-implemented crap for now */
+      /* See below */
+  ElementTypeId faceTypeID, contactTypeID, pointTypeID;
+  index_t tag_key;
+#endif
 
   Finley_resetError();
 
@@ -289,7 +294,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
      /* allocate mesh */
      mesh_p = Finley_Mesh_alloc(name,numDim,order,reduced_order,mpi_info);
      if (Finley_noError()) {
-	int chunkSize = numNodes / mpi_info->size + 1, totalNodes=0, chunkNodes=0, chunkEle=0, nextCPU=1, mpi_error;
+	int chunkSize = numNodes / mpi_info->size + 1, totalNodes=0, chunkNodes=0, chunkEle=0, nextCPU=1;
 	int *tempInts = TMPMEMALLOC(numNodes*3+1, index_t);
 	double *tempCoords = TMPMEMALLOC(numNodes*numDim, double);
 
@@ -326,6 +331,8 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	    /* Eventually we'll send chunk of nodes to each CPU numbered 1 ... mpi_info->size-1, here goes one of them */
 	    if (nextCPU < mpi_info->size) {
 #ifdef PASO_MPI
+              int mpi_error;
+
 	      tempInts[numNodes*3] = chunkNodes;
 	      /* ksteube The size of this message can and should be brought down to chunkNodes*3+1, must re-org tempInts */
 	      mpi_error = MPI_Send(tempInts, numNodes*3+1, MPI_INT, nextCPU, 81720, mpi_info->comm);
@@ -427,7 +434,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 
       if (Finley_noError()) {
 	int *tempInts = TMPMEMALLOC(numEle*(2+numNodes)+1, index_t); /* Store Id + Tag + node list (+ one int at end for chunkEle) */
-	int chunkSize = numEle / mpi_info->size, totalEle=0, nextCPU=1, mpi_error;
+	int chunkSize = numEle / mpi_info->size, totalEle=0, nextCPU=1;
 	if (numEle % mpi_info->size != 0) chunkSize++; /* Remainder from numEle / mpi_info->size will be spread out one-per-CPU */
 	if (mpi_info->rank == 0) {	/* Master */
 	  for (;;) {			/* Infinite loop */
@@ -444,6 +451,8 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	    /* Eventually we'll send chunk of nodes to each CPU except 0 itself, here goes one of them */
 	    if (nextCPU < mpi_info->size) {
 #ifdef PASO_MPI
+              int mpi_error;
+
 	      tempInts[numEle*(2+numNodes)] = chunkEle;
 printf("ksteube CPU=%d/%d send to %d\n", mpi_info->rank, mpi_info->size, nextCPU);
 	      mpi_error = MPI_Send(tempInts, numEle*(2+numNodes)+1, MPI_INT, nextCPU, 81722, mpi_info->comm);
