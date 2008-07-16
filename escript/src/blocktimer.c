@@ -74,8 +74,8 @@ int
 blocktimer_getOrCreateTimerId(__const char *name)
 {
   int id=0;
-  char *tmp_str;
 #ifdef BLOCKTIMER
+  char *tmp_str;
   static int nextId = 0;		/* Next timer ID to assign */
   ENTRY item, *found_item;
 

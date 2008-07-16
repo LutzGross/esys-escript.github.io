@@ -42,6 +42,6 @@ void Paso_Function_FCT_free(Paso_Function * F)
 
 err_t Paso_Function_FCT_call(Paso_Function * F,double* value, const double* arg)
 {
-
+   return SYSTEM_ERROR;
 }
 

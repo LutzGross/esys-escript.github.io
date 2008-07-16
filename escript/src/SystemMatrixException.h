@@ -68,7 +68,7 @@ namespace escript
       }
 
     ESCRIPT_DLL_API
-    inline virtual SystemMatrixException &
+    inline SystemMatrixException &
     operator=(const SystemMatrixException &other ) THROW_ANY
        {
          Parent::operator=(other);
