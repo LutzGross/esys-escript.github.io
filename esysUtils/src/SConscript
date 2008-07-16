@@ -42,12 +42,12 @@ lib_name = 'esysUtils'
 lib = local_env.StaticLibrary(lib_name, sources)
 env.Alias('target_esysUtils_a', lib)
 
-include_path = Dir(lib_name, incinstall)
+include_path = Dir(lib_name, local_env['incinstall'])
 
 tmp1 = local_env.Install(include_path, headers )
 env.Alias('target_install_esysUtils_headers', [tmp1])
 
-tmp3 = local_env.Install(libinstall, lib)
+tmp3 = local_env.Install(local_env['libinstall'], lib)
 env.Alias('target_install_esysUtils_a', tmp3)
 
 # Call the unit tests SConscript 
@@ -55,7 +55,7 @@ env.Alias('target_install_esysUtils_a', tmp3)
 # the lib target is a list of file nodes (why? win32 produces more than one output file: .lib, .dll, .pdb)
 # FIXME: This list handling produces the desired result but can this be done directly with scons File nodes?
 
-dep_lib = [libinstall+'/'+str(x) for x in lib]
+dep_lib = [local_env['libinstall']+'/'+str(x) for x in lib]
 Export('dep_lib')
 
 local_env.SConscript(dirs = ['#/esysUtils/test'], build_dir='#/build/$PLATFORM/esysUtils/test', duplicate=0)

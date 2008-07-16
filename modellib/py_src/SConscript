@@ -31,7 +31,7 @@ pyc = local_env.PyCompile(python_src)
 
 local_env.Depends(pyc, dep_lib)
 
-tmp1 = local_env.Install(pyinstall+'/modellib', pyc)
+tmp1 = local_env.Install(local_env['pyinstall']+'/modellib', pyc)
 env.Alias('target_install_modellib_py', [tmp1])
 
 # Call the unit tests SConscript

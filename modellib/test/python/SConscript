@@ -54,7 +54,7 @@ env.Alias('build_py_tests',test_pyc)
 #
 program = local_env.RunPyUnitTest(alltestruns)
 
-Depends(program, pyinstall)
+Depends(program, local_env['pyinstall'])
 Depends(program, dep_lib) 
 Depends(program, 'build_py_tests')
 

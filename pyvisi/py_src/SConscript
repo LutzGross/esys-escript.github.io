@@ -31,7 +31,7 @@ pyc = local_env.PyCompile(python_src)
 
 local_env.Depends(pyc, dep_lib)
 
-tmp1 = local_env.Install(pyinstall+'/pyvisi', pyc)
+tmp1 = local_env.Install(local_env['pyinstall']+'/pyvisi', pyc)
 env.Alias('target_install_pyvisi_py', [tmp1])
 
 local_env.SConscript(dirs = ['#/pyvisi/test/python'], build_dir='#/build/$PLATFORM/pyvisi/test/python', duplicate=0)

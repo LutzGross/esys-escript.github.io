@@ -141,8 +141,8 @@ cppadapter_headers = """
 	CPPAdapter/system_dep.h
 """.split()
 
-local_env.Append(LIBS = ['escript', 'esysUtils', 'paso'] + sys_libs )
-py_wrapper_local_env.Append(LIBS = ['finley', 'escript', 'esysUtils', 'paso'] + sys_libs )
+local_env.Append(LIBS = ['escript', 'esysUtils', 'paso'] + env['sys_libs'] )
+py_wrapper_local_env.Append(LIBS = ['finley', 'escript', 'esysUtils', 'paso'] + env['sys_libs'] )
 
 if local_env['mkl_libs']:
    local_env.Append(CPPDEFINES=['MKL',])
@@ -162,30 +162,30 @@ env.Alias('target_finley_so', lib)
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary('finleycpp', 'CPPAdapter/finleycpp.cpp')
 env.Alias('target_finleycpp_so', py_wrapper_lib)
 
-include_path = Dir('finley', incinstall)
+include_path = Dir('finley', local_env['incinstall'])
 cppadapter_include_path = Dir('CppAdapter', include_path)
 
 tmp1 = local_env.Install(include_path, headers )
 tmp2 = local_env.Install(cppadapter_include_path, cppadapter_headers )
 env.Alias('target_install_finley_headers', [tmp1, tmp2])
 
-tmp3 = local_env.Install(libinstall, lib)
+tmp3 = local_env.Install(local_env['libinstall'], lib)
 env.Alias('target_install_finley_so', tmp3)
-tmp4 = py_wrapper_local_env.Install(pyinstall+'/finley', py_wrapper_lib)
+tmp4 = py_wrapper_local_env.Install(local_env['pyinstall']+'/finley', py_wrapper_lib)
 env.Alias('target_install_finleycpp_so', tmp4)
 
 #windows specific mod
 if os.name == 'nt':
-   py_wrapper_local_env.InstallAs(target = [ pyinstall+'/finley/finleycpp.pyd', \
-                                             pyinstall+'/finley/finleycpp.lib', \
-                                             pyinstall+'/finley/finleycpp.exp' ], \
+   py_wrapper_local_env.InstallAs(target = [ local_env['pyinstall']+'/finley/finleycpp.pyd', \
+                                             local_env['pyinstall']+'/finley/finleycpp.lib', \
+                                             local_env['pyinstall']+'/finley/finleycpp.exp' ], \
 					     source = py_wrapper_lib )
 
 
 # export the lib target since tests will depend on it
 # the lib target is a list of file nodes (why? win32 produces more than one output file: .lib, .dll, .pdb)
 # FIXME: This list handling produces the desired result but can this be done directly with scons File nodes?
-dep_lib = [libinstall+'/'+str(x) for x in lib]
+dep_lib = [local_env['libinstall']+'/'+str(x) for x in lib]
 Export('dep_lib')
 
 # Call the python sconscript

@@ -24,13 +24,13 @@ except AttributeError:
 
 sources = ["ScriptMPI.cpp"]
 
-local_env.Append(LIBS = ["paso"] + sys_libs)
+local_env.Append(LIBS = ["paso"] + env['sys_libs'])
 
-include_path = Dir('pythonMPI', incinstall)
+include_path = Dir('pythonMPI', local_env['incinstall'])
 
 prog = local_env.Program('pythonMPI', sources)
 env.Alias('target_pythonMPI_exe', prog)
 
-tmp1 = local_env.Install(libinstall, prog)
+tmp1 = local_env.Install(local_env['libinstall'], prog)
 env.Alias('target_install_pythonMPI_exe', tmp1)
 

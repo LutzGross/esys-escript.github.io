@@ -32,7 +32,7 @@ pyc = local_env.PyCompile(python_src)
 
 # local_env.Depends(pyc, dep_lib)
 
-tmp1 = local_env.Install(pyinstall+'/pycad', pyc)
+tmp1 = local_env.Install(local_env['pyinstall']+'/pycad', pyc)
 env.Alias('target_install_pycad_py', [tmp1])
 
 # Call the unit tests SConscript

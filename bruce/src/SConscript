@@ -48,16 +48,16 @@ local_env.Append(CPPDEFINES = 'BRUCE_EXPORTS')
 lib = local_env.SharedLibrary(lib_name, sources)
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary( py_wrapper_lib_name, py_wrapper_source)
 
-include_path = Dir(lib_name, incinstall)
+include_path = Dir(lib_name, local_env['incinstall'])
 
 local_env.Install(include_path, headers )
-local_env.Install(libinstall, lib)
-py_wrapper_local_env.Install(pyinstall+'/bruce', py_wrapper_lib)
+local_env.Install(local_env['libinstall'], lib)
+py_wrapper_local_env.Install(local_env['pyinstall']+'/bruce', py_wrapper_lib)
 
 # export the lib target since tests will depend on it
 # the lib target is a list of file nodes (why? win32 produces more than one output file: .lib, .dll, .pdb)
 # FIXME: This list handling produces the desired result but can this be done directly with scons File nodes?
-dep_lib = [libinstall+'/'+str(x) for x in lib]
+dep_lib = [local_env['libinstall']+'/'+str(x) for x in lib]
 Export('dep_lib')
 
 # Call the python sconscript

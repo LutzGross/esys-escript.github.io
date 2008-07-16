@@ -48,11 +48,11 @@ headers = """
 lib = local_env.StaticLibrary('CppUnitTest', sources)
 env.Alias('target_cppunittest_a', lib)
 
-include_path = Dir('tools/CppUnitTest', incinstall)
+include_path = Dir('tools/CppUnitTest', local_env['incinstall'])
 
 tmp1 = local_env.Install(include_path, headers )
 env.Alias('target_install_cppunittest_headers', [tmp1])
 
-tmp2 = local_env.Install(libinstall, lib)
+tmp2 = local_env.Install(local_env['libinstall'], lib)
 env.Alias('target_install_cppunittest_a', [tmp2])
 

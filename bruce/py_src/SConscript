@@ -36,6 +36,6 @@ pyc = local_env.PyCompile(python_src)
 
 local_env.Depends(pyc, dep_lib)
 
-tmp1 = local_env.Install(pyinstall+'/bruce', pyc)
+tmp1 = local_env.Install(local_env['pyinstall']+'/bruce', pyc)
 env.Alias('target_install_bruce_py', [tmp1])
 
