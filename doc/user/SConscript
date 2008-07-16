@@ -1,20 +1,29 @@
-# Scons configuration file for documentation
+#
+# $Id$
+#
+#######################################################
+#
+#           Copyright 2003-2007 by ACceSS MNRF
+#       Copyright 2007 by University of Queensland
+#
+#                http://esscc.uq.edu.au
+#        Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#######################################################
+#
 
-#          Copyright 2006 by ACcESS MNRF                   
-#                                                          
-#              http://www.access.edu.au                    
-#       Primary Business: Queensland, Australia            
-#  Licensed under the Open Software License version 3.0    
-#     http://www.opensource.org/licenses/osl-3.0.php       
-#                                                          
-#
-#
-# builds the user's guide
-latexmode='-interaction=nonstopmode'
 import os
 Import('*')
 
-local_env=env.Copy()
+try:
+  local_env = env.Clone()	# scons-98.03
+except AttributeError:
+  local_env = env.Copy()	# scons-96.92
+
+latexmode='-interaction=nonstopmode'
+
 tex_dir = local_env.Dir('.').srcnode().abspath
 tex= [ env.File(x) for x in os.listdir(tex_dir) if not x.startswith('.') and not os.path.isdir(tex_dir+os.path.sep+x) and os.path.splitext(x)[1] in ['.tex', '.bib', '.sty', '.cfg', '.cls'] ] + \
      [ env.File('figures'+os.path.sep+x) for x in os.listdir(tex_dir+os.path.sep+'figures') if not x.startswith('.') ]

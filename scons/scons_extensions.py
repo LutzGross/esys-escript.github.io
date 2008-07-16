@@ -180,7 +180,7 @@ def doSubstitution(target,source,env) :
 def runUnitTest(target, source, env):
   time_start = time.time()
   app = str(source[0].abspath)
-  if env['useMPI']: app = env['mpi_run'] + ' ' + app
+  if env['usempi']: app = env['mpi_run'] + ' ' + app
   print "Executing test: " + app
   if not env.Execute(app):
     open(str(target[0]),'w').write("PASSED\n")
@@ -192,7 +192,7 @@ def runUnitTest(target, source, env):
 def runPyUnitTest(target, source, env): 
    time_start = time.time()
    app = str(source[0].abspath)
-   if env['useMPI']:
+   if env['usempi']:
      app = env['mpi_run'] +' lib/pythonMPI ' + app
    else:
      app = sys.executable + " " + app

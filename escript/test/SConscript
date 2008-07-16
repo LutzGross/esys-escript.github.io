@@ -1,12 +1,29 @@
+#
+# $Id$
+#
+#######################################################
+#
+#           Copyright 2003-2007 by ACceSS MNRF
+#       Copyright 2007 by University of Queensland
+#
+#                http://esscc.uq.edu.au
+#        Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#######################################################
+#
+
+import os
 Import('*')
 
-program_name = 'escript_UnitTest'
-
-local_env=env.Copy()
+try:
+  local_env = env.Clone()	# scons-98.03
+except AttributeError:
+  local_env = env.Copy()	# scons-96.92
 
 src_dir = local_env.Dir('.').srcnode().abspath
 
-import os
 # get the relevant file names:
 src_dir = local_env.Dir('.').srcnode().abspath
 filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h", ".c", ".cpp"] ]
@@ -15,15 +32,15 @@ sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 
 local_env.Append(LIBS= ['escript', 'esysUtils', 'CppUnitTest'] + sys_libs )
 
-program = local_env.Program(program_name, sources)
+program = local_env.Program('escript_UnitTest', sources)
 
 #Add Unit Test to target alias
 
 env.Alias('run_tests', program)
 
 # run the tests - but only if test_targets are stale
-local_env.RunUnitTest(program_name)
-test_targets = os.path.splitext(program_name)[0]+'.passed'
+local_env.RunUnitTest('escript_UnitTest')
+test_targets = os.path.splitext('escript_UnitTest')[0]+'.passed'
 Alias("run_tests", test_targets)
 
 local_env.SConscript(dirs = ['#/escript/test/python'], build_dir='python', duplicate=0)
