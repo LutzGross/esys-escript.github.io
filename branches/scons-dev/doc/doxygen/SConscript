@@ -8,6 +8,6 @@
 import os
 Import('*')
 
-tmp = env.Command(prefix+'/release/doc/doxygen', pyinstall, [Mkdir(prefix+'/release/doc/doxygen'), "doxygen doc/doxygen/doxygen_esys"])
-env.Alias('api_doxygen', prefix+'/release/doc/doxygen')
+tmp = env.Command(env['prefix']+'/release/doc/doxygen', env['pyinstall'], [Mkdir(env['prefix']+'/release/doc/doxygen'), "doxygen doc/doxygen/doxygen_esys"])
+env.Alias('api_doxygen', env['prefix']+'/release/doc/doxygen')
 

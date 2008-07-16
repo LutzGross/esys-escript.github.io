@@ -57,6 +57,7 @@ opts = Options(options_file, ARGUMENTS)
 # DO NOT CHANGE THEM HERE
 opts.AddOptions(
 # Where to install esys stuff
+  ('prefix', 'where everything will be installed',                       Dir('#.').abspath),
   ('incinstall', 'where the esys headers will be installed',             Dir('#.').abspath+'/include'),
   ('libinstall', 'where the esys libraries will be installed',           os.path.join(prefix,"lib")),
   ('pyinstall', 'where the esys python modules will be installed',       os.path.join(prefix,"esys")),
@@ -216,15 +217,9 @@ except KeyError: pass
 try: env['ENV']['HOME'] = os.environ['HOME']
 except KeyError: pass
 
-# A few creature conveniences
-libinstall = env['libinstall']
-incinstall = env['incinstall']
-pyinstall  = env['pyinstall']
-sys_libs   = env['sys_libs']
-
 # Configure for test suite: python run_testname.py
 env.PrependENVPath('PYTHONPATH', prefix)
-env.PrependENVPath('LD_LIBRARY_PATH', libinstall)
+env.PrependENVPath('LD_LIBRARY_PATH', env['libinstall'])
 
 # Backwards compatibility (we now use usedebug=yes and usempi=yes)
 if env['dodebug']: env['usedebug'] = 1
@@ -257,6 +252,9 @@ if env['usenetcdf']:
   conf.env.Append(CPPPATH	= [env['netCDF_path']])
   conf.env.Append(LIBS		= [env['netCDF_libs']])
   conf.env.Append(LIBPATH	= [env['netCDF_lib_path']])
+
+# If there's an error during the Configure() step look at the file
+# config.log for messages
 
 ############ numarray (required) ###############################
 
@@ -345,7 +343,7 @@ if env['usevtk']:
 # MS Windows
 if IS_WINDOWS_PLATFORM:
   env.PrependENVPath('PATH',	[env['boost_lib_path']])
-  env.PrependENVPath('PATH',	libinstall)
+  env.PrependENVPath('PATH',	env['libinstall'])
   if env['usenetcdf']:
     env.PrependENVPath('PATH',	[env['netCDF_lib_path']])
 
@@ -407,12 +405,12 @@ env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
 
 # ============= Remember what options were used in the compile =====================================
 if not IS_WINDOWS_PLATFORM:
-  env.Execute("/bin/rm -f " + libinstall + "/Compiled.with.*")
-  if env['usedebug']:		env.Execute("touch " + libinstall + "/Compiled.with.debug")
-  if env['usempi']:		env.Execute("touch " + libinstall + "/Compiled.with.mpi")
-  if env['omp_optim'] != '':	env.Execute("touch " + libinstall + "/Compiled.with.OpenMP")
+  env.Execute("/bin/rm -f " + env['libinstall'] + "/Compiled.with.*")
+  if env['usedebug']:		env.Execute("touch " + env['libinstall'] + "/Compiled.with.debug")
+  if env['usempi']:		env.Execute("touch " + env['libinstall'] + "/Compiled.with.mpi")
+  if env['omp_optim'] != '':	env.Execute("touch " + env['libinstall'] + "/Compiled.with.OpenMP")
 
-Export(["env", "env_mpi", "incinstall", "libinstall", "pyinstall", "sys_libs", "prefix" ])
+Export(["env", "env_mpi"])
 
 env.SConscript(dirs = ['tools/CppUnitTest/src'], build_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
 env.SConscript(dirs = ['paso/src'], build_dir='build/$PLATFORM/paso', duplicate=0)
@@ -428,7 +426,7 @@ env.SConscript(dirs = ['pythonMPI/src'], build_dir='build/$PLATFORM/pythonMPI', 
 
 ############ Targets to build and install libraries ############
 
-target_init = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
+target_init = env.Command(env['pyinstall']+'/__init__.py', None, Touch('$TARGET'))
 env.Alias('target_init', [target_init])
 
 # The headers have to be installed prior to build in order to satisfy #include <paso/Common.h>

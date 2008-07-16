@@ -28,18 +28,18 @@ tex_dir = local_env.Dir('.').srcnode().abspath
 tex= [ env.File(x) for x in os.listdir(tex_dir) if not x.startswith('.') and not os.path.isdir(tex_dir+os.path.sep+x) and os.path.splitext(x)[1] in ['.tex', '.bib', '.sty', '.cfg', '.cls'] ] + \
      [ env.File('figures'+os.path.sep+x) for x in os.listdir(tex_dir+os.path.sep+'figures') if not x.startswith('.') ]
 
-env.Command(prefix+'/release/doc/user/guide.pdf',tex,
+env.Command(env['prefix']+'/release/doc/user/guide.pdf',tex,
             [ "latex %s guide.tex"%latexmode,  \
               "bibtex guide",                  \
               "makeindex guide",               \
               "latex %s guide"%latexmode,      \
               "latex %s guide"%latexmode,      \
-              "dvipdf guide.dvi %s"%prefix+'/release/doc/user/guide.pdf' ],
+              "dvipdf guide.dvi %s"%env['prefix']+'/release/doc/user/guide.pdf' ],
             chdir=tex_dir)
-env.Alias('guide_pdf', prefix+'/release/doc/user/guide.pdf')
+env.Alias('guide_pdf', env['prefix']+'/release/doc/user/guide.pdf')
 
 
-env.Command(prefix+'/release/doc/user/html/index.htm',tex,			      \
+env.Command(env['prefix']+'/release/doc/user/html/index.htm',tex,			      \
 		        ["latex2html -top_navigation                                  \
                         -bottom_navigation                                            \
                         -index_in_navigation                                          \
@@ -54,5 +54,5 @@ env.Command(prefix+'/release/doc/user/html/index.htm',tex,			      \
                         -noshort_extn                                                 \
                         -up_url \"http://www.access.edu.au/escript\",		      \
 			-up_title \"escript\" guide.tex"], chdir=tex_dir)
-env.Alias('guide_html', prefix+'/release/doc/user/html/index.htm')
+env.Alias('guide_html', env['prefix']+'/release/doc/user/html/index.htm')
 

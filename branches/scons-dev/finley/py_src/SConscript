@@ -31,6 +31,6 @@ pyc = local_env.PyCompile(python_src)
 
 local_env.Depends(pyc, dep_lib)
 
-tmp1 = local_env.Install(pyinstall+'/finley', pyc)
+tmp1 = local_env.Install(local_env['pyinstall']+'/finley', pyc)
 env.Alias('target_install_finley_py', [tmp1])
 

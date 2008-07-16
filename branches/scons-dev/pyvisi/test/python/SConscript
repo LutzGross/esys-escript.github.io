@@ -71,6 +71,6 @@ if VTK_AVAILABLE:
    env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
    program = local_env.RunPyUnitTest(alltestruns)
  
-   Depends(program, pyinstall)
+   Depends(program, local_env['pyinstall'])
    # Depends(program, dep_lib) 
    Depends(program, 'build_py_tests') 
