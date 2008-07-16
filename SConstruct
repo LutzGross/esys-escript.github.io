@@ -13,6 +13,7 @@
 
 EnsureSConsVersion(0,96,91)
 EnsurePythonVersion(2,3)
+SetOption('warn', 'no-deprecated-copy') # Hush warning about Copy (deprecated in 0.98) instead of Clone
 
 import sys, os, re, socket
 
@@ -31,7 +32,6 @@ if os.path.isdir('/usr/lib64'): usr_lib = '/usr/lib64'
 IS_WINDOWS_PLATFORM = (os.name== "nt")
 
 prefix = ARGUMENTS.get('prefix', Dir('#.').abspath)
-print "Install prefix is: ", prefix
 
 # Read configuration options from file scons/<hostname>_options.py
 hostname = re.sub("[^0-9a-zA-Z]", "_", socket.gethostname().split('.')[0])
@@ -67,6 +67,7 @@ opts.AddOptions(
   BoolOption('usevtk', 'Do you want to use VTK?', 'yes'),
   ('options_file', "File of paths/options. Default: scons/<hostname>_options.py", options_file),
   ('cc_defines','C/C++ defines to use', None),
+  # The strings -DDEFAULT_ get replaced by scons/<hostname>_options.py or by defaults below
   ('cc_flags', 'C compiler flags to use', '-DEFAULT_1'),
   ('cc_optim', 'C compiler optimization flags to use', '-DEFAULT_2'),
   ('cc_debug', 'C compiler debug flags to use', '-DEFAULT_3'),
@@ -388,6 +389,7 @@ if env['useparmetis']: print "	Using ParMETIS"
 else: print "	Not using ParMETIS"
 if env['usedebug']: print "	Compiling for debug"
 else: print "	Not compiling for debug"
+print "	Installing in", prefix
 print ""
 
 #==========================================================================
