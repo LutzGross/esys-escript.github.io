@@ -23,16 +23,14 @@ except AttributeError:
   local_env = env_mpi.Copy()	# scons-96.92
 
 sources = ["ScriptMPI.cpp"]
-headers = []
 
-if local_env['usempi']:
-    local_env.Append(LIBS = local_env['mpi_libs'])
+local_env.Append(LIBS = ["paso"] + sys_libs)
 
-local_env.Append(LIBS = ["paso"] + [local_env['python_lib']] + sys_libs)
-lib_name = 'pythonMPI'
-lib = local_env.Program(lib_name, sources)
-include_path = Dir(lib_name, incinstall)
+include_path = Dir('pythonMPI', incinstall)
 
-local_env.Install(include_path, headers )
-local_env.Install(libinstall, lib)
+prog = local_env.Program('pythonMPI', sources)
+env.Alias('target_pythonMPI_exe', prog)
+
+tmp1 = local_env.Install(libinstall, prog)
+env.Alias('target_install_pythonMPI_exe', tmp1)
 
