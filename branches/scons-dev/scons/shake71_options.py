@@ -36,9 +36,9 @@ mpi_libs		= ['mpich', 'rt']
 mpi_run			= 'mpirun -np 1'
 
 # ParMETIS
-# parmetis_path		= '/usr/include'
-# parmetis_lib_path	= '/usr/lib'
-# parmetis_lib		= ['parmetis', 'metis']
+parmetis_path		= '/home/Work/InstallArea/parmetis-3.1/include'
+parmetis_lib_path	= '/home/Work/InstallArea/parmetis-3.1/lib'
+parmetis_libs		= ['parmetis', 'metis']
 
 # PAPI
 # papi_instrument_solver	= 0

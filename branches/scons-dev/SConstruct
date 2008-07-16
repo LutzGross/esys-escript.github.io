@@ -157,18 +157,18 @@ if env["CC"] == "icc":
   cp_flags		= "-ansi -wd161"
   cc_optim		= "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias"
   cp_optim		= "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias"
-  cc_debug		= "-g -O0 -DDOASSERT -DDOPROF"
-  cp_debug		= "-g -O0 -DDOASSERT -DDOPROF"
+  cc_debug		= "-g -O0 -UDOASSERT -DDOPROF"
+  cp_debug		= "-g -O0 -UDOASSERT -DDOPROF"
   omp_flags		= "-openmp -openmp_report0"
   omp_flags_debug	= "-openmp -openmp_report0"
 elif env["CC"] == "gcc":
   # GNU C on any system
-  cc_flags		= "-ffast-math -Wno-unknown-pragmas -ansi -DBLOCKTIMER -DCORE_ID1 -pedantic-errors -Wno-long-long"
-  cp_flags		= "--no-warn -ansi"
+  cc_flags		= "-ansi -ffast-math -Wno-unknown-pragmas -pedantic-errors -Wno-long-long -DBLOCKTIMER"
+  cp_flags		= "-ansi --no-warn"
   cc_optim		= "-O3"
   cp_optim		= "-O3"
-  cc_debug		= "-g -O0 -DDOASSERT -DDOPROF"
-  cp_debug		= "-g -O0 -DDOASSERT -DDOPROF"
+  cc_debug		= "-g -O0 -UDOASSERT -DDOPROF"
+  cp_debug		= "-g -O0 -UDOASSERT -DDOPROF"
   omp_flags		= ""
   omp_flags_debug	= ""
 elif env["CC"] == "cl":
@@ -300,16 +300,16 @@ if env['usevtk']:
 
 ############ MPI (optional) ####################################
 
-if env['useMPI']:
+if env['usempi']:
   conf.env.Append(CPPPATH	= [env['mpi_path']])
   conf.env.Append(LIBS		= [env['mpi_libs']])
   conf.env.Append(LIBPATH	= [env['mpi_lib_path']])
-  if not conf.CheckCHeader('mpi.h'): env['useMPI'] = 0
-  if not conf.CheckFunc('MPI_Init'): env['useMPI'] = 0
+  if not conf.CheckCHeader('mpi.h'): env['usempi'] = 0
+  if not conf.CheckFunc('MPI_Init'): env['usempi'] = 0
 
 ############ ParMETIS (optional) ###############################
 
-if not env['useMPI']: env['useparmetis'] = 0
+if not env['usempi']: env['useparmetis'] = 0
 
 if env['useparmetis']:
   conf.env.Append(CPPPATH	= [env['parmetis_path']])
@@ -368,7 +368,7 @@ except AttributeError:
   env_mpi = env.Copy()	# scons-96.92
 
 # MPI
-if env_mpi['useMPI']:
+if env_mpi['usempi']:
   env_mpi.Append(CPPPATH	= [env['mpi_path']])
   env_mpi.Append(LIBPATH	= [env['mpi_lib_path']])
   env_mpi.Append(LIBS		= [env['mpi_libs']])
@@ -403,7 +403,7 @@ env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
 if not IS_WINDOWS_PLATFORM:
   env.Execute("/bin/rm -f " + libinstall + "/Compiled.with.*")
   if env['usedebug']:		env.Execute("touch " + libinstall + "/Compiled.with.debug")
-  if env['useMPI']:		env.Execute("touch " + libinstall + "/Compiled.with.mpi")
+  if env['usempi']:		env.Execute("touch " + libinstall + "/Compiled.with.mpi")
   if env['omp_flags'] != '':	env.Execute("touch " + libinstall + "/Compiled.with.OpenMP")
 
 Export(["env", "env_mpi", "incinstall", "libinstall", "pyinstall", "sys_libs", "prefix" ])

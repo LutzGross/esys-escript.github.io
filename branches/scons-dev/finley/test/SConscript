@@ -1,10 +1,26 @@
-Import('*')
-
-program_name = 'finley_UnitTest'
-
-local_env=env.Copy()
+#
+# $Id$
+#
+#######################################################
+#
+#           Copyright 2003-2007 by ACceSS MNRF
+#       Copyright 2007 by University of Queensland
+#
+#                http://esscc.uq.edu.au
+#        Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#######################################################
+#
 
 import os
+Import('*')
+
+try:
+  local_env = env.Clone()	# scons-98.03
+except AttributeError:
+  local_env = env.Copy()	# scons-96.92
 
 # get the relevant file names:
 src_dir = local_env.Dir('.').srcnode().abspath
@@ -16,12 +32,12 @@ local_env.Append(LIBS=['finley', 'escript', 'paso', 'esysUtils', 'CppUnitTest'] 
 		  local_env['scsl_libs'] + local_env['mkl_libs'] + local_env['umf_libs'] + sys_libs)
 
 # compile test
-program = local_env.Program(program_name, sources)
+program = local_env.Program('finley_UnitTest', sources)
 env.Alias('build_tests', program)
 
 # run the tests - but only if test_targets are stale
-local_env.RunUnitTest(program_name)
-test_targets = os.path.splitext(program_name)[0]+'.passed'
+local_env.RunUnitTest('finley_UnitTest')
+test_targets = os.path.splitext('finley_UnitTest')[0]+'.passed'
 Alias("run_tests", test_targets)
 
 local_env.SConscript(dirs = ['#/finley/test/python'], build_dir='python', duplicate=0)

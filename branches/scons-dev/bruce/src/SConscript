@@ -1,16 +1,27 @@
-#          Copyright 2006 by ACcESS MNRF
 #
-#              http://www.access.edu.au
-#       Primary Business: Queensland, Australia
+# $Id$
+#
+#######################################################
+#
+#           Copyright 2003-2007 by ACceSS MNRF
+#       Copyright 2007 by University of Queensland
+#
+#                http://esscc.uq.edu.au
+#        Primary Business: Queensland, Australia
 #  Licensed under the Open Software License version 3.0
 #     http://www.opensource.org/licenses/osl-3.0.php
 #
+#######################################################
 #
-#
+
 import os
 Import('*')
 
-local_env=env.Copy()
+try:
+  local_env = env.Clone()	# scons-98.03
+except AttributeError:
+  local_env = env.Copy()	# scons-96.92
+
 py_wrapper_local_env=env.Copy()
 # Remove the sharedlibrary prefix on all platform - we don't want 'lib' mucking with our python modules
 del py_wrapper_local_env['SHLIBPREFIX']

@@ -1,10 +1,29 @@
+#
+# $Id$
+#
+#######################################################
+#
+#           Copyright 2003-2007 by ACceSS MNRF
+#       Copyright 2007 by University of Queensland
+#
+#                http://esscc.uq.edu.au
+#        Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#######################################################
+#
+
+import os
 Import('*')
 
-local_env=env.Copy()
+try:
+  local_env = env.Clone()	# scons-98.03
+except AttributeError:
+  local_env = env.Copy()	# scons-96.92
 
 src_dir = local_env.Dir('.').srcnode().abspath
 
-import os
 filenames = os.listdir(src_dir)
 python_src = [x for x in filenames if os.path.splitext(x)[1] in ['.py']]
 
