@@ -66,17 +66,14 @@ opts.AddOptions(
   BoolOption('usevtk', 'Do you want to use VTK?', 'yes'),
   ('options_file', "File of paths/options. Default: scons/<hostname>_options.py", options_file),
   ('cc_defines','C/C++ defines to use', None),
-
   ('cc_flags', 'C compiler flags to use', '-DEFAULT_1'),
-  ('cp_flags', 'C++ compiler flags to use', '-DEFAULT_2'),
-  ('cc_optim', 'C compiler optimization flags to use', '-DEFAULT_3'),
-  ('cp_optim', 'C++ compiler optimization flags to use', '-DEFAULT_4'),
-  ('cc_debug', 'C compiler debug flags to use', '-DEFAULT_5'),
-  ('cp_debug', 'C++ compiler debug flags to use', '-DEFAULT_6'),
-  ('omp_flags', 'OpenMP compiler flags to use (Release build)', '-DEFAULT_7'),
-  ('omp_flags_debug', 'OpenMP compiler flags to use (Debug build)', '-DEFAULT_8'),
+  ('cc_optim', 'C compiler optimization flags to use', '-DEFAULT_2'),
+  ('cc_debug', 'C compiler debug flags to use', '-DEFAULT_3'),
+  ('omp_optim', 'OpenMP compiler flags to use (Release build)', '-DEFAULT_4'),
+  ('omp_debug', 'OpenMP compiler flags to use (Debug build)', '-DEFAULT_5'),
   ('sys_libs', 'System libraries to link with', []),
   ('ar_flags', 'Static library archiver flags to use', ''),
+  BoolOption('useopenmp', 'Compile parallel version using OpenMP', 'yes'),
 # Python
   PathOption('python_path', 'Path to Python includes', '/usr/include/'+python_version),
   PathOption('python_lib_path', 'Path to Python libs', usr_lib),
@@ -113,11 +110,6 @@ opts.AddOptions(
   PathOption('mkl_path', 'Path to MKL includes', None),
   PathOption('mkl_lib_path', 'Path to MKL libs', None),
   ('mkl_libs', 'MKL libraries to link with', []),
-# SCSL
-  PathOption('scsl_path', 'Path to SCSL includes', None),
-  PathOption('scsl_lib_path', 'Path to SCSL libs', None),
-  ('scsl_libs', 'SCSL libraries to link with', []),
-  ('scsl_libs_MPI', 'SCSL libraries to link with for MPI build', []),
 # UMFPACK
   PathOption('ufc_path', 'Path to UFconfig includes', '/usr/include'),
   PathOption('umf_path', 'Path to UMFPACK includes', '/usr/include'),
@@ -135,7 +127,7 @@ opts.AddOptions(
 
 # Specify which compilers to use (intelc uses regular expressions
 # improperly and emits a warning about failing to find the compilers. 
-# It can be safely ignored)
+# This warning can be safely ignored)
 
 if IS_WINDOWS_PLATFORM:
       env = Environment(tools = ['default', 'msvc'], options = opts)
@@ -151,46 +143,42 @@ else:
 Help(opts.GenerateHelpText(env))
 
 # Default compiler options (override allowed in hostname_options.py, but should not be necessary)
+# For both C and C++ you get: cc_flags and either the optim flags or debug flags
 if env["CC"] == "icc":
   # Intel compilers
-  cc_flags		= "-ansi -wd161 -w1 -vec-report0 -DBLOCKTIMER -DCORE_ID1"
-  cp_flags		= "-ansi -wd161"
+  cc_flags		= "-fPIC -ansi -wd161 -w1 -vec-report0 -DBLOCKTIMER -DCORE_ID1"
   cc_optim		= "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias"
-  cp_optim		= "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias"
   cc_debug		= "-g -O0 -UDOASSERT -DDOPROF"
-  cp_debug		= "-g -O0 -UDOASSERT -DDOPROF"
-  omp_flags		= "-openmp -openmp_report0"
-  omp_flags_debug	= "-openmp -openmp_report0"
+  omp_optim		= "-openmp -openmp_report0"
+  omp_debug		= "-openmp -openmp_report0"
 elif env["CC"] == "gcc":
   # GNU C on any system
-  cc_flags		= "-ansi -ffast-math -Wno-unknown-pragmas -pedantic-errors -Wno-long-long -DBLOCKTIMER"
-  cp_flags		= "-ansi --no-warn"
+  cc_flags		= "-fPIC -ansi -ffast-math -Wno-unknown-pragmas -pedantic-errors -Wno-long-long -DBLOCKTIMER"
   cc_optim		= "-O3"
-  cp_optim		= "-O3"
   cc_debug		= "-g -O0 -UDOASSERT -DDOPROF"
-  cp_debug		= "-g -O0 -UDOASSERT -DDOPROF"
-  omp_flags		= ""
-  omp_flags_debug	= ""
+  omp_optim		= ""
+  omp_debug		= ""
 elif env["CC"] == "cl":
   # Microsoft Visual C on Windows
   cc_flags		= "/FD /EHsc /GR /wd4068 -D_USE_MATH_DEFINES -DDLL_NETCDF"
-  cp_flags		= "/FD /EHsc /GR /wd4068"
   cc_optim		= "/O2 /Op /MT /W3"
-  cp_optim		= "/O2 /Op /MT /W3"
   cc_debug		= "/Od /RTC1 /MTd /ZI"
-  cp_debug		= "/Od /RTC1 /MTd /ZI"
-  omp_flags		= ""
-  omp_flags_debug	= ""
+  omp_optim		= ""
+  omp_debug		= ""
 
 # If not specified in hostname_options.py then set them here
 if env["cc_flags"]		== "-DEFAULT_1": env['cc_flags'] = cc_flags
-if env["cp_flags"]		== "-DEFAULT_2": env['cp_flags'] = cp_flags
-if env["cc_optim"]		== "-DEFAULT_3": env['cc_optim'] = cc_optim
-if env["cp_optim"]		== "-DEFAULT_4": env['cp_optim'] = cp_optim
-if env["cc_debug"]		== "-DEFAULT_5": env['cc_debug'] = cc_debug
-if env["cp_debug"]		== "-DEFAULT_6": env['cp_debug'] = cp_debug
-if env["omp_flags"]		== "-DEFAULT_7": env['omp_flags'] = omp_flags
-if env["omp_flags_debug"]	== "-DEFAULT_8": env['omp_flags_debug'] = omp_flags_debug
+if env["cc_optim"]		== "-DEFAULT_2": env['cc_optim'] = cc_optim
+if env["cc_debug"]		== "-DEFAULT_3": env['cc_debug'] = cc_debug
+if env["omp_optim"]		== "-DEFAULT_4": env['omp_optim'] = omp_optim
+if env["omp_debug"]		== "-DEFAULT_5": env['omp_debug'] = omp_debug
+
+# OpenMP is disabled if useopenmp=no or both variables omp_optim and omp_debug are empty
+if not env["useopenmp"]:
+  env['omp_optim'] = ""
+  env['omp_debug'] = ""
+
+if env['omp_optim'] == "" and env['omp_debug'] == "": env["useopenmp"] = 0
 
 # Get the global Subversion revision number for getVersion() method
 try:
@@ -325,12 +313,12 @@ conf.Finish()
 # Enable debug
 if env['usedebug']:
   env.Append(CCFLAGS		= env['cc_debug'])
-  env.Append(CCFLAGS		= env['omp_flags_debug'])
+  env.Append(CCFLAGS		= env['omp_debug'])
   env.Append(CCFLAGS		= env['cc_flags'])
   env.Append(CPPDEFINES		= ['BOUNDS_CHECK'])
 else:
   env.Append(CCFLAGS		= env['cc_optim'])
-  env.Append(CCFLAGS		= env['omp_flags'])
+  env.Append(CCFLAGS		= env['omp_optim'])
   env.Append(CCFLAGS		= env['cc_flags'])
 
 # Python
@@ -385,6 +373,25 @@ env.Append(ARFLAGS = env['ar_flags'])
 
 ############ End of modify environment #########################
 
+print ""
+print "Summary of configuration"
+print "	Using python"
+print "	Using numarray"
+print "	Using boost"
+if env['usenetcdf']: print "	Using NetCDF"
+else: print "	Not using NetCDF"
+if env['usevtk']: print "	Using VTK"
+else: print "	Not using VTK"
+if env['useopenmp']: print "	Using OpenMP"
+else: print "	Not using OpenMP"
+if env['usempi']: print "	Using MPI"
+else: print "	Not using MPI"
+if env['useparmetis']: print "	Using ParMETIS"
+else: print "	Not using ParMETIS"
+if env['usedebug']: print "	Compiling for debug"
+else: print "	Not compiling for debug"
+print ""
+
 #==========================================================================
 #
 #    Add some custom builders
@@ -392,8 +399,7 @@ env.Append(ARFLAGS = env['ar_flags'])
 py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
 env.Append(BUILDERS = {'PyCompile' : py_builder});
 
-runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed',
-                              src_suffix=env['PROGSUFFIX'], single_source=True)
+runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', src_suffix=env['PROGSUFFIX'], single_source=True)
 env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
 
 runPyUnitTest_builder = Builder(action = scons_extensions.runPyUnitTest, suffix = '.passed', src_suffic='.py', single_source=True)
@@ -404,7 +410,7 @@ if not IS_WINDOWS_PLATFORM:
   env.Execute("/bin/rm -f " + libinstall + "/Compiled.with.*")
   if env['usedebug']:		env.Execute("touch " + libinstall + "/Compiled.with.debug")
   if env['usempi']:		env.Execute("touch " + libinstall + "/Compiled.with.mpi")
-  if env['omp_flags'] != '':	env.Execute("touch " + libinstall + "/Compiled.with.OpenMP")
+  if env['omp_optim'] != '':	env.Execute("touch " + libinstall + "/Compiled.with.OpenMP")
 
 Export(["env", "env_mpi", "incinstall", "libinstall", "pyinstall", "sys_libs", "prefix" ])
 
@@ -445,6 +451,7 @@ build_all_list += ['build_paso']
 build_all_list += ['build_escript']
 build_all_list += ['build_finley']
 # build_all_list += ['build_bruce']
+if env['usempi']: build_all_list += ['target_pythonMPI_exe']
 
 install_all_list = []
 install_all_list += ['target_init']
@@ -457,6 +464,7 @@ install_all_list += ['target_install_modellib_py']
 install_all_list += ['target_install_pycad_py']
 # install_all_list += ['target_install_bruce']
 # install_all_list += ['target_install_bruce_py']
+if env['usempi']: install_all_list += ['target_install_pythonMPI_exe']
 
 env.Alias('build_all', build_all_list)
 env.Alias('install_all', install_all_list)

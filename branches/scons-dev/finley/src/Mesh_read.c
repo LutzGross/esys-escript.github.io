@@ -355,6 +355,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 #ifdef PASO_MPI
 	  /* Each worker receives two messages */
 	  MPI_Status status;
+          int mpi_error;
 	  mpi_error = MPI_Recv(tempInts, numNodes*3+1, MPI_INT, 0, 81720, mpi_info->comm, &status);
 	  if ( mpi_error != MPI_SUCCESS ) {
             Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: receive of tempInts failed");
@@ -410,15 +411,15 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	  }
 #ifdef PASO_MPI
 	  if (mpi_info->size > 0) {
-	    int temp1[3];
-	    temp1[0] = typeID;
+	    int temp1[3], mpi_error;
+	    temp1[0] = (int) typeID;
 	    temp1[1] = numEle;
 	    mpi_error = MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
 	    if (mpi_error != MPI_SUCCESS) {
 	      Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: broadcast of Element typeID failed");
 	      return NULL;
 	    }
-	    typeID = temp1[0];
+	    typeID = (ElementTypeId) temp1[0];
 	    numEle = temp1[1];
 	  }
 #endif
@@ -470,6 +471,7 @@ printf("ksteube CPU=%d/%d send to %d\n", mpi_info->rank, mpi_info->size, nextCPU
 #ifdef PASO_MPI
 	  /* Each worker receives two messages */
 	  MPI_Status status;
+	  int mpi_error;
 printf("ksteube CPU=%d/%d recv on %d\n", mpi_info->rank, mpi_info->size, mpi_info->rank);
 	  mpi_error = MPI_Recv(tempInts, numEle*(2+numNodes)+1, MPI_INT, 0, 81722, mpi_info->comm, &status);
 	  if ( mpi_error != MPI_SUCCESS ) {
