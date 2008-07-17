@@ -13,7 +13,7 @@
 
 EnsureSConsVersion(0,96,91)
 EnsurePythonVersion(2,3)
-SetOption('warn', 'no-deprecated-copy') # Hush warning about Copy (deprecated in 0.98) instead of Clone
+# SetOption('warn', 'no-deprecated-copy') # Hush warning about Copy (deprecated in 0.98) instead of Clone
 
 import sys, os, re, socket
 
@@ -237,10 +237,9 @@ env.Append(LIBPATH		= [Dir('lib')])
 # Create a Configure() environment only for checking existence of
 # libraries and headers.  Later we throw it away then build the real
 # environment.
-try:
-  conf = Configure(env.Clone())	# scons-98.03
-except AttributeError:
-  conf = Configure(env.Copy())	# scons-96.92
+if 'Clone' in dir(env): env_tmp = env.Clone()	# scons-0.98
+else:                   env_tmp = env.Copy()	# scons-0.96
+conf = Configure(env_tmp)
 
 # Must add all paths at first or Configure() can't cache results
 conf.env.Append(CPPPATH		= [env['python_path']])
@@ -349,10 +348,8 @@ if IS_WINDOWS_PLATFORM:
     env.PrependENVPath('PATH',	[env['netCDF_lib_path']])
 
 # Create a modified environment for MPI programs
-try:
-  env_mpi = env.Clone()	# scons-98.03
-except AttributeError:
-  env_mpi = env.Copy()	# scons-96.92
+if 'Clone' in dir(env): env_mpi = env.Clone()	# scons-0.98
+else:                   env_mpi = env.Copy()	# scons-0.96
 
 # MPI
 if env_mpi['usempi']:
@@ -374,7 +371,7 @@ env.Append(ARFLAGS = env['ar_flags'])
 
 print ""
 print "Summary of configuration"
-print "	Using python"
+print "	Using python libraries"
 print "	Using numarray"
 print "	Using boost"
 if env['usenetcdf']: print "	Using NetCDF"

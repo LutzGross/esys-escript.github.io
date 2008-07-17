@@ -17,10 +17,8 @@
 import os
 Import('*')
 
-try:
-  local_env = env.Clone()	# scons-98.03
-except AttributeError:
-  local_env = env.Copy()	# scons-96.92
+if 'Clone' in dir(env): local_env = env.Clone() # scons-0.98
+else:                   local_env = env.Copy()  # scons-0.96
 
 sources = """
 	TestCase.cpp
