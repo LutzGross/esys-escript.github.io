@@ -1748,7 +1748,7 @@ class LinearPDE(object):
                     d_reduced_times_e=escript.Data()
 
                  self.__operator=self.__getNewRightHandSide()
-                 if hasattr(self.getDomain(), "addPDEToLumpedSystem") :
+                 if False and hasattr(self.getDomain(), "addPDEToLumpedSystem") :
                     self.getDomain().addPDEToLumpedSystem(self.__operator, D_times_e, d_times_e)
                     self.getDomain().addPDEToLumpedSystem(self.__operator, D_reduced_times_e, d_reduced_times_e)
                  else:
@@ -1762,6 +1762,7 @@ class LinearPDE(object):
                                                  D_reduced_times_e, \
                                                  d_reduced_times_e,\
                                                  escript.Data())
+                    print "RHS:",util.inf(self.__operator),util.sup(self.__operator)
                  self.__operator=1./self.__operator
                  self.trace("New lumped operator has been built.")
                  self.__operator_is_Valid=True
