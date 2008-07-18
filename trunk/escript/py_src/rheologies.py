@@ -193,9 +193,9 @@ class PlateMantelModel(HomogeneousSaddlePointProblem):
           returns effective h
           """
           return self.__h_eff
-      def getStrainEnergy(self):
+      def getMechanicalPower(self):
           """
-          returns strain energy density
+          returns the locl mechanical power M{D_ij Stress_ij}
           """
           return util.inner(self.getStress(),self.getStretching())
           
@@ -327,6 +327,11 @@ class PlateMantelModel(HomogeneousSaddlePointProblem):
                  self.__f2=0
               self.__pde_u.setValue(A=A)
 	      self.__pde_prec.setValue(D=1/mu_eff) 
+
+              print "X f0:",util.inf(self.__f0), util.sup(self.__f0)
+              print "X f1:",util.inf(self.__f1), util.sup(self.__f1)
+              print "X f2:",util.inf(self.__f2), util.sup(self.__f2)
+              print "X f3:",util.inf(self.__f3), util.sup(self.__f3)
 
               v_old=v
               v,p=self.solve(v,p,max_iter=max_inner_iter, verbose=verbose, show_details=show_details, solver=solver)
