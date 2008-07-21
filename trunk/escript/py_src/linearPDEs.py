@@ -1762,7 +1762,6 @@ class LinearPDE(object):
                                                  D_reduced_times_e, \
                                                  d_reduced_times_e,\
                                                  escript.Data())
-                    print "RHS:",util.inf(self.__operator),util.sup(self.__operator)
                  self.__operator=1./self.__operator
                  self.trace("New lumped operator has been built.")
                  self.__operator_is_Valid=True
