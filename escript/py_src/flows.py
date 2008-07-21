@@ -63,11 +63,11 @@ class StokesProblemCartesian_DC(HomogeneousSaddlePointProblem):
          self.vol=util.integrate(1.,Function(self.domain))
          self.__pde_u=LinearPDE(domain,numEquations=self.domain.getDim(),numSolutions=self.domain.getDim())
          self.__pde_u.setSymmetryOn()
-         self.__pde_u.setSolverMethod(preconditioner=LinearPDE.ILU0)
+         # self.__pde_u.setSolverMethod(preconditioner=LinearPDE.ILU0)
             
-         self.__pde_proj=LinearPDE(domain,numEquations=1,numSolutions=1)
-         self.__pde_proj.setReducedOrderOn()
-         self.__pde_proj.setSymmetryOn()
+         # self.__pde_proj=LinearPDE(domain,numEquations=1,numSolutions=1)
+         # self.__pde_proj.setReducedOrderOn()
+         # self.__pde_proj.setSymmetryOn()
          # self.__pde_proj.setSolverMethod(LinearPDE.LUMPING)
 
       def initialize(self,f=Data(),fixed_u_mask=Data(),eta=1,surface_stress=Data()):
@@ -81,9 +81,10 @@ class StokesProblemCartesian_DC(HomogeneousSaddlePointProblem):
         # self.__inv_eta=util.interpolate(self.eta,ReducedFunction(self.domain))
         self.__pde_u.setValue(A=A*self.eta,q=fixed_u_mask,Y=f,y=surface_stress)
 
-        self.__pde_proj.setValue(D=1/eta)
-        self.__pde_proj.setValue(Y=1.)
-        self.__inv_eta=util.interpolate(self.__pde_proj.getSolution(),ReducedFunction(self.domain))
+        # self.__pde_proj.setValue(D=1/eta)
+        # self.__pde_proj.setValue(Y=1.)
+        # self.__inv_eta=util.interpolate(self.__pde_proj.getSolution(),ReducedFunction(self.domain))
+        self.__inv_eta=util.interpolate(self.eta,ReducedFunction(self.domain))
 
       def B(self,arg):
          a=util.div(arg, ReducedFunction(self.domain))
