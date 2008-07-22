@@ -68,7 +68,7 @@ cppadapter_include_path = Dir('CppAdapter', include_path)
 local_env.Install(include_path, headers )
 local_env.Install(cppadapter_include_path, cppadapter_headers )
 local_env.Install(libinstall, lib)
-py_wrapper_local_env.Install(pyinstall+'/finley', py_wrapper_lib)
+py_wrapper_local_env.InstallAs(pyinstall+'/finley/finleycpp.so', py_wrapper_lib)
 
 #windows specific mod
 if os.name == 'nt':
