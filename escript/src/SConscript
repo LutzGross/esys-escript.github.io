@@ -44,7 +44,7 @@ include_path = Dir(lib_name, incinstall)
 
 local_env.Install(include_path, headers )
 local_env.Install(libinstall, lib)
-py_wrapper_local_env.Install(pyinstall+'/escript', py_wrapper_lib)
+py_wrapper_local_env.InstallAs(pyinstall+'/escript/escriptcpp.so', py_wrapper_lib)
 
 #windows specific mod
 if os.name == 'nt':
