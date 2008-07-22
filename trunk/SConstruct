@@ -488,7 +488,8 @@ else:
 
 # Impassioned plea - please do this sort of thing in the options files.
 try:
-     if env['CC'] == 'gcc': env.Append(CCFLAGS = "-pedantic-errors -Wno-long-long")
+     #if env['CC'] == 'gcc': env.Append(CCFLAGS = "-pedantic-errors -Wno-long-long")
+     pass
 except:
      pass
 
