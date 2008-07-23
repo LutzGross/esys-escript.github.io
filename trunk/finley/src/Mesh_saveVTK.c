@@ -945,7 +945,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
         if ( mpi_size > 1) {
           if ( my_mpi_rank == 0) {
              #ifdef PASO_MPI
-                MPI_File_iwrite_shared(mpi_fileHandle_p,tag_End_CellData,strlen(tag_End_PointData),MPI_CHAR,&mpi_req);
+                MPI_File_iwrite_shared(mpi_fileHandle_p,tag_End_PointData,strlen(tag_End_PointData),MPI_CHAR,&mpi_req);
                 MPI_Wait(&mpi_req,&mpi_status);
              #endif
           }
