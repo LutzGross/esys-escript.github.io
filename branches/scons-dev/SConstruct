@@ -5,7 +5,6 @@
 #  Licensed under the Open Software License version 3.0
 #     http://www.opensource.org/licenses/osl-3.0.php
 
-# TODO use AppendUnique instead of seen_dirs for simplicity
 # TODO How to modify CCFLAGS for only one file? Look for example with Program(...)
 
 EnsureSConsVersion(0,96,91)
@@ -58,26 +57,26 @@ opts.AddOptions(
   ('ar_flags', 'Static library archiver flags to use', ''),
   BoolOption('useopenmp', 'Compile parallel version using OpenMP', 'yes'),
 # Python
-  PathOption('python_path', 'Path to Python includes', '/usr/include/'+python_version),
-  PathOption('python_lib_path', 'Path to Python libs', '/usr/lib'),
+  ('python_path', 'Path to Python includes', '/usr/include/'+python_version),
+  ('python_lib_path', 'Path to Python libs', '/usr/lib'),
   ('python_libs', 'Python libraries to link with', [python_version]),
   ('python_cmd', 'Python command', 'python'),
 # Boost
-  PathOption('boost_path', 'Path to Boost includes', "/usr/include"),
-  PathOption('boost_lib_path', 'Path to Boost libs', '/usr/lib'),
+  ('boost_path', 'Path to Boost includes', "/usr/include"),
+  ('boost_lib_path', 'Path to Boost libs', '/usr/lib'),
   ('boost_libs', 'Boost libraries to link with', ['boost_python']),
 # NetCDF
   BoolOption('usenetcdf', 'switch on/off the usage of netCDF', 'yes'),
-  PathOption('netCDF_path', 'Path to netCDF includes', '/usr/include'),
-  PathOption('netCDF_lib_path', 'Path to netCDF libs', '/usr/lib'),
+  ('netCDF_path', 'Path to netCDF includes', '/usr/include'),
+  ('netCDF_lib_path', 'Path to netCDF libs', '/usr/lib'),
   ('netCDF_libs', 'netCDF C++ libraries to link with', ['netcdf_c++', 'netcdf']),
 # MPI
   BoolOption('useMPI', 'For backwards compatibility', 'no'),
   BoolOption('usempi', 'Compile parallel version using MPI', 'no'),
   ('MPICH_IGNORE_CXX_SEEK', 'name of macro to ignore MPI settings of C++ SEEK macro (for MPICH)' , 'MPICH_IGNORE_CXX_SEEK'),
-  PathOption('mpi_path', 'Path to MPI includes', '/usr/include'),
+  ('mpi_path', 'Path to MPI includes', '/usr/include'),
   ('mpi_run', 'mpirun name' , 'mpiexec -np 1'),
-  PathOption('mpi_lib_path', 'Path to MPI libs (needs to be added to the LD_LIBRARY_PATH)', '/usr/lib'),
+  ('mpi_lib_path', 'Path to MPI libs (needs to be added to the LD_LIBRARY_PATH)', '/usr/lib'),
   ('mpi_libs', 'MPI libraries to link with (needs to be shared!)', ['mpich' , 'pthread', 'rt']),
 # ParMETIS
   BoolOption('useparmetis', 'Compile parallel version using ParMETIS', 'yes'),
@@ -85,27 +84,27 @@ opts.AddOptions(
   ('parmetis_lib_path', 'Path to ParMETIS library', '/usr/lib'),
   ('parmetis_libs', 'ParMETIS library to link with', []),
 # PAPI
-  PathOption('papi_path', 'Path to PAPI includes', None),
-  PathOption('papi_lib_path', 'Path to PAPI libs', None),
+  ('papi_path', 'Path to PAPI includes', None),
+  ('papi_lib_path', 'Path to PAPI libs', None),
   ('papi_libs', 'PAPI libraries to link with', []),
   BoolOption('papi_instrument_solver', 'use PAPI in Solver.c to instrument each iteration of the solver', False),
 # MKL
-  PathOption('mkl_path', 'Path to MKL includes', None),
-  PathOption('mkl_lib_path', 'Path to MKL libs', None),
+  ('mkl_path', 'Path to MKL includes', None),
+  ('mkl_lib_path', 'Path to MKL libs', None),
   ('mkl_libs', 'MKL libraries to link with', []),
 # UMFPACK
   BoolOption('useumfpack', 'switch on/off the usage of UMFPACK', 'no'),
-  PathOption('ufc_path', 'Path to UFconfig includes', '/usr/include/suitesparse'),
-  PathOption('umf_path', 'Path to UMFPACK includes', '/usr/include'),
-  PathOption('umf_lib_path', 'Path to UMFPACK libs', '/usr/lib'),
+  ('ufc_path', 'Path to UFconfig includes', '/usr/include/suitesparse'),
+  ('umf_path', 'Path to UMFPACK includes', '/usr/include/suitesparse'),
+  ('umf_lib_path', 'Path to UMFPACK libs', '/usr/lib'),
   ('umf_libs', 'UMFPACK libraries to link with', ['umfpack']),
 # AMD (used by UMFPACK)
-  PathOption('amd_path', 'Path to AMD includes', '/usr/include/suitesparse'),
-  PathOption('amd_lib_path', 'Path to AMD libs', '/usr/lib'),
+  ('amd_path', 'Path to AMD includes', '/usr/include/suitesparse'),
+  ('amd_lib_path', 'Path to AMD libs', '/usr/lib'),
   ('amd_libs', 'AMD libraries to link with', ['amd']),
 # BLAS (used by UMFPACK)
-  PathOption('blas_path', 'Path to BLAS includes', '/usr/include/suitesparse'),
-  PathOption('blas_lib_path', 'Path to BLAS libs', '/usr/lib'),
+  ('blas_path', 'Path to BLAS includes', '/usr/include/suitesparse'),
+  ('blas_lib_path', 'Path to BLAS libs', '/usr/lib'),
   ('blas_libs', 'BLAS libraries to link with', ['blas'])
 )
 
@@ -204,23 +203,16 @@ env.PrependENVPath('LD_LIBRARY_PATH', env['libinstall'])
 
 ############ Set up paths for Configure() ######################
 
-# Don't allow -I/path to appear multiple times (use a dictionary to remember what we've already added)
-seen_dirs_inc = {'/usr/include':1}		# Don't need -I/usr/include because it's a default location
-seen_dirs_lib = {'/usr/lib':1, '/usr/lib64':1}	# Don't need -L/usr/lib because it's a default location
-def seen_dir(dict, dir):
-  status = dir in dict
-  dict[dir] = 1
-  return status
-
+# Make a copy of an environment
 # Use env.Clone if available, but fall back on env.Copy for older version of scons
 def clone_env(env):
   if 'Clone' in dir(env): return env.Clone()	# scons-0.98
   else:                   return env.Copy()	# scons-0.96
 
-# Add gcc option -I<Escript>/trunk/include
+# Add cc option -I<Escript>/trunk/include
 env.Append(CPPPATH		= [Dir('include')])
 
-# Add gcc option -L<Escript>/trunk/lib
+# Add cc option -L<Escript>/trunk/lib
 env.Append(LIBPATH		= [Dir('lib')])
 
 # Get the global Subversion revision number for getVersion() method
@@ -252,9 +244,9 @@ conf.env.Append(LIBS		= [env['python_libs']])
 if not conf.CheckCHeader('Python.h'): sys.exit(1)
 if not conf.CheckFunc('Py_Main'): sys.exit(1)
 
-# Add python libraries to environment
-if not seen_dir(seen_dirs_inc, env['python_path']): env.Append(CPPPATH = [env['python_path']])
-if not seen_dir(seen_dirs_lib, env['python_path']): env.Append(LIBPATH = [env['python_lib_path']])
+# Add python libraries to environment env
+env.AppendUnique(CPPPATH = [env['python_path']])
+env.AppendUnique(LIBPATH = [env['python_lib_path']])
 env.Append(LIBS = [env['python_libs']])
 
 ############ boost (required) ##################################
@@ -266,9 +258,9 @@ conf.env.Append(LIBS		= [env['boost_libs']])
 if not conf.CheckCXXHeader('boost/python.hpp'): sys.exit(1)
 if not conf.CheckFunc('PyObject_SetAttr'): sys.exit(1)
 
-# Add boost to environment
-if not seen_dir(seen_dirs_inc, env['boost_path']):     env.Append(CPPPATH = [env['boost_path']])
-if not seen_dir(seen_dirs_lib, env['boost_lib_path']): env.Append(LIBPATH = [env['boost_lib_path']])
+# Add boost to environment env
+env.AppendUnique(CPPPATH = [env['boost_path']])
+env.AppendUnique(LIBPATH = [env['boost_lib_path']])
 env.Append(LIBS = [env['boost_libs']])
 
 ############ VTK (optional) ####################################
@@ -280,7 +272,7 @@ if env['usevtk']:
   except ImportError:
     env['usevtk'] = 0
 
-# Add VTK to environment
+# Add VTK to environment env
 if env['usevtk']:
   env.Append(CPPDEFINES = ['USE_VTK'])
 
@@ -294,10 +286,10 @@ if env['usenetcdf']:
 if env['usenetcdf'] and not conf.CheckCHeader('netcdf.h'): env['usenetcdf'] = 0
 if env['usenetcdf'] and not conf.CheckFunc('nc_open'): env['usenetcdf'] = 0
 
-# Add NetCDF to environment
+# Add NetCDF to environment env
 if env['usenetcdf']:
-  if not seen_dir(seen_dirs_inc, env['netCDF_path']):     env.Append(CPPPATH = [env['netCDF_path']])
-  if not seen_dir(seen_dirs_lib, env['netCDF_lib_path']): env.Append(LIBPATH = [env['netCDF_lib_path']])
+  env.AppendUnique(CPPPATH = [env['netCDF_path']])
+  env.AppendUnique(LIBPATH = [env['netCDF_lib_path']])
   env.Append(LIBS = [env['netCDF_libs']])
   env.Append(CPPDEFINES = ['USE_NETCDF'])
 
@@ -322,20 +314,20 @@ if env['useumfpack']:
 if env['useumfpack'] and not conf.CheckCHeader('umfpack.h'): env['useumfpack'] = 0
 if env['useumfpack'] and not conf.CheckFunc('umfpack_di_symbolic'): env['useumfpack'] = 0
 
-# Add UMFPACK to environment
+# Add UMFPACK to environment env
 if env['useumfpack']:
-  if not seen_dir(seen_dirs_inc, env['ufc_path']):     env.Append(CPPPATH = [env['ufc_path']])
-  if not seen_dir(seen_dirs_inc, env['umf_path']):     env.Append(CPPPATH = [env['umf_path']])
-  if not seen_dir(seen_dirs_lib, env['umf_lib_path']): env.Append(LIBPATH = [env['umf_lib_path']])
+  env.AppendUnique(CPPPATH = [env['ufc_path']])
+  env.AppendUnique(CPPPATH = [env['umf_path']])
+  env.AppendUnique(LIBPATH = [env['umf_lib_path']])
   env.Append(LIBS = [env['umf_libs']])
   env.Append(CPPDEFINES = ['UMFPACK'])
 
-  if not seen_dir(seen_dirs_inc, env['amd_path']):     env.Append(CPPPATH = [env['amd_path']])
-  if not seen_dir(seen_dirs_lib, env['amd_lib_path']): env.Append(LIBPATH = [env['amd_lib_path']])
+  env.AppendUnique(CPPPATH = [env['amd_path']])
+  env.AppendUnique(LIBPATH = [env['amd_lib_path']])
   env.Append(LIBS = [env['amd_libs']])
 
-  if not seen_dir(seen_dirs_inc, env['blas_path']):     env.Append(CPPPATH = [env['blas_path']])
-  if not seen_dir(seen_dirs_lib, env['blas_lib_path']): env.Append(LIBPATH = [env['blas_lib_path']])
+  env.AppendUnique(CPPPATH = [env['blas_path']])
+  env.AppendUnique(LIBPATH = [env['blas_lib_path']])
   env.Append(LIBS = [env['blas_libs']])
 
 ############ MPI (optional) ####################################
@@ -355,10 +347,10 @@ if env['usempi'] and not conf.CheckFunc('MPI_Init'): env['usempi'] = 0
 # Create a modified environment for MPI programs
 env_mpi = clone_env(env)
 
-# Add NetCDF to environment copy
+# Add MPI to environment env_mpi
 if env_mpi['usempi']:
-  if not seen_dir(seen_dirs_inc, env['mpi_path']):     env_mpi.Append(CPPPATH = [env['mpi_path']])
-  if not seen_dir(seen_dirs_lib, env['mpi_lib_path']): env_mpi.Append(LIBPATH = [env['mpi_lib_path']])
+  env_mpi.AppendUnique(CPPPATH = [env['mpi_path']])
+  env_mpi.AppendUnique(LIBPATH = [env['mpi_lib_path']])
   env_mpi.Append(LIBS = [env['mpi_libs']])
   env_mpi.Append(CPPDEFINES = ['PASO_MPI', 'MPI_NO_CPPBIND', env_mpi['MPICH_IGNORE_CXX_SEEK']])
 
@@ -378,10 +370,10 @@ if env['useparmetis']:
 if env['useparmetis'] and not conf.CheckCHeader('parmetis.h'): env['useparmetis'] = 0
 if env['useparmetis'] and not conf.CheckFunc('ParMETIS_V3_PartGeomKway'): env['useparmetis'] = 0
 
-# Add ParMETIS to environment copy
+# Add ParMETIS to environment env_mpi
 if env['useparmetis']:
-  if not seen_dir(seen_dirs_inc, env['parmetis_path']):     env_mpi.Append(CPPPATH = [env['parmetis_path']])
-  if not seen_dir(seen_dirs_lib, env['parmetis_lib_path']): env_mpi.Append(LIBPATH = [env['parmetis_lib_path']])
+  env_mpi.AppendUnique(CPPPATH = [env['parmetis_path']])
+  env_mpi.AppendUnique(LIBPATH = [env['parmetis_lib_path']])
   env_mpi.Append(LIBS = [env['parmetis_libs']])
   env_mpi.Append(CPPDEFINES = ['USE_PARMETIS'])
 
