@@ -285,3 +285,15 @@ void ApplyGivensRotations(const dim_t n,double* v,const double* c,const double* 
         v[i+1]=w2;
    }
 }
+
+bool_t Paso_fileExists( const char* filename )
+{
+    FILE* fp = NULL;
+    fp = fopen(filename,"r");
+    if( fp != NULL ) {
+        close(fp);
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
