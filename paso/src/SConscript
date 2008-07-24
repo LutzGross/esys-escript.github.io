@@ -108,16 +108,6 @@ headers = """
 	performance.h
 """.split()
 
-if local_env['mkl_libs']:
-   local_env.Append(CPPDEFINES=['MKL',])
-   local_env.Append(LIBS = local_env['mkl_libs'])
-
-if local_env['papi_instrument_solver']:
-   local_env.Append(CPPDEFINES=['PAPI',])
-if local_env['papi_libs']:
-   local_env.Append(LIBS = local_env['papi_libs'])
-   local_env.Append(CPPDEFINES=['BLOCKPAPI',])
-
 lib = local_env.StaticLibrary('paso', sources)
 env.Alias('target_paso_a', lib)
 

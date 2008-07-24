@@ -46,7 +46,6 @@ opts.AddOptions(
   BoolOption('usedebug', 'Do you want a debug build?', 'no'),
   BoolOption('usevtk', 'Do you want to use VTK?', 'yes'),
   ('options_file', "File of paths/options. Default: scons/<hostname>_options.py", options_file),
-  ('cc_defines','C/C++ defines to use', None),
   # The strings -DDEFAULT_ get replaced by scons/<hostname>_options.py or by defaults below
   ('cc_flags', 'C compiler flags to use', '-DEFAULT_1'),
   ('cc_optim', 'C compiler optimization flags to use', '-DEFAULT_2'),
@@ -84,16 +83,18 @@ opts.AddOptions(
   ('parmetis_lib_path', 'Path to ParMETIS library', '/usr/lib'),
   ('parmetis_libs', 'ParMETIS library to link with', []),
 # PAPI
-  ('papi_path', 'Path to PAPI includes', None),
-  ('papi_lib_path', 'Path to PAPI libs', None),
-  ('papi_libs', 'PAPI libraries to link with', []),
+  BoolOption('usepapi', 'switch on/off the usage of PAPI', 'no'),
+  ('papi_path', 'Path to PAPI includes', '/usr/include'),
+  ('papi_lib_path', 'Path to PAPI libs', '/usr/lib'),
+  ('papi_libs', 'PAPI libraries to link with', ['papi']),
   BoolOption('papi_instrument_solver', 'use PAPI in Solver.c to instrument each iteration of the solver', False),
 # MKL
-  ('mkl_path', 'Path to MKL includes', None),
-  ('mkl_lib_path', 'Path to MKL libs', None),
-  ('mkl_libs', 'MKL libraries to link with', []),
+  BoolOption('usemkl', 'switch on/off the usage of MKL', 'yes'),
+  ('mkl_path', 'Path to MKL includes', '/opt/intel/mkl80.019/include'),
+  ('mkl_lib_path', 'Path to MKL libs', '/opt/intel/mkl80.019/lib/64'),
+  ('mkl_libs', 'MKL libraries to link with', ['mkl_solver', 'mkl_lapack', 'mkl_em64t']),
 # UMFPACK
-  BoolOption('useumfpack', 'switch on/off the usage of UMFPACK', 'no'),
+  BoolOption('useumfpack', 'switch on/off the usage of UMFPACK', 'yes'),
   ('ufc_path', 'Path to UFconfig includes', '/usr/include/suitesparse'),
   ('umf_path', 'Path to UMFPACK includes', '/usr/include/suitesparse'),
   ('umf_lib_path', 'Path to UMFPACK libs', '/usr/lib'),
@@ -215,6 +216,8 @@ env.Append(CPPPATH		= [Dir('include')])
 # Add cc option -L<Escript>/trunk/lib
 env.Append(LIBPATH		= [Dir('lib')])
 
+env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS', 'FINLEY_EXPORTS'])
+
 # Get the global Subversion revision number for getVersion() method
 try:
    global_revision = os.popen("svnversion -n .").read()
@@ -265,6 +268,8 @@ env.Append(LIBS = [env['boost_libs']])
 
 ############ VTK (optional) ####################################
 
+# You must set up your PYTHONPATH before calling scons
+
 if env['usevtk']:
   try:
     import vtk
@@ -277,6 +282,10 @@ if env['usevtk']:
   env.Append(CPPDEFINES = ['USE_VTK'])
 
 ############ NetCDF (optional) #################################
+
+# Start a new configure environment that reflects what we've already found
+conf.Finish()
+conf = Configure(clone_env(env))
 
 if env['usenetcdf']:
   conf.env.Append(CPPPATH	= [env['netCDF_path']])
@@ -292,6 +301,49 @@ if env['usenetcdf']:
   env.AppendUnique(LIBPATH = [env['netCDF_lib_path']])
   env.Append(LIBS = [env['netCDF_libs']])
   env.Append(CPPDEFINES = ['USE_NETCDF'])
+
+############ PAPI (optional) ###################################
+
+# Start a new configure environment that reflects what we've already found
+conf.Finish()
+conf = Configure(clone_env(env))
+
+if env['usepapi']:
+  conf.env.Append(CPPPATH	= [env['papi_path']])
+  conf.env.Append(LIBPATH	= [env['papi_lib_path']])
+  conf.env.Append(LIBS		= [env['papi_libs']])
+
+if env['usepapi'] and not conf.CheckCHeader('papi.h'): env['usepapi'] = 0
+if env['usepapi'] and not conf.CheckFunc('PAPI_start_counters'): env['usepapi'] = 0
+
+# Add PAPI to environment env
+if env['usepapi']:
+  env.AppendUnique(CPPPATH = [env['papi_path']])
+  env.AppendUnique(LIBPATH = [env['papi_lib_path']])
+  env.Append(LIBS = [env['papi_libs']])
+  env.Append(CPPDEFINES = ['BLOCKPAPI'])
+
+############ MKL (optional) ####################################
+
+# Start a new configure environment that reflects what we've already found
+conf.Finish()
+conf = Configure(clone_env(env))
+
+if env['usemkl']:
+  conf.env.Append(CPPPATH	= [env['mkl_path']])
+  conf.env.Append(LIBPATH	= [env['mkl_lib_path']])
+  conf.env.Append(LIBS		= [env['mkl_libs']])
+
+if env['usemkl'] and not conf.CheckCHeader('mkl_solver.h'): env['usemkl'] = 0
+if env['usemkl'] and not conf.CheckFunc('PARDISO'): env['usemkl'] = 0
+
+# Add MKL to environment env
+if env['usemkl']:
+  print "ksteube using MKL"
+  env.AppendUnique(CPPPATH = [env['mkl_path']])
+  env.AppendUnique(LIBPATH = [env['mkl_lib_path']])
+  env.Append(LIBS = [env['mkl_libs']])
+  env.Append(CPPDEFINES = ['MKL'])
 
 ############ UMFPACK (optional) ################################
 
@@ -410,16 +462,20 @@ print "	Using numarray"
 print "	Using boost"
 if env['usenetcdf']: print "	Using NetCDF"
 else: print "	Not using NetCDF"
-if env['useumfpack']: print "	Using UMFPACK"
-else: print "	Not using UMFPACK"
 if env['usevtk']: print "	Using VTK"
 else: print "	Not using VTK"
+if env['usemkl']: print "	Using MKL"
+else: print "	Not using MKL"
+if env['useumfpack']: print "	Using UMFPACK"
+else: print "	Not using UMFPACK"
 if env['useopenmp']: print "	Using OpenMP"
 else: print "	Not using OpenMP"
 if env['usempi']: print "	Using MPI"
 else: print "	Not using MPI"
 if env['useparmetis']: print "	Using ParMETIS"
 else: print "	Not using ParMETIS (requires MPI)"
+if env['usepapi']: print "	Using PAPI"
+else: print "	Not using PAPI"
 if env['usedebug']: print "	Compiling for debug"
 else: print "	Not compiling for debug"
 print "	Installing in", prefix
@@ -435,14 +491,6 @@ env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
 
 runPyUnitTest_builder = Builder(action = scons_extensions.runPyUnitTest, suffix = '.passed', src_suffic='.py', single_source=True)
 env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
-
-############ Remember what options were used in the build ######
-
-if not IS_WINDOWS_PLATFORM:
-  env.Execute("/bin/rm -f " + env['libinstall'] + "/Compiled.with.*")
-  if env['usedebug']:		env.Execute("touch " + env['libinstall'] + "/Compiled.with.debug")
-  if env['usempi']:		env.Execute("touch " + env['libinstall'] + "/Compiled.with.mpi")
-  if env['omp_optim'] != '':	env.Execute("touch " + env['libinstall'] + "/Compiled.with.OpenMP")
 
 ############ Build the desired subdirectories ##################
 
@@ -511,4 +559,12 @@ env.Alias('all_tests', ['install_all', 'target_install_cppunittest_a', 'run_test
 ############ Targets to build the documentation ################
 
 env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_doxygen', 'guide_pdf', 'guide_html'])
+
+############ Remember what options were used in the build ######
+
+if not IS_WINDOWS_PLATFORM:
+  env.Execute("/bin/rm -f " + env['libinstall'] + "/Compiled.with.*")
+  if env['usedebug']:		env.Execute("touch " + env['libinstall'] + "/Compiled.with.debug")
+  if env['usempi']:		env.Execute("touch " + env['libinstall'] + "/Compiled.with.mpi")
+  if env['omp_optim'] != '':	env.Execute("touch " + env['libinstall'] + "/Compiled.with.OpenMP")
 
