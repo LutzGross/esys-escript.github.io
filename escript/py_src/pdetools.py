@@ -1512,9 +1512,9 @@ class HomogeneousSaddlePointProblem(object):
                 if self.verbose: print "enter PCG method (iter_max=%s)"%max_iter
                 p,r=PCG(ArithmeticTuple(self.__z*1.,Bz),self.__Aprod,self.__Msolve,self.__inner,self.__stoppingcriterium,iter_max=max_iter, x=p)
 	        u=r[0]  
-                print "DIFF=",util.integrate(p)
+                # print "DIFF=",util.integrate(p)
 
-              print "RESULT div(u)=",util.Lsup(self.B(u)),util.Lsup(u)
+              # print "RESULT div(u)=",util.Lsup(self.B(u)),util.Lsup(u)
 
  	      return u,p
 
@@ -1590,6 +1590,7 @@ class SaddlePointProblem(object):
        @type verbose: C{bool}
        @note: this method may be overwritten by a particular saddle point problem
        """
+       print "SaddlePointProblem should not be used anymore!"
        if not isinstance(verbose,bool):
             raise TypeError("verbose needs to be of type bool.")
        self.__verbose=verbose

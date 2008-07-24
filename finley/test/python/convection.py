@@ -64,6 +64,18 @@ if True:
    ETAP0=ETA0
    TAUY=None
    useJAUMANNSTRESS=False
+   # this is a simple linear Stokes model:
+   RA=1.e5 # Rayleigh number
+   A=0 # Arenious number 
+   DI = 0.  # dissipation number 
+   MU=None
+   ETA0=1.
+   TAU0=250.
+   N=None
+   NPL=None
+   ETAP0=ETA0
+   TAUY=TAU0
+   useJAUMANNSTRESS=False
 else:
    RA=1.e4 # Rayleigh number
    A=22 # Arenious number 
@@ -206,11 +218,12 @@ while t<T_END:
       t_out+=DT_OUT
       n_out+=Dn_OUT
     # calculation of nusselt number:
-    se=sp.getStrainEnergy()
+    se=sp.getMechanicalPower()
+    print "Xse:",inf(se),sup(se)
     Nu=1.+integrate(se)/(RA*vol)
     if dom.getMPIRank() ==0: nusselt_file.write("%e %e\n"%(t,Nu))
     heat.setValue(v=interpolate(v,ReducedSolution(dom)),Q=DI/RA*se)
-    print "nusselt number = ",Nu
+    print "Xnusselt number = ",Nu, "dt =",dt
     if n>0:
         a,a_alt = (v_last-v)/dt, a
         dt_a,dt_a_alt = dt, dt_a

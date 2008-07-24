@@ -1,5 +1,5 @@
 from esys.escript import *
-from esys.escript.linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearPDE, TransportPDE
 from esys.escript.pdetools import Projector
 from esys import finley
 import math
@@ -7,59 +7,93 @@ import math
 
 
 class LevelSet(object):
-     def __init__(self,phi,reinitialization_steps_max=10,reinitialization_each=2,relative_smoothing_width=2., location_fixed_phi=Data()):
+     def __init__(self,phi,reinitialization_steps_max=10,reinitialization_each=2,relative_smoothing_width=2.):
          """
          initialize model
          """
-         self.domain = phi.getDomain() 
-         self.__h = Function(self.domain).getSize()
-         self.__location_fixed_phi=location_fixed_phi
-
-         self.__relative_smoothing_width = relative_smoothing_width
-         self.__pde = LinearPDE(self.domain)         
-         self.__pde.setReducedOrderOn()
-         self.__pde.setValue(D=1.0,q=self.__location_fixed_phi)
-         # self.__pde.setTolerance(1.e-10)
-         #self.__pde.setSolverMethod(solver=LinearPDE.DIRECT)
-                     
-         self.__reinitPde = LinearPDE(self.domain,numEquations=1)
-         # self.__reinitPde.setSolverMethod(solver=LinearPDE.LUMPING)       
-         self.__reinitPde.setReducedOrderOn()
-         self.__pde.setValue(q=self.__location_fixed_phi)
-         self.__reinitPde.setSymmetryOn()
-         self.__reinitPde.setTolerance(1.e-8)
-         # self.__reinitPde.setSolverMethod(preconditioner=LinearPDE.ILU0)
-        
+         self.__domain = phi.getDomain() 
+         x=self.__domain.getX()
+         diam=0
+         for i in range(self.__domain.getDim()):
+             xi=x[i]
+             diam+=(inf(xi)-sup(xi))**2
+         self.__diam=sqrt(diam)
+         self.__h = sup(Function(self.__domain).getSize())
          self.__reinitialization_each=reinitialization_each
          self.__reinitialization_steps_max = reinitialization_steps_max
-         print self.__reinitialization_steps_max
-         self.__update_count=0
-
-
+         self.__relative_smoothing_width = relative_smoothing_width
          self.__phi = phi
-         self.__updateInterface()
+         self.__update_count=0
          self.velocity = None
 
-     def getDomain(self):
-         return self.domain
-     
-    
-     def __updateInterface(self):
-         self.__smoothed_char=self.__makeInterface(self.__relative_smoothing_width)
+         #==================================================
+         self.__fc=TransportPDE(self.__domain,num_equations=1,theta=0.5)
+         # self.__fc.setReducedOrderOn()
+         self.__fc.setValue(M=Scalar(1.,Function(self.__domain)))
+         self.__fc.setInitialSolution(phi+self.__diam)
 
-     def __makeInterface(self,smoothing_width=1.):
-         # s=smoothing_width*self.__h*length(grad(self.__phi,self.__h.getFunctionSpace()))
+         #=======================================
+         self.__reinitPde = LinearPDE(self.__domain,numEquations=1, numSolutions=1)
+         self.__reinitPde.setSolverMethod(solver=LinearPDE.LUMPING)       
+         self.__reinitPde.setReducedOrderOn()
+         self.__reinitPde.setSymmetryOn()
+         self.__reinitPde.setValue(D=1.)
+         # self.__reinitPde.setTolerance(1.e-8)
+         # self.__reinitPde.setSolverMethod(preconditioner=LinearPDE.ILU0)
+         #=======================================
+         self.__updateInterface()
+         print "phi range:",inf(phi), sup(phi)
+
+     def setFixedRegion(self,mask,contour=0):
+         q=whereNonPositive(abs(self.__phi-contour)-self.__h)*mask
+         # self.__fc.setValue(q=q)
+         self.__reinitPde.setValue(q=q)
+
+     def getDomain(self):
+         return self.__domain
+
+     def getTimeStepSize(self,velocity):
+         """
+         returns a new dt for a given velocity using the courant coundition
+         """
+         self.velocity=velocity
+         self.__fc.setValue(C=-interpolate(velocity,Function(self.__domain)))
+         dt=self.__fc.getSafeTimeStepSize()
+         return dt
+
+     def getLevelSetFunction(self):
+         """
+         returns the level set function
+         """
+         return self.__phi
+
+     def __updateInterface(self):
+         self.__smoothed_char=self.__makeInterface(self.__phi)
+
+     def __makeInterface(self,phi,smoothing_width=1.):
+         """
+         creates a very smooth interface from -1 to 1 over the length 2*h*smoothing_width where -1 is used where the level set is negative
+         and 1 where the level set is 1
+         """
          s=smoothing_width*self.__h
-         phi_on_h=interpolate(self.__phi,self.__h.getFunctionSpace())         
+         phi_on_h=interpolate(phi,Function(self.__domain))         
          mask_neg = whereNonNegative(-s-phi_on_h)
          mask_pos = whereNonNegative(phi_on_h-s)
          mask_interface = 1.-mask_neg-mask_pos
-         interface=1.-(phi_on_h-s)**2/(2.*s**3)*(phi_on_h+2*s)  # function f with f(s)=1, f'(s)=0, f(-s)=-1, f'(-s)=0, f(0)=0, f'(0)=
-         # interface=phi_on_h/s
+         # interface=1.-(phi_on_h-s)**2/(2.*s**3)*(phi_on_h+2*s)  # function f with f(s)=1, f'(s)=0, f(-s)=-1, f'(-s)=0, f(0)=0, f'(0)=
+         interface=phi_on_h/s
          return - mask_neg + mask_pos + mask_interface * interface
 
-     def getCharacteristicFunction(self):
-         return self.__smoothed_char
+     def makeCharacteristicFunction(self, contour=0, positiveSide=True, smoothing_width=1.):
+         return self.makeCharacteristicFunctionFromExternalLevelSetFunction(self.__phi,contour,positiveSide,smoothing_width)
+
+     def makeCharacteristicFunctionFromExternalLevelSetFunction(self,phi,contour=0, positiveSide=True, smoothing_width=1.):
+         s=self.__makeInterface(phi-contour,smoothing_width)
+         if positiveSide:
+            return (1+s)/2
+         else:
+            return (1-s)/2
+
 
      def update(self,dt):
          """
@@ -67,40 +101,52 @@ class LevelSet(object):
 
          @param dt: time step forward
          """
-         self.__advectPhi(dt)
-         self.__updateInterface()
-         if self.__update_count%self.__reinitialization_each == 0:
-            self.__reinitialise()
-            self.__updateInterface()
+         self.__phi=self.__fc.solve(dt, verbose=False)-self.__diam
          self.__update_count += 1
+         if self.__update_count%self.__reinitialization_each == 0:
+            self.__phi=self.__reinitialise(self.__phi)
+            self.__fc.setInitialSolution(self.__phi+self.__diam)
+         self.__updateInterface()
 
-     def __advectPhi(self,dt):
-        """
-        advects the level set function 
-        """
-        fdf=0.01
-        grad_phi = grad(self.__phi)   
-        len_grad_phi=length(grad_phi)
-        f=whereNonNegative(len_grad_phi-fdf)
-        s=(1.-f)*len_grad_phi/fdf+f
-        
-        # self.__pde.setValue(Y=self.__phi-dt/2.*s*inner(self.velocity,grad_phi),r=self.__phi)   
-        # phi_half = self.__pde.getSolution()
-        # self.__pde.setValue(Y=self.__phi-dt*s*inner(self.velocity,grad(phi_half)),r=self.__phi)   
-        # self.__phi = self.__pde.getSolution()
+     def setTolerance(self,tolerance=1e-3):
+         self.__fc.setTolerance(tolerance)
 
-        self.__pde.setValue(Y=s*inner(self.velocity,grad_phi))
-        phi_half = self.__phi-dt/2*self.__pde.getSolution()
-        self.__pde.setValue(Y=s*inner(self.velocity,grad(phi_half)))
-        self.__phi =self.__phi-dt*self.__pde.getSolution()
-        print("level set advection done")
+     def __reinitialise(self,phi):
+         print "reintialization started:"
+         s=self.__makeInterface(phi,1.)
+         g=grad(phi)
+         w = s*g/(length(g)+EPSILON)
+         dtau = 0.5*inf(Function(self.__domain).getSize())
+         print "step size: dt = ",dtau
+         iter =0
+         # self.__reinitPde.setValue(q=whereNegative(abs(phi)-self.__h), r=phi)
+         # self.__reinitPde.setValue(r=phi)
+         while (iter<=self.__reinitialization_steps_max):
+                 phi_old=phi
+                 self.__reinitPde.setValue(Y = phi+(dtau/2.)*(s-inner(w,grad(phi))))
+                 phi_half = self.__reinitPde.getSolution()
+                 self.__reinitPde.setValue(Y = phi+dtau*(s-inner(w,grad(phi_half))))
+                 phi = self.__reinitPde.getSolution()
+                 change = Lsup(phi-phi_old)/self.__diam
+                 print "phi range:",inf(phi), sup(phi)
+                 print "iteration :", iter, " error:", change
+                 iter +=1
+         print "reintialization completed."
+         return phi
 
-     def getTimeStepSize(self,velocity,safety_factor=0.6):
-         """
-         returns a new dt for a given velocity using the courant coundition
-         """
-         self.velocity=velocity
-         return safety_factor*inf(self.__h/length(interpolate(velocity,self.__h.getFunctionSpace())))
+     def createParameter(self,value_negative=-1.,value_positive=1):
+         out = (value_negative+value_positive)/2. + self.__smoothed_char * ((value_positive-value_negative)/2.)
+         return out
+
+
+     #================ things from here onwards are not used nor tested: ==========================================
+     
+
+     def getCharacteristicFunction(self):
+         return self.__smoothed_char
+
+
+
 
      def RK2(self,L):
            k0=L(phi)
@@ -121,7 +167,7 @@ class LevelSet(object):
            phi=phi+dt*k1
            
            
-     def __reinitialise(self):
+     def __reinitialise_old(self):
         #=============================================
         f=0.1
         f2=0.3
@@ -163,14 +209,14 @@ class LevelSet(object):
           # self.__reinitPde.setValue(Y =self.__phi+dtau/2*s*(1.-len_grad_phi))
           # phi_half=self.__reinitPde.getSolution()
           # self.__reinitPde.setValue(Y =self.__phi+dtau*s*(1.-length(grad(phi_half,fs))))
-          # self.__reinitPde.setValue(Y =self.__phi, Y_reduced=dtau*s*(1.-inner(w,grad(phi_half,ReducedFunction(self.domain)))))
+          # self.__reinitPde.setValue(Y =self.__phi, Y_reduced=dtau*s*(1.-inner(w,grad(phi_half,ReducedFunction(self.__domain)))))
           # self.__reinitPde.setValue(Y =self.__phi+dtau*(s-inner(w,grad_phi)),X=dtau/2*h*(s-inner(w,grad_phi))*w)
           # self.__reinitPde.setValue(Y =self.__phi+dtau*s*(1.-len_grad_phi),X=-dtau/2*h*s**2*grad_phi)
           self.__reinitPde.setValue(Y=self.__phi+dtau*s*(1.-len_grad_phi),X=f*dtau/2*h*abs(s)*(1.-len_grad_phi)*grad_phi/len_grad_phi)
 
           # self.__reinitPde.setValue(Y=self.__phi+dtau*s*(1.-len_grad_phi),X=f*dtau/2*h*abs(s)*(1.-len_grad_phi)*grad_phi/len_grad_phi)
           self.__phi, previous = self.__reinitPde.getSolution(), self.__phi
-          self.__updateInterface()
+          # self.__updateInterface()
 
           vol,vol_old=self.getVolumeOfNegativeDomain(),vol
           diff=(vol-vol_old)
@@ -224,11 +270,6 @@ class LevelSet(object):
          """
          return integrate((1.-self.__makeInterface(1.))/2.)
 
-     def getLevelSetFunction(self):
-         """
-         returns the level set function
-         """
-         return self.__phi
               
      def getBoundingBoxOfNegativeDomain(self):
          """
@@ -238,7 +279,7 @@ class LevelSet(object):
          mask_phi1=wherePositive(interpolate(self.__phi,fs))
          mask_phi2=wherePositive(self.__phi)
          x1=fs.getX()
-         x2=self.domain.getX()
+         x2=self.__domain.getX()
          out=[]
          for i in range(fs.getDim()):
              x1_i=x1[i]
@@ -249,6 +290,3 @@ class LevelSet(object):
              out.append((min(inf(x1_i+offset1),inf(x2_i+offset2)),max(sup(x1_i-offset1),sup(x2_i-offset2))))
          return tuple(out)
 
-     def createParameter(self,value_negative=-1.,value_positive=1):
-         out = (value_negative+value_positive)/2. + self.__smoothed_char * ((value_positive-value_negative)/2.)
-         return out

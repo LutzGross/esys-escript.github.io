@@ -63,7 +63,7 @@ double Paso_FCTransportProblem_getSafeTimeStepSize(Paso_FCTransportProblem* fctp
                for (i=0;i<n_rows;++i) {
                     rtmp1=fctp->main_diagonal_low_order_transport_matrix[i];
                     rtmp2=fctp->lumped_mass_matrix[i];
-                    if ( (rtmp1<0 && rtmp2>0.) || (rtmp1>0 && rtmp2<0.) ) {
+                    if ( (rtmp1<0 && rtmp2>0.) || (rtmp1>0 && rtmp2<0) ) {
                         dt_max_loc=MIN(dt_max_loc,-rtmp2/rtmp1);
                     }
                 }
@@ -147,6 +147,9 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                                        fctp->transport_matrix->row_block_size,
                                        fctp->transport_matrix->col_block_size);
    if (Paso_noError()) {
+       #ifdef PASO_MPI
+         double local_norm[2], norm[2];
+       #endif
        /*
         *    Preparation:
         *

@@ -108,7 +108,7 @@ typedef int err_t;
 
 #else
 
-  #include <malloc.h>
+  #include <stdlib.h>
 
   #define PASO_MALLOC malloc
   #define PASO_FREE free

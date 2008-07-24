@@ -24,6 +24,7 @@
 #include "Mesh.h"
 #include "Assemble.h"
 #include "vtkCellType.h"  /* copied from vtk source directory !!! */
+#include "paso/PasoUtil.h"
 
 #define LEN_PRINTED_INT_FORMAT (9+1)
 #define INT_FORMAT "%d "
@@ -65,7 +66,8 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   index_t myFirstNode, myLastNode, *globalNodeIndex, k, *node_index, myFirstCell;
   #ifdef PASO_MPI
   int ierr;
-  int amode = MPI_MODE_CREATE | MPI_MODE_WRONLY |  MPI_MODE_SEQUENTIAL; 
+  /* int amode = MPI_MODE_CREATE | MPI_MODE_WRONLY |  MPI_MODE_SEQUENTIAL;  */
+  const int amode = MPI_MODE_CREATE | MPI_MODE_WRONLY | MPI_MODE_UNIQUE_OPEN; 
   MPI_File mpi_fileHandle_p;
   MPI_Status mpi_status;
   MPI_Request mpi_req;
@@ -132,6 +134,9 @@ void Finley_Mesh_saveVTK(const char * filename_p,
             /*XFS only */
             /*   MPI_Info_set(mpi_info, "direct_write",          "true"); */
           #endif
+          if ( my_mpi_rank == 0) {
+              if  (Paso_fileExists(filename_p)) remove(filename_p);
+          }
           ierr=MPI_File_open(mesh_p->Nodes->MPIInfo->comm, (char*)filename_p, amode,mpi_info, &mpi_fileHandle_p);
           if (ierr != MPI_SUCCESS) {
 	      perror(filename_p);
@@ -946,7 +951,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
         if ( mpi_size > 1) {
           if ( my_mpi_rank == 0) {
              #ifdef PASO_MPI
-                MPI_File_iwrite_shared(mpi_fileHandle_p,tag_End_CellData,strlen(tag_End_PointData),MPI_CHAR,&mpi_req);
+                MPI_File_iwrite_shared(mpi_fileHandle_p,tag_End_PointData,strlen(tag_End_PointData),MPI_CHAR,&mpi_req);
                 MPI_Wait(&mpi_req,&mpi_status);
              #endif
           }
