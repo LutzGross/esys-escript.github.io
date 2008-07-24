@@ -34,7 +34,7 @@
 
 #else
 
-#   include <malloc.h>
+#   include <stdlib.h>
 
 #   define ESYS_MALLOC ::malloc
 #   define ESYS_FREE ::free
