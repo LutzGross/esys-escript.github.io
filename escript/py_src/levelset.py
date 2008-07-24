@@ -27,19 +27,33 @@ class LevelSet(object):
          self.velocity = None
 
          #==================================================
-         self.__fc=TransportPDE(self.__domain,num_equations=1,theta=0.5)
-         # self.__fc.setReducedOrderOn()
-         self.__fc.setValue(M=Scalar(1.,Function(self.__domain)))
-         self.__fc.setInitialSolution(phi+self.__diam)
+         self.__FC=True
+         if self.__FC:
+            self.__fc=TransportPDE(self.__domain,num_equations=1,theta=0.5)
+            # self.__fc.setReducedOrderOn()
+            self.__fc.setValue(M=Scalar(1.,Function(self.__domain)))
+            self.__fc.setInitialSolution(phi+self.__diam)
+         else:
+            self.__fcpde = LinearPDE(self.__domain,numEquations=1, numSolutions=1)
+            self.__fcpde.setSolverMethod(solver=LinearPDE.LUMPING)       
+            self.__fcpde.setReducedOrderOn()
+            self.__fcpde.setSymmetryOn()
+            self.__fcpde.setValue(D=1.)
 
          #=======================================
-         self.__reinitPde = LinearPDE(self.__domain,numEquations=1, numSolutions=1)
-         self.__reinitPde.setSolverMethod(solver=LinearPDE.LUMPING)       
-         self.__reinitPde.setReducedOrderOn()
-         self.__reinitPde.setSymmetryOn()
-         self.__reinitPde.setValue(D=1.)
-         # self.__reinitPde.setTolerance(1.e-8)
-         # self.__reinitPde.setSolverMethod(preconditioner=LinearPDE.ILU0)
+         self.__reinitFC=False
+         if self.__reinitFC:
+            self.__reinitfc=TransportPDE(self.__domain,num_equations=1,theta=1.)
+            self.__reinitfc.setValue(M=Scalar(1.,Function(self.__domain)))
+            self.__reinitfc.setTolerance(1.e-5)
+         else:
+            self.__reinitPde = LinearPDE(self.__domain,numEquations=1, numSolutions=1)
+            # self.__reinitPde.setSolverMethod(solver=LinearPDE.LUMPING)       
+            self.__reinitPde.setReducedOrderOn()
+            self.__reinitPde.setSymmetryOn()
+            self.__reinitPde.setValue(D=1.)
+            # self.__reinitPde.setTolerance(1.e-8)
+            # self.__reinitPde.setSolverMethod(preconditioner=LinearPDE.ILU0)
          #=======================================
          self.__updateInterface()
          print "phi range:",inf(phi), sup(phi)
@@ -49,6 +63,8 @@ class LevelSet(object):
          # self.__fc.setValue(q=q)
          self.__reinitPde.setValue(q=q)
 
+     def getH(self):
+         return self.__h
      def getDomain(self):
          return self.__domain
 
@@ -57,8 +73,11 @@ class LevelSet(object):
          returns a new dt for a given velocity using the courant coundition
          """
          self.velocity=velocity
-         self.__fc.setValue(C=-interpolate(velocity,Function(self.__domain)))
-         dt=self.__fc.getSafeTimeStepSize()
+         if self.__FC:
+            self.__fc.setValue(C=-interpolate(velocity,Function(self.__domain)))
+            dt=self.__fc.getSafeTimeStepSize() 
+         else:
+            dt=0.5*self.__h/sup(length(velocity))
          return dt
 
      def getLevelSetFunction(self):
@@ -101,32 +120,52 @@ class LevelSet(object):
 
          @param dt: time step forward
          """
-         self.__phi=self.__fc.solve(dt, verbose=False)-self.__diam
+         if self.__FC:
+            self.__phi=self.__fc.solve(dt, verbose=False)-self.__diam
+         else:
+            self.__fcpde.setValue(Y = self.__phi-(dt/2.)*inner(self.velocity,grad(self.__phi)))
+            phi_half = self.__fcpde.getSolution()
+            self.__fcpde.setValue(Y = self.__phi-dt*inner(self.velocity,grad(phi_half)))
+            self.__phi= self.__fcpde.getSolution()
          self.__update_count += 1
          if self.__update_count%self.__reinitialization_each == 0:
             self.__phi=self.__reinitialise(self.__phi)
-            self.__fc.setInitialSolution(self.__phi+self.__diam)
+            if self.__FC:
+                self.__fc.setInitialSolution(self.__phi+self.__diam)
          self.__updateInterface()
 
      def setTolerance(self,tolerance=1e-3):
-         self.__fc.setTolerance(tolerance)
+         if self.__FC:
+            self.__fc.setTolerance(tolerance)
 
      def __reinitialise(self,phi):
          print "reintialization started:"
-         s=self.__makeInterface(phi,1.)
+         s=self.__makeInterface(phi,1.5)
          g=grad(phi)
          w = s*g/(length(g)+EPSILON)
-         dtau = 0.5*inf(Function(self.__domain).getSize())
-         print "step size: dt = ",dtau
+         if self.__reinitFC:
+             self.__reinitfc.setValue(C=-w,Y=s)
+             self.__reinitfc.setInitialSolution(phi+self.__diam)
+             # dtau=self.__reinitfc.getSafeTimeStepSize() 
+             dtau = 0.5*inf(Function(self.__domain).getSize())
+         else:
+             dtau = 0.5*inf(Function(self.__domain).getSize())
+         print "step size: dt = ",dtau,inf(abs(phi.interpolate(Function(self.__domain)))/abs(s-inner(w,grad(phi))))
          iter =0
-         # self.__reinitPde.setValue(q=whereNegative(abs(phi)-self.__h), r=phi)
+         # self.__reinitPde.setValue(q=whereNegative(abs(phi)-2*self.__h), r=phi)
          # self.__reinitPde.setValue(r=phi)
          while (iter<=self.__reinitialization_steps_max):
                  phi_old=phi
-                 self.__reinitPde.setValue(Y = phi+(dtau/2.)*(s-inner(w,grad(phi))))
-                 phi_half = self.__reinitPde.getSolution()
-                 self.__reinitPde.setValue(Y = phi+dtau*(s-inner(w,grad(phi_half))))
-                 phi = self.__reinitPde.getSolution()
+                 if self.__reinitFC:
+                   phi = self.__reinitfc.solve(dtau)-self.__diam
+                 else:
+                   self.__reinitPde.setValue(Y = phi+(dtau/2.)*(s-inner(w,grad(phi))))
+                   phi_half = self.__reinitPde.getSolution()
+                   self.__reinitPde.setValue(Y = phi+dtau*(s-inner(w,grad(phi_half))))
+                   # g=grad(phi)
+                   # S=inner(w,grad(phi))
+                   # self.__reinitPde.setValue(Y = phi+dtau*(s-S),X=dtau**2/2*w*(s-S))
+                   phi = self.__reinitPde.getSolution()
                  change = Lsup(phi-phi_old)/self.__diam
                  print "phi range:",inf(phi), sup(phi)
                  print "iteration :", iter, " error:", change
