@@ -94,14 +94,6 @@ headers = """
 local_env.Append(LIBS = [ 'esysUtils'] + env['sys_libs'] )
 py_wrapper_local_env.Append(LIBS = [ 'escript', 'esysUtils'] + env['sys_libs'])
 
-if local_env['papi_instrument_solver']:
-   local_env.Append(CPPDEFINES=['PAPI',])
-if local_env['papi_libs']:
-   local_env.Append(LIBS = local_env['papi_libs'])
-   local_env.Append(CPPDEFINES=['BLOCKPAPI',])
-
-local_env.Append(CPPDEFINES = [ 'ESCRIPT_EXPORTS'] )
-
 lib = local_env.SharedLibrary('escript', sources)
 env.Alias('target_escript_so', lib)
 
