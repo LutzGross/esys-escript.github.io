@@ -147,6 +147,9 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                                        fctp->transport_matrix->row_block_size,
                                        fctp->transport_matrix->col_block_size);
    if (Paso_noError()) {
+       #ifdef PASO_MPI
+         double local_norm[2], norm[2];
+       #endif
        /*
         *    Preparation:
         *
@@ -339,7 +342,6 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                        }
                        Paso_Coupler_startCollect(u_m_coupler,u_m);
                        #ifdef PASO_MPI
-			  double local_norm[2], norm[2];
                           local_norm[0]=norm_u;
                           local_norm[1]=norm_du;
 	                  MPI_Allreduce(local_norm,norm, 2, MPI_DOUBLE, MPI_MAX, fctp->mpi_info->comm);

@@ -71,7 +71,7 @@ namespace esysUtils {
   };
 
   inline
-  inline std::ostream& operator<<(std::ostream& oStream,
+  std::ostream& operator<<(std::ostream& oStream,
                                   const ErrStream& errStream)
   {
     oStream << errStream.toString();
