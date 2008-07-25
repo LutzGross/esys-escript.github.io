@@ -18,24 +18,20 @@ import sys
 import time
 t1 = time.time()
 
-if (len(sys.argv)>=3):
- NE=int(sys.argv[2])
-else:
- NE=20
-NE=64
-NE=20
+extratol=1
 
-if (len(sys.argv)>=2):
- solver=sys.argv[1]
-else:
- solver='PCG'
+# read options:
+parser = OptionParser(usage="%prog [-r [DIR]] [-e [NE]] [-s [solver]]")
+parser.add_option("-s", "--solver", dest="solver", help="solver to be used for saddle point problem. The possible options are PCG, GMRES, NewtonGMRES, MINRES and TFQMR.", metavar="solver", default="PCG")
+parser.add_option("-e", "--elements", dest="NE", help="number of elements in one direction.",metavar="NE", default=16)
 
-if solver!='PCG':
- extratol=0.001
-else:
- extratol=1
-extratol=0.1
+parser.add_option("-r", "--restart", dest="restart", help="restart from latest directory. It will be deleted after a new directory has been created.", default=False, action="store_true")
+parser.add_option("-d", "--dir", dest="restart_dir", help="restart from directory DIR. The directory will not be deleted but new restart directories are created.",metavar="DIR", default=None)
+(options, args) = parser.parse_args()
+restart=options.restart or (options.restart_dir !=None)
 
+solver=options.solver
+NE=int(options.NE)
 
 DIM=2
 H=1.
@@ -91,12 +87,6 @@ else:
 
 print "total number of elements = ",NE**DIM*int(L/H)**(DIM-1)
 
-# read options:
-parser = OptionParser(usage="%prog [-r [DIR]]")
-parser.add_option("-r", "--restart", dest="restart", help="restart from latest directory. It will be deleted after a new directory has been created.", default=False, action="store_true")
-parser.add_option("-d", "--dir", dest="restart_dir", help="restart from directory DIR. The directory will not be deleted but new restart directories are created.",metavar="DIR", default=None)
-(options, args) = parser.parse_args()
-restart=options.restart or (options.restart_dir !=None)
 #
 #   set up domain:
 #
@@ -206,7 +196,7 @@ while t<T_END:
     FF=exp(A*(1./(1+T.interpolate(Function(dom)))-1./2.))
     print "viscosity range :", inf(FF)*ETA0, sup(FF)*ETA0
     sp.initialize(eta_N=ETA0*FF, eta_0=ETA0*FF, F=T*(RA*unitVector(DIM-1,DIM)))
-    sp.update(dt,max_inner_iter=20, verbose=VERBOSE, show_details=False, tol=10., solver='PCG')
+    sp.update(dt,max_inner_iter=20, verbose=VERBOSE, show_details=False, tol=10., solver=solver)
     v=sp.getVelocity()
 
     for d in range(DIM):
