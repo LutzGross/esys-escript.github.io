@@ -984,6 +984,6 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   return;
 #else
   /* Don't kill the job if saveVTK() doesn't work */
-  fprintf(stderr, "\n\nsaveVTK: VTK is not available\n\n\n");
+  fprintf(stderr, "\n\nsaveVTK warning: VTK is not available\n\n\n");
 #endif
 }
