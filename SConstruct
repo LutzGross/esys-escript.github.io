@@ -5,8 +5,6 @@
 #  Licensed under the Open Software License version 3.0
 #     http://www.opensource.org/licenses/osl-3.0.php
 
-# TODO How to modify CCFLAGS for only one file? Look for example with Program(...)
-
 EnsureSConsVersion(0,96,91)
 EnsurePythonVersion(2,3)
 
@@ -15,6 +13,10 @@ import sys, os, re, socket
 # Add our extensions
 if os.path.isdir('scons'): sys.path.append('scons')
 import scons_extensions
+
+# Use /usr/lib64 if available, else /usr/lib
+usr_lib = '/usr/lib'
+if os.path.isfile('/usr/lib64/libc.so'): usr_lib = '/usr/lib64'
 
 # The string python2.4 or python2.5
 python_version = 'python%s.%s' % (sys.version_info[0], sys.version_info[1])
@@ -38,36 +40,37 @@ opts = Options(options_file, ARGUMENTS)
 opts.AddOptions(
 # Where to install esys stuff
   ('prefix', 'where everything will be installed',                       Dir('#.').abspath),
-  ('incinstall', 'where the esys headers will be installed',             Dir('#.').abspath+'/include'),
-  ('libinstall', 'where the esys libraries will be installed',           os.path.join(prefix,"lib")),
-  ('pyinstall', 'where the esys python modules will be installed',       os.path.join(prefix,"esys")),
+  ('incinstall', 'where the esys headers will be installed',             os.path.join(Dir('#.').abspath,'include')),
+  ('libinstall', 'where the esys libraries will be installed',           os.path.join(prefix,'lib')),
+  ('pyinstall', 'where the esys python modules will be installed',       os.path.join(prefix,'esys')),
 # Compilation options
   BoolOption('dodebug', 'For backwards compatibility', 'no'),
   BoolOption('usedebug', 'Do you want a debug build?', 'no'),
   BoolOption('usevtk', 'Do you want to use VTK?', 'yes'),
-  ('options_file', "File of paths/options. Default: scons/<hostname>_options.py", options_file),
+  ('options_file', 'File of paths/options. Default: scons/<hostname>_options.py', options_file),
   # The strings -DDEFAULT_ get replaced by scons/<hostname>_options.py or by defaults below
   ('cc_flags', 'C compiler flags to use', '-DEFAULT_1'),
   ('cc_optim', 'C compiler optimization flags to use', '-DEFAULT_2'),
   ('cc_debug', 'C compiler debug flags to use', '-DEFAULT_3'),
   ('omp_optim', 'OpenMP compiler flags to use (Release build)', '-DEFAULT_4'),
   ('omp_debug', 'OpenMP compiler flags to use (Debug build)', '-DEFAULT_5'),
+  ('omp_libs', 'OpenMP compiler libraries to link with', '-DEFAULT_6'),
   ('sys_libs', 'System libraries to link with', []),
   ('ar_flags', 'Static library archiver flags to use', ''),
   BoolOption('useopenmp', 'Compile parallel version using OpenMP', 'yes'),
 # Python
   ('python_path', 'Path to Python includes', '/usr/include/'+python_version),
-  ('python_lib_path', 'Path to Python libs', '/usr/lib'),
+  ('python_lib_path', 'Path to Python libs', usr_lib),
   ('python_libs', 'Python libraries to link with', [python_version]),
   ('python_cmd', 'Python command', 'python'),
 # Boost
-  ('boost_path', 'Path to Boost includes', "/usr/include"),
-  ('boost_lib_path', 'Path to Boost libs', '/usr/lib'),
+  ('boost_path', 'Path to Boost includes', '/usr/include'),
+  ('boost_lib_path', 'Path to Boost libs', usr_lib),
   ('boost_libs', 'Boost libraries to link with', ['boost_python']),
 # NetCDF
   BoolOption('usenetcdf', 'switch on/off the usage of netCDF', 'yes'),
   ('netCDF_path', 'Path to netCDF includes', '/usr/include'),
-  ('netCDF_lib_path', 'Path to netCDF libs', '/usr/lib'),
+  ('netCDF_lib_path', 'Path to netCDF libs', usr_lib),
   ('netCDF_libs', 'netCDF C++ libraries to link with', ['netcdf_c++', 'netcdf']),
 # MPI
   BoolOption('useMPI', 'For backwards compatibility', 'no'),
@@ -75,37 +78,37 @@ opts.AddOptions(
   ('MPICH_IGNORE_CXX_SEEK', 'name of macro to ignore MPI settings of C++ SEEK macro (for MPICH)' , 'MPICH_IGNORE_CXX_SEEK'),
   ('mpi_path', 'Path to MPI includes', '/usr/include'),
   ('mpi_run', 'mpirun name' , 'mpiexec -np 1'),
-  ('mpi_lib_path', 'Path to MPI libs (needs to be added to the LD_LIBRARY_PATH)', '/usr/lib'),
+  ('mpi_lib_path', 'Path to MPI libs (needs to be added to the LD_LIBRARY_PATH)', usr_lib),
   ('mpi_libs', 'MPI libraries to link with (needs to be shared!)', ['mpich' , 'pthread', 'rt']),
 # ParMETIS
   BoolOption('useparmetis', 'Compile parallel version using ParMETIS', 'yes'),
   ('parmetis_path', 'Path to ParMETIS includes', '/usr/include'),
-  ('parmetis_lib_path', 'Path to ParMETIS library', '/usr/lib'),
-  ('parmetis_libs', 'ParMETIS library to link with', []),
+  ('parmetis_lib_path', 'Path to ParMETIS library', usr_lib),
+  ('parmetis_libs', 'ParMETIS library to link with', ['parmetis', 'metis']),
 # PAPI
   BoolOption('usepapi', 'switch on/off the usage of PAPI', 'no'),
   ('papi_path', 'Path to PAPI includes', '/usr/include'),
-  ('papi_lib_path', 'Path to PAPI libs', '/usr/lib'),
+  ('papi_lib_path', 'Path to PAPI libs', usr_lib),
   ('papi_libs', 'PAPI libraries to link with', ['papi']),
   BoolOption('papi_instrument_solver', 'use PAPI in Solver.c to instrument each iteration of the solver', False),
 # MKL
   BoolOption('usemkl', 'switch on/off the usage of MKL', 'yes'),
-  ('mkl_path', 'Path to MKL includes', '/opt/intel/mkl80.019/include'),
-  ('mkl_lib_path', 'Path to MKL libs', '/opt/intel/mkl80.019/lib/64'),
-  ('mkl_libs', 'MKL libraries to link with', ['mkl_solver', 'mkl_lapack', 'mkl_em64t']),
+  ('mkl_path', 'Path to MKL includes', '/sw/sdev/cmkl/10.0.2.18/include'),
+  ('mkl_lib_path', 'Path to MKL libs', '/sw/sdev/cmkl/10.0.2.18/lib/em64t'),
+  ('mkl_libs', 'MKL libraries to link with', ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide', 'pthread']),
 # UMFPACK
   BoolOption('useumfpack', 'switch on/off the usage of UMFPACK', 'yes'),
   ('ufc_path', 'Path to UFconfig includes', '/usr/include/suitesparse'),
   ('umf_path', 'Path to UMFPACK includes', '/usr/include/suitesparse'),
-  ('umf_lib_path', 'Path to UMFPACK libs', '/usr/lib'),
+  ('umf_lib_path', 'Path to UMFPACK libs', usr_lib),
   ('umf_libs', 'UMFPACK libraries to link with', ['umfpack']),
 # AMD (used by UMFPACK)
   ('amd_path', 'Path to AMD includes', '/usr/include/suitesparse'),
-  ('amd_lib_path', 'Path to AMD libs', '/usr/lib'),
+  ('amd_lib_path', 'Path to AMD libs', usr_lib),
   ('amd_libs', 'AMD libraries to link with', ['amd']),
 # BLAS (used by UMFPACK)
   ('blas_path', 'Path to BLAS includes', '/usr/include/suitesparse'),
-  ('blas_lib_path', 'Path to BLAS libs', '/usr/lib'),
+  ('blas_lib_path', 'Path to BLAS libs', usr_lib),
   ('blas_libs', 'BLAS libraries to link with', ['blas'])
 )
 
@@ -143,6 +146,7 @@ if env["CC"] == "icc":
   cc_debug		= "-g -O0 -UDOASSERT -DDOPROF -DBOUNDS_CHECK"
   omp_optim		= "-openmp -openmp_report0"
   omp_debug		= "-openmp -openmp_report0"
+  omp_libs		= ['guide']
 elif env["CC"] == "gcc":
   # GNU C on any system
   cc_flags		= "-fPIC -ansi -ffast-math -Wno-unknown-pragmas -pedantic-errors -Wno-long-long -DBLOCKTIMER"
@@ -150,6 +154,7 @@ elif env["CC"] == "gcc":
   cc_debug		= "-g -O0 -UDOASSERT -DDOPROF -DBOUNDS_CHECK"
   omp_optim		= ""
   omp_debug		= ""
+  omp_libs		= []
 elif env["CC"] == "cl":
   # Microsoft Visual C on Windows
   cc_flags		= "/FD /EHsc /GR /wd4068 -D_USE_MATH_DEFINES -DDLL_NETCDF"
@@ -157,6 +162,7 @@ elif env["CC"] == "cl":
   cc_debug		= "/Od /RTC1 /MTd /ZI -DBOUNDS_CHECK"
   omp_optim		= ""
   omp_debug		= ""
+  omp_libs		= []
 
 # If not specified in hostname_options.py then set them here
 if env["cc_flags"]	== "-DEFAULT_1": env['cc_flags'] = cc_flags
@@ -164,11 +170,13 @@ if env["cc_optim"]	== "-DEFAULT_2": env['cc_optim'] = cc_optim
 if env["cc_debug"]	== "-DEFAULT_3": env['cc_debug'] = cc_debug
 if env["omp_optim"]	== "-DEFAULT_4": env['omp_optim'] = omp_optim
 if env["omp_debug"]	== "-DEFAULT_5": env['omp_debug'] = omp_debug
+if env["omp_libs"]	== "-DEFAULT_6": env['omp_libs'] = omp_libs
 
 # OpenMP is disabled if useopenmp=no or both variables omp_optim and omp_debug are empty
 if not env["useopenmp"]:
   env['omp_optim'] = ""
   env['omp_debug'] = ""
+  env['omp_libs'] = []
 
 if env['omp_optim'] == "" and env['omp_debug'] == "": env["useopenmp"] = 0
 
@@ -217,6 +225,15 @@ env.Append(CPPPATH		= [Dir('include')])
 env.Append(LIBPATH		= [Dir('lib')])
 
 env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS', 'FINLEY_EXPORTS'])
+
+# MS Windows
+if IS_WINDOWS_PLATFORM:
+  env.PrependENVPath('PATH',	[env['boost_lib_path']])
+  env.PrependENVPath('PATH',	[env['libinstall']])
+  if env['usenetcdf']:
+    env.PrependENVPath('PATH',	[env['netCDF_lib_path']])
+
+env.Append(ARFLAGS = env['ar_flags'])
 
 # Get the global Subversion revision number for getVersion() method
 try:
@@ -335,11 +352,10 @@ if env['usemkl']:
   conf.env.Append(LIBS		= [env['mkl_libs']])
 
 if env['usemkl'] and not conf.CheckCHeader('mkl_solver.h'): env['usemkl'] = 0
-if env['usemkl'] and not conf.CheckFunc('PARDISO'): env['usemkl'] = 0
+if env['usemkl'] and not conf.CheckFunc('pardiso_'): env['usemkl'] = 0
 
 # Add MKL to environment env
 if env['usemkl']:
-  print "ksteube using MKL"
   env.AppendUnique(CPPPATH = [env['mkl_path']])
   env.AppendUnique(LIBPATH = [env['mkl_lib_path']])
   env.Append(LIBS = [env['mkl_libs']])
@@ -381,6 +397,20 @@ if env['useumfpack']:
   env.AppendUnique(CPPPATH = [env['blas_path']])
   env.AppendUnique(LIBPATH = [env['blas_lib_path']])
   env.Append(LIBS = [env['blas_libs']])
+
+############ Add the compiler flags ############################
+
+# Enable debug by choosing either cc_debug or cc_optim
+if env['usedebug']:
+  env.Append(CCFLAGS		= env['cc_debug'])
+  env.Append(CCFLAGS		= env['omp_debug'])
+else:
+  env.Append(CCFLAGS		= env['cc_optim'])
+  env.Append(CCFLAGS		= env['omp_optim'])
+
+# Always use cc_flags
+env.Append(CCFLAGS		= env['cc_flags'])
+env.Append(LIBS			= [env['omp_libs']])
 
 ############ MPI (optional) ####################################
 
@@ -429,29 +459,7 @@ if env['useparmetis']:
   env_mpi.Append(LIBS = [env['parmetis_libs']])
   env_mpi.Append(CPPDEFINES = ['USE_PARMETIS'])
 
-############ Configure finished, now finish environment ########
-
 conf.Finish()
-
-# Enable debug by choosing either cc_debug or cc_optim
-if env['usedebug']:
-  env.Append(CCFLAGS		= env['cc_debug'])
-  env.Append(CCFLAGS		= env['omp_debug'])
-else:
-  env.Append(CCFLAGS		= env['cc_optim'])
-  env.Append(CCFLAGS		= env['omp_optim'])
-
-# Always use cc_flags
-env.Append(CCFLAGS		= env['cc_flags'])
-
-# MS Windows
-if IS_WINDOWS_PLATFORM:
-  env.PrependENVPath('PATH',	[env['boost_lib_path']])
-  env.PrependENVPath('PATH',	[env['libinstall']])
-  if env['usenetcdf']:
-    env.PrependENVPath('PATH',	[env['netCDF_lib_path']])
-
-env.Append(ARFLAGS = env['ar_flags'])
 
 ############ Summarize our environment #########################
 
@@ -507,6 +515,18 @@ env.SConscript(dirs = ['pyvisi/py_src'], build_dir='build/$PLATFORM/pyvisi', dup
 env.SConscript(dirs = ['pycad/py_src'], build_dir='build/$PLATFORM/pycad', duplicate=0)
 env.SConscript(dirs = ['pythonMPI/src'], build_dir='build/$PLATFORM/pythonMPI', duplicate=0)
 
+############ Remember what optimizations we used ###############
+
+remember_list = []
+if env['usedebug']:
+  remember_list += env.Command(env['libinstall'] + "/Compiled.with.debug", None, Touch('$TARGET'))
+if env['usempi']:
+  remember_list += env.Command(env['libinstall'] + "/Compiled.with.mpi", None, Touch('$TARGET'))
+if env['omp_optim'] != '':
+  remember_list += env.Command(env['libinstall'] + "/Compiled.with.OpenMP", None, Touch('$TARGET'))
+
+env.Alias('remember_options', remember_list)
+
 ############ Targets to build and install libraries ############
 
 target_init = env.Command(env['pyinstall']+'/__init__.py', None, Touch('$TARGET'))
@@ -544,6 +564,7 @@ install_all_list += ['target_install_pyvisi_py']
 install_all_list += ['target_install_modellib_py']
 install_all_list += ['target_install_pycad_py']
 if env['usempi']: install_all_list += ['target_install_pythonMPI_exe']
+install_all_list += ['remember_options']
 env.Alias('install_all', install_all_list)
 
 # Default target is install
@@ -559,12 +580,4 @@ env.Alias('all_tests', ['install_all', 'target_install_cppunittest_a', 'run_test
 ############ Targets to build the documentation ################
 
 env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_doxygen', 'guide_pdf', 'guide_html'])
-
-############ Remember what options were used in the build ######
-
-if not IS_WINDOWS_PLATFORM:
-  env.Execute("/bin/rm -f " + env['libinstall'] + "/Compiled.with.*")
-  if env['usedebug']:		env.Execute("touch " + env['libinstall'] + "/Compiled.with.debug")
-  if env['usempi']:		env.Execute("touch " + env['libinstall'] + "/Compiled.with.mpi")
-  if env['omp_optim'] != '':	env.Execute("touch " + env['libinstall'] + "/Compiled.with.OpenMP")
 

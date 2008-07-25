@@ -291,7 +291,7 @@ bool_t Paso_fileExists( const char* filename )
     FILE* fp = NULL;
     fp = fopen(filename,"r");
     if( fp != NULL ) {
-        close(fp);
+        fclose(fp);
         return TRUE;
     } else {
         return FALSE;
