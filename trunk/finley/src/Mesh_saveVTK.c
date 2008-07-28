@@ -575,9 +575,9 @@ void Finley_Mesh_saveVTK(const char * filename_p,
      if ( mpi_size > 1) {
         txt_buffer[0] = '\0';
         txt_buffer_in_use=0;
-        for (i=numVTKNodesPerElement*(myFirstCell*numCellFactor+1); i<=numCells*numVTKNodesPerElement*numCellFactor; i+=numVTKNodesPerElement) {
-           sprintf(tmp_buffer, INT_NEWLINE_FORMAT, i);
-           __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use);
+        for (i=numVTKNodesPerElement*(myFirstCell*numCellFactor+1); i<=(myFirstCell+myNumCells)*numVTKNodesPerElement*numCellFactor; i+=numVTKNodesPerElement) {
+            sprintf(tmp_buffer, INT_NEWLINE_FORMAT, i);
+            __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use);
          }
          #ifdef PASO_MPI
             MPI_File_write_ordered(mpi_fileHandle_p,txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
