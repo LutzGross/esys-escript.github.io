@@ -95,7 +95,7 @@ opts.AddOptions(
   BoolOption('usemkl', 'switch on/off the usage of MKL', 'yes'),
   ('mkl_path', 'Path to MKL includes', '/sw/sdev/cmkl/10.0.2.18/include'),
   ('mkl_lib_path', 'Path to MKL libs', '/sw/sdev/cmkl/10.0.2.18/lib/em64t'),
-  ('mkl_libs', 'MKL libraries to link with', ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide', 'pthread']),
+  ('mkl_libs', 'MKL libraries to link with', ['mkl_solver', 'mkl_em64t', 'guide', 'pthread']),
 # UMFPACK
   BoolOption('useumfpack', 'switch on/off the usage of UMFPACK', 'yes'),
   ('ufc_path', 'Path to UFconfig includes', '/usr/include/suitesparse'),
@@ -191,6 +191,12 @@ except KeyError: pass
 try: env['ENV']['PYTHONPATH'] = os.environ['PYTHONPATH']
 except KeyError: pass
 
+try: env['ENV']['C_INCLUDE_PATH'] = os.environ['C_INCLUDE_PATH']
+except KeyError: pass
+
+try: env['ENV']['CPLUS_INCLUDE_PATH'] = os.environ['CPLUS_INCLUDE_PATH']
+except KeyError: pass
+
 try: env['ENV']['LD_LIBRARY_PATH'] = os.environ['LD_LIBRARY_PATH']
 except KeyError: pass
 
@@ -250,10 +256,19 @@ env.Append(CPPDEFINES = ["SVN_VERSION="+global_revision])
 # environment.
 conf = Configure(clone_env(env))
 
+############ C compiler (required) #############################
+
+if not conf.CheckLib('c'):
+  print "Cannot run C compiler (or libc is missing)"
+  sys.exit(1)
+
 ############ numarray (required) ###############################
 
-try: from numarray import identity
-except ImportError: sys.exit(1)
+try:
+  from numarray import identity
+except ImportError:
+  print "Cannot import numarray, you need to set your PYTHONPATH"
+  sys.exit(1)
 
 ############ python libraries (required) #######################
 
@@ -261,8 +276,12 @@ conf.env.Append(CPPPATH		= [env['python_path']])
 conf.env.Append(LIBPATH		= [env['python_lib_path']])
 conf.env.Append(LIBS		= [env['python_libs']])
 
-if not conf.CheckCHeader('Python.h'): sys.exit(1)
-if not conf.CheckFunc('Py_Main'): sys.exit(1)
+if not conf.CheckCHeader('Python.h'):
+  print "Cannot find python include files (tried directory %s)" % env['python_path']
+  sys.exit(1)
+if not conf.CheckFunc('Py_Main'):
+  print "Cannot find python library method Py_Main (tried directory %s)" % env['python_lib_path']
+  sys.exit(1)
 
 # Add python libraries to environment env
 env.AppendUnique(CPPPATH = [env['python_path']])
