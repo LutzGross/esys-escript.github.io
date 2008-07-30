@@ -396,6 +396,15 @@ class PlateMantelModel(HomogeneousSaddlePointProblem):
          self.__pde_u.setValue(X=-self.getStressChange(u)-p*util.kronecker(self.getDomain()))
          return  self.__pde_u.getSolution(verbose=self.show_details)
 
+##############Added by Artak ##########################
+      def inner_a(self,a0,a1):
+         p0=util.interpolate(a0[1],Function(self.domain))
+         p1=util.interpolate(a1[1],Function(self.domain))
+         alfa=(1/self.vol)*util.integrate(p0)
+         beta=(1/self.vol)*util.integrate(p1)
+	 v0=util.grad(a0[0])
+	 v1=util.grad(a1[0])
+         return util.integrate((p0-alfa)*(p1-beta)+((1/self.eta)**2)*util.inner(v0,v1))
 
       def stoppingcriterium(self,Bv,v,p):
           n_r=util.sqrt(self.inner(Bv,Bv))
@@ -409,3 +418,17 @@ class PlateMantelModel(HomogeneousSaddlePointProblem):
               return True
           else:
               return False
+
+      def stoppingcriterium2(self,norm_r,norm_b,solver='GMRES',TOL=None):
+	  if TOL==None:
+             TOL=self.getTolerance()
+          if self.verbose: print "%s step %s: L2(r) = %s, L2(b)*TOL=%s"%(solver,self.iter,norm_r,norm_b*TOL)
+          self.iter+=1
+          
+          if norm_r <= norm_b*TOL:
+              if self.verbose: print "%s terminated after %s steps."%(solver,self.iter)
+              return True
+          else:
+              return False
+
+######################################################
