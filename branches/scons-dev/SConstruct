@@ -251,17 +251,6 @@ except:
 if global_revision == "": global_revision="-2"
 env.Append(CPPDEFINES = ["SVN_VERSION="+global_revision])
 
-# Create a Configure() environment only for checking existence of
-# libraries and headers.  Later we throw it away then build the real
-# environment.
-conf = Configure(clone_env(env))
-
-############ C compiler (required) #############################
-
-if not conf.CheckLib('c'):
-  print "Cannot run C compiler (or libc is missing)"
-  sys.exit(1)
-
 ############ numarray (required) ###############################
 
 try:
@@ -270,11 +259,21 @@ except ImportError:
   print "Cannot import numarray, you need to set your PYTHONPATH"
   sys.exit(1)
 
+############ C compiler (required) #############################
+
+# Create a Configure() environment for checking existence of required libraries and headers
+conf = Configure(clone_env(env))
+
+# Test that the compiler is working
+if not conf.CheckFunc('printf'):
+  print "Cannot run C compiler '%s' (or libc is missing)" % (env['CC'])
+  sys.exit(1)
+
 ############ python libraries (required) #######################
 
-conf.env.Append(CPPPATH		= [env['python_path']])
-conf.env.Append(LIBPATH		= [env['python_lib_path']])
-conf.env.Append(LIBS		= [env['python_libs']])
+conf.env.AppendUnique(CPPPATH		= [env['python_path']])
+conf.env.AppendUnique(LIBPATH		= [env['python_lib_path']])
+conf.env.AppendUnique(LIBS		= [env['python_libs']])
 
 if not conf.CheckCHeader('Python.h'):
   print "Cannot find python include files (tried directory %s)" % env['python_path']
@@ -283,28 +282,23 @@ if not conf.CheckFunc('Py_Main'):
   print "Cannot find python library method Py_Main (tried directory %s)" % env['python_lib_path']
   sys.exit(1)
 
-# Add python libraries to environment env
-env.AppendUnique(CPPPATH = [env['python_path']])
-env.AppendUnique(LIBPATH = [env['python_lib_path']])
-env.Append(LIBS = [env['python_libs']])
-
 ############ boost (required) ##################################
 
-conf.env.Append(CPPPATH		= [env['boost_path']])
-conf.env.Append(LIBPATH		= [env['boost_lib_path']])
-conf.env.Append(LIBS		= [env['boost_libs']])
+conf.env.AppendUnique(CPPPATH		= [env['boost_path']])
+conf.env.AppendUnique(LIBPATH		= [env['boost_lib_path']])
+conf.env.AppendUnique(LIBS		= [env['boost_libs']])
 
-if not conf.CheckCXXHeader('boost/python.hpp'): sys.exit(1)
-if not conf.CheckFunc('PyObject_SetAttr'): sys.exit(1)
+if not conf.CheckCXXHeader('boost/python.hpp'):
+  print "Cannot find boost include files (tried directory %s)" % env['boost_path']
+  sys.exit(1)
+if not conf.CheckFunc('PyObject_SetAttr'):
+  print "Cannot find boost library method PyObject_SetAttr (tried directory %s)" % env['boost_lib_path']
+  sys.exit(1)
 
-# Add boost to environment env
-env.AppendUnique(CPPPATH = [env['boost_path']])
-env.AppendUnique(LIBPATH = [env['boost_lib_path']])
-env.Append(LIBS = [env['boost_libs']])
+# Commit changes to environment
+env = conf.Finish()
 
 ############ VTK (optional) ####################################
-
-# You must set up your PYTHONPATH before calling scons
 
 if env['usevtk']:
   try:
@@ -313,109 +307,95 @@ if env['usevtk']:
   except ImportError:
     env['usevtk'] = 0
 
-# Add VTK to environment env
+# Add VTK to environment env if it was found
 if env['usevtk']:
   env.Append(CPPDEFINES = ['USE_VTK'])
 
 ############ NetCDF (optional) #################################
 
-# Start a new configure environment that reflects what we've already found
-conf.Finish()
 conf = Configure(clone_env(env))
 
 if env['usenetcdf']:
-  conf.env.Append(CPPPATH	= [env['netCDF_path']])
-  conf.env.Append(LIBPATH	= [env['netCDF_lib_path']])
-  conf.env.Append(LIBS		= [env['netCDF_libs']])
+  conf.env.AppendUnique(CPPPATH	= [env['netCDF_path']])
+  conf.env.AppendUnique(LIBPATH	= [env['netCDF_lib_path']])
+  conf.env.AppendUnique(LIBS	= [env['netCDF_libs']])
 
 if env['usenetcdf'] and not conf.CheckCHeader('netcdf.h'): env['usenetcdf'] = 0
 if env['usenetcdf'] and not conf.CheckFunc('nc_open'): env['usenetcdf'] = 0
 
-# Add NetCDF to environment env
+# Add NetCDF to environment env if it was found
 if env['usenetcdf']:
-  env.AppendUnique(CPPPATH = [env['netCDF_path']])
-  env.AppendUnique(LIBPATH = [env['netCDF_lib_path']])
-  env.Append(LIBS = [env['netCDF_libs']])
+  env = conf.Finish()
   env.Append(CPPDEFINES = ['USE_NETCDF'])
+else:
+  conf.Finish()
 
 ############ PAPI (optional) ###################################
 
 # Start a new configure environment that reflects what we've already found
-conf.Finish()
 conf = Configure(clone_env(env))
 
 if env['usepapi']:
-  conf.env.Append(CPPPATH	= [env['papi_path']])
-  conf.env.Append(LIBPATH	= [env['papi_lib_path']])
-  conf.env.Append(LIBS		= [env['papi_libs']])
+  conf.env.AppendUnique(CPPPATH	= [env['papi_path']])
+  conf.env.AppendUnique(LIBPATH	= [env['papi_lib_path']])
+  conf.env.AppendUnique(LIBS	= [env['papi_libs']])
 
 if env['usepapi'] and not conf.CheckCHeader('papi.h'): env['usepapi'] = 0
 if env['usepapi'] and not conf.CheckFunc('PAPI_start_counters'): env['usepapi'] = 0
 
-# Add PAPI to environment env
+# Add PAPI to environment env if it was found
 if env['usepapi']:
-  env.AppendUnique(CPPPATH = [env['papi_path']])
-  env.AppendUnique(LIBPATH = [env['papi_lib_path']])
-  env.Append(LIBS = [env['papi_libs']])
+  env = conf.Finish()
   env.Append(CPPDEFINES = ['BLOCKPAPI'])
+else:
+  conf.Finish()
 
 ############ MKL (optional) ####################################
 
 # Start a new configure environment that reflects what we've already found
-conf.Finish()
 conf = Configure(clone_env(env))
 
 if env['usemkl']:
-  conf.env.Append(CPPPATH	= [env['mkl_path']])
-  conf.env.Append(LIBPATH	= [env['mkl_lib_path']])
-  conf.env.Append(LIBS		= [env['mkl_libs']])
+  conf.env.AppendUnique(CPPPATH	= [env['mkl_path']])
+  conf.env.AppendUnique(LIBPATH	= [env['mkl_lib_path']])
+  conf.env.AppendUnique(LIBS	= [env['mkl_libs']])
 
 if env['usemkl'] and not conf.CheckCHeader('mkl_solver.h'): env['usemkl'] = 0
 if env['usemkl'] and not conf.CheckFunc('pardiso_'): env['usemkl'] = 0
 
-# Add MKL to environment env
+# Add MKL to environment env if it was found
 if env['usemkl']:
-  env.AppendUnique(CPPPATH = [env['mkl_path']])
-  env.AppendUnique(LIBPATH = [env['mkl_lib_path']])
-  env.Append(LIBS = [env['mkl_libs']])
+  env = conf.Finish()
   env.Append(CPPDEFINES = ['MKL'])
+else:
+  conf.Finish()
 
 ############ UMFPACK (optional) ################################
 
 # Start a new configure environment that reflects what we've already found
-conf.Finish()
 conf = Configure(clone_env(env))
 
 if env['useumfpack']:
-  conf.env.Append(CPPPATH	= [env['ufc_path']])
-  conf.env.Append(CPPPATH	= [env['umf_path']])
-  conf.env.Append(LIBPATH	= [env['umf_lib_path']])
-  conf.env.Append(LIBS		= [env['umf_libs']])
-  conf.env.Append(CPPPATH	= [env['amd_path']])
-  conf.env.Append(LIBPATH	= [env['amd_lib_path']])
-  conf.env.Append(LIBS		= [env['amd_libs']])
-  conf.env.Append(CPPPATH	= [env['blas_path']])
-  conf.env.Append(LIBPATH	= [env['blas_lib_path']])
-  conf.env.Append(LIBS		= [env['blas_libs']])
+  conf.env.AppendUnique(CPPPATH	= [env['ufc_path']])
+  conf.env.AppendUnique(CPPPATH	= [env['umf_path']])
+  conf.env.AppendUnique(LIBPATH	= [env['umf_lib_path']])
+  conf.env.AppendUnique(LIBS	= [env['umf_libs']])
+  conf.env.AppendUnique(CPPPATH	= [env['amd_path']])
+  conf.env.AppendUnique(LIBPATH	= [env['amd_lib_path']])
+  conf.env.AppendUnique(LIBS	= [env['amd_libs']])
+  conf.env.AppendUnique(CPPPATH	= [env['blas_path']])
+  conf.env.AppendUnique(LIBPATH	= [env['blas_lib_path']])
+  conf.env.AppendUnique(LIBS	= [env['blas_libs']])
 
 if env['useumfpack'] and not conf.CheckCHeader('umfpack.h'): env['useumfpack'] = 0
 if env['useumfpack'] and not conf.CheckFunc('umfpack_di_symbolic'): env['useumfpack'] = 0
 
-# Add UMFPACK to environment env
+# Add UMFPACK to environment env if it was found
 if env['useumfpack']:
-  env.AppendUnique(CPPPATH = [env['ufc_path']])
-  env.AppendUnique(CPPPATH = [env['umf_path']])
-  env.AppendUnique(LIBPATH = [env['umf_lib_path']])
-  env.Append(LIBS = [env['umf_libs']])
+  env = conf.Finish()
   env.Append(CPPDEFINES = ['UMFPACK'])
-
-  env.AppendUnique(CPPPATH = [env['amd_path']])
-  env.AppendUnique(LIBPATH = [env['amd_lib_path']])
-  env.Append(LIBS = [env['amd_libs']])
-
-  env.AppendUnique(CPPPATH = [env['blas_path']])
-  env.AppendUnique(LIBPATH = [env['blas_lib_path']])
-  env.Append(LIBS = [env['blas_libs']])
+else:
+  conf.Finish()
 
 ############ Add the compiler flags ############################
 
@@ -433,52 +413,48 @@ env.Append(LIBS			= [env['omp_libs']])
 
 ############ MPI (optional) ####################################
 
-# Start a new configure environment that reflects what we've already found
-conf.Finish()
-conf = Configure(clone_env(env))
-
-if env['usempi']:
-  conf.env.Append(CPPPATH	= [env['mpi_path']])
-  conf.env.Append(LIBPATH	= [env['mpi_lib_path']])
-  conf.env.Append(LIBS		= [env['mpi_libs']])
-
-if env['usempi'] and not conf.CheckCHeader('mpi.h'): env['usempi'] = 0
-if env['usempi'] and not conf.CheckFunc('MPI_Init'): env['usempi'] = 0
-
-# Create a modified environment for MPI programs
+# Create a modified environment for MPI programs (identical to env if usempi=no)
 env_mpi = clone_env(env)
 
-# Add MPI to environment env_mpi
+# Start a new configure environment that reflects what we've already found
+conf = Configure(clone_env(env_mpi))
+
 if env_mpi['usempi']:
-  env_mpi.AppendUnique(CPPPATH = [env['mpi_path']])
-  env_mpi.AppendUnique(LIBPATH = [env['mpi_lib_path']])
-  env_mpi.Append(LIBS = [env['mpi_libs']])
+  conf.env.AppendUnique(CPPPATH	= [env_mpi['mpi_path']])
+  conf.env.AppendUnique(LIBPATH	= [env_mpi['mpi_lib_path']])
+  conf.env.AppendUnique(LIBS	= [env_mpi['mpi_libs']])
+
+if env_mpi['usempi'] and not conf.CheckCHeader('mpi.h'): env_mpi['usempi'] = 0
+if env_mpi['usempi'] and not conf.CheckFunc('MPI_Init'): env_mpi['usempi'] = 0
+
+# Add MPI to environment env_mpi if it was found
+if env_mpi['usempi']:
+  env_mpi = conf.Finish()
   env_mpi.Append(CPPDEFINES = ['PASO_MPI', 'MPI_NO_CPPBIND', env_mpi['MPICH_IGNORE_CXX_SEEK']])
+else:
+  conf.Finish()
 
 ############ ParMETIS (optional) ###############################
 
 # Start a new configure environment that reflects what we've already found
-conf.Finish()
 conf = Configure(clone_env(env_mpi))
 
-if not env['usempi']: env['useparmetis'] = 0
+if not env_mpi['usempi']: env_mpi['useparmetis'] = 0
 
-if env['useparmetis']:
-  conf.env.Append(CPPPATH	= [env['parmetis_path']])
-  conf.env.Append(LIBPATH	= [env['parmetis_lib_path']])
-  conf.env.Append(LIBS		= [env['parmetis_libs']])
+if env_mpi['useparmetis']:
+  conf.env.AppendUnique(CPPPATH	= [env_mpi['parmetis_path']])
+  conf.env.AppendUnique(LIBPATH	= [env_mpi['parmetis_lib_path']])
+  conf.env.AppendUnique(LIBS	= [env_mpi['parmetis_libs']])
 
-if env['useparmetis'] and not conf.CheckCHeader('parmetis.h'): env['useparmetis'] = 0
-if env['useparmetis'] and not conf.CheckFunc('ParMETIS_V3_PartGeomKway'): env['useparmetis'] = 0
+if env_mpi['useparmetis'] and not conf.CheckCHeader('parmetis.h'): env_mpi['useparmetis'] = 0
+if env_mpi['useparmetis'] and not conf.CheckFunc('ParMETIS_V3_PartGeomKway'): env_mpi['useparmetis'] = 0
 
-# Add ParMETIS to environment env_mpi
-if env['useparmetis']:
-  env_mpi.AppendUnique(CPPPATH = [env['parmetis_path']])
-  env_mpi.AppendUnique(LIBPATH = [env['parmetis_lib_path']])
-  env_mpi.Append(LIBS = [env['parmetis_libs']])
+# Add ParMETIS to environment env_mpi if it was found
+if env_mpi['useparmetis']:
+  env_mpi = conf.Finish()
   env_mpi.Append(CPPDEFINES = ['USE_PARMETIS'])
-
-conf.Finish()
+else:
+  conf.Finish()
 
 ############ Summarize our environment #########################
 
