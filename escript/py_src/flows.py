@@ -92,6 +92,7 @@ class StokesProblemCartesian_DC(HomogeneousSaddlePointProblem):
 
       def inner(self,p0,p1):
          return util.integrate(p0*p1)
+         # return util.integrate(1/self.__inv_eta**2*p0*p1)
 
       def getStress(self,u):
          mg=util.grad(u)
@@ -121,6 +122,17 @@ class StokesProblemCartesian_DC(HomogeneousSaddlePointProblem):
           self.iter+=1
           if self.iter>1 and n_r <= n_v*self.getTolerance() and abs(n_v_old-self.__n_v) <= n_v * self.getTolerance():
               if self.verbose: print "PCG terminated after %s steps."%self.iter
+              return True
+          else:
+              return False
+      def stoppingcriterium2(self,norm_r,norm_b,solver='GMRES',TOL=None):
+	  if TOL==None:
+             TOL=self.getTolerance()
+          if self.verbose: print "%s step %s: L2(r) = %s, L2(b)*TOL=%s"%(solver,self.iter,norm_r,norm_b*TOL)
+          self.iter+=1
+          
+          if norm_r <= norm_b*TOL:
+              if self.verbose: print "%s terminated after %s steps."%(solver,self.iter)
               return True
           else:
               return False
