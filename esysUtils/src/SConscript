@@ -17,8 +17,7 @@
 import os
 Import('*')
 
-if 'Clone' in dir(env): local_env = env_mpi.Clone() # scons-0.98
-else:                   local_env = env_mpi.Copy()  # scons-0.96
+local_env = clone_env(env_mpi)
 
 sources = """
 	EsysAssertException.cpp

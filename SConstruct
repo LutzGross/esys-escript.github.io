@@ -497,7 +497,7 @@ env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
 
 ############ Build the desired subdirectories ##################
 
-Export(["env", "env_mpi"])
+Export(["env", "env_mpi", "clone_env"])
 
 env.SConscript(dirs = ['tools/CppUnitTest/src'], build_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
 env.SConscript(dirs = ['paso/src'], build_dir='build/$PLATFORM/paso', duplicate=0)
