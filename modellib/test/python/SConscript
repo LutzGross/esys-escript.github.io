@@ -31,8 +31,11 @@ testfiles = [x for x in filenames if x.startswith('test_') and os.path.splitext(
 testdata_dir = [x for x in filenames if x.startswith('data_') ]
 # 
 #  files defining test runs (passing in a release)
-# 
-testruns = [x for x in filenames if x.startswith('run_') and os.path.splitext(x)[1] in ['.py'] ]
+#
+testruns = []
+testruns += ['run_convection.py']
+testruns += ['run_flow.py']
+testruns += ['run_temp.py']
 #
 # files defining tests run locally (not as part of a release)
 #

@@ -32,7 +32,14 @@ testdata_dir = [x for x in filenames if x.startswith('data_') ]
 # 
 #  files defining test runs (passing in a release)
 # 
-testruns = [x for x in filenames if x.startswith('run_') and os.path.splitext(x)[1] in ['.py'] ]
+testruns = []
+testruns += ['run_escriptOnFinley.py']
+testruns += ['run_generators.py']
+testruns += ['run_linearPDEsOnFinley.py']
+testruns += ['run_models.py']
+testruns += ['run_simplesolve.py']
+testruns += ['run_utilOnFinley.py']
+testruns += ['run_visualization_interface.py']
 #
 # files defining tests run locally (not as part of a release)
 #
