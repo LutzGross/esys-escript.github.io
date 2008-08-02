@@ -92,7 +92,7 @@ opts.AddOptions(
   ('papi_libs', 'PAPI libraries to link with', ['papi']),
   BoolOption('papi_instrument_solver', 'use PAPI in Solver.c to instrument each iteration of the solver', False),
 # MKL
-  BoolOption('usemkl', 'switch on/off the usage of MKL', 'yes'),
+  BoolOption('usemkl', 'switch on/off the usage of MKL', 'no'),
   ('mkl_path', 'Path to MKL includes', '/sw/sdev/cmkl/10.0.2.18/include'),
   ('mkl_lib_path', 'Path to MKL libs', '/sw/sdev/cmkl/10.0.2.18/lib/em64t'),
   ('mkl_libs', 'MKL libraries to link with', ['mkl_solver', 'mkl_em64t', 'guide', 'pthread']),
@@ -434,6 +434,8 @@ if env_mpi['usempi']:
 else:
   conf.Finish()
 
+env['usempi'] = env_mpi['usempi']
+
 ############ ParMETIS (optional) ###############################
 
 # Start a new configure environment that reflects what we've already found
@@ -455,6 +457,8 @@ if env_mpi['useparmetis']:
   env_mpi.Append(CPPDEFINES = ['USE_PARMETIS'])
 else:
   conf.Finish()
+
+env['useparmetis'] = env_mpi['useparmetis']
 
 ############ Summarize our environment #########################
 

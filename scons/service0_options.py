@@ -19,7 +19,7 @@
 # omp_libs		= ['guide']
 
 # Extra libraries
-# sys_libs		= ['guide', 'pthread', 'stdc++']
+# sys_libs		= []
 
 # Python libraries
 python_path		= '/sw/apps/python/x86_64/gcc-4.1.2/python-2.4.4/include/python2.4'
@@ -29,7 +29,7 @@ python_lib_path		= '/sw/apps/python/x86_64/gcc-4.1.2/python-2.4.4/lib'
 
 # Boost libraries
 boost_path		= '/sw/libs/boost/x86_64/gcc-4.1.2/python-2.4.4/boost_1_33/include/boost-1_33'
-boost_lib_path	= '/sw/libs/boost/x86_64/gcc-4.1.2/python-2.4.4/boost_1_33/lib'
+boost_lib_path		= '/sw/libs/boost/x86_64/gcc-4.1.2/python-2.4.4/boost_1_33/lib'
 # boost_libs		= ['boost_python-gcc']
 
 # Specify whether or not to use VTK
@@ -37,8 +37,8 @@ boost_lib_path	= '/sw/libs/boost/x86_64/gcc-4.1.2/python-2.4.4/boost_1_33/lib'
 
 # NetCDF
 # usenetcdf		= 'yes'
-netCDF_path		= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/include'
-netCDF_lib_path		= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/lib'
+# netCDF_path		= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/include'
+# netCDF_lib_path	= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/lib'
 # netCDF_libs		= ['netcdf_c++', 'netcdf']
 
 # MKL
@@ -53,11 +53,11 @@ ufc_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
 umf_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
 umf_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
 # umf_libs		= ['umfpack']
-amd_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
-amd_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
+# amd_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
+# amd_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
 # amd_libs		= ['amd']
-blas_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
-blas_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
+# blas_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
+# blas_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
 # blas_libs		= ['blas']
 
 # OpenMP
@@ -65,10 +65,10 @@ blas_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
 
 # MPI MPT (no module load required)
 # usempi		= 'no'
-mpi_path		= '/usr/include'
-mpi_lib_path		= '/usr/lib64'
+# mpi_path		= '/usr/include'
+# mpi_lib_path		= '/usr/lib64'
 mpi_libs		= ['mpi']
-mpi_run			= 'mpirun -np 1'
+# mpi_run		= 'mpirun -np 1'
 
 # MPICH2 (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
 # mpi_path		= '/sw/libs/mpich2/x86_64/gcc-4.1.2/mpich2-1.0.7/include'
@@ -102,8 +102,8 @@ mpi_run			= 'mpirun -np 1'
 
 # ParMETIS (for use with MPI)
 # useparmetis		= 'yes'
-parmetis_path		= '/sw/libs/parmetis/x86_64/gcc-4.1.2/parmetis-3.1/include'
-parmetis_lib_path	= '/sw/libs/parmetis/x86_64/gcc-4.1.2/parmetis-3.1/lib'
+# parmetis_path		= '/sw/libs/parmetis/x86_64/gcc-4.1.2/parmetis-3.1/include'
+# parmetis_lib_path	= '/sw/libs/parmetis/x86_64/gcc-4.1.2/parmetis-3.1/lib'
 # parmetis_libs		= ['parmetis', 'metis']
 
 # PAPI
