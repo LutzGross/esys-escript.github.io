@@ -28,7 +28,7 @@ filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h",
 sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 
 local_env.Append(LIBS= ['escript', 'esysUtils', 'CppUnitTest'] + env['sys_libs'] )
-local_env.Append(CCFLAGS = '-O1') # Files are too large to optimize
+local_env.Append(CCFLAGS = "-O1")	# Some of these test files are too large to optimize
 
 program = local_env.Program('escript_UnitTest', sources)
 

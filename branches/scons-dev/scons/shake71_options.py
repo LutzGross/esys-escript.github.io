@@ -77,8 +77,8 @@ mpi_lib_path		= '/home/Work/InstallArea/mpich2-1.0.7/lib'
 
 # ParMETIS (for use with MPI)
 # useparmetis		= 'yes'
-parmetis_path		= '/home/Work/InstallArea/parmetis-3.1/include'
-parmetis_lib_path	= '/home/Work/InstallArea/parmetis-3.1/lib'
+# parmetis_path		= '/home/Work/InstallArea/parmetis-3.1/include'
+# parmetis_lib_path	= '/home/Work/InstallArea/parmetis-3.1/lib'
 # parmetis_libs		= ['parmetis', 'metis']
 
 # PAPI
@@ -87,4 +87,11 @@ parmetis_lib_path	= '/home/Work/InstallArea/parmetis-3.1/lib'
 # papi_lib_path		= '/usr/lib'
 # papi_libs		= ['papi']
 # papi_instrument_solver	= 'no'
+
+# Compiler flags (for C/C++ use cc_flags plus one of: cc_optim cc_debug)
+# cc_flags		= "-ansi"
+# cc_optim		= "-O3"
+# cc_debug		= "-g"
+# omp_optim		= ""
+# omp_debug		= ""
 
