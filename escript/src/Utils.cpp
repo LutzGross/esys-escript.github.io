@@ -69,7 +69,11 @@ void printParallelThreadCnt()
   int mpi_iam=0, mpi_num=1;
   char hname[64];
 
+#ifdef HAVE_GETHOSTNAME
   gethostname(hname, 64);
+#else
+  strcpy(hname, "unknown host");
+#endif
 
   #ifdef PASO_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_iam);

@@ -269,6 +269,9 @@ if not conf.CheckFunc('printf'):
   print "Cannot run C compiler '%s' (or libc is missing)" % (env['CC'])
   sys.exit(1)
 
+if not conf.CheckFunc('gethostname'):
+  env.Append(CPPDEFINES = ['HAVE_GETHOSTNAME'])
+
 ############ python libraries (required) #######################
 
 conf.env.AppendUnique(CPPPATH		= [env['python_path']])
@@ -279,7 +282,7 @@ if not conf.CheckCHeader('Python.h'):
   print "Cannot find python include files (tried directory %s)" % env['python_path']
   sys.exit(1)
 if not conf.CheckFunc('Py_Main'):
-  print "Cannot find python library method Py_Main (tried directory %s)" % env['python_lib_path']
+  print "Cannot find python library method Py_Main (tried lib %s in directory %s)" % (env['python_libs'], env['python_lib_path'])
   sys.exit(1)
 
 ############ boost (required) ##################################

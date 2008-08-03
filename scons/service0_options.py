@@ -24,7 +24,7 @@
 # Python libraries
 python_path		= '/sw/apps/python/x86_64/gcc-4.1.2/python-2.4.4/include/python2.4'
 python_lib_path		= '/sw/apps/python/x86_64/gcc-4.1.2/python-2.4.4/lib'
-# python_libs		= 'python2.4'
+# python_libs		= ['python2.4']
 # python_cmd		= 'python'
 
 # Boost libraries
