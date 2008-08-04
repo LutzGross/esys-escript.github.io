@@ -58,6 +58,7 @@ opts.AddOptions(
   ('sys_libs', 'System libraries to link with', []),
   ('ar_flags', 'Static library archiver flags to use', ''),
   BoolOption('useopenmp', 'Compile parallel version using OpenMP', 'yes'),
+  BoolOption('usepedantic', 'Compile with -pedantic if using gcc', 'yes'),
 # Python
   ('python_path', 'Path to Python includes', '/usr/include/'+python_version),
   ('python_lib_path', 'Path to Python libs', usr_lib),
@@ -147,14 +148,16 @@ if env["CC"] == "icc":
   omp_optim		= "-openmp -openmp_report0"
   omp_debug		= "-openmp -openmp_report0"
   omp_libs		= ['guide']
+  pedantic		= ""
 elif env["CC"] == "gcc":
   # GNU C on any system
-  cc_flags		= "-fPIC -ansi -ffast-math -Wno-unknown-pragmas -pedantic-errors -Wno-long-long -DBLOCKTIMER"
+  cc_flags		= "-fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER"
   cc_optim		= "-O3"
   cc_debug		= "-g -O0 -UDOASSERT -DDOPROF -DBOUNDS_CHECK"
   omp_optim		= ""
   omp_debug		= ""
   omp_libs		= []
+  pedantic		= "-pedantic-errors -Wno-long-long"
 elif env["CC"] == "cl":
   # Microsoft Visual C on Windows
   cc_flags		= "/FD /EHsc /GR /wd4068 -D_USE_MATH_DEFINES -DDLL_NETCDF"
@@ -163,6 +166,7 @@ elif env["CC"] == "cl":
   omp_optim		= ""
   omp_debug		= ""
   omp_libs		= []
+  pedantic		= ""
 
 # If not specified in hostname_options.py then set them here
 if env["cc_flags"]	== "-DEFAULT_1": env['cc_flags'] = cc_flags
@@ -232,6 +236,8 @@ env.Append(LIBPATH		= [Dir('lib')])
 
 env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS', 'FINLEY_EXPORTS'])
 
+if env['usepedantic']: env.Append(CCFLAGS = pedantic)
+
 # MS Windows
 if IS_WINDOWS_PLATFORM:
   env.PrependENVPath('PATH',	[env['boost_lib_path']])
@@ -279,7 +285,7 @@ conf.env.AppendUnique(LIBPATH		= [env['python_lib_path']])
 conf.env.AppendUnique(LIBS		= [env['python_libs']])
 
 if not conf.CheckCHeader('Python.h'):
-  print "Cannot find python include files (tried directory %s)" % env['python_path']
+  print "Cannot find python include files (tried 'Python.h' in directory %s)" % (env['python_path'])
   sys.exit(1)
 if not conf.CheckFunc('Py_Main'):
   print "Cannot find python library method Py_Main (tried lib %s in directory %s)" % (env['python_libs'], env['python_lib_path'])
@@ -292,10 +298,10 @@ conf.env.AppendUnique(LIBPATH		= [env['boost_lib_path']])
 conf.env.AppendUnique(LIBS		= [env['boost_libs']])
 
 if not conf.CheckCXXHeader('boost/python.hpp'):
-  print "Cannot find boost include files (tried directory %s)" % env['boost_path']
+  print "Cannot find boost include files (tried boost/python.hpp in directory %s)" % (env['boost_path'])
   sys.exit(1)
 if not conf.CheckFunc('PyObject_SetAttr'):
-  print "Cannot find boost library method PyObject_SetAttr (tried directory %s)" % env['boost_lib_path']
+  print "Cannot find boost library method PyObject_SetAttr (tried method PyObject_SetAttr in library %s in directory %s)" % (env['boost_libs'], env['boost_lib_path'])
   sys.exit(1)
 
 # Commit changes to environment
