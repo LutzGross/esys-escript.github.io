@@ -107,7 +107,7 @@ env.Alias('target_install_escript_headers', [tmp1])
 tmp3 = local_env.Install(local_env['libinstall'], lib)
 env.Alias('target_install_escript_so', tmp3)
 
-tmp4 = py_wrapper_local_env.Install(local_env['pyinstall']+'/escript', py_wrapper_lib)
+tmp4 = py_wrapper_local_env.InstallAs(local_env['pyinstall']+'/escript/escriptcpp.so', py_wrapper_lib)
 env.Alias('target_install_escriptcpp_so', tmp4)
 
 #windows specific mod

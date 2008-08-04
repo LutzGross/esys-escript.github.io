@@ -18,6 +18,9 @@
 # omp_debug		= '-openmp'
 # omp_libs		= ['guide']
 
+# Be picky about errors
+# usepedantic		= 'no'
+
 # Extra libraries
 # sys_libs		= ['guide', 'pthread', 'stdc++']
 
