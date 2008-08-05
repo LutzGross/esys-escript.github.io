@@ -9,6 +9,18 @@
 
 # Configuration for Cognac (SGI Altix)
 
+#  Assumed modules:
+#
+#  module load scons/0.96.91
+#  module load intel-cc/10.0.023
+#  module load python/2.4.4/icc10.0.023
+#  module load numarray/1.5.2/python2.4.4_icc10.0.023/icc10.0.023
+#  module load boost/1.33.1/python2.4.4_icc10.0.023/numarray1.5.2_icc10.0.023/icc10.0.023
+#  module load netcdf/3.6.2
+#  module load intel-mkl/9.1.018
+#  module load scsl/1.6.1.0
+#
+
 python_version="2.4"
 python_installation="2.4.4/icc10.0.023"
 boost_version="1_33_1"
