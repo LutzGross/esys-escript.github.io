@@ -1,66 +1,93 @@
+
+#          Copyright 2006 by ACcESS MNRF
 #
-# $Id$
-#
-#######################################################
-#
-#           Copyright 2003-2007 by ACceSS MNRF
-#       Copyright 2007 by University of Queensland
-#
-#                http://esscc.uq.edu.au
-#        Primary Business: Queensland, Australia
+#              http://www.access.edu.au
+#       Primary Business: Queensland, Australia
 #  Licensed under the Open Software License version 3.0
 #     http://www.opensource.org/licenses/osl-3.0.php
 #
-#######################################################
-#
 
-# flag the MPI settings
-# useMPI = 'yes' 
-# trilinos_path="/usr/local/trilinos-6/include"
-# trilinos_lib_path="/usr/local/trilinos-6/lib"
-# trilinos_libs=["aztecoo", "teuchos", "epetra"]
+# Configuration for Savanna (SGI ICE 8200 running SUSE Linux)
 
+# If you cannot use the default compiler flags set in SConstruct, then change them here
+# C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
+# cc_flags		= '-ansi'
+# cc_optim		= '-O2'
+# cc_debug		= '-g'
+# omp_optim		= '-openmp'
+# omp_debug		= '-openmp'
+# omp_libs		= []
 
-# TODO: Variables named *_path should be *_include
+# Be picky about errors
+# usepedantic		= 'no'
 
-# locations of libs etc used by mkl
-# mkl_path = '/opt/intel/mkl80.019/include'
-# mkl_lib_path ='/opt/intel/mkl80.019/lib/64'
-# mkl_libs = ['mkl_solver', 'mkl_lapack', 'mkl_ipf']
+# Extra libraries
+# sys_libs		= []
 
-# locations of libs etc used by SCSL
-# scsl_path = '/usr/include'
-# scsl_lib_path = '/usr/lib'
-# scsl_libs = ['scs_mp']
-# scsl_libs_MPI = [ 'scs', 'mpi' ]
+# Python libraries
+# python_path		= '/sw/apps/python/x86_64/gcc-4.1.2/python-2.4.4/include/python2.4'
+# python_lib_path	= '/sw/apps/python/x86_64/gcc-4.1.2/python-2.4.4/lib'
+# python_libs		= 'python2.4'
+# python_cmd		= 'python'
 
+# Boost libraries
+# boost_path		= '/sw/libs/boost/x86_64/gcc-4.1.2/python-2.4.4/boost_1_33/include/boost-1_33'
+# boost_lib_path	= '/sw/libs/boost/x86_64/gcc-4.1.2/python-2.4.4/boost_1_33/lib'
+# boost_libs		= ['boost_python-gcc']
 
-# locations of include files for python
-# python_path = '/data/raid2/toolspp4/python/2.4.1/gcc-3.3.6/include/python2.4'
-# python_lib_path = '/data/raid2/toolspp4/python/2.4.1/gcc-3.3.6/lib'
-# python_lib = 'python2.4'
+# Specify whether or not to use VTK
+# usevtk		= 'yes'
 
-# locations of libraries for boost
-# boost_path = '/data/raid2/toolspp4/boost/1.33.1/python-2.4.1/gcc-3.3.6/include'
-# boost_lib_path = '/data/raid2/toolspp4/boost/1.33.1/python-2.4.1/gcc-3.3.6/lib'
-# boost_lib = 'boost_python-mt'
+# NetCDF
+# usenetcdf		= 'yes'
+# netCDF_path		= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/include'
+# netCDF_lib_path	= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/lib'
+# netCDF_libs		= ['netcdf_c++', 'netcdf']
 
-# locations of doc building executables
-# doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'
-# epydoc_path = '/raid2/tools/epydoc/2.1/python-2.3.4/bin'
-# epydoc_pythonpath = '/raid2/tools/epydoc/2.1/python-2.3.4/lib/python2.3/site-packages'
+# MKL
+# usemkl		= 'yes'
+# mkl_path		= '/sw/sdev/cmkl/10.0.2.18/include'
+# mkl_lib_path		= '/sw/sdev/cmkl/10.0.2.18/lib/em64t'
+# mkl_libs		= ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide', 'pthread']
 
-# locations of PAPI
-# papi_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/include'
-# papi_lib_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/lib'
-# papi_libs = [ 'papi' ]
+# UMFPACK (requires AMD and BLAS)
+# useumfpack		= 'yes'
+# ufc_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
+# umf_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
+# umf_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
+# umf_libs		= ['umfpack']
+# amd_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
+# amd_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
+# amd_libs		= ['amd']
+# blas_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
+# blas_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
+# blas_libs		= ['blas']
 
-# c flags to use
-# cc_flags  = '-O -fPIC'
-# cc_flags_debug  = '-g -fPIC'
+# OpenMP
+# useopenmp		= 'yes'
 
-# c++ flags to use
-# cxx_flags = '-fPIC'
-# cxx_flags_debug = '-DDOASSERT -UDOPROF -fPIC'
-# system specific libraries to link with
-sys_libs = []
+# MPICH2 (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
+# mpi_path		= '/home/Work/InstallArea/mpich2-1.0.7/include'
+# mpi_lib_path		= '/home/Work/InstallArea/mpich2-1.0.7/lib'
+# mpi_libs		= ['mpich', 'rt']
+# mpi_run		= 'mpirun -np 1'
+
+# MPICH2 for jumpshot (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
+# mpi_path		= '/home/Work/InstallArea/mpich2-1.0.7/include'
+# mpi_lib_path		= '/home/Work/InstallArea/mpich2-1.0.7/lib'
+# mpi_libs		= ['lmpe', 'mpe', 'mpich', 'rt']
+# mpi_run		= 'mpirun -np 1'
+
+# ParMETIS (for use with MPI)
+# useparmetis		= 'yes'
+# parmetis_path		= '/home/Work/InstallArea/parmetis-3.1/include'
+# parmetis_lib_path	= '/home/Work/InstallArea/parmetis-3.1/lib'
+# parmetis_libs		= ['parmetis', 'metis']
+
+# PAPI
+# usepapi		= 'no'
+# papi_path		= '/usr/include'
+# papi_lib_path		= '/usr/lib'
+# papi_libs		= ['papi']
+# papi_instrument_solver	= 'no'
+

@@ -91,10 +91,3 @@ mpi_lib_path		= '/home/Work/InstallArea/mpich2-1.0.7/lib'
 # papi_libs		= ['papi']
 # papi_instrument_solver	= 'no'
 
-# Compiler flags (for C/C++ use cc_flags plus one of: cc_optim cc_debug)
-# cc_flags		= "-ansi"
-# cc_optim		= "-O3"
-# cc_debug		= "-g"
-# omp_optim		= ""
-# omp_debug		= ""
-
