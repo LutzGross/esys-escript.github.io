@@ -147,7 +147,7 @@ if env["CC"] == "icc":
   cc_debug		= "-g -O0 -UDOASSERT -DDOPROF -DBOUNDS_CHECK"
   omp_optim		= "-openmp -openmp_report0"
   omp_debug		= "-openmp -openmp_report0"
-  omp_libs		= ['guide']
+  omp_libs		= ['guide', 'pthread']
   pedantic		= ""
 elif env["CC"] == "gcc":
   # GNU C on any system
