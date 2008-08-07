@@ -15,15 +15,15 @@ python_lib_path		= '/usr/lib'
 python_lib		= 'python2.5'
 
 # Boost
-boost_path              = '/usr/local/include/boost-1_35'
-boost_lib_path          = '/usr/local/lib'
+boost_path              = '/opt/local/include/boost-1_35'
+boost_lib_path          = '/opt/local/lib'
 boost_lib               = 'boost_python'
 
 # NetCDF
-useNetCDF		= 'no'
-# netCDF_path		= '/usr/include'
-# netCDF_lib_path		= '/usr/lib'
-# netCDF_libs		= [ 'netcdf_c++', 'netcdf']
+useNetCDF		= 'yes'
+netCDF_path		= '/opt/local/include'
+netCDF_lib_path		= '/opt/local/lib'
+netCDF_libs		= [ 'netcdf_c++', 'netcdf']
 
 # MPI (version: MPICH2)
 # mpi_path		= '/Users/artak/Work/Escript/mpich2-1.0.7/include'
