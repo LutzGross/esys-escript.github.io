@@ -7,7 +7,7 @@
 #     http://www.opensource.org/licenses/osl-3.0.php
 #
 
-# Configuration for Savanna (SGI ICE 8200 running SUSE Linux)
+# Configuration for shake71 (32-bit Intel running Ubuntu Linux)
 
 # If you cannot use the default compiler flags set in SConstruct, then change them here
 # C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
