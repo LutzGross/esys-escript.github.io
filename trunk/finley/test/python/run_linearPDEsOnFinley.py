@@ -107,6 +107,8 @@ class Test_LinearPDEOnFinleyTet3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemb
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = ReadMesh(FINLEY_TEST_MESH_PATH+"tet_3D_order1.fly",optimize=False)
+   def tearDown(self):
+        del self.domain
 
 class Test_LinearPDEOnFinleyTet3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do2):
    RES_TOL=1.e-7
