@@ -2522,6 +2522,21 @@ Data::borrowData() const
   return m_data.get();
 }
 
+
+std::string
+Data::toString() const
+{
+    static const DataArrayView::ValueType::size_type TOO_MANY_POINTS=80;
+    if (getNumDataPoints()*getDataPointSize()>TOO_MANY_POINTS)
+    {
+	stringstream temp;
+	temp << "Summary: inf="<< inf() << " sup=" << sup() << " data points=" << getNumDataPoints();
+	return  temp.str();
+    }
+    return m_data->toString();
+}
+
+
 /* Member functions specific to the MPI implementation */
 
 void
@@ -2586,4 +2601,5 @@ Data::get_MPIComm() const
 	return -1;
 #endif
 }
+
 
