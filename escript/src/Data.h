@@ -34,6 +34,8 @@ extern "C" {
 #include "esysmpi.h"
 #include <string>
 #include <algorithm>
+#include <sstream>
+
 
 #include <boost/shared_ptr.hpp>
 #include <boost/python/object.hpp>
@@ -323,15 +325,12 @@ class Data {
 
   /**
      \brief
-     Write the data as a string.
+     Write the data as a string. For large amounts of data, a summary is printed.
   */
   ESCRIPT_DLL_API
-  inline
   std::string
-  toString() const
-  {
-    return m_data->toString();
-  }
+  toString() const;
+
 
   /**
      \brief
