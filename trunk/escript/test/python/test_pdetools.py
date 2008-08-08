@@ -21,7 +21,7 @@ The tests must be linked with a Domain class object in the setUp method:
 
    from esys.finley import Rectangle
    class Test_LinearPDEOnFinley(Test_LinearPDE):
-       RES_TOL=1-8
+       RES_TOL=1.e-8
        def setUp(self):
            self.domain = Rectangle(10,10,2)
        def tearDown(self):
@@ -329,7 +329,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       p=NoPDE(self.domain)
       x=self.domain.getX()
       msk=whereZero(x[0])*[1.,0.]
-      p.setValue(D=x[:2],Y=2*x[:2],q=msk,r=2.)
+      p.setValue(D=x[:2]+1,Y=2*(x[:2]+1),q=msk,r=2.)
       u=p.getSolution()
       u_ex=2.
       self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
