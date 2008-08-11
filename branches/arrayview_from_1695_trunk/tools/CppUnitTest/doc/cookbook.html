@@ -1,0 +1,299 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.7 [en] (X11; I; SunOS 5.7 sun4u) [Netscape]">
+   <meta name="CREATED" content="20010209;11071700">
+   <meta name="CHANGEDBY" content="Rice Ed">
+   <meta name="CHANGED" content="20010209;11352500">
+   <meta name="Template" content="C:\Program Files\MSOffice\Office\html.dot">
+   <title>CppUnit Cookbook</title>
+<style>
+	<!--
+		A:link { color: #0000ff }
+		A:visited { color: #800080 }
+	-->
+	</style>
+</head>
+<body link="#0000FF" vlink="#800080">
+
+<h1>
+<b><font color="#3366FF"><font size=+2>UnitTest Cookbook</font></font></b></h1>
+<font color="#330000">The UnitTest library is derived from CppUnitTest
+library developed by Michael Feathers. This has been</font>
+<br><font color="#330000">modified to better suit the requirements of PGS
+and the PGS development environment. Please read the</font> <a href="license.html">license</a>&nbsp;
+agreement.
+<p><font color="#330000">It is easiest to describe the UnitTest library
+by way of an example. An incomplete UnitTest was provided for the <i>Range
+</i>class. The description for the <i>Range</i> class is shown below.</font>
+<p>&nbsp; <a href="Range.html">Range Class</a>
+<p>In order to provide a unit test for the <i>Range</i> class the
+<i>RangeTestCase</i>
+class was developed. This inherits from the
+<i>TestCase</i> class which
+is part of the UnitTest library.&nbsp; Within this class 4 methods are
+provided for testing various components of the <i>Range</i> class. The
+four methods are
+<br>&nbsp;&nbsp;&nbsp; testEquality
+<br>&nbsp;&nbsp;&nbsp; testWithin
+<br>&nbsp;&nbsp;&nbsp; testRangeException
+<br>&nbsp;&nbsp;&nbsp; testOverlap
+<br>These methods are bundled together into a suite. The facility provided
+by the TestUnit library is the <i>TestSuite</i> class.&nbsp; All of the
+tests within this suite are run within a <i>TestRunner</i> object.
+<p><font color="#3366FF">Code for RangeTest.h</font>
+<p>#if !defined&nbsp; RANGETEST_H
+<br>#define RANGETEST_H
+<p>#include "AlienNamespace.h"
+<p>#include "TestCase.h"
+<br>#include "TestSuite.h"
+<br>#include "TestCaller.h"
+<br>#include "Range.h"
+<p>BEGIN_NAMESPACE_ALIEN
+<p>class RangeTestCase : public TestCase
+<br>{
+<br>&nbsp;private:
+<br>&nbsp; //
+<br>&nbsp; // Two integer ranges created by setUp method. They are destructed
+in the
+<br>&nbsp; // tearDown method. All of the tests use these ranges.
+<br>&nbsp; Range&lt;int> *r1,*r2;
+<br>&nbsp;protected:
+<br>&nbsp; //
+<br>&nbsp; // The following methods are for testing various methods of
+the Range class
+<br>&nbsp; //
+<br>&nbsp; // Method to test whether operator==() method is working
+<br>&nbsp; void testEquality();
+<br>&nbsp; //
+<br>&nbsp; // Method to test whether within() method is working
+<br>&nbsp; void testWithin();
+<br>&nbsp; //
+<br>&nbsp; // Method to test whether a RangeException is contructed and
+thrown correctly
+<br>&nbsp; void testRangeException();
+<br>&nbsp; //
+<br>&nbsp; // Method to test whether the overlap method works
+<br>&nbsp; void testOverlap();
+<p>&nbsp;public:
+<br>&nbsp; RangeTestCase (string name) : TestCase (name) {}
+<br>&nbsp; ~RangeTestCase() {}
+<br>&nbsp; //
+<br>&nbsp; // Virtual methods of TestCase. These are provided to ensure
+the objects
+<br>&nbsp; // being used in the tests are in a known state.
+<br>&nbsp; // setUp is called before each test method is called
+<br>&nbsp; void setUp();
+<br>&nbsp; //
+<br>&nbsp; // tearDown is called after each test method is called.
+<br>&nbsp; void tearDown();
+<br>&nbsp; //
+<br>&nbsp; // return the suite of tests to perform
+<br>&nbsp; static Test* suite ();
+<br>};
+<p>END_NAMESPACE_ALIEN
+<p>#endif
+<br>&nbsp;
+<p><font color="#3366FF">Code for RangeTest.C</font>
+<p>#include "RangeTest.h"
+<p>void RangeTestCase::setUp() {
+<br>&nbsp; //
+<br>&nbsp; // create fresh objects for this test
+<br>&nbsp; r1=new Range&lt;int>(1,5);
+<br>&nbsp; r2=new Range&lt;int>(1,7);
+<br>}
+<p>void RangeTestCase::tearDown() {
+<br>&nbsp; //
+<br>&nbsp; // destroy the objects from the last test
+<br>&nbsp; delete r1;
+<br>&nbsp; delete r2;
+<br>}
+<p>void RangeTestCase::testEquality() {
+<br>&nbsp; //
+<br>&nbsp; // check whether the operator==() method returns r1 as equal
+to itself.
+<br>&nbsp; // This should return true if the method is working correctly
+<br>&nbsp; // If false is returned the test will stop and a failure is
+reported
+<br>&nbsp; assert((*r1)==(*r1));
+<br>&nbsp; //
+<br>&nbsp; // This should return true as r1 does not equal r2.
+<br>&nbsp; assert(!(*r1)==(*r2));
+<br>}
+<p>void RangeTestCase::testWithin() {
+<br>&nbsp; //
+<br>&nbsp; // test whether the minimum and maximum&nbsp; value for the
+range are within
+<br>&nbsp; // the range. Both should return true.
+<br>&nbsp; assert((*r1).within((*r1).getMin()));
+<br>&nbsp; assert((*r1).within((*r1).getMax()));
+<br>}
+<p>void RangeTestCase::testRangeException() {
+<br>&nbsp; try {
+<br>&nbsp;&nbsp;&nbsp; //
+<br>&nbsp;&nbsp;&nbsp; // This call should throw an exception as the range
+is invalid
+<br>&nbsp;&nbsp;&nbsp; (*r1).setRange(3,1);
+<br>&nbsp;&nbsp;&nbsp; //
+<br>&nbsp;&nbsp;&nbsp; // if the test gets here the exception has failed
+<br>&nbsp;&nbsp;&nbsp; assert(false);
+<br>&nbsp; }
+<br>&nbsp; catch (RangeException &amp;e) {
+<br>&nbsp; }
+<br>}
+<br>void RangeTestCase::testOverlap() {
+<br>&nbsp; //
+<br>&nbsp; // Test whether r1 overlaps r2. Should return true.
+<br>&nbsp; assert((*r1).overlap((*r2)));
+<br>}
+<br>&nbsp;
+<p>Test* RangeTestCase::suite ()
+<br>{
+<br>&nbsp; //
+<br>&nbsp; // create the suite of tests to perform.
+<br>&nbsp; TestSuite *testSuite = new TestSuite ("RangeTestCase");
+<p>&nbsp; testSuite->addTest (new TestCaller &lt;RangeTestCase> ("testEquality",&amp;RangeTestCase::testEquality));
+<br>&nbsp; testSuite->addTest (new TestCaller &lt;RangeTestCase> ("testWithin",&amp;RangeTestCase::testWithin));
+<br>&nbsp; testSuite->addTest (new TestCaller &lt;RangeTestCase> ("testRangeException",&amp;RangeTestCase::testRangeException));
+<br>&nbsp; testSuite->addTest (new TestCaller &lt;RangeTestCase> ("testOverlap",&amp;RangeTestCase::testOverlap));
+<br>&nbsp; return testSuite;
+<br>}
+<br>&nbsp;
+<p><font color="#3366FF">Code for rangeTest.C (main)</font>
+<p><font color="#330000">#include "RangeTest.h"</font>
+<br><font color="#330000">#include "TestRunner.h"</font>
+<p><font color="#330000">main(int argc, char **argv) {</font>
+<br><font color="#330000">&nbsp; //</font>
+<br><font color="#330000">&nbsp; // object which runs all of the tests</font>
+<br><font color="#330000">&nbsp; TestRunner runner;</font>
+<br><font color="#330000">&nbsp; //</font>
+<br><font color="#330000">&nbsp; // add the RangeTestCase suite of tests
+to the runner</font>
+<br><font color="#330000">&nbsp; runner.addTest ("RangeTestCase", RangeTestCase::suite
+());</font>
+<br><font color="#330000">&nbsp; //</font>
+<br><font color="#330000">&nbsp; // add the RangeTestCase suite of tests
+to the runner to demonstrate</font>
+<br><font color="#330000">&nbsp; // behaviour with multiple suites</font>
+<br><font color="#330000">&nbsp; runner.addTest ("R2Test",RangeTestCase::suite
+());</font>
+<br><font color="#330000">&nbsp; //</font>
+<br><font color="#330000">&nbsp; // actually run the unit tests.</font>
+<br><font color="#330000">&nbsp; runner.run (argc, argv);</font>
+<p><font color="#330000">&nbsp; return 0;</font>
+<br><font color="#330000">}</font>
+<br>&nbsp;
+<p><font color="#3366FF"><font size=+2>Example Output</font></font>
+<p>run rangeTest
+<p><font color="#3366FF">Output as it should be</font>
+<p>Suite: RangeTestCase
+<br>&nbsp; Test: testEquality Ok
+<br>&nbsp; Test: testWithin Ok
+<br>&nbsp; Test: testRangeException Ok
+<br>&nbsp; Test: testOverlap Ok
+<p>OK (4 tests)
+<p>Suite: R2Test
+<br>&nbsp; Test: testEquality Ok
+<br>&nbsp; Test: testWithin Ok
+<br>&nbsp; Test: testRangeException Ok
+<br>&nbsp; Test: testOverlap Ok
+<p>OK (4 tests)
+<p><font color="#3366FF">Output with some of the tests deliberately made
+to fail.</font>
+<br><font color="#3366FF">Note: There is one failure and one error generated.</font>
+<p>Suite: RangeTestCase
+<br>&nbsp; Test: testEquality Failure
+<br>&nbsp; Test: testWithin Error
+<br>&nbsp; Test: testRangeException&nbsp; Ok
+<br>&nbsp; Test: testOverlap Ok
+<p>!!!FAILURES!!!
+<br>Test Results:
+<br>Run:&nbsp; 4&nbsp;&nbsp; Failures: 1&nbsp;&nbsp; Errors: 1
+<br>There was 1 error:
+<br>1) testWithin line: -1 &lt;unknown> "RangeException: Deliberate exception
+from testWithin"
+<br>There was 1 failure:
+<br>1) testEquality line: 22 RangeTest.C "!((*r1)==(*r1))"
+<p>Suite: R2Test
+<br>&nbsp; Test: testEquality Failure
+<br>&nbsp; Test: testWithin Error
+<br>&nbsp; Test: testRangeException&nbsp; Ok
+<br>&nbsp; Test: testOverlap Ok
+<p>!!!FAILURES!!!
+<br>Test Results:
+<br>Run:&nbsp; 4&nbsp;&nbsp; Failures: 1&nbsp;&nbsp; Errors: 1
+<br>There was 1 error:
+<br>1) testWithin line: -1 &lt;unknown> "RangeException: Deliberate exception
+from testWithin"
+<br>There was 1 failure:
+<br>1) testEquality line: 22 RangeTest.C "!((*r1)==(*r1))"
+<p><font color="#3366FF"><font size=+2>Building</font></font>
+<p><font color="#330000">In order to build an executable linked with the
+UnitTest library use the Perth standard makefile with the option</font>
+<br><font color="#330000">&nbsp; DOUNITTEST = YES</font>
+<br>&nbsp;
+<br>&nbsp;
+<p><font color="#3366FF"><font size=+2>Run-time options</font></font>
+<p><font color="#330000"><font size=+0>You can specify the test suites
+that you want to run in a test by using arguments on the command line -</font></font>
+<p><font color="#330000"><font size=+0>TestExeName [suite=suite1[,suite2...]]
+[suite=suitea[,suiteb...]]</font></font>
+<p><font color="#330000"><font size=+0>where suite1, suite2, suitea and
+suiteb are the names of suites you want to run - suites can be repeated.</font></font>
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<p><font color="#330000"><font size=+0>For example, in the range test above
+which has two suites (RangeTestCase and R2Test). The test executable is
+called RangeTest. You could use</font></font>
+<p><font color="#330000"><font size=+0>RangeTest</font></font>
+<p><font color="#330000"><font size=+0>to run both suites, or</font></font>
+<p><font color="#330000"><font size=+0>RangeTest suite=R2Test</font></font>
+<p><font color="#330000"><font size=+0>to just run the R2Test suite, or</font></font>
+<p><font color="#330000"><font size=+0>RangeTest suite=R2Test,R2Test,RangeTestCase
+suite=RangeTestCase suite=R2Test,R2Test</font></font>
+<p><font color="#330000"><font size=+0>to run R2Test, followed by R2Test
+, followed by RangeTestCase, followed by RangeTestCase, followed by two
+more R2Test runs.</font></font>
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<p><font color="#3366FF"><font size=+2>Run-time options</font></font>
+<p><font color="#330000"><font size=+0>Run-time arguments can be passed
+through to the individual tests. In a test case, you can call the getArgs
+function to obtain a const vector&lt;string>&amp; to a vector that contains
+the command line arguments - note that all the suite=... arguments will
+have been stripped out. If the system being run provides the name of the
+executable as the first argument to the main function, then this will be
+available to you as the first string in the argument vector (in whatever
+format the system provides it).</font></font>
+<p><font color="#330000"><font size=+0>For example in the testRangeException
+function, the run time arguments could be obtained by changing the code
+to the following -</font></font>
+<p><font color="#330000"><font size=+0>void RangeTestCase::testRangeException()
+{</font></font>
+<br><b><font color="#330000"><font size=+0>const vector&lt;string>&amp;
+args = getArgs();</font></font></b>
+<br><font color="#330000"><font size=+0>if(args.size()>0) {</font></font>
+<br><font color="#330000"><font size=+0>cout &lt;&lt; "exe name is " &lt;&lt;
+args[0] &lt;&lt; endl;</font></font>
+<br><font color="#330000"><font size=+0>}</font></font>
+<br><font color="#330000"><font size=+0>&nbsp; try {</font></font>
+<br><font color="#330000"><font size=+0>&nbsp;&nbsp;&nbsp; //</font></font>
+<br><font color="#330000"><font size=+0>&nbsp;&nbsp;&nbsp; // This call
+should throw an exception as the range is invalid</font></font>
+<br><font color="#330000"><font size=+0>&nbsp;&nbsp;&nbsp; (*r1).setRange(3,1);</font></font>
+<br><font color="#330000"><font size=+0>&nbsp;&nbsp;&nbsp; //</font></font>
+<br><font color="#330000"><font size=+0>&nbsp;&nbsp;&nbsp; // if the test
+gets here the exception has failed</font></font>
+<br><font color="#330000"><font size=+0>&nbsp;&nbsp;&nbsp; assert(false);</font></font>
+<br><font color="#330000"><font size=+0>&nbsp; }</font></font>
+<br><font color="#330000"><font size=+0>&nbsp; catch (RangeException &amp;e)
+{</font></font>
+<br><font color="#330000"><font size=+0>&nbsp; }</font></font>
+<br><font color="#330000"><font size=+0>}</font></font>
+<br>&nbsp;
+<br>&nbsp;
+</body>
+</html>
