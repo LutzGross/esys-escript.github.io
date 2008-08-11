@@ -19,6 +19,7 @@
 
 #include "DataAbstract.h"
 #include "DataArrayView.h"
+#include "DataTypes.h"
 
 #include <vector>
 #include <map>
@@ -46,7 +47,7 @@ class DataTagged : public DataAbstract {
   // Types for the lists of tags and values.
   typedef std::vector<int>           TagListType;
   typedef std::vector<DataArrayView> ValueListType;
-  typedef DataArrayView::ValueType   ValueType;
+  typedef DataTypes::ValueType   ValueType;
 
   //
   // Map from a tag to an offset into the data array. 
@@ -103,7 +104,7 @@ class DataTagged : public DataAbstract {
   */
   ESCRIPT_DLL_API
   DataTagged(const FunctionSpace& what,
-             const DataArrayView::ShapeType &shape,
+             const DataTypes::ShapeType &shape,
              const int tags[],
              const ValueType& data);
 
@@ -121,7 +122,7 @@ class DataTagged : public DataAbstract {
   */
   ESCRIPT_DLL_API
   DataTagged(const FunctionSpace& what,
-             const DataArrayView::ShapeType &shape,
+             const DataTypes::ShapeType &shape,
              const TagListType& tags,
              const ValueType& data);
 
@@ -340,7 +341,7 @@ class DataTagged : public DataAbstract {
     T
   */
   ESCRIPT_DLL_API
-  const DataArrayView::ValueType::ElementType*
+  const DataTypes::ValueType::ElementType*
   getData() const;
 
   /**
@@ -413,7 +414,7 @@ class DataTagged : public DataAbstract {
   ESCRIPT_DLL_API
   virtual
   DataAbstract*
-  getSlice(const DataArrayView::RegionType& region) const;
+  getSlice(const DataTypes::RegionType& region) const;
 
   /**
      \brief
@@ -428,7 +429,7 @@ class DataTagged : public DataAbstract {
   */
   ESCRIPT_DLL_API
   DataTagged(const DataTagged& other, 
-	     const DataArrayView::RegionType& region);
+	     const DataTypes::RegionType& region);
 
   /**
      \brief
@@ -444,7 +445,7 @@ class DataTagged : public DataAbstract {
   virtual
   void
   setSlice(const DataAbstract* other,
-           const DataArrayView::RegionType& region);
+           const DataTypes::RegionType& region);
 
   /**
      \brief
@@ -457,7 +458,7 @@ class DataTagged : public DataAbstract {
   ESCRIPT_DLL_API
   int
   archiveData(std::ofstream& archiveFile,
-              const DataArrayView::ValueType::size_type noValues) const;
+              const DataTypes::ValueType::size_type noValues) const;
 
   /**
      \brief
@@ -469,7 +470,7 @@ class DataTagged : public DataAbstract {
   ESCRIPT_DLL_API
   int
   extractData(std::ifstream& archiveFile,
-              const DataArrayView::ValueType::size_type noValues);
+              const DataTypes::ValueType::size_type noValues);
 
   /**
      \brief
@@ -596,7 +597,7 @@ DataTagged::getDefaultValue() const
 }
 
 inline
-const DataArrayView::ValueType::ElementType*
+const DataTypes::ValueType::ElementType*
 DataTagged::getData() const
 {
    return &(m_data[0]);
@@ -610,7 +611,7 @@ DataTagged::getTagLookup() const
 }
 
 inline
-DataArrayView::ValueType::size_type
+DataTypes::ValueType::size_type
 DataTagged::getLength() const
 {
   return m_data.size();

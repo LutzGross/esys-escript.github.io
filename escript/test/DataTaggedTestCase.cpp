@@ -118,14 +118,14 @@ void DataTaggedTestCase::testOperations() {
   {
     cout << "\tTest binaryOp addition of two DataTagged objects with default values only." << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     DataTagged::TagListType keys;
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -184,7 +184,7 @@ void DataTaggedTestCase::testOperations() {
 
     DataVector vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vOneView(vOneData,DataArrayView::ShapeType());
+    DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
     myData.addTaggedValue(1,vOneView);
     right.addTaggedValue(1,vOneView);
@@ -252,11 +252,11 @@ void DataTaggedTestCase::testOperations() {
 
     DataVector vOneData(1, 3.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vOneView(vOneData,DataArrayView::ShapeType());
+    DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
     DataVector vTwoData(1, 4.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vTwoView(vTwoData,DataArrayView::ShapeType());
+    DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
 
     myData.addTaggedValue(1,vOneView);
     right.addTaggedValue(2,vTwoView);
@@ -339,7 +339,7 @@ void DataTaggedTestCase::testOperations() {
 
     DataVector vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vOneView(vOneData,DataArrayView::ShapeType());
+    DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
     myData.addTaggedValue(1,vOneView);
     myData.addTaggedValue(2,vOneView);
@@ -423,14 +423,14 @@ void DataTaggedTestCase::testOperations() {
   {
     cout << "\tTest binaryOp multiplication of two DataTagged objects with default values only." << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     DataTagged::TagListType keys;
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -489,18 +489,18 @@ void DataTaggedTestCase::testOperations() {
 
     DataVector vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vOneView(vOneData,DataArrayView::ShapeType());
+    DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
     DataVector vTwoData(1, 2.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vTwoView(vTwoData,DataArrayView::ShapeType());
+    DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
 
     myData.addTaggedValue(1,vOneView);
     myData.addTaggedValue(2,vTwoView);
 
     DataVector vThreeData(1, 3.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vThreeView(vThreeData,DataArrayView::ShapeType());
+    DataArrayView vThreeView(vThreeData,DataTypes::ShapeType());
 
     DataArrayView right=vThreeView;
 
@@ -582,11 +582,11 @@ void DataTaggedTestCase::testOperations() {
 
     DataVector vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vOneView(vOneData,DataArrayView::ShapeType());
+    DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
     DataVector vTwoData(1, 2.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vTwoView(vTwoData,DataArrayView::ShapeType());
+    DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
 
     myData.addTaggedValue(1,vOneView);
     myData.addTaggedValue(2,vOneView);
@@ -732,14 +732,14 @@ void DataTaggedTestCase::testOperations() {
   {
     cout << "\tTest unaryOp negate on DataTagged object with default value only." << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     DataTagged::TagListType keys;
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -796,11 +796,11 @@ void DataTaggedTestCase::testOperations() {
 
     DataVector vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vOneView(vOneData,DataArrayView::ShapeType());
+    DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
     DataVector vTwoData(1, 2.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vTwoView(vTwoData,DataArrayView::ShapeType());
+    DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
 
     myData.addTaggedValue(1,vOneView);
     myData.addTaggedValue(2,vTwoView);
@@ -935,8 +935,8 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
-    DataArrayView::ValueType viewData(1);
+    DataTypes::ShapeType viewShape;
+    DataTypes::ValueType viewData(1);
     viewData[0]=1.0;
     DataArrayView myView(viewData,viewShape);
     values.push_back(myView);
@@ -999,8 +999,8 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
-    DataArrayView::ValueType viewData(1);
+    DataTypes::ShapeType viewShape;
+    DataTypes::ValueType viewData(1);
     viewData[0]=1.0;
     DataArrayView myView(viewData,viewShape);
     values.push_back(myView);
@@ -1085,12 +1085,12 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
-    DataArrayView::ValueType viewData1(1);
+    DataTypes::ShapeType viewShape;
+    DataTypes::ValueType viewData1(1);
     viewData1[0]=1.0;
-    DataArrayView::ValueType viewData2(1);
+    DataTypes::ValueType viewData2(1);
     viewData2[0]=2.0;
-    DataArrayView::ValueType viewData3(1);
+    DataTypes::ValueType viewData3(1);
     viewData3[0]=3.0;
     DataArrayView myView1(viewData1,viewShape);
     DataArrayView myView2(viewData2,viewShape);
@@ -1167,14 +1167,14 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     cout << "\tTest adding one key with empty value list to DataTagged with default value only." << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     DataTagged::TagListType keys;
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -1244,14 +1244,14 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     cout << "\tTest adding one key with one value to DataTagged with default value only." << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     DataTagged::TagListType keys;
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -1261,7 +1261,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     keys.push_back(1);
 
-    DataArrayView::ValueType viewData1(3);
+    DataTypes::ValueType viewData1(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData1[i]=i+3;
     }
@@ -1327,14 +1327,14 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     cout << "\tTest adding three keys with one value to DataTagged with default value only." << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     DataTagged::TagListType keys;
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -1346,7 +1346,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataArrayView::ValueType viewData1(3);
+    DataTypes::ValueType viewData1(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData1[i]=3;
     }
@@ -1440,14 +1440,14 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     cout << "\tTest adding three keys with three values to DataTagged with default value only." << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     DataTagged::TagListType keys;
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -1459,21 +1459,21 @@ void DataTaggedTestCase::testAddTaggedValues() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataArrayView::ValueType viewData1(3);
+    DataTypes::ValueType viewData1(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData1[i]=i+1;
     }
     DataArrayView myView1(viewData1,viewShape);
     values.push_back(myView1);
 
-    DataArrayView::ValueType viewData2(3);
+    DataTypes::ValueType viewData2(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData2[i]=i+2;
     }
     DataArrayView myView2(viewData2,viewShape);
     values.push_back(myView2);
 
-    DataArrayView::ValueType viewData3(3);
+    DataTypes::ValueType viewData3(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData3[i]=i+3;
     }
@@ -1578,18 +1578,18 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArrayView::ValueType eOneData(viewData);
+    DataTypes::ValueType eOneData(viewData);
     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<eOneView.getShape()[0];i++) {
       eOneView(i)=i+1.0;
@@ -1597,7 +1597,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     values.push_back(eOneView);
 
     // value for tag "2"
-    DataArrayView::ValueType eTwoData(viewData);
+    DataTypes::ValueType eTwoData(viewData);
     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<eTwoView.getShape()[0];i++) {
       eTwoView(i)=i+2.0;
@@ -1605,7 +1605,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArrayView::ValueType eThreeData(viewData);
+    DataTypes::ValueType eThreeData(viewData);
     DataArrayView eThreeView(eThreeData, viewShape);
     for (int i=0;i<eThreeView.getShape()[0];i++) {
       eThreeView(i)=i+3.0;
@@ -1667,18 +1667,18 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArrayView::ValueType eOneData(viewData);
+    DataTypes::ValueType eOneData(viewData);
     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<eOneView.getShape()[0];i++) {
       eOneView(i)=i+1.0;
@@ -1686,7 +1686,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     values.push_back(eOneView);
 
     // value for tag "2"
-    DataArrayView::ValueType eTwoData(viewData);
+    DataTypes::ValueType eTwoData(viewData);
     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<eTwoView.getShape()[0];i++) {
       eTwoView(i)=i+2.0;
@@ -1694,7 +1694,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArrayView::ValueType eThreeData(viewData);
+    DataTypes::ValueType eThreeData(viewData);
     DataArrayView eThreeView(eThreeData, viewShape);
     for (int i=0;i<eThreeView.getShape()[0];i++) {
       eThreeView(i)=i+3.0;
@@ -1708,7 +1708,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     values.clear();
     // value for tag "4"
-    DataArrayView::ValueType eFourData(viewData);
+    DataTypes::ValueType eFourData(viewData);
     DataArrayView eFourView(eFourData, viewShape);
     for (int i=0;i<eFourView.getShape()[0];i++) {
       eFourView(i)=i+4.0;
@@ -1764,18 +1764,18 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArrayView::ValueType eOneData(viewData);
+    DataTypes::ValueType eOneData(viewData);
     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<eOneView.getShape()[0];i++) {
       eOneView(i)=i+1.0;
@@ -1783,7 +1783,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     values.push_back(eOneView);
 
     // value for tag "2"
-    DataArrayView::ValueType eTwoData(viewData);
+    DataTypes::ValueType eTwoData(viewData);
     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<eTwoView.getShape()[0];i++) {
       eTwoView(i)=i+2.0;
@@ -1791,7 +1791,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArrayView::ValueType eThreeData(viewData);
+    DataTypes::ValueType eThreeData(viewData);
     DataArrayView eThreeView(eThreeData, viewShape);
     for (int i=0;i<eThreeView.getShape()[0];i++) {
       eThreeView(i)=i+3.0;
@@ -1807,7 +1807,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     values.clear();
     // value for tags "4", "5" and "6"
-    DataArrayView::ValueType eFourData(viewData);
+    DataTypes::ValueType eFourData(viewData);
     DataArrayView eFourView(eFourData, viewShape);
     for (int i=0;i<eFourView.getShape()[0];i++) {
       eFourView(i)=i+4.0;
@@ -1891,18 +1891,18 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArrayView::ValueType eOneData(viewData);
+    DataTypes::ValueType eOneData(viewData);
     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<eOneView.getShape()[0];i++) {
       eOneView(i)=i+1.0;
@@ -1910,7 +1910,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     values.push_back(eOneView);
 
     // value for tag "2"
-    DataArrayView::ValueType eTwoData(viewData);
+    DataTypes::ValueType eTwoData(viewData);
     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<eTwoView.getShape()[0];i++) {
       eTwoView(i)=i+2.0;
@@ -1918,7 +1918,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArrayView::ValueType eThreeData(viewData);
+    DataTypes::ValueType eThreeData(viewData);
     DataArrayView eThreeView(eThreeData, viewShape);
     for (int i=0;i<eThreeView.getShape()[0];i++) {
       eThreeView(i)=i+3.0;
@@ -1935,7 +1935,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     values.clear();
 
     // value for tag "4"
-    DataArrayView::ValueType eFourData(viewData);
+    DataTypes::ValueType eFourData(viewData);
     DataArrayView eFourView(eFourData, viewShape);
     for (int i=0;i<eFourView.getShape()[0];i++) {
       eFourView(i)=i+4.0;
@@ -1943,7 +1943,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     values.push_back(eFourView);
 
     // value for tag "5"
-    DataArrayView::ValueType eFiveData(viewData);
+    DataTypes::ValueType eFiveData(viewData);
     DataArrayView eFiveView(eFiveData, viewShape);
     for (int i=0;i<eFiveView.getShape()[0];i++) {
       eFiveView(i)=i+5.0;
@@ -1951,7 +1951,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     values.push_back(eFiveView);
 
     // value for tag "6"
-    DataArrayView::ValueType eSixData(viewData);
+    DataTypes::ValueType eSixData(viewData);
     DataArrayView eSixView(eSixData, viewShape);
     for (int i=0;i<eSixView.getShape()[0];i++) {
       eSixView(i)=i+6.0;
@@ -2041,18 +2041,18 @@ void DataTaggedTestCase::testSetTaggedValue() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArrayView::ValueType eOneData(viewData);
+    DataTypes::ValueType eOneData(viewData);
     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<eOneView.getShape()[0];i++) {
       eOneView(i)=i+1.0;
@@ -2060,7 +2060,7 @@ void DataTaggedTestCase::testSetTaggedValue() {
     values.push_back(eOneView);
 
     // value for tag "2"
-    DataArrayView::ValueType eTwoData(viewData);
+    DataTypes::ValueType eTwoData(viewData);
     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<eTwoView.getShape()[0];i++) {
       eTwoView(i)=i+2.0;
@@ -2068,7 +2068,7 @@ void DataTaggedTestCase::testSetTaggedValue() {
     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArrayView::ValueType eThreeData(viewData);
+    DataTypes::ValueType eThreeData(viewData);
     DataArrayView eThreeView(eThreeData, viewShape);
     for (int i=0;i<eThreeView.getShape()[0];i++) {
       eThreeView(i)=i+3.0;
@@ -2192,14 +2192,14 @@ void DataTaggedTestCase::testAll() {
 
     cout << "\tTest DataTagged with default value only." << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     DataTagged::TagListType keys;
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -2286,18 +2286,18 @@ void DataTaggedTestCase::testAll() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArrayView::ValueType eOneData(viewData);
+    DataTypes::ValueType eOneData(viewData);
     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<eOneView.getShape()[0];i++) {
       eOneView(i)=i+1.0;
@@ -2403,18 +2403,18 @@ void DataTaggedTestCase::testAll() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArrayView::ValueType eOneData(viewData);
+    DataTypes::ValueType eOneData(viewData);
     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<eOneView.getShape()[0];i++) {
       eOneView(i)=i+1.0;
@@ -2422,7 +2422,7 @@ void DataTaggedTestCase::testAll() {
     values.push_back(eOneView);
 
     // value for tag "2"
-    DataArrayView::ValueType eTwoData(viewData);
+    DataTypes::ValueType eTwoData(viewData);
     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<eTwoView.getShape()[0];i++) {
       eTwoView(i)=i+2.0;
@@ -2430,7 +2430,7 @@ void DataTaggedTestCase::testAll() {
     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArrayView::ValueType eThreeData(viewData);
+    DataTypes::ValueType eThreeData(viewData);
     DataArrayView eThreeView(eThreeData, viewShape);
     for (int i=0;i<eThreeView.getShape()[0];i++) {
       eThreeView(i)=i+3.0;
@@ -2571,18 +2571,18 @@ void DataTaggedTestCase::testCopyConstructors() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArrayView::ValueType eOneData(viewData);
+    DataTypes::ValueType eOneData(viewData);
     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<eOneView.getShape()[0];i++) {
       eOneView(i)=i+1.0;
@@ -2590,7 +2590,7 @@ void DataTaggedTestCase::testCopyConstructors() {
     values.push_back(eOneView);
 
     // value for tag "2"
-    DataArrayView::ValueType eTwoData(viewData);
+    DataTypes::ValueType eTwoData(viewData);
     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<eTwoView.getShape()[0];i++) {
       eTwoView(i)=i+2.0;
@@ -2598,7 +2598,7 @@ void DataTaggedTestCase::testCopyConstructors() {
     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArrayView::ValueType eThreeData(viewData);
+    DataTypes::ValueType eThreeData(viewData);
     DataArrayView eThreeView(eThreeData, viewShape);
     for (int i=0;i<eThreeView.getShape()[0];i++) {
       eThreeView(i)=i+3.0;
@@ -2723,8 +2723,8 @@ void DataTaggedTestCase::testCopyConstructors() {
     cout << "\tTest DataTagged copy constructor for DataConstant." << endl;
 
     // Create a DataConstant
-    DataArrayView::ShapeType shape;
-    DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
+    DataTypes::ShapeType shape;
+    DataTypes::ValueType data(DataArrayView::noValues(shape),0);
     DataArrayView pointData(data,shape);
     pointData()=1.0;
     DataConstant myConstantData(pointData, FunctionSpace());
@@ -2799,7 +2799,7 @@ void DataTaggedTestCase::testGetSlice() {
 
     DataTagged myData;
 
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
 
     DataAbstract* slicedDefault = myData.getSlice(region);
 
@@ -2825,14 +2825,14 @@ void DataTaggedTestCase::testGetSlice() {
 
     cout << "\tTest slicing DataTagged with rank 1 default value only." << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     DataTagged::TagListType keys;
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -2845,7 +2845,7 @@ void DataTaggedTestCase::testGetSlice() {
     std::pair<int, int> region_element;
     region_element.first=0;
     region_element.second=3;
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
     region.push_back(region_element);
 
     DataAbstract* slicedDefault = myData.getSlice(region);
@@ -2899,7 +2899,7 @@ void DataTaggedTestCase::testGetSlice() {
 
     cout << "\tTest slicing DataTagged with rank 3 default value only." << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
     viewShape.push_back(3);
     viewShape.push_back(3);
@@ -2908,7 +2908,7 @@ void DataTaggedTestCase::testGetSlice() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ValueType viewData(27);
+    DataTypes::ValueType viewData(27);
     for (int i=0;i<viewData.size();i++) {
       viewData[i]=i;
     }
@@ -2923,7 +2923,7 @@ void DataTaggedTestCase::testGetSlice() {
     std::pair<int, int> region_element;
     region_element.first=0;
     region_element.second=3;
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
     region.push_back(region_element);
     region.push_back(region_element);
     region.push_back(region_element);
@@ -3011,15 +3011,15 @@ void DataTaggedTestCase::testGetSlice() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
 
     // default value
-    DataArrayView::ValueType viewData(1);
+    DataTypes::ValueType viewData(1);
     viewData[0]=0.0;
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArrayView::ValueType eOneData(viewData);
+    DataTypes::ValueType eOneData(viewData);
     DataArrayView eOneView(eOneData, viewShape);
     eOneView()=1.0;
     values.push_back(eOneView);
@@ -3030,7 +3030,7 @@ void DataTaggedTestCase::testGetSlice() {
 
     // full slice
 
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
 
     DataAbstract* slicedDefault = myData.getSlice(region);
 
@@ -3064,7 +3064,7 @@ void DataTaggedTestCase::testGetSlice() {
 
     cout << "\tTest slicing DataTagged with rank 1 values and one tag." << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     DataTagged::TagListType keys;
@@ -3073,14 +3073,14 @@ void DataTaggedTestCase::testGetSlice() {
     DataTagged::ValueListType values;
 
     // default value
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArrayView::ValueType eOneData(viewData);
+    DataTypes::ValueType eOneData(viewData);
     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<eOneView.getShape()[0];i++) {
       eOneView(i)=i+3.0;
@@ -3096,7 +3096,7 @@ void DataTaggedTestCase::testGetSlice() {
     std::pair<int, int> region_element;
     region_element.first=0;
     region_element.second=3;
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
     region.push_back(region_element);
 
     DataAbstract* slicedDefault = myData.getSlice(region);
@@ -3168,7 +3168,7 @@ void DataTaggedTestCase::testGetSlice() {
 
     cout << "\tTest slicing DataTagged with rank 3 values and one tag." << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
     viewShape.push_back(3);
     viewShape.push_back(3);
@@ -3179,14 +3179,14 @@ void DataTaggedTestCase::testGetSlice() {
     DataTagged::ValueListType values;
 
     // default value
-    DataArrayView::ValueType viewData(27);
+    DataTypes::ValueType viewData(27);
     for (int i=0;i<viewData.size();i++) {
       viewData[i]=i;
     }
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArrayView::ValueType viewData1(27);
+    DataTypes::ValueType viewData1(27);
     for (int i=0;i<viewData1.size();i++) {
       viewData1[i]=i+27.0;
     }
@@ -3202,7 +3202,7 @@ void DataTaggedTestCase::testGetSlice() {
     std::pair<int, int> region_element;
     region_element.first=0;
     region_element.second=3;
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
     region.push_back(region_element);
     region.push_back(region_element);
     region.push_back(region_element);
@@ -3317,27 +3317,27 @@ void DataTaggedTestCase::testGetSlice() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
 
     // default value
-    DataArrayView::ValueType viewData(1);
+    DataTypes::ValueType viewData(1);
     viewData[0]=0.0;
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArrayView::ValueType eOneData(viewData);
+    DataTypes::ValueType eOneData(viewData);
     DataArrayView eOneView(eOneData, viewShape);
     eOneView()=1.0;
     values.push_back(eOneView);
 
     // value for tag "2"
-    DataArrayView::ValueType eTwoData(viewData);
+    DataTypes::ValueType eTwoData(viewData);
     DataArrayView eTwoView(eTwoData, viewShape);
     eTwoView()=2.0;
     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArrayView::ValueType eThreeData(viewData);
+    DataTypes::ValueType eThreeData(viewData);
     DataArrayView eThreeView(eThreeData, viewShape);
     eThreeView()=3.0;
     values.push_back(eThreeView);
@@ -3348,7 +3348,7 @@ void DataTaggedTestCase::testGetSlice() {
 
     // full slice
 
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
 
     DataAbstract* slicedDefault = myData.getSlice(region);
 
@@ -3398,7 +3398,7 @@ void DataTaggedTestCase::testGetSlice() {
 
     cout << "\tTest slicing DataTagged with rank 1 values and three tags." << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     DataTagged::TagListType keys;
@@ -3409,14 +3409,14 @@ void DataTaggedTestCase::testGetSlice() {
     DataTagged::ValueListType values;
 
     // default value
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArrayView::ValueType eOneData(viewData);
+    DataTypes::ValueType eOneData(viewData);
     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<eOneView.getShape()[0];i++) {
       eOneView(i)=i+3.0;
@@ -3424,7 +3424,7 @@ void DataTaggedTestCase::testGetSlice() {
     values.push_back(eOneView);
 
     // value for tag "2"
-    DataArrayView::ValueType eTwoData(viewData);
+    DataTypes::ValueType eTwoData(viewData);
     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<eTwoView.getShape()[0];i++) {
       eTwoView(i)=i+6.0;
@@ -3432,7 +3432,7 @@ void DataTaggedTestCase::testGetSlice() {
     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArrayView::ValueType eThreeData(viewData);
+    DataTypes::ValueType eThreeData(viewData);
     DataArrayView eThreeView(eThreeData, viewShape);
     for (int i=0;i<eThreeView.getShape()[0];i++) {
       eThreeView(i)=i+9.0;
@@ -3448,7 +3448,7 @@ void DataTaggedTestCase::testGetSlice() {
     std::pair<int, int> region_element;
     region_element.first=0;
     region_element.second=3;
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
     region.push_back(region_element);
 
     DataAbstract* slicedDefault = myData.getSlice(region);
@@ -3556,7 +3556,7 @@ void DataTaggedTestCase::testGetSlice() {
 
     cout << "\tTest slicing DataTagged with rank 3 values and three tags." << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
     viewShape.push_back(3);
     viewShape.push_back(3);
@@ -3569,14 +3569,14 @@ void DataTaggedTestCase::testGetSlice() {
     DataTagged::ValueListType values;
 
     // default value
-    DataArrayView::ValueType viewData(27);
+    DataTypes::ValueType viewData(27);
     for (int i=0;i<viewData.size();i++) {
       viewData[i]=i;
     }
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArrayView::ValueType viewData1(27);
+    DataTypes::ValueType viewData1(27);
     for (int i=0;i<viewData1.size();i++) {
       viewData1[i]=i+27.0;
     }
@@ -3584,7 +3584,7 @@ void DataTaggedTestCase::testGetSlice() {
     values.push_back(myView1);
 
     // value for tag "2"
-    DataArrayView::ValueType viewData2(27);
+    DataTypes::ValueType viewData2(27);
     for (int i=0;i<viewData2.size();i++) {
       viewData2[i]=i+54.0;
     }
@@ -3592,7 +3592,7 @@ void DataTaggedTestCase::testGetSlice() {
     values.push_back(myView2);
 
     // value for tag "3"
-    DataArrayView::ValueType viewData3(27);
+    DataTypes::ValueType viewData3(27);
     for (int i=0;i<viewData3.size();i++) {
       viewData3[i]=i+81.0;
     }
@@ -3608,7 +3608,7 @@ void DataTaggedTestCase::testGetSlice() {
     std::pair<int, int> region_element;
     region_element.first=0;
     region_element.second=3;
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
     region.push_back(region_element);
     region.push_back(region_element);
     region.push_back(region_element);
@@ -3775,7 +3775,7 @@ void DataTaggedTestCase::testSetSlice() {
     DataTagged myData1;
     DataTagged myData2;
 
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
 
     myData2.getDefaultValue()()=1.0;
 
@@ -3805,17 +3805,17 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
-    DataArrayView::ValueType viewData1(3);
+    DataTypes::ValueType viewData1(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData1[i]=i;
     }
     DataArrayView myView1(viewData1,viewShape);
     DataTagged myData1(keys,values,myView1,FunctionSpace());
 
-    DataArrayView::ValueType viewData2(3);
+    DataTypes::ValueType viewData2(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData2[i]=i+3;
     }
@@ -3827,7 +3827,7 @@ void DataTaggedTestCase::testSetSlice() {
     std::pair<int, int> region_element;
     region_element.first=0;
     region_element.second=3;
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
     region.push_back(region_element);
 
     myData1.setSlice(&myData2, region);
@@ -3853,7 +3853,7 @@ void DataTaggedTestCase::testSetSlice() {
     viewShape.clear();
     viewShape.push_back(1);
 
-    DataArrayView::ValueType viewData3(1);
+    DataTypes::ValueType viewData3(1);
     viewData3[0]=6.0;
     DataArrayView myView3(viewData3,viewShape);
     DataTagged myData3(keys,values,myView3,FunctionSpace());
@@ -3919,19 +3919,19 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
     viewShape.push_back(3);
     viewShape.push_back(3);
 
-    DataArrayView::ValueType viewData1(27);
+    DataTypes::ValueType viewData1(27);
     for (int i=0;i<viewData1.size();i++) {
       viewData1[i]=i;
     }
     DataArrayView myView1(viewData1,viewShape);
     DataTagged myData1(keys,values,myView1,FunctionSpace());
 
-    DataArrayView::ValueType viewData2(27);
+    DataTypes::ValueType viewData2(27);
     for (int i=0;i<viewData2.size();i++) {
       viewData2[i]=i+27;
     }
@@ -3943,7 +3943,7 @@ void DataTaggedTestCase::testSetSlice() {
     std::pair<int, int> region_element;
     region_element.first=0;
     region_element.second=3;
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
     region.push_back(region_element);
     region.push_back(region_element);
     region.push_back(region_element);
@@ -3968,7 +3968,7 @@ void DataTaggedTestCase::testSetSlice() {
     viewShape.clear();
     viewShape.push_back(3);
 
-    DataArrayView::ValueType viewData3(3);
+    DataTypes::ValueType viewData3(3);
     for (int i=0;i<viewData3.size();i++) {
       viewData3[i]=i+60;
     }
@@ -4039,15 +4039,15 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
 
     // default value for Data1
-    DataArrayView::ValueType viewData1(1);
+    DataTypes::ValueType viewData1(1);
     viewData1[0]=0.0;
     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-    DataArrayView::ValueType viewData2(1);
+    DataTypes::ValueType viewData2(1);
     viewData2[0]=0.0;
     DataArrayView myView2(viewData2,viewShape);
     values.push_back(myView2);
@@ -4057,12 +4057,12 @@ void DataTaggedTestCase::testSetSlice() {
     values.clear();
 
     // default value for Data2
-    DataArrayView::ValueType viewData3(1);
+    DataTypes::ValueType viewData3(1);
     viewData3[0]=1.0;
     DataArrayView myView3(viewData3,viewShape);
 
     // value for tag "1" for Data2
-    DataArrayView::ValueType viewData4(1);
+    DataTypes::ValueType viewData4(1);
     viewData4[0]=2.0;
     DataArrayView myView4(viewData4,viewShape);
     values.push_back(myView4);
@@ -4071,7 +4071,7 @@ void DataTaggedTestCase::testSetSlice() {
 
     // full slice
 
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
 
     myData1.setSlice(&myData2, region);
 
@@ -4108,18 +4108,18 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value for Data1
-    DataArrayView::ValueType viewData1(3);
+    DataTypes::ValueType viewData1(3);
     for (int i=0;i<viewData1.size();i++) {
       viewData1[i]=0.0;
     }
     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-    DataArrayView::ValueType viewData2(3);
+    DataTypes::ValueType viewData2(3);
     for (int i=0;i<viewData2.size();i++) {
       viewData2[i]=0.0;
     }
@@ -4131,14 +4131,14 @@ void DataTaggedTestCase::testSetSlice() {
     values.clear();
 
     // default value for Data2
-    DataArrayView::ValueType viewData3(3);
+    DataTypes::ValueType viewData3(3);
     for (int i=0;i<viewData3.size();i++) {
       viewData3[i]=1.0;
     }
     DataArrayView myView3(viewData3,viewShape);
 
     // value for tag "1" for Data2
-    DataArrayView::ValueType viewData4(3);
+    DataTypes::ValueType viewData4(3);
     for (int i=0;i<viewData4.size();i++) {
       viewData4[i]=2.0;
     }
@@ -4152,7 +4152,7 @@ void DataTaggedTestCase::testSetSlice() {
     std::pair<int, int> region_element;
     region_element.first=0;
     region_element.second=3;
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
     region.push_back(region_element);
 
     myData1.setSlice(&myData2, region);
@@ -4188,13 +4188,13 @@ void DataTaggedTestCase::testSetSlice() {
     viewShape.clear();
     viewShape.push_back(1);
 
-    DataArrayView::ValueType viewData5(1);
+    DataTypes::ValueType viewData5(1);
     viewData5[0]=3.0;
     DataArrayView myView5(viewData5,viewShape);
 
     values.clear();
 
-    DataArrayView::ValueType viewData6(1);
+    DataTypes::ValueType viewData6(1);
     viewData6[0]=4.0;
     DataArrayView myView6(viewData6,viewShape);
     values.push_back(myView6);
@@ -4238,13 +4238,13 @@ void DataTaggedTestCase::testSetSlice() {
 
     viewShape.clear();
 
-    DataArrayView::ValueType viewData7(1);
+    DataTypes::ValueType viewData7(1);
     viewData7[0]=5.0;
     DataArrayView myView7(viewData7,viewShape);
 
     values.clear();
 
-    DataArrayView::ValueType viewData8(1);
+    DataTypes::ValueType viewData8(1);
     viewData8[0]=6.0;
     DataArrayView myView8(viewData8,viewShape);
     values.push_back(myView8);
@@ -4291,20 +4291,20 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
     viewShape.push_back(3);
     viewShape.push_back(3);
 
     // default value for Data1
-    DataArrayView::ValueType viewData1(27);
+    DataTypes::ValueType viewData1(27);
     for (int i=0;i<viewData1.size();i++) {
       viewData1[i]=0.0;
     }
     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-    DataArrayView::ValueType viewData2(27);
+    DataTypes::ValueType viewData2(27);
     for (int i=0;i<viewData2.size();i++) {
       viewData2[i]=0.0;
     }
@@ -4316,14 +4316,14 @@ void DataTaggedTestCase::testSetSlice() {
     values.clear();
 
     // default value for Data2
-    DataArrayView::ValueType viewData3(27);
+    DataTypes::ValueType viewData3(27);
     for (int i=0;i<viewData3.size();i++) {
       viewData3[i]=1.0;
     }
     DataArrayView myView3(viewData3,viewShape);
 
     // value for tag "1" for Data2
-    DataArrayView::ValueType viewData4(27);
+    DataTypes::ValueType viewData4(27);
     for (int i=0;i<viewData4.size();i++) {
       viewData4[i]=2.0;
     }
@@ -4337,7 +4337,7 @@ void DataTaggedTestCase::testSetSlice() {
     std::pair<int, int> region_element;
     region_element.first=0;
     region_element.second=3;
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
     region.push_back(region_element);
     region.push_back(region_element);
     region.push_back(region_element);
@@ -4375,7 +4375,7 @@ void DataTaggedTestCase::testSetSlice() {
     viewShape.clear();
     viewShape.push_back(3);
 
-    DataArrayView::ValueType viewData5(3);
+    DataTypes::ValueType viewData5(3);
     for (int i=0;i<viewData5.size();i++) {
       viewData5[i]=3.0;
     }
@@ -4383,7 +4383,7 @@ void DataTaggedTestCase::testSetSlice() {
 
     values.clear();
 
-    DataArrayView::ValueType viewData6(3);
+    DataTypes::ValueType viewData6(3);
     for (int i=0;i<viewData6.size();i++) {
       viewData6[i]=4.0;
     }
@@ -4431,13 +4431,13 @@ void DataTaggedTestCase::testSetSlice() {
 
     viewShape.clear();
 
-    DataArrayView::ValueType viewData7(1);
+    DataTypes::ValueType viewData7(1);
     viewData7[0]=5.0;
     DataArrayView myView7(viewData7,viewShape);
 
     values.clear();
 
-    DataArrayView::ValueType viewData8(1);
+    DataTypes::ValueType viewData8(1);
     viewData8[0]=6.0;
     DataArrayView myView8(viewData8,viewShape);
     values.push_back(myView8);
@@ -4484,27 +4484,27 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
 
     // default value for Data1
-    DataArrayView::ValueType viewData1(1);
+    DataTypes::ValueType viewData1(1);
     viewData1[0]=0.0;
     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-    DataArrayView::ValueType viewData2(1);
+    DataTypes::ValueType viewData2(1);
     viewData2[0]=0.0;
     DataArrayView myView2(viewData2,viewShape);
     values.push_back(myView2);
 
     // value for tag "2" for Data1
-    DataArrayView::ValueType viewData5(1);
+    DataTypes::ValueType viewData5(1);
     viewData5[0]=0.0;
     DataArrayView myView5(viewData5,viewShape);
     values.push_back(myView5);
 
     // value for tag "3" for Data1
-    DataArrayView::ValueType viewData6(1);
+    DataTypes::ValueType viewData6(1);
     viewData6[0]=0.0;
     DataArrayView myView6(viewData6,viewShape);
     values.push_back(myView6);
@@ -4514,24 +4514,24 @@ void DataTaggedTestCase::testSetSlice() {
     values.clear();
 
     // default value for Data2
-    DataArrayView::ValueType viewData3(1);
+    DataTypes::ValueType viewData3(1);
     viewData3[0]=1.0;
     DataArrayView myView3(viewData3,viewShape);
 
     // value for tag "1" for Data2
-    DataArrayView::ValueType viewData4(1);
+    DataTypes::ValueType viewData4(1);
     viewData4[0]=2.0;
     DataArrayView myView4(viewData4,viewShape);
     values.push_back(myView4);
 
     // value for tag "2" for Data2
-    DataArrayView::ValueType viewData7(1);
+    DataTypes::ValueType viewData7(1);
     viewData7[0]=3.0;
     DataArrayView myView7(viewData7,viewShape);
     values.push_back(myView7);
 
     // value for tag "3" for Data2
-    DataArrayView::ValueType viewData8(1);
+    DataTypes::ValueType viewData8(1);
     viewData8[0]=4.0;
     DataArrayView myView8(viewData8,viewShape);
     values.push_back(myView8);
@@ -4540,7 +4540,7 @@ void DataTaggedTestCase::testSetSlice() {
 
     // full slice
 
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
 
     myData1.setSlice(&myData2, region);
 
@@ -4595,18 +4595,18 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value for Data1
-    DataArrayView::ValueType viewData1(3);
+    DataTypes::ValueType viewData1(3);
     for (int i=0;i<viewData1.size();i++) {
       viewData1[i]=0.0;
     }
     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-    DataArrayView::ValueType viewData2(3);
+    DataTypes::ValueType viewData2(3);
     for (int i=0;i<viewData2.size();i++) {
       viewData2[i]=0.0;
     }
@@ -4614,7 +4614,7 @@ void DataTaggedTestCase::testSetSlice() {
     values.push_back(myView2);
 
     // value for tag "2" for Data1
-    DataArrayView::ValueType viewData3(3);
+    DataTypes::ValueType viewData3(3);
     for (int i=0;i<viewData3.size();i++) {
       viewData3[i]=0.0;
     }
@@ -4622,7 +4622,7 @@ void DataTaggedTestCase::testSetSlice() {
     values.push_back(myView3);
 
     // value for tag "3" for Data1
-    DataArrayView::ValueType viewData4(3);
+    DataTypes::ValueType viewData4(3);
     for (int i=0;i<viewData4.size();i++) {
       viewData4[i]=0.0;
     }
@@ -4634,14 +4634,14 @@ void DataTaggedTestCase::testSetSlice() {
     values.clear();
 
     // default value for Data2
-    DataArrayView::ValueType viewData5(3);
+    DataTypes::ValueType viewData5(3);
     for (int i=0;i<viewData5.size();i++) {
       viewData5[i]=1.0;
     }
     DataArrayView myView5(viewData5,viewShape);
 
     // value for tag "1" for Data2
-    DataArrayView::ValueType viewData6(3);
+    DataTypes::ValueType viewData6(3);
     for (int i=0;i<viewData6.size();i++) {
       viewData6[i]=2.0;
     }
@@ -4649,7 +4649,7 @@ void DataTaggedTestCase::testSetSlice() {
     values.push_back(myView6);
 
     // value for tag "2" for Data2
-    DataArrayView::ValueType viewData7(3);
+    DataTypes::ValueType viewData7(3);
     for (int i=0;i<viewData7.size();i++) {
       viewData7[i]=3.0;
     }
@@ -4657,7 +4657,7 @@ void DataTaggedTestCase::testSetSlice() {
     values.push_back(myView7);
 
     // value for tag "3" for Data2
-    DataArrayView::ValueType viewData8(3);
+    DataTypes::ValueType viewData8(3);
     for (int i=0;i<viewData8.size();i++) {
       viewData8[i]=4.0;
     }
@@ -4671,7 +4671,7 @@ void DataTaggedTestCase::testSetSlice() {
     std::pair<int, int> region_element;
     region_element.first=0;
     region_element.second=3;
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
     region.push_back(region_element);
 
     myData1.setSlice(&myData2, region);
@@ -4727,23 +4727,23 @@ void DataTaggedTestCase::testSetSlice() {
     viewShape.clear();
     viewShape.push_back(1);
 
-    DataArrayView::ValueType viewData9(1);
+    DataTypes::ValueType viewData9(1);
     viewData9[0]=6.0;
     DataArrayView myView9(viewData9,viewShape);
 
     values.clear();
 
-    DataArrayView::ValueType viewData10(1);
+    DataTypes::ValueType viewData10(1);
     viewData10[0]=7.0;
     DataArrayView myView10(viewData10,viewShape);
     values.push_back(myView10);
 
-    DataArrayView::ValueType viewData11(1);
+    DataTypes::ValueType viewData11(1);
     viewData11[0]=8.0;
     DataArrayView myView11(viewData11,viewShape);
     values.push_back(myView11);
 
-    DataArrayView::ValueType viewData12(1);
+    DataTypes::ValueType viewData12(1);
     viewData12[0]=9.0;
     DataArrayView myView12(viewData12,viewShape);
     values.push_back(myView12);
@@ -4807,23 +4807,23 @@ void DataTaggedTestCase::testSetSlice() {
 
     viewShape.clear();
 
-    DataArrayView::ValueType viewData13(1);
+    DataTypes::ValueType viewData13(1);
     viewData13[0]=10.0;
     DataArrayView myView13(viewData13,viewShape);
 
     values.clear();
 
-    DataArrayView::ValueType viewData14(1);
+    DataTypes::ValueType viewData14(1);
     viewData14[0]=11.0;
     DataArrayView myView14(viewData14,viewShape);
     values.push_back(myView14);
 
-    DataArrayView::ValueType viewData15(2);
+    DataTypes::ValueType viewData15(2);
     viewData15[0]=12.0;
     DataArrayView myView15(viewData15,viewShape);
     values.push_back(myView15);
 
-    DataArrayView::ValueType viewData16(3);
+    DataTypes::ValueType viewData16(3);
     viewData16[0]=13.0;
     DataArrayView myView16(viewData16,viewShape);
     values.push_back(myView16);
@@ -4892,20 +4892,20 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
     viewShape.push_back(3);
     viewShape.push_back(3);
 
     // default value for Data1
-    DataArrayView::ValueType viewData1(27);
+    DataTypes::ValueType viewData1(27);
     for (int i=0;i<viewData1.size();i++) {
       viewData1[i]=0.0;
     }
     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-    DataArrayView::ValueType viewData2(27);
+    DataTypes::ValueType viewData2(27);
     for (int i=0;i<viewData2.size();i++) {
       viewData2[i]=0.0;
     }
@@ -4913,7 +4913,7 @@ void DataTaggedTestCase::testSetSlice() {
     values.push_back(myView2);
 
     // value for tag "2" for Data1
-    DataArrayView::ValueType viewData3(27);
+    DataTypes::ValueType viewData3(27);
     for (int i=0;i<viewData3.size();i++) {
       viewData3[i]=0.0;
     }
@@ -4921,7 +4921,7 @@ void DataTaggedTestCase::testSetSlice() {
     values.push_back(myView3);
 
     // value for tag "3" for Data1
-    DataArrayView::ValueType viewData4(27);
+    DataTypes::ValueType viewData4(27);
     for (int i=0;i<viewData4.size();i++) {
       viewData4[i]=0.0;
     }
@@ -4933,14 +4933,14 @@ void DataTaggedTestCase::testSetSlice() {
     values.clear();
 
     // default value for Data2
-    DataArrayView::ValueType viewData5(27);
+    DataTypes::ValueType viewData5(27);
     for (int i=0;i<viewData5.size();i++) {
       viewData5[i]=1.0;
     }
     DataArrayView myView5(viewData5,viewShape);
 
     // value for tag "1" for Data2
-    DataArrayView::ValueType viewData6(27);
+    DataTypes::ValueType viewData6(27);
     for (int i=0;i<viewData6.size();i++) {
       viewData6[i]=2.0;
     }
@@ -4948,7 +4948,7 @@ void DataTaggedTestCase::testSetSlice() {
     values.push_back(myView6);
 
     // value for tag "2" for Data2
-    DataArrayView::ValueType viewData7(27);
+    DataTypes::ValueType viewData7(27);
     for (int i=0;i<viewData7.size();i++) {
       viewData7[i]=3.0;
     }
@@ -4956,7 +4956,7 @@ void DataTaggedTestCase::testSetSlice() {
     values.push_back(myView7);
 
     // value for tag "3" for Data2
-    DataArrayView::ValueType viewData8(27);
+    DataTypes::ValueType viewData8(27);
     for (int i=0;i<viewData8.size();i++) {
       viewData8[i]=4.0;
     }
@@ -4970,7 +4970,7 @@ void DataTaggedTestCase::testSetSlice() {
     std::pair<int, int> region_element;
     region_element.first=0;
     region_element.second=3;
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
     region.push_back(region_element);
     region.push_back(region_element);
     region.push_back(region_element);
@@ -5028,7 +5028,7 @@ void DataTaggedTestCase::testSetSlice() {
     viewShape.clear();
     viewShape.push_back(3);
 
-    DataArrayView::ValueType viewData9(3);
+    DataTypes::ValueType viewData9(3);
     for (int i=0;i<viewData9.size();i++) {
       viewData9[i]=6.0;
     }
@@ -5036,21 +5036,21 @@ void DataTaggedTestCase::testSetSlice() {
 
     values.clear();
 
-    DataArrayView::ValueType viewData10(3);
+    DataTypes::ValueType viewData10(3);
     for (int i=0;i<viewData10.size();i++) {
       viewData10[i]=7.0;
     }
     DataArrayView myView10(viewData10,viewShape);
     values.push_back(myView10);
 
-    DataArrayView::ValueType viewData11(3);
+    DataTypes::ValueType viewData11(3);
     for (int i=0;i<viewData11.size();i++) {
       viewData11[i]=8.0;
     }
     DataArrayView myView11(viewData11,viewShape);
     values.push_back(myView11);
 
-    DataArrayView::ValueType viewData12(3);
+    DataTypes::ValueType viewData12(3);
     for (int i=0;i<viewData12.size();i++) {
       viewData12[i]=9.0;
     }
@@ -5119,23 +5119,23 @@ void DataTaggedTestCase::testSetSlice() {
 
     viewShape.clear();
 
-    DataArrayView::ValueType viewData13(1);
+    DataTypes::ValueType viewData13(1);
     viewData13[0]=10.0;
     DataArrayView myView13(viewData13,viewShape);
 
     values.clear();
 
-    DataArrayView::ValueType viewData14(1);
+    DataTypes::ValueType viewData14(1);
     viewData14[0]=11.0;
     DataArrayView myView14(viewData14,viewShape);
     values.push_back(myView14);
 
-    DataArrayView::ValueType viewData15(2);
+    DataTypes::ValueType viewData15(2);
     viewData15[0]=12.0;
     DataArrayView myView15(viewData15,viewShape);
     values.push_back(myView15);
 
-    DataArrayView::ValueType viewData16(3);
+    DataTypes::ValueType viewData16(3);
     viewData16[0]=13.0;
     DataArrayView myView16(viewData16,viewShape);
     values.push_back(myView16);
@@ -5203,27 +5203,27 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
 
     // default value for Data1
-    DataArrayView::ValueType viewData1(1);
+    DataTypes::ValueType viewData1(1);
     viewData1[0]=0.0;
     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-    DataArrayView::ValueType viewData2(1);
+    DataTypes::ValueType viewData2(1);
     viewData2[0]=0.0;
     DataArrayView myView2(viewData2,viewShape);
     values.push_back(myView2);
 
     // value for tag "2" for Data1
-    DataArrayView::ValueType viewData5(1);
+    DataTypes::ValueType viewData5(1);
     viewData5[0]=0.0;
     DataArrayView myView5(viewData5,viewShape);
     values.push_back(myView5);
 
     // value for tag "3" for Data1
-    DataArrayView::ValueType viewData6(1);
+    DataTypes::ValueType viewData6(1);
     viewData6[0]=0.0;
     DataArrayView myView6(viewData6,viewShape);
     values.push_back(myView6);
@@ -5233,24 +5233,24 @@ void DataTaggedTestCase::testSetSlice() {
     values.clear();
 
     // default value for Data2
-    DataArrayView::ValueType viewData3(1);
+    DataTypes::ValueType viewData3(1);
     viewData3[0]=1.0;
     DataArrayView myView3(viewData3,viewShape);
 
     // value for tag "3" for Data2
-    DataArrayView::ValueType viewData4(1);
+    DataTypes::ValueType viewData4(1);
     viewData4[0]=2.0;
     DataArrayView myView4(viewData4,viewShape);
     values.push_back(myView4);
 
     // value for tag "4" for Data2
-    DataArrayView::ValueType viewData7(1);
+    DataTypes::ValueType viewData7(1);
     viewData7[0]=3.0;
     DataArrayView myView7(viewData7,viewShape);
     values.push_back(myView7);
 
     // value for tag "5" for Data2
-    DataArrayView::ValueType viewData8(1);
+    DataTypes::ValueType viewData8(1);
     viewData8[0]=4.0;
     DataArrayView myView8(viewData8,viewShape);
     values.push_back(myView8);
@@ -5262,7 +5262,7 @@ void DataTaggedTestCase::testSetSlice() {
 
     // full slice
 
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
 
     myData1.setSlice(&myData2, region);
 

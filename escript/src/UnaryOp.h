@@ -21,6 +21,7 @@
 #include "DataConstant.h"
 #include "DataTagged.h"
 #include "DataExpanded.h"
+#include "DataTypes.h"
 
 namespace escript {
 
@@ -41,8 +42,8 @@ unaryOp(DataExpanded& data,
         UnaryFunction operation)
 {
   int i,j;
-  DataArrayView::ValueType::size_type numDPPSample=data.getNumDPPSample();
-  DataArrayView::ValueType::size_type numSamples=data.getNumSamples();
+  DataTypes::ValueType::size_type numDPPSample=data.getNumDPPSample();
+  DataTypes::ValueType::size_type numSamples=data.getNumSamples();
   #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<numSamples;i++) {
     for (j=0;j<numDPPSample;j++) {

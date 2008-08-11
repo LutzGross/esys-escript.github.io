@@ -51,16 +51,16 @@ void DataTestCase::testSlicing() {
 
     cout << "\tTest get-slicing DataConstant" << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(2);
     viewShape.push_back(3);
     Data data(1.3,viewShape,FunctionSpace(),false);
 
     //cout << data.toString() << endl;
 
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(0,0));
-    region.push_back(DataArrayView::RegionType::value_type(0,0));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(0,0));
+    region.push_back(DataTypes::RegionType::value_type(0,0));
 
     Data slice1(data.getSlice(region));
 
@@ -70,8 +70,8 @@ void DataTestCase::testSlicing() {
     assert(slice1.getDataPoint(0,0)()==1.3);
 
     region.clear();
-    region.push_back(DataArrayView::RegionType::value_type(0,1));
-    region.push_back(DataArrayView::RegionType::value_type(0,1));
+    region.push_back(DataTypes::RegionType::value_type(0,1));
+    region.push_back(DataTypes::RegionType::value_type(0,1));
 
     Data slice2(data.getSlice(region));
 
@@ -81,8 +81,8 @@ void DataTestCase::testSlicing() {
     assert(slice2.getDataPoint(0,0)(0,0)==1.3);
 
     region.clear();
-    region.push_back(DataArrayView::RegionType::value_type(0,1));
-    region.push_back(DataArrayView::RegionType::value_type(0,2));
+    region.push_back(DataTypes::RegionType::value_type(0,1));
+    region.push_back(DataTypes::RegionType::value_type(0,2));
 
     Data slice3(data.getSlice(region));
 
@@ -98,7 +98,7 @@ void DataTestCase::testSlicing() {
 
     cout << "\tTest set-slicing DataConstant" << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     Data source(10.0,viewShape,FunctionSpace(),false);
 
     //cout << source.toString() << endl;
@@ -109,9 +109,9 @@ void DataTestCase::testSlicing() {
 
     //cout << target.toString() << endl;
 
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(0,0));
-    region.push_back(DataArrayView::RegionType::value_type(0,0));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(0,0));
+    region.push_back(DataTypes::RegionType::value_type(0,0));
 
     target.setSlice(source,region);
 
@@ -128,7 +128,7 @@ void DataTestCase::testSlicing() {
     //
     // create a DataTagged with a default value only
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(2);
     viewShape.push_back(3);
     Data data(1.3,viewShape,FunctionSpace(),false);
@@ -141,9 +141,9 @@ void DataTestCase::testSlicing() {
     //
     // create a scalar slice
 
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(0,0));
-    region.push_back(DataArrayView::RegionType::value_type(0,0));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(0,0));
+    region.push_back(DataTypes::RegionType::value_type(0,0));
 
     Data slice1(data.getSlice(region));
 
@@ -157,8 +157,8 @@ void DataTestCase::testSlicing() {
     // create a rank 2 slice with one value
 
     region.clear();
-    region.push_back(DataArrayView::RegionType::value_type(0,1));
-    region.push_back(DataArrayView::RegionType::value_type(0,1));
+    region.push_back(DataTypes::RegionType::value_type(0,1));
+    region.push_back(DataTypes::RegionType::value_type(0,1));
 
     Data slice2(data.getSlice(region));
 
@@ -172,8 +172,8 @@ void DataTestCase::testSlicing() {
     // create a rank 2 slice with four values
 
     region.clear();
-    region.push_back(DataArrayView::RegionType::value_type(0,2));
-    region.push_back(DataArrayView::RegionType::value_type(0,2));
+    region.push_back(DataTypes::RegionType::value_type(0,2));
+    region.push_back(DataTypes::RegionType::value_type(0,2));
 
     Data slice3(data.getSlice(region));
 
@@ -189,7 +189,7 @@ void DataTestCase::testSlicing() {
     //
     // add a value for tag "1"
 
-    DataArrayView::ValueType viewData(6);
+    DataTypes::ValueType viewData(6);
     for (int i=0;i<viewData.size();i++) {
       viewData[i]=i;
     }
@@ -201,8 +201,8 @@ void DataTestCase::testSlicing() {
     // create a full slice
 
     region.clear();
-    region.push_back(DataArrayView::RegionType::value_type(0,2));
-    region.push_back(DataArrayView::RegionType::value_type(0,3));
+    region.push_back(DataTypes::RegionType::value_type(0,2));
+    region.push_back(DataTypes::RegionType::value_type(0,3));
 
     Data slice4(data.getSlice(region));
 
@@ -226,7 +226,7 @@ void DataTestCase::testSlicing() {
     //
     // create a source DataTagged with a scalar default value only
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     Data source(10.0,viewShape,FunctionSpace(),false);
     source.tag();
 
@@ -245,9 +245,9 @@ void DataTestCase::testSlicing() {
     //
     // set a slice in target from source
 
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(1,1));
-    region.push_back(DataArrayView::RegionType::value_type(1,1));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(1,1));
+    region.push_back(DataTypes::RegionType::value_type(1,1));
 
     target.setSlice(source,region);
 
@@ -265,7 +265,7 @@ void DataTestCase::testSlicing() {
     //
     // add a value for tag "1" to target
 
-    DataArrayView::ValueType viewData(6);
+    DataTypes::ValueType viewData(6);
     for (int i=0;i<viewData.size();i++) {
       viewData[i]=i;
     }
@@ -279,8 +279,8 @@ void DataTestCase::testSlicing() {
     // set a slice in target from source
 
     region.clear();
-    region.push_back(DataArrayView::RegionType::value_type(0,0));
-    region.push_back(DataArrayView::RegionType::value_type(1,1));
+    region.push_back(DataTypes::RegionType::value_type(0,0));
+    region.push_back(DataTypes::RegionType::value_type(1,1));
 
     target.setSlice(source,region);
 
@@ -298,8 +298,8 @@ void DataTestCase::testSlicing() {
     //
     // add a value for tag "2" to source
 
-    DataArrayView::ShapeType viewShape2;
-    DataArrayView::ValueType viewData2(1);
+    DataTypes::ShapeType viewShape2;
+    DataTypes::ValueType viewData2(1);
     viewData2[0]=6;
     DataArrayView dataView2(viewData2,viewShape2);
 
@@ -311,8 +311,8 @@ void DataTestCase::testSlicing() {
     // set a slice in target from source
 
     region.clear();
-    region.push_back(DataArrayView::RegionType::value_type(0,0));
-    region.push_back(DataArrayView::RegionType::value_type(1,1));
+    region.push_back(DataTypes::RegionType::value_type(0,0));
+    region.push_back(DataTypes::RegionType::value_type(1,1));
 
     target.setSlice(source,region);
 
@@ -352,7 +352,7 @@ void DataTestCase::testSlicing() {
 
     cout << "\tTest get-slicing DataExpanded" << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(2);
     viewShape.push_back(3);
     Data temp(1.3,viewShape,FunctionSpace(),true);
@@ -360,9 +360,9 @@ void DataTestCase::testSlicing() {
     temp.getDataPoint(0,0)(0,0)=0.0;
     temp.getDataPoint(0,0)(1,1)=1.0;
 
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(0,0));
-    region.push_back(DataArrayView::RegionType::value_type(0,0));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(0,0));
+    region.push_back(DataTypes::RegionType::value_type(0,0));
 
     Data slice(temp.getSlice(region));
 
@@ -370,8 +370,8 @@ void DataTestCase::testSlicing() {
     assert(slice.getDataPoint(0,0)()==0.0);
 
     region.clear();
-    region.push_back(DataArrayView::RegionType::value_type(0,1));
-    region.push_back(DataArrayView::RegionType::value_type(0,1));
+    region.push_back(DataTypes::RegionType::value_type(0,1));
+    region.push_back(DataTypes::RegionType::value_type(0,1));
 
     slice=temp.getSlice(region);
 
@@ -379,8 +379,8 @@ void DataTestCase::testSlicing() {
     assert(slice.getDataPoint(0,0)(0,0)==0.0);
 
     region.clear();
-    region.push_back(DataArrayView::RegionType::value_type(0,2));
-    region.push_back(DataArrayView::RegionType::value_type(0,2));
+    region.push_back(DataTypes::RegionType::value_type(0,2));
+    region.push_back(DataTypes::RegionType::value_type(0,2));
 
     slice=temp.getSlice(region);
 
@@ -393,16 +393,16 @@ void DataTestCase::testSlicing() {
 
     cout << "\tTest set-slicing DataExpanded" << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     Data source(10.0,viewShape,FunctionSpace(),true);
 
     viewShape.push_back(2);
     viewShape.push_back(3);
     Data target(1.3,viewShape,FunctionSpace(),true);
 
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(0,0));
-    region.push_back(DataArrayView::RegionType::value_type(0,0));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(0,0));
+    region.push_back(DataTypes::RegionType::value_type(0,0));
 
     target.setSlice(source,region);
 
@@ -418,9 +418,9 @@ void DataTestCase::testAll() {
 
   cout << "\tCreate a Data object from a DataArrayView" << endl;
 
-  DataArrayView::ShapeType viewShape;
+  DataTypes::ShapeType viewShape;
   viewShape.push_back(3);
-  DataArrayView::ValueType viewData(3);
+  DataTypes::ValueType viewData(3);
   for (int i=0;i<viewShape[0];++i) {
     viewData[i]=i;
   }
@@ -447,9 +447,9 @@ void DataTestCase::testMore() {
 
   cout << "\tCreate a Data object from a DataArrayView" << endl;
 
-  DataArrayView::ShapeType viewShape;
+  DataTypes::ShapeType viewShape;
   viewShape.push_back(3);
-  DataArrayView::ValueType viewData(3);
+  DataTypes::ValueType viewData(3);
   for (int i=0;i<viewShape[0];++i) {
     viewData[i]=i;
   }
@@ -491,11 +491,11 @@ void DataTestCase::testDataConstant() {
 
   cout << "\tCreate a DataConstant object from a DataArrayView" << endl;
 
-  DataArrayView::ShapeType viewShape;
+  DataTypes::ShapeType viewShape;
   viewShape.push_back(2);
   viewShape.push_back(3);
   viewShape.push_back(4);
-  DataArrayView::ValueType viewData(2*3*4);
+  DataTypes::ValueType viewData(2*3*4);
   for (int i=0;i<DataArrayView::noValues(viewShape);++i) {
     viewData[i]=i;
   }
@@ -536,10 +536,10 @@ void DataTestCase::testDataTagged() {
 
     DataTagged::ValueListType values;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
-    DataArrayView::ValueType viewData(3);
+    DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -591,7 +591,7 @@ void DataTestCase::testDataTagged() {
     cout << "\tTest setting of a tag and associated value." << endl;
 
     // value for tag "1"
-    DataArrayView::ValueType eTwoData(viewData);
+    DataTypes::ValueType eTwoData(viewData);
     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<eTwoView.getShape()[0];i++) {
       eTwoView(i)=i+2.0;
@@ -623,7 +623,7 @@ void DataTestCase::testDataTagged() {
 
     cout << "\tCreate a DataTagged object via tag() method." << endl;
 
-    DataArrayView::ShapeType viewShape;
+    DataTypes::ShapeType viewShape;
     viewShape.push_back(2);
     viewShape.push_back(3);
     Data myData(1.3,viewShape,FunctionSpace(),false);
@@ -702,7 +702,7 @@ void DataTestCase::testConstructors() {
 
   cout << endl;
 
-  DataArrayView::ShapeType viewShape;
+  DataTypes::ShapeType viewShape;
   {
     cout << "\tCreate an Empty Data object" << endl;
     Data temp(1.3,viewShape,FunctionSpace(),false);
@@ -720,12 +720,12 @@ void DataTestCase::testOperations() {
   cout << endl;
 
   // define the shape for the DataArrayView test data
-  DataArrayView::ShapeType shape;
+  DataTypes::ShapeType shape;
   shape.push_back(2);
   shape.push_back(3);
 
   // allocate the data for the DataArrayView
-  DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
+  DataTypes::ValueType data(DataArrayView::noValues(shape),0);
 
   // construct DataArrayView
   DataArrayView dataView(data,shape);
@@ -1004,11 +1004,11 @@ void DataTestCase::testMemAlloc() {
 
   Data *testData;
   for (int i=0; i<1000; i++) {
-    testData = new Data(0.0, DataArrayView::ShapeType(), FunctionSpace(), true);
+    testData = new Data(0.0, DataTypes::ShapeType(), FunctionSpace(), true);
     delete testData;
   }
 
-  DataArrayView::ShapeType viewShape;
+  DataTypes::ShapeType viewShape;
   viewShape.push_back(10);
   viewShape.push_back(10);
   viewShape.push_back(10);

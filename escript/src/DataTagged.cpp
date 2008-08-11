@@ -33,7 +33,7 @@ DataTagged::DataTagged()
 
   // create a scalar default value
   m_data.resize(1,0.,1);
-  DataArrayView temp(m_data,DataArrayView::ShapeType());
+  DataArrayView temp(m_data,DataTypes::ShapeType());
   setPointDataView(temp);
 }
 
@@ -62,7 +62,7 @@ DataTagged::DataTagged(const TagListType& tagKeys,
 }
 
 DataTagged::DataTagged(const FunctionSpace& what,
-                       const DataArrayView::ShapeType &shape,
+                       const DataTypes::ShapeType &shape,
                        const int tags[],
                        const ValueType& data)
   : DataAbstract(what)
@@ -84,7 +84,7 @@ DataTagged::DataTagged(const FunctionSpace& what,
 }
 
 DataTagged::DataTagged(const FunctionSpace& what,
-                       const DataArrayView::ShapeType &shape,
+                       const DataTypes::ShapeType &shape,
                        const TagListType& tags,
                        const ValueType& data)
   : DataAbstract(what)
@@ -137,20 +137,20 @@ DataTagged::DataTagged(const DataConstant& other)
 }
 
 DataAbstract*
-DataTagged::getSlice(const DataArrayView::RegionType& region) const 
+DataTagged::getSlice(const DataTypes::RegionType& region) const 
 {
   return new DataTagged(*this, region);
 }
 
 DataTagged::DataTagged(const DataTagged& other, 
-		       const DataArrayView::RegionType& region)
+		       const DataTypes::RegionType& region)
   : DataAbstract(other.getFunctionSpace())
 {
   // slice constructor
 
   // get the shape of the slice to copy from other
-  DataArrayView::ShapeType regionShape(DataArrayView::getResultSliceShape(region));
-  DataArrayView::RegionLoopRangeType regionLoopRange=getSliceRegionLoopRange(region);
+  DataTypes::ShapeType regionShape(DataArrayView::getResultSliceShape(region));
+  DataTypes::RegionLoopRangeType regionLoopRange=getSliceRegionLoopRange(region);
 
   // allocate enough space in this for all values
   // (need to add one to allow for the default value)
@@ -166,7 +166,7 @@ DataTagged::DataTagged(const DataTagged& other,
 
   // loop through the tag values copying these
   DataMapType::const_iterator pos;
-  DataArrayView::ValueType::size_type tagOffset=getPointDataView().noValues();
+  DataTypes::ValueType::size_type tagOffset=getPointDataView().noValues();
   for (pos=other.m_offsetLookup.begin();pos!=other.m_offsetLookup.end();pos++){
     getPointDataView().copySlice(tagOffset,other.getPointDataView(),pos->second,regionLoopRange);
     m_offsetLookup.insert(DataMapType::value_type(pos->first,tagOffset));
@@ -176,7 +176,7 @@ DataTagged::DataTagged(const DataTagged& other,
 
 void
 DataTagged::setSlice(const DataAbstract* other,
-                     const DataArrayView::RegionType& region)
+                     const DataTypes::RegionType& region)
 {
 
   // other must be another DataTagged object
@@ -187,10 +187,10 @@ DataTagged::setSlice(const DataAbstract* other,
   }
 
   // determine shape of the specified region
-  DataArrayView::ShapeType regionShape(DataArrayView::getResultSliceShape(region));
+  DataTypes::ShapeType regionShape(DataArrayView::getResultSliceShape(region));
 
   // modify region specification as needed to match rank of this object
-  DataArrayView::RegionLoopRangeType regionLoopRange=getSliceRegionLoopRange(region);
+  DataTypes::RegionLoopRangeType regionLoopRange=getSliceRegionLoopRange(region);
 
   // ensure rank/shape of this object is compatible with specified region
   if (getPointDataView().getRank()!=region.size()) {
@@ -370,13 +370,13 @@ DataTagged::toString() const
   return temp.str();
 }
 
-DataArrayView::ValueType::size_type 
+DataTypes::ValueType::size_type 
 DataTagged::getPointOffset(int sampleNo,
                            int dataPointNo) const
 {
   int tagKey=getFunctionSpace().getTagFromSampleNo(sampleNo);
   DataMapType::const_iterator pos(m_offsetLookup.find(tagKey));
-  DataArrayView::ValueType::size_type offset=m_defaultValueOffset;
+  DataTypes::ValueType::size_type offset=m_defaultValueOffset;
   if (pos!=m_offsetLookup.end()) {
     offset=pos->second;
   }
@@ -387,7 +387,7 @@ DataArrayView
 DataTagged::getDataPointByTag(int tag) const
 {
   DataMapType::const_iterator pos(m_offsetLookup.find(tag));
-  DataArrayView::ValueType::size_type offset=m_defaultValueOffset;
+  DataTypes::ValueType::size_type offset=m_defaultValueOffset;
   if (pos!=m_offsetLookup.end()) {
     offset=pos->second;
   }
@@ -407,14 +407,14 @@ DataTagged::getDataPoint(int sampleNo,
 
 int
 DataTagged::archiveData(ofstream& archiveFile,
-                        const DataArrayView::ValueType::size_type noValues) const
+                        const DataTypes::ValueType::size_type noValues) const
 {
   return(m_data.archiveData(archiveFile, noValues));
 }
 
 int
 DataTagged::extractData(ifstream& archiveFile,
-                        const DataArrayView::ValueType::size_type noValues)
+                        const DataTypes::ValueType::size_type noValues)
 {
   return(m_data.extractData(archiveFile, noValues));
 }
@@ -561,7 +561,7 @@ DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const 
 
 void
 DataTagged::setToZero(){
-    DataArrayView::ValueType::size_type n=m_data.size();
+    DataTypes::ValueType::size_type n=m_data.size();
     for (int i=0; i<n ;++i) m_data[i]=0.;
 }
 
@@ -572,7 +572,7 @@ DataTagged::dump(const std::string fileName) const
    throw DataException("Error - DataTagged:: dump is not implemented for MPI yet.");
    #endif
    #ifdef USE_NETCDF
-   const int ldims=DataArrayView::maxRank+1;
+   const int ldims=DataTypes::maxRank+1;
    const NcDim* ncdims[ldims];
    NcVar *var, *tags_var;
    int rank = getPointDataView().getRank();
@@ -580,7 +580,7 @@ DataTagged::dump(const std::string fileName) const
    int ndims =0;
    long dims[ldims];
    const double* d_ptr=&(m_data[0]);
-   DataArrayView::ShapeType shape = getPointDataView().getShape();
+   DataTypes::ShapeType shape = getPointDataView().getShape();
 
    // netCDF error handler
    NcError err(NcError::verbose_nonfatal);

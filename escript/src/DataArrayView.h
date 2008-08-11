@@ -22,6 +22,7 @@
 #include "DataException.h"
 #include "DataVector.h"
 #include "LocalOps.h"
+#include "DataTypes.h"
 
 #include <boost/python/numeric.hpp>
 #include <boost/python/object.hpp>
@@ -56,14 +57,14 @@ class DataArrayView {
 
  public:
 
-  //
-  // Some basic types which define the data values and view shapes.
-  typedef DataVector                        ValueType;
-  //typedef std::vector<double>               ValueType;
-  typedef std::vector<int>                  ShapeType;
-  typedef std::vector<std::pair<int, int> > RegionType;
-  typedef std::vector<std::pair<int, int> > RegionLoopRangeType;
-  static const int maxRank=4;
+//   //
+//   // Some basic types which define the data values and view shapes.
+//   typedef DataVector                        ValueType;
+//   //typedef std::vector<double>               ValueType;
+//   typedef std::vector<int>                  ShapeType;
+//   typedef std::vector<std::pair<int, int> > RegionType;
+//   typedef std::vector<std::pair<int, int> > RegionLoopRangeType;
+//   static const int maxRank=4;
 
   /**
      \brief
@@ -95,8 +96,8 @@ class DataArrayView {
                 Offset into the data at which view should start.
   */
   ESCRIPT_DLL_API
-  DataArrayView(ValueType& data,
-                const ShapeType& viewShape,
+  DataArrayView(DataTypes::ValueType& data,
+                const DataTypes::ShapeType& viewShape,
                 int offset=0);
 
   /**
@@ -169,7 +170,7 @@ class DataArrayView {
   */
   ESCRIPT_DLL_API
   void
-  copy(ValueType::size_type offset,
+  copy(DataTypes::ValueType::size_type offset,
        const DataArrayView& other);
 
   /**
@@ -188,9 +189,9 @@ class DataArrayView {
   */
   ESCRIPT_DLL_API
   void
-  copy(ValueType::size_type thisOffset,
+  copy(DataTypes::ValueType::size_type thisOffset,
        const DataArrayView& other,
-       ValueType::size_type otherOffset);
+       DataTypes::ValueType::size_type otherOffset);
 
   /**
      \brief
@@ -204,8 +205,8 @@ class DataArrayView {
   */
   ESCRIPT_DLL_API
   void
-  copy(ValueType::size_type offset,
-       ValueType::value_type value);
+  copy(DataTypes::ValueType::size_type offset,
+       DataTypes::ValueType::value_type value);
 
   /**
      \brief
@@ -220,7 +221,7 @@ class DataArrayView {
     Return this view's offset into the viewed data array.
   */
   ESCRIPT_DLL_API
-  ValueType::size_type
+  DataTypes::ValueType::size_type
   getOffset() const;
 
   /**
@@ -232,7 +233,7 @@ class DataArrayView {
   */
   ESCRIPT_DLL_API
   void
-  setOffset(ValueType::size_type offset);
+  setOffset(DataTypes::ValueType::size_type offset);
 
   /**
      \brief
@@ -255,7 +256,7 @@ class DataArrayView {
 
   ESCRIPT_DLL_API
   bool
-  checkOffset(ValueType::size_type offset) const;
+  checkOffset(DataTypes::ValueType::size_type offset) const;
 
   /**
     \brief
@@ -281,19 +282,19 @@ class DataArrayView {
   ESCRIPT_DLL_API
   static
   int
-  noValues(const ShapeType& shape);
+  noValues(const DataTypes::ShapeType& shape);
 
   ESCRIPT_DLL_API
   static
   int
-  noValues(const RegionLoopRangeType& region);
+  noValues(const DataTypes::RegionLoopRangeType& region);
 
   /**
      \brief
      Return a reference to the underlying data array.
   */
   ESCRIPT_DLL_API
-  ValueType&
+  DataTypes::ValueType&
   getData() const;
 
   /**
@@ -302,8 +303,8 @@ class DataArrayView {
      index in this view. This takes into account the offset.
   */
   ESCRIPT_DLL_API
-  ValueType::reference
-  getData(ValueType::size_type i) const;
+  DataTypes::ValueType::reference
+  getData(DataTypes::ValueType::size_type i) const;
 
   /**
      \brief
@@ -311,7 +312,7 @@ class DataArrayView {
   */
   ESCRIPT_DLL_API
   const
-  ShapeType&
+  DataTypes::ShapeType&
   getShape() const;
 
   /**
@@ -320,7 +321,7 @@ class DataArrayView {
   */
   ESCRIPT_DLL_API
   bool
-  checkShape(const ShapeType& other) const;
+  checkShape(const DataTypes::ShapeType& other) const;
 
   /**
      \brief
@@ -335,7 +336,7 @@ class DataArrayView {
   ESCRIPT_DLL_API
   std::string
   createShapeErrorMessage(const std::string& messagePrefix,
-                          const ShapeType& other) const;
+                          const DataTypes::ShapeType& other) const;
 
   /**
      \brief
@@ -359,7 +360,7 @@ class DataArrayView {
   ESCRIPT_DLL_API
   static
   std::string
-  shapeToString(const ShapeType& shape);
+  shapeToString(const DataTypes::ShapeType& shape);
 
   /**
     \brief
@@ -368,7 +369,7 @@ class DataArrayView {
     Assumes a rank 0 view.
   */
   ESCRIPT_DLL_API
-  ValueType::size_type
+  DataTypes::ValueType::size_type
   relIndex() const;
 
   /**
@@ -378,8 +379,8 @@ class DataArrayView {
     Assumes a rank 1 view.
   */
   ESCRIPT_DLL_API
-  ValueType::size_type
-  relIndex(ValueType::size_type i) const;
+  DataTypes::ValueType::size_type
+  relIndex(DataTypes::ValueType::size_type i) const;
 
   /**
     \brief
@@ -388,9 +389,9 @@ class DataArrayView {
     Assumes a rank 2 view.
   */
   ESCRIPT_DLL_API
-  ValueType::size_type
-  relIndex(ValueType::size_type i,
-           ValueType::size_type j) const;
+  DataTypes::ValueType::size_type
+  relIndex(DataTypes::ValueType::size_type i,
+           DataTypes::ValueType::size_type j) const;
 
   /**
     \brief
@@ -399,10 +400,10 @@ class DataArrayView {
     Assumes a rank 3 view.
   */
   ESCRIPT_DLL_API
-  ValueType::size_type
-  relIndex(ValueType::size_type i,
-           ValueType::size_type j,
-           ValueType::size_type k) const;
+  DataTypes::ValueType::size_type
+  relIndex(DataTypes::ValueType::size_type i,
+           DataTypes::ValueType::size_type j,
+           DataTypes::ValueType::size_type k) const;
 
   /**
     \brief
@@ -411,11 +412,11 @@ class DataArrayView {
     Assumes a rank 4 view.
   */
   ESCRIPT_DLL_API
-  ValueType::size_type
-  relIndex(ValueType::size_type i,
-           ValueType::size_type j,
-           ValueType::size_type k,
-           ValueType::size_type m) const;
+  DataTypes::ValueType::size_type
+  relIndex(DataTypes::ValueType::size_type i,
+           DataTypes::ValueType::size_type j,
+           DataTypes::ValueType::size_type k,
+           DataTypes::ValueType::size_type m) const;
 
   /**
     \brief
@@ -424,7 +425,7 @@ class DataArrayView {
     Assumes a rank 0 view.
   */
   ESCRIPT_DLL_API
-  ValueType::size_type
+  DataTypes::ValueType::size_type
   index() const;
 
   /**
@@ -434,8 +435,8 @@ class DataArrayView {
     Assumes a rank 1 view.
   */
   ESCRIPT_DLL_API
-  ValueType::size_type
-  index(ValueType::size_type i) const;
+  DataTypes::ValueType::size_type
+  index(DataTypes::ValueType::size_type i) const;
 
   /**
     \brief
@@ -444,9 +445,9 @@ class DataArrayView {
     Assumes a rank 2 view.
   */
   ESCRIPT_DLL_API
-  ValueType::size_type
-  index(ValueType::size_type i,
-        ValueType::size_type j) const;
+  DataTypes::ValueType::size_type
+  index(DataTypes::ValueType::size_type i,
+        DataTypes::ValueType::size_type j) const;
 
   /**
     \brief
@@ -455,10 +456,10 @@ class DataArrayView {
     Assumes a rank 3 view.
   */
   ESCRIPT_DLL_API
-  ValueType::size_type
-  index(ValueType::size_type i,
-        ValueType::size_type j,
-        ValueType::size_type k) const;
+  DataTypes::ValueType::size_type
+  index(DataTypes::ValueType::size_type i,
+        DataTypes::ValueType::size_type j,
+        DataTypes::ValueType::size_type k) const;
 
   /**
     \brief
@@ -467,11 +468,11 @@ class DataArrayView {
     Assumes a rank 4 view.
   */
   ESCRIPT_DLL_API
-  ValueType::size_type
-  index(ValueType::size_type i,
-        ValueType::size_type j,
-        ValueType::size_type k,
-        ValueType::size_type m) const;
+  DataTypes::ValueType::size_type
+  index(DataTypes::ValueType::size_type i,
+        DataTypes::ValueType::size_type j,
+        DataTypes::ValueType::size_type k,
+        DataTypes::ValueType::size_type m) const;
 
   /**
     \brief
@@ -479,11 +480,11 @@ class DataArrayView {
     Assumes a rank 0 view.
   */
   ESCRIPT_DLL_API
-  ValueType::reference
+  DataTypes::ValueType::reference
   operator()();
 
   ESCRIPT_DLL_API
-  ValueType::const_reference
+  DataTypes::ValueType::const_reference
   operator()() const;
 
   /**
@@ -492,12 +493,12 @@ class DataArrayView {
     Assumes a rank 1 view.
   */
   ESCRIPT_DLL_API
-  ValueType::reference
-  operator()(ValueType::size_type i);
+  DataTypes::ValueType::reference
+  operator()(DataTypes::ValueType::size_type i);
 
   ESCRIPT_DLL_API
-  ValueType::const_reference
-  operator()(ValueType::size_type i) const;
+  DataTypes::ValueType::const_reference
+  operator()(DataTypes::ValueType::size_type i) const;
 
   /**
     \brief
@@ -505,14 +506,14 @@ class DataArrayView {
     Assumes a rank 2 view.
   */
   ESCRIPT_DLL_API
-  ValueType::reference
-  operator()(ValueType::size_type i,
-             ValueType::size_type j);
+  DataTypes::ValueType::reference
+  operator()(DataTypes::ValueType::size_type i,
+             DataTypes::ValueType::size_type j);
 
   ESCRIPT_DLL_API
-  ValueType::const_reference
-  operator()(ValueType::size_type i,
-             ValueType::size_type j) const;
+  DataTypes::ValueType::const_reference
+  operator()(DataTypes::ValueType::size_type i,
+             DataTypes::ValueType::size_type j) const;
 
   /**
     \brief
@@ -520,16 +521,16 @@ class DataArrayView {
     Assumes a rank 3 view.
   */
   ESCRIPT_DLL_API
-  ValueType::reference
-  operator()(ValueType::size_type i,
-             ValueType::size_type j,
-             ValueType::size_type k);
+  DataTypes::ValueType::reference
+  operator()(DataTypes::ValueType::size_type i,
+             DataTypes::ValueType::size_type j,
+             DataTypes::ValueType::size_type k);
 
   ESCRIPT_DLL_API
-  ValueType::const_reference
-  operator()(ValueType::size_type i,
-             ValueType::size_type j,
-             ValueType::size_type k) const;
+  DataTypes::ValueType::const_reference
+  operator()(DataTypes::ValueType::size_type i,
+             DataTypes::ValueType::size_type j,
+             DataTypes::ValueType::size_type k) const;
 
  /**
     \brief
@@ -537,18 +538,18 @@ class DataArrayView {
     Assumes a rank 4 view.
   */
   ESCRIPT_DLL_API
-  ValueType::reference
-  operator()(ValueType::size_type i,
-             ValueType::size_type j,
-             ValueType::size_type k,
-             ValueType::size_type m);
+  DataTypes::ValueType::reference
+  operator()(DataTypes::ValueType::size_type i,
+             DataTypes::ValueType::size_type j,
+             DataTypes::ValueType::size_type k,
+             DataTypes::ValueType::size_type m);
 
   ESCRIPT_DLL_API
-  ValueType::const_reference
-  operator()(ValueType::size_type i,
-             ValueType::size_type j,
-             ValueType::size_type k,
-             ValueType::size_type m) const;
+  DataTypes::ValueType::const_reference
+  operator()(DataTypes::ValueType::size_type i,
+             DataTypes::ValueType::size_type j,
+             DataTypes::ValueType::size_type k,
+             DataTypes::ValueType::size_type m) const;
 
   /**
      \brief
@@ -560,8 +561,8 @@ class DataArrayView {
   */
   ESCRIPT_DLL_API
   static
-  ShapeType
-  getResultSliceShape(const RegionType& region);
+  DataTypes::ShapeType
+  getResultSliceShape(const DataTypes::RegionType& region);
 
   /**
      \brief
@@ -618,7 +619,7 @@ class DataArrayView {
 
   */
   ESCRIPT_DLL_API
-  RegionType
+  DataTypes::RegionType
   getSliceRegion(const boost::python::object& key) const;
 
   /**
@@ -634,7 +635,7 @@ class DataArrayView {
   ESCRIPT_DLL_API
   void
   copySlice(const DataArrayView& other,
-            const RegionLoopRangeType& region);
+            const DataTypes::RegionLoopRangeType& region);
 
   /**
      \brief
@@ -652,10 +653,10 @@ class DataArrayView {
   */
   ESCRIPT_DLL_API
   void
-  copySlice(ValueType::size_type thisOffset,
+  copySlice(DataTypes::ValueType::size_type thisOffset,
             const DataArrayView& other,
-            ValueType::size_type otherOffset,
-            const RegionLoopRangeType& region);
+            DataTypes::ValueType::size_type otherOffset,
+            const DataTypes::RegionLoopRangeType& region);
 
   /**
      \brief
@@ -670,7 +671,7 @@ class DataArrayView {
   ESCRIPT_DLL_API
   void
   copySliceFrom(const DataArrayView& other,
-                const RegionLoopRangeType& region);
+                const DataTypes::RegionLoopRangeType& region);
 
   /**
      \brief
@@ -688,10 +689,10 @@ class DataArrayView {
   */
   ESCRIPT_DLL_API
   void
-  copySliceFrom(ValueType::size_type thisOffset,
+  copySliceFrom(DataTypes::ValueType::size_type thisOffset,
                 const DataArrayView& other,
-                ValueType::size_type otherOffset,
-                const RegionLoopRangeType& region);
+                DataTypes::ValueType::size_type otherOffset,
+                const DataTypes::RegionLoopRangeType& region);
 
   /**
      \brief
@@ -723,7 +724,7 @@ class DataArrayView {
   */
   template <class UnaryFunction>
   void
-  unaryOp(ValueType::size_type offset,
+  unaryOp(DataTypes::ValueType::size_type offset,
           UnaryFunction operation);
 
   /**
@@ -765,9 +766,9 @@ class DataArrayView {
   */
   template <class BinaryFunction>
   void
-  binaryOp(ValueType::size_type leftOffset,
+  binaryOp(DataTypes::ValueType::size_type leftOffset,
            const DataArrayView& right,
-           ValueType::size_type rightOffset,
+           DataTypes::ValueType::size_type rightOffset,
            BinaryFunction operation);
 
   /**
@@ -807,7 +808,7 @@ class DataArrayView {
   */
   template <class BinaryFunction>
   void
-  binaryOp(ValueType::size_type offset,
+  binaryOp(DataTypes::ValueType::size_type offset,
            double right,
            BinaryFunction operation);
 
@@ -844,7 +845,7 @@ class DataArrayView {
   */
   template <class BinaryFunction>
   double
-  reductionOp(ValueType::size_type offset,
+  reductionOp(DataTypes::ValueType::size_type offset,
               BinaryFunction operation,
               double initial_value) const;
 
@@ -876,7 +877,7 @@ class DataArrayView {
   */
   ESCRIPT_DLL_API
   static
-  ShapeType
+  DataTypes::ShapeType
   determineResultShape(const DataArrayView& left,
                        const DataArrayView& right);
 
@@ -894,9 +895,9 @@ class DataArrayView {
   inline
   void
   symmetric(DataArrayView& in,
-            ValueType::size_type inOffset,
+            DataTypes::ValueType::size_type inOffset,
             DataArrayView& ev,
-            ValueType::size_type evOffset)
+            DataTypes::ValueType::size_type evOffset)
   {
    if (in.getRank() == 2) {
      int i0, i1;
@@ -940,9 +941,9 @@ class DataArrayView {
   inline
   void
   nonsymmetric(DataArrayView& in,
-            ValueType::size_type inOffset,
+            DataTypes::ValueType::size_type inOffset,
             DataArrayView& ev,
-            ValueType::size_type evOffset)
+            DataTypes::ValueType::size_type evOffset)
   {
    if (in.getRank() == 2) {
      int i0, i1;
@@ -985,9 +986,9 @@ class DataArrayView {
   inline
   void
   trace(DataArrayView& in,
-            ValueType::size_type inOffset,
+            DataTypes::ValueType::size_type inOffset,
             DataArrayView& ev,
-            ValueType::size_type evOffset,
+            DataTypes::ValueType::size_type evOffset,
 	    int axis_offset)
   {
    if (in.getRank() == 2) {
@@ -1076,9 +1077,9 @@ class DataArrayView {
   inline
   void
   transpose(DataArrayView& in,
-            ValueType::size_type inOffset,
+            DataTypes::ValueType::size_type inOffset,
             DataArrayView& ev,
-            ValueType::size_type evOffset,
+            DataTypes::ValueType::size_type evOffset,
 	    int axis_offset)
   {
    if (in.getRank() == 4) {
@@ -1216,9 +1217,9 @@ class DataArrayView {
   inline
   void
   swapaxes(DataArrayView& in,
-           ValueType::size_type inOffset,
+           DataTypes::ValueType::size_type inOffset,
            DataArrayView& ev,
-           ValueType::size_type evOffset,
+           DataTypes::ValueType::size_type evOffset,
            int axis0, int axis1)
   {
    if (in.getRank() == 4) {
@@ -1362,9 +1363,9 @@ class DataArrayView {
   inline
   void
   eigenvalues(DataArrayView& in,
-              ValueType::size_type inOffset,
+              DataTypes::ValueType::size_type inOffset,
               DataArrayView& ev,
-              ValueType::size_type evOffset)
+              DataTypes::ValueType::size_type evOffset)
   {
    double in00,in10,in20,in01,in11,in21,in02,in12,in22;
    double ev0,ev1,ev2;
@@ -1419,11 +1420,11 @@ class DataArrayView {
   inline
   void
   eigenvalues_and_eigenvectors(DataArrayView& in,
-                               ValueType::size_type inOffset,
+                               DataTypes::ValueType::size_type inOffset,
                                DataArrayView& ev, 
-                               ValueType::size_type evOffset,
+                               DataTypes::ValueType::size_type evOffset,
                                DataArrayView& V, 
-                               ValueType::size_type VOffset,
+                               DataTypes::ValueType::size_type VOffset,
                                const double tol=1.e-13)
   {
    double in00,in10,in20,in01,in11,in21,in02,in12,in22;
@@ -1482,12 +1483,12 @@ class DataArrayView {
 
   //
   // The maximum rank allowed for the shape of any view.
-  static const int m_maxRank=4;
+  static const int m_maxRank=DataTypes::maxRank;
 
   //
   // The data values for the view.
   // NOTE: This points to data external to the view.
-  // This is just a pointer to an array of ValueType.
+  // This is just a pointer to an array of DataTypes::ValueType.
   // FIXME: JUST a pointer eh?
   //        All raw pointers to shared memory need to be replaced... really.
   //        Using smart pointers, you can get efficient direct access
@@ -1495,7 +1496,7 @@ class DataArrayView {
   //        and you can control it.
   //        Do it & huge amounts of pain will go away. 
   //        Use boost and the 
-  //        typedef boost::shared_ptr<ValueType> ValuePointer;
+  //        typedef boost::shared_ptr<DataTypes::ValueType> ValuePointer;
   //        kind of pattern.
   //        Oh, "using namepace std" is addictive &
   //        bad for your long term health.
@@ -1504,19 +1505,19 @@ class DataArrayView {
   //        try using "namespace MySpace = foo::bar::har::..."
   //        and then use MySpace::
   //
-  ValueType* m_data;
+  DataTypes::ValueType* m_data;
 
   //
   // The offset into the data array used by different views.
   // This is simply an integer specifying a position in the data array
   // pointed to by m_data.
-  ValueType::size_type m_offset;
+  DataTypes::ValueType::size_type m_offset;
 
   //
   // The shape of the data.
   // This is simply an STL vector specifying the lengths of each dimension
   // of the shape as ints.
-  ShapeType m_shape;
+  DataTypes::ShapeType m_shape;
 
   //
   // The number of values needed for the array.
@@ -1540,8 +1541,8 @@ ESCRIPT_DLL_API bool operator!=(const DataArrayView& left, const DataArrayView& 
    the slice region is of size 1. So in the above example, we modify the above
    region like so: <<1,2><0,3><0,3>> and take this slice.
 */
-DataArrayView::RegionLoopRangeType
-getSliceRegionLoopRange(const DataArrayView::RegionType& region);
+DataTypes::RegionLoopRangeType
+getSliceRegionLoopRange(const DataTypes::RegionType& region);
 
 /**
   \brief
@@ -1572,12 +1573,12 @@ DataArrayView::unaryOp(UnaryFunction operation)
 template <class UnaryFunction>
 inline
 void
-DataArrayView::unaryOp(ValueType::size_type offset,
+DataArrayView::unaryOp(DataTypes::ValueType::size_type offset,
                        UnaryFunction operation)
 {
   EsysAssert((!isEmpty()&&checkOffset(offset)),
                "Error - Couldn't perform unaryOp due to insufficient storage.");
-  for (ValueType::size_type i=0;i<noValues();i++) {
+  for (DataTypes::ValueType::size_type i=0;i<noValues();i++) {
     (*m_data)[offset+i]=operation((*m_data)[offset+i]);
   }
 }
@@ -1594,9 +1595,9 @@ DataArrayView::binaryOp(const DataArrayView& right,
 template <class BinaryFunction>
 inline
 void
-DataArrayView::binaryOp(ValueType::size_type leftOffset,
+DataArrayView::binaryOp(DataTypes::ValueType::size_type leftOffset,
                         const DataArrayView& right,
-                        ValueType::size_type rightOffset,
+                        DataTypes::ValueType::size_type rightOffset,
                         BinaryFunction operation)
 {
   EsysAssert(getShape()==right.getShape(),
@@ -1605,7 +1606,7 @@ DataArrayView::binaryOp(ValueType::size_type leftOffset,
              "Error - Couldn't perform binaryOp due to insufficient storage in left object.");
   EsysAssert((!right.isEmpty()&&right.checkOffset(rightOffset)),
              "Error - Couldn't perform binaryOp due to insufficient storage in right object.");
-  for (ValueType::size_type i=0;i<noValues();i++) {
+  for (DataTypes::ValueType::size_type i=0;i<noValues();i++) {
     (*m_data)[leftOffset+i]=operation((*m_data)[leftOffset+i],(*right.m_data)[rightOffset+i]);
   }
 }
@@ -1622,13 +1623,13 @@ DataArrayView::binaryOp(double right,
 template <class BinaryFunction>
 inline
 void
-DataArrayView::binaryOp(ValueType::size_type offset,
+DataArrayView::binaryOp(DataTypes::ValueType::size_type offset,
                         double right,
                         BinaryFunction operation)
 {
   EsysAssert((!isEmpty()&&checkOffset(offset)),
              "Error - Couldn't perform binaryOp due to insufficient storage in left object.");
-  for (ValueType::size_type i=0;i<noValues();i++) {
+  for (DataTypes::ValueType::size_type i=0;i<noValues();i++) {
     (*m_data)[offset+i]=operation((*m_data)[offset+i],right);
   }
 }
@@ -1645,21 +1646,21 @@ DataArrayView::reductionOp(BinaryFunction operation,
 template <class BinaryFunction>
 inline
 double
-DataArrayView::reductionOp(ValueType::size_type offset,
+DataArrayView::reductionOp(DataTypes::ValueType::size_type offset,
                            BinaryFunction operation,
                            double initial_value) const
 {
   EsysAssert((!isEmpty()&&checkOffset(offset)),
                "Error - Couldn't perform reductionOp due to insufficient storage.");
   double current_value=initial_value;
-  for (ValueType::size_type i=0;i<noValues();i++) {
+  for (DataTypes::ValueType::size_type i=0;i<noValues();i++) {
     current_value=operation(current_value,(*m_data)[offset+i]);
   }
   return current_value;
 }
 
 inline
-DataArrayView::ValueType::size_type 
+DataTypes::ValueType::size_type 
 DataArrayView::relIndex() const 
 {
   EsysAssert((getRank()==0),"Incorrect number of indices for the rank of this object.");
@@ -1667,7 +1668,7 @@ DataArrayView::relIndex() const
 }
 
 inline
-DataArrayView::ValueType::size_type 
+DataTypes::ValueType::size_type 
 DataArrayView::index() const 
 {
   EsysAssert((getRank()==0),"Incorrect number of indices for the rank of this object.");
@@ -1675,8 +1676,8 @@ DataArrayView::index() const
 }
 
 inline
-DataArrayView::ValueType::size_type 
-DataArrayView::relIndex(ValueType::size_type i) const 
+DataTypes::ValueType::size_type 
+DataArrayView::relIndex(DataTypes::ValueType::size_type i) const 
 {
   EsysAssert((getRank()==1),"Incorrect number of indices for the rank of this object.");
   EsysAssert((i < noValues(m_shape)), "Error - Invalid index.");
@@ -1684,8 +1685,8 @@ DataArrayView::relIndex(ValueType::size_type i) const
 }
 
 inline
-DataArrayView::ValueType::size_type 
-DataArrayView::index(ValueType::size_type i) const 
+DataTypes::ValueType::size_type 
+DataArrayView::index(DataTypes::ValueType::size_type i) const 
 {
   EsysAssert((getRank()==1),"Incorrect number of indices for the rank of this object.");
   EsysAssert((i < noValues(m_shape)), "Error - Invalid index.");
@@ -1693,155 +1694,155 @@ DataArrayView::index(ValueType::size_type i) const
 }
 
 inline
-DataArrayView::ValueType::size_type 
-DataArrayView::relIndex(ValueType::size_type i,
-                        ValueType::size_type j) const
+DataTypes::ValueType::size_type 
+DataArrayView::relIndex(DataTypes::ValueType::size_type i,
+                        DataTypes::ValueType::size_type j) const
 {
   EsysAssert((getRank()==2),"Incorrect number of indices for the rank of this object.");
-  ValueType::size_type temp=i+j*m_shape[0];
+  DataTypes::ValueType::size_type temp=i+j*m_shape[0];
   EsysAssert((temp < noValues(m_shape)), "Error - Invalid index.");
   return temp;
 }
 
 inline
-DataArrayView::ValueType::size_type
-DataArrayView::index(ValueType::size_type i,
-		     ValueType::size_type j) const
+DataTypes::ValueType::size_type
+DataArrayView::index(DataTypes::ValueType::size_type i,
+		     DataTypes::ValueType::size_type j) const
 {
   EsysAssert((getRank()==2),"Incorrect number of indices for the rank of this object.");
-  ValueType::size_type temp=i+j*m_shape[0];
+  DataTypes::ValueType::size_type temp=i+j*m_shape[0];
   EsysAssert((temp < noValues(m_shape)), "Error - Invalid index.");
   return (m_offset+temp);
 }
 
 inline
-DataArrayView::ValueType::size_type 
-DataArrayView::relIndex(ValueType::size_type i,
-			ValueType::size_type j,
-			ValueType::size_type k) const 
+DataTypes::ValueType::size_type 
+DataArrayView::relIndex(DataTypes::ValueType::size_type i,
+			DataTypes::ValueType::size_type j,
+			DataTypes::ValueType::size_type k) const 
 {
   EsysAssert((getRank()==3),"Incorrect number of indices for the rank of this object.");
-  ValueType::size_type temp=i+j*m_shape[0]+k*m_shape[1]*m_shape[0];
+  DataTypes::ValueType::size_type temp=i+j*m_shape[0]+k*m_shape[1]*m_shape[0];
   EsysAssert((temp < noValues(m_shape)), "Error - Invalid index.");
   return temp;
 }
 
 inline
-DataArrayView::ValueType::size_type 
-DataArrayView::index(ValueType::size_type i,
-		     ValueType::size_type j,
-		     ValueType::size_type k) const 
+DataTypes::ValueType::size_type 
+DataArrayView::index(DataTypes::ValueType::size_type i,
+		     DataTypes::ValueType::size_type j,
+		     DataTypes::ValueType::size_type k) const 
 {
   EsysAssert((getRank()==3),"Incorrect number of indices for the rank of this object.");
-  ValueType::size_type temp=i+j*m_shape[0]+k*m_shape[1]*m_shape[0];
+  DataTypes::ValueType::size_type temp=i+j*m_shape[0]+k*m_shape[1]*m_shape[0];
   EsysAssert((temp < noValues(m_shape)), "Error - Invalid index.");
   return (m_offset+temp);
 }
 
 inline
-DataArrayView::ValueType::size_type 
-DataArrayView::relIndex(ValueType::size_type i,
-                        ValueType::size_type j,
-                        ValueType::size_type k,
-                        ValueType::size_type m) const
+DataTypes::ValueType::size_type 
+DataArrayView::relIndex(DataTypes::ValueType::size_type i,
+                        DataTypes::ValueType::size_type j,
+                        DataTypes::ValueType::size_type k,
+                        DataTypes::ValueType::size_type m) const
 {
   EsysAssert((getRank()==4),"Incorrect number of indices for the rank of this object.");
-  ValueType::size_type temp=i+j*m_shape[0]+k*m_shape[1]*m_shape[0]+m*m_shape[2]*m_shape[1]*m_shape[0];
+  DataTypes::ValueType::size_type temp=i+j*m_shape[0]+k*m_shape[1]*m_shape[0]+m*m_shape[2]*m_shape[1]*m_shape[0];
   EsysAssert((temp < noValues(m_shape)), "Error - Invalid index.");
   return temp;
 }
 
 inline
-DataArrayView::ValueType::size_type
-DataArrayView::index(ValueType::size_type i,
-		     ValueType::size_type j,
-		     ValueType::size_type k,
-		     ValueType::size_type m) const
+DataTypes::ValueType::size_type
+DataArrayView::index(DataTypes::ValueType::size_type i,
+		     DataTypes::ValueType::size_type j,
+		     DataTypes::ValueType::size_type k,
+		     DataTypes::ValueType::size_type m) const
 {
   EsysAssert((getRank()==4),"Incorrect number of indices for the rank of this object.");
-  ValueType::size_type temp=i+j*m_shape[0]+k*m_shape[1]*m_shape[0]+m*m_shape[2]*m_shape[1]*m_shape[0];
+  DataTypes::ValueType::size_type temp=i+j*m_shape[0]+k*m_shape[1]*m_shape[0]+m*m_shape[2]*m_shape[1]*m_shape[0];
   EsysAssert((temp < noValues(m_shape)), "Error - Invalid index.");
   return (m_offset+temp);
 }
 
 inline
-DataArrayView::ValueType::reference
+DataTypes::ValueType::reference
 DataArrayView::operator()()
 {
   return (*m_data)[index()];
 }
 
 inline
-DataArrayView::ValueType::const_reference
+DataTypes::ValueType::const_reference
 DataArrayView::operator()() const
 {
   return (*m_data)[index()];
 }
 
 inline
-DataArrayView::ValueType::reference
-DataArrayView::operator()(ValueType::size_type i)
+DataTypes::ValueType::reference
+DataArrayView::operator()(DataTypes::ValueType::size_type i)
 {
   return (*m_data)[index(i)];
 }
 
 inline
-DataArrayView::ValueType::const_reference
-DataArrayView::operator()(ValueType::size_type i) const
+DataTypes::ValueType::const_reference
+DataArrayView::operator()(DataTypes::ValueType::size_type i) const
 {
   return (*m_data)[index(i)];
 }
 
 inline
-DataArrayView::ValueType::reference
-DataArrayView::operator()(ValueType::size_type i,
-                          ValueType::size_type j)
+DataTypes::ValueType::reference
+DataArrayView::operator()(DataTypes::ValueType::size_type i,
+                          DataTypes::ValueType::size_type j)
 {
   return (*m_data)[index(i,j)];
 }
 
 inline
-DataArrayView::ValueType::const_reference 
-DataArrayView::operator()(ValueType::size_type i,
-                          ValueType::size_type j) const
+DataTypes::ValueType::const_reference 
+DataArrayView::operator()(DataTypes::ValueType::size_type i,
+                          DataTypes::ValueType::size_type j) const
 {
   return (*m_data)[index(i,j)];
 }
 
 inline
-DataArrayView::ValueType::reference
-DataArrayView::operator()(ValueType::size_type i,
-                          ValueType::size_type j,
-                          ValueType::size_type k)
+DataTypes::ValueType::reference
+DataArrayView::operator()(DataTypes::ValueType::size_type i,
+                          DataTypes::ValueType::size_type j,
+                          DataTypes::ValueType::size_type k)
 {
   return (*m_data)[index(i,j,k)];
 }
 
 inline
-DataArrayView::ValueType::const_reference
-DataArrayView::operator()(ValueType::size_type i,
-                          ValueType::size_type j,
-                          ValueType::size_type k) const
+DataTypes::ValueType::const_reference
+DataArrayView::operator()(DataTypes::ValueType::size_type i,
+                          DataTypes::ValueType::size_type j,
+                          DataTypes::ValueType::size_type k) const
 {
   return (*m_data)[index(i,j,k)];
 }
 
 inline
-DataArrayView::ValueType::reference
-DataArrayView::operator()(ValueType::size_type i,
-                          ValueType::size_type j,
-                          ValueType::size_type k,
-                          ValueType::size_type m)
+DataTypes::ValueType::reference
+DataArrayView::operator()(DataTypes::ValueType::size_type i,
+                          DataTypes::ValueType::size_type j,
+                          DataTypes::ValueType::size_type k,
+                          DataTypes::ValueType::size_type m)
 {
   return (*m_data)[index(i,j,k,m)];
 }
 
 inline
-DataArrayView::ValueType::const_reference
-DataArrayView::operator()(ValueType::size_type i,
-                          ValueType::size_type j,
-                          ValueType::size_type k,
-                          ValueType::size_type m) const
+DataTypes::ValueType::const_reference
+DataArrayView::operator()(DataTypes::ValueType::size_type i,
+                          DataTypes::ValueType::size_type j,
+                          DataTypes::ValueType::size_type k,
+                          DataTypes::ValueType::size_type m) const
 {
   return (*m_data)[index(i,j,k,m)];
 }

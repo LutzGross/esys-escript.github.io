@@ -34,7 +34,7 @@ DataEmpty::toString() const
   return "(Empty Data)";
 }
 
-DataArrayView::ValueType::size_type
+DataTypes::ValueType::size_type
 DataEmpty::getPointOffset(int sampleNo,
                           int dataPointNo) const 
 {
@@ -50,14 +50,14 @@ DataEmpty::getDataPoint(int sampleNo,
   return getPointDataView();
 }
 
-DataArrayView::ValueType::size_type
+DataTypes::ValueType::size_type
 DataEmpty::getLength() const
 {
   return 0;
 }
 
 DataAbstract*
-DataEmpty::getSlice(const DataArrayView::RegionType& region) const
+DataEmpty::getSlice(const DataTypes::RegionType& region) const
 {
   throwStandardException("getSlice");
   return 0;
@@ -65,7 +65,7 @@ DataEmpty::getSlice(const DataArrayView::RegionType& region) const
 
 void
 DataEmpty::setSlice(const DataAbstract* value,
-                    const DataArrayView::RegionType& region) 
+                    const DataTypes::RegionType& region) 
 {
   throwStandardException("setSlice");
 }
