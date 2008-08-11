@@ -25,6 +25,7 @@
 #include "BinaryOp.h"
 #include "UnaryOp.h"
 #include "DataException.h"
+#include "DataTypes.h"
 
 extern "C" {
 #include "DataC.h"
@@ -130,7 +131,7 @@ class Data {
   */
   ESCRIPT_DLL_API
   Data(double value,
-       const DataArrayView::ShapeType& dataPointShape=DataArrayView::ShapeType(),
+       const DataTypes::ShapeType& dataPointShape=DataTypes::ShapeType(),
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
 
@@ -143,7 +144,7 @@ class Data {
   */
   ESCRIPT_DLL_API
   Data(const Data& inData,
-       const DataArrayView::RegionType& region);
+       const DataTypes::RegionType& region);
 
   /**
      \brief
@@ -540,7 +541,7 @@ class Data {
      Return a reference to the data point shape.
   */
   ESCRIPT_DLL_API
-  const DataArrayView::ShapeType&
+  const DataTypes::ShapeType&
   getDataPointShape() const;
 
   /**
@@ -565,7 +566,7 @@ class Data {
      Return the number of doubles stored for this Data.
   */
   ESCRIPT_DLL_API
-  DataArrayView::ValueType::size_type
+  DataTypes::ValueType::size_type
   getLength() const;
 
 
@@ -1211,7 +1212,7 @@ class Data {
   */
   ESCRIPT_DLL_API
   Data
-  getSlice(const DataArrayView::RegionType& region) const;
+  getSlice(const DataTypes::RegionType& region) const;
 
   /**
      \brief
@@ -1224,7 +1225,7 @@ class Data {
   ESCRIPT_DLL_API
   void
   setSlice(const Data& value,
-           const DataArrayView::RegionType& region);
+           const DataTypes::RegionType& region);
 
   /**
      \brief
@@ -1650,7 +1651,7 @@ Data
 Data::dp_algorithm(BinaryFunction operation, double initial_value) const
 {
   if (isExpanded()) {
-    Data result(0,DataArrayView::ShapeType(),getFunctionSpace(),isExpanded());
+    Data result(0,DataTypes::ShapeType(),getFunctionSpace(),isExpanded());
     DataExpanded* dataE=dynamic_cast<DataExpanded*>(m_data.get());
     DataExpanded* resultE=dynamic_cast<DataExpanded*>(result.m_data.get());
     EsysAssert((dataE!=0), "Programming error - casting data to DataExpanded.");
@@ -1659,8 +1660,8 @@ Data::dp_algorithm(BinaryFunction operation, double initial_value) const
     return result;
   } else if (isTagged()) {
     DataTagged* dataT=dynamic_cast<DataTagged*>(m_data.get());
-    DataArrayView::ShapeType viewShape;
-    DataArrayView::ValueType viewData(1);
+    DataTypes::ShapeType viewShape;
+    DataTypes::ValueType viewData(1);
     viewData[0]=0;
     DataArrayView defaultValue(viewData,viewShape);
     DataTagged::TagListType keys;
@@ -1677,7 +1678,7 @@ Data::dp_algorithm(BinaryFunction operation, double initial_value) const
     escript::dp_algorithm(*dataT,*resultT,operation,initial_value);
     return result;
   } else if (isConstant()) {
-    Data result(0,DataArrayView::ShapeType(),getFunctionSpace(),isExpanded());
+    Data result(0,DataTypes::ShapeType(),getFunctionSpace(),isExpanded());
     DataConstant* dataC=dynamic_cast<DataConstant*>(m_data.get());
     DataConstant* resultC=dynamic_cast<DataConstant*>(result.m_data.get());
     EsysAssert((dataC!=0), "Programming error - casting data to DataConstant.");
@@ -1724,8 +1725,8 @@ C_TensorBinaryOperation(Data const &arg_0,
   // Get rank and shape of inputs
   int rank0 = arg_0_Z.getDataPointRank();
   int rank1 = arg_1_Z.getDataPointRank();
-  DataArrayView::ShapeType shape0 = arg_0_Z.getDataPointShape();
-  DataArrayView::ShapeType shape1 = arg_1_Z.getDataPointShape();
+  DataTypes::ShapeType shape0 = arg_0_Z.getDataPointShape();
+  DataTypes::ShapeType shape1 = arg_1_Z.getDataPointShape();
   int size0 = arg_0_Z.getDataPointSize();
   int size1 = arg_1_Z.getDataPointSize();
 
@@ -2520,7 +2521,7 @@ C_TensorUnaryOperation(Data const &arg_0,
 
   // Get rank and shape of inputs
   int rank0 = arg_0_Z.getDataPointRank();
-  DataArrayView::ShapeType shape0 = arg_0_Z.getDataPointShape();
+  DataTypes::ShapeType shape0 = arg_0_Z.getDataPointShape();
   int size0 = arg_0_Z.getDataPointSize();
 
   // Declare output Data object

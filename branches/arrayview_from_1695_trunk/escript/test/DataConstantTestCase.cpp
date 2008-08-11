@@ -42,8 +42,8 @@ void DataConstantTestCase::testAll() {
 
   //
   // Create a scalar pointData
-  DataArrayView::ShapeType shape;
-  DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
+  DataTypes::ShapeType shape;
+  DataTypes::ValueType data(DataArrayView::noValues(shape),0);
   DataArrayView pointData(data,shape);
 
   //
@@ -96,7 +96,7 @@ void DataConstantTestCase::testAll() {
 */
 
   cout << "\tTesting alternative constructor." << endl;
-  DataArrayView::ValueType data1(DataArrayView::noValues(shape),1.0);
+  DataTypes::ValueType data1(DataArrayView::noValues(shape),1.0);
   // do not call the FunctionSpace constructor directly
   // in the argument of DataConstant
   // GCC chokes on it.
@@ -146,10 +146,10 @@ void DataConstantTestCase::testAll() {
 
   cout << "\tTest slicing (whole object)." << endl;
 
-  DataArrayView::RegionType region;
-  region.push_back(DataArrayView::RegionType::value_type(0,shape[0]));
-  region.push_back(DataArrayView::RegionType::value_type(0,shape[1]));
-  region.push_back(DataArrayView::RegionType::value_type(0,shape[2]));
+  DataTypes::RegionType region;
+  region.push_back(DataTypes::RegionType::value_type(0,shape[0]));
+  region.push_back(DataTypes::RegionType::value_type(0,shape[1]));
+  region.push_back(DataTypes::RegionType::value_type(0,shape[2]));
 
   DataAbstract* testData3=testData2.getSlice(region);
 
@@ -173,10 +173,10 @@ void DataConstantTestCase::testAll() {
 
   cout << "\tTest slicing (part object)." << endl;
 
-  DataArrayView::RegionType region2;
-  region2.push_back(DataArrayView::RegionType::value_type(0,2));
-  region2.push_back(DataArrayView::RegionType::value_type(0,2));
-  region2.push_back(DataArrayView::RegionType::value_type(0,2));
+  DataTypes::RegionType region2;
+  region2.push_back(DataTypes::RegionType::value_type(0,2));
+  region2.push_back(DataTypes::RegionType::value_type(0,2));
+  region2.push_back(DataTypes::RegionType::value_type(0,2));
 
   DataAbstract* testData4=testData3->getSlice(region2);
 
@@ -200,10 +200,10 @@ void DataConstantTestCase::testAll() {
 
   cout << "\tTest slicing (part object)." << endl;
 
-  DataArrayView::RegionType region3;
-  region3.push_back(DataArrayView::RegionType::value_type(1,2));
-  region3.push_back(DataArrayView::RegionType::value_type(1,3));
-  region3.push_back(DataArrayView::RegionType::value_type(5,9));
+  DataTypes::RegionType region3;
+  region3.push_back(DataTypes::RegionType::value_type(1,2));
+  region3.push_back(DataTypes::RegionType::value_type(1,3));
+  region3.push_back(DataTypes::RegionType::value_type(5,9));
 
   DataAbstract* testData5=testData3->getSlice(region3);
 
@@ -227,10 +227,10 @@ void DataConstantTestCase::testAll() {
 
   cout << "\tTest slice setting (1)." << endl;
 
-  DataArrayView::RegionType region4;
-  region4.push_back(DataArrayView::RegionType::value_type(0,1));
-  region4.push_back(DataArrayView::RegionType::value_type(0,2));
-  region4.push_back(DataArrayView::RegionType::value_type(0,4));
+  DataTypes::RegionType region4;
+  region4.push_back(DataTypes::RegionType::value_type(0,1));
+  region4.push_back(DataTypes::RegionType::value_type(0,2));
+  region4.push_back(DataTypes::RegionType::value_type(0,4));
 
   DataAbstract* testData6=testData3->getSlice(region3);
 

@@ -17,6 +17,7 @@
 #include "system_dep.h"
 
 #include "DataArrayView.h"
+#include "DataTypes.h"
 #include "FunctionSpace.h"
 
 #include <boost/scoped_ptr.hpp>
@@ -45,8 +46,8 @@ class DataAbstract {
 
  public:
 
-  typedef DataArrayView::ValueType ValueType;
-  typedef DataArrayView::ShapeType ShapeType;
+  typedef DataTypes::ValueType ValueType;
+  typedef DataTypes::ShapeType ShapeType;
 
   /**
      \brief
@@ -219,7 +220,7 @@ class DataAbstract {
   ESCRIPT_DLL_API
   virtual
   DataAbstract*
-  getSlice(const DataArrayView::RegionType& region) const = 0;
+  getSlice(const DataTypes::RegionType& region) const = 0;
 
   /**
      \brief
@@ -232,7 +233,7 @@ class DataAbstract {
   virtual
   void
   setSlice(const DataAbstract* value,
-           const DataArrayView::RegionType& region) = 0;
+           const DataTypes::RegionType& region) = 0;
 
 
   /**

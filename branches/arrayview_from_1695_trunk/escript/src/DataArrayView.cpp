@@ -22,6 +22,7 @@
 
 using namespace std;
 using namespace boost::python;
+using namespace escript::DataTypes;
 
 namespace escript {
 
@@ -186,7 +187,7 @@ namespace escript {
    }
 
    const
-   DataArrayView::ShapeType&
+   DataTypes::ShapeType&
    DataArrayView::getShape() const
    {
       return m_shape;
@@ -225,14 +226,14 @@ namespace escript {
    }
 
    bool
-   DataArrayView::checkShape(const DataArrayView::ShapeType& other) const
+   DataArrayView::checkShape(const DataTypes::ShapeType& other) const
    {
       return (m_shape==other);
    }
 
    string 
    DataArrayView::createShapeErrorMessage(const string& messagePrefix,
-                                          const DataArrayView::ShapeType& other) const
+                                          const DataTypes::ShapeType& other) const
    {
       stringstream temp;
       temp << messagePrefix
@@ -241,7 +242,7 @@ namespace escript {
       return temp.str();
    }
 
-   DataArrayView::ValueType::size_type
+   DataTypes::ValueType::size_type
    DataArrayView::getOffset() const
    {
       return m_offset;
@@ -281,14 +282,14 @@ namespace escript {
       return (m_data->size() >= (offset+noValues()));
    }
 
-   DataArrayView::ValueType&
+   DataTypes::ValueType&
    DataArrayView::getData() const
    {
       EsysAssert(!isEmpty(),"Error - View is empty");
       return *m_data;
    }
 
-   DataArrayView::ValueType::reference
+   DataTypes::ValueType::reference
    DataArrayView::getData(ValueType::size_type i) const
    {
       //
@@ -297,7 +298,7 @@ namespace escript {
       return (*m_data)[m_offset+i];
    }
 
-   DataArrayView::ShapeType
+   DataTypes::ShapeType
    DataArrayView::getResultSliceShape(const RegionType& region)
    {
       int dimSize;
@@ -312,7 +313,7 @@ namespace escript {
       return result;
    }
 
-   DataArrayView::RegionType
+   DataTypes::RegionType
    DataArrayView::getSliceRegion(const boost::python::object& key) const
    {
       int slice_rank, i;
@@ -389,10 +390,10 @@ namespace escript {
       return std::pair<int,int>(s0,s1);
    }
 
-   DataArrayView::RegionLoopRangeType
-   getSliceRegionLoopRange(const DataArrayView::RegionType& region) 
+   DataTypes::RegionLoopRangeType
+   getSliceRegionLoopRange(const DataTypes::RegionType& region) 
    {
-      DataArrayView::RegionLoopRangeType region_loop_range(region.size());
+      DataTypes::RegionLoopRangeType region_loop_range(region.size());
       unsigned int i;
       for (i=0;i<region.size();i++) {
          if (region[i].first==region[i].second) {
@@ -725,7 +726,7 @@ namespace escript {
    }
 
    string
-   DataArrayView::shapeToString(const DataArrayView::ShapeType& shape)
+   DataArrayView::shapeToString(const DataTypes::ShapeType& shape)
    {
       stringstream temp;
       temp << "(";
@@ -860,7 +861,7 @@ namespace escript {
 
    }
 
-   DataArrayView::ShapeType
+   DataTypes::ShapeType
    DataArrayView::determineResultShape(const DataArrayView& left,
                                        const DataArrayView& right)
    {

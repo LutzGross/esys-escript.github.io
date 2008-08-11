@@ -33,7 +33,7 @@ DataExpanded::DataExpanded(const boost::python::numeric::array& value,
                            const FunctionSpace& what)
   : DataAbstract(what)
 {
-  DataArrayView::ShapeType tempShape;
+  DataTypes::ShapeType tempShape;
   //
   // extract the shape of the python numarray
   for (int i=0; i<value.getrank(); i++) {
@@ -78,8 +78,8 @@ DataExpanded::DataExpanded(const DataTagged& other)
   // for each data point in this object, extract and copy the corresponding data
   // value from the given DataTagged object
   int i,j;
-  DataArrayView::ValueType::size_type numRows=m_data.getNumRows();
-  DataArrayView::ValueType::size_type numCols=m_data.getNumCols();
+  DataTypes::ValueType::size_type numRows=m_data.getNumRows();
+  DataTypes::ValueType::size_type numCols=m_data.getNumCols();
   #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<numRows;i++) {
     for (j=0;j<numCols;j++) {
@@ -96,20 +96,20 @@ DataExpanded::DataExpanded(const DataTagged& other)
 }
 
 DataExpanded::DataExpanded(const DataExpanded& other,
-                           const DataArrayView::RegionType& region)
+                           const DataTypes::RegionType& region)
   : DataAbstract(other.getFunctionSpace())
 {
   //
   // get the shape of the slice
-  DataArrayView::ShapeType shape(DataArrayView::getResultSliceShape(region));
+  DataTypes::ShapeType shape(DataArrayView::getResultSliceShape(region));
   //
   // initialise this Data object to the shape of the slice
   initialise(shape,other.getNumSamples(),other.getNumDPPSample());
   //
   // copy the data
-  DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
-  DataArrayView::ValueType::size_type numRows=m_data.getNumRows();
-  DataArrayView::ValueType::size_type numCols=m_data.getNumCols();
+  DataTypes::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
+  DataTypes::ValueType::size_type numRows=m_data.getNumRows();
+  DataTypes::ValueType::size_type numCols=m_data.getNumCols();
   int i,j;
   #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<numRows;i++) {
@@ -133,7 +133,7 @@ DataExpanded::DataExpanded(const DataArrayView& value,
 {
   //
   // get the shape of the given data value
-  DataArrayView::ShapeType tempShape=value.getShape();
+  DataTypes::ShapeType tempShape=value.getShape();
   //
   // initialise this Data object to the shape of the given data value
   initialise(tempShape,what.getNumSamples(),what.getNumDPPSample());
@@ -143,8 +143,8 @@ DataExpanded::DataExpanded(const DataArrayView& value,
 }
 
 DataExpanded::DataExpanded(const FunctionSpace& what,
-                           const DataArrayView::ShapeType &shape,
-                           const DataArrayView::ValueType &data)
+                           const DataTypes::ShapeType &shape,
+                           const DataTypes::ValueType &data)
   : DataAbstract(what)
 {
   //
@@ -160,14 +160,14 @@ DataExpanded::~DataExpanded()
 }
 
 DataAbstract*
-DataExpanded::getSlice(const DataArrayView::RegionType& region) const
+DataExpanded::getSlice(const DataTypes::RegionType& region) const
 {
   return new DataExpanded(*this,region);
 }
 
 void
 DataExpanded::setSlice(const DataAbstract* value,
-                       const DataArrayView::RegionType& region)
+                       const DataTypes::RegionType& region)
 {
   const DataExpanded* tempDataExp=dynamic_cast<const DataExpanded*>(value);
   if (tempDataExp==0) {
@@ -175,8 +175,8 @@ DataExpanded::setSlice(const DataAbstract* value,
   }
   //
   // get shape of slice
-  DataArrayView::ShapeType shape(DataArrayView::getResultSliceShape(region));
-  DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
+  DataTypes::ShapeType shape(DataArrayView::getResultSliceShape(region));
+  DataTypes::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
   //
   // check shape
   if (getPointDataView().getRank()!=region.size()) {
@@ -188,8 +188,8 @@ DataExpanded::setSlice(const DataAbstract* value,
   }
   //
   // copy the data from the slice into this object
-  DataArrayView::ValueType::size_type numRows=m_data.getNumRows();
-  DataArrayView::ValueType::size_type numCols=m_data.getNumCols();
+  DataTypes::ValueType::size_type numRows=m_data.getNumRows();
+  DataTypes::ValueType::size_type numCols=m_data.getNumCols();
   int i, j;
   #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<numRows;i++) {
@@ -227,7 +227,7 @@ DataExpanded::copy(const boost::python::numeric::array& value)
 {
 
   // extract the shape of the numarray
-  DataArrayView::ShapeType tempShape;
+  DataTypes::ShapeType tempShape;
   for (int i=0; i < value.getrank(); i++) {
     tempShape.push_back(extract<int>(value.getshape()[i]));
   }
@@ -251,7 +251,7 @@ DataExpanded::copy(const boost::python::numeric::array& value)
 }
 
 void
-DataExpanded::initialise(const DataArrayView::ShapeType& shape,
+DataExpanded::initialise(const DataTypes::ShapeType& shape,
                          int noSamples,
                          int noDataPointsPerSample)
 {
@@ -286,7 +286,7 @@ DataExpanded::toString() const
   return temp.str();
 }
 
-DataArrayView::ValueType::size_type
+DataTypes::ValueType::size_type
 DataExpanded::getPointOffset(int sampleNo,
                              int dataPointNo) const
 {
@@ -301,7 +301,7 @@ DataExpanded::getDataPoint(int sampleNo,
   return temp;
 }
 
-DataArrayView::ValueType::size_type
+DataTypes::ValueType::size_type
 DataExpanded::getLength() const
 {
   return m_data.size();
@@ -309,14 +309,14 @@ DataExpanded::getLength() const
 
 int
 DataExpanded::archiveData(ofstream& archiveFile,
-                          const DataArrayView::ValueType::size_type noValues) const
+                          const DataTypes::ValueType::size_type noValues) const
 {
   return(m_data.archiveData(archiveFile, noValues));
 }
 
 int
 DataExpanded::extractData(ifstream& archiveFile,
-                          const DataArrayView::ValueType::size_type noValues)
+                          const DataTypes::ValueType::size_type noValues)
 {
   return(m_data.extractData(archiveFile, noValues));
 }
@@ -634,7 +634,7 @@ DataExpanded::setToZero(){
   int numSamples = getNumSamples();
   int numDataPointsPerSample = getNumDPPSample();
   DataArrayView& thisView=getPointDataView();
-  DataArrayView::ValueType::size_type n = thisView.noValues();
+  DataTypes::ValueType::size_type n = thisView.noValues();
   double* p;
   int  sampleNo,dataPointNo, i;
   #pragma omp parallel for private(sampleNo,dataPointNo,p,i) schedule(static)
@@ -654,7 +654,7 @@ DataExpanded::dump(const std::string fileName) const
    throw DataException("Error - DataExpanded:: dump is not implemented for MPI yet.");
    #endif
    #ifdef USE_NETCDF
-   const int ldims=2+DataArrayView::maxRank;
+   const int ldims=2+DataTypes::maxRank;
    const NcDim* ncdims[ldims];
    NcVar *var, *ids;
    int rank = getPointDataView().getRank();
@@ -662,7 +662,7 @@ DataExpanded::dump(const std::string fileName) const
    int ndims =0;
    long dims[ldims];
    const double* d_ptr=&(m_data[0]);
-   DataArrayView::ShapeType shape = getPointDataView().getShape();
+   DataTypes::ShapeType shape = getPointDataView().getShape();
 
    // netCDF error handler
    NcError err(NcError::verbose_nonfatal);
@@ -728,7 +728,7 @@ DataExpanded::setTaggedValue(int tagKey,
   int numDataPointsPerSample = getNumDPPSample();
   int sampleNo,dataPointNo, i;
   DataArrayView& thisView=getPointDataView();
-  DataArrayView::ValueType::size_type n = thisView.noValues();
+  DataTypes::ValueType::size_type n = thisView.noValues();
   double* p,*in=&(value.getData()[0]);
   
   if (value.noValues() != n) {
@@ -751,7 +751,7 @@ DataExpanded::reorderByReferenceIDs(int *reference_ids)
 {
   int numSamples = getNumSamples();
   DataArrayView& thisView=getPointDataView();
-  DataArrayView::ValueType::size_type n = thisView.noValues() * getNumDPPSample();
+  DataTypes::ValueType::size_type n = thisView.noValues() * getNumDPPSample();
   int sampleNo, sampleNo2,i;
   double* p,*p2;
   register double rtmp;

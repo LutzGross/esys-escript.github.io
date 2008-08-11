@@ -75,7 +75,7 @@ void DataEmptyTestCase::testAll() {
   cout << "\tTest getLength." << endl;
   assert(testData.getLength() == 0);
 
-  DataArrayView::RegionType region;
+  DataTypes::RegionType region;
 
   try {
     cout << "\tTest getSlice." << endl;

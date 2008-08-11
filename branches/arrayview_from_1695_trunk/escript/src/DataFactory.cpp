@@ -34,7 +34,7 @@ Scalar(double value,
 {
     //
     // an empty shape is a scalar
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     return Data(value,shape,what,expanded);
 }
 
@@ -43,7 +43,7 @@ Vector(double value,
        const FunctionSpace& what,
        bool expanded)
 {
-    DataArrayView::ShapeType shape(1,what.getDomain().getDim());
+    DataTypes::ShapeType shape(1,what.getDomain().getDim());
     return Data(value,shape,what,expanded);
 }
 
@@ -52,7 +52,7 @@ Tensor(double value,
        const FunctionSpace& what,
        bool expanded)
 {
-    DataArrayView::ShapeType shape(2,what.getDomain().getDim());
+    DataTypes::ShapeType shape(2,what.getDomain().getDim());
     return Data(value,shape,what,expanded);
 }
 
@@ -61,7 +61,7 @@ Tensor3(double value,
         const FunctionSpace& what,
         bool expanded)
 {
-    DataArrayView::ShapeType shape(3,what.getDomain().getDim());
+    DataTypes::ShapeType shape(3,what.getDomain().getDim());
     return Data(value,shape,what,expanded);
 }
 
@@ -70,7 +70,7 @@ Tensor4(double value,
         const FunctionSpace& what,
         bool expanded)
 {
-    DataArrayView::ShapeType shape(4,what.getDomain().getDim());
+    DataTypes::ShapeType shape(4,what.getDomain().getDim());
     return Data(value,shape,what,expanded);
 }
 
@@ -104,7 +104,7 @@ load(const std::string fileName,
         throw DataException("Error - load:: cannot recover rank attribute from escript netCDF file.");
    int rank = rank_att->as_int(0);
    delete rank_att;
-   if (rank<0 || rank>DataArrayView::maxRank)
+   if (rank<0 || rank>DataTypes::maxRank)
         throw DataException("Error - load:: rank in escript netCDF file is greater than maximum rank.");
    /* recover type attribute */
    int type=-1;
@@ -130,8 +130,8 @@ load(const std::string fileName,
    int ntags =0 , num_samples =0 , num_data_points_per_sample =0, d=0, len_data_point=1;
    NcDim *d_dim, *tags_dim, *num_samples_dim, *num_data_points_per_sample_dim;
    /* recover shape */
-   DataArrayView::ShapeType shape;
-   long dims[DataArrayView::maxRank+2];
+   DataTypes::ShapeType shape;
+   long dims[DataTypes::maxRank+2];
    if (rank>0) {
      if (! (d_dim=dataFile.get_dim("d0")) )
           throw DataException("Error - load:: unable to recover d0 from netCDF file.");

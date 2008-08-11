@@ -71,7 +71,7 @@ class DataEmpty : public DataAbstract {
    */
   ESCRIPT_DLL_API
   virtual
-  DataArrayView::ValueType::size_type
+  DataTypes::ValueType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
@@ -109,7 +109,7 @@ class DataEmpty : public DataAbstract {
   ESCRIPT_DLL_API
   virtual
   DataAbstract*
-  getSlice(const DataArrayView::RegionType& region) const;
+  getSlice(const DataTypes::RegionType& region) const;
 
   /**
      \brief
@@ -124,7 +124,7 @@ class DataEmpty : public DataAbstract {
   virtual
   void
   setSlice(const DataAbstract* value,
-           const DataArrayView::RegionType& region);
+           const DataTypes::RegionType& region);
 
  protected:
 

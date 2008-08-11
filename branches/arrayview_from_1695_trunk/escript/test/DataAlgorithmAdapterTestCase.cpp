@@ -153,12 +153,12 @@ void DataAlgorithmAdapterTestCase::testAlgorithm() {
     cout << "\tTest algorithm on Data objects with a single rank 2 data-point." << endl;
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(2);
     shape.push_back(3);
 
     // allocate the data for the DataArrayView
-    DataArrayView::ValueType dataArray(DataArrayView::noValues(shape),0);
+    DataTypes::ValueType dataArray(DataArrayView::noValues(shape),0);
 
     // construct DataArrayView
     DataArrayView dataView(dataArray,shape);
@@ -202,14 +202,14 @@ void DataAlgorithmAdapterTestCase::testDpAlgorithm() {
     cout << "\tTest dp_algorithm on Data objects with a single rank 2 data-point." << endl;
 
     // define the shapes for the DataArrayViews
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(2);
     shape.push_back(3);
-    DataArrayView::ShapeType shape2;
+    DataTypes::ShapeType shape2;
 
     // allocate the data for the DataArrayViews
-    DataArrayView::ValueType dataArray(DataArrayView::noValues(shape),0);
-    DataArrayView::ValueType dataArray2(DataArrayView::noValues(shape2),0);
+    DataTypes::ValueType dataArray(DataArrayView::noValues(shape),0);
+    DataTypes::ValueType dataArray2(DataArrayView::noValues(shape2),0);
 
     // construct DataArrayViews
     DataArrayView dataView(dataArray,shape);

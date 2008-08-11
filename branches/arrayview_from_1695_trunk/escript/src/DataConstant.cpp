@@ -35,7 +35,7 @@ DataConstant::DataConstant(const boost::python::numeric::array& value,
   : DataAbstract(what)
 {
   // extract the shape of the numarray
-  DataArrayView::ShapeType tempShape;
+  DataTypes::ShapeType tempShape;
   for (int i=0; i < value.getrank(); i++) {
     tempShape.push_back(extract<int>(value.getshape()[i]));
   }
@@ -80,12 +80,12 @@ DataConstant::DataConstant(const DataConstant& other)
 }
 
 DataConstant::DataConstant(const DataConstant& other,
-                           const DataArrayView::RegionType& region)
+                           const DataTypes::RegionType& region)
   : DataAbstract(other.getFunctionSpace())
 {
   //
   // get the shape of the slice to copy from
-  DataArrayView::ShapeType shape(DataArrayView::getResultSliceShape(region));
+  DataTypes::ShapeType shape(DataArrayView::getResultSliceShape(region));
   //
   // allocate space for this new DataConstant's data
   int len = DataArrayView::noValues(shape);
@@ -93,7 +93,7 @@ DataConstant::DataConstant(const DataConstant& other,
   //
   // create a view of the data with the correct shape
   DataArrayView tempView(m_data,shape);
-  DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
+  DataTypes::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
   //
   // load the view with the data from the slice
   tempView.copySlice(other.getPointDataView(),region_loop_range);
@@ -101,8 +101,8 @@ DataConstant::DataConstant(const DataConstant& other,
 }
 
 DataConstant::DataConstant(const FunctionSpace& what,
-                           const DataArrayView::ShapeType &shape,
-                           const DataArrayView::ValueType &data)
+                           const DataTypes::ShapeType &shape,
+                           const DataTypes::ValueType &data)
   : DataAbstract(what)
 {
   //
@@ -120,7 +120,7 @@ DataConstant::toString() const
   return getPointDataView().toString("");
 }
 
-DataArrayView::ValueType::size_type
+DataTypes::ValueType::size_type
 DataConstant::getPointOffset(int sampleNo,
                              int dataPointNo) const
 {
@@ -131,7 +131,7 @@ DataConstant::getPointOffset(int sampleNo,
   return 0;
 }
 
-DataArrayView::ValueType::size_type
+DataTypes::ValueType::size_type
 DataConstant::getLength() const
 {
   return m_data.size();
@@ -149,22 +149,22 @@ DataConstant::getDataPoint(int sampleNo,
 }
 
 DataAbstract*
-DataConstant::getSlice(const DataArrayView::RegionType& region) const
+DataConstant::getSlice(const DataTypes::RegionType& region) const
 {
   return new DataConstant(*this,region);
 }
 
 void
 DataConstant::setSlice(const DataAbstract* value,
-                       const DataArrayView::RegionType& region)
+                       const DataTypes::RegionType& region)
 {
   const DataConstant* tempDataConst=dynamic_cast<const DataConstant*>(value);
   if (tempDataConst==0) {
     throw DataException("Programming error - casting to DataConstant.");
   }
   //
-  DataArrayView::ShapeType shape(DataArrayView::getResultSliceShape(region));
-  DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
+  DataTypes::ShapeType shape(DataArrayView::getResultSliceShape(region));
+  DataTypes::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
   //
   // check shape:
   if (getPointDataView().getRank()!=region.size()) {
@@ -180,14 +180,14 @@ DataConstant::setSlice(const DataAbstract* value,
 
 int
 DataConstant::archiveData(ofstream& archiveFile,
-                          const DataArrayView::ValueType::size_type noValues) const
+                          const DataTypes::ValueType::size_type noValues) const
 {
   return(m_data.archiveData(archiveFile, noValues));
 }
 
 int
 DataConstant::extractData(ifstream& archiveFile,
-                          const DataArrayView::ValueType::size_type noValues)
+                          const DataTypes::ValueType::size_type noValues)
 {
   return(m_data.extractData(archiveFile, noValues));
 }
@@ -284,7 +284,7 @@ DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
 void
 DataConstant::setToZero()
 {
-    DataArrayView::ValueType::size_type n=m_data.size();
+    DataTypes::ValueType::size_type n=m_data.size();
     for (int i=0; i<n ;++i) m_data[i]=0.;
 }
 
@@ -295,14 +295,14 @@ DataConstant::dump(const std::string fileName) const
    throw DataException("Error - DataConstant:: dump is not implemented for MPI yet.");
    #endif
    #ifdef USE_NETCDF
-   const NcDim* ncdims[DataArrayView::maxRank];
+   const NcDim* ncdims[DataTypes::maxRank];
    NcVar* var;
    int rank = getPointDataView().getRank();
    int type=  getFunctionSpace().getTypeCode();
    int ndims =0;
-   long dims[DataArrayView::maxRank];
+   long dims[DataTypes::maxRank];
    const double* d_ptr=&(m_data[0]);
-   DataArrayView::ShapeType shape = getPointDataView().getShape();
+   DataTypes::ShapeType shape = getPointDataView().getShape();
 
    // netCDF error handler
    NcError err(NcError::verbose_nonfatal);

@@ -18,6 +18,7 @@
 #include "system_dep.h"
 
 #include "DataArrayView.h"
+#include "DataTypes.h"
 #include "DataConstant.h"
 #include "DataTagged.h"
 #include "DataExpanded.h"
@@ -133,8 +134,8 @@ inline void binaryOp(DataExpanded& left, const DataAbstract& right,
 		     BinaryFunction operation)
 {
   int i,j;
-  DataArrayView::ValueType::size_type numDPPSample=left.getNumDPPSample();
-  DataArrayView::ValueType::size_type numSamples=left.getNumSamples();
+  DataTypes::ValueType::size_type numDPPSample=left.getNumDPPSample();
+  DataTypes::ValueType::size_type numSamples=left.getNumSamples();
   if (right.getPointDataView().getRank()==0) {
     //
     // This will call the double version of binaryOp
@@ -164,8 +165,8 @@ inline void binaryOp(DataExpanded& left, const DataArrayView& right,
 		     BinaryFunction operation)
 {
   int i,j;
-  DataArrayView::ValueType::size_type numDPPSample=left.getNumDPPSample();
-  DataArrayView::ValueType::size_type numSamples=left.getNumSamples();
+  DataTypes::ValueType::size_type numDPPSample=left.getNumDPPSample();
+  DataTypes::ValueType::size_type numSamples=left.getNumSamples();
   if (right.getRank()==0) {
     //
     // This will call the double version of binaryOp

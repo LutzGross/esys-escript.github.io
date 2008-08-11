@@ -43,9 +43,9 @@ void DataExpandedTestCase::testAll() {
 
   //
   // Create a rank 1 pointData
-  DataArrayView::ShapeType shape;
+  DataTypes::ShapeType shape;
   shape.push_back(3);
-  DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
+  DataTypes::ValueType data(DataArrayView::noValues(shape),0);
   DataArrayView pointData(data,shape);
 
   //
@@ -136,9 +136,9 @@ void DataExpandedTestCase::testSlicing() {
 
   //
   // Create a rank 1 pointData
-  DataArrayView::ShapeType shape;
+  DataTypes::ShapeType shape;
   shape.push_back(3);
-  DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
+  DataTypes::ValueType data(DataArrayView::noValues(shape),0);
   DataArrayView pointData(data,shape);
 
   //
@@ -153,8 +153,8 @@ void DataExpandedTestCase::testSlicing() {
   DataExpanded testData(pointData,FunctionSpace());
 
   cout << "\tTest slicing (whole object)." << endl;
-  DataArrayView::RegionType region;
-  region.push_back(DataArrayView::RegionType::value_type(0,shape[0]));
+  DataTypes::RegionType region;
+  region.push_back(DataTypes::RegionType::value_type(0,shape[0]));
 
   DataAbstract* testData2=testData.getSlice(region);
 
@@ -180,10 +180,10 @@ void DataExpandedTestCase::testSlicing2() {
 
   //
   // Create a rank 2 pointData
-  DataArrayView::ShapeType shape;
+  DataTypes::ShapeType shape;
   shape.push_back(3);
   shape.push_back(3);
-  DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
+  DataTypes::ValueType data(DataArrayView::noValues(shape),0);
   DataArrayView pointData(data,shape);
 
   //
@@ -204,9 +204,9 @@ void DataExpandedTestCase::testSlicing2() {
   DataExpanded testData(pointData,FunctionSpace());
 
   cout << "\tTest slicing (part object)." << endl;
-  DataArrayView::RegionType region;
-  region.push_back(DataArrayView::RegionType::value_type(0,2));
-  region.push_back(DataArrayView::RegionType::value_type(0,2));
+  DataTypes::RegionType region;
+  region.push_back(DataTypes::RegionType::value_type(0,2));
+  region.push_back(DataTypes::RegionType::value_type(0,2));
   DataAbstract* testData2=testData.getSlice(region);
 
   //
@@ -226,9 +226,9 @@ void DataExpandedTestCase::testSlicing2() {
   assert(dataView.getShape()[1]==(region[1].second-region[1].first));
 
   cout << "\tTest slicing (part object)." << endl;
-  DataArrayView::RegionType region2;
-  region2.push_back(DataArrayView::RegionType::value_type(1,3));
-  region2.push_back(DataArrayView::RegionType::value_type(1,3));
+  DataTypes::RegionType region2;
+  region2.push_back(DataTypes::RegionType::value_type(1,3));
+  region2.push_back(DataTypes::RegionType::value_type(1,3));
   DataAbstract* testData3=testData.getSlice(region2);
 
   //
@@ -258,11 +258,11 @@ void DataExpandedTestCase::testSlicing3() {
 
   //
   // Create a rank 3 pointData
-  DataArrayView::ShapeType shape;
+  DataTypes::ShapeType shape;
   shape.push_back(3);
   shape.push_back(3);
   shape.push_back(3);
-  DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
+  DataTypes::ValueType data(DataArrayView::noValues(shape),0);
   DataArrayView pointData(data,shape);
 
   //
@@ -303,10 +303,10 @@ void DataExpandedTestCase::testSlicing3() {
   DataExpanded testData(pointData,FunctionSpace());
 
   cout << "\tTest slicing (part object)." << endl;
-  DataArrayView::RegionType region;
-  region.push_back(DataArrayView::RegionType::value_type(0,2));
-  region.push_back(DataArrayView::RegionType::value_type(0,2));
-  region.push_back(DataArrayView::RegionType::value_type(0,2));
+  DataTypes::RegionType region;
+  region.push_back(DataTypes::RegionType::value_type(0,2));
+  region.push_back(DataTypes::RegionType::value_type(0,2));
+  region.push_back(DataTypes::RegionType::value_type(0,2));
   DataAbstract* testData2=testData.getSlice(region);
 
   //
@@ -333,10 +333,10 @@ void DataExpandedTestCase::testSlicing3() {
   assert(dataView.getShape()[2]==(region[2].second-region[2].first));
 
   cout << "\tTest slicing (part object)." << endl;
-  DataArrayView::RegionType region2;
-  region2.push_back(DataArrayView::RegionType::value_type(1,3));
-  region2.push_back(DataArrayView::RegionType::value_type(1,3));
-  region2.push_back(DataArrayView::RegionType::value_type(1,3));
+  DataTypes::RegionType region2;
+  region2.push_back(DataTypes::RegionType::value_type(1,3));
+  region2.push_back(DataTypes::RegionType::value_type(1,3));
+  region2.push_back(DataTypes::RegionType::value_type(1,3));
   DataAbstract* testData3=testData.getSlice(region2);
 
   //
@@ -374,10 +374,10 @@ void DataExpandedTestCase::testSliceSetting() {
 
   //
   // Create a rank 2 pointData
-  DataArrayView::ShapeType shape;
+  DataTypes::ShapeType shape;
   shape.push_back(2);
   shape.push_back(2);
-  DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
+  DataTypes::ValueType data(DataArrayView::noValues(shape),0);
   DataArrayView pointData(data,shape);
 
   //
@@ -394,10 +394,10 @@ void DataExpandedTestCase::testSliceSetting() {
 
   //
   // Create another rank 2 pointData
-  DataArrayView::ShapeType shape2;
+  DataTypes::ShapeType shape2;
   shape2.push_back(3);
   shape2.push_back(3);
-  DataArrayView::ValueType data2(DataArrayView::noValues(shape2),0);
+  DataTypes::ValueType data2(DataArrayView::noValues(shape2),0);
   DataArrayView pointData2(data2,shape2);
 
   //
@@ -419,13 +419,13 @@ void DataExpandedTestCase::testSliceSetting() {
 
   cout << "\tTest slice setting (1)." << endl;
 
-  DataArrayView::RegionType region;
-  region.push_back(DataArrayView::RegionType::value_type(0,2));
-  region.push_back(DataArrayView::RegionType::value_type(0,2));
+  DataTypes::RegionType region;
+  region.push_back(DataTypes::RegionType::value_type(0,2));
+  region.push_back(DataTypes::RegionType::value_type(0,2));
 
-  DataArrayView::RegionType region2;
-  region2.push_back(DataArrayView::RegionType::value_type(1,3));
-  region2.push_back(DataArrayView::RegionType::value_type(1,3));
+  DataTypes::RegionType region2;
+  region2.push_back(DataTypes::RegionType::value_type(1,3));
+  region2.push_back(DataTypes::RegionType::value_type(1,3));
 
   DataAbstract* testData3=testData.getSlice(region);
 
@@ -450,8 +450,8 @@ void DataExpandedTestCase::testSliceSetting2() {
 
   //
   // Create a rank 0 pointData
-  DataArrayView::ShapeType shape;
-  DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
+  DataTypes::ShapeType shape;
+  DataTypes::ValueType data(DataArrayView::noValues(shape),0);
   DataArrayView pointData(data,shape);
 
   //
@@ -465,10 +465,10 @@ void DataExpandedTestCase::testSliceSetting2() {
 
   //
   // Create a rank 2 pointData
-  DataArrayView::ShapeType shape2;
+  DataTypes::ShapeType shape2;
   shape2.push_back(3);
   shape2.push_back(3);
-  DataArrayView::ValueType data2(DataArrayView::noValues(shape2),0);
+  DataTypes::ValueType data2(DataArrayView::noValues(shape2),0);
   DataArrayView pointData2(data2,shape2);
 
   //
@@ -490,11 +490,11 @@ void DataExpandedTestCase::testSliceSetting2() {
 
   cout << "\tTest slice setting (1)." << endl;
 
-  DataArrayView::RegionType region;
+  DataTypes::RegionType region;
 
-  DataArrayView::RegionType region2;
-  region2.push_back(DataArrayView::RegionType::value_type(1,1));
-  region2.push_back(DataArrayView::RegionType::value_type(1,1));
+  DataTypes::RegionType region2;
+  region2.push_back(DataTypes::RegionType::value_type(1,1));
+  region2.push_back(DataTypes::RegionType::value_type(1,1));
 
   DataAbstract* testData3=testData.getSlice(region);
 

@@ -82,7 +82,7 @@ class DataConstant : public DataAbstract  {
   */
   ESCRIPT_DLL_API
   DataConstant(const DataConstant& other,
-               const DataArrayView::RegionType& region);
+               const DataTypes::RegionType& region);
 
   /**
      \brief
@@ -96,8 +96,8 @@ class DataConstant : public DataAbstract  {
   */
   ESCRIPT_DLL_API
   DataConstant(const FunctionSpace& what,
-               const DataArrayView::ShapeType &shape,
-               const DataArrayView::ValueType &data);
+               const DataTypes::ShapeType &shape,
+               const DataTypes::ValueType &data);
 
   /**
      \brief
@@ -135,7 +135,7 @@ class DataConstant : public DataAbstract  {
    */
   ESCRIPT_DLL_API
   virtual
-  DataArrayView::ValueType::size_type
+  DataTypes::ValueType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
@@ -157,7 +157,7 @@ class DataConstant : public DataAbstract  {
   */
   ESCRIPT_DLL_API
   virtual
-  DataArrayView::ValueType::size_type
+  DataTypes::ValueType::size_type
   getLength() const;
 
   /**
@@ -170,7 +170,7 @@ class DataConstant : public DataAbstract  {
   ESCRIPT_DLL_API
   virtual
   DataAbstract*
-  getSlice(const DataArrayView::RegionType& region) const;
+  getSlice(const DataTypes::RegionType& region) const;
 
   /**
      \brief
@@ -182,7 +182,7 @@ class DataConstant : public DataAbstract  {
   virtual
   void
   setSlice(const DataAbstract* value,
-           const DataArrayView::RegionType& region);
+           const DataTypes::RegionType& region);
 
   /**
     \brief
@@ -195,7 +195,7 @@ class DataConstant : public DataAbstract  {
   ESCRIPT_DLL_API
   int
   archiveData(std::ofstream& archiveFile,
-              const DataArrayView::ValueType::size_type noValues) const;
+              const DataTypes::ValueType::size_type noValues) const;
 
   /**
     \brief
@@ -207,7 +207,7 @@ class DataConstant : public DataAbstract  {
   ESCRIPT_DLL_API
   int
   extractData(std::ifstream& archiveFile,
-              const DataArrayView::ValueType::size_type noValues);
+              const DataTypes::ValueType::size_type noValues);
 
   /**
      \brief
@@ -297,7 +297,7 @@ class DataConstant : public DataAbstract  {
  private:
   //
   // the actual data
-  DataArrayView::ValueType m_data;
+  DataTypes::ValueType m_data;
 
 };
 

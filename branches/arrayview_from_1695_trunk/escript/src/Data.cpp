@@ -56,7 +56,7 @@ Data::Data(double value,
            const FunctionSpace& what,
            bool expanded)
 {
-  DataArrayView::ShapeType dataPointShape;
+  DataTypes::ShapeType dataPointShape;
   for (int i = 0; i < shape.attr("__len__")(); ++i) {
     dataPointShape.push_back(extract<const int>(shape[i]));
   }
@@ -71,7 +71,7 @@ Data::Data(double value,
 }
 
 Data::Data(double value,
-	   const DataArrayView::ShapeType& dataPointShape,
+	   const DataTypes::ShapeType& dataPointShape,
 	   const FunctionSpace& what,
            bool expanded)
 {
@@ -92,7 +92,7 @@ Data::Data(const Data& inData)
 }
 
 Data::Data(const Data& inData,
-           const DataArrayView::RegionType& region)
+           const DataTypes::RegionType& region)
 {
   //
   // Create Data which is a slice of another Data
@@ -173,7 +173,7 @@ Data::Data(const object& value,
 
 
   // extract the shape of the numarray
-  DataArrayView::ShapeType tempShape;
+  DataTypes::ShapeType tempShape;
   for (int i=0; i < asNumArray.getrank(); i++) {
     tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
   }
@@ -227,7 +227,7 @@ Data::getDataC() const
 const boost::python::tuple
 Data::getShapeTuple() const
 {
-  const DataArrayView::ShapeType& shape=getDataPointShape();
+  const DataTypes::ShapeType& shape=getDataPointShape();
   switch(getDataPointRank()) {
      case 0:
         return make_tuple();
@@ -495,7 +495,7 @@ Data::gradOn(const FunctionSpace& functionspace) const
   double blocktimer_start = blocktimer_time();
   if (functionspace.getDomain()!=getDomain())
     throw DataException("Error - gradient cannot be calculated on different domains.");
-  DataArrayView::ShapeType grad_shape=getPointDataView().getShape();
+  DataTypes::ShapeType grad_shape=getPointDataView().getShape();
   grad_shape.push_back(functionspace.getDim());
   Data out(0.0,grad_shape,functionspace,true);
   getDomain().setToGradient(out,*this);
@@ -515,13 +515,13 @@ Data::getDataPointSize() const
   return getPointDataView().noValues();
 }
 
-DataArrayView::ValueType::size_type
+DataTypes::ValueType::size_type
 Data::getLength() const
 {
   return m_data->getLength();
 }
 
-const DataArrayView::ShapeType&
+const DataTypes::ShapeType&
 Data::getDataPointShape() const
 {
   return getPointDataView().getShape();
@@ -538,7 +538,7 @@ Data:: getValueOfDataPoint(int dataPointNo)
   //
   // determine the rank and shape of each data point
   int dataPointRank = getDataPointRank();
-  DataArrayView::ShapeType dataPointShape = getDataPointShape();
+  DataTypes::ShapeType dataPointShape = getDataPointShape();
 
   //
   // create the numeric array to be returned
@@ -548,7 +548,7 @@ Data:: getValueOfDataPoint(int dataPointNo)
   // the shape of the returned numeric array will be the same
   // as that of the data point
   int arrayRank = dataPointRank;
-  DataArrayView::ShapeType arrayShape = dataPointShape;
+  DataTypes::ShapeType arrayShape = dataPointShape;
 
   //
   // resize the numeric array to the shape just calculated
@@ -689,7 +689,7 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
   //
   // determine the rank and shape of each data point
   int dataPointRank = getDataPointRank();
-  DataArrayView::ShapeType dataPointShape = getDataPointShape();
+  DataTypes::ShapeType dataPointShape = getDataPointShape();
 
   //
   // create the numeric array to be returned
@@ -699,7 +699,7 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
   // the shape of the returned numeric array will be the same
   // as that of the data point
   int arrayRank = dataPointRank;
-  DataArrayView::ShapeType arrayShape = dataPointShape;
+  DataTypes::ShapeType arrayShape = dataPointShape;
 
   //
   // resize the numeric array to the shape just calculated
@@ -825,7 +825,7 @@ Data::integrate() const
 {
   int index;
   int rank = getDataPointRank();
-  DataArrayView::ShapeType shape = getDataPointShape();
+  DataTypes::ShapeType shape = getDataPointShape();
   int dataPointSize = getDataPointSize();
 
   //
@@ -1125,8 +1125,8 @@ Data
 Data::swapaxes(const int axis0, const int axis1) const
 {
      int axis0_tmp,axis1_tmp;
-     DataArrayView::ShapeType s=getDataPointShape();
-     DataArrayView::ShapeType ev_shape;
+     DataTypes::ShapeType s=getDataPointShape();
+     DataTypes::ShapeType ev_shape;
      // Here's the equivalent of python s_out=s[axis_offset:]+s[:axis_offset]
      // which goes thru all shape vector elements starting with axis_offset (at index=rank wrap around to 0)
      int rank=getDataPointRank();
@@ -1169,7 +1169,7 @@ Data
 Data::symmetric() const
 {
      // check input
-     DataArrayView::ShapeType s=getDataPointShape();
+     DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
         if(s[0] != s[1])
            throw DataException("Error - Data::symmetric can only be calculated for rank 2 object with equal first and second dimension.");
@@ -1191,11 +1191,11 @@ Data
 Data::nonsymmetric() const
 {
      // check input
-     DataArrayView::ShapeType s=getDataPointShape();
+     DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
         if(s[0] != s[1])
            throw DataException("Error - Data::nonsymmetric can only be calculated for rank 2 object with equal first and second dimension.");
-        DataArrayView::ShapeType ev_shape;
+        DataTypes::ShapeType ev_shape;
         ev_shape.push_back(s[0]);
         ev_shape.push_back(s[1]);
         Data ev(0.,ev_shape,getFunctionSpace());
@@ -1206,7 +1206,7 @@ Data::nonsymmetric() const
      else if (getDataPointRank()==4) {
         if(!(s[0] == s[2] && s[1] == s[3]))
            throw DataException("Error - Data::nonsymmetric can only be calculated for rank 4 object with dim0==dim2 and dim1==dim3.");
-        DataArrayView::ShapeType ev_shape;
+        DataTypes::ShapeType ev_shape;
         ev_shape.push_back(s[0]);
         ev_shape.push_back(s[1]);
         ev_shape.push_back(s[2]);
@@ -1224,16 +1224,16 @@ Data::nonsymmetric() const
 Data
 Data::trace(int axis_offset) const
 {
-     DataArrayView::ShapeType s=getDataPointShape();
+     DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
-        DataArrayView::ShapeType ev_shape;
+        DataTypes::ShapeType ev_shape;
         Data ev(0.,ev_shape,getFunctionSpace());
         ev.typeMatchRight(*this);
         m_data->trace(ev.m_data.get(), axis_offset);
         return ev;
      }
      if (getDataPointRank()==3) {
-        DataArrayView::ShapeType ev_shape;
+        DataTypes::ShapeType ev_shape;
         if (axis_offset==0) {
           int s2=s[2];
           ev_shape.push_back(s2);
@@ -1248,7 +1248,7 @@ Data::trace(int axis_offset) const
         return ev;
      }
      if (getDataPointRank()==4) {
-        DataArrayView::ShapeType ev_shape;
+        DataTypes::ShapeType ev_shape;
         if (axis_offset==0) {
           ev_shape.push_back(s[2]);
           ev_shape.push_back(s[3]);
@@ -1274,8 +1274,8 @@ Data::trace(int axis_offset) const
 Data
 Data::transpose(int axis_offset) const
 {
-     DataArrayView::ShapeType s=getDataPointShape();
-     DataArrayView::ShapeType ev_shape;
+     DataTypes::ShapeType s=getDataPointShape();
+     DataTypes::ShapeType ev_shape;
      // Here's the equivalent of python s_out=s[axis_offset:]+s[:axis_offset]
      // which goes thru all shape vector elements starting with axis_offset (at index=rank wrap around to 0)
      int rank=getDataPointRank();
@@ -1296,13 +1296,13 @@ Data
 Data::eigenvalues() const
 {
      // check input
-     DataArrayView::ShapeType s=getDataPointShape();
+     DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()!=2)
         throw DataException("Error - Data::eigenvalues can only be calculated for rank 2 object.");
      if(s[0] != s[1])
         throw DataException("Error - Data::eigenvalues can only be calculated for object with equal first and second dimension.");
      // create return
-     DataArrayView::ShapeType ev_shape(1,s[0]);
+     DataTypes::ShapeType ev_shape(1,s[0]);
      Data ev(0.,ev_shape,getFunctionSpace());
      ev.typeMatchRight(*this);
      m_data->eigenvalues(ev.m_data.get());
@@ -1312,16 +1312,16 @@ Data::eigenvalues() const
 const boost::python::tuple
 Data::eigenvalues_and_eigenvectors(const double tol) const
 {
-     DataArrayView::ShapeType s=getDataPointShape();
+     DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()!=2)
         throw DataException("Error - Data::eigenvalues and eigenvectors can only be calculated for rank 2 object.");
      if(s[0] != s[1])
         throw DataException("Error - Data::eigenvalues and eigenvectors can only be calculated for object with equal first and second dimension.");
      // create return
-     DataArrayView::ShapeType ev_shape(1,s[0]);
+     DataTypes::ShapeType ev_shape(1,s[0]);
      Data ev(0.,ev_shape,getFunctionSpace());
      ev.typeMatchRight(*this);
-     DataArrayView::ShapeType V_shape(2,s[0]);
+     DataTypes::ShapeType V_shape(2,s[0]);
      Data V(0.,V_shape,getFunctionSpace());
      V.typeMatchRight(*this);
      m_data->eigenvalues_and_eigenvectors(ev.m_data.get(),V.m_data.get(),tol);
@@ -1668,7 +1668,7 @@ Data::getItem(const boost::python::object& key) const
 {
   const DataArrayView& view=getPointDataView();
 
-  DataArrayView::RegionType slice_region=view.getSliceRegion(key);
+  DataTypes::RegionType slice_region=view.getSliceRegion(key);
 
   if (slice_region.size()!=view.getRank()) {
     throw DataException("Error - slice size does not match Data rank.");
@@ -1680,7 +1680,7 @@ Data::getItem(const boost::python::object& key) const
 /* TODO */
 /* global reduction */
 Data
-Data::getSlice(const DataArrayView::RegionType& region) const
+Data::getSlice(const DataTypes::RegionType& region) const
 {
   return Data(*this,region);
 }
@@ -1701,7 +1701,7 @@ Data::setItemD(const boost::python::object& key,
 {
   const DataArrayView& view=getPointDataView();
 
-  DataArrayView::RegionType slice_region=view.getSliceRegion(key);
+  DataTypes::RegionType slice_region=view.getSliceRegion(key);
   if (slice_region.size()!=view.getRank()) {
     throw DataException("Error - slice size does not match Data rank.");
   }
@@ -1714,7 +1714,7 @@ Data::setItemD(const boost::python::object& key,
 
 void
 Data::setSlice(const Data& value,
-               const DataArrayView::RegionType& region)
+               const DataTypes::RegionType& region)
 {
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
@@ -1777,7 +1777,7 @@ Data::setTaggedValue(int tagKey,
 
 
   // extract the shape of the numarray
-  DataArrayView::ShapeType tempShape;
+  DataTypes::ShapeType tempShape;
   for (int i=0; i < asNumArray.getrank(); i++) {
     tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
   }
@@ -1853,7 +1853,7 @@ Data::archiveData(const std::string fileName)
   int dataPointRank = getDataPointRank();
   int dataPointSize = getDataPointSize();
   int dataLength = getLength();
-  DataArrayView::ShapeType dataPointShape = getDataPointShape();
+  DataTypes::ShapeType dataPointShape = getDataPointShape();
   vector<int> referenceNumbers(noSamples);
   for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
     referenceNumbers[sampleNo] = getFunctionSpace().getReferenceIDOfSample(sampleNo);
@@ -1985,7 +1985,7 @@ Data::extractData(const std::string fileName,
   int dataPointRank;
   int dataPointSize;
   int dataLength;
-  DataArrayView::ShapeType dataPointShape;
+  DataTypes::ShapeType dataPointShape;
   int flatShape[4];
 
   //
@@ -2186,8 +2186,8 @@ escript::C_GeneralTensorProduct(Data& arg_0,
   // Get rank and shape of inputs
   int rank0 = arg_0_Z.getDataPointRank();
   int rank1 = arg_1_Z.getDataPointRank();
-  DataArrayView::ShapeType shape0 = arg_0_Z.getDataPointShape();
-  DataArrayView::ShapeType shape1 = arg_1_Z.getDataPointShape();
+  DataTypes::ShapeType shape0 = arg_0_Z.getDataPointShape();
+  DataTypes::ShapeType shape1 = arg_1_Z.getDataPointShape();
 
   // Prepare for the loops of the product and verify compatibility of shapes
   int start0=0, start1=0;
@@ -2197,8 +2197,8 @@ escript::C_GeneralTensorProduct(Data& arg_0,
   else				{ throw DataException("C_GeneralTensorProduct: Error - transpose should be 0, 1 or 2"); }
 
   // Adjust the shapes for transpose
-  DataArrayView::ShapeType tmpShape0;
-  DataArrayView::ShapeType tmpShape1;
+  DataTypes::ShapeType tmpShape0;
+  DataTypes::ShapeType tmpShape1;
   for (int i=0; i<rank0; i++)	{ tmpShape0.push_back( shape0[(i+start0)%rank0] ); }
   for (int i=0; i<rank1; i++)	{ tmpShape1.push_back( shape1[(i+start1)%rank1] ); }
 
@@ -2232,7 +2232,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
   }
 
   // Define the shape of the output
-  DataArrayView::ShapeType shape2;
+  DataTypes::ShapeType shape2;
   for (int i=0; i<rank0-axis_offset; i++) { shape2.push_back(tmpShape0[i]); } // First part of arg_0_Z
   for (int i=axis_offset; i<rank1; i++)   { shape2.push_back(tmpShape1[i]); } // Last part of arg_1_Z
 
@@ -2526,7 +2526,7 @@ Data::borrowData() const
 std::string
 Data::toString() const
 {
-    static const DataArrayView::ValueType::size_type TOO_MANY_POINTS=80;
+    static const DataTypes::ValueType::size_type TOO_MANY_POINTS=80;
     if (getNumDataPoints()*getDataPointSize()>TOO_MANY_POINTS)
     {
 	stringstream temp;
