@@ -43,7 +43,7 @@ void DataConstantTestCase::testAll() {
   //
   // Create a scalar pointData
   DataTypes::ShapeType shape;
-  DataTypes::ValueType data(DataArrayView::noValues(shape),0);
+  DataTypes::ValueType data(DataTypes::noValues(shape),0);
   DataArrayView pointData(data,shape);
 
   //
@@ -96,7 +96,7 @@ void DataConstantTestCase::testAll() {
 */
 
   cout << "\tTesting alternative constructor." << endl;
-  DataTypes::ValueType data1(DataArrayView::noValues(shape),1.0);
+  DataTypes::ValueType data1(DataTypes::noValues(shape),1.0);
   // do not call the FunctionSpace constructor directly
   // in the argument of DataConstant
   // GCC chokes on it.

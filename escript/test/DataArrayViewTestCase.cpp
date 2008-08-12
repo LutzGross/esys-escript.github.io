@@ -79,7 +79,7 @@ void DataArrayViewTestCase::testSlicing() {
     DataTypes::ShapeType sourceShape;
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     DataVector targetData(1, 2.0, 1);
@@ -103,7 +103,7 @@ void DataArrayViewTestCase::testSlicing() {
     DataTypes::ShapeType sourceShape;
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     DataVector targetData(1, 2.0, 1);
@@ -130,14 +130,14 @@ void DataArrayViewTestCase::testSlicing() {
     DataTypes::ShapeType targetShape = DataArrayView::getResultSliceShape(region);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     for (int i=0;i<sourceShape[0];i++) {
       sourceView(i)=i;
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -165,7 +165,7 @@ void DataArrayViewTestCase::testSlicing() {
     DataTypes::ShapeType targetShape;
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
 
@@ -173,7 +173,7 @@ void DataArrayViewTestCase::testSlicing() {
       sourceView(i)=i;
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -201,14 +201,14 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(6);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     for (int i=0;i<sourceShape[0];i++) {
       sourceView(i)=i;
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -236,12 +236,12 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(6);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     sourceView()=5;
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -271,7 +271,7 @@ void DataArrayViewTestCase::testSlicing() {
     DataTypes::ShapeType targetShape = DataArrayView::getResultSliceShape(region);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -281,7 +281,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -314,7 +314,7 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(3);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -324,7 +324,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -356,7 +356,7 @@ void DataArrayViewTestCase::testSlicing() {
     DataTypes::ShapeType targetShape;
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -366,7 +366,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -397,7 +397,7 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(3);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -407,7 +407,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -439,12 +439,12 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(3);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     sourceView()=5;
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -478,7 +478,7 @@ void DataArrayViewTestCase::testSlicing() {
     DataTypes::ShapeType targetShape = DataArrayView::getResultSliceShape(region);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -490,7 +490,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -528,7 +528,7 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(4);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -540,7 +540,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -577,7 +577,7 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(4);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -589,7 +589,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -625,7 +625,7 @@ void DataArrayViewTestCase::testSlicing() {
     DataTypes::ShapeType targetShape;
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -637,7 +637,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -673,7 +673,7 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(9);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -685,7 +685,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -721,12 +721,12 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(9);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     sourceView()=5;
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -764,7 +764,7 @@ void DataArrayViewTestCase::testSlicing() {
     DataTypes::ShapeType targetShape = DataArrayView::getResultSliceShape(region);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -778,7 +778,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -821,7 +821,7 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(2);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -835,7 +835,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -877,7 +877,7 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(2);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -891,7 +891,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -932,7 +932,7 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(2);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -946,7 +946,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -986,7 +986,7 @@ void DataArrayViewTestCase::testSlicing() {
     DataTypes::ShapeType targetShape;
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -1000,7 +1000,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -1040,7 +1040,7 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(90);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -1054,7 +1054,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -1094,12 +1094,12 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(90);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     sourceView()=5;
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -1129,15 +1129,15 @@ void DataArrayViewTestCase::testShapeToString() {
   cout << "\tTest shapeToString for a variety of shapes." << endl;
 
   DataTypes::ShapeType shape;
-  assert(DataArrayView::shapeToString(shape)=="()");
+  assert(DataTypes::shapeToString(shape)=="()");
   shape.push_back(5);
-  assert(DataArrayView::shapeToString(shape)=="(5)");
+  assert(DataTypes::shapeToString(shape)=="(5)");
   shape.push_back(2);
-  assert(DataArrayView::shapeToString(shape)=="(5,2)");
+  assert(DataTypes::shapeToString(shape)=="(5,2)");
   shape.push_back(9);
-  assert(DataArrayView::shapeToString(shape)=="(5,2,9)");
+  assert(DataTypes::shapeToString(shape)=="(5,2,9)");
   shape.push_back(4);
-  assert(DataArrayView::shapeToString(shape)=="(5,2,9,4)");
+  assert(DataTypes::shapeToString(shape)=="(5,2,9,4)");
 
 }
 
@@ -1225,7 +1225,7 @@ void DataArrayViewTestCase::testAll()
     shape.push_back(5);
 
     // allocate the data for the DataArrayView
-    DataTypes::ValueType data(DataArrayView::noValues(shape),0);
+    DataTypes::ValueType data(DataTypes::noValues(shape),0);
 
     // constructor
     int offset=0;
@@ -1258,7 +1258,7 @@ void DataArrayViewTestCase::testAll()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -1304,7 +1304,7 @@ void DataArrayViewTestCase::testAll()
 
     // allocate the data for the DataArrayView
     int npoints=10;
-    DataTypes::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -1353,7 +1353,7 @@ void DataArrayViewTestCase::testAll()
 
     // allocate the data for the DataArrayView
     int npoints=100;
-    DataTypes::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -1400,7 +1400,7 @@ void DataArrayViewTestCase::testAll()
     shape.push_back(5);
 
     // allocate the data for the DataArrayView
-    DataTypes::ValueType data(DataArrayView::noValues(shape),0);
+    DataTypes::ValueType data(DataTypes::noValues(shape),0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -1435,7 +1435,7 @@ void DataArrayViewTestCase::testAll()
     shape.push_back(7);
 
     // allocate the data for the DataArrayView
-    DataTypes::ValueType data(DataArrayView::noValues(shape),0);
+    DataTypes::ValueType data(DataTypes::noValues(shape),0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -1470,8 +1470,8 @@ void DataArrayViewTestCase::testAll()
 
     // allocate the data for the DataArrayViews
     int npoints=4;
-    DataTypes::ValueType data1(DataArrayView::noValues(shape)*npoints,0);
-    DataTypes::ValueType data2(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
 
     // construct two views
     DataArrayView dataView1(data1,shape);
@@ -1519,8 +1519,8 @@ void DataArrayViewTestCase::testAll()
 
     // allocate the data for the DataArrayViews
     int npoints=10;
-    DataTypes::ValueType data1(DataArrayView::noValues(shape)*npoints,0);
-    DataTypes::ValueType data2(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
 
     // construct two views
     DataArrayView dataView1(data1,shape);
@@ -1574,8 +1574,8 @@ void DataArrayViewTestCase::testAll()
 
     // allocate the data for the DataArrayViews
     int npoints=4;
-    DataTypes::ValueType data1(DataArrayView::noValues(shape)*npoints,0);
-    DataTypes::ValueType data2(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
 
     // construct two views
     DataArrayView dataView1(data1,shape);
@@ -1612,7 +1612,7 @@ void DataArrayViewTestCase::testAll()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // construct view
     DataArrayView dataView(data,shape);
@@ -1636,7 +1636,7 @@ void DataArrayViewTestCase::testAll()
     cout << "\tTest too many indices for shape exception.";
 
     DataTypes::ShapeType shape;
-    DataTypes::ValueType data(DataArrayView::noValues(shape),0);
+    DataTypes::ValueType data(DataTypes::noValues(shape),0);
     DataArrayView dataView(data,shape);
 
     // Should be a scalar
@@ -1684,7 +1684,7 @@ void DataArrayViewTestCase::testAll()
 
     DataTypes::ShapeType shape;
     shape.push_back(4);
-    DataTypes::ValueType data(DataArrayView::noValues(shape),0);
+    DataTypes::ValueType data(DataTypes::noValues(shape),0);
     DataArrayView dataView(data,shape);
 
     try {
@@ -1727,13 +1727,13 @@ void DataArrayViewTestCase::testMatMult()
     DataTypes::ShapeType leftShape;
     leftShape.push_back(1);
     leftShape.push_back(3);
-    DataTypes::ValueType leftData(DataArrayView::noValues(leftShape),0);
+    DataTypes::ValueType leftData(DataTypes::noValues(leftShape),0);
     DataArrayView leftDataView(leftData,leftShape);
 
     DataTypes::ShapeType rightShape;
     rightShape.push_back(3);
     rightShape.push_back(2);
-    DataTypes::ValueType rightData(DataArrayView::noValues(rightShape),0);
+    DataTypes::ValueType rightData(DataTypes::noValues(rightShape),0);
     DataArrayView rightDataView(rightData,rightShape);
 
     DataTypes::ShapeType resultShape=DataArrayView::determineResultShape(leftDataView,rightDataView);
@@ -1742,7 +1742,7 @@ void DataArrayViewTestCase::testMatMult()
     assert(resultShape[0]==1);
     assert(resultShape[1]==2);
 
-    DataTypes::ValueType resultData(DataArrayView::noValues(resultShape),0);
+    DataTypes::ValueType resultData(DataTypes::noValues(resultShape),0);
     DataArrayView resultDataView(resultData,resultShape);
 
     cout << "\tTest matrix multiplication.";
@@ -1782,7 +1782,7 @@ void DataArrayViewTestCase::testUnaryOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -1820,7 +1820,7 @@ void DataArrayViewTestCase::testUnaryOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -1866,7 +1866,7 @@ void DataArrayViewTestCase::testUnaryOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -1927,8 +1927,8 @@ void DataArrayViewTestCase::testBinaryOp()
 
     // allocate the data for the DataArrayViews
     int npoints=4;
-    DataTypes::ValueType data1(DataArrayView::noValues(shape)*npoints,0);
-    DataTypes::ValueType data2(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView1(data1,shape);
@@ -1967,8 +1967,8 @@ void DataArrayViewTestCase::testBinaryOp()
 
     // allocate the data for the DataArrayViews
     int npoints=4;
-    DataTypes::ValueType data1(DataArrayView::noValues(shape)*npoints,0);
-    DataTypes::ValueType data2(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView1(data1,shape);
@@ -2017,8 +2017,8 @@ void DataArrayViewTestCase::testBinaryOp()
 
     // allocate the data for the DataArrayViews
     int npoints=4;
-    DataTypes::ValueType data1(DataArrayView::noValues(shape)*npoints,0);
-    DataTypes::ValueType data2(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView1(data1,shape);
@@ -2071,7 +2071,7 @@ void DataArrayViewTestCase::testBinaryOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -2107,7 +2107,7 @@ void DataArrayViewTestCase::testBinaryOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -2155,7 +2155,7 @@ void DataArrayViewTestCase::testBinaryOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -2214,7 +2214,7 @@ void DataArrayViewTestCase::testReductionOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -2248,7 +2248,7 @@ void DataArrayViewTestCase::testReductionOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -2288,7 +2288,7 @@ void DataArrayViewTestCase::testReductionOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);

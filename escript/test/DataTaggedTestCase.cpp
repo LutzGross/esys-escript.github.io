@@ -2724,7 +2724,7 @@ void DataTaggedTestCase::testCopyConstructors() {
 
     // Create a DataConstant
     DataTypes::ShapeType shape;
-    DataTypes::ValueType data(DataArrayView::noValues(shape),0);
+    DataTypes::ValueType data(DataTypes::noValues(shape),0);
     DataArrayView pointData(data,shape);
     pointData()=1.0;
     DataConstant myConstantData(pointData, FunctionSpace());

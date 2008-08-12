@@ -45,7 +45,7 @@ void DataExpandedTestCase::testAll() {
   // Create a rank 1 pointData
   DataTypes::ShapeType shape;
   shape.push_back(3);
-  DataTypes::ValueType data(DataArrayView::noValues(shape),0);
+  DataTypes::ValueType data(DataTypes::noValues(shape),0);
   DataArrayView pointData(data,shape);
 
   //
@@ -138,7 +138,7 @@ void DataExpandedTestCase::testSlicing() {
   // Create a rank 1 pointData
   DataTypes::ShapeType shape;
   shape.push_back(3);
-  DataTypes::ValueType data(DataArrayView::noValues(shape),0);
+  DataTypes::ValueType data(DataTypes::noValues(shape),0);
   DataArrayView pointData(data,shape);
 
   //
@@ -183,7 +183,7 @@ void DataExpandedTestCase::testSlicing2() {
   DataTypes::ShapeType shape;
   shape.push_back(3);
   shape.push_back(3);
-  DataTypes::ValueType data(DataArrayView::noValues(shape),0);
+  DataTypes::ValueType data(DataTypes::noValues(shape),0);
   DataArrayView pointData(data,shape);
 
   //
@@ -262,7 +262,7 @@ void DataExpandedTestCase::testSlicing3() {
   shape.push_back(3);
   shape.push_back(3);
   shape.push_back(3);
-  DataTypes::ValueType data(DataArrayView::noValues(shape),0);
+  DataTypes::ValueType data(DataTypes::noValues(shape),0);
   DataArrayView pointData(data,shape);
 
   //
@@ -377,7 +377,7 @@ void DataExpandedTestCase::testSliceSetting() {
   DataTypes::ShapeType shape;
   shape.push_back(2);
   shape.push_back(2);
-  DataTypes::ValueType data(DataArrayView::noValues(shape),0);
+  DataTypes::ValueType data(DataTypes::noValues(shape),0);
   DataArrayView pointData(data,shape);
 
   //
@@ -397,7 +397,7 @@ void DataExpandedTestCase::testSliceSetting() {
   DataTypes::ShapeType shape2;
   shape2.push_back(3);
   shape2.push_back(3);
-  DataTypes::ValueType data2(DataArrayView::noValues(shape2),0);
+  DataTypes::ValueType data2(DataTypes::noValues(shape2),0);
   DataArrayView pointData2(data2,shape2);
 
   //
@@ -451,7 +451,7 @@ void DataExpandedTestCase::testSliceSetting2() {
   //
   // Create a rank 0 pointData
   DataTypes::ShapeType shape;
-  DataTypes::ValueType data(DataArrayView::noValues(shape),0);
+  DataTypes::ValueType data(DataTypes::noValues(shape),0);
   DataArrayView pointData(data,shape);
 
   //
@@ -468,7 +468,7 @@ void DataExpandedTestCase::testSliceSetting2() {
   DataTypes::ShapeType shape2;
   shape2.push_back(3);
   shape2.push_back(3);
-  DataTypes::ValueType data2(DataArrayView::noValues(shape2),0);
+  DataTypes::ValueType data2(DataTypes::noValues(shape2),0);
   DataArrayView pointData2(data2,shape2);
 
   //

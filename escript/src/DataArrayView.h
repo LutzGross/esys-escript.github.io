@@ -24,6 +24,7 @@
 #include "LocalOps.h"
 #include "DataTypes.h"
 
+
 #include <boost/python/numeric.hpp>
 #include <boost/python/object.hpp>
 
@@ -274,20 +275,20 @@ class DataArrayView {
   int
   noValues() const;
 
-  /**
-     \brief
-     Calculate the number of values for the given shape or region.
-     This is purely a utility method and has no bearing on this view.
-  */
-  ESCRIPT_DLL_API
-  static
-  int
-  noValues(const DataTypes::ShapeType& shape);
-
-  ESCRIPT_DLL_API
-  static
-  int
-  noValues(const DataTypes::RegionLoopRangeType& region);
+//  /**
+//     \brief
+//     Calculate the number of values for the given shape or region.
+//     This is purely a utility method and has no bearing on this view.
+//  */
+//   ESCRIPT_DLL_API
+//   static
+//   int
+//   noValues(const DataTypes::ShapeType& shape);
+// 
+//   ESCRIPT_DLL_API
+//   static
+//   int
+//   noValues(const DataTypes::RegionLoopRangeType& region);
 
   /**
      \brief
@@ -350,17 +351,17 @@ class DataArrayView {
   std::string
   toString(const std::string& suffix=std::string("")) const;
 
-  /**
-     \brief
-     Return the given shape as a string.
-     This is purely a utility method and has no bearing on this view.
-
-     \param shape - Input.
-  */
-  ESCRIPT_DLL_API
-  static
-  std::string
-  shapeToString(const DataTypes::ShapeType& shape);
+//  /**
+//     \brief
+//     Return the given shape as a string.
+//     This is purely a utility method and has no bearing on this view.
+//
+//     \param shape - Input.
+//  */
+//   ESCRIPT_DLL_API
+//   static
+//   std::string
+//   shapeToString(const DataTypes::ShapeType& shape);
 
   /**
     \brief
@@ -1680,7 +1681,7 @@ DataTypes::ValueType::size_type
 DataArrayView::relIndex(DataTypes::ValueType::size_type i) const 
 {
   EsysAssert((getRank()==1),"Incorrect number of indices for the rank of this object.");
-  EsysAssert((i < noValues(m_shape)), "Error - Invalid index.");
+  EsysAssert((i < DataTypes::noValues(m_shape)), "Error - Invalid index.");
   return i;
 }
 
@@ -1689,7 +1690,7 @@ DataTypes::ValueType::size_type
 DataArrayView::index(DataTypes::ValueType::size_type i) const 
 {
   EsysAssert((getRank()==1),"Incorrect number of indices for the rank of this object.");
-  EsysAssert((i < noValues(m_shape)), "Error - Invalid index.");
+  EsysAssert((i < DataTypes::noValues(m_shape)), "Error - Invalid index.");
   return (m_offset+i);
 }
 
@@ -1700,7 +1701,7 @@ DataArrayView::relIndex(DataTypes::ValueType::size_type i,
 {
   EsysAssert((getRank()==2),"Incorrect number of indices for the rank of this object.");
   DataTypes::ValueType::size_type temp=i+j*m_shape[0];
-  EsysAssert((temp < noValues(m_shape)), "Error - Invalid index.");
+  EsysAssert((temp < DataTypes::noValues(m_shape)), "Error - Invalid index.");
   return temp;
 }
 
@@ -1711,7 +1712,7 @@ DataArrayView::index(DataTypes::ValueType::size_type i,
 {
   EsysAssert((getRank()==2),"Incorrect number of indices for the rank of this object.");
   DataTypes::ValueType::size_type temp=i+j*m_shape[0];
-  EsysAssert((temp < noValues(m_shape)), "Error - Invalid index.");
+  EsysAssert((temp < DataTypes::noValues(m_shape)), "Error - Invalid index.");
   return (m_offset+temp);
 }
 
@@ -1723,7 +1724,7 @@ DataArrayView::relIndex(DataTypes::ValueType::size_type i,
 {
   EsysAssert((getRank()==3),"Incorrect number of indices for the rank of this object.");
   DataTypes::ValueType::size_type temp=i+j*m_shape[0]+k*m_shape[1]*m_shape[0];
-  EsysAssert((temp < noValues(m_shape)), "Error - Invalid index.");
+  EsysAssert((temp < DataTypes::noValues(m_shape)), "Error - Invalid index.");
   return temp;
 }
 
@@ -1735,7 +1736,7 @@ DataArrayView::index(DataTypes::ValueType::size_type i,
 {
   EsysAssert((getRank()==3),"Incorrect number of indices for the rank of this object.");
   DataTypes::ValueType::size_type temp=i+j*m_shape[0]+k*m_shape[1]*m_shape[0];
-  EsysAssert((temp < noValues(m_shape)), "Error - Invalid index.");
+  EsysAssert((temp < DataTypes::noValues(m_shape)), "Error - Invalid index.");
   return (m_offset+temp);
 }
 
@@ -1748,7 +1749,7 @@ DataArrayView::relIndex(DataTypes::ValueType::size_type i,
 {
   EsysAssert((getRank()==4),"Incorrect number of indices for the rank of this object.");
   DataTypes::ValueType::size_type temp=i+j*m_shape[0]+k*m_shape[1]*m_shape[0]+m*m_shape[2]*m_shape[1]*m_shape[0];
-  EsysAssert((temp < noValues(m_shape)), "Error - Invalid index.");
+  EsysAssert((temp < DataTypes::noValues(m_shape)), "Error - Invalid index.");
   return temp;
 }
 
@@ -1761,7 +1762,7 @@ DataArrayView::index(DataTypes::ValueType::size_type i,
 {
   EsysAssert((getRank()==4),"Incorrect number of indices for the rank of this object.");
   DataTypes::ValueType::size_type temp=i+j*m_shape[0]+k*m_shape[1]*m_shape[0]+m*m_shape[2]*m_shape[1]*m_shape[0];
-  EsysAssert((temp < noValues(m_shape)), "Error - Invalid index.");
+  EsysAssert((temp < DataTypes::noValues(m_shape)), "Error - Invalid index.");
   return (m_offset+temp);
 }
 

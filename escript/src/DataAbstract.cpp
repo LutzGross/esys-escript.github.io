@@ -68,9 +68,9 @@ DataAbstract::operandCheck(const DataAbstract& right) const
       {
         stringstream temp;
 	temp << "Error - Right hand argument point data shape: " 
-	     << DataArrayView::shapeToString(right.getPointDataView().getShape())
+	     << DataTypes::shapeToString(right.getPointDataView().getShape())
 	     << " doesn't match left: " 
-	     << DataArrayView::shapeToString(getPointDataView().getShape());
+	     << DataTypes::shapeToString(getPointDataView().getShape());
 	throw DataException(temp.str());
       }
 }

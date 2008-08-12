@@ -158,7 +158,7 @@ void DataAlgorithmAdapterTestCase::testAlgorithm() {
     shape.push_back(3);
 
     // allocate the data for the DataArrayView
-    DataTypes::ValueType dataArray(DataArrayView::noValues(shape),0);
+    DataTypes::ValueType dataArray(DataTypes::noValues(shape),0);
 
     // construct DataArrayView
     DataArrayView dataView(dataArray,shape);
@@ -208,8 +208,8 @@ void DataAlgorithmAdapterTestCase::testDpAlgorithm() {
     DataTypes::ShapeType shape2;
 
     // allocate the data for the DataArrayViews
-    DataTypes::ValueType dataArray(DataArrayView::noValues(shape),0);
-    DataTypes::ValueType dataArray2(DataArrayView::noValues(shape2),0);
+    DataTypes::ValueType dataArray(DataTypes::noValues(shape),0);
+    DataTypes::ValueType dataArray2(DataTypes::noValues(shape2),0);
 
     // construct DataArrayViews
     DataArrayView dataView(dataArray,shape);
