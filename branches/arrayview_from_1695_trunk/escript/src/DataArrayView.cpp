@@ -40,7 +40,7 @@ namespace escript {
    m_data(&data),
    m_shape(viewShape),
    m_offset(offset),
-   m_noValues(noValues(viewShape))
+   m_noValues(DataTypes::noValues(viewShape))
    {
       //
       // check the shape rank and size and throw an exception if a
@@ -193,31 +193,31 @@ namespace escript {
       return m_shape;
    }
 
-   int
-   DataArrayView::noValues(const ShapeType& shape) 
-   {
-      ShapeType::const_iterator i;
-      //
-      // An empty shape vector means rank 0 which contains 1 value
-      int noValues=1;
-      for (i=shape.begin();i!=shape.end();i++) {
-         noValues*=(*i);
-      }
-      return noValues;
-   }
-
-   int
-   DataArrayView::noValues(const RegionLoopRangeType& region) 
-   {
-      //
-      // An empty region vector means rank 0 which contains 1 value
-      int noValues=1;
-      unsigned int i;
-      for (i=0;i<region.size();i++) {
-         noValues*=region[i].second-region[i].first;
-      }
-      return noValues;
-   }
+//    int
+//    DataArrayView::noValues(const ShapeType& shape) 
+//    {
+//       ShapeType::const_iterator i;
+//       //
+//       // An empty shape vector means rank 0 which contains 1 value
+//       int noValues=1;
+//       for (i=shape.begin();i!=shape.end();i++) {
+//          noValues*=(*i);
+//       }
+//       return noValues;
+//    }
+// 
+//    int
+//    DataArrayView::noValues(const RegionLoopRangeType& region) 
+//    {
+//       //
+//       // An empty region vector means rank 0 which contains 1 value
+//       int noValues=1;
+//       unsigned int i;
+//       for (i=0;i<region.size();i++) {
+//          noValues*=region[i].second-region[i].first;
+//       }
+//       return noValues;
+//    }
  
    int
    DataArrayView::noValues() const
@@ -725,21 +725,21 @@ namespace escript {
       return temp.str();
    }
 
-   string
-   DataArrayView::shapeToString(const DataTypes::ShapeType& shape)
-   {
-      stringstream temp;
-      temp << "(";
-      unsigned int i;
-      for (i=0;i<shape.size();i++) {
-         temp << shape[i];
-         if (i < shape.size()-1) {
-            temp << ",";
-         }
-      }
-      temp << ")";
-      return temp.str();
-   }
+//    string
+//    DataArrayView::shapeToString(const DataTypes::ShapeType& shape)
+//    {
+//       stringstream temp;
+//       temp << "(";
+//       unsigned int i;
+//       for (i=0;i<shape.size();i++) {
+//          temp << shape[i];
+//          if (i < shape.size()-1) {
+//             temp << ",";
+//          }
+//       }
+//       temp << ")";
+//       return temp.str();
+//    }
 
    void
    DataArrayView::matMult(const DataArrayView& left, 

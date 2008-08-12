@@ -41,7 +41,7 @@ DataConstant::DataConstant(const boost::python::numeric::array& value,
   }
 
   // get the space for the data vector
-  int len = DataArrayView::noValues(tempShape);
+  int len = DataTypes::noValues(tempShape);
   DataVector temp_data(len, 0.0, len);
   DataArrayView temp_dataView(temp_data, tempShape);
   temp_dataView.copy(value);
@@ -88,7 +88,7 @@ DataConstant::DataConstant(const DataConstant& other,
   DataTypes::ShapeType shape(DataArrayView::getResultSliceShape(region));
   //
   // allocate space for this new DataConstant's data
-  int len = DataArrayView::noValues(shape);
+  int len = DataTypes::noValues(shape);
   m_data.resize(len,0.,len);
   //
   // create a view of the data with the correct shape

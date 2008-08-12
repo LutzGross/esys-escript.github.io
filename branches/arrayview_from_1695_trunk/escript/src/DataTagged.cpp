@@ -154,7 +154,7 @@ DataTagged::DataTagged(const DataTagged& other,
 
   // allocate enough space in this for all values
   // (need to add one to allow for the default value)
-  int len = DataArrayView::noValues(regionShape)*(other.m_offsetLookup.size()+1);
+  int len = DataTypes::noValues(regionShape)*(other.m_offsetLookup.size()+1);
   m_data.resize(len,0.0,len);
 
   // create the data view

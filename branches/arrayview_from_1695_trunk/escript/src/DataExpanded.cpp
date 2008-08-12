@@ -233,7 +233,7 @@ DataExpanded::copy(const boost::python::numeric::array& value)
   }
 
   // get the space for the data vector
-  int len = DataArrayView::noValues(tempShape);
+  int len = DataTypes::noValues(tempShape);
   DataVector temp_data(len, 0.0, len);
   DataArrayView temp_dataView(temp_data, tempShape);
   temp_dataView.copy(value);
@@ -257,7 +257,7 @@ DataExpanded::initialise(const DataTypes::ShapeType& shape,
 {
   //
   // resize data array to the required size
-  m_data.resize(noSamples,noDataPointsPerSample,DataArrayView::noValues(shape));
+  m_data.resize(noSamples,noDataPointsPerSample,DataTypes::noValues(shape));
   //
   // create the data view of the data array
   DataArrayView temp(m_data.getData(),shape);

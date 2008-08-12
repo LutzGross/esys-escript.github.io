@@ -61,7 +61,7 @@ Data::Data(double value,
     dataPointShape.push_back(extract<const int>(shape[i]));
   }
 
-  int len = DataArrayView::noValues(dataPointShape);
+  int len = DataTypes::noValues(dataPointShape);
   DataVector temp_data(len,value,len);
   DataArrayView temp_dataView(temp_data, dataPointShape);
 
@@ -75,7 +75,7 @@ Data::Data(double value,
 	   const FunctionSpace& what,
            bool expanded)
 {
-  int len = DataArrayView::noValues(dataPointShape);
+  int len = DataTypes::noValues(dataPointShape);
 
   DataVector temp_data(len,value,len);
   DataArrayView temp_dataView(temp_data, dataPointShape);
@@ -178,7 +178,7 @@ Data::Data(const object& value,
     tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
   }
   // get the space for the data vector
-  int len = DataArrayView::noValues(tempShape);
+  int len = DataTypes::noValues(tempShape);
   DataVector temp_data(len, 0.0, len);
   DataArrayView temp_dataView(temp_data, tempShape);
   temp_dataView.copy(asNumArray);
@@ -189,7 +189,7 @@ Data::Data(const object& value,
   // will assume the point data shape of other.
 
   if (temp_dataView.getRank()==0) {
-    int len = DataArrayView::noValues(other.getPointDataView().getShape());
+    int len = DataTypes::noValues(other.getPointDataView().getShape());
 
     DataVector temp2_data(len, temp_dataView(), len);
     DataArrayView temp2_dataView(temp2_data, other.getPointDataView().getShape());
@@ -1783,7 +1783,7 @@ Data::setTaggedValue(int tagKey,
   }
 
   // get the space for the data vector
-  int len = DataArrayView::noValues(tempShape);
+  int len = DataTypes::noValues(tempShape);
   DataVector temp_data(len, 0.0, len);
   DataArrayView temp_dataView(temp_data, tempShape);
   temp_dataView.copy(asNumArray);

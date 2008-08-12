@@ -30,6 +30,35 @@ namespace escript {
   typedef std::vector<std::pair<int, int> > RegionLoopRangeType;
   static const int maxRank=4;
 
+// This file contains static functions moved from DataArrayView
+  /**
+     \brief
+     Calculate the number of values for the given shape.
+  */
+  ESCRIPT_DLL_API
+  int
+  noValues(const DataTypes::ShapeType& shape);
+
+  /**
+     \brief
+     Calculate the number of values for the given region.
+  */
+  ESCRIPT_DLL_API
+  int
+  noValues(const DataTypes::RegionLoopRangeType& region);
+
+  /**
+     \brief
+     Return the given shape as a string.
+
+     \param shape - Input.
+  */
+  ESCRIPT_DLL_API
+  std::string
+  shapeToString(const DataTypes::ShapeType& shape);
+
+
+
  }   // End DataTypes
 
 

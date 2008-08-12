@@ -496,7 +496,7 @@ void DataTestCase::testDataConstant() {
   viewShape.push_back(3);
   viewShape.push_back(4);
   DataTypes::ValueType viewData(2*3*4);
-  for (int i=0;i<DataArrayView::noValues(viewShape);++i) {
+  for (int i=0;i<DataTypes::noValues(viewShape);++i) {
     viewData[i]=i;
   }
   DataArrayView myView(viewData,viewShape);
@@ -725,7 +725,7 @@ void DataTestCase::testOperations() {
   shape.push_back(3);
 
   // allocate the data for the DataArrayView
-  DataTypes::ValueType data(DataArrayView::noValues(shape),0);
+  DataTypes::ValueType data(DataTypes::noValues(shape),0);
 
   // construct DataArrayView
   DataArrayView dataView(data,shape);
