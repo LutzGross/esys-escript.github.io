@@ -31,6 +31,7 @@ hostname = re.sub("[^0-9a-zA-Z]", "_", socket.gethostname().split('.')[0])
 tmp = os.path.join("scons",hostname+"_options.py")
 options_file = ARGUMENTS.get('options_file', tmp)
 if not os.path.isfile(options_file): options_file = False
+else: print "Options file is", options_file
 
 # Load options file and command-line arguments
 opts = Options(options_file, ARGUMENTS)
@@ -99,7 +100,7 @@ opts.AddOptions(
   ('mkl_lib_path', 'Path to MKL libs', '/sw/sdev/cmkl/10.0.2.18/lib/em64t'),
   ('mkl_libs', 'MKL libraries to link with', ['mkl_solver', 'mkl_em64t', 'guide', 'pthread']),
 # UMFPACK
-  BoolOption('useumfpack', 'switch on/off the usage of UMFPACK', 'yes'),
+  BoolOption('useumfpack', 'switch on/off the usage of UMFPACK', 'no'),
   ('ufc_path', 'Path to UFconfig includes', '/usr/include/suitesparse'),
   ('umf_path', 'Path to UMFPACK includes', '/usr/include/suitesparse'),
   ('umf_lib_path', 'Path to UMFPACK libs', usr_lib),
