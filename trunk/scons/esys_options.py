@@ -18,7 +18,7 @@
 libinstall = None
 pyinstall = None
 incinstall = None
-dodebug = 0
+usedebug = 0
 
 # locations of libs etc used by mkl
 mkl_path = ''
@@ -102,7 +102,7 @@ options = None
 if ARGUMENTS.get('libinstall',0): libinstall = ARGUMENTS.get('libinstall',0)
 if ARGUMENTS.get('pyinstall',0): pyinstall = ARGUMENTS.get('pyinstall',0)
 if ARGUMENTS.get('incinstall',0): pyinstall = ARGUMENTS.get('incinstall',0)
-if ARGUMENTS.get('debug',0): dodebug = 1
+if ARGUMENTS.get('usedebug',0): usedebug = 1
 if ARGUMENTS.get('options',0): options = ARGUMENTS.get('options',0)
 if ARGUMENTS.get('usegcc',0): usegcc = 1
 #
@@ -135,7 +135,7 @@ if options!=None:
 
 #
 # use debug options:
-if dodebug==1:
+if usedebug==1:
      cxx_flags=cxx_flags_debug
      cc_flags=cc_flags_debug
 

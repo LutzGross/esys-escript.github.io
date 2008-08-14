@@ -1,7 +1,25 @@
-Import('*')
-local_env=env.Copy()
-src_dir = local_env.Dir('.').srcnode().abspath
+#
+# $Id$
+#
+#######################################################
+#
+#           Copyright 2003-2007 by ACceSS MNRF
+#       Copyright 2007 by University of Queensland
+#
+#                http://esscc.uq.edu.au
+#        Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#######################################################
+#
+
 import os
+Import('*')
+
+local_env = clone_env(env)
+
+src_dir = local_env.Dir('.').srcnode().abspath
 filenames = os.listdir(src_dir)
 #
 # files defining tests but are not running by itself:
@@ -14,7 +32,34 @@ testdata_dir = [x for x in filenames if x.startswith('data_') ]
 # 
 #  files defining test runs (passing in a release)
 # 
-testruns = [x for x in filenames if x.startswith('run_') and os.path.splitext(x)[1] in ['.py'] ]
+testruns = []
+testruns += ['run_camera.py']
+testruns += ['run_carpet.py']
+testruns += ['run_carpet_with_lazy_evaluation.py']
+testruns += ['run_contour.py']
+testruns += ['run_contour_with_lazy_evaluation.py']
+testruns += ['run_datacollector.py']
+testruns += ['run_ellipsoid.py']
+testruns += ['run_ellipsoid_with_lazy_evaluation.py']
+testruns += ['run_escript_with_lazy_evaluation.py']
+testruns += ['run_exporter.py']
+testruns += ['run_image.py']
+testruns += ['run_image_with_lazy_evaluation.py']
+testruns += ['run_legend.py']
+testruns += ['run_legend_with_lazy_evaluation.py']
+testruns += ['run_light.py']
+testruns += ['run_logo.py']
+testruns += ['run_logo_with_lazy_evaluation.py']
+testruns += ['run_map.py']
+testruns += ['run_map_with_lazy_evaluation.py']
+testruns += ['run_movie_with_lazy_evaluation.py']
+testruns += ['run_rectangle.py']
+testruns += ['run_scene.py']
+testruns += ['run_streamline.py']
+testruns += ['run_streamline_with_lazy_evaluation.py']
+testruns += ['run_text.py']
+testruns += ['run_velocity.py']
+testruns += ['run_velocity_with_lazy_evaluation.py']
 #
 # files defining tests run locally (not as part of a release)
 #
@@ -29,20 +74,6 @@ alltestruns = testruns + localtestruns
 test_pyc = env.PyCompile(testfiles)
 env.Alias('build_py_tests', test_pyc)
 
-
-# get all the python files in the release tar file
-release_pyfiles = [ env.File("SConscript"), ]
-release_datafiles=[]  # FIXIT: is there a better way?
-for d in testdata_dir:
-   release_datafiles+=[ d+"/"+x for x in os.listdir(local_env.Dir(d).srcnode().abspath) if not x.startswith('.')]
-release_testfiles = [ env.File(x) for x in testfiles + testruns ] + [ env.File(x) for x in release_datafiles ]
-env.Zip(src_zipfile, release_pyfiles)
-env.Zip(test_zipfile, release_testfiles)
-try:
-   env.Tar(test_tarfile, release_testfiles)
-   env.Tar(src_tarfile, release_pyfiles)
-except AttributeError:
-   pass
 #
 # run all tests:
 #
@@ -64,6 +95,6 @@ if VTK_AVAILABLE:
    env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
    program = local_env.RunPyUnitTest(alltestruns)
  
-   Depends(program, pyinstall)
+   Depends(program, local_env['pyinstall'])
    # Depends(program, dep_lib) 
    Depends(program, 'build_py_tests') 
