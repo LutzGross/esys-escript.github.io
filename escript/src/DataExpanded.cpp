@@ -55,6 +55,9 @@ DataExpanded::DataExpanded(const DataExpanded& other)
   // create the view for the data
   DataArrayView temp(m_data.getData(),other.getPointDataView().getShape());
   setPointDataView(temp);
+
+  // keep local shape in sync
+  setShape(other.getPointDataView().getShape());
 }
 
 DataExpanded::DataExpanded(const DataConstant& other)
@@ -262,6 +265,9 @@ DataExpanded::initialise(const DataTypes::ShapeType& shape,
   // create the data view of the data array
   DataArrayView temp(m_data.getData(),shape);
   setPointDataView(temp);
+
+  // keep shape in sync
+  setShape(shape);
 }
 
 string

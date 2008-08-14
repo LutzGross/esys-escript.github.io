@@ -521,11 +521,11 @@ Data::getLength() const
   return m_data->getLength();
 }
 
-const DataTypes::ShapeType&
-Data::getDataPointShape() const
-{
-  return getPointDataView().getShape();
-}
+// const DataTypes::ShapeType&
+// Data::getDataPointShape() const
+// {
+//   return getPointDataView().getShape();
+// }
 
 
 
@@ -2156,6 +2156,9 @@ ostream& escript::operator<<(ostream& o, const Data& data)
   return o;
 }
 
+#include "JoelMods.cpp_"
+
+
 Data
 escript::C_GeneralTensorProduct(Data& arg_0,
                      Data& arg_1,
@@ -2277,7 +2280,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
     DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
     for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-      tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+      tmp_2->addTag(i->first);
       DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
       DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
       double *ptr_1 = &view_1.getData(0);
@@ -2343,7 +2346,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
     DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
     for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-      tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+      tmp_2->addTag(i->first);
       DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
       DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
       double *ptr_0 = &view_0.getData(0);
@@ -2383,10 +2386,10 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
     const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
     for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-      tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue()); // use tmp_2 to get correct shape
+      tmp_2->addTag(i->first); // use tmp_2 to get correct shape
     }
     for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-      tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+      tmp_2->addTag(i->first);
     }
     // Compute an MVP for each tag
     const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();

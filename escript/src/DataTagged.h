@@ -228,6 +228,8 @@ class DataTagged : public DataAbstract {
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
+
+
   /**
      \brief
      addTaggedValues
@@ -264,6 +266,21 @@ class DataTagged : public DataAbstract {
   void
   addTaggedValue(int tagKey,
                  const DataArrayView& value);
+
+  /**
+     \brief
+     addTag - does not modify the default value for this object.
+
+     Description:
+     Add a single tag. The default value for this DataTagged will be associated with the tag.
+     If this tag already has a value associated with it, setTaggedValue will be used to update this value.
+     \param tagKey - Input - Integer tag.
+    T
+  */
+  ESCRIPT_DLL_API
+  void
+  addTag(int tagKey);
+
 
   /**
      \brief
@@ -314,6 +331,25 @@ class DataTagged : public DataAbstract {
   ESCRIPT_DLL_API
   DataArrayView
   getDataPointByTag(int tag) const;
+
+  /**
+     \brief
+     getDataByTag
+
+     Return a pointer to the beginning of the datapoint with the specified tag.
+     TODO Eventually these should be inlined.
+     \param tag - Input - Integer key.
+     \param i - position in the underlying datastructure
+    T
+  */
+  ESCRIPT_DLL_API
+  DataTypes::ValueType::const_reference
+  getDataByTag(int tag, DataTypes::ValueType::size_type i) const;
+
+  ESCRIPT_DLL_API
+  DataTypes::ValueType::reference
+  getDataByTag(int tag, DataTypes::ValueType::size_type i);
+
 
   /**
      \brief
@@ -387,6 +423,27 @@ class DataTagged : public DataAbstract {
   ESCRIPT_DLL_API
   const DataArrayView&
   getDefaultValue() const;
+
+  /**
+     \brief
+     getDefaultValue
+
+     Description:
+     Return the default value. This value is associated with any tag which
+     is not explicitly recorded in this DataTagged object's tag map.
+     \param i - position in the underlying datastructure
+    T
+  */
+  ESCRIPT_DLL_API
+  DataTypes::ValueType::reference
+  getDefaultValue(DataTypes::ValueType::size_type i);
+
+  ESCRIPT_DLL_API
+  DataTypes::ValueType::const_reference
+  getDefaultValue(DataTypes::ValueType::size_type i) const;
+
+
+
 
   /**
      \brief
@@ -595,6 +652,23 @@ DataTagged::getDefaultValue() const
   // The default value is always the first value.
   return getPointDataView();
 }
+
+inline
+DataTypes::ValueType::reference
+DataTagged::getDefaultValue(DataTypes::ValueType::size_type i)
+{
+	return getPointDataView().getData()[i];
+}
+
+inline
+DataTypes::ValueType::const_reference
+DataTagged::getDefaultValue(DataTypes::ValueType::size_type i) const
+{
+	return getPointDataView().getData()[i];
+}
+
+
+
 
 inline
 const DataTypes::ValueType::ElementType*

@@ -58,6 +58,13 @@ namespace escript {
   shapeToString(const DataTypes::ShapeType& shape);
 
 
+  ESCRIPT_DLL_API
+  inline
+  int
+  getRank(const DataTypes::ShapeType& shape)
+  {
+	return shape.size();
+  }
 
  }   // End DataTypes
 

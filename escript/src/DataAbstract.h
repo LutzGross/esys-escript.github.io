@@ -118,6 +118,26 @@ class DataAbstract {
   getPointDataView() const;
 
   /**
+     \brief 
+     Return the shape information for the point data.
+
+     The omission of a non-constant form is deliberate.
+  */
+  ESCRIPT_DLL_API
+  const DataTypes::ShapeType& 
+  getShape() const;
+
+  /**
+     \brief 
+     Return the rank information for the point data.
+  */
+  ESCRIPT_DLL_API
+  int 
+  getRank() const;
+
+
+
+  /**
      \brief
      Return the offset for the given sample. This returns the offset for the given
      point into the container holding the point data. Only really necessary to
@@ -455,6 +475,30 @@ class DataAbstract {
 
 
 
+  /**
+	\brief
+	Set the shape of the object and update related properties.
+
+	Note: This is only intended as a helper for constructors.
+	Do not call it at any other time. Especially not to change the shape of an 
+	existing DataAbstract.
+	The goal is for this method to be removed once DataArrayView is gone.
+	\param s - shape for this data
+  */
+  ESCRIPT_DLL_API
+  void
+  setShape(const DataTypes::ShapeType& s);
+
+  /**
+	\brief
+	Return the number of values in the shape for this object.
+  */
+  ESCRIPT_DLL_API
+  int
+  getNoValues() const;
+
+
+
  private:
 
   //
@@ -477,6 +521,18 @@ class DataAbstract {
   // A FunctionSpace which provides a description of the data associated
   // with this Data object.
   FunctionSpace m_functionSpace;
+
+  //
+  // The shape of the points stored in this view
+  DataTypes::ShapeType m_shape;
+
+  //
+  // The number of values in each point
+  int m_novalues;
+
+  //
+  // The rank of the points stored in this view
+  int m_rank;
 
 };
 
@@ -537,6 +593,28 @@ DataAbstract::getPointDataView()
 {
   return *(m_pointDataView.get());
 }
+
+inline
+const DataTypes::ShapeType& 
+DataAbstract::getShape() const
+{
+	return m_shape;
+}
+
+inline 
+int
+DataAbstract::getRank() const
+{
+	return m_rank;
+}
+
+inline
+int
+DataAbstract::getNoValues() const
+{
+	return m_novalues;
+}
+
 } // end of namespace
 
 #endif

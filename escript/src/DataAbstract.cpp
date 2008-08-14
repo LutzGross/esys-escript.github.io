@@ -23,8 +23,10 @@ namespace escript {
 DataAbstract::DataAbstract(const FunctionSpace& what):
     m_noDataPointsPerSample(what.getNumDPPSample()),
     m_noSamples(what.getNumSamples()),
-    m_functionSpace(what)
+    m_functionSpace(what),
+    m_rank(0)
 {
+	setShape(DataTypes::ShapeType());
 }
 
 DataAbstract::~DataAbstract() 
@@ -35,12 +37,27 @@ void
 DataAbstract::setPointDataView(const DataArrayView& input)
 {
     m_pointDataView.reset(new DataArrayView(input.getData(),input.getShape(),input.getOffset()));
+
+    // until we get rid of m_pointDataView, we need to keep m_shape in sync
+    setShape(input.getShape());
 }
+
+void
+DataAbstract::setShape(const DataTypes::ShapeType& s)
+{
+   m_shape=s;
+   m_rank=DataTypes::getRank(s);
+   m_novalues=DataTypes::noValues(s);
+}
+
 
 void
 DataAbstract::resetPointDataView()
 {
     m_pointDataView.reset(new DataArrayView());
+    m_shape.clear();
+    m_rank=0;
+    m_novalues=1;
 }
 
 void
