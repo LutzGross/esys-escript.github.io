@@ -55,6 +55,7 @@ opts.AddOptions(
   ('omp_optim', 'OpenMP compiler flags to use (Release build)', '-DEFAULT_4'),
   ('omp_debug', 'OpenMP compiler flags to use (Debug build)', '-DEFAULT_5'),
   ('omp_libs', 'OpenMP compiler libraries to link with', '-DEFAULT_6'),
+  ('cc_extra', 'Extra C/C++ flags', ''),
   ('sys_libs', 'System libraries to link with', []),
   ('ar_flags', 'Static library archiver flags to use', ''),
   BoolOption('useopenmp', 'Compile parallel version using OpenMP', 'yes'),
@@ -235,6 +236,8 @@ env.Append(CPPPATH		= [Dir('include')])
 env.Append(LIBPATH		= [Dir('lib')])
 
 env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS', 'FINLEY_EXPORTS'])
+
+if env['cc_extra'] != '': env.Append(CCFLAGS = env['cc_extra'])
 
 if env['usepedantic']: env.Append(CCFLAGS = pedantic)
 
