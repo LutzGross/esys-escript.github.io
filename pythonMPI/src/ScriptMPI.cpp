@@ -14,7 +14,9 @@
  *******************************************************/
 
 #include <Python.h>
+#ifdef PASO_MPI
 #include <mpi.h>
+#endif
 #include <iostream>
 #include <stdexcept>
 

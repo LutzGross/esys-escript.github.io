@@ -1,7 +1,25 @@
-Import('*')
-local_env=env.Copy()
-src_dir = local_env.Dir('.').srcnode().abspath
+#
+# $Id$
+#
+#######################################################
+#
+#           Copyright 2003-2007 by ACceSS MNRF
+#       Copyright 2007 by University of Queensland
+#
+#                http://esscc.uq.edu.au
+#        Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#######################################################
+#
+
 import os
+Import('*')
+
+local_env = clone_env(env)
+
+src_dir = local_env.Dir('.').srcnode().abspath
 filenames = os.listdir(src_dir)
 #
 # files defining tests but are not running by itself:
@@ -13,8 +31,11 @@ testfiles = [x for x in filenames if x.startswith('test_') and os.path.splitext(
 testdata_dir = [x for x in filenames if x.startswith('data_') ]
 # 
 #  files defining test runs (passing in a release)
-# 
-testruns = [x for x in filenames if x.startswith('run_') and os.path.splitext(x)[1] in ['.py'] ]
+#
+testruns = []
+testruns += ['run_convection.py']
+testruns += ['run_flow.py']
+testruns += ['run_temp.py']
 #
 # files defining tests run locally (not as part of a release)
 #
@@ -33,7 +54,7 @@ env.Alias('build_py_tests',test_pyc)
 #
 program = local_env.RunPyUnitTest(alltestruns)
 
-Depends(program, pyinstall)
+Depends(program, local_env['pyinstall'])
 Depends(program, dep_lib) 
 Depends(program, 'build_py_tests')
 
@@ -44,15 +65,4 @@ local_env['ENV']['MODELLIB_TEST_DATA_ROOT']=env.Dir('#/modellib/test/python').sr
 local_env['ENV']['MODELLIB_WORKDIR']=env.Dir('#/build/$PLATFORM/modellib/test/python').srcnode().abspath
 env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in alltestruns])
 env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
-
-# get all the python files in the release tar file
-release_pyfiles = [ env.File("SConscript"), ]
-release_datafiles=[]  # FIXIT: is there a better way?
-for d in testdata_dir:
-   release_datafiles+=[ d+"/"+x for x in os.listdir(local_env.Dir(d).srcnode().abspath) if not x.startswith('.')]
-release_testfiles = [ env.File(x) for x in testfiles + testruns ] + [ env.File(x) for x in release_datafiles ]
-env.Zip(src_zipfile, release_pyfiles)
-env.Tar(src_tarfile, release_pyfiles)
-env.Zip(test_zipfile, release_testfiles)
-env.Tar(test_tarfile, release_testfiles)
 

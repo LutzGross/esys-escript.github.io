@@ -7,37 +7,73 @@
 #     http://www.opensource.org/licenses/osl-3.0.php
 #
 
-# Configuration for Savanna (SGI ICE 8200)
+# Configuration for Savanna (SGI ICE 8200 running SUSE Linux)
 
-# ParMETIS
-# parmetis_path		= '/sw/libs/parmetis/x86_64/gcc-4.1.2/parmetis-3.1/include'
-# parmetis_lib_path	= '/sw/libs/parmetis/x86_64/gcc-4.1.2/parmetis-3.1/lib'
-# parmetis_lib		= ['parmetis', 'metis']
+# If you cannot use the default compiler flags set in SConstruct, then change them here
+# C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
+# cc_flags		= '-ansi'
+# cc_optim		= '-O2'
+# cc_debug		= '-g'
+# omp_optim		= '-openmp'
+# omp_debug		= '-openmp'
+# omp_libs		= ['guide']
 
-# Python
+# Use the default C/C++ flags but add something only for this host:
+# cc_extra		= ''
+
+# Be picky about errors
+# usepedantic		= 'no'
+
+# Extra libraries
+# sys_libs		= []
+
+# Python libraries
 python_path		= '/sw/apps/python/x86_64/gcc-4.1.2/python-2.4.4/include/python2.4'
 python_lib_path		= '/sw/apps/python/x86_64/gcc-4.1.2/python-2.4.4/lib'
-python_lib		= 'python2.4'
+# python_libs		= ['python2.4']
+# python_cmd		= 'python'
 
-# Boost
+# Boost libraries
 boost_path		= '/sw/libs/boost/x86_64/gcc-4.1.2/python-2.4.4/boost_1_33/include/boost-1_33'
 boost_lib_path		= '/sw/libs/boost/x86_64/gcc-4.1.2/python-2.4.4/boost_1_33/lib'
-boost_lib		= 'boost_python-gcc'
+# boost_libs		= ['boost_python-gcc']
 
-# Documentation
-# doxygen_path		= '/sw/apps/.../bin'
-# epydoc_path		= '/sw/apps/.../bin'
+# Specify whether or not to use VTK
+# usevtk		= 'yes'
 
 # NetCDF
-useNetCDF		= 'yes'
-netCDF_path		= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/include'
-netCDF_lib_path		= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/lib'
-netCDF_libs		= ['netcdf_c++', 'netcdf']
+# usenetcdf		= 'yes'
+# netCDF_path		= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/include'
+# netCDF_lib_path	= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/lib'
+# netCDF_libs		= ['netcdf_c++', 'netcdf']
+
+# MKL
+# usemkl		= 'yes'
+# mkl_path		= '/sw/sdev/cmkl/10.0.2.18/include'
+# mkl_lib_path		= '/sw/sdev/cmkl/10.0.2.18/lib/em64t'
+# mkl_libs		= ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide', 'pthread']
+
+# UMFPACK (requires AMD and BLAS)
+# useumfpack		= 'yes'
+ufc_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
+umf_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
+umf_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
+# umf_libs		= ['umfpack']
+# amd_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
+# amd_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
+# amd_libs		= ['amd']
+# blas_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
+# blas_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
+# blas_libs		= ['blas']
+
+# OpenMP
+# useopenmp		= 'yes'
 
 # MPI MPT (no module load required)
+# usempi		= 'no'
 # mpi_path		= '/usr/include'
 # mpi_lib_path		= '/usr/lib64'
-# mpi_libs		= ['mpi']
+mpi_libs		= ['mpi']
 # mpi_run		= 'mpirun -np 1'
 
 # MPICH2 (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
@@ -70,29 +106,16 @@ netCDF_libs		= ['netcdf_c++', 'netcdf']
 # mpi_libs		= ['mpi']
 # mpi_run		= 'mpirun -np 1'
 
+# ParMETIS (for use with MPI)
+# useparmetis		= 'yes'
+# parmetis_path		= '/sw/libs/parmetis/x86_64/gcc-4.1.2/parmetis-3.1/include'
+# parmetis_lib_path	= '/sw/libs/parmetis/x86_64/gcc-4.1.2/parmetis-3.1/lib'
+# parmetis_libs		= ['parmetis', 'metis']
+
 # PAPI
-papi_instrument_solver	= 0
-# papi_path		= '/sw/.../include'
-# papi_lib_path		= '/sw/.../lib'
+# usepapi		= 'no'
+# papi_path		= '/usr/include'
+# papi_lib_path		= '/usr/lib64'
 # papi_libs		= ['papi']
-
-# MKL
-# mkl_path		= '/sw/sdev/cmkl/10.0.2.18/include'
-# mkl_lib_path		= '/sw/sdev/cmkl/10.0.2.18/lib/em64t'
-# mkl_libs		= ['mkl_solver', 'mkl_lapack']
-
-# OpenMP (comment out to disable OpenMP)
-omp_flags		= '-openmp -openmp_report0'
-omp_flags_debug		= '-openmp -openmp_report0'
-
-# C flags (also used by C++)
-cc_flags		= '-O3 -ansi -fPIC -vec-report0 -ftz -IPF-fltacc- -IPF-fma -fno-alias -DBLOCKTIMER -UPASO_DYNAMIC_SCHEDULING_MVM -DCORE_ID1'
-cc_flags_debug		= '-g  -ansi -fPIC'
-
-# C++ flags
-cxx_flags		= ''
-cxx_flags_debug		= '-DDOASSERT -DDOPROF'	# -D... here is not recognized by scons as dependencies
-
-# System-specific libraries to link with
-sys_libs		= ['guide', 'pthread', 'stdc++']
+# papi_instrument_solver	= 'no'
 

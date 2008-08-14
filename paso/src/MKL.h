@@ -37,7 +37,7 @@
 #endif
 
 #ifdef MKL
-#include "mkl_solver.h"
+#include "mkl_pardiso.h"
 #endif
 
 

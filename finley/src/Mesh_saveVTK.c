@@ -50,6 +50,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                          char* *names_p, 
                          escriptDataC* *data_pp)
 {
+#ifdef USE_VTK
   char error_msg[LenErrorMsg_MAX], *txt_buffer=NULL, tmp_buffer[LEN_TMP_BUFFER];
   double sampleAvg[NCOMP_MAX], *values, rtmp;
   size_t txt_buffer_in_use;
@@ -981,4 +982,8 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   TMPMEMFREE(isCellCentered);
   TMPMEMFREE(txt_buffer);
   return;
+#else
+  /* Don't kill the job if saveVTK() doesn't work */
+  fprintf(stderr, "\n\nsaveVTK warning: VTK is not available\n\n\n");
+#endif
 }

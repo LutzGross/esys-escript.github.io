@@ -90,17 +90,17 @@ to unpack the source files into the directory \verb|<my esys dir>|.
 The installation is started by 
 \begin{verbatim}
   cd <my esys dir>
-  scons dodebug=no
+  scons usedebug=no
 \end{verbatim}
 By default the configuration for Linux is used. If there is a file \verb|scons/<hostname>_options.py| it will contain values to over-ride the default settings. Use =scons/ess_options.py= as a staring point to create a file for your machine. If you want to use personalized settings in a file called =myoptions.py= you can run
 \begin{verbatim}
   cd <my esys dir>
-  scons dodebug=no options_file=myoptions.py
+  scons usedebug=no options_file=myoptions.py
 \end{verbatim}
 You can also over-ride individual settings through the command line:
 \begin{verbatim}
    cd <my esys dir>
-  scons dodebug=no libinstall=/usr/lib
+  scons usedebug=no libinstall=/usr/lib
 \end{verbatim}
 This will install the libraries into the directory \verb|/usr/lib|. 
 
@@ -118,13 +118,13 @@ To uninstall the software use
 If you have more than one processor available for compilation you can use the -j option to tell scons to do parallel compiles:
 \begin{verbatim}
    cd <my esys dir>
-   scons dodebug=no -j 8
+   scons usedebug=no -j 8
 \end{verbatim}
 \section{Running Release Tests}
 You can run the test suite of approximately 30,000 unit tests in a few hours with
 \begin{verbatim}
    cd <my esys dir>
-   scons dodebug=no all_tests
+   scons usedebug=no all_tests
 \end{verbatim}
 
 \section{Environment Setup}
@@ -137,7 +137,7 @@ export LD_LIBRARY_PATH=<my esys dir>/lib:${LD_LIBRARY_PATH}
 If you build \esys with
 \begin{verbatim}
    cd <my esys dir>
-   scons dodebug=no prefix=/usr
+   scons usedebug=no prefix=/usr
 \end{verbatim}
 then your libraries and python modules will be installed in system directories and you will
 not have to set LD_LIBRARY_PATH and PYTHONPATH (assuming python is installed in
@@ -160,7 +160,7 @@ python poisson.py
 
 \subsection{MPI Support}
 
-If you wish to use MPI parallelization, and it has been switched on during compilation with useMPI=yes, you need to use the following commands to run scripts in parallel (in this case with four CPUs):
+If you wish to use MPI parallelization, and it has been switched on during compilation with usempi=yes, you need to use the following commands to run scripts in parallel (in this case with four CPUs):
 \begin{verbatim}
 cd <my esys dir>/doc/examples
 mpirun -np 4 <my esys dir>/lib/pythonMPI poisson.py
