@@ -266,7 +266,7 @@ returns the tag used for this property set
 The class and methods described here provide an interface to the mesh
 generation software, which is currently gmsh.  This interface could be
 adopted to triangle or another mesh generation package if this is
-deemed to be desireable in the future.
+deemed to be desirable in the future.
 
 \begin{classdesc}{Design}{
 \optional{dim=3, \optional{element_size=1., \optional{order=1, \optional{keep_files=False}}}}}
@@ -297,7 +297,7 @@ returns the element order.
 
 \begin{methoddesc}[Design]{setElementSize}{\optional{element_size=1}}
 set the global element size. The local element size at a point is defined as 
-the global element size multipied by the local scale. The element size must be positive.
+the global element size multiplied by the local scale. The element size must be positive.
 \end{methoddesc}
 
 
@@ -365,7 +365,7 @@ resets the items in design
 
 \begin{methoddesc}[Design]{getMeshHandler}{}
 returns a handle to the mesh. The call of this method generates the mesh from the geometry and
-returns a mechnism to access the mesh data. In the current implementation this
+returns a mechanism to access the mesh data. In the current implementation this
 method returns a file name for a gmsh file containing the mesh data.
 \end{methoddesc}
 
