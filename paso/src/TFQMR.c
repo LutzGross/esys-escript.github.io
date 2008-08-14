@@ -75,6 +75,10 @@ err_t Paso_Solver_TFQMR(
     Paso_Performance* pp) {
 
   /* Local variables */
+  
+  int m=1;  
+  int j=0;
+  
   dim_t num_iter=0,maxit;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   err_t status = SOLVER_NO_ERROR;
@@ -84,7 +88,7 @@ err_t Paso_Solver_TFQMR(
   double eta,theta,tau,rho,beta,alpha,sigma,rhon,c;
 
   double norm_of_residual;
-
+  
 /*                                                                 */
 /*-----------------------------------------------------------------*/
 /*                                                                 */
@@ -150,9 +154,7 @@ err_t Paso_Solver_TFQMR(
   tau = Paso_l2(n,r,A->mpi_info);
   
   rho = tau * tau;
-  int m=1;  
-  int j=0;
-    
+      
   norm_of_residual=tau*sqrt ( m + 1 );
   
   while (!(convergeFlag || maxIterFlag || breakFlag || (status !=SOLVER_NO_ERROR) ))
