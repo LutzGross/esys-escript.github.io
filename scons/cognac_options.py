@@ -35,6 +35,9 @@ boost_installation="1.33.1/python2.4.4_icc10.0.023/numarray1.5.2_icc10.0.023/icc
 # omp_debug		= '-openmp'
 # omp_libs		= ['guide']
 
+# Use the default C/C++ flags but add something only for this host:
+# cc_extra		= ''
+
 # Be picky about errors
 # usepedantic		= 'no'
 

@@ -157,16 +157,13 @@ env.Alias('target_install_finley_headers', [tmp1, tmp2])
 
 tmp3 = local_env.Install(local_env['libinstall'], lib)
 env.Alias('target_install_finley_so', tmp3)
-tmp4 = py_wrapper_local_env.InstallAs(local_env['pyinstall']+'/finley/finleycpp.so', py_wrapper_lib)
-env.Alias('target_install_finleycpp_so', tmp4)
 
 #windows specific mod
 if os.name == 'nt':
-   py_wrapper_local_env.InstallAs(target = [ local_env['pyinstall']+'/finley/finleycpp.pyd', \
-                                             local_env['pyinstall']+'/finley/finleycpp.lib', \
-                                             local_env['pyinstall']+'/finley/finleycpp.exp' ], \
-					     source = py_wrapper_lib )
-
+  tmp4 = py_wrapper_local_env.Install(local_env['pyinstall']+'/finley', ['finleycpp.pyd', 'finleycpp.lib', 'finleycpp.exp'])
+else:
+  tmp4 = py_wrapper_local_env.InstallAs(local_env['pyinstall']+'/finley/finleycpp.so', py_wrapper_lib)
+env.Alias('target_install_finleycpp_so', tmp4)
 
 # export the lib target since tests will depend on it
 # the lib target is a list of file nodes (why? win32 produces more than one output file: .lib, .dll, .pdb)
