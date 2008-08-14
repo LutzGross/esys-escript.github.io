@@ -132,6 +132,9 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                case PASO_PCG:
                   printf("Iterative method is PCG.\n");
                   break;
+               case PASO_TFQMR:
+                  printf("Iterative method is TFQMR.\n");
+                  break;
                case PASO_PRES20:
                   printf("Iterative method is PRES20.\n");
                   break;
@@ -150,7 +153,6 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
             Paso_Solver_setPreconditioner(A,options);
             Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
             if (! Paso_noError()) return;
-          
               time_iter=Paso_timer();
               /* get an initial guess by evaluating the preconditioner */
               Paso_Solver_solvePreconditioner(A,x,b);
@@ -214,6 +216,9 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                            break;
                         case PASO_PCG:
                            errorCode = Paso_Solver_PCG(A, r, x, &cntIter, &tol, pp); 
+                           break;
+                        case PASO_TFQMR:
+                           errorCode = Paso_Solver_TFQMR(A, r, x, &cntIter, &tol, pp); 
                            break;
                         case PASO_PRES20:
                            errorCode = Paso_Solver_GMRES(A, r, x, &cntIter, &tol,5,20, pp); 
