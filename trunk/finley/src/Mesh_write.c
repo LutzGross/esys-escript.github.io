@@ -158,7 +158,12 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
 
   /* write elements: */
   if (in->Elements!=NULL) {
-    fprintf(stdout, "\tElements: %s %d (TypeId=%d)\n",in->Elements->ReferenceElement->Type->Name,in->Elements->numElements,in->Elements->ReferenceElement->Type->TypeId);
+    int mine=0, overlap=0;
+    for (i=0;i<in->Elements->numElements;i++) {
+      if (in->Elements->Owner[i] == in->MPIInfo->rank) mine++;
+      else overlap++;
+    }
+    fprintf(stdout, "\tElements: %s %d (TypeId=%d) owner=%d overlap=%d\n",in->Elements->ReferenceElement->Type->Name,in->Elements->numElements,in->Elements->ReferenceElement->Type->TypeId, mine, overlap);
     NN=in->Elements->numNodes;
     if (full) {
       fprintf(stdout, "\t     Id   Tag Owner Color:  Nodes\n");

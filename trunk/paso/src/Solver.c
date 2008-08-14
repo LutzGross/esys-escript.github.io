@@ -55,7 +55,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
    err_t errorCode;
    dim_t numSol = Paso_SystemMatrix_getTotalNumCols(A);
    dim_t numEqua = Paso_SystemMatrix_getTotalNumRows(A);
-   double blocktimer_start = blocktimer_time();
+   double blocktimer_precond, blocktimer_start = blocktimer_time();
  
      tolerance=MAX(options->tolerance,EPSILON);
      Paso_resetError();
@@ -149,9 +149,11 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
             }
             /* construct the preconditioner */
               
+            blocktimer_precond = blocktimer_time();
             Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
             Paso_Solver_setPreconditioner(A,options);
             Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
+            blocktimer_increment("Paso_Solver_setPreconditioner()", blocktimer_precond);
             if (! Paso_noError()) return;
               time_iter=Paso_timer();
               /* get an initial guess by evaluating the preconditioner */
