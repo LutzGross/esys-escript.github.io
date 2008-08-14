@@ -208,7 +208,7 @@ DataTagged::setSlice(const DataAbstract* other,
   DataMapType::const_iterator pos;
   for (pos=otherTemp->m_offsetLookup.begin();pos!=otherTemp->m_offsetLookup.end();pos++) {
     if (!isCurrentTag(pos->first)) {
-      addTaggedValue(pos->first,getDefaultValue());
+      addTag(pos->first);
     }
   }
 
@@ -340,6 +340,34 @@ DataTagged::addTaggedValue(int tagKey,
   }
 }
 
+
+void
+DataTagged::addTag(int tagKey)
+{
+  DataMapType::iterator pos(m_offsetLookup.find(tagKey));
+  if (pos!=m_offsetLookup.end()) {
+    // tag already exists so use setTaggedValue
+//    setTaggedValue(tagKey,value);
+  } else {
+    // save the key and the location of its data in the lookup tab
+    m_offsetLookup.insert(DataMapType::value_type(tagKey,m_data.size()));
+    // add the data given in "value" at the end of m_data
+    // need to make a temp copy of m_data, resize m_data, then copy
+    // all the old values plus the value to be added back into m_data
+    ValueType m_data_temp(m_data);
+    int oldSize=m_data.size();
+    int newSize=m_data.size()+getNoValues();
+    m_data.resize(newSize,0.,newSize);
+    for (int i=0;i<oldSize;i++) {
+      m_data[i]=m_data_temp[i];
+    }
+    for (int i=0;i<getNoValues();i++) {
+      m_data[oldSize+i]=m_data[m_defaultValueOffset+i];
+    }
+  }
+}
+
+
 double*
 DataTagged::getSampleDataByTag(int tag)
 {
@@ -396,6 +424,39 @@ DataTagged::getDataPointByTag(int tag) const
   return temp;
 }
 
+
+DataTypes::ValueType::const_reference
+DataTagged::getDataByTag(int tag, DataTypes::ValueType::size_type i) const
+{
+  DataMapType::const_iterator pos(m_offsetLookup.find(tag));
+  DataTypes::ValueType::size_type offset=m_defaultValueOffset;
+  if (pos!=m_offsetLookup.end()) {
+    offset=pos->second;
+  }
+  DataArrayView temp(getPointDataView());
+  temp.setOffset(offset);
+  return temp.getData()[i];
+}
+
+
+DataTypes::ValueType::reference
+DataTagged::getDataByTag(int tag, DataTypes::ValueType::size_type i)
+{
+  DataMapType::const_iterator pos(m_offsetLookup.find(tag));
+  DataTypes::ValueType::size_type offset=m_defaultValueOffset;
+  if (pos!=m_offsetLookup.end()) {
+    offset=pos->second;
+  }
+  DataArrayView temp(getPointDataView());
+  temp.setOffset(offset);
+  return temp.getData()[i];
+}
+
+
+
+
+
+
 DataArrayView
 DataTagged::getDataPoint(int sampleNo,
                          int dataPointNo)
@@ -429,7 +490,7 @@ DataTagged::symmetric(DataAbstract* ev)
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
-      temp_ev->addTaggedValue(i->first,temp_ev->getDefaultValue());
+      temp_ev->addTag(i->first);
       DataArrayView thisView=getDataPointByTag(i->first);
       DataArrayView evView=temp_ev->getDataPointByTag(i->first);
       DataArrayView::symmetric(thisView,0,evView,0);
@@ -447,7 +508,7 @@ DataTagged::nonsymmetric(DataAbstract* ev)
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
-      temp_ev->addTaggedValue(i->first,temp_ev->getDefaultValue());
+      temp_ev->addTag(i->first);
       DataArrayView thisView=getDataPointByTag(i->first);
       DataArrayView evView=temp_ev->getDataPointByTag(i->first);
       DataArrayView::nonsymmetric(thisView,0,evView,0);
@@ -465,7 +526,7 @@ DataTagged::trace(DataAbstract* ev, int axis_offset)
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
-      temp_ev->addTaggedValue(i->first,temp_ev->getDefaultValue());
+      temp_ev->addTag(i->first);
       DataArrayView thisView=getDataPointByTag(i->first);
       DataArrayView evView=temp_ev->getDataPointByTag(i->first);
       DataArrayView::trace(thisView,0,evView,0, axis_offset);
@@ -484,7 +545,7 @@ DataTagged::transpose(DataAbstract* ev, int axis_offset)
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
-      temp_ev->addTaggedValue(i->first,temp_ev->getDefaultValue());
+      temp_ev->addTag(i->first);
       DataArrayView thisView=getDataPointByTag(i->first);
       DataArrayView evView=temp_ev->getDataPointByTag(i->first);
       DataArrayView::transpose(thisView,0,evView,0, axis_offset);
@@ -503,7 +564,7 @@ DataTagged::swapaxes(DataAbstract* ev, int axis0, int axis1)
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
-      temp_ev->addTaggedValue(i->first,temp_ev->getDefaultValue());
+      temp_ev->addTag(i->first);
       DataArrayView thisView=getDataPointByTag(i->first);
       DataArrayView evView=temp_ev->getDataPointByTag(i->first);
       DataArrayView::swapaxes(thisView,0,evView,0,axis0,axis1);
@@ -522,7 +583,7 @@ DataTagged::eigenvalues(DataAbstract* ev)
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
-      temp_ev->addTaggedValue(i->first,temp_ev->getDefaultValue());
+      temp_ev->addTag(i->first);
       DataArrayView thisView=getDataPointByTag(i->first);
       DataArrayView evView=temp_ev->getDataPointByTag(i->first);
       DataArrayView::eigenvalues(thisView,0,evView,0);
@@ -544,8 +605,8 @@ DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const 
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
-      temp_ev->addTaggedValue(i->first,temp_ev->getDefaultValue());
-      temp_V->addTaggedValue(i->first,temp_V->getDefaultValue());
+      temp_ev->addTag(i->first);
+      temp_V->addTag(i->first);
       DataArrayView thisView=getDataPointByTag(i->first);
       DataArrayView evView=temp_ev->getDataPointByTag(i->first);
       DataArrayView VView=temp_V->getDataPointByTag(i->first);

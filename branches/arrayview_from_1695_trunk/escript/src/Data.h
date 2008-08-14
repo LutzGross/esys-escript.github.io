@@ -447,7 +447,8 @@ class Data {
   int
   getDataPointRank() const
   {
-    return m_data->getPointDataView().getRank();
+//    return m_data->getPointDataView().getRank();
+    return m_data->getRank();
   }
 
   /**
@@ -541,8 +542,12 @@ class Data {
      Return a reference to the data point shape.
   */
   ESCRIPT_DLL_API
+  inline
   const DataTypes::ShapeType&
-  getDataPointShape() const;
+  getDataPointShape() const
+  {
+	return m_data->getShape();
+  }
 
   /**
      \brief
@@ -1290,10 +1295,29 @@ class Data {
   /**
      \brief
      return the object produced by the factory, which is a DataConstant or DataExpanded
+	TODO Ownership of this object should be explained in doco.
   */
   ESCRIPT_DLL_API
         DataAbstract*
         borrowData(void) const;
+
+
+  /**
+     \brief
+     Return a pointer to the beginning of the datapoint at the specified offset.
+     TODO Eventually these should be inlined.
+     \param i - position in the underlying datastructure
+  */
+  ESCRIPT_DLL_API
+        DataTypes::ValueType::const_reference
+        getDataAtOffset(DataTypes::ValueType::size_type i) const;
+
+
+  ESCRIPT_DLL_API
+        DataTypes::ValueType::reference
+        getDataAtOffset(DataTypes::ValueType::size_type i);
+
+
 
  protected:
 
@@ -1530,6 +1554,25 @@ C_GeneralTensorProduct(Data& arg0,
                      Data& arg1,
                      int axis_offset=0,
                      int transpose=0);
+
+
+/**
+  \brief
+  Compute a tensor product of two Data objects.
+This is Joel's test version. Not to be used for any serious purpose.
+
+  \param arg0 - Input - Data object
+  \param arg1 - Input - Data object
+  \param axis_offset - Input - axis offset
+  \param transpose - Input - 0: transpose neither, 1: transpose arg0, 2: transpose arg1
+*/
+ESCRIPT_DLL_API
+Data
+C_GeneralTensorProduct_J(Data& arg0,
+                     Data& arg1,
+                     int axis_offset=0,
+                     int transpose=0);
+
 
 
 
@@ -1770,7 +1813,7 @@ C_TensorBinaryOperation(Data const &arg_0,
       const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
       DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
       for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-        tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+        tmp_2->addTag(i->first);
         DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
         DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
         double *ptr_1 = &view_1.getData(0);
@@ -1831,7 +1874,7 @@ C_TensorBinaryOperation(Data const &arg_0,
       const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
       DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
       for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-        tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+        tmp_2->addTag(i->first);
         DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
         DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
         double *ptr_0 = &view_0.getData(0);
@@ -1868,10 +1911,10 @@ C_TensorBinaryOperation(Data const &arg_0,
       const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
       const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
       for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-        tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue()); // use tmp_2 to get correct shape
+        tmp_2->addTag(i->first); // use tmp_2 to get correct shape
       }
       for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-        tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+        tmp_2->addTag(i->first);
       }
       // Compute a result for each tag
       const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
@@ -2026,7 +2069,7 @@ C_TensorBinaryOperation(Data const &arg_0,
       const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
       DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
       for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-        tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+        tmp_2->addTag(i->first);
         DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
         DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
         double *ptr_1 = &view_1.getData(0);
@@ -2088,7 +2131,7 @@ C_TensorBinaryOperation(Data const &arg_0,
       const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
       DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
       for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-        tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+        tmp_2->addTag(i->first);
         DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
         DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
         double *ptr_0 = &view_0.getData(0);
@@ -2125,10 +2168,10 @@ C_TensorBinaryOperation(Data const &arg_0,
       const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
       const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
       for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-        tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue()); // use tmp_2 to get correct shape
+        tmp_2->addTag(i->first); // use tmp_2 to get correct shape
       }
       for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-        tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+        tmp_2->addTag(i->first);
       }
       // Compute a result for each tag
       const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
@@ -2284,7 +2327,7 @@ C_TensorBinaryOperation(Data const &arg_0,
       const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
       DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
       for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-        tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+        tmp_2->addTag(i->first);
         DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
         DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
         double *ptr_1 = &view_1.getData(0);
@@ -2345,7 +2388,7 @@ C_TensorBinaryOperation(Data const &arg_0,
       const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
       DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
       for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-        tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+        tmp_2->addTag(i->first);
         DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
         DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
         double *ptr_0 = &view_0.getData(0);
@@ -2382,10 +2425,10 @@ C_TensorBinaryOperation(Data const &arg_0,
       const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
       const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
       for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-        tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue()); // use tmp_2 to get correct shape
+        tmp_2->addTag(i->first); // use tmp_2 to get correct shape
       }
       for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-        tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+        tmp_2->addTag(i->first);
       }
       // Compute a result for each tag
       const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
@@ -2555,7 +2598,7 @@ C_TensorUnaryOperation(Data const &arg_0,
     const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
     DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
     for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-      tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+      tmp_2->addTag(i->first);
       DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
       DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
       double *ptr_0 = &view_0.getData(0);
