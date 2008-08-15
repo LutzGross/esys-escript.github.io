@@ -2168,6 +2168,8 @@ escript::C_GeneralTensorProduct(Data& arg_0,
   // General tensor product: res(SL x SR) = arg_0(SL x SM) * arg_1(SM x SR)
   // SM is the product of the last axis_offset entries in arg_0.getShape().
 
+  return C_GeneralTensorProduct_J(arg_0, arg_1, axis_offset, transpose);
+
   // Interpolate if necessary and find an appropriate function space
   Data arg_0_Z, arg_1_Z;
   if (arg_0.getFunctionSpace()!=arg_1.getFunctionSpace()) {
