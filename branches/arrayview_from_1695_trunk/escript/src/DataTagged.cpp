@@ -435,7 +435,7 @@ DataTagged::getDataByTag(int tag, DataTypes::ValueType::size_type i) const
   }
   DataArrayView temp(getPointDataView());
   temp.setOffset(offset);
-  return temp.getData()[i];
+  return temp.getData()[offset+i];
 }
 
 
@@ -449,7 +449,7 @@ DataTagged::getDataByTag(int tag, DataTypes::ValueType::size_type i)
   }
   DataArrayView temp(getPointDataView());
   temp.setOffset(offset);
-  return temp.getData()[i];
+  return temp.getData()[offset+i];
 }
 
 

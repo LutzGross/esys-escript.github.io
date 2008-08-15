@@ -273,7 +273,7 @@ class DataTagged : public DataAbstract {
 
      Description:
      Add a single tag. The default value for this DataTagged will be associated with the tag.
-     If this tag already has a value associated with it, setTaggedValue will be used to update this value.
+     If this tag already has a value associated with it, then no change will be made.
      \param tagKey - Input - Integer tag.
     T
   */
