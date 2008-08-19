@@ -211,15 +211,15 @@ err_t Paso_Solver_TFQMR(
      Paso_LinearCombination(n,y1,1.,w,beta,y2);
 
      Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
+     
      Performance_startMonitor(pp,PERFORMANCE_MVM);
      Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, y1,ZERO,u1);
      Performance_stopMonitor(pp,PERFORMANCE_MVM);
-     Performance_startMonitor(pp,PERFORMANCE_SOLVER);
      
-     Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
      Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
      Paso_Solver_solvePreconditioner(A,u1,u1);
      Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
+     
      Performance_startMonitor(pp,PERFORMANCE_SOLVER);
      
      Paso_Copy(n,v_old,v);
