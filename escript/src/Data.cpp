@@ -91,6 +91,7 @@ Data::Data(const Data& inData)
   m_protected=inData.isProtected();
 }
 
+
 Data::Data(const Data& inData,
            const DataTypes::RegionType& region)
 {
@@ -137,6 +138,14 @@ Data::Data(const DataTagged::TagListType& tagKeys,
   if (expanded) {
     expand();
   }
+}
+
+
+
+Data::Data(DataAbstract* underlyingdata)
+{
+	m_data=shared_ptr<DataAbstract>(underlyingdata);
+	m_protected=false;
 }
 
 Data::Data(const numeric::array& value,
@@ -2168,8 +2177,6 @@ escript::C_GeneralTensorProduct(Data& arg_0,
   // General tensor product: res(SL x SR) = arg_0(SL x SM) * arg_1(SM x SR)
   // SM is the product of the last axis_offset entries in arg_0.getShape().
 
-  return C_GeneralTensorProduct_J(arg_0, arg_1, axis_offset, transpose);
-
   // Interpolate if necessary and find an appropriate function space
   Data arg_0_Z, arg_1_Z;
   if (arg_0.getFunctionSpace()!=arg_1.getFunctionSpace()) {
@@ -2191,8 +2198,8 @@ escript::C_GeneralTensorProduct(Data& arg_0,
   // Get rank and shape of inputs
   int rank0 = arg_0_Z.getDataPointRank();
   int rank1 = arg_1_Z.getDataPointRank();
-  DataTypes::ShapeType shape0 = arg_0_Z.getDataPointShape();
-  DataTypes::ShapeType shape1 = arg_1_Z.getDataPointShape();
+  const DataTypes::ShapeType& shape0 = arg_0_Z.getDataPointShape();
+  const DataTypes::ShapeType& shape1 = arg_1_Z.getDataPointShape();
 
   // Prepare for the loops of the product and verify compatibility of shapes
   int start0=0, start1=0;
@@ -2201,11 +2208,12 @@ escript::C_GeneralTensorProduct(Data& arg_0,
   else if (transpose == 2)	{ start1 = rank1-axis_offset; }
   else				{ throw DataException("C_GeneralTensorProduct: Error - transpose should be 0, 1 or 2"); }
 
+
   // Adjust the shapes for transpose
-  DataTypes::ShapeType tmpShape0;
-  DataTypes::ShapeType tmpShape1;
-  for (int i=0; i<rank0; i++)	{ tmpShape0.push_back( shape0[(i+start0)%rank0] ); }
-  for (int i=0; i<rank1; i++)	{ tmpShape1.push_back( shape1[(i+start1)%rank1] ); }
+  DataTypes::ShapeType tmpShape0(rank0);	// pre-sizing the vectors rather
+  DataTypes::ShapeType tmpShape1(rank1);	// than using push_back
+  for (int i=0; i<rank0; i++)	{ tmpShape0[i]=shape0[(i+start0)%rank0]; }
+  for (int i=0; i<rank1; i++)	{ tmpShape1[i]=shape1[(i+start1)%rank1]; }
 
 #if 0
   // For debugging: show shape after transpose
@@ -2236,19 +2244,22 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     SR *= tmpShape1[i];
   }
 
-  // Define the shape of the output
-  DataTypes::ShapeType shape2;
-  for (int i=0; i<rank0-axis_offset; i++) { shape2.push_back(tmpShape0[i]); } // First part of arg_0_Z
-  for (int i=axis_offset; i<rank1; i++)   { shape2.push_back(tmpShape1[i]); } // Last part of arg_1_Z
+  // Define the shape of the output (rank of shape is the sum of the loop ranges below)
+  DataTypes::ShapeType shape2(rank0+rank1-2*axis_offset);	
+  {			// block to limit the scope of out_index
+     int out_index=0;
+     for (int i=0; i<rank0-axis_offset; i++, ++out_index) { shape2[out_index]=tmpShape0[i]; } // First part of arg_0_Z
+     for (int i=axis_offset; i<rank1; i++, ++out_index)   { shape2[out_index]=tmpShape1[i]; } // Last part of arg_1_Z
+  }
 
   // Declare output Data object
   Data res;
 
   if      (arg_0_Z.isConstant()   && arg_1_Z.isConstant()) {
     res = Data(0.0, shape2, arg_1_Z.getFunctionSpace());	// DataConstant output
-    double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[0]);
-    double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[0]);
-    double *ptr_2 = &((res.getPointDataView().getData())[0]);
+    double *ptr_0 = &(arg_0_Z.getDataAtOffset(0));
+    double *ptr_1 = &(arg_1_Z.getDataAtOffset(0));
+    double *ptr_2 = &(res.getDataAtOffset(0));
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
   }
   else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged()) {
@@ -2269,13 +2280,18 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
     // Prepare offset into DataConstant
     int offset_0 = tmp_0->getPointOffset(0,0);
-    double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+    double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
     // Get the views
-    DataArrayView view_1 = tmp_1->getDefaultValue();
-    DataArrayView view_2 = tmp_2->getDefaultValue();
-    // Get the pointers to the actual data
-    double *ptr_1 = &((view_1.getData())[0]);
-    double *ptr_2 = &((view_2.getData())[0]);
+//     DataArrayView view_1 = tmp_1->getDefaultValue();
+//     DataArrayView view_2 = tmp_2->getDefaultValue();
+//     // Get the pointers to the actual data
+//     double *ptr_1 = &((view_1.getData())[0]);
+//     double *ptr_2 = &((view_2.getData())[0]);
+
+    double *ptr_1 = &(tmp_1->getDefaultValue(0));
+    double *ptr_2 = &(tmp_2->getDefaultValue(0));
+
+
     // Compute an MVP for the default
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     // Compute an MVP for each tag
@@ -2283,10 +2299,14 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
     for (i=lookup_1.begin();i!=lookup_1.end();i++) {
       tmp_2->addTag(i->first);
-      DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
-      DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
-      double *ptr_1 = &view_1.getData(0);
-      double *ptr_2 = &view_2.getData(0);
+//       DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
+//       DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
+//       double *ptr_1 = &view_1.getData(0);
+//       double *ptr_2 = &view_2.getData(0);
+
+      double *ptr_1 = &(tmp_1->getDataByTag(i->first,0));
+      double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
+	
       matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     }
 
@@ -2309,9 +2329,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
       for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
         int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
         int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
-        double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-        double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-        double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+        double *ptr_2 = &(res.getDataAtOffset(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2335,24 +2355,32 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
     // Prepare offset into DataConstant
     int offset_1 = tmp_1->getPointOffset(0,0);
-    double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+    double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
     // Get the views
-    DataArrayView view_0 = tmp_0->getDefaultValue();
-    DataArrayView view_2 = tmp_2->getDefaultValue();
-    // Get the pointers to the actual data
-    double *ptr_0 = &((view_0.getData())[0]);
-    double *ptr_2 = &((view_2.getData())[0]);
+//     DataArrayView view_0 = tmp_0->getDefaultValue();
+//     DataArrayView view_2 = tmp_2->getDefaultValue();
+//     // Get the pointers to the actual data
+//     double *ptr_0 = &((view_0.getData())[0]);
+//     double *ptr_2 = &((view_2.getData())[0]);
+
+    double *ptr_0 = &(tmp_0->getDefaultValue(0));
+    double *ptr_2 = &(tmp_2->getDefaultValue(0));
+
     // Compute an MVP for the default
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     // Compute an MVP for each tag
     const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
     DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
     for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+//      tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+//       DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
+//       DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
+//       double *ptr_0 = &view_0.getData(0);
+//       double *ptr_2 = &view_2.getData(0);
+
       tmp_2->addTag(i->first);
-      DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
-      DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
-      double *ptr_0 = &view_0.getData(0);
-      double *ptr_2 = &view_2.getData(0);
+      double *ptr_0 = &(tmp_0->getDataByTag(i->first,0));
+      double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
       matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     }
 
@@ -2373,14 +2401,20 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
     if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
 
-    // Get the views
-    DataArrayView view_0 = tmp_0->getDefaultValue();
-    DataArrayView view_1 = tmp_1->getDefaultValue();
-    DataArrayView view_2 = tmp_2->getDefaultValue();
-    // Get the pointers to the actual data
-    double *ptr_0 = &((view_0.getData())[0]);
-    double *ptr_1 = &((view_1.getData())[0]);
-    double *ptr_2 = &((view_2.getData())[0]);
+//     // Get the views
+//     DataArrayView view_0 = tmp_0->getDefaultValue();
+//     DataArrayView view_1 = tmp_1->getDefaultValue();
+//     DataArrayView view_2 = tmp_2->getDefaultValue();
+//     // Get the pointers to the actual data
+//     double *ptr_0 = &((view_0.getData())[0]);
+//     double *ptr_1 = &((view_1.getData())[0]);
+//     double *ptr_2 = &((view_2.getData())[0]);
+
+    double *ptr_0 = &(tmp_0->getDefaultValue(0));
+    double *ptr_1 = &(tmp_1->getDefaultValue(0));
+    double *ptr_2 = &(tmp_2->getDefaultValue(0));
+
+
     // Compute an MVP for the default
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     // Merge the tags
@@ -2396,12 +2430,17 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     // Compute an MVP for each tag
     const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
     for (i=lookup_2.begin();i!=lookup_2.end();i++) {
-      DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
-      DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
-      DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
-      double *ptr_0 = &view_0.getData(0);
-      double *ptr_1 = &view_1.getData(0);
-      double *ptr_2 = &view_2.getData(0);
+//       DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
+//       DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
+//       DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
+//       double *ptr_0 = &view_0.getData(0);
+//       double *ptr_1 = &view_1.getData(0);
+//       double *ptr_2 = &view_2.getData(0);
+
+      double *ptr_0 = &(tmp_0->getDataByTag(i->first,0));
+      double *ptr_1 = &(tmp_1->getDataByTag(i->first,0));
+      double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
+
       matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     }
 
@@ -2422,12 +2461,12 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
     for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
       int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-      double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+      double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
       for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-        double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+        double *ptr_2 = &(res.getDataAtOffset(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2451,9 +2490,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
       for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-        double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-        double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+        double *ptr_2 = &(res.getDataAtOffset(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2476,12 +2515,12 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
     for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
       int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
-      double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+      double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
       for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-        double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+        double *ptr_2 = &(res.getDataAtOffset(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2506,9 +2545,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-        double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-        double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+        double *ptr_2 = &(res.getDataAtOffset(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2539,6 +2578,21 @@ Data::toString() const
 	return  temp.str();
     }
     return m_data->toString();
+}
+
+
+
+DataTypes::ValueType::const_reference
+Data::getDataAtOffset(DataTypes::ValueType::size_type i) const
+{
+	return getPointDataView().getData()[i];
+}
+
+
+DataTypes::ValueType::reference
+Data::getDataAtOffset(DataTypes::ValueType::size_type i)
+{
+	return getPointDataView().getData()[i];
 }
 
 

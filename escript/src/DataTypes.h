@@ -29,6 +29,7 @@ namespace escript {
   typedef std::vector<std::pair<int, int> > RegionType;
   typedef std::vector<std::pair<int, int> > RegionLoopRangeType;
   static const int maxRank=4;
+  static const ShapeType scalarShape;
 
 // This file contains static functions moved from DataArrayView
   /**

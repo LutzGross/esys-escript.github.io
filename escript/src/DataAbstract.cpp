@@ -42,6 +42,7 @@ DataAbstract::setPointDataView(const DataArrayView& input)
     setShape(input.getShape());
 }
 
+// perhaps this should be a constructor parameter
 void
 DataAbstract::setShape(const DataTypes::ShapeType& s)
 {

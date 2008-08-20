@@ -136,6 +136,43 @@ DataTagged::DataTagged(const DataConstant& other)
   setPointDataView(temp);
 }
 
+
+// Create a new object by copying tags
+DataTagged::DataTagged(const FunctionSpace& what,
+             const DataTypes::ShapeType& shape,
+	     const DataTypes::ValueType& defaultvalue,
+             const DataTagged& tagsource)
+ : DataAbstract(what)
+{
+// This constructor has not been unit tested yet
+
+  if (defaultvalue.size()!=DataTypes::noValues(shape)) {
+    throw DataException("Programming error - defaultvalue does not match supplied shape.");
+  }
+
+  setShape(shape);
+
+  int numtags=tagsource.getTagLookup().size();
+//  m_offsetLookup.reserve(tagsource.getTagLookup().size());
+   m_data.resize(defaultvalue.size(),0.);	// since this is tagged data, we should have blocksize=1
+
+  // need to set the default value ....
+  for (int i=0; i<defaultvalue.size(); i++) {
+    m_data[i]=defaultvalue[i];
+  }
+
+
+  // create the data view
+  DataArrayView temp(m_data,shape);
+  setPointDataView(temp);
+
+  DataTagged::DataMapType::const_iterator i;
+  for (i=tagsource.getTagLookup().begin();i!=tagsource.getTagLookup().end();i++) {
+	addTag(i->first);
+  }
+}
+
+
 DataAbstract*
 DataTagged::getSlice(const DataTypes::RegionType& region) const 
 {
