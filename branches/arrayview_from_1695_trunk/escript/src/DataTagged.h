@@ -147,6 +147,24 @@ class DataTagged : public DataAbstract {
 
   /**
      \brief
+     Copies the tags from a DataTagged into a new Data Tagged and assigns them the default value. ** Not unit tested **
+
+     This is different from a deep copy because we are not copying shape or other information, just tags.
+     \param what - Input - FunctionSpace for the new DataTagged
+     \param shape - Input - Shape for points in the new DataTagged
+     \param defaultvalue - Input - Default value for new DataTagged
+     \param tagsource - Input - A DataTagged object which supplies the tags. 
+  */
+  ESCRIPT_DLL_API
+  DataTagged(const FunctionSpace& what,
+             const DataTypes::ShapeType& shape,
+	     const DataTypes::ValueType& defaultvalue,
+             const DataTagged& tagsource);
+
+
+
+  /**
+     \brief
      Destructor
   */
   ESCRIPT_DLL_API
@@ -269,7 +287,7 @@ class DataTagged : public DataAbstract {
 
   /**
      \brief
-     addTag - does not modify the default value for this object.
+     addTag - does not modify the default value for this object. ** Not unit tested **
 
      Description:
      Add a single tag. The default value for this DataTagged will be associated with the tag.
