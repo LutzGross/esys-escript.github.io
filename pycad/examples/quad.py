@@ -36,6 +36,7 @@ s=PlaneSurface(c)
 ps=PropertySet("The_whole_domain",s)
 pl1=PropertySet("sides",l01,l23)
 pl2=PropertySet("top_and_bottom",l12,l30)
+
 d=Design(dim=2,element_size=0.005)
 d.addItems(pl1,pl2)
 d.addItems(ps)

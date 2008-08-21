@@ -66,6 +66,7 @@ void Finley_ElementFile_setTags(Finley_ElementFile* self,const int newTag, escri
                  if (check) self->Tag[n]=newTag;
              }
          }
+         Finley_ElementFile_setTagsInUse(self);
     }
 }
 /*

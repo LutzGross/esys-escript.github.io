@@ -89,6 +89,8 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
 
      TMPMEMFREE(distribution);
 
+     Finley_Mesh_setTagsInUse(in);
+
      return;
 }
 
@@ -109,4 +111,15 @@ void Finley_Mesh_optimizeElementOrdering(Finley_Mesh* in) {
   if (Finley_noError()) Finley_ElementFile_optimizeOrdering(&(in->FaceElements));
   if (Finley_noError()) Finley_ElementFile_optimizeOrdering(&(in->Points));
   if (Finley_noError()) Finley_ElementFile_optimizeOrdering(&(in->ContactElements));
+}
+
+/*                                                                    */
+/*  redistribute elements to minimize communication during assemblage */
+void Finley_Mesh_setTagsInUse(Finley_Mesh* in)
+{
+    if (Finley_noError()) Finley_NodeFile_setTagsInUse(in->Nodes);
+    if (Finley_noError()) Finley_ElementFile_setTagsInUse(in->Elements);
+    if (Finley_noError()) Finley_ElementFile_setTagsInUse(in->FaceElements);
+    if (Finley_noError()) Finley_ElementFile_setTagsInUse(in->Points);
+    if (Finley_noError()) Finley_ElementFile_setTagsInUse(in->ContactElements);
 }

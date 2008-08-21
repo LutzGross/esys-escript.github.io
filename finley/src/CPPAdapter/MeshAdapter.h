@@ -590,6 +590,16 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   FINLEY_DLL_API
   virtual void setTags(const int functionSpaceType, const int newTag, const escript::Data& mask) const;
 
+  /**
+      \brief
+          return the number of tags in use and a pointer to an array with the number of tags in use
+  */
+  FINLEY_DLL_API
+  virtual int getNumberOfTagsInUse(int functionSpaceCode) const;
+
+  FINLEY_DLL_API 
+  virtual int* borrowListOfTagsInUse(int functionSpaceCode) const;
+
  protected:
 
  private:

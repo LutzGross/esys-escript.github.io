@@ -43,7 +43,7 @@ class LevelSet(object):
          #=======================================
          self.__reinitFC=False
          if self.__reinitFC:
-            self.__reinitfc=TransportPDE(self.__domain,num_equations=1,theta=1.)
+            self.__reinitfc=TransportPDE(self.__domain,num_equations=1,theta=1.0)
             self.__reinitfc.setValue(M=Scalar(1.,Function(self.__domain)))
             self.__reinitfc.setTolerance(1.e-5)
          else:
@@ -52,7 +52,7 @@ class LevelSet(object):
             self.__reinitPde.setReducedOrderOn()
             self.__reinitPde.setSymmetryOn()
             self.__reinitPde.setValue(D=1.)
-            # self.__reinitPde.setTolerance(1.e-8)
+            self.__reinitPde.setTolerance(1.e-2)
             # self.__reinitPde.setSolverMethod(preconditioner=LinearPDE.ILU0)
          #=======================================
          self.__updateInterface()
@@ -140,14 +140,47 @@ class LevelSet(object):
 
      def __reinitialise(self,phi):
          print "reintialization started:"
-         s=self.__makeInterface(phi,1.5)
+         s=self.__makeInterface(phi,1.)
+         print "phi range:",inf(phi), sup(phi)
          g=grad(phi)
-         w = s*g/(length(g)+EPSILON)
+         w=s*g/(length(g)+EPSILON)
+         #=======================================================
+         # # positive part:
+         # phi_p=wherePositive(phi)*phi
+         # self.__reinitfc.setInitialSolution(phi_p)
+         # self.__reinitfc.setValue(C=-wherePositive(s)*w,Y=wherePositive(s)*s,q=whereNonPositive(phi))
+         # dtau=self.__h
+         # print "step size: dt (pos)= ",dtau
+         # print "phi_p range:",inf(phi_p), sup(phi_p)
+         # iter=0
+         # while (iter<=self.__reinitialization_steps_max):
+         # phi_p=self.__reinitfc.solve(dtau)
+         # print "phi_p range:",inf(phi_p), sup(phi_p)
+         # iter+=1
+         # # negative part:
+         # phi_n=-whereNegative(phi)*phi
+         # self.__reinitfc.setInitialSolution(phi_n)
+         # self.__reinitfc.setValue(C=-whereNegative(s)*w,Y=-whereNegative(s)*s,q=whereNonNegative(phi))
+         # # dtau=self.__reinitfc.getSafeTimeStepSize() 
+         # dtau=self.__h
+         # print "step size: dt (neg)= ",dtau
+         # print "phi_n range:",inf(phi_n), sup(phi_n)
+         # iter=0
+         # while (iter<=self.__reinitialization_steps_max):
+         # phi_n=self.__reinitfc.solve(dtau)
+         # print "phi_n range:",inf(phi_n), sup(phi_n)
+         # iter+=1
+         # phi=phi_p-phi_n
+         # print "phi range:",inf(phi), sup(phi)
+         # print "reintialization completed."
+         # return phi
+
+         #=======================================================
          if self.__reinitFC:
              self.__reinitfc.setValue(C=-w,Y=s)
              self.__reinitfc.setInitialSolution(phi+self.__diam)
-             # dtau=self.__reinitfc.getSafeTimeStepSize() 
-             dtau = 0.5*inf(Function(self.__domain).getSize())
+             dtau=self.__reinitfc.getSafeTimeStepSize() 
+             # dtau = 0.5*inf(Function(self.__domain).getSize())
          else:
              dtau = 0.5*inf(Function(self.__domain).getSize())
          print "step size: dt = ",dtau,inf(abs(phi.interpolate(Function(self.__domain)))/abs(s-inner(w,grad(phi))))
@@ -168,7 +201,7 @@ class LevelSet(object):
                    phi = self.__reinitPde.getSolution()
                  change = Lsup(phi-phi_old)/self.__diam
                  print "phi range:",inf(phi), sup(phi)
-                 print "iteration :", iter, " error:", change
+                 print "iteration :", iter, " change:", change
                  iter +=1
          print "reintialization completed."
          return phi

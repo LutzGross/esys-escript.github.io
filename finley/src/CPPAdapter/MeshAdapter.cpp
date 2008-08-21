@@ -2047,4 +2047,88 @@ std::string MeshAdapter::showTagNames() const
    return temp.str();
 }
 
+int MeshAdapter::getNumberOfTagsInUse(int functionSpaceCode) const
+{
+  Finley_Mesh* mesh=m_finleyMesh.get();
+  dim_t numTags=0;
+  switch(functionSpaceCode) {
+   case(Nodes):
+          numTags=mesh->Nodes->numTagsInUse;
+          break;
+   case(ReducedNodes):
+          throw FinleyAdapterException("Error - ReducedNodes does not support tags");
+          break;
+   case(DegreesOfFreedom):
+          throw FinleyAdapterException("Error - DegreesOfFreedom does not support tags");
+          break;
+   case(ReducedDegreesOfFreedom):
+          throw FinleyAdapterException("Error - ReducedDegreesOfFreedom does not support tags");
+          break;
+   case(Elements):
+   case(ReducedElements):
+          numTags=mesh->Elements->numTagsInUse;
+          break;
+   case(FaceElements):
+   case(ReducedFaceElements):
+          numTags=mesh->FaceElements->numTagsInUse;
+          break;
+   case(Points):
+          numTags=mesh->Points->numTagsInUse;
+          break;
+   case(ContactElementsZero):
+   case(ReducedContactElementsZero):
+   case(ContactElementsOne):
+   case(ReducedContactElementsOne):
+          numTags=mesh->ContactElements->numTagsInUse;
+          break;
+   default:
+      stringstream temp;
+      temp << "Error - Finley does not know anything about function space type " << functionSpaceCode;
+      throw FinleyAdapterException(temp.str());
+  }
+  return numTags;
+}
+int* MeshAdapter::borrowListOfTagsInUse(int functionSpaceCode) const
+{
+  Finley_Mesh* mesh=m_finleyMesh.get();
+  index_t* tags=NULL;
+  switch(functionSpaceCode) {
+   case(Nodes):
+          tags=mesh->Nodes->tagsInUse;
+          break;
+   case(ReducedNodes):
+          throw FinleyAdapterException("Error - ReducedNodes does not support tags");
+          break;
+   case(DegreesOfFreedom):
+          throw FinleyAdapterException("Error - DegreesOfFreedom does not support tags");
+          break;
+   case(ReducedDegreesOfFreedom):
+          throw FinleyAdapterException("Error - ReducedDegreesOfFreedom does not support tags");
+          break;
+   case(Elements):
+   case(ReducedElements):
+          tags=mesh->Elements->tagsInUse;
+          break;
+   case(FaceElements):
+   case(ReducedFaceElements):
+          tags=mesh->FaceElements->tagsInUse;
+          break;
+   case(Points):
+          tags=mesh->Points->tagsInUse;
+          break;
+   case(ContactElementsZero):
+   case(ReducedContactElementsZero):
+   case(ContactElementsOne):
+   case(ReducedContactElementsOne):
+          tags=mesh->ContactElements->tagsInUse;
+          break;
+   default:
+      stringstream temp;
+      temp << "Error - Finley does not know anything about function space type " << functionSpaceCode;
+      throw FinleyAdapterException(temp.str());
+  }
+  return tags;
+}
+
+
 }  // end of namespace

@@ -31,6 +31,8 @@ struct Finley_NodeFile {
   dim_t numDim;                        /* spatial dimension */
   index_t *Id;                         /* Id[i] is the id number of node i. It need to be unique. */
   index_t *Tag;                        /* Tag[i] is the tag of node i. */
+  index_t *tagsInUse;                  /* array of tags which are actually used */
+  dim_t     numTagsInUse;               /* number of tags used */
 
   index_t* globalDegreesOfFreedom;      /* globalDegreesOfFreedom[i] is the global degree of freedom assigned to node i */
                                        /* this index is used to consider periodic boundary conditions by assigning */
@@ -135,6 +137,7 @@ void Finley_NodeFile_copyTable(dim_t,Finley_NodeFile*,dim_t,dim_t,Finley_NodeFil
 /* ===================== */
 void Finley_NodeFile_setCoordinates(Finley_NodeFile*,escriptDataC*);
 void Finley_NodeFile_setTags(Finley_NodeFile*,const int,escriptDataC*);
+void Finley_NodeFile_setTagsInUse(Finley_NodeFile* in);
 
 #endif
 
