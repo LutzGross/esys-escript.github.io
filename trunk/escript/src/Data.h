@@ -300,8 +300,6 @@ class Data {
      \brief
      Return the tag number associated with the given data-point.
 
-     The data-point number here corresponds to the data-point number in the
-     numarray returned by convertToNumArray.
   */
   ESCRIPT_DLL_API
   int
