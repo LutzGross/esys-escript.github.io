@@ -129,6 +129,25 @@ FunctionSpace::getTagFromDataPointNo(int dataPointNo) const
   return(tagNo);
 }
 
+int FunctionSpace::getReferenceIDFromDataPointNo(int dataPointNo) const
+{
+     //
+     // Get the number of samples and data-points per sample
+     int numSamples = getNumSamples();
+     int numDataPointsPerSample = getNumDPPSample();
+     int*referenceIDs= borrowSampleReferenceIDs();
+     int numDataPoints = numSamples * numDataPointsPerSample;
+
+     if (numDataPointsPerSample==0) {
+        throw DataException("FunctionSpace::getReferenceIDFromDataPointNo error: no data-points associated with this object.");
+     }
+     if (dataPointNo<0 || dataPointNo>numDataPoints) {
+        throw DataException("FunctionSpace::getReferenceIDFromDataPointNo error: invalid data-point number supplied.");
+     }
+     int sampleNo = dataPointNo / numDataPointsPerSample;
+     return referenceIDs[sampleNo];
+}
+
 int*
 FunctionSpace::borrowSampleReferenceIDs() const
 {
@@ -204,6 +223,7 @@ FunctionSpace::borrowListOfTagsInUse() const
 {
    return  m_domain->borrowListOfTagsInUse(m_functionSpaceType);
 }
+
 
 
 

@@ -184,6 +184,13 @@ class FunctionSpace {
 
   /**
    \brief
+   Return the reference number associated with the given data-point number.
+  */
+  ESCRIPT_DLL_API
+  int getReferenceIDFromDataPointNo(int dataPointNo) const;
+
+  /**
+   \brief
    Return the reference number associated with the given sample number.
    This function is not efficient. It is better to first call 
    borrowSampleReferenceIDs and then when iterating over sampleNo to use sampleNo as an offset.
