@@ -129,7 +129,20 @@ namespace escript {
    DataTypes::RegionType
    getSliceRegion(const DataTypes::ShapeType& shape, const boost::python::object& key);
 
-
+  /**
+  \brief
+   Modify region to copy from in order to
+   deal with the case where one range in the region contains identical indexes,
+   eg: <<1,1><0,3><0,3>>
+   This situation implies we want to copy from an object with rank greater than that of this
+   object. eg: we want to copy the values from a two dimensional slice out of a three
+   dimensional object into a two dimensional object.
+   We do this by taking a slice from the other object where one dimension of
+   the slice region is of size 1. So in the above example, we modify the above
+   region like so: <<1,2><0,3><0,3>> and take this slice.
+  */
+  DataTypes::RegionLoopRangeType
+  getSliceRegionLoopRange(const DataTypes::RegionType& region);
 
   ESCRIPT_DLL_API
   inline
@@ -186,6 +199,13 @@ namespace escript {
 	return temp;
   }
 
+  ESCRIPT_DLL_API
+  inline
+  bool
+  checkShape(const ShapeType& s1, const ShapeType& s2)
+  {
+	return s1==s2;
+  }
 
  }   // End namespace DataTypes
 

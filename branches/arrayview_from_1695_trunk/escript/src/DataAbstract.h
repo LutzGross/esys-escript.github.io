@@ -274,6 +274,29 @@ class DataAbstract {
   setTaggedValue(int tagKey,
                  const DataArrayView& value);
 
+
+  /**
+     \brief
+     setTaggedValue
+
+     Description:
+     Assign the given value to the given tag.
+
+     NB: If the data isn't tagged an exception will be thrown.
+
+     \param tagKey - Input - Integer key.
+     \param pointshape - Input - the shape of the value parameter.
+     \param value - Input - 
+  */
+  ESCRIPT_DLL_API
+  virtual
+  void
+  setTaggedValue(int tagKey,
+		 const DataTypes::ShapeType& pointshape,
+                 const DataTypes::ValueType& value);
+
+
+
   /**
     \brief
     Archive the underlying data values to the file referenced

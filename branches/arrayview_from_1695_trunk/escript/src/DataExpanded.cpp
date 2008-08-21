@@ -110,7 +110,7 @@ DataExpanded::DataExpanded(const DataExpanded& other,
   initialise(shape,other.getNumSamples(),other.getNumDPPSample());
   //
   // copy the data
-  DataTypes::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
+  DataTypes::RegionLoopRangeType region_loop_range=DataTypes::getSliceRegionLoopRange(region);
   DataTypes::ValueType::size_type numRows=m_data.getNumRows();
   DataTypes::ValueType::size_type numCols=m_data.getNumCols();
   int i,j;
@@ -179,7 +179,7 @@ DataExpanded::setSlice(const DataAbstract* value,
   //
   // get shape of slice
   DataTypes::ShapeType shape(DataTypes::getResultSliceShape(region));
-  DataTypes::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
+  DataTypes::RegionLoopRangeType region_loop_range=DataTypes::getSliceRegionLoopRange(region);
   //
   // check shape
   if (getPointDataView().getRank()!=region.size()) {
@@ -751,6 +751,34 @@ DataExpanded::setTaggedValue(int tagKey,
     }
   }
 }
+
+void  
+DataExpanded::setTaggedValue(int tagKey,
+ 	       const DataTypes::ShapeType& pointshape,
+               const DataTypes::ValueType& value)
+{
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDPPSample();
+  int sampleNo,dataPointNo, i;
+  DataTypes::ValueType::size_type n = getNoValues();
+  double* p;
+  const double* in=&value[0];
+  
+  if (value.size() != n) {
+    throw DataException("Error - DataExpanded::setTaggedValue: number of input values does not match number of values per data points.");
+  }
+
+  #pragma omp parallel for private(sampleNo,dataPointNo,p,i) schedule(static)
+  for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+    if (getFunctionSpace().getTagFromSampleNo(sampleNo) == tagKey ) {
+        for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+            p=&(m_data[getPointOffset(sampleNo,dataPointNo)]);
+            for (i=0; i<n ;++i) p[i]=in[i];
+        }
+    }
+  }
+}
+
 
 void
 DataExpanded::reorderByReferenceIDs(int *reference_ids)

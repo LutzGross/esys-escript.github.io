@@ -22,6 +22,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <boost/python/numeric.hpp>
 
 namespace escript {
 
@@ -120,6 +121,16 @@ class ESCRIPT_DLL_API DataVector {
   resize(const size_type newSize,
          const value_type newVal=0.0,
          const size_type newBlockSize=1);
+
+  /**
+    \brief 
+    Populates the vector with the data from value.
+    Note: This function does not attempt to perform shape checking.
+  */
+  void
+  copyFromNumArray(const boost::python::numeric::array& value);
+
+
 
   /**
      \brief

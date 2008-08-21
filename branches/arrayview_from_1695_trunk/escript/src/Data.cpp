@@ -1797,14 +1797,19 @@ Data::setTaggedValue(int tagKey,
   }
 
   // get the space for the data vector
-  int len = DataTypes::noValues(tempShape);
+ int len = DataTypes::noValues(tempShape);
   DataVector temp_data(len, 0.0, len);
   DataArrayView temp_dataView(temp_data, tempShape);
   temp_dataView.copy(asNumArray);
 
+//    DataVector temp_data;
+//    temp_data.copyFromNumArray(asNumArray);
+
   //
   // Call DataAbstract::setTaggedValue
   m_data->setTaggedValue(tagKey,temp_dataView);
+
+//    m_data->setTaggedValue(tagKey,tempShape, temp_data);
 }
 
 void
@@ -1821,6 +1826,23 @@ Data::setTaggedValueFromCPP(int tagKey,
   //
   // Call DataAbstract::setTaggedValue
   m_data->setTaggedValue(tagKey,value);
+}
+
+void
+Data::setTaggedValueFromCPP(int tagKey,
+			    const DataTypes::ShapeType& pointshape,
+                            const DataTypes::ValueType& value)
+{
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
+  //
+  // Ensure underlying data object is of type DataTagged
+  if (isConstant()) tag();
+
+  //
+  // Call DataAbstract::setTaggedValue
+  m_data->setTaggedValue(tagKey,pointshape, value);
 }
 
 int

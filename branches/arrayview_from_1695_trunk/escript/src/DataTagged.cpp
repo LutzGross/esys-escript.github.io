@@ -187,7 +187,7 @@ DataTagged::DataTagged(const DataTagged& other,
 
   // get the shape of the slice to copy from other
   DataTypes::ShapeType regionShape(DataTypes::getResultSliceShape(region));
-  DataTypes::RegionLoopRangeType regionLoopRange=getSliceRegionLoopRange(region);
+  DataTypes::RegionLoopRangeType regionLoopRange=DataTypes::getSliceRegionLoopRange(region);
 
   // allocate enough space in this for all values
   // (need to add one to allow for the default value)
@@ -227,7 +227,7 @@ DataTagged::setSlice(const DataAbstract* other,
   DataTypes::ShapeType regionShape(DataTypes::getResultSliceShape(region));
 
   // modify region specification as needed to match rank of this object
-  DataTypes::RegionLoopRangeType regionLoopRange=getSliceRegionLoopRange(region);
+  DataTypes::RegionLoopRangeType regionLoopRange=DataTypes::getSliceRegionLoopRange(region);
 
   // ensure rank/shape of this object is compatible with specified region
   if (getPointDataView().getRank()!=region.size()) {
@@ -295,6 +295,30 @@ DataTagged::setTaggedValues(const TagListType& tagKeys,
 
 void
 DataTagged::setTaggedValue(int tagKey,
+			   const DataTypes::ShapeType& pointshape,
+                           const ValueType& value)
+{
+  if (!DataTypes::checkShape(getShape(), pointshape)) {
+      throw DataException(getPointDataView().createShapeErrorMessage(
+                          "Error - Cannot setTaggedValue due to shape mismatch.", pointshape));
+  }
+  DataMapType::iterator pos(m_offsetLookup.find(tagKey));
+  if (pos==m_offsetLookup.end()) {
+    // tag couldn't be found so use addTaggedValue
+    addTaggedValue(tagKey,pointshape, value);
+  } else {
+    // copy the values into the data array at the offset determined by m_offsetLookup
+    int offset=pos->second;
+    for (int i=0; i<getNoValues(); i++) {
+      m_data[offset+i]=value[i];
+    }
+  }
+}
+
+
+
+void
+DataTagged::setTaggedValue(int tagKey,
                            const DataArrayView& value)
 {
   if (!getPointDataView().checkShape(value.getShape())) {
@@ -345,6 +369,43 @@ DataTagged::addTaggedValues(const TagListType& tagKeys,
     }
   }
 }
+
+
+
+void
+DataTagged::addTaggedValue(int tagKey,
+			   const DataTypes::ShapeType& pointshape,
+                           const ValueType& value)
+{
+  if (!DataTypes::checkShape(getShape(), pointshape)) {
+    throw DataException(getPointDataView().createShapeErrorMessage(
+                        "Error - Cannot addTaggedValue due to shape mismatch.", pointshape));
+  }
+  DataMapType::iterator pos(m_offsetLookup.find(tagKey));
+  if (pos!=m_offsetLookup.end()) {
+    // tag already exists so use setTaggedValue
+    setTaggedValue(tagKey,pointshape, value);
+  } else {
+    // save the key and the location of its data in the lookup tab
+    m_offsetLookup.insert(DataMapType::value_type(tagKey,m_data.size()));
+    // add the data given in "value" at the end of m_data
+    // need to make a temp copy of m_data, resize m_data, then copy
+    // all the old values plus the value to be added back into m_data
+    ValueType m_data_temp(m_data);
+    int oldSize=m_data.size();
+    int newSize=m_data.size()+getNoValues();
+    m_data.resize(newSize,0.,newSize);
+    for (int i=0;i<oldSize;i++) {
+      m_data[i]=m_data_temp[i];
+    }
+    for (int i=0;i<getNoValues();i++) {
+      m_data[oldSize+i]=value[i];
+    }
+  }
+}
+
+
+
 
 void
 DataTagged::addTaggedValue(int tagKey,
