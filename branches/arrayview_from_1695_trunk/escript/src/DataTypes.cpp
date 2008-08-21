@@ -13,7 +13,12 @@
 *******************************************************/
 
 #include <sstream>
+#include <boost/python/extract.hpp>
+#include <boost/python/tuple.hpp>
+#include "DataException.h"
 #include "DataTypes.h"
+
+using namespace boost::python;
 
 namespace escript
 {
@@ -61,6 +66,113 @@ namespace DataTypes
       temp << ")";
       return temp.str();
    }
+
+
+/*
+  \brief
+  Calculate the slice range from the given python key object
+  Used by getSliceRegion - since it is not used anywhere else, I have elected not to declare it
+  in the header.
+  Returns the python slice object key as a pair of ints where the first 
+  member is the start and the second member is the end. the presence of a possible
+  step attribute with value different from one will throw an exception
+
+  /param key - Input - key object specifying slice range.
+*/
+   std::pair<int,int>
+   getSliceRange(const boost::python::object& key,
+              const int shape)
+   {
+      /* default slice range is range of entire shape dimension */
+      int s0=0, s1=shape;;
+      extract<int> slice_int(key);
+      if (slice_int.check()) {
+         /* if the key is a single int set start=key and end=key */
+         /* in this case, we want to return a rank-1 dimension object from
+         this object, taken from a single index value for one of this
+         object's dimensions */
+         s0=slice_int();
+         s1=s0;
+      } else {
+         /* if key is a pair extract begin and end values */
+         extract<int> step(key.attr("step"));
+         if (step.check() && step()!=1) {
+            throw DataException("Error - Data does not support increments in slicing ");
+         } else {
+            extract<int> start(key.attr("start"));
+            if (start.check()) {
+               s0=start();
+            }
+            extract<int> stop(key.attr("stop"));
+            if (stop.check()) {
+               s1=stop();
+            }
+         }
+      }
+      if (s0 < 0) 
+         throw DataException("Error - slice index out of range.");
+      if (s0 == s1 && s1 >= shape)
+         throw DataException("Error - slice index out of range.");
+      if (s0 != s1 &&  s1>shape)
+         throw DataException("Error - slice index out of range.");
+      if (s0 > s1) 
+         throw DataException("Error - lower index must less or equal upper index.");
+      return std::pair<int,int>(s0,s1);
+   }
+
+
+
+   DataTypes::RegionType
+   getSliceRegion(const DataTypes::ShapeType& shape, const boost::python::object& key)
+   {
+      int slice_rank, i;
+      int this_rank=shape.size();
+      RegionType out(this_rank);
+      /* allow for case where key is singular eg: [1], this implies we
+      want to generate a rank-1 dimension object, as opposed to eg: [1,2]
+      which implies we want to take a rank dimensional object with one
+      dimension of size 1 */
+      extract<tuple> key_tuple(key);
+      if (key_tuple.check()) {
+         slice_rank=extract<int> (key.attr("__len__")());
+         /* ensure slice is correctly dimensioned */
+         if (slice_rank>this_rank) {
+            throw DataException("Error - rank of slices does not match rank of slicee");
+         } else {
+            /* calculate values for slice range */
+            for (i=0;i<slice_rank;i++) {
+               out[i]=getSliceRange(key[i],shape[i]);
+            }
+         }
+      } else {
+         slice_rank=1;
+         if (slice_rank>this_rank) {
+            throw DataException("Error - rank of slices does not match rank of slicee");
+         } else {
+            out[0]=getSliceRange(key,shape[0]);
+         }
+      }
+      for (i=slice_rank;i<this_rank;i++) {
+         out[i]=std::pair<int,int>(0,shape[i]);
+      }
+      return out;
+   }
+
+   DataTypes::ShapeType
+   getResultSliceShape(const RegionType& region)
+   {
+      int dimSize;
+      ShapeType result;
+      RegionType::const_iterator i;
+      for (i=region.begin();i!=region.end();i++) {
+         dimSize=((i->second)-(i->first));
+         if (dimSize!=0) {
+            result.push_back(dimSize);
+         }
+      }
+      return result;
+   }
+
 
 }	// end namespace DataTypes
 }	// end namespace escript

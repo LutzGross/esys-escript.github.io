@@ -85,7 +85,7 @@ DataConstant::DataConstant(const DataConstant& other,
 {
   //
   // get the shape of the slice to copy from
-  DataTypes::ShapeType shape(DataArrayView::getResultSliceShape(region));
+  DataTypes::ShapeType shape(DataTypes::getResultSliceShape(region));
   //
   // allocate space for this new DataConstant's data
   int len = DataTypes::noValues(shape);
@@ -163,7 +163,7 @@ DataConstant::setSlice(const DataAbstract* value,
     throw DataException("Programming error - casting to DataConstant.");
   }
   //
-  DataTypes::ShapeType shape(DataArrayView::getResultSliceShape(region));
+  DataTypes::ShapeType shape(DataTypes::getResultSliceShape(region));
   DataTypes::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
   //
   // check shape:

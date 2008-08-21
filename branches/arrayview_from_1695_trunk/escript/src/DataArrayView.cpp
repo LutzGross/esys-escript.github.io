@@ -298,56 +298,56 @@ namespace escript {
       return (*m_data)[m_offset+i];
    }
 
-   DataTypes::ShapeType
-   DataArrayView::getResultSliceShape(const RegionType& region)
-   {
-      int dimSize;
-      ShapeType result;
-      RegionType::const_iterator i;
-      for (i=region.begin();i!=region.end();i++) {
-         dimSize=((i->second)-(i->first));
-         if (dimSize!=0) {
-            result.push_back(dimSize);
-         }
-      }
-      return result;
-   }
+//    DataTypes::ShapeType
+//    DataArrayView::getResultSliceShape(const RegionType& region)
+//    {
+//       int dimSize;
+//       ShapeType result;
+//       RegionType::const_iterator i;
+//       for (i=region.begin();i!=region.end();i++) {
+//          dimSize=((i->second)-(i->first));
+//          if (dimSize!=0) {
+//             result.push_back(dimSize);
+//          }
+//       }
+//       return result;
+//    }
 
-   DataTypes::RegionType
-   DataArrayView::getSliceRegion(const boost::python::object& key) const
-   {
-      int slice_rank, i;
-      int this_rank=getRank();
-      RegionType out(this_rank);
-      /* allow for case where key is singular eg: [1], this implies we
-      want to generate a rank-1 dimension object, as opposed to eg: [1,2]
-      which implies we want to take a rank dimensional object with one
-      dimension of size 1 */
-      extract<tuple> key_tuple(key);
-      if (key_tuple.check()) {
-         slice_rank=extract<int> (key.attr("__len__")());
-         /* ensure slice is correctly dimensioned */
-         if (slice_rank>this_rank) {
-            throw DataException("Error - rank of slices does not match rank of slicee");
-         } else {
-            /* calculate values for slice range */
-            for (i=0;i<slice_rank;i++) {
-               out[i]=getSliceRange(key[i],getShape()[i]);
-            }
-         }
-      } else {
-         slice_rank=1;
-         if (slice_rank>this_rank) {
-            throw DataException("Error - rank of slices does not match rank of slicee");
-         } else {
-            out[0]=getSliceRange(key,getShape()[0]);
-         }
-      }
-      for (i=slice_rank;i<this_rank;i++) {
-         out[i]=std::pair<int,int>(0,getShape()[i]);
-      }
-      return out;
-   }
+//    DataTypes::RegionType
+//    DataArrayView::getSliceRegion(const boost::python::object& key) const
+//    {
+//       int slice_rank, i;
+//       int this_rank=getRank();
+//       RegionType out(this_rank);
+//       /* allow for case where key is singular eg: [1], this implies we
+//       want to generate a rank-1 dimension object, as opposed to eg: [1,2]
+//       which implies we want to take a rank dimensional object with one
+//       dimension of size 1 */
+//       extract<tuple> key_tuple(key);
+//       if (key_tuple.check()) {
+//          slice_rank=extract<int> (key.attr("__len__")());
+//          /* ensure slice is correctly dimensioned */
+//          if (slice_rank>this_rank) {
+//             throw DataException("Error - rank of slices does not match rank of slicee");
+//          } else {
+//             /* calculate values for slice range */
+//             for (i=0;i<slice_rank;i++) {
+//                out[i]=getSliceRange(key[i],getShape()[i]);
+//             }
+//          }
+//       } else {
+//          slice_rank=1;
+//          if (slice_rank>this_rank) {
+//             throw DataException("Error - rank of slices does not match rank of slicee");
+//          } else {
+//             out[0]=getSliceRange(key,getShape()[0]);
+//          }
+//       }
+//       for (i=slice_rank;i<this_rank;i++) {
+//          out[i]=std::pair<int,int>(0,getShape()[i]);
+//       }
+//       return out;
+//    }
 
    std::pair<int,int>
    getSliceRange(const boost::python::object& key,

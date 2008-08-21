@@ -186,7 +186,7 @@ DataTagged::DataTagged(const DataTagged& other,
   // slice constructor
 
   // get the shape of the slice to copy from other
-  DataTypes::ShapeType regionShape(DataArrayView::getResultSliceShape(region));
+  DataTypes::ShapeType regionShape(DataTypes::getResultSliceShape(region));
   DataTypes::RegionLoopRangeType regionLoopRange=getSliceRegionLoopRange(region);
 
   // allocate enough space in this for all values
@@ -224,7 +224,7 @@ DataTagged::setSlice(const DataAbstract* other,
   }
 
   // determine shape of the specified region
-  DataTypes::ShapeType regionShape(DataArrayView::getResultSliceShape(region));
+  DataTypes::ShapeType regionShape(DataTypes::getResultSliceShape(region));
 
   // modify region specification as needed to match rank of this object
   DataTypes::RegionLoopRangeType regionLoopRange=getSliceRegionLoopRange(region);
