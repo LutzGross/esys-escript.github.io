@@ -193,4 +193,28 @@ FunctionSpace::setTags(const int newTag, const escript::Data& mask) const
    }
 }
 
+int 
+FunctionSpace::getNumberOfTagsInUse() const
+{
+   return  m_domain->getNumberOfTagsInUse(m_functionSpaceType);
+}
+
+int* 
+FunctionSpace::borrowListOfTagsInUse() const
+{
+   return  m_domain->borrowListOfTagsInUse(m_functionSpaceType);
+}
+
+
+
+boost::python::list
+FunctionSpace::getListOfTags() const 
+{
+  boost::python::list taglist;
+  int i;
+  int* tags=borrowListOfTagsInUse();
+  for (i=0;i<getNumberOfTagsInUse();++i) taglist.append(tags[i]);
+  return taglist;
+}
+
 }  // end of namespace

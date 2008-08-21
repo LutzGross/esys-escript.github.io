@@ -520,6 +520,54 @@ index_t Finley_Util_cumsum(dim_t N,index_t* array) {
    #endif
    return out;
 }
+void Finley_Util_setValuesInUse(const index_t *values, const dim_t numValues, dim_t *numValuesInUse, index_t **valuesInUse, Paso_MPIInfo* mpiinfo)
+{
+   dim_t i;
+   index_t lastFoundValue=INDEX_T_MIN, minFoundValue, local_minFoundValue, *newValuesInUse=NULL;
+   register index_t itmp;
+   bool_t allFound=FALSE;
+   dim_t nv=0;
+
+   while (! allFound) {
+       /* 
+        *  find smallest value bigger than lastFoundValue 
+        */
+        minFoundValue=INDEX_T_MAX;
+        #pragma omp parallel private(local_minFoundValue)
+        {
+            local_minFoundValue=minFoundValue;
+            #pragma omp for private(i,itmp) schedule(static)
+            for (i=0;i< numValues;i++) {
+               itmp=values[i];
+               if ((itmp>lastFoundValue) && (itmp<local_minFoundValue)) local_minFoundValue=itmp;
+            }
+            #pragma omp critical
+            minFoundValue=MIN(local_minFoundValue,minFoundValue);
+         }
+         #ifdef PASO_MPI
+         local_minFoundValue=minFoundValue;
+         MPI_Allreduce(&local_minFoundValue,&minFoundValue, 1, MPI_INT, MPI_MAX, mpiinfo->comm );
+         #endif
+
+         /* if we found a new tag we need to add this too the valuesInUseList */
+
+         if (minFoundValue < INDEX_T_MAX) {
+             newValuesInUse=MEMALLOC(nv+1,index_t);
+             if (*valuesInUse!=NULL) {
+                 memcpy(newValuesInUse,*valuesInUse,sizeof(index_t)*nv);
+                 MEMFREE(*valuesInUse);
+             }
+             newValuesInUse[nv]=minFoundValue;
+             *valuesInUse=newValuesInUse;
+             newValuesInUse=NULL;
+             nv++;
+             lastFoundValue=minFoundValue;
+         } else {
+             allFound=TRUE;
+         }
+   }
+   *numValuesInUse=nv;
+}
 
 
 #ifdef PASO_MPI

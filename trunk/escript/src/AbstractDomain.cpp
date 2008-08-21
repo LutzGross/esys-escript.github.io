@@ -227,6 +227,20 @@ std::string AbstractDomain::showTagNames() const
   return string();
 }
 
+int AbstractDomain::getNumberOfTagsInUse(int functionSpaceCode) const
+{
+  throwStandardException("AbstractDomain::getNumberOfTagsInUse is not implemented.");
+  return 0;
+}
+int* AbstractDomain::borrowListOfTagsInUse(int functionSpaceCode) const
+{
+  throwStandardException("AbstractDomain::borrowListOfTagsInUse is not implemented.");
+  return NULL;
+}
+
+
+
+
 
 
 } // end of namespace

@@ -40,7 +40,55 @@ class Test_DomainOnFinley(Test_Domain):
        self.domain =Rectangle(NE,NE+1,2)
    def tearDown(self):
        del self.domain
-class Test_DataOpsOnFinley(Test_Dump): # , Test_SetDataPointValue):
+
+   def test_tagsContinuousFunction(self):
+       ref_tags=[0]
+       tags=ContinuousFunction(self.domain).getListOfTags()
+       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+
+   def test_tagsFunction(self):
+       ref_tags=[0]
+       tags=Function(self.domain).getListOfTags()
+       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+   def test_tagsReducedFunction(self):
+       ref_tags=[0]
+       tags=ReducedFunction(self.domain).getListOfTags()
+       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+   def test_tagsFunctionOnBoundary(self):
+       ref_tags=[1, 2, 10, 20]
+       tags=FunctionOnBoundary(self.domain).getListOfTags()
+       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+   def test_tagsReducedFunctionOnBoundary(self):
+       ref_tags=[1, 2, 10, 20]
+       tags=ReducedFunctionOnBoundary(self.domain).getListOfTags()
+       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+   def test_tagsFunctionOnContactOne(self):
+       ref_tags=[]
+       tags=FunctionOnContactOne(self.domain).getListOfTags()
+       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+   def test_tagsFunctionOnContactZero(self):
+       ref_tags=[]
+       tags=FunctionOnContactZero(self.domain).getListOfTags()
+       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+   def test_tagsReducedFunctionOnContactOne(self):
+       ref_tags=[]
+       tags=ReducedFunctionOnContactOne(self.domain).getListOfTags()
+       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+   def test_tagsReducedFunctionOnContactZero(self):
+       ref_tags=[]
+       tags=ReducedFunctionOnContactZero(self.domain).getListOfTags()
+       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+
+class Test_DataOpsOnFinley(Test_Dump, Test_SetDataPointValue):
    def setUp(self):
        self.domain =Rectangle(NE,NE+1,2)
        self.domain_with_different_number_of_samples =Rectangle(2*NE,NE+1,2)

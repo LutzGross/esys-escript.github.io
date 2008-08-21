@@ -63,6 +63,9 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id, index_t order, in
   out->jacobeans_reducedS_reducedQ=NULL;
 
   out->Owner=NULL;                
+  out->numTagsInUse=0;
+  out->tagsInUse=NULL;
+
   out->MPIInfo = Paso_MPIInfo_getReference( MPIInfo );
 
   /*  allocate the reference element: */

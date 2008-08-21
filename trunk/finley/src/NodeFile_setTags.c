@@ -49,6 +49,7 @@ void Finley_NodeFile_setTags(Finley_NodeFile* self,const int newTag, escriptData
                  mask_array=getSampleData(mask,n);
                  if (mask_array[0]>0) self->Tag[n]=newTag;
              }
+            Finley_NodeFile_setTagsInUse(self);
     }
 }
 /*

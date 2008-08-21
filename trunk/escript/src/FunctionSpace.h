@@ -266,6 +266,25 @@ class FunctionSpace {
   getDim() const {
       return getDomain().getDim();
   }
+  /**
+   \brief
+   Returns a list of the lags used in this function space
+  */
+  ESCRIPT_DLL_API
+  boost::python::list
+  getListOfTags() const;
+
+  /**
+     \brief
+        return the number of tags in use and a pointer to an array with the number of tags in use
+  */
+  ESCRIPT_DLL_API
+  virtual int getNumberOfTagsInUse() const;
+
+  ESCRIPT_DLL_API
+  virtual int* borrowListOfTagsInUse() const;
+
+
 
  protected:
 
