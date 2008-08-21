@@ -173,6 +173,22 @@ namespace DataTypes
       return result;
    }
 
+   DataTypes::RegionLoopRangeType
+   getSliceRegionLoopRange(const DataTypes::RegionType& region) 
+   {
+      DataTypes::RegionLoopRangeType region_loop_range(region.size());
+      unsigned int i;
+      for (i=0;i<region.size();i++) {
+         if (region[i].first==region[i].second) {
+            region_loop_range[i].first=region[i].first;
+            region_loop_range[i].second=region[i].second+1;
+         } else {
+            region_loop_range[i].first=region[i].first;
+            region_loop_range[i].second=region[i].second;
+         }
+      }
+      return region_loop_range;
+   }
 
 }	// end namespace DataTypes
 }	// end namespace escript

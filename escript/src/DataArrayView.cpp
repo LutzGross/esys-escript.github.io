@@ -349,63 +349,63 @@ namespace escript {
 //       return out;
 //    }
 
-   std::pair<int,int>
-   getSliceRange(const boost::python::object& key,
-                 const int shape)
-   {
-      /* default slice range is range of entire shape dimension */
-      int s0=0, s1=shape;;
-      extract<int> slice_int(key);
-      if (slice_int.check()) {
-         /* if the key is a single int set start=key and end=key */
-         /* in this case, we want to return a rank-1 dimension object from
-         this object, taken from a single index value for one of this
-         object's dimensions */
-         s0=slice_int();
-         s1=s0;
-      } else {
-         /* if key is a pair extract begin and end values */
-         extract<int> step(key.attr("step"));
-         if (step.check() && step()!=1) {
-            throw DataException("Error - Data does not support increments in slicing ");
-         } else {
-            extract<int> start(key.attr("start"));
-            if (start.check()) {
-               s0=start();
-            }
-            extract<int> stop(key.attr("stop"));
-            if (stop.check()) {
-               s1=stop();
-            }
-         }
-      }
-      if (s0 < 0) 
-         throw DataException("Error - slice index out of range.");
-      if (s0 == s1 && s1 >= shape)
-         throw DataException("Error - slice index out of range.");
-      if (s0 != s1 &&  s1>shape)
-         throw DataException("Error - slice index out of range.");
-      if (s0 > s1) 
-         throw DataException("Error - lower index must less or equal upper index.");
-      return std::pair<int,int>(s0,s1);
-   }
+//    std::pair<int,int>
+//    getSliceRange(const boost::python::object& key,
+//                  const int shape)
+//    {
+//       /* default slice range is range of entire shape dimension */
+//       int s0=0, s1=shape;;
+//       extract<int> slice_int(key);
+//       if (slice_int.check()) {
+//          /* if the key is a single int set start=key and end=key */
+//          /* in this case, we want to return a rank-1 dimension object from
+//          this object, taken from a single index value for one of this
+//          object's dimensions */
+//          s0=slice_int();
+//          s1=s0;
+//       } else {
+//          /* if key is a pair extract begin and end values */
+//          extract<int> step(key.attr("step"));
+//          if (step.check() && step()!=1) {
+//             throw DataException("Error - Data does not support increments in slicing ");
+//          } else {
+//             extract<int> start(key.attr("start"));
+//             if (start.check()) {
+//                s0=start();
+//             }
+//             extract<int> stop(key.attr("stop"));
+//             if (stop.check()) {
+//                s1=stop();
+//             }
+//          }
+//       }
+//       if (s0 < 0) 
+//          throw DataException("Error - slice index out of range.");
+//       if (s0 == s1 && s1 >= shape)
+//          throw DataException("Error - slice index out of range.");
+//       if (s0 != s1 &&  s1>shape)
+//          throw DataException("Error - slice index out of range.");
+//       if (s0 > s1) 
+//          throw DataException("Error - lower index must less or equal upper index.");
+//       return std::pair<int,int>(s0,s1);
+//    }
 
-   DataTypes::RegionLoopRangeType
-   getSliceRegionLoopRange(const DataTypes::RegionType& region) 
-   {
-      DataTypes::RegionLoopRangeType region_loop_range(region.size());
-      unsigned int i;
-      for (i=0;i<region.size();i++) {
-         if (region[i].first==region[i].second) {
-            region_loop_range[i].first=region[i].first;
-            region_loop_range[i].second=region[i].second+1;
-         } else {
-            region_loop_range[i].first=region[i].first;
-            region_loop_range[i].second=region[i].second;
-         }
-      }
-      return region_loop_range;
-   }
+//    DataTypes::RegionLoopRangeType
+//    getSliceRegionLoopRange(const DataTypes::RegionType& region) 
+//    {
+//       DataTypes::RegionLoopRangeType region_loop_range(region.size());
+//       unsigned int i;
+//       for (i=0;i<region.size();i++) {
+//          if (region[i].first==region[i].second) {
+//             region_loop_range[i].first=region[i].first;
+//             region_loop_range[i].second=region[i].second+1;
+//          } else {
+//             region_loop_range[i].first=region[i].first;
+//             region_loop_range[i].second=region[i].second;
+//          }
+//       }
+//       return region_loop_range;
+//    }
 
    void
    DataArrayView::copySlice(const DataArrayView& other, 

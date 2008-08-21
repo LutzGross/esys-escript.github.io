@@ -114,6 +114,15 @@ DataAbstract::setTaggedValue(int tagKey,
     throw DataException("Error - DataAbstract::setTaggedValue: Data type does not have tag values.");
 }
 
+void  
+DataAbstract::setTaggedValue(int tagKey,
+ 	       const DataTypes::ShapeType& pointshape,
+               const DataTypes::ValueType& value)
+{
+    throw DataException("Error - DataAbstract::setTaggedValue: Data type does not have tag values.");
+}
+
+
 int
 DataAbstract::getTagNumber(int dpno)
 {

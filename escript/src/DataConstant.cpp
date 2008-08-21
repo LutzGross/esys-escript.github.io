@@ -93,7 +93,7 @@ DataConstant::DataConstant(const DataConstant& other,
   //
   // create a view of the data with the correct shape
   DataArrayView tempView(m_data,shape);
-  DataTypes::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
+  DataTypes::RegionLoopRangeType region_loop_range=DataTypes::getSliceRegionLoopRange(region);
   //
   // load the view with the data from the slice
   tempView.copySlice(other.getPointDataView(),region_loop_range);
@@ -164,7 +164,7 @@ DataConstant::setSlice(const DataAbstract* value,
   }
   //
   DataTypes::ShapeType shape(DataTypes::getResultSliceShape(region));
-  DataTypes::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
+  DataTypes::RegionLoopRangeType region_loop_range=DataTypes::getSliceRegionLoopRange(region);
   //
   // check shape:
   if (getPointDataView().getRank()!=region.size()) {

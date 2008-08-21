@@ -17,11 +17,14 @@
 
 #include "Taipan.h"
 #include "DataException.h"
+#include <boost/python/extract.hpp>
+#include "DataTypes.h"
 
 #include <cassert>
 
 using namespace std;
 using namespace escript;
+using namespace boost::python;
 
 namespace escript {
 
@@ -210,5 +213,81 @@ DataVector::extractData(ifstream& archiveFile,
 
   return 0;
 }
+
+
+void
+DataVector::copyFromNumArray(const boost::python::numeric::array& value)
+{
+  using DataTypes::ValueType;
+  if (m_array_data!=0) {
+    arrayManager.delete_array(m_array_data);
+  }
+
+// Need to ensure these values are handled properly
+//   m_size = other.m_size;
+//   m_dim = other.m_dim;
+//   m_N = other.m_N;
+
+
+  m_array_data = arrayManager.new_array(1,value.nelements());
+//   int i;
+//   #pragma omp parallel for private(i) schedule(static)
+//   for (i=0; i<m_size; i++) {
+//     m_array_data[i] = other.m_array_data[i];
+//   }
+
+      int si=0,sj=0,sk=0,sl=0;		// bounds for each dimension of the shape
+      DataTypes::ShapeType tempShape;    
+      for (int i=0; i<value.getrank(); i++) {
+         tempShape.push_back(extract<int>(value.getshape()[i]));
+      }
+
+//       EsysAssert((!isEmpty()&&checkShape(tempShape)),
+//                  createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.",tempShape));
+
+      if (value.getrank()==0) {
+	m_array_data[0]=extract<double>(value[0]);
+      } else if (value.getrank()==1) {
+	 si=tempShape[0];
+         for (ValueType::size_type i=0;i<si;i++) {
+            m_array_data[i]=extract<double>(value[i]);
+         }
+      } else if (value.getrank()==2) {
+	 si=tempShape[0];
+	 sj=tempShape[1];
+         for (ValueType::size_type i=0;i<si;i++) {
+            for (ValueType::size_type j=0;j<sj;j++) {
+               m_array_data[DataTypes::getRelIndex(tempShape,i,j)]=extract<double>(value[i][j]);
+            }
+         }
+      } else if (value.getrank()==3) {
+	 si=tempShape[0];
+	 sj=tempShape[1];
+	 sk=tempShape[2];
+         for (ValueType::size_type i=0;i<si;i++) {
+            for (ValueType::size_type j=0;j<sj;j++) {
+               for (ValueType::size_type k=0;k<sk;k++) {
+                  m_array_data[DataTypes::getRelIndex(tempShape,i,j,k)]=extract<double>(value[i][j][k]);
+               }
+            }
+         }
+      } else if (value.getrank()==4) {
+	 si=tempShape[0];
+	 sj=tempShape[1];
+	 sk=tempShape[2];
+	 sl=tempShape[3];
+         for (ValueType::size_type i=0;i<si;i++) {
+            for (ValueType::size_type j=0;j<sj;j++) {
+               for (ValueType::size_type k=0;k<sk;k++) {
+                  for (ValueType::size_type l=0;l<sl;l++) {
+                     m_array_data[DataTypes::getRelIndex(tempShape,i,j,k,l)]=extract<double>(value[i][j][k][l]);
+                  }
+               }
+            }
+         }
+      }
+   }
+ 
+
 
 } // end of namespace

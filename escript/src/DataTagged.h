@@ -287,6 +287,23 @@ class DataTagged : public DataAbstract {
 
   /**
      \brief
+     addTaggedValue
+
+     Description:
+     Add a single tag and value to this DataTagged object. If this tag already has
+     a value associated with it, setTaggedValue will be used to update this value.
+     \param tagKey - Input - Integer tag.
+     \param pointshape - Shape of the value parameter
+     \param value - Input - Single DataArrayView value to be assigned to the tag. 
+  */
+  ESCRIPT_DLL_API
+  void
+  addTaggedValue(int tagKey,
+		 const DataTypes::ShapeType& pointshape,
+                 const ValueType& value);
+
+  /**
+     \brief
      addTag - does not modify the default value for this object. ** Not unit tested **
 
      Description:
@@ -336,6 +353,24 @@ class DataTagged : public DataAbstract {
   void
   setTaggedValue(int tagKey,
                  const DataArrayView& value);
+
+  /**
+     \brief
+     setTaggedValue
+
+     Description:
+     Assign the given value to the given tag.
+     \param tagKey - Input - Integer tag.
+     \param pointshape - the shape of the value parameter
+     \param value - Input - Single DataArrayView value to be assigned to the tag.
+    T
+  */
+  ESCRIPT_DLL_API
+  void
+  setTaggedValue(int tagKey,
+		 const DataTypes::ShapeType& pointshape,
+                 const ValueType& value);
+
 
   /**
      \brief
