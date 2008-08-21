@@ -5183,6 +5183,22 @@ def getClosestValue(arg,origin=0):
     """
     return arg.getValueOfGlobalDataPoint(*(length(arg-origin).minGlobalDataPoint()))
 
+def normalize(arg,zerolength=0):
+    """
+    returns normalized version of arg (=arg/length(arg))
+    
+    @param arg: function 
+    @type arg: L{escript.Data} or L{Symbol}
+    @param zerolength: realitive tolerance for arg == 0.
+    @type zerolength: C{float} 
+    @return: normalized arg where arg is non zero and zero elsewhere
+    @rtype: L{escript.Data} or L{Symbol}
+    """
+    l=length(arg)
+    m=whereZero(l,zerolength*Lsup(l))
+    mm=1-m
+    return arg*(mm/(l*mm+m))
+
 #=============================
 #
 
