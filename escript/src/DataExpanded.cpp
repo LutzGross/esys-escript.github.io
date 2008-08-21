@@ -104,7 +104,7 @@ DataExpanded::DataExpanded(const DataExpanded& other,
 {
   //
   // get the shape of the slice
-  DataTypes::ShapeType shape(DataArrayView::getResultSliceShape(region));
+  DataTypes::ShapeType shape(DataTypes::getResultSliceShape(region));
   //
   // initialise this Data object to the shape of the slice
   initialise(shape,other.getNumSamples(),other.getNumDPPSample());
@@ -178,7 +178,7 @@ DataExpanded::setSlice(const DataAbstract* value,
   }
   //
   // get shape of slice
-  DataTypes::ShapeType shape(DataArrayView::getResultSliceShape(region));
+  DataTypes::ShapeType shape(DataTypes::getResultSliceShape(region));
   DataTypes::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
   //
   // check shape

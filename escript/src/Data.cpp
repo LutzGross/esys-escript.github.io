@@ -538,6 +538,7 @@ Data::getLength() const
 
 
 
+
 const
 boost::python::numeric::array
 Data:: getValueOfDataPoint(int dataPointNo)
@@ -547,7 +548,7 @@ Data:: getValueOfDataPoint(int dataPointNo)
   //
   // determine the rank and shape of each data point
   int dataPointRank = getDataPointRank();
-  DataTypes::ShapeType dataPointShape = getDataPointShape();
+  const DataTypes::ShapeType& dataPointShape = getDataPointShape();
 
   //
   // create the numeric array to be returned
@@ -557,7 +558,7 @@ Data:: getValueOfDataPoint(int dataPointNo)
   // the shape of the returned numeric array will be the same
   // as that of the data point
   int arrayRank = dataPointRank;
-  DataTypes::ShapeType arrayShape = dataPointShape;
+  const DataTypes::ShapeType& arrayShape = dataPointShape;
 
   //
   // resize the numeric array to the shape just calculated
@@ -593,33 +594,35 @@ Data:: getValueOfDataPoint(int dataPointNo)
        }
        // TODO: global error handling
        // create a view of the data if it is stored locally
-       DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
+//       DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
+       DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
+
 
        switch( dataPointRank ){
 			case 0 :
-				numArray[0] = dataPointView();
+				numArray[0] = getDataAtOffset(offset);
 				break;
 			case 1 :
 				for( i=0; i<dataPointShape[0]; i++ )
-					numArray[i]=dataPointView(i);
+					numArray[i]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i));
 				break;
 			case 2 :
 				for( i=0; i<dataPointShape[0]; i++ )
 					for( j=0; j<dataPointShape[1]; j++)
-						numArray[make_tuple(i,j)]=dataPointView(i,j);
+						numArray[make_tuple(i,j)]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j));
 				break;
 			case 3 :
 				for( i=0; i<dataPointShape[0]; i++ )
 					for( j=0; j<dataPointShape[1]; j++ )
 						for( k=0; k<dataPointShape[2]; k++)
-							numArray[make_tuple(i,j,k)]=dataPointView(i,j,k);
+							numArray[make_tuple(i,j,k)]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k));
 				break;
 			case 4 :
 				for( i=0; i<dataPointShape[0]; i++ )
 					for( j=0; j<dataPointShape[1]; j++ )
 						for( k=0; k<dataPointShape[2]; k++ )
 							for( l=0; l<dataPointShape[3]; l++)
-								numArray[make_tuple(i,j,k,l)]=dataPointView(i,j,k,l);
+								numArray[make_tuple(i,j,k,l)]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k,l));
 				break;
 	}
   }
@@ -628,6 +631,7 @@ Data:: getValueOfDataPoint(int dataPointNo)
   return numArray;
 
 }
+
 void
 Data::setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object& py_object)
 {
@@ -698,7 +702,7 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
   //
   // determine the rank and shape of each data point
   int dataPointRank = getDataPointRank();
-  DataTypes::ShapeType dataPointShape = getDataPointShape();
+  const DataTypes::ShapeType& dataPointShape = getDataPointShape();
 
   //
   // create the numeric array to be returned
@@ -708,7 +712,7 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
   // the shape of the returned numeric array will be the same
   // as that of the data point
   int arrayRank = dataPointRank;
-  DataTypes::ShapeType arrayShape = dataPointShape;
+  const DataTypes::ShapeType& arrayShape = dataPointShape;
 
   //
   // resize the numeric array to the shape just calculated
@@ -754,35 +758,36 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
                 }
                 // TODO: global error handling
 		// create a view of the data if it is stored locally
-		DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
+		//DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
+		DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
 
 		// pack the data from the view into tmpData for MPI communication
 		pos=0;
 		switch( dataPointRank ){
 			case 0 :
-				tmpData[0] = dataPointView();
+				tmpData[0] = getDataAtOffset(offset);
 				break;
 			case 1 :
 				for( i=0; i<dataPointShape[0]; i++ )
-					tmpData[i]=dataPointView(i);
+					tmpData[i]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i));
 				break;
 			case 2 :
 				for( i=0; i<dataPointShape[0]; i++ )
 					for( j=0; j<dataPointShape[1]; j++, pos++ )
-						tmpData[pos]=dataPointView(i,j);
+						tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j));
 				break;
 			case 3 :
 				for( i=0; i<dataPointShape[0]; i++ )
 					for( j=0; j<dataPointShape[1]; j++ )
 						for( k=0; k<dataPointShape[2]; k++, pos++ )
-							tmpData[pos]=dataPointView(i,j,k);
+							tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k));
 				break;
 			case 4 :
 				for( i=0; i<dataPointShape[0]; i++ )
 					for( j=0; j<dataPointShape[1]; j++ )
 						for( k=0; k<dataPointShape[2]; k++ )
 							for( l=0; l<dataPointShape[3]; l++, pos++ )
-								tmpData[pos]=dataPointView(i,j,k,l);
+								tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k,l));
 				break;
 		}
             }
@@ -1675,11 +1680,11 @@ escript::operator/(const boost::python::object& left, const Data& right)
 Data
 Data::getItem(const boost::python::object& key) const
 {
-  const DataArrayView& view=getPointDataView();
+//  const DataArrayView& view=getPointDataView();
 
-  DataTypes::RegionType slice_region=view.getSliceRegion(key);
+  DataTypes::RegionType slice_region=DataTypes::getSliceRegion(getDataPointShape(),key);
 
-  if (slice_region.size()!=view.getRank()) {
+  if (slice_region.size()!=getDataPointRank()) {
     throw DataException("Error - slice size does not match Data rank.");
   }
 
@@ -1708,10 +1713,10 @@ void
 Data::setItemD(const boost::python::object& key,
                const Data& value)
 {
-  const DataArrayView& view=getPointDataView();
+//  const DataArrayView& view=getPointDataView();
 
-  DataTypes::RegionType slice_region=view.getSliceRegion(key);
-  if (slice_region.size()!=view.getRank()) {
+  DataTypes::RegionType slice_region=DataTypes::getSliceRegion(getDataPointShape(),key);
+  if (slice_region.size()!=getDataPointRank()) {
     throw DataException("Error - slice size does not match Data rank.");
   }
   if (getFunctionSpace()!=value.getFunctionSpace()) {

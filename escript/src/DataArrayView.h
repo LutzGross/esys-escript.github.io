@@ -552,76 +552,76 @@ class DataArrayView {
              DataTypes::ValueType::size_type k,
              DataTypes::ValueType::size_type m) const;
 
-  /**
-     \brief
+//  /**
+/*     \brief
      Determine the shape of the specified slice region.
      This is purely a utility method and has no bearing on this view.
 
      \param region - Input -
-                       Slice region.
-  */
-  ESCRIPT_DLL_API
-  static
-  DataTypes::ShapeType
-  getResultSliceShape(const DataTypes::RegionType& region);
+                       Slice region.*/
+//  */
+//   ESCRIPT_DLL_API
+//   static
+//   DataTypes::ShapeType
+//   getResultSliceShape(const DataTypes::RegionType& region);
 
-  /**
-     \brief
-     Determine the region specified by the given python slice object.
+//  /**
+//      \brief
+//      Determine the region specified by the given python slice object.
+// 
+//      \param key - Input -
+//                     python slice object specifying region to be returned.
+// 
+//      The slice object is a tuple of n python slice specifiers, where
+//      n <= the rank of this Data object. Each slice specifier specifies the
+//      range of indexes to be sliced from the corresponding dimension. The
+//      first specifier corresponds to the first dimension, the second to the
+//      second and so on. Where n < the rank, the remaining dimensions are
+//      sliced across the full range of their indicies.
+// 
+//      Each slice specifier is of the form "a:b", which specifies a slice
+//      from index a, up to but not including index b. Where index a is ommitted
+//      a is assumed to be 0. Where index b is ommitted, b is assumed to be the
+//      length of this dimension. Where both are ommitted (eg: ":") the slice is
+//      assumed to encompass that entire dimension.
+// 
+//      Where one of the slice specifiers is a single integer, eg: [1], we
+//      want to generate a rank-1 dimension object, as opposed to eg: [1,2]
+//      which implies we want to take a rank dimensional object with one
+//      dimension of size 1.
+// 
+//      The return value is a vector of pairs with length equal to the rank of
+//      this object. Each pair corresponds to the range of indicies from the
+//      corresponding dimension to be sliced from, as specified in the input
+//      slice object.
+// 
+//      Examples:
+// 
+//        For a rank 1 object of shape(5):
+// 
+//          getSliceRegion(:)   => < <0,5> >
+//          getSliceRegion(2:3) => < <2,3> >
+//          getSliceRegion(:3)  => < <0,3> >
+//          getSliceRegion(2:)  => < <2,5> >
+// 
+//        For a rank 2 object of shape(4,5):
+// 
+//          getSliceRegion(2:3) => < <2,3> <0,5> >
+//          getSliceRegion(2)   => < <2,3> <0,5> >
+//            NB: but return object requested will have rank 1, shape(5), with
+//                values taken from index 2 of this object's first dimension.
+// 
+//        For a rank 3 object of shape (2,4,6):
+// 
+//          getSliceRegion(0:2,0:4,0:6) => < <0,2> <0,4> <0,6> >
+//          getSliceRegion(:,:,:)       => < <0,2> <0,4> <0,6> >
+//          getSliceRegion(0:1)         => < <0,1> <0,4> <0,6> >
+//          getSliceRegion(:1,0:2)      => < <0,1> <0,2> <0,6> >
 
-     \param key - Input -
-                    python slice object specifying region to be returned.
-
-     The slice object is a tuple of n python slice specifiers, where
-     n <= the rank of this Data object. Each slice specifier specifies the
-     range of indexes to be sliced from the corresponding dimension. The
-     first specifier corresponds to the first dimension, the second to the
-     second and so on. Where n < the rank, the remaining dimensions are
-     sliced across the full range of their indicies.
-
-     Each slice specifier is of the form "a:b", which specifies a slice
-     from index a, up to but not including index b. Where index a is ommitted
-     a is assumed to be 0. Where index b is ommitted, b is assumed to be the
-     length of this dimension. Where both are ommitted (eg: ":") the slice is
-     assumed to encompass that entire dimension.
-
-     Where one of the slice specifiers is a single integer, eg: [1], we
-     want to generate a rank-1 dimension object, as opposed to eg: [1,2]
-     which implies we want to take a rank dimensional object with one
-     dimension of size 1.
-
-     The return value is a vector of pairs with length equal to the rank of
-     this object. Each pair corresponds to the range of indicies from the
-     corresponding dimension to be sliced from, as specified in the input
-     slice object.
-
-     Examples:
-
-       For a rank 1 object of shape(5):
-
-         getSliceRegion(:)   => < <0,5> >
-         getSliceRegion(2:3) => < <2,3> >
-         getSliceRegion(:3)  => < <0,3> >
-         getSliceRegion(2:)  => < <2,5> >
-
-       For a rank 2 object of shape(4,5):
-
-         getSliceRegion(2:3) => < <2,3> <0,5> >
-         getSliceRegion(2)   => < <2,3> <0,5> >
-           NB: but return object requested will have rank 1, shape(5), with
-               values taken from index 2 of this object's first dimension.
-
-       For a rank 3 object of shape (2,4,6):
-
-         getSliceRegion(0:2,0:4,0:6) => < <0,2> <0,4> <0,6> >
-         getSliceRegion(:,:,:)       => < <0,2> <0,4> <0,6> >
-         getSliceRegion(0:1)         => < <0,1> <0,4> <0,6> >
-         getSliceRegion(:1,0:2)      => < <0,1> <0,2> <0,6> >
-
-  */
-  ESCRIPT_DLL_API
-  DataTypes::RegionType
-  getSliceRegion(const boost::python::object& key) const;
+//  */
+//   ESCRIPT_DLL_API
+//   DataTypes::RegionType
+//   getSliceRegion(const boost::python::object& key) const;
 
   /**
      \brief
@@ -1545,19 +1545,19 @@ ESCRIPT_DLL_API bool operator!=(const DataArrayView& left, const DataArrayView& 
 DataTypes::RegionLoopRangeType
 getSliceRegionLoopRange(const DataTypes::RegionType& region);
 
-/**
-  \brief
-  Calculate the slice range from the given python key object
-  Used by DataArrayView::getSliceRegion.
-  Returns the python slice object key as a pair of ints where the first 
-  member is the start and the second member is the end. the presence of a possible
-  step attribute with value different from one will throw an exception
-
-  /param key - Input - key object specifying slice range.
-*/
-std::pair<int,int>
-getSliceRange(const boost::python::object& key,
-              const int shape);
+///**
+//  \brief
+//  Calculate the slice range from the given python key object
+//  Used by DataArrayView::getSliceRegion.
+//  Returns the python slice object key as a pair of ints where the first 
+//  member is the start and the second member is the end. the presence of a possible
+//  step attribute with value different from one will throw an exception
+//
+//  /param key - Input - key object specifying slice range.
+//*/
+// std::pair<int,int>
+// getSliceRange(const boost::python::object& key,
+//               const int shape);
 
 /**
    Inline function definitions.

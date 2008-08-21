@@ -549,6 +549,19 @@ class Data {
   }
 
   /**
+     \brief 
+     Return the offset for the given sample and point within the sample
+  */
+  ESCRIPT_DLL_API
+  inline
+  DataTypes::ValueType::size_type
+  getDataOffset(int sampleNo,
+               int dataPointNo)
+  {
+                return m_data->getPointOffset(sampleNo,dataPointNo);
+  }
+
+  /**
      \brief
      Return a reference to the data point shape.
   */

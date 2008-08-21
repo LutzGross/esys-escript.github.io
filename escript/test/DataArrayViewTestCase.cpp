@@ -50,19 +50,19 @@ void DataArrayViewTestCase::testResultSliceShape() {
 
   region.push_back(DataTypes::RegionType::value_type(1,5));
   resultShape.push_back(4);
-  assert(DataArrayView::getResultSliceShape(region)==resultShape);
+  assert(DataTypes::getResultSliceShape(region)==resultShape);
 
   region.push_back(DataTypes::RegionType::value_type(2,5));
   resultShape.push_back(3);
-  assert(DataArrayView::getResultSliceShape(region)==resultShape);
+  assert(DataTypes::getResultSliceShape(region)==resultShape);
 
   region.push_back(DataTypes::RegionType::value_type(3,9));
   resultShape.push_back(6);
-  assert(DataArrayView::getResultSliceShape(region)==resultShape);
+  assert(DataTypes::getResultSliceShape(region)==resultShape);
 
   region.push_back(DataTypes::RegionType::value_type(1,7));
   resultShape.push_back(6);
-  assert(DataArrayView::getResultSliceShape(region)==resultShape);
+  assert(DataTypes::getResultSliceShape(region)==resultShape);
 
 }
 
@@ -127,7 +127,7 @@ void DataArrayViewTestCase::testSlicing() {
     // Define shapes of views.
     DataTypes::ShapeType sourceShape;
     sourceShape.push_back(6);
-    DataTypes::ShapeType targetShape = DataArrayView::getResultSliceShape(region);
+    DataTypes::ShapeType targetShape = DataTypes::getResultSliceShape(region);
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
@@ -196,7 +196,7 @@ void DataArrayViewTestCase::testSlicing() {
     region.push_back(DataTypes::RegionType::value_type(2,4));
 
     // Define shapes of views.
-    DataTypes::ShapeType sourceShape = DataArrayView::getResultSliceShape(region);
+    DataTypes::ShapeType sourceShape = DataTypes::getResultSliceShape(region);
     DataTypes::ShapeType targetShape;
     targetShape.push_back(6);
 
@@ -268,7 +268,7 @@ void DataArrayViewTestCase::testSlicing() {
     DataTypes::ShapeType sourceShape;
     sourceShape.push_back(6);
     sourceShape.push_back(3);
-    DataTypes::ShapeType targetShape = DataArrayView::getResultSliceShape(region);
+    DataTypes::ShapeType targetShape = DataTypes::getResultSliceShape(region);
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
@@ -391,7 +391,7 @@ void DataArrayViewTestCase::testSlicing() {
     region.push_back(DataTypes::RegionType::value_type(0,2));
 
     // Define shapes of views.
-    DataTypes::ShapeType sourceShape = DataArrayView::getResultSliceShape(region);
+    DataTypes::ShapeType sourceShape = DataTypes::getResultSliceShape(region);
     DataTypes::ShapeType targetShape;
     targetShape.push_back(6);
     targetShape.push_back(3);
@@ -475,7 +475,7 @@ void DataArrayViewTestCase::testSlicing() {
     sourceShape.push_back(6);
     sourceShape.push_back(3);
     sourceShape.push_back(13);
-    DataTypes::ShapeType targetShape = DataArrayView::getResultSliceShape(region);
+    DataTypes::ShapeType targetShape = DataTypes::getResultSliceShape(region);
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
@@ -666,7 +666,7 @@ void DataArrayViewTestCase::testSlicing() {
     region.push_back(DataTypes::RegionType::value_type(6,7));
 
     // Define shapes of views.
-    DataTypes::ShapeType sourceShape = DataArrayView::getResultSliceShape(region);
+    DataTypes::ShapeType sourceShape = DataTypes::getResultSliceShape(region);
     DataTypes::ShapeType targetShape;
     targetShape.push_back(11);
     targetShape.push_back(8);
@@ -761,7 +761,7 @@ void DataArrayViewTestCase::testSlicing() {
     sourceShape.push_back(3);
     sourceShape.push_back(13);
     sourceShape.push_back(9);
-    DataTypes::ShapeType targetShape = DataArrayView::getResultSliceShape(region);
+    DataTypes::ShapeType targetShape = DataTypes::getResultSliceShape(region);
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
@@ -1032,7 +1032,7 @@ void DataArrayViewTestCase::testSlicing() {
     region.push_back(DataTypes::RegionType::value_type(23,51));
 
     // Define shapes of views.
-    DataTypes::ShapeType sourceShape = DataArrayView::getResultSliceShape(region);
+    DataTypes::ShapeType sourceShape = DataTypes::getResultSliceShape(region);
     DataTypes::ShapeType targetShape;
     targetShape.push_back(50);
     targetShape.push_back(65);
