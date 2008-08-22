@@ -118,21 +118,6 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
               #pragma omp parallel for private(i) 
               for(i=0;i<myNumVertices;++i) Finley_IndexList_free(index_list[i].extension);
            }
-{
-int s=0, s0;
-for (i=0;i<myNumVertices;++i) {
-    s0=s;
-    for (j=pattern->ptr[i];j<pattern->ptr[i+1];++j) {
-        if (pattern->index[j] != myFirstVertex+i) {
-            pattern->index[s]=pattern->index[j];
-            s++; 
-        }
-     }
-     pattern->ptr[i]=s0;
-}
-pattern->ptr[myNumVertices]=s;
-}
-
 
            if (Finley_noError()) {
 
