@@ -193,9 +193,11 @@ void DataTestCase::testSlicing() {
     for (int i=0;i<viewData.size();i++) {
       viewData[i]=i;
     }
-    DataArrayView dataView(viewData,viewShape);
+//    DataArrayView dataView(viewData,viewShape);
 
-    data.setTaggedValueFromCPP(1, dataView);
+//     data.setTaggedValueFromCPP(1, dataView);
+    data.setTaggedValueFromCPP(1, viewShape, viewData);
+
 
     //
     // create a full slice
@@ -269,9 +271,10 @@ void DataTestCase::testSlicing() {
     for (int i=0;i<viewData.size();i++) {
       viewData[i]=i;
     }
-    DataArrayView dataView(viewData,viewShape);
-
-    target.setTaggedValueFromCPP(1, dataView);
+//     DataArrayView dataView(viewData,viewShape);
+// 
+//     target.setTaggedValueFromCPP(1, dataView);
+    target.setTaggedValueFromCPP(1, viewShape, viewData);
 
     //cout << "target:\n" << target.toString() << endl;
 
@@ -301,9 +304,10 @@ void DataTestCase::testSlicing() {
     DataTypes::ShapeType viewShape2;
     DataTypes::ValueType viewData2(1);
     viewData2[0]=6;
-    DataArrayView dataView2(viewData2,viewShape2);
-
-    source.setTaggedValueFromCPP(2, dataView2);
+//     DataArrayView dataView2(viewData2,viewShape2);
+// 
+//     source.setTaggedValueFromCPP(2, dataView2);
+    source.setTaggedValueFromCPP(2, viewShape2, viewData2);
 
     //cout << "source:\n" << source.toString() << endl;
 
@@ -597,7 +601,7 @@ void DataTestCase::testDataTagged() {
       eTwoView(i)=i+2.0;
     }
 
-    myData.setTaggedValueFromCPP(1,eTwoView);
+    myData.setTaggedValueFromCPP(1,viewShape, eTwoView.getData());
 
     assert(myData.getLength()==6);
 
@@ -688,7 +692,7 @@ void DataTestCase::testDataTaggedExceptions() {
   }
 
   try {
-      myData.setTaggedValueFromCPP(0,myView);;
+      myData.setTaggedValueFromCPP(0,DataTypes::ShapeType(), DataTypes::ValueType());;
       assert(false);
   }
   catch (EsysException&) {

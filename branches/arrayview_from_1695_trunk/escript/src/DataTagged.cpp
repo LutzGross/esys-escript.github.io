@@ -296,7 +296,8 @@ DataTagged::setTaggedValues(const TagListType& tagKeys,
 void
 DataTagged::setTaggedValue(int tagKey,
 			   const DataTypes::ShapeType& pointshape,
-                           const ValueType& value)
+                           const ValueType& value,
+			   int dataOffset)
 {
   if (!DataTypes::checkShape(getShape(), pointshape)) {
       throw DataException(getPointDataView().createShapeErrorMessage(
@@ -305,12 +306,12 @@ DataTagged::setTaggedValue(int tagKey,
   DataMapType::iterator pos(m_offsetLookup.find(tagKey));
   if (pos==m_offsetLookup.end()) {
     // tag couldn't be found so use addTaggedValue
-    addTaggedValue(tagKey,pointshape, value);
+    addTaggedValue(tagKey,pointshape, value, dataOffset);
   } else {
     // copy the values into the data array at the offset determined by m_offsetLookup
     int offset=pos->second;
     for (int i=0; i<getNoValues(); i++) {
-      m_data[offset+i]=value[i];
+      m_data[offset+i]=value[i+dataOffset];
     }
   }
 }
@@ -375,7 +376,8 @@ DataTagged::addTaggedValues(const TagListType& tagKeys,
 void
 DataTagged::addTaggedValue(int tagKey,
 			   const DataTypes::ShapeType& pointshape,
-                           const ValueType& value)
+                           const ValueType& value,
+			   int dataOffset)
 {
   if (!DataTypes::checkShape(getShape(), pointshape)) {
     throw DataException(getPointDataView().createShapeErrorMessage(
@@ -384,7 +386,7 @@ DataTagged::addTaggedValue(int tagKey,
   DataMapType::iterator pos(m_offsetLookup.find(tagKey));
   if (pos!=m_offsetLookup.end()) {
     // tag already exists so use setTaggedValue
-    setTaggedValue(tagKey,pointshape, value);
+    setTaggedValue(tagKey,pointshape, value, dataOffset);
   } else {
     // save the key and the location of its data in the lookup tab
     m_offsetLookup.insert(DataMapType::value_type(tagKey,m_data.size()));
@@ -399,7 +401,7 @@ DataTagged::addTaggedValue(int tagKey,
       m_data[i]=m_data_temp[i];
     }
     for (int i=0;i<getNoValues();i++) {
-      m_data[oldSize+i]=value[i];
+      m_data[oldSize+i]=value[i+dataOffset];
     }
   }
 }
