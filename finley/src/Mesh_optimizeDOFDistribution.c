@@ -26,7 +26,7 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#ifdef PARMETIS
+#ifdef USE_PARMETIS
 #include "parmetis.h"
 #endif
 
@@ -121,7 +121,8 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
 
            if (Finley_noError()) {
 
-#ifdef PARMETIS
+#ifdef USE_PARMETIS
+
 	      if (in->MPIInfo->size>1) {
 		 int i;
 		 int wgtflag = 0;
