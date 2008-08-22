@@ -45,6 +45,9 @@ void Finley_IndexList_free(Finley_IndexList*);
 Paso_Pattern* Finley_IndexList_createPattern(dim_t n0, dim_t n,Finley_IndexList* index_list,index_t range_min,index_t range_max, index_t index_offset);
 void Finley_IndexList_insertElementsWithRowRange(Finley_IndexList* index_list, index_t firstRow, index_t lastRow,
                                                  Finley_ElementFile* elements, index_t* row_map, index_t* col_map);
+void Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(Finley_IndexList* index_list, index_t firstRow, index_t lastRow,
+                                                              Finley_ElementFile* elements, index_t* row_map, index_t* col_map);
+
 
 
 

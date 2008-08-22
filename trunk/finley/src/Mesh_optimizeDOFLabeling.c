@@ -58,18 +58,18 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
                 index_list[i].n=0;
             }
             /*  insert contributions from element matrices into colums index index_list: */
-            Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
-                                                        in->Elements,in->Nodes->globalDegreesOfFreedom,
-                                                        in->Nodes->globalDegreesOfFreedom);
-            Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
-                                                        in->FaceElements,in->Nodes->globalDegreesOfFreedom,
-                                                        in->Nodes->globalDegreesOfFreedom);
-            Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
-                                                        in->ContactElements,in->Nodes->globalDegreesOfFreedom,
-                                                        in->Nodes->globalDegreesOfFreedom);
-            Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
-                                                        in->Points,in->Nodes->globalDegreesOfFreedom,
-                                                        in->Nodes->globalDegreesOfFreedom);
+            Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+                                                                      in->Elements,in->Nodes->globalDegreesOfFreedom,
+                                                                      in->Nodes->globalDegreesOfFreedom);
+            Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+                                                                      in->FaceElements,in->Nodes->globalDegreesOfFreedom,
+                                                                      in->Nodes->globalDegreesOfFreedom);
+            Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+                                                                      in->ContactElements,in->Nodes->globalDegreesOfFreedom,
+                                                                      in->Nodes->globalDegreesOfFreedom);
+            Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+                                                                      in->Points,in->Nodes->globalDegreesOfFreedom,
+                                                                      in->Nodes->globalDegreesOfFreedom);
            }
            /* create the local matrix pattern */
            pattern=Finley_IndexList_createPattern(0,myNumVertices,index_list,myFirstVertex, myLastVertex,-myFirstVertex);

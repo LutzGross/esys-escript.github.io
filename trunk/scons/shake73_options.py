@@ -67,13 +67,14 @@
 # blas_libs		= ['blas']
 
 # OpenMP
-# useopenmp		= 'yes'
+useopenmp		= 'yes'
 
 # MPICH2 (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
-# mpi_path		= '/home/Work/InstallArea/mpich2-1.0.7/include'
-# mpi_lib_path		= '/home/Work/InstallArea/mpich2-1.0.7/lib'
-# mpi_libs		= ['mpich', 'rt']
-# mpi_run		= 'mpirun -np 1'
+usempi= 'yes'
+mpi_path		= '/usr/local/include'
+mpi_lib_path		= '/usr/local/lib'
+mpi_libs		= ['mpich', 'rt']
+mpi_run		= 'mpiexec -np 1'
 
 # MPICH2 for jumpshot (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
 # mpi_path		= '/home/Work/InstallArea/mpich2-1.0.7/include'
@@ -82,10 +83,10 @@
 # mpi_run		= 'mpirun -np 1'
 
 # ParMETIS (for use with MPI)
-# useparmetis		= 'yes'
-# parmetis_path		= '/home/Work/InstallArea/parmetis-3.1/include'
-# parmetis_lib_path	= '/home/Work/InstallArea/parmetis-3.1/lib'
-# parmetis_libs		= ['parmetis', 'metis']
+useparmetis		= 'yes'
+parmetis_path		= '/usr/local/include'
+parmetis_lib_path	= '/usr/local/lib'
+parmetis_libs		= ['parmetis', 'metis']
 
 # PAPI
 # usepapi		= 'no'
