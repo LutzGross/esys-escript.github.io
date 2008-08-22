@@ -223,18 +223,8 @@ DataVector::copyFromNumArray(const boost::python::numeric::array& value)
     arrayManager.delete_array(m_array_data);
   }
 
-// Need to ensure these values are handled properly
-//   m_size = other.m_size;
-//   m_dim = other.m_dim;
-//   m_N = other.m_N;
-
 
   m_array_data = arrayManager.new_array(1,value.nelements());
-//   int i;
-//   #pragma omp parallel for private(i) schedule(static)
-//   for (i=0; i<m_size; i++) {
-//     m_array_data[i] = other.m_array_data[i];
-//   }
 
       int si=0,sj=0,sk=0,sl=0;		// bounds for each dimension of the shape
       DataTypes::ShapeType tempShape;    
@@ -242,11 +232,8 @@ DataVector::copyFromNumArray(const boost::python::numeric::array& value)
          tempShape.push_back(extract<int>(value.getshape()[i]));
       }
 
-//       EsysAssert((!isEmpty()&&checkShape(tempShape)),
-//                  createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.",tempShape));
-
       if (value.getrank()==0) {
-	m_array_data[0]=extract<double>(value[0]);
+	m_array_data[0]=extract<double>(value[value.getshape()]);
       } else if (value.getrank()==1) {
 	 si=tempShape[0];
          for (ValueType::size_type i=0;i<si;i++) {

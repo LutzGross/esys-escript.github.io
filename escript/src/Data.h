@@ -629,19 +629,19 @@ class Data {
                  const boost::python::object& value);
 
 
-  /**
-     \brief
-     Assign the given value to the tag. Implicitly converts this
-     object to type DataTagged if it is constant.
-
-     \param tagKey - Input - Integer key.
-     \param value - Input - Value to associate with given key.
-    ==>*
-  */
-  ESCRIPT_DLL_API
-  void
-  setTaggedValueFromCPP(int tagKey,
-                        const DataArrayView& value);
+//  /**
+//     \brief
+//     Assign the given value to the tag. Implicitly converts this
+//     object to type DataTagged if it is constant.
+//
+//     \param tagKey - Input - Integer key.
+//     \param value - Input - Value to associate with given key.
+//    ==>*
+//  */
+//   ESCRIPT_DLL_API
+//   void
+//   setTaggedValueFromCPP(int tagKey,
+//                         const DataArrayView& value);
 
   /**
      \brief
@@ -651,12 +651,14 @@ class Data {
      \param tagKey - Input - Integer key.
      \param pointshape - Input - The shape of the value parameter
      \param value - Input - Value to associate with given key.
+     \param dataOffset - Input - Offset of the begining of the point within the value parameter
   */
   ESCRIPT_DLL_API
   void
   setTaggedValueFromCPP(int tagKey,
-			    const DataTypes::ShapeType& pointshape,
-                            const DataTypes::ValueType& value);
+			const DataTypes::ShapeType& pointshape,
+                        const DataTypes::ValueType& value,
+			int dataOffset=0);
 
 
 

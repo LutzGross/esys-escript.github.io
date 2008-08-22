@@ -289,7 +289,8 @@ class DataExpanded : public DataAbstract {
   void  
   setTaggedValue(int tagKey,
  	         const DataTypes::ShapeType& pointshape,
-                 const DataTypes::ValueType& value);
+                 const DataTypes::ValueType& value,
+		 int dataOffset=0);
 
 
 

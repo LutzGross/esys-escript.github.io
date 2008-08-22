@@ -755,14 +755,15 @@ DataExpanded::setTaggedValue(int tagKey,
 void  
 DataExpanded::setTaggedValue(int tagKey,
  	       const DataTypes::ShapeType& pointshape,
-               const DataTypes::ValueType& value)
+               const DataTypes::ValueType& value,
+	       int dataOffset)
 {
   int numSamples = getNumSamples();
   int numDataPointsPerSample = getNumDPPSample();
   int sampleNo,dataPointNo, i;
   DataTypes::ValueType::size_type n = getNoValues();
   double* p;
-  const double* in=&value[0];
+  const double* in=&value[0+dataOffset];
   
   if (value.size() != n) {
     throw DataException("Error - DataExpanded::setTaggedValue: number of input values does not match number of values per data points.");

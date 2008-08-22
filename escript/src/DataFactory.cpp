@@ -217,7 +217,8 @@ load(const std::string fileName,
       }
       out=Data(DataArrayView(data,shape,0),function_space);
       for (int t=1; t<ntags; ++t) {
-         out.setTaggedValueFromCPP(tags[t],DataArrayView(data,shape,t*len_data_point));
+	 out.setTaggedValueFromCPP(tags[t],shape, data, t*len_data_point);
+//         out.setTaggedValueFromCPP(tags[t],DataArrayView(data,shape,t*len_data_point));
       }
       esysUtils::free(tags);
    } else if (type == 2) {

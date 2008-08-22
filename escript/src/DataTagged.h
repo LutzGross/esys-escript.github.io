@@ -295,12 +295,14 @@ class DataTagged : public DataAbstract {
      \param tagKey - Input - Integer tag.
      \param pointshape - Shape of the value parameter
      \param value - Input - Single DataArrayView value to be assigned to the tag. 
+     \param dataOffset - Input - Offset of the beginning of the point in the value parameter 
   */
   ESCRIPT_DLL_API
   void
   addTaggedValue(int tagKey,
 		 const DataTypes::ShapeType& pointshape,
-                 const ValueType& value);
+                 const ValueType& value,
+		 int dataOffset=0);
 
   /**
      \brief
@@ -369,7 +371,8 @@ class DataTagged : public DataAbstract {
   void
   setTaggedValue(int tagKey,
 		 const DataTypes::ShapeType& pointshape,
-                 const ValueType& value);
+                 const ValueType& value,
+		 int dataOffset=0);
 
 
   /**
