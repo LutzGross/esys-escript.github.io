@@ -190,5 +190,18 @@ namespace DataTypes
       return region_loop_range;
    }
 
+
+   std::string 
+   createShapeErrorMessage(const std::string& messagePrefix,
+                                          const DataTypes::ShapeType& other,
+					  const DataTypes::ShapeType& thisShape)
+   {
+      std::stringstream temp;
+      temp << messagePrefix
+           << " This shape: " << shapeToString(thisShape)
+           << " Other shape: " << shapeToString(other);
+      return temp.str();
+   }
+
 }	// end namespace DataTypes
 }	// end namespace escript

@@ -231,16 +231,16 @@ namespace escript {
       return (m_shape==other);
    }
 
-   string 
-   DataArrayView::createShapeErrorMessage(const string& messagePrefix,
-                                          const DataTypes::ShapeType& other) const
-   {
-      stringstream temp;
-      temp << messagePrefix
-           << " This shape: " << shapeToString(m_shape)
-           << " Other shape: " << shapeToString(other);
-      return temp.str();
-   }
+//    string 
+//    DataArrayView::createShapeErrorMessage(const string& messagePrefix,
+//                                           const DataTypes::ShapeType& other) const
+//    {
+//       stringstream temp;
+//       temp << messagePrefix
+//            << " This shape: " << shapeToString(m_shape)
+//            << " Other shape: " << shapeToString(other);
+//       return temp.str();
+//    }
 
    DataTypes::ValueType::size_type
    DataArrayView::getOffset() const

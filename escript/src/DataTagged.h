@@ -408,6 +408,16 @@ class DataTagged : public DataAbstract {
 
 
   /**
+      \brief 
+      getOffsetForTag
+
+      return the offset for the given tag within the array
+  */
+  ESCRIPT_DLL_API
+  DataTypes::ValueType::size_type
+  getOffsetForTag(int tag) const;
+
+  /**
      \brief
      getDataPoint
 
@@ -423,6 +433,22 @@ class DataTagged : public DataAbstract {
   DataArrayView
   getDataPoint(int sampleNo,
                int dataPointNo);
+
+
+  /**
+     \brief
+     Return a a reference to the underlying DataVector.
+  */
+
+  ESCRIPT_DLL_API
+  DataTypes::ValueType&
+  getVector();
+
+  ESCRIPT_DLL_API
+  const DataTypes::ValueType&
+  getVector() const;
+
+
 
   /**
      \brief
@@ -667,6 +693,13 @@ class DataTagged : public DataAbstract {
   eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol=1.e-13);
 
 
+  /**
+     \brief  Returns the offset in the structure which stores the default value
+  */
+  ESCRIPT_DLL_API
+  DataTypes::ValueType::size_type
+  getDefaultOffset() const;
+
  protected:
 
  private:
@@ -707,6 +740,14 @@ DataTagged::getDefaultValue() const
 {
   // The default value is always the first value.
   return getPointDataView();
+}
+
+
+inline 
+DataTypes::ValueType::size_type
+DataTagged::getDefaultOffset() const
+{
+  return m_defaultValueOffset;	
 }
 
 inline

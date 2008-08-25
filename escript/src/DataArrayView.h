@@ -24,7 +24,6 @@
 #include "LocalOps.h"
 #include "DataTypes.h"
 
-
 #include <boost/python/numeric.hpp>
 #include <boost/python/object.hpp>
 
@@ -324,20 +323,20 @@ class DataArrayView {
   bool
   checkShape(const DataTypes::ShapeType& other) const;
 
-  /**
-     \brief
-     Create a shape error message. Normally used when there is a shape
-     mismatch between this shape and the other shape.
-
-     \param messagePrefix - Input -
-                       First part of the error message.
-     \param other - Input -
-                       The other shape.
-  */
-  ESCRIPT_DLL_API
-  std::string
-  createShapeErrorMessage(const std::string& messagePrefix,
-                          const DataTypes::ShapeType& other) const;
+//  /**
+//     \brief
+//     Create a shape error message. Normally used when there is a shape
+//     mismatch between this shape and the other shape.
+//
+//     \param messagePrefix - Input -
+//                       First part of the error message.
+//     \param other - Input -
+//                       The other shape.
+//  */
+//   ESCRIPT_DLL_API
+//   std::string
+//   createShapeErrorMessage(const std::string& messagePrefix,
+//                           const DataTypes::ShapeType& other) const;
 
   /**
      \brief
