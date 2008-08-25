@@ -18,6 +18,7 @@
 #include "system_dep.h"
 #include "DataVector.h"
 #include <vector>
+#include <string>
 #include <boost/python/object.hpp>
 
 namespace escript {
@@ -206,6 +207,11 @@ namespace escript {
   {
 	return s1==s2;
   }
+
+   std::string 
+   createShapeErrorMessage(const std::string& messagePrefix,
+                                          const DataTypes::ShapeType& other,
+					  const DataTypes::ShapeType& thisShape);
 
  }   // End namespace DataTypes
 

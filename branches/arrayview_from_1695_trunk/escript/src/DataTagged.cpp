@@ -234,8 +234,8 @@ DataTagged::setSlice(const DataAbstract* other,
     throw DataException("Error - Invalid slice region.");
   }
   if (otherTemp->getPointDataView().getRank()>0 && !other->getPointDataView().checkShape(regionShape)) {
-    throw DataException (other->getPointDataView().createShapeErrorMessage(
-                         "Error - Couldn't copy slice due to shape mismatch.",regionShape));
+    throw DataException (DataTypes::createShapeErrorMessage(
+                         "Error - Couldn't copy slice due to shape mismatch.",regionShape,other->getShape()));
   }
 
   // copy slice from other default value to this default value
@@ -300,8 +300,8 @@ DataTagged::setTaggedValue(int tagKey,
 			   int dataOffset)
 {
   if (!DataTypes::checkShape(getShape(), pointshape)) {
-      throw DataException(getPointDataView().createShapeErrorMessage(
-                          "Error - Cannot setTaggedValue due to shape mismatch.", pointshape));
+      throw DataException(DataTypes::createShapeErrorMessage(
+                          "Error - Cannot setTaggedValue due to shape mismatch.", pointshape,getShape()));
   }
   DataMapType::iterator pos(m_offsetLookup.find(tagKey));
   if (pos==m_offsetLookup.end()) {
@@ -323,8 +323,8 @@ DataTagged::setTaggedValue(int tagKey,
                            const DataArrayView& value)
 {
   if (!getPointDataView().checkShape(value.getShape())) {
-      throw DataException(getPointDataView().createShapeErrorMessage(
-                          "Error - Cannot setTaggedValue due to shape mismatch.", value.getShape()));
+      throw DataException(DataTypes::createShapeErrorMessage(
+                          "Error - Cannot setTaggedValue due to shape mismatch.", value.getShape(),getShape()));
   }
   DataMapType::iterator pos(m_offsetLookup.find(tagKey));
   if (pos==m_offsetLookup.end()) {
@@ -380,8 +380,8 @@ DataTagged::addTaggedValue(int tagKey,
 			   int dataOffset)
 {
   if (!DataTypes::checkShape(getShape(), pointshape)) {
-    throw DataException(getPointDataView().createShapeErrorMessage(
-                        "Error - Cannot addTaggedValue due to shape mismatch.", pointshape));
+    throw DataException(DataTypes::createShapeErrorMessage(
+                        "Error - Cannot addTaggedValue due to shape mismatch.", pointshape,getShape()));
   }
   DataMapType::iterator pos(m_offsetLookup.find(tagKey));
   if (pos!=m_offsetLookup.end()) {
@@ -414,8 +414,8 @@ DataTagged::addTaggedValue(int tagKey,
                            const DataArrayView& value)
 {
   if (!getPointDataView().checkShape(value.getShape())) {
-    throw DataException(getPointDataView().createShapeErrorMessage(
-                        "Error - Cannot addTaggedValue due to shape mismatch.", value.getShape()));
+    throw DataException(DataTypes::createShapeErrorMessage(
+                        "Error - Cannot addTaggedValue due to shape mismatch.", value.getShape(),getShape()));
   }
   DataMapType::iterator pos(m_offsetLookup.find(tagKey));
   if (pos!=m_offsetLookup.end()) {
@@ -524,6 +524,18 @@ DataTagged::getDataPointByTag(int tag) const
   return temp;
 }
 
+
+
+DataTypes::ValueType::size_type
+DataTagged::getOffsetForTag(int tag) const
+{
+  DataMapType::const_iterator pos(m_offsetLookup.find(tag));
+  DataTypes::ValueType::size_type offset=m_defaultValueOffset;
+  if (pos!=m_offsetLookup.end()) {
+    offset=pos->second;
+  }
+  return offset;
+}
 
 DataTypes::ValueType::const_reference
 DataTagged::getDataByTag(int tag, DataTypes::ValueType::size_type i) const
@@ -816,4 +828,17 @@ DataTagged::dump(const std::string fileName) const
    throw DataException("Error - DataTagged:: dump is not configured with netCDF. Please contact your installation manager.");
    #endif
 }
+
+DataTypes::ValueType&
+DataTagged::getVector()
+{
+    return m_data;
+}
+
+const DataTypes::ValueType&
+DataTagged::getVector() const
+{
+    return m_data;
+}
+
 }  // end of namespace

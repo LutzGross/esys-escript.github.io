@@ -292,6 +292,19 @@ class DataConstant : public DataAbstract  {
   eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol=1.e-13);
 
 
+  /**
+     \brief
+     Return a reference to the underlying DataVector.
+  */
+  ESCRIPT_DLL_API
+  DataTypes::ValueType&
+  getVector();
+
+  ESCRIPT_DLL_API
+  const DataTypes::ValueType&
+  getVector() const;
+
+
  protected:
 
  private:
@@ -300,6 +313,14 @@ class DataConstant : public DataAbstract  {
   DataTypes::ValueType m_data;
 
 };
+
+inline
+DataTypes::ValueType&
+DataConstant::getVector()
+{
+  return m_data;
+}
+
 
 } // end of namespace
 #endif

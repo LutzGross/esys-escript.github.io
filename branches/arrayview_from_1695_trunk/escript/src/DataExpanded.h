@@ -198,6 +198,21 @@ class DataExpanded : public DataAbstract {
   getDataPoint(int sampleNo,
                int dataPointNo);
 
+
+  /**
+     \brief
+     Return a a reference to the underlying DataVector.
+  */
+
+  ESCRIPT_DLL_API
+  DataTypes::ValueType&
+  getVector();
+
+  ESCRIPT_DLL_API
+  const DataTypes::ValueType&
+  getVector() const;
+
+
   /**
      \brief
      Return the number of doubles stored for the Data.

@@ -186,8 +186,8 @@ DataExpanded::setSlice(const DataAbstract* value,
     throw DataException("Error - Invalid slice region.");
   }
   if (tempDataExp->getPointDataView().getRank()>0 && !value->getPointDataView().checkShape(shape)) {
-    throw DataException (value->getPointDataView().createShapeErrorMessage(
-		"Error - Couldn't copy slice due to shape mismatch.",shape));
+    throw DataException (DataTypes::createShapeErrorMessage(
+		"Error - Couldn't copy slice due to shape mismatch.",shape, value->getShape()));
   }
   //
   // copy the data from the slice into this object
@@ -244,9 +244,9 @@ DataExpanded::copy(const boost::python::numeric::array& value)
   //
   // check the input shape matches this shape
   if (!getPointDataView().checkShape(temp_dataView.getShape())) {
-    throw DataException(getPointDataView().createShapeErrorMessage(
+    throw DataException(DataTypes::createShapeErrorMessage(
                         "Error - (DataExpanded) Cannot copy due to shape mismatch.",
-                        temp_dataView.getShape()));
+                        temp_dataView.getShape(),getShape()));
   }
   //
   // now copy over the data
@@ -819,5 +819,16 @@ DataExpanded::reorderByReferenceIDs(int *reference_ids)
    }
 }
 
+DataTypes::ValueType&
+DataExpanded::getVector()
+{
+	return m_data.getData();
+}
+
+const DataTypes::ValueType&
+DataExpanded::getVector() const
+{
+	return m_data.getData();
+}
 
 }  // end of namespace
