@@ -234,7 +234,7 @@ def clone_env(env):
 env.Append(CPPPATH		= [Dir('include')])
 
 # Add cc option -L<Escript>/trunk/lib
-env.Append(LIBPATH		= [Dir('lib')])
+env.Append(LIBPATH		= [Dir(env['libinstall'])])
 
 env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS', 'FINLEY_EXPORTS'])
 
