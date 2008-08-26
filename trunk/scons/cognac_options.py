@@ -28,7 +28,7 @@ boost_installation="1.33.1/python2.4.4_icc10.0.023/numarray1.5.2_icc10.0.023/icc
 
 # If you cannot use the default compiler flags set in SConstruct, then change them here
 # C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
-# cc_flags		= '-ansi'
+cc_flags		= '-fPIC -ansi -wd161 -w1 -DBLOCKTIMER -DCORE_ID1'
 # cc_optim		= '-O2'
 # cc_debug		= '-g'
 # omp_optim		= '-openmp'
@@ -65,10 +65,10 @@ netCDF_lib_path		= '/opt/netcdf/3.6.2/lib'
 # netCDF_libs		= ['netcdf_c++', 'netcdf']
 
 # MKL
-usemkl			= 'yes'
-mkl_path		= '/opt/intel_mkl/9.1.018/include'
-mkl_lib_path		= '/opt/intel_mkl/9.1.018/lib/64'
-mkl_libs		= ['mkl_solver', 'mkl_lapack', 'mkl_ipf']
+# usemkl		= 'no'
+# mkl_path		= '/opt/intel_mkl/9.1.018/include'
+# mkl_lib_path		= '/opt/intel_mkl/9.1.018/lib/64'
+# mkl_libs		= ['mkl_solver', 'mkl_lapack', 'mkl_ipf']
 
 # UMFPACK (requires AMD and BLAS)
 # useumfpack		= 'yes'
