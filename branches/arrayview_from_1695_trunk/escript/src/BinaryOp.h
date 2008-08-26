@@ -22,6 +22,7 @@
 #include "DataConstant.h"
 #include "DataTagged.h"
 #include "DataExpanded.h"
+#include "DataMaths.h"
 
 namespace escript {
 /**
@@ -35,7 +36,35 @@ template <class BinaryFunction>
 inline void binaryOp(DataTagged& left, const DataConstant& right, 
 		     BinaryFunction operation)
 {
-  binaryOp(left,right.getPointDataView(),operation);
+//  binaryOp(left,right.getPointDataView(),operation);
+  //
+  // perform the operation on each tagged value
+  const DataTagged::DataMapType& lookup=left.getTagLookup();
+  DataTagged::DataMapType::const_iterator i;
+  DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
+//  DataArrayView& leftView=left.getPointDataView();
+  DataTypes::ValueType& leftVec=left.getVector();
+  const DataTypes::ShapeType& leftShape=left.getShape();
+  const DataTypes::ShapeType& rightShape=right.getShape();
+  double rvalue=right.getVector()[0];		// for rank==0
+  const DataTypes::ValueType& rightVec=right.getVector();   // for rank>0
+  if (right.getRank()==0) {
+    for (i=lookup.begin();i!=lookupEnd;i++) {
+      //leftView.binaryOp(i->second,right(),operation);
+      DataMaths::binaryOp(leftVec,leftShape,i->second,rvalue,operation);
+    }
+  } else {
+    for (i=lookup.begin();i!=lookupEnd;i++) {
+      DataMaths::binaryOp(leftVec, leftShape, i->second,rightVec,rightShape,0,operation);
+    }
+  }
+  //
+  // finally perform the operation on the default value
+  if (right.getRank()==0) {
+    DataMaths::binaryOp(leftVec,leftShape,left.getDefaultOffset(),rvalue,operation);
+  } else {
+    DataMaths::binaryOp(leftVec,leftShape,left.getDefaultOffset(),rightVec,rightShape,0,operation);
+  }
 }
 
 template <class BinaryFunction>
@@ -70,7 +99,9 @@ template <class BinaryFunction>
 inline void binaryOp(DataTagged& left, const DataTagged& right, 
 		     BinaryFunction operation)
 {
-  int right_rank=right.getPointDataView().getRank();
+  using namespace DataMaths;
+
+  int right_rank=right.getRank();
   //
   // Add the right hand tag keys which can't currently be found on the left
   const DataTagged::DataMapType& rightLookup=right.getTagLookup();
@@ -85,23 +116,30 @@ inline void binaryOp(DataTagged& left, const DataTagged& right,
       left.addTag(i->first);
     }
   }
+  DataTypes::ValueType& leftVec=left.getVector();
+  const DataTypes::ShapeType& leftShape=left.getShape();
   //
   // Perform the operation.
   const DataTagged::DataMapType& leftLookup=left.getTagLookup();
   DataTagged::DataMapType::const_iterator leftLookupEnd=leftLookup.end();
   for (i=leftLookup.begin();i!=leftLookupEnd;i++) {
     if (right_rank==0) {
-       left.getDataPointByTag(i->first).binaryOp(i->second,right.getDataPointByTag(i->first)(),operation);
-    } else {
-       left.getDataPointByTag(i->first).binaryOp(right.getDataPointByTag(i->first),operation);
+/*       left.getDataPointByTag(i->first).binaryOp(i->second,right.getDataPointByTag(i->first)(),operation);*/
+       binaryOp(leftVec,leftShape,i->second, right.getDataByTag(i->first,0),operation);
+
+    } else {	// rank>0
+       binaryOp(leftVec,leftShape,left.getOffsetForTag(i->first),right.getVector(), right.getShape(), right.getOffsetForTag(i->first), operation);
+       //left.getDataPointByTag(i->first).binaryOp(right.getDataPointByTag(i->first),operation);
     }
   }
   //
   // finally perform the operation on the default value
   if (right_rank==0) {
-     left.getDefaultValue().binaryOp(0,right.getDefaultValue()(),operation);
+     //left.getDefaultValue().binaryOp(0,right.getDefaultValue()(),operation);
+     binaryOp(leftVec,leftShape, left.getDefaultOffset(), right.getVector()[0],operation);
   } else {
-     left.getDefaultValue().binaryOp(right.getDefaultValue(),operation);
+     //left.getDefaultValue().binaryOp(right.getDefaultValue(),operation);
+     binaryOp(leftVec,leftShape, left.getDefaultOffset(), right.getVector(), right.getShape(), right.getDefaultOffset(), operation);
   }
 }
 
@@ -111,7 +149,10 @@ inline void binaryOp(DataConstant& left, const DataConstant& right,
 {
   //
   // As DataConstant there is only one point data
-  binaryOp(left,right.getPointDataView(),operation);
+//  binaryOp(left,right.getPointDataView(),operation);
+
+  DataMaths::binaryOp(left.getVector(), left.getShape(),0, right.getVector(),right.getShape(),0,operation);
+
 }
 
 template <class BinaryFunction>
@@ -136,25 +177,30 @@ inline void binaryOp(DataExpanded& left, const DataAbstract& right,
   int i,j;
   DataTypes::ValueType::size_type numDPPSample=left.getNumDPPSample();
   DataTypes::ValueType::size_type numSamples=left.getNumSamples();
-  if (right.getPointDataView().getRank()==0) {
+  if (right.getRank()==0) {
+
+    const DataTypes::ShapeType& leftShape=left.getShape();
+    DataTypes::ValueType& leftVec=left.getVector();
     //
     // This will call the double version of binaryOp
     #pragma omp parallel for private(i,j) schedule(static)
     for (i=0;i<numSamples;i++) {
       for (j=0;j<numDPPSample;j++) {
-	left.getPointDataView().binaryOp(left.getPointOffset(i,j),
-					 right.getPointDataView().getData(right.getPointOffset(i,j)),
-                                         operation);
+// 	left.getPointDataView().binaryOp(left.getPointOffset(i,j),
+// 					 right.getPointDataView().getData(right.getPointOffset(i,j)),
+//                                          operation);
+	DataMaths::binaryOp(leftVec,leftShape,left.getPointOffset(i,j), right.getVector()[right.getPointOffset(i,j)]  ,operation);
       }
     }
   } else {
     #pragma omp parallel for private(i,j) schedule(static)
     for (i=0;i<numSamples;i++) {
       for (j=0;j<numDPPSample;j++) {
-	left.getPointDataView().binaryOp(left.getPointOffset(i,j),
-					 right.getPointDataView(),
-					 right.getPointOffset(i,j),
-					 operation);
+// 	left.getPointDataView().binaryOp(left.getPointOffset(i,j),
+// 					 right.getPointDataView(),
+// 					 right.getPointOffset(i,j),
+// 					 operation);
+	DataMaths::binaryOp(left.getVector(),left.getShape(),left.getPointOffset(i,j), right.getVector(), right.getShape(),right.getPointOffset(i,j), operation);
       }
     }
   }

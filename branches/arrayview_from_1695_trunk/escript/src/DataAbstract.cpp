@@ -213,6 +213,19 @@ DataAbstract::reorderByReferenceIDs(int *reference_ids)
 }
 
 
+DataTypes::ValueType&
+DataAbstract::getVector()
+{
+   throw DataException("Error - DataAbstract:: does not have a DataVector.");
+}
+
+const DataTypes::ValueType&
+DataAbstract::getVector() const
+{
+   throw DataException("Error - DataAbstract:: does not have a DataVector.");
+}
+
+
 
 
 }  // end of namespace
