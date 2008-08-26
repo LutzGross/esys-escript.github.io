@@ -153,6 +153,20 @@ class DataAbstract {
                  int dataPointNo) const = 0;
 
   /**
+	return the container storing points for this object
+  */
+  ESCRIPT_DLL_API
+  virtual 
+  ValueType&
+  getVector();
+
+  ESCRIPT_DLL_API
+  virtual 
+  const ValueType&
+  getVector() const;
+
+
+  /**
      \brief
      Return the sample data for the given sample number.
   */

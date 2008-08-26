@@ -321,6 +321,13 @@ DataConstant::getVector()
   return m_data;
 }
 
+inline
+const DataTypes::ValueType&
+DataConstant::getVector() const
+{
+  return m_data;
+}
+
 
 } // end of namespace
 #endif

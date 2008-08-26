@@ -15,6 +15,7 @@
 
 
 #ifndef escript_DataMaths_20080822_H
+#define escript_DataMaths_20080822_H
 #include "DataAbstract.h"
 
 namespace escript

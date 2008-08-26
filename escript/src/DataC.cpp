@@ -38,7 +38,7 @@ int isDataPointShapeEqual(struct escriptDataC* data, int rank, int* dimensions)
         return true;
      } else {
           escript::DataTypes::ShapeType givenShape(&dimensions[0],&dimensions[rank]);
-          return (temp->getPointDataView().getShape()==givenShape);
+          return (temp->getDataPointShape()==givenShape);
      }
   }
 }
