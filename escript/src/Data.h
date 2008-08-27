@@ -327,6 +327,14 @@ class Data {
   escriptDataC
   getDataC();
 
+
+
+// REMOVE ME
+// ESCRIPT_DLL_API
+// void
+// CompareDebug(const Data& rd);
+
+
   /**
      \brief
      Return the C wrapper for the Data object - const version.
@@ -1601,12 +1609,12 @@ C_GeneralTensorProduct(Data& arg0,
 
 
 
-/**
-  \brief
+// /**
+/*  \brief
   Return true if operands are equivalent, else return false.
   NB: this operator does very little at this point, and isn't to
-  be relied on. Requires further implementation.
-*/
+  be relied on. Requires further implementation.*/
+//*/
 // ESCRIPT_DLL_API bool operator==(const Data& left, const Data& right);
 
 /**
