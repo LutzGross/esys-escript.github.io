@@ -204,7 +204,8 @@ load(const std::string fileName,
          throw DataException("Error - load:: unable to recover tags from netCDF file.");
       }
 
-      DataVector data(len_data_point * ntags, 0., len_data_point * ntags);
+// Current Version
+/*      DataVector data(len_data_point * ntags, 0., len_data_point * ntags);
       if (!(var = dataFile.get_var("data")))
       {
          esysUtils::free(tags);
@@ -219,7 +220,31 @@ load(const std::string fileName,
       for (int t=1; t<ntags; ++t) {
 	 out.setTaggedValueFromCPP(tags[t],shape, data, t*len_data_point);
 //         out.setTaggedValueFromCPP(tags[t],DataArrayView(data,shape,t*len_data_point));
+      }*/
+// End current version
+	
+// New version
+
+	// A) create a DataTagged dt
+	// B) Read data from file
+	// C) copy default value into dt
+	// D) copy tagged values into dt
+	// E) create a new Data based on dt
+
+      NcVar* var1;
+      DataVector data1(len_data_point * ntags, 0., len_data_point * ntags);
+      if (!(var1 = dataFile.get_var("data")))
+      {
+         esysUtils::free(tags);
+         throw DataException("Error - load:: unable to find data in netCDF file.");
       }
+      if (! var1->get(&(data1[0]), dims) ) 
+      {
+         esysUtils::free(tags);
+         throw DataException("Error - load:: unable to recover data from netCDF file.");
+      }
+      DataTagged* dt=new DataTagged(function_space, shape, tags,data1);
+      out=Data(dt);
       esysUtils::free(tags);
    } else if (type == 2) {
       /* expanded data */

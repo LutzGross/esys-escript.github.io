@@ -98,7 +98,7 @@ class DataTagged : public DataAbstract {
      Alternative Constructor for DataTagged.
      \param what - Input - A description of what this data object represents.
      \param shape - Input - The shape of each data-point.
-     \param tags - Input - An array of tags, one for each sample number.
+     \param tags - Input - An array of tags, one for each sample number (starts at tag[1]).
      \param data - The data values for each tag.
     NB: no unit testing yet
   */
@@ -108,7 +108,7 @@ class DataTagged : public DataAbstract {
              const int tags[],
              const ValueType& data);
 
-  /**
+ /**
      \brief
      Alternative Constructor for DataTagged.
 
@@ -119,7 +119,7 @@ class DataTagged : public DataAbstract {
      \param tags - Input - An vector of tags, one for each sample number.
      \param data - The data values for each tag.
     NB: no unit testing yet
-  */
+ */
   ESCRIPT_DLL_API
   DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType &shape,

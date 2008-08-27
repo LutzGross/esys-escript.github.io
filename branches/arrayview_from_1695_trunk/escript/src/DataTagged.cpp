@@ -69,6 +69,7 @@ DataTagged::DataTagged(const FunctionSpace& what,
 {
   // alternative constructor
   // not unit_tested tested yet
+  // It is not explicitly unit tested yet, but it is called from DataFactory
 
   // copy the data
   m_data=data;
@@ -77,9 +78,16 @@ DataTagged::DataTagged(const FunctionSpace& what,
   DataArrayView tempView(m_data,shape);
   setPointDataView(tempView);
 
+  // we can't rely on the tag array to give us the number of tags so 
+  // use the data we have been passed
+  int valsize=DataTypes::noValues(shape);
+  int ntags=data.size()/valsize;
+
   // create the tag lookup map
-  for (int sampleNo=0; sampleNo<getNumSamples(); sampleNo++) {
-    m_offsetLookup.insert(DataMapType::value_type(sampleNo,tags[sampleNo]));
+  // we assume that the first value and first tag are the default value so we skip
+  for (int i=1;i<ntags;++i)
+  {
+    m_offsetLookup.insert(DataMapType::value_type(tags[i],i*valsize));
   }
 }
 
@@ -100,8 +108,21 @@ DataTagged::DataTagged(const FunctionSpace& what,
   setPointDataView(tempView);
 
   // create the tag lookup map
-  for (int sampleNo=0; sampleNo<getNumSamples(); sampleNo++) {
-    m_offsetLookup.insert(DataMapType::value_type(sampleNo,tags[sampleNo]));
+
+//   for (int sampleNo=0; sampleNo<getNumSamples(); sampleNo++) {
+//     m_offsetLookup.insert(DataMapType::value_type(sampleNo,tags[sampleNo]));
+//   }
+
+  // The above code looks like it will create a map the wrong way around
+
+  int valsize=DataTypes::noValues(shape);
+  int ntags=data.size()/valsize;
+
+  // create the tag lookup map
+  // we assume that the first value and first tag are the default value so we skip
+  for (int i=1;i<ntags;++i)
+  {
+    m_offsetLookup.insert(DataMapType::value_type(tags[i],i*valsize));
   }
 }
 
