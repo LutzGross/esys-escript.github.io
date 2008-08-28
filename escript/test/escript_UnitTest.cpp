@@ -28,6 +28,8 @@
 #include "DataAlgorithmAdapterTestCase.h"
 #include "FunctionSpaceTestCase.h"
 #include "DataTestCase.h"
+#include "DataMathsTestCase.h"
+#include "DataTypesTestCase.h"
 
 #include "tools/CppUnitTest/TestRunner.h"
 
@@ -51,6 +53,8 @@ int main(int argc, char* argv[])
 	TestRunner runner;
 	//
 	// add the RangeTestCase suite of tests to the runner
+	runner.addTest ("DataTypes", DataTypesTestCase::suite());
+	runner.addTest ("DataMaths", DataMathsTestCase::suite());
 	runner.addTest ("DataEmpty", DataEmptyTestCase::suite());
 	runner.addTest ("DataConstant", DataConstantTestCase::suite());
 	runner.addTest ("DataTagged", DataTaggedTestCase::suite());

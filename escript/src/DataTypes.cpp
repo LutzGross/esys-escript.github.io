@@ -203,5 +203,269 @@ namespace DataTypes
       return temp.str();
    }
 
+
+// Additional slice operations
+
+   inline
+   bool
+   checkOffset(ValueType::size_type offset, int size, int noval)
+   {
+      return (size >= (offset+noval));
+   }
+
+
+   void
+   copySlice(ValueType& left,
+			    const ShapeType& leftShape,
+			    ValueType::size_type thisOffset,
+                            const ValueType& other,
+			    const ShapeType& otherShape,
+                            ValueType::size_type otherOffset,
+                            const RegionLoopRangeType& region)
+   {
+
+      //
+      // Make sure views are not empty
+
+      EsysAssert(!left.size()==0,
+                 "Error - left data is empty.");
+      EsysAssert(!other.size()==0,
+                 "Error - other data is empty.");
+
+      //
+      // Check the view to be sliced from is compatible with the region to be sliced,
+      // and that the region to be sliced is compatible with this view:
+
+      EsysAssert(checkOffset(thisOffset,left.size(),noValues(leftShape)),
+                 "Error - offset incompatible with this view.");
+      EsysAssert(otherOffset+noValues(leftShape)<=other.size(),
+                 "Error - offset incompatible with other view.");
+
+      EsysAssert(getRank(otherShape)==region.size(),
+                 "Error - slice not same rank as view to be sliced from.");
+
+      EsysAssert(noValues(leftShape)==noValues(getResultSliceShape(region)),
+                 "Error - slice shape not compatible shape for this view.");
+
+      //
+      // copy the values in the specified region of the other view into this view
+
+      // the following loops cannot be parallelised due to the numCopy counter
+      int numCopy=0;
+
+      switch (region.size()) {
+      case 0:
+         /* this case should never be encountered, 
+         as python will never pass us an empty region.
+         here for completeness only, allows slicing of a scalar */
+//          (*m_data)[thisOffset+numCopy]=(*other.m_data)[otherOffset+other.relIndex()];
+
+         left[thisOffset+numCopy]=other[otherOffset];
+         numCopy++;
+         break;
+      case 1:
+         for (int i=region[0].first;i<region[0].second;i++) {
+            left[thisOffset+numCopy]=other[otherOffset+getRelIndex(otherShape,i)];
+            numCopy++;
+         }
+         break;
+      case 2:
+         for (int j=region[1].first;j<region[1].second;j++) {
+            for (int i=region[0].first;i<region[0].second;i++) {
+/*               (*m_data)[thisOffset+numCopy]=(*other.m_data)[otherOffset+other.relIndex(i,j)];*/
+               left[thisOffset+numCopy]=other[otherOffset+getRelIndex(otherShape,i,j)];
+               numCopy++;
+            }
+         }
+         break;
+      case 3:
+         for (int k=region[2].first;k<region[2].second;k++) {
+            for (int j=region[1].first;j<region[1].second;j++) {
+               for (int i=region[0].first;i<region[0].second;i++) {
+//                  (*m_data)[thisOffset+numCopy]=(*other.m_data)[otherOffset+other.relIndex(i,j,k)];
+                  left[thisOffset+numCopy]=other[otherOffset+getRelIndex(otherShape,i,j,k)];
+                  numCopy++;
+               }
+            }
+         }
+         break;
+      case 4:
+         for (int l=region[3].first;l<region[3].second;l++) {
+            for (int k=region[2].first;k<region[2].second;k++) {
+               for (int j=region[1].first;j<region[1].second;j++) {
+                  for (int i=region[0].first;i<region[0].second;i++) {
+/*                     (*m_data)[thisOffset+numCopy]=(*other.m_data)[otherOffset+other.relIndex(i,j,k,l)];*/
+                     left[thisOffset+numCopy]=other[otherOffset+getRelIndex(otherShape,i,j,k,l)];
+                     numCopy++;
+                  }
+               }
+            }
+         }
+         break;
+      default:
+         std::stringstream mess;
+         mess << "Error - (copySlice) Invalid slice region rank: " << region.size();
+         throw DataException(mess.str());
+      }
+   }
+
+
+   void
+   copySliceFrom(ValueType& left,
+				const ShapeType& leftShape,
+				ValueType::size_type thisOffset,
+                                const ValueType& other,
+				const ShapeType& otherShape,
+                                ValueType::size_type otherOffset,
+                                const RegionLoopRangeType& region)
+   {
+
+      //
+      // Make sure views are not empty
+
+      EsysAssert(left.size()!=0,
+                 "Error - this view is empty.");
+      EsysAssert(other.size()!=0,
+                 "Error - other view is empty.");
+
+      //
+      // Check this view is compatible with the region to be sliced,
+      // and that the region to be sliced is compatible with the other view:
+
+      EsysAssert(checkOffset(otherOffset,other.size(),noValues(otherShape)),
+                 "Error - offset incompatible with other view.");
+      EsysAssert(thisOffset+noValues(otherShape)<=left.size(),
+                 "Error - offset incompatible with this view.");
+
+      EsysAssert(getRank(leftShape)==region.size(),
+                 "Error - slice not same rank as this view.");
+
+      EsysAssert(getRank(otherShape)==0 || noValues(otherShape)==noValues(getResultSliceShape(region)),
+                 "Error - slice shape not compatible shape for other view.");
+
+      //
+      // copy the values in the other view into the specified region of this view
+
+      // allow for case where other view is a scalar
+      if (getRank(otherShape)==0) {
+
+         // the following loops cannot be parallelised due to the numCopy counter
+         int numCopy=0;
+
+         switch (region.size()) {
+         case 0:
+            /* this case should never be encountered, 
+            as python will never pass us an empty region.
+            here for completeness only, allows slicing of a scalar */
+            //(*m_data)[thisOffset+relIndex()]=(*other.m_data)[otherOffset];
+	    left[thisOffset]=other[otherOffset];
+            numCopy++;
+            break;
+         case 1:
+            for (int i=region[0].first;i<region[0].second;i++) {
+               left[thisOffset+getRelIndex(leftShape,i)]=other[otherOffset];
+               numCopy++;
+            }
+            break;
+         case 2:
+            for (int j=region[1].first;j<region[1].second;j++) {
+               for (int i=region[0].first;i<region[0].second;i++) {
+                  left[thisOffset+getRelIndex(leftShape,i,j)]=other[otherOffset];
+                  numCopy++;
+               }
+            }
+            break;
+         case 3:
+            for (int k=region[2].first;k<region[2].second;k++) {
+               for (int j=region[1].first;j<region[1].second;j++) {
+                  for (int i=region[0].first;i<region[0].second;i++) {
+                     left[thisOffset+getRelIndex(leftShape,i,j,k)]=other[otherOffset];
+                     numCopy++;
+                  }
+               }
+            }
+            break;
+         case 4:
+            for (int l=region[3].first;l<region[3].second;l++) {
+               for (int k=region[2].first;k<region[2].second;k++) {
+                  for (int j=region[1].first;j<region[1].second;j++) {
+                     for (int i=region[0].first;i<region[0].second;i++) {
+                        left[thisOffset+getRelIndex(leftShape,i,j,k,l)]=other[otherOffset];
+                        numCopy++;
+                     }
+                  }
+               }
+            }
+            break;
+         default:
+            std::stringstream mess;
+            mess << "Error - (copySliceFrom) Invalid slice region rank: " << region.size();
+            throw DataException(mess.str());
+         }
+
+      } else {
+
+         // the following loops cannot be parallelised due to the numCopy counter
+         int numCopy=0;
+
+         switch (region.size()) {
+         case 0:
+            /* this case should never be encountered, 
+            as python will never pass us an empty region.
+            here for completeness only, allows slicing of a scalar */
+            //(*m_data)[thisOffset+relIndex()]=(*other.m_data)[otherOffset+numCopy];
+	    left[thisOffset]=other[otherOffset+numCopy];
+            numCopy++;
+            break;
+         case 1:
+            for (int i=region[0].first;i<region[0].second;i++) {
+               left[thisOffset+getRelIndex(leftShape,i)]=other[otherOffset+numCopy];
+               numCopy++;
+            }
+            break;
+         case 2:
+            for (int j=region[1].first;j<region[1].second;j++) {
+               for (int i=region[0].first;i<region[0].second;i++) {
+                  left[thisOffset+getRelIndex(leftShape,i,j)]=other[otherOffset+numCopy];
+                  numCopy++;
+               }
+            }
+            break;
+         case 3:
+            for (int k=region[2].first;k<region[2].second;k++) {
+               for (int j=region[1].first;j<region[1].second;j++) {
+                  for (int i=region[0].first;i<region[0].second;i++) {
+                     left[thisOffset+getRelIndex(leftShape,i,j,k)]=other[otherOffset+numCopy];
+                     numCopy++;
+                  }
+               }
+            }
+            break;
+         case 4:
+            for (int l=region[3].first;l<region[3].second;l++) {
+               for (int k=region[2].first;k<region[2].second;k++) {
+                  for (int j=region[1].first;j<region[1].second;j++) {
+                     for (int i=region[0].first;i<region[0].second;i++) {
+                        left[thisOffset+getRelIndex(leftShape,i,j,k,l)]=other[otherOffset+numCopy];
+                        numCopy++;
+                     }
+                  }
+               }
+            }
+            break;
+         default:
+            std::stringstream mess;
+            mess << "Error - (copySliceFrom) Invalid slice region rank: " << region.size();
+            throw DataException(mess.str());
+         }
+
+      }
+
+   }
+
+
+
+
+
 }	// end namespace DataTypes
 }	// end namespace escript
