@@ -94,7 +94,7 @@ namespace escript {
       }
 
       EsysAssert((!isEmpty()&&checkShape(tempShape)),
-                 createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.",tempShape));
+                 createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.",tempShape,m_shape));
 
       if (value.getrank()==0) {
          (*this)()=extract<double>(value[value.getshape()]);
@@ -142,7 +142,7 @@ namespace escript {
       EsysAssert((!isEmpty()&&!other.isEmpty()&&checkOffset(offset)),
                  "Error - Couldn't copy due to insufficient storage.");
       EsysAssert((checkShape(other.getShape())),
-                 createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.",other.getShape()));
+                 createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.",other.getShape(),m_shape));
       if (checkOffset(offset)) {
          memcpy(&(*m_data)[offset],&(*other.m_data)[other.m_offset],sizeof(double)*noValues());
       } else {
@@ -158,7 +158,7 @@ namespace escript {
       EsysAssert((!isEmpty()&&!other.isEmpty()&&checkOffset(thisOffset)&&other.checkOffset(otherOffset)),
                  "Error - Couldn't copy due to insufficient storage.");
       EsysAssert((checkShape(other.getShape())),
-                 createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.",other.getShape()));
+                 createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.",other.getShape(),m_shape));
       if (checkOffset(thisOffset)&&other.checkOffset(otherOffset)) {
          memcpy(&(*m_data)[thisOffset],&(*other.m_data)[otherOffset],sizeof(double)*noValues());
       } else {
@@ -443,7 +443,7 @@ namespace escript {
       EsysAssert(other.getRank()==region.size(),
                  "Error - slice not same rank as view to be sliced from.");
 
-      EsysAssert(noValues()==noValues(getResultSliceShape(region)),
+      EsysAssert(noValues()==DataTypes::noValues(getResultSliceShape(region)),
                  "Error - slice shape not compatible shape for this view.");
 
       //
@@ -539,7 +539,7 @@ namespace escript {
       EsysAssert(getRank()==region.size(),
                  "Error - slice not same rank as this view.");
 
-      EsysAssert(other.getRank()==0 || other.noValues()==noValues(getResultSliceShape(region)),
+      EsysAssert(other.getRank()==0 || other.noValues()==DataTypes::noValues(getResultSliceShape(region)),
                  "Error - slice shape not compatible shape for other view.");
 
       //

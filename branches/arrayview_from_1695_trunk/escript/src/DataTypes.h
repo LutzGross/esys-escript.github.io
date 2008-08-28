@@ -125,6 +125,8 @@ namespace escript {
          getSliceRegion(0:1)         => < <0,1> <0,4> <0,6> >
          getSliceRegion(:1,0:2)      => < <0,1> <0,2> <0,6> >
 
+
+     Note: Not unit tested in c++.
   */
    ESCRIPT_DLL_API
    DataTypes::RegionType
@@ -169,7 +171,7 @@ namespace escript {
   getRelIndex(const DataTypes::ShapeType& shape, DataTypes::ValueType::size_type i,
 	   DataTypes::ValueType::size_type j)
   {
-  	EsysAssert((getRank()==2),"Incorrect number of indices for the rank of this object.");
+  	EsysAssert((getRank(shape)==2),"Incorrect number of indices for the rank of this object.");
   	DataTypes::ValueType::size_type temp=i+j*shape[0];
   	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
 	return temp;
@@ -181,7 +183,7 @@ namespace escript {
   getRelIndex(const DataTypes::ShapeType& shape, DataTypes::ValueType::size_type i,
 	   DataTypes::ValueType::size_type j, DataTypes::ValueType::size_type k)
   {
-  	EsysAssert((getRank()==3),"Incorrect number of indices for the rank of this object.");
+  	EsysAssert((getRank(shape)==3),"Incorrect number of indices for the rank of this object.");
   	DataTypes::ValueType::size_type temp=i+j*shape[0]+k*shape[1]*shape[0];
   	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
   	return temp;
@@ -194,9 +196,9 @@ namespace escript {
 	   DataTypes::ValueType::size_type j, DataTypes::ValueType::size_type k,
 	   DataTypes::ValueType::size_type m)
   {
-	EsysAssert((getRank()==4),"Incorrect number of indices for the rank of this object.");
+	EsysAssert((getRank(shape)==4),"Incorrect number of indices for the rank of this object.");
 	DataTypes::ValueType::size_type temp=i+j*shape[0]+k*shape[1]*shape[0]+m*shape[2]*shape[1]*shape[0];
-	EsysAssert((temp < DataTypes::noValues(m_shape)), "Error - Invalid index.");
+	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
 	return temp;
   }
 
@@ -212,6 +214,54 @@ namespace escript {
    createShapeErrorMessage(const std::string& messagePrefix,
                                           const DataTypes::ShapeType& other,
 					  const DataTypes::ShapeType& thisShape);
+
+
+  /**
+     \brief
+     Copy a data slice specified by the given region and offset from the
+     given view into this view at the given offset.
+
+     \param thisOffset - Input -
+                      Copy the slice to this offset in this view.
+     \param other - Input -
+                      View to copy data from.
+     \param otherOffset - Input -
+                      Copy the slice from this offset in the given view.
+     \param region - Input -
+                      Region in other view to copy data from.
+  */
+   void
+   copySlice(ValueType& left,
+			    const ShapeType& leftShape,
+			    ValueType::size_type thisOffset,
+                            const ValueType& other,
+			    const ShapeType& otherShape,
+                            ValueType::size_type otherOffset,
+                            const RegionLoopRangeType& region);
+
+  /**
+     \brief
+     Copy data into a slice specified by the given region and offset in
+     this view from the given view at the given offset.
+
+     \param thisOffset - Input -
+                    Copy the slice to this offset in this view.
+     \param other - Input -
+                    View to copy data from.
+     \param otherOffset - Input -
+                    Copy the slice from this offset in the given view.
+     \param region - Input -
+                    Region in this view to copy data to.
+  */
+   void
+   copySliceFrom(ValueType& left,
+				const ShapeType& leftShape,
+				ValueType::size_type thisOffset,
+                                const ValueType& other,
+				const ShapeType& otherShape,
+                                ValueType::size_type otherOffset,
+                                const RegionLoopRangeType& region);
+
 
  }   // End namespace DataTypes
 

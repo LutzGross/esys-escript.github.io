@@ -217,7 +217,8 @@ namespace DataMaths
 	  DataTypes::ValueType::size_type loffset,
           const DataTypes::ValueType& right, const DataTypes::ShapeType& rightShape,
 	  DataTypes::ValueType::size_type roffset,
-          DataTypes::ValueType& result);
+          DataTypes::ValueType& result,
+	  const DataTypes::ShapeType& resultShape);
 // Hmmmm why is there no offset for the result??
 
 
