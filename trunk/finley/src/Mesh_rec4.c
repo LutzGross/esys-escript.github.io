@@ -114,20 +114,20 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
   }
   offset0=e_offset0*N_PER_E;
   offset1=e_offset1*N_PER_E;
-  local_N0=local_NE0*N_PER_E+1;
-  local_N1=local_NE1*N_PER_E+1;
+  local_N0=local_NE0>0 ? local_NE0*N_PER_E+1 : 0;
+  local_N1=local_NE1>0 ? local_NE1*N_PER_E+1 : 0;
 
   /* get the number of surface elements */
 
   NFaceElements=0;
-  if (!periodic[0]) {
+  if (!periodic[0] && (local_NE0>0)) {
      NDOF0=N0;
      if (e_offset0 == 0) NFaceElements+=local_NE1;
      if (local_NE0+e_offset0 == NE0) NFaceElements+=local_NE1;
   } else {
       NDOF0=N0-1;
   }
-  if (!periodic[1]) {
+  if (!periodic[1]  && (local_NE1>0)) {
      NDOF1=N1;
      if (e_offset1 == 0) NFaceElements+=local_NE0;
      if (local_NE1+e_offset1 == NE1) NFaceElements+=local_NE0;
@@ -180,7 +180,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
      NN=out->FaceElements->numNodes;
      totalNECount=NE0*NE1;
      faceNECount=0;
-     if (!periodic[0]) {
+     if (!periodic[0]  && (local_NE0>0)) {
         /* **  elements on boundary 001 (x1=0): */
      
         if (e_offset0 == 0) {
@@ -231,7 +231,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
          }
          totalNECount+=NE1;
      }
-     if (!periodic[1]) {
+     if (!periodic[1]  && (local_NE1>0)) {
         /* **  elements on boundary 010 (x2=0): */
         if (e_offset1 == 0) {
            #pragma omp parallel for private(i0,k,node0) 
