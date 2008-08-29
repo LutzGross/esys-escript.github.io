@@ -50,7 +50,7 @@ typedef struct Paso_Pattern {
 
 /*  interfaces: */
 
-Paso_Pattern* Paso_Pattern_alloc(int type, dim_t input_block_size, dim_t output_block_size, dim_t numOutput, index_t* ptr, index_t* index);
+Paso_Pattern* Paso_Pattern_alloc(int type, dim_t input_block_size, dim_t output_block_size, dim_t numOutput, dim_t numInput, index_t* ptr, index_t* index);
 Paso_Pattern* Paso_Pattern_getReference(Paso_Pattern*);
 void Paso_Pattern_free(Paso_Pattern*);
 int Paso_comparIndex(const void *,const void *);
