@@ -34,7 +34,7 @@ Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern* pattern, \
                                         int type, dim_t output_block_size,dim_t input_block_size) {
   Paso_Pattern*out=NULL;
   index_t *ptr=NULL,*index=NULL,iPtr;
-  dim_t i,j,k, block_size, new_len, new_numOutput;
+  dim_t i,j,k, block_size, new_len, new_numOutput, new_numInput;
   index_t index_offset_in=(pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   index_t index_offset_out=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   
@@ -59,6 +59,7 @@ Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern* pattern, \
      block_size=output_block_size*input_block_size;
      new_len=(pattern->len)*block_size;
      new_numOutput=(pattern->numOutput)*output_block_size;
+     new_numInput=(pattern->numInput)*input_block_size;
    
      ptr=MEMALLOC(new_numOutput+1,index_t);
      index=MEMALLOC(new_len,index_t);
@@ -93,7 +94,7 @@ Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern* pattern, \
               }
            }
         }
-        out=Paso_Pattern_alloc(type,pattern->input_block_size * input_block_size,pattern->output_block_size * output_block_size,new_numOutput,ptr,index);
+        out=Paso_Pattern_alloc(type,pattern->input_block_size * input_block_size,pattern->output_block_size * output_block_size,new_numOutput,new_numInput,ptr,index);
      }  
      if (! Paso_noError()) {
         MEMFREE(index);
