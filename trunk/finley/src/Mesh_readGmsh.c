@@ -289,6 +289,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                             mesh_p->Elements->Id[numElements]=id[e];
                             mesh_p->Elements->Tag[numElements]=tag[e];
                             mesh_p->Elements->Color[numElements]=numElements;
+                            mesh_p->Elements->Owner[numElements]=0;
                             for (j = 0; j<  mesh_p->Elements->ReferenceElement->Type->numNodes; ++j)  {
                                   mesh_p->Elements->Nodes[INDEX2(j, numElements, mesh_p->Elements->ReferenceElement->Type->numNodes)]=vertices[INDEX2(j,e,MAX_numNodes_gmsh)];
                             }
@@ -297,6 +298,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                             mesh_p->FaceElements->Id[numFaceElements]=id[e];
                             mesh_p->FaceElements->Tag[numFaceElements]=tag[e];
                             mesh_p->FaceElements->Color[numFaceElements]=numFaceElements;
+                            mesh_p->FaceElements->Owner[numElements]=0;
                             for (j = 0; j<  mesh_p->FaceElements->ReferenceElement->Type->numNodes; ++j) {
                                      mesh_p->FaceElements->Nodes[INDEX2(j, numFaceElements, mesh_p->FaceElements->ReferenceElement->Type->numNodes)]=vertices[INDEX2(j,e,MAX_numNodes_gmsh)];
                             }
