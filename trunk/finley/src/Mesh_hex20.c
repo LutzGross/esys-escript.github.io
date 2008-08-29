@@ -181,7 +181,6 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
   } else {
       NDOF1=N1-1;
   }
-printf("HEX20 %d %d %d\n",local_NE0,local_NE1,local_NE2);
 
   /*  allocate tables: */
 

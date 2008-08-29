@@ -52,6 +52,9 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
     dof_distribution=in->Nodes->degreesOfFreedomDistribution;
     globalDOFIndex=in->Nodes->globalDegreesOfFreedom;
   }
+  myFirstDOF=Paso_Distribution_getFirstComponent(dof_distribution);
+  myLastDOF=Paso_Distribution_getLastComponent(dof_distribution);
+
 
   mpiSize=mpi_info->size;
   myRank=mpi_info->rank;
@@ -59,17 +62,21 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
   min_DOF=Finley_Util_getFlaggedMinInt(1,numNodes,globalDOFIndex,-1);
   max_DOF=Finley_Util_getFlaggedMaxInt(1,numNodes,globalDOFIndex,-1);
 
-  p_min=mpiSize;
-  p_max=-1;
-
-  for (p=0; p<mpiSize; ++p) {
-      if (dof_distribution->first_component[p]<=min_DOF) p_min=p;
-      if (dof_distribution->first_component[p]<=max_DOF) p_max=p;
+  if (max_DOF < min_DOF) {
+      min_DOF=myFirstDOF;
+      max_DOF=myLastDOF-1;
   }
 
+  p_min=mpiSize;
+  p_max=-1;
+  if (max_DOF >= min_DOF) {
+      for (p=0; p<mpiSize; ++p) {
+         if (dof_distribution->first_component[p]<=min_DOF) p_min=p;
+         if (dof_distribution->first_component[p]<=max_DOF) p_max=p;
+     }
+   }
+
   len_loc_dof=max_DOF-min_DOF+1;
-  myFirstDOF=Paso_Distribution_getFirstComponent(dof_distribution);
-  myLastDOF=Paso_Distribution_getLastComponent(dof_distribution);
   if (! ((min_DOF<=myFirstDOF) && (myLastDOF-1<=max_DOF)) ) {
       Finley_setError(SYSTEM_ERROR,"Local elements do not span local degrees of freedom.");
       return;
@@ -274,7 +281,7 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
   index_t myFirstDOF, myLastDOF, myFirstNode, myLastNode, *reduced_dof_first_component=NULL, *nodeMask=NULL,
          *reduced_nodes_first_component=NULL, *nodes_first_component=NULL,k,
          *maskMyReducedDOF=NULL, *indexMyReducedDOF=NULL, *maskMyReducedNodes=NULL, *indexMyReducedNodes=NULL;
-  dim_t myNumDOF, myNumNodes, myNumReducedNodes, myNumReducedDOF, globalNumReducedNodes, globalNumReducedDOF,i,mpiSize, globalNumNodes;
+  dim_t myNumDOF, myNumNodes, myNumReducedNodes, myNumReducedDOF, globalNumReducedNodes, globalNumReducedDOF,i,mpiSize, minGlobalNodeIndex,maxGlobalNodeIndex;
   Paso_MPI_rank myRank;
 
   mpiSize=in->Nodes->MPIInfo->size;
@@ -287,8 +294,8 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
 
   if (! ( Finley_checkPtr(reduced_dof_first_component) || Finley_checkPtr(reduced_nodes_first_component) || Finley_checkPtr(nodes_first_component)  ) ) {
 
-     globalNumNodes=Finley_NodeFile_maxGlobalNodeIDIndex(in->Nodes)+1;
-     Paso_MPIInfo_setDistribution(in->Nodes->MPIInfo,0,globalNumNodes-1,nodes_first_component);
+     Finley_NodeFile_setGlobalNodeIDIndexRange(&minGlobalNodeIndex,&maxGlobalNodeIndex,in->Nodes);
+     Paso_MPIInfo_setDistribution(in->Nodes->MPIInfo,minGlobalNodeIndex,maxGlobalNodeIndex,nodes_first_component);
 
      myFirstDOF=dof_first_component[myRank];
      myLastDOF=dof_first_component[myRank+1];
@@ -344,7 +351,7 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
         reduced_nodes_first_component[mpiSize]=globalNumReducedNodes;
         reduced_dof_first_component[mpiSize]=globalNumReducedDOF;
         /* ==== distribution of Nodes ===============================*/
-        Paso_MPIInfo_setDistribution(in->Nodes->MPIInfo,0,globalNumNodes-1,nodes_first_component);
+        Paso_MPIInfo_setDistribution(in->Nodes->MPIInfo,minGlobalNodeIndex,maxGlobalNodeIndex,nodes_first_component);
         in->Nodes->nodesDistribution=Paso_Distribution_alloc(in->Nodes->MPIInfo,nodes_first_component,1,0);
     
         /* ==== distribution of Nodes ===============================*/
