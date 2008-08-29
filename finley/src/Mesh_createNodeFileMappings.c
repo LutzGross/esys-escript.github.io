@@ -1,5 +1,5 @@
 
-/* $Id$ */
+/* $Id:$ */
 
 /*******************************************************
  *
@@ -23,31 +23,38 @@
 #include "Mesh.h"
 #define UNUSED -1
 
+#define BOUNDS_CHECK 1
+
 /**************************************************************/
 
 void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elements) 
 {
-  index_t min_DOF, max_DOF, *shared=NULL, *offsetInShared=NULL, *locDOFMask=NULL, i, k, myFirstDOF, myLastDOF, *nodeMask=NULL, firstDOF, lastDOF, *globalDOFIndex;
-  dim_t mpiSize, len_loc_dof, numNeighbors, n, lastn, numNodes;
+  index_t min_DOF, max_DOF, *shared=NULL, *offsetInShared=NULL, *locDOFMask=NULL, i, k, myFirstDOF, myLastDOF, *nodeMask=NULL, firstDOF, lastDOF, *globalDOFIndex, *wanted_DOFs=NULL;
+  dim_t mpiSize, len_loc_dof, numNeighbors, n, lastn, numNodes,*rcv_len=NULL, *snd_len=NULL, count;
   Paso_MPI_rank myRank,p,p_min,p_max, *neighbor=NULL;
   Paso_SharedComponents *rcv_shcomp=NULL, *snd_shcomp=NULL;
   Finley_NodeMapping *this_mapping=NULL;
   Paso_Connector* this_connector=NULL;
   Paso_Distribution* dof_distribution;
-  
+  Paso_MPIInfo *mpi_info = in->MPIInfo;
+  #ifdef PASO_MPI
+      MPI_Request* mpi_requests=NULL;
+      MPI_Status* mpi_stati=NULL;
+  #else
+      int *mpi_requests=NULL, *mpi_stati=NULL;
+  #endif
+
   numNodes=in->Nodes->numNodes;
   if (use_reduced_elements) {
     dof_distribution=in->Nodes->reducedDegreesOfFreedomDistribution;
     globalDOFIndex=in->Nodes->globalReducedDOFIndex;
-    Finley_NodeFile_setReducedDOFRange(&min_DOF, &max_DOF,in->Nodes);
   } else {
     dof_distribution=in->Nodes->degreesOfFreedomDistribution;
     globalDOFIndex=in->Nodes->globalDegreesOfFreedom;
-    Finley_NodeFile_setDOFRange(&min_DOF, &max_DOF,in->Nodes);
   }
 
-  mpiSize=dof_distribution->mpi_info->size;
-  myRank=dof_distribution->mpi_info->rank;
+  mpiSize=mpi_info->size;
+  myRank=mpi_info->rank;
 
   min_DOF=Finley_Util_getFlaggedMinInt(1,numNodes,globalDOFIndex,-1);
   max_DOF=Finley_Util_getFlaggedMaxInt(1,numNodes,globalDOFIndex,-1);
@@ -67,33 +74,50 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
       Finley_setError(SYSTEM_ERROR,"Local elements do not span local degrees of freedom.");
       return;
   }
- 
+  rcv_len=TMPMEMALLOC(mpiSize,dim_t);
+  snd_len=TMPMEMALLOC(mpiSize,dim_t);
+  #ifdef PASO_MPI
+    mpi_requests=MEMALLOC(mpiSize*2,MPI_Request);
+    mpi_stati=MEMALLOC(mpiSize*2,MPI_Status);
+  #else
+    mpi_requests=MEMALLOC(mpiSize*2,int);
+    mpi_stati=MEMALLOC(mpiSize*2,int);
+  #endif
+  wanted_DOFs=TMPMEMALLOC(numNodes,index_t);
   nodeMask=TMPMEMALLOC(numNodes,index_t);
   neighbor=TMPMEMALLOC(mpiSize,Paso_MPI_rank);
   shared=TMPMEMALLOC(numNodes*(p_max-p_min+1),index_t);
   offsetInShared=TMPMEMALLOC(mpiSize+1,index_t);
   locDOFMask=TMPMEMALLOC(len_loc_dof, index_t);
-  if (! ( Finley_checkPtr(neighbor) || Finley_checkPtr(shared) || Finley_checkPtr(offsetInShared) || Finley_checkPtr(locDOFMask) || Finley_checkPtr(nodeMask) ))  {
+  if (! ( Finley_checkPtr(neighbor) || Finley_checkPtr(shared) || Finley_checkPtr(offsetInShared) || Finley_checkPtr(locDOFMask) || 
+     Finley_checkPtr(nodeMask) || Finley_checkPtr(rcv_len) || Finley_checkPtr(snd_len) || Finley_checkPtr(mpi_requests) || Finley_checkPtr(mpi_stati) || 
+     Finley_checkPtr(mpi_stati) )) {
 
+    memset(rcv_len,0,sizeof(dim_t)*mpiSize);
+    #pragma omp parallel 
+    {
+        #pragma omp for private(i) schedule(static)
+        for (i=0;i<len_loc_dof;++i) locDOFMask[i]=UNUSED;
+        #pragma omp for private(i) schedule(static)
+        for (i=0;i<numNodes;++i) nodeMask[i]=UNUSED;
+        #pragma omp for private(i,k) schedule(static)
+        for (i=0;i<numNodes;++i) {
+           k=globalDOFIndex[i];
+           if (k>-1) {
+              locDOFMask[k-min_DOF]=UNUSED-1;
+              #ifdef BOUNDS_CHECK
+              if ((k-min_DOF) >= len_loc_dof) { printf("BOUNDS_CHECK %s %d i=%d k=%d min_DOF=%d\n", __FILE__, __LINE__, i, k, min_DOF); exit(1); }
+              #endif
+           }
+        }
 
-    #pragma omp parallel for private(i) schedule(static)
-    for (i=0;i<len_loc_dof;++i) locDOFMask[i]=UNUSED;
-    #pragma omp parallel for private(i) schedule(static)
-    for (i=0;i<numNodes;++i) nodeMask[i]=UNUSED;
-
-    for (i=0;i<numNodes;++i) {
-       k=globalDOFIndex[i];
-#ifdef BOUNDS_CHECK
-       if ((k-min_DOF) >= len_loc_dof) { printf("BOUNDS_CHECK %s %d i=%d k=%d min_DOF=%d\n", __FILE__, __LINE__, i, k, min_DOF); exit(1); }
-#endif
-       if (k>-1) locDOFMask[k-min_DOF]=UNUSED-1;
-    }
-
-    for (i=myFirstDOF-min_DOF;i<myLastDOF-min_DOF;++i) {
-      locDOFMask[i]=i-myFirstDOF+min_DOF;
-#ifdef BOUNDS_CHECK
-      if (i < 0 || i >= len_loc_dof) { printf("BOUNDS_CHECK %s %d i=%d\n", __FILE__, __LINE__, i); exit(1); }
-#endif
+        #pragma omp for private(i) schedule(static)
+        for (i=myFirstDOF-min_DOF;i<myLastDOF-min_DOF;++i) {
+          locDOFMask[i]=i-myFirstDOF+min_DOF;
+          #ifdef BOUNDS_CHECK
+          if (i < 0 || i >= len_loc_dof) { printf("BOUNDS_CHECK %s %d i=%d\n", __FILE__, __LINE__, i); exit(1); }
+          #endif
+        }
     }
 
     numNeighbors=0;
@@ -104,19 +128,21 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
        lastDOF=MIN(max_DOF+1,dof_distribution->first_component[p+1]);
        if (p != myRank) {
            for (i=firstDOF-min_DOF;i<lastDOF-min_DOF;++i) {
-#ifdef BOUNDS_CHECK
-                   if (i < 0 || i >= len_loc_dof) { printf("BOUNDS_CHECK %s %d p=%d i=%d\n", __FILE__, __LINE__, p, i); exit(1); }
-#endif
+                #ifdef BOUNDS_CHECK
+                if (i < 0 || i >= len_loc_dof) { printf("BOUNDS_CHECK %s %d p=%d i=%d\n", __FILE__, __LINE__, p, i); exit(1); }
+                #endif
                 if (locDOFMask[i] == UNUSED-1) {
                    locDOFMask[i]=myLastDOF-myFirstDOF+n;
+                   wanted_DOFs[n]=i+min_DOF;
                    ++n;
                 }
            }
            if (n>lastn) {
+              rcv_len[p]=n-lastn;
               neighbor[numNeighbors]=p;
-#ifdef BOUNDS_CHECK
+              #ifdef BOUNDS_CHECK
               if (numNeighbors < 0 || numNeighbors >= mpiSize+1) { printf("BOUNDS_CHECK %s %d p=%d numNeighbors=%d n=%d\n", __FILE__, __LINE__, p, numNeighbors, n); exit(1); }
-#endif
+              #endif
               offsetInShared[numNeighbors]=lastn;
               numNeighbors++;
               lastn=n;
@@ -138,53 +164,58 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
     /* now we can set the mapping from nodes to local DOFs */
     this_mapping=Finley_NodeMapping_alloc(numNodes,nodeMask,UNUSED);
     /* define how to get DOF values for controlled bu other processors */
-#ifdef BOUNDS_CHECK
+    #ifdef BOUNDS_CHECK
     for (i=0;i<offsetInShared[numNeighbors];++i) {
       if (i < 0 || i >= numNodes*(p_max-p_min+1)) { printf("BOUNDS_CHECK %s %d i=%d\n", __FILE__, __LINE__, i); exit(1); }
     }
-#endif
+    #endif
     #pragma omp parallel for private(i) schedule(static)
     for (i=0;i<offsetInShared[numNeighbors];++i) shared[i]=myLastDOF-myFirstDOF+i;
 
-    rcv_shcomp=Paso_SharedComponents_alloc(myLastDOF-myFirstDOF,numNeighbors,neighbor,shared,offsetInShared,1,0,dof_distribution->mpi_info);
+    rcv_shcomp=Paso_SharedComponents_alloc(myLastDOF-myFirstDOF,numNeighbors,neighbor,shared,offsetInShared,1,0,mpi_info);
 
-    /* now it is determined which DOFs needs to be send off:*/
-    #pragma omp parallel for private(i) schedule(static)
-    for (i=0;i<len_loc_dof;++i) locDOFMask[i]=UNUSED;
+    /*
+     *    now we build the sender
+     */
+    #ifdef PASO_MPI
+         MPI_Alltoall(rcv_len,1,MPI_INT,snd_len,1,MPI_INT,mpi_info->comm);
+    #else
+        for (p=0;p<mpiSize;++p) snd_len[p]=rcv_count[p];
+    #endif
+    count=0;
+    for (p=0;p<rcv_shcomp->numNeighbors;p++) {
+       #ifdef PASO_MPI
+       MPI_Isend(&(wanted_DOFs[rcv_shcomp->offsetInShared[p]]), rcv_shcomp->offsetInShared[p+1]-rcv_shcomp->offsetInShared[p],
+                  MPI_INT,rcv_shcomp->neighbor[p],mpi_info->msg_tag_counter+myRank,mpi_info->comm,&mpi_requests[count]);
+        #endif
+        count++;
+    }
     n=0;
     numNeighbors=0;
-    lastn=n;
-    for (p=p_min;p<=p_max;++p) {
-       firstDOF=dof_distribution->first_component[p];
-       lastDOF=dof_distribution->first_component[p+1];
-       if (p != myRank) {
-           /* mark a DOF by p if it will be requested by processor p */
-           Finley_Mesh_markDOFsConnectedToRange(locDOFMask,min_DOF,p,firstDOF,lastDOF,in,use_reduced_elements);
-
-           for (i=myFirstDOF-min_DOF;i<myLastDOF-min_DOF;++i) {
-                if (locDOFMask[i] == p) {
-#ifdef BOUNDS_CHECK
-		   if (n < 0 || n >= numNodes*(p_max-p_min+1)) { printf("BOUNDS_CHECK %s %d p=%d i=%d n=%d\n", __FILE__, __LINE__, p, i, n); exit(1); }
-#endif
-                   shared[n]=i-myFirstDOF+min_DOF;
-                   ++n;
-                }
-           }
-           if (n>lastn) {
-              neighbor[numNeighbors]=p;
-#ifdef BOUNDS_CHECK
-              if (numNeighbors < 0 || numNeighbors >= mpiSize+1) { printf("BOUNDS_CHECK %s %d p=%d n=%d numNeighbors=%d\n", __FILE__, __LINE__, p, n, numNeighbors); exit(1); }
-#endif
-              offsetInShared[numNeighbors]=lastn;
-              numNeighbors++;
-              lastn=n;
-           }
-        }
+    for (p=0;p<mpiSize;p++) {
+         if (snd_len[p] > 0) {
+            #ifdef PASO_MPI
+            MPI_Irecv(&(shared[n]),snd_len[p],
+                      MPI_INT, p, mpi_info->msg_tag_counter+p, mpi_info->comm, &mpi_requests[count]);
+            #endif
+            count++;
+            neighbor[numNeighbors]=p;
+            offsetInShared[numNeighbors]=n;
+            numNeighbors++;
+            n+=snd_len[p];
+         }
     }
-#ifdef BOUNDS_CHECK
-    if (numNeighbors < 0 || numNeighbors >= mpiSize+1) { printf("BOUNDS_CHECK %s %d numNeighbors=%d\n", __FILE__, __LINE__, numNeighbors); exit(1); }
-#endif
-    offsetInShared[numNeighbors]=lastn;
+    mpi_info->msg_tag_counter+=mpi_info->size;
+    offsetInShared[numNeighbors]=n;
+    #ifdef PASO_MPI
+    MPI_Waitall(count,mpi_requests,mpi_stati);
+    #endif
+    /* map global ids to local id's */
+    #pragma omp parallel for private(i) schedule(static)
+    for (i=0;i<offsetInShared[numNeighbors];++i) {
+        shared[i]=locDOFMask[shared[i]-min_DOF];
+    }
+
     snd_shcomp=Paso_SharedComponents_alloc(myLastDOF-myFirstDOF,numNeighbors,neighbor,shared,offsetInShared,1,0,dof_distribution->mpi_info);
 
     if (Finley_noError()) this_connector=Paso_Connector_alloc(snd_shcomp,rcv_shcomp);
@@ -192,6 +223,11 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
     Paso_SharedComponents_free(rcv_shcomp);
     Paso_SharedComponents_free(snd_shcomp);
   }
+  TMPMEMFREE(rcv_len);
+  TMPMEMFREE(snd_len);
+  TMPMEMFREE(mpi_requests);
+  TMPMEMFREE(mpi_stati);
+  TMPMEMFREE(wanted_DOFs);
   TMPMEMFREE(nodeMask);
   TMPMEMFREE(neighbor);
   TMPMEMFREE(shared);
@@ -279,7 +315,9 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
                k=in->Nodes->globalNodesIndex[indexReducedNodes[i]];
                if ( (k>=myFirstNode) && (myLastNode>k) ) maskMyReducedNodes[k-myFirstNode]=i;
                k=in->Nodes->globalDegreesOfFreedom[indexReducedNodes[i]];
-               if ( (k>=myFirstDOF) && (myLastDOF>k) ) maskMyReducedDOF[k-myFirstDOF]=i;
+               if ( (k>=myFirstDOF) && (myLastDOF>k) ) {
+                  maskMyReducedDOF[k-myFirstDOF]=i;
+               }
             }
         }
         myNumReducedNodes=Finley_Util_packMask(myNumNodes,maskMyReducedNodes,indexMyReducedNodes);
