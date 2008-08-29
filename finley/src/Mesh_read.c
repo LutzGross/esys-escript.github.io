@@ -106,6 +106,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
                     for (i0 = 0; i0 < numEle; i0++) {
                       fscanf(fileHandle_p, "%d %d", &mesh_p->Elements->Id[i0], &mesh_p->Elements->Tag[i0]);
                       mesh_p->Elements->Color[i0]=i0;
+                      mesh_p->Elements->Owner[i0]=0;
                       for (i1 = 0; i1 < mesh_p->Elements->ReferenceElement->Type->numNodes; i1++) {
                            fscanf(fileHandle_p, " %d",
                               &mesh_p->Elements->Nodes[INDEX2(i1, i0, mesh_p->Elements->ReferenceElement->Type->numNodes)]);
@@ -133,6 +134,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
                       for (i0 = 0; i0 < numEle; i0++) {
                         fscanf(fileHandle_p, "%d %d", &mesh_p->FaceElements->Id[i0], &mesh_p->FaceElements->Tag[i0]);
                         mesh_p->FaceElements->Color[i0]=i0;
+                        mesh_p->FaceElements->Owner[i0]=0;
                         for (i1 = 0; i1 < mesh_p->FaceElements->ReferenceElement->Type->numNodes; i1++) {
                              fscanf(fileHandle_p, " %d",
                                 &mesh_p->FaceElements->Nodes[INDEX2(i1, i0, mesh_p->FaceElements->ReferenceElement->Type->numNodes)]);
@@ -160,6 +162,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
                       for (i0 = 0; i0 < numEle; i0++) {
                         fscanf(fileHandle_p, "%d %d", &mesh_p->ContactElements->Id[i0], &mesh_p->ContactElements->Tag[i0]);
                         mesh_p->ContactElements->Color[i0]=i0;
+                        mesh_p->ContactElements->Owner[i0]=0;
                         for (i1 = 0; i1 < mesh_p->ContactElements->ReferenceElement->Type->numNodes; i1++) {
                             fscanf(fileHandle_p, " %d",
                                &mesh_p->ContactElements->Nodes[INDEX2(i1, i0, mesh_p->ContactElements->ReferenceElement->Type->numNodes)]);
@@ -187,6 +190,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
                    for (i0 = 0; i0 < numEle; i0++) {
                      fscanf(fileHandle_p, "%d %d", &mesh_p->Points->Id[i0], &mesh_p->Points->Tag[i0]);
                      mesh_p->Points->Color[i0]=i0;
+                     mesh_p->Points->Owner[i0]=0;
                      for (i1 = 0; i1 < mesh_p->Points->ReferenceElement->Type->numNodes; i1++) {
                          fscanf(fileHandle_p, " %d",
                             &mesh_p->Points->Nodes[INDEX2(i1, i0, mesh_p->Points->ReferenceElement->Type->numNodes)]);
@@ -474,6 +478,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	  for (i0=0; i0<chunkEle; i0++) {
 	    mesh_p->Elements->Id[i0]	= tempInts[i0*(2+numNodes)+0];
 	    mesh_p->Elements->Tag[i0]	= tempInts[i0*(2+numNodes)+1];
+            mesh_p->Elements->Owner[i0]  =mpi_info->rank;
             mesh_p->Elements->Color[i0] = i0;
 	    for (i1 = 0; i1 < numNodes; i1++) {
 	      mesh_p->Elements->Nodes[INDEX2(i1, i0, numNodes)] = tempInts[i0*(2+numNodes)+2+i1];
@@ -573,6 +578,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	  for (i0=0; i0<chunkEle; i0++) {
 	    mesh_p->FaceElements->Id[i0]	= tempInts[i0*(2+numNodes)+0];
 	    mesh_p->FaceElements->Tag[i0]	= tempInts[i0*(2+numNodes)+1];
+            mesh_p->FaceElements->Owner[i0]  =mpi_info->rank;
             mesh_p->FaceElements->Color[i0] = i0;
 	    for (i1 = 0; i1 < numNodes; i1++) {
 	      mesh_p->FaceElements->Nodes[INDEX2(i1, i0, numNodes)] = tempInts[i0*(2+numNodes)+2+i1];
@@ -672,6 +678,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	  for (i0=0; i0<chunkEle; i0++) {
 	    mesh_p->ContactElements->Id[i0]	= tempInts[i0*(2+numNodes)+0];
 	    mesh_p->ContactElements->Tag[i0]	= tempInts[i0*(2+numNodes)+1];
+            mesh_p->ContactElements->Owner[i0]  =mpi_info->rank;
             mesh_p->ContactElements->Color[i0] = i0;
 	    for (i1 = 0; i1 < numNodes; i1++) {
 	      mesh_p->ContactElements->Nodes[INDEX2(i1, i0, numNodes)] = tempInts[i0*(2+numNodes)+2+i1];
@@ -771,6 +778,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	  for (i0=0; i0<chunkEle; i0++) {
 	    mesh_p->Points->Id[i0]	= tempInts[i0*(2+numNodes)+0];
 	    mesh_p->Points->Tag[i0]	= tempInts[i0*(2+numNodes)+1];
+            mesh_p->Points->Owner[i0]  =mpi_info->rank;
             mesh_p->Points->Color[i0] = i0;
 	    for (i1 = 0; i1 < numNodes; i1++) {
 	      mesh_p->Points->Nodes[INDEX2(i1, i0, numNodes)] = tempInts[i0*(2+numNodes)+2+i1];

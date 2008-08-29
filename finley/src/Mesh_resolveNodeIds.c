@@ -68,8 +68,10 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   #ifdef Finley_TRACE
   printf("Node id range used by elements is %d:%d\n",global_min_id,global_max_id);
   #endif
-
-
+  if (min_id>max_id) {
+     max_id=-1;
+     min_id=0;
+  }
   
   /* allocate mappings for new local node labeling to global node labeling (newLocalToGlobalNodeLabels)
      and global node labeling to the new local node labeling (globalToNewLocalNodeLabels[i-min_id] is the 

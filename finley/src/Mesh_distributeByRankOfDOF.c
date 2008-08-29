@@ -35,6 +35,7 @@ void Finley_Mesh_distributeByRankOfDOF(Finley_Mesh* self, index_t *dof_distribut
      mpiRankOfDOF=TMPMEMALLOC(self->Nodes->numNodes,Paso_MPI_rank);
      if (!Finley_checkPtr(mpiRankOfDOF)) {
 
+
         Finley_NodeFile_assignMPIRankToDOFs(self->Nodes,mpiRankOfDOF,dof_distribution);
         /* first the elements are redistributed according to mpiRankOfDOF */
         /* at the input the Node tables refering to a the local labeling of the nodes */
@@ -60,9 +61,9 @@ void Finley_Mesh_distributeByRankOfDOF(Finley_Mesh* self, index_t *dof_distribut
           for (n=0;n<self->Nodes->numNodes;n++) tmp_node_localDOF_map[n]=-1;
           #pragma omp parallel for private(n) schedule(static)
           for (n=0;n<self->Nodes->numNodes;n++) {
-#ifdef BOUNDS_CHECK
+             #ifdef BOUNDS_CHECK
              if ((self->Nodes->globalDegreesOfFreedom[n]-min_id) >= len || (self->Nodes->globalDegreesOfFreedom[n]-min_id) < 0) { printf("BOUNDS_CHECK %s %d\n", __FILE__, __LINE__); exit(1); }
-#endif
+             #endif
 	     tmp_node_localDOF_mask[self->Nodes->globalDegreesOfFreedom[n]-min_id]=n;
 	  }
    
