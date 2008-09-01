@@ -187,7 +187,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
     #ifdef PASO_MPI
          MPI_Alltoall(rcv_len,1,MPI_INT,snd_len,1,MPI_INT,mpi_info->comm);
     #else
-        for (p=0;p<mpiSize;++p) snd_len[p]=rcv_count[p];
+        for (p=0;p<mpiSize;++p) snd_len[p]=rcv_len[p];
     #endif
     count=0;
     for (p=0;p<rcv_shcomp->numNeighbors;p++) {
