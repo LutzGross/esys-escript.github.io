@@ -128,6 +128,64 @@ class Test_VTKFiles(Test_VisualizationInterface):
                                                      data_vc=x_c[0]*[1.,2.],
                                                      data_tc=x_c[0]*[[11.,12.],[21.,22.]])
      self.check_vtk("hex_2D_order2_CellsPoints_AllData.xml",reference)
+  def test_hex_2D_order2p_vtk(self):
+     reference="hex_2D_o2p.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2.xml",domain=dom)
+     self.check_vtk("hex_2D_order2.xml",reference)
+
+  def test_hex_2D_order2p_AllPoints_Scalar_vtk(self):
+     reference="hex_2D_o1_node_3xs.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=Solution(dom).getX()
+     x_r=ReducedSolution(dom).getX()
+     x_n=ContinuousFunction(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2_AllPoints_Scalar.xml",data_r=x_r[0],data_n=x_n[0],data=x[0])
+     self.check_vtk("hex_2D_order2_AllPoints_Scalar.xml",reference)
+  def test_hex_2D_order2p_02Points_Scalar_vtk(self):
+     reference="hex_2D_o2p_node_2xs.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=Solution(dom).getX()
+     x_n=ContinuousFunction(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2_O2Points_Scalar.xml",data_n=x_n[0],data=x[0])
+     self.check_vtk("hex_2D_order2_O2Points_Scalar.xml",reference)
+  def test_hex_2D_order2p_2Cells_Scalar_vtk(self):
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=Function(dom).getX()
+     x_b=FunctionOnBoundary(dom).getX()
+     try: 
+        saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2_2Cells_Scalar.xml",data=x[0],data_b=x_b[0])
+        self.fail("non-matching data not detected.")
+     except StandardError:
+        pass
+  def test_hex_2D_order2p_BoundaryPoint_Scalar_vtk(self):
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=ContinuousFunction(dom).getX()
+     x_b=FunctionOnBoundary(dom).getX()
+     try: 
+        saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2_BoundaryPoint_Scalar.xml",data=x[0],data_b=x_b[0])
+        self.fail("non-matching data not detected.")
+     except StandardError:
+        pass
+  def test_hex_2D_order2p_Cells_AllData_vtk(self):
+     reference="hex_2D_o2p_cell_all.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=Function(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2_Cells_AllData.xml",data_s=x[0],data_v=x[0]*[1.,2.],data_t=x[0]*[[11.,12.],[21.,22.]],data_t2=x[0]*[[-11.,-12.],[-21.,-22.]])
+     self.check_vtk("hex_2D_order2_Cells_AllData.xml",reference)
+
+  def test_hex_2D_order2p_CellsPoints_AllData_vtk(self):
+     reference="hex_2D_o2p_cellnode_all.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x_c=Function(dom).getX()
+     x_p=ContinuousFunction(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2_CellsPoints_AllData.xml",data_sp=x_p[0],
+                                                     data_vp=x_p[0]*[1.,2.],
+                                                     data_tp=x_p[0]*[[11.,12.],[21.,22.]],
+                                                     data_sc=x_c[0],
+                                                     data_vc=x_c[0]*[1.,2.],
+                                                     data_tc=x_c[0]*[[11.,12.],[21.,22.]])
+     self.check_vtk("hex_2D_order2_CellsPoints_AllData.xml",reference)
   # ======================================================================================================================
   def test_hex_contact_2D_order1_ContinuousFunction_Scalar_vtk(self):
      reference="hex_2D_o1_node_s.xml"
@@ -743,7 +801,133 @@ class Test_VTKFiles(Test_VisualizationInterface):
      x=ReducedFunctionOnContactOne(dom).getX()
      saveVTK(FINLEY_WORKDIR_PATH+"hex_contact_2D_order2_onFace_ReducedFunctionOnContactOne_Tensor.xml",data=x[0]*[[11.,12.],[21.,22.]])
      self.check_vtk("hex_contact_2D_order2_onFace_ReducedFunctionOnContactOne_Tensor.xml",reference)
-
+  # ======================================================================================================================
+  def test_hex_2D_order2p_ContinuousFunction_Scalar_vtk(self):
+     reference="hex_2D_o2p_node_s.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=ContinuousFunction(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_ContinuousFunction_Scalar.xml",data=x[0])
+     self.check_vtk("hex_2D_order2p_ContinuousFunction_Scalar.xml",reference)
+  def test_hex_2D_order2p_ContinuousFunction_Vector_vtk(self):
+     reference="hex_2D_o2p_node_v.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=ContinuousFunction(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_ContinuousFunction_Vector.xml",data=x[0]*[1.,2.])
+     self.check_vtk("hex_2D_order2p_ContinuousFunction_Vector.xml",reference)
+  def test_hex_2D_order2p_ContinuousFunction_Tensor_vtk(self):
+     reference="hex_2D_o2p_node_t.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=ContinuousFunction(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_ContinuousFunction_Tensor.xml",data=x[0]*[[11.,12.],[21.,22.]])
+     self.check_vtk("hex_2D_order2p_ContinuousFunction_Tensor.xml",reference)
+  def test_hex_2D_order2p_Solution_Scalar_vtk(self):
+     reference="hex_2D_o2p_node_s.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=Solution(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_Solution_Scalar.xml",data=x[0])
+     self.check_vtk("hex_2D_order2p_Solution_Scalar.xml",reference)
+  def test_hex_2D_order2p_Solution_Vector_vtk(self):
+     reference="hex_2D_o2p_node_v.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=Solution(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_Solution_Vector.xml",data=x[0]*[1.,2.])
+     self.check_vtk("hex_2D_order2p_Solution_Vector.xml",reference)
+  def test_hex_2D_order2p_Solution_Tensor_vtk(self):
+     reference="hex_2D_o2p_node_t.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=Solution(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_Solution_Tensor.xml",data=x[0]*[[11.,12.],[21.,22.]])
+     self.check_vtk("hex_2D_order2p_Solution_Tensor.xml",reference)
+  def test_hex_2D_order2p_ReducedSolution_Scalar_vtk(self):
+     reference="hex_2D_o2p_reduced_node_s.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=ReducedSolution(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_ReducedSolution_Scalar.xml",data=x[0])
+     self.check_vtk("hex_2D_order2p_ReducedSolution_Scalar.xml",reference)
+  def test_hex_2D_order2p_ReducedSolution_Vector_vtk(self):
+     reference="hex_2D_o2p_reduced_node_v.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=ReducedSolution(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_ReducedSolution_Vector.xml",data=x[0]*[1.,2.])
+     self.check_vtk("hex_2D_order2p_ReducedSolution_Vector.xml",reference)
+  def test_hex_2D_order2p_ReducedSolution_Tensor_vtk(self):
+     reference="hex_2D_o2p_reduced_node_t.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=ReducedSolution(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_ReducedSolution_Tensor.xml",data=x[0]*[[11.,12.],[21.,22.]])
+     self.check_vtk("hex_2D_order2p_ReducedSolution_Tensor.xml",reference)
+  def test_hex_2D_order2p_Function_Scalar_vtk(self):
+     reference="hex_2D_o2p_cell_s.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=Function(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_Function_Scalar.xml",data=x[0])
+     self.check_vtk("hex_2D_order2p_Function_Scalar.xml",reference)
+  def test_hex_2D_order2p_Function_Vector_vtk(self):
+     reference="hex_2D_o2p_cell_v.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=Function(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_Function_Vector.xml",data=x[0]*[1.,2.])
+     self.check_vtk("hex_2D_order2p_Function_Vector.xml",reference)
+  def test_hex_2D_order2p_Function_Tensor_vtk(self):
+     reference="hex_2D_o2p_cell_t.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=Function(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_Function_Tensor.xml",data=x[0]*[[11.,12.],[21.,22.]])
+     self.check_vtk("hex_2D_order2p_Function_Tensor.xml",reference)
+  def test_hex_2D_order2p_ReducedFunction_Scalar_vtk(self):
+     reference="hex_2D_o2p_cell_reduced_s.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=ReducedFunction(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_ReducedFunction_Scalar.xml",data=x[0])
+     self.check_vtk("hex_2D_order2p_ReducedFunction_Scalar.xml",reference)
+  def test_hex_2D_order2p_ReducedFunction_Vector_vtk(self):
+     reference="hex_2D_o2p_cell_reduced_v.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=ReducedFunction(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_ReducedFunction_Vector.xml",data=x[0]*[1.,2.])
+     self.check_vtk("hex_2D_order2p_ReducedFunction_Vector.xml",reference)
+  def test_hex_2D_order2p_ReducedFunction_Tensor_vtk(self):
+     reference="hex_2D_o2p_cell_reduced_t.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=ReducedFunction(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_ReducedFunction_Tensor.xml",data=x[0]*[[11.,12.],[21.,22.]])
+     self.check_vtk("hex_2D_order2p_ReducedFunction_Tensor.xml",reference)
+  def test_hex_2D_order2p_FunctionOnBoundary_Scalar_vtk(self):
+     reference="hex_2D_o2p_boundary_s.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=FunctionOnBoundary(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_FunctionOnBoundary_Scalar.xml",data=x[0])
+     self.check_vtk("hex_2D_order2p_FunctionOnBoundary_Scalar.xml",reference)
+  def test_hex_2D_order2p_FunctionOnBoundary_Vector_vtk(self):
+     reference="hex_2D_o2p_boundary_v.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=FunctionOnBoundary(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_FunctionOnBoundary_Vector.xml",data=x[0]*[1.,2.])
+     self.check_vtk("hex_2D_order2p_FunctionOnBoundary_Vector.xml",reference)
+  def test_hex_2D_order2p_FunctionOnBoundary_Tensor_vtk(self):
+     reference="hex_2D_o2p_boundary_t.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=FunctionOnBoundary(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_FunctionOnBoundary_Tensor.xml",data=x[0]*[[11.,12.],[21.,22.]])
+     self.check_vtk("hex_2D_order2p_FunctionOnBoundary_Tensor.xml",reference)
+  def test_hex_2D_order2p_ReducedFunctionOnBoundary_Scalar_vtk(self):
+     reference="hex_2D_o2p_boundary_reduced_s.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=ReducedFunctionOnBoundary(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_ReducedFunctionOnBoundary_Scalar.xml",data=x[0])
+     self.check_vtk("hex_2D_order2p_ReducedFunctionOnBoundary_Scalar.xml",reference)
+  def test_hex_2D_order2p_ReducedFunctionOnBoundary_Vector_vtk(self):
+     reference="hex_2D_o2p_boundary_reduced_v.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=ReducedFunctionOnBoundary(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_ReducedFunctionOnBoundary_Vector.xml",data=x[0]*[1.,2.])
+     self.check_vtk("hex_2D_order2p_ReducedFunctionOnBoundary_Vector.xml",reference)
+  def test_hex_2D_order2p_ReducedFunctionOnBoundary_Tensor_vtk(self):
+     reference="hex_2D_o2p_boundary_reduced_t.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_2D_order2p.msh",optimize=False)
+     x=ReducedFunctionOnBoundary(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_2D_order2p_ReducedFunctionOnBoundary_Tensor.xml",data=x[0]*[[11.,12.],[21.,22.]])
+     self.check_vtk("hex_2D_order2p_ReducedFunctionOnBoundary_Tensor.xml",reference)
 
   # ======================================================================================================================
   def test_hex_contact_3D_order1_ContinuousFunction_Scalar_vtk(self):
@@ -1359,7 +1543,132 @@ class Test_VTKFiles(Test_VisualizationInterface):
      x=ReducedFunctionOnContactOne(dom).getX()
      saveVTK(FINLEY_WORKDIR_PATH+"hex_contact_3D_order2_onFace_ReducedFunctionOnContactOne_Tensor.xml",data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_vtk("hex_contact_3D_order2_onFace_ReducedFunctionOnContactOne_Tensor.xml",reference)
-
+  def test_hex_3D_order2p_ContinuousFunction_Scalar_vtk(self):
+     reference="hex_3D_o2p_node_s.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=ContinuousFunction(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_ContinuousFunction_Scalar.xml",data=x[0])
+     self.check_vtk("hex_3D_order2p_ContinuousFunction_Scalar.xml",reference)
+  def test_hex_3D_order2p_ContinuousFunction_Vector_vtk(self):
+     reference="hex_3D_o2p_node_v.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=ContinuousFunction(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_ContinuousFunction_Vector.xml",data=x[0]*[1.,2.,3.])
+     self.check_vtk("hex_3D_order2p_ContinuousFunction_Vector.xml",reference)
+  def test_hex_3D_order2p_ContinuousFunction_Tensor_vtk(self):
+     reference="hex_3D_o2p_node_t.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=ContinuousFunction(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_ContinuousFunction_Tensor.xml",data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+     self.check_vtk("hex_3D_order2p_ContinuousFunction_Tensor.xml",reference)
+  def test_hex_3D_order2p_Solution_Scalar_vtk(self):
+     reference="hex_3D_o2p_node_s.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=Solution(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_Solution_Scalar.xml",data=x[0])
+     self.check_vtk("hex_3D_order2p_Solution_Scalar.xml",reference)
+  def test_hex_3D_order2p_Solution_Vector_vtk(self):
+     reference="hex_3D_o2p_node_v.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=Solution(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_Solution_Vector.xml",data=x[0]*[1.,2.,3.])
+     self.check_vtk("hex_3D_order2p_Solution_Vector.xml",reference)
+  def test_hex_3D_order2p_Solution_Tensor_vtk(self):
+     reference="hex_3D_o2p_node_t.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=Solution(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_Solution_Tensor.xml",data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+     self.check_vtk("hex_3D_order2p_Solution_Tensor.xml",reference)
+  def test_hex_3D_order2p_ReducedSolution_Scalar_vtk(self):
+     reference="hex_3D_o2p_reduced_node_s.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=ReducedSolution(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_ReducedSolution_Scalar.xml",data=x[0])
+     self.check_vtk("hex_3D_order2p_ReducedSolution_Scalar.xml",reference)
+  def test_hex_3D_order2p_ReducedSolution_Vector_vtk(self):
+     reference="hex_3D_o2p_reduced_node_v.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=ReducedSolution(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_ReducedSolution_Vector.xml",data=x[0]*[1.,2.,3.])
+     self.check_vtk("hex_3D_order2p_ReducedSolution_Vector.xml",reference)
+  def test_hex_3D_order2p_ReducedSolution_Tensor_vtk(self):
+     reference="hex_3D_o2p_reduced_node_t.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=ReducedSolution(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_ReducedSolution_Tensor.xml",data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+     self.check_vtk("hex_3D_order2p_ReducedSolution_Tensor.xml",reference)
+  def test_hex_3D_order2p_Function_Scalar_vtk(self):
+     reference="hex_3D_o2p_cell_s.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=Function(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_Function_Scalar.xml",data=x[0])
+     self.check_vtk("hex_3D_order2p_Function_Scalar.xml",reference)
+  def test_hex_3D_order2p_Function_Vector_vtk(self):
+     reference="hex_3D_o2p_cell_v.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=Function(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_Function_Vector.xml",data=x[0]*[1.,2.,3.])
+     self.check_vtk("hex_3D_order2p_Function_Vector.xml",reference)
+  def test_hex_3D_order2p_Function_Tensor_vtk(self):
+     reference="hex_3D_o2p_cell_t.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=Function(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_Function_Tensor.xml",data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+     self.check_vtk("hex_3D_order2p_Function_Tensor.xml",reference)
+  def test_hex_3D_order2p_ReducedFunction_Scalar_vtk(self):
+     reference="hex_3D_o2p_cell_reduced_s.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=ReducedFunction(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_ReducedFunction_Scalar.xml",data=x[0])
+     self.check_vtk("hex_3D_order2p_ReducedFunction_Scalar.xml",reference)
+  def test_hex_3D_order2p_ReducedFunction_Vector_vtk(self):
+     reference="hex_3D_o2p_cell_reduced_v.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=ReducedFunction(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_ReducedFunction_Vector.xml",data=x[0]*[1.,2.,3.])
+     self.check_vtk("hex_3D_order2p_ReducedFunction_Vector.xml",reference)
+  def test_hex_3D_order2p_ReducedFunction_Tensor_vtk(self):
+     reference="hex_3D_o2p_cell_reduced_t.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=ReducedFunction(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_ReducedFunction_Tensor.xml",data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+     self.check_vtk("hex_3D_order2p_ReducedFunction_Tensor.xml",reference)
+  def test_hex_3D_order2p_FunctionOnBoundary_Scalar_vtk(self):
+     reference="hex_3D_o2p_boundary_s.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=FunctionOnBoundary(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_FunctionOnBoundary_Scalar.xml",data=x[0])
+     self.check_vtk("hex_3D_order2p_FunctionOnBoundary_Scalar.xml",reference)
+  def test_hex_3D_order2p_FunctionOnBoundary_Vector_vtk(self):
+     reference="hex_3D_o2p_boundary_v.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=FunctionOnBoundary(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_FunctionOnBoundary_Vector.xml",data=x[0]*[1.,2.,3.])
+     self.check_vtk("hex_3D_order2p_FunctionOnBoundary_Vector.xml",reference)
+  def test_hex_3D_order2p_FunctionOnBoundary_Tensor_vtk(self):
+     reference="hex_3D_o2p_boundary_t.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=FunctionOnBoundary(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_FunctionOnBoundary_Tensor.xml",data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+     self.check_vtk("hex_3D_order2p_FunctionOnBoundary_Tensor.xml",reference)
+  def test_hex_3D_order2p_ReducedFunctionOnBoundary_Scalar_vtk(self):
+     reference="hex_3D_o2p_boundary_reduced_s.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=ReducedFunctionOnBoundary(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_ReducedFunctionOnBoundary_Scalar.xml",data=x[0])
+     self.check_vtk("hex_3D_order2p_ReducedFunctionOnBoundary_Scalar.xml",reference)
+  def test_hex_3D_order2p_ReducedFunctionOnBoundary_Vector_vtk(self):
+     reference="hex_3D_o2p_boundary_reduced_v.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=ReducedFunctionOnBoundary(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_ReducedFunctionOnBoundary_Vector.xml",data=x[0]*[1.,2.,3.])
+     self.check_vtk("hex_3D_order2p_ReducedFunctionOnBoundary_Vector.xml",reference)
+  def test_hex_3D_order2p_ReducedFunctionOnBoundary_Tensor_vtk(self):
+     reference="hex_3D_o2p_boundary_reduced_t.xml"
+     dom=ReadMesh(FINLEY_TEST_MESH_PATH+"hex_3D_order2p.msh",optimize=False)
+     x=ReducedFunctionOnBoundary(dom).getX()
+     saveVTK(FINLEY_WORKDIR_PATH+"hex_3D_order2p_ReducedFunctionOnBoundary_Tensor.xml",data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+     self.check_vtk("hex_3D_order2p_ReducedFunctionOnBoundary_Tensor.xml",reference)
   def test_tet_2D_order2_vtk(self):
      reference="tet_2D_o2.xml"
      dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
@@ -2495,7 +2804,6 @@ class Test_DXFiles(Test_VisualizationInterface):
      x=ReducedFunctionOnBoundary(dom).getX()
      saveDX(FINLEY_WORKDIR_PATH+"hex_contact_3D_order2_ReducedFunctionOnBoundary_Tensor.dx",data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_dx("hex_contact_3D_order2_ReducedFunctionOnBoundary_Tensor.dx",reference)
-
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
