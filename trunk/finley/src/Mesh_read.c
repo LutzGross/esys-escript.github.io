@@ -246,6 +246,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
   double time0=Finley_timer();
   FILE *fileHandle_p = NULL;
   ElementTypeId typeID, faceTypeID, contactTypeID, pointTypeID;
+  Finley_TagMap* tag_map;
   index_t tag_key;
 
   Finley_resetError();
@@ -789,7 +790,38 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	TMPMEMFREE(tempInts);
       } /* end of Read the nodal element data */
 
-      /* ksteube TODO: read tags */
+      /* get the name tags */
+      if (Finley_noError()) {
+        char remainder[100000], *ptr;
+        int tag_key, num_read, len, error_code;
+        if (mpi_info->rank == 0) {	/* Master */
+	  /* Read the word 'Tag' */
+          fscanf(fileHandle_p, "%s\n", name);
+	  /* Read rest of file in one chunk */
+          num_read = fread(remainder, 100000, sizeof(char), fileHandle_p);
+          ptr = strrchr(remainder, '\n');
+          *ptr = '\0';
+        }
+	len = strlen(remainder);
+#ifdef PASO_MPI
+        error_code = MPI_Bcast (&len, 1, MPI_INT,  0, mpi_info->comm);
+        if (error_code != MPI_SUCCESS) {
+          Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: broadcast of tag len failed");
+          return NULL;
+        }
+        error_code = MPI_Bcast (remainder, len+1, MPI_CHAR,  0, mpi_info->comm);
+        if (error_code != MPI_SUCCESS) {
+          Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: broadcast of tags failed");
+          return NULL;
+        }
+#endif
+        ptr = remainder;
+        do {
+          sscanf(ptr, "%s %d\n", name, &tag_key);
+          Finley_Mesh_addTagMap(mesh_p,name,tag_key);
+          ptr++;
+        } while(NULL != (ptr = strchr(ptr, '\n')));
+      }
 
      }
 
@@ -798,8 +830,6 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 
      /*   resolve id's : */
      /* rearrange elements: */
-
-     /* return mesh_p; */ /* ksteube temp return for debugging */
 
      if (Finley_noError()) Finley_Mesh_resolveNodeIds(mesh_p);
      if (Finley_noError()) Finley_Mesh_prepare(mesh_p, optimize);

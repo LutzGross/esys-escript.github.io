@@ -83,8 +83,8 @@ mpi_lib_path		= '/home/Work/InstallArea/mpich2-1.0.7/lib'
 
 # ParMETIS (for use with MPI)
 # useparmetis		= 'yes'
-# parmetis_path		= '/home/Work/InstallArea/parmetis-3.1/include'
-# parmetis_lib_path	= '/home/Work/InstallArea/parmetis-3.1/lib'
+parmetis_path		= '/home/Work/InstallArea/parmetis-3.1/include'
+parmetis_lib_path	= '/home/Work/InstallArea/parmetis-3.1/lib'
 # parmetis_libs		= ['parmetis', 'metis']
 
 # PAPI
