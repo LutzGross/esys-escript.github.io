@@ -179,7 +179,12 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
 
   /* write face elements: */
   if (in->FaceElements!=NULL) {
-    fprintf(stdout, "\tFace elements: %s %d (TypeId=%d)\n", in->FaceElements->ReferenceElement->Type->Name,in->FaceElements->numElements,in->FaceElements->ReferenceElement->Type->TypeId);
+    int mine=0, overlap=0;
+    for (i=0;i<in->FaceElements->numElements;i++) {
+      if (in->FaceElements->Owner[i] == in->MPIInfo->rank) mine++;
+      else overlap++;
+    }
+    fprintf(stdout, "\tFace elements: %s %d (TypeId=%d) owner=%d overlap=%d\n", in->FaceElements->ReferenceElement->Type->Name,in->FaceElements->numElements,in->FaceElements->ReferenceElement->Type->TypeId, mine, overlap);
     NN=in->FaceElements->numNodes;
     if (full) {
       fprintf(stdout, "\t     Id   Tag Owner Color:  Nodes\n");
@@ -195,7 +200,12 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
 
   /* write Contact elements : */
   if (in->ContactElements!=NULL) {
-    fprintf(stdout, "\tContact elements: %s %d (TypeId=%d)\n",in->ContactElements->ReferenceElement->Type->Name,in->ContactElements->numElements,in->ContactElements->ReferenceElement->Type->TypeId);
+    int mine=0, overlap=0;
+    for (i=0;i<in->ContactElements->numElements;i++) {
+      if (in->ContactElements->Owner[i] == in->MPIInfo->rank) mine++;
+      else overlap++;
+    }
+    fprintf(stdout, "\tContact elements: %s %d (TypeId=%d) owner=%d overlap=%d\n",in->ContactElements->ReferenceElement->Type->Name,in->ContactElements->numElements,in->ContactElements->ReferenceElement->Type->TypeId, mine, overlap);
     NN=in->ContactElements->numNodes;
     if (full) {
       fprintf(stdout, "\t     Id   Tag Owner Color:  Nodes\n");
@@ -211,7 +221,12 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
 
   /* write points: */
   if (in->Points!=NULL) {
-    fprintf(stdout, "\tPoints: %s %d (TypeId=%d)\n",in->Points->ReferenceElement->Type->Name,in->Points->numElements,in->Points->ReferenceElement->Type->TypeId);
+    int mine=0, overlap=0;
+    for (i=0;i<in->Points->numElements;i++) {
+      if (in->Points->Owner[i] == in->MPIInfo->rank) mine++;
+      else overlap++;
+    }
+    fprintf(stdout, "\tPoints: %s %d (TypeId=%d) owner=%d overlap=%d\n",in->Points->ReferenceElement->Type->Name,in->Points->numElements,in->Points->ReferenceElement->Type->TypeId, mine, overlap);
     if (full) {
       fprintf(stdout, "\t     Id   Tag Owner Color:  Nodes\n");
       for (i=0;i<in->Points->numElements;i++) {
