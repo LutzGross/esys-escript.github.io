@@ -496,6 +496,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
    
          }
          #ifdef PASO_MPI
+            if (txt_buffer_in_use==0) { strcpy(txt_buffer, " "); txt_buffer_in_use = 1; } /* avoid zero-length writes */
             MPI_File_write_ordered(mpi_fileHandle_p, txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
          #endif     
       } else {
@@ -696,6 +697,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            }
         }
         #ifdef PASO_MPI
+           if (txt_buffer_in_use==0) { strcpy(txt_buffer, " "); txt_buffer_in_use = 1; } /* avoid zero-length writes */
            MPI_File_write_ordered(mpi_fileHandle_p,txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
         #endif     
      } else {
@@ -849,6 +851,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
             __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use);
          }
          #ifdef PASO_MPI
+            if (txt_buffer_in_use==0) { strcpy(txt_buffer, " "); txt_buffer_in_use = 1; } /* avoid zero-length writes */
             MPI_File_write_ordered(mpi_fileHandle_p,txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
          #endif     
      } else {
@@ -875,6 +878,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
         txt_buffer_in_use=0;
         for (i=0; i<numCells*numCellFactor; i++) __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use);
          #ifdef PASO_MPI
+            if (txt_buffer_in_use==0) { strcpy(txt_buffer, " "); txt_buffer_in_use = 1; } /* avoid zero-length writes */
             MPI_File_write_ordered(mpi_fileHandle_p,txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
          #endif     
      } else {
@@ -1090,6 +1094,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                }
                if ( mpi_size > 1) {
                      #ifdef PASO_MPI
+                        if (txt_buffer_in_use==0) { strcpy(txt_buffer, " "); txt_buffer_in_use = 1; } /* avoid zero-length writes */
                         MPI_File_write_ordered(mpi_fileHandle_p,txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
                      #endif     
                      if ( my_mpi_rank == 0) {
@@ -1255,6 +1260,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                }
                if ( mpi_size > 1) {
                    #ifdef PASO_MPI
+                     if (txt_buffer_in_use==0) { strcpy(txt_buffer, " "); txt_buffer_in_use = 1; } /* avoid zero-length writes */
                      MPI_File_write_ordered(mpi_fileHandle_p,txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
                    #endif     
                    if ( my_mpi_rank == 0) {
