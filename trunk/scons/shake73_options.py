@@ -70,7 +70,7 @@
 useopenmp		= 'yes'
 
 # MPICH2 (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
-usempi= 'no'
+usempi= 'yes'
 mpi_path		= '/usr/local/include'
 mpi_lib_path		= '/usr/local/lib'
 mpi_libs		= ['mpich', 'rt']

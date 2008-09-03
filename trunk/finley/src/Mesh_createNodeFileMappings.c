@@ -255,7 +255,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
   }
 }
  
-void Finley_Mesh_createMappings(Finley_Mesh* mesh, index_t* distribution) {
+void Finley_Mesh_createMappings(Finley_Mesh* mesh, index_t* dof_distribution, index_t* node_distribution) {
   int i;
   index_t *maskReducedNodes=NULL, *indexReducedNodes=NULL;
   dim_t numReducedNodes;
@@ -268,19 +268,18 @@ void Finley_Mesh_createMappings(Finley_Mesh* mesh, index_t* distribution) {
     for (i=0;i<mesh->Nodes->numNodes;++i) maskReducedNodes[i]=-1;
     Finley_Mesh_markNodes(maskReducedNodes,0,mesh,TRUE);
     numReducedNodes=Finley_Util_packMask(mesh->Nodes->numNodes,maskReducedNodes,indexReducedNodes);
-    if (Finley_noError()) Finley_Mesh_createNodeFileMappings(mesh,numReducedNodes,indexReducedNodes,distribution);
+    if (Finley_noError()) Finley_Mesh_createNodeFileMappings(mesh,numReducedNodes,indexReducedNodes,dof_distribution, node_distribution);
   }
 
   TMPMEMFREE(maskReducedNodes);
   TMPMEMFREE(indexReducedNodes);
 }
 
-void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, index_t* indexReducedNodes, index_t* dof_first_component) {
+void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, index_t* indexReducedNodes, index_t* dof_first_component, index_t* nodes_first_component) {
 
 
   index_t myFirstDOF, myLastDOF, myFirstNode, myLastNode, *reduced_dof_first_component=NULL, *nodeMask=NULL,
-         *reduced_nodes_first_component=NULL, *nodes_first_component=NULL,k,
-         *maskMyReducedDOF=NULL, *indexMyReducedDOF=NULL, *maskMyReducedNodes=NULL, *indexMyReducedNodes=NULL;
+         *reduced_nodes_first_component=NULL, k,*maskMyReducedDOF=NULL, *indexMyReducedDOF=NULL, *maskMyReducedNodes=NULL, *indexMyReducedNodes=NULL;
   dim_t myNumDOF, myNumNodes, myNumReducedNodes, myNumReducedDOF, globalNumReducedNodes, globalNumReducedDOF,i,mpiSize, minGlobalNodeIndex,maxGlobalNodeIndex;
   Paso_MPI_rank myRank;
 
@@ -290,16 +289,13 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
 
   reduced_dof_first_component=TMPMEMALLOC(mpiSize+1,index_t);
   reduced_nodes_first_component=TMPMEMALLOC(mpiSize+1,index_t);
-  nodes_first_component=TMPMEMALLOC(mpiSize+1,index_t);
 
-  if (! ( Finley_checkPtr(reduced_dof_first_component) || Finley_checkPtr(reduced_nodes_first_component) || Finley_checkPtr(nodes_first_component)  ) ) {
-
-     Finley_NodeFile_setGlobalNodeIDIndexRange(&minGlobalNodeIndex,&maxGlobalNodeIndex,in->Nodes);
-     Paso_MPIInfo_setDistribution(in->Nodes->MPIInfo,minGlobalNodeIndex,maxGlobalNodeIndex,nodes_first_component);
+  if (! ( Finley_checkPtr(reduced_dof_first_component) || Finley_checkPtr(reduced_nodes_first_component) ) ) {
 
      myFirstDOF=dof_first_component[myRank];
      myLastDOF=dof_first_component[myRank+1];
      myNumDOF=myLastDOF-myFirstDOF;
+
      myFirstNode=nodes_first_component[myRank];
      myLastNode=nodes_first_component[myRank+1];
      myNumNodes=myLastNode-myFirstNode;
@@ -351,14 +347,12 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
         reduced_nodes_first_component[mpiSize]=globalNumReducedNodes;
         reduced_dof_first_component[mpiSize]=globalNumReducedDOF;
         /* ==== distribution of Nodes ===============================*/
-        Paso_MPIInfo_setDistribution(in->Nodes->MPIInfo,minGlobalNodeIndex,maxGlobalNodeIndex,nodes_first_component);
         in->Nodes->nodesDistribution=Paso_Distribution_alloc(in->Nodes->MPIInfo,nodes_first_component,1,0);
     
-        /* ==== distribution of Nodes ===============================*/
+        /* ==== distribution of DOFs ===============================*/
         in->Nodes->degreesOfFreedomDistribution=Paso_Distribution_alloc(in->Nodes->MPIInfo,dof_first_component,1,0);
     
         /* ==== distribution of reduced Nodes ===============================*/
-        reduced_nodes_first_component[mpiSize]=globalNumReducedNodes;
         in->Nodes->reducedNodesDistribution=Paso_Distribution_alloc(in->Nodes->MPIInfo,reduced_nodes_first_component,1,0);
     
         /* ==== distribution of reduced DOF ===============================*/
@@ -371,7 +365,6 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
   }
   TMPMEMFREE(reduced_dof_first_component);
   TMPMEMFREE(reduced_nodes_first_component);
-  TMPMEMFREE(nodes_first_component);
 
   nodeMask=TMPMEMALLOC(in->Nodes->numNodes,index_t);
   if (! Finley_checkPtr(nodeMask) && Finley_noError()) {
