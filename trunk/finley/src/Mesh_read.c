@@ -791,16 +791,17 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
       } /* end of Read the nodal element data */
 
       /* get the name tags */
-      if (Finley_noError()) {
+      if (Finley_noError() && ! feof(fileHandle_p)) {
         char remainder[100000], *ptr;
-        int tag_key, num_read, len, error_code;
+        int tag_key, len, error_code;
         if (mpi_info->rank == 0) {	/* Master */
 	  /* Read the word 'Tag' */
           fscanf(fileHandle_p, "%s\n", name);
 	  /* Read rest of file in one chunk */
-          num_read = fread(remainder, 100000, sizeof(char), fileHandle_p);
+	  strcpy(remainder, "");
+	  if (! feof(fileHandle_p)) fread(remainder, 100000, sizeof(char), fileHandle_p);
           ptr = strrchr(remainder, '\n');
-          *ptr = '\0';
+          if (ptr != NULL) *ptr = '\0';
         }
 	len = strlen(remainder);
 #ifdef PASO_MPI
