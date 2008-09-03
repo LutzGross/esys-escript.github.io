@@ -18,7 +18,6 @@
 #include "system_dep.h"
 
 #include "DataAbstract.h"
-#include "DataArrayView.h"
 
 #include <boost/python/numeric.hpp>
 
@@ -58,18 +57,18 @@ class DataConstant : public DataAbstract  {
   ESCRIPT_DLL_API
   DataConstant(const DataConstant& other);
 
-  /**
-     \brief
+//  /**
+/*     \brief
      Alternative constructor for DataConstant objects.
 
      Description:
      Alternative Constructor for DataConstant objects.
      \param value - Input - Data value for a single point.
-     \param what - Input - A description of what this data object represents.
-  */
-  ESCRIPT_DLL_API
-  DataConstant(const DataArrayView& value,
-               const FunctionSpace& what);
+     \param what - Input - A description of what this data object represents.*/
+//  */
+//   ESCRIPT_DLL_API
+//   DataConstant(const DataArrayView& value,
+//                const FunctionSpace& what);
 
   /**
      \brief
@@ -139,17 +138,17 @@ class DataConstant : public DataAbstract  {
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
-  /**
-     \brief
+//  /**
+/*     \brief
      Return a view into the data for the data point specified.
      \param sampleNo - Input - sample number.
-     \param dataPointNo - Input - data point number for the sample.
-  */
-  ESCRIPT_DLL_API
-  virtual
-  DataArrayView
-  getDataPoint(int sampleNo,
-               int dataPointNo);
+     \param dataPointNo - Input - data point number for the sample.*/
+//  */
+//   ESCRIPT_DLL_API
+//   virtual
+//   DataArrayView
+//   getDataPoint(int sampleNo,
+//                int dataPointNo);
 
   /**
      \brief

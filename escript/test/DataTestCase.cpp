@@ -32,6 +32,7 @@ using namespace std;
 using namespace CppUnitTest;
 using namespace escript;
 using namespace esysUtils;
+using namespace escript::DataTypes;
 
 void DataTestCase::setUp() {
   //
@@ -43,8 +44,30 @@ void DataTestCase::tearDown() {
   // This is called after each test has been run
 }
 
+
+
+namespace
+{
+
+inline
+DataTypes::ValueType::reference
+getRef(Data& d,int s1, int p1, int x, int y)
+{
+	return d.getDataAtOffset(d.getDataOffset(s1,p1)+getRelIndex(d.getDataPointShape(),x,y));
+}
+
+inline
+DataTypes::ValueType::reference
+getRef(Data& d, int x, int y)
+{
+	return d.getDataAtOffset(getRelIndex(d.getDataPointShape(),x,y));
+}
+
+}
+
 void DataTestCase::testSlicing() {
 
+  using namespace escript::DataTypes;
   cout << endl;
 
   {
@@ -67,7 +90,7 @@ void DataTestCase::testSlicing() {
     //cout << slice1.toString() << endl;
 
     assert(slice1.getDataPointRank()==0);
-    assert(slice1.getDataPoint(0,0)()==1.3);
+    assert(slice1.getDataPoint(0,0)==1.3);
 
     region.clear();
     region.push_back(DataTypes::RegionType::value_type(0,1));
@@ -78,7 +101,9 @@ void DataTestCase::testSlicing() {
     //cout << slice2.toString() << endl;
 
     assert(slice2.getDataPointRank()==2);
-    assert(slice2.getDataPoint(0,0)(0,0)==1.3);
+    int off1=slice2.getDataOffset(0,0);
+//     assert(slice2.getDataPoint(0,0)(0,0)==1.3);
+    assert(slice2.getDataAtOffset(off1+getRelIndex(slice2.getDataPointShape(),0,0))==1.3);
 
     region.clear();
     region.push_back(DataTypes::RegionType::value_type(0,1));
@@ -89,8 +114,11 @@ void DataTestCase::testSlicing() {
     //cout << slice3.toString() << endl;
 
     assert(slice3.getDataPointRank()==2);
-    assert(slice3.getDataPoint(0,0)(0,0)==1.3);
-    assert(slice3.getDataPoint(0,0)(0,1)==1.3);
+    off1=slice3.getDataOffset(0,0);
+//     assert(slice3.getDataPoint(0,0)(0,0)==1.3);
+//     assert(slice3.getDataPoint(0,0)(0,1)==1.3);
+    assert(slice3.getDataAtOffset(off1+getRelIndex(slice3.getDataPointShape(),0,0))==1.3);
+    assert(slice3.getDataAtOffset(off1+getRelIndex(slice3.getDataPointShape(),0,1))==1.3);
 
   }
 
@@ -117,7 +145,8 @@ void DataTestCase::testSlicing() {
 
     //cout << target.toString() << endl;
 
-    assert(target.getDataPoint(0,0)(0,0)==source.getDataPoint(0,0)());
+    int off1=target.getDataOffset(0,0);
+    assert(target.getDataAtOffset(off1+getRelIndex(target.getDataPointShape(),0,0)==source.getDataPoint(0,0)));
 
   }
 
@@ -133,8 +162,10 @@ void DataTestCase::testSlicing() {
     viewShape.push_back(3);
     Data data(1.3,viewShape,FunctionSpace(),false);
     data.tag();
-    data.getDataPoint(0,0)(0,0)=1.0;
-    data.getDataPoint(0,0)(1,1)=2.0;
+    data.getDataAtOffset(data.getDataOffset(0,0)+getRelIndex(viewShape,0,0))=1.0;
+    data.getDataAtOffset(data.getDataOffset(0,0)+getRelIndex(viewShape,1,1))=1.0;   
+//     data.getDataPoint(0,0)(0,0)=1.0;
+//     data.getDataPoint(0,0)(1,1)=2.0;
 
     //cout << data.toString() << endl;
 
@@ -151,7 +182,7 @@ void DataTestCase::testSlicing() {
 
     assert(slice1.isTagged());
     assert(slice1.getDataPointRank()==0);
-    assert(slice1.getDataPoint(0,0)()==1.0);
+    assert(slice1.getDataPoint(0,0)==1.0);
 
     //
     // create a rank 2 slice with one value
@@ -166,7 +197,7 @@ void DataTestCase::testSlicing() {
 
     assert(slice2.isTagged());
     assert(slice2.getDataPointRank()==2);
-    assert(slice2.getDataPoint(0,0)(0,0)==1.0);
+    assert(slice2.getDataAtOffset(slice2.getDataOffset(0,0)+getRelIndex(slice2.getDataPointShape(),1,1))==1.0);
 
     //
     // create a rank 2 slice with four values
@@ -181,10 +212,10 @@ void DataTestCase::testSlicing() {
 
     assert(slice3.isTagged());
     assert(slice3.getDataPointRank()==2);
-    assert(slice3.getDataPoint(0,0)(0,0)==1.0);
-    assert(slice3.getDataPoint(0,0)(0,1)==1.3);
-    assert(slice3.getDataPoint(0,0)(1,0)==1.3);
-    assert(slice3.getDataPoint(0,0)(1,1)==2.0);
+    assert(getRef(slice3,0,0,0,0)==1.0);
+    assert(getRef(slice3,0,0,0,1)==1.3);
+    assert(getRef(slice3,0,0,1,0)==1.3);
+    assert(getRef(slice3,0,0,1,1)==2.0);
 
     //
     // add a value for tag "1"
@@ -212,12 +243,12 @@ void DataTestCase::testSlicing() {
 
     assert(slice4.isTagged());
     assert(slice4.getDataPointRank()==2);
-    assert(slice4.getDataPoint(0,0)(0,0)==0);
-    assert(slice4.getDataPoint(0,0)(0,1)==2);
-    assert(slice4.getDataPoint(0,0)(0,2)==4);
-    assert(slice4.getDataPoint(0,0)(1,0)==1);
-    assert(slice4.getDataPoint(0,0)(1,1)==3);
-    assert(slice4.getDataPoint(0,0)(1,2)==5);
+    assert(getRef(slice4,0,0,0,0)==0);
+    assert(getRef(slice3,0,0,0,1)==2);
+    assert(getRef(slice3,0,0,0,2)==4);
+    assert(getRef(slice3,0,0,1,0)==1);
+    assert(getRef(slice3,0,0,1,1)==3);
+    assert(getRef(slice3,0,0,1,2)==5);
 
   }
 
@@ -257,12 +288,12 @@ void DataTestCase::testSlicing() {
 
     assert(target.isTagged());
     assert(target.getDataPointRank()==2);
-    assert(target.getDataPoint(0,0)(0,0)==1.3);
-    assert(target.getDataPoint(0,0)(0,1)==1.3);
-    assert(target.getDataPoint(0,0)(0,2)==1.3);
-    assert(target.getDataPoint(0,0)(1,0)==1.3);
-    assert(target.getDataPoint(0,0)(1,1)==source.getDataPoint(0,0)());
-    assert(target.getDataPoint(0,0)(1,2)==1.3);
+    assert(getRef(target,0,0,0,0)==1.3);
+    assert(getRef(target,0,0,0,1)==1.3);
+    assert(getRef(target,0,0,0,2)==1.3);
+    assert(getRef(target,0,0,1,0)==1.3);
+    assert(getRef(target,0,0,1,1)==source.getDataPoint(0,0));
+    assert(getRef(target,0,0,1,2)==1.3);
 
     //
     // add a value for tag "1" to target
@@ -291,12 +322,12 @@ void DataTestCase::testSlicing() {
 
     assert(target.isTagged());
     assert(target.getDataPointRank()==2);
-    assert(target.getDataPoint(0,0)(0,0)==0);
-    assert(target.getDataPoint(0,0)(0,1)==source.getDataPoint(0,0)());
-    assert(target.getDataPoint(0,0)(0,2)==4);
-    assert(target.getDataPoint(0,0)(1,0)==1);
-    assert(target.getDataPoint(0,0)(1,1)==3);
-    assert(target.getDataPoint(0,0)(1,2)==5);
+    assert(getRef(target,0,0,0,0)==0);
+    assert(getRef(target,0,0,0,1)==source.getDataPoint(0,0));
+    assert(getRef(target,0,0,0,2)==4);
+    assert(getRef(target,0,0,1,0)==1);
+    assert(getRef(target,0,0,1,1)==3);
+    assert(getRef(target,0,0,1,2)==5);
 
     //
     // add a value for tag "2" to source
@@ -361,8 +392,8 @@ void DataTestCase::testSlicing() {
     viewShape.push_back(3);
     Data temp(1.3,viewShape,FunctionSpace(),true);
 
-    temp.getDataPoint(0,0)(0,0)=0.0;
-    temp.getDataPoint(0,0)(1,1)=1.0;
+    getRef(temp,0,0,0,0)=0.0;
+    getRef(temp,0,0,1,1)=1.0;
 
     DataTypes::RegionType region;
     region.push_back(DataTypes::RegionType::value_type(0,0));
@@ -371,7 +402,7 @@ void DataTestCase::testSlicing() {
     Data slice(temp.getSlice(region));
 
     assert(slice.getDataPointRank()==0);
-    assert(slice.getDataPoint(0,0)()==0.0);
+    assert(slice.getDataPoint(0,0)==0.0);
 
     region.clear();
     region.push_back(DataTypes::RegionType::value_type(0,1));
@@ -380,7 +411,7 @@ void DataTestCase::testSlicing() {
     slice=temp.getSlice(region);
 
     assert(slice.getDataPointRank()==2);
-    assert(slice.getDataPoint(0,0)(0,0)==0.0);
+    assert(getRef(slice,0,0,0,0)==0.0);
 
     region.clear();
     region.push_back(DataTypes::RegionType::value_type(0,2));
@@ -388,8 +419,8 @@ void DataTestCase::testSlicing() {
 
     slice=temp.getSlice(region);
 
-    assert(slice.getDataPoint(0,0)(0,0)==0.0);
-    assert(slice.getDataPoint(0,0)(1,1)==1.0);
+    assert(getRef(slice,0,0,0,0)==0.0);
+    assert(getRef(slice,0,0,1,1)==1.0);
 
   }
 
@@ -410,7 +441,7 @@ void DataTestCase::testSlicing() {
 
     target.setSlice(source,region);
 
-    assert(target.getDataPoint(0,0)(0,0)==source.getDataPoint(0,0)());
+    assert(getRef(target,0,0,0,0)==source.getDataPoint(0,0));
 
   }
 
@@ -536,9 +567,9 @@ void DataTestCase::testDataTagged() {
 
     cout << "\tCreate a DataTagged object with a default value only." << endl;
 
-    DataTagged::TagListType keys;
+//    DataTagged::TagListType keys;
 
-    DataTagged::ValueListType values;
+//    DataTagged::ValueListType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -547,11 +578,14 @@ void DataTestCase::testDataTagged() {
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView defaultValue(viewData,viewShape);
+/*    DataArrayView defaultValue(viewData,viewShape);
 
     bool expanded=false;
 
-    Data myData(keys,values,defaultValue,FunctionSpace(),expanded);
+    Data myData(keys,values,defaultValue,FunctionSpace(),expanded);*/
+    int arr[0]={};
+    DataTagged* dt=new DataTagged(FunctionSpace(),viewShape,arr,viewData); 
+    Data myData(dt);
 
     // cout << myData.toString() << endl;
 
@@ -560,29 +594,34 @@ void DataTestCase::testDataTagged() {
     assert(myData.getTagNumber(0)==1);
     assert(myData.getDataPointRank()==1);
     assert(myData.getLength()==3);
+    
+    assert(myData.getNoValues()==3);
+    assert(myData.getDataAtOffset(0)==0.0);
+    assert(myData.getDataAtOffset(1)==1.0);
+    assert(myData.getDataAtOffset(2)==2.0);
 
-    DataArrayView myDataView = myData.getPointDataView();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0.0);
-    assert(myDataView(1)==1.0);
-    assert(myDataView(2)==2.0);
+//     DataArrayView myDataView = myData.getPointDataView();
+//     assert(!myDataView.isEmpty());
+//     assert(myDataView.getOffset()==0);
+//     assert(myDataView.getRank()==1);
+//     assert(myDataView.noValues()==3);
+//     assert(myDataView.getShape().size()==1);
+//     assert(myDataView(0)==0.0);
+//     assert(myDataView(1)==1.0);
+//     assert(myDataView(2)==2.0);
 
-    myDataView = myData.getDataPoint(0,0);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0.0);
-    assert(myDataView(1)==1.0);
-    assert(myDataView(2)==2.0);
+//     myDataView = myData.getDataPoint(0,0);
+//     assert(!myDataView.isEmpty());
+//     assert(myDataView.getOffset()==0);
+//     assert(myDataView.getRank()==1);
+//     assert(myDataView.noValues()==3);
+//     assert(myDataView.getShape().size()==1);
+//     assert(myDataView(0)==0.0);
+//     assert(myDataView(1)==1.0);
+//     assert(myDataView(2)==2.0);
 
     double* sampleData=myData.getSampleData(0);
-    for (int i=0; i<myDataView.noValues(); i++) {
+    for (int i=0; i<myData.getNoValues(); i++) {
       assert(sampleData[i]==i);
     }
     // use a non-existent tag so we get a pointer to
@@ -596,28 +635,28 @@ void DataTestCase::testDataTagged() {
 
     // value for tag "1"
     DataTypes::ValueType eTwoData(viewData);
-    DataArrayView eTwoView(eTwoData, viewShape);
-    for (int i=0;i<eTwoView.getShape()[0];i++) {
-      eTwoView(i)=i+2.0;
+ //   DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+      eTwoData[i]=i+2.0;
     }
 
-    myData.setTaggedValueFromCPP(1,viewShape, eTwoView.getData());
+    myData.setTaggedValueFromCPP(1,viewShape, eTwoData);
 
     assert(myData.getLength()==6);
 
-    myDataView = myData.getDataPoint(0,0);
-    assert(myDataView==eTwoView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==2);
-    assert(myDataView(1)==3);
-    assert(myDataView(2)==4);
+//    myDataView = myData.getDataPoint(0,0);
+//     assert(myDataView==eTwoView);
+//     assert(!myDataView.isEmpty());
+//     assert(myDataView.getOffset()==3);
+    assert(myData.getDataPointRank()==1);
+    assert(myData.getNoValues()==3);
+//    assert(myDataView.getShape().size()==1);
+    assert(myData.getDataAtOffset(0)==2);
+    assert(myData.getDataAtOffset(1)==3);
+    assert(myData.getDataAtOffset(2)==4);
 
     sampleData=myData.getSampleDataByTag(1);
-    for (int i=0; i<myDataView.noValues(); i++) {
+    for (int i=0; i<myData.getNoValues(); i++) {
       assert(sampleData[i]==i+2);
     }
 
@@ -642,32 +681,32 @@ void DataTestCase::testDataTagged() {
     assert(myData.getLength()==6);
 
     // check default value
-    DataArrayView myDataView = myData.getPointDataView();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==2);
-    assert(myDataView.noValues()==6);
-    assert(myDataView.getShape().size()==2);
-    assert(myDataView(0,0)==1.3);
-    assert(myDataView(0,1)==1.3);
-    assert(myDataView(0,2)==1.3);
-    assert(myDataView(1,0)==1.3);
-    assert(myDataView(1,1)==1.3);
-    assert(myDataView(1,2)==1.3);
+//     DataArrayView myDataView = myData.getPointDataView();
+    assert(!myData.isEmpty());
+//     assert(myDataView.getOffset()==0);
+    assert(myData.getDataPointRank()==2);
+    assert(myData.getNoValues()==6);
+    assert(myData.getDataPointShape().size()==2);
+    assert(getRef(myData,0,0)==1.3);
+    assert(getRef(myData,0,1)==1.3);
+    assert(getRef(myData,0,2)==1.3);
+    assert(getRef(myData,1,0)==1.3);
+    assert(getRef(myData,1,1)==1.3);
+    assert(getRef(myData,1,2)==1.3);
 
     // check value for data-point (0,0).
-    myDataView = myData.getDataPoint(0,0);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==2);
-    assert(myDataView.noValues()==6);
-    assert(myDataView.getShape().size()==2);
-    assert(myDataView(0,0)==1.3);
-    assert(myDataView(0,1)==1.3);
-    assert(myDataView(0,2)==1.3);
-    assert(myDataView(1,0)==1.3);
-    assert(myDataView(1,1)==1.3);
-    assert(myDataView(1,2)==1.3);
+//     myDataView = myData.getDataPoint(0,0);
+    assert(!myData.isEmpty());
+//     assert(myDataView.getOffset()==0);
+    assert(myData.getDataPointRank()==2);
+    assert(myData.getNoValues()==6);
+    assert(myData.getDataPointShape().size()==2);
+    assert(getRef(myData,0,0)==1.3);
+    assert(getRef(myData,0,1)==1.3);
+    assert(getRef(myData,0,2)==1.3);
+    assert(getRef(myData,1,0)==1.3);
+    assert(getRef(myData,1,1)==1.3);
+    assert(getRef(myData,1,2)==1.3);
 
   }
 
@@ -765,9 +804,9 @@ void DataTestCase::testOperations() {
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
       tmp=pow((double)dataView.index(i,j),(double)3.0);
-      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultEx,i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultCon,i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultTag,i,j) - tmp) <= REL_TOL*std::abs(tmp));
     }
   }
 
@@ -778,9 +817,9 @@ void DataTestCase::testOperations() {
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
       tmp=sin((double)dataView.index(i,j));
-      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultEx,i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultCon,i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultTag,i,j) - tmp) <= REL_TOL*std::abs(tmp));
     }
   }
 
@@ -791,9 +830,9 @@ void DataTestCase::testOperations() {
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
       tmp=cos((double)dataView.index(i,j));
-      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultEx,i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultCon,i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultTag,i,j) - tmp) <= REL_TOL*std::abs(tmp));
     }
   }
 
@@ -804,9 +843,9 @@ void DataTestCase::testOperations() {
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
       tmp=tan((double)dataView.index(i,j));
-      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultEx,i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultCon,i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultTag,i,j)- tmp) <= REL_TOL*std::abs(tmp));
     }
   }
 
@@ -829,9 +868,9 @@ void DataTestCase::testOperations() {
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
       tmp=atan((double)dataView.index(i,j));
-      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultEx,i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultCon,i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultTag,i,j)- tmp) <= REL_TOL*std::abs(tmp));
     }
   }
 
@@ -842,9 +881,9 @@ void DataTestCase::testOperations() {
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
       tmp=sinh((double)dataView.index(i,j));
-      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultEx,i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultCon,i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultTag,i,j)- tmp) <= REL_TOL*std::abs(tmp));
     }
   }
 
@@ -855,9 +894,9 @@ void DataTestCase::testOperations() {
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
       tmp=cosh((double)dataView.index(i,j));
-      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultEx,i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultCon,i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultTag,i,j)- tmp) <= REL_TOL*std::abs(tmp));
     }
   }
 
@@ -868,9 +907,9 @@ void DataTestCase::testOperations() {
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
       tmp=tanh((double)dataView.index(i,j));
-      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultEx,i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultCon,i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultTag,i,j)- tmp) <= REL_TOL*std::abs(tmp));
     }
   }
 
@@ -905,9 +944,9 @@ void DataTestCase::testOperations() {
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
       tmp=abs((double)dataView.index(i,j));
-      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultEx,i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultCon,i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultTag,i,j)- tmp) <= REL_TOL*std::abs(tmp));
     }
   }
 
@@ -924,9 +963,9 @@ void DataTestCase::testOperations() {
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
       tmp=exp((double)dataView.index(i,j));
-      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultEx,i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultCon,i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultTag,i,j)- tmp) <= REL_TOL*std::abs(tmp));
     }
   }
 
@@ -937,9 +976,9 @@ void DataTestCase::testOperations() {
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
       tmp=sqrt((double)dataView.index(i,j));
-      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
-      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultEx,i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultCon,i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(getRef(resultTag,i,j)- tmp) <= REL_TOL*std::abs(tmp));
     }
   }
 
@@ -955,9 +994,9 @@ void DataTestCase::testOperations() {
   resultTag.copy(baseTag.pos());
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
-      assert(std::abs(resultEx.getPointDataView()(i,j) - dataView.index(i,j)) <= REL_TOL*std::abs(dataView.index(i,j)));
-      assert(std::abs(resultCon.getPointDataView()(i,j) - dataView.index(i,j)) <= REL_TOL*std::abs(dataView.index(i,j)));
-      assert(std::abs(resultTag.getPointDataView()(i,j) - dataView.index(i,j)) <= REL_TOL*std::abs(dataView.index(i,j)));
+      assert(std::abs(getRef(resultEx,i,j) - dataView.index(i,j)) <= REL_TOL*std::abs(dataView.index(i,j)));
+      assert(std::abs(getRef(resultCon,i,j) - dataView.index(i,j)) <= REL_TOL*std::abs(dataView.index(i,j)));
+      assert(std::abs(getRef(resultTag,i,j) - dataView.index(i,j)) <= REL_TOL*std::abs(dataView.index(i,j)));
     }
   }
 
@@ -984,17 +1023,20 @@ void DataTestCase::testOperations() {
   resultEx.copy(baseEx.minval());
   resultCon.copy(baseCon.minval());
   resultTag.copy(baseTag.minval());
-  assert(std::abs(resultEx.getPointDataView()() - 0) <= REL_TOL*0);
-  assert(std::abs(resultCon.getPointDataView()() - 0) <= REL_TOL*0);
-  assert(std::abs(resultTag.getPointDataView()() - 0) <= REL_TOL*0);
+//   assert(std::abs(resultEx.getPointDataView()() - 0) <= REL_TOL*0);
+//   assert(std::abs(resultCon.getPointDataView()() - 0) <= REL_TOL*0);
+//   assert(std::abs(resultTag.getPointDataView()() - 0) <= REL_TOL*0);
+  assert(std::abs(resultEx.getDataAtOffset(0) - 0) <= REL_TOL*0);
+  assert(std::abs(resultCon.getDataAtOffset(0) - 0) <= REL_TOL*0);
+  assert(std::abs(resultTag.getDataAtOffset(0) - 0) <= REL_TOL*0);
 
   cout << "\tTest Data::maxval." << endl;
   resultEx.copy(baseEx.maxval());
   resultCon.copy(baseCon.maxval());
   resultTag.copy(baseTag.maxval());
-  assert(std::abs(resultEx.getPointDataView()() - 5) <= REL_TOL*5);
-  assert(std::abs(resultCon.getPointDataView()() - 5) <= REL_TOL*5);
-  assert(std::abs(resultTag.getPointDataView()() - 5) <= REL_TOL*5);
+  assert(std::abs(resultEx.getDataAtOffset(0) - 5) <= REL_TOL*5);
+  assert(std::abs(resultCon.getDataAtOffset(0) - 5) <= REL_TOL*5);
+  assert(std::abs(resultTag.getDataAtOffset(0) - 5) <= REL_TOL*5);
 
 }
 

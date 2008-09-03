@@ -64,7 +64,7 @@ void DataEmptyTestCase::testAll() {
   try {
     cout << "\tTest getDataPoint." << endl;
     // this function also returns a DataArrayView object - should check that
-    testData.getDataPoint(0,0);
+    testData.getPointOffset(0,0);
     assert(false);
   }
   catch (EsysException&) {

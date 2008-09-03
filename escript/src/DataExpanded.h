@@ -64,23 +64,23 @@ class DataExpanded : public DataAbstract {
   DataExpanded(const boost::python::numeric::array& value,
                const FunctionSpace& what);
 
-  /**
-     \brief
-     Alternative constructor for DataExpanded.
-
-     Description:
-     Alternative Constructor for DataExpanded.
-
-     The given single data value is copied to all the data points in 
-     this data object, where the number of data points is defined by
-     the given function space.
-
-     \param value - Input - A single data value.
-     \param what - Input - A description of what this data represents.
-  */
-  ESCRIPT_DLL_API
-  DataExpanded(const DataArrayView& value,
-               const FunctionSpace& what);
+//  /**
+//      \brief
+//      Alternative constructor for DataExpanded.
+// 
+//      Description:
+//      Alternative Constructor for DataExpanded.
+// 
+//      The given single data value is copied to all the data points in 
+//      this data object, where the number of data points is defined by
+//      the given function space.
+// 
+//      \param value - Input - A single data value.
+//      \param what - Input - A description of what this data represents.
+//  */
+//   ESCRIPT_DLL_API
+//   DataExpanded(const DataArrayView& value,
+//                const FunctionSpace& what);
 
   /**
      \brief
@@ -182,8 +182,8 @@ class DataExpanded : public DataAbstract {
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
-  /**
-     \brief
+//  /**
+/*     \brief
      Return a view into the data array for the data point specified.
 
      NOTE: Construction of the DataArrayView is a relatively expensive 
@@ -191,12 +191,12 @@ class DataExpanded : public DataAbstract {
 
      \param sampleNo - Input - sample number.
      \param dataPointNo - Input - data point number.
-     \return DataArrayView for the data point.
-  */
-  ESCRIPT_DLL_API
-  DataArrayView
-  getDataPoint(int sampleNo,
-               int dataPointNo);
+     \return DataArrayView for the data point.*/
+//  */
+//   ESCRIPT_DLL_API
+//   DataArrayView
+//   getDataPoint(int sampleNo,
+//                int dataPointNo);
 
 
   /**
@@ -418,13 +418,11 @@ class DataExpanded : public DataAbstract {
      given shape and number of data points, and creates the corresponding
      DataArrayView of this data.
 
-     \param shape - Input - The shape of the point data.
      \param noSamples - Input - number of samples.
      \param noDataPointsPerSample - Input - number of data points per sample.
   */
   void
-  initialise(const DataTypes::ShapeType& shape,
-             int noSamples,
+  initialise(int noSamples,
              int noDataPointsPerSample);
 
   /**
@@ -437,7 +435,9 @@ class DataExpanded : public DataAbstract {
      \param value Input - A single data point value.
   */
   void
-  copy(const DataArrayView& value);
+  copy(const DataConstant& value);
+
+
 
   /**
      \brief

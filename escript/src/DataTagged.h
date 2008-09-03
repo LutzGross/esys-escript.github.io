@@ -18,7 +18,6 @@
 #include "system_dep.h"
 
 #include "DataAbstract.h"
-#include "DataArrayView.h"
 #include "DataTypes.h"
 
 #include <vector>
@@ -46,8 +45,9 @@ class DataTagged : public DataAbstract {
   //
   // Types for the lists of tags and values.
   typedef std::vector<int>           TagListType;
-  typedef std::vector<DataArrayView> ValueListType;
+//  typedef std::vector<DataArrayView> ValueListType;
   typedef DataTypes::ValueType   ValueType;
+  typedef std::vector<ValueType::ElementType> ValueBatchType;
 
   //
   // Map from a tag to an offset into the data array. 
@@ -66,29 +66,29 @@ class DataTagged : public DataAbstract {
   ESCRIPT_DLL_API
   DataTagged();
 
-  /**
-     \brief
-     Constructor for DataTagged.
-
-     Description:
-     Constructor for DataTagged.
-     \param tagKeys - Input - A vector of integer tags.
-     \param values - Input - A vector of DataArrayViews. If this is empty
-                     all tag values will be assigned a scalar data-point of value
-                     0. If it contains one value all tag values will be assigned
-		     this value. Otherwise consecutive tags will be assigned 
-                     consecutive values.  If there is a mismatch between  the
-		     number of keys and the number of values an exception 
-		     will be generated.
-     \param defaultValue - Input - Value returned if a requested tag doesn't exist.
-     \param what - Input - A description of what this data represents.
-    T
-  */
-  ESCRIPT_DLL_API
-  DataTagged(const TagListType& tagKeys,
-             const ValueListType& values,
-	     const DataArrayView& defaultValue,
-	     const FunctionSpace& what);
+//  /**
+//      \brief
+//      Constructor for DataTagged.
+// 
+//      Description:
+//      Constructor for DataTagged.
+//      \param tagKeys - Input - A vector of integer tags.
+//      \param values - Input - A vector of DataArrayViews. If this is empty
+//                      all tag values will be assigned a scalar data-point of value
+//                      0. If it contains one value all tag values will be assigned
+// 		     this value. Otherwise consecutive tags will be assigned 
+//                      consecutive values.  If there is a mismatch between  the
+// 		     number of keys and the number of values an exception 
+// 		     will be generated.
+//      \param defaultValue - Input - Value returned if a requested tag doesn't exist.
+//      \param what - Input - A description of what this data represents.
+//     T
+//  */
+//   ESCRIPT_DLL_API
+//   DataTagged(const TagListType& tagKeys,
+//              const ValueListType& values,
+// 	     const DataArrayView& defaultValue,
+// 	     const FunctionSpace& what);
 
   /**
      \brief
@@ -118,7 +118,6 @@ class DataTagged : public DataAbstract {
      \param shape - Input - The shape of each data-point.
      \param tags - Input - An vector of tags, one for each sample number.
      \param data - The data values for each tag.
-    NB: no unit testing yet
  */
   ESCRIPT_DLL_API
   DataTagged(const FunctionSpace& what,
@@ -159,9 +158,7 @@ class DataTagged : public DataAbstract {
   DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType& shape,
 	     const DataTypes::ValueType& defaultvalue,
-             const DataTagged& tagsource);
-
-
+             const DataTagged* tagsource=0);
 
   /**
      \brief
@@ -248,42 +245,79 @@ class DataTagged : public DataAbstract {
 
 
 
-  /**
+//  /**
+//      \brief
+//      addTaggedValues
+// 
+//      Description:
+//      Add the given tags and values to this DataTagged object.
+//      \param tagKeys - Input - A vector of integer tags.
+//      \param values - Input - A vector of DataArrayViews. If this is empty
+//                      all tag values will be assigned a scalar data-point of value
+//                      0. If it contains one value all tag values will be assigned
+// 		     this value. Otherwise consecutive tags will be assigned 
+//                      consecutive values.  If there is a mismatch between  the
+// 		     number of keys and the number of values an exception 
+// 		     will be generated.
+//     T
+//  */
+//   ESCRIPT_DLL_API
+//   void
+//   addTaggedValues(const TagListType& tagKeys,
+//                   const ValueListType& values);  
+
+//  /**
+//      \brief
+//      addTaggedValue
+// 
+//      Description:
+//      Add a single tag and value to this DataTagged object. If this tag already has
+//      a value associated with it, setTaggedValue will be used to update this value.
+//      \param tagKey - Input - Integer tag.
+//      \param value - Input - Single DataArrayView value to be assigned to the tag.
+//     T
+ // */
+//   ESCRIPT_DLL_API
+//   void
+//   addTaggedValue(int tagKey,
+//                  const DataArrayView& value);
+
+
+
+ /**
      \brief
      addTaggedValues
 
      Description:
      Add the given tags and values to this DataTagged object.
      \param tagKeys - Input - A vector of integer tags.
-     \param values - Input - A vector of DataArrayViews. If this is empty
-                     all tag values will be assigned a scalar data-point of value
-                     0. If it contains one value all tag values will be assigned
+     \param values - Input - A vector of doubles. If this is empty, the default value for
+                     this DataTagged will be used for all tags.
+                     If it contains one value all tag values will be assigned
 		     this value. Otherwise consecutive tags will be assigned 
                      consecutive values.  If there is a mismatch between  the
 		     number of keys and the number of values an exception 
 		     will be generated.
     T
+ */
+  ESCRIPT_DLL_API
+  void
+  addTaggedValues(const TagListType& tagKeys,
+                            const ValueBatchType& values,
+                            const ShapeType& vShape);
+
+
+  /**
+   TODO Makesure this is properly unit tested
   */
   ESCRIPT_DLL_API
   void
   addTaggedValues(const TagListType& tagKeys,
-                  const ValueListType& values);  
+                            const ValueType& values,
+                            const ShapeType& vShape);
 
-  /**
-     \brief
-     addTaggedValue
 
-     Description:
-     Add a single tag and value to this DataTagged object. If this tag already has
-     a value associated with it, setTaggedValue will be used to update this value.
-     \param tagKey - Input - Integer tag.
-     \param value - Input - Single DataArrayView value to be assigned to the tag.
-    T
-  */
-  ESCRIPT_DLL_API
-  void
-  addTaggedValue(int tagKey,
-                 const DataArrayView& value);
+
 
   /**
      \brief
@@ -319,42 +353,42 @@ class DataTagged : public DataAbstract {
   addTag(int tagKey);
 
 
-  /**
-     \brief
-     setTaggedValues
+//  /**
+//      \brief
+//      setTaggedValues
+// 
+//      Description:
+//      Set the given tags to the given values in this DataTagged object.
+//      \param tagKeys - Input - A vector of integer tag.
+//      \param values - Input - A vector of DataArrayViews. If this is empty
+//                      all tag values will be assigned a scalar data-point of value
+//                      0. If it contains one value all tag values will be assigned
+// 		     this value. Otherwise consecutive tags will be assigned 
+//                      consecutive values.  If there is a mismatch between  the
+// 		     number of keys and the number of values an exception 
+// 		     will be generated.
+//     T
+//  */
+//   ESCRIPT_DLL_API
+//   void
+//   setTaggedValues(const TagListType& tagKeys,
+//                   const ValueListType& values); 
 
-     Description:
-     Set the given tags to the given values in this DataTagged object.
-     \param tagKeys - Input - A vector of integer tag.
-     \param values - Input - A vector of DataArrayViews. If this is empty
-                     all tag values will be assigned a scalar data-point of value
-                     0. If it contains one value all tag values will be assigned
-		     this value. Otherwise consecutive tags will be assigned 
-                     consecutive values.  If there is a mismatch between  the
-		     number of keys and the number of values an exception 
-		     will be generated.
-    T
-  */
-  ESCRIPT_DLL_API
-  void
-  setTaggedValues(const TagListType& tagKeys,
-                  const ValueListType& values); 
-
-  /**
-     \brief
-     setTaggedValue
-
-     Description:
-     Assign the given value to the given tag.
-     \param tagKey - Input - Integer tag.
-     \param value - Input - Single DataArrayView value to be assigned to the tag.
-    T
-  */
-  ESCRIPT_DLL_API
-  virtual
-  void
-  setTaggedValue(int tagKey,
-                 const DataArrayView& value);
+//  /**
+//      \brief
+//      setTaggedValue
+// 
+//      Description:
+//      Assign the given value to the given tag.
+//      \param tagKey - Input - Integer tag.
+//      \param value - Input - Single DataArrayView value to be assigned to the tag.
+//     T
+//  */
+//   ESCRIPT_DLL_API
+//   virtual
+//   void
+//   setTaggedValue(int tagKey,
+//                  const DataArrayView& value);
 
   /**
      \brief
@@ -375,18 +409,18 @@ class DataTagged : public DataAbstract {
 		 int dataOffset=0);
 
 
-  /**
-     \brief
-     getDataPointByTag
-
-     Description:
-     Return data-point associated with the given tag as a DataArrayView.
-     \param tag - Input - Integer key.
-    T
-  */
-  ESCRIPT_DLL_API
-  DataArrayView
-  getDataPointByTag(int tag) const;
+//  /**
+//      \brief
+//      getDataPointByTag
+// 
+//      Description:
+//      Return data-point associated with the given tag as a DataArrayView.
+//      \param tag - Input - Integer key.
+//     T
+//  */
+//   ESCRIPT_DLL_API
+//   DataArrayView
+//   getDataPointByTag(int tag) const;
 
   /**
      \brief
@@ -411,28 +445,30 @@ class DataTagged : public DataAbstract {
       \brief 
       getOffsetForTag
 
-      return the offset for the given tag within the array
+      return the offset for the given tag within the array.
+
+      TODO Need to document what happens if the tag is invalid
   */
   ESCRIPT_DLL_API
   DataTypes::ValueType::size_type
   getOffsetForTag(int tag) const;
 
-  /**
-     \brief
-     getDataPoint
-
-     Description:
-     Return the data-point specified by the given sample and data-point
-     numbers as a DataArrayView.
-     \param sampleNo - Input.
-     \param dataPointNo - Input.
-    T
-  */
-  ESCRIPT_DLL_API
-  virtual
-  DataArrayView
-  getDataPoint(int sampleNo,
-               int dataPointNo);
+//  /**
+//      \brief
+//      getDataPoint
+// 
+//      Description:
+//      Return the data-point specified by the given sample and data-point
+//      numbers as a DataArrayView.
+//      \param sampleNo - Input.
+//      \param dataPointNo - Input.
+//     T
+//  */
+//   ESCRIPT_DLL_API
+//   virtual
+//   DataArrayView
+//   getDataPoint(int sampleNo,
+//                int dataPointNo);
 
 
   /**
@@ -489,22 +525,22 @@ class DataTagged : public DataAbstract {
   bool
   isCurrentTag(int tag) const;
 
-  /**
-     \brief
-     getDefaultValue
-
-     Description:
-     Return the default value. This value is associated with any tag which
-     is not explicitly recorded in this DataTagged object's tag map.
-    T
-  */
-  ESCRIPT_DLL_API
-  DataArrayView&
-  getDefaultValue();
-
-  ESCRIPT_DLL_API
-  const DataArrayView&
-  getDefaultValue() const;
+// /**
+//      \brief
+//      getDefaultValue
+// 
+//      Description:
+//      Return the default value. This value is associated with any tag which
+//      is not explicitly recorded in this DataTagged object's tag map.
+//     T
+//  */
+//   ESCRIPT_DLL_API
+//   DataArrayView&
+//   getDefaultValue();
+// 
+//   ESCRIPT_DLL_API
+//   const DataArrayView&
+//   getDefaultValue() const;
 
   /**
      \brief
@@ -726,21 +762,21 @@ DataTagged::isCurrentTag(int tag) const
   return (pos!=m_offsetLookup.end());
 }
 
-inline
-DataArrayView&
-DataTagged::getDefaultValue()
-{
-  // The default value is always the first value.
-  return getPointDataView();
-}
+// inline
+// DataArrayView&
+// DataTagged::getDefaultValue()
+// {
+//   // The default value is always the first value.
+//   return getPointDataView();
+// }
 
-inline
-const DataArrayView&
-DataTagged::getDefaultValue() const
-{
-  // The default value is always the first value.
-  return getPointDataView();
-}
+// inline
+// const DataArrayView&
+// DataTagged::getDefaultValue() const
+// {
+//   // The default value is always the first value.
+//   return getPointDataView();
+// }
 
 
 inline 
@@ -754,14 +790,14 @@ inline
 DataTypes::ValueType::reference
 DataTagged::getDefaultValue(DataTypes::ValueType::size_type i)
 {
-	return getPointDataView().getData()[i];
+	return getVector()[i];
 }
 
 inline
 DataTypes::ValueType::const_reference
 DataTagged::getDefaultValue(DataTypes::ValueType::size_type i) const
 {
-	return getPointDataView().getData()[i];
+	return getVector()[i];
 }
 
 

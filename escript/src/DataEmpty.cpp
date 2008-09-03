@@ -19,9 +19,9 @@
 namespace escript {
 
 DataEmpty::DataEmpty() :
-  DataAbstract(FunctionSpace())
+  DataAbstract(FunctionSpace(),DataTypes::scalarShape)
 {
-  resetPointDataView();
+//  resetPointDataView();
 }
 
 DataEmpty::~DataEmpty()
@@ -42,13 +42,13 @@ DataEmpty::getPointOffset(int sampleNo,
   return 0;
 }
 
-DataArrayView
-DataEmpty::getDataPoint(int sampleNo,
-                        int dataPointNo)
-{
-  throwStandardException("getDataPoint");
-  return getPointDataView();
-}
+// DataArrayView
+// DataEmpty::getDataPoint(int sampleNo,
+//                         int dataPointNo)
+// {
+//   throwStandardException("getDataPoint");
+//   return getPointDataView();
+// }
 
 DataTypes::ValueType::size_type
 DataEmpty::getLength() const
@@ -75,5 +75,19 @@ DataEmpty::throwStandardException(const std::string& functionName) const
 {
   throw DataException("Error - "+functionName+" function call invalid for DataEmpty.");
 }
+
+DataTypes::ValueType&
+DataEmpty::getVector()
+{
+  throwStandardException("getVector");
+}
+
+const DataTypes::ValueType&
+DataEmpty::getVector() const
+{
+  throwStandardException("getVector");
+}
+
+
 
 }  // end of namespace

@@ -75,19 +75,19 @@ class DataEmpty : public DataAbstract {
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
-  /**
-     \brief
+//  /**
+/*     \brief
      Return a view into the data for the data point specified.
      NB: This will throw an exception as obviously an empty Data object contains no
      data points. An implementation is required by parent DataAbstract class.
      \param sampleNo - Input - Sample number.
-     \param dataPointNo - Input - data-point number.
-  */
-  ESCRIPT_DLL_API
-  virtual
-  DataArrayView
-  getDataPoint(int sampleNo,
-               int dataPointNo);
+     \param dataPointNo - Input - data-point number.*/
+//  */
+//   ESCRIPT_DLL_API
+//   virtual
+//   DataArrayView
+//   getDataPoint(int sampleNo,
+//                int dataPointNo);
 
   /**
      \brief
@@ -127,6 +127,17 @@ class DataEmpty : public DataAbstract {
            const DataTypes::RegionType& region);
 
  protected:
+
+ /**
+	\brief Provide access to underlying storage. Internal use only!
+  */
+  ESCRIPT_DLL_API
+  virtual DataTypes::ValueType&
+  getVector();
+
+  ESCRIPT_DLL_API
+  virtual const DataTypes::ValueType&
+  getVector() const;
 
  private:
 
