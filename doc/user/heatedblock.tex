@@ -75,8 +75,8 @@ $r$ and $q$ are each \RankOne.
 We can easily identify the coefficients in~\eqn{LINEARPDE.SYSTEM.1 TUTORIAL}:
 \begin{eqnarray}\label{LINEARPDE ELASTIC COEFFICIENTS}
 A\hackscore{ijkl}=\lambda \delta\hackscore{ij} \delta\hackscore{kl} + \mu ( 
-+\delta\hackscore{ik} \delta\hackscore{jl}
-\delta\hackscore{il} \delta\hackscore{jk}) \\
+\delta\hackscore{ik} \delta\hackscore{jl}
++ \delta\hackscore{il} \delta\hackscore{jk}) \\
 X\hackscore{ij}=(\lambda+\frac{2}{3} \mu) \;  \alpha \; (T-T\hackscore{ref})\delta\hackscore{ij} \\
 \end{eqnarray}
 The characteristic function $q$ defining the locations and components where constraints are set is given by:
@@ -104,9 +104,9 @@ The \LinearPDE class is notified of this fact by calling its \method{setSymmetry
 After we have solved the Lame equation we want to analyse the actual stress distribution. Typically the von--Mises stress\index{von--Mises stress} defined by
 \begin{equation}
 \sigma\hackscore{mises} = \sqrt{
-\frac{1}{6} ((\sigma\hackscore{00}-\sigma\hackscore{11})^2+
-               (\sigma\hackscore{11}-\sigma\hackscore{22})^2
-               (\sigma\hackscore{22}-\sigma\hackscore{00})^2)
+\frac{1}{6} ((\sigma\hackscore{00}-\sigma\hackscore{11})^2
+            + (\sigma\hackscore{11}-\sigma\hackscore{22})^2
+            + (\sigma\hackscore{22}-\sigma\hackscore{00})^2)
 +  \sigma\hackscore{01}^2+\sigma\hackscore{12}^2+\sigma\hackscore{20}^2}
 \end{equation}
 is used to detect material damage. Here we want to calculate the von--Mises and write the stress to a file for visualization.
