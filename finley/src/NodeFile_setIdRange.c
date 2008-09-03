@@ -104,15 +104,15 @@ void Finley_NodeFile_setReducedDOFRange(index_t* min_id,index_t* max_id,Finley_N
 
 
 index_t Finley_NodeFile_maxGlobalDegreeOfFreedomIndex(Finley_NodeFile* in) {
-  index_t *min_id,*max_id;
-  Finley_NodeFile_setGlobalDOFRange(min_id,max_id,in);
-  return *max_id;
+  index_t min_id,max_id;
+  Finley_NodeFile_setGlobalDOFRange(&min_id,&max_id,in);
+  return max_id;
 }
 
 index_t Finley_NodeFile_maxGlobalReducedDegreeOfFreedomIndex(Finley_NodeFile* in) {
-  index_t *min_id,*max_id;
-  Finley_NodeFile_setGlobalReducedDegreeOfFreedomRange(min_id,max_id,in);
-  return *max_id;
+  index_t min_id,max_id;
+  Finley_NodeFile_setGlobalReducedDegreeOfFreedomRange(&min_id,&max_id,in);
+  return max_id;
 }
 
 void Finley_NodeFile_setGlobalReducedDegreeOfFreedomRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in) {
@@ -141,9 +141,9 @@ void Finley_NodeFile_setGlobalReducedDegreeOfFreedomRange(index_t* min_id,index_
 }
 
 index_t Finley_NodeFile_maxGlobalNodeIDIndex(Finley_NodeFile* in) {
-  index_t *min_id,*max_id;
-  Finley_NodeFile_setGlobalNodeIDIndexRange(min_id,max_id,in);
-  return *max_id;
+  index_t min_id,max_id;
+  Finley_NodeFile_setGlobalNodeIDIndexRange(&min_id,&max_id,in);
+  return max_id;
 }
 
 void Finley_NodeFile_setGlobalNodeIDIndexRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in) {
@@ -172,9 +172,9 @@ void Finley_NodeFile_setGlobalNodeIDIndexRange(index_t* min_id,index_t* max_id,F
 }
 
 index_t Finley_NodeFile_maxGlobalReducedNodeIDIndex(Finley_NodeFile* in) {
-  index_t *min_id,*max_id;
-  Finley_NodeFile_setGlobalReducedNodeIDIndexRange(min_id,max_id,in);
-  return *max_id;
+  index_t min_id,max_id;
+  Finley_NodeFile_setGlobalReducedNodeIDIndexRange(&min_id,&max_id,in);
+  return max_id;
 }
 
 void Finley_NodeFile_setGlobalReducedNodeIDIndexRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in) {
