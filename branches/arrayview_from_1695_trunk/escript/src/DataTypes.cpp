@@ -463,9 +463,88 @@ namespace DataTypes
 
    }
 
+   std::string
+   pointToString(const ValueType& data,const ShapeType& shape, int offset, const std::string& suffix)
+   {
+      using namespace std;
+      EsysAssert(!data.isEmpty(),"Error - View is empty.");
+      stringstream temp;
+      string finalSuffix=suffix;
+      if (suffix.length() > 0) {
+         finalSuffix+=" ";
+      }
+      switch (getRank(shape)) {
+      case 0:
+         temp << finalSuffix << data[0];
+         break;
+      case 1:
+         for (int i=0;i<shape[0];i++) {
+            temp << finalSuffix << "(" << i << ") " << data[i];
+            if (i!=(shape[0]-1)) {
+               temp << endl;
+            }
+         }
+         break;
+      case 2:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               temp << finalSuffix << "(" << i << "," << j << ") " << data[offset+getRelIndex(shape,i,j)];
+               if (!(i==(shape[0]-1) && j==(shape[1]-1))) {
+                  temp << endl;
+               }
+            }
+         }
+         break;
+      case 3:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+                  temp << finalSuffix << "(" << i << "," << j << "," << k << ") " << data[offset+getRelIndex(shape,i,j,k)];
+                  if (!(i==(shape[0]-1) && j==(shape[1]-1) && k==(shape[2]-1))) {
+                     temp << endl;
+                  }
+               }
+            }
+         }
+         break;
+      case 4:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+                  for (int l=0;l<shape[3];l++) {
+                     temp << finalSuffix << "(" << i << "," << j << "," << k << "," << l << ") " << data[offset+getRelIndex(shape,i,j,k,l)];
+                     if (!(i==(shape[0]-1) && j==(shape[1]-1) && k==(shape[2]-1) && l==(shape[3]-1))) {
+                        temp << endl;
+                     }
+                  }
+               }
+            }
+         }
+         break;
+      default:
+         stringstream mess;
+         mess << "Error - (toString) Invalid rank: " << getRank(shape);
+         throw DataException(mess.str());
+      }
+      return temp.str();
+   }
+
+
+   void copyPoint(ValueType& dest, ValueType::size_type doffset, ValueType::size_type nvals, const ValueType& src, ValueType::size_type soffset)
+   {
+      EsysAssert((!dest.isEmpty()&&!other.isEmpty()&&checkOffset(doffset,dest.size(),nvals)),
+                 "Error - Couldn't copy due to insufficient storage.");
+//       EsysAssert((checkShape(other.getShape())),
+//                  createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.",other.getShape(),m_shape));
+      if (checkOffset(doffset,dest.size(),nvals) && checkOffset(soffset,src.size(),nvals)) {
+         memcpy(&dest[doffset],&src[soffset],sizeof(double)*nvals);
+      } else {
+         throw DataException("Error - invalid offset specified.");
+      }
 
 
 
+   } 
 
 }	// end namespace DataTypes
 }	// end namespace escript

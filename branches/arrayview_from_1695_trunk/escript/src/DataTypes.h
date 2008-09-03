@@ -20,6 +20,7 @@
 #include <vector>
 #include <string>
 #include <boost/python/object.hpp>
+#include <boost/python/extract.hpp>
 
 namespace escript {
 
@@ -262,6 +263,34 @@ namespace escript {
                                 ValueType::size_type otherOffset,
                                 const RegionLoopRangeType& region);
 
+
+   /**
+      \brief Display a single value (with the specified shape) from the data
+   */
+   std::string
+   pointToString(const ValueType& data,const ShapeType& shape, int offset, const std::string& suffix);
+
+
+   /**
+      \brief Extract shape information from the supplied numarray.
+   */
+   inline
+   ShapeType
+   shapeFromNumArray(const boost::python::numeric::array& value)
+   {
+	  // extract the shape of the numarray
+	DataTypes::ShapeType tempShape;
+	for (int i=0; i < value.getrank(); i++) {
+		tempShape.push_back(boost::python::extract<int>(value.getshape()[i]));
+	}
+	return tempShape;
+   }
+
+
+   /**
+      \brief  Copy a point from one vector to another. Note: This version does not check to see if shapes are the same.
+   */
+   void copyPoint(ValueType& dest, ValueType::size_type doffset, ValueType::size_type nvals, const ValueType& src, ValueType::size_type soffset);
 
  }   // End namespace DataTypes
 

@@ -182,7 +182,7 @@ load(const std::string fileName,
       out=Data(0,shape,function_space);
       if (!(var = dataFile.get_var("data")))
               throw DataException("Error - load:: unable to find data in netCDF file.");
-      if (! var->get(&(out.getDataPoint(0,0).getData()[0]), dims) ) 
+      if (! var->get(&(out.getDataAtOffset(out.getDataOffset(0,0))), dims) ) 
               throw DataException("Error - load:: unable to recover data from netCDF file.");
    } else if (type == 1) { 
       /* tagged data */
@@ -295,7 +295,7 @@ load(const std::string fileName,
          esysUtils::free(ids_of_nc);
          throw DataException("Error - load:: unable to find data in netCDF file.");
       }
-      if (! var->get(&(out.getDataPoint(0,0).getData()[0]), dims) ) 
+      if (! var->get(&(out.getDataAtOffset(out.getDataOffset(0,0))), dims) ) 
       {
          esysUtils::free(ids_of_nc);
          throw DataException("Error - load:: unable to recover data from netCDF file.");

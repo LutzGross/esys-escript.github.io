@@ -63,9 +63,10 @@ Data::Data(double value,
 
   int len = DataTypes::noValues(dataPointShape);
   DataVector temp_data(len,value,len);
-  DataArrayView temp_dataView(temp_data, dataPointShape);
+//   DataArrayView temp_dataView(temp_data, dataPointShape);
 
-  initialise(temp_dataView, what, expanded);
+//   initialise(temp_dataView, what, expanded);
+  initialise(temp_data, dataPointShape, what, expanded);
 
   m_protected=false;
 }
@@ -78,9 +79,10 @@ Data::Data(double value,
   int len = DataTypes::noValues(dataPointShape);
 
   DataVector temp_data(len,value,len);
-  DataArrayView temp_dataView(temp_data, dataPointShape);
+//   DataArrayView temp_dataView(temp_data, dataPointShape);
 
-  initialise(temp_dataView, what, expanded);
+//   initialise(temp_dataView, what, expanded);
+  initialise(temp_data, dataPointShape, what, expanded);
 
   m_protected=false;
 }
@@ -109,7 +111,7 @@ Data::Data(const Data& inData,
   if (inData.getFunctionSpace()==functionspace) {
     m_data=inData.m_data;
   } else {
-    Data tmp(0,inData.getPointDataView().getShape(),functionspace,true);
+    Data tmp(0,inData.getDataPointShape(),functionspace,true);
     // Note: Must use a reference or pointer to a derived object
     // in order to get polymorphic behaviour. Shouldn't really
     // be able to create an instance of AbstractDomain but that was done
@@ -125,20 +127,20 @@ Data::Data(const Data& inData,
   m_protected=false;
 }
 
-Data::Data(const DataTagged::TagListType& tagKeys,
-           const DataTagged::ValueListType & values,
-           const DataArrayView& defaultValue,
-           const FunctionSpace& what,
-           bool expanded)
-{
-  DataAbstract* temp=new DataTagged(tagKeys,values,defaultValue,what);
-  shared_ptr<DataAbstract> temp_data(temp);
-  m_data=temp_data;
-  m_protected=false;
-  if (expanded) {
-    expand();
-  }
-}
+// Data::Data(const DataTagged::TagListType& tagKeys,
+//            const DataTagged::ValueListType & values,
+//            const DataArrayView& defaultValue,
+//            const FunctionSpace& what,
+//            bool expanded)
+// {
+//   DataAbstract* temp=new DataTagged(tagKeys,values,defaultValue,what);
+//   shared_ptr<DataAbstract> temp_data(temp);
+//   m_data=temp_data;
+//   m_protected=false;
+//   if (expanded) {
+//     expand();
+//   }
+// }
 
 
 
@@ -155,14 +157,14 @@ Data::Data(const numeric::array& value,
   initialise(value,what,expanded);
   m_protected=false;
 }
-
+/*
 Data::Data(const DataArrayView& value,
 	   const FunctionSpace& what,
            bool expanded)
 {
   initialise(value,what,expanded);
   m_protected=false;
-}
+}*/
 
 Data::Data(const object& value,
 	   const FunctionSpace& what,
@@ -177,37 +179,51 @@ Data::Data(const object& value,
 Data::Data(const object& value,
            const Data& other)
 {
-
   numeric::array asNumArray(value);
 
-
   // extract the shape of the numarray
-  DataTypes::ShapeType tempShape;
-  for (int i=0; i < asNumArray.getrank(); i++) {
-    tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
-  }
-  // get the space for the data vector
-  int len = DataTypes::noValues(tempShape);
-  DataVector temp_data(len, 0.0, len);
-  DataArrayView temp_dataView(temp_data, tempShape);
-  temp_dataView.copy(asNumArray);
+  DataTypes::ShapeType tempShape=DataTypes::shapeFromNumArray(asNumArray);
+// /*  for (int i=0; i < asNumArray.getrank(); i++) {
+//     tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
+//   }*/
+//   // get the space for the data vector
+//   int len = DataTypes::noValues(tempShape);
+//   DataVector temp_data(len, 0.0, len);
+// /*  DataArrayView temp_dataView(temp_data, tempShape);
+//   temp_dataView.copy(asNumArray);*/
+//   temp_data.copyFromNumArray(asNumArray);
 
   //
   // Create DataConstant using the given value and all other parameters
   // copied from other. If value is a rank 0 object this Data
   // will assume the point data shape of other.
 
-  if (temp_dataView.getRank()==0) {
-    int len = DataTypes::noValues(other.getPointDataView().getShape());
+  if (DataTypes::getRank(tempShape)/*temp_dataView.getRank()*/==0) {
 
-    DataVector temp2_data(len, temp_dataView(), len);
-    DataArrayView temp2_dataView(temp2_data, other.getPointDataView().getShape());
-    initialise(temp2_dataView, other.getFunctionSpace(), false);
+
+    // get the space for the data vector
+    int len1 = DataTypes::noValues(tempShape);
+    DataVector temp_data(len1, 0.0, len1);
+    temp_data.copyFromNumArray(asNumArray);
+
+    int len = DataTypes::noValues(other.getDataPointShape());
+
+    DataVector temp2_data(len, temp_data[0]/*temp_dataView()*/, len);
+    //DataArrayView temp2_dataView(temp2_data, other.getPointDataView().getShape());
+//     initialise(temp2_dataView, other.getFunctionSpace(), false);
+
+    DataConstant* t=new DataConstant(other.getFunctionSpace(),other.getDataPointShape(),temp2_data);
+    boost::shared_ptr<DataAbstract> sp(t);
+    m_data=sp;
+
 
   } else {
     //
     // Create a DataConstant with the same sample shape as other
-    initialise(temp_dataView, other.getFunctionSpace(), false);
+//     initialise(temp_dataView, other.getFunctionSpace(), false);
+    DataConstant* t=new DataConstant(asNumArray,other.getFunctionSpace());
+    boost::shared_ptr<DataAbstract> sp(t);
+    m_data=sp;
   }
   m_protected=false;
 }
@@ -215,6 +231,52 @@ Data::Data(const object& value,
 Data::~Data()
 {
 
+}
+
+
+
+void
+Data::initialise(const boost::python::numeric::array& value,
+                 const FunctionSpace& what,
+                 bool expanded)
+{
+  //
+  // Construct a Data object of the appropriate type.
+  // Construct the object first as there seems to be a bug which causes
+  // undefined behaviour if an exception is thrown during construction
+  // within the shared_ptr constructor.
+  if (expanded) {
+    DataAbstract* temp=new DataExpanded(value, what);
+    boost::shared_ptr<DataAbstract> temp_data(temp);
+    m_data=temp_data;
+  } else {
+    DataAbstract* temp=new DataConstant(value, what);
+    boost::shared_ptr<DataAbstract> temp_data(temp);
+    m_data=temp_data;
+  }
+}
+
+
+void
+Data::initialise(const DataTypes::ValueType& value,
+		 const DataTypes::ShapeType& shape,
+                 const FunctionSpace& what,
+                 bool expanded)
+{
+  //
+  // Construct a Data object of the appropriate type.
+  // Construct the object first as there seems to be a bug which causes
+  // undefined behaviour if an exception is thrown during construction
+  // within the shared_ptr constructor.
+  if (expanded) {
+    DataAbstract* temp=new DataExpanded(what, shape, value);
+    boost::shared_ptr<DataAbstract> temp_data(temp);
+    m_data=temp_data;
+  } else {
+    DataAbstract* temp=new DataConstant(what, shape, value);
+    boost::shared_ptr<DataAbstract> temp_data(temp);
+    m_data=temp_data;
+  }
 }
 
 
@@ -585,7 +647,7 @@ Data::gradOn(const FunctionSpace& functionspace) const
   double blocktimer_start = blocktimer_time();
   if (functionspace.getDomain()!=getDomain())
     throw DataException("Error - gradient cannot be calculated on different domains.");
-  DataTypes::ShapeType grad_shape=getPointDataView().getShape();
+  DataTypes::ShapeType grad_shape=getDataPointShape();
   grad_shape.push_back(functionspace.getDim());
   Data out(0.0,grad_shape,functionspace,true);
   getDomain().setToGradient(out,*this);
@@ -602,7 +664,7 @@ Data::grad() const
 int
 Data::getDataPointSize() const
 {
-  return getPointDataView().noValues();
+  return m_data->getNoValues();
 }
 
 DataTypes::ValueType::size_type
@@ -1458,7 +1520,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
     #pragma omp for private(i,j) schedule(static)
     for (i=0; i<numSamples; i++) {
       for (j=0; j<numDPPSample; j++) {
-        next=temp.getDataPoint(i,j)();
+        next=temp.getDataAtOffset(temp.getDataOffset(i,j));
         if (next<local_min) {
           local_min=next;
           local_lowi=i;
@@ -2274,9 +2336,6 @@ ostream& escript::operator<<(ostream& o, const Data& data)
   return o;
 }
 
-#include "JoelMods.cpp_"
-
-
 Data
 escript::C_GeneralTensorProduct(Data& arg_0,
                      Data& arg_1,
@@ -2694,14 +2753,27 @@ Data::toString() const
 DataTypes::ValueType::const_reference
 Data::getDataAtOffset(DataTypes::ValueType::size_type i) const
 {
-	return getPointDataView().getData()[i];
+	return m_data->getDataAtOffset(i);
 }
 
 
 DataTypes::ValueType::reference
 Data::getDataAtOffset(DataTypes::ValueType::size_type i)
 {
-	return getPointDataView().getData()[i];
+	return m_data->getDataAtOffset(i);
+}
+
+DataTypes::ValueType::const_reference
+Data::getDataPoint(int sampleNo, int dataPointNo) const
+{
+	return m_data->getDataAtOffset(m_data->getPointOffset(sampleNo, dataPointNo));
+}
+
+
+DataTypes::ValueType::reference
+Data::getDataPoint(int sampleNo, int dataPointNo)
+{
+	return m_data->getDataAtOffset(m_data->getPointOffset(sampleNo, dataPointNo));
 }
 
 

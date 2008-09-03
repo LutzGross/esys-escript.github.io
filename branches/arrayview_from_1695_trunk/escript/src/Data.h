@@ -146,8 +146,8 @@ class Data {
   Data(const Data& inData,
        const DataTypes::RegionType& region);
 
-  /**
-     \brief
+//  /**
+/*     \brief
      Constructor which will create Tagged data if expanded is false.
      No attempt is made to ensure the tag keys match the tag keys
      within the function space.
@@ -158,14 +158,14 @@ class Data {
      \param what - Input - A description of what this data represents.
      \param expanded - Input - Flag, if true fill the entire container with
                        the appropriate values.
-    ==>*
-  */
-  ESCRIPT_DLL_API
-  Data(const DataTagged::TagListType& tagKeys,
-       const DataTagged::ValueListType& values,
-       const DataArrayView& defaultValue,
-       const FunctionSpace& what=FunctionSpace(),
-       bool expanded=false);
+    ==>**/
+//  */
+//   ESCRIPT_DLL_API
+//   Data(const DataTagged::TagListType& tagKeys,
+//        const DataTagged::ValueListType& values,
+//        const DataArrayView& defaultValue,
+//        const FunctionSpace& what=FunctionSpace(),
+//        bool expanded=false);
 
   /**
      \brief
@@ -329,6 +329,9 @@ class Data {
 
 
 
+
+
+
 // REMOVE ME
 // ESCRIPT_DLL_API
 // void
@@ -352,19 +355,19 @@ class Data {
   toString() const;
 
 
-  /**
-     \brief
+//  /**
+/*     \brief
      Return the DataArrayView of the point data. This essentially contains
      the shape information for each data point although it also may be used
-     to manipulate the point data.
-  */
-  ESCRIPT_DLL_API
-  inline
-  const DataArrayView&
-  getPointDataView() const
-  {
-     return m_data->getPointDataView();
-  }
+     to manipulate the point data.*/
+//  */
+//   ESCRIPT_DLL_API
+//   inline
+//   const DataArrayView&
+//   getPointDataView() const
+//   {
+//      return m_data->getPointDataView();
+//   }
 
   /**
      \brief
@@ -504,6 +507,20 @@ class Data {
   {
     return m_data->getNumDPPSample();
   }
+
+
+  /**
+	\brief
+	Return the number of values in the shape for this object.
+  */
+  ESCRIPT_DLL_API
+  int
+  getNoValues() const
+  {
+    return m_data->getNoValues();
+  }
+
+
   /**
      \brief
      dumps the object into a netCDF file
@@ -539,6 +556,24 @@ class Data {
     return m_data->getSampleDataByTag(tag);
   }
 
+//  /**
+/*     \brief
+     Return a view into the data for the data point specified.
+     NOTE: Construction of the DataArrayView is a relatively expensive
+     operation.
+     \param sampleNo - Input -
+     \param dataPointNo - Input -*/
+//  */
+//   ESCRIPT_DLL_API
+//   inline
+//   DataArrayView
+//   getDataPoint(int sampleNo,
+//                int dataPointNo)
+//   {
+//                 return m_data->getDataPoint(sampleNo,dataPointNo);
+//   }
+
+
   /**
      \brief
      Return a view into the data for the data point specified.
@@ -548,13 +583,15 @@ class Data {
      \param dataPointNo - Input -
   */
   ESCRIPT_DLL_API
-  inline
-  DataArrayView
-  getDataPoint(int sampleNo,
-               int dataPointNo)
-  {
-                return m_data->getDataPoint(sampleNo,dataPointNo);
-  }
+  DataTypes::ValueType::const_reference
+  getDataPoint(int sampleNo, int dataPointNo) const;
+
+
+  ESCRIPT_DLL_API
+  DataTypes::ValueType::reference
+  getDataPoint(int sampleNo, int dataPointNo);
+
+
 
   /**
      \brief 
@@ -1369,8 +1406,6 @@ class Data {
         DataTypes::ValueType::reference
         getDataAtOffset(DataTypes::ValueType::size_type i);
 
-
-
  protected:
 
  private:
@@ -1446,11 +1481,17 @@ class Data {
      \brief
      Construct a Data object of the appropriate type.
   */
-  template <class IValueType>
+
   void
-  initialise(const IValueType& value,
+  initialise(const DataTypes::ValueType& value,
+	     const DataTypes::ShapeType& shape,
              const FunctionSpace& what,
              bool expanded);
+
+  void
+  initialise(const boost::python::numeric::array& value,
+                 const FunctionSpace& what,
+                 bool expanded);
 
   //
   // flag to protect the data object against any update
@@ -1462,27 +1503,7 @@ class Data {
 
 };
 
-template <class IValueType>
-void
-Data::initialise(const IValueType& value,
-                 const FunctionSpace& what,
-                 bool expanded)
-{
-  //
-  // Construct a Data object of the appropriate type.
-  // Construct the object first as there seems to be a bug which causes
-  // undefined behaviour if an exception is thrown during construction
-  // within the shared_ptr constructor.
-  if (expanded) {
-    DataAbstract* temp=new DataExpanded(value,what);
-    boost::shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
-  } else {
-    DataAbstract* temp=new DataConstant(value,what);
-    boost::shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
-  }
-}
+
 
 /**
    Binary Data object operators.
@@ -1630,7 +1651,7 @@ Data::binaryOp(const Data& right,
 {
    //
    // if this has a rank of zero promote it to the rank of the RHS
-   if (getPointDataView().getRank()==0 && right.getPointDataView().getRank()!=0) {
+   if (getDataPointRank()==0 && right.getDataPointRank()!=0) {
      throw DataException("Error - attempt to update rank zero object with object with rank bigger than zero.");
    }
    //
@@ -1758,7 +1779,7 @@ Data::dp_algorithm(BinaryFunction operation, double initial_value) const
 
     DataTypes::ValueType defval(1);
     defval[0]=0;
-    DataTagged* resultT=new DataTagged(getFunctionSpace(), DataTypes::scalarShape, defval, *dataT);
+    DataTagged* resultT=new DataTagged(getFunctionSpace(), DataTypes::scalarShape, defval, dataT);
     escript::dp_algorithm(*dataT,*resultT,operation,initial_value);
     return Data(resultT);   // note: the Data object now owns the resultT pointer
 
@@ -2019,7 +2040,7 @@ C_TensorBinaryOperation(Data const &arg_0,
       #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
       for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-        double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
         for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
@@ -2080,12 +2101,12 @@ C_TensorBinaryOperation(Data const &arg_0,
       #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
       for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
         int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
-        double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
         for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-          double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+          double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+          double *ptr_2 = &(res.getDataAtOffset(offset_2));
           tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
         }
       }
@@ -2108,9 +2129,9 @@ C_TensorBinaryOperation(Data const &arg_0,
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-          double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-          double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+          double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+          double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+          double *ptr_2 = &(res.getDataAtOffset(offset_2));
           tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
         }
       }
@@ -2124,9 +2145,9 @@ C_TensorBinaryOperation(Data const &arg_0,
 
     if (arg_0_Z.isConstant()   && arg_1_Z.isConstant()) {
       res = Data(0.0, shape1, arg_1_Z.getFunctionSpace());      // DataConstant output
-      double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[0]);
-      double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[0]);
-      double *ptr_2 = &((res.getPointDataView().getData())[0]);
+      double *ptr_0 = &(arg_0_Z.getDataAtOffset(0));
+      double *ptr_1 = &(arg_1_Z.getDataAtOffset(0));
+      double *ptr_2 = &(res.getDataAtOffset(0));
       tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
     }
     else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged()) {
@@ -2144,7 +2165,7 @@ C_TensorBinaryOperation(Data const &arg_0,
 
       // Prepare offset into DataConstant
       int offset_0 = tmp_0->getPointOffset(0,0);
-      double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+      double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
       // Get the views
 //       DataArrayView view_1 = tmp_1->getDefaultValue();
 //       DataArrayView view_2 = tmp_2->getDefaultValue();
@@ -2187,9 +2208,9 @@ C_TensorBinaryOperation(Data const &arg_0,
         for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
           int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
           int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
-          double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-          double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-          double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+          double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+          double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+          double *ptr_2 = &(res.getDataAtOffset(offset_2));
           tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
 
         }
@@ -2316,12 +2337,12 @@ C_TensorBinaryOperation(Data const &arg_0,
       #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
       for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-        double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
         for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-          double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+          double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+          double *ptr_2 = &(res.getDataAtOffset(offset_2));
           tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
         }
       }
@@ -2343,9 +2364,9 @@ C_TensorBinaryOperation(Data const &arg_0,
         for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-          double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-          double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+          double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+          double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+          double *ptr_2 = &(res.getDataAtOffset(offset_2));
           tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
         }
       }
@@ -2366,12 +2387,12 @@ C_TensorBinaryOperation(Data const &arg_0,
       #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
       for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
         int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
-        double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
         for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-          double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+          double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+          double *ptr_2 = &(res.getDataAtOffset(offset_2));
           tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
         }
       }
@@ -2394,9 +2415,9 @@ C_TensorBinaryOperation(Data const &arg_0,
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-          double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-          double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+          double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+          double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+          double *ptr_2 = &(res.getDataAtOffset(offset_2));
           tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
         }
       }
@@ -2410,9 +2431,9 @@ C_TensorBinaryOperation(Data const &arg_0,
 
     if (arg_0_Z.isConstant()   && arg_1_Z.isConstant()) {
       res = Data(0.0, shape0, arg_1_Z.getFunctionSpace());      // DataConstant output
-      double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[0]);
-      double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[0]);
-      double *ptr_2 = &((res.getPointDataView().getData())[0]);
+      double *ptr_0 = &(arg_0_Z.getDataAtOffset(0));
+      double *ptr_1 = &(arg_1_Z.getDataAtOffset(0));
+      double *ptr_2 = &(res.getDataAtOffset(0));
       tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
     }
     else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged()) {
@@ -2430,7 +2451,7 @@ C_TensorBinaryOperation(Data const &arg_0,
 
       // Prepare offset into DataConstant
       int offset_0 = tmp_0->getPointOffset(0,0);
-      double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+      double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
       // Get the views
 /*      DataArrayView view_1 = tmp_1->getDefaultValue();
       DataArrayView view_2 = tmp_2->getDefaultValue();
@@ -2476,9 +2497,9 @@ C_TensorBinaryOperation(Data const &arg_0,
         for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
           int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
           int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
-          double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-          double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-          double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+          double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+          double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+          double *ptr_2 = &(res.getDataAtOffset(offset_2));
           tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
         }
       }
@@ -2499,7 +2520,7 @@ C_TensorBinaryOperation(Data const &arg_0,
 
       // Prepare offset into DataConstant
       int offset_1 = tmp_1->getPointOffset(0,0);
-      double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+      double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
       // Get the views
 //       DataArrayView view_0 = tmp_0->getDefaultValue();
 //       DataArrayView view_2 = tmp_2->getDefaultValue();
@@ -2596,12 +2617,12 @@ C_TensorBinaryOperation(Data const &arg_0,
       #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
       for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-        double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
         for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-          double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+          double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+          double *ptr_2 = &(res.getDataAtOffset(offset_2));
           tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
         }
       }
@@ -2623,9 +2644,9 @@ C_TensorBinaryOperation(Data const &arg_0,
         for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-          double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-          double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+          double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+          double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+          double *ptr_2 = &(res.getDataAtOffset(offset_2));
           tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
         }
       }
@@ -2646,12 +2667,12 @@ C_TensorBinaryOperation(Data const &arg_0,
       #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
       for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
         int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
-        double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
         for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-          double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+          double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+          double *ptr_2 = &(res.getDataAtOffset(offset_2));
           tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
         }
       }
@@ -2674,9 +2695,9 @@ C_TensorBinaryOperation(Data const &arg_0,
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-          double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-          double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+          double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+          double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+          double *ptr_2 = &(res.getDataAtOffset(offset_2));
           tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
         }
       }

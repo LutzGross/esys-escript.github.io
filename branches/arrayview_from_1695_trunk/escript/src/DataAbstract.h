@@ -16,7 +16,6 @@
 #define escript_DataAbstract_20040315_H
 #include "system_dep.h"
 
-#include "DataArrayView.h"
 #include "DataTypes.h"
 #include "FunctionSpace.h"
 
@@ -59,7 +58,7 @@ class DataAbstract {
      \param what - Input - A description of what this data represents.
   */
   ESCRIPT_DLL_API
-  DataAbstract(const FunctionSpace& what);
+  DataAbstract(const FunctionSpace& what, const ShapeType& shape);
 
   /**
     \brief
@@ -103,19 +102,19 @@ class DataAbstract {
   int
   getNumSamples() const;
 
-  /**
-     \brief
-     Return the DataArrayView of the point data. This essentially contains
-     the shape information for each data point although it also may be used
-     to manipulate the point data.
-  */
-  ESCRIPT_DLL_API
-  DataArrayView&
-  getPointDataView();
+//  /**
+//      \brief
+//      Return the DataArrayView of the point data. This essentially contains
+//      the shape information for each data point although it also may be used
+//      to manipulate the point data.
+//  */
+//   ESCRIPT_DLL_API
+//   DataArrayView&
+//   getPointDataView();
 
-  ESCRIPT_DLL_API
-  const DataArrayView&
-  getPointDataView() const;
+//   ESCRIPT_DLL_API
+//   const DataArrayView&
+//   getPointDataView() const;
 
   /**
      \brief 
@@ -152,18 +151,18 @@ class DataAbstract {
   getPointOffset(int sampleNo,
                  int dataPointNo) const = 0;
 
-  /**
-	return the container storing points for this object
-  */
-  ESCRIPT_DLL_API
-  virtual 
-  ValueType&
-  getVector();
-
-  ESCRIPT_DLL_API
-  virtual 
-  const ValueType&
-  getVector() const;
+//  /**
+//	return the container storing points for this object
+//  */
+//   ESCRIPT_DLL_API
+//   virtual 
+//   ValueType&
+//   getVector();
+// 
+//   ESCRIPT_DLL_API
+//   virtual 
+//   const ValueType&
+//   getVector() const;
 
 
   /**
@@ -221,20 +220,20 @@ class DataAbstract {
   bool
   validSampleNo(int sampleNo) const;
 
-  /**
-     \brief
-     Return a view into the data for the data point specified.
-     NOTE: Construction of the DataArrayView is a relatively expensive
-     operation.
-
-     \param sampleNo - Input - the sample number.
-     \param dataPointNo - Input - the data point number.
-  */
-  ESCRIPT_DLL_API
-  virtual
-  DataArrayView
-  getDataPoint(int sampleNo,
-               int dataPointNo) = 0;
+//  /**
+//      \brief
+//      Return a view into the data for the data point specified.
+//      NOTE: Construction of the DataArrayView is a relatively expensive
+//      operation.
+// 
+//      \param sampleNo - Input - the sample number.
+//      \param dataPointNo - Input - the data point number.
+//  */
+//   ESCRIPT_DLL_API
+//   virtual
+//   DataArrayView
+//   getDataPoint(int sampleNo,
+//                int dataPointNo) = 0;
 
   /**
      \brief
@@ -270,23 +269,23 @@ class DataAbstract {
            const DataTypes::RegionType& region) = 0;
 
 
-  /**
-     \brief
-     setTaggedValue
-
-     Description:
-     Assign the given value to the given tag.
-
-     NB: If the data isn't tagged an exception will be thrown.
-
-     \param tagKey - Input - Integer key.
-     \param value - Input - Single DataArrayView value to be assigned to the tag.
-  */
-  ESCRIPT_DLL_API
-  virtual
-  void
-  setTaggedValue(int tagKey,
-                 const DataArrayView& value);
+//  /**
+//      \brief
+//      setTaggedValue
+// 
+//      Description:
+//      Assign the given value to the given tag.
+// 
+//      NB: If the data isn't tagged an exception will be thrown.
+// 
+//      \param tagKey - Input - Integer key.
+//      \param value - Input - Single DataArrayView value to be assigned to the tag.
+//  */
+//   ESCRIPT_DLL_API
+//   virtual
+//   void
+//   setTaggedValue(int tagKey,
+//                  const DataArrayView& value);
 
 
   /**
@@ -494,38 +493,7 @@ class DataAbstract {
   virtual void
   reorderByReferenceIDs(int *reference_ids);
 
- protected:
 
-  /**
-     \brief
-     Set the pointDataView DataArrayView associated with this object.
-
-     \param input - Input - The point data view. DataAbstract takes ownership
-     of the DataArrayView provided. It will delete it when it is destructed.
-  */
-  ESCRIPT_DLL_API
-  void
-  setPointDataView(const DataArrayView& input);
-
-  ESCRIPT_DLL_API
-  void
-  resetPointDataView();
-
-
-
-  /**
-	\brief
-	Set the shape of the object and update related properties.
-
-	Note: This is only intended as a helper for constructors.
-	Do not call it at any other time. Especially not to change the shape of an 
-	existing DataAbstract.
-	The goal is for this method to be removed once DataArrayView is gone.
-	\param s - shape for this data
-  */
-  ESCRIPT_DLL_API
-  void
-  setShape(const DataTypes::ShapeType& s);
 
   /**
 	\brief
@@ -534,6 +502,52 @@ class DataAbstract {
   ESCRIPT_DLL_API
   int
   getNoValues() const;
+
+
+
+  /**
+      \brief get a reference to the beginning of a data point
+  */
+  ESCRIPT_DLL_API
+  DataTypes::ValueType::const_reference
+  getDataAtOffset(DataTypes::ValueType::size_type i) const;
+
+
+  ESCRIPT_DLL_API
+  DataTypes::ValueType::reference
+  getDataAtOffset(DataTypes::ValueType::size_type i);
+
+
+  /**
+	\brief Provide access to underlying storage. Internal use only!
+  */
+  ESCRIPT_DLL_API
+  virtual DataTypes::ValueType&
+  getVector()=0;
+
+  ESCRIPT_DLL_API
+  virtual const DataTypes::ValueType&
+  getVector() const=0;
+
+ protected:
+
+//  /**
+//     \brief
+//     Set the pointDataView DataArrayView associated with this object.
+//
+//     \param input - Input - The point data view. DataAbstract takes ownership
+//     of the DataArrayView provided. It will delete it when it is destructed.
+//  */
+//   ESCRIPT_DLL_API
+//   void
+//   setPointDataView(const DataArrayView& input);
+// 
+//   ESCRIPT_DLL_API
+//   void
+//   resetPointDataView();
+
+
+
 
 
 
@@ -553,7 +567,7 @@ class DataAbstract {
   // The DataArrayView of the data array associated with this object.
   // The data array is defined only in child classes of this class, it
   // is not defined in this abstract parent class.
-  boost::scoped_ptr<DataArrayView> m_pointDataView;
+//  boost::scoped_ptr<DataArrayView> m_pointDataView;
 
   //
   // A FunctionSpace which provides a description of the data associated
@@ -574,6 +588,22 @@ class DataAbstract {
 
 };
 
+
+inline
+DataTypes::ValueType::const_reference
+DataAbstract::getDataAtOffset(DataTypes::ValueType::size_type i) const
+{
+	return getVector()[i];
+}
+
+inline
+DataTypes::ValueType::reference
+DataAbstract::getDataAtOffset(DataTypes::ValueType::size_type i)
+{
+	return getVector()[i];
+}
+
+
 inline
 bool
 DataAbstract::validSamplePointNo(int samplePointNo) const
@@ -592,7 +622,8 @@ inline
 DataAbstract::ValueType::value_type*
 DataAbstract::getSampleData(ValueType::size_type sampleNo)
 {
-  return &(m_pointDataView->getData(getPointOffset(sampleNo,0)));
+//   return &(m_pointDataView->getData(getPointOffset(sampleNo,0)));
+  return &(getVector()[getPointOffset(sampleNo,0)]);
 }
 
 inline
@@ -617,20 +648,20 @@ DataAbstract::getFunctionSpace() const
   return m_functionSpace;
 }
 
-inline
-const
-DataArrayView&
-DataAbstract::getPointDataView() const
-{
-  return *(m_pointDataView.get());
-}
+// inline
+// const
+// DataArrayView&
+// DataAbstract::getPointDataView() const
+// {
+//   return *(m_pointDataView.get());
+// }
 
-inline
-DataArrayView&
-DataAbstract::getPointDataView()
-{
-  return *(m_pointDataView.get());
-}
+// inline
+// DataArrayView&
+// DataAbstract::getPointDataView()
+// {
+//   return *(m_pointDataView.get());
+// }
 
 inline
 const DataTypes::ShapeType& 

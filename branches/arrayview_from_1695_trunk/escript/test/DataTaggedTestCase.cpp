@@ -34,6 +34,7 @@ using namespace CppUnitTest;
 using namespace escript;
 using namespace esysUtils;
 using namespace std;
+using namespace escript::DataTypes;
 
 void DataTaggedTestCase::setUp() {
   //
@@ -47,6 +48,28 @@ void DataTaggedTestCase::tearDown() {
 
 }
 
+
+namespace {
+
+ValueType::reference
+getRef(DataTagged& data,int offset, int i, int j, int k)
+{
+   return data.getVector()[offset+getRelIndex(data.getShape(),i,j,k)];
+}
+
+ValueType::reference
+getRef(DataTagged& data,int offset, int i, int j)
+{
+   return data.getVector()[offset+getRelIndex(data.getShape(),i,j)];
+}
+
+ValueType::const_reference
+getRef(const DataTagged& data,int offset, int i)
+{
+   return data.getVector()[offset+getRelIndex(data.getShape(),i)];
+}
+
+}
 
 void DataTaggedTestCase::testOperations() {
 
@@ -81,30 +104,30 @@ void DataTaggedTestCase::testOperations() {
 
     assert(myData.getPointOffset(0,0)==0);
 
-    DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+//     DataArrayView myDataView = myData.getDataPoint(0,0);
+//     assert(!myDataView.isEmpty());
+    assert(myData.getPointOffset(0,0)==0);
+    assert(myData.getRank()==0);
+    assert(myData.getNoValues()==1);
+    assert(myData.getShape().size()==0);
+    assert(myData.getDataAtOffset(0)==0.0);
 
     // Test non-existent tag returns the default value.
-    myDataView = myData.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+//     myDataView = myData.getDataPointByTag(1);
+//     assert(!myDataView.isEmpty());
+    assert(myData.getOffsetForTag(1)==0);
+    assert(myData.getRank()==0);
+    assert(myData.getNoValues()==1);
+    assert(myData.getShape().size()==0);
+    assert(myData.getDataAtOffset(0)==0.0);
 
-    myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+//     myDataView = myData.getDefaultValue();
+//     assert(!myDataView.isEmpty());
+    assert(myData.getDefaultOffset()==0);
+//     assert(myDataView.getRank()==0);		// there is no point in testing this again
+//     assert(myDataView.noValues()==1);	// since we are not building DataArrayViews
+//     assert(myDataView.getShape().size()==0);
+//     assert(myDataView()==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -121,9 +144,9 @@ void DataTaggedTestCase::testOperations() {
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
-    DataTagged::TagListType keys;
-
-    DataTagged::ValueListType values;
+//     DataTagged::TagListType keys;
+// 
+//     DataTagged::ValueListType values;
 
     DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
@@ -131,8 +154,11 @@ void DataTaggedTestCase::testOperations() {
     }
     DataArrayView myView(viewData,viewShape);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
-    DataTagged right(keys,values,myView,FunctionSpace());
+//     DataTagged myData(keys,values,myView,FunctionSpace());
+//     DataTagged right(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,viewData);
+    DataTagged right(FunctionSpace(),viewShape,viewData);
+
 
     binaryOp(myData,right,plus<double>());
 
@@ -157,15 +183,17 @@ void DataTaggedTestCase::testOperations() {
 
     assert(myData.getPointOffset(0,0)==0);
 
-    DataArrayView myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==2);
-    assert(myDataView(2)==4);
+    assert(myData.getRank()==1);
+    assert(myData.getNoValues()==3);
+    assert(myData.getShape().size()==1);
+
+
+    int offset=myData.getDefaultOffset();
+//     DataArrayView myDataView = myData.getDefaultValue();
+    assert(offset==0);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==2);
+    assert(getRef(myData,offset,2)==4);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -184,10 +212,10 @@ void DataTaggedTestCase::testOperations() {
 
     DataVector vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vOneView(vOneData,DataTypes::ShapeType());
+//     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
-    myData.addTaggedValue(1,vOneView);
-    right.addTaggedValue(1,vOneView);
+    myData.addTaggedValue(1,DataTypes::scalarShape,vOneData);
+    right.addTaggedValue(1,DataTypes::scalarShape,vOneData);
 
     binaryOp(myData,right,plus<double>());
 
@@ -210,23 +238,24 @@ void DataTaggedTestCase::testOperations() {
 
     assert(myData.getPointOffset(0,0)==1);
 
+
+    assert(myData.getRank()==0);
+    assert(myData.getNoValues()==1);
+    assert(myData.getShape().size()==0);
+
+
+
     // check result value for tag "1"
-    DataArrayView myDataView = myData.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==2.0);
+//     DataArrayView myDataView = myData.getDataPointByTag(1);
+    int offset=myData.getOffsetForTag(1);
+    assert(offset==1);
+    assert(myData.getVector()[offset]==2.0);
 
     // check result for default value
-    myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(myData.getVector()[offset]==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -247,19 +276,21 @@ void DataTaggedTestCase::testOperations() {
     // verify that the tag values in each object are being added to the correct
     // default values - since the tag lists don't match, the default values will
     // be used for missing tags in each object
-    myData.getDefaultValue()()=1.0;
-    right.getDefaultValue()()=2.0;
+//     myData.getDefaultValue()()=1.0;
+//     right.getDefaultValue()()=2.0;
+    myData.getVector()[myData.getDefaultOffset()]=1.0;
+    right.getVector()[right.getDefaultOffset()]=2.0;
 
     DataVector vOneData(1, 3.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vOneView(vOneData,DataTypes::ShapeType());
+//     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
     DataVector vTwoData(1, 4.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
+//     DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
 
-    myData.addTaggedValue(1,vOneView);
-    right.addTaggedValue(2,vTwoView);
+    myData.addTaggedValue(1,DataTypes::scalarShape,vOneData);
+    right.addTaggedValue(2,DataTypes::scalarShape,vTwoData);
 
     //cout << myData.toString() << endl;
     //cout << right.toString() << endl;
@@ -288,32 +319,28 @@ void DataTaggedTestCase::testOperations() {
 
     assert(myData.getPointOffset(0,0)==1);
 
+    assert(myData.getRank()==0);
+    assert(myData.getNoValues()==1);
+    assert(myData.getShape().size()==0);
+
+
     // check result value for tag "1"
-    DataArrayView myDataView = myData.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==5.0);
+//     DataArrayView myDataView = myData.getDataPointByTag(1);
+    int offset=myData.getOffsetForTag(1);
+    assert(offset==1);
+    assert(myData.getDataAtOffset(offset)==5.0);
 
     // check result value for tag "2"
-    myDataView = myData.getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==2);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==5.0);
+//     myDataView = myData.getDataPointByTag(2);
+    offset=myData.getOffsetForTag(2);
+    assert(offset==2);
+    assert(myData.getDataAtOffset(offset)==5.0);
 
     // check result for default value
-    myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==3.0);
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==3.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -334,17 +361,20 @@ void DataTaggedTestCase::testOperations() {
     // verify that the tag values in each object are being added to the correct
     // default values - since the tag lists don't match, the default values will
     // be used for missing tags in each object
-    myData.getDefaultValue()()=2.0;
-    right.getDefaultValue()()=3.0;
+/*    myData.getDefaultValue()()=2.0;
+    right.getDefaultValue()()=3.0;*/
+    myData.getVector()[myData.getDefaultOffset()]=2.0;
+    right.getVector()[right.getDefaultOffset()]=3.0;
+
 
     DataVector vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vOneView(vOneData,DataTypes::ShapeType());
+//     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
-    myData.addTaggedValue(1,vOneView);
-    myData.addTaggedValue(2,vOneView);
-    right.addTaggedValue(2,vOneView);
-    right.addTaggedValue(3,vOneView);
+    myData.addTaggedValue(1,DataTypes::scalarShape,vOneData);
+    myData.addTaggedValue(2,DataTypes::scalarShape,vOneData);
+    right.addTaggedValue(2,DataTypes::scalarShape,vOneData);
+    right.addTaggedValue(3,DataTypes::scalarShape,vOneData);
 
     //cout << myData.toString() << endl;
     //cout << right.toString() << endl;
@@ -374,41 +404,34 @@ void DataTaggedTestCase::testOperations() {
 
     assert(myData.getPointOffset(0,0)==1);
 
+    assert(myData.getRank()==0);
+    assert(myData.getNoValues()==1);
+    assert(myData.getShape().size()==0);
+
+
     // check result value for tag "1"
-    DataArrayView myDataView = myData.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==4.0);
+//     DataArrayView myDataView = myData.getDataPointByTag(1);
+    int offset=myData.getOffsetForTag(1);
+    assert(offset==1);
+    assert(myData.getDataAtOffset(offset)==4.0);
 
     // check result value for tag "2"
-    myDataView = myData.getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==2);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==2.0);
+//     myDataView = myData.getDataPointByTag(2);
+    offset=myData.getOffsetForTag(2);
+    assert(offset==2);
+    assert(myData.getDataAtOffset(offset)==2.0);
 
     // check result value for tag "3"
-    myDataView = myData.getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==3.0);
+//     myDataView = myData.getDataPointByTag(3);
+    offset=myData.getOffsetForTag(3);
+    assert(offset==3);
+    assert(myData.getDataAtOffset(offset)==3.0);
 
     // check result for default value
-    myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==5.0);
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==5.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -426,18 +449,18 @@ void DataTaggedTestCase::testOperations() {
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
-    DataTagged::TagListType keys;
+//     DataTagged::TagListType keys;
 
-    DataTagged::ValueListType values;
+//     DataTagged::ValueListType values;
 
     DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
-    DataTagged right(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,viewData);
+    DataTagged right(FunctionSpace(),viewShape,viewData);
 
     binaryOp(myData,right,multiplies<double>());
 
@@ -462,15 +485,17 @@ void DataTaggedTestCase::testOperations() {
 
     assert(myData.getPointOffset(0,0)==0);
 
-    DataArrayView myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==4);
+    assert(myData.getRank()==1);
+    assert(myData.getNoValues()==3);
+    assert(myData.getShape().size()==1);
+
+
+//     DataArrayView myDataView = myData.getDefaultValue();
+    int offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==1);
+    assert(getRef(myData,offset,2)==4);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -489,25 +514,25 @@ void DataTaggedTestCase::testOperations() {
 
     DataVector vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vOneView(vOneData,DataTypes::ShapeType());
+//     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
     DataVector vTwoData(1, 2.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
+//     DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
 
-    myData.addTaggedValue(1,vOneView);
-    myData.addTaggedValue(2,vTwoView);
+    myData.addTaggedValue(1,DataTypes::scalarShape,vOneData);
+    myData.addTaggedValue(2,DataTypes::scalarShape,vTwoData);
 
     DataVector vThreeData(1, 3.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vThreeView(vThreeData,DataTypes::ShapeType());
+//     DataArrayView vThreeView(vThreeData,DataTypes::ShapeType());
 
-    DataArrayView right=vThreeView;
+//     DataArrayView right=vThreeView;
 
     //cout << myData.toString() << endl;
     //cout << right.toString() << endl;
 
-    binaryOp(myData,right,multiplies<double>());
+    binaryOp(myData,vThreeData, DataTypes::scalarShape,multiplies<double>());
 
     //cout << myData.toString() << endl;
 
@@ -531,32 +556,27 @@ void DataTaggedTestCase::testOperations() {
 
     assert(myData.getPointOffset(0,0)==1);
 
+    assert(myData.getRank()==0);
+    assert(myData.getNoValues()==1);
+    assert(myData.getShape().size()==0);
+
     // check result value for tag "1"
-    DataArrayView myDataView = myData.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==3.0);
+//     DataArrayView myDataView = myData.getDataPointByTag(1);
+    int offset=myData.getOffsetForTag(1);
+    assert(offset==1);
+    assert(myData.getDataAtOffset(offset)==3.0);
 
     // check result value for tag "2"
-    myDataView = myData.getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==2);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==6.0);
+//     myDataView = myData.getDataPointByTag(2);
+    offset=myData.getOffsetForTag(2);
+    assert(offset==2);
+    assert(myData.getDataAtOffset(offset)==6.0);
 
     // check result for default value
-    myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -577,21 +597,23 @@ void DataTaggedTestCase::testOperations() {
     // verify that the tag values in each object are being added to the correct
     // default values - since the tag lists don't match, the default values will
     // be used for missing tags in each object
-    myData.getDefaultValue()()=2.0;
-    right.getDefaultValue()()=3.0;
+//     myData.getDefaultValue()()=2.0;
+//     right.getDefaultValue()()=3.0;
+    myData.getVector()[myData.getDefaultOffset()]=2.0;
+    right.getVector()[right.getDefaultOffset()]=3.0;
 
     DataVector vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vOneView(vOneData,DataTypes::ShapeType());
+//     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
     DataVector vTwoData(1, 2.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
+//     DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
 
-    myData.addTaggedValue(1,vOneView);
-    myData.addTaggedValue(2,vOneView);
-    right.addTaggedValue(2,vTwoView);
-    right.addTaggedValue(3,vTwoView);
+    myData.addTaggedValue(1,DataTypes::scalarShape,vOneData);
+    myData.addTaggedValue(2,DataTypes::scalarShape,vOneData);
+    right.addTaggedValue(2,DataTypes::scalarShape,vTwoData);
+    right.addTaggedValue(3,DataTypes::scalarShape,vTwoData);
 
     //cout << myData.toString() << endl;
     //cout << right.toString() << endl;
@@ -621,41 +643,34 @@ void DataTaggedTestCase::testOperations() {
 
     assert(myData.getPointOffset(0,0)==1);
 
+    assert(myData.getRank()==0);
+    assert(myData.getNoValues()==1);
+    assert(myData.getShape().size()==0);
+
+
     // check result value for tag "1"
-    DataArrayView myDataView = myData.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==3.0);
+//     DataArrayView myDataView = myData.getDataPointByTag(1);
+    int offset=myData.getOffsetForTag(1);
+    assert(offset==1);
+    assert(myData.getDataAtOffset(offset)==3.0);
 
     // check result value for tag "2"
-    myDataView = myData.getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==2);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==2.0);
+//     myDataView = myData.getDataPointByTag(2);
+    offset=myData.getOffsetForTag(2);
+    assert(offset==2);
+    assert(myData.getDataAtOffset(offset)==2.0);
 
     // check result value for tag "3"
-    myDataView = myData.getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==4.0);
+//     myDataView = myData.getDataPointByTag(3);
+    offset=myData.getOffsetForTag(3);
+    assert(offset==3);
+    assert(myData.getDataAtOffset(offset)==4.0);
 
     // check result for default value
-    myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==6.0);
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==6.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -695,30 +710,26 @@ void DataTaggedTestCase::testOperations() {
 
     assert(myData.getPointOffset(0,0)==0);
 
-    DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+    assert(myData.getRank()==0);
+    assert(myData.getNoValues()==1);
+    assert(myData.getShape().size()==0);
+
+
+//     DataArrayView myDataView = myData.getDataPoint(0,0);
+    int offset=myData.getPointOffset(0,0);
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==0.0);
 
     // Test non-existent tag returns the default value.
-    myDataView = myData.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+//     myDataView = myData.getDataPointByTag(1);
+    offset=myData.getOffsetForTag(1);
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==0.0);
 
-    myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -735,17 +746,17 @@ void DataTaggedTestCase::testOperations() {
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
-    DataTagged::TagListType keys;
+//     DataTagged::TagListType keys;
 
-    DataTagged::ValueListType values;
+//     DataTagged::ValueListType values;
 
     DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,viewData);
 
     unaryOp(myData,negate<double>());
 
@@ -770,15 +781,17 @@ void DataTaggedTestCase::testOperations() {
 
     assert(myData.getPointOffset(0,0)==0);
 
-    DataArrayView myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==-1);
-    assert(myDataView(2)==-2);
+    assert(myData.getRank()==1);
+    assert(myData.getNoValues()==3);
+    assert(myData.getShape().size()==1);
+
+
+    int offset=myData.getDefaultOffset();
+//     DataArrayView myDataView = myData.getDefaultValue();
+    assert(offset==0);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==-1);
+    assert(getRef(myData,offset,2)==-2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -796,14 +809,14 @@ void DataTaggedTestCase::testOperations() {
 
     DataVector vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vOneView(vOneData,DataTypes::ShapeType());
+//     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
     DataVector vTwoData(1, 2.0 ,1);
     // create a view with an empty shape, a scalar.
-    DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
+//     DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
 
-    myData.addTaggedValue(1,vOneView);
-    myData.addTaggedValue(2,vTwoView);
+    myData.addTaggedValue(1,DataTypes::scalarShape,vOneData);
+    myData.addTaggedValue(2,DataTypes::scalarShape,vTwoData);
 
     unaryOp(myData,negate<double>());
 
@@ -827,32 +840,28 @@ void DataTaggedTestCase::testOperations() {
 
     assert(myData.getPointOffset(0,0)==1);
 
+    assert(myData.getRank()==0);
+    assert(myData.getNoValues()==1);
+    assert(myData.getShape().size()==0);
+
+
     // check result value for tag "1"
-    DataArrayView myDataView = myData.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==-1.0);
+//     DataArrayView myDataView = myData.getDataPointByTag(1);
+    int offset=myData.getOffsetForTag(1);
+    assert(offset==1);
+    assert(myData.getDataAtOffset(offset)==-1.0);
 
     // check result value for tag "2"
-    myDataView = myData.getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==2);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==-2.0);
+//     myDataView = myData.getDataPointByTag(2);
+    offset=myData.getOffsetForTag(2);
+    assert(offset==2);
+    assert(myData.getDataAtOffset(offset)==-2.0);
 
     // check result for default value
-    myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -877,9 +886,9 @@ void DataTaggedTestCase::testAddTaggedValues() {
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
-    myData.addTaggedValues(keys,values);
+    myData.addTaggedValues(keys,values,DataTypes::scalarShape);
 
     assert(myData.isCurrentTag(1));
 
@@ -892,29 +901,25 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     assert(myData.getPointOffset(0,0)==1);
 
-    DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+    assert(myData.getRank()==0);
+    assert(myData.getNoValues()==1);
+    assert(myData.getShape().size()==0);
 
-    myDataView = myData.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
 
-    myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+//     DataArrayView myDataView = myData.getDataPoint(0,0);
+    int offset=myData.getPointOffset(0,0);
+    assert(offset==1);
+    assert(myData.getDataAtOffset(offset)==0.0);
+
+//     myDataView = myData.getDataPointByTag(1);
+    offset=myData.getOffsetForTag(1);
+    assert(offset==1);
+    assert(myData.getDataAtOffset(offset)==0.0);
+
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -933,15 +938,15 @@ void DataTaggedTestCase::testAddTaggedValues() {
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
-    DataTypes::ValueType viewData(1);
-    viewData[0]=1.0;
-    DataArrayView myView(viewData,viewShape);
-    values.push_back(myView);
+/*    DataTypes::ValueType viewData(1);
+    viewData[0]=1.0;*/
+//     DataArrayView myView(viewData,viewShape);
+    values.push_back(1.0);
 
-    myData.addTaggedValues(keys,values);
+    myData.addTaggedValues(keys,values,viewShape);
 
     assert(myData.isCurrentTag(1));
 
@@ -954,29 +959,25 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     assert(myData.getPointOffset(0,0)==1);
 
-    DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
+    assert(myData.getRank()==0);
+    assert(myData.getNoValues()==1);
+    assert(myData.getShape().size()==0);
 
-    myDataView = myData.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
 
-    myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+//     DataArrayView myDataView = myData.getDataPoint(0,0);
+    int offset=myData.getPointOffset(0,0);
+    assert(offset==1);
+    assert(myData.getDataAtOffset(offset)==1.0);
+
+//     myDataView = myData.getDataPointByTag(1);
+    offset=myData.getOffsetForTag(1);
+    assert(offset==1);
+    assert(myData.getDataAtOffset(offset)==1.0);
+
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -997,15 +998,15 @@ void DataTaggedTestCase::testAddTaggedValues() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
-    DataTypes::ValueType viewData(1);
+/*    DataTypes::ValueType viewData(1);
     viewData[0]=1.0;
-    DataArrayView myView(viewData,viewShape);
-    values.push_back(myView);
+    DataArrayView myView(viewData,viewShape);*/
+    values.push_back(1.0);
 
-    myData.addTaggedValues(keys,values);
+    myData.addTaggedValues(keys,values,viewShape);
 
     assert(myData.isCurrentTag(1));
     assert(myData.isCurrentTag(2));
@@ -1020,45 +1021,35 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     assert(myData.getPointOffset(0,0)==1);
 
-    DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
+    assert(myData.getRank()==0);
+    assert(myData.getNoValues()==1);
+    assert(myData.getShape().size()==0);
 
-    myDataView = myData.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
 
-    myDataView = myData.getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==2);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
+//     DataArrayView myDataView = myData.getDataPoint(0,0);
+    int offset=myData.getPointOffset(0,0);
+    assert(offset==1);
+    assert(myData.getDataAtOffset(offset)==1.0);
 
-    myDataView = myData.getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
+//     myDataView = myData.getDataPointByTag(1);
+    offset=myData.getOffsetForTag(1);
+    assert(offset==1);
+    assert(myData.getDataAtOffset(offset)==1.0);
 
-    myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+//     myDataView = myData.getDataPointByTag(2);
+    offset=myData.getOffsetForTag(2);
+    assert(offset==2);
+    assert(myData.getDataAtOffset(offset)==1.0);
+
+//     myDataView = myData.getDataPointByTag(3);
+    offset=myData.getOffsetForTag(3);
+    assert(offset==3);
+    assert(myData.getDataAtOffset(offset)==1.0);
+
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1083,10 +1074,10 @@ void DataTaggedTestCase::testAddTaggedValues() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
-    DataTypes::ValueType viewData1(1);
+/*    DataTypes::ValueType viewData1(1);
     viewData1[0]=1.0;
     DataTypes::ValueType viewData2(1);
     viewData2[0]=2.0;
@@ -1094,12 +1085,12 @@ void DataTaggedTestCase::testAddTaggedValues() {
     viewData3[0]=3.0;
     DataArrayView myView1(viewData1,viewShape);
     DataArrayView myView2(viewData2,viewShape);
-    DataArrayView myView3(viewData3,viewShape);
-    values.push_back(myView1);
-    values.push_back(myView2);
-    values.push_back(myView3);
+    DataArrayView myView3(viewData3,viewShape);*/
+    values.push_back(1.0);
+    values.push_back(2.0);
+    values.push_back(3.0);
 
-    myData.addTaggedValues(keys,values);
+    myData.addTaggedValues(keys,values,viewShape);
 
     assert(myData.isCurrentTag(1));
     assert(myData.isCurrentTag(2));
@@ -1114,45 +1105,35 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     assert(myData.getPointOffset(0,0)==1);
 
-    DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
+    assert(myData.getRank()==0);
+    assert(myData.getNoValues()==1);
+    assert(myData.getShape().size()==0);
 
-    myDataView = myData.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
 
-    myDataView = myData.getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==2);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==2.0);
+//     DataArrayView myDataView = myData.getDataPoint(0,0);
+    int offset=myData.getPointOffset(0,0);
+    assert(offset==1);
+    assert(myData.getDataAtOffset(offset)==1.0);
 
-    myDataView = myData.getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==3.0);
+//     myDataView = myData.getDataPointByTag(1);
+    offset=myData.getOffsetForTag(1);
+    assert(offset==1);
+    assert(myData.getDataAtOffset(offset)==1.0);
 
-    myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+//     myDataView = myData.getDataPointByTag(2);
+    offset=myData.getOffsetForTag(2);
+    assert(offset==2);
+    assert(myData.getDataAtOffset(offset)==2.0);
+
+//     myDataView = myData.getDataPointByTag(3);
+    offset=myData.getOffsetForTag(3);
+    assert(offset==3);
+    assert(myData.getDataAtOffset(offset)==3.0);
+
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1172,7 +1153,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
@@ -1180,12 +1161,12 @@ void DataTaggedTestCase::testAddTaggedValues() {
     }
     DataArrayView myView(viewData,viewShape);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,viewData);
 
     keys.push_back(1);
     values.clear();
 
-    myData.addTaggedValues(keys,values);
+    myData.addTaggedValues(keys,values,viewShape);
 
     assert(myData.isCurrentTag(1));
 
@@ -1198,38 +1179,31 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     assert(myData.getPointOffset(0,0)==3);
 
-    DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(myDataView==myView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+    assert(myData.getRank()==1);
+    assert(myData.getNoValues()==3);
+    assert(myData.getShape().size()==1);
 
-    myDataView = myData.getDataPointByTag(1);
-    assert(myDataView==myView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
 
-    myDataView = myData.getDefaultValue();
-    assert(myDataView==myView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+//     DataArrayView myDataView = myData.getDataPoint(0,0);
+    int offset=myData.getPointOffset(0,0);
+    assert(offset==3);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==1);
+    assert(getRef(myData,offset,2)==2);
+
+//     myDataView = myData.getDataPointByTag(1);
+    offset=myData.getOffsetForTag(1);
+    assert(offset==3);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==1);
+    assert(getRef(myData,offset,2)==2);
+
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==1);
+    assert(getRef(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1249,26 +1223,27 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,viewData);
 
     keys.push_back(1);
 
-    DataTypes::ValueType viewData1(3);
+//     DataTypes::ValueType viewData1(3);
     for (int i=0;i<viewShape[0];i++) {
-      viewData1[i]=i+3;
+//       viewData1[i]=i+3;
+	values.push_back(i+3);
     }
-    DataArrayView myView1(viewData1,viewShape);
-    values.push_back(myView1);
+//     DataArrayView myView1(viewData1,viewShape);
+//     values.push_back(myView1);
 
-    myData.addTaggedValues(keys,values);
+    myData.addTaggedValues(keys,values,viewShape);
 
     assert(myData.isCurrentTag(1));
 
@@ -1281,38 +1256,31 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     assert(myData.getPointOffset(0,0)==3);
 
-    DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(myDataView==myView1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==3);
-    assert(myDataView(1)==4);
-    assert(myDataView(2)==5);
+    assert(myData.getRank()==1);
+    assert(myData.getNoValues()==3);
+    assert(myData.getShape().size()==1);
 
-    myDataView = myData.getDataPointByTag(1);
-    assert(myDataView==myView1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==3);
-    assert(myDataView(1)==4);
-    assert(myDataView(2)==5);
 
-    myDataView = myData.getDefaultValue();
-    assert(myDataView==myView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+    int offset=myData.getPointOffset(0,0);
+//     DataArrayView myDataView = myData.getDataPoint(0,0);
+    assert(offset==3);
+    assert(getRef(myData,offset,0)==3);
+    assert(getRef(myData,offset,1)==4);
+    assert(getRef(myData,offset,2)==5);
+
+//     myDataView = myData.getDataPointByTag(1);
+    offset=myData.getOffsetForTag(1);
+    assert(offset==3);
+    assert(getRef(myData,offset,0)==3);
+    assert(getRef(myData,offset,1)==4);
+    assert(getRef(myData,offset,2)==5);
+
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==1);
+    assert(getRef(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1332,28 +1300,29 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,viewData);
 
     keys.push_back(1);
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTypes::ValueType viewData1(3);
+//     DataTypes::ValueType viewData1(3);
     for (int i=0;i<viewShape[0];i++) {
-      viewData1[i]=3;
+//       viewData1[i]=3;
+	values.push_back(3);
     }
-    DataArrayView myView1(viewData1,viewShape);
-    values.push_back(myView1);
+//     DataArrayView myView1(viewData1,viewShape);
+//     values.push_back(myView1);
 
-    myData.addTaggedValues(keys,values);
+    myData.addTaggedValues(keys,values,viewShape);
 
     assert(myData.isCurrentTag(1));
     assert(myData.isCurrentTag(2));
@@ -1368,60 +1337,44 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     assert(myData.getPointOffset(0,0)==3);
 
-    DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(myDataView==myView1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==3);
-    assert(myDataView(1)==3);
-    assert(myDataView(2)==3);
+    assert(myData.getRank()==1);
+    assert(myData.getNoValues()==3);
+    assert(myData.getShape().size()==1);
 
-    myDataView = myData.getDataPointByTag(1);
-    assert(myDataView==myView1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==3);
-    assert(myDataView(1)==3);
-    assert(myDataView(2)==3);
+//     DataArrayView myDataView = myData.getDataPoint(0,0);
+    int offset=myData.getPointOffset(0,0);
+    assert(offset==3);
+    assert(getRef(myData,offset,0)==3);
+    assert(getRef(myData,offset,1)==3);
+    assert(getRef(myData,offset,2)==3);
 
-    myDataView = myData.getDataPointByTag(2);
-    assert(myDataView==myView1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==6);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==3);
-    assert(myDataView(1)==3);
-    assert(myDataView(2)==3);
+//     myDataView = myData.getDataPointByTag(1);
+    offset=myData.getOffsetForTag(1);
+    assert(offset==3);
+    assert(getRef(myData,offset,0)==3);
+    assert(getRef(myData,offset,1)==3);
+    assert(getRef(myData,offset,2)==3);
 
-    myDataView = myData.getDataPointByTag(3);
-    assert(myDataView==myView1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==9);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==3);
-    assert(myDataView(1)==3);
-    assert(myDataView(2)==3);
+//     myDataView = myData.getDataPointByTag(2);
+    offset=myData.getOffsetForTag(2);
+    assert(offset==6);
+    assert(getRef(myData,offset,0)==3);
+    assert(getRef(myData,offset,1)==3);
+    assert(getRef(myData,offset,2)==3);
 
-    myDataView = myData.getDefaultValue();
-    assert(myDataView==myView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+//     myDataView = myData.getDataPointByTag(3);
+    offset=myData.getOffsetForTag(3);
+    assert(offset==9);
+    assert(getRef(myData,offset,0)==3);
+    assert(getRef(myData,offset,1)==3);
+    assert(getRef(myData,offset,2)==3);
+
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==1);
+    assert(getRef(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1445,42 +1398,45 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,viewData);
 
     keys.push_back(1);
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTypes::ValueType viewData1(3);
+//     DataTypes::ValueType viewData1(3);
     for (int i=0;i<viewShape[0];i++) {
-      viewData1[i]=i+1;
+//       viewData1[i]=i+1;
+	values.push_back(i+1);
     }
-    DataArrayView myView1(viewData1,viewShape);
-    values.push_back(myView1);
+//     DataArrayView myView1(viewData1,viewShape);
+//     values.push_back(myView1);
 
-    DataTypes::ValueType viewData2(3);
+//     DataTypes::ValueType viewData2(3);
     for (int i=0;i<viewShape[0];i++) {
-      viewData2[i]=i+2;
+//       viewData2[i]=i+2;
+	values.push_back(i+2);
     }
-    DataArrayView myView2(viewData2,viewShape);
-    values.push_back(myView2);
+//     DataArrayView myView2(viewData2,viewShape);
+//     values.push_back(myView2);
 
-    DataTypes::ValueType viewData3(3);
+//     DataTypes::ValueType viewData3(3);
     for (int i=0;i<viewShape[0];i++) {
-      viewData3[i]=i+3;
+//       viewData3[i]=i+3;
+	values.push_back(i+3);
     }
-    DataArrayView myView3(viewData3,viewShape);
-    values.push_back(myView3);
+//     DataArrayView myView3(viewData3,viewShape);
+//     values.push_back(myView3);
 
-    myData.addTaggedValues(keys,values);
+    myData.addTaggedValues(keys,values,viewShape);
 
     assert(myData.isCurrentTag(1));
     assert(myData.isCurrentTag(2));
@@ -1495,60 +1451,45 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     assert(myData.getPointOffset(0,0)==3);
 
-    DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(myDataView==myView1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1);
-    assert(myDataView(1)==2);
-    assert(myDataView(2)==3);
+    assert(myData.getRank()==1);
+    assert(myData.getNoValues()==3);
+    assert(myData.getShape().size()==1);
 
-    myDataView = myData.getDataPointByTag(1);
-    assert(myDataView==myView1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1);
-    assert(myDataView(1)==2);
-    assert(myDataView(2)==3);
 
-    myDataView = myData.getDataPointByTag(2);
-    assert(myDataView==myView2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==6);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==2);
-    assert(myDataView(1)==3);
-    assert(myDataView(2)==4);
+//     DataArrayView myDataView = myData.getDataPoint(0,0);
+    int offset=myData.getPointOffset(0,0);
+    assert(offset==3);
+    assert(getRef(myData,offset,0)==1);
+    assert(getRef(myData,offset,1)==2);
+    assert(getRef(myData,offset,2)==3);
 
-    myDataView = myData.getDataPointByTag(3);
-    assert(myDataView==myView3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==9);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==3);
-    assert(myDataView(1)==4);
-    assert(myDataView(2)==5);
+//     myDataView = myData.getDataPointByTag(1);
+    offset=myData.getOffsetForTag(1);
+    assert(offset==3);
+    assert(getRef(myData,offset,0)==1);
+    assert(getRef(myData,offset,1)==2);
+    assert(getRef(myData,offset,2)==3);
 
-    myDataView = myData.getDefaultValue();
-    assert(myDataView==myView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+//     myDataView = myData.getDataPointByTag(2);
+    offset=myData.getOffsetForTag(2);
+    assert(offset==6);
+    assert(getRef(myData,offset,0)==2);
+    assert(getRef(myData,offset,1)==3);
+    assert(getRef(myData,offset,2)==4);
+
+//     myDataView = myData.getDataPointByTag(3);
+    offset=myData.getOffsetForTag(3);
+    assert(offset==9);
+    assert(getRef(myData,offset,0)==3);
+    assert(getRef(myData,offset,1)==4);
+    assert(getRef(myData,offset,2)==5);
+
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==1);
+    assert(getRef(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1576,49 +1517,52 @@ void DataTaggedTestCase::testAddTaggedValues() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value
-    DataTypes::ValueType viewData(3);
+    DataTypes::ValueType viewData(3*4);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataTypes::ValueType eOneData(viewData);
-    DataArrayView eOneView(eOneData, viewShape);
-    for (int i=0;i<eOneView.getShape()[0];i++) {
-      eOneView(i)=i+1.0;
+//     DataTypes::ValueType eOneData(viewData);
+//     DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eOneView(i)=i+1.0;
+      viewData[viewShape[0]+i]=i+1.0;
     }
-    values.push_back(eOneView);
+//     values.push_back(eOneView);
 
     // value for tag "2"
-    DataTypes::ValueType eTwoData(viewData);
-    DataArrayView eTwoView(eTwoData, viewShape);
-    for (int i=0;i<eTwoView.getShape()[0];i++) {
-      eTwoView(i)=i+2.0;
+//     DataTypes::ValueType eTwoData(viewData);
+//     DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eTwoView(i)=i+2.0;
+	viewData[2*viewShape[0]+i]=i+2.0;
     }
-    values.push_back(eTwoView);
+//     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataTypes::ValueType eThreeData(viewData);
-    DataArrayView eThreeView(eThreeData, viewShape);
-    for (int i=0;i<eThreeView.getShape()[0];i++) {
-      eThreeView(i)=i+3.0;
+//     DataTypes::ValueType eThreeData(viewData);
+//     DataArrayView eThreeView(eThreeData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eThreeView(i)=i+3.0;
+	viewData[3*viewShape[0]+i]=i+3.0;
     }
-    values.push_back(eThreeView);
+//     values.push_back(eThreeView);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,keys,viewData);
 
     keys.clear();
     keys.push_back(4);
     values.clear();
 
-    myData.addTaggedValues(keys,values);
+    myData.addTaggedValues(keys,values,viewShape);
 
     assert(myData.isCurrentTag(4));
 
@@ -1626,16 +1570,16 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     assert(myData.getLength()==15);
 
-    DataArrayView myDataView = myData.getDataPointByTag(4);
-    assert(myDataView==myView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==12);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+    assert(myData.getRank()==1);
+    assert(myData.getNoValues()==3);
+    assert(myData.getShape().size()==1);
+
+//     DataArrayView myDataView = myData.getDataPointByTag(4);
+    int offset=myData.getOffsetForTag(4);
+    assert(offset==12);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==1);
+    assert(getRef(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1665,57 +1609,60 @@ void DataTaggedTestCase::testAddTaggedValues() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value
-    DataTypes::ValueType viewData(3);
+    DataTypes::ValueType viewData(3*4);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataTypes::ValueType eOneData(viewData);
-    DataArrayView eOneView(eOneData, viewShape);
-    for (int i=0;i<eOneView.getShape()[0];i++) {
-      eOneView(i)=i+1.0;
+//     DataTypes::ValueType eOneData(viewData);
+//     DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eOneView(i)=i+1.0;
+	viewData[viewShape[0]+i]=i+1.0;
     }
-    values.push_back(eOneView);
+//     values.push_back(eOneView);
 
     // value for tag "2"
-    DataTypes::ValueType eTwoData(viewData);
-    DataArrayView eTwoView(eTwoData, viewShape);
-    for (int i=0;i<eTwoView.getShape()[0];i++) {
-      eTwoView(i)=i+2.0;
+//     DataTypes::ValueType eTwoData(viewData);
+//     DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eTwoView(i)=i+2.0;
+	viewData[2*viewShape[0]+i]=i+2.0;
     }
-    values.push_back(eTwoView);
+//     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataTypes::ValueType eThreeData(viewData);
-    DataArrayView eThreeView(eThreeData, viewShape);
-    for (int i=0;i<eThreeView.getShape()[0];i++) {
-      eThreeView(i)=i+3.0;
+//     DataTypes::ValueType eThreeData(viewData);
+//     DataArrayView eThreeView(eThreeData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eThreeView(i)=i+3.0;
+	viewData[3*viewShape[0]+i]=i+3.0;
     }
-    values.push_back(eThreeView);
+//     values.push_back(eThreeView);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,keys,viewData);
 
     keys.clear();
     keys.push_back(4);
 
     values.clear();
     // value for tag "4"
-    DataTypes::ValueType eFourData(viewData);
-    DataArrayView eFourView(eFourData, viewShape);
-    for (int i=0;i<eFourView.getShape()[0];i++) {
-      eFourView(i)=i+4.0;
+//     DataTypes::ValueType eFourData(viewData);
+//     DataArrayView eFourView(eFourData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+      values.push_back(i+4.0);
     }
-    values.push_back(eFourView);
+//     values.push_back(eFourView);
 
-    myData.addTaggedValues(keys,values);
+    myData.addTaggedValues(keys,values,viewShape);
 
     assert(myData.isCurrentTag(4));
 
@@ -1723,16 +1670,17 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     assert(myData.getLength()==15);
 
-    DataArrayView myDataView = myData.getDataPointByTag(4);
-    assert(myDataView==eFourView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==12);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==4);
-    assert(myDataView(1)==5);
-    assert(myDataView(2)==6);
+    assert(myData.getRank()==1);
+    assert(myData.getNoValues()==3);
+    assert(myData.getShape().size()==1);
+
+
+//     DataArrayView myDataView = myData.getDataPointByTag(4);
+    int offset=myData.getOffsetForTag(4);
+    assert(offset==12);
+    assert(getRef(myData,offset,0)==4);
+    assert(getRef(myData,offset,1)==5);
+    assert(getRef(myData,offset,2)==6);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1762,43 +1710,45 @@ void DataTaggedTestCase::testAddTaggedValues() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value
-    DataTypes::ValueType viewData(3);
+    DataTypes::ValueType viewData(3*4);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataTypes::ValueType eOneData(viewData);
-    DataArrayView eOneView(eOneData, viewShape);
-    for (int i=0;i<eOneView.getShape()[0];i++) {
-      eOneView(i)=i+1.0;
+//     DataTypes::ValueType eOneData(viewData);
+//     DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[viewShape[0]+i]=i+1.0;
     }
-    values.push_back(eOneView);
+//     values.push_back(eOneView);
 
     // value for tag "2"
-    DataTypes::ValueType eTwoData(viewData);
-    DataArrayView eTwoView(eTwoData, viewShape);
-    for (int i=0;i<eTwoView.getShape()[0];i++) {
-      eTwoView(i)=i+2.0;
+//     DataTypes::ValueType eTwoData(viewData);
+//     DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eTwoView(i)=i+2.0;
+	viewData[2*viewShape[0]+i]=i+2.0;
     }
-    values.push_back(eTwoView);
+//     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataTypes::ValueType eThreeData(viewData);
-    DataArrayView eThreeView(eThreeData, viewShape);
-    for (int i=0;i<eThreeView.getShape()[0];i++) {
-      eThreeView(i)=i+3.0;
+//     DataTypes::ValueType eThreeData(viewData);
+//     DataArrayView eThreeView(eThreeData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eThreeView(i)=i+3.0;
+	viewData[3*viewShape[0]+i]=i+3.0;
     }
-    values.push_back(eThreeView);
+//     values.push_back(eThreeView);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,keys,viewData);
 
     keys.clear();
     keys.push_back(4);
@@ -1807,14 +1757,15 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     values.clear();
     // value for tags "4", "5" and "6"
-    DataTypes::ValueType eFourData(viewData);
-    DataArrayView eFourView(eFourData, viewShape);
-    for (int i=0;i<eFourView.getShape()[0];i++) {
-      eFourView(i)=i+4.0;
+//     DataTypes::ValueType eFourData(viewData);
+//     DataArrayView eFourView(eFourData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eFourView(i)=i+4.0;
+	values.push_back(i+4.0);
     }
-    values.push_back(eFourView);
+//     values.push_back(eFourView);
 
-    myData.addTaggedValues(keys,values);
+    myData.addTaggedValues(keys,values,viewShape);
 
     assert(myData.isCurrentTag(4));
     assert(myData.isCurrentTag(5));
@@ -1824,38 +1775,30 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     assert(myData.getLength()==21);
 
-    DataArrayView myDataView = myData.getDataPointByTag(4);
-    assert(myDataView==eFourView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==12);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==4);
-    assert(myDataView(1)==5);
-    assert(myDataView(2)==6);
+    assert(myData.getRank()==1);
+    assert(myData.getNoValues()==3);
+    assert(myData.getShape().size()==1);
 
-    myDataView = myData.getDataPointByTag(5);
-    assert(myDataView==eFourView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==15);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==4);
-    assert(myDataView(1)==5);
-    assert(myDataView(2)==6);
+//     DataArrayView myDataView = myData.getDataPointByTag(4);
+    int offset=myData.getOffsetForTag(4);
+    assert(offset==12);
+    assert(getRef(myData,offset,0)==4);
+    assert(getRef(myData,offset,1)==5);
+    assert(getRef(myData,offset,2)==6);
 
-    myDataView = myData.getDataPointByTag(6);
-    assert(myDataView==eFourView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==18);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==4);
-    assert(myDataView(1)==5);
-    assert(myDataView(2)==6);
+//     myDataView = myData.getDataPointByTag(5);
+    offset=myData.getOffsetForTag(5);
+    assert(offset==15);
+    assert(getRef(myData,offset,0)==4);
+    assert(getRef(myData,offset,1)==5);
+    assert(getRef(myData,offset,2)==6);
+
+//     myDataView = myData.getDataPointByTag(6);
+    offset=myData.getOffsetForTag(6);
+    assert(offset==18);
+    assert(getRef(myData,offset,0)==4);
+    assert(getRef(myData,offset,1)==5);
+    assert(getRef(myData,offset,2)==6);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1889,43 +1832,44 @@ void DataTaggedTestCase::testAddTaggedValues() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value
-    DataTypes::ValueType viewData(3);
+    DataTypes::ValueType viewData(3*4);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataTypes::ValueType eOneData(viewData);
-    DataArrayView eOneView(eOneData, viewShape);
-    for (int i=0;i<eOneView.getShape()[0];i++) {
-      eOneView(i)=i+1.0;
+//     DataTypes::ValueType eOneData(viewData);
+//     DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[viewShape[0]+i]=i+1.0;
     }
-    values.push_back(eOneView);
+//     values.push_back(eOneView);
 
     // value for tag "2"
-    DataTypes::ValueType eTwoData(viewData);
-    DataArrayView eTwoView(eTwoData, viewShape);
-    for (int i=0;i<eTwoView.getShape()[0];i++) {
-      eTwoView(i)=i+2.0;
+//     DataTypes::ValueType eTwoData(viewData);
+//     DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eTwoView(i)=i+2.0;
+	viewData[2*viewShape[0]+i]=i+2.0;
     }
-    values.push_back(eTwoView);
+//     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataTypes::ValueType eThreeData(viewData);
-    DataArrayView eThreeView(eThreeData, viewShape);
-    for (int i=0;i<eThreeView.getShape()[0];i++) {
-      eThreeView(i)=i+3.0;
+//     DataTypes::ValueType eThreeData(viewData);
+//     DataArrayView eThreeView(eThreeData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[3*viewShape[0]+i]=i+3.0;
     }
-    values.push_back(eThreeView);
+//     values.push_back(eThreeView);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,keys,viewData);
 
     keys.clear();
     keys.push_back(4);
@@ -1935,30 +1879,31 @@ void DataTaggedTestCase::testAddTaggedValues() {
     values.clear();
 
     // value for tag "4"
-    DataTypes::ValueType eFourData(viewData);
-    DataArrayView eFourView(eFourData, viewShape);
-    for (int i=0;i<eFourView.getShape()[0];i++) {
-      eFourView(i)=i+4.0;
+//     DataTypes::ValueType eFourData(viewData);
+//     DataArrayView eFourView(eFourData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+      values.push_back(i+4.0);
     }
-    values.push_back(eFourView);
+//     values.push_back(eFourView);
 
     // value for tag "5"
-    DataTypes::ValueType eFiveData(viewData);
-    DataArrayView eFiveView(eFiveData, viewShape);
-    for (int i=0;i<eFiveView.getShape()[0];i++) {
-      eFiveView(i)=i+5.0;
+//     DataTypes::ValueType eFiveData(viewData);
+//     DataArrayView eFiveView(eFiveData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+      values.push_back(i+5.0);
     }
-    values.push_back(eFiveView);
+//     values.push_back(eFiveView);
 
     // value for tag "6"
-    DataTypes::ValueType eSixData(viewData);
-    DataArrayView eSixView(eSixData, viewShape);
-    for (int i=0;i<eSixView.getShape()[0];i++) {
-      eSixView(i)=i+6.0;
+//     DataTypes::ValueType eSixData(viewData);
+//     DataArrayView eSixView(eSixData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eSixView(i)=i+6.0;
+	values.push_back(i+6.0);
     }
-    values.push_back(eSixView);
+//     values.push_back(eSixView);
 
-    myData.addTaggedValues(keys,values);
+    myData.addTaggedValues(keys,values,viewShape);
 
     assert(myData.isCurrentTag(4));
     assert(myData.isCurrentTag(5));
@@ -1968,38 +1913,30 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     assert(myData.getLength()==21);
 
-    DataArrayView myDataView = myData.getDataPointByTag(4);
-    assert(myDataView==eFourView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==12);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==4);
-    assert(myDataView(1)==5);
-    assert(myDataView(2)==6);
+    assert(myData.getRank()==1);
+    assert(myData.getNoValues()==3);
+    assert(myData.getShape().size()==1);
 
-    myDataView = myData.getDataPointByTag(5);
-    assert(myDataView==eFiveView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==15);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==5);
-    assert(myDataView(1)==6);
-    assert(myDataView(2)==7);
+//     DataArrayView myDataView = myData.getDataPointByTag(4);
+    int offset=myData.getOffsetForTag(4);
+    assert(offset==12);
+    assert(getRef(myData,offset,0)==4);
+    assert(getRef(myData,offset,1)==5);
+    assert(getRef(myData,offset,2)==6);
 
-    myDataView = myData.getDataPointByTag(6);
-    assert(myDataView==eSixView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==18);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==6);
-    assert(myDataView(1)==7);
-    assert(myDataView(2)==8);
+//     myDataView = myData.getDataPointByTag(5);
+    offset=myData.getOffsetForTag(5);
+    assert(offset==15);
+    assert(getRef(myData,offset,0)==5);
+    assert(getRef(myData,offset,1)==6);
+    assert(getRef(myData,offset,2)==7);
+
+//     myDataView = myData.getDataPointByTag(6);
+    offset=myData.getOffsetForTag(6);
+    assert(offset==18);
+    assert(getRef(myData,offset,0)==6);
+    assert(getRef(myData,offset,1)==7);
+    assert(getRef(myData,offset,2)==8);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -2039,50 +1976,53 @@ void DataTaggedTestCase::testSetTaggedValue() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value
-    DataTypes::ValueType viewData(3);
+    DataTypes::ValueType viewData(3*4);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataTypes::ValueType eOneData(viewData);
-    DataArrayView eOneView(eOneData, viewShape);
-    for (int i=0;i<eOneView.getShape()[0];i++) {
-      eOneView(i)=i+1.0;
+//     DataTypes::ValueType eOneData(viewData);
+//     DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[viewShape[0]+i]=i+1.0;
     }
-    values.push_back(eOneView);
+//     values.push_back(eOneView);
 
     // value for tag "2"
-    DataTypes::ValueType eTwoData(viewData);
-    DataArrayView eTwoView(eTwoData, viewShape);
-    for (int i=0;i<eTwoView.getShape()[0];i++) {
-      eTwoView(i)=i+2.0;
+//     DataTypes::ValueType eTwoData(viewData);
+//     DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eTwoView(i)=i+2.0;
+      viewData[2*viewShape[0]+i]=i+2.0;
     }
-    values.push_back(eTwoView);
+//     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataTypes::ValueType eThreeData(viewData);
-    DataArrayView eThreeView(eThreeData, viewShape);
-    for (int i=0;i<eThreeView.getShape()[0];i++) {
-      eThreeView(i)=i+3.0;
+//     DataTypes::ValueType eThreeData(viewData);
+//     DataArrayView eThreeView(eThreeData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eThreeView(i)=i+3.0;
+	viewData[3*viewShape[0]+i]=i+3.0;
     }
-    values.push_back(eThreeView);
+//     values.push_back(eThreeView);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,keys,viewData);
 
     // new value for tag "2"
-    for (int i=0;i<eTwoView.getShape()[0];i++) {
-      eTwoView(i)=i+5.0;
+    ValueType tmp(viewShape[0]);
+    for (int i=0;i<viewShape[0];i++) {
+      tmp[i]=i+5.0;
     }
 
-    myData.setTaggedValue(2,eTwoView);
+    myData.setTaggedValue(2,viewShape,tmp);
 
     assert(myData.isCurrentTag(2));
 
@@ -2090,16 +2030,16 @@ void DataTaggedTestCase::testSetTaggedValue() {
 
     assert(myData.getLength()==12);
 
-    DataArrayView myDataView = myData.getDataPointByTag(2);
-    assert(myDataView==eTwoView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==6);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==5);
-    assert(myDataView(1)==6);
-    assert(myDataView(2)==7);
+    assert(myData.getRank()==1);
+    assert(myData.getNoValues()==3);
+    assert(myData.getShape().size()==1);
+
+//     DataArrayView myDataView = myData.getDataPointByTag(2);
+    int offset=myData.getOffsetForTag(2);
+    assert(offset==6);
+    assert(getRef(myData,offset,0)==5);
+    assert(getRef(myData,offset,1)==6);
+    assert(getRef(myData,offset,2)==7);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -2150,30 +2090,26 @@ void DataTaggedTestCase::testAll() {
 
     assert(myData.getPointOffset(0,0)==0);
 
-    DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+    assert(myData.getRank()==0);
+    assert(myData.getNoValues()==1);
+    assert(myData.getShape().size()==0);
+
+
+//     DataArrayView myDataView = myData.getDataPoint(0,0);
+    int offset=myData.getPointOffset(0,0);
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==0.0);
 
     // Test non-existent tag returns the default value.
-    myDataView = myData.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+//     myDataView = myData.getDataPointByTag(1);
+    offset=myData.getOffsetForTag(1);
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==0.0);
 
-    myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -2182,7 +2118,7 @@ void DataTaggedTestCase::testAll() {
       assert(sampleData[i]==i);
     }
     sampleData=myData.getSampleData(0);
-    for (int i=0; i<myDataView.noValues(); i++) {
+    for (int i=0; i<myData.getNoValues(); i++) {
       assert(sampleData[i]==i);
     }
 
@@ -2197,15 +2133,15 @@ void DataTaggedTestCase::testAll() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape, viewData);
 
     //cout << myData.toString() << endl;
 
@@ -2228,39 +2164,32 @@ void DataTaggedTestCase::testAll() {
 
     assert(myData.getPointOffset(0,0)==0);
 
-    DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(myDataView==myView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+    assert(myData.getRank()==1);
+    assert(myData.getNoValues()==3);
+    assert(myData.getShape().size()==1);
+
+
+//    DataArrayView myDataView = myData.getDataPoint(0,0);
+    int offset=myData.getPointOffset(0,0);
+    assert(offset==0);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==1);
+    assert(getRef(myData,offset,2)==2);
 
     // Test non-existent tag returns the default value.
-    myDataView = myData.getDataPointByTag(1);
-    assert(myDataView==myView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+//     myDataView = myData.getDataPointByTag(1);
+    offset=myData.getOffsetForTag(1);
+    assert(offset==0);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==1);
+    assert(getRef(myData,offset,2)==2);
 
-    myDataView = myData.getDefaultValue();
-    assert(myDataView==myView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==1);
+    assert(getRef(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -2269,7 +2198,7 @@ void DataTaggedTestCase::testAll() {
       assert(sampleData[i]==i);
     }
     sampleData=myData.getSampleDataByTag(0);
-    for (int i=0; i<myDataView.noValues(); i++) {
+    for (int i=0; i<myData.getNoValues(); i++) {
       assert(sampleData[i]==i);
     }
 
@@ -2284,27 +2213,28 @@ void DataTaggedTestCase::testAll() {
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value
-    DataTypes::ValueType viewData(3);
+    DataTypes::ValueType viewData(3*2);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataTypes::ValueType eOneData(viewData);
-    DataArrayView eOneView(eOneData, viewShape);
-    for (int i=0;i<eOneView.getShape()[0];i++) {
-      eOneView(i)=i+1.0;
+//     DataTypes::ValueType eOneData(viewData);
+//     DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eOneView(i)=i+1.0;
+	viewData[viewShape[0]+i]=i+1.0;
     }
-    values.push_back(eOneView);
+//     values.push_back(eOneView);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,viewData);
 
     //cout << myData.toString() << endl;
 
@@ -2328,50 +2258,39 @@ void DataTaggedTestCase::testAll() {
 
     assert(myData.getPointOffset(0,0)==3);
 
-    DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(myDataView==eOneView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1);
-    assert(myDataView(1)==2);
-    assert(myDataView(2)==3);
+    assert(myData.getRank()==1);
+    assert(myData.getNoValues()==3);
+    assert(myData.getShape().size()==1);
 
-    myDataView = myData.getDataPointByTag(1);
-    assert(myDataView==eOneView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1);
-    assert(myDataView(1)==2);
-    assert(myDataView(2)==3);
+
+    int offset=myData.getPointOffset(0,0);
+//     DataArrayView myDataView = myData.getDataPoint(0,0);
+    assert(offset==3);
+    assert(getRef(myData,offset,0)==1);
+    assert(getRef(myData,offset,1)==2);
+    assert(getRef(myData,offset,2)==3);
+
+//     myDataView = myData.getDataPointByTag(1);
+    offset=myData.getOffsetForTag(1);
+    assert(offset==3);
+    assert(getRef(myData,offset,0)==1);
+    assert(getRef(myData,offset,1)==2);
+    assert(getRef(myData,offset,2)==3);
 
     // Test non-existent tag returns the default value.
-    myDataView = myData.getDataPointByTag(9);
-    assert(myDataView==myView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+//     myDataView = myData.getDataPointByTag(9);
+    offset=myData.getOffsetForTag(9);
+    assert(offset==0);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==1);
+    assert(getRef(myData,offset,2)==2);
 
-    myDataView = myData.getDefaultValue();
-    assert(myDataView==myView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==1);
+    assert(getRef(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -2384,7 +2303,7 @@ void DataTaggedTestCase::testAll() {
       }
     }
     sampleData=myData.getSampleData(0);
-    for (int i=0; i<myDataView.noValues(); i++) {
+    for (int i=0; i<myData.getNoValues(); i++) {
       assert(sampleData[i]==i+1);
     }
 
@@ -2401,43 +2320,45 @@ void DataTaggedTestCase::testAll() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value
-    DataTypes::ValueType viewData(3);
+    DataTypes::ValueType viewData(3*4);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataTypes::ValueType eOneData(viewData);
-    DataArrayView eOneView(eOneData, viewShape);
-    for (int i=0;i<eOneView.getShape()[0];i++) {
-      eOneView(i)=i+1.0;
+//     DataTypes::ValueType eOneData(viewData);
+//     DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+/*      eOneView(i)=i+1.0;*/
+      viewData[viewShape[0]+i]=i+1.0;
     }
-    values.push_back(eOneView);
+//     values.push_back(eOneView);
 
     // value for tag "2"
-    DataTypes::ValueType eTwoData(viewData);
-    DataArrayView eTwoView(eTwoData, viewShape);
-    for (int i=0;i<eTwoView.getShape()[0];i++) {
-      eTwoView(i)=i+2.0;
+//     DataTypes::ValueType eTwoData(viewData);
+//     DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[2*viewShape[0]+i]=i+2.0;
     }
-    values.push_back(eTwoView);
+//     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataTypes::ValueType eThreeData(viewData);
-    DataArrayView eThreeView(eThreeData, viewShape);
-    for (int i=0;i<eThreeView.getShape()[0];i++) {
-      eThreeView(i)=i+3.0;
+//     DataTypes::ValueType eThreeData(viewData);
+//     DataArrayView eThreeView(eThreeData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+/*      eThreeView(i)=i+3.0;*/
+      viewData[3*viewShape[0]+i]=i+3.0;
     }
-    values.push_back(eThreeView);
+//     values.push_back(eThreeView);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,viewData);
 
     //cout << myData.toString() << endl;
 
@@ -2463,73 +2384,54 @@ void DataTaggedTestCase::testAll() {
 
     assert(myData.getPointOffset(0,0)==3);
 
-    DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(myDataView==eOneView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1);
-    assert(myDataView(1)==2);
-    assert(myDataView(2)==3);
+    assert(myData.getRank()==1);
+    assert(myData.getNoValues()==3);
+    assert(myData.getShape().size()==1);
 
-    myDataView = myData.getDataPointByTag(1);
-    assert(myDataView==eOneView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1);
-    assert(myDataView(1)==2);
-    assert(myDataView(2)==3);
+
+    int offset=myData.getPointOffset(0,0);
+//     DataArrayView myDataView = myData.getDataPoint(0,0);
+    assert(offset==3);
+    assert(getRef(myData,offset,0)==1);
+    assert(getRef(myData,offset,1)==2);
+    assert(getRef(myData,offset,2)==3);
+
+//     myDataView = myData.getDataPointByTag(1);
+    offset=myData.getOffsetForTag(1);
+    assert(offset==3);
+    assert(getRef(myData,offset,0)==1);
+    assert(getRef(myData,offset,1)==2);
+    assert(getRef(myData,offset,2)==3);
 
     // Test non-existent tag returns the default value.
-    myDataView = myData.getDataPointByTag(0);
-    assert(myDataView==myView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+//     myDataView = myData.getDataPointByTag(0);
+    offset=myData.getOffsetForTag(0);
+    assert(offset==0);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==1);
+    assert(getRef(myData,offset,2)==2);
 
-    myDataView = myData.getDefaultValue();
-    assert(myDataView==myView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(getRef(myData,offset,0)==0);
+    assert(getRef(myData,offset,1)==1);
+    assert(getRef(myData,offset,2)==2);
 
     // Test data-points held for remaining tags
-    myDataView = myData.getDataPointByTag(2);
-    assert(myDataView==eTwoView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==6);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==2);
-    assert(myDataView(1)==3);
-    assert(myDataView(2)==4);
+//     myDataView = myData.getDataPointByTag(2);
+    offset=myData.getOffsetForTag(2);
+    assert(offset==6);
+    assert(getRef(myData,offset,0)==2);
+    assert(getRef(myData,offset,1)==3);
+    assert(getRef(myData,offset,2)==4);
 
-    myDataView = myData.getDataPointByTag(3);
-    assert(myDataView==eThreeView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==9);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==3);
-    assert(myDataView(1)==4);
-    assert(myDataView(2)==5);
+//     myDataView = myData.getDataPointByTag(3);
+    offset=myData.getOffsetForTag(3);
+    assert(offset==9);
+    assert(getRef(myData,offset,0)==3);
+    assert(getRef(myData,offset,1)==4);
+    assert(getRef(myData,offset,2)==5);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -2546,7 +2448,7 @@ void DataTaggedTestCase::testAll() {
       }
     }
     sampleData=myData.getSampleData(0);
-    for (int i=0; i<myDataView.noValues(); i++) {
+    for (int i=0; i<myData.getNoValues(); i++) {
       assert(sampleData[i]==i+1);
     }
 
@@ -2569,43 +2471,45 @@ void DataTaggedTestCase::testCopyConstructors() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
     // default value
-    DataTypes::ValueType viewData(3);
+    DataTypes::ValueType viewData(3*4);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataTypes::ValueType eOneData(viewData);
-    DataArrayView eOneView(eOneData, viewShape);
-    for (int i=0;i<eOneView.getShape()[0];i++) {
-      eOneView(i)=i+1.0;
+//     DataTypes::ValueType eOneData(viewData);
+//     DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[viewShape[0]+i]=i+1.0;
     }
-    values.push_back(eOneView);
+//     values.push_back(eOneView);
 
     // value for tag "2"
-    DataTypes::ValueType eTwoData(viewData);
-    DataArrayView eTwoView(eTwoData, viewShape);
-    for (int i=0;i<eTwoView.getShape()[0];i++) {
-      eTwoView(i)=i+2.0;
+//     DataTypes::ValueType eTwoData(viewData);
+//     DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eTwoView(i)=i+2.0;
+	viewData[2*viewShape[0]+i]=i+2.0;
     }
-    values.push_back(eTwoView);
+//     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataTypes::ValueType eThreeData(viewData);
-    DataArrayView eThreeView(eThreeData, viewShape);
-    for (int i=0;i<eThreeView.getShape()[0];i++) {
-      eThreeView(i)=i+3.0;
+//     DataTypes::ValueType eThreeData(viewData);
+//     DataArrayView eThreeView(eThreeData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eThreeView(i)=i+3.0;
+	viewData[3*viewShape[0]+i]=i+3.0;
     }
-    values.push_back(eThreeView);
+//     values.push_back(eThreeView);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,viewData);
 
     DataTagged myDataCopy(myData);
 
@@ -2633,73 +2537,53 @@ void DataTaggedTestCase::testCopyConstructors() {
 
     assert(myDataCopy.getPointOffset(0,0)==3);
 
-    DataArrayView myDataView = myDataCopy.getDataPoint(0,0);
-    assert(myDataView==eOneView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1);
-    assert(myDataView(1)==2);
-    assert(myDataView(2)==3);
+    assert(myDataCopy.getRank()==1);
+    assert(myDataCopy.getNoValues()==3);
+    assert(myDataCopy.getShape().size()==1);
 
-    myDataView = myDataCopy.getDataPointByTag(1);
-    assert(myDataView==eOneView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1);
-    assert(myDataView(1)==2);
-    assert(myDataView(2)==3);
+    int offset=myDataCopy.getPointOffset(0,0);
+//     DataArrayView myDataView = myDataCopy.getDataPoint(0,0);
+    assert(offset==3);
+    assert(getRef(myDataCopy,offset,0)==1);
+    assert(getRef(myDataCopy,offset,1)==2);
+    assert(getRef(myDataCopy,offset,2)==3);
+
+//     myDataView = myDataCopy.getDataPointByTag(1);
+    offset=myDataCopy.getOffsetForTag(1);
+    assert(offset==3);
+    assert(getRef(myDataCopy,offset,0)==1);
+    assert(getRef(myDataCopy,offset,1)==2);
+    assert(getRef(myDataCopy,offset,2)==3);
 
     // Test non-existent tag returns the default value.
-    myDataView = myDataCopy.getDataPointByTag(0);
-    assert(myDataView==myView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+//     myDataView = myDataCopy.getDataPointByTag(0);
+    offset=myDataCopy.getOffsetForTag(0);
+    assert(offset==0);
+    assert(getRef(myDataCopy,offset,0)==0);
+    assert(getRef(myDataCopy,offset,1)==1);
+    assert(getRef(myDataCopy,offset,2)==2);
 
-    myDataView = myDataCopy.getDefaultValue();
-    assert(myDataView==myView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+    //myDataView = myDataCopy.getDefaultValue();
+    offset=myDataCopy.getDefaultOffset();
+    assert(offset==0);
+    assert(getRef(myDataCopy,offset,0)==0);
+    assert(getRef(myDataCopy,offset,1)==1);
+    assert(getRef(myDataCopy,offset,2)==2);
 
     // Test data-points held for remaining tags
-    myDataView = myDataCopy.getDataPointByTag(2);
-    assert(myDataView==eTwoView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==6);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==2);
-    assert(myDataView(1)==3);
-    assert(myDataView(2)==4);
+//     myDataView = myDataCopy.getDataPointByTag(2);
+    offset=myDataCopy.getOffsetForTag(2);
+    assert(offset==6);
+    assert(getRef(myDataCopy,offset,0)==2);
+    assert(getRef(myDataCopy,offset,1)==3);
+    assert(getRef(myDataCopy,offset,2)==4);
 
-    myDataView = myDataCopy.getDataPointByTag(3);
-    assert(myDataView==eThreeView);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==9);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==3);
-    assert(myDataView(1)==4);
-    assert(myDataView(2)==5);
+//     myDataView = myDataCopy.getDataPointByTag(3);
+    offset=myDataCopy.getOffsetForTag(3);
+    assert(offset==9);
+    assert(getRef(myDataCopy,offset,0)==3);
+    assert(getRef(myDataCopy,offset,1)==4);
+    assert(getRef(myDataCopy,offset,2)==5);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -2725,9 +2609,9 @@ void DataTaggedTestCase::testCopyConstructors() {
     // Create a DataConstant
     DataTypes::ShapeType shape;
     DataTypes::ValueType data(DataTypes::noValues(shape),0);
-    DataArrayView pointData(data,shape);
-    pointData()=1.0;
-    DataConstant myConstantData(pointData, FunctionSpace());
+//     DataArrayView pointData(data,shape);
+    data[0]=1.0;
+    DataConstant myConstantData(FunctionSpace(),shape,data);
 
     // use this DataConstant to initialise a DataTagged
     DataTagged myData(myConstantData);
@@ -2753,30 +2637,26 @@ void DataTaggedTestCase::testCopyConstructors() {
 
     assert(myData.getPointOffset(0,0)==0);
 
-    DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
+    assert(myData.getRank()==0);
+    assert(myData.getNoValues()==1);
+    assert(myData.getShape().size()==0);
+
+
+//     DataArrayView myDataView = myData.getDataPoint(0,0);
+    int offset=myData.getPointOffset(0,0);
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==1.0);
 
     // Test non-existent tag returns the default value.
-    myDataView = myData.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
+//     myDataView = myData.getDataPointByTag(1);
+    offset=myData.getOffsetForTag(1);
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==1.0);
 
-    myDataView = myData.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
+//     myDataView = myData.getDefaultValue();
+    offset=myData.getDefaultOffset();
+    assert(offset==0);
+    assert(myData.getDataAtOffset(offset)==1.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -2811,13 +2691,13 @@ void DataTaggedTestCase::testGetSlice() {
 
     assert(myDataSliced->getLength()==1);
 
-    DataArrayView myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+//     DataArrayView myDataView = myDataSliced->getDefaultValue();
+    int offset=myDataSliced->getDefaultOffset();
+    assert(offset==0);
+    assert(myDataSliced->getRank()==0);
+    assert(myDataSliced->getNoValues()==1);
+    assert(myDataSliced->getShape().size()==0);
+    assert(myDataSliced->getVector()[0]==0.0);
 
   }
 
@@ -2830,15 +2710,15 @@ void DataTaggedTestCase::testGetSlice() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ValueType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,viewData);
 
     // full slice
 
@@ -2858,15 +2738,16 @@ void DataTaggedTestCase::testGetSlice() {
 
     assert(myDataSliced->getLength()==3);
 
-    DataArrayView myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0.0);
-    assert(myDataView(1)==1.0);
-    assert(myDataView(2)==2.0);
+    assert(myDataSliced->getRank()==1);
+    assert(myDataSliced->getNoValues()==3);
+    assert(myDataSliced->getShape().size()==1);
+
+//     DataArrayView myDataView = myDataSliced->getDefaultValue();
+    int offset=myDataSliced->getDefaultOffset();
+    assert(offset==0);
+    assert(getRef(*myDataSliced,offset,0)==0.0);
+    assert(getRef(*myDataSliced,offset,1)==1.0);
+    assert(getRef(*myDataSliced,offset,2)==2.0);
 
     // scalar slice
 
@@ -2885,13 +2766,13 @@ void DataTaggedTestCase::testGetSlice() {
 
     assert(myDataSliced->getLength()==1);
 
-    myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+//     myDataView = myDataSliced->getDefaultValue();
+    offset=myDataSliced->getDefaultOffset();
+    assert(offset==0);
+    assert(myDataSliced->getRank()==0);
+    assert(myDataSliced->getNoValues()==1);
+    assert(myDataSliced->getShape().size()==0);
+    assert(myDataSliced->getVector()[0]==0.0);
 
   }
 
@@ -2906,15 +2787,15 @@ void DataTaggedTestCase::testGetSlice() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ValueType viewData(27);
     for (int i=0;i<viewData.size();i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,viewData);
 
     //cout << myData.toString() << endl;
 
@@ -2938,12 +2819,12 @@ void DataTaggedTestCase::testGetSlice() {
 
     assert(myDataSliced->getLength()==27);
 
-    DataArrayView myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
+//     DataArrayView myDataView = myDataSliced->getDefaultValue();
+    int offset=myDataSliced->getDefaultOffset();
+    assert(offset==0);
+    assert(myDataSliced->getRank()==3);
+    assert(myDataSliced->getNoValues()==27);
+    assert(myDataSliced->getShape().size()==3);
 
     // rank 1 slice
 
@@ -2963,15 +2844,16 @@ void DataTaggedTestCase::testGetSlice() {
 
     assert(myDataSliced->getLength()==3);
 
-    myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0.0);
-    assert(myDataView(1)==1.0);
-    assert(myDataView(2)==2.0);
+    assert(myDataSliced->getRank()==1);
+    assert(myDataSliced->getNoValues()==3);
+    assert(myDataSliced->getShape().size()==1);
+
+//     myDataView = myDataSliced->getDefaultValue();
+    offset=myDataSliced->getDefaultOffset();
+    assert(offset==0);
+    assert(getRef(*myDataSliced,offset,0)==0.0);
+    assert(getRef(*myDataSliced,offset,1)==1.0);
+    assert(getRef(*myDataSliced,offset,2)==2.0);
 
     // scalar slice
 
@@ -2992,13 +2874,15 @@ void DataTaggedTestCase::testGetSlice() {
 
     assert(myDataSliced->getLength()==1);
 
-    myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==26);
+    assert(myDataSliced->getRank()==0);
+    assert(myDataSliced->getNoValues()==1);
+    assert(myDataSliced->getShape().size()==0);
+
+
+//     myDataView = myDataSliced->getDefaultValue();
+    offset=myDataSliced->getDefaultOffset();
+    assert(offset==0);
+    assert(myDataSliced->getVector()[0]==26);
 
   }
 
@@ -3009,22 +2893,22 @@ void DataTaggedTestCase::testGetSlice() {
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
 
     // default value
-    DataTypes::ValueType viewData(1);
+    DataTypes::ValueType viewData(1*2);
     viewData[0]=0.0;
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataTypes::ValueType eOneData(viewData);
-    DataArrayView eOneView(eOneData, viewShape);
-    eOneView()=1.0;
-    values.push_back(eOneView);
+//     DataTypes::ValueType eOneData(viewData);
+//     DataArrayView eOneView(eOneData, viewShape);
+    viewData[1]=1.0;
+//     values.push_back(eOneView);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,viewData);
 
     //cout << myData.toString() << endl;
 
@@ -3042,21 +2926,18 @@ void DataTaggedTestCase::testGetSlice() {
 
     assert(myDataSliced->getLength()==2);
 
-    DataArrayView myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0);
+//     DataArrayView myDataView = myDataSliced->getDefaultValue();
+    int offset=myDataSliced->getDefaultOffset();
+    assert(offset==0);
+    assert(myDataSliced->getRank()==0);
+    assert(myDataSliced->getNoValues()==1);
+    assert(myDataSliced->getShape().size()==0);
+    assert(myDataSliced->getVector()[offset]==0);
 
-    myDataView = myDataSliced->getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1);
+//     myDataView = myDataSliced->getDataPointByTag(1);
+    offset=myDataSliced->getOffsetForTag(1);
+    assert(offset==1);
+    assert(myDataSliced->getVector()[offset]==1);
 
   }
 
@@ -3070,24 +2951,25 @@ void DataTaggedTestCase::testGetSlice() {
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     // default value
-    DataTypes::ValueType viewData(3);
+    DataTypes::ValueType viewData(3*2);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataTypes::ValueType eOneData(viewData);
-    DataArrayView eOneView(eOneData, viewShape);
-    for (int i=0;i<eOneView.getShape()[0];i++) {
-      eOneView(i)=i+3.0;
+//     DataTypes::ValueType eOneData(viewData);
+//     DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eOneView(i)=i+3.0;
+       viewData[viewShape[0]+i]=i+3.0;
     }
-    values.push_back(eOneView);
+//     values.push_back(eOneView);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,viewData);
 
     //cout << myData.toString() << endl;
 
@@ -3108,26 +2990,22 @@ void DataTaggedTestCase::testGetSlice() {
     assert(myDataSliced->getTagLookup().size()==1);
 
     assert(myDataSliced->getLength()==6);
+    assert(myDataSliced->getRank()==1);
+    assert(myDataSliced->getNoValues()==3);
+    assert(myDataSliced->getShape().size()==1);
+//     DataArrayView myDataView = myDataSliced->getDefaultValue();
+    int offset=myDataSliced->getDefaultOffset();
+    assert(offset==0);
+    assert(getRef(*myDataSliced,offset,0)==0);
+    assert(getRef(*myDataSliced,offset,1)==1);
+    assert(getRef(*myDataSliced,offset,2)==2);
 
-    DataArrayView myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
-
-    myDataView = myDataSliced->getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==3);
-    assert(myDataView(1)==4);
-    assert(myDataView(2)==5);
+//     myDataView = myDataSliced->getDataPointByTag(1);
+    offset=myDataSliced->getOffsetForTag(1);
+    assert(offset==3);
+    assert(getRef(*myDataSliced,offset,0)==3);
+    assert(getRef(*myDataSliced,offset,1)==4);
+    assert(getRef(*myDataSliced,offset,2)==5);
 
     // scalar slice
 
@@ -3146,21 +3024,20 @@ void DataTaggedTestCase::testGetSlice() {
 
     assert(myDataSliced->getLength()==2);
 
-    myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1);
+    assert(myDataSliced->getRank()==0);
+    assert(myDataSliced->getNoValues()==1);
+    assert(myDataSliced->getShape().size()==0);
 
-    myDataView = myDataSliced->getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==4);
+
+//     myDataView = myDataSliced->getDefaultValue();
+    offset=myDataSliced->getDefaultOffset();
+    assert(offset==0);
+    assert(myDataSliced->getVector()[offset]==1);
+
+//     myDataView = myDataSliced->getDataPointByTag(1);
+    offset=myDataSliced->getOffsetForTag(1);
+    assert(offset==1);
+    assert(myDataSliced->getVector()[offset]==4);
 
   }
 
@@ -3176,24 +3053,24 @@ void DataTaggedTestCase::testGetSlice() {
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     // default value
-    DataTypes::ValueType viewData(27);
-    for (int i=0;i<viewData.size();i++) {
+    DataTypes::ValueType viewData(27*2);
+    for (int i=0;i<noValues(viewShape);i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataTypes::ValueType viewData1(27);
-    for (int i=0;i<viewData1.size();i++) {
-      viewData1[i]=i+27.0;
+//     DataTypes::ValueType viewData1(27);
+    for (int i=0;i<noValues(viewShape);i++) {
+      viewData[noValues(viewShape)+i]=i+27.0;
     }
-    DataArrayView myView1(viewData1,viewShape);
-    values.push_back(myView1);
+//     DataArrayView myView1(viewData1,viewShape);
+//     values.push_back(myView1);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,viewData);
 
     //cout << myData.toString() << endl;
 
@@ -3217,19 +3094,17 @@ void DataTaggedTestCase::testGetSlice() {
 
     assert(myDataSliced->getLength()==54);
 
-    DataArrayView myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
+    assert(myDataSliced->getRank()==3);
+    assert(myDataSliced->getNoValues()==27);
+    assert(myDataSliced->getShape().size()==3);
 
-    myDataView = myDataSliced->getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==27);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
+//     DataArrayView myDataView = myDataSliced->getDefaultValue();
+    int offset=myDataSliced->getDefaultOffset();
+    assert(offset==0);
+
+//     myDataView = myDataSliced->getDataPointByTag(1);
+    offset=myDataSliced->getOffsetForTag(1);
+    assert(offset==27);
 
     // rank 1 slice
 
@@ -3249,25 +3124,23 @@ void DataTaggedTestCase::testGetSlice() {
 
     assert(myDataSliced->getLength()==6);
 
-    myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+    assert(myDataSliced->getRank()==1);
+    assert(myDataSliced->getNoValues()==3);
+    assert(myDataSliced->getShape().size()==1);
 
-    myDataView = myDataSliced->getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==27);
-    assert(myDataView(1)==28);
-    assert(myDataView(2)==29);
+//     myDataView = myDataSliced->getDefaultValue();
+    offset=myDataSliced->getDefaultOffset();
+    assert(offset==0);
+    assert(getRef(*myDataSliced,offset,0)==0);
+    assert(getRef(*myDataSliced,offset,1)==1);
+    assert(getRef(*myDataSliced,offset,2)==2);
+
+//     myDataView = myDataSliced->getDataPointByTag(1);
+    offset=myDataSliced->getOffsetForTag(1);
+    assert(offset==3);
+    assert(getRef(*myDataSliced,offset,0)==27);
+    assert(getRef(*myDataSliced,offset,1)==28);
+    assert(getRef(*myDataSliced,offset,2)==29);
 
     // scalar slice
 
@@ -3288,21 +3161,19 @@ void DataTaggedTestCase::testGetSlice() {
 
     assert(myDataSliced->getLength()==2);
 
-    myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==13);
+    assert(myDataSliced->getRank()==0);
+    assert(myDataSliced->getNoValues()==1);
+    assert(myDataSliced->getShape().size()==0);
 
-    myDataView = myDataSliced->getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==40);
+//     myDataView = myDataSliced->getDefaultValue();
+    offset=myDataSliced->getDefaultOffset();
+    assert(offset==0);
+    assert(myDataSliced->getVector()[offset]==13);
+
+//     myDataView = myDataSliced->getDataPointByTag(1);
+    offset=myDataSliced->getOffsetForTag(1);
+    assert(offset==1);
+    assert(myDataSliced->getVector()[offset]==40);
 
   }
 
@@ -3315,34 +3186,37 @@ void DataTaggedTestCase::testGetSlice() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
 
     // default value
-    DataTypes::ValueType viewData(1);
+    DataTypes::ValueType viewData(1*4);
     viewData[0]=0.0;
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataTypes::ValueType eOneData(viewData);
-    DataArrayView eOneView(eOneData, viewShape);
-    eOneView()=1.0;
-    values.push_back(eOneView);
+//     DataTypes::ValueType eOneData(viewData);
+//     DataArrayView eOneView(eOneData, viewShape);
+//     eOneView()=1.0;
+    viewData[1]=1.0;
+//     values.push_back(eOneView);
 
     // value for tag "2"
-    DataTypes::ValueType eTwoData(viewData);
-    DataArrayView eTwoView(eTwoData, viewShape);
-    eTwoView()=2.0;
-    values.push_back(eTwoView);
+//     DataTypes::ValueType eTwoData(viewData);
+//     DataArrayView eTwoView(eTwoData, viewShape);
+//     eTwoView()=2.0;
+    viewData[2]=2.0;
+//     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataTypes::ValueType eThreeData(viewData);
-    DataArrayView eThreeView(eThreeData, viewShape);
-    eThreeView()=3.0;
-    values.push_back(eThreeView);
+//     DataTypes::ValueType eThreeData(viewData);
+//     DataArrayView eThreeView(eThreeData, viewShape);
+//     eThreeView()=3.0;
+    viewData[3]=3.0;
+//     values.push_back(eThreeView);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,viewData);
 
     // cout << myData.toString() << endl;
 
@@ -3360,37 +3234,29 @@ void DataTaggedTestCase::testGetSlice() {
 
     assert(myDataSliced->getLength()==4);
 
-    DataArrayView myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0);
+    assert(myDataSliced->getRank()==0);
+    assert(myDataSliced->getNoValues()==1);
+    assert(myDataSliced->getShape().size()==0);
 
-    myDataView = myDataSliced->getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1);
+//     DataArrayView myDataView = myDataSliced->getDefaultValue();
+    int offset=myDataSliced->getDefaultOffset();
+    assert(offset==0);
+    assert(myDataSliced->getVector()[offset]==0);
 
-    myDataView = myDataSliced->getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==2);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==2);
+//     myDataView = myDataSliced->getDataPointByTag(1);
+    offset=myDataSliced->getOffsetForTag(1);
+    assert(offset==1);
+    assert(myDataSliced->getVector()[offset]==1);
 
-    myDataView = myDataSliced->getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==3);
+//     myDataView = myDataSliced->getDataPointByTag(2);
+    offset=myDataSliced->getOffsetForTag(2);
+    assert(offset==2);
+    assert(myDataSliced->getVector()[offset]==2);
+
+//     myDataView = myDataSliced->getDataPointByTag(3);
+    offset=myDataSliced->getOffsetForTag(3);
+    assert(offset==3);
+    assert(myDataSliced->getVector()[offset]==3);
 
   }
 
@@ -3406,40 +3272,43 @@ void DataTaggedTestCase::testGetSlice() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     // default value
-    DataTypes::ValueType viewData(3);
+    DataTypes::ValueType viewData(3*4);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataTypes::ValueType eOneData(viewData);
-    DataArrayView eOneView(eOneData, viewShape);
-    for (int i=0;i<eOneView.getShape()[0];i++) {
-      eOneView(i)=i+3.0;
+//     DataTypes::ValueType eOneData(viewData);
+//     DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eOneView(i)=i+3.0;
+	viewData[viewShape[0]+i]=i+3.0;
     }
-    values.push_back(eOneView);
+//     values.push_back(eOneView);
 
     // value for tag "2"
-    DataTypes::ValueType eTwoData(viewData);
-    DataArrayView eTwoView(eTwoData, viewShape);
-    for (int i=0;i<eTwoView.getShape()[0];i++) {
-      eTwoView(i)=i+6.0;
+//     DataTypes::ValueType eTwoData(viewData);
+//     DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eTwoView(i)=i+6.0;
+	viewData[2*viewShape[0]+i]=i+6.0;
     }
-    values.push_back(eTwoView);
+//     values.push_back(eTwoView);
 
     // value for tag "3"
-    DataTypes::ValueType eThreeData(viewData);
-    DataArrayView eThreeView(eThreeData, viewShape);
-    for (int i=0;i<eThreeView.getShape()[0];i++) {
-      eThreeView(i)=i+9.0;
+//     DataTypes::ValueType eThreeData(viewData);
+//     DataArrayView eThreeView(eThreeData, viewShape);
+    for (int i=0;i<viewShape[0];i++) {
+//       eThreeView(i)=i+9.0;
+	viewData[3*viewShape[0]+i]=i+9.0;
     }
-    values.push_back(eThreeView);
+//     values.push_back(eThreeView);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape, viewData);
 
     //cout << myData.toString() << endl;
 
@@ -3461,45 +3330,38 @@ void DataTaggedTestCase::testGetSlice() {
 
     assert(myDataSliced->getLength()==12);
 
-    DataArrayView myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+    assert(myDataSliced->getRank()==1);
+    assert(myDataSliced->getNoValues()==3);
+    assert(myDataSliced->getShape().size()==1);
 
-    myDataView = myDataSliced->getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==3);
-    assert(myDataView(1)==4);
-    assert(myDataView(2)==5);
 
-    myDataView = myDataSliced->getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==6);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==6);
-    assert(myDataView(1)==7);
-    assert(myDataView(2)==8);
+//     DataArrayView myDataView = myDataSliced->getDefaultValue();
+    int offset=myDataSliced->getDefaultOffset();
+    assert(offset==0);
+    assert(getRef(*myDataSliced,offset,0)==0);
+    assert(getRef(*myDataSliced,offset,1)==1);
+    assert(getRef(*myDataSliced,offset,2)==2);
 
-    myDataView = myDataSliced->getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==9);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==9);
-    assert(myDataView(1)==10);
-    assert(myDataView(2)==11);
+//     myDataView = myDataSliced->getDataPointByTag(1);
+    offset=myDataSliced->getOffsetForTag(1);
+    assert(offset==3);
+    assert(getRef(*myDataSliced,offset,0)==3);
+    assert(getRef(*myDataSliced,offset,1)==4);
+    assert(getRef(*myDataSliced,offset,2)==5);
+
+//     myDataView = myDataSliced->getDataPointByTag(2);
+    offset=myDataSliced->getOffsetForTag(2);
+    assert(offset==6);
+    assert(getRef(*myDataSliced,offset,0)==6);
+    assert(getRef(*myDataSliced,offset,1)==7);
+    assert(getRef(*myDataSliced,offset,2)==8);
+
+//     myDataView = myDataSliced->getDataPointByTag(3);
+    offset=myDataSliced->getOffsetForTag(3);
+    assert(offset==9);
+    assert(getRef(*myDataSliced,offset,0)==9);
+    assert(getRef(*myDataSliced,offset,1)==10);
+    assert(getRef(*myDataSliced,offset,2)==11);
 
     // scalar slice
 
@@ -3518,37 +3380,29 @@ void DataTaggedTestCase::testGetSlice() {
 
     assert(myDataSliced->getLength()==4);
 
-    myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1);
+    assert(myDataSliced->getRank()==0);
+    assert(myDataSliced->getNoValues()==1);
+    assert(myDataSliced->getShape().size()==0);
 
-    myDataView = myDataSliced->getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==4);
+//     myDataView = myDataSliced->getDefaultValue();
+    offset=myDataSliced->getDefaultOffset();
+    assert(offset==0);
+    assert(myDataSliced->getVector()[offset]==1);
 
-    myDataView = myDataSliced->getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==2);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==7);
+//     myDataView = myDataSliced->getDataPointByTag(1);
+    offset=myDataSliced->getOffsetForTag(1);
+    assert(offset==1);
+    assert(myDataSliced->getVector()[offset]==4);
 
-    myDataView = myDataSliced->getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==10);
+//     myDataView = myDataSliced->getDataPointByTag(2);
+    offset=myDataSliced->getOffsetForTag(2);
+    assert(offset==2);
+    assert(myDataSliced->getVector()[offset]==7);
+
+//     myDataView = myDataSliced->getDataPointByTag(3);
+    offset=myDataSliced->getOffsetForTag(3);
+    assert(offset==3);
+    assert(myDataSliced->getVector()[offset]==10);
 
   }
 
@@ -3624,29 +3478,29 @@ void DataTaggedTestCase::testGetSlice() {
     assert(myDataSliced->getLength()==108);
 
     DataArrayView myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
+    
+    assert(offset==0);
     assert(myDataView.getRank()==3);
     assert(myDataView.noValues()==27);
     assert(myDataView.getShape().size()==3);
 
     myDataView = myDataSliced->getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==27);
+    
+    assert(offset==27);
     assert(myDataView.getRank()==3);
     assert(myDataView.noValues()==27);
     assert(myDataView.getShape().size()==3);
 
     myDataView = myDataSliced->getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==54);
+    
+    assert(offset==54);
     assert(myDataView.getRank()==3);
     assert(myDataView.noValues()==27);
     assert(myDataView.getShape().size()==3);
 
     myDataView = myDataSliced->getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==81);
+    
+    assert(offset==81);
     assert(myDataView.getRank()==3);
     assert(myDataView.noValues()==27);
     assert(myDataView.getShape().size()==3);
@@ -3670,8 +3524,8 @@ void DataTaggedTestCase::testGetSlice() {
     assert(myDataSliced->getLength()==12);
 
     myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
+    
+    assert(offset==0);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
@@ -3680,8 +3534,8 @@ void DataTaggedTestCase::testGetSlice() {
     assert(myDataView(2)==2);
 
     myDataView = myDataSliced->getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
+    
+    assert(offset==3);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
@@ -3690,8 +3544,8 @@ void DataTaggedTestCase::testGetSlice() {
     assert(myDataView(2)==29);
 
     myDataView = myDataSliced->getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==6);
+    
+    assert(offset==6);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
@@ -3700,8 +3554,8 @@ void DataTaggedTestCase::testGetSlice() {
     assert(myDataView(2)==56);
 
     myDataView = myDataSliced->getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==9);
+    
+    assert(offset==9);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
@@ -3729,32 +3583,32 @@ void DataTaggedTestCase::testGetSlice() {
     assert(myDataSliced->getLength()==4);
 
     myDataView = myDataSliced->getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
+    
+    assert(offset==0);
     assert(myDataView.getRank()==0);
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
     assert(myDataView()==13);
 
     myDataView = myDataSliced->getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
+    
+    assert(offset==1);
     assert(myDataView.getRank()==0);
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
     assert(myDataView()==40);
 
     myDataView = myDataSliced->getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==2);
+    
+    assert(offset==2);
     assert(myDataView.getRank()==0);
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
     assert(myDataView()==67);
 
     myDataView = myDataSliced->getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
+    
+    assert(offset==3);
     assert(myDataView.getRank()==0);
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
@@ -3788,8 +3642,8 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getLength()==1);
 
     DataArrayView myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
+    
+    assert(offset==0);
     assert(myDataView.getRank()==0);
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
@@ -3839,8 +3693,8 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getLength()==3);
 
     DataArrayView myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
+    
+    assert(offset==0);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
@@ -3872,8 +3726,8 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getLength()==3);
 
     myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
+    
+    assert(offset==0);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
@@ -3900,8 +3754,8 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getLength()==3);
 
     myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
+    
+    assert(offset==0);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
@@ -3957,8 +3811,8 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getLength()==27);
 
     DataArrayView myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
+    
+    assert(offset==0);
     assert(myDataView.getRank()==3);
     assert(myDataView.noValues()==27);
     assert(myDataView.getShape().size()==3);
@@ -3991,8 +3845,8 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getLength()==27);
 
     myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
+    
+    assert(offset==0);
     assert(myDataView.getRank()==3);
     assert(myDataView.noValues()==27);
     assert(myDataView.getShape().size()==3);
@@ -4021,8 +3875,8 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getLength()==27);
 
     myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
+    
+    assert(offset==0);
     assert(myDataView.getRank()==3);
     assert(myDataView.noValues()==27);
     assert(myDataView.getShape().size()==3);
@@ -4082,16 +3936,16 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getLength()==2);
 
     DataArrayView myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
+    
+    assert(offset==0);
     assert(myDataView.getRank()==0);
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
     assert(myDataView()==1.0);
 
     myDataView = myData1.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
+    
+    assert(offset==1);
     assert(myDataView.getRank()==0);
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
@@ -4164,8 +4018,8 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getLength()==6);
 
     DataArrayView myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
+    
+    assert(offset==0);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
@@ -4174,8 +4028,8 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myDataView(2)==1.0);
 
     myDataView = myData1.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
+    
+    assert(offset==3);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
@@ -4215,8 +4069,8 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getLength()==6);
 
     myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
+    
+    assert(offset==0);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
@@ -4225,8 +4079,8 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myDataView(2)==1.0);
 
     myDataView = myData1.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
+    
+    assert(offset==3);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
@@ -4261,8 +4115,8 @@ void DataTaggedTestCase::testSetSlice() {
     //cout << myData1.toString() << endl;
 
     myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
+    
+    assert(offset==0);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
@@ -4271,8 +4125,8 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myDataView(2)==1.0);
 
     myDataView = myData1.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
+    
+    assert(offset==3);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
@@ -4350,25 +4204,27 @@ void DataTaggedTestCase::testSetSlice() {
 
     assert(myData1.getLength()==54);
 
-    DataArrayView myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
+    assert(myData1.getRank()==3);
+    assert(myData1.noValues()==27);
+    assert(myData1.getShape().size()==3);
+
+
+    int offset=myData1.getDefaultOffset();
+//     DataArrayView myDataView = myData1.getDefaultValue();
+    assert(offset==0);
     assert(myDataView(0,0,0)==1.0);
-    assert(myDataView(1,1,1)==1.0);
-    assert(myDataView(2,2,2)==1.0);
+    assert(getRef(myData1,offset,1,1,1)==1.0);
+    assert(getRef(myData1,offset,2,2,2)==1.0);
 
     myDataView = myData1.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==27);
+    
+    assert(offset==27);
     assert(myDataView.getRank()==3);
     assert(myDataView.noValues()==27);
     assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==2.0);
-    assert(myDataView(1,1,1)==2.0);
-    assert(myDataView(2,2,2)==2.0);
+    assert(getRef(myData1,offset,0,0,0)==2.0);
+    assert(getRef(myData1,offset,1,1,1)==2.0);
+    assert(getRef(myData1,offset,2,2,2)==2.0);
 
     // rank 1 slice
 
@@ -4407,25 +4263,23 @@ void DataTaggedTestCase::testSetSlice() {
 
     assert(myData1.getLength()==54);
 
-    myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==3.0);
-    assert(myDataView(1,0,0)==3.0);
-    assert(myDataView(2,0,0)==3.0);
+    assert(myData1.getRank()==3);
+    assert(myData1.noValues()==27);
+    assert(myData1.getShape().size()==3);
+
+
+    offset=myData1.getDefaultOffset();
+//     myDataView = myData1.getDefaultValue();
+    assert(offset==0);
+    assert(getRef(myData1,offset,0,0,0)==3.0);
+    assert(getRef(myData1,offset,1,0,0)==3.0);
+    assert(getRef(myData1,offset,2,0,0)==3.0);
 
     myDataView = myData1.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==27);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==4.0);
-    assert(myDataView(1,0,0)==4.0);
-    assert(myDataView(2,0,0)==4.0);
+    assert(offset==27);
+    assert(getRef(myData1,offset,0,0,0)==4.0);
+    assert(getRef(myData1,offset,1,0,0)==4.0);
+    assert(getRef(myData1,offset,2,0,0)==4.0);
 
     // scalar slice
 
@@ -4455,21 +4309,19 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==5.0);
+    assert(myData1.getRank()==3);
+    assert(myData1.noValues()==27);
+    assert(myData1.getShape().size()==3);
+
+
+    offset=myData1.getDefaultOffset();
+//     myDataView = myData1.getDefaultValue();
+    assert(offset==0);
+    assert(getRef(myData1,offset,0,0,0)==5.0);
 
     myDataView = myData1.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==27);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==6.0);
+    assert(offset==27);
+    assert(getRef(myData1,offset,0,0,0)==6.0);
 
   }
 
@@ -4550,37 +4402,28 @@ void DataTaggedTestCase::testSetSlice() {
 
     assert(myData1.getLength()==4);
 
-    DataArrayView myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
+    assert(myData1.getRank()==0);
+    assert(myData1.noValues()==1);
+    assert(myData1.getShape().size()==0);
 
-    myDataView = myData1.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==2.0);
+
+    int offset=myData1.getDefaultOffset();
+//     DataArrayView myDataView = myData1.getDefaultValue();
+    assert(offset==0);
+    assert(myData1.getDataAtOffset(offset)==1.0);
+
+    offset=myData1.getOffsetForTag(1);
+//     myDataView = myData1.getDataPointByTag(1);
+    assert(offset==1);
+    assert(myData1.getDataAtOffset(offset)==2.0);
 
     myDataView = myData1.getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==2);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==3.0);
+    assert(offset==2);
+    assert(myData1.getDataAtOffset(offset)==3.0);
 
     myDataView = myData1.getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==4.0);
+    assert(offset==3);
+    assert(myData1.getDataAtOffset(offset)==4.0);
 
   }
 
@@ -4683,44 +4526,44 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getLength()==12);
 
     DataArrayView myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
+    
+    assert(offset==0);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1.0);
-    assert(myDataView(1)==1.0);
-    assert(myDataView(2)==1.0);
+    assert(getRef(myData1,offset,0)==1.0);
+    assert(getRef(myData1,offset,1)==1.0);
+    assert(getRef(myData1,offset,2)==1.0);
 
     myDataView = myData1.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
+    
+    assert(offset==3);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==2.0);
-    assert(myDataView(1)==2.0);
-    assert(myDataView(2)==2.0);
+    assert(getRef(myData1,offset,0)==2.0);
+    assert(getRef(myData1,offset,1)==2.0);
+    assert(getRef(myData1,offset,2)==2.0);
 
     myDataView = myData1.getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==6);
+    
+    assert(offset==6);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==3.0);
-    assert(myDataView(1)==3.0);
-    assert(myDataView(2)==3.0);
+    assert(getRef(myData1,offset,0)==3.0);
+    assert(getRef(myData1,offset,1)==3.0);
+    assert(getRef(myData1,offset,2)==3.0);
 
     myDataView = myData1.getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==9);
+    
+    assert(offset==9);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==4.0);
-    assert(myDataView(1)==4.0);
-    assert(myDataView(2)==4.0);
+    assert(getRef(myData1,offset,0)==4.0);
+    assert(getRef(myData1,offset,1)==4.0);
+    assert(getRef(myData1,offset,2)==4.0);
 
     // rank 1 slice
 
@@ -4763,45 +4606,43 @@ void DataTaggedTestCase::testSetSlice() {
 
     assert(myData1.getLength()==12);
 
-    myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1.0);
-    assert(myDataView(1)==6.0);
-    assert(myDataView(2)==1.0);
+    assert(myData1.getRank()==1);
+    assert(myData1.noValues()==3);
+    assert(myData1.getShape().size()==1);
 
-    myDataView = myData1.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==2.0);
-    assert(myDataView(1)==7.0);
-    assert(myDataView(2)==2.0);
 
-    myDataView = myData1.getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==6);
+    offset=myData1.getDefaultOffset();
+//     myDataView = myData1.getDefaultValue();
+    assert(offset==0);
+    assert(getRef(myData1,offset,0)==1.0);
+    assert(getRef(myData1,offset,1)==6.0);
+    assert(getRef(myData1,offset,2)==1.0);
+
+//     myDataView = myData1.getDataPointByTag(1);
+    offset=myData1.getOffsetForTag(1);
+    assert(offset==3);
+    assert(getRef(myData1,offset,0)==2.0);
+    assert(getRef(myData1,offset,1)==7.0);
+    assert(getRef(myData1,offset,2)==2.0);
+
+//     myDataView = myData1.getDataPointByTag(2);
+    offset=myData1.getOffsetForTag(2);
+    assert(offset==6);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==3.0);
-    assert(myDataView(1)==8.0);
-    assert(myDataView(2)==3.0);
+    assert(getRef(myData1,offset,0)==3.0);
+    assert(getRef(myData1,offset,1)==8.0);
+    assert(getRef(myData1,offset,2)==3.0);
 
     myDataView = myData1.getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==9);
+    assert(offset==9);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==4.0);
-    assert(myDataView(1)==9.0);
-    assert(myDataView(2)==4.0);
+    assert(getRef(myData1,offset,0)==4.0);
+    assert(getRef(myData1,offset,1)==9.0);
+    assert(getRef(myData1,offset,2)==4.0);
 
     // scalar slice
 
@@ -4839,45 +4680,47 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==10.0);
-    assert(myDataView(1)==6.0);
-    assert(myDataView(2)==1.0);
+    assert(myData1.getRank()==1);
+    assert(myData1.noValues()==3);
+    assert(myData1.getShape().size()==1);
+
+
+    offset=myData1.getDefaultOffset();
+/*    myDataView = myData1.getDefaultValue();*/
+    assert(offset==0);
+    assert(getRef(myData1,offset,0)==10.0);
+    assert(getRef(myData1,offset,1)==6.0);
+    assert(getRef(myData1,offset,2)==1.0);
 
     myDataView = myData1.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
+    
+    assert(offset==3);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==11.0);
-    assert(myDataView(1)==7.0);
-    assert(myDataView(2)==2.0);
+    assert(getRef(myData1,offset,0)==11.0);
+    assert(getRef(myData1,offset,1)==7.0);
+    assert(getRef(myData1,offset,2)==2.0);
 
     myDataView = myData1.getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==6);
+    
+    assert(offset==6);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==12.0);
-    assert(myDataView(1)==8.0);
-    assert(myDataView(2)==3.0);
+    assert(getRef(myData1,offset,0)==12.0);
+    assert(getRef(myData1,offset,1)==8.0);
+    assert(getRef(myData1,offset,2)==3.0);
 
     myDataView = myData1.getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==9);
+    
+    assert(offset==9);
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==13.0);
-    assert(myDataView(1)==9.0);
-    assert(myDataView(2)==4.0);
+    assert(getRef(myData1,offset,0)==13.0);
+    assert(getRef(myData1,offset,1)==9.0);
+    assert(getRef(myData1,offset,2)==4.0);
 
   }
 
@@ -4983,45 +4826,37 @@ void DataTaggedTestCase::testSetSlice() {
 
     assert(myData1.getLength()==108);
 
-    DataArrayView myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==1.0);
-    assert(myDataView(1,0,0)==1.0);
-    assert(myDataView(2,0,0)==1.0);
+    assert(myData1.getRank()==3);
+    assert(myData1.getNoValues()==27);
+    assert(myData1.getShape().size()==3);
 
-    myDataView = myData1.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==27);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==2.0);
-    assert(myDataView(1,0,0)==2.0);
-    assert(myDataView(2,0,0)==2.0);
+    offset=myData1.getDefaultOffset();
+//     DataArrayView myDataView = myData1.getDefaultValue();
+    assert(offset==0);
+    assert(getRef(myData1,offset,0,0,0)==1.0);
+    assert(getRef(myData1,offset,1,0,0)==1.0);
+    assert(getRef(myData1,offset,2,0,0)==1.0);
 
-    myDataView = myData1.getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==54);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==3.0);
-    assert(myDataView(1,0,0)==3.0);
-    assert(myDataView(2,0,0)==3.0);
+//     myDataView = myData1.getDataPointByTag(1);
+    offset=myData1.getOffsetForTag(1);
+    assert(offset==27);
+    assert(getRef(myData1,offset,0,0,0)==2.0);
+    assert(getRef(myData1,offset,1,0,0)==2.0);
+    assert(getRef(myData1,offset,2,0,0)==2.0);
 
-    myDataView = myData1.getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==81);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==4.0);
-    assert(myDataView(1,0,0)==4.0);
-    assert(myDataView(2,0,0)==4.0);
+//     myDataView = myData1.getDataPointByTag(2);
+    offset=myData1.getOffsetForTag(2);
+    assert(offset==54);
+    assert(getRef(myData1,offset,0,0,0)==3.0);
+    assert(getRef(myData1,offset,1,0,0)==3.0);
+    assert(getRef(myData1,offset,2,0,0)==3.0);
+
+//     myDataView = myData1.getDataPointByTag(3);
+    offset=myData1.getOffsetForTag(3);
+    assert(offset==81);
+    assert(getRef(myData1,offset,0,0,0)==4.0);
+    assert(getRef(myData1,offset,1,0,0)==4.0);
+    assert(getRef(myData1,offset,2,0,0)==4.0);
 
     // rank 1 slice
 
@@ -5075,45 +4910,41 @@ void DataTaggedTestCase::testSetSlice() {
 
     assert(myData1.getLength()==108);
 
-    myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==6.0);
-    assert(myDataView(1,0,0)==6.0);
-    assert(myDataView(2,0,0)==6.0);
+    assert(myData1.getRank()==3);
+    assert(myData1.getNoValues()==27);
+    assert(myData1.getShape().size()==3);
 
-    myDataView = myData1.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==27);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==7.0);
-    assert(myDataView(1,0,0)==7.0);
-    assert(myDataView(2,0,0)==7.0);
 
-    myDataView = myData1.getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==54);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==8.0);
-    assert(myDataView(1,0,0)==8.0);
-    assert(myDataView(2,0,0)==8.0);
 
-    myDataView = myData1.getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==81);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==9.0);
-    assert(myDataView(1,0,0)==9.0);
-    assert(myDataView(2,0,0)==9.0);
+//    myDataView = myData1.getDefaultValue();
+//     assert(!myDataView.isEmpty());
+    int offset=myData1.getDefaultOffset();
+    assert(offset==0);
+    assert(getRef(myData1,offset,0,0,0)==6.0);
+    assert(getRef(myData1,offset,1,0,0)==6.0);
+    assert(getRef(myData1,offset,2,0,0)==6.0);
+
+//     myDataView = myData1.getDataPointByTag(1);
+    offset=myData1.getOffsetForTag(1);
+    assert(offset==27);
+    assert(getRef(myData1,offset,0,0,0)==7.0);
+    assert(getRef(myData1,offset,1,0,0)==7.0);
+    assert(getRef(myData1,offset,2,0,0)==7.0);
+
+    offset=myData1.getOffsetForTag(2);
+//     myDataView = myData1.getDataPointByTag(2);
+//     assert(!myDataView.isEmpty());
+    assert(offset==54);
+    assert(getRef(myData1,offset,0,0,0)==8.0);
+    assert(getRef(myData1,offset,1,0,0)==8.0);
+    assert(getRef(myData1,offset,2,0,0)==8.0);
+
+//     myDataView = myData1.getDataPointByTag(3);
+    offset=myData1.getOffsetForTag(3);
+    assert(offset==81);
+    assert(getRef(myData1,offset,0,0,0)==9.0);
+    assert(getRef(myData1,offset,1,0,0)==9.0);
+    assert(getRef(myData1,offset,2,0,0)==9.0);
 
     // scalar slice
 
@@ -5121,7 +4952,7 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataTypes::ValueType viewData13(1);
     viewData13[0]=10.0;
-    DataArrayView myView13(viewData13,viewShape);
+//     DataArrayView myView13(viewData13,viewShape);
 
     values.clear();
 
@@ -5153,37 +4984,25 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==10.0);
+//     myDataView = myData1.getDefaultValue();
+    offset=myData1.getDefaultOffset();
+    assert(offset==0);
+    assert(getRef(myData1,0,0,0)==10.0);
 
-    myDataView = myData1.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==27);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==11.0);
+//     myDataView = myData1.getDataPointByTag(1);
+    offset=myData1.getOffsetForTag(1);
+    assert(offset==27);
+    assert(getRef(myData1,offset,0,0,0)==11.0);
 
-    myDataView = myData1.getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==54);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==12.0);
+//     myDataView = myData1.getDataPointByTag(2);
+    offset=myData1.getOffsetForTag(2);
+    assert(offset==54);
+    assert(getRef(myDataView,offset,0,0,0)==12.0);
 
-    myDataView = myData1.getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==81);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==13.0);
+//     myDataView = myData1.getDataPointByTag(3);
+    offset=myData1.getOffsetForTag(3);
+    assert(offset==81);
+    assert(getRef(myData1,offset,0,0,0)==13.0);
 
   }
 
@@ -5272,53 +5091,57 @@ void DataTaggedTestCase::testSetSlice() {
 
     assert(myData1.getLength()==6);
 
-    DataArrayView myDataView = myData1.getDefaultValue();
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
+    assert(myData1.getRank()==0);
+    assert(myData1.getNoValues()==1);
+    assert(myData1.getShape().size()==0);
+    assert(myData1.getDataAtOffset(0)==1.0);
 
-    myDataView = myData1.getDataPointByTag(1);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
 
-    myDataView = myData1.getDataPointByTag(2);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==2);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
+//     DataArrayView myDataView = myData1.getDefaultValue();
+//     assert(!myDataView.isEmpty());
+    assert(myData1.getDefaultOffset()==0);
+//     assert(myDataView.getOffset()==0);
 
-    myDataView = myData1.getDataPointByTag(3);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==3);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==2.0);
 
-    myDataView = myData1.getDataPointByTag(4);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==4);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==3.0);
+//     myDataView = myData1.getDataPointByTag(1);
+//     assert(!myDataView.isEmpty());
+    assert(myData1.getOffsetForTag(1)==1);
+//     assert(myDataView.getRank()==0);
+//     assert(myDataView.noValues()==1);
+//     assert(myDataView.getShape().size()==0);
+    assert(myData1.getDataAtOffset(offset)==1.0);
 
-    myDataView = myData1.getDataPointByTag(5);
-    assert(!myDataView.isEmpty());
-    assert(myDataView.getOffset()==5);
-    assert(myDataView.getRank()==0);
+//     myDataView = myData1.getDataPointByTag(2);
+//     assert(!myDataView.isEmpty());
+    assert(myData1.getOffsetForTag(2)==2);
+//     assert(myDataView.getRank()==0);
+//     assert(myDataView.noValues()==1);
+//     assert(myDataView.getShape().size()==0);
+    assert(myData1.getDataAtOffset(offset)==1.0);
+
+//     myDataView = myData1.getDataPointByTag(3);
+//     assert(!myDataView.isEmpty());
+    assert(myData1.getOffsetForTag(3)==3);
+/*    assert(myDataView.getRank()==0);
     assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==4.0);
+    assert(myDataView.getShape().size()==0);*/
+    assert(myData1.getDataAtOffset(3)==2.0);
+
+//     myDataView = myData1.getDataPointByTag(4);
+//     assert(!myDataView.isEmpty());
+    assert(myData1.getOffsetForTag(4)==4);
+//     assert(myDataView.getRank()==0);
+//     assert(myDataView.noValues()==1);
+//     assert(myDataView.getShape().size()==0);
+    assert(myData1.getDataAtOffset(4)==3.0);
+
+//     myDataView = myData1.getDataPointByTag(5);
+//     assert(!myDataView.isEmpty());
+    assert(myData1.getOffsetForTag(5)==5);
+/*    assert(myData1.getRank()==0);
+    assert(myData1.noValues()==1);
+    assert(myData1.getShape().size()==0);*/
+    assert(myData1.getDataAtOffset(5)==4.0);
 
   }
 
