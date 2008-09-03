@@ -20,6 +20,9 @@
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
+#ifdef PASO_MPI
+#include <mpi.h>
+#endif
 
 #include <boost/python/extract.hpp>
 
@@ -646,13 +649,18 @@ DataExpanded::setToZero(){
   }
 }
 
+/* Append MPI rank to file name if multiple MPI processes */
+char *Escript_MPI_appendRankToFileName(const char *fileName, int mpi_size, int mpi_rank) {
+  /* Make plenty of room for the mpi_rank number and terminating '\0' */
+  char *newFileName = (char *)malloc(strlen(fileName)+20);
+  strncpy(newFileName, fileName, strlen(fileName)+1);
+  if (mpi_size>1) sprintf(newFileName+strlen(newFileName), ".%04d", mpi_rank);
+  return(newFileName);
+}
 
 void
 DataExpanded::dump(const std::string fileName) const
 {
-   #ifdef PASO_MPI
-   throw DataException("Error - DataExpanded:: dump is not implemented for MPI yet.");
-   #endif
    #ifdef USE_NETCDF
    const int ldims=2+DataArrayView::maxRank;
    const NcDim* ncdims[ldims];
@@ -663,11 +671,17 @@ DataExpanded::dump(const std::string fileName) const
    long dims[ldims];
    const double* d_ptr=&(m_data[0]);
    DataArrayView::ShapeType shape = getPointDataView().getShape();
+   int mpi_iam=0, mpi_num=1;
 
    // netCDF error handler
    NcError err(NcError::verbose_nonfatal);
    // Create the file.
-   NcFile dataFile(fileName.c_str(), NcFile::Replace);
+#ifdef PASO_MPI
+   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_iam);
+   MPI_Comm_size(MPI_COMM_WORLD, &mpi_num);
+#endif
+   char *newFileName = Escript_MPI_appendRankToFileName(fileName.c_str(), mpi_num, mpi_iam);
+   NcFile dataFile(newFileName, NcFile::Replace);
    // check if writing was successful
    if (!dataFile.is_valid())
         throw DataException("Error - DataExpanded:: opening of netCDF file for output failed.");

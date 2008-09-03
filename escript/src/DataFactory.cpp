@@ -22,6 +22,9 @@
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
+#ifdef PASO_MPI
+#include <mpi.h>
+#endif
 
 using namespace boost::python;
 
@@ -78,16 +81,18 @@ Data
 load(const std::string fileName,
      const AbstractDomain& domain)
 {
-   #ifdef PASO_MPI
-   throw DataException("Error - load :: not implemented for MPI yet.");
-   #endif
-
    #ifdef USE_NETCDF
    NcAtt *type_att, *rank_att, *function_space_type_att;
    // netCDF error handler
    NcError err(NcError::silent_nonfatal);
+   int mpi_iam=0, mpi_num=1;
    // Create the file.
-   NcFile dataFile(fileName.c_str(), NcFile::ReadOnly);
+#ifdef PASO_MPI
+   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_iam);
+   MPI_Comm_size(MPI_COMM_WORLD, &mpi_num);
+#endif
+   char *newFileName = Escript_MPI_appendRankToFileName(fileName.c_str(), mpi_num, mpi_iam);
+   NcFile dataFile(newFileName, NcFile::ReadOnly);
    if (!dataFile.is_valid())
         throw DataException("Error - load:: opening of netCDF file for input failed.");
    /* recover function space */

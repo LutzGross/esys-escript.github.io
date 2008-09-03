@@ -1406,6 +1406,11 @@ Data::initialise(const IValueType& value,
 }
 
 /**
+   Modify a filename for MPI parallel output to multiple files
+*/
+char *Escript_MPI_appendRankToFileName(const char *, int, int);
+
+/**
    Binary Data object operators.
 */
 inline double rpow(double x,double y)

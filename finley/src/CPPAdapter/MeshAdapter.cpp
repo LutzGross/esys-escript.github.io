@@ -124,10 +124,6 @@ void MeshAdapter::dump(const std::string& fileName) const
    int num_FaceElements_numNodes	= mesh->FaceElements->numNodes;
    int num_ContactElements_numNodes	= mesh->ContactElements->numNodes;
 
-   // I don't think the strdup is needed since Paso_MPI_appendRankToFileName
-   // does it's own allocation.
-   // char *newFileName = Paso_MPI_appendRankToFileName(strdup(fileName.c_str()), mpi_size, mpi_rank);
-
    char *newFileName = Paso_MPI_appendRankToFileName(fileName.c_str(),
                                                      mpi_size, mpi_rank);
 
