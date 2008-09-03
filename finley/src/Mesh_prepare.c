@@ -25,14 +25,15 @@
 
 void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
      dim_t newGlobalNumDOFs=0, numReducedNodes=0,i;
-     index_t* distribution=NULL, *maskReducedNodes=NULL, *indexReducedNodes=NULL;
+     index_t* distribution=NULL, *maskReducedNodes=NULL, *indexReducedNodes=NULL, *node_distribution=NULL;
      if (in==NULL) return;
      if (in->Nodes == NULL) return;
 
      /* first step is to distribute the elements according to a global distribution of DOF */
 
      distribution=TMPMEMALLOC(in->MPIInfo->size+1,index_t);
-     if (! Finley_checkPtr(distribution)) {
+     node_distribution=TMPMEMALLOC(in->MPIInfo->size+1,index_t);
+     if (! (Finley_checkPtr(distribution) || Finley_checkPtr(node_distribution))) {
         /* first we create dense labeling for the DOFs */
         newGlobalNumDOFs=Finley_NodeFile_createDenseDOFLabeling(in->Nodes);
 
@@ -76,11 +77,12 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
    
           numReducedNodes=Finley_Util_packMask(in->Nodes->numNodes,maskReducedNodes,indexReducedNodes);
 
-          Finley_NodeFile_createDenseNodeLabeling(in->Nodes); 
-          Finley_NodeFile_createDenseReducedNodeLabeling(in->Nodes,maskReducedNodes); 
+          Finley_NodeFile_createDenseNodeLabeling(in->Nodes, node_distribution, distribution); 
+
           Finley_NodeFile_createDenseReducedDOFLabeling(in->Nodes,maskReducedNodes); 
+          Finley_NodeFile_createDenseReducedNodeLabeling(in->Nodes,maskReducedNodes);
           /* create the missing mappings */
-          if (Finley_noError()) Finley_Mesh_createNodeFileMappings(in,numReducedNodes,indexReducedNodes,distribution);
+          if (Finley_noError()) Finley_Mesh_createNodeFileMappings(in,numReducedNodes,indexReducedNodes,distribution, node_distribution);
         }
 
         TMPMEMFREE(maskReducedNodes);
@@ -88,6 +90,7 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
      }
 
      TMPMEMFREE(distribution);
+     TMPMEMFREE(node_distribution);
 
      Finley_Mesh_setTagsInUse(in);
 
