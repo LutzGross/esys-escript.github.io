@@ -172,7 +172,7 @@ DataConstant::setSlice(const DataAbstract* value,
   if (getRank()!=region.size()) {
     throw DataException("Error - Invalid slice region.");
   }
-  if (getRank()>0 && !DataTypes::checkShape(getShape(),value->getShape())) {
+  if (getRank()>0 && !DataTypes::checkShape(value->getShape(),shape)) {
     throw DataException (DataTypes::createShapeErrorMessage(
                 "Error - Couldn't copy slice due to shape mismatch.",shape,value->getShape()));
   }

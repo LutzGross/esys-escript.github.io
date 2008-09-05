@@ -103,20 +103,30 @@ class Data {
   Data(const Data& inData,
        const FunctionSpace& what);
 
-  /**
-     \brief
+//  /**
+/*     \brief
      Constructor which copies data from a DataArrayView.
 
      \param value - Input - Data value for a single point.
      \param what - Input - A description of what this data represents.
      \param expanded - Input - Flag, if true fill the entire container with
                        the value. Otherwise a more efficient storage
-                       mechanism will be used.
-  */
+                       mechanism will be used.*/
+//  */
+//   ESCRIPT_DLL_API
+//   Data(const DataArrayView& value,
+//        const FunctionSpace& what=FunctionSpace(),
+//        bool expanded=false);
+
+  /**
+	\brief Copy Data from an existing vector
+  */ 
+
   ESCRIPT_DLL_API
-  Data(const DataArrayView& value,
-       const FunctionSpace& what=FunctionSpace(),
-       bool expanded=false);
+  Data(const DataTypes::ValueType& value,
+		 const DataTypes::ShapeType& shape,
+                 const FunctionSpace& what=FunctionSpace(),
+                 bool expanded=false);
 
   /**
      \brief

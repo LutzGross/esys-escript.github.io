@@ -25,9 +25,9 @@
 #include "DataVectorTestCase.h"
 #include "TaipanTestCase.h"
 #include "DataCTestCase.h"
-// #include "DataAlgorithmAdapterTestCase.h"
+#include "DataAlgorithmAdapterTestCase.h"
 #include "FunctionSpaceTestCase.h"
-// #include "DataTestCase.h"
+#include "DataTestCase.h"
 #include "DataMathsTestCase.h"
 #include "DataTypesTestCase.h"
 
@@ -65,9 +65,9 @@ int main(int argc, char* argv[])
 	runner.addTest ("DataVector", DataVectorTestCase::suite());
 	runner.addTest ("Taipan", TaipanTestCase::suite());
 	runner.addTest ("DataC", DataCTestCase::suite());
-// 	runner.addTest ("DataAlgorithmAdapter", DataAlgorithmAdapterTestCase::suite());
+ 	runner.addTest ("DataAlgorithmAdapter", DataAlgorithmAdapterTestCase::suite());
 	runner.addTest ("FunctionSpace", FunctionSpaceTestCase::suite());
-// 	runner.addTest ("Data", DataTestCase::suite());
+	runner.addTest ("Data", DataTestCase::suite());
 
 	// actually run the unit tests.
 	runner.run (argc, argv);
