@@ -166,6 +166,16 @@ Data::Data(const DataArrayView& value,
   m_protected=false;
 }*/
 
+Data::Data(const DataTypes::ValueType& value,
+		 const DataTypes::ShapeType& shape,
+                 const FunctionSpace& what,
+                 bool expanded)
+{
+   initialise(value,shape,what,expanded);
+   m_protected=false;
+}
+
+
 Data::Data(const object& value,
 	   const FunctionSpace& what,
            bool expanded)

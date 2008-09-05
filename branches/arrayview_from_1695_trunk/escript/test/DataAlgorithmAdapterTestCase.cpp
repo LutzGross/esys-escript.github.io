@@ -20,9 +20,10 @@
 #endif
 
 #include "escript/DataExpanded.h"
-#include "escript/DataArrayView.h"
+// #include "escript/DataArrayView.h"
 #include "escript/DataAlgorithm.h"
 #include "DataAlgorithmAdapterTestCase.h"
+#include "escript/DataTypes.h"
 
 #include <iostream>
 #include <algorithm>
@@ -31,6 +32,7 @@
 using namespace CppUnitTest;
 using namespace std;
 using namespace escript;
+using namespace escript::DataTypes;
 
 void DataAlgorithmAdapterTestCase::setUp() {
   //
@@ -42,6 +44,19 @@ void DataAlgorithmAdapterTestCase::tearDown() {
   //
   // This is called after each test has been run
  
+}
+
+
+namespace
+{
+
+ValueType::reference
+getSRef(DataAbstract& data,int sample, int point)
+{
+   return data.getVector()[data.getPointOffset(sample,point)];
+}
+
+
 }
 
 void DataAlgorithmAdapterTestCase::testAll() {
@@ -161,18 +176,18 @@ void DataAlgorithmAdapterTestCase::testAlgorithm() {
     DataTypes::ValueType dataArray(DataTypes::noValues(shape),0);
 
     // construct DataArrayView
-    DataArrayView dataView(dataArray,shape);
+//     DataArrayView dataView(dataArray,shape);
 
     // assign values to the data point
     for (int i=0;i<shape[0];i++) {
       for (int j=0;j<shape[1];j++) {
-        dataView(i,j)=dataView.index(i,j);
+        dataArray[getRelIndex(shape,i,j)]=getRelIndex(shape,i,j);
       }
     }
 
     // create a few Data objects from the created DataArrayView
-    DataExpanded dataExp(dataView,FunctionSpace());
-    DataConstant dataCon(dataView,FunctionSpace());
+    DataExpanded dataExp(FunctionSpace(),shape,dataArray);
+    DataConstant dataCon(FunctionSpace(),shape,dataArray);
     DataTagged   dataTag(dataCon);
 
     // test algorithm on DataExpanded
@@ -212,45 +227,45 @@ void DataAlgorithmAdapterTestCase::testDpAlgorithm() {
     DataTypes::ValueType dataArray2(DataTypes::noValues(shape2),0);
 
     // construct DataArrayViews
-    DataArrayView dataView(dataArray,shape);
-    DataArrayView dataView2(dataArray2,shape2);
+//     DataArrayView dataView(dataArray,shape);
+//     DataArrayView dataView2(dataArray2,shape2);
 
     // assign values to the data point
     for (int i=0;i<shape[0];i++) {
       for (int j=0;j<shape[1];j++) {
-        dataView(i,j)=dataView.index(i,j);
+        dataArray[getRelIndex(shape,i,j)]=getRelIndex(shape,i,j);
       }
     }
 
     // create a few Data objects from the created DataArrayViews
-    DataExpanded dataExp(dataView,FunctionSpace());
-    DataConstant dataCon(dataView,FunctionSpace());
+    DataExpanded dataExp(FunctionSpace(),shape,dataArray);
+    DataConstant dataCon(FunctionSpace(),shape,dataArray);
     DataTagged   dataTag(dataCon);
 
     // and create Data objects to receive the results of the dp_algorithm calls
-    DataExpanded dataExp2(dataView2,FunctionSpace());
-    DataConstant dataCon2(dataView2,FunctionSpace());
+    DataExpanded dataExp2(FunctionSpace(),shape2,dataArray2);
+    DataConstant dataCon2(FunctionSpace(),shape2,dataArray2);
     DataTagged   dataTag2(dataCon2);
 
     // test dp_algorithm on DataExpanded
     FMin fmin_func;
     escript::dp_algorithm(dataExp,dataExp2,fmin_func,numeric_limits<double>::max());
-    assert(std::abs(dataExp2.getDataPoint(0,0)()-0)<=REL_TOL*0);
+    assert(std::abs(getSRef(dataExp2,0,0)-0)<=REL_TOL*0);
     FMax fmax_func;
     escript::dp_algorithm(dataExp,dataExp2,fmax_func,numeric_limits<double>::max()*-1);
-    assert(std::abs(dataExp2.getDataPoint(0,0)()-5)<=REL_TOL*5);
+    assert(std::abs(getSRef(dataExp2,0,0)-5)<=REL_TOL*5);
 
     // test dp_algorithm on DataTagged
     escript::dp_algorithm(dataTag,dataTag2,fmin_func,numeric_limits<double>::max());
-    assert(std::abs(dataTag2.getDataPoint(0,0)()-0)<=REL_TOL*0);
+    assert(std::abs(getSRef(dataTag2,0,0)-0)<=REL_TOL*0);
     escript::dp_algorithm(dataTag,dataTag2,fmax_func,numeric_limits<double>::max()*-1);
-    assert(std::abs(dataTag2.getDataPoint(0,0)()-5)<=REL_TOL*5);
+    assert(std::abs(getSRef(dataTag2,0,0)-5)<=REL_TOL*5);
 
     // test dp_algorithm on DataConstant
     escript::dp_algorithm(dataCon,dataCon2,fmin_func,numeric_limits<double>::max());
-    assert(std::abs(dataCon2.getDataPoint(0,0)()-0)<=REL_TOL*0);
+    assert(std::abs(getSRef(dataCon2,0,0)-0)<=REL_TOL*0);
     escript::dp_algorithm(dataCon,dataCon2,fmax_func,numeric_limits<double>::max()*-1);
-    assert(std::abs(dataCon2.getDataPoint(0,0)()-5)<=REL_TOL*5);
+    assert(std::abs(getSRef(dataCon2,0,0)-5)<=REL_TOL*5);
 
   }
 
