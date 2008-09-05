@@ -17,7 +17,7 @@
 
 #include "DataEmptyTestCase.h"
 #include "DataConstantTestCase.h"
-// #include "DataTaggedTestCase.h"
+#include "DataTaggedTestCase.h"
 #include "DataExpandedTestCase.h"
 #include "DataFactoryTestCase.h"
 // #include "DataArrayViewTestCase.h"
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 	runner.addTest ("DataMaths", DataMathsTestCase::suite());
 	runner.addTest ("DataEmpty", DataEmptyTestCase::suite());
 	runner.addTest ("DataConstant", DataConstantTestCase::suite());
-// 	runner.addTest ("DataTagged", DataTaggedTestCase::suite());
+ 	runner.addTest ("DataTagged", DataTaggedTestCase::suite());
 	runner.addTest ("DataExpanded", DataExpandedTestCase::suite());
 	runner.addTest ("DataFactory", DataFactoryTestCase::suite());
 // 	runner.addTest ("DataArrayView", DataArrayViewTestCase::suite());

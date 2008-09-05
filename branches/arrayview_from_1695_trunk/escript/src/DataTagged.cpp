@@ -99,7 +99,6 @@ DataTagged::DataTagged(const FunctionSpace& what,
   : DataAbstract(what,shape)
 {
   // alternative constructor
-  // not unit_tested tested yet
 
   // copy the data
   m_data=data;
@@ -117,13 +116,18 @@ DataTagged::DataTagged(const FunctionSpace& what,
   // The above code looks like it will create a map the wrong way around
 
   int valsize=DataTypes::noValues(shape);
-  int ntags=data.size()/valsize;
+  int npoints=(data.size()/valsize)-1;
+  int ntags=tags.size();
+  if (ntags>npoints)
+  {		// This throw is not unit tested yet
+	throw DataException("Programming error - Too many tags for the supplied values.");
+  }
 
   // create the tag lookup map
-  // we assume that the first value and first tag are the default value so we skip
-  for (int i=1;i<ntags;++i)
+  // we assume that the first value is the default value so we skip it (hence the i+1 below)
+  for (int i=0;i<ntags;++i)
   {
-    m_offsetLookup.insert(DataMapType::value_type(tags[i],i*valsize));
+    m_offsetLookup.insert(DataMapType::value_type(tags[i],(i+1)*valsize));
   }
 }
 
@@ -172,7 +176,6 @@ DataTagged::DataTagged(const FunctionSpace& what,
     throw DataException("Programming error - defaultvalue does not match supplied shape.");
   }
 
-//   setShape(shape);
 
   if (tagsource!=0)
   {
@@ -183,10 +186,14 @@ DataTagged::DataTagged(const FunctionSpace& what,
        DataTagged::DataMapType::const_iterator i;
        for (i=tagsource->getTagLookup().begin();i!=tagsource->getTagLookup().end();i++) {
 	  addTag(i->first);
+       }
+  }
+  else
+  {
+	m_data.resize(defaultvalue.size());
   }
 
-	
-  }
+
 
   // need to set the default value ....
   for (int i=0; i<defaultvalue.size(); i++) {
@@ -204,7 +211,7 @@ DataTagged::getSlice(const DataTypes::RegionType& region) const
 
 DataTagged::DataTagged(const DataTagged& other, 
 		       const DataTypes::RegionType& region)
-  : DataAbstract(other.getFunctionSpace(),other.getShape())
+  : DataAbstract(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
 {
   // slice constructor
 
@@ -269,7 +276,7 @@ DataTagged::setSlice(const DataAbstract* other,
   const DataTypes::ShapeType& otherShape=otherTemp->getShape();
   // copy slice from other default value to this default value
 //   getDefaultValue().copySliceFrom(otherTemp->getDefaultValue(), regionLoopRange);
-  DataTypes::copySlice(m_data,getShape(),getDefaultOffset(),otherData,otherShape,otherTemp->getDefaultOffset(),regionLoopRange);
+  DataTypes::copySliceFrom(m_data,getShape(),getDefaultOffset(),otherData,otherShape,otherTemp->getDefaultOffset(),regionLoopRange);
 
   // loop through tag values in other, adding any which aren't in this, using default value
   DataMapType::const_iterator pos;
@@ -418,6 +425,7 @@ DataTagged::addTaggedValues(const TagListType& tagKeys,
 }
 
 
+// Note: The check to see if vShape==our shape is done in the addTaggedValue method
 void
 DataTagged::addTaggedValues(const TagListType& tagKeys,
                             const ValueType& values,
@@ -447,7 +455,7 @@ DataTagged::addTaggedValues(const TagListType& tagKeys,
     } else {
       unsigned int i;
       int offset=0;
-      for (i=0;i<tagKeys.size();i++ ,offset+=numVals) {
+      for (i=0;i<tagKeys.size();i++ ,offset+=n) {
         addTaggedValue(tagKeys[i],vShape,values,offset);
       }
     }
