@@ -118,6 +118,7 @@ class DataTagged : public DataAbstract {
      \param shape - Input - The shape of each data-point.
      \param tags - Input - An vector of tags, one for each sample number.
      \param data - The data values for each tag.
+TODO Make sure to document the relationship between tags and data, ie: data also contains the default value
  */
   ESCRIPT_DLL_API
   DataTagged(const FunctionSpace& what,

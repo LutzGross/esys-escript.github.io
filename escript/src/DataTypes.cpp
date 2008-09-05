@@ -223,7 +223,6 @@ namespace DataTypes
                             ValueType::size_type otherOffset,
                             const RegionLoopRangeType& region)
    {
-
       //
       // Make sure views are not empty
 
@@ -235,7 +234,6 @@ namespace DataTypes
       //
       // Check the view to be sliced from is compatible with the region to be sliced,
       // and that the region to be sliced is compatible with this view:
-
       EsysAssert(checkOffset(thisOffset,left.size(),noValues(leftShape)),
                  "Error - offset incompatible with this view.");
       EsysAssert(otherOffset+noValues(leftShape)<=other.size(),
@@ -319,7 +317,6 @@ namespace DataTypes
                                 ValueType::size_type otherOffset,
                                 const RegionLoopRangeType& region)
    {
-
       //
       // Make sure views are not empty
 
@@ -467,7 +464,7 @@ namespace DataTypes
    pointToString(const ValueType& data,const ShapeType& shape, int offset, const std::string& suffix)
    {
       using namespace std;
-      EsysAssert(!data.isEmpty(),"Error - View is empty.");
+      EsysAssert(data.size()>0,"Error - View is empty.");
       stringstream temp;
       string finalSuffix=suffix;
       if (suffix.length() > 0) {
@@ -532,7 +529,7 @@ namespace DataTypes
 
    void copyPoint(ValueType& dest, ValueType::size_type doffset, ValueType::size_type nvals, const ValueType& src, ValueType::size_type soffset)
    {
-      EsysAssert((!dest.isEmpty()&&!other.isEmpty()&&checkOffset(doffset,dest.size(),nvals)),
+      EsysAssert((dest.size()>0&&src.size()>0&&checkOffset(doffset,dest.size(),nvals)),
                  "Error - Couldn't copy due to insufficient storage.");
 //       EsysAssert((checkShape(other.getShape())),
 //                  createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.",other.getShape(),m_shape));

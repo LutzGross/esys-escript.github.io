@@ -58,6 +58,12 @@ getRef(DataTagged& data,int offset, int i, int j, int k)
 }
 
 ValueType::reference
+getRef(DataTagged& data,int offset, int i, int j, int k, int l)
+{
+   return data.getVector()[offset+getRelIndex(data.getShape(),i,j,k,l)];
+}
+
+ValueType::reference
 getRef(DataTagged& data,int offset, int i, int j)
 {
    return data.getVector()[offset+getRelIndex(data.getShape(),i,j)];
@@ -2033,7 +2039,6 @@ void DataTaggedTestCase::testSetTaggedValue() {
     assert(myData.getRank()==1);
     assert(myData.getNoValues()==3);
     assert(myData.getShape().size()==1);
-
 //     DataArrayView myDataView = myData.getDataPointByTag(2);
     int offset=myData.getOffsetForTag(2);
     assert(offset==6);
@@ -2140,9 +2145,7 @@ void DataTaggedTestCase::testAll() {
       viewData[i]=i;
     }
 //     DataArrayView myView(viewData,viewShape);
-
     DataTagged myData(FunctionSpace(),viewShape, viewData);
-
     //cout << myData.toString() << endl;
 
     assert(myData.getNumSamples()==1);
@@ -2167,7 +2170,6 @@ void DataTaggedTestCase::testAll() {
     assert(myData.getRank()==1);
     assert(myData.getNoValues()==3);
     assert(myData.getShape().size()==1);
-
 
 //    DataArrayView myDataView = myData.getDataPoint(0,0);
     int offset=myData.getPointOffset(0,0);
@@ -2233,8 +2235,7 @@ void DataTaggedTestCase::testAll() {
 	viewData[viewShape[0]+i]=i+1.0;
     }
 //     values.push_back(eOneView);
-
-    DataTagged myData(FunctionSpace(),viewShape,viewData);
+    DataTagged myData(FunctionSpace(),viewShape,keys,viewData);
 
     //cout << myData.toString() << endl;
 
@@ -2358,7 +2359,7 @@ void DataTaggedTestCase::testAll() {
     }
 //     values.push_back(eThreeView);
 
-    DataTagged myData(FunctionSpace(),viewShape,viewData);
+    DataTagged myData(FunctionSpace(),viewShape,keys,viewData);
 
     //cout << myData.toString() << endl;
 
@@ -2509,7 +2510,7 @@ void DataTaggedTestCase::testCopyConstructors() {
     }
 //     values.push_back(eThreeView);
 
-    DataTagged myData(FunctionSpace(),viewShape,viewData);
+    DataTagged myData(FunctionSpace(),viewShape,keys,viewData);
 
     DataTagged myDataCopy(myData);
 
@@ -2745,6 +2746,7 @@ void DataTaggedTestCase::testGetSlice() {
 //     DataArrayView myDataView = myDataSliced->getDefaultValue();
     int offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
+
     assert(getRef(*myDataSliced,offset,0)==0.0);
     assert(getRef(*myDataSliced,offset,1)==1.0);
     assert(getRef(*myDataSliced,offset,2)==2.0);
@@ -2908,7 +2910,7 @@ void DataTaggedTestCase::testGetSlice() {
     viewData[1]=1.0;
 //     values.push_back(eOneView);
 
-    DataTagged myData(FunctionSpace(),viewShape,viewData);
+    DataTagged myData(FunctionSpace(),viewShape,keys, viewData);
 
     //cout << myData.toString() << endl;
 
@@ -2969,7 +2971,7 @@ void DataTaggedTestCase::testGetSlice() {
     }
 //     values.push_back(eOneView);
 
-    DataTagged myData(FunctionSpace(),viewShape,viewData);
+    DataTagged myData(FunctionSpace(),viewShape,keys,viewData);
 
     //cout << myData.toString() << endl;
 
@@ -3044,7 +3046,6 @@ void DataTaggedTestCase::testGetSlice() {
   {
 
     cout << "\tTest slicing DataTagged with rank 3 values and one tag." << endl;
-
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
     viewShape.push_back(3);
@@ -3070,7 +3071,7 @@ void DataTaggedTestCase::testGetSlice() {
 //     DataArrayView myView1(viewData1,viewShape);
 //     values.push_back(myView1);
 
-    DataTagged myData(FunctionSpace(),viewShape,viewData);
+    DataTagged myData(FunctionSpace(),viewShape,keys,viewData);
 
     //cout << myData.toString() << endl;
 
@@ -3115,7 +3116,6 @@ void DataTaggedTestCase::testGetSlice() {
     region.push_back(region_element);
 
     slicedDefault = myData.getSlice(region);
-
     //cout << slicedDefault->toString() << endl;
 
     myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
@@ -3141,7 +3141,6 @@ void DataTaggedTestCase::testGetSlice() {
     assert(getRef(*myDataSliced,offset,0)==27);
     assert(getRef(*myDataSliced,offset,1)==28);
     assert(getRef(*myDataSliced,offset,2)==29);
-
     // scalar slice
 
     region_element.first=1;
@@ -3216,7 +3215,7 @@ void DataTaggedTestCase::testGetSlice() {
     viewData[3]=3.0;
 //     values.push_back(eThreeView);
 
-    DataTagged myData(FunctionSpace(),viewShape,viewData);
+    DataTagged myData(FunctionSpace(),viewShape,keys,viewData);
 
     // cout << myData.toString() << endl;
 
@@ -3308,7 +3307,7 @@ void DataTaggedTestCase::testGetSlice() {
     }
 //     values.push_back(eThreeView);
 
-    DataTagged myData(FunctionSpace(),viewShape, viewData);
+    DataTagged myData(FunctionSpace(),viewShape, keys, viewData);
 
     //cout << myData.toString() << endl;
 
@@ -3420,40 +3419,41 @@ void DataTaggedTestCase::testGetSlice() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
+    int nvals=27;
     // default value
-    DataTypes::ValueType viewData(27);
-    for (int i=0;i<viewData.size();i++) {
+    DataTypes::ValueType viewData(27*4);
+    for (int i=0;i<nvals;i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
+//     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataTypes::ValueType viewData1(27);
-    for (int i=0;i<viewData1.size();i++) {
-      viewData1[i]=i+27.0;
+//     DataTypes::ValueType viewData1(27);
+    for (int i=0;i<nvals;i++) {
+      viewData[nvals+i]=i+27.0;
     }
-    DataArrayView myView1(viewData1,viewShape);
-    values.push_back(myView1);
+//     DataArrayView myView1(viewData1,viewShape);
+//     values.push_back(myView1);
 
     // value for tag "2"
-    DataTypes::ValueType viewData2(27);
-    for (int i=0;i<viewData2.size();i++) {
-      viewData2[i]=i+54.0;
+//     DataTypes::ValueType viewData2(27);
+    for (int i=0;i<nvals;i++) {
+      viewData[2*nvals+i]=i+54.0;
     }
-    DataArrayView myView2(viewData2,viewShape);
-    values.push_back(myView2);
+//     DataArrayView myView2(viewData2,viewShape);
+//     values.push_back(myView2);
 
     // value for tag "3"
-    DataTypes::ValueType viewData3(27);
-    for (int i=0;i<viewData3.size();i++) {
-      viewData3[i]=i+81.0;
+//     DataTypes::ValueType viewData3(27);
+    for (int i=0;i<nvals;i++) {
+      viewData[3*nvals+i]=i+81.0;
     }
-    DataArrayView myView3(viewData3,viewShape);
-    values.push_back(myView3);
+//     DataArrayView myView3(viewData3,viewShape);
+//     values.push_back(myView3);
 
-    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged myData(FunctionSpace(),viewShape,keys,viewData);
 
     //cout << myData.toString() << endl;
 
@@ -3477,33 +3477,25 @@ void DataTaggedTestCase::testGetSlice() {
 
     assert(myDataSliced->getLength()==108);
 
-    DataArrayView myDataView = myDataSliced->getDefaultValue();
-    
+    assert(myDataSliced->getRank()==3);
+    assert(myDataSliced->getNoValues()==27);
+    assert(myDataSliced->getShape().size()==3);
+
+//     DataArrayView myDataView = myDataSliced->getDefaultValue();
+    int offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
 
-    myDataView = myDataSliced->getDataPointByTag(1);
-    
+//     myDataView = myDataSliced->getDataPointByTag(1);
+    offset=myDataSliced->getOffsetForTag(1);
     assert(offset==27);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
 
-    myDataView = myDataSliced->getDataPointByTag(2);
-    
+//     myDataView = myDataSliced->getDataPointByTag(2);
+    offset=myDataSliced->getOffsetForTag(2);
     assert(offset==54);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
 
-    myDataView = myDataSliced->getDataPointByTag(3);
-    
+//     myDataView = myDataSliced->getDataPointByTag(3);
+    offset=myDataSliced->getOffsetForTag(3);
     assert(offset==81);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
 
     // rank 1 slice
 
@@ -3523,45 +3515,37 @@ void DataTaggedTestCase::testGetSlice() {
 
     assert(myDataSliced->getLength()==12);
 
-    myDataView = myDataSliced->getDefaultValue();
-    
+    assert(myDataSliced->getRank()==1);
+    assert(myDataSliced->getNoValues()==3);
+    assert(myDataSliced->getShape().size()==1);
+
+//     myDataView = myDataSliced->getDefaultValue();
+    offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==0);
-    assert(myDataView(1)==1);
-    assert(myDataView(2)==2);
+    assert(getRef(*myDataSliced,offset,0)==0);
+    assert(getRef(*myDataSliced,offset,1)==1);
+    assert(getRef(*myDataSliced,offset,2)==2);
 
-    myDataView = myDataSliced->getDataPointByTag(1);
-    
+//     myDataView = myDataSliced->getDataPointByTag(1);
+    offset=myDataSliced->getOffsetForTag(1);
     assert(offset==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==27);
-    assert(myDataView(1)==28);
-    assert(myDataView(2)==29);
+    assert(getRef(*myDataSliced,offset,0)==27);
+    assert(getRef(*myDataSliced,offset,1)==28);
+    assert(getRef(*myDataSliced,offset,2)==29);
 
-    myDataView = myDataSliced->getDataPointByTag(2);
-    
+//     myDataView = myDataSliced->getDataPointByTag(2);
+    offset=myDataSliced->getOffsetForTag(2);
     assert(offset==6);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==54);
-    assert(myDataView(1)==55);
-    assert(myDataView(2)==56);
+    assert(getRef(*myDataSliced,offset,0)==54);
+    assert(getRef(*myDataSliced,offset,1)==55);
+    assert(getRef(*myDataSliced,offset,2)==56);
 
-    myDataView = myDataSliced->getDataPointByTag(3);
-    
+//     myDataView = myDataSliced->getDataPointByTag(3);
+    offset=myDataSliced->getOffsetForTag(3);
     assert(offset==9);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==81);
-    assert(myDataView(1)==82);
-    assert(myDataView(2)==83);
+    assert(getRef(*myDataSliced,offset,0)==81);
+    assert(getRef(*myDataSliced,offset,1)==82);
+    assert(getRef(*myDataSliced,offset,2)==83);
 
     // scalar slice
 
@@ -3581,38 +3565,29 @@ void DataTaggedTestCase::testGetSlice() {
     assert(myDataSliced->getTagLookup().size()==3);
 
     assert(myDataSliced->getLength()==4);
+    assert(myDataSliced->getRank()==0);
+    assert(myDataSliced->getNoValues()==1);
+    assert(myDataSliced->getShape().size()==0);
 
-    myDataView = myDataSliced->getDefaultValue();
-    
+//     myDataView = myDataSliced->getDefaultValue();
+    offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==13);
+    assert(myDataSliced->getVector()[offset]==13);
 
-    myDataView = myDataSliced->getDataPointByTag(1);
-    
+//     myDataView = myDataSliced->getDataPointByTag(1);
+    offset=myDataSliced->getOffsetForTag(1);
     assert(offset==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==40);
+    assert(myDataSliced->getVector()[offset]==40);
 
-    myDataView = myDataSliced->getDataPointByTag(2);
-    
+//     myDataView = myDataSliced->getDataPointByTag(2);
+    offset=myDataSliced->getOffsetForTag(2);
     assert(offset==2);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==67);
+    assert(myDataSliced->getVector()[offset]==67);
 
-    myDataView = myDataSliced->getDataPointByTag(3);
-    
+//     myDataView = myDataSliced->getDataPointByTag(3);
+    offset=myDataSliced->getOffsetForTag(3);
     assert(offset==3);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==94);
+    assert(myDataSliced->getVector()[offset]==94);
 
   }
 
@@ -3631,23 +3606,21 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataTypes::RegionType region;
 
-    myData2.getDefaultValue()()=1.0;
-
+    myData2.getDataAtOffset(myData2.getDefaultOffset())=1.0;
     myData1.setSlice(&myData2, region);
-
     //cout << myData1.toString() << endl;
 
     assert(myData1.getTagLookup().size()==0);
 
     assert(myData1.getLength()==1);
+    assert(myData1.getRank()==0);
+    assert(myData1.getNoValues()==1);
+    assert(myData1.getShape().size()==0);
 
-    DataArrayView myDataView = myData1.getDefaultValue();
-    
+//     DataArrayView myDataView = myData1.getDefaultValue();
+    int offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
+    assert(myData1.getDataAtOffset(offset)==1.0);
 
   }
 
@@ -3657,7 +3630,7 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -3666,15 +3639,15 @@ void DataTaggedTestCase::testSetSlice() {
     for (int i=0;i<viewShape[0];i++) {
       viewData1[i]=i;
     }
-    DataArrayView myView1(viewData1,viewShape);
-    DataTagged myData1(keys,values,myView1,FunctionSpace());
+//     DataArrayView myView1(viewData1,viewShape);
+    DataTagged myData1(FunctionSpace(),viewShape,viewData1);
 
     DataTypes::ValueType viewData2(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData2[i]=i+3;
     }
-    DataArrayView myView2(viewData2,viewShape);
-    DataTagged myData2(keys,values,myView2,FunctionSpace());
+//     DataArrayView myView2(viewData2,viewShape);
+    DataTagged myData2(FunctionSpace(),viewShape,viewData2);
 
     // full slice
 
@@ -3685,22 +3658,22 @@ void DataTaggedTestCase::testSetSlice() {
     region.push_back(region_element);
 
     myData1.setSlice(&myData2, region);
-
     //cout << myData1.toString() << endl;
 
     assert(myData1.getTagLookup().size()==0);
 
     assert(myData1.getLength()==3);
 
-    DataArrayView myDataView = myData1.getDefaultValue();
-    
+    assert(myData1.getRank()==1);
+    assert(myData1.getNoValues()==3);
+    assert(myData1.getShape().size()==1);
+
+//     DataArrayView myDataView = myData1.getDefaultValue();
+    int offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==3.0);
-    assert(myDataView(1)==4.0);
-    assert(myDataView(2)==5.0);
+    assert(getRef(myData1,offset,0)==3.0);
+    assert(getRef(myData1,offset,1)==4.0);
+    assert(getRef(myData1,offset,2)==5.0);
 
     // rank 1 slice
 
@@ -3709,8 +3682,8 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataTypes::ValueType viewData3(1);
     viewData3[0]=6.0;
-    DataArrayView myView3(viewData3,viewShape);
-    DataTagged myData3(keys,values,myView3,FunctionSpace());
+//     DataArrayView myView3(viewData3,viewShape);
+    DataTagged myData3(FunctionSpace(),viewShape,viewData3);
 
     region.clear();
     region_element.first=1;
@@ -3718,22 +3691,20 @@ void DataTaggedTestCase::testSetSlice() {
     region.push_back(region_element);
 
     myData1.setSlice(&myData3, region);
-
     //cout << myData1.toString() << endl;
 
     assert(myData1.getTagLookup().size()==0);
 
     assert(myData1.getLength()==3);
-
-    myDataView = myData1.getDefaultValue();
-    
+    assert(myData1.getRank()==1);
+    assert(myData1.getNoValues()==3);
+    assert(myData1.getShape().size()==1);
+//     myDataView = myData1.getDefaultValue();
+    offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==3.0);
-    assert(myDataView(1)==6.0);
-    assert(myDataView(2)==5.0);
+    assert(getRef(myData1,offset,0)==3.0);
+    assert(getRef(myData1,offset,1)==6.0);
+    assert(getRef(myData1,offset,2)==5.0);
 
     // scalar slice
 
@@ -3743,7 +3714,8 @@ void DataTaggedTestCase::testSetSlice() {
     region.push_back(region_element);
 
     DataTagged myData4;
-    myData4.getDefaultValue()()=7.0;
+    myData4.getDataAtOffset(myData4.getDefaultOffset())=7.0;
+//     myData4.getDefaultValue()()=7.0;
 
     myData1.setSlice(&myData4, region);
 
@@ -3752,16 +3724,16 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getTagLookup().size()==0);
 
     assert(myData1.getLength()==3);
+    assert(myData1.getRank()==1);
+    assert(myData1.getNoValues()==3);
+    assert(myData1.getShape().size()==1);
 
-    myDataView = myData1.getDefaultValue();
-    
+//     myDataView = myData1.getDefaultValue();
+    offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==7.0);
-    assert(myDataView(1)==6.0);
-    assert(myDataView(2)==5.0);
+    assert(getRef(myData1,offset,0)==7.0);
+    assert(getRef(myData1,offset,1)==6.0);
+    assert(getRef(myData1,offset,2)==5.0);
 
   }
 
@@ -3771,7 +3743,7 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -3782,15 +3754,15 @@ void DataTaggedTestCase::testSetSlice() {
     for (int i=0;i<viewData1.size();i++) {
       viewData1[i]=i;
     }
-    DataArrayView myView1(viewData1,viewShape);
-    DataTagged myData1(keys,values,myView1,FunctionSpace());
+//     DataArrayView myView1(viewData1,viewShape);
+    DataTagged myData1(FunctionSpace(),viewShape,viewData1);
 
     DataTypes::ValueType viewData2(27);
     for (int i=0;i<viewData2.size();i++) {
       viewData2[i]=i+27;
     }
-    DataArrayView myView2(viewData2,viewShape);
-    DataTagged myData2(keys,values,myView2,FunctionSpace());
+//     DataArrayView myView2(viewData2,viewShape);
+    DataTagged myData2(FunctionSpace(),viewShape,viewData2);
 
     // full slice
 
@@ -3809,13 +3781,14 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getTagLookup().size()==0);
 
     assert(myData1.getLength()==27);
+    assert(myData1.getRank()==3);
+    assert(myData1.getNoValues()==27);
+    assert(myData1.getShape().size()==3);
 
-    DataArrayView myDataView = myData1.getDefaultValue();
-    
+//     DataArrayView myDataView = myData1.getDefaultValue();
+    int offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
+
 
     // rank 1 slice
 
@@ -3826,8 +3799,8 @@ void DataTaggedTestCase::testSetSlice() {
     for (int i=0;i<viewData3.size();i++) {
       viewData3[i]=i+60;
     }
-    DataArrayView myView3(viewData3,viewShape);
-    DataTagged myData3(keys,values,myView3,FunctionSpace());
+//     DataArrayView myView3(viewData3,viewShape);
+    DataTagged myData3(FunctionSpace(),viewShape,viewData3);
 
     region.clear();
     region.push_back(region_element);
@@ -3843,16 +3816,15 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getTagLookup().size()==0);
 
     assert(myData1.getLength()==27);
-
-    myDataView = myData1.getDefaultValue();
-    
+    assert(myData1.getRank()==3);
+    assert(myData1.getNoValues()==27);
+    assert(myData1.getShape().size()==3);
+//     myDataView = myData1.getDefaultValue();
+    offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==60.0);
-    assert(myDataView(1,0,0)==61.0);
-    assert(myDataView(2,0,0)==62.0);
+    assert(getRef(myData1,offset,0,0,0)==60.0);
+    assert(getRef(myData1,offset,1,0,0)==61.0);
+    assert(getRef(myData1,offset,2,0,0)==62.0);
 
     // scalar slice
 
@@ -3864,7 +3836,7 @@ void DataTaggedTestCase::testSetSlice() {
     region.push_back(region_element);
 
     DataTagged myData4;
-    myData4.getDefaultValue()()=70.0;
+    myData4.getDataAtOffset(myData4.getDefaultOffset())=70.0;
 
     myData1.setSlice(&myData4, region);
 
@@ -3874,13 +3846,14 @@ void DataTaggedTestCase::testSetSlice() {
 
     assert(myData1.getLength()==27);
 
-    myDataView = myData1.getDefaultValue();
-    
+    assert(myData1.getRank()==3);
+    assert(myData1.getNoValues()==27);
+    assert(myData1.getShape().size()==3);
+
+//     myDataView = myData1.getDefaultValue();
+    offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
-    assert(myDataView(0,0,0)==70.0);
+    assert(getRef(myData1,offset,0,0,0)==70.0);
 
   }
 
@@ -3891,37 +3864,37 @@ void DataTaggedTestCase::testSetSlice() {
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
 
     // default value for Data1
-    DataTypes::ValueType viewData1(1);
+    DataTypes::ValueType viewData1(1*2);
     viewData1[0]=0.0;
-    DataArrayView myView1(viewData1,viewShape);
+//     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-    DataTypes::ValueType viewData2(1);
-    viewData2[0]=0.0;
-    DataArrayView myView2(viewData2,viewShape);
-    values.push_back(myView2);
+//     DataTypes::ValueType viewData2(1);
+    viewData1[1]=0.0;
+//     DataArrayView myView2(viewData2,viewShape);
+//     values.push_back(myView2);
 
-    DataTagged myData1(keys,values,myView1,FunctionSpace());
+    DataTagged myData1(FunctionSpace(),viewShape,keys,viewData1);
 
     values.clear();
 
     // default value for Data2
-    DataTypes::ValueType viewData3(1);
+    DataTypes::ValueType viewData3(1*2);
     viewData3[0]=1.0;
-    DataArrayView myView3(viewData3,viewShape);
+//     DataArrayView myView3(viewData3,viewShape);
 
     // value for tag "1" for Data2
-    DataTypes::ValueType viewData4(1);
-    viewData4[0]=2.0;
-    DataArrayView myView4(viewData4,viewShape);
-    values.push_back(myView4);
+//     DataTypes::ValueType viewData4(1);
+    viewData3[1]=2.0;
+//     DataArrayView myView4(viewData4,viewShape);
+//     values.push_back(myView4);
 
-    DataTagged myData2(keys,values,myView3,FunctionSpace());
+    DataTagged myData2(FunctionSpace(),viewShape,keys,viewData3);
 
     // full slice
 
@@ -3934,72 +3907,66 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getTagLookup().size()==1);
 
     assert(myData1.getLength()==2);
-
-    DataArrayView myDataView = myData1.getDefaultValue();
-    
+    assert(myData1.getRank()==0);
+    assert(myData1.getNoValues()==1);
+    assert(myData1.getShape().size()==0);
+//     DataArrayView myDataView = myData1.getDefaultValue();
+    int offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
+    assert(myData1.getVector()[offset]==1.0);
 
-    myDataView = myData1.getDataPointByTag(1);
-    
+//     myDataView = myData1.getDataPointByTag(1);
+    offset=myData1.getOffsetForTag(1);
     assert(offset==1);
-    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);
-    assert(myDataView()==2.0);
-
+    assert(myData1.getVector()[offset]==2.0);
   }
 
   {
 
     cout << "\tTest slicing DataTagged with rank 1 values and one tag." << endl;
-
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
+    int nvals=3;
     // default value for Data1
-    DataTypes::ValueType viewData1(3);
-    for (int i=0;i<viewData1.size();i++) {
+    DataTypes::ValueType viewData1(3*2);
+    for (int i=0;i<nvals;i++) {
       viewData1[i]=0.0;
     }
-    DataArrayView myView1(viewData1,viewShape);
+//     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-    DataTypes::ValueType viewData2(3);
-    for (int i=0;i<viewData2.size();i++) {
-      viewData2[i]=0.0;
+//     DataTypes::ValueType viewData2(3);
+    for (int i=0;i<nvals;i++) {
+      viewData1[nvals+i]=0.0;
     }
-    DataArrayView myView2(viewData2,viewShape);
-    values.push_back(myView2);
+//     DataArrayView myView2(viewData2,viewShape);
+//     values.push_back(myView2);
 
-    DataTagged myData1(keys,values,myView1,FunctionSpace());
-
+    DataTagged myData1(FunctionSpace(),viewShape,keys,viewData1);
     values.clear();
 
     // default value for Data2
-    DataTypes::ValueType viewData3(3);
-    for (int i=0;i<viewData3.size();i++) {
+    DataTypes::ValueType viewData3(3*2);
+    for (int i=0;i<nvals;i++) {
       viewData3[i]=1.0;
     }
-    DataArrayView myView3(viewData3,viewShape);
+//     DataArrayView myView3(viewData3,viewShape);
 
     // value for tag "1" for Data2
-    DataTypes::ValueType viewData4(3);
-    for (int i=0;i<viewData4.size();i++) {
-      viewData4[i]=2.0;
+//     DataTypes::ValueType viewData4(3);
+    for (int i=0;i<nvals;i++) {
+      viewData3[nvals+i]=2.0;
     }
-    DataArrayView myView4(viewData4,viewShape);
-    values.push_back(myView4);
+//     DataArrayView myView4(viewData4,viewShape);
+//     values.push_back(myView4);
 
-    DataTagged myData2(keys,values,myView3,FunctionSpace());
+    DataTagged myData2(FunctionSpace(),viewShape,keys,viewData3);
 
     // full slice
 
@@ -4016,44 +3983,41 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getTagLookup().size()==1);
 
     assert(myData1.getLength()==6);
+    assert(myData1.getRank()==1);
+    assert(myData1.getNoValues()==3);
+    assert(myData1.getShape().size()==1);
 
-    DataArrayView myDataView = myData1.getDefaultValue();
-    
+//     DataArrayView myDataView = myData1.getDefaultValue();
+    int offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1.0);
-    assert(myDataView(1)==1.0);
-    assert(myDataView(2)==1.0);
+    assert(getRef(myData1,offset,0)==1.0);
+    assert(getRef(myData1,offset,1)==1.0);
+    assert(getRef(myData1,offset,2)==1.0);
 
-    myDataView = myData1.getDataPointByTag(1);
-    
+//     myDataView = myData1.getDataPointByTag(1);
+    offset=myData1.getOffsetForTag(1);
     assert(offset==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==2.0);
-    assert(myDataView(1)==2.0);
-    assert(myDataView(2)==2.0);
+    assert(getRef(myData1,offset,0)==2.0);
+    assert(getRef(myData1,offset,1)==2.0);
+    assert(getRef(myData1,offset,2)==2.0);
 
     // rank 1 slice
 
     viewShape.clear();
     viewShape.push_back(1);
 
-    DataTypes::ValueType viewData5(1);
+    DataTypes::ValueType viewData5(1*2);
     viewData5[0]=3.0;
-    DataArrayView myView5(viewData5,viewShape);
+//     DataArrayView myView5(viewData5,viewShape);
 
     values.clear();
 
-    DataTypes::ValueType viewData6(1);
-    viewData6[0]=4.0;
-    DataArrayView myView6(viewData6,viewShape);
-    values.push_back(myView6);
+//     DataTypes::ValueType viewData6(1);
+    viewData5[1]=4.0;
+//     DataArrayView myView6(viewData6,viewShape);
+//     values.push_back(myView6);
 
-    DataTagged myData3(keys,values,myView5,FunctionSpace());
+    DataTagged myData3(FunctionSpace(),viewShape,keys,viewData5);
 
     region.clear();
     region_element.first=1;
@@ -4067,43 +4031,39 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getTagLookup().size()==1);
 
     assert(myData1.getLength()==6);
-
-    myDataView = myData1.getDefaultValue();
-    
+    assert(myData1.getRank()==1);
+    assert(myData1.getNoValues()==3);
+    assert(myData1.getShape().size()==1);
+//     myDataView = myData1.getDefaultValue();
+    offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1.0);
-    assert(myDataView(1)==3.0);
-    assert(myDataView(2)==1.0);
+    assert(getRef(myData1,offset,0)==1.0);
+    assert(getRef(myData1,offset,1)==3.0);
+    assert(getRef(myData1,offset,2)==1.0);
 
-    myDataView = myData1.getDataPointByTag(1);
-    
+//     myDataView = myData1.getDataPointByTag(1);
+    offset=myData1.getOffsetForTag(1);
     assert(offset==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==2.0);
-    assert(myDataView(1)==4.0);
-    assert(myDataView(2)==2.0);
+    assert(getRef(myData1,offset,0)==2.0);
+    assert(getRef(myData1,offset,1)==4.0);
+    assert(getRef(myData1,offset,2)==2.0);
 
     // scalar slice
 
     viewShape.clear();
 
-    DataTypes::ValueType viewData7(1);
+    DataTypes::ValueType viewData7(1*2);
     viewData7[0]=5.0;
-    DataArrayView myView7(viewData7,viewShape);
+//     DataArrayView myView7(viewData7,viewShape);
 
     values.clear();
 
-    DataTypes::ValueType viewData8(1);
-    viewData8[0]=6.0;
-    DataArrayView myView8(viewData8,viewShape);
-    values.push_back(myView8);
+//     DataTypes::ValueType viewData8(1);
+    viewData7[1]=6.0;
+//     DataArrayView myView8(viewData8,viewShape);
+//     values.push_back(myView8);
 
-    DataTagged myData4(keys,values,myView7,FunctionSpace());
+    DataTagged myData4(FunctionSpace(),viewShape,keys,viewData7);
 
     region.clear();
     region_element.first=0;
@@ -4113,78 +4073,75 @@ void DataTaggedTestCase::testSetSlice() {
     myData1.setSlice(&myData4, region);
 
     //cout << myData1.toString() << endl;
+    assert(myData1.getRank()==1);
+    assert(myData1.getNoValues()==3);
+    assert(myData1.getShape().size()==1);
 
-    myDataView = myData1.getDefaultValue();
-    
+//     myDataView = myData1.getDefaultValue();
+    offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==5.0);
-    assert(myDataView(1)==3.0);
-    assert(myDataView(2)==1.0);
+    assert(getRef(myData1,offset,0)==5.0);
+    assert(getRef(myData1,offset,1)==3.0);
+    assert(getRef(myData1,offset,2)==1.0);
 
-    myDataView = myData1.getDataPointByTag(1);
-    
+//     myDataView = myData1.getDataPointByTag(1);
+    offset=myData1.getOffsetForTag(1);
     assert(offset==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==6.0);
-    assert(myDataView(1)==4.0);
-    assert(myDataView(2)==2.0);
+    assert(getRef(myData1,offset,0)==6.0);
+    assert(getRef(myData1,offset,1)==4.0);
+    assert(getRef(myData1,offset,2)==2.0);
 
   }
 
   {
 
     cout << "\tTest slicing DataTagged with rank 3 values and one tag." << endl;
-
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
     viewShape.push_back(3);
     viewShape.push_back(3);
 
+    int nvals=27;
     // default value for Data1
-    DataTypes::ValueType viewData1(27);
-    for (int i=0;i<viewData1.size();i++) {
+    DataTypes::ValueType viewData1(27*2);
+    for (int i=0;i<nvals;i++) {
       viewData1[i]=0.0;
     }
-    DataArrayView myView1(viewData1,viewShape);
+//     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-    DataTypes::ValueType viewData2(27);
-    for (int i=0;i<viewData2.size();i++) {
-      viewData2[i]=0.0;
+//     DataTypes::ValueType viewData2(27);
+    for (int i=0;i<nvals;i++) {
+      viewData1[nvals+i]=0.0;
     }
-    DataArrayView myView2(viewData2,viewShape);
-    values.push_back(myView2);
+//     DataArrayView myView2(viewData2,viewShape);
+//     values.push_back(myView2);
 
-    DataTagged myData1(keys,values,myView1,FunctionSpace());
+    DataTagged myData1(FunctionSpace(),viewShape,keys,viewData1);
 
     values.clear();
 
     // default value for Data2
-    DataTypes::ValueType viewData3(27);
-    for (int i=0;i<viewData3.size();i++) {
+    DataTypes::ValueType viewData3(27*2);
+    for (int i=0;i<nvals;i++) {
       viewData3[i]=1.0;
     }
-    DataArrayView myView3(viewData3,viewShape);
+//     DataArrayView myView3(viewData3,viewShape);
 
     // value for tag "1" for Data2
-    DataTypes::ValueType viewData4(27);
-    for (int i=0;i<viewData4.size();i++) {
-      viewData4[i]=2.0;
+//     DataTypes::ValueType viewData4(27);
+    for (int i=0;i<nvals;i++) {
+      viewData3[nvals+i]=2.0;
     }
-    DataArrayView myView4(viewData4,viewShape);
-    values.push_back(myView4);
+//     DataArrayView myView4(viewData4,viewShape);
+//     values.push_back(myView4);
 
-    DataTagged myData2(keys,values,myView3,FunctionSpace());
+    DataTagged myData2(FunctionSpace(),viewShape,keys,viewData3);
 
     // full slice
 
@@ -4205,23 +4162,20 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getLength()==54);
 
     assert(myData1.getRank()==3);
-    assert(myData1.noValues()==27);
+    assert(myData1.getNoValues()==27);
     assert(myData1.getShape().size()==3);
 
 
     int offset=myData1.getDefaultOffset();
 //     DataArrayView myDataView = myData1.getDefaultValue();
     assert(offset==0);
-    assert(myDataView(0,0,0)==1.0);
+    assert(getRef(myData1,offset,0,0,0)==1.0);
     assert(getRef(myData1,offset,1,1,1)==1.0);
     assert(getRef(myData1,offset,2,2,2)==1.0);
 
-    myDataView = myData1.getDataPointByTag(1);
-    
+//     myDataView = myData1.getDataPointByTag(1);
+    offset=myData1.getOffsetForTag(1);
     assert(offset==27);
-    assert(myDataView.getRank()==3);
-    assert(myDataView.noValues()==27);
-    assert(myDataView.getShape().size()==3);
     assert(getRef(myData1,offset,0,0,0)==2.0);
     assert(getRef(myData1,offset,1,1,1)==2.0);
     assert(getRef(myData1,offset,2,2,2)==2.0);
@@ -4230,23 +4184,25 @@ void DataTaggedTestCase::testSetSlice() {
 
     viewShape.clear();
     viewShape.push_back(3);
+  
+    nvals=3;
 
-    DataTypes::ValueType viewData5(3);
-    for (int i=0;i<viewData5.size();i++) {
+    DataTypes::ValueType viewData5(3*2);
+    for (int i=0;i<nvals;i++) {
       viewData5[i]=3.0;
     }
-    DataArrayView myView5(viewData5,viewShape);
+//     DataArrayView myView5(viewData5,viewShape);
 
     values.clear();
 
-    DataTypes::ValueType viewData6(3);
-    for (int i=0;i<viewData6.size();i++) {
-      viewData6[i]=4.0;
+//     DataTypes::ValueType viewData6(3);
+    for (int i=0;i<nvals;i++) {
+      viewData5[nvals+i]=4.0;
     }
-    DataArrayView myView6(viewData6,viewShape);
-    values.push_back(myView6);
+//     DataArrayView myView6(viewData6,viewShape);
+//     values.push_back(myView6);
 
-    DataTagged myData3(keys,values,myView5,FunctionSpace());
+    DataTagged myData3(FunctionSpace(),viewShape,keys,viewData5);
 
     region.clear();
     region.push_back(region_element);
@@ -4264,18 +4220,19 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getLength()==54);
 
     assert(myData1.getRank()==3);
-    assert(myData1.noValues()==27);
+    assert(myData1.getNoValues()==27);
     assert(myData1.getShape().size()==3);
 
 
     offset=myData1.getDefaultOffset();
-//     myDataView = myData1.getDefaultValue();
+//     myDataView = myData1.getDefslicing DataTagged with rank 3 values and one tagaultValue();
     assert(offset==0);
     assert(getRef(myData1,offset,0,0,0)==3.0);
     assert(getRef(myData1,offset,1,0,0)==3.0);
     assert(getRef(myData1,offset,2,0,0)==3.0);
 
-    myDataView = myData1.getDataPointByTag(1);
+//     myDataView = myData1.getDataPointByTag(1);
+    offset=myData1.getOffsetForTag(1);
     assert(offset==27);
     assert(getRef(myData1,offset,0,0,0)==4.0);
     assert(getRef(myData1,offset,1,0,0)==4.0);
@@ -4285,18 +4242,18 @@ void DataTaggedTestCase::testSetSlice() {
 
     viewShape.clear();
 
-    DataTypes::ValueType viewData7(1);
+    DataTypes::ValueType viewData7(1*2);
     viewData7[0]=5.0;
-    DataArrayView myView7(viewData7,viewShape);
+//     DataArrayView myView7(viewData7,viewShape);
 
     values.clear();
 
-    DataTypes::ValueType viewData8(1);
-    viewData8[0]=6.0;
-    DataArrayView myView8(viewData8,viewShape);
-    values.push_back(myView8);
+//     DataTypes::ValueType viewData8(1);
+    viewData7[1]=6.0;
+//     DataArrayView myView8(viewData8,viewShape);
+//     values.push_back(myView8);
 
-    DataTagged myData4(keys,values,myView7,FunctionSpace());
+    DataTagged myData4(FunctionSpace(),viewShape,keys,viewData7);
 
     region.clear();
     region_element.first=0;
@@ -4310,7 +4267,7 @@ void DataTaggedTestCase::testSetSlice() {
     //cout << myData1.toString() << endl;
 
     assert(myData1.getRank()==3);
-    assert(myData1.noValues()==27);
+    assert(myData1.getNoValues()==27);
     assert(myData1.getShape().size()==3);
 
 
@@ -4319,7 +4276,8 @@ void DataTaggedTestCase::testSetSlice() {
     assert(offset==0);
     assert(getRef(myData1,offset,0,0,0)==5.0);
 
-    myDataView = myData1.getDataPointByTag(1);
+//     myDataView = myData1.getDataPointByTag(1);
+    offset=myData1.getOffsetForTag(1);
     assert(offset==27);
     assert(getRef(myData1,offset,0,0,0)==6.0);
 
@@ -4328,67 +4286,66 @@ void DataTaggedTestCase::testSetSlice() {
   {
 
     cout << "\tTest slicing DataTagged with scalar values and three tags." << endl;
-
     DataTagged::TagListType keys;
     keys.push_back(1);
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
 
     // default value for Data1
-    DataTypes::ValueType viewData1(1);
+    DataTypes::ValueType viewData1(1*4);
     viewData1[0]=0.0;
-    DataArrayView myView1(viewData1,viewShape);
+//     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-    DataTypes::ValueType viewData2(1);
-    viewData2[0]=0.0;
-    DataArrayView myView2(viewData2,viewShape);
-    values.push_back(myView2);
+//     DataTypes::ValueType viewData2(1);
+    viewData1[1]=0.0;
+//     DataArrayView myView2(viewData2,viewShape);
+//     values.push_back(myView2);
 
     // value for tag "2" for Data1
-    DataTypes::ValueType viewData5(1);
-    viewData5[0]=0.0;
-    DataArrayView myView5(viewData5,viewShape);
-    values.push_back(myView5);
+//     DataTypes::ValueType viewData5(1);
+    viewData1[2]=0.0;
+//     DataArrayView myView5(viewData5,viewShape);
+//     values.push_back(myView5);
 
     // value for tag "3" for Data1
-    DataTypes::ValueType viewData6(1);
-    viewData6[0]=0.0;
-    DataArrayView myView6(viewData6,viewShape);
-    values.push_back(myView6);
+//     DataTypes::ValueType viewData6(1);
+    viewData1[3]=0.0;
+//     DataArrayView myView6(viewData6,viewShape);
+//     values.push_back(myView6);
 
-    DataTagged myData1(keys,values,myView1,FunctionSpace());
+    DataTagged myData1(FunctionSpace(),viewShape,keys,viewData1);
 
     values.clear();
 
     // default value for Data2
-    DataTypes::ValueType viewData3(1);
+    DataTypes::ValueType viewData3(1*4);
     viewData3[0]=1.0;
-    DataArrayView myView3(viewData3,viewShape);
+//     DataArrayView myView3(viewData3,viewShape);
 
     // value for tag "1" for Data2
-    DataTypes::ValueType viewData4(1);
-    viewData4[0]=2.0;
-    DataArrayView myView4(viewData4,viewShape);
-    values.push_back(myView4);
+//     DataTypes::ValueType viewData4(1);
+    viewData3[1]=2.0;
+//     DataArrayView myView4(viewData4,viewShape);
+//     values.push_back(myView4);
 
     // value for tag "2" for Data2
-    DataTypes::ValueType viewData7(1);
-    viewData7[0]=3.0;
-    DataArrayView myView7(viewData7,viewShape);
-    values.push_back(myView7);
+//     DataTypes::ValueType viewData7(1);
+    viewData3[2]=3.0;
+//     DataArrayView myView7(viewData7,viewShape);
+//     values.push_back(myView7);
 
     // value for tag "3" for Data2
-    DataTypes::ValueType viewData8(1);
-    viewData8[0]=4.0;
-    DataArrayView myView8(viewData8,viewShape);
-    values.push_back(myView8);
+//     DataTypes::ValueType viewData8(1);
+    viewData3[3]=4.0;
+//     DataArrayView myView8(viewData8,viewShape);
+//     values.push_back(myView8);
 
-    DataTagged myData2(keys,values,myView3,FunctionSpace());
+    DataTagged myData2(FunctionSpace(),viewShape,keys,viewData3);
 
     // full slice
 
@@ -4403,9 +4360,8 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getLength()==4);
 
     assert(myData1.getRank()==0);
-    assert(myData1.noValues()==1);
+    assert(myData1.getNoValues()==1);
     assert(myData1.getShape().size()==0);
-
 
     int offset=myData1.getDefaultOffset();
 //     DataArrayView myDataView = myData1.getDefaultValue();
@@ -4417,11 +4373,14 @@ void DataTaggedTestCase::testSetSlice() {
     assert(offset==1);
     assert(myData1.getDataAtOffset(offset)==2.0);
 
-    myDataView = myData1.getDataPointByTag(2);
+    offset=myData1.getOffsetForTag(2);
+//     myDataView = myData1.getDataPointByTag(2);
     assert(offset==2);
+
     assert(myData1.getDataAtOffset(offset)==3.0);
 
-    myDataView = myData1.getDataPointByTag(3);
+//     myDataView = myData1.getDataPointByTag(3);
+    offset=myData1.getOffsetForTag(3);
     assert(offset==3);
     assert(myData1.getDataAtOffset(offset)==4.0);
 
@@ -4430,84 +4389,87 @@ void DataTaggedTestCase::testSetSlice() {
   {
 
     cout << "\tTest slicing DataTagged with rank 1 values and three tags." << endl;
-
     DataTagged::TagListType keys;
     keys.push_back(1);
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
+    int nvals=3;
+
     // default value for Data1
-    DataTypes::ValueType viewData1(3);
+    DataTypes::ValueType viewData1(3*4);
     for (int i=0;i<viewData1.size();i++) {
       viewData1[i]=0.0;
     }
-    DataArrayView myView1(viewData1,viewShape);
+//     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-    DataTypes::ValueType viewData2(3);
-    for (int i=0;i<viewData2.size();i++) {
-      viewData2[i]=0.0;
+//     DataTypes::ValueType viewData2(3);
+    for (int i=0;i<nvals;i++) {
+      viewData1[nvals+i]=0.0;
     }
-    DataArrayView myView2(viewData2,viewShape);
-    values.push_back(myView2);
+//     DataArrayView myView2(viewData2,viewShape);
+//     values.push_back(myView2);
 
     // value for tag "2" for Data1
-    DataTypes::ValueType viewData3(3);
-    for (int i=0;i<viewData3.size();i++) {
-      viewData3[i]=0.0;
+//     DataTypes::ValueType viewData3(3);
+    for (int i=0;i<nvals;i++) {
+      viewData1[2*nvals+i]=0.0;
     }
-    DataArrayView myView3(viewData3,viewShape);
-    values.push_back(myView3);
+//     DataArrayView myView3(viewData3,viewShape);
+//     values.push_back(myView3);
 
     // value for tag "3" for Data1
-    DataTypes::ValueType viewData4(3);
-    for (int i=0;i<viewData4.size();i++) {
-      viewData4[i]=0.0;
+//     DataTypes::ValueType viewData4(3);
+    for (int i=0;i<nvals;i++) {
+      viewData1[3*nvals+i]=0.0;
     }
-    DataArrayView myView4(viewData4,viewShape);
-    values.push_back(myView4);
+//     DataArrayView myView4(viewData4,viewShape);
+//     values.push_back(myView4);
 
-    DataTagged myData1(keys,values,myView1,FunctionSpace());
+    DataTagged myData1(FunctionSpace(),viewShape,keys,viewData1);
 
     values.clear();
 
+    nvals=3;
+
     // default value for Data2
-    DataTypes::ValueType viewData5(3);
-    for (int i=0;i<viewData5.size();i++) {
+    DataTypes::ValueType viewData5(3*4);
+    for (int i=0;i<nvals;i++) {
       viewData5[i]=1.0;
     }
-    DataArrayView myView5(viewData5,viewShape);
+//     DataArrayView myView5(viewData5,viewShape);
 
     // value for tag "1" for Data2
-    DataTypes::ValueType viewData6(3);
-    for (int i=0;i<viewData6.size();i++) {
-      viewData6[i]=2.0;
+//     DataTypes::ValueType viewData6(3);
+    for (int i=0;i<nvals;i++) {
+      viewData5[nvals+i]=2.0;
     }
-    DataArrayView myView6(viewData6,viewShape);
-    values.push_back(myView6);
+//     DataArrayView myView6(viewData6,viewShape);
+//     values.push_back(myView6);
 
     // value for tag "2" for Data2
-    DataTypes::ValueType viewData7(3);
-    for (int i=0;i<viewData7.size();i++) {
-      viewData7[i]=3.0;
+//     DataTypes::ValueType viewData7(3);
+    for (int i=0;i<nvals;i++) {
+      viewData5[2*nvals+i]=3.0;
     }
-    DataArrayView myView7(viewData7,viewShape);
-    values.push_back(myView7);
+//     DataArrayView myView7(viewData7,viewShape);
+//     values.push_back(myView7);
 
     // value for tag "3" for Data2
-    DataTypes::ValueType viewData8(3);
-    for (int i=0;i<viewData8.size();i++) {
-      viewData8[i]=4.0;
+//     DataTypes::ValueType viewData8(3);
+    for (int i=0;i<nvals;i++) {
+      viewData5[3*nvals+i]=4.0;
     }
-    DataArrayView myView8(viewData8,viewShape);
-    values.push_back(myView8);
+//     DataArrayView myView8(viewData8,viewShape);
+//     values.push_back(myView8);
 
-    DataTagged myData2(keys,values,myView5,FunctionSpace());
+    DataTagged myData2(FunctionSpace(),viewShape,keys,viewData5);
 
     // full slice
 
@@ -4525,42 +4487,35 @@ void DataTaggedTestCase::testSetSlice() {
 
     assert(myData1.getLength()==12);
 
-    DataArrayView myDataView = myData1.getDefaultValue();
-    
+    assert(myData1.getRank()==1);
+    assert(myData1.getNoValues()==3);
+    assert(myData1.getShape().size()==1);
+
+
+//     DataArrayView myDataView = myData1.getDefaultValue();
+    int offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
     assert(getRef(myData1,offset,0)==1.0);
     assert(getRef(myData1,offset,1)==1.0);
     assert(getRef(myData1,offset,2)==1.0);
 
-    myDataView = myData1.getDataPointByTag(1);
-    
+//     myDataView = myData1.getDataPointByTag(1);
+    offset=myData1.getOffsetForTag(1);
     assert(offset==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
     assert(getRef(myData1,offset,0)==2.0);
     assert(getRef(myData1,offset,1)==2.0);
     assert(getRef(myData1,offset,2)==2.0);
 
-    myDataView = myData1.getDataPointByTag(2);
-    
+//     myDataView = myData1.getDataPointByTag(2);
+    offset=myData1.getOffsetForTag(2);
     assert(offset==6);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
     assert(getRef(myData1,offset,0)==3.0);
     assert(getRef(myData1,offset,1)==3.0);
     assert(getRef(myData1,offset,2)==3.0);
 
-    myDataView = myData1.getDataPointByTag(3);
-    
+//     myDataView = myData1.getDataPointByTag(3);
+    offset=myData1.getOffsetForTag(3);
     assert(offset==9);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
     assert(getRef(myData1,offset,0)==4.0);
     assert(getRef(myData1,offset,1)==4.0);
     assert(getRef(myData1,offset,2)==4.0);
@@ -4570,28 +4525,28 @@ void DataTaggedTestCase::testSetSlice() {
     viewShape.clear();
     viewShape.push_back(1);
 
-    DataTypes::ValueType viewData9(1);
+    DataTypes::ValueType viewData9(1*4);
     viewData9[0]=6.0;
-    DataArrayView myView9(viewData9,viewShape);
+//     DataArrayView myView9(viewData9,viewShape);
 
     values.clear();
 
-    DataTypes::ValueType viewData10(1);
-    viewData10[0]=7.0;
-    DataArrayView myView10(viewData10,viewShape);
-    values.push_back(myView10);
+//     DataTypes::ValueType viewData10(1);
+    viewData9[1]=7.0;
+//     DataArrayView myView10(viewData10,viewShape);
+//     values.push_back(myView10);
 
-    DataTypes::ValueType viewData11(1);
-    viewData11[0]=8.0;
-    DataArrayView myView11(viewData11,viewShape);
-    values.push_back(myView11);
+//     DataTypes::ValueType viewData11(1);
+    viewData9[2]=8.0;
+//     DataArrayView myView11(viewData11,viewShape);
+//     values.push_back(myView11);
 
-    DataTypes::ValueType viewData12(1);
-    viewData12[0]=9.0;
-    DataArrayView myView12(viewData12,viewShape);
-    values.push_back(myView12);
+//     DataTypes::ValueType viewData12(1);
+    viewData9[3]=9.0;
+//     DataArrayView myView12(viewData12,viewShape);
+//     values.push_back(myView12);
 
-    DataTagged myData3(keys,values,myView9,FunctionSpace());
+    DataTagged myData3(FunctionSpace(),viewShape, keys, viewData9);
 
     region.clear();
     region_element.first=1;
@@ -4607,7 +4562,7 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getLength()==12);
 
     assert(myData1.getRank()==1);
-    assert(myData1.noValues()==3);
+    assert(myData1.getNoValues()==3);
     assert(myData1.getShape().size()==1);
 
 
@@ -4628,18 +4583,13 @@ void DataTaggedTestCase::testSetSlice() {
 //     myDataView = myData1.getDataPointByTag(2);
     offset=myData1.getOffsetForTag(2);
     assert(offset==6);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
     assert(getRef(myData1,offset,0)==3.0);
     assert(getRef(myData1,offset,1)==8.0);
     assert(getRef(myData1,offset,2)==3.0);
 
-    myDataView = myData1.getDataPointByTag(3);
+//     myDataView = myData1.getDataPointByTag(3);
+    offset=myData1.getOffsetForTag(3);
     assert(offset==9);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
     assert(getRef(myData1,offset,0)==4.0);
     assert(getRef(myData1,offset,1)==9.0);
     assert(getRef(myData1,offset,2)==4.0);
@@ -4648,28 +4598,28 @@ void DataTaggedTestCase::testSetSlice() {
 
     viewShape.clear();
 
-    DataTypes::ValueType viewData13(1);
+    DataTypes::ValueType viewData13(1*4);
     viewData13[0]=10.0;
-    DataArrayView myView13(viewData13,viewShape);
+//     DataArrayView myView13(viewData13,viewShape);
 
     values.clear();
 
-    DataTypes::ValueType viewData14(1);
-    viewData14[0]=11.0;
-    DataArrayView myView14(viewData14,viewShape);
-    values.push_back(myView14);
+//     DataTypes::ValueType viewData14(1);
+    viewData13[1]=11.0;
+//     DataArrayView myView14(viewData14,viewShape);
+//     values.push_back(myView14);
 
-    DataTypes::ValueType viewData15(2);
-    viewData15[0]=12.0;
-    DataArrayView myView15(viewData15,viewShape);
-    values.push_back(myView15);
+//     DataTypes::ValueType viewData15(2);
+    viewData13[2]=12.0;
+//     DataArrayView myView15(viewData15,viewShape);
+//     values.push_back(myView15);
 
-    DataTypes::ValueType viewData16(3);
-    viewData16[0]=13.0;
-    DataArrayView myView16(viewData16,viewShape);
-    values.push_back(myView16);
+//     DataTypes::ValueType viewData16(3);
+    viewData13[3]=13.0;
+//     DataArrayView myView16(viewData16,viewShape);
+//     values.push_back(myView16);
 
-    DataTagged myData4(keys,values,myView13,FunctionSpace());
+    DataTagged myData4(FunctionSpace(),viewShape,keys,viewData13);
 
     region.clear();
     region_element.first=0;
@@ -4681,7 +4631,7 @@ void DataTaggedTestCase::testSetSlice() {
     //cout << myData1.toString() << endl;
 
     assert(myData1.getRank()==1);
-    assert(myData1.noValues()==3);
+    assert(myData1.getNoValues()==3);
     assert(myData1.getShape().size()==1);
 
 
@@ -4692,32 +4642,23 @@ void DataTaggedTestCase::testSetSlice() {
     assert(getRef(myData1,offset,1)==6.0);
     assert(getRef(myData1,offset,2)==1.0);
 
-    myDataView = myData1.getDataPointByTag(1);
-    
+//     myDataView = myData1.getDataPointByTag(1);
+    offset=myData1.getOffsetForTag(1);
     assert(offset==3);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
     assert(getRef(myData1,offset,0)==11.0);
     assert(getRef(myData1,offset,1)==7.0);
     assert(getRef(myData1,offset,2)==2.0);
 
-    myDataView = myData1.getDataPointByTag(2);
-    
+//     myDataView = myData1.getDataPointByTag(2);
+    offset=myData1.getOffsetForTag(2);
     assert(offset==6);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
     assert(getRef(myData1,offset,0)==12.0);
     assert(getRef(myData1,offset,1)==8.0);
     assert(getRef(myData1,offset,2)==3.0);
 
-    myDataView = myData1.getDataPointByTag(3);
-    
+//     myDataView = myData1.getDataPointByTag(3);
+    offset=myData1.getOffsetForTag(3);
     assert(offset==9);
-    assert(myDataView.getRank()==1);
-    assert(myDataView.noValues()==3);
-    assert(myDataView.getShape().size()==1);
     assert(getRef(myData1,offset,0)==13.0);
     assert(getRef(myData1,offset,1)==9.0);
     assert(getRef(myData1,offset,2)==4.0);
@@ -4733,80 +4674,81 @@ void DataTaggedTestCase::testSetSlice() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
     viewShape.push_back(3);
     viewShape.push_back(3);
+    int nvals=noValues(viewShape);
 
     // default value for Data1
-    DataTypes::ValueType viewData1(27);
-    for (int i=0;i<viewData1.size();i++) {
+    DataTypes::ValueType viewData1(27*4);
+    for (int i=0;i<nvals;i++) {
       viewData1[i]=0.0;
     }
-    DataArrayView myView1(viewData1,viewShape);
+//     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-    DataTypes::ValueType viewData2(27);
-    for (int i=0;i<viewData2.size();i++) {
-      viewData2[i]=0.0;
+//     DataTypes::ValueType viewData2(27);
+    for (int i=0;i<nvals;i++) {
+      viewData1[nvals+i]=0.0;
     }
-    DataArrayView myView2(viewData2,viewShape);
-    values.push_back(myView2);
+//     DataArrayView myView2(viewData2,viewShape);
+//     values.push_back(myView2);
 
     // value for tag "2" for Data1
-    DataTypes::ValueType viewData3(27);
-    for (int i=0;i<viewData3.size();i++) {
-      viewData3[i]=0.0;
+//     DataTypes::ValueType viewData3(27);
+    for (int i=0;i<nvals;i++) {
+      viewData1[2*nvals+i]=0.0;
     }
-    DataArrayView myView3(viewData3,viewShape);
-    values.push_back(myView3);
+//     DataArrayView myView3(viewData3,viewShape);
+//     values.push_back(myView3);
 
     // value for tag "3" for Data1
-    DataTypes::ValueType viewData4(27);
-    for (int i=0;i<viewData4.size();i++) {
-      viewData4[i]=0.0;
+//     DataTypes::ValueType viewData4(27);
+    for (int i=0;i<nvals;i++) {
+      viewData1[3*nvals+i]=0.0;
     }
-    DataArrayView myView4(viewData4,viewShape);
-    values.push_back(myView4);
+//     DataArrayView myView4(viewData4,viewShape);
+//     values.push_back(myView4);
 
-    DataTagged myData1(keys,values,myView1,FunctionSpace());
+    DataTagged myData1(FunctionSpace(),viewShape,keys,viewData1);
 
     values.clear();
 
     // default value for Data2
-    DataTypes::ValueType viewData5(27);
-    for (int i=0;i<viewData5.size();i++) {
+    DataTypes::ValueType viewData5(27*4);
+    for (int i=0;i<nvals;i++) {
       viewData5[i]=1.0;
     }
-    DataArrayView myView5(viewData5,viewShape);
+//     DataArrayView myView5(viewData5,viewShape);
 
     // value for tag "1" for Data2
-    DataTypes::ValueType viewData6(27);
-    for (int i=0;i<viewData6.size();i++) {
-      viewData6[i]=2.0;
+//     DataTypes::ValueType viewData6(27);
+    for (int i=0;i<nvals;i++) {
+      viewData5[nvals+i]=2.0;
     }
-    DataArrayView myView6(viewData6,viewShape);
-    values.push_back(myView6);
+//     DataArrayView myView6(viewData6,viewShape);
+//     values.push_back(myView6);
 
     // value for tag "2" for Data2
-    DataTypes::ValueType viewData7(27);
-    for (int i=0;i<viewData7.size();i++) {
-      viewData7[i]=3.0;
+//     DataTypes::ValueType viewData7(27);
+    for (int i=0;i<nvals;i++) {
+      viewData5[2*nvals+i]=3.0;
     }
-    DataArrayView myView7(viewData7,viewShape);
-    values.push_back(myView7);
+//     DataArrayView myView7(viewData7,viewShape);
+//     values.push_back(myView7);
 
     // value for tag "3" for Data2
     DataTypes::ValueType viewData8(27);
-    for (int i=0;i<viewData8.size();i++) {
-      viewData8[i]=4.0;
+    for (int i=0;i<nvals;i++) {
+      viewData5[3*nvals+i]=4.0;
     }
-    DataArrayView myView8(viewData8,viewShape);
-    values.push_back(myView8);
+//     DataArrayView myView8(viewData8,viewShape);
+//     values.push_back(myView8);
 
-    DataTagged myData2(keys,values,myView5,FunctionSpace());
+    DataTagged myData2(FunctionSpace(),viewShape,keys,viewData5);
 
     // full slice
 
@@ -4830,7 +4772,7 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getNoValues()==27);
     assert(myData1.getShape().size()==3);
 
-    offset=myData1.getDefaultOffset();
+    int offset=myData1.getDefaultOffset();
 //     DataArrayView myDataView = myData1.getDefaultValue();
     assert(offset==0);
     assert(getRef(myData1,offset,0,0,0)==1.0);
@@ -4863,36 +4805,38 @@ void DataTaggedTestCase::testSetSlice() {
     viewShape.clear();
     viewShape.push_back(3);
 
-    DataTypes::ValueType viewData9(3);
-    for (int i=0;i<viewData9.size();i++) {
+    nvals=3;
+
+    DataTypes::ValueType viewData9(3*4);
+    for (int i=0;i<nvals;i++) {
       viewData9[i]=6.0;
     }
-    DataArrayView myView9(viewData9,viewShape);
+//     DataArrayView myView9(viewData9,viewShape);
 
     values.clear();
 
-    DataTypes::ValueType viewData10(3);
-    for (int i=0;i<viewData10.size();i++) {
-      viewData10[i]=7.0;
+//     DataTypes::ValueType viewData10(3);
+    for (int i=0;i<nvals;i++) {
+      viewData9[nvals+i]=7.0;
     }
-    DataArrayView myView10(viewData10,viewShape);
-    values.push_back(myView10);
+//     DataArrayView myView10(viewData10,viewShape);
+//     values.push_back(myView10);
 
-    DataTypes::ValueType viewData11(3);
-    for (int i=0;i<viewData11.size();i++) {
-      viewData11[i]=8.0;
+//     DataTypes::ValueType viewData11(3);
+    for (int i=0;i<nvals;i++) {
+      viewData9[2*nvals+i]=8.0;
     }
-    DataArrayView myView11(viewData11,viewShape);
-    values.push_back(myView11);
+//     DataArrayView myView11(viewData11,viewShape);
+//     values.push_back(myView11);
 
-    DataTypes::ValueType viewData12(3);
-    for (int i=0;i<viewData12.size();i++) {
-      viewData12[i]=9.0;
+//     DataTypes::ValueType viewData12(3);
+    for (int i=0;i<nvals;i++) {
+      viewData9[3*nvals+i]=9.0;
     }
-    DataArrayView myView12(viewData12,viewShape);
-    values.push_back(myView12);
+//     DataArrayView myView12(viewData12,viewShape);
+//     values.push_back(myView12);
 
-    DataTagged myData3(keys,values,myView9,FunctionSpace());
+    DataTagged myData3(FunctionSpace(),viewShape,keys,viewData9);
 
     region.clear();
     region_element.first=0;
@@ -4914,11 +4858,9 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myData1.getNoValues()==27);
     assert(myData1.getShape().size()==3);
 
-
-
 //    myDataView = myData1.getDefaultValue();
 //     assert(!myDataView.isEmpty());
-    int offset=myData1.getDefaultOffset();
+    offset=myData1.getDefaultOffset();
     assert(offset==0);
     assert(getRef(myData1,offset,0,0,0)==6.0);
     assert(getRef(myData1,offset,1,0,0)==6.0);
@@ -4950,28 +4892,28 @@ void DataTaggedTestCase::testSetSlice() {
 
     viewShape.clear();
 
-    DataTypes::ValueType viewData13(1);
+    DataTypes::ValueType viewData13(1*4);
     viewData13[0]=10.0;
 //     DataArrayView myView13(viewData13,viewShape);
 
     values.clear();
 
-    DataTypes::ValueType viewData14(1);
-    viewData14[0]=11.0;
-    DataArrayView myView14(viewData14,viewShape);
-    values.push_back(myView14);
+//     DataTypes::ValueType viewData14(1);
+    viewData13[1]=11.0;
+//     DataArrayView myView14(viewData14,viewShape);
+//     values.push_back(myView14);
 
-    DataTypes::ValueType viewData15(2);
-    viewData15[0]=12.0;
-    DataArrayView myView15(viewData15,viewShape);
-    values.push_back(myView15);
+//     DataTypes::ValueType viewData15(2);
+    viewData13[2]=12.0;
+//     DataArrayView myView15(viewData15,viewShape);
+//     values.push_back(myView15);
 
-    DataTypes::ValueType viewData16(3);
-    viewData16[0]=13.0;
-    DataArrayView myView16(viewData16,viewShape);
-    values.push_back(myView16);
+//     DataTypes::ValueType viewData16(3);
+    viewData13[3]=13.0;
+//     DataArrayView myView16(viewData16,viewShape);
+//     values.push_back(myView16);
 
-    DataTagged myData4(keys,values,myView13,FunctionSpace());
+    DataTagged myData4(FunctionSpace(),viewShape,keys,viewData13);
 
     region.clear();
     region_element.first=0;
@@ -4987,8 +4929,7 @@ void DataTaggedTestCase::testSetSlice() {
 //     myDataView = myData1.getDefaultValue();
     offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData1,0,0,0)==10.0);
-
+    assert(getRef(myData1,offset,0,0,0)==10.0);
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
     assert(offset==27);
@@ -4997,7 +4938,7 @@ void DataTaggedTestCase::testSetSlice() {
 //     myDataView = myData1.getDataPointByTag(2);
     offset=myData1.getOffsetForTag(2);
     assert(offset==54);
-    assert(getRef(myDataView,offset,0,0,0)==12.0);
+    assert(getRef(myData1,offset,0,0,0)==12.0);
 
 //     myDataView = myData1.getDataPointByTag(3);
     offset=myData1.getOffsetForTag(3);
@@ -5020,61 +4961,61 @@ void DataTaggedTestCase::testSetSlice() {
     keys2.push_back(4);
     keys2.push_back(5);
 
-    DataTagged::ValueListType values;
+    DataTagged::ValueBatchType values;
 
     DataTypes::ShapeType viewShape;
 
     // default value for Data1
-    DataTypes::ValueType viewData1(1);
+    DataTypes::ValueType viewData1(1*4);
     viewData1[0]=0.0;
-    DataArrayView myView1(viewData1,viewShape);
+//     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-    DataTypes::ValueType viewData2(1);
-    viewData2[0]=0.0;
-    DataArrayView myView2(viewData2,viewShape);
-    values.push_back(myView2);
+//     DataTypes::ValueType viewData2(1);
+    viewData1[1]=0.0;
+//     DataArrayView myView2(viewData2,viewShape);
+//     values.push_back(myView2);
 
     // value for tag "2" for Data1
-    DataTypes::ValueType viewData5(1);
-    viewData5[0]=0.0;
-    DataArrayView myView5(viewData5,viewShape);
-    values.push_back(myView5);
+//     DataTypes::ValueType viewData5(1);
+    viewData1[2]=0.0;
+//     DataArrayView myView5(viewData5,viewShape);
+//     values.push_back(myView5);
 
     // value for tag "3" for Data1
-    DataTypes::ValueType viewData6(1);
-    viewData6[0]=0.0;
-    DataArrayView myView6(viewData6,viewShape);
-    values.push_back(myView6);
+//     DataTypes::ValueType viewData6(1);
+    viewData1[3]=0.0;
+//     DataArrayView myView6(viewData6,viewShape);
+//     values.push_back(myView6);
 
-    DataTagged myData1(keys1,values,myView1,FunctionSpace());
+    DataTagged myData1(FunctionSpace(),viewShape,keys1,viewData1);
 
     values.clear();
 
     // default value for Data2
-    DataTypes::ValueType viewData3(1);
+    DataTypes::ValueType viewData3(1*4);
     viewData3[0]=1.0;
-    DataArrayView myView3(viewData3,viewShape);
+//     DataArrayView myView3(viewData3,viewShape);
 
     // value for tag "3" for Data2
-    DataTypes::ValueType viewData4(1);
-    viewData4[0]=2.0;
-    DataArrayView myView4(viewData4,viewShape);
-    values.push_back(myView4);
+//     DataTypes::ValueType viewData4(1);
+    viewData3[1]=2.0;
+//     DataArrayView myView4(viewData4,viewShape);
+//     values.push_back(myView4);
 
     // value for tag "4" for Data2
-    DataTypes::ValueType viewData7(1);
-    viewData7[0]=3.0;
-    DataArrayView myView7(viewData7,viewShape);
-    values.push_back(myView7);
+//     DataTypes::ValueType viewData7(1);
+    viewData3[2]=3.0;
+//     DataArrayView myView7(viewData7,viewShape);
+//     values.push_back(myView7);
 
     // value for tag "5" for Data2
-    DataTypes::ValueType viewData8(1);
-    viewData8[0]=4.0;
-    DataArrayView myView8(viewData8,viewShape);
-    values.push_back(myView8);
+//     DataTypes::ValueType viewData8(1);
+    viewData3[3]=4.0;
+//     DataArrayView myView8(viewData8,viewShape);
+//     values.push_back(myView8);
 
-    DataTagged myData2(keys2,values,myView3,FunctionSpace());
+    DataTagged myData2(FunctionSpace(),viewShape,keys2,viewData3);
 
     //cout << myData1.toString() << endl;
     //cout << myData2.toString() << endl;
@@ -5109,7 +5050,7 @@ void DataTaggedTestCase::testSetSlice() {
 //     assert(myDataView.getRank()==0);
 //     assert(myDataView.noValues()==1);
 //     assert(myDataView.getShape().size()==0);
-    assert(myData1.getDataAtOffset(offset)==1.0);
+    assert(myData1.getDataAtOffset(1)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(2);
 //     assert(!myDataView.isEmpty());
@@ -5117,7 +5058,7 @@ void DataTaggedTestCase::testSetSlice() {
 //     assert(myDataView.getRank()==0);
 //     assert(myDataView.noValues()==1);
 //     assert(myDataView.getShape().size()==0);
-    assert(myData1.getDataAtOffset(offset)==1.0);
+    assert(myData1.getDataAtOffset(2)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(3);
 //     assert(!myDataView.isEmpty());
