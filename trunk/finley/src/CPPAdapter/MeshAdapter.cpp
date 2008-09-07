@@ -648,6 +648,14 @@ int MeshAdapter::getDim() const
 }
 
 //
+// Return the number of data points summed across all MPI processes
+//
+int MeshAdapter::getNumDataPointsGlobal() const
+{
+   return Finley_NodeFile_getGlobalNumNodes(m_finleyMesh.get()->Nodes);
+}
+
+//
 // return the number of data points per sample and the number of samples
 // needed to represent data on a parts of the mesh.
 //

@@ -791,37 +791,50 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
       } /* end of Read the nodal element data */
 
       /* get the name tags */
-      if (Finley_noError() && ! feof(fileHandle_p)) {
-        char remainder[100000], *ptr;
+      if (Finley_noError()) {
+        char *remainder, *ptr;
         int tag_key, len, error_code;
+        long cur_pos, end_pos;
         if (mpi_info->rank == 0) {	/* Master */
 	  /* Read the word 'Tag' */
-          fscanf(fileHandle_p, "%s\n", name);
-	  /* Read rest of file in one chunk */
-	  strcpy(remainder, "");
-	  if (! feof(fileHandle_p)) fread(remainder, 100000, sizeof(char), fileHandle_p);
-          ptr = strrchr(remainder, '\n');
-          if (ptr != NULL) *ptr = '\0';
+	  if (! feof(fileHandle_p)) fscanf(fileHandle_p, "%s\n", name);
+	  /* Read rest of file in one chunk, after using seek to find length */
+          cur_pos = ftell(fileHandle_p);
+          fseek(fileHandle_p, 0L, SEEK_END);
+          end_pos = ftell(fileHandle_p);
+          fseek(fileHandle_p, (long)cur_pos, SEEK_SET);
+	  remainder = TMPMEMALLOC(end_pos-cur_pos+1, char);
+	  if (! feof(fileHandle_p)) fread(remainder, (size_t) end_pos-cur_pos, sizeof(char), fileHandle_p);
+	  remainder[end_pos-cur_pos] = 0;
+	  len = strlen(remainder);    
+	  while ((--len)>0 && isspace(remainder[len])) remainder[len]=0;
+	  len = strlen(remainder);
         }
-	len = strlen(remainder);
 #ifdef PASO_MPI
         error_code = MPI_Bcast (&len, 1, MPI_INT,  0, mpi_info->comm);
         if (error_code != MPI_SUCCESS) {
           Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: broadcast of tag len failed");
           return NULL;
         }
+	if (mpi_info->rank != 0) {
+	  remainder = TMPMEMALLOC(len+1, char);
+	  remainder[0] = 0;
+	}
         error_code = MPI_Bcast (remainder, len+1, MPI_CHAR,  0, mpi_info->comm);
         if (error_code != MPI_SUCCESS) {
           Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: broadcast of tags failed");
           return NULL;
         }
 #endif
-        ptr = remainder;
-        do {
-          sscanf(ptr, "%s %d\n", name, &tag_key);
-          Finley_Mesh_addTagMap(mesh_p,name,tag_key);
-          ptr++;
-        } while(NULL != (ptr = strchr(ptr, '\n')));
+	if (remainder[0]) {
+          ptr = remainder;
+          do {
+            sscanf(ptr, "%s %d\n", name, &tag_key);
+            if (*name) Finley_Mesh_addTagMap(mesh_p,name,tag_key);
+            ptr++;
+          } while(NULL != (ptr = strchr(ptr, '\n')) && *ptr);
+          TMPMEMFREE(remainder);
+	}
       }
 
      }
