@@ -58,12 +58,6 @@ namespace finley {
     Finley_Mesh *mesh_p=NULL;
     char error_msg[LenErrorMsg_MAX];
 
-    // I don't think the strdup is needed since Paso_MPI_appendRankToFileName
-    // does it's own allocation.
-    // char *fName = Paso_MPI_appendRankToFileName(strdup(fileName.c_str()),
-    //                                             mpi_info->size,
-    //                                             mpi_info->rank);
-
     char *fName = Paso_MPI_appendRankToFileName(fileName.c_str(),
                                                 mpi_info->size,
                                                 mpi_info->rank);
@@ -451,7 +445,7 @@ namespace finley {
 
     } /* Finley_noError() after Finley_Mesh_alloc() */
    
-    if (Finley_noError()) Finley_Mesh_createMappings(mesh_p, mesh_p->Nodes->degreesOfFreedomDistribution->first_component);
+    if (Finley_noError()) Finley_Mesh_createMappings(mesh_p, mesh_p->Nodes->degreesOfFreedomDistribution->first_component, 0);
 
     checkFinleyError();
     temp=new MeshAdapter(mesh_p);

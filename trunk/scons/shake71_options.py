@@ -18,6 +18,8 @@
 # omp_debug		= '-openmp'
 # omp_libs		= []
 
+usedebug		= 'yes'
+
 # Use the default C/C++ flags but add something only for this host:
 # cc_extra		= ''
 
@@ -70,12 +72,14 @@
 # useopenmp		= 'yes'
 
 # MPICH2 (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
+usempi			= 'yes'
 mpi_path		= '/home/Work/InstallArea/mpich2-1.0.7/include'
 mpi_lib_path		= '/home/Work/InstallArea/mpich2-1.0.7/lib'
 # mpi_libs		= ['mpich', 'rt']
 # mpi_run		= 'mpirun -np 1'
 
 # MPICH2 for jumpshot (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
+# usempi		= 'no'
 # mpi_path		= '/home/Work/InstallArea/mpich2-1.0.7/include'
 # mpi_lib_path		= '/home/Work/InstallArea/mpich2-1.0.7/lib'
 # mpi_libs		= ['lmpe', 'mpe', 'mpich', 'rt']

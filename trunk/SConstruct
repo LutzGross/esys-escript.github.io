@@ -186,6 +186,11 @@ if not env["useopenmp"]:
 
 if env['omp_optim'] == "" and env['omp_debug'] == "": env["useopenmp"] = 0
 
+Execute(Delete(env['libinstall'] + "/Compiled.with.debug"))
+Execute(Delete(env['libinstall'] + "/Compiled.with.mpi"))
+Execute(Delete(env['libinstall'] + "/Compiled.with.openmp"))
+if not env['useMPI']: Execute(Delete(env['libinstall'] + "/pythonMPI"))
+
 ############ Copy environment variables into scons env #########
 
 try: env['ENV']['OMP_NUM_THREADS'] = os.environ['OMP_NUM_THREADS']
@@ -533,18 +538,12 @@ remember_list = []
 
 if env['usedebug']:
   remember_list += env.Command(env['libinstall'] + "/Compiled.with.debug", None, Touch('$TARGET'))
-else:
-  remember_list += env.Command(env['libinstall'] + "/Compiled.with.debug", None, Delete('$TARGET'))
 
 if env['usempi']:
   remember_list += env.Command(env['libinstall'] + "/Compiled.with.mpi", None, Touch('$TARGET'))
-else:
-  remember_list += env.Command(env['libinstall'] + "/Compiled.with.mpi", None, Delete('$TARGET'))
 
 if env['omp_optim'] != '':
   remember_list += env.Command(env['libinstall'] + "/Compiled.with.openmp", None, Touch('$TARGET'))
-else:
-  remember_list += env.Command(env['libinstall'] + "/Compiled.with.openmp", None, Delete('$TARGET'))
 
 env.Alias('remember_options', remember_list)
 
