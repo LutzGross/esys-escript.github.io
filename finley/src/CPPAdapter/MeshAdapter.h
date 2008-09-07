@@ -340,6 +340,13 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
+     Return the number of data points summed across all MPI processes
+  */
+  FINLEY_DLL_API
+  virtual int getNumDataPointsGlobal() const;
+
+  /**
+     \brief
      Return the number of data points per sample, and the number of samples as a pair.
      \param functionSpaceCode Input -
   */
