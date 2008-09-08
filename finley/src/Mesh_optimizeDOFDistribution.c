@@ -136,6 +136,29 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
 		 for (i=0; i<ncon; i++) ubvec[i] = 1.05;
 		 options[0] = 3;
 		 options[1] = 15;
+
+{
+int k=distribution[in->MPIInfo->rank+1]-distribution[in->MPIInfo->rank];
+int min_i,max_i;
+printf("INPUT PARMETIS: %d\n",k);
+for(i=0;i<in->MPIInfo->size+1;++i) printf("%d ",distribution[i]);
+printf("\n");
+min_i=pattern->index[0];
+max_i=pattern->index[0];
+for(i=0;i<pattern->ptr[k];++i) {
+min_i=MIN(min_i,pattern->index[i]);
+max_i=MAX(max_i,pattern->index[i]);
+}
+printf("index range = %d : %d\n",min_i,max_i);
+
+for(i=0;i<k+1;++i) printf("%d ",pattern->ptr[i]);
+printf("\n");
+/*
+for(i=0;i<pattern->ptr[k];++i) printf("%d ",pattern->index[i]);
+printf("\n");
+*/
+}
+
 		 ParMETIS_V3_PartGeomKway(distribution,
                                  pattern->ptr,
                                  pattern->index,
@@ -153,7 +176,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
                                  &edgecut,
                                  partition,				/* new CPU ownership of elements */
                                  &(in->MPIInfo->comm));
-		 printf("ParMETIS number of edges cut by partitioning: %d\n", edgecut);
+		 printf("ParMETIS number of edges cut by partitioning per processor: %d\n", edgecut/MAX(in->MPIInfo->size,1));
                  TMPMEMFREE(ubvec);
                  TMPMEMFREE(tpwgts);
 	      } else {
@@ -235,8 +258,6 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
               }
            }
            for (i=0;i<mpiSize+1;++i) distribution[i]=new_distribution[i];
-
-           
          }
          TMPMEMFREE(index_list);
      }
