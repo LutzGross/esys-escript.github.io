@@ -23,8 +23,6 @@
 #include "Mesh.h"
 #define UNUSED -1
 
-#define BOUNDS_CHECK 1
-
 /**************************************************************/
 
 void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elements) 

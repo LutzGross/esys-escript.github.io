@@ -106,7 +106,7 @@ void Finley_ElementFile_createColoring(Finley_ElementFile* in,dim_t numNodes,dim
 void Finley_ElementFile_optimizeOrdering(Finley_ElementFile** in);
 void Finley_ElementFile_setNodeRange(dim_t*,dim_t*,Finley_ElementFile*);
 void Finley_ElementFile_relableNodes(dim_t*,dim_t,Finley_ElementFile*);
-void Finley_ElementFile_markNodes(dim_t*,dim_t,Finley_ElementFile*,dim_t);
+void Finley_ElementFile_markNodes(dim_t*,dim_t,dim_t,Finley_ElementFile*,dim_t);
 void Finley_ElementFile_scatter(dim_t*,Finley_ElementFile*,Finley_ElementFile*);
 void Finley_ElementFile_gather(dim_t*,Finley_ElementFile*,Finley_ElementFile*);
 void Finley_ElementFile_copyTable(dim_t,Finley_ElementFile*,dim_t,dim_t,Finley_ElementFile*);
