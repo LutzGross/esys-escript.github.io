@@ -20,6 +20,7 @@
 /**************************************************************/
 
 #include "NodeFile.h"
+#include "Util.h"
 
 /**************************************************************/
 
@@ -80,8 +81,8 @@ void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes)
     /* this initialization makes sure that data are located on the right processor */
     #pragma omp parallel for private(n,i) schedule(static)
     for (n=0;n<numNodes;n++) {
-       for (i=0;i<in->numDim;i++) in->Coordinates[INDEX2(i,n,in->numDim)]=0.;
        in->Id[n]=-1;
+       for (i=0;i<in->numDim;i++) in->Coordinates[INDEX2(i,n,in->numDim)]=0.;
        in->Tag[n]=-1;
        in->globalDegreesOfFreedom[n]=-1;
        in->globalReducedDOFIndex[n]=-1;
