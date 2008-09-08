@@ -18,7 +18,7 @@
 # omp_debug		= '-openmp'
 # omp_libs		= []
 
-usedebug		= 'yes'
+# usedebug		= 'yes'
 
 # Use the default C/C++ flags but add something only for this host:
 # cc_extra		= ''
