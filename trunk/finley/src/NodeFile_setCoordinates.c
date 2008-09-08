@@ -41,7 +41,8 @@ void Finley_NodeFile_setCoordinates(Finley_NodeFile* self,escriptDataC* newX) {
           numDim_size=self->numDim*sizeof(double);
           Finley_increaseStatus(self);
           #pragma omp parallel for private(n) schedule(static)
-          for (n=0;n<self->numNodes;n++)
+          for (n=0;n<self->numNodes;n++) {
             memcpy(&(self->Coordinates[INDEX2(0,n,self->numDim)]), getSampleDataFast(newX,n), numDim_size);
+          }
    }
 }

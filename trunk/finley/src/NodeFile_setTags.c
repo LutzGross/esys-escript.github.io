@@ -44,11 +44,11 @@ void Finley_NodeFile_setTags(Finley_NodeFile* self,const int newTag, escriptData
     /* now we can start */
 
     if (Finley_noError()) {
-             #pragma omp parallel for private(n,mask_array) schedule(static)
-             for (n=0;n<numNodes;n++) {
+            #pragma omp parallel for private(n,mask_array) schedule(static)
+            for (n=0;n<numNodes;n++) {
                  mask_array=getSampleData(mask,n);
                  if (mask_array[0]>0) self->Tag[n]=newTag;
-             }
+            }
             Finley_NodeFile_setTagsInUse(self);
     }
 }

@@ -181,7 +181,6 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
   } else {
       NDOF1=N1-1;
   }
-
   /*  allocate tables: */
 
   Finley_NodeFile_allocTable(out->Nodes,local_N0*local_N1*local_N2);
