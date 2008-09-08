@@ -101,11 +101,14 @@ dim_t Finley_NodeFile_createDenseDOFLabeling(Finley_NodeFile* in)
                new_numGlobalDOFs=loc_offsets[0];
                loc_offsets[0]=0;
             #endif
-            #pragma omp parallel for private(n) schedule(static)
-            for (n=0; n<myDOFs; ++n) DOF_buffer[n]+=loc_offsets[in->MPIInfo->rank];
-            /* now entries are collected from the buffer again by sending the entries around in a circle */
-            #pragma omp parallel for private(n) schedule(static)
-            for (n=0; n<in->numNodes; ++n) set_new_DOF[n]=TRUE;
+            #pragma omp parallel 
+            {
+                #pragma omp for private(n) schedule(static)
+                for (n=0; n<myDOFs; ++n) DOF_buffer[n]+=loc_offsets[in->MPIInfo->rank];
+                /* now entries are collected from the buffer again by sending the entries around in a circle */
+                #pragma omp for private(n) schedule(static)
+                for (n=0; n<in->numNodes; ++n) set_new_DOF[n]=TRUE;
+            }
             dest=Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
             source=Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
             buffer_rank=in->MPIInfo->rank;
@@ -392,6 +395,7 @@ dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in, index_t* node
        }
    }
    TMPMEMFREE(Node_buffer);
+   return globalNumNodes;
 }
 
 dim_t Finley_NodeFile_createDenseReducedNodeLabeling(Finley_NodeFile* in,index_t* reducedNodeMask) 

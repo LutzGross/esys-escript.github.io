@@ -34,9 +34,8 @@ void Finley_NodeFile_gatherEntries(dim_t n, index_t* index, index_t min_index, i
 {
    dim_t i;
    register index_t k;
-   register const index_t range=max_index-min_index;
+   const index_t range=max_index-min_index;
    const  size_t numDim_size=(size_t)numDim*sizeof(double);
-
    #pragma omp parallel for private(i,k) schedule(static)
    for (i=0;i<n;i++) {
       k=index[i]-min_index;
@@ -156,7 +155,7 @@ void Finley_NodeFile_gather_global(index_t* index, Finley_NodeFile* in, Finley_N
             #pragma omp parallel for private(n) schedule(static)
             for (n=0; n< out->numNodes; ++n) {
                 if (out->Id[n] == undefined_node ) {
-                 sprintf(error_msg,"Finley_NodeFile_gather_global: Node id %d is referenced but is not defined.",out->Id[n]);
+                 sprintf(error_msg,"Finley_NodeFile_gather_global: Node id %d at position %d is referenced but is not defined.",out->Id[n],n);
                  Finley_setError(VALUE_ERROR,error_msg);
                }
              }
