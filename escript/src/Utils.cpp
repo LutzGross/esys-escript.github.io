@@ -80,9 +80,7 @@ void printParallelThreadCnt()
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_num);
   #endif
 
-  #ifdef _OPENMP
   #pragma omp parallel
-  #endif
   {
     int omp_iam=0, omp_num=1;
     #ifdef _OPENMP
