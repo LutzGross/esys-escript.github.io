@@ -20,9 +20,9 @@ PYTHON_CMD="@@PYTHON_CMD@@"
 
 ESCRIPT_ROOT="@@ESCRIPT_ROOT@@"
 
-export LD_LIBRARY_PATH="$ESCRIPT_ROOT/lib:@@LD_LIBRARY_PATH@@"
+export LD_LIBRARY_PATH="@@LD_LIBRARY_PATH@@"
 
-export PYTHONPATH="$ESCRIPT_ROOT:@@PYTHONPATH@@"
+export PYTHONPATH="@@PYTHONPATH@@"
 
 # Try to guess the MPI launcher (mpirun unless in PBS batch job in which case mpiexec)
 mpi_launcher='mpirun -np'
