@@ -108,11 +108,16 @@ class InputOutput(unittest.TestCase):
 	mydomain2 = Brick(n0=7, n1=11, n2=5, order=2, l0=1., l1=1., l2=1., optimize=True)
         self.failUnless(domainsEqual(mydomain1, mydomain2), "Domains differ")
 
-     def DISABLED_test_NetCDF(self):
+     def test_mesh_dump_to_NetCDF_rectangle(self):
 	if loadIsConfigured():
-	  mydomain1 = Rectangle(n0=2, n1=3, order=1, l0=1., l1=1.,
-	    integrationOrder=-1, reducedIntegrationOrder=-1, periodic0=False, periodic1=False,
-	    useElementsOnFace=False, useFullElementOrder=False, optimize=False)
+	  mydomain1 = Rectangle(n0=17, n1=111, order=1, l0=1., l1=1., optimize=False)
+	  mydomain1.dump("tt.mesh.nc")
+	  mydomain2=LoadMesh("tt.mesh.nc")
+          self.failUnless(domainsEqual(mydomain1, mydomain2), "Domains differ")
+
+     def test_mesh_dump_to_NetCDF_brick(self):
+	if loadIsConfigured():
+	  mydomain1 = Brick(n0=7, n1=11, n2=5, order=2, l0=1., l1=1., l2=1., optimize=False)
 	  mydomain1.dump("tt.mesh.nc")
 	  mydomain2=LoadMesh("tt.mesh.nc")
           self.failUnless(domainsEqual(mydomain1, mydomain2), "Domains differ")
