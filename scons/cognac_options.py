@@ -40,6 +40,7 @@ cc_flags		= '-fPIC -ansi -wd161 -w1 -DBLOCKTIMER -DCORE_ID1'
 
 # Use the default C/C++ flags but add something only for this host:
 # cc_extra		= ''
+# ld_extra		= ''
 
 # Be picky about errors
 # usepedantic		= 'no'
