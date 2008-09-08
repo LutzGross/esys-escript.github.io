@@ -42,6 +42,7 @@ opts.AddOptions(
 # Where to install esys stuff
   ('prefix', 'where everything will be installed',                       Dir('#.').abspath),
   ('incinstall', 'where the esys headers will be installed',             os.path.join(Dir('#.').abspath,'include')),
+  ('bininstall', 'where the esys binaries will be installed',            os.path.join(prefix,'bin')),
   ('libinstall', 'where the esys libraries will be installed',           os.path.join(prefix,'lib')),
   ('pyinstall', 'where the esys python modules will be installed',       os.path.join(prefix,'esys')),
 # Compilation options
@@ -186,11 +187,6 @@ if not env["useopenmp"]:
 
 if env['omp_optim'] == "" and env['omp_debug'] == "": env["useopenmp"] = 0
 
-Execute(Delete(env['libinstall'] + "/Compiled.with.debug"))
-Execute(Delete(env['libinstall'] + "/Compiled.with.mpi"))
-Execute(Delete(env['libinstall'] + "/Compiled.with.openmp"))
-if not env['useMPI']: Execute(Delete(env['libinstall'] + "/pythonMPI"))
-
 ############ Copy environment variables into scons env #########
 
 try: env['ENV']['OMP_NUM_THREADS'] = os.environ['OMP_NUM_THREADS']
@@ -226,6 +222,8 @@ except KeyError: pass
 # Configure for test suite
 env.PrependENVPath('PYTHONPATH', prefix)
 env.PrependENVPath('LD_LIBRARY_PATH', env['libinstall'])
+
+env['ENV']['ESCRIPT_ROOT'] = prefix
 
 ############ Set up paths for Configure() ######################
 
@@ -506,6 +504,13 @@ else: print "	Not compiling for debug"
 print "	Installing in", prefix
 print ""
 
+############ Delete option-dependent files #####################
+
+Execute(Delete(env['libinstall'] + "/Compiled.with.debug"))
+Execute(Delete(env['libinstall'] + "/Compiled.with.mpi"))
+Execute(Delete(env['libinstall'] + "/Compiled.with.openmp"))
+if not env['usempi']: Execute(Delete(env['libinstall'] + "/pythonMPI"))
+
 ############ Add some custom builders ##########################
 
 py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
@@ -517,7 +522,7 @@ env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
 runPyUnitTest_builder = Builder(action = scons_extensions.runPyUnitTest, suffix = '.passed', src_suffic='.py', single_source=True)
 env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
 
-############ Build the desired subdirectories ##################
+############ Build the subdirectories ##########################
 
 Export(["env", "env_mpi", "clone_env"])
 
@@ -531,6 +536,7 @@ env.SConscript(dirs = ['doc'], build_dir='build/$PLATFORM/doc', duplicate=0)
 env.SConscript(dirs = ['pyvisi/py_src'], build_dir='build/$PLATFORM/pyvisi', duplicate=0)
 env.SConscript(dirs = ['pycad/py_src'], build_dir='build/$PLATFORM/pycad', duplicate=0)
 env.SConscript(dirs = ['pythonMPI/src'], build_dir='build/$PLATFORM/pythonMPI', duplicate=0)
+env.SConscript(dirs = ['scripts'], build_dir='build/$PLATFORM/scripts', duplicate=0)
 
 ############ Remember what optimizations we used ###############
 
@@ -571,7 +577,8 @@ build_all_list += ['build_esysUtils']
 build_all_list += ['build_paso']
 build_all_list += ['build_escript']
 build_all_list += ['build_finley']
-if env['usempi']: build_all_list += ['target_pythonMPI_exe']
+if env['usempi']:		build_all_list += ['target_pythonMPI_exe']
+if not IS_WINDOWS_PLATFORM:	build_all_list += ['target_finley_wrapper']
 env.Alias('build_all', build_all_list)
 
 install_all_list = []
@@ -583,7 +590,8 @@ install_all_list += ['install_finley']
 install_all_list += ['target_install_pyvisi_py']
 install_all_list += ['target_install_modellib_py']
 install_all_list += ['target_install_pycad_py']
-if env['usempi']: install_all_list += ['target_install_pythonMPI_exe']
+if env['usempi']:		install_all_list += ['target_install_pythonMPI_exe']
+if not IS_WINDOWS_PLATFORM:	install_all_list += ['target_install_finley_wrapper']
 install_all_list += ['remember_options']
 env.Alias('install_all', install_all_list)
 
