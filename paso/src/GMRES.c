@@ -371,6 +371,7 @@ err_t Paso_Solver_GMRES(
                 memcpy(P_PRES_dot_AP,&loc_dots[1],sizeof(double)*order);
          #endif
          R_PRES_dot_AP0=R_PRES_dot_P_PRES[0];
+
          /***   if sum_BREAKF is equal to zero a breakdown occurs.
           ***   iteration procedure can be continued but R_PRES is not the
           ***   residual of X_PRES approximation.
