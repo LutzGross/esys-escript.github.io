@@ -49,6 +49,16 @@ Paso_Connector* Paso_Connector_alloc(Paso_SharedComponents* send,
       out->recv= Paso_SharedComponents_getReference(recv);
       out->mpi_info = Paso_MPIInfo_getReference(send->mpi_info);
       out->reference_counter=1;
+/*
+{ int i;
+for (i=0; i< out->recv->numNeighbors; ++i) 
+   printf("Coupler: %d receive %d data at %d from %d\n",send->mpi_info->rank,out->recv->offsetInShared[i+1]- out->recv->offsetInShared[i],
+out->recv->offsetInShared[i],out->recv->neighbor[i]);
+for (i=0; i< out->send->numNeighbors; ++i) 
+printf("Coupler: %d send %d data at %d to %d\n",send->mpi_info->rank,out->send->offsetInShared[i+1]- out->send->offsetInShared[i],
+out->send->offsetInShared[i],out->send->neighbor[i]);
+}
+*/
   }
   if (Paso_noError()) {
      return out;
@@ -219,9 +229,14 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
         }
      }
      /* collect values into buffer */
-     #pragma omp parallel for private(i)
-     for (i=0; i < coupler->connector->send->numSharedComponents;++i) {
-        memcpy(&(coupler->send_buffer[(block_size)*i]),&(in[ block_size * coupler->connector->send->shared[i]]), block_size_size);
+     if (block_size>1) {
+        #pragma omp parallel for private(i)
+        for (i=0; i < coupler->connector->send->numSharedComponents;++i) {
+           memcpy(&(coupler->send_buffer[(block_size)*i]),&(in[ block_size * coupler->connector->send->shared[i]]), block_size_size);
+        }
+     } else {
+        #pragma omp parallel for private(i)
+        for (i=0; i < coupler->connector->send->numSharedComponents;++i) coupler->send_buffer[i]=in[coupler->connector->send->shared[i]];
      }
      /* send buffer out */
      {
@@ -252,11 +267,11 @@ double* Paso_Coupler_finishCollect(Paso_Coupler* coupler)
                     coupler->mpi_stati);
         #endif
   }
+
   return coupler->recv_buffer;
 }
 dim_t Paso_Coupler_getLocalLength(const Paso_Coupler* in) {
      return in->connector->send->local_length;
-
 }
 void Paso_Coupler_copyAll(const Paso_Coupler* src, Paso_Coupler* target) 
 {
