@@ -182,7 +182,6 @@ namespace finley {
         if (! nc_var_temp->get(&first_DofComponent[0], mpi_size+1) ) {
           throw DataException("Error - loadMesh:: unable to recover Nodes_DofDistribution from NetCDF file: " + *fName);
         }
-{ int i; printf("ksteube read  Nodes_DofDistribution:"); for(i=0; i<mpi_size+1; i++) printf(" %d", first_DofComponent[i]); printf("\n"); }
 
 	// Nodes_NodeDistribution
 	first_NodeComponent = TMPMEMALLOC(mpi_size+1,index_t);
@@ -191,7 +190,6 @@ namespace finley {
         if (! nc_var_temp->get(&first_NodeComponent[0], mpi_size+1) ) {
           throw DataException("Error - loadMesh:: unable to recover Nodes_NodeDistribution from NetCDF file: " + *fName);
         }
-{ int i; printf("ksteube read  Nodes_NodeDistribution:"); for(i=0; i<mpi_size+1; i++) printf(" %d", first_NodeComponent[i]); printf("\n"); }
 
         /* read elements */
         if (Finley_noError()) {

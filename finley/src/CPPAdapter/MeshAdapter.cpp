@@ -275,7 +275,6 @@ void MeshAdapter::dump(const std::string& fileName) const
       int_ptr = &mesh->Nodes->degreesOfFreedomDistribution->first_component[0];
       if (! (ids->put(int_ptr, mpi_size+1)) )
          throw DataException("Error - MeshAdapter::dump: copy Nodes_DofDistribution to netCDF buffer failed: " + *newFileName);
-{ int i; printf("ksteube wrote Nodes_DofDistribution:"); for(i=0; i<mpi_size+1; i++) printf(" %d", mesh->Nodes->degreesOfFreedomDistribution->first_component[i]); printf("\n"); }
 
       // Nodes nodeDistribution
       if (! ( ids = dataFile.add_var("Nodes_NodeDistribution", ncInt, ncdims[2])) )
@@ -283,7 +282,6 @@ void MeshAdapter::dump(const std::string& fileName) const
       int_ptr = &mesh->Nodes->nodesDistribution->first_component[0];
       if (! (ids->put(int_ptr, mpi_size+1)) )
          throw DataException("Error - MeshAdapter::dump: copy Nodes_NodeDistribution to netCDF buffer failed: " + *newFileName);
-{ int i; printf("ksteube wrote Nodes_NodeDistribution:"); for(i=0; i<mpi_size+1; i++) printf(" %d", mesh->Nodes->nodesDistribution->first_component[i]); printf("\n"); }
 
    }
 

@@ -44,9 +44,6 @@ void Finley_ElementFile_markNodes(index_t* mask,index_t offset,dim_t numNodes,Fi
         #pragma omp parallel for private(e,i) schedule(static)
         for (e=0;e<in->numElements;e++) {
             for (i=0;i<NN;i++) {
-#ifdef BOUNDS_CHECK
-if ((in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset) >= numNodes) { printf("BOUNDS_CHECK %s %d i=%d e=%d NN2=%d offset=%d index=%d\n", __FILE__, __LINE__, i, e, NN2, offset, in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset); exit(1); }
-#endif
                 mask[in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset]=1;
            }
         }
