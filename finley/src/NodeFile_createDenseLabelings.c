@@ -328,7 +328,7 @@ dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in, index_t* node
        #pragma omp parallel 
        {
            #pragma omp for private(n) schedule(static)
-           for (n=0;n<buffer_len;n++) Node_buffer[n]=unset_nodeID;
+           for (n=0;n<buffer_len+header_len;n++) Node_buffer[n]=unset_nodeID;
            #pragma omp for private(n) schedule(static)
            for (n=0;n<in->numNodes;n++) in->globalNodesIndex[n]=-1;
            #pragma omp for private(n,dof,id) schedule(static)
