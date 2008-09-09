@@ -98,7 +98,7 @@ class InputOutput(unittest.TestCase):
 
      def test_mesh_dump_to_NetCDF_rectangle(self):
 	if loadIsConfigured():
-	  mydomain1 = Rectangle(n0=17, n1=111, order=1, l0=1., l1=1., optimize=False)
+	  mydomain1 = Rectangle(n0=7, n1=11, order=1, l0=1., l1=1., optimize=False)
 	  mydomain1.dump("tt.mesh.nc")
 	  mydomain2=LoadMesh("tt.mesh.nc")
           self.domainsEqual(mydomain1, mydomain2)
