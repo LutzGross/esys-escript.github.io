@@ -83,7 +83,7 @@ err_t Paso_Solver_TFQMR(
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   err_t status = SOLVER_NO_ERROR;
   dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
-  double  *u1=NULL, *u2=NULL, *y1=NULL, *y2=NULL, *d=NULL, *w=NULL, *v=NULL, *v_old=NULL, *tmp=NULL ;
+  double  *u1=NULL, *u2=NULL, *y1=NULL, *y2=NULL, *d=NULL, *w=NULL, *v=NULL, *v_old=NULL;
 
   double eta,theta,tau,rho,beta,alpha,sigma,rhon,c;
 
@@ -104,9 +104,6 @@ err_t Paso_Solver_TFQMR(
   w=TMPMEMALLOC(n,double);
   v=TMPMEMALLOC(n,double);
   v_old=TMPMEMALLOC(n,double);
-  
-  
-  tmp=TMPMEMALLOC(n,double);
   
  
  if (u1 ==NULL || u2== NULL || y1 == NULL || y2== NULL || d==NULL || w==NULL || v==NULL || v_old==NULL) {
