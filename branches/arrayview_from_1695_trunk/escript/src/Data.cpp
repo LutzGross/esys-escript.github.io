@@ -1548,7 +1548,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
 
 #ifdef PASO_MPI
 	// determine the processor on which the minimum occurs
-	next = temp.getDataPoint(lowi,lowj)();
+	next = temp.getDataPoint(lowi,lowj);
 	int lowProc = 0;
 	double *globalMins = new double[get_MPISize()+1];
 	int error = MPI_Gather ( &next, 1, MPI_DOUBLE, globalMins, 1, MPI_DOUBLE, 0, get_MPIComm() );
