@@ -289,9 +289,6 @@ void MeshAdapter::dump(const std::string& fileName) const
 
    if (num_Elements>0) {
 
-      // Temp storage to gather node IDs
-      int *Elements_Nodes = TMPMEMALLOC(num_Elements*num_Elements_numNodes,int);
-
       // Elements_Id
       if (! ( ids = dataFile.add_var("Elements_Id", ncInt, ncdims[3])) )
          throw DataException("Error - MeshAdapter::dump: appending Elements_Id to netCDF file failed: " + *newFileName);
@@ -321,24 +318,16 @@ void MeshAdapter::dump(const std::string& fileName) const
          throw DataException("Error - MeshAdapter::dump: copy Elements_Color to netCDF buffer failed: " + *newFileName);
 
       // Elements_Nodes
-      for (int i=0; i<num_Elements; i++)
-         for (int j=0; j<num_Elements_numNodes; j++)
-            Elements_Nodes[INDEX2(j,i,num_Elements_numNodes)] = mesh->Nodes->Id[mesh->Elements->Nodes[INDEX2(j,i,num_Elements_numNodes)]];
       if (! ( ids = dataFile.add_var("Elements_Nodes", ncInt, ncdims[3], ncdims[7]) ) )
          throw DataException("Error - MeshAdapter::dump: appending Elements_Nodes to netCDF file failed: " + *newFileName);
-      if (! (ids->put(&(Elements_Nodes[0]), num_Elements, num_Elements_numNodes)) )
+      if (! (ids->put(&(mesh->Elements->Nodes[0]), num_Elements, num_Elements_numNodes)) )
          throw DataException("Error - MeshAdapter::dump: copy Elements_Nodes to netCDF buffer failed: " + *newFileName);
-
-      TMPMEMFREE(Elements_Nodes);
 
    }
 
    // // // // // Face_Elements // // // // //
 
    if (num_FaceElements>0) {
-
-      // Temp storage to gather node IDs
-      int *FaceElements_Nodes = TMPMEMALLOC(num_FaceElements*num_FaceElements_numNodes,int);
 
       // FaceElements_Id
       if (! ( ids = dataFile.add_var("FaceElements_Id", ncInt, ncdims[4])) )
@@ -369,24 +358,16 @@ void MeshAdapter::dump(const std::string& fileName) const
          throw DataException("Error - MeshAdapter::dump: copy FaceElements_Color to netCDF buffer failed: " + *newFileName);
 
       // FaceElements_Nodes
-      for (int i=0; i<num_FaceElements; i++)
-         for (int j=0; j<num_FaceElements_numNodes; j++)
-            FaceElements_Nodes[INDEX2(j,i,num_FaceElements_numNodes)] = mesh->Nodes->Id[mesh->FaceElements->Nodes[INDEX2(j,i,num_FaceElements_numNodes)]];
       if (! ( ids = dataFile.add_var("FaceElements_Nodes", ncInt, ncdims[4], ncdims[8]) ) )
          throw DataException("Error - MeshAdapter::dump: appending FaceElements_Nodes to netCDF file failed: " + *newFileName);
-      if (! (ids->put(&(FaceElements_Nodes[0]), num_FaceElements, num_FaceElements_numNodes)) )
+      if (! (ids->put(&(mesh->FaceElements->Nodes[0]), num_FaceElements, num_FaceElements_numNodes)) )
          throw DataException("Error - MeshAdapter::dump: copy FaceElements_Nodes to netCDF buffer failed: " + *newFileName);
-
-      TMPMEMFREE(FaceElements_Nodes);
 
    }
 
    // // // // // Contact_Elements // // // // //
 
    if (num_ContactElements>0) {
-
-      // Temp storage to gather node IDs
-      int *ContactElements_Nodes = TMPMEMALLOC(num_ContactElements*num_ContactElements_numNodes,int);
 
       // ContactElements_Id
       if (! ( ids = dataFile.add_var("ContactElements_Id", ncInt, ncdims[5])) )
@@ -417,15 +398,10 @@ void MeshAdapter::dump(const std::string& fileName) const
          throw DataException("Error - MeshAdapter::dump: copy ContactElements_Color to netCDF buffer failed: " + *newFileName);
 
       // ContactElements_Nodes
-      for (int i=0; i<num_ContactElements; i++)
-         for (int j=0; j<num_ContactElements_numNodes; j++)
-            ContactElements_Nodes[INDEX2(j,i,num_ContactElements_numNodes)] = mesh->Nodes->Id[mesh->ContactElements->Nodes[INDEX2(j,i,num_ContactElements_numNodes)]];
       if (! ( ids = dataFile.add_var("ContactElements_Nodes", ncInt, ncdims[5], ncdims[9]) ) )
          throw DataException("Error - MeshAdapter::dump: appending ContactElements_Nodes to netCDF file failed: " + *newFileName);
-      if (! (ids->put(&(ContactElements_Nodes[0]), num_ContactElements, num_ContactElements_numNodes)) )
+      if (! (ids->put(&(mesh->ContactElements->Nodes[0]), num_ContactElements, num_ContactElements_numNodes)) )
          throw DataException("Error - MeshAdapter::dump: copy ContactElements_Nodes to netCDF buffer failed: " + *newFileName);
-
-      TMPMEMFREE(ContactElements_Nodes);
 
    }
 
@@ -434,9 +410,6 @@ void MeshAdapter::dump(const std::string& fileName) const
    if (num_Points>0) {
 
       fprintf(stderr, "\n\n\nWARNING: MeshAdapter::dump has not been tested with Point elements\n\n\n");
-
-      // Temp storage to gather node IDs
-      int *Points_Nodes = TMPMEMALLOC(num_Points,int);
 
       // Points_Id
       if (! ( ids = dataFile.add_var("Points_Id", ncInt, ncdims[6])) )
@@ -468,14 +441,10 @@ void MeshAdapter::dump(const std::string& fileName) const
 
       // Points_Nodes
       // mesh->Nodes->Id[mesh->Points->Nodes[INDEX2(0,i,1)]]
-      for (int i=0; i<num_Points; i++)
-         Points_Nodes[i] = mesh->Nodes->Id[mesh->Points->Nodes[INDEX2(0,i,1)]];
       if (! ( ids = dataFile.add_var("Points_Nodes", ncInt, ncdims[6]) ) )
          throw DataException("Error - MeshAdapter::dump: appending Points_Nodes to netCDF file failed: " + *newFileName);
-      if (! (ids->put(&(Points_Nodes[0]), num_Points)) )
+      if (! (ids->put(&(mesh->Points->Nodes[0]), num_Points)) )
          throw DataException("Error - MeshAdapter::dump: copy Points_Nodes to netCDF buffer failed: " + *newFileName);
-
-      TMPMEMFREE(Points_Nodes);
 
    }
 
