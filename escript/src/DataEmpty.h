@@ -141,13 +141,13 @@ class DataEmpty : public DataAbstract {
 
  private:
 
-  /**
-     \brief
+//  /**
+/*     \brief
      Throw a standard exception. This function is called if an attempt
-     is made to use functions of DataEmpty that are not valid.
-  */
-  void
-  throwStandardException(const std::string& functionName) const;
+     is made to use functions of DataEmpty that are not valid.*/
+//  */
+//   void
+//   throwStandardException(const std::string& functionName) const;
 
 };
 

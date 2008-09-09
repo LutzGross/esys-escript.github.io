@@ -464,7 +464,7 @@ namespace DataTypes
    pointToString(const ValueType& data,const ShapeType& shape, int offset, const std::string& suffix)
    {
       using namespace std;
-      EsysAssert(data.size()>0,"Error - View is empty.");
+      EsysAssert(data.size()>0,"Error - Data object is empty.");
       stringstream temp;
       string finalSuffix=suffix;
       if (suffix.length() > 0) {
@@ -476,7 +476,7 @@ namespace DataTypes
          break;
       case 1:
          for (int i=0;i<shape[0];i++) {
-            temp << finalSuffix << "(" << i << ") " << data[i];
+            temp << finalSuffix << "(" << i <<  ") " << data[i+offset];
             if (i!=(shape[0]-1)) {
                temp << endl;
             }
