@@ -16,6 +16,22 @@
 #include "DataEmpty.h"
 #include "DataException.h"
 
+
+namespace {
+
+
+// This function is inlined to prevent the compiler complaining about missing return statements
+// in methods where it is called.
+// inline
+void
+throwStandardException(const std::string& functionName)
+{
+  throw escript::DataException("Error - "+functionName+" function call invalid for DataEmpty.");
+}
+
+
+}
+
 namespace escript {
 
 DataEmpty::DataEmpty() :
@@ -70,11 +86,7 @@ DataEmpty::setSlice(const DataAbstract* value,
   throwStandardException("setSlice");
 }
 
-void
-DataEmpty::throwStandardException(const std::string& functionName) const
-{
-  throw DataException("Error - "+functionName+" function call invalid for DataEmpty.");
-}
+
 
 DataTypes::ValueType&
 DataEmpty::getVector()

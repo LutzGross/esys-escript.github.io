@@ -103,6 +103,8 @@ class DataExpanded : public DataAbstract {
      \param what - Input - A description of what this data object represents.
      \param shape - Input - the shape of each data-point.
      \param data - the array of data values for the data-points.
+
+TODO Note that this constructor will also copy data to all points if it only contains enough elements to hold a single point.  ie this is the merge of two separate constructors.
   */
   ESCRIPT_DLL_API
   DataExpanded(const FunctionSpace& what,

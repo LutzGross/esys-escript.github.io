@@ -161,12 +161,32 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
                            const DataTypes::ValueType &data)
   : DataAbstract(what,shape)
 {
-  //
-  // create the view of the data
-  initialise(what.getNumSamples(),what.getNumDPPSample());
-  //
-  // copy the data in the correct format
-  m_data.getData()=data;
+  EsysAssert(data.size()%getNoValues()==0,
+                 "DataExpanded Constructor - size of supplied data is not a multiple of shape size.");
+
+  if (data.size()==getNoValues())
+  {
+     ValueType& vec=m_data.getData();
+     //
+     // create the view of the data
+     initialise(what.getNumSamples(),what.getNumDPPSample());
+     // now we copy this value to all elements
+     for (int i=0;i<getLength();)
+     {
+	for (int j=0;j<getNoValues();++j,++i)
+	{
+	    vec[i]=data[j];
+	}
+     }
+  }
+  else
+  {
+     //
+     // copy the data in the correct format
+     m_data.getData()=data;
+  }
+
+
 }
 
 DataExpanded::~DataExpanded()
@@ -300,6 +320,7 @@ DataExpanded::copy(const boost::python::numeric::array& value)
   getVector().copyFromNumArray(value);
 }
 
+
 void
 DataExpanded::initialise(int noSamples,
                          int noDataPointsPerSample)
@@ -307,6 +328,7 @@ DataExpanded::initialise(int noSamples,
   //
   // resize data array to the required size
   m_data.resize(noSamples,noDataPointsPerSample,getNoValues());
+
   //
 //   // create the data view of the data array
 //   DataArrayView temp(m_data.getData(),shape);
@@ -324,6 +346,7 @@ DataExpanded::toString() const
   //
   // create a temporary view as the offset will be changed
 //  DataArrayView tempView(getPointDataView().getData(),getPointDataView().getShape(),getPointDataView().getOffset());
+
   int offset=0;
   for (int i=0;i<m_data.getNumRows();i++) {
     for (int j=0;j<m_data.getNumCols();j++) {
