@@ -103,7 +103,7 @@ class InputOutput(unittest.TestCase):
 	  mydomain2=LoadMesh("tt.mesh.nc")
           self.domainsEqual(mydomain1, mydomain2)
 
-     def DISABLED_test_mesh_dump_to_NetCDF_brick(self):
+     def test_mesh_dump_to_NetCDF_brick(self):
 	if loadIsConfigured():
 	  mydomain1 = Brick(n0=7, n1=11, n2=5, order=2, l0=1., l1=1., l2=1., optimize=False)
 	  mydomain1.dump("tt.mesh.nc")
