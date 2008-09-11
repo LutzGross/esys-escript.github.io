@@ -824,30 +824,30 @@ DataExpanded::dump(const std::string fileName) const
    #endif
 }
 
-void
-DataExpanded::setTaggedValue(int tagKey,
-                             const DataArrayView& value)
-{
-  int numSamples = getNumSamples();
-  int numDataPointsPerSample = getNumDPPSample();
-  int sampleNo,dataPointNo, i;
-  DataTypes::ValueType::size_type n = getNoValues();
-  double* p,*in=&(value.getData()[0]);
-  
-  if (value.noValues() != n) {
-    throw DataException("Error - DataExpanded::setTaggedValue: number of input values does not match number of values per data points.");
-  }
-
-  #pragma omp parallel for private(sampleNo,dataPointNo,p,i) schedule(static)
-  for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
-    if (getFunctionSpace().getTagFromSampleNo(sampleNo) == tagKey ) {
-        for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-            p=&(m_data[getPointOffset(sampleNo,dataPointNo)]);
-            for (i=0; i<n ;++i) p[i]=in[i];
-        }
-    }
-  }
-}
+// void
+// DataExpanded::setTaggedValue(int tagKey,
+//                              const DataArrayView& value)
+// {
+//   int numSamples = getNumSamples();
+//   int numDataPointsPerSample = getNumDPPSample();
+//   int sampleNo,dataPointNo, i;
+//   DataTypes::ValueType::size_type n = getNoValues();
+//   double* p,*in=&(value.getData()[0]);
+//   
+//   if (value.noValues() != n) {
+//     throw DataException("Error - DataExpanded::setTaggedValue: number of input values does not match number of values per data points.");
+//   }
+// 
+//   #pragma omp parallel for private(sampleNo,dataPointNo,p,i) schedule(static)
+//   for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+//     if (getFunctionSpace().getTagFromSampleNo(sampleNo) == tagKey ) {
+//         for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+//             p=&(m_data[getPointOffset(sampleNo,dataPointNo)]);
+//             for (i=0; i<n ;++i) p[i]=in[i];
+//         }
+//     }
+//   }
+// }
 
 void  
 DataExpanded::setTaggedValue(int tagKey,

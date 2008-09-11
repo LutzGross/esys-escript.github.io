@@ -24,28 +24,36 @@
 
 namespace escript {
 
- namespace DataTypes {
+namespace DataTypes {
+
+/**
+\namespace escript::DataTypes 
+\brief Contains the types to represent Shapes, Regions, RegionLoop ranges and vectors of data as well as the functions to manipulate them.
+*/
   //
   // Some basic types which define the data values and view shapes.
-  typedef DataVector                        ValueType;
-  typedef std::vector<int>                  ShapeType;
+  typedef DataVector                        ValueType;//!< Vector to store underlying data.
+  typedef std::vector<int>                  ShapeType;//!< The shape of a single datapoint.
   typedef std::vector<std::pair<int, int> > RegionType;
   typedef std::vector<std::pair<int, int> > RegionLoopRangeType;
-  static const int maxRank=4;
-  static const ShapeType scalarShape;
+  static const int maxRank=4;//!< The maximum number of dimensions a datapoint can have.
+  static const ShapeType scalarShape;//!< Use this instead of creating empty shape objects for scalars.
 
-// This file contains static functions moved from DataArrayView
   /**
      \brief
-     Calculate the number of values for the given shape.
+     Calculate the number of values in a datapoint with the given shape.
+
+     \param shape
   */
   ESCRIPT_DLL_API
   int
   noValues(const DataTypes::ShapeType& shape);
 
-  /**
+  /** 
      \brief
      Calculate the number of values for the given region.
+
+    \param region
   */
   ESCRIPT_DLL_API
   int
@@ -77,6 +85,7 @@ namespace escript {
      \brief
      Determine the region specified by the given python slice object.
 
+     \param shape - Input - Shape of the object being sliced.
      \param key - Input -
                     python slice object specifying region to be returned.
 
@@ -148,6 +157,12 @@ namespace escript {
   DataTypes::RegionLoopRangeType
   getSliceRegionLoopRange(const DataTypes::RegionType& region);
 
+  /**
+   \brief Return the rank (number of dimensions) of the given shape.
+
+   \param shape
+   \return the rank.
+  */
   ESCRIPT_DLL_API
   inline
   int
@@ -156,6 +171,14 @@ namespace escript {
 	return shape.size();
   }
 
+
+  /**
+  \brief Compute the offset (in 1D vector) of a given subscript with a shape.
+
+  \param shape - Input - Shape of the datapoint.
+  \param i - Input - subscript to locate.
+  \return offset relative to the beginning of the datapoint.
+  */
   ESCRIPT_DLL_API
   inline
   DataTypes::ValueType::size_type
@@ -166,6 +189,13 @@ namespace escript {
 	return i;
   }
 
+  /**
+  \brief Compute the offset (in 1D vector) of a given subscript with a shape.
+
+  \param shape - Input - Shape of the datapoint.
+  \param i,j - Input - subscripts to locate.
+  \return offset relative to the beginning of the datapoint.
+  */
   ESCRIPT_DLL_API
   inline
   DataTypes::ValueType::size_type
@@ -178,6 +208,13 @@ namespace escript {
 	return temp;
   }
 
+  /**
+  \brief Compute the offset (in 1D vector) of a given subscript with a shape.
+
+  \param shape - Input - Shape of the datapoint.
+  \param i,j,k - Input - subscripts to locate.
+  \return offset relative to the beginning of the datapoint.
+  */
   ESCRIPT_DLL_API
   inline
   DataTypes::ValueType::size_type
@@ -190,6 +227,13 @@ namespace escript {
   	return temp;
   }
 
+  /**
+  \brief Compute the offset (in 1D vector) of a given subscript with a shape.
+
+  \param shape - Input - Shape of the datapoint.
+  \param i,j,k,m - Input - subscripts to locate.
+  \return offset relative to the beginning of the datapoint.
+  */
   ESCRIPT_DLL_API
   inline
   DataTypes::ValueType::size_type
@@ -203,6 +247,9 @@ namespace escript {
 	return temp;
   }
 
+  /**
+     \brief Test if two shapes are equal.
+  */
   ESCRIPT_DLL_API
   inline
   bool
@@ -211,6 +258,13 @@ namespace escript {
 	return s1==s2;
   }
 
+  /**
+   \brief Produce a string containing two shapes.
+
+   \param messagePrefix - Beginning of the message.
+   \param other - displayed in the message as "Other shape"
+   \param thisShape - displayed in the message as "This shape"
+  */
    std::string 
    createShapeErrorMessage(const std::string& messagePrefix,
                                           const DataTypes::ShapeType& other,
@@ -220,21 +274,21 @@ namespace escript {
   /**
      \brief
      Copy a data slice specified by the given region and offset from the
-     given view into this view at the given offset.
-
-     \param thisOffset - Input -
-                      Copy the slice to this offset in this view.
-     \param other - Input -
-                      View to copy data from.
-     \param otherOffset - Input -
-                      Copy the slice from this offset in the given view.
+     "other" view into the "left" view at the given offset.
+     
+     \param left - vector to copy into
+     \param leftShape - shape of datapoints for the left vector
+     \param leftOffset - location within left to start copying to
+     \param other - vector to copy from
+     \param otherShape - shape of datapoints for the other vector
+     \param otherOffset - location within other vector to start copying from
      \param region - Input -
                       Region in other view to copy data from.
   */
    void
    copySlice(ValueType& left,
 			    const ShapeType& leftShape,
-			    ValueType::size_type thisOffset,
+			    ValueType::size_type leftOffset,
                             const ValueType& other,
 			    const ShapeType& otherShape,
                             ValueType::size_type otherOffset,
@@ -243,21 +297,21 @@ namespace escript {
   /**
      \brief
      Copy data into a slice specified by the given region and offset in
-     this view from the given view at the given offset.
+     the left vector from the other vector at the given offset.
 
-     \param thisOffset - Input -
-                    Copy the slice to this offset in this view.
-     \param other - Input -
-                    View to copy data from.
-     \param otherOffset - Input -
-                    Copy the slice from this offset in the given view.
+     \param left - vector to copy into
+     \param leftShape - shape of datapoints for the left vector
+     \param leftOffset - location within left to start copying to
+     \param other - vector to copy from
+     \param otherShape - shape of datapoints for the other vector
+     \param otherOffset - location within other vector to start copying from
      \param region - Input -
-                    Region in this view to copy data to.
+                      Region in the left vector to copy data to.
   */
    void
    copySliceFrom(ValueType& left,
 				const ShapeType& leftShape,
-				ValueType::size_type thisOffset,
+				ValueType::size_type leftOffset,
                                 const ValueType& other,
 				const ShapeType& otherShape,
                                 ValueType::size_type otherOffset,
@@ -265,10 +319,15 @@ namespace escript {
 
 
    /**
-      \brief Display a single value (with the specified shape) from the data
+      \brief Display a single value (with the specified shape) from the data.
+
+     \param data - vector containing the datapoint
+     \param shape - shape of the datapoint
+     \param offset - start of the datapoint within data
+     \param prefix - string to prepend to the output
    */
    std::string
-   pointToString(const ValueType& data,const ShapeType& shape, int offset, const std::string& suffix);
+   pointToString(const ValueType& data,const ShapeType& shape, int offset, const std::string& prefix);
 
 
    /**
@@ -289,6 +348,12 @@ namespace escript {
 
    /**
       \brief  Copy a point from one vector to another. Note: This version does not check to see if shapes are the same.
+
+   \param dest - vector to copy to
+   \param doffset - beginning of the target datapoint in dest
+   \param nvals - the number of values comprising the datapoint
+   \param src - vector to copy from
+   \param soffset - beginning of the datapoint in src
    */
    void copyPoint(ValueType& dest, ValueType::size_type doffset, ValueType::size_type nvals, const ValueType& src, ValueType::size_type soffset);
 

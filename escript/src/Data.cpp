@@ -19,7 +19,6 @@
 #include "DataConstant.h"
 #include "DataTagged.h"
 #include "DataEmpty.h"
-#include "DataArrayView.h"
 #include "FunctionSpaceFactory.h"
 #include "AbstractContinuousDomain.h"
 #include "UnaryFuncs.h"

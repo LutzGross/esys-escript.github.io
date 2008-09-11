@@ -299,6 +299,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
                      consecutive values.  If there is a mismatch between  the
 		     number of keys and the number of values an exception 
 		     will be generated.
+     \param vShape - shape of the datapoints in "values"
     T
  */
   ESCRIPT_DLL_API
@@ -309,6 +310,19 @@ TODO Make sure to document the relationship between tags and data, ie: data also
 
 
   /**
+   Description: 
+   Add the given tags and values to this DataTagged object.
+   \param tagKeys - Input - A vector of integer tags.
+   \param values - Input - A DataVector containing the datapoints.
+		     If this is empty, the default value for
+                     this DataTagged will be used for all tags.
+                     If it contains one value all tag values will be assigned
+		     this value. Otherwise consecutive tags will be assigned 
+                     consecutive values.  If there is a mismatch between  the
+		     number of keys and the number of values an exception 
+		     will be generated.
+    \param vShape - shape of the datapoints in "values"
+
    TODO Makesure this is properly unit tested
   */
   ESCRIPT_DLL_API
@@ -347,7 +361,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      Add a single tag. The default value for this DataTagged will be associated with the tag.
      If this tag already has a value associated with it, then no change will be made.
      \param tagKey - Input - Integer tag.
-    T
+    TODO: Make sure this is unit tested
   */
   ESCRIPT_DLL_API
   void
@@ -399,7 +413,8 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      Assign the given value to the given tag.
      \param tagKey - Input - Integer tag.
      \param pointshape - the shape of the value parameter
-     \param value - Input - Single DataArrayView value to be assigned to the tag.
+     \param value - Input - Vector storing the datapoint to be assigned to the tag.
+     \param dataOffset - beginning of the datapoint within "value".
     T
   */
   ESCRIPT_DLL_API
@@ -446,9 +461,10 @@ TODO Make sure to document the relationship between tags and data, ie: data also
       \brief 
       getOffsetForTag
 
-      return the offset for the given tag within the array.
+      \param tag
+      \return the offset of the beginning of the datapoint corresponding to tag.
 
-      TODO Need to document what happens if the tag is invalid
+      Note: If the tag is not valid, the offset of the default value is returned instead.
   */
   ESCRIPT_DLL_API
   DataTypes::ValueType::size_type
@@ -474,7 +490,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
 
   /**
      \brief
-     Return a a reference to the underlying DataVector.
+     Return a reference to the underlying DataVector.
   */
 
   ESCRIPT_DLL_API
@@ -495,9 +511,9 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      Return pointer to the data
     T
   */
-  ESCRIPT_DLL_API
-  const DataTypes::ValueType::ElementType*
-  getData() const;
+//   ESCRIPT_DLL_API
+//   const DataTypes::ValueType::ElementType*
+//   getData() const;
 
   /**
      \brief 
@@ -804,12 +820,12 @@ DataTagged::getDefaultValue(DataTypes::ValueType::size_type i) const
 
 
 
-inline
-const DataTypes::ValueType::ElementType*
-DataTagged::getData() const
-{
-   return &(m_data[0]);
-}
+// inline
+// const DataTypes::ValueType::ElementType*
+// DataTagged::getData() const
+// {
+//    return &(m_data[0]);
+// }
 
 inline
 const DataTagged::DataMapType&

@@ -25,11 +25,13 @@ namespace escript
 namespace DataMaths
 {
 
-// Because of the copy'n hack editing this file has undergone, the doxygen comments are pure
-// fiction. They need a good cleaning before final commit.
+/**
+\namespace escript::DataMaths
+\brief Contains maths operations performed on data vectors.
 
-
-
+In order to properly identify the datapoints, in most cases, the vector, shape and offset of the point must all be supplied.
+Note that vector in this context refers to a data vector storing datapoints not a mathematical vector. (However, datapoints within the data vector could represent scalars, vectors, matricies, ...).
+*/
 
 //  /**
 //     \brief
@@ -59,8 +61,9 @@ namespace DataMaths
 
      Called by escript::unaryOp.
 
-     \param offset - Input -
-                  Apply the operation to data starting at this offset in this view.
+     \param data - vector containing the datapoint
+     \param shape - shape of the point
+     \param offset - offset of the point within data
      \param operation - Input -
                   Operation to apply. Must be a pointer to a function.
   */
@@ -94,25 +97,24 @@ namespace DataMaths
   /**
      \brief
      Perform the binary operation on the data points specified by the given
-     offsets in this view and in view "right". Applies the specified operation
+     offsets in the "left" and "right" vectors. Applies the specified operation
      to corresponding values in both data points. Operation must be a pointer
      to a function.
 
      Called by escript::binaryOp.
-
-     \param leftOffset - Input -
-                  Apply the operation to data starting at this offset in this view.
-     \param right - Input -
-                  View to act as RHS in given binary operation.
-     \param rightOffset - Input -
-                  Apply the operation to data starting at this offset in right.
+     \param left,right - vectors containing the datapoints
+     \param leftShape,rightShape - shapes of datapoints in the vectors
+     \param leftOffset,rightOffset - beginnings of datapoints in the vectors
      \param operation - Input -
                   Operation to apply. Must be a pointer to a function.
   */
   template <class BinaryFunction>
   void
-  binaryOp(DataTypes::ValueType& left, const DataTypes::ShapeType& leftShape, DataTypes::ValueType::size_type leftOffset,
-           const DataTypes::ValueType& right, const DataTypes::ShapeType& rightShape,
+  binaryOp(DataTypes::ValueType& left, 
+	   const DataTypes::ShapeType& leftShape, 
+           DataTypes::ValueType::size_type leftOffset,
+           const DataTypes::ValueType& right, 
+           const DataTypes::ShapeType& rightShape,
            DataTypes::ValueType::size_type rightOffset,
            BinaryFunction operation);
 
@@ -141,22 +143,23 @@ namespace DataMaths
   /**
      \brief
      Perform the binary operation on the data point specified by the given
-     offset in this view using the scalar value "right". Applies the specified
+     offset in the vector using the scalar value "right". Applies the specified
      operation to values in the data point. Operation must be a pointer
      to a function.
 
      Called by escript::binaryOp.
 
-     \param offset - Input -
-                  Apply the operation to data starting at this offset in this view.
-     \param right - Input -
-                  Value to act as RHS in given binary operation.
+     \param left - vector containing the datapoints
+     \param shape - shape of datapoint in the vector
+     \param offset - beginning of datapoint in the vector
+     \param right - scalar value for the right hand side of the operation
      \param operation - Input -
                   Operation to apply. Must be a pointer to a function.
   */
   template <class BinaryFunction>
   void
-  binaryOp(DataTypes::ValueType& left, const DataTypes::ShapeType& shape,
+  binaryOp(DataTypes::ValueType& left, 
+           const DataTypes::ShapeType& shape,
  	   DataTypes::ValueType::size_type offset,
            double right,
            BinaryFunction operation);
@@ -189,14 +192,17 @@ namespace DataMaths
 
      Called by escript::algorithm.
 
-     \param offset - Input -
-                  Apply the operation to data starting at this offset in this view.
+     \param left - vector containing the datapoint
+     \param shape - shape of datapoints in the vector
+     \param offset - beginning of datapoint in the vector
      \param operation - Input -
                   Operation to apply. Must be a pointer to a function.
+     \param initial_value 
   */
   template <class BinaryFunction>
   double
-  reductionOp(const DataTypes::ValueType& left, const DataTypes::ShapeType& shape,
+  reductionOp(const DataTypes::ValueType& left, 
+	      const DataTypes::ShapeType& shape,
  	      DataTypes::ValueType::size_type offset,
               BinaryFunction operation,
               double initial_value);
@@ -205,20 +211,24 @@ namespace DataMaths
      \brief
      Perform a matrix multiply of the given views.
 
-     NB: Only multiplies together the two given views, ie: two data-points,
+     NB: Only multiplies together the two given datapoints,
      would need to call this over all data-points to multiply the entire
      Data objects involved.
 
-     \param left - Input - The left hand side.
-     \param right - Input - The right hand side.
-     \param result - Output - The result of the operation.
+     \param left,right - vectors containing the datapoints
+     \param leftShape,rightShape - shapes of datapoints in the vectors
+     \param leftOffset,rightOffset - beginnings of datapoints in the vectors
+     \param result - Vector to store the resulting datapoint in
+     \param resultShape - expected shape of the resulting datapoint
   */
   ESCRIPT_DLL_API
   void
-  matMult(const DataTypes::ValueType& left, const DataTypes::ShapeType& leftShape,
-	  DataTypes::ValueType::size_type loffset,
-          const DataTypes::ValueType& right, const DataTypes::ShapeType& rightShape,
-	  DataTypes::ValueType::size_type roffset,
+  matMult(const DataTypes::ValueType& left, 
+	  const DataTypes::ShapeType& leftShape,
+	  DataTypes::ValueType::size_type leftOffset,
+          const DataTypes::ValueType& right,
+	  const DataTypes::ShapeType& rightShape,
+	  DataTypes::ValueType::size_type rightOffset,
           DataTypes::ValueType& result,
 	  const DataTypes::ShapeType& resultShape);
 // Hmmmm why is there no offset for the result??
@@ -230,6 +240,9 @@ namespace DataMaths
      \brief
      Determine the shape of the result array for a matrix multiplication
      of the given views.
+
+     \param left,right - shapes of the left and right matricies
+     \return the shape of the matrix which would result from multiplying left and right
   */
   ESCRIPT_DLL_API
   DataTypes::ShapeType
@@ -240,17 +253,21 @@ namespace DataMaths
      \brief
      computes a symmetric matrix from your square matrix A: (A + transpose(A)) / 2
 
-     \param in - Input - matrix 
-     \param inOffset - Input - offset into in
-     \param ev - Output - The symmetric matrix
-     \param inOffset - Input - offset into ev
+     \param in - vector containing the matrix A
+     \param inShape - shape of the matrix A
+     \param inOffset - the beginning of A within the vector in
+     \param ev - vector to store the output matrix
+     \param evShape - expected shape of the output matrix
+     \param evOffset - starting location for storing ev in vector ev
   */
   ESCRIPT_DLL_API
   inline
   void
-  symmetric(const DataTypes::ValueType& in, const DataTypes::ShapeType& inShape,
+  symmetric(const DataTypes::ValueType& in, 
+	    const DataTypes::ShapeType& inShape,
             DataTypes::ValueType::size_type inOffset,
-            DataTypes::ValueType& ev, const DataTypes::ShapeType& evShape,
+            DataTypes::ValueType& ev, 
+	    const DataTypes::ShapeType& evShape,
             DataTypes::ValueType::size_type evOffset)
   {
    if (DataTypes::getRank(inShape) == 2) {
@@ -285,18 +302,22 @@ namespace DataMaths
      \brief
      computes a nonsymmetric matrix from your square matrix A: (A - transpose(A)) / 2
 
-     \param in - Input - matrix 
-     \param inOffset - Input - offset into in
-     \param ev - Output - The nonsymmetric matrix
-     \param inOffset - Input - offset into ev
+     \param in - vector containing the matrix A
+     \param inShape - shape of the matrix A
+     \param inOffset - the beginning of A within the vector in
+     \param ev - vector to store the output matrix
+     \param evShape - expected shape of the output matrix
+     \param evOffset - starting location for storing ev in vector ev
   */
   ESCRIPT_DLL_API
   inline
   void
-  nonsymmetric(const DataTypes::ValueType& in, const DataTypes::ShapeType& inShape,
-            DataTypes::ValueType::size_type inOffset,
-            DataTypes::ValueType& ev, const DataTypes::ShapeType& evShape,
-            DataTypes::ValueType::size_type evOffset)
+  nonsymmetric(const DataTypes::ValueType& in, 
+	       const DataTypes::ShapeType& inShape,
+               DataTypes::ValueType::size_type inOffset,
+               DataTypes::ValueType& ev, 
+	       const DataTypes::ShapeType& evShape,
+               DataTypes::ValueType::size_type evOffset)
   {
    if (DataTypes::getRank(inShape) == 2) {
      int i0, i1;
@@ -330,16 +351,21 @@ namespace DataMaths
      \brief
      computes the trace of a matrix
 
-     \param in - Input - matrix 
-     \param inOffset - Input - offset into in
-     \param ev - Output - The nonsymmetric matrix
-     \param inOffset - Input - offset into ev
+     \param in - vector containing the input matrix
+     \param inShape - shape of the input matrix
+     \param inOffset - the beginning of the input matrix within the vector "in"
+     \param ev - vector to store the output matrix
+     \param evShape - expected shape of the output matrix
+     \param evOffset - starting location for storing the output matrix in vector ev
+     \param axis_offset
   */
   inline
   void
-  trace(const DataTypes::ValueType& in, const DataTypes::ShapeType& inShape,
+  trace(const DataTypes::ValueType& in, 
+	    const DataTypes::ShapeType& inShape,
             DataTypes::ValueType::size_type inOffset,
-            DataTypes::ValueType& ev, const DataTypes::ShapeType& evShape,
+            DataTypes::ValueType& ev,
+	    const DataTypes::ShapeType& evShape,
             DataTypes::ValueType::size_type evOffset,
 	    int axis_offset)
   {
@@ -419,17 +445,22 @@ namespace DataMaths
      \brief
      Transpose each data point of this Data object around the given axis.
 
-     \param in - Input - matrix 
-     \param inOffset - Input - offset into in
-     \param ev - Output - The nonsymmetric matrix
-     \param inOffset - Input - offset into ev
+     \param in - vector containing the input matrix
+     \param inShape - shape of the input matrix
+     \param inOffset - the beginning of the input matrix within the vector "in"
+     \param ev - vector to store the output matrix
+     \param evShape - expected shape of the output matrix
+     \param evOffset - starting location for storing the output matrix in vector ev
+     \param axis_offset
   */
   ESCRIPT_DLL_API
   inline
   void
-  transpose(const DataTypes::ValueType& in, const DataTypes::ShapeType& inShape,
+  transpose(const DataTypes::ValueType& in, 
+	    const DataTypes::ShapeType& inShape,
             DataTypes::ValueType::size_type inOffset,
-            DataTypes::ValueType& ev, const DataTypes::ShapeType& evShape,
+            DataTypes::ValueType& ev,
+            const DataTypes::ShapeType& evShape,
             DataTypes::ValueType::size_type evOffset,
 	    int axis_offset)
   {
@@ -557,10 +588,12 @@ namespace DataMaths
      \brief
      swaps the components axis0 and axis1.
 
-     \param in - Input - matrix 
-     \param inOffset - Input - offset into in
-     \param ev - Output - The nonsymmetric matrix
-     \param inOffset - Input - offset into ev
+     \param in - vector containing the input matrix
+     \param inShape - shape of the input matrix
+     \param inOffset - the beginning of the input matrix within the vector "in"
+     \param ev - vector to store the output matrix
+     \param evShape - expected shape of the output matrix
+     \param evOffset - starting location for storing the output matrix in vector ev
      \param axis0 - axis index
      \param axis1 - axis index
   */
@@ -568,11 +601,14 @@ namespace DataMaths
   static
   inline
   void
-  swapaxes(const DataTypes::ValueType& in, const DataTypes::ShapeType& inShape,
+  swapaxes(const DataTypes::ValueType& in, 
+	   const DataTypes::ShapeType& inShape,
            DataTypes::ValueType::size_type inOffset,
-           DataTypes::ValueType& ev, const DataTypes::ShapeType& evShape,
+           DataTypes::ValueType& ev,
+	   const DataTypes::ShapeType& evShape,
            DataTypes::ValueType::size_type evOffset,
-           int axis0, int axis1)
+           int axis0, 
+	   int axis1)
   {
      int inRank=DataTypes::getRank(inShape);
      if (inRank == 4) {
@@ -706,17 +742,21 @@ namespace DataMaths
      \brief
      solves a local eigenvalue problem 
 
-     \param in - Input - matrix 
-     \param inOffset - Input - offset into in
-     \param ev - Output - The eigenvalues
-     \param inOffset - Input - offset into ev
+     \param in - vector containing the input matrix
+     \param inShape - shape of the input matrix
+     \param inOffset - the beginning of the input matrix within the vector "in"
+     \param ev - vector to store the eigenvalues
+     \param evShape - expected shape of the eigenvalues
+     \param evOffset - starting location for storing the eigenvalues in vector ev
   */
   ESCRIPT_DLL_API
   inline
   void
-  eigenvalues(DataTypes::ValueType& in, const DataTypes::ShapeType& inShape,
+  eigenvalues(DataTypes::ValueType& in, 
+	      const DataTypes::ShapeType& inShape,
               DataTypes::ValueType::size_type inOffset,
-              DataTypes::ValueType& ev, const DataTypes::ShapeType& evShape,
+              DataTypes::ValueType& ev,
+	      const DataTypes::ShapeType& evShape,
               DataTypes::ValueType::size_type evOffset)
   {
    double in00,in10,in20,in01,in11,in21,in02,in12,in22;
@@ -759,12 +799,15 @@ namespace DataMaths
      \brief
      solves a local eigenvalue problem 
 
-     \param in - Input - matrix 
-     \param inOffset - Input - offset into in
-     \param ev - Output - The eigenvalues
-     \param evOffset - Input - offset into ev
-     \param V - Output - The eigenvectors
-     \param VOffset - Input - offset into V
+     \param in - vector containing the input matrix
+     \param inShape - shape of the input matrix
+     \param inOffset - the beginning of the input matrix within the vector "in"
+     \param ev - vector to store the eigenvalues
+     \param evShape - expected shape of the eigenvalues
+     \param evOffset - starting location for storing the eigenvalues in ev
+     \param V - vector to store the eigenvectors
+     \param VShape - expected shape of the eigenvectors
+     \param VOffset - starting location for storing the eigenvectors in V
      \param tol - Input - eigenvalues with relative difference tol are treated as equal
   */
   ESCRIPT_DLL_API
