@@ -25,19 +25,20 @@
 
 /**************************************************************/
 
-void Finley_ElementFile_markNodes(index_t* mask,index_t offset,Finley_ElementFile* in,bool_t useLinear) {
+void Finley_ElementFile_markNodes(index_t* mask,index_t offset,dim_t numNodes,Finley_ElementFile* in,bool_t useLinear) {
    dim_t i,NN,NN2,e;
    index_t *lin_node,*id=NULL;
+
    if (in!=NULL) {
      id=TMPMEMALLOC(in->ReferenceElement->Type->numNodes, index_t);
      if (! Finley_checkPtr(id) ){
-        for (i=0;i<in->ReferenceElement->Type->numNodes;i++) id[i]=i;
         if (useLinear) {
            NN=in->LinearReferenceElement->Type->numNodes;
            lin_node=in->ReferenceElement->Type->linearNodes;
         } else {
            NN=in->ReferenceElement->Type->numNodes;
            lin_node=id;
+           for (i=0;i<in->ReferenceElement->Type->numNodes;i++) id[i]=i;
         }
         NN2=in->numNodes;
         #pragma omp parallel for private(e,i) schedule(static)
@@ -58,13 +59,13 @@ void Finley_ElementFile_markDOFsConnectedToRange(index_t* mask,index_t offset,in
    if (in!=NULL) {
      id=TMPMEMALLOC(in->ReferenceElement->Type->numNodes, index_t);
      if (! Finley_checkPtr(id) ){
-        for (i=0;i<in->ReferenceElement->Type->numNodes;i++) id[i]=i;
         if (useLinear) {
            NN=in->LinearReferenceElement->Type->numNodes;
            lin_node=in->ReferenceElement->Type->linearNodes;
         } else {
            NN=in->ReferenceElement->Type->numNodes;
            lin_node=id;
+           for (i=0;i<in->ReferenceElement->Type->numNodes;i++) id[i]=i;
         }
         NN2=in->numNodes;
         for (color=in->minColor;color<=in->maxColor;color++) {
@@ -74,7 +75,9 @@ void Finley_ElementFile_markDOFsConnectedToRange(index_t* mask,index_t offset,in
                   for (i=0;i<NN;i++) {
                      k=dofIndex[in->Nodes[INDEX2(lin_node[i],e,NN2)]];
                      if ( (firstDOF<=k) && (k<lastDOF) ) {
-                        for (j=0;j<NN;j++) mask[dofIndex[in->Nodes[INDEX2(lin_node[j],e,NN2)]]-offset]=marker;
+                        for (j=0;j<NN;j++) {
+                                   mask[dofIndex[in->Nodes[INDEX2(lin_node[j],e,NN2)]]-offset]=marker;
+                        }
                         break;
                      }
                   }

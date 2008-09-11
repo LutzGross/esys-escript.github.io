@@ -61,6 +61,7 @@ typedef int type_t;
 typedef int err_t;
 
 #define INDEX_T_MAX INT_MAX
+#define INDEX_T_MIN -INT_MAX
 #define EPSILON DBL_EPSILON
 #define LARGE_POSITIVE_FLOAT DBL_MAX
 

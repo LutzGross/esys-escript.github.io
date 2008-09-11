@@ -20,7 +20,6 @@
 #include "DataTaggedTestCase.h"
 #include "DataExpandedTestCase.h"
 #include "DataFactoryTestCase.h"
-// #include "DataArrayViewTestCase.h"
 #include "DataBlocks2DTestCase.h"
 #include "DataVectorTestCase.h"
 #include "TaipanTestCase.h"
@@ -60,7 +59,6 @@ int main(int argc, char* argv[])
  	runner.addTest ("DataTagged", DataTaggedTestCase::suite());
 	runner.addTest ("DataExpanded", DataExpandedTestCase::suite());
 	runner.addTest ("DataFactory", DataFactoryTestCase::suite());
-// 	runner.addTest ("DataArrayView", DataArrayViewTestCase::suite());
 	runner.addTest ("DataBlocks2D", DataBlocks2DTestCase::suite());
 	runner.addTest ("DataVector", DataVectorTestCase::suite());
 	runner.addTest ("Taipan", TaipanTestCase::suite());

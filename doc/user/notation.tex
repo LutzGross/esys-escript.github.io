@@ -1,0 +1,88 @@
+%
+% $Id: notation.tex 1318 2007-09-26 04:39:14Z ksteube $
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%           Copyright 2003-2007 by ACceSS MNRF
+%       Copyright 2007 by University of Queensland
+%
+%                http://esscc.uq.edu.au
+%        Primary Business: Queensland, Australia
+%  Licensed under the Open Software License version 3.0
+%     http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+
+\section{Einstein Notation}
+\label{EINSTEIN NOTATION}
+
+Compact notation is used in equations such continuum mechanics and linear algebra; it is known as Einstein notation or the Einstein summation convention. It makes the conventional notation of equations involing tensors more compact, by shortening and simplifying them.
+
+There are two rules which make up the convention:
+
+firstly, the rank of the tensor is represented by an index. For example, $a$ is a scalar; $b\hackscore{i}$ represents a vector; and $c\hackscore{ij}$ represents a matrix.
+
+Secondly, if an expression contains subscripted variables, they are assumed to be summed over all possible values, from $0$ to $n$. For example, for the following expression:
+
+
+
+\begin{equation}
+y = a\hackscore{0}b\hackscore{0} + a\hackscore{1}b\hackscore{1} + \ldots + a\hackscore{n}b\hackscore{n}
+\label{NOTATION1}
+\end{equation}
+
+can be represented as:
+
+\begin{equation}
+y = \sum\hackscore{i=0}^n  a\hackscore{i}b\hackscore{i}
+\label{NOTATION2}
+\end{equation}
+
+then in Einstein notion:
+
+\begin{equation}
+y = a\hackscore{i}b\hackscore{i}
+\label{NOTATION3}
+\end{equation}
+
+Another example:
+
+\begin{equation}
+\nabla p = \frac{\partial p}{\partial x\hackscore{0}}\textbf{i} + \frac{\partial p}{\partial x\hackscore{1}}\textbf{j} + \frac{\partial p}{\partial x\hackscore{2}}\textbf{k}
+\label{NOTATION4}
+\end{equation}
+
+can be expressed in Einstein notation as:
+
+\begin{equation}
+\nabla p = p,\hackscore{i}
+\label{NOTATION5}
+\end{equation}
+
+where the comma ',' indicates the partial derivative.
+
+For a tensor:
+
+\begin{equation}
+\sigma \hackscore{ij}= 
+\left[ \begin{array}{ccc}
+\sigma\hackscore{00} & \sigma\hackscore{01} & \sigma\hackscore{02} \\
+\sigma\hackscore{10} & \sigma\hackscore{11} & \sigma\hackscore{12} \\
+\sigma\hackscore{20} & \sigma\hackscore{21} & \sigma\hackscore{22} \\
+\end{array} \right]
+\label{NOTATION6}
+\end{equation}
+
+
+The $\delta\hackscore{ij}$ is the Kronecker $\delta$-symbol, which is a matrix with ones for its diagonal entries ($i = j$) and zeros for the remaining entries ($i \neq j$).
+
+\begin{equation}
+\delta \hackscore{ij} = 
+\left \{ \begin{array}{cc}
+1, & \mbox{if $i = j$} \\
+0, & \mbox{if $i \neq j$} \\
+\end{array}
+\right.
+\label{KRONECKER}
+\end{equation}

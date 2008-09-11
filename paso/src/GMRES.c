@@ -72,15 +72,20 @@ err_t Paso_Solver_GMRES(
     double * tolerance,dim_t Length_of_recursion,dim_t restart,
     Paso_Performance* pp) {
 
-  /* Local variables */
+   /* Local variables */
 
-  double *AP,**X_PRES,**R_PRES,**P_PRES;
+   #ifdef _OPENMP
+       const int num_threads=omp_get_max_threads();
+   #else
+       const int num_threads=1;
+   #endif
+  double *AP,**X_PRES,**R_PRES,**P_PRES, *dots, *loc_dots;
   double *P_PRES_dot_AP,*R_PRES_dot_P_PRES,*BREAKF,*ALPHA;
-  double P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5,P_PRES_dot_AP6,R_PRES_dot_P,breakf0;
+  double R_PRES_dot_AP0,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5,P_PRES_dot_AP6,R_PRES_dot_P,breakf0;
   double tol,Factor,sum_BREAKF,gamma,SC1,SC2,norm_of_residual,diff,L2_R,Norm_of_residual_global;
   double *save_XPRES, *save_P_PRES, *save_R_PRES,save_R_PRES_dot_P_PRES;
   dim_t maxit,Num_iter_global,num_iter_restart,num_iter;
-  dim_t i,z,order,n, Length_of_mem;
+  dim_t i,z,order,n, Length_of_mem, th, local_n , rest, n_start ,n_end;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE,restartFlag=FALSE;
   err_t Status=SOLVER_NO_ERROR;
 
@@ -99,13 +104,15 @@ err_t Paso_Solver_GMRES(
   X_PRES=TMPMEMALLOC(Length_of_mem,double*);
   R_PRES=TMPMEMALLOC(Length_of_mem,double*);
   P_PRES=TMPMEMALLOC(Length_of_mem,double*);
+  loc_dots=TMPMEMALLOC(MAX(Length_of_mem+1,3),double);
+  dots=TMPMEMALLOC(MAX(Length_of_mem+1,3),double);
   P_PRES_dot_AP=TMPMEMALLOC(Length_of_mem,double);
   R_PRES_dot_P_PRES=TMPMEMALLOC(Length_of_mem,double);
   BREAKF=TMPMEMALLOC(Length_of_mem,double);
   ALPHA=TMPMEMALLOC(Length_of_mem,double);
   AP=TMPMEMALLOC(n,double);
   if (AP==NULL || X_PRES ==NULL || R_PRES == NULL || P_PRES == NULL || 
-         P_PRES_dot_AP == NULL || R_PRES_dot_P_PRES ==NULL || BREAKF == NULL || ALPHA == NULL) {
+         P_PRES_dot_AP == NULL || R_PRES_dot_P_PRES ==NULL || BREAKF == NULL || ALPHA == NULL || dots==NULL || loc_dots==NULL) {
      Status=SOLVER_MEMORY_ERROR;
   } else {
      for (i=0;i<Length_of_mem;i++) {
@@ -125,27 +132,32 @@ err_t Paso_Solver_GMRES(
 
       restartFlag=TRUE;
       num_iter=0;
-      #pragma omp parallel private(i) 
-      {
-         #pragma omp for private(z) schedule(static) nowait
-         for (z=0; z < n; ++z) AP[z]=0;
-         for(i=0;i<Length_of_mem;++i) {
-           #pragma omp for private(z) schedule(static) nowait
-           for (z=0; z < n; ++z) {
-                      P_PRES[i][z]=0;
-                      R_PRES[i][z]=0;
-                      X_PRES[i][z]=0;
-           }
-         }
+
+      #pragma omp parallel for private(th,z,i,local_n, rest, n_start, n_end)
+      for (th=0;th<num_threads;++th) {
+        local_n=n/num_threads;
+        rest=n-local_n*num_threads;
+        n_start=local_n*th+MIN(th,rest);
+        n_end=local_n*(th+1)+MIN(th+1,rest);
+        memset(&AP[n_start],0,sizeof(double)*(n_end-n_start));
+        for(i=0;i<Length_of_mem;++i) {
+           memset(&P_PRES[i][n_start],0,sizeof(double)*(n_end-n_start));
+           memset(&R_PRES[i][n_start],0,sizeof(double)*(n_end-n_start));
+           memset(&X_PRES[i][n_start],0,sizeof(double)*(n_end-n_start));
+        }
       }
 
       while (! (convergeFlag || maxIterFlag || breakFlag))  {
          if (restartFlag) {
              BREAKF[0]=ONE;
-             #pragma omp parallel for private(z) schedule(static) 
-             for (z=0; z < n; ++z) {
-                R_PRES[0][z]=r[z];
-                X_PRES[0][z]=x[z];
+             #pragma omp parallel for private(th,z, local_n, rest, n_start, n_end)
+             for (th=0;th<num_threads;++th) {
+               local_n=n/num_threads;
+               rest=n-local_n*num_threads;
+               n_start=local_n*th+MIN(th,rest);
+               n_end=local_n*(th+1)+MIN(th+1,rest);
+               memcpy(&R_PRES[0][n_start],&r[n_start],sizeof(double)*(n_end-n_start));
+               memcpy(&X_PRES[0][n_start],&x[n_start],sizeof(double)*(n_end-n_start));
              }
              num_iter_restart=0;
              restartFlag=FALSE;
@@ -166,168 +178,215 @@ err_t Paso_Solver_GMRES(
          ***** calculation of the norm of R and the scalar products of       
          ***   the residuals and A*P:                                        
          ***/
-         if (order==0) {
-            R_PRES_dot_P=ZERO;
-            #pragma omp parallel for private(z) reduction(+:R_PRES_dot_P) schedule(static)
-            for (z=0;z<n;++z) R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
-            R_PRES_dot_P_PRES[0]=R_PRES_dot_P;
-         } else if (order==1) {
-            R_PRES_dot_P=ZERO;
-            P_PRES_dot_AP0=ZERO;
-            #pragma omp parallel for private(z) reduction(+:R_PRES_dot_P,P_PRES_dot_AP0) schedule(static)
-            for (z=0;z<n;++z) {
-                R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
-                P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
-            }
-            P_PRES_dot_AP[0]=P_PRES_dot_AP0;
-            R_PRES_dot_P_PRES[0]=R_PRES_dot_P;
-         } else if (order==2) {
-            R_PRES_dot_P=ZERO;
-            P_PRES_dot_AP0=ZERO;
-            P_PRES_dot_AP1=ZERO;
-            #pragma omp parallel for private(z) reduction(+:R_PRES_dot_P,P_PRES_dot_AP0,P_PRES_dot_AP1) schedule(static)
-            for (z=0;z<n;++z) {
-                R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
-                P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
-                P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
-            }
-            P_PRES_dot_AP[0]=P_PRES_dot_AP0;
-            P_PRES_dot_AP[1]=P_PRES_dot_AP1;
-            R_PRES_dot_P_PRES[0]=R_PRES_dot_P;
-         } else if (order==3) {
-            R_PRES_dot_P=ZERO;
-            P_PRES_dot_AP0=ZERO;
-            P_PRES_dot_AP1=ZERO;
-            P_PRES_dot_AP2=ZERO;
-            #pragma omp parallel for private(z) reduction(+:R_PRES_dot_P,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2) schedule(static)
-            for (z=0;z<n;++z) {
-                R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
-                P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
-                P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
-                P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
-            }
-            P_PRES_dot_AP[0]=P_PRES_dot_AP0;
-            P_PRES_dot_AP[1]=P_PRES_dot_AP1;
-            P_PRES_dot_AP[2]=P_PRES_dot_AP2;
-            R_PRES_dot_P_PRES[0]=R_PRES_dot_P;
-         } else if (order==4) {
-            R_PRES_dot_P=ZERO;
-            P_PRES_dot_AP0=ZERO;
-            P_PRES_dot_AP1=ZERO;
-            P_PRES_dot_AP2=ZERO;
-            P_PRES_dot_AP3=ZERO;
-            #pragma omp parallel for private(z) reduction(+:R_PRES_dot_P,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3) schedule(static)
-            for (z=0;z<n;++z) {
-                R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
-                P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
-                P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
-                P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
-                P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
-            }
-            P_PRES_dot_AP[0]=P_PRES_dot_AP0;
-            P_PRES_dot_AP[1]=P_PRES_dot_AP1;
-            P_PRES_dot_AP[2]=P_PRES_dot_AP2;
-            P_PRES_dot_AP[3]=P_PRES_dot_AP3;
-            R_PRES_dot_P_PRES[0]=R_PRES_dot_P;
-         } else if (order==5) {
-            R_PRES_dot_P=ZERO;
-            P_PRES_dot_AP0=ZERO;
-            P_PRES_dot_AP1=ZERO;
-            P_PRES_dot_AP2=ZERO;
-            P_PRES_dot_AP3=ZERO;
-            P_PRES_dot_AP4=ZERO;
-            #pragma omp parallel for private(z) reduction(+:R_PRES_dot_P,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4) schedule(static)
-            for (z=0;z<n;++z) {
-                R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
-                P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
-                P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
-                P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
-                P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
-                P_PRES_dot_AP4+=P_PRES[4][z]*AP[z];
-            }
-            P_PRES_dot_AP[0]=P_PRES_dot_AP0;
-            P_PRES_dot_AP[1]=P_PRES_dot_AP1;
-            P_PRES_dot_AP[2]=P_PRES_dot_AP2;
-            P_PRES_dot_AP[3]=P_PRES_dot_AP3;
-            P_PRES_dot_AP[4]=P_PRES_dot_AP4;
-            R_PRES_dot_P_PRES[0]=R_PRES_dot_P;
-         } else if (order==6) {
-            R_PRES_dot_P=ZERO;
-            P_PRES_dot_AP0=ZERO;
-            P_PRES_dot_AP1=ZERO;
-            P_PRES_dot_AP2=ZERO;
-            P_PRES_dot_AP3=ZERO;
-            P_PRES_dot_AP4=ZERO;
-            P_PRES_dot_AP5=ZERO;
-            #pragma omp parallel for private(z) reduction(+:R_PRES_dot_P,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5) schedule(static)
-            for (z=0;z<n;++z) {
-                R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
-                P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
-                P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
-                P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
-                P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
-                P_PRES_dot_AP4+=P_PRES[4][z]*AP[z];
-                P_PRES_dot_AP5+=P_PRES[5][z]*AP[z];
-            }
-            P_PRES_dot_AP[0]=P_PRES_dot_AP0;
-            P_PRES_dot_AP[1]=P_PRES_dot_AP1;
-            P_PRES_dot_AP[2]=P_PRES_dot_AP2;
-            P_PRES_dot_AP[3]=P_PRES_dot_AP3;
-            P_PRES_dot_AP[4]=P_PRES_dot_AP4;
-            P_PRES_dot_AP[5]=P_PRES_dot_AP5;
-            R_PRES_dot_P_PRES[0]=R_PRES_dot_P;
-         } else if (order>6) {
-            R_PRES_dot_P=ZERO;
-            P_PRES_dot_AP0=ZERO;
-            P_PRES_dot_AP1=ZERO;
-            P_PRES_dot_AP2=ZERO;
-            P_PRES_dot_AP3=ZERO;
-            P_PRES_dot_AP4=ZERO;
-            P_PRES_dot_AP5=ZERO;
-            P_PRES_dot_AP6=ZERO;
-            #pragma omp parallel for private(z) reduction(+:R_PRES_dot_P,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5,P_PRES_dot_AP6) schedule(static)
-            for (z=0;z<n;++z) {
-                R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
-                P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
-                P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
-                P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
-                P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
-                P_PRES_dot_AP4+=P_PRES[4][z]*AP[z];
-                P_PRES_dot_AP5+=P_PRES[5][z]*AP[z];
-                P_PRES_dot_AP6+=P_PRES[6][z]*AP[z];
-            }
-            P_PRES_dot_AP[0]=P_PRES_dot_AP0;
-            P_PRES_dot_AP[1]=P_PRES_dot_AP1;
-            P_PRES_dot_AP[2]=P_PRES_dot_AP2;
-            P_PRES_dot_AP[3]=P_PRES_dot_AP3;
-            P_PRES_dot_AP[4]=P_PRES_dot_AP4;
-            P_PRES_dot_AP[5]=P_PRES_dot_AP5;
-            P_PRES_dot_AP[6]=P_PRES_dot_AP6;
-            R_PRES_dot_P_PRES[0]=R_PRES_dot_P;
-
-            P_PRES_dot_AP0=ZERO;
-            for (i=7;i<order;++i) {
-                #pragma omp parallel for private(z) reduction(+:P_PRES_dot_AP0) schedule(static)
-                for (z=0;z<n;++z) P_PRES_dot_AP0+=P_PRES[i][z]*AP[z];
-                P_PRES_dot_AP[i]=P_PRES_dot_AP0;
-                P_PRES_dot_AP0=ZERO;
-            }
+         memset(loc_dots,0,sizeof(double)*(order+1));
+         #pragma omp parallel for private(th,z,i,local_n, rest, n_start, n_end, R_PRES_dot_P, P_PRES_dot_AP0, P_PRES_dot_AP1, P_PRES_dot_AP2, P_PRES_dot_AP3, P_PRES_dot_AP4, P_PRES_dot_AP5, P_PRES_dot_AP6)
+         for (th=0;th<num_threads;++th) {
+               local_n=n/num_threads;
+               rest=n-local_n*num_threads;
+               n_start=local_n*th+MIN(th,rest);
+               n_end=local_n*(th+1)+MIN(th+1,rest);
+               if (order==0) {
+                   R_PRES_dot_P=ZERO;
+                   #pragma ivdep
+                   for (z=n_start; z < n_end; ++z) {
+                       R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                   }
+                   #pragma omp critical
+                   {
+                        loc_dots[0]+=R_PRES_dot_P;
+                   }
+               } else if (order==1) {
+                   R_PRES_dot_P=ZERO;
+                   P_PRES_dot_AP0=ZERO;
+                   #pragma ivdep
+                   for (z=n_start; z < n_end; ++z) {
+                       R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                       P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                   }
+                   #pragma omp critical
+                   {
+                        loc_dots[0]+=R_PRES_dot_P;
+                        loc_dots[1]+=P_PRES_dot_AP0;
+                   }
+               } else if (order==2) {
+                   R_PRES_dot_P=ZERO;
+                   P_PRES_dot_AP0=ZERO;
+                   P_PRES_dot_AP1=ZERO;
+                   #pragma ivdep
+                   for (z=n_start; z < n_end; ++z) {
+                       R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                       P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                       P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                   }
+                   #pragma omp critical
+                   {
+                        loc_dots[0]+=R_PRES_dot_P;
+                        loc_dots[1]+=P_PRES_dot_AP0;
+                        loc_dots[2]+=P_PRES_dot_AP1;
+                   }
+               } else if (order==3) {
+                   R_PRES_dot_P=ZERO;
+                   P_PRES_dot_AP0=ZERO;
+                   P_PRES_dot_AP1=ZERO;
+                   P_PRES_dot_AP2=ZERO;
+                   #pragma ivdep
+                   for (z=n_start; z < n_end; ++z) {
+                       R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                       P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                       P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                       P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
+                   }
+                   #pragma omp critical
+                   {
+                        loc_dots[0]+=R_PRES_dot_P;
+                        loc_dots[1]+=P_PRES_dot_AP0;
+                        loc_dots[2]+=P_PRES_dot_AP1;
+                        loc_dots[3]+=P_PRES_dot_AP2;
+                   }
+               } else if (order==4) {
+                   R_PRES_dot_P=ZERO;
+                   P_PRES_dot_AP0=ZERO;
+                   P_PRES_dot_AP1=ZERO;
+                   P_PRES_dot_AP2=ZERO;
+                   P_PRES_dot_AP3=ZERO;
+                   #pragma ivdep
+                   for (z=n_start; z < n_end; ++z) {
+                       R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                       P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                       P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                       P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
+                       P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
+                   }
+                   #pragma omp critical
+                   {
+                        loc_dots[0]+=R_PRES_dot_P;
+                        loc_dots[1]+=P_PRES_dot_AP0;
+                        loc_dots[2]+=P_PRES_dot_AP1;
+                        loc_dots[3]+=P_PRES_dot_AP2;
+                        loc_dots[4]+=P_PRES_dot_AP3;
+                   }
+               } else if (order==5) {
+                   R_PRES_dot_P=ZERO;
+                   P_PRES_dot_AP0=ZERO;
+                   P_PRES_dot_AP1=ZERO;
+                   P_PRES_dot_AP2=ZERO;
+                   P_PRES_dot_AP3=ZERO;
+                   P_PRES_dot_AP4=ZERO;
+                   #pragma ivdep
+                   for (z=n_start; z < n_end; ++z) {
+                       R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                       P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                       P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                       P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
+                       P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
+                       P_PRES_dot_AP4+=P_PRES[4][z]*AP[z];
+                   }
+                   #pragma omp critical
+                   {
+                        loc_dots[0]+=R_PRES_dot_P;
+                        loc_dots[1]+=P_PRES_dot_AP0;
+                        loc_dots[2]+=P_PRES_dot_AP1;
+                        loc_dots[3]+=P_PRES_dot_AP2;
+                        loc_dots[4]+=P_PRES_dot_AP3;
+                        loc_dots[5]+=P_PRES_dot_AP4;
+                   }
+               } else if (order==6) {
+                   R_PRES_dot_P=ZERO;
+                   P_PRES_dot_AP0=ZERO;
+                   P_PRES_dot_AP1=ZERO;
+                   P_PRES_dot_AP2=ZERO;
+                   P_PRES_dot_AP3=ZERO;
+                   P_PRES_dot_AP4=ZERO;
+                   P_PRES_dot_AP5=ZERO;
+                   #pragma ivdep
+                   for (z=n_start; z < n_end; ++z) {
+                       R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                       P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                       P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                       P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
+                       P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
+                       P_PRES_dot_AP4+=P_PRES[4][z]*AP[z];
+                       P_PRES_dot_AP5+=P_PRES[5][z]*AP[z];
+                   }
+                   #pragma omp critical
+                   {
+                        loc_dots[0]+=R_PRES_dot_P;
+                        loc_dots[1]+=P_PRES_dot_AP0;
+                        loc_dots[2]+=P_PRES_dot_AP1;
+                        loc_dots[3]+=P_PRES_dot_AP2;
+                        loc_dots[4]+=P_PRES_dot_AP3;
+                        loc_dots[5]+=P_PRES_dot_AP4;
+                        loc_dots[6]+=P_PRES_dot_AP5;
+                   }
+               } else {
+                  R_PRES_dot_P=ZERO;
+                  P_PRES_dot_AP0=ZERO;
+                  P_PRES_dot_AP1=ZERO;
+                  P_PRES_dot_AP2=ZERO;
+                  P_PRES_dot_AP3=ZERO;
+                  P_PRES_dot_AP4=ZERO;
+                  P_PRES_dot_AP5=ZERO;
+                  P_PRES_dot_AP6=ZERO;
+                  #pragma ivdep
+                  for (z=n_start; z < n_end; ++z) {
+                      R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                      P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                      P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                      P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
+                      P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
+                      P_PRES_dot_AP4+=P_PRES[4][z]*AP[z];
+                      P_PRES_dot_AP5+=P_PRES[5][z]*AP[z];
+                      P_PRES_dot_AP6+=P_PRES[6][z]*AP[z];
+                  }
+                  #pragma omp critical
+                  {
+                       loc_dots[0]+=R_PRES_dot_P;
+                       loc_dots[1]+=P_PRES_dot_AP0;
+                       loc_dots[2]+=P_PRES_dot_AP1;
+                       loc_dots[3]+=P_PRES_dot_AP2;
+                       loc_dots[4]+=P_PRES_dot_AP3;
+                       loc_dots[5]+=P_PRES_dot_AP4;
+                       loc_dots[6]+=P_PRES_dot_AP5;
+                       loc_dots[7]+=P_PRES_dot_AP6;
+                  }
+                  for (i=7;i<order;++i) {
+                       P_PRES_dot_AP0=ZERO;
+                       #pragma ivdep
+                       for (z=n_start; z < n_end; ++z) {
+                             P_PRES_dot_AP0+=P_PRES[i][z]*AP[z];
+                       }
+                       #pragma omp critical
+                       {
+                           loc_dots[i+1]+=P_PRES_dot_AP0;
+                       }
+                  }
+               }
          }
-         /* this fixes a problem with the intel compiler */
-         P_PRES_dot_AP0=R_PRES_dot_P_PRES[0];
+         #ifdef PASO_MPI
+                MPI_Allreduce(loc_dots, dots, order+1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+                R_PRES_dot_P_PRES[0]=dots[0];
+                memcpy(P_PRES_dot_AP,&dots[1],sizeof(double)*order);
+         #else
+                R_PRES_dot_P_PRES[0]=loc_dots[0];
+                memcpy(P_PRES_dot_AP,&loc_dots[1],sizeof(double)*order);
+         #endif
+         R_PRES_dot_AP0=R_PRES_dot_P_PRES[0];
+
          /***   if sum_BREAKF is equal to zero a breakdown occurs.
           ***   iteration procedure can be continued but R_PRES is not the
           ***   residual of X_PRES approximation.
           ***/
          sum_BREAKF=0.;
+         #pragma ivdep
          for (i=0;i<order;++i) sum_BREAKF +=BREAKF[i];
-         breakFlag=!((ABS(P_PRES_dot_AP0) > ZERO) &&  (sum_BREAKF >ZERO));
+         breakFlag=!((ABS(R_PRES_dot_AP0) > ZERO) &&  (sum_BREAKF >ZERO));
          if (!breakFlag) {
             breakFlag=FALSE;
             /***
             ***** X_PRES and R_PRES are moved to memory:
             ***/
             Factor=0.;
+            #pragma ivdep
             for (i=0;i<order;++i) {
                    ALPHA[i]=-P_PRES_dot_AP[i]/R_PRES_dot_P_PRES[i];
                    Factor+=BREAKF[i]*ALPHA[i];
@@ -337,6 +396,7 @@ err_t Paso_Solver_GMRES(
              save_R_PRES=R_PRES[Length_of_mem-1];
              save_XPRES=X_PRES[Length_of_mem-1];
              save_P_PRES=P_PRES[Length_of_mem-1];
+             #pragma ivdep
              for (i=Length_of_mem-1;i>0;--i) {
                    BREAKF[i]=BREAKF[i-1];
                    R_PRES_dot_P_PRES[i]=R_PRES_dot_P_PRES[i-1];
@@ -366,124 +426,169 @@ err_t Paso_Solver_GMRES(
             ***                                                                 
             **/
             breakf0=BREAKF[0];
-            if (order==0) {
-              #pragma omp parallel for private(z) schedule(static)
-              for (z=0;z<n;++z) {
-                  R_PRES[0][z]= Factor*       AP[z];
-                  X_PRES[0][z]=-Factor*P_PRES[1][z];
-              }
-            } else if (order==1) {
-              #pragma omp parallel for private(z) schedule(static)
-              for (z=0;z<n;++z) {
-                  R_PRES[0][z]= Factor*       AP[z]+ALPHA[0]*R_PRES[1][z];
-                  X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z];
-              }
-            } else if (order==2) {
-              #pragma omp parallel for private(z) schedule(static)
-              for (z=0;z<n;++z) {
-                 R_PRES[0][z]= Factor*       AP[z]+ALPHA[0]*R_PRES[1][z]
-                                                  +ALPHA[1]*R_PRES[2][z];
-                 X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
-                                                  +ALPHA[1]*X_PRES[2][z];
-              }
-            } else if (order==3) {
-              #pragma omp parallel for private(z) schedule(static)
-              for (z=0;z<n;++z) {
-                 R_PRES[0][z]= Factor*AP[z]+ALPHA[0]*R_PRES[1][z]
-                                           +ALPHA[1]*R_PRES[2][z]
-                                           +ALPHA[2]*R_PRES[3][z];
-                 X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
-                                                  +ALPHA[1]*X_PRES[2][z]
-                                                  +ALPHA[2]*X_PRES[3][z];
-              }
-            } else if (order==4) {
-              #pragma omp parallel for private(z) schedule(static)
-              for (z=0;z<n;++z) {
-                 R_PRES[0][z]= Factor*AP[z]+ALPHA[0]*R_PRES[1][z]
-                                           +ALPHA[1]*R_PRES[2][z]
-                                           +ALPHA[2]*R_PRES[3][z]
-                                           +ALPHA[3]*R_PRES[4][z];
-                 X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
-                                                  +ALPHA[1]*X_PRES[2][z]
-                                                  +ALPHA[2]*X_PRES[3][z]
-                                                  +ALPHA[3]*X_PRES[4][z];
-              }
-            } else if (order==5) {
-              #pragma omp parallel for private(z) schedule(static)
-              for (z=0;z<n;++z) {
-                 R_PRES[0][z]=Factor*AP[z]+ALPHA[0]*R_PRES[1][z]
-                                          +ALPHA[1]*R_PRES[2][z]
-                                          +ALPHA[2]*R_PRES[3][z]
-                                          +ALPHA[3]*R_PRES[4][z]
-                                          +ALPHA[4]*R_PRES[5][z];
-                 X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
-                                                  +ALPHA[1]*X_PRES[2][z]
-                                                  +ALPHA[2]*X_PRES[3][z]
-                                                  +ALPHA[3]*X_PRES[4][z]
-                                                  +ALPHA[4]*X_PRES[5][z];
-              }
-            } else if (order==6) {
-              #pragma omp parallel for private(z) schedule(static)
-              for (z=0;z<n;++z) {
-                 R_PRES[0][z]=Factor*AP[z]+ALPHA[0]*R_PRES[1][z]
-                                          +ALPHA[1]*R_PRES[2][z]
-                                          +ALPHA[2]*R_PRES[3][z]
-                                          +ALPHA[3]*R_PRES[4][z]
-                                          +ALPHA[4]*R_PRES[5][z]
-                                          +ALPHA[5]*R_PRES[6][z];
-                 X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
-                                                  +ALPHA[1]*X_PRES[2][z]
-                                                  +ALPHA[2]*X_PRES[3][z]
-                                                  +ALPHA[3]*X_PRES[4][z]
-                                                  +ALPHA[4]*X_PRES[5][z]
-                                                  +ALPHA[5]*X_PRES[6][z];
-              }
-            } else if (order>6) {
-              #pragma omp parallel for private(z) schedule(static)
-              for (z=0;z<n;++z) {
-                 R_PRES[0][z]=Factor*AP[z]+ALPHA[0]*R_PRES[1][z]
-                                          +ALPHA[1]*R_PRES[2][z]
-                                          +ALPHA[2]*R_PRES[3][z]
-                                          +ALPHA[3]*R_PRES[4][z]
-                                          +ALPHA[4]*R_PRES[5][z]
-                                          +ALPHA[5]*R_PRES[6][z]
-                                          +ALPHA[6]*R_PRES[7][z];
-                 X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
-                                                  +ALPHA[1]*X_PRES[2][z]
-                                                  +ALPHA[2]*X_PRES[3][z]
-                                                  +ALPHA[3]*X_PRES[4][z]
-                                                  +ALPHA[4]*X_PRES[5][z]
-                                                  +ALPHA[5]*X_PRES[6][z]
-                                                  +ALPHA[6]*X_PRES[7][z];
-              }
-              for (i=7;i<order;++i) {
-                #pragma omp parallel for private(z) schedule(static)
-                for (z=0;z<n;++z) {
-                    R_PRES[0][z]+=ALPHA[i]*R_PRES[i+1][z];
-                    X_PRES[0][z]+=ALPHA[i]*X_PRES[i+1][z];
-                }
-              }
+            #pragma omp parallel for private(th,z,i,local_n, rest, n_start, n_end)
+            for (th=0;th<num_threads;++th) {
+               local_n=n/num_threads;
+               rest=n-local_n*num_threads;
+               n_start=local_n*th+MIN(th,rest);
+               n_end=local_n*(th+1)+MIN(th+1,rest);
+               if (order==0) {
+                   #pragma ivdep
+                   for (z=n_start; z < n_end; ++z) {
+                      R_PRES[0][z]= Factor*       AP[z];
+                      X_PRES[0][z]=-Factor*P_PRES[1][z];
+                   }
+               } else if (order==1) {
+                   #pragma ivdep
+                   for (z=n_start; z < n_end; ++z) {
+                       R_PRES[0][z]= Factor*       AP[z]+ALPHA[0]*R_PRES[1][z];
+                       X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z];
+                   }
+               } else if (order==2) {
+                   #pragma ivdep
+                   for (z=n_start; z < n_end; ++z) {
+                       R_PRES[0][z]= Factor*       AP[z]+ALPHA[0]*R_PRES[1][z]
+                                                        +ALPHA[1]*R_PRES[2][z];
+                       X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
+                                                        +ALPHA[1]*X_PRES[2][z];
+                   }
+               } else if (order==3) {
+                   #pragma ivdep
+                   for (z=n_start; z < n_end; ++z) {
+                       R_PRES[0][z]= Factor*AP[z]+ALPHA[0]*R_PRES[1][z]
+                                                 +ALPHA[1]*R_PRES[2][z]
+                                                 +ALPHA[2]*R_PRES[3][z];
+                       X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
+                                                        +ALPHA[1]*X_PRES[2][z]
+                                                        +ALPHA[2]*X_PRES[3][z];
+                   }
+               } else if (order==4) {
+                   #pragma ivdep
+                   for (z=n_start; z < n_end; ++z) {
+                       R_PRES[0][z]= Factor*AP[z]+ALPHA[0]*R_PRES[1][z]
+                                                 +ALPHA[1]*R_PRES[2][z]
+                                                 +ALPHA[2]*R_PRES[3][z]
+                                                 +ALPHA[3]*R_PRES[4][z];
+                       X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
+                                                        +ALPHA[1]*X_PRES[2][z]
+                                                        +ALPHA[2]*X_PRES[3][z]
+                                                        +ALPHA[3]*X_PRES[4][z];
+                   }
+               } else if (order==5) {
+                   #pragma ivdep
+                   for (z=n_start; z < n_end; ++z) {
+                       R_PRES[0][z]=Factor*AP[z]+ALPHA[0]*R_PRES[1][z]
+                                                +ALPHA[1]*R_PRES[2][z]
+                                                +ALPHA[2]*R_PRES[3][z]
+                                                +ALPHA[3]*R_PRES[4][z]
+                                                +ALPHA[4]*R_PRES[5][z];
+                       X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
+                                                        +ALPHA[1]*X_PRES[2][z]
+                                                        +ALPHA[2]*X_PRES[3][z]
+                                                        +ALPHA[3]*X_PRES[4][z]
+                                                        +ALPHA[4]*X_PRES[5][z];
+                    }
+               } else if (order==6) {
+                   #pragma ivdep
+                   for (z=n_start; z < n_end; ++z) {
+                      R_PRES[0][z]=Factor*AP[z]+ALPHA[0]*R_PRES[1][z]
+                                               +ALPHA[1]*R_PRES[2][z]
+                                               +ALPHA[2]*R_PRES[3][z]
+                                               +ALPHA[3]*R_PRES[4][z]
+                                               +ALPHA[4]*R_PRES[5][z]
+                                               +ALPHA[5]*R_PRES[6][z];
+                      X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
+                                                       +ALPHA[1]*X_PRES[2][z]
+                                                       +ALPHA[2]*X_PRES[3][z]
+                                                       +ALPHA[3]*X_PRES[4][z]
+                                                       +ALPHA[4]*X_PRES[5][z]
+                                                       +ALPHA[5]*X_PRES[6][z];
+                   }
+               } else {
+                   #pragma ivdep
+                   for (z=n_start; z < n_end; ++z) {
+                        R_PRES[0][z]=Factor*AP[z]+ALPHA[0]*R_PRES[1][z]
+                                                 +ALPHA[1]*R_PRES[2][z]
+                                                 +ALPHA[2]*R_PRES[3][z]
+                                                 +ALPHA[3]*R_PRES[4][z]
+                                                 +ALPHA[4]*R_PRES[5][z]
+                                                 +ALPHA[5]*R_PRES[6][z]
+                                                 +ALPHA[6]*R_PRES[7][z];
+                        X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
+                                                         +ALPHA[1]*X_PRES[2][z]
+                                                         +ALPHA[2]*X_PRES[3][z]
+                                                         +ALPHA[3]*X_PRES[4][z]
+                                                         +ALPHA[4]*X_PRES[5][z]
+                                                         +ALPHA[5]*X_PRES[6][z]
+                                                         +ALPHA[6]*X_PRES[7][z];
+                   }
+                   for (i=7;i<order;++i) {
+                      #pragma ivdep
+                      for (z=n_start; z < n_end; ++z) {
+                         R_PRES[0][z]+=ALPHA[i]*R_PRES[i+1][z];
+                         X_PRES[0][z]+=ALPHA[i]*X_PRES[i+1][z];
+                     }
+                   }
+               }
             }
             if (breakf0>0.) {
               /***
               ***** calculate gamma from min_(gamma){|R+gamma*(R_PRES-R)|_2}:
               ***/
-              SC1=ZERO;
-              SC2=ZERO;
-              L2_R=ZERO;
-              #pragma omp parallel for private(z,diff) reduction(+:SC1,SC2) schedule(static)
-              for (z=0;z<n;++z) {
-                diff=R_PRES[0][z]-r[z];
-                SC1+=diff*diff;
-                SC2+=diff*r[z];
+              memset(loc_dots,0,sizeof(double)*3);
+              #pragma omp parallel for private(th,z,i,local_n, rest, n_start, n_end,diff,SC1,SC2)
+              for (th=0;th<num_threads;++th) {
+                  local_n=n/num_threads;
+                  rest=n-local_n*num_threads;
+                  n_start=local_n*th+MIN(th,rest);
+                  n_end=local_n*(th+1)+MIN(th+1,rest);
+                  SC1=ZERO;
+                  SC2=ZERO;
+                  #pragma ivdep
+                  for (z=n_start; z < n_end; ++z) {
+                       diff=R_PRES[0][z]-r[z];
+                       SC1+=diff*diff;
+                       SC2+=diff*r[z];
+                  }
+                  #pragma omp critical
+                  {
+                       loc_dots[0]+=SC1;
+                       loc_dots[1]+=SC2;
+                  }
               }
+              #ifdef PASO_MPI
+                  MPI_Allreduce(loc_dots, dots, 2, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+                  SC1=dots[0];
+                  SC2=dots[1];
+              #else
+                  SC1=loc_dots[0];
+                  SC2=loc_dots[1];
+              #endif
               gamma=(SC1<=ZERO) ? ZERO : -SC2/SC1;
-              #pragma omp parallel for private(z) reduction(+:L2_R) schedule(static)
-              for (z=0;z<n;++z) {
-                 x[z]+=gamma*(X_PRES[0][z]-x[z]);
-                 r[z]+=gamma*(R_PRES[0][z]-r[z]);
-                 L2_R+=r[z]*r[z];
+              #pragma omp parallel for private(th,z,local_n, rest, n_start, n_end,diff,L2_R)
+              for (th=0;th<num_threads;++th) {
+                  local_n=n/num_threads;
+                  rest=n-local_n*num_threads;
+                  n_start=local_n*th+MIN(th,rest);
+                  n_end=local_n*(th+1)+MIN(th+1,rest);
+                  L2_R=ZERO;
+                  #pragma ivdep
+                  for (z=n_start; z < n_end; ++z) {
+                      x[z]+=gamma*(X_PRES[0][z]-x[z]);
+                      r[z]+=gamma*(R_PRES[0][z]-r[z]);
+                      L2_R+=r[z]*r[z];
+                  }
+                  #pragma omp critical
+                  {
+                       loc_dots[2]+=L2_R;
+                  }
               }
+              #ifdef PASO_MPI
+                  MPI_Allreduce(&loc_dots[2], &dots[2], 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+                  L2_R=dots[2];
+              #else
+                  L2_R=loc_dots[2];
+              #endif
               norm_of_residual=sqrt(L2_R);
               convergeFlag = (norm_of_residual <= tol);
               if (restart>0) restartFlag=(num_iter_restart >= restart);
@@ -516,6 +621,8 @@ err_t Paso_Solver_GMRES(
     TMPMEMFREE(R_PRES_dot_P_PRES);
     TMPMEMFREE(BREAKF);
     TMPMEMFREE(ALPHA);
+    TMPMEMFREE(dots);
+    TMPMEMFREE(loc_dots);
     *iter=Num_iter_global;
     *tolerance=Norm_of_residual_global;
   return Status;

@@ -719,7 +719,6 @@ void DataTestCase::testDataTaggedExceptions() {
   cout << "\tTest DataTagged exceptions." << endl;
 
   Data myData;
-  DataArrayView myView;
 
   try {
       myData.getSampleDataByTag(0);;

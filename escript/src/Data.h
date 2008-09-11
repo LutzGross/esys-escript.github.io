@@ -103,21 +103,6 @@ class Data {
   Data(const Data& inData,
        const FunctionSpace& what);
 
-//  /**
-/*     \brief
-     Constructor which copies data from a DataArrayView.
-
-     \param value - Input - Data value for a single point.
-     \param what - Input - A description of what this data represents.
-     \param expanded - Input - Flag, if true fill the entire container with
-                       the value. Otherwise a more efficient storage
-                       mechanism will be used.*/
-//  */
-//   ESCRIPT_DLL_API
-//   Data(const DataArrayView& value,
-//        const FunctionSpace& what=FunctionSpace(),
-//        bool expanded=false);
-
   /**
 	\brief Copy Data from an existing vector
   */ 
@@ -155,27 +140,6 @@ class Data {
   ESCRIPT_DLL_API
   Data(const Data& inData,
        const DataTypes::RegionType& region);
-
-//  /**
-/*     \brief
-     Constructor which will create Tagged data if expanded is false.
-     No attempt is made to ensure the tag keys match the tag keys
-     within the function space.
-
-     \param tagKeys - Input - List of tag values.
-     \param values - Input - List of values, one for each tag.
-     \param defaultValue - Input - A default value, used if tag doesn't exist.
-     \param what - Input - A description of what this data represents.
-     \param expanded - Input - Flag, if true fill the entire container with
-                       the appropriate values.
-    ==>**/
-//  */
-//   ESCRIPT_DLL_API
-//   Data(const DataTagged::TagListType& tagKeys,
-//        const DataTagged::ValueListType& values,
-//        const DataArrayView& defaultValue,
-//        const FunctionSpace& what=FunctionSpace(),
-//        bool expanded=false);
 
   /**
      \brief
@@ -322,8 +286,6 @@ class Data {
      \brief
      Return the tag number associated with the given data-point.
 
-     The data-point number here corresponds to the data-point number in the
-     numarray returned by convertToNumArray.
   */
   ESCRIPT_DLL_API
   int
@@ -1514,6 +1476,11 @@ class Data {
 };
 
 
+
+/**
+   Modify a filename for MPI parallel output to multiple files
+*/
+char *Escript_MPI_appendRankToFileName(const char *, int, int);
 
 /**
    Binary Data object operators.

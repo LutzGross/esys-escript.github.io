@@ -101,22 +101,27 @@ dim_t Paso_MPIInfo_setDistribution(Paso_MPIInfo* mpi_info ,index_t min_id,index_
    dim_t out;
    int s=mpi_info->size;
    dim_t N=max_id-min_id+1;
-   int local_N=N/s;
-   rest=N-local_N*s;
-   for (p=0; p<s; ++p) {
-      if (p<rest) {
-          distribution[p]=min_id+(local_N+1)*p;
-          out=local_N+1;
-      } else {
-          distribution[p]=min_id+rest+local_N*p;
+   if (N>0) {
+      int local_N=N/s;
+      rest=N-local_N*s;
+      for (p=0; p<s; ++p) {
+         if (p<rest) {
+             distribution[p]=min_id+(local_N+1)*p;
+             out=local_N+1;
+         } else {
+             distribution[p]=min_id+rest+local_N*p;
+         }
       }
-   }
-   distribution[s]=max_id+1;
-   if (rest==0) {
-      return local_N;
-   } else {
-      return local_N+1;
-   }
+      distribution[s]=max_id+1;
+      if (rest==0) {
+         return local_N;
+      } else {
+         return local_N+1;
+      }
+  } else {
+      for (p=0; p<s+1; ++p) distribution[p]=min_id;
+      return 0;
+  }
 }
 
 /* checks that there is no error accross all processes in a communicator */

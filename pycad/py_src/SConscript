@@ -1,10 +1,26 @@
+#
+# $Id$
+#
+#######################################################
+#
+#           Copyright 2003-2007 by ACceSS MNRF
+#       Copyright 2007 by University of Queensland
+#
+#                http://esscc.uq.edu.au
+#        Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#######################################################
+#
+
+import os
 Import('*')
 
-local_env=env.Copy()
+local_env = clone_env(env)
 
 src_dir = local_env.Dir('.').srcnode().abspath
 
-import os
 filenames = os.listdir(src_dir)
 python_src = [x for x in filenames if os.path.splitext(x)[1] in ['.py']]
 
@@ -12,12 +28,9 @@ pyc = local_env.PyCompile(python_src)
 # env.SConscript(dirs = ['renderers'],duplicate=0)
 
 # local_env.Depends(pyc, dep_lib)
-local_env.Install(pyinstall+'/pycad', pyc)
 
-# get all the python files in the release tar file
-release_py = [ env.File("SConscript"), ] + [ env.File(x) for x in python_src ]
-env.Zip(src_zipfile, release_py)
-env.Tar(src_tarfile, release_py)
+tmp1 = local_env.Install(local_env['pyinstall']+'/pycad', pyc)
+env.Alias('target_install_pycad_py', [tmp1])
 
 # Call the unit tests SConscript
 local_env.SConscript(dirs = ['#/pycad/test/python'], build_dir='#/build/$PLATFORM/pycad/test/python', duplicate=0)

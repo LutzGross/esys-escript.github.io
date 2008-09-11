@@ -184,6 +184,13 @@ class FunctionSpace {
 
   /**
    \brief
+   Return the reference number associated with the given data-point number.
+  */
+  ESCRIPT_DLL_API
+  int getReferenceIDFromDataPointNo(int dataPointNo) const;
+
+  /**
+   \brief
    Return the reference number associated with the given sample number.
    This function is not efficient. It is better to first call 
    borrowSampleReferenceIDs and then when iterating over sampleNo to use sampleNo as an offset.
@@ -266,6 +273,25 @@ class FunctionSpace {
   getDim() const {
       return getDomain().getDim();
   }
+  /**
+   \brief
+   Returns a list of the lags used in this function space
+  */
+  ESCRIPT_DLL_API
+  boost::python::list
+  getListOfTags() const;
+
+  /**
+     \brief
+        return the number of tags in use and a pointer to an array with the number of tags in use
+  */
+  ESCRIPT_DLL_API
+  virtual int getNumberOfTagsInUse() const;
+
+  ESCRIPT_DLL_API
+  virtual int* borrowListOfTagsInUse() const;
+
+
 
  protected:
 

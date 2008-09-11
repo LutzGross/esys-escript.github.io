@@ -60,6 +60,10 @@ struct Finley_ElementFile {
   index_t *Tag;                                /* Tag[i] is the tag of
 						    element i. */
 
+  index_t *tagsInUse;                  /* array of tags which are actually used */
+  dim_t     numTagsInUse;               /* number of tags used */
+
+
   dim_t numNodes;                              /* number of nodes per element = ReferenceElement.Type.numNodes */
   index_t *Nodes;                              /* Nodes[INDEX(k, i, numNodes)]
 						    is the k-the node in the
@@ -102,7 +106,7 @@ void Finley_ElementFile_createColoring(Finley_ElementFile* in,dim_t numNodes,dim
 void Finley_ElementFile_optimizeOrdering(Finley_ElementFile** in);
 void Finley_ElementFile_setNodeRange(dim_t*,dim_t*,Finley_ElementFile*);
 void Finley_ElementFile_relableNodes(dim_t*,dim_t,Finley_ElementFile*);
-void Finley_ElementFile_markNodes(dim_t*,dim_t,Finley_ElementFile*,dim_t);
+void Finley_ElementFile_markNodes(dim_t*,dim_t,dim_t,Finley_ElementFile*,dim_t);
 void Finley_ElementFile_scatter(dim_t*,Finley_ElementFile*,Finley_ElementFile*);
 void Finley_ElementFile_gather(dim_t*,Finley_ElementFile*,Finley_ElementFile*);
 void Finley_ElementFile_copyTable(dim_t,Finley_ElementFile*,dim_t,dim_t,Finley_ElementFile*);
@@ -112,6 +116,7 @@ void Finley_ElementFile_setTags(Finley_ElementFile*,const int,escriptDataC*);
 Finley_ElementFile_Jacobeans* Finley_ElementFile_Jacobeans_alloc(Finley_RefElement*);
 void Finley_ElementFile_Jacobeans_dealloc(Finley_ElementFile_Jacobeans*);
 Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementFile*, Finley_NodeFile*, bool_t, bool_t);
+void Finley_ElementFile_setTagsInUse(Finley_ElementFile* in);
 
 
 #endif /* #ifndef INC_FINLEY_ELEMENTFILE */

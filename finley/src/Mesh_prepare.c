@@ -25,15 +25,17 @@
 
 void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
      dim_t newGlobalNumDOFs=0, numReducedNodes=0,i;
-     index_t* distribution=NULL, *maskReducedNodes=NULL, *indexReducedNodes=NULL;
+     index_t* distribution=NULL, *maskReducedNodes=NULL, *indexReducedNodes=NULL, *node_distribution=NULL;
      if (in==NULL) return;
      if (in->Nodes == NULL) return;
 
      /* first step is to distribute the elements according to a global distribution of DOF */
 
      distribution=TMPMEMALLOC(in->MPIInfo->size+1,index_t);
-     if (! Finley_checkPtr(distribution)) {
+     node_distribution=TMPMEMALLOC(in->MPIInfo->size+1,index_t);
+     if (! (Finley_checkPtr(distribution) || Finley_checkPtr(node_distribution))) {
         /* first we create dense labeling for the DOFs */
+
         newGlobalNumDOFs=Finley_NodeFile_createDenseDOFLabeling(in->Nodes);
 
         /* create a distribution of the global DOFs and determine
@@ -49,13 +51,10 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
      /* at this stage we are able to start an optimization of the DOF distribution using ParaMetis */
      /* on return distribution is altered and new DOF ids have been assigned */
      if (Finley_noError() && optimize && in->MPIInfo->size>1) {
-
-         Finley_Mesh_optimizeDOFDistribution(in,distribution);
-
+         Finley_Mesh_optimizeDOFDistribution(in,distribution); 
          if (Finley_noError()) Finley_Mesh_distributeByRankOfDOF(in,distribution); 
-
      }
-     /* now a local labeling of the DOF is introduced */
+     /* the local labeling of the degrees of free is optimized */
      if (Finley_noError() && optimize) {
        Finley_Mesh_optimizeDOFLabeling(in,distribution); 
      }
@@ -65,22 +64,34 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
 
      /* create the global indices */
      if (Finley_noError()) {
+
+
         maskReducedNodes=TMPMEMALLOC(in->Nodes->numNodes,index_t);
         indexReducedNodes=TMPMEMALLOC(in->Nodes->numNodes,index_t);
         if (! ( Finley_checkPtr(maskReducedNodes) ||  Finley_checkPtr(indexReducedNodes) ) ) {
 
+/* useful DEBUG:
+{index_t MIN_id,MAX_id;
+printf("Mesh_prepare: global DOF : %d\n",newGlobalNumDOFs);
+Finley_NodeFile_setGlobalIdRange(&MIN_id,&MAX_id,in->Nodes);
+printf("Mesh_prepare: global node id range = %d :%d\n", MIN_id,MAX_id);
+Finley_NodeFile_setIdRange(&MIN_id,&MAX_id,in->Nodes);
+printf("Mesh_prepare: local node id range = %d :%d\n", MIN_id,MAX_id);
+}
+*/
           #pragma omp parallel for private(i) schedule(static)
           for (i=0;i<in->Nodes->numNodes;++i) maskReducedNodes[i]=-1;
 
-          Finley_Mesh_markNodes(maskReducedNodes,0,in,1);
+          Finley_Mesh_markNodes(maskReducedNodes,0,in,TRUE);
    
           numReducedNodes=Finley_Util_packMask(in->Nodes->numNodes,maskReducedNodes,indexReducedNodes);
 
-          Finley_NodeFile_createDenseNodeLabeling(in->Nodes); 
-          Finley_NodeFile_createDenseReducedNodeLabeling(in->Nodes,maskReducedNodes); 
+          Finley_NodeFile_createDenseNodeLabeling(in->Nodes, node_distribution, distribution); 
           Finley_NodeFile_createDenseReducedDOFLabeling(in->Nodes,maskReducedNodes); 
+          Finley_NodeFile_createDenseReducedNodeLabeling(in->Nodes,maskReducedNodes);
           /* create the missing mappings */
-          if (Finley_noError()) Finley_Mesh_createNodeFileMappings(in,numReducedNodes,indexReducedNodes,distribution);
+
+          if (Finley_noError()) Finley_Mesh_createNodeFileMappings(in,numReducedNodes,indexReducedNodes,distribution, node_distribution);
         }
 
         TMPMEMFREE(maskReducedNodes);
@@ -88,7 +99,9 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
      }
 
      TMPMEMFREE(distribution);
+     TMPMEMFREE(node_distribution);
 
+     Finley_Mesh_setTagsInUse(in);
      return;
 }
 
@@ -109,4 +122,15 @@ void Finley_Mesh_optimizeElementOrdering(Finley_Mesh* in) {
   if (Finley_noError()) Finley_ElementFile_optimizeOrdering(&(in->FaceElements));
   if (Finley_noError()) Finley_ElementFile_optimizeOrdering(&(in->Points));
   if (Finley_noError()) Finley_ElementFile_optimizeOrdering(&(in->ContactElements));
+}
+
+/*                                                                    */
+/*  redistribute elements to minimize communication during assemblage */
+void Finley_Mesh_setTagsInUse(Finley_Mesh* in)
+{
+    if (Finley_noError()) Finley_NodeFile_setTagsInUse(in->Nodes);
+    if (Finley_noError()) Finley_ElementFile_setTagsInUse(in->Elements);
+    if (Finley_noError()) Finley_ElementFile_setTagsInUse(in->FaceElements);
+    if (Finley_noError()) Finley_ElementFile_setTagsInUse(in->Points);
+    if (Finley_noError()) Finley_ElementFile_setTagsInUse(in->ContactElements);
 }

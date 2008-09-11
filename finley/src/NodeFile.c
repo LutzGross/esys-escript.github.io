@@ -38,6 +38,7 @@ Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim, Paso_MPIInfo *MPIInfo)
   if (Finley_checkPtr(out)) return NULL;
   out->numNodes=0;
   out->numDim=numDim;
+  out->numTagsInUse=0;
   out->Id=NULL;
   out->globalDegreesOfFreedom=NULL;
   out->Tag=NULL;
@@ -61,6 +62,7 @@ Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim, Paso_MPIInfo *MPIInfo)
   out->reducedDegreesOfFreedomDistribution=NULL;
   out->degreesOfFreedomConnector=NULL;
   out->reducedDegreesOfFreedomConnector=NULL;
+  out->tagsInUse=NULL;
 
   out->MPIInfo = Paso_MPIInfo_getReference( MPIInfo );
   return out;

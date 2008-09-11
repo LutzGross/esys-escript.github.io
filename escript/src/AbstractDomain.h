@@ -21,6 +21,7 @@
 #include <string>
 #include <map>
 #include <boost/python/dict.hpp>
+#include <boost/python/list.hpp>
 
 namespace escript {
 // class forward declarations
@@ -375,6 +376,18 @@ class AbstractDomain {
   */
   ESCRIPT_DLL_API
   void throwStandardException(const std::string& functionName) const;
+
+  /**
+        \brief
+                  return the number of tags in use and a pointer to an array with the number of tags in use
+  */
+  ESCRIPT_DLL_API
+  virtual int getNumberOfTagsInUse(int functionSpaceCode) const;
+
+  ESCRIPT_DLL_API
+  virtual int* borrowListOfTagsInUse(int functionSpaceCode) const;
+
+
 
  protected:
 

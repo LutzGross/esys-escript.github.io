@@ -866,7 +866,6 @@ void DataTypesTestCase::testSlicing() {
 
     len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
-    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
 //     targetView.copySliceFrom(sourceView,region);

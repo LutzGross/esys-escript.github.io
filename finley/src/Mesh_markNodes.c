@@ -26,10 +26,10 @@
 /**************************************************************/
 
 void Finley_Mesh_markNodes(index_t* mask,index_t offset,Finley_Mesh* in,bool_t useLinear) {
-          Finley_ElementFile_markNodes(mask,offset,in->Elements,useLinear);
-          Finley_ElementFile_markNodes(mask,offset,in->FaceElements,useLinear);
-          Finley_ElementFile_markNodes(mask,offset,in->ContactElements,useLinear);
-          Finley_ElementFile_markNodes(mask,offset,in->Points,useLinear);
+          Finley_ElementFile_markNodes(mask,offset,in->Nodes->numNodes,in->Elements,useLinear);
+          Finley_ElementFile_markNodes(mask,offset,in->Nodes->numNodes,in->FaceElements,useLinear);
+          Finley_ElementFile_markNodes(mask,offset,in->Nodes->numNodes,in->ContactElements,useLinear);
+          Finley_ElementFile_markNodes(mask,offset,in->Nodes->numNodes,in->Points,useLinear);
 }
 
 void Finley_Mesh_markDOFsConnectedToRange(index_t* mask, index_t offset, index_t marker, 

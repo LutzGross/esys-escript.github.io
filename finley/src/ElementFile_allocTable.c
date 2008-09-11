@@ -21,7 +21,9 @@
 
 /**************************************************************/
 
+
 #include "ElementFile.h"
+#include "Util.h"
 
 /****************************************************************************/
 
@@ -76,6 +78,20 @@ void Finley_ElementFile_allocTable(Finley_ElementFile* in,dim_t numElements)
   return;
 }
 
+void Finley_ElementFile_setTagsInUse(Finley_ElementFile* in)
+{
+    index_t *tagsInUse=NULL;
+    dim_t numTagsInUse;
+    if (in !=NULL) {
+       Finley_Util_setValuesInUse(in->Tag, in->numElements, &numTagsInUse, &tagsInUse, in->MPIInfo);
+       if (Finley_noError()) {
+          MEMFREE(in->tagsInUse);
+          in->tagsInUse=tagsInUse;
+          in->numTagsInUse=numTagsInUse;
+       }
+    }
+}
+
 /*  deallocates the element table within an element file: */
 
 void Finley_ElementFile_freeTable(Finley_ElementFile* in) {
@@ -84,6 +100,8 @@ void Finley_ElementFile_freeTable(Finley_ElementFile* in) {
   MEMFREE(in->Nodes);
   MEMFREE(in->Tag);
   MEMFREE(in->Color);
+  MEMFREE(in->tagsInUse);
+  in->numTagsInUse=0;
   in->numElements=0;
   in->maxColor=-1;
   in->minColor=0;

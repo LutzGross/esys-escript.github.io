@@ -43,6 +43,9 @@
   strcpy(&dest[dest_in_use], chunk); \
   dest_in_use+=strlen(chunk); \
 }
+#define INSIDE_1D(_X_,_C_,_R_) ( ABS((_X_)-(_C_)) <= (_R_) ) 
+#define INSIDE_2D(_X_,_Y_,_CX_,_CY_,_R_) ( INSIDE_1D(_X_,_CX_,_R_) &&  INSIDE_1D(_Y_,_CY_,_R_))
+#define INSIDE_3D(_X_,_Y_,_Z_,_CX_,_CY_,_CZ_,_R_) ( INSIDE_1D(_X_,_CX_,_R_) &&  INSIDE_1D(_Y_,_CY_,_R_) && INSIDE_1D(_Z_,_CZ_,_R_) )
 
 void Finley_Mesh_saveVTK(const char * filename_p,
                          Finley_Mesh *mesh_p,
@@ -50,17 +53,18 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                          char* *names_p, 
                          escriptDataC* *data_pp)
 {
+#ifdef USE_VTK
   char error_msg[LenErrorMsg_MAX], *txt_buffer=NULL, tmp_buffer[LEN_TMP_BUFFER];
-  double sampleAvg[NCOMP_MAX], *values, rtmp;
+  double sampleAvg[NCOMP_MAX], *values, rtmp, *QuadNodes;
   size_t txt_buffer_in_use;
   dim_t len_txt_buffer,  max_len_names;
   FILE * fileHandle_p = NULL;
-  int mpi_size, i, j, cellType;
-  dim_t i_data;
+  int mpi_size, i, j, l, cellType;
+  dim_t i_data, hits, hits_old;
   dim_t nDim, globalNumPoints, numCells, globalNumCells, numVTKNodesPerElement;
   dim_t myNumPoints, numPointsPerSample, rank, nComp, nCompReqd;
   dim_t shape, NN, numCellFactor, myNumCells, max_name_len;
-  bool_t *isCellCentered=NULL,write_celldata=FALSE,write_pointdata=FALSE;
+  bool_t *isCellCentered=NULL,write_celldata=FALSE,write_pointdata=FALSE, reduced_elements=FALSE;
   bool_t set_scalar=FALSE,set_vector=FALSE, set_tensor=FALSE;
   index_t myFirstNode, myLastNode, *globalNodeIndex, k, *node_index, myFirstCell;
   #ifdef PASO_MPI
@@ -160,6 +164,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   isCellCentered=TMPMEMALLOC(num_data,bool_t);
   max_len_names=0;
   if (!Finley_checkPtr(isCellCentered)) {
+     reduced_elements=FALSE;
      nodetype=FINLEY_UNKNOWN;
      elementtype=FINLEY_UNKNOWN;
      for (i_data=0;i_data<num_data;++i_data) {
@@ -183,8 +188,9 @@ void Finley_Mesh_saveVTK(const char * filename_p,
              Finley_setError(TYPE_ERROR,"saveVTK: cannot write given data in single file.");
            }
            break;
-         case FINLEY_ELEMENTS:
          case FINLEY_REDUCED_ELEMENTS:
+            reduced_elements=TRUE;
+         case FINLEY_ELEMENTS:
            isCellCentered[i_data]=TRUE;
            if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_ELEMENTS) {
              elementtype=FINLEY_ELEMENTS;
@@ -192,8 +198,9 @@ void Finley_Mesh_saveVTK(const char * filename_p,
              Finley_setError(TYPE_ERROR,"saveVTK: cannot write given data in single file.");
            }
            break;
-         case FINLEY_FACE_ELEMENTS:
          case FINLEY_REDUCED_FACE_ELEMENTS:
+            reduced_elements=TRUE;
+         case FINLEY_FACE_ELEMENTS:
            isCellCentered[i_data]=TRUE;
            if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_FACE_ELEMENTS) {
              elementtype=FINLEY_FACE_ELEMENTS;
@@ -209,8 +216,9 @@ void Finley_Mesh_saveVTK(const char * filename_p,
              Finley_setError(TYPE_ERROR,"saveVTK: cannot write given data in single file.");
            }
            break;
-         case FINLEY_CONTACT_ELEMENTS_1:
          case FINLEY_REDUCED_CONTACT_ELEMENTS_1:
+            reduced_elements=TRUE;
+         case FINLEY_CONTACT_ELEMENTS_1:
            isCellCentered[i_data]=TRUE;
            if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_CONTACT_ELEMENTS_1) {
              elementtype=FINLEY_CONTACT_ELEMENTS_1;
@@ -218,8 +226,9 @@ void Finley_Mesh_saveVTK(const char * filename_p,
              Finley_setError(TYPE_ERROR,"saveVTK: cannot write given data in single file.");
            }
            break;
-         case FINLEY_CONTACT_ELEMENTS_2:
          case FINLEY_REDUCED_CONTACT_ELEMENTS_2:
+            reduced_elements=TRUE;
+         case FINLEY_CONTACT_ELEMENTS_2:
            isCellCentered[i_data]=TRUE;
            if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_CONTACT_ELEMENTS_1) {
              elementtype=FINLEY_CONTACT_ELEMENTS_1;
@@ -246,7 +255,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
      /***************************************/
 
      /* select number of points and the mesh component */
-   
+
      if (nodetype == FINLEY_REDUCED_NODES) {
         myFirstNode = Finley_NodeFile_getFirstReducedNode(mesh_p->Nodes);
         myLastNode = Finley_NodeFile_getLastReducedNode(mesh_p->Nodes);
@@ -285,8 +294,18 @@ void Finley_Mesh_saveVTK(const char * filename_p,
        NN = elements->numNodes;
        if (nodetype==FINLEY_REDUCED_NODES) {
           TypeId = elements->LinearReferenceElement->Type->TypeId;
+          if (reduced_elements) {
+              QuadNodes=elements->LinearReferenceElementReducedOrder->QuadNodes;
+          } else {
+              QuadNodes=elements->LinearReferenceElement->QuadNodes;
+          }
        } else {
           TypeId = elements->ReferenceElement->Type->TypeId;
+          if (reduced_elements) {
+              QuadNodes=elements->ReferenceElementReducedOrder->QuadNodes;
+          } else {
+              QuadNodes=elements->ReferenceElement->QuadNodes;
+          }
        }
        switch(TypeId) {
         case Point1:
@@ -328,6 +347,13 @@ void Finley_Mesh_saveVTK(const char * filename_p,
         case Rec4_Contact:
         case Hex8Face_Contact:
           numCellFactor=1;
+          cellType = VTK_QUAD;
+          numVTKNodesPerElement = 4;
+          strcpy(elemTypeStr, "VTK_QUAD");
+          break;
+
+        case Rec9:
+          numCellFactor=4;
           cellType = VTK_QUAD;
           numVTKNodesPerElement = 4;
           strcpy(elemTypeStr, "VTK_QUAD");
@@ -391,6 +417,13 @@ void Finley_Mesh_saveVTK(const char * filename_p,
           cellType = VTK_QUADRATIC_HEXAHEDRON;
           numVTKNodesPerElement = 20;
           strcpy(elemTypeStr, "VTK_QUADRATIC_HEXAHEDRON");
+          break;
+
+        case Hex27:
+          numCellFactor=8;
+          cellType = VTK_HEXAHEDRON;
+          numVTKNodesPerElement = 8;
+          strcpy(elemTypeStr, "VTK_HEXAHEDRON");
           break;
       
         default:
@@ -463,6 +496,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
    
          }
          #ifdef PASO_MPI
+            if (txt_buffer_in_use==0) { strcpy(txt_buffer, " "); txt_buffer_in_use = 1; } /* avoid zero-length writes */
             MPI_File_write_ordered(mpi_fileHandle_p, txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
          #endif     
       } else {
@@ -506,7 +540,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
         node_index=elements->ReferenceElement->Type->linearNodes;
      } else if (VTK_QUADRATIC_HEXAHEDRON==cellType) {
         node_index=VTK_QUADRATIC_HEXAHEDRON_INDEX;
-     } else if (numVTKNodesPerElement!=NN) {
+     } else if ( (numVTKNodesPerElement!=NN) && (TypeId!=Rec9) && (TypeId!=Hex27) ) {
         node_index=elements->ReferenceElement->Type->geoNodes;
      } else {
         node_index=NULL;
@@ -516,13 +550,139 @@ void Finley_Mesh_saveVTK(const char * filename_p,
         txt_buffer[0] = '\0';
         txt_buffer_in_use=0;
         if (node_index == NULL) {
-           for (i = 0; i < numCells; i++) {
-              if (elements->Owner[i] == my_mpi_rank) {
-                 for (j = 0; j < numVTKNodesPerElement; j++) {
-                     sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(j, i, NN)]]);
-                     __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use)
+           if (TypeId==Rec9) {
+              for (i = 0; i < numCells; i++) {
+                 if (elements->Owner[i] == my_mpi_rank) {
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(0, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(4, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(8, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(7, i, NN)]]);
+                        __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use)
+                        __STRCAT(txt_buffer,NEWLINE,txt_buffer_in_use)
+
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(4, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(1, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(5, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(8, i, NN)]]);
+                        __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use)
+                        __STRCAT(txt_buffer,NEWLINE,txt_buffer_in_use)
+
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(7, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(8, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(6, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(3, i, NN)]]);
+                        __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use)
+                        __STRCAT(txt_buffer,NEWLINE,txt_buffer_in_use)
+
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(8, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(5, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(2, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(6, i, NN)]]);
+                        __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use)
+                        __STRCAT(txt_buffer,NEWLINE,txt_buffer_in_use)
+                }
+              }
+           } else if (TypeId==Hex27) {
+              for (i = 0; i < numCells; i++) {
+                 if (elements->Owner[i] == my_mpi_rank) {
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 0, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 8, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(20, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(11, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(12, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(21, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(26, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(24, i, NN)]]);
+                        __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use)
+                        __STRCAT(txt_buffer,NEWLINE,txt_buffer_in_use)
+
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 8, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 1, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 9, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(20, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(21, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(13, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(22, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(26, i, NN)]]);
+                        __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use)
+                        __STRCAT(txt_buffer,NEWLINE,txt_buffer_in_use)
+
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(11, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(20, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(10, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 3, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(24, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(26, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(23, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(15, i, NN)]]);
+                        __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use)
+                        __STRCAT(txt_buffer,NEWLINE,txt_buffer_in_use)
+
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(20, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 9, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 2, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(10, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(26, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(22, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(14, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(23, i, NN)]]);
+                        __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use)
+                        __STRCAT(txt_buffer,NEWLINE,txt_buffer_in_use)
+
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(12, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(21, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(26, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(24, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 4, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(16, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(25, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(19, i, NN)]]);
+                        __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use)
+                        __STRCAT(txt_buffer,NEWLINE,txt_buffer_in_use)
+
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(21, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(13, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(22, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(26, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(16, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 5, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(17, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(25, i, NN)]]);
+                        __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use)
+                        __STRCAT(txt_buffer,NEWLINE,txt_buffer_in_use)
+
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(24, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(26, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(23, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(15, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(19, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(25, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(18, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 7, i, NN)]]);
+                        __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use)
+                        __STRCAT(txt_buffer,NEWLINE,txt_buffer_in_use)
+
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(26, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(22, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(14, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(23, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(25, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(17, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 6, i, NN)]]);
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(18, i, NN)]]);
+                        __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use)
+                        __STRCAT(txt_buffer,NEWLINE,txt_buffer_in_use)
                  }
-                 __STRCAT(txt_buffer,NEWLINE,txt_buffer_in_use)
+              }
+           } else {
+              for (i = 0; i < numCells; i++) {
+                 if (elements->Owner[i] == my_mpi_rank) {
+                    for (j = 0; j < numVTKNodesPerElement; j++) {
+                        sprintf(tmp_buffer,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(j, i, NN)]]);
+                        __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use)
+                    }
+                    __STRCAT(txt_buffer,NEWLINE,txt_buffer_in_use)
+                 } 
               }
            }
         } else {
@@ -537,16 +697,128 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            }
         }
         #ifdef PASO_MPI
+           if (txt_buffer_in_use==0) { strcpy(txt_buffer, " "); txt_buffer_in_use = 1; } /* avoid zero-length writes */
            MPI_File_write_ordered(mpi_fileHandle_p,txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
         #endif     
      } else {
         if (node_index == NULL) {
+           if (TypeId==Rec9) {
+              for (i = 0; i < numCells; i++) {
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(0, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(4, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(8, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(7, i, NN)]]);
+                        fprintf(fileHandle_p,NEWLINE);
+
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(4, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(1, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(5, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(8, i, NN)]]);
+                        fprintf(fileHandle_p,NEWLINE);
+
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(7, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(8, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(6, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(3, i, NN)]]);
+                        fprintf(fileHandle_p,NEWLINE);
+
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(8, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(5, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(2, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(6, i, NN)]]);
+                        fprintf(fileHandle_p,NEWLINE);
+              }
+
+           } else if (TypeId==Hex27) {
+                 for (i = 0; i < numCells; i++) {
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 0, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 8, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(20, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(11, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(12, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(21, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(26, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(24, i, NN)]]);
+                        fprintf(fileHandle_p,NEWLINE);
+
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 8, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 1, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 9, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(20, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(21, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(13, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(22, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(26, i, NN)]]);
+                        fprintf(fileHandle_p,NEWLINE);
+
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(11, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(20, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(10, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 3, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(24, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(26, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(23, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(15, i, NN)]]);
+                        fprintf(fileHandle_p,NEWLINE);
+
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(20, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 9, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 2, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(10, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(26, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(22, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(14, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(23, i, NN)]]);
+                        fprintf(fileHandle_p,NEWLINE);
+
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(12, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(21, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(26, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(24, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 4, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(16, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(25, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(19, i, NN)]]);
+                        fprintf(fileHandle_p,NEWLINE);
+
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(21, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(13, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(22, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(26, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(16, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 5, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(17, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(25, i, NN)]]);
+                        fprintf(fileHandle_p,NEWLINE);
+
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(24, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(26, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(23, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(15, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(19, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(25, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(18, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 7, i, NN)]]);
+                        fprintf(fileHandle_p,NEWLINE);
+
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(26, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(22, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(14, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(23, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(25, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(17, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2( 6, i, NN)]]);
+                        fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(18, i, NN)]]);
+                        fprintf(fileHandle_p,NEWLINE);
+                 }
+              } else {
            for (i = 0; i < numCells; i++) {
-              for (j = 0; j < numVTKNodesPerElement; j++) {
-                 fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(j, i, NN)]]);
-               }
-              fprintf(fileHandle_p,NEWLINE);
-           }
+                 for (j = 0; j < numVTKNodesPerElement; j++) {
+                    fprintf(fileHandle_p,INT_FORMAT,globalNodeIndex[elements->Nodes[INDEX2(j, i, NN)]]);
+                  }
+                 fprintf(fileHandle_p,NEWLINE);
+              }
+          }
         } else {
            for (i = 0; i < numCells; i++) {
               for (j = 0; j < numVTKNodesPerElement; j++) {
@@ -557,7 +829,6 @@ void Finley_Mesh_saveVTK(const char * filename_p,
         }
 
      }
-     
      /* finalize the connection and start the offset section */
      if (mpi_size > 1) {
         if( my_mpi_rank == 0) {
@@ -580,6 +851,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
             __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use);
          }
          #ifdef PASO_MPI
+            if (txt_buffer_in_use==0) { strcpy(txt_buffer, " "); txt_buffer_in_use = 1; } /* avoid zero-length writes */
             MPI_File_write_ordered(mpi_fileHandle_p,txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
          #endif     
      } else {
@@ -606,6 +878,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
         txt_buffer_in_use=0;
         for (i=0; i<numCells*numCellFactor; i++) __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use);
          #ifdef PASO_MPI
+            if (txt_buffer_in_use==0) { strcpy(txt_buffer, " "); txt_buffer_in_use = 1; } /* avoid zero-length writes */
             MPI_File_write_ordered(mpi_fileHandle_p,txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
          #endif     
      } else {
@@ -716,58 +989,112 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                } else {
                    fprintf(fileHandle_p,txt_buffer);
                }
+
                for (i=0; i<numCells; i++) {
                    if (elements->Owner[i] == my_mpi_rank) {
                       values = getSampleData(data_pp[i_data], i);
-                      /* averaging over the number of points in the sample */
-                      for (k=0; k<MIN(nComp,NCOMP_MAX); k++) {
+                      for (l=0; l< numCellFactor;++l) {
+                         /* averaging over the number of points in the sample */
                          if (isExpanded(data_pp[i_data])) {
-                           rtmp = 0.;
-                           for (j=0; j<numPointsPerSample; j++) rtmp += values[INDEX2(k,j,nComp)];
-                           sampleAvg[k] = rtmp/numPointsPerSample;
-                        } else {
-                           sampleAvg[k] = values[k];
-                        }
-                      }
-                      /* if the number of mpi_required components is more than the number
-                      * of actual components, pad with zeros
-                      */
-                      /* probably only need to get shape of first element */
-                      /* write the data different ways for scalar, vector and tensor */
-                      if (nCompReqd == 1) {
-                        sprintf(tmp_buffer,FLOAT_SCALAR_FORMAT,sampleAvg[0]);
-                      } else if (nCompReqd == 3) { 
-                        if (shape==1) {
-                         sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,sampleAvg[0],0.,0.);
-                        } else if (shape==2) {
-                         sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,sampleAvg[0],sampleAvg[1],0.);
-                        } else if (shape==3) {
-                         sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,sampleAvg[0],sampleAvg[1],sampleAvg[2]);
-                        }
-                      } else if (nCompReqd == 9) {
-                        if (shape==1) {
-                         sprintf(tmp_buffer,FLOAT_TENSOR_FORMAT,sampleAvg[0],0.,0.,
-                                                                0.,0.,0.,
+                              for (k=0; k<MIN(nComp,NCOMP_MAX); k++) sampleAvg[k]=0;
+                              hits=0;
+                              for (j=0; j<numPointsPerSample; j++) {
+                                 hits_old=hits;
+                                 if (TypeId==Rec9) {
+                                    switch(l) {
+                                      case 0:
+                                        if (INSIDE_2D(QuadNodes[2*j],QuadNodes[2*j+1],0.25,0.25,0.25)) hits++;  
+                                        break;
+                                      case 1:
+                                        if (INSIDE_2D(QuadNodes[2*j],QuadNodes[2*j+1],0.75,0.25,0.25)) hits++;  
+                                        break;
+                                      case 2:
+                                        if (INSIDE_2D(QuadNodes[2*j],QuadNodes[2*j+1],0.25,0.75,0.25)) hits++;  
+                                        break;
+                                      case 3:
+                                        if (INSIDE_2D(QuadNodes[2*j],QuadNodes[2*j+1],0.75,0.75,0.25)) hits++;  
+                                        break;
+                                      }
+                                 } else if (TypeId==Hex27) {
+                                    switch(l) {
+                                      case 0:
+                                        if (INSIDE_3D(QuadNodes[3*j],QuadNodes[3*j+1],QuadNodes[3*j+2],0.25,0.25,0.25,0.25)) hits++;  
+                                        break;
+                                      case 1:
+                                        if (INSIDE_3D(QuadNodes[3*j],QuadNodes[3*j+1],QuadNodes[3*j+2],0.75,0.25,0.25,0.25)) hits++;  
+                                        break;
+                                      case 2:
+                                        if (INSIDE_3D(QuadNodes[3*j],QuadNodes[3*j+1],QuadNodes[3*j+2],0.25,0.75,0.25,0.25)) hits++;  
+                                        break;
+                                      case 3:
+                                        if (INSIDE_3D(QuadNodes[3*j],QuadNodes[3*j+1],QuadNodes[3*j+2],0.75,0.75,0.25,0.25)) hits++;  
+                                        break;
+                                      case 4:
+                                        if (INSIDE_3D(QuadNodes[3*j],QuadNodes[3*j+1],QuadNodes[3*j+2],0.25,0.25,0.75,0.25)) hits++;  
+                                        break;
+                                      case 5:
+                                        if (INSIDE_3D(QuadNodes[3*j],QuadNodes[3*j+1],QuadNodes[3*j+2],0.75,0.25,0.75,0.25)) hits++;  
+                                        break;
+                                      case 6:
+                                        if (INSIDE_3D(QuadNodes[3*j],QuadNodes[3*j+1],QuadNodes[3*j+2],0.25,0.75,0.75,0.25)) hits++;  
+                                        break;
+                                      case 7:
+                                        if (INSIDE_3D(QuadNodes[3*j],QuadNodes[3*j+1],QuadNodes[3*j+2],0.75,0.75,0.75,0.25)) hits++;  
+                                        break;
+                                    }
+                                 } else {
+                                    hits++;
+                                 }
+                                 if (hits_old<hits) for (k=0; k<MIN(nComp,NCOMP_MAX); k++) {
+                                     sampleAvg[k] += values[INDEX2(k,j,nComp)];
+                                 }
+                              }
+                              for (k=0; k<MIN(nComp,NCOMP_MAX); k++) sampleAvg[k] /=MAX(hits,1);
+                         } else {
+                              for (k=0; k<MIN(nComp,NCOMP_MAX); k++) sampleAvg[k] = values[k];
+                         }
+                         /* if the number of required components is more than the number
+                         * of actual components, pad with zeros
+                         */
+                         /* probably only need to get shape of first element */
+                         /* write the data different ways for scalar, vector and tensor */
+                         if (nCompReqd == 1) {
+                           sprintf(tmp_buffer,FLOAT_SCALAR_FORMAT,sampleAvg[0]);
+                         } else if (nCompReqd == 3) { 
+                           if (shape==1) {
+                            sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,sampleAvg[0],0.,0.);
+                           } else if (shape==2) {
+                            sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,sampleAvg[0],sampleAvg[1],0.);
+                           } else if (shape==3) {
+                            sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,sampleAvg[0],sampleAvg[1],sampleAvg[2]);
+                           }
+                         } else if (nCompReqd == 9) {
+                           if (shape==1) {
+                            sprintf(tmp_buffer,FLOAT_TENSOR_FORMAT,sampleAvg[0],0.,0.,
+                                                                   0.,0.,0.,
                                                                 0.,0.,0.);
-                        } else if (shape==2) {
-                         sprintf(tmp_buffer,FLOAT_TENSOR_FORMAT,sampleAvg[0],sampleAvg[1],0.,
-                                                                sampleAvg[2],sampleAvg[3],0.,
-                                                                0.,0.,0.);
-                        } else if (shape==3) {
-                         sprintf(tmp_buffer,FLOAT_TENSOR_FORMAT,sampleAvg[0],sampleAvg[1],sampleAvg[2],
-                                                                sampleAvg[3],sampleAvg[4],sampleAvg[5],
-                                                                sampleAvg[6],sampleAvg[7],sampleAvg[8]);
+                           } else if (shape==2) {
+                            sprintf(tmp_buffer,FLOAT_TENSOR_FORMAT,sampleAvg[0],sampleAvg[1],0.,
+                                                                   sampleAvg[2],sampleAvg[3],0.,
+                                                                   0.,0.,0.);
+                           } else if (shape==3) {
+                            sprintf(tmp_buffer,FLOAT_TENSOR_FORMAT,sampleAvg[0],sampleAvg[1],sampleAvg[2],
+                                                                   sampleAvg[3],sampleAvg[4],sampleAvg[5],
+                                                                   sampleAvg[6],sampleAvg[7],sampleAvg[8]);
+                           }
+                         }
+                         /* this needs a bit mor work!!! */
+                            if ( mpi_size > 1) {
+                              __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use);
+                            } else {
+                              fprintf(fileHandle_p,tmp_buffer);
+                            }
                         }
-                      }
-                      if ( mpi_size > 1) {
-                        __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use);
-                      } else {
-                        fprintf(fileHandle_p,tmp_buffer);
-                      }
-                  }
+                   }
                }
                if ( mpi_size > 1) {
                      #ifdef PASO_MPI
+                        if (txt_buffer_in_use==0) { strcpy(txt_buffer, " "); txt_buffer_in_use = 1; } /* avoid zero-length writes */
                         MPI_File_write_ordered(mpi_fileHandle_p,txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
                      #endif     
                      if ( my_mpi_rank == 0) {
@@ -933,6 +1260,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                }
                if ( mpi_size > 1) {
                    #ifdef PASO_MPI
+                     if (txt_buffer_in_use==0) { strcpy(txt_buffer, " "); txt_buffer_in_use = 1; } /* avoid zero-length writes */
                      MPI_File_write_ordered(mpi_fileHandle_p,txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
                    #endif     
                    if ( my_mpi_rank == 0) {
@@ -981,4 +1309,8 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   TMPMEMFREE(isCellCentered);
   TMPMEMFREE(txt_buffer);
   return;
+#else
+  /* Don't kill the job if saveVTK() doesn't work */
+  fprintf(stderr, "\n\nsaveVTK warning: VTK is not available\n\n\n");
+#endif
 }

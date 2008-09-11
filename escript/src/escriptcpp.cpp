@@ -125,6 +125,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
   fs_definer.def("setTags",&escript::FunctionSpace::setTags);
   fs_definer.def("getTagFromDataPointNo",
                  &escript::FunctionSpace::getTagFromDataPointNo);
+  fs_definer.def("getReferenceIDFromDataPointNo", &escript::FunctionSpace::getReferenceIDFromDataPointNo);
+  fs_definer.def("getListOfTags",&escript::FunctionSpace::getListOfTags);
   fs_definer.def("__str__", &escript::FunctionSpace::toString);
   fs_definer.def(self == self);
   fs_definer.def(self != self);

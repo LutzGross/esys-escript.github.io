@@ -20,6 +20,7 @@
 /**************************************************************/
 
 #include "NodeFile.h"
+#include "Util.h"
 
 /**************************************************************/
 
@@ -54,7 +55,6 @@ void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes)
              || Finley_checkPtr(globalNodesIndex2)
              || Finley_checkPtr(reducedNodesId2) 
              || Finley_checkPtr(degreesOfFreedomId2) ) {
-  reducedDegreesOfFreedomId2=MEMALLOC(numNodes,index_t);
     MEMFREE(Id2);
     MEMFREE(Coordinates2);
     MEMFREE(Tag2);
@@ -81,8 +81,8 @@ void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes)
     /* this initialization makes sure that data are located on the right processor */
     #pragma omp parallel for private(n,i) schedule(static)
     for (n=0;n<numNodes;n++) {
-       for (i=0;i<in->numDim;i++) in->Coordinates[INDEX2(i,n,in->numDim)]=0.;
        in->Id[n]=-1;
+       for (i=0;i<in->numDim;i++) in->Coordinates[INDEX2(i,n,in->numDim)]=0.;
        in->Tag[n]=-1;
        in->globalDegreesOfFreedom[n]=-1;
        in->globalReducedDOFIndex[n]=-1;
@@ -110,6 +110,8 @@ void Finley_NodeFile_freeTable(Finley_NodeFile* in) {
     MEMFREE(in->reducedNodesId);
     MEMFREE(in->degreesOfFreedomId);
     MEMFREE(in->reducedDegreesOfFreedomId);
+    MEMFREE(in->tagsInUse);
+    in->numTagsInUse=0;
     Finley_NodeMapping_free(in->nodesMapping);
     in->nodesMapping=NULL;
     Finley_NodeMapping_free(in->reducedNodesMapping);
@@ -131,6 +133,22 @@ void Finley_NodeFile_freeTable(Finley_NodeFile* in) {
     Paso_Connector_free(in->reducedDegreesOfFreedomConnector);
     in->reducedDegreesOfFreedomConnector=NULL;
 
+    in->numTagsInUse=0;
     in->numNodes=0;
   }
 }
+
+void Finley_NodeFile_setTagsInUse(Finley_NodeFile* in)
+{
+    index_t *tagsInUse=NULL;
+    dim_t numTagsInUse;
+    if (in != NULL) {
+       Finley_Util_setValuesInUse(in->Tag, in->numNodes, &numTagsInUse, &tagsInUse, in->MPIInfo);
+       if (Finley_noError()) {
+          MEMFREE(in->tagsInUse);
+          in->tagsInUse=tagsInUse;
+          in->numTagsInUse=numTagsInUse;
+       }
+   }
+}
+

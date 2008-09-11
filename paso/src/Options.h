@@ -55,7 +55,7 @@
 #define PASO_AMG 23
 #define PASO_TRILINOS 24
 #define PASO_NONLINEAR_GMRES 25
-
+#define PASO_TFQMR 26
 
 typedef struct {
     index_t method;

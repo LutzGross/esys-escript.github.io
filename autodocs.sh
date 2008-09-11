@@ -66,7 +66,7 @@ echo "Generating documentation"
 
 cd trunk							|| finish FAILURE "Could not cd to trunk"
 mkdir release release/doc					|| finish FAILURE "Could not create release directory"
-$scons dodebug=yes useMPI=no docs				|| finish FAILURE "Could not run scons docs"
+$scons usedebug=yes usempi=no docs				|| finish FAILURE "Could not run scons docs"
 scp -r release/doc/* shake200:/home/www/esys/esys13/nightly	|| finish FAILURE "Could not copy documentation to nightly area"
 
 echo "Cleaning up"

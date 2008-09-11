@@ -14,7 +14,9 @@
  *******************************************************/
 
 #include <Python.h>
+#ifdef PASO_MPI
 #include <mpi.h>
+#endif
 #include <iostream>
 #include <stdexcept>
 
@@ -32,7 +34,8 @@ int main( int argc, char **argv ) {
     /*
      * Initialise MPI
      */
-    status = MPI_Init(&argc, &argv);
+    /* status = MPI_Init(&argc, &argv); */
+    status = MPI_Init_thread(&argc, &argv, MPI_THREAD_FUNNELED, &provided );
     if (status != MPI_SUCCESS) {
       std::cerr << argv[0] << ": MPI_Init failed, exiting." << std::endl;
       return status;

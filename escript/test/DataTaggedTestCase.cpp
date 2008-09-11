@@ -158,7 +158,6 @@ void DataTaggedTestCase::testOperations() {
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
 
 //     DataTagged myData(keys,values,myView,FunctionSpace());
 //     DataTagged right(keys,values,myView,FunctionSpace());
@@ -1165,7 +1164,6 @@ void DataTaggedTestCase::testAddTaggedValues() {
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
-    DataArrayView myView(viewData,viewShape);
 
     DataTagged myData(FunctionSpace(),viewShape,viewData);
 

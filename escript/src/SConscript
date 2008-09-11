@@ -1,73 +1,128 @@
+#
+# $Id$
+#
+#######################################################
+#
+#           Copyright 2003-2007 by ACceSS MNRF
+#       Copyright 2007 by University of Queensland
+#
+#                http://esscc.uq.edu.au
+#        Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#######################################################
+#
+
 import os
 Import('*')
 
-local_env=env.Copy()
-py_wrapper_local_env=env.Copy()
+local_env = clone_env(env_mpi)
+py_wrapper_local_env = clone_env(env_mpi)
+
 # Remove the sharedlibrary prefix on all platform - we don't want 'lib' mucking with our python modules
 del py_wrapper_local_env['SHLIBPREFIX']
 
-lib_name = 'escript'
-py_wrapper_name = lib_name+'cpp'
-py_wrapper_source = py_wrapper_name+'.cpp'
-py_wrapper_lib_name = py_wrapper_name
+sources = """
+	AbstractContinuousDomain.cpp
+	AbstractDomain.cpp
+	AbstractSystemMatrix.cpp
+	AbstractTransportProblem.cpp
+	Data.cpp
+	DataAbstract.cpp
+	DataBlocks2D.cpp
+	DataC.cpp
+	DataConstant.cpp
+	DataEmpty.cpp
+	DataException.cpp
+	DataExpanded.cpp
+	DataFactory.cpp
+	DataMaths.cpp
+	DataTagged.cpp
+	DataTypes.cpp
+	DataVector.cpp
+	DomainException.cpp
+	FunctionSpace.cpp
+	FunctionSpaceException.cpp
+	FunctionSpaceFactory.cpp
+	NullDomain.cpp
+	SystemMatrixException.cpp
+	Taipan.cpp
+	TransportProblemException.cpp
+	Utils.cpp
+	blocktimer.c
+""".split()
+headers = """
+	AbstractContinuousDomain.h
+	AbstractDomain.h
+	AbstractSystemMatrix.h
+	AbstractTransportProblem.h
+	BinaryOp.h
+	Data.h
+	DataAbstract.h
+	DataAlgorithm.h
+	DataBlocks2D.h
+	DataC.h
+	DataConstant.h
+	DataEmpty.h
+	DataException.h
+	DataExpanded.h
+	DataFactory.h
+	DataMaths.h
+	DataTagged.h
+	DataTypes.h
+	DataVector.h
+	DomainException.h
+	FunctionSpace.h
+	FunctionSpaceException.h
+	FunctionSpaceFactory.h
+	LocalOps.h
+	NullDomain.h
+	SystemMatrixException.h
+	Taipan.h
+	TransportProblemException.h
+	UnaryFuncs.h
+	UnaryOp.h
+	UtilC.h
+	Utils.h
+	blocktimer.h
+	esysmpi.h
+	system_dep.h
+""".split()
 
-# get the relevant file names:
-src_dir = local_env.Dir('.').srcnode().abspath
-filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h", ".c", ".cpp"] ]
+local_env.Append(LIBS = [ 'esysUtils'] + env['sys_libs'] )
+py_wrapper_local_env.Append(LIBS = [ 'escript', 'esysUtils'] + env['sys_libs'])
 
-sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
-headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
+lib = local_env.SharedLibrary('escript', sources)
+env.Alias('target_escript_so', lib)
 
-# Filter out sources that should not be in the list automatically
-sources.remove(py_wrapper_source) # FIXME: should probably refactor the source tree so the python wrapper isn't colocated with c++ sources
+py_wrapper_lib = py_wrapper_local_env.SharedLibrary('escriptcpp', 'escriptcpp.cpp')
+env.Alias('target_escriptcpp_so', py_wrapper_lib)
 
-local_env.Append(LIBS = [boost_lib] + [ 'esysUtils'] + sys_libs + netCDF_libs + mpi_libs + [python_lib])
-py_wrapper_local_env.Append(LIBS = [boost_lib] + [ lib_name, 'esysUtils'] + sys_libs + netCDF_libs + [python_lib])
-if useNetCDF == 'yes':
-    local_env.Append(LIBS = netCDF_libs)
-    local_env.Append(CPPDEFINES = [ 'USE_NETCDF' ])
-    py_wrapper_local_env.Append(LIBS = netCDF_libs)
-    py_wrapper_local_env.Append(CPPDEFINES = [ 'USE_NETCDF' ])
+include_path = Dir('escript', local_env['incinstall'])
 
-if papi_instrument_solver:
-   local_env.Append(CPPDEFINES=['PAPI',])
-if papi_libs:
-   local_env.Append(LIBS = papi_libs)
-   local_env.Append(CPPDEFINES=['BLOCKPAPI',])
+tmp1 = local_env.Install(include_path, headers )
+env.Alias('target_install_escript_headers', [tmp1])
 
-local_env.Append(CPPDEFINES = [ 'ESCRIPT_EXPORTS'] )
-
-lib = local_env.SharedLibrary(lib_name, sources)
-py_wrapper_lib = py_wrapper_local_env.SharedLibrary( py_wrapper_lib_name, py_wrapper_source)
-
-include_path = Dir(lib_name, incinstall)
-
-local_env.Install(include_path, headers )
-local_env.Install(libinstall, lib)
-py_wrapper_local_env.InstallAs(pyinstall+'/escript/escriptcpp.so', py_wrapper_lib)
+tmp3 = local_env.Install(local_env['libinstall'], lib)
+env.Alias('target_install_escript_so', tmp3)
 
 #windows specific mod
 if os.name == 'nt':
-   py_wrapper_local_env.InstallAs(target = [ pyinstall+'/escript/'+py_wrapper_lib_name+'.pyd', \
-                                             pyinstall+'/escript/'+py_wrapper_lib_name+'.lib', \
-                                             pyinstall+'/escript/'+py_wrapper_lib_name+'.exp' ], \
-                               source = py_wrapper_lib )
+  tmp4 = py_wrapper_local_env.Install(local_env['pyinstall']+'/escript', ['escriptcpp.pyd', 'escriptcpp.lib', 'escriptcpp.exp'])
+else:
+  tmp4 = py_wrapper_local_env.InstallAs(local_env['pyinstall']+'/escript/escriptcpp.so', py_wrapper_lib)
+env.Alias('target_install_escriptcpp_so', tmp4)
 
 # export the lib target since tests will depend on it
 # the lib target is a list of file nodes (why? win32 produces more than one output file: .lib, .dll, .pdb)
 # FIXME: This list handling produces the desired result but can this be done directly with scons File nodes?
-dep_lib = [libinstall+'/'+str(x) for x in lib]
+dep_lib = [local_env['libinstall']+'/'+str(x) for x in lib]
 Export('dep_lib')
-
-
-
-# add source files to release
-release_srcfiles = [ env.File(x) for x in filenames ] + [env.File("SConscript"), ]
-env.Zip(src_zipfile, release_srcfiles)
-env.Tar(src_tarfile, release_srcfiles)
 
 # Call the python sconscript
 env.SConscript(dirs = ['#/escript/py_src'], build_dir='py', duplicate=0)
 
 # Call the unit tests SConscript
 local_env.SConscript(dirs = ['#/escript/test'], build_dir='#/build/$PLATFORM/escript/test', duplicate=0)
+

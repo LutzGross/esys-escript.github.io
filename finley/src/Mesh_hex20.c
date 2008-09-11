@@ -152,14 +152,14 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
   offset0=e_offset0*N_PER_E;
   offset1=e_offset1*N_PER_E;
   offset2=e_offset2*N_PER_E;
-  local_N0=local_NE0*N_PER_E+1;
-  local_N1=local_NE1*N_PER_E+1;
-  local_N2=local_NE2*N_PER_E+1;
+  local_N0=local_NE0>0 ? local_NE0*N_PER_E+1 : 0;
+  local_N1=local_NE1>0 ? local_NE1*N_PER_E+1 : 0;
+  local_N2=local_NE0>0 ? local_NE2*N_PER_E+1 : 0;
 
   /* get the number of surface elements */
 
   NFaceElements=0;
-  if (!periodic[2]) {
+  if (!periodic[2] && (local_NE2>0) ) {
     NDOF2=N2;
     if (offset2==0) NFaceElements+=local_NE1*local_NE0;
     if (local_NE2+e_offset2 == NE2) NFaceElements+=local_NE1*local_NE0;
@@ -167,21 +167,20 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
       NDOF2=N2-1;
   }
  
-  if (!periodic[0]) {
+  if (!periodic[0] && (local_NE1>0) ) {
      NDOF0=N0;
      if (e_offset0 == 0) NFaceElements+=local_NE1*local_NE2;
      if (local_NE0+e_offset0 == NE0) NFaceElements+=local_NE1*local_NE2;
   } else {
       NDOF0=N0-1;
   }
-  if (!periodic[1]) {
+  if (!periodic[1] && (local_NE1>0) ) {
      NDOF1=N1;
      if (e_offset1 == 0) NFaceElements+=local_NE0*local_NE2;
      if (local_NE1+e_offset1 == NE1) NFaceElements+=local_NE0*local_NE2;
   } else {
       NDOF1=N1-1;
   }
-
   /*  allocate tables: */
 
   Finley_NodeFile_allocTable(out->Nodes,local_N0*local_N1*local_N2);
@@ -261,7 +260,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
      totalNECount=NE0*NE1*NE2;
      faceNECount=0;
      /*   these are the quadrilateral elements on boundary 1 (x3=0): */
-     if (!periodic[2]) {
+     if (!periodic[2] && (local_NE2>0)) {
        /* **  elements on boundary 100 (x3=0): */
        if (offset2==0) {
           #pragma omp parallel for private(i0,i1,k,node0) 
@@ -371,7 +370,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
        }
        totalNECount+=NE1*NE0;
      }
-     if (!periodic[0]) {
+     if (!periodic[0] && (local_NE0>0)) {
         /* **  elements on boundary 001 (x1=0): */
      
         if (e_offset0 == 0) {
@@ -487,7 +486,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
          }
          totalNECount+=NE1*NE2;
      }
-     if (!periodic[1]) {
+     if (!periodic[1] && (local_NE1>0)) {
         /* **  elements on boundary 010 (x2=0): */
         if (e_offset1 == 0) {
            #pragma omp parallel for private(i0,i2,k,node0) 
