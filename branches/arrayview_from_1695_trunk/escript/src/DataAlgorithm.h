@@ -17,7 +17,6 @@
 #define escript_DataAlgorithm_20040714_H
 #include "system_dep.h"
 
-#include "DataArrayView.h"
 #include "DataExpanded.h"
 #include "DataTagged.h"
 #include "DataConstant.h"

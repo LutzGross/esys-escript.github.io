@@ -18,55 +18,10 @@
 #include "DataException.h"
 #include "DataTypes.h"
 
+namespace {
 using namespace boost::python;
-
-namespace escript
-{
-namespace DataTypes
-{
-
-   int
-   noValues(const ShapeType& shape) 
-   {
-      ShapeType::const_iterator i;
-      //
-      // An empty shape vector means rank 0 which contains 1 value
-      int noValues=1;
-      for (i=shape.begin();i!=shape.end();i++) {
-         noValues*=(*i);
-      }
-      return noValues;
-   }
-
-   int
-   noValues(const RegionLoopRangeType& region) 
-   {
-      //
-      // An empty region vector means rank 0 which contains 1 value
-      int noValues=1;
-      unsigned int i;
-      for (i=0;i<region.size();i++) {
-         noValues*=region[i].second-region[i].first;
-      }
-      return noValues;
-   }
-
-   std::string
-   shapeToString(const DataTypes::ShapeType& shape)
-   {
-      std::stringstream temp;
-      temp << "(";
-      unsigned int i;
-      for (i=0;i<shape.size();i++) {
-         temp << shape[i];
-         if (i < shape.size()-1) {
-            temp << ",";
-         }
-      }
-      temp << ")";
-      return temp.str();
-   }
-
+using namespace escript;
+using namespace escript::DataTypes;
 
 /*
   \brief
@@ -119,6 +74,59 @@ namespace DataTypes
          throw DataException("Error - lower index must less or equal upper index.");
       return std::pair<int,int>(s0,s1);
    }
+}
+
+
+using namespace boost::python;
+
+namespace escript
+{
+namespace DataTypes
+{
+
+   int
+   noValues(const ShapeType& shape) 
+   {
+      ShapeType::const_iterator i;
+      //
+      // An empty shape vector means rank 0 which contains 1 value
+      int noValues=1;
+      for (i=shape.begin();i!=shape.end();i++) {
+         noValues*=(*i);
+      }
+      return noValues;
+   }
+
+   int
+   noValues(const RegionLoopRangeType& region) 
+   {
+      //
+      // An empty region vector means rank 0 which contains 1 value
+      int noValues=1;
+      unsigned int i;
+      for (i=0;i<region.size();i++) {
+         noValues*=region[i].second-region[i].first;
+      }
+      return noValues;
+   }
+
+   std::string
+   shapeToString(const DataTypes::ShapeType& shape)
+   {
+      std::stringstream temp;
+      temp << "(";
+      unsigned int i;
+      for (i=0;i<shape.size();i++) {
+         temp << shape[i];
+         if (i < shape.size()-1) {
+            temp << ",";
+         }
+      }
+      temp << ")";
+      return temp.str();
+   }
+
+
 
 
 
@@ -461,22 +469,22 @@ namespace DataTypes
    }
 
    std::string
-   pointToString(const ValueType& data,const ShapeType& shape, int offset, const std::string& suffix)
+   pointToString(const ValueType& data,const ShapeType& shape, int offset, const std::string& prefix)
    {
       using namespace std;
       EsysAssert(data.size()>0,"Error - Data object is empty.");
       stringstream temp;
-      string finalSuffix=suffix;
-      if (suffix.length() > 0) {
-         finalSuffix+=" ";
+      string finalPrefix=prefix;
+      if (prefix.length() > 0) {
+         finalPrefix+=" ";
       }
       switch (getRank(shape)) {
       case 0:
-         temp << finalSuffix << data[0];
+         temp << finalPrefix << data[0];
          break;
       case 1:
          for (int i=0;i<shape[0];i++) {
-            temp << finalSuffix << "(" << i <<  ") " << data[i+offset];
+            temp << finalPrefix << "(" << i <<  ") " << data[i+offset];
             if (i!=(shape[0]-1)) {
                temp << endl;
             }
@@ -485,7 +493,7 @@ namespace DataTypes
       case 2:
          for (int i=0;i<shape[0];i++) {
             for (int j=0;j<shape[1];j++) {
-               temp << finalSuffix << "(" << i << "," << j << ") " << data[offset+getRelIndex(shape,i,j)];
+               temp << finalPrefix << "(" << i << "," << j << ") " << data[offset+getRelIndex(shape,i,j)];
                if (!(i==(shape[0]-1) && j==(shape[1]-1))) {
                   temp << endl;
                }
@@ -496,7 +504,7 @@ namespace DataTypes
          for (int i=0;i<shape[0];i++) {
             for (int j=0;j<shape[1];j++) {
                for (int k=0;k<shape[2];k++) {
-                  temp << finalSuffix << "(" << i << "," << j << "," << k << ") " << data[offset+getRelIndex(shape,i,j,k)];
+                  temp << finalPrefix << "(" << i << "," << j << "," << k << ") " << data[offset+getRelIndex(shape,i,j,k)];
                   if (!(i==(shape[0]-1) && j==(shape[1]-1) && k==(shape[2]-1))) {
                      temp << endl;
                   }
@@ -509,7 +517,7 @@ namespace DataTypes
             for (int j=0;j<shape[1];j++) {
                for (int k=0;k<shape[2];k++) {
                   for (int l=0;l<shape[3];l++) {
-                     temp << finalSuffix << "(" << i << "," << j << "," << k << "," << l << ") " << data[offset+getRelIndex(shape,i,j,k,l)];
+                     temp << finalPrefix << "(" << i << "," << j << "," << k << "," << l << ") " << data[offset+getRelIndex(shape,i,j,k,l)];
                      if (!(i==(shape[0]-1) && j==(shape[1]-1) && k==(shape[2]-1) && l==(shape[3]-1))) {
                         temp << endl;
                      }

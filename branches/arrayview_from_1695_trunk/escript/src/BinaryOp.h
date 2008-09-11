@@ -17,7 +17,6 @@
 #define escript_BinaryOp_20040315_H
 #include "system_dep.h"
 
-#include "DataArrayView.h"
 #include "DataTypes.h"
 #include "DataConstant.h"
 #include "DataTagged.h"

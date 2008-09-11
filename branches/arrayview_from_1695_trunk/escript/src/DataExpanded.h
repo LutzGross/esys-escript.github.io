@@ -19,7 +19,6 @@
 
 #include "DataAbstract.h"
 #include "DataBlocks2D.h"
-#include "DataArrayView.h"
 
 #include <boost/python/numeric.hpp>
 
@@ -274,21 +273,21 @@ TODO Note that this constructor will also copy data to all points if it only con
   extractData(std::ifstream& archiveFile,
               const DataTypes::ValueType::size_type noValues);
 
-  /**
-     \brief
+//  /**
+/*     \brief
      setTaggedValue
 
      Description:
      uses tag to set a new value
 
      \param tagKey - Input - Integer key.
-     \param value - Input - Single DataArrayView value to be assigned to the tag.
-  */
-  ESCRIPT_DLL_API
-  virtual
-  void
-  setTaggedValue(int tagKey,
-                 const DataArrayView& value);
+     \param value - Input - Single DataArrayView value to be assigned to the tag.*/
+//  */
+//   ESCRIPT_DLL_API
+//   virtual
+//   void
+//   setTaggedValue(int tagKey,
+//                  const DataArrayView& value);
 
 
 

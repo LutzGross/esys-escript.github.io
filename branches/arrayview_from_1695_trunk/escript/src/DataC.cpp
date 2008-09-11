@@ -18,7 +18,6 @@ extern "C" {
 }
 
 #include "Data.h"
-#include "DataArrayView.h"
 #include "DataTypes.h"
 
 int getFunctionSpaceType(struct escriptDataC* data) 
