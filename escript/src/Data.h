@@ -1295,29 +1295,6 @@ class Data {
 
   /**
      \brief
-     Archive the current Data object to the given file.
-     \param fileName - Input - file to archive to.
-  */
-  ESCRIPT_DLL_API
-  void
-  archiveData(const std::string fileName);
-
-  /**
-     \brief
-     Extract the Data object archived in the given file, overwriting
-     the current Data object.
-     Note - the current object must be of type DataEmpty.
-     \param fileName - Input - file to extract from.
-     \param fspace - Input - a suitable FunctionSpace descibing the data.
-  */
-  ESCRIPT_DLL_API
-  void
-  extractData(const std::string fileName,
-              const FunctionSpace& fspace);
-
-
-  /**
-     \brief
      print the data values to stdout. Used for debugging
   */
   ESCRIPT_DLL_API
