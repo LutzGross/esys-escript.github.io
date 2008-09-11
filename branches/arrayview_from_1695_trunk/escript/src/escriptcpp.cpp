@@ -171,8 +171,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("saveDX",&escript::Data::saveDX)
     .def("saveVTK",&escript::Data::saveVTK)
     .def("getTagNumber",&escript::Data::getTagNumber)
-    .def("archiveData",&escript::Data::archiveData)
-    .def("extractData",&escript::Data::extractData)
     // Unary functions for Data
     .def("_interpolate",&escript::Data::interpolate)
     .def("_grad",&escript::Data::gradOn)
