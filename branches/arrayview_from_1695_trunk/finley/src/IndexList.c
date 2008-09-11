@@ -99,6 +99,32 @@ void Finley_IndexList_insertElementsWithRowRange(Finley_IndexList* index_list, i
     }
   }
 }
+void Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(Finley_IndexList* index_list, index_t firstRow, index_t lastRow,
+                                                              Finley_ElementFile* elements, index_t* row_map, index_t* col_map)
+{
+  index_t color;
+  dim_t e,kr,kc,icol,irow, NN,irow_loc;
+  if (elements!=NULL) {
+    NN=elements->numNodes;
+    for (color=elements->minColor;color<=elements->maxColor;color++) {
+           #pragma omp for private(e,irow,kr,kc,icol,irow_loc) schedule(static)
+           for (e=0;e<elements->numElements;e++) {
+               if (elements->Color[e]==color) {
+                   for (kr=0;kr<NN;kr++) {
+                     irow=row_map[elements->Nodes[INDEX2(kr,e,NN)]];
+                     if ((firstRow<=irow) && (irow < lastRow)) {
+                          irow_loc=irow-firstRow;
+                          for (kc=0;kc<NN;kc++) {
+                              icol=col_map[elements->Nodes[INDEX2(kc,e,NN)]];
+                              if (icol != irow) Finley_IndexList_insertIndex(&(index_list[irow_loc]),icol);
+                          }
+                      }
+                  }
+               }
+           }
+    }
+  }
+}
 
 /* inserts row index row into the Finley_IndexList in if it does not exist */
 
@@ -200,7 +226,7 @@ Paso_Pattern* Finley_IndexList_createPattern(dim_t n0, dim_t n,Finley_IndexList*
               for(i=n0;i<n;++i) {
                   Finley_IndexList_toArray(&index_list[i],&index[ptr[i-n0]],range_min,range_max,index_offset);
               }
-              out=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,n-n0,ptr,index);
+              out=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,n-n0,range_max+index_offset,ptr,index);
        }
   }
   if (! Finley_noError()) {

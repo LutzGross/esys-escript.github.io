@@ -31,6 +31,8 @@ struct Finley_NodeFile {
   dim_t numDim;                        /* spatial dimension */
   index_t *Id;                         /* Id[i] is the id number of node i. It need to be unique. */
   index_t *Tag;                        /* Tag[i] is the tag of node i. */
+  index_t *tagsInUse;                  /* array of tags which are actually used */
+  dim_t     numTagsInUse;               /* number of tags used */
 
   index_t* globalDegreesOfFreedom;      /* globalDegreesOfFreedom[i] is the global degree of freedom assigned to node i */
                                        /* this index is used to consider periodic boundary conditions by assigning */
@@ -113,6 +115,7 @@ void Finley_NodeFile_setIdRange(index_t*,index_t*,Finley_NodeFile*);
 void Finley_NodeFile_setDOFGlobalRange(index_t*,index_t*,Finley_NodeFile*);
 void Finley_NodeFile_setDOFRange(index_t*,index_t*,Finley_NodeFile*);
 
+
 void Finley_NodeFile_setGlobalDOFRange(index_t*,index_t*,Finley_NodeFile*);
 void Finley_NodeFile_setGlobalIdRange(index_t*,index_t*,Finley_NodeFile*);
 index_t Finley_NodeFile_maxGlobalDegreeOfFreedomIndex(Finley_NodeFile*);
@@ -120,7 +123,7 @@ index_t Finley_NodeFile_maxGlobalReducedDegreeOfFreedomIndex(Finley_NodeFile*);
 
 void Finley_NodeFile_setReducedDOFRange(index_t*,index_t*,Finley_NodeFile*);
 dim_t Finley_NodeFile_createDenseDOFLabeling(Finley_NodeFile*);
-dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in);
+dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in, index_t* node_distribution, const index_t* dof_distribution);
 dim_t Finley_NodeFile_createDenseReducedNodeLabeling(Finley_NodeFile* in, index_t* reducedNodeMask);
 dim_t Finley_NodeFile_createDenseReducedDOFLabeling(Finley_NodeFile* in, index_t* reducedNodeMask);
 void Finley_NodeFile_assignMPIRankToDOFs(Finley_NodeFile* in,Paso_MPI_rank* mpiRankOfDOF, index_t *distribution);
@@ -131,10 +134,14 @@ void Finley_NodeFile_copyTable(dim_t,Finley_NodeFile*,dim_t,dim_t,Finley_NodeFil
 void Finley_NodeFile_scatter(index_t*,Finley_NodeFile*,Finley_NodeFile*);
 void Finley_NodeFile_scatterEntries(dim_t, index_t*, index_t, index_t, index_t*, index_t*, index_t*, index_t*, index_t*, index_t*, dim_t numDim, double*, double*);
 void Finley_NodeFile_copyTable(dim_t,Finley_NodeFile*,dim_t,dim_t,Finley_NodeFile*);
+void Finley_NodeFile_setGlobalReducedDegreeOfFreedomRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in);
+void Finley_NodeFile_setGlobalNodeIDIndexRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in);
+void Finley_NodeFile_setGlobalReducedNodeIDIndexRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in);
 
 /* ===================== */
 void Finley_NodeFile_setCoordinates(Finley_NodeFile*,escriptDataC*);
 void Finley_NodeFile_setTags(Finley_NodeFile*,const int,escriptDataC*);
+void Finley_NodeFile_setTagsInUse(Finley_NodeFile* in);
 
 #endif
 

@@ -212,6 +212,10 @@ will only consider the error from solving the discrete problem but will
 not consider any discretization error.
 \end{methoddesc}
 
+\begin{methoddesc}[LinearPDE]{setToleranceReductionFactor}{TOL}
+Lowers the tolerance by a factor of TOL.
+\end{methoddesc}
+
 \begin{methoddesc}[LinearPDE]{getTolerance}{}
 returns the current tolerance of the solution
 \end{methoddesc}
@@ -314,7 +318,7 @@ the SCSL library by SGI,~\Ref{SCSL}\footnote{The SCSL library will only be avail
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{MKL}
-the MKL library by Intel,~\Ref{MKL}\footnote{The MKL library will only be available when the intel compilation environment is used.}.
+the MKL library by Intel,~\Ref{MKL}\footnote{The MKL library will only be available when the Intel compilation environment is used.}.
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{UMFPACK}

@@ -340,6 +340,13 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
+     Return the number of data points summed across all MPI processes
+  */
+  FINLEY_DLL_API
+  virtual int getNumDataPointsGlobal() const;
+
+  /**
+     \brief
      Return the number of data points per sample, and the number of samples as a pair.
      \param functionSpaceCode Input -
   */
@@ -589,6 +596,16 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   */
   FINLEY_DLL_API
   virtual void setTags(const int functionSpaceType, const int newTag, const escript::Data& mask) const;
+
+  /**
+      \brief
+          return the number of tags in use and a pointer to an array with the number of tags in use
+  */
+  FINLEY_DLL_API
+  virtual int getNumberOfTagsInUse(int functionSpaceCode) const;
+
+  FINLEY_DLL_API 
+  virtual int* borrowListOfTagsInUse(int functionSpaceCode) const;
 
  protected:
 

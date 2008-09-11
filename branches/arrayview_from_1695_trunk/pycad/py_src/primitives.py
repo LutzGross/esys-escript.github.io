@@ -39,6 +39,12 @@ __url__="http://www.iservo.edu.au/esys/escript"
 __version__="$Revision:$"
 __date__="$Date:$"
 
+try:
+   import numpy
+   numpyImported=True
+except:
+   numpyImported=False   
+
 import numarray
 from transformations import _TYPE, Translation, Dilation, Transformation
 from math import sqrt
@@ -383,7 +389,10 @@ class Point(Primitive, PrimitiveBase):
           primitive=primitive.getCoordinates()
           c=self.getCoordinates()
           d=c-primitive
-          return numarray.dot(d,d)<=getToleranceForColocation()**2*max(numarray.dot(c,c),numarray.dot(primitive,primitive))
+          if numpyImported:
+            return numpy.dot(d,d)<=getToleranceForColocation()**2*max(numpy.dot(c,c),numpy.dot(primitive,primitive))
+          else:
+            return numarray.dot(d,d)<=getToleranceForColocation()**2*max(numarray.dot(c,c),numarray.dot(primitive,primitive))
        else:
           return False
 
@@ -934,7 +943,7 @@ class CurveLoop(Primitive, PrimitiveBase):
                 cp1=primitive.getCurves()
                 for c0 in cp0: 
                     colocated = False
-                    for c1 in cp1: 
+                    for c1 in cp1:
                          colocated = colocated or c0.isColocated(c1)
                     if not colocated: return False
                 return True
@@ -1261,7 +1270,7 @@ class SurfaceLoop(Primitive, PrimitiveBase):
                 sp1=primitive.getSurfaces()
                 for s0 in sp0: 
                     colocated = False
-                    for s1 in sp1: 
+                    for s1 in sp1:
                          colocated = colocated or s0.isColocated(s1)
                     if not colocated: return False
                 return True

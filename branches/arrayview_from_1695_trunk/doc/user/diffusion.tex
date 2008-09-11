@@ -267,13 +267,13 @@ u=mypde.getSolution()
 print "error is ",Lsup(u-x[0])
 saveVTK("x0.xml",sol=u)
 \end{python}
-To visualise the solution `x0.~xml' just use the command 
+To visualize the solution `x0.~xml' just use the command 
 \begin{python}
 mayavi -d u.xml -m SurfaceMap &
 \end{python}
 and it is easy to see that the solution $T=x\hackscore{0}$ is calculated.
  
-The script is similar to the script \file{poisson.py} dicussed in \Chap{FirstSteps}.
+The script is similar to the script \file{poisson.py} discussed in \Chap{FirstSteps}.
 \code{mydomain.getNormal()} returns the outer normal field on the surface of the domain. The function \function{Lsup}
 imported by the \code{from esys.escript import *} statement and returns the maximum absolute value of its argument. 
 The error shown by the print statement should be in the order of $10^{-7}$. As piecewise bi-linear interpolation is

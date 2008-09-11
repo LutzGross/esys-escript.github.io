@@ -62,7 +62,7 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
            {
                loc_proc_mask=THREAD_MEMALLOC(size,dim_t);
                loc_send_count=THREAD_MEMALLOC(size,dim_t);
-               memset(loc_send_count, 0, size_size);
+               memset(loc_send_count, 0, size_size); 
                #pragma omp for private(e,j,loc_proc_mask_max) schedule(static)
                for (e=0;e<self->numElements;e++) {
                   if (self->Owner[e] == myRank) {
@@ -94,7 +94,7 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
            #ifdef PASO_MPI
               MPI_Alltoall(send_count,1,MPI_INT,recv_count,1,MPI_INT,self->MPIInfo->comm);
            #else
-              for (p=0;p<size;++p) send_count[p]=recv_count[p];
+              for (p=0;p<size;++p) recv_count[p]=send_count[p];
            #endif
            /* get the new number of elements for this processor */
            newNumElements=0;

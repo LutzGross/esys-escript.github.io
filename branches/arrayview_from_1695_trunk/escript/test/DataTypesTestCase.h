@@ -21,8 +21,6 @@
 #include "tools/CppUnitTest/TestCaller.h"
 
 
-#include "escript/DataArrayView.h"
-
 #define REL_TOL ((double)1.e-10)
 
 class DataTypesTestCase : public CppUnitTest::TestCase

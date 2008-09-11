@@ -30,7 +30,7 @@
 
 /* allocates a Pattern  */
 
-Paso_Pattern* Paso_Pattern_alloc(int type, dim_t input_block_size, dim_t output_block_size, dim_t numOutput, index_t* ptr, index_t* index) {
+Paso_Pattern* Paso_Pattern_alloc(int type, dim_t input_block_size, dim_t output_block_size, dim_t numOutput, dim_t numInput, index_t* ptr, index_t* index) {
   Paso_Pattern*out=NULL;
   index_t index_offset=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   index_t loc_min_index,loc_max_index,min_index=index_offset,max_index=index_offset-1;
@@ -79,8 +79,8 @@ Paso_Pattern* Paso_Pattern_alloc(int type, dim_t input_block_size, dim_t output_
            max_index=MAX(loc_max_index,max_index);
         }
     }
-    if (min_index<index_offset) {
-      Paso_setError(TYPE_ERROR,"Paso_Pattern_alloc: lower Pattern index out of range.");
+    if ( (min_index<index_offset) || (max_index>=numInput+index_offset) ) {
+      Paso_setError(TYPE_ERROR,"Paso_Pattern_alloc: Pattern index out of range.");
       return NULL;
     }
   }
@@ -89,6 +89,7 @@ Paso_Pattern* Paso_Pattern_alloc(int type, dim_t input_block_size, dim_t output_
       out->type=type;
       out->reference_counter=1;
       out->numOutput=numOutput;
+      out->numInput=numInput;
       out->ptr=ptr;
       out->index=index;
       out->input_block_size=input_block_size;
@@ -96,10 +97,8 @@ Paso_Pattern* Paso_Pattern_alloc(int type, dim_t input_block_size, dim_t output_
       out->block_size=out->input_block_size * out->output_block_size;
       if (out->ptr == NULL) {
           out->len=0;
-          out->numInput=0;
       } else {
           out->len=out->ptr[out->numOutput] - index_offset;
-          out->numInput=max_index+1-index_offset;
       }
   }
   #ifdef Paso_TRACE

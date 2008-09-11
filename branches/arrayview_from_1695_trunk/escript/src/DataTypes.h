@@ -1,5 +1,5 @@
 
-/* $Id$ */
+/* $Id:    $ */
 
 /*******************************************************
  *
@@ -363,3 +363,4 @@ namespace DataTypes {
 } // end of namespace escipt
 
 #endif
+

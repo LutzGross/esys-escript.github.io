@@ -124,10 +124,6 @@ void MeshAdapter::dump(const std::string& fileName) const
    int num_FaceElements_numNodes	= mesh->FaceElements->numNodes;
    int num_ContactElements_numNodes	= mesh->ContactElements->numNodes;
 
-   // I don't think the strdup is needed since Paso_MPI_appendRankToFileName
-   // does it's own allocation.
-   // char *newFileName = Paso_MPI_appendRankToFileName(strdup(fileName.c_str()), mpi_size, mpi_rank);
-
    char *newFileName = Paso_MPI_appendRankToFileName(fileName.c_str(),
                                                      mpi_size, mpi_rank);
 
@@ -280,14 +276,18 @@ void MeshAdapter::dump(const std::string& fileName) const
       if (! (ids->put(int_ptr, mpi_size+1)) )
          throw DataException("Error - MeshAdapter::dump: copy Nodes_DofDistribution to netCDF buffer failed: " + *newFileName);
 
+      // Nodes nodeDistribution
+      if (! ( ids = dataFile.add_var("Nodes_NodeDistribution", ncInt, ncdims[2])) )
+         throw DataException("Error - MeshAdapter::dump: appending Nodes_NodeDistribution to netCDF file failed: " + *newFileName);
+      int_ptr = &mesh->Nodes->nodesDistribution->first_component[0];
+      if (! (ids->put(int_ptr, mpi_size+1)) )
+         throw DataException("Error - MeshAdapter::dump: copy Nodes_NodeDistribution to netCDF buffer failed: " + *newFileName);
+
    }
 
    // // // // // Elements // // // // //
 
    if (num_Elements>0) {
-
-      // Temp storage to gather node IDs
-      int *Elements_Nodes = TMPMEMALLOC(num_Elements*num_Elements_numNodes,int);
 
       // Elements_Id
       if (! ( ids = dataFile.add_var("Elements_Id", ncInt, ncdims[3])) )
@@ -318,24 +318,16 @@ void MeshAdapter::dump(const std::string& fileName) const
          throw DataException("Error - MeshAdapter::dump: copy Elements_Color to netCDF buffer failed: " + *newFileName);
 
       // Elements_Nodes
-      for (int i=0; i<num_Elements; i++)
-         for (int j=0; j<num_Elements_numNodes; j++)
-            Elements_Nodes[INDEX2(j,i,num_Elements_numNodes)] = mesh->Nodes->Id[mesh->Elements->Nodes[INDEX2(j,i,num_Elements_numNodes)]];
       if (! ( ids = dataFile.add_var("Elements_Nodes", ncInt, ncdims[3], ncdims[7]) ) )
          throw DataException("Error - MeshAdapter::dump: appending Elements_Nodes to netCDF file failed: " + *newFileName);
-      if (! (ids->put(&(Elements_Nodes[0]), num_Elements, num_Elements_numNodes)) )
+      if (! (ids->put(&(mesh->Elements->Nodes[0]), num_Elements, num_Elements_numNodes)) )
          throw DataException("Error - MeshAdapter::dump: copy Elements_Nodes to netCDF buffer failed: " + *newFileName);
-
-      TMPMEMFREE(Elements_Nodes);
 
    }
 
    // // // // // Face_Elements // // // // //
 
    if (num_FaceElements>0) {
-
-      // Temp storage to gather node IDs
-      int *FaceElements_Nodes = TMPMEMALLOC(num_FaceElements*num_FaceElements_numNodes,int);
 
       // FaceElements_Id
       if (! ( ids = dataFile.add_var("FaceElements_Id", ncInt, ncdims[4])) )
@@ -366,24 +358,16 @@ void MeshAdapter::dump(const std::string& fileName) const
          throw DataException("Error - MeshAdapter::dump: copy FaceElements_Color to netCDF buffer failed: " + *newFileName);
 
       // FaceElements_Nodes
-      for (int i=0; i<num_FaceElements; i++)
-         for (int j=0; j<num_FaceElements_numNodes; j++)
-            FaceElements_Nodes[INDEX2(j,i,num_FaceElements_numNodes)] = mesh->Nodes->Id[mesh->FaceElements->Nodes[INDEX2(j,i,num_FaceElements_numNodes)]];
       if (! ( ids = dataFile.add_var("FaceElements_Nodes", ncInt, ncdims[4], ncdims[8]) ) )
          throw DataException("Error - MeshAdapter::dump: appending FaceElements_Nodes to netCDF file failed: " + *newFileName);
-      if (! (ids->put(&(FaceElements_Nodes[0]), num_FaceElements, num_FaceElements_numNodes)) )
+      if (! (ids->put(&(mesh->FaceElements->Nodes[0]), num_FaceElements, num_FaceElements_numNodes)) )
          throw DataException("Error - MeshAdapter::dump: copy FaceElements_Nodes to netCDF buffer failed: " + *newFileName);
-
-      TMPMEMFREE(FaceElements_Nodes);
 
    }
 
    // // // // // Contact_Elements // // // // //
 
    if (num_ContactElements>0) {
-
-      // Temp storage to gather node IDs
-      int *ContactElements_Nodes = TMPMEMALLOC(num_ContactElements*num_ContactElements_numNodes,int);
 
       // ContactElements_Id
       if (! ( ids = dataFile.add_var("ContactElements_Id", ncInt, ncdims[5])) )
@@ -414,15 +398,10 @@ void MeshAdapter::dump(const std::string& fileName) const
          throw DataException("Error - MeshAdapter::dump: copy ContactElements_Color to netCDF buffer failed: " + *newFileName);
 
       // ContactElements_Nodes
-      for (int i=0; i<num_ContactElements; i++)
-         for (int j=0; j<num_ContactElements_numNodes; j++)
-            ContactElements_Nodes[INDEX2(j,i,num_ContactElements_numNodes)] = mesh->Nodes->Id[mesh->ContactElements->Nodes[INDEX2(j,i,num_ContactElements_numNodes)]];
       if (! ( ids = dataFile.add_var("ContactElements_Nodes", ncInt, ncdims[5], ncdims[9]) ) )
          throw DataException("Error - MeshAdapter::dump: appending ContactElements_Nodes to netCDF file failed: " + *newFileName);
-      if (! (ids->put(&(ContactElements_Nodes[0]), num_ContactElements, num_ContactElements_numNodes)) )
+      if (! (ids->put(&(mesh->ContactElements->Nodes[0]), num_ContactElements, num_ContactElements_numNodes)) )
          throw DataException("Error - MeshAdapter::dump: copy ContactElements_Nodes to netCDF buffer failed: " + *newFileName);
-
-      TMPMEMFREE(ContactElements_Nodes);
 
    }
 
@@ -431,9 +410,6 @@ void MeshAdapter::dump(const std::string& fileName) const
    if (num_Points>0) {
 
       fprintf(stderr, "\n\n\nWARNING: MeshAdapter::dump has not been tested with Point elements\n\n\n");
-
-      // Temp storage to gather node IDs
-      int *Points_Nodes = TMPMEMALLOC(num_Points,int);
 
       // Points_Id
       if (! ( ids = dataFile.add_var("Points_Id", ncInt, ncdims[6])) )
@@ -465,14 +441,10 @@ void MeshAdapter::dump(const std::string& fileName) const
 
       // Points_Nodes
       // mesh->Nodes->Id[mesh->Points->Nodes[INDEX2(0,i,1)]]
-      for (int i=0; i<num_Points; i++)
-         Points_Nodes[i] = mesh->Nodes->Id[mesh->Points->Nodes[INDEX2(0,i,1)]];
       if (! ( ids = dataFile.add_var("Points_Nodes", ncInt, ncdims[6]) ) )
          throw DataException("Error - MeshAdapter::dump: appending Points_Nodes to netCDF file failed: " + *newFileName);
-      if (! (ids->put(&(Points_Nodes[0]), num_Points)) )
+      if (! (ids->put(&(mesh->Points->Nodes[0]), num_Points)) )
          throw DataException("Error - MeshAdapter::dump: copy Points_Nodes to netCDF buffer failed: " + *newFileName);
-
-      TMPMEMFREE(Points_Nodes);
 
    }
 
@@ -649,6 +621,14 @@ int MeshAdapter::getDim() const
    int numDim=Finley_Mesh_getDim(m_finleyMesh.get());
    checkFinleyError();
    return numDim;
+}
+
+//
+// Return the number of data points summed across all MPI processes
+//
+int MeshAdapter::getNumDataPointsGlobal() const
+{
+   return Finley_NodeFile_getGlobalNumNodes(m_finleyMesh.get()->Nodes);
 }
 
 //
@@ -2046,5 +2026,89 @@ std::string MeshAdapter::showTagNames() const
    }
    return temp.str();
 }
+
+int MeshAdapter::getNumberOfTagsInUse(int functionSpaceCode) const
+{
+  Finley_Mesh* mesh=m_finleyMesh.get();
+  dim_t numTags=0;
+  switch(functionSpaceCode) {
+   case(Nodes):
+          numTags=mesh->Nodes->numTagsInUse;
+          break;
+   case(ReducedNodes):
+          throw FinleyAdapterException("Error - ReducedNodes does not support tags");
+          break;
+   case(DegreesOfFreedom):
+          throw FinleyAdapterException("Error - DegreesOfFreedom does not support tags");
+          break;
+   case(ReducedDegreesOfFreedom):
+          throw FinleyAdapterException("Error - ReducedDegreesOfFreedom does not support tags");
+          break;
+   case(Elements):
+   case(ReducedElements):
+          numTags=mesh->Elements->numTagsInUse;
+          break;
+   case(FaceElements):
+   case(ReducedFaceElements):
+          numTags=mesh->FaceElements->numTagsInUse;
+          break;
+   case(Points):
+          numTags=mesh->Points->numTagsInUse;
+          break;
+   case(ContactElementsZero):
+   case(ReducedContactElementsZero):
+   case(ContactElementsOne):
+   case(ReducedContactElementsOne):
+          numTags=mesh->ContactElements->numTagsInUse;
+          break;
+   default:
+      stringstream temp;
+      temp << "Error - Finley does not know anything about function space type " << functionSpaceCode;
+      throw FinleyAdapterException(temp.str());
+  }
+  return numTags;
+}
+int* MeshAdapter::borrowListOfTagsInUse(int functionSpaceCode) const
+{
+  Finley_Mesh* mesh=m_finleyMesh.get();
+  index_t* tags=NULL;
+  switch(functionSpaceCode) {
+   case(Nodes):
+          tags=mesh->Nodes->tagsInUse;
+          break;
+   case(ReducedNodes):
+          throw FinleyAdapterException("Error - ReducedNodes does not support tags");
+          break;
+   case(DegreesOfFreedom):
+          throw FinleyAdapterException("Error - DegreesOfFreedom does not support tags");
+          break;
+   case(ReducedDegreesOfFreedom):
+          throw FinleyAdapterException("Error - ReducedDegreesOfFreedom does not support tags");
+          break;
+   case(Elements):
+   case(ReducedElements):
+          tags=mesh->Elements->tagsInUse;
+          break;
+   case(FaceElements):
+   case(ReducedFaceElements):
+          tags=mesh->FaceElements->tagsInUse;
+          break;
+   case(Points):
+          tags=mesh->Points->tagsInUse;
+          break;
+   case(ContactElementsZero):
+   case(ReducedContactElementsZero):
+   case(ContactElementsOne):
+   case(ReducedContactElementsOne):
+          tags=mesh->ContactElements->tagsInUse;
+          break;
+   default:
+      stringstream temp;
+      temp << "Error - Finley does not know anything about function space type " << functionSpaceCode;
+      throw FinleyAdapterException(temp.str());
+  }
+  return tags;
+}
+
 
 }  // end of namespace

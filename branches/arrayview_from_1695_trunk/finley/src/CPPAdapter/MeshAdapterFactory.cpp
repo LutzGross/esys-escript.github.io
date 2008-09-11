@@ -58,18 +58,13 @@ namespace finley {
     Finley_Mesh *mesh_p=NULL;
     char error_msg[LenErrorMsg_MAX];
 
-    // I don't think the strdup is needed since Paso_MPI_appendRankToFileName
-    // does it's own allocation.
-    // char *fName = Paso_MPI_appendRankToFileName(strdup(fileName.c_str()),
-    //                                             mpi_info->size,
-    //                                             mpi_info->rank);
-
     char *fName = Paso_MPI_appendRankToFileName(fileName.c_str(),
                                                 mpi_info->size,
                                                 mpi_info->rank);
 
     double blocktimer_start = blocktimer_time();
     Finley_resetError();
+    int *first_DofComponent, *first_NodeComponent;
 
     // Open NetCDF file for reading
     NcAtt *attr;
@@ -133,63 +128,68 @@ namespace finley {
         if (! ( nc_var_temp = dataFile.get_var("Nodes_Id")) )
           throw DataException("Error - loadMesh:: unable to read Nodes_Id from netCDF file: " + *fName);
         if (! nc_var_temp->get(&mesh_p->Nodes->Id[0], numNodes) ) {
-          free(&mesh_p->Nodes->Id);
+          TMPMEMFREE(mesh_p->Nodes->Id);
           throw DataException("Error - loadMesh:: unable to recover Nodes_Id from NetCDF file: " + *fName);
         }
 	// Nodes_Tag
         if (! ( nc_var_temp = dataFile.get_var("Nodes_Tag")) )
           throw DataException("Error - loadMesh:: unable to read Nodes_Tag from netCDF file: " + *fName);
         if (! nc_var_temp->get(&mesh_p->Nodes->Tag[0], numNodes) ) {
-          free(&mesh_p->Nodes->Tag);
+          TMPMEMFREE(mesh_p->Nodes->Tag);
           throw DataException("Error - loadMesh:: unable to recover Nodes_Tag from NetCDF file: " + *fName);
         }
 	// Nodes_gDOF
         if (! ( nc_var_temp = dataFile.get_var("Nodes_gDOF")) )
           throw DataException("Error - loadMesh:: unable to read Nodes_gDOF from netCDF file: " + *fName);
         if (! nc_var_temp->get(&mesh_p->Nodes->globalDegreesOfFreedom[0], numNodes) ) {
-          free(&mesh_p->Nodes->globalDegreesOfFreedom);
+          TMPMEMFREE(mesh_p->Nodes->globalDegreesOfFreedom);
           throw DataException("Error - loadMesh:: unable to recover Nodes_gDOF from NetCDF file: " + *fName);
         }
 	// Nodes_gNI
         if (! ( nc_var_temp = dataFile.get_var("Nodes_gNI")) )
           throw DataException("Error - loadMesh:: unable to read Nodes_gNI from netCDF file: " + *fName);
         if (! nc_var_temp->get(&mesh_p->Nodes->globalNodesIndex[0], numNodes) ) {
-          free(&mesh_p->Nodes->globalNodesIndex);
+          TMPMEMFREE(mesh_p->Nodes->globalNodesIndex);
           throw DataException("Error - loadMesh:: unable to recover Nodes_gNI from NetCDF file: " + *fName);
         }
 	// Nodes_grDfI
         if (! ( nc_var_temp = dataFile.get_var("Nodes_grDfI")) )
           throw DataException("Error - loadMesh:: unable to read Nodes_grDfI from netCDF file: " + *fName);
         if (! nc_var_temp->get(&mesh_p->Nodes->globalReducedDOFIndex[0], numNodes) ) {
-          free(&mesh_p->Nodes->globalReducedDOFIndex);
+          TMPMEMFREE(mesh_p->Nodes->globalReducedDOFIndex);
           throw DataException("Error - loadMesh:: unable to recover Nodes_grDfI from NetCDF file: " + *fName);
         }
 	// Nodes_grNI
         if (! ( nc_var_temp = dataFile.get_var("Nodes_grNI")) )
           throw DataException("Error - loadMesh:: unable to read Nodes_grNI from netCDF file: " + *fName);
         if (! nc_var_temp->get(&mesh_p->Nodes->globalReducedNodesIndex[0], numNodes) ) {
-          free(&mesh_p->Nodes->globalReducedNodesIndex);
+          TMPMEMFREE(mesh_p->Nodes->globalReducedNodesIndex);
           throw DataException("Error - loadMesh:: unable to recover Nodes_grNI from NetCDF file: " + *fName);
         }
 	// Nodes_Coordinates
         if (!(nc_var_temp = dataFile.get_var("Nodes_Coordinates"))) {
-          free(&mesh_p->Nodes->Coordinates);
+          TMPMEMFREE(mesh_p->Nodes->Coordinates);
           throw DataException("Error - loadMesh:: unable to read Nodes_Coordinates from netCDF file: " + *fName);
         }
         if (! nc_var_temp->get(&(mesh_p->Nodes->Coordinates[0]), numNodes, numDim) ) {
-          free(&mesh_p->Nodes->Coordinates);
+          TMPMEMFREE(mesh_p->Nodes->Coordinates);
           throw DataException("Error - load:: unable to recover Nodes_Coordinates from netCDF file: " + *fName);
         }
 	// Nodes_DofDistribution
-	int *first_component = TMPMEMALLOC(mpi_size+1,index_t);
+	first_DofComponent = TMPMEMALLOC(mpi_size+1,index_t);
         if (! ( nc_var_temp = dataFile.get_var("Nodes_DofDistribution")) )
           throw DataException("Error - loadMesh:: unable to read Nodes_DofDistribution from netCDF file: " + *fName);
-        if (! nc_var_temp->get(&first_component[0], mpi_size+1) ) {
-          free(&first_component);
+        if (! nc_var_temp->get(&first_DofComponent[0], mpi_size+1) ) {
           throw DataException("Error - loadMesh:: unable to recover Nodes_DofDistribution from NetCDF file: " + *fName);
         }
-	mesh_p->Nodes->degreesOfFreedomDistribution=Paso_Distribution_alloc(mesh_p->Nodes->MPIInfo,first_component,1,0);
-	TMPMEMFREE(first_component);
+
+	// Nodes_NodeDistribution
+	first_NodeComponent = TMPMEMALLOC(mpi_size+1,index_t);
+        if (! ( nc_var_temp = dataFile.get_var("Nodes_NodeDistribution")) )
+          throw DataException("Error - loadMesh:: unable to read Nodes_NodeDistribution from netCDF file: " + *fName);
+        if (! nc_var_temp->get(&first_NodeComponent[0], mpi_size+1) ) {
+          throw DataException("Error - loadMesh:: unable to recover Nodes_NodeDistribution from NetCDF file: " + *fName);
+        }
 
         /* read elements */
         if (Finley_noError()) {
@@ -203,38 +203,38 @@ namespace finley {
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Id")) )
                      throw DataException("Error - loadMesh:: unable to read Elements_Id from netCDF file: " + *fName);
                    if (! nc_var_temp->get(&mesh_p->Elements->Id[0], num_Elements) ) {
-                     free(&mesh_p->Elements->Id);
+                     TMPMEMFREE(mesh_p->Elements->Id);
                      throw DataException("Error - loadMesh:: unable to recover Elements_Id from NetCDF file: " + *fName);
                    }
 	           // Elements_Tag
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Tag")) )
                      throw DataException("Error - loadMesh:: unable to read Elements_Tag from netCDF file: " + *fName);
                    if (! nc_var_temp->get(&mesh_p->Elements->Tag[0], num_Elements) ) {
-                     free(&mesh_p->Elements->Tag);
+                     TMPMEMFREE(mesh_p->Elements->Tag);
                      throw DataException("Error - loadMesh:: unable to recover Elements_Tag from NetCDF file: " + *fName);
                    }
 	           // Elements_Owner
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Owner")) )
                      throw DataException("Error - loadMesh:: unable to read Elements_Owner from netCDF file: " + *fName);
                    if (! nc_var_temp->get(&mesh_p->Elements->Owner[0], num_Elements) ) {
-                     free(&mesh_p->Elements->Owner);
+                     TMPMEMFREE(mesh_p->Elements->Owner);
                      throw DataException("Error - loadMesh:: unable to recover Elements_Owner from NetCDF file: " + *fName);
                    }
 	           // Elements_Color
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Color")) )
                      throw DataException("Error - loadMesh:: unable to read Elements_Color from netCDF file: " + *fName);
                    if (! nc_var_temp->get(&mesh_p->Elements->Color[0], num_Elements) ) {
-                     free(&mesh_p->Elements->Color);
+                     TMPMEMFREE(mesh_p->Elements->Color);
                      throw DataException("Error - loadMesh:: unable to recover Elements_Color from NetCDF file: " + *fName);
                    }
 	           // Elements_Nodes
 		   int *Elements_Nodes = TMPMEMALLOC(num_Elements*num_Elements_numNodes,int);
                    if (!(nc_var_temp = dataFile.get_var("Elements_Nodes"))) {
-                     free(&mesh_p->Elements->Nodes);
+                     TMPMEMFREE(mesh_p->Elements->Nodes);
                      throw DataException("Error - loadMesh:: unable to read Elements_Nodes from netCDF file: " + *fName);
                    }
                    if (! nc_var_temp->get(&(Elements_Nodes[0]), num_Elements, num_Elements_numNodes) ) {
-                     free(&Elements_Nodes);
+                     TMPMEMFREE(Elements_Nodes);
                      throw DataException("Error - load:: unable to recover Elements_Nodes from netCDF file: " + *fName);
                    }
 		   // Copy temp array into mesh_p->Elements->Nodes
@@ -261,38 +261,38 @@ namespace finley {
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Id")) )
                      throw DataException("Error - loadMesh:: unable to read FaceElements_Id from netCDF file: " + *fName);
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Id[0], num_FaceElements) ) {
-                     free(&mesh_p->FaceElements->Id);
+                     TMPMEMFREE(mesh_p->FaceElements->Id);
                      throw DataException("Error - loadMesh:: unable to recover FaceElements_Id from NetCDF file: " + *fName);
                    }
 	           // FaceElements_Tag
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Tag")) )
                      throw DataException("Error - loadMesh:: unable to read FaceElements_Tag from netCDF file: " + *fName);
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Tag[0], num_FaceElements) ) {
-                     free(&mesh_p->FaceElements->Tag);
+                     TMPMEMFREE(mesh_p->FaceElements->Tag);
                      throw DataException("Error - loadMesh:: unable to recover FaceElements_Tag from NetCDF file: " + *fName);
                    }
 	           // FaceElements_Owner
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Owner")) )
                      throw DataException("Error - loadMesh:: unable to read FaceElements_Owner from netCDF file: " + *fName);
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Owner[0], num_FaceElements) ) {
-                     free(&mesh_p->FaceElements->Owner);
+                     TMPMEMFREE(mesh_p->FaceElements->Owner);
                      throw DataException("Error - loadMesh:: unable to recover FaceElements_Owner from NetCDF file: " + *fName);
                    }
 	           // FaceElements_Color
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Color")) )
                      throw DataException("Error - loadMesh:: unable to read FaceElements_Color from netCDF file: " + *fName);
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Color[0], num_FaceElements) ) {
-                     free(&mesh_p->FaceElements->Color);
+                     TMPMEMFREE(mesh_p->FaceElements->Color);
                      throw DataException("Error - loadMesh:: unable to recover FaceElements_Color from NetCDF file: " + *fName);
                    }
 	           // FaceElements_Nodes
 		   int *FaceElements_Nodes = TMPMEMALLOC(num_FaceElements*num_FaceElements_numNodes,int);
                    if (!(nc_var_temp = dataFile.get_var("FaceElements_Nodes"))) {
-                     free(&mesh_p->FaceElements->Nodes);
+                     TMPMEMFREE(mesh_p->FaceElements->Nodes);
                      throw DataException("Error - loadMesh:: unable to read FaceElements_Nodes from netCDF file: " + *fName);
                    }
                    if (! nc_var_temp->get(&(FaceElements_Nodes[0]), num_FaceElements, num_FaceElements_numNodes) ) {
-                     free(&FaceElements_Nodes);
+                     TMPMEMFREE(FaceElements_Nodes);
                      throw DataException("Error - load:: unable to recover FaceElements_Nodes from netCDF file: " + *fName);
                    }
 		   // Copy temp array into mesh_p->FaceElements->Nodes
@@ -319,38 +319,38 @@ namespace finley {
                    if (! ( nc_var_temp = dataFile.get_var("ContactElements_Id")) )
                      throw DataException("Error - loadMesh:: unable to read ContactElements_Id from netCDF file: " + *fName);
                    if (! nc_var_temp->get(&mesh_p->ContactElements->Id[0], num_ContactElements) ) {
-                     free(&mesh_p->ContactElements->Id);
+                     TMPMEMFREE(mesh_p->ContactElements->Id);
                      throw DataException("Error - loadMesh:: unable to recover ContactElements_Id from NetCDF file: " + *fName);
                    }
 	           // ContactElements_Tag
                    if (! ( nc_var_temp = dataFile.get_var("ContactElements_Tag")) )
                      throw DataException("Error - loadMesh:: unable to read ContactElements_Tag from netCDF file: " + *fName);
                    if (! nc_var_temp->get(&mesh_p->ContactElements->Tag[0], num_ContactElements) ) {
-                     free(&mesh_p->ContactElements->Tag);
+                     TMPMEMFREE(mesh_p->ContactElements->Tag);
                      throw DataException("Error - loadMesh:: unable to recover ContactElements_Tag from NetCDF file: " + *fName);
                    }
 	           // ContactElements_Owner
                    if (! ( nc_var_temp = dataFile.get_var("ContactElements_Owner")) )
                      throw DataException("Error - loadMesh:: unable to read ContactElements_Owner from netCDF file: " + *fName);
                    if (! nc_var_temp->get(&mesh_p->ContactElements->Owner[0], num_ContactElements) ) {
-                     free(&mesh_p->ContactElements->Owner);
+                     TMPMEMFREE(mesh_p->ContactElements->Owner);
                      throw DataException("Error - loadMesh:: unable to recover ContactElements_Owner from NetCDF file: " + *fName);
                    }
 	           // ContactElements_Color
                    if (! ( nc_var_temp = dataFile.get_var("ContactElements_Color")) )
                      throw DataException("Error - loadMesh:: unable to read ContactElements_Color from netCDF file: " + *fName);
                    if (! nc_var_temp->get(&mesh_p->ContactElements->Color[0], num_ContactElements) ) {
-                     free(&mesh_p->ContactElements->Color);
+                     TMPMEMFREE(mesh_p->ContactElements->Color);
                      throw DataException("Error - loadMesh:: unable to recover ContactElements_Color from NetCDF file: " + *fName);
                    }
 	           // ContactElements_Nodes
 		   int *ContactElements_Nodes = TMPMEMALLOC(num_ContactElements*num_ContactElements_numNodes,int);
                    if (!(nc_var_temp = dataFile.get_var("ContactElements_Nodes"))) {
-                     free(&mesh_p->ContactElements->Nodes);
+                     TMPMEMFREE(mesh_p->ContactElements->Nodes);
                      throw DataException("Error - loadMesh:: unable to read ContactElements_Nodes from netCDF file: " + *fName);
                    }
                    if (! nc_var_temp->get(&(ContactElements_Nodes[0]), num_ContactElements, num_ContactElements_numNodes) ) {
-                     free(&ContactElements_Nodes);
+                     TMPMEMFREE(ContactElements_Nodes);
                      throw DataException("Error - load:: unable to recover ContactElements_Nodes from netCDF file: " + *fName);
                    }
 		   // Copy temp array into mesh_p->ContactElements->Nodes
@@ -377,38 +377,38 @@ namespace finley {
                    if (! ( nc_var_temp = dataFile.get_var("Points_Id")) )
                      throw DataException("Error - loadMesh:: unable to read Points_Id from netCDF file: " + *fName);
                    if (! nc_var_temp->get(&mesh_p->Points->Id[0], num_Points) ) {
-                     free(&mesh_p->Points->Id);
+                     TMPMEMFREE(mesh_p->Points->Id);
                      throw DataException("Error - loadMesh:: unable to recover Points_Id from NetCDF file: " + *fName);
                    }
 	           // Points_Tag
                    if (! ( nc_var_temp = dataFile.get_var("Points_Tag")) )
                      throw DataException("Error - loadMesh:: unable to read Points_Tag from netCDF file: " + *fName);
                    if (! nc_var_temp->get(&mesh_p->Points->Tag[0], num_Points) ) {
-                     free(&mesh_p->Points->Tag);
+                     TMPMEMFREE(mesh_p->Points->Tag);
                      throw DataException("Error - loadMesh:: unable to recover Points_Tag from NetCDF file: " + *fName);
                    }
 	           // Points_Owner
                    if (! ( nc_var_temp = dataFile.get_var("Points_Owner")) )
                      throw DataException("Error - loadMesh:: unable to read Points_Owner from netCDF file: " + *fName);
                    if (! nc_var_temp->get(&mesh_p->Points->Owner[0], num_Points) ) {
-                     free(&mesh_p->Points->Owner);
+                     TMPMEMFREE(mesh_p->Points->Owner);
                      throw DataException("Error - loadMesh:: unable to recover Points_Owner from NetCDF file: " + *fName);
                    }
 	           // Points_Color
                    if (! ( nc_var_temp = dataFile.get_var("Points_Color")) )
                      throw DataException("Error - loadMesh:: unable to read Points_Color from netCDF file: " + *fName);
                    if (! nc_var_temp->get(&mesh_p->Points->Color[0], num_Points) ) {
-                     free(&mesh_p->Points->Color);
+                     TMPMEMFREE(mesh_p->Points->Color);
                      throw DataException("Error - loadMesh:: unable to recover Points_Color from NetCDF file: " + *fName);
                    }
 	           // Points_Nodes
 		   int *Points_Nodes = TMPMEMALLOC(num_Points,int);
                    if (!(nc_var_temp = dataFile.get_var("Points_Nodes"))) {
-                     free(&mesh_p->Points->Nodes);
+                     TMPMEMFREE(mesh_p->Points->Nodes);
                      throw DataException("Error - loadMesh:: unable to read Points_Nodes from netCDF file: " + *fName);
                    }
                    if (! nc_var_temp->get(&(Points_Nodes[0]), num_Points) ) {
-                     free(&Points_Nodes);
+                     TMPMEMFREE(Points_Nodes);
                      throw DataException("Error - load:: unable to recover Points_Nodes from netCDF file: " + *fName);
                    }
 		   // Copy temp array into mesh_p->Points->Nodes
@@ -432,7 +432,7 @@ namespace finley {
             if (! ( nc_var_temp = dataFile.get_var("Tags_keys")) )
               throw DataException("Error - loadMesh:: unable to read Tags_keys from netCDF file: " + *fName);
             if (! nc_var_temp->get(&Tags_keys[0], num_Tags) ) {
-              free(&Tags_keys);
+              TMPMEMFREE(Tags_keys);
               throw DataException("Error - loadMesh:: unable to recover Tags_keys from NetCDF file: " + *fName);
             }
 	    for (i=0; i<num_Tags; i++) {
@@ -451,7 +451,9 @@ namespace finley {
 
     } /* Finley_noError() after Finley_Mesh_alloc() */
    
-    if (Finley_noError()) Finley_Mesh_createMappings(mesh_p, mesh_p->Nodes->degreesOfFreedomDistribution->first_component);
+    if (Finley_noError()) Finley_Mesh_createMappings(mesh_p, first_DofComponent, first_NodeComponent);
+    TMPMEMFREE(first_DofComponent);
+    TMPMEMFREE(first_NodeComponent);
 
     checkFinleyError();
     temp=new MeshAdapter(mesh_p);

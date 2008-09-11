@@ -35,8 +35,8 @@ void Finley_NodeFile_scatterEntries(dim_t n, index_t* index, index_t min_index, 
 {
    dim_t i;
    register index_t k;
-   register const index_t range=max_index-min_index;
-   const  size_t numDim_size=(size_t)numDim*sizeof(double);
+   const index_t range=max_index-min_index;
+   const size_t numDim_size=(size_t)numDim*sizeof(double);
 
    #pragma omp parallel for private(i,k) schedule(static)
    for (i=0;i<n;i++) {

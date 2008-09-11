@@ -225,13 +225,12 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
 
            if  (out_data_type == FINLEY_NODES) {
              Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to nodes.");
-
            } else if (out_data_type == FINLEY_REDUCED_NODES) {
                coupler=Paso_Coupler_alloc(nodes->reducedDegreesOfFreedomConnector,numComps);
                if (Paso_noError()) {
+                    upperBound=Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
                     Paso_Coupler_startCollect(coupler,getSampleDataFast(in,0));
                     recv_buffer=Paso_Coupler_finishCollect(coupler);
-                    upperBound=Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
                     #pragma omp parallel for private(n,k,l) schedule(static)
                     for (n=0;n<nodes->reducedNodesMapping->numTargets;n++) {
                           l=nodes->reducedNodesMapping->map[n];

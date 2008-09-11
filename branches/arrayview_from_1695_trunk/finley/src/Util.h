@@ -44,12 +44,14 @@ dim_t Finley_Util_packMask(dim_t N,bool_t* mask,index_t* index);
 bool_t Finley_Util_isAny(dim_t N,index_t* array,index_t value);
 index_t Finley_Util_cumsum(dim_t,index_t*);
 bool_t Finley_Util_anyNonZeroDouble(dim_t N,double* values);
+void Finley_Util_setValuesInUse(const index_t *values, const dim_t numValues, dim_t *numValuesInUse, index_t **valuesInUse, Paso_MPIInfo* mpiinfo);
 
 #ifdef PASO_MPI
 void Finley_printDoubleArray( FILE *fid, dim_t n, double *array, char *name  );
 void Finley_printIntArray( FILE *fid, dim_t n, int *array, char *name  );
 void Finley_printMaskArray( FILE *fid, dim_t n, int *array, char *name  );
 #endif
+
 
 
 

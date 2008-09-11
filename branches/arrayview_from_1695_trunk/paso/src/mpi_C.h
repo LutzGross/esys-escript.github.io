@@ -19,6 +19,8 @@
     Ensures that mpi++.h no C++ stuff leaks into Paso/Finley
 */
 
+#ifdef PASO_MPI
+
 
 /*
 #ifndef MPI_NO_CPPBIND
@@ -37,3 +39,6 @@
      #undef MPICH_SKIP_MPICXX
   #endif
 #endif
+
+#endif
+

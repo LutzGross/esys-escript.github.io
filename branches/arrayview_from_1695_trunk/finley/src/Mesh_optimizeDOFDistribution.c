@@ -26,7 +26,7 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#ifdef PARMETIS
+#ifdef USE_PARMETIS
 #include "parmetis.h"
 #endif
 
@@ -73,7 +73,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
      if (!(Finley_checkPtr(partition) || Finley_checkPtr(xyz) || Finley_checkPtr(partition_count) || Finley_checkPtr(partition_count) || Finley_checkPtr(newGlobalDOFID) || Finley_checkPtr(setNewDOFId))) {
          dim_t *recvbuf=TMPMEMALLOC(mpiSize*mpiSize,dim_t);
 
-         /* set the coordinates: *?
+         /* set the coordinates: */
          /* it is assumed that at least one node on this processor provides a coordinate */
          #pragma omp parallel for private(i,j,k)
          for (i=0;i<in->Nodes->numNodes;++i) {
@@ -96,18 +96,18 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
               }
 	      /* ksteube build CSR format */
               /*  insert contributions from element matrices into colums index index_list: */
-              Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
-                                                          in->Elements,in->Nodes->globalDegreesOfFreedom,
-                                                          in->Nodes->globalDegreesOfFreedom);
-              Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
-                                                          in->FaceElements,in->Nodes->globalDegreesOfFreedom,
-                                                          in->Nodes->globalDegreesOfFreedom);
-              Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
-                                                          in->ContactElements,in->Nodes->globalDegreesOfFreedom,
-                                                          in->Nodes->globalDegreesOfFreedom);
-              Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
-                                                          in->Points,in->Nodes->globalDegreesOfFreedom,
-                                                          in->Nodes->globalDegreesOfFreedom);
+              Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+                                                                        in->Elements,in->Nodes->globalDegreesOfFreedom,
+                                                                        in->Nodes->globalDegreesOfFreedom);
+              Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+                                                                        in->FaceElements,in->Nodes->globalDegreesOfFreedom,
+                                                                        in->Nodes->globalDegreesOfFreedom);
+              Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+                                                                        in->ContactElements,in->Nodes->globalDegreesOfFreedom,
+                                                                        in->Nodes->globalDegreesOfFreedom);
+              Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+                                                                        in->Points,in->Nodes->globalDegreesOfFreedom,
+                                                                        in->Nodes->globalDegreesOfFreedom);
            }
            
            /* create the local matrix pattern */
@@ -121,7 +121,8 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
 
            if (Finley_noError()) {
 
-#ifdef PARMETIS
+#ifdef USE_PARMETIS
+
 	      if (in->MPIInfo->size>1) {
 		 int i;
 		 int wgtflag = 0;
@@ -133,8 +134,9 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
 		 float *ubvec = TMPMEMALLOC(ncon,float);
 		 for (i=0; i<ncon*mpiSize; i++) tpwgts[i] = 1.0/(float)mpiSize;
 		 for (i=0; i<ncon; i++) ubvec[i] = 1.05;
-		 options[0] = 0;
+		 options[0] = 3;
 		 options[1] = 15;
+
 		 ParMETIS_V3_PartGeomKway(distribution,
                                  pattern->ptr,
                                  pattern->index,
@@ -152,7 +154,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
                                  &edgecut,
                                  partition,				/* new CPU ownership of elements */
                                  &(in->MPIInfo->comm));
-		 printf("ParMETIS number of edges cut by partitioning: %d\n", edgecut);
+		 printf("ParMETIS number of edges cut by partitioning per processor: %d\n", edgecut/MAX(in->MPIInfo->size,1));
                  TMPMEMFREE(ubvec);
                  TMPMEMFREE(tpwgts);
 	      } else {
@@ -234,8 +236,6 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
               }
            }
            for (i=0;i<mpiSize+1;++i) distribution[i]=new_distribution[i];
-
-           
          }
          TMPMEMFREE(index_list);
      }

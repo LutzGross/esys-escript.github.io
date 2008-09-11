@@ -68,13 +68,15 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   #ifdef Finley_TRACE
   printf("Node id range used by elements is %d:%d\n",global_min_id,global_max_id);
   #endif
-
-
+  if (min_id>max_id) {
+     max_id=-1;
+     min_id=0;
+  }
   
   /* allocate mappings for new local node labeling to global node labeling (newLocalToGlobalNodeLabels)
      and global node labeling to the new local node labeling (globalToNewLocalNodeLabels[i-min_id] is the 
      new local id of global node i) */
-  len=max_id-min_id+1;
+  len=(max_id>min_id) ? max_id-min_id+1 : 0 ;
   globalToNewLocalNodeLabels=TMPMEMALLOC(len,index_t); /* local mask for used nodes */
   newLocalToGlobalNodeLabels=TMPMEMALLOC(len,index_t);
   if (! ( (Finley_checkPtr(globalToNewLocalNodeLabels) && Finley_checkPtr(newLocalToGlobalNodeLabels) ) ) ) {
@@ -88,7 +90,6 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
        }
 
        /*  mark the nodes referred by elements in globalToNewLocalNodeLabels which is currently used as a mask: */
-
        Finley_Mesh_markNodes(globalToNewLocalNodeLabels,min_id,in,FALSE);
 
        /* create a local labeling newLocalToGlobalNodeLabels of the local nodes by packing the mask globalToNewLocalNodeLabels*/
@@ -98,10 +99,10 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
        /* invert the new labeling and shift the index newLocalToGlobalNodeLabels to global node ids */
        #pragma omp parallel for private(n) schedule(static)
        for (n=0;n<newNumNodes;n++) {
-#ifdef BOUNDS_CHECK
-       if (n >= len || n < 0) { printf("BOUNDS_CHECK %s %d n=%d\n", __FILE__, __LINE__, n); exit(1); }
-       if (newLocalToGlobalNodeLabels[n] >= len || newLocalToGlobalNodeLabels[n] < 0) { printf("BOUNDS_CHECK %s %d n=%d\n", __FILE__, __LINE__, n); exit(1); }
-#endif
+              #ifdef BOUNDS_CHECK
+                     if (n >= len || n < 0) { printf("BOUNDS_CHECK %s %d n=%d\n", __FILE__, __LINE__, n); exit(1); }
+                     if (newLocalToGlobalNodeLabels[n] >= len || newLocalToGlobalNodeLabels[n] < 0) { printf("BOUNDS_CHECK %s %d n=%d\n", __FILE__, __LINE__, n); exit(1); }
+              #endif
               globalToNewLocalNodeLabels[newLocalToGlobalNodeLabels[n]]=n;
               newLocalToGlobalNodeLabels[n]+=min_id;
         }
@@ -110,8 +111,9 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
         if (Finley_noError()) {
            Finley_NodeFile_allocTable(newNodeFile,newNumNodes);
         }
-        if (Finley_noError()) 
+        if (Finley_noError()) {
             Finley_NodeFile_gather_global(newLocalToGlobalNodeLabels,in->Nodes, newNodeFile);
+        }
         if (Finley_noError()) {
            Finley_NodeFile_free(in->Nodes);
            in->Nodes=newNodeFile;

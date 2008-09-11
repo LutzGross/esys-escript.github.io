@@ -49,6 +49,9 @@ index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry) 
         case PASO_NONLINEAR_GMRES:
             out=PASO_NONLINEAR_GMRES;
             break;
+        case PASO_TFQMR:
+            out=PASO_TFQMR;
+            break;
         default:
             if (symmetry) {
                out=PASO_PCG;
@@ -71,6 +74,9 @@ index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry) 
         break;
       case PASO_BICGSTAB:
         out=PASO_BICGSTAB;
+        break;
+      case PASO_TFQMR:
+        out=PASO_TFQMR;
         break;
       case PASO_ITERATIVE:
         if (symmetry) {
@@ -124,6 +130,9 @@ index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry) 
             break;
         case PASO_GMRES:
             out=PASO_GMRES;
+            break;
+        case PASO_TFQMR:
+            out=PASO_TFQMR;
             break;
         default:
             if (symmetry) {

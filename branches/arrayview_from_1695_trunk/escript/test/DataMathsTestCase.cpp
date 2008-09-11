@@ -20,8 +20,6 @@
 #include "DataMathsTestCase.h"
 #include "escript/DataTypes.h"
 
-#include "escript/DataArrayView.h"
-
 #include <iostream>
 
 using namespace CppUnitTest;
