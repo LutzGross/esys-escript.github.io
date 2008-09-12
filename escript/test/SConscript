@@ -34,7 +34,7 @@ program = local_env.Program('escript_UnitTest', sources)
 
 #Add Unit Test to target alias
 
-local_env.Alias('run_tests', program)
+local_env.Alias('build_tests', program)
 
 # run the tests - but only if test_targets are stale
 local_env.RunUnitTest('escript_UnitTest')

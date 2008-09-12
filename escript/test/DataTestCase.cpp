@@ -581,7 +581,7 @@ void DataTestCase::testDataTagged() {
     bool expanded=false;
 
     Data myData(keys,values,defaultValue,FunctionSpace(),expanded);*/
-    int arr[0]={};
+    int arr[1]={1};		// iso c++ does not like empty arrays
     DataTagged* dt=new DataTagged(FunctionSpace(),viewShape,arr,viewData); 
     Data myData(dt);
 

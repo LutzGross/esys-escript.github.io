@@ -2698,6 +2698,7 @@ void DataTaggedTestCase::testGetSlice() {
     assert(myDataSliced->getShape().size()==0);
     assert(myDataSliced->getVector()[0]==0.0);
 
+    delete slicedDefault;
   }
 
   {
@@ -2756,6 +2757,8 @@ void DataTaggedTestCase::testGetSlice() {
     region_element.second=0;
     region.push_back(region_element);
 
+    delete slicedDefault;
+
     slicedDefault = myData.getSlice(region);
 
     //cout << slicedDefault->toString() << endl;
@@ -2774,6 +2777,7 @@ void DataTaggedTestCase::testGetSlice() {
     assert(myDataSliced->getShape().size()==0);
     assert(myDataSliced->getVector()[0]==0.0);
 
+    delete slicedDefault;
   }
 
   {
@@ -2834,6 +2838,8 @@ void DataTaggedTestCase::testGetSlice() {
     region.push_back(region_element);
     region.push_back(region_element);
 
+    delete slicedDefault;
+
     slicedDefault = myData.getSlice(region);
 
     //cout << slicedDefault->toString() << endl;
@@ -2864,6 +2870,8 @@ void DataTaggedTestCase::testGetSlice() {
     region.push_back(region_element);
     region.push_back(region_element);
 
+    delete slicedDefault;
+
     slicedDefault = myData.getSlice(region);
 
     //cout << slicedDefault->toString() << endl;
@@ -2883,7 +2891,7 @@ void DataTaggedTestCase::testGetSlice() {
     offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
     assert(myDataSliced->getVector()[0]==26);
-
+    delete slicedDefault;
   }
 
   {
@@ -2938,6 +2946,8 @@ void DataTaggedTestCase::testGetSlice() {
     offset=myDataSliced->getOffsetForTag(1);
     assert(offset==1);
     assert(myDataSliced->getVector()[offset]==1);
+
+    delete slicedDefault;
 
   }
 
@@ -3014,6 +3024,8 @@ void DataTaggedTestCase::testGetSlice() {
     region.clear();
     region.push_back(region_element);
 
+    delete slicedDefault;
+
     slicedDefault = myData.getSlice(region);
 
     //cout << slicedDefault->toString() << endl;
@@ -3038,6 +3050,7 @@ void DataTaggedTestCase::testGetSlice() {
     offset=myDataSliced->getOffsetForTag(1);
     assert(offset==1);
     assert(myDataSliced->getVector()[offset]==4);
+    delete slicedDefault;
 
   }
 
@@ -3113,6 +3126,8 @@ void DataTaggedTestCase::testGetSlice() {
     region.push_back(region_element);
     region.push_back(region_element);
 
+    delete slicedDefault;
+
     slicedDefault = myData.getSlice(region);
     //cout << slicedDefault->toString() << endl;
 
@@ -3148,6 +3163,8 @@ void DataTaggedTestCase::testGetSlice() {
     region.push_back(region_element);
     region.push_back(region_element);
 
+    delete slicedDefault;
+
     slicedDefault = myData.getSlice(region);
 
     //cout << slicedDefault->toString() << endl;
@@ -3172,6 +3189,7 @@ void DataTaggedTestCase::testGetSlice() {
     assert(offset==1);
     assert(myDataSliced->getVector()[offset]==40);
 
+    delete slicedDefault;
   }
 
   {
@@ -3255,6 +3273,7 @@ void DataTaggedTestCase::testGetSlice() {
     assert(offset==3);
     assert(myDataSliced->getVector()[offset]==3);
 
+    delete slicedDefault;
   }
 
   {
@@ -3367,6 +3386,8 @@ void DataTaggedTestCase::testGetSlice() {
     region_element.second=1;
     region.push_back(region_element);
 
+    delete slicedDefault;
+
     slicedDefault = myData.getSlice(region);
 
     //cout << slicedDefault->toString() << endl;
@@ -3400,7 +3421,8 @@ void DataTaggedTestCase::testGetSlice() {
     offset=myDataSliced->getOffsetForTag(3);
     assert(offset==3);
     assert(myDataSliced->getVector()[offset]==10);
-
+    
+    delete slicedDefault;
   }
 
   {
@@ -3503,6 +3525,8 @@ void DataTaggedTestCase::testGetSlice() {
     region.push_back(region_element);
     region.push_back(region_element);
 
+    delete slicedDefault;
+
     slicedDefault = myData.getSlice(region);
 
     // cout << slicedDefault->toString() << endl;
@@ -3554,6 +3578,8 @@ void DataTaggedTestCase::testGetSlice() {
     region.push_back(region_element);
     region.push_back(region_element);
 
+    delete myDataSliced;
+
     slicedDefault = myData.getSlice(region);
 
     //cout << slicedDefault->toString() << endl;
@@ -3587,6 +3613,7 @@ void DataTaggedTestCase::testGetSlice() {
     assert(offset==3);
     assert(myDataSliced->getVector()[offset]==94);
 
+    delete slicedDefault;
   }
 
 }
