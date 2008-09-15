@@ -68,7 +68,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
         Paso_setError(TYPE_ERROR,"Iterative solver requires row and column block sizes to be equal.");
      }
      if (Paso_SystemMatrix_getGlobalNumCols(A) != Paso_SystemMatrix_getGlobalNumRows(A)) {
-        Paso_setError(TYPE_ERROR,"Iterative solver requires requires a square matrix.");
+        Paso_setError(TYPE_ERROR,"Iterative solver requires a square matrix.");
         return;
      }
      /* this for testing only */
@@ -135,6 +135,9 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                case PASO_TFQMR:
                   printf("Iterative method is TFQMR.\n");
                   break;
+               case PASO_MINRES:
+                  printf("Iterative method is MINRES.\n");
+                  break;
                case PASO_PRES20:
                   printf("Iterative method is PRES20.\n");
                   break;
@@ -166,6 +169,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                  finalizeIteration = FALSE;
                  last_norm2_of_residual=norm2_of_b;
                  last_norm_max_of_residual=norm_max_of_b;
+                 /* Loop */
                  while (! finalizeIteration) {
                     cntIter = options->iter_max - totIter;
                     finalizeIteration = TRUE;
@@ -220,7 +224,10 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                            errorCode = Paso_Solver_PCG(A, r, x, &cntIter, &tol, pp); 
                            break;
                         case PASO_TFQMR:
-                           errorCode = Paso_Solver_TFQMR(A, r, x, &cntIter, &tol, pp); 
+                           errorCode = Paso_Solver_TFQMR(A, r, x, &cntIter, &tol, pp);
+                           break;
+                        case PASO_MINRES:
+                           errorCode = Paso_Solver_MINRES(A, r, x, &cntIter, &tolerance, &tol, pp);
                            break;
                         case PASO_PRES20:
                            errorCode = Paso_Solver_GMRES(A, r, x, &cntIter, &tol,5,20, pp); 
@@ -230,7 +237,6 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                            break;
                         }
                         totIter += cntIter;
-                      
                         /* error handling  */
                         if (errorCode==NO_ERROR) {
                            finalizeIteration = FALSE;
