@@ -284,8 +284,8 @@ if not conf.CheckFunc('printf'):
   print "Cannot run C compiler '%s' (or libc is missing)" % (env['CC'])
   sys.exit(1)
 
-if not conf.CheckFunc('gethostname'):
-  env.Append(CPPDEFINES = ['HAVE_GETHOSTNAME'])
+if conf.CheckFunc('gethostname'):
+  conf.env.Append(CPPDEFINES = ['HAVE_GETHOSTNAME'])
 
 ############ python libraries (required) #######################
 
