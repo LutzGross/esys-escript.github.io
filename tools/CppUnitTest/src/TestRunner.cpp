@@ -46,6 +46,7 @@
 
 
 #include <vector>
+#include <cstdlib>
 
 #include "TestRunner.h"
 #include "TextTestResult.h"
