@@ -107,7 +107,7 @@ err_t Paso_Solver_GMRES2(
              Paso_Update(n,1.,v[0],-1./normf0,f0);
              g[0]=normf0;
           }
-          while(! (breakFlag || maxIterFlag || convergeFlag || (Status !=SOLVER_NO_ERROR) )) {
+          while( (! (breakFlag || maxIterFlag || convergeFlag)) && (Status ==SOLVER_NO_ERROR) ) {
                k++;
                v[k]=TMPMEMALLOC(n,double);
                if (v[k]==NULL) {
@@ -116,7 +116,7 @@ err_t Paso_Solver_GMRES2(
                   /*
                   *      call directional derivative function
                   */
-                  Paso_FunctionDerivative(v[k],v[k-1],F,f0,x0,work);
+                  Paso_FunctionDerivative(v[k],v[k-1],F,f0,x0,work,TRUE);
                   normv=Paso_l2(n,v[k],F->mpi_info);
                   /*
                    * Modified Gram-Schmidt
@@ -157,8 +157,8 @@ err_t Paso_Solver_GMRES2(
                    nu=sqrt(h[INDEX2(k-1,k-1,l)]*h[INDEX2(k-1,k-1,l)]+h[INDEX2(k,k-1,l)]*h[INDEX2(k,k-1,l)]);
                    if (nu>0) {
                        c[k-1]=h[INDEX2(k-1,k-1,l)]/nu;
-                       s[k-1]=-h[k,k-1]/nu;
-                       h[INDEX2(k-1,k-1,l)]=c[k-1]*h[INDEX2(k-1,k-1,l)]-s[k-1]*h[k,k-1];
+                       s[k-1]=-h[INDEX2(k,k-1,l)]/nu;
+                       h[INDEX2(k-1,k-1,l)]=c[k-1]*h[INDEX2(k-1,k-1,l)]-s[k-1]*h[INDEX2(k,k-1,l)];
                        h[INDEX2(k,k-1,l)]=0;
                        ApplyGivensRotations(2,&(g[k-1]),&(c[k-1]),&(s[k-1]));
                    }
@@ -172,10 +172,9 @@ err_t Paso_Solver_GMRES2(
       /*
        * all done and ready for the forward substitution:
       */
-      
-      for (i=0;i<k;i++) {
-           for (j=0;j<i;j++) {
-              g[i]-=h[INDEX2(j,i,l)]*g[j];
+      for (i=k-1;i>=0;--i) {
+           for (j=i+1;j<k;j++) {
+              g[i]-=h[INDEX2(i,j,l)]*g[j];
            }
            g[i]/=h[INDEX2(i,i,l)];
            Paso_Update(n,1.,x,g[i],v[i]);

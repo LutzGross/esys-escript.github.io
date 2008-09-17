@@ -183,17 +183,17 @@ void Paso_LinearCombination(const dim_t n, double*z, const double a,const double
         rest=n-local_n*num_threads;
         n_start=local_n*i+MIN(i,rest);
         n_end=local_n*(i+1)+MIN(i+1,rest);
-        if ((ABS(a)==0) && (ABS(b)==0)) {
+        if (((ABS(a)==0) && (ABS(b)==0)) || (y==NULL) || (x==NULL)) {
             #pragma ivdep
             for (q=n_start;q<n_end;++q) {
               z[q]=0.;
             }
-        } else if ((ABS(a)==0) && (ABS(b)>0.)) {
+        } else if ( ((ABS(a)==0) && (ABS(b)>0.)) || (x==NULL) )  {
             #pragma ivdep
             for (q=n_start;q<n_end;++q) {
               z[q]=b*y[q];
             }
-        } else if ((ABS(a)>0) && (ABS(b)==0.)) {
+        } else if (((ABS(a)>0) && (ABS(b)==0.)) || (y==NULL) ) {
             #pragma ivdep
             for (q=n_start;q<n_end;++q) {
               z[q]=a*x[q];
@@ -218,12 +218,14 @@ double Paso_InnerProduct(const dim_t n,const double* x, const double* y, Paso_MP
    #else
        const int num_threads=1;
    #endif
-   #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q) reduction(+:my_out)
+   #pragma omp parallel for private(i,local_out,local_n,rest,n_start,n_end,q) reduction(+:my_out)
    for (i=0;i<num_threads;++i) {
+        local_out=0;
         local_n=n/num_threads;
         rest=n-local_n*num_threads;
         n_start=local_n*i+MIN(i,rest);
         n_end=local_n*(i+1)+MIN(i+1,rest);
+        #pragma ivdep
         for (q=n_start;q<n_end;++q) local_out+=x[q]*y[q];
         my_out+=local_out;
    }
@@ -248,12 +250,13 @@ double Paso_l2(const dim_t n, const double* x, Paso_MPIInfo* mpiinfo)
    #else
        const int num_threads=1;
    #endif
-   #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q) reduction(+:my_out)
+   #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q, local_out) reduction(+:my_out)
    for (i=0;i<num_threads;++i) {
         local_n=n/num_threads;
         rest=n-local_n*num_threads;
         n_start=local_n*i+MIN(i,rest);
         n_end=local_n*(i+1)+MIN(i+1,rest);
+        local_out=0;
         for (q=n_start;q<n_end;++q) local_out+=x[q]*x[q];
         my_out+=local_out;
    }

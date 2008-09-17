@@ -34,7 +34,7 @@ typedef struct Paso_Function {
   void *more;
 } Paso_Function;
 
-err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, const double *f0, const double *x0, double* setoff);
+err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, const double *f0, const double *x0, double* setoff, const bool_t w_is_normalized);
 err_t Paso_FunctionCall(Paso_Function * F,double* value, const double* arg);
 
 Paso_Function * Paso_Function_FCT_alloc(Paso_MPIInfo *mpi_info);

@@ -75,11 +75,13 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
      if (method==PASO_NONLINEAR_GMRES) {
         Paso_Function* F=NULL;
         F=Paso_Function_LinearSystem_alloc(A,b,options);
+        Paso_Solver_solvePreconditioner(A,x,b);
         errorCode=Paso_Solver_NewtonGMRES(F,x,options,pp);
-        if (errorCode==NO_ERROR) {
+        if (errorCode!=NO_ERROR) {
            Paso_setError(SYSTEM_ERROR,"Paso_Solver_NewtonGMRES: an error has occured.");
         }
         Paso_Function_LinearSystem_free(F);
+        return;
      }
      /* ========================= */
      Performance_startMonitor(pp,PERFORMANCE_ALL);
@@ -118,7 +120,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
     
          /* if norm2_of_b==0 we are ready: x=0 */
          if (norm2_of_b <=0.) {
-#pragma omp parallel for private(i) schedule(static)
+            #pragma omp parallel for private(i) schedule(static)
             for (i = 0; i < numSol; i++) x[i]=0.;
             if (options->verbose) printf("right hand side is identical zero.\n");
          } else {
