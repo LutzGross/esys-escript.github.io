@@ -29,7 +29,7 @@ Paso_Function * Paso_Function_LinearSystem_alloc(Paso_SystemMatrix* A, double* b
         out->kind=LINEAR_SYSTEM;
         out->mpi_info=Paso_MPIInfo_getReference(A->mpi_info);
         out->n=Paso_SystemMatrix_getTotalNumRows(A);
-        out->more=Paso_SystemMatrix_reference(A);
+        out->more=(void*)Paso_SystemMatrix_reference(A);
         out->b=b;
         out->tmp=MEMALLOC(out->n, double);
         Paso_checkPtr(out->tmp);
@@ -57,13 +57,8 @@ void Paso_Function_LinearSystem_free(Paso_Function * F)
 err_t Paso_Function_LinearSystem_call(Paso_Function * F,double* value, const double* arg) 
 {
     Paso_SystemMatrix* A=(Paso_SystemMatrix*)(F->more);
-printf("F B\n");
     Paso_Copy(F->n,F->tmp,F->b); /* tmp=b */
-printf("F C %#lx %#lx %#lx\n",A,arg,F->tmp);
-    Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(-ONE, A, arg,ONE, F->tmp); /* tmp=(tmp-A*arg) */
-printf("F D \n");
-    Paso_Solver_solvePreconditioner(A,value,F->tmp); /* value=P*tmp */
-printf("F E\n");
+    Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, arg,-ONE, F->tmp); /* tmp=(A*arg-tmp) */
+    Paso_Solver_solvePreconditioner(A,value,F->tmp);  /* value=P*tmp */
     return NO_ERROR;
 }
-

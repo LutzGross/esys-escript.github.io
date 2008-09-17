@@ -20,17 +20,19 @@
  * setoff is workspace
  */
 
-err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, const double *f0, const double *x0, double* setoff)
+err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, const double *f0, const double *x0, double* setoff, const bool_t w_is_normalized)
 {
    err_t err=0;
    dim_t n=F->n;
    double norm_w,epsnew,norm_x0;
    epsnew=10.*sqrt(EPSILON);
-   norm_w=Paso_l2(n,w,F->mpi_info);
+   if (! w_is_normalized) {
+        norm_w=Paso_l2(n,w,F->mpi_info);
+   } else {
+        norm_w=1.;
+   }
 
    if (norm_w>0) {
-        Paso_zeroes(n,J0w);
-   } else {
        epsnew = epsnew/norm_w;
        norm_x0=Paso_l2(n,x0,F->mpi_info);
        if (norm_x0>0) epsnew*=norm_x0;
@@ -39,6 +41,8 @@ err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, co
        if (err==NO_ERROR) {
            Paso_Update(n,1./epsnew,J0w,-1./epsnew,f0); /* J0w = (J0w - f0)/epsnew; */
        }
+   } else {
+       Paso_zeroes(n,J0w);
    }
    return err;
 }

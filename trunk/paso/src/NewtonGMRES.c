@@ -78,8 +78,8 @@ err_t Paso_Solver_NewtonGMRES(
       * stoping criterium:
       */
      stop_tol=atol + rtol*norm_f;
-     iteration_count=0;
-     if (debug) printf("Start Jacobi-free Newton scheme:\n\ttolerance = %e\n\tstoping tolerance = %e\n",rtol,stop_tol);
+     iteration_count=1;
+     if (debug) printf("Start Jacobi-free Newton scheme:\n\ttolerance = %e\n\tstopping tolerance = %e\n",rtol,stop_tol);
      /* 
       *  main iteration loop
       */
@@ -88,7 +88,6 @@ err_t Paso_Solver_NewtonGMRES(
           * keep track of the ratio (reduction_f = norm_f/frnmo) of successive residual norms and 
           * the iteration counter (iteration_count)
           */
-         iteration_count++;
          if (debug) printf("iteration step %d: norm of F =%lg\n",iteration_count,norm_f);
          /*
           * call GMRES to get increment
@@ -113,21 +112,29 @@ err_t Paso_Solver_NewtonGMRES(
             /*
              *   adjust inner_tolerance 
              */
-             if (adapt_inner_tolerance) {
+            if (adapt_inner_tolerance) {
                  old_inner_tolerance=inner_tolerance;
                  inner_tolerance=inner_tolerance_safety * reduction_f * reduction_f;
                  rtmp=inner_tolerance_safety * old_inner_tolerance * old_inner_tolerance;
                  if (rtmp>.1) inner_tolerance=MAX(inner_tolerance,rtmp);
                  inner_tolerance=MAX(MIN(inner_tolerance,max_inner_tolerance), .5*stop_tol/norm_f);
-              }
-              convergeFlag = (norm_f <= stop_tol);
+            }
+            convergeFlag = (norm_f <= stop_tol);
          } else {
-           breakFlag=TRUE;
+            breakFlag=TRUE;
          }
          maxIterFlag = (iteration_count > maxit);
       }
+      if (debug) {
+           if (convergeFlag) printf("convergence reached after %d steps with residual %e.\n",iteration_count,norm_f);
+           if (breakFlag)  printf("iteration break down after %d steps.\n",iteration_count);
+           if (maxIterFlag)  printf("maximum number of iteration step %s is reached.\n",maxit);
+      }
+      if (breakFlag) Status=SOLVER_BREAKDOWN;
+      if (maxIterFlag) Status=SOLVER_MAXITER_REACHED;
   }
   TMPMEMFREE(f);
   TMPMEMFREE(step);
+printf("STATUS return = %d\n",Status);
   return Status;
 }

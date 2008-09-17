@@ -103,7 +103,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->logical_block_size=out->logical_row_block_size*out->logical_block_size;
      out->block_size=out->row_block_size*out->col_block_size;
      out->col_coupler=Paso_Coupler_alloc(pattern->col_connector,out->col_block_size);
-printf("out->col_coupler %#lx\n",out->col_coupler);
      out->row_coupler=Paso_Coupler_alloc(pattern->row_connector,out->row_block_size);
      /* this should be bypassed if trilinos is used */
      if (type & MATRIX_FORMAT_TRILINOS_CRS) {
@@ -187,7 +186,6 @@ double* Paso_SystemMatrix_finishCollect(Paso_SystemMatrix* A)
 
 void  Paso_SystemMatrix_startColCollect(Paso_SystemMatrix* A,const double* in)
 {
-printf("A->col_coupler %#lx\n",A->col_coupler);
   Paso_Coupler_startCollect(A->col_coupler, in);
 }
 double* Paso_SystemMatrix_finishColCollect(Paso_SystemMatrix* A)
