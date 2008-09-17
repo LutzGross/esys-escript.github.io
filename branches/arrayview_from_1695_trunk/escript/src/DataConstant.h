@@ -183,30 +183,6 @@ class DataConstant : public DataAbstract  {
   setSlice(const DataAbstract* value,
            const DataTypes::RegionType& region);
 
-  /**
-    \brief
-    Archive the underlying data values to the file referenced
-    by ofstream. A count of the number of values expected to be written
-    is provided as a cross-check.
-
-    The return value indicates success (0) or otherwise (1).
-  */
-  ESCRIPT_DLL_API
-  int
-  archiveData(std::ofstream& archiveFile,
-              const DataTypes::ValueType::size_type noValues) const;
-
-  /**
-    \brief
-    Extract the number of values specified by noValues from the file
-    referenced by ifstream to the underlying data structure.
-
-    The return value indicates success (0) or otherwise (1).
-  */
-  ESCRIPT_DLL_API
-  int
-  extractData(std::ifstream& archiveFile,
-              const DataTypes::ValueType::size_type noValues);
 
   /**
      \brief

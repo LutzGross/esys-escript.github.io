@@ -180,29 +180,6 @@ class ESCRIPT_DLL_API DataVector {
   const_reference
   operator[](const size_type i) const;
 
-  /**
-    \brief
-    Archive the data managed by this DataVector to the file referenced
-    by ofstream. A count of the number of values expected to be written
-    is provided as a cross-check.
-
-		
-    The return value indicates success (0) or otherwise (1).
-  */
-  int
-  archiveData(std::ofstream& archiveFile,
-              const size_type noValues) const;
-
-  /**
-    \brief
-    Extract the number of values specified by noValues from the file
-    referenced by ifstream to this DataVector.
-
-    The return value indicates success (0) or otherwise (1).
-  */
-  int
-  extractData(std::ifstream& archiveFile,
-              const size_type noValues);
 
  protected:
 

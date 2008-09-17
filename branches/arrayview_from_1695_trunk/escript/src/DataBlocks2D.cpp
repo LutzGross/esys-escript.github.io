@@ -86,21 +86,5 @@ DataBlocks2D::operator=(const DataBlocks2D& other)
     Swap(temp);
     return *this;
 }
-
-int
-DataBlocks2D::archiveData(ofstream& archiveFile,
-                          const ValueType::size_type noValues) const
-{
-    EsysAssert(((m_numRows >= 0) && (m_numCols >= 0) && (m_blockSize >= 0)), "(DataBlocks2D) Invalid object.");
-    return (m_data.archiveData(archiveFile, noValues));
-}
-
-int
-DataBlocks2D::extractData(ifstream& archiveFile,
-                          const ValueType::size_type noValues)
-{
-    EsysAssert(((m_numRows >= 0) && (m_numCols >= 0) && (m_blockSize >= 0)), "(DataBlocks2D) Invalid object.");
-    return (m_data.extractData(archiveFile, noValues));
-}
  
 }  // end of namespace

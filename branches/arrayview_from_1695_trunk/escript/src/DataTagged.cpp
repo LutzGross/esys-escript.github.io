@@ -675,19 +675,7 @@ DataTagged::getDataByTag(int tag, DataTypes::ValueType::size_type i)
 //   return getDataPointByTag(tagKey);
 // }
 
-int
-DataTagged::archiveData(ofstream& archiveFile,
-                        const DataTypes::ValueType::size_type noValues) const
-{
-  return(m_data.archiveData(archiveFile, noValues));
-}
 
-int
-DataTagged::extractData(ifstream& archiveFile,
-                        const DataTypes::ValueType::size_type noValues)
-{
-  return(m_data.extractData(archiveFile, noValues));
-}
 void
 DataTagged::symmetric(DataAbstract* ev)
 {

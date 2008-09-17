@@ -386,19 +386,7 @@ DataExpanded::getLength() const
   return m_data.size();
 }
 
-int
-DataExpanded::archiveData(ofstream& archiveFile,
-                          const DataTypes::ValueType::size_type noValues) const
-{
-  return(m_data.archiveData(archiveFile, noValues));
-}
 
-int
-DataExpanded::extractData(ifstream& archiveFile,
-                          const DataTypes::ValueType::size_type noValues)
-{
-  return(m_data.extractData(archiveFile, noValues));
-}
 
 void
 DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const double value) {
