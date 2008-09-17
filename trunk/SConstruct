@@ -148,7 +148,7 @@ if env["CC"] == "icc":
   # Intel compilers
   cc_flags		= "-fPIC -ansi -wd161 -w1 -vec-report0 -DBLOCKTIMER -DCORE_ID1"
   cc_optim		= "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias"
-  cc_debug		= "-g -O0 -UDOASSERT -DDOPROF -DBOUNDS_CHECK"
+  cc_debug		= "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
   omp_optim		= "-openmp -openmp_report0"
   omp_debug		= "-openmp -openmp_report0"
   omp_libs		= ['guide', 'pthread']
@@ -157,7 +157,7 @@ elif env["CC"] == "gcc":
   # GNU C on any system
   cc_flags		= "-fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER"
   cc_optim		= "-O3"
-  cc_debug		= "-g -O0 -UDOASSERT -DDOPROF -DBOUNDS_CHECK"
+  cc_debug		= "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
   omp_optim		= ""
   omp_debug		= ""
   omp_libs		= []

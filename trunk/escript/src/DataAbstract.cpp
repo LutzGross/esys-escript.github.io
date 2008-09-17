@@ -20,10 +20,24 @@ using namespace std;
 
 namespace escript {
 
-DataAbstract::DataAbstract(const FunctionSpace& what):
+// DataAbstract::DataAbstract(const FunctionSpace& what):
+//     m_noDataPointsPerSample(what.getNumDPPSample()),
+//     m_noSamples(what.getNumSamples()),
+//     m_functionSpace(what),
+//     m_rank(0)
+// {
+// 	setShape(DataTypes::ShapeType());
+// }
+
+
+DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape):
     m_noDataPointsPerSample(what.getNumDPPSample()),
     m_noSamples(what.getNumSamples()),
-    m_functionSpace(what)
+    m_functionSpace(what),
+    m_shape(shape),
+    m_rank(DataTypes::getRank(shape)),
+    m_novalues(DataTypes::noValues(shape))
+
 {
 }
 
@@ -31,17 +45,33 @@ DataAbstract::~DataAbstract()
 {
 }
 
-void
-DataAbstract::setPointDataView(const DataArrayView& input)
-{
-    m_pointDataView.reset(new DataArrayView(input.getData(),input.getShape(),input.getOffset()));
-}
+// void
+// DataAbstract::setPointDataView(const DataArrayView& input)
+// {
+//     m_pointDataView.reset(new DataArrayView(input.getData(),input.getShape(),input.getOffset()));
+// 
+//     // until we get rid of m_pointDataView, we need to keep m_shape in sync
+//     setShape(input.getShape());
+// }
 
-void
-DataAbstract::resetPointDataView()
-{
-    m_pointDataView.reset(new DataArrayView());
-}
+// perhaps this should be a constructor parameter
+// void
+// DataAbstract::setShape(const DataTypes::ShapeType& s)
+// {
+//    m_shape=s;
+//    m_rank=DataTypes::getRank(s);
+//    m_novalues=DataTypes::noValues(s);
+// }
+
+
+// void
+// DataAbstract::resetPointDataView()
+// {
+//     m_pointDataView.reset(new DataArrayView());
+//     m_shape.clear();
+//     m_rank=0;
+//     m_novalues=1;
+// }
 
 void
 DataAbstract::operandCheck(const DataAbstract& right) const
@@ -63,14 +93,14 @@ DataAbstract::operandCheck(const DataAbstract& right) const
 
     //
     // Check the shape of the point data, a rank of 0(scalar) is okay
-    if (!((right.getPointDataView().getRank()==0) || 
-	  (right.getPointDataView().getShape()==getPointDataView().getShape())))
+    if (!((right.getRank()==0) || 
+	  (right.getShape()==getShape())))
       {
         stringstream temp;
 	temp << "Error - Right hand argument point data shape: " 
-	     << DataArrayView::shapeToString(right.getPointDataView().getShape())
+	     << DataTypes::shapeToString(right.getShape())
 	     << " doesn't match left: " 
-	     << DataArrayView::shapeToString(getPointDataView().getShape());
+	     << DataTypes::shapeToString(getShape());
 	throw DataException(temp.str());
       }
 }
@@ -89,12 +119,22 @@ DataAbstract::getSampleDataByTag(int tag)
     throw DataException("Error - DataAbstract::getSampleDataByTag: Data type does not have tag values.");
 }
 
-void
+// void
+// DataAbstract::setTaggedValue(int tagKey,
+//                              const DataArrayView& value)
+// {
+//     throw DataException("Error - DataAbstract::setTaggedValue: Data type does not have tag values.");
+// }
+
+void  
 DataAbstract::setTaggedValue(int tagKey,
-                             const DataArrayView& value)
+ 	       const DataTypes::ShapeType& pointshape,
+               const DataTypes::ValueType& value,
+	       int dataOffset)
 {
     throw DataException("Error - DataAbstract::setTaggedValue: Data type does not have tag values.");
 }
+
 
 int
 DataAbstract::getTagNumber(int dpno)
@@ -103,19 +143,7 @@ DataAbstract::getTagNumber(int dpno)
     return (0);
 }
 
-int
-DataAbstract::archiveData(ofstream& archiveFile,
-                          const ValueType::size_type noValues) const
-{
-  return 0;
-}
 
-int
-DataAbstract::extractData(ifstream& archiveFile,
-                          const ValueType::size_type noValues)
-{
-  return 0;
-}
 
 void
 DataAbstract::copyAll(const boost::python::numeric::array& value)
@@ -182,6 +210,19 @@ DataAbstract::setToZero()
 void
 DataAbstract::reorderByReferenceIDs(int *reference_ids)
 {
+}
+
+
+DataTypes::ValueType&
+DataAbstract::getVector()
+{
+   throw DataException("Error - DataAbstract:: does not have a DataVector.");
+}
+
+const DataTypes::ValueType&
+DataAbstract::getVector() const
+{
+   throw DataException("Error - DataAbstract:: does not have a DataVector.");
 }
 
 

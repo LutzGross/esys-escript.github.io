@@ -71,23 +71,23 @@ class DataEmpty : public DataAbstract {
    */
   ESCRIPT_DLL_API
   virtual
-  DataArrayView::ValueType::size_type
+  DataTypes::ValueType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
-  /**
-     \brief
+//  /**
+/*     \brief
      Return a view into the data for the data point specified.
      NB: This will throw an exception as obviously an empty Data object contains no
      data points. An implementation is required by parent DataAbstract class.
      \param sampleNo - Input - Sample number.
-     \param dataPointNo - Input - data-point number.
-  */
-  ESCRIPT_DLL_API
-  virtual
-  DataArrayView
-  getDataPoint(int sampleNo,
-               int dataPointNo);
+     \param dataPointNo - Input - data-point number.*/
+//  */
+//   ESCRIPT_DLL_API
+//   virtual
+//   DataArrayView
+//   getDataPoint(int sampleNo,
+//                int dataPointNo);
 
   /**
      \brief
@@ -109,7 +109,7 @@ class DataEmpty : public DataAbstract {
   ESCRIPT_DLL_API
   virtual
   DataAbstract*
-  getSlice(const DataArrayView::RegionType& region) const;
+  getSlice(const DataTypes::RegionType& region) const;
 
   /**
      \brief
@@ -124,19 +124,30 @@ class DataEmpty : public DataAbstract {
   virtual
   void
   setSlice(const DataAbstract* value,
-           const DataArrayView::RegionType& region);
+           const DataTypes::RegionType& region);
 
  protected:
 
+ /**
+	\brief Provide access to underlying storage. Internal use only!
+  */
+  ESCRIPT_DLL_API
+  virtual DataTypes::ValueType&
+  getVector();
+
+  ESCRIPT_DLL_API
+  virtual const DataTypes::ValueType&
+  getVector() const;
+
  private:
 
-  /**
-     \brief
+//  /**
+/*     \brief
      Throw a standard exception. This function is called if an attempt
-     is made to use functions of DataEmpty that are not valid.
-  */
-  void
-  throwStandardException(const std::string& functionName) const;
+     is made to use functions of DataEmpty that are not valid.*/
+//  */
+//   void
+//   throwStandardException(const std::string& functionName) const;
 
 };
 

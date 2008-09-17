@@ -22,6 +22,7 @@
 
 using namespace std;
 using namespace boost::python;
+using namespace escript::DataTypes;
 
 namespace escript {
 
@@ -39,7 +40,7 @@ namespace escript {
    m_data(&data),
    m_shape(viewShape),
    m_offset(offset),
-   m_noValues(noValues(viewShape))
+   m_noValues(DataTypes::noValues(viewShape))
    {
       //
       // check the shape rank and size and throw an exception if a
@@ -93,7 +94,7 @@ namespace escript {
       }
 
       EsysAssert((!isEmpty()&&checkShape(tempShape)),
-                 createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.",tempShape));
+                 createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.",tempShape,m_shape));
 
       if (value.getrank()==0) {
          (*this)()=extract<double>(value[value.getshape()]);
@@ -141,7 +142,7 @@ namespace escript {
       EsysAssert((!isEmpty()&&!other.isEmpty()&&checkOffset(offset)),
                  "Error - Couldn't copy due to insufficient storage.");
       EsysAssert((checkShape(other.getShape())),
-                 createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.",other.getShape()));
+                 createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.",other.getShape(),m_shape));
       if (checkOffset(offset)) {
          memcpy(&(*m_data)[offset],&(*other.m_data)[other.m_offset],sizeof(double)*noValues());
       } else {
@@ -157,7 +158,7 @@ namespace escript {
       EsysAssert((!isEmpty()&&!other.isEmpty()&&checkOffset(thisOffset)&&other.checkOffset(otherOffset)),
                  "Error - Couldn't copy due to insufficient storage.");
       EsysAssert((checkShape(other.getShape())),
-                 createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.",other.getShape()));
+                 createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.",other.getShape(),m_shape));
       if (checkOffset(thisOffset)&&other.checkOffset(otherOffset)) {
          memcpy(&(*m_data)[thisOffset],&(*other.m_data)[otherOffset],sizeof(double)*noValues());
       } else {
@@ -186,37 +187,37 @@ namespace escript {
    }
 
    const
-   DataArrayView::ShapeType&
+   DataTypes::ShapeType&
    DataArrayView::getShape() const
    {
       return m_shape;
    }
 
-   int
-   DataArrayView::noValues(const ShapeType& shape) 
-   {
-      ShapeType::const_iterator i;
-      //
-      // An empty shape vector means rank 0 which contains 1 value
-      int noValues=1;
-      for (i=shape.begin();i!=shape.end();i++) {
-         noValues*=(*i);
-      }
-      return noValues;
-   }
-
-   int
-   DataArrayView::noValues(const RegionLoopRangeType& region) 
-   {
-      //
-      // An empty region vector means rank 0 which contains 1 value
-      int noValues=1;
-      unsigned int i;
-      for (i=0;i<region.size();i++) {
-         noValues*=region[i].second-region[i].first;
-      }
-      return noValues;
-   }
+//    int
+//    DataArrayView::noValues(const ShapeType& shape) 
+//    {
+//       ShapeType::const_iterator i;
+//       //
+//       // An empty shape vector means rank 0 which contains 1 value
+//       int noValues=1;
+//       for (i=shape.begin();i!=shape.end();i++) {
+//          noValues*=(*i);
+//       }
+//       return noValues;
+//    }
+// 
+//    int
+//    DataArrayView::noValues(const RegionLoopRangeType& region) 
+//    {
+//       //
+//       // An empty region vector means rank 0 which contains 1 value
+//       int noValues=1;
+//       unsigned int i;
+//       for (i=0;i<region.size();i++) {
+//          noValues*=region[i].second-region[i].first;
+//       }
+//       return noValues;
+//    }
  
    int
    DataArrayView::noValues() const
@@ -225,23 +226,23 @@ namespace escript {
    }
 
    bool
-   DataArrayView::checkShape(const DataArrayView::ShapeType& other) const
+   DataArrayView::checkShape(const DataTypes::ShapeType& other) const
    {
       return (m_shape==other);
    }
 
-   string 
-   DataArrayView::createShapeErrorMessage(const string& messagePrefix,
-                                          const DataArrayView::ShapeType& other) const
-   {
-      stringstream temp;
-      temp << messagePrefix
-           << " This shape: " << shapeToString(m_shape)
-           << " Other shape: " << shapeToString(other);
-      return temp.str();
-   }
+//    string 
+//    DataArrayView::createShapeErrorMessage(const string& messagePrefix,
+//                                           const DataTypes::ShapeType& other) const
+//    {
+//       stringstream temp;
+//       temp << messagePrefix
+//            << " This shape: " << shapeToString(m_shape)
+//            << " Other shape: " << shapeToString(other);
+//       return temp.str();
+//    }
 
-   DataArrayView::ValueType::size_type
+   DataTypes::ValueType::size_type
    DataArrayView::getOffset() const
    {
       return m_offset;
@@ -281,14 +282,14 @@ namespace escript {
       return (m_data->size() >= (offset+noValues()));
    }
 
-   DataArrayView::ValueType&
+   DataTypes::ValueType&
    DataArrayView::getData() const
    {
       EsysAssert(!isEmpty(),"Error - View is empty");
       return *m_data;
    }
 
-   DataArrayView::ValueType::reference
+   DataTypes::ValueType::reference
    DataArrayView::getData(ValueType::size_type i) const
    {
       //
@@ -297,114 +298,114 @@ namespace escript {
       return (*m_data)[m_offset+i];
    }
 
-   DataArrayView::ShapeType
-   DataArrayView::getResultSliceShape(const RegionType& region)
-   {
-      int dimSize;
-      ShapeType result;
-      RegionType::const_iterator i;
-      for (i=region.begin();i!=region.end();i++) {
-         dimSize=((i->second)-(i->first));
-         if (dimSize!=0) {
-            result.push_back(dimSize);
-         }
-      }
-      return result;
-   }
+//    DataTypes::ShapeType
+//    DataArrayView::getResultSliceShape(const RegionType& region)
+//    {
+//       int dimSize;
+//       ShapeType result;
+//       RegionType::const_iterator i;
+//       for (i=region.begin();i!=region.end();i++) {
+//          dimSize=((i->second)-(i->first));
+//          if (dimSize!=0) {
+//             result.push_back(dimSize);
+//          }
+//       }
+//       return result;
+//    }
 
-   DataArrayView::RegionType
-   DataArrayView::getSliceRegion(const boost::python::object& key) const
-   {
-      int slice_rank, i;
-      int this_rank=getRank();
-      RegionType out(this_rank);
-      /* allow for case where key is singular eg: [1], this implies we
-      want to generate a rank-1 dimension object, as opposed to eg: [1,2]
-      which implies we want to take a rank dimensional object with one
-      dimension of size 1 */
-      extract<tuple> key_tuple(key);
-      if (key_tuple.check()) {
-         slice_rank=extract<int> (key.attr("__len__")());
-         /* ensure slice is correctly dimensioned */
-         if (slice_rank>this_rank) {
-            throw DataException("Error - rank of slices does not match rank of slicee");
-         } else {
-            /* calculate values for slice range */
-            for (i=0;i<slice_rank;i++) {
-               out[i]=getSliceRange(key[i],getShape()[i]);
-            }
-         }
-      } else {
-         slice_rank=1;
-         if (slice_rank>this_rank) {
-            throw DataException("Error - rank of slices does not match rank of slicee");
-         } else {
-            out[0]=getSliceRange(key,getShape()[0]);
-         }
-      }
-      for (i=slice_rank;i<this_rank;i++) {
-         out[i]=std::pair<int,int>(0,getShape()[i]);
-      }
-      return out;
-   }
+//    DataTypes::RegionType
+//    DataArrayView::getSliceRegion(const boost::python::object& key) const
+//    {
+//       int slice_rank, i;
+//       int this_rank=getRank();
+//       RegionType out(this_rank);
+//       /* allow for case where key is singular eg: [1], this implies we
+//       want to generate a rank-1 dimension object, as opposed to eg: [1,2]
+//       which implies we want to take a rank dimensional object with one
+//       dimension of size 1 */
+//       extract<tuple> key_tuple(key);
+//       if (key_tuple.check()) {
+//          slice_rank=extract<int> (key.attr("__len__")());
+//          /* ensure slice is correctly dimensioned */
+//          if (slice_rank>this_rank) {
+//             throw DataException("Error - rank of slices does not match rank of slicee");
+//          } else {
+//             /* calculate values for slice range */
+//             for (i=0;i<slice_rank;i++) {
+//                out[i]=getSliceRange(key[i],getShape()[i]);
+//             }
+//          }
+//       } else {
+//          slice_rank=1;
+//          if (slice_rank>this_rank) {
+//             throw DataException("Error - rank of slices does not match rank of slicee");
+//          } else {
+//             out[0]=getSliceRange(key,getShape()[0]);
+//          }
+//       }
+//       for (i=slice_rank;i<this_rank;i++) {
+//          out[i]=std::pair<int,int>(0,getShape()[i]);
+//       }
+//       return out;
+//    }
 
-   std::pair<int,int>
-   getSliceRange(const boost::python::object& key,
-                 const int shape)
-   {
-      /* default slice range is range of entire shape dimension */
-      int s0=0, s1=shape;;
-      extract<int> slice_int(key);
-      if (slice_int.check()) {
-         /* if the key is a single int set start=key and end=key */
-         /* in this case, we want to return a rank-1 dimension object from
-         this object, taken from a single index value for one of this
-         object's dimensions */
-         s0=slice_int();
-         s1=s0;
-      } else {
-         /* if key is a pair extract begin and end values */
-         extract<int> step(key.attr("step"));
-         if (step.check() && step()!=1) {
-            throw DataException("Error - Data does not support increments in slicing ");
-         } else {
-            extract<int> start(key.attr("start"));
-            if (start.check()) {
-               s0=start();
-            }
-            extract<int> stop(key.attr("stop"));
-            if (stop.check()) {
-               s1=stop();
-            }
-         }
-      }
-      if (s0 < 0) 
-         throw DataException("Error - slice index out of range.");
-      if (s0 == s1 && s1 >= shape)
-         throw DataException("Error - slice index out of range.");
-      if (s0 != s1 &&  s1>shape)
-         throw DataException("Error - slice index out of range.");
-      if (s0 > s1) 
-         throw DataException("Error - lower index must less or equal upper index.");
-      return std::pair<int,int>(s0,s1);
-   }
+//    std::pair<int,int>
+//    getSliceRange(const boost::python::object& key,
+//                  const int shape)
+//    {
+//       /* default slice range is range of entire shape dimension */
+//       int s0=0, s1=shape;;
+//       extract<int> slice_int(key);
+//       if (slice_int.check()) {
+//          /* if the key is a single int set start=key and end=key */
+//          /* in this case, we want to return a rank-1 dimension object from
+//          this object, taken from a single index value for one of this
+//          object's dimensions */
+//          s0=slice_int();
+//          s1=s0;
+//       } else {
+//          /* if key is a pair extract begin and end values */
+//          extract<int> step(key.attr("step"));
+//          if (step.check() && step()!=1) {
+//             throw DataException("Error - Data does not support increments in slicing ");
+//          } else {
+//             extract<int> start(key.attr("start"));
+//             if (start.check()) {
+//                s0=start();
+//             }
+//             extract<int> stop(key.attr("stop"));
+//             if (stop.check()) {
+//                s1=stop();
+//             }
+//          }
+//       }
+//       if (s0 < 0) 
+//          throw DataException("Error - slice index out of range.");
+//       if (s0 == s1 && s1 >= shape)
+//          throw DataException("Error - slice index out of range.");
+//       if (s0 != s1 &&  s1>shape)
+//          throw DataException("Error - slice index out of range.");
+//       if (s0 > s1) 
+//          throw DataException("Error - lower index must less or equal upper index.");
+//       return std::pair<int,int>(s0,s1);
+//    }
 
-   DataArrayView::RegionLoopRangeType
-   getSliceRegionLoopRange(const DataArrayView::RegionType& region) 
-   {
-      DataArrayView::RegionLoopRangeType region_loop_range(region.size());
-      unsigned int i;
-      for (i=0;i<region.size();i++) {
-         if (region[i].first==region[i].second) {
-            region_loop_range[i].first=region[i].first;
-            region_loop_range[i].second=region[i].second+1;
-         } else {
-            region_loop_range[i].first=region[i].first;
-            region_loop_range[i].second=region[i].second;
-         }
-      }
-      return region_loop_range;
-   }
+//    DataTypes::RegionLoopRangeType
+//    getSliceRegionLoopRange(const DataTypes::RegionType& region) 
+//    {
+//       DataTypes::RegionLoopRangeType region_loop_range(region.size());
+//       unsigned int i;
+//       for (i=0;i<region.size();i++) {
+//          if (region[i].first==region[i].second) {
+//             region_loop_range[i].first=region[i].first;
+//             region_loop_range[i].second=region[i].second+1;
+//          } else {
+//             region_loop_range[i].first=region[i].first;
+//             region_loop_range[i].second=region[i].second;
+//          }
+//       }
+//       return region_loop_range;
+//    }
 
    void
    DataArrayView::copySlice(const DataArrayView& other, 
@@ -442,7 +443,7 @@ namespace escript {
       EsysAssert(other.getRank()==region.size(),
                  "Error - slice not same rank as view to be sliced from.");
 
-      EsysAssert(noValues()==noValues(getResultSliceShape(region)),
+      EsysAssert(noValues()==DataTypes::noValues(getResultSliceShape(region)),
                  "Error - slice shape not compatible shape for this view.");
 
       //
@@ -538,7 +539,7 @@ namespace escript {
       EsysAssert(getRank()==region.size(),
                  "Error - slice not same rank as this view.");
 
-      EsysAssert(other.getRank()==0 || other.noValues()==noValues(getResultSliceShape(region)),
+      EsysAssert(other.getRank()==0 || other.noValues()==DataTypes::noValues(getResultSliceShape(region)),
                  "Error - slice shape not compatible shape for other view.");
 
       //
@@ -724,21 +725,21 @@ namespace escript {
       return temp.str();
    }
 
-   string
-   DataArrayView::shapeToString(const DataArrayView::ShapeType& shape)
-   {
-      stringstream temp;
-      temp << "(";
-      unsigned int i;
-      for (i=0;i<shape.size();i++) {
-         temp << shape[i];
-         if (i < shape.size()-1) {
-            temp << ",";
-         }
-      }
-      temp << ")";
-      return temp.str();
-   }
+//    string
+//    DataArrayView::shapeToString(const DataTypes::ShapeType& shape)
+//    {
+//       stringstream temp;
+//       temp << "(";
+//       unsigned int i;
+//       for (i=0;i<shape.size();i++) {
+//          temp << shape[i];
+//          if (i < shape.size()-1) {
+//             temp << ",";
+//          }
+//       }
+//       temp << ")";
+//       return temp.str();
+//    }
 
    void
    DataArrayView::matMult(const DataArrayView& left, 
@@ -860,7 +861,7 @@ namespace escript {
 
    }
 
-   DataArrayView::ShapeType
+   DataTypes::ShapeType
    DataArrayView::determineResultShape(const DataArrayView& left,
                                        const DataArrayView& right)
    {

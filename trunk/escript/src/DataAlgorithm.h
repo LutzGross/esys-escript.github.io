@@ -17,10 +17,11 @@
 #define escript_DataAlgorithm_20040714_H
 #include "system_dep.h"
 
-#include "DataArrayView.h"
 #include "DataExpanded.h"
 #include "DataTagged.h"
 #include "DataConstant.h"
+
+#include "DataMaths.h"
 
 #include <iostream>
 #include <algorithm>
@@ -167,7 +168,9 @@ algorithm(DataExpanded& data,
   int numSamples=data.getNumSamples();
   double global_current_value=initial_value;
   double local_current_value;
-  DataArrayView dataView=data.getPointDataView();
+//  DataArrayView dataView=data.getPointDataView();
+  DataTypes::ValueType& vec=data.getVector();
+  const DataTypes::ShapeType& shape=data.getShape();
   // calculate the reduction operation value for each data point
   // reducing the result for each data-point into the current_value variables
   #pragma omp parallel private(local_current_value)
@@ -176,7 +179,9 @@ algorithm(DataExpanded& data,
       #pragma omp for private(i,j) schedule(static)
       for (i=0;i<numSamples;i++) {
         for (j=0;j<numDPPSample;j++) {
-          local_current_value=operation(local_current_value,dataView.reductionOp(data.getPointOffset(i,j),operation,initial_value));
+/*          local_current_value=operation(local_current_value,dataView.reductionOp(data.getPointOffset(i,j),operation,initial_value));*/
+          local_current_value=operation(local_current_value,DataMaths::reductionOp(vec,shape,data.getPointOffset(i,j),operation,initial_value));
+
         }
       }
       #pragma omp critical
@@ -193,14 +198,30 @@ algorithm(DataTagged& data,
 	  double initial_value)
 {
   double current_value=initial_value;
+
+// double current_value2=initial_value;
+
   // perform the operation on each tagged value
-  DataArrayView& dataView=data.getPointDataView();
+//   DataArrayView& dataView=data.getPointDataView();
+  DataTypes::ValueType& vec=data.getVector();
+  const DataTypes::ShapeType& shape=data.getShape();
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   for (DataTagged::DataMapType::const_iterator i=lookup.begin(); i!=lookup.end(); i++) {
-    current_value=operation(current_value,dataView.reductionOp(i->second,operation,initial_value));
+
+// current_value2=operation(current_value2,dataView.reductionOp(i->second,operation,initial_value));
+
+    current_value=operation(current_value,DataMaths::reductionOp(vec,shape,i->second,operation,initial_value));
+
+//std::cout << "binalg: value2=" << current_value2 << " value=" << current_value << " diff=" << current_value2-current_value << std::endl;
+
   }
+
+
   // perform the operation on the default value
-  current_value=operation(current_value,data.getDefaultValue().reductionOp(operation,initial_value));
+// current_value2=operation(current_value2,data.getDefaultValue().reductionOp(operation,initial_value));
+  // the 0 comes from the default value being the first one in the structure
+  current_value=operation(current_value,DataMaths::reductionOp(vec,shape,data.getDefaultOffset(),operation,initial_value));
+
   return current_value;
 }
 
@@ -211,7 +232,8 @@ algorithm(DataConstant& data,
           BinaryFunction operation,
 	  double initial_value)
 {
-  return data.getPointDataView().reductionOp(operation,initial_value);
+  return DataMaths::reductionOp(data.getVector(),data.getShape(),0,operation,initial_value);
+//  return data.getPointDataView().reductionOp(operation,initial_value);
 }
 
 /**
@@ -228,7 +250,7 @@ algorithm(DataConstant& data,
 template <class BinaryFunction>
 inline
 void
-dp_algorithm(DataExpanded& data,
+dp_algorithm(const DataExpanded& data,
              DataExpanded& result,
              BinaryFunction operation,
 	     double initial_value)
@@ -236,15 +258,21 @@ dp_algorithm(DataExpanded& data,
   int i,j;
   int numSamples=data.getNumSamples();
   int numDPPSample=data.getNumDPPSample();
-  DataArrayView dataView=data.getPointDataView();
-  DataArrayView resultView=result.getPointDataView();
+//  DataArrayView dataView=data.getPointDataView();
+//  DataArrayView resultView=result.getPointDataView();
+  const DataTypes::ValueType& dataVec=data.getVector();
+  const DataTypes::ShapeType& shape=data.getShape();
+  DataTypes::ValueType& resultVec=result.getVector();
   // perform the operation on each data-point and assign
   // this to the corresponding element in result
   #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<numSamples;i++) {
     for (j=0;j<numDPPSample;j++) {
-      resultView.getData(result.getPointOffset(i,j)) =
-        dataView.reductionOp(data.getPointOffset(i,j),operation,initial_value);
+/*      resultView.getData(result.getPointOffset(i,j)) =
+        dataView.reductionOp(data.getPointOffset(i,j),operation,initial_value);*/
+      resultVec[result.getPointOffset(i,j)] =
+        DataMaths::reductionOp(dataVec, shape, data.getPointOffset(i,j),operation,initial_value);
+
     }
   }
 }
@@ -252,22 +280,27 @@ dp_algorithm(DataExpanded& data,
 template <class BinaryFunction>
 inline
 void
-dp_algorithm(DataTagged& data,
+dp_algorithm(const DataTagged& data,
              DataTagged& result,
              BinaryFunction operation,
 	     double initial_value)
 {
   // perform the operation on each tagged value in data
   // and assign this to the corresponding element in result
+  const DataTypes::ShapeType& shape=data.getShape();
+  const DataTypes::ValueType& vec=data.getVector();
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   for (DataTagged::DataMapType::const_iterator i=lookup.begin(); i!=lookup.end(); i++) {
-    result.getDataPointByTag(i->first).getData(0) =
-      data.getDataPointByTag(i->first).reductionOp(operation,initial_value);
+//     result.getDataPointByTag(i->first).getData(0) =
+//       data.getDataPointByTag(i->first).reductionOp(operation,initial_value);
+    result.getDataByTag(i->first,0) =
+	DataMaths::reductionOp(vec,shape,data.getOffsetForTag(i->first),operation,initial_value);
   }
   // perform the operation on the default data value
   // and assign this to the default element in result
-  result.getDefaultValue().getData(0) =
-    data.getDefaultValue().reductionOp(operation,initial_value);
+//   result.getDefaultValue().getData(0) =
+//     data.getDefaultValue().reductionOp(operation,initial_value);
+  result.getVector()[result.getDefaultOffset()] = DataMaths::reductionOp(data.getVector(),data.getShape(),data.getDefaultOffset(),operation,initial_value);
 }
 
 template <class BinaryFunction>
@@ -280,8 +313,10 @@ dp_algorithm(DataConstant& data,
 {
   // perform the operation on the data value
   // and assign this to the element in result
-  result.getPointDataView().getData(0) =
-    data.getPointDataView().reductionOp(operation,initial_value);
+//   result.getPointDataView().getData(0) =
+//     data.getPointDataView().reductionOp(operation,initial_value);
+  result.getVector()[0] =
+    DataMaths::reductionOp(data.getVector(),data.getShape(),0,operation,initial_value);
 }
 
 } // end of namespace

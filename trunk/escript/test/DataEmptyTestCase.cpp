@@ -64,7 +64,7 @@ void DataEmptyTestCase::testAll() {
   try {
     cout << "\tTest getDataPoint." << endl;
     // this function also returns a DataArrayView object - should check that
-    testData.getDataPoint(0,0);
+    testData.getPointOffset(0,0);
     assert(false);
   }
   catch (EsysException&) {
@@ -75,7 +75,7 @@ void DataEmptyTestCase::testAll() {
   cout << "\tTest getLength." << endl;
   assert(testData.getLength() == 0);
 
-  DataArrayView::RegionType region;
+  DataTypes::RegionType region;
 
   try {
     cout << "\tTest getSlice." << endl;

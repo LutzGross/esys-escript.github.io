@@ -18,7 +18,6 @@
 #include "system_dep.h"
 
 #include "DataAbstract.h"
-#include "DataArrayView.h"
 
 #include <boost/python/numeric.hpp>
 
@@ -58,18 +57,18 @@ class DataConstant : public DataAbstract  {
   ESCRIPT_DLL_API
   DataConstant(const DataConstant& other);
 
-  /**
-     \brief
+//  /**
+/*     \brief
      Alternative constructor for DataConstant objects.
 
      Description:
      Alternative Constructor for DataConstant objects.
      \param value - Input - Data value for a single point.
-     \param what - Input - A description of what this data object represents.
-  */
-  ESCRIPT_DLL_API
-  DataConstant(const DataArrayView& value,
-               const FunctionSpace& what);
+     \param what - Input - A description of what this data object represents.*/
+//  */
+//   ESCRIPT_DLL_API
+//   DataConstant(const DataArrayView& value,
+//                const FunctionSpace& what);
 
   /**
      \brief
@@ -82,7 +81,7 @@ class DataConstant : public DataAbstract  {
   */
   ESCRIPT_DLL_API
   DataConstant(const DataConstant& other,
-               const DataArrayView::RegionType& region);
+               const DataTypes::RegionType& region);
 
   /**
      \brief
@@ -96,8 +95,8 @@ class DataConstant : public DataAbstract  {
   */
   ESCRIPT_DLL_API
   DataConstant(const FunctionSpace& what,
-               const DataArrayView::ShapeType &shape,
-               const DataArrayView::ValueType &data);
+               const DataTypes::ShapeType &shape,
+               const DataTypes::ValueType &data);
 
   /**
      \brief
@@ -135,21 +134,21 @@ class DataConstant : public DataAbstract  {
    */
   ESCRIPT_DLL_API
   virtual
-  DataArrayView::ValueType::size_type
+  DataTypes::ValueType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
-  /**
-     \brief
+//  /**
+/*     \brief
      Return a view into the data for the data point specified.
      \param sampleNo - Input - sample number.
-     \param dataPointNo - Input - data point number for the sample.
-  */
-  ESCRIPT_DLL_API
-  virtual
-  DataArrayView
-  getDataPoint(int sampleNo,
-               int dataPointNo);
+     \param dataPointNo - Input - data point number for the sample.*/
+//  */
+//   ESCRIPT_DLL_API
+//   virtual
+//   DataArrayView
+//   getDataPoint(int sampleNo,
+//                int dataPointNo);
 
   /**
      \brief
@@ -157,7 +156,7 @@ class DataConstant : public DataAbstract  {
   */
   ESCRIPT_DLL_API
   virtual
-  DataArrayView::ValueType::size_type
+  DataTypes::ValueType::size_type
   getLength() const;
 
   /**
@@ -170,7 +169,7 @@ class DataConstant : public DataAbstract  {
   ESCRIPT_DLL_API
   virtual
   DataAbstract*
-  getSlice(const DataArrayView::RegionType& region) const;
+  getSlice(const DataTypes::RegionType& region) const;
 
   /**
      \brief
@@ -182,32 +181,8 @@ class DataConstant : public DataAbstract  {
   virtual
   void
   setSlice(const DataAbstract* value,
-           const DataArrayView::RegionType& region);
+           const DataTypes::RegionType& region);
 
-  /**
-    \brief
-    Archive the underlying data values to the file referenced
-    by ofstream. A count of the number of values expected to be written
-    is provided as a cross-check.
-
-    The return value indicates success (0) or otherwise (1).
-  */
-  ESCRIPT_DLL_API
-  int
-  archiveData(std::ofstream& archiveFile,
-              const DataArrayView::ValueType::size_type noValues) const;
-
-  /**
-    \brief
-    Extract the number of values specified by noValues from the file
-    referenced by ifstream to the underlying data structure.
-
-    The return value indicates success (0) or otherwise (1).
-  */
-  ESCRIPT_DLL_API
-  int
-  extractData(std::ifstream& archiveFile,
-              const DataArrayView::ValueType::size_type noValues);
 
   /**
      \brief
@@ -292,14 +267,42 @@ class DataConstant : public DataAbstract  {
   eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol=1.e-13);
 
 
+  /**
+     \brief
+     Return a reference to the underlying DataVector.
+  */
+  ESCRIPT_DLL_API
+  DataTypes::ValueType&
+  getVector();
+
+  ESCRIPT_DLL_API
+  const DataTypes::ValueType&
+  getVector() const;
+
+
  protected:
 
  private:
   //
   // the actual data
-  DataArrayView::ValueType m_data;
+  DataTypes::ValueType m_data;
 
 };
+
+inline
+DataTypes::ValueType&
+DataConstant::getVector()
+{
+  return m_data;
+}
+
+inline
+const DataTypes::ValueType&
+DataConstant::getVector() const
+{
+  return m_data;
+}
+
 
 } // end of namespace
 #endif

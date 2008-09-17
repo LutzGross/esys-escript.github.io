@@ -16,12 +16,30 @@
 #include "DataEmpty.h"
 #include "DataException.h"
 
+
+namespace {
+
+
+// This function is inlined to prevent the compiler complaining about missing return statements
+// in methods where it is called.
+// inline
+void
+throwStandardException(const std::string& functionName)
+{
+  throw escript::DataException("Error - "+functionName+" function call invalid for DataEmpty.");
+}
+
+
+escript::DataTypes::ValueType dummy;	
+
+}
+
 namespace escript {
 
 DataEmpty::DataEmpty() :
-  DataAbstract(FunctionSpace())
+  DataAbstract(FunctionSpace(),DataTypes::scalarShape)
 {
-  resetPointDataView();
+//  resetPointDataView();
 }
 
 DataEmpty::~DataEmpty()
@@ -34,7 +52,7 @@ DataEmpty::toString() const
   return "(Empty Data)";
 }
 
-DataArrayView::ValueType::size_type
+DataTypes::ValueType::size_type
 DataEmpty::getPointOffset(int sampleNo,
                           int dataPointNo) const 
 {
@@ -42,22 +60,22 @@ DataEmpty::getPointOffset(int sampleNo,
   return 0;
 }
 
-DataArrayView
-DataEmpty::getDataPoint(int sampleNo,
-                        int dataPointNo)
-{
-  throwStandardException("getDataPoint");
-  return getPointDataView();
-}
+// DataArrayView
+// DataEmpty::getDataPoint(int sampleNo,
+//                         int dataPointNo)
+// {
+//   throwStandardException("getDataPoint");
+//   return getPointDataView();
+// }
 
-DataArrayView::ValueType::size_type
+DataTypes::ValueType::size_type
 DataEmpty::getLength() const
 {
   return 0;
 }
 
 DataAbstract*
-DataEmpty::getSlice(const DataArrayView::RegionType& region) const
+DataEmpty::getSlice(const DataTypes::RegionType& region) const
 {
   throwStandardException("getSlice");
   return 0;
@@ -65,15 +83,27 @@ DataEmpty::getSlice(const DataArrayView::RegionType& region) const
 
 void
 DataEmpty::setSlice(const DataAbstract* value,
-                    const DataArrayView::RegionType& region) 
+                    const DataTypes::RegionType& region) 
 {
   throwStandardException("setSlice");
 }
 
-void
-DataEmpty::throwStandardException(const std::string& functionName) const
+
+
+DataTypes::ValueType&
+DataEmpty::getVector()
 {
-  throw DataException("Error - "+functionName+" function call invalid for DataEmpty.");
+  throwStandardException("getVector");	// always throws but the compiler doesn't know that.
+  return dummy;			// dead code to stop the compiler complaining
 }
+
+const DataTypes::ValueType&
+DataEmpty::getVector() const
+{
+  throwStandardException("getVector");	// always throws but the compiler doesn't know that.
+  return dummy;			// dead code to stop the compiler complaining
+}
+
+
 
 }  // end of namespace
