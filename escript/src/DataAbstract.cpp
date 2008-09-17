@@ -143,19 +143,7 @@ DataAbstract::getTagNumber(int dpno)
     return (0);
 }
 
-int
-DataAbstract::archiveData(ofstream& archiveFile,
-                          const ValueType::size_type noValues) const
-{
-  return 0;
-}
 
-int
-DataAbstract::extractData(ifstream& archiveFile,
-                          const ValueType::size_type noValues)
-{
-  return 0;
-}
 
 void
 DataAbstract::copyAll(const boost::python::numeric::array& value)

@@ -182,19 +182,7 @@ DataConstant::setSlice(const DataAbstract* value,
   DataTypes::copySliceFrom(m_data,getShape(),0,tempDataConst->getVector(), tempDataConst->getShape(),0,region_loop_range);
 }
 
-int
-DataConstant::archiveData(ofstream& archiveFile,
-                          const DataTypes::ValueType::size_type noValues) const
-{
-  return(m_data.archiveData(archiveFile, noValues));
-}
 
-int
-DataConstant::extractData(ifstream& archiveFile,
-                          const DataTypes::ValueType::size_type noValues)
-{
-  return(m_data.extractData(archiveFile, noValues));
-}
 
 void
 DataConstant::symmetric(DataAbstract* ev)

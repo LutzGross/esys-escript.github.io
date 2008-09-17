@@ -164,56 +164,6 @@ DataVector::operator!=(const DataVector& other) const
   return !(*this==other);
 }
 
-int
-DataVector::archiveData(ofstream& archiveFile,
-                        const size_type noValues) const
-{
-  //
-  // Check number of values expected to be written matches number in this object
-  if (noValues != size()) {
-    return 2;
-  }
-
-  //
-  // Write all values in this object out to archiveFile
-  for (int i=0; i<size(); i++) {
-    archiveFile.write(reinterpret_cast<char *>(&m_array_data[i]),sizeof(double));
-  }
-
-  //
-  // Check no errors were encountered before returning
-  if (!archiveFile.good()) {
-    return 1;
-  }
-
-  return 0;
-}
-
-int
-DataVector::extractData(ifstream& archiveFile,
-                        const size_type noValues)
-{
-  //
-  // Check number of values expected to be read matches number in this object
-  if (noValues != size()) {
-    return 2;
-  }
-
-  //
-  // Read all values in archiveFile back to this object
-  for (int i=0; i<size(); i++) {
-    archiveFile.read(reinterpret_cast<char *>(&m_array_data[i]),sizeof(double));
-  }
-
-  //
-  // Check no errors were encountered before returning
-  if (!archiveFile.good()) {
-    return 1;
-  }
-
-  return 0;
-}
-
 
 void
 DataVector::copyFromNumArray(const boost::python::numeric::array& value)

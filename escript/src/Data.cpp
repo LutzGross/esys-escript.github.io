@@ -22,6 +22,8 @@
 #include "FunctionSpaceFactory.h"
 #include "AbstractContinuousDomain.h"
 #include "UnaryFuncs.h"
+#include "FunctionSpaceException.h"
+
 extern "C" {
 #include "escript/blocktimer.h"
 }
@@ -109,6 +111,14 @@ Data::Data(const Data& inData,
 {
   if (inData.getFunctionSpace()==functionspace) {
     m_data=inData.m_data;
+  } else if (inData.isConstant()) {	// for a constant function, we just need to use the new function space
+    if (!inData.probeInterpolation(functionspace))
+    {           // Even though this is constant, we still need to check whether interpolation is allowed
+	cout << "Failed interpolation check\n";
+	throw FunctionSpaceException("Call to probeInterpolation returned false for DataConstant.");
+    }
+    DataConstant* dc=new DataConstant(functionspace,inData.m_data->getShape(),inData.m_data->getVector());	
+    m_data=shared_ptr<DataAbstract>(dc); 
   } else {
     Data tmp(0,inData.getDataPointShape(),functionspace,true);
     // Note: Must use a reference or pointer to a derived object
