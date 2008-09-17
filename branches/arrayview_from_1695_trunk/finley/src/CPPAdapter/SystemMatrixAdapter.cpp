@@ -135,6 +135,8 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_NONLINEAR_GMRES;
        case  ESCRIPT_TFQMR:
           return PASO_TFQMR;
+       case  ESCRIPT_MINRES:
+          return PASO_MINRES;
        default:
            stringstream temp;
            temp << "Error - Cannot map option value "<< option << " onto Paso";

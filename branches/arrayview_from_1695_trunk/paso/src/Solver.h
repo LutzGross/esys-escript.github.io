@@ -27,6 +27,8 @@
 #define SOLVER_INPUT_ERROR -1
 #define SOLVER_MEMORY_ERROR -9
 #define SOLVER_BREAKDOWN -10
+#define SOLVER_NEGATIVE_NORM_ERROR -11
+
 
 static double ONE=1.;
 static double ZERO=0.;
@@ -93,6 +95,7 @@ void Paso_Solver_free(Paso_SystemMatrix*);
 err_t Paso_Solver_BiCGStab( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, Paso_Performance* pp);
 err_t Paso_Solver_PCG( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, Paso_Performance* pp);
 err_t Paso_Solver_TFQMR( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, Paso_Performance* pp);
+err_t Paso_Solver_MINRES( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, double *tol, Paso_Performance* pp);
 err_t Paso_Solver_GMRES(Paso_SystemMatrix * A, double * r, double * x, dim_t *num_iter, double * tolerance,dim_t length_of_recursion,dim_t restart, Paso_Performance* pp);
 void Paso_Preconditioner_free(Paso_Solver_Preconditioner*);
 void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options);

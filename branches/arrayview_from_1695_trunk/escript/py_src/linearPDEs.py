@@ -446,6 +446,7 @@ class LinearPDE(object):
    @cvar CGS: The conjugate gardient square method
    @cvar BICGSTAB: The stabilized BiConjugate Gradient method.
    @cvar TFQMR: Transport Free Quasi Minimal Residual method.
+   @cvar MINRES: Minimum residual method.
    @cvar SSOR: The symmetric overrealaxtion method
    @cvar ILU0: The incomplete LU factorization preconditioner  with no fill in
    @cvar ILUT: The incomplete LU factorization preconditioner with will in
@@ -493,6 +494,7 @@ class LinearPDE(object):
    TRILINOS = 24
    NONLINEAR_GMRES = 25
    TFQMR = 26
+   MINRES = 27
 
    SMALL_TOLERANCE=1.e-13
    __PACKAGE_KEY="package"
@@ -951,7 +953,7 @@ class LinearPDE(object):
        sets a new solver
 
        @param solver: sets a new solver method.
-       @type solver: one of L{DEFAULT}, L{ITERATIVE} L{DIRECT}, L{CHOLEVSKY}, L{PCG}, L{CR}, L{CGS}, L{BICGSTAB}, L{SSOR}, L{GMRES}, L{TFQMR}, L{PRES20}, L{LUMPING}, L{AMG}
+       @type solver: one of L{DEFAULT}, L{ITERATIVE} L{DIRECT}, L{CHOLEVSKY}, L{PCG}, L{CR}, L{CGS}, L{BICGSTAB}, L{SSOR}, L{GMRES}, L{TFQMR}, L{MINRES}, L{PRES20}, L{LUMPING}, L{AMG}
        @param preconditioner: sets a new solver method.
        @type preconditioner: one of L{DEFAULT}, L{JACOBI} L{ILU0}, L{ILUT},L{SSOR}, L{RILU}
        """
@@ -981,7 +983,8 @@ class LinearPDE(object):
        elif m[0]==self.ITERATIVE: method= "ITERATIVE"
        elif m[0]==self.CHOLEVSKY: method= "CHOLEVSKY"
        elif m[0]==self.PCG: method= "PCG"
-       elif m[0]==self.PCG: method= "TFQMR"
+       elif m[0]==self.TFQMR: method= "TFQMR"
+       elif m[0]==self.MINRES: method= "MINRES"
        elif m[0]==self.CR: method= "CR"
        elif m[0]==self.CGS: method= "CGS"
        elif m[0]==self.BICGSTAB: method= "BICGSTAB"

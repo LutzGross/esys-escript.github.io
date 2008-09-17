@@ -79,6 +79,7 @@ sources = """
 	SystemMatrix_saveMM.c
 	SystemMatrix_setValues.c
 	TFQMR.c
+	MINRES.c
 	UMFPACK.c
 	mmio.c
 	performance.c
