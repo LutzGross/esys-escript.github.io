@@ -30,7 +30,6 @@ sources = """
 	AbstractTransportProblem.cpp
 	Data.cpp
 	DataAbstract.cpp
-	DataArrayView.cpp
 	DataBlocks2D.cpp
 	DataC.cpp
 	DataConstant.cpp
@@ -38,7 +37,9 @@ sources = """
 	DataException.cpp
 	DataExpanded.cpp
 	DataFactory.cpp
+	DataMaths.cpp
 	DataTagged.cpp
+	DataTypes.cpp
 	DataVector.cpp
 	DomainException.cpp
 	FunctionSpace.cpp
@@ -60,7 +61,6 @@ headers = """
 	Data.h
 	DataAbstract.h
 	DataAlgorithm.h
-	DataArrayView.h
 	DataBlocks2D.h
 	DataC.h
 	DataConstant.h
@@ -68,7 +68,9 @@ headers = """
 	DataException.h
 	DataExpanded.h
 	DataFactory.h
+	DataMaths.h
 	DataTagged.h
+	DataTypes.h
 	DataVector.h
 	DomainException.h
 	FunctionSpace.h

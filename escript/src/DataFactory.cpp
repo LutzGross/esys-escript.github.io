@@ -37,7 +37,7 @@ Scalar(double value,
 {
     //
     // an empty shape is a scalar
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     return Data(value,shape,what,expanded);
 }
 
@@ -46,7 +46,7 @@ Vector(double value,
        const FunctionSpace& what,
        bool expanded)
 {
-    DataArrayView::ShapeType shape(1,what.getDomain().getDim());
+    DataTypes::ShapeType shape(1,what.getDomain().getDim());
     return Data(value,shape,what,expanded);
 }
 
@@ -55,7 +55,7 @@ Tensor(double value,
        const FunctionSpace& what,
        bool expanded)
 {
-    DataArrayView::ShapeType shape(2,what.getDomain().getDim());
+    DataTypes::ShapeType shape(2,what.getDomain().getDim());
     return Data(value,shape,what,expanded);
 }
 
@@ -64,7 +64,7 @@ Tensor3(double value,
         const FunctionSpace& what,
         bool expanded)
 {
-    DataArrayView::ShapeType shape(3,what.getDomain().getDim());
+    DataTypes::ShapeType shape(3,what.getDomain().getDim());
     return Data(value,shape,what,expanded);
 }
 
@@ -73,7 +73,7 @@ Tensor4(double value,
         const FunctionSpace& what,
         bool expanded)
 {
-    DataArrayView::ShapeType shape(4,what.getDomain().getDim());
+    DataTypes::ShapeType shape(4,what.getDomain().getDim());
     return Data(value,shape,what,expanded);
 }
 
@@ -109,7 +109,7 @@ load(const std::string fileName,
         throw DataException("Error - load:: cannot recover rank attribute from escript netCDF file.");
    int rank = rank_att->as_int(0);
    delete rank_att;
-   if (rank<0 || rank>DataArrayView::maxRank)
+   if (rank<0 || rank>DataTypes::maxRank)
         throw DataException("Error - load:: rank in escript netCDF file is greater than maximum rank.");
    /* recover type attribute */
    int type=-1;
@@ -135,8 +135,8 @@ load(const std::string fileName,
    int ntags =0 , num_samples =0 , num_data_points_per_sample =0, d=0, len_data_point=1;
    NcDim *d_dim, *tags_dim, *num_samples_dim, *num_data_points_per_sample_dim;
    /* recover shape */
-   DataArrayView::ShapeType shape;
-   long dims[DataArrayView::maxRank+2];
+   DataTypes::ShapeType shape;
+   long dims[DataTypes::maxRank+2];
    if (rank>0) {
      if (! (d_dim=dataFile.get_dim("d0")) )
           throw DataException("Error - load:: unable to recover d0 from netCDF file.");
@@ -187,7 +187,7 @@ load(const std::string fileName,
       out=Data(0,shape,function_space);
       if (!(var = dataFile.get_var("data")))
               throw DataException("Error - load:: unable to find data in netCDF file.");
-      if (! var->get(&(out.getDataPoint(0,0).getData()[0]), dims) ) 
+      if (! var->get(&(out.getDataAtOffset(out.getDataOffset(0,0))), dims) ) 
               throw DataException("Error - load:: unable to recover data from netCDF file.");
    } else if (type == 1) { 
       /* tagged data */
@@ -209,7 +209,8 @@ load(const std::string fileName,
          throw DataException("Error - load:: unable to recover tags from netCDF file.");
       }
 
-      DataVector data(len_data_point * ntags, 0., len_data_point * ntags);
+// Current Version
+/*      DataVector data(len_data_point * ntags, 0., len_data_point * ntags);
       if (!(var = dataFile.get_var("data")))
       {
          esysUtils::free(tags);
@@ -222,8 +223,33 @@ load(const std::string fileName,
       }
       out=Data(DataArrayView(data,shape,0),function_space);
       for (int t=1; t<ntags; ++t) {
-         out.setTaggedValueFromCPP(tags[t],DataArrayView(data,shape,t*len_data_point));
+	 out.setTaggedValueFromCPP(tags[t],shape, data, t*len_data_point);
+//         out.setTaggedValueFromCPP(tags[t],DataArrayView(data,shape,t*len_data_point));
+      }*/
+// End current version
+	
+// New version
+
+	// A) create a DataTagged dt
+	// B) Read data from file
+	// C) copy default value into dt
+	// D) copy tagged values into dt
+	// E) create a new Data based on dt
+
+      NcVar* var1;
+      DataVector data1(len_data_point * ntags, 0., len_data_point * ntags);
+      if (!(var1 = dataFile.get_var("data")))
+      {
+         esysUtils::free(tags);
+         throw DataException("Error - load:: unable to find data in netCDF file.");
       }
+      if (! var1->get(&(data1[0]), dims) ) 
+      {
+         esysUtils::free(tags);
+         throw DataException("Error - load:: unable to recover data from netCDF file.");
+      }
+      DataTagged* dt=new DataTagged(function_space, shape, tags,data1);
+      out=Data(dt);
       esysUtils::free(tags);
    } else if (type == 2) {
       /* expanded data */
@@ -274,7 +300,7 @@ load(const std::string fileName,
          esysUtils::free(ids_of_nc);
          throw DataException("Error - load:: unable to find data in netCDF file.");
       }
-      if (! var->get(&(out.getDataPoint(0,0).getData()[0]), dims) ) 
+      if (! var->get(&(out.getDataAtOffset(out.getDataOffset(0,0))), dims) ) 
       {
          esysUtils::free(ids_of_nc);
          throw DataException("Error - load:: unable to recover data from netCDF file.");

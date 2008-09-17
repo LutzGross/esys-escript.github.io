@@ -25,6 +25,7 @@ using namespace CppUnitTest;
 using namespace escript;
 using namespace std;
 using namespace esysUtils;
+using namespace escript::DataTypes;
 
 void DataConstantTestCase::setUp() {
   //
@@ -36,24 +37,38 @@ void DataConstantTestCase::tearDown() {
   // This is called after each test has been run
 }
 
+
+namespace
+{
+
+ValueType::reference
+getRef(DataAbstract& data,int i, int j, int k)
+{
+   return data.getVector()[getRelIndex(data.getShape(),i,j,k)];
+}
+
+
+}
+
+
 void DataConstantTestCase::testAll() {
 
   cout << endl;
 
   //
   // Create a scalar pointData
-  DataArrayView::ShapeType shape;
-  DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
-  DataArrayView pointData(data,shape);
+  DataTypes::ShapeType shape;
+  DataTypes::ValueType data(DataTypes::noValues(shape),0);
+//  DataArrayView pointData(data,shape);
 
   //
   // assign an arbitrary value
-  pointData()=1.0;
+  data[0]=1.0;
 
   //
   // Test construction
   cout << "\tTesting default constructor." << endl;
-  DataConstant testData(pointData, FunctionSpace());
+  DataConstant testData(FunctionSpace(),shape,data);
 
   cout << "\tTest getLength." << endl;
   assert(testData.getLength()==1);
@@ -96,7 +111,7 @@ void DataConstantTestCase::testAll() {
 */
 
   cout << "\tTesting alternative constructor." << endl;
-  DataArrayView::ValueType data1(DataArrayView::noValues(shape),1.0);
+  DataTypes::ValueType data1(DataTypes::noValues(shape),1.0);
   // do not call the FunctionSpace constructor directly
   // in the argument of DataConstant
   // GCC chokes on it.
@@ -106,7 +121,7 @@ void DataConstantTestCase::testAll() {
   for (int k=0;k<shape[2];k++) {
     for (int j=0;j<shape[1];j++) {
       for (int i=0;i<shape[0];i++) {
-	assert(testData1.getPointDataView()(i,j,k)==1.0);
+	assert(getRef(testData1,i,j,k)==1.0);
       }
     }
   }
@@ -114,13 +129,13 @@ void DataConstantTestCase::testAll() {
   cout << "\tTest getLength." << endl;
   assert(testData1.getLength()==126);
 
-  cout << "\tVerify data point attributes." << endl;
-  DataArrayView dataView=testData1.getPointDataView();
-  assert(dataView.getRank()==3);
-  assert(dataView.noValues()==126);
-  assert(dataView.getShape()[0]==2);
-  assert(dataView.getShape()[1]==3);
-  assert(dataView.getShape()[2]==21);
+//   cout << "\tVerify data point attributes." << endl;
+// //   DataArrayView dataView=testData1.getPointDataView();
+//   assert(data.getRank()==3);
+//   assert(data.getNoValues()==126);
+//   assert(data.getShape()[0]==2);
+//   assert(data.getShape()[1]==3);
+//   assert(data.getShape()[2]==21);
 
   cout << "\tTesting copy constructor." << endl;
   DataConstant testData2(testData1);
@@ -128,7 +143,7 @@ void DataConstantTestCase::testAll() {
   for (int k=0;k<shape[2];k++) {
     for (int j=0;j<shape[1];j++) {
       for (int i=0;i<shape[0];i++) {
-	assert(testData2.getPointDataView()(i,j,k)==pointData());
+	assert(getRef(testData2,i,j,k)==data[0]);
       }
     }
   }
@@ -137,26 +152,26 @@ void DataConstantTestCase::testAll() {
   assert(testData2.getLength()==126);
 
   cout << "\tVerify data point attributes." << endl;
-  dataView=testData2.getPointDataView();
-  assert(dataView.getRank()==3);
-  assert(dataView.noValues()==126);
-  assert(dataView.getShape()[0]==2);
-  assert(dataView.getShape()[1]==3);
-  assert(dataView.getShape()[2]==21);
+//  dataView=testData2.getPointDataView();
+  assert(testData2.getRank()==3);
+  assert(testData2.getNoValues()==126);
+  assert(testData2.getShape()[0]==2);
+  assert(testData2.getShape()[1]==3);
+  assert(testData2.getShape()[2]==21);
 
   cout << "\tTest slicing (whole object)." << endl;
 
-  DataArrayView::RegionType region;
-  region.push_back(DataArrayView::RegionType::value_type(0,shape[0]));
-  region.push_back(DataArrayView::RegionType::value_type(0,shape[1]));
-  region.push_back(DataArrayView::RegionType::value_type(0,shape[2]));
+  DataTypes::RegionType region;
+  region.push_back(DataTypes::RegionType::value_type(0,shape[0]));
+  region.push_back(DataTypes::RegionType::value_type(0,shape[1]));
+  region.push_back(DataTypes::RegionType::value_type(0,shape[2]));
 
   DataAbstract* testData3=testData2.getSlice(region);
 
   for (int k=0;k<shape[2];k++) {
     for (int j=0;j<shape[1];j++) {
       for (int i=0;i<shape[0];i++) {
-	assert(testData3->getPointDataView()(i,j,k)==pointData());
+	assert(getRef(*testData3,i,j,k)==data[0]);
       }
     }
   }
@@ -164,26 +179,26 @@ void DataConstantTestCase::testAll() {
   assert(testData3->getLength()==126);
 
   cout << "\tVerify data point attributes." << endl;
-  dataView=testData3->getPointDataView();
-  assert(dataView.getRank()==3);
-  assert(dataView.noValues()==126);
-  assert(dataView.getShape()[0]==2);
-  assert(dataView.getShape()[1]==3);
-  assert(dataView.getShape()[2]==21);
+//   dataView=testData3->getPointDataView();
+  assert(testData3->getRank()==3);
+  assert(testData3->getNoValues()==126);
+  assert(testData3->getShape()[0]==2);
+  assert(testData3->getShape()[1]==3);
+  assert(testData3->getShape()[2]==21);
 
   cout << "\tTest slicing (part object)." << endl;
 
-  DataArrayView::RegionType region2;
-  region2.push_back(DataArrayView::RegionType::value_type(0,2));
-  region2.push_back(DataArrayView::RegionType::value_type(0,2));
-  region2.push_back(DataArrayView::RegionType::value_type(0,2));
+  DataTypes::RegionType region2;
+  region2.push_back(DataTypes::RegionType::value_type(0,2));
+  region2.push_back(DataTypes::RegionType::value_type(0,2));
+  region2.push_back(DataTypes::RegionType::value_type(0,2));
 
   DataAbstract* testData4=testData3->getSlice(region2);
 
   for (int k=0;k<2;k++) {
     for (int j=0;j<2;j++) {
       for (int i=0;i<2;i++) {
-	assert(testData4->getPointDataView()(i,j,k)==pointData());
+	assert(getRef(*testData4,i,j,k)==data[0]);
       }
     }
   }
@@ -191,26 +206,26 @@ void DataConstantTestCase::testAll() {
   assert(testData4->getLength()==8);
 
   cout << "\tVerify data point attributes." << endl;
-  dataView=testData4->getPointDataView();
-  assert(dataView.getRank()==3);
-  assert(dataView.noValues()==8);
-  assert(dataView.getShape()[0]==2);
-  assert(dataView.getShape()[1]==2);
-  assert(dataView.getShape()[2]==2);
+//   dataView=testData4->getPointDataView();
+  assert(testData4->getRank()==3);
+  assert(testData4->getNoValues()==8);
+  assert(testData4->getShape()[0]==2);
+  assert(testData4->getShape()[1]==2);
+  assert(testData4->getShape()[2]==2);
 
   cout << "\tTest slicing (part object)." << endl;
 
-  DataArrayView::RegionType region3;
-  region3.push_back(DataArrayView::RegionType::value_type(1,2));
-  region3.push_back(DataArrayView::RegionType::value_type(1,3));
-  region3.push_back(DataArrayView::RegionType::value_type(5,9));
+  DataTypes::RegionType region3;
+  region3.push_back(DataTypes::RegionType::value_type(1,2));
+  region3.push_back(DataTypes::RegionType::value_type(1,3));
+  region3.push_back(DataTypes::RegionType::value_type(5,9));
 
   DataAbstract* testData5=testData3->getSlice(region3);
 
   for (int k=0;k<4;k++) {
     for (int j=0;j<2;j++) {
       for (int i=0;i<1;i++) {
-	assert(testData5->getPointDataView()(i,j,k)==pointData());
+	assert(getRef(*testData5,i,j,k)==data[0]);
       }
     }
   }
@@ -218,19 +233,19 @@ void DataConstantTestCase::testAll() {
   assert(testData5->getLength()==8);
 
   cout << "\tVerify data point attributes." << endl;
-  dataView=testData5->getPointDataView();
-  assert(dataView.getRank()==3);
-  assert(dataView.noValues()==8);
-  assert(dataView.getShape()[0]==1);
-  assert(dataView.getShape()[1]==2);
-  assert(dataView.getShape()[2]==4);
+//   dataView=testData5->getPointDataView();
+  assert(testData5->getRank()==3);
+  assert(testData5->getNoValues()==8);
+  assert(testData5->getShape()[0]==1);
+  assert(testData5->getShape()[1]==2);
+  assert(testData5->getShape()[2]==4);
 
   cout << "\tTest slice setting (1)." << endl;
 
-  DataArrayView::RegionType region4;
-  region4.push_back(DataArrayView::RegionType::value_type(0,1));
-  region4.push_back(DataArrayView::RegionType::value_type(0,2));
-  region4.push_back(DataArrayView::RegionType::value_type(0,4));
+  DataTypes::RegionType region4;
+  region4.push_back(DataTypes::RegionType::value_type(0,1));
+  region4.push_back(DataTypes::RegionType::value_type(0,2));
+  region4.push_back(DataTypes::RegionType::value_type(0,4));
 
   DataAbstract* testData6=testData3->getSlice(region3);
 
@@ -239,7 +254,7 @@ void DataConstantTestCase::testAll() {
   for (int k=0;k<4;k++) {
     for (int j=0;j<2;j++) {
       for (int i=0;i<1;i++) {
-	assert(testData5->getPointDataView()(i,j,k)==pointData());
+	assert(getRef(*testData5,i,j,k)==data[0]);
       }
     }
   }
@@ -247,12 +262,12 @@ void DataConstantTestCase::testAll() {
   assert(testData5->getLength()==8);
 
   cout << "\tVerify data point attributes." << endl;
-  dataView=testData5->getPointDataView();
-  assert(dataView.getRank()==3);
-  assert(dataView.noValues()==8);
-  assert(dataView.getShape()[0]==1);
-  assert(dataView.getShape()[1]==2);
-  assert(dataView.getShape()[2]==4);
+//   dataView=testData5->getPointDataView();
+  assert(testData5->getRank()==3);
+  assert(testData5->getNoValues()==8);
+  assert(testData5->getShape()[0]==1);
+  assert(testData5->getShape()[1]==2);
+  assert(testData5->getShape()[2]==4);
 
   delete testData3;
   delete testData4;

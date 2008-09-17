@@ -17,10 +17,10 @@
 #define escript_UnaryOp_20040315_H
 #include "system_dep.h"
 
-#include "DataArrayView.h"
 #include "DataConstant.h"
 #include "DataTagged.h"
 #include "DataExpanded.h"
+#include "DataTypes.h"
 
 namespace escript {
 
@@ -41,12 +41,15 @@ unaryOp(DataExpanded& data,
         UnaryFunction operation)
 {
   int i,j;
-  DataArrayView::ValueType::size_type numDPPSample=data.getNumDPPSample();
-  DataArrayView::ValueType::size_type numSamples=data.getNumSamples();
+  DataTypes::ValueType::size_type numDPPSample=data.getNumDPPSample();
+  DataTypes::ValueType::size_type numSamples=data.getNumSamples();
+  DataTypes::ValueType& left=data.getVector();
+  const DataTypes::ShapeType& shape=data.getShape();
   #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<numSamples;i++) {
     for (j=0;j<numDPPSample;j++) {
-      data.getPointDataView().unaryOp(data.getPointOffset(i,j),operation);
+      //data.getPointDataView().unaryOp(data.getPointOffset(i,j),operation);
+      DataMaths::unaryOp(left,shape,data.getPointOffset(i,j),operation);
     }
   }
 }
@@ -61,12 +64,16 @@ unaryOp(DataTagged& data,
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
-  DataArrayView& dataView=data.getPointDataView();
+  //DataArrayView& dataView=data.getPointDataView();
+  DataTypes::ValueType& left=data.getVector();
+  const DataTypes::ShapeType& shape=data.getShape();
   for (i=lookup.begin();i!=lookupEnd;i++) {
-    dataView.unaryOp(i->second,operation);
+//    dataView.unaryOp(i->second,operation);
+    DataMaths::unaryOp(left,shape,i->second,operation);
   }
   // perform the operation on the default value
-  data.getDefaultValue().unaryOp(operation);
+  //data.getDefaultValue().unaryOp(operation);
+  DataMaths::unaryOp(left,shape,data.getDefaultOffset(),operation);
 }
 
 template <class UnaryFunction>
@@ -75,7 +82,8 @@ void
 unaryOp(DataConstant& data,
         UnaryFunction operation)
 {
-  data.getPointDataView().unaryOp(operation);
+  //data.getPointDataView().unaryOp(operation);
+  DataMaths::unaryOp(data.getVector(),data.getShape(),0,operation);
 }
 
 } // end of namespace

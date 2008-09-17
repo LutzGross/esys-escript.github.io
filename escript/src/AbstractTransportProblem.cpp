@@ -14,7 +14,7 @@
 
 #include "AbstractTransportProblem.h" 
 #include "TransportProblemException.h"
-#include "DataArrayView.h"
+#include "DataTypes.h"
 #include "Data.h"
 #include <iostream>
 
@@ -57,7 +57,7 @@ Data AbstractTransportProblem::solve(Data& source, const double dt, const boost:
           throw TransportProblemException("Error - function space of transport problem and function space of source do not match.");
      if (source.getDataPointSize()!=getBlockSize())
           throw TransportProblemException("Error - block size of transport problem and source do not match.");
-     DataArrayView::ShapeType shape;
+     DataTypes::ShapeType shape;
      if (getBlockSize()>1) shape.push_back(getBlockSize());
      Data out=Data(0.,shape,getFunctionSpace(),true);
      setToSolution(out,source,dt,options);

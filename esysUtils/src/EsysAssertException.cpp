@@ -31,7 +31,8 @@ EsysAssertException::exceptionName() const
 
 
 
-static void assertFailure (const std::string& assertion,
+void 
+EsysAssertException::assertFailure (const std::string& assertion,
                            const std::string& date, const std::string& file,
                            int line, const std::string& errDesc)
 {

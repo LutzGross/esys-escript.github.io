@@ -19,10 +19,11 @@
 #include "DataConstant.h"
 #include "DataTagged.h"
 #include "DataEmpty.h"
-#include "DataArrayView.h"
 #include "FunctionSpaceFactory.h"
 #include "AbstractContinuousDomain.h"
 #include "UnaryFuncs.h"
+#include "FunctionSpaceException.h"
+
 extern "C" {
 #include "escript/blocktimer.h"
 }
@@ -56,31 +57,33 @@ Data::Data(double value,
            const FunctionSpace& what,
            bool expanded)
 {
-  DataArrayView::ShapeType dataPointShape;
+  DataTypes::ShapeType dataPointShape;
   for (int i = 0; i < shape.attr("__len__")(); ++i) {
     dataPointShape.push_back(extract<const int>(shape[i]));
   }
 
-  int len = DataArrayView::noValues(dataPointShape);
+  int len = DataTypes::noValues(dataPointShape);
   DataVector temp_data(len,value,len);
-  DataArrayView temp_dataView(temp_data, dataPointShape);
+//   DataArrayView temp_dataView(temp_data, dataPointShape);
 
-  initialise(temp_dataView, what, expanded);
+//   initialise(temp_dataView, what, expanded);
+  initialise(temp_data, dataPointShape, what, expanded);
 
   m_protected=false;
 }
 
 Data::Data(double value,
-	   const DataArrayView::ShapeType& dataPointShape,
+	   const DataTypes::ShapeType& dataPointShape,
 	   const FunctionSpace& what,
            bool expanded)
 {
-  int len = DataArrayView::noValues(dataPointShape);
+  int len = DataTypes::noValues(dataPointShape);
 
   DataVector temp_data(len,value,len);
-  DataArrayView temp_dataView(temp_data, dataPointShape);
+//   DataArrayView temp_dataView(temp_data, dataPointShape);
 
-  initialise(temp_dataView, what, expanded);
+//   initialise(temp_dataView, what, expanded);
+  initialise(temp_data, dataPointShape, what, expanded);
 
   m_protected=false;
 }
@@ -91,8 +94,9 @@ Data::Data(const Data& inData)
   m_protected=inData.isProtected();
 }
 
+
 Data::Data(const Data& inData,
-           const DataArrayView::RegionType& region)
+           const DataTypes::RegionType& region)
 {
   //
   // Create Data which is a slice of another Data
@@ -107,8 +111,15 @@ Data::Data(const Data& inData,
 {
   if (inData.getFunctionSpace()==functionspace) {
     m_data=inData.m_data;
+  } else if (inData.isConstant()) {	// for a constant function, we just need to use the new function space
+    if (!inData.probeInterpolation(functionspace))
+    {           // Even though this is constant, we still need to check whether interpolation is allowed
+	throw FunctionSpaceException("Call to probeInterpolation returned false for DataConstant.");
+    }
+    DataConstant* dc=new DataConstant(functionspace,inData.m_data->getShape(),inData.m_data->getVector());	
+    m_data=shared_ptr<DataAbstract>(dc); 
   } else {
-    Data tmp(0,inData.getPointDataView().getShape(),functionspace,true);
+    Data tmp(0,inData.getDataPointShape(),functionspace,true);
     // Note: Must use a reference or pointer to a derived object
     // in order to get polymorphic behaviour. Shouldn't really
     // be able to create an instance of AbstractDomain but that was done
@@ -124,19 +135,27 @@ Data::Data(const Data& inData,
   m_protected=false;
 }
 
-Data::Data(const DataTagged::TagListType& tagKeys,
-           const DataTagged::ValueListType & values,
-           const DataArrayView& defaultValue,
-           const FunctionSpace& what,
-           bool expanded)
+// Data::Data(const DataTagged::TagListType& tagKeys,
+//            const DataTagged::ValueListType & values,
+//            const DataArrayView& defaultValue,
+//            const FunctionSpace& what,
+//            bool expanded)
+// {
+//   DataAbstract* temp=new DataTagged(tagKeys,values,defaultValue,what);
+//   shared_ptr<DataAbstract> temp_data(temp);
+//   m_data=temp_data;
+//   m_protected=false;
+//   if (expanded) {
+//     expand();
+//   }
+// }
+
+
+
+Data::Data(DataAbstract* underlyingdata)
 {
-  DataAbstract* temp=new DataTagged(tagKeys,values,defaultValue,what);
-  shared_ptr<DataAbstract> temp_data(temp);
-  m_data=temp_data;
-  m_protected=false;
-  if (expanded) {
-    expand();
-  }
+	m_data=shared_ptr<DataAbstract>(underlyingdata);
+	m_protected=false;
 }
 
 Data::Data(const numeric::array& value,
@@ -146,14 +165,24 @@ Data::Data(const numeric::array& value,
   initialise(value,what,expanded);
   m_protected=false;
 }
-
+/*
 Data::Data(const DataArrayView& value,
 	   const FunctionSpace& what,
            bool expanded)
 {
   initialise(value,what,expanded);
   m_protected=false;
+}*/
+
+Data::Data(const DataTypes::ValueType& value,
+		 const DataTypes::ShapeType& shape,
+                 const FunctionSpace& what,
+                 bool expanded)
+{
+   initialise(value,shape,what,expanded);
+   m_protected=false;
 }
+
 
 Data::Data(const object& value,
 	   const FunctionSpace& what,
@@ -168,37 +197,51 @@ Data::Data(const object& value,
 Data::Data(const object& value,
            const Data& other)
 {
-
   numeric::array asNumArray(value);
 
-
   // extract the shape of the numarray
-  DataArrayView::ShapeType tempShape;
-  for (int i=0; i < asNumArray.getrank(); i++) {
-    tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
-  }
-  // get the space for the data vector
-  int len = DataArrayView::noValues(tempShape);
-  DataVector temp_data(len, 0.0, len);
-  DataArrayView temp_dataView(temp_data, tempShape);
-  temp_dataView.copy(asNumArray);
+  DataTypes::ShapeType tempShape=DataTypes::shapeFromNumArray(asNumArray);
+// /*  for (int i=0; i < asNumArray.getrank(); i++) {
+//     tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
+//   }*/
+//   // get the space for the data vector
+//   int len = DataTypes::noValues(tempShape);
+//   DataVector temp_data(len, 0.0, len);
+// /*  DataArrayView temp_dataView(temp_data, tempShape);
+//   temp_dataView.copy(asNumArray);*/
+//   temp_data.copyFromNumArray(asNumArray);
 
   //
   // Create DataConstant using the given value and all other parameters
   // copied from other. If value is a rank 0 object this Data
   // will assume the point data shape of other.
 
-  if (temp_dataView.getRank()==0) {
-    int len = DataArrayView::noValues(other.getPointDataView().getShape());
+  if (DataTypes::getRank(tempShape)/*temp_dataView.getRank()*/==0) {
 
-    DataVector temp2_data(len, temp_dataView(), len);
-    DataArrayView temp2_dataView(temp2_data, other.getPointDataView().getShape());
-    initialise(temp2_dataView, other.getFunctionSpace(), false);
+
+    // get the space for the data vector
+    int len1 = DataTypes::noValues(tempShape);
+    DataVector temp_data(len1, 0.0, len1);
+    temp_data.copyFromNumArray(asNumArray);
+
+    int len = DataTypes::noValues(other.getDataPointShape());
+
+    DataVector temp2_data(len, temp_data[0]/*temp_dataView()*/, len);
+    //DataArrayView temp2_dataView(temp2_data, other.getPointDataView().getShape());
+//     initialise(temp2_dataView, other.getFunctionSpace(), false);
+
+    DataConstant* t=new DataConstant(other.getFunctionSpace(),other.getDataPointShape(),temp2_data);
+    boost::shared_ptr<DataAbstract> sp(t);
+    m_data=sp;
+
 
   } else {
     //
     // Create a DataConstant with the same sample shape as other
-    initialise(temp_dataView, other.getFunctionSpace(), false);
+//     initialise(temp_dataView, other.getFunctionSpace(), false);
+    DataConstant* t=new DataConstant(asNumArray,other.getFunctionSpace());
+    boost::shared_ptr<DataAbstract> sp(t);
+    m_data=sp;
   }
   m_protected=false;
 }
@@ -207,6 +250,133 @@ Data::~Data()
 {
 
 }
+
+
+
+void
+Data::initialise(const boost::python::numeric::array& value,
+                 const FunctionSpace& what,
+                 bool expanded)
+{
+  //
+  // Construct a Data object of the appropriate type.
+  // Construct the object first as there seems to be a bug which causes
+  // undefined behaviour if an exception is thrown during construction
+  // within the shared_ptr constructor.
+  if (expanded) {
+    DataAbstract* temp=new DataExpanded(value, what);
+    boost::shared_ptr<DataAbstract> temp_data(temp);
+    m_data=temp_data;
+  } else {
+    DataAbstract* temp=new DataConstant(value, what);
+    boost::shared_ptr<DataAbstract> temp_data(temp);
+    m_data=temp_data;
+  }
+}
+
+
+void
+Data::initialise(const DataTypes::ValueType& value,
+		 const DataTypes::ShapeType& shape,
+                 const FunctionSpace& what,
+                 bool expanded)
+{
+  //
+  // Construct a Data object of the appropriate type.
+  // Construct the object first as there seems to be a bug which causes
+  // undefined behaviour if an exception is thrown during construction
+  // within the shared_ptr constructor.
+  if (expanded) {
+    DataAbstract* temp=new DataExpanded(what, shape, value);
+    boost::shared_ptr<DataAbstract> temp_data(temp);
+    m_data=temp_data;
+  } else {
+    DataAbstract* temp=new DataConstant(what, shape, value);
+    boost::shared_ptr<DataAbstract> temp_data(temp);
+    m_data=temp_data;
+  }
+}
+
+
+// void
+// Data::CompareDebug(const Data& rd)
+// {
+// 	using namespace std;
+// 	bool mismatch=false;
+// 	std::cout << "Comparing left and right" << endl;
+// 	const DataTagged* left=dynamic_cast<DataTagged*>(m_data.get());
+// 	const DataTagged* right=dynamic_cast<DataTagged*>(rd.m_data.get());
+// 	
+// 	if (left==0)
+// 	{
+// 		cout << "left arg is not a DataTagged\n";
+// 		return;
+// 	}
+// 	
+// 	if (right==0)
+// 	{
+// 		cout << "right arg is not a DataTagged\n";
+// 		return;
+// 	}
+// 	cout << "Num elements=" << left->getVector().size() << ":" << right->getVector().size() << std::endl;
+// 	cout << "Shapes ";
+// 	if (left->getShape()==right->getShape())
+// 	{
+// 		cout << "ok\n";
+// 	}
+// 	else
+// 	{
+// 		cout << "Problem: shapes do not match\n";
+// 		mismatch=true;
+// 	}
+// 	int lim=left->getVector().size();
+// 	if (right->getVector().size()) lim=right->getVector().size();
+// 	for (int i=0;i<lim;++i)
+// 	{
+// 		if (left->getVector()[i]!=right->getVector()[i])
+// 		{
+// 			cout << "[" << i << "] value mismatch " << left->getVector()[i] << ":" << right->getVector()[i] << endl;
+// 			mismatch=true;
+// 		}
+// 	}
+// 
+// 	// still need to check the tag map
+// 	// also need to watch what is happening to function spaces, are they copied or what?
+// 
+// 	const DataTagged::DataMapType& mapleft=left->getTagLookup();
+// 	const DataTagged::DataMapType& mapright=right->getTagLookup();
+// 
+// 	if (mapleft.size()!=mapright.size())
+// 	{
+// 		cout << "Maps are different sizes " << mapleft.size() << ":" << mapright.size() << endl;
+// 		mismatch=true;
+// 		cout << "Left map\n";
+// 		DataTagged::DataMapType::const_iterator i,j;
+// 		for (i=mapleft.begin();i!=mapleft.end();++i) {
+// 			cout << "(" << i->first << "=>" << i->second << ")\n";
+// 		}
+// 		cout << "Right map\n";
+// 		for (i=mapright.begin();i!=mapright.end();++i) {
+// 			cout << "(" << i->first << "=>" << i->second << ")\n";
+// 		}
+// 		cout << "End map\n";
+// 
+// 	}
+// 
+// 	DataTagged::DataMapType::const_iterator i,j;
+// 	for (i=mapleft.begin(),j=mapright.begin();i!=mapleft.end() && j!=mapright.end();++i,++j) {
+// 	   if ((i->first!=j->first) || (i->second!=j->second))
+// 	   {
+// 		cout << "(" << i->first << "=>" << i->second << ")";
+// 		cout << ":(" << j->first << "=>" << j->second << ") ";
+// 		mismatch=true;
+//            }
+// 	}
+// 	if (mismatch)
+// 	{
+// 		cout << "#Mismatch\n";
+// 	}
+// }
 
 escriptDataC
 Data::getDataC()
@@ -227,7 +397,7 @@ Data::getDataC() const
 const boost::python::tuple
 Data::getShapeTuple() const
 {
-  const DataArrayView::ShapeType& shape=getDataPointShape();
+  const DataTypes::ShapeType& shape=getDataPointShape();
   switch(getDataPointRank()) {
      case 0:
         return make_tuple();
@@ -495,7 +665,7 @@ Data::gradOn(const FunctionSpace& functionspace) const
   double blocktimer_start = blocktimer_time();
   if (functionspace.getDomain()!=getDomain())
     throw DataException("Error - gradient cannot be calculated on different domains.");
-  DataArrayView::ShapeType grad_shape=getPointDataView().getShape();
+  DataTypes::ShapeType grad_shape=getDataPointShape();
   grad_shape.push_back(functionspace.getDim());
   Data out(0.0,grad_shape,functionspace,true);
   getDomain().setToGradient(out,*this);
@@ -512,20 +682,21 @@ Data::grad() const
 int
 Data::getDataPointSize() const
 {
-  return getPointDataView().noValues();
+  return m_data->getNoValues();
 }
 
-DataArrayView::ValueType::size_type
+DataTypes::ValueType::size_type
 Data::getLength() const
 {
   return m_data->getLength();
 }
 
-const DataArrayView::ShapeType&
-Data::getDataPointShape() const
-{
-  return getPointDataView().getShape();
-}
+// const DataTypes::ShapeType&
+// Data::getDataPointShape() const
+// {
+//   return getPointDataView().getShape();
+// }
+
 
 
 
@@ -538,7 +709,7 @@ Data:: getValueOfDataPoint(int dataPointNo)
   //
   // determine the rank and shape of each data point
   int dataPointRank = getDataPointRank();
-  DataArrayView::ShapeType dataPointShape = getDataPointShape();
+  const DataTypes::ShapeType& dataPointShape = getDataPointShape();
 
   //
   // create the numeric array to be returned
@@ -548,7 +719,7 @@ Data:: getValueOfDataPoint(int dataPointNo)
   // the shape of the returned numeric array will be the same
   // as that of the data point
   int arrayRank = dataPointRank;
-  DataArrayView::ShapeType arrayShape = dataPointShape;
+  const DataTypes::ShapeType& arrayShape = dataPointShape;
 
   //
   // resize the numeric array to the shape just calculated
@@ -584,33 +755,35 @@ Data:: getValueOfDataPoint(int dataPointNo)
        }
        // TODO: global error handling
        // create a view of the data if it is stored locally
-       DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
+//       DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
+       DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
+
 
        switch( dataPointRank ){
 			case 0 :
-				numArray[0] = dataPointView();
+				numArray[0] = getDataAtOffset(offset);
 				break;
 			case 1 :
 				for( i=0; i<dataPointShape[0]; i++ )
-					numArray[i]=dataPointView(i);
+					numArray[i]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i));
 				break;
 			case 2 :
 				for( i=0; i<dataPointShape[0]; i++ )
 					for( j=0; j<dataPointShape[1]; j++)
-						numArray[make_tuple(i,j)]=dataPointView(i,j);
+						numArray[make_tuple(i,j)]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j));
 				break;
 			case 3 :
 				for( i=0; i<dataPointShape[0]; i++ )
 					for( j=0; j<dataPointShape[1]; j++ )
 						for( k=0; k<dataPointShape[2]; k++)
-							numArray[make_tuple(i,j,k)]=dataPointView(i,j,k);
+							numArray[make_tuple(i,j,k)]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k));
 				break;
 			case 4 :
 				for( i=0; i<dataPointShape[0]; i++ )
 					for( j=0; j<dataPointShape[1]; j++ )
 						for( k=0; k<dataPointShape[2]; k++ )
 							for( l=0; l<dataPointShape[3]; l++)
-								numArray[make_tuple(i,j,k,l)]=dataPointView(i,j,k,l);
+								numArray[make_tuple(i,j,k,l)]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k,l));
 				break;
 	}
   }
@@ -619,6 +792,7 @@ Data:: getValueOfDataPoint(int dataPointNo)
   return numArray;
 
 }
+
 void
 Data::setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object& py_object)
 {
@@ -689,7 +863,7 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
   //
   // determine the rank and shape of each data point
   int dataPointRank = getDataPointRank();
-  DataArrayView::ShapeType dataPointShape = getDataPointShape();
+  const DataTypes::ShapeType& dataPointShape = getDataPointShape();
 
   //
   // create the numeric array to be returned
@@ -699,7 +873,7 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
   // the shape of the returned numeric array will be the same
   // as that of the data point
   int arrayRank = dataPointRank;
-  DataArrayView::ShapeType arrayShape = dataPointShape;
+  const DataTypes::ShapeType& arrayShape = dataPointShape;
 
   //
   // resize the numeric array to the shape just calculated
@@ -745,35 +919,36 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
                 }
                 // TODO: global error handling
 		// create a view of the data if it is stored locally
-		DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
+		//DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
+		DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
 
 		// pack the data from the view into tmpData for MPI communication
 		pos=0;
 		switch( dataPointRank ){
 			case 0 :
-				tmpData[0] = dataPointView();
+				tmpData[0] = getDataAtOffset(offset);
 				break;
 			case 1 :
 				for( i=0; i<dataPointShape[0]; i++ )
-					tmpData[i]=dataPointView(i);
+					tmpData[i]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i));
 				break;
 			case 2 :
 				for( i=0; i<dataPointShape[0]; i++ )
 					for( j=0; j<dataPointShape[1]; j++, pos++ )
-						tmpData[pos]=dataPointView(i,j);
+						tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j));
 				break;
 			case 3 :
 				for( i=0; i<dataPointShape[0]; i++ )
 					for( j=0; j<dataPointShape[1]; j++ )
 						for( k=0; k<dataPointShape[2]; k++, pos++ )
-							tmpData[pos]=dataPointView(i,j,k);
+							tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k));
 				break;
 			case 4 :
 				for( i=0; i<dataPointShape[0]; i++ )
 					for( j=0; j<dataPointShape[1]; j++ )
 						for( k=0; k<dataPointShape[2]; k++ )
 							for( l=0; l<dataPointShape[3]; l++, pos++ )
-								tmpData[pos]=dataPointView(i,j,k,l);
+								tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k,l));
 				break;
 		}
             }
@@ -825,7 +1000,7 @@ Data::integrate() const
 {
   int index;
   int rank = getDataPointRank();
-  DataArrayView::ShapeType shape = getDataPointShape();
+  DataTypes::ShapeType shape = getDataPointShape();
   int dataPointSize = getDataPointSize();
 
   //
@@ -1125,8 +1300,8 @@ Data
 Data::swapaxes(const int axis0, const int axis1) const
 {
      int axis0_tmp,axis1_tmp;
-     DataArrayView::ShapeType s=getDataPointShape();
-     DataArrayView::ShapeType ev_shape;
+     DataTypes::ShapeType s=getDataPointShape();
+     DataTypes::ShapeType ev_shape;
      // Here's the equivalent of python s_out=s[axis_offset:]+s[:axis_offset]
      // which goes thru all shape vector elements starting with axis_offset (at index=rank wrap around to 0)
      int rank=getDataPointRank();
@@ -1169,7 +1344,7 @@ Data
 Data::symmetric() const
 {
      // check input
-     DataArrayView::ShapeType s=getDataPointShape();
+     DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
         if(s[0] != s[1])
            throw DataException("Error - Data::symmetric can only be calculated for rank 2 object with equal first and second dimension.");
@@ -1191,11 +1366,11 @@ Data
 Data::nonsymmetric() const
 {
      // check input
-     DataArrayView::ShapeType s=getDataPointShape();
+     DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
         if(s[0] != s[1])
            throw DataException("Error - Data::nonsymmetric can only be calculated for rank 2 object with equal first and second dimension.");
-        DataArrayView::ShapeType ev_shape;
+        DataTypes::ShapeType ev_shape;
         ev_shape.push_back(s[0]);
         ev_shape.push_back(s[1]);
         Data ev(0.,ev_shape,getFunctionSpace());
@@ -1206,7 +1381,7 @@ Data::nonsymmetric() const
      else if (getDataPointRank()==4) {
         if(!(s[0] == s[2] && s[1] == s[3]))
            throw DataException("Error - Data::nonsymmetric can only be calculated for rank 4 object with dim0==dim2 and dim1==dim3.");
-        DataArrayView::ShapeType ev_shape;
+        DataTypes::ShapeType ev_shape;
         ev_shape.push_back(s[0]);
         ev_shape.push_back(s[1]);
         ev_shape.push_back(s[2]);
@@ -1224,16 +1399,16 @@ Data::nonsymmetric() const
 Data
 Data::trace(int axis_offset) const
 {
-     DataArrayView::ShapeType s=getDataPointShape();
+     DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
-        DataArrayView::ShapeType ev_shape;
+        DataTypes::ShapeType ev_shape;
         Data ev(0.,ev_shape,getFunctionSpace());
         ev.typeMatchRight(*this);
         m_data->trace(ev.m_data.get(), axis_offset);
         return ev;
      }
      if (getDataPointRank()==3) {
-        DataArrayView::ShapeType ev_shape;
+        DataTypes::ShapeType ev_shape;
         if (axis_offset==0) {
           int s2=s[2];
           ev_shape.push_back(s2);
@@ -1248,7 +1423,7 @@ Data::trace(int axis_offset) const
         return ev;
      }
      if (getDataPointRank()==4) {
-        DataArrayView::ShapeType ev_shape;
+        DataTypes::ShapeType ev_shape;
         if (axis_offset==0) {
           ev_shape.push_back(s[2]);
           ev_shape.push_back(s[3]);
@@ -1274,8 +1449,8 @@ Data::trace(int axis_offset) const
 Data
 Data::transpose(int axis_offset) const
 {
-     DataArrayView::ShapeType s=getDataPointShape();
-     DataArrayView::ShapeType ev_shape;
+     DataTypes::ShapeType s=getDataPointShape();
+     DataTypes::ShapeType ev_shape;
      // Here's the equivalent of python s_out=s[axis_offset:]+s[:axis_offset]
      // which goes thru all shape vector elements starting with axis_offset (at index=rank wrap around to 0)
      int rank=getDataPointRank();
@@ -1296,13 +1471,13 @@ Data
 Data::eigenvalues() const
 {
      // check input
-     DataArrayView::ShapeType s=getDataPointShape();
+     DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()!=2)
         throw DataException("Error - Data::eigenvalues can only be calculated for rank 2 object.");
      if(s[0] != s[1])
         throw DataException("Error - Data::eigenvalues can only be calculated for object with equal first and second dimension.");
      // create return
-     DataArrayView::ShapeType ev_shape(1,s[0]);
+     DataTypes::ShapeType ev_shape(1,s[0]);
      Data ev(0.,ev_shape,getFunctionSpace());
      ev.typeMatchRight(*this);
      m_data->eigenvalues(ev.m_data.get());
@@ -1312,16 +1487,16 @@ Data::eigenvalues() const
 const boost::python::tuple
 Data::eigenvalues_and_eigenvectors(const double tol) const
 {
-     DataArrayView::ShapeType s=getDataPointShape();
+     DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()!=2)
         throw DataException("Error - Data::eigenvalues and eigenvectors can only be calculated for rank 2 object.");
      if(s[0] != s[1])
         throw DataException("Error - Data::eigenvalues and eigenvectors can only be calculated for object with equal first and second dimension.");
      // create return
-     DataArrayView::ShapeType ev_shape(1,s[0]);
+     DataTypes::ShapeType ev_shape(1,s[0]);
      Data ev(0.,ev_shape,getFunctionSpace());
      ev.typeMatchRight(*this);
-     DataArrayView::ShapeType V_shape(2,s[0]);
+     DataTypes::ShapeType V_shape(2,s[0]);
      Data V(0.,V_shape,getFunctionSpace());
      V.typeMatchRight(*this);
      m_data->eigenvalues_and_eigenvectors(ev.m_data.get(),V.m_data.get(),tol);
@@ -1363,7 +1538,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
     #pragma omp for private(i,j) schedule(static)
     for (i=0; i<numSamples; i++) {
       for (j=0; j<numDPPSample; j++) {
-        next=temp.getDataPoint(i,j)();
+        next=temp.getDataAtOffset(temp.getDataOffset(i,j));
         if (next<local_min) {
           local_min=next;
           local_lowi=i;
@@ -1381,7 +1556,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
 
 #ifdef PASO_MPI
 	// determine the processor on which the minimum occurs
-	next = temp.getDataPoint(lowi,lowj)();
+	next = temp.getDataPoint(lowi,lowj);
 	int lowProc = 0;
 	double *globalMins = new double[get_MPISize()+1];
 	int error = MPI_Gather ( &next, 1, MPI_DOUBLE, globalMins, 1, MPI_DOUBLE, 0, get_MPIComm() );
@@ -1666,11 +1841,11 @@ escript::operator/(const boost::python::object& left, const Data& right)
 Data
 Data::getItem(const boost::python::object& key) const
 {
-  const DataArrayView& view=getPointDataView();
+//  const DataArrayView& view=getPointDataView();
 
-  DataArrayView::RegionType slice_region=view.getSliceRegion(key);
+  DataTypes::RegionType slice_region=DataTypes::getSliceRegion(getDataPointShape(),key);
 
-  if (slice_region.size()!=view.getRank()) {
+  if (slice_region.size()!=getDataPointRank()) {
     throw DataException("Error - slice size does not match Data rank.");
   }
 
@@ -1680,7 +1855,7 @@ Data::getItem(const boost::python::object& key) const
 /* TODO */
 /* global reduction */
 Data
-Data::getSlice(const DataArrayView::RegionType& region) const
+Data::getSlice(const DataTypes::RegionType& region) const
 {
   return Data(*this,region);
 }
@@ -1699,10 +1874,10 @@ void
 Data::setItemD(const boost::python::object& key,
                const Data& value)
 {
-  const DataArrayView& view=getPointDataView();
+//  const DataArrayView& view=getPointDataView();
 
-  DataArrayView::RegionType slice_region=view.getSliceRegion(key);
-  if (slice_region.size()!=view.getRank()) {
+  DataTypes::RegionType slice_region=DataTypes::getSliceRegion(getDataPointShape(),key);
+  if (slice_region.size()!=getDataPointRank()) {
     throw DataException("Error - slice size does not match Data rank.");
   }
   if (getFunctionSpace()!=value.getFunctionSpace()) {
@@ -1714,7 +1889,7 @@ Data::setItemD(const boost::python::object& key,
 
 void
 Data::setSlice(const Data& value,
-               const DataArrayView::RegionType& region)
+               const DataTypes::RegionType& region)
 {
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
@@ -1777,25 +1952,48 @@ Data::setTaggedValue(int tagKey,
 
 
   // extract the shape of the numarray
-  DataArrayView::ShapeType tempShape;
+  DataTypes::ShapeType tempShape;
   for (int i=0; i < asNumArray.getrank(); i++) {
     tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
   }
 
   // get the space for the data vector
-  int len = DataArrayView::noValues(tempShape);
-  DataVector temp_data(len, 0.0, len);
-  DataArrayView temp_dataView(temp_data, tempShape);
-  temp_dataView.copy(asNumArray);
+//   int len = DataTypes::noValues(tempShape);
+//   DataVector temp_data(len, 0.0, len);
+//   DataArrayView temp_dataView(temp_data, tempShape);
+//   temp_dataView.copy(asNumArray);
+
+  DataVector temp_data2;
+  temp_data2.copyFromNumArray(asNumArray);
 
   //
   // Call DataAbstract::setTaggedValue
-  m_data->setTaggedValue(tagKey,temp_dataView);
+  //m_data->setTaggedValue(tagKey,temp_dataView);
+
+    m_data->setTaggedValue(tagKey,tempShape, temp_data2);
 }
+
+// void
+// Data::setTaggedValueFromCPP(int tagKey,
+//                             const DataArrayView& value)
+// {
+//   if (isProtected()) {
+//         throw DataException("Error - attempt to update protected Data object.");
+//   }
+//   //
+//   // Ensure underlying data object is of type DataTagged
+//   if (isConstant()) tag();
+// 
+//   //
+//   // Call DataAbstract::setTaggedValue
+//   m_data->setTaggedValue(tagKey,value);
+// }
 
 void
 Data::setTaggedValueFromCPP(int tagKey,
-                            const DataArrayView& value)
+			    const DataTypes::ShapeType& pointshape,
+                            const DataTypes::ValueType& value,
+			    int dataOffset)
 {
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
@@ -1806,7 +2004,7 @@ Data::setTaggedValueFromCPP(int tagKey,
 
   //
   // Call DataAbstract::setTaggedValue
-  m_data->setTaggedValue(tagKey,value);
+  m_data->setTaggedValue(tagKey,pointshape, value, dataOffset);
 }
 
 int
@@ -1815,340 +2013,6 @@ Data::getTagNumber(int dpno)
   return getFunctionSpace().getTagFromDataPointNo(dpno);
 }
 
-void
-Data::archiveData(const std::string fileName)
-{
-  cout << "Archiving Data object to: " << fileName << endl;
-
-  //
-  // Determine type of this Data object
-  int dataType = -1;
-
-  if (isEmpty()) {
-    dataType = 0;
-    cout << "\tdataType: DataEmpty" << endl;
-  }
-  if (isConstant()) {
-    dataType = 1;
-    cout << "\tdataType: DataConstant" << endl;
-  }
-  if (isTagged()) {
-    dataType = 2;
-    cout << "\tdataType: DataTagged" << endl;
-  }
-  if (isExpanded()) {
-    dataType = 3;
-    cout << "\tdataType: DataExpanded" << endl;
-  }
-
-  if (dataType == -1) {
-    throw DataException("archiveData Error: undefined dataType");
-  }
-
-  //
-  // Collect data items common to all Data types
-  int noSamples = getNumSamples();
-  int noDPPSample = getNumDataPointsPerSample();
-  int functionSpaceType = getFunctionSpace().getTypeCode();
-  int dataPointRank = getDataPointRank();
-  int dataPointSize = getDataPointSize();
-  int dataLength = getLength();
-  DataArrayView::ShapeType dataPointShape = getDataPointShape();
-  vector<int> referenceNumbers(noSamples);
-  for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
-    referenceNumbers[sampleNo] = getFunctionSpace().getReferenceIDOfSample(sampleNo);
-  }
-  vector<int> tagNumbers(noSamples);
-  if (isTagged()) {
-    for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
-      tagNumbers[sampleNo] = getFunctionSpace().getTagFromSampleNo(sampleNo);
-    }
-  }
-
-  cout << "\tnoSamples: " << noSamples << " noDPPSample: " << noDPPSample << endl;
-  cout << "\tfunctionSpaceType: " << functionSpaceType << endl;
-  cout << "\trank: " << dataPointRank << " size: " << dataPointSize << " length: " << dataLength << endl;
-
-  //
-  // Flatten Shape to an array of integers suitable for writing to file
-  int flatShape[4] = {0,0,0,0};
-  cout << "\tshape: < ";
-  for (int dim=0; dim<dataPointRank; dim++) {
-    flatShape[dim] = dataPointShape[dim];
-    cout << dataPointShape[dim] << " ";
-  }
-  cout << ">" << endl;
-
-  //
-  // Open archive file
-  ofstream archiveFile;
-  archiveFile.open(fileName.data(), ios::out);
-
-  if (!archiveFile.good()) {
-    throw DataException("archiveData Error: problem opening archive file");
-  }
-
-  //
-  // Write common data items to archive file
-  archiveFile.write(reinterpret_cast<char *>(&dataType),sizeof(int));
-  archiveFile.write(reinterpret_cast<char *>(&noSamples),sizeof(int));
-  archiveFile.write(reinterpret_cast<char *>(&noDPPSample),sizeof(int));
-  archiveFile.write(reinterpret_cast<char *>(&functionSpaceType),sizeof(int));
-  archiveFile.write(reinterpret_cast<char *>(&dataPointRank),sizeof(int));
-  archiveFile.write(reinterpret_cast<char *>(&dataPointSize),sizeof(int));
-  archiveFile.write(reinterpret_cast<char *>(&dataLength),sizeof(int));
-  for (int dim = 0; dim < 4; dim++) {
-    archiveFile.write(reinterpret_cast<char *>(&flatShape[dim]),sizeof(int));
-  }
-  for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
-    archiveFile.write(reinterpret_cast<char *>(&referenceNumbers[sampleNo]),sizeof(int));
-  }
-  if (isTagged()) {
-    for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
-      archiveFile.write(reinterpret_cast<char *>(&tagNumbers[sampleNo]),sizeof(int));
-    }
-  }
-
-  if (!archiveFile.good()) {
-    throw DataException("archiveData Error: problem writing to archive file");
-  }
-
-  //
-  // Archive underlying data values for each Data type
-  int noValues;
-  switch (dataType) {
-    case 0:
-      // DataEmpty
-      noValues = 0;
-      archiveFile.write(reinterpret_cast<char *>(&noValues),sizeof(int));
-      cout << "\tnoValues: " << noValues << endl;
-      break;
-    case 1:
-      // DataConstant
-      noValues = m_data->getLength();
-      archiveFile.write(reinterpret_cast<char *>(&noValues),sizeof(int));
-      cout << "\tnoValues: " << noValues << endl;
-      if (m_data->archiveData(archiveFile,noValues)) {
-        throw DataException("archiveData Error: problem writing data to archive file");
-      }
-      break;
-    case 2:
-      // DataTagged
-      noValues = m_data->getLength();
-      archiveFile.write(reinterpret_cast<char *>(&noValues),sizeof(int));
-      cout << "\tnoValues: " << noValues << endl;
-      if (m_data->archiveData(archiveFile,noValues)) {
-        throw DataException("archiveData Error: problem writing data to archive file");
-      }
-      break;
-    case 3:
-      // DataExpanded
-      noValues = m_data->getLength();
-      archiveFile.write(reinterpret_cast<char *>(&noValues),sizeof(int));
-      cout << "\tnoValues: " << noValues << endl;
-      if (m_data->archiveData(archiveFile,noValues)) {
-        throw DataException("archiveData Error: problem writing data to archive file");
-      }
-      break;
-  }
-
-  if (!archiveFile.good()) {
-    throw DataException("archiveData Error: problem writing data to archive file");
-  }
-
-  //
-  // Close archive file
-  archiveFile.close();
-
-  if (!archiveFile.good()) {
-    throw DataException("archiveData Error: problem closing archive file");
-  }
-
-}
-
-void
-Data::extractData(const std::string fileName,
-                  const FunctionSpace& fspace)
-{
-  //
-  // Can only extract Data to an object which is initially DataEmpty
-  if (!isEmpty()) {
-    throw DataException("extractData Error: can only extract to DataEmpty object");
-  }
-
-  cout << "Extracting Data object from: " << fileName << endl;
-
-  int dataType;
-  int noSamples;
-  int noDPPSample;
-  int functionSpaceType;
-  int dataPointRank;
-  int dataPointSize;
-  int dataLength;
-  DataArrayView::ShapeType dataPointShape;
-  int flatShape[4];
-
-  //
-  // Open the archive file
-  ifstream archiveFile;
-  archiveFile.open(fileName.data(), ios::in);
-
-  if (!archiveFile.good()) {
-    throw DataException("extractData Error: problem opening archive file");
-  }
-
-  //
-  // Read common data items from archive file
-  archiveFile.read(reinterpret_cast<char *>(&dataType),sizeof(int));
-  archiveFile.read(reinterpret_cast<char *>(&noSamples),sizeof(int));
-  archiveFile.read(reinterpret_cast<char *>(&noDPPSample),sizeof(int));
-  archiveFile.read(reinterpret_cast<char *>(&functionSpaceType),sizeof(int));
-  archiveFile.read(reinterpret_cast<char *>(&dataPointRank),sizeof(int));
-  archiveFile.read(reinterpret_cast<char *>(&dataPointSize),sizeof(int));
-  archiveFile.read(reinterpret_cast<char *>(&dataLength),sizeof(int));
-  for (int dim = 0; dim < 4; dim++) {
-    archiveFile.read(reinterpret_cast<char *>(&flatShape[dim]),sizeof(int));
-    if (flatShape[dim]>0) {
-      dataPointShape.push_back(flatShape[dim]);
-    }
-  }
-  vector<int> referenceNumbers(noSamples);
-  for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
-    archiveFile.read(reinterpret_cast<char *>(&referenceNumbers[sampleNo]),sizeof(int));
-  }
-  vector<int> tagNumbers(noSamples);
-  if (dataType==2) {
-    for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
-      archiveFile.read(reinterpret_cast<char *>(&tagNumbers[sampleNo]),sizeof(int));
-    }
-  }
-
-  if (!archiveFile.good()) {
-    throw DataException("extractData Error: problem reading from archive file");
-  }
-
-  //
-  // Verify the values just read from the archive file
-  switch (dataType) {
-    case 0:
-      cout << "\tdataType: DataEmpty" << endl;
-      break;
-    case 1:
-      cout << "\tdataType: DataConstant" << endl;
-      break;
-    case 2:
-      cout << "\tdataType: DataTagged" << endl;
-      break;
-    case 3:
-      cout << "\tdataType: DataExpanded" << endl;
-      break;
-    default:
-      throw DataException("extractData Error: undefined dataType read from archive file");
-      break;
-  }
-
-  cout << "\tnoSamples: " << noSamples << " noDPPSample: " << noDPPSample << endl;
-  cout << "\tfunctionSpaceType: " << functionSpaceType << endl;
-  cout << "\trank: " << dataPointRank << " size: " << dataPointSize << " length: " << dataLength << endl;
-  cout << "\tshape: < ";
-  for (int dim = 0; dim < dataPointRank; dim++) {
-    cout << dataPointShape[dim] << " ";
-  }
-  cout << ">" << endl;
-
-  //
-  // Verify that supplied FunctionSpace object is compatible with this Data object.
-  if ( (fspace.getTypeCode()!=functionSpaceType) ||
-       (fspace.getNumSamples()!=noSamples) ||
-       (fspace.getNumDPPSample()!=noDPPSample)
-     ) {
-    throw DataException("extractData Error: incompatible FunctionSpace");
-  }
-  for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
-    if (referenceNumbers[sampleNo] != fspace.getReferenceIDOfSample(sampleNo)) {
-      throw DataException("extractData Error: incompatible FunctionSpace");
-    }
-  }
-  if (dataType==2) {
-    for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
-      if (tagNumbers[sampleNo] != fspace.getTagFromSampleNo(sampleNo)) {
-        throw DataException("extractData Error: incompatible FunctionSpace");
-      }
-    }
-  }
-
-  //
-  // Construct a DataVector to hold underlying data values
-  DataVector dataVec(dataLength);
-
-  //
-  // Load this DataVector with the appropriate values
-  int noValues;
-  archiveFile.read(reinterpret_cast<char *>(&noValues),sizeof(int));
-  cout << "\tnoValues: " << noValues << endl;
-  switch (dataType) {
-    case 0:
-      // DataEmpty
-      if (noValues != 0) {
-        throw DataException("extractData Error: problem reading data from archive file");
-      }
-      break;
-    case 1:
-      // DataConstant
-      if (dataVec.extractData(archiveFile,noValues)) {
-        throw DataException("extractData Error: problem reading data from archive file");
-      }
-      break;
-    case 2:
-      // DataTagged
-      if (dataVec.extractData(archiveFile,noValues)) {
-        throw DataException("extractData Error: problem reading data from archive file");
-      }
-      break;
-    case 3:
-      // DataExpanded
-      if (dataVec.extractData(archiveFile,noValues)) {
-        throw DataException("extractData Error: problem reading data from archive file");
-      }
-      break;
-  }
-
-  if (!archiveFile.good()) {
-    throw DataException("extractData Error: problem reading from archive file");
-  }
-
-  //
-  // Close archive file
-  archiveFile.close();
-
-  if (!archiveFile.good()) {
-    throw DataException("extractData Error: problem closing archive file");
-  }
-
-  //
-  // Construct an appropriate Data object
-  DataAbstract* tempData;
-  switch (dataType) {
-    case 0:
-      // DataEmpty
-      tempData=new DataEmpty();
-      break;
-    case 1:
-      // DataConstant
-      tempData=new DataConstant(fspace,dataPointShape,dataVec);
-      break;
-    case 2:
-      // DataTagged
-      tempData=new DataTagged(fspace,dataPointShape,tagNumbers,dataVec);
-      break;
-    case 3:
-      // DataExpanded
-      tempData=new DataExpanded(fspace,dataPointShape,dataVec);
-      break;
-  }
-  shared_ptr<DataAbstract> temp_data(tempData);
-  m_data=temp_data;
-}
 
 ostream& escript::operator<<(ostream& o, const Data& data)
 {
@@ -2186,8 +2050,8 @@ escript::C_GeneralTensorProduct(Data& arg_0,
   // Get rank and shape of inputs
   int rank0 = arg_0_Z.getDataPointRank();
   int rank1 = arg_1_Z.getDataPointRank();
-  DataArrayView::ShapeType shape0 = arg_0_Z.getDataPointShape();
-  DataArrayView::ShapeType shape1 = arg_1_Z.getDataPointShape();
+  const DataTypes::ShapeType& shape0 = arg_0_Z.getDataPointShape();
+  const DataTypes::ShapeType& shape1 = arg_1_Z.getDataPointShape();
 
   // Prepare for the loops of the product and verify compatibility of shapes
   int start0=0, start1=0;
@@ -2196,11 +2060,12 @@ escript::C_GeneralTensorProduct(Data& arg_0,
   else if (transpose == 2)	{ start1 = rank1-axis_offset; }
   else				{ throw DataException("C_GeneralTensorProduct: Error - transpose should be 0, 1 or 2"); }
 
+
   // Adjust the shapes for transpose
-  DataArrayView::ShapeType tmpShape0;
-  DataArrayView::ShapeType tmpShape1;
-  for (int i=0; i<rank0; i++)	{ tmpShape0.push_back( shape0[(i+start0)%rank0] ); }
-  for (int i=0; i<rank1; i++)	{ tmpShape1.push_back( shape1[(i+start1)%rank1] ); }
+  DataTypes::ShapeType tmpShape0(rank0);	// pre-sizing the vectors rather
+  DataTypes::ShapeType tmpShape1(rank1);	// than using push_back
+  for (int i=0; i<rank0; i++)	{ tmpShape0[i]=shape0[(i+start0)%rank0]; }
+  for (int i=0; i<rank1; i++)	{ tmpShape1[i]=shape1[(i+start1)%rank1]; }
 
 #if 0
   // For debugging: show shape after transpose
@@ -2231,19 +2096,22 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     SR *= tmpShape1[i];
   }
 
-  // Define the shape of the output
-  DataArrayView::ShapeType shape2;
-  for (int i=0; i<rank0-axis_offset; i++) { shape2.push_back(tmpShape0[i]); } // First part of arg_0_Z
-  for (int i=axis_offset; i<rank1; i++)   { shape2.push_back(tmpShape1[i]); } // Last part of arg_1_Z
+  // Define the shape of the output (rank of shape is the sum of the loop ranges below)
+  DataTypes::ShapeType shape2(rank0+rank1-2*axis_offset);	
+  {			// block to limit the scope of out_index
+     int out_index=0;
+     for (int i=0; i<rank0-axis_offset; i++, ++out_index) { shape2[out_index]=tmpShape0[i]; } // First part of arg_0_Z
+     for (int i=axis_offset; i<rank1; i++, ++out_index)   { shape2[out_index]=tmpShape1[i]; } // Last part of arg_1_Z
+  }
 
   // Declare output Data object
   Data res;
 
   if      (arg_0_Z.isConstant()   && arg_1_Z.isConstant()) {
     res = Data(0.0, shape2, arg_1_Z.getFunctionSpace());	// DataConstant output
-    double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[0]);
-    double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[0]);
-    double *ptr_2 = &((res.getPointDataView().getData())[0]);
+    double *ptr_0 = &(arg_0_Z.getDataAtOffset(0));
+    double *ptr_1 = &(arg_1_Z.getDataAtOffset(0));
+    double *ptr_2 = &(res.getDataAtOffset(0));
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
   }
   else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged()) {
@@ -2264,24 +2132,33 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
     // Prepare offset into DataConstant
     int offset_0 = tmp_0->getPointOffset(0,0);
-    double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+    double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
     // Get the views
-    DataArrayView view_1 = tmp_1->getDefaultValue();
-    DataArrayView view_2 = tmp_2->getDefaultValue();
-    // Get the pointers to the actual data
-    double *ptr_1 = &((view_1.getData())[0]);
-    double *ptr_2 = &((view_2.getData())[0]);
+//     DataArrayView view_1 = tmp_1->getDefaultValue();
+//     DataArrayView view_2 = tmp_2->getDefaultValue();
+//     // Get the pointers to the actual data
+//     double *ptr_1 = &((view_1.getData())[0]);
+//     double *ptr_2 = &((view_2.getData())[0]);
+
+    double *ptr_1 = &(tmp_1->getDefaultValue(0));
+    double *ptr_2 = &(tmp_2->getDefaultValue(0));
+
+
     // Compute an MVP for the default
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     // Compute an MVP for each tag
     const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
     DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
     for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-      tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
-      DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
-      DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
-      double *ptr_1 = &view_1.getData(0);
-      double *ptr_2 = &view_2.getData(0);
+      tmp_2->addTag(i->first);
+//       DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
+//       DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
+//       double *ptr_1 = &view_1.getData(0);
+//       double *ptr_2 = &view_2.getData(0);
+
+      double *ptr_1 = &(tmp_1->getDataByTag(i->first,0));
+      double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
+	
       matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     }
 
@@ -2304,9 +2181,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
       for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
         int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
         int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
-        double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-        double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-        double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+        double *ptr_2 = &(res.getDataAtOffset(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2330,24 +2207,32 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
     // Prepare offset into DataConstant
     int offset_1 = tmp_1->getPointOffset(0,0);
-    double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+    double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
     // Get the views
-    DataArrayView view_0 = tmp_0->getDefaultValue();
-    DataArrayView view_2 = tmp_2->getDefaultValue();
-    // Get the pointers to the actual data
-    double *ptr_0 = &((view_0.getData())[0]);
-    double *ptr_2 = &((view_2.getData())[0]);
+//     DataArrayView view_0 = tmp_0->getDefaultValue();
+//     DataArrayView view_2 = tmp_2->getDefaultValue();
+//     // Get the pointers to the actual data
+//     double *ptr_0 = &((view_0.getData())[0]);
+//     double *ptr_2 = &((view_2.getData())[0]);
+
+    double *ptr_0 = &(tmp_0->getDefaultValue(0));
+    double *ptr_2 = &(tmp_2->getDefaultValue(0));
+
     // Compute an MVP for the default
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     // Compute an MVP for each tag
     const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
     DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
     for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-      tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
-      DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
-      DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
-      double *ptr_0 = &view_0.getData(0);
-      double *ptr_2 = &view_2.getData(0);
+//      tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+//       DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
+//       DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
+//       double *ptr_0 = &view_0.getData(0);
+//       double *ptr_2 = &view_2.getData(0);
+
+      tmp_2->addTag(i->first);
+      double *ptr_0 = &(tmp_0->getDataByTag(i->first,0));
+      double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
       matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     }
 
@@ -2368,14 +2253,20 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
     if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
 
-    // Get the views
-    DataArrayView view_0 = tmp_0->getDefaultValue();
-    DataArrayView view_1 = tmp_1->getDefaultValue();
-    DataArrayView view_2 = tmp_2->getDefaultValue();
-    // Get the pointers to the actual data
-    double *ptr_0 = &((view_0.getData())[0]);
-    double *ptr_1 = &((view_1.getData())[0]);
-    double *ptr_2 = &((view_2.getData())[0]);
+//     // Get the views
+//     DataArrayView view_0 = tmp_0->getDefaultValue();
+//     DataArrayView view_1 = tmp_1->getDefaultValue();
+//     DataArrayView view_2 = tmp_2->getDefaultValue();
+//     // Get the pointers to the actual data
+//     double *ptr_0 = &((view_0.getData())[0]);
+//     double *ptr_1 = &((view_1.getData())[0]);
+//     double *ptr_2 = &((view_2.getData())[0]);
+
+    double *ptr_0 = &(tmp_0->getDefaultValue(0));
+    double *ptr_1 = &(tmp_1->getDefaultValue(0));
+    double *ptr_2 = &(tmp_2->getDefaultValue(0));
+
+
     // Compute an MVP for the default
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     // Merge the tags
@@ -2383,20 +2274,25 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
     const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
     for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-      tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue()); // use tmp_2 to get correct shape
+      tmp_2->addTag(i->first); // use tmp_2 to get correct shape
     }
     for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-      tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+      tmp_2->addTag(i->first);
     }
     // Compute an MVP for each tag
     const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
     for (i=lookup_2.begin();i!=lookup_2.end();i++) {
-      DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
-      DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
-      DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
-      double *ptr_0 = &view_0.getData(0);
-      double *ptr_1 = &view_1.getData(0);
-      double *ptr_2 = &view_2.getData(0);
+//       DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
+//       DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
+//       DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
+//       double *ptr_0 = &view_0.getData(0);
+//       double *ptr_1 = &view_1.getData(0);
+//       double *ptr_2 = &view_2.getData(0);
+
+      double *ptr_0 = &(tmp_0->getDataByTag(i->first,0));
+      double *ptr_1 = &(tmp_1->getDataByTag(i->first,0));
+      double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
+
       matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     }
 
@@ -2417,12 +2313,12 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
     for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
       int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-      double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+      double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
       for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-        double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+        double *ptr_2 = &(res.getDataAtOffset(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2446,9 +2342,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
       for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-        double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-        double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+        double *ptr_2 = &(res.getDataAtOffset(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2471,12 +2367,12 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
     for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
       int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
-      double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+      double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
       for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-        double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+        double *ptr_2 = &(res.getDataAtOffset(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2501,9 +2397,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
-        double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-        double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+        double *ptr_2 = &(res.getDataAtOffset(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2526,7 +2422,7 @@ Data::borrowData() const
 std::string
 Data::toString() const
 {
-    static const DataArrayView::ValueType::size_type TOO_MANY_POINTS=80;
+    static const DataTypes::ValueType::size_type TOO_MANY_POINTS=80;
     if (getNumDataPoints()*getDataPointSize()>TOO_MANY_POINTS)
     {
 	stringstream temp;
@@ -2534,6 +2430,34 @@ Data::toString() const
 	return  temp.str();
     }
     return m_data->toString();
+}
+
+
+
+DataTypes::ValueType::const_reference
+Data::getDataAtOffset(DataTypes::ValueType::size_type i) const
+{
+	return m_data->getDataAtOffset(i);
+}
+
+
+DataTypes::ValueType::reference
+Data::getDataAtOffset(DataTypes::ValueType::size_type i)
+{
+	return m_data->getDataAtOffset(i);
+}
+
+DataTypes::ValueType::const_reference
+Data::getDataPoint(int sampleNo, int dataPointNo) const
+{
+	return m_data->getDataAtOffset(m_data->getPointOffset(sampleNo, dataPointNo));
+}
+
+
+DataTypes::ValueType::reference
+Data::getDataPoint(int sampleNo, int dataPointNo)
+{
+	return m_data->getDataAtOffset(m_data->getPointOffset(sampleNo, dataPointNo));
 }
 
 

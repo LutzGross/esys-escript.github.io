@@ -15,8 +15,8 @@
 
 #include "AbstractSystemMatrix.h" 
 #include "DataException.h"
-#include "DataArrayView.h"
 #include "Data.h"
+#include "DataTypes.h"
 
 namespace escript {
 
@@ -61,7 +61,7 @@ Data AbstractSystemMatrix::vectorMultiply(Data& right) const
           throw SystemMatrixException("Error - Matrix is empty.");
      if (right.getDataPointSize()!=getColumnBlockSize())
           throw SystemMatrixException("Error - column block size and input data size do not match.");
-     DataArrayView::ShapeType shape;
+     DataTypes::ShapeType shape;
      if (getRowBlockSize()>1) shape.push_back(getRowBlockSize());
 
      Data out=Data(0.,shape,getRowFunctionSpace(),true);
@@ -83,7 +83,7 @@ Data AbstractSystemMatrix::solve(Data& in,const boost::python::dict& options) co
           throw SystemMatrixException("Error - row function space and function space of right hand side do not match.");
      if (in.getDataPointSize()!=getRowBlockSize())
           throw SystemMatrixException("Error - row block size and right hand side size do not match.");
-     DataArrayView::ShapeType shape;
+     DataTypes::ShapeType shape;
      if (getRowBlockSize()>1) shape.push_back(getColumnBlockSize());
      Data out=Data(0.,shape,getColumnFunctionSpace(),true);
      setToSolution(out,in,options);

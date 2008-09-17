@@ -17,11 +17,14 @@
 
 #include "Taipan.h"
 #include "DataException.h"
+#include <boost/python/extract.hpp>
+#include "DataTypes.h"
 
 #include <cassert>
 
 using namespace std;
 using namespace escript;
+using namespace boost::python;
 
 namespace escript {
 
@@ -161,54 +164,70 @@ DataVector::operator!=(const DataVector& other) const
   return !(*this==other);
 }
 
-int
-DataVector::archiveData(ofstream& archiveFile,
-                        const size_type noValues) const
+
+void
+DataVector::copyFromNumArray(const boost::python::numeric::array& value)
 {
-  //
-  // Check number of values expected to be written matches number in this object
-  if (noValues != size()) {
-    return 2;
+  using DataTypes::ValueType;
+  if (m_array_data!=0) {
+    arrayManager.delete_array(m_array_data);
   }
 
-  //
-  // Write all values in this object out to archiveFile
-  for (int i=0; i<size(); i++) {
-    archiveFile.write(reinterpret_cast<char *>(&m_array_data[i]),sizeof(double));
+
+  m_array_data = arrayManager.new_array(1,value.nelements());
+
+  int si=0,sj=0,sk=0,sl=0;		// bounds for each dimension of the shape
+  DataTypes::ShapeType tempShape;    
+  for (int i=0; i<value.getrank(); i++) {
+     tempShape.push_back(extract<int>(value.getshape()[i]));
   }
 
-  //
-  // Check no errors were encountered before returning
-  if (!archiveFile.good()) {
-    return 1;
-  }
-
-  return 0;
+  if (value.getrank()==0) {
+     m_array_data[0]=extract<double>(value[value.getshape()]);
+  } else if (value.getrank()==1) {
+     si=tempShape[0];
+     for (ValueType::size_type i=0;i<si;i++) {
+        m_array_data[i]=extract<double>(value[i]);
+     }
+  } else if (value.getrank()==2) {
+	si=tempShape[0];
+	sj=tempShape[1];
+        for (ValueType::size_type i=0;i<si;i++) {
+           for (ValueType::size_type j=0;j<sj;j++) {
+              m_array_data[DataTypes::getRelIndex(tempShape,i,j)]=extract<double>(value[i][j]);
+           }
+        }
+  } else if (value.getrank()==3) {
+	si=tempShape[0];
+	sj=tempShape[1];
+	sk=tempShape[2];
+        for (ValueType::size_type i=0;i<si;i++) {
+           for (ValueType::size_type j=0;j<sj;j++) {
+              for (ValueType::size_type k=0;k<sk;k++) {
+                 m_array_data[DataTypes::getRelIndex(tempShape,i,j,k)]=extract<double>(value[i][j][k]);
+              }
+           }
+        }
+  } else if (value.getrank()==4) {
+	si=tempShape[0];
+	sj=tempShape[1];
+	sk=tempShape[2];
+	sl=tempShape[3];
+        for (ValueType::size_type i=0;i<si;i++) {
+           for (ValueType::size_type j=0;j<sj;j++) {
+              for (ValueType::size_type k=0;k<sk;k++) {
+                 for (ValueType::size_type l=0;l<sl;l++) {
+                    m_array_data[DataTypes::getRelIndex(tempShape,i,j,k,l)]=extract<double>(value[i][j][k][l]);
+                 }
+              }
+           }
+        }
+   }
+   m_size=value.nelements();	// total amount of elements
+   m_dim=m_size;		// elements per sample
+   m_N=1;			// number of samples
 }
+ 
 
-int
-DataVector::extractData(ifstream& archiveFile,
-                        const size_type noValues)
-{
-  //
-  // Check number of values expected to be read matches number in this object
-  if (noValues != size()) {
-    return 2;
-  }
-
-  //
-  // Read all values in archiveFile back to this object
-  for (int i=0; i<size(); i++) {
-    archiveFile.read(reinterpret_cast<char *>(&m_array_data[i]),sizeof(double));
-  }
-
-  //
-  // Check no errors were encountered before returning
-  if (!archiveFile.good()) {
-    return 1;
-  }
-
-  return 0;
-}
 
 } // end of namespace

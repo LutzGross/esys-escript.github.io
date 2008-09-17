@@ -20,7 +20,6 @@
 #include "DataTaggedTestCase.h"
 #include "DataExpandedTestCase.h"
 #include "DataFactoryTestCase.h"
-#include "DataArrayViewTestCase.h"
 #include "DataBlocks2DTestCase.h"
 #include "DataVectorTestCase.h"
 #include "TaipanTestCase.h"
@@ -28,6 +27,8 @@
 #include "DataAlgorithmAdapterTestCase.h"
 #include "FunctionSpaceTestCase.h"
 #include "DataTestCase.h"
+#include "DataMathsTestCase.h"
+#include "DataTypesTestCase.h"
 
 #include "tools/CppUnitTest/TestRunner.h"
 
@@ -51,17 +52,18 @@ int main(int argc, char* argv[])
 	TestRunner runner;
 	//
 	// add the RangeTestCase suite of tests to the runner
+	runner.addTest ("DataTypes", DataTypesTestCase::suite());
+	runner.addTest ("DataMaths", DataMathsTestCase::suite());
 	runner.addTest ("DataEmpty", DataEmptyTestCase::suite());
 	runner.addTest ("DataConstant", DataConstantTestCase::suite());
-	runner.addTest ("DataTagged", DataTaggedTestCase::suite());
+ 	runner.addTest ("DataTagged", DataTaggedTestCase::suite());
 	runner.addTest ("DataExpanded", DataExpandedTestCase::suite());
 	runner.addTest ("DataFactory", DataFactoryTestCase::suite());
-	runner.addTest ("DataArrayView", DataArrayViewTestCase::suite());
 	runner.addTest ("DataBlocks2D", DataBlocks2DTestCase::suite());
 	runner.addTest ("DataVector", DataVectorTestCase::suite());
 	runner.addTest ("Taipan", TaipanTestCase::suite());
 	runner.addTest ("DataC", DataCTestCase::suite());
-	runner.addTest ("DataAlgorithmAdapter", DataAlgorithmAdapterTestCase::suite());
+ 	runner.addTest ("DataAlgorithmAdapter", DataAlgorithmAdapterTestCase::suite());
 	runner.addTest ("FunctionSpace", FunctionSpaceTestCase::suite());
 	runner.addTest ("Data", DataTestCase::suite());
 

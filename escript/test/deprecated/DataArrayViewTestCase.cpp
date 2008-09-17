@@ -19,6 +19,7 @@
 #include "esysUtils/EsysException.h"
 
 #include "DataArrayViewTestCase.h"
+#include "escript/DataTypes.h"
 
 #include <iostream>
 
@@ -44,24 +45,24 @@ void DataArrayViewTestCase::testResultSliceShape() {
   cout << endl;
   cout << "\tTest getResultSliceShape method." << endl;
 
-  DataArrayView::RegionType region;
-  DataArrayView::ShapeType resultShape;
+  DataTypes::RegionType region;
+  DataTypes::ShapeType resultShape;
 
-  region.push_back(DataArrayView::RegionType::value_type(1,5));
+  region.push_back(DataTypes::RegionType::value_type(1,5));
   resultShape.push_back(4);
-  assert(DataArrayView::getResultSliceShape(region)==resultShape);
+  assert(DataTypes::getResultSliceShape(region)==resultShape);
 
-  region.push_back(DataArrayView::RegionType::value_type(2,5));
+  region.push_back(DataTypes::RegionType::value_type(2,5));
   resultShape.push_back(3);
-  assert(DataArrayView::getResultSliceShape(region)==resultShape);
+  assert(DataTypes::getResultSliceShape(region)==resultShape);
 
-  region.push_back(DataArrayView::RegionType::value_type(3,9));
+  region.push_back(DataTypes::RegionType::value_type(3,9));
   resultShape.push_back(6);
-  assert(DataArrayView::getResultSliceShape(region)==resultShape);
+  assert(DataTypes::getResultSliceShape(region)==resultShape);
 
-  region.push_back(DataArrayView::RegionType::value_type(1,7));
+  region.push_back(DataTypes::RegionType::value_type(1,7));
   resultShape.push_back(6);
-  assert(DataArrayView::getResultSliceShape(region)==resultShape);
+  assert(DataTypes::getResultSliceShape(region)==resultShape);
 
 }
 
@@ -72,17 +73,17 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a scalar to a scalar.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
 
     // Define shape of views.
-    DataArrayView::ShapeType sourceShape;
+    DataTypes::ShapeType sourceShape;
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     DataVector targetData(1, 2.0, 1);
-    DataArrayView targetView(targetData, DataArrayView::ShapeType());
+    DataArrayView targetView(targetData, DataTypes::ShapeType());
 
     // Copy source view to target view.
     targetView.copySlice(sourceView,region);
@@ -96,17 +97,17 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a scalar from a scalar.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
+    DataTypes::RegionType region;
 
     // Define shape of views.
-    DataArrayView::ShapeType sourceShape;
+    DataTypes::ShapeType sourceShape;
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     DataVector targetData(1, 2.0, 1);
-    DataArrayView targetView(targetData, DataArrayView::ShapeType());
+    DataArrayView targetView(targetData, DataTypes::ShapeType());
 
     // Copy source view to target view.
     targetView.copySliceFrom(sourceView,region);
@@ -120,23 +121,23 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 1 dimensional slice to a 1 dimensional array.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(2,4));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(2,4));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
+    DataTypes::ShapeType sourceShape;
     sourceShape.push_back(6);
-    DataArrayView::ShapeType targetShape = DataArrayView::getResultSliceShape(region);
+    DataTypes::ShapeType targetShape = DataTypes::getResultSliceShape(region);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     for (int i=0;i<sourceShape[0];i++) {
       sourceView(i)=i;
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -155,16 +156,16 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 1 dimensional slice to a scalar.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(2,3));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(2,3));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
+    DataTypes::ShapeType sourceShape;
     sourceShape.push_back(6);
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType targetShape;
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
 
@@ -172,7 +173,7 @@ void DataArrayViewTestCase::testSlicing() {
       sourceView(i)=i;
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -191,23 +192,23 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 1 dimensional slice from a 1 dimensional array.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(2,4));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(2,4));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape = DataArrayView::getResultSliceShape(region);
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType sourceShape = DataTypes::getResultSliceShape(region);
+    DataTypes::ShapeType targetShape;
     targetShape.push_back(6);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     for (int i=0;i<sourceShape[0];i++) {
       sourceView(i)=i;
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -226,21 +227,21 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 1 dimensional slice from a scalar.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(2,4));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(2,4));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType sourceShape;
+    DataTypes::ShapeType targetShape;
     targetShape.push_back(6);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     sourceView()=5;
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -259,18 +260,18 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 2 dimensional slice to a 2 dimensional array.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(2,4));
-    region.push_back(DataArrayView::RegionType::value_type(0,2));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(2,4));
+    region.push_back(DataTypes::RegionType::value_type(0,2));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
+    DataTypes::ShapeType sourceShape;
     sourceShape.push_back(6);
     sourceShape.push_back(3);
-    DataArrayView::ShapeType targetShape = DataArrayView::getResultSliceShape(region);
+    DataTypes::ShapeType targetShape = DataTypes::getResultSliceShape(region);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -280,7 +281,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -301,19 +302,19 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 2 dimensional slice to a 1 dimensional array.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(0,3));
-    region.push_back(DataArrayView::RegionType::value_type(1,2));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(0,3));
+    region.push_back(DataTypes::RegionType::value_type(1,2));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
+    DataTypes::ShapeType sourceShape;
     sourceShape.push_back(3);
     sourceShape.push_back(6);
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType targetShape;
     targetShape.push_back(3);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -323,7 +324,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -344,18 +345,18 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 2 dimensional slice to a scalar.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(2,3));
-    region.push_back(DataArrayView::RegionType::value_type(1,2));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(2,3));
+    region.push_back(DataTypes::RegionType::value_type(1,2));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
+    DataTypes::ShapeType sourceShape;
     sourceShape.push_back(3);
     sourceShape.push_back(6);
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType targetShape;
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -365,7 +366,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -385,18 +386,18 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 2 dimensional slice from a 2 dimensional array.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(2,4));
-    region.push_back(DataArrayView::RegionType::value_type(0,2));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(2,4));
+    region.push_back(DataTypes::RegionType::value_type(0,2));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape = DataArrayView::getResultSliceShape(region);
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType sourceShape = DataTypes::getResultSliceShape(region);
+    DataTypes::ShapeType targetShape;
     targetShape.push_back(6);
     targetShape.push_back(3);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -406,7 +407,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -427,23 +428,23 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 2 dimensional slice from a scalar.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(2,4));
-    region.push_back(DataArrayView::RegionType::value_type(0,2));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(2,4));
+    region.push_back(DataTypes::RegionType::value_type(0,2));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType sourceShape;
+    DataTypes::ShapeType targetShape;
     targetShape.push_back(6);
     targetShape.push_back(3);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     sourceView()=5;
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -464,20 +465,20 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 3 dimensional slice to a 3 dimensional array.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(2,4));
-    region.push_back(DataArrayView::RegionType::value_type(0,2));
-    region.push_back(DataArrayView::RegionType::value_type(5,9));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(2,4));
+    region.push_back(DataTypes::RegionType::value_type(0,2));
+    region.push_back(DataTypes::RegionType::value_type(5,9));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
+    DataTypes::ShapeType sourceShape;
     sourceShape.push_back(6);
     sourceShape.push_back(3);
     sourceShape.push_back(13);
-    DataArrayView::ShapeType targetShape = DataArrayView::getResultSliceShape(region);
+    DataTypes::ShapeType targetShape = DataTypes::getResultSliceShape(region);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -489,7 +490,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -512,22 +513,22 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 3 dimensional slice to a 2 dimensional array.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(2,4));
-    region.push_back(DataArrayView::RegionType::value_type(0,1));
-    region.push_back(DataArrayView::RegionType::value_type(5,9));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(2,4));
+    region.push_back(DataTypes::RegionType::value_type(0,1));
+    region.push_back(DataTypes::RegionType::value_type(5,9));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
+    DataTypes::ShapeType sourceShape;
     sourceShape.push_back(6);
     sourceShape.push_back(3);
     sourceShape.push_back(13);
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType targetShape;
     targetShape.push_back(2);
     targetShape.push_back(4);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -539,7 +540,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -562,21 +563,21 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 3 dimensional slice to a 1 dimensional array.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(3,4));
-    region.push_back(DataArrayView::RegionType::value_type(0,1));
-    region.push_back(DataArrayView::RegionType::value_type(5,9));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(3,4));
+    region.push_back(DataTypes::RegionType::value_type(0,1));
+    region.push_back(DataTypes::RegionType::value_type(5,9));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
+    DataTypes::ShapeType sourceShape;
     sourceShape.push_back(6);
     sourceShape.push_back(3);
     sourceShape.push_back(13);
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType targetShape;
     targetShape.push_back(4);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -588,7 +589,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -611,20 +612,20 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 3 dimensional slice to a scalar.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(3,4));
-    region.push_back(DataArrayView::RegionType::value_type(0,1));
-    region.push_back(DataArrayView::RegionType::value_type(5,6));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(3,4));
+    region.push_back(DataTypes::RegionType::value_type(0,1));
+    region.push_back(DataTypes::RegionType::value_type(5,6));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
+    DataTypes::ShapeType sourceShape;
     sourceShape.push_back(6);
     sourceShape.push_back(3);
     sourceShape.push_back(13);
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType targetShape;
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -636,7 +637,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -659,20 +660,20 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 3 dimensional slice from a 3 dimensional array.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(4,7));
-    region.push_back(DataArrayView::RegionType::value_type(2,5));
-    region.push_back(DataArrayView::RegionType::value_type(6,7));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(4,7));
+    region.push_back(DataTypes::RegionType::value_type(2,5));
+    region.push_back(DataTypes::RegionType::value_type(6,7));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape = DataArrayView::getResultSliceShape(region);
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType sourceShape = DataTypes::getResultSliceShape(region);
+    DataTypes::ShapeType targetShape;
     targetShape.push_back(11);
     targetShape.push_back(8);
     targetShape.push_back(9);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -684,7 +685,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -707,25 +708,25 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 3 dimensional slice from a scalar.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(4,7));
-    region.push_back(DataArrayView::RegionType::value_type(2,5));
-    region.push_back(DataArrayView::RegionType::value_type(6,7));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(4,7));
+    region.push_back(DataTypes::RegionType::value_type(2,5));
+    region.push_back(DataTypes::RegionType::value_type(6,7));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType sourceShape;
+    DataTypes::ShapeType targetShape;
     targetShape.push_back(11);
     targetShape.push_back(8);
     targetShape.push_back(9);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     sourceView()=5;
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -748,22 +749,22 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 4 dimensional slice to a 4 dimensional array.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(2,4));
-    region.push_back(DataArrayView::RegionType::value_type(0,2));
-    region.push_back(DataArrayView::RegionType::value_type(5,9));
-    region.push_back(DataArrayView::RegionType::value_type(3,5));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(2,4));
+    region.push_back(DataTypes::RegionType::value_type(0,2));
+    region.push_back(DataTypes::RegionType::value_type(5,9));
+    region.push_back(DataTypes::RegionType::value_type(3,5));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
+    DataTypes::ShapeType sourceShape;
     sourceShape.push_back(6);
     sourceShape.push_back(3);
     sourceShape.push_back(13);
     sourceShape.push_back(9);
-    DataArrayView::ShapeType targetShape = DataArrayView::getResultSliceShape(region);
+    DataTypes::ShapeType targetShape = DataTypes::getResultSliceShape(region);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -777,7 +778,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -802,25 +803,25 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 4 dimensional slice to a 3 dimensional array.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(2,4));
-    region.push_back(DataArrayView::RegionType::value_type(0,2));
-    region.push_back(DataArrayView::RegionType::value_type(5,6));
-    region.push_back(DataArrayView::RegionType::value_type(3,5));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(2,4));
+    region.push_back(DataTypes::RegionType::value_type(0,2));
+    region.push_back(DataTypes::RegionType::value_type(5,6));
+    region.push_back(DataTypes::RegionType::value_type(3,5));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
+    DataTypes::ShapeType sourceShape;
     sourceShape.push_back(6);
     sourceShape.push_back(3);
     sourceShape.push_back(13);
     sourceShape.push_back(9);
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType targetShape;
     targetShape.push_back(2);
     targetShape.push_back(2);
     targetShape.push_back(2);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -834,7 +835,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -859,24 +860,24 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 4 dimensional slice to a 2 dimensional array.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(2,4));
-    region.push_back(DataArrayView::RegionType::value_type(0,2));
-    region.push_back(DataArrayView::RegionType::value_type(5,6));
-    region.push_back(DataArrayView::RegionType::value_type(4,5));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(2,4));
+    region.push_back(DataTypes::RegionType::value_type(0,2));
+    region.push_back(DataTypes::RegionType::value_type(5,6));
+    region.push_back(DataTypes::RegionType::value_type(4,5));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
+    DataTypes::ShapeType sourceShape;
     sourceShape.push_back(6);
     sourceShape.push_back(3);
     sourceShape.push_back(13);
     sourceShape.push_back(9);
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType targetShape;
     targetShape.push_back(2);
     targetShape.push_back(2);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -890,7 +891,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -915,23 +916,23 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 4 dimensional slice to a 1 dimensional array.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(3,4));
-    region.push_back(DataArrayView::RegionType::value_type(0,2));
-    region.push_back(DataArrayView::RegionType::value_type(5,6));
-    region.push_back(DataArrayView::RegionType::value_type(4,5));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(3,4));
+    region.push_back(DataTypes::RegionType::value_type(0,2));
+    region.push_back(DataTypes::RegionType::value_type(5,6));
+    region.push_back(DataTypes::RegionType::value_type(4,5));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
+    DataTypes::ShapeType sourceShape;
     sourceShape.push_back(6);
     sourceShape.push_back(3);
     sourceShape.push_back(13);
     sourceShape.push_back(9);
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType targetShape;
     targetShape.push_back(2);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -945,7 +946,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -970,22 +971,22 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 4 dimensional slice to a scalar.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(3,4));
-    region.push_back(DataArrayView::RegionType::value_type(1,2));
-    region.push_back(DataArrayView::RegionType::value_type(5,6));
-    region.push_back(DataArrayView::RegionType::value_type(4,5));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(3,4));
+    region.push_back(DataTypes::RegionType::value_type(1,2));
+    region.push_back(DataTypes::RegionType::value_type(5,6));
+    region.push_back(DataTypes::RegionType::value_type(4,5));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
+    DataTypes::ShapeType sourceShape;
     sourceShape.push_back(6);
     sourceShape.push_back(3);
     sourceShape.push_back(13);
     sourceShape.push_back(9);
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType targetShape;
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -999,7 +1000,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -1024,22 +1025,22 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 4 dimensional slice from a 4 dimensional array.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(14,37));
-    region.push_back(DataArrayView::RegionType::value_type(22,57));
-    region.push_back(DataArrayView::RegionType::value_type(63,71));
-    region.push_back(DataArrayView::RegionType::value_type(23,51));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(14,37));
+    region.push_back(DataTypes::RegionType::value_type(22,57));
+    region.push_back(DataTypes::RegionType::value_type(63,71));
+    region.push_back(DataTypes::RegionType::value_type(23,51));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape = DataArrayView::getResultSliceShape(region);
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType sourceShape = DataTypes::getResultSliceShape(region);
+    DataTypes::ShapeType targetShape;
     targetShape.push_back(50);
     targetShape.push_back(65);
     targetShape.push_back(80);
     targetShape.push_back(90);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
@@ -1053,7 +1054,7 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -1078,27 +1079,27 @@ void DataArrayViewTestCase::testSlicing() {
     cout << "\tSlice a 4 dimensional slice from a scalar.";
 
     // Define slice region.
-    DataArrayView::RegionType region;
-    region.push_back(DataArrayView::RegionType::value_type(14,37));
-    region.push_back(DataArrayView::RegionType::value_type(22,57));
-    region.push_back(DataArrayView::RegionType::value_type(63,71));
-    region.push_back(DataArrayView::RegionType::value_type(23,51));
+    DataTypes::RegionType region;
+    region.push_back(DataTypes::RegionType::value_type(14,37));
+    region.push_back(DataTypes::RegionType::value_type(22,57));
+    region.push_back(DataTypes::RegionType::value_type(63,71));
+    region.push_back(DataTypes::RegionType::value_type(23,51));
 
     // Define shapes of views.
-    DataArrayView::ShapeType sourceShape;
-    DataArrayView::ShapeType targetShape;
+    DataTypes::ShapeType sourceShape;
+    DataTypes::ShapeType targetShape;
     targetShape.push_back(50);
     targetShape.push_back(65);
     targetShape.push_back(80);
     targetShape.push_back(90);
 
     // Create source and target views.
-    int len = DataArrayView::noValues(sourceShape);
+    int len = DataTypes::noValues(sourceShape);
     DataVector sourceData(len, 2.0, len);
     DataArrayView sourceView(sourceData, sourceShape);
     sourceView()=5;
 
-    len = DataArrayView::noValues(targetShape);
+    len = DataTypes::noValues(targetShape);
     DataVector targetData(len, 2.0, len);
     DataArrayView targetView(targetData, targetShape);
 
@@ -1127,16 +1128,16 @@ void DataArrayViewTestCase::testShapeToString() {
   cout << endl;
   cout << "\tTest shapeToString for a variety of shapes." << endl;
 
-  DataArrayView::ShapeType shape;
-  assert(DataArrayView::shapeToString(shape)=="()");
+  DataTypes::ShapeType shape;
+  assert(DataTypes::shapeToString(shape)=="()");
   shape.push_back(5);
-  assert(DataArrayView::shapeToString(shape)=="(5)");
+  assert(DataTypes::shapeToString(shape)=="(5)");
   shape.push_back(2);
-  assert(DataArrayView::shapeToString(shape)=="(5,2)");
+  assert(DataTypes::shapeToString(shape)=="(5,2)");
   shape.push_back(9);
-  assert(DataArrayView::shapeToString(shape)=="(5,2,9)");
+  assert(DataTypes::shapeToString(shape)=="(5,2,9)");
   shape.push_back(4);
-  assert(DataArrayView::shapeToString(shape)=="(5,2,9,4)");
+  assert(DataTypes::shapeToString(shape)=="(5,2,9,4)");
 
 }
 
@@ -1147,8 +1148,8 @@ void DataArrayViewTestCase::testScalarView() {
 
   // Create a vector containing enough data for three scalars
   // and check three scalar views return the appropriate data
-  DataArrayView::ShapeType vShape;
-  DataArrayView::ValueType vData(3);
+  DataTypes::ShapeType vShape;
+  DataTypes::ValueType vData(3);
   vData[0]=0;
   vData[1]=1;
   vData[2]=2;
@@ -1212,7 +1213,7 @@ void DataArrayViewTestCase::testAll()
     assert(defView.getRank()==0);
     assert(defView.noValues()==0);
     assert(defView.getShape().empty());
-    assert(defView.checkShape(DataArrayView::ShapeType()));
+    assert(defView.checkShape(DataTypes::ShapeType()));
   }
 
   {
@@ -1220,11 +1221,11 @@ void DataArrayViewTestCase::testAll()
     cout << "\tTest DataArrayView - shape (5).";
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(5);
 
     // allocate the data for the DataArrayView
-    DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
+    DataTypes::ValueType data(DataTypes::noValues(shape),0);
 
     // constructor
     int offset=0;
@@ -1251,13 +1252,13 @@ void DataArrayViewTestCase::testAll()
     cout << "\tTest DataArrayView - shape (2,3).";
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(2);
     shape.push_back(3);
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataArrayView::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -1296,14 +1297,14 @@ void DataArrayViewTestCase::testAll()
     cout << "\tTest DataArrayView - shape (4,7,9).";
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(4);
     shape.push_back(7);
     shape.push_back(9);
 
     // allocate the data for the DataArrayView
     int npoints=10;
-    DataArrayView::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -1344,7 +1345,7 @@ void DataArrayViewTestCase::testAll()
     cout << "\tTest DataArrayView - shape (12,4,5,14).";
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(12);
     shape.push_back(4);
     shape.push_back(5);
@@ -1352,7 +1353,7 @@ void DataArrayViewTestCase::testAll()
 
     // allocate the data for the DataArrayView
     int npoints=100;
-    DataArrayView::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -1395,11 +1396,11 @@ void DataArrayViewTestCase::testAll()
     cout << "\tTest DataArrayView copy constructor - shape (5).";
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(5);
 
     // allocate the data for the DataArrayView
-    DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
+    DataTypes::ValueType data(DataTypes::noValues(shape),0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -1428,13 +1429,13 @@ void DataArrayViewTestCase::testAll()
     cout << "\tTest DataArrayView copy constructor - shape (5,6,7).";
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(5);
     shape.push_back(6);
     shape.push_back(7);
 
     // allocate the data for the DataArrayView
-    DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
+    DataTypes::ValueType data(DataTypes::noValues(shape),0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -1463,14 +1464,14 @@ void DataArrayViewTestCase::testAll()
     cout << "\tTest DataArrayView copy method - shape (2,3).";
 
     // define the shape for the DataArrayViews
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(2);
     shape.push_back(3);
 
     // allocate the data for the DataArrayViews
     int npoints=4;
-    DataArrayView::ValueType data1(DataArrayView::noValues(shape)*npoints,0);
-    DataArrayView::ValueType data2(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
 
     // construct two views
     DataArrayView dataView1(data1,shape);
@@ -1510,7 +1511,7 @@ void DataArrayViewTestCase::testAll()
     cout << "\tTest DataArrayView copy method - shape (2,3,8,9).";
 
     // define the shape for the DataArrayViews
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(2);
     shape.push_back(3);
     shape.push_back(8);
@@ -1518,8 +1519,8 @@ void DataArrayViewTestCase::testAll()
 
     // allocate the data for the DataArrayViews
     int npoints=10;
-    DataArrayView::ValueType data1(DataArrayView::noValues(shape)*npoints,0);
-    DataArrayView::ValueType data2(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
 
     // construct two views
     DataArrayView dataView1(data1,shape);
@@ -1567,14 +1568,14 @@ void DataArrayViewTestCase::testAll()
     cout << "\tTest DataArrayView copy with offset method - shape (2,3).";
 
     // define the shape for the DataArrayViews
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(2);
     shape.push_back(3);
 
     // allocate the data for the DataArrayViews
     int npoints=4;
-    DataArrayView::ValueType data1(DataArrayView::noValues(shape)*npoints,0);
-    DataArrayView::ValueType data2(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
 
     // construct two views
     DataArrayView dataView1(data1,shape);
@@ -1605,13 +1606,13 @@ void DataArrayViewTestCase::testAll()
     cout << "\tTest DataArrayView copy with value method - shape (5,8).";
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(5);
     shape.push_back(8);
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataArrayView::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // construct view
     DataArrayView dataView(data,shape);
@@ -1634,8 +1635,8 @@ void DataArrayViewTestCase::testAll()
     cout << endl;
     cout << "\tTest too many indices for shape exception.";
 
-    DataArrayView::ShapeType shape;
-    DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
+    DataTypes::ShapeType shape;
+    DataTypes::ValueType data(DataTypes::noValues(shape),0);
     DataArrayView dataView(data,shape);
 
     // Should be a scalar
@@ -1681,9 +1682,9 @@ void DataArrayViewTestCase::testAll()
     cout << endl;
     cout << "\tTest invalid index exception.";
 
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(4);
-    DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
+    DataTypes::ValueType data(DataTypes::noValues(shape),0);
     DataArrayView dataView(data,shape);
 
     try {
@@ -1700,8 +1701,8 @@ void DataArrayViewTestCase::testAll()
     cout << endl;
     cout << "\tTest insufficient data exception.";
 
-    DataArrayView::ShapeType shape;
-    DataArrayView::ValueType data;
+    DataTypes::ShapeType shape;
+    DataTypes::ValueType data;
 
     try {
       DataArrayView dataView(data,shape);
@@ -1723,25 +1724,25 @@ void DataArrayViewTestCase::testMatMult()
     cout << endl;
     cout << "\tTest result shape." << endl;
 
-    DataArrayView::ShapeType leftShape;
+    DataTypes::ShapeType leftShape;
     leftShape.push_back(1);
     leftShape.push_back(3);
-    DataArrayView::ValueType leftData(DataArrayView::noValues(leftShape),0);
+    DataTypes::ValueType leftData(DataTypes::noValues(leftShape),0);
     DataArrayView leftDataView(leftData,leftShape);
 
-    DataArrayView::ShapeType rightShape;
+    DataTypes::ShapeType rightShape;
     rightShape.push_back(3);
     rightShape.push_back(2);
-    DataArrayView::ValueType rightData(DataArrayView::noValues(rightShape),0);
+    DataTypes::ValueType rightData(DataTypes::noValues(rightShape),0);
     DataArrayView rightDataView(rightData,rightShape);
 
-    DataArrayView::ShapeType resultShape=DataArrayView::determineResultShape(leftDataView,rightDataView);
+    DataTypes::ShapeType resultShape=DataArrayView::determineResultShape(leftDataView,rightDataView);
 
     assert(resultShape.size()==2);
     assert(resultShape[0]==1);
     assert(resultShape[1]==2);
 
-    DataArrayView::ValueType resultData(DataArrayView::noValues(resultShape),0);
+    DataTypes::ValueType resultData(DataTypes::noValues(resultShape),0);
     DataArrayView resultDataView(resultData,resultShape);
 
     cout << "\tTest matrix multiplication.";
@@ -1777,11 +1778,11 @@ void DataArrayViewTestCase::testUnaryOp()
     cout << "\tTest unaryOp on scalar DataArrayView.";
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataArrayView::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -1813,13 +1814,13 @@ void DataArrayViewTestCase::testUnaryOp()
     cout << "\tTest unaryOp on shape (2,3) DataArrayView.";
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(2);
     shape.push_back(3);
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataArrayView::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -1857,7 +1858,7 @@ void DataArrayViewTestCase::testUnaryOp()
     cout << "\tTest unaryOp on shape (9,8,5,11) DataArrayView.";
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(9);
     shape.push_back(8);
     shape.push_back(5);
@@ -1865,7 +1866,7 @@ void DataArrayViewTestCase::testUnaryOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataArrayView::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -1922,12 +1923,12 @@ void DataArrayViewTestCase::testBinaryOp()
     cout << "\tTest binaryOp on scalar DataArrayViews.";
 
     // define the shape for the DataArrayViews
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
 
     // allocate the data for the DataArrayViews
     int npoints=4;
-    DataArrayView::ValueType data1(DataArrayView::noValues(shape)*npoints,0);
-    DataArrayView::ValueType data2(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView1(data1,shape);
@@ -1960,14 +1961,14 @@ void DataArrayViewTestCase::testBinaryOp()
     cout << "\tTest binaryOp on shape (2,3) DataArrayViews.";
 
     // define the shape for the DataArrayViews
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(2);
     shape.push_back(3);
 
     // allocate the data for the DataArrayViews
     int npoints=4;
-    DataArrayView::ValueType data1(DataArrayView::noValues(shape)*npoints,0);
-    DataArrayView::ValueType data2(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView1(data1,shape);
@@ -2008,7 +2009,7 @@ void DataArrayViewTestCase::testBinaryOp()
     cout << "\tTest binaryOp on shape (9,8,5,11) DataArrayViews.";
 
     // define the shape for the DataArrayViews
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(9);
     shape.push_back(8);
     shape.push_back(5);
@@ -2016,8 +2017,8 @@ void DataArrayViewTestCase::testBinaryOp()
 
     // allocate the data for the DataArrayViews
     int npoints=4;
-    DataArrayView::ValueType data1(DataArrayView::noValues(shape)*npoints,0);
-    DataArrayView::ValueType data2(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView1(data1,shape);
@@ -2066,11 +2067,11 @@ void DataArrayViewTestCase::testBinaryOp()
     cout << "\tTest binaryOp on scalar DataArrayView and single value.";
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataArrayView::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -2100,13 +2101,13 @@ void DataArrayViewTestCase::testBinaryOp()
     cout << "\tTest binaryOp on shape (2,3) DataArrayView and single value.";
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(2);
     shape.push_back(3);
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataArrayView::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -2146,7 +2147,7 @@ void DataArrayViewTestCase::testBinaryOp()
     cout << "\tTest binaryOp on shape (9,8,5,11) DataArrayView and single value.";
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(9);
     shape.push_back(8);
     shape.push_back(5);
@@ -2154,7 +2155,7 @@ void DataArrayViewTestCase::testBinaryOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataArrayView::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -2209,11 +2210,11 @@ void DataArrayViewTestCase::testReductionOp()
     cout << "\tTest reductionOp on scalar DataArrayView.";
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataArrayView::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -2241,13 +2242,13 @@ void DataArrayViewTestCase::testReductionOp()
     cout << "\tTest reductionOp on shape (2,3) DataArrayView.";
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(2);
     shape.push_back(3);
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataArrayView::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);
@@ -2279,7 +2280,7 @@ void DataArrayViewTestCase::testReductionOp()
     cout << "\tTest reductionOp on shape (9,8,5,11) DataArrayView.";
 
     // define the shape for the DataArrayView
-    DataArrayView::ShapeType shape;
+    DataTypes::ShapeType shape;
     shape.push_back(9);
     shape.push_back(8);
     shape.push_back(5);
@@ -2287,7 +2288,7 @@ void DataArrayViewTestCase::testReductionOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataArrayView::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
 
     // constructor
     DataArrayView dataView(data,shape);

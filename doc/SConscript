@@ -26,6 +26,7 @@ example_files = os.popen("find " + src_dir + " -name .svn -prune -o -type f -pri
 if 'Zip' in dir(env): env.Zip('#release/doc/escript_examples.zip', example_files)
 env.Alias('examples_zipfile', '#release/doc/escript_examples.zip')
 
+env=Environment(TARFLAGS = '-c -z')
 if 'Tar' in dir(env): env.Tar('#release/doc/escript_examples.tar.gz', example_files)
 env.Alias('examples_tarfile', '#release/doc/escript_examples.tar.gz')
 

@@ -18,7 +18,7 @@ extern "C" {
 }
 
 #include "Data.h"
-#include "DataArrayView.h"
+#include "DataTypes.h"
 
 int getFunctionSpaceType(struct escriptDataC* data) 
 {
@@ -36,8 +36,8 @@ int isDataPointShapeEqual(struct escriptDataC* data, int rank, int* dimensions)
      if (temp->isEmpty()) {
         return true;
      } else {
-          escript::DataArrayView::ShapeType givenShape(&dimensions[0],&dimensions[rank]);
-          return (temp->getPointDataView().getShape()==givenShape);
+          escript::DataTypes::ShapeType givenShape(&dimensions[0],&dimensions[rank]);
+          return (temp->getDataPointShape()==givenShape);
      }
   }
 }
@@ -93,7 +93,7 @@ int getDataPointShape(struct escriptDataC* data,int i)
      if (i<0 || i>=rank) {
         return 1;
      } else {
-        const escript::DataArrayView::ShapeType view=temp->getDataPointShape();
+        const escript::DataTypes::ShapeType view=temp->getDataPointShape();
         return view[i];
      }
   }

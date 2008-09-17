@@ -19,7 +19,6 @@
 
 #include "DataAbstract.h"
 #include "DataBlocks2D.h"
-#include "DataArrayView.h"
 
 #include <boost/python/numeric.hpp>
 
@@ -64,23 +63,23 @@ class DataExpanded : public DataAbstract {
   DataExpanded(const boost::python::numeric::array& value,
                const FunctionSpace& what);
 
-  /**
-     \brief
-     Alternative constructor for DataExpanded.
-
-     Description:
-     Alternative Constructor for DataExpanded.
-
-     The given single data value is copied to all the data points in 
-     this data object, where the number of data points is defined by
-     the given function space.
-
-     \param value - Input - A single data value.
-     \param what - Input - A description of what this data represents.
-  */
-  ESCRIPT_DLL_API
-  DataExpanded(const DataArrayView& value,
-               const FunctionSpace& what);
+//  /**
+//      \brief
+//      Alternative constructor for DataExpanded.
+// 
+//      Description:
+//      Alternative Constructor for DataExpanded.
+// 
+//      The given single data value is copied to all the data points in 
+//      this data object, where the number of data points is defined by
+//      the given function space.
+// 
+//      \param value - Input - A single data value.
+//      \param what - Input - A description of what this data represents.
+//  */
+//   ESCRIPT_DLL_API
+//   DataExpanded(const DataArrayView& value,
+//                const FunctionSpace& what);
 
   /**
      \brief
@@ -92,7 +91,7 @@ class DataExpanded : public DataAbstract {
   */
   ESCRIPT_DLL_API
   DataExpanded(const DataExpanded& other,
-               const DataArrayView::RegionType& region);
+               const DataTypes::RegionType& region);
 
   /**
      \brief
@@ -103,11 +102,13 @@ class DataExpanded : public DataAbstract {
      \param what - Input - A description of what this data object represents.
      \param shape - Input - the shape of each data-point.
      \param data - the array of data values for the data-points.
+
+TODO Note that this constructor will also copy data to all points if it only contains enough elements to hold a single point.  ie this is the merge of two separate constructors.
   */
   ESCRIPT_DLL_API
   DataExpanded(const FunctionSpace& what,
-               const DataArrayView::ShapeType &shape,
-               const DataArrayView::ValueType &data);
+               const DataTypes::ShapeType &shape,
+               const DataTypes::ValueType &data);
 
   /**
      \brief
@@ -178,12 +179,12 @@ class DataExpanded : public DataAbstract {
   */
   ESCRIPT_DLL_API
   virtual
-  DataArrayView::ValueType::size_type
+  DataTypes::ValueType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
-  /**
-     \brief
+//  /**
+/*     \brief
      Return a view into the data array for the data point specified.
 
      NOTE: Construction of the DataArrayView is a relatively expensive 
@@ -191,12 +192,27 @@ class DataExpanded : public DataAbstract {
 
      \param sampleNo - Input - sample number.
      \param dataPointNo - Input - data point number.
-     \return DataArrayView for the data point.
+     \return DataArrayView for the data point.*/
+//  */
+//   ESCRIPT_DLL_API
+//   DataArrayView
+//   getDataPoint(int sampleNo,
+//                int dataPointNo);
+
+
+  /**
+     \brief
+     Return a a reference to the underlying DataVector.
   */
+
   ESCRIPT_DLL_API
-  DataArrayView
-  getDataPoint(int sampleNo,
-               int dataPointNo);
+  DataTypes::ValueType&
+  getVector();
+
+  ESCRIPT_DLL_API
+  const DataTypes::ValueType&
+  getVector() const;
+
 
   /**
      \brief
@@ -217,7 +233,7 @@ class DataExpanded : public DataAbstract {
   ESCRIPT_DLL_API
   virtual
   DataAbstract*
-  getSlice(const DataArrayView::RegionType& region) const;
+  getSlice(const DataTypes::RegionType& region) const;
 
   /**
      \brief
@@ -230,32 +246,26 @@ class DataExpanded : public DataAbstract {
   virtual
   void
   setSlice(const DataAbstract* value,
-           const DataArrayView::RegionType& region);
+           const DataTypes::RegionType& region);
 
-  /**
-    \brief
-    Archive the underlying data values to the file referenced
-    by ofstream. A count of the number of values expected to be written
-    is provided as a cross-check.
 
-    The return value indicates success (0) or otherwise (1).
-  */
-  ESCRIPT_DLL_API
-  int
-  archiveData(std::ofstream& archiveFile,
-              const DataArrayView::ValueType::size_type noValues) const;
+//  /**
+/*     \brief
+     setTaggedValue
 
-  /**
-    \brief
-    Extract the number of values specified by noValues from the file
-    referenced by ifstream to the underlying data structure.
+     Description:
+     uses tag to set a new value
 
-    The return value indicates success (0) or otherwise (1).
-  */
-  ESCRIPT_DLL_API
-  int
-  extractData(std::ifstream& archiveFile,
-              const DataArrayView::ValueType::size_type noValues);
+     \param tagKey - Input - Integer key.
+     \param value - Input - Single DataArrayView value to be assigned to the tag.*/
+//  */
+//   ESCRIPT_DLL_API
+//   virtual
+//   void
+//   setTaggedValue(int tagKey,
+//                  const DataArrayView& value);
+
+
 
   /**
      \brief
@@ -265,13 +275,16 @@ class DataExpanded : public DataAbstract {
      uses tag to set a new value
 
      \param tagKey - Input - Integer key.
-     \param value - Input - Single DataArrayView value to be assigned to the tag.
+     \param pointshape - Input - The shape of the value parameter
+     \param value - Input - .
   */
-  ESCRIPT_DLL_API
-  virtual
-  void
+  void  
   setTaggedValue(int tagKey,
-                 const DataArrayView& value);
+ 	         const DataTypes::ShapeType& pointshape,
+                 const DataTypes::ValueType& value,
+		 int dataOffset=0);
+
+
 
   /**
      \brief
@@ -382,13 +395,11 @@ class DataExpanded : public DataAbstract {
      given shape and number of data points, and creates the corresponding
      DataArrayView of this data.
 
-     \param shape - Input - The shape of the point data.
      \param noSamples - Input - number of samples.
      \param noDataPointsPerSample - Input - number of data points per sample.
   */
   void
-  initialise(const DataArrayView::ShapeType& shape,
-             int noSamples,
+  initialise(int noSamples,
              int noDataPointsPerSample);
 
   /**
@@ -401,7 +412,9 @@ class DataExpanded : public DataAbstract {
      \param value Input - A single data point value.
   */
   void
-  copy(const DataArrayView& value);
+  copy(const DataConstant& value);
+
+
 
   /**
      \brief

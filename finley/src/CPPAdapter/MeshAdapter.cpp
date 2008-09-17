@@ -807,7 +807,7 @@ void MeshAdapter::addPDEToTransportProblem(
                                            const escript::Data& d, const escript::Data& y, 
                                            const escript::Data& d_contact,const escript::Data& y_contact) const
 {
-   DataArrayView::ShapeType shape;
+   DataTypes::ShapeType shape;
    source.expand();
    escriptDataC _source=source.getDataC();
    escriptDataC _M=M.getDataC();
