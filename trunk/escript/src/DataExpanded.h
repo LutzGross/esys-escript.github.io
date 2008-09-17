@@ -150,6 +150,16 @@ TODO Note that this constructor will also copy data to all points if it only con
   virtual
   std::string
   toString() const;
+
+  /**
+     \brief Return a deep copy of the current object.
+  */
+  ESCRIPT_DLL_API
+  virtual
+  DataAbstract*
+  deepCopy();
+
+
  /**
      \brief
      dumps the object into a netCDF file

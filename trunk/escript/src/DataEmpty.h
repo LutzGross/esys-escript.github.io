@@ -62,6 +62,15 @@ class DataEmpty : public DataAbstract {
   toString() const;
 
   /**
+     \brief Return a deep copy of the current object.
+  */
+  ESCRIPT_DLL_API
+  virtual
+  DataAbstract*
+  deepCopy();
+
+
+  /**
      \brief
      Return the offset for the given sample.
      NB: This will throw an exception as obviously an empty Data object contains no

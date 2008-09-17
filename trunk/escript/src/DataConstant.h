@@ -105,6 +105,16 @@ class DataConstant : public DataAbstract  {
   ESCRIPT_DLL_API
   std::string
   toString() const;
+
+  /**
+     \brief Return a deep copy of the current object.
+  */
+  ESCRIPT_DLL_API
+  virtual
+  DataAbstract*
+  deepCopy();
+
+
  /**
      \brief
      dumps the object into a netCDF file

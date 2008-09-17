@@ -413,56 +413,25 @@ Data::getShapeTuple() const
         throw DataException("Error - illegal Data rank.");
   }
 }
+
+
+// The different name is needed because boost has trouble with overloaded functions.
+// It can't work out what type the function is based soley on its name.
+// There are ways to fix this involving creating function pointer variables for each form
+// but there doesn't seem to be a need given that the methods have the same name from the python point of view
+Data*
+Data::copySelf()
+{
+   DataAbstract* temp=m_data->deepCopy();
+   return new Data(temp);
+}
+
 void
 Data::copy(const Data& other)
 {
-  //
-  // Perform a deep copy
-  {
-    DataExpanded* temp=dynamic_cast<DataExpanded*>(other.m_data.get());
-    if (temp!=0) {
-      //
-      // Construct a DataExpanded copy
-      DataAbstract* newData=new DataExpanded(*temp);
-      shared_ptr<DataAbstract> temp_data(newData);
-      m_data=temp_data;
-      return;
-    }
-  }
-  {
-    DataTagged* temp=dynamic_cast<DataTagged*>(other.m_data.get());
-    if (temp!=0) {
-      //
-      // Construct a DataTagged copy
-      DataAbstract* newData=new DataTagged(*temp);
-      shared_ptr<DataAbstract> temp_data(newData);
-      m_data=temp_data;
-      return;
-    }
-  }
-  {
-    DataConstant* temp=dynamic_cast<DataConstant*>(other.m_data.get());
-    if (temp!=0) {
-      //
-      // Construct a DataConstant copy
-      DataAbstract* newData=new DataConstant(*temp);
-      shared_ptr<DataAbstract> temp_data(newData);
-      m_data=temp_data;
-      return;
-    }
-  }
-  {
-    DataEmpty* temp=dynamic_cast<DataEmpty*>(other.m_data.get());
-    if (temp!=0) {
-      //
-      // Construct a DataEmpty copy
-      DataAbstract* newData=new DataEmpty();
-      shared_ptr<DataAbstract> temp_data(newData);
-      m_data=temp_data;
-      return;
-    }
-  }
-  throw DataException("Error - Copy not implemented for this Data type.");
+  DataAbstract* temp=other.m_data->deepCopy();
+  shared_ptr<DataAbstract> temp_data(temp);
+  m_data=temp_data;
 }
 
 

@@ -197,6 +197,13 @@ DataExpanded::~DataExpanded()
 }
 
 DataAbstract*
+DataExpanded::deepCopy()
+{
+  return new DataExpanded(*this);
+}
+
+
+DataAbstract*
 DataExpanded::getSlice(const DataTypes::RegionType& region) const
 {
   return new DataExpanded(*this,region);

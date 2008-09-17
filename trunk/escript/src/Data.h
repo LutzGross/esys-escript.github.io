@@ -213,12 +213,21 @@ class Data {
   ~Data();
 
   /**
-     \brief
-     Perform a deep copy.
+     \brief Make this object a deep copy of "other".
   */
   ESCRIPT_DLL_API
   void
   copy(const Data& other);
+
+  /**
+     \brief Return a pointer to a deep copy of this object.
+  */
+  ESCRIPT_DLL_API
+  Data*
+  copySelf();
+
+
+
 
   /**
      Member access methods.

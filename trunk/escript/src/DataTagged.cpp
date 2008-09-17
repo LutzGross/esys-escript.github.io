@@ -201,7 +201,11 @@ DataTagged::DataTagged(const FunctionSpace& what,
   }
 }
 
-
+DataAbstract*
+DataTagged::deepCopy()
+{
+  return new DataTagged(*this);
+}
 
 DataAbstract*
 DataTagged::getSlice(const DataTypes::RegionType& region) const 

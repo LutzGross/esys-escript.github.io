@@ -46,6 +46,7 @@ class DataTestCase : public CppUnitTest::TestCase
   void testSlicing();
   void testOperations();
   void testMemAlloc();
+  void testCopying();
 
   DataTestCase (std::string name) : TestCase (name) {}
   ~DataTestCase() {}
