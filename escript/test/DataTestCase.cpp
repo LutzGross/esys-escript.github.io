@@ -65,6 +65,123 @@ getRef(Data& d, int x, int y)
 
 }
 
+// This is to test new copy routines, existing tests should remain where they are
+void DataTestCase::testCopying()
+{
+  using namespace escript::DataTypes;
+  cout << endl;
+  {
+	// first we test the deep copy
+	cout << "\tTest deep copy DataConstant" << endl;
+	DataTypes::ShapeType shape;
+	shape.push_back(2);
+	shape.push_back(3);
+	DataTypes::ValueType data(DataTypes::noValues(shape),1);
+	DataConstant* dc=new DataConstant(FunctionSpace(),shape,data);
+	Data d(dc);
+	
+	Data* deep=d.copySelf();	// test self copy
+	for (int i=0;i<DataTypes::noValues(shape);++i)
+	{
+	   if (d.getDataAtOffset(i)!=deep->getDataAtOffset(i))
+		assert(false);
+	}
+	d.setToZero();
+	for (int i=0;i<DataTypes::noValues(shape);++i)
+	{
+	   if (d.getDataAtOffset(i)==deep->getDataAtOffset(i))
+		assert(false);
+	}
+	d.copy(*deep);			// test copy from object
+	for (int i=0;i<DataTypes::noValues(shape);++i)
+	{
+	   if (d.getDataAtOffset(i)!=deep->getDataAtOffset(i))
+		assert(false);
+	}
+	d.setToZero();
+	for (int i=0;i<DataTypes::noValues(shape);++i)
+	{
+	   if (d.getDataAtOffset(i)==deep->getDataAtOffset(i))
+		assert(false);
+	}
+	delete deep;
+  }
+
+  {
+	// first we test the deep copy
+	cout << "\tTest deep copy DataExpanded" << endl;
+	DataTypes::ShapeType shape;
+	shape.push_back(2);
+	shape.push_back(3);
+	DataTypes::ValueType data(DataTypes::noValues(shape),1);
+	DataExpanded* dc=new DataExpanded(FunctionSpace(),shape,data);
+	Data d(dc);
+	
+	Data* deep=d.copySelf();	// test self copy
+	for (int i=0;i<DataTypes::noValues(shape);++i)
+	{
+	   if (d.getDataAtOffset(i)!=deep->getDataAtOffset(i))
+		assert(false);
+	}
+	d.setToZero();
+	for (int i=0;i<DataTypes::noValues(shape);++i)
+	{
+	   if (d.getDataAtOffset(i)==deep->getDataAtOffset(i))
+		assert(false);
+	}
+	d.copy(*deep);			// test copy from object
+	for (int i=0;i<DataTypes::noValues(shape);++i)
+	{
+	   if (d.getDataAtOffset(i)!=deep->getDataAtOffset(i))
+		assert(false);
+	}
+	d.setToZero();
+	for (int i=0;i<DataTypes::noValues(shape);++i)
+	{
+	   if (d.getDataAtOffset(i)==deep->getDataAtOffset(i))
+		assert(false);
+	}
+	delete deep;
+  }
+  {
+	// first we test the deep copy
+	cout << "\tTest deep copy DataTagged" << endl;
+	DataTypes::ShapeType shape;
+	shape.push_back(2);
+	shape.push_back(3);
+	DataTypes::ValueType data(DataTypes::noValues(shape),1);
+	DataTagged* dc=new DataTagged(FunctionSpace(),shape,data);
+	Data d(dc);
+	
+	Data* deep=d.copySelf();	// test self copy
+	for (int i=0;i<DataTypes::noValues(shape);++i)
+	{
+	   if (d.getDataAtOffset(i)!=deep->getDataAtOffset(i))
+		assert(false);
+	}
+	d.setToZero();
+	for (int i=0;i<DataTypes::noValues(shape);++i)
+	{
+	   if (d.getDataAtOffset(i)==deep->getDataAtOffset(i))
+		assert(false);
+	}
+	d.copy(*deep);			// test copy from object
+	for (int i=0;i<DataTypes::noValues(shape);++i)
+	{
+	   if (d.getDataAtOffset(i)!=deep->getDataAtOffset(i))
+		assert(false);
+	}
+	d.setToZero();
+	for (int i=0;i<DataTypes::noValues(shape);++i)
+	{
+	   if (d.getDataAtOffset(i)==deep->getDataAtOffset(i))
+		assert(false);
+	}
+	delete deep;
+  }
+
+}
+
 void DataTestCase::testSlicing() {
 
   using namespace escript::DataTypes;
@@ -1073,7 +1190,7 @@ TestSuite* DataTestCase::suite ()
   //
   // create the suite of tests to perform.
   TestSuite *testSuite = new TestSuite ("DataTestCase");
-
+  testSuite->addTest (new TestCaller< DataTestCase>("testCopying",&DataTestCase::testCopying));
   testSuite->addTest (new TestCaller< DataTestCase>("testAll",&DataTestCase::testAll));
   testSuite->addTest (new TestCaller< DataTestCase>("testMore",&DataTestCase::testMore));
   testSuite->addTest (new TestCaller< DataTestCase>("testDataConstant",&DataTestCase::testDataConstant));

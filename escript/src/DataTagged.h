@@ -170,6 +170,15 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   ~DataTagged() {};
 
   /**
+     \brief Return a deep copy of the current object.
+  */
+  ESCRIPT_DLL_API
+  virtual
+  DataAbstract*
+  deepCopy();
+
+
+  /**
      \brief
      getSampleDataByTag
 

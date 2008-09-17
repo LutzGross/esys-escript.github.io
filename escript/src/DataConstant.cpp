@@ -124,6 +124,14 @@ DataConstant::toString() const
   return DataTypes::pointToString(m_data,getShape(),0,"");
 }
 
+
+DataAbstract*
+DataConstant::deepCopy()
+{
+  return new DataConstant(*this);
+}
+
+
 DataTypes::ValueType::size_type
 DataConstant::getPointOffset(int sampleNo,
                              int dataPointNo) const

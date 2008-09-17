@@ -52,6 +52,13 @@ DataEmpty::toString() const
   return "(Empty Data)";
 }
 
+
+DataAbstract*
+DataEmpty::deepCopy()
+{
+  return new DataEmpty();
+}
+
 DataTypes::ValueType::size_type
 DataEmpty::getPointOffset(int sampleNo,
                           int dataPointNo) const 
