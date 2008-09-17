@@ -114,7 +114,6 @@ Data::Data(const Data& inData,
   } else if (inData.isConstant()) {	// for a constant function, we just need to use the new function space
     if (!inData.probeInterpolation(functionspace))
     {           // Even though this is constant, we still need to check whether interpolation is allowed
-	cout << "Failed interpolation check\n";
 	throw FunctionSpaceException("Call to probeInterpolation returned false for DataConstant.");
     }
     DataConstant* dc=new DataConstant(functionspace,inData.m_data->getShape(),inData.m_data->getVector());	
