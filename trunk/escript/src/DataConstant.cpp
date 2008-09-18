@@ -322,28 +322,28 @@ DataConstant::dump(const std::string fileName) const
 
    if (rank == 0) {
       if( ! (ncdims[0] = dataFile.add_dim("l", 1)) )
-		throw DataException("Error - DataConstant:: appending ncdimsion 0 to netCDF file failed.");
+		throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");
       dims[0]=1,
       ndims=1;
    } else {
        ndims=rank;
        dims[0]=shape[0];
        if (! (ncdims[0] = dataFile.add_dim("d0",shape[0])) )
-		throw DataException("Error - DataConstant:: appending ncdimsion 0 to netCDF file failed.");
+		throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");
        if ( rank >1 ) {
            dims[1]=shape[1];
            if (! (ncdims[1] = dataFile.add_dim("d1",shape[1])) )
-		throw DataException("Error - DataConstant:: appending ncdimsion 1 to netCDF file failed.");
+		throw DataException("Error - DataConstant:: appending ncdimension 1 to netCDF file failed.");
        }
        if ( rank >2 ) {
            dims[2]=shape[2];
            if (! (ncdims[2] = dataFile.add_dim("d2", shape[2])) )
-		throw DataException("Error - DataConstant:: appending ncdimsion 2 to netCDF file failed.");
+		throw DataException("Error - DataConstant:: appending ncdimension 2 to netCDF file failed.");
        }
        if ( rank >3 ) {
            dims[3]=shape[3];
            if (! (ncdims[3] = dataFile.add_dim("d3", shape[3])) )
-		throw DataException("Error - DataConstant:: appending ncdimsion 3 to netCDF file failed.");
+		throw DataException("Error - DataConstant:: appending ncdimension 3 to netCDF file failed.");
        }
    }
 

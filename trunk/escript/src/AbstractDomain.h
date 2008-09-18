@@ -22,6 +22,7 @@
 #include <map>
 #include <boost/python/dict.hpp>
 #include <boost/python/list.hpp>
+#include "paso/Paso_MPI.h"
 
 namespace escript {
 // class forward declarations
@@ -99,6 +100,13 @@ class AbstractDomain {
 
   ESCRIPT_DLL_API
   virtual int getMPIRank() const;
+  /**
+     \brief
+     return the MPI communicator
+  */
+
+  ESCRIPT_DLL_API
+  virtual MPI_Comm getMPIComm() const;
 
 
 

@@ -19,6 +19,10 @@
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
+#ifdef PASO_MPI
+#include <mpi.h>
+#include "paso/Paso_MPI.h"
+#endif
 extern "C" {
 #include "escript/blocktimer.h"
 }
@@ -83,6 +87,10 @@ int MeshAdapter::getMPIRank() const
 {
    return m_finleyMesh.get()->MPIInfo->rank;
 }
+MPI_Comm MeshAdapter::getMPIComm() const
+{
+   return m_finleyMesh.get()->MPIInfo->comm;
+}
 
 
 Finley_Mesh* MeshAdapter::getFinley_Mesh() const {
@@ -123,12 +131,21 @@ void MeshAdapter::dump(const std::string& fileName) const
    int num_Elements_numNodes		= mesh->Elements->numNodes;
    int num_FaceElements_numNodes	= mesh->FaceElements->numNodes;
    int num_ContactElements_numNodes	= mesh->ContactElements->numNodes;
+#ifdef PASO_MPI
+   MPI_Status status;
+#endif
+
+/* Incoming token indicates it's my turn to write */
+#ifdef PASO_MPI
+   if (mpi_rank>0) MPI_Recv(&num_Tags, 0, MPI_INT, mpi_rank-1, 81800, mesh->MPIInfo->comm, &status);
+#endif
 
    char *newFileName = Paso_MPI_appendRankToFileName(fileName.c_str(),
                                                      mpi_size, mpi_rank);
 
    /* Figure out how much storage is required for tags */
    tag_map = mesh->TagMap;
+   num_Tags = 0;
    if (tag_map) {
       while (tag_map) {
          num_Tags++;
@@ -492,8 +509,13 @@ void MeshAdapter::dump(const std::string& fileName) const
 
    }
 
+/* Send token to next MPI process so he can take his turn */
+#ifdef PASO_MPI
+   if (mpi_rank<mpi_size-1) MPI_Send(&num_Tags, 0, MPI_INT, mpi_rank+1, 81800, mesh->MPIInfo->comm);
+#endif
 
    // NetCDF file is closed by destructor of NcFile object
+
 #else
    Finley_setError(IO_ERROR, "MeshAdapter::dump: not configured with NetCDF. Please contact your installation manager.");
 #endif	/* USE_NETCDF */
