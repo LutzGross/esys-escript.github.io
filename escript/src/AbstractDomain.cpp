@@ -16,6 +16,7 @@
 #include "AbstractDomain.h" 
 #include "DomainException.h"
 #include "Data.h"
+#include "paso/Paso_MPI.h"
 
 using namespace std;
 
@@ -32,6 +33,10 @@ int AbstractDomain::getMPISize() const
    return 1;
 }
 int AbstractDomain::getMPIRank() const
+{
+   return 0;
+}
+MPI_Comm AbstractDomain::getMPIComm() const
 {
    return 0;
 }

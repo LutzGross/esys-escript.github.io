@@ -13,6 +13,7 @@
  *
  *******************************************************/
 
+#include "Data.h"
 #include "DataExpanded.h"
 #include "DataException.h"
 #include "DataConstant.h"
@@ -770,14 +771,17 @@ DataExpanded::dump(const std::string fileName) const
    long dims[ldims];
    const double* d_ptr=&(m_data[0]);
    const DataTypes::ShapeType& shape = getShape();
-   int mpi_iam=0, mpi_num=1;
+   int mpi_iam=getFunctionSpace().getDomain().getMPIRank();
+   int mpi_num=getFunctionSpace().getDomain().getMPISize();
+#ifdef PASO_MPI
+   MPI_Status status;
+#endif
 
    // netCDF error handler
    NcError err(NcError::verbose_nonfatal);
    // Create the file.
 #ifdef PASO_MPI
-   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_iam);
-   MPI_Comm_size(MPI_COMM_WORLD, &mpi_num);
+   if (mpi_iam>0) MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81801, getFunctionSpace().getDomain().getMPIComm(), &status);
 #endif
    char *newFileName = Escript_MPI_appendRankToFileName(fileName.c_str(), mpi_num, mpi_iam);
    NcFile dataFile(newFileName, NcFile::Replace);
@@ -794,22 +798,22 @@ DataExpanded::dump(const std::string fileName) const
    if ( rank >0 ) {
        dims[0]=shape[0];
        if (! (ncdims[0] = dataFile.add_dim("d0",shape[0])) )
-            throw DataException("Error - DataExpanded:: appending ncdimsion 0 to netCDF file failed.");
+            throw DataException("Error - DataExpanded:: appending ncdimension 0 to netCDF file failed.");
    }
    if ( rank >1 ) {
        dims[1]=shape[1];
        if (! (ncdims[1] = dataFile.add_dim("d1",shape[1])) )
-            throw DataException("Error - DataExpanded:: appending ncdimsion 1 to netCDF file failed.");
+            throw DataException("Error - DataExpanded:: appending ncdimension 1 to netCDF file failed.");
    }
    if ( rank >2 ) {
        dims[2]=shape[2];
        if (! (ncdims[2] = dataFile.add_dim("d2", shape[2])) )
-            throw DataException("Error - DataExpanded:: appending ncdimsion 2 to netCDF file failed.");
+            throw DataException("Error - DataExpanded:: appending ncdimension 2 to netCDF file failed.");
    }
    if ( rank >3 ) {
        dims[3]=shape[3];
        if (! (ncdims[3] = dataFile.add_dim("d3", shape[3])) )
-            throw DataException("Error - DataExpanded:: appending ncdimsion 3 to netCDF file failed.");
+            throw DataException("Error - DataExpanded:: appending ncdimension 3 to netCDF file failed.");
    }
    dims[rank]=getFunctionSpace().getNumDataPointsPerSample();
    if (! (ncdims[rank] = dataFile.add_dim("num_data_points_per_sample", dims[rank])) )
@@ -828,6 +832,9 @@ DataExpanded::dump(const std::string fileName) const
         throw DataException("Error - DataExpanded:: appending variable to netCDF file failed.");
    if (! (var->put(d_ptr,dims)) )
         throw DataException("Error - DataExpanded:: copy data to netCDF buffer failed.");
+#ifdef PASO_MPI
+   if (mpi_iam<mpi_num-1) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81801, getFunctionSpace().getDomain().getMPIComm());
+#endif
    #else
    throw DataException("Error - DataExpanded:: dump is not configured with netCDF. Please contact your installation manager.");
    #endif

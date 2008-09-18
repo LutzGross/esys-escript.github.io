@@ -15,6 +15,7 @@
 
 #ifdef PASO_MPI
 #include <mpi.h>
+#include "paso/Paso_MPI.h"
 #endif
 extern "C" {
 #include "../Finley.h"
@@ -165,7 +166,8 @@ BOOST_PYTHON_MODULE(finleycpp)
       .def("isValidTagName",&finley::MeshAdapter::isValidTagName)
       .def("showTagNames",&finley::MeshAdapter::showTagNames)
       .def("getMPISize",&finley::MeshAdapter::getMPISize)
-      .def("getMPIRank",&finley::MeshAdapter::getMPIRank);
+      .def("getMPIRank",&finley::MeshAdapter::getMPIRank)
+      .def("getMPIComm",&finley::MeshAdapter::getMPIComm);
 
   class_<finley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >
       ("OperatorAdapter",no_init)

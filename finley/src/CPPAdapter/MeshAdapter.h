@@ -23,6 +23,7 @@ extern "C" {
 #include "../Assemble.h"
 #include "paso/SystemMatrix.h"
 #include "paso/SolverFCT.h"
+#include "paso/Paso_MPI.h"
 }
 
 #include "FinleyError.h"
@@ -139,6 +140,14 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   FINLEY_DLL_API
   virtual int getMPIRank() const;
+
+  /**
+     \brief
+     return the MPI communicator
+  */
+
+  FINLEY_DLL_API
+  virtual MPI_Comm getMPIComm() const;
 
   /**
      \brief
