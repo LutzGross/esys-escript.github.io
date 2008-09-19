@@ -166,8 +166,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       .def("isValidTagName",&finley::MeshAdapter::isValidTagName)
       .def("showTagNames",&finley::MeshAdapter::showTagNames)
       .def("getMPISize",&finley::MeshAdapter::getMPISize)
-      .def("getMPIRank",&finley::MeshAdapter::getMPIRank)
-      .def("getMPIComm",&finley::MeshAdapter::getMPIComm);
+      .def("getMPIRank",&finley::MeshAdapter::getMPIRank);
 
   class_<finley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >
       ("OperatorAdapter",no_init)

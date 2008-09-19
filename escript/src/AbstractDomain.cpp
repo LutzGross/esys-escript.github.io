@@ -36,10 +36,6 @@ int AbstractDomain::getMPIRank() const
 {
    return 0;
 }
-MPI_Comm AbstractDomain::getMPIComm() const
-{
-   return 0;
-}
 
 
 void AbstractDomain::throwStandardException(const std::string& functionName) const

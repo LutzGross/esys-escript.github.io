@@ -87,10 +87,6 @@ int MeshAdapter::getMPIRank() const
 {
    return m_finleyMesh.get()->MPIInfo->rank;
 }
-MPI_Comm MeshAdapter::getMPIComm() const
-{
-   return m_finleyMesh.get()->MPIInfo->comm;
-}
 
 
 Finley_Mesh* MeshAdapter::getFinley_Mesh() const {

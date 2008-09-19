@@ -781,7 +781,7 @@ DataExpanded::dump(const std::string fileName) const
    NcError err(NcError::verbose_nonfatal);
    // Create the file.
 #ifdef PASO_MPI
-   if (mpi_iam>0) MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81801, getFunctionSpace().getDomain().getMPIComm(), &status);
+   if (mpi_iam>0) MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81801, MPI_COMM_WORLD, &status);
 #endif
    char *newFileName = Escript_MPI_appendRankToFileName(fileName.c_str(), mpi_num, mpi_iam);
    NcFile dataFile(newFileName, NcFile::Replace);
@@ -833,7 +833,7 @@ DataExpanded::dump(const std::string fileName) const
    if (! (var->put(d_ptr,dims)) )
         throw DataException("Error - DataExpanded:: copy data to netCDF buffer failed.");
 #ifdef PASO_MPI
-   if (mpi_iam<mpi_num-1) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81801, getFunctionSpace().getDomain().getMPIComm());
+   if (mpi_iam<mpi_num-1) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81801, MPI_COMM_WORLD);
 #endif
    #else
    throw DataException("Error - DataExpanded:: dump is not configured with netCDF. Please contact your installation manager.");
