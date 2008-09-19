@@ -143,14 +143,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
-     return the MPI communicator
-  */
-
-  FINLEY_DLL_API
-  virtual MPI_Comm getMPIComm() const;
-
-  /**
-     \brief
      return this as an AbstractContinuousDomain.
   */
   inline const AbstractContinuousDomain& asAbstractContinuousDomain() const 

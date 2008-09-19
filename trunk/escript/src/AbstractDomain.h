@@ -100,13 +100,6 @@ class AbstractDomain {
 
   ESCRIPT_DLL_API
   virtual int getMPIRank() const;
-  /**
-     \brief
-     return the MPI communicator
-  */
-
-  ESCRIPT_DLL_API
-  virtual MPI_Comm getMPIComm() const;
 
 
 

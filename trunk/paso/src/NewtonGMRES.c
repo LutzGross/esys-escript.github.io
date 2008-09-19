@@ -128,7 +128,7 @@ err_t Paso_Solver_NewtonGMRES(
       if (debug) {
            if (convergeFlag) printf("convergence reached after %d steps with residual %e.\n",iteration_count,norm_f);
            if (breakFlag)  printf("iteration break down after %d steps.\n",iteration_count);
-           if (maxIterFlag)  printf("maximum number of iteration step %s is reached.\n",maxit);
+           if (maxIterFlag)  printf("maximum number of iteration step %d is reached.\n",maxit);
       }
       if (breakFlag) Status=SOLVER_BREAKDOWN;
       if (maxIterFlag) Status=SOLVER_MAXITER_REACHED;
