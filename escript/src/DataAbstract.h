@@ -228,20 +228,6 @@ class DataAbstract {
   bool
   validSampleNo(int sampleNo) const;
 
-//  /**
-//      \brief
-//      Return a view into the data for the data point specified.
-//      NOTE: Construction of the DataArrayView is a relatively expensive
-//      operation.
-// 
-//      \param sampleNo - Input - the sample number.
-//      \param dataPointNo - Input - the data point number.
-//  */
-//   ESCRIPT_DLL_API
-//   virtual
-//   DataArrayView
-//   getDataPoint(int sampleNo,
-//                int dataPointNo) = 0;
 
   /**
      \brief

@@ -21,6 +21,7 @@
 #include "NullDomain.h"
 
 #include <string>
+#include <list>
 
 // This stops the friend declaration below from looking like a
 // declaration of escript::FunctionSpaceTestCase.
@@ -88,6 +89,8 @@ class FunctionSpace {
   /**
     \brief
     Return the function space type code.
+
+    Note: The meaning of the code depends on the domain object the FunctionSpace is built on.
   */
   ESCRIPT_DLL_API
   int
@@ -102,6 +105,12 @@ class FunctionSpace {
   AbstractDomain&
   getDomain() const;
 
+ /**
+ \brief Checks if this functionspace support tags
+ */
+  ESCRIPT_DLL_API
+  bool
+  canTag() const;
 
 
   /**
@@ -275,11 +284,18 @@ class FunctionSpace {
   }
   /**
    \brief
-   Returns a list of the lags used in this function space
+   Returns a list of the tags used in this function space
   */
   ESCRIPT_DLL_API
   boost::python::list
   getListOfTags() const;
+  /**
+   \brief
+   Returns an stl::list of the tags used in this function space
+  */
+  ESCRIPT_DLL_API
+  std::list<int>
+  getListOfTagsSTL() const;
 
   /**
      \brief

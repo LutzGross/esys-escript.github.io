@@ -224,7 +224,15 @@ FunctionSpace::borrowListOfTagsInUse() const
    return  m_domain->borrowListOfTagsInUse(m_functionSpaceType);
 }
 
-
+std::list<int>
+FunctionSpace::getListOfTagsSTL() const 
+{
+  std::list<int> taglist;
+  int i;
+  int* tags=borrowListOfTagsInUse();
+  for (i=0;i<getNumberOfTagsInUse();++i) taglist.push_back(tags[i]);
+  return taglist;
+}
 
 
 boost::python::list
@@ -235,6 +243,12 @@ FunctionSpace::getListOfTags() const
   int* tags=borrowListOfTagsInUse();
   for (i=0;i<getNumberOfTagsInUse();++i) taglist.append(tags[i]);
   return taglist;
+}
+
+bool
+FunctionSpace::canTag() const
+{
+  return m_domain->canTag(m_functionSpaceType);
 }
 
 }  // end of namespace

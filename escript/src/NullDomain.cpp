@@ -17,6 +17,13 @@
 
 namespace escript {
 
+namespace {
+int defaultList[1]={0};		// an array to return in borrowListOfTagsInUse();
+int NullDomainFS=1;		// Null domains only support 1 functionspace type.
+			// The choice of =1 as the value is arbitrary
+}
+
+
 NullDomain::NullDomain() {
 }
  
@@ -34,58 +41,42 @@ std::string NullDomain::getDescription() const
  
 int NullDomain::getContinuousFunctionCode() const 
 {
-  //
-  // return an arbitary value
-  return 1;
+  return NullDomainFS;
 }
  
 int NullDomain::getFunctionCode() const 
 {
-  //
-  // return an arbitary value
-  return 1;
+  return NullDomainFS;
 }
 
 int NullDomain::getFunctionOnBoundaryCode() const 
 {
-  //
-  // return an arbitary value
-  return 1;
+  return NullDomainFS;
 }
  
 int NullDomain::getFunctionOnContactZeroCode() const
 {
-  //
-  // return an arbitary value
-  return 1;
+  return NullDomainFS;
 }
 
 int NullDomain::getFunctionOnContactOneCode() const 
 {
-  //
-  // return an arbitary value
-  return 1;
+  return NullDomainFS;
 }
  
 int NullDomain::getSolutionCode() const 
 {
-  //
-  // return an arbitary value
-  return 1;
+  return NullDomainFS;
 }
  
 int NullDomain::getReducedSolutionCode() const
 {
-  //
-  // return an arbitary value
-  return 1;
+  return NullDomainFS;
 }
 
 int NullDomain::getDiracDeltaFunctionCode() const
 {
-  //
-  // return an arbitary value
-  return 1;
+  return NullDomainFS;
 }
 
 std::pair<int,int> NullDomain::getDataShape(int functionSpaceCode) const
@@ -132,5 +123,24 @@ bool NullDomain::operator!=(const AbstractDomain& other) const
 {
   return(!(*this==other));
 }
+
+
+
+bool NullDomain::canTag(int functionSpaceCode) const
+{
+  return true;
+}
+
+int NullDomain::getNumberOfTagsInUse(int functionSpaceCode) const
+{
+  return 1;	// this is not arbitrary. It allows us to report that the default tag is in use
+}
+
+int* NullDomain::borrowListOfTagsInUse(int functionSpaceCode) const
+{
+  return defaultList;
+}
+
+
 
 }  // end of namespace

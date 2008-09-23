@@ -26,15 +26,56 @@
 #include "escript/FunctionSpaceFactory.h"
 #include "escript/DataFactory.h"
 
+#include "escript/FunctionSpace.h"
+// #include "finley/CppAdapter/MeshAdapter.h"
+#include "escript/DataTypes.h"
+
 #include <iostream>
 #include <functional>
 #include <algorithm>
+
+
 
 using namespace CppUnitTest;
 using namespace escript;
 using namespace esysUtils;
 using namespace std;
 using namespace escript::DataTypes;
+// using finley::MeshAdapter;
+
+// namespace {
+// std::string constr(FunctionSpace& fs)
+// {
+//    
+//    try
+//    {
+// 	int t[1];
+// 	DataTagged dt(fs,DataTypes::scalarShape,t,DataTypes::ValueType());
+// 	
+// 	return "DataTagged(const FunctionSpace& what, const DataTypes::ShapeType &shape, const int tags[], const ValueType& data) was supposed to throw.";
+//    } catch (DataException d){}
+//    try
+//    {
+// 	DataTagged t(fs,DataTypes::scalarShape,DataTagged::TagListType(),DataTypes::ValueType());
+// 	return "DataTagged(const FunctionSpace& what, const DataTypes::ShapeType &shape, const TagListType& tags, const ValueType& data) was supposed to throw.";
+//    } catch (DataException d){}
+//    try
+//    {
+// 	DataTagged t(fs,DataTypes::scalarShape,DataTypes::ValueType());
+// 	return "  DataTagged(const FunctionSpace& what, const DataTypes::ShapeType& shape, const DataTypes::ValueType& defaultvalue, const DataTagged* tagsource=0) was supposed to throw.";
+//    } catch (DataException d){}
+//    try
+//    {
+//     	DataTypes::ValueType viewData1(1);
+//     	viewData1[0]=0.0;
+// 	DataConstant c(fs,DataTypes::scalarShape, viewData1);
+// 	DataTagged t(c);
+// 	return "DataTagged(const DataConstant& other) was supposed to throw.";
+//    } catch (DataException d){}
+// 
+// }
+// 
+// }
 
 void DataTaggedTestCase::setUp() {
   //
@@ -5113,6 +5154,45 @@ void DataTaggedTestCase::testSetSlice() {
 
 }
 
+/*
+// Testing to see if FunctionSpaces are checked for taggability before use
+void DataTaggedTestCase::testFunctionSpaces()
+{
+   {
+	cout << "\tTest Non-Taggable Degrees Of Freedom." << endl;
+	MeshAdapter d;
+	FunctionSpace fs=solution(d);
+	std::string res=constr(fs);
+	if (!res.empty())
+	{
+		cout << "\t\t" << res << endl;
+		assert(false);
+	}
+   }
+   {
+	cout << "\tTest Non-Taggable Reduced Degrees Of Freedom." << endl;
+	MeshAdapter d;
+	FunctionSpace fs=reducedSolution(d);
+	std::string res=constr(fs);
+	if (!res.empty())
+	{
+		cout << "\t\t" << res << endl;
+		assert(false);
+	}
+   }
+   {
+	cout << "\tTest Non-Taggable Reduced Degrees Of Freedom." << endl;
+	MeshAdapter d;
+	FunctionSpace fs(d,MeshAdapter::ReducedNodes);
+	std::string res=constr(fs);
+	if (!res.empty())
+	{
+		cout << "\t\t" << res << endl;
+		assert(false);
+	}
+   }
+}*/
+
 TestSuite* DataTaggedTestCase::suite ()
 {
   //
@@ -5123,6 +5203,7 @@ TestSuite* DataTaggedTestCase::suite ()
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testSetTaggedValue",&DataTaggedTestCase::testSetTaggedValue));
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testCopyConstructors",&DataTaggedTestCase::testCopyConstructors));
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testOperations",&DataTaggedTestCase::testOperations));
+//   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testFunctionSpaces",&DataTaggedTestCase::testFunctionSpaces));
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testGetSlice",&DataTaggedTestCase::testGetSlice));
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testSetSlice",&DataTaggedTestCase::testSetSlice));
   return testSuite;

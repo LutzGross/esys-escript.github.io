@@ -72,6 +72,10 @@ DataTagged::DataTagged(const FunctionSpace& what,
   // not unit_tested tested yet
   // It is not explicitly unit tested yet, but it is called from DataFactory
 
+  if (!what.canTag())
+  {
+    throw DataException("Programming error - DataTag created with a non-taggable FunctionSpace.");
+  }
   // copy the data
   m_data=data;
 
@@ -99,6 +103,11 @@ DataTagged::DataTagged(const FunctionSpace& what,
   : DataAbstract(what,shape)
 {
   // alternative constructor
+
+  if (!what.canTag())
+  {
+    throw DataException("Programming error - DataTag created with a non-taggable FunctionSpace.");
+  }
 
   // copy the data
   m_data=data;
@@ -149,6 +158,11 @@ DataTagged::DataTagged(const DataConstant& other)
 {
   // copy constructor
 
+  if (!other.getFunctionSpace().canTag())
+  {
+    throw DataException("Programming error - DataTag created with a non-taggable FunctionSpace.");
+  }
+
   // fill the default value with the constant value item from "other"
 //   const DataArrayView& value=other.getPointDataView();
   int len = other.getNoValues();
@@ -176,6 +190,11 @@ DataTagged::DataTagged(const FunctionSpace& what,
     throw DataException("Programming error - defaultvalue does not match supplied shape.");
   }
 
+
+  if (!what.canTag())
+  {
+    throw DataException("Programming error - DataTag created with a non-taggable FunctionSpace.");
+  }
 
   if (tagsource!=0)
   {
@@ -590,7 +609,7 @@ DataTagged::toString() const
 //   DataArrayView tempView(getPointDataView().getData(), getPointDataView().getShape());
   for (i=m_offsetLookup.begin();i!=m_offsetLookup.end();++i) {
     temp << "Tag(" << i->first << ")" << endl;
-    temp << pointToString(m_data,getShape(),i->second,empty);
+    temp << pointToString(m_data,getShape(),i->second,empty) << endl;
 //     tempView.setOffset(i->second);
 //     temp << tempView.toString() << endl;
   }

@@ -53,15 +53,16 @@ class DataExpanded;
 
 /**
    \brief
-   Data creates the appropriate Data object for the given construction
-   arguments.
+   Data represents a collection of datapoints.
 
    Description:
-   Data is essentially a factory class which creates the appropriate Data
-   object for the given construction arguments. It retains control over
-   the object created for the lifetime of the object.
-   The type of Data object referred to may change during the lifetime of
-   the Data object.
+   Internally, the datapoints are actually stored by a DataAbstract object.
+   The specific instance of DataAbstract used may vary over the lifetime
+   of the Data object.
+   Some methods on this class return references (eg getShape()).
+   These references should not be used after an operation which changes the underlying DataAbstract object.
+   Doing so will lead to invalid memory access.
+   This should not affect any methods exposed via boost::python.
 */
 class Data {
 
