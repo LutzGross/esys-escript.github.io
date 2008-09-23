@@ -900,96 +900,102 @@ class Test_Dump(unittest.TestCase):
           self._diffDataObjects(d,filemame)
 
    #===========================================================================
-   def test_DumpAndLoad_Tagged_Solution_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_solution_rank0.nc")
-          d=Data(self.arg0,Solution(self.domain))
-          d.setTaggedValue(1,self.arg0*2)
-          d.setTaggedValue(10,self.arg0*3)
-          d.setTaggedValue(100,self.arg0*4)
-          self._diffDataObjects(d,filemame)
+   ## This functionspace does not currently support tags.
+   ## Instead, we test that the canTag() function throws in test_canTag_Failures.
+   
+   #def test_DumpAndLoad_Tagged_Solution_Rank0(self):
+       #if loadIsConfigured():
+          #filemame=os.path.join(self.filename_base,"tagged_solution_rank0.nc")
+          #d=Data(self.arg0,Solution(self.domain))
+          #d.setTaggedValue(1,self.arg0*2)
+          #d.setTaggedValue(10,self.arg0*3)
+          #d.setTaggedValue(100,self.arg0*4)
+          #self._diffDataObjects(d,filemame)
 
-   def test_DumpAndLoad_Tagged_Solution_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_solution_rank1.nc")
-          d=Data(self.arg1,Solution(self.domain))
-          d.setTaggedValue(1,self.arg1*2)
-          d.setTaggedValue(10,self.arg1*3)
-          d.setTaggedValue(100,self.arg1*4)
-          self._diffDataObjects(d,filemame)
+   #def test_DumpAndLoad_Tagged_Solution_Rank1(self):
+       #if loadIsConfigured():
+          #filemame=os.path.join(self.filename_base,"tagged_solution_rank1.nc")
+          #d=Data(self.arg1,Solution(self.domain))
+          #d.setTaggedValue(1,self.arg1*2)
+          #d.setTaggedValue(10,self.arg1*3)
+          #d.setTaggedValue(100,self.arg1*4)
+          #self._diffDataObjects(d,filemame)
 
-   def test_DumpAndLoad_Tagged_Solution_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_solution_rank2.nc")
-          d=Data(self.arg2,Solution(self.domain))
-          d.setTaggedValue(1,self.arg2*2)
-          d.setTaggedValue(10,self.arg2*3)
-          d.setTaggedValue(100,self.arg2*4)
-          self._diffDataObjects(d,filemame)
+   #def test_DumpAndLoad_Tagged_Solution_Rank2(self):
+       #if loadIsConfigured():
+          #filemame=os.path.join(self.filename_base,"tagged_solution_rank2.nc")
+          #d=Data(self.arg2,Solution(self.domain))
+          #d.setTaggedValue(1,self.arg2*2)
+          #d.setTaggedValue(10,self.arg2*3)
+          #d.setTaggedValue(100,self.arg2*4)
+          #self._diffDataObjects(d,filemame)
 
-   def test_DumpAndLoad_Tagged_Solution_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_solution_rank3.nc")
-          d=Data(self.arg3,Solution(self.domain))
-          d.setTaggedValue(1,self.arg3*2)
-          d.setTaggedValue(10,self.arg3*3)
-          d.setTaggedValue(100,self.arg3*4)
-          self._diffDataObjects(d,filemame)
+   #def test_DumpAndLoad_Tagged_Solution_Rank3(self):
+       #if loadIsConfigured():
+          #filemame=os.path.join(self.filename_base,"tagged_solution_rank3.nc")
+          #d=Data(self.arg3,Solution(self.domain))
+          #d.setTaggedValue(1,self.arg3*2)
+          #d.setTaggedValue(10,self.arg3*3)
+          #d.setTaggedValue(100,self.arg3*4)
+          #self._diffDataObjects(d,filemame)
 
-   def test_DumpAndLoad_Tagged_Solution_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_solution_rank4.nc")
-          d=Data(self.arg4,Solution(self.domain))
-          d.setTaggedValue(1,self.arg4*2)
-          d.setTaggedValue(10,self.arg4*3)
-          d.setTaggedValue(100,self.arg4*4)
-          self._diffDataObjects(d,filemame)
-   #===========================================================================
-   def test_DumpAndLoad_Tagged_ReducedSolution_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_reduced_solution_rank0.nc")
-          d=Data(self.arg0,ReducedSolution(self.domain))
-          d.setTaggedValue(1,self.arg0*2)
-          d.setTaggedValue(10,self.arg0*3)
-          d.setTaggedValue(100,self.arg0*4)
-          self._diffDataObjects(d,filemame)
+   #def test_DumpAndLoad_Tagged_Solution_Rank4(self):
+       #if loadIsConfigured():
+          #filemame=os.path.join(self.filename_base,"tagged_solution_rank4.nc")
+          #d=Data(self.arg4,Solution(self.domain))
+          #d.setTaggedValue(1,self.arg4*2)
+          #d.setTaggedValue(10,self.arg4*3)
+          #d.setTaggedValue(100,self.arg4*4)
+          #self._diffDataObjects(d,filemame)
+   ##===========================================================================
+   ## This functionspace does not currently support tags.
+   ## Instead, we test that the canTag() function throws in test_canTag_Failures.
+   
+   #def test_DumpAndLoad_Tagged_ReducedSolution_Rank0(self):
+       #if loadIsConfigured():
+          #filemame=os.path.join(self.filename_base,"tagged_reduced_solution_rank0.nc")
+          #d=Data(self.arg0,ReducedSolution(self.domain))
+          #d.setTaggedValue(1,self.arg0*2)
+          #d.setTaggedValue(10,self.arg0*3)
+          #d.setTaggedValue(100,self.arg0*4)
+          #self._diffDataObjects(d,filemame)
 
-   def test_DumpAndLoad_Tagged_ReducedSolution_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_reduced_solution_rank1.nc")
-          d=Data(self.arg1,ReducedSolution(self.domain))
-          d.setTaggedValue(1,self.arg1*2)
-          d.setTaggedValue(10,self.arg1*3)
-          d.setTaggedValue(100,self.arg1*4)
-          self._diffDataObjects(d,filemame)
+   #def test_DumpAndLoad_Tagged_ReducedSolution_Rank1(self):
+       #if loadIsConfigured():
+          #filemame=os.path.join(self.filename_base,"tagged_reduced_solution_rank1.nc")
+          #d=Data(self.arg1,ReducedSolution(self.domain))
+          #d.setTaggedValue(1,self.arg1*2)
+          #d.setTaggedValue(10,self.arg1*3)
+          #d.setTaggedValue(100,self.arg1*4)
+          #self._diffDataObjects(d,filemame)
 
-   def test_DumpAndLoad_Tagged_ReducedSolution_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_reduced_solution_rank2.nc")
-          d=Data(self.arg2,ReducedSolution(self.domain))
-          d.setTaggedValue(1,self.arg2*2)
-          d.setTaggedValue(10,self.arg2*3)
-          d.setTaggedValue(100,self.arg2*4)
-          self._diffDataObjects(d,filemame)
+   #def test_DumpAndLoad_Tagged_ReducedSolution_Rank2(self):
+       #if loadIsConfigured():
+          #filemame=os.path.join(self.filename_base,"tagged_reduced_solution_rank2.nc")
+          #d=Data(self.arg2,ReducedSolution(self.domain))
+          #d.setTaggedValue(1,self.arg2*2)
+          #d.setTaggedValue(10,self.arg2*3)
+          #d.setTaggedValue(100,self.arg2*4)
+          #self._diffDataObjects(d,filemame)
 
-   def test_DumpAndLoad_Tagged_ReducedSolution_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_reduced_solution_rank3.nc")
-          d=Data(self.arg3,ReducedSolution(self.domain))
-          d.setTaggedValue(1,self.arg3*2)
-          d.setTaggedValue(10,self.arg3*3)
-          d.setTaggedValue(100,self.arg3*4)
-          self._diffDataObjects(d,filemame)
+   #def test_DumpAndLoad_Tagged_ReducedSolution_Rank3(self):
+       #if loadIsConfigured():
+          #filemame=os.path.join(self.filename_base,"tagged_reduced_solution_rank3.nc")
+          #d=Data(self.arg3,ReducedSolution(self.domain))
+          #d.setTaggedValue(1,self.arg3*2)
+          #d.setTaggedValue(10,self.arg3*3)
+          #d.setTaggedValue(100,self.arg3*4)
+          #self._diffDataObjects(d,filemame)
 
-   def test_DumpAndLoad_Tagged_ReducedSolution_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_reduced_solution_rank4.nc")
-          d=Data(self.arg4,ReducedSolution(self.domain))
-          d.setTaggedValue(1,self.arg4*2)
-          d.setTaggedValue(10,self.arg4*3)
-          d.setTaggedValue(100,self.arg4*4)
-          self._diffDataObjects(d,filemame)
-   #===========================================================================
+   #def test_DumpAndLoad_Tagged_ReducedSolution_Rank4(self):
+       #if loadIsConfigured():
+          #filemame=os.path.join(self.filename_base,"tagged_reduced_solution_rank4.nc")
+          #d=Data(self.arg4,ReducedSolution(self.domain))
+          #d.setTaggedValue(1,self.arg4*2)
+          #d.setTaggedValue(10,self.arg4*3)
+          #d.setTaggedValue(100,self.arg4*4)
+          #self._diffDataObjects(d,filemame)
+   ##===========================================================================
    def test_DumpAndLoad_Tagged_ContinuousFunction_Rank0(self):
        if loadIsConfigured():
           filemame=os.path.join(self.filename_base,"tagged_continuous_function_rank0.nc")
@@ -1218,3 +1224,8 @@ class Test_Dump(unittest.TestCase):
           d.setTaggedValue(100,self.arg4*4)
           self._diffDataObjects(d,filemame)
 
+   def test_canTag_Failures(self):
+	d=Data(self.arg0,Solution(self.domain))
+	self.failUnlessRaises(RuntimeError,d.setTaggedValue,1,self.arg0*2)
+	d=Data(self.arg0,ReducedSolution(self.domain))
+	self.failUnlessRaises(RuntimeError,d.setTaggedValue,1,self.arg0*2)

@@ -25,6 +25,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <list>
 
 namespace escript {
 
@@ -190,6 +191,7 @@ algorithm(DataExpanded& data,
   return global_current_value;
 }
 
+// It is important that the algorithm only be applied to tags which are actually in use.
 template <class BinaryFunction>
 inline
 double
@@ -199,29 +201,26 @@ algorithm(DataTagged& data,
 {
   double current_value=initial_value;
 
-// double current_value2=initial_value;
-
-  // perform the operation on each tagged value
-//   DataArrayView& dataView=data.getPointDataView();
   DataTypes::ValueType& vec=data.getVector();
   const DataTypes::ShapeType& shape=data.getShape();
   const DataTagged::DataMapType& lookup=data.getTagLookup();
-  for (DataTagged::DataMapType::const_iterator i=lookup.begin(); i!=lookup.end(); i++) {
-
-// current_value2=operation(current_value2,dataView.reductionOp(i->second,operation,initial_value));
-
-    current_value=operation(current_value,DataMaths::reductionOp(vec,shape,i->second,operation,initial_value));
-
-//std::cout << "binalg: value2=" << current_value2 << " value=" << current_value << " diff=" << current_value2-current_value << std::endl;
-
+  const std::list<int> used=data.getFunctionSpace().getListOfTagsSTL();
+  for (std::list<int>::const_iterator i=used.begin();i!=used.end();++i)
+  {
+     int tag=*i;
+     if (tag==0)	// check for the default tag
+     {
+	current_value=operation(current_value,DataMaths::reductionOp(vec,shape,data.getDefaultOffset(),operation,initial_value));
+     }
+     else
+     {
+	DataTagged::DataMapType::const_iterator it=lookup.find(tag);
+	if (it!=lookup.end())
+	{
+		current_value=operation(current_value,DataMaths::reductionOp(vec,shape,it->second,operation,initial_value));
+	}
+     }
   }
-
-
-  // perform the operation on the default value
-// current_value2=operation(current_value2,data.getDefaultValue().reductionOp(operation,initial_value));
-  // the 0 comes from the default value being the first one in the structure
-  current_value=operation(current_value,DataMaths::reductionOp(vec,shape,data.getDefaultOffset(),operation,initial_value));
-
   return current_value;
 }
 

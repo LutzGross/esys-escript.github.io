@@ -32,6 +32,10 @@ namespace escript {
    NullDomain provides a null value for domain. Needed for the construction
    of a default FunctionSpace. Inherits from AbstractDomain and overrides its
    methods.
+   This domain supports a single type of FunctionSpace for which canTag is true.
+   This compromise is needed to allow the default contructor of DataTagged to 
+   have a FunctionSpace which supports tagging.
+   See notes on the borrowListOfTagsInUse() method.
 */
 
 class NullDomain : public AbstractDomain {
@@ -161,10 +165,32 @@ class NullDomain : public AbstractDomain {
   ESCRIPT_DLL_API
   virtual bool operator!=(const AbstractDomain& other) const;
 
+  /**
+     \brief Checks if this domain allows tags for the specified functionSpaceCode.
+  */
+  ESCRIPT_DLL_API
+  virtual
+  bool canTag(int functionSpaceCode) const;
+
+  /**
+      \brief
+          return the number of tags in use.
+      For this class the answer is always 1(the default tag).
+  */
+  ESCRIPT_DLL_API
+  virtual int getNumberOfTagsInUse(int functionSpaceCode) const;
+
+  /**
+     \brief  returns a pointer to an array with the tags used.
+     For this class the answer will always be {0} 
+  */
+  ESCRIPT_DLL_API 
+  virtual int* borrowListOfTagsInUse(int functionSpaceCode) const;
+
  protected:
 
  private:
-
+ 
 };
 
 } // end of namespace

@@ -388,7 +388,11 @@ class AbstractDomain {
   ESCRIPT_DLL_API
   virtual int* borrowListOfTagsInUse(int functionSpaceCode) const;
 
-
+  /**
+    \brief Checks if this domain allows tags for the specified functionSpaceCode.
+  */
+  ESCRIPT_DLL_API
+  virtual bool canTag(int functionspacecode) const;
 
  protected:
 

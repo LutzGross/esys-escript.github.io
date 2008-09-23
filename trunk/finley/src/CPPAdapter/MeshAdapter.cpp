@@ -2129,4 +2129,28 @@ int* MeshAdapter::borrowListOfTagsInUse(int functionSpaceCode) const
 }
 
 
+bool MeshAdapter::canTag(int functionSpaceCode) const
+{
+  switch(functionSpaceCode) {
+   case(Nodes):
+   case(Elements):
+   case(ReducedElements):
+   case(FaceElements):
+   case(ReducedFaceElements):
+   case(Points):
+   case(ContactElementsZero):
+   case(ReducedContactElementsZero):
+   case(ContactElementsOne):
+   case(ReducedContactElementsOne):
+          return true;
+   case(ReducedNodes):
+   case(DegreesOfFreedom):
+   case(ReducedDegreesOfFreedom):
+	  return false;
+   default:
+	return false;
+  }
+}
+
+
 }  // end of namespace

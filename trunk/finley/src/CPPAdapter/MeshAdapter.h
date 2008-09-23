@@ -608,6 +608,15 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   FINLEY_DLL_API 
   virtual int* borrowListOfTagsInUse(int functionSpaceCode) const;
 
+
+  /**
+     \brief Checks if this domain allows tags for the specified functionSpaceCode.
+  */
+  FINLEY_DLL_API
+  virtual
+  bool canTag(int functionSpaceCode) const;
+
+
  protected:
 
  private:

@@ -240,7 +240,11 @@ int* AbstractDomain::borrowListOfTagsInUse(int functionSpaceCode) const
 }
 
 
-
+bool AbstractDomain::canTag(int functionspacecode) const
+{
+  throwStandardException("AbstractDomain::canTag is not implemented.");
+  return false;
+}
 
 
 

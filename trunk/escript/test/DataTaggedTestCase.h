@@ -20,6 +20,7 @@
 #include "tools/CppUnitTest/TestSuite.h"
 #include "tools/CppUnitTest/TestCaller.h"
 
+
 class DataTaggedTestCase : public CppUnitTest::TestCase
 {
  public:
@@ -41,6 +42,8 @@ class DataTaggedTestCase : public CppUnitTest::TestCase
   void testOperations();
   void testGetSlice();
   void testSetSlice();
+//   void testFunctionSpaces();
+
 
   DataTaggedTestCase (std::string name) : TestCase (name) {}
   ~DataTaggedTestCase() {}
