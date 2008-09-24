@@ -169,5 +169,19 @@ mpirun -np 4 <my esys dir>/lib/pythonMPI poisson.py
 When running an MPI job the standard output of process zero goes to the screen, while the standard output of the other processes
 is automatically redirected to files with names like stdout_cpu_0001.out.
 
+A python script can obtain the MPI rank and size in two ways.
+The global number of MPI processes and rank (relative to MPI_COMM_WORLD) are available through
+\begin{verbatim}
+iam = getMPIRankWorld()
+nPE = getMPISizeWorld()
+\end{verbatim}
+
+The rank and size relative to a particular domain object (which may be limited to run on a subset of the
+total list of MPI processes in future versions of Escript) are available through
+\begin{verbatim}
+iam = domain.getMPIRankWorld()
+nPE = domain.getMPISizeWorld()
+\end{verbatim}
+
 \section{Getting Help}
 Please direct any questions you might have to \url{mailto:esys@esscc.uq.edu.au}.

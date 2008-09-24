@@ -111,4 +111,20 @@ int getNumberOfThreads()
 
 }
 
+int getMPISizeWorld() {
+  int mpi_num = 1;
+  #ifdef PASO_MPI
+  MPI_Comm_size(MPI_COMM_WORLD, &mpi_num);
+  #endif
+  return mpi_num;
+}
+
+int getMPIRankWorld() {
+  int mpi_iam = 0;
+  #ifdef PASO_MPI
+  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_iam);
+  #endif
+  return mpi_iam;
+}
+
 }  // end of namespace

@@ -49,5 +49,17 @@ namespace escript {
   */
   ESCRIPT_DLL_API int getNumberOfThreads();
 
+  /**
+     \brief
+     returns the total number of available MPI processes for MPI_COMM_WORLD
+  */
+  ESCRIPT_DLL_API int getMPISizeWorld();
+
+  /**
+     \brief
+     returns the MPI processor number within MPI_COMM_WORLD
+  */
+  ESCRIPT_DLL_API int getMPIRankWorld();
+
 } // end of namespace
 #endif
