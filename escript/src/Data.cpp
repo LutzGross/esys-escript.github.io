@@ -109,6 +109,10 @@ Data::Data(const Data& inData,
 Data::Data(const Data& inData,
            const FunctionSpace& functionspace)
 {
+  if (inData.isEmpty())
+  {
+    throw DataException("Error - will not interpolate for instances of DataEmpty.");
+  }
   if (inData.getFunctionSpace()==functionspace) {
     m_data=inData.m_data;
   } else if (inData.isConstant()) {	// for a constant function, we just need to use the new function space
@@ -438,6 +442,10 @@ Data::copy(const Data& other)
 void
 Data::setToZero()
 {
+  if (isEmpty())
+  {
+     throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+  }
   {
     DataExpanded* temp=dynamic_cast<DataExpanded*>(m_data.get());
     if (temp!=0) {
@@ -466,6 +474,10 @@ void
 Data::copyWithMask(const Data& other,
                    const Data& mask)
 {
+  if (other.isEmpty() || mask.isEmpty())
+  {
+	throw DataException("Error - copyWithMask not permitted using instances of DataEmpty.");
+  }
   Data mask1;
   Data mask2;
 
@@ -631,6 +643,10 @@ Data::probeInterpolation(const FunctionSpace& functionspace) const
 Data
 Data::gradOn(const FunctionSpace& functionspace) const
 {
+  if (isEmpty())
+  {
+	throw DataException("Error - operation not permitted on instances of DataEmpty.");
+  }
   double blocktimer_start = blocktimer_time();
   if (functionspace.getDomain()!=getDomain())
     throw DataException("Error - gradient cannot be calculated on different domains.");
@@ -645,6 +661,10 @@ Data::gradOn(const FunctionSpace& functionspace) const
 Data
 Data::grad() const
 {
+  if (isEmpty())
+  {
+	throw DataException("Error - operation not permitted on instances of DataEmpty.");
+  }
   return gradOn(escript::function(getDomain()));
 }
 
@@ -659,15 +679,6 @@ Data::getLength() const
 {
   return m_data->getLength();
 }
-
-// const DataTypes::ShapeType&
-// Data::getDataPointShape() const
-// {
-//   return getPointDataView().getShape();
-// }
-
-
-
 
 const
 boost::python::numeric::array
@@ -1551,6 +1562,10 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
 void
 Data::saveDX(std::string fileName) const
 {
+  if (isEmpty())
+  {
+    throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+  }
   boost::python::dict args;
   args["data"]=boost::python::object(this);
   getDomain().saveDX(fileName,args);
@@ -1560,6 +1575,10 @@ Data::saveDX(std::string fileName) const
 void
 Data::saveVTK(std::string fileName) const
 {
+  if (isEmpty())
+  {
+    throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+  }
   boost::python::dict args;
   args["data"]=boost::python::object(this);
   getDomain().saveVTK(fileName,args);
@@ -1979,6 +1998,10 @@ Data::setTaggedValueFromCPP(int tagKey,
 int
 Data::getTagNumber(int dpno)
 {
+  if (isEmpty())
+  {
+	throw DataException("Error - operation not permitted on instances of DataEmpty.");
+  }
   return getFunctionSpace().getTagFromDataPointNo(dpno);
 }
 

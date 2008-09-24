@@ -135,6 +135,10 @@ class DataEmpty : public DataAbstract {
   setSlice(const DataAbstract* value,
            const DataTypes::RegionType& region);
 
+
+  void
+  dump(const std::string fileName) const;
+
  protected:
 
  /**

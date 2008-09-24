@@ -20,58 +20,21 @@ using namespace std;
 
 namespace escript {
 
-// DataAbstract::DataAbstract(const FunctionSpace& what):
-//     m_noDataPointsPerSample(what.getNumDPPSample()),
-//     m_noSamples(what.getNumSamples()),
-//     m_functionSpace(what),
-//     m_rank(0)
-// {
-// 	setShape(DataTypes::ShapeType());
-// }
-
-
-DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape):
+DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty):
     m_noDataPointsPerSample(what.getNumDPPSample()),
     m_noSamples(what.getNumSamples()),
     m_functionSpace(what),
     m_shape(shape),
     m_rank(DataTypes::getRank(shape)),
     m_novalues(DataTypes::noValues(shape))
-
 {
+    m_isempty=isDataEmpty;
 }
 
 DataAbstract::~DataAbstract() 
 {
 }
 
-// void
-// DataAbstract::setPointDataView(const DataArrayView& input)
-// {
-//     m_pointDataView.reset(new DataArrayView(input.getData(),input.getShape(),input.getOffset()));
-// 
-//     // until we get rid of m_pointDataView, we need to keep m_shape in sync
-//     setShape(input.getShape());
-// }
-
-// perhaps this should be a constructor parameter
-// void
-// DataAbstract::setShape(const DataTypes::ShapeType& s)
-// {
-//    m_shape=s;
-//    m_rank=DataTypes::getRank(s);
-//    m_novalues=DataTypes::noValues(s);
-// }
-
-
-// void
-// DataAbstract::resetPointDataView()
-// {
-//     m_pointDataView.reset(new DataArrayView());
-//     m_shape.clear();
-//     m_rank=0;
-//     m_novalues=1;
-// }
 
 void
 DataAbstract::operandCheck(const DataAbstract& right) const
@@ -108,7 +71,7 @@ DataAbstract::operandCheck(const DataAbstract& right) const
 void
 DataAbstract::dump(const std::string fileName) const
 {
-    throw DataException("Error - DataAbstract:: dump: not implemented.");
+    throw DataException("Error - DataAbstract::dump: not implemented.");
 }
 
 
@@ -119,12 +82,6 @@ DataAbstract::getSampleDataByTag(int tag)
     throw DataException("Error - DataAbstract::getSampleDataByTag: Data type does not have tag values.");
 }
 
-// void
-// DataAbstract::setTaggedValue(int tagKey,
-//                              const DataArrayView& value)
-// {
-//     throw DataException("Error - DataAbstract::setTaggedValue: Data type does not have tag values.");
-// }
 
 void  
 DataAbstract::setTaggedValue(int tagKey,
@@ -210,6 +167,7 @@ DataAbstract::setToZero()
 void
 DataAbstract::reorderByReferenceIDs(int *reference_ids)
 {
+    throw DataException("Error - DataAbstract:: cannot reorder by reference ids.");
 }
 
 
