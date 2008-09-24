@@ -22,6 +22,8 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/python/numeric.hpp>
 
+#include "DataException.h"
+
 #include <string>
 #include <fstream>
 
@@ -58,7 +60,7 @@ class DataAbstract {
      \param what - Input - A description of what this data represents.
   */
   ESCRIPT_DLL_API
-  DataAbstract(const FunctionSpace& what, const ShapeType& shape);
+  DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty=false);
 
   /**
     \brief
@@ -109,20 +111,6 @@ class DataAbstract {
   ESCRIPT_DLL_API
   int
   getNumSamples() const;
-
-//  /**
-//      \brief
-//      Return the DataArrayView of the point data. This essentially contains
-//      the shape information for each data point although it also may be used
-//      to manipulate the point data.
-//  */
-//   ESCRIPT_DLL_API
-//   DataArrayView&
-//   getPointDataView();
-
-//   ESCRIPT_DLL_API
-//   const DataArrayView&
-//   getPointDataView() const;
 
   /**
      \brief 
@@ -261,26 +249,6 @@ class DataAbstract {
   void
   setSlice(const DataAbstract* value,
            const DataTypes::RegionType& region) = 0;
-
-
-//  /**
-//      \brief
-//      setTaggedValue
-// 
-//      Description:
-//      Assign the given value to the given tag.
-// 
-//      NB: If the data isn't tagged an exception will be thrown.
-// 
-//      \param tagKey - Input - Integer key.
-//      \param value - Input - Single DataArrayView value to be assigned to the tag.
-//  */
-//   ESCRIPT_DLL_API
-//   virtual
-//   void
-//   setTaggedValue(int tagKey,
-//                  const DataArrayView& value);
-
 
   /**
      \brief
@@ -499,22 +467,7 @@ class DataAbstract {
 
  protected:
 
-//  /**
-//     \brief
-//     Set the pointDataView DataArrayView associated with this object.
-//
-//     \param input - Input - The point data view. DataAbstract takes ownership
-//     of the DataArrayView provided. It will delete it when it is destructed.
-//  */
-//   ESCRIPT_DLL_API
-//   void
-//   setPointDataView(const DataArrayView& input);
-// 
-//   ESCRIPT_DLL_API
-//   void
-//   resetPointDataView();
-
-
+  bool isEmpty() const;	// a fast test to determine if this object is an instance of DataEmpty
 
 
 
@@ -554,7 +507,18 @@ class DataAbstract {
   // The rank of the points stored in this view
   int m_rank;
 
+  // 
+  // Is this an instance of DataEmpty?
+  bool m_isempty;
 };
+
+
+inline
+bool
+DataAbstract::isEmpty() const
+{
+	return m_isempty;
+}
 
 
 inline
@@ -598,6 +562,10 @@ inline
 int
 DataAbstract::getNumDPPSample() const
 {
+  if (isEmpty())
+  {
+     	throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+  }
   return m_noDataPointsPerSample;
 }
 
@@ -605,6 +573,10 @@ inline
 int
 DataAbstract::getNumSamples() const
 {
+  if (isEmpty())
+  {
+     	throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+  }
   return m_noSamples;
 }
 
@@ -616,25 +588,14 @@ DataAbstract::getFunctionSpace() const
   return m_functionSpace;
 }
 
-// inline
-// const
-// DataArrayView&
-// DataAbstract::getPointDataView() const
-// {
-//   return *(m_pointDataView.get());
-// }
-
-// inline
-// DataArrayView&
-// DataAbstract::getPointDataView()
-// {
-//   return *(m_pointDataView.get());
-// }
-
 inline
 const DataTypes::ShapeType& 
 DataAbstract::getShape() const
 {
+	if (isEmpty())
+	{
+		throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+	}
 	return m_shape;
 }
 
@@ -642,15 +603,24 @@ inline
 int
 DataAbstract::getRank() const
 {
+	if (isEmpty())
+	{
+		throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+	}
 	return m_rank;
 }
 
 inline
 int
 DataAbstract::getNoValues() const
-{
+{	
+	if (isEmpty())
+	{
+		throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+	}
 	return m_novalues;
 }
+
 
 } // end of namespace
 

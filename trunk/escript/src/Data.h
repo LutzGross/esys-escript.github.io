@@ -396,7 +396,8 @@ class Data {
 
   /**
      \brief
-     Return true if this Data is empty.
+     Return true if this Data holds an instance of DataEmpty. This is _not_ the same as asking if the object 
+contains datapoints.
   */
   ESCRIPT_DLL_API
   bool
@@ -1694,6 +1695,8 @@ Data::algorithm(BinaryFunction operation, double initial_value) const
     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
     EsysAssert((leftC!=0), "Programming error - casting to DataConstant.");
     return escript::algorithm(*leftC,operation,initial_value);
+  } else if (isEmpty()) {
+    throw DataException("Error - Operations not permitted on instances of DataEmpty.");
   }
   return 0;
 }
@@ -1711,7 +1714,10 @@ inline
 Data
 Data::dp_algorithm(BinaryFunction operation, double initial_value) const
 {
-  if (isExpanded()) {
+  if (isEmpty()) {
+    throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+  } 
+  else if (isExpanded()) {
     Data result(0,DataTypes::ShapeType(),getFunctionSpace(),isExpanded());
     DataExpanded* dataE=dynamic_cast<DataExpanded*>(m_data.get());
     DataExpanded* resultE=dynamic_cast<DataExpanded*>(result.m_data.get());
@@ -1719,35 +1725,17 @@ Data::dp_algorithm(BinaryFunction operation, double initial_value) const
     EsysAssert((resultE!=0), "Programming error - casting result to DataExpanded.");
     escript::dp_algorithm(*dataE,*resultE,operation,initial_value);
     return result;
-  } else if (isTagged()) {
+  }
+  else if (isTagged()) {
     DataTagged* dataT=dynamic_cast<DataTagged*>(m_data.get());
     EsysAssert((dataT!=0), "Programming error - casting data to DataTagged.");
-
-//     DataTypes::ShapeType viewShape;
-//     DataTypes::ValueType viewData(1);
-//     viewData[0]=0;
-//     DataArrayView defaultValue(viewData,viewShape);
-//     DataTagged::TagListType keys;
-//     DataTagged::ValueListType values;
-//     DataTagged::DataMapType::const_iterator i;
-//     for (i=dataT->getTagLookup().begin();i!=dataT->getTagLookup().end();i++) {
-//       keys.push_back(i->first);
-//       values.push_back(defaultValue);
-//     }
-//     Data result(keys,values,defaultValue,getFunctionSpace());
-//     DataTagged* resultT=dynamic_cast<DataTagged*>(result.m_data.get());
-//     EsysAssert((resultT!=0), "Programming error - casting result to DataTagged.");
-
-
-
-
     DataTypes::ValueType defval(1);
     defval[0]=0;
     DataTagged* resultT=new DataTagged(getFunctionSpace(), DataTypes::scalarShape, defval, dataT);
     escript::dp_algorithm(*dataT,*resultT,operation,initial_value);
     return Data(resultT);   // note: the Data object now owns the resultT pointer
-
-  } else if (isConstant()) {
+  } 
+  else if (isConstant()) {
     Data result(0,DataTypes::ShapeType(),getFunctionSpace(),isExpanded());
     DataConstant* dataC=dynamic_cast<DataConstant*>(m_data.get());
     DataConstant* resultC=dynamic_cast<DataConstant*>(result.m_data.get());
@@ -1774,6 +1762,10 @@ C_TensorBinaryOperation(Data const &arg_0,
                         Data const &arg_1,
                         BinaryFunction operation)
 {
+  if (arg_0.isEmpty() || arg_1.isEmpty())
+  {
+     throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+  }
   // Interpolate if necessary and find an appropriate function space
   Data arg_0_Z, arg_1_Z;
   if (arg_0.getFunctionSpace()!=arg_1.getFunctionSpace()) {
@@ -2683,6 +2675,11 @@ Data
 C_TensorUnaryOperation(Data const &arg_0,
                        UnaryFunction operation)
 {
+  if (arg_0.isEmpty())	// do this before we attempt to interpolate
+  {
+     throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+  }
+
   // Interpolate if necessary and find an appropriate function space
   Data arg_0_Z = Data(arg_0);
 
@@ -2761,7 +2758,6 @@ C_TensorUnaryOperation(Data const &arg_0,
         tensor_unary_operation(size0, ptr_0, ptr_2, operation);
       }
     }
-
   }
   else {
     throw DataException("Error - C_TensorUnaryOperation: unknown combination of inputs");

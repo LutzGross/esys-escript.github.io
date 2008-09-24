@@ -20,26 +20,24 @@
 namespace {
 
 
-// This function is inlined to prevent the compiler complaining about missing return statements
-// in methods where it is called.
-// inline
-void
-throwStandardException(const std::string& functionName)
-{
-  throw escript::DataException("Error - "+functionName+" function call invalid for DataEmpty.");
-}
+  inline
+  void
+  throwStandardException(const std::string& functionName)
+  {
+    throw escript::DataException("Error - "+functionName+" function call invalid for DataEmpty.");
+  }
 
 
-escript::DataTypes::ValueType dummy;	
+  escript::DataTypes::ValueType dummy;	
 
 }
 
 namespace escript {
 
 DataEmpty::DataEmpty() :
-  DataAbstract(FunctionSpace(),DataTypes::scalarShape)
+  DataAbstract(FunctionSpace(),DataTypes::scalarShape, true)
 {
-//  resetPointDataView();
+
 }
 
 DataEmpty::~DataEmpty()
@@ -66,14 +64,6 @@ DataEmpty::getPointOffset(int sampleNo,
   throwStandardException("getPointOffset");
   return 0;
 }
-
-// DataArrayView
-// DataEmpty::getDataPoint(int sampleNo,
-//                         int dataPointNo)
-// {
-//   throwStandardException("getDataPoint");
-//   return getPointDataView();
-// }
 
 DataTypes::ValueType::size_type
 DataEmpty::getLength() const
@@ -112,5 +102,10 @@ DataEmpty::getVector() const
 }
 
 
+void
+DataEmpty::dump(const std::string fileName) const
+{
+    throw DataException("Error - Cannot dump() a DataEmpty object.");
+}
 
 }  // end of namespace
