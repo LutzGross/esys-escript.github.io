@@ -47,7 +47,6 @@ sources = """
 	Solver.c
 	SolverFCT.c
 	SolverFCT_FluxControl.c
-	SolverFCT_Function.c
 	SolverFCT_reset.c
 	SolverFCT_solve.c
 	Solver_Function.c

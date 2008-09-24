@@ -20,7 +20,7 @@
  * setoff is workspace
  */
 
-err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, const double *f0, const double *x0, double* setoff, const bool_t w_is_normalized)
+err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, const double *f0, const double *x0, double* setoff, const bool_t w_is_normalized, Paso_Performance* pp) 
 {
    err_t err=0;
    dim_t n=F->n;
@@ -37,7 +37,7 @@ err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, co
        norm_x0=Paso_l2(n,x0,F->mpi_info);
        if (norm_x0>0) epsnew*=norm_x0;
        Paso_LinearCombination(n,setoff,1.,x0,epsnew,w);
-       err=Paso_FunctionCall(F,J0w,setoff);
+       err=Paso_FunctionCall(F,J0w,setoff,pp);
        if (err==NO_ERROR) {
            Paso_Update(n,1./epsnew,J0w,-1./epsnew,f0); /* J0w = (J0w - f0)/epsnew; */
        }
@@ -51,14 +51,12 @@ err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, co
  * sets value=F(arg)
  *
  */
-err_t Paso_FunctionCall(Paso_Function * F,double* value, const double* arg) 
+err_t Paso_FunctionCall(Paso_Function * F,double* value, const double* arg, Paso_Performance *pp) 
 { 
    if (F!=NULL) {
       switch(F->kind) {
           case LINEAR_SYSTEM:
-               return Paso_Function_LinearSystem_call(F, value, arg);
-          case FCT:
-               return Paso_Function_FCT_call(F, value, arg);
+               return Paso_Function_LinearSystem_call(F, value, arg,pp);
           default:
                return SYSTEM_ERROR;
       }
@@ -75,9 +73,6 @@ void Paso_Function_free(Paso_Function * F) {
       switch(F->kind) {
           case LINEAR_SYSTEM:
                Paso_Function_LinearSystem_free(F);
-               break;
-          case FCT:
-               Paso_Function_FCT_free(F);
                break;
           default:
                MEMFREE(F);

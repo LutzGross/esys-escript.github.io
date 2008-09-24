@@ -241,6 +241,38 @@ double Paso_InnerProduct(const dim_t n,const double* x, const double* y, Paso_MP
    return out;
 
 }
+double Paso_lsup(const dim_t n, const double* x, Paso_MPIInfo* mpiinfo) 
+{
+   dim_t i,local_n,rest,n_start,n_end,q;
+   double my_out=SMALL_NEGATIVE_FLOAT, local_out=SMALL_NEGATIVE_FLOAT, out=SMALL_NEGATIVE_FLOAT;
+   #ifdef _OPENMP
+       const int num_threads=omp_get_max_threads();
+   #else
+       const int num_threads=1;
+   #endif
+   #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q, local_out) reduction(+:my_out)
+   for (i=0;i<num_threads;++i) {
+        local_n=n/num_threads;
+        rest=n-local_n*num_threads;
+        n_start=local_n*i+MIN(i,rest);
+        n_end=local_n*(i+1)+MIN(i+1,rest);
+        local_out=0;
+        for (q=n_start;q<n_end;++q) local_out=MAX(ABS(x[q]),local_out);
+        #pragma omp critical
+        my_out=MAX(my_out,local_out);
+   }
+   #ifdef PASO_MPI
+      #pragma omp single
+      {
+          MPI_Allreduce(&my_out,&out, 1, MPI_DOUBLE, MPI_MAX, mpiinfo->comm);
+       }
+   #else
+       out=my_out;
+   #endif
+
+   return out;
+
+}
 double Paso_l2(const dim_t n, const double* x, Paso_MPIInfo* mpiinfo) 
 {
    dim_t i,local_n,rest,n_start,n_end,q;

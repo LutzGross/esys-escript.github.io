@@ -45,6 +45,7 @@ double Paso_l2(const dim_t n, const double* x, Paso_MPIInfo* mpiinfo);
 void ApplyGivensRotations(const dim_t n,double* v,const double* c,const double* s);
 void Paso_Copy(const dim_t n, double* out, const double* in);
 bool_t Paso_fileExists( const char* filename );
+double Paso_lsup(const dim_t n, const double* x, Paso_MPIInfo* mpiinfo);
 
 #define Paso_copyShortDouble(n, source, target)  memcpy(target,source,sizeof(double)*(size_t)n)
 

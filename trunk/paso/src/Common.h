@@ -64,6 +64,7 @@ typedef int err_t;
 #define INDEX_T_MIN -INT_MAX
 #define EPSILON DBL_EPSILON
 #define LARGE_POSITIVE_FLOAT DBL_MAX
+#define SMALL_NEGATIVE_FLOAT -DBL_MAX
 
 /**************************************************************/
 

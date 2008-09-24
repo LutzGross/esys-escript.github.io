@@ -54,7 +54,7 @@ void Paso_Function_LinearSystem_free(Paso_Function * F)
  * evaluates value=P*(b-Ax)
  *
  */
-err_t Paso_Function_LinearSystem_call(Paso_Function * F,double* value, const double* arg) 
+err_t Paso_Function_LinearSystem_call(Paso_Function * F,double* value, const double* arg, Paso_Performance *pp)
 {
     Paso_SystemMatrix* A=(Paso_SystemMatrix*)(F->more);
     Paso_Copy(F->n,F->tmp,F->b); /* tmp=b */

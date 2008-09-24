@@ -13,6 +13,7 @@
 # C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
 # cc_flags		= '-ansi'
 # cc_optim		= '-O2'
+# usedebug= 'no'
 # cc_debug		= '-g'
 # omp_optim		= '-openmp'
 # omp_debug		= '-openmp'
@@ -43,10 +44,10 @@
 # usevtk		= 'yes'
 
 # NetCDF
-# usenetcdf		= 'yes'
-# netCDF_path		= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/include'
-# netCDF_lib_path	= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/lib'
-# netCDF_libs		= ['netcdf_c++', 'netcdf']
+usenetcdf		= 'yes'
+netCDF_path		= '/usr/include/netcdf-3/'
+netCDF_lib_path	= '/usr/lib/'
+netCDF_libs		= ['netcdf_c++', 'netcdf']
 
 # MKL
 # usemkl		= 'yes'
@@ -68,7 +69,7 @@
 # blas_libs		= ['blas']
 
 # OpenMP
-useopenmp		= 'yes'
+useopenmp		= 'no'
 
 # MPICH2 (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
 usempi= 'no'
