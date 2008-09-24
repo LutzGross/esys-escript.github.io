@@ -417,7 +417,7 @@ Finley_RefElement* Finley_RefElement_alloc(ElementTypeId id,int numQuadNodes) {
   if ( Finley_checkPtr(out->QuadNodes) || Finley_checkPtr(out->QuadWeights) || Finley_checkPtr(out->S) || Finley_checkPtr(out->dSdv) ) {
          Finley_RefElement_dealloc(out);
          return NULL;
-  } 
+  }
   
   /*  set the quadrature nodes: */
   
@@ -469,17 +469,3 @@ ElementTypeId Finley_RefElement_getTypeId(char* element_type) {
     }
     return out;
 }
-/* 
-* $Log$
-* Revision 1.5  2005/09/15 03:44:23  jgs
-* Merge of development branch dev-02 back to main trunk on 2005-09-15
-*
-* Revision 1.4.2.1  2005/09/07 06:26:21  gross
-* the solver from finley are put into the standalone package paso now
-*
-* Revision 1.4  2004/12/15 07:08:33  jgs
-* *** empty log message ***
-*
-*
-*
-*/

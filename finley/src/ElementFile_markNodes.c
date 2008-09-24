@@ -28,7 +28,6 @@
 void Finley_ElementFile_markNodes(index_t* mask,index_t offset,dim_t numNodes,Finley_ElementFile* in,bool_t useLinear) {
    dim_t i,NN,NN2,e;
    index_t *lin_node,*id=NULL;
-
    if (in!=NULL) {
      id=TMPMEMALLOC(in->ReferenceElement->Type->numNodes, index_t);
      if (! Finley_checkPtr(id) ){
@@ -41,6 +40,7 @@ void Finley_ElementFile_markNodes(index_t* mask,index_t offset,dim_t numNodes,Fi
            for (i=0;i<in->ReferenceElement->Type->numNodes;i++) id[i]=i;
         }
         NN2=in->numNodes;
+
         #pragma omp parallel for private(e,i) schedule(static)
         for (e=0;e<in->numElements;e++) {
             for (i=0;i<NN;i++) {

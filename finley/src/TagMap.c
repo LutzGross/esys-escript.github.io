@@ -92,5 +92,6 @@ void Finley_TagMap_free(Finley_TagMap* in) {
     MEMFREE(in->name);
     MEMFREE(in);
   }
+  return;
 }
 

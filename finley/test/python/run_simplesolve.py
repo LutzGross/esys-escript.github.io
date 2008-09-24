@@ -41,7 +41,7 @@ import unittest, sys
 from esys.escript import *
 from esys.finley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE
-OPTIMIZE=False
+OPTIMIZE=True
 SOLVER_VERBOSE=False 
 # setNumberOfThreads(2)
 

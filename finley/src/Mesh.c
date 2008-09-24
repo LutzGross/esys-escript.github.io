@@ -101,8 +101,8 @@ void Finley_Mesh_free(Finley_Mesh* in) {
        #endif
        MEMFREE(in->Name);
        Finley_NodeFile_free(in->Nodes);
-       Finley_ElementFile_free(in->Elements);   
        Finley_ElementFile_free(in->FaceElements);
+       Finley_ElementFile_free(in->Elements);   
        Finley_ElementFile_free(in->ContactElements);
        Finley_ElementFile_free(in->Points);
        Finley_TagMap_free(in->TagMap);

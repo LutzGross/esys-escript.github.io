@@ -39,12 +39,17 @@ from esys.escript import *
 from esys.escript.pdetools import SaddlePointProblem
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
-from esys.pyvisi import Scene, DataCollector, Contour, Camera, Velocity, Text2D, LocalPosition
+from esys.pyvisi import Scene, DataCollector, Contour, Camera, Velocity, Text2D, LocalPosition, Legend
 from esys.pyvisi.constant import *
 import os
 
-JPG_RENDERER = Renderer.OFFLINE_JPG
-ne = 20          # number of elements in spatial direction
+JPG_RENDERER = Renderer.ONLINE_JPG
+ne = 15          # number of elements in spatial direction 
+s=[1.,1.,0.]
+
+XSIZE=900
+YSIZE=800
+VIS_RANGE_STRESS=[-3e4, 20.e4]
 
 def lockToGrid(x,l,n):
    h=l/n
@@ -64,7 +69,6 @@ g=9.81
 
 fstart =  [lockToGrid(50000.0,width,ne_w), lockToGrid(40000.0,width,ne_w), lockToGrid(8000.,height,ne)]
 fend =  [lockToGrid(50000.0,width,ne_w), lockToGrid(60000.0,width,ne_w), lockToGrid(20000.,height,ne)]
-s=[0.,1.,0.]
 
 print "=== generate mesh over %s x %s x %s ==="%(width,width,height)
 dom=Brick(l0=width, l1=width, l2=height, n0=ne_w, n1=ne_w, n2=ne)
@@ -109,36 +113,42 @@ sigma=mu*symmetric(g_s)+lmbd*trace(g_s)*kronecker(d)
 
 print "=== start rendering ==="
 # Create a Scene.
-s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = 800, y_size = 800)
+s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size=XSIZE, y_size=YSIZE )
 dc1 = DataCollector(source = Source.ESCRIPT)
 dc1.setData(disp=u,sigma=sigma,cfs=sigma[0,1]-0.4*sigma[0,0])
 
 # Create a Contour.
 ctr1 = Contour(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST,
-        lut = Lut.COLOR, cell_to_point = True, outline = True)
-ctr1.generateContours(contours = 10)
-ctr1.setOpacity(0.5)
-
-# Create velocity
-vopc1 = Velocity(scene = s, data_collector = dc1,
-        color_mode = ColorMode.VECTOR,
-        arrow = Arrow.THREE_D, lut = Lut.COLOR, cell_to_point = False,
-        outline = False) 
-vopc1.setScaleFactor(scale_factor = 10000.)
-vopc1.setRatio(2)
-vopc1.randomOn()
+          lut = 'color', cell_to_point = True, outline = True)
+ctr1.generateContours(contours = 5, lower_range=VIS_RANGE_STRESS[0], upper_range=VIS_RANGE_STRESS[1])
+ctr1.setScalarRange(lower_range=VIS_RANGE_STRESS[0], upper_range=VIS_RANGE_STRESS[1])
+ctr1.setOpacity(1.0)
 
 # Create a Camera.
 cam1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
-cam1.elevation(angle = -50)
+cam1.elevation(angle =-50)
+cam1.roll(angle = 10)
+cam1.dolly(6500)
+
+lg=Legend(scene = s, data_collector = dc1, legend='scalar')
+lg.setOrientationToVertical()
+lg.setScalarRange(lower_range=VIS_RANGE_STRESS[0], upper_range=VIS_RANGE_STRESS[1])
 
 # add some text
-t2 = Text2D(scene = s, text = "CFS and displacement around vertical fault")
-t2.setPosition(LocalPosition(200,30))
+t2 = Text2D(scene = s, text = "Coulomb failure stress distribution around vertical fault in the Earth crust.")
+t2.setPosition(LocalPosition(40,YSIZE-50))
 t2.setColor(color = Color.BLACK)
-t2.setFontSize(size = 20)
+t2.setFontSize(size = 22)
 t2.setFontToArial()
+t2.boldOn()
 t2.shadowOn()
+# add some text
+t3 = Text2D(scene = s, text = "Earth Systems Science Computational Center at The University of Queensland.")
+t3.setPosition(LocalPosition(30,30))
+t3.setColor(color = Color.BLACK)
+t3.setFontSize(size = 20)
+t3.setFontToArial()
+t3.shadowOn()
 
 # Render the object.
 s.render("stress_contour.jpg")

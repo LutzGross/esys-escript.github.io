@@ -93,7 +93,7 @@ class DataSetMapper:
 		@type range: Two column tuple containing numbers
 		@param range: Minimum and maximum data set mapper scalar range
 		"""
-
+		self.__scalar_range_set = True
 		self.__vtk_data_set_mapper.SetScalarRange(range) 
 	
 	def _setScalarVisibilityOn(self):

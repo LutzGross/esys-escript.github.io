@@ -80,7 +80,7 @@ err_t Paso_Solver_GMRES2(
    *  allocate memory: 
    */
   h=TMPMEMALLOC(l*l,double);
-  v=TMPMEMALLOC(iter_max,double*);
+  v=TMPMEMALLOC(l,double*);
   c=TMPMEMALLOC(l,double);
   s=TMPMEMALLOC(l,double);
   g=TMPMEMALLOC(l,double);
@@ -116,7 +116,7 @@ err_t Paso_Solver_GMRES2(
                   /*
                   *      call directional derivative function
                   */
-                  Paso_FunctionDerivative(v[k],v[k-1],F,f0,x0,work,TRUE);
+                  Paso_FunctionDerivative(v[k],v[k-1],F,f0,x0,work,TRUE,pp);
                   normv=Paso_l2(n,v[k],F->mpi_info);
                   /*
                    * Modified Gram-Schmidt

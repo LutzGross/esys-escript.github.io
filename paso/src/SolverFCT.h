@@ -15,7 +15,8 @@
 #define INC_SOLVERFCT
 
 #include "SystemMatrix.h"
-#include "Functions.h"
+#include "Options.h"
+#include "performance.h"
 
 typedef struct Paso_FCTransportProblem {
 
@@ -28,7 +29,6 @@ typedef struct Paso_FCTransportProblem {
 
     double* u;
     Paso_Coupler* u_coupler;
-    double u_min;
 
     index_t *main_iptr;
     Paso_SystemMatrix * iteration_matrix;
@@ -61,8 +61,7 @@ void Paso_FCTransportProblem_addCorrectedFluxes(double* f,const Paso_SystemMatri
 
 void Paso_SolverFCT_setMuPaLuPbQ(double* out, const double* M, const Paso_Coupler* u_coupler, const double a, const Paso_SystemMatrix *L, const double b, const double* Q);
 Paso_Connector* Paso_FCTransportProblem_borrowConnector(const Paso_FCTransportProblem* in);
-Paso_Function * Paso_Function_FCT_alloc(Paso_MPIInfo *mpi_info);
-err_t Paso_Function_FCT_call(Paso_Function * F,double* value, const double* arg);
-void Paso_Function_FCT_free(Paso_Function * F);
-
+err_t Paso_FCT_setUp(Paso_FCTransportProblem* fctp, const double dt, const double *sourceN, const double *sourceP, double* b, double* uTilde,
+                     Paso_Coupler* uTilde_coupler, double *QN, Paso_Coupler* QN_coupler, double *QP, Paso_Coupler* QP_coupler,
+                     Paso_Options* options, Paso_Performance* pp);
 #endif /* #ifndef INC_SOLVERFCT */

@@ -119,8 +119,8 @@ err_t Paso_Solver_GMRES2(Paso_Function * F, const double* f0, const double* x0, 
 err_t Paso_Solver_NewtonGMRES(Paso_Function *F, double *x, Paso_Options* options, Paso_Performance* pp);
 
 Paso_Function * Paso_Function_LinearSystem_alloc(Paso_SystemMatrix* A, double* b, Paso_Options* options);
-err_t Paso_Function_LinearSystem_call(Paso_Function * F,double* value, const double* arg);
+err_t Paso_Function_LinearSystem_call(Paso_Function * F,double* value, const double* arg, Paso_Performance *pp);
 void Paso_Function_LinearSystem_free(Paso_Function * F);
-err_t Paso_Function_LinearSystem_setInitialGuess(Paso_SystemMatrix* A, double* x);
+err_t Paso_Function_LinearSystem_setInitialGuess(Paso_SystemMatrix* A, double* x, Paso_Performance *pp);
 
 #endif /* #ifndef INC_SOLVER */
