@@ -492,37 +492,6 @@ namespace finley {
     strcpy(fName,fileName.c_str());
     double blocktimer_start = blocktimer_time();
 
-    fMesh=Finley_Mesh_read(fName,integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE));
-    checkFinleyError();
-    AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
-    
-    /* win32 refactor */
-    TMPMEMFREE(fName);
-    
-    blocktimer_increment("ReadMesh()", blocktimer_start);
-    return temp;
-  }
-
-  AbstractContinuousDomain* readMeshMPI(const std::string& fileName,
-  				     int integrationOrder,
-                                     int reducedIntegrationOrder,
-                                     int optimize)
-  {
-    //
-    // create a copy of the filename to overcome the non-constness of call
-    // to Finley_Mesh_read
-    Finley_Mesh* fMesh=0;
-    // Win32 refactor
-    if( fileName.size() == 0 )
-    {
-       throw DataException("Null file name!");
-    }
-
-    char *fName = TMPMEMALLOC(fileName.size()+1,char);
-	
-    strcpy(fName,fileName.c_str());
-    double blocktimer_start = blocktimer_time();
-
     fMesh=Finley_Mesh_read_MPI(fName,integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE));
     checkFinleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);

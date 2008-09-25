@@ -92,9 +92,6 @@ BOOST_PYTHON_MODULE(finleycpp)
   def("ReadMesh",finley::readMesh,
       (arg("fileName")="file.fly",arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,  arg("optimize")=true),
       return_value_policy<manage_new_object>());
-  def("ReadMeshMPI",finley::readMeshMPI,
-      (arg("fileName")="file.fly",arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,  arg("optimize")=true),
-      return_value_policy<manage_new_object>());
 
   def("ReadGmsh",finley::readGmsh,
       (arg("fileName")="file.msh",arg("numDim"), arg("integrationOrder")=-1, arg("reducedIntegrationOrder")=-1, arg("optimize")=true),
