@@ -39,7 +39,7 @@ __date__="$Date: 2006-09-26 12:19:18 +1000 (Tue, 26 Sep 2006) $"
 import unittest, sys
 
 from esys.escript import *
-from esys.finley import Rectangle, Brick, LoadMesh, ReadMesh, ReadMeshMPI
+from esys.finley import Rectangle, Brick, LoadMesh, ReadMesh
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
@@ -139,13 +139,13 @@ class InputOutput(unittest.TestCase):
      def test_mesh_read_rectangle_from_finley_file(self):
 	if getMPISizeWorld() < 16:
 	  mydomain1 = Rectangle(n0=8, n1=10, order=1, l0=1., l1=1., optimize=False)
-          mydomain2 = ReadMeshMPI(FINLEY_TEST_MESH_PATH+"rectangle_8x10.fly")
+          mydomain2 = ReadMesh(FINLEY_TEST_MESH_PATH+"rectangle_8x10.fly")
           self.domainsEqual(mydomain1, mydomain2)
 
      def test_mesh_read_brick_from_finley_file(self):
 	if getMPISizeWorld() < 16:
           mydomain1 = Brick(n0=8, n1=10, n2=12, order=1, l0=1., l1=1., l2=1., optimize=False)
-          mydomain2 = ReadMeshMPI(FINLEY_TEST_MESH_PATH+"brick_8x10x12.fly")
+          mydomain2 = ReadMesh(FINLEY_TEST_MESH_PATH+"brick_8x10x12.fly")
           self.domainsEqual(mydomain1, mydomain2)
 
 if __name__ == '__main__':

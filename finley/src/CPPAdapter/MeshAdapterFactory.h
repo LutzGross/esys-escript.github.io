@@ -49,7 +49,7 @@ namespace finley {
   escript::AbstractContinuousDomain* loadMesh(const std::string& fileName);
   /**
      \brief
-     Read a mesh from a file
+     Read a mesh from a file. For MPI parallel runs fan out the mesh to multiple processes.
      \param fileName Input -  The name of the file.
      \param integrationOrder Input - order of the quadrature scheme.  
      If integrationOrder<0 the integration order is selected independently.
@@ -59,11 +59,6 @@ namespace finley {
   */
   FINLEY_DLL_API
   escript::AbstractContinuousDomain* readMesh(const std::string& fileName,
-				     int integrationOrder=-1,
-                                     int reducedIntegrationOrder=-1,
-                                     int optimize=0);
-  FINLEY_DLL_API
-  escript::AbstractContinuousDomain* readMeshMPI(const std::string& fileName,
 				     int integrationOrder=-1,
                                      int reducedIntegrationOrder=-1,
                                      int optimize=0);
