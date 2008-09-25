@@ -13,6 +13,9 @@
  *
  *******************************************************/
 
+#include <unistd.h>
+#include <string.h>
+
 #include "Utils.h"
 #include "DataVector.h"
 
@@ -71,6 +74,7 @@ void printParallelThreadCnt()
 
 #ifdef HAVE_GETHOSTNAME
   gethostname(hname, 64);
+  hname[63] = '\0';
 #else
   strcpy(hname, "unknown host");
 #endif
