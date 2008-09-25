@@ -1,18 +1,23 @@
+
+########################################################
 #
-# $Id$
+# Copyright (c) 2003-2008 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
 #
-#######################################################
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
 #
-#           Copyright 2003-2007 by ACceSS MNRF
-#       Copyright 2007 by University of Queensland
-#
-#                http://esscc.uq.edu.au
-#        Primary Business: Queensland, Australia
-#  Licensed under the Open Software License version 3.0
-#     http://www.opensource.org/licenses/osl-3.0.php
-#
-#######################################################
-#
+########################################################
+
+__copyright__="""Copyright (c) 2003-2008 by University of Queensland
+Earth Systems Science Computational Center (ESSCC)
+http://www.uq.edu.au/esscc
+Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.uq.edu.au/esscc/escript-finley"
 
 """
 Test suite for linearPDEs class
@@ -38,16 +43,6 @@ The tests must be linked with a Domain class object in the setUp method:
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
-__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
-                    http://www.access.edu.au
-                Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-             http://www.opensource.org/licenses/osl-3.0.php"""
-__url__="http://www.iservo.edu.au/esys/escript"
-__version__="$Revision$"
-__date__="$Date$"
-
-
 
 from esys.escript.util import Lsup,kronecker,interpolate,whereZero
 from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data, Tensor4, Tensor

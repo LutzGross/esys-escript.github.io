@@ -1,18 +1,23 @@
+
+########################################################
 #
-# $Id$
+# Copyright (c) 2003-2008 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
 #
-#######################################################
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
 #
-#           Copyright 2003-2007 by ACceSS MNRF
-#       Copyright 2007 by University of Queensland
-#
-#                http://esscc.uq.edu.au
-#        Primary Business: Queensland, Australia
-#  Licensed under the Open Software License version 3.0
-#     http://www.opensource.org/licenses/osl-3.0.php
-#
-#######################################################
-#
+########################################################
+
+__copyright__="""Copyright (c) 2003-2008 by University of Queensland
+Earth Systems Science Computational Center (ESSCC)
+http://www.uq.edu.au/esscc
+Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.uq.edu.au/esscc/escript-finley"
 
 """
 calculation of the stress distribution around a fault from the slip on the fault
@@ -28,14 +33,6 @@ e.g. use slip_stress_mesh.py to generate mesh
 """
 
 __author__="Lutz Gross, Louise Kettle"
-__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
-                    http://www.access.edu.au
-                Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-             http://www.opensource.org/licenses/osl-3.0.php"""
-__url__="http://www.iservo.edu.au/esys"
-__version__="$Revision$"
-__date__="$Date$"
 
 from esys.escript import *
 from esys.escript.pdetools import SaddlePointProblem

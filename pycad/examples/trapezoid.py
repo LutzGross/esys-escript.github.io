@@ -1,3 +1,24 @@
+
+########################################################
+#
+# Copyright (c) 2003-2008 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+__copyright__="""Copyright (c) 2003-2008 by University of Queensland
+Earth Systems Science Computational Center (ESSCC)
+http://www.uq.edu.au/esscc
+Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.uq.edu.au/esscc/escript-finley"
+
 """
 a trapezoid with a cutout
  
@@ -5,17 +26,6 @@ a trapezoid with a cutout
 @var __url__: http://www.iservo.edu.au/esys/escript
 @var __date__: 26 March 2007
 """
-
-
-__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
-                    http://www.access.edu.au
-                Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-             http://www.opensource.org/licenses/osl-3.0.php"""
-__author__="Ken Steube, k.steube@uq.edu.au"
-__url__="http://www.iservo.edu.au/esys/escript"
-__version__="$Revision$"
-__date__="$Date$"
 
 from esys.pycad import *
 from esys.pycad.gmsh import Design

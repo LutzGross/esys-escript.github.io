@@ -1,18 +1,23 @@
+
+########################################################
 #
-# $Id$
+# Copyright (c) 2003-2008 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
 #
-#######################################################
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
 #
-#           Copyright 2003-2007 by ACceSS MNRF
-#       Copyright 2007 by University of Queensland
-#
-#                http://esscc.uq.edu.au
-#        Primary Business: Queensland, Australia
-#  Licensed under the Open Software License version 3.0
-#     http://www.opensource.org/licenses/osl-3.0.php
-#
-#######################################################
-#
+########################################################
+
+__copyright__="""Copyright (c) 2003-2008 by University of Queensland
+Earth Systems Science Computational Center (ESSCC)
+http://www.uq.edu.au/esscc
+Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.uq.edu.au/esscc/escript-finley"
 
 ## @file symbols.py
 
@@ -26,16 +31,8 @@ some tools supporting the usage of symbols.
 @var __version__: version
 @var __date__: date of the version
 """
-                                                                                                                                                                                                     
+
 __author__="Lutz Gross, l.gross@uq.edu.au"
-__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
-                    http://www.access.edu.au
-                Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-             http://www.opensource.org/licenses/osl-3.0.php"""
-__url__="http://www.iservo.edu.au/esys/escript"
-__version__="$Revision$"
-__date__="$Date$"
 
 from util import Symbol
 
