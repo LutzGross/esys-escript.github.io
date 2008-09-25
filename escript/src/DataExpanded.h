@@ -63,24 +63,6 @@ class DataExpanded : public DataAbstract {
   DataExpanded(const boost::python::numeric::array& value,
                const FunctionSpace& what);
 
-//  /**
-//      \brief
-//      Alternative constructor for DataExpanded.
-// 
-//      Description:
-//      Alternative Constructor for DataExpanded.
-// 
-//      The given single data value is copied to all the data points in 
-//      this data object, where the number of data points is defined by
-//      the given function space.
-// 
-//      \param value - Input - A single data value.
-//      \param what - Input - A description of what this data represents.
-//  */
-//   ESCRIPT_DLL_API
-//   DataExpanded(const DataArrayView& value,
-//                const FunctionSpace& what);
-
   /**
      \brief
      Alternative constructor for DataExpanded that copies a slice from
@@ -193,23 +175,6 @@ TODO Note that this constructor will also copy data to all points if it only con
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
-//  /**
-/*     \brief
-     Return a view into the data array for the data point specified.
-
-     NOTE: Construction of the DataArrayView is a relatively expensive 
-     operation.
-
-     \param sampleNo - Input - sample number.
-     \param dataPointNo - Input - data point number.
-     \return DataArrayView for the data point.*/
-//  */
-//   ESCRIPT_DLL_API
-//   DataArrayView
-//   getDataPoint(int sampleNo,
-//                int dataPointNo);
-
-
   /**
      \brief
      Return a a reference to the underlying DataVector.
@@ -257,25 +222,6 @@ TODO Note that this constructor will also copy data to all points if it only con
   void
   setSlice(const DataAbstract* value,
            const DataTypes::RegionType& region);
-
-
-//  /**
-/*     \brief
-     setTaggedValue
-
-     Description:
-     uses tag to set a new value
-
-     \param tagKey - Input - Integer key.
-     \param value - Input - Single DataArrayView value to be assigned to the tag.*/
-//  */
-//   ESCRIPT_DLL_API
-//   virtual
-//   void
-//   setTaggedValue(int tagKey,
-//                  const DataArrayView& value);
-
-
 
   /**
      \brief

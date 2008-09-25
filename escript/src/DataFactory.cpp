@@ -264,56 +264,61 @@ load(const std::string fileName,
       // check shape:
       if ( ! (num_samples == function_space.getNumSamples() && num_data_points_per_sample == function_space.getNumDataPointsPerSample()) )
           throw DataException("Error - load:: data sample layout of file does not match data layout of function space.");
-      // get ids
-      if (! ( ids_var = dataFile.get_var("id")) )
-         throw DataException("Error - load:: unable to find reference ids in netCDF file.");
-      const int* ids_p=function_space.borrowSampleReferenceIDs();
-      int *ids_of_nc = (int *)esysUtils::malloc(num_samples*sizeof(int));
-      if (! ids_var->get(ids_of_nc, (long) num_samples) ) 
-      {
-         esysUtils::free(ids_of_nc);
-         throw DataException("Error - load:: unable to recover ids from netCDF file.");
+      if (num_samples==0) {
+	out = Data(0,shape,function_space,true);
       }
-      // check order:
-      int failed=-1, local_failed=-1, i;
-      #pragma omp parallel private(local_failed)
-      {
-          local_failed=-1;
-          #pragma omp for private(i) schedule(static)
-          for (i=0;i < num_samples; ++i) {
-              if (ids_of_nc[i]!=ids_p[i]) local_failed=i;
-          }
-          #pragma omp critical
-          if (local_failed>=0) failed = local_failed;
-      }
-      /* if (failed>=0) 
-      {
-         esysUtils::free(ids_of_nc);
-         throw DataException("Error - load:: data ordering in netCDF file does not match ordering of FunctionSpace.");
-      } */
-      // get the data:
-      dims[rank]=num_data_points_per_sample;
-      dims[rank+1]=num_samples;
-      out=Data(0,shape,function_space,true);
-      if (!(var = dataFile.get_var("data")))
-      {
-         esysUtils::free(ids_of_nc);
-         throw DataException("Error - load:: unable to find data in netCDF file.");
-      }
-      if (! var->get(&(out.getDataAtOffset(out.getDataOffset(0,0))), dims) ) 
-      {
-         esysUtils::free(ids_of_nc);
-         throw DataException("Error - load:: unable to recover data from netCDF file.");
-      }
-      if (failed>=0) {
-        try {
-           std::cout << "Information - load: start reordering data from netCDF file " << fileName << std::endl;
-           out.borrowData()->reorderByReferenceIDs(ids_of_nc);
-        } 
-        catch (std::exception&) {
-           esysUtils::free(ids_of_nc);
-           throw DataException("Error - load:: unable to reorder data in netCDF file.");
-        }
+      else {
+	// get ids
+	if (! ( ids_var = dataFile.get_var("id")) )
+		throw DataException("Error - load:: unable to find reference ids in netCDF file.");
+	const int* ids_p=function_space.borrowSampleReferenceIDs();
+	int *ids_of_nc = (int *)esysUtils::malloc(num_samples*sizeof(int));
+	if (! ids_var->get(ids_of_nc, (long) num_samples) ) 
+	{
+		esysUtils::free(ids_of_nc);
+		throw DataException("Error - load:: unable to recover ids from netCDF file.");
+	}
+	// check order:
+	int failed=-1, local_failed=-1, i;
+	#pragma omp parallel private(local_failed)
+	{
+		local_failed=-1;
+		#pragma omp for private(i) schedule(static)
+		for (i=0;i < num_samples; ++i) {
+		if (ids_of_nc[i]!=ids_p[i]) local_failed=i;
+		}
+		#pragma omp critical
+		if (local_failed>=0) failed = local_failed;
+	}
+	/* if (failed>=0) 
+	{
+		esysUtils::free(ids_of_nc);
+		throw DataException("Error - load:: data ordering in netCDF file does not match ordering of FunctionSpace.");
+	} */
+	// get the data:
+	dims[rank]=num_data_points_per_sample;
+	dims[rank+1]=num_samples;
+	out=Data(0,shape,function_space,true);
+	if (!(var = dataFile.get_var("data")))
+	{
+		esysUtils::free(ids_of_nc);
+		throw DataException("Error - load:: unable to find data in netCDF file.");
+	}
+	if (! var->get(&(out.getDataAtOffset(out.getDataOffset(0,0))), dims) ) 
+	{
+		esysUtils::free(ids_of_nc);
+		throw DataException("Error - load:: unable to recover data from netCDF file.");
+	}
+	if (failed>=0) {
+		try {
+		std::cout << "Information - load: start reordering data from netCDF file " << fileName << std::endl;
+		out.borrowData()->reorderByReferenceIDs(ids_of_nc);
+		} 
+		catch (std::exception&) {
+		esysUtils::free(ids_of_nc);
+		throw DataException("Error - load:: unable to reorder data in netCDF file.");
+		}
+	}
       }
    } else {
        throw DataException("Error - load:: unknown escript data type in netCDF file.");

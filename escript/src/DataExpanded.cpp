@@ -39,12 +39,6 @@ DataExpanded::DataExpanded(const boost::python::numeric::array& value,
                            const FunctionSpace& what)
   : DataAbstract(what,DataTypes::shapeFromNumArray(value))
 {
-/*  DataTypes::ShapeType tempShape;
-  //
-  // extract the shape of the python numarray
-  for (int i=0; i<value.getrank(); i++) {
-    tempShape.push_back(extract<int>(value.getshape()[i]));
-  }*/
   //
   // initialise the data array for this object
   initialise(what.getNumSamples(),what.getNumDPPSample());
@@ -57,14 +51,6 @@ DataExpanded::DataExpanded(const DataExpanded& other)
   : DataAbstract(other.getFunctionSpace(), other.getShape()),
   m_data(other.m_data)
 {
-/*
-  //
-  // create the view for the data
-  DataArrayView temp(m_data.getData(),other.getPointDataView().getShape());
-  setPointDataView(temp);
-
-  // keep local shape in sync
-  setShape(other.getPointDataView().getShape());*/
 }
 
 DataExpanded::DataExpanded(const DataConstant& other)
@@ -94,9 +80,6 @@ DataExpanded::DataExpanded(const DataTagged& other)
   for (i=0;i<numRows;i++) {
     for (j=0;j<numCols;j++) {
       try {
-//         getPointDataView().copy(getPointOffset(i,j),
-//                                 other.getPointDataView(),
-//                                 other.getPointOffset(i,j));
            DataTypes::copyPoint(getVector(), getPointOffset(i,j), getNoValues(),
                                 other.getVector(),
                                 other.getPointOffset(i,j));
@@ -336,17 +319,13 @@ void
 DataExpanded::initialise(int noSamples,
                          int noDataPointsPerSample)
 {
+  if (noSamples==0)		//retain the default empty object
+  {
+     return;
+  }
   //
   // resize data array to the required size
   m_data.resize(noSamples,noDataPointsPerSample,getNoValues());
-
-  //
-//   // create the data view of the data array
-//   DataArrayView temp(m_data.getData(),shape);
-//   setPointDataView(temp);
-
-//   // keep shape in sync
-//   setShape(shape);
 }
 
 string
@@ -354,9 +333,6 @@ DataExpanded::toString() const
 {
   stringstream temp;
   FunctionSpace fs=getFunctionSpace();
-  //
-  // create a temporary view as the offset will be changed
-//  DataArrayView tempView(getPointDataView().getData(),getPointDataView().getShape(),getPointDataView().getOffset());
 
   int offset=0;
   for (int i=0;i<m_data.getNumRows();i++) {
@@ -370,6 +346,11 @@ DataExpanded::toString() const
       }
     }
   }
+  string result=temp.str();
+  if (result.empty())
+  {
+    return "(data contains no samples)\n";
+  }
   return temp.str();
 }
 
@@ -379,14 +360,6 @@ DataExpanded::getPointOffset(int sampleNo,
 {
   return m_data.index(sampleNo,dataPointNo);
 }
-
-// DataArrayView
-// DataExpanded::getDataPoint(int sampleNo,
-//                            int dataPointNo)
-// {
-//   DataArrayView temp(m_data.getData(),getPointDataView().getShape(),getPointOffset(sampleNo,dataPointNo));
-//   return temp;
-// }
 
 DataTypes::ValueType::size_type
 DataExpanded::getLength() const
@@ -467,7 +440,6 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const b
      if ((dataPointNo >= numDataPointsPerSample) || (dataPointNo < 0)) {
            throw DataException("Error - DataExpanded::copyDataPoint invalid dataPointNoInSample.");
      }
- //    DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNo);
      ValueType& vec=getVector();
      if (dataPointRank==0) {
          vec[0]=extract<double>(value[0]);
@@ -521,7 +493,6 @@ DataExpanded::copyAll(const boost::python::numeric::array& value) {
   int dataPoint = 0;
   for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
     for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-//       DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNo);
       ValueType::size_type offset=getPointOffset(sampleNo, dataPointNo);
       if (dataPointRank==0) {
          vec[offset]=extract<double>(value[dataPoint]);
@@ -533,7 +504,6 @@ DataExpanded::copyAll(const boost::python::numeric::array& value) {
          for (int i=0; i<dataPointShape[0]; i++) {
            for (int j=0; j<dataPointShape[1]; j++) {
 	     vec[offset+getRelIndex(dataPointShape,i,j)]=extract<double>(value[dataPoint][i][j]);
-//             dataPointView(i,j)=extract<double>(value[dataPoint][i][j]);
            }
          }
        } else if (dataPointRank==3) {
@@ -569,8 +539,6 @@ DataExpanded::symmetric(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataExpanded::symmetric: casting to DataExpanded failed (propably a programming error).");
   }
-//  DataArrayView& thisView=getPointDataView();
-//  DataArrayView& evView=ev->getPointDataView();
   ValueType& vec=getVector();
   const ShapeType& shape=getShape();
   ValueType& evVec=temp_ev->getVector();
@@ -593,8 +561,6 @@ DataExpanded::nonsymmetric(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataExpanded::nonsymmetric: casting to DataExpanded failed (propably a programming error).");
   }
-//   DataArrayView& thisView=getPointDataView();
-//   DataArrayView& evView=ev->getPointDataView();
   ValueType& vec=getVector();
   const ShapeType& shape=getShape();
   ValueType& evVec=temp_ev->getVector();
@@ -602,8 +568,6 @@ DataExpanded::nonsymmetric(DataAbstract* ev)
   #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
   for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
     for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-//          DataArrayView::nonsymmetric(thisView,getPointOffset(sampleNo,dataPointNo),
-//                                     evView,ev->getPointOffset(sampleNo,dataPointNo));
          DataMaths::nonsymmetric(vec,shape,getPointOffset(sampleNo,dataPointNo),
                                     evVec,evShape,ev->getPointOffset(sampleNo,dataPointNo));
     }
@@ -626,8 +590,6 @@ DataExpanded::trace(DataAbstract* ev, int axis_offset)
   #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
   for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
     for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-/*         DataArrayView::trace(thisView,getPointOffset(sampleNo,dataPointNo),
-                                    evView,ev->getPointOffset(sampleNo,dataPointNo),axis_offset);*/
          DataMaths::trace(vec,shape,getPointOffset(sampleNo,dataPointNo),
                                     evVec,evShape,ev->getPointOffset(sampleNo,dataPointNo),axis_offset);
     }
@@ -822,16 +784,19 @@ DataExpanded::dump(const std::string fileName) const
    if (! (ncdims[rank+1] = dataFile.add_dim("num_samples", dims[rank+1])) )
             throw DataException("Error - DataExpanded:: appending num_sample to netCDF file failed.");
 
-   if (! ( ids = dataFile.add_var("id", ncInt, ncdims[rank+1])) )
-        throw DataException("Error - DataExpanded:: appending reference id to netCDF file failed.");
-   const int* ids_p=getFunctionSpace().borrowSampleReferenceIDs();
-   if (! (ids->put(ids_p,dims[rank+1])) )
-        throw DataException("Error - DataExpanded:: copy reference id  to netCDF buffer failed.");
+   if (getFunctionSpace().getNumSamples()>0)
+   {
 
-   if (! ( var = dataFile.add_var("data", ncDouble, ndims, ncdims)) )
+     if (! ( ids = dataFile.add_var("id", ncInt, ncdims[rank+1])) )
+        throw DataException("Error - DataExpanded:: appending reference id to netCDF file failed.");
+     const int* ids_p=getFunctionSpace().borrowSampleReferenceIDs();
+     if (! (ids->put(ids_p,dims[rank+1])) )
+        throw DataException("Error - DataExpanded:: copy reference id  to netCDF buffer failed.");
+     if (! ( var = dataFile.add_var("data", ncDouble, ndims, ncdims)) )
         throw DataException("Error - DataExpanded:: appending variable to netCDF file failed.");
-   if (! (var->put(d_ptr,dims)) )
+     if (! (var->put(d_ptr,dims)) )
         throw DataException("Error - DataExpanded:: copy data to netCDF buffer failed.");
+   }
 #ifdef PASO_MPI
    if (mpi_iam<mpi_num-1) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81801, MPI_COMM_WORLD);
 #endif
@@ -839,31 +804,6 @@ DataExpanded::dump(const std::string fileName) const
    throw DataException("Error - DataExpanded:: dump is not configured with netCDF. Please contact your installation manager.");
    #endif
 }
-
-// void
-// DataExpanded::setTaggedValue(int tagKey,
-//                              const DataArrayView& value)
-// {
-//   int numSamples = getNumSamples();
-//   int numDataPointsPerSample = getNumDPPSample();
-//   int sampleNo,dataPointNo, i;
-//   DataTypes::ValueType::size_type n = getNoValues();
-//   double* p,*in=&(value.getData()[0]);
-//   
-//   if (value.noValues() != n) {
-//     throw DataException("Error - DataExpanded::setTaggedValue: number of input values does not match number of values per data points.");
-//   }
-// 
-//   #pragma omp parallel for private(sampleNo,dataPointNo,p,i) schedule(static)
-//   for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
-//     if (getFunctionSpace().getTagFromSampleNo(sampleNo) == tagKey ) {
-//         for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-//             p=&(m_data[getPointOffset(sampleNo,dataPointNo)]);
-//             for (i=0; i<n ;++i) p[i]=in[i];
-//         }
-//     }
-//   }
-// }
 
 void  
 DataExpanded::setTaggedValue(int tagKey,
