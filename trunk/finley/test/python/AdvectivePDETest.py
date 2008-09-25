@@ -44,11 +44,6 @@ __url__="http://www.uq.edu.au/esscc/escript-finley"
 #   obviously one can choose: v_i-w_i=K_{ji}z_j and v_{mjl}-w_{mlj}=z_{li}*K_{milj} (no summation over l)
 #
 
-__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
-                    http://www.access.edu.au
-                Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-             http://www.opensource.org/licenses/osl-3.0.php"""
 from esys.escript import *
 from esys.escript.linearPDEs import AdvectivePDE,LinearPDE
 from esys import finley

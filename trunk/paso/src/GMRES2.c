@@ -1,51 +1,16 @@
-/* $Id:$ */
 
 /*******************************************************
- *
- *       Copyright 2008 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
-/*
-*  Purpose
-*  =======
 *
-*  GMRES2 solves the non-linear system f0+J_0*d=0 
-*  where f0=F(x0), J_0 is the jacobian of F at x0.
+* Copyright (c) 2003-2008 by University of Queensland
+* Earth Systems Science Computational Center (ESSCC)
+* http://www.uq.edu.au/esscc
 *
-*  Convergence test: norm(f0+J_0*d)<=tolerance*norm(f0)
+* Primary Business: Queensland, Australia
+* Licensed under the Open Software License version 3.0
+* http://www.opensource.org/licenses/osl-3.0.php
 *
-*  Arguments
-*  =========
-*
-*   Paso_Function * F   evaluation of F (including any preconditioner)
-*
-*   x0                  (input) current point
-*
-*   f0                  (input) function F at current point x0
-*
-*   d                   (output) solution of f0+J0*d=0 with accuracy tolerance
-*
-*   iter                (input/output)
-*                       On input, the maximum num_iterations to be performed.
-*                       On output, actual number of num_iterations performed.
-*   tolerance           (input/output) 
-*                        On input, the allowable convergence measure for norm(f0+J0*d)/norm(f0)
-*                        On output, the final value for norm(f0+J0*d)
-*  return value
-*
-*         =SOLVER_NO_ERROR: Successful exit. approximate solution returned.
-*         =SOLVER_MAXNUM_ITER_REACHED
-*         =SOLVER_INPUT_ERROR Illegal parameter:
-*         =SOLVER_BREAKDOWN: bad luck!
-*         =SOLVER_MEMORY_ERROR : no memory available
-*
-*  ==============================================================
-*/
+*******************************************************/
+
 
 #include "Common.h"
 #include "Solver.h"

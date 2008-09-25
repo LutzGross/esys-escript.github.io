@@ -1,17 +1,15 @@
 
-/* $Id: DataMaths.h 1697 2008-08-11 06:29:54Z jfenwick $ */
-
 /*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+*
+* Copyright (c) 2003-2008 by University of Queensland
+* Earth Systems Science Computational Center (ESSCC)
+* http://www.uq.edu.au/esscc
+*
+* Primary Business: Queensland, Australia
+* Licensed under the Open Software License version 3.0
+* http://www.opensource.org/licenses/osl-3.0.php
+*
+*******************************************************/
 
 
 #ifndef escript_DataMaths_20080822_H
