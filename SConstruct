@@ -1,9 +1,16 @@
-#         Copyright 2006 by ACcESS MNRF
+
+########################################################
 #
-#              http://www.access.edu.au
-#       Primary Business: Queensland, Australia
-#  Licensed under the Open Software License version 3.0
-#     http://www.opensource.org/licenses/osl-3.0.php
+# Copyright (c) 2003-2008 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
 
 EnsureSConsVersion(0,96,91)
 EnsurePythonVersion(2,3)

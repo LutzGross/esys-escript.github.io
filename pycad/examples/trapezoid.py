@@ -22,9 +22,6 @@ __url__="http://www.uq.edu.au/esscc/escript-finley"
 """
 a trapezoid with a cutout
  
-@var __author__: Ken Steube
-@var __url__: http://www.iservo.edu.au/esys/escript
-@var __date__: 26 March 2007
 """
 
 from esys.pycad import *
