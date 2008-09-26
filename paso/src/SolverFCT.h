@@ -62,7 +62,7 @@ void Paso_FCTransportProblem_addCorrectedFluxes(double* f,const Paso_SystemMatri
 
 void Paso_SolverFCT_setMuPaLuPbQ(double* out, const double* M, const Paso_Coupler* u_coupler, const double a, const Paso_SystemMatrix *L, const double b, const double* Q);
 Paso_Connector* Paso_FCTransportProblem_borrowConnector(const Paso_FCTransportProblem* in);
-err_t Paso_FCT_setUp(Paso_FCTransportProblem* fctp, const double dt, const double *sourceN, const double *sourceP, double* b, double* uTilde,
+void Paso_FCT_setUp(Paso_FCTransportProblem* fctp, const double dt, const double *sourceN, const double *sourceP, double* b, double* uTilde,
                      Paso_Coupler* uTilde_coupler, double *QN, Paso_Coupler* QN_coupler, double *QP, Paso_Coupler* QP_coupler,
                      Paso_Options* options, Paso_Performance* pp);
 #endif /* #ifndef INC_SOLVERFCT */

@@ -40,6 +40,75 @@
 #include <mpi.h>
 #endif
 
+/*
+ * inserts the source term into the problem
+ */
+void Paso_FCT_setSource(const dim_t n,const double *source, double* sourceN, double* sourceP) 
+{
+   dim_t i;
+   register double rtmp;
+   /* 
+    * seperate source into positive and negative part:
+    */
+   #pragma omp parallel for private(i,rtmp)
+   for (i = 0; i < n; ++i) {
+       rtmp=source[i];
+       if (rtmp <0) {
+          sourceN[i]=-rtmp;
+          sourceP[i]=0;
+       } else {
+          sourceN[i]= 0;
+          sourceP[i]= rtmp;
+       }
+   }
+}
+
+err_t Paso_FCT_setUpRightHandSide(Paso_FCTransportProblem* fctp, const double dt, const double *u_m, Paso_Coupler* u_m_coupler,  double * z_m,
+                                  Paso_SystemMatrix* flux_matrix, Paso_Coupler* uTilde_coupler, const double *b, 
+                                  Paso_Coupler* QN_coupler, Paso_Coupler* QP_coupler,
+                                  double *RN_m, Paso_Coupler* RN_m_coupler, double* RP_m, Paso_Coupler* RP_m_coupler, const double *sourceN, 
+                                  Paso_Performance* pp)
+{
+   dim_t i;
+   const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
+   register double m, rtmp;
+   /* distribute u */
+   Paso_Coupler_startCollect(u_m_coupler,u_m);
+   Paso_Coupler_finishCollect(u_m_coupler);
+   /*
+    *  set the ant diffusion fluxes:
+    *
+    */
+   Paso_FCTransportProblem_setAntiDiffusionFlux(dt,fctp,flux_matrix,u_m_coupler);
+   /*
+    *  apply pre flux-correction: f_{ij}:=0 if f_{ij}*(\tilde{u}[i]- \tilde{u}[j])<=0
+    *
+    */
+   Paso_FCTransportProblem_applyPreAntiDiffusionCorrection(flux_matrix,uTilde_coupler);
+   /*
+    *  set flux limiters RN_m,RP_m
+    *
+    */
+   Paso_FCTransportProblem_setRs(flux_matrix,fctp->lumped_mass_matrix,QN_coupler,QP_coupler,RN_m,RP_m);
+   Paso_Coupler_startCollect(RN_m_coupler,RN_m);
+   Paso_Coupler_startCollect(RP_m_coupler,RP_m);
+    /*
+     * z_m[i]=b[i] - (m_i*u_m[i] - dt*theta*sum_{j<>i} l_{ij} (u_m[j]-u_m[i]) + dt q^-[i])
+     *
+     * note that iteration_matrix stores the negative values of the 
+     * low order transport matrix l therefore a=dt*fctp->theta is used.
+     */
+   Paso_SolverFCT_setMuPaLuPbQ(z_m,fctp->lumped_mass_matrix, u_m_coupler,dt*fctp->theta,fctp->iteration_matrix,dt,sourceN);
+   /* z_m=b-z_m */
+   Paso_Update(n,-1.,z_m,1.,b);
+
+   Paso_Coupler_finishCollect(RN_m_coupler);
+   Paso_Coupler_finishCollect(RP_m_coupler);
+   /* add corrected fluxes into z_m */
+   Paso_FCTransportProblem_addCorrectedFluxes(z_m,flux_matrix,RN_m_coupler,RP_m_coupler); 
+   return NO_ERROR;
+}
+
 void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, double* source, Paso_Options* options) {
    const dim_t FAILURES_MAX=5;
    err_t error_code;
@@ -117,7 +186,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
              dt2=dt;
         }
         while(t<dt && Paso_noError()) {
-            printf("substep step %ld at t=%e (step size= %e)\n",i_substeps+1,t+dt2,dt2);
+            printf("substep step %d at t=%e (step size= %e)\n",i_substeps+1,t+dt2,dt2);
             Paso_FCT_setUp(fctp,dt2,sourceN,sourceP,b_n,uTilde_n,uTilde_n_coupler,QN_n,QN_n_coupler,QP_n,QP_n_coupler,
                            options,&pp);
             /* now the iteration starts */
@@ -153,7 +222,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                    }
                    norm_u_m=Paso_lsup(n,u, fctp->mpi_info);
                    norm_du_m=Paso_lsup(n,du_m, fctp->mpi_info)*omega;
-                   printf("iteration step %ld completed: norm increment= %e (tolerance = %e)\n",m+1, norm_du_m, rtol * norm_u_m + atol);
+                   printf("iteration step %d completed: norm increment= %e (tolerance = %e)\n",m+1, norm_du_m, rtol * norm_u_m + atol);
 
                    max_m_reached=(m>max_m);
                    converged=(norm_du_m <= rtol * norm_u_m + atol);
@@ -161,7 +230,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
             }
             if (converged) {
                     Failed=0;
-                    #pragma omp parallel for schedule(static) private(i)
+                    /* #pragma omp parallel for schedule(static) private(i) */
                     Paso_Copy(n,fctp->u,u);
                     i_substeps++;
                     t+=dt2;
@@ -257,29 +326,7 @@ double Paso_FCTransportProblem_getSafeTimeStepSize(Paso_FCTransportProblem* fctp
    }
    return fctp->dt_max;
 }
-/*
- * inserts the source term into the problem
- */
-err_t Paso_FCT_setSource(const dim_t n,const double *source, double* sourceN, double* sourceP) 
-{
-   dim_t i;
-   register double rtmp;
-   /* 
-    * seperate source into positive and negative part:
-    */
-   #pragma omp parallel for private(i,rtmp)
-   for (i = 0; i < n; ++i) {
-       rtmp=source[i];
-       if (rtmp <0) {
-          sourceN[i]=-rtmp;
-          sourceP[i]=0;
-       } else {
-          sourceN[i]= 0;
-          sourceP[i]= rtmp;
-       }
-   }
-}
-err_t Paso_FCT_setUp(Paso_FCTransportProblem* fctp, const double dt, const double *sourceN, const double *sourceP, double* b, double* uTilde, 
+void Paso_FCT_setUp(Paso_FCTransportProblem* fctp, const double dt, const double *sourceN, const double *sourceP, double* b, double* uTilde, 
                      Paso_Coupler* uTilde_coupler, double *QN, Paso_Coupler* QN_coupler, double *QP, Paso_Coupler* QP_coupler,
                      Paso_Options* options, Paso_Performance* pp)
 {
@@ -352,49 +399,4 @@ err_t Paso_FCT_setUp(Paso_FCTransportProblem* fctp, const double dt, const doubl
      Paso_Coupler_startCollect(QP_coupler,QP);
      Paso_Coupler_finishCollect(QN_coupler);
      Paso_Coupler_finishCollect(QP_coupler);
-}
-err_t Paso_FCT_setUpRightHandSide(Paso_FCTransportProblem* fctp, const double dt, const double *u_m, Paso_Coupler* u_m_coupler,  double * z_m,
-                                  Paso_SystemMatrix* flux_matrix, Paso_Coupler* uTilde_coupler, const double *b, 
-                                  Paso_Coupler* QN_coupler, Paso_Coupler* QP_coupler,
-                                  double *RN_m, Paso_Coupler* RN_m_coupler, double* RP_m, Paso_Coupler* RP_m_coupler, const double *sourceN, 
-                                  Paso_Performance* pp)
-{
-   dim_t i;
-   const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
-   register double m, rtmp;
-   /* distribute u */
-   Paso_Coupler_startCollect(u_m_coupler,u_m);
-   Paso_Coupler_finishCollect(u_m_coupler);
-   /*
-    *  set the ant diffusion fluxes:
-    *
-    */
-   Paso_FCTransportProblem_setAntiDiffusionFlux(dt,fctp,flux_matrix,u_m_coupler);
-   /*
-    *  apply pre flux-correction: f_{ij}:=0 if f_{ij}*(\tilde{u}[i]- \tilde{u}[j])<=0
-    *
-    */
-   Paso_FCTransportProblem_applyPreAntiDiffusionCorrection(flux_matrix,uTilde_coupler);
-   /*
-    *  set flux limiters RN_m,RP_m
-    *
-    */
-   Paso_FCTransportProblem_setRs(flux_matrix,fctp->lumped_mass_matrix,QN_coupler,QP_coupler,RN_m,RP_m);
-   Paso_Coupler_startCollect(RN_m_coupler,RN_m);
-   Paso_Coupler_startCollect(RP_m_coupler,RP_m);
-    /*
-     * z_m[i]=b[i] - (m_i*u_m[i] - dt*theta*sum_{j<>i} l_{ij} (u_m[j]-u_m[i]) + dt q^-[i])
-     *
-     * note that iteration_matrix stores the negative values of the 
-     * low order transport matrix l therefore a=dt*fctp->theta is used.
-     */
-   Paso_SolverFCT_setMuPaLuPbQ(z_m,fctp->lumped_mass_matrix, u_m_coupler,dt*fctp->theta,fctp->iteration_matrix,dt,sourceN);
-   /* z_m=b-z_m */
-   Paso_Update(n,-1.,z_m,1.,b);
-
-   Paso_Coupler_finishCollect(RN_m_coupler);
-   Paso_Coupler_finishCollect(RP_m_coupler);
-   /* add corrected fluxes into z_m */
-   Paso_FCTransportProblem_addCorrectedFluxes(z_m,flux_matrix,RN_m_coupler,RP_m_coupler); 
-   return NO_ERROR;
 }
