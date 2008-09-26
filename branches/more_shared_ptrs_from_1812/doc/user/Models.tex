@@ -1,0 +1,110 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2008 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\chapter{Models}
+
+The following sections give a breif overview of the model classes and their corresponding methods.
+
+\section{Stokes Cartesian (Saddle Point Problem)}
+
+\subsection{Description}
+
+Saddle point type problems emerge in a number of applications throughout physics and engineering. Finite element discretisation of the Navier-Stokes (momentum) equations for incompressible flow leads to equations of a saddle point type, which can be formulated as a solution of the following operator problem for $u \in V$ and $p \in Q$ with suitable Hilbert spaces $V$ and $Q$:
+
+\begin{equation}
+\left[ \begin{array}{cc}
+A     & B \\
+b^{*} & 0 \\
+\end{array} \right]
+\left[ \begin{array}{c}
+u \\
+p \\
+\end{array} \right]
+=\left[ \begin{array}{c}
+f \\
+g \\
+\end{array} \right]
+\label{SADDLEPOINT}
+\end{equation}
+
+where $A$ is coercive, self-adjoint linear operator in $V$, $B$ is a linear operator from $Q$ into $V$ and $B^{*}$ is the adjoint operator of $B$. $f$ and $g$ are given elements from $V$ and $Q$ respectivitly. For more details on the mathematics see references \cite{AAMIRBERKYAN2008,MBENZI2005}.
+
+The Uzawa scheme scheme is used to solve the momentum equation with the secondary condition of incompressibility \cite{GROSS2006,AAMIRBERKYAN2008}.
+
+\begin{classdesc}{StokesProblemCartesian}{domain,debug}
+opens the stokes equations on the \Domain domain. Setting debug=True switches the debug mode to on.
+\end{classdesc}
+
+example usage:
+
+solution=StokesProblemCartesian(mesh) \\
+solution.setTolerance(TOL) \\
+solution.initialize(fixed\_u\_mask=b\_c,eta=eta,f=Y) \\
+velocity,pressure=solution.solve(velocity,pressure,max\_iter=max\_iter,solver=solver) \\
+
+\subsection{Benchmark Problem}
+
+Convection problem
+
+
+\section{Temperature Cartesian}
+
+\begin{equation}
+\rho c\hackscore{p} \left (\frac{\partial T}{\partial t} + \vec{v} \cdot \nabla T \right ) = k \nabla^{2}T
+\label{HEAT EQUATION}
+\end{equation}
+
+where $\vec{v}$ is the velocity vector, $T$ is the temperature, $\rho$ is the density, $\eta$ is the viscosity, $c\hackscore{p}$ is the specific heat at constant pressure and $k$ is the thermal conductivity.
+
+\subsection{Description}
+
+\subsection{Method}
+
+\begin{classdesc}{TemperatureCartesian}{dom,theta=THETA,useSUPG=SUPG}
+\end{classdesc}
+
+\subsection{Benchmark Problem}
+
+
+\section{Level Set Method}
+
+\subsection{Description}
+
+\subsection{Method}
+
+Advection and Reinitialisation
+
+\begin{classdesc}{LevelSet}{mesh, func\_new, reinit\_max, reinit\_each, tolerance, smooth}
+\end{classdesc}
+
+%example usage:
+
+%levelset = LevelSet(mesh, func\_new, reinit\_max, reinit\_each, tolerance, smooth)
+
+\begin{methoddesc}[LevelSet]{update\_parameter}{parameter}
+Update the parameter.
+\end{methoddesc}
+
+\begin{methoddesc}[LevelSet]{update\_phi}{paramter}{velocity}{dt}{t\_step}
+Update level set function; advection and reinitialization
+\end{methoddesc}
+
+\subsection{Benchmark Problem}
+
+Rayleigh-Taylor instability problem
+
+
+\section{Drucker Prager Model}
+
+\section{Plate Mantel}
