@@ -36,6 +36,7 @@ void Paso_Preconditioner_free(Paso_Solver_Preconditioner* in) {
       Paso_Solver_ILU_free(in->ilu);
       Paso_Solver_RILU_free(in->rilu);
       Paso_Solver_Jacobi_free(in->jacobi);
+      Paso_Solver_GS_free(in->gs);
       MEMFREE(in);
     }
 }
@@ -51,6 +52,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
         prec->rilu=NULL;
         prec->ilu=NULL;
         prec->jacobi=NULL;
+        prec->gs=NULL;
         A->solver=prec;
         switch (options->preconditioner) {
            default:
@@ -68,6 +70,11 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
               if (options->verbose) printf("RILU preconditioner is used.\n");
               prec->rilu=Paso_Solver_getRILU(A->mainBlock,options->verbose);
               prec->type=PASO_RILU;
+              break;
+            case PASO_GS:
+              if (options->verbose) printf("Gauss-Seidel preconditioner is used.\n");
+              prec->gs=Paso_Solver_getGS(A->mainBlock,options->verbose);
+              prec->type=PASO_GS;
               break;
         }
         if (! Paso_MPIInfo_noError(A->mpi_info ) ){
@@ -92,6 +99,9 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
            break;
         case PASO_RILU:
            Paso_Solver_solveRILU(prec->rilu,x,b);
+           break;
+         case PASO_GS:
+           Paso_Solver_solveGS(prec->gs,x,b);
            break;
     }
 }

@@ -222,7 +222,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                            errorCode = Paso_Solver_BiCGStab(A, r, x, &cntIter, &tol, pp); 
                            break;
                         case PASO_PCG:
-                           errorCode = Paso_Solver_PCG(A, r, x, &cntIter, &tol, pp); 
+                           errorCode = Paso_Solver_PCG(A, r, x, &cntIter, &tol, pp);
                            break;
                         case PASO_TFQMR:
                            errorCode = Paso_Solver_TFQMR(A, r, x, &cntIter, &tol, pp);

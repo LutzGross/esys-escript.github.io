@@ -462,6 +462,7 @@ class LinearPDE(object):
    @cvar ITERATIVE: The default iterative solver
    @cvar AMG: algebraic multi grid
    @cvar RILU: recursive ILU
+   @cvar GS: Gauss-Seidel solver
 
    """
    DEFAULT= 0
@@ -492,6 +493,7 @@ class LinearPDE(object):
    NONLINEAR_GMRES = 25
    TFQMR = 26
    MINRES = 27
+   GS=28
 
    SMALL_TOLERANCE=1.e-13
    __PACKAGE_KEY="package"
@@ -952,7 +954,7 @@ class LinearPDE(object):
        @param solver: sets a new solver method.
        @type solver: one of L{DEFAULT}, L{ITERATIVE} L{DIRECT}, L{CHOLEVSKY}, L{PCG}, L{CR}, L{CGS}, L{BICGSTAB}, L{SSOR}, L{GMRES}, L{TFQMR}, L{MINRES}, L{PRES20}, L{LUMPING}, L{AMG}
        @param preconditioner: sets a new solver method.
-       @type preconditioner: one of L{DEFAULT}, L{JACOBI} L{ILU0}, L{ILUT},L{SSOR}, L{RILU}
+       @type preconditioner: one of L{DEFAULT}, L{JACOBI} L{ILU0}, L{ILUT},L{SSOR}, L{RILU},  L{GS}
        """
        if solver==None: solver=self.__solver_method
        if preconditioner==None: preconditioner=self.__preconditioner
@@ -997,6 +999,7 @@ class LinearPDE(object):
        elif m[1]==self.SSOR: method+= "+SSOR"
        elif m[1]==self.AMG: method+= "+AMG"
        elif m[1]==self.RILU: method+= "+RILU"
+       elif m[1]==self.GS: method+= "+GS"
        if p==self.DEFAULT: package="DEFAULT"
        elif p==self.PASO: package= "PASO"
        elif p==self.MKL: package= "MKL"

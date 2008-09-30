@@ -48,6 +48,7 @@ sources = """
 	SolverFCT_reset.c
 	SolverFCT_solve.c
 	Solver_Function.c
+	Solver_GS.c
 	Solver_ILU.c
 	Solver_RILU.c
 	Solver_SchurComplement.c
