@@ -53,6 +53,7 @@
 #define ESCRIPT_NONLINEAR_GMRES 25
 #define ESCRIPT_TFQMR 26
 #define ESCRIPT_MINRES 27
+#define ESCRIPT_GS 28
 
 /* keyword in solver options relevant for lineraPDE class */
 #define ESCRIPT_TOLERANCE_KEY "tolerance"

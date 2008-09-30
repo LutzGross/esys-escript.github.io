@@ -33,6 +33,16 @@ static double ONE=1.;
 static double ZERO=0.;
 static double TOLERANCE_FOR_SCALARS=0.;
 
+/* jacobi  preconditioner */
+
+typedef struct Paso_Solver_Jacobi {
+  dim_t n_block;
+  dim_t n;
+  double* values;
+  index_t* pivot;
+} Paso_Solver_Jacobi;
+
+
 /* ILU preconditioner */
 struct Paso_Solver_ILU {
   dim_t n_block;
@@ -44,6 +54,19 @@ struct Paso_Solver_ILU {
   Paso_Pattern* pattern;
 };
 typedef struct Paso_Solver_ILU Paso_Solver_ILU;
+
+/* GS preconditioner */
+struct Paso_Solver_GS {
+  dim_t n_block;
+  dim_t n;
+  index_t num_colors;
+  index_t* colorOf;
+  index_t* main_iptr;
+  double* diag;
+  Paso_SparseMatrix * factors;
+  Paso_Pattern* pattern;
+};
+typedef struct Paso_Solver_GS Paso_Solver_GS;
 
 /* RILU preconditioner */
 struct Paso_Solver_RILU {
@@ -68,14 +91,6 @@ struct Paso_Solver_RILU {
 typedef struct Paso_Solver_RILU Paso_Solver_RILU;
 
 
-/* jacobi  preconditioner */
-
-typedef struct Paso_Solver_Jacobi {
-  dim_t n_block;
-  dim_t n;
-  double* values;
-  index_t* pivot;
-} Paso_Solver_Jacobi;
 
 /* general preconditioner interface */
 
@@ -85,8 +100,10 @@ typedef struct Paso_Solver_Preconditioner {
   Paso_Solver_Jacobi* jacobi;
   /* ilu preconditioner */
   Paso_Solver_ILU* ilu;
-  /* ilu preconditioner */
+  /* rilu preconditioner */
   Paso_Solver_RILU* rilu;
+  /* Gauss-Seidel preconditioner */
+  Paso_Solver_GS* gs;
 } Paso_Solver_Preconditioner;
 
 void Paso_Solver(Paso_SystemMatrix*,double*,double*,Paso_Options*,Paso_Performance* pp);
@@ -104,6 +121,10 @@ void Paso_Solver_applyBlockDiagonalMatrix(dim_t n_block,dim_t n,double* D,index_
 void Paso_Solver_ILU_free(Paso_Solver_ILU * in);
 Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A_p,bool_t verbose);
 void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b);
+
+void Paso_Solver_GS_free(Paso_Solver_GS * in);
+Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A_p,bool_t verbose);
+void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b);
 
 void Paso_Solver_RILU_free(Paso_Solver_RILU * in);
 Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix * A_p,bool_t verbose);
