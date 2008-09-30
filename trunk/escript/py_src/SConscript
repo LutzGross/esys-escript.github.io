@@ -26,6 +26,8 @@ pyc = local_env.PyCompile(python_src)
 
 local_env.Depends(pyc, dep_lib)
 
+tmp2 = local_env.Install(local_env['bininstall'], 'runmodel.py')
+
 tmp1 = local_env.Install(local_env['pyinstall']+'/escript', pyc)
-env.Alias('target_install_escript_py', [tmp1])
+env.Alias('target_install_escript_py', [tmp1, tmp2])
 
