@@ -205,7 +205,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
      NN=out->FaceElements->numNodes;
      totalNECount=NE0*NE1;
      faceNECount=0;
-     if (!periodic[0] && (local_NE0>0)) {
+     if (!periodic[0] && (local_NE0>1)) {
         /* **  elements on boundary 001 (x1=0): */
      
         if (e_offset0 == 0) {
