@@ -119,6 +119,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
    
          ElementTypeId final_element_type = NoType;
          ElementTypeId final_face_element_type = NoType;
+         ElementTypeId contact_element_type = NoType;
          numElements=0;
          numFaceElements=0;
          fscanf(fileHandle_p, "%d", &totalNumElements);
@@ -263,9 +264,21 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                     final_face_element_type=Tri3;
                  }
               }
+              if (final_face_element_type == Line2) {
+                  contact_element_type=Line2_Contact;
+              } else  if (final_face_element_type == Line3) {
+                  contact_element_type=Line3_Contact;
+              } else  if (final_face_element_type == Tri3) {
+                  contact_element_type=Tri3_Contact;
+              } else  if (final_face_element_type == Tri6) {
+                  contact_element_type=Tri6_Contact;
+              } else {
+                  contact_element_type=Point1_Contact;
+              }
+ 
               mesh_p->Elements=Finley_ElementFile_alloc(final_element_type,mesh_p->order, mesh_p->reduced_order, mpi_info);
               mesh_p->FaceElements=Finley_ElementFile_alloc(final_face_element_type,mesh_p->order, mesh_p->reduced_order, mpi_info);
-              mesh_p->ContactElements=Finley_ElementFile_alloc(Point1_Contact,mesh_p->order, mesh_p->reduced_order, mpi_info);
+              mesh_p->ContactElements=Finley_ElementFile_alloc(contact_element_type,mesh_p->order, mesh_p->reduced_order, mpi_info);
               mesh_p->Points=Finley_ElementFile_alloc(Point1,mesh_p->order, mesh_p->reduced_order, mpi_info);
               if (Finley_noError()) {
                   Finley_ElementFile_allocTable(mesh_p->Elements, numElements);
