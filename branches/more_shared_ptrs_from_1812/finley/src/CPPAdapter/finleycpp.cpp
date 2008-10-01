@@ -86,15 +86,19 @@ BOOST_PYTHON_MODULE(finleycpp)
   register_exception_translator<finley::FinleyAdapterException>(&(esysUtils::esysExceptionTranslator));
 
   def("LoadMesh",finley::loadMesh,
-      (arg("fileName")="file.nc"),
-      return_value_policy<manage_new_object>());
+      (arg("fileName")="file.nc")
+/*      ,return_value_policy<manage_new_object>());*/
+      );
+
   def("ReadMesh",finley::readMesh,
-      (arg("fileName")="file.fly",arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,  arg("optimize")=true),
-      return_value_policy<manage_new_object>());
+      (arg("fileName")="file.fly",arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,  arg("optimize")=true)
+/*      ,return_value_policy<manage_new_object>());*/
+	);
 
   def("ReadGmsh",finley::readGmsh,
-      (arg("fileName")="file.msh",arg("numDim"), arg("integrationOrder")=-1, arg("reducedIntegrationOrder")=-1, arg("optimize")=true),
-      return_value_policy<manage_new_object>());
+      (arg("fileName")="file.msh",arg("numDim"), arg("integrationOrder")=-1, arg("reducedIntegrationOrder")=-1, arg("optimize")=true)
+//       ,return_value_policy<manage_new_object>());
+	);
 
   def ("Brick",finley::brick,
       (arg("n0")=1,arg("n1")=1,arg("n2")=1,
@@ -104,8 +108,9 @@ BOOST_PYTHON_MODULE(finleycpp)
       arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,
       arg("useElementsOnFace")=false,
       arg("useFullElementOrder")=false,
-      arg("optimize")=false),
-      return_value_policy<manage_new_object>());
+      arg("optimize")=false)
+//       ,return_value_policy<manage_new_object>());
+	);
 
   def ("Rectangle",finley::rectangle,
       (arg("n0")=1,arg("n1")=1,arg("order")=1,
@@ -118,21 +123,23 @@ BOOST_PYTHON_MODULE(finleycpp)
 //       ,return_value_policy<manage_new_object>());
 	);
 
-  def("Merge",finley::meshMerge,
-      return_value_policy<manage_new_object>());
+  def("Merge",finley::meshMerge
+//       ,return_value_policy<manage_new_object>());
+  );
 
   def("GlueFaces",finley::glueFaces,
       (arg("safetyFactor")=0.2,
       arg("tolerance")=1.e-8,
-      arg("optimize")=true),
-      return_value_policy<manage_new_object>());
+      arg("optimize")=true)
+//       ,return_value_policy<manage_new_object>());
+	);
 
   def("JoinFaces",finley::joinFaces,
       (arg("safetyFactor")=0.2,
       arg("tolerance")=1.e-8,
-      arg("optimize")=true),
-      return_value_policy<manage_new_object>());
-
+      arg("optimize")=true)
+//       ,return_value_policy<manage_new_object>());
+	);
 
 
   class_<finley::MeshAdapter, bases<escript::AbstractContinuousDomain> >
