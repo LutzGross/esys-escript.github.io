@@ -340,9 +340,10 @@ class FunctionSpace : public REFCOUNT_BASE_CLASS(FunctionSpace){
   FunctionSpace&
   operator=(const FunctionSpace& other);
 
-  //
-  // static null domain value
-  static const NullDomain nullDomainValue;
+//   //
+//   // static null domain value
+// //   static const NullDomain nullDomainValue;
+//   static const_Domain_ptr nullDomainValue;
 
   //
   // function space domain

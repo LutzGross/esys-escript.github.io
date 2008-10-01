@@ -26,14 +26,18 @@ using namespace boost;
 
 namespace escript {
 
+namespace
+{
 //
 // Create a null domain for use with any default-constructed function space
-NullDomain const FunctionSpace::nullDomainValue;
+// NullDomain const FunctionSpace::nullDomainValue;
+const_Domain_ptr nullDomainValue(new NullDomain());
+}
 
 FunctionSpace::FunctionSpace():
 //   m_domain(static_cast<const AbstractDomain*>(&nullDomainValue)),
-  m_domain(nullDomainValue.getPtr()),
-  m_functionSpaceType(nullDomainValue.getFunctionCode())
+  m_domain(nullDomainValue),
+  m_functionSpaceType(dynamic_cast<const NullDomain*>(nullDomainValue.get())->getFunctionCode())
 {
 }
 
