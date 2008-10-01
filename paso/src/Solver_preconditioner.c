@@ -74,6 +74,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
             case PASO_GS:
               if (options->verbose) printf("Gauss-Seidel preconditioner is used.\n");
               prec->gs=Paso_Solver_getGS(A->mainBlock,options->verbose);
+              prec->gs->sweeps=options->sweeps;
               prec->type=PASO_GS;
               break;
         }

@@ -295,7 +295,7 @@ void SystemMatrixAdapter::dictToPasoOptions(Paso_Options* paso_options, const bo
    EXTRACT("drop_storage",drop_storage,double);
    EXTRACT("truncation",truncation,int);
    EXTRACT("restart",restart,int);
-   EXTRACT("precNumSteps",precNumSteps,int);
+   EXTRACT("sweeps",sweeps,int);
 #undef EXTRACT
 #undef EXTRACT_OPTION
 }
