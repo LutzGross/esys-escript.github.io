@@ -428,7 +428,8 @@ contains datapoints.
   */
   ESCRIPT_DLL_API
   inline
-  const AbstractDomain&
+//   const AbstractDomain&
+  const_Domain_ptr
   getDomain() const
   {
      return getFunctionSpace().getDomain();
@@ -1767,6 +1768,8 @@ C_TensorBinaryOperation(Data const &arg_0,
   }
   // Interpolate if necessary and find an appropriate function space
   Data arg_0_Z, arg_1_Z;
+std::cerr << "C_TensorBinaryOperation fs1=" << &(arg_0.getFunctionSpace()) << " fs2=" << &(arg_1.getFunctionSpace())
+<< std::endl;
   if (arg_0.getFunctionSpace()!=arg_1.getFunctionSpace()) {
     if (arg_0.probeInterpolation(arg_1.getFunctionSpace())) {
       arg_0_Z = arg_0.interpolate(arg_1.getFunctionSpace());

@@ -49,8 +49,14 @@ sources = """
 	TransportProblemException.cpp
 	Utils.cpp
 	blocktimer.c
+	Cat.cpp
+	Dog.cpp
+	SnowCat.cpp
 """.split()
 headers = """
+	Cat.h
+	Dog.h
+	SnowCat.h
 	AbstractContinuousDomain.h
 	AbstractDomain.h
 	AbstractSystemMatrix.h
@@ -76,6 +82,7 @@ headers = """
 	FunctionSpaceFactory.h
 	LocalOps.h
 	NullDomain.h
+	Pointers.h
 	SystemMatrixException.h
 	Taipan.h
 	TransportProblemException.h

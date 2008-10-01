@@ -23,6 +23,9 @@
 #include <boost/python/list.hpp>
 #include "paso/Paso_MPI.h"
 
+
+#include "Pointers.h"
+
 namespace escript {
 // class forward declarations
 class Data;
@@ -34,10 +37,38 @@ class Data;
    Base class for all escript domains.
 */
 
-class AbstractDomain {
+class AbstractDomain;
+
+typedef POINTER_WRAPPER_CLASS(AbstractDomain) Domain_ptr;
+typedef POINTER_WRAPPER_CLASS(const AbstractDomain) const_Domain_ptr;
+
+class AbstractDomain : public REFCOUNT_BASE_CLASS(AbstractDomain){
 
  public:
 
+   Domain_ptr getPtr()
+   {
+      if (_internal_weak_this.expired())
+      {
+      	return Domain_ptr(this);	
+      }
+      else
+      {
+	return shared_from_this();
+      }
+   }
+
+   const_Domain_ptr getPtr() const 
+   {
+      if (_internal_weak_this.expired())
+      {
+      	return const_Domain_ptr(this);
+      }
+      else
+      {
+	return shared_from_this();
+      }
+   }
 
    // structure holding values for X, size and normal
    typedef int StatusType;

@@ -114,8 +114,9 @@ BOOST_PYTHON_MODULE(finleycpp)
       arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,
       arg("useElementsOnFace")=false,
       arg("useFullElementOrder")=false,
-      arg("optimize")=false),
-      return_value_policy<manage_new_object>());
+      arg("optimize")=false)
+//       ,return_value_policy<manage_new_object>());
+	);
 
   def("Merge",finley::meshMerge,
       return_value_policy<manage_new_object>());

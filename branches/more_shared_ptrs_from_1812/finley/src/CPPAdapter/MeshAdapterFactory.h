@@ -122,7 +122,8 @@ namespace finley {
      \param useElementsOnFace Input - whether or not to use elements on face
   */
   FINLEY_DLL_API
-  escript::AbstractContinuousDomain* rectangle(int n0=1,int n1=1,int order=1,
+//   escript::AbstractContinuousDomain* rectangle(int n0=1,int n1=1,int order=1,
+  escript::Domain_ptr rectangle(int n0=1,int n1=1,int order=1,
 				      double l0=1.0, double l1=1.0,
 				      int periodic0=false,int periodic1=false,
 				      int integrationOrder=-1,

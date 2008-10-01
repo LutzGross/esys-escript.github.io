@@ -19,8 +19,10 @@
 
 #include <iostream>
 #include <sstream>
+#include <boost/smart_ptr.hpp>
 
 using namespace std;
+using namespace boost;
 
 namespace escript {
 
@@ -29,14 +31,16 @@ namespace escript {
 NullDomain const FunctionSpace::nullDomainValue;
 
 FunctionSpace::FunctionSpace():
-  m_domain(static_cast<const AbstractDomain*>(&nullDomainValue)),
+//   m_domain(static_cast<const AbstractDomain*>(&nullDomainValue)),
+  m_domain(nullDomainValue.getPtr()),
   m_functionSpaceType(nullDomainValue.getFunctionCode())
 {
 }
 
 FunctionSpace::FunctionSpace(const AbstractDomain& domain,
                              int functionSpaceType):
-  m_domain(dynamic_cast<const AbstractDomain*>(&domain)),
+/*  m_domain(dynamic_cast<const AbstractDomain*>(&domain)),*/
+  m_domain(domain.getPtr()),
   m_functionSpaceType(functionSpaceType)
 {
   if (!m_domain->isValidFunctionSpaceType(functionSpaceType)) {
@@ -59,12 +63,22 @@ FunctionSpace::getTypeCode() const
   return  m_functionSpaceType;
 }
 
-const
-AbstractDomain&
+// const
+// AbstractDomain&
+const_Domain_ptr
 FunctionSpace::getDomain() const
 {
-  return *m_domain;
+  return m_domain;
 }
+
+Domain_ptr
+FunctionSpace::getDomainPython() const
+{
+  // cast away the const-ness because python ignores it anyway
+  return const_pointer_cast<AbstractDomain>(m_domain);
+}
+
+
 
 std::string
 FunctionSpace::toString() const
@@ -178,7 +192,7 @@ escript::Data
 FunctionSpace::getX() const 
 {
   Data out=escript::Vector(0,*this,true);
-  getDomain().setToX(out);
+  getDomain()->setToX(out);
   out.setProtection();
   return out;
 }
@@ -187,7 +201,7 @@ escript::Data
 FunctionSpace::getNormal() const
 {
   Data out=escript::Vector(0,*this,true);
-  getDomain().setToNormal(out);
+  getDomain()->setToNormal(out);
   out.setProtection();
   return out;
 }
@@ -196,7 +210,7 @@ escript::Data
 FunctionSpace::getSize() const
 {
   Data out=escript::Scalar(0,*this,true);
-  getDomain().setToSize(out);
+  getDomain()->setToSize(out);
   out.setProtection();
   return out;
 }

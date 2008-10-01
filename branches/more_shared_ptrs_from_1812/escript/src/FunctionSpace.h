@@ -27,6 +27,9 @@
 
 class FunctionSpaceTestCase;
 
+
+#include "Pointers.h"
+
 namespace escript {
 
 //
@@ -45,7 +48,7 @@ class Data;
    template must satisfy.
 */
 
-class FunctionSpace {
+class FunctionSpace : public REFCOUNT_BASE_CLASS(FunctionSpace){
 
   // These are using operator=()
   friend class AbstractSystemMatrix;
@@ -100,9 +103,23 @@ class FunctionSpace {
    Return the function space domain.
   */
   ESCRIPT_DLL_API
-  const
-  AbstractDomain&
+//   const
+//   AbstractDomain&
+  const_Domain_ptr
   getDomain() const;
+
+  /**
+   \brief
+   Return the function space domain.   
+   TODO: Internal use only!  This is temporary and should be removed.
+  */
+  ESCRIPT_DLL_API
+//   const
+//   AbstractDomain&
+  Domain_ptr
+  getDomainPython() const;
+
+
 
  /**
  \brief Checks if this functionspace support tags
@@ -279,7 +296,7 @@ class FunctionSpace {
   inline
   int
   getDim() const {
-      return getDomain().getDim();
+      return getDomain()->getDim();
   }
   /**
    \brief
@@ -329,7 +346,10 @@ class FunctionSpace {
 
   //
   // function space domain
-  const AbstractDomain*  m_domain;
+  
+//   const AbstractDomain*  m_domain;
+   const_Domain_ptr m_domain;
+
 
   //
   // function space type code.
