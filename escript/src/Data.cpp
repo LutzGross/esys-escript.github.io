@@ -127,11 +127,12 @@ Data::Data(const Data& inData,
     // in order to get polymorphic behaviour. Shouldn't really
     // be able to create an instance of AbstractDomain but that was done
     // as a boost:python work around which may no longer be required.
-    const AbstractDomain& inDataDomain=inData.getDomain();
+    /*const AbstractDomain& inDataDomain=inData.getDomain();*/
+    const_Domain_ptr inDataDomain=inData.getDomain();
     if  (inDataDomain==functionspace.getDomain()) {
-      inDataDomain.interpolateOnDomain(tmp,inData);
+      inDataDomain->interpolateOnDomain(tmp,inData);
     } else {
-      inDataDomain.interpolateACross(tmp,inData);
+      inDataDomain->interpolateACross(tmp,inData);
     }
     m_data=tmp.m_data;
   }
@@ -630,11 +631,11 @@ Data::probeInterpolation(const FunctionSpace& functionspace) const
   if (getFunctionSpace()==functionspace) {
     return true;
   } else {
-    const AbstractDomain& domain=getDomain();
-    if  (domain==functionspace.getDomain()) {
-      return domain.probeInterpolationOnDomain(getFunctionSpace().getTypeCode(),functionspace.getTypeCode());
+    const_Domain_ptr domain=getDomain();
+    if  (*domain==*functionspace.getDomain()) {
+      return domain->probeInterpolationOnDomain(getFunctionSpace().getTypeCode(),functionspace.getTypeCode());
     } else {
-      return domain.probeInterpolationACross(getFunctionSpace().getTypeCode(),functionspace.getDomain(),functionspace.getTypeCode());
+      return domain->probeInterpolationACross(getFunctionSpace().getTypeCode(),*(functionspace.getDomain()),functionspace.getTypeCode());
     }
   }
 }
@@ -652,7 +653,7 @@ Data::gradOn(const FunctionSpace& functionspace) const
   DataTypes::ShapeType grad_shape=getDataPointShape();
   grad_shape.push_back(functionspace.getDim());
   Data out(0.0,grad_shape,functionspace,true);
-  getDomain().setToGradient(out,*this);
+  getDomain()->setToGradient(out,*this);
   blocktimer_increment("grad()", blocktimer_start);
   return out;
 }
@@ -664,7 +665,7 @@ Data::grad() const
   {
 	throw DataException("Error - operation not permitted on instances of DataEmpty.");
   }
-  return gradOn(escript::function(getDomain()));
+  return gradOn(escript::function(*getDomain()));
 }
 
 int
@@ -997,7 +998,7 @@ Data::integrate() const
   delete[] tmp;
   delete[] tmp_local;
 #else
-  AbstractContinuousDomain::asAbstractContinuousDomain(getDomain()).setToIntegrals(integrals,*this);
+  AbstractContinuousDomain::asAbstractContinuousDomain(*getDomain()).setToIntegrals(integrals,*this);
 #endif
 
   //
@@ -1567,7 +1568,7 @@ Data::saveDX(std::string fileName) const
   }
   boost::python::dict args;
   args["data"]=boost::python::object(this);
-  getDomain().saveDX(fileName,args);
+  getDomain()->saveDX(fileName,args);
   return;
 }
 
@@ -1580,7 +1581,7 @@ Data::saveVTK(std::string fileName) const
   }
   boost::python::dict args;
   args["data"]=boost::python::object(this);
-  getDomain().saveVTK(fileName,args);
+  getDomain()->saveVTK(fileName,args);
   return;
 }
 
@@ -1919,8 +1920,8 @@ void
 Data::setTaggedValueByName(std::string name,
                            const boost::python::object& value)
 {
-     if (getFunctionSpace().getDomain().isValidTagName(name)) {
-        int tagKey=getFunctionSpace().getDomain().getTag(name);
+     if (getFunctionSpace().getDomain()->isValidTagName(name)) {
+        int tagKey=getFunctionSpace().getDomain()->getTag(name);
         setTaggedValue(tagKey,value);
      }
 }

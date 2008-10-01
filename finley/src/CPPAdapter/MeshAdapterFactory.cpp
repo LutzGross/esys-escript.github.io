@@ -570,7 +570,9 @@ namespace finley {
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     return temp;
   }
-  AbstractContinuousDomain*  rectangle(int n0,int n1,int order,
+
+/*  AbstractContinuousDomain*  rectangle(int n0,int n1,int order,*/
+  Domain_ptr  rectangle(int n0,int n1,int order,
 			double l0, double l1,
 			int periodic0,int periodic1,
 			int integrationOrder,
@@ -601,7 +603,7 @@ namespace finley {
     // Convert any finley errors into a C++ exception
     checkFinleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
-    return temp;
+    return temp->getPtr();
   }
 
   AbstractContinuousDomain* meshMerge(const boost::python::list& meshList)

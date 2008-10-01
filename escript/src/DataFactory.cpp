@@ -45,7 +45,7 @@ Vector(double value,
        const FunctionSpace& what,
        bool expanded)
 {
-    DataTypes::ShapeType shape(1,what.getDomain().getDim());
+    DataTypes::ShapeType shape(1,what.getDomain()->getDim());
     return Data(value,shape,what,expanded);
 }
 
@@ -54,7 +54,7 @@ Tensor(double value,
        const FunctionSpace& what,
        bool expanded)
 {
-    DataTypes::ShapeType shape(2,what.getDomain().getDim());
+    DataTypes::ShapeType shape(2,what.getDomain()->getDim());
     return Data(value,shape,what,expanded);
 }
 
@@ -63,7 +63,7 @@ Tensor3(double value,
         const FunctionSpace& what,
         bool expanded)
 {
-    DataTypes::ShapeType shape(3,what.getDomain().getDim());
+    DataTypes::ShapeType shape(3,what.getDomain()->getDim());
     return Data(value,shape,what,expanded);
 }
 
@@ -72,7 +72,7 @@ Tensor4(double value,
         const FunctionSpace& what,
         bool expanded)
 {
-    DataTypes::ShapeType shape(4,what.getDomain().getDim());
+    DataTypes::ShapeType shape(4,what.getDomain()->getDim());
     return Data(value,shape,what,expanded);
 }
 

@@ -24,6 +24,8 @@
 #include "DataVector.h"
 #include "paso/Paso_MPI.h"
 
+
+
 extern "C" {
 #include "escript/blocktimer.h"
 }
@@ -36,6 +38,11 @@ extern "C" {
 #include <boost/python/object.hpp>
 #include <boost/python/tuple.hpp>
 #include <boost/python/numeric.hpp>
+#include <boost/smart_ptr.hpp>
+
+#include "Cat.h"
+#include "Dog.h"
+#include "SnowCat.h"
 
 using namespace boost::python;
 
@@ -92,7 +99,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Interface for AbstractDomain
   //
-  class_<escript::AbstractDomain>("Domain",no_init)
+  class_<escript::AbstractDomain, escript::Domain_ptr>("Domain",no_init)
      .def("setTagMap",&escript::AbstractDomain::setTagMap)
      .def("getTag",&escript::AbstractDomain::getTag)
      .def("isValidTagName",&escript::AbstractDomain::isValidTagName)
@@ -115,13 +122,47 @@ BOOST_PYTHON_MODULE(escriptcpp)
   class_<escript::AbstractContinuousDomain, bases<escript::AbstractDomain> >("ContinuousDomain",no_init)
        .def("getSystemMatrixTypeId",&escript::AbstractContinuousDomain::getSystemMatrixTypeId);
 
+
+
+  class_<escript::Cat, boost::shared_ptr<escript::Cat>,init<>() >("Cat")
+	.def(init<const escript::Cat&>())
+	.def("get",&escript::Cat::getValue)
+	.def("set",&escript::Cat::setValue)
+	.def("returnSelf",&escript::Cat::returnSelf)
+	.def("add",&escript::Cat::add)
+	.def("getConst1", &escript::Cat::getConst1)
+	.def("getConst2", &escript::Cat::getConst2)
+	.def("share",&escript::Cat::makeShared);
+
+  class_<escript::SnowCat, boost::shared_ptr<escript::SnowCat>,init<>() >("SnowCat")
+	.def(init<const escript::SnowCat&>())
+	.def("get",&escript::SnowCat::getValue)
+	.def("set",&escript::SnowCat::setValue)
+	.def("returnSelf",&escript::SnowCat::returnSelf)
+	.def("returnSelfConst",&escript::SnowCat::returnSelfConst)
+	.def("add",&escript::SnowCat::add)
+	.def("getConst1", &escript::SnowCat::getConst1)
+	.def("getConst2", &escript::SnowCat::getConst2)
+	.def("share",&escript::SnowCat::makeShared);
+
+  class_<escript::Dog, boost::intrusive_ptr<escript::Dog>,init<>() >("Dog")
+	.def(init<const escript::Dog&>())
+	.def("get",&escript::Dog::getValue)
+	.def("set",&escript::Dog::setValue)
+	.def("returnSelf",&escript::Dog::returnSelf)
+	.def("add",&escript::Dog::add)
+	.def("getConst1", &escript::Dog::getConst1)
+	.def("getConst2", &escript::Dog::getConst2)
+	.def("share",&escript::Dog::makeShared);
+
   //
   // Interface for FunctionSpace
   //
   class_<escript::FunctionSpace> fs_definer("FunctionSpace",init<>());
   fs_definer.def("getDim",&escript::FunctionSpace::getDim);
-  fs_definer.def("getDomain",&escript::FunctionSpace::getDomain,
-                 return_internal_reference<>());
+//   fs_definer.def("getDomain",&escript::FunctionSpace::getDomain,
+//                  return_internal_reference<>());
+  fs_definer.def("getDomain",&escript::FunctionSpace::getDomainPython);
   fs_definer.def("getX",&escript::FunctionSpace::getX);
   fs_definer.def("getNormal",&escript::FunctionSpace::getNormal);
   fs_definer.def("getSize",&escript::FunctionSpace::getSize);
@@ -136,7 +177,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Interface for Data
   //
-  class_<escript::Data>("Data","TEST DOCUMENTATION",init<>())
+  class_<escript::Data>("Data","TEST DOCUMENTATION",init<>() )
     // various constructors for Data objects
     .def(init<const numeric::array&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
     .def(init<const object&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
@@ -146,7 +187,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
     // Note for Lutz, Need to specify the call policy in order to return a
     // reference. In this case return_internal_reference.
     .def("__str__",&escript::Data::toString)
-    .def("getDomain",&escript::Data::getDomain,return_internal_reference<>())
+//     .def("getDomain",&escript::Data::getDomain,return_internal_reference<>())
+    .def("getDomain",&escript::Data::getDomain)
     .def("getFunctionSpace",&escript::Data::getFunctionSpace,return_internal_reference<>())
     .def("isEmpty",&escript::Data::isEmpty)
     .def("isProtected",&escript::Data::isProtected)
