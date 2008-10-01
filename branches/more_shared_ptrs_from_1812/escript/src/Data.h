@@ -435,6 +435,21 @@ contains datapoints.
      return getFunctionSpace().getDomain();
   }
 
+
+  /**
+     \brief
+     Return the domain.
+     TODO: For internal use only.   This should be removed.
+  */
+  ESCRIPT_DLL_API
+  inline
+//   const AbstractDomain&
+  Domain_ptr
+  getDomainPython() const
+  {
+     return getFunctionSpace().getDomainPython();
+  }
+
   /**
      \brief
      Return a copy of the domain.

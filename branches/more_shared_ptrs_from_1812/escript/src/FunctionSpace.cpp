@@ -41,10 +41,24 @@ FunctionSpace::FunctionSpace():
 {
 }
 
-FunctionSpace::FunctionSpace(const AbstractDomain& domain,
+// FunctionSpace::FunctionSpace(const AbstractDomain& domain,
+//                              int functionSpaceType):
+// /*  m_domain(dynamic_cast<const AbstractDomain*>(&domain)),*/
+//   m_domain(domain.getPtr()),
+//   m_functionSpaceType(functionSpaceType)
+// {
+//   if (!m_domain->isValidFunctionSpaceType(functionSpaceType)) {
+//     std::stringstream temp;
+//     temp << "Invalid function space type: " << functionSpaceType 
+// 	 << " for domain: " << m_domain->getDescription();
+//     throw FunctionSpaceException(temp.str());
+//   }
+// }
+
+FunctionSpace::FunctionSpace(const_Domain_ptr domain,
                              int functionSpaceType):
 /*  m_domain(dynamic_cast<const AbstractDomain*>(&domain)),*/
-  m_domain(domain.getPtr()),
+  m_domain(domain),
   m_functionSpaceType(functionSpaceType)
 {
   if (!m_domain->isValidFunctionSpaceType(functionSpaceType)) {

@@ -102,7 +102,7 @@ load(const std::string fileName,
    /* test if function space id is valid and create function space instance */
    if (! domain.isValidFunctionSpaceType(function_space_type) ) 
         throw DataException("Error - load:: function space type code in netCDF file is invalid for given domain.");
-   FunctionSpace function_space=FunctionSpace(domain, function_space_type);
+   FunctionSpace function_space=FunctionSpace(domain.getPtr(), function_space_type);
    /* recover rank */
    if (! (rank_att=dataFile.get_att("rank")) )
         throw DataException("Error - load:: cannot recover rank attribute from escript netCDF file.");

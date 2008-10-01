@@ -84,8 +84,13 @@ class FunctionSpace : public REFCOUNT_BASE_CLASS(FunctionSpace){
      for the lifetime of the FunctionSpace object. ie: domain must
      be an externally managed object (!).
   */
+//   ESCRIPT_DLL_API
+//   FunctionSpace(const AbstractDomain& domain,
+//                 int functionSpaceType);
+
+
   ESCRIPT_DLL_API
-  FunctionSpace(const AbstractDomain& domain,
+  FunctionSpace(const_Domain_ptr domain,
                 int functionSpaceType);
 
   /**
