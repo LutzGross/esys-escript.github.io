@@ -58,8 +58,9 @@ void FunctionSpaceTestCase::testAll() {
   // Test constructor
   NullDomain* nullDomain=new NullDomain();	// the shared ptr will deal with it
   int testfunctionSpaceType = nullDomain->getFunctionCode();
+  Domain_ptr nulldom(nullDomain);
 
-  FunctionSpace testFunctionSpace2(*nullDomain, testfunctionSpaceType);
+  FunctionSpace testFunctionSpace2(nulldom, testfunctionSpaceType);
   
   assert(testFunctionSpace1.getTypeCode()==testfunctionSpaceType);
   assert(*(testFunctionSpace2.getDomain())==*nullDomain);

@@ -188,7 +188,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     // reference. In this case return_internal_reference.
     .def("__str__",&escript::Data::toString)
 //     .def("getDomain",&escript::Data::getDomain,return_internal_reference<>())
-    .def("getDomain",&escript::Data::getDomain)
+    .def("getDomain",&escript::Data::getDomainPython)
     .def("getFunctionSpace",&escript::Data::getFunctionSpace,return_internal_reference<>())
     .def("isEmpty",&escript::Data::isEmpty)
     .def("isProtected",&escript::Data::isProtected)
