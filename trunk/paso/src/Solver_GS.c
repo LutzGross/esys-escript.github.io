@@ -67,7 +67,7 @@ Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A,bool_t verbose) {
   out->factors=Paso_SparseMatrix_getReference(A);
   out->n_block=n_block;
   out->n=n;
-  
+ 
   if ( !(Paso_checkPtr(out->colorOf) || Paso_checkPtr(out->main_iptr) || Paso_checkPtr(out->factors)) ) {
     time0=Paso_timer();
     Paso_Pattern_color(A->pattern,&out->num_colors,out->colorOf);
@@ -173,7 +173,7 @@ Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A,bool_t verbose) {
 void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
      register dim_t i,k;
      register index_t color,iptr_ik,iptr_main;
-     register double S1,S2,S3,R1,R2,R3;
+     register double A11,A12,A21,A22,A13,A23,A33,A32,A31,S1,S2,S3,R1,R2,R3,D,S21,S22,S12,S11,S13,S23,S33,S32,S31;
      dim_t n_block=gs->n_block;
      dim_t n=gs->n;
      index_t* pivot=NULL;
@@ -217,8 +217,22 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
                           }
                      }
                      iptr_main=gs->main_iptr[i];
-                     x[2*i  ]=(1/gs->factors->val[4*iptr_main  ])*S1+(1/gs->factors->val[4*iptr_main+2])*S2;
-                     x[2*i+1]=(1/gs->factors->val[4*iptr_main+1])*S1+(1/gs->factors->val[4*iptr_main+3])*S2;
+                     A11=gs->factors->val[iptr_main*4];
+                     A21=gs->factors->val[iptr_main*4+1];
+                     A12=gs->factors->val[iptr_main*4+2];
+                     A22=gs->factors->val[iptr_main*4+3];
+                     D = A11*A22-A12*A21;
+                     if (ABS(D)>0.) {
+                          D=1./D;
+                          S11= A22*D;
+                          S21=-A21*D;
+                          S12=-A12*D;
+                          S22= A11*D;
+                          x[2*i  ]=S11*S1+S12*S2;
+                          x[2*i+1]=S21*S1+S22*S2;
+                     } else {
+                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGS: non-regular main diagonal block.");
+                       }
                    }
 
               }
@@ -242,10 +256,35 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
                           }
                      }
                      iptr_main=gs->main_iptr[i];
-                     x[3*i  ]=(1/gs->factors->val[9*iptr_main  ])*S1+(1/gs->factors->val[9*iptr_main+3])*S2+(1/gs->factors->val[9*iptr_main+6])*S3;
-                     x[3*i+1]=(1/gs->factors->val[9*iptr_main+1])*S1+(1/gs->factors->val[9*iptr_main+4])*S2+(1/gs->factors->val[9*iptr_main+7])*S3;
-                     x[3*i+2]=(1/gs->factors->val[9*iptr_main+2])*S1+(1/gs->factors->val[9*iptr_main+5])*S2+(1/gs->factors->val[9*iptr_main+8])*S3;
-                 }
+                     A11=gs->factors->val[iptr_main*9  ];
+                     A21=gs->factors->val[iptr_main*9+1];
+                     A31=gs->factors->val[iptr_main*9+2];
+                     A12=gs->factors->val[iptr_main*9+3];
+                     A22=gs->factors->val[iptr_main*9+4];
+                     A32=gs->factors->val[iptr_main*9+5];
+                     A13=gs->factors->val[iptr_main*9+6];
+                     A23=gs->factors->val[iptr_main*9+7];
+                     A33=gs->factors->val[iptr_main*9+8];
+                     D  =  A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22);
+                     if (ABS(D)>0.) {
+                          D=1./D;
+                          S11=(A22*A33-A23*A32)*D;
+                          S21=(A31*A23-A21*A33)*D;
+                          S31=(A21*A32-A31*A22)*D;
+                          S12=(A13*A32-A12*A33)*D;
+                          S22=(A11*A33-A31*A13)*D;
+                          S32=(A12*A31-A11*A32)*D;
+                          S13=(A12*A23-A13*A22)*D;
+                          S23=(A13*A21-A11*A23)*D;
+                          S33=(A11*A22-A12*A21)*D;
+                             /* a_ik=a_ii^{-1}*a_ik */
+                          x[3*i  ]=S11*S1+S12*S2+S13*S3;
+                          x[3*i+1]=S21*S1+S22*S2+S23*S3;
+                          x[3*i+2]=S31*S1+S32*S2+S33*S3;
+                       } else {
+                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGS: non-regular main diagonal block.");
+                       }
+                }
               }
            }
      }
@@ -292,9 +331,24 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
                      /*x[2*i]=S1;
                      x[2*i+1]=S2;*/
                      iptr_main=gs->main_iptr[i];
-                     x[2*i  ]=(1/gs->factors->val[4*iptr_main  ])*S1+(1/gs->factors->val[4*iptr_main+2])*S2;
-                     x[2*i+1]=(1/gs->factors->val[4*iptr_main+1])*S1+(1/gs->factors->val[4*iptr_main+3])*S2;
-                   }
+                     A11=gs->factors->val[iptr_main*4];
+                     A21=gs->factors->val[iptr_main*4+1];
+                     A12=gs->factors->val[iptr_main*4+2];
+                     A22=gs->factors->val[iptr_main*4+3];
+                     D = A11*A22-A12*A21;
+                     if (ABS(D)>0.) {
+                          D=1./D;
+                          S11= A22*D;
+                          S21=-A21*D;
+                          S12=-A12*D;
+                          S22= A11*D;
+                          x[2*i  ]=S11*S1+S12*S2;
+                          x[2*i+1]=S21*S1+S22*S2;
+                     } else {
+                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGS: non-regular main diagonal block.");
+                       }
+ 
+                    }
               }
            } else if (n_block==3) {
               #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,S2,S3,R1,R2,R3)
@@ -318,15 +372,47 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
 /*                     x[3*i]=S1;
                      x[3*i+1]=S2;
                      x[3*i+2]=S3;
-*/                     iptr_main=gs->main_iptr[i];
-                     x[3*i  ]=(1/gs->factors->val[9*iptr_main  ])*S1+(1/gs->factors->val[9*iptr_main+3])*S2+(1/gs->factors->val[9*iptr_main+6])*S3;
-                     x[3*i+1]=(1/gs->factors->val[9*iptr_main+1])*S1+(1/gs->factors->val[9*iptr_main+4])*S2+(1/gs->factors->val[9*iptr_main+7])*S3;
-                     x[3*i+2]=(1/gs->factors->val[9*iptr_main+2])*S1+(1/gs->factors->val[9*iptr_main+5])*S2+(1/gs->factors->val[9*iptr_main+8])*S3;
-                     
+*/                   iptr_main=gs->main_iptr[i];
+                     A11=gs->factors->val[iptr_main*9  ];
+                     A21=gs->factors->val[iptr_main*9+1];
+                     A31=gs->factors->val[iptr_main*9+2];
+                     A12=gs->factors->val[iptr_main*9+3];
+                     A22=gs->factors->val[iptr_main*9+4];
+                     A32=gs->factors->val[iptr_main*9+5];
+                     A13=gs->factors->val[iptr_main*9+6];
+                     A23=gs->factors->val[iptr_main*9+7];
+                     A33=gs->factors->val[iptr_main*9+8];
+                     D  =  A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22);
+                     if (ABS(D)>0.) {
+                          D=1./D;
+                          S11=(A22*A33-A23*A32)*D;
+                          S21=(A31*A23-A21*A33)*D;
+                          S31=(A21*A32-A31*A22)*D;
+                          S12=(A13*A32-A12*A33)*D;
+                          S22=(A11*A33-A31*A13)*D;
+                          S32=(A12*A31-A11*A32)*D;
+                          S13=(A12*A23-A13*A22)*D;
+                          S23=(A13*A21-A11*A23)*D;
+                          S33=(A11*A22-A12*A21)*D;
+                          x[3*i  ]=S11*S1+S12*S2+S13*S3;
+                          x[3*i+1]=S21*S1+S22*S2+S23*S3;
+                          x[3*i+2]=S31*S1+S32*S2+S33*S3;
+                       } else {
+                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGS: non-regular main diagonal block.");
+                       }
                    }
               }
          }
      }
+     
+     if (gs->sweeps>1) {
+     /* Compute the residual b=b-Ax*/
+     Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), gs->factors, x, DBLE(2), b);
+     /* Go round again*/
+     gs->sweeps=gs->sweeps-1;
+     Paso_Solver_solveGS(gs,x,b);
+     }
+    
      return;
 }
 

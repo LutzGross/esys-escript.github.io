@@ -78,7 +78,7 @@ typedef struct {
     double drop_storage;
     dim_t truncation;
     dim_t restart;
-    dim_t precNumSteps;
+    dim_t sweeps;
 
 
 } Paso_Options;

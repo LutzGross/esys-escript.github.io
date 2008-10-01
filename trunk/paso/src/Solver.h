@@ -65,6 +65,8 @@ struct Paso_Solver_GS {
   double* diag;
   Paso_SparseMatrix * factors;
   Paso_Pattern* pattern;
+  dim_t sweeps;
+  double* x_old;
 };
 typedef struct Paso_Solver_GS Paso_Solver_GS;
 
