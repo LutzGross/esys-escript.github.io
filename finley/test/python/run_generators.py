@@ -48,6 +48,7 @@ TEST_FILE_EXT=".test"
 class Test_Generators(unittest.TestCase):
 
    def checker(self,dom,reference):
+      if getMPISizeWorld() > 1: return
       dom_file=FINLEY_WORKDIR_PATH+TEST_FILE_EXT
       dom.write(dom_file)
 # Uncomment this section to dump the files for regression testing
@@ -178,36 +179,44 @@ class Test_GMSHReader(unittest.TestCase):
          self.failUnlessEqual(line,ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),line))
 
    def test_Tri3(self):
-       file="tri3_gmsh.msh"
-       ref ="tri3.fly"
-       test = FINLEY_WORKDIR+os.sep+"tri3_test.fly"
-       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,2,optimize=False)
-       dom.write(test)
-       self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
+       # ReadGmsh is not MPI parallel
+       if getMPISizeWorld() == 1:
+         file="tri3_gmsh.msh"
+         ref ="tri3.fly"
+         test = FINLEY_WORKDIR+os.sep+"tri3_test.fly"
+         dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,2,optimize=False)
+         dom.write(test)
+         self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
    def test_Tri6(self):
-       file="tri6_gmsh.msh"
-       ref="tri6.fly"
-       test = FINLEY_WORKDIR+os.sep+"tri8_test.fly"
-       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,2,optimize=False)
-       dom.write(test)
-       self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
+       # ReadGmsh is not MPI parallel
+       if getMPISizeWorld() == 1:
+         file="tri6_gmsh.msh"
+         ref="tri6.fly"
+         test = FINLEY_WORKDIR+os.sep+"tri8_test.fly"
+         dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,2,optimize=False)
+         dom.write(test)
+         self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
    def test_Tet4(self):
-       file="tet4_gmsh.msh"
-       ref="tet4.fly"
-       test = FINLEY_WORKDIR+os.sep+"tet4_test.fly"
-       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,3,optimize=False)
-       dom.write(test)
-       self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
+       # ReadGmsh is not MPI parallel
+       if getMPISizeWorld() == 1:
+         file="tet4_gmsh.msh"
+         ref="tet4.fly"
+         test = FINLEY_WORKDIR+os.sep+"tet4_test.fly"
+         dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,3,optimize=False)
+         dom.write(test)
+         self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
    def test_Tet10(self):
-       file="tet10_gmsh.msh"
-       ref="tet10.fly"
-       test = FINLEY_WORKDIR+os.sep+"tet10_test.fly"
-       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,3,optimize=False)
-       dom.write(test)
-       self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
+       # ReadGmsh is not MPI parallel
+       if getMPISizeWorld() == 1:
+         file="tet10_gmsh.msh"
+         ref="tet10.fly"
+         test = FINLEY_WORKDIR+os.sep+"tet10_test.fly"
+         dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,3,optimize=False)
+         dom.write(test)
+         self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
 class Test_Reader(unittest.TestCase):
    def test_ReadWriteTagNames(self):
