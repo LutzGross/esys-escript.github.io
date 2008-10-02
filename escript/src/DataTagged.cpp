@@ -443,7 +443,7 @@ DataTagged::addTaggedValues(const TagListType& tagKeys,
                             const ShapeType& vShape)
 {
   DataTypes::ValueType t(values.size(),0);
-  for (int i=0;i<values.size();++i)
+  for (size_t i=0;i<values.size();++i)
   {
 	t[i]=values[i];
   }
