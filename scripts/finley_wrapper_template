@@ -1,10 +1,13 @@
 #!/bin/sh
 
+# Escript/Finley wrapper for python
+# Sets LD_LIBRARY_PATH and PYTHONPATH and then runs either python or the MPI launcher
+
 HELP_TEXT="
 Usage: escript [options] script.py [arguments...]
 	-O N		Use N OpenMP threads (OMP_NUM_THREADS=N)
 	-M K		Use K MPI processes
-	-l 'launcher'	MPI launcher, usually 'mpirun -np' or 'mpiexec -n'
+	-l 'launcher'	MPI launcher, usually -l 'mpirun -np' or -l 'mpiexec -n'
 	-L /path	Prepend /path to library search path
 	-P /path	Prepend /path to python module search path
 	script.py	Your python script
