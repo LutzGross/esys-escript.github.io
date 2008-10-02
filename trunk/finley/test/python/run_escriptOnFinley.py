@@ -58,19 +58,17 @@ class Test_DomainOnFinley(Test_Domain):
        self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
        for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
    def test_tagsFunctionOnBoundary(self):
-       # For MPI a subdomain may be missing some tags and this test is expected to fail
-       if getMPISizeWorld() == 1:
-         ref_tags=[1, 2, 10, 20]
-         tags=FunctionOnBoundary(self.domain).getListOfTags()
-         self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-         for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+       ref_tags=[1, 2, 10, 20]
+       tags=FunctionOnBoundary(self.domain).getListOfTags()
+       # For an MPI-distributed domain some tags may be missing
+       if getMPISizeWorld() == 1: self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in tags: self.failUnless(i in ref_tags,"tag %s is missing."%i)
    def test_tagsReducedFunctionOnBoundary(self):
-       # For MPI a subdomain may be missing some tags and this test is expected to fail
-       if getMPISizeWorld() == 1:
-         ref_tags=[1, 2, 10, 20]
-         tags=ReducedFunctionOnBoundary(self.domain).getListOfTags()
-         self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-         for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+       ref_tags=[1, 2, 10, 20]
+       tags=ReducedFunctionOnBoundary(self.domain).getListOfTags()
+       # For an MPI-distributed domain some tags may be missing
+       if getMPISizeWorld() == 1: self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in tags: self.failUnless(i in ref_tags,"tag %s is missing."%i)
    def test_tagsFunctionOnContactOne(self):
        ref_tags=[]
        tags=FunctionOnContactOne(self.domain).getListOfTags()
