@@ -47,14 +47,9 @@ const_Domain_ptr AbstractDomain::getPtr() const
 }
 
 AbstractDomain::AbstractDomain() {
-cerr << "AbstractDomain::Constr called" << this << endl;
 }
 
 AbstractDomain::~AbstractDomain() {
-
-std::cerr << "AbstractDomain::~ called" << this << endl;
-cerr << "expired=" << _internal_weak_this.expired() << endl;
-
 }
 
 int AbstractDomain::getMPISize() const
