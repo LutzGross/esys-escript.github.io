@@ -28,6 +28,8 @@ AbstractSystemMatrix::AbstractSystemMatrix(const int row_blocksize,
                                            const FunctionSpace& row_functionspace,
                                            const int column_blocksize,
                                            const FunctionSpace& column_functionspace)
+:m_row_functionspace(row_functionspace),
+m_column_functionspace(column_functionspace)
 {
   if (row_blocksize<=0) 
      throw DataException("Error - negative row block size of system matrix.");
@@ -37,8 +39,8 @@ AbstractSystemMatrix::AbstractSystemMatrix(const int row_blocksize,
    m_empty=0;
    m_row_blocksize=row_blocksize;
    m_column_blocksize=column_blocksize;
-   m_row_functionspace=row_functionspace;
-   m_column_functionspace=column_functionspace;
+//    m_row_functionspace=row_functionspace;
+//    m_column_functionspace=column_functionspace;
 }
 
 AbstractSystemMatrix::~AbstractSystemMatrix() {

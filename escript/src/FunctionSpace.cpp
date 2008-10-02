@@ -69,6 +69,12 @@ FunctionSpace::FunctionSpace(const_Domain_ptr domain,
   }
 }
 
+FunctionSpace::FunctionSpace(const FunctionSpace& other)
+:m_domain(other.m_domain),
+m_functionSpaceType(other.m_functionSpaceType)
+{
+}
+
 std::pair<int,int>
 FunctionSpace::getDataShape() const
 {
@@ -185,13 +191,16 @@ FunctionSpace::borrowSampleReferenceIDs() const
   return m_domain->borrowSampleReferenceIDs(m_functionSpaceType);
 }
 
+// FunctionSpace instances should not be overwritten to point to different domains/types
+// The only time this was actually used was in constructors and the copy constructor can deal with that
 FunctionSpace&
 FunctionSpace::operator=(const FunctionSpace& other)
 {
+  throw DataException("FunctionSpace::= should not be called. Programming Error.");
   // explicitly defined assignment operator to emphasise pointer copy
-  m_functionSpaceType=other.m_functionSpaceType;
+/*  m_functionSpaceType=other.m_functionSpaceType;
   m_domain=other.m_domain;
-  return *this;
+  return *this;*/
 }
 
 bool
