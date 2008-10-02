@@ -1474,7 +1474,8 @@ contains datapoints.
 
   //
   // pointer to the actual data object
-  boost::shared_ptr<DataAbstract> m_data;
+//   boost::shared_ptr<DataAbstract> m_data;
+  DataAbstract_ptr m_data;
 
 };
 

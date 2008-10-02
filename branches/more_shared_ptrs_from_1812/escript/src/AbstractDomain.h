@@ -46,6 +46,12 @@ class AbstractDomain : public REFCOUNT_BASE_CLASS(AbstractDomain){
 
  public:
 
+/**
+\brief Returns smart pointer which is managing this object.
+If one does not exist yet it creates one.
+
+Note: This is _not_ equivalent to weak_ptr::lock.
+*/
    Domain_ptr getPtr();
    const_Domain_ptr getPtr() const; 
 

@@ -46,8 +46,7 @@ Data::Data()
   //
   // Default data is type DataEmpty
   DataAbstract* temp=new DataEmpty();
-  shared_ptr<DataAbstract> temp_data(temp);
-  m_data=temp_data;
+  m_data=temp->getPtr();
   m_protected=false;
 }
 
@@ -63,11 +62,7 @@ Data::Data(double value,
 
   int len = DataTypes::noValues(dataPointShape);
   DataVector temp_data(len,value,len);
-//   DataArrayView temp_dataView(temp_data, dataPointShape);
-
-//   initialise(temp_dataView, what, expanded);
   initialise(temp_data, dataPointShape, what, expanded);
-
   m_protected=false;
 }
 
@@ -100,8 +95,7 @@ Data::Data(const Data& inData,
   //
   // Create Data which is a slice of another Data
   DataAbstract* tmp = inData.m_data->getSlice(region);
-  shared_ptr<DataAbstract> temp_data(tmp);
-  m_data=temp_data;
+  m_data=DataAbstract_ptr(tmp);
   m_protected=false;
 }
 
@@ -120,7 +114,7 @@ Data::Data(const Data& inData,
 	throw FunctionSpaceException("Call to probeInterpolation returned false for DataConstant.");
     }
     DataConstant* dc=new DataConstant(functionspace,inData.m_data->getShape(),inData.m_data->getVector());	
-    m_data=shared_ptr<DataAbstract>(dc); 
+    m_data=DataAbstract_ptr(dc); 
   } else {
     Data tmp(0,inData.getDataPointShape(),functionspace,true);
     // Note: Must use a reference or pointer to a derived object
@@ -139,26 +133,10 @@ Data::Data(const Data& inData,
   m_protected=false;
 }
 
-// Data::Data(const DataTagged::TagListType& tagKeys,
-//            const DataTagged::ValueListType & values,
-//            const DataArrayView& defaultValue,
-//            const FunctionSpace& what,
-//            bool expanded)
-// {
-//   DataAbstract* temp=new DataTagged(tagKeys,values,defaultValue,what);
-//   shared_ptr<DataAbstract> temp_data(temp);
-//   m_data=temp_data;
-//   m_protected=false;
-//   if (expanded) {
-//     expand();
-//   }
-// }
-
-
-
 Data::Data(DataAbstract* underlyingdata)
 {
-	m_data=shared_ptr<DataAbstract>(underlyingdata);
+// 	m_data=shared_ptr<DataAbstract>(underlyingdata);
+	m_data=underlyingdata->getPtr();
 	m_protected=false;
 }
 
@@ -235,17 +213,18 @@ Data::Data(const object& value,
 //     initialise(temp2_dataView, other.getFunctionSpace(), false);
 
     DataConstant* t=new DataConstant(other.getFunctionSpace(),other.getDataPointShape(),temp2_data);
-    boost::shared_ptr<DataAbstract> sp(t);
-    m_data=sp;
-
+//     boost::shared_ptr<DataAbstract> sp(t);
+//     m_data=sp;
+    m_data=DataAbstract_ptr(t);
 
   } else {
     //
     // Create a DataConstant with the same sample shape as other
 //     initialise(temp_dataView, other.getFunctionSpace(), false);
     DataConstant* t=new DataConstant(asNumArray,other.getFunctionSpace());
-    boost::shared_ptr<DataAbstract> sp(t);
-    m_data=sp;
+//     boost::shared_ptr<DataAbstract> sp(t);
+//     m_data=sp;
+    m_data=DataAbstract_ptr(t);
   }
   m_protected=false;
 }
@@ -269,12 +248,14 @@ Data::initialise(const boost::python::numeric::array& value,
   // within the shared_ptr constructor.
   if (expanded) {
     DataAbstract* temp=new DataExpanded(value, what);
-    boost::shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+//     boost::shared_ptr<DataAbstract> temp_data(temp);
+//     m_data=temp_data;
+    m_data=temp->getPtr();
   } else {
     DataAbstract* temp=new DataConstant(value, what);
-    boost::shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+//     boost::shared_ptr<DataAbstract> temp_data(temp);
+//     m_data=temp_data;
+    m_data=temp->getPtr();
   }
 }
 
@@ -292,12 +273,14 @@ Data::initialise(const DataTypes::ValueType& value,
   // within the shared_ptr constructor.
   if (expanded) {
     DataAbstract* temp=new DataExpanded(what, shape, value);
-    boost::shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+//     boost::shared_ptr<DataAbstract> temp_data(temp);
+//     m_data=temp_data;
+    m_data=temp->getPtr();
   } else {
     DataAbstract* temp=new DataConstant(what, shape, value);
-    boost::shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+//     boost::shared_ptr<DataAbstract> temp_data(temp);
+//     m_data=temp_data;
+    m_data=temp->getPtr();
   }
 }
 
@@ -434,8 +417,8 @@ void
 Data::copy(const Data& other)
 {
   DataAbstract* temp=other.m_data->deepCopy();
-  shared_ptr<DataAbstract> temp_data(temp);
-  m_data=temp_data;
+  DataAbstract_ptr p=temp->getPtr();
+  m_data=p;
 }
 
 
@@ -539,13 +522,15 @@ Data::expand()
   if (isConstant()) {
     DataConstant* tempDataConst=dynamic_cast<DataConstant*>(m_data.get());
     DataAbstract* temp=new DataExpanded(*tempDataConst);
-    shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+//     shared_ptr<DataAbstract> temp_data(temp);
+//     m_data=temp_data;
+    m_data=temp->getPtr();
   } else if (isTagged()) {
     DataTagged* tempDataTag=dynamic_cast<DataTagged*>(m_data.get());
     DataAbstract* temp=new DataExpanded(*tempDataTag);
-    shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+//     shared_ptr<DataAbstract> temp_data(temp);
+//     m_data=temp_data;
+    m_data=temp->getPtr();
   } else if (isExpanded()) {
     //
     // do nothing
@@ -562,8 +547,9 @@ Data::tag()
   if (isConstant()) {
     DataConstant* tempDataConst=dynamic_cast<DataConstant*>(m_data.get());
     DataAbstract* temp=new DataTagged(*tempDataConst);
-    shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+//     shared_ptr<DataAbstract> temp_data(temp);
+//     m_data=temp_data;
+    m_data=temp->getPtr();
   } else if (isTagged()) {
     // do nothing
   } else if (isExpanded()) {
@@ -1961,21 +1947,6 @@ Data::setTaggedValue(int tagKey,
     m_data->setTaggedValue(tagKey,tempShape, temp_data2);
 }
 
-// void
-// Data::setTaggedValueFromCPP(int tagKey,
-//                             const DataArrayView& value)
-// {
-//   if (isProtected()) {
-//         throw DataException("Error - attempt to update protected Data object.");
-//   }
-//   //
-//   // Ensure underlying data object is of type DataTagged
-//   if (isConstant()) tag();
-// 
-//   //
-//   // Call DataAbstract::setTaggedValue
-//   m_data->setTaggedValue(tagKey,value);
-// }
 
 void
 Data::setTaggedValueFromCPP(int tagKey,
