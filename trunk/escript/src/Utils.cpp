@@ -12,7 +12,6 @@
 *******************************************************/
 
 
-#include <unistd.h>
 #include <string.h>
 
 #include "Utils.h"
@@ -28,6 +27,8 @@
 
 #ifdef  _WIN32
 #include <WinSock2.h>
+#else
+#include <unistd.h>
 #endif
 
 namespace escript {
