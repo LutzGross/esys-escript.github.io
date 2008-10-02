@@ -27,13 +27,13 @@ python_root = 'C:/python' + py_vers
 python_cmd = os.path.join(python_root,'python')
 python_path =  os.path.join(python_root,'include')
 python_lib_path = os.path.join(python_root,'libs')
-python_lib = 'python' + py_vers
+python_libs = ['python' + py_vers]
 
 # locations of libraries for boost
 dotdot = os.path.realpath('..')
 boost_path = os.path.join(dotdot,'boost-1.33')
 boost_lib_path = os.path.join(boost_path,'windows_binary','lib')
-boost_lib = 'boost_python-vc71-mt-1_33_1.lib'
+boost_libs = ['boost_python-vc71-mt-1_33_1.lib']
 
 # locations of netcdf
 useNetCDF = "yes"
@@ -49,8 +49,7 @@ cc_defines = ['_USE_MATH_DEFINES']
 # 161 - openmp pargmas are unknown when not compiling with openmp
 cc_flags  = '/FD /EHsc /GR /wd4068 '
 cc_optim  = '/O2 /Op /MD /W3'
-
-cc_debug  = cc_common_flags + '/Od /RTC1 /MDd /ZI /Yd /Y-'
+cc_debug  = '/Od /RTC1 /MDd /ZI /Yd /Y-'
 
 # linker flags to use
 #link_flags = ''
