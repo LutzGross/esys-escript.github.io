@@ -22,14 +22,6 @@
 #include <string>
 #include <list>
 
-// This stops the friend declaration below from looking like a
-// declaration of escript::FunctionSpaceTestCase.
-
-class FunctionSpaceTestCase;
-
-
-#include "Pointers.h"
-
 namespace escript {
 
 //
@@ -48,14 +40,9 @@ class Data;
    template must satisfy.
 */
 
-class FunctionSpace : public REFCOUNT_BASE_CLASS(FunctionSpace){
-
-  // These are using operator=()
-  friend class AbstractSystemMatrix;
-  friend class AbstractTransportProblem;
-  friend class ::FunctionSpaceTestCase;
-
- public:
+class FunctionSpace 
+{
+public:
   /**
      \brief
      Default constructor for FunctionSpace.
@@ -79,19 +66,14 @@ class FunctionSpace : public REFCOUNT_BASE_CLASS(FunctionSpace){
 
      Description:
      Constructor for FunctionSpace.
-
-     NOTE: The FunctionSpace class relies on the domain existing
-     for the lifetime of the FunctionSpace object. ie: domain must
-     be an externally managed object (!).
   */
-//   ESCRIPT_DLL_API
-//   FunctionSpace(const AbstractDomain& domain,
-//                 int functionSpaceType);
-
-
   ESCRIPT_DLL_API
   FunctionSpace(const_Domain_ptr domain,
                 int functionSpaceType);
+
+
+  ESCRIPT_DLL_API
+  FunctionSpace(const FunctionSpace& other);
 
   /**
     \brief
@@ -168,13 +150,6 @@ class FunctionSpace : public REFCOUNT_BASE_CLASS(FunctionSpace){
   /**
    \brief
    Return a text description of the function space.
-   NOTE: In the python interface, the reference return value policy is
-   copy const reference. This mens that if the python string value
-   is assigned to a python variable, it's value (python) value will not
-   change, even if operator=() changes this Function space object.
-   Consequently, it is possible for python to keep a wrong value for this
-   string!
-   Worse still is that operator=() is exposed to python in escriptcpp.cpp.
   */
   ESCRIPT_DLL_API
   std::string
@@ -336,19 +311,11 @@ class FunctionSpace : public REFCOUNT_BASE_CLASS(FunctionSpace){
   /**
    \brief
    Assignment operator. 
-   NOTE: Assignment copies the domain object pointer
-   as this object is managed externally to this class.
-   Also, breaks the non-mutability of FunctionSpace
-   assumed by toString().
+   This method is only defined (private) to prevent people from using it.
   */
   ESCRIPT_DLL_API
   FunctionSpace&
   operator=(const FunctionSpace& other);
-
-//   //
-//   // static null domain value
-// //   static const NullDomain nullDomainValue;
-//   static const_Domain_ptr nullDomainValue;
 
   //
   // function space domain

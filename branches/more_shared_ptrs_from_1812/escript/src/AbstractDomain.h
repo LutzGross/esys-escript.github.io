@@ -46,29 +46,8 @@ class AbstractDomain : public REFCOUNT_BASE_CLASS(AbstractDomain){
 
  public:
 
-   Domain_ptr getPtr()
-   {
-      if (_internal_weak_this.expired())
-      {
-      	return Domain_ptr(this);	
-      }
-      else
-      {
-	return shared_from_this();
-      }
-   }
-
-   const_Domain_ptr getPtr() const 
-   {
-      if (_internal_weak_this.expired())
-      {
-      	return const_Domain_ptr(this);
-      }
-      else
-      {
-	return shared_from_this();
-      }
-   }
+   Domain_ptr getPtr();
+   const_Domain_ptr getPtr() const; 
 
    // structure holding values for X, size and normal
    typedef int StatusType;

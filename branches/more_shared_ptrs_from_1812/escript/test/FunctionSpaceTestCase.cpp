@@ -68,8 +68,9 @@ void FunctionSpaceTestCase::testAll() {
   assert(testFunctionSpace1==testFunctionSpace1);
   assert(!(testFunctionSpace1!=testFunctionSpace1));
 
-  testFunctionSpace1=testFunctionSpace2;
-  assert(testFunctionSpace1==testFunctionSpace2);
+  FunctionSpace testFunctionSpace3=testFunctionSpace2;	// test copy constructor
+cout << "Testing equality\n";
+  assert(testFunctionSpace3==testFunctionSpace2);
 
 }
 
