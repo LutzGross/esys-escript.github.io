@@ -249,14 +249,17 @@ if __name__ == '__main__':
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet3DOrder1))
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet3DOrder2))
   
-      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do1_Contact))
-      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact))
-      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact))
-      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do2_Contact))
-      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do1_Contact_withElementsOnFace))
-      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact_withElementsOnFace))
-      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace))
-      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace))
+      # These tests use JoinFaces and are not MPI parallel
+      if getMPISizeWorld() == 1:
+        suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do1_Contact))
+        suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact))
+        suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact))
+        suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do2_Contact))
+        suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do1_Contact_withElementsOnFace))
+        suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact_withElementsOnFace))
+        suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace))
+        suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace))
+
    else:
       pass
 
