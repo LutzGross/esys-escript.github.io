@@ -104,6 +104,7 @@ class Test_Generators(unittest.TestCase):
       self.checker(my_dom,file)
 
    def test_hex_contact_2D_order1(self):
+      if getMPISizeWorld() != 1: return
       file="hex_contact_2D_order1.msh"
       ms1=Rectangle(1,1,1,l1=0.5,useElementsOnFace=False)
       ms2=Rectangle(1,1,1,l1=0.5,useElementsOnFace=False)
@@ -112,6 +113,7 @@ class Test_Generators(unittest.TestCase):
       self.checker(my_dom,file)
 
    def test_hex_contact_2D_order1_onFace(self):
+      if getMPISizeWorld() != 1: return
       file="hex_contact_2D_order1_onFace.msh"
       ms1=Rectangle(1,1,1,l1=0.5,useElementsOnFace=True)
       ms2=Rectangle(1,1,1,l1=0.5,useElementsOnFace=True)
@@ -120,6 +122,7 @@ class Test_Generators(unittest.TestCase):
       self.checker(my_dom,file)
 
    def test_hex_contact_2D_order2(self):
+      if getMPISizeWorld() != 1: return
       file="hex_contact_2D_order2.msh"
       ms1=Rectangle(1,1,2,l1=0.5,useElementsOnFace=False)
       ms2=Rectangle(1,1,2,l1=0.5,useElementsOnFace=False)
@@ -128,6 +131,7 @@ class Test_Generators(unittest.TestCase):
       self.checker(my_dom,file)
 
    def test_hex_contact_2D_order2_onFace(self):
+      if getMPISizeWorld() != 1: return
       file="hex_contact_2D_order2_onFace.msh"
       ms1=Rectangle(1,1,2,l1=0.5,useElementsOnFace=True)
       ms2=Rectangle(1,1,2,l1=0.5,useElementsOnFace=True)
@@ -136,6 +140,7 @@ class Test_Generators(unittest.TestCase):
       self.checker(my_dom,file)
 
    def test_hex_contact_3D_order1(self):
+      if getMPISizeWorld() != 1: return
       file="hex_contact_3D_order1.msh"
       ms1=Brick(1,1,1,1,l2=0.5,useElementsOnFace=False)
       ms2=Brick(1,1,1,1,l2=0.5,useElementsOnFace=False)
@@ -144,6 +149,7 @@ class Test_Generators(unittest.TestCase):
       self.checker(my_dom,file)
 
    def test_hex_contact_3D_order1_onFace(self):
+      if getMPISizeWorld() != 1: return
       file="hex_contact_3D_order1_onFace.msh"
       ms1=Brick(1,1,1,1,l2=0.5,useElementsOnFace=True)
       ms2=Brick(1,1,1,1,l2=0.5,useElementsOnFace=True)
@@ -152,6 +158,7 @@ class Test_Generators(unittest.TestCase):
       self.checker(my_dom,file)
 
    def test_hex_contact_3D_order2(self):
+      if getMPISizeWorld() != 1: return
       file="hex_contact_3D_order2.msh"
       ms1=Brick(1,1,1,2,l2=0.5,useElementsOnFace=False)
       ms2=Brick(1,1,1,2,l2=0.5,useElementsOnFace=False)
@@ -160,6 +167,7 @@ class Test_Generators(unittest.TestCase):
       self.checker(my_dom,file)
 
    def test_hex_contact_3D_order2_onFace(self):
+      if getMPISizeWorld() != 1: return
       file="hex_contact_3D_order2_onFace.msh"
       ms1=Brick(1,1,1,2,l2=0.5,useElementsOnFace=True)
       ms2=Brick(1,1,1,2,l2=0.5,useElementsOnFace=True)
@@ -220,6 +228,7 @@ class Test_GMSHReader(unittest.TestCase):
 
 class Test_Reader(unittest.TestCase):
    def test_ReadWriteTagNames(self):
+       if getMPISizeWorld() != 1: return
        file="hex_2D_order2.msh"
        test = FINLEY_WORKDIR+os.sep+"test.fly"
        dom = ReadMesh(FINLEY_TEST_MESH_PATH+os.sep+file,3,optimize=False)
