@@ -738,12 +738,14 @@ DataExpanded::dump(const std::string fileName) const
    MPI_Status status;
 #endif
 
+#ifdef PASO_MPI
+   /* Serialize NetCDF I/O */
+   if (mpi_iam>0) MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81801, MPI_COMM_WORLD, &status);
+#endif
+
    // netCDF error handler
    NcError err(NcError::verbose_nonfatal);
    // Create the file.
-#ifdef PASO_MPI
-   if (mpi_iam>0) MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81801, MPI_COMM_WORLD, &status);
-#endif
    char *newFileName = Escript_MPI_appendRankToFileName(fileName.c_str(), mpi_num, mpi_iam);
    NcFile dataFile(newFileName, NcFile::Replace);
    // check if writing was successful
