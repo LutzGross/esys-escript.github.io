@@ -50,5 +50,5 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->drop_storage=2.;
   options->restart=-1;
   options->truncation=20;
-  options->sweeps=1;
+  options->sweeps=2;
 }
