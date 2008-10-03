@@ -335,6 +335,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("setInitialValue",&escript::AbstractTransportProblem::setInitialValue)
      .def("insertConstraint",&escript::AbstractTransportProblem::insertConstraint)
      .def("reset",&escript::AbstractTransportProblem::resetTransport)
+     .def("resetValues",&escript::AbstractTransportProblem::resetTransport)
      .def("getSafeTimeStepSize",&escript::AbstractTransportProblem::getSafeTimeStepSize);
 
   //

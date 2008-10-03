@@ -107,4 +107,37 @@ Rayleigh-Taylor instability problem
 
 \section{Drucker Prager Model}
 
-\section{Plate Mantel}
+\section{Isotropic Kelvin Material \label{IKM}}
+
+
+
+\begin{equation}\label{IKM-EQU-2}
+D_{ij}=D_{ij}^{el}+D_{ij}^{vp}
+\end{equation}
+with the elastic stretching
+\begin{equation}\label{IKM-EQU-3}
+D_{ij}^{el}=\frac{2 \mu} \sigma'_{ij}
+\end{equation}
+\begin{equation}\label{IKM-EQU-4}
+D_{ij}^{vp}=\sum_{q} D_{ij}^{q}
+\end{equation}
+\begin{equation}\label{IKM-EQU-5}
+D_{ij}^{q}=\frac{1}{2 \eta^{q}} \sigma'_{ij} \mbox{ with } \eta^{q}=\eta^{q}_N \left(\frac{\tau}{\tau_t^q}\right){\frac{1}{n^{q}}-1}
+\end{equation}
+After inserting equation~\ref{IKM-EQU-5} into equation \ref{IKM-EQU-4} one gets:
+\begin{equation}\label{IKM-EQU-4}
+D_{ij}^{vp}=\frac{1}{2 \eta^{vp}} \sigma'_{ij}
+\end{equation}
+
+
+\begin{equation}\label{IKM-EQU-1}
+-\sigma'_{ij,j}+p_j=F_j
+\end{equation}
+
+\begin{equation}\label{IKM-EQU-2}
+-v_{i,i}=0
+\end{equation}
+
+\begin{equation}\label{IKM-EQU-3}
+\sigma_{ij}=\sigma'_{ij,j}-\frac{1}{d} p \delta_{ij}
+\end{equation}
