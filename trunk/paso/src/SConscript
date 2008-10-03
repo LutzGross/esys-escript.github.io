@@ -36,6 +36,7 @@ sources = """
 	Pattern.c
 	Pattern_getSubpattern.c
 	Pattern_mis.c
+	Pattern_coupling.c
 	Pattern_reduceBandwidth.c
 	Pattern_unrollBlocks.c
 	SCSL.c
@@ -51,6 +52,7 @@ sources = """
 	Solver_GS.c
 	Solver_ILU.c
 	Solver_RILU.c
+	Solver_AMG.c
 	Solver_SchurComplement.c
 	Solver_applyBlockDiagonalMatrix.c
 	Solver_jacobi.c
