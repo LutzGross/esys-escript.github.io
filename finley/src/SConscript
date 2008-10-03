@@ -156,7 +156,7 @@ env.Alias('target_install_finley_so', tmp3)
 
 #windows specific mod
 if os.name == 'nt':
-  tmp4 = py_wrapper_local_env.Install(local_env['pyinstall']+'/finley', ['finleycpp.pyd', 'finleycpp.lib', 'finleycpp.exp'])
+  tmp4 = py_wrapper_local_env.Install(local_env['pyinstall']+'/finley', py_wrapper_lib)
 else:
   tmp4 = py_wrapper_local_env.InstallAs(local_env['pyinstall']+'/finley/finleycpp.so', py_wrapper_lib)
 env.Alias('target_install_finleycpp_so', tmp4)
