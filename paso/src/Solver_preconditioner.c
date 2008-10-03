@@ -37,6 +37,7 @@ void Paso_Preconditioner_free(Paso_Solver_Preconditioner* in) {
       Paso_Solver_RILU_free(in->rilu);
       Paso_Solver_Jacobi_free(in->jacobi);
       Paso_Solver_GS_free(in->gs);
+      Paso_Solver_AMG_free(in->amg);
       MEMFREE(in);
     }
 }
@@ -53,6 +54,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
         prec->ilu=NULL;
         prec->jacobi=NULL;
         prec->gs=NULL;
+        prec->amg=NULL;
         A->solver=prec;
         switch (options->preconditioner) {
            default:
@@ -77,6 +79,12 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
               prec->gs->sweeps=options->sweeps;
               prec->type=PASO_GS;
               break;
+            case PASO_AMG:
+              if (options->verbose) printf("AMG preconditioner is used.\n");
+              prec->amg=Paso_Solver_getAMG(A->mainBlock,options->verbose);
+              prec->type=PASO_AMG;
+              break;
+ 
         }
         if (! Paso_MPIInfo_noError(A->mpi_info ) ){
            Paso_Preconditioner_free(prec);
@@ -90,6 +98,8 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
 /* barrier synchronization is performed before the evaluation to make sure that the input vector is available */
 void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
     Paso_Solver_Preconditioner* prec=(Paso_Solver_Preconditioner*) A->solver;
+    
+    
     switch (prec->type) {
         default:
         case PASO_JACOBI:
@@ -102,7 +112,55 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
            Paso_Solver_solveRILU(prec->rilu,x,b);
            break;
          case PASO_GS:
+            /* Gauss-Seidel preconditioner P=U^{-1}DL^{-1} is used here with sweeps paramenter.
+              We want to solve x_new=x_old+P^{-1}(b-Ax_old). So for fisrt 3 we will have the following:
+              x_0=0
+              x_1=P^{-1}(b)
+              
+              b_old=b
+              
+              b_new=b_old+b
+              x_2=x_1+P^{-1}(b-Ax_1)=P^{-1}(b)+P^{-1}(b)-P^{-1}AP^{-1}(b))
+                 =P^{-1}(2b-AP^{-1}b)=P^{-1}(b_new-AP^{-1}b_old)
+              b_old=b_new
+              
+              b_new=b_old+b
+              x_3=....=P^{-1}(b_new-AP^{-1}b_old)
+              b_old=b_new
+              
+              So for n- steps we will use loop, but we always make sure that every value calculated only once!
+            */
+
            Paso_Solver_solveGS(prec->gs,x,b);
+           if (prec->gs->sweeps>1) {
+           double *bold=MEMALLOC(prec->gs->n*prec->gs->n_block,double);
+           double *bnew=MEMALLOC(prec->gs->n*prec->gs->n_block,double);
+           dim_t i;
+           #pragma omp parallel for private(i) schedule(static)
+           for (i=0;i<prec->gs->n*prec->gs->n_block;++i) bold[i]=b[i];
+           
+           while(prec->gs->sweeps>1) {
+               #pragma omp parallel for private(i) schedule(static)
+               for (i=0;i<prec->gs->n*prec->gs->n_block;++i) bnew[i]=bold[i]+b[i];
+                /* Compute the residual b=b-Ax*/
+               Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A, x, DBLE(1), bnew);
+               /* Go round again*/
+               Paso_Solver_solveGS(prec->gs,x,bnew);
+               #pragma omp parallel for private(i) schedule(static)
+               for (i=0;i<prec->gs->n*prec->gs->n_block;++i) bold[i]=bnew[i];
+               prec->gs->sweeps=prec->gs->sweeps-1;
+           }
+           
+           MEMFREE(bold);
+           MEMFREE(bnew); 
+           
+           }
+           /* prec->gs->sweeps=prec->gs->sweeps-1;*/
+          
+           break;
+         case PASO_AMG:
+           Paso_Solver_solveAMG(prec->amg,x,b);
            break;
     }
+
 }
