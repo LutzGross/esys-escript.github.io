@@ -387,7 +387,7 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const d
      ValueType::size_type offset = getPointOffset(sampleNo, dataPointNo);
      ValueType& vec=getVector();
      if (dataPointRank==0) {
-         vec[0]=value;
+         vec[offset]=value;
      } else if (dataPointRank==1) {
         for (int i=0; i<dataPointShape[0]; i++) {
             vec[offset+i]=value;
