@@ -1,4 +1,5 @@
 
+
 ########################################################
 #
 # Copyright (c) 2003-2008 by University of Queensland
@@ -138,10 +139,13 @@ cppadapter_headers = """
 local_env.Append(LIBS = ['escript', 'esysUtils', 'paso'] + env['sys_libs'] )
 py_wrapper_local_env.Append(LIBS = ['finley', 'escript', 'esysUtils', 'paso'] + env['sys_libs'] )
 
-lib = local_env.SharedLibrary('finley', sources)
+module_name = 'finley'
+py_wrapper_name = module_name + 'cpp'
+
+lib = local_env.SharedLibrary(module_name, sources)
 env.Alias('target_finley_so', lib)
 
-py_wrapper_lib = py_wrapper_local_env.SharedLibrary('finleycpp', 'CPPAdapter/finleycpp.cpp')
+py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'CPPAdapter/finleycpp.cpp')
 env.Alias('target_finleycpp_so', py_wrapper_lib)
 
 include_path = Dir('finley', local_env['incinstall'])
@@ -155,17 +159,16 @@ tmp3 = local_env.Install(local_env['libinstall'], lib)
 env.Alias('target_install_finley_so', tmp3)
 
 #windows specific mod
-tmp_inst = os.path.join(local_env['pyinstall'],'finley')
+tmp_inst = os.path.join(local_env['pyinstall'],module_name)
 if os.name == 'nt':
   wrapper_postfix = '.pyd'
-  source_lib = py_wrapper_lib[0]
 else:
   wrapper_postfix = '.so'
-  source_lib = py_wrapper_lib
 
-share_name = os.path.join(tmp_inst,'finleycpp'+wrapper_postfix)
+share_name = os.path.join(tmp_inst,py_wrapper_name+wrapper_postfix)
 
-tmp4 = py_wrapper_local_env.InstallAs(target=share_name, source=source_lib)
+tmp4 = py_wrapper_local_env.InstallAs(target=share_name,
+                                      source=py_wrapper_lib[0])
 
 env.Alias('target_install_finleycpp_so', tmp4)
 
