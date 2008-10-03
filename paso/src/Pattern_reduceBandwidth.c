@@ -141,7 +141,7 @@ void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
    if (N != pattern->numInput) {
       Paso_setError(VALUE_ERROR,"Paso_Pattern_reduceBandwidth: pattern needs to be for a square matrix.");
    } else {
-printf("relabeling of %d DOFs started.\n",N);
+/* printf("relabeling of %d DOFs started.\n",N); */
       degAndIdx=TMPMEMALLOC(N,Paso_DegreeAndIdx);
       oldLabel=TMPMEMALLOC(N,bool_t);
       AssignedLevel=TMPMEMALLOC(N,index_t);
@@ -152,7 +152,7 @@ printf("relabeling of %d DOFs started.\n",N);
          #pragma omp parallel for private(i)
          for (i=0;i<N;++i) oldToNew[i]=i; 
          initial_bandwidth=Paso_Pattern_getBandwidth(pattern,oldToNew);
-printf("initial bandwidth = %d\n",initial_bandwidth);
+/* printf("initial bandwidth = %d\n",initial_bandwidth); */
          /* get the initial bandwidth */
          #pragma omp parallel for private(i)
          for (i=0;i<N;++i) {
@@ -222,9 +222,9 @@ printf("initial bandwidth = %d\n",initial_bandwidth);
              }
         } /* end of while root loop */
         bandwidth=Paso_Pattern_getBandwidth(pattern,oldToNew);
-printf("bandwidth after DOF relabeling= %d\n",bandwidth);
+/* printf("bandwidth after DOF relabeling= %d\n",bandwidth); */
         if (bandwidth>=initial_bandwidth) {
-printf("initial labeling used.\n");
+/* printf("initial labeling used.\n"); */
            #pragma omp parallel for private(i)
            for (i=0;i<N;++i) oldToNew[i]=i; 
         }

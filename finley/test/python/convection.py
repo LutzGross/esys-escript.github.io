@@ -66,7 +66,6 @@ T_END=0.1
 DT_OUT=T_END/500
 Dn_OUT=2
 VERBOSE=True
-SUPG=False
 create_restartfiles_every_step=10
 if True:
    # this is a simple linear Stokes model:
@@ -183,12 +182,12 @@ x=dom.getX()
 #
 #   set up heat problem:
 #
-heat=TemperatureCartesian(dom,theta=THETA,useSUPG=SUPG)
+heat=TemperatureCartesian(dom,theta=THETA)
 heat.setTolerance(TOL*extratol)
 
 fixed_T_at=whereZero(x[DIM-1])+whereZero(H-x[DIM-1])
-heat.setInitialTemperature(T)
 print "initial Temperature range ",inf(T),sup(T)
+heat.setInitialTemperature(clip(T,0))
 heat.setValue(rhocp=Scalar(1.,Function(dom)),k=Scalar(1.,Function(dom)),given_T_mask=fixed_T_at)
 #
 #   velocity constraints:
@@ -250,7 +249,7 @@ while t<T_END:
     dt=max(DT_MIN,dt)
     print n,". time step t=",t," step size ",dt
     print "============== solve for T ========================"
-    T=heat.solve(dt, verbose=VERBOSE)	
+    T=heat.getSolution(dt, verbose=VERBOSE)	
     print "Temperature range ",inf(T),sup(T)
     n+=1
     t+=dt
