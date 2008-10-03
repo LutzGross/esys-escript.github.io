@@ -405,14 +405,6 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
          }
      }
      
-     if (gs->sweeps>1) {
-     /* Compute the residual b=b-Ax*/
-     Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), gs->factors, x, DBLE(2), b);
-     /* Go round again*/
-     gs->sweeps=gs->sweeps-1;
-     Paso_Solver_solveGS(gs,x,b);
-     }
-    
      return;
 }
 
