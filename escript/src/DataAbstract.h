@@ -59,8 +59,9 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   typedef DataTypes::ValueType ValueType;
   typedef DataTypes::ShapeType ShapeType;
 
-
+   ESCRIPT_DLL_API
    DataAbstract_ptr getPtr();
+   ESCRIPT_DLL_API
    const_DataAbstract_ptr getPtr() const; 
 
   /**
