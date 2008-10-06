@@ -71,7 +71,7 @@ class TemperatureCartesian(TransportPDE):
                                       thete=0.: forward Euler (not recommendable)
         """
         TransportPDE.__init__(self,domain,num_equations=1,theta=theta,**kwargs)
-        self.setReducedOn()
+        self.setReducedOrderOn()
         self.__rhocp=None
         self.__v=None
       def setInitialTemperature(self,T):
@@ -95,4 +95,4 @@ class TemperatureCartesian(TransportPDE):
                super(TemperatureCartesian,self).setValue(q=given_T_mask)
            
       def getTemperature(self,dt,**kwargs):
-          return self.solve(dt,**kwargs)
+          return self.getSolution(dt,**kwargs)

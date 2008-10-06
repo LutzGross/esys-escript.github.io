@@ -12,6 +12,7 @@
 *******************************************************/
 
 
+#include "Data.h"
 #include "DataTagged.h"
 #include "esysUtils/esys_malloc.h"
 
@@ -19,6 +20,9 @@
 #include "DataException.h"
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
+#endif
+#ifdef PASO_MPI
+#include <mpi.h>
 #endif
 #include "DataMaths.h"
 
@@ -439,7 +443,7 @@ DataTagged::addTaggedValues(const TagListType& tagKeys,
                             const ShapeType& vShape)
 {
   DataTypes::ValueType t(values.size(),0);
-  for (int i=0;i<values.size();++i)
+  for (size_t i=0;i<values.size();++i)
   {
 	t[i]=values[i];
   }
@@ -887,9 +891,6 @@ DataTagged::setToZero(){
 void
 DataTagged::dump(const std::string fileName) const
 {
-   #ifdef PASO_MPI
-   throw DataException("Error - DataTagged:: dump is not implemented for MPI yet.");
-   #endif
    #ifdef USE_NETCDF
    const int ldims=DataTypes::maxRank+1;
    const NcDim* ncdims[ldims];
@@ -900,11 +901,22 @@ DataTagged::dump(const std::string fileName) const
    long dims[ldims];
    const double* d_ptr=&(m_data[0]);
    DataTypes::ShapeType shape = getShape();
+   int mpi_iam=getFunctionSpace().getDomain().getMPIRank();
+   int mpi_num=getFunctionSpace().getDomain().getMPISize();
+#ifdef PASO_MPI
+   MPI_Status status;
+#endif
+
+#ifdef PASO_MPI
+   /* Serialize NetCDF I/O */
+   if (mpi_iam>0) MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81803, MPI_COMM_WORLD, &status);
+#endif
 
    // netCDF error handler
    NcError err(NcError::verbose_nonfatal);
    // Create the file.
-   NcFile dataFile(fileName.c_str(), NcFile::Replace);
+   char *newFileName = Escript_MPI_appendRankToFileName(fileName.c_str(), mpi_num, mpi_iam);
+   NcFile dataFile(newFileName, NcFile::Replace);
    // check if writing was successful
    if (!dataFile.is_valid())
         throw DataException("Error - DataTagged:: opening of netCDF file for output failed.");
@@ -970,6 +982,9 @@ DataTagged::dump(const std::string fileName) const
 	esysUtils::free(tags);
         throw DataException("Error - DataTagged:: copy data to netCDF buffer failed.");
    }
+#ifdef PASO_MPI
+   if (mpi_iam<mpi_num-1) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81803, MPI_COMM_WORLD);
+#endif
    #else
    throw DataException("Error - DataTagged:: dump is not configured with netCDF. Please contact your installation manager.");
    #endif

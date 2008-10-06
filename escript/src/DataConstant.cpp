@@ -12,6 +12,7 @@
 *******************************************************/
 
 
+#include "Data.h"
 #include "DataConstant.h"
 #include "DataException.h"
 #include "esysUtils/EsysAssert.h"
@@ -20,6 +21,9 @@
 #include <boost/python/extract.hpp>
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
+#endif
+#ifdef PASO_MPI
+#include <mpi.h>
 #endif
 
 #include <boost/python/extract.hpp>
@@ -292,9 +296,6 @@ DataConstant::setToZero()
 void
 DataConstant::dump(const std::string fileName) const
 {
-   #ifdef PASO_MPI
-   throw DataException("Error - DataConstant:: dump is not implemented for MPI yet.");
-   #endif
    #ifdef USE_NETCDF
    const NcDim* ncdims[DataTypes::maxRank];
    NcVar* var;
@@ -304,11 +305,22 @@ DataConstant::dump(const std::string fileName) const
    long dims[DataTypes::maxRank];
    const double* d_ptr=&(m_data[0]);
    DataTypes::ShapeType shape = getShape();
+   int mpi_iam=getFunctionSpace().getDomain().getMPIRank();
+   int mpi_num=getFunctionSpace().getDomain().getMPISize();
+#ifdef PASO_MPI
+   MPI_Status status;
+#endif
+
+#ifdef PASO_MPI
+   /* Serialize NetCDF I/O */
+   if (mpi_iam>0) MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81802, MPI_COMM_WORLD, &status);
+#endif
 
    // netCDF error handler
    NcError err(NcError::verbose_nonfatal);
    // Create the file.
-   NcFile dataFile(fileName.c_str(), NcFile::Replace);
+   char *newFileName = Escript_MPI_appendRankToFileName(fileName.c_str(), mpi_num, mpi_iam);
+   NcFile dataFile(newFileName, NcFile::Replace);
    // check if writing was successful
    if (!dataFile.is_valid())
 	throw DataException("Error - DataConstant:: opening of netCDF file for output failed.");
@@ -350,6 +362,9 @@ DataConstant::dump(const std::string fileName) const
 	throw DataException("Error - DataConstant:: appending variable to netCDF file failed.");
    if (! (var->put(d_ptr,dims)) )
          throw DataException("Error - DataConstant:: copy data to netCDF buffer failed.");
+#ifdef PASO_MPI
+   if (mpi_iam<mpi_num-1) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81802, MPI_COMM_WORLD);
+#endif
    #else
    throw DataException("Error - DataConstant:: dump is not configured with netCDF. Please contact your installation manager.");
    #endif

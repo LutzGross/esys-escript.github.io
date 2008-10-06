@@ -596,7 +596,6 @@ Note that vector in this context refers to a data vector storing datapoints not 
      \param axis1 - axis index
   */
   ESCRIPT_DLL_API
-  static
   inline
   void
   swapaxes(const DataTypes::ValueType& in, 
@@ -809,7 +808,6 @@ Note that vector in this context refers to a data vector storing datapoints not 
      \param tol - Input - eigenvalues with relative difference tol are treated as equal
   */
   ESCRIPT_DLL_API
-  static
   inline
   void
   eigenvalues_and_eigenvectors(const DataTypes::ValueType& in, const DataTypes::ShapeType& inShape,

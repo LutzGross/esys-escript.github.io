@@ -463,14 +463,13 @@ Data::copyWithMask(const Data& other,
   }
   Data mask1;
   Data mask2;
-
   mask1 = mask.wherePositive();
-  mask2.copy(mask1);
 
+  mask2.copy(mask1);
   mask1 *= other;
+
   mask2 *= *this;
   mask2 = *this - mask2;
-
   *this = mask1 + mask2;
 }
 

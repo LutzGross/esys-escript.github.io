@@ -56,6 +56,7 @@
 #define PASO_NONLINEAR_GMRES 25
 #define PASO_TFQMR 26
 #define PASO_MINRES 27
+#define PASO_GS 28
 
 typedef struct {
     index_t method;
@@ -77,6 +78,7 @@ typedef struct {
     double drop_storage;
     dim_t truncation;
     dim_t restart;
+    dim_t sweeps;
 
 
 } Paso_Options;

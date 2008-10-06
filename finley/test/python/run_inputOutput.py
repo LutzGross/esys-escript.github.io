@@ -80,8 +80,7 @@ class InputOutput(unittest.TestCase):
         self.domainsEqual(mydomain1, mydomain2)
 
      # Does optimize=True change Rectangle for order=2?
-     # This is disabled due to a possible bug in order=2
-     def disabled_test_Rectangle_optimize_order2(self):
+     def test_Rectangle_optimize_order2(self):
 	mydomain1 = Rectangle(n0=NE0, n1=NE1, order=2, l0=1., l1=1., optimize=False)
 	mydomain2 = Rectangle(n0=NE0, n1=NE1, order=2, l0=1., l1=1., optimize=True)
         self.domainsEqual(mydomain1, mydomain2)
@@ -93,8 +92,7 @@ class InputOutput(unittest.TestCase):
         self.domainsEqual(mydomain1, mydomain2)
 
      # Does optimize=True change Brick for order=2?
-     # This is disabled due to a possible bug in order=2
-     def disabled_test_Brick_optimize_order2(self):
+     def test_Brick_optimize_order2(self):
 	mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=False)
 	mydomain2 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=True)
         self.domainsEqual(mydomain1, mydomain2)
