@@ -177,8 +177,8 @@ nPE = getMPISizeWorld()
 The rank and size relative to a particular domain object (which may be limited to run on a subset of the
 total list of MPI processes in future versions of Escript) are available through
 \begin{verbatim}
-iam = domain.getMPIRankWorld()
-nPE = domain.getMPISizeWorld()
+iam = domain.getMPIRank()
+nPE = domain.getMPISize()
 \end{verbatim}
 
 \section{Getting Help}

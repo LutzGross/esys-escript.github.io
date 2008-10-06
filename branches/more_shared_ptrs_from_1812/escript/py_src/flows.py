@@ -71,7 +71,7 @@ class StokesProblemCartesian_DC(HomogeneousSaddlePointProblem):
 
       def initialize(self,f=Data(),fixed_u_mask=Data(),eta=1,surface_stress=Data()):
         self.eta=eta
-        A =self.__pde_u.createCoefficientOfGeneralPDE("A")
+        A =self.__pde_u.createCoefficient("A")
 	self.__pde_u.setValue(A=Data())
         for i in range(self.domain.getDim()):
 		for j in range(self.domain.getDim()):
@@ -175,7 +175,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 
       def initialize(self,f=Data(),fixed_u_mask=Data(),eta=1,surface_stress=Data()):
         self.eta=eta
-        A =self.__pde_u.createCoefficientOfGeneralPDE("A")
+        A =self.__pde_u.createCoefficient("A")
 	self.__pde_u.setValue(A=Data())
         for i in range(self.domain.getDim()):
 		for j in range(self.domain.getDim()):

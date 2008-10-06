@@ -73,16 +73,15 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
        /* find main diagonal and copy matrix values */ 
        #pragma omp parallel for schedule(static) private(i,iptr,iptr_main,k)
        for (i = 0; i < n; ++i) {
-           for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
                iptr_main=A->pattern->ptr[0]-1;
-         	    for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; iptr++) {
+               for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; iptr++) {
                    if (A->pattern->index[iptr]==i) iptr_main=iptr;
                    for (k=0;k<n_block*n_block;++k) out->factors[n_block*n_block*iptr+k]=A->val[n_block*n_block*iptr+k];
                }
                out->main_iptr[i]=iptr_main;
-               if (iptr_main==A->pattern->ptr[0]-1) 
+               if (iptr_main==A->pattern->ptr[0]-1)  {
                   Paso_setError(VALUE_ERROR, "Paso_Solver_getILU: no main diagonal");
-           }
+               }
        }
        /* start factorization */
    

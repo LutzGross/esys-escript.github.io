@@ -136,6 +136,8 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_TFQMR;
        case  ESCRIPT_MINRES:
           return PASO_MINRES;
+       case  ESCRIPT_GS:
+          return PASO_GS;
        default:
            stringstream temp;
            temp << "Error - Cannot map option value "<< option << " onto Paso";
@@ -293,6 +295,7 @@ void SystemMatrixAdapter::dictToPasoOptions(Paso_Options* paso_options, const bo
    EXTRACT("drop_storage",drop_storage,double);
    EXTRACT("truncation",truncation,int);
    EXTRACT("restart",restart,int);
+   EXTRACT("sweeps",sweeps,int);
 #undef EXTRACT
 #undef EXTRACT_OPTION
 }

@@ -153,6 +153,7 @@ namespace DataTypes {
    the slice region is of size 1. So in the above example, we modify the above
    region like so: <<1,2><0,3><0,3>> and take this slice.
   */
+  ESCRIPT_DLL_API
   DataTypes::RegionLoopRangeType
   getSliceRegionLoopRange(const DataTypes::RegionType& region);
 
@@ -264,6 +265,7 @@ namespace DataTypes {
    \param other - displayed in the message as "Other shape"
    \param thisShape - displayed in the message as "This shape"
   */
+   ESCRIPT_DLL_API
    std::string 
    createShapeErrorMessage(const std::string& messagePrefix,
                                           const DataTypes::ShapeType& other,
@@ -284,6 +286,7 @@ namespace DataTypes {
      \param region - Input -
                       Region in other view to copy data from.
   */
+   ESCRIPT_DLL_API
    void
    copySlice(ValueType& left,
 			    const ShapeType& leftShape,
@@ -307,6 +310,7 @@ namespace DataTypes {
      \param region - Input -
                       Region in the left vector to copy data to.
   */
+   ESCRIPT_DLL_API
    void
    copySliceFrom(ValueType& left,
 				const ShapeType& leftShape,

@@ -21,15 +21,11 @@ __url__="http://www.uq.edu.au/esscc/escript-finley"
 
 """
 The module provides an interface to define and solve linear partial
-differential equations (PDEs) within L{escript}. L{linearPDEs} does not provide any
+differential equations (PDEs) and Transport problems within L{escript}. L{linearPDEs} does not provide any
 solver capabilities in itself but hands the PDE over to
 the PDE solver library defined through the L{Domain<escript.Domain>} of the PDE.
-The general interface is provided through the L{LinearPDE} class. The
-L{AdvectivePDE} which is derived from the L{LinearPDE} class
-provides an interface to PDE dominated by its advective terms. The L{Poisson},
-L{Helmholtz}, L{LameEquation}, L{AdvectivePDE}
-classs which are also derived form the L{LinearPDE} class should be used
-to define of solve these sepecial PDEs.
+The general interface is provided through the L{LinearPDE} class. 
+L{TransportProblem} provides an interface to initial value problems dominated by its advective terms. 
 
 @var __author__: name of author
 @var __copyright__: copyrights
@@ -70,7 +66,7 @@ class UndefinedPDEError(ValueError):
    """
    pass
 
-class PDECoefficient(object):
+class PDECoef(object):
     """
     A class for describing a PDE coefficient
 
@@ -125,7 +121,7 @@ class PDECoefficient(object):
        @param reduced: indicates if reduced 
        @type reduced: C{bool}
        """
-       super(PDECoefficient, self).__init__()
+       super(PDECoef, self).__init__()
        self.what=where
        self.pattern=pattern
        self.altering=altering
@@ -343,97 +339,18 @@ class PDECoefficient(object):
                 s=s+(dim,)
        return s
 
-class LinearPDE(object):
+class LinearProblem(object):
    """
-   This class is used to define a general linear, steady, second order PDE
-   for an unknown function M{u} on a given domain defined through a L{Domain<escript.Domain>} object.
+   This is the base class is to define a general linear PDE-type problem for an u
+   for an unknown function M{u} on a given domain defined through a L{Domain<escript.Domain>} object. 
+   The problem can be given as a single equations or as a system of equations. 
 
-   For a single PDE with a solution with a single component the linear PDE is defined in the following form:
+   The class assumes that some sort of assembling process is required to form a problem of the form 
 
-   M{-(grad(A[j,l]+A_reduced[j,l])*grad(u)[l]+(B[j]+B_reduced[j])u)[j]+(C[l]+C_reduced[l])*grad(u)[l]+(D+D_reduced)=-grad(X+X_reduced)[j,j]+(Y+Y_reduced)}
-
-
-   where M{grad(F)} denotes the spatial derivative of M{F}. Einstein's summation convention,
-   ie. summation over indexes appearing twice in a term of a sum is performed, is used.
-   The coefficients M{A}, M{B}, M{C}, M{D}, M{X} and M{Y} have to be specified through L{Data<escript.Data>} objects in the
-   L{Function<escript.Function>} and the coefficients M{A_reduced}, M{B_reduced}, M{C_reduced}, M{D_reduced}, M{X_reduced} and M{Y_reduced} have to be specified through L{Data<escript.Data>} objects in the
-   L{ReducedFunction<escript.ReducedFunction>}. It is also allowd to use objects that can be converted into 
-   such L{Data<escript.Data>} objects. M{A} and M{A_reduced} are rank two, M{B_reduced}, M{C_reduced}, M{X_reduced} 
-   M{B_reduced}, M{C_reduced} and M{X_reduced} are rank one and M{D}, M{D_reduced} and M{Y_reduced} are scalar.
-
-   The following natural boundary conditions are considered:
-
-   M{n[j]*((A[i,j]+A_reduced[i,j])*grad(u)[l]+(B+B_reduced)[j]*u)+(d+d_reduced)*u=n[j]*(X[j]+X_reduced[j])+y}
-
-   where M{n} is the outer normal field. Notice that the coefficients M{A}, M{A_reduced}, M{B}, M{B_reduced}, M{X} and M{X_reduced} are defined in the PDE. The coefficients M{d} and M{y} and are each a scalar in the L{FunctionOnBoundary<escript.FunctionOnBoundary>} and the coefficients M{d_reduced} and M{y_reduced} and are each a scalar in the L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}.
-
-
-   Constraints for the solution prescribing the value of the solution at certain locations in the domain. They have the form
-
-   M{u=r}  where M{q>0}
-
-   M{r} and M{q} are each scalar where M{q} is the characteristic function defining where the constraint is applied.
-   The constraints override any other condition set by the PDE or the boundary condition.
-
-   The PDE is symmetrical if
-
-   M{A[i,j]=A[j,i]}  and M{B[j]=C[j]} and M{A_reduced[i,j]=A_reduced[j,i]}  and M{B_reduced[j]=C_reduced[j]}
-
-   For a system of PDEs and a solution with several components the PDE has the form
-
-   M{-grad((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])[j]+(C[i,k,l]+C_reduced[i,k,l])*grad(u[k])[l]+(D[i,k]+D_reduced[i,k]*u[k] =-grad(X[i,j]+X_reduced[i,j])[j]+Y[i]+Y_reduced[i] }
-
-   M{A} and M{A_reduced} are of rank four, M{B}, M{B_reduced}, M{C} and M{C_reduced} are each of rank three, M{D}, M{D_reduced}, M{X_reduced} and M{X} are each a rank two and M{Y} and M{Y_reduced} are of rank one.
-   The natural boundary conditions take the form:
-
-   M{n[j]*((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])+(d[i,k]+d_reduced[i,k])*u[k]=n[j]*(X[i,j]+X_reduced[i,j])+y[i]+y_reduced[i]}
-
-
-   The coefficient M{d} is a rank two and M{y} is a rank one both in the L{FunctionOnBoundary<escript.FunctionOnBoundary>}. Constraints take the form and the coefficients M{d_reduced} is a rank two and M{y_reduced} is a rank one both in the L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}. 
-
-   Constraints take the form 
-
-   M{u[i]=r[i]}  where  M{q[i]>0}
-
-   M{r} and M{q} are each rank one. Notice that at some locations not necessarily all components must have a constraint.
-
-   The system of PDEs is symmetrical if
-
-        - M{A[i,j,k,l]=A[k,l,i,j]}
-        - M{A_reduced[i,j,k,l]=A_reduced[k,l,i,j]}
-        - M{B[i,j,k]=C[k,i,j]}
-        - M{B_reduced[i,j,k]=C_reduced[k,i,j]}
-        - M{D[i,k]=D[i,k]}
-        - M{D_reduced[i,k]=D_reduced[i,k]}
-        - M{d[i,k]=d[k,i]}
-        - M{d_reduced[i,k]=d_reduced[k,i]}
-
-   L{LinearPDE} also supports solution discontinuities over a contact region in the domain. To specify the conditions across the
-   discontinuity we are using the generalised flux M{J} which is in the case of a systems of PDEs and several components of the solution
-   defined as
-
-   M{J[i,j]=(A[i,j,k,l]+A_reduced[[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]-X[i,j]-X_reduced[i,j]}
-
-   For the case of single solution component and single PDE M{J} is defined
-
-   M{J_{j}=(A[i,j]+A_reduced[i,j])*grad(u)[j]+(B[i]+B_reduced[i])*u-X[i]-X_reduced[i]}
-
-   In the context of discontinuities M{n} denotes the normal on the discontinuity pointing from side 0 towards side 1
-   calculated from L{getNormal<escript.FunctionSpace.getNormal>} of L{FunctionOnContactZero<escript.FunctionOnContactZero>}. For a system of PDEs
-   the contact condition takes the form
-
-   M{n[j]*J0[i,j]=n[j]*J1[i,j]=(y_contact[i]+y_contact_reduced[i])- (d_contact[i,k]+d_contact_reduced[i,k])*jump(u)[k]}
-
-   where M{J0} and M{J1} are the fluxes on side 0 and side 1 of the discontinuity, respectively. M{jump(u)}, which is the difference
-   of the solution at side 1 and at side 0, denotes the jump of M{u} across discontinuity along the normal calcualted by
-   L{jump<util.jump>}.
-   The coefficient M{d_contact} is a rank two and M{y_contact} is a rank one both in the L{FunctionOnContactZero<escript.FunctionOnContactZero>} or L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
-   The coefficient M{d_contact_reduced} is a rank two and M{y_contact_reduced} is a rank one both in the L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
-   In case of a single PDE and a single component solution the contact condition takes the form
-
-   M{n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)}
-
-   In this case the coefficient M{d_contact} and M{y_contact} are each scalar both in the L{FunctionOnContactZero<escript.FunctionOnContactZero>} or L{FunctionOnContactOne<escript.FunctionOnContactOne>} and the coefficient M{d_contact_reduced} and M{y_contact_reduced} are each scalar both in the L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}
+   M{L u=f} 
+  
+   where M{L} is an operator and M{f} is the right hand side. This operator problem will be solved to get the 
+   unknown M{u}.
 
    @cvar DEFAULT: The default method used to solve the system of linear equations
    @cvar DIRECT: The direct solver based on LDU factorization
@@ -462,6 +379,7 @@ class LinearPDE(object):
    @cvar ITERATIVE: The default iterative solver
    @cvar AMG: algebraic multi grid
    @cvar RILU: recursive ILU
+   @cvar GS: Gauss-Seidel solver
 
    """
    DEFAULT= 0
@@ -492,78 +410,50 @@ class LinearPDE(object):
    NONLINEAR_GMRES = 25
    TFQMR = 26
    MINRES = 27
+   GS=28
 
    SMALL_TOLERANCE=1.e-13
-   __PACKAGE_KEY="package"
-   __METHOD_KEY="method"
-   __SYMMETRY_KEY="symmetric"
-   __TOLERANCE_KEY="tolerance"
-   __PRECONDITIONER_KEY="preconditioner"
+   PACKAGE_KEY="package"
+   METHOD_KEY="method"
+   SYMMETRY_KEY="symmetric"
+   TOLERANCE_KEY="tolerance"
+   PRECONDITIONER_KEY="preconditioner"
 
 
    def __init__(self,domain,numEquations=None,numSolutions=None,debug=False):
      """
-     initializes a new linear PDE
+     initializes a linear problem
 
      @param domain: domain of the PDE
      @type domain: L{Domain<escript.Domain>}
      @param numEquations: number of equations. If numEquations==None the number of equations
-                          is exracted from the PDE coefficients.
+                          is extracted from the coefficients.
      @param numSolutions: number of solution components. If  numSolutions==None the number of solution components
-                          is exracted from the PDE coefficients.
+                          is extracted from the coefficients.
      @param debug: if True debug informations are printed.
 
      """
-     super(LinearPDE, self).__init__()
-     #
-     #   the coefficients of the general PDE:
-     #
-     self.__COEFFICIENTS_OF_GENEARL_PDE={
-       "A"         : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_DIM,PDECoefficient.BY_SOLUTION,PDECoefficient.BY_DIM),PDECoefficient.OPERATOR),
-       "B"         : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_DIM,PDECoefficient.BY_SOLUTION),PDECoefficient.OPERATOR),
-       "C"         : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_SOLUTION,PDECoefficient.BY_DIM),PDECoefficient.OPERATOR),
-       "D"         : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_SOLUTION),PDECoefficient.OPERATOR),
-       "X"         : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_DIM),PDECoefficient.RIGHTHANDSIDE),
-       "Y"         : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-       "d"         : PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_SOLUTION),PDECoefficient.OPERATOR),
-       "y"         : PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-       "d_contact" : PDECoefficient(PDECoefficient.CONTACT,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_SOLUTION),PDECoefficient.OPERATOR),
-       "y_contact" : PDECoefficient(PDECoefficient.CONTACT,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-       "A_reduced"         : PDECoefficient(PDECoefficient.INTERIOR_REDUCED,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_DIM,PDECoefficient.BY_SOLUTION,PDECoefficient.BY_DIM),PDECoefficient.OPERATOR),
-       "B_reduced"         : PDECoefficient(PDECoefficient.INTERIOR_REDUCED,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_DIM,PDECoefficient.BY_SOLUTION),PDECoefficient.OPERATOR),
-       "C_reduced"         : PDECoefficient(PDECoefficient.INTERIOR_REDUCED,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_SOLUTION,PDECoefficient.BY_DIM),PDECoefficient.OPERATOR),
-       "D_reduced"         : PDECoefficient(PDECoefficient.INTERIOR_REDUCED,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_SOLUTION),PDECoefficient.OPERATOR),
-       "X_reduced"         : PDECoefficient(PDECoefficient.INTERIOR_REDUCED,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_DIM),PDECoefficient.RIGHTHANDSIDE),
-       "Y_reduced"         : PDECoefficient(PDECoefficient.INTERIOR_REDUCED,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-       "d_reduced"         : PDECoefficient(PDECoefficient.BOUNDARY_REDUCED,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_SOLUTION),PDECoefficient.OPERATOR),
-       "y_reduced"         : PDECoefficient(PDECoefficient.BOUNDARY_REDUCED,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-       "d_contact_reduced" : PDECoefficient(PDECoefficient.CONTACT_REDUCED,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_SOLUTION),PDECoefficient.OPERATOR),
-       "y_contact_reduced" : PDECoefficient(PDECoefficient.CONTACT_REDUCED,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-       "r"         : PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_SOLUTION,),PDECoefficient.RIGHTHANDSIDE),
-       "q"         : PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_SOLUTION,),PDECoefficient.BOTH)}
+     super(LinearProblem, self).__init__()
 
-     # COEFFICIENTS can be overwritten by subclasses:
-     self.COEFFICIENTS=self.__COEFFICIENTS_OF_GENEARL_PDE
-     self.__altered_coefficients=False
-     # initialize attributes
      self.__debug=debug
      self.__domain=domain
      self.__numEquations=numEquations
      self.__numSolutions=numSolutions
-     self.__resetSystem()
-
-     # set some default values:
+     self.__altered_coefficients=False
      self.__reduce_equation_order=False
      self.__reduce_solution_order=False
      self.__tolerance=1.e-8
      self.__solver_method=self.DEFAULT
      self.__solver_package=self.DEFAULT
      self.__preconditioner=self.DEFAULT
-     self.__matrix_type=self.__domain.getSystemMatrixTypeId(self.DEFAULT,self.DEFAULT,False)
+     self.__is_RHS_valid=False
+     self.__is_operator_valid=False
      self.__sym=False
-
-     self.resetCoefficients()
-     self.trace("PDE Coeffients are %s"%str(self.COEFFICIENTS.keys()))
+     self.__COEFFICIENTS={}
+     # initialize things:
+     self.resetAllCoefficients()
+     self.__system_type=None
+     self.updateSystemType()
    # =============================================================================
    #    general stuff:
    # =============================================================================
@@ -574,7 +464,7 @@ class LinearPDE(object):
      @return: a simple representation of the PDE
      @rtype: C{str}
      """
-     return "<LinearPDE %d>"%id(self)
+     return "<LinearProblem %d>"%id(self)
    # =============================================================================
    #    debug :
    # =============================================================================
@@ -601,6 +491,23 @@ class LinearPDE(object):
    # =============================================================================
    # some service functions:
    # =============================================================================
+   def introduceCoefficients(self,**coeff):
+       """
+       introduces a new coefficient into the problem.
+
+       use 
+
+         self.introduceCoefficients(A=PDECoef(...),B=PDECoef(...)) 
+
+       to introduce the coefficients M{A} ans M{B}.
+       """
+       for name, type in coeff.items():
+           if not isinstance(type,PDECoef):
+              raise ValueError,"coefficient %s has no type."%name
+           self.__COEFFICIENTS[name]=type
+           self.__COEFFICIENTS[name].resetValue()
+           self.trace("coefficient %s has been introduced."%name)
+
    def getDomain(self):
      """
      returns the domain of the PDE
@@ -687,261 +594,6 @@ class LinearPDE(object):
      else:
          return escript.Solution(self.getDomain())
 
-
-   def getOperator(self):
-     """
-     provides access to the operator of the PDE
-
-     @return: the operator of the PDE
-     @rtype: L{Operator<escript.Operator>}
-     """
-     m=self.getSystem()[0]
-     if self.isUsingLumping():
-         return self.copyConstraint(1./m)
-     else:
-         return m
-
-   def getRightHandSide(self):
-     """
-     provides access to the right hand side of the PDE
-     @return: the right hand side of the PDE
-     @rtype: L{Data<escript.Data>}
-     """
-     r=self.getSystem()[1]
-     if self.isUsingLumping():
-         return self.copyConstraint(r)
-     else:
-         return r
-
-   def applyOperator(self,u=None):
-     """
-     applies the operator of the PDE to a given u or the solution of PDE if u is not present.
-
-     @param u: argument of the operator. It must be representable in C{elf.getFunctionSpaceForSolution()}. If u is not present or equals L{None}
-               the current solution is used.
-     @type u: L{Data<escript.Data>} or None
-     @return: image of u
-     @rtype: L{Data<escript.Data>}
-     """
-     if u==None:
-        return self.getOperator()*self.getSolution()
-     else:
-        return self.getOperator()*escript.Data(u,self.getFunctionSpaceForSolution())
-
-   def getResidual(self,u=None):
-     """
-     return the residual of u or the current solution if u is not present.
-
-     @param u: argument in the residual calculation. It must be representable in C{elf.getFunctionSpaceForSolution()}. If u is not present or equals L{None}
-               the current solution is used.
-     @type u: L{Data<escript.Data>} or None
-     @return: residual of u
-     @rtype: L{Data<escript.Data>}
-     """
-     return self.applyOperator(u)-self.getRightHandSide()
-
-   def checkSymmetry(self,verbose=True):
-      """
-      test the PDE for symmetry.
-
-      @param verbose: if equal to True or not present a report on coefficients which are breaking the symmetry is printed.
-      @type verbose: C{bool}
-      @return:  True if the PDE is symmetric.
-      @rtype: L{Data<escript.Data>}
-      @note: This is a very expensive operation. It should be used for degugging only! The symmetry flag is not altered.
-      """
-      verbose=verbose or self.__debug
-      out=True
-      if self.getNumSolutions()!=self.getNumEquations():
-         if verbose: print "non-symmetric PDE because of different number of equations and solutions"
-         out=False
-      else:
-         A=self.getCoefficientOfGeneralPDE("A")
-         if not A.isEmpty():
-            tol=util.Lsup(A)*self.SMALL_TOLERANCE
-            if self.getNumSolutions()>1:
-               for i in range(self.getNumEquations()):
-                  for j in range(self.getDim()):
-                     for k in range(self.getNumSolutions()):
-                        for l in range(self.getDim()):
-                            if util.Lsup(A[i,j,k,l]-A[k,l,i,j])>tol:
-                               if verbose: print "non-symmetric PDE because A[%d,%d,%d,%d]!=A[%d,%d,%d,%d]"%(i,j,k,l,k,l,i,j)
-                               out=False
-            else:
-               for j in range(self.getDim()):
-                  for l in range(self.getDim()):
-                     if util.Lsup(A[j,l]-A[l,j])>tol:
-                        if verbose: print "non-symmetric PDE because A[%d,%d]!=A[%d,%d]"%(j,l,l,j)
-                        out=False
-         B=self.getCoefficientOfGeneralPDE("B")
-         C=self.getCoefficientOfGeneralPDE("C")
-         if B.isEmpty() and not C.isEmpty():
-            if verbose: print "non-symmetric PDE because B is not present but C is"
-            out=False
-         elif not B.isEmpty() and C.isEmpty():
-            if verbose: print "non-symmetric PDE because C is not present but B is"
-            out=False
-         elif not B.isEmpty() and not C.isEmpty():
-            tol=(util.Lsup(B)+util.Lsup(C))*self.SMALL_TOLERANCE/2.
-            if self.getNumSolutions()>1:
-               for i in range(self.getNumEquations()):
-                   for j in range(self.getDim()):
-                      for k in range(self.getNumSolutions()):
-                         if util.Lsup(B[i,j,k]-C[k,i,j])>tol:
-                              if verbose: print "non-symmetric PDE because B[%d,%d,%d]!=C[%d,%d,%d]"%(i,j,k,k,i,j)
-                              out=False
-            else:
-               for j in range(self.getDim()):
-                  if util.Lsup(B[j]-C[j])>tol:
-                     if verbose: print "non-symmetric PDE because B[%d]!=C[%d]"%(j,j)
-                     out=False
-         if self.getNumSolutions()>1:
-           D=self.getCoefficientOfGeneralPDE("D")
-           if not D.isEmpty():
-             tol=util.Lsup(D)*self.SMALL_TOLERANCE
-             for i in range(self.getNumEquations()):
-                for k in range(self.getNumSolutions()):
-                  if util.Lsup(D[i,k]-D[k,i])>tol:
-                      if verbose: print "non-symmetric PDE because D[%d,%d]!=D[%d,%d]"%(i,k,k,i)
-                      out=False
-           d=self.getCoefficientOfGeneralPDE("d")
-           if not d.isEmpty():
-             tol=util.Lsup(d)*self.SMALL_TOLERANCE
-             for i in range(self.getNumEquations()):
-                for k in range(self.getNumSolutions()):
-                  if util.Lsup(d[i,k]-d[k,i])>tol:
-                      if verbose: print "non-symmetric PDE because d[%d,%d]!=d[%d,%d]"%(i,k,k,i)
-                      out=False
-           d_contact=self.getCoefficientOfGeneralPDE("d_contact")
-           if not d_contact.isEmpty():
-             tol=util.Lsup(d_contact)*self.SMALL_TOLERANCE
-             for i in range(self.getNumEquations()):
-                for k in range(self.getNumSolutions()):
-                  if util.Lsup(d_contact[i,k]-d_contact[k,i])>tol:
-                      if verbose: print "non-symmetric PDE because d_contact[%d,%d]!=d_contact[%d,%d]"%(i,k,k,i)
-                      out=False
-         # and now the reduced coefficients
-         A_reduced=self.getCoefficientOfGeneralPDE("A_reduced")
-         if not A_reduced.isEmpty():
-            tol=util.Lsup(A_reduced)*self.SMALL_TOLERANCE
-            if self.getNumSolutions()>1:
-               for i in range(self.getNumEquations()):
-                  for j in range(self.getDim()):
-                     for k in range(self.getNumSolutions()):
-                        for l in range(self.getDim()):
-                            if util.Lsup(A_reduced[i,j,k,l]-A_reduced[k,l,i,j])>tol:
-                               if verbose: print "non-symmetric PDE because A_reduced[%d,%d,%d,%d]!=A_reduced[%d,%d,%d,%d]"%(i,j,k,l,k,l,i,j)
-                               out=False
-            else:
-               for j in range(self.getDim()):
-                  for l in range(self.getDim()):
-                     if util.Lsup(A_reduced[j,l]-A_reduced[l,j])>tol:
-                        if verbose: print "non-symmetric PDE because A_reduced[%d,%d]!=A_reduced[%d,%d]"%(j,l,l,j)
-                        out=False
-         B_reduced=self.getCoefficientOfGeneralPDE("B_reduced")
-         C_reduced=self.getCoefficientOfGeneralPDE("C_reduced")
-         if B_reduced.isEmpty() and not C_reduced.isEmpty():
-            if verbose: print "non-symmetric PDE because B_reduced is not present but C_reduced is"
-            out=False
-         elif not B_reduced.isEmpty() and C_reduced.isEmpty():
-            if verbose: print "non-symmetric PDE because C_reduced is not present but B_reduced is"
-            out=False
-         elif not B_reduced.isEmpty() and not C_reduced.isEmpty():
-            tol=(util.Lsup(B_reduced)+util.Lsup(C_reduced))*self.SMALL_TOLERANCE/2.
-            if self.getNumSolutions()>1:
-               for i in range(self.getNumEquations()):
-                   for j in range(self.getDim()):
-                      for k in range(self.getNumSolutions()):
-                         if util.Lsup(B_reduced[i,j,k]-C_reduced[k,i,j])>tol:
-                              if verbose: print "non-symmetric PDE because B_reduced[%d,%d,%d]!=C_reduced[%d,%d,%d]"%(i,j,k,k,i,j)
-                              out=False
-            else:
-               for j in range(self.getDim()):
-                  if util.Lsup(B_reduced[j]-C_reduced[j])>tol:
-                     if verbose: print "non-symmetric PDE because B_reduced[%d]!=C_reduced[%d]"%(j,j)
-                     out=False
-         if self.getNumSolutions()>1:
-           D_reduced=self.getCoefficientOfGeneralPDE("D_reduced")
-           if not D_reduced.isEmpty():
-             tol=util.Lsup(D_reduced)*self.SMALL_TOLERANCE
-             for i in range(self.getNumEquations()):
-                for k in range(self.getNumSolutions()):
-                  if util.Lsup(D_reduced[i,k]-D_reduced[k,i])>tol:
-                      if verbose: print "non-symmetric PDE because D_reduced[%d,%d]!=D_reduced[%d,%d]"%(i,k,k,i)
-                      out=False
-           d_reduced=self.getCoefficientOfGeneralPDE("d_reduced")
-           if not d_reduced.isEmpty():
-             tol=util.Lsup(d_reduced)*self.SMALL_TOLERANCE
-             for i in range(self.getNumEquations()):
-                for k in range(self.getNumSolutions()):
-                  if util.Lsup(d_reduced[i,k]-d_reduced[k,i])>tol:
-                      if verbose: print "non-symmetric PDE because d_reduced[%d,%d]!=d_reduced[%d,%d]"%(i,k,k,i)
-                      out=False
-           d_contact_reduced=self.getCoefficientOfGeneralPDE("d_contact_reduced")
-           if not d_contact_reduced.isEmpty():
-             tol=util.Lsup(d_contact_reduced)*self.SMALL_TOLERANCE
-             for i in range(self.getNumEquations()):
-                for k in range(self.getNumSolutions()):
-                  if util.Lsup(d_contact_reduced[i,k]-d_contact_reduced[k,i])>tol:
-                      if verbose: print "non-symmetric PDE because d_contact_reduced[%d,%d]!=d_contact_reduced[%d,%d]"%(i,k,k,i)
-                      out=False
-      return out
-
-   def getSolution(self,**options):
-       """
-       returns the solution of the PDE. If the solution is not valid the PDE is solved.
-
-       @return: the solution
-       @rtype: L{Data<escript.Data>}
-       @param options: solver options
-       @keyword verbose: True to get some information during PDE solution
-       @type verbose: C{bool}
-       @keyword reordering: reordering scheme to be used during elimination. Allowed values are
-                            L{NO_REORDERING}, L{MINIMUM_FILL_IN}, L{NESTED_DISSECTION}
-       @keyword iter_max: maximum number of iteration steps allowed.
-       @keyword drop_tolerance: threshold for drupping in L{ILUT}
-       @keyword drop_storage: maximum of allowed memory in L{ILUT}
-       @keyword truncation: maximum number of residuals in L{GMRES}
-       @keyword restart: restart cycle length in L{GMRES}
-       """
-       if not self.__solution_isValid:
-          mat,f=self.getSystem()
-          if self.isUsingLumping():
-             self.__solution=self.copyConstraint(f*mat)
-          else:
-             options[self.__TOLERANCE_KEY]=self.getTolerance()
-             options[self.__METHOD_KEY]=self.getSolverMethod()[0]
-             options[self.__PRECONDITIONER_KEY]=self.getSolverMethod()[1]
-             options[self.__PACKAGE_KEY]=self.getSolverPackage()
-             options[self.__SYMMETRY_KEY]=self.isSymmetric()
-             self.trace("PDE is resolved.")
-             self.trace("solver options: %s"%str(options))
-             self.__solution=mat.solve(f,options)
-          self.__solution_isValid=True
-       return self.__solution
-
-   def getFlux(self,u=None):
-     """
-     returns the flux M{J} for a given M{u}
-
-     M{J[i,j]=(A[i,j,k,l]+A_reduced[A[i,j,k,l]]*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])u[k]-X[i,j]-X_reduced[i,j]}
-
-     or
-
-     M{J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[l]+(B[j]+B_reduced[j])u-X[j]-X_reduced[j]}
-
-     @param u: argument in the flux. If u is not present or equals L{None} the current solution is used.
-     @type u: L{Data<escript.Data>} or None
-     @return: flux
-     @rtype: L{Data<escript.Data>}
-     """
-     if u==None: u=self.getSolution()
-     return util.tensormult(self.getCoefficientOfGeneralPDE("A"),util.grad(u,Funtion(self.getDomain))) \
-           +util.matrixmult(self.getCoefficientOfGeneralPDE("B"),u) \
-           -util.self.getCoefficientOfGeneralPDE("X") \
-           +util.tensormult(self.getCoefficientOfGeneralPDE("A_reduced"),util.grad(u,ReducedFuntion(self.getDomain))) \
-           +util.matrixmult(self.getCoefficientOfGeneralPDE("B_reduced"),u) \
-           -util.self.getCoefficientOfGeneralPDE("X_reduced")
    # =============================================================================
    #   solver settings:
    # =============================================================================
@@ -952,7 +604,9 @@ class LinearPDE(object):
        @param solver: sets a new solver method.
        @type solver: one of L{DEFAULT}, L{ITERATIVE} L{DIRECT}, L{CHOLEVSKY}, L{PCG}, L{CR}, L{CGS}, L{BICGSTAB}, L{SSOR}, L{GMRES}, L{TFQMR}, L{MINRES}, L{PRES20}, L{LUMPING}, L{AMG}
        @param preconditioner: sets a new solver method.
-       @type preconditioner: one of L{DEFAULT}, L{JACOBI} L{ILU0}, L{ILUT},L{SSOR}, L{RILU}
+       @type preconditioner: one of L{DEFAULT}, L{JACOBI} L{ILU0}, L{ILUT},L{SSOR}, L{RILU},  L{GS}
+
+       @note: the solver method choosen may not be available by the selected package.
        """
        if solver==None: solver=self.__solver_method
        if preconditioner==None: preconditioner=self.__preconditioner
@@ -961,10 +615,10 @@ class LinearPDE(object):
        if not (solver,preconditioner)==self.getSolverMethod():
            self.__solver_method=solver
            self.__preconditioner=preconditioner
-           self.__checkMatrixType()
+           self.updateSystemType()
            self.trace("New solver is %s"%self.getSolverMethodName())
 
-   def getSolverMethodName(self):
+   def getSolverMethodName(self): 
        """
        returns the name of the solver currently used
 
@@ -997,6 +651,7 @@ class LinearPDE(object):
        elif m[1]==self.SSOR: method+= "+SSOR"
        elif m[1]==self.AMG: method+= "+AMG"
        elif m[1]==self.RILU: method+= "+RILU"
+       elif m[1]==self.GS: method+= "+GS"
        if p==self.DEFAULT: package="DEFAULT"
        elif p==self.PASO: package= "PASO"
        elif p==self.MKL: package= "MKL"
@@ -1006,17 +661,16 @@ class LinearPDE(object):
        else : method="unknown"
        return "%s solver of %s package"%(method,package)
 
-
-   def getSolverMethod(self):
+   def getSolverMethod(self): 
        """
-       returns the solver method
+       returns the solver method and preconditioner used
 
        @return: the solver method currently be used.
-       @rtype: C{int}
+       @rtype: C{tuple} of C{int}
        """
        return self.__solver_method,self.__preconditioner
 
-   def setSolverPackage(self,package=None):
+   def setSolverPackage(self,package=None): 
        """
        sets a new solver package
 
@@ -1026,10 +680,10 @@ class LinearPDE(object):
        if package==None: package=self.DEFAULT
        if not package==self.getSolverPackage():
            self.__solver_package=package
-           self.__checkMatrixType()
+           self.updateSystemType()
            self.trace("New solver is %s"%self.getSolverMethodName())
 
-   def getSolverPackage(self):
+   def getSolverPackage(self): 
        """
        returns the package of the solver
 
@@ -1040,20 +694,16 @@ class LinearPDE(object):
 
    def isUsingLumping(self):
       """
-      checks if matrix lumping is used a solver method
+      checks if matrix lumping is used as a solver method
 
       @return: True is lumping is currently used a solver method.
       @rtype: C{bool}
       """
       return self.getSolverMethod()[0]==self.LUMPING
 
-   def setTolerance(self,tol=1.e-8):
+   def setTolerance(self,tol=1.e-8): 
        """
-       resets the tolerance for the solver method to tol where for an appropriate norm M{|.|}
-
-       M{|L{getResidual}()|<tol*|L{getRightHandSide}()|}
-
-       defines the stopping criterion.
+       resets the tolerance for the solver method to tol.
 
        @param tol: new tolerance for the solver. If the tol is lower then the current tolerence
                    the system will be resolved.
@@ -1062,12 +712,12 @@ class LinearPDE(object):
        """
        if not tol>0:
            raise ValueError,"Tolerance as to be positive"
-       if tol<self.getTolerance(): self.__invalidateSolution()
+       if tol<self.getTolerance(): self.invalidateSolution()
        self.trace("New tolerance %e"%tol)
        self.__tolerance=tol
        return
 
-   def getTolerance(self):
+   def getTolerance(self): 
        """
        returns the tolerance set for the solution
 
@@ -1079,7 +729,7 @@ class LinearPDE(object):
    # =============================================================================
    #    symmetry  flag:
    # =============================================================================
-   def isSymmetric(self):
+   def isSymmetric(self): 
       """
       checks if symmetry is indicated.
 
@@ -1088,25 +738,25 @@ class LinearPDE(object):
       """
       return self.__sym
 
-   def setSymmetryOn(self):
+   def setSymmetryOn(self): 
       """
       sets the symmetry flag.
       """
       if not self.isSymmetric():
          self.trace("PDE is set to be symmetric")
          self.__sym=True
-         self.__checkMatrixType()
+         self.updateSystemType()
 
-   def setSymmetryOff(self):
+   def setSymmetryOff(self): 
       """
       removes the symmetry flag.
       """
       if self.isSymmetric():
          self.trace("PDE is set to be unsymmetric")
          self.__sym=False
-         self.__checkMatrixType()
+         self.updateSystemType()
 
-   def setSymmetryTo(self,flag=False):
+   def setSymmetryTo(self,flag=False): 
       """
       sets the symmetry flag to flag
 
@@ -1121,7 +771,7 @@ class LinearPDE(object):
    # =============================================================================
    # function space handling for the equation as well as the solution
    # =============================================================================
-   def setReducedOrderOn(self):
+   def setReducedOrderOn(self): 
      """
      switches on reduced order for solution and equation representation
 
@@ -1130,7 +780,7 @@ class LinearPDE(object):
      self.setReducedOrderForSolutionOn()
      self.setReducedOrderForEquationOn()
 
-   def setReducedOrderOff(self):
+   def setReducedOrderOff(self): 
      """
      switches off reduced order for solution and equation representation
 
@@ -1139,7 +789,7 @@ class LinearPDE(object):
      self.setReducedOrderForSolutionOff()
      self.setReducedOrderForEquationOff()
 
-   def setReducedOrderTo(self,flag=False):
+   def setReducedOrderTo(self,flag=False): 
      """
      sets order reduction for both solution and equation representation according to flag.
      @param flag: if flag is True, the order reduction is switched on for both  solution and equation representation, otherwise or
@@ -1151,7 +801,7 @@ class LinearPDE(object):
      self.setReducedOrderForEquationTo(flag)
 
 
-   def setReducedOrderForSolutionOn(self):
+   def setReducedOrderForSolutionOn(self): 
      """
      switches on reduced order for solution representation
 
@@ -1162,9 +812,9 @@ class LinearPDE(object):
               raise RuntimeError,"order cannot be altered after coefficients have been defined."
          self.trace("Reduced order is used to solution representation.")
          self.__reduce_solution_order=True
-         self.__resetSystem()
+         self.initializeSystem()
 
-   def setReducedOrderForSolutionOff(self):
+   def setReducedOrderForSolutionOff(self): 
      """
      switches off reduced order for solution representation
 
@@ -1175,9 +825,9 @@ class LinearPDE(object):
               raise RuntimeError,"order cannot be altered after coefficients have been defined."
          self.trace("Full order is used to interpolate solution.")
          self.__reduce_solution_order=False
-         self.__resetSystem()
+         self.initializeSystem()
 
-   def setReducedOrderForSolutionTo(self,flag=False):
+   def setReducedOrderForSolutionTo(self,flag=False): 
      """
      sets order for test functions according to flag
 
@@ -1191,7 +841,7 @@ class LinearPDE(object):
      else:
         self.setReducedOrderForSolutionOff()
 
-   def setReducedOrderForEquationOn(self):
+   def setReducedOrderForEquationOn(self): 
      """
      switches on reduced order for equation representation
 
@@ -1202,9 +852,9 @@ class LinearPDE(object):
               raise RuntimeError,"order cannot be altered after coefficients have been defined."
          self.trace("Reduced order is used for test functions.")
          self.__reduce_equation_order=True
-         self.__resetSystem()
+         self.initializeSystem()
 
-   def setReducedOrderForEquationOff(self):
+   def setReducedOrderForEquationOff(self): 
      """
      switches off reduced order for equation representation
 
@@ -1215,9 +865,9 @@ class LinearPDE(object):
               raise RuntimeError,"order cannot be altered after coefficients have been defined."
          self.trace("Full order is used for test functions.")
          self.__reduce_equation_order=False
-         self.__resetSystem()
+         self.initializeSystem()
 
-   def setReducedOrderForEquationTo(self,flag=False):
+   def setReducedOrderForEquationTo(self,flag=False): 
      """
      sets order for test functions according to flag
 
@@ -1231,242 +881,124 @@ class LinearPDE(object):
      else:
         self.setReducedOrderForEquationOff()
 
-   # =============================================================================
-   # private method:
-   # =============================================================================
-   def __checkMatrixType(self):
+   def updateSystemType(self): 
      """
-     reassess the matrix type and, if a new matrix is needed, resets the system.
+     reasses the system type and, if a new matrix is needed, resets the system.
      """
-     new_matrix_type=self.getDomain().getSystemMatrixTypeId(self.getSolverMethod()[0],self.getSolverPackage(),self.isSymmetric())
-     if not new_matrix_type==self.__matrix_type:
-         self.trace("Matrix type is now %d."%new_matrix_type)
-         self.__matrix_type=new_matrix_type
-         self.__resetSystem()
-   #
-   #   rebuild switches :
-   #
-   def __invalidateSolution(self):
-       """
-       indicates the PDE has to be resolved if the solution is requested
-       """
-       if self.__solution_isValid: self.trace("PDE has to be resolved.")
-       self.__solution_isValid=False
+     new_system_type=self.getRequiredSystemType()
+     if not new_system_type==self.__system_type:
+         self.trace("Matrix type is now %d."%new_system_type)
+         self.__system_type=new_system_type
+         self.initializeSystem()
+   def getSystemType(self):
+      """
+      return the current system type
+      """
+      return self.__system_type
 
-   def __invalidateOperator(self):
-       """
-       indicates the operator has to be rebuilt next time it is used
-       """
-       if self.__operator_is_Valid: self.trace("Operator has to be rebuilt.")
-       self.__invalidateSolution()
-       self.__operator_is_Valid=False
+   def checkSymmetricTensor(self,name,verbose=True):
+      """
+      tests a coefficient for symmetry
 
-   def __invalidateRightHandSide(self):
-       """
-       indicates the right hand side has to be rebuild next time it is used
-       """
-       if self.__righthandside_isValid: self.trace("Right hand side has to be rebuilt.")
-       self.__invalidateSolution()
-       self.__righthandside_isValid=False
+      @param name: name of the coefficient
+      @type name: C{str}
+      @param verbose: if equal to True or not present a report on coefficients which are breaking the symmetry is printed.
+      @type verbose: C{bool}
+      @return:  True if coefficient C{name} is symmetric.
+      @rtype: C{bool}
+      """
+      A=self.getCoefficient(name)
+      verbose=verbose or self.__debug
+      out=True
+      if not A.isEmpty():
+         tol=util.Lsup(A)*self.SMALL_TOLERANCE
+         s=A.getShape()
+         if A.getRank() == 4:
+            if s[0]==s[2] and s[1] == s[3]:
+               for i in range(s[0]):
+                  for j in range(s[1]):
+                     for k in range(s[2]):
+                        for l in range(s[3]):
+                            if util.Lsup(A[i,j,k,l]-A[k,l,i,j])>tol:
+                               if verbose: print "non-symmetric problem as %s[%d,%d,%d,%d]!=%s[%d,%d,%d,%d]"%(name,i,j,k,l,name,k,l,i,j)
+                               out=False
+            else:
+                 if verbose: print "non-symmetric problem because of inappropriate shape %s of coefficient %s."%(s,name)
+                 out=False
+         elif A.getRank() == 2:
+            if s[0]==s[1]:
+               for j in range(s[0]):
+                  for l in range(s[1]):
+                     if util.Lsup(A[j,l]-A[l,j])>tol:
+                        if verbose: print "non-symmetric problem because %s[%d,%d]!=%s[%d,%d]"%(name,j,l,name,l,j)
+                        out=False
+            else:
+                 if verbose: print "non-symmetric problem because of inappropriate shape %s of coefficient %s."%(s,name)
+                 out=False
+         elif A.getRank() == 0:
+            pass
+         else:
+             raise ValueError,"Cannot check rank %s of %s."%(A.getRank(),name)
+      return out
 
-   def __invalidateSystem(self):
-       """
-       annonced that everthing has to be rebuild:
-       """
-       if self.__righthandside_isValid: self.trace("System has to be rebuilt.")
-       self.__invalidateSolution()
-       self.__invalidateOperator()
-       self.__invalidateRightHandSide()
+   def checkReciprocalSymmetry(self,name0,name1,verbose=True):
+      """
+      test two coefficients for resciprocal symmetry
 
-   def __resetSystem(self):
-       """
-       annonced that everthing has to be rebuild:
-       """
-       self.trace("New System is built from scratch.")
-       self.__operator=escript.Operator()
-       self.__operator_is_Valid=False
-       self.__righthandside=escript.Data()
-       self.__righthandside_isValid=False
-       self.__solution=escript.Data()
-       self.__solution_isValid=False
-   #
-   #    system initialization:
-   #
-   def __getNewOperator(self):
-       """
-       returns an instance of a new operator
-       """
-       self.trace("New operator is allocated.")
-       return self.getDomain().newOperator( \
-                           self.getNumEquations(), \
-                           self.getFunctionSpaceForEquation(), \
-                           self.getNumSolutions(), \
-                           self.getFunctionSpaceForSolution(), \
-                           self.__matrix_type)
-
-   def __getNewRightHandSide(self):
-       """
-       returns an instance of a new right hand side
-       """
-       self.trace("New right hand side is allocated.")
-       if self.getNumEquations()>1:
-           return escript.Data(0.,(self.getNumEquations(),),self.getFunctionSpaceForEquation(),True)
-       else:
-           return escript.Data(0.,(),self.getFunctionSpaceForEquation(),True)
-
-   def __getNewSolution(self):
-       """
-       returns an instance of a new solution
-       """
-       self.trace("New solution is allocated.")
-       if self.getNumSolutions()>1:
-           return escript.Data(0.,(self.getNumSolutions(),),self.getFunctionSpaceForSolution(),True)
-       else:
-           return escript.Data(0.,(),self.getFunctionSpaceForSolution(),True)
-
-   def __makeFreshSolution(self):
-       """
-       makes sure that the solution is instantiated and returns it initialized by zeros
-       """
-       if self.__solution.isEmpty():
-           self.__solution=self.__getNewSolution()
-       else:
-           self.__solution*=0
-           self.trace("Solution is reset to zero.")
-       return self.__solution
-
-   def __makeFreshRightHandSide(self):
-       """
-       makes sure that the right hand side is instantiated and returns it initialized by zeros
-       """
-       if self.__righthandside.isEmpty():
-           self.__righthandside=self.__getNewRightHandSide()
-       else:
-           self.__righthandside.setToZero()
-           self.trace("Right hand side is reset to zero.")
-       return self.__righthandside
-
-   def __makeFreshOperator(self):
-       """
-       makes sure that the operator is instantiated and returns it initialized by zeros
-       """
-       if self.__operator.isEmpty():
-           self.__operator=self.__getNewOperator()
-       else:
-           self.__operator.resetValues()
-           self.trace("Operator reset to zero")
-       return self.__operator
-
-   def __applyConstraint(self):
-       """
-       applies the constraints defined by q and r to the system
-       """
-       if not self.isUsingLumping():
-          q=self.getCoefficientOfGeneralPDE("q")
-          r=self.getCoefficientOfGeneralPDE("r")
-          if not q.isEmpty() and not self.__operator.isEmpty():
-             # q is the row and column mask to indicate where constraints are set:
-             row_q=escript.Data(q,self.getFunctionSpaceForEquation())
-             col_q=escript.Data(q,self.getFunctionSpaceForSolution())
-             u=self.__getNewSolution()
-             if r.isEmpty():
-                r_s=self.__getNewSolution()
+      @param name0: name of the first coefficient
+      @type name: C{str}
+      @param name1: name of the second coefficient
+      @type name: C{str}
+      @param verbose: if equal to True or not present a report on coefficients which are breaking the symmetry is printed.
+      @type verbose: C{bool}
+      @return:  True if coefficients C{name0} and C{name1}  are resciprocally symmetric.
+      @rtype: C{bool}
+      """
+      B=self.getCoefficient(name0)
+      C=self.getCoefficient(name1)
+      verbose=verbose or self.__debug
+      out=True
+      if B.isEmpty() and not C.isEmpty():
+         if verbose: print "non-symmetric problem because %s is not present but %s is"%(name0,name1)
+         out=False
+      elif not B.isEmpty() and C.isEmpty():
+         if verbose: print "non-symmetric problem because %s is not present but %s is"%(name0,name1)
+         out=False
+      elif not B.isEmpty() and not C.isEmpty():
+         sB=B.getShape()
+         sC=C.getShape()
+         tol=(util.Lsup(B)+util.Lsup(C))*self.SMALL_TOLERANCE/2.
+         if len(sB) != len(sC):
+             if verbose: print "non-symmetric problem because ranks of %s (=%s) and %s (=%s) are different."%(name0,len(sB),name1,len(sC))
+             out=False
+         else:
+             if len(sB)==0:
+               if util.Lsup(B-C)>tol:
+                  if verbose: print "non-symmetric problem because %s!=%s"%(name0,name1)
+                  out=False
+             elif len(sB)==1:
+               if sB[0]==sC[0]:
+                  for j in range(sB[0]):
+                     if util.Lsup(B[j]-C[j])>tol:
+                        if verbose: print "non-symmetric PDE because %s[%d]!=%s[%d]"%(name0,j,name1,j)
+                        out=False
+               else:
+                 if verbose: print "non-symmetric problem because of inappropriate shapes %s and %s of coefficients %s and %s, respectively."%(sB,sC,name0,name1)
+             elif len(sB)==3:
+               if sB[0]==sC[1] and sB[1]==sC[2] and sB[2]==sC[0]:
+                   for i in range(sB[0]):
+                      for j in range(sB[1]):
+                         for k in range(sB[2]):
+                            if util.Lsup(B[i,j,k]-C[k,i,j])>tol:
+                                 if verbose: print "non-symmetric problem because %s[%d,%d,%d]!=%s[%d,%d,%d]"%(name2,i,j,k,name1,k,i,j)
+                                 out=False
+               else:
+                 if verbose: print "non-symmetric problem because of inappropriate shapes %s and %s of coefficients %s and %s, respectively."%(sB,sC,name0,name1)
              else:
-                r_s=escript.Data(r,self.getFunctionSpaceForSolution())
-             u.copyWithMask(r_s,col_q)
-             if not self.__righthandside.isEmpty():
-                self.__righthandside-=self.__operator*u
-                self.__righthandside=self.copyConstraint(self.__righthandside)
-             self.__operator.nullifyRowsAndCols(row_q,col_q,1.)
-   # =============================================================================
-   # function giving access to coefficients of the general PDE:
-   # =============================================================================
-   def getCoefficientOfGeneralPDE(self,name):
-     """
-     return the value of the coefficient name of the general PDE.
+                 raise ValueError,"Cannot check rank %s of %s and %s."%(len(sB),name0,name1)
+      return out
 
-     @note: This method is called by the assembling routine it can be overwritten
-           to map coefficients of a particular PDE to the general PDE.
-     @param name: name of the coefficient requested.
-     @type name: C{string}
-     @return: the value of the coefficient  name
-     @rtype: L{Data<escript.Data>}
-     @raise IllegalCoefficient: if name is not one of coefficients
-                  M{A}, M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, 
-                  M{A_reduced}, M{B_reduced}, M{C_reduced}, M{D_reduced}, M{X_reduced}, M{Y_reduced}, M{d_reduced}, M{y_reduced}, M{d_contact_reduced}, M{y_contact_reduced}, M{r} or M{q}.
-     """
-     if self.hasCoefficientOfGeneralPDE(name):
-        return self.getCoefficient(name)
-     else:
-        raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
-
-   def hasCoefficientOfGeneralPDE(self,name):
-     """
-     checks if name is a the name of a coefficient of the general PDE.
-
-     @param name: name of the coefficient enquired.
-     @type name: C{string}
-     @return: True if name is the name of a coefficient of the general PDE. Otherwise False.
-     @rtype: C{bool}
-
-     """
-     return self.__COEFFICIENTS_OF_GENEARL_PDE.has_key(name)
-
-   def createCoefficientOfGeneralPDE(self,name):
-     """
-     returns a new instance of a coefficient for coefficient name of the general PDE
-
-     @param name: name of the coefficient requested.
-     @type name: C{string}
-     @return: a coefficient name initialized to 0.
-     @rtype: L{Data<escript.Data>}
-     @raise IllegalCoefficient: if name is not one of coefficients
-                  M{A}, M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, 
-                  M{A_reduced}, M{B_reduced}, M{C_reduced}, M{D_reduced}, M{X_reduced}, M{Y_reduced}, M{d_reduced}, M{y_reduced}, M{d_contact_reduced}, M{y_contact_reduced}, M{r} or M{q}.
-     """
-     if self.hasCoefficientOfGeneralPDE(name):
-        return escript.Data(0,self.getShapeOfCoefficientOfGeneralPDE(name),self.getFunctionSpaceForCoefficientOfGeneralPDE(name))
-     else:
-        raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
-
-   def getFunctionSpaceForCoefficientOfGeneralPDE(self,name):
-     """
-     return the L{FunctionSpace<escript.FunctionSpace>} to be used for coefficient name of the general PDE
-
-     @param name: name of the coefficient enquired.
-     @type name: C{string}
-     @return: the function space to be used for coefficient name
-     @rtype: L{FunctionSpace<escript.FunctionSpace>}
-     @raise IllegalCoefficient: if name is not one of coefficients
-                  M{A}, M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, 
-                  M{A_reduced}, M{B_reduced}, M{C_reduced}, M{D_reduced}, M{X_reduced}, M{Y_reduced}, M{d_reduced}, M{y_reduced}, M{d_contact_reduced}, M{y_contact_reduced}, M{r} or M{q}.
-     """
-     if self.hasCoefficientOfGeneralPDE(name):
-        return self.__COEFFICIENTS_OF_GENEARL_PDE[name].getFunctionSpace(self.getDomain())
-     else:
-        raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
-
-   def getShapeOfCoefficientOfGeneralPDE(self,name):
-     """
-     return the shape of the coefficient name of the general PDE
-
-     @param name: name of the coefficient enquired.
-     @type name: C{string}
-     @return: the shape of the coefficient name
-     @rtype: C{tuple} of C{int}
-     @raise IllegalCoefficient: if name is not one of coefficients
-                  M{A}, M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, 
-                  M{A_reduced}, M{B_reduced}, M{C_reduced}, M{D_reduced}, M{X_reduced}, M{Y_reduced}, M{d_reduced}, M{y_reduced}, M{d_contact_reduced}, M{y_contact_reduced}, M{r} or M{q}.
-     """
-     if self.hasCoefficientOfGeneralPDE(name):
-        return self.__COEFFICIENTS_OF_GENEARL_PDE[name].getShape(self.getDomain(),self.getNumEquations(),self.getNumSolutions())
-     else:
-        raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
-
-   # =============================================================================
-   # functions giving access to coefficients of a particular PDE implementation:
-   # =============================================================================
-   def getCoefficient(self,name):
+   def getCoefficient(self,name): 
      """
      returns the value of the coefficient name
 
@@ -1477,11 +1009,11 @@ class LinearPDE(object):
      @raise IllegalCoefficient: if name is not a coefficient of the PDE.
      """
      if self.hasCoefficient(name):
-         return self.COEFFICIENTS[name].getValue()
+         return self.__COEFFICIENTS[name].getValue()
      else:
         raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
 
-   def hasCoefficient(self,name):
+   def hasCoefficient(self,name): 
      """
      return True if name is the name of a coefficient
 
@@ -1490,9 +1022,9 @@ class LinearPDE(object):
      @return: True if name is the name of a coefficient of the general PDE. Otherwise False.
      @rtype: C{bool}
      """
-     return self.COEFFICIENTS.has_key(name)
+     return self.__COEFFICIENTS.has_key(name)
 
-   def createCoefficient(self, name):
+   def createCoefficient(self, name): 
      """
      create a L{Data<escript.Data>} object corresponding to coefficient name
 
@@ -1505,7 +1037,7 @@ class LinearPDE(object):
      else:
         raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
 
-   def getFunctionSpaceForCoefficient(self,name):
+   def getFunctionSpaceForCoefficient(self,name): 
      """
      return the L{FunctionSpace<escript.FunctionSpace>} to be used for coefficient name
 
@@ -1516,10 +1048,11 @@ class LinearPDE(object):
      @raise IllegalCoefficient: if name is not a coefficient of the PDE.
      """
      if self.hasCoefficient(name):
-        return self.COEFFICIENTS[name].getFunctionSpace(self.getDomain())
+        return self.__COEFFICIENTS[name].getFunctionSpace(self.getDomain())
      else:
         raise ValueError,"unknown coefficient %s requested"%name
-   def getShapeOfCoefficient(self,name):
+
+   def getShapeOfCoefficient(self,name): 
      """
      return the shape of the coefficient name
 
@@ -1530,18 +1063,18 @@ class LinearPDE(object):
      @raise IllegalCoefficient: if name is not a coefficient of the PDE.
      """
      if self.hasCoefficient(name):
-        return self.COEFFICIENTS[name].getShape(self.getDomain(),self.getNumEquations(),self.getNumSolutions())
+        return self.__COEFFICIENTS[name].getShape(self.getDomain(),self.getNumEquations(),self.getNumSolutions())
      else:
         raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
 
-   def resetCoefficients(self):
+   def resetAllCoefficients(self): 
      """
      resets all coefficients to there default values.
      """
-     for i in self.COEFFICIENTS.iterkeys():
-         self.COEFFICIENTS[i].resetValue()
+     for i in self.__COEFFICIENTS.iterkeys():
+         self.__COEFFICIENTS[i].resetValue()
 
-   def alteredCoefficient(self,name):
+   def alteredCoefficient(self,name): 
      """
      announce that coefficient name has been changed
 
@@ -1553,33 +1086,733 @@ class LinearPDE(object):
      if self.hasCoefficient(name):
         self.trace("Coefficient %s has been altered."%name)
         if not ((name=="q" or name=="r") and self.isUsingLumping()):
-           if self.COEFFICIENTS[name].isAlteringOperator(): self.__invalidateOperator()
-           if self.COEFFICIENTS[name].isAlteringRightHandSide(): self.__invalidateRightHandSide()
+           if self.__COEFFICIENTS[name].isAlteringOperator(): self.invalidateOperator()
+           if self.__COEFFICIENTS[name].isAlteringRightHandSide(): self.invalidateRightHandSide()
      else:
         raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
 
-   def copyConstraint(self,u):
-      """
-      copies the constraint into u and returns u.
+   def validSolution(self): 
+       """
+       markes the solution as valid
+       """
+       self.__is_solution_valid=True
 
-      @param u: a function of rank 0 is a single PDE is solved and of shape (numSolution,) for a system of PDEs
-      @type u: L{Data<escript.Data>}
-      @return: the input u modified by the constraints.
-      @rtype: L{Data<escript.Data>}
-      @warning: u is altered if it has the appropriate L{FunctionSpace<escript.FunctionSpace>}
+   def invalidateSolution(self): 
+       """
+       indicates the PDE has to be resolved if the solution is requested
+       """
+       self.trace("System will be resolved.")
+       self.__is_solution_valid=False
+
+   def isSolutionValid(self):
+       """
+       returns True is the solution is still valid.
+       """
+       return self.__is_solution_valid
+
+   def validOperator(self):
+       """
+       markes the  operator as valid
+       """
+       self.__is_operator_valid=True
+
+   def invalidateOperator(self): 
+       """
+       indicates the operator has to be rebuilt next time it is used
+       """
+       self.trace("Operator will be rebuilt.")
+       self.invalidateSolution()
+       self.__is_operator_valid=False
+
+   def isOperatorValid(self):
+       """
+       returns True is the operator is still valid.
+       """
+       return self.__is_operator_valid
+
+   def validRightHandSide(self):
+       """
+       markes the right hand side as valid
+       """
+       self.__is_RHS_valid=True
+
+   def invalidateRightHandSide(self): 
+       """
+       indicates the right hand side has to be rebuild next time it is used
+       """
+       if self.isRightHandSideValid(): self.trace("Right hand side has to be rebuilt.")
+       self.invalidateSolution()
+       self.__is_RHS_valid=False
+
+   def isRightHandSideValid(self):
+       """
+       returns True is the operator is still valid.
+       """
+       return self.__is_RHS_valid
+
+   def invalidateSystem(self): 
+       """
+       annonced that everthing has to be rebuild:
+       """
+       if self.isRightHandSideValid(): self.trace("System has to be rebuilt.")
+       self.invalidateSolution()
+       self.invalidateOperator()
+       self.invalidateRightHandSide()
+
+   def isSystemValid(self):
+       """
+       returns true if the system (including solution) is still vaild:
+       """
+       return self.isSolutionValid() and self.isOperatorValid() and self.isRightHandSideValid()
+
+   def initializeSystem(self): 
+       """
+       resets the system 
+       """
+       self.trace("New System has been created.")
+       self.__operator=escript.Operator()
+       self.__righthandside=escript.Data()
+       self.__solution=escript.Data()
+       self.invalidateSystem()
+
+   def getOperator(self): 
+     """
+     returns the operator of the linear problem
+
+     @return: the operator of the problem
+     """
+     return self.getSystem()[0]
+
+   def getRightHandSide(self): 
+     """
+     returns the right hand side of the linear problem
+
+     @return: the right hand side of the problem
+     @rtype: L{Data<escript.Data>}
+     """
+     return self.getSystem()[1]
+
+   def createRightHandSide(self): 
+       """
+       returns an instance of a new right hand side
+       """
+       self.trace("New right hand side is allocated.")
+       if self.getNumEquations()>1:
+           return escript.Data(0.,(self.getNumEquations(),),self.getFunctionSpaceForEquation(),True)
+       else:
+           return escript.Data(0.,(),self.getFunctionSpaceForEquation(),True)
+
+   def createSolution(self): 
+       """
+       returns an instance of a new solution
+       """
+       self.trace("New solution is allocated.")
+       if self.getNumSolutions()>1:
+           return escript.Data(0.,(self.getNumSolutions(),),self.getFunctionSpaceForSolution(),True)
+       else:
+           return escript.Data(0.,(),self.getFunctionSpaceForSolution(),True)
+
+   def resetSolution(self): 
+       """
+       sets the solution to zero
+       """
+       if self.__solution.isEmpty():
+           self.__solution=self.createSolution()
+       else:
+           self.__solution.setToZero()
+           self.trace("Solution is reset to zero.")
+   def setSolution(self,u):
+       """
+       sets the solution assuming that makes the sytem valid.
+       """
+       self.__solution=u
+       self.validSolution()
+
+   def getCurrentSolution(self):
+       """
+       returns the solution in its current state
+       """
+       if self.__solution.isEmpty(): self.__solution=self.createSolution()
+       return self.__solution
+
+   def resetRightHandSide(self): 
+       """
+       sets the right hand side to zero
+       """
+       if self.__righthandside.isEmpty():
+           self.__righthandside=self.createRightHandSide()
+       else:
+           self.__righthandside.setToZero()
+           self.trace("Right hand side is reset to zero.")
+
+   def getCurrentRightHandSide(self):
+       """
+       returns the right hand side  in its current state
+       """
+       if self.__righthandside.isEmpty(): self.__righthandside=self.createRightHandSide()
+       return self.__righthandside
+         
+
+   def resetOperator(self): 
+       """
+       makes sure that the operator is instantiated and returns it initialized by zeros
+       """
+       if self.__operator.isEmpty():
+           if self.isUsingLumping():
+               self.__operator=self.createSolution()
+           else:
+               self.__operator=self.createOperator()
+       else:
+           if self.isUsingLumping():
+               self.__operator.setToZero()
+           else:
+               self.__operator.resetValues()
+           self.trace("Operator reset to zero")
+
+   def getCurrentOperator(self):
+       """
+       returns the operator in its current state
+       """
+       if self.__operator.isEmpty(): self.resetOperator()
+       return self.__operator
+
+   def setValue(self,**coefficients): 
       """
-      q=self.getCoefficientOfGeneralPDE("q")
-      r=self.getCoefficientOfGeneralPDE("r")
+      sets new values to coefficients
+
+      @raise IllegalCoefficient: if an unknown coefficient keyword is used.
+      """
+      # check if the coefficients are  legal:
+      for i in coefficients.iterkeys():
+         if not self.hasCoefficient(i):
+            raise IllegalCoefficient,"Attempt to set unknown coefficient %s"%i
+      # if the number of unknowns or equations is still unknown we try to estimate them:
+      if self.__numEquations==None or self.__numSolutions==None:
+         for i,d in coefficients.iteritems():
+            if hasattr(d,"shape"):
+                s=d.shape
+            elif hasattr(d,"getShape"):
+                s=d.getShape()
+            else:
+                s=numarray.array(d).shape
+            if s!=None:
+                # get number of equations and number of unknowns:
+                res=self.__COEFFICIENTS[i].estimateNumEquationsAndNumSolutions(self.getDomain(),s)
+                if res==None:
+                    raise IllegalCoefficientValue,"Illegal shape %s of coefficient %s"%(s,i)
+                else:
+                    if self.__numEquations==None: self.__numEquations=res[0]
+                    if self.__numSolutions==None: self.__numSolutions=res[1]
+      if self.__numEquations==None: raise UndefinedPDEError,"unidententified number of equations"
+      if self.__numSolutions==None: raise UndefinedPDEError,"unidententified number of solutions"
+      # now we check the shape of the coefficient if numEquations and numSolutions are set:
+      for i,d in coefficients.iteritems():
+        try:
+           self.__COEFFICIENTS[i].setValue(self.getDomain(),
+                                         self.getNumEquations(),self.getNumSolutions(),
+                                         self.reduceEquationOrder(),self.reduceSolutionOrder(),d)
+           self.alteredCoefficient(i)
+        except IllegalCoefficientFunctionSpace,m:
+            # if the function space is wrong then we try the reduced version:
+            i_red=i+"_reduced"
+            if (not i_red in coefficients.keys()) and i_red in self.__COEFFICIENTS.keys():
+                try:
+                    self.__COEFFICIENTS[i_red].setValue(self.getDomain(),
+                                                      self.getNumEquations(),self.getNumSolutions(),
+                                                      self.reduceEquationOrder(),self.reduceSolutionOrder(),d)
+                    self.alteredCoefficient(i_red)
+                except IllegalCoefficientValue,m:
+                    raise IllegalCoefficientValue("Coefficient %s:%s"%(i,m))
+                except IllegalCoefficientFunctionSpace,m:
+                    raise IllegalCoefficientFunctionSpace("Coefficient %s:%s"%(i,m))
+            else:
+                raise IllegalCoefficientFunctionSpace("Coefficient %s:%s"%(i,m))
+        except IllegalCoefficientValue,m:
+           raise IllegalCoefficientValue("Coefficient %s:%s"%(i,m))
+      self.__altered_coefficients=True
+
+   # ====================================================================================
+   # methods that are typically overwritten when implementing a particular linear problem
+   # ====================================================================================
+   def getRequiredSystemType(self):
+      """
+      returns the system type which needs to be used by the current set up.
+
+      @note: Typically this method is overwritten when implementing a particular linear problem.
+      """
+      return 0
+
+   def createOperator(self): 
+       """
+       returns an instance of a new operator
+
+       @note: This method is overwritten when implementing a particular linear problem.
+       """
+       return escript.Operator()
+
+   def checkSymmetry(self,verbose=True):
+      """
+      test the PDE for symmetry.
+
+      @param verbose: if equal to True or not present a report on coefficients which are breaking the symmetry is printed.
+      @type verbose: C{bool}
+      @return:  True if the problem is symmetric.
+      @rtype: C{bool}
+      @note: Typically this method is overwritten when implementing a particular linear problem.
+      """
+      out=True
+      return out
+
+   def getSolution(self,**options): 
+       """
+       returns the solution of the problem
+       @return: the solution
+       @rtype: L{Data<escript.Data>}
+
+       @note: This method is overwritten when implementing a particular linear problem.
+       """
+       return self.getCurrentSolution()
+
+   def getSystem(self): 
+       """
+       return the operator and right hand side of the PDE
+
+       @return: the discrete version of the PDE
+       @rtype: C{tuple} of L{Operator,<escript.Operator>} and L{Data<escript.Data>}.
+
+       @note: This method is overwritten when implementing a particular linear problem.
+       """
+       return (self.getCurrentOperator(), self.getCurrentRightHandSide())
+#=====================
+
+class LinearPDE(LinearProblem):
+   """
+   This class is used to define a general linear, steady, second order PDE
+   for an unknown function M{u} on a given domain defined through a L{Domain<escript.Domain>} object.
+
+   For a single PDE with a solution with a single component the linear PDE is defined in the following form:
+
+   M{-(grad(A[j,l]+A_reduced[j,l])*grad(u)[l]+(B[j]+B_reduced[j])u)[j]+(C[l]+C_reduced[l])*grad(u)[l]+(D+D_reduced)=-grad(X+X_reduced)[j,j]+(Y+Y_reduced)}
+
+
+   where M{grad(F)} denotes the spatial derivative of M{F}. Einstein's summation convention,
+   ie. summation over indexes appearing twice in a term of a sum is performed, is used.
+   The coefficients M{A}, M{B}, M{C}, M{D}, M{X} and M{Y} have to be specified through L{Data<escript.Data>} objects in the
+   L{Function<escript.Function>} and the coefficients M{A_reduced}, M{B_reduced}, M{C_reduced}, M{D_reduced}, M{X_reduced} and M{Y_reduced} have to be specified through L{Data<escript.Data>} objects in the
+   L{ReducedFunction<escript.ReducedFunction>}. It is also allowd to use objects that can be converted into 
+   such L{Data<escript.Data>} objects. M{A} and M{A_reduced} are rank two, M{B}, M{C}, M{X},
+   M{B_reduced}, M{C_reduced} and M{X_reduced} are rank one and M{D}, M{D_reduced} M{Y} and M{Y_reduced} are scalar.
+
+   The following natural boundary conditions are considered:
+
+   M{n[j]*((A[i,j]+A_reduced[i,j])*grad(u)[l]+(B+B_reduced)[j]*u)+(d+d_reduced)*u=n[j]*(X[j]+X_reduced[j])+y}
+
+   where M{n} is the outer normal field. Notice that the coefficients M{A}, M{A_reduced}, M{B}, M{B_reduced}, M{X} and M{X_reduced} are defined in the PDE. The coefficients M{d} and M{y} and are each a scalar in the L{FunctionOnBoundary<escript.FunctionOnBoundary>} and the coefficients M{d_reduced} and M{y_reduced} and are each a scalar in the L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}.
+
+
+   Constraints for the solution prescribing the value of the solution at certain locations in the domain. They have the form
+
+   M{u=r}  where M{q>0}
+
+   M{r} and M{q} are each scalar where M{q} is the characteristic function defining where the constraint is applied.
+   The constraints override any other condition set by the PDE or the boundary condition.
+
+   The PDE is symmetrical if
+
+   M{A[i,j]=A[j,i]}  and M{B[j]=C[j]} and M{A_reduced[i,j]=A_reduced[j,i]}  and M{B_reduced[j]=C_reduced[j]}
+
+   For a system of PDEs and a solution with several components the PDE has the form
+
+   M{-grad((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])[j]+(C[i,k,l]+C_reduced[i,k,l])*grad(u[k])[l]+(D[i,k]+D_reduced[i,k]*u[k] =-grad(X[i,j]+X_reduced[i,j])[j]+Y[i]+Y_reduced[i] }
+
+   M{A} and M{A_reduced} are of rank four, M{B}, M{B_reduced}, M{C} and M{C_reduced} are each of rank three, M{D}, M{D_reduced}, M{X_reduced} and M{X} are each a rank two and M{Y} and M{Y_reduced} are of rank one.
+   The natural boundary conditions take the form:
+
+   M{n[j]*((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])+(d[i,k]+d_reduced[i,k])*u[k]=n[j]*(X[i,j]+X_reduced[i,j])+y[i]+y_reduced[i]}
+
+
+   The coefficient M{d} is a rank two and M{y} is a rank one both in the L{FunctionOnBoundary<escript.FunctionOnBoundary>}. Constraints take the form and the coefficients M{d_reduced} is a rank two and M{y_reduced} is a rank one both in the L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}. 
+
+   Constraints take the form 
+
+   M{u[i]=r[i]}  where  M{q[i]>0}
+
+   M{r} and M{q} are each rank one. Notice that at some locations not necessarily all components must have a constraint.
+
+   The system of PDEs is symmetrical if
+
+        - M{A[i,j,k,l]=A[k,l,i,j]}
+        - M{A_reduced[i,j,k,l]=A_reduced[k,l,i,j]}
+        - M{B[i,j,k]=C[k,i,j]}
+        - M{B_reduced[i,j,k]=C_reduced[k,i,j]}
+        - M{D[i,k]=D[i,k]}
+        - M{D_reduced[i,k]=D_reduced[i,k]}
+        - M{d[i,k]=d[k,i]}
+        - M{d_reduced[i,k]=d_reduced[k,i]}
+
+   L{LinearPDE} also supports solution discontinuities over a contact region in the domain. To specify the conditions across the
+   discontinuity we are using the generalised flux M{J} which is in the case of a systems of PDEs and several components of the solution
+   defined as
+
+   M{J[i,j]=(A[i,j,k,l]+A_reduced[[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]-X[i,j]-X_reduced[i,j]}
+
+   For the case of single solution component and single PDE M{J} is defined
+
+   M{J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[j]+(B[i]+B_reduced[i])*u-X[i]-X_reduced[i]}
+
+   In the context of discontinuities M{n} denotes the normal on the discontinuity pointing from side 0 towards side 1
+   calculated from L{getNormal<escript.FunctionSpace.getNormal>} of L{FunctionOnContactZero<escript.FunctionOnContactZero>}. For a system of PDEs
+   the contact condition takes the form
+
+   M{n[j]*J0[i,j]=n[j]*J1[i,j]=(y_contact[i]+y_contact_reduced[i])- (d_contact[i,k]+d_contact_reduced[i,k])*jump(u)[k]}
+
+   where M{J0} and M{J1} are the fluxes on side 0 and side 1 of the discontinuity, respectively. M{jump(u)}, which is the difference
+   of the solution at side 1 and at side 0, denotes the jump of M{u} across discontinuity along the normal calculated by
+   L{jump<util.jump>}.
+   The coefficient M{d_contact} is a rank two and M{y_contact} is a rank one both in the L{FunctionOnContactZero<escript.FunctionOnContactZero>} or L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
+   The coefficient M{d_contact_reduced} is a rank two and M{y_contact_reduced} is a rank one both in the L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
+   In case of a single PDE and a single component solution the contact condition takes the form
+
+   M{n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)}
+
+   In this case the coefficient M{d_contact} and M{y_contact} are each scalar both in the L{FunctionOnContactZero<escript.FunctionOnContactZero>} or L{FunctionOnContactOne<escript.FunctionOnContactOne>} and the coefficient M{d_contact_reduced} and M{y_contact_reduced} are each scalar both in the L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}
+
+   typical usage:
+
+      p=LinearPDE(dom)
+      p.setValue(A=kronecker(dom),D=1,Y=0.5)
+      u=p.getSolution()
+
+   """
+
+
+   def __init__(self,domain,numEquations=None,numSolutions=None,debug=False):
+     """
+     initializes a new linear PDE
+
+     @param domain: domain of the PDE
+     @type domain: L{Domain<escript.Domain>}
+     @param numEquations: number of equations. If numEquations==None the number of equations
+                          is extracted from the PDE coefficients.
+     @param numSolutions: number of solution components. If  numSolutions==None the number of solution components
+                          is extracted from the PDE coefficients.
+     @param debug: if True debug informations are printed.
+
+     """
+     super(LinearPDE, self).__init__(domain,numEquations,numSolutions,debug)
+     #
+     #   the coefficients of the PDE:
+     #
+     self.introduceCoefficients(
+       A=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR),
+       B=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       C=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR),
+       D=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       X=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE),
+       Y=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+       d=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       y=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+       d_contact=PDECoef(PDECoef.CONTACT,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       y_contact=PDECoef(PDECoef.CONTACT,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+       A_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR),
+       B_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       C_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR),
+       D_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       X_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE),
+       Y_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+       d_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       y_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+       d_contact_reduced=PDECoef(PDECoef.CONTACT_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       y_contact_reduced=PDECoef(PDECoef.CONTACT_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+       r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE),
+       q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH) )
+
+   def __str__(self):
+     """
+     returns string representation of the PDE
+
+     @return: a simple representation of the PDE
+     @rtype: C{str}
+     """
+     return "<LinearPDE %d>"%id(self)
+
+   def getRequiredSystemType(self):
+      """
+      returns the system type which needs to be used by the current set up.
+      """
+      return self.getDomain().getSystemMatrixTypeId(self.getSolverMethod()[0],self.getSolverPackage(),self.isSymmetric())
+
+   def checkSymmetry(self,verbose=True):
+      """
+      test the PDE for symmetry.
+
+      @param verbose: if equal to True or not present a report on coefficients which are breaking the symmetry is printed.
+      @type verbose: C{bool}
+      @return:  True if the PDE is symmetric.
+      @rtype: L{bool}
+      @note: This is a very expensive operation. It should be used for degugging only! The symmetry flag is not altered.
+      """
+      out=True
+      out=out and self.checkSymmetricTensor("A", verbose)
+      out=out and self.checkSymmetricTensor("A_reduced", verbose)
+      out=out and self.checkReciprocalSymmetry("B","C", verbose)
+      out=out and self.checkReciprocalSymmetry("B_reduced","C_reduced", verbose)
+      out=out and self.checkSymmetricTensor("D", verbose)
+      out=out and self.checkSymmetricTensor("D_reduced", verbose)
+      out=out and self.checkSymmetricTensor("d", verbose)
+      out=out and self.checkSymmetricTensor("d_reduced", verbose)
+      out=out and self.checkSymmetricTensor("d_contact", verbose)
+      out=out and self.checkSymmetricTensor("d_contact_reduced", verbose)
+      return out
+
+   def createOperator(self): 
+       """
+       returns an instance of a new operator
+       """
+       self.trace("New operator is allocated.")
+       return self.getDomain().newOperator( \
+                           self.getNumEquations(), \
+                           self.getFunctionSpaceForEquation(), \
+                           self.getNumSolutions(), \
+                           self.getFunctionSpaceForSolution(), \
+                           self.getSystemType())
+
+   def getSolution(self,**options): 
+       """
+       returns the solution of the PDE
+
+       @return: the solution
+       @rtype: L{Data<escript.Data>}
+       @param options: solver options
+       @keyword verbose: True to get some information during PDE solution
+       @type verbose: C{bool}
+       @keyword reordering: reordering scheme to be used during elimination. Allowed values are
+                            L{NO_REORDERING}, L{MINIMUM_FILL_IN}, L{NESTED_DISSECTION}
+       @keyword iter_max: maximum number of iteration steps allowed.
+       @keyword drop_tolerance: threshold for drupping in L{ILUT}
+       @keyword drop_storage: maximum of allowed memory in L{ILUT}
+       @keyword truncation: maximum number of residuals in L{GMRES}
+       @keyword restart: restart cycle length in L{GMRES}
+       """
+       if not self.isSolutionValid():
+          mat,f=self.getSystem()
+          if self.isUsingLumping():
+             self.setSolution(f*1/mat)
+          else:
+             options[self.TOLERANCE_KEY]=self.getTolerance()
+             options[self.METHOD_KEY]=self.getSolverMethod()[0]
+             options[self.PRECONDITIONER_KEY]=self.getSolverMethod()[1]
+             options[self.PACKAGE_KEY]=self.getSolverPackage()
+             options[self.SYMMETRY_KEY]=self.isSymmetric()
+             self.trace("PDE is resolved.")
+             self.trace("solver options: %s"%str(options))
+             self.setSolution(mat.solve(f,options))
+       return self.getCurrentSolution()
+
+   def getSystem(self): 
+       """
+       return the operator and right hand side of the PDE
+
+       @return: the discrete version of the PDE
+       @rtype: C{tuple} of L{Operator,<escript.Operator>} and L{Data<escript.Data>}.
+       """
+       if not self.isOperatorValid() or not self.isRightHandSideValid():
+          if self.isUsingLumping():
+              if not self.isOperatorValid():
+                 if not self.getFunctionSpaceForEquation()==self.getFunctionSpaceForSolution(): 
+                      raise TypeError,"Lumped matrix requires same order for equations and unknowns"
+                 if not self.getCoefficient("A").isEmpty(): 
+                      raise ValueError,"coefficient A in lumped matrix may not be present."
+                 if not self.getCoefficient("B").isEmpty():
+                      raise ValueError,"coefficient B in lumped matrix may not be present."
+                 if not self.getCoefficient("C").isEmpty():
+                      raise ValueError,"coefficient C in lumped matrix may not be present."
+                 if not self.getCoefficient("d_contact").isEmpty():
+                      raise ValueError,"coefficient d_contact in lumped matrix may not be present."
+                 if not self.getCoefficient("A_reduced").isEmpty(): 
+                      raise ValueError,"coefficient A_reduced in lumped matrix may not be present."
+                 if not self.getCoefficient("B_reduced").isEmpty():
+                      raise ValueError,"coefficient B_reduced in lumped matrix may not be present."
+                 if not self.getCoefficient("C_reduced").isEmpty():
+                      raise ValueError,"coefficient C_reduced in lumped matrix may not be present."
+                 if not self.getCoefficient("d_contact_reduced").isEmpty():
+                      raise ValueError,"coefficient d_contact_reduced in lumped matrix may not be present."
+                 D=self.getCoefficient("D")
+                 d=self.getCoefficient("d")
+                 D_reduced=self.getCoefficient("D_reduced")
+                 d_reduced=self.getCoefficient("d_reduced")
+                 if not D.isEmpty():
+                     if self.getNumSolutions()>1:
+                        D_times_e=util.matrix_mult(D,numarray.ones((self.getNumSolutions(),)))
+                     else:
+                        D_times_e=D
+                 else:
+                    D_times_e=escript.Data()
+                 if not d.isEmpty():
+                     if self.getNumSolutions()>1:
+                        d_times_e=util.matrix_mult(d,numarray.ones((self.getNumSolutions(),)))
+                     else:
+                        d_times_e=d
+                 else:
+                    d_times_e=escript.Data()
+      
+                 if not D_reduced.isEmpty():
+                     if self.getNumSolutions()>1:
+                        D_reduced_times_e=util.matrix_mult(D_reduced,numarray.ones((self.getNumSolutions(),)))
+                     else:
+                        D_reduced_times_e=D_reduced
+                 else:
+                    D_reduced_times_e=escript.Data()
+                 if not d_reduced.isEmpty():
+                     if self.getNumSolutions()>1:
+                        d_reduced_times_e=util.matrix_mult(d_reduced,numarray.ones((self.getNumSolutions(),)))
+                     else:
+                        d_reduced_times_e=d_reduced
+                 else:
+                    d_reduced_times_e=escript.Data()
+
+                 self.resetOperator()
+                 operator=self.getCurrentOperator()
+                 if False and hasattr(self.getDomain(), "addPDEToLumpedSystem") :
+                    self.getDomain().addPDEToLumpedSystem(operator, D_times_e, d_times_e)
+                    self.getDomain().addPDEToLumpedSystem(operator, D_reduced_times_e, d_reduced_times_e)
+                 else:
+                    self.getDomain().addPDEToRHS(operator, \
+                                                 escript.Data(), \
+                                                 D_times_e, \
+                                                 d_times_e,\
+                                                 escript.Data())
+                    self.getDomain().addPDEToRHS(operator, \
+                                                 escript.Data(), \
+                                                 D_reduced_times_e, \
+                                                 d_reduced_times_e,\
+                                                 escript.Data())
+                 self.trace("New lumped operator has been built.")
+              if not self.isRightHandSideValid():
+                 self.resetRightHandSide()
+                 righthandside=self.getCurrentRightHandSide()
+                 self.getDomain().addPDEToRHS(righthandside, \
+                               self.getCoefficient("X"), \
+                               self.getCoefficient("Y"),\
+                               self.getCoefficient("y"),\
+                               self.getCoefficient("y_contact"))
+                 self.getDomain().addPDEToRHS(righthandside, \
+                               self.getCoefficient("X_reduced"), \
+                               self.getCoefficient("Y_reduced"),\
+                               self.getCoefficient("y_reduced"),\
+                               self.getCoefficient("y_contact_reduced"))
+                 self.trace("New right hand side as been built.")
+                 self.validRightHandSide()
+              self.insertConstraint(rhs_only=False)
+              self.validOperator()
+          else:
+             if not self.isOperatorValid() and not self.isRightHandSideValid():
+                 self.resetRightHandSide()
+                 righthandside=self.getCurrentRightHandSide()
+                 self.resetOperator()
+                 operator=self.getCurrentOperator()
+                 self.getDomain().addPDEToSystem(operator,righthandside, \
+                               self.getCoefficient("A"), \
+                               self.getCoefficient("B"), \
+                               self.getCoefficient("C"), \
+                               self.getCoefficient("D"), \
+                               self.getCoefficient("X"), \
+                               self.getCoefficient("Y"), \
+                               self.getCoefficient("d"), \
+                               self.getCoefficient("y"), \
+                               self.getCoefficient("d_contact"), \
+                               self.getCoefficient("y_contact"))
+                 self.getDomain().addPDEToSystem(operator,righthandside, \
+                               self.getCoefficient("A_reduced"), \
+                               self.getCoefficient("B_reduced"), \
+                               self.getCoefficient("C_reduced"), \
+                               self.getCoefficient("D_reduced"), \
+                               self.getCoefficient("X_reduced"), \
+                               self.getCoefficient("Y_reduced"), \
+                               self.getCoefficient("d_reduced"), \
+                               self.getCoefficient("y_reduced"), \
+                               self.getCoefficient("d_contact_reduced"), \
+                               self.getCoefficient("y_contact_reduced"))
+                 self.insertConstraint(rhs_only=False)
+                 self.trace("New system has been built.")
+                 self.validOperator()
+                 self.validRightHandSide()
+             elif not self.isRightHandSideValid():
+                 self.resetRightHandSide()
+                 righthandside=self.getCurrentRightHandSide()
+                 self.getDomain().addPDEToRHS(righthandside,
+                               self.getCoefficient("X"), \
+                               self.getCoefficient("Y"),\
+                               self.getCoefficient("y"),\
+                               self.getCoefficient("y_contact"))
+                 self.getDomain().addPDEToRHS(righthandside,
+                               self.getCoefficient("X_reduced"), \
+                               self.getCoefficient("Y_reduced"),\
+                               self.getCoefficient("y_reduced"),\
+                               self.getCoefficient("y_contact_reduced"))
+                 self.insertConstraint(rhs_only=True) 
+                 self.trace("New right hand side has been built.")
+                 self.validRightHandSide()
+             elif not self.isOperatorValid():
+                 self.resetOperator()
+                 operator=self.getCurrentOperator()
+                 self.getDomain().addPDEToSystem(operator,escript.Data(), \
+                            self.getCoefficient("A"), \
+                            self.getCoefficient("B"), \
+                            self.getCoefficient("C"), \
+                            self.getCoefficient("D"), \
+                            escript.Data(), \
+                            escript.Data(), \
+                            self.getCoefficient("d"), \
+                            escript.Data(),\
+                            self.getCoefficient("d_contact"), \
+                            escript.Data())
+                 self.getDomain().addPDEToSystem(operator,escript.Data(), \
+                            self.getCoefficient("A_reduced"), \
+                            self.getCoefficient("B_reduced"), \
+                            self.getCoefficient("C_reduced"), \
+                            self.getCoefficient("D_reduced"), \
+                            escript.Data(), \
+                            escript.Data(), \
+                            self.getCoefficient("d_reduced"), \
+                            escript.Data(),\
+                            self.getCoefficient("d_contact_reduced"), \
+                            escript.Data())
+                 self.insertConstraint(rhs_only=False)
+                 self.trace("New operator has been built.")
+                 self.validOperator()
+       return (self.getCurrentOperator(), self.getCurrentRightHandSide())
+
+   def insertConstraint(self, rhs_only=False): 
+      """
+      applies the constraints defined by q and r to the PDE
+      
+      @param rhs_only: if True only the right hand side is altered by the constraint.
+      @type rhs_only: C{bool}
+      """
+      q=self.getCoefficient("q")
+      r=self.getCoefficient("r")
+      righthandside=self.getCurrentRightHandSide()
+      operator=self.getCurrentOperator()
+
       if not q.isEmpty():
-         if u.isEmpty(): u=escript.Data(0.,q.getShape(),q.getFunctionSpace())
          if r.isEmpty():
-             r=escript.Data(0,u.getShape(),u.getFunctionSpace())
+            r_s=self.createSolution()
          else:
-             r=escript.Data(r,u.getFunctionSpace())
-         u.copyWithMask(r,escript.Data(q,u.getFunctionSpace()))
-      return u
+            r_s=r
+         if not rhs_only and not operator.isEmpty():
+             if self.isUsingLumping():
+                 operator.copyWithMask(escript.Data(1.,q.getShape(),q.getFunctionSpace()),q)
+             else:
+                 row_q=escript.Data(q,self.getFunctionSpaceForEquation())
+                 col_q=escript.Data(q,self.getFunctionSpaceForSolution())
+                 u=self.createSolution()
+                 u.copyWithMask(r_s,col_q)
+                 righthandside-=operator*u
+                 operator.nullifyRowsAndCols(row_q,col_q,1.)
+         righthandside.copyWithMask(r_s,q)
 
-   def setValue(self,**coefficients):
+   def setValue(self,**coefficients): 
       """
       sets new values to coefficients
 
@@ -1630,227 +1863,54 @@ class LinearPDE(object):
                depending of reduced order is used for the representation of the equation.
       @raise IllegalCoefficient: if an unknown coefficient keyword is used.
       """
-      # check if the coefficients are  legal:
-      for i in coefficients.iterkeys():
-         if not self.hasCoefficient(i):
-            raise IllegalCoefficient,"Attempt to set unknown coefficient %s"%i
-      # if the number of unknowns or equations is still unknown we try to estimate them:
-      if self.__numEquations==None or self.__numSolutions==None:
-         for i,d in coefficients.iteritems():
-            if hasattr(d,"shape"):
-                s=d.shape
-            elif hasattr(d,"getShape"):
-                s=d.getShape()
-            else:
-                s=numarray.array(d).shape
-            if s!=None:
-                # get number of equations and number of unknowns:
-                res=self.COEFFICIENTS[i].estimateNumEquationsAndNumSolutions(self.getDomain(),s)
-                if res==None:
-                    raise IllegalCoefficientValue,"Illegal shape %s of coefficient %s"%(s,i)
-                else:
-                    if self.__numEquations==None: self.__numEquations=res[0]
-                    if self.__numSolutions==None: self.__numSolutions=res[1]
-      if self.__numEquations==None: raise UndefinedPDEError,"unidententified number of equations"
-      if self.__numSolutions==None: raise UndefinedPDEError,"unidententified number of solutions"
-      # now we check the shape of the coefficient if numEquations and numSolutions are set:
-      for i,d in coefficients.iteritems():
-        try:
-           self.COEFFICIENTS[i].setValue(self.getDomain(),
-                                         self.getNumEquations(),self.getNumSolutions(),
-                                         self.reduceEquationOrder(),self.reduceSolutionOrder(),d)
-           self.alteredCoefficient(i)
-        except IllegalCoefficientFunctionSpace,m:
-            # if the function space is wrong then we try the reduced version:
-            i_red=i+"_reduced"
-            if (not i_red in coefficients.keys()) and i_red in self.COEFFICIENTS.keys():
-                try:
-                    self.COEFFICIENTS[i_red].setValue(self.getDomain(),
-                                                      self.getNumEquations(),self.getNumSolutions(),
-                                                      self.reduceEquationOrder(),self.reduceSolutionOrder(),d)
-                    self.alteredCoefficient(i_red)
-                except IllegalCoefficientValue,m:
-                    raise IllegalCoefficientValue("Coefficient %s:%s"%(i,m))
-                except IllegalCoefficientFunctionSpace,m:
-                    raise IllegalCoefficientFunctionSpace("Coefficient %s:%s"%(i,m))
-            else:
-                raise IllegalCoefficientFunctionSpace("Coefficient %s:%s"%(i,m))
-        except IllegalCoefficientValue,m:
-           raise IllegalCoefficientValue("Coefficient %s:%s"%(i,m))
-      self.__altered_coefficients=True
+      super(LinearPDE,self).setValue(**coefficients)
       # check if the systrem is inhomogeneous:
       if len(coefficients)>0 and not self.isUsingLumping():
-         q=self.getCoefficientOfGeneralPDE("q")
-         r=self.getCoefficientOfGeneralPDE("r")
-         homogeneous_constraint=True
+         q=self.getCoefficient("q")
+         r=self.getCoefficient("r")
          if not q.isEmpty() and not r.isEmpty():
              if util.Lsup(q*r)>0.:
                self.trace("Inhomogeneous constraint detected.")
-               self.__invalidateSystem()
+               self.invalidateSystem()
 
-   def getSystem(self):
-       """
-       return the operator and right hand side of the PDE
 
-       @return: the discrete version of the PDE
-       @rtype: C{tuple} of L{Operator,<escript.Operator>} and L{Data<escript.Data>}.
-       """
-       if not self.__operator_is_Valid or not self.__righthandside_isValid:
-          if self.isUsingLumping():
-              if not self.__operator_is_Valid:
-                 if not self.getFunctionSpaceForEquation()==self.getFunctionSpaceForSolution(): 
-                      raise TypeError,"Lumped matrix requires same order for equations and unknowns"
-                 if not self.getCoefficientOfGeneralPDE("A").isEmpty(): 
-                      raise ValueError,"coefficient A in lumped matrix may not be present."
-                 if not self.getCoefficientOfGeneralPDE("B").isEmpty():
-                      raise ValueError,"coefficient B in lumped matrix may not be present."
-                 if not self.getCoefficientOfGeneralPDE("C").isEmpty():
-                      raise ValueError,"coefficient C in lumped matrix may not be present."
-                 if not self.getCoefficientOfGeneralPDE("d_contact").isEmpty():
-                      raise ValueError,"coefficient d_contact in lumped matrix may not be present."
-                 if not self.getCoefficientOfGeneralPDE("A_reduced").isEmpty(): 
-                      raise ValueError,"coefficient A_reduced in lumped matrix may not be present."
-                 if not self.getCoefficientOfGeneralPDE("B_reduced").isEmpty():
-                      raise ValueError,"coefficient B_reduced in lumped matrix may not be present."
-                 if not self.getCoefficientOfGeneralPDE("C_reduced").isEmpty():
-                      raise ValueError,"coefficient C_reduced in lumped matrix may not be present."
-                 if not self.getCoefficientOfGeneralPDE("d_contact_reduced").isEmpty():
-                      raise ValueError,"coefficient d_contact_reduced in lumped matrix may not be present."
-                 D=self.getCoefficientOfGeneralPDE("D")
-                 d=self.getCoefficientOfGeneralPDE("d")
-                 D_reduced=self.getCoefficientOfGeneralPDE("D_reduced")
-                 d_reduced=self.getCoefficientOfGeneralPDE("d_reduced")
-                 if not D.isEmpty():
-                     if self.getNumSolutions()>1:
-                        D_times_e=util.matrix_mult(D,numarray.ones((self.getNumSolutions(),)))
-                     else:
-                        D_times_e=D
-                 else:
-                    D_times_e=escript.Data()
-                 if not d.isEmpty():
-                     if self.getNumSolutions()>1:
-                        d_times_e=util.matrix_mult(d,numarray.ones((self.getNumSolutions(),)))
-                     else:
-                        d_times_e=d
-                 else:
-                    d_times_e=escript.Data()
-      
-                 if not D_reduced.isEmpty():
-                     if self.getNumSolutions()>1:
-                        D_reduced_times_e=util.matrix_mult(D_reduced,numarray.ones((self.getNumSolutions(),)))
-                     else:
-                        D_reduced_times_e=D_reduced
-                 else:
-                    D_reduced_times_e=escript.Data()
-                 if not d_reduced.isEmpty():
-                     if self.getNumSolutions()>1:
-                        d_reduced_times_e=util.matrix_mult(d_reduced,numarray.ones((self.getNumSolutions(),)))
-                     else:
-                        d_reduced_times_e=d_reduced
-                 else:
-                    d_reduced_times_e=escript.Data()
+   def getResidual(self,u=None): 
+     """
+     return the residual of u or the current solution if u is not present.
 
-                 self.__operator=self.__getNewRightHandSide()
-                 if False and hasattr(self.getDomain(), "addPDEToLumpedSystem") :
-                    self.getDomain().addPDEToLumpedSystem(self.__operator, D_times_e, d_times_e)
-                    self.getDomain().addPDEToLumpedSystem(self.__operator, D_reduced_times_e, d_reduced_times_e)
-                 else:
-                    self.getDomain().addPDEToRHS(self.__operator, \
-                                                 escript.Data(), \
-                                                 D_times_e, \
-                                                 d_times_e,\
-                                                 escript.Data())
-                    self.getDomain().addPDEToRHS(self.__operator, \
-                                                 escript.Data(), \
-                                                 D_reduced_times_e, \
-                                                 d_reduced_times_e,\
-                                                 escript.Data())
-                 self.__operator=1./self.__operator
-                 self.trace("New lumped operator has been built.")
-                 self.__operator_is_Valid=True
-              if not self.__righthandside_isValid:
-                 self.getDomain().addPDEToRHS(self.__makeFreshRightHandSide(), \
-                               self.getCoefficientOfGeneralPDE("X"), \
-                               self.getCoefficientOfGeneralPDE("Y"),\
-                               self.getCoefficientOfGeneralPDE("y"),\
-                               self.getCoefficientOfGeneralPDE("y_contact"))
-                 self.getDomain().addPDEToRHS(self.__righthandside, \
-                               self.getCoefficientOfGeneralPDE("X_reduced"), \
-                               self.getCoefficientOfGeneralPDE("Y_reduced"),\
-                               self.getCoefficientOfGeneralPDE("y_reduced"),\
-                               self.getCoefficientOfGeneralPDE("y_contact_reduced"))
-                 self.trace("New right hand side as been built.")
-                 self.__righthandside_isValid=True
-          else:
-             if not self.__operator_is_Valid and not self.__righthandside_isValid:
-                 self.getDomain().addPDEToSystem(self.__makeFreshOperator(),self.__makeFreshRightHandSide(), \
-                               self.getCoefficientOfGeneralPDE("A"), \
-                               self.getCoefficientOfGeneralPDE("B"), \
-                               self.getCoefficientOfGeneralPDE("C"), \
-                               self.getCoefficientOfGeneralPDE("D"), \
-                               self.getCoefficientOfGeneralPDE("X"), \
-                               self.getCoefficientOfGeneralPDE("Y"), \
-                               self.getCoefficientOfGeneralPDE("d"), \
-                               self.getCoefficientOfGeneralPDE("y"), \
-                               self.getCoefficientOfGeneralPDE("d_contact"), \
-                               self.getCoefficientOfGeneralPDE("y_contact"))
-                 self.getDomain().addPDEToSystem(self.__operator,self.__righthandside, \
-                               self.getCoefficientOfGeneralPDE("A_reduced"), \
-                               self.getCoefficientOfGeneralPDE("B_reduced"), \
-                               self.getCoefficientOfGeneralPDE("C_reduced"), \
-                               self.getCoefficientOfGeneralPDE("D_reduced"), \
-                               self.getCoefficientOfGeneralPDE("X_reduced"), \
-                               self.getCoefficientOfGeneralPDE("Y_reduced"), \
-                               self.getCoefficientOfGeneralPDE("d_reduced"), \
-                               self.getCoefficientOfGeneralPDE("y_reduced"), \
-                               self.getCoefficientOfGeneralPDE("d_contact_reduced"), \
-                               self.getCoefficientOfGeneralPDE("y_contact_reduced"))
-                 self.__applyConstraint()
-                 self.__righthandside=self.copyConstraint(self.__righthandside)
-                 self.trace("New system has been built.")
-                 self.__operator_is_Valid=True
-                 self.__righthandside_isValid=True
-             elif not self.__righthandside_isValid:
-                 self.getDomain().addPDEToRHS(self.__makeFreshRightHandSide(), \
-                               self.getCoefficientOfGeneralPDE("X"), \
-                               self.getCoefficientOfGeneralPDE("Y"),\
-                               self.getCoefficientOfGeneralPDE("y"),\
-                               self.getCoefficientOfGeneralPDE("y_contact"))
-                 self.getDomain().addPDEToRHS(self.__righthandside, \
-                               self.getCoefficientOfGeneralPDE("X_reduced"), \
-                               self.getCoefficientOfGeneralPDE("Y_reduced"),\
-                               self.getCoefficientOfGeneralPDE("y_reduced"),\
-                               self.getCoefficientOfGeneralPDE("y_contact_reduced"))
-                 self.__righthandside=self.copyConstraint(self.__righthandside)
-                 self.trace("New right hand side has been built.")
-                 self.__righthandside_isValid=True
-             elif not self.__operator_is_Valid:
-                 self.getDomain().addPDEToSystem(self.__makeFreshOperator(),escript.Data(), \
-                            self.getCoefficientOfGeneralPDE("A"), \
-                            self.getCoefficientOfGeneralPDE("B"), \
-                            self.getCoefficientOfGeneralPDE("C"), \
-                            self.getCoefficientOfGeneralPDE("D"), \
-                            escript.Data(), \
-                            escript.Data(), \
-                            self.getCoefficientOfGeneralPDE("d"), \
-                            escript.Data(),\
-                            self.getCoefficientOfGeneralPDE("d_contact"), \
-                            escript.Data())
-                 self.getDomain().addPDEToSystem(self.__operator,escript.Data(), \
-                            self.getCoefficientOfGeneralPDE("A_reduced"), \
-                            self.getCoefficientOfGeneralPDE("B_reduced"), \
-                            self.getCoefficientOfGeneralPDE("C_reduced"), \
-                            self.getCoefficientOfGeneralPDE("D_reduced"), \
-                            escript.Data(), \
-                            escript.Data(), \
-                            self.getCoefficientOfGeneralPDE("d_reduced"), \
-                            escript.Data(),\
-                            self.getCoefficientOfGeneralPDE("d_contact_reduced"), \
-                            escript.Data())
-                 self.__applyConstraint()
-                 self.trace("New operator has been built.")
-                 self.__operator_is_Valid=True
-       return (self.__operator,self.__righthandside)
+     @param u: argument in the residual calculation. It must be representable in C{elf.getFunctionSpaceForSolution()}. If u is not present or equals L{None}
+               the current solution is used.
+     @type u: L{Data<escript.Data>} or None
+     @return: residual of u
+     @rtype: L{Data<escript.Data>}
+     """
+     if u==None:
+        return self.getOperator()*self.getSolution()-self.getRightHandSide()
+     else:
+        return self.getOperator()*escript.Data(u,self.getFunctionSpaceForSolution())-self.getRightHandSide()
+
+   def getFlux(self,u=None): 
+     """
+     returns the flux M{J} for a given M{u}
+
+     M{J[i,j]=(A[i,j,k,l]+A_reduced[A[i,j,k,l]]*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])u[k]-X[i,j]-X_reduced[i,j]}
+
+     or
+
+     M{J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[l]+(B[j]+B_reduced[j])u-X[j]-X_reduced[j]}
+
+     @param u: argument in the flux. If u is not present or equals L{None} the current solution is used.
+     @type u: L{Data<escript.Data>} or None
+     @return: flux
+     @rtype: L{Data<escript.Data>}
+     """
+     if u==None: u=self.getSolution()
+     return util.tensormult(self.getCoefficient("A"),util.grad(u,Funtion(self.getDomain))) \
+           +util.matrixmult(self.getCoefficient("B"),u) \
+           -util.self.getCoefficient("X") \
+           +util.tensormult(self.getCoefficient("A_reduced"),util.grad(u,ReducedFuntion(self.getDomain))) \
+           +util.matrixmult(self.getCoefficient("B_reduced"),u) \
+           -util.self.getCoefficient("X_reduced")
 
 
 class Poisson(LinearPDE):
@@ -1879,9 +1939,9 @@ class Poisson(LinearPDE):
 
      """
      super(Poisson, self).__init__(domain,1,1,debug)
-     self.COEFFICIENTS={"f": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-                        "f_reduced": PDECoefficient(PDECoefficient.INTERIOR_REDUCED,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-                        "q": PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH)}
+     self.introduceCoefficients(
+                        f=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+                        f_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE))
      self.setSymmetryOn()
 
    def setValue(self,**coefficients):
@@ -1898,63 +1958,25 @@ class Poisson(LinearPDE):
      """
      super(Poisson, self).setValue(**coefficients)
 
-   def getCoefficientOfGeneralPDE(self,name):
+
+   def getCoefficient(self,name): 
      """
      return the value of the coefficient name of the general PDE
      @param name: name of the coefficient requested.
      @type name: C{string}
      @return: the value of the coefficient  name
      @rtype: L{Data<escript.Data>}
-     @raise IllegalCoefficient: if name is not one of coefficients
-                  M{A}, M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, M{r} or M{q}.
+     @raise IllegalCoefficient: invalid coefficient name
      @note: This method is called by the assembling routine to map the Possion equation onto the general PDE.
      """
      if name == "A" :
          return escript.Data(util.kronecker(self.getDim()),escript.Function(self.getDomain()))
-     elif name == "B" :
-         return escript.Data()
-     elif name == "C" :
-         return escript.Data()
-     elif name == "D" :
-         return escript.Data()
-     elif name == "X" :
-         return escript.Data()
      elif name == "Y" :
          return self.getCoefficient("f")
-     elif name == "d" :
-         return escript.Data()
-     elif name == "y" :
-         return escript.Data()
-     elif name == "d_contact" :
-         return escript.Data()
-     elif name == "y_contact" :
-         return escript.Data()
-     elif name == "A_reduced" :
-         return escript.Data()
-     elif name == "B_reduced" :
-         return escript.Data()
-     elif name == "C_reduced" :
-         return escript.Data()
-     elif name == "D_reduced" :
-         return escript.Data()
-     elif name == "X_reduced" :
-         return escript.Data()
      elif name == "Y_reduced" :
          return self.getCoefficient("f_reduced")
-     elif name == "d_reduced" :
-         return escript.Data()
-     elif name == "y_reduced" :
-         return escript.Data()
-     elif name == "d_contact_reduced" :
-         return escript.Data()
-     elif name == "y_contact_reduced" :
-         return escript.Data()
-     elif name == "r" :
-         return escript.Data()
-     elif name == "q" :
-         return self.getCoefficient("q")
      else:
-        raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
+        return super(Poisson, self).getCoefficient(name)
 
 class Helmholtz(LinearPDE):
    """
@@ -1982,18 +2004,17 @@ class Helmholtz(LinearPDE):
 
      """
      super(Helmholtz, self).__init__(domain,1,1,debug)
-     self.COEFFICIENTS={"omega": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.OPERATOR),
-                        "k": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.OPERATOR),
-                        "f": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-                        "f_reduced": PDECoefficient(PDECoefficient.INTERIOR_REDUCED,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-                        "alpha": PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.BY_EQUATION,),PDECoefficient.OPERATOR),
-                        "g": PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-                        "g_reduced": PDECoefficient(PDECoefficient.BOUNDARY_REDUCED,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-                        "r": PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH),
-                        "q": PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH)}
+     self.introduceCoefficients(
+                        omega=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,),PDECoef.OPERATOR),
+                        k=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,),PDECoef.OPERATOR),
+                        f=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+                        f_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+                        alpha=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,),PDECoef.OPERATOR),
+                        g=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+                        g_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE))
      self.setSymmetryOn()
 
-   def setValue(self,**coefficients):
+   def setValue(self,**coefficients): 
      """
      sets new values to coefficients
 
@@ -2018,7 +2039,7 @@ class Helmholtz(LinearPDE):
      """
      super(Helmholtz, self).setValue(**coefficients)
 
-   def getCoefficientOfGeneralPDE(self,name):
+   def getCoefficient(self,name): 
      """
      return the value of the coefficient name of the general PDE
 
@@ -2026,56 +2047,24 @@ class Helmholtz(LinearPDE):
      @type name: C{string}
      @return: the value of the coefficient  name
      @rtype: L{Data<escript.Data>}
-     @raise IllegalCoefficient: if name is not one of coefficients
-                  "A", M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, M{r} or M{q}.
-     @note: This method is called by the assembling routine to map the Possion equation onto the general PDE.
+     @raise IllegalCoefficient: invalid name
      """
      if name == "A" :
          return escript.Data(numarray.identity(self.getDim()),escript.Function(self.getDomain()))*self.getCoefficient("k")
-     elif name == "B" :
-         return escript.Data()
-     elif name == "C" :
-         return escript.Data()
      elif name == "D" :
          return self.getCoefficient("omega")
-     elif name == "X" :
-         return escript.Data()
      elif name == "Y" :
          return self.getCoefficient("f")
      elif name == "d" :
          return self.getCoefficient("alpha")
      elif name == "y" :
          return self.getCoefficient("g")
-     elif name == "d_contact" :
-         return escript.Data()
-     elif name == "y_contact" :
-         return escript.Data()
-     elif name == "A_reduced" :
-         return escript.Data()
-     elif name == "B_reduced" :
-         return escript.Data()
-     elif name == "C_reduced" :
-         return escript.Data()
-     elif name == "D_reduced" :
-         return escript.Data()
-     elif name == "X_reduced" :
-         return escript.Data()
      elif name == "Y_reduced" :
          return self.getCoefficient("f_reduced")
-     elif name == "d_reduced" :
-         return escript.Data()
      elif name == "y_reduced" :
         return self.getCoefficient("g_reduced")
-     elif name == "d_contact_reduced" :
-         return escript.Data()
-     elif name == "y_contact_reduced" :
-         return escript.Data()
-     elif name == "r" :
-         return self.getCoefficient("r")
-     elif name == "q" :
-         return self.getCoefficient("q")
      else:
-        raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
+        return super(Helmholtz, self).getCoefficient(name)
 
 class LameEquation(LinearPDE):
    """
@@ -2096,16 +2085,14 @@ class LameEquation(LinearPDE):
    def __init__(self,domain,debug=False):
       super(LameEquation, self).__init__(domain,\
                                          domain.getDim(),domain.getDim(),debug)
-      self.COEFFICIENTS={ "lame_lambda"  : PDECoefficient(PDECoefficient.INTERIOR,(),PDECoefficient.OPERATOR),
-                          "lame_mu"      : PDECoefficient(PDECoefficient.INTERIOR,(),PDECoefficient.OPERATOR),
-                          "F"            : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-                          "sigma"        : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_DIM),PDECoefficient.RIGHTHANDSIDE),
-                          "f"            : PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-                          "r"            : PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH),
-                          "q"            : PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH)}
+      self.introduceCoefficients(lame_lambda=PDECoef(PDECoef.INTERIOR,(),PDECoef.OPERATOR),
+                                 lame_mu=PDECoef(PDECoef.INTERIOR,(),PDECoef.OPERATOR),
+                                 F=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+                                 sigma=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE),
+                                 f=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE))
       self.setSymmetryOn()
 
-   def setValues(self,**coefficients):
+   def setValues(self,**coefficients): 
      """
      sets new values to coefficients
 
@@ -2130,7 +2117,7 @@ class LameEquation(LinearPDE):
      """
      super(LameEquation, self).setValues(**coefficients)
 
-   def getCoefficientOfGeneralPDE(self,name):
+   def getCoefficient(self,name): 
      """
      return the value of the coefficient name of the general PDE
 
@@ -2138,62 +2125,24 @@ class LameEquation(LinearPDE):
      @type name: C{string}
      @return: the value of the coefficient  name
      @rtype: L{Data<escript.Data>}
-     @raise IllegalCoefficient: if name is not one of coefficients
-                  "A", M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, M{r} or M{q}.
-     @note: This method is called by the assembling routine to map the Possion equation onto the general PDE.
+     @raise IllegalCoefficient: invalid coefficient name
      """
      if name == "A" :
-         out =self.createCoefficientOfGeneralPDE("A")
+         out =self.createCoefficient("A")
          for i in range(self.getDim()):
            for j in range(self.getDim()):
              out[i,i,j,j] += self.getCoefficient("lame_lambda")
              out[i,j,j,i] += self.getCoefficient("lame_mu")
              out[i,j,i,j] += self.getCoefficient("lame_mu")
          return out
-     elif name == "B" :
-         return escript.Data()
-     elif name == "C" :
-         return escript.Data()
-     elif name == "D" :
-         return escript.Data()
      elif name == "X" :
          return self.getCoefficient("sigma")
      elif name == "Y" :
          return self.getCoefficient("F")
-     elif name == "d" :
-         return escript.Data()
      elif name == "y" :
          return self.getCoefficient("f")
-     elif name == "d_contact" :
-         return escript.Data()
-     elif name == "y_contact" :
-         return escript.Data()
-     elif name == "A_reduced" :
-         return escript.Data()
-     elif name == "B_reduced" :
-         return escript.Data()
-     elif name == "C_reduced" :
-         return escript.Data()
-     elif name == "D_reduced" :
-         return escript.Data()
-     elif name == "X_reduced" :
-         return escript.Data()
-     elif name == "Y_reduced" :
-         return escript.Data()
-     elif name == "d_reduced" :
-         return escript.Data()
-     elif name == "y_reduced" :
-         return escript.Data()
-     elif name == "d_contact_reduced" :
-         return escript.Data()
-     elif name == "y_contact_reduced" :
-         return escript.Data()
-     elif name == "r" :
-         return self.getCoefficient("r")
-     elif name == "q" :
-         return self.getCoefficient("q")
      else:
-        raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
+        return super(LameEquation, self).getCoefficient(name)
 
 def LinearSinglePDE(domain,debug=False):
    """
@@ -2217,256 +2166,328 @@ def LinearPDESystem(domain,debug=False):
    """
    return LinearPDE(domain,numEquations=domain.getDim(),numSolutions=domain.getDim(),debug=debug)
 
-class TransportPDE(object):
+class TransportPDE(LinearProblem):
+   """
+   This class is used to define a transport problem given by a general linear, time dependend, second order PDE
+   for an unknown, non-negative, time-dependend function M{u} on a given domain defined through a L{Domain<escript.Domain>} object.
+
+   For a single equation with a solution with a single component the transport problem is defined in the following form:
+
+   M{(M+M_reduced)*u_t=-(grad(A[j,l]+A_reduced[j,l])*grad(u)[l]+(B[j]+B_reduced[j])u)[j]+(C[l]+C_reduced[l])*grad(u)[l]+(D+D_reduced)-grad(X+X_reduced)[j,j]+(Y+Y_reduced)}
+
+
+   where M{u_t} denotes the time derivative of M{u} and M{grad(F)} denotes the spatial derivative of M{F}. Einstein's summation convention,
+   ie. summation over indexes appearing twice in a term of a sum is performed, is used.
+   The coefficients M{M}, M{A}, M{B}, M{C}, M{D}, M{X} and M{Y} have to be specified through L{Data<escript.Data>} objects in the
+   L{Function<escript.Function>} and the coefficients M{M_reduced}, M{A_reduced}, M{B_reduced}, M{C_reduced}, M{D_reduced}, M{X_reduced} and M{Y_reduced} have to be specified through L{Data<escript.Data>} objects in the
+   L{ReducedFunction<escript.ReducedFunction>}. It is also allowed to use objects that can be converted into 
+   such L{Data<escript.Data>} objects. M{M} and M{M_reduced} are scalar, M{A} and M{A_reduced} are rank two, 
+   M{B}, M{C}, M{X}, M{B_reduced}, M{C_reduced} and M{X_reduced} are rank one and M{D}, M{D_reduced}, M{Y} and M{Y_reduced} are scalar.
+
+   The following natural boundary conditions are considered:
+
+   M{n[j]*((A[i,j]+A_reduced[i,j])*grad(u)[l]+(B+B_reduced)[j]*u+X[j]+X_reduced[j])+(d+d_reduced)*u+y+y_reduced=(m+m_reduced)*u_t}
+
+   where M{n} is the outer normal field. Notice that the coefficients M{A}, M{A_reduced}, M{B}, M{B_reduced}, M{X} and M{X_reduced} are defined in the transport problem. The coefficients M{m}, M{d} and M{y} and are each a scalar in the L{FunctionOnBoundary<escript.FunctionOnBoundary>} and the coefficients M{m_reduced}, M{d_reduced} and M{y_reduced} and are each a scalar in the L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}.
+
+   Constraints for the solution prescribing the value of the solution at certain locations in the domain. They have the form
+
+   M{u_t=r}  where M{q>0}
+
+   M{r} and M{q} are each scalar where M{q} is the characteristic function defining where the constraint is applied.
+   The constraints override any other condition set by the transport problem or the boundary condition.
+
+   The transport problem is symmetrical if
+
+   M{A[i,j]=A[j,i]}  and M{B[j]=C[j]} and M{A_reduced[i,j]=A_reduced[j,i]}  and M{B_reduced[j]=C_reduced[j]}
+
+   For a system and a solution with several components the transport problem has the form
+
+   M{(M[i,k]+M_reduced[i,k])*u[k]_t=-grad((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])[j]+(C[i,k,l]+C_reduced[i,k,l])*grad(u[k])[l]+(D[i,k]+D_reduced[i,k]*u[k]-grad(X[i,j]+X_reduced[i,j])[j]+Y[i]+Y_reduced[i] }
+
+   M{A} and M{A_reduced} are of rank four, M{B}, M{B_reduced}, M{C} and M{C_reduced} are each of rank three, M{M}, M{M_reduced}, M{D}, M{D_reduced}, M{X_reduced} and M{X} are each a rank two and M{Y} and M{Y_reduced} are of rank one. The natural boundary conditions take the form:
+
+   M{n[j]*((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]+X[i,j]+X_reduced[i,j])+(d[i,k]+d_reduced[i,k])*u[k]+y[i]+y_reduced[i]= (m[i,k]+m_reduced[i,k])*u[k]_t}
+
+   The coefficient M{d} and M{m} are of rank two and M{y} are of rank one with all in the L{FunctionOnBoundary<escript.FunctionOnBoundary>}. Constraints take the form and the coefficients M{d_reduced} and M{m_reduced} are of rank two and M{y_reduced} is of rank one with all in the L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}. 
+
+   Constraints take the form 
+
+   M{u[i]_t=r[i]}  where  M{q[i]>0}
+
+   M{r} and M{q} are each rank one. Notice that at some locations not necessarily all components must have a constraint.
+
+   The transport problem is symmetrical if
+
+        - M{M[i,k]=M[i,k]}
+        - M{M_reduced[i,k]=M_reduced[i,k]}
+        - M{A[i,j,k,l]=A[k,l,i,j]}
+        - M{A_reduced[i,j,k,l]=A_reduced[k,l,i,j]}
+        - M{B[i,j,k]=C[k,i,j]}
+        - M{B_reduced[i,j,k]=C_reduced[k,i,j]}
+        - M{D[i,k]=D[i,k]}
+        - M{D_reduced[i,k]=D_reduced[i,k]}
+        - M{m[i,k]=m[k,i]}
+        - M{m_reduced[i,k]=m_reduced[k,i]}
+        - M{d[i,k]=d[k,i]}
+        - M{d_reduced[i,k]=d_reduced[k,i]}
+
+   L{TransportPDE} also supports solution discontinuities over a contact region in the domain. To specify the conditions across the
+   discontinuity we are using the generalised flux M{J} which is in the case of a systems of PDEs and several components of the solution
+   defined as
+
+   M{J[i,j]=(A[i,j,k,l]+A_reduced[[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]+X[i,j]+X_reduced[i,j]}
+
+   For the case of single solution component and single PDE M{J} is defined
+
+   M{J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[j]+(B[i]+B_reduced[i])*u+X[i]+X_reduced[i]}
+
+   In the context of discontinuities M{n} denotes the normal on the discontinuity pointing from side 0 towards side 1
+   calculated from L{getNormal<escript.FunctionSpace.getNormal>} of L{FunctionOnContactZero<escript.FunctionOnContactZero>}. For a system of transport problems the contact condition takes the form
+
+   M{n[j]*J0[i,j]=n[j]*J1[i,j]=(y_contact[i]+y_contact_reduced[i])- (d_contact[i,k]+d_contact_reduced[i,k])*jump(u)[k]}
+
+   where M{J0} and M{J1} are the fluxes on side 0 and side 1 of the discontinuity, respectively. M{jump(u)}, which is the difference
+   of the solution at side 1 and at side 0, denotes the jump of M{u} across discontinuity along the normal calculated by
+   L{jump<util.jump>}.
+   The coefficient M{d_contact} is a rank two and M{y_contact} is a rank one both in the L{FunctionOnContactZero<escript.FunctionOnContactZero>} or L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
+   The coefficient M{d_contact_reduced} is a rank two and M{y_contact_reduced} is a rank one both in the L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
+   In case of a single PDE and a single component solution the contact condition takes the form
+
+   M{n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)}
+
+   In this case the coefficient M{d_contact} and M{y_contact} are each scalar both in the L{FunctionOnContactZero<escript.FunctionOnContactZero>} or L{FunctionOnContactOne<escript.FunctionOnContactOne>} and the coefficient M{d_contact_reduced} and M{y_contact_reduced} are each scalar both in the L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}
+
+   typical usage:
+
+      p=TransportPDE(dom)
+      p.setValue(M=1.,C=[-1.,0.])
+      p.setInitialSolution(u=exp(-length(dom.getX()-[0.1,0.1])**2)
+      t=0
+      dt=0.1
+      while (t<1.): 
+          u=p.solve(dt)
+
+   """
+   def __init__(self,domain,num_equations=None,numSolutions=None, theta=0.5,debug=False):
      """
-     Warning: This is still a very experimental. The class is still changing!
+     initializes a linear problem
 
-     Mu_{,t} =-(A_{ij}u_{,j})_j-(B_{j}u)_{,j} + C_{j} u_{,j} + Y_i + X_{i,i}
-     
-     u=r where q>0
-     
-     all coefficients are constant over time.
-
-     typical usage:
-
-         p=TransportPDE(dom)
-         p.setValue(M=Scalar(1.,Function(dom),C=Scalar(1.,Function(dom)*[-1.,0.])
-         p.setInitialSolution(u=exp(-length(dom.getX()-[0.1,0.1])**2)
-         t=0
-         dt=0.1
-         while (t<1.): 
-              u=p.solve(dt)
+     @param domain: domain of the PDE
+     @type domain: L{Domain<escript.Domain>}
+     @param numEquations: number of equations. If numEquations==None the number of equations
+                          is extracted from the coefficients.
+     @param numSolutions: number of solution components. If  numSolutions==None the number of solution components
+                          is extracted from the coefficients.
+     @param debug: if True debug informations are printed.
+     @param theta: time stepping control: =1 backward Euler, =0 forward Euler, =0.5 Crank-Nicholson scheme, U{see here<http://en.wikipedia.org/wiki/Crank-Nicolson_method>}.
 
      """
-     def __init__(self,domain,num_equations=1,theta=0.5,useSUPG=False,trace=True):
-        self.__domain=domain
-        self.__num_equations=num_equations
-        self.__useSUPG=useSUPG
-        self.__trace=trace
-        self.__theta=theta
-        self.__matrix_type=0
-        self.__reduced=True
-        self.__reassemble=True
-        if self.__useSUPG:
-           self.__pde=LinearPDE(domain,numEquations=num_equations,numSolutions=num_equations,debug=trace)
-           self.__pde.setSymmetryOn()
-           self.__pde.setReducedOrderOn()
-        else: 
-           self.__transport_problem=self.__getNewTransportProblem()
-        self.setTolerance()
-        self.__M=escript.Data()
-        self.__A=escript.Data()
-        self.__B=escript.Data()
-        self.__C=escript.Data()
-        self.__D=escript.Data()
-        self.__X=escript.Data()
-        self.__Y=escript.Data()
-        self.__d=escript.Data()
-        self.__y=escript.Data()
-        self.__d_contact=escript.Data()
-        self.__y_contact=escript.Data()
-        self.__r=escript.Data()
-        self.__q=escript.Data()
+     if theta<0 or theta>1:
+              raise ValueError,"theta (=%s) needs to be between 0 and 1 (inclusive)."
+     super(TransportPDE, self).__init__(domain,num_equations,numSolutions,debug)
 
-     def trace(self,text):
-             if self.__trace: print text
-     def getSafeTimeStepSize(self):
-        if self.__useSUPG:
-            if self.__reassemble:
-               h=self.__domain.getSize()
-               dt=None
-               if not self.__A.isEmpty():
-                  dt2=util.inf(h**2*self.__M/util.length(self.__A))
-                  if dt == None:
-                     dt = dt2
-                  else:
-                     dt=1./(1./dt+1./dt2)
-               if not self.__B.isEmpty():
-                  dt2=util.inf(h*self.__M/util.length(self.__B))
-                  if dt == None:
-                     dt = dt2
-                  else:
-                     dt=1./(1./dt+1./dt2)
-               if not  self.__C.isEmpty():
-                  dt2=util.inf(h*self.__M/util.length(self.__C))
-                  if dt == None:
-                     dt = dt2
-                  else:
-                     dt=1./(1./dt+1./dt2)
-               if not self.__D.isEmpty():
-                  dt2=util.inf(self.__M/util.length(self.__D))
-                  if dt == None:
-                     dt = dt2
-                  else:
-                     dt=1./(1./dt+1./dt2)
-               self.__dt = dt/2
-            return self.__dt
-        else:
-            return self.__getTransportProblem().getSafeTimeStepSize()
-     def getDomain(self):
-        return self.__domain
-     def getTheta(self):
-        return self.__theta
-     def getNumEquations(self):
-        return self.__num_equations
-     def setReducedOn(self):
-          if not self.reduced():
-              if self.__useSUPG:
-                 self.__pde.setReducedOrderOn()
-              else:
-                 self.__transport_problem=self.__getNewTransportProblem()
-          self.__reduced=True
-     def setReducedOff(self):
-          if self.reduced():
-              if self.__useSUPG:
-                 self.__pde.setReducedOrderOff()
-              else:
-                 self.__transport_problem=self.__getNewTransportProblem()
-          self.__reduced=False
-     def reduced(self):
-         return self.__reduced
-     def getFunctionSpace(self):
-        if self.reduced():
-           return escript.ReducedSolution(self.getDomain())
-        else:
-           return escript.Solution(self.getDomain())
+     self.__theta=theta
+     #
+     #   the coefficients of the transport problem
+     #
+     self.introduceCoefficients(
+       M=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       A=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR),
+       B=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       C=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR),
+       D=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       X=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE),
+       Y=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+       m=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       d=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       y=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+       d_contact=PDECoef(PDECoef.CONTACT,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       y_contact=PDECoef(PDECoef.CONTACT,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+       M_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       A_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR),
+       B_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       C_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR),
+       D_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       X_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE),
+       Y_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+       m_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       d_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       y_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+       d_contact_reduced=PDECoef(PDECoef.CONTACT_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       y_contact_reduced=PDECoef(PDECoef.CONTACT_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+       r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE),
+       q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH) )
 
-     def setTolerance(self,tol=1.e-8):
-        self.__tolerance=tol
-        if self.__useSUPG:
-              self.__pde.setTolerance(self.__tolerance)
+   def __str__(self):
+     """
+     returns string representation of the transport problem
 
-     def __getNewTransportProblem(self):
+     @return: a simple representation of the transport problem
+     @rtype: C{str}
+     """
+     return "<TransportPDE %d>"%id(self)
+
+   def getTheta(self):
+      """
+      returns the time stepping control parameter
+      @rtype: float
+      """
+      return self.__theta
+   def getRequiredSystemType(self):
+      """
+      returns the system type which needs to be used by the current set up.
+      """
+      return 0
+      return self.getDomain().getTransportMatrixTypeId(self.getSolverMethod()[0],self.getSolverMethod()[1],self.getSolverPackage(),self.isSymmetric())
+
+   def checkSymmetry(self,verbose=True):
+      """
+      test the transport problem for symmetry.
+
+      @param verbose: if equal to True or not present a report on coefficients which are breaking the symmetry is printed.
+      @type verbose: C{bool}
+      @return:  True if the PDE is symmetric.
+      @rtype: C{bool}
+      @note: This is a very expensive operation. It should be used for degugging only! The symmetry flag is not altered.
+      """
+      out=True
+      out=out and self.checkSymmetricTensor("M", verbose)
+      out=out and self.checkSymmetricTensor("M_reduced", verbose)
+      out=out and self.checkSymmetricTensor("A", verbose)
+      out=out and self.checkSymmetricTensor("A_reduced", verbose)
+      out=out and self.checkReciprocalSymmetry("B","C", verbose)
+      out=out and self.checkReciprocalSymmetry("B_reduced","C_reduced", verbose)
+      out=out and self.checkSymmetricTensor("D", verbose)
+      out=out and self.checkSymmetricTensor("D_reduced", verbose)
+      out=out and self.checkSymmetricTensor("m", verbose)
+      out=out and self.checkSymmetricTensor("m_reduced", verbose)
+      out=out and self.checkSymmetricTensor("d", verbose)
+      out=out and self.checkSymmetricTensor("d_reduced", verbose)
+      out=out and self.checkSymmetricTensor("d_contact", verbose)
+      out=out and self.checkSymmetricTensor("d_contact_reduced", verbose)
+      return out
+
+   def setValue(self,**coefficients): 
+      """
+      sets new values to coefficients
+
+      @param coefficients: new values assigned to coefficients
+      @keyword M: value for coefficient M.
+      @type M: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
+      @keyword M_reduced: value for coefficient M_reduced.
+      @type M_reduced: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.ReducedFunction>}.
+      @keyword A: value for coefficient A.
+      @type A: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
+      @keyword A_reduced: value for coefficient A_reduced.
+      @type A_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunction<escript.ReducedFunction>}.
+      @keyword B: value for coefficient B
+      @type B: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
+      @keyword B_reduced: value for coefficient B_reduced
+      @type B_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunction<escript.ReducedFunction>}.
+      @keyword C: value for coefficient C
+      @type C: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
+      @keyword C_reduced: value for coefficient C_reduced
+      @type C_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunction<escript.ReducedFunction>}.
+      @keyword D: value for coefficient D
+      @type D: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
+      @keyword D_reduced: value for coefficient D_reduced
+      @type D_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunction<escript.ReducedFunction>}.
+      @keyword X: value for coefficient X
+      @type X: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
+      @keyword X_reduced: value for coefficient X_reduced
+      @type X_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunction<escript.ReducedFunction>}.
+      @keyword Y: value for coefficient Y
+      @type Y: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
+      @keyword Y_reduced: value for coefficient Y_reduced
+      @type Y_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunction<escript.Function>}.
+      @keyword m: value for coefficient m
+      @type m: any type that can be casted to L{Data<escript.Data>} object on L{FunctionOnBoundary<escript.FunctionOnBoundary>}.
+      @keyword m_reduced: value for coefficient m_reduced
+      @type m_reduced: any type that can be casted to L{Data<escript.Data>} object on L{FunctionOnBoundary<escript.ReducedFunctionOnBoundary>}.
+      @keyword d: value for coefficient d
+      @type d: any type that can be casted to L{Data<escript.Data>} object on L{FunctionOnBoundary<escript.FunctionOnBoundary>}.
+      @keyword d_reduced: value for coefficient d_reduced
+      @type d_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}.
+      @keyword y: value for coefficient y
+      @type y: any type that can be casted to L{Data<escript.Data>} object on L{FunctionOnBoundary<escript.FunctionOnBoundary>}.
+      @keyword d_contact: value for coefficient d_contact
+      @type d_contact: any type that can be casted to L{Data<escript.Data>} object on L{FunctionOnContactOne<escript.FunctionOnContactOne>} or  L{FunctionOnContactZero<escript.FunctionOnContactZero>}.
+      @keyword d_contact_reduced: value for coefficient d_contact_reduced
+      @type d_contact_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>} or  L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>}.
+      @keyword y_contact: value for coefficient y_contact
+      @type y_contact: any type that can be casted to L{Data<escript.Data>} object on L{FunctionOnContactOne<escript.FunctionOnContactOne>} or  L{FunctionOnContactZero<escript.FunctionOnContactZero>}.
+      @keyword y_contact_reduced: value for coefficient y_contact_reduced
+      @type y_contact_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunctionOnContactOne<escript.FunctionOnContactOne>} or L{ReducedFunctionOnContactZero<escript.FunctionOnContactZero>}.
+      @keyword r: values prescribed to the solution at the locations of constraints
+      @type r: any type that can be casted to L{Data<escript.Data>} object on L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
+               depending of reduced order is used for the solution.
+      @keyword q: mask for location of constraints
+      @type q: any type that can be casted to L{Data<escript.Data>} object on L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
+               depending of reduced order is used for the representation of the equation.
+      @raise IllegalCoefficient: if an unknown coefficient keyword is used.
+      """
+      super(TransportPDE,self).setValue(**coefficients)
+
+   def createOperator(self): 
        """
-       returns an instance of a new operator
+       returns an instance of a new transport operator
        """
        self.trace("New Transport problem is allocated.")
        return self.getDomain().newTransportProblem( \
                                self.getTheta(),
                                self.getNumEquations(), \
-                               self.getFunctionSpace(), \
-                               self.__matrix_type)
-           
-     def __getNewSolutionVector(self):
-         if self.getNumEquations() ==1 :
-                out=escript.Data(0.0,(),self.getFunctionSpace())
-         else:
-                out=escript.Data(0.0,(self.getNumEquations(),),self.getFunctionSpace())
-         return out
+                               self.getFunctionSpaceForSolution(), \
+                               self.getSystemType())
 
-     def __getTransportProblem(self):
-       if self.__reassemble:
-             self.__source=self.__getNewSolutionVector()
-             self.__transport_problem.reset()
-             self.getDomain().addPDEToTransportProblem(
-                         self.__transport_problem,
-                         self.__source,
-                         self.__M,
-                         self.__A,
-                         self.__B,
-                         self.__C,
-                         self.__D,
-                         self.__X,
-                         self.__Y,
-                         self.__d,
-                         self.__y,
-                         self.__d_contact,
-                         self.__y_contact)
-             self.__transport_problem.insertConstraint(self.__source,self.__q,self.__r)
-             self.__reassemble=False
-       return self.__transport_problem
-     def setValue(self,M=None, A=None, B=None, C=None, D=None, X=None, Y=None, 
-                  d=None, y=None, d_contact=None, y_contact=None, q=None, r=None):
-             if not M==None:
-                  self.__reassemble=True
-                  self.__M=M
-             if not A==None:
-                  self.__reassemble=True
-                  self.__A=A
-             if not B==None:
-                  self.__reassemble=True
-                  self.__B=B
-             if not C==None:
-                  self.__reassemble=True
-                  self.__C=C
-             if not D==None:
-                  self.__reassemble=True
-                  self.__D=D
-             if not X==None:
-                  self.__reassemble=True
-                  self.__X=X
-             if not Y==None:
-                  self.__reassemble=True
-                  self.__Y=Y
-             if not d==None:
-                  self.__reassemble=True
-                  self.__d=d
-             if not y==None:
-                  self.__reassemble=True
-                  self.__y=y
-             if not d_contact==None:
-                  self.__reassemble=True
-                  self.__d_contact=d_contact
-             if not y_contact==None:
-                  self.__reassemble=True
-                  self.__y_contact=y_contact
-             if not q==None:
-                  self.__reassemble=True
-                  self.__q=q
-             if not r==None:
-                  self.__reassemble=True
-                  self.__r=r
+   def getSolution(self,dt,**options): 
+       """
+       returns the solution of the problem
+       @return: the solution
+       @rtype: L{Data<escript.Data>}
 
-     def setInitialSolution(self,u):
-             if self.__useSUPG:
-                 self.__u=util.interpolate(u,self.getFunctionSpace())
-             else:
-                 self.__transport_problem.setInitialValue(util.interpolate(u,self.getFunctionSpace()))
+       @note: This method is overwritten when implementing a particular linear problem.
+       """
+       if not self.isSolutionValid():
+           options[self.TOLERANCE_KEY]=self.getTolerance()
+           self.setSolution(self.getOperator().solve(self.getRightHandSide(),dt,options))
+           self.validSolution()
+       return self.getCurrentSolution()
+   def setInitialSolution(self,u):
+       self.getOperator().setInitialValue(util.interpolate(u,self.getFunctionSpaceForSolution()))
+   def getSafeTimeStepSize(self):
+       return self.getOperator().getSafeTimeStepSize()
 
-     def solve(self,dt,**kwarg):
-           if self.__useSUPG:
-                if self.__reassemble:
-                    self.__pde.setValue(D=self.__M,d=self.__d,d_contact=self.__d_contact,q=self.__q) # ,r=self.__r)
-                    self.__reassemble=False
-                dt2=self.getSafeTimeStepSize()
-                nn=max(math.ceil(dt/self.getSafeTimeStepSize()),1.)
-                dt2=dt/nn
-                nnn=0
-                u=self.__u
-                self.trace("number of substeps is %d."%nn)
-                while nnn<nn :
-                    self.__setSUPG(u,u,dt2/2)
-                    u_half=self.__pde.getSolution(verbose=True)
-                    self.__setSUPG(u,u_half,dt2)
-                    u=self.__pde.getSolution(verbose=True)
-                    nnn+=1
-                self.__u=u
-                return self.__u
-           else:
-               kwarg["tolerance"]=self.__tolerance
-               tp=self.__getTransportProblem()
-               return tp.solve(self.__source,dt,kwarg)
-     def __setSUPG(self,u0,u,dt):
-            g=util.grad(u)
-            X=0
-            Y=self.__M*u0
-            X=0
-            self.__pde.setValue(r=u0)
-            if not self.__A.isEmpty():
-               X=X+dt*util.matrixmult(self.__A,g)
-            if not self.__B.isEmpty():
-               X=X+dt*self.__B*u
-            if not  self.__C.isEmpty():
-               Y=Y+dt*util.inner(self.__C,g)
-            if not self.__D.isEmpty():
-               Y=Y+dt*self.__D*u
-            if not self.__X.isEmpty():
-               X=X+dt*self.__X
-            if not self.__Y.isEmpty():
-               Y=Y+dt*self.__Y
-            self.__pde.setValue(X=X,Y=Y)
-            if not self.__y.isEmpty():
-               self.__pde.setValue(y=dt*self.__y)
-            if not self.__y_contact.isEmpty():
-               self.__pde.setValue(y=dt*self.__y_contact)
-            self.__pde.setValue(r=u0)
+   def getSystem(self): 
+       """
+       return the operator and right hand side of the PDE
+
+       @return: the discrete version of the PDE
+       @rtype: C{tuple} of L{Operator,<escript.Operator>} and L{Data<escript.Data>}.
+
+       @note: This method is overwritten when implementing a particular linear problem.
+       """
+       if not self.isOperatorValid() or not self.isRightHandSideValid():
+          self.resetRightHandSide()
+          righthandside=self.getCurrentRightHandSide()
+          self.resetOperator()
+          operator=self.getCurrentOperator()
+          self.getDomain().addPDEToTransportProblem(
+                            operator,
+                            righthandside,
+                            self.getCoefficient("M"),
+                            self.getCoefficient("A"),
+                            self.getCoefficient("B"),
+                            self.getCoefficient("C"),
+                            self.getCoefficient("D"),
+                            self.getCoefficient("X"),
+                            self.getCoefficient("Y"),
+                            self.getCoefficient("d"),
+                            self.getCoefficient("y"),
+                            self.getCoefficient("d_contact"),
+                            self.getCoefficient("y_contact"))
+          operator.insertConstraint(righthandside,self.getCoefficient("q"),self.getCoefficient("r"))
+          self.trace("New system has been built.")
+          self.validOperator()
+          self.validRightHandSide()
+       return (self.getCurrentOperator(), self.getCurrentRightHandSide())
