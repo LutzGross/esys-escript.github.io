@@ -40,10 +40,6 @@ extern "C" {
 #include <boost/python/numeric.hpp>
 #include <boost/smart_ptr.hpp>
 
-#include "Cat.h"
-#include "Dog.h"
-#include "SnowCat.h"
-
 using namespace boost::python;
 
 /*! \mainpage Esys Documentation
@@ -121,39 +117,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   class_<escript::AbstractContinuousDomain, bases<escript::AbstractDomain> >("ContinuousDomain",no_init)
        .def("getSystemMatrixTypeId",&escript::AbstractContinuousDomain::getSystemMatrixTypeId);
-
-
-
-  class_<escript::Cat, boost::shared_ptr<escript::Cat>,init<>() >("Cat")
-	.def(init<const escript::Cat&>())
-	.def("get",&escript::Cat::getValue)
-	.def("set",&escript::Cat::setValue)
-	.def("returnSelf",&escript::Cat::returnSelf)
-	.def("add",&escript::Cat::add)
-	.def("getConst1", &escript::Cat::getConst1)
-	.def("getConst2", &escript::Cat::getConst2)
-	.def("share",&escript::Cat::makeShared);
-
-  class_<escript::SnowCat, boost::shared_ptr<escript::SnowCat>,init<>() >("SnowCat")
-	.def(init<const escript::SnowCat&>())
-	.def("get",&escript::SnowCat::getValue)
-	.def("set",&escript::SnowCat::setValue)
-	.def("returnSelf",&escript::SnowCat::returnSelf)
-	.def("returnSelfConst",&escript::SnowCat::returnSelfConst)
-	.def("add",&escript::SnowCat::add)
-	.def("getConst1", &escript::SnowCat::getConst1)
-	.def("getConst2", &escript::SnowCat::getConst2)
-	.def("share",&escript::SnowCat::makeShared);
-
-  class_<escript::Dog, boost::intrusive_ptr<escript::Dog>,init<>() >("Dog")
-	.def(init<const escript::Dog&>())
-	.def("get",&escript::Dog::getValue)
-	.def("set",&escript::Dog::setValue)
-	.def("returnSelf",&escript::Dog::returnSelf)
-	.def("add",&escript::Dog::add)
-	.def("getConst1", &escript::Dog::getConst1)
-	.def("getConst2", &escript::Dog::getConst2)
-	.def("share",&escript::Dog::makeShared);
 
   //
   // Interface for FunctionSpace
