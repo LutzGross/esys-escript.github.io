@@ -52,7 +52,9 @@ If one does not exist yet it creates one.
 
 Note: This is _not_ equivalent to weak_ptr::lock.
 */
+   ESCRIPT_DLL_API
    Domain_ptr getPtr();
+   ESCRIPT_DLL_API
    const_Domain_ptr getPtr() const; 
 
    // structure holding values for X, size and normal
