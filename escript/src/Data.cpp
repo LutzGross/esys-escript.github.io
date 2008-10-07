@@ -469,25 +469,105 @@ Data::setToZero()
   throw DataException("Error - Data can not be set to zero.");
 }
 
+// void
+// Data::copyWithMask(const Data& other,
+//                    const Data& mask)
+// {
+//   if (other.isEmpty() || mask.isEmpty())
+//   {
+// 	throw DataException("Error - copyWithMask not permitted using instances of DataEmpty.");
+//   }
+//   Data mask1;
+//   Data mask2;
+//   mask1 = mask.wherePositive();
+// 
+//   mask2.copy(mask1);
+//   mask1 *= other;
+// 
+//   mask2 *= *this;
+//   mask2 = *this - mask2;
+//   *this = mask1 + mask2;
+// }
+
 void
 Data::copyWithMask(const Data& other,
                    const Data& mask)
 {
+  // 1. Interpolate if required so all Datas use the same FS as this
+  // 2. Tag or Expand so that all Data's are the same type
+  // 3. Iterate over the data vectors copying values where mask is >0
   if (other.isEmpty() || mask.isEmpty())
   {
 	throw DataException("Error - copyWithMask not permitted using instances of DataEmpty.");
   }
-  Data mask1;
-  Data mask2;
-  mask1 = mask.wherePositive();
-
-  mask2.copy(mask1);
-  mask1 *= other;
-
-  mask2 *= *this;
-  mask2 = *this - mask2;
-  *this = mask1 + mask2;
+  Data other2(other);
+  Data mask2(mask);
+  FunctionSpace myFS=getFunctionSpace();
+  FunctionSpace oFS=other2.getFunctionSpace();
+  FunctionSpace mFS=mask2.getFunctionSpace();
+  if (oFS!=myFS)
+  {
+     if (other2.probeInterpolation(myFS))
+     {
+	other2=other2.interpolate(myFS);
+     }
+     else
+     {
+	throw DataException("Error - copyWithMask: other FunctionSpace is not compatible with this one.");
+     }
+  }
+  if (mFS!=myFS)
+  {
+     if (mask2.probeInterpolation(myFS))
+     {
+	mask2=mask2.interpolate(myFS);
+     }
+     else
+     {
+	throw DataException("Error - copyWithMask: mask FunctionSpace is not compatible with this one.");
+     }
+  }
+  			// Ensure that all args have the same type
+  if (this->isExpanded() || mask2.isExpanded() || other2.isExpanded())
+  {
+	this->expand();
+	other2.expand();
+	mask2.expand();
+  }
+  else if (this->isTagged() || mask2.isTagged() || other2.isTagged())
+  {
+	this->tag();
+	other2.tag();
+	mask2.tag();
+  }
+  else if (this->isConstant() && mask2.isConstant() && other2.isConstant())
+  {
+  }
+  else
+  {
+	throw DataException("Error - Unknown DataAbstract passed to copyWithMask.");
+  }
+  // Now we iterate over the elements
+  DataVector& self=m_data->getVector();
+  const DataVector& ovec=other2.m_data->getVector();
+  const DataVector& mvec=mask2.m_data->getVector();
+  if ((self.size()!=ovec.size()) || (self.size()!=mvec.size()))
+  {
+	throw DataException("Error - size mismatch in arguments to copyWithMask.");
+  }
+  size_t num_points=self.size();
+  long i;
+  #pragma omp parallel for private(i) schedule(static)
+  for (i=0;i<num_points;++i)
+  {
+	if (mvec[i]>0)
+	{
+	   self[i]=ovec[i];
+	}
+  }
 }
+
+
 
 bool
 Data::isExpanded() const
