@@ -837,19 +837,19 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
 	mypde.setSolverMethod(mypde.BICGSTAB,mypde.RILU)
         u=mypde.getSolution(verbose=self.VERBOSE)
         self.failUnless(self.check(u,1.),'solution is wrong.')
-    def Off_test_MINRES_JACOBI(self):
+    def test_MINRES_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
 	mypde.setSolverMethod(mypde.MINRES,mypde.JACOBI)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
         u=mypde.getSolution(verbose=self.VERBOSE)
         self.failUnless(self.check(u,1.),'solution is wrong.')
-    def Off_test_MINRES_ILU0(self):
+    def test_MINRES_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
 	mypde.setSolverMethod(mypde.MINRES,mypde.ILU0)
         u=mypde.getSolution(verbose=self.VERBOSE)
         self.failUnless(self.check(u,1.),'solution is wrong.')
-    def Off_test_MINRES_RILU(self):
+    def test_MINRES_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
 	mypde.setSolverMethod(mypde.MINRES,mypde.RILU)
