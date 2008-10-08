@@ -453,13 +453,25 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
-     return the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, package
+     return the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, package, perconditioner,
      and symmetric matrix is used.
+     \param precondioner
      \param solver 
      \param symmetry 
   */
   FINLEY_DLL_API
-  virtual int getSystemMatrixTypeId(const int solver, const int package, const bool symmetry) const;
+  virtual int getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
+
+  /**
+     \brief
+     return the identifier of the transport problem type to be used when a particular solver, perconditioner, package
+     and symmetric matrix is used.
+     \param precondioner
+     \param solver 
+     \param symmetry 
+  */
+  FINLEY_DLL_API
+  virtual int getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
 
   /**
      \brief

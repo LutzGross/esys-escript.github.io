@@ -46,7 +46,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from esys.escript.util import Lsup,kronecker,interpolate,whereZero
 from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data, Tensor4, Tensor
-from esys.escript.linearPDEs import LinearPDE,IllegalCoefficientValue,Poisson, IllegalCoefficientFunctionSpace
+from esys.escript.linearPDEs import LinearPDE,IllegalCoefficientValue,Poisson, IllegalCoefficientFunctionSpace, TransportPDE, IllegalCoefficient
 import numarray
 import unittest
 
@@ -182,21 +182,16 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     N=4
     def test_setCoefficient_WithIllegalFunctionSpace(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        try: 
-           success=True
-           mypde.setValue(C=Vector(0.,FunctionOnBoundary(self.domain)))
-        except IllegalCoefficientFunctionSpace:
-           success=False
-        self.failUnless(not success,'inapropraite function space accepted')
-        
+        self.failUnlessRaises(IllegalCoefficientFunctionSpace,mypde.setValue, C=Vector(0.,FunctionOnBoundary(self.domain)))
+
+    def test_setCoefficient_WithWrongName(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        self.failUnlessRaises(IllegalCoefficient, mypde.setValue, ROMA=0.)
+
     def test_resetCoefficient_WithWrongShape(self):
         mypde=LinearPDE(self.domain,numEquations=2,debug=self.DEBUG)
-        try: 
-           success=True
-           mypde.setValue(C=0.)
-        except IllegalCoefficientValue:
-           success=False
-        self.failUnless(not success,'illegal shape accepted')
+        self.failUnlessRaises(IllegalCoefficientValue, mypde.setValue, C=0.)
+
     def test_reducedOn(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         x=self.domain.getX()
@@ -208,12 +203,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_attemptToChangeOrderAfterDefinedCoefficient(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(D=1.)
-        try: 
-           success=True
-           mypde.setReducedOrderOn()
-        except RuntimeError:
-           success=False
-        self.failUnless(not success,'alterion of order after coefficient is changed not detected.')
+        self.failUnlessRaises(RuntimeError,mypde.setReducedOrderOn)
 
     def test_reducedOnConfig(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -817,6 +807,12 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.setSolverMethod(mypde.PCG,mypde.ILU0)
         u=mypde.getSolution(verbose=self.VERBOSE)
         self.failUnless(self.check(u,1.),'solution is wrong.')
+    def test_PCG_RILU(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+        mypde.setSolverMethod(mypde.PCG,mypde.RILU)
+        u=mypde.getSolution(verbose=self.VERBOSE)
+        self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_DIRECT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -835,6 +831,48 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
 	mypde.setSolverMethod(mypde.BICGSTAB,mypde.ILU0)
         u=mypde.getSolution(verbose=self.VERBOSE)
         self.failUnless(self.check(u,1.),'solution is wrong.')
+    def test_BICGSTAB_RILU(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+	mypde.setSolverMethod(mypde.BICGSTAB,mypde.RILU)
+        u=mypde.getSolution(verbose=self.VERBOSE)
+        self.failUnless(self.check(u,1.),'solution is wrong.')
+    def Off_test_MINRES_JACOBI(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+	mypde.setSolverMethod(mypde.MINRES,mypde.JACOBI)
+        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+        u=mypde.getSolution(verbose=self.VERBOSE)
+        self.failUnless(self.check(u,1.),'solution is wrong.')
+    def Off_test_MINRES_ILU0(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+	mypde.setSolverMethod(mypde.MINRES,mypde.ILU0)
+        u=mypde.getSolution(verbose=self.VERBOSE)
+        self.failUnless(self.check(u,1.),'solution is wrong.')
+    def Off_test_MINRES_RILU(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+	mypde.setSolverMethod(mypde.MINRES,mypde.RILU)
+        u=mypde.getSolution(verbose=self.VERBOSE)
+        self.failUnless(self.check(u,1.),'solution is wrong.')
+    def test_TFQMR_JACOBI(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+	mypde.setSolverMethod(mypde.TFQMR,mypde.JACOBI)
+        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+        u=mypde.getSolution(verbose=self.VERBOSE)
+        self.failUnless(self.check(u,1.),'solution is wrong.')
+    def test_TFQMR_ILU0(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+	mypde.setSolverMethod(mypde.TFQMR,mypde.ILU0)
+        u=mypde.getSolution(verbose=self.VERBOSE)
+        self.failUnless(self.check(u,1.),'solution is wrong.')
+    def test_TFQMR_RILU(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+	mypde.setSolverMethod(mypde.TFQMR,mypde.RILU)
+        u=mypde.getSolution(verbose=self.VERBOSE)
+        self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_PRES20_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -847,18 +885,30 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
 	mypde.setSolverMethod(mypde.PRES20,mypde.ILU0)
         u=mypde.getSolution(verbose=self.VERBOSE)
         self.failUnless(self.check(u,1.),'solution is wrong.')
+    def test_PRES20_RILU(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+	mypde.setSolverMethod(mypde.PRES20,mypde.RILU)
+        u=mypde.getSolution(verbose=self.VERBOSE)
+        self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
 	mypde.setSolverMethod(mypde.GMRES,mypde.JACOBI)
-        # u=mypde.getSolution(verbose=self.VERBOSE,truncation=5)
-        u=mypde.getSolution(verbose=self.VERBOSE)
+        u=mypde.getSolution(verbose=self.VERBOSE,truncation=50)
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
 	mypde.setSolverMethod(mypde.GMRES,mypde.ILU0)
-        # u=mypde.getSolution(verbose=self.VERBOSE,truncation=5)
+        u=mypde.getSolution(verbose=self.VERBOSE,truncation=50)
+        u=mypde.getSolution(verbose=self.VERBOSE)
+        self.failUnless(self.check(u,1.),'solution is wrong.')
+    def test_GMRESnoRestart_RILU(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+	mypde.setSolverMethod(mypde.GMRES,mypde.RILU)
+        u=mypde.getSolution(verbose=self.VERBOSE,truncation=50)
         u=mypde.getSolution(verbose=self.VERBOSE)
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRES_JACOBI(self):
@@ -873,6 +923,12 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
 	mypde.setSolverMethod(mypde.GMRES,mypde.ILU0)
         u=mypde.getSolution(verbose=self.VERBOSE)
         self.failUnless(self.check(u,1.),'solution is wrong.')
+    def test_GMRES_RILU(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+	mypde.setSolverMethod(mypde.GMRES,mypde.RILU)
+        u=mypde.getSolution(verbose=self.VERBOSE)
+        self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRES_truncation_restart_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -883,6 +939,12 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
 	mypde.setSolverMethod(mypde.GMRES,mypde.ILU0)
+        u=mypde.getSolution(verbose=self.VERBOSE,truncation=10,restart=20)
+        self.failUnless(self.check(u,1.),'solution is wrong.')
+    def test_GMRES_truncation_restart_RILU(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+	mypde.setSolverMethod(mypde.GMRES,mypde.RILU)
         u=mypde.getSolution(verbose=self.VERBOSE,truncation=10,restart=20)
         self.failUnless(self.check(u,1.),'solution is wrong.')
     #
@@ -1197,3 +1259,735 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
         u=mypde.getSolution(verbose=self.VERBOSE)
         self.failUnless(self.check(u,0.5),'second solution is wrong.')
 
+
+class Test_TransportPDE(Test_linearPDEs):
+    N=4
+    def test_init_theta(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG, theta=1.)
+        self.failUnless(mypde.getTheta()==1.,'wrong theta')
+    def test_init_invalid_theta(self):
+        self.failUnlessRaises(ValueError,TransportPDE,self.domain,debug=self.DEBUG, theta=-1.)
+
+    def test_setCoefficient_WithWrongName(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        self.failUnlessRaises(IllegalCoefficient,mypde.setValue, ROMA=Vector(0.,FunctionOnBoundary(self.domain)))
+
+    def test_setCoefficient_WithIllegalFunctionSpace(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        self.failUnlessRaises(IllegalCoefficientFunctionSpace,mypde.setValue,C=Vector(0.,FunctionOnBoundary(self.domain)))
+        
+    def test_resetCoefficient_WithWrongShape(self):
+        mypde=TransportPDE(self.domain,numEquations=2,debug=self.DEBUG)
+        self.failUnlessRaises(IllegalCoefficientValue, mypde.setValue, C=0.)
+
+    def test_setInitialSolution_scalar(self):
+        mypde=TransportPDE(self.domain,numSolutions=1,debug=self.DEBUG)
+        mypde.setInitialSolution(1.)
+
+    def test_setInitialSolution_scalar_negative(self):
+        mypde=TransportPDE(self.domain,numSolutions=1,debug=self.DEBUG)
+        self.failUnlessRaises(RuntimeError,mypde.setInitialSolution,-1.)
+
+    def test_setInitialSolution_scalar_WithWrongShape(self):
+        mypde=TransportPDE(self.domain,numSolutions=1,debug=self.DEBUG)
+        self.failUnlessRaises(ValueError,mypde.setInitialSolution,[1.,2.])
+
+    def test_setInitialSolution_system(self):
+        mypde=TransportPDE(self.domain,numSolutions=2,debug=self.DEBUG)
+        mypde.setInitialSolution([1.,2.])
+
+    def test_setInitialSolution_system(self):
+        mypde=TransportPDE(self.domain,numSolutions=2,debug=self.DEBUG)
+        self.failUnlessRaises(RuntimeError,mypde.setInitialSolution,[-1,2.])
+
+    def test_setInitialSolution_system_WithWrongShape(self):
+        mypde=TransportPDE(self.domain,numSolutions=2,debug=self.DEBUG)
+        self.failUnlessRaises(ValueError,mypde.setInitialSolution,1.)
+
+
+    def test_attemptToChangeOrderAfterDefinedCoefficient(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(D=1.)
+        self.failUnlessRaises(RuntimeError, mypde.setReducedOrderOn)
+
+    def test_reducedOnConfig(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setReducedOrderOn()
+        self.failUnlessEqual((mypde.getFunctionSpaceForSolution(),mypde.getFunctionSpaceForEquation()),(ReducedSolution(self.domain),ReducedSolution(self.domain)),"reduced function spaces expected.")
+    #
+    #  set coefficients for scalars:
+    #
+    def test_setCoefficient_M_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(M=1.)
+        coeff=mypde.getCoefficient("M")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),Function(self.domain),1,1))
+    def test_setCoefficient_A_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=numarray.ones((d,d)))
+        coeff=mypde.getCoefficient("A")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((d,d),Function(self.domain),1,1))
+    def test_setCoefficient_B_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(B=numarray.ones((d,)))
+        coeff=mypde.getCoefficient("B")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((d,),Function(self.domain),1,1))
+    def test_setCoefficient_C_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(C=numarray.ones((d,)))
+        coeff=mypde.getCoefficient("C")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((d,),Function(self.domain),1,1))
+    def test_setCoefficient_D_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(D=1.)
+        coeff=mypde.getCoefficient("D")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),Function(self.domain),1,1))
+    def test_setCoefficient_X_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(X=numarray.ones((d,)))
+        coeff=mypde.getCoefficient("X")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((d,),Function(self.domain),1))
+    def test_setCoefficient_Y_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(Y=1.)
+        coeff=mypde.getCoefficient("Y")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((),Function(self.domain),1))
+    def test_setCoefficient_y_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y=1.)
+        coeff=mypde.getCoefficient("y")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((),FunctionOnBoundary(self.domain),1))
+    def test_setCoefficient_d_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d=1.)
+        coeff=mypde.getCoefficient("d")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),FunctionOnBoundary(self.domain),1,1))
+    def test_setCoefficient_m_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(m=1.)
+        coeff=mypde.getCoefficient("m")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),FunctionOnBoundary(self.domain),1,1))
+    def test_setCoefficient_d_contact_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d_contact=1.)
+        coeff=mypde.getCoefficient("d_contact")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),FunctionOnContactZero(self.domain),1,1))
+    def test_setCoefficient_y_contact_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y_contact=1.)
+        coeff=mypde.getCoefficient("y_contact")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((),FunctionOnContactZero(self.domain),1))
+
+    def test_setCoefficient_M_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(M_reduced=1.)
+        coeff=mypde.getCoefficient("M_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_A_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A_reduced=numarray.ones((d,d)))
+        coeff=mypde.getCoefficient("A_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((d,d),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_B_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(B_reduced=numarray.ones((d,)))
+        coeff=mypde.getCoefficient("B_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((d,),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_C_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(C_reduced=numarray.ones((d,)))
+        coeff=mypde.getCoefficient("C_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((d,),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_D_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(D_reduced=1.)
+        coeff=mypde.getCoefficient("D_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_X_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(X_reduced=numarray.ones((d,)))
+        coeff=mypde.getCoefficient("X_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((d,),ReducedFunction(self.domain),1))
+    def test_setCoefficient_Y_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(Y_reduced=1.)
+        coeff=mypde.getCoefficient("Y_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((),ReducedFunction(self.domain),1))
+    def test_setCoefficient_y_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y_reduced=1.)
+        coeff=mypde.getCoefficient("y_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((),ReducedFunctionOnBoundary(self.domain),1))
+    def test_setCoefficient_m_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(m_reduced=1.)
+        coeff=mypde.getCoefficient("m_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),ReducedFunctionOnBoundary(self.domain),1,1))
+    def test_setCoefficient_d_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d_reduced=1.)
+        coeff=mypde.getCoefficient("d_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),ReducedFunctionOnBoundary(self.domain),1,1))
+    def test_setCoefficient_d_contact_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d_contact_reduced=1.)
+        coeff=mypde.getCoefficient("d_contact_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1,1))
+    def test_setCoefficient_y_contact_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y_contact_reduced=1.)
+        coeff=mypde.getCoefficient("y_contact_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1))
+    def test_setCoefficient_r_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numEquations=3,debug=self.DEBUG)
+        mypde.setValue(r=1.)
+        coeff=mypde.getCoefficient("r")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions()),((),Solution(self.domain),1))
+    def test_setCoefficient_q_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numEquations=3,debug=self.DEBUG)
+        mypde.setValue(q=1.)
+        coeff=mypde.getCoefficient("q")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions()),((),Solution(self.domain),1))
+    def test_setCoefficient_r_Scalar_reducedOn(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numEquations=3,debug=self.DEBUG)
+        mypde.setReducedOrderOn()
+        mypde.setValue(r=1.)
+        coeff=mypde.getCoefficient("r")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions()),((),ReducedSolution(self.domain),1))
+    def test_setCoefficient_q_Scalar_reducedOn(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numEquations=3,debug=self.DEBUG)
+        mypde.setReducedOrderOn()
+        mypde.setValue(q=1.)
+        coeff=mypde.getCoefficient("q")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions()),((),ReducedSolution(self.domain),1))
+
+    def test_setCoefficient_M_reduced_Scalar_usingM(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(M=Scalar(1.,ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficient("M_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_A_reduced_Scalar_usingA(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=Data(numarray.ones((d,d)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficient("A_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((d,d),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_B_reduced_Scalar_usingB(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(B=Data(numarray.ones((d,)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficient("B_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((d,),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_C_reduced_Scalar_usingC(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(C=Data(numarray.ones((d,)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficient("C_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((d,),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_D_reduced_Scalar_usingD(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(D=Scalar(1.,ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficient("D_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_X_reduced_Scalar_usingX(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(X_reduced=Data(numarray.ones((d,)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficient("X_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((d,),ReducedFunction(self.domain),1))
+    def test_setCoefficient_Y_reduced_Scalar_usingY(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(Y=Scalar(1.,ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficient("Y_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((),ReducedFunction(self.domain),1))
+    def test_setCoefficient_y_reduced_Scalar_using_y(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y=Scalar(1.,ReducedFunctionOnBoundary(self.domain)))
+        coeff=mypde.getCoefficient("y_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((),ReducedFunctionOnBoundary(self.domain),1))
+    def test_setCoefficient_m_reduced_Scalar_using_m(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d=Scalar(1.,ReducedFunctionOnBoundary(self.domain)))
+        coeff=mypde.getCoefficient("d_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),ReducedFunctionOnBoundary(self.domain),1,1))
+    def test_setCoefficient_d_reduced_Scalar_using_d(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(m=Scalar(1.,ReducedFunctionOnBoundary(self.domain)))
+        coeff=mypde.getCoefficient("m_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),ReducedFunctionOnBoundary(self.domain),1,1))
+    def test_setCoefficient_d_contact_reduced_Scalar_using_d_contact(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d_contact=Scalar(1.,ReducedFunctionOnContactZero(self.domain)))
+        coeff=mypde.getCoefficient("d_contact_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1,1))
+    def test_setCoefficient_y_contact_reduced_Scalar_using_y_contact(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y_contact=Scalar(1.,ReducedFunctionOnContactZero(self.domain)))
+        coeff=mypde.getCoefficient("y_contact_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1))
+    #
+    #  set coefficients for systems:
+    #
+    def test_setCoefficient_M_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(M=numarray.ones((self.N,self.N)))
+        coeff=mypde.getCoefficient("M")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),Function(self.domain),self.N,self.N))
+    def test_setCoefficient_A_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=numarray.ones((self.N,d,self.N,d)))
+        coeff=mypde.getCoefficient("A")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,d,self.N,d),Function(self.domain),self.N,self.N))
+    def test_setCoefficient_B_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(B=numarray.ones((self.N,d,self.N)))
+        coeff=mypde.getCoefficient("B")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,d,self.N),Function(self.domain),self.N,self.N))
+    def test_setCoefficient_C_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(C=numarray.ones((self.N,self.N,d)))
+        coeff=mypde.getCoefficient("C")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N,d),Function(self.domain),self.N,self.N))
+    def test_setCoefficient_D_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(D=numarray.ones((self.N,self.N)))
+        coeff=mypde.getCoefficient("D")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),Function(self.domain),self.N,self.N))
+    def test_setCoefficient_X_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(X=numarray.ones((self.N,d)))
+        coeff=mypde.getCoefficient("X")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,d),Function(self.domain),self.N))
+    def test_setCoefficient_Y_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(Y=numarray.ones((self.N,)))
+        coeff=mypde.getCoefficient("Y")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,),Function(self.domain),self.N))
+    def test_setCoefficient_y_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y=numarray.ones((self.N,)))
+        coeff=mypde.getCoefficient("y")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,),FunctionOnBoundary(self.domain),self.N))
+    def test_setCoefficient_m_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(m=numarray.ones((self.N,self.N)))
+        coeff=mypde.getCoefficient("m")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),FunctionOnBoundary(self.domain),self.N,self.N))
+    def test_setCoefficient_d_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d=numarray.ones((self.N,self.N)))
+        coeff=mypde.getCoefficient("d")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),FunctionOnBoundary(self.domain),self.N,self.N))
+    def test_setCoefficient_d_contact_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d_contact=numarray.ones((self.N,self.N)))
+        coeff=mypde.getCoefficient("d_contact")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),FunctionOnContactZero(self.domain),self.N,self.N))
+    def test_setCoefficient_y_contact_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y_contact=numarray.ones((self.N,)))
+        coeff=mypde.getCoefficient("y_contact")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,),FunctionOnContactZero(self.domain),self.N))
+    def test_setCoefficient_M_System_reduced(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(M_reduced=numarray.ones((self.N,self.N)))
+        coeff=mypde.getCoefficient("M_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_A_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A_reduced=numarray.ones((self.N,d,self.N,d)))
+        coeff=mypde.getCoefficient("A_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,d,self.N,d),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_B_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(B_reduced=numarray.ones((self.N,d,self.N)))
+        coeff=mypde.getCoefficient("B_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,d,self.N),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_C_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(C_reduced=numarray.ones((self.N,self.N,d)))
+        coeff=mypde.getCoefficient("C_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N,d),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_D_System_reduced(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(D_reduced=numarray.ones((self.N,self.N)))
+        coeff=mypde.getCoefficient("D_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_X_System_reduced(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(X_reduced=numarray.ones((self.N,d)))
+        coeff=mypde.getCoefficient("X_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,d),ReducedFunction(self.domain),self.N))
+    def test_setCoefficient_Y_System_reduced(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(Y_reduced=numarray.ones((self.N,)))
+        coeff=mypde.getCoefficient("Y_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,),ReducedFunction(self.domain),self.N))
+    def test_setCoefficient_y_System_reduced(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y_reduced=numarray.ones((self.N,)))
+        coeff=mypde.getCoefficient("y_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,),ReducedFunctionOnBoundary(self.domain),self.N))
+    def test_setCoefficient_m_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(m_reduced=numarray.ones((self.N,self.N)))
+        coeff=mypde.getCoefficient("m_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnBoundary(self.domain),self.N,self.N))
+    def test_setCoefficient_d_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d_reduced=numarray.ones((self.N,self.N)))
+        coeff=mypde.getCoefficient("d_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnBoundary(self.domain),self.N,self.N))
+    def test_setCoefficient_d_contact_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d_contact_reduced=numarray.ones((self.N,self.N)))
+        coeff=mypde.getCoefficient("d_contact_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnContactZero(self.domain),self.N,self.N))
+    def test_setCoefficient_y_contact_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y_contact_reduced=numarray.ones((self.N,)))
+        coeff=mypde.getCoefficient("y_contact_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,),ReducedFunctionOnContactZero(self.domain),self.N))
+    def test_setCoefficient_r_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numEquations=3,debug=self.DEBUG)
+        mypde.setValue(r=numarray.ones((self.N,)))
+        coeff=mypde.getCoefficient("r")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions()),((self.N,),Solution(self.domain),self.N))
+    def test_setCoefficient_q_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numEquations=3,debug=self.DEBUG)
+        mypde.setValue(q=numarray.ones((self.N,)))
+        coeff=mypde.getCoefficient("q")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions()),((self.N,),Solution(self.domain),self.N))
+    def test_setCoefficient_r_System_reducedOn(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numEquations=3,debug=self.DEBUG)
+        mypde.setReducedOrderOn()
+        mypde.setValue(r=numarray.ones((self.N,)))
+        coeff=mypde.getCoefficient("r")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions()),((self.N,),ReducedSolution(self.domain),self.N))
+    def test_setCoefficient_q_System_reducedOn(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numEquations=3,debug=self.DEBUG)
+        mypde.setReducedOrderOn()
+        mypde.setValue(q=numarray.ones((self.N,)))
+        coeff=mypde.getCoefficient("q")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions()),((self.N,),ReducedSolution(self.domain),self.N))
+
+    def test_setCoefficient_M_System_reduced_using_D(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(M=Data(numarray.ones((self.N,self.N)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficient("M_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_A_reduced_System_using_A(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=Data(numarray.ones((self.N,d,self.N,d)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficient("A_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,d,self.N,d),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_B_reduced_System_using_B(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(B=Data(numarray.ones((self.N,d,self.N)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficient("B_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,d,self.N),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_C_reduced_System_using_C(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(C=Data(numarray.ones((self.N,self.N,d)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficient("C_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N,d),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_D_System_reduced_using_D(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(D=Data(numarray.ones((self.N,self.N)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficient("D_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_X_System_reduced_using_X(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(X=Data(numarray.ones((self.N,d)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficient("X_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,d),ReducedFunction(self.domain),self.N))
+    def test_setCoefficient_Y_System_reduced_using_Y(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(Y=Data(numarray.ones((self.N,)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficient("Y_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,),ReducedFunction(self.domain),self.N))
+    def test_setCoefficient_y_reduced_System_using_y(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y=Data(numarray.ones((self.N,)),ReducedFunctionOnBoundary(self.domain)))
+        coeff=mypde.getCoefficient("y_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,),ReducedFunctionOnBoundary(self.domain),self.N))
+    def test_setCoefficient_m_reduced_System_using_m(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(m=Data(numarray.ones((self.N,self.N)),ReducedFunctionOnBoundary(self.domain)))
+        coeff=mypde.getCoefficient("m_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnBoundary(self.domain),self.N,self.N))
+    def test_setCoefficient_d_reduced_System_using_d(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d=Data(numarray.ones((self.N,self.N)),ReducedFunctionOnBoundary(self.domain)))
+        coeff=mypde.getCoefficient("d_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnBoundary(self.domain),self.N,self.N))
+    def test_setCoefficient_d_contact_reduced_System_using_d_contact(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d_contact=Data(numarray.ones((self.N,self.N)),ReducedFunctionOnContactZero(self.domain)))
+        coeff=mypde.getCoefficient("d_contact_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnContactZero(self.domain),self.N,self.N))
+    def test_setCoefficient_y_contact_reduced_System_using_y_contact(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y_contact=Data(numarray.ones((self.N,)),ReducedFunctionOnContactZero(self.domain)))
+        coeff=mypde.getCoefficient("y_contact_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,),ReducedFunctionOnContactZero(self.domain),self.N))
+
+    def test_symmetryCheckTrue_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        M=100*numarray.ones((self.N,self.N))
+        A=numarray.ones((self.N,d,self.N,d))
+        C=2*numarray.ones((self.N,self.N,d))
+        B=2*numarray.ones((self.N,d,self.N))
+        D=3*numarray.ones((self.N,self.N))
+        d=4*numarray.ones((self.N,self.N))
+        m=64*numarray.ones((self.N,self.N))
+        d_contact=5*numarray.ones((self.N,self.N))
+        mypde.setValue(M=M,A=A,B=B,C=C,D=D,d=d,d_contact=d_contact,m=m,M_reduced=-M,A_reduced=-A,B_reduced=-B,C_reduced=-C,D_reduced=-D,d_reduced=-d,d_contact_reduced=-d_contact, m_reduced=-m)
+        self.failUnless(mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_M_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        M=numarray.ones((self.N,self.N))
+        M[1,0]=0.
+        mypde.setValue(M=M)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_A_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        A=numarray.ones((self.N,d,self.N,d))
+        A[1,1,1,0]=0.
+        mypde.setValue(A=A)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_BC_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        C=2*numarray.ones((self.N,self.N,d))
+        B=2*numarray.ones((self.N,d,self.N))
+        B[0,0,1]=1.
+        mypde.setValue(B=B,C=C)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_D_System(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        D=3*numarray.ones((self.N,self.N))
+        D[0,1]=0.
+        mypde.setValue(D=D)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_m_System(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        m=4*numarray.ones((self.N,self.N))
+        m[0,1]=0.
+        mypde.setValue(m=m)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_d_System(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        d=4*numarray.ones((self.N,self.N))
+        d[0,1]=0.
+        mypde.setValue(d=d)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_d_contact_System(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        d_contact=5*numarray.ones((self.N,self.N))
+        d_contact[0,1]=0.
+        mypde.setValue(d_contact=d_contact)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_M_reduced_System(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        M=3*numarray.ones((self.N,self.N))
+        M[0,1]=0.
+        mypde.setValue(M_reduced=M)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_A_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        A=numarray.ones((self.N,d,self.N,d))
+        A[1,1,1,0]=0.
+        mypde.setValue(A_reduced=A)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_BC_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        C=2*numarray.ones((self.N,self.N,d))
+        B=2*numarray.ones((self.N,d,self.N))
+        B[0,0,1]=1.
+        mypde.setValue(B_reduced=B,C_reduced=C)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_D_reduced_System(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        D=3*numarray.ones((self.N,self.N))
+        D[0,1]=0.
+        mypde.setValue(D_reduced=D)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_m_reduced_System(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        m=4*numarray.ones((self.N,self.N))
+        m[0,1]=0.
+        mypde.setValue(m_reduced=m)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_d_reduced_System(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        d=4*numarray.ones((self.N,self.N))
+        d[0,1]=0.
+        mypde.setValue(d_reduced=d)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_d_contact_reduced_System(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        d_contact=5*numarray.ones((self.N,self.N))
+        d_contact[0,1]=0.
+        mypde.setValue(d_contact_reduced=d_contact)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    #==============================================================
+    def test_symmetryCheckTrue_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        M=100
+        A=numarray.ones((d,d))
+        C=2*numarray.ones((d,))
+        B=2*numarray.ones((d,))
+        D=3
+        m=10
+        d=4
+        d_contact=5
+        mypde.setValue(M=M,A=A,B=B,C=C,D=D,d=d,m=m,d_contact=d_contact,M_reduced=-M,A_reduced=-A,B_reduced=-B,C_reduced=-C,D_reduced=-D,d_reduced=-d,d_contact_reduced=-d_contact,m_reduced=-m)
+        self.failUnless(mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_A_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        A=numarray.ones((d,d))
+        A[1,0]=0.
+        mypde.setValue(A=A)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+    def test_symmetryCheckFalse_BC_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        C=2*numarray.ones((d,))
+        B=2*numarray.ones((d,))
+        B[0]=1.
+        mypde.setValue(B=B,C=C)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+    def test_symmetryCheckFalse_A_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        A=numarray.ones((d,d))
+        A[1,0]=0.
+        mypde.setValue(A_reduced=A)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+    def test_symmetryCheckFalse_BC_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+        C=2*numarray.ones((d,))
+        B=2*numarray.ones((d,))
+        B[0]=1.
+        mypde.setValue(B_reduced=B,C_reduced=C)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_reducedOn(self):
+        dt=0.1
+        mypde=TransportPDE(self.domain,numSolutions=1,debug=self.DEBUG)
+        mypde.setReducedOrderOn()
+        mypde.setInitialSolution(10.)
+        mypde.setValue(M=1.,Y=1)
+        u=mypde.getSolution(dt)
+        self.failUnless(u.getFunctionSpace() == ReducedSolution(self.domain), "wrong function space")
+        self.failUnless(self.check(u,10.+dt),'solution is wrong.')
+
+    def Off_test_reducedOff(self):
+        dt=0.1
+        mypde=TransportPDE(self.domain,numSolutions=1,debug=self.DEBUG)
+        mypde.setInitialSolution(10.)
+        mypde.setValue(M=1.,Y=1.)
+        u=mypde.getSolution(0.1)
+        self.failUnless(u.getFunctionSpace() == Solution(self.domain), "wrong function space")
+        self.failUnless(self.check(u,10.+dt),'solution is wrong.')
