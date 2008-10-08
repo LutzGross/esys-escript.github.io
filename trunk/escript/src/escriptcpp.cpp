@@ -113,7 +113,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
   // Interface for AbstractContinuousDomain
   //
   class_<escript::AbstractContinuousDomain, bases<escript::AbstractDomain> >("ContinuousDomain",no_init)
-       .def("getSystemMatrixTypeId",&escript::AbstractContinuousDomain::getSystemMatrixTypeId);
+       .def("getSystemMatrixTypeId",&escript::AbstractContinuousDomain::getSystemMatrixTypeId)
+       .def("getTransportTypeId",&escript::AbstractContinuousDomain::getTransportTypeId);
 
   //
   // Interface for FunctionSpace
@@ -336,7 +337,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("insertConstraint",&escript::AbstractTransportProblem::insertConstraint)
      .def("reset",&escript::AbstractTransportProblem::resetTransport)
      .def("resetValues",&escript::AbstractTransportProblem::resetTransport)
-     .def("getSafeTimeStepSize",&escript::AbstractTransportProblem::getSafeTimeStepSize);
+     .def("getSafeTimeStepSize",&escript::AbstractTransportProblem::getSafeTimeStepSize)
+     .def("getUnlimitedTimeStepSize",&escript::AbstractTransportProblem::getUnlimitedTimeStepSize);
 
   //
   // Register esysExceptionTranslator

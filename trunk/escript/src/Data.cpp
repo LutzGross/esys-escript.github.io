@@ -857,8 +857,6 @@ Data::setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object
     // this will throw if the value cannot be represented
     boost::python::numeric::array num_array(py_object);
     setValueOfDataPointToArray(dataPointNo,num_array);
-
-
 }
 
 void
@@ -880,6 +878,7 @@ Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::
   }
   //
   // make sure data is expanded:
+  //
   if (!isExpanded()) {
     expand();
   }

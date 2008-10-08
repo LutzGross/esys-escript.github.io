@@ -1826,9 +1826,15 @@ bool MeshAdapter::operator!=(const AbstractDomain& other) const
    return !(operator==(other));
 }
 
-int MeshAdapter::getSystemMatrixTypeId(const int solver, const int package, const bool symmetry) const
+int MeshAdapter::getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
 {
-   int out=Paso_SystemMatrix_getSystemMatrixTypeId(SystemMatrixAdapter::mapOptionToPaso(solver),SystemMatrixAdapter::mapOptionToPaso(package),symmetry?1:0);
+   int out=Paso_SystemMatrix_getSystemMatrixTypeId(SystemMatrixAdapter::mapOptionToPaso(solver),SystemMatrixAdapter::mapOptionToPaso(preconditioner), SystemMatrixAdapter::mapOptionToPaso(package),symmetry?1:0);
+   checkPasoError();
+   return out;
+}
+int MeshAdapter::getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
+{
+   int out=Paso_FCTransportProblem_getTypeId(SystemMatrixAdapter::mapOptionToPaso(solver),SystemMatrixAdapter::mapOptionToPaso(preconditioner), SystemMatrixAdapter::mapOptionToPaso(package),symmetry?1:0);
    checkPasoError();
    return out;
 }

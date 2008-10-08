@@ -68,7 +68,6 @@ FAC_OFFDIAG=-0.4
 class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
      def test_solve(self):
 	# Tell about how many MPI CPUs and OpenMP threads
-        printParallelThreadCounts()
         domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
         x=Solution(domain).getX()
         # --- set exact solution ----
