@@ -46,8 +46,7 @@ Data::Data()
   //
   // Default data is type DataEmpty
   DataAbstract* temp=new DataEmpty();
-  shared_ptr<DataAbstract> temp_data(temp);
-  m_data=temp_data;
+  m_data=temp->getPtr();
   m_protected=false;
 }
 
@@ -63,11 +62,7 @@ Data::Data(double value,
 
   int len = DataTypes::noValues(dataPointShape);
   DataVector temp_data(len,value,len);
-//   DataArrayView temp_dataView(temp_data, dataPointShape);
-
-//   initialise(temp_dataView, what, expanded);
   initialise(temp_data, dataPointShape, what, expanded);
-
   m_protected=false;
 }
 
@@ -100,8 +95,7 @@ Data::Data(const Data& inData,
   //
   // Create Data which is a slice of another Data
   DataAbstract* tmp = inData.m_data->getSlice(region);
-  shared_ptr<DataAbstract> temp_data(tmp);
-  m_data=temp_data;
+  m_data=DataAbstract_ptr(tmp);
   m_protected=false;
 }
 
@@ -120,44 +114,29 @@ Data::Data(const Data& inData,
 	throw FunctionSpaceException("Call to probeInterpolation returned false for DataConstant.");
     }
     DataConstant* dc=new DataConstant(functionspace,inData.m_data->getShape(),inData.m_data->getVector());	
-    m_data=shared_ptr<DataAbstract>(dc); 
+    m_data=DataAbstract_ptr(dc); 
   } else {
     Data tmp(0,inData.getDataPointShape(),functionspace,true);
     // Note: Must use a reference or pointer to a derived object
     // in order to get polymorphic behaviour. Shouldn't really
     // be able to create an instance of AbstractDomain but that was done
     // as a boost:python work around which may no longer be required.
-    const AbstractDomain& inDataDomain=inData.getDomain();
+    /*const AbstractDomain& inDataDomain=inData.getDomain();*/
+    const_Domain_ptr inDataDomain=inData.getDomain();
     if  (inDataDomain==functionspace.getDomain()) {
-      inDataDomain.interpolateOnDomain(tmp,inData);
+      inDataDomain->interpolateOnDomain(tmp,inData);
     } else {
-      inDataDomain.interpolateACross(tmp,inData);
+      inDataDomain->interpolateACross(tmp,inData);
     }
     m_data=tmp.m_data;
   }
   m_protected=false;
 }
 
-// Data::Data(const DataTagged::TagListType& tagKeys,
-//            const DataTagged::ValueListType & values,
-//            const DataArrayView& defaultValue,
-//            const FunctionSpace& what,
-//            bool expanded)
-// {
-//   DataAbstract* temp=new DataTagged(tagKeys,values,defaultValue,what);
-//   shared_ptr<DataAbstract> temp_data(temp);
-//   m_data=temp_data;
-//   m_protected=false;
-//   if (expanded) {
-//     expand();
-//   }
-// }
-
-
-
 Data::Data(DataAbstract* underlyingdata)
 {
-	m_data=shared_ptr<DataAbstract>(underlyingdata);
+// 	m_data=shared_ptr<DataAbstract>(underlyingdata);
+	m_data=underlyingdata->getPtr();
 	m_protected=false;
 }
 
@@ -234,17 +213,18 @@ Data::Data(const object& value,
 //     initialise(temp2_dataView, other.getFunctionSpace(), false);
 
     DataConstant* t=new DataConstant(other.getFunctionSpace(),other.getDataPointShape(),temp2_data);
-    boost::shared_ptr<DataAbstract> sp(t);
-    m_data=sp;
-
+//     boost::shared_ptr<DataAbstract> sp(t);
+//     m_data=sp;
+    m_data=DataAbstract_ptr(t);
 
   } else {
     //
     // Create a DataConstant with the same sample shape as other
 //     initialise(temp_dataView, other.getFunctionSpace(), false);
     DataConstant* t=new DataConstant(asNumArray,other.getFunctionSpace());
-    boost::shared_ptr<DataAbstract> sp(t);
-    m_data=sp;
+//     boost::shared_ptr<DataAbstract> sp(t);
+//     m_data=sp;
+    m_data=DataAbstract_ptr(t);
   }
   m_protected=false;
 }
@@ -268,12 +248,14 @@ Data::initialise(const boost::python::numeric::array& value,
   // within the shared_ptr constructor.
   if (expanded) {
     DataAbstract* temp=new DataExpanded(value, what);
-    boost::shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+//     boost::shared_ptr<DataAbstract> temp_data(temp);
+//     m_data=temp_data;
+    m_data=temp->getPtr();
   } else {
     DataAbstract* temp=new DataConstant(value, what);
-    boost::shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+//     boost::shared_ptr<DataAbstract> temp_data(temp);
+//     m_data=temp_data;
+    m_data=temp->getPtr();
   }
 }
 
@@ -291,12 +273,14 @@ Data::initialise(const DataTypes::ValueType& value,
   // within the shared_ptr constructor.
   if (expanded) {
     DataAbstract* temp=new DataExpanded(what, shape, value);
-    boost::shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+//     boost::shared_ptr<DataAbstract> temp_data(temp);
+//     m_data=temp_data;
+    m_data=temp->getPtr();
   } else {
     DataAbstract* temp=new DataConstant(what, shape, value);
-    boost::shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+//     boost::shared_ptr<DataAbstract> temp_data(temp);
+//     m_data=temp_data;
+    m_data=temp->getPtr();
   }
 }
 
@@ -433,8 +417,8 @@ void
 Data::copy(const Data& other)
 {
   DataAbstract* temp=other.m_data->deepCopy();
-  shared_ptr<DataAbstract> temp_data(temp);
-  m_data=temp_data;
+  DataAbstract_ptr p=temp->getPtr();
+  m_data=p;
 }
 
 
@@ -469,105 +453,25 @@ Data::setToZero()
   throw DataException("Error - Data can not be set to zero.");
 }
 
-// void
-// Data::copyWithMask(const Data& other,
-//                    const Data& mask)
-// {
-//   if (other.isEmpty() || mask.isEmpty())
-//   {
-// 	throw DataException("Error - copyWithMask not permitted using instances of DataEmpty.");
-//   }
-//   Data mask1;
-//   Data mask2;
-//   mask1 = mask.wherePositive();
-// 
-//   mask2.copy(mask1);
-//   mask1 *= other;
-// 
-//   mask2 *= *this;
-//   mask2 = *this - mask2;
-//   *this = mask1 + mask2;
-// }
-
 void
 Data::copyWithMask(const Data& other,
                    const Data& mask)
 {
-  // 1. Interpolate if required so all Datas use the same FS as this
-  // 2. Tag or Expand so that all Data's are the same type
-  // 3. Iterate over the data vectors copying values where mask is >0
   if (other.isEmpty() || mask.isEmpty())
   {
 	throw DataException("Error - copyWithMask not permitted using instances of DataEmpty.");
   }
-  Data other2(other);
-  Data mask2(mask);
-  FunctionSpace myFS=getFunctionSpace();
-  FunctionSpace oFS=other2.getFunctionSpace();
-  FunctionSpace mFS=mask2.getFunctionSpace();
-  if (oFS!=myFS)
-  {
-     if (other2.probeInterpolation(myFS))
-     {
-	other2=other2.interpolate(myFS);
-     }
-     else
-     {
-	throw DataException("Error - copyWithMask: other FunctionSpace is not compatible with this one.");
-     }
-  }
-  if (mFS!=myFS)
-  {
-     if (mask2.probeInterpolation(myFS))
-     {
-	mask2=mask2.interpolate(myFS);
-     }
-     else
-     {
-	throw DataException("Error - copyWithMask: mask FunctionSpace is not compatible with this one.");
-     }
-  }
-  			// Ensure that all args have the same type
-  if (this->isExpanded() || mask2.isExpanded() || other2.isExpanded())
-  {
-	this->expand();
-	other2.expand();
-	mask2.expand();
-  }
-  else if (this->isTagged() || mask2.isTagged() || other2.isTagged())
-  {
-	this->tag();
-	other2.tag();
-	mask2.tag();
-  }
-  else if (this->isConstant() && mask2.isConstant() && other2.isConstant())
-  {
-  }
-  else
-  {
-	throw DataException("Error - Unknown DataAbstract passed to copyWithMask.");
-  }
-  // Now we iterate over the elements
-  DataVector& self=m_data->getVector();
-  const DataVector& ovec=other2.m_data->getVector();
-  const DataVector& mvec=mask2.m_data->getVector();
-  if ((self.size()!=ovec.size()) || (self.size()!=mvec.size()))
-  {
-	throw DataException("Error - size mismatch in arguments to copyWithMask.");
-  }
-  size_t num_points=self.size();
-  long i;
-  #pragma omp parallel for private(i) schedule(static)
-  for (i=0;i<num_points;++i)
-  {
-	if (mvec[i]>0)
-	{
-	   self[i]=ovec[i];
-	}
-  }
+  Data mask1;
+  Data mask2;
+  mask1 = mask.wherePositive();
+
+  mask2.copy(mask1);
+  mask1 *= other;
+
+  mask2 *= *this;
+  mask2 = *this - mask2;
+  *this = mask1 + mask2;
 }
-
-
 
 bool
 Data::isExpanded() const
@@ -617,13 +521,15 @@ Data::expand()
   if (isConstant()) {
     DataConstant* tempDataConst=dynamic_cast<DataConstant*>(m_data.get());
     DataAbstract* temp=new DataExpanded(*tempDataConst);
-    shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+//     shared_ptr<DataAbstract> temp_data(temp);
+//     m_data=temp_data;
+    m_data=temp->getPtr();
   } else if (isTagged()) {
     DataTagged* tempDataTag=dynamic_cast<DataTagged*>(m_data.get());
     DataAbstract* temp=new DataExpanded(*tempDataTag);
-    shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+//     shared_ptr<DataAbstract> temp_data(temp);
+//     m_data=temp_data;
+    m_data=temp->getPtr();
   } else if (isExpanded()) {
     //
     // do nothing
@@ -640,8 +546,9 @@ Data::tag()
   if (isConstant()) {
     DataConstant* tempDataConst=dynamic_cast<DataConstant*>(m_data.get());
     DataAbstract* temp=new DataTagged(*tempDataConst);
-    shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+//     shared_ptr<DataAbstract> temp_data(temp);
+//     m_data=temp_data;
+    m_data=temp->getPtr();
   } else if (isTagged()) {
     // do nothing
   } else if (isExpanded()) {
@@ -709,11 +616,11 @@ Data::probeInterpolation(const FunctionSpace& functionspace) const
   if (getFunctionSpace()==functionspace) {
     return true;
   } else {
-    const AbstractDomain& domain=getDomain();
-    if  (domain==functionspace.getDomain()) {
-      return domain.probeInterpolationOnDomain(getFunctionSpace().getTypeCode(),functionspace.getTypeCode());
+    const_Domain_ptr domain=getDomain();
+    if  (*domain==*functionspace.getDomain()) {
+      return domain->probeInterpolationOnDomain(getFunctionSpace().getTypeCode(),functionspace.getTypeCode());
     } else {
-      return domain.probeInterpolationACross(getFunctionSpace().getTypeCode(),functionspace.getDomain(),functionspace.getTypeCode());
+      return domain->probeInterpolationACross(getFunctionSpace().getTypeCode(),*(functionspace.getDomain()),functionspace.getTypeCode());
     }
   }
 }
@@ -731,7 +638,7 @@ Data::gradOn(const FunctionSpace& functionspace) const
   DataTypes::ShapeType grad_shape=getDataPointShape();
   grad_shape.push_back(functionspace.getDim());
   Data out(0.0,grad_shape,functionspace,true);
-  getDomain().setToGradient(out,*this);
+  getDomain()->setToGradient(out,*this);
   blocktimer_increment("grad()", blocktimer_start);
   return out;
 }
@@ -743,7 +650,7 @@ Data::grad() const
   {
 	throw DataException("Error - operation not permitted on instances of DataEmpty.");
   }
-  return gradOn(escript::function(getDomain()));
+  return gradOn(escript::function(*getDomain()));
 }
 
 int
@@ -1076,7 +983,7 @@ Data::integrate() const
   delete[] tmp;
   delete[] tmp_local;
 #else
-  AbstractContinuousDomain::asAbstractContinuousDomain(getDomain()).setToIntegrals(integrals,*this);
+  AbstractContinuousDomain::asAbstractContinuousDomain(*getDomain()).setToIntegrals(integrals,*this);
 #endif
 
   //
@@ -1646,7 +1553,7 @@ Data::saveDX(std::string fileName) const
   }
   boost::python::dict args;
   args["data"]=boost::python::object(this);
-  getDomain().saveDX(fileName,args);
+  getDomain()->saveDX(fileName,args);
   return;
 }
 
@@ -1659,7 +1566,7 @@ Data::saveVTK(std::string fileName) const
   }
   boost::python::dict args;
   args["data"]=boost::python::object(this);
-  getDomain().saveVTK(fileName,args);
+  getDomain()->saveVTK(fileName,args);
   return;
 }
 
@@ -1998,8 +1905,8 @@ void
 Data::setTaggedValueByName(std::string name,
                            const boost::python::object& value)
 {
-     if (getFunctionSpace().getDomain().isValidTagName(name)) {
-        int tagKey=getFunctionSpace().getDomain().getTag(name);
+     if (getFunctionSpace().getDomain()->isValidTagName(name)) {
+        int tagKey=getFunctionSpace().getDomain()->getTag(name);
         setTaggedValue(tagKey,value);
      }
 }
@@ -2039,21 +1946,6 @@ Data::setTaggedValue(int tagKey,
     m_data->setTaggedValue(tagKey,tempShape, temp_data2);
 }
 
-// void
-// Data::setTaggedValueFromCPP(int tagKey,
-//                             const DataArrayView& value)
-// {
-//   if (isProtected()) {
-//         throw DataException("Error - attempt to update protected Data object.");
-//   }
-//   //
-//   // Ensure underlying data object is of type DataTagged
-//   if (isConstant()) tag();
-// 
-//   //
-//   // Call DataAbstract::setTaggedValue
-//   m_data->setTaggedValue(tagKey,value);
-// }
 
 void
 Data::setTaggedValueFromCPP(int tagKey,

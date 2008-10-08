@@ -428,10 +428,26 @@ contains datapoints.
   */
   ESCRIPT_DLL_API
   inline
-  const AbstractDomain&
+//   const AbstractDomain&
+  const_Domain_ptr
   getDomain() const
   {
      return getFunctionSpace().getDomain();
+  }
+
+
+  /**
+     \brief
+     Return the domain.
+     TODO: For internal use only.   This should be removed.
+  */
+  ESCRIPT_DLL_API
+  inline
+//   const AbstractDomain&
+  Domain_ptr
+  getDomainPython() const
+  {
+     return getFunctionSpace().getDomainPython();
   }
 
   /**
@@ -808,8 +824,6 @@ contains datapoints.
   /**
      \brief
      Return the maximum absolute value of this Data object.
-     For Data which contain no samples (or tagged Data for which no tags in use have a value)
-     zero is returned.
      *
   */
   ESCRIPT_DLL_API
@@ -819,8 +833,7 @@ contains datapoints.
   /**
      \brief
      Return the maximum value of this Data object.
-     For Data which contain no samples (or tagged Data for which no tags in use have a value)
-     a large negative value is returned.
+     *
   */
   ESCRIPT_DLL_API
   double
@@ -829,8 +842,6 @@ contains datapoints.
   /**
      \brief
      Return the minimum value of this Data object.
-     For Data which contain no samples (or tagged Data for which no tags in use have a value)
-     a large positive value is returned.
      *
   */
   ESCRIPT_DLL_API
@@ -1463,7 +1474,8 @@ contains datapoints.
 
   //
   // pointer to the actual data object
-  boost::shared_ptr<DataAbstract> m_data;
+//   boost::shared_ptr<DataAbstract> m_data;
+  DataAbstract_ptr m_data;
 
 };
 

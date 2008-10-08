@@ -56,19 +56,21 @@ void FunctionSpaceTestCase::testAll() {
   cout << "\tTest FunctionSpace constructor." << endl;
 
   // Test constructor
-  NullDomain nullDomain;
-  int testfunctionSpaceType = nullDomain.getFunctionCode();
+  NullDomain* nullDomain=new NullDomain();	// the shared ptr will deal with it
+  int testfunctionSpaceType = nullDomain->getFunctionCode();
+  Domain_ptr nulldom(nullDomain);
 
-  FunctionSpace testFunctionSpace2(nullDomain, testfunctionSpaceType);
+  FunctionSpace testFunctionSpace2(nulldom, testfunctionSpaceType);
   
   assert(testFunctionSpace1.getTypeCode()==testfunctionSpaceType);
-  assert(testFunctionSpace2.getDomain()==nullDomain);
+  assert(*(testFunctionSpace2.getDomain())==*nullDomain);
   assert(testFunctionSpace1.getDim()==1);
   assert(testFunctionSpace1==testFunctionSpace1);
   assert(!(testFunctionSpace1!=testFunctionSpace1));
 
-  testFunctionSpace1=testFunctionSpace2;
-  assert(testFunctionSpace1==testFunctionSpace2);
+  FunctionSpace testFunctionSpace3=testFunctionSpace2;	// test copy constructor
+cout << "Testing equality\n";
+  assert(testFunctionSpace3==testFunctionSpace2);
 
 }
 

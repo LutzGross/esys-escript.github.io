@@ -48,7 +48,8 @@ namespace finley {
   }
 #endif
 
-  AbstractContinuousDomain* loadMesh(const std::string& fileName)
+//   AbstractContinuousDomain* loadMesh(const std::string& fileName)
+  Domain_ptr loadMesh(const std::string& fileName)
   {
 #ifdef USE_NETCDF
     bool optimize=FALSE; // Don't optimize since this would cause problems with Data().dump()
@@ -465,13 +466,13 @@ namespace finley {
     TMPMEMFREE(fName);
 
     blocktimer_increment("LoadMesh()", blocktimer_start);
-    return temp;
+    return temp->getPtr();
 #else
     throw DataException("Error - loadMesh: is not compiled with NetCFD. Please contact your installation manager.");
 #endif /* USE_NETCDF */
   }
 
-  AbstractContinuousDomain* readMesh(const std::string& fileName,
+  Domain_ptr readMesh(const std::string& fileName,
   				     int integrationOrder,
                                      int reducedIntegrationOrder,
                                      int optimize)
@@ -499,10 +500,10 @@ namespace finley {
     TMPMEMFREE(fName);
     
     blocktimer_increment("ReadMesh()", blocktimer_start);
-    return temp;
+    return temp->getPtr();
   }
 
-  AbstractContinuousDomain* readGmsh(const std::string& fileName,
+  Domain_ptr readGmsh(const std::string& fileName,
                                      int numDim,
                                      int integrationOrder,
                                      int reducedIntegrationOrder,
@@ -531,10 +532,11 @@ namespace finley {
     TMPMEMFREE(fName);
     
     blocktimer_increment("ReadGmsh()", blocktimer_start);
-    return temp;
+    return temp->getPtr();
   }
 
-  AbstractContinuousDomain* brick(int n0,int n1,int n2,int order,
+/*  AbstractContinuousDomain* brick(int n0,int n1,int n2,int order,*/
+  Domain_ptr brick(int n0,int n1,int n2,int order,
 		    double l0,double l1,double l2,
 		    int periodic0,int periodic1,
 		    int periodic2,
@@ -568,9 +570,11 @@ namespace finley {
     // Convert any finley errors into a C++ exception
     checkFinleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
-    return temp;
+    return temp->getPtr();
   }
-  AbstractContinuousDomain*  rectangle(int n0,int n1,int order,
+
+/*  AbstractContinuousDomain*  rectangle(int n0,int n1,int order,*/
+  Domain_ptr  rectangle(int n0,int n1,int order,
 			double l0, double l1,
 			int periodic0,int periodic1,
 			int integrationOrder,
@@ -601,10 +605,10 @@ namespace finley {
     // Convert any finley errors into a C++ exception
     checkFinleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
-    return temp;
+    return temp->getPtr();
   }
 
-  AbstractContinuousDomain* meshMerge(const boost::python::list& meshList)
+  Domain_ptr meshMerge(const boost::python::list& meshList)
   {
     Finley_Mesh* fMesh=0;
     //
@@ -625,9 +629,10 @@ namespace finley {
     checkFinleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
 
-    return temp;
+    return temp->getPtr();
   }
-  AbstractContinuousDomain*  glueFaces(const boost::python::list& meshList,
+
+  Domain_ptr  glueFaces(const boost::python::list& meshList,
                  	               double safety_factor, 
 			               double tolerance,
                                        int optimize)
@@ -635,19 +640,20 @@ namespace finley {
     Finley_Mesh* fMesh=0;
     //
     // merge the meshes:
-    AbstractContinuousDomain* merged_meshes=meshMerge(meshList);
+    Domain_ptr merged_meshes=meshMerge(meshList);
+
     //
     // glue the faces:
-    const MeshAdapter* merged_finley_meshes=static_cast<const MeshAdapter*>(merged_meshes);
+    const MeshAdapter* merged_finley_meshes=dynamic_cast<const MeshAdapter*>(merged_meshes.get());
     fMesh=merged_finley_meshes->getFinley_Mesh();
     Finley_Mesh_glueFaces(fMesh,safety_factor,tolerance,(optimize ? TRUE : FALSE));
 
     //
     // Convert any finley errors into a C++ exception
     checkFinleyError();
-    return merged_meshes;
+    return merged_meshes->getPtr();
   }
-  AbstractContinuousDomain*  joinFaces(const boost::python::list& meshList,
+  Domain_ptr  joinFaces(const boost::python::list& meshList,
 			double safety_factor, 
 			double tolerance,
                         int optimize)
@@ -655,16 +661,16 @@ namespace finley {
     Finley_Mesh* fMesh=0;
     //
     // merge the meshes:
-    AbstractContinuousDomain* merged_meshes=meshMerge(meshList);
+    Domain_ptr merged_meshes=meshMerge(meshList);
     //
     // join the faces:
-    const MeshAdapter* merged_finley_meshes=static_cast<const MeshAdapter*>(merged_meshes);
+    const MeshAdapter* merged_finley_meshes=static_cast<const MeshAdapter*>(merged_meshes.get());
     fMesh=merged_finley_meshes->getFinley_Mesh();
     Finley_Mesh_joinFaces(fMesh,safety_factor,tolerance, (optimize ? TRUE : FALSE));
     //
     // Convert any finley errors into a C++ exception
     checkFinleyError();
-    return merged_meshes;
+    return merged_meshes->getPtr();
   }
 
   // end of namespace
