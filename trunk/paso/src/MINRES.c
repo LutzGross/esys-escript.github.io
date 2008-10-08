@@ -171,7 +171,7 @@ err_t Paso_Solver_MINRES(
      }
 
      alfa = Paso_InnerProduct(n,v,y,A->mpi_info);
-     Paso_Update(n, 1., y, -(alfa/beta), r2);
+     Paso_Update(n, 1., y, (-alfa/beta), r2);
      Paso_Copy(n,r1,r2);
      Paso_Copy(n,r2,y);
 
@@ -237,8 +237,8 @@ err_t Paso_Solver_MINRES(
      rnorm  = phibar;
 
      maxIterFlag = (num_iter > maxit);
-     norm_of_residual=rnorm;
-     convergeFlag=(norm_of_residual<Anorm*ynorm*(*tolerance));
+     norm_of_residual=rnorm/Anorm*ynorm;
+     convergeFlag=(norm_of_residual<(*tolerance));
     
     
      if (maxIterFlag) {
@@ -247,7 +247,6 @@ err_t Paso_Solver_MINRES(
          status = SOLVER_BREAKDOWN;
      }
     ++(num_iter);
-    /*printf("residual norm %.10f < %.10f %.10f %.10f \n",rnorm,Anorm*ynorm*(*tolerance), Anorm*ynorm, (*tolerance));*/
   }
     /* end of iteration */
     
