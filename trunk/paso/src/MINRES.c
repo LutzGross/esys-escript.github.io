@@ -72,7 +72,6 @@ err_t Paso_Solver_MINRES(
     double * r,
     double * x,
     dim_t *iter,
-    double *tol,
     double * tolerance,
     Paso_Performance* pp) {
 
@@ -260,7 +259,7 @@ err_t Paso_Solver_MINRES(
     TMPMEMFREE(v); 
   
     *iter=num_iter;
-    *tol=norm_of_residual;
+    *tolerance=norm_of_residual;
     
   /*     End of MINRES */
   return status;
