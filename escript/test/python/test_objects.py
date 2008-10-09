@@ -364,11 +364,11 @@ class Test_Dump(unittest.TestCase):
 
    def _diffDataObjects(self,d_ref,filemame, use_old_file=False):
        if not use_old_file: d_ref.dump(filemame)
-       d=load(filemame, self.domain)
+       d=load(filemame, d_ref.getDomain())
        self.failUnless(not d.isEmpty(),"data in %s are empty."%filemame)
-       self.failUnless(d_ref.getFunctionSpace() == d.getFunctionSpace(), "wrong function space in %s."%filemame)
        self.failUnless(d_ref.getRank() == d.getRank(), "different rank in %s. "%filemame)
        self.failUnless(d_ref.getShape() == d.getShape(), "different shape %s. "%filemame)
+       self.failUnless(d_ref.getFunctionSpace() == d.getFunctionSpace(), "wrong function space in %s."%filemame)
        self.failUnless(Lsup(d_ref-d)<=0., "different entries %s."%filemame)
 
    #===========================================================================
@@ -584,6 +584,7 @@ class Test_Dump(unittest.TestCase):
        if loadIsConfigured():
           filemame=os.path.join(self.filename_base,"expanded_solution_rank0.nc")
           d=Data(length(Solution(self.domain).getX())*self.arg0,Solution(self.domain))
+          self._diffDataObjects(d,filemame)
           self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
           self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
