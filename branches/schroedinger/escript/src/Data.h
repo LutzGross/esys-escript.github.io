@@ -206,6 +206,12 @@ class Data {
 
 
   /**
+	\brief Create a Data based on the supplied DataAbstract
+  */
+  ESCRIPT_DLL_API
+  Data(DataAbstract_ptr underlyingdata);
+
+  /**
      \brief
      Destructor
   */
@@ -1334,6 +1340,15 @@ contains datapoints.
         DataAbstract*
         borrowData(void) const;
 
+  ESCRIPT_DLL_API
+        DataAbstract_ptr
+        borrowDataPtr(void) const;
+
+  ESCRIPT_DLL_API
+        DataReady_ptr
+        borrowReadyPtr(void) const;
+
+
 
   /**
      \brief
@@ -1616,16 +1631,6 @@ C_GeneralTensorProduct(Data& arg0,
                      Data& arg1,
                      int axis_offset=0,
                      int transpose=0);
-
-
-
-// /**
-/*  \brief
-  Return true if operands are equivalent, else return false.
-  NB: this operator does very little at this point, and isn't to
-  be relied on. Requires further implementation.*/
-//*/
-// ESCRIPT_DLL_API bool operator==(const Data& left, const Data& right);
 
 /**
   \brief

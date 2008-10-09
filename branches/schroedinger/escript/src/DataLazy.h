@@ -21,13 +21,18 @@
 //#include "FunctionSpace.h"
 
 #include <string>
+#include <functional>
 
 namespace escript {
 
 enum ES_optype
 {
 	UNKNOWNOP=0,
-	IDENTITY=1
+	IDENTITY=1,
+	ADD=2,
+	SUB=3,
+	MUL=4,
+	DIV=5
 };
 
 const std::string&

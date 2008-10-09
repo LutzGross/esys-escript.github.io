@@ -150,6 +150,13 @@ Data::Data(DataAbstract* underlyingdata)
 	m_protected=false;
 }
 
+Data::Data(DataAbstract_ptr underlyingdata)
+{
+	m_data=underlyingdata;
+	m_protected=false;
+}
+
+
 Data::Data(const numeric::array& value,
 	   const FunctionSpace& what,
            bool expanded)
@@ -1707,6 +1714,11 @@ Data::powD(const Data& right) const
 Data
 escript::operator+(const Data& left, const Data& right)
 {
+  if (left.isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(left.borrowDataPtr(),right.borrowDataPtr(),ADD);
+	return Data(c);
+  }
   return C_TensorBinaryOperation(left, right, plus<double>());
 }
 
@@ -1715,6 +1727,11 @@ escript::operator+(const Data& left, const Data& right)
 Data
 escript::operator-(const Data& left, const Data& right)
 {
+  if (left.isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(left.borrowDataPtr(),right.borrowDataPtr(),SUB);
+	return Data(c);
+  }
   return C_TensorBinaryOperation(left, right, minus<double>());
 }
 
@@ -1723,6 +1740,11 @@ escript::operator-(const Data& left, const Data& right)
 Data
 escript::operator*(const Data& left, const Data& right)
 {
+  if (left.isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(left.borrowDataPtr(),right.borrowDataPtr(),MUL);
+	return Data(c);
+  }
   return C_TensorBinaryOperation(left, right, multiplies<double>());
 }
 
@@ -1731,6 +1753,11 @@ escript::operator*(const Data& left, const Data& right)
 Data
 escript::operator/(const Data& left, const Data& right)
 {
+  if (left.isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(left.borrowDataPtr(),right.borrowDataPtr(),DIV);
+	return Data(c);
+  }
   return C_TensorBinaryOperation(left, right, divides<double>());
 }
 
@@ -2418,10 +2445,30 @@ Data::borrowData() const
   return m_data.get();
 }
 
+// Not all that happy about returning a non-const from a const
+DataAbstract_ptr
+Data::borrowDataPtr() const
+{
+  return m_data;
+}
+
+// Not all that happy about returning a non-const from a const
+DataReady_ptr
+Data::borrowReadyPtr() const
+{
+   DataReady_ptr dr=dynamic_pointer_cast<DataReady>(m_data);
+   EsysAssert((dr!=0), "Error - casting to DataReady.");
+   return dr;
+}
+
 std::string
 Data::toString() const
 {
     static const DataTypes::ValueType::size_type TOO_MANY_POINTS=80;
+    if (isLazy())
+    {			// This needs to change back to printing out something useful once the summary ops
+	return m_data->toString();	// are defined
+    }
     if (getNumDataPoints()*getDataPointSize()>TOO_MANY_POINTS)
     {
 	stringstream temp;
