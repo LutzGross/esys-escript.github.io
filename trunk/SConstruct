@@ -37,8 +37,11 @@ prefix = ARGUMENTS.get('prefix', Dir('#.').abspath)
 hostname = re.sub("[^0-9a-zA-Z]", "_", socket.gethostname().split('.')[0])
 tmp = os.path.join("scons",hostname+"_options.py")
 options_file = ARGUMENTS.get('options_file', tmp)
-if not os.path.isfile(options_file): options_file = False
-else: print "Options file is", options_file
+if not os.path.isfile(options_file):
+  options_file = False
+  print "Options file not found"
+else:
+  print "Options file is", options_file
 
 # Load options file and command-line arguments
 opts = Options(options_file, ARGUMENTS)
