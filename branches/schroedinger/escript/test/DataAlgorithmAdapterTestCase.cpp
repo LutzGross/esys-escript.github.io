@@ -50,7 +50,7 @@ namespace
 {
 
 ValueType::reference
-getSRef(DataAbstract& data,int sample, int point)
+getSRef(DataReady& data,int sample, int point)
 {
    return data.getVector()[data.getPointOffset(sample,point)];
 }

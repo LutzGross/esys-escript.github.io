@@ -36,7 +36,7 @@ namespace escript {
 
 DataExpanded::DataExpanded(const boost::python::numeric::array& value,
                            const FunctionSpace& what)
-  : DataAbstract(what,DataTypes::shapeFromNumArray(value))
+  : parent(what,DataTypes::shapeFromNumArray(value))
 {
   //
   // initialise the data array for this object
@@ -47,13 +47,13 @@ DataExpanded::DataExpanded(const boost::python::numeric::array& value,
 }
 
 DataExpanded::DataExpanded(const DataExpanded& other)
-  : DataAbstract(other.getFunctionSpace(), other.getShape()),
+  : parent(other.getFunctionSpace(), other.getShape()),
   m_data(other.m_data)
 {
 }
 
 DataExpanded::DataExpanded(const DataConstant& other)
-  : DataAbstract(other.getFunctionSpace(), other.getShape())
+  : parent(other.getFunctionSpace(), other.getShape())
 {
   //
   // initialise the data array for this object
@@ -64,7 +64,7 @@ DataExpanded::DataExpanded(const DataConstant& other)
 }
 
 DataExpanded::DataExpanded(const DataTagged& other)
-  : DataAbstract(other.getFunctionSpace(), other.getShape())
+  : parent(other.getFunctionSpace(), other.getShape())
 {
   //
   // initialise the data array for this object
@@ -92,7 +92,7 @@ DataExpanded::DataExpanded(const DataTagged& other)
 
 DataExpanded::DataExpanded(const DataExpanded& other,
                            const DataTypes::RegionType& region)
-  : DataAbstract(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
+  : parent(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
 {
   //
   // get the shape of the slice
@@ -145,7 +145,7 @@ DataExpanded::DataExpanded(const DataExpanded& other,
 DataExpanded::DataExpanded(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
                            const DataTypes::ValueType &data)
-  : DataAbstract(what,shape)
+  : parent(what,shape)
 {
   EsysAssert(data.size()%getNoValues()==0,
                  "DataExpanded Constructor - size of supplied data is not a multiple of shape size.");

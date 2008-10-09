@@ -34,7 +34,7 @@ namespace {
 namespace escript {
 
 DataEmpty::DataEmpty() :
-  DataAbstract(FunctionSpace(),DataTypes::scalarShape, true)
+  parent(FunctionSpace(),DataTypes::scalarShape, true)
 {
 
 }

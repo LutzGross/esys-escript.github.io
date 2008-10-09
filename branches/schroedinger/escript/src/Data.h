@@ -227,7 +227,12 @@ class Data {
   copySelf();
 
 
-
+  /**
+     \brief produce a delayed evaluation version of this Data.
+  */
+  ESCRIPT_DLL_API
+  Data
+  delay();
 
   /**
      Member access methods.
@@ -394,6 +399,13 @@ class Data {
   isConstant() const;
 
   /**
+     \brief Return true if this Data is lazy.
+  */
+  ESCRIPT_DLL_API
+  bool
+  isLazy() const;
+
+  /**
      \brief
      Return true if this Data holds an instance of DataEmpty. This is _not_ the same as asking if the object 
 contains datapoints.
@@ -526,6 +538,7 @@ contains datapoints.
   ESCRIPT_DLL_API
   void
   dump(const std::string fileName) const;
+
   /**
      \brief
      Return the sample data for the given sample no. This is not the
@@ -535,10 +548,7 @@ contains datapoints.
   ESCRIPT_DLL_API
   inline
   DataAbstract::ValueType::value_type*
-  getSampleData(DataAbstract::ValueType::size_type sampleNo)
-  {
-    return m_data->getSampleData(sampleNo);
-  }
+  getSampleData(DataAbstract::ValueType::size_type sampleNo);
 
   /**
      \brief
@@ -553,24 +563,6 @@ contains datapoints.
   {
     return m_data->getSampleDataByTag(tag);
   }
-
-//  /**
-/*     \brief
-     Return a view into the data for the data point specified.
-     NOTE: Construction of the DataArrayView is a relatively expensive
-     operation.
-     \param sampleNo - Input -
-     \param dataPointNo - Input -*/
-//  */
-//   ESCRIPT_DLL_API
-//   inline
-//   DataArrayView
-//   getDataPoint(int sampleNo,
-//                int dataPointNo)
-//   {
-//                 return m_data->getDataPoint(sampleNo,dataPointNo);
-//   }
-
 
   /**
      \brief
@@ -601,7 +593,7 @@ contains datapoints.
   getDataOffset(int sampleNo,
                int dataPointNo)
   {
-                return m_data->getPointOffset(sampleNo,dataPointNo);
+      return m_data->getPointOffset(sampleNo,dataPointNo);
   }
 
   /**
@@ -670,21 +662,6 @@ contains datapoints.
   void
   setTaggedValue(int tagKey,
                  const boost::python::object& value);
-
-
-//  /**
-//     \brief
-//     Assign the given value to the tag. Implicitly converts this
-//     object to type DataTagged if it is constant.
-//
-//     \param tagKey - Input - Integer key.
-//     \param value - Input - Value to associate with given key.
-//    ==>*
-//  */
-//   ESCRIPT_DLL_API
-//   void
-//   setTaggedValueFromCPP(int tagKey,
-//                         const DataArrayView& value);
 
   /**
      \brief
@@ -1477,8 +1454,47 @@ contains datapoints.
 //   boost::shared_ptr<DataAbstract> m_data;
   DataAbstract_ptr m_data;
 
+  const DataReady*
+  getReady() const;
+
+  DataReady*
+  getReady();
+
 };
 
+}   // end namespace escript
+
+
+// No, this is not supposed to be at the top of the file
+#include "DataReady.h"
+
+namespace escript
+{
+
+inline
+const DataReady*
+Data::getReady() const
+{
+   const DataReady* dr=dynamic_cast<const DataReady*>(m_data.get());
+   EsysAssert((dr!=0), "Error - casting to DataReady.");
+   return dr;
+}
+
+inline
+DataReady*
+Data::getReady()
+{
+   DataReady* dr=dynamic_cast<DataReady*>(m_data.get());
+   EsysAssert((dr!=0), "Error - casting to DataReady.");
+   return dr;
+}
+
+inline
+DataAbstract::ValueType::value_type*
+Data::getSampleData(DataAbstract::ValueType::size_type sampleNo)
+{
+   return getReady()->getSampleData(sampleNo);
+}
 
 
 /**
@@ -1635,9 +1651,15 @@ Data::binaryOp(const Data& right,
    if (getDataPointRank()==0 && right.getDataPointRank()!=0) {
      throw DataException("Error - attempt to update rank zero object with object with rank bigger than zero.");
    }
+
+   if (isLazy() || right.isLazy())
+   {
+     throw DataException("Programmer error - attempt to call binaryOp with Lazy Data.");
+   }
    //
    // initially make the temporary a shallow copy
    Data tempRight(right);
+
    if (getFunctionSpace()!=right.getFunctionSpace()) {
      if (right.probeInterpolation(getFunctionSpace())) {
        //
@@ -1663,7 +1685,7 @@ Data::binaryOp(const Data& right,
      // of any data type
      DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
      EsysAssert((leftC!=0), "Programming error - casting to DataExpanded.");
-     escript::binaryOp(*leftC,*(tempRight.m_data.get()),operation);
+     escript::binaryOp(*leftC,*(tempRight.getReady()),operation);
    } else if (isTagged()) {
      //
      // Tagged data is operated on serially, the right hand side can be

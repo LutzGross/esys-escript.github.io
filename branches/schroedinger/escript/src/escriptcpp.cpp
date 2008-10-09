@@ -25,7 +25,6 @@
 #include "paso/Paso_MPI.h"
 
 
-
 extern "C" {
 #include "escript/blocktimer.h"
 }
@@ -169,6 +168,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("tag",&escript::Data::tag)
     .def("copy",&escript::Data::copy)
     .def("copy",&escript::Data::copySelf,return_value_policy<manage_new_object>())
+    .def("delay",&escript::Data::delay)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToPyObject)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToArray)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPoint)

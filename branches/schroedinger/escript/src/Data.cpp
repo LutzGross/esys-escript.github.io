@@ -18,6 +18,7 @@
 #include "DataConstant.h"
 #include "DataTagged.h"
 #include "DataEmpty.h"
+#include "DataLazy.h"
 #include "FunctionSpaceFactory.h"
 #include "AbstractContinuousDomain.h"
 #include "UnaryFuncs.h"
@@ -106,29 +107,38 @@ Data::Data(const Data& inData,
   {
     throw DataException("Error - will not interpolate for instances of DataEmpty.");
   }
+  if (inData.isLazy())
+  {
+    throw DataException("Error - will not interpolate for instances of DataLazy - yet.");
+  }
   if (inData.getFunctionSpace()==functionspace) {
     m_data=inData.m_data;
-  } else if (inData.isConstant()) {	// for a constant function, we just need to use the new function space
-    if (!inData.probeInterpolation(functionspace))
-    {           // Even though this is constant, we still need to check whether interpolation is allowed
+  } 
+  else 
+  {				// this cast is safe for ref count because the class holds a reference 
+    const DataReady* dr=dynamic_cast<const DataReady*>(inData.m_data.get());
+    if (inData.isConstant()) {	// for a constant function, we just need to use the new function space
+      if (!inData.probeInterpolation(functionspace))
+      {           // Even though this is constant, we still need to check whether interpolation is allowed
 	throw FunctionSpaceException("Call to probeInterpolation returned false for DataConstant.");
-    }
-    DataConstant* dc=new DataConstant(functionspace,inData.m_data->getShape(),inData.m_data->getVector());	
-    m_data=DataAbstract_ptr(dc); 
-  } else {
-    Data tmp(0,inData.getDataPointShape(),functionspace,true);
-    // Note: Must use a reference or pointer to a derived object
-    // in order to get polymorphic behaviour. Shouldn't really
-    // be able to create an instance of AbstractDomain but that was done
-    // as a boost:python work around which may no longer be required.
-    /*const AbstractDomain& inDataDomain=inData.getDomain();*/
-    const_Domain_ptr inDataDomain=inData.getDomain();
-    if  (inDataDomain==functionspace.getDomain()) {
-      inDataDomain->interpolateOnDomain(tmp,inData);
+      }
+      DataConstant* dc=new DataConstant(functionspace,inData.m_data->getShape(),dr->getVector());	
+      m_data=DataAbstract_ptr(dc); 
     } else {
-      inDataDomain->interpolateACross(tmp,inData);
+      Data tmp(0,inData.getDataPointShape(),functionspace,true);
+      // Note: Must use a reference or pointer to a derived object
+      // in order to get polymorphic behaviour. Shouldn't really
+      // be able to create an instance of AbstractDomain but that was done
+      // as a boost:python work around which may no longer be required.
+      /*const AbstractDomain& inDataDomain=inData.getDomain();*/
+      const_Domain_ptr inDataDomain=inData.getDomain();
+      if  (inDataDomain==functionspace.getDomain()) {
+        inDataDomain->interpolateOnDomain(tmp,inData);
+      } else {
+        inDataDomain->interpolateACross(tmp,inData);
+      }
+      m_data=tmp.m_data;
     }
-    m_data=tmp.m_data;
   }
   m_protected=false;
 }
@@ -422,6 +432,13 @@ Data::copy(const Data& other)
 }
 
 
+Data
+Data::delay()
+{
+  DataLazy* dl=new DataLazy(m_data);
+  return Data(dl);
+}
+
 void
 Data::setToZero()
 {
@@ -500,6 +517,13 @@ Data::isConstant() const
   DataConstant* temp=dynamic_cast<DataConstant*>(m_data.get());
   return (temp!=0);
 }
+
+bool
+Data::isLazy() const
+{
+  return m_data->isLazy();
+}
+
 
 void
 Data::setProtection()
@@ -1867,10 +1891,14 @@ Data::setSlice(const Data& value,
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
+  if (isLazy())
+  {
+	throw DataException("Error - setSlice not permitted on lazy data.");
+  }
   Data tempValue(value);
   typeMatchLeft(tempValue);
   typeMatchRight(tempValue);
-  m_data->setSlice(tempValue.m_data.get(),region);
+  getReady()->setSlice(tempValue.m_data.get(),region);
 }
 
 void
@@ -2399,27 +2427,51 @@ Data::toString() const
 DataTypes::ValueType::const_reference
 Data::getDataAtOffset(DataTypes::ValueType::size_type i) const
 {
-	return m_data->getDataAtOffset(i);
+    if (isLazy())
+    {
+	throw DataException("getDataAtOffset not permitted on lazy data.");
+    }
+    return getReady()->getDataAtOffset(i);
 }
 
 
 DataTypes::ValueType::reference
 Data::getDataAtOffset(DataTypes::ValueType::size_type i)
 {
-	return m_data->getDataAtOffset(i);
+    if (isLazy())
+    {
+	throw DataException("getDataAtOffset not permitted on lazy data.");
+    }
+    return getReady()->getDataAtOffset(i);
 }
 
 DataTypes::ValueType::const_reference
 Data::getDataPoint(int sampleNo, int dataPointNo) const
 {
-	return m_data->getDataAtOffset(m_data->getPointOffset(sampleNo, dataPointNo));
+  if (isLazy())
+  {
+	throw DataException("Programmer error - getDataPoint() not permitted on Lazy Data.");
+  }
+  else
+  {
+	const DataReady* dr=getReady();
+	return dr->getDataAtOffset(dr->getPointOffset(sampleNo, dataPointNo));
+  }
 }
 
 
 DataTypes::ValueType::reference
 Data::getDataPoint(int sampleNo, int dataPointNo)
 {
-	return m_data->getDataAtOffset(m_data->getPointOffset(sampleNo, dataPointNo));
+  if (isLazy())
+  {
+	throw DataException("Programmer error - getDataPoint() not permitted on Lazy Data.");
+  }
+  else
+  {
+	DataReady* dr=getReady();
+	return dr->getDataAtOffset(dr->getPointOffset(sampleNo, dataPointNo));
+  }
 }
 
 

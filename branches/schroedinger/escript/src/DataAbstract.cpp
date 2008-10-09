@@ -14,6 +14,7 @@
 
 #include "DataAbstract.h"
 #include "DataException.h"
+#include "DataLazy.h"
 
 using namespace std;
 
@@ -47,6 +48,12 @@ const_DataAbstract_ptr DataAbstract::getPtr() const
   {
 	return shared_from_this();
   }
+}
+
+bool
+DataAbstract::isLazy() const
+{
+	return (dynamic_cast<const DataLazy*>(this)!=0);
 }
 
 
@@ -202,17 +209,17 @@ DataAbstract::reorderByReferenceIDs(int *reference_ids)
 }
 
 
-DataTypes::ValueType&
-DataAbstract::getVector()
-{
-   throw DataException("Error - DataAbstract:: does not have a DataVector.");
-}
-
-const DataTypes::ValueType&
-DataAbstract::getVector() const
-{
-   throw DataException("Error - DataAbstract:: does not have a DataVector.");
-}
+// DataTypes::ValueType&
+// DataAbstract::getVector()
+// {
+//    throw DataException("Error - DataAbstract:: does not have a DataVector.");
+// }
+// 
+// const DataTypes::ValueType&
+// DataAbstract::getVector() const
+// {
+//    throw DataException("Error - DataAbstract:: does not have a DataVector.");
+// }
 
 
 

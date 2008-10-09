@@ -16,7 +16,7 @@
 #define escript_DataEmpty_20040726_H
 #include "system_dep.h"
 
-#include "DataAbstract.h"
+#include "DataReady.h"
 
 namespace escript {
 
@@ -28,8 +28,8 @@ namespace escript {
    Implements the DataAbstract interface for an empty Data object.
 */
 
-class DataEmpty : public DataAbstract {
-
+class DataEmpty : public DataReady {
+typedef DataReady parent;
  public:
 
   /**
