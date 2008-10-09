@@ -16,7 +16,7 @@
 #define escript_DataTagged_20040615_H
 #include "system_dep.h"
 
-#include "DataAbstract.h"
+#include "DataReady.h"
 #include "DataTypes.h"
 
 #include <vector>
@@ -37,8 +37,8 @@ class DataConstant;
    dataPointNo values.
 */
 
-class DataTagged : public DataAbstract {
-
+class DataTagged : public DataReady {
+typedef DataReady parent;
  public:
 
   //

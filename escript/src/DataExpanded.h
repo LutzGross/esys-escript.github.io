@@ -16,7 +16,7 @@
 #define escript_DataExpanded_20040323_H
 #include "system_dep.h"
 
-#include "DataAbstract.h"
+#include "DataReady.h"
 #include "DataBlocks2D.h"
 
 #include <boost/python/numeric.hpp>
@@ -40,7 +40,9 @@ class DataTagged;
    template must satisfy.
 */
 
-class DataExpanded : public DataAbstract {
+class DataExpanded : public DataReady {
+
+typedef DataReady parent;
 
  public:
 

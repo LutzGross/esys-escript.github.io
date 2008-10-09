@@ -36,7 +36,7 @@ namespace escript {
 
 DataConstant::DataConstant(const boost::python::numeric::array& value,
                            const FunctionSpace& what)
-  : DataAbstract(what,DataTypes::shapeFromNumArray(value))
+  : parent(what,DataTypes::shapeFromNumArray(value))
 {
 //   // extract the shape of the numarray
 //   DataTypes::ShapeType tempShape;
@@ -75,7 +75,7 @@ DataConstant::DataConstant(const boost::python::numeric::array& value,
 // }
 
 DataConstant::DataConstant(const DataConstant& other)
-  : DataAbstract(other.getFunctionSpace(),other.getShape())
+  : parent(other.getFunctionSpace(),other.getShape())
 {  //
   // copy the data in the correct format
   m_data=other.m_data;
@@ -87,7 +87,7 @@ DataConstant::DataConstant(const DataConstant& other)
 
 DataConstant::DataConstant(const DataConstant& other,
                            const DataTypes::RegionType& region)
-  : DataAbstract(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
+  : parent(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
 {
   //
   // get the shape of the slice to copy from
@@ -110,7 +110,7 @@ DataConstant::DataConstant(const DataConstant& other,
 DataConstant::DataConstant(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
                            const DataTypes::ValueType &data)
-  : DataAbstract(what,shape)
+  : parent(what,shape)
 {
   //
   // copy the data in the correct format
