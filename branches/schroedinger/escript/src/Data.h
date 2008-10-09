@@ -340,21 +340,6 @@ class Data {
   std::string
   toString() const;
 
-
-//  /**
-/*     \brief
-     Return the DataArrayView of the point data. This essentially contains
-     the shape information for each data point although it also may be used
-     to manipulate the point data.*/
-//  */
-//   ESCRIPT_DLL_API
-//   inline
-//   const DataArrayView&
-//   getPointDataView() const
-//   {
-//      return m_data->getPointDataView();
-//   }
-
   /**
      \brief
      Whatever the current Data type make this into a DataExpanded.
@@ -404,6 +389,13 @@ class Data {
   ESCRIPT_DLL_API
   bool
   isLazy() const;
+
+  /**
+     \brief Return true if this data is ready.
+  */
+  ESCRIPT_DLL_API
+  bool
+  isReady() const;
 
   /**
      \brief
@@ -1735,8 +1727,11 @@ Data::algorithm(BinaryFunction operation, double initial_value) const
     return escript::algorithm(*leftC,operation,initial_value);
   } else if (isEmpty()) {
     throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+  } else if (isLazy()) {
+    throw DataException("Error - Operations not permitted on instances of DataLazy.");
+  } else {
+    throw DataException("Error - Data encapsulates an unknown type.");
   }
-  return 0;
 }
 
 /**
@@ -1781,9 +1776,11 @@ Data::dp_algorithm(BinaryFunction operation, double initial_value) const
     EsysAssert((resultC!=0), "Programming error - casting result to DataConstant.");
     escript::dp_algorithm(*dataC,*resultC,operation,initial_value);
     return result;
+  } else if (isLazy()) {
+    throw DataException("Error - Operations not permitted on instances of DataLazy.");
+  } else {
+    throw DataException("Error - Data encapsulates an unknown type.");
   }
-  Data falseRetVal; // to keep compiler quiet
-  return falseRetVal;
 }
 
 /**
@@ -1803,6 +1800,10 @@ C_TensorBinaryOperation(Data const &arg_0,
   if (arg_0.isEmpty() || arg_1.isEmpty())
   {
      throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+  }
+  if (arg_0.isLazy() || arg_1.isLazy())
+  {
+     throw DataException("Error - Operations not permitted on lazy data.");
   }
   // Interpolate if necessary and find an appropriate function space
   Data arg_0_Z, arg_1_Z;
@@ -2717,7 +2718,10 @@ C_TensorUnaryOperation(Data const &arg_0,
   {
      throw DataException("Error - Operations not permitted on instances of DataEmpty.");
   }
-
+  if (arg_0.isLazy())
+  {
+     throw DataException("Error - Operations not permitted on lazy data.");
+  }
   // Interpolate if necessary and find an appropriate function space
   Data arg_0_Z = Data(arg_0);
 

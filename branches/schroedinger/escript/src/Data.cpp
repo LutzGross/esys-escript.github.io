@@ -524,6 +524,13 @@ Data::isLazy() const
   return m_data->isLazy();
 }
 
+// at the moment this is synonymous with !isLazy() but that could change
+bool
+Data::isReady() const
+{
+  return (dynamic_cast<DataReady*>(m_data.get())!=0);
+}
+
 
 void
 Data::setProtection()
@@ -559,6 +566,9 @@ Data::expand()
     // do nothing
   } else if (isEmpty()) {
     throw DataException("Error - Expansion of DataEmpty not possible.");
+  } else if (isLazy()) {
+    DataReady_ptr res=m_data->resolve();
+    m_data=res;
   } else {
     throw DataException("Error - Expansion not implemented for this Data type.");
   }
@@ -2408,7 +2418,6 @@ Data::borrowData() const
   return m_data.get();
 }
 
-
 std::string
 Data::toString() const
 {
@@ -2448,7 +2457,7 @@ Data::getDataAtOffset(DataTypes::ValueType::size_type i)
 DataTypes::ValueType::const_reference
 Data::getDataPoint(int sampleNo, int dataPointNo) const
 {
-  if (isLazy())
+  if (!isReady())
   {
 	throw DataException("Programmer error - getDataPoint() not permitted on Lazy Data.");
   }
@@ -2463,7 +2472,7 @@ Data::getDataPoint(int sampleNo, int dataPointNo) const
 DataTypes::ValueType::reference
 Data::getDataPoint(int sampleNo, int dataPointNo)
 {
-  if (isLazy())
+  if (!isReady())
   {
 	throw DataException("Programmer error - getDataPoint() not permitted on Lazy Data.");
   }
