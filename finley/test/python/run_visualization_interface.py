@@ -2808,6 +2808,7 @@ class Test_DXFiles(Test_VisualizationInterface):
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_VTKFiles))
-   suite.addTest(unittest.makeSuite(Test_DXFiles))
+   # saveDX is not MPI parallel
+   if getMPISizeWorld() == 1: suite.addTest(unittest.makeSuite(Test_DXFiles))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
