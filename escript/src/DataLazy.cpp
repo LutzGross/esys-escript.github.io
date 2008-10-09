@@ -21,8 +21,10 @@
 #endif
 #include "FunctionSpace.h"
 #include "DataTypes.h"
+#include "Data.h"
 
 using namespace std;
+using namespace boost;
 
 namespace escript
 {
@@ -57,14 +59,18 @@ resultLength(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
    switch(op)
    {
    case IDENTITY: return left->getLength();
+   case ADD:	// the length is preserved in these ops
+   case SUB:
+   case MUL:
+   case DIV: return left->getLength();
    default: 
 	throw DataException("Programmer Error - attempt to getLength() for operator "+opToString(op)+".");
 
    }
 }
 
-string ES_opstrings[]={"UNKNOWN","IDENTITY"};
-int ES_opcount=2;
+string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/"};
+int ES_opcount=5;
 
 }	// end anonymous namespace
 
@@ -97,7 +103,6 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
    length=resultLength(m_left,m_right,m_op);
 }
 
-
 DataLazy::~DataLazy()
 {
 }
@@ -106,13 +111,30 @@ DataLazy::~DataLazy()
 DataReady_ptr
 DataLazy::resolve()
 {
-  if (m_op==IDENTITY)
+  DataReady_ptr left;
+  DataReady_ptr right;
+  if (m_left.get()!=0)
   {
-    return m_left->resolve();
+	left=m_left->resolve();
   }
-  else
+  if (m_right.get()!=0)
   {
-    throw DataException("Programmer error - do not know how to resolve operator "+opToString(m_op)+".");
+	right=m_right->resolve();
+  }
+  switch (m_op)
+  {
+    case IDENTITY: return left;
+    case ADD:
+	// Hmm we could get interpolation here, better be careful
+      return C_TensorBinaryOperation(Data(left),Data(right),plus<double>()).borrowReadyPtr();
+    case SUB:
+      return C_TensorBinaryOperation(Data(left),Data(right),minus<double>()).borrowReadyPtr();
+    case MUL:
+      return C_TensorBinaryOperation(Data(left),Data(right),multiplies<double>()).borrowReadyPtr();
+    case DIV:
+      return C_TensorBinaryOperation(Data(left),Data(right),divides<double>()).borrowReadyPtr();
+    default:
+	throw DataException("Programmer error - do not know how to resolve operator "+opToString(m_op)+".");
   }
 }
 
