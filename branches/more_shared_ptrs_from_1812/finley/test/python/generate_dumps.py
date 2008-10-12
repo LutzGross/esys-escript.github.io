@@ -53,7 +53,7 @@ for root, dirs, files in os.walk(MESH_DIRECTORY, topdown=False):
              if fs_name == "FunctionOnBoundary":
                  fs= FunctionOnBoundary(dom)
              if fs_name == "FunctionOnContactZero":
-                 fs == FunctionOnContactZero(dom)
+                 fs = FunctionOnContactZero(dom)
              if fs_name == "FunctionOnContactOne":
                  fs = FunctionOnContactOne(dom)
              if fs_name == "ReducedContinuousFunction":
@@ -73,10 +73,10 @@ for root, dirs, files in os.walk(MESH_DIRECTORY, topdown=False):
                  x=fs.getX()
                  print "\t data file ",data_file
                  if type == "t":
-                    n=normalize(x)/length(x-Vector(0.5,fs))
+                    n=normalize(x)/clip(length(x-Vector(0.5,fs)),1.e-8)
                     d=outer(n,x)
                  elif type == "v":
-                    d=normalize(x)/length(x-Vector(0.5,fs))
+                    d=normalize(x)/clip(length(x-Vector(0.5,fs)),1.e-8)
                  else:
                     d=length(x-Vector(0.5,fs))
                  d.dump(data_file)

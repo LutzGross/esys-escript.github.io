@@ -105,9 +105,15 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
 
   /**
   *      \brief returns a save time step size.
-  *        */
+  */
   FINLEY_DLL_API
   virtual double getSafeTimeStepSize() const;
+
+  /**
+  *      \brief \brief returns the value for unlimited time step size.
+  */
+  FINLEY_DLL_API
+  virtual double getUnlimitedTimeStepSize() const;
 
  protected:
 

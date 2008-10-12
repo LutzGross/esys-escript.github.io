@@ -65,4 +65,5 @@ Paso_Connector* Paso_FCTransportProblem_borrowConnector(const Paso_FCTransportPr
 void Paso_FCT_setUp(Paso_FCTransportProblem* fctp, const double dt, const double *sourceN, const double *sourceP, double* b, double* uTilde,
                      Paso_Coupler* uTilde_coupler, double *QN, Paso_Coupler* QN_coupler, double *QP, Paso_Coupler* QP_coupler,
                      Paso_Options* options, Paso_Performance* pp);
+index_t Paso_FCTransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool_t symmetry);
 #endif /* #ifndef INC_SOLVERFCT */

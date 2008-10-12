@@ -34,7 +34,7 @@ Test suite for the linearPDE  and pdetools test on finley
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import unittest
-from test_linearPDEs import Test_Poisson,Test_LinearPDE, Test_LinearPDE_noLumping
+from test_linearPDEs import Test_Poisson,Test_LinearPDE, Test_LinearPDE_noLumping, Test_TransportPDE
 from test_assemblage import Test_assemblage_2Do1, Test_assemblage_2Do2, Test_assemblage_3Do1, Test_assemblage_3Do2, \
                             Test_assemblage_2Do1_Contact,Test_assemblage_2Do2_Contact, Test_assemblage_3Do1_Contact, Test_assemblage_3Do2_Contact
 from test_pdetools import Test_pdetools, Test_pdetools_noLumping
@@ -52,7 +52,7 @@ FINLEY_TEST_MESH_PATH=FINLEY_TEST_DATA+"/data_meshes/"
 
 NE=6 # number of element in each spatial direction (must be even)
 
-class Test_LinearPDEOnFinleyHex2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1):
+class Test_LinearPDEOnFinleyHex2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -60,7 +60,7 @@ class Test_LinearPDEOnFinleyHex2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemb
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnFinleyHex2DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do2):
+class Test_LinearPDEOnFinleyHex2DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do2, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -68,13 +68,13 @@ class Test_LinearPDEOnFinleyHex2DOrder2(Test_LinearPDE,Test_pdetools,Test_assemb
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnFinleyHex3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1):
+class Test_LinearPDEOnFinleyHex3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = Brick(NE,NE,NE,1)
 
-class Test_LinearPDEOnFinleyHex3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do2):
+class Test_LinearPDEOnFinleyHex3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do2, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -82,7 +82,7 @@ class Test_LinearPDEOnFinleyHex3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemb
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnFinleyTet2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1):
+class Test_LinearPDEOnFinleyTet2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -90,7 +90,7 @@ class Test_LinearPDEOnFinleyTet2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemb
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnFinleyTet2DOrder2(Test_LinearPDE_noLumping,Test_pdetools_noLumping,Test_assemblage_2Do2):
+class Test_LinearPDEOnFinleyTet2DOrder2(Test_LinearPDE_noLumping,Test_pdetools_noLumping,Test_assemblage_2Do2, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -98,7 +98,7 @@ class Test_LinearPDEOnFinleyTet2DOrder2(Test_LinearPDE_noLumping,Test_pdetools_n
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnFinleyTet3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1):
+class Test_LinearPDEOnFinleyTet3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -106,7 +106,7 @@ class Test_LinearPDEOnFinleyTet3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemb
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnFinleyTet3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do2):
+class Test_LinearPDEOnFinleyTet3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do2, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):

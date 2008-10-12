@@ -29,14 +29,19 @@
 
 /**************************************************************/
 
-index_t Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver,index_t package, bool_t symmetry) {
+index_t Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool_t symmetry) {
+  index_t true_package;
   index_t out=MATRIX_FORMAT_DEFAULT;
-  package=Paso_Options_getPackage(solver,package,symmetry);
+  true_package=Paso_Options_getPackage(solver,package,symmetry);
 
-  switch(package)  {
+  switch(true_package)  {
 
      case PASO_PASO:
-       out=MATRIX_FORMAT_DEFAULT;
+       if (preconditioner == PASO_AMG) {
+          out=MATRIX_FORMAT_DEFAULT + MATRIX_FORMAT_BLK1;
+       } else {
+          out=MATRIX_FORMAT_DEFAULT;
+       }
        break;
 
      case PASO_SCSL:
@@ -62,15 +67,3 @@ index_t Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver,index_t package, 
   }
   return out;
 }
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:39  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:48  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */
