@@ -74,14 +74,14 @@ netCDF_libs		= ['netcdf_c++', 'netcdf']
 # blas_libs		= ['blas']
 
 # OpenMP
-useopenmp		= 'no'
+useopenmp		= 'yes'
 
 # MPICH2 (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
 usempi= 'no'
 mpi_path		= '/usr/local/include'
 mpi_lib_path		= '/usr/local/lib'
 mpi_libs		= ['mpich', 'rt']
-mpi_run		= 'mpiexec -np 1'
+mpi_run		= 'mpiexec -np 4'
 
 # MPICH2 for jumpshot (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
 # mpi_path		= '/home/Work/InstallArea/mpich2-1.0.7/include'

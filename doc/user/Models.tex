@@ -53,9 +53,9 @@ solution.setTolerance(TOL) \\
 solution.initialize(fixed\_u\_mask=b\_c,eta=eta,f=Y) \\
 velocity,pressure=solution.solve(velocity,pressure,max\_iter=max\_iter,solver=solver) \\
 
-\subsection{Benchmark Problem}
-
-Convection problem
+% \subsection{Benchmark Problem}
+% 
+% Convection problem
 
 
 \section{Temperature Cartesian}
@@ -105,39 +105,74 @@ Update level set function; advection and reinitialization
 Rayleigh-Taylor instability problem
 
 
-\section{Drucker Prager Model}
+% \section{Drucker Prager Model}
 
 \section{Isotropic Kelvin Material \label{IKM}}
-
-
-
+As proposed by Kelvin~\ref{KELVN} material strain $D\hackscore{ij}=v\hackscore{i,j}+v\hackscore{j,i}$ can be decomposed into
+an elastic part $D\hackscore{ij}^{el}$ and visco-plastic part $D\hackscore{ij}^{vp}$:
 \begin{equation}\label{IKM-EQU-2}
-D_{ij}=D_{ij}^{el}+D_{ij}^{vp}
+D\hackscore{ij}=D\hackscore{ij}^{el}+D\hackscore{ij}^{vp}
 \end{equation}
-with the elastic stretching
+with the elastic strain given as 
 \begin{equation}\label{IKM-EQU-3}
-D_{ij}^{el}=\frac{2 \mu} \sigma'_{ij}
+D\hackscore{ij}'^{el}=\frac{1}{2 \mu} \sigma\hackscore{ij}'
 \end{equation}
+where $\sigma'\hackscore{ij}$ is the deviatoric stress (Notice that $\sigma'\hackscore{ii}=0$).
+If the material is composed by materials $q$ the visco-plastic strain can be decomposed as
 \begin{equation}\label{IKM-EQU-4}
-D_{ij}^{vp}=\sum_{q} D_{ij}^{q}
+D\hackscore{ij}'^{vp}=\sum\hackscore{q} D\hackscore{ij}'^{q} 
 \end{equation}
+where $D\hackscore{ij}^{q}$ is the strain in material $q$ given as 
 \begin{equation}\label{IKM-EQU-5}
-D_{ij}^{q}=\frac{1}{2 \eta^{q}} \sigma'_{ij} \mbox{ with } \eta^{q}=\eta^{q}_N \left(\frac{\tau}{\tau_t^q}\right){\frac{1}{n^{q}}-1}
+D\hackscore{ij}'^{q}=\frac{1}{2 \eta^{q}} \sigma'\hackscore{ij} 
 \end{equation}
+where $\eta^{q}$ is the viscosity of material $q$. We assume the following 
+betwee the the strain in material $q$ 
+\begin{equation}\label{IKM-EQU-5b}
+\eta^{q}=\eta^{q}\hackscore{N} \left(\frac{\tau}{\tau\hackscore{t}^q}\right)^{\frac{1}{n^{q}}-1}
+\mbox{ with } \tau=\sqrt{\frac{1}{2}\sigma'\hackscore{ij} \sigma'\hackscore{ij}}
+\end{equation}
+for a given power law coefficients $n^{q}$ and transition stresses $\tau\hackscore{t}^q$, see~\ref{POERLAW}.
+Notice that $n^{q}=1$ gives a constant viscosity.
 After inserting equation~\ref{IKM-EQU-5} into equation \ref{IKM-EQU-4} one gets:
-\begin{equation}\label{IKM-EQU-4}
-D_{ij}^{vp}=\frac{1}{2 \eta^{vp}} \sigma'_{ij}
+\begin{equation}\label{IKM-EQU-6}
+D\hackscore{ij}'^{vp}=\frac{1}{2 \eta^{vp}} \sigma'\hackscore{ij} \mbox{ with } \frac{1}{\eta^{vp}} \sum\hackscore{q} \frac{1}{\eta^{q}} \;.
 \end{equation}
-
-
+With
+\begin{equation}\label{IKM-EQU-8}
+\dot{\gamma}=\sqrt{2 D\hackscore{ij} D\hackscore{ij}}
+\end{equation}
+one gets 
+\begin{equation}\label{IKM-EQU-8b}
+\tau = \eta^{vp} \dot{\gamma}^{vp} \;.
+\end{equation}
+With the Drucker-Prager cohesion factor $\tau\hackscore{Y}$, Drucker-Prager friction $\beta$ and total pressure $p$ we want to achieve 
+\begin{equation}\label{IKM-EQU-8c}
+\tau \le \tau\hackscore{Y} + \beta \; p
+\end{equation}
+which leads to the condition
+\begin{equation}\label{IKM-EQU-8d}
+\eta^{vp} \le \frac{\tau\hackscore{Y} + \beta \; p}{ \dot{\gamma}^{vp}} \; .
+\end{equation}
+Therefore we modify the definition of $\eta^{vp}$ to the form
+\begin{equation}\label{IKM-EQU-6b}
+\frac{1}{\eta^{vp}}=\max(\sum\hackscore{q} \frac{1}{\eta^{q}}, \frac{\dot{\gamma}^{vp}} {\tau\hackscore{Y} + \beta \; p})
+\end{equation}
+Now we can combine equations~\ref{IKM-EQU-2}, \ref{IKM-EQU-3} and~\ref{IKM-EQU-6b} to get
+\begin{equation}\label{IKM-EQU-10}
+D\hackscore{ij}'=\frac{1}{2 \eta\hackscore{eff}} \sigma\hackscore{ij}' \mbox{ with }
+\frac{1}{\eta\hackscore{eff}}=\frac{1}{\mu}+\frac{1}{\eta^{vp}}
+\end{equation}
+The deviatoric stress needs to fullfill the equilibrion equation
 \begin{equation}\label{IKM-EQU-1}
--\sigma'_{ij,j}+p_j=F_j
+-\sigma'\hackscore{ij,j}+p\hackscore{,i}=F\hackscore{i}
 \end{equation}
-
+where $F\hackscore{j}$ is a given external fource. We assume an incompressible media:
 \begin{equation}\label{IKM-EQU-2}
--v_{i,i}=0
+-v\hackscore{i,i}=0
+\end{equation}
+After inserting~\ref{IKM-EQU-10} into~\ref{IKM-EQU-1} we get
+\begin{equation}\label{IKM-EQU-1ib}
+-\left(\eta\hackscore{eff} (v\hackscore{i,j}+ v\hackscore{i,j})\right)\hackscore{,j}+p\hackscore{,i}=F\hackscore{i}
 \end{equation}
 
-\begin{equation}\label{IKM-EQU-3}
-\sigma_{ij}=\sigma'_{ij,j}-\frac{1}{d} p \delta_{ij}
-\end{equation}

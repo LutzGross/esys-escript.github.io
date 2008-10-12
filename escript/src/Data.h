@@ -824,6 +824,8 @@ contains datapoints.
   /**
      \brief
      Return the maximum absolute value of this Data object.
+     For Data which contain no samples (or tagged Data for which no tags in use have a value)
+     zero is returned.
      *
   */
   ESCRIPT_DLL_API
@@ -833,7 +835,8 @@ contains datapoints.
   /**
      \brief
      Return the maximum value of this Data object.
-     *
+     For Data which contain no samples (or tagged Data for which no tags in use have a value)
+     a large negative value is returned.
   */
   ESCRIPT_DLL_API
   double
@@ -842,6 +845,8 @@ contains datapoints.
   /**
      \brief
      Return the minimum value of this Data object.
+     For Data which contain no samples (or tagged Data for which no tags in use have a value)
+     a large positive value is returned.
      *
   */
   ESCRIPT_DLL_API
