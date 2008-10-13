@@ -1052,7 +1052,7 @@ Data::integrate() const
   vector<double> integrals(dataPointSize);
   vector<double> integrals_local(dataPointSize);
 #ifdef PASO_MPI
-  AbstractContinuousDomain::asAbstractContinuousDomain(getDomain()).setToIntegrals(integrals_local,*this);
+  AbstractContinuousDomain::asAbstractContinuousDomain(*getDomain()).setToIntegrals(integrals_local,*this);
   // Global sum: use an array instead of a vector because elements of array are guaranteed to be contiguous in memory
   double *tmp = new double[dataPointSize];
   double *tmp_local = new double[dataPointSize];

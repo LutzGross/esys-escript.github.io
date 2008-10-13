@@ -98,7 +98,8 @@ public:
   /**
    \brief
    Return the function space domain.   
-   TODO: Internal use only!  This is temporary and should be removed.
+   Internal use only! This gets around some python difficulties by
+   casting away the const. Do not use this in c++. 
   */
   ESCRIPT_DLL_API
 //   const
