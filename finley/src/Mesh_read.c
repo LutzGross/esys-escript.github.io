@@ -793,12 +793,43 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
       /* get the name tags */
       if (Finley_noError()) {
         char *remainder, *ptr;
-        int tag_key, len, error_code;
+        int tag_key, error_code;
+        size_t len;
         long cur_pos, end_pos;
         if (mpi_info->rank == 0) {	/* Master */
 	  /* Read the word 'Tag' */
 	  if (! feof(fileHandle_p)) fscanf(fileHandle_p, "%s\n", name);
 	  /* Read rest of file in one chunk, after using seek to find length */
+
+#if defined(_WIN32)  /* windows ftell lies on unix formatted text files */
+
+	  remainder = NULL;
+          len=0;
+	  while (1)
+          {
+             size_t MALLOC_CHUNK = 1024;
+             size_t buff_size = 0;
+             int ch;
+
+             ch = fgetc(fileHandle_p);
+             if( ch == '\r' )
+             {
+                continue;
+             }
+             if( len+1 > buff_size )
+             {
+                TMPMEMREALLOC(remainder,remainder,buff_size+MALLOC_CHUNK,char);
+             } 
+             if( ch == EOF )
+             {
+                /* hit EOF */
+                remainder[len] = (char)0;
+                break;
+             }
+             remainder[len] = (char)ch;
+             len++;
+          }
+#else
           cur_pos = ftell(fileHandle_p);
           fseek(fileHandle_p, 0L, SEEK_END);
           end_pos = ftell(fileHandle_p);
@@ -806,9 +837,11 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	  remainder = TMPMEMALLOC(end_pos-cur_pos+1, char);
 	  if (! feof(fileHandle_p)) fread(remainder, (size_t) end_pos-cur_pos, sizeof(char), fileHandle_p);
 	  remainder[end_pos-cur_pos] = 0;
-	  len = strlen(remainder);    
+#endif
+	  len = strlen(remainder);
 	  while ((--len)>0 && isspace(remainder[len])) remainder[len]=0;
 	  len = strlen(remainder);
+          TMPMEMREALLOC(remainder,remainder,len+1,char);
         }
 #ifdef PASO_MPI
         error_code = MPI_Bcast (&len, 1, MPI_INT,  0, mpi_info->comm);
