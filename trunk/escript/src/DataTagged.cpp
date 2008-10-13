@@ -901,8 +901,8 @@ DataTagged::dump(const std::string fileName) const
    long dims[ldims];
    const double* d_ptr=&(m_data[0]);
    DataTypes::ShapeType shape = getShape();
-   int mpi_iam=getFunctionSpace().getDomain().getMPIRank();
-   int mpi_num=getFunctionSpace().getDomain().getMPISize();
+   int mpi_iam=getFunctionSpace().getDomain()->getMPIRank();
+   int mpi_num=getFunctionSpace().getDomain()->getMPISize();
 #ifdef PASO_MPI
    MPI_Status status;
 #endif

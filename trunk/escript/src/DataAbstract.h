@@ -27,6 +27,8 @@
 #include <string>
 #include <fstream>
 
+#include "Pointers.h"
+
 namespace escript {
 
 /**
@@ -43,12 +45,24 @@ namespace escript {
    doubles of rank 0-4.
 */
 
-class DataAbstract {
+class DataAbstract;
+
+typedef POINTER_WRAPPER_CLASS(DataAbstract) DataAbstract_ptr;
+typedef POINTER_WRAPPER_CLASS(const DataAbstract) const_DataAbstract_ptr;
+
+
+class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
+{
 
  public:
 
   typedef DataTypes::ValueType ValueType;
   typedef DataTypes::ShapeType ShapeType;
+
+   ESCRIPT_DLL_API
+   DataAbstract_ptr getPtr();
+   ESCRIPT_DLL_API
+   const_DataAbstract_ptr getPtr() const; 
 
   /**
      \brief
@@ -483,12 +497,6 @@ class DataAbstract {
   // The number of data points per sample in this Data object.
   // This is derived directly from the FunctionSpace.
   int m_noDataPointsPerSample;
-
-  //
-  // The DataArrayView of the data array associated with this object.
-  // The data array is defined only in child classes of this class, it
-  // is not defined in this abstract parent class.
-//  boost::scoped_ptr<DataArrayView> m_pointDataView;
 
   //
   // A FunctionSpace which provides a description of the data associated

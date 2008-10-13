@@ -40,8 +40,10 @@ python_libs		= ['python25']
 # python_cmd		= 'python'
 
 # Boost libraries
-boost_path		= 'C:/Documents and Settings/ksteube/Desktop/Temp/boost_1_33'
-boost_lib_path		= 'C:/Documents and Settings/ksteube/Desktop/Temp/boost_1_33/windows_binary/lib'
+boost_path		= 'C:/Temp/boost_1_33'
+boost_lib_path		= 'C:/Temp/boost_1_33/windows_binary/lib'
+#boost_path		= 'C:/Documents and Settings/ksteube/Desktop/Temp/boost_1_33'
+#boost_lib_path		= 'C:/Documents and Settings/ksteube/Desktop/Temp/boost_1_33/windows_binary/lib'
 boost_libs		= ['boost_python-vc71-mt-1_33']
 
 # Specify whether or not to use VTK

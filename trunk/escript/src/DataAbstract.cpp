@@ -19,6 +19,38 @@ using namespace std;
 
 namespace escript {
 
+/**
+\brief Returns smart pointer which is managing this object.
+If one does not exist yet it creates one.
+
+Note: This is _not_ equivalent to weak_ptr::lock.
+*/
+DataAbstract_ptr DataAbstract::getPtr()
+{
+  if (_internal_weak_this.expired())
+  {
+	return DataAbstract_ptr(this);	
+  }
+  else
+  {
+	return shared_from_this();
+  }
+}
+
+const_DataAbstract_ptr DataAbstract::getPtr() const 
+{
+  if (_internal_weak_this.expired())
+  {
+	return const_DataAbstract_ptr(this);
+  }
+  else
+  {
+	return shared_from_this();
+  }
+}
+
+
+
 DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty):
     m_noDataPointsPerSample(what.getNumDPPSample()),
     m_noSamples(what.getNumSamples()),

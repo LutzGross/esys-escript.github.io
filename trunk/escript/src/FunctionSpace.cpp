@@ -19,24 +19,46 @@
 
 #include <iostream>
 #include <sstream>
+#include <boost/smart_ptr.hpp>
 
 using namespace std;
+using namespace boost;
 
 namespace escript {
 
+namespace
+{
 //
 // Create a null domain for use with any default-constructed function space
-NullDomain const FunctionSpace::nullDomainValue;
+// NullDomain const FunctionSpace::nullDomainValue;
+const_Domain_ptr nullDomainValue(new NullDomain());
+}
 
 FunctionSpace::FunctionSpace():
-  m_domain(static_cast<const AbstractDomain*>(&nullDomainValue)),
-  m_functionSpaceType(nullDomainValue.getFunctionCode())
+//   m_domain(static_cast<const AbstractDomain*>(&nullDomainValue)),
+  m_domain(nullDomainValue),
+  m_functionSpaceType(dynamic_cast<const NullDomain*>(nullDomainValue.get())->getFunctionCode())
 {
 }
 
-FunctionSpace::FunctionSpace(const AbstractDomain& domain,
+// FunctionSpace::FunctionSpace(const AbstractDomain& domain,
+//                              int functionSpaceType):
+// /*  m_domain(dynamic_cast<const AbstractDomain*>(&domain)),*/
+//   m_domain(domain.getPtr()),
+//   m_functionSpaceType(functionSpaceType)
+// {
+//   if (!m_domain->isValidFunctionSpaceType(functionSpaceType)) {
+//     std::stringstream temp;
+//     temp << "Invalid function space type: " << functionSpaceType 
+// 	 << " for domain: " << m_domain->getDescription();
+//     throw FunctionSpaceException(temp.str());
+//   }
+// }
+
+FunctionSpace::FunctionSpace(const_Domain_ptr domain,
                              int functionSpaceType):
-  m_domain(dynamic_cast<const AbstractDomain*>(&domain)),
+/*  m_domain(dynamic_cast<const AbstractDomain*>(&domain)),*/
+  m_domain(domain),
   m_functionSpaceType(functionSpaceType)
 {
   if (!m_domain->isValidFunctionSpaceType(functionSpaceType)) {
@@ -45,6 +67,12 @@ FunctionSpace::FunctionSpace(const AbstractDomain& domain,
 	 << " for domain: " << m_domain->getDescription();
     throw FunctionSpaceException(temp.str());
   }
+}
+
+FunctionSpace::FunctionSpace(const FunctionSpace& other)
+:m_domain(other.m_domain),
+m_functionSpaceType(other.m_functionSpaceType)
+{
 }
 
 std::pair<int,int>
@@ -59,12 +87,22 @@ FunctionSpace::getTypeCode() const
   return  m_functionSpaceType;
 }
 
-const
-AbstractDomain&
+// const
+// AbstractDomain&
+const_Domain_ptr
 FunctionSpace::getDomain() const
 {
-  return *m_domain;
+  return m_domain;
 }
+
+Domain_ptr
+FunctionSpace::getDomainPython() const
+{
+  // cast away the const-ness because python ignores it anyway
+  return const_pointer_cast<AbstractDomain>(m_domain);
+}
+
+
 
 std::string
 FunctionSpace::toString() const
@@ -153,13 +191,16 @@ FunctionSpace::borrowSampleReferenceIDs() const
   return m_domain->borrowSampleReferenceIDs(m_functionSpaceType);
 }
 
+// FunctionSpace instances should not be overwritten to point to different domains/types
+// The only time this was actually used was in constructors and the copy constructor can deal with that
 FunctionSpace&
 FunctionSpace::operator=(const FunctionSpace& other)
 {
+  throw DataException("FunctionSpace::= should not be called. Programming Error.");
   // explicitly defined assignment operator to emphasise pointer copy
-  m_functionSpaceType=other.m_functionSpaceType;
+/*  m_functionSpaceType=other.m_functionSpaceType;
   m_domain=other.m_domain;
-  return *this;
+  return *this;*/
 }
 
 bool
@@ -178,7 +219,7 @@ escript::Data
 FunctionSpace::getX() const 
 {
   Data out=escript::Vector(0,*this,true);
-  getDomain().setToX(out);
+  getDomain()->setToX(out);
   out.setProtection();
   return out;
 }
@@ -187,7 +228,7 @@ escript::Data
 FunctionSpace::getNormal() const
 {
   Data out=escript::Vector(0,*this,true);
-  getDomain().setToNormal(out);
+  getDomain()->setToNormal(out);
   out.setProtection();
   return out;
 }
@@ -196,7 +237,7 @@ escript::Data
 FunctionSpace::getSize() const
 {
   Data out=escript::Scalar(0,*this,true);
-  getDomain().setToSize(out);
+  getDomain()->setToSize(out);
   out.setProtection();
   return out;
 }

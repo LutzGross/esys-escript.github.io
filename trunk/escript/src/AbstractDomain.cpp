@@ -21,6 +21,31 @@ using namespace std;
 
 namespace escript {
 
+
+Domain_ptr AbstractDomain::getPtr()
+{
+  if (_internal_weak_this.expired())
+  {
+	return Domain_ptr(this);	
+  }
+  else
+  {
+	return shared_from_this();
+  }
+}
+
+const_Domain_ptr AbstractDomain::getPtr() const 
+{
+  if (_internal_weak_this.expired())
+  {
+	return const_Domain_ptr(this);
+  }
+  else
+  {
+	return shared_from_this();
+  }
+}
+
 AbstractDomain::AbstractDomain() {
 }
 

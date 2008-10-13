@@ -428,10 +428,26 @@ contains datapoints.
   */
   ESCRIPT_DLL_API
   inline
-  const AbstractDomain&
+//   const AbstractDomain&
+  const_Domain_ptr
   getDomain() const
   {
      return getFunctionSpace().getDomain();
+  }
+
+
+  /**
+     \brief
+     Return the domain.
+     TODO: For internal use only.   This should be removed.
+  */
+  ESCRIPT_DLL_API
+  inline
+//   const AbstractDomain&
+  Domain_ptr
+  getDomainPython() const
+  {
+     return getFunctionSpace().getDomainPython();
   }
 
   /**
@@ -1463,7 +1479,8 @@ contains datapoints.
 
   //
   // pointer to the actual data object
-  boost::shared_ptr<DataAbstract> m_data;
+//   boost::shared_ptr<DataAbstract> m_data;
+  DataAbstract_ptr m_data;
 
 };
 

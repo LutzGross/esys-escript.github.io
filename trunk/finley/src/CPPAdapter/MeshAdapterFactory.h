@@ -45,7 +45,8 @@ namespace finley {
      \param fileName Input -  The name of the file.
   */
   FINLEY_DLL_API
-  escript::AbstractContinuousDomain* loadMesh(const std::string& fileName);
+/*  escript::AbstractContinuousDomain* loadMesh(const std::string& fileName);*/
+  escript::Domain_ptr loadMesh(const std::string& fileName);
   /**
      \brief
      Read a mesh from a file. For MPI parallel runs fan out the mesh to multiple processes.
@@ -57,7 +58,8 @@ namespace finley {
      \param optimize Input - switches on the optimization of node labels 
   */
   FINLEY_DLL_API
-  escript::AbstractContinuousDomain* readMesh(const std::string& fileName,
+//   escript::AbstractContinuousDomain* readMesh(const std::string& fileName,
+   escript::Domain_ptr readMesh(const std::string& fileName,
 				     int integrationOrder=-1,
                                      int reducedIntegrationOrder=-1,
                                      int optimize=0);
@@ -73,7 +75,8 @@ namespace finley {
      \param optimize Input - switches on the optimization of node labels 
   */
   FINLEY_DLL_API
-  escript::AbstractContinuousDomain* readGmsh(const std::string& fileName,
+//   escript::AbstractContinuousDomain* readGmsh(const std::string& fileName,
+  escript::Domain_ptr readGmsh(const std::string& fileName,
 				     int numDim, 
 				     int integrationOrder=-1,
 				     int reducedIntegrationOrder=-1, 
@@ -95,7 +98,8 @@ namespace finley {
      conditions of the dimension are periodic
   */
   FINLEY_DLL_API
-  escript::AbstractContinuousDomain* brick(int n0=1,int n1=1,int n2=1,int order=1,
+//   escript::AbstractContinuousDomain* brick(int n0=1,int n1=1,int n2=1,int order=1,
+  escript::Domain_ptr brick(int n0=1,int n1=1,int n2=1,int order=1,
 		    double l0=1.0,double l1=1.0,double l2=1.0,
 		    int periodic0=0,int periodic1=0,
 		    int periodic2=0,
@@ -122,7 +126,8 @@ namespace finley {
      \param useElementsOnFace Input - whether or not to use elements on face
   */
   FINLEY_DLL_API
-  escript::AbstractContinuousDomain* rectangle(int n0=1,int n1=1,int order=1,
+//   escript::AbstractContinuousDomain* rectangle(int n0=1,int n1=1,int order=1,
+  escript::Domain_ptr rectangle(int n0=1,int n1=1,int order=1,
 				      double l0=1.0, double l1=1.0,
 				      int periodic0=false,int periodic1=false,
 				      int integrationOrder=-1,
@@ -136,7 +141,8 @@ namespace finley {
      \param meshList Input - The list of meshes.
   */
   FINLEY_DLL_API
-  escript::AbstractContinuousDomain* meshMerge(const boost::python::list& meshList);
+//   escript::AbstractContinuousDomain* meshMerge(const boost::python::list& meshList);
+  escript::Domain_ptr meshMerge(const boost::python::list& meshList);
   /**
      \brief
      Detects matching faces in the mesh, removes them from the mesh 
@@ -147,7 +153,8 @@ namespace finley {
      \param optimize Input - switches on the optimization of node labels 
   */
   FINLEY_DLL_API
-  escript::AbstractContinuousDomain* glueFaces(const boost::python::list& meshList,
+//   escript::AbstractContinuousDomain* glueFaces(const boost::python::list& meshList,
+  escript::Domain_ptr glueFaces(const boost::python::list& meshList,
 			   double safetyFactor=0.2, 
 			   double tolerance=1.e-8,
                            int optimize=0);
@@ -160,7 +167,8 @@ namespace finley {
      \param optimize Input - switches on the optimization of node labels 
   */
   FINLEY_DLL_API
-  escript::AbstractContinuousDomain* joinFaces(const boost::python::list& meshList,
+//   escript::AbstractContinuousDomain* joinFaces(const boost::python::list& meshList,
+  escript::Domain_ptr joinFaces(const boost::python::list& meshList,
 			double safetyFactor=0.2, 
 			double tolerance=1.e-8,
                         int optimize=0);

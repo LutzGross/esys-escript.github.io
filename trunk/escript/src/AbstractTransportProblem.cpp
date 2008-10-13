@@ -27,6 +27,7 @@ AbstractTransportProblem::AbstractTransportProblem() {
 
 AbstractTransportProblem::AbstractTransportProblem(const double theta, const int blocksize,
                                                    const FunctionSpace& functionspace)
+:m_functionspace(functionspace)
 {
   if (blocksize<=0) 
      throw TransportProblemException("Error - negative block size of transport problem.");
@@ -35,7 +36,7 @@ AbstractTransportProblem::AbstractTransportProblem(const double theta, const int
 
    m_empty=0;
    m_blocksize=blocksize;
-   m_functionspace=functionspace;
+//    m_functionspace=functionspace;
    m_theta=theta;
 }
 
