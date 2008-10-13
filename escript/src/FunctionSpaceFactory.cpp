@@ -20,79 +20,79 @@ namespace escript {
 FunctionSpace continuousFunction(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
-  return FunctionSpace(domain,temp.getContinuousFunctionCode());
+  return FunctionSpace(domain.getPtr(),temp.getContinuousFunctionCode());
 }
 
 FunctionSpace reducedContinuousFunction(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
-  return FunctionSpace(domain,temp.getReducedContinuousFunctionCode());
+  return FunctionSpace(domain.getPtr(),temp.getReducedContinuousFunctionCode());
 }
  
 FunctionSpace function(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
-  return FunctionSpace(domain,temp.getFunctionCode());
+  return FunctionSpace(domain.getPtr(),temp.getFunctionCode());
 }
 
 FunctionSpace reducedFunction(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
-  return FunctionSpace(domain,temp.getReducedFunctionCode());
+  return FunctionSpace(domain.getPtr(),temp.getReducedFunctionCode());
 }
 
 FunctionSpace functionOnBoundary(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
-  return FunctionSpace(domain,temp.getFunctionOnBoundaryCode());
+  return FunctionSpace(domain.getPtr(),temp.getFunctionOnBoundaryCode());
 }
 
 FunctionSpace reducedFunctionOnBoundary(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
-  return FunctionSpace(domain,temp.getReducedFunctionOnBoundaryCode());
+  return FunctionSpace(domain.getPtr(),temp.getReducedFunctionOnBoundaryCode());
 }
 
 FunctionSpace functionOnContactZero(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
-  return FunctionSpace(domain,temp.getFunctionOnContactZeroCode());
+  return FunctionSpace(domain.getPtr(),temp.getFunctionOnContactZeroCode());
 }
 
 FunctionSpace reducedFunctionOnContactZero(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
-  return FunctionSpace(domain,temp.getReducedFunctionOnContactZeroCode());
+  return FunctionSpace(domain.getPtr(),temp.getReducedFunctionOnContactZeroCode());
 }
  
 FunctionSpace functionOnContactOne(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
-  return FunctionSpace(domain,temp.getFunctionOnContactOneCode());
+  return FunctionSpace(domain.getPtr(),temp.getFunctionOnContactOneCode());
 }
 
 FunctionSpace reducedFunctionOnContactOne(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
-  return FunctionSpace(domain,temp.getReducedFunctionOnContactOneCode());
+  return FunctionSpace(domain.getPtr(),temp.getReducedFunctionOnContactOneCode());
 }
 
 FunctionSpace solution(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
-  return FunctionSpace(domain,temp.getSolutionCode());
+  return FunctionSpace(domain.getPtr(),temp.getSolutionCode());
 }
 
 FunctionSpace reducedSolution(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
-  return FunctionSpace(domain,temp.getReducedSolutionCode());
+  return FunctionSpace(domain.getPtr(),temp.getReducedSolutionCode());
 }
 
 FunctionSpace diracDeltaFunction(const AbstractDomain& domain)
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
-  return FunctionSpace(domain,temp.getDiracDeltaFunctionCode());
+  return FunctionSpace(domain.getPtr(),temp.getDiracDeltaFunctionCode());
 }
 
 }  // end of namespace

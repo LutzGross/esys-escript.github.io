@@ -23,6 +23,9 @@
 #include <boost/python/list.hpp>
 #include "paso/Paso_MPI.h"
 
+
+#include "Pointers.h"
+
 namespace escript {
 // class forward declarations
 class Data;
@@ -34,10 +37,25 @@ class Data;
    Base class for all escript domains.
 */
 
-class AbstractDomain {
+class AbstractDomain;
+
+typedef POINTER_WRAPPER_CLASS(AbstractDomain) Domain_ptr;
+typedef POINTER_WRAPPER_CLASS(const AbstractDomain) const_Domain_ptr;
+
+class AbstractDomain : public REFCOUNT_BASE_CLASS(AbstractDomain){
 
  public:
 
+/**
+\brief Returns smart pointer which is managing this object.
+If one does not exist yet it creates one.
+
+Note: This is _not_ equivalent to weak_ptr::lock.
+*/
+   ESCRIPT_DLL_API
+   Domain_ptr getPtr();
+   ESCRIPT_DLL_API
+   const_Domain_ptr getPtr() const; 
 
    // structure holding values for X, size and normal
    typedef int StatusType;

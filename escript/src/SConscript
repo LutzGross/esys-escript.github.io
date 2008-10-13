@@ -75,6 +75,7 @@ headers = """
 	FunctionSpaceFactory.h
 	LocalOps.h
 	NullDomain.h
+	Pointers.h
 	SystemMatrixException.h
 	Taipan.h
 	TransportProblemException.h

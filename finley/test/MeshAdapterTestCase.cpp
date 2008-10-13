@@ -40,7 +40,8 @@ void MeshAdapterTestCase::tearDown() {
 void MeshAdapterTestCase::testAll() {
   //
   // test construction of a mesh using the brick factory method
-  boost::scoped_ptr<AbstractContinuousDomain> myMesh(brick());
+//   boost::scoped_ptr<AbstractContinuousDomain> myMesh(brick());
+	brick();		// brick now returns a Domain_ptr which will auto delete
 }
 
 TestSuite* MeshAdapterTestCase::suite ()

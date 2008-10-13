@@ -860,8 +860,8 @@ void MeshAdapter::addPDEToTransportProblem(
 //
 void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data& in) const
 {
-   const MeshAdapter& inDomain=dynamic_cast<const MeshAdapter&>(in.getFunctionSpace().getDomain());
-   const MeshAdapter& targetDomain=dynamic_cast<const MeshAdapter&>(target.getFunctionSpace().getDomain());
+   const MeshAdapter& inDomain=dynamic_cast<const MeshAdapter&>(*(in.getFunctionSpace().getDomain()));
+   const MeshAdapter& targetDomain=dynamic_cast<const MeshAdapter&>(*(target.getFunctionSpace().getDomain()));
    if (inDomain!=*this)  
       throw FinleyAdapterException("Error - Illegal domain of interpolant.");
    if (targetDomain!=*this) 
@@ -1145,7 +1145,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
 //
 void MeshAdapter::setToX(escript::Data& arg) const
 {
-   const MeshAdapter& argDomain=dynamic_cast<const MeshAdapter&>(arg.getFunctionSpace().getDomain());
+   const MeshAdapter& argDomain=dynamic_cast<const MeshAdapter&>(*(arg.getFunctionSpace().getDomain()));
    if (argDomain!=*this) 
       throw FinleyAdapterException("Error - Illegal domain of data point locations");
    Finley_Mesh* mesh=m_finleyMesh.get();
@@ -1168,7 +1168,8 @@ void MeshAdapter::setToX(escript::Data& arg) const
 //
 void MeshAdapter::setToNormal(escript::Data& normal) const
 {
-   const MeshAdapter& normalDomain=dynamic_cast<const MeshAdapter&>(normal.getFunctionSpace().getDomain());
+/*   const MeshAdapter& normalDomain=dynamic_cast<const MeshAdapter&>(normal.getFunctionSpace().getDomain());*/
+   const MeshAdapter& normalDomain=dynamic_cast<const MeshAdapter&>(*(normal.getFunctionSpace().getDomain()));
    if (normalDomain!=*this) 
       throw FinleyAdapterException("Error - Illegal domain of normal locations");
    Finley_Mesh* mesh=m_finleyMesh.get();
@@ -1223,7 +1224,7 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
 //
 void MeshAdapter::interpolateACross(escript::Data& target,const escript::Data& source) const
 {
-   const MeshAdapter& targetDomain=dynamic_cast<const MeshAdapter&>(target.getFunctionSpace().getDomain());
+   const MeshAdapter& targetDomain=dynamic_cast<const MeshAdapter&>(*(target.getFunctionSpace().getDomain()));
    if (targetDomain!=*this) 
       throw FinleyAdapterException("Error - Illegal domain of interpolation target");
 
@@ -1235,7 +1236,7 @@ void MeshAdapter::interpolateACross(escript::Data& target,const escript::Data& s
 //
 void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const
 {
-   const MeshAdapter& argDomain=dynamic_cast<const MeshAdapter&>(arg.getFunctionSpace().getDomain());
+   const MeshAdapter& argDomain=dynamic_cast<const MeshAdapter&>(*(arg.getFunctionSpace().getDomain()));
    if (argDomain!=*this) 
       throw FinleyAdapterException("Error - Illegal domain of integration kernel");
 
@@ -1246,12 +1247,12 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const escript::D
    escriptDataC _arg=arg.getDataC();
    switch(arg.getFunctionSpace().getTypeCode()) {
    case(Nodes):
-   temp=escript::Data( arg, function(asAbstractContinuousDomain()) );
+   temp=escript::Data( arg, escript::function(asAbstractContinuousDomain()) );
    _temp=temp.getDataC();
    Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
    break;
    case(ReducedNodes):
-   temp=escript::Data( arg, function(asAbstractContinuousDomain()) );
+   temp=escript::Data( arg, escript::function(asAbstractContinuousDomain()) );
    _temp=temp.getDataC();
    Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
    break;
@@ -1283,12 +1284,12 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const escript::D
    Finley_Assemble_integrate(mesh->Nodes,mesh->ContactElements,&_arg,&integrals[0]);
    break;
    case(DegreesOfFreedom):
-   temp=escript::Data( arg, function(asAbstractContinuousDomain()) );
+   temp=escript::Data( arg, escript::function(asAbstractContinuousDomain()) );
    _temp=temp.getDataC();
    Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
    break;
    case(ReducedDegreesOfFreedom):
-   temp=escript::Data( arg, function(asAbstractContinuousDomain()) );
+   temp=escript::Data( arg, escript::function(asAbstractContinuousDomain()) );
    _temp=temp.getDataC();
    Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
    break;
@@ -1307,10 +1308,10 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const escript::D
 //
 void MeshAdapter::setToGradient(escript::Data& grad,const escript::Data& arg) const
 {
-   const MeshAdapter& argDomain=dynamic_cast<const MeshAdapter&>(arg.getFunctionSpace().getDomain());
+   const MeshAdapter& argDomain=dynamic_cast<const MeshAdapter&>(*(arg.getFunctionSpace().getDomain()));
    if (argDomain!=*this)
       throw FinleyAdapterException("Error - Illegal domain of gradient argument");
-   const MeshAdapter& gradDomain=dynamic_cast<const MeshAdapter&>(grad.getFunctionSpace().getDomain());
+   const MeshAdapter& gradDomain=dynamic_cast<const MeshAdapter&>(*(grad.getFunctionSpace().getDomain()));
    if (gradDomain!=*this)
       throw FinleyAdapterException("Error - Illegal domain of gradient");
 
@@ -1437,7 +1438,7 @@ void MeshAdapter::setNewX(const escript::Data& new_x)
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
    escriptDataC tmp;
-   const MeshAdapter& newDomain=dynamic_cast<const MeshAdapter&>(new_x.getFunctionSpace().getDomain());
+   const MeshAdapter& newDomain=dynamic_cast<const MeshAdapter&>(*(new_x.getFunctionSpace().getDomain()));
    if (newDomain!=*this) 
       throw FinleyAdapterException("Error - Illegal domain of new point locations");
    tmp = new_x.getDataC();
@@ -1464,7 +1465,7 @@ void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& 
    for (int i=0;i<num_data;++i) {
       std::string n=boost::python::extract<std::string>(keys[i]);
       escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
-      if (dynamic_cast<const MeshAdapter&>(d.getFunctionSpace().getDomain()) !=*this) 
+      if (dynamic_cast<const MeshAdapter&>(*(d.getFunctionSpace().getDomain())) !=*this) 
          throw FinleyAdapterException("Error  in saveVTK: Data must be defined on same Domain");
       data[i]=d.getDataC();
       ptr_data[i]= &(data[i]);
@@ -1509,7 +1510,7 @@ void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict&
    for (int i=0;i<num_data;++i) {
       std::string n=boost::python::extract<std::string>(keys[i]);
       escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
-      if (dynamic_cast<const MeshAdapter&>(d.getFunctionSpace().getDomain()) !=*this) 
+      if (dynamic_cast<const MeshAdapter&>(*(d.getFunctionSpace().getDomain())) !=*this) 
          throw FinleyAdapterException("Error  in saveVTK: Data must be defined on same Domain");
       data[i]=d.getDataC();
       ptr_data[i]=&(data[i]);
@@ -1547,10 +1548,10 @@ SystemMatrixAdapter MeshAdapter::newSystemMatrix(
    int reduceRowOrder=0;
    int reduceColOrder=0;
    // is the domain right?
-   const MeshAdapter& row_domain=dynamic_cast<const MeshAdapter&>(row_functionspace.getDomain());
+   const MeshAdapter& row_domain=dynamic_cast<const MeshAdapter&>(*(row_functionspace.getDomain()));
    if (row_domain!=*this) 
       throw FinleyAdapterException("Error - domain of row function space does not match the domain of matrix generator.");
-   const MeshAdapter& col_domain=dynamic_cast<const MeshAdapter&>(column_functionspace.getDomain());
+   const MeshAdapter& col_domain=dynamic_cast<const MeshAdapter&>(*(column_functionspace.getDomain()));
    if (col_domain!=*this) 
       throw FinleyAdapterException("Error - domain of columnn function space does not match the domain of matrix generator.");
    // is the function space type right 
@@ -1595,7 +1596,7 @@ TransportProblemAdapter MeshAdapter::newTransportProblem(
 {
    int reduceOrder=0;
    // is the domain right?
-   const MeshAdapter& domain=dynamic_cast<const MeshAdapter&>(functionspace.getDomain());
+   const MeshAdapter& domain=dynamic_cast<const MeshAdapter&>(*(functionspace.getDomain()));
    if (domain!=*this) 
       throw FinleyAdapterException("Error - domain of function space does not match the domain of transport problem generator.");
    // is the function space type right 
@@ -1851,7 +1852,7 @@ escript::Data MeshAdapter::getNormal() const
 
 escript::Data MeshAdapter::getSize() const
 {
-   return function(asAbstractContinuousDomain()).getSize();
+   return escript::function(asAbstractContinuousDomain()).getSize();
 }
 
 int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
