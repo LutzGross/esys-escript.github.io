@@ -148,22 +148,23 @@ do                                                                      \
   if ((void *)(_PTR_) != NULL ) { PASO_FREE(_PTR_); (_PTR_) = NULL; }   \
 } while(0)
 
-#define MEMREALLOC(_POINTER_,_LENGTH_,_TYPE_)                             \
+#define MEMREALLOC(_RETP_,_POINTER_,_LENGTH_,_TYPE_)                    \
 do                                                                        \
 {                                                                         \
    if( (_POINTER_)!=NULL )                                                \
    {                                                                      \
-      _POINTER_ = (_TYPE_*)PASO_REALLOC((void*)(_POINTER_),               \
+      _RETP_ = (_TYPE_*)PASO_REALLOC((void*)(_POINTER_),               \
                                    ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); \
    }                                                                      \
    else                                                                   \
    {                                                                      \
-      _POINTER_ = (_TYPE_*)PASO_MALLOC( ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); \
+      _RETP_ = (_TYPE_*)PASO_MALLOC( ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); \
    }                                                                      \
 } while(0)
 
 #define TMPMEMALLOC MEMALLOC
 #define TMPMEMFREE MEMFREE
+#define TMPMEMREALLOC MEMREALLOC
 
 #define THREAD_MEMALLOC(_LENGTH_,_TYPE_)                          \
    (_TYPE_*) PASO_THREAD_MALLOC/**/(((size_t)(_LENGTH_))*sizeof(_TYPE_))
