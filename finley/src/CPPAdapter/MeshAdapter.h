@@ -142,6 +142,22 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
+     If compiled for MPI then execute an MPI_Barrier, else do nothing
+  */
+
+  FINLEY_DLL_API
+  virtual void MPIBarrier() const;
+
+  /**
+     \brief
+     Return true if on MPI processor 0, else false
+  */
+
+  FINLEY_DLL_API
+  virtual bool onMasterProcessor() const;
+
+  /**
+     \brief
      return this as an AbstractContinuousDomain.
   */
   inline const AbstractContinuousDomain& asAbstractContinuousDomain() const 
