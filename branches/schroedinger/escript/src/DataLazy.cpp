@@ -43,6 +43,12 @@ resultFS(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 	// maybe we need an interpolate node -
 	// that way, if interpolate is required in any other op we can just throw a 
 	// programming error exception.
+
+
+	if (left->getFunctionSpace()!=right->getFunctionSpace())
+	{
+		throw DataException("FunctionSpaces not equal - interpolation not supported on lazy data.");
+	}
 	return left->getFunctionSpace();
 }
 
@@ -50,7 +56,11 @@ resultFS(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 DataTypes::ShapeType
 resultShape(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 {
-	return DataTypes::scalarShape;
+	if (left->getShape()!=right->getShape())
+	{
+		throw DataException("Shapes not the same - shapes must match for lazy data.");
+	}
+	return left->getShape();
 }
 
 size_t
@@ -58,7 +68,7 @@ resultLength(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 {
    switch(op)
    {
-   case IDENTITY: return left->getLength();
+//   case IDENTITY: return left->getLength();
    case ADD:	// the length is preserved in these ops
    case SUB:
    case MUL:
@@ -69,8 +79,45 @@ resultLength(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
    }
 }
 
+int
+calcBuffs(const DataLazy_ptr& left, const DataLazy_ptr& right, ES_optype op)
+{
+   switch(op)
+   {
+   case IDENTITY: return 0;
+   case ADD:	// the length is preserved in these ops
+   case SUB:
+   case MUL:
+   case DIV: return max(left->getBuffsRequired(),right->getBuffsRequired());
+   default: 
+	throw DataException("Programmer Error - attempt to calcBuffs() for operator "+opToString(op)+".");
+   }
+}
+
 string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/"};
 int ES_opcount=5;
+
+// void performOp(ValueType& v, int startOffset, ES_optype op, int m_samplesize)
+// {
+//    switch(op)
+//    {
+//    case ADD:  DataMaths::binaryOp(v,getShape(),startOffset,v,getShape(),
+// 		startOffset+m_samplesize,plus<double>());
+// 	      break;	
+//    case SUB:  DataMaths::binaryOp(v,getShape(),startOffset,v,getShape(),
+// 		startOffset+m_samplesize,minus<double>());
+// 	      break;
+//    case MUL:  DataMaths::binaryOp(v,getShape(),startOffset,v,getShape(),
+// 		startOffset+m_samplesize,multiplies<double>());
+// 	      break;
+//    case DIV:  DataMaths::binaryOp(v,getShape(),startOffset,v,getShape(),
+// 		startOffset+m_samplesize,divides<double>());
+// 	      break;
+//    default: 
+// 	throw DataException("Programmer Error - attempt to performOp() for operator "+opToString(op)+".");
+//    }
+// 
+// }
 
 }	// end anonymous namespace
 
@@ -88,54 +135,146 @@ opToString(ES_optype op)
 
 DataLazy::DataLazy(DataAbstract_ptr p)
 	: parent(p->getFunctionSpace(),p->getShape()),
-	m_left(p),
 	m_op(IDENTITY)
 {
-   length=resultLength(m_left,m_right,m_op);
+   if (p->isLazy())
+   {
+	// TODO: fix this.   We could make the new node a copy of p?
+	// I don't want identity of Lazy.
+	// Question: Why would that be so bad?
+	// Answer: We assume that the child of ID is something we can call getVector on
+	throw DataException("Programmer error - attempt to create identity from a DataLazy.");
+   }
+   else
+   {
+	m_id=dynamic_pointer_cast<DataReady>(p);
+   }
+   m_length=p->getLength();
+   m_buffsRequired=0;
+   m_samplesize=getNumDPPSample()*getNoValues();
+cout << "(1)Lazy created with " << m_samplesize << endl;
 }
 
-DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
+DataLazy::DataLazy(DataLazy_ptr left, DataLazy_ptr right, ES_optype op)
 	: parent(resultFS(left,right,op), resultShape(left,right,op)),
 	m_left(left),
 	m_right(right),
 	m_op(op)
 {
-   length=resultLength(m_left,m_right,m_op);
+   m_length=resultLength(m_left,m_right,m_op);
+   m_samplesize=getNumDPPSample()*getNoValues();
+   m_buffsRequired=calcBuffs(m_left, m_right, m_op);
+cout << "(2)Lazy created with " << m_samplesize << endl;
 }
+
+DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
+	: parent(resultFS(left,right,op), resultShape(left,right,op)),
+	m_op(op)
+{
+   if (left->isLazy())
+   {
+	m_left=dynamic_pointer_cast<DataLazy>(left);
+   }
+   else
+   {
+	m_left=DataLazy_ptr(new DataLazy(left));
+   }
+   if (right->isLazy())
+   {
+	m_right=dynamic_pointer_cast<DataLazy>(right);
+   }
+   else
+   {
+	m_right=DataLazy_ptr(new DataLazy(right));
+   }
+
+   m_length=resultLength(m_left,m_right,m_op);
+   m_samplesize=getNumDPPSample()*getNoValues();
+   m_buffsRequired=calcBuffs(m_left, m_right,m_op);
+cout << "(3)Lazy created with " << m_samplesize << endl;
+}
+
 
 DataLazy::~DataLazy()
 {
 }
 
-// If resolving records a pointer to the resolved Data we may need to rethink the const on this method
+
+int
+DataLazy::getBuffsRequired() const
+{
+	return m_buffsRequired;
+}
+
+void
+DataLazy::resolveSample(ValueType& v,int sampleNo,  size_t offset ) const
+{
+  if (m_op==IDENTITY)	// copy the contents into the vector
+  {
+cout << "Begin ID" << endl;
+cout << "dpps=" << getNumDPPSample() << " novals=" << getNoValues() << endl;
+    const ValueType& vec=m_id->getVector();
+    size_t srcOffset=m_id->getPointOffset(sampleNo, 0);
+cout << "v.size()=" << v.size() << " vec=" << vec.size() << endl;
+    for (size_t i=0;i<m_samplesize;++i,++srcOffset,++offset)
+    {
+cout << "Trying offset=" << offset << " srcOffset=" << srcOffset << endl;
+	v[offset]=vec[srcOffset];	
+    }
+cout << "End ID" << endl;
+    return;
+  }
+  size_t rightoffset=offset+m_samplesize;
+  m_left->resolveSample(v,sampleNo,offset);
+  m_right->resolveSample(v,sampleNo,rightoffset);
+//  for (int i=0;i<getNumDPPSample();++i)
+  {
+    switch(m_op)
+    {
+    case ADD:		// since these are pointwise ops, pretend each sample is one point
+	tensor_binary_operation(m_samplesize,&(v[offset]),&(v[rightoffset]),&(v[offset]),plus<double>());
+	break;
+    case SUB:		
+	tensor_binary_operation(m_samplesize,&(v[offset]),&(v[rightoffset]),&(v[offset]),minus<double>());
+	break;
+    case MUL:		
+	tensor_binary_operation(m_samplesize,&(v[offset]),&(v[rightoffset]),&(v[offset]),multiplies<double>());
+	break;
+    case DIV:		
+	tensor_binary_operation(m_samplesize,&(v[offset]),&(v[rightoffset]),&(v[offset]),divides<double>());
+	break;
+    default:
+	throw DataException("Programmer error - do not know how to resolve operator "+opToString(m_op)+".");
+    }
+  }
+}
+
 DataReady_ptr
 DataLazy::resolve()
 {
-  DataReady_ptr left;
-  DataReady_ptr right;
-  if (m_left.get()!=0)
+  // This is broken!     We need to have a buffer per thread!
+  // so the allocation of v needs to move inside the loop somehow
+
+cout << "Sample size=" << m_samplesize << endl;
+cout << "Buffers=" << m_buffsRequired << endl;
+
+  ValueType v(m_samplesize*max(1,m_buffsRequired));
+cout << "Buffer created with size=" << v.size() << endl;
+  ValueType dummy(getNoValues());
+  DataExpanded* result=new DataExpanded(getFunctionSpace(),getShape(),dummy);
+  ValueType& resvec=result->getVector();
+  DataReady_ptr resptr=DataReady_ptr(result);
+  int sample;
+  #pragma omp parallel for private(sample) schedule(static)
+  for (sample=0;sample<getNumSamples();++sample)
   {
-	left=m_left->resolve();
+    resolveSample(v,sample,0);
+    for (int i=0;i<m_samplesize;++i)	// copy values into the output vector
+    {
+	resvec[i]=v[i];
+    }
   }
-  if (m_right.get()!=0)
-  {
-	right=m_right->resolve();
-  }
-  switch (m_op)
-  {
-    case IDENTITY: return left;
-    case ADD:
-	// Hmm we could get interpolation here, better be careful
-      return C_TensorBinaryOperation(Data(left),Data(right),plus<double>()).borrowReadyPtr();
-    case SUB:
-      return C_TensorBinaryOperation(Data(left),Data(right),minus<double>()).borrowReadyPtr();
-    case MUL:
-      return C_TensorBinaryOperation(Data(left),Data(right),multiplies<double>()).borrowReadyPtr();
-    case DIV:
-      return C_TensorBinaryOperation(Data(left),Data(right),divides<double>()).borrowReadyPtr();
-    default:
-	throw DataException("Programmer error - do not know how to resolve operator "+opToString(m_op)+".");
-  }
+  return resptr;
 }
 
 std::string
@@ -160,15 +299,14 @@ DataLazy::deepCopy()
 DataTypes::ValueType::size_type
 DataLazy::getLength() const
 {
-  return length;
+  return m_length;
 }
 
 
 DataAbstract*
 DataLazy::getSlice(const DataTypes::RegionType& region) const
 {
-  // this seems like a really good one to include I just haven't added it yet
-  throw DataException("getSlice - not implemented for Lazy objects - yet.");
+  throw DataException("getSlice - not implemented for Lazy objects.");
 }
 
 DataTypes::ValueType::size_type 
@@ -177,5 +315,20 @@ DataLazy::getPointOffset(int sampleNo,
 {
   throw DataException("getPointOffset - not implemented for Lazy objects - yet.");
 }
+
+// // The startOffset is where to write results in the output vector v
+// void
+// DataLazy::processSample(ValueType& v, int sampleNo, size_t startOffset)
+// {
+//     m_left.processSample(v,sampleNo,startOffset);
+//     m_right.processSample(v,sampleNo,startOffset+getSampleSize());
+//     int i;
+//     #pragma omp parallel for private(i) schedule(static)
+//     for (i=0;i<getSampleSize();++i)
+//     {
+//     	performOp(v,startOffset+i*m_pointsize,ES_optype,m_samplesize);
+//     }
+// }
+
 
 }	// end namespace

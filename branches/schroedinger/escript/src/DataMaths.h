@@ -116,28 +116,6 @@ Note that vector in this context refers to a data vector storing datapoints not 
            DataTypes::ValueType::size_type rightOffset,
            BinaryFunction operation);
 
-//  /**
-//     \brief
-//     Perform the binary operation on the data point specified by the default
-//     offset in this view using the scalar value "right". Applies the specified
-//     operation to values in the data point. Operation must be a pointer to
-//     a function.
-//
-//     Called by escript::binaryOp.
-//
-//     \param right - Input -
-//                  Value to act as RHS in given binary operation.
-//     \param operation - Input -
-//                  Operation to apply. Must be a pointer to a function.
-//  */
-//   template <class BinaryFunction>
-//   void
-//   binaryOp(DataAbstract& left, double right,
-//            BinaryFunction operation);
-
-// Implicit offset again
-
-
   /**
      \brief
      Perform the binary operation on the data point specified by the given
@@ -906,15 +884,6 @@ unaryOp(DataTypes::ValueType& data, const DataTypes::ShapeType& shape,
     data[offset+i]=operation(data[offset+i]);
   }
 }
-
-// template <class BinaryFunction>
-// inline
-// void
-// binaryOp(const DataArrayView& right,
-//                         BinaryFunction operation)
-// {
-//   binaryOp(m_offset,right,right.getOffset(),operation);
-// }
 
 
 template <class BinaryFunction>

@@ -1473,6 +1473,8 @@ contains datapoints.
 
 
 // No, this is not supposed to be at the top of the file
+// DataAbstact needs to be declared first, then DataReady needs to be fully declared
+// so that I can dynamic cast between them below.
 #include "DataReady.h"
 
 namespace escript

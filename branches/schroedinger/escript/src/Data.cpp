@@ -1825,50 +1825,6 @@ escript::operator/(const boost::python::object& left, const Data& right)
   return Data(left,right.getFunctionSpace(),false)/right;
 }
 
-//
-//bool escript::operator==(const Data& left, const Data& right)
-//{
-//  /*
-//  NB: this operator does very little at this point, and isn't to
-//  be relied on. Requires further implementation.
-//  */
-//
-//  bool ret;
-//
-//  if (left.isEmpty()) {
-//    if(!right.isEmpty()) {
-//      ret = false;
-//    } else {
-//      ret = true;
-//    }
-//  }
-//
-//  if (left.isConstant()) {
-//    if(!right.isConstant()) {
-//      ret = false;
-//    } else {
-//      ret = true;
-//    }
-// }
-//
-//  if (left.isTagged()) {
-//   if(!right.isTagged()) {
-//      ret = false;
-//    } else {
-//      ret = true;
-//    }
-//  }
-//
-//  if (left.isExpanded()) {
-//    if(!right.isExpanded()) {
-//      ret = false;
-//    } else {
-//      ret = true;
-//    }
-//  }
-//
-//  return ret;
-//}
 
 /* TODO */
 /* global reduction */
