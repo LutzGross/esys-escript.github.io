@@ -42,7 +42,7 @@
 #define IS_IN_MIS -3
 #define IS_CONNECTED_TO_MIS -4
 
-void Paso_Pattern_cop(Paso_SparseMatrix* A, index_t* mis_marker) {
+void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker) {
 
   index_t index_offset=(A->pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   dim_t i,j;
