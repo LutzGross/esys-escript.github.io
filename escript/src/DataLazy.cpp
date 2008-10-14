@@ -19,6 +19,9 @@
 #ifdef PASO_MPI
 #include <mpi.h>
 #endif
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include "FunctionSpace.h"
 #include "DataTypes.h"
 #include "Data.h"
@@ -209,34 +212,20 @@ DataLazy::getBuffsRequired() const
 
 // the vector and the offset are a place where the method could write its data if it wishes
 // it is not obligated to do so. For example, if it has its own storage already, it can use that.
-// hence the return value to indicate where the data is actually stored.
-// regardless, the storage should be assumed to be used, even if it isn't.
+// Hence the return value to indicate where the data is actually stored.
+// Regardless, the storage should be assumed to be used, even if it isn't.
 const double*
 DataLazy::resolveSample(ValueType& v,int sampleNo,  size_t offset ) const
 {
-  if (m_op==IDENTITY)	// copy the contents into the vector
+  if (m_op==IDENTITY)	
   {
-cout << "Begin ID" << endl;
-cout << "dpps=" << getNumDPPSample() << " novals=" << getNoValues() << endl;
     const ValueType& vec=m_id->getVector();
-//     size_t srcOffset=m_id->getPointOffset(sampleNo, 0);
-// cout << "v.size()=" << v.size() << " vec=" << vec.size() << endl;
-//     for (size_t i=0;i<m_samplesize;++i,++srcOffset,++offset)
-//     {
-// cout << "Trying offset=" << offset << " srcOffset=" << srcOffset << endl;
-// 	v[offset]=vec[srcOffset];	
-//     }
-cout << "End ID - returning offset " << m_id->getPointOffset(sampleNo, 0) << " of vector@" << &vec<<endl;
     return &(vec[m_id->getPointOffset(sampleNo, 0)]);
-//     return;
   }
-cout << "Begin op";
   size_t rightoffset=offset+m_samplesize;
   const double* left=m_left->resolveSample(v,sampleNo,offset);
   const double* right=m_right->resolveSample(v,sampleNo,rightoffset);
   double* result=&(v[offset]);
-cout << "left=" << left << " right=" << right << " result=" << result << endl;
-//  for (int i=0;i<getNumDPPSample();++i)
   {
     switch(m_op)
     {
@@ -268,7 +257,13 @@ DataLazy::resolve()
 cout << "Sample size=" << m_samplesize << endl;
 cout << "Buffers=" << m_buffsRequired << endl;
 
-  ValueType v(m_samplesize*(max(1,m_buffsRequired)+1));	// the +1 comes from the fact that I want to have a safe
+  size_t threadbuffersize=m_samplesize*(max(1,m_buffsRequired)+1);
+  int numthreads=1;
+#ifdef _OPENMP
+  numthreads=omp_get_max_threads();
+  int threadnum=0;
+#endif 
+  ValueType v(numthreads*threadbuffersize);	// the +1 comes from the fact that I want to have a safe
 							// space for the RHS of ops to write to even if they don't
 							// need it.
 cout << "Buffer created with size=" << v.size() << endl;
@@ -277,15 +272,20 @@ cout << "Buffer created with size=" << v.size() << endl;
   ValueType& resvec=result->getVector();
   DataReady_ptr resptr=DataReady_ptr(result);
   int sample;
-  #pragma omp parallel for private(sample) schedule(static)
-  for (sample=0;sample<getNumSamples();++sample)
+  int resoffset;
+  int totalsamples=getNumSamples();
+  #pragma omp parallel for private(sample,resoffset,threadnum) schedule(static)
+  for (sample=0;sample<totalsamples;++sample)
   {
-cout << "Processing sample#" << sample << endl;
-    resolveSample(v,sample,0);
-cout << "Copying#" << sample << endl;
-    for (int i=0;i<m_samplesize;++i)	// copy values into the output vector
+#ifdef _OPENMP
+    const double* res=resolveSample(v,sample,threadbuffersize*omp_get_thread_num());
+#else
+    const double* res=resolveSample(v,sample,0);   // this would normally be v, but not if its a single IDENTITY op.
+#endif
+    resoffset=result->getPointOffset(sample,0);
+    for (int i=0;i<m_samplesize;++i,++resoffset)	// copy values into the output vector
     {
-	resvec[i]=v[i];
+	resvec[resoffset]=res[i];
     }
   }
   return resptr;
