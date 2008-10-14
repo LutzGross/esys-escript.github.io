@@ -206,7 +206,12 @@ DataLazy::getBuffsRequired() const
 	return m_buffsRequired;
 }
 
-void
+
+// the vector and the offset are a place where the method could write its data if it wishes
+// it is not obligated to do so. For example, if it has its own storage already, it can use that.
+// hence the return value to indicate where the data is actually stored.
+// regardless, the storage should be assumed to be used, even if it isn't.
+const double*
 DataLazy::resolveSample(ValueType& v,int sampleNo,  size_t offset ) const
 {
   if (m_op==IDENTITY)	// copy the contents into the vector
@@ -214,39 +219,44 @@ DataLazy::resolveSample(ValueType& v,int sampleNo,  size_t offset ) const
 cout << "Begin ID" << endl;
 cout << "dpps=" << getNumDPPSample() << " novals=" << getNoValues() << endl;
     const ValueType& vec=m_id->getVector();
-    size_t srcOffset=m_id->getPointOffset(sampleNo, 0);
-cout << "v.size()=" << v.size() << " vec=" << vec.size() << endl;
-    for (size_t i=0;i<m_samplesize;++i,++srcOffset,++offset)
-    {
-cout << "Trying offset=" << offset << " srcOffset=" << srcOffset << endl;
-	v[offset]=vec[srcOffset];	
-    }
-cout << "End ID" << endl;
-    return;
+//     size_t srcOffset=m_id->getPointOffset(sampleNo, 0);
+// cout << "v.size()=" << v.size() << " vec=" << vec.size() << endl;
+//     for (size_t i=0;i<m_samplesize;++i,++srcOffset,++offset)
+//     {
+// cout << "Trying offset=" << offset << " srcOffset=" << srcOffset << endl;
+// 	v[offset]=vec[srcOffset];	
+//     }
+cout << "End ID - returning offset " << m_id->getPointOffset(sampleNo, 0) << " of vector@" << &vec<<endl;
+    return &(vec[m_id->getPointOffset(sampleNo, 0)]);
+//     return;
   }
+cout << "Begin op";
   size_t rightoffset=offset+m_samplesize;
-  m_left->resolveSample(v,sampleNo,offset);
-  m_right->resolveSample(v,sampleNo,rightoffset);
+  const double* left=m_left->resolveSample(v,sampleNo,offset);
+  const double* right=m_right->resolveSample(v,sampleNo,rightoffset);
+  double* result=&(v[offset]);
+cout << "left=" << left << " right=" << right << " result=" << result << endl;
 //  for (int i=0;i<getNumDPPSample();++i)
   {
     switch(m_op)
     {
     case ADD:		// since these are pointwise ops, pretend each sample is one point
-	tensor_binary_operation(m_samplesize,&(v[offset]),&(v[rightoffset]),&(v[offset]),plus<double>());
+	tensor_binary_operation(m_samplesize, left, right, result, plus<double>());
 	break;
     case SUB:		
-	tensor_binary_operation(m_samplesize,&(v[offset]),&(v[rightoffset]),&(v[offset]),minus<double>());
+	tensor_binary_operation(m_samplesize, left, right, result, minus<double>());
 	break;
     case MUL:		
-	tensor_binary_operation(m_samplesize,&(v[offset]),&(v[rightoffset]),&(v[offset]),multiplies<double>());
+	tensor_binary_operation(m_samplesize, left, right, result, multiplies<double>());
 	break;
     case DIV:		
-	tensor_binary_operation(m_samplesize,&(v[offset]),&(v[rightoffset]),&(v[offset]),divides<double>());
+	tensor_binary_operation(m_samplesize, left, right, result, divides<double>());
 	break;
     default:
 	throw DataException("Programmer error - do not know how to resolve operator "+opToString(m_op)+".");
     }
   }
+  return result;
 }
 
 DataReady_ptr
@@ -258,7 +268,9 @@ DataLazy::resolve()
 cout << "Sample size=" << m_samplesize << endl;
 cout << "Buffers=" << m_buffsRequired << endl;
 
-  ValueType v(m_samplesize*max(1,m_buffsRequired));
+  ValueType v(m_samplesize*(max(1,m_buffsRequired)+1));	// the +1 comes from the fact that I want to have a safe
+							// space for the RHS of ops to write to even if they don't
+							// need it.
 cout << "Buffer created with size=" << v.size() << endl;
   ValueType dummy(getNoValues());
   DataExpanded* result=new DataExpanded(getFunctionSpace(),getShape(),dummy);
@@ -268,7 +280,9 @@ cout << "Buffer created with size=" << v.size() << endl;
   #pragma omp parallel for private(sample) schedule(static)
   for (sample=0;sample<getNumSamples();++sample)
   {
+cout << "Processing sample#" << sample << endl;
     resolveSample(v,sample,0);
+cout << "Copying#" << sample << endl;
     for (int i=0;i<m_samplesize;++i)	// copy values into the output vector
     {
 	resvec[i]=v[i];
@@ -315,20 +329,5 @@ DataLazy::getPointOffset(int sampleNo,
 {
   throw DataException("getPointOffset - not implemented for Lazy objects - yet.");
 }
-
-// // The startOffset is where to write results in the output vector v
-// void
-// DataLazy::processSample(ValueType& v, int sampleNo, size_t startOffset)
-// {
-//     m_left.processSample(v,sampleNo,startOffset);
-//     m_right.processSample(v,sampleNo,startOffset+getSampleSize());
-//     int i;
-//     #pragma omp parallel for private(i) schedule(static)
-//     for (i=0;i<getSampleSize();++i)
-//     {
-//     	performOp(v,startOffset+i*m_pointsize,ES_optype,m_samplesize);
-//     }
-// }
-
 
 }	// end namespace
