@@ -73,16 +73,22 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose) {
   dim_t n=A_p->numRows;
   dim_t n_block=A_p->row_block_size;
   index_t* mis_marker=NULL;  
-  index_t* counter=NULL;  
-  index_t iPtr,*index, *where_p;
-  dim_t i,k;
+  index_t* counter=NULL;
+  double *rs=NULL;  
+  index_t iPtr,*index, *where_p, iPtr_s;
+  dim_t i,k,j,j0;
   Paso_SparseMatrix * schur=NULL;
+  Paso_SparseMatrix * schur_withFillIn=NULL;
+  schur_withFillIn=MEMALLOC(1,Paso_SparseMatrix);
+  
+  
   double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0,time1,time2;
    
 
   /* identify independend set of rows/columns */
   mis_marker=TMPMEMALLOC(n,index_t);
   counter=TMPMEMALLOC(n,index_t);
+  rs=TMPMEMALLOC(n,double);
   out=MEMALLOC(1,Paso_Solver_AMG);
   out->AMG_of_Schur=NULL;
   out->inv_A_FF=NULL;
@@ -97,13 +103,23 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose) {
   out->b_F=NULL;
   out->x_C=NULL;
   out->b_C=NULL;
-
+  
+ /* fprintf(stderr,"START OF MATRIX \n\n");
+  for (i = 0; i < A_p->numRows; ++i) {
+     for (iPtr=A_p->pattern->ptr[i];iPtr<A_p->pattern->ptr[i + 1]; ++iPtr) {
+       j=A_p->pattern->index[iPtr];
+       fprintf(stderr,"A[%d,%d]=%.2f ",i,j,A_p->val[iPtr]);
+     }
+     fprintf(stderr,"\n");
+   }
+   fprintf(stderr,"END OF MATRIX \n\n");
+ */
   if ( !(Paso_checkPtr(mis_marker) || Paso_checkPtr(out) || Paso_checkPtr(counter) ) ) {
      /* identify independend set of rows/columns */
      time0=Paso_timer();
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
-     Paso_Pattern_mis(A_p->pattern,mis_marker);
+     Paso_Pattern_coup(A_p,mis_marker);
      time2=Paso_timer()-time0;
      if (Paso_noError()) {
         #pragma omp parallel for private(i) schedule(static)
@@ -130,6 +146,15 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose) {
                         out->mask_F[i]=-1;
                  }
               }
+              /* Compute row-sum for getting rs(A_FF)*/
+              #pragma omp for private(i,iPtr) schedule(static)
+              for (i = 0; i < out->n_F; ++i) {
+                rs[i]=0;
+                for (iPtr=A_p->pattern->ptr[out->rows_in_F[i]];iPtr<A_p->pattern->ptr[out->rows_in_F[i] + 1]; ++iPtr) {
+                 rs[i]+=A_p->val[iPtr];
+                }
+              }
+             
               #pragma omp for private(i, where_p,iPtr,A11,A12,A13,A21,A22,A23,A31,A32,A33,D,index) schedule(static)
               for (i = 0; i < out->n_F; i++) {
                 /* find main diagonal */
@@ -145,54 +170,12 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose) {
                 } else {
                     iPtr+=(index_t)(where_p-index);
                     /* get inverse of A_FF block: */
-                    if (n_block==1) {
-                       if (ABS(A_p->val[iPtr])>0.) {
-                            out->inv_A_FF[i]=1./A_p->val[iPtr];
-                       } else {
+                      if (ABS(rs[i])>0.) {
+                            out->inv_A_FF[i]=1./rs[i];
+                      } else {
                             Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getAMG: Break-down in AMG decomposition: non-regular main diagonal block.");
-                       }
-                    } else if (n_block==2) {
-                       A11=A_p->val[iPtr*4];
-                       A21=A_p->val[iPtr*4+1];
-                       A12=A_p->val[iPtr*4+2];
-                       A22=A_p->val[iPtr*4+3];
-                       D = A11*A22-A12*A21;
-                       if (ABS(D) > 0 ){
-                            D=1./D;
-                            out->inv_A_FF[i*4]= A22*D;
-                            out->inv_A_FF[i*4+1]=-A21*D;
-                            out->inv_A_FF[i*4+2]=-A12*D;
-                            out->inv_A_FF[i*4+3]= A11*D;
-                       } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getAMG:Break-down in AMG decomposition: non-regular main diagonal block.");
-                       }
-                    } else if (n_block==3) {
-                       A11=A_p->val[iPtr*9  ];
-                       A21=A_p->val[iPtr*9+1];
-                       A31=A_p->val[iPtr*9+2];
-                       A12=A_p->val[iPtr*9+3];
-                       A22=A_p->val[iPtr*9+4];
-                       A32=A_p->val[iPtr*9+5];
-                       A13=A_p->val[iPtr*9+6];
-                       A23=A_p->val[iPtr*9+7];
-                       A33=A_p->val[iPtr*9+8];
-                       D  =  A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22);
-                       if (ABS(D) > 0 ){
-                            D=1./D;
-                            out->inv_A_FF[i*9  ]=(A22*A33-A23*A32)*D;
-                            out->inv_A_FF[i*9+1]=(A31*A23-A21*A33)*D;
-                            out->inv_A_FF[i*9+2]=(A21*A32-A31*A22)*D;
-                            out->inv_A_FF[i*9+3]=(A13*A32-A12*A33)*D;
-                            out->inv_A_FF[i*9+4]=(A11*A33-A31*A13)*D;
-                            out->inv_A_FF[i*9+5]=(A12*A31-A11*A32)*D;
-                            out->inv_A_FF[i*9+6]=(A12*A23-A13*A22)*D;
-                            out->inv_A_FF[i*9+7]=(A13*A21-A11*A23)*D;
-                            out->inv_A_FF[i*9+8]=(A11*A22-A12*A21)*D;
-                       } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getAMG:Break-down in AMG decomposition: non-regular main diagonal block.");
-                       }
-                   }
-                }
+                      }
+                } 
               }
            } /* end parallel region */
 
@@ -226,17 +209,46 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose) {
                       if (Paso_noError()) {
                          /* get A_FC block: */
                          out->A_FC=Paso_SparseMatrix_getSubmatrix(A_p,out->n_F,out->n_C,out->rows_in_F,out->mask_C);
-                         /* get A_FF block: */
+                         /* get A_CC block: */
                          if (Paso_noError()) {
                             schur=Paso_SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_C,out->rows_in_C,out->mask_C);
+                            
+                            /*find the pattern of the schur complement with fill in*/
+                            schur_withFillIn=Paso_SparseMatrix_alloc(A_p->type,Paso_Pattern_binop(PATTERN_FORMAT_DEFAULT, schur->pattern, Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,out->A_CF->pattern,out->A_FC->pattern)),1,1);
+                            
+                            /* copy values over*/ 
+                            #pragma omp for private(i,iPtr,iPtr_s,j,j0) schedule(static)
+                            for (i = 0; i < schur_withFillIn->numRows; ++i) {
+                              for (iPtr=schur_withFillIn->pattern->ptr[i];iPtr<schur_withFillIn->pattern->ptr[i + 1]; ++iPtr) {
+                                j=schur_withFillIn->pattern->index[iPtr];
+                                schur_withFillIn->val[iPtr]=0.;
+                                for (iPtr_s=schur->pattern->ptr[i];iPtr_s<schur->pattern->ptr[i + 1]; ++iPtr_s){
+                                    j0=schur->pattern->index[iPtr_s];
+                                    if (j==j0) {
+                                      schur_withFillIn->val[iPtr]=schur->val[iPtr_s];
+                                      break;
+                                    }
+                                }
+                              }
+                            }
+                            
+                          /*  for (i = 0; i < schur_withFillIn->numRows; ++i) {
+                              for (iPtr=schur_withFillIn->pattern->ptr[i];iPtr<schur_withFillIn->pattern->ptr[i + 1]; ++iPtr) {
+                                j=schur_withFillIn->pattern->index[iPtr];
+                                fprintf(stderr,"A_CC[%d,%d]=%.2f ",i,j,schur_withFillIn->val[iPtr]);
+                              }
+                              fprintf(stderr,"\n");
+                            }*/
                             time0=Paso_timer()-time0;
                             if (Paso_noError()) {
                                 time1=Paso_timer();
                                 /* update A_CC block to get Schur complement and then apply AMG to it */
-                                Paso_Solver_updateIncompleteSchurComplement(schur,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
+                                Paso_Solver_updateIncompleteSchurComplement(schur_withFillIn,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
                                 time1=Paso_timer()-time1;
-                                out->AMG_of_Schur=Paso_Solver_getAMG(schur,verbose);
+                                out->AMG_of_Schur=Paso_Solver_getAMG(schur_withFillIn,verbose);
+                                
                                 Paso_SparseMatrix_free(schur);
+                                Paso_SparseMatrix_free(schur_withFillIn);
                             }
                             /* allocate work arrays for AMG application */
                             if (Paso_noError()) {
@@ -274,6 +286,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose) {
   }
   TMPMEMFREE(mis_marker);
   TMPMEMFREE(counter);
+  TMPMEMFREE(rs);
   if (Paso_noError()) {
       if (verbose) {
          printf("AMG: %d unknowns eliminated. %d left.\n",out->n_F,n-out->n_F);
@@ -317,11 +330,12 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose) {
 void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      dim_t i,k;
      dim_t n_block=amg->n_block;
-     
+
      if (amg->n_C==0) {
         /* x=invA_FF*b  */
         Paso_Solver_applyBlockDiagonalMatrix(n_block,amg->n_F,amg->inv_A_FF,amg->A_FF_pivot,x,b);
      } else {
+        /* presmoothing on (Shure, x, b, r) */
         /* b->[b_F,b_C]     */
         if (n_block==1) {
            #pragma omp parallel for private(i) schedule(static)
