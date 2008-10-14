@@ -108,6 +108,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("saveDX",&escript::AbstractDomain::saveDX)
      .def("getMPISize",&escript::AbstractDomain::getMPISize)
      .def("getMPIRank",&escript::AbstractDomain::getMPIRank)
+     .def("MPIBarrier",&escript::AbstractDomain::MPIBarrier)
+     .def("onMasterProcessor",&escript::AbstractDomain::onMasterProcessor)
 
      .def(self == self)
      .def(self != self);

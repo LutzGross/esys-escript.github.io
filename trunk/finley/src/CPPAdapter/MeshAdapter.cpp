@@ -86,6 +86,17 @@ int MeshAdapter::getMPIRank() const
 {
    return m_finleyMesh.get()->MPIInfo->rank;
 }
+void MeshAdapter::MPIBarrier() const
+{
+#ifdef PASO_MPI
+   MPI_Barrier(m_finleyMesh.get()->MPIInfo->comm);
+#endif
+   return;
+}
+bool MeshAdapter::onMasterProcessor() const
+{
+   return m_finleyMesh.get()->MPIInfo->rank == 0;
+}
 
 
 Finley_Mesh* MeshAdapter::getFinley_Mesh() const {
