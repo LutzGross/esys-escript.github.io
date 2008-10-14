@@ -128,7 +128,7 @@ private:
   int m_buffsRequired;	// how many buffers are required to evaluate this expression
   size_t m_samplesize;	// number of values required to store a sample
 
-  void
+  const double*
   resolveSample(ValueType& v,int sampleNo,  size_t offset ) const;
 
 };
