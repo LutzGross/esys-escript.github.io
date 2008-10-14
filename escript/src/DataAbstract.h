@@ -161,8 +161,7 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
  /**
     \brief
     Return the offset for the given sample. This returns the offset for the given
-    point into the container holding the point data. Only really necessary to
-    avoid creating many DataArrayView objects.
+    point into the container holding the point data. 
 
     \param sampleNo - Input - sample number.
     \param dataPointNo - Input - data point number.
@@ -577,14 +576,6 @@ DataAbstract::validSampleNo(int sampleNo) const
 {
   return ((0 <= sampleNo) && (sampleNo < m_noSamples));
 }
-
-// inline
-// DataAbstract::ValueType::value_type*
-// DataAbstract::getSampleData(ValueType::size_type sampleNo)
-// {
-// //   return &(m_pointDataView->getData(getPointOffset(sampleNo,0)));
-//   return &(getVector()[getPointOffset(sampleNo,0)]);
-// }
 
 inline
 int

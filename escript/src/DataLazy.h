@@ -23,6 +23,8 @@
 #include <string>
 #include <functional>
 
+#include "LocalOps.h"		// for tensor_binary_op
+
 namespace escript {
 
 enum ES_optype
@@ -42,7 +44,14 @@ opToString(ES_optype op);
 \class escript::DataLazy
 \brief Wraps an expression tree of other DataObjects.
 The values of DataPoints are computed when requested rather than all at once.
+
+NOTE: This class assumes that the Data being pointed at are immutable.
 */
+
+class DataLazy;
+
+typedef POINTER_WRAPPER_CLASS(DataLazy) DataLazy_ptr;
+typedef POINTER_WRAPPER_CLASS(const DataLazy) const_DataLazy_ptr;
 
 class DataLazy : public DataAbstract
 {
@@ -56,6 +65,9 @@ public:
   DataLazy(DataAbstract_ptr p);
 
   ESCRIPT_DLL_API
+  DataLazy(DataLazy_ptr left, DataLazy_ptr right, ES_optype op);
+
+  ESCRIPT_DLL_API
   DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op);
 
   ESCRIPT_DLL_API
@@ -67,7 +79,8 @@ public:
   \brief Compute all data points in the expression tree
   */
   ESCRIPT_DLL_API
-  DataReady_ptr resolve();
+  DataReady_ptr 
+  resolve();
 
   ESCRIPT_DLL_API
   std::string
@@ -96,10 +109,28 @@ public:
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
+
+//   // this is a top level function, the actual searching will be done by helper methods
+//   ESCRIPT_DLL_API
+//   void
+//   getSample(ValueType& v, int sampleNo,size_t offset=0) const;
+
+  ESCRIPT_DLL_API
+  int
+  getBuffsRequired() const;
+
 private:
-  DataAbstract_ptr m_left, m_right;
+  DataReady_ptr m_id;
+  DataLazy_ptr m_left, m_right;
   ES_optype m_op;
-  size_t length;	// number of values represented by the operation
+  size_t m_length;	// number of values represented by the operation
+
+  int m_buffsRequired;	// how many buffers are required to evaluate this expression
+  size_t m_samplesize;	// number of values required to store a sample
+
+  void
+  resolveSample(ValueType& v,int sampleNo,  size_t offset ) const;
+
 };
 
 }
