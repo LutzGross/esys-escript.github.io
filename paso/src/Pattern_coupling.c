@@ -45,7 +45,7 @@
 void Paso_Pattern_cop(Paso_SparseMatrix* A, index_t* mis_marker) {
 
   index_t index_offset=(A->pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
-  dim_t i;
+  dim_t i,j;
   double threshold=0.05;
   index_t naib,iptr;
   bool_t flag;
@@ -61,11 +61,11 @@ void Paso_Pattern_cop(Paso_SparseMatrix* A, index_t* mis_marker) {
            #pragma omp parallel for private(naib,i,iptr,flag) schedule(static) 
            for (i=0;i<n;++i) {
               if (mis_marker[i]==IS_AVAILABLE) {
-                 flag=IS_IN_MIS_NOW;
+                 flag=IS_AVAILABLE;
                  for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
                      naib=A->pattern->index[iptr]-index_offset;
                      if (naib!=i && A->val[naib]<threshold*A->val[i]) {
-                        flag=IS_AVAILABLE;
+                        flag=IS_IN_MIS;
                         break;
                      }
                  }
@@ -78,10 +78,11 @@ void Paso_Pattern_cop(Paso_SparseMatrix* A, index_t* mis_marker) {
               if (mis_marker[i]==IS_AVAILABLE) {
                  for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
                      naib=A->pattern->index[iptr]-index_offset;
-                     if (naib!=i && mis_marker[i]==IS_IN_MIS_NOW && A->val[naib]/A->val[i]>=-threshold)
-                         mis_marker[naib]=IS_IN_MIS;
+                      if (naib!=i && mis_marker[naib]==IS_IN_MIS && A->val[iptr]/A->val[i]>=-threshold)
+                         mis_marker[i]=IS_IN_MIS;
+                     else
+                         mis_marker[i]=IS_CONNECTED_TO_MIS;
                  }
-                 mis_marker[i]=IS_CONNECTED_TO_MIS;
               }
            }
      }
