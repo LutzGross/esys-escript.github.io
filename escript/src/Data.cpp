@@ -2463,7 +2463,7 @@ Data::borrowData() const
 std::string
 Data::toString() const
 {
-    static const DataTypes::ValueType::size_type TOO_MANY_POINTS=80;
+    static const DataTypes::ValueType::size_type TOO_MANY_POINTS=8000;
     if (getNumDataPoints()*getDataPointSize()>TOO_MANY_POINTS)
     {
 	stringstream temp;
