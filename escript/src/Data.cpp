@@ -604,30 +604,55 @@ Data::tag()
 Data
 Data::oneOver() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),RECIP);
+	return Data(c);
+  }
   return C_TensorUnaryOperation(*this, bind1st(divides<double>(),1.));
 }
 
 Data
 Data::wherePositive() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),GZ);
+	return Data(c);
+  }
   return C_TensorUnaryOperation(*this, bind2nd(greater<double>(),0.0));
 }
 
 Data
 Data::whereNegative() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),LZ);
+	return Data(c);
+  }
   return C_TensorUnaryOperation(*this, bind2nd(less<double>(),0.0));
 }
 
 Data
 Data::whereNonNegative() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),GEZ);
+	return Data(c);
+  }
   return C_TensorUnaryOperation(*this, bind2nd(greater_equal<double>(),0.0));
 }
 
 Data
 Data::whereNonPositive() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),LEZ);
+	return Data(c);
+  }
   return C_TensorUnaryOperation(*this, bind2nd(less_equal<double>(),0.0));
 }
 
@@ -1310,18 +1335,88 @@ Data::pos() const
 
 Data
 Data::exp() const
-{
+{  
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),EXP);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::exp);
 }
 
 Data
 Data::sqrt() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),SQRT);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::sqrt);
 }
 
 double
-Data::Lsup() const
+Data::Lsup_const() const
+{
+   if (isLazy())
+   {
+	throw DataException("Error - cannot compute Lsup for constant lazy data.");
+   }
+   return LsupWorker();
+}
+
+double
+Data::Lsup() 
+{
+   if (isLazy())
+   {
+	expand();
+   }
+   return LsupWorker();
+}
+
+double
+Data::sup_const() const
+{
+   if (isLazy())
+   {
+	throw DataException("Error - cannot compute sup for constant lazy data.");
+   }
+   return supWorker();
+}
+
+double
+Data::sup() 
+{
+   if (isLazy())
+   {
+	expand();
+   }
+   return supWorker();
+}
+
+double
+Data::inf_const() const
+{
+   if (isLazy())
+   {
+	throw DataException("Error - cannot compute inf for constant lazy data.");
+   }
+   return infWorker();
+}
+
+double
+Data::inf() 
+{
+   if (isLazy())
+   {
+	expand();
+   }
+   return infWorker();
+}
+
+double
+Data::LsupWorker() const
 {
   double localValue;
   //
@@ -1339,7 +1434,7 @@ Data::Lsup() const
 }
 
 double
-Data::sup() const
+Data::supWorker() const
 {
   double localValue;
   //
@@ -1356,7 +1451,7 @@ Data::sup() const
 }
 
 double
-Data::inf() const
+Data::infWorker() const
 {
   double localValue;
   //
@@ -2518,7 +2613,7 @@ Data::toString() const
     if (getNumDataPoints()*getDataPointSize()>TOO_MANY_POINTS)
     {
 	stringstream temp;
-	temp << "Summary: inf="<< inf() << " sup=" << sup() << " data points=" << getNumDataPoints();
+	temp << "Summary: inf="<< inf_const() << " sup=" << sup_const() << " data points=" << getNumDataPoints();
 	return  temp.str();
     }
     return m_data->toString();

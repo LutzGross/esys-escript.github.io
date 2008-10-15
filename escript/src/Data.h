@@ -799,29 +799,54 @@ contains datapoints.
   /**
      \brief
      Return the maximum absolute value of this Data object.
+     The method is not const because lazy data needs to be expanded before Lsup can be computed.
+     The _const form can be used when the Data object is const, however this will only work for
+     Data which is not Lazy.
      *
   */
   ESCRIPT_DLL_API
   double
-  Lsup() const;
+  Lsup();
+
+  ESCRIPT_DLL_API
+  double
+  Lsup_const() const;
+
 
   /**
      \brief
      Return the maximum value of this Data object.
+     The method is not const because lazy data needs to be expanded before sup can be computed.
+     The _const form can be used when the Data object is const, however this will only work for
+     Data which is not Lazy.
      *
   */
   ESCRIPT_DLL_API
   double
-  sup() const;
+  sup();
+
+  ESCRIPT_DLL_API
+  double
+  sup_const() const;
+
 
   /**
      \brief
      Return the minimum value of this Data object.
+     The method is not const because lazy data needs to be expanded before inf can be computed.
+     The _const form can be used when the Data object is const, however this will only work for
+     Data which is not Lazy.
      *
   */
   ESCRIPT_DLL_API
   double
-  inf() const;
+  inf();
+
+  ESCRIPT_DLL_API
+  double
+  inf_const() const;
+
+
 
   /**
      \brief
@@ -1368,6 +1393,15 @@ contains datapoints.
  protected:
 
  private:
+
+  double
+  LsupWorker() const;
+
+  double
+  supWorker() const;
+
+  double
+  infWorker() const;
 
   /**
      \brief

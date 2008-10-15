@@ -55,13 +55,14 @@ enum ES_opgroup
 string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","sin","cos","tan",
 			"asin","acos","atan","sinh","cosh","tanh","erf",
 			"asinh","acosh","atanh",
-			"log10","log","sign","abs","neg","pos"};
-int ES_opcount=25;
+			"log10","log","sign","abs","neg","pos","exp","sqrt",
+			"1/","where>0","where<0","where>=0","where<=0"};
+int ES_opcount=32;
 ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY,G_UNARY,G_UNARY,G_UNARY, //9
 			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,	// 16
 			G_UNARY,G_UNARY,G_UNARY,					// 19
-			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY};		// 25
-
+			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,		// 27
+			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY};
 inline
 ES_opgroup
 getOpgroup(ES_optype op)
@@ -355,6 +356,28 @@ DataLazy::resolveSample(ValueType& v,int sampleNo,  size_t offset ) const
 	// it will just trigger a deep copy of the lazy object
 	throw DataException("Programmer error - POS not supported for lazy data.");
 	break;
+    case EXP:
+	tensor_unary_operation(m_samplesize, left, result, ::exp);
+	break;
+    case SQRT:
+	tensor_unary_operation(m_samplesize, left, result, ::sqrt);
+	break;
+    case RECIP:
+	tensor_unary_operation(m_samplesize, left, result, bind1st(divides<double>(),1.));
+	break;
+    case GZ:
+	tensor_unary_operation(m_samplesize, left, result, bind2nd(greater<double>(),0.0));
+	break;
+    case LZ:
+	tensor_unary_operation(m_samplesize, left, result, bind2nd(less<double>(),0.0));
+	break;
+    case GEZ:
+	tensor_unary_operation(m_samplesize, left, result, bind2nd(greater_equal<double>(),0.0));
+	break;
+    case LEZ:
+	tensor_unary_operation(m_samplesize, left, result, bind2nd(less_equal<double>(),0.0));
+	break;
+
     default:
 	throw DataException("Programmer error - do not know how to resolve operator "+opToString(m_op)+".");
     }
