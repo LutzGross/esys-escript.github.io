@@ -23,6 +23,8 @@
 #include "Common.h"
 #include "mmio.h"
 
+#define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) perror(reason); return -1; }
+
 #include <string.h>
 #include <ctype.h>
 
@@ -88,7 +90,8 @@ int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
 
     for (i=0; i<nz; i++)
     {
-        fscanf(f, "%d %d %lg\n", &Ip[i], &Jp[i], &val[i]);
+	int scan_ret = fscanf(f, "%d %d %lg\n", &Ip[i], &Jp[i], &val[i]);
+	FSCANF_CHECK(scan_ret, "fscanf: mm_read_unsymmetric_sparse");
         Ip[i]--;  /* adjust from 1-based to 0-based */
         Jp[i]--;
     }

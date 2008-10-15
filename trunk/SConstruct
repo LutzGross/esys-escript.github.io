@@ -39,7 +39,7 @@ tmp = os.path.join("scons",hostname+"_options.py")
 options_file = ARGUMENTS.get('options_file', tmp)
 if not os.path.isfile(options_file):
   options_file = False
-  print "Options file not found"
+  print "Options file not found (expected '%s')" % tmp
 else:
   print "Options file is", options_file
 
