@@ -1085,30 +1085,55 @@ Data::integrate() const
 Data
 Data::sin() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),SIN);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::sin);
 }
 
 Data
 Data::cos() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),COS);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::cos);
 }
 
 Data
 Data::tan() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),TAN);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::tan);
 }
 
 Data
 Data::asin() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),ASIN);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::asin);
 }
 
 Data
 Data::acos() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),ACOS);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::acos);
 }
 
@@ -1116,26 +1141,45 @@ Data::acos() const
 Data
 Data::atan() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),ATAN);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::atan);
 }
 
 Data
 Data::sinh() const
 {
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::sinh);
-
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),SINH);
+	return Data(c);
+  }
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::sinh);
 }
 
 Data
 Data::cosh() const
 {
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::cosh);
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),COSH);
+	return Data(c);
+  }
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::cosh);
 }
 
 Data
 Data::tanh() const
 {
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::tanh);
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),TANH);
+	return Data(c);
+  }
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::tanh);
 }
 
 
@@ -1145,6 +1189,11 @@ Data::erf() const
 #ifdef _WIN32
   throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
 #else
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),ERF);
+	return Data(c);
+  }
   return C_TensorUnaryOperation(*this, ::erf);
 #endif
 }
@@ -1152,6 +1201,11 @@ Data::erf() const
 Data
 Data::asinh() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),ASINH);
+	return Data(c);
+  }
 #ifdef _WIN32
   return C_TensorUnaryOperation(*this, escript::asinh_substitute);
 #else
@@ -1162,6 +1216,11 @@ Data::asinh() const
 Data
 Data::acosh() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),ACOSH);
+	return Data(c);
+  }
 #ifdef _WIN32
   return C_TensorUnaryOperation(*this, escript::acosh_substitute);
 #else
@@ -1172,6 +1231,11 @@ Data::acosh() const
 Data
 Data::atanh() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),ATANH);
+	return Data(c);
+  }
 #ifdef _WIN32
   return C_TensorUnaryOperation(*this, escript::atanh_substitute);
 #else
@@ -1181,37 +1245,63 @@ Data::atanh() const
 
 Data
 Data::log10() const
-{
+{  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),LOG10);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::log10);
 }
 
 Data
 Data::log() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),LOG);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::log);
 }
 
 Data
 Data::sign() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),SIGN);
+	return Data(c);
+  }
   return C_TensorUnaryOperation(*this, escript::fsign);
 }
 
 Data
 Data::abs() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),ABS);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::fabs);
 }
 
 Data
 Data::neg() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),NEG);
+	return Data(c);
+  }
   return C_TensorUnaryOperation(*this, negate<double>());
 }
 
 Data
 Data::pos() const
 {
+	// not doing lazy check here is deliberate.
+	// since a deep copy of lazy data should be cheap, I'll just let it happen now
   Data result;
   // perform a deep copy
   result.copy(*this);

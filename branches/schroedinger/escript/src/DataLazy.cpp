@@ -25,6 +25,7 @@
 #include "FunctionSpace.h"
 #include "DataTypes.h"
 #include "Data.h"
+#include "UnaryFuncs.h"		// for escript::fsign
 
 using namespace std;
 using namespace boost;
@@ -37,6 +38,36 @@ opToString(ES_optype op);
 
 namespace
 {
+
+
+
+enum ES_opgroup
+{
+   G_UNKNOWN,
+   G_IDENTITY,
+   G_BINARY,
+   G_UNARY
+};
+
+
+
+
+string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","sin","cos","tan",
+			"asin","acos","atan","sinh","cosh","tanh","erf",
+			"asinh","acosh","atanh",
+			"log10","log","sign","abs","neg","pos"};
+int ES_opcount=25;
+ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY,G_UNARY,G_UNARY,G_UNARY, //9
+			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,	// 16
+			G_UNARY,G_UNARY,G_UNARY,					// 19
+			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY};		// 25
+
+inline
+ES_opgroup
+getOpgroup(ES_optype op)
+{
+  return opgroups[op];
+}
 
 // return the FunctionSpace of the result of "left op right"
 FunctionSpace
@@ -69,58 +100,29 @@ resultShape(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 size_t
 resultLength(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 {
-   switch(op)
+   switch (getOpgroup(op))
    {
-//   case IDENTITY: return left->getLength();
-   case ADD:	// the length is preserved in these ops
-   case SUB:
-   case MUL:
-   case DIV: return left->getLength();
+   case G_BINARY: return left->getLength();
+   case G_UNARY: return left->getLength();
    default: 
 	throw DataException("Programmer Error - attempt to getLength() for operator "+opToString(op)+".");
-
    }
 }
 
 int
 calcBuffs(const DataLazy_ptr& left, const DataLazy_ptr& right, ES_optype op)
 {
-   switch(op)
+   switch(getOpgroup(op))
    {
-   case IDENTITY: return 0;
-   case ADD:	// the length is preserved in these ops
-   case SUB:
-   case MUL:
-   case DIV: return max(left->getBuffsRequired(),right->getBuffsRequired());
+   case G_IDENTITY: return 1;
+   case G_BINARY: return max(left->getBuffsRequired(),right->getBuffsRequired()+1);
+   case G_UNARY: return max(left->getBuffsRequired(),1);
    default: 
 	throw DataException("Programmer Error - attempt to calcBuffs() for operator "+opToString(op)+".");
    }
 }
 
-string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/"};
-int ES_opcount=5;
 
-// void performOp(ValueType& v, int startOffset, ES_optype op, int m_samplesize)
-// {
-//    switch(op)
-//    {
-//    case ADD:  DataMaths::binaryOp(v,getShape(),startOffset,v,getShape(),
-// 		startOffset+m_samplesize,plus<double>());
-// 	      break;	
-//    case SUB:  DataMaths::binaryOp(v,getShape(),startOffset,v,getShape(),
-// 		startOffset+m_samplesize,minus<double>());
-// 	      break;
-//    case MUL:  DataMaths::binaryOp(v,getShape(),startOffset,v,getShape(),
-// 		startOffset+m_samplesize,multiplies<double>());
-// 	      break;
-//    case DIV:  DataMaths::binaryOp(v,getShape(),startOffset,v,getShape(),
-// 		startOffset+m_samplesize,divides<double>());
-// 	      break;
-//    default: 
-// 	throw DataException("Programmer Error - attempt to performOp() for operator "+opToString(op)+".");
-//    }
-// 
-// }
 
 }	// end anonymous namespace
 
@@ -153,10 +155,34 @@ DataLazy::DataLazy(DataAbstract_ptr p)
 	m_id=dynamic_pointer_cast<DataReady>(p);
    }
    m_length=p->getLength();
-   m_buffsRequired=0;
+   m_buffsRequired=1;
    m_samplesize=getNumDPPSample()*getNoValues();
 cout << "(1)Lazy created with " << m_samplesize << endl;
 }
+
+DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
+	: parent(left->getFunctionSpace(),left->getShape()),
+	m_op(op)
+{
+   if (getOpgroup(op)!=G_UNARY)
+   {
+	throw DataException("Programmer error - constructor DataLazy(left, op) will only process UNARY operations.");
+   }
+   DataLazy_ptr lleft;
+   if (!left->isLazy())
+   {
+	lleft=DataLazy_ptr(new DataLazy(left));
+   }
+   else
+   {
+	lleft=dynamic_pointer_cast<DataLazy>(left);
+   }
+   m_length=left->getLength();
+   m_left=lleft;
+   m_buffsRequired=1;
+   m_samplesize=getNumDPPSample()*getNoValues();
+}
+
 
 DataLazy::DataLazy(DataLazy_ptr left, DataLazy_ptr right, ES_optype op)
 	: parent(resultFS(left,right,op), resultShape(left,right,op)),
@@ -164,6 +190,10 @@ DataLazy::DataLazy(DataLazy_ptr left, DataLazy_ptr right, ES_optype op)
 	m_right(right),
 	m_op(op)
 {
+   if (getOpgroup(op)!=G_BINARY)
+   {
+	throw DataException("Programmer error - constructor DataLazy(left, right, op) will only process BINARY operations.");
+   }
    m_length=resultLength(m_left,m_right,m_op);
    m_samplesize=getNumDPPSample()*getNoValues();
    m_buffsRequired=calcBuffs(m_left, m_right, m_op);
@@ -174,6 +204,10 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 	: parent(resultFS(left,right,op), resultShape(left,right,op)),
 	m_op(op)
 {
+   if (getOpgroup(op)!=G_BINARY)
+   {
+	throw DataException("Programmer error - constructor DataLazy(left, op) will only process BINARY operations.");
+   }
    if (left->isLazy())
    {
 	m_left=dynamic_pointer_cast<DataLazy>(left);
@@ -224,7 +258,11 @@ DataLazy::resolveSample(ValueType& v,int sampleNo,  size_t offset ) const
   }
   size_t rightoffset=offset+m_samplesize;
   const double* left=m_left->resolveSample(v,sampleNo,offset);
-  const double* right=m_right->resolveSample(v,sampleNo,rightoffset);
+  const double* right=0;
+  if (getOpgroup(m_op)==G_BINARY)
+  {
+    right=m_right->resolveSample(v,sampleNo,rightoffset);
+  }
   double* result=&(v[offset]);
   {
     switch(m_op)
@@ -240,6 +278,82 @@ DataLazy::resolveSample(ValueType& v,int sampleNo,  size_t offset ) const
 	break;
     case DIV:		
 	tensor_binary_operation(m_samplesize, left, right, result, divides<double>());
+	break;
+// unary ops
+    case SIN:
+	tensor_unary_operation(m_samplesize, left, result, ::sin);
+	break;
+    case COS:
+	tensor_unary_operation(m_samplesize, left, result, ::cos);
+	break;
+    case TAN:
+	tensor_unary_operation(m_samplesize, left, result, ::tan);
+	break;
+    case ASIN:
+	tensor_unary_operation(m_samplesize, left, result, ::asin);
+	break;
+    case ACOS:
+	tensor_unary_operation(m_samplesize, left, result, ::acos);
+	break;
+    case ATAN:
+	tensor_unary_operation(m_samplesize, left, result, ::atan);
+	break;
+    case SINH:
+	tensor_unary_operation(m_samplesize, left, result, ::sinh);
+	break;
+    case COSH:
+	tensor_unary_operation(m_samplesize, left, result, ::cosh);
+	break;
+    case TANH:
+	tensor_unary_operation(m_samplesize, left, result, ::tanh);
+	break;
+    case ERF:
+#ifdef _WIN32
+	throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
+#else
+	tensor_unary_operation(m_samplesize, left, result, ::erf);
+	break;
+#endif
+   case ASINH:
+#ifdef _WIN32
+	tensor_unary_operation(m_samplesize, left, result, escript::asinh_substitute);
+#else
+	tensor_unary_operation(m_samplesize, left, result, ::asinh);
+#endif   
+	break;
+   case ACOSH:
+#ifdef _WIN32
+	tensor_unary_operation(m_samplesize, left, result, escript::acosh_substitute);
+#else
+	tensor_unary_operation(m_samplesize, left, result, ::acosh);
+#endif   
+	break;
+   case ATANH:
+#ifdef _WIN32
+	tensor_unary_operation(m_samplesize, left, result, escript::atanh_substitute);
+#else
+	tensor_unary_operation(m_samplesize, left, result, ::atanh);
+#endif   
+	break;
+    case LOG10:
+	tensor_unary_operation(m_samplesize, left, result, ::log10);
+	break;
+    case LOG:
+	tensor_unary_operation(m_samplesize, left, result, ::log);
+	break;
+    case SIGN:
+	tensor_unary_operation(m_samplesize, left, result, escript::fsign);
+	break;
+    case ABS:
+	tensor_unary_operation(m_samplesize, left, result, ::fabs);
+	break;
+    case NEG:
+	tensor_unary_operation(m_samplesize, left, result, negate<double>());
+	break;
+    case POS:
+	// it doesn't mean anything for delayed.
+	// it will just trigger a deep copy of the lazy object
+	throw DataException("Programmer error - POS not supported for lazy data.");
 	break;
     default:
 	throw DataException("Programmer error - do not know how to resolve operator "+opToString(m_op)+".");
@@ -263,9 +377,7 @@ cout << "Buffers=" << m_buffsRequired << endl;
   numthreads=omp_get_max_threads();
   int threadnum=0;
 #endif 
-  ValueType v(numthreads*threadbuffersize);	// the +1 comes from the fact that I want to have a safe
-							// space for the RHS of ops to write to even if they don't
-							// need it.
+  ValueType v(numthreads*threadbuffersize);	
 cout << "Buffer created with size=" << v.size() << endl;
   ValueType dummy(getNoValues());
   DataExpanded* result=new DataExpanded(getFunctionSpace(),getShape(),dummy);
@@ -294,7 +406,35 @@ cout << "Buffer created with size=" << v.size() << endl;
 std::string
 DataLazy::toString() const
 {
-  return "Lazy evaluation object. No details available.";
+  ostringstream oss;
+  oss << "Lazy Data:";
+  intoString(oss);
+  return oss.str();
+}
+
+void
+DataLazy::intoString(ostringstream& oss) const
+{
+  switch (getOpgroup(m_op))
+  {
+  case G_IDENTITY: 
+	oss << '@' << m_id.get();
+	break;
+  case G_BINARY:
+	oss << '(';
+	m_left->intoString(oss);
+	oss << ' ' << opToString(m_op) << ' ';
+	m_right->intoString(oss);
+	oss << ')';
+	break;
+  case G_UNARY:
+	oss << opToString(m_op) << '(';
+	m_left->intoString(oss);
+	oss << ')';
+	break;
+  default:
+	oss << "UNKNOWN";
+  }
 }
 
 // Note that in this case, deepCopy does not make copies of the leaves.
