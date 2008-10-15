@@ -53,7 +53,14 @@ enum ES_optype
 	SIGN=21,
 	ABS=22,
 	NEG=23,
-	POS=24
+	POS=24,
+	EXP=25,
+	SQRT=26,
+	RECIP=27,
+	GZ=28,
+	LZ=29,
+	GEZ=30,
+	LEZ=31
 };
 
 const std::string&
