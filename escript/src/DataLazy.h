@@ -34,7 +34,26 @@ enum ES_optype
 	ADD=2,
 	SUB=3,
 	MUL=4,
-	DIV=5
+	DIV=5,
+	SIN=6,
+	COS=7,
+	TAN=8,
+	ASIN=9,
+	ACOS=10,
+	ATAN=11,
+	SINH=12,
+	COSH=13,
+	TANH=14,
+	ERF=15,
+	ASINH=16,
+	ACOSH=17,
+	ATANH=18,
+	LOG10=19,
+	LOG=20,
+	SIGN=21,
+	ABS=22,
+	NEG=23,
+	POS=24
 };
 
 const std::string&
@@ -63,6 +82,11 @@ typedef DataTypes::ShapeType ShapeType;
 public:
   ESCRIPT_DLL_API
   DataLazy(DataAbstract_ptr p);
+
+  ESCRIPT_DLL_API
+  DataLazy(DataAbstract_ptr left, ES_optype op);
+
+
 
   ESCRIPT_DLL_API
   DataLazy(DataLazy_ptr left, DataLazy_ptr right, ES_optype op);
@@ -110,11 +134,6 @@ public:
                  int dataPointNo) const;
 
 
-//   // this is a top level function, the actual searching will be done by helper methods
-//   ESCRIPT_DLL_API
-//   void
-//   getSample(ValueType& v, int sampleNo,size_t offset=0) const;
-
   ESCRIPT_DLL_API
   int
   getBuffsRequired() const;
@@ -130,6 +149,9 @@ private:
 
   const double*
   resolveSample(ValueType& v,int sampleNo,  size_t offset ) const;
+
+  void
+  intoString(std::ostringstream& oss) const;
 
 };
 
