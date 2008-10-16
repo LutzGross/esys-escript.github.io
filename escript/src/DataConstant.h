@@ -97,6 +97,15 @@ typedef DataReady parent;
                const DataTypes::ShapeType &shape,
                const DataTypes::ValueType &data);
 
+
+  ESCRIPT_DLL_API
+  bool
+  isConstant() const 
+  {
+    return true;
+  };
+
+
   /**
      \brief
      Write the data as a string.

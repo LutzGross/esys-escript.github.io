@@ -125,6 +125,13 @@ TODO Note that this constructor will also copy data to all points if it only con
   virtual
   ~DataExpanded();
 
+  ESCRIPT_DLL_API
+  bool
+  isExpanded() const 
+  {
+    return true;
+  };
+
   /**
      \brief
      Return a textual representation of the data.

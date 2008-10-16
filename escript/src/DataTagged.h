@@ -168,6 +168,14 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   inline virtual
   ~DataTagged() {};
 
+  ESCRIPT_DLL_API
+  bool
+  isTagged() const 
+  {
+    return true;
+  };
+
+
   /**
      \brief Return a deep copy of the current object.
   */

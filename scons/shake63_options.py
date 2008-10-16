@@ -16,7 +16,9 @@
 
 # If you cannot use the default compiler flags set in SConstruct, then change them here
 # C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
-# cc_flags		= '-ansi'
+cc_flags		= '-ansi -Wno-pragmas -Wno-unknown-pragmas'
+# for extra pedantry add -Weffc++ -Wall  to the above
+
 # cc_optim		= '-O2'
 # cc_debug		= '-g'
 # omp_optim		= '-openmp'
