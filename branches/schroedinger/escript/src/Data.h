@@ -204,7 +204,6 @@ class Data {
   ESCRIPT_DLL_API
   Data(DataAbstract* underlyingdata);
 
-
   /**
 	\brief Create a Data based on the supplied DataAbstract
   */
@@ -364,6 +363,12 @@ class Data {
   ESCRIPT_DLL_API
   void
   tag();
+
+
+  ESCRIPT_DLL_API
+  void
+  resolve();
+
 
   /**
      \brief

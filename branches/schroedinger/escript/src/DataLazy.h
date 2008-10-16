@@ -94,9 +94,9 @@ public:
   DataLazy(DataAbstract_ptr left, ES_optype op);
 
 
-
+/*
   ESCRIPT_DLL_API
-  DataLazy(DataLazy_ptr left, DataLazy_ptr right, ES_optype op);
+  DataLazy(DataLazy_ptr left, DataLazy_ptr right, ES_optype op);*/
 
   ESCRIPT_DLL_API
   DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op);
@@ -145,6 +145,8 @@ public:
   int
   getBuffsRequired() const;
 
+
+
 private:
   DataReady_ptr m_id;
   DataLazy_ptr m_left, m_right;
@@ -155,10 +157,29 @@ private:
   size_t m_samplesize;	// number of values required to store a sample
 
   const double*
-  resolveSample(ValueType& v,int sampleNo,  size_t offset ) const;
+  resolveSample(ValueType& v,int sampleNo,  size_t offset );
+
+  const double*
+  resolveSample2(ValueType& v,int sampleNo,  size_t offset );
+
 
   void
   intoString(std::ostringstream& oss) const;
+
+  char m_readytype;
+
+  void
+  collapse();		// converts the node into an IDENTITY node
+
+  DataReady_ptr
+  collapseToReady();
+
+  const double*
+  resolveUnary(ValueType& v,int sampleNo,  size_t offset) const;
+
+  const double*
+  resolveBinary(ValueType& v,int sampleNo,  size_t offset) const;
+
 
 };
 

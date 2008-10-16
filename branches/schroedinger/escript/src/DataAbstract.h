@@ -492,6 +492,19 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
   bool isLazy() const;	// a test to determine if this object is an instance of DataLazy
 
+  virtual
+  bool
+  isConstant() const {return false;}
+
+  virtual
+  bool
+  isExpanded() const {return false;}
+
+  virtual
+  bool
+  isTagged() const {return false;}
+
+
  protected:
 
   bool isEmpty() const;	// a fast test to determine if this object is an instance of DataEmpty

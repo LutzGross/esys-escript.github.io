@@ -574,8 +574,8 @@ Data::expand()
   } else if (isEmpty()) {
     throw DataException("Error - Expansion of DataEmpty not possible.");
   } else if (isLazy()) {
-    DataReady_ptr res=m_data->resolve();
-    m_data=res;
+    resolve();
+    expand();		// resolve might not give us expanded data
   } else {
     throw DataException("Error - Expansion not implemented for this Data type.");
   }
@@ -596,10 +596,28 @@ Data::tag()
     throw DataException("Error - Creating tag data from DataExpanded not possible.");
   } else if (isEmpty()) {
     throw DataException("Error - Creating tag data from DataEmpty not possible.");
+  } else if (isLazy()) {
+     DataAbstract_ptr res=m_data->resolve();
+     if (m_data->isExpanded())
+     {
+	throw DataException("Error - data would resolve to DataExpanded, tagging is not possible.");
+     }
+     m_data=res;	
+     tag();
   } else {
     throw DataException("Error - Tagging not implemented for this Data type.");
   }
 }
+
+void
+Data::resolve()
+{
+  if (isLazy())
+  {
+     m_data=m_data->resolve();
+  }
+}
+
 
 Data
 Data::oneOver() const
