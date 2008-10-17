@@ -80,7 +80,6 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   Paso_SparseMatrix * schur=NULL;
   Paso_SparseMatrix * schur_withFillIn=NULL;
   double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0,time1,time2;
-  schur_withFillIn=MEMALLOC(1,Paso_SparseMatrix);
   
   /* identify independend set of rows/columns */
   mis_marker=TMPMEMALLOC(n,index_t);
@@ -340,6 +339,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      dim_t n_block=amg->n_block;
      double *r=MEMALLOC(amg->n,double);
      double *x0=MEMALLOC(amg->n,double);
+     Paso_Solver_GS* GS=NULL;
      
      if (amg->level==0) {
         /* x=invA_FF*b  */
@@ -348,7 +348,6 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
          fprintf(stdout,"LEVEL %d \n",amg->level);
         /* presmoothing on (Shure, x, b, r) */
         /****************/
-         Paso_Solver_GS* GS=MEMALLOC(1,Paso_Solver_GS);
          GS=Paso_Solver_getGS(amg->A,-1);
          Paso_Solver_solveGS(GS,x,b);
         
@@ -374,7 +373,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         }
 
         /****************/
-        /* Coursening part */
+        /* Corsening part */
         
         /* r_F=A_FF^-1*r_F  */
         /*Paso_Solver_applyBlockDiagonalMatrix(n_block,amg->n_F,amg->inv_A_FF,amg->A_FF_pivot,amg->b_F,amg->b_F);
