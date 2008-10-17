@@ -79,12 +79,9 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   dim_t i,k,j,j0;
   Paso_SparseMatrix * schur=NULL;
   Paso_SparseMatrix * schur_withFillIn=NULL;
+  double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0,time1,time2;
   schur_withFillIn=MEMALLOC(1,Paso_SparseMatrix);
   
-  
-  double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0,time1,time2;
-   
-
   /* identify independend set of rows/columns */
   mis_marker=TMPMEMALLOC(n,index_t);
   counter=TMPMEMALLOC(n,index_t);
