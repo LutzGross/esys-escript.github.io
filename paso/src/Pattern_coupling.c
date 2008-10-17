@@ -42,6 +42,8 @@
 #define IS_IN_MIS -3
 #define IS_CONNECTED_TO_MIS -4
 
+
+
 void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker) {
 
   index_t index_offset=(A->pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
@@ -88,6 +90,61 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker) {
               }
            }
      }
+     /* swap to TRUE/FALSE in mis_marker */
+     #pragma omp parallel for private(i) schedule(static)
+     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_MIS);
+}
+
+/*
+ *
+ * Return a strength of connection mask using the classical 
+ * strength of connection measure by Ruge and Stuben.
+ *
+ * Specifically, an off-diagonal entry A[i.j] is a strong 
+ * connection if:
+ *  
+ *      -A[i,j] >= theta * max( -A[i,k] )   where k != i
+ * 
+ * Otherwise, the connection is weak.
+ *  
+ */  
+void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta) 
+{
+  index_t index_offset=(A->pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
+  dim_t i,j;
+  index_t naib,iptr;
+  double threshold,min_offdiagonal;
+  bool_t flag;
+  dim_t n=A->pattern->numOutput;
+  if (A->pattern->type & PATTERN_FORMAT_SYM) {
+    Paso_setError(TYPE_ERROR,"Paso_Pattern_mis: symmetric matrix pattern is not supported yet");
+    return;
+  }
+
+/* is there any vertex available ?*/
+     while (Paso_Util_isAny(n,mis_marker,IS_AVAILABLE)) {
+
+      #pragma omp parallel for private(i,iptr,min_offdiagonal,threshold) schedule(static) 
+      for (i=0;i<n;++i) {
+        min_offdiagonal = A->val[A->pattern->ptr[i]];
+        for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
+            if(A->pattern->index[iptr] != i){
+                min_offdiagonal = MIN(min_offdiagonal,A->val[iptr]);
+            }
+        }
+
+        threshold = theta*min_offdiagonal;
+        #pragma omp parallel for private(iptr) schedule(static) 
+        for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
+            mis_marker[i]=IS_CONNECTED_TO_MIS;
+            if(A->val[iptr] <= threshold){
+                if(A->pattern->index[iptr] != i){
+                    mis_marker[i]=IS_IN_MIS;
+                }
+            }
+        }
+      }
+    }
      /* swap to TRUE/FALSE in mis_marker */
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_MIS);

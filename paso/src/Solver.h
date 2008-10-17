@@ -95,6 +95,7 @@ typedef struct Paso_Solver_RILU Paso_Solver_RILU;
 /* AMG preconditioner */
 struct Paso_Solver_AMG {
   dim_t n;
+  dim_t level;
   dim_t n_block;
   dim_t n_F;
   dim_t n_C;
@@ -110,6 +111,7 @@ struct Paso_Solver_AMG {
   double* b_F;
   double* x_C;
   double* b_C;
+  Paso_SparseMatrix * A;
   struct Paso_Solver_AMG * AMG_of_Schur;
 };
 typedef struct Paso_Solver_AMG Paso_Solver_AMG;
@@ -157,7 +159,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix * A_p,bool_t verbose);
 void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b);
 
 void Paso_Solver_AMG_free(Paso_Solver_AMG * in);
-Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix * A_p,bool_t verbose);
+Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix * A_p,bool_t verbose,dim_t level);
 void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b);
 
 void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC, Paso_SparseMatrix *A_CF,double* invA_FF,index_t* A_FF_pivot, Paso_SparseMatrix *A_FC);
