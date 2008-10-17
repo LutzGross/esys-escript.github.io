@@ -224,7 +224,7 @@ Paso_Pattern* Paso_Pattern_binop(int type, Paso_Pattern* A, Paso_Pattern* B) {
   Paso_Pattern*out=NULL;
   index_t index_offset=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   index_t iptrA,iptrB,*A_row=NULL,*B_row=NULL;
-  dim_t i,j,k,temp,istart,length;
+  dim_t i,j,k;
 
   Paso_IndexList* index_list=NULL;
 
@@ -240,10 +240,10 @@ Paso_Pattern* Paso_Pattern_binop(int type, Paso_Pattern* A, Paso_Pattern* B) {
         }
       }
   }
- 
   for(i = 0; i < A->numOutput; i++){
     iptrA = A->ptr[i],
     iptrB = B->ptr[i];
+    
     while (iptrA < A->ptr[i+1] && iptrB < B->ptr[i+1]) {
         j = A->index[iptrA];
         k = B->index[iptrB];
