@@ -274,7 +274,7 @@ Paso_Pattern* Paso_Pattern_binop(int type, Paso_Pattern* A, Paso_Pattern* B) {
   out=Paso_IndexList_createPattern(0, A->numOutput,index_list,0,INDEXLIST_LENGTH,0);
 
   #ifdef Paso_TRACE
-  printf("Paso_Pattern_multipy: new pattern has been allocated.\n");
+  printf("Paso_Pattern_binop: new pattern has been allocated.\n");
   #endif
 
  /* clean up */
