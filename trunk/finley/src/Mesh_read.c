@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include "Mesh.h"
 
-#define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) perror(reason); return NULL; }
+#define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) { perror(reason); Finley_setError(IO_ERROR,"scan error while reading finley file"); return NULL;} }
 
 /**************************************************************/
 
@@ -60,6 +60,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
      sprintf(frm,"%%%d[^\n]",LenString_MAX-1);
      scan_ret = fscanf(fileHandle_p, frm, name);
      FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+
    
      /* get the nodes */
    
