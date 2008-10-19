@@ -21,8 +21,7 @@
 #include "Mesh.h"
 #include <stdio.h>
 
-#define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) perror(reason); return NULL; }
-
+#define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) { perror(reason); Finley_setError(IO_ERROR,"scan error while reading finley file"); return NULL;} }
 
 /**************************************************************/
 

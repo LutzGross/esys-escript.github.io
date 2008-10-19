@@ -1257,13 +1257,13 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       other=1.*other
-       if isinstance(other,float):
-	for i in range(len(self)):
-           out.append(self[i]*other)
-       else:
-        for i in range(len(self)):
-           out.append(self[i]*other[i])
+       try:  
+           l=len(other)
+           if l!=len(self):
+               raise ValueError,"length of of arguments don't match."
+           for i in range(l): out.append(self[i]*other[i])
+       except TypeError:
+	   for i in range(len(self)): out.append(self[i]*other)
        return ArithmeticTuple(*tuple(out))
 
    def __rmul__(self,other):
@@ -1276,18 +1276,15 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       other=1.*other
-       if isinstance(other,float):
-	for i in range(len(self)):
-           out.append(other*self[i])
-       else:
-        for i in range(len(self)):
-           out.append(other[i]*self[i])
+       try:  
+           l=len(other)
+           if l!=len(self):
+               raise ValueError,"length of of arguments don't match."
+           for i in range(l): out.append(other[i]*self[i])
+       except TypeError:
+	   for i in range(len(self)): out.append(other*self[i])
        return ArithmeticTuple(*tuple(out))
 
-#########################
-# Added by Artak
-#########################
    def __div__(self,other):
        """
        dividing from the right 
@@ -1297,15 +1294,7 @@ class ArithmeticTuple(object):
        @return: itemwise self/other
        @rtype: L{ArithmeticTuple}
        """
-       out=[]
-       other=1.*other
-       if isinstance(other,float):
-	for i in range(len(self)):
-           out.append(self[i]*(1./other))
-       else:
-        for i in range(len(self)):
-           out.append(self[i]*(1./other[i]))
-       return ArithmeticTuple(*tuple(out))
+       return self*(1/other)
 
    def __rdiv__(self,other):
        """
@@ -1317,17 +1306,15 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       other=1.*other
-       if isinstance(other,float):
-        for i in range(len(self)):
-           out.append(other*(1./self[i]))
-       else:
-        for i in range(len(self)):
-           out.append(other[i]*(1./self[i]))
+       try:  
+           l=len(other)
+           if l!=len(self):
+               raise ValueError,"length of of arguments don't match."
+           for i in range(l): out.append(other[i]/self[i])
+       except TypeError:
+	   for i in range(len(self)): out.append(other/self[i])
        return ArithmeticTuple(*tuple(out))
   
-##########################################33
-
    def __iadd__(self,other):
        """
        in-place add of other to self
@@ -1348,16 +1335,15 @@ class ArithmeticTuple(object):
        @param other: increment
        @type other: C{ArithmeticTuple}
        """
-#      if not isinstance(other,float):
-       if len(self) != len(other):
-          raise ValueError,"tuple length must match."
-       for i in range(len(self)):
-          self.__items[i]+=other[i]
-#       else:
-#        for i in range(len(self)):
-#           self.__items[i]+=other
-
-       return self
+       out=[]
+       try:  
+           l=len(other)
+           if l!=len(self):
+               raise ValueError,"length of of arguments don't match."
+           for i in range(l): out.append(self[i]+other[i])
+       except TypeError:
+	   for i in range(len(self)): out.append(self[i]+other)
+       return ArithmeticTuple(*tuple(out))
 
    def __sub__(self,other):
        """
@@ -1366,11 +1352,15 @@ class ArithmeticTuple(object):
        @param other: increment
        @type other: C{ArithmeticTuple}
        """
-       if len(self) != len(other):
-           raise ValueError,"tuple length must match."
-       for i in range(len(self)):
-           self.__items[i]-=other[i]
-       return self
+       out=[]
+       try:  
+           l=len(other)
+           if l!=len(self):
+               raise ValueError,"length of of arguments don't match."
+           for i in range(l): out.append(self[i]-other[i])
+       except TypeError:
+	   for i in range(len(self)): out.append(self[i]-other)
+       return ArithmeticTuple(*tuple(out))
    
    def __isub__(self,other):
        """
@@ -1390,9 +1380,10 @@ class ArithmeticTuple(object):
        negate 
 
        """
+       out=[]
        for i in range(len(self)):
-           self.__items[i]=-self.__items[i]
-       return self
+           out.append(-self[i])
+       return ArithmeticTuple(*tuple(out))
 
 
 class HomogeneousSaddlePointProblem(object):
