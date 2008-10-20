@@ -23,6 +23,7 @@
 #include "AbstractTransportProblem.h"
 #include "DataVector.h"
 #include "paso/Paso_MPI.h"
+#include "EscriptParams.h"
 
 
 
@@ -346,6 +347,13 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("resetValues",&escript::AbstractTransportProblem::resetTransport)
      .def("getSafeTimeStepSize",&escript::AbstractTransportProblem::getSafeTimeStepSize)
      .def("getUnlimitedTimeStepSize",&escript::AbstractTransportProblem::getUnlimitedTimeStepSize);
+
+  // Functions to modify global parameters
+  def("setEscriptParamInt",escript::setEscriptParamInt,
+      (arg("value")=0));
+  def("getEscriptParamInt",escript::getEscriptParamInt,
+      (arg("sentinel")=0));
+
 
   //
   // Register esysExceptionTranslator
