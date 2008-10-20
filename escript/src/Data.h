@@ -737,7 +737,11 @@ contains datapoints.
   */
   ESCRIPT_DLL_API
   boost::python::numeric::array
-  integrate() const;
+  integrate_const() const;
+
+  ESCRIPT_DLL_API
+  boost::python::numeric::array
+  integrate();
 
   /**
      \brief
@@ -1407,6 +1411,9 @@ contains datapoints.
 
   double
   infWorker() const;
+
+  boost::python::numeric::array
+  integrateWorker() const;
 
   /**
      \brief

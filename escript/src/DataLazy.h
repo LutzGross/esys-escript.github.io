@@ -17,8 +17,6 @@
 #include "system_dep.h"
 
 #include "DataAbstract.h"
-//#include "DataTypes.h"
-//#include "FunctionSpace.h"
 
 #include <string>
 #include <functional>
@@ -87,27 +85,41 @@ typedef DataTypes::ValueType ValueType;
 typedef DataTypes::ShapeType ShapeType;
 
 public:
+  /**
+  \brief Create an IDENTITY DataLazy for the given DataAbstract.
+  \param p DataAbstract to be wrapped.
+  \throws DataException if p is lazy data or it is not constant, tagged or expanded.
+  */
   ESCRIPT_DLL_API
   DataLazy(DataAbstract_ptr p);
 
+
+  /**
+  \brief Produce a DataLazy for a unary operation.
+  \param left DataAbstract to be operated on.
+  \param op unary operation to perform.
+  \throws DataException if op is not a unary operation or if p cannot be converted to a DataLazy.
+  Note that IDENTITY is not considered a unary operation.
+  */
   ESCRIPT_DLL_API
   DataLazy(DataAbstract_ptr left, ES_optype op);
 
-
-/*
-  ESCRIPT_DLL_API
-  DataLazy(DataLazy_ptr left, DataLazy_ptr right, ES_optype op);*/
-
+  /**
+  \brief Produce a DataLazy for a binary operation.
+  \param left left operand
+  \param right right operand
+  \param op unary operation to perform.
+  \throws DataException if op is not a binary operation or if left or right cannot be converted to a DataLazy.
+  */
   ESCRIPT_DLL_API
   DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op);
 
   ESCRIPT_DLL_API
   ~DataLazy();
 
-
-
   /**
-  \brief Compute all data points in the expression tree
+  \brief Evaluate the lazy expression.
+  \return A DataReady with the value of the lazy expresion.
   */
   ESCRIPT_DLL_API
   DataReady_ptr 
@@ -141,6 +153,9 @@ public:
                  int dataPointNo) const;
 
 
+  /**
+    \return the number of samples which need to be stored to evaluate the expression.
+  */
   ESCRIPT_DLL_API
   int
   getBuffsRequired() const;
@@ -148,45 +163,81 @@ public:
 
 
 private:
-  DataReady_ptr m_id;
-  DataLazy_ptr m_left, m_right;
-  ES_optype m_op;
+  DataReady_ptr m_id;	//  For IDENTITY nodes, stores a wrapped value.
+  DataLazy_ptr m_left, m_right;	// operands for operation.
+  ES_optype m_op;	// operation to perform.
   size_t m_length;	// number of values represented by the operation
 
-  int m_buffsRequired;	// how many buffers are required to evaluate this expression
+  int m_buffsRequired;	// how many samples are required to evaluate this expression
   size_t m_samplesize;	// number of values required to store a sample
 
-  const ValueType*
-  resolveSample(ValueType& v,  size_t offset ,int sampleNo, size_t& roffset);
-
-//   const double*
-//   resolveSample(ValueType& v,int sampleNo,  size_t offset );
-/*
-  const double*
-  resolveSample2(ValueType& v,int sampleNo,  size_t offset );*/
+  char m_readytype;	// E for expanded, T for tagged, C for constant
 
 
+  /**
+  Does the work for toString. 
+  */
   void
   intoString(std::ostringstream& oss) const;
 
-  char m_readytype;
-
+  /**
+   \brief Converts the DataLazy into an IDENTITY storing the value of the expression.
+   This method uses the original methods on the Data class to evaluate the expressions.
+   For this reason, it should not be used on DataExpanded instances. (To do so would defeat
+   the purpose of using DataLazy in the first place).
+  */
   void
   collapse();		// converts the node into an IDENTITY node
 
+
+  /**
+  \brief Evaluates the expression using methods on Data.
+  This does the work for the collapse method.
+  For reasons of efficiency do not call this method on DataExpanded nodes.
+  */
   DataReady_ptr
   collapseToReady();
 
-//   const double*
-//   resolveUnary(ValueType& v,int sampleNo,  size_t offset) const;
-// 
-//   const double*
-//   resolveBinary(ValueType& v,int sampleNo,  size_t offset) const;
+  /**
+  \brief Compute the value of the expression for the given sample.
+  \return Vector which stores the value of the subexpression for the given sample.
+  \param v A vector to store intermediate results.
+  \param offset Index in v to begin storing results.
+  \param sampleNo Sample number to evaluate.
+  \param roffset (output parameter) the offset in the return vector where the result begins.
 
+  The return value will be an existing vector so do not deallocate it.
+  */
+  const ValueType*
+  resolveSample(ValueType& v,  size_t offset ,int sampleNo, size_t& roffset);
 
+  /**
+  \brief Compute the value of the expression (binary operation) for the given sample.
+  \return Vector which stores the value of the subexpression for the given sample.
+  \param v A vector to store intermediate results.
+  \param offset Index in v to begin storing results.
+  \param sampleNo Sample number to evaluate.
+  \param roffset (output parameter) the offset in the return vector where the result begins.
+
+  The return value will be an existing vector so do not deallocate it.
+  If the result is stored in v it should be stored at the offset given.
+  Everything from offset to the end of v should be considered available for this method to use.
+  */
   ValueType*
   resolveUnary(ValueType& v,  size_t offset,int sampleNo,  size_t& roffset) const;
 
+  /**
+  \brief Compute the value of the expression (binary operation) for the given sample.
+  \return Vector which stores the value of the subexpression for the given sample.
+  \param v A vector to store intermediate results.
+  \param offset Index in v to begin storing results.
+  \param sampleNo Sample number to evaluate.
+  \param roffset (output parameter) the offset in the return vector where the result begins.
+
+  The return value will be an existing vector so do not deallocate it.
+  If the result is stored in v it should be stored at the offset given.
+  Everything from offset to the end of v should be considered available for this method to use.
+  */
   ValueType*
   resolveBinary(ValueType& v,  size_t offset,int sampleNo,  size_t& roffset) const;
 
