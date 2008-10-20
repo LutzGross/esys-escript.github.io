@@ -22,6 +22,7 @@
 #include "AbstractContinuousDomain.h"
 #include "UnaryFuncs.h"
 #include "FunctionSpaceException.h"
+#include "EscriptParams.h"
 
 extern "C" {
 #include "escript/blocktimer.h"
@@ -2463,8 +2464,8 @@ Data::borrowData() const
 std::string
 Data::toString() const
 {
-    static const DataTypes::ValueType::size_type TOO_MANY_POINTS=8000;
-    if (getNumDataPoints()*getDataPointSize()>TOO_MANY_POINTS)
+    if (!m_data->isEmpty() && 
+	getNumDataPoints()*getDataPointSize()>escriptParams.getInt("TOO_MANY_LINES"))
     {
 	stringstream temp;
 	temp << "Summary: inf="<< inf() << " sup=" << sup() << " data points=" << getNumDataPoints();

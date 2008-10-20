@@ -479,9 +479,12 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   virtual const DataTypes::ValueType&
   getVector() const=0;
 
+  ESCRIPT_DLL_API
+  bool isEmpty() const;	// a fast test to determine if this object is an instance of DataEmpty
+
  protected:
 
-  bool isEmpty() const;	// a fast test to determine if this object is an instance of DataEmpty
+
 
 
 
