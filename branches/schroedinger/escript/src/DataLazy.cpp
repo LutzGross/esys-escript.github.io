@@ -395,8 +395,8 @@ DataLazy::collapse()
   m_op=IDENTITY;
 }
 
-const double*
-DataLazy::resolveUnary(ValueType& v,int sampleNo,  size_t offset) const
+DataTypes::ValueType*
+DataLazy::resolveUnary(ValueType& v, size_t offset, int sampleNo, size_t& roffset) const
 {
 	// we assume that any collapsing has been done before we get here
 	// since we only have one argument we don't need to think about only
@@ -405,8 +405,10 @@ DataLazy::resolveUnary(ValueType& v,int sampleNo,  size_t offset) const
   {
     throw DataException("Programmer error - resolveUnary should only be called on expanded Data.");
   }
-  const double* left=m_left->resolveSample(v,sampleNo,offset);
+  const ValueType* vleft=m_left->resolveSample(v,offset,sampleNo,roffset);
+  const double* left=&((*vleft)[roffset]);
   double* result=&(v[offset]);
+  roffset=offset;
   switch (m_op)
   {
     case SIN:	
@@ -509,9 +511,127 @@ DataLazy::resolveUnary(ValueType& v,int sampleNo,  size_t offset) const
     default:
 	throw DataException("Programmer error - resolveUnary can not resolve operator "+opToString(m_op)+".");
   }
-  return result;
+  return &v;
 }
 
+
+
+// const double*
+// DataLazy::resolveUnary(ValueType& v,int sampleNo,  size_t offset) const
+// {
+// 	// we assume that any collapsing has been done before we get here
+// 	// since we only have one argument we don't need to think about only
+// 	// processing single points.
+//   if (m_readytype!='E')
+//   {
+//     throw DataException("Programmer error - resolveUnary should only be called on expanded Data.");
+//   }
+//   const double* left=m_left->resolveSample(v,sampleNo,offset);
+//   double* result=&(v[offset]);
+//   switch (m_op)
+//   {
+//     case SIN:	
+// 	tensor_unary_operation(m_samplesize, left, result, ::sin);
+// 	break;
+//     case COS:
+// 	tensor_unary_operation(m_samplesize, left, result, ::cos);
+// 	break;
+//     case TAN:
+// 	tensor_unary_operation(m_samplesize, left, result, ::tan);
+// 	break;
+//     case ASIN:
+// 	tensor_unary_operation(m_samplesize, left, result, ::asin);
+// 	break;
+//     case ACOS:
+// 	tensor_unary_operation(m_samplesize, left, result, ::acos);
+// 	break;
+//     case ATAN:
+// 	tensor_unary_operation(m_samplesize, left, result, ::atan);
+// 	break;
+//     case SINH:
+// 	tensor_unary_operation(m_samplesize, left, result, ::sinh);
+// 	break;
+//     case COSH:
+// 	tensor_unary_operation(m_samplesize, left, result, ::cosh);
+// 	break;
+//     case TANH:
+// 	tensor_unary_operation(m_samplesize, left, result, ::tanh);
+// 	break;
+//     case ERF:
+// #ifdef _WIN32
+// 	throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
+// #else
+// 	tensor_unary_operation(m_samplesize, left, result, ::erf);
+// 	break;
+// #endif
+//    case ASINH:
+// #ifdef _WIN32
+// 	tensor_unary_operation(m_samplesize, left, result, escript::asinh_substitute);
+// #else
+// 	tensor_unary_operation(m_samplesize, left, result, ::asinh);
+// #endif   
+// 	break;
+//    case ACOSH:
+// #ifdef _WIN32
+// 	tensor_unary_operation(m_samplesize, left, result, escript::acosh_substitute);
+// #else
+// 	tensor_unary_operation(m_samplesize, left, result, ::acosh);
+// #endif   
+// 	break;
+//    case ATANH:
+// #ifdef _WIN32
+// 	tensor_unary_operation(m_samplesize, left, result, escript::atanh_substitute);
+// #else
+// 	tensor_unary_operation(m_samplesize, left, result, ::atanh);
+// #endif   
+// 	break;
+//     case LOG10:
+// 	tensor_unary_operation(m_samplesize, left, result, ::log10);
+// 	break;
+//     case LOG:
+// 	tensor_unary_operation(m_samplesize, left, result, ::log);
+// 	break;
+//     case SIGN:
+// 	tensor_unary_operation(m_samplesize, left, result, escript::fsign);
+// 	break;
+//     case ABS:
+// 	tensor_unary_operation(m_samplesize, left, result, ::fabs);
+// 	break;
+//     case NEG:
+// 	tensor_unary_operation(m_samplesize, left, result, negate<double>());
+// 	break;
+//     case POS:
+// 	// it doesn't mean anything for delayed.
+// 	// it will just trigger a deep copy of the lazy object
+// 	throw DataException("Programmer error - POS not supported for lazy data.");
+// 	break;
+//     case EXP:
+// 	tensor_unary_operation(m_samplesize, left, result, ::exp);
+// 	break;
+//     case SQRT:
+// 	tensor_unary_operation(m_samplesize, left, result, ::sqrt);
+// 	break;
+//     case RECIP:
+// 	tensor_unary_operation(m_samplesize, left, result, bind1st(divides<double>(),1.));
+// 	break;
+//     case GZ:
+// 	tensor_unary_operation(m_samplesize, left, result, bind2nd(greater<double>(),0.0));
+// 	break;
+//     case LZ:
+// 	tensor_unary_operation(m_samplesize, left, result, bind2nd(less<double>(),0.0));
+// 	break;
+//     case GEZ:
+// 	tensor_unary_operation(m_samplesize, left, result, bind2nd(greater_equal<double>(),0.0));
+// 	break;
+//     case LEZ:
+// 	tensor_unary_operation(m_samplesize, left, result, bind2nd(less_equal<double>(),0.0));
+// 	break;
+// 
+//     default:
+// 	throw DataException("Programmer error - resolveUnary can not resolve operator "+opToString(m_op)+".");
+//   }
+//   return result;
+// }
 
 #define PROC_OP(X) \
 	for (int i=0;i<steps;++i,resultp+=getNoValues()) \
@@ -525,8 +645,8 @@ cout << right[0] << right[1] << right[2] << endl; \
 cout << "Result=" << result << " " << result[0] << result[1] << result[2] << endl; \
 	}
 
-const double*
-DataLazy::resolveBinary(ValueType& v,int sampleNo,  size_t offset) const
+DataTypes::ValueType*
+DataLazy::resolveBinary(ValueType& v,  size_t offset ,int sampleNo, size_t& roffset) const
 {
 	// again we assume that all collapsing has already been done
 	// so we have at least one expanded child.
@@ -534,40 +654,150 @@ DataLazy::resolveBinary(ValueType& v,int sampleNo,  size_t offset) const
 
 cout << "Resolve binary: " << toString() << endl;
 
-  const double* left=m_left->resolveSample(v,sampleNo,offset);
-cout << "Done Left " << left[0] << left[1] << left[2] << endl;
-  const double* right=m_right->resolveSample(v,sampleNo,offset);	
-cout << "Done Right"  << right[0] << right[1] << right[2] << endl;
-  	// now we need to know which args are expanded
+  size_t lroffset=0, rroffset=0;
+
   bool leftExp=(m_left->m_readytype=='E');
   bool rightExp=(m_right->m_readytype=='E');
   bool bigloops=((leftExp && rightExp) || (!leftExp && !rightExp));	// is processing in single step
-  int steps=(bigloops?1:getNumSamples());
+  int steps=(bigloops?1:getNumDPPSample());
   size_t chunksize=(bigloops? m_samplesize : getNoValues());
-  int leftStep=(rightExp? getNoValues() : 0);
-  int rightStep=(leftExp? getNoValues() : 0);
+  int leftStep=((leftExp && !rightExp)? getNoValues() : 0);
+  int rightStep=((rightExp && !leftExp)? getNoValues() : 0);
+
+  const ValueType* left=m_left->resolveSample(v,offset,sampleNo,lroffset);
+  const ValueType* right=m_right->resolveSample(v,offset,sampleNo,rroffset);	
+  	// now we need to know which args are expanded
 cout << "left=" << left << " right=" << right << endl;
-  double* result=&(v[offset]);
-  double* resultp=result;
+cout << "(Length) l=" << left->size() << " r=" << right->size() << " res=" << v.size() << endl;
+  double* resultp=&(v[offset]);
   switch(m_op)
   {
     case ADD:
-	PROC_OP(plus<double>())
+	for (int i=0;i<steps;++i,resultp+=getNoValues()) 
+	{ 
+cerr << "Step#" << i << " chunk=" << chunksize << endl; 
+cerr << left << "[" << lroffset << "] " << right << "[" << rroffset << "]" << endl;
+	   tensor_binary_operation(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, plus<double>()); 
+	   lroffset+=leftStep; 
+	   rroffset+=rightStep; 
+cerr << "left=" << lroffset << " right=" << rroffset << endl;
+	}
 	break;
 // need to fill in the rest
     default:
-	throw DataException("Programmer error - resolveBinay can not resolve operator "+opToString(m_op)+".");
+	throw DataException("Programmer error - resolveBinary can not resolve operator "+opToString(m_op)+".");
   }
-cout << "About to return "  << result[0] << result[1] << result[2] << endl;;
-  return result;
+  roffset=offset;
+  return &v;
 }
+
+
+
+// #define PROC_OP(X) \
+// 	for (int i=0;i<steps;++i,resultp+=getNoValues()) \
+// 	{ \
+// cout << "Step#" << i << " chunk=" << chunksize << endl; \
+// cout << left[0] << left[1] << left[2] << endl; \
+// cout << right[0] << right[1] << right[2] << endl; \
+// 	   tensor_binary_operation(chunksize, left, right, resultp, X); \
+// 	   left+=leftStep; \
+// 	   right+=rightStep; \
+// cout << "Result=" << result << " " << result[0] << result[1] << result[2] << endl; \
+// 	}
+// 
+// const double*
+// DataLazy::resolveBinary(ValueType& v,int sampleNo,  size_t offset) const
+// {
+// 	// again we assume that all collapsing has already been done
+// 	// so we have at least one expanded child.
+// 	// however, we could still have one of the children being not expanded.
+// 
+// cout << "Resolve binary: " << toString() << endl;
+// 
+//   const double* left=m_left->resolveSample(v,sampleNo,offset);
+// // cout << "Done Left " << /*left[0] << left[1] << left[2] << */endl;
+//   const double* right=m_right->resolveSample(v,sampleNo,offset);	
+// // cout << "Done Right"  << /*right[0] << right[1] << right[2] <<*/ endl;
+//   	// now we need to know which args are expanded
+//   bool leftExp=(m_left->m_readytype=='E');
+//   bool rightExp=(m_right->m_readytype=='E');
+//   bool bigloops=((leftExp && rightExp) || (!leftExp && !rightExp));	// is processing in single step
+//   int steps=(bigloops?1:getNumSamples());
+//   size_t chunksize=(bigloops? m_samplesize : getNoValues());
+//   int leftStep=((leftExp && !rightExp)? getNoValues() : 0);
+//   int rightStep=((rightExp && !leftExp)? getNoValues() : 0);
+// cout << "left=" << left << " right=" << right << endl;
+//   double* result=&(v[offset]);
+//   double* resultp=result;
+//   switch(m_op)
+//   {
+//     case ADD:
+// 	for (int i=0;i<steps;++i,resultp+=getNoValues()) 
+// 	{ 
+// cout << "Step#" << i << " chunk=" << chunksize << endl; \
+// // cout << left[0] << left[1] << left[2] << endl; 
+// // cout << right[0] << right[1] << right[2] << endl; 
+// 	   tensor_binary_operation(chunksize, left, right, resultp, plus<double>()); 
+// cout << "left=" << left << " right=" << right << " resp=" << resultp << endl;
+// 	   left+=leftStep; 
+// 	   right+=rightStep; 
+// cout << "left=" << left << " right=" << right << endl;
+// // cout << "Result=" << result << " " << result[0] << result[1] << result[2] << endl; 
+// 	}
+// 	break;
+// // need to fill in the rest
+//     default:
+// 	throw DataException("Programmer error - resolveBinay can not resolve operator "+opToString(m_op)+".");
+//   }
+// // cout << "About to return "  << result[0] << result[1] << result[2] << endl;;
+//   return result;
+// }
+
+// // the vector and the offset are a place where the method could write its data if it wishes
+// // it is not obligated to do so. For example, if it has its own storage already, it can use that.
+// // Hence the return value to indicate where the data is actually stored.
+// // Regardless, the storage should be assumed to be used, even if it isn't.
+// const double*
+// DataLazy::resolveSample(ValueType& v,int sampleNo,  size_t offset )
+// {
+// cout << "Resolve sample " << toString() << endl;
+// 	// collapse so we have a 'E' node or an IDENTITY for some other type
+//   if (m_readytype!='E' && m_op!=IDENTITY)
+//   {
+// 	collapse();
+//   }
+//   if (m_op==IDENTITY)	
+//   {
+//     const ValueType& vec=m_id->getVector();
+//     if (m_readytype=='C')
+//     {
+// 	return &(vec[0]);
+//     }
+//     return &(vec[m_id->getPointOffset(sampleNo, 0)]);
+//   }
+//   if (m_readytype!='E')
+//   {
+//     throw DataException("Programmer Error - Collapse did not produce an expanded node.");
+//   }
+//   switch (getOpgroup(m_op))
+//   {
+//   case G_UNARY: return resolveUnary(v,sampleNo,offset);
+//   case G_BINARY: return resolveBinary(v,sampleNo,offset);
+//   default:
+//     throw DataException("Programmer Error - resolveSample does not know how to process "+opToString(m_op)+".");
+//   }
+// }
+
+
 
 // the vector and the offset are a place where the method could write its data if it wishes
 // it is not obligated to do so. For example, if it has its own storage already, it can use that.
 // Hence the return value to indicate where the data is actually stored.
 // Regardless, the storage should be assumed to be used, even if it isn't.
-const double*
-DataLazy::resolveSample(ValueType& v,int sampleNo,  size_t offset )
+
+// the roffset is the offset within the returned vector where the data begins
+const DataTypes::ValueType*
+DataLazy::resolveSample(ValueType& v, size_t offset, int sampleNo, size_t& roffset)
 {
 cout << "Resolve sample " << toString() << endl;
 	// collapse so we have a 'E' node or an IDENTITY for some other type
@@ -575,175 +805,86 @@ cout << "Resolve sample " << toString() << endl;
   {
 	collapse();
   }
-cout << "Post collapse check\n";
   if (m_op==IDENTITY)	
   {
-cout << "In IDENTITY check\n";
     const ValueType& vec=m_id->getVector();
     if (m_readytype=='C')
     {
-	return &(vec[0]);
+	roffset=0;
+	return &(vec);
     }
-    return &(vec[m_id->getPointOffset(sampleNo, 0)]);
+    roffset=m_id->getPointOffset(sampleNo, 0);
+    return &(vec);
   }
   if (m_readytype!='E')
   {
     throw DataException("Programmer Error - Collapse did not produce an expanded node.");
   }
-cout << "Calling sub resolvers\n";
   switch (getOpgroup(m_op))
   {
-  case G_UNARY: return resolveUnary(v,sampleNo,offset);
-  case G_BINARY: return resolveBinary(v,sampleNo,offset);
+  case G_UNARY: return resolveUnary(v, offset,sampleNo,roffset);
+  case G_BINARY: return resolveBinary(v, offset,sampleNo,roffset);
   default:
     throw DataException("Programmer Error - resolveSample does not know how to process "+opToString(m_op)+".");
   }
 }
 
 
-// the vector and the offset are a place where the method could write its data if it wishes
-// it is not obligated to do so. For example, if it has its own storage already, it can use that.
-// Hence the return value to indicate where the data is actually stored.
-// Regardless, the storage should be assumed to be used, even if it isn't.
-const double*
-DataLazy::resolveSample2(ValueType& v,int sampleNo,  size_t offset )
-{
-  if (m_readytype!='E')
-  {
-	throw DataException("Only supporting Expanded Data.");
-  }
-  if (m_op==IDENTITY)	
-  {
-    const ValueType& vec=m_id->getVector();
-    return &(vec[m_id->getPointOffset(sampleNo, 0)]);
-  }
-  size_t rightoffset=offset+m_samplesize;
-  const double* left=m_left->resolveSample(v,sampleNo,offset);
-  const double* right=0;
-  if (getOpgroup(m_op)==G_BINARY)
-  {
-    right=m_right->resolveSample(v,sampleNo,rightoffset);
-  }
-  double* result=&(v[offset]);
-  {
-    switch(m_op)
-    {
-    case ADD:		// since these are pointwise ops, pretend each sample is one point
-	tensor_binary_operation(m_samplesize, left, right, result, plus<double>());
-	break;
-    case SUB:		
-	tensor_binary_operation(m_samplesize, left, right, result, minus<double>());
-	break;
-    case MUL:		
-	tensor_binary_operation(m_samplesize, left, right, result, multiplies<double>());
-	break;
-    case DIV:		
-	tensor_binary_operation(m_samplesize, left, right, result, divides<double>());
-	break;
-// unary ops
-    case SIN:
-	tensor_unary_operation(m_samplesize, left, result, ::sin);
-	break;
-    case COS:
-	tensor_unary_operation(m_samplesize, left, result, ::cos);
-	break;
-    case TAN:
-	tensor_unary_operation(m_samplesize, left, result, ::tan);
-	break;
-    case ASIN:
-	tensor_unary_operation(m_samplesize, left, result, ::asin);
-	break;
-    case ACOS:
-	tensor_unary_operation(m_samplesize, left, result, ::acos);
-	break;
-    case ATAN:
-	tensor_unary_operation(m_samplesize, left, result, ::atan);
-	break;
-    case SINH:
-	tensor_unary_operation(m_samplesize, left, result, ::sinh);
-	break;
-    case COSH:
-	tensor_unary_operation(m_samplesize, left, result, ::cosh);
-	break;
-    case TANH:
-	tensor_unary_operation(m_samplesize, left, result, ::tanh);
-	break;
-    case ERF:
-#ifdef _WIN32
-	throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
-#else
-	tensor_unary_operation(m_samplesize, left, result, ::erf);
-	break;
-#endif
-   case ASINH:
-#ifdef _WIN32
-	tensor_unary_operation(m_samplesize, left, result, escript::asinh_substitute);
-#else
-	tensor_unary_operation(m_samplesize, left, result, ::asinh);
-#endif   
-	break;
-   case ACOSH:
-#ifdef _WIN32
-	tensor_unary_operation(m_samplesize, left, result, escript::acosh_substitute);
-#else
-	tensor_unary_operation(m_samplesize, left, result, ::acosh);
-#endif   
-	break;
-   case ATANH:
-#ifdef _WIN32
-	tensor_unary_operation(m_samplesize, left, result, escript::atanh_substitute);
-#else
-	tensor_unary_operation(m_samplesize, left, result, ::atanh);
-#endif   
-	break;
-    case LOG10:
-	tensor_unary_operation(m_samplesize, left, result, ::log10);
-	break;
-    case LOG:
-	tensor_unary_operation(m_samplesize, left, result, ::log);
-	break;
-    case SIGN:
-	tensor_unary_operation(m_samplesize, left, result, escript::fsign);
-	break;
-    case ABS:
-	tensor_unary_operation(m_samplesize, left, result, ::fabs);
-	break;
-    case NEG:
-	tensor_unary_operation(m_samplesize, left, result, negate<double>());
-	break;
-    case POS:
-	// it doesn't mean anything for delayed.
-	// it will just trigger a deep copy of the lazy object
-	throw DataException("Programmer error - POS not supported for lazy data.");
-	break;
-    case EXP:
-	tensor_unary_operation(m_samplesize, left, result, ::exp);
-	break;
-    case SQRT:
-	tensor_unary_operation(m_samplesize, left, result, ::sqrt);
-	break;
-    case RECIP:
-	tensor_unary_operation(m_samplesize, left, result, bind1st(divides<double>(),1.));
-	break;
-    case GZ:
-	tensor_unary_operation(m_samplesize, left, result, bind2nd(greater<double>(),0.0));
-	break;
-    case LZ:
-	tensor_unary_operation(m_samplesize, left, result, bind2nd(less<double>(),0.0));
-	break;
-    case GEZ:
-	tensor_unary_operation(m_samplesize, left, result, bind2nd(greater_equal<double>(),0.0));
-	break;
-    case LEZ:
-	tensor_unary_operation(m_samplesize, left, result, bind2nd(less_equal<double>(),0.0));
-	break;
 
-    default:
-	throw DataException("Programmer error - do not know how to resolve operator "+opToString(m_op)+".");
-    }
-  }
-  return result;
-}
+
+// This version uses double* trying again with vectors
+// DataReady_ptr
+// DataLazy::resolve()
+// {
+// 
+// cout << "Sample size=" << m_samplesize << endl;
+// cout << "Buffers=" << m_buffsRequired << endl;
+// 
+//   if (m_readytype!='E')
+//   {
+//     collapse();
+//   }
+//   if (m_op==IDENTITY)
+//   {
+//     return m_id;
+//   }
+//   	// from this point on we must have m_op!=IDENTITY and m_readytype=='E'
+//   size_t threadbuffersize=m_samplesize*(max(1,m_buffsRequired)+1);
+//   int numthreads=1;
+// #ifdef _OPENMP
+//   numthreads=getNumberOfThreads();
+//   int threadnum=0;
+// #endif 
+//   ValueType v(numthreads*threadbuffersize);	
+// cout << "Buffer created with size=" << v.size() << endl;
+//   DataExpanded* result=new DataExpanded(getFunctionSpace(),getShape(),  ValueType(getNoValues()));
+//   ValueType& resvec=result->getVector();
+//   DataReady_ptr resptr=DataReady_ptr(result);
+//   int sample;
+//   int resoffset;
+//   int totalsamples=getNumSamples();
+//   const double* res=0;
+//   #pragma omp parallel for private(sample,resoffset,threadnum,res) schedule(static)
+//   for (sample=0;sample<totalsamples;++sample)
+//   {
+// cout << "################################# " << sample << endl;
+// #ifdef _OPENMP
+//     res=resolveSample(v,sample,threadbuffersize*omp_get_thread_num());
+// #else
+//     res=resolveSample(v,sample,0);   // this would normally be v, but not if its a single IDENTITY op.
+// #endif
+// cerr << "-------------------------------- " << endl;
+//     resoffset=result->getPointOffset(sample,0);
+// cerr << "offset=" << resoffset << endl;
+//     for (unsigned int i=0;i<m_samplesize;++i,++resoffset)	// copy values into the output vector
+//     {
+// 	resvec[resoffset]=res[i];
+//     }
+// cerr << "*********************************" << endl;
+//   }
+//   return resptr;
+// }
+
 
 DataReady_ptr
 DataLazy::resolve()
@@ -769,26 +910,31 @@ cout << "Buffers=" << m_buffsRequired << endl;
 #endif 
   ValueType v(numthreads*threadbuffersize);	
 cout << "Buffer created with size=" << v.size() << endl;
-  ValueType dummy(getNoValues());
-  DataExpanded* result=new DataExpanded(getFunctionSpace(),getShape(),dummy);
+  DataExpanded* result=new DataExpanded(getFunctionSpace(),getShape(),  ValueType(getNoValues()));
   ValueType& resvec=result->getVector();
   DataReady_ptr resptr=DataReady_ptr(result);
   int sample;
-  int resoffset;
+  size_t outoffset;		// offset in the output data
   int totalsamples=getNumSamples();
-  #pragma omp parallel for private(sample,resoffset,threadnum) schedule(static)
+  const ValueType* res=0;
+  size_t resoffset=0;
+  #pragma omp parallel for private(sample,resoffset,outoffset,threadnum,res) schedule(static)
   for (sample=0;sample<totalsamples;++sample)
   {
+cout << "################################# " << sample << endl;
 #ifdef _OPENMP
-    const double* res=resolveSample(v,sample,threadbuffersize*omp_get_thread_num());
+    res=resolveSample(v,threadbuffersize*omp_get_thread_num(),sample,resoffset);
 #else
-    const double* res=resolveSample(v,sample,0);   // this would normally be v, but not if its a single IDENTITY op.
+    res=resolveSample(v,0,sample,resoffset);   // this would normally be v, but not if its a single IDENTITY op.
 #endif
-    resoffset=result->getPointOffset(sample,0);
-    for (unsigned int i=0;i<m_samplesize;++i,++resoffset)	// copy values into the output vector
+cerr << "-------------------------------- " << endl;
+    outoffset=result->getPointOffset(sample,0);
+cerr << "offset=" << outoffset << endl;
+    for (unsigned int i=0;i<m_samplesize;++i,++outoffset,++resoffset)	// copy values into the output vector
     {
-	resvec[resoffset]=res[i];
+	resvec[outoffset]=(*res)[resoffset];
     }
+cerr << "*********************************" << endl;
   }
   return resptr;
 }
