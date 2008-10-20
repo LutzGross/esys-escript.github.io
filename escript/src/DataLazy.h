@@ -156,11 +156,14 @@ private:
   int m_buffsRequired;	// how many buffers are required to evaluate this expression
   size_t m_samplesize;	// number of values required to store a sample
 
-  const double*
-  resolveSample(ValueType& v,int sampleNo,  size_t offset );
+  const ValueType*
+  resolveSample(ValueType& v,  size_t offset ,int sampleNo, size_t& roffset);
 
+//   const double*
+//   resolveSample(ValueType& v,int sampleNo,  size_t offset );
+/*
   const double*
-  resolveSample2(ValueType& v,int sampleNo,  size_t offset );
+  resolveSample2(ValueType& v,int sampleNo,  size_t offset );*/
 
 
   void
@@ -174,12 +177,18 @@ private:
   DataReady_ptr
   collapseToReady();
 
-  const double*
-  resolveUnary(ValueType& v,int sampleNo,  size_t offset) const;
+//   const double*
+//   resolveUnary(ValueType& v,int sampleNo,  size_t offset) const;
+// 
+//   const double*
+//   resolveBinary(ValueType& v,int sampleNo,  size_t offset) const;
 
-  const double*
-  resolveBinary(ValueType& v,int sampleNo,  size_t offset) const;
 
+  ValueType*
+  resolveUnary(ValueType& v,  size_t offset,int sampleNo,  size_t& roffset) const;
+
+  ValueType*
+  resolveBinary(ValueType& v,  size_t offset,int sampleNo,  size_t& roffset) const;
 
 };
 
