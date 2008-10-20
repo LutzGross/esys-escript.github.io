@@ -897,6 +897,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
           }
 #else
           cur_pos = ftell(fileHandle_p);
+          printf("%d\n",cur_pos);
           fseek(fileHandle_p, 0L, SEEK_END);
           end_pos = ftell(fileHandle_p);
           fseek(fileHandle_p, (long)cur_pos, SEEK_SET);
