@@ -1043,9 +1043,30 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
 }
 
 
+boost::python::numeric::array
+Data::integrate_const() const
+{
+  if (isLazy())
+  {
+	throw DataException("Error - cannot integrate for constant lazy data.");
+  }
+  return integrateWorker();
+}
 
 boost::python::numeric::array
-Data::integrate() const
+Data::integrate()
+{
+  if (isLazy())
+  {
+	expand(); 
+  }
+  return integrateWorker();
+}
+
+
+
+boost::python::numeric::array
+Data::integrateWorker() const
 {
   int index;
   int rank = getDataPointRank();
