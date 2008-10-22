@@ -18,6 +18,16 @@
 #include "DataException.h"
 #include "LocalOps.h"
 
+/**
+\file DataMaths.h 
+\brief Describes binary operations performed on DataVector.
+
+
+For operations on DataAbstract see BinaryOp.h.
+For operations on double* see LocalOps.h.
+*/
+
+
 namespace escript
 {
 namespace DataMaths
@@ -30,25 +40,6 @@ namespace DataMaths
 In order to properly identify the datapoints, in most cases, the vector, shape and offset of the point must all be supplied.
 Note that vector in this context refers to a data vector storing datapoints not a mathematical vector. (However, datapoints within the data vector could represent scalars, vectors, matricies, ...).
 */
-
-//  /**
-//     \brief
-//     Perform the unary operation on the data point specified by the view's
-//     default offset. Applies the specified operation to each value in the data
-//     point. 
-//
-//     Called by escript::unaryOp.
-//
-//     \param operation - Input -
-//                  Operation to apply. Operation must be a pointer to a function.
-//  */
-//   template <class UnaryFunction>
-//   void
-//   unaryOp(DataAbstract& data, UnaryFunction operation);
-
-// I'm going to try not to have the above function. It relies on the value of the offset already 
-// being known.   I don't want that, offsets need to be explicit.
-
 
 
   /**
@@ -70,27 +61,6 @@ Note that vector in this context refers to a data vector storing datapoints not 
   unaryOp(DataTypes::ValueType& data, const DataTypes::ShapeType& shape,
           DataTypes::ValueType::size_type offset,
           UnaryFunction operation);
-
-//  /**
-//     \brief
-//     Perform the binary operation on the data points specified by the default
-//     offsets in this view and in view "right". Applies the specified operation
-//     to corresponding values in both data points. Operation must be a pointer
-//     to a function.
-//
-//     Called by escript::binaryOp.
-//
-//     \param right - Input -
-//                  View to act as RHS in given binary operation.
-//     \param operation - Input -
-//                  Operation to apply. Must be a pointer to a function.
-//  */
-//   template <class BinaryFunction>
-//   void
-//   binaryOp(DataAbstract& left, const DataAbstract& right,
-//            BinaryFunction operation);
-
-// trying to avoid having this one as well. Again, implicit offset
 
   /**
      \brief
@@ -139,25 +109,6 @@ Note that vector in this context refers to a data vector storing datapoints not 
  	   DataTypes::ValueType::size_type offset,
            double right,
            BinaryFunction operation);
-
-//  /**
-//     \brief
-//     Perform the given data point reduction operation on the data point
-//     specified by the default offset into the view. Reduces all elements of
-//     the data point using the given operation, returning the result as a 
-//     scalar. Operation must be a pointer to a function.
-//
-//     Called by escript::algorithm.
-//
-//     \param operation - Input -
-//                  Operation to apply. Must be a pointer to a function.
-//  */
-//   template <class BinaryFunction>
-//   double
-//   reductionOp(const DataAbstract& left, BinaryFunction operation,
-//               double initial_value);
-
-// implicit offset
 
   /**
      \brief
@@ -851,15 +802,6 @@ Note that vector in this context refers to a data vector storing datapoints not 
 /**
    Inline function definitions.
 */
-
-// template <class UnaryFunction>
-// inline
-// void
-// DataArrayView::unaryOp(UnaryFunction operation)
-// {
-//   unaryOp(m_offset,operation);
-// }
-
 
 inline
 bool

@@ -42,6 +42,9 @@ using namespace boost::python;
 using namespace boost;
 using namespace escript;
 
+// ensure the current object is not a DataLazy
+#define FORCERESOLVE if (isLazy()) {resolve();}
+
 Data::Data()
 {
   //
@@ -477,6 +480,8 @@ Data::setToZero()
   throw DataException("Error - Data can not be set to zero.");
 }
 
+
+// This implementation of this operation should not need any special treatment of LazyData.
 void
 Data::copyWithMask(const Data& other,
                    const Data& mask)
@@ -755,6 +760,9 @@ Data:: getValueOfDataPoint(int dataPointNo)
 {
   size_t length=0;
   int i, j, k, l;
+
+  FORCERESOLVE;
+
   //
   // determine the rank and shape of each data point
   int dataPointRank = getDataPointRank();
@@ -848,8 +856,6 @@ Data::setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object
     // this will throw if the value cannot be represented
     boost::python::numeric::array num_array(py_object);
     setValueOfDataPointToArray(dataPointNo,num_array);
-
-
 }
 
 void
@@ -858,6 +864,7 @@ Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
+  FORCERESOLVE;
   //
   // check rank
   if (num_array.getrank()<getDataPointRank())
@@ -891,6 +898,7 @@ Data::setValueOfDataPoint(int dataPointNo, const double value)
   }
   //
   // make sure data is expanded:
+  FORCERESOLVE;
   if (!isExpanded()) {
     expand();
   }
@@ -909,6 +917,7 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
 {
   size_t length=0;
   int i, j, k, l, pos;
+  FORCERESOLVE;
   //
   // determine the rank and shape of each data point
   int dataPointRank = getDataPointRank();
@@ -2151,6 +2160,7 @@ Data::setTaggedValueByName(std::string name,
                            const boost::python::object& value)
 {
      if (getFunctionSpace().getDomain()->isValidTagName(name)) {
+	FORCERESOLVE;
         int tagKey=getFunctionSpace().getDomain()->getTag(name);
         setTaggedValue(tagKey,value);
      }
@@ -2164,10 +2174,9 @@ Data::setTaggedValue(int tagKey,
   }
   //
   // Ensure underlying data object is of type DataTagged
+  FORCERESOLVE;
   if (isConstant()) tag();
-
   numeric::array asNumArray(value);
-
 
   // extract the shape of the numarray
   DataTypes::ShapeType tempShape;
@@ -2175,20 +2184,10 @@ Data::setTaggedValue(int tagKey,
     tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
   }
 
-  // get the space for the data vector
-//   int len = DataTypes::noValues(tempShape);
-//   DataVector temp_data(len, 0.0, len);
-//   DataArrayView temp_dataView(temp_data, tempShape);
-//   temp_dataView.copy(asNumArray);
-
   DataVector temp_data2;
   temp_data2.copyFromNumArray(asNumArray);
 
-  //
-  // Call DataAbstract::setTaggedValue
-  //m_data->setTaggedValue(tagKey,temp_dataView);
-
-    m_data->setTaggedValue(tagKey,tempShape, temp_data2);
+  m_data->setTaggedValue(tagKey,tempShape, temp_data2);
 }
 
 
@@ -2203,8 +2202,8 @@ Data::setTaggedValueFromCPP(int tagKey,
   }
   //
   // Ensure underlying data object is of type DataTagged
+  FORCERESOLVE;
   if (isConstant()) tag();
-
   //
   // Call DataAbstract::setTaggedValue
   m_data->setTaggedValue(tagKey,pointshape, value, dataOffset);
@@ -2731,13 +2730,22 @@ void
 Data::dump(const std::string fileName) const
 {
   try
-     {
-        return m_data->dump(fileName);
-     }
-     catch (exception& e)
-     {
+  {
+	if (isLazy())
+	{
+	  Data temp(*this);	// this is to get a non-const object which we can resolve
+	  temp.resolve();
+	  temp.dump(fileName);
+	}
+	else
+	{
+          return m_data->dump(fileName);
+	}
+  }
+  catch (exception& e)
+  {
         cout << e.what() << endl;
-     }
+  }
 }
 
 int
