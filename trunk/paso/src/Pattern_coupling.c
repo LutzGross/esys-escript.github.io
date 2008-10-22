@@ -60,7 +60,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker) {
      /* is there any vertex available ?*/
      while (Paso_Util_isAny(n,mis_marker,IS_AVAILABLE)) {
 
-           #pragma omp parallel for private(naib,i,iptr,flag) schedule(static) 
+           #pragma omp parallel for private(i,iptr,flag) schedule(static) 
            for (i=0;i<n;++i) {
               if (mis_marker[i]==IS_AVAILABLE) {
                  flag=IS_IN_MIS;
@@ -87,7 +87,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker) {
                 }
             }
            
-              #pragma omp parallel for private(naib,i,iptr) schedule(static)
+              #pragma omp parallel for private(i,iptr) schedule(static)
               for (i=0;i<n;i++) {
                if (mis_marker[i]==IS_AVAILABLE) {
                  diagptr=A->pattern->ptr[i];
@@ -136,7 +136,7 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
 {
   index_t index_offset=(A->pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   dim_t i,j;
-  index_t naib,iptr;
+  index_t iptr;
   double threshold,min_offdiagonal;
   bool_t flag;
   dim_t n=A->pattern->numOutput;
