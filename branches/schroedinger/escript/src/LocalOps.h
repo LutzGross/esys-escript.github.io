@@ -23,6 +23,15 @@
 #   define M_PI           3.14159265358979323846  /* pi */
 #endif
 
+
+/**
+\file LocalOps.h 
+\brief Describes binary operations performed on double*.
+
+For operations on DataAbstract see BinaryOp.h.
+For operations on DataVector see DataMaths.h.
+*/
+
 namespace escript {
 
 

@@ -160,7 +160,13 @@ public:
   int
   getBuffsRequired() const;
 
-
+  /**
+     \brief Produces an IDENTITY DataLazy containing zero.
+     The result will have the same shape and functionspace as before.
+  */
+  ESCRIPT_DLL_API
+  virtual void
+  setToZero();
 
 private:
   DataReady_ptr m_id;	//  For IDENTITY nodes, stores a wrapped value.

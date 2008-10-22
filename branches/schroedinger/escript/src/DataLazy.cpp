@@ -212,6 +212,7 @@ cout << "(1)Lazy created with " << m_samplesize << endl;
 
 
 
+
 DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
 	: parent(left->getFunctionSpace(),left->getShape()),
 	m_op(op)
@@ -830,6 +831,25 @@ DataLazy::getPointOffset(int sampleNo,
                  int dataPointNo) const
 {
   throw DataException("getPointOffset - not implemented for Lazy objects - yet.");
+}
+
+// It would seem that DataTagged will need to be treated differently since even after setting all tags
+// to zero, all the tags from all the DataTags would be in the result.
+// However since they all have the same value (0) whether they are there or not should not matter.
+// So I have decided that for all types this method will create a constant 0.
+// It can be promoted up as required.
+// A possible efficiency concern might be expanded->constant->expanded which has an extra memory management
+// but we can deal with that if it arrises.
+void
+DataLazy::setToZero()
+{
+  DataTypes::ValueType v(getNoValues(),0);
+  m_id=DataReady_ptr(new DataConstant(getFunctionSpace(),getShape(),v));
+  m_op=IDENTITY;
+  m_right.reset();   
+  m_left.reset();
+  m_readytype='C';
+  m_buffsRequired=1;
 }
 
 }	// end namespace

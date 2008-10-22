@@ -22,6 +22,14 @@
 #include "DataExpanded.h"
 #include "DataMaths.h"
 
+/**
+\file BinaryOp.h 
+\brief Describes binary operations performed on instances of DataAbstract.
+
+For operations on DataVector see DataMaths.h.
+For operations on double* see LocalOps.h.
+*/
+
 namespace escript {
 /**
    \brief

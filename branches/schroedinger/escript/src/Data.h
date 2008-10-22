@@ -358,13 +358,15 @@ class Data {
      If possible convert this Data to DataTagged. This will only allow
      Constant data to be converted to tagged. An attempt to convert
      Expanded data to tagged will throw an exception.
-    ==>*
   */
   ESCRIPT_DLL_API
   void
   tag();
 
-
+  /**
+    \brief If this data is lazy, then convert it to ready data.
+    What type of ready data depends on the expression. For example, Constant+Tagged==Tagged.
+  */
   ESCRIPT_DLL_API
   void
   resolve();
