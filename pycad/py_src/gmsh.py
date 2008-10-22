@@ -44,6 +44,9 @@ class Design(design.Design):
     DELAUNAY="iso"
     NETGEN="netgen"
     TETGEN="tetgen"
+
+    __script_file = None
+
     def __init__(self,dim=3,element_size=1.,order=1,keep_files=False):
        """
        initializes the gmsh design
@@ -98,9 +101,11 @@ class Design(design.Design):
         """
         clean up
         """
-        if not self.keepFiles():
-               os.unlink(self.getScriptFileName())
-               os.unlink(self.getMeshFileName())
+        if not self.keepFiles() and (self.scriptFile() != None) :
+            self.scriptFile().close()
+            os.unlink(self.getScriptFileName())
+            os.unlink(self.getMeshFileName())
+
     def getCommandString(self):
         """
         returns the gmsh comand
@@ -128,13 +133,24 @@ class Design(design.Design):
         returns a handle to a mesh meshing the design. In the current implementation 
         a mesh file name in gmsh format is returned.
         """
-        open(self.getScriptFileName(),"w").write(self.getScriptString())
+        f = open(self.getScriptFileName(),"w")
+        setScriptFile(f)
+        f.write(self.getScriptString())
         cmd = self.getCommandString()
         ret = os.system(cmd) / 256
 	if ret > 0:
 	  raise RuntimeError, "Could not build mesh: %s"%cmd
 	else:
           return self.getMeshFileName()
+
+    def setScriptFile(self,f=None):
+        self.__script_file=f
+        return
+
+    def scriptFile(self):
+        return self.__script_file
+
+
 
     def getScriptString(self):
         """
