@@ -1850,17 +1850,40 @@ Data::operator+=(const Data& right)
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  binaryOp(right,plus<double>());
-  return (*this);
+  if (isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,right.borrowDataPtr(),ADD);	// for lazy + is equivalent to +=
+        m_data=c->getPtr();
+	return (*this);
+  }
+  else
+  {
+  	binaryOp(right,plus<double>());
+  	return (*this);
+  }
 }
 
 Data&
 Data::operator+=(const boost::python::object& right)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
   Data tmp(right,getFunctionSpace(),false);
-  binaryOp(tmp,plus<double>());
-  return (*this);
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,tmp.borrowDataPtr(),ADD);	// for lazy + is equivalent to +=
+        m_data=c->getPtr();
+	return (*this);
+  }
+  else
+  {
+  	binaryOp(tmp,plus<double>());
+  	return (*this);
+  }
 }
+
+// Hmmm, operator= makes a deep copy but the copy constructor does not?
 Data&
 Data::operator=(const Data& other)
 {
@@ -1874,16 +1897,37 @@ Data::operator-=(const Data& right)
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  binaryOp(right,minus<double>());
-  return (*this);
+  if (isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,right.borrowDataPtr(),SUB);	// for lazy - is equivalent to -=
+        m_data=c->getPtr();
+	return (*this);
+  }
+  else
+  {
+  	binaryOp(right,minus<double>());
+  	return (*this);
+  }
 }
 
 Data&
 Data::operator-=(const boost::python::object& right)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
   Data tmp(right,getFunctionSpace(),false);
-  binaryOp(tmp,minus<double>());
-  return (*this);
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,tmp.borrowDataPtr(),SUB);	// for lazy - is equivalent to -=
+        m_data=c->getPtr();
+	return (*this);
+  }
+  else
+  {
+  	binaryOp(tmp,minus<double>());
+  	return (*this);
+  }
 }
 
 Data&
@@ -1892,16 +1936,37 @@ Data::operator*=(const Data& right)
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  binaryOp(right,multiplies<double>());
-  return (*this);
+  if (isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,right.borrowDataPtr(),MUL);	// for lazy * is equivalent to *=
+        m_data=c->getPtr();
+	return (*this);
+  }
+  else
+  {
+  	binaryOp(right,multiplies<double>());
+  	return (*this);
+  }
 }
 
 Data&
 Data::operator*=(const boost::python::object& right)
-{
+{  
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
   Data tmp(right,getFunctionSpace(),false);
-  binaryOp(tmp,multiplies<double>());
-  return (*this);
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,tmp.borrowDataPtr(),MUL);	// for lazy * is equivalent to *=
+        m_data=c->getPtr();
+	return (*this);
+  }
+  else
+  {
+  	binaryOp(tmp,multiplies<double>());
+  	return (*this);
+  }
 }
 
 Data&
@@ -1910,16 +1975,37 @@ Data::operator/=(const Data& right)
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  binaryOp(right,divides<double>());
-  return (*this);
+  if (isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,right.borrowDataPtr(),DIV);	// for lazy / is equivalent to /=
+        m_data=c->getPtr();
+	return (*this);
+  }
+  else
+  {
+  	binaryOp(right,divides<double>());
+  	return (*this);
+  }
 }
 
 Data&
 Data::operator/=(const boost::python::object& right)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
   Data tmp(right,getFunctionSpace(),false);
-  binaryOp(tmp,divides<double>());
-  return (*this);
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,tmp.borrowDataPtr(),DIV);	// for lazy / is equivalent to /=
+        m_data=c->getPtr();
+	return (*this);
+  }
+  else
+  {
+  	binaryOp(tmp,divides<double>());
+  	return (*this);
+  }
 }
 
 Data
@@ -1999,6 +2085,11 @@ escript::operator/(const Data& left, const Data& right)
 Data
 escript::operator+(const Data& left, const boost::python::object& right)
 {
+  if (left.isLazy())
+  {
+	DataLazy* c=new DataLazy(left.borrowDataPtr(),Data(right,left.getFunctionSpace(),false).borrowDataPtr(),ADD);
+	return Data(c);
+  }
   return left+Data(right,left.getFunctionSpace(),false);
 }
 
@@ -2007,6 +2098,11 @@ escript::operator+(const Data& left, const boost::python::object& right)
 Data
 escript::operator-(const Data& left, const boost::python::object& right)
 {
+  if (left.isLazy())
+  {
+	DataLazy* c=new DataLazy(left.borrowDataPtr(),Data(right,left.getFunctionSpace(),false).borrowDataPtr(),SUB);
+	return Data(c);
+  }
   return left-Data(right,left.getFunctionSpace(),false);
 }
 
@@ -2015,6 +2111,11 @@ escript::operator-(const Data& left, const boost::python::object& right)
 Data
 escript::operator*(const Data& left, const boost::python::object& right)
 {
+  if (left.isLazy())
+  {
+	DataLazy* c=new DataLazy(left.borrowDataPtr(),Data(right,left.getFunctionSpace(),false).borrowDataPtr(),MUL);
+	return Data(c);
+  }
   return left*Data(right,left.getFunctionSpace(),false);
 }
 
@@ -2023,6 +2124,11 @@ escript::operator*(const Data& left, const boost::python::object& right)
 Data
 escript::operator/(const Data& left, const boost::python::object& right)
 {
+  if (left.isLazy())
+  {
+	DataLazy* c=new DataLazy(left.borrowDataPtr(),Data(right,left.getFunctionSpace(),false).borrowDataPtr(),DIV);
+	return Data(c);
+  }
   return left/Data(right,left.getFunctionSpace(),false);
 }
 
@@ -2031,6 +2137,11 @@ escript::operator/(const Data& left, const boost::python::object& right)
 Data
 escript::operator+(const boost::python::object& left, const Data& right)
 {
+  if (right.isLazy())
+  {
+	DataLazy* c=new DataLazy(Data(left,right.getFunctionSpace(),false).borrowDataPtr(),right.borrowDataPtr(),ADD);
+	return Data(c);
+  }
   return Data(left,right.getFunctionSpace(),false)+right;
 }
 
@@ -2039,6 +2150,11 @@ escript::operator+(const boost::python::object& left, const Data& right)
 Data
 escript::operator-(const boost::python::object& left, const Data& right)
 {
+  if (right.isLazy())
+  {
+	DataLazy* c=new DataLazy(Data(left,right.getFunctionSpace(),false).borrowDataPtr(),right.borrowDataPtr(),SUB);
+	return Data(c);
+  }
   return Data(left,right.getFunctionSpace(),false)-right;
 }
 
@@ -2047,6 +2163,11 @@ escript::operator-(const boost::python::object& left, const Data& right)
 Data
 escript::operator*(const boost::python::object& left, const Data& right)
 {
+  if (right.isLazy())
+  {
+	DataLazy* c=new DataLazy(Data(left,right.getFunctionSpace(),false).borrowDataPtr(),right.borrowDataPtr(),MUL);
+	return Data(c);
+  }
   return Data(left,right.getFunctionSpace(),false)*right;
 }
 
@@ -2055,6 +2176,11 @@ escript::operator*(const boost::python::object& left, const Data& right)
 Data
 escript::operator/(const boost::python::object& left, const Data& right)
 {
+  if (right.isLazy())
+  {
+	DataLazy* c=new DataLazy(Data(left,right.getFunctionSpace(),false).borrowDataPtr(),right.borrowDataPtr(),DIV);
+	return Data(c);
+  }
   return Data(left,right.getFunctionSpace(),false)/right;
 }
 

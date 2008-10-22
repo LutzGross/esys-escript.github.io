@@ -67,7 +67,8 @@ opToString(ES_optype op);
 /**
 \class escript::DataLazy
 \brief Wraps an expression tree of other DataObjects.
-The values of DataPoints are computed when requested rather than all at once.
+The data will be evaluated when required.
+
 
 NOTE: This class assumes that the Data being pointed at are immutable.
 */
