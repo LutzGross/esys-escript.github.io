@@ -74,17 +74,16 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   dim_t n_block=A_p->row_block_size;
   index_t* mis_marker=NULL;  
   index_t* counter=NULL;
-  double *rs=NULL;  
   index_t iPtr,*index, *where_p, iPtr_s;
   dim_t i,k,j,j0;
   Paso_SparseMatrix * schur=NULL;
   Paso_SparseMatrix * schur_withFillIn=NULL;
-  double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0,time1,time2;
+  Paso_Pattern* mult=NULL;
+  double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0,time1,time2,S;
   
   /* identify independend set of rows/columns */
   mis_marker=TMPMEMALLOC(n,index_t);
   counter=TMPMEMALLOC(n,index_t);
-  rs=TMPMEMALLOC(n,double);
   out=MEMALLOC(1,Paso_Solver_AMG);
   out->AMG_of_Schur=NULL;
   out->inv_A_FF=NULL;
@@ -102,25 +101,13 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   out->A=Paso_SparseMatrix_getReference(A_p);
   out->level=level;
   
- /* fprintf(stderr,"START OF MATRIX \n\n");
-  for (i = 0; i < A_p->numRows; ++i) {
-     for (iPtr=A_p->pattern->ptr[i];iPtr<A_p->pattern->ptr[i + 1]; ++iPtr) {
-       j=A_p->pattern->index[iPtr];
-       fprintf(stderr,"A[%d,%d]=%.2f ",i,j,A_p->val[iPtr]);
-     }
-     fprintf(stderr,"\n");
-   }
-   fprintf(stderr,"END OF MATRIX \n\n");
- */
   if ( !(Paso_checkPtr(mis_marker) || Paso_checkPtr(out) || Paso_checkPtr(counter) ) ) {
      /* identify independend set of rows/columns */
      time0=Paso_timer();
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
-     Paso_Pattern_RS(A_p,mis_marker,0.25);
-     /*
-     for (i=0;i<n;++i) fprintf(stderr," i=%d mis[i]=%d \n",i,mis_marker[i]);
-     */
+     /*Paso_Pattern_RS(A_p,mis_marker,0.25);*/
+     Paso_Pattern_coup(A_p,mis_marker);
      time2=Paso_timer()-time0;
      if (Paso_noError()) {
         #pragma omp parallel for private(i) schedule(static)
@@ -150,12 +137,28 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
               /* Compute row-sum for getting rs(A_FF)*/
               #pragma omp for private(i,iPtr) schedule(static)
               for (i = 0; i < out->n_F; ++i) {
-                rs[i]=0;
+                out->inv_A_FF[i]=0;
                 for (iPtr=A_p->pattern->ptr[out->rows_in_F[i]];iPtr<A_p->pattern->ptr[out->rows_in_F[i] + 1]; ++iPtr) {
-                 rs[i]+=A_p->val[iPtr];
+                 out->inv_A_FF[i]+=A_p->val[iPtr];
                 }
               }
-             
+              
+/*              fprintf(stderr,"\n MATRIX START\n");
+              j=0;
+              for (i = 0; i < n; ++i) {
+                for (iPtr=A_p->pattern->ptr[i];iPtr<A_p->pattern->ptr[i + 1]; ++iPtr) {
+                 fprintf(stderr,"A[%d,%d]=%.2f ",i,A_p->pattern->index[iPtr],A_p->val[iPtr]);
+                }
+                if (mis_marker[i]) {
+                 fprintf(stderr,"ROW SUM %.2f\n ",out->inv_A_FF[j]);
+                 j++;
+                }
+                else {
+                  fprintf(stderr,"\n ");
+                }
+              }
+              fprintf(stderr,"\n MATRIX END\n");
+*/              
               #pragma omp for private(i, where_p,iPtr,A11,A12,A13,A21,A22,A23,A31,A32,A33,D,index) schedule(static)
               for (i = 0; i < out->n_F; i++) {
                 /* find main diagonal */
@@ -171,15 +174,13 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
                 } else {
                     iPtr+=(index_t)(where_p-index);
                     /* get inverse of A_FF block: */
-                      if (ABS(rs[i])>0.) {
-                            out->inv_A_FF[i]=1./rs[i];
+                      S=out->inv_A_FF[i];
+                      if (ABS(A_p->val[iPtr])>0.) {
+                            if(ABS(S)>0.)
+                               out->inv_A_FF[i]=1./S;
                       } else {
-                        out->inv_A_FF[i]=0;
-                      }
-                     
-                     /* } else {
                             Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getAMG: Break-down in AMG decomposition: non-regular main diagonal block.");
-                      }*/
+                      }
                 } 
               }
            } /* end parallel region */
@@ -188,6 +189,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
               /* if there are no nodes in the coarse level there is no more work to do */
               out->n_C=n-out->n_F;
                /*if (out->n_C>11) {*/
+               /*fprintf(stderr,"SPARSITY in level %d \n", level);*/
                if (level>0) {
                    out->rows_in_C=MEMALLOC(out->n_C,index_t);
                    out->mask_C=MEMALLOC(n,index_t);
@@ -221,7 +223,44 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
                             
                             /*find the pattern of the schur complement with fill in*/
                             schur_withFillIn=Paso_SparseMatrix_alloc(A_p->type,Paso_Pattern_binop(PATTERN_FORMAT_DEFAULT, schur->pattern, Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,out->A_CF->pattern,out->A_FC->pattern)),1,1);
+/*                            fprintf(stderr,"\nSHURE MATRIX START\n");
                             
+                            for (i = 0; i < schur->numRows; ++i) {
+                              for (iPtr=schur->pattern->ptr[i];iPtr<schur->pattern->ptr[i + 1]; ++iPtr) {
+                               fprintf(stderr,"A[%d,%d]=%.2f ",i,schur->pattern->index[iPtr],schur->val[iPtr]);
+                              }
+                              fprintf(stderr,"\n");
+                           }
+                            fprintf(stderr,"MATRIX END\n");
+
+                            fprintf(stderr,"\nA_CF MATRIX START\n");
+                            for (i = 0; i < out->n_C; ++i) {
+                              for (iPtr=out->A_CF->pattern->ptr[i];iPtr<out->A_CF->pattern->ptr[i + 1]; ++iPtr) {
+                               fprintf(stderr,"A_CF[%d,%d]=%.2f ",i,out->A_CF->pattern->index[iPtr],out->A_CF->val[iPtr]);
+                              }
+                              fprintf(stderr,"\n");
+                           }
+                            fprintf(stderr,"MATRIX END\n");
+
+                            fprintf(stderr,"\nA_FC MATRIX START\n");
+                            for (i = 0; i < out->n_F; ++i) {
+                              for (iPtr=out->A_FC->pattern->ptr[i];iPtr<out->A_FC->pattern->ptr[i + 1]; ++iPtr) {
+                               fprintf(stderr,"A_FC[%d,%d]=%.2f ",i,out->A_FC->pattern->index[iPtr],out->A_FC->val[iPtr]);
+                              }
+                              fprintf(stderr,"\n");
+                           }
+                            fprintf(stderr,"MATRIX END\n");
+                                          
+                           mult=Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,out->A_CF->pattern,out->A_FC->pattern);
+                            fprintf(stderr,"\nPATTERN MATRIX START\n");
+                            for (i = 0; i < mult->numOutput; ++i) {
+                              for (iPtr=mult->ptr[i];iPtr<mult->ptr[i + 1]; ++iPtr) {
+                               fprintf(stderr," P[%d,%d]=X ",i,mult->index[iPtr]);
+                              }
+                              fprintf(stderr,"\n");
+                           }
+                            fprintf(stderr,"MATRIX END\n");
+*/    
                             /* copy values over*/ 
                             #pragma omp for private(i,iPtr,iPtr_s,j,j0) schedule(static)
                             for (i = 0; i < schur_withFillIn->numRows; ++i) {
@@ -237,19 +276,22 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
                                 }
                               }
                             }
-                            
-                          /*  for (i = 0; i < schur_withFillIn->numRows; ++i) {
-                              for (iPtr=schur_withFillIn->pattern->ptr[i];iPtr<schur_withFillIn->pattern->ptr[i + 1]; ++iPtr) {
-                                j=schur_withFillIn->pattern->index[iPtr];
-                                fprintf(stderr,"A_CC[%d,%d]=%.2f ",i,j,schur_withFillIn->val[iPtr]);
-                              }
-                              fprintf(stderr,"\n");
-                            }*/
-                            time0=Paso_timer()-time0;
+                           time0=Paso_timer()-time0;
                             if (Paso_noError()) {
                                 time1=Paso_timer();
                                 /* update A_CC block to get Schur complement and then apply AMG to it */
                                 Paso_Solver_updateIncompleteSchurComplement(schur_withFillIn,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
+
+/*
+                                 fprintf(stderr,"\n SHURE WITH FILL IN MATRIX START\n");
+                                for (i = 0; i < schur_withFillIn->numRows; ++i) {
+                                  for (iPtr=schur_withFillIn->pattern->ptr[i];iPtr<schur_withFillIn->pattern->ptr[i + 1]; ++iPtr) {
+                                   fprintf(stderr,"A[%d,%d]=%.2f ",i,schur_withFillIn->pattern->index[iPtr],schur_withFillIn->val[iPtr]);
+                                  }
+                                  fprintf(stderr,"\n");
+                                 }
+                                fprintf(stderr,"MATRIX END\n");
+*/                                
                                 time1=Paso_timer()-time1;
                                 out->AMG_of_Schur=Paso_Solver_getAMG(schur_withFillIn,verbose,level-1);
                                 
@@ -293,7 +335,6 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   }
   TMPMEMFREE(mis_marker);
   TMPMEMFREE(counter);
-  TMPMEMFREE(rs);
   if (Paso_noError()) {
       if (verbose) {
          printf("AMG: %d unknowns eliminated. %d left.\n",out->n_F,n-out->n_F);
@@ -338,16 +379,17 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      dim_t i,k;
      dim_t n_block=amg->n_block;
      double *r=MEMALLOC(amg->n,double);
-     double *x0=MEMALLOC(amg->n,double);
      Paso_Solver_GS* GS=NULL;
      
      if (amg->level==0) {
         /* x=invA_FF*b  */
-        Paso_Solver_applyBlockDiagonalMatrix(n_block,amg->n_F,amg->inv_A_FF,amg->A_FF_pivot,x,b);
+        /*Paso_Solver_applyBlockDiagonalMatrix(n_block,amg->n_F,amg->inv_A_FF,amg->A_FF_pivot,x,b);*/
+        GS=Paso_Solver_getGS(amg->A,-1);
+        Paso_Solver_solveGS(GS,x,b);
+        Paso_Solver_GS_free(GS);
      } else {
-         fprintf(stdout,"LEVEL %d \n",amg->level);
-        /* presmoothing on (Shure, x, b, r) */
-        /****************/
+
+        /* presmoothing */
          GS=Paso_Solver_getGS(amg->A,-1);
          Paso_Solver_solveGS(GS,x,b);
         
@@ -360,7 +402,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         /* b->[b_F,b_C]     */
         if (n_block==1) {
            #pragma omp parallel for private(i) schedule(static)
-           for (i=0;i<amg->n_F;++i) amg->b_F[i]=r[amg->rows_in_F[i]];    /* was b istead of r */
+           for (i=0;i<amg->n_F;++i) amg->b_F[i]=r[amg->rows_in_F[i]];  
           #pragma omp parallel for private(i) schedule(static)
            for (i=0;i<amg->n_C;++i) amg->b_C[i]=r[amg->rows_in_C[i]];
         } else {
@@ -372,20 +414,6 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
                  for (k=0;k<n_block;k++) amg->b_C[amg->n_block*i+k]=r[n_block*amg->rows_in_C[i]+k];
         }
 
-        /****************/
-        /* Corsening part */
-        
-        /* r_F=A_FF^-1*r_F  */
-        /*Paso_Solver_applyBlockDiagonalMatrix(n_block,amg->n_F,amg->inv_A_FF,amg->A_FF_pivot,amg->b_F,amg->b_F);
-        fprintf(stderr,"2\n");
-        */
-        /* r_C=r_C-A_CF*r_F */
-        /*Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A_CF,amg->b_F,1.,amg->b_C);
-        fprintf(stderr,"3\n");
-        */
-       /****************/
-
-        
         /* x_F=invA_FF*b_F  */
         Paso_Solver_applyBlockDiagonalMatrix(n_block,amg->n_F,amg->inv_A_FF,amg->A_FF_pivot,amg->x_F,amg->b_F);
         
@@ -400,9 +428,6 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         /* x_F=invA_FF*b_F  */
         Paso_Solver_applyBlockDiagonalMatrix(n_block,amg->n_F,amg->inv_A_FF,amg->A_FF_pivot,amg->x_F,amg->b_F);
         /* x<-[x_F,x_C]     */
-        
-        /* */
-        
         
         if (n_block==1) {
            #pragma omp parallel for private(i) schedule(static)
@@ -425,20 +450,10 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         }
         /* all done */
      /*post smoothing*/
-/*     Paso_Solver_solveGS(GS,x0,b);
-     if (n_block==1) {
-           #pragma omp parallel for private(i) schedule(static)
-           for (i=0;i<amg->n;++i) x[i]+=x0[i];
-        } else {
-           #pragma omp parallel for private(i,k) schedule(static)
-           for (i=0;i<amg->n;++i) {
-                     for (k=0;k<n_block;k++) x[n_block*i+k]+=x0[n_block*i+k];
-           }
-        }
-*/     
+     Paso_Solver_solveGS1(GS,x,b);
+
      Paso_Solver_GS_free(GS);
      }
-     MEMFREE(x0);
      MEMFREE(r);
      return;
 }
