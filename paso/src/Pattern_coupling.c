@@ -28,11 +28,6 @@
 
 /**************************************************************/
 
-/*
-#include "mpi_C.h"
-#include "Paso.h"
-#include "Pattern.h"
-*/
 #include "PasoUtil.h"
 #include "Pattern_coupling.h"
 
