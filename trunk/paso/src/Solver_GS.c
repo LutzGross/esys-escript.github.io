@@ -54,7 +54,7 @@ Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A,bool_t verbose) {
   dim_t n_block=A->row_block_size;
   dim_t block_size=A->block_size;
   index_t num_colors=0, *mis_marker=NULL;
-  register index_t i,iptr_main,iPtr,iptr_ik,k,iptr_kj,j,iptr_ij,color,color2;
+  register index_t i,iptr_main,iPtr;
   double time0,time_color,time_fac;
   /* allocations: */  
   Paso_Solver_GS* out=MEMALLOC(1,Paso_Solver_GS);
