@@ -132,10 +132,9 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker) {
 void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta) 
 {
   index_t index_offset=(A->pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
-  dim_t i,j;
+  dim_t i;
   index_t iptr;
   double threshold,min_offdiagonal;
-  bool_t flag;
   dim_t n=A->pattern->numOutput;
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
     Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");

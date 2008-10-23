@@ -25,6 +25,7 @@
 #include "Paso.h"
 #include "Solver.h"
 #include "PasoUtil.h"
+#include "Pattern_coupling.h"
 
 /**************************************************************/
 
@@ -79,7 +80,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   Paso_SparseMatrix * schur=NULL;
   Paso_SparseMatrix * schur_withFillIn=NULL;
   Paso_Pattern* mult=NULL;
-  double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0,time1,time2,S;
+  double time0,time1,time2,S;
   
   /* identify independend set of rows/columns */
   mis_marker=TMPMEMALLOC(n,index_t);
@@ -159,7 +160,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
               }
               fprintf(stderr,"\n MATRIX END\n");
 */              
-              #pragma omp for private(i, where_p,iPtr,A11,A12,A13,A21,A22,A23,A31,A32,A33,D,index) schedule(static)
+              #pragma omp for private(i, where_p,iPtr,index) schedule(static)
               for (i = 0; i < out->n_F; i++) {
                 /* find main diagonal */
                 iPtr=A_p->pattern->ptr[out->rows_in_F[i]];
