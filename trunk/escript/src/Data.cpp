@@ -541,7 +541,7 @@ Data::copyWithMask(const Data& other,
 	throw DataException("Error - size mismatch in arguments to copyWithMask.");
   }
   size_t num_points=self.size();
-  long i;
+  size_t i;
   #pragma omp parallel for private(i) schedule(static)
   for (i=0;i<num_points;++i)
   {
