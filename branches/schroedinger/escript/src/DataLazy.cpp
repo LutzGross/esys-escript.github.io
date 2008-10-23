@@ -136,7 +136,19 @@ resultShape(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 {
 	if (left->getShape()!=right->getShape())
 	{
-		throw DataException("Shapes not the same - shapes must match for lazy data.");
+	  if (getOpgroup(op)!=G_BINARY)
+	  {
+		throw DataException("Shapes not the name - shapes must match for (point)binary operations.");
+	  }
+	  if (left->getRank()==0)	// we need to allow scalar * anything
+	  {
+		return right->getShape();
+	  }
+	  if (right->getRank()==0)
+	  {
+		return left->getShape();
+	  }
+	  throw DataException("Shapes not the same - arguments must have matching shapes (or be scalars) for (point)binary operations on lazy data.");
 	}
 	return left->getShape();
 }
@@ -576,7 +588,7 @@ DataLazy::resolveUnary(ValueType& v, size_t offset, int sampleNo, size_t& roffse
 
 
 #define PROC_OP(X) \
-	for (int i=0;i<steps;++i,resultp+=getNoValues()) \
+	for (int i=0;i<steps;++i,resultp+=resultStep) \
 	{ \
 	   tensor_binary_operation(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X); \
 	   lroffset+=leftStep; \
@@ -601,6 +613,9 @@ DataLazy::resolveUnary(ValueType& v, size_t offset, int sampleNo, size_t& roffse
 // the whole sample as one big datapoint.
 // If one of the children is not expanded, then we need to treat each point in the sample
 // individually.
+// There is an additional complication when scalar operations are considered.
+// For example, 2+Vector.
+// In this case each double within the point is treated individually
 DataTypes::ValueType*
 DataLazy::resolveBinary(ValueType& v,  size_t offset, int sampleNo, size_t& roffset) const
 {
@@ -611,10 +626,17 @@ cout << "Resolve binary: " << toString() << endl;
   bool leftExp=(m_left->m_readytype=='E');
   bool rightExp=(m_right->m_readytype=='E');
   bool bigloops=((leftExp && rightExp) || (!leftExp && !rightExp));	// is processing in single step?
-  int steps=(bigloops?1:getNumDPPSample());		
+  int steps=(bigloops?1:getNumDPPSample());
   size_t chunksize=(bigloops? m_samplesize : getNoValues());	// if bigloops, pretend the whole sample is a datapoint
-  int leftStep=((leftExp && !rightExp)? getNoValues() : 0);
-  int rightStep=((rightExp && !leftExp)? getNoValues() : 0);
+  if (m_left->getRank()!=m_right->getRank())	// need to deal with scalar * ? ops
+  {
+ 	EsysAssert((m_left->getRank()==0) || (m_right->getRank()==0), "Error - Ranks must match unless one is 0.");
+	steps=getNumDPPSample()*max(m_left->getNoValues(),m_right->getNoValues());
+	chunksize=1;	// for scalar
+  }		
+  int leftStep=((leftExp && !rightExp)? m_right->getNoValues() : 0);
+  int rightStep=((rightExp && !leftExp)? m_left->getNoValues() : 0);
+  int resultStep=max(leftStep,rightStep);	// only one (at most) should be !=0
 	// Get the values of sub-expressions
   const ValueType* left=m_left->resolveSample(v,offset,sampleNo,lroffset);
   const ValueType* right=m_right->resolveSample(v,offset+m_samplesize,sampleNo,rroffset); // Note
