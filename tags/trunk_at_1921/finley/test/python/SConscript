@@ -1,0 +1,73 @@
+
+########################################################
+#
+# Copyright (c) 2003-2008 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+
+import os
+Import('*')
+
+local_env = clone_env(env)
+
+src_dir = local_env.Dir('.').srcnode().abspath
+filenames = os.listdir(src_dir)
+#
+# files defining tests but are not running by itself:
+#
+testfiles = [x for x in filenames if x.startswith('test_') and os.path.splitext(x)[1] in ['.py'] ]
+# 
+# directories defining test data
+# 
+testdata_dir = [x for x in filenames if x.startswith('data_') ]
+# 
+#  files defining test runs (passing in a release)
+# 
+testruns = []
+testruns += ['run_escriptOnFinley.py']
+testruns += ['run_generators.py']
+testruns += ['run_inputOutput.py']
+testruns += ['run_linearPDEsOnFinley1.py']
+testruns += ['run_linearPDEsOnFinley2.py']
+testruns += ['run_linearPDEsOnFinley3.py']
+testruns += ['run_models.py']
+testruns += ['run_simplesolve.py']
+testruns += ['run_utilOnFinley.py']
+testruns += ['run_visualization_interface.py']
+#
+# files defining tests run locally (not as part of a release)
+#
+localtestruns = [x for x in filenames if not x.startswith('run_') and os.path.splitext(x)[1] in ['.py']]
+#
+# all test 
+#
+alltestruns = testruns + localtestruns
+#
+# test files are just compiled:
+#
+test_pyc = env.PyCompile(testfiles)
+env.Alias('build_py_tests',test_pyc)
+
+#Add Unit Test to target alias
+local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/finley/test/python')))
+local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/escript/test/python')))
+local_env['ENV']['FINLEY_TEST_DATA']=env.Dir('#/finley/test/python').srcnode().abspath
+local_env['ENV']['FINLEY_WORKDIR']=env.Dir('#/build/$PLATFORM/finley/test/python').srcnode().abspath
+env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in alltestruns])
+env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
+
+#
+# run all tests:
+#
+program = local_env.RunPyUnitTest(alltestruns)
+
+Depends(program, local_env['pyinstall'])
+Depends(program, dep_lib) 
+Depends(program, 'build_py_tests')
