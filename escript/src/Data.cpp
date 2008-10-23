@@ -43,6 +43,7 @@ using namespace boost;
 using namespace escript;
 
 // ensure the current object is not a DataLazy
+// The idea was that we could add an optional warning whenever a resolve is forced
 #define FORCERESOLVE if (isLazy()) {resolve();}
 
 Data::Data()
@@ -96,9 +97,18 @@ Data::Data(const Data& inData)
 Data::Data(const Data& inData,
            const DataTypes::RegionType& region)
 {
+  DataAbstract_ptr dat=inData.m_data;
+  if (inData.isLazy())
+  {
+	dat=inData.m_data->resolve();
+  }
+  else
+  {
+	dat=inData.m_data;
+  }
   //
   // Create Data which is a slice of another Data
-  DataAbstract* tmp = inData.m_data->getSlice(region);
+  DataAbstract* tmp = dat->getSlice(region);
   m_data=DataAbstract_ptr(tmp);
   m_protected=false;
 }
@@ -112,7 +122,8 @@ Data::Data(const Data& inData,
   }
   if (inData.isLazy())
   {
-    throw DataException("Error - will not interpolate for instances of DataLazy - yet.");
+    FORCERESOLVE;
+//     throw DataException("Error - will not interpolate for instances of DataLazy - yet.");
   }
   if (inData.getFunctionSpace()==functionspace) {
     m_data=inData.m_data;
@@ -1595,6 +1606,12 @@ Data::symmetric() const
      else {
         throw DataException("Error - Data::symmetric can only be calculated for rank 2 or 4 object.");
      }
+     if (isLazy())
+     {
+	Data temp(*this);	// to get around the fact that you can't resolve a const Data
+	temp.resolve();
+	return temp.symmetric();
+     }
      Data ev(0.,getDataPointShape(),getFunctionSpace());
      ev.typeMatchRight(*this);
      m_data->symmetric(ev.m_data.get());
@@ -1604,6 +1621,12 @@ Data::symmetric() const
 Data
 Data::nonsymmetric() const
 {
+     if (isLazy())
+     {
+	Data temp(*this);	// to get around the fact that you can't resolve a const Data
+	temp.resolve();
+	return temp.nonsymmetric();
+     }
      // check input
      DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
@@ -1638,6 +1661,12 @@ Data::nonsymmetric() const
 Data
 Data::trace(int axis_offset) const
 {
+     if (isLazy())
+     {
+	Data temp(*this);	// to get around the fact that you can't resolve a const Data
+	temp.resolve();
+	return temp.trace(axis_offset);
+     }
      DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
         DataTypes::ShapeType ev_shape;
@@ -1687,7 +1716,13 @@ Data::trace(int axis_offset) const
 
 Data
 Data::transpose(int axis_offset) const
-{
+{     
+     if (isLazy())
+     {
+	Data temp(*this);	// to get around the fact that you can't resolve a const Data
+	temp.resolve();
+	return temp.transpose(axis_offset);
+     }
      DataTypes::ShapeType s=getDataPointShape();
      DataTypes::ShapeType ev_shape;
      // Here's the equivalent of python s_out=s[axis_offset:]+s[:axis_offset]
@@ -1709,6 +1744,12 @@ Data::transpose(int axis_offset) const
 Data
 Data::eigenvalues() const
 {
+     if (isLazy())
+     {
+	Data temp(*this);	// to get around the fact that you can't resolve a const Data
+	temp.resolve();
+	return temp.eigenvalues();
+     }
      // check input
      DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()!=2)
@@ -1726,6 +1767,12 @@ Data::eigenvalues() const
 const boost::python::tuple
 Data::eigenvalues_and_eigenvectors(const double tol) const
 {
+     if (isLazy())
+     {
+	Data temp(*this);	// to get around the fact that you can't resolve a const Data
+	temp.resolve();
+	return temp.eigenvalues_and_eigenvectors(tol);
+     }
      DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()!=2)
         throw DataException("Error - Data::eigenvalues and eigenvectors can only be calculated for rank 2 object.");
@@ -1759,6 +1806,12 @@ void
 Data::calc_minGlobalDataPoint(int& ProcNo,
        	                int& DataPointNo) const
 {
+  if (isLazy())
+  {
+    Data temp(*this);	// to get around the fact that you can't resolve a const Data
+    temp.resolve();
+    return temp.calc_minGlobalDataPoint(ProcNo,DataPointNo);
+  }
   int i,j;
   int lowi=0,lowj=0;
   double min=numeric_limits<double>::max();
@@ -1825,6 +1878,13 @@ Data::saveDX(std::string fileName) const
   {
     throw DataException("Error - Operations not permitted on instances of DataEmpty.");
   }
+  if (isLazy())
+  {
+     Data temp(*this);	// to get around the fact that you can't resolve a const Data
+     temp.resolve();
+     temp.saveDX(fileName);
+     return;
+  }
   boost::python::dict args;
   args["data"]=boost::python::object(this);
   getDomain()->saveDX(fileName,args);
@@ -1837,6 +1897,13 @@ Data::saveVTK(std::string fileName) const
   if (isEmpty())
   {
     throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+  }
+  if (isLazy())
+  {
+     Data temp(*this);	// to get around the fact that you can't resolve a const Data
+     temp.resolve();
+     temp.saveVTK(fileName);
+     return;
   }
   boost::python::dict args;
   args["data"]=boost::python::object(this);
@@ -2248,10 +2315,11 @@ Data::setSlice(const Data& value,
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  if (isLazy())
+  FORCERESOLVE;
+/*  if (isLazy())
   {
 	throw DataException("Error - setSlice not permitted on lazy data.");
-  }
+  }*/
   Data tempValue(value);
   typeMatchLeft(tempValue);
   typeMatchRight(tempValue);
@@ -2261,6 +2329,10 @@ Data::setSlice(const Data& value,
 void
 Data::typeMatchLeft(Data& right) const
 {
+  if (right.isLazy() && !isLazy())
+  {
+    right.resolve();
+  }
   if (isExpanded()){
     right.expand();
   } else if (isTagged()) {
@@ -2273,6 +2345,10 @@ Data::typeMatchLeft(Data& right) const
 void
 Data::typeMatchRight(const Data& right)
 {
+  if (isLazy() && !right.isLazy())
+  {
+    resolve();
+  }
   if (isTagged()) {
     if (right.isExpanded()) {
       expand();
@@ -2365,6 +2441,10 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 {
   // General tensor product: res(SL x SR) = arg_0(SL x SM) * arg_1(SM x SR)
   // SM is the product of the last axis_offset entries in arg_0.getShape().
+
+  // deal with any lazy data
+  if (arg_0.isLazy()) {arg_0.resolve();}
+  if (arg_1.isLazy()) {arg_1.resolve();}
 
   // Interpolate if necessary and find an appropriate function space
   Data arg_0_Z, arg_1_Z;
