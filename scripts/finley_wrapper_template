@@ -27,6 +27,9 @@ export LD_LIBRARY_PATH="@@LD_LIBRARY_PATH@@"
 
 export PYTHONPATH="@@PYTHONPATH@@"
 
+# Avoid bug in hybrid runs with MPT MPI
+export MPI_NUM_MEMORY_REGIONS=0
+
 # Try to guess the MPI launcher (mpirun unless in PBS batch job in which case mpiexec)
 mpi_launcher='mpirun -np'
 if [ $?PBS_ENVIRONMENT ]; then
