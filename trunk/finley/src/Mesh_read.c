@@ -275,9 +275,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
   char error_msg[LenErrorMsg_MAX];
   double time0=Finley_timer();
   FILE *fileHandle_p = NULL;
-  ElementTypeId typeID, faceTypeID, contactTypeID, pointTypeID;
-  Finley_TagMap* tag_map;
-  index_t tag_key;
+  ElementTypeId typeID;
   int scan_ret;
 
   Finley_resetError();
@@ -856,16 +854,17 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
       /* get the name tags */
       if (Finley_noError()) {
         char *remainder, *ptr;
-        int tag_key, error_code;
         size_t len;
-        long cur_pos, end_pos;
+        int tag_key;
+
+
+
         if (mpi_info->rank == 0) {	/* Master */
 	  /* Read the word 'Tag' */
 	  if (! feof(fileHandle_p)) {
 	    scan_ret = fscanf(fileHandle_p, "%s\n", name);
 	    FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
 	  }
-	  /* Read rest of file in one chunk, after using seek to find length */
 
 #if defined(_WIN32)  /* windows ftell lies on unix formatted text files */
 
@@ -896,16 +895,24 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
              len++;
           }
 #else
-          cur_pos = ftell(fileHandle_p);
-          fseek(fileHandle_p, 0L, SEEK_END);
-          end_pos = ftell(fileHandle_p);
-          fseek(fileHandle_p, (long)cur_pos, SEEK_SET);
-	  remainder = TMPMEMALLOC(end_pos-cur_pos+1, char);
-	  if (! feof(fileHandle_p)) {
-	    scan_ret = fread(remainder, (size_t) end_pos-cur_pos, sizeof(char), fileHandle_p);
-            FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
-	  }
-	  remainder[end_pos-cur_pos] = 0;
+	  /* Read rest of file in one chunk, after using seek to find length */
+          {
+             long cur_pos, end_pos;
+
+             cur_pos = ftell(fileHandle_p);
+             fseek(fileHandle_p, 0L, SEEK_END);
+             end_pos = ftell(fileHandle_p);
+             fseek(fileHandle_p, (long)cur_pos, SEEK_SET);
+             remainder = TMPMEMALLOC(end_pos-cur_pos+1, char);
+             if (! feof(fileHandle_p))
+             {
+                scan_ret = fread(remainder, (size_t) end_pos-cur_pos,
+                                 sizeof(char), fileHandle_p);
+
+                FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                remainder[end_pos-cur_pos] = 0;
+            }
+          }
 #endif
 	  len = strlen(remainder);
 	  while ((--len)>0 && isspace(remainder[len])) remainder[len]=0;
@@ -913,19 +920,24 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
           TMPMEMREALLOC(remainder,remainder,len+1,char);
         }
 #ifdef PASO_MPI
-        error_code = MPI_Bcast (&len, 1, MPI_INT,  0, mpi_info->comm);
-        if (error_code != MPI_SUCCESS) {
-          Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: broadcast of tag len failed");
-          return NULL;
+
+        if (MPI_Bcast (&len, 1, MPI_INT,  0, mpi_info->comm) != MPI_SUCCESS)
+        {
+           Finley_setError(PASO_MPI_ERROR,
+                           "Finley_Mesh_read: broadcast of tag len failed");
+           return NULL;
         }
 	if (mpi_info->rank != 0) {
 	  remainder = TMPMEMALLOC(len+1, char);
 	  remainder[0] = 0;
 	}
-        error_code = MPI_Bcast (remainder, len+1, MPI_CHAR,  0, mpi_info->comm);
-        if (error_code != MPI_SUCCESS) {
-          Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: broadcast of tags failed");
-          return NULL;
+
+        if (MPI_Bcast (remainder, len+1, MPI_CHAR,  0, mpi_info->comm) !=
+            MPI_SUCCESS)
+        {
+           Finley_setError(PASO_MPI_ERROR,
+                           "Finley_Mesh_read: broadcast of tags failed");
+           return NULL;
         }
 #endif
 	if (remainder[0]) {
