@@ -28,11 +28,13 @@
 
 /**************************************************************/
 
+/*
 #include "mpi_C.h"
 #include "Paso.h"
 #include "PasoUtil.h"
 #include "Pattern.h"
-#include "Solver.h"
+*/
+#include "Pattern_coupling.h"
 
 
 /***************************************************************/
