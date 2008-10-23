@@ -189,7 +189,7 @@ Paso_Pattern* Paso_Pattern_multiply(int type, Paso_Pattern* A, Paso_Pattern* B) 
       j = A->index[iptrA];
       for(iptrB = B->ptr[j]; iptrB < B->ptr[j+1]; ++iptrB) {
     	k = B->index[iptrB];
-        Finley_IndexList_insertIndex(&(index_list[i]),k);
+        Paso_IndexList_insertIndex(&(index_list[i]),k);
      }
     }
   }
@@ -246,25 +246,25 @@ Paso_Pattern* Paso_Pattern_binop(int type, Paso_Pattern* A, Paso_Pattern* B) {
         j = A->index[iptrA];
         k = B->index[iptrB];
         if (j<k) {
-           Finley_IndexList_insertIndex(&(index_list[i]),j);
+           Paso_IndexList_insertIndex(&(index_list[i]),j);
            iptrA++;
         } else if (j>k) {
-            Finley_IndexList_insertIndex(&(index_list[i]),k);
+            Paso_IndexList_insertIndex(&(index_list[i]),k);
             iptrB++;
         } else if (j==k) {
-            Finley_IndexList_insertIndex(&(index_list[i]),j);
+            Paso_IndexList_insertIndex(&(index_list[i]),j);
             iptrB++;
             iptrA++;
         }
     }
     while(iptrA < A->ptr[i+1]) {
         j = A->index[iptrA];
-        Finley_IndexList_insertIndex(&(index_list[i]),j);
+        Paso_IndexList_insertIndex(&(index_list[i]),j);
         iptrA++;
     }
     while(iptrB < B->ptr[i+1]) {
         k = B->index[iptrB];
-        Finley_IndexList_insertIndex(&(index_list[i]),k);
+        Paso_IndexList_insertIndex(&(index_list[i]),k);
         iptrB++;
     }
   }
