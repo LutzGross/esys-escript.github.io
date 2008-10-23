@@ -137,11 +137,6 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
   /* write nodes: */
   if (in->Nodes!=NULL) {
     numDim=Finley_Mesh_getDim(in);
-    if (in->Nodes->degreesOfFreedomDistribution != NULL) {
-      fprintf(stdout, "\tNodes->degreesOfFreedomDistribution:");
-      for (j=0;j<in->MPIInfo->size+1;j++) fprintf(stdout," %d",in->Nodes->degreesOfFreedomDistribution->first_component[j]);
-      fprintf(stdout, "\n");
-    }
     fprintf(stdout, "\tNodes: %1dD-Nodes %d\n", numDim, in->Nodes->numNodes);
     if (full) {
       fprintf(stdout, "\t     Id   Tag  gDOF   gNI grDfI  grNI:  Coordinates\n");

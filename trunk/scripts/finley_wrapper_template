@@ -23,6 +23,8 @@ PYTHON_CMD="@@PYTHON_CMD@@"
 
 ESCRIPT_ROOT="@@ESCRIPT_ROOT@@"
 
+export PATH="@@PATH@@"
+
 export LD_LIBRARY_PATH="@@LD_LIBRARY_PATH@@"
 
 export PYTHONPATH="@@PYTHONPATH@@"
@@ -80,6 +82,11 @@ fi
 # Using MPI?
 if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.mpi" ]; then
   PYTHON_CMD="$mpi_launcher $MPI_NUM_PROCS $PYTHON_MPI"
+else
+  if [ "$MPI_NUM_PROCS" -ne 1 ]; then
+    echo "Escript/Finley was not compiled for MPI so you must use -M 1"
+    exit 1
+  fi
 fi
 
 set -x
