@@ -95,16 +95,18 @@ enum ES_opgroup
 
 
 
-string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","sin","cos","tan",
+string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","^",
+			"sin","cos","tan",
 			"asin","acos","atan","sinh","cosh","tanh","erf",
 			"asinh","acosh","atanh",
 			"log10","log","sign","abs","neg","pos","exp","sqrt",
 			"1/","where>0","where<0","where>=0","where<=0"};
 int ES_opcount=32;
-ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY,G_UNARY,G_UNARY,G_UNARY, //9
-			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,	// 16
-			G_UNARY,G_UNARY,G_UNARY,					// 19
-			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,		// 27
+ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY, G_BINARY,
+			G_UNARY,G_UNARY,G_UNARY, //10
+			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,	// 17
+			G_UNARY,G_UNARY,G_UNARY,					// 20
+			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,		// 28
 			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY};
 inline
 ES_opgroup
@@ -655,6 +657,9 @@ cout << "Resolve binary: " << toString() << endl;
 	break;
     case DIV:
 	PROC_OP(divides<double>());
+	break;
+    case POW:
+	PROC_OP(::pow);
 	break;
     default:
 	throw DataException("Programmer error - resolveBinary can not resolve operator "+opToString(m_op)+".");

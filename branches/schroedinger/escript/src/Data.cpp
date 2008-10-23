@@ -2025,6 +2025,11 @@ Data::powO(const boost::python::object& right) const
 Data
 Data::powD(const Data& right) const
 {
+  if (isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,right.borrowDataPtr(),POW);
+	return Data(c);
+  }
   return C_TensorBinaryOperation<double (*)(double, double)>(*this, right, ::pow);
 }
 
