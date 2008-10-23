@@ -541,7 +541,13 @@ Data::copyWithMask(const Data& other,
 	throw DataException("Error - size mismatch in arguments to copyWithMask.");
   }
   size_t num_points=self.size();
+
+  // OPENMP 3.0 allows unsigned loop vars.
+#if defined(_OPENMP) && (_OPENMP < 200805)
+  long i;
+#else
   size_t i;
+#endif
   #pragma omp parallel for private(i) schedule(static)
   for (i=0;i<num_points;++i)
   {
