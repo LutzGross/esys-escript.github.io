@@ -60,6 +60,7 @@ opts.AddOptions(
   BoolOption('usedebug', 'Do you want a debug build?', 'no'),
   BoolOption('usevtk', 'Do you want to use VTK?', 'yes'),
   ('options_file', 'File of paths/options. Default: scons/<hostname>_options.py', options_file),
+  ('win_cc_name', 'windows C compiler name if needed', 'msvc'),
   # The strings -DDEFAULT_ get replaced by scons/<hostname>_options.py or by defaults below
   ('cc_flags', 'C compiler flags to use', '-DEFAULT_1'),
   ('cc_optim', 'C compiler optimization flags to use', '-DEFAULT_2'),
@@ -134,6 +135,7 @@ opts.AddOptions(
 
 if IS_WINDOWS_PLATFORM:
       env = Environment(tools = ['default', 'msvc'], options = opts)
+      #env = Environment(tools = ['default', 'intelc'], options = opts)
 else:
    if socket.gethostname().split('.')[0] == 'service0':
       env = Environment(tools = ['default', 'intelc'], options = opts)
@@ -180,6 +182,9 @@ elif env["CC"] == "cl":
   omp_optim		= ""
   omp_debug		= ""
   omp_libs		= []
+  pedantic		= ""
+elif env["CC"] == "icl":
+  # intel C on Windows, see windows_msvc71_options.py for a start
   pedantic		= ""
 
 # If not specified in hostname_options.py then set them here
