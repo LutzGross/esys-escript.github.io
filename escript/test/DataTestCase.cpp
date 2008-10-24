@@ -69,114 +69,48 @@ void DataTestCase::testCopying()
 {
   using namespace escript::DataTypes;
   cout << endl;
-  {
-	// first we test the deep copy
-	cout << "\tTest deep copy DataConstant" << endl;
-	DataTypes::ShapeType shape;
-	shape.push_back(2);
-	shape.push_back(3);
-	DataTypes::ValueType data(DataTypes::noValues(shape),1);
-	DataConstant* dc=new DataConstant(FunctionSpace(),shape,data);
-	Data d(dc);
-	
-	Data* deep=d.copySelf();	// test self copy
-	for (int i=0;i<DataTypes::noValues(shape);++i)
-	{
-	   if (d.getDataAtOffset(i)!=deep->getDataAtOffset(i))
-		assert(false);
-	}
-	d.setToZero();
-	for (int i=0;i<DataTypes::noValues(shape);++i)
-	{
-	   if (d.getDataAtOffset(i)==deep->getDataAtOffset(i))
-		assert(false);
-	}
-	d.copy(*deep);			// test copy from object
-	for (int i=0;i<DataTypes::noValues(shape);++i)
-	{
-	   if (d.getDataAtOffset(i)!=deep->getDataAtOffset(i))
-		assert(false);
-	}
-	d.setToZero();
-	for (int i=0;i<DataTypes::noValues(shape);++i)
-	{
-	   if (d.getDataAtOffset(i)==deep->getDataAtOffset(i))
-		assert(false);
-	}
-	delete deep;
-  }
 
+  DataTypes::ShapeType shape;
+  shape.push_back(2);
+  shape.push_back(3);
+  DataTypes::ValueType data(DataTypes::noValues(shape),1);
+  const int NUMDATS=3;
+  Data* dats[NUMDATS];
+  char* strs[]={"DataConstant", "DataTagged", "DataExpanded"};
+  dats[0]=new Data(new DataConstant(FunctionSpace(),shape,data));
+  dats[1]=new Data(new DataTagged(FunctionSpace(),shape,data));
+  dats[2]=new Data(new DataExpanded(FunctionSpace(),shape,data));
+
+  for (int k=0;k<NUMDATS;++k)
   {
-	// first we test the deep copy
-	cout << "\tTest deep copy DataExpanded" << endl;
-	DataTypes::ShapeType shape;
-	shape.push_back(2);
-	shape.push_back(3);
-	DataTypes::ValueType data(DataTypes::noValues(shape),1);
-	DataExpanded* dc=new DataExpanded(FunctionSpace(),shape,data);
-	Data d(dc);
-	
-	Data* deep=d.copySelf();	// test self copy
+	cout << "\tTest deep copy " << strs[k] << endl;
+	Data* d=dats[k];
+	Data* deep=d->copySelf();	// test self copy
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	   if (d.getDataAtOffset(i)!=deep->getDataAtOffset(i))
+	if (d->getDataAtOffset(i)!=deep->getDataAtOffset(i))
 		assert(false);
 	}
-	d.setToZero();
+	d->setToZero();
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	   if (d.getDataAtOffset(i)==deep->getDataAtOffset(i))
+	if (d->getDataAtOffset(i)==deep->getDataAtOffset(i))
 		assert(false);
 	}
-	d.copy(*deep);			// test copy from object
+	d->copy(*deep);			// test copy from object
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	   if (d.getDataAtOffset(i)!=deep->getDataAtOffset(i))
+	if (d->getDataAtOffset(i)!=deep->getDataAtOffset(i))
 		assert(false);
 	}
-	d.setToZero();
+	d->setToZero();
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	   if (d.getDataAtOffset(i)==deep->getDataAtOffset(i))
+	if (d->getDataAtOffset(i)==deep->getDataAtOffset(i))
 		assert(false);
 	}
 	delete deep;
-  }
-  {
-	// first we test the deep copy
-	cout << "\tTest deep copy DataTagged" << endl;
-	DataTypes::ShapeType shape;
-	shape.push_back(2);
-	shape.push_back(3);
-	DataTypes::ValueType data(DataTypes::noValues(shape),1);
-	DataTagged* dc=new DataTagged(FunctionSpace(),shape,data);
-	Data d(dc);
-	
-	Data* deep=d.copySelf();	// test self copy
-	for (int i=0;i<DataTypes::noValues(shape);++i)
-	{
-	   if (d.getDataAtOffset(i)!=deep->getDataAtOffset(i))
-		assert(false);
-	}
-	d.setToZero();
-	for (int i=0;i<DataTypes::noValues(shape);++i)
-	{
-	   if (d.getDataAtOffset(i)==deep->getDataAtOffset(i))
-		assert(false);
-	}
-	d.copy(*deep);			// test copy from object
-	for (int i=0;i<DataTypes::noValues(shape);++i)
-	{
-	   if (d.getDataAtOffset(i)!=deep->getDataAtOffset(i))
-		assert(false);
-	}
-	d.setToZero();
-	for (int i=0;i<DataTypes::noValues(shape);++i)
-	{
-	   if (d.getDataAtOffset(i)==deep->getDataAtOffset(i))
-		assert(false);
-	}
-	delete deep;
+	delete dats[k];
   }
 
 }
@@ -185,379 +119,223 @@ void DataTestCase::testSlicing() {
 
   using namespace escript::DataTypes;
   cout << endl;
-
   {
+   DataTypes::ShapeType viewShape;
+   viewShape.push_back(2);
+   viewShape.push_back(3);
 
-    cout << "\tTest get-slicing DataConstant" << endl;
+   const int NUMDATS=3;
+   char* strs[]={"DataConstant", "DataTagged","DataExpanded"};
+   bool tags[]={false,true,false};	// is the slice of this data supposed to be tagged
+   Data* dats[NUMDATS];
+   for (int k=0;k<NUMDATS;++k)
+   {
+    	dats[k]=new Data(1.3, viewShape);
+   }
+   dats[1]->tag();
+   dats[2]->expand();
+   for (int k=0;k<NUMDATS;++k)
+   {
+	cout << "\tTest get-slicing " << strs[k] << endl;
+    	dats[k]->getDataAtOffset(dats[k]->getDataOffset(0,0)+getRelIndex(viewShape,0,0))=1.0;
+    	dats[k]->getDataAtOffset(dats[k]->getDataOffset(0,0)+getRelIndex(viewShape,1,1))=2.0;
 
-    DataTypes::ShapeType viewShape;
-    viewShape.push_back(2);
-    viewShape.push_back(3);
-    Data data(1.3,viewShape,FunctionSpace(),false);
+    	DataTypes::RegionType region;
+    	region.push_back(DataTypes::RegionType::value_type(0,0));
+    	region.push_back(DataTypes::RegionType::value_type(0,0));
 
-    //cout << data.toString() << endl;
+    	Data slice1(dats[k]->getSlice(region));
 
-    DataTypes::RegionType region;
-    region.push_back(DataTypes::RegionType::value_type(0,0));
-    region.push_back(DataTypes::RegionType::value_type(0,0));
+    	if (tags[k]) {assert(slice1.isTagged());}
+    	assert(slice1.getDataPointRank()==0);
+    	assert(slice1.getDataPoint(0,0)==1.0);
 
-    Data slice1(data.getSlice(region));
+	//
+	// create a rank 2 slice with one value
+	
+	region.clear();
+	region.push_back(DataTypes::RegionType::value_type(0,1));
+	region.push_back(DataTypes::RegionType::value_type(0,1));
+	
+	Data slice2(dats[k]->getSlice(region));
+	
+	//cout << slice2.toString() << endl;
+	
+	if (tags[k]) {assert(slice2.isTagged());}
+	assert(slice2.getDataPointRank()==2);
+	
+	assert(slice2.getDataAtOffset(slice2.getDataOffset(0,0)+getRelIndex(slice2.getDataPointShape(),0,0))==1.0);
 
-    //cout << slice1.toString() << endl;
+	//
+	// create a rank 2 slice with four values
+	
+	region.clear();
+	region.push_back(DataTypes::RegionType::value_type(0,2));
+	region.push_back(DataTypes::RegionType::value_type(0,2));
+	
+	Data slice3(dats[k]->getSlice(region));
+	
+	//cout << slice3.toString() << endl;
+	
+	if (tags[k]) {assert(slice3.isTagged());}
+	assert(slice3.getDataPointRank()==2);
+	assert(getRef(slice3,0,0,0,0)==1.0);
+	assert(getRef(slice3,0,0,0,1)==1.3);
+	assert(getRef(slice3,0,0,1,0)==1.3);
+	assert(getRef(slice3,0,0,1,1)==2.0);
+   }
 
-    assert(slice1.getDataPointRank()==0);
-    assert(slice1.getDataPoint(0,0)==1.3);
+   // now some extra tests for tagged data (dats[1])
 
-    region.clear();
-    region.push_back(DataTypes::RegionType::value_type(0,1));
-    region.push_back(DataTypes::RegionType::value_type(0,1));
+   //
+   // add a value for tag "1"
 
-    Data slice2(data.getSlice(region));
-
-    //cout << slice2.toString() << endl;
-
-    assert(slice2.getDataPointRank()==2);
-    int off1=slice2.getDataOffset(0,0);
-//     assert(slice2.getDataPoint(0,0)(0,0)==1.3);
-    assert(slice2.getDataAtOffset(off1+getRelIndex(slice2.getDataPointShape(),0,0))==1.3);
-
-    region.clear();
-    region.push_back(DataTypes::RegionType::value_type(0,1));
-    region.push_back(DataTypes::RegionType::value_type(0,2));
-
-    Data slice3(data.getSlice(region));
-
-    //cout << slice3.toString() << endl;
-
-    assert(slice3.getDataPointRank()==2);
-    off1=slice3.getDataOffset(0,0);
-//     assert(slice3.getDataPoint(0,0)(0,0)==1.3);
-//     assert(slice3.getDataPoint(0,0)(0,1)==1.3);
-    assert(slice3.getDataAtOffset(off1+getRelIndex(slice3.getDataPointShape(),0,0))==1.3);
-    assert(slice3.getDataAtOffset(off1+getRelIndex(slice3.getDataPointShape(),0,1))==1.3);
-
-  }
-
-  {
-
-    cout << "\tTest set-slicing DataConstant" << endl;
-
-    DataTypes::ShapeType viewShape;
-    Data source(10.0,viewShape,FunctionSpace(),false);
-
-    //cout << source.toString() << endl;
-
-    viewShape.push_back(2);
-    viewShape.push_back(3);
-    Data target(1.3,viewShape,FunctionSpace(),false);
-
-    //cout << target.toString() << endl;
-
-    DataTypes::RegionType region;
-    region.push_back(DataTypes::RegionType::value_type(0,0));
-    region.push_back(DataTypes::RegionType::value_type(0,0));
-
-    target.setSlice(source,region);
-
-    //cout << target.toString() << endl;
-
-    int off1=target.getDataOffset(0,0);
-    assert(target.getDataAtOffset(off1+getRelIndex(target.getDataPointShape(),0,0)==source.getDataPoint(0,0)));
-
-  }
-
-  {
-
-    cout << "\tTest get-slicing DataTagged" << endl;
-    //
-    // create a DataTagged with a default value only
-
-    DataTypes::ShapeType viewShape;
-    viewShape.push_back(2);
-    viewShape.push_back(3);
-    Data data(1.3,viewShape,FunctionSpace(),false);
-    data.tag();
-    data.getDataAtOffset(data.getDataOffset(0,0)+getRelIndex(viewShape,0,0))=1.0;
-    data.getDataAtOffset(data.getDataOffset(0,0)+getRelIndex(viewShape,1,1))=2.0;   
-//     data.getDataPoint(0,0)(0,0)=1.0;
-//     data.getDataPoint(0,0)(1,1)=2.0;
-
-    //cout << data.toString() << endl;
-    //
-    // create a scalar slice
-
-    DataTypes::RegionType region;
-    region.push_back(DataTypes::RegionType::value_type(0,0));
-    region.push_back(DataTypes::RegionType::value_type(0,0));
-
-    Data slice1(data.getSlice(region));
-    //cout << slice1.toString() << endl;
-
-    assert(slice1.isTagged());
-    assert(slice1.getDataPointRank()==0);
-    assert(slice1.getDataPoint(0,0)==1.0);
-    //
-    // create a rank 2 slice with one value
-
-    region.clear();
-    region.push_back(DataTypes::RegionType::value_type(0,1));
-    region.push_back(DataTypes::RegionType::value_type(0,1));
-
-    Data slice2(data.getSlice(region));
-
-    //cout << slice2.toString() << endl;
-
-    assert(slice2.isTagged());
-    assert(slice2.getDataPointRank()==2);
-
-    assert(slice2.getDataAtOffset(slice2.getDataOffset(0,0)+getRelIndex(slice2.getDataPointShape(),0,0))==1.0);
-
-    //
-    // create a rank 2 slice with four values
-
-    region.clear();
-    region.push_back(DataTypes::RegionType::value_type(0,2));
-    region.push_back(DataTypes::RegionType::value_type(0,2));
-
-    Data slice3(data.getSlice(region));
-
-    //cout << slice3.toString() << endl;
-
-    assert(slice3.isTagged());
-    assert(slice3.getDataPointRank()==2);
-    assert(getRef(slice3,0,0,0,0)==1.0);
-    assert(getRef(slice3,0,0,0,1)==1.3);
-    assert(getRef(slice3,0,0,1,0)==1.3);
-    assert(getRef(slice3,0,0,1,1)==2.0);
-
-    //
-    // add a value for tag "1"
-
-    DataTypes::ValueType viewData(6);
-    for (int i=0;i<viewData.size();i++) {
-      viewData[i]=i;
-    }
-//    DataArrayView dataView(viewData,viewShape);
-
-//     data.setTaggedValueFromCPP(1, dataView);
-    data.setTaggedValueFromCPP(1, viewShape, viewData);
-
+   DataTypes::ValueType viewData(6);
+   for (int i=0;i<viewData.size();i++) {
+    viewData[i]=i;
+   }
+   dats[1]->setTaggedValueFromCPP(1, viewShape, viewData);
 
     //
     // create a full slice
 
-    region.clear();
-    region.push_back(DataTypes::RegionType::value_type(0,2));
-    region.push_back(DataTypes::RegionType::value_type(0,3));
+   DataTypes::RegionType region;
+   region.push_back(DataTypes::RegionType::value_type(0,2));
+   region.push_back(DataTypes::RegionType::value_type(0,3));
 
-    Data slice4(data.getSlice(region));
+   Data slice4(dats[1]->getSlice(region));
 
-    //cout << slice4.toString() << endl;
+   assert(slice4.isTagged());
+   assert(slice4.getDataPointRank()==2);
+   assert(getRef(slice4,0,0,0,0)==0);
+   assert(getRef(slice4,0,0,0,1)==2);
+   assert(getRef(slice4,0,0,0,2)==4);
+   assert(getRef(slice4,0,0,1,0)==1);
+   assert(getRef(slice4,0,0,1,1)==3);
+   assert(getRef(slice4,0,0,1,2)==5);
 
-    assert(slice4.isTagged());
-    assert(slice4.getDataPointRank()==2);
-    assert(getRef(slice4,0,0,0,0)==0);
-    assert(getRef(slice4,0,0,0,1)==2);
-    assert(getRef(slice4,0,0,0,2)==4);
-    assert(getRef(slice4,0,0,1,0)==1);
-    assert(getRef(slice4,0,0,1,1)==3);
-    assert(getRef(slice4,0,0,1,2)==5);
+   for (int k=0;k<NUMDATS;++k)
+   {
+	delete dats[k];
+   }
+ }
 
+ {
+  DataTypes::ShapeType viewShape;
+  viewShape.push_back(2);
+  viewShape.push_back(3);
+
+  const int NUMDATS=3;
+  char* strs[]={"DataConstant", "DataTagged","DataExpanded"};
+  bool tags[]={false,true,false};	// is the slice of this data supposed to be tagged
+  Data* dats[NUMDATS];
+  Data* src[NUMDATS];
+  for (int k=0;k<NUMDATS;++k)
+  {
+ 	dats[k]=new Data(1.3, viewShape);
+    	src[k]=new Data(10,DataTypes::scalarShape);
+  }
+  dats[1]->tag();
+  src[1]->tag();
+  dats[2]->expand();
+  src[2]->expand();
+
+  for (int k=0;k<NUMDATS;++k)
+  {
+	cout << "\tTest set-slicing " << strs[k] << endl;
+	Data target(1.3,viewShape);
+	if (k==2) {target.expand();}
+	DataTypes::RegionType region;
+	region.push_back(DataTypes::RegionType::value_type(1,1));
+	region.push_back(DataTypes::RegionType::value_type(1,1));
+	target.setSlice(*(src[k]),region);
+	assert(getRef(target,0,0,1,1)==src[k]->getDataPoint(0,0));
+  }
+  
+  // some extra tests on tagged data
+
+  //
+  // add a value for tag "1" to target
+
+  DataTypes::ValueType viewData(6);
+  for (int i=0;i<viewData.size();i++) {
+	viewData[i]=i;
   }
 
-  {
-
-    cout << "\tTest set-slicing DataTagged" << endl;
-
-    //
-    // create a source DataTagged with a scalar default value only
-
-    DataTypes::ShapeType viewShape;
-    Data source(10.0,viewShape,FunctionSpace(),false);
-    source.tag();
-
-    //cout << "source:\n" << source.toString() << endl;
-
-    //
-    // create a target DataTagged with a rank 2 default value only
-
-    viewShape.push_back(2);
-    viewShape.push_back(3);
-    Data target(1.3,viewShape,FunctionSpace(),false);
-    target.tag();
+  Data target(1.3,viewShape,FunctionSpace(),false);
+  target.tag();
+  target.setTaggedValueFromCPP(1, viewShape, viewData);
 
     //cout << "target:\n" << target.toString() << endl;
 
     //
     // set a slice in target from source
 
-    DataTypes::RegionType region;
-    region.push_back(DataTypes::RegionType::value_type(1,1));
-    region.push_back(DataTypes::RegionType::value_type(1,1));
+  DataTypes::RegionType region;
+  region.push_back(DataTypes::RegionType::value_type(0,0));
+  region.push_back(DataTypes::RegionType::value_type(1,1));
 
-    target.setSlice(source,region);
+  target.setSlice(*src[1],region);
 
-    //cout << "target:\n" << target.toString() << endl;
+  assert(target.isTagged());
+  assert(target.getDataPointRank()==2);
+  assert(getRef(target,0,0,0,0)==0);
+  assert(getRef(target,0,0,0,1)==src[1]->getDataPoint(0,0));
+  assert(getRef(target,0,0,0,2)==4);
+  assert(getRef(target,0,0,1,0)==1);
+  assert(getRef(target,0,0,1,1)==3);
+  assert(getRef(target,0,0,1,2)==5);
 
-    assert(target.isTagged());
-    assert(target.getDataPointRank()==2);
-    assert(getRef(target,0,0,0,0)==1.3);
-    assert(getRef(target,0,0,0,1)==1.3);
-    assert(getRef(target,0,0,0,2)==1.3);
-    assert(getRef(target,0,0,1,0)==1.3);
-    assert(getRef(target,0,0,1,1)==source.getDataPoint(0,0));
-    assert(getRef(target,0,0,1,2)==1.3);
+  //
+  // add a value for tag "2" to source
 
-    //
-    // add a value for tag "1" to target
+  DataTypes::ShapeType viewShape2;
+  DataTypes::ValueType viewData2(1);
+  viewData2[0]=6;
+  src[1]->setTaggedValueFromCPP(2, viewShape2, viewData2);
 
-    DataTypes::ValueType viewData(6);
-    for (int i=0;i<viewData.size();i++) {
-      viewData[i]=i;
-    }
-//     DataArrayView dataView(viewData,viewShape);
-// 
-//     target.setTaggedValueFromCPP(1, dataView);
-    target.setTaggedValueFromCPP(1, viewShape, viewData);
+  region.clear();
+  region.push_back(DataTypes::RegionType::value_type(0,0));
+  region.push_back(DataTypes::RegionType::value_type(1,1));
 
-    //cout << "target:\n" << target.toString() << endl;
+  target.setSlice(*src[1],region);
 
-    //
-    // set a slice in target from source
-
-    region.clear();
-    region.push_back(DataTypes::RegionType::value_type(0,0));
-    region.push_back(DataTypes::RegionType::value_type(1,1));
-
-    target.setSlice(source,region);
-
-    //cout << "target:\n" << target.toString() << endl;
-
-    assert(target.isTagged());
-    assert(target.getDataPointRank()==2);
-    assert(getRef(target,0,0,0,0)==0);
-    assert(getRef(target,0,0,0,1)==source.getDataPoint(0,0));
-    assert(getRef(target,0,0,0,2)==4);
-    assert(getRef(target,0,0,1,0)==1);
-    assert(getRef(target,0,0,1,1)==3);
-    assert(getRef(target,0,0,1,2)==5);
-
-    //
-    // add a value for tag "2" to source
-
-    DataTypes::ShapeType viewShape2;
-    DataTypes::ValueType viewData2(1);
-    viewData2[0]=6;
-//     DataArrayView dataView2(viewData2,viewShape2);
-// 
-//     source.setTaggedValueFromCPP(2, dataView2);
-    source.setTaggedValueFromCPP(2, viewShape2, viewData2);
-
-    //cout << "source:\n" << source.toString() << endl;
-
-    //
-    // set a slice in target from source
-
-    region.clear();
-    region.push_back(DataTypes::RegionType::value_type(0,0));
-    region.push_back(DataTypes::RegionType::value_type(1,1));
-
-    target.setSlice(source,region);
-
-    //cout << "target:\n" << target.toString() << endl;
-
-    assert(target.isTagged());
-    assert(target.getDataPointRank()==2);
+  assert(target.isTagged());
+  assert(target.getDataPointRank()==2);
 
     // use a non-existant tag so we get a pointer to the default value
     // ie: the first element in the data array
-    DataAbstract::ValueType::value_type* targetData=target.getSampleDataByTag(9);
-    for (int i=0; i<target.getLength(); i++) {
+  DataAbstract::ValueType::value_type* targetData=target.getSampleDataByTag(9);
+  for (int i=0; i<target.getLength(); i++) {
       assert(targetData[i]>=0);
-    }
-    assert(targetData[0]==1.3);
-    assert(targetData[1]==1.3);
-    assert(targetData[2]==10);
-    assert(targetData[3]==10);
-    assert(targetData[4]==1.3);
-    assert(targetData[5]==1.3);
-    assert(targetData[6]==0);
-    assert(targetData[7]==1);
-    assert(targetData[8]==10);
-    assert(targetData[9]==3);
-    assert(targetData[10]==4);
-    assert(targetData[11]==5);
-    assert(targetData[12]==1.3);
-    assert(targetData[13]==1.3);
-    assert(targetData[14]==6);
-    assert(targetData[15]==10);
-    assert(targetData[16]==1.3);
-    assert(targetData[17]==1.3);
-
   }
+  assert(targetData[0]==1.3);
+  assert(targetData[1]==1.3);
+  assert(targetData[2]==10);
+  assert(targetData[3]==1.3);
+  assert(targetData[4]==1.3);
+  assert(targetData[5]==1.3);
+  assert(targetData[6]==0);
+  assert(targetData[7]==1);
+  assert(targetData[8]==10);
+  assert(targetData[9]==3);
+  assert(targetData[10]==4);
+  assert(targetData[11]==5);
+  assert(targetData[12]==1.3);
+  assert(targetData[13]==1.3);
+  assert(targetData[14]==6);
+  assert(targetData[15]==1.3);
+  assert(targetData[16]==1.3);
+  assert(targetData[17]==1.3);
 
+
+  for (int k=0;k<NUMDATS;++k)
   {
-
-    cout << "\tTest get-slicing DataExpanded" << endl;
-
-    DataTypes::ShapeType viewShape;
-    viewShape.push_back(2);
-    viewShape.push_back(3);
-    Data temp(1.3,viewShape,FunctionSpace(),true);
-
-    getRef(temp,0,0,0,0)=0.0;
-    getRef(temp,0,0,1,1)=1.0;
-
-    DataTypes::RegionType region;
-    region.push_back(DataTypes::RegionType::value_type(0,0));
-    region.push_back(DataTypes::RegionType::value_type(0,0));
-
-    Data slice(temp.getSlice(region));
-
-    assert(slice.getDataPointRank()==0);
-    assert(slice.getDataPoint(0,0)==0.0);
-
-    region.clear();
-    region.push_back(DataTypes::RegionType::value_type(0,1));
-    region.push_back(DataTypes::RegionType::value_type(0,1));
-
-    slice=temp.getSlice(region);
-
-    assert(slice.getDataPointRank()==2);
-    assert(getRef(slice,0,0,0,0)==0.0);
-
-    region.clear();
-    region.push_back(DataTypes::RegionType::value_type(0,2));
-    region.push_back(DataTypes::RegionType::value_type(0,2));
-
-    slice=temp.getSlice(region);
-
-    assert(getRef(slice,0,0,0,0)==0.0);
-    assert(getRef(slice,0,0,1,1)==1.0);
-
+	delete dats[k];
+	delete src[k];
   }
 
-  {
-
-    cout << "\tTest set-slicing DataExpanded" << endl;
-
-    DataTypes::ShapeType viewShape;
-    Data source(10.0,viewShape,FunctionSpace(),true);
-
-    viewShape.push_back(2);
-    viewShape.push_back(3);
-    Data target(1.3,viewShape,FunctionSpace(),true);
-
-    DataTypes::RegionType region;
-    region.push_back(DataTypes::RegionType::value_type(0,0));
-    region.push_back(DataTypes::RegionType::value_type(0,0));
-
-    target.setSlice(source,region);
-
-    assert(getRef(target,0,0,0,0)==source.getDataPoint(0,0));
-
-  }
-
+ }
 }
 
 void DataTestCase::testAll() {
