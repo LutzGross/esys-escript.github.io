@@ -25,6 +25,7 @@
 
 namespace escript {
 
+// For the purposes of unit testing and maintaining sanity, it is important that this enum be contiguous
 enum ES_optype
 {
 	UNKNOWNOP=0,

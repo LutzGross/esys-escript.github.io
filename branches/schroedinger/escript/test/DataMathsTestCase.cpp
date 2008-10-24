@@ -99,17 +99,14 @@ void DataMathsTestCase::testUnaryOp()
 
   {
     cout << endl;
-    cout << "\tTest unaryOp on scalar DataArrayView.";
+    cout << "\tTest unaryOp on scalar Data.";
 
-    // define the shape for the DataArrayView
+    // define the shape for the Data
     DataTypes::ShapeType shape;
 
-    // allocate the data for the DataArrayView
+    // allocate the data for the Data
     int npoints=4;
     DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
-
-    // constructor
-//    DataArrayView dataView(data,shape);
 
     double tmp;
     int offset=0;
@@ -136,7 +133,7 @@ void DataMathsTestCase::testUnaryOp()
 
   {
     cout << endl;
-    cout << "\tTest unaryOp on shape (2,3) DataArrayView.";
+    cout << "\tTest unaryOp on shape (2,3) Data.";
 
     // define the shape for the DataArrayView
     DataTypes::ShapeType shape;
@@ -146,9 +143,6 @@ void DataMathsTestCase::testUnaryOp()
     // allocate the data for the DataArrayView
     int npoints=4;
     DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
-
-    // constructor
-    //DataArrayView dataView(data,shape);
 
 
     int offset=0;
@@ -184,7 +178,7 @@ void DataMathsTestCase::testUnaryOp()
 
   {
     cout << endl;
-    cout << "\tTest unaryOp on shape (9,8,5,11) DataArrayView.";
+    cout << "\tTest unaryOp on shape (9,8,5,11) Data.";
 
     // define the shape for the DataArrayView
     DataTypes::ShapeType shape;
@@ -196,9 +190,6 @@ void DataMathsTestCase::testUnaryOp()
     // allocate the data for the DataArrayView
     int npoints=4;
     DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
-
-    // constructor
-    //DataArrayView dataView(data,shape);
 
     int offset=0;
     // step the view along each data point in the underlying data
@@ -251,7 +242,7 @@ void DataMathsTestCase::testBinaryOp()
 
   {
     cout << endl;
-    cout << "\tTest binaryOp on scalar DataArrayViews.";
+    cout << "\tTest binaryOp on scalar Data.";
 
     // define the shape for the DataArrayViews
     DataTypes::ShapeType shape;
@@ -260,10 +251,6 @@ void DataMathsTestCase::testBinaryOp()
     int npoints=4;
     DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
     DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
-
-    // constructor
-    //DataArrayView dataView1(data1,shape);
-    //DataArrayView dataView2(data2,shape);
 
     int offset=0;
     // step the views along each data point in the underlying data
@@ -274,7 +261,6 @@ void DataMathsTestCase::testBinaryOp()
       data2[offset]=p;
 
       // apply a binary operation to these data points
-//      dataView1.binaryOp(dataView2,plus<double>());
       binaryOp(data1,scalarShape,offset,data2,scalarShape,offset, plus<double>());
 
       // check the results
@@ -290,7 +276,7 @@ void DataMathsTestCase::testBinaryOp()
 
   {
     cout << endl;
-    cout << "\tTest binaryOp on shape (2,3) DataArrayViews.";
+    cout << "\tTest binaryOp on shape (2,3) Data.";
 
     // define the shape for the DataArrayViews
     DataTypes::ShapeType shape;
@@ -301,10 +287,6 @@ void DataMathsTestCase::testBinaryOp()
     int npoints=4;
     DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
     DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
-
-    // constructor
-    //DataArrayView dataView1(data1,shape);
-    //DataArrayView dataView2(data2,shape);
 
     int offset=0;
     // step the views along each data point in the underlying data
@@ -339,7 +321,7 @@ void DataMathsTestCase::testBinaryOp()
 
   {
     cout << endl;
-    cout << "\tTest binaryOp on shape (9,8,5,11) DataArrayViews.";
+    cout << "\tTest binaryOp on shape (9,8,5,11) Data.";
 
     // define the shape for the DataArrayViews
     DataTypes::ShapeType shape;
@@ -352,10 +334,6 @@ void DataMathsTestCase::testBinaryOp()
     int npoints=4;
     DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
     DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
-
-    // constructor
-    //DataArrayView dataView1(data1,shape);
-    //DataArrayView dataView2(data2,shape);
 
     int offset=0;
     // step the views along each data point in the underlying data
@@ -398,7 +376,7 @@ void DataMathsTestCase::testBinaryOp()
 
   {
     cout << endl;
-    cout << "\tTest binaryOp on scalar DataArrayView and single value.";
+    cout << "\tTest binaryOp on scalar Data and single value.";
 
     // define the shape for the DataArrayView
     DataTypes::ShapeType shape;
@@ -406,9 +384,6 @@ void DataMathsTestCase::testBinaryOp()
     // allocate the data for the DataArrayView
     int npoints=4;
     DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
-
-    // constructor
-//     DataArrayView dataView(data,shape);
 
     int offset=0;
     // step the view along each data point in the underlying data
@@ -434,7 +409,7 @@ void DataMathsTestCase::testBinaryOp()
 
   {
     cout << endl;
-    cout << "\tTest binaryOp on shape (2,3) DataArrayView and single value.";
+    cout << "\tTest binaryOp on shape (2,3) Data and single value.";
 
     // define the shape for the DataArrayView
     DataTypes::ShapeType shape;
@@ -444,10 +419,6 @@ void DataMathsTestCase::testBinaryOp()
     // allocate the data for the DataArrayView
     int npoints=4;
     DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
-
-    // constructor
-//     DataArrayView dataView(data,shape);
-
 
     int offset=0;
     // step the view along each data point in the underlying data
@@ -483,7 +454,7 @@ void DataMathsTestCase::testBinaryOp()
 
   {
     cout << endl;
-    cout << "\tTest binaryOp on shape (9,8,5,11) DataArrayView and single value.";
+    cout << "\tTest binaryOp on shape (9,8,5,11) Data and single value.";
 
     // define the shape for the DataArrayView
     DataTypes::ShapeType shape;
@@ -495,9 +466,6 @@ void DataMathsTestCase::testBinaryOp()
     // allocate the data for the DataArrayView
     int npoints=4;
     DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
-
-    // constructor
-//     DataArrayView dataView(data,shape);
 
     int offset=0;
     // step the view along each data point in the underlying data
@@ -548,7 +516,7 @@ void DataMathsTestCase::testReductionOp()
 
   {
     cout << endl;
-    cout << "\tTest reductionOp on scalar DataArrayView.";
+    cout << "\tTest reductionOp on scalar Data.";
 
     // define the shape for the DataArrayView
     DataTypes::ShapeType shape;
@@ -556,9 +524,6 @@ void DataMathsTestCase::testReductionOp()
     // allocate the data for the DataArrayView
     int npoints=4;
     DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
-
-    // constructor
-//     DataArrayView dataView(data,shape);
 
     int offset=0;
     // step the view along each data point in the underlying data
@@ -584,7 +549,7 @@ void DataMathsTestCase::testReductionOp()
 
   {
     cout << endl;
-    cout << "\tTest reductionOp on shape (2,3) DataArrayView.";
+    cout << "\tTest reductionOp on shape (2,3) Data.";
 
     // define the shape for the DataArrayView
     DataTypes::ShapeType shape;
@@ -594,9 +559,6 @@ void DataMathsTestCase::testReductionOp()
     // allocate the data for the DataArrayView
     int npoints=4;
     DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
-
-    // constructor
-//     DataArrayView dataView(data,shape);
 
     int offset=0;
     // step the view along each data point in the underlying data
@@ -623,7 +585,7 @@ void DataMathsTestCase::testReductionOp()
 
   {
     cout << endl;
-    cout << "\tTest reductionOp on shape (9,8,5,11) DataArrayView.";
+    cout << "\tTest reductionOp on shape (9,8,5,11) Data.";
 
     // define the shape for the DataArrayView
     DataTypes::ShapeType shape;
@@ -635,9 +597,6 @@ void DataMathsTestCase::testReductionOp()
     // allocate the data for the DataArrayView
     int npoints=4;
     DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
-
-    // constructor
-//     DataArrayView dataView(data,shape);
 
     int offset=0;
     // step the view along each data point in the underlying data
