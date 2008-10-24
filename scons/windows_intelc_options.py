@@ -14,6 +14,8 @@
 
 from windows_mscv71_options import *
 
+win_cc_name = 'intelc'
+
 # c flags to use
 cc_flags  = '/FD /GR /EHs'
 cc_optim  = '/O3 /Oi /Qip /MD /W3 /MD'
