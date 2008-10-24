@@ -15,9 +15,9 @@
 from windows_mscv71_options import *
 
 # c flags to use
-cc_flags  = '/FD /EHsc /GR /Qvc7.1 '
-cc_optim  = '/O3 /Qip /Qi /MD /W3 /MD'
-cc_debug  = '/Od /RTC1 /MDd /ZI /Yd /Y-'
-omp_optim  = '/Qvec-report1 /Qopenmp /Qopenmp-report1 /Qparallel /MD /W3'
+cc_flags  = '/FD /GR /EHs'
+cc_optim  = '/O3 /Oi /Qip /MD /W3 /MD'
+cc_debug  = '/Od /RTC1 /MDd /ZI /Y-'
+omp_optim  = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel /MD /W3'
 omp_debug  = '/Qvec-report3 /Qopenmp /Qopenmp-report2 /Qparallel /MD /W3'
-omp_libs = '???'
+omp_libs = ['libglide']
