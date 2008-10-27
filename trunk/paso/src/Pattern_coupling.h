@@ -25,11 +25,11 @@
 #ifndef INC_PASO_PATTERN_COUPLING
 #define INC_PASO_PATTERN_COUPLING
 
-#include "SystemMatrix.h"
+#include "SparseMatrix.h"
 
 /**************************************************************/
 
-void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker);
+void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thershold);
 void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta);
 
 #endif 
