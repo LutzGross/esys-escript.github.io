@@ -41,13 +41,13 @@
 
 
 
-void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker) {
+void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double threshold) {
 
   index_t index_offset=(A->pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   dim_t i,j;
-  double threshold=0.05;
+  /*double threshold=0.05;*/
   index_t iptr,*index,*where_p,diagptr;
-  bool_t flag;
+  bool_t flag,fail;
   dim_t n=A->pattern->numOutput;
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
     Paso_setError(TYPE_ERROR,"Paso_Pattern_mis: symmetric matrix pattern is not supported yet");
@@ -57,10 +57,9 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker) {
      /* is there any vertex available ?*/
      while (Paso_Util_isAny(n,mis_marker,IS_AVAILABLE)) {
 
-           #pragma omp parallel for private(i,iptr,flag) schedule(static) 
-           for (i=0;i<n;++i) {
+            #pragma omp parallel for private(i,iptr,index,where_p,diagptr,j) schedule(static) 
+            for (i=0;i<n;++i) {
               if (mis_marker[i]==IS_AVAILABLE) {
-                 flag=IS_IN_MIS;
                  diagptr=A->pattern->ptr[i];
                  index=&(A->pattern->index[diagptr]);
                  where_p=(index_t*)bsearch(&i,
@@ -75,18 +74,22 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker) {
                 }
                  for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
                      j=A->pattern->index[iptr]-index_offset;
-                     if (j!=i && A->val[iptr]>=threshold*A->val[diagptr]) {
-                        flag=IS_AVAILABLE;
-                        break;
+                     if (j!=i && ABS(A->val[iptr])>=threshold*ABS(A->val[diagptr])) {
+                        mis_marker[j]=IS_CONNECTED_TO_MIS;
                      }
                  }
-                 mis_marker[i]=flag;
                 }
             }
+            
+            #pragma omp parallel for private(i) schedule(static)
+            for (i=0;i<n;++i)
+                if(mis_marker[i]==IS_AVAILABLE)
+                    mis_marker[i]=IS_IN_MIS;
            
-              #pragma omp parallel for private(i,iptr) schedule(static)
+              #pragma omp parallel for private(i,iptr,fail,index,where_p,diagptr) schedule(static)
               for (i=0;i<n;i++) {
-               if (mis_marker[i]==IS_AVAILABLE) {
+               if (mis_marker[i]==IS_CONNECTED_TO_MIS) {
+                 fail=FALSE;
                  diagptr=A->pattern->ptr[i];
                  index=&(A->pattern->index[diagptr]);
                  where_p=(index_t*)bsearch(&i,
@@ -101,13 +104,13 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker) {
                 }
                  for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
                      j=A->pattern->index[iptr]-index_offset;
-                     if (j!=i && mis_marker[j]==IS_IN_MIS && (A->val[iptr]/A->val[diagptr])>=-threshold){
-                         mis_marker[i]=IS_IN_MIS;
-                     }
-                     else {
-                         mis_marker[i]=IS_CONNECTED_TO_MIS;
+                     if (mis_marker[j]==IS_IN_MIS && (A->val[iptr]/A->val[diagptr])<-threshold){
+                         fail=TRUE;
+                         break;
                      }
                  }
+                 if(!fail)
+                    mis_marker[i]=IS_IN_MIS;
                }
               } 
         }
@@ -154,11 +157,12 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
         }
 
         threshold = theta*min_offdiagonal;
-        mis_marker[i]=IS_CONNECTED_TO_MIS;
+        mis_marker[i]=IS_IN_MIS;
         #pragma omp parallel for private(iptr) schedule(static) 
         for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
-            if(-1.*(A->val[iptr-index_offset]) <= threshold){
-                    mis_marker[i]=IS_IN_MIS;
+            if(A->val[iptr-index_offset] < threshold){
+                    mis_marker[i]=IS_CONNECTED_TO_MIS;
+                    break;
             }
         }
       }
