@@ -155,6 +155,10 @@ public:
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
+  DataTypes::ValueType::size_type 
+  getPointOffset(int sampleNo,
+                 int dataPointNo);
+
 
   /**
     \return the number of samples which need to be stored to evaluate the expression.

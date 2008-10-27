@@ -461,34 +461,22 @@ Data::delay()
 }
 
 void
+Data::delaySelf()
+{
+  if (!isLazy())
+  {
+	m_data=(new DataLazy(m_data))->getPtr();
+  }
+}
+
+void
 Data::setToZero()
 {
   if (isEmpty())
   {
      throw DataException("Error - Operations not permitted on instances of DataEmpty.");
   }
-  {
-    DataExpanded* temp=dynamic_cast<DataExpanded*>(m_data.get());
-    if (temp!=0) {
-       temp->setToZero();
-       return;
-    }
-  }
-  {
-    DataTagged* temp=dynamic_cast<DataTagged*>(m_data.get());
-    if (temp!=0) {
-      temp->setToZero();
-      return;
-    }
-  }
-  {
-    DataConstant* temp=dynamic_cast<DataConstant*>(m_data.get());
-    if (temp!=0) {
-      temp->setToZero();
-      return;
-    }
-  }
-  throw DataException("Error - Data can not be set to zero.");
+  m_data->setToZero();
 }
 
 
@@ -2875,7 +2863,7 @@ Data::getDataAtOffset(DataTypes::ValueType::size_type i) const
 {
     if (isLazy())
     {
-	throw DataException("getDataAtOffset not permitted on lazy data.");
+	throw DataException("Programmer error - getDataAtOffset not permitted on lazy data (object is const which prevents resolving).");
     }
     return getReady()->getDataAtOffset(i);
 }
@@ -2884,10 +2872,11 @@ Data::getDataAtOffset(DataTypes::ValueType::size_type i) const
 DataTypes::ValueType::reference
 Data::getDataAtOffset(DataTypes::ValueType::size_type i)
 {
-    if (isLazy())
-    {
-	throw DataException("getDataAtOffset not permitted on lazy data.");
-    }
+//     if (isLazy())
+//     {
+// 	throw DataException("getDataAtOffset not permitted on lazy data.");
+//     }
+    FORCERESOLVE;
     return getReady()->getDataAtOffset(i);
 }
 
@@ -2896,7 +2885,7 @@ Data::getDataPoint(int sampleNo, int dataPointNo) const
 {
   if (!isReady())
   {
-	throw DataException("Programmer error - getDataPoint() not permitted on Lazy Data.");
+	throw DataException("Programmer error - getDataPoint() not permitted on Lazy Data (object is const which prevents resolving).");
   }
   else
   {
@@ -2909,6 +2898,7 @@ Data::getDataPoint(int sampleNo, int dataPointNo) const
 DataTypes::ValueType::reference
 Data::getDataPoint(int sampleNo, int dataPointNo)
 {
+  FORCERESOLVE;
   if (!isReady())
   {
 	throw DataException("Programmer error - getDataPoint() not permitted on Lazy Data.");

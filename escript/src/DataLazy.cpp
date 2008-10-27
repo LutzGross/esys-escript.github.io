@@ -827,16 +827,17 @@ DataLazy::intoString(ostringstream& oss) const
   }
 }
 
-// Note that in this case, deepCopy does not make copies of the leaves.
-// Hopefully copy on write (or whatever we end up using) will take care of this.
 DataAbstract* 
 DataLazy::deepCopy()
 {
-  if (m_op==IDENTITY)
+  switch (getOpgroup(m_op))
   {
-	return new DataLazy(m_left);	// we don't need to copy the child here
+  case G_IDENTITY:  return new DataLazy(m_id->deepCopy()->getPtr());
+  case G_UNARY:	return new DataLazy(m_left->deepCopy()->getPtr(),m_op);
+  case G_BINARY:	return new DataLazy(m_left->deepCopy()->getPtr(),m_right->deepCopy()->getPtr(),m_op);
+  default:
+	throw DataException("Programmer error - do not know how to deepcopy operator "+opToString(m_op)+".");
   }
-  return new DataLazy(m_left->deepCopy()->getPtr(),m_right->deepCopy()->getPtr(),m_op); 
 }
 
 
@@ -853,11 +854,60 @@ DataLazy::getSlice(const DataTypes::RegionType& region) const
   throw DataException("getSlice - not implemented for Lazy objects.");
 }
 
+
+// To do this we need to rely on our child nodes
+DataTypes::ValueType::size_type 
+DataLazy::getPointOffset(int sampleNo,
+                 int dataPointNo)
+{
+  if (m_op==IDENTITY)
+  {
+	return m_id->getPointOffset(sampleNo,dataPointNo);
+  }
+  if (m_readytype!='E')
+  {
+	collapse();
+	return m_id->getPointOffset(sampleNo,dataPointNo);
+  }
+  // at this point we do not have an identity node and the expression will be Expanded
+  // so we only need to know which child to ask
+  if (m_left->m_readytype=='E')
+  {
+	return m_left->getPointOffset(sampleNo,dataPointNo);
+  }
+  else
+  {
+	return m_right->getPointOffset(sampleNo,dataPointNo);
+  }
+}
+
+// To do this we need to rely on our child nodes
 DataTypes::ValueType::size_type 
 DataLazy::getPointOffset(int sampleNo,
                  int dataPointNo) const
 {
-  throw DataException("getPointOffset - not implemented for Lazy objects - yet.");
+  if (m_op==IDENTITY)
+  {
+	return m_id->getPointOffset(sampleNo,dataPointNo);
+  }
+  if (m_readytype=='E')
+  {
+    // at this point we do not have an identity node and the expression will be Expanded
+    // so we only need to know which child to ask
+    if (m_left->m_readytype=='E')
+    {
+	return m_left->getPointOffset(sampleNo,dataPointNo);
+    }
+    else
+    {
+	return m_right->getPointOffset(sampleNo,dataPointNo);
+    }
+  }
+  if (m_readytype=='C')
+  {
+	return m_left->getPointOffset(sampleNo,dataPointNo); // which child doesn't matter
+  }
+  throw DataException("Programmer error - getPointOffset on lazy data may require collapsing (but this object is marked const).");
 }
 
 // It would seem that DataTagged will need to be treated differently since even after setting all tags

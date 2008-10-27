@@ -240,6 +240,14 @@ class Data {
   delay();
 
   /**
+     \brief convert the current data into lazy data.
+  */
+  ESCRIPT_DLL_API
+  void 
+  delaySelf();
+
+
+  /**
      Member access methods.
   */
 

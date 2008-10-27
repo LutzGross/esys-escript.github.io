@@ -36,8 +36,7 @@ class DataTestCase : public CppUnitTest::TestCase
   //
   // A test method must return void and have no arguments
 
-  void testAll();
-  void testMore();
+  void testSome();
   void testConstructors();
   void testDataConstant();
   void testDataTagged();
@@ -46,6 +45,7 @@ class DataTestCase : public CppUnitTest::TestCase
   void testOperations();
   void testMemAlloc();
   void testCopying();
+  void testResolveType();
 
   DataTestCase (std::string name) : TestCase (name) {}
   ~DataTestCase() {}
@@ -56,6 +56,10 @@ class DataTestCase : public CppUnitTest::TestCase
   //
 
   static CppUnitTest::TestSuite* suite ();
+
+private:
+  void testCopyingWorker(bool delayed);
+  void testSlicingWorker(bool delayed);
 
 };
 
