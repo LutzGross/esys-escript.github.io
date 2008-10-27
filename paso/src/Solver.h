@@ -152,7 +152,7 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b);
 
 void Paso_Solver_GS_free(Paso_Solver_GS * in);
 Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A_p,bool_t verbose);
-Paso_Solver_GS* Paso_Solver_getGS1(Paso_SparseMatrix * A_p,bool_t verbose);
+Paso_Solver_GS* Paso_Solver_solveGS1(Paso_SparseMatrix * A_p,bool_t verbose);
 void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b);
 
 void Paso_Solver_RILU_free(Paso_Solver_RILU * in);
