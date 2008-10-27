@@ -83,6 +83,12 @@ typedef DataReady parent;
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
+  ESCRIPT_DLL_API
+  virtual
+  DataTypes::ValueType::size_type
+  getPointOffset(int sampleNo,
+                 int dataPointNo);
+
 //  /**
 /*     \brief
      Return a view into the data for the data point specified.

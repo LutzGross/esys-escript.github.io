@@ -65,6 +65,14 @@ DataEmpty::getPointOffset(int sampleNo,
 }
 
 DataTypes::ValueType::size_type
+DataEmpty::getPointOffset(int sampleNo,
+                          int dataPointNo)
+{
+  throwStandardException("getPointOffset");
+  return 0;
+}
+
+DataTypes::ValueType::size_type
 DataEmpty::getLength() const
 {
   return 0;

@@ -183,6 +183,12 @@ TODO Note that this constructor will also copy data to all points if it only con
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
+  ESCRIPT_DLL_API
+  virtual
+  DataTypes::ValueType::size_type
+  getPointOffset(int sampleNo,
+                 int dataPointNo);
+
   /**
      \brief
      Return a a reference to the underlying DataVector.

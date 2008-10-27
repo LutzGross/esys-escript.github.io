@@ -124,7 +124,7 @@ getLazyB(DataTypes::ShapeType& shape, ES_optype typ)
 void DataLazyTestCase::testLazy1()
 {
   cout << endl;
-  cout << "Testing IDENTITY constructor\n";
+  cout << "\tTesting IDENTITY constructor\n";
 
   DataTypes::ShapeType shape;
   DataAbstract_ptr d1=getLazy(shape);
@@ -149,7 +149,7 @@ void DataLazyTestCase::testLazy1()
 void DataLazyTestCase::testLazy2()
 {
   cout << endl;
-  cout << "Testing UNARY constructor (basic checks only)\n";
+  cout << "\tTesting UNARY constructor (basic checks only)\n";
 
   DataTypes::ShapeType shape;
   DataAbstract_ptr d1=getLazy(shape,LOG);
@@ -181,7 +181,7 @@ void DataLazyTestCase::testLazy2()
 void DataLazyTestCase::testLazy3()
 {
   cout << endl;
-  cout << "Testing BINARY constructor (basic checks only)\n";
+  cout << "\tTesting BINARY constructor (basic checks only)\n";
 
   DataTypes::ShapeType shape;
   DataAbstract_ptr d1=getLazy(shape,ADD);
@@ -210,7 +210,7 @@ void DataLazyTestCase::testLazy3()
 void DataLazyTestCase::testBuffers()
 {
   cout << endl;
-  cout << "Testing Buffs required\n";
+  cout << "\tTesting Buffs required\n";
   DataTypes::ShapeType shape;
   DataAbstract_ptr p=(new DataLazy(getLazy(shape),getLazy(shape),ADD))->getPtr();
   DataAbstract_ptr p2=(new DataLazy(p,SIN))->getPtr();

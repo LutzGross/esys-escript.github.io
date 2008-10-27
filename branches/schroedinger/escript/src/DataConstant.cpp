@@ -147,6 +147,17 @@ DataConstant::getPointOffset(int sampleNo,
 }
 
 DataTypes::ValueType::size_type
+DataConstant::getPointOffset(int sampleNo,
+                             int dataPointNo)
+{
+  EsysAssert((validSamplePointNo(dataPointNo) && validSampleNo(sampleNo)),
+              "Invalid index, sampleNo: " << sampleNo << " dataPointNo: " << dataPointNo);
+  //
+  // Whatever the coord's always return the same value as this is constant data.
+  return 0;
+}
+
+DataTypes::ValueType::size_type
 DataConstant::getLength() const
 {
   return m_data.size();

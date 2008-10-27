@@ -260,6 +260,12 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
+  ESCRIPT_DLL_API
+  virtual
+  ValueType::size_type
+  getPointOffset(int sampleNo,
+                 int dataPointNo);
+
 
 
 //  /**

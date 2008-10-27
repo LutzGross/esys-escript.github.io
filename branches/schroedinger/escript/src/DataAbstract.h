@@ -172,6 +172,12 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   getPointOffset(int sampleNo,
                  int dataPointNo) const = 0;
 
+  ESCRIPT_DLL_API
+  virtual
+  ValueType::size_type
+  getPointOffset(int sampleNo,
+                 int dataPointNo) = 0;
+
 //  /**
 //	return the container storing points for this object
 //  */

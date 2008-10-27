@@ -632,6 +632,19 @@ DataTagged::getPointOffset(int sampleNo,
   return offset;
 }
 
+DataTypes::ValueType::size_type 
+DataTagged::getPointOffset(int sampleNo,
+                           int dataPointNo)
+{
+  int tagKey=getFunctionSpace().getTagFromSampleNo(sampleNo);
+  DataMapType::const_iterator pos(m_offsetLookup.find(tagKey));
+  DataTypes::ValueType::size_type offset=m_defaultValueOffset;
+  if (pos!=m_offsetLookup.end()) {
+    offset=pos->second;
+  }
+  return offset;
+}
+
 // DataArrayView
 // DataTagged::getDataPointByTag(int tag) const
 // {

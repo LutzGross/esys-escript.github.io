@@ -361,6 +361,13 @@ DataExpanded::getPointOffset(int sampleNo,
 }
 
 DataTypes::ValueType::size_type
+DataExpanded::getPointOffset(int sampleNo,
+                             int dataPointNo)
+{
+  return m_data.index(sampleNo,dataPointNo);
+}
+
+DataTypes::ValueType::size_type
 DataExpanded::getLength() const
 {
   return m_data.size();
