@@ -47,7 +47,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
   dim_t i,j;
   /*double threshold=0.05;*/
   index_t iptr,*index,*where_p,diagptr;
-  bool_t flag,fail;
+  bool_t fail;
   dim_t n=A->pattern->numOutput;
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
     Paso_setError(TYPE_ERROR,"Paso_Pattern_mis: symmetric matrix pattern is not supported yet");
@@ -162,7 +162,9 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
         for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
             if(A->val[iptr-index_offset] < threshold){
                     mis_marker[i]=IS_CONNECTED_TO_MIS;
-                    break;
+                    #ifndef _OPENMP    
+                     break;
+                    #endif
             }
         }
       }
