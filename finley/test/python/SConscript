@@ -41,6 +41,12 @@ testruns += ['run_models.py']
 testruns += ['run_simplesolve.py']
 testruns += ['run_utilOnFinley.py']
 testruns += ['run_visualization_interface.py']
+# 
+#  files defining a few tests for a quick test
+# 
+scalable_tests = []
+scalable_tests += ['run_inputOutput.py']
+scalable_tests += ['run_simplesolve.py']
 #
 # files defining tests run locally (not as part of a release)
 #
@@ -62,6 +68,7 @@ local_env['ENV']['FINLEY_TEST_DATA']=env.Dir('#/finley/test/python').srcnode().a
 local_env['ENV']['FINLEY_WORKDIR']=env.Dir('#/build/$PLATFORM/finley/test/python').srcnode().abspath
 env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in alltestruns])
 env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
+env.Alias('scalable_tests', [os.path.splitext(x)[0]+'.passed' for x in scalable_tests ])
 
 #
 # run all tests:
