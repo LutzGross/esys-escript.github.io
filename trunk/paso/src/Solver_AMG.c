@@ -35,6 +35,7 @@
 void Paso_Solver_AMG_free(Paso_Solver_AMG * in) {
      if (in!=NULL) {
         Paso_Solver_AMG_free(in->AMG_of_Schur);
+        Paso_Solver_GS_free(in->GS);
         MEMFREE(in->inv_A_FF);
         MEMFREE(in->A_FF_pivot);
         Paso_SparseMatrix_free(in->A_FC);
@@ -100,6 +101,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   out->x_C=NULL;
   out->b_C=NULL;
   out->A=Paso_SparseMatrix_getReference(A_p);
+  out->GS=Paso_Solver_getGS(A_p,verbose);
+  out->GS->sweeps=2;
   out->level=level;
   
   if ( !(Paso_checkPtr(mis_marker) || Paso_checkPtr(out) || Paso_checkPtr(counter) ) ) {
@@ -107,8 +110,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
      time0=Paso_timer();
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
-     Paso_Pattern_RS(A_p,mis_marker,0.25);
-     /*Paso_Pattern_coup(A_p,mis_marker,0.05);*/
+     /*Paso_Pattern_RS(A_p,mis_marker,0.25);*/
+     Paso_Pattern_coup(A_p,mis_marker,1/n);
      time2=Paso_timer()-time0;
      if (Paso_noError()) {
         #pragma omp parallel for private(i) schedule(static)
@@ -185,7 +188,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
            if( Paso_noError()) {
               /* if there are no nodes in the coarse level there is no more work to do */
               out->n_C=n-out->n_F;
-               if (level>0) {
+              /*if (level>0) {*/
+               if (out->n_C>10) {
                    out->rows_in_C=MEMALLOC(out->n_C,index_t);
                    out->mask_C=MEMALLOC(n,index_t);
                    if (! (Paso_checkPtr(out->mask_C) || Paso_checkPtr(out->rows_in_C) ) ) {
@@ -241,7 +245,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
                                 /* update A_CC block to get Schur complement and then apply AMG to it */
                                 Paso_Solver_updateIncompleteSchurComplement(schur_withFillIn,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
                                 time1=Paso_timer()-time1;
-                                out->AMG_of_Schur=Paso_Solver_getAMG(schur_withFillIn,verbose,level-1);
+                                out->AMG_of_Schur=Paso_Solver_getAMG(schur_withFillIn,verbose,level+1);
                                 
                                 /*Paso_SparseMatrix_free(schur);*/
                                 /* Paso_SparseMatrix_free(schur_withFillIn);*/
@@ -327,38 +331,37 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      dim_t i,k,oldsweeps;
      dim_t n_block=amg->n_block;
      double *r=MEMALLOC(amg->n,double);
-     Paso_Solver_GS* GS=NULL;
+     /*Paso_Solver_GS* GS=NULL;*/
      double *bold=MEMALLOC(amg->n*amg->n_block,double);
      double *bnew=MEMALLOC(amg->n*amg->n_block,double);
-     
-     if (amg->level==0) {
-        Paso_UMFPACK1(amg->A,x,b,1);
-     } else {
 
+     /*if (amg->level==0) {*/
+     if (amg->n_C<=10) {
+        Paso_UMFPACK1(amg->A,x,b,0);
+     } else {
         /* presmoothing */
-         GS=Paso_Solver_getGS(amg->A,-1);
-         Paso_Solver_solveGS(GS,x,b);
-         oldsweeps=GS->sweeps;
-         if (GS->sweeps>1) {
+         Paso_Solver_solveGS(amg->GS,x,b);
+         oldsweeps=amg->GS->sweeps;
+         if (amg->GS->sweeps>1) {
            
            #pragma omp parallel for private(i) schedule(static)
-           for (i=0;i<GS->n*GS->n_block;++i) bold[i]=b[i];
+           for (i=0;i<amg->GS->n*amg->GS->n_block;++i) bold[i]=b[i];
            
-           while(GS->sweeps>1) {
+           while(amg->GS->sweeps>1) {
                #pragma omp parallel for private(i) schedule(static)
-               for (i=0;i<GS->n*GS->n_block;++i) bnew[i]=bold[i]+b[i];
+               for (i=0;i<amg->GS->n*amg->GS->n_block;++i) bnew[i]=bold[i]+b[i];
                 /* Compute the residual b=b-Ax*/
                Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), amg->A, x, DBLE(1), bnew);
                /* Go round again*/
-               Paso_Solver_solveGS(GS,x,bnew);
+               Paso_Solver_solveGS(amg->GS,x,bnew);
                #pragma omp parallel for private(i) schedule(static)
-               for (i=0;i<GS->n*GS->n_block;++i) bold[i]=bnew[i];
-               GS->sweeps=GS->sweeps-1;
+               for (i=0;i<amg->GS->n*amg->GS->n_block;++i) bold[i]=bnew[i];
+               amg->GS->sweeps=amg->GS->sweeps-1;
            }
            }
-           GS->sweeps=oldsweeps;
+           amg->GS->sweeps=oldsweeps;
         /* end of presmoothing */
-
+        
          #pragma omp parallel for private(i) schedule(static)
          for (i=0;i<amg->n;++i) r[i]=b[i];
          
@@ -416,26 +419,26 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         }
 
      /*postsmoothing*/
-     Paso_Solver_solveGS1(GS,x,b);
-     if (GS->sweeps>1) {
+     Paso_Solver_solveGS1(amg->GS,x,b);
+     if (amg->GS->sweeps>1) {
            #pragma omp parallel for private(i) schedule(static)
-           for (i=0;i<GS->n*GS->n_block;++i) bold[i]=b[i];
+           for (i=0;i<amg->GS->n*amg->GS->n_block;++i) bold[i]=b[i];
            
-           while(GS->sweeps>1) {
+           while(amg->GS->sweeps>1) {
                #pragma omp parallel for private(i) schedule(static)
-               for (i=0;i<GS->n*GS->n_block;++i) bnew[i]=bold[i]+b[i];
+               for (i=0;i<amg->GS->n*amg->GS->n_block;++i) bnew[i]=bold[i]+b[i];
                 /* Compute the residual b=b-Ax*/
                Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), amg->A, x, DBLE(1), bnew);
                /* Go round again*/
-               Paso_Solver_solveGS(GS,x,bnew);
+               Paso_Solver_solveGS1(amg->GS,x,bnew);
                #pragma omp parallel for private(i) schedule(static)
-               for (i=0;i<GS->n*GS->n_block;++i) bold[i]=bnew[i];
-               GS->sweeps=GS->sweeps-1;
+               for (i=0;i<amg->GS->n*amg->GS->n_block;++i) bold[i]=bnew[i];
+               amg->GS->sweeps=amg->GS->sweeps-1;
            }
            }
      /*end of postsmoothing*/
      
-     Paso_Solver_GS_free(GS);
+     /*Paso_Solver_GS_free(GS);*/
      }
      MEMFREE(r);
      MEMFREE(bold);
