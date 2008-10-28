@@ -110,8 +110,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
      time0=Paso_timer();
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
-     /*Paso_Pattern_RS(A_p,mis_marker,0.25);*/
-     Paso_Pattern_coup(A_p,mis_marker,1/n);
+     Paso_Pattern_RS(A_p,mis_marker,1/n);
+     /*Paso_Pattern_coup(A_p,mis_marker,1/n);*/
      time2=Paso_timer()-time0;
      if (Paso_noError()) {
         #pragma omp parallel for private(i) schedule(static)
