@@ -46,6 +46,7 @@ class DataTestCase : public CppUnitTest::TestCase
   void testMemAlloc();
   void testCopying();
   void testResolveType();
+  void testBinary();
 
   DataTestCase (std::string name) : TestCase (name) {}
   ~DataTestCase() {}

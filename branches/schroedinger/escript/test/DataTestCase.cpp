@@ -730,7 +730,9 @@ void DataTestCase::testConstructors() {
   }
 }
 
-void DataTestCase::testOperations() {
+
+void DataTestCase::testOperations()
+{
 
   cout << endl;
 
@@ -749,10 +751,16 @@ void DataTestCase::testOperations() {
     }
   }
 
+
+
   Data dats[]={Data(data,shape,FunctionSpace(),false),
 		Data(data,shape,FunctionSpace(),false),
+		Data(data,shape,FunctionSpace(),true),
+		Data(data,shape,FunctionSpace(),false),
+		Data(data,shape,FunctionSpace(),false),
 		Data(data,shape,FunctionSpace(),true)};
-  const int NUMDATS=3;
+  const int NUMDATS=6;
+  const int LAZY=3;		// where do the lazy objects start?
 
 //   Data baseEx(data,shape,FunctionSpace(),true);
 //   Data baseCon(data,shape,FunctionSpace(),false);
@@ -761,6 +769,10 @@ void DataTestCase::testOperations() {
   Data& baseTag=dats[1];
   Data& baseEx=dats[2];
   baseTag.tag();
+  dats[4].tag();
+  dats[3].delaySelf();
+  dats[4].delaySelf();
+  dats[5].delaySelf();
 
   assert(baseEx.isExpanded());
   assert(baseCon.isConstant());
@@ -771,6 +783,30 @@ void DataTestCase::testOperations() {
   Data& resultCon=results[1];
   Data& resultTag=results[2];
 
+  // create 0 <= smalldata <= 1 for testing trig functions
+
+  DataTypes::ValueType smalldata(DataTypes::noValues(shape),0);
+
+  // assign values to the data
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      smalldata[getRelIndex(shape,i,j)]=(i==0 && j==0)?0:1.0/(getRelIndex(shape,i,j)+1);
+    }
+  }
+  Data sdats[]={Data(smalldata,shape,FunctionSpace(),false),
+		Data(smalldata,shape,FunctionSpace(),false),
+		Data(smalldata,shape,FunctionSpace(),true),
+		Data(smalldata,shape,FunctionSpace(),false),
+		Data(smalldata,shape,FunctionSpace(),false),
+		Data(smalldata,shape,FunctionSpace(),true)};
+  sdats[1].tag();
+  sdats[4].tag();
+  sdats[3].delaySelf();
+  sdats[4].delaySelf();
+  sdats[5].delaySelf();
+
+
+
   // test unary operations
 
   double tmp;
@@ -779,6 +815,10 @@ void DataTestCase::testOperations() {
   for (int z=0;z<NUMDATS;++z)
   {
     results[z].copy(dats[z].powD(power));
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
@@ -794,6 +834,10 @@ void DataTestCase::testOperations() {
   for (int z=0;z<NUMDATS;++z)
   {
     results[z].copy(dats[z].sin());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
@@ -809,6 +853,10 @@ void DataTestCase::testOperations() {
   for (int z=0;z<NUMDATS;++z)
   {
     results[z].copy(dats[z].cos());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
@@ -824,6 +872,10 @@ void DataTestCase::testOperations() {
   for (int z=0;z<NUMDATS;++z)
   {
     results[z].copy(dats[z].tan());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
@@ -838,25 +890,53 @@ void DataTestCase::testOperations() {
   cout << "\tTest Data::asin." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
-    results[z].copy(dats[z].asin());
+    results[z].copy(sdats[z].asin());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=asin((double)smalldata[getRelIndex(shape,i,j)]);
+      for (int z=0;z<NUMDATS;++z)
+      {
+	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      }
+    }
+  }
 
   cout << "\tTest Data::acos." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
-    results[z].copy(dats[z].asin());
+    results[z].copy(sdats[z].acos());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=acos((double)smalldata[getRelIndex(shape,i,j)]);
+      for (int z=0;z<NUMDATS;++z)
+      {
+	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      }
+    }
+  }
 
   cout << "\tTest Data::atan." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
-    results[z].copy(dats[z].atan());
+    results[z].copy(sdats[z].atan());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
-      tmp=atan((double)data[getRelIndex(shape,i,j)]);
+      tmp=atan((double)smalldata[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
 	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
@@ -868,6 +948,10 @@ void DataTestCase::testOperations() {
   for (int z=0;z<NUMDATS;++z)
   {
     results[z].copy(dats[z].sinh());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
@@ -883,6 +967,10 @@ void DataTestCase::testOperations() {
   for (int z=0;z<NUMDATS;++z)
   {
     results[z].copy(dats[z].cosh());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
@@ -898,6 +986,10 @@ void DataTestCase::testOperations() {
   for (int z=0;z<NUMDATS;++z)
   {
     results[z].copy(dats[z].tanh());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
@@ -909,38 +1001,135 @@ void DataTestCase::testOperations() {
     }
   }
 
+  // rather than accomodate the different windows operations directly I'll just use inverse functions
   cout << "\tTest Data::asinh." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
-    results[z].copy(dats[z].asinh());
+    results[z].copy(dats[z].asinh().sinh());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=data[getRelIndex(shape,i,j)];
+      for (int z=0;z<NUMDATS;++z)
+      {
+	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      }
+    }
+  }
 
   cout << "\tTest Data::acosh." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
-    results[z].copy(dats[z].acosh());
+    results[z].copy(dats[z].acosh().cosh());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      if (i==0 && j==0) break;
+      tmp=data[getRelIndex(shape,i,j)];
+      for (int z=0;z<NUMDATS;++z)
+      {
+	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      }
+    }
+  }
 
   cout << "\tTest Data::atanh." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
-    results[z].copy(dats[z].atanh());
+    results[z].copy(dats[z].tanh().atanh());		// if these are the other way around the results are
+    if (z>=LAZY)					// undefined
+    {
+	assert(results[z].isLazy());
+    }
   }
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=data[getRelIndex(shape,i,j)];
+      for (int z=0;z<NUMDATS;++z)
+      {
+	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      }
+    }
+  }
 
   cout << "\tTest Data::log." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
     results[z].copy(dats[z].log());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      if (i==0 && j==0) break; 
+      tmp=log((double)data[getRelIndex(shape,i,j)]);
+      for (int z=0;z<NUMDATS;++z)
+      {
+	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      }
+    }
+  }
+
+  cout << "\tTest Data::log10." << endl;
+  for (int z=0;z<NUMDATS;++z)
+  {
+    results[z].copy(dats[z].log10());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
+  }
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      if (i==0 && j==0) break; 
+      tmp=log10((double)data[getRelIndex(shape,i,j)]);
+      for (int z=0;z<NUMDATS;++z)
+      {
+	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      }
+    }
+  }
+#ifndef _WIN32
+  cout << "\tTest Data::erf." << endl;
+  for (int z=0;z<NUMDATS;++z)
+  {
+    results[z].copy(dats[z].erf());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
+  }
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      if (i==0 && j==0) break; 
+      tmp=erf((double)data[getRelIndex(shape,i,j)]);
+      for (int z=0;z<NUMDATS;++z)
+      {
+	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      }
+    }
+  }
+#endif
+
 
   cout << "\tTest Data::abs." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
     results[z].copy(dats[z].abs());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
@@ -952,17 +1141,53 @@ void DataTestCase::testOperations() {
     }
   }
 
-  cout << "\tTest Data::sign." << endl;
+  cout << "\tTest Data::sign (positive)." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
     results[z].copy(dats[z].sign());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=(i==0 && j==0)?0:1;
+      for (int z=0;z<NUMDATS;++z)
+      {
+	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      }
+    }
+  } 
+
+  cout << "\tTest Data::sign (negative)." << endl;
+  for (int z=0;z<NUMDATS;++z)
+  {
+    results[z].copy(dats[z].neg().sign());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
+  }
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=(i==0 && j==0)?0:-1;
+      for (int z=0;z<NUMDATS;++z)
+      {
+	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      }
+    }
+  } 
+
 
   cout << "\tTest Data::exp." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
     results[z].copy(dats[z].exp());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
@@ -978,6 +1203,10 @@ void DataTestCase::testOperations() {
   for (int z=0;z<NUMDATS;++z)
   {
     results[z].copy(dats[z].sqrt());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
@@ -993,13 +1222,29 @@ void DataTestCase::testOperations() {
   for (int z=0;z<NUMDATS;++z)
   {
     results[z].copy(dats[z].neg());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=-data[getRelIndex(shape,i,j)];
+      for (int z=0;z<NUMDATS;++z)
+      {
+	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      }
+    }
+  }
 
   cout << "\tTest Data::pos." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
     results[z].copy(dats[z].pos());
+    if (z>=LAZY)
+    {
+	assert(results[z].isLazy());
+    }
   }
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
@@ -1053,6 +1298,65 @@ void DataTestCase::testOperations() {
     assert(std::abs(results[z].getDataAtOffset(0) - 5) <= REL_TOL*5);
   }
 
+}
+
+
+// Here we test the binary operators in complex expressions
+void DataTestCase::testBinary()
+{
+
+  cout << endl;
+
+  // define the shape for the test data
+  DataTypes::ShapeType shape;
+  shape.push_back(2);
+  shape.push_back(3);
+
+  // allocate the data 
+  DataTypes::ValueType data(DataTypes::noValues(shape),0);
+
+  // assign values to the data
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      data[getRelIndex(shape,i,j)]=getRelIndex(shape,i,j)+2;	// so we get no zeros
+    }
+  }
+
+
+  Data one(1.0,DataTypes::scalarShape,FunctionSpace());
+  Data two(2.0,DataTypes::scalarShape,FunctionSpace());
+  Data dats[]={Data(data,shape,FunctionSpace(),false),
+		Data(data,shape,FunctionSpace(),false),
+		Data(data,shape,FunctionSpace(),true),
+		Data(data,shape,FunctionSpace(),false),
+		Data(data,shape,FunctionSpace(),false),
+		Data(data,shape,FunctionSpace(),true)};
+  dats[1].tag();
+  dats[4].tag();
+  const int NUMDATS=6;
+  const int LAZY=3;
+  dats[3].delaySelf();
+  dats[4].delaySelf();
+  dats[5].delaySelf();
+  for (int z=0;z<NUMDATS;++z)
+  {
+	Data& a=dats[z];
+	Data r1=(((a+a)/two)+a-a)*one;	// scalar/*, matrix+-
+	Data r2=(((a*a)/a+one)-one);	// scalar+-, matrix*/
+	Data r3=(a.powD(two)/a.powD(one)); // scalar power
+	Data r4=a.powD(a);		// matrix power
+	if (z>LAZY)
+	{
+	  assert(r1.isLazy() && r2.isLazy() && r3.isLazy() && r4.isLazy());
+	}
+	for (int i=0;i<DataTypes::noValues(shape);++i)
+	{
+	  assert(std::abs(r1.getDataAtOffset(i)-data[i]) <= REL_TOL*data[i]);
+	  assert(std::abs(r2.getDataAtOffset(i)-data[i]) <= REL_TOL*data[i]);
+	  assert(std::abs(r3.getDataAtOffset(i)-data[i]) <= REL_TOL*data[i]);
+	  assert(std::abs(r4.getDataAtOffset(i)-pow(data[i],i)) <=REL_TOL*pow(data[i],i));
+	}
+  }
 }
 
 
