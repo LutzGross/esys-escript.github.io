@@ -178,8 +178,9 @@ class AbstractSystemMatrix {
   int m_empty;
   int m_column_blocksize;
   int m_row_blocksize;
-  FunctionSpace m_column_functionspace;
   FunctionSpace m_row_functionspace;
+  FunctionSpace m_column_functionspace;
+
 
 };
 

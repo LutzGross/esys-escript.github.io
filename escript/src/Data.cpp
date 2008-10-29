@@ -756,7 +756,6 @@ const
 boost::python::numeric::array
 Data:: getValueOfDataPoint(int dataPointNo)
 {
-  size_t length=0;
   int i, j, k, l;
   //
   // determine the rank and shape of each data point
@@ -1581,7 +1580,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
   int numDPPSample=temp.getNumDataPointsPerSample();
 
   double next,local_min;
-  int local_lowi,local_lowj;
+  int local_lowi=0,local_lowj=0;	
 
   #pragma omp parallel private(next,local_min,local_lowi,local_lowj)
   {
@@ -1900,7 +1899,6 @@ escript::operator/(const boost::python::object& left, const Data& right)
 Data
 Data::getItem(const boost::python::object& key) const
 {
-//  const DataArrayView& view=getPointDataView();
 
   DataTypes::RegionType slice_region=DataTypes::getSliceRegion(getDataPointShape(),key);
 

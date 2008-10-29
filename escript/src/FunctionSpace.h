@@ -299,10 +299,10 @@ public:
         return the number of tags in use and a pointer to an array with the number of tags in use
   */
   ESCRIPT_DLL_API
-  virtual int getNumberOfTagsInUse() const;
+  int getNumberOfTagsInUse() const;
 
   ESCRIPT_DLL_API
-  virtual int* borrowListOfTagsInUse() const;
+  int* borrowListOfTagsInUse() const;
 
 
 
