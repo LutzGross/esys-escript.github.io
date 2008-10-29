@@ -16,8 +16,8 @@
 
 # If you cannot use the default compiler flags set in SConstruct, then change them here
 # C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
-cc_flags		= '-ansi -Wno-pragmas -Wno-unknown-pragmas'
-# for extra pedantry add -Weffc++ -Wall  to the above
+# cc_flags		= ''
+
 
 # cc_optim		= '-O2'
 # cc_debug		= '-g'
@@ -26,7 +26,8 @@ cc_flags		= '-ansi -Wno-pragmas -Wno-unknown-pragmas'
 # omp_libs		= []
 
 # Use the default C/C++ flags but add something only for this host:
-cc_extra		= ''
+cc_extra		= '-ansi -Wno-pragmas -Wno-unknown-pragmas -Wall'
+# for extra pedantry add -Weffc++ -Wall  to the above
 # ld_extra		= ''
 
 # Be picky about errors

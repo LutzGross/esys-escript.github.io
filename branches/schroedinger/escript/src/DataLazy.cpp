@@ -124,12 +124,21 @@ resultFS(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 	// that way, if interpolate is required in any other op we can just throw a 
 	// programming error exception.
 
-
-	if (left->getFunctionSpace()!=right->getFunctionSpace())
-	{
-		throw DataException("FunctionSpaces not equal - interpolation not supported on lazy data.");
-	}
-	return left->getFunctionSpace();
+  FunctionSpace l=left->getFunctionSpace();
+  FunctionSpace r=right->getFunctionSpace();
+  if (l!=r)
+  {
+    if (r.probeInterpolation(l))
+    {
+	return l;
+    }
+    if (l.probeInterpolation(r))
+    {
+	return r;
+    }
+    throw DataException("Cannot interpolate between the FunctionSpaces given for operation "+opToString(op)+".");
+  }
+  return l;
 }
 
 // return the shape of the result of "left op right"
@@ -252,6 +261,7 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
 }
 
 
+// In this constructor we need to consider interpolation
 DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 	: parent(resultFS(left,right,op), resultShape(left,right,op)),
 	m_op(op)
@@ -260,6 +270,21 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
    {
 	throw DataException("Programmer error - constructor DataLazy(left, right, op) will only process BINARY operations.");
    }
+
+   if (getFunctionSpace()!=left->getFunctionSpace())	// left needs to be interpolated
+   {
+	FunctionSpace fs=getFunctionSpace();
+	Data ltemp(left);
+	Data tmp(ltemp,fs);
+	left=tmp.borrowDataPtr();
+   }
+   if (getFunctionSpace()!=right->getFunctionSpace())	// left needs to be interpolated
+   {
+	Data tmp(Data(right),getFunctionSpace());
+	right=tmp.borrowDataPtr();
+   }
+   left->operandCheck(*right);
+
    if (left->isLazy())			// the children need to be DataLazy. Wrap them in IDENTITY if required
    {
 	m_left=dynamic_pointer_cast<DataLazy>(left);

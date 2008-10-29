@@ -97,8 +97,8 @@ public:
 
   /**
    \brief
-   Return the function space domain.   
-   TODO: Internal use only!  This is temporary and should be removed.
+   Return the function space domain.
+   Do not use this in C++
   */
   ESCRIPT_DLL_API
 //   const
@@ -303,6 +303,21 @@ public:
   ESCRIPT_DLL_API
   virtual int* borrowListOfTagsInUse() const;
 
+  ESCRIPT_DLL_API
+  bool
+  probeInterpolation(const FunctionSpace& other) const
+  {
+    if (*this==other) {
+      return true;
+    } else {
+      const_Domain_ptr domain=getDomain();
+      if  (*domain==*other.getDomain()) {
+        return domain->probeInterpolationOnDomain(getTypeCode(),other.getTypeCode());
+      } else {
+        return domain->probeInterpolationACross(getTypeCode(),*(other.getDomain()),other.getTypeCode());
+      }
+    }
+  }
 
 
  protected:
