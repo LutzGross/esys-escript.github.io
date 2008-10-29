@@ -202,13 +202,13 @@ class Data {
 	Once you have passed the pointer, do not delete it.
   */
   ESCRIPT_DLL_API
-  Data(DataAbstract* underlyingdata);
+  explicit Data(DataAbstract* underlyingdata);
 
   /**
 	\brief Create a Data based on the supplied DataAbstract
   */
   ESCRIPT_DLL_API
-  Data(DataAbstract_ptr underlyingdata);
+  explicit Data(DataAbstract_ptr underlyingdata);
 
   /**
      \brief
@@ -1558,6 +1558,10 @@ inline
 DataAbstract::ValueType::value_type*
 Data::getSampleData(DataAbstract::ValueType::size_type sampleNo)
 {
+   if (isLazy())
+   {
+	resolve();
+   }
    return getReady()->getSampleData(sampleNo);
 }
 

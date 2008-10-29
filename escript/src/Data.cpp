@@ -120,22 +120,19 @@ Data::Data(const Data& inData,
   {
     throw DataException("Error - will not interpolate for instances of DataEmpty.");
   }
-  if (inData.isLazy())
-  {
-    FORCERESOLVE;
-//     throw DataException("Error - will not interpolate for instances of DataLazy - yet.");
-  }
   if (inData.getFunctionSpace()==functionspace) {
     m_data=inData.m_data;
   } 
   else 
-  {				// this cast is safe for ref count because the class holds a reference 
-    const DataReady* dr=dynamic_cast<const DataReady*>(inData.m_data.get());
+  {
+
     if (inData.isConstant()) {	// for a constant function, we just need to use the new function space
       if (!inData.probeInterpolation(functionspace))
       {           // Even though this is constant, we still need to check whether interpolation is allowed
 	throw FunctionSpaceException("Call to probeInterpolation returned false for DataConstant.");
       }
+      // if the data is not lazy, this will just be a cast to DataReady
+      DataReady_ptr dr=inData.m_data->resolve();
       DataConstant* dc=new DataConstant(functionspace,inData.m_data->getShape(),dr->getVector());	
       m_data=DataAbstract_ptr(dc); 
     } else {
@@ -701,16 +698,17 @@ Data::interpolate(const FunctionSpace& functionspace) const
 bool
 Data::probeInterpolation(const FunctionSpace& functionspace) const
 {
-  if (getFunctionSpace()==functionspace) {
-    return true;
-  } else {
-    const_Domain_ptr domain=getDomain();
-    if  (*domain==*functionspace.getDomain()) {
-      return domain->probeInterpolationOnDomain(getFunctionSpace().getTypeCode(),functionspace.getTypeCode());
-    } else {
-      return domain->probeInterpolationACross(getFunctionSpace().getTypeCode(),*(functionspace.getDomain()),functionspace.getTypeCode());
-    }
-  }
+  return getFunctionSpace().probeInterpolation(functionspace);
+//   if (getFunctionSpace()==functionspace) {
+//     return true;
+//   } else {
+//     const_Domain_ptr domain=getDomain();
+//     if  (*domain==*functionspace.getDomain()) {
+//       return domain->probeInterpolationOnDomain(getFunctionSpace().getTypeCode(),functionspace.getTypeCode());
+//     } else {
+//       return domain->probeInterpolationACross(getFunctionSpace().getTypeCode(),*(functionspace.getDomain()),functionspace.getTypeCode());
+//     }
+//   }
 }
 
 Data
