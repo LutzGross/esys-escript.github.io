@@ -27,8 +27,6 @@
 #include "mmio.h"
 #include "SystemMatrix.h"
 
-#define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) perror(reason); return NULL; }
-
 static void swap( index_t*, index_t*, double*, int, int );
 static void q_sort( index_t*, index_t*, double*, int, int );
 static void print_entries( index_t*, index_t*, double* );
@@ -109,7 +107,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	Paso_SystemMatrix *out = NULL;
         Paso_SharedComponents *send =NULL;
         Paso_Connector *connector=NULL;
-	int i, curr_row, scan_ret;
+	int i, curr_row;
 	MM_typecode matrixCode;
         Paso_MPIInfo* mpi_info=Paso_MPIInfo_alloc( MPI_COMM_WORLD);
         Paso_resetError();
@@ -171,8 +169,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	/* perform actual read of elements */
 	for( i=0; i<nz; i++ )
 	{
-		scan_ret = fscanf( fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i] );
-		FSCANF_CHECK(scan_ret, "fscanf: read elements 1")
+		fscanf( fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i] );
 		row_ind[i]--;
 		col_ind[i]--;
 	}
@@ -237,7 +234,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	index_t *row_ind = NULL;
 	index_t *col_ptr = NULL;
 	double *val = NULL;
-	int i, curr_col=0, scan_ret;
+	int i, curr_col=0;
 	MM_typecode matrixCode;
         Paso_MPIInfo* mpi_info=Paso_MPIInfo_alloc( MPI_COMM_WORLD);
         if (mpi_info->size >1) {
@@ -292,8 +289,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	/* perform actual read of elements */
 	for( i=0; i<nz; i++ )
 	{
-		scan_ret = fscanf( fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i] );
-		FSCANF_CHECK(scan_ret, "fscanf: read elements 2")
+		fscanf( fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i] );
 		row_ind[i]--;
 		col_ind[i]--;
 	}

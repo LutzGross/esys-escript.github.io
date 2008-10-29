@@ -31,7 +31,7 @@ using namespace std;
 namespace escript {
 
 DataTagged::DataTagged()
-  : DataAbstract(FunctionSpace(),DataTypes::scalarShape)
+  : parent(FunctionSpace(),DataTypes::scalarShape)
 {
   // default constructor
 
@@ -69,7 +69,7 @@ DataTagged::DataTagged(const FunctionSpace& what,
                        const DataTypes::ShapeType &shape,
                        const int tags[],
                        const ValueType& data)
-  : DataAbstract(what,shape)
+  : parent(what,shape)
 {
   // alternative constructor
   // not unit_tested tested yet
@@ -103,7 +103,7 @@ DataTagged::DataTagged(const FunctionSpace& what,
                        const DataTypes::ShapeType &shape,
                        const TagListType& tags,
                        const ValueType& data)
-  : DataAbstract(what,shape)
+  : parent(what,shape)
 {
   // alternative constructor
 
@@ -145,9 +145,9 @@ DataTagged::DataTagged(const FunctionSpace& what,
 
 
 DataTagged::DataTagged(const DataTagged& other)
-  : DataAbstract(other.getFunctionSpace(),other.getShape()),
-  m_offsetLookup(other.m_offsetLookup),
-  m_data(other.m_data)
+  : parent(other.getFunctionSpace(),other.getShape()),
+  m_data(other.m_data),
+  m_offsetLookup(other.m_offsetLookup)
 {
   // copy constructor
 
@@ -157,7 +157,7 @@ DataTagged::DataTagged(const DataTagged& other)
 }
 
 DataTagged::DataTagged(const DataConstant& other)
-  : DataAbstract(other.getFunctionSpace(),other.getShape())
+  : parent(other.getFunctionSpace(),other.getShape())
 {
   // copy constructor
 
@@ -185,7 +185,7 @@ DataTagged::DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType& shape,
 	     const DataTypes::ValueType& defaultvalue,
              const DataTagged* tagsource)
- : DataAbstract(what,shape)
+ : parent(what,shape)
 {
 // This constructor has not been unit tested yet
 
@@ -201,7 +201,9 @@ DataTagged::DataTagged(const FunctionSpace& what,
 
   if (tagsource!=0)
   {
-       m_data.resize(defaultvalue.size(),0.);	// since this is tagged data, we should have blocksize=1
+	int numtags=tagsource->getTagLookup().size();
+	//  m_offsetLookup.reserve(tagsource.getTagLookup().size());
+	m_data.resize(defaultvalue.size(),0.);	// since this is tagged data, we should have blocksize=1
 
        DataTagged::DataMapType::const_iterator i;
        for (i=tagsource->getTagLookup().begin();i!=tagsource->getTagLookup().end();i++) {
@@ -212,6 +214,8 @@ DataTagged::DataTagged(const FunctionSpace& what,
   {
 	m_data.resize(defaultvalue.size());
   }
+
+
 
   // need to set the default value ....
   for (int i=0; i<defaultvalue.size(); i++) {
@@ -233,7 +237,7 @@ DataTagged::getSlice(const DataTypes::RegionType& region) const
 
 DataTagged::DataTagged(const DataTagged& other, 
 		       const DataTypes::RegionType& region)
-  : DataAbstract(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
+  : parent(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
 {
   // slice constructor
 
@@ -618,6 +622,19 @@ DataTagged::toString() const
 DataTypes::ValueType::size_type 
 DataTagged::getPointOffset(int sampleNo,
                            int dataPointNo) const
+{
+  int tagKey=getFunctionSpace().getTagFromSampleNo(sampleNo);
+  DataMapType::const_iterator pos(m_offsetLookup.find(tagKey));
+  DataTypes::ValueType::size_type offset=m_defaultValueOffset;
+  if (pos!=m_offsetLookup.end()) {
+    offset=pos->second;
+  }
+  return offset;
+}
+
+DataTypes::ValueType::size_type 
+DataTagged::getPointOffset(int sampleNo,
+                           int dataPointNo)
 {
   int tagKey=getFunctionSpace().getTagFromSampleNo(sampleNo);
   DataMapType::const_iterator pos(m_offsetLookup.find(tagKey));

@@ -54,7 +54,7 @@ class InputOutput(unittest.TestCase):
 
      # Check that two domains are equal using Fourier integrals
      # We cannot compare the X coordinates since they are on different domains
-     def domainsEqual(self, m1, m2, nft=100):
+     def domainsEqual(self, m1, m2, nft=20):
         self.failUnless(m1.getDim() == m2.getDim(), "Dimensions differ")
         self.failUnless(m1.getNumDataPointsGlobal() == m2.getNumDataPointsGlobal(), "Num data points differ")
         for tagName in m1.showTagNames().split(", "):

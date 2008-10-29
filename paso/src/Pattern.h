@@ -47,13 +47,6 @@ typedef struct Paso_Pattern {
   dim_t reference_counter;
 } Paso_Pattern;
 
-#define INDEXLIST_LENGTH 85
-
-typedef struct Paso_IndexList {
-  index_t index[INDEXLIST_LENGTH];
-  dim_t n;
-  struct Paso_IndexList *extension;
-} Paso_IndexList;
 /*  interfaces: */
 
 Paso_Pattern* Paso_Pattern_alloc(int type, dim_t input_block_size, dim_t output_block_size, dim_t numOutput, dim_t numInput, index_t* ptr, index_t* index);
@@ -66,13 +59,5 @@ bool_t Paso_Pattern_isEmpty(Paso_Pattern* in);
 void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker);
 void Paso_Pattern_reduceBandwidth(Paso_Pattern* self,index_t* oldToNew);
 void Paso_Pattern_color(Paso_Pattern* patter, index_t* num_colors, index_t* colorOf);
-Paso_Pattern* Paso_Pattern_multiply(int type, Paso_Pattern* A, Paso_Pattern* B);
-Paso_Pattern* Paso_Pattern_binop(int type, Paso_Pattern* A, Paso_Pattern* B);
-
-void Paso_IndexList_insertIndex(Paso_IndexList*, index_t);
-void Paso_IndexList_toArray(Paso_IndexList*, index_t*, index_t, index_t, index_t);
-dim_t Paso_IndexList_count(Paso_IndexList*,  index_t, index_t);
-void Paso_IndexList_free(Paso_IndexList*);
-Paso_Pattern* Paso_IndexList_createPattern(dim_t n0, dim_t n,Paso_IndexList* index_list,index_t range_min,index_t range_max, index_t index_offset);
 
 #endif /* #ifndef INC_PASO_SYSTEMPATTERN */

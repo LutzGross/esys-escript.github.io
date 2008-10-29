@@ -45,27 +45,27 @@ for root, dirs, files in os.walk(MESH_DIRECTORY, topdown=False):
           for fs_name in ["ContinuousFunction", "Solution", "Function", "FunctionOnBoundary", "FunctionOnContactZero", "FunctionOnContactOne", 
                           "ReducedContinuousFunction", "ReducedSolution", "ReducedFunction", "ReducedFunctionOnBoundary", "ReducedFunctionOnContactZero", "ReducedFunctionOnContactOne"]:
              if fs_name == "ContinuousFunction":
-                 fs = ContinuousFunction(dom)
+                 fs= ContinuousFunction(dom)
              if fs_name == "Solution":
-                 fs = Solution(dom)
+                 fs= Solution(dom)
              if fs_name == "Function":
-                 fs = Function(dom)
+                 fs= Function(dom)
              if fs_name == "FunctionOnBoundary":
-                 fs = FunctionOnBoundary(dom)
+                 fs= FunctionOnBoundary(dom)
              if fs_name == "FunctionOnContactZero":
-                 fs = FunctionOnContactZero(dom)
+                 fs == FunctionOnContactZero(dom)
              if fs_name == "FunctionOnContactOne":
                  fs = FunctionOnContactOne(dom)
              if fs_name == "ReducedContinuousFunction":
-                 fs = ReducedContinuousFunction(dom)
+                 fs= ReducedContinuousFunction(dom)
              if fs_name == "ReducedSolution":
-                 fs = ReducedSolution(dom)
+                 fs= ReducedSolution(dom)
              if fs_name == "ReducedFunction":
-                 fs = ReducedFunction(dom)
+                 fs= ReducedFunction(dom)
              if fs_name == "ReducedFunctionOnBoundary":
-                 fs = ReducedFunctionOnBoundary(dom)
+                 fs= ReducedFunctionOnBoundary(dom)
              if fs_name == "ReducedFunctionOnContactZero":
-                 fs = ReducedFunctionOnContactZero(dom)
+                 fs == ReducedFunctionOnContactZero(dom)
              if fs_name == "ReducedFunctionOnContactOne":
                  fs = ReducedFunctionOnContactOne(dom)
              for type in [ "s", "v", "t" ]:
@@ -73,10 +73,10 @@ for root, dirs, files in os.walk(MESH_DIRECTORY, topdown=False):
                  x=fs.getX()
                  print "\t data file ",data_file
                  if type == "t":
-                    n=normalize(x)/clip(length(x-Vector(0.5,fs)),1.e-8)
+                    n=normalize(x)/length(x-Vector(0.5,fs))
                     d=outer(n,x)
                  elif type == "v":
-                    d=normalize(x)/clip(length(x-Vector(0.5,fs)),1.e-8)
+                    d=normalize(x)/length(x-Vector(0.5,fs))
                  else:
                     d=length(x-Vector(0.5,fs))
                  d.dump(data_file)

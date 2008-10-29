@@ -45,7 +45,7 @@ boost_lib_path		= '/opt/local/lib'
 boost_libs		= ['boost_python']
 
 # Specify whether or not to use VTK
-usevtk		= 'yes'
+# usevtk		= 'yes'
 
 # NetCDF
 # usenetcdf		= 'yes'

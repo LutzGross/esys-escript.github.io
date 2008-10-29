@@ -110,7 +110,7 @@ void Paso_SystemMatrix_saveHB(Paso_SystemMatrix *, char *);
 Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR(char *);
 Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC(char *);
 void Paso_SystemMatrix_setDefaults(Paso_Options*);
-int Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index_t preconditioner, const  index_t package,const  bool_t symmetry);
+int Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver, index_t package, bool_t symmetry);
 dim_t Paso_SystemMatrix_getNumOutput(Paso_SystemMatrix* A);
 void Paso_SystemMatrix_setValues(Paso_SystemMatrix*,double);
 void Paso_SystemMatrix_add(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);

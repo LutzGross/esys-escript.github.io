@@ -30,7 +30,7 @@
 #include "performance.h"
 
 #ifdef UMFPACK
-#include <umfpack.h>
+#include "umfpack.h"
 #endif
 
 typedef struct {
@@ -40,5 +40,4 @@ typedef struct {
 
 void Paso_UMFPACK_free(Paso_SystemMatrix* A);
 void Paso_UMFPACK(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options,Paso_Performance* pp);
-void Paso_UMFPACK1(Paso_SparseMatrix* A, double* out, double* in, bool_t verbose);
 #endif

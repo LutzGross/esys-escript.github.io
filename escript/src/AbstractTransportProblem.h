@@ -123,16 +123,15 @@ class AbstractTransportProblem {
   */
   ESCRIPT_DLL_API
   void insertConstraint(Data& source, Data& q, Data& r) const;
-  /*
-   *      \brief returns a safe time step size.
-   */
+  /**
+     \brief resets the transport operator typically as they have been updated.
+  */
+
+  /**
+   *      \brief returns a save time step size.
+   *        */
   ESCRIPT_DLL_API
   virtual double getSafeTimeStepSize() const;
-  /*
-   *      \brief returns the value for unlimited time step size.
-   */
-  ESCRIPT_DLL_API
-  virtual double getUnlimitedTimeStepSize() const;
 
 
  protected:

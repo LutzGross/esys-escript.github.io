@@ -23,6 +23,15 @@
 #   define M_PI           3.14159265358979323846  /* pi */
 #endif
 
+
+/**
+\file LocalOps.h 
+\brief Describes binary operations performed on double*.
+
+For operations on DataAbstract see BinaryOp.h.
+For operations on DataVector see DataMaths.h.
+*/
+
 namespace escript {
 
 
@@ -388,7 +397,7 @@ void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const do
          } else {
             const register double S00=A00-(*ev0);
             const register double absS00=fabs(S00);
-            if (absS00>m) {
+            if (fabs(S00)>m) {
                 vectorInKernel3__nonZeroA00(S00,A01,A02,A01,A11-(*ev0),A12,A02,A12,A22-(*ev0),V00,V10,V20);
             } else if (absA02<m) {
                 vectorInKernel3__nonZeroA00(A01,A11-(*ev0),A12,S00,A01,A02,A02,A12,A22-(*ev0),V00,V10,V20);
@@ -398,7 +407,7 @@ void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const do
             normalizeVector3(V00,V10,V20);;
             const register double T00=A00-(*ev2);
             const register double absT00=fabs(T00);
-            if (absT00>m) {
+            if (fabs(T00)>m) {
                  vectorInKernel3__nonZeroA00(T00,A01,A02,A01,A11-(*ev2),A12,A02,A12,A22-(*ev2),V02,V12,V22);
             } else if (absA02<m) {
                  vectorInKernel3__nonZeroA00(A01,A11-(*ev2),A12,T00,A01,A02,A02,A12,A22-(*ev2),V02,V12,V22);

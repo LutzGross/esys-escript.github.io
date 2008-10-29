@@ -123,12 +123,7 @@ void AbstractContinuousDomain::setToIntegrals(std::vector<double>& integrals,con
   return;
 }
 
-int AbstractContinuousDomain::getSystemMatrixTypeId(const int solver, const int precondioner, const int package, const bool symmetry) const 
-{
-   return 0;
-}
-
-int AbstractContinuousDomain::getTransportTypeId(const int solver, const int precondioner, const int package, const bool symmetry) const 
+int AbstractContinuousDomain::getSystemMatrixTypeId(const int solver, const int package, const bool symmetry) const 
 {
    return 0;
 }

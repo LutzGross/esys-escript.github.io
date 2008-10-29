@@ -56,8 +56,8 @@ void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC,Paso_Sp
              for (iPtr_FC = A_FC->pattern->ptr[col_CF]; iPtr_FC < A_FC->pattern->ptr[col_CF + 1]; ++iPtr_FC) {
                 col_FC=A_FC->pattern->index[iPtr_FC];
                 /* is (i,col_FC) in the shape of A_CC ? */
-               where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),Paso_comparIndex);
-                if (where_p!=NULL) { 
+                where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),Paso_comparIndex);
+                if (where_p!=NULL) {
                     if (set_A) {
                        A11=A_CF->val[iPtr_CF]*invA_FF[col_CF];
                        set_A=FALSE;

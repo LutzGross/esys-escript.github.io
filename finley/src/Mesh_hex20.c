@@ -166,7 +166,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
       NDOF2=N2-1;
   }
  
-  if (!periodic[0] && (local_NE0>0) ) {
+  if (!periodic[0] && (local_NE1>0) ) {
      NDOF0=N0;
      if (e_offset0 == 0) NFaceElements+=local_NE1*local_NE2;
      if (local_NE0+e_offset0 == NE0) NFaceElements+=local_NE1*local_NE2;

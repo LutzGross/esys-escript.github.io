@@ -128,9 +128,5 @@ double AbstractTransportProblem::getSafeTimeStepSize() const
 {
     throw TransportProblemException("Error - getSafeTimeStepSize is not implemented.");
 }
-double AbstractTransportProblem::getUnlimitedTimeStepSize() const
-{
-    throw TransportProblemException("Error - getUnlimitedTimeStepSize is not implemented.");
-}
 
 }  // end of namespace

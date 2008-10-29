@@ -70,7 +70,7 @@ class TemperatureCartesian(TransportPDE):
                                       theta=0.5: Crank-Nicholson scheme
                                       thete=0.: forward Euler (not recommendable)
         """
-        TransportPDE.__init__(self,domain,numEquations=1,theta=theta,**kwargs)
+        TransportPDE.__init__(self,domain,num_equations=1,theta=theta,**kwargs)
         self.setReducedOrderOn()
         self.__rhocp=None
         self.__v=None

@@ -14,6 +14,7 @@
 
 #include "DataAbstract.h"
 #include "DataException.h"
+#include "DataLazy.h"
 
 using namespace std;
 
@@ -49,16 +50,21 @@ const_DataAbstract_ptr DataAbstract::getPtr() const
   }
 }
 
+bool
+DataAbstract::isLazy() const
+{
+	return (dynamic_cast<const DataLazy*>(this)!=0);
+}
+
 
 
 DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty):
-    m_noSamples(what.getNumSamples()),
     m_noDataPointsPerSample(what.getNumDPPSample()),
+    m_noSamples(what.getNumSamples()),
     m_functionSpace(what),
     m_shape(shape),
-    m_novalues(DataTypes::noValues(shape)),
-    m_rank(DataTypes::getRank(shape))
-
+    m_rank(DataTypes::getRank(shape)),
+    m_novalues(DataTypes::noValues(shape))
 {
     m_isempty=isDataEmpty;
 }
@@ -203,17 +209,17 @@ DataAbstract::reorderByReferenceIDs(int *reference_ids)
 }
 
 
-DataTypes::ValueType&
-DataAbstract::getVector()
-{
-   throw DataException("Error - DataAbstract:: does not have a DataVector.");
-}
-
-const DataTypes::ValueType&
-DataAbstract::getVector() const
-{
-   throw DataException("Error - DataAbstract:: does not have a DataVector.");
-}
+// DataTypes::ValueType&
+// DataAbstract::getVector()
+// {
+//    throw DataException("Error - DataAbstract:: does not have a DataVector.");
+// }
+// 
+// const DataTypes::ValueType&
+// DataAbstract::getVector() const
+// {
+//    throw DataException("Error - DataAbstract:: does not have a DataVector.");
+// }
 
 
 

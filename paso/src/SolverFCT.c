@@ -76,7 +76,6 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_System
 {
      Paso_SystemMatrixType matrix_type=MATRIX_FORMAT_DEFAULT+MATRIX_FORMAT_BLK1;  /* at the moment only block size 1 is supported */
      Paso_FCTransportProblem* out=NULL;
-     Paso_SystemMatrixPattern *transport_pattern;
      dim_t n,i;
      index_t iptr,iptr_main;
 
@@ -102,7 +101,6 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_System
 
      if (Paso_noError()) {
          n=Paso_SystemMatrix_getTotalNumRows(out->transport_matrix);
-         transport_pattern=out->transport_matrix->pattern;
 
          out->u=MEMALLOC(n,double);
          out->main_iptr=MEMALLOC(n,index_t);
@@ -124,15 +122,15 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_System
                  /* identify the main diagonals */
                  #pragma omp for schedule(static) private(i,iptr,iptr_main)
                  for (i = 0; i < n; ++i) {
-                        iptr_main=transport_pattern->mainPattern->ptr[0]-1;
-                        for (iptr=transport_pattern->mainPattern->ptr[i];iptr<transport_pattern->mainPattern->ptr[i+1]; iptr++) {
-                              if (transport_pattern->mainPattern->index[iptr]==i) {
+                        iptr_main=pattern->mainPattern->ptr[0]-1;
+                        for (iptr=pattern->mainPattern->ptr[i];iptr<pattern->mainPattern->ptr[i+1]; iptr++) {
+                              if (pattern->mainPattern->index[iptr]==i) {
                                    iptr_main=iptr;
                                    break;
                               }
                         }
                         out->main_iptr[i]=iptr_main;
-                        if (iptr_main==transport_pattern->mainPattern->ptr[0]-1)
+                        if (iptr_main==pattern->mainPattern->ptr[0]-1)
                              Paso_setError(VALUE_ERROR, "Paso_FCTransportProblem_alloc: no main diagonal");
                  }
      
@@ -184,9 +182,3 @@ Paso_Connector* Paso_FCTransportProblem_borrowConnector(const Paso_FCTransportPr
 {
    return in->transport_matrix->pattern->col_connector;
 }
-
-index_t Paso_FCTransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool_t symmetry) 
-{
-   return MATRIX_FORMAT_DEFAULT + MATRIX_FORMAT_BLK1;
-}
-

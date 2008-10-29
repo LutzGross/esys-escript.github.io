@@ -140,7 +140,7 @@ blocktimer_reportSortByName()
   printf("BlockTimer sorted by name (sorting TBD):\n");
   for(i=0; i<NUM_TIMERS; i++) {
     if (g_names[i] != (char *) NULL) {
-      printf("	%7d %15.2f   %s\n", g_count[i], g_times[i], g_names[i]);
+      printf("	%7d %15.2lf   %s\n", g_count[i], g_times[i], g_names[i]);
     }
   }
 #endif /* BLOCKTIMER */
@@ -161,7 +161,7 @@ blocktimer_reportSortByTime()
   printf("BlockTimer sorted by time (sorting TBD):\n");
   for(i=0; i<NUM_TIMERS; i++) {
     if (g_names[i] != (char *) NULL) {
-      printf("	%7d %15.2f seconds for %s\n", g_count[i], g_times[i], g_names[i]);
+      printf("	%7d %15.2lf seconds for %s\n", g_count[i], g_times[i], g_names[i]);
     }
   }
 #endif /* BLOCKTIMER */

@@ -10,5 +10,4 @@ sed							\
   -e "s%@@LD_LIBRARY_PATH@@%$LD_LIBRARY_PATH%"		\
   -e "s%@@PYTHONPATH@@%$PYTHONPATH%"			\
   -e "s%@@PYTHON_CMD@@%$PYTHON_CMD%"			\
-  -e "s%@@PATH@@%$PATH%"				\
 

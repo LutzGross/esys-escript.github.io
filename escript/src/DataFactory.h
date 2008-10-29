@@ -109,6 +109,7 @@ ESCRIPT_DLL_API Data
 convertToData(const boost::python::object& value,
               const FunctionSpace& what=FunctionSpace());
 
+
 } // end of namespace
 
 #endif

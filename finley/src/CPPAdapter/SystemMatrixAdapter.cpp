@@ -183,6 +183,15 @@ void finley::SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
    fprintf(stdout, "\tlogical_col_block_size %d\n", mat->logical_col_block_size);
    fprintf(stdout, "\tlogical_block_size %d\n", mat->logical_block_size);
 
+   if (full) {
+      printf("\trow_distribution: ");
+      for(int i=0; i<=mat->mpi_info->size; i++) printf("%3d ", mat->row_distribution[i]);
+      printf("\n");
+      printf("\tcol_distribution: ");
+      for(int i=0; i<=mat->mpi_info->size; i++) printf("%3d ", mat->col_distribution[i]);
+      printf("\n");
+   }
+
 }
 
 void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, const boost::python::dict& options) const

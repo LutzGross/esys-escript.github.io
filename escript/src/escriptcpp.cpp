@@ -23,8 +23,6 @@
 #include "AbstractTransportProblem.h"
 #include "DataVector.h"
 #include "paso/Paso_MPI.h"
-#include "EscriptParams.h"
-
 
 
 extern "C" {
@@ -109,8 +107,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("saveDX",&escript::AbstractDomain::saveDX)
      .def("getMPISize",&escript::AbstractDomain::getMPISize)
      .def("getMPIRank",&escript::AbstractDomain::getMPIRank)
-     .def("MPIBarrier",&escript::AbstractDomain::MPIBarrier)
-     .def("onMasterProcessor",&escript::AbstractDomain::onMasterProcessor)
 
      .def(self == self)
      .def(self != self);
@@ -119,8 +115,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   // Interface for AbstractContinuousDomain
   //
   class_<escript::AbstractContinuousDomain, bases<escript::AbstractDomain> >("ContinuousDomain",no_init)
-       .def("getSystemMatrixTypeId",&escript::AbstractContinuousDomain::getSystemMatrixTypeId)
-       .def("getTransportTypeId",&escript::AbstractContinuousDomain::getTransportTypeId);
+       .def("getSystemMatrixTypeId",&escript::AbstractContinuousDomain::getSystemMatrixTypeId);
 
   //
   // Interface for FunctionSpace
@@ -169,10 +164,15 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("getNumberOfDataPoints",&escript::Data::getNumDataPoints)
     .def("isExpanded",&escript::Data::isExpanded)
     .def("isTagged",&escript::Data::isTagged)
+    .def("isConstant",&escript::Data::isConstant)
+    .def("isLazy",&escript::Data::isLazy)
+    .def("isReady",&escript::Data::isReady)
     .def("expand",&escript::Data::expand)
     .def("tag",&escript::Data::tag)
+    .def("resolve",&escript::Data::resolve)
     .def("copy",&escript::Data::copy)
     .def("copy",&escript::Data::copySelf,return_value_policy<manage_new_object>())
+    .def("delay",&escript::Data::delay)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToPyObject)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToArray)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPoint)
@@ -345,15 +345,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("insertConstraint",&escript::AbstractTransportProblem::insertConstraint)
      .def("reset",&escript::AbstractTransportProblem::resetTransport)
      .def("resetValues",&escript::AbstractTransportProblem::resetTransport)
-     .def("getSafeTimeStepSize",&escript::AbstractTransportProblem::getSafeTimeStepSize)
-     .def("getUnlimitedTimeStepSize",&escript::AbstractTransportProblem::getUnlimitedTimeStepSize);
-
-  // Functions to modify global parameters
-  def("setEscriptParamInt",escript::setEscriptParamInt,
-      (arg("value")=0));
-  def("getEscriptParamInt",escript::getEscriptParamInt,
-      (arg("sentinel")=0));
-
+     .def("getSafeTimeStepSize",&escript::AbstractTransportProblem::getSafeTimeStepSize);
 
   //
   // Register esysExceptionTranslator

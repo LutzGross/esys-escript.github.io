@@ -25,7 +25,6 @@
 
 #include "Paso.h"
 #include "UMFPACK.h"
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -99,59 +98,6 @@ void Paso_UMFPACK(Paso_SystemMatrix* A,
         }
      }
      Performance_stopMonitor(pp,PERFORMANCE_ALL);
-#else
-    Paso_setError(SYSTEM_ERROR,"Paso_UMFPACK:UMFPACK is not avialble.");
-#endif
-
-}
-
-
-void Paso_UMFPACK1(Paso_SparseMatrix* A,
-                          double* out,
-                          double* in,
-                          bool_t verbose) {
-#ifdef UMFPACK
-     double time0;
-     double control[UMFPACK_CONTROL], info[UMFPACK_INFO];
-     int error = UMFPACK_OK;
-     Paso_UMFPACK_Handler* pt = NULL;
-     
-     if (! (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
-        Paso_setError(TYPE_ERROR,"Paso_UMFPACK: UMFPACK requires CSR format with index offset 1 and block size 1.");
-        return;
-     }
-     umfpack_di_defaults(control);
-
-     if (pt==NULL) {
-        int n = A->numRows;
-        pt=MEMALLOC(1,Paso_UMFPACK_Handler);
-        if (Paso_checkPtr(pt)) return;
-        time0=Paso_timer();
-        /* call LDU symbolic factorization: */
-        error=umfpack_di_symbolic(n,n,A->pattern->ptr,A->pattern->index,A->val,&(pt->symbolic),control,info);
-        if (error != UMFPACK_OK) {
-             Paso_setError(VALUE_ERROR,"symbolic factorization failed.");
-             MEMFREE(pt);
-        } else {
-            /* call LDU factorization: */
-            error= umfpack_di_numeric(A->pattern->ptr,A->pattern->index,A->val,pt->symbolic,&(pt->numeric),control,info);
-           if (error != UMFPACK_OK) {
-             Paso_setError(ZERO_DIVISION_ERROR,"factorization failed. Most likely the matrix is singular.");
-             MEMFREE(pt);
-           }
-           if (verbose) printf("timing UMFPACK: LDU factorization: %.4e sec.\n",Paso_timer()-time0);
-        }
-     }
-     if (Paso_noError())  {
-        time0=Paso_timer();
-        /* call forward backward substitution: */
-        control[UMFPACK_IRSTEP]=2; /* number of refinement steps */
-        error=umfpack_di_solve(UMFPACK_A,A->pattern->ptr,A->pattern->index,A->val,out,in,pt->numeric,control,info);
-        if (verbose) printf("timing UMFPACK: solve: %.4e sec\n",Paso_timer()-time0);
-        if (error != UMFPACK_OK) {
-              Paso_setError(VALUE_ERROR,"forward/backward substition failed. Most likely the matrix is singular.");
-        }
-     }
 #else
     Paso_setError(SYSTEM_ERROR,"Paso_UMFPACK:UMFPACK is not avialble.");
 #endif

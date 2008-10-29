@@ -142,22 +142,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
-     If compiled for MPI then execute an MPI_Barrier, else do nothing
-  */
-
-  FINLEY_DLL_API
-  virtual void MPIBarrier() const;
-
-  /**
-     \brief
-     Return true if on MPI processor 0, else false
-  */
-
-  FINLEY_DLL_API
-  virtual bool onMasterProcessor() const;
-
-  /**
-     \brief
      return this as an AbstractContinuousDomain.
   */
   inline const AbstractContinuousDomain& asAbstractContinuousDomain() const 
@@ -469,25 +453,13 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
-     return the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, package, perconditioner,
+     return the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, package
      and symmetric matrix is used.
-     \param precondioner
      \param solver 
      \param symmetry 
   */
   FINLEY_DLL_API
-  virtual int getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
-
-  /**
-     \brief
-     return the identifier of the transport problem type to be used when a particular solver, perconditioner, package
-     and symmetric matrix is used.
-     \param precondioner
-     \param solver 
-     \param symmetry 
-  */
-  FINLEY_DLL_API
-  virtual int getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
+  virtual int getSystemMatrixTypeId(const int solver, const int package, const bool symmetry) const;
 
   /**
      \brief

@@ -118,21 +118,6 @@ Note: This is _not_ equivalent to weak_ptr::lock.
   ESCRIPT_DLL_API
   virtual int getMPIRank() const;
 
-  /**
-     \brief
-     If compiled for MPI then execute an MPI_Barrier, else do nothing
-  */
-
-  ESCRIPT_DLL_API
-  virtual void MPIBarrier() const;
-  /**
-     \brief
-     Return true if on MPI master, else false
-  */
-
-  ESCRIPT_DLL_API
-  virtual bool onMasterProcessor() const;
-
 
 
   /**

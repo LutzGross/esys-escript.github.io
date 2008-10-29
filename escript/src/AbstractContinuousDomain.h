@@ -187,16 +187,7 @@ class AbstractContinuousDomain : public AbstractDomain {
      and symmetric matrix is used.
   */
   ESCRIPT_DLL_API 
-  virtual int getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
-
-  /**
-     \brief
-     return the identifier of the matrix type to be used for the global
-     stiffness matrix when a particular solver package
-     and symmetric matrix is used.
-  */
-  ESCRIPT_DLL_API 
-  virtual int getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
+  virtual int getSystemMatrixTypeId(const int solver, const int package, const bool symmetry) const;
 
   /**
      \brief

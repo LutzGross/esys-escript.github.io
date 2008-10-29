@@ -95,7 +95,6 @@ typedef struct Paso_Solver_RILU Paso_Solver_RILU;
 /* AMG preconditioner */
 struct Paso_Solver_AMG {
   dim_t n;
-  dim_t level;
   dim_t n_block;
   dim_t n_F;
   dim_t n_C;
@@ -111,8 +110,6 @@ struct Paso_Solver_AMG {
   double* b_F;
   double* x_C;
   double* b_C;
-  Paso_SparseMatrix * A;
-  Paso_Solver_GS* GS;
   struct Paso_Solver_AMG * AMG_of_Schur;
 };
 typedef struct Paso_Solver_AMG Paso_Solver_AMG;
@@ -140,7 +137,7 @@ void Paso_Solver_free(Paso_SystemMatrix*);
 err_t Paso_Solver_BiCGStab( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, Paso_Performance* pp);
 err_t Paso_Solver_PCG( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, Paso_Performance* pp);
 err_t Paso_Solver_TFQMR( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, Paso_Performance* pp);
-err_t Paso_Solver_MINRES( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, Paso_Performance* pp);
+err_t Paso_Solver_MINRES( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, double *tol, Paso_Performance* pp);
 err_t Paso_Solver_GMRES(Paso_SystemMatrix * A, double * r, double * x, dim_t *num_iter, double * tolerance,dim_t length_of_recursion,dim_t restart, Paso_Performance* pp);
 void Paso_Preconditioner_free(Paso_Solver_Preconditioner*);
 void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options);
@@ -153,7 +150,6 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b);
 
 void Paso_Solver_GS_free(Paso_Solver_GS * in);
 Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A_p,bool_t verbose);
-void Paso_Solver_solveGS1(Paso_Solver_GS * gs, double * x, double * b);
 void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b);
 
 void Paso_Solver_RILU_free(Paso_Solver_RILU * in);
@@ -161,7 +157,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix * A_p,bool_t verbose);
 void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b);
 
 void Paso_Solver_AMG_free(Paso_Solver_AMG * in);
-Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix * A_p,bool_t verbose,dim_t level);
+Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix * A_p,bool_t verbose);
 void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b);
 
 void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC, Paso_SparseMatrix *A_CF,double* invA_FF,index_t* A_FF_pivot, Paso_SparseMatrix *A_FC);

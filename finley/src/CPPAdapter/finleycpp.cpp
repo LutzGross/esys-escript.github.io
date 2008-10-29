@@ -159,7 +159,6 @@ BOOST_PYTHON_MODULE(finleycpp)
       .def("newOperator",&finley::MeshAdapter::newSystemMatrix)
       .def("newTransportProblem",&finley::MeshAdapter::newTransportProblem)
       .def("getSystemMatrixTypeId",&finley::MeshAdapter::getSystemMatrixTypeId)
-      .def("getTransportTypeId",&finley::MeshAdapter::getTransportTypeId)
       .def("setX",&finley::MeshAdapter::setNewX)
       .def("getX",&finley::MeshAdapter::getX)
       .def("getNormal",&finley::MeshAdapter::getNormal)
@@ -171,9 +170,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       .def("isValidTagName",&finley::MeshAdapter::isValidTagName)
       .def("showTagNames",&finley::MeshAdapter::showTagNames)
       .def("getMPISize",&finley::MeshAdapter::getMPISize)
-      .def("getMPIRank",&finley::MeshAdapter::getMPIRank)
-      .def("MPIBarrier",&finley::MeshAdapter::MPIBarrier)
-      .def("onMasterProcessor",&finley::MeshAdapter::onMasterProcessor);
+      .def("getMPIRank",&finley::MeshAdapter::getMPIRank);
 
   class_<finley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >
       ("OperatorAdapter",no_init)
@@ -186,6 +183,5 @@ BOOST_PYTHON_MODULE(finleycpp)
   class_<finley::TransportProblemAdapter, bases<escript::AbstractTransportProblem> >
       ("TransportProblemAdapter",no_init)
       .def("getSafeTimeStepSize",&finley::TransportProblemAdapter::getSafeTimeStepSize)
-      .def("getUnlimitedTimeStepSize",&finley::TransportProblemAdapter::getUnlimitedTimeStepSize)
       .def("resetTransport",&finley::TransportProblemAdapter::resetTransport);
 }

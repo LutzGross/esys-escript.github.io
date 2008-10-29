@@ -54,7 +54,7 @@ Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern* pattern, \
           Paso_setError(TYPE_ERROR,"Paso_Pattern_unrollBlocks: unrolling requires matching block sizes or block size one for input pattern.");
           return NULL;
      }
-     /* printf("Information: matrix pattern is unrolled to block size %d x %d with offset %d.\n",output_block_size,input_block_size,index_offset_out); */
+     printf("Information: matrix pattern is unrolled to block size %d x %d with offset %d.\n",output_block_size,input_block_size,index_offset_out);
      block_size=output_block_size*input_block_size;
      new_len=(pattern->len)*block_size;
      new_numOutput=(pattern->numOutput)*output_block_size;

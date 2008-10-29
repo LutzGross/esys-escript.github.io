@@ -69,7 +69,9 @@ err_t Paso_FCT_setUpRightHandSide(Paso_FCTransportProblem* fctp, const double dt
                                   double *RN_m, Paso_Coupler* RN_m_coupler, double* RP_m, Paso_Coupler* RP_m_coupler, const double *sourceN, 
                                   Paso_Performance* pp)
 {
+   dim_t i;
    const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
+   register double m, rtmp;
    /* distribute u */
    Paso_Coupler_startCollect(u_m_coupler,u_m);
    Paso_Coupler_finishCollect(u_m_coupler);
@@ -109,11 +111,13 @@ err_t Paso_FCT_setUpRightHandSide(Paso_FCTransportProblem* fctp, const double dt
 
 void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, double* source, Paso_Options* options) {
    const dim_t FAILURES_MAX=5;
-   dim_t m, i_substeps, Failed, i;
+   err_t error_code;
+   dim_t m,n_substeps, i_substeps, Failed, i, iter;
+   err_t errorCode;
    double *z_m=NULL, *b_n=NULL, *sourceP=NULL, *sourceN=NULL, *uTilde_n=NULL, *QN_n=NULL, *QP_n=NULL, *RN_m=NULL, *RP_m=NULL, *du_m=NULL;
    Paso_Coupler *QN_n_coupler=NULL, *QP_n_coupler=NULL, *RN_m_coupler=NULL, *RP_m_coupler=NULL, *uTilde_n_coupler=NULL, *u_m_coupler=NULL;
    Paso_SystemMatrix *flux_matrix_m=NULL;
-   double dt_max, dt2,t, norm_u_m, omega, norm_du_m;
+   double dt_max, dt2,t, norm_u_m, omega, norm_du_m, tol;
    register double mass, rtmp;
    const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
    dim_t blockSize=Paso_FCTransportProblem_getBlockSize(fctp);
@@ -295,28 +299,27 @@ double Paso_FCTransportProblem_getSafeTimeStepSize(Paso_FCTransportProblem* fctp
                dt_max_loc=LARGE_POSITIVE_FLOAT;
                #pragma omp for schedule(static) private(i,l_ii,m) 
                for (i=0;i<n;++i) {
-                  l_ii=fctp->main_diagonal_low_order_transport_matrix[i];
-                  m=fctp->lumped_mass_matrix[i];
-                  if ( (l_ii<0 && m>0.) || (l_ii>0 && m<0) ) {
-                     dt_max_loc=MIN(dt_max_loc,-m/l_ii);
-                  }
-               }
+                    l_ii=fctp->main_diagonal_low_order_transport_matrix[i];
+                    m=fctp->lumped_mass_matrix[i];
+                    if ( (l_ii<0 && m>0.) || (l_ii>0 && m<0) ) {
+                        dt_max_loc=MIN(dt_max_loc,-m/l_ii);
+                    }
+                }
                 #pragma omp critical 
-               {
-                  dt_max=MIN(dt_max,dt_max_loc);
-               }
+                {
+                    dt_max=MIN(dt_max,dt_max_loc);
+                }
             }
             #ifdef PASO_MPI
                dt_max_loc = dt_max;
-               MPI_Allreduce(&dt_max_loc, &dt_max, 1, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
-            #endif
-            if (dt_max<LARGE_POSITIVE_FLOAT) dt_max*=1./(1.-fctp->theta);
+	       MPI_Allreduce(&dt_max_loc, &dt_max, 1, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
+             #endif
+             if (dt_max<LARGE_POSITIVE_FLOAT) dt_max*=1./(1.-fctp->theta);
          }
          if (dt_max <= 0.)  {
             Paso_setError(TYPE_ERROR,"Paso_SolverFCT_solve: dt must be positive.");
          } else {
-            if (dt_max<LARGE_POSITIVE_FLOAT)
-               printf("maximum time step size is %e (theta = %e).\n",dt_max,fctp->theta);   
+           if (dt_max<LARGE_POSITIVE_FLOAT) printf("maximum time step size is %e (theta = %e).\n",dt_max,fctp->theta);   
         }
         fctp->dt_max=dt_max;
         fctp->valid_matrices=Paso_noError();

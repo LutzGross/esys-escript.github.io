@@ -535,11 +535,9 @@ class LinearProblem(object):
      @raise UndefinedPDEError: if the number of equations is not be specified yet.
      """
      if self.__numEquations==None:
-         if self.__numSolutions==None:
-            raise UndefinedPDEError,"Number of equations is undefined. Please specify argument numEquations."
-         else:
-            self.__numEquations=self.__numSolutions
-     return self.__numEquations
+         raise UndefinedPDEError,"Number of equations is undefined. Please specify argument numEquations."
+     else:
+         return self.__numEquations
 
    def getNumSolutions(self):
      """
@@ -550,11 +548,9 @@ class LinearProblem(object):
      @raise UndefinedPDEError: if the number of unknowns is not be specified yet.
      """
      if self.__numSolutions==None:
-        if self.__numEquations==None:
-            raise UndefinedPDEError,"Number of solution is undefined. Please specify argument numSolutions."
-        else:
-            self.__numSolutions=self.__numEquations
-     return self.__numSolutions
+        raise UndefinedPDEError,"Number of solution is undefined. Please specify argument numSolutions."
+     else:
+        return self.__numSolutions
 
    def reduceEquationOrder(self):
      """
@@ -1544,7 +1540,7 @@ class LinearPDE(LinearProblem):
       """
       returns the system type which needs to be used by the current set up.
       """
-      return self.getDomain().getSystemMatrixTypeId(self.getSolverMethod()[0],self.getSolverMethod()[1],self.getSolverPackage(),self.isSymmetric())
+      return self.getDomain().getSystemMatrixTypeId(self.getSolverMethod()[0],self.getSolverPackage(),self.isSymmetric())
 
    def checkSymmetry(self,verbose=True):
       """
@@ -2273,7 +2269,7 @@ class TransportPDE(LinearProblem):
           u=p.solve(dt)
 
    """
-   def __init__(self,domain,numEquations=None,numSolutions=None, theta=0.5,debug=False):
+   def __init__(self,domain,num_equations=None,numSolutions=None, theta=0.5,debug=False):
      """
      initializes a linear problem
 
@@ -2288,8 +2284,8 @@ class TransportPDE(LinearProblem):
 
      """
      if theta<0 or theta>1:
-              raise ValueError,"theta (=%s) needs to be between 0 and 1 (inclusive)."%theta
-     super(TransportPDE, self).__init__(domain,numEquations,numSolutions,debug)
+              raise ValueError,"theta (=%s) needs to be between 0 and 1 (inclusive)."
+     super(TransportPDE, self).__init__(domain,num_equations,numSolutions,debug)
 
      self.__theta=theta
      #
@@ -2338,7 +2334,12 @@ class TransportPDE(LinearProblem):
       @rtype: float
       """
       return self.__theta
-
+   def getRequiredSystemType(self):
+      """
+      returns the system type which needs to be used by the current set up.
+      """
+      return 0
+      return self.getDomain().getTransportMatrixTypeId(self.getSolverMethod()[0],self.getSolverMethod()[1],self.getSolverPackage(),self.isSymmetric())
 
    def checkSymmetry(self,verbose=True):
       """
@@ -2428,7 +2429,6 @@ class TransportPDE(LinearProblem):
       """
       super(TransportPDE,self).setValue(**coefficients)
 
-
    def createOperator(self): 
        """
        returns an instance of a new transport operator
@@ -2440,51 +2440,6 @@ class TransportPDE(LinearProblem):
                                self.getFunctionSpaceForSolution(), \
                                self.getSystemType())
 
-   def setInitialSolution(self,u):
-       """
-       sets the initial solution 
-    
-       @param u: new initial solution
-       @type u: any object that can ne interpolated to a L{Data<escript.Data>} object on on L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}.
-       @note: C{u} must be non negative.
-       """
-       u2=util.interpolate(u,self.getFunctionSpaceForSolution())
-       if self.getNumSolutions() == 1:
-          if u2.getShape()!=():
-              raise ValueError,"Illegal shape %s of initial solution."%(u2.getShape(),)
-       else:
-          if u2.getShape()!=(self.getNumSolutions(),):
-              raise ValueError,"Illegal shape %s of initial solution."%(u2.getShape(),)
-       self.getOperator().setInitialValue(u2)
-   def getRequiredSystemType(self):
-      """
-      returns the system type which needs to be used by the current set up.
-
-      @return: a code to indicate the type of transport problem scheme used.
-      @rtype: C{float}
-      """
-      return self.getDomain().getTransportTypeId(self.getSolverMethod()[0],self.getSolverMethod()[1],self.getSolverPackage(),self.isSymmetric())
-
-   def getUnlimitedTimeStepSize(self):
-      """
-      returns the value returned by the C{getSafeTimeStepSize} method to indicate no limit on the save time step size.
-
-       @return: the value used to indicate that no limit is set to the time step size
-       @rtype: C{float}
-       @note: Typically the biggest positive float is returned.
-      """
-      return self.getOperator().getUnlimitedTimeStepSize()
-
-   def getSafeTimeStepSize(self):
-       """
-       returns a safe time step size to do the next time step.
-
-       @return: safe time step size
-       @rtype: C{float}
-       @note: If not C{getSafeTimeStepSize()} < C{getUnlimitedTimeStepSize()} any time step size can be used.
-       """
-       return self.getOperator().getSafeTimeStepSize()
-   #====================================================================
    def getSolution(self,dt,**options): 
        """
        returns the solution of the problem
@@ -2493,12 +2448,15 @@ class TransportPDE(LinearProblem):
 
        @note: This method is overwritten when implementing a particular linear problem.
        """
-       if dt<=0:
-           raise ValueError,"step size needs to be positive."
-       options[self.TOLERANCE_KEY]=self.getTolerance()
-       self.setSolution(self.getOperator().solve(self.getRightHandSide(),dt,options))
-       self.validSolution()
+       if not self.isSolutionValid():
+           options[self.TOLERANCE_KEY]=self.getTolerance()
+           self.setSolution(self.getOperator().solve(self.getRightHandSide(),dt,options))
+           self.validSolution()
        return self.getCurrentSolution()
+   def setInitialSolution(self,u):
+       self.getOperator().setInitialValue(util.interpolate(u,self.getFunctionSpaceForSolution()))
+   def getSafeTimeStepSize(self):
+       return self.getOperator().getSafeTimeStepSize()
 
    def getSystem(self): 
        """
@@ -2528,20 +2486,6 @@ class TransportPDE(LinearProblem):
                             self.getCoefficient("y"),
                             self.getCoefficient("d_contact"),
                             self.getCoefficient("y_contact"))
-          self.getDomain().addPDEToTransportProblem(
-                            operator,
-                            righthandside,
-                            self.getCoefficient("M_reduced"),
-                            self.getCoefficient("A_reduced"),
-                            self.getCoefficient("B_reduced"),
-                            self.getCoefficient("C_reduced"),
-                            self.getCoefficient("D_reduced"),
-                            self.getCoefficient("X_reduced"),
-                            self.getCoefficient("Y_reduced"),
-                            self.getCoefficient("d_reduced"),
-                            self.getCoefficient("y_reduced"),
-                            self.getCoefficient("d_contact_reduced"),
-                            self.getCoefficient("y_contact_reduced"))
           operator.insertConstraint(righthandside,self.getCoefficient("q"),self.getCoefficient("r"))
           self.trace("New system has been built.")
           self.validOperator()

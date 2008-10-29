@@ -16,7 +16,7 @@
 #define escript_DataTagged_20040615_H
 #include "system_dep.h"
 
-#include "DataAbstract.h"
+#include "DataReady.h"
 #include "DataTypes.h"
 
 #include <vector>
@@ -37,8 +37,8 @@ class DataConstant;
    dataPointNo values.
 */
 
-class DataTagged : public DataAbstract {
-
+class DataTagged : public DataReady {
+typedef DataReady parent;
  public:
 
   //
@@ -64,6 +64,30 @@ class DataTagged : public DataAbstract {
   */
   ESCRIPT_DLL_API
   DataTagged();
+
+//  /**
+//      \brief
+//      Constructor for DataTagged.
+// 
+//      Description:
+//      Constructor for DataTagged.
+//      \param tagKeys - Input - A vector of integer tags.
+//      \param values - Input - A vector of DataArrayViews. If this is empty
+//                      all tag values will be assigned a scalar data-point of value
+//                      0. If it contains one value all tag values will be assigned
+// 		     this value. Otherwise consecutive tags will be assigned 
+//                      consecutive values.  If there is a mismatch between  the
+// 		     number of keys and the number of values an exception 
+// 		     will be generated.
+//      \param defaultValue - Input - Value returned if a requested tag doesn't exist.
+//      \param what - Input - A description of what this data represents.
+//     T
+//  */
+//   ESCRIPT_DLL_API
+//   DataTagged(const TagListType& tagKeys,
+//              const ValueListType& values,
+// 	     const DataArrayView& defaultValue,
+// 	     const FunctionSpace& what);
 
   /**
      \brief
@@ -143,6 +167,14 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   ESCRIPT_DLL_API
   inline virtual
   ~DataTagged() {};
+
+  ESCRIPT_DLL_API
+  bool
+  isTagged() const 
+  {
+    return true;
+  };
+
 
   /**
      \brief Return a deep copy of the current object.
@@ -228,6 +260,51 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
+  ESCRIPT_DLL_API
+  virtual
+  ValueType::size_type
+  getPointOffset(int sampleNo,
+                 int dataPointNo);
+
+
+
+//  /**
+//      \brief
+//      addTaggedValues
+// 
+//      Description:
+//      Add the given tags and values to this DataTagged object.
+//      \param tagKeys - Input - A vector of integer tags.
+//      \param values - Input - A vector of DataArrayViews. If this is empty
+//                      all tag values will be assigned a scalar data-point of value
+//                      0. If it contains one value all tag values will be assigned
+// 		     this value. Otherwise consecutive tags will be assigned 
+//                      consecutive values.  If there is a mismatch between  the
+// 		     number of keys and the number of values an exception 
+// 		     will be generated.
+//     T
+//  */
+//   ESCRIPT_DLL_API
+//   void
+//   addTaggedValues(const TagListType& tagKeys,
+//                   const ValueListType& values);  
+
+//  /**
+//      \brief
+//      addTaggedValue
+// 
+//      Description:
+//      Add a single tag and value to this DataTagged object. If this tag already has
+//      a value associated with it, setTaggedValue will be used to update this value.
+//      \param tagKey - Input - Integer tag.
+//      \param value - Input - Single DataArrayView value to be assigned to the tag.
+//     T
+ // */
+//   ESCRIPT_DLL_API
+//   void
+//   addTaggedValue(int tagKey,
+//                  const DataArrayView& value);
+
 
 
  /**
@@ -312,6 +389,44 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   void
   addTag(int tagKey);
 
+
+//  /**
+//      \brief
+//      setTaggedValues
+// 
+//      Description:
+//      Set the given tags to the given values in this DataTagged object.
+//      \param tagKeys - Input - A vector of integer tag.
+//      \param values - Input - A vector of DataArrayViews. If this is empty
+//                      all tag values will be assigned a scalar data-point of value
+//                      0. If it contains one value all tag values will be assigned
+// 		     this value. Otherwise consecutive tags will be assigned 
+//                      consecutive values.  If there is a mismatch between  the
+// 		     number of keys and the number of values an exception 
+// 		     will be generated.
+//     T
+//  */
+//   ESCRIPT_DLL_API
+//   void
+//   setTaggedValues(const TagListType& tagKeys,
+//                   const ValueListType& values); 
+
+//  /**
+//      \brief
+//      setTaggedValue
+// 
+//      Description:
+//      Assign the given value to the given tag.
+//      \param tagKey - Input - Integer tag.
+//      \param value - Input - Single DataArrayView value to be assigned to the tag.
+//     T
+//  */
+//   ESCRIPT_DLL_API
+//   virtual
+//   void
+//   setTaggedValue(int tagKey,
+//                  const DataArrayView& value);
+
   /**
      \brief
      setTaggedValue
@@ -330,6 +445,20 @@ TODO Make sure to document the relationship between tags and data, ie: data also
 		 const DataTypes::ShapeType& pointshape,
                  const ValueType& value,
 		 int dataOffset=0);
+
+
+//  /**
+//      \brief
+//      getDataPointByTag
+// 
+//      Description:
+//      Return data-point associated with the given tag as a DataArrayView.
+//      \param tag - Input - Integer key.
+//     T
+//  */
+//   ESCRIPT_DLL_API
+//   DataArrayView
+//   getDataPointByTag(int tag) const;
 
   /**
      \brief
@@ -362,6 +491,23 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   ESCRIPT_DLL_API
   DataTypes::ValueType::size_type
   getOffsetForTag(int tag) const;
+
+//  /**
+//      \brief
+//      getDataPoint
+// 
+//      Description:
+//      Return the data-point specified by the given sample and data-point
+//      numbers as a DataArrayView.
+//      \param sampleNo - Input.
+//      \param dataPointNo - Input.
+//     T
+//  */
+//   ESCRIPT_DLL_API
+//   virtual
+//   DataArrayView
+//   getDataPoint(int sampleNo,
+//                int dataPointNo);
 
 
   /**
@@ -417,6 +563,23 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   ESCRIPT_DLL_API
   bool
   isCurrentTag(int tag) const;
+
+// /**
+//      \brief
+//      getDefaultValue
+// 
+//      Description:
+//      Return the default value. This value is associated with any tag which
+//      is not explicitly recorded in this DataTagged object's tag map.
+//     T
+//  */
+//   ESCRIPT_DLL_API
+//   DataArrayView&
+//   getDefaultValue();
+// 
+//   ESCRIPT_DLL_API
+//   const DataArrayView&
+//   getDefaultValue() const;
 
   /**
      \brief

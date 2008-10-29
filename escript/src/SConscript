@@ -34,12 +34,13 @@ sources = """
 	DataException.cpp
 	DataExpanded.cpp
 	DataFactory.cpp
+	DataLazy.cpp
 	DataMaths.cpp
+	DataReady.cpp
 	DataTagged.cpp
 	DataTypes.cpp
 	DataVector.cpp
 	DomainException.cpp
-	EscriptParams.cpp
 	FunctionSpace.cpp
 	FunctionSpaceException.cpp
 	FunctionSpaceFactory.cpp
@@ -66,12 +67,13 @@ headers = """
 	DataException.h
 	DataExpanded.h
 	DataFactory.h
+	DataLazy.h
 	DataMaths.h
+	DataReady.h
 	DataTagged.h
 	DataTypes.h
 	DataVector.h
 	DomainException.h
-	EscriptParams.h
 	FunctionSpace.h
 	FunctionSpaceException.h
 	FunctionSpaceFactory.h
