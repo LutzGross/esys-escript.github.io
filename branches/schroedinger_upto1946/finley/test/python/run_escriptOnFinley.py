@@ -95,7 +95,7 @@ class Test_DataOpsOnFinley(Test_Dump, Test_SetDataPointValue):
        self.domain =Rectangle(NE,NE+1,2)
        self.domain_with_different_number_of_samples =Rectangle(2*NE,NE+1,2)
        self.domain_with_different_number_of_data_points_per_sample =Rectangle(2*NE,NE+1,2,integrationOrder=2)
-       self.domain_with_different_sample_ordering =Rectangle(1,(NE+1)*NE,2)
+       self.domain_with_different_sample_ordering =Rectangle(NE,NE+1,2, optimize=True)
        self.filename_base=FINLEY_WORKDIR
 
    def tearDown(self):

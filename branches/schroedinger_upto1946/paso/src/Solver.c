@@ -228,7 +228,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                            errorCode = Paso_Solver_TFQMR(A, r, x, &cntIter, &tol, pp);
                            break;
                         case PASO_MINRES:
-                           errorCode = Paso_Solver_MINRES(A, r, x, &cntIter, &tolerance, &tol, pp);
+                           errorCode = Paso_Solver_MINRES(A, r, x, &cntIter, &tol, pp);
                            break;
                         case PASO_PRES20:
                            errorCode = Paso_Solver_GMRES(A, r, x, &cntIter, &tol,5,20, pp); 

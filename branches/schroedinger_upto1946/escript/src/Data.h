@@ -818,10 +818,13 @@ contains datapoints.
   /**
      \brief
      Return the maximum absolute value of this Data object.
+
      The method is not const because lazy data needs to be expanded before Lsup can be computed.
      The _const form can be used when the Data object is const, however this will only work for
      Data which is not Lazy.
-     *
+
+     For Data which contain no samples (or tagged Data for which no tags in use have a value)
+     zero is returned.
   */
   ESCRIPT_DLL_API
   double
@@ -835,10 +838,13 @@ contains datapoints.
   /**
      \brief
      Return the maximum value of this Data object.
+
      The method is not const because lazy data needs to be expanded before sup can be computed.
      The _const form can be used when the Data object is const, however this will only work for
      Data which is not Lazy.
-     *
+
+     For Data which contain no samples (or tagged Data for which no tags in use have a value)
+     a large negative value is returned.
   */
   ESCRIPT_DLL_API
   double
@@ -852,10 +858,13 @@ contains datapoints.
   /**
      \brief
      Return the minimum value of this Data object.
+
      The method is not const because lazy data needs to be expanded before inf can be computed.
      The _const form can be used when the Data object is const, however this will only work for
      Data which is not Lazy.
-     *
+
+     For Data which contain no samples (or tagged Data for which no tags in use have a value)
+     a large positive value is returned.
   */
   ESCRIPT_DLL_API
   double
