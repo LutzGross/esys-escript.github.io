@@ -52,12 +52,13 @@ const_DataAbstract_ptr DataAbstract::getPtr() const
 
 
 DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty):
-    m_noDataPointsPerSample(what.getNumDPPSample()),
     m_noSamples(what.getNumSamples()),
+    m_noDataPointsPerSample(what.getNumDPPSample()),
     m_functionSpace(what),
     m_shape(shape),
-    m_rank(DataTypes::getRank(shape)),
-    m_novalues(DataTypes::noValues(shape))
+    m_novalues(DataTypes::noValues(shape)),
+    m_rank(DataTypes::getRank(shape))
+
 {
     m_isempty=isDataEmpty;
 }
