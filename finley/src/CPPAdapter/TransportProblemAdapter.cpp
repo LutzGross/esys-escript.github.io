@@ -153,6 +153,11 @@ double TransportProblemAdapter::getSafeTimeStepSize() const
     return dt;
 }
 
+double TransportProblemAdapter::getUnlimitedTimeStepSize() const
+{
+    return LARGE_POSITIVE_FLOAT;
+}
+
 
 
 }  // end of namespace

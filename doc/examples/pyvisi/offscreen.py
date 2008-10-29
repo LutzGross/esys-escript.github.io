@@ -20,60 +20,47 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="http://www.uq.edu.au/esscc/escript-finley"
 
 """
+Author: Lutz Gross, l.gross@uq.edu.au
+Author: John Ngui, john.ngui@uq.edu.au
 Author: Ken Steube
 """
 
-# Example of creating an image in a file (without the need for an X connection)
-
-# Import the necessary modules.
-from esys.pyvisi import Scene, DataCollector, Map, ImageReader, Image, Camera
-from esys.pyvisi import GlobalPosition
+# Import the necesary modules.
+from esys.escript import *
+from esys.escript.linearPDEs import Poisson
+from esys.finley import Rectangle
+from esys.pyvisi import Scene, DataCollector, Map, Camera
 from esys.pyvisi.constant import *
-import os, sys
+import os
 
-PYVISI_EXAMPLE_MESHES_PATH = "data_meshes"
 PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images"
 X_SIZE = 400
-Y_SIZE = 400
-
-SCALAR_FIELD_POINT_DATA = "temperature"
-FILE_3D = "interior_3D.xml"
-LOAD_IMAGE_NAME = "flinders.jpg"
+Y_SIZE = 300
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
+# generate domain:
+mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
+# define characteristic function of Gamma
+x = mydomain.getX()
+gammaD = whereZero(x[0])+whereZero(x[1])
+# define PDE and get its solution u
+mypde = Poisson(domain=mydomain)
+mypde.setValue(f=1,q=gammaD)
+u = mypde.getSolution()
+
 # Create a Scene.
-s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
-        y_size = Y_SIZE)
+s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
 
-if not os.path.isfile("data_meshes/interior_3D.xml"):
-  print "Cannot find file data_meshes/interior_3D.xml"
-  sys.exit(1)
-
-# Create a DataCollector reading from a XML file.
-dc1 = DataCollector(source = Source.XML)
-dc1.setFileName(file_name = "data_meshes/interior_3D.xml")
+# Create a DataCollector reading directly from an escript object.
+dc = DataCollector(source = Source.ESCRIPT)
+dc.setData(sol = u)
 
 # Create a Map.
-m1 = Map(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST,
-        lut = Lut.COLOR, cell_to_point = False, outline = True)
-m1.setOpacity(0.3)
+Map(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST, 
+	  lut = Lut.COLOR, cell_to_point = False, outline = True)
 
-# Create an ImageReader (in place of DataCollector).
-ir = ImageReader(ImageFormat.JPG)
-ir.setImageName(image_name =  os.path.join(PYVISI_EXAMPLE_MESHES_PATH, \
-        LOAD_IMAGE_NAME))
+# Create a Camera.
+c = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 
-# Create an Image.
-i = Image(scene = s, image_reader = ir, viewport = Viewport.SOUTH_WEST)
-i.setOpacity(opacity = 0.9)
-i.translate(0,0,-1)
-i.setPoint1(GlobalPosition(2,0,0))
-i.setPoint2(GlobalPosition(0,2,0))
-
-# Create a Camera. 
-c1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
-
-# Render the image.
-print "Creating image file ./offscreen.jpg"
+# Render the object.
 s.render(image_name = "offscreen.jpg")
-
