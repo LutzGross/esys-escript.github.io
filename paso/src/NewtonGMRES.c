@@ -93,7 +93,7 @@ err_t Paso_Solver_NewtonGMRES(
           * keep track of the ratio (reduction_f = norm_f/frnmo) of successive residual norms and 
           * the iteration counter (iteration_count)
           */
-         if (debug) printf("iteration step %d: norm of F =%lg\n",iteration_count,norm_f);
+         if (debug) printf("iteration step %d: norm of F =%g\n",iteration_count,norm_f);
          /*
           * call GMRES to get increment
           */

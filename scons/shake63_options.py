@@ -26,8 +26,9 @@
 # omp_libs		= []
 
 # Use the default C/C++ flags but add something only for this host:
-cc_extra		= '-ansi -Wno-pragmas -Wno-unknown-pragmas -Wall'
+#cc_extra		= '-ansi -Wno-pragmas -Wno-unknown-pragmas -Wall'
 # for extra pedantry add -Weffc++ -Wall  to the above
+#cc_extra		= '-Wall -isystem /usr/include/boost/'
 # ld_extra		= ''
 
 # Be picky about errors

@@ -27,12 +27,13 @@ from math import pi, ceil
 
 
 def removeRestartDirectory(dir_name):
-   if os.path.isdir(dir_name):
+   if dom.onMasterProcessor() and os.path.isdir(dir_name):
        for root, dirs, files in os.walk(dir_name, topdown=False):
            for name in files: os.remove(os.path.join(root,name))
            for name in dirs: os.remove(os.path.join(root,name))
        os.rmdir(dir_name)
        print "Restart files %s have been removed."%dir_name
+   dom.MPIBarrier()
 
 
 import sys
@@ -143,7 +144,7 @@ if restart:
    else:
       dt_a=None
       a=None
-   if dom.getMPIRank()==0: nusselt_file=open("nusselt.csv","a")
+   if dom.onMasterProcessor(): nusselt_file=open("nusselt.csv","a")
 else:
   if DIM==2:
     dom=Rectangle(int(ceil(L*NE/H)),NE,l0=L,l1=H,order=2, useFullElementOrder=True,optimize=True)
@@ -166,7 +167,7 @@ else:
   stress=Tensor(0,Function(dom))
   x2=ReducedSolution(dom).getX()
   p=-RA*(x2[DIM-1]-0.5*x2[DIM-1]**2)
-  if dom.getMPIRank() ==0: nusselt_file=open("nusselt.csv","w")
+  if dom.onMasterProcessor(): nusselt_file=open("nusselt.csv","w")
   t=0
   t_out=0
   n_out=0
@@ -231,7 +232,7 @@ while t<T_END:
     se=sp.getMechanicalPower()
     print "Xse:",inf(se),sup(se)
     Nu=1.+integrate(se)/(RA*vol)
-    if dom.getMPIRank() ==0: nusselt_file.write("%e %e\n"%(t,Nu))
+    if dom.onMasterProcessor(): nusselt_file.write("%e %e\n"%(t,Nu))
     heat.setValue(v=interpolate(v,ReducedSolution(dom)),Q=DI/RA*se)
     print "Xnusselt number = ",Nu, "dt =",dt
     if n>0:
@@ -264,7 +265,8 @@ while t<T_END:
          new_restart_dir="restart_%s_"%c
 
          print "Write restart files to ",new_restart_dir
-         if not os.path.isdir(new_restart_dir): os.mkdir(new_restart_dir)
+         if dom.onMasterProcessor() and not os.path.isdir(new_restart_dir): os.mkdir(new_restart_dir)
+	 dom.MPIBarrier()
          sp.getStress().dump(os.path.join(new_restart_dir,"stress.nc"))
          sp.getVelocity().dump(os.path.join(new_restart_dir,"v.nc"))
          sp.getPressure().dump(os.path.join(new_restart_dir,"p.nc"))

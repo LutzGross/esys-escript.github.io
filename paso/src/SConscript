@@ -96,6 +96,7 @@ headers = """
 	PasoUtil.h
 	Paso_MPI.h
 	Pattern.h
+	Pattern_coupling.h
 	SCSL.h
 	SharedComponents.h
 	Solver.h

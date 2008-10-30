@@ -146,8 +146,8 @@ DataTagged::DataTagged(const FunctionSpace& what,
 
 DataTagged::DataTagged(const DataTagged& other)
   : parent(other.getFunctionSpace(),other.getShape()),
-  m_data(other.m_data),
-  m_offsetLookup(other.m_offsetLookup)
+  m_offsetLookup(other.m_offsetLookup),
+  m_data(other.m_data)
 {
   // copy constructor
 
@@ -201,9 +201,7 @@ DataTagged::DataTagged(const FunctionSpace& what,
 
   if (tagsource!=0)
   {
-	int numtags=tagsource->getTagLookup().size();
-	//  m_offsetLookup.reserve(tagsource.getTagLookup().size());
-	m_data.resize(defaultvalue.size(),0.);	// since this is tagged data, we should have blocksize=1
+       m_data.resize(defaultvalue.size(),0.);	// since this is tagged data, we should have blocksize=1
 
        DataTagged::DataMapType::const_iterator i;
        for (i=tagsource->getTagLookup().begin();i!=tagsource->getTagLookup().end();i++) {
@@ -214,8 +212,6 @@ DataTagged::DataTagged(const FunctionSpace& what,
   {
 	m_data.resize(defaultvalue.size());
   }
-
-
 
   // need to set the default value ....
   for (int i=0; i<defaultvalue.size(); i++) {
