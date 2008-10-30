@@ -60,6 +60,15 @@ int AbstractDomain::getMPIRank() const
 {
    return 0;
 }
+void AbstractDomain::MPIBarrier() const
+{
+   return;
+}
+bool AbstractDomain::onMasterProcessor() const
+{
+   return true;
+}
+
 
 
 void AbstractDomain::throwStandardException(const std::string& functionName) const

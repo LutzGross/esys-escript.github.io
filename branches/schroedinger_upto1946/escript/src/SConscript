@@ -41,6 +41,7 @@ sources = """
 	DataTypes.cpp
 	DataVector.cpp
 	DomainException.cpp
+	EscriptParams.cpp
 	FunctionSpace.cpp
 	FunctionSpaceException.cpp
 	FunctionSpaceFactory.cpp
@@ -74,6 +75,7 @@ headers = """
 	DataTypes.h
 	DataVector.h
 	DomainException.h
+	EscriptParams.h
 	FunctionSpace.h
 	FunctionSpaceException.h
 	FunctionSpaceFactory.h

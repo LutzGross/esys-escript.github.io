@@ -26,6 +26,7 @@
 #include "DataTypes.h"
 #include "Data.h"
 #include "UnaryFuncs.h"		// for escript::fsign
+#include "Utils.h"
 
 /*
 How does DataLazy work?

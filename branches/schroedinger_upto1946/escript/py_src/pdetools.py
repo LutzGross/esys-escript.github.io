@@ -560,15 +560,184 @@ type like argument C{x}.
 
    return x,r
 
+class Defect(object):
+    """
+    defines a non-linear defect F(x) of a variable x
+    """
+    def __init__(self):
+        """
+        initialize defect
+        """
+        self.setDerivativeIncrementLength()
 
-############################
-# Added by Artak
-#################################3
+    def bilinearform(self, x0, x1):
+        """
+        returns the inner product of x0 and x1
+        @param x0: a value for x
+        @param x1: a value for x
+        @return: the inner product of x0 and x1
+        @rtype: C{float}
+        """
+        return 0
+      
+    def norm(self,x):
+        """
+        the norm of argument C{x}
+ 
+        @param x: a value for x
+        @return: norm of argument x
+        @rtype: C{float}
+        @note: by default C{sqrt(self.bilinearform(x,x)} is retrurned.
+        """
+        s=self.bilinearform(x,x)
+        if s<0: raise NegativeNorm,"negative norm."
+        return math.sqrt(s)
 
-#Apply a sequence of k Givens rotations, used within gmres codes
-# vrot=givapp(c, s, vin, k)
-def givapp(c,s,vin):
-    vrot=vin # warning: vin is altered!!!!
+
+    def eval(self,x):
+        """
+        returns the value F of a given x
+
+        @param x: value for which the defect C{F} is evalulated.
+        @return: value of the defect at C{x}
+        """
+        return 0
+
+    def __call__(self,x):
+        return self.eval(x)
+
+    def setDerivativeIncrementLength(self,inc=math.sqrt(util.EPSILON)):
+        """
+        sets the relative length of the increment used to approximate the derivative of the defect
+        the increment is inc*norm(x)/norm(v)*v in the direction of v with x as a staring point.
+
+        @param inc: relative increment length
+        @type inc: positive C{float}
+        """
+        if inc<=0: raise ValueError,"positive increment required."
+        self.__inc=inc
+
+    def getDerivativeIncrementLength(self):
+        """
+        returns the relative increment length used to approximate the derivative of the defect
+        @return: value of the defect at C{x}
+        @rtype: positive C{float}
+        """
+        return self.__inc
+
+    def derivative(self, F0, x0, v, v_is_normalised=True):
+        """
+        returns the directional derivative at x0 in the direction of v
+
+        @param F0: value of this defect at x0
+        @param x0: value at which derivative is calculated.
+        @param v: direction
+        @param v_is_normalised: is true to indicate that C{v} is nomalized (self.norm(v)=0)
+        @return: derivative of this defect at x0 in the direction of C{v}
+        @note: by default numerical evaluation (self.eval(x0+eps*v)-F0)/eps is used but this method
+        maybe oepsnew verwritten to use exact evalution.
+        """
+        normx=self.norm(x0)
+        if normx>0:
+             epsnew = self.getDerivativeIncrementLength() * normx
+        else:
+             epsnew = self.getDerivativeIncrementLength()
+        if not v_is_normalised:
+            normv=self.norm(v)
+            if normv<=0:
+               return F0*0
+            else:
+               epsnew /= normv
+        F1=self.eval(x0 + epsnew * v)
+        return (F1-F0)/epsnew
+
+######################################    
+def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub_tol_max=0.5, gamma=0.9, verbose=False):
+   """
+   solves a non-linear problem M{F(x)=0} for unknown M{x} using the stopping criterion:
+
+   M{norm(F(x) <= atol + rtol * norm(F(x0)}
+  
+   where M{x0} is the initial guess.
+
+   @param defect: object defining the the function M{F}, C{defect.norm} defines the M{norm} used in the stopping criterion.
+   @type defect: L{Defect}
+   @param x: initial guess for the solution, C{x} is altered.
+   @type x: any object type allowing basic operations such as  L{numarray.NumArray}, L{Data}
+   @param iter_max: maximum number of iteration steps 
+   @type iter_max: positive C{int}
+   @param sub_iter_max: 
+   @type sub_iter_max:
+   @param atol: absolute tolerance for the solution
+   @type atol: positive C{float}
+   @param rtol: relative tolerance for the solution
+   @type rtol: positive C{float}
+   @param gamma: tolerance safety factor for inner iteration
+   @type gamma: positive C{float}, less than 1
+   @param sub_tol_max: upper bound for inner tolerance.
+   @type sub_tol_max: positive C{float}, less than 1
+   @return: an approximation of the solution with the desired accuracy
+   @rtype: same type as the initial guess.
+   """
+   lmaxit=iter_max
+   if atol<0: raise ValueError,"atol needs to be non-negative."
+   if rtol<0: raise ValueError,"rtol needs to be non-negative."
+   if rtol+atol<=0: raise ValueError,"rtol or atol needs to be non-negative."
+   if gamma<=0 or gamma>=1: raise ValueError,"tolerance safety factor for inner iteration (gamma =%s) needs to be positive and less than 1."%gamma
+   if sub_tol_max<=0 or sub_tol_max>=1: raise ValueError,"upper bound for inner tolerance for inner iteration (sub_tol_max =%s) needs to be positive and less than 1."%sub_tol_max
+
+   F=defect(x)
+   fnrm=defect.norm(F)
+   stop_tol=atol + rtol*fnrm
+   sub_tol=sub_tol_max
+   if verbose: print "NewtonGMRES: initial residual = %e."%fnrm
+   if verbose: print "             tolerance = %e."%sub_tol
+   iter=1
+   #
+   # main iteration loop
+   #
+   while not fnrm<=stop_tol:
+            if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max 
+            #
+	    #   adjust sub_tol_ 
+	    #
+            if iter > 1:
+	       rat=fnrm/fnrmo
+               sub_tol_old=sub_tol
+	       sub_tol=gamma*rat**2
+	       if gamma*sub_tol_old**2 > .1: sub_tol=max(sub_tol,gamma*sub_tol_old**2)
+	       sub_tol=max(min(sub_tol,sub_tol_max), .5*stop_tol/fnrm)
+	    #
+	    # calculate newton increment xc
+            #     if iter_max in __FDGMRES is reached MaxIterReached is thrown
+            #     if iter_restart -1 is returned as sub_iter
+            #     if  atol is reached sub_iter returns the numer of steps performed to get there
+            # 
+            #   
+            if verbose: print "             subiteration (GMRES) is called with relative tolerance %e."%sub_tol
+            try:
+               xc, sub_iter=__FDGMRES(F, defect, x, sub_tol*fnrm, iter_max=iter_max-iter, iter_restart=sub_iter_max)
+            except MaxIterReached:
+               raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+            if sub_iter<0:
+               iter+=sub_iter_max
+            else:
+               iter+=sub_iter
+            # ====
+	    x+=xc
+            F=defect(x)
+	    iter+=1
+            fnrmo, fnrm=fnrm, defect.norm(F)
+            if verbose: print "             step %s: residual %e."%(iter,fnrm)
+   if verbose: print "NewtonGMRES: completed after %s steps."%iter
+   return x
+
+def __givapp(c,s,vin):
+    """
+    apply a sequence of Givens rotations (c,s) to the recuirsively to the vector vin
+    @warning: C{vin} is altered.
+    """
+    vrot=vin 
     if isinstance(c,float):
         vrot=[c*vrot[0]-s*vrot[1],s*vrot[0]+c*vrot[1]]
     else:
@@ -578,6 +747,92 @@ def givapp(c,s,vin):
             vrot[i:i+2]=w1,w2
     return vrot
 
+def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
+   h=numarray.zeros((iter_restart,iter_restart),numarray.Float64)
+   c=numarray.zeros(iter_restart,numarray.Float64)
+   s=numarray.zeros(iter_restart,numarray.Float64)
+   g=numarray.zeros(iter_restart,numarray.Float64)
+   v=[]
+
+   rho=defect.norm(F0)
+   if rho<=0.: return x0*0
+   
+   v.append(-F0/rho)
+   g[0]=rho
+   iter=0
+   while rho > atol and iter<iter_restart-1:
+
+	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+
+        p=defect.derivative(F0,x0,v[iter], v_is_normalised=True)
+	v.append(p)
+
+	v_norm1=defect.norm(v[iter+1])
+
+        # Modified Gram-Schmidt	
+	for j in range(iter+1): 
+	     h[j][iter]=defect.bilinearform(v[j],v[iter+1])   
+	     v[iter+1]-=h[j][iter]*v[j]
+       
+	h[iter+1][iter]=defect.norm(v[iter+1])
+	v_norm2=h[iter+1][iter]
+
+        # Reorthogonalize if needed
+	if v_norm1 + 0.001*v_norm2 == v_norm1:   #Brown/Hindmarsh condition (default)
+   	    for j in range(iter+1):  
+	       hr=defect.bilinearform(v[j],v[iter+1])
+      	       h[j][iter]=h[j][iter]+hr 
+      	       v[iter+1] -= hr*v[j]
+
+   	    v_norm2=defect.norm(v[iter+1])
+	    h[iter+1][iter]=v_norm2
+        #   watch out for happy breakdown 
+        if not v_norm2 == 0:
+                v[iter+1]=v[iter+1]/h[iter+1][iter]
+
+        #   Form and store the information for the new Givens rotation
+	if iter > 0 :
+		hhat=numarray.zeros(iter+1,numarray.Float64)
+		for i in range(iter+1) : hhat[i]=h[i][iter]
+		hhat=__givapp(c[0:iter],s[0:iter],hhat);
+	        for i in range(iter+1) : h[i][iter]=hhat[i]
+
+	mu=math.sqrt(h[iter][iter]*h[iter][iter]+h[iter+1][iter]*h[iter+1][iter])
+
+	if mu!=0 :
+		c[iter]=h[iter][iter]/mu
+		s[iter]=-h[iter+1][iter]/mu
+		h[iter][iter]=c[iter]*h[iter][iter]-s[iter]*h[iter+1][iter]
+		h[iter+1][iter]=0.0
+		g[iter:iter+2]=__givapp(c[iter],s[iter],g[iter:iter+2])
+
+        # Update the residual norm
+        rho=abs(g[iter+1])
+	iter+=1
+
+   # At this point either iter > iter_max or rho < tol.
+   # It's time to compute x and leave.        
+   if iter > 0 : 
+     y=numarray.zeros(iter,numarray.Float64)	
+     y[iter-1] = g[iter-1] / h[iter-1][iter-1]
+     if iter > 1 :	
+        i=iter-2   
+        while i>=0 :
+          y[i] = ( g[i] - numarray.dot(h[i][i+1:iter], y[i+1:iter])) / h[i][i]
+          i=i-1
+     xhat=v[iter-1]*y[iter-1]
+     for i in range(iter-1):
+	xhat += v[i]*y[i]
+   else : 
+      xhat=v[0] * 0
+
+   if iter<iter_restart-1: 
+      stopped=iter
+   else: 
+      stopped=-1
+
+   return xhat,stopped
+
 ##############################################
 def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100, iter_restart=20):
 ################################################
@@ -586,12 +841,12 @@ def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=10
    xc=x
    while True:
       if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached"%iter_max
-      xc,stopped=GMRESm(b*1, Aprod, Msolve, bilinearform, stoppingcriterium, x=xc*1, iter_max=iter_max-iter, iter_restart=m)
+      xc,stopped=__GMRESm(b*1, Aprod, Msolve, bilinearform, stoppingcriterium, x=xc*1, iter_max=iter_max-iter, iter_restart=m)
       if stopped: break
       iter+=iter_restart	
    return xc
 
-def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100, iter_restart=20):
+def __GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100, iter_restart=20):
    iter=0
    r=Msolve(b)
    r_dot_r = bilinearform(r, r)
@@ -652,7 +907,7 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
 	if iter > 0 :
 		hhat=numarray.zeros(iter+1,numarray.Float64)
 		for i in range(iter+1) : hhat[i]=h[i][iter]
-		hhat=givapp(c[0:iter],s[0:iter],hhat);
+		hhat=__givapp(c[0:iter],s[0:iter],hhat);
 	        for i in range(iter+1) : h[i][iter]=hhat[i]
 
 	mu=math.sqrt(h[iter][iter]*h[iter][iter]+h[iter+1][iter]*h[iter+1][iter])
@@ -662,7 +917,7 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
 		s[iter]=-h[iter+1][iter]/mu
 		h[iter][iter]=c[iter]*h[iter][iter]-s[iter]*h[iter+1][iter]
 		h[iter+1][iter]=0.0
-		g[iter:iter+2]=givapp(c[iter],s[iter],g[iter:iter+2])
+		g[iter:iter+2]=__givapp(c[iter],s[iter],g[iter:iter+2])
 
 # Update the residual norm
                
@@ -685,142 +940,6 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
 	xhat += v[i]*y[i]
    else : xhat=v[0] 
 
-   x += xhat
-   if iter<iter_restart-1: 
-      stopped=True 
-   else: 
-      stopped=False
-
-   return x,stopped
-
-
-######################################################
-def dirder(x, w, bilinearform, Aprod, Msolve, f0, b ):
-######################################################
-
-# DIRDER estimates the directional derivative of a function F.
-
-
-# Hardwired difference increment.
-#
-  epsnew = 1.0e-07
-#
-#  Scale the step.
-#
-  norm_w=math.sqrt(bilinearform(w,w))
-  if norm_w== 0.0:
-    return x/x
-
-  epsnew = epsnew / norm_w
-
-  if norm_w > 0.0: 
-    epsnew = epsnew * math.sqrt(bilinearform(x,x))
-#
-#  DEL and F1 could share the same space if storage
-#  is more important than clarity.
-#
-
-  DEL = x + epsnew * w
-  f1 = -Msolve(Aprod(DEL))
-  z = ( f1 - f0 ) / epsnew
-  return z
-
-######################################################
-def FDGMRES(f0, Aprod, Msolve, bilinearform, stoppingcriterium, xc=None, x=None, iter_max=100, iter_restart=20,TOL=None):
-######################################################
-   b=-f0
-   b_dot_b = bilinearform(b, b)
-   if b_dot_b<0: raise NegativeNorm,"negative norm."
-   norm_b=math.sqrt(b_dot_b)
-
-   r=b
-
-   if x==None:
-      x=0*f0
-   else:
-      r=-dirder(xc,x,bilinearform,Aprod,Msolve,f0,b)-f0   
-      
-   r_dot_r = bilinearform(r, r)
-   if r_dot_r<0: raise NegativeNorm,"negative norm."
-   
-   h=numarray.zeros((iter_restart,iter_restart),numarray.Float64)
-   c=numarray.zeros(iter_restart,numarray.Float64)
-   s=numarray.zeros(iter_restart,numarray.Float64)
-   g=numarray.zeros(iter_restart,numarray.Float64)
-   v=[]
-
-   rho=math.sqrt(r_dot_r)
-   
-   v.append(r/rho)
-   g[0]=rho
-   iter=0
-
-   while not (stoppingcriterium(rho,norm_b,solver="FDGMRES",TOL=TOL) or iter==iter_restart-1):
-
-	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
-
-	
-        p=dirder(xc, v[iter], bilinearform,Aprod,Msolve,f0,b)
-
-	v.append(p)
-
-	v_norm1=math.sqrt(bilinearform(v[iter+1], v[iter+1]))  
-
-# Modified Gram-Schmidt	
-	for j in range(iter+1):
-	  h[j][iter]=bilinearform(v[j],v[iter+1])   
-	  v[iter+1]+=(-1.)*h[j][iter]*v[j]
-       
-	h[iter+1][iter]=math.sqrt(bilinearform(v[iter+1],v[iter+1])) 
-	v_norm2=h[iter+1][iter]
-
-
-# Reorthogonalize if needed
-	if v_norm1 + 0.001*v_norm2 == v_norm1:   #Brown/Hindmarsh condition (default)
-   	 for j in range(iter+1):
-	    hr=bilinearform(v[j],v[iter+1])
-      	    h[j][iter]=h[j][iter]+hr #vhat
-      	    v[iter+1] +=(-1.)*hr*v[j]
-
-   	 v_norm2=math.sqrt(bilinearform(v[iter+1], v[iter+1]))  
-	 h[iter+1][iter]=v_norm2
-
-#   watch out for happy breakdown 
-        if v_norm2 != 0:
-         v[iter+1]=v[iter+1]/h[iter+1][iter]
-
-#   Form and store the information for the new Givens rotation
-	if iter > 0 :
-		hhat=[]
-		for i in range(iter+1) : hhat.append(h[i][iter])
-		hhat=givapp(c[0:iter],s[0:iter],hhat);
-	        for i in range(iter+1) : h[i][iter]=hhat[i]
-
-	mu=math.sqrt(h[iter][iter]*h[iter][iter]+h[iter+1][iter]*h[iter+1][iter])
-	if mu!=0 :
-		c[iter]=h[iter][iter]/mu
-		s[iter]=-h[iter+1][iter]/mu
-		h[iter][iter]=c[iter]*h[iter][iter]-s[iter]*h[iter+1][iter]
-		h[iter+1][iter]=0.0
-		g[iter:iter+2]=givapp(c[iter],s[iter],g[iter:iter+2])
-
-# Update the residual norm
-        rho=abs(g[iter+1])
-	iter+=1
-
-   if iter > 0 : 
-     y=numarray.zeros(iter,numarray.Float64)	
-     y[iter-1] = g[iter-1] / h[iter-1][iter-1]
-     if iter > 1 :	
-        i=iter-2   
-        while i>=0 :
-          y[i] = ( g[i] - numarray.dot(h[i][i+1:iter], y[i+1:iter])) / h[i][i]
-          i=i-1
-     xhat=v[iter-1]*y[iter-1]
-     for i in range(iter-1):
-	xhat += v[i]*y[i]
-   else : xhat=v[0] 
-    
    x += xhat
    if iter<iter_restart-1: 
       stopped=True 
@@ -983,68 +1102,6 @@ def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
 
     return x
 
-######################################    
-def NewtonGMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium,x=None, iter_max=100,iter_restart=20,atol=1.e-2,rtol=1.e-4):
-#####################################
-    gamma=.9
-    lmaxit=100
-    etamax=.5
-
-    n = 1 #len(x)
-    iter=0
-    
-    # evaluate f at the initial iterate
-    # compute the stop tolerance
-    #
-    r=b
-    if x==None:
-      x=0*b
-    else:
-      r += (-1)*Aprod(x) 
-
-    f0=-Msolve(r)
-    fnrm=math.sqrt(bilinearform(f0,f0))/math.sqrt(n)
-    fnrmo=1
-    stop_tol=atol + rtol*fnrm
-    #
-    # main iteration loop
-    #
-    while not stoppingcriterium(fnrm*1,stop_tol,'NewtonGMRES',TOL=1.):
-
-            if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max 
-	    #
-	    # keep track of the ratio (rat = fnrm/frnmo)
-	    # of successive residual norms and 
-	    # the iteration counter (iter)
-	    #
-	    #rat=fnrm/fnrmo
-	    fnrmo=fnrm 
-	    iter+=1
-	    #
-    	    # compute the step using a GMRES(m) routine especially designed for this purpose
-	    #
-            initer=0
-            while True:
-               xc,stopped=FDGMRES(f0*1, Aprod, Msolve, bilinearform, stoppingcriterium, xc=x*1, iter_max=lmaxit-initer, iter_restart=iter_restart, TOL=etamax)
-               if stopped: break
-               initer+=iter_restart
-	    x+=xc
-	    f0=-Msolve(Aprod(x))
-	    fnrm=math.sqrt(bilinearform(f0,f0))/math.sqrt(n)
-	    rat=fnrm/fnrmo
-
-
-	#   adjust eta 
-	#
-	    if etamax > 0:
-	        etaold=etamax
-	        etanew=gamma*rat*rat
-	        if gamma*etaold*etaold > .1 :
-	            etanew=max(etanew,gamma*etaold*etaold)
-	        etamax=min(etanew,etamax)
-	        etamax=max(etamax,.5*stop_tol/fnrm)
-    return x
-
 def TFQMR(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
 
 # TFQMR solver for linear systems
@@ -1200,13 +1257,13 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       other=1.*other
-       if isinstance(other,float):
-	for i in range(len(self)):
-           out.append(self[i]*other)
-       else:
-        for i in range(len(self)):
-           out.append(self[i]*other[i])
+       try:  
+           l=len(other)
+           if l!=len(self):
+               raise ValueError,"length of of arguments don't match."
+           for i in range(l): out.append(self[i]*other[i])
+       except TypeError:
+	   for i in range(len(self)): out.append(self[i]*other)
        return ArithmeticTuple(*tuple(out))
 
    def __rmul__(self,other):
@@ -1219,18 +1276,15 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       other=1.*other
-       if isinstance(other,float):
-	for i in range(len(self)):
-           out.append(other*self[i])
-       else:
-        for i in range(len(self)):
-           out.append(other[i]*self[i])
+       try:  
+           l=len(other)
+           if l!=len(self):
+               raise ValueError,"length of of arguments don't match."
+           for i in range(l): out.append(other[i]*self[i])
+       except TypeError:
+	   for i in range(len(self)): out.append(other*self[i])
        return ArithmeticTuple(*tuple(out))
 
-#########################
-# Added by Artak
-#########################
    def __div__(self,other):
        """
        dividing from the right 
@@ -1240,15 +1294,7 @@ class ArithmeticTuple(object):
        @return: itemwise self/other
        @rtype: L{ArithmeticTuple}
        """
-       out=[]
-       other=1.*other
-       if isinstance(other,float):
-	for i in range(len(self)):
-           out.append(self[i]*(1./other))
-       else:
-        for i in range(len(self)):
-           out.append(self[i]*(1./other[i]))
-       return ArithmeticTuple(*tuple(out))
+       return self*(1/other)
 
    def __rdiv__(self,other):
        """
@@ -1260,17 +1306,15 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       other=1.*other
-       if isinstance(other,float):
-        for i in range(len(self)):
-           out.append(other*(1./self[i]))
-       else:
-        for i in range(len(self)):
-           out.append(other[i]*(1./self[i]))
+       try:  
+           l=len(other)
+           if l!=len(self):
+               raise ValueError,"length of of arguments don't match."
+           for i in range(l): out.append(other[i]/self[i])
+       except TypeError:
+	   for i in range(len(self)): out.append(other/self[i])
        return ArithmeticTuple(*tuple(out))
   
-##########################################33
-
    def __iadd__(self,other):
        """
        in-place add of other to self
@@ -1291,16 +1335,15 @@ class ArithmeticTuple(object):
        @param other: increment
        @type other: C{ArithmeticTuple}
        """
-#      if not isinstance(other,float):
-       if len(self) != len(other):
-          raise ValueError,"tuple length must match."
-       for i in range(len(self)):
-          self.__items[i]+=other[i]
-#       else:
-#        for i in range(len(self)):
-#           self.__items[i]+=other
-
-       return self
+       out=[]
+       try:  
+           l=len(other)
+           if l!=len(self):
+               raise ValueError,"length of of arguments don't match."
+           for i in range(l): out.append(self[i]+other[i])
+       except TypeError:
+	   for i in range(len(self)): out.append(self[i]+other)
+       return ArithmeticTuple(*tuple(out))
 
    def __sub__(self,other):
        """
@@ -1309,11 +1352,15 @@ class ArithmeticTuple(object):
        @param other: increment
        @type other: C{ArithmeticTuple}
        """
-       if len(self) != len(other):
-           raise ValueError,"tuple length must match."
-       for i in range(len(self)):
-           self.__items[i]-=other[i]
-       return self
+       out=[]
+       try:  
+           l=len(other)
+           if l!=len(self):
+               raise ValueError,"length of of arguments don't match."
+           for i in range(l): out.append(self[i]-other[i])
+       except TypeError:
+	   for i in range(len(self)): out.append(self[i]-other)
+       return ArithmeticTuple(*tuple(out))
    
    def __isub__(self,other):
        """
@@ -1333,14 +1380,15 @@ class ArithmeticTuple(object):
        negate 
 
        """
+       out=[]
        for i in range(len(self)):
-           self.__items[i]=-self.__items[i]
-       return self
+           out.append(-self[i])
+       return ArithmeticTuple(*tuple(out))
 
 
 class HomogeneousSaddlePointProblem(object):
       """
-      This provides a framwork for solving homogeneous saddle point problem of the form
+      This provides a framwork for solving linear homogeneous saddle point problem of the form
 
              Av+B^*p=f
              Bv    =0
@@ -1460,15 +1508,6 @@ class HomogeneousSaddlePointProblem(object):
                 #       u=v+(u-v)
 		u=v+self.solve_A(v,p)
 
-	      if solver=='NewtonGMRES':   	
-                if self.verbose: print "enter NewtonGMRES method (iter_max=%s)"%max_iter
-                p=NewtonGMRES(Bz,self.__Aprod_Newton,self.__Msolve2,self.__inner_p,self.__stoppingcriterium2,iter_max=max_iter, x=p*1.,atol=0,rtol=self.getTolerance())
-                # solve Au=f-B^*p 
-                #       A(u-v)=f-B^*p-Av
-                #       u=v+(u-v)
-		u=v+self.solve_A(v,p)
-                
-
 	      if solver=='TFQMR':   	
                 if self.verbose: print "enter TFQMR method (iter_max=%s)"%max_iter
                 p=TFQMR(Bz,self.__Aprod2,self.__Msolve2,self.__inner_p,self.__stoppingcriterium2,iter_max=max_iter, x=p*1.)
@@ -1562,6 +1601,27 @@ class HomogeneousSaddlePointProblem(object):
           p=self.solve_prec1(self.B(v-self.__z))
           return ArithmeticTuple(v,p)
 
+
+def MaskFromBoundaryTag(domain,*tags):
+   """
+   create a mask on the Solution(domain) function space which one for samples 
+   that touch the boundary tagged by tags.
+
+   usage: m=MaskFromBoundaryTag(domain,"left", "right")
+
+   @param domain: a given domain
+   @type domain: L{escript.Domain}
+   @param tags: boundray tags
+   @type tags: C{str}
+   @return: a mask which marks samples that are touching the boundary tagged by any of the given tags.
+   @rtype: L{escript.Data} of rank 0
+   """
+   pde=linearPDEs.LinearPDE(domain,numEquations=1, numSolutions=1)
+   d=escript.Scalar(0.,escript.FunctionOnBoundary(function_space.getDomain()))
+   for t in tags: d.setTaggedValue(t,1.)
+   pde.setValue(y=d)
+   return util.whereNonZero(pde.getRightHandSide())
+#============================================================================================================================================
 class SaddlePointProblem(object):
    """
    This implements a solver for a saddlepoint problem
@@ -1592,6 +1652,7 @@ class SaddlePointProblem(object):
             raise TypeError("verbose needs to be of type bool.")
        self.__verbose=verbose
        self.relaxation=1.
+       DeprecationWarning("SaddlePointProblem should not be used anymore.")
 
    def trace(self,text):
        """
@@ -1765,49 +1826,3 @@ class SaddlePointProblem(object):
             f, norm_f, u, norm_u, g, norm_g, p, norm_p = f_new, norm_f_new, u_new, norm_u_new, g_new, norm_g_new, p_new, norm_p_new
         self.trace("convergence after %s steps."%self.iter)
         return u,p
-#   def solve(self,u0,p0,tolerance=1.e-6,iter_max=10,self.relaxation=1.):
-#      tol=1.e-2
-#      iter=0
-#      converged=False
-#      u=u0*1.
-#      p=p0*1.
-#      while not converged and iter<iter_max:
-#          du=self.solve_f(u,p,tol)
-#          u-=du
-#          norm_du=util.Lsup(du)
-#          norm_u=util.Lsup(u)
-#        
-#          dp=self.relaxation*self.solve_g(u,tol)
-#          p+=dp
-#          norm_dp=util.sqrt(self.inner(dp,dp))
-#          norm_p=util.sqrt(self.inner(p,p))
-#          print iter,"-th step rel. errror u,p= (%s,%s) (%s,%s)(%s,%s)"%(norm_du,norm_dp,norm_du/norm_u,norm_dp/norm_p,norm_u,norm_p)
-#          iter+=1
-#
-#          converged = (norm_du <= tolerance*norm_u) and  (norm_dp <= tolerance*norm_p)
-#      if converged:
-#          print "convergence after %s steps."%iter
-#      else:
-#          raise ArithmeticError("no convergence after %s steps."%iter)
-#
-#      return u,p
-          
-def MaskFromBoundaryTag(domain,*tags):
-   """
-   create a mask on the Solution(domain) function space which one for samples 
-   that touch the boundary tagged by tags.
-
-   usage: m=MaskFromBoundaryTag(domain,"left", "right")
-
-   @param domain: a given domain
-   @type domain: L{escript.Domain}
-   @param tags: boundray tags
-   @type tags: C{str}
-   @return: a mask which marks samples that are touching the boundary tagged by any of the given tags.
-   @rtype: L{escript.Data} of rank 0
-   """
-   pde=linearPDEs.LinearPDE(domain,numEquations=1, numSolutions=1)
-   d=escript.Scalar(0.,escript.FunctionOnBoundary(function_space.getDomain()))
-   for t in tags: d.setTaggedValue(t,1.)
-   pde.setValue(y=d)
-   return util.whereNonZero(pde.getRightHandSide())

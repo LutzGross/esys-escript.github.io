@@ -54,7 +54,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
 {
 #ifdef USE_VTK
   char error_msg[LenErrorMsg_MAX], *txt_buffer=NULL, tmp_buffer[LEN_TMP_BUFFER];
-  double sampleAvg[NCOMP_MAX], *values, rtmp, *QuadNodes;
+  double sampleAvg[NCOMP_MAX], *values, *QuadNodes;
   size_t txt_buffer_in_use;
   dim_t len_txt_buffer,  max_len_names;
   FILE * fileHandle_p = NULL;

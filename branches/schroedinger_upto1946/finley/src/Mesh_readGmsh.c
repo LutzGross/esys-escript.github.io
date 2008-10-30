@@ -21,6 +21,7 @@
 #include "Mesh.h"
 #include <stdio.h>
 
+#define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) { perror(reason); Finley_setError(IO_ERROR,"scan error while reading finley file"); return NULL;} }
 
 /**************************************************************/
 
@@ -31,7 +32,7 @@
 Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, index_t reduced_order, bool_t optimize) {
 
   double version = 1.0;
-  int format = 0, size = sizeof(double);
+  int format = 0, size = sizeof(double), scan_ret;
   dim_t numNodes, totalNumElements=0, numTags=0, numNodesPerElement, numNodesPerElement2, element_dim;
   index_t e, i0, j, gmsh_type, partition_id, itmp, elementary_id;
   index_t numElements=0, numFaceElements=0, *id=NULL, *tag=NULL, *vertices=NULL;
@@ -79,35 +80,38 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
    
        /* format */
        if (!strncmp(&line[1], "MeshFormat", 10)) {
-         fscanf(fileHandle_p, "%lf %d %d\n", &version, &format, &size);
+         scan_ret = fscanf(fileHandle_p, "%lf %d %d\n", &version, &format, &size);
+	 FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
        }
        /* nodes are read */
        if ( !strncmp(&line[1], "NOD", 3)   ||
             !strncmp(&line[1], "NOE", 3)   ||
             !strncmp(&line[1], "Nodes", 5)    ) {
         
-         fscanf(fileHandle_p, "%d", &numNodes);
+         scan_ret = fscanf(fileHandle_p, "%d", &numNodes);
+	 FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
          if (! Finley_noError()) break;
          Finley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
          if (! Finley_noError()) break;
          for (i0 = 0; i0 < numNodes; i0++) {
             if (1 == numDim) {
-   	       fscanf(fileHandle_p, "%d %le %le %le\n", &mesh_p->Nodes->Id[i0],
+   	       scan_ret = fscanf(fileHandle_p, "%d %le %le %le\n", &mesh_p->Nodes->Id[i0],
    	              &mesh_p->Nodes->Coordinates[INDEX2(0,i0,numDim)], 
                          &rtmp0, 
                          &rtmp1);
+	       FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
             } else if (2 == numDim) {
-   	       fscanf(fileHandle_p, "%d %le %le %le\n", &mesh_p->Nodes->Id[i0],
+   	       scan_ret = fscanf(fileHandle_p, "%d %le %le %le\n", &mesh_p->Nodes->Id[i0],
    	              &mesh_p->Nodes->Coordinates[INDEX2(0,i0,numDim)],
    	              &mesh_p->Nodes->Coordinates[INDEX2(1,i0,numDim)],
                          &rtmp0);
+	       FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
             } else if (3 == numDim) {
-   	       fscanf(fileHandle_p, "%d %le %le %le\n", &mesh_p->Nodes->Id[i0],
+   	       scan_ret = fscanf(fileHandle_p, "%d %le %le %le\n", &mesh_p->Nodes->Id[i0],
    	              &mesh_p->Nodes->Coordinates[INDEX2(0,i0,numDim)],
    	              &mesh_p->Nodes->Coordinates[INDEX2(1,i0,numDim)],
    	              &mesh_p->Nodes->Coordinates[INDEX2(2,i0,numDim)]);
-      
-          
+	       FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
             }
             mesh_p->Nodes->globalDegreesOfFreedom[i0]=mesh_p->Nodes->Id[i0];
             mesh_p->Nodes->Tag[i0]=0;
@@ -122,7 +126,8 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
          ElementTypeId contact_element_type = NoType;
          numElements=0;
          numFaceElements=0;
-         fscanf(fileHandle_p, "%d", &totalNumElements);
+         scan_ret = fscanf(fileHandle_p, "%d", &totalNumElements);
+	 FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
    
          id=TMPMEMALLOC(totalNumElements,index_t);
          tag=TMPMEMALLOC(totalNumElements,index_t);
@@ -133,7 +138,8 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
          if (! (Finley_checkPtr(id) || Finley_checkPtr(tag) || Finley_checkPtr(element_type) || Finley_checkPtr(vertices) ) ) {
             /* read all in */
             for(e = 0; e < totalNumElements; e++) {
-              fscanf(fileHandle_p, "%d %d", &id[e], &gmsh_type);
+              scan_ret = fscanf(fileHandle_p, "%d %d", &id[e], &gmsh_type);
+	      FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
               switch (gmsh_type) {
                   case 1:  /* line order 1 */
                       element_type[e]=Line2;
@@ -211,18 +217,21 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
               }
               
    	   if(version <= 1.0){
-   	     fscanf(fileHandle_p, "%d %d %d", &tag[e], &elementary_id, &numNodesPerElement2);
+   	     scan_ret = fscanf(fileHandle_p, "%d %d %d", &tag[e], &elementary_id, &numNodesPerElement2);
+	     FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
    	     partition_id = 1;
                 if (numNodesPerElement2 != numNodesPerElement) {
                      sprintf(error_msg,"Illegal number of nodes for element %d in mesh file %s.",id[e],fname);
                      Finley_setError(IO_ERROR,error_msg);
                 }
    	   } else {
-   	     fscanf(fileHandle_p, "%d", &numTags);
+   	     scan_ret = fscanf(fileHandle_p, "%d", &numTags);
+	     FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
    	     elementary_id = tag[e] = partition_id = 1;
                 numNodesPerElement2=-1;
    	     for(j = 0; j < numTags; j++){
-   	       fscanf(fileHandle_p, "%d", &itmp);	    
+   	       scan_ret = fscanf(fileHandle_p, "%d", &itmp);	    
+	       FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
    	       if (j == 0) {
    	         tag[e] = itmp;
    	       } else if (j == 1) {
@@ -234,7 +243,10 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
    	     }
    	   }
               if (! Finley_noError()) break;
-              for(j = 0; j < numNodesPerElement; j++) fscanf(fileHandle_p, "%d", &vertices[INDEX2(j,e,MAX_numNodes_gmsh)]);
+              for(j = 0; j < numNodesPerElement; j++) {
+		scan_ret = fscanf(fileHandle_p, "%d", &vertices[INDEX2(j,e,MAX_numNodes_gmsh)]);
+	        FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
+	      }
               /* for tet10 the last two nodes need to be swapped */
               if (element_type[e]==Tet10) {
                    itmp=vertices[INDEX2(9,e,MAX_numNodes_gmsh)];

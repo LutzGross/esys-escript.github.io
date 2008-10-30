@@ -97,8 +97,9 @@ public:
 
   /**
    \brief
-   Return the function space domain.
-   Do not use this in C++
+   Return the function space domain.   
+   Internal use only! This gets around some python difficulties by
+   casting away the const. Do not use this in c++. 
   */
   ESCRIPT_DLL_API
 //   const
@@ -298,10 +299,10 @@ public:
         return the number of tags in use and a pointer to an array with the number of tags in use
   */
   ESCRIPT_DLL_API
-  virtual int getNumberOfTagsInUse() const;
+  int getNumberOfTagsInUse() const;
 
   ESCRIPT_DLL_API
-  virtual int* borrowListOfTagsInUse() const;
+  int* borrowListOfTagsInUse() const;
 
   ESCRIPT_DLL_API
   bool

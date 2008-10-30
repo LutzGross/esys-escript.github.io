@@ -2829,7 +2829,7 @@ C_TensorUnaryOperation(Data const &arg_0,
   Data arg_0_Z = Data(arg_0);
 
   // Get rank and shape of inputs
-  int rank0 = arg_0_Z.getDataPointRank();
+//  int rank0 = arg_0_Z.getDataPointRank();
   const DataTypes::ShapeType& shape0 = arg_0_Z.getDataPointShape();
   int size0 = arg_0_Z.getDataPointSize();
 

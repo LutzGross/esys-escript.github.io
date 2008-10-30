@@ -23,6 +23,7 @@
 #include "AbstractContinuousDomain.h"
 #include "UnaryFuncs.h"
 #include "FunctionSpaceException.h"
+#include "EscriptParams.h"
 
 extern "C" {
 #include "escript/blocktimer.h"
@@ -546,7 +547,13 @@ Data::copyWithMask(const Data& other,
 	throw DataException("Error - size mismatch in arguments to copyWithMask.");
   }
   size_t num_points=self.size();
+
+  // OPENMP 3.0 allows unsigned loop vars.
+#if defined(_OPENMP) && (_OPENMP < 200805)
   long i;
+#else
+  size_t i;
+#endif
   #pragma omp parallel for private(i) schedule(static)
   for (i=0;i<num_points;++i)
   {
@@ -816,7 +823,6 @@ const
 boost::python::numeric::array
 Data:: getValueOfDataPoint(int dataPointNo)
 {
-  size_t length=0;
   int i, j, k, l;
 
   FORCERESOLVE;
@@ -1146,7 +1152,7 @@ Data::integrateWorker() const
   vector<double> integrals(dataPointSize);
   vector<double> integrals_local(dataPointSize);
 #ifdef PASO_MPI
-  AbstractContinuousDomain::asAbstractContinuousDomain(getDomain()).setToIntegrals(integrals_local,*this);
+  AbstractContinuousDomain::asAbstractContinuousDomain(*getDomain()).setToIntegrals(integrals_local,*this);
   // Global sum: use an array instead of a vector because elements of array are guaranteed to be contiguous in memory
   double *tmp = new double[dataPointSize];
   double *tmp_local = new double[dataPointSize];
@@ -1870,7 +1876,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
   int numDPPSample=temp.getNumDataPointsPerSample();
 
   double next,local_min;
-  int local_lowi,local_lowj;
+  int local_lowi=0,local_lowj=0;	
 
   #pragma omp parallel private(next,local_min,local_lowi,local_lowj)
   {
@@ -2310,7 +2316,6 @@ escript::operator/(const boost::python::object& left, const Data& right)
 Data
 Data::getItem(const boost::python::object& key) const
 {
-//  const DataArrayView& view=getPointDataView();
 
   DataTypes::RegionType slice_region=DataTypes::getSliceRegion(getDataPointShape(),key);
 
@@ -2902,12 +2907,8 @@ Data::borrowReadyPtr() const
 std::string
 Data::toString() const
 {
-    static const DataTypes::ValueType::size_type TOO_MANY_POINTS=80;
-    if (isLazy())
-    {			// This needs to change back to printing out something useful once the summary ops
-	return m_data->toString();	// are defined
-    }
-    if (getNumDataPoints()*getDataPointSize()>TOO_MANY_POINTS)
+    if (!m_data->isEmpty() && 
+	getNumDataPoints()*getDataPointSize()>escriptParams.getInt("TOO_MANY_LINES"))
     {
 	stringstream temp;
 	temp << "Summary: inf="<< inf_const() << " sup=" << sup_const() << " data points=" << getNumDataPoints();
