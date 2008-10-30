@@ -141,7 +141,7 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      Return the rank information for the point data.
   */
   ESCRIPT_DLL_API
-  int 
+  unsigned int 
   getRank() const;
 
 
@@ -516,7 +516,7 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
   //
   // The rank of the points stored in this view
-  int m_rank;
+  unsigned int m_rank;
 
   // 
   // Is this an instance of DataEmpty?
@@ -611,7 +611,7 @@ DataAbstract::getShape() const
 }
 
 inline 
-int
+unsigned int
 DataAbstract::getRank() const
 {
 	if (isEmpty())
