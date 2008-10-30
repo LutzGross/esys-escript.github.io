@@ -1526,11 +1526,19 @@ contains datapoints.
 //   boost::shared_ptr<DataAbstract> m_data;
   DataAbstract_ptr m_data;
 
+// If possible please use getReadyPtr instead
   const DataReady*
   getReady() const;
 
   DataReady*
   getReady();
+
+  DataReady_ptr
+  getReadyPtr();
+
+  const_DataReady_ptr
+  getReadyPtr() const;
+
 
 };
 
@@ -1560,6 +1568,25 @@ Data::getReady()
 {
    DataReady* dr=dynamic_cast<DataReady*>(m_data.get());
    EsysAssert((dr!=0), "Error - casting to DataReady.");
+   return dr;
+}
+
+inline
+DataReady_ptr
+Data::getReadyPtr()
+{
+   DataReady_ptr dr=boost::dynamic_pointer_cast<DataReady>(m_data);
+   EsysAssert((dr.get()!=0), "Error - casting to DataReady.");
+   return dr;
+}
+
+
+inline
+const_DataReady_ptr
+Data::getReadyPtr() const
+{
+   const_DataReady_ptr dr=boost::dynamic_pointer_cast<const DataReady>(m_data);
+   EsysAssert((dr.get()!=0), "Error - casting to DataReady.");
    return dr;
 }
 
