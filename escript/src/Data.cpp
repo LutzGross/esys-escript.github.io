@@ -489,6 +489,9 @@ Data::copyWithMask(const Data& other,
   }
   Data other2(other);
   Data mask2(mask);
+  other2.resolve();
+  mask2.resolve();
+  this->resolve();
   FunctionSpace myFS=getFunctionSpace();
   FunctionSpace oFS=other2.getFunctionSpace();
   FunctionSpace mFS=mask2.getFunctionSpace();
@@ -535,9 +538,9 @@ Data::copyWithMask(const Data& other,
 	throw DataException("Error - Unknown DataAbstract passed to copyWithMask.");
   }
   // Now we iterate over the elements
-  DataVector& self=m_data->getVector();
-  const DataVector& ovec=other2.m_data->getVector();
-  const DataVector& mvec=mask2.m_data->getVector();
+  DataVector& self=getReadyPtr()->getVector();
+  const DataVector& ovec=other2.getReadyPtr()->getVector();
+  const DataVector& mvec=mask2.getReadyPtr()->getVector();
   if ((self.size()!=ovec.size()) || (self.size()!=mvec.size()))
   {
 	throw DataException("Error - size mismatch in arguments to copyWithMask.");
