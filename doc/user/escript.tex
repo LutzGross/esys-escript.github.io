@@ -17,7 +17,7 @@
 
 
 \begin{figure}
-\includegraphics[width=\textwidth]{figures/EscriptDiagram1.eps}
+\includegraphics[width=\textwidth]{figures/EscriptDiagram1}
 \caption{\label{ESCRIPT DEP}Dependency of Function Spaces. An arrow indicates that a function in the 
 function space at the starting point can be interpreted as a function in the function space of the arrow target.}
 \end{figure}
@@ -29,15 +29,15 @@ provides what we call a function space that describes how the data is
 used in the simulation.  Stored along with the data is information
 about the elements and nodes which will be used by \finley.
 
-In order to understand what we mean by the term 'function space'
+In order to understand what we mean by the term 'function space',
 consider that the solution of a partial differential equation
 \index{partial differential equation} (PDE) is a function on a domain
-$\Omega$.  When solving a PDE using FEM the solution is
+$\Omega$.  When solving a PDE using FEM, the solution is
 piecewise-differentiable but, in general, its gradient is
-discontinuous.  To reflect these different degrees of smoothness
-different function spaces are used.  For instance, in FEM the
+discontinuous.  To reflect these different degrees of smoothness,
+different function spaces are used.  For instance, in FEM, the
 displacement field is represented by its values at the nodes of the
-mesh, and is then continuous.  The strain, which is the symmetric
+mesh, and so is continuous.  The strain, which is the symmetric
 part of the gradient of the displacement field, is stored on the
 element centers, and so is considered to be discontinuous.
 
@@ -67,7 +67,7 @@ The location of discontinuity is defined in the \Domain object.
 \fig{ESCRIPT DEP} shows the dependency between the types of function spaces.
 
 The solution of a PDE is a continuous function. Any continuous function can be seen as a general function
-on the domain and can be restricted to the boundary as well as to any side of the 
+on the domain and can be restricted to the boundary as well as to one side of
 discontinuity (the result will be different depending on 
 which side is chosen). Functions on any side of the  
 discontinuity can be seen as a function on the corresponding other side. 
@@ -110,8 +110,7 @@ number of indices, and a \Shape defining the range of each index.
 The rank in \escript is limited to the range $0$ through $4$ and
 it is assumed that the rank and \Shape is the same for all \DataSamplePoints.
 The \Shape of a \Data object is a tuple (list) \var{s} of integers. The length
-of \var{s} is the rank of the \Data object and \var{s[i]} is the maximum
-value for the \var{i}-th index.
+of \var{s} is the rank of the \Data object and the \var{i}-th index ranges between $0$ and $\var{s[i]}-1$.
 For instance, a stress field has rank $2$ and 
 \Shape $(d,d)$ where $d$ is the spatial dimension.
 The following statement creates the \Data object
@@ -126,7 +125,7 @@ all components.
 
 \Data objects can also be created from any \numarray
 array or any object, such as a list of floating point numbers, 
-that can be converted into a \numarray.NumArray \Ref{NUMARRAY}. 
+that can be converted into a \numarrayNA \cite{NUMARRAY}. 
 The following two statements
 create objects which are equivalent to \var{mydat}:
 \begin{python}
@@ -134,30 +133,30 @@ create objects which are equivalent to \var{mydat}:
   mydat2=Data(value=[[1,1],[1,1],[1,1]],what=ContinuousFunction(myDomain))
 \end{python}
 In the first case the initial value is \var{numarray.ones((2,3))}
-which generates a $2 \times 3$ matrix as a \numarray.NumArray 
+which generates a $2 \times 3$ matrix as a \numarrayNA 
 filled with ones. The \Shape of the created \Data object
 it taken from the \Shape of the array. In the second
 case, the creator converts the initial value, which is a list of lists,
-and converts it into a \numarray.NumArray before creating the actual
+and converts it into a \numarrayNA before creating the actual
 \Data object.      
 
 For convenience \escript provides creators for the most common types
 of \Data objects in the following forms (\var{d} defines the 
 spatial dimension):
 \begin{itemize}
-\item \var{Scalar(0,Function(mydomain))} is the same as \var{Data(0,Function(myDomain),(,))}, 
+\item \var{Scalar(0,Function(mydomain))} is the same as \var{Data(0,Function(myDomain),(,))} (each value is a scalar), 
 e.g a temperature field. 
-\item \var{Vector(0,Function(mydomain))}is the same as \var{Data(0,Function(myDomain),(d))}, e.g
+\item \var{Vector(0,Function(mydomain))} is the same as \var{Data(0,Function(myDomain),(d))} (each value is a vector), e.g
 a velocity field.   
 \item \var{Tensor(0,Function(mydomain))} is the same as \var{Data(0,Function(myDomain),(d,d))},
 eg. a stress field.  
 \item \var{Tensor4(0,Function(mydomain))} is the same as \var{Data(0,Function(myDomain),(d,d,d,d))}
 eg. a Hook tensor field.   
 \end{itemize}
-Here the initial value is $0$ but any object that can be converted into a \numarray.NumArray and whose \Shape
+Here the initial value is $0$ but any object that can be converted into a \numarrayNA and whose \Shape
 is consistent with \Shape of the \Data object to be created can be used as the initial value.
 
-\Data objects can be manipulated by applying unitary operations (eg. cos, sin, log) 
+\Data objects can be manipulated by applying unary operations (eg. cos, sin, log) point
 and can be combined point-wise by applying arithmetic operations (eg. +, - ,* , /). 
 It is to be emphasized that \escript itself does not handle any spatial dependencies as 
 it does not know how values are interpreted by the processing PDE solver library. 
@@ -218,7 +217,7 @@ In the context of FEM this means the nodal values of
 The interpolation is automatic and requires no special handling.
 
 \begin{figure}
-\includegraphics[width=\textwidth]{figures/EscriptDiagram2.eps}
+\includegraphics[width=\textwidth]{figures/EscriptDiagram2}
 \caption{\label{Figure: tag}Element Tagging. A rectangular mesh over a region with two rock types {\it white} and {\it gray}.
 The number in each cell refers to the major rock type present in the cell ($1$ for {\it white} and $2$ for {\it gray}).
 }
@@ -231,11 +230,11 @@ shows an example. In this case two rock types {\it white} and {\it gray} can be 
 is subdivided into triangular shaped cells. Each 
 cell has a tag indicating the rock type predominately found in this cell. Here $1$ is used to indicate
 rock type {\it white} and $2$ for rock type {\it gray}. The tags are assigned at the time when the cells are generated
-and stored in the \Domain class object. To allow easier usage of tags names can be used. These names are typically defined 
+and stored in the \Domain class object. To allow easier usage of tags, names can be used instead of numbers. These names are typically defined 
 at the time when the geometry is generated. 
 
-The following statements show how for the
-example of \fig{Figure: tag} and the stress calculation discussed before tagged values are used for
+The following statements show how, for the
+example of \fig{Figure: tag}, the stress calculation discussed above and tagged values are used for
 \var{lam}:
 \begin{python}
   lam=Scalar(value=2.,what=Function(mydomain))
@@ -253,7 +252,7 @@ You can develop a simulation with constant Lame coefficients, and then later swi
 Lame coefficients without otherwise changing your python script.
 In short, you can use the same script to model with different domains and different types of input data.
 
-There are three ways in which \Data objects are represented internally: constant, tagged, and expanded.
+There are three main ways in which \Data objects are represented internally: constant, tagged, and expanded.
 In the constant case, the same value is used at each sample point and only a single value is stored to save memory. 
 In the expanded case, each sample point has an individual value (such as for the solution of a PDE).
 This is where your largest data sets will be created because the values are stored as a complete array.
@@ -263,7 +262,7 @@ Expanded data is created when you create a \Data object with expanded=True.
 Tagged data sets are created when you use the insertTaggedValue() method as shown above.
  
 Values are accessed through a sample reference number. Operations on expanded \Data
-objects have to be performed for each sample point individually. When tagged values are used the values are
+objects have to be performed for each sample point individually. When tagged values are used, the values are
 held in a dictionary. Operations on tagged data require processing the set of tagged values only, rather than 
 processing the value for each individual sample point. 
 \escript allows any mixture of constant, tagged and expanded data in a single expression.
@@ -282,11 +281,12 @@ To recover the object \var{x} use
   x=load("x.nc", mydomain)
 \end{python}
 The dump file {\tt x.nc} does not contain a representation of the \Domain, even though it is required to recreate \var{x}.
-It's common to simply recreate the \Domain before reading a \Data, or you may read and write your \Domain in a separate file with
+It is common to simply recreate the \Domain before reading a \Data, or you may read and write your \Domain in a separate file with
 \var{domain=ReadMesh(fileName)} and \var{domain.write(fileName)}.
 
 The function space of the \Data is stored in {\tt x.nc}, though.
-That means that \Data objects that are constant or tagged can be recovered with a different \Domain. If the \Data object
+That means that \Data objects that are constant or tagged can be recovered with a different \Domain (provided that the domains use the same \FunctionSpace types). 
+If the \Data object
 is expanded, the number of data points in the file and of the \Domain for the particular \FunctionSpace must match. 
 Moreover, the ordering of the values is checked using the reference identifiers provided by 
 \FunctionSpace on the \Domain. In some cases, data points will be re-ordered. Take care to be sure you get what you want!
@@ -298,9 +298,9 @@ Moreover, the ordering of the values is checked using the reference identifiers 
 
 \subsection{\Domain class}
 \begin{classdesc}{Domain}{}
-A \Domain object is used to describe a geometrical region together with 
+A \Domain object is used to describe a geometric region together with 
 a way of representing functions over this region.
-The \Domain class provides an abstract access to the domain of \FunctionSpace and \Data objects. 
+The \Domain class provides an abstract representation of the domain of \FunctionSpace and \Data objects. 
 \Domain itself has no initialization but implementations of \Domain are 
 instantiated by numerical libraries making use of \Data objects. 
 \end{classdesc}
@@ -411,42 +411,42 @@ returns string representation of the \Domain.
 The following function provide generators for \FunctionSpace objects:
 \begin{funcdesc}{Function}{domain}
 returns the \Function on the \Domain \var{domain}. \Data objects in this type of \Function
-are defined over the whole geometrical region defined by \var{domain}. 
+are defined over the whole geometric region defined by \var{domain}. 
 \end{funcdesc}
 
 \begin{funcdesc}{ContinuousFunction}{domain}
 returns the \ContinuousFunction on the \Domain domain. \Data objects in this type of \Function
-are defined over the whole geometrical region defined by \var{domain} and assumed to represent
+are defined over the whole geometric region defined by \var{domain} and assumed to represent
 a continuous function.
 \end{funcdesc}
 
 \begin{funcdesc}{FunctionOnBoundary}{domain}
 returns the \ContinuousFunction on the \Domain domain. \Data objects in this type of \Function
-are defined on the boundary of the geometrical region defined by \var{domain}. 
+are defined on the boundary of the geometric region defined by \var{domain}. 
 \end{funcdesc}
 
 \begin{funcdesc}{FunctionOnContactZero}{domain}
 returns the \FunctionOnContactZero the \Domain domain. \Data objects in this type of \Function
-are defined on side 0 of a discontinuity  within the geometrical region defined by \var{domain}.
+are defined on side 0 of a discontinuity  within the geometric region defined by \var{domain}.
 The discontinuity is defined when \var{domain} is instantiated.
 \end{funcdesc}
 
 \begin{funcdesc}{FunctionOnContactOne}{domain}
 returns the \FunctionOnContactOne on the \Domain domain. 
 \Data objects in this type of \Function
-are defined on side 1 of a discontinuity  within the geometrical region defined by \var{domain}.
+are defined on side 1 of a discontinuity  within the geometric region defined by \var{domain}.
 The discontinuity is defined when \var{domain} is instantiated.
 \end{funcdesc}
 
 \begin{funcdesc}{Solution}{domain}
 returns the \SolutionFS on the \Domain domain. \Data objects in this type of \Function
-are defined on geometrical region defined by \var{domain} and are solutions of
+are defined on geometric region defined by \var{domain} and are solutions of
 partial differential equations \index{partial differential equation}. 
 \end{funcdesc}
 
 \begin{funcdesc}{ReducedSolution}{domain}
 returns the \ReducedSolutionFS on the \Domain domain. \Data objects in this type of \Function
-are defined on geometrical region defined by \var{domain} and are solutions of
+are defined on geometric region defined by \var{domain} and are solutions of
 partial differential equations \index{partial differential equation} with a reduced smoothness 
 for the solution approximation.
 \end{funcdesc}
