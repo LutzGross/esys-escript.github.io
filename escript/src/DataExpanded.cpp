@@ -439,24 +439,25 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const b
      if ((dataPointNo >= numDataPointsPerSample) || (dataPointNo < 0)) {
            throw DataException("Error - DataExpanded::copyDataPoint invalid dataPointNoInSample.");
      }
+     ValueType::size_type offset = getPointOffset(sampleNo, dataPointNo);
      ValueType& vec=getVector();
      if (dataPointRank==0) {
-         vec[0]=extract<double>(value[0]);
+         vec[offset]=extract<double>(value[0]);
      } else if (dataPointRank==1) {
         for (int i=0; i<shape[0]; i++) {
-            vec[i]=extract<double>(value[i]);
+            vec[offset+i]=extract<double>(value[i]);
         }
      } else if (dataPointRank==2) {
         for (int i=0; i<shape[0]; i++) {
            for (int j=0; j<shape[1]; j++) {
-              vec[getRelIndex(shape,i,j)]=extract<double>(value[i][j]);
+              vec[offset+getRelIndex(shape,i,j)]=extract<double>(value[i][j]);
            }
         }
      } else if (dataPointRank==3) {
         for (int i=0; i<shape[0]; i++) {
            for (int j=0; j<shape[1]; j++) {
               for (int k=0; k<shape[2]; k++) {
-                 vec[getRelIndex(shape,i,j,k)]=extract<double>(value[i][j][k]);
+                 vec[offset+getRelIndex(shape,i,j,k)]=extract<double>(value[i][j][k]);
               }
            }
         }
@@ -465,7 +466,7 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const b
            for (int j=0; j<shape[1]; j++) {
              for (int k=0; k<shape[2]; k++) {
                for (int l=0; l<shape[3]; l++) {
-                  vec[getRelIndex(shape,i,j,k,l)]=extract<double>(value[i][j][k][l]);
+                  vec[offset+getRelIndex(shape,i,j,k,l)]=extract<double>(value[i][j][k][l]);
                }
              }
            }
