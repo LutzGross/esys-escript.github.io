@@ -285,7 +285,7 @@ It is common to simply recreate the \Domain before reading a \Data, or you may r
 \var{domain=ReadMesh(fileName)} and \var{domain.write(fileName)}.
 
 The function space of the \Data is stored in {\tt x.nc}, though.
-That means that \Data objects that are constant or tagged can be recovered with a different \Domain (provided that the domains use the same \FunctionSpace types). 
+That means that \Data objects that are constant or tagged can be recovered with a different \Domain\footnote{This is provided that the domains use the same \FunctionSpace types.}. 
 If the \Data object
 is expanded, the number of data points in the file and of the \Domain for the particular \FunctionSpace must match. 
 Moreover, the ordering of the values is checked using the reference identifiers provided by 
@@ -300,9 +300,8 @@ Moreover, the ordering of the values is checked using the reference identifiers 
 \begin{classdesc}{Domain}{}
 A \Domain object is used to describe a geometric region together with 
 a way of representing functions over this region.
-The \Domain class provides an abstract representation of the domain of \FunctionSpace and \Data objects. 
-\Domain itself has no initialization but implementations of \Domain are 
-instantiated by numerical libraries making use of \Data objects. 
+The \Domain class provides an abstract interface to the domain of \FunctionSpace and \Data objects.
+\Domain needs to be subclassed in order to provide a complete implementation.
 \end{classdesc}
 The following methods are available:
 \begin{methoddesc}[Domain]{getDim}{}
@@ -340,17 +339,17 @@ return \True if \var{tag_name} is a valid tag name.
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{__eq__}{arg}
-returns \True of the \Domain \var{arg} describes the same domain. Otherwise
+(python == operator) returns \True if the \Domain \var{arg} describes the same domain. Otherwise
 \False is returned.
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{__ne__}{arg}
-returns \True of the \Domain \var{arg} does not describe the same domain. 
+(python != operator) returns \True if the \Domain \var{arg} does not describe the same domain. 
 Otherwise \False is returned.
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{__str__}{g}
-returns string representation of the \Domain.
+(python str() function) returns string representation of the \Domain.
 \end{methoddesc}
 
 \subsection{\FunctionSpace class}
@@ -395,17 +394,17 @@ Use the \var{setTagMap} to assign a tag name to \var{new_tag}.
 \end{methoddesc}
 
 \begin{methoddesc}[FunctionSpace]{__eq__}{arg}
-returns \True of the \Domain \var{arg} describes the same domain. Otherwise
+(python == operator) returns \True if the \Domain \var{arg} describes the same domain. Otherwise
 \False is returned.
 \end{methoddesc}
 
 \begin{methoddesc}[FunctionSpace]{__ne__}{arg}
-returns \True of the \Domain \var{arg} describes the note same domain. 
+(python != operator) returns \True if the \Domain \var{arg} do not describe the same domain. 
 Otherwise \False is returned.
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{__str__}{g}
-returns string representation of the \Domain.
+(python str() function) returns string representation of the \Domain.
 \end{methoddesc}
 
 The following function provide generators for \FunctionSpace objects:
@@ -470,7 +469,7 @@ At least one of the arguments \var{arg0} or \var{arg1} must be a
 Either of the arguments may be a \Data object, a python number or a numarray object.
 
 If \var{arg0} or \var{arg1} are
-defined on different \FunctionSpace an attempt is made to convert \var{arg0}
+not defined on the same \FunctionSpace, then an attempt is made to convert \var{arg0}
 to the \FunctionSpace of \var{arg1} or to convert \var{arg1} to
 the \FunctionSpace of \var{arg0}. Both arguments must have the same
 \Shape or one of the arguments may be of rank 0 (a constant).
@@ -489,12 +488,12 @@ The following table shows the update operations that can be applied to
 \end{tableii}
 \var{arg0} must be a \Data object. \var{arg1} must be a
 \Data object or an object that can be converted into a
-\Data object. \var{arg1} must have the same \Shape like
-\var{arg1} or has rank 0.  In the latter case it is
+\Data object. \var{arg1} must have the same \Shape as
+\var{arg0} or have rank 0.  In the latter case it is
 assumed that the values of \var{arg1} are constant for all
 components. \var{arg1} must be defined in the same \FunctionSpace as
 \var{arg0} or it must be possible to interpolate \var{arg1} onto the
-\FunctionSpace of \var{arg1}.
+\FunctionSpace of \var{arg0}.
 
 The \Data class supports taking slices from a \Data object as well as assigning new values to a slice of an existing
 \Data object. \index{slicing}
@@ -506,16 +505,16 @@ The following expressions for taking and setting slices are valid:
 \lineiii{3}{\var{arg[l0:u0,l1:u1,l2:u2]} }      {(\var{u0}-\var{l0},\var{u1}-\var{l1},\var{u2}-\var{l2})}
 \lineiii{4}{\var{arg[l0:u0,l1:u1,l2:u2,l3:u3]}} {(\var{u0}-\var{l0},\var{u1}-\var{l1},\var{u2}-\var{l2},\var{u3}-\var{l3})}
 \end{tableiii}
-where 
-$0 \le \var{l0} \le \var{u0} \le \var{s[0]}$,
-$0 \le \var{l1} \le \var{u1} \le \var{s[1]}$, 
-$0 \le \var{l2} \le \var{u2} \le \var{s[2]}$, 
-$0 \le \var{l3} \le \var{u3} \le \var{s[3]}$ and \var{s} the \Shape if \var{arg}. 
+where \var{s} is the \Shape of \var{arg} and 
+\[0 \le \var{l0} \le \var{u0} \le \var{s[0]},\]
+\[0 \le \var{l1} \le \var{u1} \le \var{s[1]},\] 
+\[0 \le \var{l2} \le \var{u2} \le \var{s[2]},\] 
+\[0 \le \var{l3} \le \var{u3} \le \var{s[3]}.\]
 Any of the lower indexes \var{l0}, \var{l1}, \var{l2} and \var{l3} may not be present in which case 
 $0$ is assumed. 
-Any of the upper indexes \var{u0}, \var{u1}, \var{u2} and \var{u3} may not be present in which case 
-\var{s} is assumed. The lower and upper index may be identical, in which case the column and the lower or upper
-index may be dropped. In the returned or in the object assigned to a slice the corresponding component is dropped,
+Any of the upper indexes \var{u0}, \var{u1}, \var{u2} and \var{u3} may be ommitted, in which case, the upper limit for that dimension is assumed. 
+The lower and upper index may be identical, in which case the column and the lower or upper
+index may be dropped. In the returned or in the object assigned to a slice, the corresponding component is dropped,
 i.e. the rank is reduced by one in comparison to \var{arg}.
 The following examples show slicing in action:
 \begin{python}
@@ -526,7 +525,7 @@ The following examples show slicing in action:
   t[:2,:2,5,5]=s[2:4,1,:2]
 \end{python}
 
-\subsection{Generation of \Data class objects}
+\subsection{Generation of \Data objects}
 \begin{classdesc}{Data}{value=0,shape=(,),what=FunctionSpace(),expand=\False}
 creates a \Data object with \Shape \var{shape} in the \FunctionSpace \var{what}.
 The values at all \DataSamplePoints are set to the double value \var{value}. If \var{expanded} is \True
@@ -535,7 +534,7 @@ the \Data object is represented in expanded from.
 
 \begin{classdesc}{Data}{value,what=FunctionSpace(),expand=\False}
 creates a \Data object in the \FunctionSpace \var{what}. 
-The value for each \DataSamplePoints is set to \numarray, \Data object \var{value} or a dictionary of 
+The value for each \DataSamplePoints is set to \var{value}, which could be a \numarray, \Data object \var{value} or a dictionary of 
 \numarray or floating point numbers. In the latter case the keys must be integers and are used
 as tags.
 The \Shape of the returned object is equal to the \Shape of \var{value}. If \var{expanded} is \True
@@ -547,37 +546,37 @@ creates an \EmptyData object. The \EmptyData object is used to indicate that an 
 where a \Data object is required.
 \end{classdesc}
 
-\begin{funcdesc}{Scalar}{value=0.,what=escript::FunctionSpace(),expand=\False}
+\begin{funcdesc}{Scalar}{value=0.,what=FunctionSpace(),expand=\False}
 returns a \Data object of rank 0 (a constant) in the \FunctionSpace \var{what}.
-Values are initialed with \var{value}, a double precision quantity. If \var{expanded} is \True
+Values are initialised with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
-\begin{funcdesc}{Vector}{value=0.,what=escript::FunctionSpace(),expand=\False}
-returns a \Data object of \Shape \var{(d,)} in the \FunctionSpace \var{what} 
+\begin{funcdesc}{Vector}{value=0.,what=FunctionSpace(),expand=\False}
+returns a \Data object of \Shape \var{(d,)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
 Values are initialed with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
-\begin{funcdesc}{Tensor}{value=0.,what=escript::FunctionSpace(),expand=\False}
-returns a \Data object of \Shape \var{(d,d)} in the \FunctionSpace \var{what} 
+\begin{funcdesc}{Tensor}{value=0.,what=FunctionSpace(),expand=\False}
+returns a \Data object of \Shape \var{(d,d)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
 Values are initialed with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
-\begin{funcdesc}{Tensor3}{value=0.,what=escript::FunctionSpace(),expand=\False}
-returns a \Data object of \Shape \var{(d,d,d)} in the \FunctionSpace \var{what} 
+\begin{funcdesc}{Tensor3}{value=0.,what=FunctionSpace(),expand=\False}
+returns a \Data object of \Shape \var{(d,d,d)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
 Values are initialed with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is re\var{arg}presented in expanded from.
 \end{funcdesc}
 
-\begin{funcdesc}{Tensor4}{value=0.,what=escript::FunctionSpace(),expand=\False}
-returns a \Data object of \Shape \var{(d,d,d,d)} in the \FunctionSpace \var{what} 
+\begin{funcdesc}{Tensor4}{value=0.,what=FunctionSpace(),expand=\False}
+returns a \Data object of \Shape \var{(d,d,d,d)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
-Values are initialed with \var{value}, a double precision quantity. If \var{expanded} is \True
+Values are initialised with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
@@ -585,7 +584,7 @@ the \Data object is represented in expanded from.
 recovers a \Data object on \Domain \var{domain} from the file \var{filename}, which was created by \var{dump}.
 \end{funcdesc}
 
-\subsection{\Data class methods}
+\subsection{\Data methods}
 These are the most frequently-used methods of the 
 \Data class. A complete list of methods can be found on \ReferenceGuide.
 \begin{methoddesc}[Data]{getFunctionSpace}{}
@@ -608,6 +607,7 @@ returns the rank of the data on each data point. \index{rank}
 \begin{methoddesc}[Data]{isEmpty}{}
 returns \True id the \Data object is the \EmptyData object.
 Otherwise \False is returned.
+Note that this is not the same as asking if the object contains no \DataSamplePoints.
 \end{methoddesc}
 
 \begin{methoddesc}[Data]{setTaggedValue}{tag_name,value}
@@ -633,9 +633,9 @@ save the \Domain.
 returns a string representation of the object.
 \end{methoddesc}
 
-\subsection{Functions of \Data class objects}
+\subsection{Functions of \Data objects}
 This section lists the most important functions for \Data class objects \var{a}.
-A complete list and a more detailed description of the functionality can be fond on \ReferenceGuide.
+A complete list and a more detailed description of the functionality can be found on \ReferenceGuide.
 \begin{funcdesc}{saveVTK}{filename,**kwdata}
 writes \Data defined by keywords in the file with \var{filename} using the 
 vtk file format \VTK file format. The key word is used as an identifier. The statement
@@ -667,16 +667,17 @@ returns a \RankTwo \Data object in \FunctionSpace \var{d} such that
 If \var{d} is an integer a $(d,d)$ \numarray array is returned.
 \end{funcdesc}
 \begin{funcdesc}{identityTensor}{d}
-returns a \RankTwo \Data object in \FunctionSpace \var{d} such that
-\begin{equation}
-\code{identityTensor(d)}\left[ i,j\right] = \left\{ 
-\begin{array}{cc}
-1 & \mbox{ if } i=j \\
-0 & \mbox{ otherwise }
-\end{array}
-\right.
-\end{equation}
-If \var{d} is an integer a $(d,d)$ \numarray array is returned.
+is a synonym for \code{kronecker} (see above).
+% returns a \RankTwo \Data object in \FunctionSpace \var{d} such that
+% \begin{equation}
+% \code{identityTensor(d)}\left[ i,j\right] = \left\{ 
+% \begin{array}{cc}
+% 1 & \mbox{ if } i=j \\
+% 0 & \mbox{ otherwise }
+% \end{array}
+% \right.
+% \end{equation}
+% If \var{d} is an integer a $(d,d)$ \numarray array is returned.
 \end{funcdesc}
 \begin{funcdesc}{identityTensor4}{d}
 returns a \RankFour \Data object in \FunctionSpace \var{d} such that
@@ -819,7 +820,7 @@ returns at each \DataSamplePoints the maximum value over all components.
 \end{funcdesc}
 
 \begin{funcdesc}{length}{a}
-returns at Euclidean norm at each \DataSamplePoints. For a \RankFour function \var{a} this is
+returns at Euclidean norm at each \DataSamplePoints. For a \RankFour \var{a} this is
 \begin{equation}
 \code{length(a)}=\sqrt{\sum\hackscore{ijkl} \var{a} \left[i,j,k,l\right]^2}
 \end{equation} 
@@ -1066,7 +1067,7 @@ returns the $L^2$-norm of \var{a} in its function space. This is
 The \Operator class provides an abstract access to operators build
 within the \LinearPDE class. \Operator objects are created 
 when a PDE is handed over to a PDE solver library and handled
-by the \LinearPDE class defining the PDE. The user can gain access
+by the \LinearPDE object defining the PDE. The user can gain access
 to the \Operator of a \LinearPDE object through the \var{getOperator}
 method.
 
