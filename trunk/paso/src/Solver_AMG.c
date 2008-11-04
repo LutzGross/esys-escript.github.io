@@ -296,7 +296,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   if (Paso_noError()) {
       if (verbose) {
          printf("AMG: %d unknowns eliminated. %d left.\n",out->n_F,n-out->n_F);
-         if (out->n_C>10) {
+         if (level<2) {
             printf("timing: AMG: MIS/reordering/elemination : %e/%e/%e\n",time2,time0,time1);
          } else {
             printf("timing: AMG: MIS: %e\n",time2); 
@@ -334,13 +334,12 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
 */
 
 void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
-     dim_t i,k,oldsweeps,j;
+     dim_t i,oldsweeps;
      double *r=MEMALLOC(amg->n,double);
      /*Paso_Solver_GS* GS=NULL;*/
      double *bold=MEMALLOC(amg->n,double);
      double *bnew=MEMALLOC(amg->n,double);
      double *x0=MEMALLOC(amg->n,double);
-     index_t iPtr;
 
      if (amg->level==2) {
      /*if (amg->n_C<=10) {*/
@@ -349,7 +348,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      
         /* presmoothing */
          Paso_Solver_solveGS(amg->GS,x,b);
-         oldsweeps=amg->GS->sweeps;
+          oldsweeps=amg->GS->sweeps;
          if (amg->GS->sweeps>1) {
            
            #pragma omp parallel for private(i) schedule(static)
@@ -358,9 +357,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
            while(amg->GS->sweeps>1) {
                #pragma omp parallel for private(i) schedule(static)
                for (i=0;i<amg->GS->n;++i) bnew[i]=bold[i]+b[i];
-                /* Compute the residual b=b-Ax*/
                Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), amg->A, x, DBLE(1), bnew);
-               /* Go round again*/
                Paso_Solver_solveGS(amg->GS,x,bnew);
                #pragma omp parallel for private(i) schedule(static)
                for (i=0;i<amg->GS->n;++i) bold[i]=bnew[i];
@@ -368,6 +365,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
            }
            }
            amg->GS->sweeps=oldsweeps;
+           
         /* end of presmoothing */
         
          #pragma omp parallel for private(i) schedule(static)
