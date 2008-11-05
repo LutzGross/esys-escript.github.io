@@ -18,8 +18,9 @@
 
 \begin{figure}
 \includegraphics[width=\textwidth]{figures/EscriptDiagram1}
-\caption{\label{ESCRIPT DEP}Dependency of Function Spaces. An arrow indicates that a function in the 
-function space at the starting point can be interpreted as a function in the function space of the arrow target.}
+\caption{\label{ESCRIPT DEP}Dependency of Function Spaces in Finley. An arrow indicates that a function in the 
+function space at the starting point can be interpolated to the function space of the arrow target.
+All functionspaces on the left side can be interpolated to any of the functionspaces on the right.}
 \end{figure}
 
 \escript is a Python module that allows you to represent the values of
@@ -64,7 +65,7 @@ The reduced smoothness for PDE solution is often used to fulfill the Ladyzhenska
 solving saddle point problems \index{saddle point problems}, eg. the Stokes equation.
 A discontinuity \index{discontinuity} is a region within the domain across which functions may be discontinuous.  
 The location of discontinuity is defined in the \Domain object.
-\fig{ESCRIPT DEP} shows the dependency between the types of function spaces.
+\fig{ESCRIPT DEP} shows the dependency between the types of function spaces in Finley (other libraries may have different relationships).
 
 The solution of a PDE is a continuous function. Any continuous function can be seen as a general function
 on the domain and can be restricted to the boundary as well as to one side of
@@ -83,7 +84,7 @@ The concept of function spaces describes the properties of
 functions and allows abstraction from the actual representation 
 of the function in the context of a particular application. For instance, 
 in the FEM context a
-function of the \Function type
+function of the \Function type (written as \emph{Function()} in Figure~\ref{ESCRIPT DEP})
 is usually represented by its values at the element center, 
 but in a finite difference scheme the edge midpoint of cells is preferred. 
 By changing its function space you can use the same function in a Finite Difference
@@ -270,7 +271,7 @@ processing the value for each individual sample point.
 \Data objects can be written to disk files and read with \var{dump} and \var{load}, both of which use \netCDF.
 Use these to save data for visualization, checkpoint/restart or simply to save and reuse data that was expensive to compute.
 
-For instance to save the coordinates of the data points of the \FunctionSpace
+For instance to save the coordinates of the data points of the
 \ContinuousFunction to the file {\tt x.nc} use
 \begin{python}
   x=ContinuousFunction(mydomain).getX()
@@ -285,7 +286,6 @@ It is common to simply recreate the \Domain before reading a \Data, or you may r
 \var{domain=ReadMesh(fileName)} and \var{domain.write(fileName)}.
 
 The function space of the \Data is stored in {\tt x.nc}, though.
-That means that \Data objects that are constant or tagged can be recovered with a different \Domain\footnote{This is provided that the domains use the same \FunctionSpace types.}. 
 If the \Data object
 is expanded, the number of data points in the file and of the \Domain for the particular \FunctionSpace must match. 
 Moreover, the ordering of the values is checked using the reference identifiers provided by 
@@ -348,15 +348,36 @@ return \True if \var{tag_name} is a valid tag name.
 Otherwise \False is returned.
 \end{methoddesc}
 
-\begin{methoddesc}[Domain]{__str__}{g}
+\begin{methoddesc}[Domain]{__str__}{arg}
 (python str() function) returns string representation of the \Domain.
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{onMasterProcessor}{}
+ returns \True if executed on the MPI master processor, \False otherwise.
+This can be used in conjunction with MPIBarrier to ensure commands only run once.
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{MPIBarrier}{}
+ executes an MPIBarrier command. If MPI support is not enabled, this command does nothing. 
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{MPIBarrier}{}
+ executes an MPIBarrier command. If MPI support is not enabled, this command does nothing. 
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{getMPISize}{}
+ returns the number of MPI processors used for this domain. 
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{getMPIRank}{}
+ returns the rank of the processor executing the statement. 
 \end{methoddesc}
 
 \subsection{\FunctionSpace class}
 \begin{classdesc}{FunctionSpace}{}
 \FunctionSpace objects are used to define properties of \Data objects, such as continuity. \FunctionSpace objects
-are instantiated by generator functions. \Data objects in particular \FunctionSpace are
-represented by their values at \DataSamplePoints which are defined by the type and the \Domain of the
+are instantiated by generator functions. A \Data object in a particular \FunctionSpace is 
+represented by its values at \DataSamplePoints which are defined by the type and the \Domain of the
 \FunctionSpace.
 \end{classdesc}
 The following methods are available:
@@ -718,98 +739,7 @@ returns the maximum value over all components and all \DataSamplePoints of \var{
 returns the minimum value over all components and all \DataSamplePoints of \var{a}
 \end{funcdesc}
 
-\begin{funcdesc}{sin}{a}
-applies sine function to \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{cos}{a}
-applies cosine function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{tan}{a}
-applies tangent function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{asin}{a}
-applies arc (inverse) sine function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{acos}{a}
-applies arc (inverse) cosine function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{atan}{a}
-applies arc (inverse) tangent function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{sinh}{a}
-applies hyperbolic sine function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{cosh}{a}
-applies hyperbolic cosine function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{tanh}{a}
-applies hyperbolic tangent function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{asinh}{a}
-applies arc (inverse) hyperbolic sine function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{acosh}{a}
-applies arc (inverse) hyperbolic cosine function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{atanh}{a}
-applies arc (inverse) hyperbolic tangent function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{exp}{a}
-applies exponential function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{sqrt}{a}
-applies square root function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{log}{a}
-applies the natural logarithm to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{log10}{a}
-applies the base-$10$ logarithm to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{sign}{a}
-applies the sign function to \var{a}, that is $1$ where \var{a} is positive,
-$-1$ where \var{a} is negative and $0$ otherwise.
-\end{funcdesc}
-
-\begin{funcdesc}{wherePositive}{a}
-returns a function which is $1$ where \var{a} is positive and $0$ otherwise.
-\end{funcdesc}
-
-\begin{funcdesc}{whereNegative}{a}
-returns a function which is $1$ where \var{a} is negative and $0$ otherwise.
-\end{funcdesc}
-
-\begin{funcdesc}{whereNonNegative}{a}
-returns a function which is $1$ where \var{a} is non--negative and $0$ otherwise.
-\end{funcdesc}
-
-\begin{funcdesc}{whereNonPositive}{a}
-returns a function which is $1$ where \var{a} is non--positive and $0$ otherwise.
-\end{funcdesc}
-
-\begin{funcdesc}{whereZero}{a\optional{, tol=0.}}
-returns a function which is $1$ where \var{a} equals zero with tolerance \var{tol} and $0$ otherwise. 
-\end{funcdesc}
-
-\begin{funcdesc}{whereNonZero}{a\optional{, tol=0.}}
-returns a function which is $1$ where \var{a} different from zero with tolerance \var{tol} and $0$ otherwise. 
-\end{funcdesc}
 
 \begin{funcdesc}{minval}{a}
 returns at each \DataSamplePoints the minimum value over all components.
@@ -1061,6 +991,102 @@ returns the $L^2$-norm of \var{a} in its function space. This is
 \begin{equation}
 \code{L2(a)=integrate(length(a)}^2\code{)} \; .
 \end{equation} 
+\end{funcdesc}
+
+The following functions operate ``point-wise''. That is, the operation is applied to each component of each point
+individually.
+
+\begin{funcdesc}{sin}{a}
+applies sine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{cos}{a}
+applies cosine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{tan}{a}
+applies tangent function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{asin}{a}
+applies arc (inverse) sine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{acos}{a}
+applies arc (inverse) cosine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{atan}{a}
+applies arc (inverse) tangent function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{sinh}{a}
+applies hyperbolic sine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{cosh}{a}
+applies hyperbolic cosine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{tanh}{a}
+applies hyperbolic tangent function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{asinh}{a}
+applies arc (inverse) hyperbolic sine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{acosh}{a}
+applies arc (inverse) hyperbolic cosine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{atanh}{a}
+applies arc (inverse) hyperbolic tangent function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{exp}{a}
+applies exponential function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{sqrt}{a}
+applies square root function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{log}{a}
+applies the natural logarithm to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{log10}{a}
+applies the base-$10$ logarithm to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{sign}{a}
+applies the sign function to \var{a}, that is $1$ where \var{a} is positive,
+$-1$ where \var{a} is negative and $0$ otherwise.
+\end{funcdesc}
+
+\begin{funcdesc}{wherePositive}{a}
+returns a function which is $1$ where \var{a} is positive and $0$ otherwise.
+\end{funcdesc}
+
+\begin{funcdesc}{whereNegative}{a}
+returns a function which is $1$ where \var{a} is negative and $0$ otherwise.
+\end{funcdesc}
+
+\begin{funcdesc}{whereNonNegative}{a}
+returns a function which is $1$ where \var{a} is non--negative and $0$ otherwise.
+\end{funcdesc}
+
+\begin{funcdesc}{whereNonPositive}{a}
+returns a function which is $1$ where \var{a} is non--positive and $0$ otherwise.
+\end{funcdesc}
+
+\begin{funcdesc}{whereZero}{a\optional{, tol=0.}}
+returns a function which is $1$ where \var{a} equals zero with tolerance \var{tol} and $0$ otherwise. 
+\end{funcdesc}
+
+\begin{funcdesc}{whereNonZero}{a\optional{, tol=0.}}
+returns a function which is $1$ where \var{a} different from zero with tolerance \var{tol} and $0$ otherwise. 
 \end{funcdesc}
 
 \subsection{\Operator Class}
