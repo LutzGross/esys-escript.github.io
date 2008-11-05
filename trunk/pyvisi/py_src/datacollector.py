@@ -71,6 +71,9 @@ class DataCollector:
 		self.__set_scalar = False
 		self.__set_vector= False
 		self.__set_tensor= False
+		self.__tmp_fd = None
+		self.__tmp_file = None
+
 
 		if(source == Source.XML): # Source is an XML file.
 			self.__vtk_xml_reader = vtk.vtkXMLUnstructuredGridReader()
@@ -78,7 +81,9 @@ class DataCollector:
 		elif (self.__source == Source.ESCRIPT):
 			self.__vtk_xml_reader = vtk.vtkXMLUnstructuredGridReader()
 			# Create a temporary .xml file and retrieve its path.
-			self.__tmp_file = tempfile.mkstemp(suffix=".xml")[1]
+			fd_and_name = tempfile.mkstemp(suffix=".xml")
+			self.__tmp_fd = fd_and_name[0]
+			self.__tmp_file = fd_and_name[1]
 
 	def __del__(self):
 		"""
@@ -86,7 +91,10 @@ class DataCollector:
 		"""
 
 		if (self.__source == Source.ESCRIPT):
-			if os.access(self.__tmp_file,os.F_OK): os.unlink(self.__tmp_file)
+			if self.__tmp_fd != None :
+				os.close(self.__tmp_fd)
+				if os.access(self.__tmp_file,os.F_OK):
+					os.unlink(self.__tmp_file)
 
 	def setFileName(self, file_name):
 		"""
