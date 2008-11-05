@@ -36,7 +36,7 @@ from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
 import time
 
-WORKDIR="/raid2/lutz/waves/"
+WORKDIR="./waves/"
 output=True
 n_end=10000
 
@@ -309,6 +309,8 @@ def wavePropagation(dom,rho,mu,lmbd,eta):
    a=Vector(0.,Solution(dom))
    a2=Vector(0.,Solution(dom))
    v=Vector(0.,Solution(dom))
+
+   if not os.path.isdir(WORKDIR): os.mkdir(WORKDIR)
 
    starttime = time.clock()
    while t<t_end and n<n_end:
