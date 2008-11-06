@@ -31,12 +31,13 @@
 
 static void swap( index_t*, index_t*, double*, int, int );
 static void q_sort( index_t*, index_t*, double*, int, int );
-static void print_entries( index_t*, index_t*, double* );
+/*static void print_entries( index_t*, index_t*, double* );*/
 
 static int M, N, nz;
 
 
 /* debug: print the entries */
+/*
 void print_entries( index_t *r, index_t *c, double *v )
 {
 	int i;
@@ -46,6 +47,7 @@ void print_entries( index_t *r, index_t *c, double *v )
 		printf( "(%ld, %ld) == %e\n", (long)r[i], (long)c[i], v[i] );
 	}
 }
+*/
 
 /* swap function */
 void swap( index_t *r, index_t *c, double *v, int left, int right )

@@ -264,8 +264,11 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(const double alpha,
 #define USE_DYNAMIC_SCHEDULING
 #endif
 
+#ifdef USE_DYNAMIC_SCHEDULING
     char* chksz_chr=NULL;
     dim_t chunk_size=1;
+#endif
+
     dim_t nrow=A->numRows;
     dim_t np=1, len, rest, irow, local_n, p;
 

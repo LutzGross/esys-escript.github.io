@@ -450,7 +450,7 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 	Return the number of values in the shape for this object.
   */
   ESCRIPT_DLL_API
-  int
+  unsigned int
   getNoValues() const;
 
 
@@ -512,7 +512,7 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
   //
   // The number of values in each point
-  int m_novalues;
+  unsigned int m_novalues;
 
   //
   // The rank of the points stored in this view
@@ -622,7 +622,7 @@ DataAbstract::getRank() const
 }
 
 inline
-int
+unsigned int
 DataAbstract::getNoValues() const
 {	
 	if (isEmpty())
