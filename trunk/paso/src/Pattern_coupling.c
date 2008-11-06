@@ -35,11 +35,8 @@
 /***************************************************************/
  
 #define IS_AVAILABLE -1
-#define IS_IN_MIS_NOW -2
-#define IS_IN_MIS -3
-#define IS_CONNECTED_TO_MIS -4
-#define ZERO 1.e-10
-
+#define IS_IN_SET -3
+#define IS_REMOVED -4
 
 void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double threshold) {
 
@@ -49,7 +46,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
   index_t iptr,*index,*where_p,diagptr;
   bool_t fail;
   dim_t n=A->numRows;
-  double sum;
+  /*double sum;*/
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
     Paso_setError(TYPE_ERROR,"Paso_Pattern_mis: symmetric matrix pattern is not supported yet");
     return;
@@ -76,7 +73,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
                  for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
                      j=A->pattern->index[iptr]-index_offset;
                      if (j!=i && ABS(A->val[iptr])>=threshold*ABS(A->val[diagptr])) {
-                        mis_marker[j]=IS_CONNECTED_TO_MIS;
+                        mis_marker[j]=IS_REMOVED;
                        }
                  }
                 }
@@ -85,11 +82,11 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
             #pragma omp parallel for private(i,sum,iptr) schedule(static)
             for (i=0;i<n;++i)
                 if(mis_marker[i]==IS_AVAILABLE)
-                           mis_marker[i]=IS_IN_MIS;
+                           mis_marker[i]=IS_IN_SET;
              
               #pragma omp parallel for private(i,iptr,index,where_p,diagptr) schedule(static)
               for (i=0;i<n;i++) {
-               if (mis_marker[i]==IS_CONNECTED_TO_MIS) {
+               if (mis_marker[i]==IS_REMOVED) {
                  fail=FALSE;
                  diagptr=A->pattern->ptr[i];
                  index=&(A->pattern->index[diagptr]);
@@ -105,7 +102,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
                 }
                  for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
                      j=A->pattern->index[iptr]-index_offset;
-                     if (mis_marker[j]==IS_IN_MIS && (A->val[iptr]/A->val[diagptr])<-threshold){
+                     if (mis_marker[j]==IS_IN_SET && (A->val[iptr]/A->val[diagptr])<-threshold){
                          fail=TRUE;
                          #ifndef _OPENMP  
                          break;
@@ -113,27 +110,27 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
                      }
                  }
                  if(!fail) {
-                    mis_marker[i]=IS_IN_MIS;
+                    mis_marker[i]=IS_IN_SET;
                  }
                }
               }
               
-            #pragma omp parallel for private(i,sum,iptr) schedule(static)
+         /*   #pragma omp parallel for private(i,sum,iptr) schedule(static)
             for (i=0;i<n;++i)
-                if(mis_marker[i]==IS_IN_MIS)
+                if(mis_marker[i]==IS_IN_SET)
                     {
                         sum=0.;
                         for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
                             sum+=A->val[iptr];
                         }
                         if(ABS(sum)<ZERO)
-                           mis_marker[i]=IS_CONNECTED_TO_MIS;
+                           mis_marker[i]=IS_REMOVED;
                     }
-             
+         */  
         }
      /* swap to TRUE/FALSE in mis_marker */
      #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_MIS);
+     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_SET);
 }
 
 /*
@@ -174,11 +171,11 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
         }
 
         threshold = theta*min_offdiagonal;
-        mis_marker[i]=IS_IN_MIS;
+        mis_marker[i]=IS_IN_SET;
         #pragma omp parallel for private(iptr) schedule(static) 
         for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
             if(A->val[iptr-index_offset] < threshold){
-                    mis_marker[i]=IS_CONNECTED_TO_MIS;
+                    mis_marker[i]=IS_REMOVED;
                     #ifndef _OPENMP    
                      break;
                     #endif
@@ -188,7 +185,7 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
     }
      /* swap to TRUE/FALSE in mis_marker */
      #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_MIS);
+     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_SET);
 }
 
 
@@ -220,41 +217,28 @@ void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double
         diags[i]=ABS(diag);
       }
     
-    #pragma omp parallel for private(i,iptr,diag) schedule(static) 
+    #pragma omp parallel for private(i,iptr,diag,j,val,eps_Aii) schedule(static) 
       for (i=0;i<n;++i) {
         eps_Aii = theta*theta*diags[i];
-        mis_marker[i]=IS_CONNECTED_TO_MIS;
+        mis_marker[i]=IS_REMOVED;
 
         for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
             j=A->pattern->index[iptr-index_offset];
             val=A->val[iptr-index_offset];
             if(j!= i && val*val>=eps_Aii * diags[j]){
-                mis_marker[i]=IS_IN_MIS;
+                mis_marker[i]=IS_IN_SET;
             }
         }
       }
    }
     /* swap to TRUE/FALSE in mis_marker */
      #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_MIS);
+     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_SET);
      
      MEMFREE(diags);
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
 #undef IS_AVAILABLE 
-#undef IS_IN_MIS_NOW 
-#undef IS_IN_MIS 
-#undef IS_CONNECTED_TO_MIS
-#undef ZERO
+#undef IS_IN_SET 
+#undef IS_REMOVED
