@@ -81,9 +81,9 @@ err_t Paso_Solver_GMRES(
   double *AP,**X_PRES,**R_PRES,**P_PRES, *dots, *loc_dots;
   double *P_PRES_dot_AP,*R_PRES_dot_P_PRES,*BREAKF,*ALPHA;
   double R_PRES_dot_AP0,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5,P_PRES_dot_AP6,R_PRES_dot_P,breakf0;
-  double tol,Factor,sum_BREAKF,gamma,SC1,SC2,norm_of_residual,diff,L2_R,Norm_of_residual_global;
+  double tol,Factor,sum_BREAKF,gamma,SC1,SC2,norm_of_residual=0,diff,L2_R,Norm_of_residual_global=0;
   double *save_XPRES, *save_P_PRES, *save_R_PRES,save_R_PRES_dot_P_PRES;
-  dim_t maxit,Num_iter_global,num_iter_restart,num_iter;
+  dim_t maxit,Num_iter_global=0,num_iter_restart=0,num_iter;
   dim_t i,z,order,n, Length_of_mem, th, local_n , rest, n_start ,n_end;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE,restartFlag=FALSE;
   err_t Status=SOLVER_NO_ERROR;
