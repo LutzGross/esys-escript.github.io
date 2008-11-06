@@ -31,10 +31,10 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
   double* local_data=NULL,*S=NULL,*data_array; 
   index_t dof_offset, NN, NS;
   bool_t reduced_integration=FALSE;
-  dim_t q,i,NS_DOF,NN_DOF,numNodes,e, numQuad;
+  dim_t q,i,NS_DOF,NN_DOF,numNodes=0,e, numQuad;
   Finley_RefElement* reference_element=NULL;
   dim_t numComps=getDataPointSize(data);
-  index_t id[MAX_numNodes], *resort_nodes, *map;
+  index_t id[MAX_numNodes], *resort_nodes=0, *map=0;
   type_t data_type=getFunctionSpaceType(data);
   type_t type;
   size_t numComps_size;

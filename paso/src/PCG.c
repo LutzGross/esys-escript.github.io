@@ -77,7 +77,10 @@ err_t Paso_Solver_PCG(
     Paso_Performance* pp) {
 
   /* Local variables */
-  dim_t num_iter=0,maxit,num_iter_global, chunk_size=-1, len,rest, np, ipp;
+  dim_t num_iter=0,maxit,num_iter_global, len,rest, np, ipp;
+#ifdef USE_DYNAMIC_SCHEDULING
+  dim_t chunk_size=-1;
+#endif
   register double ss,ss1;
   dim_t i0, istart, iend;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
@@ -88,7 +91,7 @@ err_t Paso_Solver_PCG(
 #ifdef PASO_MPI
   double loc_sum[2], sum[2];
 #endif
-  double norm_of_residual,norm_of_residual_global;
+  double norm_of_residual=0,norm_of_residual_global;
   register double d;
 
   /* Should not be any executable code before this ifdef */

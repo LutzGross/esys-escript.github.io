@@ -453,8 +453,8 @@ DataTagged::addTaggedValues(const TagListType& tagKeys,
                             const ValueType& values,
                             const ShapeType& vShape)
 {
-  int n=getNoValues();
-  int numVals=values.size()/n;
+  unsigned int n=getNoValues();
+  unsigned int numVals=values.size()/n;
   if (values.size()==0) {
     // copy the current default value for each of the tags
     TagListType::const_iterator iT;
