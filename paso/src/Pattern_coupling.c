@@ -79,7 +79,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
                 }
             }
             
-            #pragma omp parallel for private(i,sum,iptr) schedule(static)
+            #pragma omp parallel for private(i,iptr) schedule(static)
             for (i=0;i<n;++i)
                 if(mis_marker[i]==IS_AVAILABLE)
                            mis_marker[i]=IS_IN_SET;
@@ -115,18 +115,6 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
                }
               }
               
-         /*   #pragma omp parallel for private(i,sum,iptr) schedule(static)
-            for (i=0;i<n;++i)
-                if(mis_marker[i]==IS_IN_SET)
-                    {
-                        sum=0.;
-                        for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
-                            sum+=A->val[iptr];
-                        }
-                        if(ABS(sum)<ZERO)
-                           mis_marker[i]=IS_REMOVED;
-                    }
-         */  
         }
      /* swap to TRUE/FALSE in mis_marker */
      #pragma omp parallel for private(i) schedule(static)
