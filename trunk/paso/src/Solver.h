@@ -28,10 +28,13 @@
 #define SOLVER_BREAKDOWN -10
 #define SOLVER_NEGATIVE_NORM_ERROR -11
 
+#define TOLERANCE_FOR_SCALARS (double)(0.)
+#define PASO_ONE (double)(1.0)
+#define PASO_ZERO (double)(0.0)
 
-static double ONE=1.;
-static double ZERO=0.;
-static double TOLERANCE_FOR_SCALARS=0.;
+/* static double ONE=1.; */
+/* static double ZERO=0.;*/
+/*static double TOLERANCE_FOR_SCALARS=0.;*/
 
 /* jacobi  preconditioner */
 
