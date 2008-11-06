@@ -349,10 +349,16 @@ direct solver based on Cholevsky factorization (or similar), see~\Ref{Saad}. The
 preconditioned conjugate gradient method, see~\Ref{WEISS}\index{linear solver!PCG}\index{PCG}. The solver will require a symmetric PDE.
 \end{memberdesc}
 
+\begin{memberdesc}[LinearPDE]{TFQMR}
+transpose-free quasi-minimal residual method, see~\Ref{WEISS}\index{linear solver!TFQMR}\index{TFQMR}. \end{memberdesc}
+
 \begin{memberdesc}[LinearPDE]{GMRES}
 the GMRES method, see~\Ref{WEISS}\index{linear solver!GMRES}\index{GMRES}. Truncation and restart are controlled by the parameters
 \var{truncation} and \var{restart} of \method{getSolution}.
 \end{memberdesc}
+
+\begin{memberdesc}[LinearPDE]{MINRES}
+minimal residual method method, \index{linear solver!MINRES}\index{MINRES} \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{LUMPING}
 uses lumping to solve the system of linear equations~\index{linear solver!lumping}\index{lumping}. This solver technique
@@ -397,6 +403,10 @@ the Jacobi preconditioner, see~\Ref{Saad}.
 \begin{memberdesc}[LinearPDE]{AMG}
 the algebraic--multi grid method, see~\Ref{AMG}. This method can be used as linear solver method but is more robust when used
 in a preconditioner.
+\end{memberdesc}
+
+\begin{memberdesc}[LinearPDE]{GS}
+the symmetric Gauss-Seidel preconditioner, see~\Ref{Saad}.
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{RILU}
