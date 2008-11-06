@@ -81,7 +81,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   dim_t i,k,j,j0;
   Paso_SparseMatrix * schur=NULL;
   Paso_SparseMatrix * schur_withFillIn=NULL;
-  double time0,time1,time2,S;
+  double time0=0,time1=0,time2=0,S;
   
   /* identify independend set of rows/columns */
   mis_marker=TMPMEMALLOC(n,index_t);
@@ -102,7 +102,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   out->b_C=NULL;
   out->A=Paso_SparseMatrix_getReference(A_p);
   out->GS=Paso_Solver_getGS(A_p,verbose);
-  out->GS->sweeps=4;
+  out->GS->sweeps=2;
   out->level=level;
   
   if ( !(Paso_checkPtr(mis_marker) || Paso_checkPtr(out) || Paso_checkPtr(counter) ) ) {
@@ -144,7 +144,9 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
               for (i = 0; i < out->n_F; ++i) {
                 out->inv_A_FF[i]=0;
                 for (iPtr=A_p->pattern->ptr[out->rows_in_F[i]];iPtr<A_p->pattern->ptr[out->rows_in_F[i] + 1]; ++iPtr) {
-                 out->inv_A_FF[i]+=A_p->val[iPtr];
+                 j=A_p->pattern->index[iPtr];
+                 if (mis_marker[j])
+                     out->inv_A_FF[i]+=A_p->val[iPtr];
                 }
               }
               
@@ -194,8 +196,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
            if( Paso_noError()) {
               /* if there are no nodes in the coarse level there is no more work to do */
               out->n_C=n-out->n_F;
-              if (level<2) {
-              /*if (out->n_C>10) {*/
+              if (level<3) {
+               /*if (out->n_C>10) {*/
                    out->rows_in_C=MEMALLOC(out->n_C,index_t);
                    out->mask_C=MEMALLOC(n,index_t);
                    if (! (Paso_checkPtr(out->mask_C) || Paso_checkPtr(out->rows_in_C) ) ) {
@@ -296,7 +298,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   if (Paso_noError()) {
       if (verbose) {
          printf("AMG: %d unknowns eliminated. %d left.\n",out->n_F,n-out->n_F);
-         if (level<2) {
+         if (level<3) {
             printf("timing: AMG: MIS/reordering/elemination : %e/%e/%e\n",time2,time0,time1);
          } else {
             printf("timing: AMG: MIS: %e\n",time2); 
@@ -341,7 +343,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      double *bnew=MEMALLOC(amg->n,double);
      double *x0=MEMALLOC(amg->n,double);
 
-     if (amg->level==2) {
+     if (amg->level==3) {
      /*if (amg->n_C<=10) {*/
         Paso_UMFPACK1(amg->A,x,b,0);
      } else {
@@ -409,25 +411,13 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      /*postsmoothing*/
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<amg->n;++i) r[i]=b[i];
-     
-     /*for (i=0;i<amg->n;++i) fprintf(stderr,"%lf %lf %d %d %d BBB\n",r[i],x[i],amg->n,amg->A->numCols, amg->level);*/
-     
-     /*
-     for (i = 0; i < amg->A->numRows; ++i) {
-          for (iPtr=amg->A->pattern->ptr[i];iPtr<amg->A->pattern->ptr[i + 1]; ++iPtr) {
-              j=amg->A->pattern->index[iPtr];
-              fprintf(stderr,"A[%d,%d]=%lf ",i,j,amg->A->val[iPtr]);
-          } 
-          fprintf(stderr,"\n");
-     }*/
-     
+
      /*r=b-Ax*/ 
      Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
      Paso_Solver_solveGS(amg->GS,x0,r);
      
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<amg->n;++i) {
-      /*fprintf(stderr,"%lf %lf %lf\n",x[i],x0[i],x[i]+x0[i]);*/
       x[i]+=x0[i];
      }
      
