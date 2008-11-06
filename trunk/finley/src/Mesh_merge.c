@@ -26,7 +26,7 @@
 
 /**************************************************************/
 
-static double  Finley_Mesh_lockingGridSize=0;
+/*static double  Finley_Mesh_lockingGridSize=0;*/
 
 Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
   Paso_MPIInfo *mpi_info=NULL;

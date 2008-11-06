@@ -83,13 +83,13 @@ err_t Paso_Solver_BiCGStab(
 
 
   /* Local variables */
-  double *rtld=NULL,*p=NULL,*v=NULL,*t=NULL,*phat=NULL,*shat=NULL,*s=NULL, *buf1=NULL, *buf0=NULL;
-  double beta,norm_of_residual,sum_1,sum_2,sum_3,sum_4,norm_of_residual_global;
-  double alpha, omega, omegaNumtr, omegaDenumtr, rho, tol, rho1;
+  double *rtld=NULL,*p=NULL,*v=NULL,*t=NULL,*phat=NULL,*shat=NULL,*s=NULL;/*, *buf1=NULL, *buf0=NULL;*/
+  double beta,norm_of_residual=0,sum_1,sum_2,sum_3,sum_4,norm_of_residual_global=0;
+  double alpha=0, omega=0, omegaNumtr, omegaDenumtr, rho, tol, rho1=0;
 #ifdef PASO_MPI
   double loc_sum[2], sum[2];
 #endif
-  dim_t num_iter=0,maxit,num_iter_global;
+  dim_t num_iter=0,maxit,num_iter_global=0;
   dim_t i0;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   dim_t status = SOLVER_NO_ERROR;

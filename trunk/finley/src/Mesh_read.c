@@ -37,9 +37,11 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
   Finley_Mesh *mesh_p=NULL;
   char name[LenString_MAX],element_type[LenString_MAX],frm[20];
   char error_msg[LenErrorMsg_MAX];
+  #ifdef Finley_TRACE
   double time0=Finley_timer();
+  #endif
   FILE *fileHandle_p = NULL;
-  ElementTypeId typeID, faceTypeID, contactTypeID, pointTypeID;
+  ElementTypeId typeID=0, faceTypeID, contactTypeID, pointTypeID;
   int scan_ret;
   
   Finley_resetError();
@@ -273,9 +275,11 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
   Finley_Mesh *mesh_p=NULL;
   char name[LenString_MAX],element_type[LenString_MAX],frm[20];
   char error_msg[LenErrorMsg_MAX];
+  #ifdef Finley_TRACE
   double time0=Finley_timer();
+  #endif
   FILE *fileHandle_p = NULL;
-  ElementTypeId typeID;
+  ElementTypeId typeID=0;
   int scan_ret;
 
   Finley_resetError();
@@ -853,7 +857,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 
       /* get the name tags */
       if (Finley_noError()) {
-        char *remainder, *ptr;
+        char *remainder=0, *ptr;
         size_t len;
         int tag_key;
 
