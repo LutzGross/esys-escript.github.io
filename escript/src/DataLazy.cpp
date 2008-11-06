@@ -509,31 +509,31 @@ DataLazy::resolveUnary(ValueType& v, size_t offset, int sampleNo, size_t& roffse
   switch (m_op)
   {
     case SIN:	
-	tensor_unary_operation(m_samplesize, left, result, ::sin);
+	tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::sin);
 	break;
     case COS:
-	tensor_unary_operation(m_samplesize, left, result, ::cos);
+	tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::cos);
 	break;
     case TAN:
-	tensor_unary_operation(m_samplesize, left, result, ::tan);
+	tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::tan);
 	break;
     case ASIN:
-	tensor_unary_operation(m_samplesize, left, result, ::asin);
+	tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::asin);
 	break;
     case ACOS:
-	tensor_unary_operation(m_samplesize, left, result, ::acos);
+	tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::acos);
 	break;
     case ATAN:
-	tensor_unary_operation(m_samplesize, left, result, ::atan);
+	tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::atan);
 	break;
     case SINH:
-	tensor_unary_operation(m_samplesize, left, result, ::sinh);
+	tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::sinh);
 	break;
     case COSH:
-	tensor_unary_operation(m_samplesize, left, result, ::cosh);
+	tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::cosh);
 	break;
     case TANH:
-	tensor_unary_operation(m_samplesize, left, result, ::tanh);
+	tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::tanh);
 	break;
     case ERF:
 #ifdef _WIN32
@@ -564,16 +564,16 @@ DataLazy::resolveUnary(ValueType& v, size_t offset, int sampleNo, size_t& roffse
 #endif   
 	break;
     case LOG10:
-	tensor_unary_operation(m_samplesize, left, result, ::log10);
+	tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::log10);
 	break;
     case LOG:
-	tensor_unary_operation(m_samplesize, left, result, ::log);
+	tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::log);
 	break;
     case SIGN:
 	tensor_unary_operation(m_samplesize, left, result, escript::fsign);
 	break;
     case ABS:
-	tensor_unary_operation(m_samplesize, left, result, ::fabs);
+	tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::fabs);
 	break;
     case NEG:
 	tensor_unary_operation(m_samplesize, left, result, negate<double>());
@@ -584,10 +584,10 @@ DataLazy::resolveUnary(ValueType& v, size_t offset, int sampleNo, size_t& roffse
 	throw DataException("Programmer error - POS not supported for lazy data.");
 	break;
     case EXP:
-	tensor_unary_operation(m_samplesize, left, result, ::exp);
+	tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::exp);
 	break;
     case SQRT:
-	tensor_unary_operation(m_samplesize, left, result, ::sqrt);
+	tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::sqrt);
 	break;
     case RECIP:
 	tensor_unary_operation(m_samplesize, left, result, bind1st(divides<double>(),1.));
