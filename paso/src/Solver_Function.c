@@ -59,7 +59,7 @@ err_t Paso_Function_LinearSystem_call(Paso_Function * F,double* value, const dou
 {
     Paso_SystemMatrix* A=(Paso_SystemMatrix*)(F->more);
     Paso_Copy(F->n,F->tmp,F->b); /* tmp=b */
-    Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, arg,-ONE, F->tmp); /* tmp=(A*arg-tmp) */
+    Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, arg,-PASO_ONE, F->tmp); /* tmp=(A*arg-tmp) */
     Paso_Solver_solvePreconditioner(A,value,F->tmp);  /* value=P*tmp */
     return NO_ERROR;
 }

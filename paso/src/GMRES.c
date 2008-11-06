@@ -148,7 +148,7 @@ err_t Paso_Solver_GMRES(
 
       while (! (convergeFlag || maxIterFlag || breakFlag))  {
          if (restartFlag) {
-             BREAKF[0]=ONE;
+             BREAKF[0]=PASO_ONE;
              #pragma omp parallel for private(th,z, local_n, rest, n_start, n_end)
              for (th=0;th<num_threads;++th) {
                local_n=n/num_threads;
@@ -172,7 +172,7 @@ err_t Paso_Solver_GMRES(
          /***                                                                 
          *** apply A to P to get AP 
          ***/
-	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &P_PRES[0][0],ZERO, &AP[0]);
+	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &P_PRES[0][0],PASO_ZERO, &AP[0]);
          /***                                                                 
          ***** calculation of the norm of R and the scalar products of       
          ***   the residuals and A*P:                                        
@@ -185,7 +185,7 @@ err_t Paso_Solver_GMRES(
                n_start=local_n*th+MIN(th,rest);
                n_end=local_n*(th+1)+MIN(th+1,rest);
                if (order==0) {
-                   R_PRES_dot_P=ZERO;
+                   R_PRES_dot_P=PASO_ZERO;
                    #pragma ivdep
                    for (z=n_start; z < n_end; ++z) {
                        R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
@@ -195,8 +195,8 @@ err_t Paso_Solver_GMRES(
                         loc_dots[0]+=R_PRES_dot_P;
                    }
                } else if (order==1) {
-                   R_PRES_dot_P=ZERO;
-                   P_PRES_dot_AP0=ZERO;
+                   R_PRES_dot_P=PASO_ZERO;
+                   P_PRES_dot_AP0=PASO_ZERO;
                    #pragma ivdep
                    for (z=n_start; z < n_end; ++z) {
                        R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
@@ -208,9 +208,9 @@ err_t Paso_Solver_GMRES(
                         loc_dots[1]+=P_PRES_dot_AP0;
                    }
                } else if (order==2) {
-                   R_PRES_dot_P=ZERO;
-                   P_PRES_dot_AP0=ZERO;
-                   P_PRES_dot_AP1=ZERO;
+                   R_PRES_dot_P=PASO_ZERO;
+                   P_PRES_dot_AP0=PASO_ZERO;
+                   P_PRES_dot_AP1=PASO_ZERO;
                    #pragma ivdep
                    for (z=n_start; z < n_end; ++z) {
                        R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
@@ -224,10 +224,10 @@ err_t Paso_Solver_GMRES(
                         loc_dots[2]+=P_PRES_dot_AP1;
                    }
                } else if (order==3) {
-                   R_PRES_dot_P=ZERO;
-                   P_PRES_dot_AP0=ZERO;
-                   P_PRES_dot_AP1=ZERO;
-                   P_PRES_dot_AP2=ZERO;
+                   R_PRES_dot_P=PASO_ZERO;
+                   P_PRES_dot_AP0=PASO_ZERO;
+                   P_PRES_dot_AP1=PASO_ZERO;
+                   P_PRES_dot_AP2=PASO_ZERO;
                    #pragma ivdep
                    for (z=n_start; z < n_end; ++z) {
                        R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
@@ -243,11 +243,11 @@ err_t Paso_Solver_GMRES(
                         loc_dots[3]+=P_PRES_dot_AP2;
                    }
                } else if (order==4) {
-                   R_PRES_dot_P=ZERO;
-                   P_PRES_dot_AP0=ZERO;
-                   P_PRES_dot_AP1=ZERO;
-                   P_PRES_dot_AP2=ZERO;
-                   P_PRES_dot_AP3=ZERO;
+                   R_PRES_dot_P=PASO_ZERO;
+                   P_PRES_dot_AP0=PASO_ZERO;
+                   P_PRES_dot_AP1=PASO_ZERO;
+                   P_PRES_dot_AP2=PASO_ZERO;
+                   P_PRES_dot_AP3=PASO_ZERO;
                    #pragma ivdep
                    for (z=n_start; z < n_end; ++z) {
                        R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
@@ -265,12 +265,12 @@ err_t Paso_Solver_GMRES(
                         loc_dots[4]+=P_PRES_dot_AP3;
                    }
                } else if (order==5) {
-                   R_PRES_dot_P=ZERO;
-                   P_PRES_dot_AP0=ZERO;
-                   P_PRES_dot_AP1=ZERO;
-                   P_PRES_dot_AP2=ZERO;
-                   P_PRES_dot_AP3=ZERO;
-                   P_PRES_dot_AP4=ZERO;
+                   R_PRES_dot_P=PASO_ZERO;
+                   P_PRES_dot_AP0=PASO_ZERO;
+                   P_PRES_dot_AP1=PASO_ZERO;
+                   P_PRES_dot_AP2=PASO_ZERO;
+                   P_PRES_dot_AP3=PASO_ZERO;
+                   P_PRES_dot_AP4=PASO_ZERO;
                    #pragma ivdep
                    for (z=n_start; z < n_end; ++z) {
                        R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
@@ -290,13 +290,13 @@ err_t Paso_Solver_GMRES(
                         loc_dots[5]+=P_PRES_dot_AP4;
                    }
                } else if (order==6) {
-                   R_PRES_dot_P=ZERO;
-                   P_PRES_dot_AP0=ZERO;
-                   P_PRES_dot_AP1=ZERO;
-                   P_PRES_dot_AP2=ZERO;
-                   P_PRES_dot_AP3=ZERO;
-                   P_PRES_dot_AP4=ZERO;
-                   P_PRES_dot_AP5=ZERO;
+                   R_PRES_dot_P=PASO_ZERO;
+                   P_PRES_dot_AP0=PASO_ZERO;
+                   P_PRES_dot_AP1=PASO_ZERO;
+                   P_PRES_dot_AP2=PASO_ZERO;
+                   P_PRES_dot_AP3=PASO_ZERO;
+                   P_PRES_dot_AP4=PASO_ZERO;
+                   P_PRES_dot_AP5=PASO_ZERO;
                    #pragma ivdep
                    for (z=n_start; z < n_end; ++z) {
                        R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
@@ -318,14 +318,14 @@ err_t Paso_Solver_GMRES(
                         loc_dots[6]+=P_PRES_dot_AP5;
                    }
                } else {
-                  R_PRES_dot_P=ZERO;
-                  P_PRES_dot_AP0=ZERO;
-                  P_PRES_dot_AP1=ZERO;
-                  P_PRES_dot_AP2=ZERO;
-                  P_PRES_dot_AP3=ZERO;
-                  P_PRES_dot_AP4=ZERO;
-                  P_PRES_dot_AP5=ZERO;
-                  P_PRES_dot_AP6=ZERO;
+                  R_PRES_dot_P=PASO_ZERO;
+                  P_PRES_dot_AP0=PASO_ZERO;
+                  P_PRES_dot_AP1=PASO_ZERO;
+                  P_PRES_dot_AP2=PASO_ZERO;
+                  P_PRES_dot_AP3=PASO_ZERO;
+                  P_PRES_dot_AP4=PASO_ZERO;
+                  P_PRES_dot_AP5=PASO_ZERO;
+                  P_PRES_dot_AP6=PASO_ZERO;
                   #pragma ivdep
                   for (z=n_start; z < n_end; ++z) {
                       R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
@@ -349,7 +349,7 @@ err_t Paso_Solver_GMRES(
                        loc_dots[7]+=P_PRES_dot_AP6;
                   }
                   for (i=7;i<order;++i) {
-                       P_PRES_dot_AP0=ZERO;
+                       P_PRES_dot_AP0=PASO_ZERO;
                        #pragma ivdep
                        for (z=n_start; z < n_end; ++z) {
                              P_PRES_dot_AP0+=P_PRES[i][z]*AP[z];
@@ -378,7 +378,7 @@ err_t Paso_Solver_GMRES(
          sum_BREAKF=0.;
          #pragma ivdep
          for (i=0;i<order;++i) sum_BREAKF +=BREAKF[i];
-         breakFlag=!((ABS(R_PRES_dot_AP0) > ZERO) &&  (sum_BREAKF >ZERO));
+         breakFlag=!((ABS(R_PRES_dot_AP0) > PASO_ZERO) &&  (sum_BREAKF >PASO_ZERO));
          if (!breakFlag) {
             breakFlag=FALSE;
             /***
@@ -408,12 +408,12 @@ err_t Paso_Solver_GMRES(
              X_PRES[0]=save_XPRES;
              P_PRES[0]=save_P_PRES;
 
-             if (ABS(Factor)<=ZERO) {
+             if (ABS(Factor)<=PASO_ZERO) {
                   Factor=1.;
-                  BREAKF[0]=ZERO;
+                  BREAKF[0]=PASO_ZERO;
              } else {
                   Factor=1./Factor;
-                  BREAKF[0]=ONE;
+                  BREAKF[0]=PASO_ONE;
             }
             for (i=0;i<order;++i) ALPHA[i]*=Factor;
             /*                                                                 
@@ -541,8 +541,8 @@ err_t Paso_Solver_GMRES(
                   rest=n-local_n*num_threads;
                   n_start=local_n*th+MIN(th,rest);
                   n_end=local_n*(th+1)+MIN(th+1,rest);
-                  SC1=ZERO;
-                  SC2=ZERO;
+                  SC1=PASO_ZERO;
+                  SC2=PASO_ZERO;
                   #pragma ivdep
                   for (z=n_start; z < n_end; ++z) {
                        diff=R_PRES[0][z]-r[z];
@@ -563,14 +563,14 @@ err_t Paso_Solver_GMRES(
                   SC1=loc_dots[0];
                   SC2=loc_dots[1];
               #endif
-              gamma=(SC1<=ZERO) ? ZERO : -SC2/SC1;
+              gamma=(SC1<=PASO_ZERO) ? PASO_ZERO : -SC2/SC1;
               #pragma omp parallel for private(th,z,local_n, rest, n_start, n_end,diff,L2_R)
               for (th=0;th<num_threads;++th) {
                   local_n=n/num_threads;
                   rest=n-local_n*num_threads;
                   n_start=local_n*th+MIN(th,rest);
                   n_end=local_n*(th+1)+MIN(th+1,rest);
-                  L2_R=ZERO;
+                  L2_R=PASO_ZERO;
                   #pragma ivdep
                   for (z=n_start; z < n_end; ++z) {
                       x[z]+=gamma*(X_PRES[0][z]-x[z]);

@@ -247,7 +247,7 @@ err_t Paso_Solver_PCG(
            /* v=A*p */
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_MVM);
-	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, p,ZERO,v);
+	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, p,PASO_ZERO,v);
            Performance_stopMonitor(pp,PERFORMANCE_MVM);
            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
 
@@ -333,8 +333,8 @@ err_t Paso_Solver_PCG(
 	        sum_5 = 0;
                 #pragma omp parallel private(i0, istart, iend, ipp, ss, gamma_1,gamma_2)
                 {
-                  gamma_1= ( (ABS(sum_3)<= ZERO) ? 0 : -sum_4/sum_3) ;
-                  gamma_2= ONE-gamma_1;
+                  gamma_1= ( (ABS(sum_3)<= PASO_ZERO) ? 0 : -sum_4/sum_3) ;
+                  gamma_2= PASO_ONE-gamma_1;
                   ss=0;
                   #ifdef USE_DYNAMIC_SCHEDULING
                       #pragma omp for schedule(dynamic, 1)
