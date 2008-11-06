@@ -860,7 +860,7 @@ Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::
   }
   //
   // check rank
-  if (num_array.getrank()<getDataPointRank())
+  if (static_cast<unsigned int>(num_array.getrank())<getDataPointRank())
       throw DataException("Rank of numarray does not match Data object rank");
 
   //
