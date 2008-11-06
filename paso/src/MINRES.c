@@ -12,7 +12,7 @@
 *******************************************************/
 
 
-/* TFQMR iterations */
+/* MINRES iterations */
 
 #include "SystemMatrix.h"
 #include "Paso.h"
@@ -86,7 +86,7 @@ err_t Paso_Solver_MINRES(
   double Anorm,ynorm,oldb,dbar,epsln,phibar,rhs1,rhs2,rnorm,tnorm2,ynorm2,cs,sn,eps,s,alfa,denom,z,beta1,beta;
   double gmax,gmin,oldeps,delta,gbar,gamma,phi;
  
-  double norm_of_residual;
+  double norm_of_residual=0;
   
 /*                                                                 */
 /*-----------------------------------------------------------------*/
