@@ -15,11 +15,7 @@
 \section{The First Steps}
 \label{FirstSteps} 
 
-\begin{figure}
-\centerline{\includegraphics[width=\figwidth]{figures/FirstStepDomain}}
-\caption{Domain $\Omega=[0,1]^2$ with outer normal field $n$.}
-\label{fig:FirstSteps.1}
-\end{figure}
+
 
 In this chapter we give an introduction how to use \escript to solve 
 a partial differential equation \index{partial differential equation} (PDE \index{partial differential equation!PDE}). We assume you are at least a little familiar with Python. The knowledge presented at the Python tutorial at \url{http://docs.python.org/tut/tut.html}
@@ -37,6 +33,11 @@ is the unit square
 \label{eq:FirstSteps.1b}
 \end{equation}
 The domain is shown in \fig{fig:FirstSteps.1}.
+\begin{figure} [h!]
+\centerline{\includegraphics[width=\figwidth]{figures/FirstStepDomain}}
+\caption{Domain $\Omega=[0,1]^2$ with outer normal field $n$.}
+\label{fig:FirstSteps.1}
+\end{figure}
 
 $\Delta$ denotes the Laplace operator\index{Laplace operator}, which is defined by
 \begin{equation}
@@ -58,7 +59,7 @@ and \eqn{eq:FirstSteps.1} as
 \end{equation*}
 }
 Basically, in the subindex of a function, any index to the left of the comma denotes a spatial derivative with respect 
-to the index. To get a more compact form we will write $w\hackscore{,ij}=(w\hackscore {,i})\hackscore{,j}$
+to the index. To get a more compact form we will write $u\hackscore{,ij}=(u\hackscore {,i})\hackscore{,j}$
 which leads to
 \begin{equation}
 \Delta u = u\hackscore{,00}+u\hackscore{,11}=\sum\hackscore{i=0}^2 u\hackscore{,ii}
@@ -97,9 +98,9 @@ are applying the Einstein summation convention \index{summation convention}, i.e
 $n\hackscore{i} u\hackscore{,i}= n\hackscore{0} u\hackscore{,0} +
 n\hackscore{1} u\hackscore{,1}$. 
 \footnote{Some readers may familiar with the notation
-\begin{equation*}
+$
 \frac{\partial u}{\partial n} = n\hackscore{i} u\hackscore{,i}
-\end{equation*}
+$
 for the normal derivative.}
 The Neumann boundary condition of \eqn{eq:FirstSteps.2} should be fulfilled on the
 set $\Gamma^N$ which is the top and right edge of the domain:
@@ -124,11 +125,10 @@ with the Neumann boundary condition \eqn{eq:FirstSteps.2} and
 Dirichlet boundary condition in \eqn{eq:FirstSteps.2d} form a so
 called boundary value
 problem\index{boundary value problem} (BVP\index{boundary value problem!BVP}) for 
-the unknown
-function $u$. 
+the unknown function~$u$. 
 
 
-\begin{figure}
+\begin{figure}[h]
 \centerline{\includegraphics[width=\figwidth]{figures/FirstStepMesh.eps}}
 \caption{Mesh of $4 \time 4$ elements on a rectangular domain.  Here
 each element is a quadrilateral and described by four nodes, namely
@@ -248,7 +248,7 @@ and $0$ elsewhere.
 Similarly, \code{whereZero(x[1])} creates function which equals $1$ where \code{x[1]} is 
 equal to zero and $0$ elsewhere.
 The sum of the results of \code{whereZero(x[0])} and \code{whereZero(x[1])} 
-gives a function on the domain \var{mydomain} which is exactly positive where $x\hackscore{0}$ or $x\hackscore{1}$ is equal to zero.
+gives a function on the domain \var{mydomain} which is strictly positive where $x\hackscore{0}$ or $x\hackscore{1}$ is equal to zero.
 Note that \var{gammaD} has the same \Rank, \Shape and \FunctionSpace like \var{x0} used to define it. So from 
 \begin{python}
   print gammaD.getRank(),gammaD.getShape(),gammaD.getFunctionSpace()
