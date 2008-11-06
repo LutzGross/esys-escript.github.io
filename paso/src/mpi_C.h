@@ -15,11 +15,10 @@
 /*
     mpi_C.h
 
-    Ensures that mpi++.h no C++ stuff leaks into Paso/Finley
+    Ensures that no C++ stuff leaks into Paso/Finley from mpi.h
 */
 
 #ifdef PASO_MPI
-
 
 /*
 #ifndef MPI_NO_CPPBIND
@@ -32,12 +31,14 @@
 */
 #ifndef PASO_MPI_C
 #define PASO_MPI_C
-  #ifdef PASO_MPI
-     #define MPICH_SKIP_MPICXX
-     #include <mpi.h>
-     #undef MPICH_SKIP_MPICXX
-  #endif
-#endif
 
-#endif
+#define OMPI_SKIP_MPICXX
+#define MPICH_SKIP_MPICXX
+#include <mpi.h>
+#undef MPICH_SKIP_MPICXX
+#undef OMPI_SKIP_MPICXX
+
+#endif /* PASO_MPI_C */
+
+#endif /* PASO_MPI */
 
