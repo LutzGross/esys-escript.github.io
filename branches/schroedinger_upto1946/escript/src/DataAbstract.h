@@ -496,6 +496,7 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 //   virtual const DataTypes::ValueType&
 //   getVector() const=0;
 
+  ESCRIPT_DLL_API
   bool isLazy() const;	// a test to determine if this object is an instance of DataLazy
 
   virtual
