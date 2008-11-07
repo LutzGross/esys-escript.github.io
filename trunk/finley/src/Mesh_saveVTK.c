@@ -451,7 +451,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
             #endif
           }
       } else {
-         fprintf(fileHandle_p,txt_buffer);
+         fprintf(fileHandle_p, "%s", txt_buffer);
       }
 
       /* write the nodes */
@@ -519,7 +519,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
              #endif
           }
       } else {
-         fprintf(fileHandle_p,tags_End_Points_and_Start_Conn);
+         fprintf(fileHandle_p, "%s", tags_End_Points_and_Start_Conn);
       }
 
      /* write the cells */
@@ -825,7 +825,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            #endif
         }
      } else {
-        fprintf(fileHandle_p,tags_End_Conn_and_Start_Offset);
+        fprintf(fileHandle_p, "%s", tags_End_Conn_and_Start_Offset);
      }
 
     /* write the offsets */
@@ -856,7 +856,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            #endif
         }
     } else {
-       fprintf(fileHandle_p,tags_End_Offset_and_Start_Type);
+       fprintf(fileHandle_p, "%s", tags_End_Offset_and_Start_Type);
     }
      /* write element type */
      sprintf(tmp_buffer, INT_NEWLINE_FORMAT, cellType);
@@ -871,7 +871,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
             MPI_File_write_ordered(mpi_fileHandle_p,txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
          #endif     
      } else {
-        for (i=0; i<numCells*numCellFactor; i++) fprintf(fileHandle_p, tmp_buffer);
+        for (i=0; i<numCells*numCellFactor; i++) fprintf(fileHandle_p, "%s",  tmp_buffer);
      }
      /* finalize cell information */
      if ( mpi_size > 1) {
@@ -882,7 +882,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            #endif
         }
     } else {
-       fprintf(fileHandle_p,tags_End_Type_And_Cells);
+       fprintf(fileHandle_p, "%s", tags_End_Type_And_Cells);
     }
  }
 
@@ -939,7 +939,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            #endif
         }
       } else {
-          fprintf(fileHandle_p,txt_buffer);
+          fprintf(fileHandle_p, "%s", txt_buffer);
       }
       /* write the arrays */
       for (i_data =0 ;i_data<num_data;++i_data) {
@@ -976,7 +976,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                     #endif
                  }
                } else {
-                   fprintf(fileHandle_p,txt_buffer);
+                   fprintf(fileHandle_p, "%s", txt_buffer);
                }
 
                for (i=0; i<numCells; i++) {
@@ -1076,7 +1076,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                             if ( mpi_size > 1) {
                               __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use);
                             } else {
-                              fprintf(fileHandle_p,tmp_buffer);
+                              fprintf(fileHandle_p, "%s", tmp_buffer);
                             }
                         }
                    }
@@ -1093,7 +1093,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                         #endif
                      }
                } else {
-                   fprintf(fileHandle_p,tag_End_DataArray);
+                   fprintf(fileHandle_p, "%s", tag_End_DataArray);
                }
             }
          }
@@ -1106,7 +1106,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            #endif
         }
       } else {
-          fprintf(fileHandle_p,tag_End_CellData);
+          fprintf(fileHandle_p, "%s", tag_End_CellData);
       }
   }
   /* point data */
@@ -1162,7 +1162,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            #endif
         }
       } else {
-          fprintf(fileHandle_p,txt_buffer);
+          fprintf(fileHandle_p, "%s", txt_buffer);
       }
       /* write the arrays */
       for (i_data =0 ;i_data<num_data;++i_data) {
@@ -1204,7 +1204,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                     #endif
                  }
                } else {
-                   fprintf(fileHandle_p,txt_buffer);
+                   fprintf(fileHandle_p, "%s", txt_buffer);
                }
                for (i=0; i<mesh_p->Nodes->numNodes; i++) {
                   k=globalNodeIndex[i];
@@ -1243,7 +1243,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                      if ( mpi_size > 1) {
                        __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use);
                      } else {
-                       fprintf(fileHandle_p,tmp_buffer);
+                       fprintf(fileHandle_p, "%s", tmp_buffer);
                      }
                   }
                }
@@ -1259,7 +1259,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                       #endif
                    }
                } else {
-                  fprintf(fileHandle_p,tag_End_DataArray);
+                  fprintf(fileHandle_p, "%s", tag_End_DataArray);
                }
             }
           }
@@ -1272,7 +1272,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
              #endif
           }
         } else {
-            fprintf(fileHandle_p,tag_End_PointData);
+            fprintf(fileHandle_p, "%s", tag_End_PointData);
         }
   }
   if (Finley_noError()) {
@@ -1291,7 +1291,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            MPI_File_close(&mpi_fileHandle_p);
         #endif
      } else {
-         fprintf(fileHandle_p,footer);
+         fprintf(fileHandle_p, "%s", footer);
          fclose(fileHandle_p);
      }
   }
