@@ -615,10 +615,10 @@ DataLazy::resolveUnary(ValueType& v, size_t offset, int sampleNo, size_t& roffse
 
 
 
-#define PROC_OP(X) \
+#define PROC_OP(TYPE,X)                               \
 	for (int i=0;i<steps;++i,resultp+=resultStep) \
 	{ \
-	   tensor_binary_operation(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X); \
+	   tensor_binary_operation##TYPE(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X); \
 	   lroffset+=leftStep; \
 	   rroffset+=rightStep; \
 	}
@@ -673,19 +673,19 @@ cout << "Resolve binary: " << toString() << endl;
   switch(m_op)
   {
     case ADD:
-	PROC_OP(plus<double>());
+        PROC_OP(/**/,plus<double>());
 	break;
     case SUB:
-	PROC_OP(minus<double>());
+	PROC_OP(/**/,minus<double>());
 	break;
     case MUL:
-	PROC_OP(multiplies<double>());
+	PROC_OP(/**/,multiplies<double>());
 	break;
     case DIV:
-	PROC_OP(divides<double>());
+	PROC_OP(/**/,divides<double>());
 	break;
     case POW:
-	PROC_OP(::pow);
+       PROC_OP(<double (double,double)>,::pow);
 	break;
     default:
 	throw DataException("Programmer error - resolveBinary can not resolve operator "+opToString(m_op)+".");
