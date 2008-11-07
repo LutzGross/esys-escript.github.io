@@ -63,6 +63,7 @@ enum ES_optype
 	LEZ=GZ+3
 };
 
+ESCRIPT_DLL_API
 const std::string&
 opToString(ES_optype op);
 
