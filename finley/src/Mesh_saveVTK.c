@@ -88,7 +88,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   /*                                      */
   /*       tags in the vtk file           */
 
-  char* tags_header="<?xml version=\"1.0\"?>\n" \
+  const char* tags_header="<?xml version=\"1.0\"?>\n" \
                     "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\">\n" \
                     "<UnstructuredGrid>\n" \
                     "<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n" \
@@ -101,7 +101,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   char* tags_End_Points_and_Start_Conn = "</DataArray>\n</Points>\n<Cells>\n<DataArray Name=\"connectivity\" type=\"Int32\" format=\"ascii\">\n" ;
   char* tags_End_Conn_and_Start_Offset = "</DataArray>\n<DataArray Name=\"offsets\" type=\"Int32\" format=\"ascii\">\n";
   char* tags_End_Offset_and_Start_Type = "</DataArray>\n<DataArray Name=\"types\" type=\"UInt8\" format=\"ascii\">\n";
-  char* tag_Float_DataArray="<DataArray Name=\"%s\" type=\"Float64\" NumberOfComponents=\"%d\" format=\"ascii\">\n";
+  const char* tag_Float_DataArray="<DataArray Name=\"%s\" type=\"Float64\" NumberOfComponents=\"%d\" format=\"ascii\">\n";
   char* tags_End_Type_And_Cells = "</DataArray>\n</Cells>\n";
 
   int VTK_QUADRATIC_HEXAHEDRON_INDEX[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 18, 19, 12, 13, 14, 15 };
