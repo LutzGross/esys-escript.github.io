@@ -79,9 +79,6 @@ using namespace boost;
 namespace escript
 {
 
-const std::string&
-opToString(ES_optype op);
-
 namespace
 {
 
