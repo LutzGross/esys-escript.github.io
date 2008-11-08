@@ -12,11 +12,11 @@
 *******************************************************/
 
 
+#include "DataTypes.h"
 #include <sstream>
 #include <boost/python/extract.hpp>
 #include <boost/python/tuple.hpp>
 #include "DataException.h"
-#include "DataTypes.h"
 
 namespace {
 using namespace boost::python;
