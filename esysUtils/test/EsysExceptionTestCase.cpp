@@ -40,7 +40,7 @@ public:
    DerivedEx(const DerivedEx &other): Parent(other) { updateMessage(); } 
 
    inline virtual DerivedEx &
-   operator=(const DerivedEx &other) THROW(/**/)
+   operator=(const DerivedEx &other) THROW_ANY
       {
          Parent::operator=(other);
          updateMessage();

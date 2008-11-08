@@ -68,7 +68,7 @@ namespace finley
 
     /// Destructor
     FINLEY_DLL_API
-    virtual ~FinleyAdapterException() THROW(/**/) {}
+    virtual ~FinleyAdapterException() THROW_ANY {}
 
     /**
     \brief
@@ -76,7 +76,7 @@ namespace finley
     */
     FINLEY_DLL_API
     inline FinleyAdapterException &
-    operator=(const FinleyAdapterException &other ) THROW(/**/)
+    operator=(const FinleyAdapterException &other ) THROW_ANY
        {
          Parent::operator=(other);
          updateMessage();

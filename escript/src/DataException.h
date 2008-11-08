@@ -67,7 +67,7 @@ namespace escript
 
     ESCRIPT_DLL_API
     inline DataException &
-    operator=(const DataException &other ) THROW(/**/)
+    operator=(const DataException &other ) THROW_ANY
        {
          Parent::operator=(other);
          updateMessage();
@@ -77,7 +77,7 @@ namespace escript
 
     /// Destructor
     ESCRIPT_DLL_API
-    virtual ~DataException() THROW(/**/) {}
+    virtual ~DataException() THROW_ANY {}
 
     /**
     \brief
