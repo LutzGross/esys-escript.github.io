@@ -78,7 +78,7 @@ void DataTestCase::testCopyingWorker(bool delayed)
   DataTypes::ValueType data(DataTypes::noValues(shape),1);
   const int NUMDATS=3;
   Data* dats[NUMDATS];
-  char* strs[]={"DataConstant", "DataTagged", "DataExpanded"};
+  const char* strs[]={"DataConstant", "DataTagged", "DataExpanded"};
   dats[0]=new Data(new DataConstant(FunctionSpace(),shape,data));
   dats[1]=new Data(new DataTagged(FunctionSpace(),shape,data));
   dats[2]=new Data(new DataExpanded(FunctionSpace(),shape,data));
@@ -161,7 +161,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
    viewShape.push_back(3);
 
    const int NUMDATS=3;
-   char* strs[]={"DataConstant", "DataTagged","DataExpanded"};
+   const char* strs[]={"DataConstant", "DataTagged","DataExpanded"};
    bool tags[]={false,true,false};	// is the slice of this data supposed to be tagged
    Data* dats[NUMDATS];
    for (int k=0;k<NUMDATS;++k)
@@ -268,7 +268,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
   viewShape.push_back(3);
 
   const int NUMDATS=3;
-  char* strs[]={"DataConstant", "DataTagged","DataExpanded"};
+  const char* strs[]={"DataConstant", "DataTagged","DataExpanded"};
   bool tags[]={false,true,false};	// is the slice of this data supposed to be tagged
   Data* dats[NUMDATS];
   Data* src[NUMDATS];
