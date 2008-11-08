@@ -152,7 +152,7 @@ void DataLazyTestCase::testLazy2()
   cout << "\tTesting UNARY constructor (basic checks only)\n";
 
   DataTypes::ShapeType shape;
-  DataAbstract_ptr d1=getLazyU(shape,LOG);
+  DataAbstract_ptr d1=getLazy(shape,LOG);
   assert(d1->isLazy());
 
   for (int j=SIN;j<=LEZ;++j)
@@ -184,7 +184,7 @@ void DataLazyTestCase::testLazy3()
   cout << "\tTesting BINARY constructor (basic checks only)\n";
 
   DataTypes::ShapeType shape;
-  DataAbstract_ptr d1=getLazyB(shape,ADD);
+  DataAbstract_ptr d1=getLazy(shape,ADD);
   assert(d1->isLazy());
 
   for (int j=ADD;j<=POW;++j)

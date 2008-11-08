@@ -33,10 +33,9 @@
 #include <math.h>
 #endif
 
-
 #ifdef _WIN32
 
-// Un-comment this block if you want it dynamic or under command line control.
+// Un-comment this block if you want it dynamic
 // and comment out the line immediately after the block.
 //#   ifndef INTERFACE_STATIC_LIB
 //#      ifdef ESYSUTILS_EXPORTS
@@ -47,13 +46,11 @@
 //#   endif
 #   define ESYSUTILS_DLL_API
 #   define THROW(ARG)
+#   define THROW_ANY // Stupid windows compilers complain about THROW()
 #else
 #   define ESYSUTILS_DLL_API
-
-//  If you want to generate a throw(), please use THROW(/**/)
-//  because the windows compiler will not accept THROW().
-
 #   define THROW(ARG) throw(ARG)
+#   define THROW_ANY throw()
 #endif
 
 

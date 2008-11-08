@@ -50,7 +50,7 @@ m_reason(other.m_reason)
 }
 
 EsysException &
-EsysException::operator=(const EsysException &other) THROW(/**/) 
+EsysException::operator=(const EsysException &other) THROW_ANY 
 {
   m_reason = other.m_reason;
   updateMessage();   
@@ -64,7 +64,7 @@ m_reason(cStr)
   updateMessage();   
 }
 
-EsysException::~EsysException() THROW(/**/)
+EsysException::~EsysException() THROW_ANY
 {}
 
 const std::string & EsysException::exceptionName() const 

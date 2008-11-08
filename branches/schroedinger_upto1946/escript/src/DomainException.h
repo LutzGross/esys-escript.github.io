@@ -67,7 +67,7 @@ namespace escript
 
     ESCRIPT_DLL_API
     inline virtual DomainException &
-    operator=(const DomainException &other ) THROW(/**/)
+    operator=(const DomainException &other ) THROW_ANY
        {
          Parent::operator=(other);
          updateMessage();
@@ -76,7 +76,7 @@ namespace escript
 
     /// Destructor
     ESCRIPT_DLL_API
-    virtual ~DomainException() THROW(/**/) {}
+    virtual ~DomainException() THROW_ANY {}
     /**
     \brief
     Returns the name of the exception.
