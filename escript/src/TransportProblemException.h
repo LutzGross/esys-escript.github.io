@@ -69,7 +69,7 @@ namespace escript
 
     ESCRIPT_DLL_API
     inline TransportProblemException &
-    operator=(const TransportProblemException &other ) THROW_ANY
+    operator=(const TransportProblemException &other ) THROW(/**/)
        {
          Parent::operator=(other);
          updateMessage();
@@ -78,7 +78,7 @@ namespace escript
 
     /// Destructor
     ESCRIPT_DLL_API
-    virtual ~TransportProblemException() THROW_ANY {}
+    virtual ~TransportProblemException() THROW(/**/) {}
     /**
     \brief
     Returns the name of the exception.

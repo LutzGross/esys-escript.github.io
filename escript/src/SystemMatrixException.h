@@ -68,7 +68,7 @@ namespace escript
 
     ESCRIPT_DLL_API
     inline SystemMatrixException &
-    operator=(const SystemMatrixException &other ) THROW_ANY
+    operator=(const SystemMatrixException &other ) THROW(/**/)
        {
          Parent::operator=(other);
          updateMessage();
@@ -77,7 +77,7 @@ namespace escript
 
     /// Destructor
     ESCRIPT_DLL_API
-    virtual ~SystemMatrixException() THROW_ANY {}
+    virtual ~SystemMatrixException() THROW(/**/) {}
     /**
     \brief
     Returns the name of the exception.
