@@ -77,7 +77,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
   index_t iPtr,*index, *where_p;
   dim_t i,k;
   Paso_SparseMatrix * schur=NULL;
-  double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0=0,time1=0,time2=0;
+  double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0,time1,time2;
    
 
   /* identify independend set of rows/columns */

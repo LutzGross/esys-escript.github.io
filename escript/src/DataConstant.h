@@ -16,7 +16,7 @@
 #define escript_DataConstant_20040323_H
 #include "system_dep.h"
 
-#include "DataAbstract.h"
+#include "DataReady.h"
 
 #include <boost/python/numeric.hpp>
 
@@ -31,8 +31,8 @@ namespace escript {
    DataConstant stores a single data point which represents the entire
    function space.
 */
-class DataConstant : public DataAbstract  {
-
+class DataConstant : public DataReady  {
+typedef DataReady parent;
  public:
 
   /**
@@ -97,6 +97,15 @@ class DataConstant : public DataAbstract  {
                const DataTypes::ShapeType &shape,
                const DataTypes::ValueType &data);
 
+
+  ESCRIPT_DLL_API
+  bool
+  isConstant() const 
+  {
+    return true;
+  };
+
+
   /**
      \brief
      Write the data as a string.
@@ -146,6 +155,12 @@ class DataConstant : public DataAbstract  {
   DataTypes::ValueType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
+
+  ESCRIPT_DLL_API
+  virtual
+  DataTypes::ValueType::size_type
+  getPointOffset(int sampleNo,
+                 int dataPointNo);
 
 //  /**
 /*     \brief

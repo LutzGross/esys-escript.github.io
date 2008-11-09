@@ -109,7 +109,7 @@ err_t Paso_FCT_setUpRightHandSide(Paso_FCTransportProblem* fctp, const double dt
 
 void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, double* source, Paso_Options* options) {
    const dim_t FAILURES_MAX=5;
-   dim_t m, i_substeps, Failed=0, i;
+   dim_t m, i_substeps, Failed, i;
    double *z_m=NULL, *b_n=NULL, *sourceP=NULL, *sourceN=NULL, *uTilde_n=NULL, *QN_n=NULL, *QP_n=NULL, *RN_m=NULL, *RP_m=NULL, *du_m=NULL;
    Paso_Coupler *QN_n_coupler=NULL, *QP_n_coupler=NULL, *RN_m_coupler=NULL, *RP_m_coupler=NULL, *uTilde_n_coupler=NULL, *u_m_coupler=NULL;
    Paso_SystemMatrix *flux_matrix_m=NULL;

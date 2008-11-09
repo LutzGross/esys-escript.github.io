@@ -83,13 +83,13 @@ err_t Paso_Solver_BiCGStab(
 
 
   /* Local variables */
-  double *rtld=NULL,*p=NULL,*v=NULL,*t=NULL,*phat=NULL,*shat=NULL,*s=NULL;/*, *buf1=NULL, *buf0=NULL;*/
-  double beta,norm_of_residual=0,sum_1,sum_2,sum_3,sum_4,norm_of_residual_global=0;
-  double alpha=0, omega=0, omegaNumtr, omegaDenumtr, rho, tol, rho1=0;
+  double *rtld=NULL,*p=NULL,*v=NULL,*t=NULL,*phat=NULL,*shat=NULL,*s=NULL, *buf1=NULL, *buf0=NULL;
+  double beta,norm_of_residual,sum_1,sum_2,sum_3,sum_4,norm_of_residual_global;
+  double alpha, omega, omegaNumtr, omegaDenumtr, rho, tol, rho1;
 #ifdef PASO_MPI
   double loc_sum[2], sum[2];
 #endif
-  dim_t num_iter=0,maxit,num_iter_global=0;
+  dim_t num_iter=0,maxit,num_iter_global;
   dim_t i0;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   dim_t status = SOLVER_NO_ERROR;
@@ -169,7 +169,7 @@ err_t Paso_Solver_BiCGStab(
 	/*        Compute direction adjusting vector PHAT and scalar ALPHA. */
    
         Paso_Solver_solvePreconditioner(A,&phat[0], &p[0]);
-	Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &phat[0],PASO_ZERO, &v[0]);
+	Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &phat[0],ZERO, &v[0]);
    
         #pragma omp parallel for private(i0) reduction(+:sum_2) schedule(static)
 	for (i0 = 0; i0 < n; i0++) sum_2 += rtld[i0] * v[i0];
@@ -201,7 +201,7 @@ err_t Paso_Solver_BiCGStab(
 	   } else {
 	     /*           Compute stabilizer vector SHAT and scalar OMEGA. */
              Paso_Solver_solvePreconditioner(A,&shat[0], &s[0]);
-	     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &shat[0],PASO_ZERO,&t[0]);
+	     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &shat[0],ZERO,&t[0]);
    
              #pragma omp parallel for private(i0) reduction(+:omegaNumtr,omegaDenumtr) schedule(static)
 	     for (i0 = 0; i0 < n; i0++) {

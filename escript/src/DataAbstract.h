@@ -50,6 +50,10 @@ class DataAbstract;
 typedef POINTER_WRAPPER_CLASS(DataAbstract) DataAbstract_ptr;
 typedef POINTER_WRAPPER_CLASS(const DataAbstract) const_DataAbstract_ptr;
 
+class DataReady;
+
+typedef POINTER_WRAPPER_CLASS(DataReady) DataReady_ptr;
+typedef POINTER_WRAPPER_CLASS(const DataReady) const_DataReady_ptr;
 
 class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 {
@@ -101,6 +105,14 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   DataAbstract*
   deepCopy()=0;
 
+  /**
+     \brief Return a data object with all points resolved.
+  */
+  ESCRIPT_DLL_API
+  virtual
+  DataReady_ptr
+  resolve()=0;
+
  /**
      \brief
      dumps the object into a netCDF file
@@ -141,25 +153,30 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      Return the rank information for the point data.
   */
   ESCRIPT_DLL_API
-  unsigned int 
+  int 
   getRank() const;
 
 
 
-  /**
-     \brief
-     Return the offset for the given sample. This returns the offset for the given
-     point into the container holding the point data. Only really necessary to
-     avoid creating many DataArrayView objects.
+ /**
+    \brief
+    Return the offset for the given sample. This returns the offset for the given
+    point into the container holding the point data. 
 
-     \param sampleNo - Input - sample number.
-     \param dataPointNo - Input - data point number.
-   */
+    \param sampleNo - Input - sample number.
+    \param dataPointNo - Input - data point number.
+  */
   ESCRIPT_DLL_API
   virtual
   ValueType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const = 0;
+
+  ESCRIPT_DLL_API
+  virtual
+  ValueType::size_type
+  getPointOffset(int sampleNo,
+                 int dataPointNo) = 0;
 
 //  /**
 //	return the container storing points for this object
@@ -175,13 +192,13 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 //   getVector() const;
 
 
-  /**
-     \brief
-     Return the sample data for the given sample number.
-  */
-  ESCRIPT_DLL_API
-  double*
-  getSampleData(ValueType::size_type sampleNo);
+//  /**
+//     \brief
+//     Return the sample data for the given sample number.
+//  */
+//  ESCRIPT_DLL_API
+//  double*
+//  getSampleData(ValueType::size_type sampleNo);
 
   /**
      \brief
@@ -251,18 +268,18 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   DataAbstract*
   getSlice(const DataTypes::RegionType& region) const = 0;
 
-  /**
-     \brief
-     Copy the specified region from the given object.
-
-     \param value - Input - Data to copy from
-     \param region - Input - Region to copy.
-  */
-  ESCRIPT_DLL_API
-  virtual
-  void
-  setSlice(const DataAbstract* value,
-           const DataTypes::RegionType& region) = 0;
+//  /**
+//     \brief
+//     Copy the specified region from the given object.
+//
+//     \param value - Input - Data to copy from
+//     \param region - Input - Region to copy.
+//  */
+//   ESCRIPT_DLL_API
+//   virtual
+//   void
+//   setSlice(const DataAbstract* value,
+//            const DataTypes::RegionType& region) = 0;
 
   /**
      \brief
@@ -450,42 +467,54 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 	Return the number of values in the shape for this object.
   */
   ESCRIPT_DLL_API
-  unsigned int
+  int
   getNoValues() const;
 
 
 
-  /**
-      \brief get a reference to the beginning of a data point
-  */
+//  /**
+//      \brief get a reference to the beginning of a data point
+//  */
+//   ESCRIPT_DLL_API
+//   DataTypes::ValueType::const_reference
+//   getDataAtOffset(DataTypes::ValueType::size_type i) const;
+// 
+// 
+//   ESCRIPT_DLL_API
+//   DataTypes::ValueType::reference
+//   getDataAtOffset(DataTypes::ValueType::size_type i);
+
+
+//  /**
+//	\brief Provide access to underlying storage. Internal use only!
+//  */
+//   ESCRIPT_DLL_API
+//   virtual DataTypes::ValueType&
+//   getVector()=0;
+// 
+//   ESCRIPT_DLL_API
+//   virtual const DataTypes::ValueType&
+//   getVector() const=0;
+
   ESCRIPT_DLL_API
-  DataTypes::ValueType::const_reference
-  getDataAtOffset(DataTypes::ValueType::size_type i) const;
+  bool isLazy() const;	// a test to determine if this object is an instance of DataLazy
 
+  virtual
+  bool
+  isConstant() const {return false;}
 
-  ESCRIPT_DLL_API
-  DataTypes::ValueType::reference
-  getDataAtOffset(DataTypes::ValueType::size_type i);
+  virtual
+  bool
+  isExpanded() const {return false;}
 
-
-  /**
-	\brief Provide access to underlying storage. Internal use only!
-  */
-  ESCRIPT_DLL_API
-  virtual DataTypes::ValueType&
-  getVector()=0;
-
-  ESCRIPT_DLL_API
-  virtual const DataTypes::ValueType&
-  getVector() const=0;
+  virtual
+  bool
+  isTagged() const {return false;}
 
   ESCRIPT_DLL_API
   bool isEmpty() const;	// a fast test to determine if this object is an instance of DataEmpty
 
  protected:
-
-
-
 
 
 
@@ -512,17 +541,16 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
   //
   // The number of values in each point
-  unsigned int m_novalues;
+  int m_novalues;
 
   //
   // The rank of the points stored in this view
-  unsigned int m_rank;
+  int m_rank;
 
   // 
   // Is this an instance of DataEmpty?
   bool m_isempty;
 };
-
 
 inline
 bool
@@ -531,20 +559,30 @@ DataAbstract::isEmpty() const
 	return m_isempty;
 }
 
+// inline
+// DataTypes::ValueType::const_reference
+// DataAbstract::getDataAtOffset(DataTypes::ValueType::size_type i) const
+// {
+//    if (isLazy())
+//    {
+// 	throw DataException("Programmer error - getDataAtOffset() not permitted on Lazy Data.");
+//    }
+//    DataReady* d;
+//    return (dynamic_cast<const DataReady*>(this))->getVector()[i];
+// // 	return getVector()[i];
+// }
 
-inline
-DataTypes::ValueType::const_reference
-DataAbstract::getDataAtOffset(DataTypes::ValueType::size_type i) const
-{
-	return getVector()[i];
-}
-
-inline
-DataTypes::ValueType::reference
-DataAbstract::getDataAtOffset(DataTypes::ValueType::size_type i)
-{
-	return getVector()[i];
-}
+// inline
+// DataTypes::ValueType::reference
+// DataAbstract::getDataAtOffset(DataTypes::ValueType::size_type i)
+// {
+//    if (isLazy())
+//    {
+// 	throw DataException("Programmer error - getDataAtOffset() not permitted on Lazy Data.");
+//    }
+//    return dynamic_cast<DataReady*>(this)->getVector()[i];
+// // 	return getVector()[i];
+// }
 
 
 inline
@@ -559,14 +597,6 @@ bool
 DataAbstract::validSampleNo(int sampleNo) const
 {
   return ((0 <= sampleNo) && (sampleNo < m_noSamples));
-}
-
-inline
-DataAbstract::ValueType::value_type*
-DataAbstract::getSampleData(ValueType::size_type sampleNo)
-{
-//   return &(m_pointDataView->getData(getPointOffset(sampleNo,0)));
-  return &(getVector()[getPointOffset(sampleNo,0)]);
 }
 
 inline
@@ -611,7 +641,7 @@ DataAbstract::getShape() const
 }
 
 inline 
-unsigned int
+int
 DataAbstract::getRank() const
 {
 	if (isEmpty())
@@ -622,7 +652,7 @@ DataAbstract::getRank() const
 }
 
 inline
-unsigned int
+int
 DataAbstract::getNoValues() const
 {	
 	if (isEmpty())

@@ -36,7 +36,7 @@
 void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, double main_diagonal_value) {
  
   double* remote_values;
-  /*Paso_MPIInfo *mpi_info=A->mpi_info;*/
+  Paso_MPIInfo *mpi_info=A->mpi_info;
   if (A ->col_block_size==1 && A ->row_block_size ==1) {
        if (A->type & MATRIX_FORMAT_CSC) {
            Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRows: CSC is not supported by MPI.");

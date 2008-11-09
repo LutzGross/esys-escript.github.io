@@ -37,7 +37,7 @@ void  Paso_SystemMatrix_MatrixVector(const double alpha,
                                      const double beta,
                                      double* out) {
 
-  /*double *snd_buffer=NULL, *rcv_buffer=NULL;*/
+  double *snd_buffer=NULL, *rcv_buffer=NULL;
   Paso_MPIInfo *mpi_info=A->mpi_info;
 
   if (A->type & MATRIX_FORMAT_CSC) {

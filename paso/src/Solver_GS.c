@@ -53,8 +53,9 @@ Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A,bool_t verbose) {
   dim_t n=A->numRows;
   dim_t n_block=A->row_block_size;
   dim_t block_size=A->block_size;
-  register index_t i,iptr_main=0,iPtr;
-  double time0=0,time_color=0,time_fac=0;
+  index_t num_colors=0, *mis_marker=NULL;
+  register index_t i,iptr_main,iPtr;
+  double time0,time_color,time_fac;
   /* allocations: */  
   Paso_Solver_GS* out=MEMALLOC(1,Paso_Solver_GS);
   if (Paso_checkPtr(out)) return NULL;
@@ -403,6 +404,257 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
               }
          }
      }
+     
+     return;
+}
+
+/**************************************************************/
+
+/* apply GS precondition b-> x                               
+
+     in fact it solves LD^{-1}Ux=b in the form x= U^{-1} D L^{-1}b 
+
+ should be called within a parallel region                                              
+ barrier synconization should be performed to make sure that the input vector available 
+
+*/
+
+void Paso_Solver_solveGS1(Paso_Solver_GS * gs, double * x, double * b) {
+     register dim_t i,k;
+     register index_t color,iptr_ik,iptr_main;
+     register double A11,A12,A21,A22,A13,A23,A33,A32,A31,S1,S2,S3,R1,R2,R3,D,S21,S22,S12,S11,S13,S23,S33,S32,S31;
+     dim_t n_block=gs->n_block;
+     dim_t n=gs->n;
+     index_t* pivot=NULL;
+     
+     /* copy x into b*/
+     #pragma omp parallel for private(i) schedule(static)
+     /*for (i=0;i<n*n_block;++i) x[i]=b[i];*/
+     
+     /* forward substitution */
+     for (color=0;color<gs->num_colors;++color) {
+           if (n_block==1) {
+              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,R1,iptr_main)
+              for (i = 0; i < n; ++i) {
+                   if (gs->colorOf[i]==color) {
+                     /* x_i=x_i-a_ik*x_k */                     
+                     S1=b[i];
+                     for (iptr_ik=gs->pattern->ptr[i];iptr_ik<gs->pattern->ptr[i+1]; ++iptr_ik) {
+                          k=gs->pattern->index[iptr_ik];                          
+                          if (gs->colorOf[k]<color) { 
+                             R1=x[k];                              
+                             S1-=gs->factors->val[iptr_ik]*R1;
+                           }
+                     }
+                     iptr_main=gs->main_iptr[i];
+                     x[i]=(1/gs->factors->val[iptr_main])*S1;
+                   }
+              }
+           } else if (n_block==2) {
+              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,iptr_main,S1,S2,R1,R2)
+              for (i = 0; i < n; ++i) {
+                   if (gs->colorOf[i]==color) {
+                     /* x_i=x_i-a_ik*x_k */
+                     S1=b[2*i];
+                     S2=b[2*i+1];
+                     for (iptr_ik=gs->pattern->ptr[i];iptr_ik<gs->pattern->ptr[i+1]; ++iptr_ik) {
+                          k=gs->pattern->index[iptr_ik];                          
+                          if (gs->colorOf[k]<color) {
+                             R1=x[2*k];
+                             R2=x[2*k+1];
+                             S1-=gs->factors->val[4*iptr_ik  ]*R1+gs->factors->val[4*iptr_ik+2]*R2;
+                             S2-=gs->factors->val[4*iptr_ik+1]*R1+gs->factors->val[4*iptr_ik+3]*R2;
+                          }
+                     }
+                     iptr_main=gs->main_iptr[i];
+                     A11=gs->factors->val[iptr_main*4];
+                     A21=gs->factors->val[iptr_main*4+1];
+                     A12=gs->factors->val[iptr_main*4+2];
+                     A22=gs->factors->val[iptr_main*4+3];
+                     D = A11*A22-A12*A21;
+                     if (ABS(D)>0.) {
+                          D=1./D;
+                          S11= A22*D;
+                          S21=-A21*D;
+                          S12=-A12*D;
+                          S22= A11*D;
+                          x[2*i  ]=S11*S1+S12*S2;
+                          x[2*i+1]=S21*S1+S22*S2;
+                     } else {
+                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGS: non-regular main diagonal block.");
+                       }
+                   }
+
+              }
+           } else if (n_block==3) {
+              #pragma omp parallel for schedule(static) private(i,iptr_ik,iptr_main,k,S1,S2,S3,R1,R2,R3)
+              for (i = 0; i < n; ++i) {
+                   if (gs->colorOf[i]==color) {
+                     /* x_i=x_i-a_ik*x_k */
+                     S1=b[3*i];
+                     S2=b[3*i+1];
+                     S3=b[3*i+2];
+                     for (iptr_ik=gs->pattern->ptr[i];iptr_ik<gs->pattern->ptr[i+1]; ++iptr_ik) {
+                          k=gs->pattern->index[iptr_ik];                          
+                          if (gs->colorOf[k]<color) {
+                             R1=x[3*k];
+                             R2=x[3*k+1];
+                             R3=x[3*k+2];
+                             S1-=gs->factors->val[9*iptr_ik  ]*R1+gs->factors->val[9*iptr_ik+3]*R2+gs->factors->val[9*iptr_ik+6]*R3;
+                             S2-=gs->factors->val[9*iptr_ik+1]*R1+gs->factors->val[9*iptr_ik+4]*R2+gs->factors->val[9*iptr_ik+7]*R3;
+                             S3-=gs->factors->val[9*iptr_ik+2]*R1+gs->factors->val[9*iptr_ik+5]*R2+gs->factors->val[9*iptr_ik+8]*R3;
+                          }
+                     }
+                     iptr_main=gs->main_iptr[i];
+                     A11=gs->factors->val[iptr_main*9  ];
+                     A21=gs->factors->val[iptr_main*9+1];
+                     A31=gs->factors->val[iptr_main*9+2];
+                     A12=gs->factors->val[iptr_main*9+3];
+                     A22=gs->factors->val[iptr_main*9+4];
+                     A32=gs->factors->val[iptr_main*9+5];
+                     A13=gs->factors->val[iptr_main*9+6];
+                     A23=gs->factors->val[iptr_main*9+7];
+                     A33=gs->factors->val[iptr_main*9+8];
+                     D  =  A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22);
+                     if (ABS(D)>0.) {
+                          D=1./D;
+                          S11=(A22*A33-A23*A32)*D;
+                          S21=(A31*A23-A21*A33)*D;
+                          S31=(A21*A32-A31*A22)*D;
+                          S12=(A13*A32-A12*A33)*D;
+                          S22=(A11*A33-A31*A13)*D;
+                          S32=(A12*A31-A11*A32)*D;
+                          S13=(A12*A23-A13*A22)*D;
+                          S23=(A13*A21-A11*A23)*D;
+                          S33=(A11*A22-A12*A21)*D;
+                             /* a_ik=a_ii^{-1}*a_ik */
+                          x[3*i  ]=S11*S1+S12*S2+S13*S3;
+                          x[3*i+1]=S21*S1+S22*S2+S23*S3;
+                          x[3*i+2]=S31*S1+S32*S2+S33*S3;
+                       } else {
+                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGS: non-regular main diagonal block.");
+                       }
+                }
+              }
+           }
+     }
+     
+     /* Multipling with diag(A) */
+     Paso_Solver_applyBlockDiagonalMatrix(gs->n_block,gs->n,gs->diag,pivot,x,x);
+
+     /* backward substitution */
+     for (color=(gs->num_colors)-1;color>-1;--color) {
+           if (n_block==1) {
+              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,R1)
+              for (i = 0; i < n; ++i) {
+                   if (gs->colorOf[i]==color) {
+                     /* x_i=x_i-a_ik*x_k */
+                     S1=x[i];
+                     for (iptr_ik=gs->pattern->ptr[i];iptr_ik<gs->pattern->ptr[i+1]; ++iptr_ik) {
+                          k=gs->pattern->index[iptr_ik];                          
+                          if (gs->colorOf[k]>color) {
+                             R1=x[k]; 
+                             S1-=gs->factors->val[iptr_ik]*R1;
+                          }
+                     }
+                     /*x[i]=S1;*/
+                     iptr_main=gs->main_iptr[i];
+                     x[i]=(1/gs->factors->val[iptr_main])*S1;
+                   }
+              }
+           } else if (n_block==2) {
+              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,S2,R1,R2)
+              for (i = 0; i < n; ++i) {
+                   if (gs->colorOf[i]==color) {
+                     /* x_i=x_i-a_ik*x_k */
+                     S1=x[2*i];
+                     S2=x[2*i+1];
+                     for (iptr_ik=gs->pattern->ptr[i];iptr_ik<gs->pattern->ptr[i+1]; ++iptr_ik) {
+                          k=gs->pattern->index[iptr_ik];                          
+                          if (gs->colorOf[k]>color) {
+                             R1=x[2*k];
+                             R2=x[2*k+1];
+                             S1-=gs->factors->val[4*iptr_ik  ]*R1+gs->factors->val[4*iptr_ik+2]*R2;
+                             S2-=gs->factors->val[4*iptr_ik+1]*R1+gs->factors->val[4*iptr_ik+3]*R2;
+                          }
+                     }
+                     /*x[2*i]=S1;
+                     x[2*i+1]=S2;*/
+                     iptr_main=gs->main_iptr[i];
+                     A11=gs->factors->val[iptr_main*4];
+                     A21=gs->factors->val[iptr_main*4+1];
+                     A12=gs->factors->val[iptr_main*4+2];
+                     A22=gs->factors->val[iptr_main*4+3];
+                     D = A11*A22-A12*A21;
+                     if (ABS(D)>0.) {
+                          D=1./D;
+                          S11= A22*D;
+                          S21=-A21*D;
+                          S12=-A12*D;
+                          S22= A11*D;
+                          x[2*i  ]=S11*S1+S12*S2;
+                          x[2*i+1]=S21*S1+S22*S2;
+                     } else {
+                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGS: non-regular main diagonal block.");
+                       }
+ 
+                    }
+              }
+           } else if (n_block==3) {
+              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,S2,S3,R1,R2,R3)
+              for (i = 0; i < n; ++i) {
+                   if (gs->colorOf[i]==color) {
+                     /* x_i=x_i-a_ik*x_k */
+                     S1=x[3*i  ];
+                     S2=x[3*i+1];
+                     S3=x[3*i+2];
+                     for (iptr_ik=gs->pattern->ptr[i];iptr_ik<gs->pattern->ptr[i+1]; ++iptr_ik) {
+                          k=gs->pattern->index[iptr_ik];                          
+                          if (gs->colorOf[k]>color) {
+                             R1=x[3*k];
+                             R2=x[3*k+1];
+                             R3=x[3*k+2];
+                             S1-=gs->factors->val[9*iptr_ik  ]*R1+gs->factors->val[9*iptr_ik+3]*R2+gs->factors->val[9*iptr_ik+6]*R3;
+                             S2-=gs->factors->val[9*iptr_ik+1]*R1+gs->factors->val[9*iptr_ik+4]*R2+gs->factors->val[9*iptr_ik+7]*R3;
+                             S3-=gs->factors->val[9*iptr_ik+2]*R1+gs->factors->val[9*iptr_ik+5]*R2+gs->factors->val[9*iptr_ik+8]*R3;
+                          }
+                     }
+/*                     x[3*i]=S1;
+                     x[3*i+1]=S2;
+                     x[3*i+2]=S3;
+*/                   iptr_main=gs->main_iptr[i];
+                     A11=gs->factors->val[iptr_main*9  ];
+                     A21=gs->factors->val[iptr_main*9+1];
+                     A31=gs->factors->val[iptr_main*9+2];
+                     A12=gs->factors->val[iptr_main*9+3];
+                     A22=gs->factors->val[iptr_main*9+4];
+                     A32=gs->factors->val[iptr_main*9+5];
+                     A13=gs->factors->val[iptr_main*9+6];
+                     A23=gs->factors->val[iptr_main*9+7];
+                     A33=gs->factors->val[iptr_main*9+8];
+                     D  =  A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22);
+                     if (ABS(D)>0.) {
+                          D=1./D;
+                          S11=(A22*A33-A23*A32)*D;
+                          S21=(A31*A23-A21*A33)*D;
+                          S31=(A21*A32-A31*A22)*D;
+                          S12=(A13*A32-A12*A33)*D;
+                          S22=(A11*A33-A31*A13)*D;
+                          S32=(A12*A31-A11*A32)*D;
+                          S13=(A12*A23-A13*A22)*D;
+                          S23=(A13*A21-A11*A23)*D;
+                          S33=(A11*A22-A12*A21)*D;
+                          x[3*i  ]=S11*S1+S12*S2+S13*S3;
+                          x[3*i+1]=S21*S1+S22*S2+S23*S3;
+                          x[3*i+2]=S31*S1+S32*S2+S33*S3;
+                       } else {
+                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGS: non-regular main diagonal block.");
+                       }
+                   }
+              }
+         }
+     }
+     
      return;
 }
 

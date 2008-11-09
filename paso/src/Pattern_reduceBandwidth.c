@@ -134,7 +134,7 @@ bool_t Paso_Pattern_dropTree(index_t root,
 
 /* the driver */
 void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
-   dim_t i, initial_bandwidth, N=pattern->numOutput, numLabledVertices, numLevels, max_LevelWidth, min_deg,deg, numVerticesInTree=0, bandwidth;
+   dim_t i, initial_bandwidth, N=pattern->numOutput, numLabledVertices, numLevels, max_LevelWidth, min_deg,deg, numVerticesInTree, bandwidth;
    Paso_DegreeAndIdx* degAndIdx=NULL;
    index_t root, *AssignedLevel=NULL, *VerticesInTree=NULL, *firstVertexInLevel=NULL,k, *oldLabel=NULL;
    /* check input */

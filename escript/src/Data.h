@@ -202,8 +202,13 @@ class Data {
 	Once you have passed the pointer, do not delete it.
   */
   ESCRIPT_DLL_API
-  Data(DataAbstract* underlyingdata);
+  explicit Data(DataAbstract* underlyingdata);
 
+  /**
+	\brief Create a Data based on the supplied DataAbstract
+  */
+  ESCRIPT_DLL_API
+  explicit Data(DataAbstract_ptr underlyingdata);
 
   /**
      \brief
@@ -227,6 +232,19 @@ class Data {
   copySelf();
 
 
+  /**
+     \brief produce a delayed evaluation version of this Data.
+  */
+  ESCRIPT_DLL_API
+  Data
+  delay();
+
+  /**
+     \brief convert the current data into lazy data.
+  */
+  ESCRIPT_DLL_API
+  void 
+  delaySelf();
 
 
   /**
@@ -335,21 +353,6 @@ class Data {
   std::string
   toString() const;
 
-
-//  /**
-/*     \brief
-     Return the DataArrayView of the point data. This essentially contains
-     the shape information for each data point although it also may be used
-     to manipulate the point data.*/
-//  */
-//   ESCRIPT_DLL_API
-//   inline
-//   const DataArrayView&
-//   getPointDataView() const
-//   {
-//      return m_data->getPointDataView();
-//   }
-
   /**
      \brief
      Whatever the current Data type make this into a DataExpanded.
@@ -363,11 +366,19 @@ class Data {
      If possible convert this Data to DataTagged. This will only allow
      Constant data to be converted to tagged. An attempt to convert
      Expanded data to tagged will throw an exception.
-    ==>*
   */
   ESCRIPT_DLL_API
   void
   tag();
+
+  /**
+    \brief If this data is lazy, then convert it to ready data.
+    What type of ready data depends on the expression. For example, Constant+Tagged==Tagged.
+  */
+  ESCRIPT_DLL_API
+  void
+  resolve();
+
 
   /**
      \brief
@@ -392,6 +403,20 @@ class Data {
   ESCRIPT_DLL_API
   bool
   isConstant() const;
+
+  /**
+     \brief Return true if this Data is lazy.
+  */
+  ESCRIPT_DLL_API
+  bool
+  isLazy() const;
+
+  /**
+     \brief Return true if this data is ready.
+  */
+  ESCRIPT_DLL_API
+  bool
+  isReady() const;
 
   /**
      \brief
@@ -464,9 +489,10 @@ contains datapoints.
   */
   ESCRIPT_DLL_API
   inline
-  unsigned int
+  int
   getDataPointRank() const
   {
+//    return m_data->getPointDataView().getRank();
     return m_data->getRank();
   }
 
@@ -525,6 +551,7 @@ contains datapoints.
   ESCRIPT_DLL_API
   void
   dump(const std::string fileName) const;
+
   /**
      \brief
      Return the sample data for the given sample no. This is not the
@@ -534,10 +561,7 @@ contains datapoints.
   ESCRIPT_DLL_API
   inline
   DataAbstract::ValueType::value_type*
-  getSampleData(DataAbstract::ValueType::size_type sampleNo)
-  {
-    return m_data->getSampleData(sampleNo);
-  }
+  getSampleData(DataAbstract::ValueType::size_type sampleNo);
 
   /**
      \brief
@@ -552,24 +576,6 @@ contains datapoints.
   {
     return m_data->getSampleDataByTag(tag);
   }
-
-//  /**
-/*     \brief
-     Return a view into the data for the data point specified.
-     NOTE: Construction of the DataArrayView is a relatively expensive
-     operation.
-     \param sampleNo - Input -
-     \param dataPointNo - Input -*/
-//  */
-//   ESCRIPT_DLL_API
-//   inline
-//   DataArrayView
-//   getDataPoint(int sampleNo,
-//                int dataPointNo)
-//   {
-//                 return m_data->getDataPoint(sampleNo,dataPointNo);
-//   }
-
 
   /**
      \brief
@@ -600,7 +606,7 @@ contains datapoints.
   getDataOffset(int sampleNo,
                int dataPointNo)
   {
-                return m_data->getPointOffset(sampleNo,dataPointNo);
+      return m_data->getPointOffset(sampleNo,dataPointNo);
   }
 
   /**
@@ -669,21 +675,6 @@ contains datapoints.
   void
   setTaggedValue(int tagKey,
                  const boost::python::object& value);
-
-
-//  /**
-//     \brief
-//     Assign the given value to the tag. Implicitly converts this
-//     object to type DataTagged if it is constant.
-//
-//     \param tagKey - Input - Integer key.
-//     \param value - Input - Value to associate with given key.
-//    ==>*
-//  */
-//   ESCRIPT_DLL_API
-//   void
-//   setTaggedValueFromCPP(int tagKey,
-//                         const DataArrayView& value);
 
   /**
      \brief
@@ -756,7 +747,11 @@ contains datapoints.
   */
   ESCRIPT_DLL_API
   boost::python::numeric::array
-  integrate() const;
+  integrate_const() const;
+
+  ESCRIPT_DLL_API
+  boost::python::numeric::array
+  integrate();
 
   /**
      \brief
@@ -823,34 +818,63 @@ contains datapoints.
   /**
      \brief
      Return the maximum absolute value of this Data object.
+
+     The method is not const because lazy data needs to be expanded before Lsup can be computed.
+     The _const form can be used when the Data object is const, however this will only work for
+     Data which is not Lazy.
+
      For Data which contain no samples (or tagged Data for which no tags in use have a value)
      zero is returned.
-     *
   */
   ESCRIPT_DLL_API
   double
-  Lsup() const;
+  Lsup();
+
+  ESCRIPT_DLL_API
+  double
+  Lsup_const() const;
+
 
   /**
      \brief
      Return the maximum value of this Data object.
+
+     The method is not const because lazy data needs to be expanded before sup can be computed.
+     The _const form can be used when the Data object is const, however this will only work for
+     Data which is not Lazy.
+
      For Data which contain no samples (or tagged Data for which no tags in use have a value)
      a large negative value is returned.
   */
   ESCRIPT_DLL_API
   double
-  sup() const;
+  sup();
+
+  ESCRIPT_DLL_API
+  double
+  sup_const() const;
+
 
   /**
      \brief
      Return the minimum value of this Data object.
+
+     The method is not const because lazy data needs to be expanded before inf can be computed.
+     The _const form can be used when the Data object is const, however this will only work for
+     Data which is not Lazy.
+
      For Data which contain no samples (or tagged Data for which no tags in use have a value)
      a large positive value is returned.
-     *
   */
   ESCRIPT_DLL_API
   double
-  inf() const;
+  inf();
+
+  ESCRIPT_DLL_API
+  double
+  inf_const() const;
+
+
 
   /**
      \brief
@@ -1369,6 +1393,15 @@ contains datapoints.
         DataAbstract*
         borrowData(void) const;
 
+  ESCRIPT_DLL_API
+        DataAbstract_ptr
+        borrowDataPtr(void) const;
+
+  ESCRIPT_DLL_API
+        DataReady_ptr
+        borrowReadyPtr(void) const;
+
+
 
   /**
      \brief
@@ -1388,6 +1421,18 @@ contains datapoints.
  protected:
 
  private:
+
+  double
+  LsupWorker() const;
+
+  double
+  supWorker() const;
+
+  double
+  infWorker() const;
+
+  boost::python::numeric::array
+  integrateWorker() const;
 
   /**
      \brief
@@ -1481,8 +1526,80 @@ contains datapoints.
 //   boost::shared_ptr<DataAbstract> m_data;
   DataAbstract_ptr m_data;
 
+// If possible please use getReadyPtr instead
+  const DataReady*
+  getReady() const;
+
+  DataReady*
+  getReady();
+
+  DataReady_ptr
+  getReadyPtr();
+
+  const_DataReady_ptr
+  getReadyPtr() const;
+
+
 };
 
+}   // end namespace escript
+
+
+// No, this is not supposed to be at the top of the file
+// DataAbstact needs to be declared first, then DataReady needs to be fully declared
+// so that I can dynamic cast between them below.
+#include "DataReady.h"
+
+namespace escript
+{
+
+inline
+const DataReady*
+Data::getReady() const
+{
+   const DataReady* dr=dynamic_cast<const DataReady*>(m_data.get());
+   EsysAssert((dr!=0), "Error - casting to DataReady.");
+   return dr;
+}
+
+inline
+DataReady*
+Data::getReady()
+{
+   DataReady* dr=dynamic_cast<DataReady*>(m_data.get());
+   EsysAssert((dr!=0), "Error - casting to DataReady.");
+   return dr;
+}
+
+inline
+DataReady_ptr
+Data::getReadyPtr()
+{
+   DataReady_ptr dr=boost::dynamic_pointer_cast<DataReady>(m_data);
+   EsysAssert((dr.get()!=0), "Error - casting to DataReady.");
+   return dr;
+}
+
+
+inline
+const_DataReady_ptr
+Data::getReadyPtr() const
+{
+   const_DataReady_ptr dr=boost::dynamic_pointer_cast<const DataReady>(m_data);
+   EsysAssert((dr.get()!=0), "Error - casting to DataReady.");
+   return dr;
+}
+
+inline
+DataAbstract::ValueType::value_type*
+Data::getSampleData(DataAbstract::ValueType::size_type sampleNo)
+{
+   if (isLazy())
+   {
+	resolve();
+   }
+   return getReady()->getSampleData(sampleNo);
+}
 
 
 /**
@@ -1613,16 +1730,6 @@ C_GeneralTensorProduct(Data& arg0,
                      int axis_offset=0,
                      int transpose=0);
 
-
-
-// /**
-/*  \brief
-  Return true if operands are equivalent, else return false.
-  NB: this operator does very little at this point, and isn't to
-  be relied on. Requires further implementation.*/
-//*/
-// ESCRIPT_DLL_API bool operator==(const Data& left, const Data& right);
-
 /**
   \brief
   Perform the given binary operation with this and right as operands.
@@ -1639,9 +1746,15 @@ Data::binaryOp(const Data& right,
    if (getDataPointRank()==0 && right.getDataPointRank()!=0) {
      throw DataException("Error - attempt to update rank zero object with object with rank bigger than zero.");
    }
+
+   if (isLazy() || right.isLazy())
+   {
+     throw DataException("Programmer error - attempt to call binaryOp with Lazy Data.");
+   }
    //
    // initially make the temporary a shallow copy
    Data tempRight(right);
+
    if (getFunctionSpace()!=right.getFunctionSpace()) {
      if (right.probeInterpolation(getFunctionSpace())) {
        //
@@ -1667,7 +1780,7 @@ Data::binaryOp(const Data& right,
      // of any data type
      DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
      EsysAssert((leftC!=0), "Programming error - casting to DataExpanded.");
-     escript::binaryOp(*leftC,*(tempRight.m_data.get()),operation);
+     escript::binaryOp(*leftC,*(tempRight.getReady()),operation);
    } else if (isTagged()) {
      //
      // Tagged data is operated on serially, the right hand side can be
@@ -1717,8 +1830,11 @@ Data::algorithm(BinaryFunction operation, double initial_value) const
     return escript::algorithm(*leftC,operation,initial_value);
   } else if (isEmpty()) {
     throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+  } else if (isLazy()) {
+    throw DataException("Error - Operations not permitted on instances of DataLazy.");
+  } else {
+    throw DataException("Error - Data encapsulates an unknown type.");
   }
-  return 0;
 }
 
 /**
@@ -1763,9 +1879,11 @@ Data::dp_algorithm(BinaryFunction operation, double initial_value) const
     EsysAssert((resultC!=0), "Programming error - casting result to DataConstant.");
     escript::dp_algorithm(*dataC,*resultC,operation,initial_value);
     return result;
+  } else if (isLazy()) {
+    throw DataException("Error - Operations not permitted on instances of DataLazy.");
+  } else {
+    throw DataException("Error - Data encapsulates an unknown type.");
   }
-  Data falseRetVal; // to keep compiler quiet
-  return falseRetVal;
 }
 
 /**
@@ -1785,6 +1903,10 @@ C_TensorBinaryOperation(Data const &arg_0,
   if (arg_0.isEmpty() || arg_1.isEmpty())
   {
      throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+  }
+  if (arg_0.isLazy() || arg_1.isLazy())
+  {
+     throw DataException("Error - Operations not permitted on lazy data.");
   }
   // Interpolate if necessary and find an appropriate function space
   Data arg_0_Z, arg_1_Z;
@@ -2699,7 +2821,10 @@ C_TensorUnaryOperation(Data const &arg_0,
   {
      throw DataException("Error - Operations not permitted on instances of DataEmpty.");
   }
-
+  if (arg_0.isLazy())
+  {
+     throw DataException("Error - Operations not permitted on lazy data.");
+  }
   // Interpolate if necessary and find an appropriate function space
   Data arg_0_Z = Data(arg_0);
 

@@ -120,7 +120,7 @@ void MeshAdapter::Print_Mesh_Info(const bool full=false) const
 void MeshAdapter::dump(const std::string& fileName) const
 {
 #ifdef USE_NETCDF
-   const NcDim* ncdims[12] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+   const NcDim* ncdims[12];
    NcVar *ids;
    int *int_ptr;
    Finley_Mesh *mesh = m_finleyMesh.get();

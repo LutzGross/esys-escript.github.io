@@ -28,6 +28,7 @@
 #include "DataTestCase.h"
 #include "DataMathsTestCase.h"
 #include "DataTypesTestCase.h"
+#include "DataLazyTestCase.h"
 
 #include "tools/CppUnitTest/TestRunner.h"
 
@@ -65,6 +66,7 @@ int main(int argc, char* argv[])
  	runner.addTest ("DataAlgorithmAdapter", DataAlgorithmAdapterTestCase::suite());
 	runner.addTest ("FunctionSpace", FunctionSpaceTestCase::suite());
 	runner.addTest ("Data", DataTestCase::suite());
+	runner.addTest ("DataLazy",DataLazyTestCase::suite());
 
 	// actually run the unit tests.
 	runner.run (argc, argv);

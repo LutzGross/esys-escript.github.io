@@ -35,8 +35,8 @@
 /*  free any extra stuff possibly used by the UMFPACK library */
 
 void Paso_UMFPACK_free(Paso_SystemMatrix* A) {
-#ifdef UMFPACK
      Paso_UMFPACK_Handler* pt =NULL;
+#ifdef UMFPACK
       if (A->solver!=NULL) {
            pt=(Paso_UMFPACK_Handler*)(A->solver);
            umfpack_di_free_symbolic(&(pt->symbolic));

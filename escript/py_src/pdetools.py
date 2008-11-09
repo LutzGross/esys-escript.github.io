@@ -1604,7 +1604,7 @@ class HomogeneousSaddlePointProblem(object):
 
 def MaskFromBoundaryTag(domain,*tags):
    """
-   creates a mask on the Solution(domain) function space which one for samples 
+   create a mask on the Solution(domain) function space which one for samples 
    that touch the boundary tagged by tags.
 
    usage: m=MaskFromBoundaryTag(domain,"left", "right")
@@ -1617,7 +1617,7 @@ def MaskFromBoundaryTag(domain,*tags):
    @rtype: L{escript.Data} of rank 0
    """
    pde=linearPDEs.LinearPDE(domain,numEquations=1, numSolutions=1)
-   d=escript.Scalar(0.,escript.FunctionOnBoundary(domain))
+   d=escript.Scalar(0.,escript.FunctionOnBoundary(function_space.getDomain()))
    for t in tags: d.setTaggedValue(t,1.)
    pde.setValue(y=d)
    return util.whereNonZero(pde.getRightHandSide())

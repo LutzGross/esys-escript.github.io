@@ -16,7 +16,7 @@
 #define escript_DataTagged_20040615_H
 #include "system_dep.h"
 
-#include "DataAbstract.h"
+#include "DataReady.h"
 #include "DataTypes.h"
 
 #include <vector>
@@ -37,8 +37,8 @@ class DataConstant;
    dataPointNo values.
 */
 
-class DataTagged : public DataAbstract {
-
+class DataTagged : public DataReady {
+typedef DataReady parent;
  public:
 
   //
@@ -144,6 +144,14 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   inline virtual
   ~DataTagged() {};
 
+  ESCRIPT_DLL_API
+  bool
+  isTagged() const 
+  {
+    return true;
+  };
+
+
   /**
      \brief Return a deep copy of the current object.
   */
@@ -228,7 +236,11 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
-
+  ESCRIPT_DLL_API
+  virtual
+  ValueType::size_type
+  getPointOffset(int sampleNo,
+                 int dataPointNo);
 
  /**
      \brief

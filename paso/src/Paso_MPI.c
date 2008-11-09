@@ -155,8 +155,9 @@ bool_t Paso_MPIInfo_noError( Paso_MPIInfo *mpi_info )
 
 int Paso_MPIInfo_initialized( void )
 {
+  int error=0, initialised=0;
+
   #ifdef PASO_MPI
-     int error=0, initialised=0;
      error = MPI_Initialized( &initialised );
      if( error!=MPI_SUCCESS )
          Paso_setError( PASO_MPI_ERROR, "mpi_initialised : MPI error" );

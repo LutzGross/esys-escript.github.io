@@ -54,19 +54,18 @@ void Finley_Mesh_saveVTK(const char * filename_p,
 {
 #ifdef USE_VTK
   char error_msg[LenErrorMsg_MAX], *txt_buffer=NULL, tmp_buffer[LEN_TMP_BUFFER];
-  double sampleAvg[NCOMP_MAX], *values, *QuadNodes=NULL;
+  double sampleAvg[NCOMP_MAX], *values, *QuadNodes;
   size_t txt_buffer_in_use;
   dim_t len_txt_buffer,  max_len_names;
   FILE * fileHandle_p = NULL;
-  int mpi_size, i, j, l, cellType=0;
+  int mpi_size, i, j, l, cellType;
   dim_t i_data, hits, hits_old;
-  dim_t nDim, globalNumPoints=0, numCells=0, globalNumCells=0, numVTKNodesPerElement=0;
-  dim_t myNumPoints=0, numPointsPerSample, rank, nComp, nCompReqd;
-  dim_t shape, NN=0, numCellFactor=0, myNumCells=0, max_name_len;
-  bool_t *isCellCentered=NULL, write_celldata=FALSE, write_pointdata=FALSE, reduced_elements=FALSE;
-  bool_t set_scalar=FALSE, set_vector=FALSE, set_tensor=FALSE;
-  index_t myFirstNode=0, myLastNode=0, *globalNodeIndex=NULL;
-  index_t k, *node_index, myFirstCell=0;
+  dim_t nDim, globalNumPoints, numCells, globalNumCells, numVTKNodesPerElement;
+  dim_t myNumPoints, numPointsPerSample, rank, nComp, nCompReqd;
+  dim_t shape, NN, numCellFactor, myNumCells, max_name_len;
+  bool_t *isCellCentered=NULL,write_celldata=FALSE,write_pointdata=FALSE, reduced_elements=FALSE;
+  bool_t set_scalar=FALSE,set_vector=FALSE, set_tensor=FALSE;
+  index_t myFirstNode, myLastNode, *globalNodeIndex, k, *node_index, myFirstCell;
   #ifdef PASO_MPI
   int ierr;
   /* int amode = MPI_MODE_CREATE | MPI_MODE_WRONLY |  MPI_MODE_SEQUENTIAL;  */
@@ -79,33 +78,33 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   Paso_MPI_rank my_mpi_rank;
   int nodetype=FINLEY_NODES;
   int elementtype=FINLEY_UNKNOWN;
+  char elemTypeStr[32];
   Finley_NodeMapping *nodeMapping=NULL;
   Finley_ElementFile* elements=NULL;
-  ElementTypeId TypeId=0;
+  ElementTypeId TypeId;
   
  
   /****************************************/
   /*                                      */
   /*       tags in the vtk file           */
 
-  const char* tags_header="<?xml version=\"1.0\"?>\n" \
+  char* tags_header="<?xml version=\"1.0\"?>\n" \
                     "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\">\n" \
                     "<UnstructuredGrid>\n" \
                     "<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n" \
                     "<Points>\n" \
                     "<DataArray NumberOfComponents=\"%d\" type=\"Float64\" format=\"ascii\">\n";
-  char* tag_End_DataArray = "</DataArray>\n";
-  char* tag_End_PointData = "</PointData>\n";
+  char *tag_End_DataArray = "</DataArray>\n";
+  char* tag_End_PointData =  "</PointData>\n";
   char* tag_End_CellData =  "</CellData>\n";
-  char* footer = "</Piece>\n</UnstructuredGrid>\n</VTKFile>\n";
+  char *footer = "</Piece>\n</UnstructuredGrid>\n</VTKFile>\n";
   char* tags_End_Points_and_Start_Conn = "</DataArray>\n</Points>\n<Cells>\n<DataArray Name=\"connectivity\" type=\"Int32\" format=\"ascii\">\n" ;
   char* tags_End_Conn_and_Start_Offset = "</DataArray>\n<DataArray Name=\"offsets\" type=\"Int32\" format=\"ascii\">\n";
   char* tags_End_Offset_and_Start_Type = "</DataArray>\n<DataArray Name=\"types\" type=\"UInt8\" format=\"ascii\">\n";
-  const char* tag_Float_DataArray="<DataArray Name=\"%s\" type=\"Float64\" NumberOfComponents=\"%d\" format=\"ascii\">\n";
-  char* tags_End_Type_And_Cells = "</DataArray>\n</Cells>\n";
+  char* tag_Float_DataArray="<DataArray Name=\"%s\" type=\"Float64\" NumberOfComponents=\"%d\" format=\"ascii\">\n";
+  char *tags_End_Type_And_Cells = "</DataArray>\n</Cells>\n";
 
   int VTK_QUADRATIC_HEXAHEDRON_INDEX[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 18, 19, 12, 13, 14, 15 };
-
   /* if there is no mesh we just return */
   if (mesh_p==NULL) return;
 
@@ -317,6 +316,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
           numCellFactor=1;
           cellType = VTK_VERTEX;
           numVTKNodesPerElement = 1;
+          strcpy(elemTypeStr, "VTK_VERTEX");
           break;
       
         case Line2:
@@ -329,6 +329,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
           numCellFactor=1;
           cellType = VTK_LINE;
           numVTKNodesPerElement = 2;
+          strcpy(elemTypeStr, "VTK_LINE");
           break;
       
         case Tri3:
@@ -337,6 +338,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
           numCellFactor=1;
           cellType = VTK_TRIANGLE;
           numVTKNodesPerElement = 3;
+          strcpy(elemTypeStr, "VTK_TRIANGLE");
           break;
       
         case Rec4:
@@ -346,24 +348,28 @@ void Finley_Mesh_saveVTK(const char * filename_p,
           numCellFactor=1;
           cellType = VTK_QUAD;
           numVTKNodesPerElement = 4;
+          strcpy(elemTypeStr, "VTK_QUAD");
           break;
 
         case Rec9:
           numCellFactor=4;
           cellType = VTK_QUAD;
           numVTKNodesPerElement = 4;
+          strcpy(elemTypeStr, "VTK_QUAD");
           break;
       
         case Tet4:
           numCellFactor=1;
           cellType = VTK_TETRA;
           numVTKNodesPerElement = 4;
+          strcpy(elemTypeStr, "VTK_TETRA");
           break;
       
         case Hex8:
           numCellFactor=1;
           cellType = VTK_HEXAHEDRON;
           numVTKNodesPerElement = 8;
+          strcpy(elemTypeStr, "VTK_HEXAHEDRON");
           break;
       
         case Line3:
@@ -375,6 +381,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
           numCellFactor=1;
           cellType = VTK_QUADRATIC_EDGE;
           numVTKNodesPerElement = 3;
+          strcpy(elemTypeStr, "VTK_QUADRATIC_EDGE");
           break;
       
         case Tri6:
@@ -384,6 +391,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
           numCellFactor=1;
           cellType = VTK_QUADRATIC_TRIANGLE;
           numVTKNodesPerElement = 6;
+          strcpy(elemTypeStr, "VTK_QUADRATIC_TRIANGLE");
           break;
       
         case Rec8:
@@ -393,24 +401,28 @@ void Finley_Mesh_saveVTK(const char * filename_p,
           numCellFactor=1;
           cellType = VTK_QUADRATIC_QUAD;
           numVTKNodesPerElement = 8;
+          strcpy(elemTypeStr, "VTK_QUADRATIC_QUAD");
           break;
       
         case Tet10:
           numCellFactor=1;
           cellType = VTK_QUADRATIC_TETRA;
           numVTKNodesPerElement = 10;
+          strcpy(elemTypeStr, "VTK_QUADRATIC_TETRA");
           break;
       
         case Hex20:
           numCellFactor=1;
           cellType = VTK_QUADRATIC_HEXAHEDRON;
           numVTKNodesPerElement = 20;
+          strcpy(elemTypeStr, "VTK_QUADRATIC_HEXAHEDRON");
           break;
 
         case Hex27:
           numCellFactor=8;
           cellType = VTK_HEXAHEDRON;
           numVTKNodesPerElement = 8;
+          strcpy(elemTypeStr, "VTK_HEXAHEDRON");
           break;
       
         default:
@@ -451,7 +463,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
             #endif
           }
       } else {
-         fprintf(fileHandle_p, "%s", txt_buffer);
+         fprintf(fileHandle_p,txt_buffer);
       }
 
       /* write the nodes */
@@ -519,7 +531,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
              #endif
           }
       } else {
-         fprintf(fileHandle_p, "%s", tags_End_Points_and_Start_Conn);
+         fprintf(fileHandle_p,tags_End_Points_and_Start_Conn);
       }
 
      /* write the cells */
@@ -825,7 +837,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            #endif
         }
      } else {
-        fprintf(fileHandle_p, "%s", tags_End_Conn_and_Start_Offset);
+        fprintf(fileHandle_p,tags_End_Conn_and_Start_Offset);
      }
 
     /* write the offsets */
@@ -856,7 +868,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            #endif
         }
     } else {
-       fprintf(fileHandle_p, "%s", tags_End_Offset_and_Start_Type);
+       fprintf(fileHandle_p,tags_End_Offset_and_Start_Type);
     }
      /* write element type */
      sprintf(tmp_buffer, INT_NEWLINE_FORMAT, cellType);
@@ -871,7 +883,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
             MPI_File_write_ordered(mpi_fileHandle_p,txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
          #endif     
      } else {
-        for (i=0; i<numCells*numCellFactor; i++) fprintf(fileHandle_p, "%s",  tmp_buffer);
+        for (i=0; i<numCells*numCellFactor; i++) fprintf(fileHandle_p, tmp_buffer);
      }
      /* finalize cell information */
      if ( mpi_size > 1) {
@@ -882,7 +894,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            #endif
         }
     } else {
-       fprintf(fileHandle_p, "%s", tags_End_Type_And_Cells);
+       fprintf(fileHandle_p,tags_End_Type_And_Cells);
     }
  }
 
@@ -939,7 +951,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            #endif
         }
       } else {
-          fprintf(fileHandle_p, "%s", txt_buffer);
+          fprintf(fileHandle_p,txt_buffer);
       }
       /* write the arrays */
       for (i_data =0 ;i_data<num_data;++i_data) {
@@ -976,7 +988,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                     #endif
                  }
                } else {
-                   fprintf(fileHandle_p, "%s", txt_buffer);
+                   fprintf(fileHandle_p,txt_buffer);
                }
 
                for (i=0; i<numCells; i++) {
@@ -1076,7 +1088,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                             if ( mpi_size > 1) {
                               __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use);
                             } else {
-                              fprintf(fileHandle_p, "%s", tmp_buffer);
+                              fprintf(fileHandle_p,tmp_buffer);
                             }
                         }
                    }
@@ -1093,7 +1105,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                         #endif
                      }
                } else {
-                   fprintf(fileHandle_p, "%s", tag_End_DataArray);
+                   fprintf(fileHandle_p,tag_End_DataArray);
                }
             }
          }
@@ -1106,7 +1118,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            #endif
         }
       } else {
-          fprintf(fileHandle_p, "%s", tag_End_CellData);
+          fprintf(fileHandle_p,tag_End_CellData);
       }
   }
   /* point data */
@@ -1162,7 +1174,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            #endif
         }
       } else {
-          fprintf(fileHandle_p, "%s", txt_buffer);
+          fprintf(fileHandle_p,txt_buffer);
       }
       /* write the arrays */
       for (i_data =0 ;i_data<num_data;++i_data) {
@@ -1204,7 +1216,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                     #endif
                  }
                } else {
-                   fprintf(fileHandle_p, "%s", txt_buffer);
+                   fprintf(fileHandle_p,txt_buffer);
                }
                for (i=0; i<mesh_p->Nodes->numNodes; i++) {
                   k=globalNodeIndex[i];
@@ -1243,7 +1255,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                      if ( mpi_size > 1) {
                        __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use);
                      } else {
-                       fprintf(fileHandle_p, "%s", tmp_buffer);
+                       fprintf(fileHandle_p,tmp_buffer);
                      }
                   }
                }
@@ -1259,7 +1271,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                       #endif
                    }
                } else {
-                  fprintf(fileHandle_p, "%s", tag_End_DataArray);
+                  fprintf(fileHandle_p,tag_End_DataArray);
                }
             }
           }
@@ -1272,7 +1284,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
              #endif
           }
         } else {
-            fprintf(fileHandle_p, "%s", tag_End_PointData);
+            fprintf(fileHandle_p,tag_End_PointData);
         }
   }
   if (Finley_noError()) {
@@ -1291,7 +1303,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            MPI_File_close(&mpi_fileHandle_p);
         #endif
      } else {
-         fprintf(fileHandle_p, "%s", footer);
+         fprintf(fileHandle_p,footer);
          fclose(fileHandle_p);
      }
   }

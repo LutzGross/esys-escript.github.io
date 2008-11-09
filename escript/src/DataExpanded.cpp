@@ -36,7 +36,7 @@ namespace escript {
 
 DataExpanded::DataExpanded(const boost::python::numeric::array& value,
                            const FunctionSpace& what)
-  : DataAbstract(what,DataTypes::shapeFromNumArray(value))
+  : parent(what,DataTypes::shapeFromNumArray(value))
 {
   //
   // initialise the data array for this object
@@ -47,13 +47,13 @@ DataExpanded::DataExpanded(const boost::python::numeric::array& value,
 }
 
 DataExpanded::DataExpanded(const DataExpanded& other)
-  : DataAbstract(other.getFunctionSpace(), other.getShape()),
+  : parent(other.getFunctionSpace(), other.getShape()),
   m_data(other.m_data)
 {
 }
 
 DataExpanded::DataExpanded(const DataConstant& other)
-  : DataAbstract(other.getFunctionSpace(), other.getShape())
+  : parent(other.getFunctionSpace(), other.getShape())
 {
   //
   // initialise the data array for this object
@@ -64,7 +64,7 @@ DataExpanded::DataExpanded(const DataConstant& other)
 }
 
 DataExpanded::DataExpanded(const DataTagged& other)
-  : DataAbstract(other.getFunctionSpace(), other.getShape())
+  : parent(other.getFunctionSpace(), other.getShape())
 {
   //
   // initialise the data array for this object
@@ -92,7 +92,7 @@ DataExpanded::DataExpanded(const DataTagged& other)
 
 DataExpanded::DataExpanded(const DataExpanded& other,
                            const DataTypes::RegionType& region)
-  : DataAbstract(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
+  : parent(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
 {
   //
   // get the shape of the slice
@@ -145,7 +145,7 @@ DataExpanded::DataExpanded(const DataExpanded& other,
 DataExpanded::DataExpanded(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
                            const DataTypes::ValueType &data)
-  : DataAbstract(what,shape)
+  : parent(what,shape)
 {
   EsysAssert(data.size()%getNoValues()==0,
                  "DataExpanded Constructor - size of supplied data is not a multiple of shape size.");
@@ -361,6 +361,13 @@ DataExpanded::getPointOffset(int sampleNo,
 }
 
 DataTypes::ValueType::size_type
+DataExpanded::getPointOffset(int sampleNo,
+                             int dataPointNo)
+{
+  return m_data.index(sampleNo,dataPointNo);
+}
+
+DataTypes::ValueType::size_type
 DataExpanded::getLength() const
 {
   return m_data.size();
@@ -439,25 +446,24 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const b
      if ((dataPointNo >= numDataPointsPerSample) || (dataPointNo < 0)) {
            throw DataException("Error - DataExpanded::copyDataPoint invalid dataPointNoInSample.");
      }
-     ValueType::size_type offset = getPointOffset(sampleNo, dataPointNo);
      ValueType& vec=getVector();
      if (dataPointRank==0) {
-         vec[offset]=extract<double>(value[0]);
+         vec[0]=extract<double>(value[0]);
      } else if (dataPointRank==1) {
         for (int i=0; i<shape[0]; i++) {
-            vec[offset+i]=extract<double>(value[i]);
+            vec[i]=extract<double>(value[i]);
         }
      } else if (dataPointRank==2) {
         for (int i=0; i<shape[0]; i++) {
            for (int j=0; j<shape[1]; j++) {
-              vec[offset+getRelIndex(shape,i,j)]=extract<double>(value[i][j]);
+              vec[getRelIndex(shape,i,j)]=extract<double>(value[i][j]);
            }
         }
      } else if (dataPointRank==3) {
         for (int i=0; i<shape[0]; i++) {
            for (int j=0; j<shape[1]; j++) {
               for (int k=0; k<shape[2]; k++) {
-                 vec[offset+getRelIndex(shape,i,j,k)]=extract<double>(value[i][j][k]);
+                 vec[getRelIndex(shape,i,j,k)]=extract<double>(value[i][j][k]);
               }
            }
         }
@@ -466,7 +472,7 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const b
            for (int j=0; j<shape[1]; j++) {
              for (int k=0; k<shape[2]; k++) {
                for (int l=0; l<shape[3]; l++) {
-                  vec[offset+getRelIndex(shape,i,j,k,l)]=extract<double>(value[i][j][k][l]);
+                  vec[getRelIndex(shape,i,j,k,l)]=extract<double>(value[i][j][k][l]);
                }
              }
            }

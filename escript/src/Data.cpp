@@ -18,6 +18,7 @@
 #include "DataConstant.h"
 #include "DataTagged.h"
 #include "DataEmpty.h"
+#include "DataLazy.h"
 #include "FunctionSpaceFactory.h"
 #include "AbstractContinuousDomain.h"
 #include "UnaryFuncs.h"
@@ -41,6 +42,10 @@ using namespace std;
 using namespace boost::python;
 using namespace boost;
 using namespace escript;
+
+// ensure the current object is not a DataLazy
+// The idea was that we could add an optional warning whenever a resolve is forced
+#define FORCERESOLVE if (isLazy()) {resolve();}
 
 Data::Data()
 {
@@ -93,9 +98,18 @@ Data::Data(const Data& inData)
 Data::Data(const Data& inData,
            const DataTypes::RegionType& region)
 {
+  DataAbstract_ptr dat=inData.m_data;
+  if (inData.isLazy())
+  {
+	dat=inData.m_data->resolve();
+  }
+  else
+  {
+	dat=inData.m_data;
+  }
   //
   // Create Data which is a slice of another Data
-  DataAbstract* tmp = inData.m_data->getSlice(region);
+  DataAbstract* tmp = dat->getSlice(region);
   m_data=DataAbstract_ptr(tmp);
   m_protected=false;
 }
@@ -109,27 +123,34 @@ Data::Data(const Data& inData,
   }
   if (inData.getFunctionSpace()==functionspace) {
     m_data=inData.m_data;
-  } else if (inData.isConstant()) {	// for a constant function, we just need to use the new function space
-    if (!inData.probeInterpolation(functionspace))
-    {           // Even though this is constant, we still need to check whether interpolation is allowed
+  } 
+  else 
+  {
+
+    if (inData.isConstant()) {	// for a constant function, we just need to use the new function space
+      if (!inData.probeInterpolation(functionspace))
+      {           // Even though this is constant, we still need to check whether interpolation is allowed
 	throw FunctionSpaceException("Call to probeInterpolation returned false for DataConstant.");
-    }
-    DataConstant* dc=new DataConstant(functionspace,inData.m_data->getShape(),inData.m_data->getVector());	
-    m_data=DataAbstract_ptr(dc); 
-  } else {
-    Data tmp(0,inData.getDataPointShape(),functionspace,true);
-    // Note: Must use a reference or pointer to a derived object
-    // in order to get polymorphic behaviour. Shouldn't really
-    // be able to create an instance of AbstractDomain but that was done
-    // as a boost:python work around which may no longer be required.
-    /*const AbstractDomain& inDataDomain=inData.getDomain();*/
-    const_Domain_ptr inDataDomain=inData.getDomain();
-    if  (inDataDomain==functionspace.getDomain()) {
-      inDataDomain->interpolateOnDomain(tmp,inData);
+      }
+      // if the data is not lazy, this will just be a cast to DataReady
+      DataReady_ptr dr=inData.m_data->resolve();
+      DataConstant* dc=new DataConstant(functionspace,inData.m_data->getShape(),dr->getVector());	
+      m_data=DataAbstract_ptr(dc); 
     } else {
-      inDataDomain->interpolateACross(tmp,inData);
+      Data tmp(0,inData.getDataPointShape(),functionspace,true);
+      // Note: Must use a reference or pointer to a derived object
+      // in order to get polymorphic behaviour. Shouldn't really
+      // be able to create an instance of AbstractDomain but that was done
+      // as a boost:python work around which may no longer be required.
+      /*const AbstractDomain& inDataDomain=inData.getDomain();*/
+      const_Domain_ptr inDataDomain=inData.getDomain();
+      if  (inDataDomain==functionspace.getDomain()) {
+        inDataDomain->interpolateOnDomain(tmp,inData);
+      } else {
+        inDataDomain->interpolateACross(tmp,inData);
+      }
+      m_data=tmp.m_data;
     }
-    m_data=tmp.m_data;
   }
   m_protected=false;
 }
@@ -140,6 +161,13 @@ Data::Data(DataAbstract* underlyingdata)
 	m_data=underlyingdata->getPtr();
 	m_protected=false;
 }
+
+Data::Data(DataAbstract_ptr underlyingdata)
+{
+	m_data=underlyingdata;
+	m_protected=false;
+}
+
 
 Data::Data(const numeric::array& value,
 	   const FunctionSpace& what,
@@ -423,6 +451,22 @@ Data::copy(const Data& other)
 }
 
 
+Data
+Data::delay()
+{
+  DataLazy* dl=new DataLazy(m_data);
+  return Data(dl);
+}
+
+void
+Data::delaySelf()
+{
+  if (!isLazy())
+  {
+	m_data=(new DataLazy(m_data))->getPtr();
+  }
+}
+
 void
 Data::setToZero()
 {
@@ -430,49 +474,8 @@ Data::setToZero()
   {
      throw DataException("Error - Operations not permitted on instances of DataEmpty.");
   }
-  {
-    DataExpanded* temp=dynamic_cast<DataExpanded*>(m_data.get());
-    if (temp!=0) {
-       temp->setToZero();
-       return;
-    }
-  }
-  {
-    DataTagged* temp=dynamic_cast<DataTagged*>(m_data.get());
-    if (temp!=0) {
-      temp->setToZero();
-      return;
-    }
-  }
-  {
-    DataConstant* temp=dynamic_cast<DataConstant*>(m_data.get());
-    if (temp!=0) {
-      temp->setToZero();
-      return;
-    }
-  }
-  throw DataException("Error - Data can not be set to zero.");
+  m_data->setToZero();
 }
-
-// void
-// Data::copyWithMask(const Data& other,
-//                    const Data& mask)
-// {
-//   if (other.isEmpty() || mask.isEmpty())
-//   {
-// 	throw DataException("Error - copyWithMask not permitted using instances of DataEmpty.");
-//   }
-//   Data mask1;
-//   Data mask2;
-//   mask1 = mask.wherePositive();
-// 
-//   mask2.copy(mask1);
-//   mask1 *= other;
-// 
-//   mask2 *= *this;
-//   mask2 = *this - mask2;
-//   *this = mask1 + mask2;
-// }
 
 void
 Data::copyWithMask(const Data& other,
@@ -487,6 +490,9 @@ Data::copyWithMask(const Data& other,
   }
   Data other2(other);
   Data mask2(mask);
+  other2.resolve();
+  mask2.resolve();
+  this->resolve();
   FunctionSpace myFS=getFunctionSpace();
   FunctionSpace oFS=other2.getFunctionSpace();
   FunctionSpace mFS=mask2.getFunctionSpace();
@@ -533,9 +539,9 @@ Data::copyWithMask(const Data& other,
 	throw DataException("Error - Unknown DataAbstract passed to copyWithMask.");
   }
   // Now we iterate over the elements
-  DataVector& self=m_data->getVector();
-  const DataVector& ovec=other2.m_data->getVector();
-  const DataVector& mvec=mask2.m_data->getVector();
+  DataVector& self=getReadyPtr()->getVector();
+  const DataVector& ovec=other2.getReadyPtr()->getVector();
+  const DataVector& mvec=mask2.getReadyPtr()->getVector();
   if ((self.size()!=ovec.size()) || (self.size()!=mvec.size()))
   {
 	throw DataException("Error - size mismatch in arguments to copyWithMask.");
@@ -588,6 +594,20 @@ Data::isConstant() const
   return (temp!=0);
 }
 
+bool
+Data::isLazy() const
+{
+  return m_data->isLazy();
+}
+
+// at the moment this is synonymous with !isLazy() but that could change
+bool
+Data::isReady() const
+{
+  return (dynamic_cast<DataReady*>(m_data.get())!=0);
+}
+
+
 void
 Data::setProtection()
 {
@@ -622,6 +642,9 @@ Data::expand()
     // do nothing
   } else if (isEmpty()) {
     throw DataException("Error - Expansion of DataEmpty not possible.");
+  } else if (isLazy()) {
+    resolve();
+    expand();		// resolve might not give us expanded data
   } else {
     throw DataException("Error - Expansion not implemented for this Data type.");
   }
@@ -642,38 +665,81 @@ Data::tag()
     throw DataException("Error - Creating tag data from DataExpanded not possible.");
   } else if (isEmpty()) {
     throw DataException("Error - Creating tag data from DataEmpty not possible.");
+  } else if (isLazy()) {
+     DataAbstract_ptr res=m_data->resolve();
+     if (m_data->isExpanded())
+     {
+	throw DataException("Error - data would resolve to DataExpanded, tagging is not possible.");
+     }
+     m_data=res;	
+     tag();
   } else {
     throw DataException("Error - Tagging not implemented for this Data type.");
   }
 }
 
+void
+Data::resolve()
+{
+  if (isLazy())
+  {
+     m_data=m_data->resolve();
+  }
+}
+
+
 Data
 Data::oneOver() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),RECIP);
+	return Data(c);
+  }
   return C_TensorUnaryOperation(*this, bind1st(divides<double>(),1.));
 }
 
 Data
 Data::wherePositive() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),GZ);
+	return Data(c);
+  }
   return C_TensorUnaryOperation(*this, bind2nd(greater<double>(),0.0));
 }
 
 Data
 Data::whereNegative() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),LZ);
+	return Data(c);
+  }
   return C_TensorUnaryOperation(*this, bind2nd(less<double>(),0.0));
 }
 
 Data
 Data::whereNonNegative() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),GEZ);
+	return Data(c);
+  }
   return C_TensorUnaryOperation(*this, bind2nd(greater_equal<double>(),0.0));
 }
 
 Data
 Data::whereNonPositive() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),LEZ);
+	return Data(c);
+  }
   return C_TensorUnaryOperation(*this, bind2nd(less_equal<double>(),0.0));
 }
 
@@ -700,16 +766,17 @@ Data::interpolate(const FunctionSpace& functionspace) const
 bool
 Data::probeInterpolation(const FunctionSpace& functionspace) const
 {
-  if (getFunctionSpace()==functionspace) {
-    return true;
-  } else {
-    const_Domain_ptr domain=getDomain();
-    if  (*domain==*functionspace.getDomain()) {
-      return domain->probeInterpolationOnDomain(getFunctionSpace().getTypeCode(),functionspace.getTypeCode());
-    } else {
-      return domain->probeInterpolationACross(getFunctionSpace().getTypeCode(),*(functionspace.getDomain()),functionspace.getTypeCode());
-    }
-  }
+  return getFunctionSpace().probeInterpolation(functionspace);
+//   if (getFunctionSpace()==functionspace) {
+//     return true;
+//   } else {
+//     const_Domain_ptr domain=getDomain();
+//     if  (*domain==*functionspace.getDomain()) {
+//       return domain->probeInterpolationOnDomain(getFunctionSpace().getTypeCode(),functionspace.getTypeCode());
+//     } else {
+//       return domain->probeInterpolationACross(getFunctionSpace().getTypeCode(),*(functionspace.getDomain()),functionspace.getTypeCode());
+//     }
+//   }
 }
 
 Data
@@ -757,6 +824,9 @@ boost::python::numeric::array
 Data:: getValueOfDataPoint(int dataPointNo)
 {
   int i, j, k, l;
+
+  FORCERESOLVE;
+
   //
   // determine the rank and shape of each data point
   int dataPointRank = getDataPointRank();
@@ -858,14 +928,15 @@ Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
+  FORCERESOLVE;
   //
   // check rank
-  if (static_cast<unsigned int>(num_array.getrank())<getDataPointRank())
+  if (num_array.getrank()<getDataPointRank())
       throw DataException("Rank of numarray does not match Data object rank");
 
   //
   // check shape of num_array
-  for (unsigned int i=0; i<getDataPointRank(); i++) {
+  for (int i=0; i<getDataPointRank(); i++) {
     if (extract<int>(num_array.getshape()[i])!=getDataPointShape()[i])
        throw DataException("Shape of numarray does not match Data object rank");
   }
@@ -892,6 +963,7 @@ Data::setValueOfDataPoint(int dataPointNo, const double value)
   }
   //
   // make sure data is expanded:
+  FORCERESOLVE;
   if (!isExpanded()) {
     expand();
   }
@@ -910,6 +982,7 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
 {
   size_t length=0;
   int i, j, k, l, pos;
+  FORCERESOLVE;
   //
   // determine the rank and shape of each data point
   int dataPointRank = getDataPointRank();
@@ -1044,9 +1117,30 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
 }
 
 
+boost::python::numeric::array
+Data::integrate_const() const
+{
+  if (isLazy())
+  {
+	throw DataException("Error - cannot integrate for constant lazy data.");
+  }
+  return integrateWorker();
+}
 
 boost::python::numeric::array
-Data::integrate() const
+Data::integrate()
+{
+  if (isLazy())
+  {
+	expand(); 
+  }
+  return integrateWorker();
+}
+
+
+
+boost::python::numeric::array
+Data::integrateWorker() const
 {
   int index;
   int rank = getDataPointRank();
@@ -1129,30 +1223,55 @@ Data::integrate() const
 Data
 Data::sin() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),SIN);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::sin);
 }
 
 Data
 Data::cos() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),COS);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::cos);
 }
 
 Data
 Data::tan() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),TAN);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::tan);
 }
 
 Data
 Data::asin() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),ASIN);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::asin);
 }
 
 Data
 Data::acos() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),ACOS);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::acos);
 }
 
@@ -1160,26 +1279,45 @@ Data::acos() const
 Data
 Data::atan() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),ATAN);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::atan);
 }
 
 Data
 Data::sinh() const
 {
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::sinh);
-
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),SINH);
+	return Data(c);
+  }
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::sinh);
 }
 
 Data
 Data::cosh() const
 {
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::cosh);
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),COSH);
+	return Data(c);
+  }
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::cosh);
 }
 
 Data
 Data::tanh() const
 {
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::tanh);
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),TANH);
+	return Data(c);
+  }
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::tanh);
 }
 
 
@@ -1189,6 +1327,11 @@ Data::erf() const
 #ifdef _WIN32
   throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
 #else
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),ERF);
+	return Data(c);
+  }
   return C_TensorUnaryOperation(*this, ::erf);
 #endif
 }
@@ -1196,6 +1339,11 @@ Data::erf() const
 Data
 Data::asinh() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),ASINH);
+	return Data(c);
+  }
 #ifdef _WIN32
   return C_TensorUnaryOperation(*this, escript::asinh_substitute);
 #else
@@ -1206,6 +1354,11 @@ Data::asinh() const
 Data
 Data::acosh() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),ACOSH);
+	return Data(c);
+  }
 #ifdef _WIN32
   return C_TensorUnaryOperation(*this, escript::acosh_substitute);
 #else
@@ -1216,6 +1369,11 @@ Data::acosh() const
 Data
 Data::atanh() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),ATANH);
+	return Data(c);
+  }
 #ifdef _WIN32
   return C_TensorUnaryOperation(*this, escript::atanh_substitute);
 #else
@@ -1225,37 +1383,63 @@ Data::atanh() const
 
 Data
 Data::log10() const
-{
+{  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),LOG10);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::log10);
 }
 
 Data
 Data::log() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),LOG);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::log);
 }
 
 Data
 Data::sign() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),SIGN);
+	return Data(c);
+  }
   return C_TensorUnaryOperation(*this, escript::fsign);
 }
 
 Data
 Data::abs() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),ABS);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::fabs);
 }
 
 Data
 Data::neg() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),NEG);
+	return Data(c);
+  }
   return C_TensorUnaryOperation(*this, negate<double>());
 }
 
 Data
 Data::pos() const
 {
+	// not doing lazy check here is deliberate.
+	// since a deep copy of lazy data should be cheap, I'll just let it happen now
   Data result;
   // perform a deep copy
   result.copy(*this);
@@ -1264,18 +1448,88 @@ Data::pos() const
 
 Data
 Data::exp() const
-{
+{  
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),EXP);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::exp);
 }
 
 Data
 Data::sqrt() const
 {
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(borrowDataPtr(),SQRT);
+	return Data(c);
+  }
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::sqrt);
 }
 
 double
-Data::Lsup() const
+Data::Lsup_const() const
+{
+   if (isLazy())
+   {
+	throw DataException("Error - cannot compute Lsup for constant lazy data.");
+   }
+   return LsupWorker();
+}
+
+double
+Data::Lsup() 
+{
+   if (isLazy())
+   {
+	expand();
+   }
+   return LsupWorker();
+}
+
+double
+Data::sup_const() const
+{
+   if (isLazy())
+   {
+	throw DataException("Error - cannot compute sup for constant lazy data.");
+   }
+   return supWorker();
+}
+
+double
+Data::sup() 
+{
+   if (isLazy())
+   {
+	expand();
+   }
+   return supWorker();
+}
+
+double
+Data::inf_const() const
+{
+   if (isLazy())
+   {
+	throw DataException("Error - cannot compute inf for constant lazy data.");
+   }
+   return infWorker();
+}
+
+double
+Data::inf() 
+{
+   if (isLazy())
+   {
+	expand();
+   }
+   return infWorker();
+}
+
+double
+Data::LsupWorker() const
 {
   double localValue;
   //
@@ -1293,7 +1547,7 @@ Data::Lsup() const
 }
 
 double
-Data::sup() const
+Data::supWorker() const
 {
   double localValue;
   //
@@ -1310,7 +1564,7 @@ Data::sup() const
 }
 
 double
-Data::inf() const
+Data::infWorker() const
 {
   double localValue;
   //
@@ -1406,6 +1660,12 @@ Data::symmetric() const
      else {
         throw DataException("Error - Data::symmetric can only be calculated for rank 2 or 4 object.");
      }
+     if (isLazy())
+     {
+	Data temp(*this);	// to get around the fact that you can't resolve a const Data
+	temp.resolve();
+	return temp.symmetric();
+     }
      Data ev(0.,getDataPointShape(),getFunctionSpace());
      ev.typeMatchRight(*this);
      m_data->symmetric(ev.m_data.get());
@@ -1415,6 +1675,12 @@ Data::symmetric() const
 Data
 Data::nonsymmetric() const
 {
+     if (isLazy())
+     {
+	Data temp(*this);	// to get around the fact that you can't resolve a const Data
+	temp.resolve();
+	return temp.nonsymmetric();
+     }
      // check input
      DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
@@ -1449,6 +1715,12 @@ Data::nonsymmetric() const
 Data
 Data::trace(int axis_offset) const
 {
+     if (isLazy())
+     {
+	Data temp(*this);	// to get around the fact that you can't resolve a const Data
+	temp.resolve();
+	return temp.trace(axis_offset);
+     }
      DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
         DataTypes::ShapeType ev_shape;
@@ -1498,7 +1770,13 @@ Data::trace(int axis_offset) const
 
 Data
 Data::transpose(int axis_offset) const
-{
+{     
+     if (isLazy())
+     {
+	Data temp(*this);	// to get around the fact that you can't resolve a const Data
+	temp.resolve();
+	return temp.transpose(axis_offset);
+     }
      DataTypes::ShapeType s=getDataPointShape();
      DataTypes::ShapeType ev_shape;
      // Here's the equivalent of python s_out=s[axis_offset:]+s[:axis_offset]
@@ -1520,6 +1798,12 @@ Data::transpose(int axis_offset) const
 Data
 Data::eigenvalues() const
 {
+     if (isLazy())
+     {
+	Data temp(*this);	// to get around the fact that you can't resolve a const Data
+	temp.resolve();
+	return temp.eigenvalues();
+     }
      // check input
      DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()!=2)
@@ -1537,6 +1821,12 @@ Data::eigenvalues() const
 const boost::python::tuple
 Data::eigenvalues_and_eigenvectors(const double tol) const
 {
+     if (isLazy())
+     {
+	Data temp(*this);	// to get around the fact that you can't resolve a const Data
+	temp.resolve();
+	return temp.eigenvalues_and_eigenvectors(tol);
+     }
      DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()!=2)
         throw DataException("Error - Data::eigenvalues and eigenvectors can only be calculated for rank 2 object.");
@@ -1570,6 +1860,12 @@ void
 Data::calc_minGlobalDataPoint(int& ProcNo,
        	                int& DataPointNo) const
 {
+  if (isLazy())
+  {
+    Data temp(*this);	// to get around the fact that you can't resolve a const Data
+    temp.resolve();
+    return temp.calc_minGlobalDataPoint(ProcNo,DataPointNo);
+  }
   int i,j;
   int lowi=0,lowj=0;
   double min=numeric_limits<double>::max();
@@ -1636,6 +1932,13 @@ Data::saveDX(std::string fileName) const
   {
     throw DataException("Error - Operations not permitted on instances of DataEmpty.");
   }
+  if (isLazy())
+  {
+     Data temp(*this);	// to get around the fact that you can't resolve a const Data
+     temp.resolve();
+     temp.saveDX(fileName);
+     return;
+  }
   boost::python::dict args;
   args["data"]=boost::python::object(this);
   getDomain()->saveDX(fileName,args);
@@ -1649,6 +1952,13 @@ Data::saveVTK(std::string fileName) const
   {
     throw DataException("Error - Operations not permitted on instances of DataEmpty.");
   }
+  if (isLazy())
+  {
+     Data temp(*this);	// to get around the fact that you can't resolve a const Data
+     temp.resolve();
+     temp.saveVTK(fileName);
+     return;
+  }
   boost::python::dict args;
   args["data"]=boost::python::object(this);
   getDomain()->saveVTK(fileName,args);
@@ -1661,17 +1971,40 @@ Data::operator+=(const Data& right)
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  binaryOp(right,plus<double>());
-  return (*this);
+  if (isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,right.borrowDataPtr(),ADD);	// for lazy + is equivalent to +=
+        m_data=c->getPtr();
+	return (*this);
+  }
+  else
+  {
+  	binaryOp(right,plus<double>());
+  	return (*this);
+  }
 }
 
 Data&
 Data::operator+=(const boost::python::object& right)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
   Data tmp(right,getFunctionSpace(),false);
-  binaryOp(tmp,plus<double>());
-  return (*this);
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,tmp.borrowDataPtr(),ADD);	// for lazy + is equivalent to +=
+        m_data=c->getPtr();
+	return (*this);
+  }
+  else
+  {
+  	binaryOp(tmp,plus<double>());
+  	return (*this);
+  }
 }
+
+// Hmmm, operator= makes a deep copy but the copy constructor does not?
 Data&
 Data::operator=(const Data& other)
 {
@@ -1685,16 +2018,37 @@ Data::operator-=(const Data& right)
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  binaryOp(right,minus<double>());
-  return (*this);
+  if (isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,right.borrowDataPtr(),SUB);	// for lazy - is equivalent to -=
+        m_data=c->getPtr();
+	return (*this);
+  }
+  else
+  {
+  	binaryOp(right,minus<double>());
+  	return (*this);
+  }
 }
 
 Data&
 Data::operator-=(const boost::python::object& right)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
   Data tmp(right,getFunctionSpace(),false);
-  binaryOp(tmp,minus<double>());
-  return (*this);
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,tmp.borrowDataPtr(),SUB);	// for lazy - is equivalent to -=
+        m_data=c->getPtr();
+	return (*this);
+  }
+  else
+  {
+  	binaryOp(tmp,minus<double>());
+  	return (*this);
+  }
 }
 
 Data&
@@ -1703,16 +2057,37 @@ Data::operator*=(const Data& right)
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  binaryOp(right,multiplies<double>());
-  return (*this);
+  if (isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,right.borrowDataPtr(),MUL);	// for lazy * is equivalent to *=
+        m_data=c->getPtr();
+	return (*this);
+  }
+  else
+  {
+  	binaryOp(right,multiplies<double>());
+  	return (*this);
+  }
 }
 
 Data&
 Data::operator*=(const boost::python::object& right)
-{
+{  
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
   Data tmp(right,getFunctionSpace(),false);
-  binaryOp(tmp,multiplies<double>());
-  return (*this);
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,tmp.borrowDataPtr(),MUL);	// for lazy * is equivalent to *=
+        m_data=c->getPtr();
+	return (*this);
+  }
+  else
+  {
+  	binaryOp(tmp,multiplies<double>());
+  	return (*this);
+  }
 }
 
 Data&
@@ -1721,16 +2096,37 @@ Data::operator/=(const Data& right)
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  binaryOp(right,divides<double>());
-  return (*this);
+  if (isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,right.borrowDataPtr(),DIV);	// for lazy / is equivalent to /=
+        m_data=c->getPtr();
+	return (*this);
+  }
+  else
+  {
+  	binaryOp(right,divides<double>());
+  	return (*this);
+  }
 }
 
 Data&
 Data::operator/=(const boost::python::object& right)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
   Data tmp(right,getFunctionSpace(),false);
-  binaryOp(tmp,divides<double>());
-  return (*this);
+  if (isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,tmp.borrowDataPtr(),DIV);	// for lazy / is equivalent to /=
+        m_data=c->getPtr();
+	return (*this);
+  }
+  else
+  {
+  	binaryOp(tmp,divides<double>());
+  	return (*this);
+  }
 }
 
 Data
@@ -1750,6 +2146,11 @@ Data::powO(const boost::python::object& right) const
 Data
 Data::powD(const Data& right) const
 {
+  if (isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(m_data,right.borrowDataPtr(),POW);
+	return Data(c);
+  }
   return C_TensorBinaryOperation<double (*)(double, double)>(*this, right, ::pow);
 }
 
@@ -1758,6 +2159,11 @@ Data::powD(const Data& right) const
 Data
 escript::operator+(const Data& left, const Data& right)
 {
+  if (left.isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(left.borrowDataPtr(),right.borrowDataPtr(),ADD);
+	return Data(c);
+  }
   return C_TensorBinaryOperation(left, right, plus<double>());
 }
 
@@ -1766,6 +2172,11 @@ escript::operator+(const Data& left, const Data& right)
 Data
 escript::operator-(const Data& left, const Data& right)
 {
+  if (left.isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(left.borrowDataPtr(),right.borrowDataPtr(),SUB);
+	return Data(c);
+  }
   return C_TensorBinaryOperation(left, right, minus<double>());
 }
 
@@ -1774,6 +2185,11 @@ escript::operator-(const Data& left, const Data& right)
 Data
 escript::operator*(const Data& left, const Data& right)
 {
+  if (left.isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(left.borrowDataPtr(),right.borrowDataPtr(),MUL);
+	return Data(c);
+  }
   return C_TensorBinaryOperation(left, right, multiplies<double>());
 }
 
@@ -1782,6 +2198,11 @@ escript::operator*(const Data& left, const Data& right)
 Data
 escript::operator/(const Data& left, const Data& right)
 {
+  if (left.isLazy() || right.isLazy())
+  {
+	DataLazy* c=new DataLazy(left.borrowDataPtr(),right.borrowDataPtr(),DIV);
+	return Data(c);
+  }
   return C_TensorBinaryOperation(left, right, divides<double>());
 }
 
@@ -1790,6 +2211,11 @@ escript::operator/(const Data& left, const Data& right)
 Data
 escript::operator+(const Data& left, const boost::python::object& right)
 {
+  if (left.isLazy())
+  {
+	DataLazy* c=new DataLazy(left.borrowDataPtr(),Data(right,left.getFunctionSpace(),false).borrowDataPtr(),ADD);
+	return Data(c);
+  }
   return left+Data(right,left.getFunctionSpace(),false);
 }
 
@@ -1798,6 +2224,11 @@ escript::operator+(const Data& left, const boost::python::object& right)
 Data
 escript::operator-(const Data& left, const boost::python::object& right)
 {
+  if (left.isLazy())
+  {
+	DataLazy* c=new DataLazy(left.borrowDataPtr(),Data(right,left.getFunctionSpace(),false).borrowDataPtr(),SUB);
+	return Data(c);
+  }
   return left-Data(right,left.getFunctionSpace(),false);
 }
 
@@ -1806,6 +2237,11 @@ escript::operator-(const Data& left, const boost::python::object& right)
 Data
 escript::operator*(const Data& left, const boost::python::object& right)
 {
+  if (left.isLazy())
+  {
+	DataLazy* c=new DataLazy(left.borrowDataPtr(),Data(right,left.getFunctionSpace(),false).borrowDataPtr(),MUL);
+	return Data(c);
+  }
   return left*Data(right,left.getFunctionSpace(),false);
 }
 
@@ -1814,6 +2250,11 @@ escript::operator*(const Data& left, const boost::python::object& right)
 Data
 escript::operator/(const Data& left, const boost::python::object& right)
 {
+  if (left.isLazy())
+  {
+	DataLazy* c=new DataLazy(left.borrowDataPtr(),Data(right,left.getFunctionSpace(),false).borrowDataPtr(),DIV);
+	return Data(c);
+  }
   return left/Data(right,left.getFunctionSpace(),false);
 }
 
@@ -1822,6 +2263,11 @@ escript::operator/(const Data& left, const boost::python::object& right)
 Data
 escript::operator+(const boost::python::object& left, const Data& right)
 {
+  if (right.isLazy())
+  {
+	DataLazy* c=new DataLazy(Data(left,right.getFunctionSpace(),false).borrowDataPtr(),right.borrowDataPtr(),ADD);
+	return Data(c);
+  }
   return Data(left,right.getFunctionSpace(),false)+right;
 }
 
@@ -1830,6 +2276,11 @@ escript::operator+(const boost::python::object& left, const Data& right)
 Data
 escript::operator-(const boost::python::object& left, const Data& right)
 {
+  if (right.isLazy())
+  {
+	DataLazy* c=new DataLazy(Data(left,right.getFunctionSpace(),false).borrowDataPtr(),right.borrowDataPtr(),SUB);
+	return Data(c);
+  }
   return Data(left,right.getFunctionSpace(),false)-right;
 }
 
@@ -1838,6 +2289,11 @@ escript::operator-(const boost::python::object& left, const Data& right)
 Data
 escript::operator*(const boost::python::object& left, const Data& right)
 {
+  if (right.isLazy())
+  {
+	DataLazy* c=new DataLazy(Data(left,right.getFunctionSpace(),false).borrowDataPtr(),right.borrowDataPtr(),MUL);
+	return Data(c);
+  }
   return Data(left,right.getFunctionSpace(),false)*right;
 }
 
@@ -1846,53 +2302,14 @@ escript::operator*(const boost::python::object& left, const Data& right)
 Data
 escript::operator/(const boost::python::object& left, const Data& right)
 {
+  if (right.isLazy())
+  {
+	DataLazy* c=new DataLazy(Data(left,right.getFunctionSpace(),false).borrowDataPtr(),right.borrowDataPtr(),DIV);
+	return Data(c);
+  }
   return Data(left,right.getFunctionSpace(),false)/right;
 }
 
-//
-//bool escript::operator==(const Data& left, const Data& right)
-//{
-//  /*
-//  NB: this operator does very little at this point, and isn't to
-//  be relied on. Requires further implementation.
-//  */
-//
-//  bool ret;
-//
-//  if (left.isEmpty()) {
-//    if(!right.isEmpty()) {
-//      ret = false;
-//    } else {
-//      ret = true;
-//    }
-//  }
-//
-//  if (left.isConstant()) {
-//    if(!right.isConstant()) {
-//      ret = false;
-//    } else {
-//      ret = true;
-//    }
-// }
-//
-//  if (left.isTagged()) {
-//   if(!right.isTagged()) {
-//      ret = false;
-//    } else {
-//      ret = true;
-//    }
-//  }
-//
-//  if (left.isExpanded()) {
-//    if(!right.isExpanded()) {
-//      ret = false;
-//    } else {
-//      ret = true;
-//    }
-//  }
-//
-//  return ret;
-//}
 
 /* TODO */
 /* global reduction */
@@ -1951,15 +2368,24 @@ Data::setSlice(const Data& value,
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
+  FORCERESOLVE;
+/*  if (isLazy())
+  {
+	throw DataException("Error - setSlice not permitted on lazy data.");
+  }*/
   Data tempValue(value);
   typeMatchLeft(tempValue);
   typeMatchRight(tempValue);
-  m_data->setSlice(tempValue.m_data.get(),region);
+  getReady()->setSlice(tempValue.m_data.get(),region);
 }
 
 void
 Data::typeMatchLeft(Data& right) const
 {
+  if (right.isLazy() && !isLazy())
+  {
+    right.resolve();
+  }
   if (isExpanded()){
     right.expand();
   } else if (isTagged()) {
@@ -1972,6 +2398,10 @@ Data::typeMatchLeft(Data& right) const
 void
 Data::typeMatchRight(const Data& right)
 {
+  if (isLazy() && !right.isLazy())
+  {
+    resolve();
+  }
   if (isTagged()) {
     if (right.isExpanded()) {
       expand();
@@ -1990,6 +2420,7 @@ Data::setTaggedValueByName(std::string name,
                            const boost::python::object& value)
 {
      if (getFunctionSpace().getDomain()->isValidTagName(name)) {
+	FORCERESOLVE;
         int tagKey=getFunctionSpace().getDomain()->getTag(name);
         setTaggedValue(tagKey,value);
      }
@@ -2003,10 +2434,9 @@ Data::setTaggedValue(int tagKey,
   }
   //
   // Ensure underlying data object is of type DataTagged
+  FORCERESOLVE;
   if (isConstant()) tag();
-
   numeric::array asNumArray(value);
-
 
   // extract the shape of the numarray
   DataTypes::ShapeType tempShape;
@@ -2014,20 +2444,10 @@ Data::setTaggedValue(int tagKey,
     tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
   }
 
-  // get the space for the data vector
-//   int len = DataTypes::noValues(tempShape);
-//   DataVector temp_data(len, 0.0, len);
-//   DataArrayView temp_dataView(temp_data, tempShape);
-//   temp_dataView.copy(asNumArray);
-
   DataVector temp_data2;
   temp_data2.copyFromNumArray(asNumArray);
 
-  //
-  // Call DataAbstract::setTaggedValue
-  //m_data->setTaggedValue(tagKey,temp_dataView);
-
-    m_data->setTaggedValue(tagKey,tempShape, temp_data2);
+  m_data->setTaggedValue(tagKey,tempShape, temp_data2);
 }
 
 
@@ -2042,8 +2462,8 @@ Data::setTaggedValueFromCPP(int tagKey,
   }
   //
   // Ensure underlying data object is of type DataTagged
+  FORCERESOLVE;
   if (isConstant()) tag();
-
   //
   // Call DataAbstract::setTaggedValue
   m_data->setTaggedValue(tagKey,pointshape, value, dataOffset);
@@ -2074,6 +2494,10 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 {
   // General tensor product: res(SL x SR) = arg_0(SL x SM) * arg_1(SM x SR)
   // SM is the product of the last axis_offset entries in arg_0.getShape().
+
+  // deal with any lazy data
+  if (arg_0.isLazy()) {arg_0.resolve();}
+  if (arg_1.isLazy()) {arg_1.resolve();}
 
   // Interpolate if necessary and find an appropriate function space
   Data arg_0_Z, arg_1_Z;
@@ -2464,6 +2888,21 @@ Data::borrowData() const
   return m_data.get();
 }
 
+// Not all that happy about returning a non-const from a const
+DataAbstract_ptr
+Data::borrowDataPtr() const
+{
+  return m_data;
+}
+
+// Not all that happy about returning a non-const from a const
+DataReady_ptr
+Data::borrowReadyPtr() const
+{
+   DataReady_ptr dr=dynamic_pointer_cast<DataReady>(m_data);
+   EsysAssert((dr!=0), "Error - casting to DataReady.");
+   return dr;
+}
 
 std::string
 Data::toString() const
@@ -2472,7 +2911,7 @@ Data::toString() const
 	getNumDataPoints()*getDataPointSize()>escriptParams.getInt("TOO_MANY_LINES"))
     {
 	stringstream temp;
-	temp << "Summary: inf="<< inf() << " sup=" << sup() << " data points=" << getNumDataPoints();
+	temp << "Summary: inf="<< inf_const() << " sup=" << sup_const() << " data points=" << getNumDataPoints();
 	return  temp.str();
     }
     return m_data->toString();
@@ -2483,27 +2922,53 @@ Data::toString() const
 DataTypes::ValueType::const_reference
 Data::getDataAtOffset(DataTypes::ValueType::size_type i) const
 {
-	return m_data->getDataAtOffset(i);
+    if (isLazy())
+    {
+	throw DataException("Programmer error - getDataAtOffset not permitted on lazy data (object is const which prevents resolving).");
+    }
+    return getReady()->getDataAtOffset(i);
 }
 
 
 DataTypes::ValueType::reference
 Data::getDataAtOffset(DataTypes::ValueType::size_type i)
 {
-	return m_data->getDataAtOffset(i);
+//     if (isLazy())
+//     {
+// 	throw DataException("getDataAtOffset not permitted on lazy data.");
+//     }
+    FORCERESOLVE;
+    return getReady()->getDataAtOffset(i);
 }
 
 DataTypes::ValueType::const_reference
 Data::getDataPoint(int sampleNo, int dataPointNo) const
 {
-	return m_data->getDataAtOffset(m_data->getPointOffset(sampleNo, dataPointNo));
+  if (!isReady())
+  {
+	throw DataException("Programmer error - getDataPoint() not permitted on Lazy Data (object is const which prevents resolving).");
+  }
+  else
+  {
+	const DataReady* dr=getReady();
+	return dr->getDataAtOffset(dr->getPointOffset(sampleNo, dataPointNo));
+  }
 }
 
 
 DataTypes::ValueType::reference
 Data::getDataPoint(int sampleNo, int dataPointNo)
 {
-	return m_data->getDataAtOffset(m_data->getPointOffset(sampleNo, dataPointNo));
+  FORCERESOLVE;
+  if (!isReady())
+  {
+	throw DataException("Programmer error - getDataPoint() not permitted on Lazy Data.");
+  }
+  else
+  {
+	DataReady* dr=getReady();
+	return dr->getDataAtOffset(dr->getPointOffset(sampleNo, dataPointNo));
+  }
 }
 
 
@@ -2527,13 +2992,22 @@ void
 Data::dump(const std::string fileName) const
 {
   try
-     {
-        return m_data->dump(fileName);
-     }
-     catch (exception& e)
-     {
+  {
+	if (isLazy())
+	{
+	  Data temp(*this);	// this is to get a non-const object which we can resolve
+	  temp.resolve();
+	  temp.dump(fileName);
+	}
+	else
+	{
+          return m_data->dump(fileName);
+	}
+  }
+  catch (exception& e)
+  {
         cout << e.what() << endl;
-     }
+  }
 }
 
 int

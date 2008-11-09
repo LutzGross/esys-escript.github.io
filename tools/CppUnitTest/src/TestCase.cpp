@@ -142,7 +142,7 @@ void TestCase::run (TestResult *result)
    if(m_errorLog.size()>0) {
       std::ostringstream errorLog;
       errorLog << std::endl;
-      for(int i=0; i<m_errorLog.size(); ++i) {
+      for(unsigned int i=0; i<m_errorLog.size(); ++i) {
          errorLog << m_errorLog[i];
       }
       errorLog << std::endl;

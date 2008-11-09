@@ -31,10 +31,10 @@
 /* allocates a Pattern  */
 
 Paso_Pattern* Paso_Pattern_alloc(int type, dim_t input_block_size, dim_t output_block_size, dim_t numOutput, dim_t numInput, index_t* ptr, index_t* index) {
-  Paso_Pattern *out=NULL;
+  Paso_Pattern*out=NULL;
   index_t index_offset=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   index_t loc_min_index,loc_max_index,min_index=index_offset,max_index=index_offset-1;
-  dim_t i;
+  dim_t i, sum=0;
   Paso_resetError();
 
   if (type & PATTERN_FORMAT_SYM) {
@@ -166,6 +166,7 @@ bool_t Paso_Pattern_isEmpty(Paso_Pattern* in) {
 
 Paso_Pattern* Paso_Pattern_multiply(int type, Paso_Pattern* A, Paso_Pattern* B) {
   Paso_Pattern*out=NULL;
+  index_t index_offset=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   index_t iptrA,iptrB;
   dim_t i,j,k;
   Paso_IndexList* index_list=NULL;
@@ -218,8 +219,9 @@ return out;
  *
  */
 Paso_Pattern* Paso_Pattern_binop(int type, Paso_Pattern* A, Paso_Pattern* B) {
-  Paso_Pattern *out=NULL;
-  index_t iptrA,iptrB;
+  Paso_Pattern*out=NULL;
+  index_t index_offset=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
+  index_t iptrA,iptrB,*A_row=NULL,*B_row=NULL;
   dim_t i,j,k;
 
   Paso_IndexList* index_list=NULL;

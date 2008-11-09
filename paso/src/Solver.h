@@ -28,13 +28,10 @@
 #define SOLVER_BREAKDOWN -10
 #define SOLVER_NEGATIVE_NORM_ERROR -11
 
-#define TOLERANCE_FOR_SCALARS (double)(0.)
-#define PASO_ONE (double)(1.0)
-#define PASO_ZERO (double)(0.0)
 
-/* static double ONE=1.; */
-/* static double ZERO=0.;*/
-/*static double TOLERANCE_FOR_SCALARS=0.;*/
+static double ONE=1.;
+static double ZERO=0.;
+static double TOLERANCE_FOR_SCALARS=0.;
 
 /* jacobi  preconditioner */
 
@@ -156,6 +153,7 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b);
 
 void Paso_Solver_GS_free(Paso_Solver_GS * in);
 Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A_p,bool_t verbose);
+void Paso_Solver_solveGS1(Paso_Solver_GS * gs, double * x, double * b);
 void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b);
 
 void Paso_Solver_RILU_free(Paso_Solver_RILU * in);
