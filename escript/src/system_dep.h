@@ -34,7 +34,7 @@
 #endif
 #include <limits.h>
 
-# ifdef __INTEL_COMPILER
+#if defined(_WIN32) && defined(__INTEL_COMPILER)
 /*
  The Intel compiler on windows has an "improved" math library compared to the usual Visual C++ one
  In particular it has a acosh and other similar functions which aren't implemented in Visual C++ math.h
@@ -73,7 +73,7 @@
 #endif
 
 /* you'll need this one day. */
-#ifndef const
+#ifndef __const
 # if (defined __STDC__ && __STDC__) || defined __cplusplus
 #  define __const	const
 # else

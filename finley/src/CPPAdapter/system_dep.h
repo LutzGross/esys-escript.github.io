@@ -23,7 +23,7 @@
 #ifndef finley_system_dep_h
 #define finley_system_dep_h
 
-#ifdef __INTEL_COMPILER
+#if defined(_WIN32) && defined(__INTEL_COMPILER)
 // The Intel compiler on windows has an "improved" math library compared to the usual Visual C++ one
 // In particular it has a acosh and other similar functions which aren't implemented in Visual C++ math.h
 // Note you will get a compile time error if any other header (including system ones) includes math.h whilst mathimf.h
