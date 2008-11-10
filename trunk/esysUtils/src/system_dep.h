@@ -45,12 +45,18 @@
 //#      endif
 //#   endif
 #   define ESYSUTILS_DLL_API
+
+// This is because of the different declarations of std::exception mentods
+// on windows.
+// Also, putting a "throw" in any declaration on windows causes a warning!!!!!!
+// If you wish to generate a throw() on other systems, please use 
+// THROW(NO_ARG). This is because windows generates warnings if you say
+// THROW(), so the NO_ARG trick must be used to avoid the mass of warnings.
+
 #   define THROW(ARG)
-#   define THROW_ANY // Stupid windows compilers complain about THROW()
 #else
 #   define ESYSUTILS_DLL_API
 #   define THROW(ARG) throw(ARG)
-#   define THROW_ANY throw()
 #endif
 
 #define NO_ARG
