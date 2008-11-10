@@ -371,7 +371,7 @@ DataTagged::setTaggedValue(int tagKey,
   } else {
     // copy the values into the data array at the offset determined by m_offsetLookup
     int offset=pos->second;
-    for (int i=0; i<getNoValues(); i++) {
+    for (unsigned int i=0; i<getNoValues(); i++) {
       m_data[offset+i]=value[i+dataOffset];
     }
   }
@@ -514,7 +514,7 @@ DataTagged::addTaggedValue(int tagKey,
     for (int i=0;i<oldSize;i++) {
       m_data[i]=m_data_temp[i];
     }
-    for (int i=0;i<getNoValues();i++) {
+    for (unsigned int i=0;i<getNoValues();i++) {
       m_data[oldSize+i]=value[i+dataOffset];
     }
   }
@@ -575,7 +575,7 @@ DataTagged::addTag(int tagKey)
     for (int i=0;i<oldSize;i++) {
       m_data[i]=m_data_temp[i];
     }
-    for (int i=0;i<getNoValues();i++) {
+    for (unsigned int i=0;i<getNoValues();i++) {
       m_data[oldSize+i]=m_data[m_defaultValueOffset+i];
     }
   }

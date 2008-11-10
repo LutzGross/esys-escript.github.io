@@ -2161,7 +2161,7 @@ void DataTaggedTestCase::testAll() {
       assert(sampleData[i]==i);
     }
     sampleData=myData.getSampleData(0);
-    for (int i=0; i<myData.getNoValues(); i++) {
+    for (unsigned int i=0; i<myData.getNoValues(); i++) {
       assert(sampleData[i]==i);
     }
 
@@ -2238,7 +2238,7 @@ void DataTaggedTestCase::testAll() {
       assert(sampleData[i]==i);
     }
     sampleData=myData.getSampleDataByTag(0);
-    for (int i=0; i<myData.getNoValues(); i++) {
+    for (unsigned int i=0; i<myData.getNoValues(); i++) {
       assert(sampleData[i]==i);
     }
 
@@ -2342,7 +2342,7 @@ void DataTaggedTestCase::testAll() {
       }
     }
     sampleData=myData.getSampleData(0);
-    for (int i=0; i<myData.getNoValues(); i++) {
+    for (unsigned int i=0; i<myData.getNoValues(); i++) {
       assert(sampleData[i]==i+1);
     }
 
@@ -2487,7 +2487,7 @@ void DataTaggedTestCase::testAll() {
       }
     }
     sampleData=myData.getSampleData(0);
-    for (int i=0; i<myData.getNoValues(); i++) {
+    for (unsigned int i=0; i<myData.getNoValues(); i++) {
       assert(sampleData[i]==i+1);
     }
 

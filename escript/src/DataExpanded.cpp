@@ -159,7 +159,7 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
      // now we copy this value to all elements
      for (int i=0;i<getLength();)
      {
-	for (int j=0;j<getNoValues();++j,++i)
+	for (unsigned int j=0;j<getNoValues();++j,++i)
 	{
 	    vec[i]=data[j];
 	}
