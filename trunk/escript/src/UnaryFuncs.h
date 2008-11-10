@@ -28,6 +28,7 @@ namespace escript {
 
 //======================================================================
 
+inline
 double log1p (const double x)
 {
   volatile double y;
@@ -37,6 +38,7 @@ double log1p (const double x)
 
 //======================================================================
 
+inline
 float IEEE_NaN()
 {
    static unsigned char nan[4]={ 0, 0, 0xc0, 0x7f };
@@ -45,6 +47,7 @@ float IEEE_NaN()
 
 //======================================================================
 
+inline
 double IEEE_Infy()
 {
    static unsigned char infy[8]={ 0, 0, 0, 0, 0, 0, 0xf0, 0x7f };
@@ -54,7 +57,7 @@ double IEEE_Infy()
 
 //======================================================================
 
-
+inline
 double
 acosh_substitute (const double x)
 {
@@ -84,6 +87,7 @@ acosh_substitute (const double x)
 
 //======================================================================
 
+inline
 double
 asinh_substitute (const double x)
 {
@@ -112,6 +116,7 @@ asinh_substitute (const double x)
 
 //======================================================================
 
+inline
 double
 atanh_substitute (const double x)
 {

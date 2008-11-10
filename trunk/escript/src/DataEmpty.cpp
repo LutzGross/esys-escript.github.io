@@ -34,7 +34,7 @@ namespace {
 namespace escript {
 
 DataEmpty::DataEmpty() :
-  DataAbstract(FunctionSpace(),DataTypes::scalarShape, true)
+  parent(FunctionSpace(),DataTypes::scalarShape, true)
 {
 
 }
@@ -59,6 +59,14 @@ DataEmpty::deepCopy()
 DataTypes::ValueType::size_type
 DataEmpty::getPointOffset(int sampleNo,
                           int dataPointNo) const 
+{
+  throwStandardException("getPointOffset");
+  return 0;
+}
+
+DataTypes::ValueType::size_type
+DataEmpty::getPointOffset(int sampleNo,
+                          int dataPointNo)
 {
   throwStandardException("getPointOffset");
   return 0;

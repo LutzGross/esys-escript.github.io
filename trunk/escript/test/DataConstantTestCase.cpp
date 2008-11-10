@@ -41,11 +41,22 @@ namespace
 {
 
 ValueType::reference
-getRef(DataAbstract& data,int i, int j, int k)
+getRef(DataReady& data,int i, int j, int k)
 {
    return data.getVector()[getRelIndex(data.getShape(),i,j,k)];
 }
 
+
+DataReady_ptr
+resolveAndDelete(DataAbstract* p)
+{
+   DataReady_ptr p2=p->resolve();
+   if (p!=p2.get())
+   {
+	delete p;
+   }
+   return p2;
+}
 
 }
 
@@ -76,39 +87,6 @@ void DataConstantTestCase::testAll() {
   shape.push_back(3);
   shape.push_back(21);
 
-/*
-  cout << "\tTest reshape." << endl;
-  testData.reshapeDataPoint(shape);
-  assert((unsigned int)testData.getPointDataView().getRank()==shape.size());
-
-  cout << "\tTest getPointDataView." << endl;
-  for (int k=0;k<shape[2];k++) {
-    for (int j=0;j<shape[1];j++) {
-      for (int i=0;i<shape[0];i++) {
-	assert(testData.getPointDataView()(i,j,k)==pointData());
-      }
-    }
-  }
-
-  try {
-    cout << "\tTest illegal reshape." << endl;
-    testData.reshapeDataPoint(shape);
-    assert(false);
-  }
-  catch (EsysException& e) {
-    //cout << e.toString() << endl;
-    assert(true);
-  }
-
-  cout << "\tVerify data point attributes." << endl;
-  DataArrayView dataView=testData.getPointDataView();
-  assert(dataView.getRank()==3);
-  assert(dataView.noValues()==126);
-  assert(dataView.getShape()[0]==2);
-  assert(dataView.getShape()[1]==3);
-  assert(dataView.getShape()[2]==21);
-*/
-
   cout << "\tTesting alternative constructor." << endl;
   DataTypes::ValueType data1(DataTypes::noValues(shape),1.0);
   // do not call the FunctionSpace constructor directly
@@ -128,14 +106,6 @@ void DataConstantTestCase::testAll() {
   cout << "\tTest getLength." << endl;
   assert(testData1.getLength()==126);
 
-//   cout << "\tVerify data point attributes." << endl;
-// //   DataArrayView dataView=testData1.getPointDataView();
-//   assert(data.getRank()==3);
-//   assert(data.getNoValues()==126);
-//   assert(data.getShape()[0]==2);
-//   assert(data.getShape()[1]==3);
-//   assert(data.getShape()[2]==21);
-
   cout << "\tTesting copy constructor." << endl;
   DataConstant testData2(testData1);
 
@@ -151,7 +121,6 @@ void DataConstantTestCase::testAll() {
   assert(testData2.getLength()==126);
 
   cout << "\tVerify data point attributes." << endl;
-//  dataView=testData2.getPointDataView();
   assert(testData2.getRank()==3);
   assert(testData2.getNoValues()==126);
   assert(testData2.getShape()[0]==2);
@@ -165,7 +134,7 @@ void DataConstantTestCase::testAll() {
   region.push_back(DataTypes::RegionType::value_type(0,shape[1]));
   region.push_back(DataTypes::RegionType::value_type(0,shape[2]));
 
-  DataAbstract* testData3=testData2.getSlice(region);
+  DataReady_ptr testData3=resolveAndDelete(testData2.getSlice(region));
 
   for (int k=0;k<shape[2];k++) {
     for (int j=0;j<shape[1];j++) {
@@ -178,7 +147,6 @@ void DataConstantTestCase::testAll() {
   assert(testData3->getLength()==126);
 
   cout << "\tVerify data point attributes." << endl;
-//   dataView=testData3->getPointDataView();
   assert(testData3->getRank()==3);
   assert(testData3->getNoValues()==126);
   assert(testData3->getShape()[0]==2);
@@ -192,7 +160,7 @@ void DataConstantTestCase::testAll() {
   region2.push_back(DataTypes::RegionType::value_type(0,2));
   region2.push_back(DataTypes::RegionType::value_type(0,2));
 
-  DataAbstract* testData4=testData3->getSlice(region2);
+  DataReady_ptr testData4=resolveAndDelete(testData3->getSlice(region2));
 
   for (int k=0;k<2;k++) {
     for (int j=0;j<2;j++) {
@@ -205,7 +173,6 @@ void DataConstantTestCase::testAll() {
   assert(testData4->getLength()==8);
 
   cout << "\tVerify data point attributes." << endl;
-//   dataView=testData4->getPointDataView();
   assert(testData4->getRank()==3);
   assert(testData4->getNoValues()==8);
   assert(testData4->getShape()[0]==2);
@@ -219,7 +186,7 @@ void DataConstantTestCase::testAll() {
   region3.push_back(DataTypes::RegionType::value_type(1,3));
   region3.push_back(DataTypes::RegionType::value_type(5,9));
 
-  DataAbstract* testData5=testData3->getSlice(region3);
+  DataReady_ptr testData5=resolveAndDelete(testData3->getSlice(region3));
 
   for (int k=0;k<4;k++) {
     for (int j=0;j<2;j++) {
@@ -268,9 +235,9 @@ void DataConstantTestCase::testAll() {
   assert(testData5->getShape()[1]==2);
   assert(testData5->getShape()[2]==4);
 
-  delete testData3;
-  delete testData4;
-  delete testData5;
+//   delete testData3;
+//   delete testData4;
+//   delete testData5;
   delete testData6;
 }
 

@@ -26,7 +26,6 @@
 #include "EscriptParams.h"
 
 
-
 extern "C" {
 #include "escript/blocktimer.h"
 }
@@ -169,10 +168,15 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("getNumberOfDataPoints",&escript::Data::getNumDataPoints)
     .def("isExpanded",&escript::Data::isExpanded)
     .def("isTagged",&escript::Data::isTagged)
+    .def("isConstant",&escript::Data::isConstant)
+    .def("isLazy",&escript::Data::isLazy)
+    .def("isReady",&escript::Data::isReady)
     .def("expand",&escript::Data::expand)
     .def("tag",&escript::Data::tag)
+    .def("resolve",&escript::Data::resolve)
     .def("copy",&escript::Data::copy)
     .def("copy",&escript::Data::copySelf,return_value_policy<manage_new_object>())
+    .def("delay",&escript::Data::delay)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToPyObject)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToArray)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPoint)
