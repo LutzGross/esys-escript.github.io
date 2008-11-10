@@ -81,20 +81,22 @@ class DataCollector:
 		elif (self.__source == Source.ESCRIPT):
 			self.__vtk_xml_reader = vtk.vtkXMLUnstructuredGridReader()
 			# Create a temporary .xml file and retrieve its path.
+			# Should raise IOError on failure, in wich case
+			# __tmp_fd will remain None.
 			fd_and_name = tempfile.mkstemp(suffix=".xml")
 			self.__tmp_fd = fd_and_name[0]
 			self.__tmp_file = fd_and_name[1]
 
 	def __del__(self):
 		"""
-		Perform some clean up of the temporary file.
+		Perform some clean up of ths assumese temporary file.
 		"""
-
-		if (self.__source == Source.ESCRIPT):
-			if self.__tmp_fd != None :
-				os.close(self.__tmp_fd)
-				if os.access(self.__tmp_file,os.F_OK):
-					os.unlink(self.__tmp_file)
+		# remove this test and rely upon the existance of an open
+		# __tmp_file to decide upon closing and unlinking.
+		# if (self.__source == Source.ESCRIPT):
+		if self.__tmp_fd != None :
+			os.close(self.__tmp_fd)
+			os.unlink(self.__tmp_file)
 
 	def setFileName(self, file_name):
 		"""
