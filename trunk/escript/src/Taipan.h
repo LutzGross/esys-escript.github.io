@@ -144,6 +144,10 @@ class ESCRIPT_DLL_API Taipan {
  protected:
 
  private:
+  /**
+   Declared (private) as a precaution to ensure that noone tries to copy instances.
+  */
+  void operator=(const Taipan& c){}
 
   typedef struct Taipan_StatTable {
     int requests;
