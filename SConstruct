@@ -125,7 +125,9 @@ opts.AddOptions(
 # BLAS (used by UMFPACK)
   ('blas_path', 'Path to BLAS includes', '/usr/include/suitesparse'),
   ('blas_lib_path', 'Path to BLAS libs', usr_lib),
-  ('blas_libs', 'BLAS libraries to link with', ['blas'])
+  ('blas_libs', 'BLAS libraries to link with', ['blas']),
+# An option for specifying the compiler tools set (see windows branch).
+  ('tools_names', 'allow control over the tools in the env setup', ['intelc'])
 )
 
 ############ Specify which compilers to use ####################
@@ -134,8 +136,9 @@ opts.AddOptions(
 # failing to find the compilers.  This warning can be safely ignored.
 
 if IS_WINDOWS_PLATFORM:
-      env = Environment(tools = ['default', 'msvc'], options = opts)
-      #env = Environment(tools = ['default', 'intelc'], options = opts)
+      env = Environment(options = opts)
+      env = Environment(tools = ['default'] + env['tools_names'],
+                        options = opts)
 else:
    if socket.gethostname().split('.')[0] == 'service0':
       env = Environment(tools = ['default', 'intelc'], options = opts)
