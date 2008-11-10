@@ -31,7 +31,7 @@
 /* _ECC, __INTEL_COMPILER, and other                               */
 /* intel compiler pre-defines need to be handled                   */
 /* (__ICL, __ICC come to mind)                                     */
-#if ( defined __INTEL_COMPILER )
+#if defined(_WIN32) && defined(__INTEL_COMPILER)
 #include <mathimf.h>
 #else
 #include <math.h>
