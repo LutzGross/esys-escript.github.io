@@ -489,10 +489,9 @@ contains datapoints.
   */
   ESCRIPT_DLL_API
   inline
-  int
+  unsigned int
   getDataPointRank() const
   {
-//    return m_data->getPointDataView().getRank();
     return m_data->getRank();
   }
 

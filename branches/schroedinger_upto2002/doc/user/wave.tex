@@ -15,8 +15,8 @@
 \section{3-D Wave Propagation}
 \label{WAVE CHAP}
 
-In this next example we want to calculate the displacement field $u\hackscore{i}$ for any time $t>0$ by solving the wave equation
-\index{wave equation}:
+In this next example we want to calculate the displacement field $u\hackscore{i}$ for any time $t>0$ by solving the wave equation:
+\index{wave equation}
 \begin{eqnarray}\label{WAVE general problem}
 \rho u\hackscore{i,tt} - \sigma\hackscore{ij,j}=0
 \end{eqnarray}
@@ -243,7 +243,7 @@ the formula.
 The following script uses the \code{wavePropagation} function to solve the
 wave equation for a point source located at the bottom face of a block. The width of the block in 
 each direction on the bottom face is $10\mbox{km}$ ($x\hackscore 0$ and $x\hackscore 1$ directions ie. \code{l0} and \code{l1}).
-\code{ne} gives the number of elements in $x\hackscore{0}$ and $x\hackscore 1$ directions.  
+The \code{ne} gives the number of elements in $x\hackscore{0}$ and $x\hackscore 1$ directions.  
 The depth of the block is aligned with the $x\hackscore{2}$-direction. 
 The depth (\code{l2}) of the block in
 the $x\hackscore{2}$-direction is chosen so that there are 10 elements and the magnitude of the

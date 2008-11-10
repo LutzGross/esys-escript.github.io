@@ -42,7 +42,9 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
   Finley_Mesh* out;
   Paso_MPIInfo *mpi_info = NULL;
   char name[50];
+  #ifdef Finley_TRACE
   double time0=Finley_timer();
+  #endif
 
   /* get MPI information */
   mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );

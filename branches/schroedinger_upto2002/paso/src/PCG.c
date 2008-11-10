@@ -77,7 +77,10 @@ err_t Paso_Solver_PCG(
     Paso_Performance* pp) {
 
   /* Local variables */
-  dim_t num_iter=0,maxit,num_iter_global, chunk_size=-1, len,rest, np, ipp;
+  dim_t num_iter=0,maxit,num_iter_global, len,rest, np, ipp;
+#ifdef USE_DYNAMIC_SCHEDULING
+  dim_t chunk_size=-1;
+#endif
   register double ss,ss1;
   dim_t i0, istart, iend;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
@@ -88,7 +91,7 @@ err_t Paso_Solver_PCG(
 #ifdef PASO_MPI
   double loc_sum[2], sum[2];
 #endif
-  double norm_of_residual,norm_of_residual_global;
+  double norm_of_residual=0,norm_of_residual_global;
   register double d;
 
   /* Should not be any executable code before this ifdef */
@@ -247,7 +250,7 @@ err_t Paso_Solver_PCG(
            /* v=A*p */
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_MVM);
-	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, p,ZERO,v);
+	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, p,PASO_ZERO,v);
            Performance_stopMonitor(pp,PERFORMANCE_MVM);
            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
 
@@ -333,8 +336,8 @@ err_t Paso_Solver_PCG(
 	        sum_5 = 0;
                 #pragma omp parallel private(i0, istart, iend, ipp, ss, gamma_1,gamma_2)
                 {
-                  gamma_1= ( (ABS(sum_3)<= ZERO) ? 0 : -sum_4/sum_3) ;
-                  gamma_2= ONE-gamma_1;
+                  gamma_1= ( (ABS(sum_3)<= PASO_ZERO) ? 0 : -sum_4/sum_3) ;
+                  gamma_2= PASO_ONE-gamma_1;
                   ss=0;
                   #ifdef USE_DYNAMIC_SCHEDULING
                       #pragma omp for schedule(dynamic, 1)

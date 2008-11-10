@@ -102,13 +102,13 @@ A\hackscore{jl}=A\hackscore{lj} \mbox{ and } B\hackscore{j}=C\hackscore{j}
 The system of PDEs is symmetrical \index{symmetrical} if
 \begin{eqnarray}
 \label{LINEARPDE.SYSTEM.4}
-A\hackscore{ijkl}=A\hackscore{klij} \\
-B\hackscore{ijk}=C\hackscore{kij} \\
-D\hackscore{ik}=D\hackscore{ki} \\
-d\hackscore{ik}=d\hackscore{ki} \\
-d^{contact}\hackscore{ik}=d^{contact}\hackscore{ki}
+A\hackscore{ijkl}&=&A\hackscore{klij} \\
+B\hackscore{ijk}&=&C\hackscore{kij} \\
+D\hackscore{ik}&=&D\hackscore{ki} \\
+d\hackscore{ik}&=&d\hackscore{ki} \\
+d^{contact}\hackscore{ik}&=&d^{contact}\hackscore{ki}
 \end{eqnarray}
-Note that different from the scalar case~\eqn{LINEARPDE.SINGLE.4} now the coefficients $D$, $d$ abd $d^{contact}$
+Note that in contrast with the scalar case~\eqn{LINEARPDE.SINGLE.4} now the coefficients $D$, $d$ abd $d^{contact}$
 have to be inspected.
 
 
@@ -116,18 +116,18 @@ have to be inspected.
 \declaremodule{extension}{esys.escript.linearPDEs} 
 \modulesynopsis{Linear partial differential equation handler}
 The module \linearPDEs provides an interface to define and solve linear partial
-differential equations within \escript. \linearPDEs does not provide any
+differential equations within \escript. The module \linearPDEs does not provide any
 solver capabilities in itself but hands the PDE over to
 the PDE solver library defined through the \Domain of the PDE.
 The general interface is provided through the \LinearPDE class. The
 \AdvectivePDE which is derived from the \LinearPDE class
-provides an interface to PDE dominated by its advective terms. The \Poisson
+provides an interface to a PDE dominated by its advective terms. The \Poisson
 class which is also derived form the \LinearPDE class should be used
 to define the Poisson equation \index{Poisson}.
 
 \subsection{\LinearPDE class}
 This is the general class to define a linear PDE in \escript. We list a selection of the most
-important methods of the class only and refer to reference guide \ReferenceGuide for a complete list.
+important methods of the class. For a complete list, see the reference at \ReferenceGuide.
 
 \begin{classdesc}{LinearPDE}{domain,numEquations=0,numSolutions=0}
 opens a linear, steady, second order PDE on the \Domain \var{domain}. \var{numEquations}
@@ -136,6 +136,8 @@ If \var{numEquations} and \var{numSolutions} is non-positive, the number of equa
 and the number solutions, respectively, stay undefined until a coefficient is
 defined.
 \end{classdesc}
+
+\subsubsection{\LinearPDE methods}
 
 \begin{methoddesc}[LinearPDE]{setValue}{
 \optional{A}\optional{, B},
@@ -166,11 +168,11 @@ returns the \FunctionSpace of coefficient \var{name} even if no value has been a
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{setDebugOn}{}
-switches the debug mode to on.
+switches on debug mode.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{setDebugOff}{}
-switches the debug mode to on.
+switches off debug mode.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{isUsingLumping}{}
@@ -179,20 +181,20 @@ Otherwise \False is returned.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{setSolverMethod}{\optional{solver=LinearPDE.DEFAULT}\optional{, preconditioner=LinearPDE.DEFAULT}}
-sets the solver method and preconditioner to be used. It is pointed out that a PDE solver library
+sets the solver method and preconditioner to be used. It should be noted that a PDE solver library
 may not know the specified solver method but may choose a similar method and preconditioner.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{getSolverMethodName}{}
-returns the name of the solver method and preconditioner which is currently been used.
+returns the name of the solver method and preconditioner which is in use.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{getSolverMethod}{}
-returns the solver method and preconditioner which is currently been used.
+returns the solver method and preconditioner which is in use.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{setSolverPackage}{\optional{package=LinearPDE.DEFAULT}}
-Set the solver package to be used by PDE library to solve the linear systems of equations. The
+sets the solver package to be used by PDE library to solve the linear systems of equations. The
 specified package may not be supported by the PDE solver library. In this case, depending on
 the PDE solver, the default solver is used or an exception is thrown.
 If \var{package} is not specified, the default package of the PDE solver library is used.
@@ -203,15 +205,15 @@ returns the linear solver package currently by the PDE solver library
 \end{methoddesc}
 
 
-\begin{methoddesc}[LinearPDE]{setTolerance}{\optional{tol=1.e-8}}:
-resets the tolerance for solution. The actually meaning of tolerance is
-depending on the underlying PDE library. In most cases, the tolerance
+\begin{methoddesc}[LinearPDE]{setTolerance}{\optional{tol=1.e-8}}
+resets the tolerance for solution. The actually meaning of tolerance depends 
+on the underlying PDE library. In most cases, the tolerance
 will only consider the error from solving the discrete problem but will
 not consider any discretization error.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{setToleranceReductionFactor}{TOL}
-Lowers the tolerance by a factor of TOL.
+lowers the tolerance by a factor of TOL.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{getTolerance}{}
@@ -236,7 +238,7 @@ returns the number of components of the solution.
 
 \begin{methoddesc}[LinearPDE]{checkSymmetry}{verbose=\False}
 returns \True if the PDE is symmetric and \False otherwise.
-The method is very computational expensive and should only be
+The method is very computationally expensive and should only be
 called for testing purposes. The symmetry flag is not altered.
 If \var{verbose}=\True information about where symmetry is violated
 are printed.
@@ -278,7 +280,7 @@ returns the \Operator of the PDE.
 
 \begin{methoddesc}[LinearPDE]{getRightHandSide}{}
 returns the right hand side of the PDE as a \Data object. If
-\var{ignoreConstraint}=\True the constraints are not considered
+\var{ignoreConstraint}=\True, then the constraints are not considered
 when building up the right hand side.
 \end{methoddesc}
 
@@ -295,9 +297,9 @@ returns the \Operator and right hand side of the PDE.
 \optional{, truncation=-1}
 \optional{, restart=-1}
 }
-returns (an approximation of) the solution of the PDE. If \code{verbose=\True} some information during the solution process printed.
+returns (an approximation of) the solution of the PDE. If \code{verbose=\True}, then some information is printed during the solution process.
 \var{reordering} selects a reordering methods that is applied before or during the solution process
-(=\NOREORDERING ,\MINIMUMFILLIN ,\NESTEDDESCTION).
+(=\NOREORDERING, \MINIMUMFILLIN, \NESTEDDESCTION).
 \var{iter_max} specifies the maximum number of iteration steps that are allowed to reach the specified tolerance.
 \var{drop_tolerance} specifies a relative tolerance for small elements to be dropped when building a preconditioner
 (eg. in \ILUT). \var{drop_storage} limits the extra storage allowed when building a preconditioner
@@ -305,6 +307,8 @@ returns (an approximation of) the solution of the PDE. If \code{verbose=\True} s
 \var{drop_storage=1.2} will allow the preconditioner to use the $1.2$ fold storage space than used
 for the stiffness matrix. \var{truncation} defines the truncation.
 \end{methoddesc}
+
+\subsubsection{\LinearPDE symbols/members}
 
 \begin{memberdesc}[LinearPDE]{DEFAULT}
 default method, preconditioner or package to be used to solve the PDE. An appropriate method should be
@@ -345,16 +349,22 @@ direct solver based on Cholevsky factorization (or similar), see~\Ref{Saad}. The
 preconditioned conjugate gradient method, see~\Ref{WEISS}\index{linear solver!PCG}\index{PCG}. The solver will require a symmetric PDE.
 \end{memberdesc}
 
+\begin{memberdesc}[LinearPDE]{TFQMR}
+transpose-free quasi-minimal residual method, see~\Ref{WEISS}\index{linear solver!TFQMR}\index{TFQMR}. \end{memberdesc}
+
 \begin{memberdesc}[LinearPDE]{GMRES}
 the GMRES method, see~\Ref{WEISS}\index{linear solver!GMRES}\index{GMRES}. Truncation and restart are controlled by the parameters
 \var{truncation} and \var{restart} of \method{getSolution}.
 \end{memberdesc}
 
+\begin{memberdesc}[LinearPDE]{MINRES}
+minimal residual method method, \index{linear solver!MINRES}\index{MINRES} \end{memberdesc}
+
 \begin{memberdesc}[LinearPDE]{LUMPING}
 uses lumping to solve the system of linear equations~\index{linear solver!lumping}\index{lumping}. This solver technique
 condenses the stiffness matrix to a diagonal matrix so the solution of the linear systems becomes very cheap. It can be used when
 only \var{D} is present but in any case has to applied with care. The difference in the solutions with and without lumping can be significant
-but is expect to converge to zero when the mesh gets finer.
+but is expected to converge to zero when the mesh gets finer.
 Lumping does not use the linear system solver library.
 \end{memberdesc}
 
@@ -393,6 +403,10 @@ the Jacobi preconditioner, see~\Ref{Saad}.
 \begin{memberdesc}[LinearPDE]{AMG}
 the algebraic--multi grid method, see~\Ref{AMG}. This method can be used as linear solver method but is more robust when used
 in a preconditioner.
+\end{memberdesc}
+
+\begin{memberdesc}[LinearPDE]{GS}
+the symmetric Gauss-Seidel preconditioner, see~\Ref{Saad}.
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{RILU}

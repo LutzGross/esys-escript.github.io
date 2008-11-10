@@ -27,7 +27,7 @@
 /**************************************************************/
 
 void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* elements,escriptDataC* data,double* out) {
-    type_t data_type=getFunctionSpaceType(data);
+/*    type_t data_type=getFunctionSpaceType(data);*/
     dim_t numComps=getDataPointSize(data);
     Finley_ElementFile_Jacobeans* jac=NULL;
     Paso_MPI_rank my_mpi_rank;

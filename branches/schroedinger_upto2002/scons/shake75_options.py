@@ -12,28 +12,27 @@
 ########################################################
 
 
-# Configuration for shake71 (32-bit Intel running Ubuntu Linux)
+# Configuration for shake75 (32-bit Intel Core 2 running Debian Linux)
 
 # If you cannot use the default compiler flags set in SConstruct, then change them here
 # C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
 # cc_flags		= '-ansi'
 # cc_optim		= '-O2'
+# usedebug= 'no'
 # cc_debug		= '-g'
-# omp_optim		= '-openmp'
-# omp_debug		= '-openmp'
+omp_optim		= '-fopenmp'
+omp_debug		= '-fopenmp'
 # omp_libs		= []
 
-# usedebug		= 'yes'
-
 # Use the default C/C++ flags but add something only for this host:
-# cc_extra		= ''
-# ld_extra		= ''
+cc_extra		= '-Wall'
+ld_extra		= '-fopenmp'
 
 # Be picky about errors
 # usepedantic		= 'no'
 
 # Extra libraries
-# sys_libs		= ['guide', 'pthread', 'stdc++']
+# sys_libs		= []
 
 # Python libraries
 # python_path		= '/sw/apps/python/x86_64/gcc-4.1.2/python-2.4.4/include/python2.4'
@@ -50,10 +49,10 @@
 # usevtk		= 'yes'
 
 # NetCDF
-# usenetcdf		= 'yes'
-# netCDF_path		= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/include'
-# netCDF_lib_path	= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/lib'
-# netCDF_libs		= ['netcdf_c++', 'netcdf']
+#usenetcdf		= 'yes'
+#netCDF_path		= '/usr/include/netcdf-3/'
+#netCDF_lib_path	= '/usr/lib/'
+#netCDF_libs		= ['netcdf_c++', 'netcdf']
 
 # MKL
 # usemkl		= 'yes'
@@ -75,27 +74,20 @@
 # blas_libs		= ['blas']
 
 # OpenMP
-# useopenmp		= 'yes'
+useopenmp		= 'yes'
 
 # MPICH2 (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
-usempi			= 'yes'
-mpi_path		= '/home/Work/InstallArea/mpich2-1.0.7/include'
-mpi_lib_path		= '/home/Work/InstallArea/mpich2-1.0.7/lib'
-# mpi_libs		= ['mpich', 'rt']
-# mpi_run		= 'mpirun -np 1'
-
-# MPICH2 for jumpshot (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
-# usempi		= 'no'
-# mpi_path		= '/home/Work/InstallArea/mpich2-1.0.7/include'
-# mpi_lib_path		= '/home/Work/InstallArea/mpich2-1.0.7/lib'
-# mpi_libs		= ['lmpe', 'mpe', 'mpich', 'rt']
-# mpi_run		= 'mpirun -np 1'
+usempi= 'yes'
+mpi_path		= '/usr/include/mpi'
+mpi_lib_path		= '/usr/lib/openmpi/lib'
+mpi_libs		= ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
+mpi_run 	= 'mpiexec -np 4'
 
 # ParMETIS (for use with MPI)
-# useparmetis		= 'yes'
-parmetis_path		= '/home/Work/InstallArea/parmetis-3.1/include'
-parmetis_lib_path	= '/home/Work/InstallArea/parmetis-3.1/lib'
-# parmetis_libs		= ['parmetis', 'metis']
+#useparmetis		= 'yes'
+#parmetis_path		= '/usr/local/include'
+#parmetis_lib_path	= '/usr/local/lib'
+#parmetis_libs		= ['parmetis', 'metis']
 
 # PAPI
 # usepapi		= 'no'

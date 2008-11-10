@@ -31,10 +31,10 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
 
   register dim_t e,q,l,s,n;
   register double* data_array,  *grad_data_e;
-  dim_t numNodes, numShapes, numLocalNodes, numComps, NN;
+  dim_t numNodes=0, numShapes, numLocalNodes, numComps, NN;
   type_t data_type=getFunctionSpaceType(data);
   bool_t reducedShapefunction=FALSE, reducedIntegrationOrder=FALSE;
-  index_t dof_offset, s_offset;
+  index_t dof_offset=0, s_offset=0;
   Finley_ElementFile_Jacobeans* jac=NULL;
   type_t grad_data_type=getFunctionSpaceType(grad_data);
   Finley_resetError();
