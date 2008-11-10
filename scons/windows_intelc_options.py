@@ -22,4 +22,4 @@ omp_optim  = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel /MD /W3'
 omp_debug  = '/Qvec-report3 /Qopenmp /Qopenmp-report2 /Qparallel /MD /W3'
 omp_libs = ['C:\Program Files\Intel\Compiler\C++\9.1\IA32\Lib\libguide']
 
-win_tools_name = 'intelc'
+tools_names = ['intelc']

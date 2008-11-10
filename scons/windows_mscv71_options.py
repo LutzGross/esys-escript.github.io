@@ -61,4 +61,4 @@ cc_debug  = '/Od /RTC1 /MDd /ZI /Yd /Y-'
 # system specific libraries to link with
 sys_libs = ["C:/Program Files/Microsoft Visual Studio .NET 2003/Vc7/PlatformSDK/Lib/Ws2_32"]
 
-win_tools_name = 'msvc'
+tools_names = ['msvc']
