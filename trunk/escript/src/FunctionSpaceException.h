@@ -68,7 +68,7 @@ namespace escript
 
     ESCRIPT_DLL_API
     inline FunctionSpaceException &
-    operator=(const FunctionSpaceException &other ) THROW_ANY
+    operator=(const FunctionSpaceException &other ) THROW(NO_ARG)
        {
          Parent::operator=(other);
          updateMessage();
@@ -78,7 +78,7 @@ namespace escript
 
     /// Destructor
     ESCRIPT_DLL_API
-    virtual ~FunctionSpaceException() THROW_ANY {}
+    virtual ~FunctionSpaceException() THROW(NO_ARG) {}
     /**
     \brief
     Returns the name of the exception.

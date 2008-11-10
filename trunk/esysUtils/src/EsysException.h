@@ -99,7 +99,7 @@ namespace esysUtils
     */
     ESYSUTILS_DLL_API
     EsysException &
-    operator=(const EsysException &other) THROW_ANY;
+    operator=(const EsysException &other) THROW(NO_ARG);
 
     /**
     \brief
@@ -148,7 +148,7 @@ namespace esysUtils
     */
     ESYSUTILS_DLL_API
     inline
-    virtual const char* what() const THROW_ANY;
+    virtual const char* what() const THROW(NO_ARG);
 
 
     /**
@@ -207,7 +207,7 @@ namespace esysUtils
     updateMessage();
   }
 
-  const char*  EsysException::what() const THROW_ANY
+  const char*  EsysException::what() const THROW(NO_ARG)
   {
     return m_exceptionMessage.c_str();
   }

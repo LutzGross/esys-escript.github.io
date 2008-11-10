@@ -73,7 +73,7 @@ namespace esysUtils {
     ESYSUTILS_DLL_API
     inline 
     EsysAssertException &
-    operator=(const EsysAssertException &other) THROW_ANY
+    operator=(const EsysAssertException &other) THROW(NO_ARG)
         {
            Parent::operator=(other);
            updateMessage();   
@@ -83,7 +83,7 @@ namespace esysUtils {
 
     /// Destructor
     ESYSUTILS_DLL_API
-    virtual ~EsysAssertException() THROW_ANY {}
+    virtual ~EsysAssertException() THROW(NO_ARG) {}
 
     /**
     \brief
