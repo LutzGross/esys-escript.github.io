@@ -670,16 +670,16 @@ cout << "Resolve binary: " << toString() << endl;
   switch(m_op)
   {
     case ADD:
-        PROC_OP(/**/,plus<double>());
+        PROC_OP(NO_ARG,plus<double>());
 	break;
     case SUB:
-	PROC_OP(/**/,minus<double>());
+	PROC_OP(NO_ARG,minus<double>());
 	break;
     case MUL:
-	PROC_OP(/**/,multiplies<double>());
+	PROC_OP(NO_ARG,multiplies<double>());
 	break;
     case DIV:
-	PROC_OP(/**/,divides<double>());
+	PROC_OP(NO_ARG,divides<double>());
 	break;
     case POW:
        PROC_OP(double (double,double),::pow);
