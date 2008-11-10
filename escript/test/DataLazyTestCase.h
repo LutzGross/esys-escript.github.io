@@ -12,56 +12,38 @@
 *******************************************************/
 
 
-#if !defined  DataTestCase_20040624_H
-#define  DataTestCase_20040624_H
+#if !defined  DataLazyTestCase_H
+#define  DataLazyTestCase_H
 
 #include "tools/CppUnitTest/TestCase.h"
 #include "tools/CppUnitTest/TestSuite.h"
 #include "tools/CppUnitTest/TestCaller.h"
 
-#define REL_TOL ((double)1.e-10)
-
-class DataTestCase : public CppUnitTest::TestCase
+class DataLazyTestCase : public CppUnitTest::TestCase
 {
  public:
 
   //
   // setUp is called before each test method to set up test state
   void setUp();
-
   //
   // tearDown is called after each test method is called.
   void tearDown(); 
 
   //
   // A test method must return void and have no arguments
+  void testLazy1();
+  void testLazy2();
+  void testLazy3();
+  void testBuffers();
 
-  void testSome();
-  void testConstructors();
-  void testDataConstant();
-  void testDataTagged();
-  void testDataTaggedExceptions();
-  void testSlicing();
-  void testOperations();
-  void testMemAlloc();
-  void testCopying();
-  void testResolveType();
-  void testBinary();
-
-  DataTestCase (std::string name) : TestCase (name) {}
-  ~DataTestCase() {}
-
+  DataLazyTestCase (std::string name) : TestCase (name) {}
+  ~DataLazyTestCase() {}
   //
   //
   // return the suite of tests to perform
   //
-
   static CppUnitTest::TestSuite* suite ();
-
-private:
-  void testCopyingWorker(bool delayed);
-  void testSlicingWorker(bool delayed);
-
 };
 
 #endif

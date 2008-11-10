@@ -34,7 +34,9 @@ sources = """
 	DataException.cpp
 	DataExpanded.cpp
 	DataFactory.cpp
+	DataLazy.cpp
 	DataMaths.cpp
+	DataReady.cpp
 	DataTagged.cpp
 	DataTypes.cpp
 	DataVector.cpp
@@ -66,7 +68,9 @@ headers = """
 	DataException.h
 	DataExpanded.h
 	DataFactory.h
+	DataLazy.h
 	DataMaths.h
+	DataReady.h
 	DataTagged.h
 	DataTypes.h
 	DataVector.h

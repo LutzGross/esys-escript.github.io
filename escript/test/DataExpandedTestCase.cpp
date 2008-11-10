@@ -16,6 +16,7 @@
 #include "escript/DataExpanded.h"
 #include "esysUtils/EsysException.h"
 #include "DataExpandedTestCase.h"
+#include "escript/DataReady.h"
 
 #include <iostream>
 
@@ -41,13 +42,13 @@ namespace
 {
 
 ValueType::reference
-getRef(DataAbstract& data,int i, int j)
+getRef(DataReady& data,int i, int j)
 {
    return data.getVector()[getRelIndex(data.getShape(),i,j)];
 }
 
 ValueType::reference
-getRef(DataAbstract& data,int i, int j,int k)
+getRef(DataReady& data,int i, int j,int k)
 {
    return data.getVector()[getRelIndex(data.getShape(),i,j,k)];
 }
@@ -62,6 +63,17 @@ ValueType::reference
 getDRef(ValueType& data,const ShapeType& shape,int i, int j, int k)
 {
    return data[getRelIndex(shape,i,j,k)];
+}
+
+DataReady_ptr
+resolveAndDelete(DataAbstract* p)
+{
+   DataReady_ptr p2=p->resolve();
+   if (p!=p2.get())
+   {
+	delete p;
+   }
+   return p2;
 }
 
 }
@@ -186,7 +198,7 @@ void DataExpandedTestCase::testSlicing() {
   DataTypes::RegionType region;
   region.push_back(DataTypes::RegionType::value_type(0,shape[0]));
 
-  DataAbstract* testData2=testData.getSlice(region);
+  DataReady_ptr testData2=resolveAndDelete(testData.getSlice(region));
 
   //
   // Verify data values
@@ -201,7 +213,7 @@ void DataExpandedTestCase::testSlicing() {
 //   assert(data.getNoValues()==shape[0]*1);
 //   assert(data.getShape()[0]==shape[0]);
 
-  delete testData2;
+//   delete testData2;
 }
 
 void DataExpandedTestCase::testSlicing2() {
@@ -237,7 +249,8 @@ void DataExpandedTestCase::testSlicing2() {
   DataTypes::RegionType region;
   region.push_back(DataTypes::RegionType::value_type(0,2));
   region.push_back(DataTypes::RegionType::value_type(0,2));
-  DataAbstract* testData2=testData.getSlice(region);
+  
+  DataReady_ptr testData2=resolveAndDelete(testData.getSlice(region));
 
   //
   // Verify data values
@@ -259,8 +272,7 @@ void DataExpandedTestCase::testSlicing2() {
   DataTypes::RegionType region2;
   region2.push_back(DataTypes::RegionType::value_type(1,3));
   region2.push_back(DataTypes::RegionType::value_type(1,3));
-  DataAbstract* testData3=testData.getSlice(region2);
-
+  DataReady_ptr testData3=resolveAndDelete(testData.getSlice(region2));
   //
   // Verify data values
   cout << "\tVerify data point values." << endl;
@@ -277,8 +289,8 @@ void DataExpandedTestCase::testSlicing2() {
   assert(testData3->getShape()[0]==(region2[0].second-region2[0].first));
   assert(testData3->getShape()[1]==(region2[1].second-region2[1].first));
 
-  delete testData2;
-  delete testData3;
+//   delete testData2;
+//   delete testData3;
 
 }
 
@@ -337,7 +349,7 @@ void DataExpandedTestCase::testSlicing3() {
   region.push_back(DataTypes::RegionType::value_type(0,2));
   region.push_back(DataTypes::RegionType::value_type(0,2));
   region.push_back(DataTypes::RegionType::value_type(0,2));
-  DataAbstract* testData2=testData.getSlice(region);
+  DataReady_ptr testData2=resolveAndDelete(testData.getSlice(region));
 
   //
   // Verify data values
@@ -367,7 +379,7 @@ void DataExpandedTestCase::testSlicing3() {
   region2.push_back(DataTypes::RegionType::value_type(1,3));
   region2.push_back(DataTypes::RegionType::value_type(1,3));
   region2.push_back(DataTypes::RegionType::value_type(1,3));
-  DataAbstract* testData3=testData.getSlice(region2);
+  DataReady_ptr testData3=resolveAndDelete(testData.getSlice(region2));
 
   //
   // Verify data values
@@ -392,8 +404,8 @@ void DataExpandedTestCase::testSlicing3() {
   assert(testData2->getShape()[1]==(region[1].second-region[1].first));
   assert(testData2->getShape()[2]==(region[2].second-region[2].first));
 
-  delete testData2;
-  delete testData3;
+//   delete testData2;
+//  delete testData3;
 
 }
 

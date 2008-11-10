@@ -16,7 +16,7 @@
 #define escript_DataExpanded_20040323_H
 #include "system_dep.h"
 
-#include "DataAbstract.h"
+#include "DataReady.h"
 #include "DataBlocks2D.h"
 
 #include <boost/python/numeric.hpp>
@@ -40,7 +40,9 @@ class DataTagged;
    template must satisfy.
 */
 
-class DataExpanded : public DataAbstract {
+class DataExpanded : public DataReady {
+
+typedef DataReady parent;
 
  public:
 
@@ -123,6 +125,13 @@ TODO Note that this constructor will also copy data to all points if it only con
   virtual
   ~DataExpanded();
 
+  ESCRIPT_DLL_API
+  bool
+  isExpanded() const 
+  {
+    return true;
+  };
+
   /**
      \brief
      Return a textual representation of the data.
@@ -173,6 +182,12 @@ TODO Note that this constructor will also copy data to all points if it only con
   DataTypes::ValueType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
+
+  ESCRIPT_DLL_API
+  virtual
+  DataTypes::ValueType::size_type
+  getPointOffset(int sampleNo,
+                 int dataPointNo);
 
   /**
      \brief
