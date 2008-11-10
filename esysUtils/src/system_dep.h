@@ -23,10 +23,10 @@
 #ifndef esysutils_system_dep_h
 #define esysutils_system_dep_h
 
-#ifdef __INTEL_COMPILER
+#if defined(_WIN32) && defined(__INTEL_COMPILER)
 // The Intel compiler on windows has an "improved" math library compared to the usual Visual C++ one
 // In particular it has a acosh and other similar functions which aren't implemented in Visual C++ math.h
-// Note you will get a compile time error if any other header (including system ones) includes math.h whilst mathimf.h
+// Note you will get a compile time error if any other header (including system ones) include math.h before mathimf.h
 // has been included. As a result system_dep.h must be included FIRST at all times (this prevents math.h from being included).
 #include <mathimf.h>
 #else
@@ -53,5 +53,6 @@
 #   define THROW_ANY throw()
 #endif
 
+#define NO_ARG
 
 #endif

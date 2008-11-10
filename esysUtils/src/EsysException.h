@@ -86,7 +86,7 @@ namespace esysUtils
 
     /// Destructor
     ESYSUTILS_DLL_API
-    virtual ~EsysException() THROW_ANY;
+    virtual ~EsysException() THROW(NO_ARG);
 
     /**
     \brief
