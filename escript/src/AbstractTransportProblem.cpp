@@ -72,7 +72,7 @@ void AbstractTransportProblem::setInitialValue(Data& u) const
      if (u.isEmpty())
           throw TransportProblemException("Error - empty initial value.");
 
-     if ((getBlockSize()==1) && (u.getDataPointRank()>0) || (u.getDataPointRank()>1))
+     if (((getBlockSize()==1) && (u.getDataPointRank()>0)) || (u.getDataPointRank()>1))
           throw TransportProblemException("Error - illegal rank of initial value.");
 
      if (u.getDataPointSize()!=getBlockSize())
@@ -89,7 +89,7 @@ void AbstractTransportProblem::insertConstraint(Data& source, Data& q, Data& r) 
      if (q.isEmpty()) {
           return;
      }
-     if ((getBlockSize()==1) && (q.getDataPointRank()>0) || (q.getDataPointRank()>1))
+     if (((getBlockSize()==1) && (q.getDataPointRank()>0)) || (q.getDataPointRank()>1))
           throw TransportProblemException("Error - illegal rank of constraint location.");
      if (q.getDataPointSize()!=getBlockSize())
           throw TransportProblemException("Error - block size of transport problem and constraint location don't match.");
@@ -99,7 +99,7 @@ void AbstractTransportProblem::insertConstraint(Data& source, Data& q, Data& r) 
           Data r2=Data(0.,q.getDataPointShape(),getFunctionSpace());
           copyConstraint(source,q2,r2);
      } else {
-        if ((getBlockSize()==1) && (r.getDataPointRank()>0) || (r.getDataPointRank()>1))
+        if (((getBlockSize()==1) && (r.getDataPointRank()>0)) || (r.getDataPointRank()>1))
              throw TransportProblemException("Error - illegal rank of constraint value.");
         if (r.getDataPointSize()!=getBlockSize())
              throw TransportProblemException("Error - block size of transport problem and constraint value don't match.");

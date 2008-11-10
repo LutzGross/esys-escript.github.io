@@ -52,7 +52,6 @@ namespace finley {
   Domain_ptr loadMesh(const std::string& fileName)
   {
 #ifdef USE_NETCDF
-    bool optimize=FALSE; // Don't optimize since this would cause problems with Data().dump()
     Paso_MPIInfo *mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
     AbstractContinuousDomain* temp;
     Finley_Mesh *mesh_p=NULL;
@@ -448,12 +447,12 @@ namespace finley {
 	    }
 	  }
 	}
+   
+        if (Finley_noError()) Finley_Mesh_createMappings(mesh_p, first_DofComponent, first_NodeComponent);
+        TMPMEMFREE(first_DofComponent);
+        TMPMEMFREE(first_NodeComponent);
 
     } /* Finley_noError() after Finley_Mesh_alloc() */
-   
-    if (Finley_noError()) Finley_Mesh_createMappings(mesh_p, first_DofComponent, first_NodeComponent);
-    TMPMEMFREE(first_DofComponent);
-    TMPMEMFREE(first_NodeComponent);
 
     checkFinleyError();
     temp=new MeshAdapter(mesh_p);

@@ -111,7 +111,7 @@ Taipan::new_array(int dim, int N) {
 
   Taipan_MemTable *tab;
   Taipan_MemTable *new_tab;
-  Taipan_MemTable *tab_prev;
+  Taipan_MemTable *tab_prev=0;
 
   // increment count of alloc operations called
   statTable->requests++;
@@ -333,11 +333,11 @@ void
 Taipan::dump_stats() {
 
   assert(totalElements >= 0);
-
+#ifdef TAIPAN_STATS
   double elMb=statTable->allocated_elements*8.0/1048576;
   double deelMb=statTable->deallocated_elements*8.0/1048576;
   double tszMb=statTable->max_tab_size*8.0/1048576;
-#ifdef TAIPAN_STATS
+
   cout << "======= escript Mem Stats ===========================" << endl;
   cout << "Total Num requests:             " << statTable->requests << endl;
   cout << "Total Num releases:             " << statTable->frees << endl;

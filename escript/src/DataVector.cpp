@@ -36,18 +36,18 @@ void releaseUnusedMemory()
 
 
 DataVector::DataVector() :
-  m_array_data(0),
   m_size(0),
   m_dim(0),
-  m_N(0)
+  m_N(0),
+  m_array_data(0)
 {
 }
 
 DataVector::DataVector(const DataVector& other) :
-  m_array_data(0),
   m_size(other.m_size),
   m_dim(other.m_dim),
-  m_N(other.m_N)
+  m_N(other.m_N),
+  m_array_data(0)
 {
   m_array_data = arrayManager.new_array(m_dim,m_N);
   int i;
@@ -60,9 +60,9 @@ DataVector::DataVector(const DataVector& other) :
 DataVector::DataVector(const DataVector::size_type size,
                        const DataVector::value_type val,
                        const DataVector::size_type blockSize) :
-  m_array_data(0),
   m_size(size),
-  m_dim(blockSize)
+  m_dim(blockSize),
+  m_array_data(0)
 {
   resize(size, val, blockSize);
 }

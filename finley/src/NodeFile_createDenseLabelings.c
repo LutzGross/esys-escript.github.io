@@ -278,7 +278,7 @@ dim_t Finley_NodeFile_createDenseReducedDOFLabeling(Finley_NodeFile* in,index_t*
 dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in, index_t* node_distribution, const index_t* dof_distribution) 
 {
   index_t myFirstDOF, myLastDOF, max_id, min_id, loc_max_id, loc_min_id, dof, id, itmp, nodeID_0, nodeID_1, dof_0, dof_1, *Node_buffer=NULL;
-  dim_t n, my_buffer_len, buffer_len, globalNumNodes, myNewNumNodes;
+  dim_t n, my_buffer_len, buffer_len, globalNumNodes=0, myNewNumNodes;
   Paso_MPI_rank p, dest, source, buffer_rank;
   const index_t unset_nodeID=-1, set_nodeID=1;
   const dim_t header_len=2;
@@ -289,8 +289,8 @@ dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in, index_t* node
 
   /* find the range of node ids controled by me */
 
-  myFirstDOF=dof_distribution[in->MPIInfo->rank];
-  myLastDOF=dof_distribution[in->MPIInfo->rank+1];
+  myFirstDOF=dof_distribution[myRank];
+  myLastDOF=dof_distribution[myRank+1];
   max_id=-INDEX_T_MAX;
   min_id=INDEX_T_MAX;
   #pragma omp parallel private(loc_max_id,loc_min_id)

@@ -24,7 +24,7 @@
 # omp_libs		= ['guide']
 
 # Use the default C/C++ flags but add something only for this host:
-# cc_extra		= ''
+# cc_extra		= '-pedantic -isystem /usr/include/python2.5/ -Wall'
 # ld_extra		= ''
 
 # Be picky about errors
@@ -48,7 +48,7 @@ boost_libs		= ['boost_python']
 usevtk		= 'yes'
 
 # NetCDF
-# usenetcdf		= 'yes'
+usenetcdf		= 'yes'
 netCDF_path		= '/opt/local/include'
 netCDF_lib_path		= '/opt/local/lib'
 # netCDF_libs		= ['netcdf_c++', 'netcdf']
@@ -60,17 +60,17 @@ netCDF_lib_path		= '/opt/local/lib'
 # mkl_libs		= ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide', 'pthread']
 
 # UMFPACK (requires AMD and BLAS)
-# useumfpack		= 'yes'
-# ufc_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
-# umf_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
-# umf_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
-# umf_libs		= ['umfpack']
-# amd_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
-# amd_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
-# amd_libs		= ['amd']
-# blas_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
-# blas_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
-# blas_libs		= ['blas']
+useumfpack		= 'yes'
+ufc_path		= '/opt/local/include/umfpack-5.0.3/Include'
+umf_path		= '/opt/local/include/umfpack-5.0.3/Include'
+umf_lib_path		= '/opt/local/include/umfpack-5.0.3/Lib'
+umf_libs		= ['umfpack']
+amd_path		= '/opt/local/include/umfpack-5.0.3/Include'
+amd_lib_path		= '/opt/local/include/umfpack-5.0.3/Lib'
+amd_libs		= ['amd']
+blas_path		= '/opt/local/include/umfpack-5.0.3/Include'
+blas_lib_path		= '/opt/local/include/umfpack-5.0.3/Lib'
+blas_libs		= ['blas']
 
 # OpenMP
 # useopenmp		= 'yes'

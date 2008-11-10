@@ -31,5 +31,6 @@
 
 void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thershold);
 void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta);
-
+void  Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double theta);
+ 
 #endif 

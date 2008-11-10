@@ -931,12 +931,12 @@ Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::
   FORCERESOLVE;
   //
   // check rank
-  if (num_array.getrank()<getDataPointRank())
+  if (static_cast<unsigned int>(num_array.getrank())<getDataPointRank())
       throw DataException("Rank of numarray does not match Data object rank");
 
   //
   // check shape of num_array
-  for (int i=0; i<getDataPointRank(); i++) {
+  for (unsigned int i=0; i<getDataPointRank(); i++) {
     if (extract<int>(num_array.getshape()[i])!=getDataPointShape()[i])
        throw DataException("Shape of numarray does not match Data object rank");
   }

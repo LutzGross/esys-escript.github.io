@@ -51,7 +51,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
 #endif
    dim_t i,totIter,cntIter,method;
    bool_t finalizeIteration;
-   err_t errorCode;
+   err_t errorCode=NO_ERROR;
    dim_t numSol = Paso_SystemMatrix_getTotalNumCols(A);
    dim_t numEqua = Paso_SystemMatrix_getTotalNumRows(A);
    double blocktimer_precond, blocktimer_start = blocktimer_time();

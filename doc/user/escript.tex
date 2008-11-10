@@ -17,9 +17,10 @@
 
 
 \begin{figure}
-\includegraphics[width=\textwidth]{figures/EscriptDiagram1.eps}
-\caption{\label{ESCRIPT DEP}Dependency of Function Spaces. An arrow indicates that a function in the 
-function space at the starting point can be interpreted as a function in the function space of the arrow target.}
+\includegraphics[width=\textwidth]{figures/EscriptDiagram1}
+\caption{\label{ESCRIPT DEP}Dependency of Function Spaces in Finley. An arrow indicates that a function in the 
+function space at the starting point can be interpolated to the function space of the arrow target.
+All functionspaces on the left side can be interpolated to any of the functionspaces on the right.}
 \end{figure}
 
 \escript is a Python module that allows you to represent the values of
@@ -29,15 +30,15 @@ provides what we call a function space that describes how the data is
 used in the simulation.  Stored along with the data is information
 about the elements and nodes which will be used by \finley.
 
-In order to understand what we mean by the term 'function space'
+In order to understand what we mean by the term 'function space',
 consider that the solution of a partial differential equation
 \index{partial differential equation} (PDE) is a function on a domain
-$\Omega$.  When solving a PDE using FEM the solution is
+$\Omega$.  When solving a PDE using FEM, the solution is
 piecewise-differentiable but, in general, its gradient is
-discontinuous.  To reflect these different degrees of smoothness
-different function spaces are used.  For instance, in FEM the
+discontinuous.  To reflect these different degrees of smoothness,
+different function spaces are used.  For instance, in FEM, the
 displacement field is represented by its values at the nodes of the
-mesh, and is then continuous.  The strain, which is the symmetric
+mesh, and so is continuous.  The strain, which is the symmetric
 part of the gradient of the displacement field, is stored on the
 element centers, and so is considered to be discontinuous.
 
@@ -64,10 +65,10 @@ The reduced smoothness for PDE solution is often used to fulfill the Ladyzhenska
 solving saddle point problems \index{saddle point problems}, eg. the Stokes equation.
 A discontinuity \index{discontinuity} is a region within the domain across which functions may be discontinuous.  
 The location of discontinuity is defined in the \Domain object.
-\fig{ESCRIPT DEP} shows the dependency between the types of function spaces.
+\fig{ESCRIPT DEP} shows the dependency between the types of function spaces in Finley (other libraries may have different relationships).
 
 The solution of a PDE is a continuous function. Any continuous function can be seen as a general function
-on the domain and can be restricted to the boundary as well as to any side of the 
+on the domain and can be restricted to the boundary as well as to one side of
 discontinuity (the result will be different depending on 
 which side is chosen). Functions on any side of the  
 discontinuity can be seen as a function on the corresponding other side. 
@@ -83,7 +84,7 @@ The concept of function spaces describes the properties of
 functions and allows abstraction from the actual representation 
 of the function in the context of a particular application. For instance, 
 in the FEM context a
-function of the \Function type
+function of the \Function type (written as \emph{Function()} in Figure~\ref{ESCRIPT DEP})
 is usually represented by its values at the element center, 
 but in a finite difference scheme the edge midpoint of cells is preferred. 
 By changing its function space you can use the same function in a Finite Difference
@@ -110,8 +111,7 @@ number of indices, and a \Shape defining the range of each index.
 The rank in \escript is limited to the range $0$ through $4$ and
 it is assumed that the rank and \Shape is the same for all \DataSamplePoints.
 The \Shape of a \Data object is a tuple (list) \var{s} of integers. The length
-of \var{s} is the rank of the \Data object and \var{s[i]} is the maximum
-value for the \var{i}-th index.
+of \var{s} is the rank of the \Data object and the \var{i}-th index ranges between $0$ and $\var{s[i]}-1$.
 For instance, a stress field has rank $2$ and 
 \Shape $(d,d)$ where $d$ is the spatial dimension.
 The following statement creates the \Data object
@@ -126,7 +126,7 @@ all components.
 
 \Data objects can also be created from any \numarray
 array or any object, such as a list of floating point numbers, 
-that can be converted into a \numarray.NumArray \Ref{NUMARRAY}. 
+that can be converted into a \numarrayNA \cite{NUMARRAY}. 
 The following two statements
 create objects which are equivalent to \var{mydat}:
 \begin{python}
@@ -134,30 +134,30 @@ create objects which are equivalent to \var{mydat}:
   mydat2=Data(value=[[1,1],[1,1],[1,1]],what=ContinuousFunction(myDomain))
 \end{python}
 In the first case the initial value is \var{numarray.ones((2,3))}
-which generates a $2 \times 3$ matrix as a \numarray.NumArray 
+which generates a $2 \times 3$ matrix as a \numarrayNA 
 filled with ones. The \Shape of the created \Data object
 it taken from the \Shape of the array. In the second
 case, the creator converts the initial value, which is a list of lists,
-and converts it into a \numarray.NumArray before creating the actual
+and converts it into a \numarrayNA before creating the actual
 \Data object.      
 
 For convenience \escript provides creators for the most common types
 of \Data objects in the following forms (\var{d} defines the 
 spatial dimension):
 \begin{itemize}
-\item \var{Scalar(0,Function(mydomain))} is the same as \var{Data(0,Function(myDomain),(,))}, 
+\item \var{Scalar(0,Function(mydomain))} is the same as \var{Data(0,Function(myDomain),(,))} (each value is a scalar), 
 e.g a temperature field. 
-\item \var{Vector(0,Function(mydomain))}is the same as \var{Data(0,Function(myDomain),(d))}, e.g
+\item \var{Vector(0,Function(mydomain))} is the same as \var{Data(0,Function(myDomain),(d))} (each value is a vector), e.g
 a velocity field.   
 \item \var{Tensor(0,Function(mydomain))} is the same as \var{Data(0,Function(myDomain),(d,d))},
 eg. a stress field.  
 \item \var{Tensor4(0,Function(mydomain))} is the same as \var{Data(0,Function(myDomain),(d,d,d,d))}
 eg. a Hook tensor field.   
 \end{itemize}
-Here the initial value is $0$ but any object that can be converted into a \numarray.NumArray and whose \Shape
+Here the initial value is $0$ but any object that can be converted into a \numarrayNA and whose \Shape
 is consistent with \Shape of the \Data object to be created can be used as the initial value.
 
-\Data objects can be manipulated by applying unitary operations (eg. cos, sin, log) 
+\Data objects can be manipulated by applying unary operations (eg. cos, sin, log) point
 and can be combined point-wise by applying arithmetic operations (eg. +, - ,* , /). 
 It is to be emphasized that \escript itself does not handle any spatial dependencies as 
 it does not know how values are interpreted by the processing PDE solver library. 
@@ -218,7 +218,7 @@ In the context of FEM this means the nodal values of
 The interpolation is automatic and requires no special handling.
 
 \begin{figure}
-\includegraphics[width=\textwidth]{figures/EscriptDiagram2.eps}
+\includegraphics[width=\textwidth]{figures/EscriptDiagram2}
 \caption{\label{Figure: tag}Element Tagging. A rectangular mesh over a region with two rock types {\it white} and {\it gray}.
 The number in each cell refers to the major rock type present in the cell ($1$ for {\it white} and $2$ for {\it gray}).
 }
@@ -231,11 +231,11 @@ shows an example. In this case two rock types {\it white} and {\it gray} can be 
 is subdivided into triangular shaped cells. Each 
 cell has a tag indicating the rock type predominately found in this cell. Here $1$ is used to indicate
 rock type {\it white} and $2$ for rock type {\it gray}. The tags are assigned at the time when the cells are generated
-and stored in the \Domain class object. To allow easier usage of tags names can be used. These names are typically defined 
+and stored in the \Domain class object. To allow easier usage of tags, names can be used instead of numbers. These names are typically defined 
 at the time when the geometry is generated. 
 
-The following statements show how for the
-example of \fig{Figure: tag} and the stress calculation discussed before tagged values are used for
+The following statements show how, for the
+example of \fig{Figure: tag}, the stress calculation discussed above and tagged values are used for
 \var{lam}:
 \begin{python}
   lam=Scalar(value=2.,what=Function(mydomain))
@@ -253,7 +253,7 @@ You can develop a simulation with constant Lame coefficients, and then later swi
 Lame coefficients without otherwise changing your python script.
 In short, you can use the same script to model with different domains and different types of input data.
 
-There are three ways in which \Data objects are represented internally: constant, tagged, and expanded.
+There are three main ways in which \Data objects are represented internally: constant, tagged, and expanded.
 In the constant case, the same value is used at each sample point and only a single value is stored to save memory. 
 In the expanded case, each sample point has an individual value (such as for the solution of a PDE).
 This is where your largest data sets will be created because the values are stored as a complete array.
@@ -263,7 +263,7 @@ Expanded data is created when you create a \Data object with expanded=True.
 Tagged data sets are created when you use the insertTaggedValue() method as shown above.
  
 Values are accessed through a sample reference number. Operations on expanded \Data
-objects have to be performed for each sample point individually. When tagged values are used the values are
+objects have to be performed for each sample point individually. When tagged values are used, the values are
 held in a dictionary. Operations on tagged data require processing the set of tagged values only, rather than 
 processing the value for each individual sample point. 
 \escript allows any mixture of constant, tagged and expanded data in a single expression.
@@ -271,7 +271,7 @@ processing the value for each individual sample point.
 \Data objects can be written to disk files and read with \var{dump} and \var{load}, both of which use \netCDF.
 Use these to save data for visualization, checkpoint/restart or simply to save and reuse data that was expensive to compute.
 
-For instance to save the coordinates of the data points of the \FunctionSpace
+For instance to save the coordinates of the data points of the
 \ContinuousFunction to the file {\tt x.nc} use
 \begin{python}
   x=ContinuousFunction(mydomain).getX()
@@ -282,11 +282,11 @@ To recover the object \var{x} use
   x=load("x.nc", mydomain)
 \end{python}
 The dump file {\tt x.nc} does not contain a representation of the \Domain, even though it is required to recreate \var{x}.
-It's common to simply recreate the \Domain before reading a \Data, or you may read and write your \Domain in a separate file with
+It is common to simply recreate the \Domain before reading a \Data, or you may read and write your \Domain in a separate file with
 \var{domain=ReadMesh(fileName)} and \var{domain.write(fileName)}.
 
 The function space of the \Data is stored in {\tt x.nc}, though.
-That means that \Data objects that are constant or tagged can be recovered with a different \Domain. If the \Data object
+If the \Data object
 is expanded, the number of data points in the file and of the \Domain for the particular \FunctionSpace must match. 
 Moreover, the ordering of the values is checked using the reference identifiers provided by 
 \FunctionSpace on the \Domain. In some cases, data points will be re-ordered. Take care to be sure you get what you want!
@@ -298,11 +298,10 @@ Moreover, the ordering of the values is checked using the reference identifiers 
 
 \subsection{\Domain class}
 \begin{classdesc}{Domain}{}
-A \Domain object is used to describe a geometrical region together with 
+A \Domain object is used to describe a geometric region together with 
 a way of representing functions over this region.
-The \Domain class provides an abstract access to the domain of \FunctionSpace and \Data objects. 
-\Domain itself has no initialization but implementations of \Domain are 
-instantiated by numerical libraries making use of \Data objects. 
+The \Domain class provides an abstract interface to the domain of \FunctionSpace and \Data objects.
+\Domain needs to be subclassed in order to provide a complete implementation.
 \end{classdesc}
 The following methods are available:
 \begin{methoddesc}[Domain]{getDim}{}
@@ -340,24 +339,45 @@ return \True if \var{tag_name} is a valid tag name.
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{__eq__}{arg}
-returns \True of the \Domain \var{arg} describes the same domain. Otherwise
+(python == operator) returns \True if the \Domain \var{arg} describes the same domain. Otherwise
 \False is returned.
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{__ne__}{arg}
-returns \True of the \Domain \var{arg} does not describe the same domain. 
+(python != operator) returns \True if the \Domain \var{arg} does not describe the same domain. 
 Otherwise \False is returned.
 \end{methoddesc}
 
-\begin{methoddesc}[Domain]{__str__}{g}
-returns string representation of the \Domain.
+\begin{methoddesc}[Domain]{__str__}{arg}
+(python str() function) returns string representation of the \Domain.
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{onMasterProcessor}{}
+ returns \True if executed on the MPI master processor, \False otherwise.
+This can be used in conjunction with MPIBarrier to ensure commands only run once.
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{MPIBarrier}{}
+ executes an MPIBarrier command. If MPI support is not enabled, this command does nothing. 
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{MPIBarrier}{}
+ executes an MPIBarrier command. If MPI support is not enabled, this command does nothing. 
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{getMPISize}{}
+ returns the number of MPI processors used for this domain. 
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{getMPIRank}{}
+ returns the rank of the processor executing the statement. 
 \end{methoddesc}
 
 \subsection{\FunctionSpace class}
 \begin{classdesc}{FunctionSpace}{}
 \FunctionSpace objects are used to define properties of \Data objects, such as continuity. \FunctionSpace objects
-are instantiated by generator functions. \Data objects in particular \FunctionSpace are
-represented by their values at \DataSamplePoints which are defined by the type and the \Domain of the
+are instantiated by generator functions. A \Data object in a particular \FunctionSpace is 
+represented by its values at \DataSamplePoints which are defined by the type and the \Domain of the
 \FunctionSpace.
 \end{classdesc}
 The following methods are available:
@@ -395,58 +415,58 @@ Use the \var{setTagMap} to assign a tag name to \var{new_tag}.
 \end{methoddesc}
 
 \begin{methoddesc}[FunctionSpace]{__eq__}{arg}
-returns \True of the \Domain \var{arg} describes the same domain. Otherwise
+(python == operator) returns \True if the \Domain \var{arg} describes the same domain. Otherwise
 \False is returned.
 \end{methoddesc}
 
 \begin{methoddesc}[FunctionSpace]{__ne__}{arg}
-returns \True of the \Domain \var{arg} describes the note same domain. 
+(python != operator) returns \True if the \Domain \var{arg} do not describe the same domain. 
 Otherwise \False is returned.
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{__str__}{g}
-returns string representation of the \Domain.
+(python str() function) returns string representation of the \Domain.
 \end{methoddesc}
 
 The following function provide generators for \FunctionSpace objects:
 \begin{funcdesc}{Function}{domain}
 returns the \Function on the \Domain \var{domain}. \Data objects in this type of \Function
-are defined over the whole geometrical region defined by \var{domain}. 
+are defined over the whole geometric region defined by \var{domain}. 
 \end{funcdesc}
 
 \begin{funcdesc}{ContinuousFunction}{domain}
 returns the \ContinuousFunction on the \Domain domain. \Data objects in this type of \Function
-are defined over the whole geometrical region defined by \var{domain} and assumed to represent
+are defined over the whole geometric region defined by \var{domain} and assumed to represent
 a continuous function.
 \end{funcdesc}
 
 \begin{funcdesc}{FunctionOnBoundary}{domain}
 returns the \ContinuousFunction on the \Domain domain. \Data objects in this type of \Function
-are defined on the boundary of the geometrical region defined by \var{domain}. 
+are defined on the boundary of the geometric region defined by \var{domain}. 
 \end{funcdesc}
 
 \begin{funcdesc}{FunctionOnContactZero}{domain}
 returns the \FunctionOnContactZero the \Domain domain. \Data objects in this type of \Function
-are defined on side 0 of a discontinuity  within the geometrical region defined by \var{domain}.
+are defined on side 0 of a discontinuity  within the geometric region defined by \var{domain}.
 The discontinuity is defined when \var{domain} is instantiated.
 \end{funcdesc}
 
 \begin{funcdesc}{FunctionOnContactOne}{domain}
 returns the \FunctionOnContactOne on the \Domain domain. 
 \Data objects in this type of \Function
-are defined on side 1 of a discontinuity  within the geometrical region defined by \var{domain}.
+are defined on side 1 of a discontinuity  within the geometric region defined by \var{domain}.
 The discontinuity is defined when \var{domain} is instantiated.
 \end{funcdesc}
 
 \begin{funcdesc}{Solution}{domain}
 returns the \SolutionFS on the \Domain domain. \Data objects in this type of \Function
-are defined on geometrical region defined by \var{domain} and are solutions of
+are defined on geometric region defined by \var{domain} and are solutions of
 partial differential equations \index{partial differential equation}. 
 \end{funcdesc}
 
 \begin{funcdesc}{ReducedSolution}{domain}
 returns the \ReducedSolutionFS on the \Domain domain. \Data objects in this type of \Function
-are defined on geometrical region defined by \var{domain} and are solutions of
+are defined on geometric region defined by \var{domain} and are solutions of
 partial differential equations \index{partial differential equation} with a reduced smoothness 
 for the solution approximation.
 \end{funcdesc}
@@ -470,7 +490,7 @@ At least one of the arguments \var{arg0} or \var{arg1} must be a
 Either of the arguments may be a \Data object, a python number or a numarray object.
 
 If \var{arg0} or \var{arg1} are
-defined on different \FunctionSpace an attempt is made to convert \var{arg0}
+not defined on the same \FunctionSpace, then an attempt is made to convert \var{arg0}
 to the \FunctionSpace of \var{arg1} or to convert \var{arg1} to
 the \FunctionSpace of \var{arg0}. Both arguments must have the same
 \Shape or one of the arguments may be of rank 0 (a constant).
@@ -489,12 +509,12 @@ The following table shows the update operations that can be applied to
 \end{tableii}
 \var{arg0} must be a \Data object. \var{arg1} must be a
 \Data object or an object that can be converted into a
-\Data object. \var{arg1} must have the same \Shape like
-\var{arg1} or has rank 0.  In the latter case it is
+\Data object. \var{arg1} must have the same \Shape as
+\var{arg0} or have rank 0.  In the latter case it is
 assumed that the values of \var{arg1} are constant for all
 components. \var{arg1} must be defined in the same \FunctionSpace as
 \var{arg0} or it must be possible to interpolate \var{arg1} onto the
-\FunctionSpace of \var{arg1}.
+\FunctionSpace of \var{arg0}.
 
 The \Data class supports taking slices from a \Data object as well as assigning new values to a slice of an existing
 \Data object. \index{slicing}
@@ -506,16 +526,16 @@ The following expressions for taking and setting slices are valid:
 \lineiii{3}{\var{arg[l0:u0,l1:u1,l2:u2]} }      {(\var{u0}-\var{l0},\var{u1}-\var{l1},\var{u2}-\var{l2})}
 \lineiii{4}{\var{arg[l0:u0,l1:u1,l2:u2,l3:u3]}} {(\var{u0}-\var{l0},\var{u1}-\var{l1},\var{u2}-\var{l2},\var{u3}-\var{l3})}
 \end{tableiii}
-where 
-$0 \le \var{l0} \le \var{u0} \le \var{s[0]}$,
-$0 \le \var{l1} \le \var{u1} \le \var{s[1]}$, 
-$0 \le \var{l2} \le \var{u2} \le \var{s[2]}$, 
-$0 \le \var{l3} \le \var{u3} \le \var{s[3]}$ and \var{s} the \Shape if \var{arg}. 
+where \var{s} is the \Shape of \var{arg} and 
+\[0 \le \var{l0} \le \var{u0} \le \var{s[0]},\]
+\[0 \le \var{l1} \le \var{u1} \le \var{s[1]},\] 
+\[0 \le \var{l2} \le \var{u2} \le \var{s[2]},\] 
+\[0 \le \var{l3} \le \var{u3} \le \var{s[3]}.\]
 Any of the lower indexes \var{l0}, \var{l1}, \var{l2} and \var{l3} may not be present in which case 
 $0$ is assumed. 
-Any of the upper indexes \var{u0}, \var{u1}, \var{u2} and \var{u3} may not be present in which case 
-\var{s} is assumed. The lower and upper index may be identical, in which case the column and the lower or upper
-index may be dropped. In the returned or in the object assigned to a slice the corresponding component is dropped,
+Any of the upper indexes \var{u0}, \var{u1}, \var{u2} and \var{u3} may be ommitted, in which case, the upper limit for that dimension is assumed. 
+The lower and upper index may be identical, in which case the column and the lower or upper
+index may be dropped. In the returned or in the object assigned to a slice, the corresponding component is dropped,
 i.e. the rank is reduced by one in comparison to \var{arg}.
 The following examples show slicing in action:
 \begin{python}
@@ -526,7 +546,7 @@ The following examples show slicing in action:
   t[:2,:2,5,5]=s[2:4,1,:2]
 \end{python}
 
-\subsection{Generation of \Data class objects}
+\subsection{Generation of \Data objects}
 \begin{classdesc}{Data}{value=0,shape=(,),what=FunctionSpace(),expand=\False}
 creates a \Data object with \Shape \var{shape} in the \FunctionSpace \var{what}.
 The values at all \DataSamplePoints are set to the double value \var{value}. If \var{expanded} is \True
@@ -535,7 +555,7 @@ the \Data object is represented in expanded from.
 
 \begin{classdesc}{Data}{value,what=FunctionSpace(),expand=\False}
 creates a \Data object in the \FunctionSpace \var{what}. 
-The value for each \DataSamplePoints is set to \numarray, \Data object \var{value} or a dictionary of 
+The value for each \DataSamplePoints is set to \var{value}, which could be a \numarray, \Data object \var{value} or a dictionary of 
 \numarray or floating point numbers. In the latter case the keys must be integers and are used
 as tags.
 The \Shape of the returned object is equal to the \Shape of \var{value}. If \var{expanded} is \True
@@ -547,37 +567,37 @@ creates an \EmptyData object. The \EmptyData object is used to indicate that an 
 where a \Data object is required.
 \end{classdesc}
 
-\begin{funcdesc}{Scalar}{value=0.,what=escript::FunctionSpace(),expand=\False}
+\begin{funcdesc}{Scalar}{value=0.,what=FunctionSpace(),expand=\False}
 returns a \Data object of rank 0 (a constant) in the \FunctionSpace \var{what}.
-Values are initialed with \var{value}, a double precision quantity. If \var{expanded} is \True
+Values are initialised with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
-\begin{funcdesc}{Vector}{value=0.,what=escript::FunctionSpace(),expand=\False}
-returns a \Data object of \Shape \var{(d,)} in the \FunctionSpace \var{what} 
+\begin{funcdesc}{Vector}{value=0.,what=FunctionSpace(),expand=\False}
+returns a \Data object of \Shape \var{(d,)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
 Values are initialed with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
-\begin{funcdesc}{Tensor}{value=0.,what=escript::FunctionSpace(),expand=\False}
-returns a \Data object of \Shape \var{(d,d)} in the \FunctionSpace \var{what} 
+\begin{funcdesc}{Tensor}{value=0.,what=FunctionSpace(),expand=\False}
+returns a \Data object of \Shape \var{(d,d)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
 Values are initialed with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
-\begin{funcdesc}{Tensor3}{value=0.,what=escript::FunctionSpace(),expand=\False}
-returns a \Data object of \Shape \var{(d,d,d)} in the \FunctionSpace \var{what} 
+\begin{funcdesc}{Tensor3}{value=0.,what=FunctionSpace(),expand=\False}
+returns a \Data object of \Shape \var{(d,d,d)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
 Values are initialed with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is re\var{arg}presented in expanded from.
 \end{funcdesc}
 
-\begin{funcdesc}{Tensor4}{value=0.,what=escript::FunctionSpace(),expand=\False}
-returns a \Data object of \Shape \var{(d,d,d,d)} in the \FunctionSpace \var{what} 
+\begin{funcdesc}{Tensor4}{value=0.,what=FunctionSpace(),expand=\False}
+returns a \Data object of \Shape \var{(d,d,d,d)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
-Values are initialed with \var{value}, a double precision quantity. If \var{expanded} is \True
+Values are initialised with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
@@ -585,7 +605,7 @@ the \Data object is represented in expanded from.
 recovers a \Data object on \Domain \var{domain} from the file \var{filename}, which was created by \var{dump}.
 \end{funcdesc}
 
-\subsection{\Data class methods}
+\subsection{\Data methods}
 These are the most frequently-used methods of the 
 \Data class. A complete list of methods can be found on \ReferenceGuide.
 \begin{methoddesc}[Data]{getFunctionSpace}{}
@@ -608,6 +628,7 @@ returns the rank of the data on each data point. \index{rank}
 \begin{methoddesc}[Data]{isEmpty}{}
 returns \True id the \Data object is the \EmptyData object.
 Otherwise \False is returned.
+Note that this is not the same as asking if the object contains no \DataSamplePoints.
 \end{methoddesc}
 
 \begin{methoddesc}[Data]{setTaggedValue}{tag_name,value}
@@ -633,9 +654,9 @@ save the \Domain.
 returns a string representation of the object.
 \end{methoddesc}
 
-\subsection{Functions of \Data class objects}
+\subsection{Functions of \Data objects}
 This section lists the most important functions for \Data class objects \var{a}.
-A complete list and a more detailed description of the functionality can be fond on \ReferenceGuide.
+A complete list and a more detailed description of the functionality can be found on \ReferenceGuide.
 \begin{funcdesc}{saveVTK}{filename,**kwdata}
 writes \Data defined by keywords in the file with \var{filename} using the 
 vtk file format \VTK file format. The key word is used as an identifier. The statement
@@ -667,16 +688,17 @@ returns a \RankTwo \Data object in \FunctionSpace \var{d} such that
 If \var{d} is an integer a $(d,d)$ \numarray array is returned.
 \end{funcdesc}
 \begin{funcdesc}{identityTensor}{d}
-returns a \RankTwo \Data object in \FunctionSpace \var{d} such that
-\begin{equation}
-\code{identityTensor(d)}\left[ i,j\right] = \left\{ 
-\begin{array}{cc}
-1 & \mbox{ if } i=j \\
-0 & \mbox{ otherwise }
-\end{array}
-\right.
-\end{equation}
-If \var{d} is an integer a $(d,d)$ \numarray array is returned.
+is a synonym for \code{kronecker} (see above).
+% returns a \RankTwo \Data object in \FunctionSpace \var{d} such that
+% \begin{equation}
+% \code{identityTensor(d)}\left[ i,j\right] = \left\{ 
+% \begin{array}{cc}
+% 1 & \mbox{ if } i=j \\
+% 0 & \mbox{ otherwise }
+% \end{array}
+% \right.
+% \end{equation}
+% If \var{d} is an integer a $(d,d)$ \numarray array is returned.
 \end{funcdesc}
 \begin{funcdesc}{identityTensor4}{d}
 returns a \RankFour \Data object in \FunctionSpace \var{d} such that
@@ -717,98 +739,7 @@ returns the maximum value over all components and all \DataSamplePoints of \var{
 returns the minimum value over all components and all \DataSamplePoints of \var{a}
 \end{funcdesc}
 
-\begin{funcdesc}{sin}{a}
-applies sine function to \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{cos}{a}
-applies cosine function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{tan}{a}
-applies tangent function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{asin}{a}
-applies arc (inverse) sine function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{acos}{a}
-applies arc (inverse) cosine function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{atan}{a}
-applies arc (inverse) tangent function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{sinh}{a}
-applies hyperbolic sine function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{cosh}{a}
-applies hyperbolic cosine function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{tanh}{a}
-applies hyperbolic tangent function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{asinh}{a}
-applies arc (inverse) hyperbolic sine function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{acosh}{a}
-applies arc (inverse) hyperbolic cosine function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{atanh}{a}
-applies arc (inverse) hyperbolic tangent function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{exp}{a}
-applies exponential function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{sqrt}{a}
-applies square root function to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{log}{a}
-applies the natural logarithm to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{log10}{a}
-applies the base-$10$ logarithm to \var{a}.
-\end{funcdesc}
-
-\begin{funcdesc}{sign}{a}
-applies the sign function to \var{a}, that is $1$ where \var{a} is positive,
-$-1$ where \var{a} is negative and $0$ otherwise.
-\end{funcdesc}
-
-\begin{funcdesc}{wherePositive}{a}
-returns a function which is $1$ where \var{a} is positive and $0$ otherwise.
-\end{funcdesc}
-
-\begin{funcdesc}{whereNegative}{a}
-returns a function which is $1$ where \var{a} is negative and $0$ otherwise.
-\end{funcdesc}
-
-\begin{funcdesc}{whereNonNegative}{a}
-returns a function which is $1$ where \var{a} is non--negative and $0$ otherwise.
-\end{funcdesc}
-
-\begin{funcdesc}{whereNonPositive}{a}
-returns a function which is $1$ where \var{a} is non--positive and $0$ otherwise.
-\end{funcdesc}
-
-\begin{funcdesc}{whereZero}{a\optional{, tol=0.}}
-returns a function which is $1$ where \var{a} equals zero with tolerance \var{tol} and $0$ otherwise. 
-\end{funcdesc}
-
-\begin{funcdesc}{whereNonZero}{a\optional{, tol=0.}}
-returns a function which is $1$ where \var{a} different from zero with tolerance \var{tol} and $0$ otherwise. 
-\end{funcdesc}
 
 \begin{funcdesc}{minval}{a}
 returns at each \DataSamplePoints the minimum value over all components.
@@ -819,7 +750,7 @@ returns at each \DataSamplePoints the maximum value over all components.
 \end{funcdesc}
 
 \begin{funcdesc}{length}{a}
-returns at Euclidean norm at each \DataSamplePoints. For a \RankFour function \var{a} this is
+returns at Euclidean norm at each \DataSamplePoints. For a \RankFour \var{a} this is
 \begin{equation}
 \code{length(a)}=\sqrt{\sum\hackscore{ijkl} \var{a} \left[i,j,k,l\right]^2}
 \end{equation} 
@@ -1062,11 +993,107 @@ returns the $L^2$-norm of \var{a} in its function space. This is
 \end{equation} 
 \end{funcdesc}
 
+The following functions operate ``point-wise''. That is, the operation is applied to each component of each point
+individually.
+
+\begin{funcdesc}{sin}{a}
+applies sine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{cos}{a}
+applies cosine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{tan}{a}
+applies tangent function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{asin}{a}
+applies arc (inverse) sine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{acos}{a}
+applies arc (inverse) cosine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{atan}{a}
+applies arc (inverse) tangent function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{sinh}{a}
+applies hyperbolic sine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{cosh}{a}
+applies hyperbolic cosine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{tanh}{a}
+applies hyperbolic tangent function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{asinh}{a}
+applies arc (inverse) hyperbolic sine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{acosh}{a}
+applies arc (inverse) hyperbolic cosine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{atanh}{a}
+applies arc (inverse) hyperbolic tangent function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{exp}{a}
+applies exponential function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{sqrt}{a}
+applies square root function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{log}{a}
+applies the natural logarithm to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{log10}{a}
+applies the base-$10$ logarithm to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{sign}{a}
+applies the sign function to \var{a}, that is $1$ where \var{a} is positive,
+$-1$ where \var{a} is negative and $0$ otherwise.
+\end{funcdesc}
+
+\begin{funcdesc}{wherePositive}{a}
+returns a function which is $1$ where \var{a} is positive and $0$ otherwise.
+\end{funcdesc}
+
+\begin{funcdesc}{whereNegative}{a}
+returns a function which is $1$ where \var{a} is negative and $0$ otherwise.
+\end{funcdesc}
+
+\begin{funcdesc}{whereNonNegative}{a}
+returns a function which is $1$ where \var{a} is non--negative and $0$ otherwise.
+\end{funcdesc}
+
+\begin{funcdesc}{whereNonPositive}{a}
+returns a function which is $1$ where \var{a} is non--positive and $0$ otherwise.
+\end{funcdesc}
+
+\begin{funcdesc}{whereZero}{a\optional{, tol=0.}}
+returns a function which is $1$ where \var{a} equals zero with tolerance \var{tol} and $0$ otherwise. 
+\end{funcdesc}
+
+\begin{funcdesc}{whereNonZero}{a\optional{, tol=0.}}
+returns a function which is $1$ where \var{a} different from zero with tolerance \var{tol} and $0$ otherwise. 
+\end{funcdesc}
+
 \subsection{\Operator Class}
 The \Operator class provides an abstract access to operators build
 within the \LinearPDE class. \Operator objects are created 
 when a PDE is handed over to a PDE solver library and handled
-by the \LinearPDE class defining the PDE. The user can gain access
+by the \LinearPDE object defining the PDE. The user can gain access
 to the \Operator of a \LinearPDE object through the \var{getOperator}
 method.
 

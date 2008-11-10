@@ -182,10 +182,8 @@ In this diffusion example we do not need to define a characteristic function $q$
 boundary conditions we consider in \eqn{DIFFUSION HELM EQ 2} are just the natural boundary 
 conditions which are already defined in the \LinearPDE class (shown in \eqn{LINEARPDE.SINGLE.2 TUTORIAL}).
 
-Defining and solving the Helmholtz equation is very easy now:
+The Helmholtz equation can be set up by following way~\footnote{Please, note that this is not a complete code. The complete code can be found in ``helmholtz.py''. } :
 \begin{python}
-from esys.escript import *
-from linearPDEs import LinearPDE
 mypde=LinearPDE(mydomain)
 mypde.setValue(A=kappa*kronecker(mydomain),D=omega,Y=f,d=eta,y=g)
 u=mypde.getSolution()
