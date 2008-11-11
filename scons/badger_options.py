@@ -24,7 +24,7 @@
 # omp_libs		= []
 
 # Use the default C/C++ flags but add something only for this host:
-cc_extra		= '-Wall -pedantic -isystem /usr/include/boost/'
+#cc_extra		= '-Wall -pedantic -isystem /usr/include/boost/ -isystem /usr/include/python2.5/ -Wno-sign-compare -Wno-long-long'
 # ld_extra		= ''
 
 # Be picky about errors

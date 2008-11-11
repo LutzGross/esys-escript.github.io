@@ -73,7 +73,8 @@ opts.AddOptions(
   ('sys_libs', 'System libraries to link with', []),
   ('ar_flags', 'Static library archiver flags to use', ''),
   BoolOption('useopenmp', 'Compile parallel version using OpenMP', 'yes'),
-  BoolOption('usepedantic', 'Compile with -pedantic if using gcc', 'yes'),
+  BoolOption('usepedantic', 'Compile with -pedantic if using gcc', 'no'),
+  BoolOption('usewarnings','Compile with warnings as errors if using gcc','yes'),
 # Python
   ('python_path', 'Path to Python includes', '/usr/include/'+python_version),
   ('python_lib_path', 'Path to Python libs', usr_lib),
@@ -168,15 +169,17 @@ if env["CC"] == "icc":
   omp_debug		= "-openmp -openmp_report0"
   omp_libs		= ['guide', 'pthread']
   pedantic		= ""
+  fatalwarning		= ""		# Switch to turn warnings into errors
 elif env["CC"] == "gcc":
   # GNU C on any system
-  cc_flags		= "-fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER"
+  cc_flags		= "-Wall -fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER -isystem /usr/include/boost/ -isystem /usr/include/python2.5/ -Wno-sign-compare"
   cc_optim		= "-O3"
   cc_debug		= "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
   omp_optim		= ""
   omp_debug		= ""
   omp_libs		= []
   pedantic		= "-pedantic-errors -Wno-long-long"
+  fatalwarning		= "-Werror"
 elif env["CC"] == "cl":
   # Microsoft Visual C on Windows
   cc_flags		= "/FD /EHsc /GR /wd4068 -D_USE_MATH_DEFINES -DDLL_NETCDF"
@@ -186,9 +189,11 @@ elif env["CC"] == "cl":
   omp_debug		= ""
   omp_libs		= []
   pedantic		= ""
+  fatalwarning		= ""
 elif env["CC"] == "icl":
   # intel C on Windows, see windows_msvc71_options.py for a start
   pedantic		= ""
+  fatalwarning		= ""
 
 # If not specified in hostname_options.py then set them here
 if env["cc_flags"]	== "-DEFAULT_1": env['cc_flags'] = cc_flags
@@ -508,6 +513,14 @@ else:
 
 env['useparmetis'] = env_mpi['useparmetis']
 
+############ Now we switch on Warnings as errors ###############
+
+#this needs to be done after configuration because the scons test files have warnings in them
+
+if ((fatalwarning != "") and (env['usewarnings'])):
+  env.Append(CCFLAGS		= fatalwarning)
+  env_mpi.Append(CCFLAGS		= fatalwarning)
+
 ############ Summarize our environment #########################
 
 print ""
@@ -534,6 +547,8 @@ else: print "	Not using PAPI"
 if env['usedebug']: print "	Compiling for debug"
 else: print "	Not compiling for debug"
 print "	Installing in", prefix
+if ((fatalwarning != "") and (env['usewarnings'])): print "	Treating warnings as errors"
+else: print "	Not treating warnings as errors"
 print ""
 
 ############ Delete option-dependent files #####################
