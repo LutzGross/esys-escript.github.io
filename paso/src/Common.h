@@ -117,6 +117,14 @@ typedef int err_t;
 
 #endif
 
+#ifndef __const
+# if (defined __STDC__ && __STDC__)
+#  define __const	const
+# else
+#  define __const
+# endif
+#endif
+
 
 /* FIXME: This is not satisfactory.                                */
 /* _ECC, __INTEL_COMPILER, and other                               */
