@@ -95,6 +95,10 @@ headers = """
 """.split()
 
 local_env.Append(LIBS = [ 'esysUtils'] + env['sys_libs'] )
+
+if IS_WINDOWS_PLATFORM :
+  local_env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
+
 py_wrapper_local_env.Append(LIBS = [ 'escript', 'esysUtils'] + env['sys_libs'])
 
 module_name = 'escript'
