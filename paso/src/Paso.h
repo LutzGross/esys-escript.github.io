@@ -54,7 +54,7 @@ typedef enum Paso_ErrorCodeType Paso_ErrorCodeType;
 double Paso_timer(void);
 bool_t Paso_checkPtr(void*);
 void Paso_resetError(void);
-void Paso_setError(Paso_ErrorCodeType err,char* msg);
+void Paso_setError(Paso_ErrorCodeType err,__const char* msg);
 bool_t Paso_noError(void);
 Paso_ErrorCodeType Paso_getErrorType(void);
 char* Paso_getErrorMessage(void);

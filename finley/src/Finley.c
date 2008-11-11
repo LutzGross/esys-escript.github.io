@@ -37,7 +37,7 @@ void Finley_resetError(void) {
 }
 
 /* sets an error */
-void Finley_setError(Finley_ErrorCodeType err,char* msg) {
+void Finley_setError(Finley_ErrorCodeType err,__const char* msg) {
   Paso_setError(err,msg);
 }
 

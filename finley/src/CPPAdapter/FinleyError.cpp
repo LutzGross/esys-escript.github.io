@@ -23,7 +23,7 @@ namespace finley {
   void setFinleyError(Finley_ErrorCodeType errorCode, 
 		      const std::string& errMess) 
   {
-    Finley_setError(errorCode,(char*)(errMess.c_str()));
+    Finley_setError(errorCode,(__const char*)(errMess.c_str()));
   }
 
   void checkFinleyError() 

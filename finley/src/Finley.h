@@ -56,7 +56,7 @@ typedef Paso_ErrorCodeType Finley_ErrorCodeType;
 double Finley_timer(void);
 bool_t Finley_checkPtr(void*);
 void Finley_resetError(void);
-void Finley_setError(Finley_ErrorCodeType err,char* msg);
+void Finley_setError(Finley_ErrorCodeType err,__const char* msg);
 bool_t Finley_noError(void);
 Finley_ErrorCodeType Finley_getErrorType(void);
 char* Finley_getErrorMessage(void);

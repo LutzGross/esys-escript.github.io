@@ -44,7 +44,7 @@ void Paso_resetError(void) {
 }
                                                                                                                                                                                                      
 /* sets an error */
-void Paso_setError(Paso_ErrorCodeType err,char* msg) {
+void Paso_setError(Paso_ErrorCodeType err,__const char* msg) {
   size_t lenMsg=strlen(msg);
   if (Paso_noError()) {
 printf("error set = %d %s\n",err,msg);
