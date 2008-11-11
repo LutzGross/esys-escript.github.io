@@ -191,7 +191,7 @@ elif env["CC"] == "cl":
   pedantic		= ""
   fatalwarning		= ""
 elif env["CC"] == "icl":
-  # intel C on Windows, see windows_msvc71_options.py for a start
+  # intel C on Windows, see windows_intelc_options.py for a start
   pedantic		= ""
   fatalwarning		= ""
 
@@ -262,8 +262,6 @@ env.Append(CPPPATH		= [Dir('include')])
 
 # Add cc option -L<Escript>/trunk/lib
 env.Append(LIBPATH		= [Dir(env['libinstall'])])
-
-env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS', 'FINLEY_EXPORTS'])
 
 if env['cc_extra'] != '': env.Append(CCFLAGS = env['cc_extra'])
 if env['ld_extra'] != '': env.Append(LINKFLAGS = env['ld_extra'])
@@ -571,7 +569,13 @@ env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
 
 ############ Build the subdirectories ##########################
 
-Export(["env", "env_mpi", "clone_env"])
+Export(
+  ["env",
+   "env_mpi",
+   "clone_env",
+   "IS_WINDOWS_PLATFORM"
+   ]
+  )
 
 env.SConscript(dirs = ['tools/CppUnitTest/src'], build_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
 env.SConscript(dirs = ['paso/src'], build_dir='build/$PLATFORM/paso', duplicate=0)
