@@ -37,7 +37,7 @@
 
 #ifdef _WIN32
 #   ifndef INTERFACE_STATIC_LIB
-#      undefine ESYSUTILS_DLL_API
+#      undef ESYSUTILS_DLL_API
 #      ifdef ESYSUTILS_EXPORTS
 #         define ESYSUTILS_DLL_API __declspec(dllexport)
 #      else
