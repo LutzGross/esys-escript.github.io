@@ -38,7 +38,7 @@
 #ifdef _WIN32
 
 #   ifndef INTERFACE_STATIC_LIB
-#      undefine FINLEY_DLL_API
+#      undef FINLEY_DLL_API
 #      ifdef FINLEY_EXPORTS
 #         define FINLEY_DLL_API __declspec(dllexport)
 #      else
