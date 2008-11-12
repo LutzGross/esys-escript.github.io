@@ -61,7 +61,7 @@
 #define ESCRIPT_DLL_API
 
 #ifdef _WIN32
-#   ifndef INTERFACE_STATIC_LIB
+#   ifndef ESCRIPT_STATIC_LIB
 #      undef ESCRIPT_DLL_API
 #      ifdef ESCRIPT_EXPORTS
 #         define ESCRIPT_DLL_API __declspec(dllexport)

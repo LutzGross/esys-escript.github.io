@@ -35,7 +35,7 @@ headers = """
 lib_name = 'esysUtils'
 
 if IS_WINDOWS_PLATFORM :
-  local_env.Append(CPPDEFINES = ['INTERFACE_STATIC_LIB'])
+  local_env.Append(CPPDEFINES = ['ESYSUTILS_STATIC_LIB'])
 
 lib = local_env.StaticLibrary(lib_name, sources)
 env.Alias('target_esysUtils_a', lib)
