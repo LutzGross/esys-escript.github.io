@@ -58,18 +58,17 @@
 #   define M_LN2  0.69314718055994530942  /* log_e 2 */
 #endif
 
-#ifdef _WIN32
+#define ESCRIPT_DLL_API
 
+#ifdef _WIN32
 #   ifndef INTERFACE_STATIC_LIB
+#      undefine ESCRIPT_DLL_API
 #      ifdef ESCRIPT_EXPORTS
 #         define ESCRIPT_DLL_API __declspec(dllexport)
 #      else
 #         define ESCRIPT_DLL_API __declspec(dllimport)
 #      endif
 #   endif
-
-#else
-#   define ESCRIPT_DLL_API
 #endif
 
 /* you'll need this one day. */

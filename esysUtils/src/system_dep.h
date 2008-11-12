@@ -33,18 +33,17 @@
 #include <math.h>
 #endif
 
-#ifdef _WIN32
+#define ESYSUTILS_DLL_API
 
-// Un-comment this block if you want it dynamic
-// and comment out the line immediately after the block.
-//#   ifndef INTERFACE_STATIC_LIB
-//#      ifdef ESYSUTILS_EXPORTS
-//#         define ESYSUTILS_DLL_API __declspec(dllexport)
-//#      else
-//#         define ESYSUTILS_DLL_API __declspec(dllimport)
-//#      endif
-//#   endif
-#   define ESYSUTILS_DLL_API
+#ifdef _WIN32
+#   ifndef INTERFACE_STATIC_LIB
+#      undefine ESYSUTILS_DLL_API
+#      ifdef ESYSUTILS_EXPORTS
+#         define ESYSUTILS_DLL_API __declspec(dllexport)
+#      else
+#         define ESYSUTILS_DLL_API __declspec(dllimport)
+#      endif
+#   endif
 
 // This is because of the different declarations of std::exception mentods
 // on windows.
