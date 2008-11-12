@@ -36,7 +36,7 @@
 #define ESYSUTILS_DLL_API
 
 #ifdef _WIN32
-#   ifndef INTERFACE_STATIC_LIB
+#   ifndef ESYSUTILS_STATIC_LIB
 #      undef ESYSUTILS_DLL_API
 #      ifdef ESYSUTILS_EXPORTS
 #         define ESYSUTILS_DLL_API __declspec(dllexport)
@@ -54,7 +54,6 @@
 
 #   define THROW(ARG)
 #else
-#   define ESYSUTILS_DLL_API
 #   define THROW(ARG) throw(ARG)
 #endif
 
