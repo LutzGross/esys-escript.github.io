@@ -141,6 +141,7 @@ local_env.Append(LIBS = ['escript', 'esysUtils', 'paso'] + env['sys_libs'] )
 if IS_WINDOWS_PLATFORM :
   local_env.Append(CPPDEFINES = ['FINLEY_EXPORTS',
                                  'ESYSUTILS_STATIC_LIB'])
+  py_wrapper_local_env.Append(CPPDEFINES = ['ESYSUTILS_STATIC_LIB'])
 
 py_wrapper_local_env.Append(LIBS = ['finley', 'escript', 'esysUtils', 'paso'] + env['sys_libs'] )
 
