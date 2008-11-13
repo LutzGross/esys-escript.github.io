@@ -70,6 +70,15 @@ The convention that I use, is that the resolve methods should store their result
 
 For expressions which evaluate to Constant or Tagged, there is a different evaluation method.
 The collapse method invokes the (non-lazy) operations on the Data class to evaluate the expression.
+
+To add a new operator you need to do the following (plus anything I might have forgotten):
+1) Add to the ES_optype.
+2) determine what opgroup your operation belongs to (X)
+3) add a string for the op to the end of ES_opstrings
+4) increase ES_opcount
+5) add an entry (X) to opgroups
+6) add an entry to the switch in collapseToReady
+7) add an entry to resolveX
 */
 
 
@@ -87,7 +96,8 @@ enum ES_opgroup
    G_UNKNOWN,
    G_IDENTITY,
    G_BINARY,		// pointwise operations with two arguments
-   G_UNARY		// pointwise operations with one argument
+   G_UNARY,		// pointwise operations with one argument
+   G_NP1OUT		// non-pointwise op with one output
 };
 
 
@@ -98,14 +108,16 @@ string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","^",
 			"asin","acos","atan","sinh","cosh","tanh","erf",
 			"asinh","acosh","atanh",
 			"log10","log","sign","abs","neg","pos","exp","sqrt",
-			"1/","where>0","where<0","where>=0","where<=0"};
-int ES_opcount=33;
+			"1/","where>0","where<0","where>=0","where<=0",
+			"symmetric","nonsymmetric"};
+int ES_opcount=35;
 ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY, G_BINARY,
 			G_UNARY,G_UNARY,G_UNARY, //10
 			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,	// 17
 			G_UNARY,G_UNARY,G_UNARY,					// 20
 			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,		// 28
-			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY};
+			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,			// 33
+			G_NP1OUT,G_NP1OUT};
 inline
 ES_opgroup
 getOpgroup(ES_optype op)
@@ -145,7 +157,7 @@ resultShape(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 {
 	if (left->getShape()!=right->getShape())
 	{
-	  if (getOpgroup(op)!=G_BINARY)
+	  if ((getOpgroup(op)!=G_BINARY) && (getOpgroup(op)!=G_NP1OUT))
 	  {
 		throw DataException("Shapes not the name - shapes must match for (point)binary operations.");
 	  }
@@ -170,12 +182,14 @@ resultLength(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
    {
    case G_BINARY: return left->getLength();
    case G_UNARY: return left->getLength();
+   case G_NP1OUT: return left->getLength();
    default: 
 	throw DataException("Programmer Error - attempt to getLength() for operator "+opToString(op)+".");
    }
 }
 
 // determine the number of samples requires to evaluate an expression combining left and right
+// NP1OUT needs an extra buffer because we can't write the answers over the top of the input.
 int
 calcBuffs(const DataLazy_ptr& left, const DataLazy_ptr& right, ES_optype op)
 {
@@ -184,6 +198,7 @@ calcBuffs(const DataLazy_ptr& left, const DataLazy_ptr& right, ES_optype op)
    case G_IDENTITY: return 1;
    case G_BINARY: return max(left->getBuffsRequired(),right->getBuffsRequired()+1);
    case G_UNARY: return max(left->getBuffsRequired(),1);
+   case G_NP1OUT: return 1+max(left->getBuffsRequired(),1);
    default: 
 	throw DataException("Programmer Error - attempt to calcBuffs() for operator "+opToString(op)+".");
    }
@@ -238,7 +253,7 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
 	: parent(left->getFunctionSpace(),left->getShape()),
 	m_op(op)
 {
-   if (getOpgroup(op)!=G_UNARY)
+   if ((getOpgroup(op)!=G_UNARY) && (getOpgroup(op)!=G_NP1OUT))
    {
 	throw DataException("Programmer error - constructor DataLazy(left, op) will only process UNARY operations.");
    }
@@ -254,7 +269,7 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
    m_readytype=lleft->m_readytype;
    m_length=left->getLength();
    m_left=lleft;
-   m_buffsRequired=1;
+   m_buffsRequired=calcBuffs(m_left, m_right,m_op);	// yeah m_right will be null at this point
    m_samplesize=getNumDPPSample()*getNoValues();
 }
 
@@ -264,8 +279,9 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 	: parent(resultFS(left,right,op), resultShape(left,right,op)),
 	m_op(op)
 {
-   if (getOpgroup(op)!=G_BINARY)
+   if ((getOpgroup(op)!=G_BINARY))
    {
+cout << opToString(op) << endl;
 	throw DataException("Programmer error - constructor DataLazy(left, right, op) will only process BINARY operations.");
    }
 
@@ -450,8 +466,14 @@ DataLazy::collapseToReady()
     case LEZ:
 	result=left.whereNonPositive();
 	break;
+    case SYM:
+	result=left.symmetric();
+	break;
+    case NSYM:
+	result=left.nonsymmetric();
+	break;
     default:
-	throw DataException("Programmer error - do not know how to resolve operator "+opToString(m_op)+".");
+	throw DataException("Programmer error - collapseToReady does not know how to resolve operator "+opToString(m_op)+".");
   }
   return result.borrowReadyPtr();
 }
@@ -478,7 +500,7 @@ DataLazy::collapse()
 }
 
 /*
-  \brief Compute the value of the expression (binary operation) for the given sample.
+  \brief Compute the value of the expression (unary operation) for the given sample.
   \return Vector which stores the value of the subexpression for the given sample.
   \param v A vector to store intermediate results.
   \param offset Index in v to begin storing results.
@@ -608,6 +630,46 @@ DataLazy::resolveUnary(ValueType& v, size_t offset, int sampleNo, size_t& roffse
   return &v;
 }
 
+
+/*
+  \brief Compute the value of the expression (unary operation) for the given sample.
+  \return Vector which stores the value of the subexpression for the given sample.
+  \param v A vector to store intermediate results.
+  \param offset Index in v to begin storing results.
+  \param sampleNo Sample number to evaluate.
+  \param roffset (output parameter) the offset in the return vector where the result begins.
+
+  The return value will be an existing vector so do not deallocate it.
+  If the result is stored in v it should be stored at the offset given.
+  Everything from offset to the end of v should be considered available for this method to use.
+*/
+DataTypes::ValueType*
+DataLazy::resolveNP1OUT(ValueType& v, size_t offset, int sampleNo, size_t& roffset) const
+{
+	// we assume that any collapsing has been done before we get here
+	// since we only have one argument we don't need to think about only
+	// processing single points.
+  if (m_readytype!='E')
+  {
+    throw DataException("Programmer error - resolveNP1OUT should only be called on expanded Data.");
+  }
+	// since we can't write the result over the input, we need a result offset further along
+  size_t subroffset=roffset+m_samplesize;
+  const ValueType* vleft=m_left->resolveSample(v,offset,sampleNo,subroffset);
+  roffset=offset;
+  switch (m_op)
+  {
+    case SYM:
+	DataMaths::symmetric(*vleft,m_left->getShape(),subroffset, v, getShape(), offset);
+	break;
+    case NSYM:
+	DataMaths::nonsymmetric(*vleft,m_left->getShape(),subroffset, v, getShape(), offset);
+	break;
+    default:
+	throw DataException("Programmer error - resolveNP1OUT can not resolve operator "+opToString(m_op)+".");
+  }
+  return &v;
+}
 
 
 
@@ -841,6 +903,7 @@ DataLazy::intoString(ostringstream& oss) const
 	oss << ')';
 	break;
   case G_UNARY:
+  case G_NP1OUT:
 	oss << opToString(m_op) << '(';
 	m_left->intoString(oss);
 	oss << ')';

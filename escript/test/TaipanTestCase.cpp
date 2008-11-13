@@ -70,7 +70,7 @@ void TaipanTestCase::testN1() {
 
   // allocate all ten arrays
   // the number of arrays under management will increase with each allocation
-  arraY[10];
+//  arraY[10];
   for (int i=0; i<10; i++) {
     arraY[i] = t.new_array(dim,1);
     assert(t.num_arrays() == i+1);
@@ -254,7 +254,7 @@ void TaipanTestCase::testAll() {
 
   // allocate all ten arrays
   // the number of arrays under management will increase with each allocation
-  arraY[10];
+//  arraY[10];
   for (int i=0; i<10; i++) {
     arraY[i] = t.new_array(dim,10);
     assert(t.num_arrays() == i+1);

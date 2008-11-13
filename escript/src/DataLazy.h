@@ -60,7 +60,9 @@ enum ES_optype
 	GZ=RECIP+1,
 	LZ=GZ+1,
 	GEZ=GZ+2,
-	LEZ=GZ+3
+	LEZ=GZ+3,
+	SYM=LEZ+1,
+	NSYM=SYM+1
 };
 
 ESCRIPT_DLL_API
@@ -226,7 +228,7 @@ private:
   resolveSample(ValueType& v,  size_t offset ,int sampleNo, size_t& roffset);
 
   /**
-  \brief Compute the value of the expression (binary operation) for the given sample.
+  \brief Compute the value of the expression (unary operation) for the given sample.
   \return Vector which stores the value of the subexpression for the given sample.
   \param v A vector to store intermediate results.
   \param offset Index in v to begin storing results.
@@ -239,6 +241,27 @@ private:
   */
   ValueType*
   resolveUnary(ValueType& v,  size_t offset,int sampleNo,  size_t& roffset) const;
+
+  /**
+  \brief Compute the value of the expression (unary non-pointwise operation) for the given sample.
+  \return Vector which stores the value of the subexpression for the given sample.
+  \param v A vector to store intermediate results.
+  \param offset Index in v to begin storing results.
+  \param sampleNo Sample number to evaluate.
+  \param roffset (output parameter) the offset in the return vector where the result begins.
+
+  The return value will be an existing vector so do not deallocate it.
+  If the result is stored in v it should be stored at the offset given.
+  Everything from offset to the end of v should be considered available for this method to use.
+
+  This method differs from the one above in that deals with operations that are not
+  point-wise. That is, the answer cannot just be written on top of the input.
+  Extra buffers are required for these operations.
+  */
+
+  ValueType*
+  resolveNP1OUT(ValueType& v, size_t offset, int sampleNo, size_t& roffset) const;
+
 
   /**
   \brief Compute the value of the expression (binary operation) for the given sample.
