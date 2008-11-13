@@ -172,7 +172,9 @@ if env["CC"] == "icc":
   fatalwarning		= ""		# Switch to turn warnings into errors
 elif env["CC"] == "gcc":
   # GNU C on any system
-  cc_flags		= "-Wall -fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER -isystem /usr/include/boost/ -isystem /usr/include/python2.5/ -Wno-sign-compare"
+  cc_flags		= "-pedantic -Wall -fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER -isystem /usr/include/boost/ -isystem /usr/include/python2.5/ -Wno-sign-compare -Wno-system-headers -Wno-strict-aliasing"
+#the strict aliasing warning is triggered by some type punning in the boost headers for version 1.34
+#isystem does not seem to prevent this
   cc_optim		= "-O3"
   cc_debug		= "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
   omp_optim		= ""
