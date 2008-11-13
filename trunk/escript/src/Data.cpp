@@ -1585,6 +1585,12 @@ Data::infWorker() const
 Data
 Data::maxval() const
 {
+  if (isLazy())
+  {
+	Data temp(*this);	// to get around the fact that you can't resolve a const Data
+	temp.resolve();
+	return temp.maxval();
+  }
   //
   // set the initial maximum value to min possible double
   FMax fmax_func;
@@ -1594,6 +1600,12 @@ Data::maxval() const
 Data
 Data::minval() const
 {
+  if (isLazy())
+  {
+	Data temp(*this);	// to get around the fact that you can't resolve a const Data
+	temp.resolve();
+	return temp.minval();
+  }
   //
   // set the initial minimum value to max possible double
   FMin fmin_func;
@@ -1662,9 +1674,8 @@ Data::symmetric() const
      }
      if (isLazy())
      {
-	Data temp(*this);	// to get around the fact that you can't resolve a const Data
-	temp.resolve();
-	return temp.symmetric();
+	DataLazy* c=new DataLazy(borrowDataPtr(),SYM);
+	return Data(c);
      }
      Data ev(0.,getDataPointShape(),getFunctionSpace());
      ev.typeMatchRight(*this);
@@ -1677,9 +1688,8 @@ Data::nonsymmetric() const
 {
      if (isLazy())
      {
-	Data temp(*this);	// to get around the fact that you can't resolve a const Data
-	temp.resolve();
-	return temp.nonsymmetric();
+	DataLazy* c=new DataLazy(borrowDataPtr(),NSYM);
+	return Data(c);
      }
      // check input
      DataTypes::ShapeType s=getDataPointShape();
@@ -1712,6 +1722,12 @@ Data::nonsymmetric() const
      }
 }
 
+
+// Doing a lazy version of this would require some thought.
+// First it needs a parameter (which DataLazy doesn't support at the moment).
+// (secondly although it does not apply to trace) we can't handle operations which return 
+// multiple results (like eigenvectors_values) or return values of different shapes to their input
+// (like eigenvalues).
 Data
 Data::trace(int axis_offset) const
 {

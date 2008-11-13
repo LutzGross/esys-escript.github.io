@@ -269,7 +269,6 @@ void DataTestCase::testSlicingWorker(bool delayed)
 
   const int NUMDATS=3;
   const char* strs[]={"DataConstant", "DataTagged","DataExpanded"};
-  bool tags[]={false,true,false};	// is the slice of this data supposed to be tagged
   Data* dats[NUMDATS];
   Data* src[NUMDATS];
   for (int k=0;k<NUMDATS;++k)
@@ -779,9 +778,9 @@ void DataTestCase::testOperations()
   assert(baseTag.isTagged());
 
   Data results[NUMDATS];
-  Data& resultEx=results[0];
-  Data& resultCon=results[1];
-  Data& resultTag=results[2];
+//   Data& resultEx=results[0];
+//   Data& resultCon=results[1];
+//   Data& resultTag=results[2];
 
   // create 0 <= smalldata <= 1 for testing trig functions
 
