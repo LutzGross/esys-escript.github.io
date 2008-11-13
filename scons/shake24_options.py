@@ -24,7 +24,8 @@
 # omp_libs		= ['guide']
 
 # Use the default C/C++ flags but add something only for this host:
-# cc_extra		= '-pedantic -isystem /usr/include/python2.5/ -Wall'
+cc_extra		= '-Wall'
+#cc_extra		= '-pedantic -isystem /usr/include/python2.5/ -Wall'
 # ld_extra		= ''
 
 # Be picky about errors
@@ -73,7 +74,7 @@ blas_lib_path		= '/opt/local/include/umfpack-5.0.3/Lib'
 blas_libs		= ['blas']
 
 # OpenMP
-# useopenmp		= 'yes'
+#useopenmp		= 'yes'
 
 # MPI MPT (no module load required)
 # usempi		= 'no'

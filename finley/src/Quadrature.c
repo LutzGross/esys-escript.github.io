@@ -1026,7 +1026,7 @@ void Finley_Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeig
   char error_msg[LenErrorMsg_MAX];
   int numQuadNodes1d,i,j,k,l;
   double *quadNodes1d=NULL,*quadWeights1d=NULL;
-  bool_t set;
+  bool_t set=FALSE;
   #define DIM 3
   
   /*  find numQuadNodes1d with numQuadNodes1d**3==numQuadNodes: */
