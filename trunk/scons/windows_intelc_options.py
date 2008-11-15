@@ -15,9 +15,10 @@
 from windows_mscv71_options import *
 
 # c flags to use
-cc_flags  = '/FD /GR /EHs'
-cc_optim  = '/O3 /Oi /Qip /MD /W3 /MD'
-cc_debug  = '/Od /RTC1 /MDd /ZI /Y-'
+cc_flags  = '/EHsc /GR /MD /Qvc7.1'
+# Same this does not work. cc_optim  = '/fast /Oi /W3 /Qssp /Qinline-factor-'
+cc_optim  = '/O3 /Oi /Qip /QxP /W3 /Qprec-div- /Qssp /Qinline-factor-'
+cc_debug  = '/Od /RTCcsu /Zi /Y- /debug:all /Qtrapuv'
 omp_optim  = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
 omp_debug  = '/Qvec-report3 /Qopenmp /Qopenmp-report2 /Qparallel'
 omp_libs = ['C:\Program Files\Intel\Compiler\C++\9.1\IA32\Lib\libguide40']
