@@ -70,7 +70,7 @@ void  Paso_SystemMatrix_MatrixVector(const double alpha,
   }
 }
 
-void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(const double alpha,
+void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha,
                                                  Paso_SystemMatrix* A,
                                                  const double* in,
                                                  const double beta,
