@@ -97,9 +97,7 @@ headers = """
 local_env.Append(LIBS = [ 'esysUtils'] + env['sys_libs'] )
 
 if IS_WINDOWS_PLATFORM :
-  local_env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS',
-                                 'ESYSUTILS_STATIC_LIB'])
-  py_wrapper_local_env.Append(CPPDEFINES = ['ESYSUTILS_STATIC_LIB'])
+  local_env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
 
 py_wrapper_local_env.Append(LIBS = [ 'escript', 'esysUtils'] + env['sys_libs'])
 
