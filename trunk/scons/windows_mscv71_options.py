@@ -44,12 +44,17 @@ netCDF_libs = ["netcdf", "netcdf_cpp" ]
 
 cc_defines = ['_USE_MATH_DEFINES']
 # c flags to use
-# 1563 - taking adress of a temporary
-# 811 - exception specification for implicitly declared virtual function (destructor usually) incompatible with that of override
-# 161 - openmp pargmas are unknown when not compiling with openmp
-cc_flags  = '/FD /EHsc /GR /wd4068 '
-cc_optim  = '/O2 /Op /MD /W3'
-cc_debug  = '/Od /RTC1 /MDd /ZI /Yd /Y-'
+# /wd4068 - ignore unknown pragmas.
+# /EHsc - /EHsc Catch C++ exceptions only, assume C code does not throw.
+# /GR - enable RTTI.
+# /MD - link to DLL multithreaded RTL
+# /ZI - dont put the library name in the .obj file.
+# /Yd - Put debug info in .obj file.
+# /Y- - Ignore precompiled header options, we don't want them.
+# /RTCcsu - Stack frame, use of uninitialised variabe and truncation checks.
+cc_flags  = '/EHsc /GR /wd4068  /MD'
+cc_optim  = '/O2 /Op /W3'
+cc_debug  = '/Od /RTCcsu /ZI /Yd /Y-'
 
 # linker flags to use
 #link_flags = ''
