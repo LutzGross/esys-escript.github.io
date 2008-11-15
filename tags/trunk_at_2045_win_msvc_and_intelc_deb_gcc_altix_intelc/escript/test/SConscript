@@ -1,0 +1,42 @@
+
+########################################################
+#
+# Copyright (c) 2003-2008 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+
+import os, re
+Import('*')
+
+local_env = clone_env(env)
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
+# get the relevant file names:
+src_dir = local_env.Dir('.').srcnode().abspath
+filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h", ".c", ".cpp"] ]
+
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+
+local_env.Append(LIBS= ['escript', 'esysUtils', 'CppUnitTest'] + local_env['sys_libs'] )
+local_env['CCFLAGS'] = re.sub("-O[0-9]", "-g", str(local_env['CCFLAGS']))	# Some of these test files are too large to optimize
+
+program = local_env.Program('escript_UnitTest', sources)
+
+#Add Unit Test to target alias
+
+local_env.Alias('build_tests', program)
+
+# run the tests - but only if test_targets are stale
+local_env.RunUnitTest('escript_UnitTest')
+test_targets = os.path.splitext('escript_UnitTest')[0]+'.passed'
+Alias("run_tests", test_targets)
+
+local_env.SConscript(dirs = ['#/escript/test/python'], build_dir='python', duplicate=0)
