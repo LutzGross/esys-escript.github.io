@@ -274,6 +274,8 @@ if env['usepedantic']: env.Append(CCFLAGS = pedantic)
 if IS_WINDOWS_PLATFORM:
   env.PrependENVPath('PATH',	[env['boost_lib_path']])
   env.PrependENVPath('PATH',	[env['libinstall']])
+  env.Append(CPPDEFINES = ['ESYSUTILS_STATIC_LIB'])
+
   if env['usenetcdf']:
     env.PrependENVPath('PATH',	[env['netCDF_lib_path']])
 
