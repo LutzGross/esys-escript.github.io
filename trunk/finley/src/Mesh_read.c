@@ -41,7 +41,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
   double time0=Finley_timer();
   #endif
   FILE *fileHandle_p = NULL;
-  ElementTypeId typeID=0, faceTypeID, contactTypeID, pointTypeID;
+  ElementTypeId typeID=NoType, faceTypeID=NoType, contactTypeID=NoType, pointTypeID=NoType;
   int scan_ret;
   
   Finley_resetError();
@@ -279,7 +279,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
   double time0=Finley_timer();
   #endif
   FILE *fileHandle_p = NULL;
-  ElementTypeId typeID=0;
+  ElementTypeId typeID=NoType;
   int scan_ret;
 
   Finley_resetError();
