@@ -37,7 +37,11 @@ lib_name = 'esysUtils'
 if IS_WINDOWS_PLATFORM :
   local_env.Append(CPPDEFINES = ['ESYSUTILS_EXPORTS'])
 
-lib = local_env.StaticLibrary(lib_name, sources)
+if local_env['share_esysUtils'] :
+  lib = local_env.SharedLibrary(lib_name, sources)
+else:
+  lib = local_env.StaticLibrary(lib_name, sources)
+
 env.Alias('target_esysUtils_a', lib)
 
 include_path = Dir(lib_name, local_env['incinstall'])
