@@ -128,7 +128,11 @@ opts.AddOptions(
   ('blas_lib_path', 'Path to BLAS libs', usr_lib),
   ('blas_libs', 'BLAS libraries to link with', ['blas']),
 # An option for specifying the compiler tools set (see windows branch).
-  ('tools_names', 'allow control over the tools in the env setup', ['intelc'])
+  ('tools_names', 'allow control over the tools in the env setup', ['intelc']),
+# finer control over library building, intel aggressive global optimisation
+# works with dynamic libraries on windows.
+  ('share_esysUtils', 'control static or dynamic esysUtils lib', False),
+  ('share_paso', 'control static or dynamic paso lib', False)
 )
 
 ############ Specify which compilers to use ####################
@@ -274,7 +278,10 @@ if env['usepedantic']: env.Append(CCFLAGS = pedantic)
 if IS_WINDOWS_PLATFORM:
   env.PrependENVPath('PATH',	[env['boost_lib_path']])
   env.PrependENVPath('PATH',	[env['libinstall']])
-  env.Append(CPPDEFINES = ['ESYSUTILS_STATIC_LIB'])
+  if not env['share_esysUtils'] :
+    env.Append(CPPDEFINES = ['ESYSUTILS_STATIC_LIB'])
+  if not env['share_paso'] :
+    env.Append(CPPDEFINES = ['PASO_STATIC_LIB'])
 
   if env['usenetcdf']:
     env.PrependENVPath('PATH',	[env['netCDF_lib_path']])
