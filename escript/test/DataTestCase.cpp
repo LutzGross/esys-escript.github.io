@@ -1099,6 +1099,8 @@ void DataTestCase::testOperations()
     }
   }
 #if defined (_WIN32) && !defined (__INTEL_COMPILER)
+  cout << "\tSkip test Data::erf on windows with MSVC compiler." << endl;
+#else
   cout << "\tTest Data::erf." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
