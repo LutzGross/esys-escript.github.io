@@ -21,7 +21,9 @@
 #include "DataLazy.h"
 #include "FunctionSpaceFactory.h"
 #include "AbstractContinuousDomain.h"
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
 #include "UnaryFuncs.h"
+#endif
 #include "FunctionSpaceException.h"
 #include "EscriptParams.h"
 
@@ -1324,7 +1326,7 @@ Data::tanh() const
 Data
 Data::erf() const
 {
-#ifdef _WIN32
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
   throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
 #else
   if (isLazy())
@@ -1344,7 +1346,7 @@ Data::asinh() const
 	DataLazy* c=new DataLazy(borrowDataPtr(),ASINH);
 	return Data(c);
   }
-#ifdef _WIN32
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
   return C_TensorUnaryOperation(*this, escript::asinh_substitute);
 #else
   return C_TensorUnaryOperation(*this, ::asinh);
@@ -1359,7 +1361,7 @@ Data::acosh() const
 	DataLazy* c=new DataLazy(borrowDataPtr(),ACOSH);
 	return Data(c);
   }
-#ifdef _WIN32
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
   return C_TensorUnaryOperation(*this, escript::acosh_substitute);
 #else
   return C_TensorUnaryOperation(*this, ::acosh);
@@ -1374,7 +1376,7 @@ Data::atanh() const
 	DataLazy* c=new DataLazy(borrowDataPtr(),ATANH);
 	return Data(c);
   }
-#ifdef _WIN32
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
   return C_TensorUnaryOperation(*this, escript::atanh_substitute);
 #else
   return C_TensorUnaryOperation(*this, ::atanh);
