@@ -555,28 +555,28 @@ DataLazy::resolveUnary(ValueType& v, size_t offset, int sampleNo, size_t& roffse
 	tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::tanh);
 	break;
     case ERF:
-#ifdef _WIN32
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
 	throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
 #else
 	tensor_unary_operation(m_samplesize, left, result, ::erf);
 	break;
 #endif
    case ASINH:
-#ifdef _WIN32
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
 	tensor_unary_operation(m_samplesize, left, result, escript::asinh_substitute);
 #else
 	tensor_unary_operation(m_samplesize, left, result, ::asinh);
 #endif   
 	break;
    case ACOSH:
-#ifdef _WIN32
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
 	tensor_unary_operation(m_samplesize, left, result, escript::acosh_substitute);
 #else
 	tensor_unary_operation(m_samplesize, left, result, ::acosh);
 #endif   
 	break;
    case ATANH:
-#ifdef _WIN32
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
 	tensor_unary_operation(m_samplesize, left, result, escript::atanh_substitute);
 #else
 	tensor_unary_operation(m_samplesize, left, result, ::atanh);
