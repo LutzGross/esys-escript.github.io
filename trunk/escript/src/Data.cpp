@@ -21,9 +21,7 @@
 #include "DataLazy.h"
 #include "FunctionSpaceFactory.h"
 #include "AbstractContinuousDomain.h"
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
 #include "UnaryFuncs.h"
-#endif
 #include "FunctionSpaceException.h"
 #include "EscriptParams.h"
 

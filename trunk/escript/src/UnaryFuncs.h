@@ -57,6 +57,7 @@ double IEEE_Infy()
 
 //======================================================================
 
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
 inline
 double
 acosh_substitute (const double x)
@@ -144,6 +145,8 @@ atanh_substitute (const double x)
       return x;
     }
 }
+#endif  // windows substitutes for stupid microsoft compiler.
+
 
 inline
 double
