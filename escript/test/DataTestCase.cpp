@@ -13,7 +13,7 @@
 
 
 #include <iostream>
-#if (defined _WIN32) && (defined __INTEL_COMPILER)
+#if defined (_WIN32) && defined (__INTEL_COMPILER)
 #include <mathimf.h>
 #else
 #include <math.h>
@@ -1098,7 +1098,7 @@ void DataTestCase::testOperations()
       }
     }
   }
-#ifndef _WIN32
+#if defined (_WIN32) && !defined (__INTEL_COMPILER)
   cout << "\tTest Data::erf." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
