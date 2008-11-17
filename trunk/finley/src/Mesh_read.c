@@ -876,7 +876,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
           len=0;
 	  while (1)
           {
-             size_t MALLOC_CHUNK = 1024;
+             size_t malloc_chunk = 1024;
              size_t buff_size = 0;
              int ch;
 
@@ -887,7 +887,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
              }
              if( len+1 > buff_size )
              {
-                TMPMEMREALLOC(remainder,remainder,buff_size+MALLOC_CHUNK,char);
+                TMPMEMREALLOC(remainder,remainder,buff_size+malloc_chunk,char);
              } 
              if( ch == EOF )
              {
