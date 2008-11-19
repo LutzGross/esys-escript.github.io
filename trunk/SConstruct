@@ -176,9 +176,10 @@ if env["CC"] == "icc":
   fatalwarning		= ""		# Switch to turn warnings into errors
 elif env["CC"] == "gcc":
   # GNU C on any system
-  cc_flags		= "-pedantic -Wall -fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER -isystem " + env['boost_path'] + "/boost -isystem " + env['python_path'] + " -Wno-sign-compare -Wno-system-headers -Wno-strict-aliasing"
+  cc_flags		= "-pedantic -Wall -fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER -isystem " + env['boost_path'] + "/boost -isystem " + env['python_path'] + " -Wno-sign-compare -Wno-system-headers -Wno-strict-aliasing -Wno-long-long"
 #the strict aliasing warning is triggered by some type punning in the boost headers for version 1.34
 #isystem does not seem to prevent this
+#the long long warning occurs on the Mac
   cc_optim		= "-O3"
   cc_debug		= "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
   omp_optim		= ""
