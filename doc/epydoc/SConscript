@@ -15,6 +15,13 @@
 import os
 Import('*')
 
-env.Command(env['prefix']+'/release/doc/epydoc', env['pyinstall'], [Mkdir(env['prefix']+'/release/doc/epydoc'), "epydoc --html -o $TARGET esys"])
-env.Alias('api_epydoc', env['prefix']+'/release/doc/epydoc')
+#env.Command(env['prefix']+'/release/doc/epydoc', env['pyinstall'], [Mkdir(env['prefix']+'/release/doc/epydoc'), "epydoc --html -o $TARGET esys"])
+#env.Alias('api_epydoc', env['prefix']+'/release/doc/epydoc')
+#env.AlwaysBuild('api_epydoc')
+
+env.Command(env['prefix']+'/release/doc/epydoc', [], [Mkdir(env['prefix']+'/release/doc/epydoc')])
+
+env.Alias('api_epydoc', [env['pyinstall'], env['prefix']+'/release/doc/epydoc'], "epydoc --html -o $TARGET esys")
+
+
 
