@@ -118,8 +118,6 @@ class PDECoef(object):
        @type pattern: C{tuple} of L{BY_EQUATION}, L{BY_SOLUTION}, L{BY_DIM}
        @param altering: indicates what part of the PDE is altered if the coefficiennt is altered
        @type altering: one of L{OPERATOR}, L{RIGHTHANDSIDE}, L{BOTH}
-       @param reduced: indicates if reduced 
-       @type reduced: C{bool}
        """
        super(PDECoef, self).__init__()
        self.what=where
@@ -497,7 +495,7 @@ class LinearProblem(object):
 
        use 
 
-         self.introduceCoefficients(A=PDECoef(...),B=PDECoef(...)) 
+       self.introduceCoefficients(A=PDECoef(...),B=PDECoef(...)) 
 
        to introduce the coefficients M{A} ans M{B}.
        """
@@ -950,9 +948,9 @@ class LinearProblem(object):
       test two coefficients for resciprocal symmetry
 
       @param name0: name of the first coefficient
-      @type name: C{str}
+      @type name0: C{str}
       @param name1: name of the second coefficient
-      @type name: C{str}
+      @type name1: C{str}
       @param verbose: if equal to True or not present a report on coefficients which are breaking the symmetry is printed.
       @type verbose: C{bool}
       @return:  True if coefficients C{name0} and C{name1}  are resciprocally symmetric.

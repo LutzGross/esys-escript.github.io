@@ -78,8 +78,8 @@ def insertTagNames(domain,**kwargs):
 
     @param domain: a domain object
     @type domain: C{escript.Domain}
-    @keyword <tag name>: tag key assigned to <tag name>
-    @type <tag name>: C{int}
+    @keyword <tag_name>: tag key assigned to <tag_name>
+    @type <tag_name>: C{int}
     """
     for  k in kwargs:
          domain.setTagMap(k,kwargs[k])
@@ -90,8 +90,8 @@ def insertTaggedValues(target,**kwargs):
 
     @param target: data to be filled by tagged values
     @type target: L{escript.Data}
-    @keyword <tag name>: value to be used for <tag name>
-    @type <tag name>: C{float} or {numarray.NumArray}
+    @keyword <tag_name>: value to be used for <tag_name>
+    @type <tag_name>: C{float} or {numarray.NumArray}
     @return: C{target}
     @rtype: L{escript.Data}
     """

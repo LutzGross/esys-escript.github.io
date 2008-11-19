@@ -513,13 +513,18 @@ def PCG(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100)
    @param b: the right hand side of the liner system. C{b} is altered.
    @type b: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
    @param Aprod: returns the value Ax
-   @type Aprod: function C{Aprod(x)} where C{x} is of the same object like argument C{x}. The returned object needs to be of the same type like argument C{b}.
-   @param Msolve: solves Mx=r 
-   @type Msolve: function C{Msolve(r)} where C{r} is of the same type like argument C{b}. The returned object needs to be of the same 
-type like argument C{x}.
-   @param bilinearform: inner product C{<x,r>} 
-   @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same type like argument C{x} and C{r} is . The returned value is a C{float}.
-   @param stoppingcriterium: function which returns True if a stopping criterium is meet. C{stoppingcriterium} has the arguments C{norm_r}, C{r} and C{x} giving the current norm of the residual (=C{sqrt(bilinearform(Msolve(r),r)}), the current residual and the current solution approximation. C{stoppingcriterium} is called in each iteration step.
+   @type Aprod: function C{Aprod(x)} where C{x} is of the same object like argument C{x}. 
+       The returned object needs to be of the same type like argument C{b}.
+   @param Msolve: solves Mx=r
+   @type Msolve: function C{Msolve(r)} where C{r} is of the same type like argument C{b}.
+      The returned object needs to be of the same type like argument C{x}.
+   @param bilinearform: inner product C{<x,r>}
+   @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same type like argument C{x} and C{r} is.
+       The returned value is a C{float}.
+   @param stoppingcriterium: function which returns True if a stopping criterium is meet.
+       C{stoppingcriterium} has the arguments C{norm_r}, C{r} and C{x} giving the current 
+       norm of the residual (=C{sqrt(bilinearform(Msolve(r),r)}), the current residual and
+       the current solution approximation. C{stoppingcriterium} is called in each iteration step.
    @type stoppingcriterium: function that returns C{True} or C{False}
    @param x: an initial guess for the solution. If no C{x} is given 0*b is used.
    @type x: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
@@ -1421,8 +1426,6 @@ class HomogeneousSaddlePointProblem(object):
          
          @type p0: equal to the type of p
          @type p1: equal to the type of p
-         @rtype: C{float}
-
          @rtype: equal to the type of p
          """
          pass

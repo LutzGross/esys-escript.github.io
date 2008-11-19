@@ -47,7 +47,7 @@ class Mechanics(Model):
          """
          set up the model
          
-         @param debug: debug flag
+         @keyword debug: debug flag
          @type debug: C{bool}
          """
          super(Mechanics, self).__init__(self,**kwargs)
