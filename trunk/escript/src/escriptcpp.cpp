@@ -78,6 +78,10 @@ using namespace boost::python;
 
 BOOST_PYTHON_MODULE(escriptcpp)
 {
+  // params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
+  docstring_options docopt(true, true, false);
+
+
   def("setNumberOfThreads",escript::setNumberOfThreads);
   def("getNumberOfThreads",escript::getNumberOfThreads);
   def("releaseUnusedMemory",escript::releaseUnusedMemory);
@@ -95,7 +99,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Interface for AbstractDomain
   //
-  class_<escript::AbstractDomain, escript::Domain_ptr>("Domain",no_init)
+  class_<escript::AbstractDomain, escript::Domain_ptr>("Domain","Base class for all domains.",no_init)
      .def("setTagMap",&escript::AbstractDomain::setTagMap)
      .def("getTag",&escript::AbstractDomain::getTag)
      .def("isValidTagName",&escript::AbstractDomain::isValidTagName)
@@ -117,14 +121,14 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Interface for AbstractContinuousDomain
   //
-  class_<escript::AbstractContinuousDomain, bases<escript::AbstractDomain> >("ContinuousDomain",no_init)
+  class_<escript::AbstractContinuousDomain, bases<escript::AbstractDomain> >("ContinuousDomain","Class representing continuous domains",no_init)
        .def("getSystemMatrixTypeId",&escript::AbstractContinuousDomain::getSystemMatrixTypeId)
        .def("getTransportTypeId",&escript::AbstractContinuousDomain::getTransportTypeId);
 
   //
   // Interface for FunctionSpace
   //
-  class_<escript::FunctionSpace> fs_definer("FunctionSpace",init<>());
+  class_<escript::FunctionSpace> fs_definer("FunctionSpace","",init<>());	// Doco goes in the empty string param
   fs_definer.def("getDim",&escript::FunctionSpace::getDim);
 //   fs_definer.def("getDomain",&escript::FunctionSpace::getDomain,
 //                  return_internal_reference<>());
@@ -143,7 +147,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Interface for Data
   //
-  class_<escript::Data>("Data","TEST DOCUMENTATION",init<>() )
+  class_<escript::Data>("Data","Represents a collection of datapoints. It is used to store the values of a function. For more details please consult the c++ class documentation.",init<>() )
     // various constructors for Data objects
     .def(init<const numeric::array&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
     .def(init<const object&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
@@ -331,7 +335,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Interface for AbstractSystemMatrix
   //
-  class_<escript::AbstractSystemMatrix>("Operator",init<>())
+  class_<escript::AbstractSystemMatrix>("Operator","",init<>())    // Doco goes in the empty string param
      .def("isEmpty",&escript::AbstractSystemMatrix::isEmpty)
      .def("solve",&escript::AbstractSystemMatrix::solve)
      .def("of",&escript::AbstractSystemMatrix::vectorMultiply)
@@ -342,7 +346,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Interface for AbstractTransportProblem
   //
-  class_<escript::AbstractTransportProblem>("TransportProblem",init<>())
+  class_<escript::AbstractTransportProblem>("TransportProblem","",init<>())    // Doco goes in the empty string param
      .def("isEmpty",&escript::AbstractTransportProblem::isEmpty)
      .def("solve",&escript::AbstractTransportProblem::solve)
      .def("setInitialValue",&escript::AbstractTransportProblem::setInitialValue)
