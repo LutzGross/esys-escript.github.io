@@ -56,23 +56,57 @@ typedef struct Paso_IndexList {
 } Paso_IndexList;
 /*  interfaces: */
 
+
+PASO_DLL_API
 Paso_Pattern* Paso_Pattern_alloc(int type, dim_t input_block_size, dim_t output_block_size, dim_t numOutput, dim_t numInput, index_t* ptr, index_t* index);
+
+PASO_DLL_API
+
+PASO_DLL_API
 Paso_Pattern* Paso_Pattern_getReference(Paso_Pattern*);
+
+PASO_DLL_API
 void Paso_Pattern_free(Paso_Pattern*);
+
+PASO_DLL_API
 int Paso_comparIndex(const void *,const void *);
+
+PASO_DLL_API
 Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern*,int, dim_t,dim_t);
+
+PASO_DLL_API
 Paso_Pattern* Paso_Pattern_getSubpattern(Paso_Pattern*,dim_t,dim_t,index_t*,index_t*);
+
+PASO_DLL_API
 bool_t Paso_Pattern_isEmpty(Paso_Pattern* in);
+
+PASO_DLL_API
 void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker);
+
+PASO_DLL_API
 void Paso_Pattern_reduceBandwidth(Paso_Pattern* self,index_t* oldToNew);
+
+PASO_DLL_API
 void Paso_Pattern_color(Paso_Pattern* patter, index_t* num_colors, index_t* colorOf);
 Paso_Pattern* Paso_Pattern_multiply(int type, Paso_Pattern* A, Paso_Pattern* B);
+
+PASO_DLL_API
 Paso_Pattern* Paso_Pattern_binop(int type, Paso_Pattern* A, Paso_Pattern* B);
 
+
+PASO_DLL_API
 void Paso_IndexList_insertIndex(Paso_IndexList*, index_t);
+
+PASO_DLL_API
 void Paso_IndexList_toArray(Paso_IndexList*, index_t*, index_t, index_t, index_t);
+
+PASO_DLL_API
 dim_t Paso_IndexList_count(Paso_IndexList*,  index_t, index_t);
+
+PASO_DLL_API
 void Paso_IndexList_free(Paso_IndexList*);
+
+PASO_DLL_API
 Paso_Pattern* Paso_IndexList_createPattern(dim_t n0, dim_t n,Paso_IndexList* index_list,index_t range_min,index_t range_max, index_t index_offset);
 
 #endif /* #ifndef INC_PASO_SYSTEMPATTERN */

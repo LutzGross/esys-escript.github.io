@@ -65,6 +65,8 @@ dim_t Paso_MPIInfo_setDistribution(Paso_MPIInfo* in ,index_t min_id,index_t max_
 
 PASO_DLL_API
 void Paso_MPIInfo_Split( Paso_MPIInfo *mpi_info, dim_t n, dim_t* local_N,index_t* offset); 
+
+PASO_DLL_API
 bool_t Paso_MPIInfo_noError( Paso_MPIInfo *mpi_info);
 
 PASO_DLL_API
