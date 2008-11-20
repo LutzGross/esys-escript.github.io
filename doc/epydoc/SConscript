@@ -21,7 +21,7 @@ Import('*')
 
 env.Command(env['prefix']+'/release/doc/epydoc', [], [Mkdir(env['prefix']+'/release/doc/epydoc')])
 
-env.Alias('api_epydoc', [env['pyinstall'], env['prefix']+'/release/doc/epydoc'], "epydoc --html -o $TARGET esys")
+env.Alias('api_epydoc', [env['pyinstall'], env['prefix']+'/release/doc/epydoc'], "epydoc --html -o "+env['prefix']+'/release/doc/epydoc'+" esys")
 
 
 
