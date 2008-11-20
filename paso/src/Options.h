@@ -86,9 +86,14 @@ typedef struct {
 
 /*  interfaces: */
 
+
+PASO_DLL_API
 void Paso_Options_setDefaults(Paso_Options* in);
+
 index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry);
+
 index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry);
+
 #define Paso_Options_copy(in,out) memcpy((Paso_Options*)out,(Paso_Options*)in,sizeof(Paso_Options))
 
 #endif /* #ifndef INC_PASO_OPTIONS */
