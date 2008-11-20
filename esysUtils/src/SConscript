@@ -21,6 +21,7 @@ sources = """
 	EsysAssertException.cpp
 	EsysException.cpp
 	esysExceptionTranslator.cpp
+        blocktimer.c
 """.split()
 headers = """
 	EsysAssert.h
@@ -29,6 +30,7 @@ headers = """
 	EsysTypes.h
 	esys_malloc.h
 	esysExceptionTranslator.h
+        blocktimer.h
 	system_dep.h
 """.split()
 

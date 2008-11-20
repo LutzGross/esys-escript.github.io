@@ -26,7 +26,7 @@
 #include "Paso.h"
 #include "SystemMatrix.h"
 #include "Solver.h"
-#include "escript/blocktimer.h"
+#include "esysUtils/blocktimer.h"
 
 /***********************************************************************************/
 

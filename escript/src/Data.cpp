@@ -26,7 +26,7 @@
 #include "EscriptParams.h"
 
 extern "C" {
-#include "escript/blocktimer.h"
+#include "esysUtils/blocktimer.h"
 }
 
 #include <fstream>
