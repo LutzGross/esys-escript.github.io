@@ -62,7 +62,8 @@ enum ES_optype
 	GEZ=GZ+2,
 	LEZ=GZ+3,
 	SYM=LEZ+1,
-	NSYM=SYM+1
+	NSYM=SYM+1,
+	PROD=NSYM+1
 };
 
 ESCRIPT_DLL_API
@@ -120,6 +121,18 @@ public:
   ESCRIPT_DLL_API
   DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op);
 
+  /**
+  \brief Produce a DataLazy for a binary operation with additional paramters.
+  \param left left operand
+  \param right right operand
+  \param op unary operation to perform.
+  \param axis_offset 
+  \param transpose  
+  \throws DataException if op is not a binary operation requiring parameters or if left or right cannot be converted to a DataLazy.
+  */
+  ESCRIPT_DLL_API
+  DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op, int axis_offset, int transpose);
+
   ESCRIPT_DLL_API
   ~DataLazy();
 
@@ -142,7 +155,7 @@ public:
 
   /**
      \brief
-     Return the number of doubles that would be stored for this Data object if it were resolved.
+     This method throws an exception. It does not really make sense to ask this question of lazy data.
   */
   ESCRIPT_DLL_API
   ValueType::size_type
@@ -171,6 +184,14 @@ public:
   getBuffsRequired() const;
 
   /**
+    \return the largest samplesize required to evaluate the expression.
+  */
+  ESCRIPT_DLL_API
+  size_t
+  getMaxSampleSize() const;
+
+
+  /**
      \brief Produces an IDENTITY DataLazy containing zero.
      The result will have the same shape and functionspace as before.
   */
@@ -182,12 +203,17 @@ private:
   DataReady_ptr m_id;	//  For IDENTITY nodes, stores a wrapped value.
   DataLazy_ptr m_left, m_right;	// operands for operation.
   ES_optype m_op;	// operation to perform.
-  size_t m_length;	// number of values represented by the operation
 
   int m_buffsRequired;	// how many samples are required to evaluate this expression
   size_t m_samplesize;	// number of values required to store a sample
 
   char m_readytype;	// E for expanded, T for tagged, C for constant
+
+  int m_axis_offset;	// required extra info for general tensor product
+  int m_transpose;
+  int m_SL, m_SM, m_SR;	// computed properties used in general tensor product
+
+  unsigned int m_maxsamplesize;	// largest samplesize required by any node in the expression
 
 
   /**
@@ -277,6 +303,21 @@ private:
   */
   ValueType*
   resolveBinary(ValueType& v,  size_t offset,int sampleNo,  size_t& roffset) const;
+
+  /**
+  \brief Compute the value of the expression (tensor product) for the given sample.
+  \return Vector which stores the value of the subexpression for the given sample.
+  \param v A vector to store intermediate results.
+  \param offset Index in v to begin storing results.
+  \param sampleNo Sample number to evaluate.
+  \param roffset (output parameter) the offset in the return vector where the result begins.
+
+  The return value will be an existing vector so do not deallocate it.
+  If the result is stored in v it should be stored at the offset given.
+  Everything from offset to the end of v should be considered available for this method to use.
+  */
+  DataTypes::ValueType*
+  resolveTProd(ValueType& v,  size_t offset, int sampleNo, size_t& roffset) const;
 
 };
 

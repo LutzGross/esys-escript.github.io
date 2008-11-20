@@ -2512,8 +2512,13 @@ escript::C_GeneralTensorProduct(Data& arg_0,
   // SM is the product of the last axis_offset entries in arg_0.getShape().
 
   // deal with any lazy data
-  if (arg_0.isLazy()) {arg_0.resolve();}
-  if (arg_1.isLazy()) {arg_1.resolve();}
+//   if (arg_0.isLazy()) {arg_0.resolve();}
+//   if (arg_1.isLazy()) {arg_1.resolve();}
+  if (arg_0.isLazy() || arg_1.isLazy())
+  {
+	DataLazy* c=new DataLazy(arg_0.borrowDataPtr(), arg_1.borrowDataPtr(), PROD, axis_offset,transpose);
+	return Data(c);
+  }
 
   // Interpolate if necessary and find an appropriate function space
   Data arg_0_Z, arg_1_Z;
@@ -2923,8 +2928,9 @@ Data::borrowReadyPtr() const
 std::string
 Data::toString() const
 {
-    if (!m_data->isEmpty() && 
-	getNumDataPoints()*getDataPointSize()>escriptParams.getInt("TOO_MANY_LINES"))
+    if (!m_data->isEmpty() &&
+	!m_data->isLazy() && 
+	getLength()>escriptParams.getInt("TOO_MANY_LINES"))
     {
 	stringstream temp;
 	temp << "Summary: inf="<< inf_const() << " sup=" << sup_const() << " data points=" << getNumDataPoints();

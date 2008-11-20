@@ -136,7 +136,6 @@ void DataLazyTestCase::testLazy1()
     TESTOP(getRank,i);
     TESTOP(getNoValues,DataTypes::noValues(shape));
     TESTOP(getShape,shape);
-    TESTOP(getLength,DataTypes::noValues(shape));	// since we only have one point
     TESTOP(getNumDPPSample,1);
     TESTOP(getNumSamples,1);
     shape.push_back(3);
@@ -166,7 +165,6 @@ void DataLazyTestCase::testLazy2()
 	TESTOPU(getRank,i,op);
     	TESTOPU(getNoValues,DataTypes::noValues(shape),op);
     	TESTOPU(getShape,shape,op);
-    	TESTOPU(getLength,DataTypes::noValues(shape),op);
     	TESTOPU(getNumDPPSample,1,op);
     	TESTOPU(getNumSamples,1,op);
 	TESTOPU(getBuffsRequired,1,op);
@@ -198,7 +196,6 @@ void DataLazyTestCase::testLazy3()
 	TESTOPB(getRank,i,op);
     	TESTOPB(getNoValues,DataTypes::noValues(shape),op);
     	TESTOPB(getShape,shape,op);
-    	TESTOPB(getLength,DataTypes::noValues(shape),op);
     	TESTOPB(getNumDPPSample,1,op);
     	TESTOPB(getNumSamples,1,op);
 	TESTOPB(getBuffsRequired,2,op);

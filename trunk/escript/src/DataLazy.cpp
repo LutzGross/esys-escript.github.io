@@ -48,7 +48,6 @@ I will refer to individual DataLazy objects with the structure as nodes.
 Each node also stores:
 - m_readytype \in {'E','T','C','?'} ~ indicates what sort of DataReady would be produced if the expression was
 	evaluated.
-- m_length ~ how many values would be stored in the answer if the expression was evaluated.
 - m_buffsrequired ~ the larged number of samples which would need to be kept simultaneously in order to
 	evaluate the expression.
 - m_samplesize ~ the number of doubles stored in a sample.
@@ -97,7 +96,8 @@ enum ES_opgroup
    G_IDENTITY,
    G_BINARY,		// pointwise operations with two arguments
    G_UNARY,		// pointwise operations with one argument
-   G_NP1OUT		// non-pointwise op with one output
+   G_NP1OUT,		// non-pointwise op with one output
+   G_TENSORPROD		// general tensor product
 };
 
 
@@ -109,15 +109,17 @@ string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","^",
 			"asinh","acosh","atanh",
 			"log10","log","sign","abs","neg","pos","exp","sqrt",
 			"1/","where>0","where<0","where>=0","where<=0",
-			"symmetric","nonsymmetric"};
-int ES_opcount=35;
+			"symmetric","nonsymmetric",
+			"prod"};
+int ES_opcount=36;
 ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY, G_BINARY,
 			G_UNARY,G_UNARY,G_UNARY, //10
 			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,	// 17
 			G_UNARY,G_UNARY,G_UNARY,					// 20
 			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,		// 28
 			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,			// 33
-			G_NP1OUT,G_NP1OUT};
+			G_NP1OUT,G_NP1OUT,
+			G_TENSORPROD};
 inline
 ES_opgroup
 getOpgroup(ES_optype op)
@@ -152,6 +154,7 @@ resultFS(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 }
 
 // return the shape of the result of "left op right"
+// the shapes resulting from tensor product are more complex to compute so are worked out elsewhere
 DataTypes::ShapeType
 resultShape(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 {
@@ -174,22 +177,77 @@ resultShape(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 	return left->getShape();
 }
 
-// determine the number of points in the result of "left op right"
-size_t
-resultLength(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
+// determine the output shape for the general tensor product operation
+// the additional parameters return information required later for the product
+// the majority of this code is copy pasted from C_General_Tensor_Product
+DataTypes::ShapeType
+GTPShape(DataAbstract_ptr left, DataAbstract_ptr right, int axis_offset, int transpose, int& SL, int& SM, int& SR)
 {
-   switch (getOpgroup(op))
-   {
-   case G_BINARY: return left->getLength();
-   case G_UNARY: return left->getLength();
-   case G_NP1OUT: return left->getLength();
-   default: 
-	throw DataException("Programmer Error - attempt to getLength() for operator "+opToString(op)+".");
-   }
+	
+  // Get rank and shape of inputs
+  int rank0 = left->getRank();
+  int rank1 = right->getRank();
+  const DataTypes::ShapeType& shape0 = left->getShape();
+  const DataTypes::ShapeType& shape1 = right->getShape();
+
+  // Prepare for the loops of the product and verify compatibility of shapes
+  int start0=0, start1=0;
+  if (transpose == 0)		{}
+  else if (transpose == 1)	{ start0 = axis_offset; }
+  else if (transpose == 2)	{ start1 = rank1-axis_offset; }
+  else				{ throw DataException("DataLazy GeneralTensorProduct Constructor: Error - transpose should be 0, 1 or 2"); }
+
+
+  // Adjust the shapes for transpose
+  DataTypes::ShapeType tmpShape0(rank0);	// pre-sizing the vectors rather
+  DataTypes::ShapeType tmpShape1(rank1);	// than using push_back
+  for (int i=0; i<rank0; i++)	{ tmpShape0[i]=shape0[(i+start0)%rank0]; }
+  for (int i=0; i<rank1; i++)	{ tmpShape1[i]=shape1[(i+start1)%rank1]; }
+
+  // Prepare for the loops of the product
+  SL=1, SM=1, SR=1;
+  for (int i=0; i<rank0-axis_offset; i++)	{
+    SL *= tmpShape0[i];
+  }
+  for (int i=rank0-axis_offset; i<rank0; i++)	{
+    if (tmpShape0[i] != tmpShape1[i-(rank0-axis_offset)]) {
+      throw DataException("C_GeneralTensorProduct: Error - incompatible shapes");
+    }
+    SM *= tmpShape0[i];
+  }
+  for (int i=axis_offset; i<rank1; i++)		{
+    SR *= tmpShape1[i];
+  }
+
+  // Define the shape of the output (rank of shape is the sum of the loop ranges below)
+  DataTypes::ShapeType shape2(rank0+rank1-2*axis_offset);	
+  {			// block to limit the scope of out_index
+     int out_index=0;
+     for (int i=0; i<rank0-axis_offset; i++, ++out_index) { shape2[out_index]=tmpShape0[i]; } // First part of arg_0_Z
+     for (int i=axis_offset; i<rank1; i++, ++out_index)   { shape2[out_index]=tmpShape1[i]; } // Last part of arg_1_Z
+  }
+  return shape2;
 }
+
+
+// determine the number of points in the result of "left op right"
+// note that determining the resultLength for G_TENSORPROD is more complex and will not be processed here
+// size_t
+// resultLength(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
+// {
+//    switch (getOpgroup(op))
+//    {
+//    case G_BINARY: return left->getLength();
+//    case G_UNARY: return left->getLength();
+//    case G_NP1OUT: return left->getLength();
+//    default: 
+// 	throw DataException("Programmer Error - attempt to getLength() for operator "+opToString(op)+".");
+//    }
+// }
 
 // determine the number of samples requires to evaluate an expression combining left and right
 // NP1OUT needs an extra buffer because we can't write the answers over the top of the input.
+// The same goes for G_TENSORPROD
 int
 calcBuffs(const DataLazy_ptr& left, const DataLazy_ptr& right, ES_optype op)
 {
@@ -199,6 +257,7 @@ calcBuffs(const DataLazy_ptr& left, const DataLazy_ptr& right, ES_optype op)
    case G_BINARY: return max(left->getBuffsRequired(),right->getBuffsRequired()+1);
    case G_UNARY: return max(left->getBuffsRequired(),1);
    case G_NP1OUT: return 1+max(left->getBuffsRequired(),1);
+   case G_TENSORPROD: return 1+max(left->getBuffsRequired(),right->getBuffsRequired()+1);
    default: 
 	throw DataException("Programmer Error - attempt to calcBuffs() for operator "+opToString(op)+".");
    }
@@ -223,7 +282,10 @@ opToString(ES_optype op)
 
 DataLazy::DataLazy(DataAbstract_ptr p)
 	: parent(p->getFunctionSpace(),p->getShape()),
-	m_op(IDENTITY)
+	m_op(IDENTITY),
+	m_axis_offset(0),
+	m_transpose(0),
+	m_SL(0), m_SM(0), m_SR(0)
 {
    if (p->isLazy())
    {
@@ -240,9 +302,9 @@ DataLazy::DataLazy(DataAbstract_ptr p)
   	else if (p->isTagged()) {m_readytype='T';}
 	else {throw DataException("Unknown DataReady instance in DataLazy constructor.");}
    }
-   m_length=p->getLength();
    m_buffsRequired=1;
    m_samplesize=getNumDPPSample()*getNoValues();
+   m_maxsamplesize=m_samplesize;
 cout << "(1)Lazy created with " << m_samplesize << endl;
 }
 
@@ -251,12 +313,16 @@ cout << "(1)Lazy created with " << m_samplesize << endl;
 
 DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
 	: parent(left->getFunctionSpace(),left->getShape()),
-	m_op(op)
+	m_op(op),
+	m_axis_offset(0),
+	m_transpose(0),
+	m_SL(0), m_SM(0), m_SR(0)
 {
    if ((getOpgroup(op)!=G_UNARY) && (getOpgroup(op)!=G_NP1OUT))
    {
 	throw DataException("Programmer error - constructor DataLazy(left, op) will only process UNARY operations.");
    }
+
    DataLazy_ptr lleft;
    if (!left->isLazy())
    {
@@ -267,21 +333,21 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
 	lleft=dynamic_pointer_cast<DataLazy>(left);
    }
    m_readytype=lleft->m_readytype;
-   m_length=left->getLength();
    m_left=lleft;
    m_buffsRequired=calcBuffs(m_left, m_right,m_op);	// yeah m_right will be null at this point
    m_samplesize=getNumDPPSample()*getNoValues();
+   m_maxsamplesize=max(m_samplesize,m_left->getMaxSampleSize());
 }
 
 
 // In this constructor we need to consider interpolation
 DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 	: parent(resultFS(left,right,op), resultShape(left,right,op)),
-	m_op(op)
+	m_op(op),
+	m_SL(0), m_SM(0), m_SR(0)
 {
    if ((getOpgroup(op)!=G_BINARY))
    {
-cout << opToString(op) << endl;
 	throw DataException("Programmer error - constructor DataLazy(left, right, op) will only process BINARY operations.");
    }
 
@@ -292,7 +358,7 @@ cout << opToString(op) << endl;
 	Data tmp(ltemp,fs);
 	left=tmp.borrowDataPtr();
    }
-   if (getFunctionSpace()!=right->getFunctionSpace())	// left needs to be interpolated
+   if (getFunctionSpace()!=right->getFunctionSpace())	// right needs to be interpolated
    {
 	Data tmp(Data(right),getFunctionSpace());
 	right=tmp.borrowDataPtr();
@@ -329,10 +395,74 @@ cout << opToString(op) << endl;
    {
 	m_readytype='C';
    }
-   m_length=resultLength(m_left,m_right,m_op);
-   m_samplesize=getNumDPPSample()*getNoValues();	
+   m_samplesize=getNumDPPSample()*getNoValues();
+   m_maxsamplesize=max(max(m_samplesize,m_right->getMaxSampleSize()),m_left->getMaxSampleSize());	
    m_buffsRequired=calcBuffs(m_left, m_right,m_op);
 cout << "(3)Lazy created with " << m_samplesize << endl;
+}
+
+DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op, int axis_offset, int transpose)
+	: parent(resultFS(left,right,op), GTPShape(left,right, axis_offset, transpose, m_SL,m_SM, m_SR)),
+	m_op(op),
+	m_axis_offset(axis_offset),
+	m_transpose(transpose)
+{
+   if ((getOpgroup(op)!=G_TENSORPROD))
+   {
+	throw DataException("Programmer error - constructor DataLazy(left, right, op, ax, tr) will only process BINARY operations which require parameters.");
+   }
+   if ((transpose>2) || (transpose<0))
+   {
+	throw DataException("DataLazy GeneralTensorProduct constructor: Error - transpose should be 0, 1 or 2");
+   }
+   if (getFunctionSpace()!=left->getFunctionSpace())	// left needs to be interpolated
+   {
+	FunctionSpace fs=getFunctionSpace();
+	Data ltemp(left);
+	Data tmp(ltemp,fs);
+	left=tmp.borrowDataPtr();
+   }
+   if (getFunctionSpace()!=right->getFunctionSpace())	// right needs to be interpolated
+   {
+	Data tmp(Data(right),getFunctionSpace());
+	right=tmp.borrowDataPtr();
+   }
+   left->operandCheck(*right);
+
+   if (left->isLazy())			// the children need to be DataLazy. Wrap them in IDENTITY if required
+   {
+	m_left=dynamic_pointer_cast<DataLazy>(left);
+   }
+   else
+   {
+	m_left=DataLazy_ptr(new DataLazy(left));
+   }
+   if (right->isLazy())
+   {
+	m_right=dynamic_pointer_cast<DataLazy>(right);
+   }
+   else
+   {
+	m_right=DataLazy_ptr(new DataLazy(right));
+   }
+   char lt=m_left->m_readytype;
+   char rt=m_right->m_readytype;
+   if (lt=='E' || rt=='E')
+   {
+	m_readytype='E';
+   }
+   else if (lt=='T' || rt=='T')
+   {
+	m_readytype='T';
+   }
+   else
+   {
+	m_readytype='C';
+   }
+   m_samplesize=getNumDPPSample()*getNoValues();
+   m_maxsamplesize=max(max(m_samplesize,m_right->getMaxSampleSize()),m_left->getMaxSampleSize());	
+   m_buffsRequired=calcBuffs(m_left, m_right,m_op);
+cout << "(4)Lazy created with " << m_samplesize << endl;
 }
 
 
@@ -347,6 +477,12 @@ DataLazy::getBuffsRequired() const
 	return m_buffsRequired;
 }
 
+
+size_t
+DataLazy::getMaxSampleSize() const
+{
+	return m_maxsamplesize;
+}
 
 /*
   \brief Evaluates the expression using methods on Data.
@@ -367,7 +503,7 @@ DataLazy::collapseToReady()
   DataReady_ptr pleft=m_left->collapseToReady();
   Data left(pleft);
   Data right;
-  if (getOpgroup(m_op)==G_BINARY)
+  if ((getOpgroup(m_op)==G_BINARY) || (getOpgroup(m_op)==G_TENSORPROD))
   {
     right=Data(m_right->collapseToReady());
   }
@@ -471,6 +607,9 @@ DataLazy::collapseToReady()
 	break;
     case NSYM:
 	result=left.nonsymmetric();
+	break;
+    case PROD:
+	result=C_GeneralTensorProduct(left,right,m_axis_offset, m_transpose);
 	break;
     default:
 	throw DataException("Programmer error - collapseToReady does not know how to resolve operator "+opToString(m_op)+".");
@@ -754,6 +893,58 @@ cout << "Resolve binary: " << toString() << endl;
 }
 
 
+/*
+  \brief Compute the value of the expression (tensor product) for the given sample.
+  \return Vector which stores the value of the subexpression for the given sample.
+  \param v A vector to store intermediate results.
+  \param offset Index in v to begin storing results.
+  \param sampleNo Sample number to evaluate.
+  \param roffset (output parameter) the offset in the return vector where the result begins.
+
+  The return value will be an existing vector so do not deallocate it.
+  If the result is stored in v it should be stored at the offset given.
+  Everything from offset to the end of v should be considered available for this method to use.
+*/
+// This method assumes that any subexpressions which evaluate to Constant or Tagged Data
+// have already been collapsed to IDENTITY. So we must have at least one expanded child.
+// unlike the other resolve helpers, we must treat these datapoints separately.
+DataTypes::ValueType*
+DataLazy::resolveTProd(ValueType& v,  size_t offset, int sampleNo, size_t& roffset) const
+{
+cout << "Resolve TensorProduct: " << toString() << endl;
+
+  size_t lroffset=0, rroffset=0;	// offsets in the left and right result vectors
+	// first work out which of the children are expanded
+  bool leftExp=(m_left->m_readytype=='E');
+  bool rightExp=(m_right->m_readytype=='E');
+  int steps=getNumDPPSample();
+  int leftStep=((leftExp && !rightExp)? m_right->getNoValues() : 0);
+  int rightStep=((rightExp && !leftExp)? m_left->getNoValues() : 0);
+  int resultStep=max(leftStep,rightStep);	// only one (at most) should be !=0
+	// Get the values of sub-expressions (leave a gap of one sample for the result).
+  const ValueType* left=m_left->resolveSample(v,offset+m_samplesize,sampleNo,lroffset);
+  const ValueType* right=m_right->resolveSample(v,offset+2*m_samplesize,sampleNo,rroffset); 
+  double* resultp=&(v[offset]);		// results are stored at the vector offset we recieved
+  switch(m_op)
+  {
+    case PROD:
+	for (int i=0;i<steps;++i,resultp+=resultStep)
+	{
+    	  const double *ptr_0 = &((*left)[lroffset]);
+    	  const double *ptr_1 = &((*right)[rroffset]);
+    	  matrix_matrix_product(m_SL, m_SM, m_SR, ptr_0, ptr_1, resultp, m_transpose);
+	  lroffset+=leftStep;
+	  rroffset+=rightStep;
+	}
+	break;
+    default:
+	throw DataException("Programmer error - resolveTProduct can not resolve operator "+opToString(m_op)+".");
+  }
+  roffset=offset;
+  return &v;
+}
+
+
 
 /*
   \brief Compute the value of the expression for the given sample.
@@ -799,6 +990,8 @@ cout << "Resolve sample " << toString() << endl;
   {
   case G_UNARY: return resolveUnary(v, offset,sampleNo,roffset);
   case G_BINARY: return resolveBinary(v, offset,sampleNo,roffset);
+  case G_NP1OUT: return resolveNP1OUT(v, offset, sampleNo,roffset);
+  case G_TENSORPROD: return resolveTProd(v,offset, sampleNo,roffset);
   default:
     throw DataException("Programmer Error - resolveSample does not know how to process "+opToString(m_op)+".");
   }
@@ -823,7 +1016,7 @@ cout << "Buffers=" << m_buffsRequired << endl;
     return m_id;
   }
   	// from this point on we must have m_op!=IDENTITY and m_readytype=='E'
-  size_t threadbuffersize=m_samplesize*(max(1,m_buffsRequired));	// Each thread needs to have enough
+  size_t threadbuffersize=m_maxsamplesize*(max(1,m_buffsRequired));	// Each thread needs to have enough
 	// storage to evaluate its expression
   int numthreads=1;
 #ifdef _OPENMP
@@ -908,6 +1101,13 @@ DataLazy::intoString(ostringstream& oss) const
 	m_left->intoString(oss);
 	oss << ')';
 	break;
+  case G_TENSORPROD:
+	oss << opToString(m_op) << '(';
+	m_left->intoString(oss);
+	oss << ", ";
+	m_right->intoString(oss);
+	oss << ')'; 
+	break;
   default:
 	oss << "UNKNOWN";
   }
@@ -921,16 +1121,24 @@ DataLazy::deepCopy()
   case G_IDENTITY:  return new DataLazy(m_id->deepCopy()->getPtr());
   case G_UNARY:	return new DataLazy(m_left->deepCopy()->getPtr(),m_op);
   case G_BINARY:	return new DataLazy(m_left->deepCopy()->getPtr(),m_right->deepCopy()->getPtr(),m_op);
+  case G_NP1OUT: return new DataLazy(m_left->deepCopy()->getPtr(), m_right->deepCopy()->getPtr(),m_op);
+  case G_TENSORPROD: return new DataLazy(m_left->deepCopy()->getPtr(), m_right->deepCopy()->getPtr(), m_op, m_axis_offset, m_transpose);
   default:
 	throw DataException("Programmer error - do not know how to deepcopy operator "+opToString(m_op)+".");
   }
 }
 
 
+// There is no single, natural interpretation of getLength on DataLazy.
+// Instances of DataReady can look at the size of their vectors.
+// For lazy though, it could be the size the data would be if it were resolved;
+// or it could be some function of the lengths of the DataReady instances which 
+// form part of the expression.
+// Rather than have people making assumptions, I have disabled the method.
 DataTypes::ValueType::size_type
 DataLazy::getLength() const
 {
-  return m_length;
+  throw DataException("getLength() does not make sense for lazy data.");
 }
 
 
