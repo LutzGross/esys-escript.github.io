@@ -44,14 +44,30 @@ struct Paso_MPIInfo {
 typedef struct Paso_MPIInfo Paso_MPIInfo;
 
 /* Function prototypes */
+
+PASO_DLL_API
 Paso_MPIInfo* Paso_MPIInfo_alloc( MPI_Comm comm );
+
+PASO_DLL_API
 void          Paso_MPIInfo_free( Paso_MPIInfo* );
+
+PASO_DLL_API
 Paso_MPIInfo *Paso_MPIInfo_getReference( Paso_MPIInfo* in );
+
+PASO_DLL_API
 int           Paso_MPIInfo_initialized( void );
+
+PASO_DLL_API
 index_t Paso_MPIInfo_mod(index_t n, index_t k);
+
+PASO_DLL_API
 dim_t Paso_MPIInfo_setDistribution(Paso_MPIInfo* in ,index_t min_id,index_t max_id,index_t* distribution);
+
+PASO_DLL_API
 void Paso_MPIInfo_Split( Paso_MPIInfo *mpi_info, dim_t n, dim_t* local_N,index_t* offset); 
 bool_t Paso_MPIInfo_noError( Paso_MPIInfo *mpi_info);
+
+PASO_DLL_API
 char *Paso_MPI_appendRankToFileName(const char *, int, int);
 
 #endif /* INC_PASO_MPI */

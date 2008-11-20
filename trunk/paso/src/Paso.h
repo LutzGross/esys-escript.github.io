@@ -51,12 +51,26 @@ typedef enum Paso_ErrorCodeType Paso_ErrorCodeType;
 
 /* interfaces */
 
+
+PASO_DLL_API
 double Paso_timer(void);
+
+PASO_DLL_API
 bool_t Paso_checkPtr(void*);
+
+PASO_DLL_API
 void Paso_resetError(void);
+
+PASO_DLL_API
 void Paso_setError(Paso_ErrorCodeType err,__const char* msg);
+
+PASO_DLL_API
 bool_t Paso_noError(void);
+
+PASO_DLL_API
 Paso_ErrorCodeType Paso_getErrorType(void);
+
+
 char* Paso_getErrorMessage(void);
 #ifndef _OPENMP 
 int omp_get_max_threads(void);
