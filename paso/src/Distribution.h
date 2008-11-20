@@ -45,13 +45,31 @@ typedef struct Paso_Distribution Paso_Distribution;
  Function prototypes 
 **************************************/
 
+
+PASO_DLL_API
 Paso_Distribution*  Paso_Distribution_alloc( Paso_MPIInfo *mpi_info, index_t* first_component, index_t m, index_t b);
+
+PASO_DLL_API
 void                Paso_Distribution_free( Paso_Distribution *in );
+
+PASO_DLL_API
 Paso_Distribution*  Paso_Distribution_getReference( Paso_Distribution *in );
+
+PASO_DLL_API
 index_t Paso_Distribution_getFirstComponent(Paso_Distribution *in );
+
+PASO_DLL_API
 index_t Paso_Distribution_getLastComponent(Paso_Distribution *in );
+
+PASO_DLL_API
 dim_t Paso_Distribution_getGlobalNumComponents(Paso_Distribution *in );
+
+PASO_DLL_API
 dim_t Paso_Distribution_getMyNumComponents(Paso_Distribution *in );
+
+PASO_DLL_API
 dim_t Paso_Distribution_getMinGlobalComponents(Paso_Distribution *in );
+
+PASO_DLL_API
 dim_t Paso_Distribution_getMaxGlobalComponents(Paso_Distribution *in );
 #endif
