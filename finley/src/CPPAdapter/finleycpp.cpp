@@ -80,7 +80,7 @@ using namespace boost::python;
 BOOST_PYTHON_MODULE(finleycpp)
 {
 // This feature was added in boost v1.34
-#if ((BOOST_VERSION/100)%1000 > 33) || (BOOST_VERSION/100000 >1)
+#if ((BOOST_VERSION/100)%1000 > 34) || (BOOST_VERSION/100000 >1)
   // params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
   docstring_options docopt(true, true, false);
 #endif
