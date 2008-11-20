@@ -81,7 +81,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   int elementtype=FINLEY_UNKNOWN;
   Finley_NodeMapping *nodeMapping=NULL;
   Finley_ElementFile* elements=NULL;
-  ElementTypeId TypeId=0;
+  ElementTypeId TypeId=NoType;
   
  
   /****************************************/
