@@ -17,6 +17,9 @@ Import('*')
 
 local_env = clone_env(env_mpi)
 
+# And just for blocktimer cancer.....
+local_env.Append(LIBS = ['esysUtils'])
+
 lib_name = 'paso'
 
 sources = """

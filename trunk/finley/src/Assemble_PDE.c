@@ -42,7 +42,7 @@
 
 #include "Assemble.h"
 #include "Util.h"
-#include "escript/blocktimer.h"
+#include "esysUtils/blocktimer.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif

@@ -27,7 +27,7 @@
 
 
 extern "C" {
-#include "escript/blocktimer.h"
+#include "esysUtils/blocktimer.h"
 }
 
 #include "esysUtils/esysExceptionTranslator.h"

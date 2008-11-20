@@ -50,8 +50,8 @@ sources = """
 	Taipan.cpp
 	TransportProblemException.cpp
 	Utils.cpp
-	blocktimer.c
 """.split()
+	# blocktimer.c
 headers = """
 	AbstractContinuousDomain.h
 	AbstractDomain.h
@@ -89,10 +89,10 @@ headers = """
 	UnaryOp.h
 	UtilC.h
 	Utils.h
-	blocktimer.h
 	esysmpi.h
 	system_dep.h
 """.split()
+	# blocktimer.h
 
 local_env.Append(LIBS = [ 'esysUtils'] + env['sys_libs'] )
 

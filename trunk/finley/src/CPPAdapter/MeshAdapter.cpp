@@ -23,7 +23,7 @@
 #include "paso/Paso_MPI.h"
 #endif
 extern "C" {
-#include "escript/blocktimer.h"
+#include "esysUtils/blocktimer.h"
 }
 #include <vector>
 

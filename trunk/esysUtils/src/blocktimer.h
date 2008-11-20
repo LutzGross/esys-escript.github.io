@@ -24,17 +24,17 @@
 
 # define NUM_TIMERS 1024
 
-ESCRIPT_DLL_API
+ESYSUTILS_DLL_API
 void blocktimer_initialize();
-ESCRIPT_DLL_API
+ESYSUTILS_DLL_API
 void blocktimer_increment(__const char *name, double start_time);
-ESCRIPT_DLL_API
+ESYSUTILS_DLL_API
 int blocktimer_getOrCreateTimerId(__const char *name);
-ESCRIPT_DLL_API
+ESYSUTILS_DLL_API
 void blocktimer_reportSortByName();
-ESCRIPT_DLL_API
+ESYSUTILS_DLL_API
 void blocktimer_reportSortByTime();
-ESCRIPT_DLL_API
+ESYSUTILS_DLL_API
 double blocktimer_time();
 
 
