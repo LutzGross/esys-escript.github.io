@@ -70,8 +70,9 @@ bool_t Paso_noError(void);
 PASO_DLL_API
 Paso_ErrorCodeType Paso_getErrorType(void);
 
-
+PASO_DLL_API
 char* Paso_getErrorMessage(void);
+
 #ifndef _OPENMP 
 int omp_get_max_threads(void);
 #endif
