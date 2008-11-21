@@ -44,7 +44,7 @@ void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC,Paso_Sp
          invA_FF_11,invA_FF_21,invA_FF_31,invA_FF_12,invA_FF_22,invA_FF_32,invA_FF_13,invA_FF_23,invA_FF_33,
          A11=0,A21=0,A31=0,A12=0,A22=0,A32=0,A13=0,A23=0,A33=0,A_FC_11,A_FC_21,A_FC_31,A_FC_12,A_FC_22,A_FC_32,A_FC_13,A_FC_23,A_FC_33;
   if (n_block==1) {
-     #pragma omp parallel for private(i,iPtr_CC,index_CC,index_CC_len,col_CF,set_A,iPtr_CF,iPtr_FC,col_FC,where_p,A11) schedule(static)
+     #pragma omp parallel for firstprivate(A11) private(i,iPtr_CC,index_CC,index_CC_len,col_CF,set_A,iPtr_CF,iPtr_FC,col_FC,where_p) schedule(static)
      for (i = 0; i < n_loc_rows;++i) {
         iPtr_CC=A_CC->pattern->ptr[i];
         index_CC=&(A_CC->pattern->index[iPtr_CC]);
@@ -68,7 +68,7 @@ void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC,Paso_Sp
          } /* end of iPtr_CF loop */
       } /* end of irow loop */
    } else if (n_block==2) {
-      #pragma omp parallel for private(i,iPtr_CC,index_CC,index_CC_len,iPtr_CF,col_CF,iPtr_FC,col_FC,where_p,iPtr_CC_2,set_A,A_CF_11,A_CF_21,A_CF_12,A_CF_22,invA_FF_11,invA_FF_21,invA_FF_12,invA_FF_22,A11,A21,A12,A22,A_FC_11,A_FC_21,A_FC_12,A_FC_22) schedule(static)
+      #pragma omp parallel for firstprivate(A11,A21,A12,A22) private(i,iPtr_CC,index_CC,index_CC_len,iPtr_CF,col_CF,iPtr_FC,col_FC,where_p,iPtr_CC_2,set_A,A_CF_11,A_CF_21,A_CF_12,A_CF_22,invA_FF_11,invA_FF_21,invA_FF_12,invA_FF_22,A_FC_11,A_FC_21,A_FC_12,A_FC_22) schedule(static)
      for (i = 0; i < n_loc_rows;++i) {
         iPtr_CC=A_CC->pattern->ptr[i];
         index_CC=&(A_CC->pattern->index[iPtr_CC]);
@@ -118,7 +118,7 @@ void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC,Paso_Sp
          } /* end of iPtr_CF loop */
       } /* end of irow loop */
    } else if (n_block==3) {
-      #pragma omp parallel for private(i,iPtr_CC,index_CC,index_CC_len,iPtr_CF,col_CF,iPtr_FC,col_FC,where_p,iPtr_CC_2,set_A,A_CF_11,A_CF_21,A_CF_31,A_CF_12,A_CF_22,A_CF_32,A_CF_13,A_CF_23,A_CF_33,invA_FF_11,invA_FF_21,invA_FF_31,invA_FF_12,invA_FF_22,invA_FF_32,invA_FF_13,invA_FF_23,invA_FF_33,A11,A21,A31,A12,A22,A32,A13,A23,A33,A_FC_11,A_FC_21,A_FC_31,A_FC_12,A_FC_22,A_FC_32,A_FC_13,A_FC_23,A_FC_33) schedule(static)
+      #pragma omp parallel for firstprivate(A11,A21,A31,A12,A22,A32,A13,A23,A33) private(i,iPtr_CC,index_CC,index_CC_len,iPtr_CF,col_CF,iPtr_FC,col_FC,where_p,iPtr_CC_2,set_A,A_CF_11,A_CF_21,A_CF_31,A_CF_12,A_CF_22,A_CF_32,A_CF_13,A_CF_23,A_CF_33,invA_FF_11,invA_FF_21,invA_FF_31,invA_FF_12,invA_FF_22,invA_FF_32,invA_FF_13,invA_FF_23,invA_FF_33,A_FC_11,A_FC_21,A_FC_31,A_FC_12,A_FC_22,A_FC_32,A_FC_13,A_FC_23,A_FC_33) schedule(static)
      for (i = 0; i < n_loc_rows;++i) {
         iPtr_CC=A_CC->pattern->ptr[i];
         index_CC=&(A_CC->pattern->index[iPtr_CC]);
