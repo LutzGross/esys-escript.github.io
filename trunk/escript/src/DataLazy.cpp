@@ -1021,7 +1021,6 @@ cout << "Buffers=" << m_buffsRequired << endl;
   int numthreads=1;
 #ifdef _OPENMP
   numthreads=getNumberOfThreads();
-  int threadnum=0;
 #endif 
   ValueType v(numthreads*threadbuffersize);	
 cout << "Buffer created with size=" << v.size() << endl;
@@ -1033,7 +1032,7 @@ cout << "Buffer created with size=" << v.size() << endl;
   int totalsamples=getNumSamples();
   const ValueType* res=0;	// Vector storing the answer
   size_t resoffset=0;		// where in the vector to find the answer
-  #pragma omp parallel for private(sample,resoffset,outoffset,threadnum,res) schedule(static)
+  #pragma omp parallel for private(sample,resoffset,outoffset,res) schedule(static)
   for (sample=0;sample<totalsamples;++sample)
   {
 cout << "################################# " << sample << endl;
