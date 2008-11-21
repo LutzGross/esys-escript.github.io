@@ -172,7 +172,8 @@ void DataVectorTestCase::testAll() {
     DataVector vec(1000,0,1);
 
     try {
-      double x = vec[1001];
+      (void) vec[1001];
+
       assert(false);
     }
 

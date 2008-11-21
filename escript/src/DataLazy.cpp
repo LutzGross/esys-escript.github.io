@@ -97,6 +97,7 @@ enum ES_opgroup
    G_BINARY,		// pointwise operations with two arguments
    G_UNARY,		// pointwise operations with one argument
    G_NP1OUT,		// non-pointwise op with one output
+   G_NP1OUT_P,		// non-pointwise op with one output requiring a parameter
    G_TENSORPROD		// general tensor product
 };
 
@@ -110,8 +111,10 @@ string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","^",
 			"log10","log","sign","abs","neg","pos","exp","sqrt",
 			"1/","where>0","where<0","where>=0","where<=0",
 			"symmetric","nonsymmetric",
-			"prod"};
-int ES_opcount=36;
+			"prod",
+			"transpose",
+			"trace"};
+int ES_opcount=38;
 ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY, G_BINARY,
 			G_UNARY,G_UNARY,G_UNARY, //10
 			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,	// 17
@@ -119,7 +122,8 @@ ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY,
 			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,		// 28
 			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,			// 33
 			G_NP1OUT,G_NP1OUT,
-			G_TENSORPROD};
+			G_TENSORPROD,
+			G_NP1OUT_P, G_NP1OUT_P};
 inline
 ES_opgroup
 getOpgroup(ES_optype op)
@@ -175,6 +179,25 @@ resultShape(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 	  throw DataException("Shapes not the same - arguments must have matching shapes (or be scalars) for (point)binary operations on lazy data.");
 	}
 	return left->getShape();
+}
+
+// return the shape for "op left"
+
+DataTypes::ShapeType
+resultShape(DataAbstract_ptr left, ES_optype op)
+{
+	switch(op)
+	{
+    	case TRANS:
+		return left->getShape();
+	break;
+   	case TRACE:
+		return DataTypes::scalarShape;
+	break;
+    	default:
+cout << op << endl;
+	throw DataException("Programmer error - resultShape(left,op) can't compute shapes for operator "+opToString(op)+".");
+	}
 }
 
 // determine the output shape for the general tensor product operation
@@ -257,6 +280,7 @@ calcBuffs(const DataLazy_ptr& left, const DataLazy_ptr& right, ES_optype op)
    case G_BINARY: return max(left->getBuffsRequired(),right->getBuffsRequired()+1);
    case G_UNARY: return max(left->getBuffsRequired(),1);
    case G_NP1OUT: return 1+max(left->getBuffsRequired(),1);
+   case G_NP1OUT_P: return 1+max(left->getBuffsRequired(),1);
    case G_TENSORPROD: return 1+max(left->getBuffsRequired(),right->getBuffsRequired()+1);
    default: 
 	throw DataException("Programmer Error - attempt to calcBuffs() for operator "+opToString(op)+".");
@@ -466,6 +490,34 @@ cout << "(4)Lazy created with " << m_samplesize << endl;
 }
 
 
+DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, int axis_offset)
+	: parent(left->getFunctionSpace(), resultShape(left,op)),
+	m_op(op),
+	m_axis_offset(axis_offset),
+	m_transpose(0)
+{
+   if ((getOpgroup(op)!=G_NP1OUT_P))
+   {
+	throw DataException("Programmer error - constructor DataLazy(left, op, ax) will only process UNARY operations which require parameters.");
+   }
+   DataLazy_ptr lleft;
+   if (!left->isLazy())
+   {
+	lleft=DataLazy_ptr(new DataLazy(left));
+   }
+   else
+   {
+	lleft=dynamic_pointer_cast<DataLazy>(left);
+   }
+   m_readytype=lleft->m_readytype;
+   m_left=lleft;
+   m_buffsRequired=calcBuffs(m_left, m_right,m_op);	// yeah m_right will be null at this point
+   m_samplesize=getNumDPPSample()*getNoValues();
+   m_maxsamplesize=max(m_samplesize,m_left->getMaxSampleSize());
+cout << "(5)Lazy created with " << m_samplesize << endl;
+}
+
+
 DataLazy::~DataLazy()
 {
 }
@@ -610,6 +662,12 @@ DataLazy::collapseToReady()
 	break;
     case PROD:
 	result=C_GeneralTensorProduct(left,right,m_axis_offset, m_transpose);
+	break;
+    case TRANS:
+	result=left.transpose(m_axis_offset);
+	break;
+    case TRACE:
+	result=left.trace(m_axis_offset);
 	break;
     default:
 	throw DataException("Programmer error - collapseToReady does not know how to resolve operator "+opToString(m_op)+".");
@@ -810,7 +868,45 @@ DataLazy::resolveNP1OUT(ValueType& v, size_t offset, int sampleNo, size_t& roffs
   return &v;
 }
 
+/*
+  \brief Compute the value of the expression (unary operation) for the given sample.
+  \return Vector which stores the value of the subexpression for the given sample.
+  \param v A vector to store intermediate results.
+  \param offset Index in v to begin storing results.
+  \param sampleNo Sample number to evaluate.
+  \param roffset (output parameter) the offset in the return vector where the result begins.
 
+  The return value will be an existing vector so do not deallocate it.
+  If the result is stored in v it should be stored at the offset given.
+  Everything from offset to the end of v should be considered available for this method to use.
+*/
+DataTypes::ValueType*
+DataLazy::resolveNP1OUT_P(ValueType& v, size_t offset, int sampleNo, size_t& roffset) const
+{
+	// we assume that any collapsing has been done before we get here
+	// since we only have one argument we don't need to think about only
+	// processing single points.
+  if (m_readytype!='E')
+  {
+    throw DataException("Programmer error - resolveNP1OUT_P should only be called on expanded Data.");
+  }
+	// since we can't write the result over the input, we need a result offset further along
+  size_t subroffset=roffset+m_samplesize;
+  const ValueType* vleft=m_left->resolveSample(v,offset,sampleNo,subroffset);
+  roffset=offset;
+  switch (m_op)
+  {
+    case TRACE:
+         DataMaths::trace(*vleft,m_left->getShape(),subroffset, v,getShape(),offset,m_axis_offset);
+	break;
+    case TRANS:
+         DataMaths::transpose(*vleft,m_left->getShape(),subroffset, v,getShape(),offset,m_axis_offset);
+	break;
+    default:
+	throw DataException("Programmer error - resolveNP1OUTP can not resolve operator "+opToString(m_op)+".");
+  }
+  return &v;
+}
 
 
 #define PROC_OP(TYPE,X)                               \
@@ -851,17 +947,26 @@ cout << "Resolve binary: " << toString() << endl;
 	// first work out which of the children are expanded
   bool leftExp=(m_left->m_readytype=='E');
   bool rightExp=(m_right->m_readytype=='E');
+  if (!leftExp && !rightExp)
+  {
+	throw DataException("Programmer Error - please use collapse if neither argument has type 'E'.");
+  }
+  bool leftScalar=(m_left->getRank()==0);
+  bool rightScalar=(m_right->getRank()==0);
   bool bigloops=((leftExp && rightExp) || (!leftExp && !rightExp));	// is processing in single step?
   int steps=(bigloops?1:getNumDPPSample());
   size_t chunksize=(bigloops? m_samplesize : getNoValues());	// if bigloops, pretend the whole sample is a datapoint
   if (m_left->getRank()!=m_right->getRank())	// need to deal with scalar * ? ops
   {
- 	EsysAssert((m_left->getRank()==0) || (m_right->getRank()==0), "Error - Ranks must match unless one is 0.");
+ 	if (!leftScalar && !rightScalar)
+	{
+	   throw DataException("resolveBinary - ranks of arguments must match unless one of them is scalar."); 
+	}
 	steps=getNumDPPSample()*max(m_left->getNoValues(),m_right->getNoValues());
 	chunksize=1;	// for scalar
   }		
-  int leftStep=((leftExp && !rightExp)? m_right->getNoValues() : 0);
-  int rightStep=((rightExp && !leftExp)? m_left->getNoValues() : 0);
+  int leftStep=((leftExp && (!rightExp || rightScalar))? m_right->getNoValues() : 0);
+  int rightStep=((rightExp && (!leftExp || leftScalar))? m_left->getNoValues() : 0);
   int resultStep=max(leftStep,rightStep);	// only one (at most) should be !=0
 	// Get the values of sub-expressions
   const ValueType* left=m_left->resolveSample(v,offset,sampleNo,lroffset);
@@ -991,6 +1096,7 @@ cout << "Resolve sample " << toString() << endl;
   case G_UNARY: return resolveUnary(v, offset,sampleNo,roffset);
   case G_BINARY: return resolveBinary(v, offset,sampleNo,roffset);
   case G_NP1OUT: return resolveNP1OUT(v, offset, sampleNo,roffset);
+  case G_NP1OUT_P: return resolveNP1OUT_P(v, offset, sampleNo,roffset);
   case G_TENSORPROD: return resolveTProd(v,offset, sampleNo,roffset);
   default:
     throw DataException("Programmer Error - resolveSample does not know how to process "+opToString(m_op)+".");
@@ -1096,6 +1202,7 @@ DataLazy::intoString(ostringstream& oss) const
 	break;
   case G_UNARY:
   case G_NP1OUT:
+  case G_NP1OUT_P:
 	oss << opToString(m_op) << '(';
 	m_left->intoString(oss);
 	oss << ')';

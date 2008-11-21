@@ -1722,20 +1722,13 @@ Data::nonsymmetric() const
      }
 }
 
-
-// Doing a lazy version of this would require some thought.
-// First it needs a parameter (which DataLazy doesn't support at the moment).
-// (secondly although it does not apply to trace) we can't handle operations which return 
-// multiple results (like eigenvectors_values) or return values of different shapes to their input
-// (like eigenvalues).
 Data
 Data::trace(int axis_offset) const
-{
+{     
      if (isLazy())
      {
-	Data temp(*this);	// to get around the fact that you can't resolve a const Data
-	temp.resolve();
-	return temp.trace(axis_offset);
+	DataLazy* c=new DataLazy(borrowDataPtr(),TRACE,axis_offset);
+	return Data(c);
      }
      DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
@@ -1789,9 +1782,8 @@ Data::transpose(int axis_offset) const
 {     
      if (isLazy())
      {
-	Data temp(*this);	// to get around the fact that you can't resolve a const Data
-	temp.resolve();
-	return temp.transpose(axis_offset);
+	DataLazy* c=new DataLazy(borrowDataPtr(),TRANS,axis_offset);
+	return Data(c);
      }
      DataTypes::ShapeType s=getDataPointShape();
      DataTypes::ShapeType ev_shape;
