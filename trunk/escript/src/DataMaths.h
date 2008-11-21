@@ -296,6 +296,10 @@ Note that vector in this context refers to a data vector storing datapoints not 
             DataTypes::ValueType::size_type evOffset,
 	    int axis_offset)
   {
+   for (unsigned int j=0;j<DataTypes::noValues(evShape);++j)
+   {
+      ev[evOffset+j]=0;
+   }
    if (DataTypes::getRank(inShape) == 2) {
      int s0=inShape[0]; // Python wrapper limits to square matrix
      int i;

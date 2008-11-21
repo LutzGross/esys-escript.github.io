@@ -63,7 +63,9 @@ enum ES_optype
 	LEZ=GZ+3,
 	SYM=LEZ+1,
 	NSYM=SYM+1,
-	PROD=NSYM+1
+	PROD=NSYM+1,
+	TRANS=PROD+1,
+	TRACE=TRANS+1
 };
 
 ESCRIPT_DLL_API
@@ -110,6 +112,18 @@ public:
   */
   ESCRIPT_DLL_API
   DataLazy(DataAbstract_ptr left, ES_optype op);
+
+  /**
+  \brief Produce a DataLazy for a unary operation which requires a parameter.
+  \param left DataAbstract to be operated on.
+  \param op unary operation to perform.
+  \param axis_offset the parameter for the operation
+  \throws DataException if op is not a unary operation or if p cannot be converted to a DataLazy.
+  Note that IDENTITY is not considered a unary operation.
+  */
+  ESCRIPT_DLL_API  
+  DataLazy(DataAbstract_ptr left, ES_optype op, int axis_offset);
+
 
   /**
   \brief Produce a DataLazy for a binary operation.
@@ -287,6 +301,21 @@ private:
 
   ValueType*
   resolveNP1OUT(ValueType& v, size_t offset, int sampleNo, size_t& roffset) const;
+
+/**
+  \brief Compute the value of the expression (unary operation) for the given sample.
+  \return Vector which stores the value of the subexpression for the given sample.
+  \param v A vector to store intermediate results.
+  \param offset Index in v to begin storing results.
+  \param sampleNo Sample number to evaluate.
+  \param roffset (output parameter) the offset in the return vector where the result begins.
+
+  The return value will be an existing vector so do not deallocate it.
+  If the result is stored in v it should be stored at the offset given.
+  Everything from offset to the end of v should be considered available for this method to use.
+*/
+DataTypes::ValueType*
+resolveNP1OUT_P(ValueType& v, size_t offset, int sampleNo, size_t& roffset) const;
 
 
   /**
