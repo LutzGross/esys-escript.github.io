@@ -1894,7 +1894,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
   double next,local_min;
   int local_lowi=0,local_lowj=0;	
 
-  #pragma omp parallel private(next,local_min,local_lowi,local_lowj)
+  #pragma omp parallel firstprivate(local_lowi,local_lowj) private(next,local_min)
   {
     local_min=min;
     #pragma omp for private(i,j) schedule(static)
@@ -1921,7 +1921,8 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
 	next = temp.getDataPoint(lowi,lowj);
 	int lowProc = 0;
 	double *globalMins = new double[get_MPISize()+1];
-	int error = MPI_Gather ( &next, 1, MPI_DOUBLE, globalMins, 1, MPI_DOUBLE, 0, get_MPIComm() );
+	int error;
+    error = MPI_Gather ( &next, 1, MPI_DOUBLE, globalMins, 1, MPI_DOUBLE, 0, get_MPIComm() );
 
 	if( get_MPIRank()==0 ){
 		next = globalMins[lowProc];
