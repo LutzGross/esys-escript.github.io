@@ -1483,7 +1483,7 @@ Data::Lsup()
 {
    if (isLazy())
    {
-	expand();
+	resolve();
    }
    return LsupWorker();
 }
@@ -1503,7 +1503,7 @@ Data::sup()
 {
    if (isLazy())
    {
-	expand();
+	resolve();
    }
    return supWorker();
 }
@@ -1523,7 +1523,7 @@ Data::inf()
 {
    if (isLazy())
    {
-	expand();
+	resolve();
    }
    return infWorker();
 }
@@ -1615,6 +1615,12 @@ Data::minval() const
 Data
 Data::swapaxes(const int axis0, const int axis1) const
 {
+     if (isLazy())
+     {
+	Data temp(*this);
+	temp.resolve();
+	return temp.swapaxes(axis0,axis1);
+     }
      int axis0_tmp,axis1_tmp;
      DataTypes::ShapeType s=getDataPointShape();
      DataTypes::ShapeType ev_shape;

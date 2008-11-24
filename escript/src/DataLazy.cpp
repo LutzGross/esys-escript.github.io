@@ -195,7 +195,6 @@ resultShape(DataAbstract_ptr left, ES_optype op)
 		return DataTypes::scalarShape;
 	break;
     	default:
-cout << op << endl;
 	throw DataException("Programmer error - resultShape(left,op) can't compute shapes for operator "+opToString(op)+".");
 	}
 }
@@ -220,6 +219,10 @@ GTPShape(DataAbstract_ptr left, DataAbstract_ptr right, int axis_offset, int tra
   else if (transpose == 2)	{ start1 = rank1-axis_offset; }
   else				{ throw DataException("DataLazy GeneralTensorProduct Constructor: Error - transpose should be 0, 1 or 2"); }
 
+  if (rank0<axis_offset)
+  {
+	throw DataException("DataLazy GeneralTensorProduct Constructor: Error - rank of left < axisoffset");
+  }
 
   // Adjust the shapes for transpose
   DataTypes::ShapeType tmpShape0(rank0);	// pre-sizing the vectors rather
