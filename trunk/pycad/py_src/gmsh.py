@@ -134,7 +134,7 @@ class Design(design.Design):
         a mesh file name in gmsh format is returned.
         """
         f = open(self.getScriptFileName(),"w")
-        setScriptFile(f)
+        self.setScriptFile(f)
         f.write(self.getScriptString())
         cmd = self.getCommandString()
         ret = os.system(cmd) / 256
