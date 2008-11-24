@@ -1235,8 +1235,9 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
 //
 void MeshAdapter::interpolateACross(escript::Data& target,const escript::Data& source) const
 {
-   const MeshAdapter& targetDomain=dynamic_cast<const MeshAdapter&>(*(target.getFunctionSpace().getDomain()));
-   if (targetDomain!=*this) 
+   const_Domain_ptr targetDomain_p=target.getFunctionSpace().getDomain();
+   const MeshAdapter* targetDomain=dynamic_cast<const MeshAdapter*>(targetDomain_p.get());
+   if (targetDomain!=this) 
       throw FinleyAdapterException("Error - Illegal domain of interpolation target");
 
    throw FinleyAdapterException("Error - Finley does not allow interpolation across domains yet.");

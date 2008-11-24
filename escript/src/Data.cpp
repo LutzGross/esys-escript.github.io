@@ -131,7 +131,7 @@ Data::Data(const Data& inData,
     if (inData.isConstant()) {	// for a constant function, we just need to use the new function space
       if (!inData.probeInterpolation(functionspace))
       {           // Even though this is constant, we still need to check whether interpolation is allowed
-	throw FunctionSpaceException("Call to probeInterpolation returned false for DataConstant.");
+	throw FunctionSpaceException("Cannot interpolate across to the domain of the specified FunctionSpace. (DataConstant)");
       }
       // if the data is not lazy, this will just be a cast to DataReady
       DataReady_ptr dr=inData.m_data->resolve();
