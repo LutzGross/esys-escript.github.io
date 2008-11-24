@@ -367,15 +367,6 @@ Note: This is _not_ equivalent to weak_ptr::lock.
   virtual void saveVTK(const std::string& filename,const boost::python::dict& arg) const;
 
   /**
-     \brief
-     returns the function space representation of the type functionSpaceCode on this domain
-     as a vtkObject.
-
-     This has to be implemented by the actual Domain adapter.
-  */
-  //virtual vtkObject createVtkObject(int functionSpaceCode) const;
-
-  /**
      \brief assigns new tag newTag to all samples of functionspace with a positive
      value of mask for any its sample point.
 
