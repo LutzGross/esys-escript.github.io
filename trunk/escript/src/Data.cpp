@@ -1123,8 +1123,13 @@ Data::integrateWorker() const
   // calculate the integral values
   vector<double> integrals(dataPointSize);
   vector<double> integrals_local(dataPointSize);
+  const AbstractContinuousDomain* dom=dynamic_cast<const AbstractContinuousDomain*>(getDomain().get());
+  if (dom==0)
+  {				
+    throw DataException("Can not integrate over non-continuous domains.");
+  }
 #ifdef PASO_MPI
-  AbstractContinuousDomain::asAbstractContinuousDomain(*getDomain()).setToIntegrals(integrals_local,*this);
+  dom->setToIntegrals(integrals_local,*this);
   // Global sum: use an array instead of a vector because elements of array are guaranteed to be contiguous in memory
   double *tmp = new double[dataPointSize];
   double *tmp_local = new double[dataPointSize];
@@ -1134,7 +1139,7 @@ Data::integrateWorker() const
   delete[] tmp;
   delete[] tmp_local;
 #else
-  AbstractContinuousDomain::asAbstractContinuousDomain(*getDomain()).setToIntegrals(integrals,*this);
+  dom->setToIntegrals(integrals,*this);
 #endif
 
   //
