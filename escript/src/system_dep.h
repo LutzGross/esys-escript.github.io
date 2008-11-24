@@ -80,4 +80,7 @@
 # endif
 #endif
 
+#ifndef ESCRIPT_MAX_DATA_RANK
+#define ESCRIPT_MAX_DATA_RANK 4
+#endif
 #endif
