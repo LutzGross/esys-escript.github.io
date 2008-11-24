@@ -33,6 +33,7 @@ extern "C" {
 #include <algorithm>
 #include <vector>
 #include <functional>
+#include <sstream>	// so we can throw messages about ranks
 
 #include <boost/python/dict.hpp>
 #include <boost/python/extract.hpp>
@@ -176,14 +177,6 @@ Data::Data(const numeric::array& value,
   initialise(value,what,expanded);
   m_protected=false;
 }
-/*
-Data::Data(const DataArrayView& value,
-	   const FunctionSpace& what,
-           bool expanded)
-{
-  initialise(value,what,expanded);
-  m_protected=false;
-}*/
 
 Data::Data(const DataTypes::ValueType& value,
 		 const DataTypes::ShapeType& shape,
@@ -212,22 +205,7 @@ Data::Data(const object& value,
 
   // extract the shape of the numarray
   DataTypes::ShapeType tempShape=DataTypes::shapeFromNumArray(asNumArray);
-// /*  for (int i=0; i < asNumArray.getrank(); i++) {
-//     tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
-//   }*/
-//   // get the space for the data vector
-//   int len = DataTypes::noValues(tempShape);
-//   DataVector temp_data(len, 0.0, len);
-// /*  DataArrayView temp_dataView(temp_data, tempShape);
-//   temp_dataView.copy(asNumArray);*/
-//   temp_data.copyFromNumArray(asNumArray);
-
-  //
-  // Create DataConstant using the given value and all other parameters
-  // copied from other. If value is a rank 0 object this Data
-  // will assume the point data shape of other.
-
-  if (DataTypes::getRank(tempShape)/*temp_dataView.getRank()*/==0) {
+  if (DataTypes::getRank(tempShape)==0) {
 
 
     // get the space for the data vector
@@ -238,18 +216,12 @@ Data::Data(const object& value,
     int len = DataTypes::noValues(other.getDataPointShape());
 
     DataVector temp2_data(len, temp_data[0]/*temp_dataView()*/, len);
-    //DataArrayView temp2_dataView(temp2_data, other.getPointDataView().getShape());
-//     initialise(temp2_dataView, other.getFunctionSpace(), false);
-
     DataConstant* t=new DataConstant(other.getFunctionSpace(),other.getDataPointShape(),temp2_data);
-//     boost::shared_ptr<DataAbstract> sp(t);
-//     m_data=sp;
     m_data=DataAbstract_ptr(t);
 
   } else {
     //
     // Create a DataConstant with the same sample shape as other
-//     initialise(temp_dataView, other.getFunctionSpace(), false);
     DataConstant* t=new DataConstant(asNumArray,other.getFunctionSpace());
 //     boost::shared_ptr<DataAbstract> sp(t);
 //     m_data=sp;
@@ -2592,6 +2564,13 @@ escript::C_GeneralTensorProduct(Data& arg_0,
      int out_index=0;
      for (int i=0; i<rank0-axis_offset; i++, ++out_index) { shape2[out_index]=tmpShape0[i]; } // First part of arg_0_Z
      for (int i=axis_offset; i<rank1; i++, ++out_index)   { shape2[out_index]=tmpShape1[i]; } // Last part of arg_1_Z
+  }
+
+  if (shape2.size()>ESCRIPT_MAX_DATA_RANK)
+  {
+     ostringstream os;
+     os << "C_GeneralTensorProduct: Error - Attempt to create a rank " << shape2.size() << " object. The maximum rank is " << ESCRIPT_MAX_DATA_RANK << ".";
+     throw DataException(os.str());
   }
 
   // Declare output Data object

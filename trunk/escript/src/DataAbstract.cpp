@@ -68,6 +68,13 @@ DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape, bo
 
 {
     m_isempty=isDataEmpty;
+    if (m_rank>ESCRIPT_MAX_DATA_RANK)
+    {
+	ostringstream os;
+        os << "Error - Attempt to create a rank " << m_rank 
+	   << " object. The maximum rank is " << ESCRIPT_MAX_DATA_RANK << ".";
+     throw DataException(os.str());
+    }
 }
 
 DataAbstract::~DataAbstract() 
