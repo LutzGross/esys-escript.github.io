@@ -28,6 +28,9 @@
 #include "UnaryFuncs.h"		// for escript::fsign
 #include "Utils.h"
 
+// #define LAZYDEBUG(X) X; 
+#define LAZYDEBUG(X)
+
 /*
 How does DataLazy work?
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -340,7 +343,7 @@ DataLazy::DataLazy(DataAbstract_ptr p)
    m_buffsRequired=1;
    m_samplesize=getNumDPPSample()*getNoValues();
    m_maxsamplesize=m_samplesize;
-cout << "(1)Lazy created with " << m_samplesize << endl;
+LAZYDEBUG(cout << "(1)Lazy created with " << m_samplesize << endl;)
 }
 
 
@@ -433,7 +436,7 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
    m_samplesize=getNumDPPSample()*getNoValues();
    m_maxsamplesize=max(max(m_samplesize,m_right->getMaxSampleSize()),m_left->getMaxSampleSize());	
    m_buffsRequired=calcBuffs(m_left, m_right,m_op);
-cout << "(3)Lazy created with " << m_samplesize << endl;
+LAZYDEBUG(cout << "(3)Lazy created with " << m_samplesize << endl;)
 }
 
 DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op, int axis_offset, int transpose)
@@ -497,7 +500,7 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op, 
    m_samplesize=getNumDPPSample()*getNoValues();
    m_maxsamplesize=max(max(m_samplesize,m_right->getMaxSampleSize()),m_left->getMaxSampleSize());	
    m_buffsRequired=calcBuffs(m_left, m_right,m_op);
-cout << "(4)Lazy created with " << m_samplesize << endl;
+LAZYDEBUG(cout << "(4)Lazy created with " << m_samplesize << endl;)
 }
 
 
@@ -525,7 +528,7 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, int axis_offset)
    m_buffsRequired=calcBuffs(m_left, m_right,m_op);	// yeah m_right will be null at this point
    m_samplesize=getNumDPPSample()*getNoValues();
    m_maxsamplesize=max(m_samplesize,m_left->getMaxSampleSize());
-cout << "(5)Lazy created with " << m_samplesize << endl;
+LAZYDEBUG(cout << "(5)Lazy created with " << m_samplesize << endl;)
 }
 
 
@@ -952,7 +955,7 @@ DataLazy::resolveNP1OUT_P(ValueType& v, size_t offset, int sampleNo, size_t& rof
 DataTypes::ValueType*
 DataLazy::resolveBinary(ValueType& v,  size_t offset, int sampleNo, size_t& roffset) const
 {
-cout << "Resolve binary: " << toString() << endl;
+LAZYDEBUG(cout << "Resolve binary: " << toString() << endl;)
 
   size_t lroffset=0, rroffset=0;	// offsets in the left and right result vectors
 	// first work out which of the children are expanded
@@ -1027,7 +1030,7 @@ cout << "Resolve binary: " << toString() << endl;
 DataTypes::ValueType*
 DataLazy::resolveTProd(ValueType& v,  size_t offset, int sampleNo, size_t& roffset) const
 {
-cout << "Resolve TensorProduct: " << toString() << endl;
+LAZYDEBUG(cout << "Resolve TensorProduct: " << toString() << endl;)
 
   size_t lroffset=0, rroffset=0;	// offsets in the left and right result vectors
 	// first work out which of the children are expanded
@@ -1081,7 +1084,7 @@ cout << "Resolve TensorProduct: " << toString() << endl;
 const DataTypes::ValueType*
 DataLazy::resolveSample(ValueType& v, size_t offset, int sampleNo, size_t& roffset)
 {
-cout << "Resolve sample " << toString() << endl;
+LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
 	// collapse so we have a 'E' node or an IDENTITY for some other type
   if (m_readytype!='E' && m_op!=IDENTITY)
   {
@@ -1121,8 +1124,8 @@ DataReady_ptr
 DataLazy::resolve()
 {
 
-cout << "Sample size=" << m_samplesize << endl;
-cout << "Buffers=" << m_buffsRequired << endl;
+LAZYDEBUG(cout << "Sample size=" << m_samplesize << endl;)
+LAZYDEBUG(cout << "Buffers=" << m_buffsRequired << endl;)
 
   if (m_readytype!='E')		// if the whole sub-expression is Constant or Tagged, then evaluate it normally
   {
@@ -1140,7 +1143,7 @@ cout << "Buffers=" << m_buffsRequired << endl;
   numthreads=getNumberOfThreads();
 #endif 
   ValueType v(numthreads*threadbuffersize);	
-cout << "Buffer created with size=" << v.size() << endl;
+LAZYDEBUG(cout << "Buffer created with size=" << v.size() << endl;)
   DataExpanded* result=new DataExpanded(getFunctionSpace(),getShape(),  ValueType(getNoValues()));
   ValueType& resvec=result->getVector();
   DataReady_ptr resptr=DataReady_ptr(result);
@@ -1152,20 +1155,20 @@ cout << "Buffer created with size=" << v.size() << endl;
   #pragma omp parallel for private(sample,resoffset,outoffset,res) schedule(static)
   for (sample=0;sample<totalsamples;++sample)
   {
-cout << "################################# " << sample << endl;
+LAZYDEBUG(cout << "################################# " << sample << endl;)
 #ifdef _OPENMP
     res=resolveSample(v,threadbuffersize*omp_get_thread_num(),sample,resoffset);
 #else
     res=resolveSample(v,0,sample,resoffset);   // res would normally be v, but not if its a single IDENTITY op.
 #endif
-cerr << "-------------------------------- " << endl;
+LAZYDEBUG(cerr << "-------------------------------- " << endl;)
     outoffset=result->getPointOffset(sample,0);
-cerr << "offset=" << outoffset << endl;
+LAZYDEBUG(cerr << "offset=" << outoffset << endl;)
     for (unsigned int i=0;i<m_samplesize;++i,++outoffset,++resoffset)	// copy values into the output vector
     {
 	resvec[outoffset]=(*res)[resoffset];
     }
-cerr << "*********************************" << endl;
+LAZYDEBUG(cerr << "*********************************" << endl;)
   }
   return resptr;
 }
