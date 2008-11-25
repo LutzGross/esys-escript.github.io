@@ -61,4 +61,13 @@
 
 #define NO_ARG
 
+/* you'll need this one day. */
+#ifndef __const
+# if (defined __STDC__ && __STDC__) || defined __cplusplus
+#  define __const	const
+# else
+#  define __const
+# endif
+#endif
+
 #endif
