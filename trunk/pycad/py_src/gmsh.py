@@ -44,6 +44,7 @@ class Design(design.Design):
     DELAUNAY="iso"
     NETGEN="netgen"
     TETGEN="tetgen"
+
     def __init__(self,dim=3,element_size=1.,order=1,keep_files=False):
        """
        initializes the gmsh design
@@ -62,7 +63,9 @@ class Design(design.Design):
        set the filename for the gmsh input script. if no name is given a name with extension geo is generated.
        """
        if name == None:
-           self.__scriptname=tempfile.mkstemp(suffix=".geo")[1]
+           tmp_f_id=tempfile.mkstemp(suffix=".geo")
+           self.__scriptname=tmp_f_id[1]
+           os.close(tmp_f_id[0])
        else:
            self.__scriptname=name
            self.setKeepFilesOn()
@@ -76,7 +79,9 @@ class Design(design.Design):
        sets the name for the gmsh mesh file. if no name is given a name with extension msh is generated.
        """
        if name == None:
-           self.__mshname=tempfile.mkstemp(suffix=".msh")[1]
+           tmp_f_id=tempfile.mkstemp(suffix=".msh")
+           self.__mshname=tmp_f_id[1]
+           os.close(tmp_f_id[0])
        else:
            self.__mshname=name
            self.setKeepFilesOn()
@@ -98,9 +103,10 @@ class Design(design.Design):
         """
         clean up
         """
-        if not self.keepFiles():
-               os.unlink(self.getScriptFileName())
-               os.unlink(self.getMeshFileName())
+        if not self.keepFiles() :
+            os.unlink(self.getScriptFileName())
+            os.unlink(self.getMeshFileName())
+
     def getCommandString(self):
         """
         returns the gmsh comand
@@ -128,7 +134,9 @@ class Design(design.Design):
         returns a handle to a mesh meshing the design. In the current implementation 
         a mesh file name in gmsh format is returned.
         """
-        open(self.getScriptFileName(),"w").write(self.getScriptString())
+        f = open(self.getScriptFileName(),"w")
+        f.write(self.getScriptString())
+        f.close()
         cmd = self.getCommandString()
         ret = os.system(cmd) / 256
 	if ret > 0:
