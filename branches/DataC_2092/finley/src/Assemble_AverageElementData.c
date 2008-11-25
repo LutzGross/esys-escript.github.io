@@ -28,7 +28,8 @@
 
 void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,escriptDataC* out,escriptDataC* in) {
     dim_t n,q, numElements, numQuad_in, numQuad_out, i;
-    double *in_array,*out_array, vol, volinv, *wq;
+    __const double *in_array;
+    double *out_array, vol, volinv, *wq;
     register double rtmp;
     dim_t numComps=getDataPointSize(out);
     size_t numComps_size;
@@ -73,8 +74,8 @@ void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,escriptData
              volinv=1./vol;
              # pragma omp parallel for private(n, i, rtmp, q, in_array, out_array) schedule(static)
              for (n=0;n<numElements;n++) {
-                 in_array=getSampleData(in,n);
-                 out_array=getSampleData(out,n);
+                 in_array=getSampleDataRO(in,n);
+                 out_array=getSampleDataRW(out,n);
                  for (i=0; i<numComps; ++i) {
                      rtmp=0;
                      for (q=0; q< numQuad_in;++q) rtmp+=in_array[INDEX2(i,q,numComps)]*wq[q];
@@ -86,8 +87,8 @@ void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,escriptData
              numComps_size=numComps*sizeof(double);
              # pragma omp parallel for private(q,n,out_array,in_array) schedule(static)
              for (n=0;n<numElements;n++) {
-                 in_array=getSampleData(in,n);
-                 out_array=getSampleData(out,n);
+                 in_array=getSampleDataRO(in,n);
+                 out_array=getSampleDataRW(out,n);
                  for (q=0;q<numQuad_out;q++) memcpy(out_array+q*numComps,in_array,numComps_size);
              }
          }

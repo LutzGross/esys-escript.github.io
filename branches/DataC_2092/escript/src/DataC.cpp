@@ -135,7 +135,21 @@ int isEmpty(escriptDataC* data)
 }
 
 
-double* getSampleData(struct escriptDataC* data, int sampleNo)
+__const double* getSampleDataRO(struct escriptDataC* data, int sampleNo)
+{
+  if (data == (struct escriptDataC*)0) {
+       return NULL;
+  } else {
+      escript::Data* temp=(escript::Data*)(data->m_dataPtr);
+     if (temp->isEmpty()) {
+        return NULL;
+     } else {
+        return temp->getSampleData(sampleNo);
+     }
+  }
+}
+
+double* getSampleDataRW(struct escriptDataC* data, int sampleNo)
 {
   if (data == (struct escriptDataC*)0) {
        return NULL;

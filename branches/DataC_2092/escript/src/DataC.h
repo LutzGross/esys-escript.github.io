@@ -108,13 +108,17 @@ ESCRIPT_DLL_API int getDataPointShape(escriptDataC* data,int i);
    \param data Input - C wrapper for Data.
 */
 ESCRIPT_DLL_API int getDataPointSize(escriptDataC* data);
-/**
+
+/*
    \brief
    Return the number of doubles stored for the Data object.
    Argument data may be NULL, in which case 0 is returnd.
    \param data Input - C wrapper for Data.
+
+This function has been removed because it does not make sense for LazyData
 */
-ESCRIPT_DLL_API int getLength(escriptDataC* data);
+/*ESCRIPT_DLL_API int getLength(escriptDataC* data);*/
+
 /**
    \brief
    Return true if data is expanded.
@@ -130,7 +134,12 @@ ESCRIPT_DLL_API int isExpanded(escriptDataC* data);
   \param data Input - C wrapper for Data.
   \param sampleNo Input - The sample number.
 */
-ESCRIPT_DLL_API double* getSampleData(escriptDataC* data, int sampleNo);
+ESCRIPT_DLL_API __const double* getSampleDataRO(escriptDataC* data, int sampleNo);
+
+
+ESCRIPT_DLL_API double* getSampleDataRW(escriptDataC* data, int sampleNo);
+
+
 /**
    \brief
    Return a pointer to the data for the given sample number.

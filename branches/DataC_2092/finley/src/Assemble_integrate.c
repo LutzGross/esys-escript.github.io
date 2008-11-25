@@ -47,7 +47,8 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
 
         if (Finley_noError()) {
             dim_t q,e,i;
-            double *out_local=NULL, rtmp,*data_array=NULL;
+	    __const double *data_array=NULL;
+            double *out_local=NULL, rtmp;
             for (q=0;q<numComps;q++) out[q]=0;
             #pragma omp parallel private(q,i,rtmp,data_array,out_local)
             {
@@ -63,7 +64,7 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
                        #pragma omp for private(e) schedule(static)
                        for(e=0;e<elements->numElements;e++) {
                           if (elements->Owner[e] == my_mpi_rank) {
-                            data_array=getSampleData(data,e);
+                            data_array=getSampleDataRO(data,e);
                             for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
                                   for (i=0;i<numComps;i++) out_local[i]+=data_array[INDEX2(i,q,numComps)]*jac->volume[INDEX2(q,e,jac->ReferenceElement->numQuadNodes)];
                             }
@@ -73,7 +74,7 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
                       #pragma omp for private(e) schedule(static)
                       for(e=0;e<elements->numElements;e++) {
                           if (elements->Owner[e] == my_mpi_rank) {
-                           data_array=getSampleData(data,e);
+                           data_array=getSampleDataRO(data,e);
                            rtmp=0.;
                            for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) rtmp+=jac->volume[INDEX2(q,e,jac->ReferenceElement->numQuadNodes)];
                            for (i=0;i<numComps;i++) out_local[i]+=data_array[i]*rtmp;

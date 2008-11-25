@@ -29,7 +29,7 @@
 void Finley_NodeFile_setTags(Finley_NodeFile* self,const int newTag, escriptDataC* mask) {
     register dim_t n;
     dim_t numNodes;
-    register double *mask_array;
+    register __const double *mask_array;
     Finley_resetError();
 
     if (self==NULL) return;
@@ -45,7 +45,7 @@ void Finley_NodeFile_setTags(Finley_NodeFile* self,const int newTag, escriptData
     if (Finley_noError()) {
             #pragma omp parallel for private(n,mask_array) schedule(static)
             for (n=0;n<numNodes;n++) {
-                 mask_array=getSampleData(mask,n);
+                 mask_array=getSampleDataRO(mask,n);
                  if (mask_array[0]>0) self->Tag[n]=newTag;
             }
             Finley_NodeFile_setTagsInUse(self);
