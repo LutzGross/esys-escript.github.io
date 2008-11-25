@@ -296,7 +296,7 @@ Note that vector in this context refers to a data vector storing datapoints not 
             DataTypes::ValueType::size_type evOffset,
 	    int axis_offset)
   {
-   for (unsigned int j=0;j<DataTypes::noValues(evShape);++j)
+   for (int j=0;j<DataTypes::noValues(evShape);++j)
    {
       ev[evOffset+j]=0;
    }
