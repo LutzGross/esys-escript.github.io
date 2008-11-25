@@ -28,7 +28,8 @@
 
 
 void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* elements,escriptDataC* data,escriptDataC* interpolated_data) {
-  double* local_data=NULL,*S=NULL,*data_array; 
+  __const double *data_array;
+  double* local_data=NULL,*S=NULL; 
   index_t dof_offset, NN, NS;
   bool_t reduced_integration=FALSE;
   dim_t q,i,NS_DOF,NN_DOF,numNodes=0,e, numQuad;
@@ -142,12 +143,12 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
 	    for(e=0;e<elements->numElements;e++) {
               for (q=0;q<NS_DOF;q++) {
                       i=elements->Nodes[INDEX2(resort_nodes[dof_offset+q],e,NN)];
-                      data_array=getSampleData(data,map[i]);
+                      data_array=getSampleDataRO(data,map[i]);
                       memcpy(local_data+q*numComps, data_array, numComps_size);
               }
 	      /*  calculate interpolated_data=local_data*S */
 
-	      Finley_Util_SmallMatMult(numComps,numQuad,getSampleData(interpolated_data,e),NS_DOF,local_data,S);
+	      Finley_Util_SmallMatMult(numComps,numQuad,getSampleDataRW(interpolated_data,e),NS_DOF,local_data,S);
 
 	    } /* end of element loop */
 
