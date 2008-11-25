@@ -1287,17 +1287,19 @@ void Finley_Mesh_saveVTK(const char * filename_p,
              #endif
           #endif
         }
-        #ifdef PASO_MPI
-           MPI_File_close(&mpi_fileHandle_p);
-        #endif
      } else {
          fprintf(fileHandle_p, "%s", footer);
-         fclose(fileHandle_p);
      }
+  }
+  if ( mpi_size > 1) {
+#ifdef PASO_MPI
+     MPI_File_close(&mpi_fileHandle_p);
+#endif
+  } else {
+     fclose(fileHandle_p);
   }
   TMPMEMFREE(isCellCentered);
   TMPMEMFREE(txt_buffer);
-  return;
 #else
   /* Don't kill the job if saveVTK() doesn't work */
   fprintf(stderr, "\n\nsaveVTK warning: VTK is not available\n\n\n");
