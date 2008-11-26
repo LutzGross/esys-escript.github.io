@@ -73,6 +73,12 @@ void  Finley_Assemble_PDE_System2_3D(Assemble_Parameters p, Finley_ElementFile* 
 
     #pragma omp parallel private(color,EM_S, EM_F, Vol, DSDX, A_p, B_p, C_p, D_p, X_p, Y_p,row_index,q, s,r,k,m,rtmp, rtmp0, rtmp1, rtmp2, rtmp00, rtmp01, rtmp02, rtmp10, rtmp11, rtmp12, rtmp20, rtmp21, rtmp22,add_EM_F, add_EM_S)
     {
+       void* ABuff=allocSampleBuffer(A);
+       void* BBuff=allocSampleBuffer(B);
+       void* CBuff=allocSampleBuffer(C);
+       void* DBuff=allocSampleBuffer(D);
+       void* XBuff=allocSampleBuffer(X);
+       void* YBuff=allocSampleBuffer(Y);
        EM_S=THREAD_MEMALLOC(len_EM_S,double);
        EM_F=THREAD_MEMALLOC(len_EM_F,double);
        row_index=THREAD_MEMALLOC(p.row_NN,index_t);
@@ -93,7 +99,7 @@ void  Finley_Assemble_PDE_System2_3D(Assemble_Parameters p, Finley_ElementFile* 
                    /**************************************************************/
                    /*   process A: */
                    /**************************************************************/
-                   A_p=getSampleDataRO(A,e);
+                   A_p=getSampleDataRO(A,e,ABuff);
                    if (NULL!=A_p) {
                       add_EM_S=TRUE;
                       if (extendedA) {
@@ -168,7 +174,7 @@ void  Finley_Assemble_PDE_System2_3D(Assemble_Parameters p, Finley_ElementFile* 
                    /**************************************************************/
                    /*   process B: */
                    /**************************************************************/
-                   B_p=getSampleDataRO(B,e);
+                   B_p=getSampleDataRO(B,e,BBuff);
                    if (NULL!=B_p) {
                       add_EM_S=TRUE;
                       if (extendedB) {
@@ -214,7 +220,7 @@ void  Finley_Assemble_PDE_System2_3D(Assemble_Parameters p, Finley_ElementFile* 
                    /**************************************************************/
                    /*   process C: */
                    /**************************************************************/
-                   C_p=getSampleDataRO(C,e);
+                   C_p=getSampleDataRO(C,e,CBuff);
                    if (NULL!=C_p) {
                      add_EM_S=TRUE;
                      if (extendedC) {
@@ -260,7 +266,7 @@ void  Finley_Assemble_PDE_System2_3D(Assemble_Parameters p, Finley_ElementFile* 
                    /************************************************************* */
                    /* process D */
                    /**************************************************************/
-                   D_p=getSampleDataRO(D,e);
+                   D_p=getSampleDataRO(D,e,DBuff);
                    if (NULL!=D_p) {
                      add_EM_S=TRUE;
                      if (extendedD) {
@@ -294,7 +300,7 @@ void  Finley_Assemble_PDE_System2_3D(Assemble_Parameters p, Finley_ElementFile* 
                    /**************************************************************/
                    /*   process X: */
                    /**************************************************************/
-                   X_p=getSampleDataRO(X,e);
+                   X_p=getSampleDataRO(X,e,XBuff);
                    if (NULL!=X_p) {
                      add_EM_F=TRUE;
                      if (extendedX) {
@@ -330,7 +336,7 @@ void  Finley_Assemble_PDE_System2_3D(Assemble_Parameters p, Finley_ElementFile* 
                   /**************************************************************/
                   /*   process Y: */
                   /**************************************************************/
-                   Y_p=getSampleDataRO(Y,e);
+                   Y_p=getSampleDataRO(Y,e,YBuff);
                    if (NULL!=Y_p) {
                      add_EM_F=TRUE;
                      if (extendedY) {
@@ -365,6 +371,12 @@ void  Finley_Assemble_PDE_System2_3D(Assemble_Parameters p, Finley_ElementFile* 
          THREAD_MEMFREE(row_index);
 
       } /* end of pointer check */
+      freeSampleBuffer(ABuff);
+      freeSampleBuffer(BBuff);
+      freeSampleBuffer(CBuff);
+      freeSampleBuffer(DBuff);
+      freeSampleBuffer(XBuff);
+      freeSampleBuffer(YBuff);
    } /* end parallel region */
 }
 /*

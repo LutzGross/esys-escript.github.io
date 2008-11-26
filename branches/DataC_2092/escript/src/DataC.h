@@ -134,7 +134,7 @@ ESCRIPT_DLL_API int isExpanded(escriptDataC* data);
   \param data Input - C wrapper for Data.
   \param sampleNo Input - The sample number.
 */
-ESCRIPT_DLL_API __const double* getSampleDataRO(escriptDataC* data, int sampleNo);
+ESCRIPT_DLL_API __const double* getSampleDataRO(escriptDataC* data, int sampleNo, void* buffer);
 
 
 ESCRIPT_DLL_API double* getSampleDataRW(escriptDataC* data, int sampleNo);
@@ -148,4 +148,23 @@ ESCRIPT_DLL_API double* getSampleDataRW(escriptDataC* data, int sampleNo);
   \param sampleNo Input - The sample number.
 */
 ESCRIPT_DLL_API double* getSampleDataFast(escriptDataC* data, int sampleNo);
+
+
+/**
+   \brief Create a buffer for use by getSample
+   Allocates a DataVector large enough for DataLazy::resolveSample to operate on for the current Data.
+   Do not use this buffer for other DataC instances (unless you are sure they will be the same size).
+   
+   \return A DataVector* if Data is not-NULL and lazy, NULL otherwise.
+   \warning This pointer must be deallocated using freeSampleBuffer to avoid cross library memory issues.
+   \param data Input - C wrapper for Data.
+*/
+ESCRIPT_DLL_API void* allocSampleBuffer(escriptDataC* data);
+
+/**
+   \brief Free a buffer allocated with allocSampleBuffer.
+   \param buffer Input - pointer to the buffer to deallocate.
+*/
+ESCRIPT_DLL_API void freeSampleBuffer(void* buffer);
+
 #endif

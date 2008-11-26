@@ -52,6 +52,7 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
             for (q=0;q<numComps;q++) out[q]=0;
             #pragma omp parallel private(q,i,rtmp,data_array,out_local)
             {
+		void* buffer=allocSampleBuffer(data);
                 out_local=THREAD_MEMALLOC(numComps,double);
                 if (! Finley_checkPtr(out_local) ) {
                    /* initialize local result */
@@ -64,7 +65,7 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
                        #pragma omp for private(e) schedule(static)
                        for(e=0;e<elements->numElements;e++) {
                           if (elements->Owner[e] == my_mpi_rank) {
-                            data_array=getSampleDataRO(data,e);
+                            data_array=getSampleDataRO(data,e,buffer);
                             for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
                                   for (i=0;i<numComps;i++) out_local[i]+=data_array[INDEX2(i,q,numComps)]*jac->volume[INDEX2(q,e,jac->ReferenceElement->numQuadNodes)];
                             }
@@ -74,7 +75,7 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
                       #pragma omp for private(e) schedule(static)
                       for(e=0;e<elements->numElements;e++) {
                           if (elements->Owner[e] == my_mpi_rank) {
-                           data_array=getSampleDataRO(data,e);
+                           data_array=getSampleDataRO(data,e,buffer);
                            rtmp=0.;
                            for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) rtmp+=jac->volume[INDEX2(q,e,jac->ReferenceElement->numQuadNodes)];
                            for (i=0;i<numComps;i++) out_local[i]+=data_array[i]*rtmp;
@@ -86,6 +87,7 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
                    for (i=0;i<numComps;i++) out[i]+=out_local[i];
                 }
                 THREAD_MEMFREE(out_local);
+		freeSampleBuffer(buffer);
             }
        }
    }

@@ -101,6 +101,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
   if (Finley_noError()) {
       #pragma omp parallel private(e,q,l,s,n,data_array,grad_data_e)
       {
+	 void* buffer=allocSampleBuffer(data);
          if (data_type==FINLEY_NODES) {
             if (jac->numDim==1) {
                 #define DIM 1
@@ -110,7 +111,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                     for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
                     for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
                        n=elements->Nodes[INDEX2(dof_offset+s,e,NN)];
-                       data_array=getSampleDataRO(data,n);
+                       data_array=getSampleDataRO(data,n,buffer);
                        for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
                            for (l=0;l<numComps;l++) {
                                 grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
@@ -129,7 +130,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                     for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
                     for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
                        n=elements->Nodes[INDEX2(dof_offset+s,e,NN)];
-                       data_array=getSampleDataRO(data,n);
+                       data_array=getSampleDataRO(data,n,buffer);
                        for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
                            for (l=0;l<numComps;l++) {
                                grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
@@ -149,7 +150,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                     for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
                     for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
                        n=elements->Nodes[INDEX2(dof_offset+s,e,NN)];
-                       data_array=getSampleDataRO(data,n);
+                       data_array=getSampleDataRO(data,n,buffer);
                        for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
                            for (l=0;l<numComps;l++) {
                                grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]*
@@ -174,7 +175,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                     for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
                     for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
                        n=elements->Nodes[INDEX2(elements->ReferenceElement->Type->linearNodes[dof_offset+s],e,NN)];
-                       data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);
+                       data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n],buffer);
                        for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
                            for (l=0;l<numComps;l++) {
                                grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
@@ -193,7 +194,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                     for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
                     for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
                        n=elements->Nodes[INDEX2(elements->ReferenceElement->Type->linearNodes[dof_offset+s],e,NN)];
-                       data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);
+                       data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n],buffer);
                        for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
                            for (l=0;l<numComps;l++) {
                                grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
@@ -215,7 +216,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                     for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
                     for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
                        n=elements->Nodes[INDEX2(elements->ReferenceElement->Type->linearNodes[dof_offset+s],e,NN)];
-                       data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);
+                       data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n],buffer);
                        for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
                            for (l=0;l<numComps;l++) {
                                grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
@@ -240,7 +241,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                     for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
                     for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
                        n=elements->Nodes[INDEX2(dof_offset+s,e,NN)];
-                       data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
+                       data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n],buffer);
                        for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
                            for (l=0;l<numComps;l++) {
                                grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
@@ -259,7 +260,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                     for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
                     for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
                        n=elements->Nodes[INDEX2(dof_offset+s,e,NN)];
-                       data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
+                       data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n],buffer);
                        for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
                            for (l=0;l<numComps;l++) {
                                    grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
@@ -279,7 +280,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                     for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
                     for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
                        n=elements->Nodes[INDEX2(dof_offset+s,e,NN)];
-                       data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
+                       data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n],buffer);
                        for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
                            for (l=0;l<numComps;l++) {
                                grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
@@ -303,7 +304,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                     for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
                     for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
                        n=elements->Nodes[INDEX2(elements->ReferenceElement->Type->linearNodes[dof_offset+s],e,NN)];
-                       data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
+                       data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n],buffer);
                        for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
                            for (l=0;l<numComps;l++) {
                                grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
@@ -322,7 +323,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                     for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
                     for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
                        n=elements->Nodes[INDEX2(elements->ReferenceElement->Type->linearNodes[dof_offset+s],e,NN)];
-                       data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
+                       data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n],buffer);
                        for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
                            for (l=0;l<numComps;l++) {
                                grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
@@ -344,7 +345,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                     for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
                     for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
                        n=elements->Nodes[INDEX2(elements->ReferenceElement->Type->linearNodes[dof_offset+s],e,NN)];
-                       data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
+                       data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n],buffer);
                        for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
                            for (l=0;l<numComps;l++) {
                                grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
@@ -360,6 +361,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                 #undef DIM
             }
          }
+	 freeSampleBuffer(buffer);
       } /* end parallel region */
   }
 }
