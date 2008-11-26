@@ -448,9 +448,9 @@ if env['useumfpack']:
   conf.env.PrependENVPath('LD_LIBRARY_PATH', env['amd_lib_path'])	# The wrapper script needs to find these libs
   conf.env.PrependENVPath('LD_LIBRARY_PATH', env['blas_lib_path'])	# The wrapper script needs to find these libs
 
-# if env['useumfpack'] and not conf.CheckCHeader('umfpack.h'): env['useumfpack'] = 0
-# if env['useumfpack'] and not conf.CheckFunc('daxpy'): env['useumfpack'] = 0
-# if env['useumfpack'] and not conf.CheckFunc('umfpack_di_symbolic'): env['useumfpack'] = 0
+if env['useumfpack'] and not conf.CheckCHeader('umfpack.h'): env['useumfpack'] = 0
+if env['useumfpack'] and not conf.CheckFunc('umfpack_di_symbolic'): env['useumfpack'] = 0
+if env['useumfpack'] and not conf.CheckFunc('daxpy'): env['useumfpack'] = 0 # this does not work on shake73?
 
 # Add UMFPACK to environment env if it was found
 if env['useumfpack']:
