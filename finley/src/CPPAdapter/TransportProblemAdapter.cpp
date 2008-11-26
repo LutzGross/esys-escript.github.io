@@ -77,8 +77,8 @@ void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& s
     }
     out.expand();
     source.expand();
-    double* out_dp=out.getSampleData(0);
-    double* source_dp=source.getSampleData(0);
+    double* out_dp=out.getSampleDataRW(0);
+    double* source_dp=source.getSampleDataRW(0);
     Paso_SolverFCT_solve(transp,out_dp,dt,source_dp,&paso_options);
     checkPasoError();
 }
@@ -111,8 +111,8 @@ void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Dat
     r2.copyWithMask(r,q);
 
     /* source-=transp->mass_matrix*r2 */
-    double* r2_dp=r2.getSampleData(0);
-    double* source_dp=source.getSampleData(0);
+    double* r2_dp=r2.getSampleDataRW(0);
+    double* source_dp=source.getSampleDataRW(0);
     r2.expand();
     source.expand();
     Paso_SystemMatrix_MatrixVector(-1., transp->mass_matrix, r2_dp, 1., source_dp);
@@ -120,7 +120,7 @@ void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Dat
 
     /* insert 0 rows and cols into transport matrix */
     q.expand();
-    double* q_dp=q.getSampleData(0);
+    double* q_dp=q.getSampleDataRW(0);
     Paso_SystemMatrix_nullifyRows(transp->transport_matrix,q_dp, 0.);
     checkPasoError();
 
@@ -140,7 +140,7 @@ void TransportProblemAdapter::copyInitialValue(escript::Data& u) const
      throw FinleyAdapterException("copyInitialValue : function spaces of solution and of transport problem don't match.");
     }
     u.expand();
-    double* u_dp=u.getSampleData(0);
+    double* u_dp=u.getSampleDataRW(0);
     Paso_FCTransportProblem_checkinSolution( transp,u_dp);
     checkPasoError();
 }

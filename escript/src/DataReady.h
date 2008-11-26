@@ -44,6 +44,15 @@ public:
   double*
   getSampleData(ValueType::size_type sampleNo);
 
+  /**
+     This function is required primarily for LazyData. For ReadyData it returns 1. (Behaviour subject to change).
+  */
+  ESCRIPT_DLL_API
+  size_t
+  getSampleBufferSize() const
+  {
+	return 1;
+  }
 
   /**
 	\brief Provide access to underlying storage. Internal use only!

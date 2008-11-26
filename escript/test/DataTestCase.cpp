@@ -598,7 +598,7 @@ void DataTestCase::testDataTagged() {
     assert(myData.getDataAtOffset(1)==1.0);
     assert(myData.getDataAtOffset(2)==2.0);
 
-    double* sampleData=myData.getSampleData(0);
+    double* sampleData=myData.getSampleDataRW(0);
     for (int i=0; i<myData.getNoValues(); i++) {
       assert(sampleData[i]==i);
     }

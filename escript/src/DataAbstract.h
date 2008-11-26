@@ -219,6 +219,15 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   double*
   getSampleDataByTag(int tag);
 
+  /**
+    This method is used primarily for LazyData.
+    \return the size of the buffer required to evaulate a sample for this object.
+  */
+  ESCRIPT_DLL_API
+  virtual size_t
+  getSampleBufferSize() const=0;
+
+
 
   /**
      \brief
