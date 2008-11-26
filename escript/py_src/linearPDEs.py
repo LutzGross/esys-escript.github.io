@@ -478,6 +478,18 @@ class LinearProblem(object):
      """
      self.__debug=None
 
+   def setDebug(self, flag):
+     """
+     switches debugging to on if C{flag} is true outherwise debugging is set to off
+ 
+     @param flag: desired debug status
+     @type flag: C{bool}
+     """
+     if flag:
+         self.setDebugOn()
+     else:
+         self.setDebugOff()
+
    def trace(self,text):
      """
      print the text message if debugging is swiched on.
@@ -992,7 +1004,7 @@ class LinearProblem(object):
                       for j in range(sB[1]):
                          for k in range(sB[2]):
                             if util.Lsup(B[i,j,k]-C[k,i,j])>tol:
-                                 if verbose: print "non-symmetric problem because %s[%d,%d,%d]!=%s[%d,%d,%d]"%(name2,i,j,k,name1,k,i,j)
+                                 if verbose: print "non-symmetric problem because %s[%d,%d,%d]!=%s[%d,%d,%d]"%(name0,i,j,k,name1,k,i,j)
                                  out=False
                else:
                  if verbose: print "non-symmetric problem because of inappropriate shapes %s and %s of coefficients %s and %s, respectively."%(sB,sC,name0,name1)

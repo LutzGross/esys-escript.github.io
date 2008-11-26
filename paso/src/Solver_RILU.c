@@ -275,6 +275,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
   TMPMEMFREE(mis_marker);
   TMPMEMFREE(counter);
   if (Paso_noError()) {
+/*
       if (verbose) {
          printf("RILU: %d unknowns eliminated. %d left.\n",out->n_F,n-out->n_F);
          if (out->n_C>0) {
@@ -283,6 +284,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
             printf("timing: RILU: MIS: %e\n",time2); 
          }
      }
+*/
      return out;
   } else  {
      Paso_Solver_RILU_free(out);
