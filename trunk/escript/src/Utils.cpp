@@ -131,4 +131,12 @@ int getMPIRankWorld() {
   return mpi_iam;
 }
 
+double getMachinePrecision() {
+   return DBL_EPSILON;
+}
+double getMaxFloat() {
+   return DBL_MAX;
+}
+
+
 }  // end of namespace

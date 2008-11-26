@@ -269,7 +269,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
                                   #pragma omp parallel 
                                   {
                                     #pragma omp for private(i,k) schedule(static)
-                                    for (i = 0; i < out->n_F; ++i) {
+                                   for (i = 0; i < out->n_F; ++i) {
                                           for (k=0; k<n_block;++k) {
                                              out->x_F[i*n_block+k]=0.;
                                              out->b_F[i*n_block+k]=0.;
