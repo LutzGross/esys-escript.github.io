@@ -75,7 +75,7 @@ fi
 # Using OpenMP?
 OMP_OPTIONS=''
 if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.openmp" ]; then
-  PYTHON_CMD="$mpi_launcher $MPI_NUM_PROCS $PYTHON_MPI"
+#  PYTHON_CMD="$mpi_launcher $MPI_NUM_PROCS $PYTHON_MPI"
   OMP_OPTIONS="env OMP_NUM_THREADS=$OMP_NUM_THREADS"
 fi
 
