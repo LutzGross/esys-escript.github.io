@@ -553,6 +553,14 @@ Data::isExpanded() const
 }
 
 bool
+Data::actsExpanded() const
+{
+  return m_data->actsExpanded();
+
+}
+
+
+bool
 Data::isTagged() const
 {
   DataTagged* temp=dynamic_cast<DataTagged*>(m_data.get());

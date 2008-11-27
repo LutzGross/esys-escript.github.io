@@ -221,10 +221,16 @@ public:
 
   The return value will be an existing vector so do not deallocate it.
   */
+  ESCRIPT_DLL_API
   const ValueType*
   resolveSample(ValueType& v,  size_t offset, int sampleNo, size_t& roffset);
 
-
+  /**
+  \brief if resolve() was called would it produce expanded data.
+  */
+  ESCRIPT_DLL_API
+  bool
+  actsExpanded() const;
 
   /**
      \brief Produces an IDENTITY DataLazy containing zero.
