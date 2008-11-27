@@ -1350,4 +1350,10 @@ DataLazy::setToZero()
   m_buffsRequired=1;
 }
 
+bool
+DataLazy::actsExpanded() const
+{
+	return (m_readytype=='E');
+}
+
 }	// end namespace

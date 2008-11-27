@@ -384,10 +384,21 @@ class Data {
   /**
      \brief
      Return true if this Data is expanded.
+     \note To determine if a sample will contain separate values for each datapoint. Use actsExpanded instead.
   */
   ESCRIPT_DLL_API
   bool
   isExpanded() const;
+
+  /**
+     \brief
+     Return true if this Data is expanded or resolves to expanded.
+     That is, if it has a separate value for each datapoint in the sample.
+  */
+  ESCRIPT_DLL_API
+  bool
+  actsExpanded() const;
+  
 
   /**
      \brief

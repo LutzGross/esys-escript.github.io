@@ -252,8 +252,8 @@ void  Finley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Finley_ElementFile* 
              } /* end element loop */
          } /* end color loop */
            
-         THREAD_MEMFREE(EM_S);
-         THREAD_MEMFREE(EM_F);
+         THREAD_MEMFREE(EM_S);		/* these FREEs appear to be inside the if because if any of the allocs */
+         THREAD_MEMFREE(EM_F);		/* failed it means an out of memory (which is not recoverable anyway) */
          THREAD_MEMFREE(row_index);
 
       } /* end of pointer check */

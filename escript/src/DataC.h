@@ -121,9 +121,11 @@ This function has been removed because it does not make sense for LazyData
 
 /**
    \brief
-   Return true if data is expanded.
+   Return true if data can be treated as expanded.
+   
    Argument data may be NULL, in which case false is returnd.
    \param data Input - C wrapper for Data.
+   \return true if data is expanded or the data is lazy but would resolve to expanded. False otherwise.
 */
 ESCRIPT_DLL_API int isExpanded(escriptDataC* data);
 /**

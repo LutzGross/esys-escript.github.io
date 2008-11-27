@@ -119,7 +119,7 @@ int isExpanded(struct escriptDataC* data)
      if (temp->isEmpty()) {
         return false;
      } else {
-        return temp->isExpanded();
+        return temp->actsExpanded();
      }
   }
 }
