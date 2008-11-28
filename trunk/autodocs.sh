@@ -19,12 +19,35 @@
 #	latex
 #	latex2html
 
+export PATH="/home/Work/InstallArea/python-2.4.4/bin:$PATH"
+export LD_LIBRARY_PATH="$DIR/sandbox/trunk/lib:/home/Work/InstallArea/python-2.4.4/lib"
+export PYTHONPATH="$DIR/sandbox/trunk:/home/Work/InstallArea/numarray-1.5.2/lib"
+
 DIR="/home/Work/EscriptDev/Documentation"
 
 START=`date '+%Y/%m/%d %H:%M'`
 RunDate=`date '+%Y_%m_%d'`
 
-scons='/home/ksteube/s/InstallArea/bin/scons'
+prependpath    () { test -d "$1" && export PATH="$1:$PATH"; }
+prependldpath  () { test -d "$1" && export LD_LIBRARY_PATH="$1:$LD_LIBRARY_PATH"; }
+prependpypath  () { test -d "$1" && export PYTHONPATH="$1:$PYTHONPATH"; }
+
+# For compiling and running Escript
+unset          PYTHONSTARTUP
+export         PYTHONHOME=/home/Work/InstallArea/python-2.4.4
+prependpath    /home/Work/InstallArea/python-2.4.4/bin
+prependldpath  /home/Work/InstallArea/python-2.4.4/lib
+prependpath    /home/Work/InstallArea/scons-0.98.5/bin
+prependpypath  /home/Work/InstallArea/numarray-1.5.2/lib
+prependldpath  /home/Work/InstallArea/mesa-7.0.3/usr/local/lib
+prependldpath  /home/Work/InstallArea/vtk-5.0.4/lib
+prependpypath  /home/Work/InstallArea/vtk-5.0.4/lib/python2.4/site-packages
+prependpath    /home/Work/InstallArea/mpich2-1.0.7/bin
+prependpath    /home/Work/InstallArea/mayavi-1.5/bin
+prependpath    /home/Work/InstallArea/visit1.10.0/bin
+prependpypath  /home/Work/InstallArea/epydoc-3.0.1/lib/python2.4/site-packages
+prependpath    /home/Work/InstallArea/epydoc-3.0.1/bin
+
 
 finish () {
   # state will be 'FAILURE' or 'SUCCESS'
@@ -34,7 +57,8 @@ finish () {
   cd $DIR
   /bin/rm -rf sandbox
   END=`date '+%Y/%m/%d %H:%M'`
-  cat << END_MSG | mail -s "ESYS_TESTS docs $RunDate $state" k.steube@uq.edu.au
+  # cat << END_MSG | mail -s "ESYS_TESTS docs $RunDate $state" k.steube@uq.edu.au j.fenwick1@uq.edu.au
+  cat << END_MSG | mail -s "ESYS_TESTS docs $RunDate $state" k.steube@uq.edu.au kensteube@gmail.com
 $2.
 The tests ran from $START to $END
 See the log file $DIR/log for info
@@ -58,15 +82,12 @@ cd sandbox		|| finish FAILURE "Could not cd to sandbox"
 echo "Checking out esys13/trunk from Subversion"
 svn checkout https://shake200.esscc.uq.edu.au/svn/esys13/trunk || finish FAILURE "Could not checkout esys13/trunk"
 
-export LD_LIBRARY_PATH="$DIR/sandbox/trunk/lib"
-export PYTHONPATH="$DIR/sandbox/trunk"
-
 # Generate documentation
 echo "Generating documentation"
 
 cd trunk							|| finish FAILURE "Could not cd to trunk"
 mkdir release release/doc					|| finish FAILURE "Could not create release directory"
-$scons usedebug=yes usempi=no docs				|| finish FAILURE "Could not run scons docs"
+scons usedebug=yes usempi=no usewarnings=no docs		|| finish FAILURE "Could not run scons docs"
 scp -r release/doc/* shake200:/home/www/esys/esys13/nightly	|| finish FAILURE "Could not copy documentation to nightly area"
 
 echo "Cleaning up"

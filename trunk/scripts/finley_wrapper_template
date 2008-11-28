@@ -90,5 +90,5 @@ else
 fi
 
 set -x
-$OMP_OPTIONS time $PYTHON_CMD "$@"
+$OMP_OPTIONS $PYTHON_CMD "$@"
 
