@@ -626,3 +626,4 @@ err_t Paso_Solver_GMRES(
     *tolerance=Norm_of_residual_global;
   return Status;
 }
+
