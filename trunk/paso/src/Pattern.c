@@ -172,17 +172,14 @@ Paso_Pattern* Paso_Pattern_multiply(int type, Paso_Pattern* A, Paso_Pattern* B) 
 
   index_list=TMPMEMALLOC(A->numOutput,Paso_IndexList);
   if (! Paso_checkPtr(index_list)) {
-  
-      #pragma omp parallel private(i)
-      {
-        #pragma omp for schedule(static)
+        #pragma omp parallel for private(i) schedule(static)
         for(i=0;i<A->numOutput;++i) {
              index_list[i].extension=NULL;
              index_list[i].n=0;
         }
-      }
-  }
+   }
   
+  #pragma omp parallel for private(i,iptrA,j,iptrB,k) schedule(static) 
   for(i = 0; i < A->numOutput; i++) {
      for(iptrA = A->ptr[i]; iptrA < A->ptr[i+1]; ++iptrA) {
       j = A->index[iptrA];
@@ -201,7 +198,7 @@ Paso_Pattern* Paso_Pattern_multiply(int type, Paso_Pattern* A, Paso_Pattern* B) 
 
  /* clean up */
    if (index_list!=NULL) {
-        #pragma omp parallel for private(i) 
+       #pragma omp parallel for private(i) schedule(static)
         for(i=0;i<A->numOutput;++i) Paso_IndexList_free(index_list[i].extension);
      }
   TMPMEMFREE(index_list);
@@ -226,16 +223,14 @@ Paso_Pattern* Paso_Pattern_binop(int type, Paso_Pattern* A, Paso_Pattern* B) {
 
  index_list=TMPMEMALLOC(A->numOutput,Paso_IndexList);
    if (! Paso_checkPtr(index_list)) {
-  
-      #pragma omp parallel private(i)
-      {
-        #pragma omp for schedule(static)
+        #pragma omp parallel for private(i) schedule(static)
         for(i=0;i<A->numOutput;++i) {
              index_list[i].extension=NULL;
              index_list[i].n=0;
         }
-      }
-  }
+    }
+  
+  #pragma omp parallel for private(i,iptrA,j,iptrB,k) schedule(static) 
   for(i = 0; i < B->numOutput; i++){
     iptrA = A->ptr[i],
     iptrB = B->ptr[i];
@@ -275,7 +270,7 @@ Paso_Pattern* Paso_Pattern_binop(int type, Paso_Pattern* A, Paso_Pattern* B) {
 
  /* clean up */
    if (index_list!=NULL) {
-        #pragma omp parallel for private(i) 
+        #pragma omp parallel for private(i) schedule(static)
         for(i=0;i<A->numOutput;++i) Paso_IndexList_free(index_list[i].extension);
      }
   TMPMEMFREE(index_list);
@@ -364,7 +359,7 @@ Paso_Pattern* Paso_IndexList_createPattern(dim_t n0, dim_t n,Paso_IndexList* ind
    ptr=MEMALLOC(n+1-n0,index_t);
    if (! Paso_checkPtr(ptr) ) {
        /* get the number of connections per row */
-       #pragma omp parallel for schedule(static) private(i)
+       #pragma omp parallel for private(i) schedule(static)
        for(i=n0;i<n;++i) {
               ptr[i-n0]=Paso_IndexList_count(&index_list[i],range_min,range_max);
        }
@@ -379,7 +374,7 @@ Paso_Pattern* Paso_IndexList_createPattern(dim_t n0, dim_t n,Paso_IndexList* ind
        /* fill index */
        index=MEMALLOC(ptr[n-n0],index_t);
        if (! Paso_checkPtr(index)) {
-              #pragma omp parallel for schedule(static)
+              #pragma omp parallel for private(i) schedule(static) 
               for(i=n0;i<n;++i) {
                   Paso_IndexList_toArray(&index_list[i],&index[ptr[i-n0]],range_min,range_max,index_offset);
               }
