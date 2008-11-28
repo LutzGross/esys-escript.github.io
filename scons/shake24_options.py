@@ -19,14 +19,14 @@
 # cc_flags		= '-ansi'
 # cc_optim		= '-O2'
 # cc_debug		= '-g'
-# omp_optim		= '-openmp'
-# omp_debug		= '-openmp'
+omp_optim		= '-openmp'
+omp_debug		= '-openmp'
 # omp_libs		= ['guide']
 
 # Use the default C/C++ flags but add something only for this host:
-cc_extra		= '-Wall'
+cc_extra		= '-Wno-long-long'
 #cc_extra		= '-pedantic -isystem /usr/include/python2.5/ -Wall'
-# ld_extra		= ''
+#ld_extra		= '-openmp'
 
 # Be picky about errors
 usepedantic		= 'no'

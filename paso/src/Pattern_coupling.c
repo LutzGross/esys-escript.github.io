@@ -40,85 +40,83 @@
 
 void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double threshold) {
 
-  index_t index_offset=(A->pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   dim_t i,j;
   /*double threshold=0.05;*/
-  index_t iptr,*index,*where_p,diagptr;
-  bool_t fail;
+  index_t iptr,*index,*where_p,*diagptr;
+  bool_t passed=FALSE;
   dim_t n=A->numRows;
+  diagptr=MEMALLOC(n,index_t);
   /*double sum;*/
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
     Paso_setError(TYPE_ERROR,"Paso_Pattern_mis: symmetric matrix pattern is not supported yet");
     return;
   }
    
-     /* is there any vertex available ?*/
-     if (Paso_Util_isAny(n,mis_marker,IS_AVAILABLE)) {
-
-            #pragma omp parallel for private(i,iptr,index,where_p,diagptr,j) schedule(static) 
-            for (i=0;i<n;++i) {
-              if (mis_marker[i]==IS_AVAILABLE) {
-                 diagptr=A->pattern->ptr[i];
-                 index=&(A->pattern->index[diagptr]);
-                 where_p=(index_t*)bsearch(&i,
-                                        index,
-                                        A->pattern->ptr[i + 1]-A->pattern->ptr[i],
-                                        sizeof(index_t),
-                                        Paso_comparIndex);
-                if (where_p==NULL) {
-                    Paso_setError(VALUE_ERROR, "Paso_Solver_getAMG: main diagonal element missing.");
-                } else {
-                    diagptr+=(index_t)(where_p-index);
-                }
-                 for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
-                     j=A->pattern->index[iptr]-index_offset;
-                     if (j!=i && ABS(A->val[iptr])>=threshold*ABS(A->val[diagptr])) {
-                        mis_marker[j]=IS_REMOVED;
-                       }
-                 }
-                }
-            }
-            
-            #pragma omp parallel for private(i,iptr) schedule(static)
-            for (i=0;i<n;++i)
-                if(mis_marker[i]==IS_AVAILABLE)
-                           mis_marker[i]=IS_IN_SET;
-             
-              #pragma omp parallel for private(i,iptr,index,where_p,diagptr) schedule(static)
-              for (i=0;i<n;i++) {
-               if (mis_marker[i]==IS_REMOVED) {
-                 fail=FALSE;
-                 diagptr=A->pattern->ptr[i];
-                 index=&(A->pattern->index[diagptr]);
-                 where_p=(index_t*)bsearch(&i,
-                                        index,
-                                        A->pattern->ptr[i + 1]-A->pattern->ptr[i],
-                                        sizeof(index_t),
-                                        Paso_comparIndex);
-                if (where_p==NULL) {
-                    Paso_setError(VALUE_ERROR, "Paso_Solver_getAMG: main diagonal element missing.");
-                } else {
-                    diagptr+=(index_t)(where_p-index);
-                }
-                 for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
-                     j=A->pattern->index[iptr]-index_offset;
-                     if (mis_marker[j]==IS_IN_SET && (A->val[iptr]/A->val[diagptr])<-threshold){
-                         fail=TRUE;
-                         #ifndef _OPENMP  
-                         break;
-                         #endif
-                     }
-                 }
-                 if(!fail) {
+   #pragma omp parallel for private(i) schedule(static)
+   for (i=0;i<n;++i)
+        if(mis_marker[i]==IS_AVAILABLE)
                     mis_marker[i]=IS_IN_SET;
-                 }
-               }
-              }
-              
+
+    #pragma omp parallel for private(i,index,where_p) schedule(static) 
+    for (i=0;i<n;++i) {
+         diagptr[i]=A->pattern->ptr[i];
+         index=&(A->pattern->index[diagptr[i]]);
+         where_p=(index_t*)bsearch(&i,
+                                index,
+                                A->pattern->ptr[i + 1]-A->pattern->ptr[i],
+                                sizeof(index_t),
+                                Paso_comparIndex);
+        if (where_p==NULL) {
+            Paso_setError(VALUE_ERROR, "Paso_Solver_getAMG: main diagonal element missing.");
+        } else {
+                diagptr[i]+=(index_t)(where_p-index);
         }
+    }
+    
+
+
+    /*This loop cannot be parallelized, as order matters here.*/ 
+    for (i=0;i<n;++i) {
+      if (mis_marker[i]==IS_IN_SET) {
+        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+             j=A->pattern->index[iptr];
+             if (j!=i && ABS(A->val[iptr])>=threshold*ABS(A->val[diagptr[i]])) {
+                mis_marker[j]=IS_REMOVED;
+             }
+        }
+      }
+    }
+    
+    
+     
+      /*This loop cannot be parallelized, as order matters here.*/ 
+    for (i=0;i<n;i++) {
+        if (mis_marker[i]==IS_REMOVED) {
+           for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+              j=A->pattern->index[iptr];
+              if (mis_marker[j]==IS_IN_SET) {
+                if ((A->val[iptr]/A->val[diagptr[i]])>=-threshold) {
+                    passed=TRUE;
+                }
+                else {
+                    passed=FALSE;
+                    break;
+                }
+              }
+            }
+            if (passed) {
+               mis_marker[i]=IS_IN_SET;
+               passed=FALSE;
+            }
+        }
+    }
+      
+
      /* swap to TRUE/FALSE in mis_marker */
      #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_SET);
+     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]!=IS_IN_SET);
+     
+     MEMFREE(diagptr);
 }
 
 /*
@@ -136,44 +134,36 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
  */  
 void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta) 
 {
-  index_t index_offset=(A->pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   dim_t i;
   index_t iptr;
-  double threshold,min_offdiagonal;
+  double threshold,max_offdiagonal;
   dim_t n=A->numRows;
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
     Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
     return;
   }
 
-/* is there any vertex available ?*/
-     if (Paso_Util_isAny(n,mis_marker,IS_AVAILABLE)) {
-
-     #pragma omp parallel for private(i,iptr,min_offdiagonal,threshold) schedule(static) 
-      for (i=0;i<n;++i) {
-        min_offdiagonal = A->val[A->pattern->ptr[i]-index_offset];
-        for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
-            if(A->pattern->index[iptr-index_offset] != i){
-                min_offdiagonal = MIN(min_offdiagonal,A->val[iptr-index_offset]);
+    #pragma omp parallel for private(i,iptr,max_offdiagonal,threshold) schedule(static) 
+    for (i=0;i<n;++i) {
+      if(mis_marker[i]==IS_AVAILABLE) {
+        /*min_offdiagonal = A->val[A->pattern->ptr[i]-index_offset];*/
+        max_offdiagonal = -1.e+15;
+        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+            if(A->pattern->index[iptr] != i){
+                max_offdiagonal = MAX(max_offdiagonal,-(A->val[iptr]));
             }
         }
 
-        threshold = theta*min_offdiagonal;
-        mis_marker[i]=IS_IN_SET;
-        #pragma omp parallel for private(iptr) schedule(static) 
-        for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
-            if(A->val[iptr-index_offset] < threshold){
-                    mis_marker[i]=IS_REMOVED;
-                    #ifndef _OPENMP    
-                     break;
-                    #endif
+        threshold = theta*max_offdiagonal;
+        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+            if(-(A->val[iptr])<threshold && A->pattern->index[iptr]!=i){
+                    A->val[iptr]=0.;
             }
         }
+       }
       }
-    }
-     /* swap to TRUE/FALSE in mis_marker */
-     #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_SET);
+
+    Paso_Pattern_coup(A,mis_marker,0.05);
 }
 
 
@@ -181,7 +171,6 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
 
 void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double theta) 
 {
-  index_t index_offset=(A->pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   dim_t i,j;
   index_t iptr;
   double diag,eps_Aii,val;
@@ -193,36 +182,40 @@ void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double
     return;
   }
     
-   if (Paso_Util_isAny(n,mis_marker,IS_AVAILABLE)) {
+
     #pragma omp parallel for private(i,iptr,diag) schedule(static) 
       for (i=0;i<n;++i) {
         diag = 0;
-        for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
-            if(A->pattern->index[iptr-index_offset] != i){
-                diag+=A->val[iptr-index_offset];
+        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+            if(A->pattern->index[iptr] != i){
+                diag+=A->val[iptr];
             }
         }
         diags[i]=ABS(diag);
       }
     
-    #pragma omp parallel for private(i,iptr,diag,j,val,eps_Aii) schedule(static) 
-      for (i=0;i<n;++i) {
+   
+    #pragma omp parallel for private(i,iptr,j,val,eps_Aii) schedule(static) 
+     for (i=0;i<n;++i) {
+       if (mis_marker[i]==IS_AVAILABLE) {
         eps_Aii = theta*theta*diags[i];
-        mis_marker[i]=IS_REMOVED;
-
-        for (iptr=A->pattern->ptr[i]-index_offset;iptr<A->pattern->ptr[i+1]-index_offset; ++iptr) {
-            j=A->pattern->index[iptr-index_offset];
-            val=A->val[iptr-index_offset];
-            if(j!= i && val*val>=eps_Aii * diags[j]){
-                mis_marker[i]=IS_IN_SET;
+        val=0.; 
+        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+            j=A->pattern->index[iptr];
+            val=A->val[iptr];
+            if(j!= i) {
+              if(val*val>=eps_Aii * diags[j]) {
+               A->val[iptr]=val;
+              }
+              else {
+               A->val[iptr]=0.;
+              }
             }
         }
-      }
-   }
-    /* swap to TRUE/FALSE in mis_marker */
-     #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_SET);
-     
+       }
+     }
+    
+    Paso_Pattern_coup(A,mis_marker,0.05);
      MEMFREE(diags);
 }
 
@@ -230,3 +223,32 @@ void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double
 #undef IS_AVAILABLE 
 #undef IS_IN_SET 
 #undef IS_REMOVED
+
+void Paso_Pattern_color1(Paso_SparseMatrix* A, index_t* num_colors, index_t* colorOf) {
+  index_t out=0, *mis_marker=NULL,i;
+  dim_t n=A->numRows;
+  mis_marker=TMPMEMALLOC(n,index_t);
+  if ( !Paso_checkPtr(mis_marker) ) {
+    /* get coloring */
+    #pragma omp parallel for private(i) schedule(static)
+    for (i = 0; i < n; ++i) {
+        colorOf[i]=-1;
+        mis_marker[i]=-1;
+    }
+
+    while (Paso_Util_isAny(n,colorOf,-1) && Paso_noError()) {
+       Paso_Pattern_coup(A,mis_marker,0.05);
+
+       #pragma omp parallel for private(i) schedule(static)
+       for (i = 0; i < n; ++i) {
+        if (mis_marker[i]) colorOf[i]=out;
+        mis_marker[i]=colorOf[i];
+       }
+       ++out;
+    }
+    TMPMEMFREE(mis_marker);
+    *num_colors=out;
+  }
+}
+
+ 
