@@ -228,7 +228,7 @@ class Data {
      \brief Return a pointer to a deep copy of this object.
   */
   ESCRIPT_DLL_API
-  Data*
+  Data
   copySelf();
 
 

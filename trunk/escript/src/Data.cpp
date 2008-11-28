@@ -211,7 +211,7 @@ Data::Data(const object& value,
     // get the space for the data vector
     int len1 = DataTypes::noValues(tempShape);
     DataVector temp_data(len1, 0.0, len1);
-    temp_data.copyFromNumArray(asNumArray);
+    temp_data.copyFromNumArray(asNumArray,1);
 
     int len = DataTypes::noValues(other.getDataPointShape());
 
@@ -407,11 +407,11 @@ Data::getShapeTuple() const
 // It can't work out what type the function is based soley on its name.
 // There are ways to fix this involving creating function pointer variables for each form
 // but there doesn't seem to be a need given that the methods have the same name from the python point of view
-Data*
+Data
 Data::copySelf()
 {
    DataAbstract* temp=m_data->deepCopy();
-   return new Data(temp);
+   return Data(temp);
 }
 
 void
@@ -2437,7 +2437,7 @@ Data::setTaggedValue(int tagKey,
   }
 
   DataVector temp_data2;
-  temp_data2.copyFromNumArray(asNumArray);
+  temp_data2.copyFromNumArray(asNumArray,1);
 
   m_data->setTaggedValue(tagKey,tempShape, temp_data2);
 }

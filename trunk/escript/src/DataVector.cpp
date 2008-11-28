@@ -165,7 +165,7 @@ DataVector::operator!=(const DataVector& other) const
 
 
 void
-DataVector::copyFromNumArray(const boost::python::numeric::array& value)
+DataVector::copyFromNumArray(const boost::python::numeric::array& value, size_t copies)
 {
   using DataTypes::ValueType;
   if (m_array_data!=0) {
@@ -173,7 +173,7 @@ DataVector::copyFromNumArray(const boost::python::numeric::array& value)
   }
 
 
-  m_array_data = arrayManager.new_array(1,value.nelements());
+  m_array_data = arrayManager.new_array(1,value.nelements()*copies);
 
   int si=0,sj=0,sk=0,sl=0;		// bounds for each dimension of the shape
   DataTypes::ShapeType tempShape;    
@@ -181,48 +181,63 @@ DataVector::copyFromNumArray(const boost::python::numeric::array& value)
      tempShape.push_back(extract<int>(value.getshape()[i]));
   }
 
+  DataVector::ValueType tmpData=m_array_data;
   if (value.getrank()==0) {
-     m_array_data[0]=extract<double>(value[value.getshape()]);
+     for (int z=0;z<copies;++z) {
+       m_array_data[z]=extract<double>(value[value.getshape()]);
+     }
   } else if (value.getrank()==1) {
      si=tempShape[0];
-     for (ValueType::size_type i=0;i<si;i++) {
-        m_array_data[i]=extract<double>(value[i]);
+     for (int z=0;z<copies;++z) {
+       for (ValueType::size_type i=0;i<si;i++) {
+         tmpData[i]=extract<double>(value[i]);
+       }
+       tmpData+=si;
      }
   } else if (value.getrank()==2) {
 	si=tempShape[0];
 	sj=tempShape[1];
-        for (ValueType::size_type i=0;i<si;i++) {
-           for (ValueType::size_type j=0;j<sj;j++) {
-              m_array_data[DataTypes::getRelIndex(tempShape,i,j)]=extract<double>(value[i][j]);
-           }
-        }
+	for (int z=0;z<copies;++z) {
+          for (ValueType::size_type i=0;i<si;i++) {
+             for (ValueType::size_type j=0;j<sj;j++) {
+                tmpData[DataTypes::getRelIndex(tempShape,i,j)]=extract<double>(value[i][j]);
+             }
+          }
+	  tmpData+=si*sj;
+	}
   } else if (value.getrank()==3) {
 	si=tempShape[0];
 	sj=tempShape[1];
 	sk=tempShape[2];
-        for (ValueType::size_type i=0;i<si;i++) {
-           for (ValueType::size_type j=0;j<sj;j++) {
+	for (int z=0;z<copies;++z) {
+          for (ValueType::size_type i=0;i<si;i++) {
+            for (ValueType::size_type j=0;j<sj;j++) {
               for (ValueType::size_type k=0;k<sk;k++) {
-                 m_array_data[DataTypes::getRelIndex(tempShape,i,j,k)]=extract<double>(value[i][j][k]);
+                 tmpData[DataTypes::getRelIndex(tempShape,i,j,k)]=extract<double>(value[i][j][k]);
               }
-           }
-        }
+            }
+          }
+	  tmpData+=si*sj*sk;
+	}
   } else if (value.getrank()==4) {
 	si=tempShape[0];
 	sj=tempShape[1];
 	sk=tempShape[2];
 	sl=tempShape[3];
-        for (ValueType::size_type i=0;i<si;i++) {
-           for (ValueType::size_type j=0;j<sj;j++) {
+	for (int z=0;z<copies;++z) {
+          for (ValueType::size_type i=0;i<si;i++) {
+            for (ValueType::size_type j=0;j<sj;j++) {
               for (ValueType::size_type k=0;k<sk;k++) {
                  for (ValueType::size_type l=0;l<sl;l++) {
-                    m_array_data[DataTypes::getRelIndex(tempShape,i,j,k,l)]=extract<double>(value[i][j][k][l]);
+                    tmpData[DataTypes::getRelIndex(tempShape,i,j,k,l)]=extract<double>(value[i][j][k][l]);
                  }
               }
-           }
-        }
+            }
+          }
+	  tmpData+=si*sj*sk*sl;
+	}
    }
-   m_size=value.nelements();	// total amount of elements
+   m_size=value.nelements()*copies;	// total amount of elements
    m_dim=m_size;		// elements per sample
    m_N=1;			// number of samples
 }

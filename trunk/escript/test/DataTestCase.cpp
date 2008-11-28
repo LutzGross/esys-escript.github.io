@@ -93,14 +93,14 @@ void DataTestCase::testCopyingWorker(bool delayed)
   {
 	cout << "\tTest deep copy " << strs[k] << endl;
 	Data* d=dats[k];
-	Data* deep=d->copySelf();	// test self copy
+	Data deep=d->copySelf();	// test self copy
 	if (delayed)
 	{
-	  assert(deep->isLazy());
+	  assert(deep.isLazy());
 	}
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	if (d->getDataAtOffset(i)!=deep->getDataAtOffset(i))
+	if (d->getDataAtOffset(i)!=deep.getDataAtOffset(i))
 		assert(false);
 	}
 	if (delayed)
@@ -114,31 +114,30 @@ void DataTestCase::testCopyingWorker(bool delayed)
 	}
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	if (d->getDataAtOffset(i)==deep->getDataAtOffset(i))
+	if (d->getDataAtOffset(i)==deep.getDataAtOffset(i))
 		assert(false);
 	}
         if (delayed)
 	{
 	   d->delaySelf();
-	   deep->delaySelf();
+	   deep.delaySelf();
 	}
-	d->copy(*deep);			// test copy from object
+	d->copy(deep);			// test copy from object
 	if (delayed)
 	{
 	  assert(d->isLazy());
 	}
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	if (d->getDataAtOffset(i)!=deep->getDataAtOffset(i))
+	if (d->getDataAtOffset(i)!=deep.getDataAtOffset(i))
 		assert(false);
 	}
 	d->setToZero();
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	if (d->getDataAtOffset(i)==deep->getDataAtOffset(i))
+	if (d->getDataAtOffset(i)==deep.getDataAtOffset(i))
 		assert(false);
 	}
-	delete deep;
 	delete dats[k];
   }
 
