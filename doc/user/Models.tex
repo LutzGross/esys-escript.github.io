@@ -211,7 +211,8 @@ saveVTK("u.xml",velocity=v,pressure=p)
 \end{python}
 
 \section{Darcy Flux}
-We want to calculate the velocity $u$ and pressure $p$ on a domain $\Omega$ such that
+We want to calculate the velocity $u$ and pressure $p$ on a domain $\Omega$ solving 
+the Darcy flux problem \index{Darcy flux}\index{Darcy flow}
 \begin{equation}\label{DARCY PROBLEM}
 \begin{array}{rcl}
 u\hackscore{i} + \kappa\hackscore{ij} p\hackscore{,j} & = & g\hackscore{i} \\
@@ -314,6 +315,19 @@ returning $(Qp,w)$ where $w$ is the solution of
 We use $Q^*Q$ as a a preconditioner for the iteration operator $Q^* ( I - (I+D^*D)^{-1} ) Q$.
 
 \subsection{Functions}
+\begin{classdesc}{DarcyFlow}{domain}
+opens the Darcy flux problem\index{Darcy flux} on the \Domain domain.
+\end{classdesc}
+
+\begin{methoddesc}[DarcyFlow]{initialize}{\optional{f=Data(), \optional{fixed_u_mask=Data(), \optional{eta=1, \optional{surface_stress=Data(), \optional{stress=Data()}}}}}}
+assigns values to the model parameters. In any call all values must be set.
+\var{f} defines the external force $f$, \var{eta} the viscosity $\eta$,
+\var{surface_stress} the surface stress $s$ and \var{stress} the initial stress $\sigma$.
+The locations and compontents where the velocity is fixed are set by 
+the values of \var{fixed_u_mask}. The method will try to cast the given values to appropriate 
+\Data class objects.
+\end{methoddesc}
+
 
 \subsection{Example: Gravity Flow}
 

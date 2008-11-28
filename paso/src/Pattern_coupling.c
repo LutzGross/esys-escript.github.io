@@ -250,5 +250,3 @@ void Paso_Pattern_color1(Paso_SparseMatrix* A, index_t* num_colors, index_t* col
     *num_colors=out;
   }
 }
-
- 

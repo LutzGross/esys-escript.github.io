@@ -201,7 +201,7 @@ class DarcyFlow(object):
          if not ATOL>0:
              raise ValueError,"Negative absolute tolerance (rtol = %e, norm right hand side =%, atol =%e)."%(rtol, util.sqrt(norm_rhs), atol)
          rhs=ArithmeticTuple(g,dv)
-         dp,r=PCG(rhs,self.__Aprod_PCG,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL, rtol=0.,iter_max=max_iter, x=p0, verbose=self.verbose, initial_guess=False)
+         dp,r=PCG(rhs,self.__Aprod_PCG,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL, rtol=0.,iter_max=max_iter, x=p0-p2, verbose=self.verbose, initial_guess=True)
          return u2+r[1],p2+dp
         
     def __Aprod_PCG(self,p):
