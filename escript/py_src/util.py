@@ -29,7 +29,6 @@ Utility functions for escript
 @var __version__: version
 @var __date__: date of the version
 @var EPSILON: smallest positive value with 1.<1.+EPSILON
-@var DBLE_MAX: largest positive float
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -47,13 +46,19 @@ from esys.escript import printParallelThreadCounts
 #   some helpers:
 #=========================================================
 def getEpsilon():
-     return escript.getMachinePrecision()
+     #     ------------------------------------------------------------------
+     #     Compute EPSILON, the machine precision.  The call to daxpp is
+     #     inTENded to fool compilers that use extra-length registers.
+     #     31 Map 1999: Hardwire EPSILON so the debugger can step thru easily.
+     #     ------------------------------------------------------------------
+     eps    = 2.**(-12)
+     p=2.
+     while p>1.:
+            eps/=2.
+            p=1.+eps
+     return eps*2.
+
 EPSILON=getEpsilon()
-
-def getMaxFloat():
-     return escript.getMaxFloat()
-DBLE_MAX=getMaxFloat()
-
 
 def getTagNames(domain):
     """
@@ -5039,9 +5044,7 @@ def interpolate(arg,where):
     if isinstance(arg,Symbol):
        return Interpolate_Symbol(arg,where)
     elif isinstance(arg,escript.Data):
-       if arg.isEmpty():
-          return arg
-       elif where == arg.getFunctionSpace():
+       if where == arg.getFunctionSpace():
           return arg
        else:
           return escript.Data(arg,where)
@@ -5193,26 +5196,6 @@ def normalize(arg,zerolength=0):
     mm=1-m
     return arg*(mm/(l*mm+m))
 
-def deviatoric(arg):
-    """
-    returns the deviatoric version of arg
-    """
-    return arg-(trace(arg)/trace(kronecker(arg.getDomain())))*kronecker(arg.getDomain())
-
-def diameter(domain):
-    """
-    returns the diameter of a domain
-
-    @param domain: a domain
-    @type domain: L{escript.Domain}
-    @rtype: C{float}
-    """
-    x=domain.getX()
-    out=0.
-    for i in xrange(domain.getDim()):
-       x_i=x[i]
-       out=max(out,sup(x_i)-inf(x_i))
-    return out
 #=============================
 #
 

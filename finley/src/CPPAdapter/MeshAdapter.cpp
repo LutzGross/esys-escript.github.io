@@ -646,8 +646,7 @@ int MeshAdapter::getDiracDeltaFunctionCode() const
 //
 int MeshAdapter::getDim() const
 {
-   Finley_Mesh* mesh=m_finleyMesh.get();
-   int numDim=Finley_Mesh_getDim(mesh);
+   int numDim=Finley_Mesh_getDim(m_finleyMesh.get());
    checkFinleyError();
    return numDim;
 }

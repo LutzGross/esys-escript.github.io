@@ -32,7 +32,6 @@ extern "C" {
 
 #include "esysUtils/esysExceptionTranslator.h"
 
-#include <boost/version.hpp>
 #include <boost/python.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
@@ -84,9 +83,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
 #if ((BOOST_VERSION/100)%1000 > 34) || (BOOST_VERSION/100000 >1)
 //#if ((BOOST_VERSION/100)%1000) > 34 
   // params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
-  #if BOOST_VERSION > 103399
   docstring_options docopt(true, true, false);
-  #endif
 #endif
 
   def("setNumberOfThreads",escript::setNumberOfThreads);
@@ -101,8 +98,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("printParallelThreadCounts",escript::printParallelThreadCnt);
   def("getMPISizeWorld",escript::getMPISizeWorld);
   def("getMPIRankWorld",escript::getMPIRankWorld);
-  def("getMachinePrecision",escript::getMachinePrecision);
-  def("getMaxFloat",escript::getMaxFloat);
+
+
   //
   // Interface for AbstractDomain
   //
@@ -186,7 +183,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("tag",&escript::Data::tag)
     .def("resolve",&escript::Data::resolve)
     .def("copy",&escript::Data::copy)
-    .def("copy",&escript::Data::copySelf)
+    .def("copy",&escript::Data::copySelf,return_value_policy<manage_new_object>())
     .def("delay",&escript::Data::delay)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToPyObject)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToArray)

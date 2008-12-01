@@ -50,7 +50,7 @@ DataConstant::DataConstant(const boost::python::numeric::array& value,
 //   DataArrayView temp_dataView(temp_data, tempShape);
 //   temp_dataView.copy(value);
 
-  m_data.copyFromNumArray(value,1);
+  m_data.copyFromNumArray(value);
   //
 
   // copy the data in the correct format

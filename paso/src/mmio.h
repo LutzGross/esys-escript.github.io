@@ -51,7 +51,7 @@ int mm_write_mtx_array_size(FILE *f, int M, int N);
 #define mm_is_array(typecode)	((typecode)[1]=='A')
 
 #define mm_is_complex(typecode)	((typecode)[2]=='C')
-#define mm_is_real(typecode)	((typecode)[2]=='R')
+#define mm_is_real(typecode)		((typecode)[2]=='R')
 #define mm_is_pattern(typecode)	((typecode)[2]=='P')
 #define mm_is_integer(typecode) ((typecode)[2]=='I')
 

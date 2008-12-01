@@ -127,7 +127,7 @@ class ESCRIPT_DLL_API DataVector {
     Note: This function does not attempt to perform shape checking.
   */
   void
-  copyFromNumArray(const boost::python::numeric::array& value, size_t copies);
+  copyFromNumArray(const boost::python::numeric::array& value);
 
 
 

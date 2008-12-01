@@ -84,38 +84,100 @@ typedef struct Paso_SystemMatrix {
 
 /*  interfaces: */
 
+
+PASO_DLL_API
 Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType,Paso_SystemMatrixPattern*,dim_t,dim_t);
+
+PASO_DLL_API
 Paso_SystemMatrix* Paso_SystemMatrix_reference(Paso_SystemMatrix*);
+
+PASO_DLL_API
 void Paso_SystemMatrix_free(Paso_SystemMatrix*);
 
+
+PASO_DLL_API
 void Paso_SystemMatrix_MatrixVector(const double alpha, Paso_SystemMatrix* A, const double* in, const double beta, double* out);
+
+PASO_DLL_API
 void Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha, Paso_SystemMatrix* A, const double* in, const double beta, double* out);
+
+PASO_DLL_API
 void Paso_solve(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
+
+PASO_DLL_API
 void Paso_solve_free(Paso_SystemMatrix* in);
+
+PASO_DLL_API
 void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A,const double* in);
+
+PASO_DLL_API
 double* Paso_SystemMatrix_finishCollect(Paso_SystemMatrix* A);
+
+PASO_DLL_API
 void  Paso_SystemMatrix_startColCollect(Paso_SystemMatrix* A,const double* in);
+
+PASO_DLL_API
 double* Paso_SystemMatrix_finishColCollect(Paso_SystemMatrix* A);
+
+PASO_DLL_API
 void  Paso_SystemMatrix_startRowCollect(Paso_SystemMatrix* A,const double* in);
+
+PASO_DLL_API
 double* Paso_SystemMatrix_finishRowCollect(Paso_SystemMatrix* A);
+
+PASO_DLL_API
 void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
+
+PASO_DLL_API
 double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A);
+
+PASO_DLL_API
 dim_t Paso_SystemMatrix_getTotalNumRows(const Paso_SystemMatrix* A);
+
+PASO_DLL_API
 dim_t Paso_SystemMatrix_getTotalNumCols(const Paso_SystemMatrix*);
+
+PASO_DLL_API
 dim_t Paso_SystemMatrix_getGlobalNumRows(Paso_SystemMatrix*);
+
+PASO_DLL_API
 dim_t Paso_SystemMatrix_getGlobalNumCols(Paso_SystemMatrix*);
 
+
+PASO_DLL_API
 void Paso_SystemMatrix_saveMM(Paso_SystemMatrix *, char *);
+
+PASO_DLL_API
 void Paso_SystemMatrix_saveHB(Paso_SystemMatrix *, char *);
+
+PASO_DLL_API
 Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR(char *);
+
+PASO_DLL_API
 Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC(char *);
+
+PASO_DLL_API
 void Paso_SystemMatrix_setDefaults(Paso_Options*);
+
+PASO_DLL_API
 int Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index_t preconditioner, const  index_t package,const  bool_t symmetry);
+
+PASO_DLL_API
 dim_t Paso_SystemMatrix_getNumOutput(Paso_SystemMatrix* A);
+
+PASO_DLL_API
 void Paso_SystemMatrix_setValues(Paso_SystemMatrix*,double);
+
+PASO_DLL_API
 void Paso_SystemMatrix_add(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
+
+PASO_DLL_API
 void Paso_SystemMatrix_rowSum(Paso_SystemMatrix* A, double* row_sum);
+
+PASO_DLL_API
 void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, double main_diagonal_value);
+
+PASO_DLL_API
 void Paso_SparseMatrix_nullifyRows_CSR(Paso_SparseMatrix*, double*, double);
 
 

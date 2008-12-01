@@ -426,11 +426,6 @@ class MaxIterReached(SolverSchemeException):
    maxium number of iteration steps is reached.
    """
    pass
-class CorrectionFailed(SolverSchemeException):
-   """
-   no convergence has been achieved in the solution correction scheme.
-   """
-   pass
 class IterationBreakDown(SolverSchemeException):
    """
    iteration scheme econouters an incurable breakdown.
@@ -442,7 +437,63 @@ class NegativeNorm(SolverSchemeException):
    """
    pass
 
-def PCG(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=100, initial_guess=True, verbose=False):
+class IterationHistory(object):
+   """
+   The IterationHistory class is used to define a stopping criterium. It keeps track of the 
+   residual norms. The stoppingcriterium indicates termination if the residual norm has been reduced by 
+   a given tolerance.
+   """
+   def __init__(self,tolerance=math.sqrt(util.EPSILON),verbose=False):
+      """
+      Initialization
+
+      @param tolerance: tolerance
+      @type tolerance: positive C{float}
+      @param verbose: switches on the printing out some information
+      @type verbose: C{bool}
+      """
+      if not tolerance>0.:
+          raise ValueError,"tolerance needs to be positive."
+      self.tolerance=tolerance
+      self.verbose=verbose
+      self.history=[]
+   def stoppingcriterium(self,norm_r,r,x):
+       """
+       returns True if the C{norm_r} is C{tolerance}*C{norm_r[0]} where C{norm_r[0]}  is the residual norm at the first call.
+
+       
+       @param norm_r: current residual norm
+       @type norm_r: non-negative C{float}
+       @param r: current residual (not used)
+       @param x: current solution approximation (not used)
+       @return: C{True} is the stopping criterium is fullfilled. Otherwise C{False} is returned.
+       @rtype: C{bool}
+
+       """
+       self.history.append(norm_r)
+       if self.verbose: print "iter: %s:  inner(rhat,r) = %e"#(len(self.history)-1, self.history[-1])
+       return self.history[-1]<=self.tolerance * self.history[0]
+
+   def stoppingcriterium2(self,norm_r,norm_b,solver="GMRES",TOL=None):
+       """
+       returns True if the C{norm_r} is C{tolerance}*C{norm_b} 
+
+       
+       @param norm_r: current residual norm
+       @type norm_r: non-negative C{float}
+       @param norm_b: norm of right hand side
+       @type norm_b: non-negative C{float}
+       @return: C{True} is the stopping criterium is fullfilled. Otherwise C{False} is returned.
+       @rtype: C{bool}
+
+       """
+       if TOL==None:
+          TOL=self.tolerance
+       self.history.append(norm_r)
+       if self.verbose: print "iter: %s:  norm(r) = %e"#(len(self.history)-1, self.history[-1])
+       return self.history[-1]<=TOL * norm_b
+
+def PCG(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
    """
    Solver for 
 
@@ -486,22 +537,15 @@ def PCG(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=100
    iter=0
    if x==None:
       x=0*b
-      r=b*1.
-      initial_guess=False
-   if initial_guess:
-      r=b+(-1)*Aprod(x) 
-      x=x*1.
    else:
-      x=x*0
-      r=b*1
+      b += (-1)*Aprod(x) 
+   r=b
    rhat=Msolve(r)
    d = rhat 
    rhat_dot_r = bilinearform(rhat, r)
    if rhat_dot_r<0: raise NegativeNorm,"negative norm."
-   norm_b=math.sqrt(rhat_dot_r)
-   if verbose: print "PCG: initial residual norm = %e (absolute tolerance = %e)"%(norm_b, atol+rtol*norm_b)
 
-   while not math.sqrt(rhat_dot_r) <= atol+rtol*norm_b:
+   while not stoppingcriterium(math.sqrt(rhat_dot_r),r,x):
        iter+=1
        if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
 
@@ -518,8 +562,7 @@ def PCG(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=100
 
        rhat_dot_r = rhat_dot_r_new
        if rhat_dot_r<0: raise NegativeNorm,"negative norm."
-       if verbose: print "PCG: iteration step %s: residual norm = %e"%(iter, math.sqrt(rhat_dot_r))
-   if verbose: print "PCG: tolerance reached after %s steps."%iter
+
    return x,r
 
 class Defect(object):
@@ -733,39 +776,39 @@ def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
 
         # Modified Gram-Schmidt	
 	for j in range(iter+1): 
-	     h[j,iter]=defect.bilinearform(v[j],v[iter+1])   
-	     v[iter+1]-=h[j,iter]*v[j]
+	     h[j][iter]=defect.bilinearform(v[j],v[iter+1])   
+	     v[iter+1]-=h[j][iter]*v[j]
        
-	h[iter+1,iter]=defect.norm(v[iter+1])
-	v_norm2=h[iter+1,iter]
+	h[iter+1][iter]=defect.norm(v[iter+1])
+	v_norm2=h[iter+1][iter]
 
         # Reorthogonalize if needed
 	if v_norm1 + 0.001*v_norm2 == v_norm1:   #Brown/Hindmarsh condition (default)
    	    for j in range(iter+1):  
 	       hr=defect.bilinearform(v[j],v[iter+1])
-      	       h[j,iter]=h[j,iter]+hr 
+      	       h[j][iter]=h[j][iter]+hr 
       	       v[iter+1] -= hr*v[j]
 
    	    v_norm2=defect.norm(v[iter+1])
-	    h[iter+1,iter]=v_norm2
+	    h[iter+1][iter]=v_norm2
         #   watch out for happy breakdown 
         if not v_norm2 == 0:
-                v[iter+1]=v[iter+1]/h[iter+1,iter]
+                v[iter+1]=v[iter+1]/h[iter+1][iter]
 
         #   Form and store the information for the new Givens rotation
 	if iter > 0 :
 		hhat=numarray.zeros(iter+1,numarray.Float64)
-		for i in range(iter+1) : hhat[i]=h[i,iter]
+		for i in range(iter+1) : hhat[i]=h[i][iter]
 		hhat=__givapp(c[0:iter],s[0:iter],hhat);
-	        for i in range(iter+1) : h[i,iter]=hhat[i]
+	        for i in range(iter+1) : h[i][iter]=hhat[i]
 
-	mu=math.sqrt(h[iter,iter]*h[iter,iter]+h[iter+1,iter]*h[iter+1,iter])
+	mu=math.sqrt(h[iter][iter]*h[iter][iter]+h[iter+1][iter]*h[iter+1][iter])
 
 	if mu!=0 :
-		c[iter]=h[iter,iter]/mu
-		s[iter]=-h[iter+1,iter]/mu
-		h[iter,iter]=c[iter]*h[iter,iter]-s[iter]*h[iter+1,iter]
-		h[iter+1,iter]=0.0
+		c[iter]=h[iter][iter]/mu
+		s[iter]=-h[iter+1][iter]/mu
+		h[iter][iter]=c[iter]*h[iter][iter]-s[iter]*h[iter+1][iter]
+		h[iter+1][iter]=0.0
 		g[iter:iter+2]=__givapp(c[iter],s[iter],g[iter:iter+2])
 
         # Update the residual norm
@@ -776,11 +819,11 @@ def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
    # It's time to compute x and leave.        
    if iter > 0 : 
      y=numarray.zeros(iter,numarray.Float64)	
-     y[iter-1] = g[iter-1] / h[iter-1,iter-1]
+     y[iter-1] = g[iter-1] / h[iter-1][iter-1]
      if iter > 1 :	
         i=iter-2   
         while i>=0 :
-          y[i] = ( g[i] - numarray.dot(h[i,i+1:iter], y[i+1:iter])) / h[i,i]
+          y[i] = ( g[i] - numarray.dot(h[i][i+1:iter], y[i+1:iter])) / h[i][i]
           i=i-1
      xhat=v[iter-1]*y[iter-1]
      for i in range(iter-1):
@@ -796,114 +839,111 @@ def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
    return xhat,stopped
 
 ##############################################
-def GMRES(b, Aprod, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=100, iter_restart=20, verbose=False):
+def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100, iter_restart=20):
 ################################################
    m=iter_restart
    iter=0
-   if x == None:
-      xc=b*0 
-   else:
-      xc=x*1
-   if rtol>0:
-      r_dot_r = bilinearform(b, b)
-      if r_dot_r<0: raise NegativeNorm,"negative norm."
-      atol2=atol+rtol*math.sqrt(r_dot_r)
-      if verbose: print "GMRES: norm of right hand side = %e (absolute tolerance = %e)"%(math.sqrt(r_dot_r), atol2)
-   else:
-      atol2=atol
-      if verbose: print "GMRES: absolute tolerance = %e"%atol2
-   
+   xc=x
    while True:
       if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached"%iter_max
-      xc,stopped=__GMRESm(b, Aprod, bilinearform, atol2, x=xc, iter_max=iter_max-iter, iter_restart=m, verbose=verbose)
-      iter+=iter_restart	
+      xc,stopped=__GMRESm(b*1, Aprod, Msolve, bilinearform, stoppingcriterium, x=xc*1, iter_max=iter_max-iter, iter_restart=m)
       if stopped: break
-      if verbose: print "GMRES: restart."
-   if verbose: print "GMRES: tolerance has reached."
+      iter+=iter_restart	
    return xc
 
-def __GMRESm(b, Aprod, bilinearform, atol, x, iter_max=100, iter_restart=20, verbose=False):
+def __GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100, iter_restart=20):
    iter=0
-   
-   h=numarray.zeros((iter_restart+1,iter_restart),numarray.Float64)
-   c=numarray.zeros(iter_restart,numarray.Float64)
-   s=numarray.zeros(iter_restart,numarray.Float64)
-   g=numarray.zeros(iter_restart+1,numarray.Float64)
-   v=[]
-
-   r=b-Aprod(x)
+   r=Msolve(b)
    r_dot_r = bilinearform(r, r)
    if r_dot_r<0: raise NegativeNorm,"negative norm."
+   norm_b=math.sqrt(r_dot_r)
+
+   if x==None:
+      x=0*b
+   else: 
+      r=Msolve(b-Aprod(x))
+      r_dot_r = bilinearform(r, r)
+      if r_dot_r<0: raise NegativeNorm,"negative norm."
+   
+   h=numarray.zeros((iter_restart,iter_restart),numarray.Float64)
+   c=numarray.zeros(iter_restart,numarray.Float64)
+   s=numarray.zeros(iter_restart,numarray.Float64)
+   g=numarray.zeros(iter_restart,numarray.Float64)
+   v=[]
+
    rho=math.sqrt(r_dot_r)
    
    v.append(r/rho)
    g[0]=rho
 
-   if verbose: print "GMRES: initial residual %e (absolute tolerance = %e)"%(rho,atol)
-   while not (rho<=atol or iter==iter_restart):
+   while not (stoppingcriterium(rho,norm_b) or iter==iter_restart-1):
 
 	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
 
-	p=Aprod(v[iter])
+	p=Msolve(Aprod(v[iter]))
+
 	v.append(p)
 
 	v_norm1=math.sqrt(bilinearform(v[iter+1], v[iter+1]))  
 
 # Modified Gram-Schmidt	
 	for j in range(iter+1): 
-	  h[j,iter]=bilinearform(v[j],v[iter+1])   
-	  v[iter+1]-=h[j,iter]*v[j]
+	  h[j][iter]=bilinearform(v[j],v[iter+1])   
+	  v[iter+1]-=h[j][iter]*v[j]
        
-	h[iter+1,iter]=math.sqrt(bilinearform(v[iter+1],v[iter+1])) 
-	v_norm2=h[iter+1,iter]
+	h[iter+1][iter]=math.sqrt(bilinearform(v[iter+1],v[iter+1])) 
+	v_norm2=h[iter+1][iter]
 
 # Reorthogonalize if needed
 	if v_norm1 + 0.001*v_norm2 == v_norm1:   #Brown/Hindmarsh condition (default)
    	 for j in range(iter+1):  
 	    hr=bilinearform(v[j],v[iter+1])
-      	    h[j,iter]=h[j,iter]+hr 
+      	    h[j][iter]=h[j][iter]+hr 
       	    v[iter+1] -= hr*v[j]
 
    	 v_norm2=math.sqrt(bilinearform(v[iter+1], v[iter+1]))  
-	 h[iter+1,iter]=v_norm2
+	 h[iter+1][iter]=v_norm2
 
 #   watch out for happy breakdown 
         if not v_norm2 == 0:
-         v[iter+1]=v[iter+1]/h[iter+1,iter]
+         v[iter+1]=v[iter+1]/h[iter+1][iter]
 
 #   Form and store the information for the new Givens rotation
-	if iter > 0: h[:iter+1,iter]=__givapp(c[:iter],s[:iter],h[:iter+1,iter])
-	mu=math.sqrt(h[iter,iter]*h[iter,iter]+h[iter+1,iter]*h[iter+1,iter])
+	if iter > 0 :
+		hhat=numarray.zeros(iter+1,numarray.Float64)
+		for i in range(iter+1) : hhat[i]=h[i][iter]
+		hhat=__givapp(c[0:iter],s[0:iter],hhat);
+	        for i in range(iter+1) : h[i][iter]=hhat[i]
+
+	mu=math.sqrt(h[iter][iter]*h[iter][iter]+h[iter+1][iter]*h[iter+1][iter])
 
 	if mu!=0 :
-		c[iter]=h[iter,iter]/mu
-		s[iter]=-h[iter+1,iter]/mu
-		h[iter,iter]=c[iter]*h[iter,iter]-s[iter]*h[iter+1,iter]
-		h[iter+1,iter]=0.0
+		c[iter]=h[iter][iter]/mu
+		s[iter]=-h[iter+1][iter]/mu
+		h[iter][iter]=c[iter]*h[iter][iter]-s[iter]*h[iter+1][iter]
+		h[iter+1][iter]=0.0
 		g[iter:iter+2]=__givapp(c[iter],s[iter],g[iter:iter+2])
+
 # Update the residual norm
                
         rho=abs(g[iter+1])
-        if verbose: print "GMRES: iteration step %s: residual %e"%(iter,rho)
 	iter+=1
 
 # At this point either iter > iter_max or rho < tol.
 # It's time to compute x and leave.        
 
-   if verbose: print "GMRES: iteration stopped after %s step."%iter
    if iter > 0 : 
      y=numarray.zeros(iter,numarray.Float64)	
-     y[iter-1] = g[iter-1] / h[iter-1,iter-1]
+     y[iter-1] = g[iter-1] / h[iter-1][iter-1]
      if iter > 1 :	
         i=iter-2   
         while i>=0 :
-          y[i] = ( g[i] - numarray.dot(h[i,i+1:iter], y[i+1:iter])) / h[i,i]
+          y[i] = ( g[i] - numarray.dot(h[i][i+1:iter], y[i+1:iter])) / h[i][i]
           i=i-1
      xhat=v[iter-1]*y[iter-1]
      for i in range(iter-1):
 	xhat += v[i]*y[i]
-   else: 
-     xhat=v[0] * 0
+   else : xhat=v[0] 
 
    x += xhat
    if iter<iter_restart-1: 
@@ -914,7 +954,7 @@ def __GMRESm(b, Aprod, bilinearform, atol, x, iter_max=100, iter_restart=20, ver
    return x,stopped
 
 #################################################
-def MINRES(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=100):
+def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
 #################################################
     #
     #  minres solves the system of linear equations Ax = b
@@ -981,7 +1021,7 @@ def MINRES(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=
     #---------------------------------------------------------------------
     # Main iteration loop.
     # --------------------------------------------------------------------
-    while not rnorm<=atol+rtol*Anorm*ynorm:    #  checks ||r|| < (||A|| ||x||) * TOL
+    while not stoppingcriterium(rnorm,Anorm*ynorm,'MINRES'):    #  checks ||r|| < (||A|| ||x||) * TOL
 
 	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
         iter    = iter  +  1
@@ -1067,7 +1107,7 @@ def MINRES(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=
 
     return x
 
-def TFQMR(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=100):
+def TFQMR(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
 
 # TFQMR solver for linear systems
 #
@@ -1104,12 +1144,13 @@ def TFQMR(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=1
   tau = math.sqrt(bilinearform(r,r))
   error = [ error, tau ] 
   rho = tau * tau
+  m=1
 #
 #  TFQMR iteration
 #
 #  while ( iter < kmax-1 ):
    
-  while not tau<=atol+rtol*norm_b:
+  while not stoppingcriterium(tau*math.sqrt ( m + 1 ),norm_b,'TFQMR'):
     if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
 
     sigma = bilinearform(r,v)
@@ -1358,307 +1399,215 @@ class HomogeneousSaddlePointProblem(object):
              Bv    =0
 
       for the unknowns v and p and given operators A and B and given right hand side f.
-      B^* is the adjoint operator of B.
+      B^* is the adjoint operator of B is the given inner product.
+
       """
       def __init__(self,**kwargs):
         self.setTolerance()
-        self.setAbsoluteTolerance()
-        self.setSubToleranceReductionFactor()
+        self.setToleranceReductionFactor()
 
-      #=============================================================
       def initialize(self):
         """
         initialize the problem (overwrite)
         """
         pass
-
       def B(self,v):
-        """
-        returns Bv (overwrite)
-        @rtype: equal to the type of p
-
-        @note: boundary conditions on p should be zero!
-        """
-        raise NotImplementedError,"no operator B implemented."
-
-      def inner_pBv(self,p,Bv):
          """
-         returns inner product of element p and Bv  (overwrite)
-         
-         @type p: equal to the type of p
-         @type Bv: equal to the type of result of operator B
-         @rtype: C{float}
-
+         returns Bv (overwrite)
          @rtype: equal to the type of p
-         """
-         raise NotImplementedError,"no inner product for p implemented."
 
-      def inner_p(self,p0,p1):
+         @note: boundary conditions on p should be zero!
          """
-         returns inner product of element p0 and p1  (overwrite)
+         pass
+
+      def inner(self,p0,p1):
+         """
+         returns inner product of two element p0 and p1  (overwrite)
          
          @type p0: equal to the type of p
          @type p1: equal to the type of p
          @rtype: equal to the type of p
          """
-         raise NotImplementedError,"no inner product for p implemented."
-
-      def inner_v(self,v0,v1):
-         """
-         returns inner product of two element v0 and v1  (overwrite)
-         
-         @type v0: equal to the type of v
-         @type v1: equal to the type of v
-         @rtype: C{float}
-
-         @rtype: equal to the type of v
-         """
-         raise NotImplementedError,"no inner product for v implemented."
          pass
 
       def solve_A(self,u,p):
          """
-         solves Av=f-Au-B^*p with accuracy self.getSubProblemTolerance() (overwrite) 
+         solves Av=f-Au-B^*p with accuracy self.getReducedTolerance() (overwrite) 
 
          @rtype: equal to the type of v
          @note: boundary conditions on v should be zero!
          """
-         raise NotImplementedError,"no operator A implemented."
+         pass
 
       def solve_prec(self,p):
          """
-         provides a preconditioner for BA^{-1}B^* with accuracy self.getSubProblemTolerance() (overwrite)
+         provides a preconditioner for BA^{-1}B^* with accuracy self.getReducedTolerance() (overwrite)
 
          @rtype: equal to the type of p
-         @note: boundary conditions on p should be zero!
          """
-         raise NotImplementedError,"no preconditioner for Schur complement implemented."
-      #=============================================================
-      def __Aprod_PCG(self,p):
-          # return (v,Bv) with v=A^-1B*p 
+         pass
+
+      def stoppingcriterium(self,Bv,v,p):
+         """
+         returns a True if iteration is terminated. (overwrite)
+
+         @rtype: C{bool}
+         """
+         pass
+             
+      def __inner(self,p,r):
+         return self.inner(p,r[1])
+
+      def __inner_p(self,p1,p2):
+         return self.inner(p1,p2)
+      
+      def __inner_a(self,a1,a2):
+         return self.inner_a(a1,a2)
+
+      def __inner_a1(self,a1,a2):
+         return self.inner(a1[1],a2[1])
+
+      def __stoppingcriterium(self,norm_r,r,p):
+          return self.stoppingcriterium(r[1],r[0],p)
+
+      def __stoppingcriterium2(self,norm_r,norm_b,solver='GMRES',TOL=None):
+          return self.stoppingcriterium2(norm_r,norm_b,solver,TOL)
+
+      def setTolerance(self,tolerance=1.e-8):
+              self.__tol=tolerance
+      def getTolerance(self):
+              return self.__tol
+      def setToleranceReductionFactor(self,reduction=0.01):
+              self.__reduction=reduction
+      def getSubProblemTolerance(self):
+              return self.__reduction*self.getTolerance()
+
+      def solve(self,v,p,max_iter=20, verbose=False, show_details=False, solver='PCG',iter_restart=20):
+              """
+              solves the saddle point problem using initial guesses v and p.
+
+              @param max_iter: maximum number of iteration steps.
+              """
+              self.verbose=verbose
+              self.show_details=show_details and self.verbose
+
+              # assume p is known: then v=A^-1(f-B^*p) 
+              # which leads to BA^-1B^*p = BA^-1f  
+
+	      # Az=f is solved as A(z-v)=f-Av (z-v = 0 on fixed_u_mask)	     
+	      self.__z=v+self.solve_A(v,p*0)
+              Bz=self.B(self.__z) 
+              #
+	      #   solve BA^-1B^*p = Bz 
+              #
+              #
+              #
+              self.iter=0
+	      if solver=='GMRES':   	
+                if self.verbose: print "enter GMRES method (iter_max=%s)"%max_iter
+                p=GMRES(Bz,self.__Aprod2,self.__Msolve2,self.__inner_p,self.__stoppingcriterium2,iter_max=max_iter, x=p*1.,iter_restart=iter_restart)
+                # solve Au=f-B^*p 
+                #       A(u-v)=f-B^*p-Av
+                #       u=v+(u-v)
+		u=v+self.solve_A(v,p)
+
+	      if solver=='TFQMR':   	
+                if self.verbose: print "enter TFQMR method (iter_max=%s)"%max_iter
+                p=TFQMR(Bz,self.__Aprod2,self.__Msolve2,self.__inner_p,self.__stoppingcriterium2,iter_max=max_iter, x=p*1.)
+                # solve Au=f-B^*p 
+                #       A(u-v)=f-B^*p-Av
+                #       u=v+(u-v)
+		u=v+self.solve_A(v,p)
+
+	      if solver=='MINRES':   	
+                if self.verbose: print "enter MINRES method (iter_max=%s)"%max_iter
+                p=MINRES(Bz,self.__Aprod2,self.__Msolve2,self.__inner_p,self.__stoppingcriterium2,iter_max=max_iter, x=p*1.)
+                # solve Au=f-B^*p 
+                #       A(u-v)=f-B^*p-Av
+                #       u=v+(u-v)
+		u=v+self.solve_A(v,p)
+              
+	      if solver=='GMRESC':   	
+                if self.verbose: print "enter GMRES coupled method (iter_max=%s)"%max_iter
+                p0=self.solve_prec1(Bz)
+	        #alfa=(1/self.vol)*util.integrate(util.interpolate(p,escript.Function(self.domain)))
+                #p-=alfa
+                x=GMRES(ArithmeticTuple(self.__z*1.,p0*1),self.__Anext,self.__Mempty,self.__inner_a,self.__stoppingcriterium2,iter_max=max_iter, x=ArithmeticTuple(v*1,p*1),iter_restart=20)
+                #x=NewtonGMRES(ArithmeticTuple(self.__z*1.,p0*1),self.__Aprod_Newton2,self.__Mempty,self.__inner_a,self.__stoppingcriterium2,iter_max=max_iter, x=ArithmeticTuple(v*1,p*1),atol=0,rtol=self.getTolerance())
+
+                # solve Au=f-B^*p 
+                #       A(u-v)=f-B^*p-Av
+                #       u=v+(u-v)
+         	p=x[1]
+		u=v+self.solve_A(v,p)		
+		#p=x[1]
+		#u=x[0]
+
+              if solver=='PCG':
+                #   note that the residual r=Bz-BA^-1B^*p = B(z-A^-1B^*p) = Bv
+                #
+                #   with                    Av=Az-B^*p = f - B^*p (v=z on fixed_u_mask)
+                #                           A(v-z)= f -Az - B^*p (v-z=0 on fixed_u_mask)
+                if self.verbose: print "enter PCG method (iter_max=%s)"%max_iter
+                p,r=PCG(ArithmeticTuple(self.__z*1.,Bz),self.__Aprod,self.__Msolve,self.__inner,self.__stoppingcriterium,iter_max=max_iter, x=p)
+	        u=r[0]  
+                # print "DIFF=",util.integrate(p)
+
+              # print "RESULT div(u)=",util.Lsup(self.B(u)),util.Lsup(u)
+
+ 	      return u,p
+
+      def __Msolve(self,r):
+          return self.solve_prec(r[1])
+
+      def __Msolve2(self,r):
+          return self.solve_prec(r*1)
+
+      def __Mempty(self,r):
+          return r
+
+
+      def __Aprod(self,p):
+          # return BA^-1B*p 
           #solve Av =B^*p as Av =f-Az-B^*(-p)
           v=self.solve_A(self.__z,-p)
           return ArithmeticTuple(v, self.B(v))
 
-      def __inner_PCG(self,p,r):
-         return self.inner_pBv(p,r[1])
+      def __Anext(self,x):
+          # return next v,p 
+          #solve Av =-B^*p as Av =f-Az-B^*p
 
-      def __Msolve_PCG(self,r):
-          return self.solve_prec(r[1])
-      #=============================================================
-      def __Aprod_GMRES(self,x):
-          # return w,q  from v, p
-          # solve Aw =Av+B^*p as Aw =f-A(z-v)-B^*(-p)
-          #  and  Sq=B(v-w)
-          v=x[0]
-          p=x[1]
-          w=self.solve_A(self.__z-v,-p)
-          Bw=self.B(w-v)
-	  q=self.solve_prec(Bw)
-          return ArithmeticTuple(w,q)
+	  pc=x[1]
+          v=self.solve_A(self.__z,-pc)
+	  p=self.solve_prec1(self.B(v))
 
-      def __inner_GMRES(self,a1,a2):
-         return self.inner_p(a1[1],a2[1])+self.inner_v(a1[0],a2[0])
+          return ArithmeticTuple(v,p)
 
-      #=============================================================
-      def norm(self,v,p):
-        f=self.inner_p(p,p)+self.inner_v(v,v)
-        if f<0:
-            raise ValueError,"negative norm."
-        return math.sqrt(f)
 
-      def solve(self,v,p,max_iter=20, verbose=False, show_details=False, useUzawa=True, iter_restart=20,max_correction_steps=3):
-         """
-         solves the saddle point problem using initial guesses v and p.
+      def __Aprod2(self,p):
+          # return BA^-1B*p 
+          #solve Av =B^*p as Av =f-Az-B^*(-p)
+	  v=self.solve_A(self.__z,-p)
+          return self.B(v)
 
-         @param v: initial guess for velocity
-         @param p: initial guess for pressure
-         @type v: L{Data}
-         @type p: L{Data}
-         @param useUzawa: indicate the usage of the Uzawa scheme. Otherwise the problem is solved in coupled form.
-         @param max_iter: maximum number of iteration steps per correction attempt.
-         @param verbose: show information on the progress of the saddlepoint problem solver.
-         @param show_details: show details of the sub problems solves
-         @param iter_restart: restart the iteration after C{iter_restart} steps (only used if useUzaw=False)
-         @param max_correction_steps: maximum number of iteration steps in the attempt get |Bv| to zero.
-         @return: new approximations for velocity and pressure
-         @type useUzawa: C{bool}
-         @type max_iter: C{int}
-         @type verbose: C{bool}
-         @type show_details: C{bool}
-         @type iter_restart: C{int}
-         @type max_correction_steps: C{int}
-         @rtype: C{tuple} of L{Data} objects
-         """
-         self.verbose=verbose
-         self.show_details=show_details and self.verbose
-         #=================================================================================
-         # Az=f is solved as A(z-v)=f-Av-B^*0 (typically with z-v=0 on boundary)
-         self.setSubProblemTolerance(self.getTolerance(), apply_reduction=True)
-         self.__z=v+self.solve_A(v,p*0)
-         Bz=self.B(self.__z) 
-         p0=self.solve_prec(Bz)
-         # tolerances:
-         rtol=self.getTolerance()
-         atol=self.getAbsoluteTolerance()
-         f0=self.norm(self.__z,p0)
-         if not f0>0:
-            return self.__z, p*0
-         ATOL=rtol*f0+atol
-         if not ATOL>0:
-            raise ValueError,"overall absolute tolerance needs to be positive."
-         if self.verbose: print "saddle point solver: initial residual %e, tolerance = %e."%(f0,ATOL)
-         # initialization
-         self.iter=0
-         correction_step=0
-         converged=False
-         # initial guess:
-         q=p*1
-         if not useUzawa:
-           u=v
-         while not converged :
-            if useUzawa:
-               self.setSubProblemTolerance(ATOL/f0, apply_reduction=True)
-               # assume p is known: then v=z-A^-1B^*p
-               #      
-               # which leads to BA^-1B^*p = Bz
-               #
-               # note that the residual r=Bz-BA^-1B^*p = B(z-A^-1B^*p) = Bu
-               #
-               # note that q=BA^-1B^*p = B (A^-1B^*p)=Bw  with Aw=B^*p = f - Az - B^*(-p)
-               #
-               if self.verbose: print "enter PCG method (iter_max=%s, atol=%e, subtolerance=%e)"%(max_iter,ATOL, self.getSubProblemTolerance())
-               q,r=PCG(ArithmeticTuple(self.__z,Bz),self.__Aprod_PCG,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL, rtol=0.,iter_max=max_iter, x=q, verbose=self.verbose)
-	       u=r[0]  
-	       Bu=r[1]  
-            else:
-               self.setSubProblemTolerance(ATOL/f0, apply_reduction=True)
-               #
-               #  with v=dv+z
-               #
-               #   A dv + B p = A (v-z) + Bp = 0
-               #   B dv       =  - Bz 
-               #
-               # apply the preconditioner [[A^{-1} 0][(S^{-1} B A^{-1})  -S^{-1}]] to the problem 
-               # the right hand side is then [0, S^{-1} Bz ]
-               #
-               #           
-               if self.verbose: print "enter GMRES (iter_max=%s, atol=%e, subtolerance=%e)"%(max_iter,ATOL,self.getSubProblemTolerance())
-               x=GMRES(ArithmeticTuple(0*self.__z,p0),self.__Aprod_GMRES,self.__inner_GMRES,atol=ATOL, rtol=0.,iter_max=max_iter, x=ArithmeticTuple(u-self.__z,q),iter_restart=iter_restart, verbose=self.verbose)
-               self.setSubProblemTolerance(ATOL/f0, apply_reduction=False)
-	       u=self.__z+x[0]
-               q=x[1]
-	       Bu=self.B(u)
-            # now we check if |Bu| ~ 0 or more precise |Bu|  <= rtol * |v| 
-            nu=self.inner_v(u,u)
-            nz=self.inner_v(self.__z,self.__z)
-            p2=self.solve_prec(Bu)
-            nBu=self.inner_p(p2,p2)
-            if not nu>=0 and not nBu>=0: raise NegativeNorm,"negative norm."
-            nu=math.sqrt(nu)
-            nBu=math.sqrt(nBu)
-            if self.verbose: print "saddle point solver: norm v= %e (Bv = %e)"%(nu,nBu)
-            QTOL=atol+nu*rtol
-            if nBu <= QTOL:
-                converged=True
-            else:
-                ATOL=QTOL/nBu*ATOL*0.3
-                if self.verbose: print "correction step %s: tolerance reduced to %e."%(correction_step,ATOL)
-                converged=False
-            correction_step+=1
-            if correction_step>max_correction_steps:
-               raise CorrectionFailed,"Given up after %d correction steps."%correction_step
-         if self.verbose: print "saddle point solver: tolerance reached."
- 	 return u,q
+      def __Aprod_Newton(self,p):
+          # return BA^-1B*p - Bz 
+          #solve Av =-B^*p as Av =f-Az-B^*p
+	  v=self.solve_A(self.__z,-p)
+          return self.B(v-self.__z)
 
-      #==========================================================================================================================
-      def setTolerance(self,tolerance=1.e-4):
-         """
-         sets the relative tolerance for (v,p)
+      def __Aprod_Newton2(self,x):
+          # return BA^-1B*p - Bz 
+          #solve Av =-B^*p as Av =f-Az-B^*p
+          pc=x[1]
+	  v=self.solve_A(self.__z,-pc)
+          p=self.solve_prec1(self.B(v-self.__z))
+          return ArithmeticTuple(v,p)
 
-         @param tolerance: tolerance to be used 
-         @type tolerance: non-negative C{float}
-         """
-         if tolerance<0:
-             raise ValueError,"tolerance must be positive."
-         self.__rtol=tolerance
-      def getTolerance(self):
-         """
-         returns the relative tolerance
-
-         @return: relative tolerance 
-         @rtype: C{float}
-         """
-         return self.__rtol
-      def setAbsoluteTolerance(self,tolerance=0.):
-         """
-         sets the absolute tolerance 
-
-         @param tolerance: tolerance to be used 
-         @type tolerance: non-negative C{float}
-         """
-         if tolerance<0:
-             raise ValueError,"tolerance must be non-negative."
-         self.__atol=tolerance
-      def getAbsoluteTolerance(self):
-         """
-         returns the absolute tolerance
-
-         @return: absolute tolerance 
-         @rtype: C{float}
-         """
-         return self.__atol
-      def setSubToleranceReductionFactor(self,reduction=None):
-         """
-         sets the reduction factor for the tolerance used to solve the subproblem in each iteration step.
-         if set to C{None} the square of the problem tolerance is used.
-    
-         @param reduction: reduction factor.
-         @type reduction: positive C{float} less or equal one or C{None}
-         """
-         if not reduction == None:
-              if reduction<=0 or reduction>1:
-                  raise ValueError,"reduction factor (=%e) must be positive and less or equal one."%reduction
-         self.__reduction=reduction
-      def getSubToleranceReductionFactor(self):
-         """
-         returns the subproblem reduction factor
-
-         @return: subproblem reduction factor
-         @rtype: C{float} or C{None}
-         """
-         return self.__reduction
-
-      def setSubProblemTolerance(self,rtol,apply_reduction=False):
-         """
-         sets the relative tolerance to solve the subproblem(s). 
-
-         @param rtol: relative tolerence
-         @type rtol: positive C{float}
-         @param apply_reduction: if set the the reduction factor is applied.
-         @type apply_reduction: C{bool}
-         """
-         if rtol<=0:
-             raise ValueError,"tolerance must be positive."
-         if apply_reduction:
-             if self.__reduction == None:
-                 self.__sub_tol=max(rtol**2,util.EPSILON*10)
-             else:
-                 self.__sub_tol=max(self.__reduction*rtol,util.EPSILON*10)
-         else:
-             self.__sub_tol=rtol
-      def getSubProblemTolerance(self):
-         """
-         returns the subproblem reduction factor
-
-         @return: subproblem reduction factor
-         @rtype: C{float} 
-         """
-         return self.__sub_tol
 
 def MaskFromBoundaryTag(domain,*tags):
    """
-   create a mask on the Solution(domain) function space which one for samples 
+   creates a mask on the Solution(domain) function space which one for samples 
    that touch the boundary tagged by tags.
 
    usage: m=MaskFromBoundaryTag(domain,"left", "right")

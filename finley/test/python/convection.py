@@ -20,7 +20,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="http://www.uq.edu.au/esscc/escript-finley"
 
 from esys.escript import *
-from esys.escript.models import TemperatureCartesian, StokesProblemCartesian
+from esys.escript.models import TemperatureCartesian, PlateMantelModel
 from esys.finley import Rectangle, Brick, LoadMesh
 from optparse import OptionParser
 from math import pi, ceil
@@ -43,13 +43,16 @@ t1 = time.time()
 extratol=1
 
 # read options:
-parser = OptionParser(usage="%prog [-r [DIR]] [-e [NE]]")
+parser = OptionParser(usage="%prog [-r [DIR]] [-e [NE]] [-s [solver]]")
+parser.add_option("-s", "--solver", dest="solver", help="solver to be used for saddle point problem. The possible options are PCG, GMRES, NewtonGMRES, MINRES and TFQMR.", metavar="solver", default="PCG")
 parser.add_option("-e", "--elements", dest="NE", help="number of elements in one direction.",metavar="NE", default=16)
+
 parser.add_option("-r", "--restart", dest="restart", help="restart from latest directory. It will be deleted after a new directory has been created.", default=False, action="store_true")
 parser.add_option("-d", "--dir", dest="restart_dir", help="restart from directory DIR. The directory will not be deleted but new restart directories are created.",metavar="DIR", default=None)
 (options, args) = parser.parse_args()
 restart=options.restart or (options.restart_dir !=None)
 
+solver=options.solver
 NE=int(options.NE)
 
 DIM=2
@@ -80,7 +83,7 @@ if True:
    useJAUMANNSTRESS=False
    # this is a simple linear Stokes model:
    RA=1.e5 # Rayleigh number
-   A=11 # Arenious number 
+   A=0 # Arenious number 
    DI = 0.  # dissipation number 
    MU=None
    ETA0=1.
@@ -201,12 +204,10 @@ for d in range(DIM):
 #
 #   set up velovity problem
 #
-sp=StokesProblemCartesian(dom)
-# ,stress,v,p,t,useJaumannStress=useJAUMANNSTRESS)
-# sp=PlateMantelModel(dom,stress,v,p,t,useJaumannStress=useJAUMANNSTRESS)
-# sp.initialize(mu=MU, tau_0=TAU0, n=N, eta_Y=ETAP0, tau_Y=TAU0, n_Y=NPL, q=fixed_v_mask)
+sp=PlateMantelModel(dom,stress,v,p,t,useJaumannStress=useJAUMANNSTRESS)
+sp.initialize(mu=MU, tau_0=TAU0, n=N, eta_Y=ETAP0, tau_Y=TAU0, n_Y=NPL, q=fixed_v_mask)
 sp.setTolerance(TOL*extratol)
-# sp.setToleranceReductionFactor(TOL)
+sp.setToleranceReductionFactor(TOL)
 #
 #  let the show begin:
 #
@@ -215,9 +216,9 @@ while t<T_END:
     print "============== solve for v ========================"
     FF=exp(A*(1./(1+T.interpolate(Function(dom)))-1./2.))
     print "viscosity range :", inf(FF)*ETA0, sup(FF)*ETA0
-    # sp.initialize(eta_N=ETA0*FF, eta_0=ETA0*FF, F=T*(RA*unitVector(DIM-1,DIM)))
-    sp.initialize(eta=ETA0*FF, f=T*(RA*unitVector(DIM-1,DIM)),fixed_u_mask=fixed_v_mask)
-    v,p=sp.solve(v,p,max_iter=20, verbose=VERBOSE, show_details=False)
+    sp.initialize(eta_N=ETA0*FF, eta_0=ETA0*FF, F=T*(RA*unitVector(DIM-1,DIM)))
+    sp.update(dt,max_inner_iter=20, verbose=VERBOSE, show_details=False, tol=10., solver=solver)
+    v=sp.getVelocity()
 
     for d in range(DIM):
          print "range %d-velocity"%d,inf(v[d]),sup(v[d])
@@ -228,7 +229,7 @@ while t<T_END:
       t_out+=DT_OUT
       n_out+=Dn_OUT
     # calculation of nusselt number:
-    se=ETA0*FF*length(symmetric(grad(v)))**2 # this propably wroing!
+    se=sp.getMechanicalPower()
     print "Xse:",inf(se),sup(se)
     Nu=1.+integrate(se)/(RA*vol)
     if dom.onMasterProcessor(): nusselt_file.write("%e %e\n"%(t,Nu))
@@ -266,9 +267,9 @@ while t<T_END:
          print "Write restart files to ",new_restart_dir
          if dom.onMasterProcessor() and not os.path.isdir(new_restart_dir): os.mkdir(new_restart_dir)
 	 dom.MPIBarrier()
-         # sp.getStress().dump(os.path.join(new_restart_dir,"stress.nc"))
-         v.dump(os.path.join(new_restart_dir,"v.nc"))
-         p.dump(os.path.join(new_restart_dir,"p.nc"))
+         sp.getStress().dump(os.path.join(new_restart_dir,"stress.nc"))
+         sp.getVelocity().dump(os.path.join(new_restart_dir,"v.nc"))
+         sp.getPressure().dump(os.path.join(new_restart_dir,"p.nc"))
          T.dump(os.path.join(new_restart_dir,"T.nc"))
          if n>1:
              file(os.path.join(new_restart_dir,"stamp.%d"%dom.getMPIRank()),"w").write("%e; %e; %s; %s; %s; %e; %e;\n"%(t, t_out, n_out, n, out_count, dt, dt_a))

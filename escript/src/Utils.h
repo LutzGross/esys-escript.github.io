@@ -60,16 +60,5 @@ namespace escript {
   */
   ESCRIPT_DLL_API int getMPIRankWorld();
 
- /**
-    \brief 
-    returns machine precision
- */
- ESCRIPT_DLL_API double getMachinePrecision();
- /*
-   \brief
-   return largest positive float
- */
- ESCRIPT_DLL_API double getMaxFloat();
-
 } // end of namespace
 #endif
