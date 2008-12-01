@@ -35,7 +35,7 @@
 void Paso_Solver_AMG_free(Paso_Solver_AMG * in) {
      if (in!=NULL) {
         Paso_Solver_AMG_free(in->AMG_of_Schur);
-        Paso_Solver_ILU_free(in->GS);
+        Paso_Solver_Jacobi_free(in->GS);
         MEMFREE(in->inv_A_FF);
         MEMFREE(in->A_FF_pivot);
         Paso_SparseMatrix_free(in->A_FC);
@@ -103,8 +103,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   out->b_C=NULL;
   out->GS=NULL;
   out->A=Paso_SparseMatrix_getReference(A_p);
-  out->GS=Paso_Solver_getILU(A_p,verbose);
-  /*out->GS=Paso_Solver_getJacobi(A_p);*/
+  /*out->GS=Paso_Solver_getGS(A_p,verbose);*/
+  out->GS=Paso_Solver_getJacobi(A_p);
   /*out->GS->sweeps=2;*/
   out->level=level;
    
@@ -155,8 +155,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
            if( Paso_noError()) {
               /* if there are no nodes in the coarse level there is no more work to do */
               out->n_C=n-out->n_F;
-              /*if (level<5) {*/
-               if (out->n_F>50) {
+              if (level<3) {
+               /*if (out->n_F>500) {*/
                    out->rows_in_C=MEMALLOC(out->n_C,index_t);
                    out->mask_C=MEMALLOC(n,index_t);
                    if (! (Paso_checkPtr(out->mask_C) || Paso_checkPtr(out->rows_in_C) ) ) {
@@ -184,7 +184,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
                          if (Paso_noError()) {
                             schur=Paso_SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_C,out->rows_in_C,out->mask_C);
                             /*find the pattern of the schur complement with fill in*/
-                            
+
                             schur_withFillIn=Paso_SparseMatrix_alloc(A_p->type,Paso_Pattern_binop(PATTERN_FORMAT_DEFAULT, schur->pattern, Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,out->A_CF->pattern,out->A_FC->pattern)),1,1);
                             
                             fprintf(stderr,"Sparsity of Schure: %dx%d LEN %d Percentage %f\n",schur_withFillIn->pattern->numOutput,schur_withFillIn->pattern->numInput,schur_withFillIn->len,schur_withFillIn->len/(1.*schur_withFillIn->pattern->numOutput*schur_withFillIn->pattern->numInput));
@@ -250,8 +250,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   if (Paso_noError()) {
       if (verbose) {
          printf("AMG: %d unknowns eliminated. %d left.\n",out->n_F,n-out->n_F);
-         /*if (level<5) {*/
-         if (out->n_F<50) {
+         if (level<3) {
+         /*if (out->n_F<500) {*/
             printf("timing: AMG: MIS/reordering/elemination : %e/%e/%e\n",time2,time0,time1);
          } else {
             printf("timing: AMG: MIS: %e\n",time2); 
@@ -295,11 +295,11 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      double *x0=MEMALLOC(amg->n,double);
      double time0=0;
      
-     /*if (amg->level==5) {*/
-     if (amg->n_F<=50) {
+     if (amg->level==3) {
+     /*if (amg->n_F<=500) {*/
       time0=Paso_timer();
         
-        /*Paso_Solver_solveJacobi(amg->GS,x,b);*/
+        Paso_Solver_solveJacobi(amg->GS,x,b);
         
         /* #pragma omp parallel for private(i) schedule(static)
         for (i=0;i<amg->n;++i) r[i]=b[i];
@@ -310,14 +310,14 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
          x[i]+=x0[i];
         }
         */
-        Paso_UMFPACK1(amg->A,x,b,0);
+        /*Paso_UMFPACK1(amg->A,x,b,0);*/
 
        time0=Paso_timer()-time0;
        /*fprintf(stderr,"timing: DIRECT SOLVER: %e/\n",time0);*/
      } else {
      
         /* presmoothing */
-         Paso_Solver_solveILU(amg->GS,x,b);
+         Paso_Solver_solveJacobi(amg->GS,x,b);
          /*
          #pragma omp parallel for private(i) schedule(static)
          for (i=0;i<amg->n;++i) r[i]=b[i];
@@ -377,7 +377,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      
      /*r=b-Ax*/ 
      Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
-     Paso_Solver_solveILU(amg->GS,x0,r);
+     Paso_Solver_solveJacobi(amg->GS,x0,r);
      
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<amg->n;++i) x[i]+=x0[i];
