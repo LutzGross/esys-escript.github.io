@@ -148,8 +148,12 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
                  if (mis_marker[j])
                      S+=A_p->val[iPtr];
                 }
-                if (ABS(S)>0)
+                /* This check is to make sure we dont get some nusty rows which were not removed durring coarsing process.*/
+                /* TODO: we have to mechanism that this does not happend at all, and get rid of this 'If'. */
+                if (ABS(S)>1.e-10)
                    out->inv_A_FF[i]=1./S;
+                else
+                   out->inv_A_FF[i]=1.; 
               }
 
            if( Paso_noError()) {
@@ -359,7 +363,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         /* x_F=invA_FF*b_F  */
         Paso_Solver_applyBlockDiagonalMatrix(1,amg->n_F,amg->inv_A_FF,amg->A_FF_pivot,amg->x_F,amg->b_F);
         /* x<-[x_F,x_C]     */
-        
+
         #pragma omp parallel for private(i) schedule(static)
         for (i=0;i<amg->n;++i) {
             if (amg->mask_C[i]>-1) {
@@ -369,7 +373,6 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
             }
         }
         
-
      /*postsmoothing*/
 
      #pragma omp parallel for private(i) schedule(static)
@@ -396,9 +399,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      */
      /*end of postsmoothing*/
      
-
      }
-
      MEMFREE(r);
      MEMFREE(x0);
     return;
