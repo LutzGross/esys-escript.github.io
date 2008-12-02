@@ -41,7 +41,7 @@ The displacement of the interface at the zero isocontour of $\phi(x)$ is calcula
 \label{ADVECTION}
 \end{equation}
 %
-where $\vec{v}$ is the velocity field. The advection equation is solved using a mid-point method, which is a two step procedure:
+where $\vec{v}$ is the velocity field. The advection equation is solved using a mid-point, which is a two step procedure:
 
 Firstly, $\phi^{1/2}$ is calculated solving:
 %
@@ -57,7 +57,7 @@ Secondly, using $\phi^{1/2}$, $\phi^{+}$ is calculated solving:
 \label{MIDPOINT SECOND}
 \end{equation}
 %
-For more details on the mid-point procedure see reference \cite{BOURGOUIN2006}. In certain situations the mid-point procedure has been shown to produce artifacts in the numerical solutions. A more robust procedure is to use the Taylor-Galerkin scheme with the presence of diffusion, which gives more stable solutions. The expression is derived by either inserting Equation (\ref{MIDPOINT FIST}) into Equation (\ref{MIDPOINT SECOND}), or by expanding $\phi$ into a Taylor series:
+This procedure works provided that the discretization of the left-hand side of Equations (\ref{MIDPOINT FIST}) and (\ref{MIDPOINT SECOND}) is a lumped mass matrix. For more details on the mid-point procedure see reference \cite{BOURGOUIN2006}. In certain situations the mid-point procedure has been shown to produce artifacts in the numerical solutions. A more robust procedure is to use the Taylor-Galerkin scheme with the presence of diffusion, which gives more stable solutions. The expression is derived by either inserting Equation (\ref{MIDPOINT FIST}) into Equation (\ref{MIDPOINT SECOND}), or by expanding $\phi$ into a Taylor series:
 %
 \begin{equation}
 \phi^{+} \simeq \phi^{-} + dt\frac{\partial \phi^{-}}{\partial t} + \frac{dt^2}{2}\frac{\partial^{2}\phi^{-}}{\partial t^{2}},
@@ -145,25 +145,108 @@ where $\delta t$, $v$, and $h$ are the time-step, velocity, and the width of an 
 
 \subsection{Reinitialization of Interface}
 
-As the computation of the distance function progresses, it becomes distorted, and so it needs to be updated in order to stay regular. This process is known as the reinitialization procedure. The aim is to iteratively find a solution to the reinitialization equation:
+As the computation of the distance function progresses, it becomes distorted, and so it needs to be updated in order to stay regular \cite{SUSSMAN1994}. This process is known as the reinitialization procedure. The aim is to iteratively find a solution to the reinitialization equation:
 %
 \begin{equation}
-\frac{\partial \psi}{\partial \tau} + sign(\psi)(1 - \nabla \psi) = 0.
+\frac{\partial \psi}{\partial \tau} + sign(\phi)(1 - \nabla \psi) = 0.
 \label{REINITIALISATION}
 \end{equation}
 %
-where $\tau$ is artificial time. This equation is solved to meet the definition of the level set function, $\lvert \nabla \psi \rvert = 1$; the normalization condition. However, it has been shown that in using this reinitialization procedure it is prone to mass loss and inconsistent positioning of the interface \cite{SUCKALE2008}.
+where $\psi$ shares the same level set with $\phi$, $\tau$ is pseudo time, and $sign(\phi)$ is the smoothed sign function. This equation is solved to meet the definition of the level set function, $\lvert \nabla \psi \rvert = 1$; the normalization condition. Equation (\ref{REINITIALISATION}) can be rewritten in similar form to the advection equation:
+%
+\begin{equation}
+\frac{\partial \psi}{\partial \tau} + \vec{w} \cdot \nabla \psi = sign(\phi),
+\label{REINITIALISATION2}
+\end{equation}
+%
+where
+%
+\begin{equation}
+\vec{w} = sign(\phi)\frac{\nabla \psi}{|\nabla \psi|}.
+\label{REINITIALISATION3}
+\end{equation}
+%
+$\vec{w}$ is the characteristic velocity pointing outward from the free surface. Equation (\ref{REINITIALISATION2}) can be solved by a similar technique to what was used in the advection step; either by the mid-point technique \cite{BOURGOUIN2006} or the Taylor-Galerkin procedure. For the mid-point technique, the reinitialization technique algorithm is:
 
+1. Calculate
+%
+\begin{equation}
+\vec{w} = sign(\phi)\frac{\nabla \psi}{|\nabla \psi|},
+\label{REINITIAL MIDPOINT1}
+\end{equation}
+%
+
+2. Calculate $\psi^{1/2}$ solving
+%
+\begin{equation}
+\frac{\psi^{1/2} - \psi^{-}}{d\tau/2} + \vec{w} \cdot \nabla \psi^{-}= sign(\phi),
+\label{REINITIAL MIDPOINT2}
+\end{equation}
+%
+
+3. using $\psi^{1/2}$, calculate $\psi^{+}$ solving
+%
+\begin{equation}
+\frac{\psi^{+} - \psi^{-}}{d\tau} + \vec{w} \cdot \nabla \psi^{1/2}= sign(\phi),
+\label{REINITIAL MIDPOINT3}
+\end{equation}
+%
+
+4. if the convergence criterion has not been met, go back to step 2. Convergence is declared if
+%
+\begin{equation}
+||\nabla \psi \hackscore{\infty}| - 1| < \epsilon \hackscore{\psi}.
+\label{REINITIAL CONVERGE}
+\end{equation}
+%
+where $\epsilon$ is the convergence tolerance. Normally, the reinitialization procedure is performed every third time-step of solving the Stokes equation.
+
+The mid-point technique works provided that the left-hand side of Equations (\ref{REINITIAL MIDPOINT2}) and (\ref{REINITIAL MIDPOINT3}) is a lumped mass matrix. Alternatively, for a one-step procedure, the reinitialization equation can be given by:
+%
+\begin{equation}
+\psi^{+} = \psi^{-} - \tau \vec{w} \cdot \nabla \psi^{-} + \frac{d \tau^{2}}{2} \vec{w} \cdot \nabla(\vec{w} \cdot \nabla \psi^{-}).
+\label{REINITIAL ONESTEP}
+\end{equation}
+%
+The accuracy of $\phi$ is only needed within the transition zone; and so it can be calculated in a narrow band between the interface of the fluids. 
+%
+\begin{figure}
+\center
+\scalebox{0.45}{\includegraphics{figures/LevelSetFlowChart.eps}}
+\caption{Flow chart of level set procedure \cite{LIN2005}.}
+\label{LEVELSET FLOWCHART}
+\end{figure}
+%
+When the distance function, $\phi$, is calculated, the physical parameters, density and viscosity, are updated using the sign of $\phi$. The jump in material properties between two fluids, such as air and water can be extreme, and so the transition of the properties from one medium to another is smoothed. The region of the interface is assumed to be of finite thickness of $\alpha h$, where $h$ is the size of the elements in the computational mesh and $\alpha$ is a smoothing parameter. The parameters are updated by the following expression:
+%
+\begin{equation}
+P = 
+\left \{ \begin{array}{l}
+P\hackscore{1} \hspace{5cm}  where \ \ \psi < - \alpha h \\
+P\hackscore{2} \hspace{5cm}  where \ \ \psi > \alpha h \\
+(P\hackscore{2} - P\hackscore{1}) \psi/2\alpha h + (P\hackscore{1} + P\hackscore{2})/2 \ \ \ \ \ \ where \ \ |\psi| < \alpha h.
+\end{array}
+\right.
+\label{UPDATE PARAMETERS}
+\end{equation} 
+%
+where the subscripts $1$ and $2$ denote the different fluids. The procedure of the level set calculation is shown in Figure \ref{LEVELSET FLOWCHART}.
+Further work is needed in the reinitialization procedure, as it has been shown that it is prone to mass loss and inconsistent positioning of the interface \cite{SUCKALE2008}.
 
 \subsection{Benchmark Problem}
 
-The Rayleigh-Taylor instability problem is used as a benchmark to validate CFD implementations \cite{VANKEKEN1997}. Figure \ref{RT2DSETUP} shows the setup of the problem. A rectangular domain with two different fluids is considered, with the greater density fluid on the top and the lighter density fluid on the bottom. The viscosities of the two fluids are equal (isoviscos). An initial perturbation is given to the interface of $\phi=0.02cos(\frac{\pi x}{\lambda}) + 0.2$. The aspect ratio, $\lambda = L/H = 0.9142$, is chosen such that it gives the greatest disturbance of the fluids.
+The Rayleigh-Taylor instability problem is used as a benchmark to validate CFD implementations \cite{VANKEKEN1997}. Figure \ref{RT2DSETUP} shows the setup of the problem. A rectangular domain with two different fluids is considered, with the greater density fluid on the top and the lighter density fluid on the bottom. The viscosities of the two fluids are equal (isoviscous). An initial perturbation is given to the interface of $\phi=0.02cos(\frac{\pi x}{\lambda}) + 0.2$. The aspect ratio $\lambda = L/H = 0.9142$ is chosen such that it gives the greatest disturbance of the fluids.
 %
 \begin{figure}
 \center
 \scalebox{0.7}{\includegraphics{figures/RT2Dsetup.eps}}
-\caption{Parameters, initial interface and boundary conditions for the Rayleigh-Taylor instability problem. The interface is defined as $\phi=0.02cos(\frac{\pi x}{\lambda}) + 0.2$. The fluids have been assigned different densities and equal viscosity (isovisous).}
+\caption{Parameters, initial interface and boundary conditions for the Rayleigh-Taylor instability problem. The interface is defined as $\phi=0.02cos(\frac{\pi x}{\lambda}) + 0.2$. The fluids have been assigned different densities and equal viscosity (isoviscous).}
 \label{RT2DSETUP}
 \end{figure}
 
 %The Level Set Method can be applied to many areas of science, for example simulating subduction zones in geophysics, motion of bubbles, and flame propagation. Its also used in image processing. However, the Level Set Method does have limitations. The level set function can still become irregular after reinitialisation, leading to artifacts in the simulations, requiring more thought into the implementation of the reinitialisation step.
+
+\begin{python}
+
+
+\end{python}
