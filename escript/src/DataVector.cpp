@@ -18,6 +18,7 @@
 #include "DataException.h"
 #include <boost/python/extract.hpp>
 #include "DataTypes.h"
+#include "WrappedArray.h"
 
 #include <cassert>
 
@@ -163,6 +164,67 @@ DataVector::operator!=(const DataVector& other) const
   return !(*this==other);
 }
 
+
+void
+DataVector::copyFromArray(const WrappedArray& value)
+{
+  using DataTypes::ValueType;
+  if (m_array_data!=0) {
+    arrayManager.delete_array(m_array_data);
+  }
+  DataTypes::ShapeType tempShape=value.getShape();
+  DataVector::size_type nelements=DataTypes::noValues(tempShape);
+
+  m_array_data = arrayManager.new_array(1,nelements);
+
+  int si=0,sj=0,sk=0,sl=0;		// bounds for each dimension of the shape
+
+
+  if (value.getRank()==0) {
+     m_array_data[0]=value.getElt();
+  } else if (value.getRank()==1) {
+     si=tempShape[0];
+     for (ValueType::size_type i=0;i<si;i++) {
+        m_array_data[i]=value.getElt(i);
+     }
+  } else if (value.getRank()==2) {
+	si=tempShape[0];
+	sj=tempShape[1];
+        for (ValueType::size_type i=0;i<si;i++) {
+           for (ValueType::size_type j=0;j<sj;j++) {
+              m_array_data[DataTypes::getRelIndex(tempShape,i,j)]=value.getElt(i,j);
+           }
+        }
+  } else if (value.getRank()==3) {
+	si=tempShape[0];
+	sj=tempShape[1];
+	sk=tempShape[2];
+        for (ValueType::size_type i=0;i<si;i++) {
+           for (ValueType::size_type j=0;j<sj;j++) {
+              for (ValueType::size_type k=0;k<sk;k++) {
+                 m_array_data[DataTypes::getRelIndex(tempShape,i,j,k)]=value.getElt(i,j,k);
+              }
+           }
+        }
+  } else if (value.getRank()==4) {
+	si=tempShape[0];
+	sj=tempShape[1];
+	sk=tempShape[2];
+	sl=tempShape[3];
+        for (ValueType::size_type i=0;i<si;i++) {
+           for (ValueType::size_type j=0;j<sj;j++) {
+              for (ValueType::size_type k=0;k<sk;k++) {
+                 for (ValueType::size_type l=0;l<sl;l++) {
+                    m_array_data[DataTypes::getRelIndex(tempShape,i,j,k,l)]=value.getElt(i,j,k,l);
+                 }
+              }
+           }
+        }
+   }
+   m_size=nelements;	// total amount of elements
+   m_dim=m_size;		// elements per sample
+   m_N=1;			// number of samples
+}
 
 void
 DataVector::copyFromNumArray(const boost::python::numeric::array& value)

@@ -17,6 +17,7 @@
 #include "system_dep.h"
 
 #include "DataReady.h"
+#include "WrappedArray.h"
 
 #include <boost/python/numeric.hpp>
 
@@ -49,6 +50,11 @@ typedef DataReady parent;
   DataConstant(const boost::python::numeric::array& value,
                const FunctionSpace& what);
 
+  ESCRIPT_DLL_API
+  DataConstant(const WrappedArray& value,
+               const FunctionSpace& what);
+
+
   /**
      \brief
      Copy constructor. Performs a deep copy.
@@ -56,18 +62,6 @@ typedef DataReady parent;
   ESCRIPT_DLL_API
   DataConstant(const DataConstant& other);
 
-//  /**
-/*     \brief
-     Alternative constructor for DataConstant objects.
-
-     Description:
-     Alternative Constructor for DataConstant objects.
-     \param value - Input - Data value for a single point.
-     \param what - Input - A description of what this data object represents.*/
-//  */
-//   ESCRIPT_DLL_API
-//   DataConstant(const DataArrayView& value,
-//                const FunctionSpace& what);
 
   /**
      \brief

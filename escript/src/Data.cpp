@@ -53,6 +53,30 @@ using namespace escript;
 
 void escript::jtest(boost::python::object& obj)
 {
+cout << "Testing1\n";
+	try
+	{
+	   double v=extract<double>(obj);
+	   cout << "Found a double " << v << endl;
+	   return;
+	}
+	catch (...)
+	{
+	   PyErr_Clear();
+	   // There isn't actually an error here
+	}
+cout << "Testing2\n";
+	try
+	{
+	   double v=extract<double>(obj[make_tuple()]);
+	   cout << "Found a () double " << v << endl;
+	   return;
+	}
+	catch (...)
+	{
+	   PyErr_Clear();
+	}
+cout << "Testing 3\n";
 	WrappedArray w(obj);
 	DataTypes::ShapeType shape=w.getShape();
 	size_t rank=shape.size();
@@ -514,13 +538,13 @@ Data::Data(DataAbstract_ptr underlyingdata)
 }
 
 
-Data::Data(const numeric::array& value,
-	   const FunctionSpace& what,
-           bool expanded)
-{
-  initialise(value,what,expanded);
-  m_protected=false;
-}
+// Data::Data(const numeric::array& value,
+// 	   const FunctionSpace& what,
+//            bool expanded)
+// {
+//   initialise(value,what,expanded);
+//   m_protected=false;
+// }
 
 Data::Data(const DataTypes::ValueType& value,
 		 const DataTypes::ShapeType& shape,
@@ -536,8 +560,9 @@ Data::Data(const object& value,
 	   const FunctionSpace& what,
            bool expanded)
 {
-  numeric::array asNumArray(value);
-  initialise(asNumArray,what,expanded);
+  //numeric::array asNumArray(value);
+  WrappedArray w(value);
+  initialise(w,what,expanded);
   m_protected=false;
 }
 
@@ -579,6 +604,24 @@ Data::~Data()
 
 }
 
+
+void Data::initialise(const WrappedArray& value,
+                 const FunctionSpace& what,
+                 bool expanded)
+{
+  //
+  // Construct a Data object of the appropriate type.
+  // Construct the object first as there seems to be a bug which causes
+  // undefined behaviour if an exception is thrown during construction
+  // within the shared_ptr constructor.
+  if (expanded) {
+    DataAbstract* temp=new DataExpanded(value, what);
+    m_data=temp->getPtr();
+  } else {
+    DataAbstract* temp=new DataConstant(value, what);
+    m_data=temp->getPtr();
+  }
+}
 
 
 void

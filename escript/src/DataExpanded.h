@@ -64,6 +64,10 @@ typedef DataReady parent;
   DataExpanded(const boost::python::numeric::array& value,
                const FunctionSpace& what);
 
+  ESCRIPT_DLL_API
+  DataExpanded(const WrappedArray& value,
+               const FunctionSpace& what);
+
   /**
      \brief
      Alternative constructor for DataExpanded that copies a slice from
@@ -397,6 +401,9 @@ TODO Note that this constructor will also copy data to all points if it only con
   */
   void
   copy(const boost::python::numeric::array& value);
+
+  void
+  copy(const WrappedArray& value);
 
   /**
      \brief

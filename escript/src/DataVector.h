@@ -25,6 +25,8 @@
 
 namespace escript {
 
+class WrappedArray;
+
 /**
    \brief
    DataVector implements an arbitrarily long vector of data values.
@@ -129,6 +131,8 @@ class ESCRIPT_DLL_API DataVector {
   void
   copyFromNumArray(const boost::python::numeric::array& value);
 
+  void
+  copyFromArray(const escript::WrappedArray& value);
 
 
   /**

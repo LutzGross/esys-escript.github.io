@@ -29,6 +29,7 @@ public:
 	WrappedArray(const boost::python::object& obj_in);
 	unsigned int getRank() const;
 	const DataTypes::ShapeType& getShape() const;
+	double getElt() const;
 	double getElt(unsigned int i) const;
 	double getElt(unsigned int i, unsigned int j) const;
 	double getElt(unsigned int i, unsigned int j, unsigned int k) const;
@@ -36,7 +37,8 @@ public:
 private:
 	const boost::python::object& obj;
 	int rank;
-	DataTypes::ShapeType shape;
+	escript::DataTypes::ShapeType shape;
+	double m_scalar;
 };
 
 inline unsigned int 
@@ -52,7 +54,14 @@ WrappedArray::getShape() const
 }
 
 inline double
- WrappedArray::getElt(unsigned int i) const
+WrappedArray::getElt() const
+{
+	return m_scalar;
+}
+
+
+inline double
+WrappedArray::getElt(unsigned int i) const
 {
 	return boost::python::extract<double>(obj[i]);
 }
