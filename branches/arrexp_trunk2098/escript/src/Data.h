@@ -44,6 +44,10 @@ extern "C" {
 
 namespace escript {
 
+//Just here temporarily
+void jtest(boost::python::object& obj);
+
+
 //
 // Forward declaration for various implementations of Data.
 class DataConstant;
