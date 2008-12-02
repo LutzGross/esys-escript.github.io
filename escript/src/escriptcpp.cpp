@@ -366,7 +366,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("getEscriptParamInt",escript::getEscriptParamInt,
       (arg("sentinel")=0));
 
-
+  def("jtest",&escript::jtest);
   //
   // Register esysExceptionTranslator
   //

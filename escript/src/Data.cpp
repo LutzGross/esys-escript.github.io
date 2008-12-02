@@ -39,6 +39,8 @@ extern "C" {
 #include <boost/python/extract.hpp>
 #include <boost/python/long.hpp>
 
+#include "WrappedArray.h"
+
 using namespace std;
 using namespace boost::python;
 using namespace boost;
@@ -47,6 +49,348 @@ using namespace escript;
 // ensure the current object is not a DataLazy
 // The idea was that we could add an optional warning whenever a resolve is forced
 #define FORCERESOLVE if (isLazy()) {resolve();}
+
+
+void escript::jtest(boost::python::object& obj)
+{
+	WrappedArray w(obj);
+	DataTypes::ShapeType shape=w.getShape();
+	size_t rank=shape.size();
+	cout << "Rank=" << rank << endl;
+	for (unsigned int i=0;i<rank;++i)
+	{
+	   cout << shape[i] << ",";
+	}
+	DataVector vec(DataTypes::noValues(shape));
+	cout << endl;
+	if (rank==1)
+	{
+	   int i=0;
+	   try
+	   {
+	     for (i=0;i<shape[0];++i)
+	     {
+		vec[i]=w.getElt(i);
+	     }
+	   }
+	   catch (...)
+	   {
+		PyErr_Clear();
+		ostringstream oss;
+		oss << "Array filter - Error reading element " << i;
+		throw DataException(oss.str());
+	   }
+	}
+	else if (rank==2)
+	{
+	   int i=0;
+	   int j=0;
+	   try
+	   {
+	     for (i=0;i<shape[0];++i)		// element
+	     {
+		for (j=0;j<shape[1];++j)	// row
+		{
+		   vec[DataTypes::getRelIndex(shape,i,j)]=w.getElt(i,j);
+		}
+	     }
+	   }
+	   catch (...)
+	   {
+		PyErr_Clear();
+		ostringstream oss;
+		oss << "Array filter - Error reading element " << i << ',' << j;
+		throw DataException(oss.str());
+	   }
+	}
+	else if (rank==3)
+	{
+	   int i=0;
+	   int j=0;
+	   int k=0;
+	   try
+	   {
+	     for (i=0;i<shape[0];++i)
+	     {
+		for (j=0;j<shape[1];++j)
+		{
+		   for (k=0;k<shape[2];++k)
+		   {
+		      vec[DataTypes::getRelIndex(shape,i,j,k)]=w.getElt(i,j,k);
+		   }
+		}
+	     }
+	   }
+	   catch (...)
+	   {
+		PyErr_Clear();
+		ostringstream oss;
+		oss << "Array filter - Error reading element " << i << ',' << j << ',' << k;
+		throw DataException(oss.str());
+	   }
+	}
+	else if (rank==4)
+	{
+	   int i=0;
+	   int j=0;
+	   int k=0;
+	   int m=0;
+	   try
+	   {
+	     for (i=0;i<shape[0];++i)
+	     {
+		for (j=0;j<shape[1];++j)
+		{
+		   for (k=0;k<shape[2];++k)
+		   {
+		      for (m=0;m<shape[3];++m)
+		      {
+		         vec[DataTypes::getRelIndex(shape,i,j,k,m)]=w.getElt(i,j,k,m);
+		      }
+		   }
+		}
+	     }
+	   }
+	   catch (...)
+	   {
+		PyErr_Clear();
+		ostringstream oss;
+		oss << "Array filter - Error reading element " << i << ',' << j << ',' << k << ',' << m;
+		throw DataException(oss.str());
+	   }
+	}
+	for (int i=0;i<vec.size();++i)
+	{
+	   cout << vec[i] << " ";
+	}
+	cout << endl;
+}
+
+
+
+
+
+
+/*
+	ArrayTools::getObjShape(obj,shape);
+	size_t rank=shape.size();
+	cout << "Rank=" << rank << endl;
+	for (unsigned int i=0;i<rank;++i)
+	{
+	   cout << shape[i] << ",";
+	}
+	DataVector vec(DataTypes::noValues(shape));
+	cout << endl;
+	if (rank==1)
+	{
+	   int i=0;
+	   try
+	   {
+	     for (i=0;i<shape[0];++i)
+	     {
+		vec[i]=extract<double>(obj[i]);
+	     }
+	   }
+	   catch (...)
+	   {
+		PyErr_Clear();
+		ostringstream oss;
+		oss << "Array filter - Error reading element " << i;
+		throw DataException(oss.str());
+	   }
+	}
+	else if (rank==2)
+	{
+	   int i=0;
+	   int j=0;
+	   try
+	   {
+	     for (i=0;i<shape[0];++i)		// element
+	     {
+		for (j=0;j<shape[1];++j)	// row
+		{
+		   vec[DataTypes::getRelIndex(shape,i,j)]=extract<double>(obj[i][j]);
+		}
+	     }
+	   }
+	   catch (...)
+	   {
+		PyErr_Clear();
+		ostringstream oss;
+		oss << "Array filter - Error reading element " << i << ',' << j;
+		throw DataException(oss.str());
+	   }
+	}
+	else if (rank==3)
+	{
+	   int i=0;
+	   int j=0;
+	   int k=0;
+	   try
+	   {
+	     for (i=0;i<shape[0];++i)
+	     {
+		for (j=0;j<shape[1];++j)
+		{
+		   for (k=0;k<shape[2];++k)
+		   {
+		      vec[DataTypes::getRelIndex(shape,i,j,k)]=extract<double>(obj[i][j][k]);
+		   }
+		}
+	     }
+	   }
+	   catch (...)
+	   {
+		PyErr_Clear();
+		ostringstream oss;
+		oss << "Array filter - Error reading element " << i << ',' << j << ',' << k;
+		throw DataException(oss.str());
+	   }
+	}
+	else if (rank==4)
+	{
+	   int i=0;
+	   int j=0;
+	   int k=0;
+	   int m=0;
+	   try
+	   {
+	     for (i=0;i<shape[0];++i)
+	     {
+		for (j=0;j<shape[1];++j)
+		{
+		   for (k=0;k<shape[2];++k)
+		   {
+		      for (m=0;m<shape[3];++m)
+		      {
+		         vec[DataTypes::getRelIndex(shape,i,j,k,m)]=extract<double>(obj[i][j][k][m]);
+		      }
+		   }
+		}
+	     }
+	   }
+	   catch (...)
+	   {
+		PyErr_Clear();
+		ostringstream oss;
+		oss << "Array filter - Error reading element " << i << ',' << j << ',' << k << ',' << m;
+		throw DataException(oss.str());
+	   }
+	}
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+// void escript::jtest()
+// {
+// //    string s=extract<std::string>(obj.attr("__str__")());
+// //    cout << "[" << s << "]" << endl;
+// //     int len=extract<int>(obj.attr("__len__")());
+// // cerr << "Length=" << len << endl;
+// //     for (int j=0;j<len;++j)
+// //     {
+// // 	object it=obj.attr("__getitem__")(j);
+// // 	string s=extract<std::string>(it.attr("__str__")());
+// // 	cerr << "Item: " << j << s;
+// //     }
+// 
+// //     try
+// //     {
+// // 	object z=obj.attr("nothere");
+// //     }
+// //     catch(...)
+// //     {
+// // 	cout << "Caught exception\n";
+// //     }
+// 
+//     // 1 test capabilities -- check for required methods - write this later
+//     // 2 compute rank and shape
+//     // 3 get values
+// 
+//     DataTypes::ShapeType shape;
+//     object t=obj;
+// //     int len=0;
+// //     while (len=extract<int>(obj.attr("__len__")()),len>=1)
+// //     {
+// // 	shape.push_back(len);
+// // 
+// //     }
+// 
+//    try
+//    {
+// 	object z=t.attr("__getitem__");
+// 	if (z==0)
+// 	{
+// 		cerr << "Found null" << endl;
+// 	}
+//    }
+//    catch (...)
+//    {
+// 	cerr << "Type does not support __getitem__" << endl;
+// 	boost::python::handle_exception();
+// 	return;
+//    }
+//    try
+//    {
+// 	object z=t.attr("__len__")();
+//    }
+//    catch (...)
+//    {
+// 	cerr << "Object does not support __len__" << endl;
+// 	boost::python::handle_exception();
+// 	return;
+//    }
+// 
+// cerr << "Loop entry" << endl;
+//     bool done=false;
+//     do 
+//     {
+// 	string s=extract<std::string>(t.attr("__str__")());
+// cerr << "Processing: " <<  s<< endl;
+// 	int len=extract<int>(t.attr("__len__")());
+// cerr << "Length is " << len << endl;
+// 	if (len<1)
+// 	{
+// 	   throw DataException("Array filter - No empty elements please.");
+// 	}
+// 	shape.push_back(len);
+// 	if (shape.size()>ESCRIPT_MAX_DATA_RANK)
+// 	{
+// 	   throw DataException("ArrayFilter - Maximum permitted rank is 4");
+// 	}
+// cerr << "About to call [0]" << endl;
+// // 	t=t.attr("__getitem__")(0);
+// 	t=t[0];
+// 	try
+// 	{
+// cerr << "About to test __getitem__ " << endl;
+// // 	    object o=t.attr("__getitem__");	// test if the object has the method
+// 		object o=t[0];
+// cerr << "Call to test succeeded" << endl;
+// 	}
+// 	catch (...)
+// 	{
+// 	   done=true;
+// cerr << "In catch" << endl;
+// 	   boost::python::handle_exception();
+// 	}
+// cerr << "Bottom of the loop" << endl;
+//     } while (!done);
+//     cout << "Rank=" << shape.size() << endl;
+//     for (int i=0;i<shape.size(); ++i)
+//     {
+// 	cout << shape[i] << endl;
+//     }
+// }
 
 Data::Data()
 {

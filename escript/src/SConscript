@@ -50,6 +50,7 @@ sources = """
 	Taipan.cpp
 	TransportProblemException.cpp
 	Utils.cpp
+	WrappedArray.cpp
 """.split()
 	# blocktimer.c
 headers = """
@@ -89,6 +90,7 @@ headers = """
 	UnaryOp.h
 	UtilC.h
 	Utils.h
+	WrappedArray.h
 	esysmpi.h
 	system_dep.h
 """.split()
