@@ -61,6 +61,34 @@ DataConstant::DataConstant(const boost::python::numeric::array& value,
 //   setPointDataView(tempView);
 }
 
+DataConstant::DataConstant(const WrappedArray& value,
+                           const FunctionSpace& what)
+  : parent(what,value.getShape())
+{
+//   // extract the shape of the numarray
+//   DataTypes::ShapeType tempShape;
+//   for (int i=0; i < value.getrank(); i++) {
+//     tempShape.push_back(extract<int>(value.getshape()[i]));
+//   }
+
+  // get the space for the data vector
+//   int len = getNoValues();
+//   DataVector temp_data(len, 0.0, len);
+//   DataArrayView temp_dataView(temp_data, tempShape);
+//   temp_dataView.copy(value);
+
+  m_data.copyFromArray(value);
+  //
+
+  // copy the data in the correct format
+//   m_data=temp_data;
+  //
+  // create the view of the data
+//   DataArrayView tempView(m_data,temp_dataView.getShape());
+//   setPointDataView(tempView);
+}
+
+
 // DataConstant::DataConstant(const DataArrayView& value,
 //                            const FunctionSpace& what)
 //   : DataAbstract(what)

@@ -18,13 +18,14 @@
 #define DATA_H
 #include "system_dep.h"
 
+#include "DataTypes.h"
 #include "DataAbstract.h"
 #include "DataAlgorithm.h"
 #include "FunctionSpace.h"
 #include "BinaryOp.h"
 #include "UnaryOp.h"
 #include "DataException.h"
-#include "DataTypes.h"
+
 
 extern "C" {
 #include "DataC.h"
@@ -145,20 +146,20 @@ class Data {
   Data(const Data& inData,
        const DataTypes::RegionType& region);
 
-  /**
-     \brief
-     Constructor which copies data from a python numarray.
-
-     \param value - Input - Data value for a single point.
-     \param what - Input - A description of what this data represents.
-     \param expanded - Input - Flag, if true fill the entire container with
-                       the value. Otherwise a more efficient storage
-                       mechanism will be used.
-  */
-  ESCRIPT_DLL_API
-  Data(const boost::python::numeric::array& value,
-       const FunctionSpace& what=FunctionSpace(),
-       bool expanded=false);
+//  /**
+//     \brief
+//     Constructor which copies data from a python numarray.
+//
+//     \param value - Input - Data value for a single point.
+//     \param what - Input - A description of what this data represents.
+//     \param expanded - Input - Flag, if true fill the entire container with
+//                       the value. Otherwise a more efficient storage
+//                       mechanism will be used.
+//  */
+//   ESCRIPT_DLL_API
+//   Data(const boost::python::numeric::array& value,
+//        const FunctionSpace& what=FunctionSpace(),
+//        bool expanded=false);
 
   /**
      \brief
@@ -1517,6 +1518,11 @@ contains datapoints.
 
   void
   initialise(const boost::python::numeric::array& value,
+                 const FunctionSpace& what,
+                 bool expanded);
+
+  void
+  initialise(const WrappedArray& value,
                  const FunctionSpace& what,
                  bool expanded);
 

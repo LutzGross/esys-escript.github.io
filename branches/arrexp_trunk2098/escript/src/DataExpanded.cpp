@@ -46,6 +46,18 @@ DataExpanded::DataExpanded(const boost::python::numeric::array& value,
   copy(value);
 }
 
+DataExpanded::DataExpanded(const WrappedArray& value,
+                           const FunctionSpace& what)
+  : parent(what,value.getShape())
+{
+  //
+  // initialise the data array for this object
+  initialise(what.getNumSamples(),what.getNumDPPSample());
+  //
+  // copy the given value to every data point
+  copy(value);
+}
+
 DataExpanded::DataExpanded(const DataExpanded& other)
   : parent(other.getFunctionSpace(), other.getShape()),
   m_data(other.m_data)
@@ -264,25 +276,6 @@ DataExpanded::copy(const DataConstant& value)
 }
 
 
-// void
-// DataExpanded::copy(const DataArrayView& value)
-// {
-//   //
-//   // copy a single value to every data point in this object
-//   int nRows=m_data.getNumRows();
-//   int nCols=m_data.getNumCols();
-//   int i,j;
-//   #pragma omp parallel for private(i,j) schedule(static)
-//   for (i=0;i<nRows;i++) {
-//     for (j=0;j<nCols;j++) {
-//       // NOTE: An exception may be thown from this call if
-//       // DOASSERT is on which of course will play
-//       // havoc with the omp threads. Run single threaded
-//       // if using DOASSERT.
-//       getPointDataView().copy(getPointOffset(i,j),value);
-//     }
-//   }
-// }
 
 void
 DataExpanded::copy(const boost::python::numeric::array& value)
@@ -311,6 +304,18 @@ DataExpanded::copy(const boost::python::numeric::array& value)
   // now copy over the data
   //copy(temp_dataView);
   getVector().copyFromNumArray(value);
+}
+
+void 
+DataExpanded::copy(const WrappedArray& value)
+{
+  // check the input shape matches this shape
+  if (!DataTypes::checkShape(getShape(),value.getShape())) {
+    throw DataException(DataTypes::createShapeErrorMessage(
+                        "Error - (DataExpanded) Cannot copy due to shape mismatch.",
+                        value.getShape(),getShape()));
+  }
+  getVector().copyFromArray(value);
 }
 
 

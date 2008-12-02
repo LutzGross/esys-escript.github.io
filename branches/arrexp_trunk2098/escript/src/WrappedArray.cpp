@@ -14,6 +14,8 @@
 #include "WrappedArray.h"
 #include "DataException.h"
 
+#include <iostream>
+
 using namespace escript;
 using namespace boost::python;
 
@@ -22,6 +24,7 @@ namespace
 
 void checkFeatures(const boost::python::object& obj)
 {
+	using namespace std;
 	int len=0;
 	boost::python::object o2;
 	try
@@ -31,6 +34,10 @@ void checkFeatures(const boost::python::object& obj)
 	catch (...)
 	{
 	   PyErr_Clear();
+	   string s=extract<std::string>(obj.attr("__str__")());
+	   cerr << "Failure for object: " << s << endl;
+	   s=extract<std::string>(obj.attr("__repr__")());
+	   cerr << "Failurr for object: " << s << endl;
 	   throw DataException("Object passed to WrappedArray must support __len__");
 	}
 	try
@@ -74,6 +81,32 @@ void getObjShape(const boost::python::object& obj, DataTypes::ShapeType& s)
 WrappedArray::WrappedArray(const boost::python::object& obj_in)
 :obj(obj_in)
 {
+	// First we check for scalars
+	try
+	{
+	   double v=extract<double>(obj_in);
+	   m_scalar=v;
+	   rank=0;
+	   return;
+	} 
+	catch (...)
+	{		// so we 
+	   PyErr_Clear();
+	}
+	try
+	{
+	   double v=extract<double>(obj_in[make_tuple()]);
+	   m_scalar=v;
+	   rank=0;
+	   return;
+	} 
+	catch (...)
+	{		// so we 
+	   PyErr_Clear();
+	}
+
+
+	m_scalar=0;
 	checkFeatures(obj_in);
 	getObjShape(obj,shape);
 	rank=shape.size();
