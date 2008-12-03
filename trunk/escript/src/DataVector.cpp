@@ -183,12 +183,12 @@ DataVector::copyFromNumArray(const boost::python::numeric::array& value, size_t 
 
   DataVector::ValueType tmpData=m_array_data;
   if (value.getrank()==0) {
-     for (int z=0;z<copies;++z) {
+     for (unsigned int z=0;z<copies;++z) {
        m_array_data[z]=extract<double>(value[value.getshape()]);
      }
   } else if (value.getrank()==1) {
      si=tempShape[0];
-     for (int z=0;z<copies;++z) {
+     for (unsigned int z=0;z<copies;++z) {
        for (ValueType::size_type i=0;i<si;i++) {
          tmpData[i]=extract<double>(value[i]);
        }
@@ -197,7 +197,7 @@ DataVector::copyFromNumArray(const boost::python::numeric::array& value, size_t 
   } else if (value.getrank()==2) {
 	si=tempShape[0];
 	sj=tempShape[1];
-	for (int z=0;z<copies;++z) {
+	for (unsigned int z=0;z<copies;++z) {
           for (ValueType::size_type i=0;i<si;i++) {
              for (ValueType::size_type j=0;j<sj;j++) {
                 tmpData[DataTypes::getRelIndex(tempShape,i,j)]=extract<double>(value[i][j]);
@@ -209,7 +209,7 @@ DataVector::copyFromNumArray(const boost::python::numeric::array& value, size_t 
 	si=tempShape[0];
 	sj=tempShape[1];
 	sk=tempShape[2];
-	for (int z=0;z<copies;++z) {
+	for (unsigned int z=0;z<copies;++z) {
           for (ValueType::size_type i=0;i<si;i++) {
             for (ValueType::size_type j=0;j<sj;j++) {
               for (ValueType::size_type k=0;k<sk;k++) {
@@ -224,7 +224,7 @@ DataVector::copyFromNumArray(const boost::python::numeric::array& value, size_t 
 	sj=tempShape[1];
 	sk=tempShape[2];
 	sl=tempShape[3];
-	for (int z=0;z<copies;++z) {
+	for (unsigned int z=0;z<copies;++z) {
           for (ValueType::size_type i=0;i<si;i++) {
             for (ValueType::size_type j=0;j<sj;j++) {
               for (ValueType::size_type k=0;k<sk;k++) {
