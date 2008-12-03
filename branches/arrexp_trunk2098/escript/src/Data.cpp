@@ -1277,26 +1277,27 @@ void
 Data::setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object& py_object)
 {
     // this will throw if the value cannot be represented
-    boost::python::numeric::array num_array(py_object);
-    setValueOfDataPointToArray(dataPointNo,num_array);
+    setValueOfDataPointToArray(dataPointNo,py_object);
 }
 
 void
-Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::array& num_array)
+Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::object& obj)
 {
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
   FORCERESOLVE;
+
+  WrappedArray w(obj);
   //
   // check rank
-  if (static_cast<unsigned int>(num_array.getrank())<getDataPointRank())
+  if (static_cast<unsigned int>(w.getRank())<getDataPointRank())
       throw DataException("Rank of numarray does not match Data object rank");
 
   //
   // check shape of num_array
   for (unsigned int i=0; i<getDataPointRank(); i++) {
-    if (extract<int>(num_array.getshape()[i])!=getDataPointShape()[i])
+    if (w.getShape()[i]!=getDataPointShape()[i])
        throw DataException("Shape of numarray does not match Data object rank");
   }
   //
@@ -1308,9 +1309,9 @@ Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::
   if (getNumDataPointsPerSample()>0) {
        int sampleNo = dataPointNo/getNumDataPointsPerSample();
        int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
-       m_data->copyToDataPoint(sampleNo, dataPointNoInSample,num_array);
+       m_data->copyToDataPoint(sampleNo, dataPointNoInSample,w);
   } else {
-       m_data->copyToDataPoint(-1, 0,num_array);
+       m_data->copyToDataPoint(-1, 0,w);
   }
 }
 

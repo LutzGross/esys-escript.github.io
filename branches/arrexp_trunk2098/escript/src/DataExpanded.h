@@ -447,6 +447,10 @@ TODO Note that this constructor will also copy data to all points if it only con
   void
   copyToDataPoint(const int sampleNo, const int dataPointNo, const boost::python::numeric::array& value);
 
+  ESCRIPT_DLL_API
+  virtual void
+  copyToDataPoint(const int sampleNo, const int dataPointNo, const WrappedArray& value);
+
   //
   // The main data storage array, a 2D array of data blocks.
   // noSamples * noDataPointsPerSample

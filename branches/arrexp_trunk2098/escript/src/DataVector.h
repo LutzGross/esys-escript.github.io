@@ -134,6 +134,9 @@ class ESCRIPT_DLL_API DataVector {
   void
   copyFromArray(const escript::WrappedArray& value);
 
+  void 
+  copyFromArrayToOffset(const WrappedArray& value, size_type offset);
+
 
   /**
      \brief

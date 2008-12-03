@@ -395,14 +395,14 @@ class Locator:
            if isinstance(id,list):
                out=[]
                for i in id:
-                  o=data.getValueOfGlobalDataPoint(*i)
+                  o=numarray.array(data.getValueOfGlobalDataPoint(*i))
                   if data.getRank()==0:
                      out.append(o[0])
                   else:
                      out.append(o)
                return out
            else:
-             out=data.getValueOfGlobalDataPoint(*id)
+             out=numarray.array(data.getValueOfGlobalDataPoint(*id))
              if data.getRank()==0:
                 return out[0]
              else:

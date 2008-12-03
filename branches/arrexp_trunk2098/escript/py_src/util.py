@@ -5178,7 +5178,7 @@ def getClosestValue(arg,origin=0):
     @return: value in arg closest to origin
     @rtype: L{numarray.NumArray} or L{Symbol}
     """
-    return arg.getValueOfGlobalDataPoint(*(length(arg-origin).minGlobalDataPoint()))
+    return numarray.array(arg.getValueOfGlobalDataPoint(*(length(arg-origin).minGlobalDataPoint())))
 
 def normalize(arg,zerolength=0):
     """

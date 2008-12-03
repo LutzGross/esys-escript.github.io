@@ -296,7 +296,7 @@ class Data {
   */
   ESCRIPT_DLL_API
   void
-  setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::array&);
+  setValueOfDataPointToArray(int dataPointNo, const boost::python::object&);
 
   /**
      \brief
