@@ -42,11 +42,12 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
 
   dim_t i,j;
   /*double threshold=0.05;*/
+  double sum;
   index_t iptr,*index,*where_p,*diagptr;
   bool_t passed=FALSE;
   dim_t n=A->numRows;
   diagptr=MEMALLOC(n,index_t);
-  /*double sum;*/
+
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
     Paso_setError(TYPE_ERROR,"Paso_Pattern_mis: symmetric matrix pattern is not supported yet");
     return;
@@ -110,7 +111,23 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
             }
         }
     }
-      
+
+    /* This check is to make sure we dont get some nusty rows which were not removed durring coarsing process.*/
+    /* TODO: we have to mechanism that this does not happend at all, and get rid of this 'If'. */
+    #pragma omp parallel for private(i,iptr,j,sum) schedule(static) 
+    for (i=0;i<n;i++) {
+        if (mis_marker[i]==IS_REMOVED) {
+           sum=0;
+           for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+             j=A->pattern->index[iptr];
+             if (mis_marker[j]==IS_REMOVED)
+                sum+=A->val[iptr];
+           }
+           if(ABS(sum)<1.e-12)
+             mis_marker[i]=IS_IN_SET;
+        }
+    }
+
 
      /* swap to TRUE/FALSE in mis_marker */
      #pragma omp parallel for private(i) schedule(static)
