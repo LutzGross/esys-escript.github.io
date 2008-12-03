@@ -165,6 +165,13 @@ DataAbstract::copyToDataPoint(const int sampleNo, const int dataPointNo, const b
 }
 
 void
+DataAbstract::copyToDataPoint(const int sampleNo, const int dataPointNo, const WrappedArray& value)
+{
+    throw DataException("Error - DataAbstract::copying data from WrappedArray objects to a single data point is not supported.");
+}
+
+
+void
 DataAbstract::symmetric(DataAbstract* ev) 
 {
     throw DataException("Error - DataAbstract::symmetric is not supported.");

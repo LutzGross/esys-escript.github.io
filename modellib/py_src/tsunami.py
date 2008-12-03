@@ -74,7 +74,7 @@ class GridData:
         i_dy = 1
         for i in range(x_shape0):
             if return_data_object:
-                x_array = x.getValueOfDataPoint(i)
+                x_array = numarray.array(x.getValueOfDataPoint(i))
                 x_long = x_array[0]-ox
                 x_lat = x_array[1]-oy
             else:

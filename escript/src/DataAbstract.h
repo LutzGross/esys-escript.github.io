@@ -348,6 +348,10 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   virtual void
   copyToDataPoint(const int sampleNo, const int dataPointNo, const boost::python::numeric::array& value);
 
+  ESCRIPT_DLL_API
+  virtual void
+  copyToDataPoint(const int sampleNo, const int dataPointNo, const WrappedArray& value);
+
 
   /**
      \brief

@@ -164,6 +164,72 @@ DataVector::operator!=(const DataVector& other) const
   return !(*this==other);
 }
 
+void 
+DataVector::copyFromArrayToOffset(const WrappedArray& value, size_type offset)
+{
+  using DataTypes::ValueType;
+  const DataTypes::ShapeType& tempShape=value.getShape();
+  size_type len=DataTypes::noValues(tempShape);
+  if (offset+len>size())
+  {
+cerr << "offset=" << offset << " len=" << len << " >= " << size() << endl;
+     throw DataException("Error - not enough room for that DataPoint at that offset.");
+  }
+  size_t si=0,sj=0,sk=0,sl=0;
+  switch (value.getRank())
+  {
+  case 0:
+	m_array_data[offset]=value.getElt();
+	break;
+  case 1:
+	for (size_t i=0;i<tempShape[0];++i)
+	{
+	  m_array_data[offset+i]=value.getElt(i);
+	}
+	break;
+  case 2:
+	si=tempShape[0];
+	sj=tempShape[1];
+        for (ValueType::size_type i=0;i<si;i++) {
+           for (ValueType::size_type j=0;j<sj;j++) {
+              m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j)]=value.getElt(i,j);
+           }
+        }
+	break;
+  case 3:
+	si=tempShape[0];
+	sj=tempShape[1];
+	sk=tempShape[2];
+        for (ValueType::size_type i=0;i<si;i++) {
+           for (ValueType::size_type j=0;j<sj;j++) {
+              for (ValueType::size_type k=0;k<sk;k++) {
+                 m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j,k)]=value.getElt(i,j,k);
+              }
+           }
+        }
+	break;
+  case 4:
+	si=tempShape[0];
+	sj=tempShape[1];
+	sk=tempShape[2];
+	sl=tempShape[3];
+        for (ValueType::size_type i=0;i<si;i++) {
+           for (ValueType::size_type j=0;j<sj;j++) {
+              for (ValueType::size_type k=0;k<sk;k++) {
+                 for (ValueType::size_type l=0;l<sl;l++) {
+                    m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j,k,l)]=value.getElt(i,j,k,l);
+                 }
+              }
+           }
+        }
+	break;
+  default:
+	ostringstream oss;
+	oss << "Error - unknown rank. Rank=" << value.getRank();
+	throw DataException(oss.str());
+  }
+}
+
 
 void
 DataVector::copyFromArray(const WrappedArray& value)
@@ -174,56 +240,11 @@ DataVector::copyFromArray(const WrappedArray& value)
   }
   DataTypes::ShapeType tempShape=value.getShape();
   DataVector::size_type nelements=DataTypes::noValues(tempShape);
-
   m_array_data = arrayManager.new_array(1,nelements);
-
-  int si=0,sj=0,sk=0,sl=0;		// bounds for each dimension of the shape
-
-
-  if (value.getRank()==0) {
-     m_array_data[0]=value.getElt();
-  } else if (value.getRank()==1) {
-     si=tempShape[0];
-     for (ValueType::size_type i=0;i<si;i++) {
-        m_array_data[i]=value.getElt(i);
-     }
-  } else if (value.getRank()==2) {
-	si=tempShape[0];
-	sj=tempShape[1];
-        for (ValueType::size_type i=0;i<si;i++) {
-           for (ValueType::size_type j=0;j<sj;j++) {
-              m_array_data[DataTypes::getRelIndex(tempShape,i,j)]=value.getElt(i,j);
-           }
-        }
-  } else if (value.getRank()==3) {
-	si=tempShape[0];
-	sj=tempShape[1];
-	sk=tempShape[2];
-        for (ValueType::size_type i=0;i<si;i++) {
-           for (ValueType::size_type j=0;j<sj;j++) {
-              for (ValueType::size_type k=0;k<sk;k++) {
-                 m_array_data[DataTypes::getRelIndex(tempShape,i,j,k)]=value.getElt(i,j,k);
-              }
-           }
-        }
-  } else if (value.getRank()==4) {
-	si=tempShape[0];
-	sj=tempShape[1];
-	sk=tempShape[2];
-	sl=tempShape[3];
-        for (ValueType::size_type i=0;i<si;i++) {
-           for (ValueType::size_type j=0;j<sj;j++) {
-              for (ValueType::size_type k=0;k<sk;k++) {
-                 for (ValueType::size_type l=0;l<sl;l++) {
-                    m_array_data[DataTypes::getRelIndex(tempShape,i,j,k,l)]=value.getElt(i,j,k,l);
-                 }
-              }
-           }
-        }
-   }
-   m_size=nelements;	// total amount of elements
-   m_dim=m_size;		// elements per sample
-   m_N=1;			// number of samples
+  m_size=nelements;	// total amount of elements
+  m_dim=m_size;		// elements per sample
+  m_N=1;			// number of samples
+  copyFromArrayToOffset(value,0);
 }
 
 void

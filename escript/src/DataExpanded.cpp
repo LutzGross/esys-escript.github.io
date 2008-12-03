@@ -486,6 +486,32 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const b
      }
   }
 }
+
+void
+DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const WrappedArray& value) {
+  //
+  // Get the number of samples and data-points per sample.
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDPPSample();
+  //
+  // check rank:
+  if (value.getRank()!=getRank())
+       throw DataException("Rank of numarray does not match Data object rank");
+  if (numSamples*numDataPointsPerSample > 0) {
+     //TODO: global error handling
+     if ((sampleNo >= numSamples) || (sampleNo < 0 )) {
+          throw DataException("Error - DataExpanded::copyDataPoint invalid sampleNo.");
+     }
+     if ((dataPointNo >= numDataPointsPerSample) || (dataPointNo < 0)) {
+           throw DataException("Error - DataExpanded::copyDataPoint invalid dataPointNoInSample.");
+     }
+     ValueType::size_type offset = getPointOffset(sampleNo, dataPointNo);
+     ValueType& vec=getVector();
+     vec.copyFromArrayToOffset(value,offset);
+  }
+}
+
+
 void
 DataExpanded::copyAll(const boost::python::numeric::array& value) {
   //
