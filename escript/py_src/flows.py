@@ -137,7 +137,7 @@ class DarcyFlow(object):
                for the permeability M{k_{ij}}
         """
         self.__pde_v.setTolerance(tol)
-        self.__pde_v.setValue(Y=self.__g, X=self.__f*util.kronecker(self.domain), r=boundary_flux)
+        self.__pde_v.setValue(Y=self.__g, X=self.__f*util.kronecker(self.domain), r=fixed_flux)
         return self.__pde_v.getSolution()
 
     def solve(self,u0,p0,atol=0,rtol=1e-8, max_iter=100, verbose=False, show_details=False, sub_rtol=1.e-8):
