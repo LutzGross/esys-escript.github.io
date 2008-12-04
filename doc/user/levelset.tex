@@ -235,7 +235,15 @@ Further work is needed in the reinitialization procedure, as it has been shown t
 
 \subsection{Benchmark Problem}
 
-The Rayleigh-Taylor instability problem is used as a benchmark to validate CFD implementations \cite{VANKEKEN1997}. Figure \ref{RT2DSETUP} shows the setup of the problem. A rectangular domain with two different fluids is considered, with the greater density fluid on the top and the lighter density fluid on the bottom. The viscosities of the two fluids are equal (isoviscous). An initial perturbation is given to the interface of $\phi=0.02cos(\frac{\pi x}{\lambda}) + 0.2$. The aspect ratio $\lambda = L/H = 0.9142$ is chosen such that it gives the greatest disturbance of the fluids.
+The Rayleigh-Taylor instability problem is used as a benchmark to validate CFD implementations \cite{VANKEKEN1997}. Figure \ref{RT2DSETUP} shows the setup of the problem. A rectangular domain with two different fluids is considered, with the greater density fluid on the top and the lighter density fluid on the bottom. The viscosities of the two fluids are equal (isoviscous). An initial perturbation is given to the interface of $\phi=0.02cos(\frac{\pi x}{\lambda}) + 0.2$. The aspect ratio $\lambda = L/H = 0.9142$ is chosen such that it gives the greatest disturbance of the fluids. The fluid properties is chosen such that the compositional Rayleigh number is equal to one:
+%
+\begin{equation}
+R\hackscore{b} = \frac{\Delta \rho H^{3}}{\kappa \eta} = 1.
+\label{RAYLEIGH NUMBER}
+\end{equation}
+%
+where $\Delta \rho$ is the difference in density between the two fluids, $\eta$ is the viscosity and $\kappa$ is the thermal diffusivity; arbitrarily taken equal to 1 for a ``non thermal'' case.
+%
 %
 \begin{figure}
 \center
@@ -243,15 +251,19 @@ The Rayleigh-Taylor instability problem is used as a benchmark to validate CFD i
 \caption{Parameters, initial interface and boundary conditions for the Rayleigh-Taylor instability problem. The interface is defined as $\phi=0.02cos(\frac{\pi x}{\lambda}) + 0.2$. The fluids have been assigned different densities and equal viscosity (isoviscous) \cite{BOURGOUIN2006}.}
 \label{RT2DSETUP}
 \end{figure}
+%
+%
+The following python code is for the Rayleigh-Taylor instability problem, which is available in the example directory as 'RT2D.py'. This script uses the 'StokesProblemCartesian' class for solving the Stokes equation, along with the incompressibility condition. A class called 'LevelSet' is also used, which performs the advection and reinitialization procedures to track the movement of the interface of the fluids. The details and use of these classes are described in Chapter \ref{MODELS CHAPTER} (Models Chapter).
 
-%The Level Set Method can be applied to many areas of science, for example simulating subduction zones in geophysics, motion of bubbles, and flame propagation. Its also used in image processing. However, the Level Set Method does have limitations. The level set function can still become irregular after reinitialisation, leading to artifacts in the simulations, requiring more thought into the implementation of the reinitialisation step.
-
+The script starts off by importing the necessary classes. The physical properties of the two fluids are defined, such as density and viscosity. Acceleration due to gravity is taken as 10.0 $ms^{-2}$. Solver settings are set for solving the Stokes problem, with the number of time-steps, solver tolerance, maximum solver iterations, and the option to use the Uzawa scheme or not; the default solver is the PCG solver. A regular mesh is defined with 200$\times$200 elements. Level set parameters are set for the reinitialization procedure, such as the convergence tolerance, number of reinitialization steps, the frequency of the reinitialization, for example, every third time-step, and the smoothing parameter to smooth the physical properties across the interface. A no-slip boundary condition is set for the top and bottom of the domain, while on the left and right-hand sides there is a slip condition. The initial interface between the two fluids is defined as in Figure \ref{RT2DSETUP}. Instances of the StokesProblemCartesian and LevelSet class are created. The iteration throughout the time-steps involves the update of the physical parameters of the fluids; the initialization of the boundary conditions, viscosity, and body forces; the solving of the Stokes problem for velocity and pressure; then the level set procedure. The output of the level set function, velocity and pressure is saved to file. The time-step size is selected based on the Courant condition. The simulation may take a long time to complete on a desktop computer due to the number of elements, so it is recommended to run it on the super computer.  
+%
 \begin{python}
 
 from esys.escript import *
 import esys.finley
 from esys.escript.models import StokesProblemCartesian
 from esys.finley import finley
+from esys.finley import Rectangle
 from LevelSet import *
 
 #physical properties
@@ -259,7 +271,6 @@ rho1 = 1000		#fluid density on bottom
 rho2 = 1010		#fluid density on top
 eta1 = 100.0		#fluid viscosity on bottom
 eta2 = 100.0		#fluid viscosity on top
-penalty = 100.0
 g=10.0
 
 #solver settings
@@ -274,15 +285,14 @@ useUzawa=True
 #define mesh
 l0=0.9142
 l1=1.0
-n0=100      
-n1=100
+n0=200      
+n1=200
 
-mesh=esys.finley.Rectangle(l0=l0, l1=l1, order=2, n0=n0, n1=n1)
+mesh=Rectangle(l0=l0, l1=l1, order=2, n0=n0, n1=n1)
 #get mesh dimensions
 numDim = mesh.getDim()
 #get element size
 h = Lsup(mesh.getSize())
-print "element size",h
 
 #level set parameters
 tolerance = 1.0e-6
@@ -309,7 +319,7 @@ h_interface = h_interface + (0.02*cos(math.pi*xx/l0) + 0.2)
 func = yy - h_interface
 func_new = func.interpolate(ReducedSolution(mesh))
 
-#Stokes cartesian
+#Stokes Cartesian
 solution=StokesProblemCartesian(mesh,debug=True)
 solution.setTolerance(TOL)
 solution.setSubProblemTolerance(TOL**2)
@@ -322,7 +332,7 @@ while t_step <= t_step_end:
   rho = levelset.update_parameter(rho1, rho2)
   eta = levelset.update_parameter(eta1, eta2)
 
-  #get velocity and pressue of fluid
+  #get velocity and pressure of fluid
   Y[1] = -rho*g
   solution.initialize(fixed_u_mask=b_c,eta=eta,f=Y)
   velocity,pressure=solution.solve(velocity,pressure,max_iter=max_iter,verbose=verbose,useUzawa=useUzawa)
@@ -337,8 +347,40 @@ while t_step <= t_step_end:
  
   #save interface, velocity and pressure 
   saveVTK("phi2D.%2.4i.vtu"%t_step,interface=func,velocity=velocity,pressure=pressure)
-  #courant condition
+  #Courant condition
   dt = 0.4*Lsup(mesh.getSize())/Lsup(velocity)
   t_step += 1
 
 \end{python}
+%
+%
+The results from the simulation can be viewed by visualization software such as \textit{visIt}. If the software is installed, it can be opened by simply executing the following command:
+%
+\begin{python}
+visit
+\end{python}
+%
+In the visIt main window, vtk/vtu files can be opened from the File menu; contours and vectors can then be displayed by selecting them from the Plots menu and pressing the Draw button. A movie of the simulation can be watched by pressing the Play button. The graphics are displayed in the Vis window. For more information on \textit{visIt} see the website \cite{VisIt}.
+
+The simulation output is shown in Figures \ref{RT2D OUTPUT1} and \ref{RT2D OUTPUT1} showing the progression of the interface of the two fluids. A diapir can be seen rising on the left-hand side of the domain, and then later on, a second one rises on the right-hand side.
+\begin{figure}
+\center
+\subfigure[t=300]{\label{RT OUTPUT300}\includegraphics[scale=0.252]{figures/RT2D200by200t300.eps}}
+\subfigure[t=600]{\label{RT OUTPUT600}\includegraphics[scale=0.252]{figures/RT2D200by200t600.eps}}
+\subfigure[t=900]{\label{RT OUTPUT900}\includegraphics[scale=0.252]{figures/RT2D200by200t900.eps}}
+\subfigure[t=1200]{\label{RT OUTPUT1200}\includegraphics[scale=0.252]{figures/RT2D200by200t1200.eps}}
+\caption{Simulation output of Rayleigh-Taylor instability, showing the movement of the interface of the fluids. The contour line represents the interface between the two fluids; the zero contour of the level set function. Velocity vectors are displayed showing the flow field. Computational mesh used was 200$\times$200 elements.}
+\label{RT2D OUTPUT1}
+\end{figure}
+%
+\begin{figure}
+\center
+\subfigure[t=1500]{\label{RT OUTPUT1500}\includegraphics[scale=0.252]{figures/RT2D200by200t1500.eps}}
+\subfigure[t=1800]{\label{RT OUTPUT1800}\includegraphics[scale=0.252]{figures/RT2D200by200t1800.eps}}
+\caption{Simulation output of Rayleigh-Taylor instability.}
+\label{RT2D OUTPUT2}
+\end{figure}
+%
+%
+%The Level Set Method can be applied to many areas of science, for example simulating subduction zones in geophysics, motion of bubbles, and flame propagation. Its also used in image processing. However, the Level Set Method does have limitations. The level set function can still become irregular after reinitialisation, leading to artifacts in the simulations, requiring more thought into the implementation of the reinitialisation step.
+%
