@@ -114,7 +114,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
 
     /* This check is to make sure we dont get some nusty rows which were not removed durring coarsing process.*/
     /* TODO: we have to mechanism that this does not happend at all, and get rid of this 'If'. */
-    #pragma omp parallel for private(i,iptr,j,sum) schedule(static) 
+     /*This loop cannot be parallelized, as order matters here.*/ 
     for (i=0;i<n;i++) {
         if (mis_marker[i]==IS_REMOVED) {
            sum=0;
