@@ -164,6 +164,8 @@ if env['useMPI']: env['usempi'] = 1
 # Default compiler options (override allowed in hostname_options.py, but should not be necessary)
 # For both C and C++ you get: cc_flags and either the optim flags or debug flags
 
+sysheaderopt = ""		# how do we indicate that a header is a system header. Use "" for no action.
+
 if env["CC"] == "icc":
   # Intel compilers
   cc_flags		= "-fPIC -ansi -wd161 -w1 -vec-report0 -DBLOCKTIMER -DCORE_ID1"
@@ -174,11 +176,10 @@ if env["CC"] == "icc":
   omp_libs		= ['guide', 'pthread']
   pedantic		= ""
   fatalwarning		= ""		# Switch to turn warnings into errors
+  sysheaderopt		= ""
 elif env["CC"] == "gcc":
   # GNU C on any system
-  cc_flags		= "-pedantic -Wall -fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER -isystem " + env['boost_path'] + "/boost -isystem " + env['python_path'] + " -Wno-sign-compare -Wno-system-headers -Wno-strict-aliasing -Wno-long-long"
-#the strict aliasing warning is triggered by some type punning in the boost headers for version 1.34
-#isystem does not seem to prevent this
+  cc_flags		= "-pedantic -Wall -fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER  -Wno-sign-compare -Wno-system-headers -Wno-long-long"
 #the long long warning occurs on the Mac
   cc_optim		= "-O3"
   cc_debug		= "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
@@ -187,6 +188,7 @@ elif env["CC"] == "gcc":
   omp_libs		= []
   pedantic		= "-pedantic-errors -Wno-long-long"
   fatalwarning		= "-Werror"
+  sysheaderopt		= "-isystem "
 elif env["CC"] == "cl":
   # Microsoft Visual C on Windows
   cc_flags		= "/FD /EHsc /GR /wd4068 -D_USE_MATH_DEFINES -DDLL_NETCDF"
@@ -197,10 +199,13 @@ elif env["CC"] == "cl":
   omp_libs		= []
   pedantic		= ""
   fatalwarning		= ""
+  sysheaderopt		= ""
 elif env["CC"] == "icl":
   # intel C on Windows, see windows_intelc_options.py for a start
   pedantic		= ""
   fatalwarning		= ""
+  sysheaderopt		= ""
+
 
 # If not specified in hostname_options.py then set them here
 if env["cc_flags"]	== "-DEFAULT_1": env['cc_flags'] = cc_flags
@@ -322,7 +327,12 @@ if conf.CheckFunc('gethostname'):
 
 ############ python libraries (required) #######################
 
-conf.env.AppendUnique(CPPPATH		= [env['python_path']])
+
+if not sysheaderopt =="":
+  conf.env.Append(CCFLAGS=sysheaderopt+env['python_path'])
+else:
+  conf.env.AppendUnique(CPPPATH		= [env['python_path']])
+
 conf.env.AppendUnique(LIBPATH		= [env['python_lib_path']])
 conf.env.AppendUnique(LIBS		= [env['python_libs']])
 
@@ -337,7 +347,11 @@ if not conf.CheckFunc('Py_Main'):
 
 ############ boost (required) ##################################
 
-conf.env.AppendUnique(CPPPATH		= [env['boost_path']])
+if not sysheaderopt =="":
+  conf.env.Append(CCFLAGS=sysheaderopt+env['boost_path']+'boost')
+else:
+  conf.env.AppendUnique(CPPPATH		= [env['boost_path']])
+
 conf.env.AppendUnique(LIBPATH		= [env['boost_lib_path']])
 conf.env.AppendUnique(LIBS		= [env['boost_libs']])
 
