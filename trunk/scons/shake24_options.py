@@ -41,7 +41,7 @@ python_lib_path		= '/usr/lib'
 # python_cmd		= 'python'
 
 # Boost libraries
-boost_path		= '/opt/local/include/boost-1_35'
+boost_path		= '/opt/local/include/boost-1_35/'
 boost_lib_path		= '/opt/local/lib'
 boost_libs		= ['boost_python']
 
