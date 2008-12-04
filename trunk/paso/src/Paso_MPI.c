@@ -127,27 +127,20 @@ dim_t Paso_MPIInfo_setDistribution(Paso_MPIInfo* mpi_info ,index_t min_id,index_
 /* NOTE : does not make guarentee consistency of error string on each process */
 bool_t Paso_MPIInfo_noError( Paso_MPIInfo *mpi_info )
 {
-  int errorLocal = 0;
-  int errorGlobal= 0;
-  errorLocal= Paso_noError() ? 0 : 1;
+  int errorLocal = Paso_noError() ? 0 : 1;
+  int errorGlobal = errorLocal;
+#if 0
+#ifdef PASO_MPI
   if (mpi_info->size>1) {
-     #ifdef PASO_MPI
-#if 1 /* ksteube disable error checking during benchmarking activities */
      MPI_Allreduce( &errorLocal, &errorGlobal, 1, MPI_INT, MPI_MAX, mpi_info->comm  );
-#else
-     errorGlobal=errorLocal;
-#endif
-     #else
-     errorGlobal=errorLocal;
-     #endif
-     /* take care of the case where the error was on another processor */
-     if( (errorLocal==0) && (errorGlobal==1) ) {
-         Paso_setError( PASO_MPI_ERROR, "Paso_MPI_noError() : there was an error on another MPI process" );
-     }
   }
+  if( (errorLocal==0) && (errorGlobal==1) ) {
+     Paso_setError( PASO_MPI_ERROR, "Paso_MPI_noError() : there was an error on another MPI process" );
+  }
+#endif
+#endif
   return (errorGlobal==0);
 }
-
 
 /**************************************************
                  WRAPPERS 
