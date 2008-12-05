@@ -271,21 +271,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 		 int dataOffset=0);
 
 
-
-
-  /**
-     \brief
-     Copy the numarray object to the data points in this object.
-
-     Description:
-     Copy the numarray object to the data points in this object.
-
-     \param value Input - new values for the data points
-  */
-  ESCRIPT_DLL_API
-  virtual void
-  copyAll(const WrappedArray& value);
-
   /**
      \brief
      Copy a double value to the data point dataPointNo of sample sampleNo in this object.
