@@ -179,7 +179,8 @@ if env["CC"] == "icc":
   sysheaderopt		= ""
 elif env["CC"] == "gcc":
   # GNU C on any system
-  cc_flags		= "-pedantic -Wall -fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER  -Wno-sign-compare -Wno-system-headers -Wno-long-long"
+  cc_flags		= "-pedantic -Wall -fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER  -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing"
+#The strict aliasing error occurs for some versions of boost
 #the long long warning occurs on the Mac
   cc_optim		= "-O3"
   cc_debug		= "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
