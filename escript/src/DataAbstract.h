@@ -178,27 +178,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   getPointOffset(int sampleNo,
                  int dataPointNo) = 0;
 
-//  /**
-//	return the container storing points for this object
-//  */
-//   ESCRIPT_DLL_API
-//   virtual 
-//   ValueType&
-//   getVector();
-// 
-//   ESCRIPT_DLL_API
-//   virtual 
-//   const ValueType&
-//   getVector() const;
-
-
-//  /**
-//     \brief
-//     Return the sample data for the given sample number.
-//  */
-//  ESCRIPT_DLL_API
-//  double*
-//  getSampleData(ValueType::size_type sampleNo);
 
   /**
      \brief
@@ -268,18 +247,7 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   DataAbstract*
   getSlice(const DataTypes::RegionType& region) const = 0;
 
-//  /**
-//     \brief
-//     Copy the specified region from the given object.
-//
-//     \param value - Input - Data to copy from
-//     \param region - Input - Region to copy.
-//  */
-//   ESCRIPT_DLL_API
-//   virtual
-//   void
-//   setSlice(const DataAbstract* value,
-//            const DataTypes::RegionType& region) = 0;
+
 
   /**
      \brief
@@ -316,7 +284,7 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   */
   ESCRIPT_DLL_API
   virtual void
-  copyAll(const boost::python::numeric::array& value);
+  copyAll(const WrappedArray& value);
 
   /**
      \brief
@@ -344,10 +312,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \param dataPointNo Input - data point of the sample
      \param value Input - new values for the data point
   */
-  ESCRIPT_DLL_API
-  virtual void
-  copyToDataPoint(const int sampleNo, const int dataPointNo, const boost::python::numeric::array& value);
-
   ESCRIPT_DLL_API
   virtual void
   copyToDataPoint(const int sampleNo, const int dataPointNo, const WrappedArray& value);
