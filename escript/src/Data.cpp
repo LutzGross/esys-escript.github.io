@@ -1036,12 +1036,12 @@ Data::getLength() const
   return m_data->getLength();
 }
 
-// const
-// boost::python::numeric :: array
-// Data:: getValueOfDataPoint(int dataPointNo)
-// {
-//     return boost::python::numeric::array(getValueOfDataPointAsTuple(dataPointNo));
-// }
+const
+boost::python::numeric :: array
+Data:: getValueOfDataPoint(int dataPointNo)
+{
+    return boost::python::numeric::array(getValueOfDataPointAsTuple(dataPointNo));
+}
 
 const boost::python::object
 Data::getValueOfDataPointAsTuple(int dataPointNo)
@@ -1139,12 +1139,12 @@ Data::setValueOfDataPoint(int dataPointNo, const double value)
   }
 }
 
-// const
-// boost::python::numeric::array
-// Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
-// {
-//    return boost::python::numeric::array(getValueOfGlobalDataPointAsTuple(procNo, dataPointNo));
-// }
+const
+boost::python::numeric::array
+Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
+{
+   return boost::python::numeric::array(getValueOfGlobalDataPointAsTuple(procNo, dataPointNo));
+}
 
 const
 boost::python::object
@@ -1351,7 +1351,7 @@ Data::integrate_const() const
   {
 	throw DataException("Error - cannot integrate for constant lazy data.");
   }
-  return integrateWorker();
+  return boost::python::numeric::array(integrateWorker());
 }
 
 boost::python::object
@@ -1361,7 +1361,7 @@ Data::integrate()
   {
 	expand(); 
   }
-  return integrateWorker();
+  return boost::python::numeric::array(integrateWorker());
 }
 
 
