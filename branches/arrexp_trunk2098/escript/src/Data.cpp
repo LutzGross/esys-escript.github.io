@@ -627,6 +627,13 @@ Data::getDataC() const
   return temp;
 }
 
+size_t
+Data::getSampleBufferSize() const
+{
+  return m_data->getSampleBufferSize();
+}
+
+
 const boost::python::tuple
 Data::getShapeTuple() const
 {
@@ -789,6 +796,14 @@ Data::isExpanded() const
   DataExpanded* temp=dynamic_cast<DataExpanded*>(m_data.get());
   return (temp!=0);
 }
+
+bool
+Data::actsExpanded() const
+{
+  return m_data->actsExpanded();
+
+}
+
 
 bool
 Data::isTagged() const
@@ -3177,6 +3192,28 @@ Data::getDataPoint(int sampleNo, int dataPointNo)
   }
 }
 
+DataTypes::ValueType* 
+Data::allocSampleBuffer() const
+{
+     if (isLazy())
+     {
+	return new DataTypes::ValueType(getSampleBufferSize());
+     }
+     else
+     {
+	return NULL;
+     }
+}
+
+void
+Data::freeSampleBuffer(DataTypes::ValueType* buffer)
+{
+     if (buffer!=0)
+     {
+	delete buffer;
+     }
+}
+
 
 /* Member functions specific to the MPI implementation */
 
@@ -3190,7 +3227,7 @@ Data::print()
   {
     printf( "[%6d]", i );
     for( j=0; j<getNumDataPointsPerSample(); j++ )
-      printf( "\t%10.7g", (getSampleData(i))[j] );
+      printf( "\t%10.7g", (getSampleDataRW(i))[j] );	// doesn't really need RW access
     printf( "\n" );
   }
 }
