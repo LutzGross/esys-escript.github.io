@@ -132,6 +132,13 @@ TODO Note that this constructor will also copy data to all points if it only con
     return true;
   };
 
+  ESCRIPT_DLL_API
+  bool
+  actsExpanded() const
+  {
+    return true;
+  }
+
   /**
      \brief
      Return a textual representation of the data.

@@ -198,6 +198,15 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   double*
   getSampleDataByTag(int tag);
 
+  /**
+    This method is used primarily for LazyData.
+    \return the size of the buffer required to evaulate a sample for this object.
+  */
+  ESCRIPT_DLL_API
+  virtual size_t
+  getSampleBufferSize() const=0;
+
+
 
   /**
      \brief
@@ -452,13 +461,25 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   ESCRIPT_DLL_API
   bool isLazy() const;	// a test to determine if this object is an instance of DataLazy
 
+  ESCRIPT_DLL_API
   virtual
   bool
   isConstant() const {return false;}
 
+  ESCRIPT_DLL_API
   virtual
   bool
   isExpanded() const {return false;}
+
+
+  /**
+     \brief
+     Return true if this Data is expanded or resolves to expanded.
+     That is, if it has a separate value for each datapoint in the sample.
+  */
+  virtual
+  bool
+  actsExpanded() const {return false;}
 
   virtual
   bool

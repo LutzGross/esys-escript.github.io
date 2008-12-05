@@ -119,7 +119,7 @@ int isExpanded(struct escriptDataC* data)
      if (temp->isEmpty()) {
         return false;
      } else {
-        return temp->isExpanded();
+        return temp->actsExpanded();
      }
   }
 }
@@ -135,7 +135,7 @@ int isEmpty(escriptDataC* data)
 }
 
 
-double* getSampleData(struct escriptDataC* data, int sampleNo)
+__const double* getSampleDataRO(struct escriptDataC* data, int sampleNo, void* buffer)
 {
   if (data == (struct escriptDataC*)0) {
        return NULL;
@@ -144,7 +144,21 @@ double* getSampleData(struct escriptDataC* data, int sampleNo)
      if (temp->isEmpty()) {
         return NULL;
      } else {
-        return temp->getSampleData(sampleNo);
+        return temp->getSampleDataRO(sampleNo,reinterpret_cast<escript::DataTypes::ValueType*>(buffer));
+     }
+  }
+}
+
+double* getSampleDataRW(struct escriptDataC* data, int sampleNo)
+{
+  if (data == (struct escriptDataC*)0) {
+       return NULL;
+  } else {
+      escript::Data* temp=(escript::Data*)(data->m_dataPtr);
+     if (temp->isEmpty()) {
+        return NULL;
+     } else {
+        return temp->getSampleDataRW(sampleNo);
      }
   }
 }
@@ -152,5 +166,25 @@ double* getSampleData(struct escriptDataC* data, int sampleNo)
 double* getSampleDataFast(struct escriptDataC* data, int sampleNo)
 {
   escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-  return temp->getSampleData(sampleNo);
+  return temp->getSampleDataRW(sampleNo);
 }
+
+void* allocSampleBuffer(escriptDataC* data)
+{
+  if (data == (struct escriptDataC*)0) {
+     return NULL;
+  } else {
+     escript::Data* temp=(escript::Data*)(data->m_dataPtr);
+     return temp->allocSampleBuffer();
+  }
+}
+
+// Not going to the c++ member for this because I don't need an instance to do this
+void freeSampleBuffer(void* buffer)
+{
+  if (buffer!=NULL)
+  {
+    delete (reinterpret_cast<escript::DataTypes::ValueType*>(buffer));
+  }
+}
+

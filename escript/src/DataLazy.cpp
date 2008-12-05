@@ -550,6 +550,14 @@ DataLazy::getMaxSampleSize() const
 	return m_maxsamplesize;
 }
 
+
+
+size_t
+DataLazy::getSampleBufferSize() const
+{
+	return m_maxsamplesize*(max(1,m_buffsRequired));
+}
+
 /*
   \brief Evaluates the expression using methods on Data.
   This does the work for the collapse method.
@@ -1126,7 +1134,6 @@ DataLazy::resolve()
 
 LAZYDEBUG(cout << "Sample size=" << m_samplesize << endl;)
 LAZYDEBUG(cout << "Buffers=" << m_buffsRequired << endl;)
-
   if (m_readytype!='E')		// if the whole sub-expression is Constant or Tagged, then evaluate it normally
   {
     collapse();
@@ -1341,6 +1348,12 @@ DataLazy::setToZero()
   m_left.reset();
   m_readytype='C';
   m_buffsRequired=1;
+}
+
+bool
+DataLazy::actsExpanded() const
+{
+	return (m_readytype=='E');
 }
 
 }	// end namespace

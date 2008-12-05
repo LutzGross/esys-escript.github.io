@@ -28,7 +28,8 @@
 
 void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* out,escriptDataC* in) {
     dim_t n,q, numElements, numQuad;
-    double *in_array,*out_array;
+    __const double *in_array;
+    double *out_array;
     dim_t numComps=getDataPointSize(out);
     size_t len_size;
 
@@ -61,17 +62,27 @@ void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* 
     if (Finley_noError()) {
          if (isExpanded(in)) {
              len_size=numComps*numQuad*sizeof(double);
-             # pragma omp parallel for private(n) schedule(static)
-             for (n=0;n<numElements;n++) 
-                 memcpy(getSampleData(out,n),getSampleData(in,n), len_size);
+	     #pragma omp parallel private(n)
+	     {
+	       void* buffer=allocSampleBuffer(in);
+               # pragma omp for schedule(static)
+               for (n=0;n<numElements;n++) 
+                 memcpy(getSampleDataRW(out,n),getSampleDataRO(in,n,buffer), len_size);
+	       freeSampleBuffer(buffer);
+	     }
          } else {
              len_size=numComps*sizeof(double);
-             # pragma omp parallel for private(q,n,out_array,in_array) schedule(static)
-             for (n=0;n<numElements;n++) {
-                 in_array=getSampleData(in,n);
-                 out_array=getSampleData(out,n);
+	     #pragma omp parallel private(q,n,out_array,in_array)
+	     {
+	       void* buffer=allocSampleBuffer(in);
+               # pragma omp for schedule(static)
+               for (n=0;n<numElements;n++) {
+                 in_array=getSampleDataRO(in,n,buffer);
+                 out_array=getSampleDataRW(out,n);
                  for (q=0;q<numQuad;q++) memcpy(out_array+q*numComps,in_array,len_size);
-             }
+               }
+	       freeSampleBuffer(buffer);
+	     }
          }
     }
     return;

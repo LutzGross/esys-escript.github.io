@@ -72,8 +72,8 @@ void SystemMatrixAdapter::ypAx(escript::Data& y,escript::Data& x) const
    }
    x.expand();
    y.expand();
-   double* x_dp=x.getSampleData(0);
-   double* y_dp=y.getSampleData(0);
+   double* x_dp=x.getSampleDataRW(0);
+   double* y_dp=y.getSampleDataRW(0);
    Paso_SystemMatrix_MatrixVector(1., mat,x_dp, 1.,y_dp);
    checkPasoError();
 }
@@ -201,8 +201,8 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, co
    }
    out.expand();
    in.expand();
-   double* out_dp=out.getSampleData(0);
-   double* in_dp=in.getSampleData(0);
+   double* out_dp=out.getSampleDataRW(0);	
+   double* in_dp=in.getSampleDataRW(0);		
    Paso_solve(mat,out_dp,in_dp,&paso_options);
    checkPasoError();
 }
@@ -221,8 +221,8 @@ void SystemMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,escript::Data&
    }
    row_q.expand();
    col_q.expand();
-   double* row_q_dp=row_q.getSampleData(0);
-   double* col_q_dp=col_q.getSampleData(0);
+   double* row_q_dp=row_q.getSampleDataRW(0);
+   double* col_q_dp=col_q.getSampleDataRW(0);
    Paso_SystemMatrix_nullifyRowsAndCols(mat,row_q_dp,col_q_dp, mdv);
    checkPasoError();
 }

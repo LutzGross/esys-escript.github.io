@@ -54,7 +54,8 @@ void Finley_Mesh_saveVTK(const char * filename_p,
 {
 #ifdef USE_VTK
   char error_msg[LenErrorMsg_MAX], *txt_buffer=NULL, tmp_buffer[LEN_TMP_BUFFER];
-  double sampleAvg[NCOMP_MAX], *values, *QuadNodes=NULL;
+  __const double *values;
+  double sampleAvg[NCOMP_MAX], *QuadNodes=NULL;
   size_t txt_buffer_in_use;
   dim_t len_txt_buffer,  max_len_names;
   FILE * fileHandle_p = NULL;
@@ -944,6 +945,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
       /* write the arrays */
       for (i_data =0 ;i_data<num_data;++i_data) {
          if (! isEmpty(data_pp[i_data]) && isCellCentered[i_data]) {
+	    void* buffer=allocSampleBuffer(data_pp[i_data]);
             txt_buffer[0] = '\0';
             txt_buffer_in_use=0;
             numPointsPerSample=getNumDataPointsPerSample(data_pp[i_data]);
@@ -981,7 +983,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
 
                for (i=0; i<numCells; i++) {
                    if (elements->Owner[i] == my_mpi_rank) {
-                      values = getSampleData(data_pp[i_data], i);
+                      values = getSampleDataRO(data_pp[i_data], i,buffer);
                       for (l=0; l< numCellFactor;++l) {
                          /* averaging over the number of points in the sample */
                          if (isExpanded(data_pp[i_data])) {
@@ -1096,6 +1098,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                    fprintf(fileHandle_p, "%s", tag_End_DataArray);
                }
             }
+	    freeSampleBuffer(buffer);
          }
       }
       if ( mpi_size > 1) {
@@ -1167,6 +1170,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
       /* write the arrays */
       for (i_data =0 ;i_data<num_data;++i_data) {
          if (! isEmpty(data_pp[i_data]) && !isCellCentered[i_data]) {
+	    void* buffer=allocSampleBuffer(data_pp[i_data]);	
             txt_buffer[0] = '\0';
             txt_buffer_in_use=0;
             numPointsPerSample=getNumDataPointsPerSample(data_pp[i_data]);
@@ -1209,7 +1213,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                for (i=0; i<mesh_p->Nodes->numNodes; i++) {
                   k=globalNodeIndex[i];
                   if ( (myFirstNode <= k) && (k < myLastNode) ) {
-                     values = getSampleData(data_pp[i_data], nodeMapping->target[i]);
+                     values = getSampleDataRO(data_pp[i_data], nodeMapping->target[i],buffer);
                      /* if the number of mpi_required components is more than the number
                      * of actual components, pad with zeros
                      */
@@ -1262,6 +1266,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                   fprintf(fileHandle_p, "%s", tag_End_DataArray);
                }
             }
+	    freeSampleBuffer(buffer);
           }
         }
         if ( mpi_size > 1) {
