@@ -34,18 +34,6 @@ using namespace escript::DataTypes;
 
 namespace escript {
 
-DataExpanded::DataExpanded(const boost::python::numeric::array& value,
-                           const FunctionSpace& what)
-  : parent(what,DataTypes::shapeFromNumArray(value))
-{
-  //
-  // initialise the data array for this object
-  initialise(what.getNumSamples(),what.getNumDPPSample());
-  //
-  // copy the given value to every data point
-  copy(value);
-}
-
 DataExpanded::DataExpanded(const WrappedArray& value,
                            const FunctionSpace& what)
   : parent(what,value.getShape())
@@ -273,37 +261,6 @@ DataExpanded::copy(const DataConstant& value)
       DataTypes::copyPoint(getVector(), getPointOffset(i,j), getNoValues(), value.getVector(), 0);
     }
   }
-}
-
-
-
-void
-DataExpanded::copy(const boost::python::numeric::array& value)
-{
-
-  // extract the shape of the numarray
-  DataTypes::ShapeType tempShape;
-  for (int i=0; i < value.getrank(); i++) {
-    tempShape.push_back(extract<int>(value.getshape()[i]));
-  }
-
-  // get the space for the data vector
-//   int len = DataTypes::noValues(tempShape);
-//   DataVector temp_data(len, 0.0, len);
-//   DataArrayView temp_dataView(temp_data, tempShape);
-//   temp_dataView.copy(value);
-
-  //
-  // check the input shape matches this shape
-  if (!DataTypes::checkShape(getShape(),tempShape)) {
-    throw DataException(DataTypes::createShapeErrorMessage(
-                        "Error - (DataExpanded) Cannot copy due to shape mismatch.",
-                        tempShape,getShape()));
-  }
-  //
-  // now copy over the data
-  //copy(temp_dataView);
-  getVector().copyFromNumArray(value);
 }
 
 void 

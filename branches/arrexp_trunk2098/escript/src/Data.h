@@ -274,13 +274,17 @@ class Data {
   bool
   isProtected() const;
 
-  /**
-     \brief
-     Return the values of a data point on this process
-  */
+//  /**
+//     \brief
+//     Return the values of a data point on this process
+//  */
+//  ESCRIPT_DLL_API
+//  const boost::python::numeric :: array
+//  getValueOfDataPoint(int dataPointNo);
+
   ESCRIPT_DLL_API
-  const boost::python::numeric::array
-  getValueOfDataPoint(int dataPointNo);
+  const boost::python::object
+  getValueOfDataPointAsTuple(int dataPointNo);
 
   /**
      \brief
@@ -310,9 +314,13 @@ class Data {
      \brief
      Return the value of the specified data-point across all processors
   */
+//   ESCRIPT_DLL_API
+//   const boost::python::numeric::array
+//   getValueOfGlobalDataPoint(int procNo, int dataPointNo);
+
   ESCRIPT_DLL_API
-  const boost::python::numeric::array
-  getValueOfGlobalDataPoint(int procNo, int dataPointNo);
+  const boost::python::object
+  getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo);
 
   /**
      \brief
@@ -1515,11 +1523,6 @@ contains datapoints.
 	     const DataTypes::ShapeType& shape,
              const FunctionSpace& what,
              bool expanded);
-
-  void
-  initialise(const boost::python::numeric::array& value,
-                 const FunctionSpace& what,
-                 bool expanded);
 
   void
   initialise(const WrappedArray& value,

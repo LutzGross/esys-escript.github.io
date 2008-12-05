@@ -47,10 +47,6 @@ typedef DataReady parent;
      \param what - Input - A description of what this data object represents.
   */
   ESCRIPT_DLL_API
-  DataConstant(const boost::python::numeric::array& value,
-               const FunctionSpace& what);
-
-  ESCRIPT_DLL_API
   DataConstant(const WrappedArray& value,
                const FunctionSpace& what);
 

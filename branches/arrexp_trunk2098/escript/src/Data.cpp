@@ -50,9 +50,112 @@ using namespace escript;
 // The idea was that we could add an optional warning whenever a resolve is forced
 #define FORCERESOLVE if (isLazy()) {resolve();}
 
+namespace
+{
+
+// This should be safer once the DataC RO changes have been brought in
+boost::python::tuple
+pointToTuple( const DataTypes::ShapeType& shape,DataAbstract::ValueType::value_type* v)
+{
+   using namespace boost::python;
+   using boost::python::list;
+   int rank=shape.size();
+   if (rank==0)
+   {
+	return make_tuple(v[0]);
+   }
+   else if (rank==1)
+   {
+	list l;
+	for (size_t i=0;i<shape[0];++i)
+	{
+	   l.append(v[i]);
+	}
+	return tuple(l);
+   }
+   else if (rank==2)
+   {
+	list lj;
+	for (size_t j=0;j<shape[0];++j)
+	{
+	   list li;
+	   for (size_t i=0;i<shape[1];++i)
+	   {
+	      li.append(v[DataTypes::getRelIndex(shape,j,i)]);
+	   }
+	   lj.append(tuple(li));
+	}
+	return tuple(lj);
+   }
+   else if (rank==3)
+   {
+	list lk;
+	for (size_t k=0;k<shape[0];++k)
+	{
+	   list lj;
+	   for (size_t j=0;j<shape[1];++j)
+	   {
+		list li;
+		for (size_t i=0;i<shape[2];++i)
+		{
+		   li.append(v[DataTypes::getRelIndex(shape,k,j,i)]);
+		}
+		lj.append(tuple(li));
+	   }
+	   lk.append(tuple(lj));
+	}
+	return tuple(lk);
+   }
+   else if (rank==4)
+   {
+	list ll;
+	for (size_t l=0;l<shape[0];++l)
+	{
+	   list lk;
+	   for (size_t k=0;k<shape[1];++k)
+	   {
+		list lj;
+		for (size_t j=0;j<shape[2];++j)
+		{
+			list li;
+			for (size_t i=0;i<shape[3];++i)
+			{
+			   li.append(v[DataTypes::getRelIndex(shape,l,k,j,i)]);
+			}
+			lj.append(tuple(li));
+		}
+		lk.append(tuple(lj));
+	   }
+	   ll.append(tuple(lk));
+	}
+	return tuple(ll);
+   }
+   else
+     throw DataException("Unknown rank in pointToTuple.");
+}
+
+}  // anonymous namespace
 
 void escript::jtest(boost::python::object& obj)
 {
+	boost::python::list l;
+	for (int i=0;i<5;++i)
+	{
+		l.append(i);
+	}
+	boost::python::tuple t(l);
+
+	string st=extract<std::string>(t.attr("__str__")());
+cout << "String is" << st << endl;	
+
+// 	DataTypes::ShapeType sh;
+// 	sh.push_back(2);
+// 	sh.push_back(3);
+// 	double xz[]={1, 7, 4, 10, 2, 8, 5, 11, 3, 9, 6, 12};
+// 	tuple tt=pointToTuple(xz,sh);
+// 	st=extract<std::string>(tt.attr("__str__")());
+// cout << "String is of tuple is " << st << endl;	
+
 cout << "Testing1\n";
 	try
 	{
@@ -188,233 +291,13 @@ cout << "Testing 3\n";
 	   cout << vec[i] << " ";
 	}
 	cout << endl;
-}
+	tuple tt=pointToTuple(shape,&(vec[0]));
+	string st1=extract<std::string>(tt.attr("__str__")());
+	cout << "Tuple is " 	 << st1 << endl;
 
 
+}	
 
-
-
-
-/*
-	ArrayTools::getObjShape(obj,shape);
-	size_t rank=shape.size();
-	cout << "Rank=" << rank << endl;
-	for (unsigned int i=0;i<rank;++i)
-	{
-	   cout << shape[i] << ",";
-	}
-	DataVector vec(DataTypes::noValues(shape));
-	cout << endl;
-	if (rank==1)
-	{
-	   int i=0;
-	   try
-	   {
-	     for (i=0;i<shape[0];++i)
-	     {
-		vec[i]=extract<double>(obj[i]);
-	     }
-	   }
-	   catch (...)
-	   {
-		PyErr_Clear();
-		ostringstream oss;
-		oss << "Array filter - Error reading element " << i;
-		throw DataException(oss.str());
-	   }
-	}
-	else if (rank==2)
-	{
-	   int i=0;
-	   int j=0;
-	   try
-	   {
-	     for (i=0;i<shape[0];++i)		// element
-	     {
-		for (j=0;j<shape[1];++j)	// row
-		{
-		   vec[DataTypes::getRelIndex(shape,i,j)]=extract<double>(obj[i][j]);
-		}
-	     }
-	   }
-	   catch (...)
-	   {
-		PyErr_Clear();
-		ostringstream oss;
-		oss << "Array filter - Error reading element " << i << ',' << j;
-		throw DataException(oss.str());
-	   }
-	}
-	else if (rank==3)
-	{
-	   int i=0;
-	   int j=0;
-	   int k=0;
-	   try
-	   {
-	     for (i=0;i<shape[0];++i)
-	     {
-		for (j=0;j<shape[1];++j)
-		{
-		   for (k=0;k<shape[2];++k)
-		   {
-		      vec[DataTypes::getRelIndex(shape,i,j,k)]=extract<double>(obj[i][j][k]);
-		   }
-		}
-	     }
-	   }
-	   catch (...)
-	   {
-		PyErr_Clear();
-		ostringstream oss;
-		oss << "Array filter - Error reading element " << i << ',' << j << ',' << k;
-		throw DataException(oss.str());
-	   }
-	}
-	else if (rank==4)
-	{
-	   int i=0;
-	   int j=0;
-	   int k=0;
-	   int m=0;
-	   try
-	   {
-	     for (i=0;i<shape[0];++i)
-	     {
-		for (j=0;j<shape[1];++j)
-		{
-		   for (k=0;k<shape[2];++k)
-		   {
-		      for (m=0;m<shape[3];++m)
-		      {
-		         vec[DataTypes::getRelIndex(shape,i,j,k,m)]=extract<double>(obj[i][j][k][m]);
-		      }
-		   }
-		}
-	     }
-	   }
-	   catch (...)
-	   {
-		PyErr_Clear();
-		ostringstream oss;
-		oss << "Array filter - Error reading element " << i << ',' << j << ',' << k << ',' << m;
-		throw DataException(oss.str());
-	   }
-	}
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-// void escript::jtest()
-// {
-// //    string s=extract<std::string>(obj.attr("__str__")());
-// //    cout << "[" << s << "]" << endl;
-// //     int len=extract<int>(obj.attr("__len__")());
-// // cerr << "Length=" << len << endl;
-// //     for (int j=0;j<len;++j)
-// //     {
-// // 	object it=obj.attr("__getitem__")(j);
-// // 	string s=extract<std::string>(it.attr("__str__")());
-// // 	cerr << "Item: " << j << s;
-// //     }
-// 
-// //     try
-// //     {
-// // 	object z=obj.attr("nothere");
-// //     }
-// //     catch(...)
-// //     {
-// // 	cout << "Caught exception\n";
-// //     }
-// 
-//     // 1 test capabilities -- check for required methods - write this later
-//     // 2 compute rank and shape
-//     // 3 get values
-// 
-//     DataTypes::ShapeType shape;
-//     object t=obj;
-// //     int len=0;
-// //     while (len=extract<int>(obj.attr("__len__")()),len>=1)
-// //     {
-// // 	shape.push_back(len);
-// // 
-// //     }
-// 
-//    try
-//    {
-// 	object z=t.attr("__getitem__");
-// 	if (z==0)
-// 	{
-// 		cerr << "Found null" << endl;
-// 	}
-//    }
-//    catch (...)
-//    {
-// 	cerr << "Type does not support __getitem__" << endl;
-// 	boost::python::handle_exception();
-// 	return;
-//    }
-//    try
-//    {
-// 	object z=t.attr("__len__")();
-//    }
-//    catch (...)
-//    {
-// 	cerr << "Object does not support __len__" << endl;
-// 	boost::python::handle_exception();
-// 	return;
-//    }
-// 
-// cerr << "Loop entry" << endl;
-//     bool done=false;
-//     do 
-//     {
-// 	string s=extract<std::string>(t.attr("__str__")());
-// cerr << "Processing: " <<  s<< endl;
-// 	int len=extract<int>(t.attr("__len__")());
-// cerr << "Length is " << len << endl;
-// 	if (len<1)
-// 	{
-// 	   throw DataException("Array filter - No empty elements please.");
-// 	}
-// 	shape.push_back(len);
-// 	if (shape.size()>ESCRIPT_MAX_DATA_RANK)
-// 	{
-// 	   throw DataException("ArrayFilter - Maximum permitted rank is 4");
-// 	}
-// cerr << "About to call [0]" << endl;
-// // 	t=t.attr("__getitem__")(0);
-// 	t=t[0];
-// 	try
-// 	{
-// cerr << "About to test __getitem__ " << endl;
-// // 	    object o=t.attr("__getitem__");	// test if the object has the method
-// 		object o=t[0];
-// cerr << "Call to test succeeded" << endl;
-// 	}
-// 	catch (...)
-// 	{
-// 	   done=true;
-// cerr << "In catch" << endl;
-// 	   boost::python::handle_exception();
-// 	}
-// cerr << "Bottom of the loop" << endl;
-//     } while (!done);
-//     cout << "Rank=" << shape.size() << endl;
-//     for (int i=0;i<shape.size(); ++i)
-//     {
-// 	cout << shape[i] << endl;
-//     }
-// }
 
 Data::Data()
 {
@@ -570,30 +453,28 @@ Data::Data(const object& value,
 Data::Data(const object& value,
            const Data& other)
 {
-  numeric::array asNumArray(value);
+  WrappedArray w(value);
 
   // extract the shape of the numarray
-  DataTypes::ShapeType tempShape=DataTypes::shapeFromNumArray(asNumArray);
-  if (DataTypes::getRank(tempShape)==0) {
+  const DataTypes::ShapeType& tempShape=w.getShape();
+  if (w.getRank()==0) {
 
 
     // get the space for the data vector
     int len1 = DataTypes::noValues(tempShape);
     DataVector temp_data(len1, 0.0, len1);
-    temp_data.copyFromNumArray(asNumArray);
+    temp_data.copyFromArray(w);
 
     int len = DataTypes::noValues(other.getDataPointShape());
 
-    DataVector temp2_data(len, temp_data[0]/*temp_dataView()*/, len);
+    DataVector temp2_data(len, temp_data[0], len);
     DataConstant* t=new DataConstant(other.getFunctionSpace(),other.getDataPointShape(),temp2_data);
     m_data=DataAbstract_ptr(t);
 
   } else {
     //
     // Create a DataConstant with the same sample shape as other
-    DataConstant* t=new DataConstant(asNumArray,other.getFunctionSpace());
-//     boost::shared_ptr<DataAbstract> sp(t);
-//     m_data=sp;
+    DataConstant* t=new DataConstant(w,other.getFunctionSpace());
     m_data=DataAbstract_ptr(t);
   }
   m_protected=false;
@@ -619,30 +500,6 @@ void Data::initialise(const WrappedArray& value,
     m_data=temp->getPtr();
   } else {
     DataAbstract* temp=new DataConstant(value, what);
-    m_data=temp->getPtr();
-  }
-}
-
-
-void
-Data::initialise(const boost::python::numeric::array& value,
-                 const FunctionSpace& what,
-                 bool expanded)
-{
-  //
-  // Construct a Data object of the appropriate type.
-  // Construct the object first as there seems to be a bug which causes
-  // undefined behaviour if an exception is thrown during construction
-  // within the shared_ptr constructor.
-  if (expanded) {
-    DataAbstract* temp=new DataExpanded(value, what);
-//     boost::shared_ptr<DataAbstract> temp_data(temp);
-//     m_data=temp_data;
-    m_data=temp->getPtr();
-  } else {
-    DataAbstract* temp=new DataConstant(value, what);
-//     boost::shared_ptr<DataAbstract> temp_data(temp);
-//     m_data=temp_data;
     m_data=temp->getPtr();
   }
 }
@@ -1178,100 +1035,45 @@ Data::getLength() const
   return m_data->getLength();
 }
 
-const
-boost::python::numeric::array
-Data:: getValueOfDataPoint(int dataPointNo)
+// const
+// boost::python::numeric :: array
+// Data:: getValueOfDataPoint(int dataPointNo)
+// {
+//     return boost::python::numeric::array(getValueOfDataPointAsTuple(dataPointNo));
+// }
+
+const boost::python::object
+Data::getValueOfDataPointAsTuple(int dataPointNo)
 {
-  int i, j, k, l;
-
-  FORCERESOLVE;
-
-  //
-  // determine the rank and shape of each data point
-  int dataPointRank = getDataPointRank();
-  const DataTypes::ShapeType& dataPointShape = getDataPointShape();
-
-  //
-  // create the numeric array to be returned
-  boost::python::numeric::array numArray(0.0);
-
-  //
-  // the shape of the returned numeric array will be the same
-  // as that of the data point
-  int arrayRank = dataPointRank;
-  const DataTypes::ShapeType& arrayShape = dataPointShape;
-
-  //
-  // resize the numeric array to the shape just calculated
-  if (arrayRank==0) {
-    numArray.resize(1);
-  }
-  if (arrayRank==1) {
-    numArray.resize(arrayShape[0]);
-  }
-  if (arrayRank==2) {
-    numArray.resize(arrayShape[0],arrayShape[1]);
-  }
-  if (arrayRank==3) {
-    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2]);
-  }
-  if (arrayRank==4) {
-    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3]);
-  }
-
-  if (getNumDataPointsPerSample()>0) {
+   FORCERESOLVE
+   if (getNumDataPointsPerSample()>0) {
        int sampleNo = dataPointNo/getNumDataPointsPerSample();
        int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
        //
        // Check a valid sample number has been supplied
        if ((sampleNo >= getNumSamples()) || (sampleNo < 0 )) {
-           throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
+           throw DataException("Error - Data::getValueOfDataPointAsTuple: invalid sampleNo.");
        }
 
        //
        // Check a valid data point number has been supplied
        if ((dataPointNoInSample >= getNumDataPointsPerSample()) || (dataPointNoInSample < 0)) {
-           throw DataException("Error - Data::convertToNumArray: invalid dataPointNoInSample.");
+           throw DataException("Error - Data::getValueOfDataPointAsTuple: invalid dataPointNoInSample.");
        }
        // TODO: global error handling
-       // create a view of the data if it is stored locally
-//       DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
        DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
-
-
-       switch( dataPointRank ){
-			case 0 :
-				numArray[0] = getDataAtOffset(offset);
-				break;
-			case 1 :
-				for( i=0; i<dataPointShape[0]; i++ )
-					numArray[i]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i));
-				break;
-			case 2 :
-				for( i=0; i<dataPointShape[0]; i++ )
-					for( j=0; j<dataPointShape[1]; j++)
-						numArray[make_tuple(i,j)]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j));
-				break;
-			case 3 :
-				for( i=0; i<dataPointShape[0]; i++ )
-					for( j=0; j<dataPointShape[1]; j++ )
-						for( k=0; k<dataPointShape[2]; k++)
-							numArray[make_tuple(i,j,k)]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k));
-				break;
-			case 4 :
-				for( i=0; i<dataPointShape[0]; i++ )
-					for( j=0; j<dataPointShape[1]; j++ )
-						for( k=0; k<dataPointShape[2]; k++ )
-							for( l=0; l<dataPointShape[3]; l++)
-								numArray[make_tuple(i,j,k,l)]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k,l));
-				break;
-	}
+       return pointToTuple(getDataPointShape(),&(getDataAtOffset(offset)));
   }
-  //
-  // return the array
-  return numArray;
+  else
+  {
+	// The old method would return an empty numArray of the given shape
+	// I'm going to throw an exception because if we have zero points per sample we have problems
+	throw DataException("Error - need at least 1 datapoint per sample.");
+  }
+
 
 }
+
 
 void
 Data::setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object& py_object)
@@ -1340,141 +1142,205 @@ const
 boost::python::numeric::array
 Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
 {
-  size_t length=0;
-  int i, j, k, l, pos;
+   return boost::python::numeric::array(getValueOfGlobalDataPointAsTuple(procNo, dataPointNo));
+}
+
+const
+boost::python::object
+Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
+{
+  // This could be lazier than it is now
   FORCERESOLVE;
-  //
-  // determine the rank and shape of each data point
-  int dataPointRank = getDataPointRank();
+
+  // copy datapoint into a buffer
+  // broadcast buffer to all nodes
+  // convert buffer to tuple
+  // return tuple
+
   const DataTypes::ShapeType& dataPointShape = getDataPointShape();
-
-  //
-  // create the numeric array to be returned
-  boost::python::numeric::array numArray(0.0);
-
-  //
-  // the shape of the returned numeric array will be the same
-  // as that of the data point
-  int arrayRank = dataPointRank;
-  const DataTypes::ShapeType& arrayShape = dataPointShape;
-
-  //
-  // resize the numeric array to the shape just calculated
-  if (arrayRank==0) {
-    numArray.resize(1);
-  }
-  if (arrayRank==1) {
-    numArray.resize(arrayShape[0]);
-  }
-  if (arrayRank==2) {
-    numArray.resize(arrayShape[0],arrayShape[1]);
-  }
-  if (arrayRank==3) {
-    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2]);
-  }
-  if (arrayRank==4) {
-    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3]);
-  }
+  size_t length=DataTypes::noValues(dataPointShape);
 
   // added for the MPI communication
-  length=1;
-  for( i=0; i<arrayRank; i++ ) length *= arrayShape[i];
   double *tmpData = new double[length];
 
-  //
-  // load the values for the data point into the numeric array.
-
-	// updated for the MPI case
-	if( get_MPIRank()==procNo ){
-             if (getNumDataPointsPerSample()>0) {
-                int sampleNo = dataPointNo/getNumDataPointsPerSample();
-                int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
-                //
-                // Check a valid sample number has been supplied
-                if ((sampleNo >= getNumSamples()) || (sampleNo < 0 )) {
-                  throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
-                }
-
-                //
-                // Check a valid data point number has been supplied
-                if ((dataPointNoInSample >= getNumDataPointsPerSample()) || (dataPointNoInSample < 0)) {
-                  throw DataException("Error - Data::convertToNumArray: invalid dataPointNoInSample.");
-                }
-                // TODO: global error handling
-		// create a view of the data if it is stored locally
-		//DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
-		DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
-
-		// pack the data from the view into tmpData for MPI communication
-		pos=0;
-		switch( dataPointRank ){
-			case 0 :
-				tmpData[0] = getDataAtOffset(offset);
-				break;
-			case 1 :
-				for( i=0; i<dataPointShape[0]; i++ )
-					tmpData[i]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i));
-				break;
-			case 2 :
-				for( i=0; i<dataPointShape[0]; i++ )
-					for( j=0; j<dataPointShape[1]; j++, pos++ )
-						tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j));
-				break;
-			case 3 :
-				for( i=0; i<dataPointShape[0]; i++ )
-					for( j=0; j<dataPointShape[1]; j++ )
-						for( k=0; k<dataPointShape[2]; k++, pos++ )
-							tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k));
-				break;
-			case 4 :
-				for( i=0; i<dataPointShape[0]; i++ )
-					for( j=0; j<dataPointShape[1]; j++ )
-						for( k=0; k<dataPointShape[2]; k++ )
-							for( l=0; l<dataPointShape[3]; l++, pos++ )
-								tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k,l));
-				break;
-		}
-            }
-	}
-        #ifdef PASO_MPI
-        // broadcast the data to all other processes
-	MPI_Bcast( tmpData, length, MPI_DOUBLE, procNo, get_MPIComm() );
-        #endif
-
-	// unpack the data
-	switch( dataPointRank ){
-		case 0 :
-			numArray[0]=tmpData[0];
-			break;
-		case 1 :
-			for( i=0; i<dataPointShape[0]; i++ )
-				numArray[i]=tmpData[i];
-			break;
-		case 2 :
-			for( i=0; i<dataPointShape[0]; i++ )
-				for( j=0; j<dataPointShape[1]; j++ )
-				   numArray[make_tuple(i,j)]=tmpData[i+j*dataPointShape[0]];
-			break;
-		case 3 :
-			for( i=0; i<dataPointShape[0]; i++ )
-				for( j=0; j<dataPointShape[1]; j++ )
-					for( k=0; k<dataPointShape[2]; k++ )
-						numArray[make_tuple(i,j,k)]=tmpData[i+dataPointShape[0]*(j*+k*dataPointShape[1])];
-			break;
-		case 4 :
-			for( i=0; i<dataPointShape[0]; i++ )
-				for( j=0; j<dataPointShape[1]; j++ )
-					for( k=0; k<dataPointShape[2]; k++ )
-						for( l=0; l<dataPointShape[3]; l++ )
-					        	numArray[make_tuple(i,j,k,l)]=tmpData[i+dataPointShape[0]*(j*+dataPointShape[1]*(k+l*dataPointShape[2]))];
-			break;
+  // updated for the MPI case
+  if( get_MPIRank()==procNo ){
+      if (getNumDataPointsPerSample()>0) {
+	int sampleNo = dataPointNo/getNumDataPointsPerSample();
+	int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
+	//
+	// Check a valid sample number has been supplied
+	if ((sampleNo >= getNumSamples()) || (sampleNo < 0 )) {
+		throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
 	}
 
-	delete [] tmpData;
+	//
+	// Check a valid data point number has been supplied
+	if ((dataPointNoInSample >= getNumDataPointsPerSample()) || (dataPointNoInSample < 0)) {
+		throw DataException("Error - Data::convertToNumArray: invalid dataPointNoInSample.");
+	}
+	// TODO: global error handling
+	// create a view of the data if it is stored locally
+	//DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
+	DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
+
+	memcpy(tmpData,&(getDataAtOffset(offset)),length*sizeof(double));
+     }
+  }
+#ifdef PASO_MPI
+  // broadcast the data to all other processes
+  MPI_Bcast( tmpData, length, MPI_DOUBLE, procNo, get_MPIComm() );
+#endif
+
+  boost::python::tuple t=pointToTuple(dataPointShape,tmpData);
+  delete [] tmpData;
   //
   // return the loaded array
-  return numArray;
+  return t;
+
 }
+
+
+
+// const
+// boost::python::numeric::array
+// Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
+// {
+//   size_t length=0;
+//   int i, j, k, l, pos;
+//   FORCERESOLVE;
+//   //
+//   // determine the rank and shape of each data point
+//   int dataPointRank = getDataPointRank();
+//   const DataTypes::ShapeType& dataPointShape = getDataPointShape();
+// 
+//   //
+//   // create the numeric array to be returned
+//   boost::python::numeric::array numArray(0.0);
+// 
+//   //
+//   // the shape of the returned numeric array will be the same
+//   // as that of the data point
+//   int arrayRank = dataPointRank;
+//   const DataTypes::ShapeType& arrayShape = dataPointShape;
+// 
+//   //
+//   // resize the numeric array to the shape just calculated
+//   if (arrayRank==0) {
+//     numArray.resize(1);
+//   }
+//   if (arrayRank==1) {
+//     numArray.resize(arrayShape[0]);
+//   }
+//   if (arrayRank==2) {
+//     numArray.resize(arrayShape[0],arrayShape[1]);
+//   }
+//   if (arrayRank==3) {
+//     numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2]);
+//   }
+//   if (arrayRank==4) {
+//     numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3]);
+//   }
+// 
+//   // added for the MPI communication
+//   length=1;
+//   for( i=0; i<arrayRank; i++ ) length *= arrayShape[i];
+//   double *tmpData = new double[length];
+// 
+//   //
+//   // load the values for the data point into the numeric array.
+// 
+// 	// updated for the MPI case
+// 	if( get_MPIRank()==procNo ){
+//              if (getNumDataPointsPerSample()>0) {
+//                 int sampleNo = dataPointNo/getNumDataPointsPerSample();
+//                 int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
+//                 //
+//                 // Check a valid sample number has been supplied
+//                 if ((sampleNo >= getNumSamples()) || (sampleNo < 0 )) {
+//                   throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
+//                 }
+// 
+//                 //
+//                 // Check a valid data point number has been supplied
+//                 if ((dataPointNoInSample >= getNumDataPointsPerSample()) || (dataPointNoInSample < 0)) {
+//                   throw DataException("Error - Data::convertToNumArray: invalid dataPointNoInSample.");
+//                 }
+//                 // TODO: global error handling
+// 		// create a view of the data if it is stored locally
+// 		//DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
+// 		DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
+// 
+// 		// pack the data from the view into tmpData for MPI communication
+// 		pos=0;
+// 		switch( dataPointRank ){
+// 			case 0 :
+// 				tmpData[0] = getDataAtOffset(offset);
+// 				break;
+// 			case 1 :
+// 				for( i=0; i<dataPointShape[0]; i++ )
+// 					tmpData[i]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i));
+// 				break;
+// 			case 2 :
+// 				for( i=0; i<dataPointShape[0]; i++ )
+// 					for( j=0; j<dataPointShape[1]; j++, pos++ )
+// 						tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j));
+// 				break;
+// 			case 3 :
+// 				for( i=0; i<dataPointShape[0]; i++ )
+// 					for( j=0; j<dataPointShape[1]; j++ )
+// 						for( k=0; k<dataPointShape[2]; k++, pos++ )
+// 							tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k));
+// 				break;
+// 			case 4 :
+// 				for( i=0; i<dataPointShape[0]; i++ )
+// 					for( j=0; j<dataPointShape[1]; j++ )
+// 						for( k=0; k<dataPointShape[2]; k++ )
+// 							for( l=0; l<dataPointShape[3]; l++, pos++ )
+// 								tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k,l));
+// 				break;
+// 		}
+//             }
+// 	}
+//         #ifdef PASO_MPI
+//         // broadcast the data to all other processes
+// 	MPI_Bcast( tmpData, length, MPI_DOUBLE, procNo, get_MPIComm() );
+//         #endif
+// 
+// 	// unpack the data
+// 	switch( dataPointRank ){
+// 		case 0 :
+// 			numArray[0]=tmpData[0];
+// 			break;
+// 		case 1 :
+// 			for( i=0; i<dataPointShape[0]; i++ )
+// 				numArray[i]=tmpData[i];
+// 			break;
+// 		case 2 :
+// 			for( i=0; i<dataPointShape[0]; i++ )
+// 				for( j=0; j<dataPointShape[1]; j++ )
+// 				   numArray[make_tuple(i,j)]=tmpData[i+j*dataPointShape[0]];
+// 			break;
+// 		case 3 :
+// 			for( i=0; i<dataPointShape[0]; i++ )
+// 				for( j=0; j<dataPointShape[1]; j++ )
+// 					for( k=0; k<dataPointShape[2]; k++ )
+// 						numArray[make_tuple(i,j,k)]=tmpData[i+dataPointShape[0]*(j*+k*dataPointShape[1])];
+// 			break;
+// 		case 4 :
+// 			for( i=0; i<dataPointShape[0]; i++ )
+// 				for( j=0; j<dataPointShape[1]; j++ )
+// 					for( k=0; k<dataPointShape[2]; k++ )
+// 						for( l=0; l<dataPointShape[3]; l++ )
+// 					        	numArray[make_tuple(i,j,k,l)]=tmpData[i+dataPointShape[0]*(j*+dataPointShape[1]*(k+l*dataPointShape[2]))];
+// 			break;
+// 	}
+// 
+// 	delete [] tmpData;
+//   //
+//   // return the loaded array
+//   return numArray;
+// }
 
 
 boost::python::numeric::array
@@ -2816,18 +2682,12 @@ Data::setTaggedValue(int tagKey,
   // Ensure underlying data object is of type DataTagged
   FORCERESOLVE;
   if (isConstant()) tag();
-  numeric::array asNumArray(value);
-
-  // extract the shape of the numarray
-  DataTypes::ShapeType tempShape;
-  for (int i=0; i < asNumArray.getrank(); i++) {
-    tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
-  }
+  WrappedArray w(value);
 
   DataVector temp_data2;
-  temp_data2.copyFromNumArray(asNumArray);
+  temp_data2.copyFromArray(w);
 
-  m_data->setTaggedValue(tagKey,tempShape, temp_data2);
+  m_data->setTaggedValue(tagKey,w.getShape(), temp_data2);
 }
 
 

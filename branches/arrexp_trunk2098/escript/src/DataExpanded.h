@@ -57,13 +57,9 @@ typedef DataReady parent;
      this data object, where the number of data points is defined by
      the given function space.
 
-     \param value - Input - A single data value.
+     \param value - Input - The value of a single data point.
      \param what - Input - A description of what this data represents.
   */
-  ESCRIPT_DLL_API
-  DataExpanded(const boost::python::numeric::array& value,
-               const FunctionSpace& what);
-
   ESCRIPT_DLL_API
   DataExpanded(const WrappedArray& value,
                const FunctionSpace& what);
@@ -399,8 +395,6 @@ TODO Note that this constructor will also copy data to all points if it only con
 
      \param value Input - A single data point value.
   */
-  void
-  copy(const boost::python::numeric::array& value);
 
   void
   copy(const WrappedArray& value);
