@@ -388,61 +388,6 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const d
      }
   }
 }
-void
-DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const boost::python::numeric::array& value) {
-  //
-  // Get the number of samples and data-points per sample.
-  int numSamples = getNumSamples();
-  int numDataPointsPerSample = getNumDPPSample();
-  int dataPointRank = getRank();
-  const ShapeType& shape = getShape();
-  //
-  // check rank:
-  if (value.getrank()!=dataPointRank)
-       throw DataException("Rank of numarray does not match Data object rank");
-  if (numSamples*numDataPointsPerSample > 0) {
-     //TODO: global error handling
-     if ((sampleNo >= numSamples) || (sampleNo < 0 )) {
-          throw DataException("Error - DataExpanded::copyDataPoint invalid sampleNo.");
-     }
-     if ((dataPointNo >= numDataPointsPerSample) || (dataPointNo < 0)) {
-           throw DataException("Error - DataExpanded::copyDataPoint invalid dataPointNoInSample.");
-     }
-     ValueType::size_type offset = getPointOffset(sampleNo, dataPointNo);
-     ValueType& vec=getVector();
-     if (dataPointRank==0) {
-         vec[offset]=extract<double>(value[0]);
-     } else if (dataPointRank==1) {
-        for (int i=0; i<shape[0]; i++) {
-            vec[offset+i]=extract<double>(value[i]);
-        }
-     } else if (dataPointRank==2) {
-        for (int i=0; i<shape[0]; i++) {
-           for (int j=0; j<shape[1]; j++) {
-              vec[offset+getRelIndex(shape,i,j)]=extract<double>(value[i][j]);
-           }
-        }
-     } else if (dataPointRank==3) {
-        for (int i=0; i<shape[0]; i++) {
-           for (int j=0; j<shape[1]; j++) {
-              for (int k=0; k<shape[2]; k++) {
-                 vec[offset+getRelIndex(shape,i,j,k)]=extract<double>(value[i][j][k]);
-              }
-           }
-        }
-     } else if (dataPointRank==4) {
-         for (int i=0; i<shape[0]; i++) {
-           for (int j=0; j<shape[1]; j++) {
-             for (int k=0; k<shape[2]; k++) {
-               for (int l=0; l<shape[3]; l++) {
-                  vec[offset+getRelIndex(shape,i,j,k,l)]=extract<double>(value[i][j][k][l]);
-               }
-             }
-           }
-         }
-     }
-  }
-}
 
 void
 DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const WrappedArray& value) {
@@ -468,62 +413,6 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const W
   }
 }
 
-
-void
-DataExpanded::copyAll(const boost::python::numeric::array& value) {
-  //
-  // Get the number of samples and data-points per sample.
-  int numSamples = getNumSamples();
-  int numDataPointsPerSample = getNumDPPSample();
-  int dataPointRank = getRank();
-  const ShapeType& dataPointShape = getShape();
-  //
-  // check rank:
-  if (value.getrank()!=dataPointRank+1)
-       throw DataException("Rank of numarray does not match Data object rank");
-  if (value.getshape()[0]!=numSamples*numDataPointsPerSample)
-       throw DataException("leading dimension of numarray is too small");
-  //
-  ValueType& vec=getVector();
-  int dataPoint = 0;
-  for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
-    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-      ValueType::size_type offset=getPointOffset(sampleNo, dataPointNo);
-      if (dataPointRank==0) {
-         vec[offset]=extract<double>(value[dataPoint]);
-      } else if (dataPointRank==1) {
-         for (int i=0; i<dataPointShape[0]; i++) {
-            vec[offset+i]=extract<double>(value[dataPoint][i]);
-         }
-      } else if (dataPointRank==2) {
-         for (int i=0; i<dataPointShape[0]; i++) {
-           for (int j=0; j<dataPointShape[1]; j++) {
-	     vec[offset+getRelIndex(dataPointShape,i,j)]=extract<double>(value[dataPoint][i][j]);
-           }
-         }
-       } else if (dataPointRank==3) {
-         for (int i=0; i<dataPointShape[0]; i++) {
-           for (int j=0; j<dataPointShape[1]; j++) {
-             for (int k=0; k<dataPointShape[2]; k++) {
-		 vec[offset+getRelIndex(dataPointShape,i,j,k)]=extract<double>(value[dataPoint][i][j][k]);
-             }
-           }
-         }
-       } else if (dataPointRank==4) {
-         for (int i=0; i<dataPointShape[0]; i++) {
-           for (int j=0; j<dataPointShape[1]; j++) {
-             for (int k=0; k<dataPointShape[2]; k++) {
-               for (int l=0; l<dataPointShape[3]; l++) {
-                 vec[offset+getRelIndex(dataPointShape,i,j,k,l)]=extract<double>(value[dataPoint][i][j][k][l]);
-               }
-             }
-           }
-         }
-      }
-      dataPoint++;
-    }
-  }
-}
 void
 DataExpanded::symmetric(DataAbstract* ev)
 {

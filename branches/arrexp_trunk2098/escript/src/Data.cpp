@@ -54,8 +54,9 @@ namespace
 {
 
 // This should be safer once the DataC RO changes have been brought in
+template <class ARR>
 boost::python::tuple
-pointToTuple( const DataTypes::ShapeType& shape,DataAbstract::ValueType::value_type* v)
+pointToTuple( const DataTypes::ShapeType& shape,ARR v)
 {
    using namespace boost::python;
    using boost::python::list;
@@ -1138,12 +1139,12 @@ Data::setValueOfDataPoint(int dataPointNo, const double value)
   }
 }
 
-const
-boost::python::numeric::array
-Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
-{
-   return boost::python::numeric::array(getValueOfGlobalDataPointAsTuple(procNo, dataPointNo));
-}
+// const
+// boost::python::numeric::array
+// Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
+// {
+//    return boost::python::numeric::array(getValueOfGlobalDataPointAsTuple(procNo, dataPointNo));
+// }
 
 const
 boost::python::object
@@ -1343,7 +1344,7 @@ Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
 // }
 
 
-boost::python::numeric::array
+boost::python::object
 Data::integrate_const() const
 {
   if (isLazy())
@@ -1353,7 +1354,7 @@ Data::integrate_const() const
   return integrateWorker();
 }
 
-boost::python::numeric::array
+boost::python::object
 Data::integrate()
 {
   if (isLazy())
@@ -1365,11 +1366,9 @@ Data::integrate()
 
 
 
-boost::python::numeric::array
+boost::python::object
 Data::integrateWorker() const
 {
-  int index;
-  int rank = getDataPointRank();
   DataTypes::ShapeType shape = getDataPointShape();
   int dataPointSize = getDataPointSize();
 
@@ -1390,65 +1389,19 @@ Data::integrateWorker() const
   for (int i=0; i<dataPointSize; i++) { tmp_local[i] = integrals_local[i]; }
   MPI_Allreduce( &tmp_local[0], &tmp[0], dataPointSize, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
   for (int i=0; i<dataPointSize; i++) { integrals[i] = tmp[i]; }
+  tuple result=pointToTuple(shape,tmp);
   delete[] tmp;
   delete[] tmp_local;
 #else
   dom->setToIntegrals(integrals,*this);
+/*  double *tmp = new double[dataPointSize];
+  for (int i=0; i<dataPointSize; i++) { tmp[i]=integrals[i]; }*/
+  tuple result=pointToTuple(shape,integrals);
+//   delete tmp;
 #endif
 
-  //
-  // create the numeric array to be returned
-  // and load the array with the integral values
-  boost::python::numeric::array bp_array(1.0);
-  if (rank==0) {
-    bp_array.resize(1);
-    index = 0;
-    bp_array[0] = integrals[index];
-  }
-  if (rank==1) {
-    bp_array.resize(shape[0]);
-    for (int i=0; i<shape[0]; i++) {
-      index = i;
-      bp_array[i] = integrals[index];
-    }
-  }
-  if (rank==2) {
-       bp_array.resize(shape[0],shape[1]);
-       for (int i=0; i<shape[0]; i++) {
-         for (int j=0; j<shape[1]; j++) {
-           index = i + shape[0] * j;
-           bp_array[make_tuple(i,j)] = integrals[index];
-         }
-       }
-  }
-  if (rank==3) {
-    bp_array.resize(shape[0],shape[1],shape[2]);
-    for (int i=0; i<shape[0]; i++) {
-      for (int j=0; j<shape[1]; j++) {
-        for (int k=0; k<shape[2]; k++) {
-          index = i + shape[0] * ( j + shape[1] * k );
-          bp_array[make_tuple(i,j,k)] = integrals[index];
-        }
-      }
-    }
-  }
-  if (rank==4) {
-    bp_array.resize(shape[0],shape[1],shape[2],shape[3]);
-    for (int i=0; i<shape[0]; i++) {
-      for (int j=0; j<shape[1]; j++) {
-        for (int k=0; k<shape[2]; k++) {
-          for (int l=0; l<shape[3]; l++) {
-            index = i + shape[0] * ( j + shape[1] * ( k + shape[2] * l ) );
-            bp_array[make_tuple(i,j,k,l)] = integrals[index];
-          }
-        }
-      }
-    }
-  }
 
-  //
-  // return the loaded array
-  return bp_array;
+  return result;
 }
 
 Data

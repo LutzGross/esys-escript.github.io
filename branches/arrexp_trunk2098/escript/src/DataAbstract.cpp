@@ -146,13 +146,6 @@ DataAbstract::getTagNumber(int dpno)
     return (0);
 }
 
-
-
-void
-DataAbstract::copyAll(const WrappedArray& value)
-{
-    throw DataException("Error - DataAbstract::copying data from WrappedArray objects is not supported.");
-}
 void
 DataAbstract::copyToDataPoint(const int sampleNo, const int dataPointNo, const double value)
 {
