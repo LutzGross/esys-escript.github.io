@@ -1,0 +1,32 @@
+\subsection{Level Set Method}
+
+\subsection{Solution Method}
+
+\subsection{Functions}
+
+\begin{classdesc}{LevelSet}{domain, func, reinit\_max, reinit\_each, tolerance, smooth}
+opens the LevelSet \index{Level Set} on the \Domain domain. \var{func} defines the initial Level Set function representing the interface between two fluids. \var{reinit\_max} sets the maximum number of interations to satisfy the normal condition, $|\nabla \phi|=1$, during the reinitilization of the Level Set function. \var{reinit\_each} sets the frequency of reinitialization for a number of time-steps. \var{tolerance} sets the convergence tolerance of the error to satisfy the normal condition during the reinitilization of the Level Set function. \var{smooth} sets the bandwidth of size 2$\alpha h$ along the interface to smooth the physical parameters of density and viscosity; $h$ is the size of the elements in the mesh and $\alpha$ is the smoothing parameter, usually set to 1.
+\end{classdesc}
+
+\begin{methoddesc}[LevelSet]{update\_parameter}{par1, par2}
+updates the physical parameters using the sign of $\phi$. \var{par1} and \var{par2} are the physical parameter values for the two different fluids, for example, the densities of the two fluids. Usually this method is called twice during each time-step to update the density and viscosity of the two fluids.
+\end{methoddesc}
+
+\begin{methoddesc}[LevelSet]{update\_phi}{vel,  dt, t\_step}
+updates the Level Set function. It performs the advection and reinitialization procedures. \var{vel} is the velocity field of the fluids, \var{dt} is the time-step size, and \var{t\_step} is the current time-step to determine when to reinitialize.
+\end{methoddesc}
+
+
+%\begin{methoddesc}[LevelSet]{update}{\optional{f=Data(), \optional{fixed_u_mask=Data(), \optional{eta=1, \optional{surface_stress=Data(), \optional{stress=Data()}}}}}}
+
+%\begin{methoddesc}[StokesProblemCartesian]{update\_phi}{v,p,
+%\optional{max_iter=20, \optional{verbose=False, \optional{useUzawa=True}}}}
+%solves the problem and return approximations for velocity and pressure. 
+%The arguments \var{v} and \var{p} define initial guess. The values of \var{v} marked
+%by \var{fixed_u_mask} remain unchanged. 
+%If \var{useUzawa} is set to \True 
+%the Uzawa\index{Uszwa} scheme is used. Otherwise the problem is solved in coupled form. In most cases 
+%the Uzawa scheme is more efficient.
+%\var{max_iter} defines the maximum number of iteration steps. 
+%If \var{verbose} is set to \True informations on the progress of of the solver are printed.
+%\end{methoddesc}
