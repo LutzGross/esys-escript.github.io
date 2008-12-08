@@ -241,6 +241,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("_sup",&escript::Data::sup)
     .def("_inf",&escript::Data::inf)
     .def("_integrate",&escript::Data::integrate)
+    .def("_integrateToTuple",&escript::Data::integrateToTuple)
 
     // following implements the python abs operator
     .def("__abs__",&escript::Data::abs)
