@@ -38,7 +38,7 @@ L{TransportProblem} provides an interface to initial value problems dominated by
 import math
 import escript
 import util
-import numarray
+import numpy
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
@@ -1296,7 +1296,7 @@ class LinearProblem(object):
             elif hasattr(d,"getShape"):
                 s=d.getShape()
             else:
-                s=numarray.array(d).shape
+                s=numpy.array(d).shape
             if s!=None:
                 # get number of equations and number of unknowns:
                 res=self.__COEFFICIENTS[i].estimateNumEquationsAndNumSolutions(self.getDomain(),s)
@@ -1645,14 +1645,14 @@ class LinearPDE(LinearProblem):
                  d_reduced=self.getCoefficient("d_reduced")
                  if not D.isEmpty():
                      if self.getNumSolutions()>1:
-                        D_times_e=util.matrix_mult(D,numarray.ones((self.getNumSolutions(),)))
+                        D_times_e=util.matrix_mult(D,numpy.ones((self.getNumSolutions(),)))
                      else:
                         D_times_e=D
                  else:
                     D_times_e=escript.Data()
                  if not d.isEmpty():
                      if self.getNumSolutions()>1:
-                        d_times_e=util.matrix_mult(d,numarray.ones((self.getNumSolutions(),)))
+                        d_times_e=util.matrix_mult(d,numpy.ones((self.getNumSolutions(),)))
                      else:
                         d_times_e=d
                  else:
@@ -1660,14 +1660,14 @@ class LinearPDE(LinearProblem):
       
                  if not D_reduced.isEmpty():
                      if self.getNumSolutions()>1:
-                        D_reduced_times_e=util.matrix_mult(D_reduced,numarray.ones((self.getNumSolutions(),)))
+                        D_reduced_times_e=util.matrix_mult(D_reduced,numpy.ones((self.getNumSolutions(),)))
                      else:
                         D_reduced_times_e=D_reduced
                  else:
                     D_reduced_times_e=escript.Data()
                  if not d_reduced.isEmpty():
                      if self.getNumSolutions()>1:
-                        d_reduced_times_e=util.matrix_mult(d_reduced,numarray.ones((self.getNumSolutions(),)))
+                        d_reduced_times_e=util.matrix_mult(d_reduced,numpy.ones((self.getNumSolutions(),)))
                      else:
                         d_reduced_times_e=d_reduced
                  else:
@@ -2052,7 +2052,7 @@ class Helmholtz(LinearPDE):
      @raise IllegalCoefficient: invalid name
      """
      if name == "A" :
-         return escript.Data(numarray.identity(self.getDim()),escript.Function(self.getDomain()))*self.getCoefficient("k")
+         return escript.Data(numpy.identity(self.getDim()),escript.Function(self.getDomain()))*self.getCoefficient("k")
      elif name == "D" :
          return self.getCoefficient("omega")
      elif name == "Y" :
