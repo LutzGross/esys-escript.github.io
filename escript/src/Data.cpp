@@ -1217,146 +1217,26 @@ Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
 }
 
 
+boost::python::object
+Data::integrateToTuple_const() const
+{
+  if (isLazy())
+  {
+	throw DataException("Error - cannot integrate for constant lazy data.");
+  }
+  return integrateWorker();
+}
 
-// const
-// boost::python::numeric::array
-// Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
-// {
-//   size_t length=0;
-//   int i, j, k, l, pos;
-//   FORCERESOLVE;
-//   //
-//   // determine the rank and shape of each data point
-//   int dataPointRank = getDataPointRank();
-//   const DataTypes::ShapeType& dataPointShape = getDataPointShape();
-// 
-//   //
-//   // create the numeric array to be returned
-//   boost::python::numeric::array numArray(0.0);
-// 
-//   //
-//   // the shape of the returned numeric array will be the same
-//   // as that of the data point
-//   int arrayRank = dataPointRank;
-//   const DataTypes::ShapeType& arrayShape = dataPointShape;
-// 
-//   //
-//   // resize the numeric array to the shape just calculated
-//   if (arrayRank==0) {
-//     numArray.resize(1);
-//   }
-//   if (arrayRank==1) {
-//     numArray.resize(arrayShape[0]);
-//   }
-//   if (arrayRank==2) {
-//     numArray.resize(arrayShape[0],arrayShape[1]);
-//   }
-//   if (arrayRank==3) {
-//     numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2]);
-//   }
-//   if (arrayRank==4) {
-//     numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3]);
-//   }
-// 
-//   // added for the MPI communication
-//   length=1;
-//   for( i=0; i<arrayRank; i++ ) length *= arrayShape[i];
-//   double *tmpData = new double[length];
-// 
-//   //
-//   // load the values for the data point into the numeric array.
-// 
-// 	// updated for the MPI case
-// 	if( get_MPIRank()==procNo ){
-//              if (getNumDataPointsPerSample()>0) {
-//                 int sampleNo = dataPointNo/getNumDataPointsPerSample();
-//                 int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
-//                 //
-//                 // Check a valid sample number has been supplied
-//                 if ((sampleNo >= getNumSamples()) || (sampleNo < 0 )) {
-//                   throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
-//                 }
-// 
-//                 //
-//                 // Check a valid data point number has been supplied
-//                 if ((dataPointNoInSample >= getNumDataPointsPerSample()) || (dataPointNoInSample < 0)) {
-//                   throw DataException("Error - Data::convertToNumArray: invalid dataPointNoInSample.");
-//                 }
-//                 // TODO: global error handling
-// 		// create a view of the data if it is stored locally
-// 		//DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
-// 		DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
-// 
-// 		// pack the data from the view into tmpData for MPI communication
-// 		pos=0;
-// 		switch( dataPointRank ){
-// 			case 0 :
-// 				tmpData[0] = getDataAtOffset(offset);
-// 				break;
-// 			case 1 :
-// 				for( i=0; i<dataPointShape[0]; i++ )
-// 					tmpData[i]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i));
-// 				break;
-// 			case 2 :
-// 				for( i=0; i<dataPointShape[0]; i++ )
-// 					for( j=0; j<dataPointShape[1]; j++, pos++ )
-// 						tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j));
-// 				break;
-// 			case 3 :
-// 				for( i=0; i<dataPointShape[0]; i++ )
-// 					for( j=0; j<dataPointShape[1]; j++ )
-// 						for( k=0; k<dataPointShape[2]; k++, pos++ )
-// 							tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k));
-// 				break;
-// 			case 4 :
-// 				for( i=0; i<dataPointShape[0]; i++ )
-// 					for( j=0; j<dataPointShape[1]; j++ )
-// 						for( k=0; k<dataPointShape[2]; k++ )
-// 							for( l=0; l<dataPointShape[3]; l++, pos++ )
-// 								tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k,l));
-// 				break;
-// 		}
-//             }
-// 	}
-//         #ifdef PASO_MPI
-//         // broadcast the data to all other processes
-// 	MPI_Bcast( tmpData, length, MPI_DOUBLE, procNo, get_MPIComm() );
-//         #endif
-// 
-// 	// unpack the data
-// 	switch( dataPointRank ){
-// 		case 0 :
-// 			numArray[0]=tmpData[0];
-// 			break;
-// 		case 1 :
-// 			for( i=0; i<dataPointShape[0]; i++ )
-// 				numArray[i]=tmpData[i];
-// 			break;
-// 		case 2 :
-// 			for( i=0; i<dataPointShape[0]; i++ )
-// 				for( j=0; j<dataPointShape[1]; j++ )
-// 				   numArray[make_tuple(i,j)]=tmpData[i+j*dataPointShape[0]];
-// 			break;
-// 		case 3 :
-// 			for( i=0; i<dataPointShape[0]; i++ )
-// 				for( j=0; j<dataPointShape[1]; j++ )
-// 					for( k=0; k<dataPointShape[2]; k++ )
-// 						numArray[make_tuple(i,j,k)]=tmpData[i+dataPointShape[0]*(j*+k*dataPointShape[1])];
-// 			break;
-// 		case 4 :
-// 			for( i=0; i<dataPointShape[0]; i++ )
-// 				for( j=0; j<dataPointShape[1]; j++ )
-// 					for( k=0; k<dataPointShape[2]; k++ )
-// 						for( l=0; l<dataPointShape[3]; l++ )
-// 					        	numArray[make_tuple(i,j,k,l)]=tmpData[i+dataPointShape[0]*(j*+dataPointShape[1]*(k+l*dataPointShape[2]))];
-// 			break;
-// 	}
-// 
-// 	delete [] tmpData;
-//   //
-//   // return the loaded array
-//   return numArray;
-// }
+boost::python::object
+Data::integrateToTuple()
+{
+  if (isLazy())
+  {
+	expand(); 
+  }
+  return integrateWorker();
+
+}
 
 
 boost::python::object

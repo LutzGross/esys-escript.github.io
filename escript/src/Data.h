@@ -793,6 +793,16 @@ contains datapoints.
   boost::python::object
   integrate();
 
+  ESCRIPT_DLL_API
+  boost::python::object
+  integrateToTuple_const() const;
+
+  ESCRIPT_DLL_API
+  boost::python::object
+  integrateToTuple();
+
+
+
   /**
      \brief
      Returns 1./ Data object
