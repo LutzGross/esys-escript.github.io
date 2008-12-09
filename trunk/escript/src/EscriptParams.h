@@ -14,6 +14,7 @@
 #ifndef escript_EscriptParams_H
 #define escript_EscriptParams_H
 #include "system_dep.h"
+#include <boost/python/list.hpp>
 
 namespace escript
 {
@@ -38,11 +39,26 @@ private:
 
 extern EscriptParams escriptParams;
 
+/**
+  \brief Set the value of a named parameter.
+  See listEscriptParams() (showEscriptParams() in python) for available parameters.
+*/
 ESCRIPT_DLL_API
 void setEscriptParamInt(const char* name, int value);
 
+/**
+  \brief get the value of a named parameter.
+  See listEscriptParams() (showEscriptParams() in python) for available parameters.
+*/
 ESCRIPT_DLL_API
 int getEscriptParamInt(const char* name, int sentinel=0);
+
+/**
+  \brief describe available paramters.
+  \return a list of tuples (parameter name, description)
+*/
+ESCRIPT_DLL_API
+boost::python::list listEscriptParams();
 
 }
 #endif

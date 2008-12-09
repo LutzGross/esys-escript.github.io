@@ -368,6 +368,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
       (arg("value")=0));
   def("getEscriptParamInt",escript::getEscriptParamInt,
       (arg("sentinel")=0));
+  def("listEscriptParams",escript::listEscriptParams);
 
 
   //
