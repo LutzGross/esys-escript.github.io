@@ -75,6 +75,7 @@ opts.AddOptions(
   BoolOption('useopenmp', 'Compile parallel version using OpenMP', 'yes'),
   BoolOption('usepedantic', 'Compile with -pedantic if using gcc', 'no'),
   BoolOption('usewarnings','Compile with warnings as errors if using gcc','yes'),
+  BoolOption('usenumarray','Compile methods using boost::numeric::array (deprecated)','yes'),
 # Python
   ('python_path', 'Path to Python includes', '/usr/include/'+python_version),
   ('python_lib_path', 'Path to Python libs', usr_lib),
@@ -174,6 +175,7 @@ if env["CC"] == "icc":
   omp_libs		= ['guide', 'pthread']
   pedantic		= ""
   fatalwarning		= ""		# Switch to turn warnings into errors
+  numarrayoff		= "-DNONUMARRAY"
 elif env["CC"] == "gcc":
   # GNU C on any system
   cc_flags		= "-pedantic -Wall -fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER -isystem " + env['boost_path'] + "/boost -isystem " + env['python_path'] + " -Wno-sign-compare -Wno-system-headers -Wno-strict-aliasing -Wno-long-long"
@@ -187,6 +189,7 @@ elif env["CC"] == "gcc":
   omp_libs		= []
   pedantic		= "-pedantic-errors -Wno-long-long"
   fatalwarning		= "-Werror"
+  numarrayoff		= "-DNONUMARRAY"
 elif env["CC"] == "cl":
   # Microsoft Visual C on Windows
   cc_flags		= "/FD /EHsc /GR /wd4068 -D_USE_MATH_DEFINES -DDLL_NETCDF"
@@ -197,10 +200,12 @@ elif env["CC"] == "cl":
   omp_libs		= []
   pedantic		= ""
   fatalwarning		= ""
+  numarrayoff		= "-DNONUMARRAY"
 elif env["CC"] == "icl":
   # intel C on Windows, see windows_intelc_options.py for a start
   pedantic		= ""
   fatalwarning		= ""
+  numarrayoff		= "-DNONUMARRAY"
 
 # If not specified in hostname_options.py then set them here
 if env["cc_flags"]	== "-DEFAULT_1": env['cc_flags'] = cc_flags
@@ -468,6 +473,11 @@ else:
   env.Append(CCFLAGS		= env['cc_optim'])
   env.Append(CCFLAGS		= env['omp_optim'])
 
+if not env['usenumarray']:
+  env.Append(CCFLAGS = numarrayoff)
+  print "Adding "+numarrayoff+ "to CCFLAGS"
+  print env['CCFLAGS']
+
 # Always use cc_flags
 env.Append(CCFLAGS		= env['cc_flags'])
 env.Append(LIBS			= [env['omp_libs']])
@@ -531,6 +541,10 @@ if ((fatalwarning != "") and (env['usewarnings'])):
   env.Append(CCFLAGS		= fatalwarning)
   env_mpi.Append(CCFLAGS		= fatalwarning)
 
+
+
+
+
 ############ Summarize our environment #########################
 
 print ""
@@ -559,6 +573,8 @@ else: print "	Not compiling for debug"
 print "	Installing in", prefix
 if ((fatalwarning != "") and (env['usewarnings'])): print "	Treating warnings as errors"
 else: print "	Not treating warnings as errors"
+if env['usenumarray']: print "	Compiling deprecated numarray support in c++"
+else: print "	Not compiling deprecated numarray support in c++"
 print ""
 
 ############ Delete option-dependent files #####################

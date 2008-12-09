@@ -1051,12 +1051,14 @@ Data::getLength() const
   return m_data->getLength();
 }
 
+#ifndef NONUMARRAY
 const
 boost::python::numeric :: array
 Data:: getValueOfDataPoint(int dataPointNo)
 {
     return boost::python::numeric::array(getValueOfDataPointAsTuple(dataPointNo));
 }
+#endif
 
 const boost::python::object
 Data::getValueOfDataPointAsTuple(int dataPointNo)
@@ -1154,12 +1156,14 @@ Data::setValueOfDataPoint(int dataPointNo, const double value)
   }
 }
 
+#ifndef NONUMARRAY
 const
 boost::python::numeric::array
 Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
 {
    return boost::python::numeric::array(getValueOfGlobalDataPointAsTuple(procNo, dataPointNo));
 }
+#endif
 
 const
 boost::python::object
@@ -1238,8 +1242,8 @@ Data::integrateToTuple()
 
 }
 
-
-boost::python::object
+#ifndef NONUMARRAY
+boost::python::numeric::array
 Data::integrate_const() const
 {
   if (isLazy())
@@ -1249,7 +1253,7 @@ Data::integrate_const() const
   return boost::python::numeric::array(integrateWorker());
 }
 
-boost::python::object
+boost::python::numeric::array
 Data::integrate()
 {
   if (isLazy())
@@ -1259,7 +1263,7 @@ Data::integrate()
   return boost::python::numeric::array(integrateWorker());
 }
 
-
+#endif
 
 boost::python::object
 Data::integrateWorker() const
