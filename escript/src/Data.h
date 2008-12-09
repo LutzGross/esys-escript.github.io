@@ -41,7 +41,9 @@ extern "C" {
 #include <boost/shared_ptr.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/tuple.hpp>
-#include <boost/python/numeric.hpp>
+#ifndef NONUMARRAY
+#include <boost/python/numeric.hpp>		// to be removed once we no longer support numarray explicitly
+#endif
 
 namespace escript {
 
@@ -275,14 +277,21 @@ class Data {
   bool
   isProtected() const;
 
+#ifndef NONUMARRAY
  /**
-    \brief
+    \brief 
     Return the values of a data point on this process
+    \deprecated Please use getValueOfDataPointAsTuple.
  */
  ESCRIPT_DLL_API
  const boost::python::numeric :: array
  getValueOfDataPoint(int dataPointNo);
+#endif
 
+
+/**
+   \brief Return the value of a data point.
+*/
   ESCRIPT_DLL_API
   const boost::python::object
   getValueOfDataPointAsTuple(int dataPointNo);
@@ -311,14 +320,21 @@ class Data {
   void
   setValueOfDataPoint(int dataPointNo, const double);
 
+#ifndef NONUMARRAY
   /**
      \brief
      Return the value of the specified data-point across all processors
+     \deprecated Please use getValueOfGlobalDataPointAsTuple instead.
   */
   ESCRIPT_DLL_API
   const boost::python::numeric::array
   getValueOfGlobalDataPoint(int procNo, int dataPointNo);
+#endif
 
+  /**
+     \brief
+     Return the value of the specified data-point across all processors as a python tuple.
+  */
   ESCRIPT_DLL_API
   const boost::python::object
   getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo);
@@ -780,23 +796,43 @@ contains datapoints.
   Data
   grad() const;
 
+
+#ifndef NONUMARRAY
   /**
      \brief
      Calculate the integral over the function space domain.
+     \deprecated Please use integrateToTuple_const instead.
+     *
+  */
+  ESCRIPT_DLL_API
+  boost::python::numeric::array
+  integrate_const() const;
+
+  /**
+     \brief
+     Calculate the integral over the function space domain.
+     \deprecated Please use integrateToTuple instead.
+     *
+  */
+  ESCRIPT_DLL_API
+  boost::python::numeric::array
+  integrate();
+#endif
+
+  /**
+     \brief
+     Calculate the integral over the function space domain as a python tuple.
      *
   */
   ESCRIPT_DLL_API
   boost::python::object
-  integrate_const() const;
-
-  ESCRIPT_DLL_API
-  boost::python::object
-  integrate();
-
-  ESCRIPT_DLL_API
-  boost::python::object
   integrateToTuple_const() const;
 
+  /**
+     \brief
+     Calculate the integral over the function space domain as a python tuple.
+     *
+  */
   ESCRIPT_DLL_API
   boost::python::object
   integrateToTuple();
