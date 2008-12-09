@@ -35,7 +35,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from types import StringType,IntType,FloatType,BooleanType,ListType,DictType
 from sys import stdout
-import numarray
+import numpy
 import operator
 import itertools
 import time
@@ -558,9 +558,9 @@ class ParameterSet(LinkableObject):
                         elem_type = max(elem_type,1)
                     elif isinstance(i, float):
                         elem_type = max(elem_type,2)
-                if elem_type == 0: value = numarray.array(value,numarray.Bool)
-                if elem_type == 1: value = numarray.array(value,numarray.Int)
-                if elem_type == 2: value = numarray.array(value,numarray.Float)
+                if elem_type == 0: value = numpy.array(value,numpy.bool_)
+                if elem_type == 1: value = numpy.array(value,numpy.int_)
+                if elem_type == 2: value = numpy.array(value,numpy.float_)
 
             param = esysxml.createElement('Parameter')
             param.setAttribute('type', value.__class__.__name__)
@@ -571,8 +571,8 @@ class ParameterSet(LinkableObject):
             if isinstance(value,(ParameterSet,Link,DataSource)):
                 value.toDom(esysxml, val)
                 param.appendChild(val)
-            elif isinstance(value, numarray.NumArray):
-                shape = value.getshape()
+            elif isinstance(value, numpy.ndarray):
+                shape = value.shape
                 if isinstance(shape, tuple):
                     size = reduce(operator.mul, shape)
                     shape = ' '.join(map(str, shape))
@@ -580,14 +580,14 @@ class ParameterSet(LinkableObject):
                     size = shape
                     shape = str(shape)
 
-                arraytype = value.type()
-                if isinstance(arraytype, numarray.BooleanType):
+                arraytype = value.dtype
+                if isinstance(arraytype, numpy.bool_):   #numarray.BooleanType
                       arraytype_str="Bool"
-                elif isinstance(arraytype, numarray.IntegralType):
+                elif isinstance(arraytype, numpy.int_): #numarray.IntegralType
                       arraytype_str="Int"
-                elif isinstance(arraytype, numarray.FloatingType):
+                elif isinstance(arraytype, numpy.float_):  #numarray.FloatingType
                       arraytype_str="Float"
-                elif isinstance(arraytype, numarray.ComplexType):
+                elif isinstance(arraytype, numpy.complex_):   #numarray.ComplexType
                       arraytype_str="Complex"
                 else:
                       arraytype_str=str(arraytype)
@@ -595,7 +595,7 @@ class ParameterSet(LinkableObject):
                 numarrayElement.appendChild(esysxml.createDataNode('ArrayType', arraytype_str))
                 numarrayElement.appendChild(esysxml.createDataNode('Shape', shape))
                 numarrayElement.appendChild(esysxml.createDataNode('Data', ' '.join(
-                    [str(x) for x in numarray.reshape(value, size)])))
+                    [str(x) for x in numpy.reshape(value, size)])))
                 val.appendChild(numarrayElement)
                 param.appendChild(val)
             elif isinstance(value, list):
@@ -658,7 +658,7 @@ class ParameterSet(LinkableObject):
                 if node.tagName == 'Data':
                     data = node.firstChild.nodeValue.strip()
                     data = [float(x) for x in data.split()]
-            return numarray.reshape(numarray.array(data, type=getattr(numarray, arraytype)),
+            return numpy.reshape(numpy.array(data, dtype=getattr(numpy, arraytype)),
                                     shape)
       
         def _listfromValue(esysxml, node):
@@ -680,7 +680,7 @@ class ParameterSet(LinkableObject):
                     "str":_stringfromValue,
                     "bool":_boolfromValue,
                     "list":_listfromValue,
-                    "NumArray":_numarrayfromValue,
+                    "ndarray":_numarrayfromValue,
                     "NoneType":_nonefromValue,
                     }
 
