@@ -42,6 +42,7 @@ import os
 from esys.escript import C_GeneralTensorProduct
 from esys.escript import getVersion
 from esys.escript import printParallelThreadCounts
+from esys.escript import listEscriptParams
 
 #=========================================================
 #   some helpers:
@@ -5222,3 +5223,11 @@ def reorderComponents(arg,index):
 
     """
     raise NotImplementedError
+
+def showEscriptParams():
+    """
+    Display the parameters escript recognises with an explanation.
+    """
+    p=listEscriptParams()
+    for name,desc in p:
+	print name+':\t'+desc

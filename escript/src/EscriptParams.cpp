@@ -12,8 +12,9 @@
 *
 *******************************************************/
 
-#include <cstring>
 #include "EscriptParams.h"
+#include <cstring>
+#include <boost/python/tuple.hpp>
 
 namespace escript
 {
@@ -56,6 +57,15 @@ int
 getEscriptParamInt(const char* name, int sentinel)
 {
    return escriptParams.getInt(name, sentinel);
+}
+
+boost::python::list
+listEscriptParams()
+{
+   using namespace boost::python;
+   boost::python::list l;
+   l.append(make_tuple("TOO_MANY_LINES","Maximum number of lines to output when printing data before printing a summary instead."));
+   return l;
 }
 
 
