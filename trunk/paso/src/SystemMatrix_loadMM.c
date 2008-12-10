@@ -174,7 +174,16 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	for( i=0; i<nz; i++ )
 	{
 		scan_ret = fscanf( fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i] );
-		FSCANF_CHECK(scan_ret, "fscanf: read elements 1")
+		if (scan_ret!=3)
+		{
+			MEMFREE( val );
+			MEMFREE( row_ind );
+			MEMFREE( col_ind );
+			MEMFREE( row_ptr );
+			Paso_MPIInfo_free(mpi_info);
+			fclose(fileHandle_p);
+			return NULL;
+		}
 		row_ind[i]--;
 		col_ind[i]--;
 	}
@@ -220,8 +229,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	Paso_SharedComponents_free(send);
         Paso_MPIInfo_free(mpi_info);
 	MEMFREE( val );
-	MEMFREE( row_ind );
-
+	MEMFREE( col_ind );
 	return out;
 }
 
@@ -295,7 +303,16 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	for( i=0; i<nz; i++ )
 	{
 		scan_ret = fscanf( fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i] );
-		FSCANF_CHECK(scan_ret, "fscanf: read elements 2")
+		if (scan_ret!=3)
+		{
+			MEMFREE( val );
+			MEMFREE( row_ind );
+			MEMFREE( col_ind );
+			MEMFREE( col_ptr );
+			Paso_MPIInfo_free(mpi_info);
+			fclose(fileHandle_p);
+			return NULL;
+		}
 		row_ind[i]--;
 		col_ind[i]--;
 	}
@@ -339,6 +356,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	Paso_SharedComponents_free(send);
         Paso_MPIInfo_free(mpi_info);
 	MEMFREE( val );
-	MEMFREE( col_ind );
+	MEMFREE( row_ind );
 	return out;
 }
