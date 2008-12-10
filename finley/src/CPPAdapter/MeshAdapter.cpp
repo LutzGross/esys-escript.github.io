@@ -1479,7 +1479,7 @@ void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& 
       std::string n=boost::python::extract<std::string>(keys[i]);
       escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
       if (dynamic_cast<const MeshAdapter&>(*(d.getFunctionSpace().getDomain())) !=*this) 
-         throw FinleyAdapterException("Error  in saveVTK: Data must be defined on same Domain");
+         throw FinleyAdapterException("Error in saveDX: Data must be defined on same Domain");
       data[i]=d.getDataC();
       ptr_data[i]= &(data[i]);
       if (n.length()>MAX_namelength-1) {
@@ -1524,7 +1524,7 @@ void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict&
       std::string n=boost::python::extract<std::string>(keys[i]);
       escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
       if (dynamic_cast<const MeshAdapter&>(*(d.getFunctionSpace().getDomain())) !=*this) 
-         throw FinleyAdapterException("Error  in saveVTK: Data must be defined on same Domain");
+         throw FinleyAdapterException("Error in saveVTK: Data must be defined on same Domain");
       data[i]=d.getDataC();
       ptr_data[i]=&(data[i]);
       if (n.length()>MAX_namelength-1) {
