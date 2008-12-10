@@ -47,6 +47,37 @@ using namespace escript;
 // ensure the current object is not a DataLazy
 // The idea was that we could add an optional warning whenever a resolve is forced
 #define FORCERESOLVE if (isLazy()) {resolve();}
+#define AUTOLAZYON escriptParams.getAUTOLAZY()
+#define MAKELAZYOP(X)   if (isLazy() || (AUTOLAZYON && m_data->isExpanded())) \
+  {\
+	DataLazy* c=new DataLazy(borrowDataPtr(),X);\
+	return Data(c);\
+  }
+#define MAKELAZYOPOFF(X,Y) if (isLazy() || (AUTOLAZYON && m_data->isExpanded())) \
+  {\
+	DataLazy* c=new DataLazy(borrowDataPtr(),X,Y);\
+	return Data(c);\
+  }
+
+#define MAKELAZYBINSELF(R,X)   if (isLazy() || R.isLazy() || (AUTOLAZYON && (isExpanded() || R.isExpanded()))) \
+  {\
+	DataLazy* c=new DataLazy(m_data,R.borrowDataPtr(),X);\
+        m_data=c->getPtr();\
+	return (*this);\
+  }
+
+// like the above but returns a new data rather than *this
+#define MAKELAZYBIN(R,X)   if (isLazy() || R.isLazy() || (AUTOLAZYON && (isExpanded() || R.isExpanded()))) \
+  {\
+	DataLazy* c=new DataLazy(m_data,R.borrowDataPtr(),X);\
+	return Data(c);\
+  }
+
+#define MAKELAZYBIN2(L,R,X)   if (L.isLazy() || R.isLazy() || (AUTOLAZYON && (L.isExpanded() || R.isExpanded()))) \
+  {\
+	DataLazy* c=new DataLazy(L.borrowDataPtr(),R.borrowDataPtr(),X);\
+	return Data(c);\
+  }
 
 Data::Data()
 {
@@ -663,55 +694,35 @@ Data::resolve()
 Data
 Data::oneOver() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),RECIP);
-	return Data(c);
-  }
+  MAKELAZYOP(RECIP)
   return C_TensorUnaryOperation(*this, bind1st(divides<double>(),1.));
 }
 
 Data
 Data::wherePositive() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),GZ);
-	return Data(c);
-  }
+  MAKELAZYOP(GZ)
   return C_TensorUnaryOperation(*this, bind2nd(greater<double>(),0.0));
 }
 
 Data
 Data::whereNegative() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),LZ);
-	return Data(c);
-  }
+  MAKELAZYOP(LZ)
   return C_TensorUnaryOperation(*this, bind2nd(less<double>(),0.0));
 }
 
 Data
 Data::whereNonNegative() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),GEZ);
-	return Data(c);
-  }
+  MAKELAZYOP(GEZ)
   return C_TensorUnaryOperation(*this, bind2nd(greater_equal<double>(),0.0));
 }
 
 Data
 Data::whereNonPositive() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),LEZ);
-	return Data(c);
-  }
+  MAKELAZYOP(LEZ)
   return C_TensorUnaryOperation(*this, bind2nd(less_equal<double>(),0.0));
 }
 
@@ -739,16 +750,6 @@ bool
 Data::probeInterpolation(const FunctionSpace& functionspace) const
 {
   return getFunctionSpace().probeInterpolation(functionspace);
-//   if (getFunctionSpace()==functionspace) {
-//     return true;
-//   } else {
-//     const_Domain_ptr domain=getDomain();
-//     if  (*domain==*functionspace.getDomain()) {
-//       return domain->probeInterpolationOnDomain(getFunctionSpace().getTypeCode(),functionspace.getTypeCode());
-//     } else {
-//       return domain->probeInterpolationACross(getFunctionSpace().getTypeCode(),*(functionspace.getDomain()),functionspace.getTypeCode());
-//     }
-//   }
 }
 
 Data
@@ -883,7 +884,6 @@ Data:: getValueOfDataPoint(int dataPointNo)
   //
   // return the array
   return numArray;
-
 }
 
 void
@@ -1200,55 +1200,35 @@ Data::integrateWorker() const
 Data
 Data::sin() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),SIN);
-	return Data(c);
-  }
+  MAKELAZYOP(SIN)
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::sin);
 }
 
 Data
 Data::cos() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),COS);
-	return Data(c);
-  }
+  MAKELAZYOP(COS)
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::cos);
 }
 
 Data
 Data::tan() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),TAN);
-	return Data(c);
-  }
+  MAKELAZYOP(TAN)
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::tan);
 }
 
 Data
 Data::asin() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),ASIN);
-	return Data(c);
-  }
+  MAKELAZYOP(ASIN)
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::asin);
 }
 
 Data
 Data::acos() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),ACOS);
-	return Data(c);
-  }
+  MAKELAZYOP(ACOS)
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::acos);
 }
 
@@ -1256,44 +1236,28 @@ Data::acos() const
 Data
 Data::atan() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),ATAN);
-	return Data(c);
-  }
+  MAKELAZYOP(ATAN)
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::atan);
 }
 
 Data
 Data::sinh() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),SINH);
-	return Data(c);
-  }
+  MAKELAZYOP(SINH)
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::sinh);
 }
 
 Data
 Data::cosh() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),COSH);
-	return Data(c);
-  }
+  MAKELAZYOP(COSH)
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::cosh);
 }
 
 Data
 Data::tanh() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),TANH);
-	return Data(c);
-  }
+  MAKELAZYOP(TANH)
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::tanh);
 }
 
@@ -1304,11 +1268,7 @@ Data::erf() const
 #if defined (_WIN32) && !defined(__INTEL_COMPILER)
   throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
 #else
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),ERF);
-	return Data(c);
-  }
+  MAKELAZYOP(ERF)
   return C_TensorUnaryOperation(*this, ::erf);
 #endif
 }
@@ -1316,11 +1276,7 @@ Data::erf() const
 Data
 Data::asinh() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),ASINH);
-	return Data(c);
-  }
+  MAKELAZYOP(ASINH)
 #if defined (_WIN32) && !defined(__INTEL_COMPILER)
   return C_TensorUnaryOperation(*this, escript::asinh_substitute);
 #else
@@ -1331,11 +1287,7 @@ Data::asinh() const
 Data
 Data::acosh() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),ACOSH);
-	return Data(c);
-  }
+  MAKELAZYOP(ACOSH)
 #if defined (_WIN32) && !defined(__INTEL_COMPILER)
   return C_TensorUnaryOperation(*this, escript::acosh_substitute);
 #else
@@ -1346,11 +1298,7 @@ Data::acosh() const
 Data
 Data::atanh() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),ATANH);
-	return Data(c);
-  }
+  MAKELAZYOP(ATANH)
 #if defined (_WIN32) && !defined(__INTEL_COMPILER)
   return C_TensorUnaryOperation(*this, escript::atanh_substitute);
 #else
@@ -1360,55 +1308,36 @@ Data::atanh() const
 
 Data
 Data::log10() const
-{  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),LOG10);
-	return Data(c);
-  }
+{
+  MAKELAZYOP(LOG10)
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::log10);
 }
 
 Data
 Data::log() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),LOG);
-	return Data(c);
-  }
+  MAKELAZYOP(LOG)
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::log);
 }
 
 Data
 Data::sign() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),SIGN);
-	return Data(c);
-  }
+  MAKELAZYOP(SIGN)
   return C_TensorUnaryOperation(*this, escript::fsign);
 }
 
 Data
 Data::abs() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),ABS);
-	return Data(c);
-  }
+  MAKELAZYOP(ABS)
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::fabs);
 }
 
 Data
 Data::neg() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),NEG);
-	return Data(c);
-  }
+  MAKELAZYOP(NEG)
   return C_TensorUnaryOperation(*this, negate<double>());
 }
 
@@ -1425,23 +1354,15 @@ Data::pos() const
 
 Data
 Data::exp() const
-{  
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),EXP);
-	return Data(c);
-  }
+{
+  MAKELAZYOP(EXP)
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::exp);
 }
 
 Data
 Data::sqrt() const
 {
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(borrowDataPtr(),SQRT);
-	return Data(c);
-  }
+  MAKELAZYOP(SQRT)
   return C_TensorUnaryOperation<double (*)(double)>(*this, ::sqrt);
 }
 
@@ -1655,11 +1576,7 @@ Data::symmetric() const
      else {
         throw DataException("Error - Data::symmetric can only be calculated for rank 2 or 4 object.");
      }
-     if (isLazy())
-     {
-	DataLazy* c=new DataLazy(borrowDataPtr(),SYM);
-	return Data(c);
-     }
+     MAKELAZYOP(SYM)
      Data ev(0.,getDataPointShape(),getFunctionSpace());
      ev.typeMatchRight(*this);
      m_data->symmetric(ev.m_data.get());
@@ -1669,11 +1586,7 @@ Data::symmetric() const
 Data
 Data::nonsymmetric() const
 {
-     if (isLazy())
-     {
-	DataLazy* c=new DataLazy(borrowDataPtr(),NSYM);
-	return Data(c);
-     }
+     MAKELAZYOP(NSYM)
      // check input
      DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
@@ -1708,11 +1621,7 @@ Data::nonsymmetric() const
 Data
 Data::trace(int axis_offset) const
 {     
-     if (isLazy())
-     {
-	DataLazy* c=new DataLazy(borrowDataPtr(),TRACE,axis_offset);
-	return Data(c);
-     }
+     MAKELAZYOPOFF(TRACE,axis_offset)
      DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
         DataTypes::ShapeType ev_shape;
@@ -1763,11 +1672,7 @@ Data::trace(int axis_offset) const
 Data
 Data::transpose(int axis_offset) const
 {     
-     if (isLazy())
-     {
-	DataLazy* c=new DataLazy(borrowDataPtr(),TRANS,axis_offset);
-	return Data(c);
-     }
+     MAKELAZYOPOFF(TRANS,axis_offset)
      DataTypes::ShapeType s=getDataPointShape();
      DataTypes::ShapeType ev_shape;
      // Here's the equivalent of python s_out=s[axis_offset:]+s[:axis_offset]
@@ -1963,17 +1868,9 @@ Data::operator+=(const Data& right)
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  if (isLazy() || right.isLazy())
-  {
-	DataLazy* c=new DataLazy(m_data,right.borrowDataPtr(),ADD);	// for lazy + is equivalent to +=
-        m_data=c->getPtr();
-	return (*this);
-  }
-  else
-  {
-  	binaryOp(right,plus<double>());
-  	return (*this);
-  }
+  MAKELAZYBINSELF(right,ADD)	// for lazy + is equivalent to +=
+  binaryOp(right,plus<double>());
+  return (*this);
 }
 
 Data&
@@ -1983,17 +1880,9 @@ Data::operator+=(const boost::python::object& right)
         throw DataException("Error - attempt to update protected Data object.");
   }
   Data tmp(right,getFunctionSpace(),false);
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(m_data,tmp.borrowDataPtr(),ADD);	// for lazy + is equivalent to +=
-        m_data=c->getPtr();
-	return (*this);
-  }
-  else
-  {
-  	binaryOp(tmp,plus<double>());
-  	return (*this);
-  }
+  MAKELAZYBINSELF(tmp,ADD)
+  binaryOp(tmp,plus<double>());
+  return (*this);
 }
 
 // Hmmm, operator= makes a deep copy but the copy constructor does not?
@@ -2010,17 +1899,9 @@ Data::operator-=(const Data& right)
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  if (isLazy() || right.isLazy())
-  {
-	DataLazy* c=new DataLazy(m_data,right.borrowDataPtr(),SUB);	// for lazy - is equivalent to -=
-        m_data=c->getPtr();
-	return (*this);
-  }
-  else
-  {
-  	binaryOp(right,minus<double>());
-  	return (*this);
-  }
+  MAKELAZYBINSELF(right,SUB)
+  binaryOp(right,minus<double>());
+  return (*this);
 }
 
 Data&
@@ -2030,17 +1911,9 @@ Data::operator-=(const boost::python::object& right)
         throw DataException("Error - attempt to update protected Data object.");
   }
   Data tmp(right,getFunctionSpace(),false);
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(m_data,tmp.borrowDataPtr(),SUB);	// for lazy - is equivalent to -=
-        m_data=c->getPtr();
-	return (*this);
-  }
-  else
-  {
-  	binaryOp(tmp,minus<double>());
-  	return (*this);
-  }
+  MAKELAZYBINSELF(tmp,SUB)
+  binaryOp(tmp,minus<double>());
+  return (*this);
 }
 
 Data&
@@ -2049,17 +1922,9 @@ Data::operator*=(const Data& right)
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  if (isLazy() || right.isLazy())
-  {
-	DataLazy* c=new DataLazy(m_data,right.borrowDataPtr(),MUL);	// for lazy * is equivalent to *=
-        m_data=c->getPtr();
-	return (*this);
-  }
-  else
-  {
-  	binaryOp(right,multiplies<double>());
-  	return (*this);
-  }
+  MAKELAZYBINSELF(right,MUL)
+  binaryOp(right,multiplies<double>());
+  return (*this);
 }
 
 Data&
@@ -2069,17 +1934,9 @@ Data::operator*=(const boost::python::object& right)
         throw DataException("Error - attempt to update protected Data object.");
   }
   Data tmp(right,getFunctionSpace(),false);
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(m_data,tmp.borrowDataPtr(),MUL);	// for lazy * is equivalent to *=
-        m_data=c->getPtr();
-	return (*this);
-  }
-  else
-  {
-  	binaryOp(tmp,multiplies<double>());
-  	return (*this);
-  }
+  MAKELAZYBINSELF(tmp,MUL)
+  binaryOp(tmp,multiplies<double>());
+  return (*this);
 }
 
 Data&
@@ -2088,17 +1945,9 @@ Data::operator/=(const Data& right)
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  if (isLazy() || right.isLazy())
-  {
-	DataLazy* c=new DataLazy(m_data,right.borrowDataPtr(),DIV);	// for lazy / is equivalent to /=
-        m_data=c->getPtr();
-	return (*this);
-  }
-  else
-  {
-  	binaryOp(right,divides<double>());
-  	return (*this);
-  }
+  MAKELAZYBINSELF(right,DIV)
+  binaryOp(right,divides<double>());
+  return (*this);
 }
 
 Data&
@@ -2108,17 +1957,9 @@ Data::operator/=(const boost::python::object& right)
         throw DataException("Error - attempt to update protected Data object.");
   }
   Data tmp(right,getFunctionSpace(),false);
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(m_data,tmp.borrowDataPtr(),DIV);	// for lazy / is equivalent to /=
-        m_data=c->getPtr();
-	return (*this);
-  }
-  else
-  {
-  	binaryOp(tmp,divides<double>());
-  	return (*this);
-  }
+  MAKELAZYBINSELF(tmp,DIV)
+  binaryOp(tmp,divides<double>());
+  return (*this);
 }
 
 Data
@@ -2138,11 +1979,7 @@ Data::powO(const boost::python::object& right) const
 Data
 Data::powD(const Data& right) const
 {
-  if (isLazy() || right.isLazy())
-  {
-	DataLazy* c=new DataLazy(m_data,right.borrowDataPtr(),POW);
-	return Data(c);
-  }
+  MAKELAZYBIN(right,POW)
   return C_TensorBinaryOperation<double (*)(double, double)>(*this, right, ::pow);
 }
 
@@ -2151,11 +1988,7 @@ Data::powD(const Data& right) const
 Data
 escript::operator+(const Data& left, const Data& right)
 {
-  if (left.isLazy() || right.isLazy())
-  {
-	DataLazy* c=new DataLazy(left.borrowDataPtr(),right.borrowDataPtr(),ADD);
-	return Data(c);
-  }
+  MAKELAZYBIN2(left,right,ADD)
   return C_TensorBinaryOperation(left, right, plus<double>());
 }
 
@@ -2164,11 +1997,7 @@ escript::operator+(const Data& left, const Data& right)
 Data
 escript::operator-(const Data& left, const Data& right)
 {
-  if (left.isLazy() || right.isLazy())
-  {
-	DataLazy* c=new DataLazy(left.borrowDataPtr(),right.borrowDataPtr(),SUB);
-	return Data(c);
-  }
+  MAKELAZYBIN2(left,right,SUB)
   return C_TensorBinaryOperation(left, right, minus<double>());
 }
 
@@ -2177,11 +2006,7 @@ escript::operator-(const Data& left, const Data& right)
 Data
 escript::operator*(const Data& left, const Data& right)
 {
-  if (left.isLazy() || right.isLazy())
-  {
-	DataLazy* c=new DataLazy(left.borrowDataPtr(),right.borrowDataPtr(),MUL);
-	return Data(c);
-  }
+  MAKELAZYBIN2(left,right,MUL)
   return C_TensorBinaryOperation(left, right, multiplies<double>());
 }
 
@@ -2190,11 +2015,7 @@ escript::operator*(const Data& left, const Data& right)
 Data
 escript::operator/(const Data& left, const Data& right)
 {
-  if (left.isLazy() || right.isLazy())
-  {
-	DataLazy* c=new DataLazy(left.borrowDataPtr(),right.borrowDataPtr(),DIV);
-	return Data(c);
-  }
+  MAKELAZYBIN2(left,right,DIV)
   return C_TensorBinaryOperation(left, right, divides<double>());
 }
 
@@ -2203,12 +2024,9 @@ escript::operator/(const Data& left, const Data& right)
 Data
 escript::operator+(const Data& left, const boost::python::object& right)
 {
-  if (left.isLazy())
-  {
-	DataLazy* c=new DataLazy(left.borrowDataPtr(),Data(right,left.getFunctionSpace(),false).borrowDataPtr(),ADD);
-	return Data(c);
-  }
-  return left+Data(right,left.getFunctionSpace(),false);
+  Data tmp(right,left.getFunctionSpace(),false);
+  MAKELAZYBIN2(left,tmp,ADD)
+  return left+tmp;
 }
 
 //
@@ -2216,12 +2034,9 @@ escript::operator+(const Data& left, const boost::python::object& right)
 Data
 escript::operator-(const Data& left, const boost::python::object& right)
 {
-  if (left.isLazy())
-  {
-	DataLazy* c=new DataLazy(left.borrowDataPtr(),Data(right,left.getFunctionSpace(),false).borrowDataPtr(),SUB);
-	return Data(c);
-  }
-  return left-Data(right,left.getFunctionSpace(),false);
+  Data tmp(right,left.getFunctionSpace(),false);
+  MAKELAZYBIN2(left,tmp,SUB)
+  return left-tmp;
 }
 
 //
@@ -2229,12 +2044,9 @@ escript::operator-(const Data& left, const boost::python::object& right)
 Data
 escript::operator*(const Data& left, const boost::python::object& right)
 {
-  if (left.isLazy())
-  {
-	DataLazy* c=new DataLazy(left.borrowDataPtr(),Data(right,left.getFunctionSpace(),false).borrowDataPtr(),MUL);
-	return Data(c);
-  }
-  return left*Data(right,left.getFunctionSpace(),false);
+  Data tmp(right,left.getFunctionSpace(),false);
+  MAKELAZYBIN2(left,tmp,MUL)
+  return left*tmp;
 }
 
 //
@@ -2242,12 +2054,9 @@ escript::operator*(const Data& left, const boost::python::object& right)
 Data
 escript::operator/(const Data& left, const boost::python::object& right)
 {
-  if (left.isLazy())
-  {
-	DataLazy* c=new DataLazy(left.borrowDataPtr(),Data(right,left.getFunctionSpace(),false).borrowDataPtr(),DIV);
-	return Data(c);
-  }
-  return left/Data(right,left.getFunctionSpace(),false);
+  Data tmp(right,left.getFunctionSpace(),false);
+  MAKELAZYBIN2(left,tmp,DIV)
+  return left/tmp;
 }
 
 //
@@ -2255,12 +2064,9 @@ escript::operator/(const Data& left, const boost::python::object& right)
 Data
 escript::operator+(const boost::python::object& left, const Data& right)
 {
-  if (right.isLazy())
-  {
-	DataLazy* c=new DataLazy(Data(left,right.getFunctionSpace(),false).borrowDataPtr(),right.borrowDataPtr(),ADD);
-	return Data(c);
-  }
-  return Data(left,right.getFunctionSpace(),false)+right;
+  Data tmp(left,right.getFunctionSpace(),false);
+  MAKELAZYBIN2(tmp,right,ADD)
+  return tmp+right;
 }
 
 //
@@ -2268,12 +2074,9 @@ escript::operator+(const boost::python::object& left, const Data& right)
 Data
 escript::operator-(const boost::python::object& left, const Data& right)
 {
-  if (right.isLazy())
-  {
-	DataLazy* c=new DataLazy(Data(left,right.getFunctionSpace(),false).borrowDataPtr(),right.borrowDataPtr(),SUB);
-	return Data(c);
-  }
-  return Data(left,right.getFunctionSpace(),false)-right;
+  Data tmp(left,right.getFunctionSpace(),false);
+  MAKELAZYBIN2(tmp,right,SUB)
+  return tmp-right;
 }
 
 //
@@ -2281,12 +2084,9 @@ escript::operator-(const boost::python::object& left, const Data& right)
 Data
 escript::operator*(const boost::python::object& left, const Data& right)
 {
-  if (right.isLazy())
-  {
-	DataLazy* c=new DataLazy(Data(left,right.getFunctionSpace(),false).borrowDataPtr(),right.borrowDataPtr(),MUL);
-	return Data(c);
-  }
-  return Data(left,right.getFunctionSpace(),false)*right;
+  Data tmp(left,right.getFunctionSpace(),false);
+  MAKELAZYBIN2(tmp,right,MUL)
+  return tmp*right;
 }
 
 //
@@ -2294,12 +2094,9 @@ escript::operator*(const boost::python::object& left, const Data& right)
 Data
 escript::operator/(const boost::python::object& left, const Data& right)
 {
-  if (right.isLazy())
-  {
-	DataLazy* c=new DataLazy(Data(left,right.getFunctionSpace(),false).borrowDataPtr(),right.borrowDataPtr(),DIV);
-	return Data(c);
-  }
-  return Data(left,right.getFunctionSpace(),false)/right;
+  Data tmp(left,right.getFunctionSpace(),false);
+  MAKELAZYBIN2(tmp,right,DIV)
+  return tmp/right;
 }
 
 
