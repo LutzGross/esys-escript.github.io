@@ -73,7 +73,7 @@ The convention that I use, is that the resolve methods should store their result
 For expressions which evaluate to Constant or Tagged, there is a different evaluation method.
 The collapse method invokes the (non-lazy) operations on the Data class to evaluate the expression.
 
-To add a new operator you need to do the following (plus anything I might have forgotten):
+To add a new operator you need to do the following (plus anything I might have forgotten - adding a new group for example):
 1) Add to the ES_optype.
 2) determine what opgroup your operation belongs to (X)
 3) add a string for the op to the end of ES_opstrings
@@ -99,6 +99,7 @@ enum ES_opgroup
    G_IDENTITY,
    G_BINARY,		// pointwise operations with two arguments
    G_UNARY,		// pointwise operations with one argument
+   G_UNARY_P,		// pointwise operations with one argument, requiring a parameter
    G_NP1OUT,		// non-pointwise op with one output
    G_NP1OUT_P,		// non-pointwise op with one output requiring a parameter
    G_TENSORPROD		// general tensor product
@@ -112,18 +113,17 @@ string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","^",
 			"asin","acos","atan","sinh","cosh","tanh","erf",
 			"asinh","acosh","atanh",
 			"log10","log","sign","abs","neg","pos","exp","sqrt",
-			"1/","where>0","where<0","where>=0","where<=0",
+			"1/","where>0","where<0","where>=0","where<=0", "where<>0","where=0",
 			"symmetric","nonsymmetric",
 			"prod",
-			"transpose",
-			"trace"};
-int ES_opcount=38;
+			"transpose", "trace"};
+int ES_opcount=40;
 ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY, G_BINARY,
 			G_UNARY,G_UNARY,G_UNARY, //10
 			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,	// 17
 			G_UNARY,G_UNARY,G_UNARY,					// 20
-			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,		// 28
-			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,			// 33
+			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,	// 28
+			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY, G_UNARY_P, G_UNARY_P,		// 35
 			G_NP1OUT,G_NP1OUT,
 			G_TENSORPROD,
 			G_NP1OUT_P, G_NP1OUT_P};
@@ -292,7 +292,8 @@ calcBuffs(const DataLazy_ptr& left, const DataLazy_ptr& right, ES_optype op)
    {
    case G_IDENTITY: return 1;
    case G_BINARY: return max(left->getBuffsRequired(),right->getBuffsRequired()+1);
-   case G_UNARY: return max(left->getBuffsRequired(),1);
+   case G_UNARY: 
+   case G_UNARY_P: return max(left->getBuffsRequired(),1);
    case G_NP1OUT: return 1+max(left->getBuffsRequired(),1);
    case G_NP1OUT_P: return 1+max(left->getBuffsRequired(),1);
    case G_TENSORPROD: return 1+max(left->getBuffsRequired(),right->getBuffsRequired()+1);
@@ -508,7 +509,8 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, int axis_offset)
 	: parent(left->getFunctionSpace(), resultShape(left,op)),
 	m_op(op),
 	m_axis_offset(axis_offset),
-	m_transpose(0)
+	m_transpose(0),
+	m_tol(0)
 {
    if ((getOpgroup(op)!=G_NP1OUT_P))
    {
@@ -531,6 +533,33 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, int axis_offset)
 LAZYDEBUG(cout << "(5)Lazy created with " << m_samplesize << endl;)
 }
 
+DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, double tol)
+	: parent(left->getFunctionSpace(), left->getShape()),
+	m_op(op),
+	m_axis_offset(0),
+	m_transpose(0),
+	m_tol(tol)
+{
+   if ((getOpgroup(op)!=G_UNARY_P))
+   {
+	throw DataException("Programmer error - constructor DataLazy(left, op, tol) will only process UNARY operations which require parameters.");
+   }
+   DataLazy_ptr lleft;
+   if (!left->isLazy())
+   {
+	lleft=DataLazy_ptr(new DataLazy(left));
+   }
+   else
+   {
+	lleft=dynamic_pointer_cast<DataLazy>(left);
+   }
+   m_readytype=lleft->m_readytype;
+   m_left=lleft;
+   m_buffsRequired=calcBuffs(m_left, m_right,m_op);	// yeah m_right will be null at this point
+   m_samplesize=getNumDPPSample()*getNoValues();
+   m_maxsamplesize=max(m_samplesize,m_left->getMaxSampleSize());
+LAZYDEBUG(cout << "(6)Lazy created with " << m_samplesize << endl;)
+}
 
 DataLazy::~DataLazy()
 {
@@ -667,6 +696,12 @@ DataLazy::collapseToReady()
 	break;
     case LEZ:
 	result=left.whereNonPositive();
+	break;
+    case NEZ:
+	result=left.whereNonZero(m_tol);
+	break;
+    case EZ:
+	result=left.whereZero(m_tol);
 	break;
     case SYM:
 	result=left.symmetric();
@@ -834,12 +869,23 @@ DataLazy::resolveUnary(ValueType& v, size_t offset, int sampleNo, size_t& roffse
     case LEZ:
 	tensor_unary_operation(m_samplesize, left, result, bind2nd(less_equal<double>(),0.0));
 	break;
+// There are actually G_UNARY_P but I don't see a compelling reason to treat them differently
+    case NEZ:
+	tensor_unary_operation(m_samplesize, left, result, bind2nd(AbsGT(),m_tol));
+	break;
+    case EZ:
+	tensor_unary_operation(m_samplesize, left, result, bind2nd(AbsLTE(),m_tol));
+	break;
 
     default:
 	throw DataException("Programmer error - resolveUnary can not resolve operator "+opToString(m_op)+".");
   }
   return &v;
 }
+
+
+
+
 
 
 /*
@@ -1107,7 +1153,8 @@ LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
   }
   switch (getOpgroup(m_op))
   {
-  case G_UNARY: return resolveUnary(v, offset,sampleNo,roffset);
+  case G_UNARY:
+  case G_UNARY_P: return resolveUnary(v, offset,sampleNo,roffset);
   case G_BINARY: return resolveBinary(v, offset,sampleNo,roffset);
   case G_NP1OUT: return resolveNP1OUT(v, offset, sampleNo,roffset);
   case G_NP1OUT_P: return resolveNP1OUT_P(v, offset, sampleNo,roffset);
@@ -1215,6 +1262,7 @@ DataLazy::intoString(ostringstream& oss) const
 	oss << ')';
 	break;
   case G_UNARY:
+  case G_UNARY_P:
   case G_NP1OUT:
   case G_NP1OUT_P:
 	oss << opToString(m_op) << '(';
