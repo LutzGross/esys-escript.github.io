@@ -19,6 +19,8 @@
 namespace escript
 {
 
+class Data;
+
 class EscriptParams
 {
 public:
@@ -30,10 +32,35 @@ public:
   
   ESCRIPT_DLL_API
   void setInt(const char* name, int value);
+
 private:
 
   // If we get more params we can replace this with a map
 	int too_many_lines;
+	int autolazy;
+
+protected: 
+  // This is to provide fast access for methods in Data.
+  // Its a little bit ugly, needing all those friends but I really want to
+  // limit outside access to the char* interface
+
+  int getTOO_MANY_LINES() {return too_many_lines;}
+  int getAUTOLAZY() { return autolazy;}
+
+  friend class escript::Data;
+  friend escript::Data escript::operator+(const boost::python::api::object&, const escript::Data&);
+  friend escript::Data escript::operator-(const boost::python::api::object&, const escript::Data&);
+  friend escript::Data escript::operator*(const boost::python::api::object&, const escript::Data&);
+  friend escript::Data escript::operator/(const boost::python::api::object&, const escript::Data&);
+  friend escript::Data escript::operator+(const escript::Data&, const escript::Data&);
+  friend escript::Data escript::operator-(const escript::Data&, const escript::Data&);
+  friend escript::Data escript::operator*(const escript::Data&, const escript::Data&);
+  friend escript::Data escript::operator/(const escript::Data&, const escript::Data&);
+  friend escript::Data escript::operator+(const escript::Data&, const boost::python::api::object&);
+  friend escript::Data escript::operator-(const escript::Data&, const boost::python::api::object&);
+  friend escript::Data escript::operator*(const escript::Data&, const boost::python::api::object&);
+  friend escript::Data escript::operator/(const escript::Data&, const boost::python::api::object&);
+
 };
 
 
