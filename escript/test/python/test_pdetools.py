@@ -83,10 +83,10 @@ class Test_pdetools_noLumping(unittest.TestCase):
         self.failUnless(ContinuousFunction(self.domain)==l.getFunctionSpace(),"wrong function space")
 
         xx=l.getX()
-        self.failUnless(isinstance(xx,numarray.NumArray),"wrong vector type")
+        self.failUnless(isinstance(xx,numpy.ndarray),"wrong vector type")
         self.failUnless(Lsup(xx-numarray.ones((self.domain.getDim(),)))<self.RES_TOL,"location wrong")
         xx=l(x)
-        self.failUnless(isinstance(xx,numarray.NumArray),"wrong vector type")
+        self.failUnless(isinstance(xx,numpy.ndarray),"wrong vector type")
         self.failUnless(Lsup(xx-numarray.ones((self.domain.getDim(),)))<self.RES_TOL,"value wrong vector")
         xx=l(x[0]+x[1])
         self.failUnless(isinstance(xx,float),"wrong scalar type")
@@ -104,12 +104,12 @@ class Test_pdetools_noLumping(unittest.TestCase):
         xx=l.getX()
         self.failUnless(isinstance(xx,list),"list expected")
         for i in range(len(xx)):
-           self.failUnless(isinstance(xx[i],numarray.NumArray),"vector expected for %s item"%i)
+           self.failUnless(isinstance(xx[i],numpy.ndarray),"vector expected for %s item"%i)
            self.failUnless(Lsup(xx[i]-arg[i])<self.RES_TOL,"%s-th location is wrong"%i)
         xx=l(x)
         self.failUnless(isinstance(xx,list),"list expected (2)")
         for i in range(len(xx)):
-           self.failUnless(isinstance(xx[i],numarray.NumArray),"vector expected for %s item (2)"%i)
+           self.failUnless(isinstance(xx[i],numpy.ndarray),"vector expected for %s item (2)"%i)
            self.failUnless(Lsup(xx[i]-arg[i])<self.RES_TOL,"%s-th location is wrong (2)"%i)
         xx=l(x[0]+x[1])
         self.failUnless(isinstance(xx,list),"list expected (3)")
