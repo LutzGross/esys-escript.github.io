@@ -27,8 +27,6 @@ extern "C" {
 }
 #include <vector>
 
-#define IS_THERE_A_REASON_FOR_THIS_MAGIC_NAME_LENGTH  256
-
 using namespace std;
 using namespace escript;
 
@@ -1462,32 +1460,23 @@ void MeshAdapter::setNewX(const escript::Data& new_x)
 // saves a data array in openDX format:
 void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& arg) const
 {
-   unsigned int MAX_namelength=IS_THERE_A_REASON_FOR_THIS_MAGIC_NAME_LENGTH;
    const int num_data=boost::python::extract<int>(arg.attr("__len__")());
    /* win32 refactor */
-   char* *names = (num_data>0) ? TMPMEMALLOC(num_data,char*) : (char**)NULL;
-   for(int i=0;i<num_data;i++)
-   {
-      names[i] = (MAX_namelength>0) ? TMPMEMALLOC(MAX_namelength,char) : (char*)NULL;
-   }
+   char **names = (num_data>0) ? TMPMEMALLOC(num_data, char*) : (char**)NULL;
 
    escriptDataC *data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC) : (escriptDataC*)NULL;
    escriptDataC* *ptr_data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC*) : (escriptDataC**)NULL;
 
    boost::python::list keys=arg.keys();
-   for (int i=0;i<num_data;++i) {
+   for (int i=0; i<num_data; ++i) {
       std::string n=boost::python::extract<std::string>(keys[i]);
       escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
       if (dynamic_cast<const MeshAdapter&>(*(d.getFunctionSpace().getDomain())) !=*this) 
          throw FinleyAdapterException("Error in saveDX: Data must be defined on same Domain");
       data[i]=d.getDataC();
       ptr_data[i]= &(data[i]);
-      if (n.length()>MAX_namelength-1) {
-         strncpy(names[i],n.c_str(),MAX_namelength-1);
-         names[i][MAX_namelength-1]='\0';
-      } else {
-         strcpy(names[i],n.c_str());
-      }
+      names[i] = TMPMEMALLOC(n.length()+1, char);
+      strcpy(names[i], n.c_str());
    }
    Finley_Mesh_saveDX(filename.c_str(),m_finleyMesh.get(),num_data,names,ptr_data);
    checkFinleyError();
@@ -1495,7 +1484,7 @@ void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& 
    /* win32 refactor */
    TMPMEMFREE(data);
    TMPMEMFREE(ptr_data);
-   for(int i=0;i<num_data;i++)
+   for(int i=0; i<num_data; i++)
    {
       TMPMEMFREE(names[i]);
    }
@@ -1507,14 +1496,9 @@ void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& 
 // saves a data array in openVTK format:
 void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict& arg) const
 {
-   unsigned int MAX_namelength=IS_THERE_A_REASON_FOR_THIS_MAGIC_NAME_LENGTH;
    const int num_data=boost::python::extract<int>(arg.attr("__len__")());
    /* win32 refactor */
-   char* *names = (num_data>0) ? TMPMEMALLOC(num_data,char*) : (char**)NULL;
-   for(int i=0;i<num_data;i++)
-   {
-      names[i] = (MAX_namelength>0) ? TMPMEMALLOC(MAX_namelength,char) : (char*)NULL;
-   }
+   char **names = (num_data>0) ? TMPMEMALLOC(num_data, char*) : (char**)NULL;
 
    escriptDataC *data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC) : (escriptDataC*)NULL;
    escriptDataC* *ptr_data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC*) : (escriptDataC**)NULL;
@@ -1527,12 +1511,8 @@ void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict&
          throw FinleyAdapterException("Error in saveVTK: Data must be defined on same Domain");
       data[i]=d.getDataC();
       ptr_data[i]=&(data[i]);
-      if (n.length()>MAX_namelength-1) {
-         strncpy(names[i],n.c_str(),MAX_namelength-1);
-         names[i][MAX_namelength-1]='\0';
-      } else {
-         strcpy(names[i],n.c_str());
-      }
+      names[i] = TMPMEMALLOC(n.length()+1, char);
+      strcpy(names[i],n.c_str());
    }
    Finley_Mesh_saveVTK(filename.c_str(),m_finleyMesh.get(),num_data,names,ptr_data);
 
