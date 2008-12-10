@@ -729,15 +729,21 @@ Data::whereNonPositive() const
 Data
 Data::whereZero(double tol) const
 {
-  Data dataAbs=abs();
-  return C_TensorUnaryOperation(dataAbs, bind2nd(less_equal<double>(),tol));
+//   Data dataAbs=abs();
+//   return C_TensorUnaryOperation(dataAbs, bind2nd(less_equal<double>(),tol));
+   MAKELAZYOPOFF(EZ,tol)
+   return C_TensorUnaryOperation(*this, bind2nd(AbsLTE(),tol));
+
 }
 
 Data
 Data::whereNonZero(double tol) const
 {
-  Data dataAbs=abs();
-  return C_TensorUnaryOperation(dataAbs, bind2nd(greater<double>(),tol));
+//   Data dataAbs=abs();
+//   return C_TensorUnaryOperation(dataAbs, bind2nd(greater<double>(),tol));
+  MAKELAZYOPOFF(NEZ,tol)
+  return C_TensorUnaryOperation(*this, bind2nd(AbsGT(),tol));
+
 }
 
 Data

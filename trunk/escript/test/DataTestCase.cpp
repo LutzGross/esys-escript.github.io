@@ -26,6 +26,14 @@
 
 #include "escript/Data.h"
 #include "escript/DataLazy.h"
+#include "escript/EscriptParams.h"
+
+#define AUTOLAZYON setEscriptParamInt("AUTOLAZY",1);
+#define AUTOLAZYOFF setEscriptParamInt("AUTOLAZY",0);
+#define CHECKAUTOLAZY (getEscriptParamInt("AUTOLAZY")==1)
+#define SAVELAZYSTATE int LAZYSTATE=getEscriptParamInt("AUTOLAZY");
+#define RESTORELAZYSTATE setEscriptParamInt("AUTOLAZY",LAZYSTATE);
+
 
 
 using namespace std;
@@ -409,10 +417,16 @@ void DataTestCase::testSlicing() {
   testSlicingWorker(true);
 }
 
-void DataTestCase::testSome() {
 
+void DataTestCase::testSomeDriver(bool autolazy)
+{
   cout << endl;
-
+  SAVELAZYSTATE
+  if (autolazy)
+  {
+	AUTOLAZYON
+	cout << "\tNow testing using autolazy." << endl;
+  }
   cout << "\tCreate a Data object." << endl;
 
   DataTypes::ShapeType viewShape;
@@ -433,7 +447,8 @@ void DataTestCase::testSome() {
 
   cout << "\tTest some basic operations" << endl;
   result=exData*cData;
-  assert(result.isExpanded());
+  cout << CHECKAUTOLAZY << " " << result.isLazy() << " " << result.isExpanded()<< endl;
+  assert(CHECKAUTOLAZY?result.isLazy():result.isExpanded());
 
   assert(result.Lsup()==4);
   assert(result.sup()==4);
@@ -449,7 +464,13 @@ void DataTestCase::testSome() {
   cout << "\tExercise copyWithMask method" << endl;
   exData.copyWithMask(result, exData.wherePositive());
   assert(!exData.wherePositive().isEmpty());
+  RESTORELAZYSTATE
 
+}
+
+void DataTestCase::testSome() {
+  testSomeDriver(false);
+  testSomeDriver(true);
 }
 
 
