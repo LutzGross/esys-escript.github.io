@@ -41,7 +41,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import escript
 import linearPDEs
-import numarray
+import numpy
 import util
 import math
 
@@ -307,7 +307,7 @@ class Locator:
      point x. 
      """
 
-     def __init__(self,where,x=numarray.zeros((3,))):
+     def __init__(self,where,x=numpy.zeros((3,))):
        """
        Initializes a Locator to access values in Data objects on the Doamin 
        or FunctionSpace where for the sample point which
@@ -395,14 +395,14 @@ class Locator:
            if isinstance(id,list):
                out=[]
                for i in id:
-                  o=numarray.array(data.getValueOfGlobalDataPoint(*i))
+                  o=numpy.array(data.getTupleForGlobalDataPoint(*i))
                   if data.getRank()==0:
                      out.append(o[0])
                   else:
                      out.append(o)
                return out
            else:
-             out=numarray.array(data.getValueOfGlobalDataPoint(*id))
+             out=numpy.array(data.getTupleForGlobalDataPoint(*id))
              if data.getRank()==0:
                 return out[0]
              else:
@@ -753,10 +753,10 @@ def __givapp(c,s,vin):
     return vrot
 
 def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
-   h=numarray.zeros((iter_restart,iter_restart),numarray.Float64)
-   c=numarray.zeros(iter_restart,numarray.Float64)
-   s=numarray.zeros(iter_restart,numarray.Float64)
-   g=numarray.zeros(iter_restart,numarray.Float64)
+   h=numpy.zeros((iter_restart,iter_restart),numpy.float64)
+   c=numpy.zeros(iter_restart,numpy.float64)
+   s=numpy.zeros(iter_restart,numpy.float64)
+   g=numpy.zeros(iter_restart,numpy.float64)
    v=[]
 
    rho=defect.norm(F0)
@@ -797,7 +797,7 @@ def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
 
         #   Form and store the information for the new Givens rotation
 	if iter > 0 :
-		hhat=numarray.zeros(iter+1,numarray.Float64)
+		hhat=numpy.zeros(iter+1,numpy.float64)
 		for i in range(iter+1) : hhat[i]=h[i][iter]
 		hhat=__givapp(c[0:iter],s[0:iter],hhat);
 	        for i in range(iter+1) : h[i][iter]=hhat[i]
@@ -818,12 +818,12 @@ def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
    # At this point either iter > iter_max or rho < tol.
    # It's time to compute x and leave.        
    if iter > 0 : 
-     y=numarray.zeros(iter,numarray.Float64)	
+     y=numpy.zeros(iter,numpy.float64)	
      y[iter-1] = g[iter-1] / h[iter-1][iter-1]
      if iter > 1 :	
         i=iter-2   
         while i>=0 :
-          y[i] = ( g[i] - numarray.dot(h[i][i+1:iter], y[i+1:iter])) / h[i][i]
+          y[i] = ( g[i] - numpy.dot(h[i][i+1:iter], y[i+1:iter])) / h[i][i]
           i=i-1
      xhat=v[iter-1]*y[iter-1]
      for i in range(iter-1):
@@ -865,10 +865,10 @@ def __GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max
       r_dot_r = bilinearform(r, r)
       if r_dot_r<0: raise NegativeNorm,"negative norm."
    
-   h=numarray.zeros((iter_restart,iter_restart),numarray.Float64)
-   c=numarray.zeros(iter_restart,numarray.Float64)
-   s=numarray.zeros(iter_restart,numarray.Float64)
-   g=numarray.zeros(iter_restart,numarray.Float64)
+   h=numpy.zeros((iter_restart,iter_restart),numpy.float64)
+   c=numpy.zeros(iter_restart,numpy.float64)
+   s=numpy.zeros(iter_restart,numpy.float64)
+   g=numpy.zeros(iter_restart,numpy.float64)
    v=[]
 
    rho=math.sqrt(r_dot_r)
@@ -910,7 +910,7 @@ def __GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max
 
 #   Form and store the information for the new Givens rotation
 	if iter > 0 :
-		hhat=numarray.zeros(iter+1,numarray.Float64)
+		hhat=numpy.zeros(iter+1,numpy.float64)
 		for i in range(iter+1) : hhat[i]=h[i][iter]
 		hhat=__givapp(c[0:iter],s[0:iter],hhat);
 	        for i in range(iter+1) : h[i][iter]=hhat[i]
@@ -933,12 +933,12 @@ def __GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max
 # It's time to compute x and leave.        
 
    if iter > 0 : 
-     y=numarray.zeros(iter,numarray.Float64)	
+     y=numpy.zeros(iter,numpy.float64)	
      y[iter-1] = g[iter-1] / h[iter-1][iter-1]
      if iter > 1 :	
         i=iter-2   
         while i>=0 :
-          y[i] = ( g[i] - numarray.dot(h[i][i+1:iter], y[i+1:iter])) / h[i][i]
+          y[i] = ( g[i] - numpy.dot(h[i][i+1:iter], y[i+1:iter])) / h[i][i]
           i=i-1
      xhat=v[iter-1]*y[iter-1]
      for i in range(iter-1):

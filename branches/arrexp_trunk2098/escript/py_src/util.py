@@ -4954,15 +4954,15 @@ def integrate(arg,where=None):
     elif isinstance(arg,escript.Data):
        if not where==None: arg=escript.Data(arg,where)
        if arg.getRank()==0:
-          return arg._integrate()[0]
+          return arg._integrateToTuple()[0]
        else:
-          return arg._integrate()
+          return numpy.array(arg._integrateToTuple())
     else:
        arg2=escript.Data(arg,where)
        if arg2.getRank()==0:
-          return arg2._integrate()[0]
+          return arg2._integrateToTuple()[0]
        else:
-          return arg2._integrate()
+          return numpy.array(arg2._integrateToTuple())
 
 class Integrate_Symbol(DependendSymbol):
    """
