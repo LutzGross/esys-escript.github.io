@@ -970,11 +970,17 @@ DataLazy::resolveNP1OUT_P(ValueType& v, size_t offset, int sampleNo, size_t& rof
 
 
 #define PROC_OP(TYPE,X)                               \
-	for (int i=0;i<steps;++i,resultp+=resultStep) \
-	{ \
-	   tensor_binary_operation< TYPE >(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X); \
-	   lroffset+=leftStep; \
-	   rroffset+=rightStep; \
+	for (int j=0;j<onumsteps;++j)\
+	{\
+	  for (int i=0;i<numsteps;++i,resultp+=resultStep) \
+	  { \
+LAZYDEBUG(cout << "[left,right]=[" << lroffset << "," << rroffset << "]" << endl;)\
+	     tensor_binary_operation< TYPE >(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X); \
+	     lroffset+=leftstep; \
+	     rroffset+=rightstep; \
+	  }\
+	  lroffset+=oleftstep;\
+	  rroffset+=orightstep;\
 	}
 
 /*
@@ -1013,25 +1019,114 @@ LAZYDEBUG(cout << "Resolve binary: " << toString() << endl;)
   }
   bool leftScalar=(m_left->getRank()==0);
   bool rightScalar=(m_right->getRank()==0);
-  bool bigloops=((leftExp && rightExp) || (!leftExp && !rightExp));	// is processing in single step?
-  int steps=(bigloops?1:getNumDPPSample());
-  size_t chunksize=(bigloops? m_samplesize : getNoValues());	// if bigloops, pretend the whole sample is a datapoint
-  if (m_left->getRank()!=m_right->getRank())	// need to deal with scalar * ? ops
+  if ((m_left->getRank()!=m_right->getRank()) && (!leftScalar && !rightScalar))
   {
- 	if (!leftScalar && !rightScalar)
+	throw DataException("resolveBinary - ranks of arguments must match unless one of them is scalar."); 
+  }
+  size_t leftsize=m_left->getNoValues();
+  size_t rightsize=m_right->getNoValues();
+  size_t chunksize=1;			// how many doubles will be processed in one go
+  int leftstep=0;		// how far should the left offset advance after each step
+  int rightstep=0;
+  int numsteps=0;		// total number of steps for the inner loop
+  int oleftstep=0;	// the o variables refer to the outer loop
+  int orightstep=0;	// The outer loop is only required in cases where there is an extended scalar
+  int onumsteps=1;
+  
+  bool LES=(leftExp && leftScalar);	// Left is an expanded scalar
+  bool RES=(rightExp && rightScalar);
+  bool LS=(!leftExp && leftScalar);	// left is a single scalar
+  bool RS=(!rightExp && rightScalar);
+  bool LN=(!leftExp && !leftScalar);	// left is a single non-scalar
+  bool RN=(!rightExp && !rightScalar);
+  bool LEN=(leftExp && !leftScalar);	// left is an expanded non-scalar
+  bool REN=(rightExp && !rightScalar);
+
+  if ((LES && RES) || (LEN && REN))	// both are Expanded scalars or both are expanded non-scalars
+  {
+	chunksize=m_left->getNumDPPSample()*leftsize;
+	leftstep=0;
+	rightstep=0;
+	numsteps=1;
+  }
+  else if (LES || RES)
+  {
+	chunksize=1;
+	if (LES)		// left is an expanded scalar
 	{
-	   throw DataException("resolveBinary - ranks of arguments must match unless one of them is scalar."); 
+		if (RS)
+		{
+		   leftstep=1;
+		   rightstep=0;
+		   numsteps=m_left->getNumDPPSample();
+		}
+		else		// RN or REN
+		{
+		   leftstep=0;
+		   oleftstep=1;
+		   rightstep=1;
+		   orightstep=(RN?-rightsize:0);
+		   numsteps=rightsize;
+		   onumsteps=m_left->getNumDPPSample();
+		}
 	}
-	steps=getNumDPPSample()*max(m_left->getNoValues(),m_right->getNoValues());
-	chunksize=1;	// for scalar
-  }		
-  int leftStep=((leftExp && (!rightExp || rightScalar))? m_right->getNoValues() : 0);
-  int rightStep=((rightExp && (!leftExp || leftScalar))? m_left->getNoValues() : 0);
-  int resultStep=max(leftStep,rightStep);	// only one (at most) should be !=0
+	else		// right is an expanded scalar
+	{
+		if (LS)
+		{
+		   rightstep=1;
+		   leftstep=0;
+		   numsteps=m_right->getNumDPPSample();
+		}
+		else
+		{
+		   rightstep=0;
+		   orightstep=1;
+		   leftstep=1;
+		   oleftstep=(LN?-leftsize:0);
+		   numsteps=leftsize;
+		   onumsteps=m_right->getNumDPPSample();
+		}
+	}
+  }
+  else 	// this leaves (LEN, RS), (LEN, RN) and their transposes
+  {
+	if (LEN)	// and Right will be a single value 
+	{
+		chunksize=rightsize;
+		leftstep=rightsize;
+	   	rightstep=0;
+		numsteps=m_left->getNumDPPSample();
+		if (RS)
+		{
+		   numsteps*=leftsize;
+		}
+	}
+	else	// REN
+	{
+		chunksize=leftsize;
+		rightstep=leftsize;
+		leftstep=0;
+		numsteps=m_right->getNumDPPSample();
+		if (LS)
+		{
+		   numsteps*=rightsize;
+		}
+	}
+  }
+
+  int resultStep=max(leftstep,rightstep);	// only one (at most) should be !=0
 	// Get the values of sub-expressions
   const ValueType* left=m_left->resolveSample(v,offset,sampleNo,lroffset);
   const ValueType* right=m_right->resolveSample(v,offset+m_samplesize,sampleNo,rroffset); // Note
 	// the right child starts further along.
+LAZYDEBUG(cout << "Post sub calls in " << toString() << endl;)
+LAZYDEBUG(cout << "shapes=" << DataTypes::shapeToString(m_left->getShape()) << "," << DataTypes::shapeToString(m_right->getShape()) << endl;)
+LAZYDEBUG(cout << "chunksize=" << chunksize << endl << "leftstep=" << leftstep << " rightstep=" << rightstep;)
+LAZYDEBUG(cout << " numsteps=" << numsteps << endl << "oleftstep=" << oleftstep << " orightstep=" << orightstep;)
+LAZYDEBUG(cout << "onumsteps=" << onumsteps << endl;)
+LAZYDEBUG(cout << " DPPS=" << m_left->getNumDPPSample() << "," <<m_right->getNumDPPSample() << endl;)
+LAZYDEBUG(cout << "" << LS << RS << LN << RN << LES << RES <<LEN << REN <<   endl;)
   double* resultp=&(v[offset]);		// results are stored at the vector offset we recieved
   switch(m_op)
   {
@@ -1056,6 +1151,7 @@ LAZYDEBUG(cout << "Resolve binary: " << toString() << endl;)
   roffset=offset;	
   return &v;
 }
+
 
 
 /*
@@ -1142,9 +1238,11 @@ LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
     if (m_readytype=='C')
     {
 	roffset=0;
+LAZYDEBUG(cout << "Finish  sample " << toString() << endl;)
 	return &(vec);
     }
     roffset=m_id->getPointOffset(sampleNo, 0);
+LAZYDEBUG(cout << "Finish  sample " << toString() << endl;)
     return &(vec);
   }
   if (m_readytype!='E')
@@ -1162,6 +1260,7 @@ LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
   default:
     throw DataException("Programmer Error - resolveSample does not know how to process "+opToString(m_op)+".");
   }
+
 }
 
 
@@ -1199,6 +1298,7 @@ LAZYDEBUG(cout << "Buffer created with size=" << v.size() << endl;)
   int totalsamples=getNumSamples();
   const ValueType* res=0;	// Vector storing the answer
   size_t resoffset=0;		// where in the vector to find the answer
+LAZYDEBUG(cout << "Total number of samples=" <<totalsamples << endl;)
   #pragma omp parallel for private(sample,resoffset,outoffset,res) schedule(static)
   for (sample=0;sample<totalsamples;++sample)
   {

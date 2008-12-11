@@ -213,7 +213,7 @@ inline
 DataVector::reference
 DataVector::operator[](const DataVector::size_type i)
 {
-  EsysAssert(i<size(),"DataVector: invalid index specified.");
+  EsysAssert(i<size(),"DataVector: invalid index specified. " << i << " of " << size());
   return m_array_data[i];
 }
 
@@ -221,7 +221,7 @@ inline
 DataVector::const_reference
 DataVector::operator[](const DataVector::size_type i) const
 {
-  EsysAssert(i<size(),"DataVector: invalid index specified.");
+  EsysAssert(i<size(),"DataVector: invalid index specified. " << i << " of " << size());
   return m_array_data[i];
 }
 
