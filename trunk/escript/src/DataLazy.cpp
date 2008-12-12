@@ -1118,7 +1118,7 @@ LAZYDEBUG(cout << "Resolve binary: " << toString() << endl;)
   int resultStep=max(leftstep,rightstep);	// only one (at most) should be !=0
 	// Get the values of sub-expressions
   const ValueType* left=m_left->resolveSample(v,offset,sampleNo,lroffset);
-  const ValueType* right=m_right->resolveSample(v,offset+m_samplesize,sampleNo,rroffset); // Note
+  const ValueType* right=m_right->resolveSample(v,offset+m_left->getMaxSampleSize(),sampleNo,rroffset); // Note
 	// the right child starts further along.
 LAZYDEBUG(cout << "Post sub calls in " << toString() << endl;)
 LAZYDEBUG(cout << "shapes=" << DataTypes::shapeToString(m_left->getShape()) << "," << DataTypes::shapeToString(m_right->getShape()) << endl;)
@@ -1183,16 +1183,29 @@ LAZYDEBUG(cout << "Resolve TensorProduct: " << toString() << endl;)
   int rightStep=((rightExp && !leftExp)? m_left->getNoValues() : 0);
   int resultStep=max(leftStep,rightStep);	// only one (at most) should be !=0
 	// Get the values of sub-expressions (leave a gap of one sample for the result).
-  const ValueType* left=m_left->resolveSample(v,offset+m_samplesize,sampleNo,lroffset);
-  const ValueType* right=m_right->resolveSample(v,offset+2*m_samplesize,sampleNo,rroffset); 
+  int gap=offset+m_left->getMaxSampleSize();	// actually only needs to be m_left->m_samplesize
+  const ValueType* left=m_left->resolveSample(v,gap,sampleNo,lroffset);
+  gap+=m_right->getMaxSampleSize();
+  const ValueType* right=m_right->resolveSample(v,gap,sampleNo,rroffset); 
+LAZYDEBUG(cout << "Post sub calls: " << toString() << endl;)
+LAZYDEBUG(cout << "LeftExp=" << leftExp << " rightExp=" << rightExp << endl;)
+LAZYDEBUG(cout << "LeftR=" << m_left->getRank() << " rightExp=" << m_right->getRank() << endl;)
+LAZYDEBUG(cout << "LeftSize=" << m_left->getNoValues() << " RightSize=" << m_right->getNoValues() << endl;)
+LAZYDEBUG(cout << "m_samplesize=" << m_samplesize << endl;)
+LAZYDEBUG(cout << "outputshape=" << DataTypes::shapeToString(getShape()) << endl;)
   double* resultp=&(v[offset]);		// results are stored at the vector offset we recieved
   switch(m_op)
   {
     case PROD:
 	for (int i=0;i<steps;++i,resultp+=resultStep)
 	{
+LAZYDEBUG(cout << "lroffset=" << lroffset << "rroffset=" << rroffset << endl;)
+LAZYDEBUG(cout << "l*=" << left << " r*=" << right << endl;)
+LAZYDEBUG(cout << "m_SL=" << m_SL << " m_SM=" << m_SM << " m_SR=" << m_SR << endl;) 
     	  const double *ptr_0 = &((*left)[lroffset]);
     	  const double *ptr_1 = &((*right)[rroffset]);
+LAZYDEBUG(cout << DataTypes::pointToString(*left, m_left->getShape(),lroffset,"LEFT") << endl;)
+LAZYDEBUG(cout << DataTypes::pointToString(*right,m_right->getShape(),rroffset, "RIGHT") << endl;)
     	  matrix_matrix_product(m_SL, m_SM, m_SR, ptr_0, ptr_1, resultp, m_transpose);
 	  lroffset+=leftStep;
 	  rroffset+=rightStep;
