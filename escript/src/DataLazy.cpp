@@ -28,8 +28,15 @@
 #include "UnaryFuncs.h"		// for escript::fsign
 #include "Utils.h"
 
-// #define LAZYDEBUG(X) X; 
+// #define LAZYDEBUG(X) if (privdebug){X;} 
 #define LAZYDEBUG(X)
+namespace
+{
+bool privdebug=false;
+
+#define ENABLEDEBUG privdebug=true;
+#define DISABLEDEBUG privdebug=false;
+}
 
 /*
 How does DataLazy work?
@@ -285,13 +292,16 @@ GTPShape(DataAbstract_ptr left, DataAbstract_ptr right, int axis_offset, int tra
 // determine the number of samples requires to evaluate an expression combining left and right
 // NP1OUT needs an extra buffer because we can't write the answers over the top of the input.
 // The same goes for G_TENSORPROD
+// It might seem that pointwise binary ops (G_BINARY) could be written over the top of the lefths.
+// This would be true were it not for the possibility that the LHS could be a scalar which needs to be examined
+// multiple times
 int
 calcBuffs(const DataLazy_ptr& left, const DataLazy_ptr& right, ES_optype op)
 {
    switch(getOpgroup(op))
    {
    case G_IDENTITY: return 1;
-   case G_BINARY: return max(left->getBuffsRequired(),right->getBuffsRequired()+1);
+   case G_BINARY: return 1+max(left->getBuffsRequired(),right->getBuffsRequired()+1);
    case G_UNARY: 
    case G_UNARY_P: return max(left->getBuffsRequired(),1);
    case G_NP1OUT: return 1+max(left->getBuffsRequired(),1);
@@ -912,15 +922,29 @@ DataLazy::resolveNP1OUT(ValueType& v, size_t offset, int sampleNo, size_t& roffs
   }
 	// since we can't write the result over the input, we need a result offset further along
   size_t subroffset=roffset+m_samplesize;
-  const ValueType* vleft=m_left->resolveSample(v,offset,sampleNo,subroffset);
+LAZYDEBUG(cerr << "subroffset=" << subroffset << endl;)
+  const ValueType* vleft=m_left->resolveSample(v,offset+m_left->m_samplesize,sampleNo,subroffset);
   roffset=offset;
+  size_t loop=0;
+  size_t numsteps=(m_readytype=='E')?getNumDPPSample():1;
+  size_t step=getNoValues();
   switch (m_op)
   {
     case SYM:
-	DataMaths::symmetric(*vleft,m_left->getShape(),subroffset, v, getShape(), offset);
+	for (loop=0;loop<numsteps;++loop)
+	{
+	    DataMaths::symmetric(*vleft,m_left->getShape(),subroffset, v, getShape(), offset);
+	    subroffset+=step;
+	    offset+=step;
+	}
 	break;
     case NSYM:
-	DataMaths::nonsymmetric(*vleft,m_left->getShape(),subroffset, v, getShape(), offset);
+	for (loop=0;loop<numsteps;++loop)
+	{
+	    DataMaths::nonsymmetric(*vleft,m_left->getShape(),subroffset, v, getShape(), offset);
+	    subroffset+=step;
+	    offset+=step;
+	}
 	break;
     default:
 	throw DataException("Programmer error - resolveNP1OUT can not resolve operator "+opToString(m_op)+".");
@@ -951,16 +975,30 @@ DataLazy::resolveNP1OUT_P(ValueType& v, size_t offset, int sampleNo, size_t& rof
     throw DataException("Programmer error - resolveNP1OUT_P should only be called on expanded Data.");
   }
 	// since we can't write the result over the input, we need a result offset further along
-  size_t subroffset=roffset+m_samplesize;
-  const ValueType* vleft=m_left->resolveSample(v,offset,sampleNo,subroffset);
+  size_t subroffset;
+  const ValueType* vleft=m_left->resolveSample(v,offset+m_left->m_samplesize,sampleNo,subroffset);
+LAZYDEBUG(cerr << "from=" << offset+m_left->m_samplesize << " to=" << subroffset << " ret=" << roffset << endl;)
   roffset=offset;
+  size_t loop=0;
+  size_t numsteps=(m_readytype=='E')?getNumDPPSample():1;
+  size_t step=getNoValues();
   switch (m_op)
   {
     case TRACE:
-         DataMaths::trace(*vleft,m_left->getShape(),subroffset, v,getShape(),offset,m_axis_offset);
+	for (loop=0;loop<numsteps;++loop)
+	{
+            DataMaths::trace(*vleft,m_left->getShape(),subroffset, v,getShape(),offset,m_axis_offset);
+	    subroffset+=step;
+	    offset+=step;
+	}
 	break;
     case TRANS:
-         DataMaths::transpose(*vleft,m_left->getShape(),subroffset, v,getShape(),offset,m_axis_offset);
+	for (loop=0;loop<numsteps;++loop)
+	{
+            DataMaths::transpose(*vleft,m_left->getShape(),subroffset, v,getShape(),offset,m_axis_offset);
+	    subroffset+=step;
+	    offset+=step;
+	}
 	break;
     default:
 	throw DataException("Programmer error - resolveNP1OUTP can not resolve operator "+opToString(m_op)+".");
@@ -975,7 +1013,9 @@ DataLazy::resolveNP1OUT_P(ValueType& v, size_t offset, int sampleNo, size_t& rof
 	  for (int i=0;i<numsteps;++i,resultp+=resultStep) \
 	  { \
 LAZYDEBUG(cout << "[left,right]=[" << lroffset << "," << rroffset << "]" << endl;)\
+LAZYDEBUG(cout << "{left,right}={" << (*left)[lroffset] << "," << (*right)[rroffset] << "}\n";)\
 	     tensor_binary_operation< TYPE >(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X); \
+LAZYDEBUG(cout << " result=      " << resultp[0] << endl;) \
 	     lroffset+=leftstep; \
 	     rroffset+=rightstep; \
 	  }\
@@ -1117,8 +1157,9 @@ LAZYDEBUG(cout << "Resolve binary: " << toString() << endl;)
 
   int resultStep=max(leftstep,rightstep);	// only one (at most) should be !=0
 	// Get the values of sub-expressions
-  const ValueType* left=m_left->resolveSample(v,offset,sampleNo,lroffset);
-  const ValueType* right=m_right->resolveSample(v,offset+m_left->getMaxSampleSize(),sampleNo,rroffset); // Note
+  const ValueType* left=m_left->resolveSample(v,offset+getMaxSampleSize(),sampleNo,lroffset);	// see note on 
+	// calcBufss for why we can't put offset as the 2nd param above
+  const ValueType* right=m_right->resolveSample(v,offset+2*getMaxSampleSize(),sampleNo,rroffset); // Note
 	// the right child starts further along.
 LAZYDEBUG(cout << "Post sub calls in " << toString() << endl;)
 LAZYDEBUG(cout << "shapes=" << DataTypes::shapeToString(m_left->getShape()) << "," << DataTypes::shapeToString(m_right->getShape()) << endl;)
@@ -1315,6 +1356,7 @@ LAZYDEBUG(cout << "Total number of samples=" <<totalsamples << endl;)
   #pragma omp parallel for private(sample,resoffset,outoffset,res) schedule(static)
   for (sample=0;sample<totalsamples;++sample)
   {
+      if (sample==0)  {ENABLEDEBUG}
 LAZYDEBUG(cout << "################################# " << sample << endl;)
 #ifdef _OPENMP
     res=resolveSample(v,threadbuffersize*omp_get_thread_num(),sample,resoffset);
@@ -1322,13 +1364,17 @@ LAZYDEBUG(cout << "################################# " << sample << endl;)
     res=resolveSample(v,0,sample,resoffset);   // res would normally be v, but not if its a single IDENTITY op.
 #endif
 LAZYDEBUG(cerr << "-------------------------------- " << endl;)
+LAZYDEBUG(cerr<< "Copying sample#" << sample << endl;)
     outoffset=result->getPointOffset(sample,0);
-LAZYDEBUG(cerr << "offset=" << outoffset << endl;)
+LAZYDEBUG(cerr << "offset=" << outoffset << " from offset=" << resoffset << " " << m_samplesize << " doubles" << endl;)
     for (unsigned int i=0;i<m_samplesize;++i,++outoffset,++resoffset)	// copy values into the output vector
     {
+// LAZYDEBUG(cerr << "outoffset=" << outoffset << " resoffset=" << resoffset << endl;)
 	resvec[outoffset]=(*res)[resoffset];
     }
+LAZYDEBUG(cerr << DataTypes::pointToString(resvec,getShape(),outoffset-m_samplesize+DataTypes::noValues(getShape()),"Final result:") << endl;)
 LAZYDEBUG(cerr << "*********************************" << endl;)
+    DISABLEDEBUG
   }
   return resptr;
 }
