@@ -15,6 +15,7 @@
 #define escript_EscriptParams_H
 #include "system_dep.h"
 #include <boost/python/list.hpp>
+#include "Data.h"    // for the operators
 
 namespace escript
 {
