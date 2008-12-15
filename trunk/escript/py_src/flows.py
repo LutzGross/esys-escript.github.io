@@ -34,7 +34,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 from escript import *
 import util
 from linearPDEs import LinearPDE, LinearPDESystem, LinearSinglePDE
-from pdetools import HomogeneousSaddlePointProblem,Projector, ArithmeticTuple, PCG
+from pdetools import HomogeneousSaddlePointProblem,Projector, ArithmeticTuple, PCG, NegativeNorm
 
 class DarcyFlow(object):
     """
@@ -119,7 +119,7 @@ class DarcyFlow(object):
            self.__pde_p.setValue(A=util.transposed_tensor_mult(self.__permeability,self.__permeability))
 
 
-    def getFlux(self,p, fixed_flux=Data(),tol=1.e-8):
+    def getFlux(self,p, fixed_flux=Data(),tol=1.e-8, show_details=False):
         """
         returns the flux for a given pressure C{p} where the flux is equal to C{fixed_flux}
         on locations where C{location_of_fixed_flux} is positive (see L{setValue}). 
@@ -138,7 +138,7 @@ class DarcyFlow(object):
         """
         self.__pde_v.setTolerance(tol)
         self.__pde_v.setValue(Y=self.__g, X=self.__f*util.kronecker(self.domain), r=fixed_flux)
-        return self.__pde_v.getSolution()
+        return self.__pde_v.getSolution(verbose=show_details)
 
     def solve(self,u0,p0,atol=0,rtol=1e-8, max_iter=100, verbose=False, show_details=False, sub_rtol=1.e-8):
          """ 
@@ -185,39 +185,73 @@ class DarcyFlow(object):
          self.show_details= show_details and self.verbose
          self.__pde_v.setTolerance(sub_rtol) 
          self.__pde_p.setTolerance(sub_rtol)
-         p2=p0*self.__pde_p.getCoefficient("q")
          u2=u0*self.__pde_v.getCoefficient("q")
-         g=self.__g-u2-util.tensor_mult(self.__permeability,util.grad(p2))
-         f=self.__f-util.div(u2)
-         self.__pde_v.setValue(Y=g, X=f*util.kronecker(self.domain), r=Data())
-         dv=self.__pde_v.getSolution(verbose=show_details)
-         self.__pde_p.setValue(X=util.transposed_tensor_mult(self.__permeability,g-dv))
+         # 
+         # first the reference velocity is calculated from
+         #
+         #   (I+D^*D)u_ref=D^*f+g (including bundray conditions for u)
+         #
+         self.__pde_v.setValue(Y=self.__g, X=self.__f*util.kronecker(self.domain), r=u0)
+         u_ref=self.__pde_v.getSolution(verbose=show_details)
+         if self.verbose: print "DarcyFlux: maximum reference flux = ",util.Lsup(u_ref)
+         self.__pde_v.setValue(r=Data())
+         #
+         #   and then we calculate a reference pressure
+         #
+         #       Q^*Qp_ref=Q^*g-Q^*u_ref ((including bundray conditions for p)
+         #
+         self.__pde_p.setValue(X=util.transposed_tensor_mult(self.__permeability,(self.__g-u_ref)), r=p0)
+         p_ref=self.__pde_p.getSolution(verbose=self.show_details)
+         if self.verbose: print "DarcyFlux: maximum reference pressure = ",util.Lsup(p_ref)
          self.__pde_p.setValue(r=Data())
-         dp=self.__pde_p.getSolution(verbose=self.show_details)
-         norm_rhs=self.__inner_PCG(dp,ArithmeticTuple(g,dv))
-         if norm_rhs<0:
-             raise NegativeNorm,"negative norm. Maybe the sub-tolerance is too large."
-         ATOL=util.sqrt(norm_rhs)*rtol +atol
+         #
+         #   (I+D^*D)du + Qdp = - Qp_ref                       u=du+u_ref
+         #   Q^*du + Q^*Qdp = Q^*g-Q^*u_ref-Q^*Qp_ref=0        p=dp+pref
+         #
+         #      du= -(I+D^*D)^(-1} Q(p_ref+dp)  u = u_ref+du
+         #
+         #  => Q^*(I-(I+D^*D)^(-1})Q dp = Q^*(I+D^*D)^(-1} Qp_ref
+         #  or Q^*(I-(I+D^*D)^(-1})Q p = Q^*Qp_ref 
+         #
+         #   r= Q^*( (I+D^*D)^(-1} Qp_ref - Q dp + (I+D^*D)^(-1})Q dp) = Q^*(-du-Q dp) 
+         #            with du=-(I+D^*D)^(-1} Q(p_ref+dp)
+         #
+         #  we use the (du,Qdp) to represent the resudual 
+         #  Q^*Q is a preconditioner 
+         #  
+         #  <(Q^*Q)^{-1}r,r> -> right hand side norm is <Qp_ref,Qp_ref>
+         #
+         Qp_ref=util.tensor_mult(self.__permeability,util.grad(p_ref))
+         norm_rhs=util.sqrt(util.integrate(util.inner(Qp_ref,Qp_ref)))
+         ATOL=max(norm_rhs*rtol +atol, 200. * util.EPSILON * norm_rhs)
          if not ATOL>0:
-             raise ValueError,"Negative absolute tolerance (rtol = %e, norm right hand side =%, atol =%e)."%(rtol, util.sqrt(norm_rhs), atol)
-         rhs=ArithmeticTuple(g,dv)
-         dp,r=PCG(rhs,self.__Aprod_PCG,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL, rtol=0.,iter_max=max_iter, x=p0-p2, verbose=self.verbose, initial_guess=True)
-         return u2+r[1],p2+dp
+             raise ValueError,"Negative absolute tolerance (rtol = %e, norm right hand side =%, atol =%e)."%(rtol, norm_rhs, atol)
+         if self.verbose: print "DarcyFlux: norm of right hand side = %e (absolute tolerance = %e)"%(norm_rhs,ATOL)
+         # 
+         #   caclulate the initial residual
+         # 
+         self.__pde_v.setValue(X=Data(), Y=-util.tensor_mult(self.__permeability,util.grad(p0)), r=Data())
+         du=self.__pde_v.getSolution(verbose=show_details)
+         r=ArithmeticTuple(util.tensor_mult(self.__permeability,util.grad(p0-p_ref)), du)
+         dp,r=PCG(r,self.__Aprod_PCG,p0,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL, rtol=0.,iter_max=max_iter, verbose=self.verbose)
+         util.saveVTK("d.vtu",p=dp,p_ref=p_ref)
+         return u_ref+r[1],dp
         
     def __Aprod_PCG(self,p):
           if self.show_details: print "DarcyFlux: Applying operator"
           Qp=util.tensor_mult(self.__permeability,util.grad(p))
           self.__pde_v.setValue(Y=Qp,X=Data())
           w=self.__pde_v.getSolution(verbose=self.show_details)
-          return ArithmeticTuple(Qp,w)
+          return ArithmeticTuple(-Qp,w)
 
     def __inner_PCG(self,p,r):
          a=util.tensor_mult(self.__permeability,util.grad(p))
-         return util.integrate(util.inner(a,r[0]-r[1]))
+         out=-util.integrate(util.inner(a,r[0]+r[1]))
+         return out
 
     def __Msolve_PCG(self,r):
           if self.show_details: print "DarcyFlux: Applying preconditioner"
-          self.__pde_p.setValue(X=util.transposed_tensor_mult(self.__permeability,r[0]-r[1]))
+          self.__pde_p.setValue(X=-util.transposed_tensor_mult(self.__permeability,r[0]+r[1]))
           return self.__pde_p.getSolution(verbose=self.show_details)
 
 class StokesProblemCartesian(HomogeneousSaddlePointProblem):
@@ -257,7 +291,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
             
          self.__pde_prec=LinearPDE(domain)
          self.__pde_prec.setReducedOrderOn()
-         self.__pde_prec.setSolverMethod(self.__pde_prec.LUMPING)
+         # self.__pde_prec.setSolverMethod(self.__pde_prec.LUMPING)
          self.__pde_prec.setSymmetryOn()
 
          self.__pde_proj=LinearPDE(domain)

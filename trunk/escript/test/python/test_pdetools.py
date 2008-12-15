@@ -332,7 +332,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       u=p.getSolution()
       u_ex=2.
       self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
-
+    #=====
     def testPCG(self):
       from numarray import array,matrixmultiply, zeros, dot, size, Float64
       from math import sqrt
@@ -404,7 +404,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
           return out
 
       tol=1.e-4
-      x,r=PCG(b*1.,Ap,Ms,dot, atol=0, rtol=tol,x=x_ref*1.5, iter_max=12)
+      x,r=PCG(b*1.,Ap,x_ref*0.,Ms,dot, atol=0, rtol=tol, iter_max=12)
       self.failUnless(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
       self.failUnless(Lsup(r-(b-matrixmultiply(A,x)))<=Lsup(b)*EPSILON*100.,"wrong solution")
 
@@ -479,7 +479,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
           return out
 
       tol=1.e-4
-      x=MINRES(b*1.,Ap,Ms,dot, atol=0, rtol=tol,x=x_ref*1.5, iter_max=12)
+      x=MINRES(b*1.,Ap,x_ref*0,Ms,dot, atol=0, rtol=tol, iter_max=12)
       self.failUnless(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
 
     def testTFQMR(self):
@@ -545,15 +545,14 @@ class Test_pdetools_noLumping(unittest.TestCase):
                 -8.7934289814322  ])
 
       def Ap(x):
-          return matrixmultiply(A,x)
-      def Ms(b):
-          out=zeros((size(b),),Float64)
-          for i in xrange(size(b)):
-            out[i]=b[i]/A[i,i]
+          out=matrixmultiply(A,x)
+          for i in xrange(size(x)):
+            out[i]/=A[i,i]
           return out
 
       tol=1.e-5
-      x=TFQMR(b*1.,Ap,Ms,dot, atol=0, rtol=tol,x=x_ref*1.5, iter_max=12)
+      for i in xrange(size(b)): b[i]/=A[i,i]
+      x=TFQMR(b,Ap,x_ref*0,dot, atol=0, rtol=tol, iter_max=12)
       self.failUnless(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
 
     def testGMRES(self):
@@ -626,7 +625,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
 
       tol=1.e-4
       for i in xrange(size(b)): b[i]/=A[i,i]
-      x=GMRES(b*1.,Ap,dot,atol=0, rtol=tol,x=x_ref*1.5, iter_max=12)
+      x=GMRES(b,Ap,x_ref*0,dot,atol=0, rtol=tol, iter_max=12)
       self.failUnless(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
 
     def testNewtonGMRES(self):

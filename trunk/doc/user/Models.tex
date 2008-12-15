@@ -235,14 +235,24 @@ for all $x\hackscore{i}$.
 
 
 \subsection{Solution Method \label{DARCY SOLVE}}
-Without loss of generality we can assume that $u^{N}\hackscore{i}  \; n\hackscore{i}=0$ and 
-$p^{D}$. Otherewise one solves for $u-u^{N}$ and $p-p^{D}$ and sets 
+In practical applications it is an advantage to calculate the pressure $p$ as a correction of a 'static' pressure $p^{ref}$ which is the solution of
+\begin{equation}
+-(\kappa\hackscore{ki}\kappa\hackscore{kj} p\hackscore{,j}^{ref})\hackscore{,i} =  - (\kappa\hackscore{ki} (g\hackscore{k}- u^{N}\hackscore{k}))\hackscore{,i} 
+\mbox{ with } 
+p^{ref} = p^{D} \mbox{ on } \Gamma\hackscore{D}
+\end{equation} 
+With setting $u \leftarrow u-u^{N}$ and $p \leftarrow p-p^{ref}$ and 
 \begin{equation}
 \begin{array}{rcl}
-g\hackscore{i} & \leftarrow & g\hackscore{i} - u^{N}\hackscore{i} -  \kappa\hackscore{ij} p^{D}\hackscore{,j }\\
+g\hackscore{i} & \leftarrow & g\hackscore{i} - u^{N}\hackscore{i} -  \kappa\hackscore{ij} p^{ref}\hackscore{,j }\\
 f & \leftarrow & f - u^{N}\hackscore{k,k}
 \end{array}
 \end{equation} 
+we can assume that $u^{N}\hackscore{i}  \; n\hackscore{i}=0$ and 
+$p^{D}=0$. Notice that with this setting 
+\begin{equation}\label{DIV FREE DARCY FLUX}
+(\kappa\hackscore{ki} g\hackscore{k})\hackscore{,i} = 0 
+\end{equation}
 We set 
 \begin{equation}
 V = \{ q \in H^{1}(\Omega) : q=0 \mbox{ on } \Gamma\hackscore{D} \}
@@ -266,6 +276,11 @@ u + Qp & = & g \\
 Du & = & f 
 \end{array}
 \end{equation} 
+Notice that because of~\ref{DIV FREE DARCY FLUX} we have
+\begin{equation} \label{ABSTRACT DIV FREE DARCY FLUX}
+Q^*g =0
+\end{equation}
+where $Q^*$ denote the adjoint operators of $Q$.
 We solve this equation by minimising the functional
 \begin{equation}
 J(u,p):=\|u + Qp - g\|^2\hackscore{0} + \|Du-f\|\hackscore{0}^2 
@@ -279,10 +294,10 @@ for all $v\in W$ and $q \in V$.which translates back into operator notation
 \begin{equation}
 \begin{array}{rcl}
 (I+D^*D)u + Qp & = & D^*f + g \\
-Q^*u  + Q^*Q p & = & Q^* g \\ 
+Q^*u  + Q^*Q p & = & 0 \\ 
 \end{array}
 \end{equation} 
-where $D^*$ and $Q^*$ denote the adjoint operators. 
+where $D^*$ and $Q^*$ denote the adjoint operators. We use the fact that $Q^*g=$. 
 In~\cite{XXX} it has been shown that this problem is continuous and coercive in $W \times V$ and therefore has a unique solution. Also standart FEM methods can be used for discretization. It is also possible 
 to solve the problem is coupled form, however this approach leads in some cases to a very ill-conditioned stiffness matrix in particular in the case of a very small or large permability ($\alpha\hackscore{1} \ll 1$ or $\alpha\hackscore{0} \gg 1$)  
 
@@ -292,23 +307,23 @@ v= (I+D^*D)^{-1} (D^*f + g - Qp)
 \end{equation} 
 (notice that $(I+D^*D)$ is coercive in $W$) which is inserted into the second equation
 \begin{equation}
-Q^* (I+D^*D)^{-1} (D^*f + g - Qp) + Q^* Q p = Q^* g 
+Q^* (I+D^*D)^{-1} (D^*f + g - Qp) + Q^* Q p = 0 
 \end{equation} 
 which is 
 \begin{equation}
-Q^* ( I - (I+D^*D)^{-1} ) Q p = Q^* ( g -(I+D^*D)^{-1} (D^*f + g) ) 
+Q^* ( I - (I+D^*D)^{-1} ) Q p = - Q^* (I+D^*D)^{-1} (D^*f + g) ) 
 \end{equation} 
 We use the PCG method to solve this. The residual $r$ ($\in V^*$) is given as
 \begin{equation}
 \begin{array}{rcl}
-r & = & Q^* ( g -(I+D^*D)^{-1} (D^*f + g) - Qp + (I+D^*D)^{-1}Q p \\
-& =&  Q^* \left( (g-Qp) - (I+D^*D)^{-1} (D^*f + g - Qp) \right) \\
-& =&  Q^* \left( (g-Qp) - v \right)
+r & = & Q^*  \left( -(I+D^*D)^{-1} (D^*f + g) - Qp + (I+D^*D)^{-1}Q p \right)\\
+& =&  Q^* \left( - Qp - (I+D^*D)^{-1} (D^*f + g - Qp) \right) \\
+& =&  - Q^* \left( Qp + v \right)
 \end{array}
 \end{equation} 
-So in a partical implementation we use the pair $(g-Qp,v)$ to represent the residual. This will save the
+So in a partical implementation we use the pair $(Qp,v)$ to represent the residual. This will save the
 reconstruction of the velocity $v$. In this notation the right hand side is given as 
-$(g,(I+D^*D)^{-1} (D^*f + g))$. The evaluation of the iteration operator for a given $p$ is then 
+$(0,(I+D^*D)^{-1} (D^*f + g))$. The evaluation of the iteration operator for a given $p$ is then 
 returning $(Qp,w)$ where $w$ is the solution of 
 \begin{equation}\label{UPDATE W}
 (I+D^*D)w = Qp
@@ -354,33 +369,6 @@ where $\vec{v}$ is the velocity vector, $T$ is the temperature, $\rho$ is the de
 
 %=========================================================
 \input{levelsetmodel}
-% \section{Level Set Method}
-
-%\subsection{Description}
-
-%\subsection{Method}
-
-%Advection and Reinitialisation
-
-%\begin{classdesc}{LevelSet}{mesh, func\_new, reinit\_max, reinit\_each, tolerance, smooth}
-%\end{classdesc}
-
-%example usage:
-
-%levelset = LevelSet(mesh, func\_new, reinit\_max, reinit\_each, tolerance, smooth)
-
-%\begin{methoddesc}[LevelSet]{update\_parameter}{parameter}
-%Update the parameter.
-%\end{methoddesc}
-
-%\begin{methoddesc}[LevelSet]{update\_phi}{paramter}{velocity}{dt}{t\_step}
-%Update level set function; advection and reinitialization
-%\end{methoddesc}
-
-%\subsection{Benchmark Problem}
-
-%Rayleigh-Taylor instability problem
-
 
 % \section{Drucker Prager Model}
 
