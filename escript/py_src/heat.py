@@ -38,15 +38,15 @@ from linearPDEs import TransportPDE
 
 class TemperatureCartesian(TransportPDE):
       """
-      solves 
+      solves
 
           rhocp(T_{,t} + v_i T_{,i} - ( k T_{,i})_i = Q
-        
+
                  k T_{,i}*n_i=surface_flux
-             
+
                  T_{,t} = 0  where given_T_mask>0
 
-      if surface_flux is not give 0 is assumed. 
+      if surface_flux is not given 0 is assumed.
 
       typical usage:
 
@@ -63,19 +63,21 @@ class TemperatureCartesian(TransportPDE):
       """
       def __init__(self,domain,theta=0.5,**kwargs):
         """
-        initializes tmperature advection-diffuision problem
+        initializes temperature advection-diffuision problem
 
         @param domain: domain of the problem
-        @param theta: method control: theta=1. backward Euler 
+        @param theta: method control: theta=1. backward Euler
                                       theta=0.5: Crank-Nicholson scheme
-                                      thete=0.: forward Euler (not recommendable)
+                                      theta=0.: forward Euler (not recommendable)
         """
         TransportPDE.__init__(self,domain,numEquations=1,theta=theta,**kwargs)
         self.setReducedOrderOn()
         self.__rhocp=None
         self.__v=None
+
       def setInitialTemperature(self,T):
         self.setInitialSolution(T)
+
       def setValue(self,rhocp=None,v=None,k=None,Q=None,surface_flux=None,given_T_mask=None):
            if rhocp!=None:
                self.__rhocp=rhocp
@@ -93,6 +95,7 @@ class TemperatureCartesian(TransportPDE):
                super(TemperatureCartesian,self).setValue(y=surface_flux)
            if given_T_mask!=None:
                super(TemperatureCartesian,self).setValue(q=given_T_mask)
-           
+
       def getTemperature(self,dt,**kwargs):
           return self.getSolution(dt,**kwargs)
+
