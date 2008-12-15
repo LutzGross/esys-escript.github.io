@@ -442,7 +442,7 @@ class NegativeNorm(SolverSchemeException):
    """
    pass
 
-def PCG(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=100, initial_guess=True, verbose=False):
+def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, initial_guess=True, verbose=False):
    """
    Solver for 
 
@@ -451,7 +451,13 @@ def PCG(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=100
    with a symmetric and positive definite operator A (more details required!). 
    It uses the conjugate gradient method with preconditioner M providing an approximation of A. 
 
-   The iteration is terminated if the C{stoppingcriterium} function return C{True}.
+   The iteration is terminated if  
+
+   M{|r| <= atol+rtol*|r0|}
+
+   where M{r0} is the initial residual and M{|.|} is the energy norm. In fact
+
+   M{|r| =sqrt( bilinearform(Msolve(r),r))}
 
    For details on the preconditioned conjugate gradient method see the book:
 
@@ -459,49 +465,44 @@ def PCG(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=100
    T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo, 
    C. Romine, and H. van der Vorst.
 
-   @param b: the right hand side of the liner system. C{b} is altered.
-   @type b: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
+   @param r: initial residual M{r=b-Ax}. C{r} is altered.
+   @type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
+   @param x: an initial guess for the solution. 
+   @type x: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
    @param Aprod: returns the value Ax
    @type Aprod: function C{Aprod(x)} where C{x} is of the same object like argument C{x}. 
-       The returned object needs to be of the same type like argument C{b}.
+       The returned object needs to be of the same type like argument C{r}.
    @param Msolve: solves Mx=r
-   @type Msolve: function C{Msolve(r)} where C{r} is of the same type like argument C{b}.
+   @type Msolve: function C{Msolve(r)} where C{r} is of the same type like argument C{r}.
       The returned object needs to be of the same type like argument C{x}.
    @param bilinearform: inner product C{<x,r>}
    @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same type like argument C{x} and C{r} is.
        The returned value is a C{float}.
-   @param stoppingcriterium: function which returns True if a stopping criterium is meet.
-       C{stoppingcriterium} has the arguments C{norm_r}, C{r} and C{x} giving the current 
-       norm of the residual (=C{sqrt(bilinearform(Msolve(r),r)}), the current residual and
-       the current solution approximation. C{stoppingcriterium} is called in each iteration step.
-   @type stoppingcriterium: function that returns C{True} or C{False}
-   @param x: an initial guess for the solution. If no C{x} is given 0*b is used.
-   @type x: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
+   @param atol: absolute tolerance
+   @type atol: non-negative C{float}
+   @param rtol: relative tolerance
+   @type rtol: non-negative C{float}
    @param iter_max: maximum number of iteration steps.
    @type iter_max: C{int}
    @return: the solution approximation and the corresponding residual
    @rtype: C{tuple} 
-   @warning: C{b} and C{x} are altered.
+   @warning: C{r} and C{x} are altered.
    """
    iter=0
-   if x==None:
-      x=0*b
-      r=b*1.
-      initial_guess=False
-   if initial_guess:
-      r=b+(-1)*Aprod(x) 
-      x=x*1.
-   else:
-      x=x*0
-      r=b*1
    rhat=Msolve(r)
    d = rhat 
    rhat_dot_r = bilinearform(rhat, r)
    if rhat_dot_r<0: raise NegativeNorm,"negative norm."
-   norm_b=math.sqrt(rhat_dot_r)
-   if verbose: print "PCG: initial residual norm = %e (absolute tolerance = %e)"%(norm_b, atol+rtol*norm_b)
+   norm_r0=math.sqrt(rhat_dot_r)
+   atol2=atol+rtol*norm_r0
+   if atol2<=0:
+      raise ValueError,"Non-positive tolarance."
+   atol2=max(atol2, 100. * util.EPSILON * norm_r0)
 
-   while not math.sqrt(rhat_dot_r) <= atol+rtol*norm_b:
+   if verbose: print "PCG: initial residual norm = %e (absolute tolerance = %e)"%(norm_r0, atol2)
+   
+
+   while not math.sqrt(rhat_dot_r) <= atol2:
        iter+=1
        if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
 
@@ -795,34 +796,76 @@ def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
 
    return xhat,stopped
 
-##############################################
-def GMRES(b, Aprod, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=100, iter_restart=20, verbose=False):
-################################################
+def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_restart=20, verbose=False):
+   """
+   Solver for 
+
+   M{Ax=b}
+
+   with a general operator A (more details required!). 
+   It uses the generalized minimum residual method (GMRES).
+
+   The iteration is terminated if  
+
+   M{|r| <= atol+rtol*|r0|}
+
+   where M{r0} is the initial residual and M{|.|} is the energy norm. In fact
+
+   M{|r| =sqrt( bilinearform(r,r))}
+
+   @param r: initial residual M{r=b-Ax}. C{r} is altered.
+   @type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
+   @param x: an initial guess for the solution. 
+   @type x: same like C{r}
+   @param Aprod: returns the value Ax
+   @type Aprod: function C{Aprod(x)} where C{x} is of the same object like argument C{x}. 
+       The returned object needs to be of the same type like argument C{r}.
+   @param bilinearform: inner product C{<x,r>}
+   @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same type like argument C{x} and C{r} is.
+       The returned value is a C{float}.
+   @param atol: absolute tolerance
+   @type atol: non-negative C{float}
+   @param rtol: relative tolerance
+   @type rtol: non-negative C{float}
+   @param iter_max: maximum number of iteration steps.
+   @type iter_max: C{int}
+   @param iter_restart: in order to ssave memory the orthogonalization process is terminated after C{iter_restart} steps and the
+                    iteration is restarted.
+   @type iter_restart: C{int}
+   @return: the solution approximation and the corresponding residual.
+   @rtype: C{tuple} 
+   @warning: C{r} and C{x} are altered.
+   """
    m=iter_restart
+   restarted=False
    iter=0
-   if x == None:
-      xc=b*0 
-   else:
-      xc=x*1
    if rtol>0:
-      r_dot_r = bilinearform(b, b)
+      r_dot_r = bilinearform(r, r)
       if r_dot_r<0: raise NegativeNorm,"negative norm."
       atol2=atol+rtol*math.sqrt(r_dot_r)
       if verbose: print "GMRES: norm of right hand side = %e (absolute tolerance = %e)"%(math.sqrt(r_dot_r), atol2)
    else:
       atol2=atol
       if verbose: print "GMRES: absolute tolerance = %e"%atol2
+   if atol2<=0:
+      raise ValueError,"Non-positive tolarance."
    
    while True:
       if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached"%iter_max
-      xc,stopped=__GMRESm(b, Aprod, bilinearform, atol2, x=xc, iter_max=iter_max-iter, iter_restart=m, verbose=verbose)
+      if restarted: 
+         r2 = r-Aprod(x-x2)
+      else:
+         r2=1*r
+      x2=x*1.
+      x,stopped=__GMRESm(r2, Aprod, x, bilinearform, atol2, iter_max=iter_max-iter, iter_restart=m, verbose=verbose)
       iter+=iter_restart	
       if stopped: break
       if verbose: print "GMRES: restart."
+      restarted=True
    if verbose: print "GMRES: tolerance has reached."
-   return xc
+   return x
 
-def __GMRESm(b, Aprod, bilinearform, atol, x, iter_max=100, iter_restart=20, verbose=False):
+def __GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verbose=False):
    iter=0
    
    h=numarray.zeros((iter_restart+1,iter_restart),numarray.Float64)
@@ -831,7 +874,6 @@ def __GMRESm(b, Aprod, bilinearform, atol, x, iter_max=100, iter_restart=20, ver
    g=numarray.zeros(iter_restart+1,numarray.Float64)
    v=[]
 
-   r=b-Aprod(x)
    r_dot_r = bilinearform(r, r)
    if r_dot_r<0: raise NegativeNorm,"negative norm."
    rho=math.sqrt(r_dot_r)
@@ -913,47 +955,67 @@ def __GMRESm(b, Aprod, bilinearform, atol, x, iter_max=100, iter_restart=20, ver
 
    return x,stopped
 
-#################################################
-def MINRES(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=100):
-#################################################
-    #
-    #  minres solves the system of linear equations Ax = b
-    #  where A is a symmetric matrix (possibly indefinite or singular)
-    #  and b is a given vector.
-    #  
-    #  "A" may be a dense or sparse matrix (preferably sparse!)
-    #  or the name of a function such that
-    #               y = A(x)
-    #  returns the product y = Ax for any given vector x.
-    #
-    #  "M" defines a positive-definite preconditioner M = C C'.
-    #  "M" may be a dense or sparse matrix (preferably sparse!)
-    #  or the name of a function such that
-    #  solves the system My = x for any given vector x.
-    #
-    #
-    
+def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
+    """
+    Solver for 
+ 
+    M{Ax=b}
+ 
+    with a symmetric and positive definite operator A (more details required!). 
+    It uses the minimum residual method (MINRES) with preconditioner M providing an approximation of A. 
+ 
+    The iteration is terminated if  
+ 
+    M{|r| <= atol+rtol*|r0|}
+ 
+    where M{r0} is the initial residual and M{|.|} is the energy norm. In fact
+
+    M{|r| =sqrt( bilinearform(Msolve(r),r))}
+ 
+    For details on the preconditioned conjugate gradient method see the book:
+ 
+    Templates for the Solution of Linear Systems by R. Barrett, M. Berry, 
+    T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo, 
+    C. Romine, and H. van der Vorst.
+
+    @param r: initial residual M{r=b-Ax}. C{r} is altered.
+    @type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
+    @param x: an initial guess for the solution. 
+    @type x: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
+    @param Aprod: returns the value Ax
+    @type Aprod: function C{Aprod(x)} where C{x} is of the same object like argument C{x}. 
+        The returned object needs to be of the same type like argument C{r}.
+    @param Msolve: solves Mx=r
+    @type Msolve: function C{Msolve(r)} where C{r} is of the same type like argument C{r}.
+        The returned object needs to be of the same type like argument C{x}.
+    @param bilinearform: inner product C{<x,r>}
+    @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same type like argument C{x} and C{r} is.
+       The returned value is a C{float}.
+    @param atol: absolute tolerance
+    @type atol: non-negative C{float}
+    @param rtol: relative tolerance
+    @type rtol: non-negative C{float}
+    @param iter_max: maximum number of iteration steps.
+    @type iter_max: C{int}
+    @return: the solution approximation and the corresponding residual
+    @rtype: C{tuple} 
+    @warning: C{r} and C{x} are altered.
+    """
     #------------------------------------------------------------------
     # Set up y and v for the first Lanczos vector v1.
     # y  =  beta1 P' v1,  where  P = C**(-1).
     # v is really P' v1.
     #------------------------------------------------------------------
-    if x==None:
-      x=0*b
-    else:
-      b += (-1)*Aprod(x) 
-
-    r1    = b
-    y = Msolve(b)
-    beta1 = bilinearform(y,b)
+    r1    = r
+    y = Msolve(r)
+    beta1 = bilinearform(y,r)
  
     if beta1< 0: raise NegativeNorm,"negative norm."
 
-    #  If b = 0 exactly, stop with x = 0.
-    if beta1==0: return x*0.
+    #  If r = 0 exactly, stop with x
+    if beta1==0: return x
 
-    if beta1> 0:
-      beta1  = math.sqrt(beta1)       
+    if beta1> 0: beta1  = math.sqrt(beta1)       
 
     #------------------------------------------------------------------
     # Initialize quantities.
@@ -973,8 +1035,8 @@ def MINRES(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=
     ynorm2 = 0
     cs     = -1
     sn     = 0
-    w      = b*0.
-    w2     = b*0.
+    w      = r*0.
+    w2     = r*0.
     r2     = r1
     eps    = 0.0001
 
@@ -1067,25 +1129,42 @@ def MINRES(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=
 
     return x
 
-def TFQMR(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=100):
+def TFQMR(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
+  """
+  Solver for 
 
-# TFQMR solver for linear systems
-#
-#
-# initialization
-#
-  errtol = math.sqrt(bilinearform(b,b))
-  norm_b=errtol
-  kmax  = iter_max
-  error = []
+  M{Ax=b}
 
-  if math.sqrt(bilinearform(x,x)) != 0.0:
-    r = b - Aprod(x)
-  else:
-    r = b
+  with a general operator A (more details required!). 
+  It uses the generalized minimum residual method (GMRES).
 
-  r=Msolve(r)
+  The iteration is terminated if  
 
+  M{|r| <= atol+rtol*|r0|}
+
+  where M{r0} is the initial residual and M{|.|} is the energy norm. In fact
+
+  M{|r| =sqrt( bilinearform(r,r))}
+
+  @param r: initial residual M{r=b-Ax}. C{r} is altered.
+  @type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
+  @param x: an initial guess for the solution. 
+  @type x: same like C{r}
+  @param Aprod: returns the value Ax
+  @type Aprod: function C{Aprod(x)} where C{x} is of the same object like argument C{x}. 
+      The returned object needs to be of the same type like argument C{r}.
+  @param bilinearform: inner product C{<x,r>}
+  @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same type like argument C{x} and C{r} is.
+      The returned value is a C{float}.
+  @param atol: absolute tolerance
+  @type atol: non-negative C{float}
+  @param rtol: relative tolerance
+  @type rtol: non-negative C{float}
+  @param iter_max: maximum number of iteration steps.
+  @type iter_max: C{int}
+  @rtype: C{tuple} 
+  @warning: C{r} and C{x} are altered.
+  """
   u1=0
   u2=0
   y1=0
@@ -1095,29 +1174,20 @@ def TFQMR(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=1
   y1 = r 
   iter = 0 
   d = 0
-  
-  v = Msolve(Aprod(y1))
+  v = Aprod(y1)
   u1 = v
   
   theta = 0.0;
   eta = 0.0;
-  tau = math.sqrt(bilinearform(r,r))
-  error = [ error, tau ] 
-  rho = tau * tau
-#
-#  TFQMR iteration
-#
-#  while ( iter < kmax-1 ):
-   
-  while not tau<=atol+rtol*norm_b:
+  rho=bilinearform(r,r)
+  if rho < 0: raise NegativeNorm,"negative norm."
+  tau = math.sqrt(rho)
+  norm_r0=tau
+  while tau>atol+rtol*norm_r0:
     if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
 
     sigma = bilinearform(r,v)
-
-    if ( sigma == 0.0 ):
-      raise 'TFQMR breakdown, sigma=0'
-    
-
+    if sigma == 0.0: raise IterationBreakDown,'TFQMR breakdown, sigma=0'
     alpha = rho / sigma
 
     for j in range(2):
@@ -1126,7 +1196,7 @@ def TFQMR(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=1
 #
       if ( j == 1 ):
         y2 = y1 - alpha * v
-        u2 = Msolve(Aprod(y2))
+        u2 = Aprod(y2)
  
       m = 2 * (iter+1) - 2 + (j+1)
       if j==0: 
@@ -1144,26 +1214,16 @@ def TFQMR(b, Aprod, Msolve, bilinearform, atol=0, rtol=1.e-8, x=None, iter_max=1
 #
 #  Try to terminate the iteration at each pass through the loop
 #
-     # if ( tau * math.sqrt ( m + 1 ) <= errtol ):
-     #   error = [ error, tau ]
-     #   total_iters = iter
-     #   break
-      
-
-    if ( rho == 0.0 ):
-      raise 'TFQMR breakdown, rho=0'
-    
+    if rho == 0.0: raise IterationBreakDown,'TFQMR breakdown, rho=0'
 
     rhon = bilinearform(r,w)
     beta = rhon / rho;
     rho = rhon;
     y1 = w + beta * y2;
-    u1 = Msolve(Aprod(y1))
+    u1 = Aprod(y1)
     v = u1 + beta * ( u2 + beta * v )
-    error = [ error, tau ]
-    total_iters = iter
     
-    iter = iter + 1
+    iter += 1
 
   return x
 
@@ -1363,7 +1423,7 @@ class HomogeneousSaddlePointProblem(object):
       def __init__(self,**kwargs):
         self.setTolerance()
         self.setAbsoluteTolerance()
-        self.setSubToleranceReductionFactor()
+        self.setSubProblemTolerance()
 
       #=============================================================
       def initialize(self):
@@ -1494,19 +1554,18 @@ class HomogeneousSaddlePointProblem(object):
          self.show_details=show_details and self.verbose
          #=================================================================================
          # Az=f is solved as A(z-v)=f-Av-B^*0 (typically with z-v=0 on boundary)
-         self.setSubProblemTolerance(self.getTolerance(), apply_reduction=True)
          self.__z=v+self.solve_A(v,p*0)
-         Bz=self.B(self.__z) 
-         p0=self.solve_prec(Bz)
          # tolerances:
          rtol=self.getTolerance()
          atol=self.getAbsoluteTolerance()
-         f0=self.norm(self.__z,p0)
-         if not f0>0:
-            return self.__z, p*0
+         if useUzawa:
+            p0=self.solve_prec(self.B(self.__z))
+            f0=self.norm(self.__z,p0)
+         else:
+            f0=util.sqrt(self.inner_v(self.__z,self.__z))
+         if not f0>0: return self.__z, p*0
          ATOL=rtol*f0+atol
-         if not ATOL>0:
-            raise ValueError,"overall absolute tolerance needs to be positive."
+         if not ATOL>0: raise ValueError,"overall absolute tolerance needs to be positive."
          if self.verbose: print "saddle point solver: initial residual %e, tolerance = %e."%(f0,ATOL)
          # initialization
          self.iter=0
@@ -1514,44 +1573,45 @@ class HomogeneousSaddlePointProblem(object):
          converged=False
          # initial guess:
          q=p*1
-         if not useUzawa:
-           u=v
+         u=v*1
          while not converged :
             if useUzawa:
-               self.setSubProblemTolerance(ATOL/f0, apply_reduction=True)
                # assume p is known: then v=z-A^-1B^*p
                #      
                # which leads to BA^-1B^*p = Bz
                #
-               # note that the residual r=Bz-BA^-1B^*p = B(z-A^-1B^*p) = Bu
+               # note that the residual r=Bz-BA^-1B^*p = B(z-A^-1B^*p) = Bv
+               # we use the (v,Bv) to represent the residual
                #
-               # note that q=BA^-1B^*p = B (A^-1B^*p)=Bw  with Aw=B^*p = f - Az - B^*(-p)
+               # the norm of the right hand side Bv = f0
                #
+               #                  and the initial residual
+               #          
+               #     r=Bz-BA^-1B^*q = B(z-A^{-1}B^*q)=Bw with A(w-z)=Az-Az-B^*q = f -A*0 - B^{*}q
+               #
+               w=self.solve_A(self.__z,q)+self.__z
                if self.verbose: print "enter PCG method (iter_max=%s, atol=%e, subtolerance=%e)"%(max_iter,ATOL, self.getSubProblemTolerance())
-               q,r=PCG(ArithmeticTuple(self.__z,Bz),self.__Aprod_PCG,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL, rtol=0.,iter_max=max_iter, x=q, verbose=self.verbose)
+               q,r=PCG(ArithmeticTuple(w,self.B(w)),self.__Aprod_PCG,q,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL, rtol=0.,iter_max=max_iter, verbose=self.verbose)
 	       u=r[0]  
-	       Bu=r[1]  
+	       Bu=r[1]
             else:
-               self.setSubProblemTolerance(ATOL/f0, apply_reduction=True)
                #
                #  with v=dv+z
                #
-               #   A dv + B p = A (v-z) + Bp = 0
-               #   B dv       =  - Bz 
+               #   A v + B p = f
+               #   B v       = 0
                #
-               # apply the preconditioner [[A^{-1} 0][(S^{-1} B A^{-1})  -S^{-1}]] to the problem 
-               # the right hand side is then [0, S^{-1} Bz ]
+               # apply the preconditioner [[A^{-1} 0][(S^{-1} B A^{-1})  -S^{-1}]]
                #
-               #           
+               w=self.solve_A(u,q)
                if self.verbose: print "enter GMRES (iter_max=%s, atol=%e, subtolerance=%e)"%(max_iter,ATOL,self.getSubProblemTolerance())
-               x=GMRES(ArithmeticTuple(0*self.__z,p0),self.__Aprod_GMRES,self.__inner_GMRES,atol=ATOL, rtol=0.,iter_max=max_iter, x=ArithmeticTuple(u-self.__z,q),iter_restart=iter_restart, verbose=self.verbose)
-               self.setSubProblemTolerance(ATOL/f0, apply_reduction=False)
-	       u=self.__z+x[0]
+               x=GMRES(ArithmeticTuple(w,self.solve_prec(self.B(u+w))),self.__Aprod_GMRES, ArithmeticTuple(u,q), \
+                         self.__inner_GMRES,atol=ATOL, rtol=0.,iter_max=max_iter, iter_restart=iter_restart, verbose=self.verbose)
+	       u=x[0]
                q=x[1]
 	       Bu=self.B(u)
-            # now we check if |Bu| ~ 0 or more precise |Bu|  <= rtol * |v| 
+            # now we check if |Bu| ~ 0 or more precise |Bu|_p  <= rtol * |v|_v
             nu=self.inner_v(u,u)
-            nz=self.inner_v(self.__z,self.__z)
             p2=self.solve_prec(Bu)
             nBu=self.inner_p(p2,p2)
             if not nu>=0 and not nBu>=0: raise NegativeNorm,"negative norm."
@@ -1582,6 +1642,8 @@ class HomogeneousSaddlePointProblem(object):
          if tolerance<0:
              raise ValueError,"tolerance must be positive."
          self.__rtol=tolerance
+         self.setSubProblemTolerance()
+
       def getTolerance(self):
          """
          returns the relative tolerance
@@ -1608,45 +1670,19 @@ class HomogeneousSaddlePointProblem(object):
          @rtype: C{float}
          """
          return self.__atol
-      def setSubToleranceReductionFactor(self,reduction=None):
-         """
-         sets the reduction factor for the tolerance used to solve the subproblem in each iteration step.
-         if set to C{None} the square of the problem tolerance is used.
-    
-         @param reduction: reduction factor.
-         @type reduction: positive C{float} less or equal one or C{None}
-         """
-         if not reduction == None:
-              if reduction<=0 or reduction>1:
-                  raise ValueError,"reduction factor (=%e) must be positive and less or equal one."%reduction
-         self.__reduction=reduction
-      def getSubToleranceReductionFactor(self):
-         """
-         returns the subproblem reduction factor
 
-         @return: subproblem reduction factor
-         @rtype: C{float} or C{None}
-         """
-         return self.__reduction
-
-      def setSubProblemTolerance(self,rtol,apply_reduction=False):
+      def setSubProblemTolerance(self,rtol=None):
          """
          sets the relative tolerance to solve the subproblem(s). 
 
          @param rtol: relative tolerence
          @type rtol: positive C{float}
-         @param apply_reduction: if set the the reduction factor is applied.
-         @type apply_reduction: C{bool}
          """
+         if rtol == None: 
+              rtol=max(200.*util.EPSILON,self.getTolerance()**2)
          if rtol<=0:
              raise ValueError,"tolerance must be positive."
-         if apply_reduction:
-             if self.__reduction == None:
-                 self.__sub_tol=max(rtol**2,util.EPSILON*10)
-             else:
-                 self.__sub_tol=max(self.__reduction*rtol,util.EPSILON*10)
-         else:
-             self.__sub_tol=rtol
+         self.__sub_tol=rtol
       def getSubProblemTolerance(self):
          """
          returns the subproblem reduction factor

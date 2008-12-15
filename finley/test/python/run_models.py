@@ -33,7 +33,7 @@ except KeyError:
      FINLEY_WORKDIR='.'
 
 
-VERBOSE=False # or True
+VERBOSE=False # 
 
 from esys.escript import *
 from esys.escript.models import StokesProblemCartesian
@@ -89,14 +89,15 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       sp.setTolerance(self.TOL)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE or True,max_iter=100,useUzawa=True)
+       sp.setTolerance(self.TOL*0.2)
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,useUzawa=True)
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
        error_p=Lsup(P1*x[0]*x[1]+p)
+       saveVTK("d.vtu",p=p, e=P1*x[0]*x[1]+p, p_ref=P1*x[0]*x[1])
        self.failUnless(error_v0<10*self.TOL, "0-velocity error too large.")
        self.failUnless(error_v1<10*self.TOL, "1-velocity error too large.")
-       self.failUnless(error_p<11*self.TOL, "pressure error too large.")
+       self.failUnless(error_p<10*self.TOL, "pressure error too large.")
 
    def test_PCG_P_large(self):
        ETA=1.
@@ -142,12 +143,10 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
        p0=Scalar(P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
        u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=50,useUzawa=False,iter_restart=18)
-       # u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,useUzawa=False,iter_restart=20)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
-       zz=P1*x[0]*x[1]+p
-       error_p=Lsup(zz-integrate(zz))
+       error_p=Lsup(P1*x[0]*x[1]+p)
        self.failUnless(error_p<10*self.TOL, "pressure error too large.")
        self.failUnless(error_v0<10*self.TOL, "0-velocity error too large.")
        self.failUnless(error_v1<10*self.TOL, "1-velocity error too large.")
@@ -168,15 +167,12 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       sp.setTolerance(self.TOL*0+1.e-6)
-       # sp.setSubToleranceReductionFactor(0.1)
+       sp.setTolerance(self.TOL*0.1)
        u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=20,useUzawa=False)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
-       zz=P1*x[0]*x[1]+p
-       error_p=Lsup(zz-integrate(zz))
-       # print error_p, error_v0,error_v1
+       error_p=Lsup(P1*x[0]*x[1]+p)
        self.failUnless(error_p<10*self.TOL, "pressure error too large.")
        self.failUnless(error_v0<10*self.TOL, "0-velocity error too large.")
        self.failUnless(error_v1<10*self.TOL, "1-velocity error too large.")
@@ -202,8 +198,7 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
-       zz=P1*x[0]*x[1]+p
-       error_p=Lsup(zz-integrate(zz))/P1
+       error_p=Lsup(P1*x[0]*x[1]+p)/P1
        self.failUnless(error_p<10*self.TOL, "pressure error too large.")
        self.failUnless(error_v0<10*self.TOL, "0-velocity error too large.")
        self.failUnless(error_v1<10*self.TOL, "1-velocity error too large.")
@@ -224,7 +219,7 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        x=self.domain.getX()
        mask=whereZero(x[0])    * [1.,1.,1.] \
               +whereZero(x[0]-1)  * [1.,1.,1.] \
-              +whereZero(x[1])    * [1.,1.,1.] \
+              +whereZero(x[1])    * [1.,0.,1.] \
               +whereZero(x[1]-1)  * [1.,1.,1.] \
               +whereZero(x[2])    * [1.,1.,0.] \
               +whereZero(x[2]-1)  * [1.,1.,1.]
@@ -235,15 +230,13 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       sp.setTolerance(1.e-8)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,useUzawa=True)
+       sp.setTolerance(self.TOL)
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE ,max_iter=100,useUzawa=True)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
        error_v2=Lsup(u[2]-u0[2])/0.25**2
-       zz=P1*x[0]*x[1]*x[2]+p
-       error_p=Lsup(zz-integrate(zz))
-       # print error_p, error_v0,error_v1,error_v2
+       error_p=Lsup(P1*x[0]*x[1]*x[2]+p)
        self.failUnless(error_p<10*self.TOL, "pressure error too large.")
        self.failUnless(error_v0<10*self.TOL, "0-velocity error too large.")
        self.failUnless(error_v1<10*self.TOL, "1-velocity error too large.")
@@ -257,7 +250,7 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        F=-P1*x[1]*x[2]*[1.,0.,0.]-P1*x[0]*x[2]*[0.,1.,0.]+(2*ETA*((1-x[0])*x[0]+(1-x[1])*x[1])-P1*x[0]*x[1])*[0.,0.,1.]
        mask=whereZero(x[0])    * [1.,1.,1.] \
               +whereZero(x[0]-1)  * [1.,1.,1.] \
-              +whereZero(x[1])    * [1.,1.,1.] \
+              +whereZero(x[1])    * [1.,0.,1.] \
               +whereZero(x[1]-1)  * [1.,1.,1.] \
               +whereZero(x[2])    * [1.,1.,0.] \
               +whereZero(x[2]-1)  * [1.,1.,1.]
@@ -268,14 +261,13 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       sp.setTolerance(1.e-8)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,useUzawa=True)
+       sp.setTolerance(self.TOL)
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE ,max_iter=100,useUzawa=True)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
        error_v2=Lsup(u[2]-u0[2])/0.25**2
-       zz=P1*x[0]*x[1]*x[2]+p
-       error_p=Lsup(zz-integrate(zz))/P1
+       error_p=Lsup(P1*x[0]*x[1]*x[2]+p)
        self.failUnless(error_p<10*self.TOL, "pressure error too large.")
        self.failUnless(error_v0<10*self.TOL, "0-velocity error too large.")
        self.failUnless(error_v1<10*self.TOL, "1-velocity error too large.")
@@ -288,7 +280,7 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        F=-P1*x[1]*x[2]*[1.,0.,0.]-P1*x[0]*x[2]*[0.,1.,0.]+(2*ETA*((1-x[0])*x[0]+(1-x[1])*x[1])-P1*x[0]*x[1])*[0.,0.,1.]
        mask=whereZero(x[0])    * [1.,1.,1.] \
               +whereZero(x[0]-1)  * [1.,1.,1.] \
-              +whereZero(x[1])    * [1.,1.,1.] \
+              +whereZero(x[1])    * [1.,0.,1.] \
               +whereZero(x[1]-1)  * [1.,1.,1.] \
               +whereZero(x[2])    * [1.,1.,0.] \
               +whereZero(x[2]-1)  * [1.,1.,1.]
@@ -299,15 +291,13 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       sp.setTolerance(1.e-8)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,useUzawa=True)
+       sp.setTolerance(self.TOL)
+       u,p=sp.solve(u0,-p0,show_details=VERBOSE, verbose=VERBOSE ,max_iter=100,useUzawa=True)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
        error_v2=Lsup(u[2]-u0[2])/0.25**2
-       zz=P1*x[0]*x[1]*x[2]+p
-       error_p=Lsup(zz-integrate(zz))/P1
-       # print error_p, error_v0,error_v1,error_v2
+       error_p=Lsup(P1*x[0]*x[1]*x[2]+p)/P1 
        self.failUnless(error_p<10*self.TOL, "pressure error too large.")
        self.failUnless(error_v0<10*self.TOL, "0-velocity error too large.")
        self.failUnless(error_v1<10*self.TOL, "1-velocity error too large.")
@@ -333,14 +323,13 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       sp.setTolerance(1.e-8)
+       sp.setTolerance(self.TOL)
        u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,useUzawa=False,iter_restart=20)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
        error_v2=Lsup(u[2]-u0[2])/0.25**2
-       zz=P1*x[0]*x[1]*x[2]+p
-       error_p=Lsup(zz-integrate(zz))
+       error_p=Lsup(P1*x[0]*x[1]*x[2]+p)
        # print error_p, error_v0,error_v1,error_v2
        self.failUnless(error_p<10*self.TOL, "pressure error too large.")
        self.failUnless(error_v0<10*self.TOL, "0-velocity error too large.")
@@ -365,15 +354,13 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       sp.setTolerance(1.e-8)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,useUzawa=False)
+       sp.setTolerance(self.TOL)
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE ,max_iter=100,useUzawa=False)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
        error_v2=Lsup(u[2]-u0[2])/0.25**2
-       zz=P1*x[0]*x[1]*x[2]+p
-       error_p=Lsup(zz-integrate(zz))/P1
-       # print error_p, error_v0,error_v1,error_v2
+       error_p=Lsup(P1*x[0]*x[1]*x[2]+p)/P1
        self.failUnless(error_p<10*self.TOL, "pressure error too large.")
        self.failUnless(error_v0<10*self.TOL, "0-velocity error too large.")
        self.failUnless(error_v1<10*self.TOL, "1-velocity error too large.")
@@ -386,7 +373,7 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        F=-P1*x[1]*x[2]*[1.,0.,0.]-P1*x[0]*x[2]*[0.,1.,0.]+(2*ETA*((1-x[0])*x[0]+(1-x[1])*x[1])-P1*x[0]*x[1])*[0.,0.,1.]
        mask=whereZero(x[0])    * [1.,1.,1.] \
               +whereZero(x[0]-1)  * [1.,1.,1.] \
-              +whereZero(x[1])    * [1.,1.,1.] \
+              +whereZero(x[1])    * [1.,0.,1.] \
               +whereZero(x[1]-1)  * [1.,1.,1.] \
               +whereZero(x[2])    * [1.,1.,0.] \
               +whereZero(x[2]-1)  * [1.,1.,1.]
@@ -397,17 +384,13 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       sp.setTolerance(self.TOL+0*1.e-8)
-       # sp.setSubToleranceReductionFactor(1.e-8/self.TOL)
-       # sp.setSubToleranceReductionFactor(None)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,useUzawa=False)
+       sp.setTolerance(self.TOL)
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE ,max_iter=100,useUzawa=False)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
        error_v2=Lsup(u[2]-u0[2])/0.25**2
-       zz=P1*x[0]*x[1]*x[2]+p
-       error_p=Lsup(zz-integrate(zz))/P1
-       # print error_p, error_v0,error_v1,error_v2
+       error_p=Lsup(P1*x[0]*x[1]*x[2]+p)/P1
        self.failUnless(error_p<10*self.TOL, "pressure error too large.")
        self.failUnless(error_v0<10*self.TOL, "0-velocity error too large.")
        self.failUnless(error_v1<10*self.TOL, "1-velocity error too large.")
@@ -511,7 +494,7 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        v,p=df.solve(u,p,atol=0,rtol=self.TOL, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        v,p=df.solve(u,p,atol=0,rtol=self.TOL, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL*self.TOL)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
