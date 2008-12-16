@@ -7,18 +7,22 @@
 int main (int argc, char *argv[]) {
     Paso_SystemMatrix *A = NULL;
     double *b,*x;
-    dim_t i,n;
+    dim_t i,n,level=1;
    
     if (argc<2) {
         fprintf(stderr,"Please enter the filename\n");
         return -1;    
+    }
+
+    if (argc==3) {
+      level=atoi(argv[2]);
     }
     
     A=MEMALLOC(1,Paso_SystemMatrix);
    
     A=Paso_SystemMatrix_loadMM_toCSR(argv[1]);
     if (A==NULL) {
-      printf("CSR Matrix not Loaded\n");
+      fprintf(stderr,"CSR Matrix not Loaded\n");
       return 0;
     }
     n=Paso_SystemMatrix_getTotalNumRows(A);
@@ -29,8 +33,7 @@ int main (int argc, char *argv[]) {
      b[i]=1;
     }
     
-    Paso_test_run(A,b,1);
-    
+    Paso_test_run(A,b,level);
     MEMFREE(b);
     MEMFREE(x);
     Paso_SystemMatrix_free(A);
