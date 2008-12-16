@@ -977,27 +977,43 @@ DataLazy::resolveNP1OUT_P(ValueType& v, size_t offset, int sampleNo, size_t& rof
 	// since we can't write the result over the input, we need a result offset further along
   size_t subroffset;
   const ValueType* vleft=m_left->resolveSample(v,offset+m_left->m_samplesize,sampleNo,subroffset);
-LAZYDEBUG(cerr << "from=" << offset+m_left->m_samplesize << " to=" << subroffset << " ret=" << roffset << endl;)
+LAZYDEBUG(cerr << "srcsamplesize=" << offset+m_left->m_samplesize << " beg=" << subroffset << endl;)
+LAZYDEBUG(cerr << "Offset for 5800=" << getPointOffset(5800/getNumDPPSample(),5800%getNumDPPSample()) << endl;)
   roffset=offset;
   size_t loop=0;
   size_t numsteps=(m_readytype=='E')?getNumDPPSample():1;
-  size_t step=getNoValues();
+  size_t outstep=getNoValues();
+  size_t instep=m_left->getNoValues();
+LAZYDEBUG(cerr << "instep=" << instep << " outstep=" << outstep<< " numsteps=" << numsteps << endl;)
   switch (m_op)
   {
     case TRACE:
 	for (loop=0;loop<numsteps;++loop)
 	{
-            DataMaths::trace(*vleft,m_left->getShape(),subroffset, v,getShape(),offset,m_axis_offset);
-	    subroffset+=step;
-	    offset+=step;
+size_t zz=sampleNo*getNumDPPSample()+loop;
+if (zz==5800)
+{
+LAZYDEBUG(cerr << "point=" <<  zz<< endl;)
+LAZYDEBUG(cerr << "Input to  trace=" << DataTypes::pointToString(*vleft,m_left->getShape(),subroffset,"") << endl;)
+LAZYDEBUG(cerr << "Offset for point=" << getPointOffset(5800/getNumDPPSample(),5800%getNumDPPSample()) << " vs ";)
+LAZYDEBUG(cerr << subroffset << endl;)
+LAZYDEBUG(cerr << "output=" << offset << endl;)
+}
+            DataMaths::trace(*vleft,m_left->getShape(),subroffset, v ,getShape(),offset,m_axis_offset);
+if (zz==5800)
+{
+LAZYDEBUG(cerr << "Result of trace=" << DataTypes::pointToString(v,getShape(),offset,"") << endl;)
+}
+	    subroffset+=instep;
+	    offset+=outstep;
 	}
 	break;
     case TRANS:
 	for (loop=0;loop<numsteps;++loop)
 	{
             DataMaths::transpose(*vleft,m_left->getShape(),subroffset, v,getShape(),offset,m_axis_offset);
-	    subroffset+=step;
-	    offset+=step;
+	    subroffset+=instep;
+	    offset+=outstep;
 	}
 	break;
     default:
@@ -1357,6 +1373,8 @@ LAZYDEBUG(cout << "Total number of samples=" <<totalsamples << endl;)
   for (sample=0;sample<totalsamples;++sample)
   {
       if (sample==0)  {ENABLEDEBUG}
+
+//       if (sample==5800/getNumDPPSample())  {ENABLEDEBUG}
 LAZYDEBUG(cout << "################################# " << sample << endl;)
 #ifdef _OPENMP
     res=resolveSample(v,threadbuffersize*omp_get_thread_num(),sample,resoffset);
@@ -1369,7 +1387,7 @@ LAZYDEBUG(cerr<< "Copying sample#" << sample << endl;)
 LAZYDEBUG(cerr << "offset=" << outoffset << " from offset=" << resoffset << " " << m_samplesize << " doubles" << endl;)
     for (unsigned int i=0;i<m_samplesize;++i,++outoffset,++resoffset)	// copy values into the output vector
     {
-// LAZYDEBUG(cerr << "outoffset=" << outoffset << " resoffset=" << resoffset << endl;)
+LAZYDEBUG(cerr << "outoffset=" << outoffset << " resoffset=" << resoffset << " " << (*res)[resoffset]<< endl;)
 	resvec[outoffset]=(*res)[resoffset];
     }
 LAZYDEBUG(cerr << DataTypes::pointToString(resvec,getShape(),outoffset-m_samplesize+DataTypes::noValues(getShape()),"Final result:") << endl;)
