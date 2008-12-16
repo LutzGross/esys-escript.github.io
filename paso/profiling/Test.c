@@ -2,7 +2,7 @@
 #include "paso/Common.h"
 #include "paso/Solver.h"
 #include "paso/SystemMatrix.h"
-#include "paso/Paso_tests.h"
+#include "Paso_tests.h"
 
 int main (int argc, char *argv[]) {
     Paso_SystemMatrix *A = NULL;
