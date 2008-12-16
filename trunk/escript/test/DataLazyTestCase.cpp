@@ -335,15 +335,15 @@ void DataLazyTestCase::testBuffers()
   DataAbstract_ptr p2=(new DataLazy(p,SIN))->getPtr();
   DataAbstract_ptr p3=(new DataLazy(p2,COS))->getPtr();
   DataAbstract_ptr p4=(new DataLazy(p3,getLazy(shape),ADD))->getPtr();
-  assert(dynamic_pointer_cast<DataLazy>(p4)->getBuffsRequired()==2);
+  assert(dynamic_pointer_cast<DataLazy>(p4)->getBuffsRequired()==4);
   DataAbstract_ptr p5=(new DataLazy(p2,p4,ADD))->getPtr();
-  assert(dynamic_pointer_cast<DataLazy>(p5)->getBuffsRequired()==3);
+  assert(dynamic_pointer_cast<DataLazy>(p5)->getBuffsRequired()==6);
   DataAbstract_ptr p6=(new DataLazy(p5,TRANS,0))->getPtr();
-  assert(dynamic_pointer_cast<DataLazy>(p6)->getBuffsRequired()==4);
+  assert(dynamic_pointer_cast<DataLazy>(p6)->getBuffsRequired()==7);
   DataAbstract_ptr p7=(new DataLazy(p6,p6,PROD,0,0))->getPtr();
-  assert(dynamic_pointer_cast<DataLazy>(p7)->getBuffsRequired()==6);
+  assert(dynamic_pointer_cast<DataLazy>(p7)->getBuffsRequired()==9);
   DataAbstract_ptr p8=(new DataLazy(p7,TRACE,0))->getPtr();
-  assert(dynamic_pointer_cast<DataLazy>(p8)->getBuffsRequired()==7);
+  assert(dynamic_pointer_cast<DataLazy>(p8)->getBuffsRequired()==10);
 }
 
 
