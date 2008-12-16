@@ -25,7 +25,7 @@ filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h",
 
 sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 
-local_env.Append(LIBS= ['esysUtils','paso'] + local_env['sys_libs'] )
+local_env.Append(LIBS= ['escript','esysUtils','paso'] + local_env['sys_libs'] )
 local_env['CCFLAGS'] = re.sub("-O[0-9]", "-g", str(local_env['CCFLAGS']))	# Some of these test files are too large to optimize
 
 program = local_env.Program('PasoTests', sources)
