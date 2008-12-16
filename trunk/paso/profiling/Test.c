@@ -6,7 +6,7 @@
 
 int main (int argc, char *argv[]) {
     Paso_SystemMatrix *A = NULL;
-    double *b,*x,S;
+    double *b,*x;
     dim_t i,n;
    
     if (argc<2) {
