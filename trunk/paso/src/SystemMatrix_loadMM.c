@@ -209,9 +209,11 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
         output_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
         dist[1]=N;
         input_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
-        mainPattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,M,N,row_ptr,row_ind);
+        mainPattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,M,N,row_ptr,col_ind);
         couplePattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,M,N,NULL,NULL);
-        send=Paso_SharedComponents_alloc(M,0,NULL,NULL,NULL,1,0,mpi_info);
+	dist[0]=M;
+        send=Paso_SharedComponents_alloc(M,0,NULL,NULL,dist,1,0,mpi_info);
+	dist[0]=0;
         connector=Paso_Connector_alloc(send,send);
         pattern=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,output_dist,input_dist,
                                                mainPattern,couplePattern,couplePattern,connector,connector);
@@ -229,7 +231,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	Paso_SharedComponents_free(send);
         Paso_MPIInfo_free(mpi_info);
 	MEMFREE( val );
-	MEMFREE( col_ind );
+	MEMFREE( row_ind );
 	return out;
 }
 
