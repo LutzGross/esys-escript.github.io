@@ -49,7 +49,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
   diagptr=MEMALLOC(n,index_t);
 
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_Pattern_mis: symmetric matrix pattern is not supported yet");
+    Paso_setError(TYPE_ERROR,"Paso_Pattern_coup: symmetric matrix pattern is not supported yet");
     return;
   }
    
@@ -68,7 +68,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
                                 sizeof(index_t),
                                 Paso_comparIndex);
         if (where_p==NULL) {
-            Paso_setError(VALUE_ERROR, "Paso_Solver_getAMG: main diagonal element missing.");
+            Paso_setError(VALUE_ERROR, "Paso_Pattern_coup: main diagonal element missing.");
         } else {
                 diagptr[i]+=(index_t)(where_p-index);
         }
