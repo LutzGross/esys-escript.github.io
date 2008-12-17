@@ -38,17 +38,18 @@ class LevelSet:
   """
   The level set method tracking an interface defined by the zero contour of the
   level set function phi.
+
   It is assumed that phi(x)<0 defines the volume of interest.
 
   """
   def __init__(self,domain,phi,reinit_max=10,reinit_each=2,smooth=2.):
     """
-    set up the level set method
+    Sets up the level set method.
 
     @param domain: the domain where the level set is used
     @param phi: the initial level set function
-    @param reinit_max: maximum number of reinitalization steps
-    @param reinit_each: phi is reinitialized every reinit_each step
+    @param reinit_max: maximum number of reinitialization steps
+    @param reinit_each: C{phi} is reinitialized every C{reinit_each} step
     @param smooth: smoothing width
     """
     self.__domain = domain
@@ -69,9 +70,10 @@ class LevelSet:
 
   def __advect(self, velocity, dt):
     """
-    advects the level set function in the presence of a velocity field.
+    Advects the level set function in the presence of a velocity field.
 
-    This implementation uses the 2-step Taylor-Galerkin method
+    This implementation uses the 2-step Taylor-Galerkin method.
+
     @param velocity: velocity field
     @param dt: time increment
     @return: the advected level set function
@@ -87,9 +89,9 @@ class LevelSet:
 
   def __reinitialise(self):
     """
-    reinitializes the level set
+    Reinitializes the level set.
 
-    It solves the...
+    It solves the PDE...
 
     @return: reinitialized level set
     """
@@ -117,7 +119,7 @@ class LevelSet:
 
   def getTimeStepSize(self,velocity):
        """
-       returns a new dt for a given velocity using the courant condition
+       Returns a new C{dt} for a given C{velocity} using the Courant condition.
 
        @param velocity: velocity field
        """
@@ -127,7 +129,7 @@ class LevelSet:
 
   def update(self,dt):
       """
-      sets a new velocity and updates the level set function
+      Sets a new velocity and updates the level set function.
 
       @param dt: time step forward
       """
@@ -138,14 +140,15 @@ class LevelSet:
 
   def update_phi(self, velocity, dt):
       """
-      updates phi under the presence of a velocity field
+      Updates C{phi} under the presence of a velocity field.
 
-      If dt is small this call is equivalent to call
+      If dt is small this call is equivalent to::
 
-      dt=LevelSet.getTimeStepSize(velocity)
-      phi=LevelSet.update(dt)
+          dt=LevelSet.getTimeStepSize(velocity)
+          phi=LevelSet.update(dt)
 
       otherwise substepping is used.
+
       @param velocity: velocity field
       @param dt: time step forward
       """
@@ -159,69 +162,72 @@ class LevelSet:
 
 
   def getVolume(self):
-    """
-    returns the volume of the phi(x)<0 region
-    """
-    return integrate(whereNegative(self.__phi.interpolate(Function(self.__domain))))
+      """
+      Returns the volume of the M{phi(x)<0} region.
+      """
+      return integrate(whereNegative(self.__phi.interpolate(Function(self.__domain))))
 
   def getSurface(self,rel_width_factor=0.5):
-    """
-    returns a mask for the phi(x)=1 region
+      """
+      Returns a mask for the M{phi(x)=1} region
 
-    @param rel_width_factor: relative width of region around zero contour.
-    """
-    return whereNegative(abs(self.__phi)-rel_width_factor*self.__h)
+      @param rel_width_factor: relative width of region around zero contour
+      """
+      return whereNegative(abs(self.__phi)-rel_width_factor*self.__h)
 
   def getH(self):
-     """
-     returns the mesh size
-     """
-     return self.__h
+      """
+      Returns the mesh size.
+      """
+      return self.__h
 
   def getDomain(self):
-     """
-     returns the domain
-     """
-     return self.__domain
+      """
+      Returns the domain.
+      """
+      return self.__domain
 
   def getLevelSetFunction(self):
       """
-      returns the level set function
+      Returns the level set function.
       """
       return self.__phi
 
   def update_parameter_sharp(self, param_neg=-1, param_pos=1, phi=None):
-    """
-    creates a function with param_neg where phi<0 and param_pos where phi>0
-    (no smoothing)
+      """
+      Creates a function with C{param_neg} where C{phi<0} and C{param_pos}
+      where C{phi>0} (no smoothing).
 
-    @param param_neg: value of parameter on the negative side (phi<0)
-    @param param_pos: value of parameter on the positive side (phi>0)
-    @param phi: level set function to be used. if not present the current level set is used.
-    """
-    mask_neg = whereNegative(self.__phi)
-    mask_pos = whereNonNegative(self.__phi)
-    param = param_pos*mask_pos + param_neg*mask_neg
-    return param
+      @param param_neg: value of parameter on the negative side (phi<0)
+      @param param_pos: value of parameter on the positive side (phi>0)
+      @param phi: level set function to be used. If not present the current
+                  level set is used.
+      """
+      mask_neg = whereNegative(self.__phi)
+      mask_pos = whereNonNegative(self.__phi)
+      param = param_pos*mask_pos + param_neg*mask_neg
+      return param
 
   def update_parameter(self, param_neg=-1, param_pos=1, phi=None, smoothing_width=None):
-    """
-    creates a smoothed function with param_neg where phi<0 and param_pos where
-    phi>0 which is smoothed over a length smoothing_width across the interface
+      """
+      Creates a smoothed function with C{param_neg} where C{phi<0} and
+      C{param_pos} where C{phi>0} which is smoothed over a length
+      C{smoothing_width} across the interface.
 
-    @param smoothing_width: width of the smoothing zone relative to mesh size.
-                            If not present the initial value of C{smooth} is used.
-    """
-    if smoothing_width==None: smoothing_width = self.__smooth
-    if phi==None: phi=self.__phi
-    s=self.__makeInterface(phi,smoothing_width)
-    return ((param_pos-param_neg)*s+param_pos+param_neg)/2
+      @param smoothing_width: width of the smoothing zone relative to mesh size.
+                              If not present the initial value of C{smooth} is
+                              used.
+      """
+      if smoothing_width==None: smoothing_width = self.__smooth
+      if phi==None: phi=self.__phi
+      s=self.__makeInterface(phi,smoothing_width)
+      return ((param_pos-param_neg)*s+param_pos+param_neg)/2
 
   def __makeInterface(self,phi,smoothing_width):
       """
-      creates a smooth interface from -1 to 1 over the length
-      2*h*smoothing_width where -1 is used where the level set is negative and
-      1 where the level set is 1
+      Creates a smooth interface from -1 to 1 over the length
+      M{2*h*smoothing_width} where -1 is used where the level set is negative
+      and 1 where the level set is 1.
       """
       s=smoothing_width*self.__h
       phi_on_h=interpolate(phi,Function(self.__domain))
@@ -233,12 +239,14 @@ class LevelSet:
 
   def makeCharacteristicFunction(self, contour=0, phi=None, positiveSide=True, smoothing_width=None):
       """
-      makes a smooth characteristic function of the region phi(x)>contour if
-      positiveSide and phi(x)<contour otherwise.
+      Makes a smooth characteristic function of the region C{phi(x)>contour} if
+      C{positiveSide} and C{phi(x)<contour} otherwise.
 
-      @param phi: level set function to be used. If not present the current level set is used.
+      @param phi: level set function to be used. If not present the current
+                  level set is used.
       @param smoothing_width: width of the smoothing zone relative to mesh size.
-                              If not present the initial value of C{smooth} is used.
+                              If not present the initial value of C{smooth} is
+                              used.
       """
       if phi==None: phi=self.__phi
       if smoothing_width == None: smoothing_width=self.__smooth
@@ -256,7 +264,7 @@ class LevelSet:
 class LevelSet2(object):
      def __init__(self,phi,reinit_max=10,reinit_each=2,smooth=2.):
          """
-         initialize model
+         Initializes the model.
          """
          self.__domain = phi.getDomain()
          x=self.__domain.getX()
@@ -317,7 +325,7 @@ class LevelSet2(object):
 
      def update(self,dt):
          """
-         sets a new velocity and updates the level set function
+         Sets a new velocity and updates the level set function.
 
          @param dt: time step forward
          """
@@ -539,14 +547,14 @@ class LevelSet2(object):
 
      def getVolumeOfNegativeDomain(self):
          """
-         returns the current volume of domain with phi<0.
+         Returns the current volume of domain with phi<0.
          """
          return integrate((1.-self.__makeInterface(1.))/2.)
 
 
      def getBoundingBoxOfNegativeDomain(self):
          """
-         returns the height of the region with phi<0
+         Returns the height of the region with phi<0.
          """
          fs=self.__h.getFunctionSpace()
          mask_phi1=wherePositive(interpolate(self.__phi,fs))
