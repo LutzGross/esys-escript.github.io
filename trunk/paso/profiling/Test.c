@@ -14,7 +14,7 @@ int main (int argc, char *argv[]) {
         return -1;    
     }
 
-    if (argc==3) {
+    if (argc>2) {
       level=atoi(argv[2]);
     }
     
@@ -28,10 +28,16 @@ int main (int argc, char *argv[]) {
     n=Paso_SystemMatrix_getTotalNumRows(A);
     b=MEMALLOC(n,double);
     x=MEMALLOC(n,double);
-    for(i=0;i<n;i++)
-    {
-     b[i]=1;
+    
+    if(argc==4) {
+        Paso_RHS_loadMM_toCSR(argv[3],b,n);
     }
+    else {
+        for(i=0;i<n;i++) {
+          b[i]=1;
+        }    
+    }
+    
     
     Paso_test_run(A,b,level);
     MEMFREE(b);
