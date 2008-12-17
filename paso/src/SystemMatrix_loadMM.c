@@ -148,7 +148,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	/* get matrix size */
 	if( mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0 )
 	{
-		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Could not parse matrix size");
+		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Could not read sparse matrix size");
                 Paso_MPIInfo_free(mpi_info);
 		fclose( fileHandle_p );
 		return NULL;
@@ -360,4 +360,57 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	MEMFREE( val );
 	MEMFREE( row_ind );
 	return out;
+}
+
+void Paso_RHS_loadMM_toCSR( char *fileName_p, double *b, dim_t size)
+{
+	FILE *fileHandle_p = NULL;
+	int i, scan_ret;
+	MM_typecode matrixCode;
+        Paso_resetError();
+	/* open the file */
+	fileHandle_p = fopen( fileName_p, "r" );
+	if( fileHandle_p == NULL )
+	{
+		Paso_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Cannot read file for reading.");
+	}
+
+	/* process banner */
+	if( mm_read_banner(fileHandle_p, &matrixCode) != 0 )
+	{
+		Paso_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Error processing MM banner.");
+	}
+	if( !(mm_is_real(matrixCode) && mm_is_general(matrixCode) && mm_is_array(matrixCode)) )
+	{
+
+		Paso_setError(TYPE_ERROR,"Paso_RHS_loadMM_toCSR: found Matrix Market type is not supported.");
+	}
+
+	/* get matrix size */
+	if( mm_read_mtx_array_size(fileHandle_p, &M, &N) != 0 )
+	{
+		Paso_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Could not read sparse matrix size.");
+	}
+	
+	if(M!=size){
+		Paso_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Actual and provided sizes do not match.");
+	}
+
+       if (Paso_noError()) {
+		nz=M;
+		/* perform actual read of elements */
+		for( i=0; i<nz; i++ )
+		{
+			scan_ret = fscanf( fileHandle_p, "%le\n", &b[i] );
+		if (scan_ret!=1)
+		{
+			fclose(fileHandle_p);
+			Paso_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Could not read some of the values.");
+		}
+		}
+        }
+	else {
+		fclose( fileHandle_p );	
+	}
+
 }
