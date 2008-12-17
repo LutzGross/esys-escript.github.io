@@ -38,6 +38,10 @@ bool privdebug=false;
 #define DISABLEDEBUG privdebug=false;
 }
 
+#define SIZELIMIT 
+// #define SIZELIMIT if ((m_height>7) || (m_children>127)) {cerr << "\n!!!!!!! SIZE LIMIT EXCEEDED " << m_children << ";" << m_height << endl << toString() << endl; resolveToIdentity();}
+
+
 /*
 How does DataLazy work?
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -273,22 +277,6 @@ GTPShape(DataAbstract_ptr left, DataAbstract_ptr right, int axis_offset, int tra
   return shape2;
 }
 
-
-// determine the number of points in the result of "left op right"
-// note that determining the resultLength for G_TENSORPROD is more complex and will not be processed here
-// size_t
-// resultLength(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
-// {
-//    switch (getOpgroup(op))
-//    {
-//    case G_BINARY: return left->getLength();
-//    case G_UNARY: return left->getLength();
-//    case G_NP1OUT: return left->getLength();
-//    default: 
-// 	throw DataException("Programmer Error - attempt to getLength() for operator "+opToString(op)+".");
-//    }
-// }
-
 // determine the number of samples requires to evaluate an expression combining left and right
 // NP1OUT needs an extra buffer because we can't write the answers over the top of the input.
 // The same goes for G_TENSORPROD
@@ -330,11 +318,7 @@ opToString(ES_optype op)
 
 
 DataLazy::DataLazy(DataAbstract_ptr p)
-	: parent(p->getFunctionSpace(),p->getShape()),
-	m_op(IDENTITY),
-	m_axis_offset(0),
-	m_transpose(0),
-	m_SL(0), m_SM(0), m_SR(0)
+	: parent(p->getFunctionSpace(),p->getShape())
 {
    if (p->isLazy())
    {
@@ -345,15 +329,9 @@ DataLazy::DataLazy(DataAbstract_ptr p)
    }
    else
    {
-	m_id=dynamic_pointer_cast<DataReady>(p);
-  	if(p->isConstant()) {m_readytype='C';}
-  	else if(p->isExpanded()) {m_readytype='E';}
-  	else if (p->isTagged()) {m_readytype='T';}
-	else {throw DataException("Unknown DataReady instance in DataLazy constructor.");}
+	DataReady_ptr dr=dynamic_pointer_cast<DataReady>(p);
+	makeIdentity(dr);
    }
-   m_buffsRequired=1;
-   m_samplesize=getNumDPPSample()*getNoValues();
-   m_maxsamplesize=m_samplesize;
 LAZYDEBUG(cout << "(1)Lazy created with " << m_samplesize << endl;)
 }
 
@@ -386,6 +364,9 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
    m_buffsRequired=calcBuffs(m_left, m_right,m_op);	// yeah m_right will be null at this point
    m_samplesize=getNumDPPSample()*getNoValues();
    m_maxsamplesize=max(m_samplesize,m_left->getMaxSampleSize());
+   m_children=m_left->m_children+1;
+   m_height=m_left->m_height+1;
+   SIZELIMIT
 }
 
 
@@ -447,6 +428,9 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
    m_samplesize=getNumDPPSample()*getNoValues();
    m_maxsamplesize=max(max(m_samplesize,m_right->getMaxSampleSize()),m_left->getMaxSampleSize());	
    m_buffsRequired=calcBuffs(m_left, m_right,m_op);
+   m_children=m_left->m_children+m_right->m_children+2;
+   m_height=max(m_left->m_height,m_right->m_height)+1;
+   SIZELIMIT
 LAZYDEBUG(cout << "(3)Lazy created with " << m_samplesize << endl;)
 }
 
@@ -511,6 +495,9 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op, 
    m_samplesize=getNumDPPSample()*getNoValues();
    m_maxsamplesize=max(max(m_samplesize,m_right->getMaxSampleSize()),m_left->getMaxSampleSize());	
    m_buffsRequired=calcBuffs(m_left, m_right,m_op);
+   m_children=m_left->m_children+m_right->m_children+2;
+   m_height=max(m_left->m_height,m_right->m_height)+1;
+   SIZELIMIT
 LAZYDEBUG(cout << "(4)Lazy created with " << m_samplesize << endl;)
 }
 
@@ -540,6 +527,9 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, int axis_offset)
    m_buffsRequired=calcBuffs(m_left, m_right,m_op);	// yeah m_right will be null at this point
    m_samplesize=getNumDPPSample()*getNoValues();
    m_maxsamplesize=max(m_samplesize,m_left->getMaxSampleSize());
+   m_children=m_left->m_children+1;
+   m_height=m_left->m_height+1;
+   SIZELIMIT
 LAZYDEBUG(cout << "(5)Lazy created with " << m_samplesize << endl;)
 }
 
@@ -568,6 +558,9 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, double tol)
    m_buffsRequired=calcBuffs(m_left, m_right,m_op);	// yeah m_right will be null at this point
    m_samplesize=getNumDPPSample()*getNoValues();
    m_maxsamplesize=max(m_samplesize,m_left->getMaxSampleSize());
+   m_children=m_left->m_children+1;
+   m_height=m_left->m_height+1;
+   SIZELIMIT
 LAZYDEBUG(cout << "(6)Lazy created with " << m_samplesize << endl;)
 }
 
@@ -1139,7 +1132,7 @@ LAZYDEBUG(cout << "Resolve binary: " << toString() << endl;)
 		   rightstep=0;
 		   orightstep=1;
 		   leftstep=1;
-		   oleftstep=(RN ? -(int)leftsize : 0);
+		   oleftstep=(LN ? -(int)leftsize : 0);
 		   numsteps=leftsize;
 		   onumsteps=m_right->getNumDPPSample();
 		}
@@ -1333,6 +1326,34 @@ LAZYDEBUG(cout << "Finish  sample " << toString() << endl;)
 
 }
 
+// This needs to do the work of the idenity constructor
+void
+DataLazy::resolveToIdentity()
+{
+   if (m_op==IDENTITY)
+	return;
+   DataReady_ptr p=resolve();
+   makeIdentity(p);
+}
+
+void DataLazy::makeIdentity(const DataReady_ptr& p)
+{
+   m_op=IDENTITY;
+   m_axis_offset=0;
+   m_transpose=0;
+   m_SL=m_SM=m_SR=0;
+   m_children=m_height=0;
+   m_id=p;
+   if(p->isConstant()) {m_readytype='C';}
+   else if(p->isExpanded()) {m_readytype='E';}
+   else if (p->isTagged()) {m_readytype='T';}
+   else {throw DataException("Unknown DataReady instance in convertToIdentity constructor.");}
+   m_buffsRequired=1;
+   m_samplesize=p->getNumDPPSample()*p->getNoValues();
+   m_maxsamplesize=m_samplesize;
+   m_left.reset();
+   m_right.reset();
+}
 
 // To simplify the memory management, all threads operate on one large vector, rather than one each.
 // Each sample is evaluated independently and copied into the result DataExpanded.
@@ -1410,6 +1431,7 @@ DataLazy::toString() const
 void
 DataLazy::intoString(ostringstream& oss) const
 {
+  oss << "[" << m_children <<";"<<m_height <<"]";
   switch (getOpgroup(m_op))
   {
   case G_IDENTITY:

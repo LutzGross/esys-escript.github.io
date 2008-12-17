@@ -242,7 +242,9 @@ private:
 
   double m_tol;		// required extra info for <>0 and ==0
 
-  unsigned int m_maxsamplesize;	// largest samplesize required by any node in the expression
+  size_t m_maxsamplesize;	// largest samplesize required by any node in the expression
+  size_t m_children;
+  size_t m_height;
 
 
   /**
@@ -268,6 +270,19 @@ private:
   */
   DataReady_ptr
   collapseToReady();
+
+  /**
+  \brief resolve the expression can store it in the current node
+  The current node will be converted to an identity node.
+  */
+  void
+  resolveToIdentity();
+
+  /**
+  \brief helper method for resolveToIdentity and the identity constructor
+  */
+  void 
+  makeIdentity(const DataReady_ptr& p);
 
   /**
   \brief Compute the value of the expression for the given sample.
