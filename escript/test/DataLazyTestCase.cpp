@@ -275,7 +275,7 @@ void DataLazyTestCase::testLazy3()
     	TESTOPB(getShape,shape,op);
     	TESTOPB(getNumDPPSample,1,op);
     	TESTOPB(getNumSamples,1,op);
-	TESTOPB(getBuffsRequired,2,op);
+	TESTOPB(getBuffsRequired,3,op);
     	shape.push_back(3);
     }
   }
