@@ -2,7 +2,7 @@
 # $Id$
 
 """
-program tests for differemtials of symbols
+program tests for differentials of symbols
 """
 test_header=""
 test_header+="import unittest\n"

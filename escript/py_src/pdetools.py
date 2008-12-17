@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="http://www.uq.edu.au/esscc/escript-finley"
 
 """
-Provides some tools related to PDEs. 
+Provides some tools related to PDEs.
 
 Currently includes:
-    - Projector - to project a discontinuous
+    - Projector - to project a discontinuous function onto a continuous function
     - Locator - to trace values in data objects at a certain location
-    - TimeIntegrationManager - to handel extraplotion in time
+    - TimeIntegrationManager - to handle extrapolation in time
     - SaddlePointProblem - solver for Saddle point problems using the inexact uszawa scheme
 
 @var __author__: name of author
@@ -52,9 +52,9 @@ import math
 
 class TimeIntegrationManager:
   """
-  a simple mechanism to manage time dependend values. 
+  A simple mechanism to manage time dependend values.
 
-  typical usage is::
+  Typical usage is::
 
      dt=0.1 # time increment
      tm=TimeIntegrationManager(inital_value,p=1)
@@ -68,7 +68,8 @@ class TimeIntegrationManager:
   """
   def __init__(self,*inital_values,**kwargs):
      """
-     sets up the value manager where inital_value is the initial value and p is order used for extrapolation
+     Sets up the value manager where C{inital_values} are the initial values
+     and p is the order used for extrapolation.
      """
      if kwargs.has_key("p"):
             self.__p=kwargs["p"]
@@ -85,6 +86,7 @@ class TimeIntegrationManager:
 
   def getTime(self):
       return self.__t
+
   def getValue(self):
       out=self.__v_mem[0]
       if len(out)==1:
@@ -94,7 +96,7 @@ class TimeIntegrationManager:
 
   def checkin(self,dt,*values):
       """
-      adds new values to the manager. the p+1 last value get lost
+      Adds new values to the manager. The p+1 last values are lost.
       """
       o=min(self.__order+1,self.__p)
       self.__order=min(self.__order+1,self.__p)
@@ -111,7 +113,7 @@ class TimeIntegrationManager:
 
   def extrapolate(self,dt):
       """
-      extrapolates to dt forward in time.
+      Extrapolates to C{dt} forward in time.
       """
       if self.__order==0:
          out=self.__v_mem[0]
@@ -126,24 +128,24 @@ class TimeIntegrationManager:
          return out[0]
       else:
          return out
- 
+
 
 class Projector:
   """
-  The Projector is a factory which projects a discontiuous function onto a
-  continuous function on the a given domain.
+  The Projector is a factory which projects a discontinuous function onto a
+  continuous function on a given domain.
   """
-  def __init__(self, domain, reduce = True, fast=True):
+  def __init__(self, domain, reduce=True, fast=True):
     """
-    Create a continuous function space projector for a domain.
+    Creates a continuous function space projector for a domain.
 
     @param domain: Domain of the projection.
-    @param reduce: Flag to reduce projection order (default is True)
-    @param fast: Flag to use a fast method based on matrix lumping (default is true)
+    @param reduce: Flag to reduce projection order
+    @param fast: Flag to use a fast method based on matrix lumping
     """
     self.__pde = linearPDEs.LinearPDE(domain)
     if fast:
-      self.__pde.setSolverMethod(linearPDEs.LinearPDE.LUMPING)
+        self.__pde.setSolverMethod(linearPDEs.LinearPDE.LUMPING)
     self.__pde.setSymmetryOn()
     self.__pde.setReducedOrderTo(reduce)
     self.__pde.setValue(D = 1.)
@@ -151,9 +153,9 @@ class Projector:
 
   def __call__(self, input_data):
     """
-    Projects input_data onto a continuous function
+    Projects C{input_data} onto a continuous function.
 
-    @param input_data: The input_data to be projected.
+    @param input_data: the data to be projected
     """
     out=escript.Data(0.,input_data.getShape(),self.__pde.getFunctionSpaceForSolution())
     self.__pde.setValue(Y = escript.Data(), Y_reduced = escript.Data())
@@ -186,46 +188,48 @@ class Projector:
 
 class NoPDE:
      """
-     solves the following problem for u:
+     Solves the following problem for u:
 
-     M{kronecker[i,j]*D[j]*u[j]=Y[i]} 
+     M{kronecker[i,j]*D[j]*u[j]=Y[i]}
 
      with constraint
 
      M{u[j]=r[j]}  where M{q[j]>0}
 
-     where D, Y, r and q are given functions of rank 1.
+     where M{D}, M{Y}, M{r} and M{q} are given functions of rank 1.
 
      In the case of scalars this takes the form
 
-     M{D*u=Y} 
+     M{D*u=Y}
 
      with constraint
 
-     M{u=r}  where M{q>0}
+     M{u=r} where M{q>0}
 
-     where D, Y, r and q are given scalar functions.
+     where M{D}, M{Y}, M{r} and M{q} are given scalar functions.
 
-     The constraint is overwriting any other condition.
+     The constraint overwrites any other condition.
 
-     @note: This class is similar to the L{linearPDEs.LinearPDE} class with A=B=C=X=0 but has the intention
-            that all input parameter are given in L{Solution} or L{ReducedSolution}. The whole
-            thing is a bit strange and I blame Robert.Woodcock@csiro.au for this.
+     @note: This class is similar to the L{linearPDEs.LinearPDE} class with
+            A=B=C=X=0 but has the intention that all input parameters are given
+            in L{Solution} or L{ReducedSolution}.
      """
+     # The whole thing is a bit strange and I blame Rob Woodcock (CSIRO) for
+     # this.
      def __init__(self,domain,D=None,Y=None,q=None,r=None):
          """
-         initialize the problem
+         Initializes the problem.
 
-         @param domain: domain of the PDE.
+         @param domain: domain of the PDE
          @type domain: L{Domain}
-         @param D: coefficient of the solution. 
-         @type D: C{float}, C{int}, L{numarray.NumArray}, L{Data}
+         @param D: coefficient of the solution
+         @type D: C{float}, C{int}, C{numarray.NumArray}, L{Data}
          @param Y: right hand side
-         @type Y: C{float}, C{int}, L{numarray.NumArray}, L{Data}
+         @type Y: C{float}, C{int}, C{numarray.NumArray}, L{Data}
          @param q: location of constraints
-         @type q: C{float}, C{int}, L{numarray.NumArray}, L{Data}
+         @type q: C{float}, C{int}, C{numarray.NumArray}, L{Data}
          @param r: value of solution at locations of constraints
-         @type r: C{float}, C{int}, L{numarray.NumArray}, L{Data}
+         @type r: C{float}, C{int}, C{numarray.NumArray}, L{Data}
          """
          self.__domain=domain
          self.__D=D
@@ -234,32 +238,33 @@ class NoPDE:
          self.__r=r
          self.__u=None
          self.__function_space=escript.Solution(self.__domain)
+
      def setReducedOn(self):
          """
-         sets the L{FunctionSpace} of the solution to L{ReducedSolution}
+         Sets the L{FunctionSpace} of the solution to L{ReducedSolution}.
          """
          self.__function_space=escript.ReducedSolution(self.__domain)
          self.__u=None
 
      def setReducedOff(self):
          """
-         sets the L{FunctionSpace} of the solution to L{Solution}
+         Sets the L{FunctionSpace} of the solution to L{Solution}.
          """
          self.__function_space=escript.Solution(self.__domain)
          self.__u=None
-         
+
      def setValue(self,D=None,Y=None,q=None,r=None):
          """
-         assigns values to the parameters.
+         Assigns values to the parameters.
 
-         @param D: coefficient of the solution. 
-         @type D: C{float}, C{int}, L{numarray.NumArray}, L{Data}
+         @param D: coefficient of the solution
+         @type D: C{float}, C{int}, C{numarray.NumArray}, L{Data}
          @param Y: right hand side
-         @type Y: C{float}, C{int}, L{numarray.NumArray}, L{Data}
+         @type Y: C{float}, C{int}, C{numarray.NumArray}, L{Data}
          @param q: location of constraints
-         @type q: C{float}, C{int}, L{numarray.NumArray}, L{Data}
+         @type q: C{float}, C{int}, C{numarray.NumArray}, L{Data}
          @param r: value of solution at locations of constraints
-         @type r: C{float}, C{int}, L{numarray.NumArray}, L{Data}
+         @type r: C{float}, C{int}, C{numarray.NumArray}, L{Data}
          """
          if not D==None:
             self.__D=D
@@ -276,10 +281,11 @@ class NoPDE:
 
      def getSolution(self):
          """
-         returns the solution
-        
+         Returns the solution.
+
          @return: the solution of the problem
-         @rtype: L{Data} object in the L{FunctionSpace} L{Solution} or L{ReducedSolution}.
+         @rtype: L{Data} object in the L{FunctionSpace} L{Solution} or
+                 L{ReducedSolution}
          """
          if self.__u==None:
             if self.__D==None:
@@ -296,27 +302,26 @@ class NoPDE:
                 self.__u*=(1.-q)
                 if not self.__r==None: self.__u+=q*self.__r
          return self.__u
-             
+
 class Locator:
      """
-     Locator provides access to the values of data objects at a given
-     spatial coordinate x.  
-     
+     Locator provides access to the values of data objects at a given spatial
+     coordinate x.
+
      In fact, a Locator object finds the sample in the set of samples of a
-     given function space or domain where which is closest to the given
-     point x. 
+     given function space or domain which is closest to the given point x.
      """
 
      def __init__(self,where,x=numarray.zeros((3,))):
        """
-       Initializes a Locator to access values in Data objects on the Doamin 
-       or FunctionSpace where for the sample point which
-       closest to the given point x.
+       Initializes a Locator to access values in Data objects on the Doamin
+       or FunctionSpace for the sample point which is closest to the given
+       point x.
 
        @param where: function space
-       @type where: L{escript.FunctionSpace} 
-       @param x: coefficient of the solution. 
-       @type x: L{numarray.NumArray} or C{list} of L{numarray.NumArray}
+       @type where: L{escript.FunctionSpace}
+       @param x: coefficient of the solution
+       @type x: C{numarray.NumArray} or C{list} of C{numarray.NumArray}
        """
        if isinstance(where,escript.FunctionSpace):
           self.__function_space=where
@@ -350,20 +355,20 @@ class Locator:
 
      def getX(self):
         """
-	Returns the exact coordinates of the Locator.
-	"""
+        Returns the exact coordinates of the Locator.
+        """
         return self(self.getFunctionSpace().getX())
 
      def getFunctionSpace(self):
         """
-	Returns the function space of the Locator.
-	"""
+        Returns the function space of the Locator.
+        """
         return self.__function_space
 
      def getId(self,item=None):
         """
-	Returns the identifier of the location.
-	"""
+        Returns the identifier of the location.
+        """
         if item == None:
            return self.__id
         else:
@@ -375,16 +380,15 @@ class Locator:
 
      def __call__(self,data):
         """
-	Returns the value of data at the Locator of a Data object otherwise 
-	the object is returned.
-	"""
+        Returns the value of data at the Locator of a Data object.
+        """
         return self.getValue(data)
 
      def getValue(self,data):
         """
-	Returns the value of data at the Locator if data is a Data object 
-	otherwise the object is returned.
-	"""
+        Returns the value of C{data} at the Locator if C{data} is a L{Data}
+        object otherwise the object is returned.
+        """
         if isinstance(data,escript.Data):
            if data.getFunctionSpace()==self.getFunctionSpace():
              dat=data
@@ -412,85 +416,94 @@ class Locator:
 
 class SolverSchemeException(Exception):
    """
-   exceptions thrown by solvers 
+   This is a generic exception thrown by solvers.
    """
    pass
 
 class IndefinitePreconditioner(SolverSchemeException):
    """
-   the preconditioner is not positive definite.
+   Exception thrown if the preconditioner is not positive definite.
    """
    pass
+
 class MaxIterReached(SolverSchemeException):
    """
-   maxium number of iteration steps is reached.
+   Exception thrown if the maximum number of iteration steps is reached.
    """
    pass
+
 class CorrectionFailed(SolverSchemeException):
    """
-   no convergence has been achieved in the solution correction scheme.
+   Exception thrown if no convergence has been achieved in the solution
+   correction scheme.
    """
    pass
+
 class IterationBreakDown(SolverSchemeException):
    """
-   iteration scheme econouters an incurable breakdown.
+   Exception thrown if the iteration scheme encountered an incurable breakdown.
    """
    pass
+
 class NegativeNorm(SolverSchemeException):
    """
-   a norm calculation returns a negative norm.
+   Exception thrown if a norm calculation returns a negative norm.
    """
    pass
 
 def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, initial_guess=True, verbose=False):
    """
-   Solver for 
+   Solver for
 
    M{Ax=b}
 
-   with a symmetric and positive definite operator A (more details required!). 
-   It uses the conjugate gradient method with preconditioner M providing an approximation of A. 
+   with a symmetric and positive definite operator A (more details required!).
+   It uses the conjugate gradient method with preconditioner M providing an
+   approximation of A.
 
-   The iteration is terminated if  
+   The iteration is terminated if
 
    M{|r| <= atol+rtol*|r0|}
 
    where M{r0} is the initial residual and M{|.|} is the energy norm. In fact
 
-   M{|r| =sqrt( bilinearform(Msolve(r),r))}
+   M{|r| = sqrt( bilinearform(Msolve(r),r))}
 
    For details on the preconditioned conjugate gradient method see the book:
 
-   Templates for the Solution of Linear Systems by R. Barrett, M. Berry, 
-   T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo, 
-   C. Romine, and H. van der Vorst.
+   I{Templates for the Solution of Linear Systems by R. Barrett, M. Berry,
+   T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo,
+   C. Romine, and H. van der Vorst}.
 
    @param r: initial residual M{r=b-Ax}. C{r} is altered.
    @type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
-   @param x: an initial guess for the solution. 
+   @param x: an initial guess for the solution
    @type x: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
    @param Aprod: returns the value Ax
-   @type Aprod: function C{Aprod(x)} where C{x} is of the same object like argument C{x}. 
-       The returned object needs to be of the same type like argument C{r}.
+   @type Aprod: function C{Aprod(x)} where C{x} is of the same object like
+                argument C{x}. The returned object needs to be of the same type
+                like argument C{r}.
    @param Msolve: solves Mx=r
-   @type Msolve: function C{Msolve(r)} where C{r} is of the same type like argument C{r}.
-      The returned object needs to be of the same type like argument C{x}.
+   @type Msolve: function C{Msolve(r)} where C{r} is of the same type like
+                 argument C{r}. The returned object needs to be of the same
+                 type like argument C{x}.
    @param bilinearform: inner product C{<x,r>}
-   @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same type like argument C{x} and C{r} is.
-       The returned value is a C{float}.
+   @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same
+                       type like argument C{x} and C{r} is. The returned value
+                       is a C{float}.
    @param atol: absolute tolerance
    @type atol: non-negative C{float}
    @param rtol: relative tolerance
    @type rtol: non-negative C{float}
-   @param iter_max: maximum number of iteration steps.
+   @param iter_max: maximum number of iteration steps
    @type iter_max: C{int}
    @return: the solution approximation and the corresponding residual
-   @rtype: C{tuple} 
+   @rtype: C{tuple}
    @warning: C{r} and C{x} are altered.
    """
    iter=0
    rhat=Msolve(r)
-   d = rhat 
+   d = rhat
    rhat_dot_r = bilinearform(rhat, r)
    if rhat_dot_r<0: raise NegativeNorm,"negative norm."
    norm_r0=math.sqrt(rhat_dot_r)
@@ -500,7 +513,7 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
    atol2=max(atol2, 100. * util.EPSILON * norm_r0)
 
    if verbose: print "PCG: initial residual norm = %e (absolute tolerance = %e)"%(norm_r0, atol2)
-   
+
 
    while not math.sqrt(rhat_dot_r) <= atol2:
        iter+=1
@@ -525,43 +538,43 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
 
 class Defect(object):
     """
-    defines a non-linear defect F(x) of a variable x
+    Defines a non-linear defect F(x) of a variable x.
     """
     def __init__(self):
         """
-        initialize defect
+        Initializes defect.
         """
         self.setDerivativeIncrementLength()
 
     def bilinearform(self, x0, x1):
         """
-        returns the inner product of x0 and x1
-        @param x0: a value for x
-        @param x1: a value for x
+        Returns the inner product of x0 and x1
+
+        @param x0: value for x0
+        @param x1: value for x1
         @return: the inner product of x0 and x1
         @rtype: C{float}
         """
         return 0
-      
+
     def norm(self,x):
         """
-        the norm of argument C{x}
- 
-        @param x: a value for x
+        Returns the norm of argument C{x}.
+
+        @param x: a value
         @return: norm of argument x
         @rtype: C{float}
-        @note: by default C{sqrt(self.bilinearform(x,x)} is retrurned.
+        @note: by default C{sqrt(self.bilinearform(x,x)} is returned.
         """
         s=self.bilinearform(x,x)
         if s<0: raise NegativeNorm,"negative norm."
         return math.sqrt(s)
 
-
     def eval(self,x):
         """
-        returns the value F of a given x
+        Returns the value F of a given C{x}.
 
-        @param x: value for which the defect C{F} is evalulated.
+        @param x: value for which the defect C{F} is evaluated
         @return: value of the defect at C{x}
         """
         return 0
@@ -571,8 +584,9 @@ class Defect(object):
 
     def setDerivativeIncrementLength(self,inc=math.sqrt(util.EPSILON)):
         """
-        sets the relative length of the increment used to approximate the derivative of the defect
-        the increment is inc*norm(x)/norm(v)*v in the direction of v with x as a staring point.
+        Sets the relative length of the increment used to approximate the
+        derivative of the defect. The increment is inc*norm(x)/norm(v)*v in the
+        direction of v with x as a starting point.
 
         @param inc: relative increment length
         @type inc: positive C{float}
@@ -582,7 +596,8 @@ class Defect(object):
 
     def getDerivativeIncrementLength(self):
         """
-        returns the relative increment length used to approximate the derivative of the defect
+        Returns the relative increment length used to approximate the
+        derivative of the defect.
         @return: value of the defect at C{x}
         @rtype: positive C{float}
         """
@@ -590,15 +605,16 @@ class Defect(object):
 
     def derivative(self, F0, x0, v, v_is_normalised=True):
         """
-        returns the directional derivative at x0 in the direction of v
+        Returns the directional derivative at C{x0} in the direction of C{v}.
 
         @param F0: value of this defect at x0
-        @param x0: value at which derivative is calculated.
+        @param x0: value at which derivative is calculated
         @param v: direction
-        @param v_is_normalised: is true to indicate that C{v} is nomalized (self.norm(v)=0)
+        @param v_is_normalised: True to indicate that C{v} is nomalized
+                                (self.norm(v)=0)
         @return: derivative of this defect at x0 in the direction of C{v}
-        @note: by default numerical evaluation (self.eval(x0+eps*v)-F0)/eps is used but this method
-        maybe oepsnew verwritten to use exact evalution.
+        @note: by default numerical evaluation (self.eval(x0+eps*v)-F0)/eps is
+               used but this method maybe overwritten to use exact evaluation.
         """
         normx=self.norm(x0)
         if normx>0:
@@ -614,33 +630,36 @@ class Defect(object):
         F1=self.eval(x0 + epsnew * v)
         return (F1-F0)/epsnew
 
-######################################    
+######################################
 def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub_tol_max=0.5, gamma=0.9, verbose=False):
    """
-   solves a non-linear problem M{F(x)=0} for unknown M{x} using the stopping criterion:
+   Solves a non-linear problem M{F(x)=0} for unknown M{x} using the stopping
+   criterion:
 
    M{norm(F(x) <= atol + rtol * norm(F(x0)}
-  
+
    where M{x0} is the initial guess.
 
-   @param defect: object defining the the function M{F}, C{defect.norm} defines the M{norm} used in the stopping criterion.
+   @param defect: object defining the function M{F}. C{defect.norm} defines the
+                  M{norm} used in the stopping criterion.
    @type defect: L{Defect}
    @param x: initial guess for the solution, C{x} is altered.
-   @type x: any object type allowing basic operations such as  L{numarray.NumArray}, L{Data}
-   @param iter_max: maximum number of iteration steps 
+   @type x: any object type allowing basic operations such as
+            C{numarray.NumArray}, L{Data}
+   @param iter_max: maximum number of iteration steps
    @type iter_max: positive C{int}
-   @param sub_iter_max: 
-   @type sub_iter_max:
+   @param sub_iter_max: maximum number of inner iteration steps
+   @type sub_iter_max: positive C{int}
    @param atol: absolute tolerance for the solution
    @type atol: positive C{float}
    @param rtol: relative tolerance for the solution
    @type rtol: positive C{float}
    @param gamma: tolerance safety factor for inner iteration
    @type gamma: positive C{float}, less than 1
-   @param sub_tol_max: upper bound for inner tolerance.
+   @param sub_tol_max: upper bound for inner tolerance
    @type sub_tol_max: positive C{float}, less than 1
    @return: an approximation of the solution with the desired accuracy
-   @rtype: same type as the initial guess.
+   @rtype: same type as the initial guess
    """
    lmaxit=iter_max
    if atol<0: raise ValueError,"atol needs to be non-negative."
@@ -660,9 +679,9 @@ def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub
    # main iteration loop
    #
    while not fnrm<=stop_tol:
-            if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max 
+            if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
             #
-	    #   adjust sub_tol_ 
+	    #   adjust sub_tol_
 	    #
             if iter > 1:
 	       rat=fnrm/fnrmo
@@ -675,8 +694,8 @@ def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub
             #     if iter_max in __FDGMRES is reached MaxIterReached is thrown
             #     if iter_restart -1 is returned as sub_iter
             #     if  atol is reached sub_iter returns the numer of steps performed to get there
-            # 
-            #   
+            #
+            #
             if verbose: print "             subiteration (GMRES) is called with relative tolerance %e."%sub_tol
             try:
                xc, sub_iter=__FDGMRES(F, defect, x, sub_tol*fnrm, iter_max=iter_max-iter, iter_restart=sub_iter_max)
@@ -697,10 +716,12 @@ def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub
 
 def __givapp(c,s,vin):
     """
-    apply a sequence of Givens rotations (c,s) to the recuirsively to the vector vin
+    Applies a sequence of Givens rotations (c,s) recursively to the vector
+    C{vin}
+
     @warning: C{vin} is altered.
     """
-    vrot=vin 
+    vrot=vin
     if isinstance(c,float):
         vrot=[c*vrot[0]-s*vrot[1],s*vrot[0]+c*vrot[1]]
     else:
@@ -719,121 +740,124 @@ def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
 
    rho=defect.norm(F0)
    if rho<=0.: return x0*0
-   
+
    v.append(-F0/rho)
    g[0]=rho
    iter=0
    while rho > atol and iter<iter_restart-1:
-
-	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+        if iter  >= iter_max:
+            raise MaxIterReached,"maximum number of %s steps reached."%iter_max
 
         p=defect.derivative(F0,x0,v[iter], v_is_normalised=True)
-	v.append(p)
+        v.append(p)
 
-	v_norm1=defect.norm(v[iter+1])
+        v_norm1=defect.norm(v[iter+1])
 
-        # Modified Gram-Schmidt	
-	for j in range(iter+1): 
-	     h[j,iter]=defect.bilinearform(v[j],v[iter+1])   
-	     v[iter+1]-=h[j,iter]*v[j]
-       
-	h[iter+1,iter]=defect.norm(v[iter+1])
-	v_norm2=h[iter+1,iter]
+        # Modified Gram-Schmidt
+        for j in range(iter+1):
+            h[j,iter]=defect.bilinearform(v[j],v[iter+1])
+            v[iter+1]-=h[j,iter]*v[j]
+
+        h[iter+1,iter]=defect.norm(v[iter+1])
+        v_norm2=h[iter+1,iter]
 
         # Reorthogonalize if needed
-	if v_norm1 + 0.001*v_norm2 == v_norm1:   #Brown/Hindmarsh condition (default)
-   	    for j in range(iter+1):  
-	       hr=defect.bilinearform(v[j],v[iter+1])
-      	       h[j,iter]=h[j,iter]+hr 
-      	       v[iter+1] -= hr*v[j]
+        if v_norm1 + 0.001*v_norm2 == v_norm1:   #Brown/Hindmarsh condition (default)
+            for j in range(iter+1):
+                hr=defect.bilinearform(v[j],v[iter+1])
+                h[j,iter]=h[j,iter]+hr
+                v[iter+1] -= hr*v[j]
 
-   	    v_norm2=defect.norm(v[iter+1])
-	    h[iter+1,iter]=v_norm2
-        #   watch out for happy breakdown 
+            v_norm2=defect.norm(v[iter+1])
+            h[iter+1,iter]=v_norm2
+        #   watch out for happy breakdown
         if not v_norm2 == 0:
-                v[iter+1]=v[iter+1]/h[iter+1,iter]
+            v[iter+1]=v[iter+1]/h[iter+1,iter]
 
         #   Form and store the information for the new Givens rotation
-	if iter > 0 :
-		hhat=numarray.zeros(iter+1,numarray.Float64)
-		for i in range(iter+1) : hhat[i]=h[i,iter]
-		hhat=__givapp(c[0:iter],s[0:iter],hhat);
-	        for i in range(iter+1) : h[i,iter]=hhat[i]
+        if iter > 0 :
+            hhat=numarray.zeros(iter+1,numarray.Float64)
+            for i in range(iter+1) : hhat[i]=h[i,iter]
+            hhat=__givapp(c[0:iter],s[0:iter],hhat);
+            for i in range(iter+1) : h[i,iter]=hhat[i]
 
-	mu=math.sqrt(h[iter,iter]*h[iter,iter]+h[iter+1,iter]*h[iter+1,iter])
+        mu=math.sqrt(h[iter,iter]*h[iter,iter]+h[iter+1,iter]*h[iter+1,iter])
 
-	if mu!=0 :
-		c[iter]=h[iter,iter]/mu
-		s[iter]=-h[iter+1,iter]/mu
-		h[iter,iter]=c[iter]*h[iter,iter]-s[iter]*h[iter+1,iter]
-		h[iter+1,iter]=0.0
-		g[iter:iter+2]=__givapp(c[iter],s[iter],g[iter:iter+2])
+        if mu!=0 :
+            c[iter]=h[iter,iter]/mu
+            s[iter]=-h[iter+1,iter]/mu
+            h[iter,iter]=c[iter]*h[iter,iter]-s[iter]*h[iter+1,iter]
+            h[iter+1,iter]=0.0
+            g[iter:iter+2]=__givapp(c[iter],s[iter],g[iter:iter+2])
 
         # Update the residual norm
         rho=abs(g[iter+1])
-	iter+=1
+        iter+=1
 
    # At this point either iter > iter_max or rho < tol.
-   # It's time to compute x and leave.        
-   if iter > 0 : 
-     y=numarray.zeros(iter,numarray.Float64)	
+   # It's time to compute x and leave.
+   if iter > 0 :
+     y=numarray.zeros(iter,numarray.Float64)
      y[iter-1] = g[iter-1] / h[iter-1,iter-1]
-     if iter > 1 :	
-        i=iter-2   
+     if iter > 1 :
+        i=iter-2
         while i>=0 :
           y[i] = ( g[i] - numarray.dot(h[i,i+1:iter], y[i+1:iter])) / h[i,i]
           i=i-1
      xhat=v[iter-1]*y[iter-1]
      for i in range(iter-1):
 	xhat += v[i]*y[i]
-   else : 
+   else :
       xhat=v[0] * 0
 
-   if iter<iter_restart-1: 
+   if iter<iter_restart-1:
       stopped=iter
-   else: 
+   else:
       stopped=-1
 
    return xhat,stopped
 
 def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_restart=20, verbose=False):
    """
-   Solver for 
+   Solver for
 
    M{Ax=b}
 
-   with a general operator A (more details required!). 
+   with a general operator A (more details required!).
    It uses the generalized minimum residual method (GMRES).
 
-   The iteration is terminated if  
+   The iteration is terminated if
 
    M{|r| <= atol+rtol*|r0|}
 
    where M{r0} is the initial residual and M{|.|} is the energy norm. In fact
 
-   M{|r| =sqrt( bilinearform(r,r))}
+   M{|r| = sqrt( bilinearform(r,r))}
 
    @param r: initial residual M{r=b-Ax}. C{r} is altered.
    @type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
-   @param x: an initial guess for the solution. 
+   @param x: an initial guess for the solution
    @type x: same like C{r}
    @param Aprod: returns the value Ax
-   @type Aprod: function C{Aprod(x)} where C{x} is of the same object like argument C{x}. 
-       The returned object needs to be of the same type like argument C{r}.
+   @type Aprod: function C{Aprod(x)} where C{x} is of the same object like
+                argument C{x}. The returned object needs to be of the same
+                type like argument C{r}.
    @param bilinearform: inner product C{<x,r>}
-   @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same type like argument C{x} and C{r} is.
-       The returned value is a C{float}.
+   @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same
+                       type like argument C{x} and C{r}. The returned value is
+                       a C{float}.
    @param atol: absolute tolerance
    @type atol: non-negative C{float}
    @param rtol: relative tolerance
    @type rtol: non-negative C{float}
-   @param iter_max: maximum number of iteration steps.
+   @param iter_max: maximum number of iteration steps
    @type iter_max: C{int}
-   @param iter_restart: in order to ssave memory the orthogonalization process is terminated after C{iter_restart} steps and the
-                    iteration is restarted.
+   @param iter_restart: in order to save memory the orthogonalization process
+                        is terminated after C{iter_restart} steps and the
+                        iteration is restarted.
    @type iter_restart: C{int}
-   @return: the solution approximation and the corresponding residual.
-   @rtype: C{tuple} 
+   @return: the solution approximation and the corresponding residual
+   @rtype: C{tuple}
    @warning: C{r} and C{x} are altered.
    """
    m=iter_restart
@@ -849,16 +873,16 @@ def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_rest
       if verbose: print "GMRES: absolute tolerance = %e"%atol2
    if atol2<=0:
       raise ValueError,"Non-positive tolarance."
-   
+
    while True:
       if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached"%iter_max
-      if restarted: 
+      if restarted:
          r2 = r-Aprod(x-x2)
       else:
          r2=1*r
       x2=x*1.
       x,stopped=__GMRESm(r2, Aprod, x, bilinearform, atol2, iter_max=iter_max-iter, iter_restart=m, verbose=verbose)
-      iter+=iter_restart	
+      iter+=iter_restart
       if stopped: break
       if verbose: print "GMRES: restart."
       restarted=True
@@ -867,7 +891,7 @@ def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_rest
 
 def __GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verbose=False):
    iter=0
-   
+
    h=numarray.zeros((iter_restart+1,iter_restart),numarray.Float64)
    c=numarray.zeros(iter_restart,numarray.Float64)
    s=numarray.zeros(iter_restart,numarray.Float64)
@@ -877,7 +901,7 @@ def __GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, ver
    r_dot_r = bilinearform(r, r)
    if r_dot_r<0: raise NegativeNorm,"negative norm."
    rho=math.sqrt(r_dot_r)
-   
+
    v.append(r/rho)
    g[0]=rho
 
@@ -889,27 +913,27 @@ def __GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, ver
 	p=Aprod(v[iter])
 	v.append(p)
 
-	v_norm1=math.sqrt(bilinearform(v[iter+1], v[iter+1]))  
+	v_norm1=math.sqrt(bilinearform(v[iter+1], v[iter+1]))
 
-# Modified Gram-Schmidt	
-	for j in range(iter+1): 
-	  h[j,iter]=bilinearform(v[j],v[iter+1])   
+# Modified Gram-Schmidt
+	for j in range(iter+1):
+	  h[j,iter]=bilinearform(v[j],v[iter+1])
 	  v[iter+1]-=h[j,iter]*v[j]
-       
-	h[iter+1,iter]=math.sqrt(bilinearform(v[iter+1],v[iter+1])) 
+
+	h[iter+1,iter]=math.sqrt(bilinearform(v[iter+1],v[iter+1]))
 	v_norm2=h[iter+1,iter]
 
 # Reorthogonalize if needed
 	if v_norm1 + 0.001*v_norm2 == v_norm1:   #Brown/Hindmarsh condition (default)
-   	 for j in range(iter+1):  
+   	 for j in range(iter+1):
 	    hr=bilinearform(v[j],v[iter+1])
-      	    h[j,iter]=h[j,iter]+hr 
+      	    h[j,iter]=h[j,iter]+hr
       	    v[iter+1] -= hr*v[j]
 
-   	 v_norm2=math.sqrt(bilinearform(v[iter+1], v[iter+1]))  
+   	 v_norm2=math.sqrt(bilinearform(v[iter+1], v[iter+1]))
 	 h[iter+1,iter]=v_norm2
 
-#   watch out for happy breakdown 
+#   watch out for happy breakdown
         if not v_norm2 == 0:
          v[iter+1]=v[iter+1]/h[iter+1,iter]
 
@@ -924,81 +948,85 @@ def __GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, ver
 		h[iter+1,iter]=0.0
 		g[iter:iter+2]=__givapp(c[iter],s[iter],g[iter:iter+2])
 # Update the residual norm
-               
+
         rho=abs(g[iter+1])
         if verbose: print "GMRES: iteration step %s: residual %e"%(iter,rho)
 	iter+=1
 
 # At this point either iter > iter_max or rho < tol.
-# It's time to compute x and leave.        
+# It's time to compute x and leave.
 
    if verbose: print "GMRES: iteration stopped after %s step."%iter
-   if iter > 0 : 
-     y=numarray.zeros(iter,numarray.Float64)	
+   if iter > 0 :
+     y=numarray.zeros(iter,numarray.Float64)
      y[iter-1] = g[iter-1] / h[iter-1,iter-1]
-     if iter > 1 :	
-        i=iter-2   
+     if iter > 1 :
+        i=iter-2
         while i>=0 :
           y[i] = ( g[i] - numarray.dot(h[i,i+1:iter], y[i+1:iter])) / h[i,i]
           i=i-1
      xhat=v[iter-1]*y[iter-1]
      for i in range(iter-1):
 	xhat += v[i]*y[i]
-   else: 
+   else:
      xhat=v[0] * 0
 
    x += xhat
-   if iter<iter_restart-1: 
-      stopped=True 
-   else: 
+   if iter<iter_restart-1:
+      stopped=True
+   else:
       stopped=False
 
    return x,stopped
 
 def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
     """
-    Solver for 
- 
+    Solver for
+
     M{Ax=b}
- 
-    with a symmetric and positive definite operator A (more details required!). 
-    It uses the minimum residual method (MINRES) with preconditioner M providing an approximation of A. 
- 
-    The iteration is terminated if  
- 
+
+    with a symmetric and positive definite operator A (more details required!).
+    It uses the minimum residual method (MINRES) with preconditioner M
+    providing an approximation of A.
+
+    The iteration is terminated if
+
     M{|r| <= atol+rtol*|r0|}
- 
+
     where M{r0} is the initial residual and M{|.|} is the energy norm. In fact
 
-    M{|r| =sqrt( bilinearform(Msolve(r),r))}
- 
+    M{|r| = sqrt( bilinearform(Msolve(r),r))}
+
     For details on the preconditioned conjugate gradient method see the book:
- 
-    Templates for the Solution of Linear Systems by R. Barrett, M. Berry, 
-    T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo, 
-    C. Romine, and H. van der Vorst.
+
+    I{Templates for the Solution of Linear Systems by R. Barrett, M. Berry,
+    T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo,
+    C. Romine, and H. van der Vorst}.
 
     @param r: initial residual M{r=b-Ax}. C{r} is altered.
     @type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
-    @param x: an initial guess for the solution. 
+    @param x: an initial guess for the solution
     @type x: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
     @param Aprod: returns the value Ax
-    @type Aprod: function C{Aprod(x)} where C{x} is of the same object like argument C{x}. 
-        The returned object needs to be of the same type like argument C{r}.
+    @type Aprod: function C{Aprod(x)} where C{x} is of the same object like
+                 argument C{x}. The returned object needs to be of the same
+                 type like argument C{r}.
     @param Msolve: solves Mx=r
-    @type Msolve: function C{Msolve(r)} where C{r} is of the same type like argument C{r}.
-        The returned object needs to be of the same type like argument C{x}.
+    @type Msolve: function C{Msolve(r)} where C{r} is of the same type like
+                  argument C{r}. The returned object needs to be of the same
+                  type like argument C{x}.
     @param bilinearform: inner product C{<x,r>}
-    @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same type like argument C{x} and C{r} is.
-       The returned value is a C{float}.
+    @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same
+                        type like argument C{x} and C{r} is. The returned value
+                        is a C{float}.
     @param atol: absolute tolerance
     @type atol: non-negative C{float}
     @param rtol: relative tolerance
     @type rtol: non-negative C{float}
-    @param iter_max: maximum number of iteration steps.
+    @param iter_max: maximum number of iteration steps
     @type iter_max: C{int}
     @return: the solution approximation and the corresponding residual
-    @rtype: C{tuple} 
+    @rtype: C{tuple}
     @warning: C{r} and C{x} are altered.
     """
     #------------------------------------------------------------------
@@ -1009,13 +1037,13 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
     r1    = r
     y = Msolve(r)
     beta1 = bilinearform(y,r)
- 
+
     if beta1< 0: raise NegativeNorm,"negative norm."
 
     #  If r = 0 exactly, stop with x
     if beta1==0: return x
 
-    if beta1> 0: beta1  = math.sqrt(beta1)       
+    if beta1> 0: beta1  = math.sqrt(beta1)
 
     #------------------------------------------------------------------
     # Initialize quantities.
@@ -1062,14 +1090,14 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
         #-----------------------------------------------------------------
         s = 1/beta                 # Normalize previous vector (in y).
         v = s*y                    # v = vk if P = I
-     
+
         y      = Aprod(v)
-    
+
         if iter >= 2:
           y = y - (beta/oldb)*r1
 
         alfa   = bilinearform(v,y)              # alphak
-        y      += (- alfa/beta)*r2 
+        y      += (- alfa/beta)*r2
         r1     = r2
         r2     = y
         y = Msolve(r2)
@@ -1079,7 +1107,7 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
 
         beta   = math.sqrt( beta )
         tnorm2 = tnorm2 + alfa*alfa + oldb*oldb + beta*beta
-        
+
         if iter==1:                 # Initialize a few things.
           gmax   = abs( alfa )      # alpha1
           gmin   = gmax             # alpha1
@@ -1087,7 +1115,7 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
         # Apply previous rotation Qk-1 to get
         #   [deltak epslnk+1] = [cs  sn][dbark    0   ]
         #   [gbar k dbar k+1]   [sn -cs][alfak betak+1].
-    
+
         oldeps = epsln
         delta  = cs * dbar  +  sn * alfa  # delta1 = 0         deltak
         gbar   = sn * dbar  -  cs * alfa  # gbar 1 = alfa1     gbar k
@@ -1097,7 +1125,7 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
         # Compute the next plane rotation Qk
 
         gamma  = math.sqrt(gbar*gbar+beta*beta)  # gammak
-        gamma  = max(gamma,eps) 
+        gamma  = max(gamma,eps)
         cs     = gbar / gamma             # ck
         sn     = beta / gamma             # sk
         phi    = cs * phibar              # phik
@@ -1105,9 +1133,9 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
 
         # Update  x.
 
-        denom = 1/gamma 
-        w1    = w2 
-        w2    = w 
+        denom = 1/gamma
+        w1    = w2
+        w2    = w
         w     = (v - oldeps*w1 - delta*w2) * denom
         x     +=  phi*w
 
@@ -1122,8 +1150,8 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
 
         # Estimate various norms and test for convergence.
 
-        Anorm  = math.sqrt( tnorm2 ) 
-        ynorm  = math.sqrt( ynorm2 ) 
+        Anorm  = math.sqrt( tnorm2 )
+        ynorm  = math.sqrt( ynorm2 )
 
         rnorm  = phibar
 
@@ -1131,38 +1159,40 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
 
 def TFQMR(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
   """
-  Solver for 
+  Solver for
 
   M{Ax=b}
 
-  with a general operator A (more details required!). 
-  It uses the generalized minimum residual method (GMRES).
+  with a general operator A (more details required!).
+  It uses the Transpose-Free Quasi-Minimal Residual method (TFQMR).
 
-  The iteration is terminated if  
+  The iteration is terminated if
 
   M{|r| <= atol+rtol*|r0|}
 
   where M{r0} is the initial residual and M{|.|} is the energy norm. In fact
 
-  M{|r| =sqrt( bilinearform(r,r))}
+  M{|r| = sqrt( bilinearform(r,r))}
 
   @param r: initial residual M{r=b-Ax}. C{r} is altered.
   @type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
-  @param x: an initial guess for the solution. 
+  @param x: an initial guess for the solution
   @type x: same like C{r}
   @param Aprod: returns the value Ax
-  @type Aprod: function C{Aprod(x)} where C{x} is of the same object like argument C{x}. 
-      The returned object needs to be of the same type like argument C{r}.
+  @type Aprod: function C{Aprod(x)} where C{x} is of the same object like
+               argument C{x}. The returned object needs to be of the same type
+               like argument C{r}.
   @param bilinearform: inner product C{<x,r>}
-  @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same type like argument C{x} and C{r} is.
-      The returned value is a C{float}.
+  @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same
+                      type like argument C{x} and C{r}. The returned value is
+                      a C{float}.
   @param atol: absolute tolerance
   @type atol: non-negative C{float}
   @param rtol: relative tolerance
   @type rtol: non-negative C{float}
-  @param iter_max: maximum number of iteration steps.
+  @param iter_max: maximum number of iteration steps
   @type iter_max: C{int}
-  @rtype: C{tuple} 
+  @rtype: C{tuple}
   @warning: C{r} and C{x} are altered.
   """
   u1=0
@@ -1171,12 +1201,12 @@ def TFQMR(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
   y2=0
 
   w = r
-  y1 = r 
-  iter = 0 
+  y1 = r
+  iter = 0
   d = 0
   v = Aprod(y1)
   u1 = v
-  
+
   theta = 0.0;
   eta = 0.0;
   rho=bilinearform(r,r)
@@ -1188,6 +1218,7 @@ def TFQMR(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
 
     sigma = bilinearform(r,v)
     if sigma == 0.0: raise IterationBreakDown,'TFQMR breakdown, sigma=0'
+
     alpha = rho / sigma
 
     for j in range(2):
@@ -1197,9 +1228,9 @@ def TFQMR(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
       if ( j == 1 ):
         y2 = y1 - alpha * v
         u2 = Aprod(y2)
- 
+
       m = 2 * (iter+1) - 2 + (j+1)
-      if j==0: 
+      if j==0:
          w = w - alpha * u1
          d = y1 + ( theta * theta * eta / alpha ) * d
       if j==1:
@@ -1222,7 +1253,7 @@ def TFQMR(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
     y1 = w + beta * y2;
     u1 = Aprod(y1)
     v = u1 + beta * ( u2 + beta * v )
-    
+
     iter += 1
 
   return x
@@ -1232,29 +1263,31 @@ def TFQMR(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
 
 class ArithmeticTuple(object):
    """
-   tuple supporting inplace update x+=y and scaling x=a*y where x,y is an ArithmeticTuple and a is a float.
+   Tuple supporting inplace update x+=y and scaling x=a*y where C{x,y} is an
+   ArithmeticTuple and C{a} is a float.
 
-   example of usage:
+   Example of usage::
 
-   from esys.escript import Data
-   from numarray import array
-   a=Data(...)
-   b=array([1.,4.])
-   x=ArithmeticTuple(a,b)
-   y=5.*x
+       from esys.escript import Data
+       from numarray import array
+       a=Data(...)
+       b=array([1.,4.])
+       x=ArithmeticTuple(a,b)
+       y=5.*x
 
    """
    def __init__(self,*args):
        """
-       initialize object with elements args.
+       Initializes object with elements C{args}.
 
-       @param args: tuple of object that support implace add (x+=y) and scaling (x=a*y)
+       @param args: tuple of objects that support inplace add (x+=y) and
+                    scaling (x=a*y)
        """
        self.__items=list(args)
 
    def __len__(self):
        """
-       number of items
+       Returns the number of items.
 
        @return: number of items
        @rtype: C{int}
@@ -1263,9 +1296,9 @@ class ArithmeticTuple(object):
 
    def __getitem__(self,index):
        """
-       get an item
+       Returns item at specified position.
 
-       @param index: item to be returned
+       @param index: index of item to be returned
        @type index: C{int}
        @return: item with index C{index}
        """
@@ -1273,7 +1306,7 @@ class ArithmeticTuple(object):
 
    def __mul__(self,other):
        """
-       scaling from the right 
+       Scales by C{other} from the right.
 
        @param other: scaling factor
        @type other: C{float}
@@ -1281,18 +1314,18 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       try:  
+       try:
            l=len(other)
            if l!=len(self):
-               raise ValueError,"length of of arguments don't match."
+               raise ValueError,"length of arguments don't match."
            for i in range(l): out.append(self[i]*other[i])
        except TypeError:
-	   for i in range(len(self)): out.append(self[i]*other)
+           for i in range(len(self)): out.append(self[i]*other)
        return ArithmeticTuple(*tuple(out))
 
    def __rmul__(self,other):
        """
-       scaling from the left
+       Scales by C{other} from the left.
 
        @param other: scaling factor
        @type other: C{float}
@@ -1300,18 +1333,18 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       try:  
+       try:
            l=len(other)
            if l!=len(self):
-               raise ValueError,"length of of arguments don't match."
+               raise ValueError,"length of arguments don't match."
            for i in range(l): out.append(other[i]*self[i])
        except TypeError:
-	   for i in range(len(self)): out.append(other*self[i])
+           for i in range(len(self)): out.append(other*self[i])
        return ArithmeticTuple(*tuple(out))
 
    def __div__(self,other):
        """
-       dividing from the right 
+       Scales by (1/C{other}) from the right.
 
        @param other: scaling factor
        @type other: C{float}
@@ -1322,7 +1355,7 @@ class ArithmeticTuple(object):
 
    def __rdiv__(self,other):
        """
-       dividing from the left
+       Scales by (1/C{other}) from the left.
 
        @param other: scaling factor
        @type other: C{float}
@@ -1330,67 +1363,67 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       try:  
+       try:
            l=len(other)
            if l!=len(self):
-               raise ValueError,"length of of arguments don't match."
+               raise ValueError,"length of arguments don't match."
            for i in range(l): out.append(other[i]/self[i])
        except TypeError:
-	   for i in range(len(self)): out.append(other/self[i])
+           for i in range(len(self)): out.append(other/self[i])
        return ArithmeticTuple(*tuple(out))
-  
+
    def __iadd__(self,other):
        """
-       in-place add of other to self
+       Inplace addition of C{other} to self.
 
        @param other: increment
        @type other: C{ArithmeticTuple}
        """
        if len(self) != len(other):
-           raise ValueError,"tuple length must match."
+           raise ValueError,"tuple lengths must match."
        for i in range(len(self)):
            self.__items[i]+=other[i]
        return self
 
    def __add__(self,other):
        """
-       add other to self
+       Adds C{other} to self.
 
        @param other: increment
        @type other: C{ArithmeticTuple}
        """
        out=[]
-       try:  
+       try:
            l=len(other)
            if l!=len(self):
-               raise ValueError,"length of of arguments don't match."
+               raise ValueError,"length of arguments don't match."
            for i in range(l): out.append(self[i]+other[i])
        except TypeError:
-	   for i in range(len(self)): out.append(self[i]+other)
+           for i in range(len(self)): out.append(self[i]+other)
        return ArithmeticTuple(*tuple(out))
 
    def __sub__(self,other):
        """
-       subtract other from self
+       Subtracts C{other} from self.
 
-       @param other: increment
+       @param other: decrement
        @type other: C{ArithmeticTuple}
        """
        out=[]
-       try:  
+       try:
            l=len(other)
            if l!=len(self):
-               raise ValueError,"length of of arguments don't match."
+               raise ValueError,"length of arguments don't match."
            for i in range(l): out.append(self[i]-other[i])
        except TypeError:
-	   for i in range(len(self)): out.append(self[i]-other)
+           for i in range(len(self)): out.append(self[i]-other)
        return ArithmeticTuple(*tuple(out))
-   
+
    def __isub__(self,other):
        """
-       subtract other from self
+       Inplace subtraction of C{other} from self.
 
-       @param other: increment
+       @param other: decrement
        @type other: C{ArithmeticTuple}
        """
        if len(self) != len(other):
@@ -1401,8 +1434,7 @@ class ArithmeticTuple(object):
 
    def __neg__(self):
        """
-       negate 
-
+       Negates values.
        """
        out=[]
        for i in range(len(self)):
@@ -1412,13 +1444,14 @@ class ArithmeticTuple(object):
 
 class HomogeneousSaddlePointProblem(object):
       """
-      This provides a framwork for solving linear homogeneous saddle point problem of the form
+      This class provides a framework for solving linear homogeneous saddle
+      point problems of the form::
 
-             Av+B^*p=f
-             Bv    =0
+          M{Av+B^*p=f}
+          M{Bv     =0}
 
-      for the unknowns v and p and given operators A and B and given right hand side f.
-      B^* is the adjoint operator of B.
+      for the unknowns M{v} and M{p} and given operators M{A} and M{B} and
+      given right hand side M{f}. M{B^*} is the adjoint operator of M{B}.
       """
       def __init__(self,**kwargs):
         self.setTolerance()
@@ -1428,35 +1461,33 @@ class HomogeneousSaddlePointProblem(object):
       #=============================================================
       def initialize(self):
         """
-        initialize the problem (overwrite)
+        Initializes the problem (overwrite).
         """
         pass
 
       def B(self,v):
         """
-        returns Bv (overwrite)
-        @rtype: equal to the type of p
+        Returns Bv (overwrite).
 
+        @rtype: equal to the type of p
         @note: boundary conditions on p should be zero!
         """
-        raise NotImplementedError,"no operator B implemented."
+        raise NotImplementedError, "no operator B implemented."
 
       def inner_pBv(self,p,Bv):
          """
-         returns inner product of element p and Bv  (overwrite)
-         
+         Returns inner product of element p and Bv (overwrite).
+
          @type p: equal to the type of p
          @type Bv: equal to the type of result of operator B
-         @rtype: C{float}
-
          @rtype: equal to the type of p
          """
          raise NotImplementedError,"no inner product for p implemented."
 
       def inner_p(self,p0,p1):
          """
-         returns inner product of element p0 and p1  (overwrite)
-         
+         Returns inner product of element p0 and p1 (overwrite).
+
          @type p0: equal to the type of p
          @type p1: equal to the type of p
          @rtype: equal to the type of p
@@ -1465,12 +1496,10 @@ class HomogeneousSaddlePointProblem(object):
 
       def inner_v(self,v0,v1):
          """
-         returns inner product of two element v0 and v1  (overwrite)
-         
+         Returns inner product of two elements v0 and v1 (overwrite).
+
          @type v0: equal to the type of v
          @type v1: equal to the type of v
-         @rtype: C{float}
-
          @rtype: equal to the type of v
          """
          raise NotImplementedError,"no inner product for v implemented."
@@ -1478,7 +1507,8 @@ class HomogeneousSaddlePointProblem(object):
 
       def solve_A(self,u,p):
          """
-         solves Av=f-Au-B^*p with accuracy self.getSubProblemTolerance() (overwrite) 
+         Solves M{Av=f-Au-B^*p} with accuracy L{self.getSubProblemTolerance()}
+         (overwrite).
 
          @rtype: equal to the type of v
          @note: boundary conditions on v should be zero!
@@ -1487,7 +1517,8 @@ class HomogeneousSaddlePointProblem(object):
 
       def solve_prec(self,p):
          """
-         provides a preconditioner for BA^{-1}B^* with accuracy self.getSubProblemTolerance() (overwrite)
+         Provides a preconditioner for M{BA^{-1}B^*} with accuracy
+         L{self.getSubProblemTolerance()} (overwrite).
 
          @rtype: equal to the type of p
          @note: boundary conditions on p should be zero!
@@ -1495,7 +1526,7 @@ class HomogeneousSaddlePointProblem(object):
          raise NotImplementedError,"no preconditioner for Schur complement implemented."
       #=============================================================
       def __Aprod_PCG(self,p):
-          # return (v,Bv) with v=A^-1B*p 
+          # return (v,Bv) with v=A^-1B*p
           #solve Av =B^*p as Av =f-Az-B^*(-p)
           v=self.solve_A(self.__z,-p)
           return ArithmeticTuple(v, self.B(v))
@@ -1514,7 +1545,7 @@ class HomogeneousSaddlePointProblem(object):
           p=x[1]
           w=self.solve_A(self.__z-v,-p)
           Bw=self.B(w-v)
-	  q=self.solve_prec(Bw)
+          q=self.solve_prec(Bw)
           return ArithmeticTuple(w,q)
 
       def __inner_GMRES(self,a1,a2):
@@ -1529,18 +1560,23 @@ class HomogeneousSaddlePointProblem(object):
 
       def solve(self,v,p,max_iter=20, verbose=False, show_details=False, useUzawa=True, iter_restart=20,max_correction_steps=3):
          """
-         solves the saddle point problem using initial guesses v and p.
+         Solves the saddle point problem using initial guesses v and p.
 
          @param v: initial guess for velocity
          @param p: initial guess for pressure
          @type v: L{Data}
          @type p: L{Data}
-         @param useUzawa: indicate the usage of the Uzawa scheme. Otherwise the problem is solved in coupled form.
-         @param max_iter: maximum number of iteration steps per correction attempt.
-         @param verbose: show information on the progress of the saddlepoint problem solver.
-         @param show_details: show details of the sub problems solves
-         @param iter_restart: restart the iteration after C{iter_restart} steps (only used if useUzaw=False)
-         @param max_correction_steps: maximum number of iteration steps in the attempt get |Bv| to zero.
+         @param useUzawa: indicates the usage of the Uzawa scheme. Otherwise
+                          the problem is solved in coupled form.
+         @param max_iter: maximum number of iteration steps per correction
+                          attempt
+         @param verbose: if True, shows information on the progress of the
+                         saddlepoint problem solver.
+         @param show_details: if True, shows details of the sub problem solver
+         @param iter_restart: restart the iteration after C{iter_restart} steps
+                              (only used if useUzaw=False)
+         @param max_correction_steps: maximum number of iteration steps in the
+                                      attempt to get |Bv| to zero.
          @return: new approximations for velocity and pressure
          @type useUzawa: C{bool}
          @type max_iter: C{int}
@@ -1552,7 +1588,7 @@ class HomogeneousSaddlePointProblem(object):
          """
          self.verbose=verbose
          self.show_details=show_details and self.verbose
-         #=================================================================================
+         #=====================================================================
          # Az=f is solved as A(z-v)=f-Av-B^*0 (typically with z-v=0 on boundary)
          self.__z=v+self.solve_A(v,p*0)
          # tolerances:
@@ -1577,7 +1613,7 @@ class HomogeneousSaddlePointProblem(object):
          while not converged :
             if useUzawa:
                # assume p is known: then v=z-A^-1B^*p
-               #      
+               #
                # which leads to BA^-1B^*p = Bz
                #
                # note that the residual r=Bz-BA^-1B^*p = B(z-A^-1B^*p) = Bv
@@ -1586,14 +1622,14 @@ class HomogeneousSaddlePointProblem(object):
                # the norm of the right hand side Bv = f0
                #
                #                  and the initial residual
-               #          
+               #
                #     r=Bz-BA^-1B^*q = B(z-A^{-1}B^*q)=Bw with A(w-z)=Az-Az-B^*q = f -A*0 - B^{*}q
                #
                w=self.solve_A(self.__z,q)+self.__z
                if self.verbose: print "enter PCG method (iter_max=%s, atol=%e, subtolerance=%e)"%(max_iter,ATOL, self.getSubProblemTolerance())
                q,r=PCG(ArithmeticTuple(w,self.B(w)),self.__Aprod_PCG,q,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL, rtol=0.,iter_max=max_iter, verbose=self.verbose)
-	       u=r[0]  
-	       Bu=r[1]
+               u=r[0]
+               Bu=r[1]
             else:
                #
                #  with v=dv+z
@@ -1607,9 +1643,9 @@ class HomogeneousSaddlePointProblem(object):
                if self.verbose: print "enter GMRES (iter_max=%s, atol=%e, subtolerance=%e)"%(max_iter,ATOL,self.getSubProblemTolerance())
                x=GMRES(ArithmeticTuple(w,self.solve_prec(self.B(u+w))),self.__Aprod_GMRES, ArithmeticTuple(u,q), \
                          self.__inner_GMRES,atol=ATOL, rtol=0.,iter_max=max_iter, iter_restart=iter_restart, verbose=self.verbose)
-	       u=x[0]
+               u=x[0]
                q=x[1]
-	       Bu=self.B(u)
+               Bu=self.B(u)
             # now we check if |Bu| ~ 0 or more precise |Bu|_p  <= rtol * |v|_v
             nu=self.inner_v(u,u)
             p2=self.solve_prec(Bu)
@@ -1631,12 +1667,12 @@ class HomogeneousSaddlePointProblem(object):
          if self.verbose: print "saddle point solver: tolerance reached."
  	 return u,q
 
-      #==========================================================================================================================
+      #========================================================================
       def setTolerance(self,tolerance=1.e-4):
          """
-         sets the relative tolerance for (v,p)
+         Sets the relative tolerance for (v,p).
 
-         @param tolerance: tolerance to be used 
+         @param tolerance: tolerance to be used
          @type tolerance: non-negative C{float}
          """
          if tolerance<0:
@@ -1646,64 +1682,68 @@ class HomogeneousSaddlePointProblem(object):
 
       def getTolerance(self):
          """
-         returns the relative tolerance
+         Returns the relative tolerance.
 
-         @return: relative tolerance 
+         @return: relative tolerance
          @rtype: C{float}
          """
          return self.__rtol
+
       def setAbsoluteTolerance(self,tolerance=0.):
          """
-         sets the absolute tolerance 
+         Sets the absolute tolerance.
 
-         @param tolerance: tolerance to be used 
+         @param tolerance: tolerance to be used
          @type tolerance: non-negative C{float}
          """
          if tolerance<0:
              raise ValueError,"tolerance must be non-negative."
          self.__atol=tolerance
+
       def getAbsoluteTolerance(self):
          """
-         returns the absolute tolerance
+         Returns the absolute tolerance.
 
-         @return: absolute tolerance 
+         @return: absolute tolerance
          @rtype: C{float}
          """
          return self.__atol
 
       def setSubProblemTolerance(self,rtol=None):
          """
-         sets the relative tolerance to solve the subproblem(s). 
+         Sets the relative tolerance to solve the subproblem(s).
 
          @param rtol: relative tolerence
          @type rtol: positive C{float}
          """
-         if rtol == None: 
+         if rtol == None:
               rtol=max(200.*util.EPSILON,self.getTolerance()**2)
          if rtol<=0:
              raise ValueError,"tolerance must be positive."
          self.__sub_tol=rtol
+
       def getSubProblemTolerance(self):
          """
-         returns the subproblem reduction factor
+         Returns the subproblem reduction factor.
 
          @return: subproblem reduction factor
-         @rtype: C{float} 
+         @rtype: C{float}
          """
          return self.__sub_tol
 
 def MaskFromBoundaryTag(domain,*tags):
    """
-   create a mask on the Solution(domain) function space which one for samples 
-   that touch the boundary tagged by tags.
+   Creates a mask on the Solution(domain) function space where the value is
+   one for samples that touch the boundary tagged by tags.
 
-   usage: m=MaskFromBoundaryTag(domain,"left", "right")
+   Usage: m=MaskFromBoundaryTag(domain, "left", "right")
 
-   @param domain: a given domain
+   @param domain: domain to be used
    @type domain: L{escript.Domain}
-   @param tags: boundray tags
+   @param tags: boundary tags
    @type tags: C{str}
-   @return: a mask which marks samples that are touching the boundary tagged by any of the given tags.
+   @return: a mask which marks samples that are touching the boundary tagged
+            by any of the given tags
    @rtype: L{escript.Data} of rank 0
    """
    pde=linearPDEs.LinearPDE(domain,numEquations=1, numSolutions=1)
@@ -1711,10 +1751,11 @@ def MaskFromBoundaryTag(domain,*tags):
    for t in tags: d.setTaggedValue(t,1.)
    pde.setValue(y=d)
    return util.whereNonZero(pde.getRightHandSide())
-#============================================================================================================================================
+
+#==============================================================================
 class SaddlePointProblem(object):
    """
-   This implements a solver for a saddlepoint problem
+   This implements a solver for a saddle point problem
 
    M{f(u,p)=0}
    M{g(u)=0}
@@ -1724,18 +1765,20 @@ class SaddlePointProblem(object):
    M{Q_f (u^{k+1}-u^{k}) = - f(u^{k},p^{k})}
    M{Q_g (p^{k+1}-p^{k}) =   g(u^{k+1})}
 
-   where Q_f is an approximation of the Jacobiean A_f of f with respect to u  and Q_f is an approximation of
-   A_g A_f^{-1} A_g with A_g is the jacobiean of g with respect to p. As a the construction of a 'proper'
-   Q_g can be difficult, non-linear conjugate gradient method is applied to solve for p, so Q_g plays
+   where Q_f is an approximation of the Jacobian A_f of f with respect to u and
+   Q_f is an approximation of A_g A_f^{-1} A_g with A_g is the Jacobian of g
+   with respect to p. As a the construction of a 'proper' Q_g can be difficult,
+   non-linear conjugate gradient method is applied to solve for p, so Q_g plays
    in fact the role of a preconditioner.
    """
    def __init__(self,verbose=False,*args):
        """
-       initializes the problem
+       Initializes the problem.
 
-       @param verbose: switches on the printing out some information
+       @param verbose: if True, some information is printed in the process
        @type verbose: C{bool}
-       @note: this method may be overwritten by a particular saddle point problem
+       @note: this method may be overwritten by a particular saddle point
+              problem
        """
        print "SaddlePointProblem should not be used anymore!"
        if not isinstance(verbose,bool):
@@ -1746,7 +1789,7 @@ class SaddlePointProblem(object):
 
    def trace(self,text):
        """
-       prints text if verbose has been set
+       Prints C{text} if verbose has been set.
 
        @param text: a text message
        @type text: C{str}
@@ -1755,11 +1798,12 @@ class SaddlePointProblem(object):
 
    def solve_f(self,u,p,tol=1.e-8):
        """
-       solves 
+       Solves
 
-       A_f du = f(u,p) 
+       A_f du = f(u,p)
 
-       with tolerance C{tol} and return du. A_f is Jacobiean of f with respect to u.
+       with tolerance C{tol} and returns du. A_f is Jacobian of f with respect
+       to u.
 
        @param u: current approximation of u
        @type u: L{escript.Data}
@@ -1769,17 +1813,19 @@ class SaddlePointProblem(object):
        @type tol: C{float}
        @return: increment du
        @rtype: L{escript.Data}
-       @note: this method has to be overwritten by a particular saddle point problem
+       @note: this method has to be overwritten by a particular saddle point
+              problem
        """
        pass
 
    def solve_g(self,u,tol=1.e-8):
        """
-       solves 
+       Solves
 
-       Q_g dp = g(u) 
+       Q_g dp = g(u)
 
-       with Q_g is a preconditioner for A_g A_f^{-1} A_g with  A_g is the jacobiean of g with respect to p.
+       where Q_g is a preconditioner for A_g A_f^{-1} A_g with A_g is the
+       Jacobian of g with respect to p.
 
        @param u: current approximation of u
        @type u: L{escript.Data}
@@ -1787,13 +1833,15 @@ class SaddlePointProblem(object):
        @type tol: C{float}
        @return: increment dp
        @rtype: L{escript.Data}
-       @note: this method has to be overwritten by a particular saddle point problem
+       @note: this method has to be overwritten by a particular saddle point
+              problem
        """
        pass
 
    def inner(self,p0,p1):
        """
-       inner product of p0 and p1 approximating p. Typically this returns integrate(p0*p1)
+       Inner product of p0 and p1 approximating p. Typically this returns
+       C{integrate(p0*p1)}.
        @return: inner product of p0 and p1
        @rtype: C{float}
        """
@@ -1802,7 +1850,7 @@ class SaddlePointProblem(object):
    subiter_max=3
    def solve(self,u0,p0,tolerance=1.e-6,tolerance_u=None,iter_max=100,accepted_reduction=0.995,relaxation=None):
         """
-        runs the solver
+        Runs the solver.
 
         @param u0: initial guess for C{u}
         @type u0: L{esys.escript.Data}
@@ -1810,14 +1858,19 @@ class SaddlePointProblem(object):
         @type p0: L{esys.escript.Data}
         @param tolerance: tolerance for relative error in C{u} and C{p}
         @type tolerance: positive C{float}
-        @param tolerance_u: tolerance for relative error in C{u} if different from C{tolerance}
+        @param tolerance_u: tolerance for relative error in C{u} if different
+                            from C{tolerance}
         @type tolerance_u: positive C{float}
-        @param iter_max: maximum number of iteration steps.
+        @param iter_max: maximum number of iteration steps
         @type iter_max: C{int}
-        @param accepted_reduction: if the norm  g cannot be reduced by C{accepted_reduction} backtracking to adapt the 
-                                   relaxation factor. If C{accepted_reduction=None} no backtracking is used.
+        @param accepted_reduction: if the norm g cannot be reduced by
+                                   C{accepted_reduction} backtracking to adapt
+                                   the relaxation factor. If
+                                   C{accepted_reduction=None} no backtracking
+                                   is used.
         @type accepted_reduction: positive C{float} or C{None}
-        @param relaxation: initial relaxation factor. If C{relaxation==None}, the last relaxation factor is used.
+        @param relaxation: initial relaxation factor. If C{relaxation==None},
+                           the last relaxation factor is used.
         @type relaxation: C{float} or C{None}
         """
         tol=1.e-2
@@ -1916,3 +1969,4 @@ class SaddlePointProblem(object):
             f, norm_f, u, norm_u, g, norm_g, p, norm_p = f_new, norm_f_new, u_new, norm_u_new, g_new, norm_g_new, p_new, norm_p_new
         self.trace("convergence after %s steps."%self.iter)
         return u,p
+

@@ -40,7 +40,7 @@ from esys.escript import setNumberOfThreads
 
 class BenchmarkSuite(object):
    """
-   framework to run a bunch of L{Benchmark}s using the object and creating a
+   Framework to run a bunch of L{Benchmark}s using the object and creating a
    table of statistics.
 
    @cvar MAX_LEVEL: maximum number of level in headers for output
@@ -48,7 +48,7 @@ class BenchmarkSuite(object):
    MAX_LEVEL=5
    def __init__(self,name=None):
        """
-       sets up a suite of benchmarks
+       Sets up a suite of benchmarks.
 
        @param name: name of the benchmark suite. If no name is given the class
                     name is used.
@@ -64,38 +64,38 @@ class BenchmarkSuite(object):
 
    def __str__(self):
        """
-       returns the name of the benchmark suite
+       Returns the name of the benchmark suite.
 
-       @return:  name
+       @return: the name
        @rtype: C{str}
        """
        return self.__name
 
    def addBenchmark(self,benchmark):
        """
-       adds a L{Benchmark} to the suite
+       Adds a new L{Benchmark} to the suite.
 
-       @param benchmark: adds a new L{Benchmark} to the suite
+       @param benchmark: the benchmark to add
        @type benchmark: L{Benchmark}
        """
        self.__benchmarks.append(benchmark)
 
    def __len__(self):
        """
-       returns the number of benchmarks in the suite
+       Returns the number of benchmarks in the suite.
 
-       @return:  number of benchmarks
+       @return: number of benchmarks
        @rtype: C{int}
        """
        return len(self.__benchmarks)
 
    def __getitem__(self,i):
        """
-       returns the i-th benchmark in the suite through self[i]
+       Returns the i-th benchmark in the suite through self[i].
 
        @param i: index of the requested benchmark
        @type i: C{int}
-       @return:  i-th benchmark
+       @return: i-th benchmark
        @rtype: L{Benchmark}
 
        """
@@ -103,21 +103,22 @@ class BenchmarkSuite(object):
 
    def run(self,scale=1):
        """
-       runs all benchmarks
+       Runs all benchmarks.
 
        @param scale: defines the number of (OpenMP) threads to be used. If
-                     scale is a scalar all benchmarks are run with scale number
-                     of threads. If scale is a C{list}, the p-th problem in
-                     each of the benchmarks in the suite is run with scale[p]
-                     threads. If scale[p]<1 the p-th problem is omitted.
-       @type scale: C{int} or C{list} of C{int}s.
+                     C{scale} is a scalar all benchmarks are run with C{scale}
+                     number of threads. If C{scale} is a C{list}, the p-th
+                     problem in each of the benchmarks in the suite is run with
+                     C{scale[p]} threads. If C{scale[p]}<1 the p-th problem is
+                     omitted.
+       @type scale: C{int} or C{list} of C{int}s
        """
        self.__scale=scale
        for i in range(len(self)): self[i].run(scale=scale)
 
    def getHTML(self,filter,level=1):
        """
-       returns the results of the last benchmark run in HTML format.
+       Returns the results of the last benchmark run in HTML format.
 
        @param filter: filter to be applied to the results
        @type filter: L{BenchmarkFilter}
@@ -152,16 +153,16 @@ class BenchmarkSuite(object):
 
 class Benchmark(object):
    """
-   runs a bunch of similar L{BenchmarkProblem}s with a bunch of L{Options}
+   Runs a bunch of similar L{BenchmarkProblem}s with a bunch of L{Options}.
    """
    def __init__(self,name=None,description=None):
        """
-       sets up a benchmark
+       Sets up a benchmark.
 
        @param name: name of the benchmark. If no name is given the class name
                     is used.
        @type name: C{str}
-       @param description: description of the benchmark.
+       @param description: description of the benchmark
        @type description: C{str} or C{None}
        """
        super(Benchmark,self).__init__()
@@ -177,42 +178,43 @@ class Benchmark(object):
 
    def __str__(self):
        """
-       returns the name of the benchmark suite
+       Returns the name of the benchmark suite.
 
-       @return:  name
+       @return: the name
        @rtype: C{str}
        """
        return self.__name
 
    def addProblem(self,problem):
        """
-       adds a problem to the benchmark
+       Adds a problem to the benchmark.
 
-       @param problem: adds a new problem to the benchmark
+       @param problem: the problem to be added
        @type problem: L{BenchmarkProblem}
        """
        self.__problems.append(problem)
 
    def addOptions(self,options):
        """
-       adds options to the benchmark
+       Adds options to the benchmark.
 
-       @param options: the options to be added to the bechmark. If
-                       options==None they are ignored
+       @param options: the options to be added to the benchmark. If
+                       options==None the options are left unchanged.
        @type options: L{Options}
        """
        if options!=None: self.__options.append(options)
 
    def run(self,scale=1):
        """
-       runs all problems with all options.
+       Runs all problems with all options.
 
        @param scale: defines the number of (OpenMP) threads to be used. If
-                     scale is a scalar all benchmarks are run with scale number
-                     of threads. If scale is a C{list}, the p-th problem in
-                     each of the benchmarks in the suite is run with scale[p]
-                     threads. If scale[p]<1 the p-th problem is omitted.
-       @type scale: C{int} or C{list} of C{int}s.
+                     C{scale} is a scalar all benchmarks are run with C{scale}
+                     number of threads. If C{scale} is a C{list}, the p-th
+                     problem in each of the benchmarks in the suite is run with
+                     C{scale[p]} threads. If C{scale[p]}<1 the p-th problem is
+                     omitted.
+       @type scale: C{int} or C{list} of C{int}s
        """
        if isinstance(scale,list):
            c_max=min(len(scale),len(self.__problems))
@@ -244,7 +246,7 @@ class Benchmark(object):
 
    def getHTML(self,filter,level=1):
        """
-       returns the results of the last benchmark run in HTML format.
+       Returns the results of the last benchmark run in HTML format.
 
        @param filter: filter to be applied to the results
        @type filter: L{BenchmarkFilter}
@@ -307,12 +309,12 @@ class Benchmark(object):
 
 class BenchmarkProblem(object):
    """
-   a benchmark problem that can be run and which returns a list of
+   Represents a benchmark problem that can be run and which returns a list of
    characteristics such as timing, MFlops, error, etc.
    """
    def __init__(self,name=None):
        """
-       sets up a benchmark problem
+       Sets up a benchmark problem.
 
        @param name: name of the problem. If no name is given the class name
                     is used.
@@ -326,16 +328,16 @@ class BenchmarkProblem(object):
 
    def __str__(self):
        """
-       returns the name of the benchmark suite
+       Returns the name of the benchmark suite.
 
-       @return:  name
+       @return: the name
        @rtype: C{str}
        """
        return self.__name
 
    def run(self,options=None):
        """
-       runs the problem and returns a list of run characteristics
+       Runs the problem and returns a list of run characteristics.
 
        @param options: the options that are used for the run. Note that the
                        number of OpenMP threads is controlled by the
@@ -343,7 +345,7 @@ class BenchmarkProblem(object):
        @type options: L{Options}
        @return: run characteristics
        @rtype: any type that can be read by the L{BenchmarkFilter} applied
-               to it.
+               to it
        @note: this function has to be overwritten by a particular problem
        """
        raise NotImplementedError
@@ -351,21 +353,21 @@ class BenchmarkProblem(object):
 
 class BenchmarkFilter(object):
    """
-   object to filter the characteristics returned by Benchmark runs.
+   Object to filter the characteristics returned by Benchmark runs.
 
    """
    def __init__(self):
        """
-       sets up a filter
+       Sets up a filter.
        """
        pass
 
    def getResultNames(self):
        """
-       returns the names of the results produced when run() is called.
+       Returns the names of the results produced when C{run()} is called.
 
        @return: the list of the names to be used when the results of
-                the run() call are printed
+                the C{run()} call are printed
        @rtype: C{list} of C{str}
        @note: this function has to overwritten by a particular problem
        """
@@ -374,7 +376,7 @@ class BenchmarkFilter(object):
 
    def __call__(self,result):
        """
-       filters out results returned as characteristics of a problem run
+       Filters out results returned as characteristics of a problem run.
 
        @param result: values to be filtered
        @type result: any type that is produced by the L{BenchmarkProblem}
@@ -389,11 +391,11 @@ class BenchmarkFilter(object):
 
 class Options(object):
     """
-    defines a set of options to be used to run a L{BenchmarkProblem}
+    Defines a set of options to be used to run a L{BenchmarkProblem}.
     """
     def __init__(self,name=None):
        """
-       sets up the options
+       Sets up the options.
 
        @param name: name of the option. If no name is given the class name
                     is used.
@@ -407,9 +409,9 @@ class Options(object):
 
     def __str__(self):
        """
-       returns the name of the benchmark suite
+       Returns the name of this options object.
 
-       @return:  name
+       @return: the name
        @rtype: C{str}
        """
        return self.__name
