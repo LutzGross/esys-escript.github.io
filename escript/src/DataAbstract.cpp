@@ -68,13 +68,6 @@ DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape, bo
 
 {
     m_isempty=isDataEmpty;
-    if (m_rank>ESCRIPT_MAX_DATA_RANK)
-    {
-	ostringstream os;
-        os << "Error - Attempt to create a rank " << m_rank 
-	   << " object. The maximum rank is " << ESCRIPT_MAX_DATA_RANK << ".";
-     throw DataException(os.str());
-    }
 }
 
 DataAbstract::~DataAbstract() 
@@ -102,7 +95,7 @@ DataAbstract::operandCheck(const DataAbstract& right) const
 
     //
     // Check the shape of the point data, a rank of 0(scalar) is okay
-    if (!((right.getRank()==0) || (getRank()==0) || 
+    if (!((right.getRank()==0) || 
 	  (right.getShape()==getShape())))
       {
         stringstream temp;

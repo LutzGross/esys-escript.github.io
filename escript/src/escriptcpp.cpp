@@ -27,12 +27,11 @@
 
 
 extern "C" {
-#include "esysUtils/blocktimer.h"
+#include "escript/blocktimer.h"
 }
 
 #include "esysUtils/esysExceptionTranslator.h"
 
-#include <boost/version.hpp>
 #include <boost/python.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
@@ -40,7 +39,6 @@ extern "C" {
 #include <boost/python/tuple.hpp>
 #include <boost/python/numeric.hpp>
 #include <boost/smart_ptr.hpp>
-#include <boost/version.hpp>
 
 using namespace boost::python;
 
@@ -54,7 +52,7 @@ using namespace boost::python;
  *
  * - \ref finley
  *
- * - <a href=http://shake200.esscc.uq.edu.au/esys/esys13/release/epydoc/index.html>Python module documentation (epydoc generated)</a>
+ * - <a href=http://iservo.edu.au/esys/epydoc/index.html>Python module documentation (epydoc generated)</a>
  *
  */
 
@@ -80,15 +78,6 @@ using namespace boost::python;
 
 BOOST_PYTHON_MODULE(escriptcpp)
 {
-// This feature was added in boost v1.34
-#if ((BOOST_VERSION/100)%1000 > 34) || (BOOST_VERSION/100000 >1)
-//#if ((BOOST_VERSION/100)%1000) > 34 
-  // params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
-  #if BOOST_VERSION > 103399
-  docstring_options docopt(true, true, false);
-  #endif
-#endif
-
   def("setNumberOfThreads",escript::setNumberOfThreads);
   def("getNumberOfThreads",escript::getNumberOfThreads);
   def("releaseUnusedMemory",escript::releaseUnusedMemory);
@@ -101,12 +90,12 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("printParallelThreadCounts",escript::printParallelThreadCnt);
   def("getMPISizeWorld",escript::getMPISizeWorld);
   def("getMPIRankWorld",escript::getMPIRankWorld);
-  def("getMachinePrecision",escript::getMachinePrecision);
-  def("getMaxFloat",escript::getMaxFloat);
+
+
   //
   // Interface for AbstractDomain
   //
-  class_<escript::AbstractDomain, escript::Domain_ptr>("Domain","Base class for all domains.",no_init)
+  class_<escript::AbstractDomain, escript::Domain_ptr>("Domain",no_init)
      .def("setTagMap",&escript::AbstractDomain::setTagMap)
      .def("getTag",&escript::AbstractDomain::getTag)
      .def("isValidTagName",&escript::AbstractDomain::isValidTagName)
@@ -128,14 +117,14 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Interface for AbstractContinuousDomain
   //
-  class_<escript::AbstractContinuousDomain, bases<escript::AbstractDomain> >("ContinuousDomain","Class representing continuous domains",no_init)
+  class_<escript::AbstractContinuousDomain, bases<escript::AbstractDomain> >("ContinuousDomain",no_init)
        .def("getSystemMatrixTypeId",&escript::AbstractContinuousDomain::getSystemMatrixTypeId)
        .def("getTransportTypeId",&escript::AbstractContinuousDomain::getTransportTypeId);
 
   //
   // Interface for FunctionSpace
   //
-  class_<escript::FunctionSpace> fs_definer("FunctionSpace","",init<>());	// Doco goes in the empty string param
+  class_<escript::FunctionSpace> fs_definer("FunctionSpace",init<>());
   fs_definer.def("getDim",&escript::FunctionSpace::getDim);
 //   fs_definer.def("getDomain",&escript::FunctionSpace::getDomain,
 //                  return_internal_reference<>());
@@ -154,7 +143,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Interface for Data
   //
-  class_<escript::Data>("Data","Represents a collection of datapoints. It is used to store the values of a function. For more details please consult the c++ class documentation.",init<>() )
+  class_<escript::Data>("Data","TEST DOCUMENTATION",init<>() )
     // various constructors for Data objects
     .def(init<const numeric::array&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
     .def(init<const object&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
@@ -186,7 +175,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("tag",&escript::Data::tag)
     .def("resolve",&escript::Data::resolve)
     .def("copy",&escript::Data::copy)
-    .def("copy",&escript::Data::copySelf)
+    .def("copy",&escript::Data::copySelf,return_value_policy<manage_new_object>())
     .def("delay",&escript::Data::delay)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToPyObject)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToArray)
@@ -342,7 +331,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Interface for AbstractSystemMatrix
   //
-  class_<escript::AbstractSystemMatrix>("Operator","",init<>())    // Doco goes in the empty string param
+  class_<escript::AbstractSystemMatrix>("Operator",init<>())
      .def("isEmpty",&escript::AbstractSystemMatrix::isEmpty)
      .def("solve",&escript::AbstractSystemMatrix::solve)
      .def("of",&escript::AbstractSystemMatrix::vectorMultiply)
@@ -353,7 +342,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Interface for AbstractTransportProblem
   //
-  class_<escript::AbstractTransportProblem>("TransportProblem","",init<>())    // Doco goes in the empty string param
+  class_<escript::AbstractTransportProblem>("TransportProblem",init<>())
      .def("isEmpty",&escript::AbstractTransportProblem::isEmpty)
      .def("solve",&escript::AbstractTransportProblem::solve)
      .def("setInitialValue",&escript::AbstractTransportProblem::setInitialValue)
@@ -368,7 +357,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
       (arg("value")=0));
   def("getEscriptParamInt",escript::getEscriptParamInt,
       (arg("sentinel")=0));
-  def("listEscriptParams",escript::listEscriptParams);
 
 
   //

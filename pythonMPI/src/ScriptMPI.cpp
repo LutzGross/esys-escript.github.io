@@ -45,11 +45,9 @@ int main( int argc, char **argv ) {
     {
       char fname[256];
       sprintf( fname, "stdout_cpu_%04d.out", mpi_info->rank );
-      FILE *fp_out;
-      fp_out = freopen( fname, "w+", stdout );
+      FILE *fp_out = freopen( fname, "w+", stdout );
       sprintf( fname, "stdout_cpu_%04d.err", mpi_info->rank );
-      FILE *fp_err;
-      fp_err = freopen( fname, "w+", stderr );
+      FILE *fp_err = freopen( fname, "w+", stderr );
     }
     /*
      * Start the python parser

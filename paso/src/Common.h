@@ -142,24 +142,6 @@ typedef int err_t;
   #define PASO_THREAD_FREE PASO_FREE
 #endif
 
-
-/* Prepare for the day that this becomes sharable. */
-/* and we wish to do multi-file optimisations on windows */
-
-#define PASO_DLL_API
-
-#ifdef _WIN32
-#   ifndef PASO_STATIC_LIB
-#      undef PASO_DLL_API
-#      ifdef PASO_EXPORTS
-#         define PASO_DLL_API __declspec(dllexport)
-#      else
-#         define PASO_DLL_API __declspec(dllimport)
-#      endif
-#   endif
-#endif
-
-
 /******************The main macros ************************************/ 
 
 #define MEMALLOC(_LENGTH_,_TYPE_)                                     \

@@ -45,6 +45,8 @@ class Design(design.Design):
     NETGEN="netgen"
     TETGEN="tetgen"
 
+    __script_file = None
+
     def __init__(self,dim=3,element_size=1.,order=1,keep_files=False):
        """
        initializes the gmsh design
@@ -63,9 +65,7 @@ class Design(design.Design):
        set the filename for the gmsh input script. if no name is given a name with extension geo is generated.
        """
        if name == None:
-           tmp_f_id=tempfile.mkstemp(suffix=".geo")
-           self.__scriptname=tmp_f_id[1]
-           os.close(tmp_f_id[0])
+           self.__scriptname=tempfile.mkstemp(suffix=".geo")[1]
        else:
            self.__scriptname=name
            self.setKeepFilesOn()
@@ -79,9 +79,7 @@ class Design(design.Design):
        sets the name for the gmsh mesh file. if no name is given a name with extension msh is generated.
        """
        if name == None:
-           tmp_f_id=tempfile.mkstemp(suffix=".msh")
-           self.__mshname=tmp_f_id[1]
-           os.close(tmp_f_id[0])
+           self.__mshname=tempfile.mkstemp(suffix=".msh")[1]
        else:
            self.__mshname=name
            self.setKeepFilesOn()
@@ -103,7 +101,8 @@ class Design(design.Design):
         """
         clean up
         """
-        if not self.keepFiles() :
+        if not self.keepFiles() and (self.scriptFile() != None) :
+            self.scriptFile().close()
             os.unlink(self.getScriptFileName())
             os.unlink(self.getMeshFileName())
 
@@ -135,14 +134,23 @@ class Design(design.Design):
         a mesh file name in gmsh format is returned.
         """
         f = open(self.getScriptFileName(),"w")
+        setScriptFile(f)
         f.write(self.getScriptString())
-        f.close()
         cmd = self.getCommandString()
         ret = os.system(cmd) / 256
 	if ret > 0:
 	  raise RuntimeError, "Could not build mesh: %s"%cmd
 	else:
           return self.getMeshFileName()
+
+    def setScriptFile(self,f=None):
+        self.__script_file=f
+        return
+
+    def scriptFile(self):
+        return self.__script_file
+
+
 
     def getScriptString(self):
         """

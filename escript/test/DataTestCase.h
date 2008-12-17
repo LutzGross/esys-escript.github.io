@@ -48,7 +48,6 @@ class DataTestCase : public CppUnitTest::TestCase
   void testResolveType();
   void testBinary();
 
-
   DataTestCase (std::string name) : TestCase (name) {}
   ~DataTestCase() {}
 
@@ -62,9 +61,6 @@ class DataTestCase : public CppUnitTest::TestCase
 private:
   void testCopyingWorker(bool delayed);
   void testSlicingWorker(bool delayed);
-
-
-  void testSomeDriver(bool autolazy);
 
 };
 

@@ -12,9 +12,7 @@
 *******************************************************/
 
 
-#include "DomainException.h"
 #include "NullDomain.h" 
-#include "Data.h"
 
 namespace escript {
 
@@ -30,47 +28,16 @@ NullDomain::NullDomain() {
  
 bool NullDomain::isValidFunctionSpaceType(int functionSpaceType) const 
 {
-   return (functionSpaceType==NullDomainFS);
+  //
+  // allow anything
+  return true;
 }
 
 std::string NullDomain::getDescription() const 
 {
   return "NullDomain";
 }
-
-std::string NullDomain::functionSpaceTypeAsString(int functionSpaceType) const
-{
-	return "Default_FunctionSpace";
-}
-
-void NullDomain::interpolateOnDomain(Data& target,const Data& source) const
-{
-   if (source.getFunctionSpace().getDomain().get()!=this)  
-      throw DomainException("Error - Illegal domain of interpolant.");
-   if (target.getFunctionSpace().getDomain().get()!=this) 
-      throw DomainException("Error - Illegal domain of interpolation target.");
-   target=source;
-}
-
-bool NullDomain::probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const
-{
-   if ((functionSpaceType_source!=functionSpaceType_target) || (functionSpaceType_target!=NullDomainFS))
-   {
-	throw DomainException("Error - Illegal function type for NullDomain.");
-   }
-   return true;
-}
-
-void NullDomain::interpolateACross(Data& target, const Data& source) const
-{
-   throw DomainException("Error - interpolation to the NullDomain not supported.");
-}
-
-bool NullDomain::probeInterpolationACross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const
-{
-   return false;
-}
-
+ 
 int NullDomain::getContinuousFunctionCode() const 
 {
   return NullDomainFS;

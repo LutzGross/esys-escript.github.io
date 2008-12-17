@@ -31,9 +31,9 @@ class EvaluateExpression(ParameterSet):
 
        @warning: this class use python's eval function!!!!! 
                  Please use input.InterpolateOverBox is possible!!!!
-       @ivar expression: expression or list of expressions defining 
-                 expression value (in)
-       @ivar out: current value of the expression (callable)
+       @ivar expression (in): expression or list of expressions defining 
+                 expression value
+       @ivar out (callable): current value of the expression
        """
 
        def __init__(self,**kwargs):
@@ -63,13 +63,13 @@ class Probe(Model):
        It prints out the relative error in each time step and the maximum
        relative error over all time steps at the end.
 
-       @warning: this class uses python's eval function!!!!!
-       @ivar value: values to be tested (in)
-       @ivar expression: expressions defining expression values to test against. If None only value is reported.  (in)
-       @ivar line_tag: tag to be used when printing error.  (in)
-       @ivar t: current time  (in)
-       @ivar max_error: maximum error  (out)
-       @ivar t_max: time of maximum error  (out)
+       @warning: this class use python's eval function!!!!!
+       @ivar value (in): values to be tested
+       @ivar expression (in): expressions defining expression values to test against. If None only value is reported.
+       @ivar line_tag (in): tag to be used when printing error
+       @ivar t (in): current time
+       @ivar max_error (out): maximum error
+       @ivar t_max (out): time of maximum error
 
        """
 

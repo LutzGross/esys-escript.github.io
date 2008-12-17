@@ -21,7 +21,7 @@
 #include <omp.h>
 #endif
 
-#include "blocktimer.h"
+#include "escript/blocktimer.h"
 #include "stdlib.h"
 #include "string.h"
 

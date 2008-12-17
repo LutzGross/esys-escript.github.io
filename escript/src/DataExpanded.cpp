@@ -310,7 +310,7 @@ DataExpanded::copy(const boost::python::numeric::array& value)
   //
   // now copy over the data
   //copy(temp_dataView);
-  getVector().copyFromNumArray(value,getNumDPPSample()*getNumSamples());
+  getVector().copyFromNumArray(value);
 }
 
 

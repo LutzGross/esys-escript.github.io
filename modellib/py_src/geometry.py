@@ -223,7 +223,7 @@ class ConstrainerOverBox(Model):
           return the values used to constrain a solution
 
           @return: values to be used at the locations of the constraints. If 
-                  C{value} is not given C{None} is rerturned.
+                  L{value} is not given C{None} is rerturned.
           @rtype: L{escript.Scalar}
           """
           if self.__location_of_constraint == None: self.__setOutput()
@@ -305,7 +305,7 @@ class ScalarConstrainerOverBox(Model):
           return the values used to constrain a solution
 
           @return: values to be used at the locations of the constraints. If 
-                  C{value} is not given C{None} is rerturned.
+                  L{value} is not given C{None} is rerturned.
           @rtype: L{escript.Scalar}
           """
           if self.__location_of_constraint == None: self.__setOutput()
@@ -381,7 +381,7 @@ class VectorConstrainerOverBox(Model):
           return the values used to constrain a solution
 
           @return: values to be used at the locations of the constraints. If 
-                  C{value} is not given C{None} is rerturned.
+                  L{value} is not given C{None} is rerturned.
           @rtype: L{escript.Vector}
           """
           if self.__location_of_constraint == None: self.__setOutput()
@@ -468,7 +468,7 @@ class ConstrainerAtBoxVertex(Model):
           return the values used to constrain a solution
 
           @return: values to be used at the locations of the constraints. If 
-                  C{value} is not given C{None} is rerturned.
+                  L{value} is not given C{None} is rerturned.
           @rtype: L{escript.Scalar}
           """
           if self.__location_of_constraint == None: self.__setOutput()
@@ -528,7 +528,7 @@ class ScalarConstrainerAtBoxVertex(Model):
           return the values used to constrain a solution
 
           @return: values to be used at the locations of the constraints. If 
-                  C{value} is not given C{None} is rerturned.
+                  L{value} is not given C{None} is rerturned.
           @rtype: L{escript.Scalar}
           """
           if self.__location_of_constraint == None: self.__setOutput()
@@ -579,7 +579,7 @@ class VectorConstrainerAtBoxVertex(Model):
           return the values used to constrain a solution
 
           @return: values to be used at the locations of the constraints. If 
-                  C{value} is not given C{None} is rerturned.
+                  L{value} is not given C{None} is rerturned.
           @rtype: L{escript.Vector}
           """
           if self.__location_of_constraint == None: self.__setOutput()

@@ -133,9 +133,9 @@ int AbstractContinuousDomain::getTransportTypeId(const int solver, const int pre
    return 0;
 }
 
-// const AbstractContinuousDomain& AbstractContinuousDomain::asAbstractContinuousDomain(const AbstractDomain& domain)
-// {
-//   return dynamic_cast<const AbstractContinuousDomain&>(domain);
-// }
+const AbstractContinuousDomain& AbstractContinuousDomain::asAbstractContinuousDomain(const AbstractDomain& domain)
+{
+  return dynamic_cast<const AbstractContinuousDomain&>(domain);
+}
 
 }  // end of namespace

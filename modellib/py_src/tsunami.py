@@ -802,9 +802,6 @@ class OceanRegion(Model):
         Initializes the ocean region
         """
 
-        # create output directory if necessary
-        if not os.path.isdir(WORKDIR): os.mkdir(WORKDIR)
-
         print "Initializing ocean region..."
         if hasattr(self.source,"readline"):
             f=self.source
@@ -988,6 +985,9 @@ class SurfMovie(Model):
         self.__frame_name="tsunami"
         self.__next_t=self.dt
         self.__fileIndex=0
+
+        # create output directory if necessary
+        if not os.path.isdir(WORKDIR): os.mkdir(WORKDIR)
 
         self.firstFrame = True
         self.imageFiles = []
@@ -1359,7 +1359,7 @@ def main():
     ts.bathymetry = Link(oreg, "bathymetry")
 
     sq = Sequencer()
-    sq.t_end = 30000.
+    sq.t_end = 20000.
 
     sm = SurfMovie()
     sm.bathymetry = Link(b, "bathymetry")

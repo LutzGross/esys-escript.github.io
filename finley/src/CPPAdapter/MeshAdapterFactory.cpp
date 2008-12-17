@@ -21,7 +21,7 @@
 #include "MeshAdapterFactory.h"
 #include "FinleyError.h"
 extern "C" {
-#include "esysUtils/blocktimer.h"
+#include "escript/blocktimer.h"
 }
 
 #include <boost/python/extract.hpp>

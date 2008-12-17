@@ -59,11 +59,11 @@ class MaterialTable(ParameterSet):
        """
        A simple matrial table which allows setting physical ivar of a model
 
-       @ivar density: density(in/out)
-       @ivar heat_capacity:  heat_capacity(in/out)
-       @ivar thermal_permabilty: permabilty(in/out)
-       @ivar viscosity: viscosity(in/out)
-       @ivar radiation_coefficient: (in/out)
+       @ivar density (in/out): density
+       @ivar heat_capacity (in/out):  heat_capacity
+       @ivar thermal_permabilty (in/out): permabilty
+       @ivar viscosity (in/out): viscosity
+       @ivar radiation_coefficient (in/out):
        """
        def __init__(self,**kwargs):
            super(MaterialTable, self).__init__(**kwargs)
@@ -75,22 +75,22 @@ class MaterialTable(ParameterSet):
 
 class SimpleEarthModel(ParameterSet):
        """
-       A simple matrial table run convection models::
+       B simple matrial table run convection models::
 
            density=density0*(1-expansion_coefficient*(temperature-reference_temperature))
            viscocity=viscocity0*(exp(alpha*(1/reference_temperature - 1/temperature))
 
-       @ivar gravity: gravity constants (9.81) (in)
-       @ivar reference_temperature: reference temperature (in)
-       @ivar density0: density at reference temperature  (in)
-       @ivar viscosity0: viscosity0 at reference temperature  (in)
-       @ivar alpha: viscosity contrast  (in)
-       @ivar expansion_coefficient: Raleigh number  (in)
-       @ivar heat_capacity: heat capacity  (in)
-       @ivar thermal_permabilty: permabilty  (in)
-       @ivar temperature: temperature  (in)
-       @ivar viscosity: viscosity  (out)
-       @ivar density: density  (out)
+       @ivar gravity (in): gravity constants (9.81)
+       @ivar reference_temperature (in): reference temperature
+       @ivar density0 (in): density at reference temperature
+       @ivar viscosity0 (in): viscosity0 at reference temperature
+       @ivar alpha (in): viscosity contrast
+       @ivar expansion_coefficient (in): Raleigh number
+       @ivar heat_capacity (in): heat capacity
+       @ivar thermal_permabilty (in): permabilty
+       @ivar temperature (in): temperature
+       @ivar viscosity (out): viscosity
+       @ivar density (out): density
        """
        def __init__(self,**kwargs):
            super(SimpleEarthModel, self).__init__(**kwargs)
@@ -115,11 +115,11 @@ class SimpleSolidMaterial(MaterialTable):
        A simple matrial table which allows setting physical parameters of 
        a model.
 
-       @ivar density: density  (in/out)
-       @ivar heat_capacity: heat_capacity  (in/out)
-       @ivar thermal_permabilty: permabilty  (in/out)
-       @ivar viscosity: viscosity  (in/out)
-       @ivar radiation_coefficient:  (in/out)
+       @ivar density (in/out): density
+       @ivar heat_capacity (in/out): heat_capacity
+       @ivar thermal_permabilty (in/out): permabilty
+       @ivar viscosity (in/out): viscosity
+       @ivar radiation_coefficient (in/out):
        """
        def __init__(self,**kwargs):
            super(MaterialTable, self).__init__(**kwargs)
@@ -130,11 +130,11 @@ class SimpleFluidMaterial(MaterialTable):
        """
        A simple matrial table which allows setting physical ivar of a model.
 
-       @ivar density: density(in/out)
-       @ivar heat_capacity: heat_capacity(in/out)
-       @ivar thermal_permabilty: permabilty (in/out)
-       @ivar viscosity: viscosity (in/out)
-       @ivar radiation_coefficient:(in/out)
+       @ivar density (in/out): density
+       @ivar heat_capacity (in/out): heat_capacity
+       @ivar thermal_permabilty (in/out): permabilty
+       @ivar viscosity (in/out): viscosity
+       @ivar radiation_coefficient (in/out):
        """
        def __init__(self,**kwargs):
            super(MaterialTable, self).__init__(**kwargs)

@@ -211,8 +211,8 @@ class AbstractContinuousDomain : public AbstractDomain {
      \brief
      Return the domain as const AbstractContinuousDomain&
   */
-//   ESCRIPT_DLL_API 
-//   static const  AbstractContinuousDomain& asAbstractContinuousDomain(const AbstractDomain& domain);
+  ESCRIPT_DLL_API 
+  static const  AbstractContinuousDomain& asAbstractContinuousDomain(const AbstractDomain& domain);
 
  protected:
 

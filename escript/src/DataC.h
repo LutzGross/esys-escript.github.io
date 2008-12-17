@@ -16,6 +16,7 @@
 #define escript_DataC_20040611_H
 #include "system_dep.h"
 
+#define ESCRIPT_MAX_DATA_RANK 4
 /**
    \brief
    Provide a wrapper around a Data object so Data may be accessed from C.

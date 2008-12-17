@@ -647,9 +647,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
  protected:
 
  private:
-  void extractArgsFromDict(const boost::python::dict& arg, int& numData,
-                             char**& names, escriptDataC*& data,
-                             escriptDataC**& dataPtr) const;
 
   //
   // pointer to the externally created finley mesh

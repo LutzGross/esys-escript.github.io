@@ -69,33 +69,6 @@ class NullDomain : public AbstractDomain {
 
   /**
      \brief
-     Return a description for the given function space type code.
-  */
-  ESCRIPT_DLL_API
-  virtual std::string functionSpaceTypeAsString(int functionSpaceType) const;
-
-  /**
-     \brief
-     Interpolates data given on source onto target where source and target have to be given on the same domain.
-     NullDomain only has one FunctionSpace so this makes target a shallow copy of source.
-  */
-  ESCRIPT_DLL_API
-  virtual void interpolateOnDomain(escript::Data& target,const escript::Data& source) const;
-  ESCRIPT_DLL_API
-  virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
-
-  /**
-     \brief
-     Interpolates data given on source onto target where source and target are given on different domains.
-     We do not permit interpolation into the NullDomain so this method always throws.
-  */
-  ESCRIPT_DLL_API
-  virtual void interpolateACross(escript::Data& target, const escript::Data& source) const;
-  ESCRIPT_DLL_API
-  virtual bool probeInterpolationACross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const;
-
-  /**
-     \brief
      Return a continuous FunctionSpace.
   */
   ESCRIPT_DLL_API

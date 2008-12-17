@@ -519,7 +519,7 @@ class MergeConstraints(ParameterSet):
           return the values used to constrain a solution
 
           @return: values to be used at the locations of the constraints. If
-                  C{value} is not given C{None} is rerturned.
+                  L{value} is not given C{None} is rerturned.
           @rtype: L{escript.Scalar}
           """
           out_loc=0

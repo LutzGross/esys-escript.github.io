@@ -32,7 +32,7 @@
 #include "Solver.h"
 #include "SolverFCT.h"
 #include "PasoUtil.h"
-#include "esysUtils/blocktimer.h"
+#include "escript/blocktimer.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif

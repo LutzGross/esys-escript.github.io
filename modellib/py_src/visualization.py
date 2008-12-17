@@ -37,7 +37,7 @@ class Visualization(Model):
         """
         Initialisation of the visualisation model object
 
-        @keyword debug: Debugging flag
+        @param debug: Debugging flag
         """
         super(Visualization,self).__init__(**kwargs)
         self.declareParameter(t=0.,
@@ -106,7 +106,7 @@ class Movie(Visualization):
         """
         Initialisation of the visualisation model object
 
-        @keyword debug: Debugging flag
+        @param debug: Debugging flag
         """
         super(Movie,self).__init__(**kwargs)
         self.declareParameter(scalar=None,
@@ -310,7 +310,7 @@ class WriteVTK(Visualization):
         """
         Initialisation of the WriteVTK object
 
-        @keyword debug: debugging flag
+        @param debug: debugging flag
         @type debug: C{bool}
         """
         super(WriteVTK,self).__init__(**kwargs)

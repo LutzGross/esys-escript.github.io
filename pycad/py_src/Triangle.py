@@ -48,6 +48,8 @@ class Design(design.Design):
        initializes the gmsh design
 
        @param dim: patial dimension
+       @param element_size: global element size
+       @param order: element order
        @param keep_files: flag to keep work files.
        """ 
        if dim != 2: 
@@ -92,10 +94,8 @@ class Design(design.Design):
     def setOptions(self,cmdLineArgs=""):
         """
         sets command line options for the mesh generator:
-        
-	triangle [-prq__a__uAcDjevngBPNEIOXzo_YS__iFlsCQVh] input_file
-        
-	see http://www.cs.cmu.edu/~quake/triangle.switch.html
+            triangle [-prq__a__uAcDjevngBPNEIOXzo_YS__iFlsCQVh] input_file
+        see http://www.cs.cmu.edu/~quake/triangle.switch.html
         
         @param cmdLineArgs: the switches you would ordinarily use at the command line (ie. cmdLineArgs="pq25a7.5")
         """ 
@@ -110,9 +110,7 @@ class Design(design.Design):
     def getCommandString(self):
         """
         returns the Triangle comand:
-	    
-        triangle [-prq__a__uAcDjevngBPNEIOXzo_YS__iFlsCQVh] input_file
-	
+            triangle [-prq__a__uAcDjevngBPNEIOXzo_YS__iFlsCQVh] input_file
         see http://www.cs.cmu.edu/~quake/triangle.switch.html
         """
         if self.__cmdLineArgs == "":

@@ -17,11 +17,6 @@ Import('*')
 
 local_env = clone_env(env_mpi)
 
-# And just for blocktimer cancer.....
-local_env.Append(LIBS = ['esysUtils'])
-
-lib_name = 'paso'
-
 sources = """
 	BiCGStab.c
 	Coupler.c
@@ -115,14 +110,7 @@ headers = """
 	performance.h
 """.split()
 
-if IS_WINDOWS_PLATFORM :
-  local_env.Append(CPPDEFINES = ['PASO_EXPORTS'])
-
-if local_env['share_paso'] :
-  lib = local_env.SharedLibrary(lib_name, sources)
-else:
-  lib = local_env.StaticLibrary(lib_name, sources)
-
+lib = local_env.StaticLibrary('paso', sources)
 env.Alias('target_paso_a', lib)
 
 include_path = Dir('paso', local_env['incinstall'])

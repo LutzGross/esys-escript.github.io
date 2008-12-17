@@ -127,21 +127,15 @@ void Paso_Pattern_color(Paso_Pattern* pattern, index_t* num_colors, index_t* col
   if ( !Paso_checkPtr(mis_marker) ) {
     /* get coloring */
     #pragma omp parallel for private(i) schedule(static)
-    for (i = 0; i < n; ++i) {
-        colorOf[i]=-1;
-        mis_marker[i]=-1;
-    }
+    for (i = 0; i < n; ++i) colorOf[i]=-1;
 
     while (Paso_Util_isAny(n,colorOf,-1) && Paso_noError()) {
-       /*#pragma omp parallel for private(i) schedule(static)
-       for (i = 0; i < n; ++i) mis_marker[i]=colorOf[i];*/
+       #pragma omp parallel for private(i) schedule(static)
+       for (i = 0; i < n; ++i) mis_marker[i]=colorOf[i];
        Paso_Pattern_mis(pattern,mis_marker);
 
        #pragma omp parallel for private(i) schedule(static)
-       for (i = 0; i < n; ++i) {
-        if (mis_marker[i]) colorOf[i]=out;
-        mis_marker[i]=colorOf[i];
-       }
+       for (i = 0; i < n; ++i) if (mis_marker[i]) colorOf[i]=out;
        ++out;
     }
     TMPMEMFREE(mis_marker);

@@ -127,7 +127,7 @@ class ESCRIPT_DLL_API DataVector {
     Note: This function does not attempt to perform shape checking.
   */
   void
-  copyFromNumArray(const boost::python::numeric::array& value, size_t copies);
+  copyFromNumArray(const boost::python::numeric::array& value);
 
 
 
@@ -213,7 +213,7 @@ inline
 DataVector::reference
 DataVector::operator[](const DataVector::size_type i)
 {
-  EsysAssert(i<size(),"DataVector: invalid index specified. " << i << " of " << size());
+  EsysAssert(i<size(),"DataVector: invalid index specified.");
   return m_array_data[i];
 }
 
@@ -221,7 +221,7 @@ inline
 DataVector::const_reference
 DataVector::operator[](const DataVector::size_type i) const
 {
-  EsysAssert(i<size(),"DataVector: invalid index specified. " << i << " of " << size());
+  EsysAssert(i<size(),"DataVector: invalid index specified.");
   return m_array_data[i];
 }
 

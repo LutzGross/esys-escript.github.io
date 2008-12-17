@@ -52,8 +52,6 @@ typedef struct Paso_SharedComponents {
 } Paso_SharedComponents;
 
 
-
-PASO_DLL_API
 Paso_SharedComponents* Paso_SharedComponents_alloc(dim_t local_length,
                                                    dim_t numNeighbors,
                                                    Paso_MPI_rank* neighbor,
@@ -62,11 +60,7 @@ Paso_SharedComponents* Paso_SharedComponents_alloc(dim_t local_length,
                                                    index_t m, index_t b,
                                                    Paso_MPIInfo *mpi_info);
                                  
-
-PASO_DLL_API
 Paso_SharedComponents* Paso_SharedComponents_getReference(Paso_SharedComponents*);
-
-PASO_DLL_API
 void Paso_SharedComponents_free(Paso_SharedComponents*);
 
 #endif 

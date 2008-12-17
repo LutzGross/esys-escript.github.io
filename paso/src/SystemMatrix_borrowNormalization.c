@@ -49,10 +49,8 @@ double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A) {
                   A->normalizer[irow]=0;
              }
              Paso_SparseMatrix_addAbsRow_CSR_OFFSET0(A->mainBlock,A->normalizer);
-             if(A->col_coupleBlock->pattern->ptr!=NULL) {
-               Paso_SparseMatrix_addAbsRow_CSR_OFFSET0(A->col_coupleBlock,A->normalizer);  
-             }
-        
+             Paso_SparseMatrix_addAbsRow_CSR_OFFSET0(A->col_coupleBlock,A->normalizer);
+   
              #pragma omp parallel
              {
                 irow_failed_local=-1;

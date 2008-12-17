@@ -35,7 +35,6 @@ extern "C" {
 #include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
 #include <boost/python/detail/defaults_gen.hpp>
-#include <boost/version.hpp>
 
 using namespace boost::python;
 
@@ -79,11 +78,6 @@ using namespace boost::python;
 
 BOOST_PYTHON_MODULE(finleycpp)
 {
-// This feature was added in boost v1.34
-#if ((BOOST_VERSION/100)%1000 > 34) || (BOOST_VERSION/100000 >1)
-  // params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
-  docstring_options docopt(true, true, false);
-#endif
 
   //
   // NOTE: The return_value_policy is necessary for functions that
@@ -149,7 +143,7 @@ BOOST_PYTHON_MODULE(finleycpp)
 
 
   class_<finley::MeshAdapter, bases<escript::AbstractContinuousDomain> >
-      ("MeshAdapter","A concrete class representing a domain. For more details, please consult the c++ documentation.",init<optional <Finley_Mesh*> >())
+      ("MeshAdapter",init<optional <Finley_Mesh*> >())
       .def(init<const finley::MeshAdapter&>())
       .def("write",&finley::MeshAdapter::write)
       .def("print_mesh_info",&finley::MeshAdapter::Print_Mesh_Info,(arg("full")=false))
@@ -182,7 +176,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       .def("onMasterProcessor",&finley::MeshAdapter::onMasterProcessor);
 
   class_<finley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >
-      ("OperatorAdapter","A concrete class representing an operator. For more details, please see the c++ documentation.", no_init)
+      ("OperatorAdapter",no_init)
       .def("print_matrix_info",&finley::SystemMatrixAdapter::Print_Matrix_Info,(arg("full")=false))
       .def("nullifyRowsAndCols",&finley::SystemMatrixAdapter::nullifyRowsAndCols)
       .def("resetValues",&finley::SystemMatrixAdapter::resetValues)
@@ -190,7 +184,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       .def("saveHB",&finley::SystemMatrixAdapter::saveHB);
 
   class_<finley::TransportProblemAdapter, bases<escript::AbstractTransportProblem> >
-      ("TransportProblemAdapter","",no_init)
+      ("TransportProblemAdapter",no_init)
       .def("getSafeTimeStepSize",&finley::TransportProblemAdapter::getSafeTimeStepSize)
       .def("getUnlimitedTimeStepSize",&finley::TransportProblemAdapter::getUnlimitedTimeStepSize)
       .def("resetTransport",&finley::TransportProblemAdapter::resetTransport);

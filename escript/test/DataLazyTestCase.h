@@ -34,9 +34,7 @@ class DataLazyTestCase : public CppUnitTest::TestCase
   // A test method must return void and have no arguments
   void testLazy1();
   void testLazy2();
-  void testLazy2p();
   void testLazy3();
-  void testLazy4();
   void testBuffers();
 
   DataLazyTestCase (std::string name) : TestCase (name) {}

@@ -21,7 +21,6 @@ sources = """
 	EsysAssertException.cpp
 	EsysException.cpp
 	esysExceptionTranslator.cpp
-        blocktimer.c
 """.split()
 headers = """
 	EsysAssert.h
@@ -30,7 +29,6 @@ headers = """
 	EsysTypes.h
 	esys_malloc.h
 	esysExceptionTranslator.h
-        blocktimer.h
 	system_dep.h
 """.split()
 
@@ -39,11 +37,7 @@ lib_name = 'esysUtils'
 if IS_WINDOWS_PLATFORM :
   local_env.Append(CPPDEFINES = ['ESYSUTILS_EXPORTS'])
 
-if local_env['share_esysUtils'] :
-  lib = local_env.SharedLibrary(lib_name, sources)
-else:
-  lib = local_env.StaticLibrary(lib_name, sources)
-
+lib = local_env.StaticLibrary(lib_name, sources)
 env.Alias('target_esysUtils_a', lib)
 
 include_path = Dir(lib_name, local_env['incinstall'])
