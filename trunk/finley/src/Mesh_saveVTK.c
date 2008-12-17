@@ -22,15 +22,15 @@
 #include "paso/PasoUtil.h"
 
 #define INT_FORMAT "%d "
-#define LEN_INT_FORMAT (9+1)
+#define LEN_INT_FORMAT (unsigned int)(9+1)
 #define INT_NEWLINE_FORMAT "%d\n"
 #define SCALAR_FORMAT "%12.6e\n"
 #define VECTOR_FORMAT "%12.6e %12.6e %12.6e\n"
 #define TENSOR_FORMAT "%12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e\n"
-#define LEN_TENSOR_FORMAT (9*(12+1)+1)
+#define LEN_TENSOR_FORMAT (unsigned int)(9*(12+1)+1)
 #define NEWLINE "\n"
 #define LEN_TMP_BUFFER LEN_TENSOR_FORMAT+(MAX_numNodes*LEN_INT_FORMAT+1)+2
-#define NCOMP_MAX 9
+#define NCOMP_MAX (unsigned int)9
 
 #define __STRCAT(dest, chunk, dest_in_use) \
 do {\
@@ -488,7 +488,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
     txtBufferSize = strlen(vtkHeader) + 3*LEN_INT_FORMAT + (30+3*maxNameLen);
 
     if (mpi_size > 1) {
-        txtBufferSize = MAX(txtBufferSize, myNumPoints * LEN_TMP_BUFFER);
+       txtBufferSize = MAX(txtBufferSize, myNumPoints * LEN_TMP_BUFFER);
         txtBufferSize = MAX(txtBufferSize, numCellFactor * myNumCells *
                 (LEN_INT_FORMAT * numVTKNodesPerElement + 1));
         txtBufferSize = MAX(txtBufferSize,
