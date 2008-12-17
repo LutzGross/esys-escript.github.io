@@ -1121,7 +1121,7 @@ LAZYDEBUG(cout << "Resolve binary: " << toString() << endl;)
 		   leftstep=0;
 		   oleftstep=1;
 		   rightstep=1;
-		   orightstep=(RN?-rightsize:0);
+		   orightstep=(RN ? -(int)rightsize : 0);
 		   numsteps=rightsize;
 		   onumsteps=m_left->getNumDPPSample();
 		}
@@ -1139,7 +1139,7 @@ LAZYDEBUG(cout << "Resolve binary: " << toString() << endl;)
 		   rightstep=0;
 		   orightstep=1;
 		   leftstep=1;
-		   oleftstep=(LN?-leftsize:0);
+		   oleftstep=(RN ? -(int)leftsize : 0);
 		   numsteps=leftsize;
 		   onumsteps=m_right->getNumDPPSample();
 		}
