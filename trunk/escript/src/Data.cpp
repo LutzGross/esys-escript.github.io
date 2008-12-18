@@ -2812,7 +2812,7 @@ Data::dump(const std::string fileName) const
           return m_data->dump(fileName);
 	}
   }
-  catch (exception& e)
+  catch (std::exception& e)
   {
         cout << e.what() << endl;
   }

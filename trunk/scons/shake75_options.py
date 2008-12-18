@@ -43,7 +43,7 @@ ld_extra		= '-fopenmp'
 # Boost libraries
 # boost_path		= '/sw/libs/boost/x86_64/gcc-4.1.2/python-2.4.4/boost_1_33/include/boost-1_33'
 # boost_lib_path	= '/sw/libs/boost/x86_64/gcc-4.1.2/python-2.4.4/boost_1_33/lib'
-# boost_libs		= ['boost_python-gcc']
+boost_libs		= ['boost_python-mt']
 
 # Specify whether or not to use VTK
 # usevtk		= 'yes'
