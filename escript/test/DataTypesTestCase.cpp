@@ -97,7 +97,7 @@ void DataTypesTestCase::testShapeFns() {
 // The errors we are testing for are triggered by ESysAssert which is only defined when DOASSERT is.
 
   cout << "\t\tInvalid index.(too many)" << endl;
-  // test too many indicies
+  // test too many indices
   try		
   {
      getRelIndex(s1,1,1);
