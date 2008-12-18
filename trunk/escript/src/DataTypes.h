@@ -93,12 +93,12 @@ namespace DataTypes {
      range of indexes to be sliced from the corresponding dimension. The
      first specifier corresponds to the first dimension, the second to the
      second and so on. Where n < the rank, the remaining dimensions are
-     sliced across the full range of their indicies.
+     sliced across the full range of their indices.
 
      Each slice specifier is of the form "a:b", which specifies a slice
-     from index a, up to but not including index b. Where index a is ommitted
-     a is assumed to be 0. Where index b is ommitted, b is assumed to be the
-     length of this dimension. Where both are ommitted (eg: ":") the slice is
+     from index a, up to but not including index b. Where index a is omitted
+     a is assumed to be 0. Where index b is omitted, b is assumed to be the
+     length of this dimension. Where both are omitted (eg: ":") the slice is
      assumed to encompass that entire dimension.
 
      Where one of the slice specifiers is a single integer, eg: [1], we
@@ -107,7 +107,7 @@ namespace DataTypes {
      dimension of size 1.
 
      The return value is a vector of pairs with length equal to the rank of
-     this object. Each pair corresponds to the range of indicies from the
+     this object. Each pair corresponds to the range of indices from the
      corresponding dimension to be sliced from, as specified in the input
      slice object.
 
@@ -360,10 +360,10 @@ namespace DataTypes {
    */
    void copyPoint(ValueType& dest, ValueType::size_type doffset, ValueType::size_type nvals, const ValueType& src, ValueType::size_type soffset);
 
- }   // End namespace DataTypes
+ }   // End of namespace DataTypes
 
 
-} // end of namespace escipt
+} // End of namespace escript
 
 #endif
 
