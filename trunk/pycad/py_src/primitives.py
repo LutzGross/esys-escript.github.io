@@ -39,7 +39,7 @@ try:
    import numpy
    numpyImported=True
 except:
-   numpyImported=False   
+   numpyImported=False
 
 import numarray
 from transformations import _TYPE, Translation, Dilation, Transformation
@@ -48,21 +48,21 @@ from math import sqrt
 
 def resetGlobalPrimitiveIdCounter():
    """
-   initializes the global primitive ID counter
+   Initializes the global primitive ID counter.
    """
    global global_primitive_id_counter
    global_primitive_id_counter=1
 
 def setToleranceForColocation(tol=1.e-11):
    """
-   set the global tolerance for colocation checks to tol
+   Sets the global tolerance for colocation checks to C{tol}.
    """
    global global_tolerance_for_colocation
    global_tolerance_for_colocation=tol
 
 def getToleranceForColocation():
    """
-   returns the global tolerance for colocation checks
+   Returns the global tolerance for colocation checks.
    """
    return global_tolerance_for_colocation
 
@@ -72,34 +72,36 @@ setToleranceForColocation()
 
 class PrimitiveBase(object):
     """
-    template for a set of primitives 
+    Template for a set of primitives.
     """
-    def __init__(self): 
+    def __init__(self):
        """
-       initializes PrimitiveBase instance object with id
-       """ 
+       Initializes the PrimitiveBase instance object.
+       """
        pass
 
     def __cmp__(self,other):
        """
-       compares object with other by comparing the absolute value of the ID
+       Compares object with other by comparing the absolute value of the ID.
        """
        if isinstance(other, PrimitiveBase):
            return cmp(self.getID(),other.getID())
        else:
            return False
+
     def getConstructionPoints(self):
         """
-        returns the points used to construct the primitive
+        Returns the points used to construct the primitive.
         """
         out=[]
-        for i in self.getPrimitives(): 
+        for i in self.getPrimitives():
            if isinstance(i,Point): out.append(i)
         return out
 
     def getPrimitives(self):
         """
-        returns a list of primitives used to construct the primitive with no double entries
+        Returns a list of primitives used to construct the primitive with no
+        double entries.
         """
         out=[]
         for p in self.collectPrimitiveBases():
@@ -108,45 +110,46 @@ class PrimitiveBase(object):
 
     def copy(self):
        """
-       returns a deep copy of the object
+       Returns a deep copy of the object.
        """
        return self.substitute({})
 
     def modifyBy(self,transformation):
        """
-       modifies the coordinates by applying a transformation 
+       Modifies the coordinates by applying a transformation.
        """
        for p in self.getConstructionPoints(): p.modifyBy(transformation)
 
     def __add__(self,other):
         """
-        returns a new object shifted by other
+        Returns a new object shifted by C{other}.
         """
         return self.apply(Translation(numarray.array(other,_TYPE)))
 
     def __sub__(self,other):
         """
-        returns a new object shifted by other
+        Returns a new object shifted by C{-other}.
         """
         return self.apply(Translation(-numarray.array(other,_TYPE)))
 
     def __iadd__(self,other):
         """
-        shifts the point by other
+        Shifts the point inplace by C{other}.
         """
         self.modifyBy(Translation(numarray.array(other,_TYPE)))
         return self
 
     def __isub__(self,other):
         """
-        shifts the point by -other
+        Shifts the point inplace by C{-other}.
         """
         self.modifyBy(Translation(-numarray.array(other,_TYPE)))
         return self
 
     def __imul__(self,other):
         """
-        modifies object by applying L{Transformation} other. If other is not a L{Transformation} it will try convert it.
+        Modifies object by applying L{Transformation} C{other}. If C{other}
+        is not a L{Transformation} it is first tried to be converted.
         """
         if isinstance(other,int) or isinstance(other,float):
             trafo=Dilation(other)
@@ -155,13 +158,14 @@ class PrimitiveBase(object):
         elif isinstance(other,Transformation):
             trafo=other
         else:
-            raise TypeError, "cannot convert argument to Trnsformation class object."
+            raise TypeError, "cannot convert argument to a Transformation class object."
         self.modifyBy(trafo)
         return self
 
     def __rmul__(self,other):
         """
-        applies L{Transformation} other to object. If other is not a L{Transformation} it will try convert it.
+        Applies L{Transformation} C{other} to object. If C{other} is not a
+        L{Transformation} it is first tried to be converted.
         """
         if isinstance(other,int) or isinstance(other,float):
             trafo=Dilation(other)
@@ -176,13 +180,13 @@ class PrimitiveBase(object):
 
     def setLocalScale(self,factor=1.):
        """
-       sets the local refinement factor
+       Sets the local refinement factor.
        """
        for p in self.getConstructionPoints(): p.setLocalScale(factor)
 
     def apply(self,transformation):
         """
-        returns a new object by applying the transformation
+        Returns a new object by applying the transformation.
         """
         out=self.copy()
         out.modifyBy(transformation)
@@ -190,104 +194,110 @@ class PrimitiveBase(object):
 
 class Primitive(object):
     """
-    A general primitive
+    Class that represents a general primitive.
     """
-    def __init__(self): 
+    def __init__(self):
        """
-       initializes PrimitiveBase instance object with id
-       """ 
+       Initializes the Primitive instance object with a unique ID.
+       """
        global global_primitive_id_counter
        self.__ID=global_primitive_id_counter
        global_primitive_id_counter+=1
 
     def getID(self):
        """
-       returns the primitive ID
+       Returns the primitive ID.
        """
        return self.__ID
 
     def getDirectedID(self):
         """
-        returns the primitive ID where a negative signs means that the reversed ordring is used.
+        Returns the primitive ID where a negative sign means that reversed
+        ordering is used.
         """
         return self.getID()
 
     def __repr__(self):
-       return "%s(%s)"%(self.__class__.__name__,self.getID())
+        return "%s(%s)"%(self.__class__.__name__,self.getID())
 
     def getUnderlyingPrimitive(self):
         """
-        returns the underlying primitive
+        Returns the underlying primitive.
         """
         return self
+
     def hasSameOrientation(self,other):
         """
-        returns True if other is the same primitive and has the same orientation
+        Returns True if C{other} is the same primitive and has the same
+        orientation, False otherwise.
         """
         return self == other and isinstance(other,Primitive)
 
     def __neg__(self):
         """
-        returns a view onto the curve with reversed ordering
+        Returns a view onto the curve with reversed ordering.
 
-        @note: this class is overwritten by subclass
+        @note: This method is overwritten by subclasses.
         """
         raise NotImplementedError("__neg__ is not implemented.")
 
     def substitute(self,sub_dict):
         """
-        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
-        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
-        with substituted arguments is returned.
+        Returns a copy of self with substitutes for the primitives used to
+        construct it given by the dictionary C{sub_dict}. If a substitute for
+        the object is given by C{sub_dict} the value is returned, otherwise a
+        new instance with substituted arguments is returned.
 
-        @note: this class is overwritten by subclass
+        @note: This method is overwritten by subclasses.
         """
         raise NotImplementedError("substitute is not implemented.")
 
     def collectPrimitiveBases(self):
         """
-        returns a list of primitives used to construct the primitive. It may contain primitives twice
-        
-        @note: this class is overwritten by subclass
+        Returns a list of primitives used to construct the primitive. It may
+        contain primitives twice.
+
+        @note: This method is overwritten by subclasses.
         """
         raise NotImplementedError("collectPrimitiveBases is not implemented.")
 
     def isColocated(self,primitive):
        """
-       returns True is the two primitives are located at the smae position
+       Rreturns True if the two primitives are located at the same position.
 
-       @note: this class is overwritten by subclass
+       @note: This method is overwritten by subclasses.
        """
        raise NotImplementedError("isColocated is not implemented.")
 
 
 class ReversePrimitive(object):
     """
-    A view onto a primitive creating an reverse orientation
+    A view onto a primitive creating a reverse orientation.
     """
-    def __init__(self,primitive): 
+    def __init__(self,primitive):
        """
-       instantiate a view onto primitve
-       """ 
+       Instantiates a view onto C{primitive}.
+       """
        if not isinstance(primitive, Primitive):
            raise ValueError("argument needs to be a Primitive class object.")
        self.__primitive=primitive
 
     def getID(self):
        """
-       returns the primitive ID
+       Returns the primitive ID.
        """
        return self.__primitive.getID()
 
     def getUnderlyingPrimitive(self):
         """
-        returns the underlying primitive
+        Returns the underlying primitive.
         """
         return self.__primitive
 
     def hasSameOrientation(self,other):
         """
-        returns True if other is the same primitive and has the same orientation
+        Returns True if C{other} is the same primitive and has the same
+        orientation as self.
         """
         return self == other and isinstance(other,ReversePrimitive)
 
@@ -296,48 +306,52 @@ class ReversePrimitive(object):
 
     def getDirectedID(self):
         """
-        returns the primitive ID where a negative signs means that the reversed ordring is used.
+        Returns the primitive ID where a negative signs means that reversed
+        ordering is used.
         """
         return -self.__primitive.getID()
 
     def substitute(self,sub_dict):
         """
-        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
-        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
-        with substituted arguments is returned.
+        Returns a copy of self with substitutes for the primitives used to
+        construct it given by the dictionary C{sub_dict}. If a substitute for
+        the object is given by C{sub_dict} the value is returned, otherwise a
+        new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
             sub_dict[self]=-self.getUnderlyingPrimitive().substitute(sub_dict)
         return sub_dict[self]
-            
+
     def __neg__(self):
           """
-          returns a view onto the curve with reversed ordering
+          Returns a view onto the curve with reversed ordering.
           """
           return self.__primitive
 
     def collectPrimitiveBases(self):
         """
-        returns a list of primitives used to construct the primitive. It may contain primitives twice
+        Returns a list of primitives used to construct the primitive. It may
+        contain primitives twice.
         """
         return self.__primitive.collectPrimitiveBases()
 
     def isColocated(self,primitive):
        """
-       returns True is the two primitives are located at the smae position
+       Returns True if the two primitives are located at the same position.
 
-       @note: this class is overwritten by subclass
+       @note: This method is overwritten by subclasses.
        """
        return self.__primitive.isColocated(primitive)
 
 class Point(Primitive, PrimitiveBase):
     """
-    a three dimensional point
+    A three-dimensional point.
     """
-    def __init__(self,x=0.,y=0.,z=0.,local_scale=1.): 
+    def __init__(self,x=0.,y=0.,z=0.,local_scale=1.):
        """
-       creates a point with coorinates x,y,z with the local refinement factor local_scale
-       """ 
+       Creates a point with coordinates C{x}, C{y}, C{z} with the local
+       refinement factor C{local_scale}.
+       """
        PrimitiveBase.__init__(self)
        Primitive.__init__(self)
        self.setCoordinates(numarray.array([x,y,z],_TYPE))
@@ -345,7 +359,7 @@ class Point(Primitive, PrimitiveBase):
 
     def setLocalScale(self,factor=1.):
        """
-       sets the local refinement factor
+       Sets the local refinement factor.
        """
        if factor<=0.:
           raise ValueError("scaling factor must be positive.")
@@ -353,17 +367,19 @@ class Point(Primitive, PrimitiveBase):
 
     def getLocalScale(self):
        """
-       returns the local refinement factor
+       Returns the local refinement factor.
        """
        return self.__local_scale
+
     def getCoordinates(self):
        """
-       returns the coodinates of the point as L{numarray.NumArray} object
+       Returns the coodinates of the point as a C{numarray.NumArray} object.
        """
        return self._x
+
     def setCoordinates(self,x):
        """
-       returns the coodinates of the point as L{numarray.NumArray} object
+       Sets the coodinates of the point from a C{numarray.NumArray} object C{x}.
        """
        if not isinstance(x, numarray.NumArray):
           self._x=numarray.array(x,_TYPE)
@@ -372,14 +388,15 @@ class Point(Primitive, PrimitiveBase):
 
     def collectPrimitiveBases(self):
        """
-       returns primitives used to construct the primitive
+       Returns primitives used to construct the primitive.
        """
        return [self]
- 
+
     def isColocated(self,primitive):
        """
-       returns True if L{Point} primitive is colocation (same coordinates) 
-       that means if |self-primitive| <= tol * max(|self|,|primitive|)
+       Returns True if the L{Point} C{primitive} is colocated (has the same
+       coordinates) with self. That is, if
+       M{|self-primitive| <= tol * max(|self|,|primitive|)}.
        """
        if isinstance(primitive,Point):
           primitive=primitive.getCoordinates()
@@ -394,9 +411,10 @@ class Point(Primitive, PrimitiveBase):
 
     def substitute(self,sub_dict):
         """
-        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
-        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
-        with substituted arguments is returned.
+        Returns a copy of self with substitutes for the primitives used to
+        construct it given by the dictionary C{sub_dict}. If a substitute for
+        the object is given by C{sub_dict} the value is returned, otherwise a
+        new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
            c=self.getCoordinates()
@@ -405,85 +423,87 @@ class Point(Primitive, PrimitiveBase):
 
     def modifyBy(self,transformation):
         """
-        modifies the coordinates by applying a transformation 
+        Modifies the coordinates by applying the given transformation.
         """
         self.setCoordinates(transformation(self.getCoordinates()))
 
-
     def __neg__(self):
         """
-        returns a view of the object with reverse orientiention. As a point has no direction the object itself is returned.
+        Returns a view of the object with reverse orientation. As a point has
+        no direction the object itself is returned.
         """
         return self
-       
+
 class Manifold1D(PrimitiveBase):
     """
-    general one-dimensional minifold in 3D defined by a start and end point.
+    General one-dimensional manifold in 1D defined by a start and end point.
     """
     def __init__(self):
         """
-        create a one-dimensional manifold
+        Initializes the one-dimensional manifold.
         """
         PrimitiveBase.__init__(self)
 
     def getStartPoint(self):
          """
-         returns start point
+         Returns the start point.
          """
          raise NotImplementedError()
 
     def getEndPoint(self):
          """
-         returns end point
+         Returns the end point.
          """
          raise NotImplementedError()
+
     def getBoundary(self):
         """
-        returns a list of the zero-dimensional manifolds forming the boundary of the curve 
+        Returns a list of the zero-dimensional manifolds forming the boundary
+        of the curve.
         """
         return [ self.getStartPoint(), self.getEndPoint()]
 
 class CurveBase(Manifold1D):
     """
-    A Curve is defined by a set of control points 
+    Base class for curves. A Curve is defined by a set of control points.
     """
     def __init__(self):
-          """
-          create curve 
-          """
-          Manifold1D.__init__(self)
+        """
+        Initializes the curve.
+        """
+        Manifold1D.__init__(self)
 
     def __len__(self):
-          """
-          returns the number of control points
-          """
-          return len(self.getControlPoints())
+        """
+        Returns the number of control points.
+        """
+        return len(self.getControlPoints())
 
     def getStartPoint(self):
-         """
-         returns start point
-         """
-         return self.getControlPoints()[0]
+        """
+        Returns the start point.
+        """
+        return self.getControlPoints()[0]
 
     def getEndPoint(self):
-         """
-         returns end point
-         """
-         return self.getControlPoints()[-1]
+        """
+        Returns the end point.
+        """
+        return self.getControlPoints()[-1]
 
     def getControlPoints(self):
-         """
-         returns a list of the points
-         """
-         raise NotImplementedError()
+        """
+        Returns a list of the points.
+        """
+        raise NotImplementedError()
 
 class Curve(CurveBase, Primitive):
     """
-    a curve defined through a list of control points. 
+    A curve defined through a list of control points.
     """
     def __init__(self,*points):
        """
-       defines a curve form control points 
+       Defines a curve from control points given by C{points}.
        """
        if len(points)<2:
            raise ValueError("Curve needs at least two points")
@@ -496,22 +516,23 @@ class Curve(CurveBase, Primitive):
        Primitive.__init__(self)
 
     def getControlPoints(self):
-         """
-         returns a list of the points
-         """
-         return self.__points
-      
+        """
+        Returns a list of the points.
+        """
+        return self.__points
+
     def __neg__(self):
-          """
-          returns a view onto the curve with reversed ordering
-          """
-          return ReverseCurve(self)
+        """
+        Returns a view onto the curve with reversed ordering.
+        """
+        return ReverseCurve(self)
 
     def substitute(self,sub_dict):
         """
-        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
-        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
-        with substituted arguments is returned.
+        Returns a copy of self with substitutes for the primitives used to
+        construct it given by the dictionary C{sub_dict}. If a substitute for
+        the object is given by C{sub_dict} the value is returned, otherwise a
+        new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
             new_p=[]
@@ -521,7 +542,7 @@ class Curve(CurveBase, Primitive):
 
     def collectPrimitiveBases(self):
        """
-       returns primitives used to construct the Curve
+       Returns the primitives used to construct the curve.
        """
        out=[self]
        for p in self.getControlPoints(): out+=p.collectPrimitiveBases()
@@ -529,10 +550,10 @@ class Curve(CurveBase, Primitive):
 
     def isColocated(self,primitive):
        """
-       returns True curves are on the same position
+       Returns True if curves are at the same position.
        """
-       if hasattr(primitive,"getUnderlyingPrimitive"): 
-         if isinstance(primitive.getUnderlyingPrimitive(),self.__class__): 
+       if hasattr(primitive,"getUnderlyingPrimitive"):
+         if isinstance(primitive.getUnderlyingPrimitive(),self.__class__):
            if len(primitive) == len(self):
              cp0=self.getControlPoints()
              cp1=primitive.getControlPoints()
@@ -550,11 +571,11 @@ class Curve(CurveBase, Primitive):
 
 class ReverseCurve(CurveBase, ReversePrimitive):
     """
-    a curve defined through a list of control points. 
+    A curve defined through a list of control points.
     """
     def __init__(self,curve):
        """
-       defines a curve form control points 
+       Defines a curve from control points.
        """
        if not isinstance(curve, Curve):
            raise TypeError("ReverseCurve needs to be an instance of Curve")
@@ -563,7 +584,7 @@ class ReverseCurve(CurveBase, ReversePrimitive):
 
     def getControlPoints(self):
          """
-         returns a list of the points
+         Returns a list of the points.
          """
          out=[p for p in self.getUnderlyingPrimitive().getControlPoints()]
          out.reverse()
@@ -571,43 +592,47 @@ class ReverseCurve(CurveBase, ReversePrimitive):
 
 class Spline(Curve):
     """
-    a spline curve defined through a list of control points. 
+    A spline curve defined through a list of control points.
     """
     pass
 
 class BezierCurve(Curve):
     """
-    a Bezier curve
+    A Bezier curve.
     """
     pass
 
 class BSpline(Curve):
     """
-    a BSpline curve. Control points may be repeated.
+    A BSpline curve. Control points may be repeated.
     """
     pass
 
 class Line(Curve):
     """
-    a line is defined by two pointDirecteds
+    A line is defined by two points.
     """
     def __init__(self,*points):
         """
-        defines a line with start and end point
+        Defines a line with start and end point.
         """
         if len(points)!=2:
            raise TypeError("Line needs two points")
         Curve.__init__(self,*points)
 
 class ArcBase(Manifold1D):
+    """
+    Base class for arcs.
+    """
     def __init__(self):
           """
-          create curve 
+          Initializes the arc.
           """
           Manifold1D.__init__(self)
+
     def collectPrimitiveBases(self):
        """
-       returns the primitives used to construct the Curve
+       Returns the primitives used to construct the Arc.
        """
        out=[self]
        out+=self.getStartPoint().collectPrimitiveBases()
@@ -615,20 +640,19 @@ class ArcBase(Manifold1D):
        out+=self.getCenterPoint().collectPrimitiveBases()
        return out
 
-
     def getCenterPoint(self):
          """
-         returns center
+         Returns the center.
          """
          raise NotImplementedError()
 
 class Arc(ArcBase, Primitive):
     """
-    defines an arc which is strictly, smaller than Pi
+    Defines an arc which is strictly smaller than S{pi}.
     """
     def __init__(self,center,start,end):
        """
-       creates an arc by the start point, end point and center
+       Creates an arc defined by the start point, end point and center.
        """
        if not isinstance(center,Point): raise TypeError("center needs to be a Point object.")
        if not isinstance(end,Point): raise TypeError("end needs to be a Point object.")
@@ -642,46 +666,47 @@ class Arc(ArcBase, Primitive):
        self.__center=center
        self.__start=start
        self.__end=end
+
     def __neg__(self):
-          """
-          returns a view onto the curve with reversed ordering
-          """
-          return ReverseArc(self)
+       """
+       Returns a view onto the curve with reversed ordering.
+       """
+       return ReverseArc(self)
 
     def getStartPoint(self):
        """
-       returns start point
+       Returns the start point.
        """
        return self.__start
 
     def getEndPoint(self):
        """
-       returns end point
+       Returns the end point.
        """
        return self.__end
 
     def getCenterPoint(self):
        """
-       returns center
+       Returns the center point.
        """
        return self.__center
 
     def substitute(self,sub_dict):
         """
-        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
-        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
-        with substituted arguments is returned.
+        Returns a copy of self with substitutes for the primitives used to
+        construct it given by the dictionary C{sub_dict}. If a substitute for
+        the object is given by C{sub_dict} the value is returned, otherwise a
+        new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
             sub_dict[self]=Arc(self.getCenterPoint().substitute(sub_dict),self.getStartPoint().substitute(sub_dict),self.getEndPoint().substitute(sub_dict))
         return sub_dict[self]
 
-
     def isColocated(self,primitive):
        """
-       returns True curves are on the same position
+       Returns True if curves are at the same position.
        """
-       if hasattr(primitive,"getUnderlyingPrimitive"): 
+       if hasattr(primitive,"getUnderlyingPrimitive"):
           if isinstance(primitive.getUnderlyingPrimitive(),Arc):
             return (self.getCenterPoint().isColocated(primitive.getCenterPoint())) and ( \
                    (self.getEndPoint().isColocated(primitive.getEndPoint()) and self.getStartPoint().isColocated(primitive.getStartPoint()) ) \
@@ -690,11 +715,11 @@ class Arc(ArcBase, Primitive):
 
 class ReverseArc(ArcBase, ReversePrimitive):
     """
-    defines an arc which is strictly, smaller than Pi
+    Defines an arc which is strictly smaller than S{pi}.
     """
     def __init__(self,arc):
        """
-       creates an arc by the start point, end point and center
+       Creates an arc defined by the start point, end point and center.
        """
        if not isinstance(arc, Arc):
            raise TypeError("ReverseCurve needs to be an instance of Arc")
@@ -703,31 +728,35 @@ class ReverseArc(ArcBase, ReversePrimitive):
 
     def getStartPoint(self):
        """
-       returns start point
+       Returns the start point.
        """
        return self.getUnderlyingPrimitive().getEndPoint()
 
     def getEndPoint(self):
        """
-       returns end point
+       Returns the end point.
        """
        return self.getUnderlyingPrimitive().getStartPoint()
 
     def getCenterPoint(self):
        """
-       returns center
+       Returns the center point.
        """
        return self.getUnderlyingPrimitive().getCenterPoint()
 
 class EllipseBase(Manifold1D):
+    """
+    Base class for ellipses.
+    """
     def __init__(self):
-          """
-          create ellipse
-          """
-          Manifold1D.__init__(self)
+       """
+       Initializes the ellipse.
+       """
+       Manifold1D.__init__(self)
+
     def collectPrimitiveBases(self):
        """
-       returns the primitives used to construct the Curve
+       Returns the primitives used to construct the ellipse.
        """
        out=[self]
        out+=self.getStartPoint().collectPrimitiveBases()
@@ -736,14 +765,14 @@ class EllipseBase(Manifold1D):
        out+=self.getPointOnMainAxis().collectPrimitiveBases()
        return out
 
-
 class Ellipse(EllipseBase, Primitive):
     """
-    defines an ellipse which is strictly, smaller than Pi
+    Defines an ellipse which is strictly smaller than S{pi}.
     """
     def __init__(self,center,point_on_main_axis,start,end):
        """
-       creates an arc by the start point, end point, the center and a point on a main axis.
+       Creates an ellipse defined by the start point, end point, the center
+       and a point on the main axis.
        """
        if not isinstance(center,Point): raise TypeError("center needs to be a Point object.")
        if not isinstance(end,Point): raise TypeError("end needs to be a Point object.")
@@ -762,40 +791,41 @@ class Ellipse(EllipseBase, Primitive):
        self.__point_on_main_axis=point_on_main_axis
 
     def __neg__(self):
-          """
-          returns a view onto the curve with reversed ordering
-          """
-          return ReverseEllipse(self)
+       """
+       Returns a view onto the curve with reversed ordering.
+       """
+       return ReverseEllipse(self)
 
     def getStartPoint(self):
        """
-       returns start point
+       Returns the start point.
        """
        return self.__start
 
     def getEndPoint(self):
        """
-       returns end point
+       Returns the end point.
        """
        return self.__end
 
     def getCenterPoint(self):
        """
-       returns center
+       Returns the center.
        """
        return self.__center
 
     def getPointOnMainAxis(self):
        """
-       returns a point on a main axis
+       Returns a point on the main axis.
        """
        return self.__point_on_main_axis
 
     def substitute(self,sub_dict):
         """
-        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
-        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
-        with substituted arguments is returned.
+        Returns a copy of self with substitutes for the primitives used to
+        construct it given by the dictionary C{sub_dict}. If a substitute for
+        the object is given by C{sub_dict} the value is returned, otherwise a
+        new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
             sub_dict[self]=Ellipse(self.getCenterPoint().substitute(sub_dict),
@@ -807,9 +837,9 @@ class Ellipse(EllipseBase, Primitive):
 
     def isColocated(self,primitive):
        """
-       returns True curves are on the same position
+       Returns True if curves are at the same position.
        """
-       if hasattr(primitive,"getUnderlyingPrimitive"): 
+       if hasattr(primitive,"getUnderlyingPrimitive"):
           if isinstance(primitive.getUnderlyingPrimitive(),Ellipse):
             self_c=self.getCenterPoint().getCoordinates()
             p=self.getPointOnMainAxis().getCoordinates()-self_c
@@ -819,24 +849,24 @@ class Ellipse(EllipseBase, Primitive):
             len_q=sqrt(q[0]**2+q[1]**2+q[2]**2)
             p_q= abs(p[0]*q[0]+p[1]*q[1]+p[2]*q[2])
             return ((p_q <= getToleranceForColocation() * len_q * p_q) or \
-                                   (abs(p_q - len_q * p_q) <= getToleranceForColocation())) and \
+                    (abs(p_q - len_q * p_q) <= getToleranceForColocation())) and \
                    self.getCenterPoint().isColocated(primitive.getCenterPoint()) and \
-                   (                                                                  \
-                        (self.getEndPoint().isColocated(primitive.getEndPoint()) and \
-                         self.getStartPoint().isColocated(primitive.getStartPoint()) ) \
-                                       or                                              \
-                         (self.getEndPoint().isColocated(primitive.getStartPoint()) and \
-                          self.getStartPoint().isColocated(primitive.getEndPoint()) ) \
+                   ( \
+                    (self.getEndPoint().isColocated(primitive.getEndPoint()) and \
+                     self.getStartPoint().isColocated(primitive.getStartPoint()) ) \
+                    or \
+                    (self.getEndPoint().isColocated(primitive.getStartPoint()) and \
+                     self.getStartPoint().isColocated(primitive.getEndPoint())) \
                    )
        return False
 
 class ReverseEllipse(EllipseBase, ReversePrimitive):
     """
-    defines an arc which is strictly, smaller than Pi
+    Defines an ellipse which is strictly smaller than S{pi}.
     """
     def __init__(self,arc):
        """
-       creates an instance of a reverse view to an ellipse
+       Creates an instance of a reverse view to an ellipse.
        """
        if not isinstance(arc, Ellipse):
            raise TypeError("ReverseCurve needs to be an instance of Ellipse")
@@ -845,38 +875,40 @@ class ReverseEllipse(EllipseBase, ReversePrimitive):
 
     def getStartPoint(self):
        """
-       returns start point
+       Returns the start point.
        """
        return self.getUnderlyingPrimitive().getEndPoint()
 
     def getEndPoint(self):
        """
-       returns end point
+       Returns the end point.
        """
        return self.getUnderlyingPrimitive().getStartPoint()
 
     def getCenterPoint(self):
        """
-       returns center
+       Returns the center point.
        """
        return self.getUnderlyingPrimitive().getCenterPoint()
 
     def getPointOnMainAxis(self):
        """
-       returns a point on a main axis
+       Returns a point on the main axis.
        """
        return self.getUnderlyingPrimitive().getPointOnMainAxis()
 
 
 class CurveLoop(Primitive, PrimitiveBase):
     """
-    An oriented loop of one-dimensional manifolds (= curves and arcs)
+    An oriented loop of one-dimensional manifolds (= curves and arcs).
 
-    The loop must be closed and the L{Manifold1D}s should be oriented consistently.
+    The loop must be closed and the L{Manifold1D}s should be oriented
+    consistently.
     """
     def __init__(self,*curves):
        """
-       creates a polygon from a list of line curves. The curves must form a closed loop.
+       Creates a polygon from a list of line curves. The curves must form a
+       closed loop.
        """
        if len(curves)<2:
             raise ValueError("at least two curves have to be given.")
@@ -891,26 +923,25 @@ class CurveLoop(Primitive, PrimitiveBase):
 
     def getCurves(self):
        """
-       returns the curves defining the CurveLoop
+       Returns the curves defining the CurveLoop.
        """
        return self.__curves
 
     def __neg__(self):
        """
-       returns a view onto the curve with reversed ordering
+       Returns a view onto the curve with reversed ordering.
        """
        return ReverseCurveLoop(self)
 
     def __len__(self):
        """
-       return the number of curves in the CurveLoop
+       Returns the number of curves in the CurveLoop.
        """
        return len(self.getCurves())
 
-
     def collectPrimitiveBases(self):
        """
-       returns primitives used to construct the CurveLoop
+       Returns primitives used to construct the CurveLoop.
        """
        out=[self]
        for c in self.getCurves(): out+=c.collectPrimitiveBases()
@@ -918,9 +949,10 @@ class CurveLoop(Primitive, PrimitiveBase):
 
     def substitute(self,sub_dict):
         """
-        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
-        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
-        with substituted arguments is returned.
+        Returns a copy of self with substitutes for the primitives used to
+        construct it given by the dictionary C{sub_dict}. If a substitute for
+        the object is given by C{sub_dict} the value is returned, otherwise a
+        new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
             new_c=[]
@@ -930,14 +962,14 @@ class CurveLoop(Primitive, PrimitiveBase):
 
     def isColocated(self,primitive):
        """
-       returns True if each curve is colocted with a curve in primitive
+       Returns True if each curve is colocated with a curve in C{primitive}.
        """
-       if hasattr(primitive,"getUnderlyingPrimitive"): 
+       if hasattr(primitive,"getUnderlyingPrimitive"):
           if isinstance(primitive.getUnderlyingPrimitive(),CurveLoop):
              if len(primitive) == len(self):
                 cp0=self.getCurves()
                 cp1=primitive.getCurves()
-                for c0 in cp0: 
+                for c0 in cp0:
                     colocated = False
                     for c1 in cp1:
                          colocated = colocated or c0.isColocated(c1)
@@ -947,13 +979,15 @@ class CurveLoop(Primitive, PrimitiveBase):
 
 class ReverseCurveLoop(ReversePrimitive, PrimitiveBase):
     """
-    An oriented loop of one-dimensional manifolds (= curves and arcs)
+    An oriented loop of one-dimensional manifolds (= curves and arcs).
 
-    The loop must be closed and the one-dimensional manifolds should be oriented consistently.
+    The loop must be closed and the one-dimensional manifolds should be
+    oriented consistently.
     """
     def __init__(self,curve_loop):
        """
-       creates a polygon from a list of line curves. The curves must form a closed loop.
+       Creates a polygon from a list of line curves. The curves must form a
+       closed loop.
        """
        if not isinstance(curve_loop, CurveLoop):
            raise TypeError("arguments need to be an instance of CurveLoop.")
@@ -962,7 +996,7 @@ class ReverseCurveLoop(ReversePrimitive, PrimitiveBase):
 
     def getCurves(self):
        """
-       returns the curves defining the CurveLoop
+       Returns the curves defining the CurveLoop.
        """
        return [ -c for c in  self.getUnderlyingPrimitive().getCurves() ]
 
@@ -972,63 +1006,67 @@ class ReverseCurveLoop(ReversePrimitive, PrimitiveBase):
 #=
 class Manifold2D(PrimitiveBase):
     """
-    general two-dimensional manifold
+    General two-dimensional manifold.
     """
     def __init__(self):
        """
-       create a two-dimensional manifold
+       Creates a two-dimensional manifold.
        """
        PrimitiveBase.__init__(self)
 
     def getBoundary(self):
         """
-        returns a list of the one-dimensional manifolds forming the boundary of the Surface (including holes)
+        Returns a list of the one-dimensional manifolds forming the boundary
+        of the surface (including holes).
         """
         raise NotImplementedError()
 
 class RuledSurface(Primitive, Manifold2D):
     """
-    A ruled surface, i.e., a surface that can be interpolated using transfinite interpolation
+    A ruled surface, i.e. a surface that can be interpolated using transfinite
+    interpolation.
     """
     def __init__(self,loop):
        """
-       creates a ruled surface with boundary loop
+       Creates a ruled surface with boundary C{loop}.
 
-       @param loop: L{CurveLoop} defining the boundary of the surface. 
+       @param loop: L{CurveLoop} defining the boundary of the surface.
        """
        if not isinstance(loop.getUnderlyingPrimitive(),CurveLoop):
            raise TypeError("argument loop needs to be a CurveLoop object.")
        if len(loop)<2:
            raise ValueError("the loop must contain at least two Curves.")
        if len(loop)>4:
-           raise ValueError("the loop must contain at least three Curves.")
+           raise ValueError("the loop must contain at most four Curves.")
        Primitive.__init__(self)
        Manifold2D.__init__(self)
        self.__loop=loop
 
     def __neg__(self):
-          """
-          returns a view onto the suface with reversed ordering
-          """
-          return ReverseRuledSurface(self)
+        """
+        Returns a view onto the suface with reversed ordering.
+        """
+        return ReverseRuledSurface(self)
 
     def getBoundaryLoop(self):
         """
-        returns the loop defining the outer boundary
+        Returns the loop defining the outer boundary.
         """
         return self.__loop
 
     def getBoundary(self):
         """
-        returns a list of the one-dimensional manifolds forming the boundary of the Surface (including holes)
+        Returns a list of the one-dimensional manifolds forming the boundary
+        of the Surface (including holes).
         """
         return self.getBoundaryLoop().getCurves()
 
     def substitute(self,sub_dict):
         """
-        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
-        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
-        with substituted arguments is returned.
+        Returns a copy of self with substitutes for the primitives used to
+        construct it given by the dictionary C{sub_dict}. If a substitute for
+        the object is given by C{sub_dict} the value is returned, otherwise a
+        new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
             sub_dict[self]=RuledSurface(self.getBoundaryLoop().substitute(sub_dict))
@@ -1036,33 +1074,34 @@ class RuledSurface(Primitive, Manifold2D):
 
     def isColocated(self,primitive):
        """
-       returns True if each curve is colocted with a curve in primitive
+       Returns True if each curve is colocated with a curve in C{primitive}.
        """
-       if hasattr(primitive,"getUnderlyingPrimitive"): 
+       if hasattr(primitive,"getUnderlyingPrimitive"):
           if isinstance(primitive.getUnderlyingPrimitive(),RuledSurface):
              return self.getBoundaryLoop().isColocated(primitive.getBoundaryLoop())
        return False
 
     def collectPrimitiveBases(self):
         """
-        returns primitives used to construct the Surface
+        Returns primitives used to construct the Surface.
         """
         return [self] + self.getBoundaryLoop().collectPrimitiveBases()
 
 def createRuledSurface(*curves):
       """
-      an easier way to create a L{RuledSurface} from given curves.
+      An easier way to create a L{RuledSurface} from given curves.
       """
       return RuledSurface(CurveLoop(*curves))
 
 
 class ReverseRuledSurface(ReversePrimitive, Manifold2D):
     """
-    creates a view onto a L{RuledSurface} but with the reverse orientation
+    Creates a view onto a L{RuledSurface} but with reverse orientation.
     """
     def __init__(self,surface):
        """
-       creates a polygon from a list of line curves. The curves must form a closed loop.
+       Creates a polygon from a list of line curves. The curves must form a
+       closed loop.
        """
        if not isinstance(surface, RuledSurface):
            raise TypeError("arguments need to be an instance of CurveLoop.")
@@ -1071,28 +1110,32 @@ class ReverseRuledSurface(ReversePrimitive, Manifold2D):
 
     def getBoundaryLoop(self):
        """
-       returns the CurveLoop defining the RuledSurface
+       Returns the CurveLoop defining the ReverseRuledSurface.
        """
        return -self.getUnderlyingPrimitive().getBoundaryLoop()
 
     def getBoundary(self):
-        """
-        returns a list of the one-dimensional manifolds forming the boundary of the Surface (including holes)
-        """
-        return self.getBoundaryLoop().getCurves()
+       """
+       Returns a list of the one-dimensional manifolds forming the boundary
+       of the Surface (including holes).
+       """
+       return self.getBoundaryLoop().getCurves()
+
 #==============================
 class PlaneSurface(Primitive, Manifold2D):
     """
-    a plane surface with holes
+    A plane surface with holes.
     """
     def __init__(self,loop,holes=[]):
        """
-       creates a  plane surface with a hole
+       Creates a plane surface with holes.
 
        @param loop: L{CurveLoop} defining the boundary of the surface
-       @param holes: list of L{CurveLoop} defining holes in the surface. 
-       @note: A CurveLoop defining a hole should not have any lines in common with the exterior CurveLoop.  
-              A CurveLoop defining a hole should not have any lines in common with another CurveLoop defining a hole in the same surface.
+       @param holes: list of L{CurveLoop}s defining holes in the surface
+       @note: A CurveLoop defining a hole should not have any lines in common
+              with the exterior CurveLoop.
+       @note: A CurveLoop defining a hole should not have any lines in common
+              with another CurveLoop defining a hole in the same surface.
        """
        if not isinstance(loop.getUnderlyingPrimitive(),CurveLoop):
            raise TypeError("argument loop needs to be a CurveLoop object.")
@@ -1105,23 +1148,25 @@ class PlaneSurface(Primitive, Manifold2D):
        Manifold2D.__init__(self)
        self.__loop=loop
        self.__holes=holes
+
     def getHoles(self):
        """
-       returns the holes
+       Returns the holes.
        """
        return self.__holes
 
     def getBoundaryLoop(self):
         """
-        returns the loop defining the boundary
+        Returns the loop defining the boundary.
         """
         return self.__loop
 
     def substitute(self,sub_dict):
         """
-        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
-        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
-        with substituted arguments is returned.
+        Returns a copy of self with substitutes for the primitives used to
+        construct it given by the dictionary C{sub_dict}. If a substitute for
+        the object is given by C{sub_dict} the value is returned, otherwise a
+        new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
             sub_dict[self]=PlaneSurface(self.getBoundaryLoop().substitute(sub_dict),[ h.substitute(sub_dict) for h in self.getHoles()])
@@ -1129,9 +1174,9 @@ class PlaneSurface(Primitive, Manifold2D):
 
     def isColocated(self,primitive):
        """
-       returns True if each curve is colocted with a curve in primitive
+       Returns True if each curve is colocated with a curve in C{primitive}.
        """
-       if hasattr(primitive,"getUnderlyingPrimitive"): 
+       if hasattr(primitive,"getUnderlyingPrimitive"):
           if isinstance(primitive.getUnderlyingPrimitive(),PlaneSurface):
              if self.getBoundaryLoop().isColocated(primitive.getBoundaryLoop()):
                 hs0=self.getHoles()
@@ -1139,26 +1184,30 @@ class PlaneSurface(Primitive, Manifold2D):
                 if len(hs0) == len(hs1):
                     for h0 in hs0:
                        colocated = False
-                       for h1 in hs1: 
+                       for h1 in hs1:
                          colocated = colocated or h0.isColocated(h1)
                        if not colocated: return False
                     return True
        return False
+
     def collectPrimitiveBases(self):
         """
-        returns primitives used to construct the Surface
+        Returns primitives used to construct the Surface.
         """
         out=[self] + self.getBoundaryLoop().collectPrimitiveBases()
         for i in self.getHoles(): out+=i.collectPrimitiveBases()
         return out
+
     def __neg__(self):
-          """
-          returns a view onto the curve with reversed ordering
-          """
-          return ReversePlaneSurface(self)
+        """
+        Returns a view onto the curve with reversed ordering.
+        """
+        return ReversePlaneSurface(self)
+
     def getBoundary(self):
         """
-        returns a list of the one-dimensional manifolds forming the boundary of the Surface (including holes)
+        Returns a list of the one-dimensional manifolds forming the boundary
+        of the Surface (including holes).
         """
         out = []+ self.getBoundaryLoop().getCurves()
         for h in self.getHoles(): out+=h.getCurves()
@@ -1166,11 +1215,11 @@ class PlaneSurface(Primitive, Manifold2D):
 
 class ReversePlaneSurface(ReversePrimitive, Manifold2D):
     """
-    creates a view onto a L{PlaneSurface} but with the reverse orientation
+    Creates a view onto a L{PlaneSurface} but with reverse orientation.
     """
     def __init__(self,surface):
        """
-       creates a polygon from a list of line curves. The curves must form a closed loop.
+       Creates a polygon from a L{PlaneSurface}.
        """
        if not isinstance(surface, PlaneSurface):
            raise TypeError("arguments need to be an instance of PlaneSurface.")
@@ -1179,19 +1228,20 @@ class ReversePlaneSurface(ReversePrimitive, Manifold2D):
 
     def getBoundaryLoop(self):
        """
-       returns the CurveLoop defining the RuledSurface
+       Returns the CurveLoop defining the ReversePlaneSurface.
        """
        return -self.getUnderlyingPrimitive().getBoundaryLoop()
 
     def getHoles(self):
         """
-        returns a list of the one-dimensional manifolds forming the boundary of the Surface (including holes)
+        Returns the holes.
         """
         return [ -h for h in self.getUnderlyingPrimitive().getHoles() ]
 
     def getBoundary(self):
         """
-        returns a list of the one-dimensional manifolds forming the boundary of the Surface (including holes)
+        Returns a list of the one-dimensional manifolds forming the boundary
+        of the Surface (including holes).
         """
         out = [] + self.getBoundaryLoop().getCurves()
         for h in self.getHoles(): out+=h.getCurves()
@@ -1201,13 +1251,14 @@ class ReversePlaneSurface(ReversePrimitive, Manifold2D):
 #=========================================================================
 class SurfaceLoop(Primitive, PrimitiveBase):
     """
-    a loop of 2D primitives. It defines the shell of a volume. 
+    A loop of 2D primitives which defines the shell of a volume.
 
-    The loop must represent a closed shell, and the primitives should be oriented consistently.
+    The loop must represent a closed shell, and the primitives should be
+    oriented consistently.
     """
     def __init__(self,*surfaces):
        """
-       creates a surface loop
+       Creates a surface loop.
        """
        if len(surfaces)<2:
             raise ValueError("at least two surfaces have to be given.")
@@ -1217,27 +1268,28 @@ class SurfaceLoop(Primitive, PrimitiveBase):
        self.__surfaces=list(surfaces)
        Primitive.__init__(self)
        PrimitiveBase.__init__(self)
+
     def __len__(self):
        """
-       return the number of curves in the SurfaceLoop
+       Returns the number of curves in the SurfaceLoop.
        """
        return len(self.__surfaces)
 
     def __neg__(self):
        """
-       returns a view onto the curve with reversed ordering
+       Returns a view onto the curve with reversed ordering.
        """
        return ReverseSurfaceLoop(self)
 
     def getSurfaces(self):
        """
-       returns the surfaces defining the SurfaceLoop
+       Returns the surfaces defining the SurfaceLoop.
        """
        return self.__surfaces
 
     def collectPrimitiveBases(self):
        """
-       returns primitives used to construct the SurfaceLoop
+       Returns primitives used to construct the SurfaceLoop.
        """
        out=[self]
        for c in self.getSurfaces(): out+=c.collectPrimitiveBases()
@@ -1245,9 +1297,10 @@ class SurfaceLoop(Primitive, PrimitiveBase):
 
     def substitute(self,sub_dict):
         """
-        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
-        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
-        with substituted arguments is returned.
+        Returns a copy of self with substitutes for the primitives used to
+        construct it given by the dictionary C{sub_dict}. If a substitute for
+        the object is given by C{sub_dict} the value is returned, otherwise a
+        new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
             new_s=[]
@@ -1257,14 +1310,15 @@ class SurfaceLoop(Primitive, PrimitiveBase):
 
     def isColocated(self,primitive):
        """
-       returns True if each surface is colocted with a curve in primitive and vice versa.
+       Returns True if each surface is colocated with a curve in C{primitive}
+       and vice versa.
        """
-       if hasattr(primitive,"getUnderlyingPrimitive"): 
+       if hasattr(primitive,"getUnderlyingPrimitive"):
          if isinstance(primitive.getUnderlyingPrimitive(),SurfaceLoop):
             if len(primitive) == len(self):
                 sp0=self.getSurfaces()
                 sp1=primitive.getSurfaces()
-                for s0 in sp0: 
+                for s0 in sp0:
                     colocated = False
                     for s1 in sp1:
                          colocated = colocated or s0.isColocated(s1)
@@ -1274,16 +1328,15 @@ class SurfaceLoop(Primitive, PrimitiveBase):
 
 class ReverseSurfaceLoop(ReversePrimitive, PrimitiveBase):
     """
-    a view to SurfaceLoop with reverse orientaion
+    A view of a SurfaceLoop with reverse orientation.
 
-    The loop must represent a closed shell, and the primitives should be oriented consistently.
-    An oriented loop of 2-dimensional manifolds (= RuledSurface, PlaneSurface)
-
-    The loop must be closed and the one-dimensional manifolds should be oriented consistently.
+    The loop must represent a closed shell and the primitives should be
+    oriented consistently.
     """
     def __init__(self,surface_loop):
        """
-       creates a polygon from a list of line surfaces. The curves must form a closed loop.
+       Creates a polygon from a list of line surfaces. The curves must form
+       a closed loop.
        """
        if not isinstance(surface_loop, SurfaceLoop):
            raise TypeError("arguments need to be an instance of SurfaceLoop.")
@@ -1292,7 +1345,7 @@ class ReverseSurfaceLoop(ReversePrimitive, PrimitiveBase):
 
     def getSurfaces(self):
        """
-       returns the surfaces defining the SurfaceLoop
+       Returns the surfaces defining the SurfaceLoop.
        """
        return [ -s for s in  self.getUnderlyingPrimitive().getSurfaces() ]
 
@@ -1302,32 +1355,36 @@ class ReverseSurfaceLoop(ReversePrimitive, PrimitiveBase):
 #==============================
 class Manifold3D(PrimitiveBase):
     """
-    general three-dimensional manifold
+    General three-dimensional manifold.
     """
     def __init__(self):
        """
-       create a three-dimensional manifold
+       Creates a three-dimensional manifold.
        """
        PrimitiveBase.__init__(self)
 
     def getBoundary(self):
         """
-        returns a list of the one-dimensional manifolds forming the boundary of the volume (including holes)
+        Returns a list of the one-dimensional manifolds forming the boundary
+        of the volume (including holes).
         """
         raise NotImplementedError()
 
 class Volume(Manifold3D, Primitive):
     """
-    a volume with holes.
+    A volume with holes.
     """
     def __init__(self,loop,holes=[]):
        """
-       creates a volume
+       Creates a volume with holes.
 
        @param loop: L{SurfaceLoop} defining the boundary of the surface
-       @param holes: list of L{SurfaceLoop} defining holes in the surface. 
-       @note: A SurfaceLoop defining a hole should not have any surfaces in common with the exterior SurfaceLoop.  
-              A SurfaceLoop defining a hole should not have any surfaces in common with another SurfaceLoop defining a hole in the same volume.
+       @param holes: list of L{SurfaceLoop} defining holes in the surface
+       @note: A SurfaceLoop defining a hole should not have any surfaces in
+              common with the exterior SurfaceLoop.
+       @note: A SurfaceLoop defining a hole should not have any surfaces in
+              common with another SurfaceLoop defining a hole in the same
+              volume.
        """
        if not isinstance(loop.getUnderlyingPrimitive(), SurfaceLoop):
            raise TypeError("argument loop needs to be a SurfaceLoop object.")
@@ -1338,22 +1395,25 @@ class Volume(Manifold3D, Primitive):
        Manifold3D.__init__(self)
        self.__loop=loop
        self.__holes=holes
+
     def getHoles(self):
        """
-       returns the hole in the volume
+       Returns the holes in the volume.
        """
        return self.__holes
+
     def getSurfaceLoop(self):
        """
-       returns the loop forming the surface
+       Returns the loop forming the surface.
        """
        return self.__loop
 
     def substitute(self,sub_dict):
         """
-        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
-        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
-        with substituted arguments is returned.
+        Returns a copy of self with substitutes for the primitives used to
+        construct it given by the dictionary C{sub_dict}. If a substitute for
+        the object is given by C{sub_dict} the value is returned, otherwise a
+        new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
             sub_dict[self]=Volume(self.getSurfaceLoop().substitute(sub_dict),[ h.substitute(sub_dict) for h in self.getHoles()])
@@ -1361,9 +1421,9 @@ class Volume(Manifold3D, Primitive):
 
     def isColocated(self,primitive):
        """
-       returns True if each curve is colocted with a curve in primitive
+       Returns True if each curve is colocated with a curve in C{primitive}.
        """
-       if hasattr(primitive,"getUnderlyingPrimitive"): 
+       if hasattr(primitive,"getUnderlyingPrimitive"):
           if isinstance(primitive.getUnderlyingPrimitive(),Volume):
              if self.getSurfaceLoop().isColocated(primitive.getSurfaceLoop()):
                 hs0=self.getHoles()
@@ -1371,21 +1431,24 @@ class Volume(Manifold3D, Primitive):
                 if len(hs0) == len(hs1):
                     for h0 in hs0:
                        colocated = False
-                       for h1 in hs1: 
+                       for h1 in hs1:
                          colocated = colocated or h0.isColocated(h1)
                        if not colocated: return False
                     return True
        return False
+
     def collectPrimitiveBases(self):
         """
-        returns primitives used to construct the Surface
+        Returns primitives used to construct the surface.
         """
         out=[self] + self.getSurfaceLoop().collectPrimitiveBases()
         for i in self.getHoles(): out+=i.collectPrimitiveBases()
         return out
+
     def getBoundary(self):
         """
-        returns a list of the one-dimensional manifolds forming the boundary of the Surface (including holes)
+        Returns a list of the one-dimensional manifolds forming the boundary
+        of the Surface (including holes).
         """
         out = []+ self.getSurfaceLoop().getSurfaces()
         for h in self.getHoles(): out+=h.getSurfaces()
@@ -1393,7 +1456,7 @@ class Volume(Manifold3D, Primitive):
 
 class PropertySet(Primitive, PrimitiveBase):
     """
-    defines a group of L{Primitive} which can be accessed through a name
+    Defines a group of L{Primitive}s which can be accessed through a name.
     """
     def __init__(self,name,*items):
        Primitive.__init__(self)
@@ -1404,28 +1467,30 @@ class PropertySet(Primitive, PrimitiveBase):
 
     def getDim(self):
        """
-       returns the dimension of the items
-       """ 
+       Returns the dimensionality of the items.
+       """
        if self.__dim == None:
            items=self.getItems()
            if len(items)>0:
-                if isinstance(items[0] ,Manifold1D): 
+                if isinstance(items[0] ,Manifold1D):
                      self.__dim=1
-                elif isinstance(items[0] ,Manifold2D): 
+                elif isinstance(items[0] ,Manifold2D):
                      self.__dim=2
-                elif isinstance(items[0] ,Manifold3D): 
+                elif isinstance(items[0] ,Manifold3D):
                     self.__dim=3
                 else:
                     self.__dim=0
        return self.__dim
+
     def __repr__(self):
        """
-       returns a string representation
+       Returns a string representation.
        """
        return "%s(%s)"%(self.getName(),self.getID())
+
     def getManifoldClass(self):
         """
-        returns the manifold class expected from items
+        Returns the manifold class expected from items.
         """
         d=self.getDim()
         if d == None:
@@ -1442,59 +1507,63 @@ class PropertySet(Primitive, PrimitiveBase):
 
     def getName(self):
         """
-        returns the name of the set
+        Returns the name of the set.
         """
         return self.__name
+
     def setName(self,name):
         """
-        sets the name.
+        Sets the name.
         """
         self.__name=str(name)
 
     def addItems(self,*items):
         """
-        adds items. An item my be any L{Primitive} but no L{PropertySet}
+        Adds items. An item my be any L{Primitive} but no L{PropertySet}.
         """
         self.addItem(*items)
 
-    def addItem(self,*items): 
+    def addItem(self,*items):
         """
-        adds items. An item my be any L{Primitive} but no L{PropertySet}
+        Adds items. An item my be any L{Primitive} but no L{PropertySet}.
         """
-        for i in items: 
-            if not i in self.__items: 
+        for i in items:
+            if not i in self.__items:
                if len(self.__items)>0:
                   m=self.getManifoldClass()
                   if not isinstance(i, m):
                      raise TypeError("argument %s is not a %s class object."%(i, m.__name__))
                self.__items.append(i)
+
     def getNumItems(self):
         """
-        returns the number of items in the property set
-        """ 
+        Returns the number of items in the property set.
+        """
         return len(self.__items)
 
     def getItems(self):
         """
-        returns the list of items
+        Returns the list of items.
         """
         return self.__items
 
     def clearItems(self):
         """
-        clears the list of items 
+        Clears the list of items.
         """
         self.__items=[]
+
     def collectPrimitiveBases(self):
         """
-        returns primitives used to construct the PropertySet
+        Returns primitives used to construct the PropertySet.
         """
-        out=[self] 
+        out=[self]
         for i in self.getItems(): out+=i.collectPrimitiveBases()
         return out
 
     def getTag(self):
-         """
-         returns the tag used for this property set
-         """
-         return self.getID()
+        """
+        Returns the tag used for this property set.
+        """
+        return self.getID()
+

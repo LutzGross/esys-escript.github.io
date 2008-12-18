@@ -20,7 +20,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="http://www.uq.edu.au/esscc/escript-finley"
 
 """
-some mesh handling 
+some mesh handling
 
 @var __author__: name of author
 @var __licence__: licence agreement
@@ -36,30 +36,32 @@ from esys.pycad.gmsh import Design as GMSHDesign
 from finleycpp import ReadGmsh
 
 def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True):
-        """
-        creates a Finley L{Domain} from a L{esys.pycad.design.Design} object. Currently only
-        gmsh is supported.
+    """
+    Creates a Finley L{Domain} from a L{esys.pycad.design.Design} object.
+    Currently only gmsh is supported.
 
-        @param design: the geometry
-        @type design: L{esys.pycad.design.Design}
-        @param integrationOrder: integration order. If -1 the default is used.
-        @type integrationOrder: C{int}
-        @param reducedIntegrationOrder: reduced integration order. If -1 the default is used.
-        @type reducedIntegrationOrder: C{int}
-        @param optimizeLabeling: if set the labeling of the mesh nodes is optimized
-        @type optimizeLabeling: C{bool}
-        @return: the Finley domain defined by the designs 
-        @rtype: L{Domain}
-        """
-        if isinstance(design, GMSHDesign):
-            mshname=design.getMeshHandler()
-            dom = ReadGmsh(mshname,
-                           design.getDim(),
-                           integrationOrder,
-                           reducedIntegrationOrder,
-                           optimizeLabeling)
-        else: 
-            raise TypeError("Finley does not support %s designs."%design.__class__.__name__)
-        # fill in the tag map
-        design.getTagMap().passToDomain(dom)
-        return dom
+    @param design: the geometry
+    @type design: L{esys.pycad.design.Design}
+    @param integrationOrder: integration order. If -1 the default is used.
+    @type integrationOrder: C{int}
+    @param reducedIntegrationOrder: reduced integration order. If -1 the
+                                    default is used.
+    @type reducedIntegrationOrder: C{int}
+    @param optimizeLabeling: if set the labeling of the mesh nodes is optimized
+    @type optimizeLabeling: C{bool}
+    @return: the Finley domain defined by the design
+    @rtype: L{Domain}
+    """
+    if isinstance(design, GMSHDesign):
+        mshname=design.getMeshHandler()
+        dom = ReadGmsh(mshname,
+                       design.getDim(),
+                       integrationOrder,
+                       reducedIntegrationOrder,
+                       optimizeLabeling)
+    else:
+        raise TypeError("Finley does not support %s designs."%design.__class__.__name__)
+    # fill in the tag map
+    design.getTagMap().passToDomain(dom)
+    return dom
+
