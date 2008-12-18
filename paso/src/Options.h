@@ -79,6 +79,7 @@ typedef struct {
     dim_t truncation;
     dim_t restart;
     dim_t sweeps;
+    double couplingParam;
 
 } Paso_Options;
 

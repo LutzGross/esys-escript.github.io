@@ -71,7 +71,7 @@ to
    then AMG is applied to S again until S becomes empty 
 
 */
-Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t level) {
+Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t level, double couplingParam) {
   Paso_Solver_AMG* out=NULL;
   dim_t n=A_p->numRows;
   dim_t n_block=A_p->row_block_size;
@@ -114,7 +114,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
      for (i=0;i<n;++i) mis_marker[i]=-1;
      /*Paso_Pattern_RS(A_p,mis_marker,0.25);*/
      /*Paso_Pattern_Aggregiation(A_p,mis_marker,0.5);*/
-     Paso_Pattern_coup(A_p,mis_marker,0.05);
+     Paso_Pattern_coup(A_p,mis_marker,couplingParam);
      if (Paso_noError()) {
         #pragma omp parallel for private(i) schedule(static)
         for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
@@ -154,7 +154,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
            if( Paso_noError()) {
               /* if there are no nodes in the coarse level there is no more work to do */
               out->n_C=n-out->n_F;
-              if (level<5) {
+              if (level<3) {
                /*if (out->n_F>500) {*/
                    out->rows_in_C=MEMALLOC(out->n_C,index_t);
                    out->mask_C=MEMALLOC(n,index_t);
@@ -186,7 +186,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
 
                             schur_withFillIn=Paso_SparseMatrix_alloc(A_p->type,Paso_Pattern_binop(PATTERN_FORMAT_DEFAULT, schur->pattern, Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,out->A_CF->pattern,out->A_FC->pattern)),1,1);
                             
-                            /*fprintf(stderr,"Sparsity of Schure: %dx%d LEN %d Percentage %f\n",schur_withFillIn->pattern->numOutput,schur_withFillIn->pattern->numInput,schur_withFillIn->len,schur_withFillIn->len/(1.*schur_withFillIn->pattern->numOutput*schur_withFillIn->pattern->numInput));*/
+                            fprintf(stderr,"Sparsity of Schure: %dx%d LEN %d Percentage %f\n",schur_withFillIn->pattern->numOutput,schur_withFillIn->pattern->numInput,schur_withFillIn->len,schur_withFillIn->len/(1.*schur_withFillIn->pattern->numOutput*schur_withFillIn->pattern->numInput));
                             
                             /* copy values over*/ 
                             #pragma omp parallel for private(i,iPtr,j,iPtr_s,index,where_p) schedule(static)
@@ -209,7 +209,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
                                 
                             if (Paso_noError()) {
                                 Paso_Solver_updateIncompleteSchurComplement(schur_withFillIn,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
-                                out->AMG_of_Schur=Paso_Solver_getAMG(schur_withFillIn,verbose,level+1);
+                                out->AMG_of_Schur=Paso_Solver_getAMG(schur_withFillIn,verbose,level+1,couplingParam);
                                 Paso_SparseMatrix_free(schur);
                             }
                             /* allocate work arrays for AMG application */
@@ -249,7 +249,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   if (Paso_noError()) {
       if (verbose) {
          printf("AMG: %d unknowns eliminated. %d left.\n",out->n_F,n-out->n_F);
-         if (level<5) {
+         if (level<3) {
          /*if (out->n_F<500) {*/
             printf("timing: AMG: MIS/reordering/elemination : %e/%e/%e\n",time2,time0,time1);
          } else {
@@ -294,7 +294,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      double *x0=MEMALLOC(amg->n,double);
      double time0=0;
      
-     if (amg->level==5) {
+     if (amg->level==3) {
      /*if (amg->n_F<=500) {*/
       time0=Paso_timer();
         
