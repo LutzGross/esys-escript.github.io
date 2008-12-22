@@ -72,6 +72,13 @@ netCDF_lib_path		= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/lib'
 # blas_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
 # blas_libs		= ['blas']
 
+# Silo
+# usesilo		= 'yes'
+silo_path		= '/sw/libs/silo/x86_64/gcc-4.1.2/silo-4.6.1/include'
+silo_lib_path		= '/sw/libs/silo/x86_64/gcc-4.1.2/silo-4.6.1/lib'
+# silo_libs		= ['siloh5', 'hdf5']
+
+
 # OpenMP
 # useopenmp		= 'yes'
 
