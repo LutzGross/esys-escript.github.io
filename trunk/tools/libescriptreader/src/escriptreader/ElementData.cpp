@@ -28,7 +28,7 @@ enum {
     ZONETYPE_POLYGON,
     ZONETYPE_QUAD,
     ZONETYPE_TET,
-    ZONETYPE_TRIANGLE,
+    ZONETYPE_TRIANGLE
 };
 
 // The following arrays contain indices to convert unsupported element

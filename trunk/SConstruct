@@ -119,6 +119,11 @@ opts.AddOptions(
   ('umf_path', 'Path to UMFPACK includes', '/usr/include/suitesparse'),
   ('umf_lib_path', 'Path to UMFPACK libs', usr_lib),
   ('umf_libs', 'UMFPACK libraries to link with', ['umfpack']),
+# Silo
+  BoolOption('usesilo', 'switch on/off the usage of Silo', 'yes'),
+  ('silo_path', 'Path to Silo includes', '/usr/include'),
+  ('silo_lib_path', 'Path to Silo libs', usr_lib),
+  ('silo_libs', 'Silo libraries to link with', ['siloh5', 'hdf5']),
 # AMD (used by UMFPACK)
   ('amd_path', 'Path to AMD includes', '/usr/include/suitesparse'),
   ('amd_lib_path', 'Path to AMD libs', usr_lib),
@@ -473,6 +478,25 @@ if env['useumfpack']:
 else:
   conf.Finish()
 
+############ Silo (optional) ###################################
+
+if env['usesilo']:
+  conf = Configure(clone_env(env))
+  conf.env.AppendUnique(CPPPATH = [env['silo_path']])
+  conf.env.AppendUnique(LIBPATH = [env['silo_lib_path']])
+  conf.env.AppendUnique(LIBS = [env['silo_libs']])
+  if not conf.CheckCHeader('silo.h'): env['usesilo'] = 0
+  if not conf.CheckFunc('DBMkDir'): env['usesilo'] = 0
+  conf.Finish()
+
+# Add the path to Silo to environment env if it was found.
+# Note that we do not add the libs since they are only needed for the
+# escriptreader library and tools.
+if env['usesilo']:
+  env.AppendUnique(CPPPATH = [env['silo_path']])
+  env.AppendUnique(LIBPATH = [env['silo_lib_path']])
+  env.Append(CPPDEFINES = ['HAVE_SILO'])
+
 ############ Add the compiler flags ############################
 
 # Enable debug by choosing either cc_debug or cc_optim
@@ -561,6 +585,8 @@ if env['usemkl']: print "	Using MKL"
 else: print "	Not using MKL"
 if env['useumfpack']: print "	Using UMFPACK"
 else: print "	Not using UMFPACK"
+if env['usesilo']: print "	Using Silo"
+else: print "	Not using Silo"
 if env['useopenmp']: print "	Using OpenMP"
 else: print "	Not using OpenMP"
 if env['usempi']: print "	Using MPI"
@@ -605,6 +631,7 @@ Export(
   )
 
 env.SConscript(dirs = ['tools/CppUnitTest/src'], build_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
+env.SConscript(dirs = ['tools/libescriptreader/src'], build_dir='build/$PLATFORM/tools/libescriptreader', duplicate=0)
 env.SConscript(dirs = ['paso/src'], build_dir='build/$PLATFORM/paso', duplicate=0)
 env.SConscript(dirs = ['escript/src'], build_dir='build/$PLATFORM/escript', duplicate=0)
 env.SConscript(dirs = ['esysUtils/src'], build_dir='build/$PLATFORM/esysUtils', duplicate=0)
@@ -658,6 +685,7 @@ build_all_list += ['build_escript']
 build_all_list += ['build_finley']
 if env['usempi']:		build_all_list += ['target_pythonMPI_exe']
 if not IS_WINDOWS_PLATFORM:	build_all_list += ['target_finley_wrapper']
+if env['usesilo']:	build_all_list += ['target_escript2silo']
 env.Alias('build_all', build_all_list)
 
 install_all_list = []
@@ -671,6 +699,7 @@ install_all_list += ['target_install_modellib_py']
 install_all_list += ['target_install_pycad_py']
 if env['usempi']:		install_all_list += ['target_install_pythonMPI_exe']
 if not IS_WINDOWS_PLATFORM:	install_all_list += ['target_install_finley_wrapper']
+if env['usesilo']:	install_all_list += ['target_install_escript2silo']
 install_all_list += ['remember_options']
 env.Alias('install_all', install_all_list)
 
