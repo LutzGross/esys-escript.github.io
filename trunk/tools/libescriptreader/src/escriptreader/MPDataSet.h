@@ -20,9 +20,12 @@
 #include <string>
 #include <vector>
 
-class MeshWithElements;
-class DataVar;
 class DBfile;
+
+namespace EscriptReader {
+
+class DataVar;
+class MeshWithElements;
 
 typedef std::vector<std::string> StringVec;
 typedef std::vector<MeshWithElements*> MeshBlocks;
@@ -99,6 +102,8 @@ private:
     MeshBlocks meshBlocks;
     VarVector variables, meshVariables;
 };
+
+} // namespace EscriptReader
 
 #endif // __MPDATASET_H__
 

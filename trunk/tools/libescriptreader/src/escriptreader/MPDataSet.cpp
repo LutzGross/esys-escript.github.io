@@ -25,6 +25,8 @@
 
 using namespace std;
 
+namespace EscriptReader {
+
 //
 // Constructor
 //
@@ -403,4 +405,6 @@ void MPDataSet::putSiloMultiTensor(DBfile* dbfile, const DataVar* var)
     DBFreeOptlist(optList);
 #endif
 }
+
+} // namespace EscriptReader
 

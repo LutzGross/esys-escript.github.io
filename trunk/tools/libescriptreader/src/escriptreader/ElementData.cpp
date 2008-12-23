@@ -22,15 +22,6 @@
 
 using namespace std;
 
-enum {
-    ZONETYPE_BEAM=1,
-    ZONETYPE_HEX,
-    ZONETYPE_POLYGON,
-    ZONETYPE_QUAD,
-    ZONETYPE_TET,
-    ZONETYPE_TRIANGLE
-};
-
 // The following arrays contain indices to convert unsupported element
 // types into supported ones (lines, triangles, quads, hexahedrons)
 
@@ -93,6 +84,8 @@ static const size_t hex27indices[8*8] = {
     26, 22, 14, 23, 25, 17,  6, 18
 };
 
+namespace EscriptReader {
+    
 //
 // Constructor
 //
@@ -770,4 +763,6 @@ FinleyElementInfo ElementData::getFinleyTypeInfo(ElementTypeId typeId)
     }
     return ret;
 }
+
+} // namespace EscriptReader
 

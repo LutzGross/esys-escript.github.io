@@ -23,7 +23,7 @@
 #include <fstream>
 
 using namespace std;
-
+using namespace EscriptReader;
 
 int main(int argc, char** argv)
 {

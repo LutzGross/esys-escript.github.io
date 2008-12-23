@@ -23,6 +23,8 @@
 
 using namespace std;
 
+namespace EscriptReader {
+
 //
 //
 //
@@ -130,4 +132,6 @@ bool Mesh::writeToSilo(DBfile* dbfile, const string& pathInSilo)
     return false;
 #endif
 }
+
+} // namespace EscriptReader
 

@@ -21,11 +21,15 @@
 #include <vector>
 #include <map>
 
+namespace EscriptReader {
+
 typedef std::vector<std::string> StringVec;
 typedef std::vector<float> FloatVec;
 typedef std::vector<int> IntVec;
 typedef std::vector<float*> CoordArray;
 typedef std::map<int, size_t> IndexMap;
+
+} // namespace EscriptReader
 
 #endif // __ESCRIPTREADER_COMMON_H__
 

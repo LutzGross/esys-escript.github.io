@@ -20,6 +20,9 @@
 #include <escriptreader/common.h>
 
 class DBfile;
+
+namespace EscriptReader {
+
 class ElementData;
 
 //
@@ -95,5 +98,8 @@ inline std::string Mesh::getFullSiloName() const
     else
         return siloPath + std::string("/") + name;
 }
+
+} // namespace EscriptReader
+
 #endif // __MESH_H__
 
