@@ -39,9 +39,8 @@ for root, dirs, files in os.walk(MESH_DIRECTORY, topdown=False):
    for name in files: 
        f=name.split(".")
        if f[0].startswith("mesh_") and f[-1]=="fly":
-          print "start reading ",os.path.join(MESH_DIRECTORY,name)
+          print "Reading "+os.path.join(MESH_DIRECTORY,name)
           dom=ReadMesh(os.path.join(MESH_DIRECTORY,name),optimize=True)
-          dom.dump(os.path.join(MESH_DIRECTORY,f[0]+".nc"))
           for fs_name in ["ContinuousFunction", "Solution", "Function", "FunctionOnBoundary", "FunctionOnContactZero", "FunctionOnContactOne", 
                           "ReducedContinuousFunction", "ReducedSolution", "ReducedFunction", "ReducedFunctionOnBoundary", "ReducedFunctionOnContactZero", "ReducedFunctionOnContactOne"]:
              if fs_name == "ContinuousFunction":
@@ -68,15 +67,13 @@ for root, dirs, files in os.walk(MESH_DIRECTORY, topdown=False):
                  fs = ReducedFunctionOnContactZero(dom)
              if fs_name == "ReducedFunctionOnContactOne":
                  fs = ReducedFunctionOnContactOne(dom)
-             for type in [ "s", "v", "t" ]:
-                 data_file=os.path.join(MESH_DIRECTORY,f[0]+"_"+fs_name+"_"+type+".nc")
-                 x=fs.getX()
-                 print "\t data file ",data_file
-                 if type == "t":
-                    n=normalize(x)/clip(length(x-Vector(0.5,fs)),1.e-8)
-                    d=outer(n,x)
-                 elif type == "v":
-                    d=normalize(x)/clip(length(x-Vector(0.5,fs)),1.e-8)
-                 else:
-                    d=length(x-Vector(0.5,fs))
-                 d.dump(data_file)
+             x=fs.getX()
+             v=normalize(x)/clip(length(x-Vector(0.5,fs)), 1.e-8)
+             t=outer(v,x)
+             s=length(x-Vector(0.5,fs))
+             datasetName=f[0]+"_"+fs_name
+             try:
+                 saveESD(datasetName, MESH_DIRECTORY, s=s, v=v, t=t)
+             except:
+                 print "Could not save ESD file "+datasetName
+
