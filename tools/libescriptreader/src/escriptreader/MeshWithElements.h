@@ -20,6 +20,9 @@
 #include <escriptreader/Mesh.h>
 
 class DBfile;
+
+namespace EscriptReader {
+
 class ElementData;
 
 //
@@ -60,6 +63,8 @@ private:
     ElementData* contacts;
     ElementData* points;
 };
+
+} // namespace EscriptReader
 
 #endif // __MESHWITHELEMENTS_H__
 

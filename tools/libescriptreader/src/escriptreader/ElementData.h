@@ -20,16 +20,27 @@
 #include <finley/ReferenceElements.h> // for ElementTypeId
 #include <escriptreader/Mesh.h>
 
+class DBfile;
+class NcFile;
+
+namespace EscriptReader {
+    
+typedef enum {
+    ZONETYPE_BEAM=1,
+    ZONETYPE_HEX,
+    ZONETYPE_POLYGON,
+    ZONETYPE_QUAD,
+    ZONETYPE_TET,
+    ZONETYPE_TRIANGLE
+} ZoneType;
+
 struct FinleyElementInfo
 {
-    int elementType, reducedElementType;
+    ZoneType elementType, reducedElementType;
     int elementFactor;
     int elementSize, reducedElementSize;
     const size_t* multiCellIndices;
 };
-
-class DBfile;
-class NcFile;
 
 //
 //
@@ -60,8 +71,8 @@ public:
     int getReducedNodesPerElement() const { return reducedNodesPerElement; }
     int getGhostCount() const { return numGhostElements; }
     int getReducedGhostCount() const { return numReducedGhostElements; }
-    int getType() const { return type; }
-    int getReducedType() const { return reducedType; }
+    ZoneType getType() const { return type; }
+    ZoneType getReducedType() const { return reducedType; }
     const IntVec& getNodeList() const { return nodes; }
     const IntVec& getReducedNodeList() const { return reducedNodes; }
     const IntVec& getIDs() const { return ID; }
@@ -88,7 +99,7 @@ private:
     bool fullMeshIsOriginalMesh;
 
     int numDims;
-    int type, reducedType;
+    ZoneType type, reducedType;
     int nodesPerElement, reducedNodesPerElement;
     IntVec nodes, reducedNodes;
     IntVec color, ID, tag;
@@ -107,6 +118,7 @@ inline void ElementData::buildIndexMap()
         ID2idx[*idIt] = idx;
 }
 
+} // namespace EscriptReader
 
 #endif // __ELEMENTDATA_H__
 

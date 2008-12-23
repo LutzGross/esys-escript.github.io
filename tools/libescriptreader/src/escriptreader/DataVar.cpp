@@ -24,6 +24,8 @@
 
 using namespace std;
 
+namespace EscriptReader {
+    
 enum {
     NODE_CENTERED = 1,
     ZONE_CENTERED = 2
@@ -707,4 +709,6 @@ bool DataVar::writeToSilo(DBfile* dbfile, const string& siloPath)
     return false;
 #endif
 }
+
+} // namespace EscriptReader
 

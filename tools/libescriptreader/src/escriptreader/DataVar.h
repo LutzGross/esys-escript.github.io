@@ -21,6 +21,9 @@
 
 class DBfile;
 class NcFile;
+
+namespace EscriptReader {
+
 class MeshWithElements;
 
 //
@@ -122,6 +125,8 @@ inline void DataVar::buildIndexMap()
     for (idIt = sampleID.begin(); idIt != sampleID.end(); idIt++, idx++)
         sampleID2idx[*idIt] = idx;
 }
+
+} // namespace EscriptReader
 
 #endif // __DATAVAR_H__
 
