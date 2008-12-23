@@ -182,6 +182,78 @@ def saveDX(filename,domain=None,**data):
         raise ValueError,"saveDX: no domain detected."
     domain.saveDX(filename,new_data)
 
+def saveESD(datasetName, dataDir=".", domain=None, **data):
+    """
+    Saves L{Data} objects to files and creates an I{escript dataset} (ESD) file
+    for convenient processing/visualisation.
+
+    Example::
+
+        tmp = Scalar(..)
+        v = Vector(..)
+        saveESD("solution", "data", temperature=tmp, velocity=v)
+
+    tmp, v and the domain are saved in native format in the "data"
+    directory and the file "solution.esd" is created that refers to tmp by
+    the name "temperature" and to v by the name "velocity".
+
+    @param datasetName: name of the dataset, used to name the ESD file
+    @type datasetName: C{str}
+    @param dataDir: optional directory where the data files should be saved
+    @type dataDir: C{str}
+    @param domain: domain of the L{Data} object(s). If not specified, the
+                   domain of the given L{Data} objects is used.
+    @type domain: L{escript.Domain}
+    @keyword <name>: writes the assigned value to the file using <name> as
+                     identifier
+    @type <name>: L{Data} object.
+    @note: The data objects have to be defined on the same domain. They may not
+           be in the same L{FunctionSpace} but one cannot expect that all
+           L{FunctionSpace}s can be mixed. Typically, data on the boundary and
+           data on the interior cannot be mixed.
+    """
+    new_data = {}
+    for n,d in data.items():
+          if not d.isEmpty(): 
+            fs = d.getFunctionSpace() 
+            domain2 = fs.getDomain()
+            if fs == escript.Solution(domain2):
+               new_data[n]=interpolate(d,escript.ContinuousFunction(domain2))
+            elif fs == escript.ReducedSolution(domain2):
+               new_data[n]=interpolate(d,escript.ReducedContinuousFunction(domain2))
+            else:
+               new_data[n]=d
+            if domain==None: domain=domain2
+    if domain==None:
+        raise ValueError, "saveESD: no domain detected."
+
+    if domain.onMasterProcessor() and not os.path.isdir(dataDir):
+        os.mkdir(dataDir)
+
+    meshFile = os.path.join(dataDir, datasetName+"_mesh")
+    domain.dump(meshFile + ".nc")
+    outputString = ""
+    if domain.onMasterProcessor():
+        outputString += "#escript datafile V1.0\n"
+        # number of timesteps (currently only 1 is supported)
+        outputString += "T=1\n"
+        # name of the mesh file
+        outputString += "M=%s\n" % meshFile
+        # number of blocks (MPI size)
+        outputString += "N=%d\n" % domain.getMPISize()
+
+    # now add the variables
+    for varName, d in new_data.items():
+        varFile = os.path.join(dataDir, datasetName+"_"+varName)
+        d.dump(varFile + ".nc")
+        if domain.onMasterProcessor():
+            outputString += "V=%s:%s\n" % (varFile, varName)
+
+    if domain.onMasterProcessor():
+        esdfile = open(datasetName+".esd", "w")
+        esdfile.write(outputString)
+        esdfile.close()
+
 def kronecker(d=3):
    """
    Returns the kronecker S{delta}-symbol.
