@@ -27,6 +27,8 @@ using namespace std;
 
 namespace EscriptReader {
 
+const char* MESH_VARS = "mesh_vars/";
+
 //
 // Constructor
 //
@@ -249,18 +251,16 @@ bool MPDataSet::saveAsSilo(string siloFile, bool useMultiMesh)
         cerr << "Could not create Silo file." << endl;
         return false;
     }
+    DBMkdir(dbfile, MESH_VARS);
 
     MeshBlocks::iterator meshIt;
     VarVector::iterator viIt;
     int idx = 0;
     for (meshIt = meshBlocks.begin(); meshIt != meshBlocks.end(); meshIt++, idx++) {
-        string siloPath("");
-        //if (numParts > 1) {
-            char str[64];
-            snprintf(str, 64, "/block%04d", idx);
-            siloPath = str;
-            DBMkdir(dbfile, siloPath.c_str());
-        //}
+        char str[64];
+        snprintf(str, 64, "/block%04d", idx);
+        string siloPath(str);
+        DBMkdir(dbfile, siloPath.c_str());
         // write block of the mesh if we don't use an external mesh
         if (!siloMeshFile.length()) {
             if (! (*meshIt)->writeToSilo(dbfile, siloPath)) {
@@ -368,8 +368,14 @@ void MPDataSet::putSiloMultiVar(DBfile* dbfile, string varName,
         tempstrings.push_back(siloPath + string("/") + varName);
         varnames.push_back((char*)tempstrings.back().c_str());
     }
-    DBPutMultivar(dbfile, varName.c_str(), meshBlocks.size(), &varnames[0],
-            &vartypes[0], NULL);
+    if (useMeshFile) {
+        string vpath = string(MESH_VARS)+varName;
+        DBPutMultivar(dbfile, vpath.c_str(), meshBlocks.size(), &varnames[0],
+                &vartypes[0], NULL);
+    } else {
+        DBPutMultivar(dbfile, varName.c_str(), meshBlocks.size(), &varnames[0],
+                &vartypes[0], NULL);
+    }
 #endif
 }
 
