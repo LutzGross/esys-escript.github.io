@@ -15,7 +15,7 @@
 \section{Rayleigh-Taylor Instability}
 \label{LEVELSET CHAP}
 
-In this chapter we will implement the Level Set Method in Escript for tracking the interface between two fluids for Computational Fluid Dynamics (CFD). The method is tested with a Rayleigh-Taylor Instability problem, which is an instability of the interface between two fluids with differing densities. \\ 
+In this section we will implement the Level Set Method in Escript for tracking the interface between two fluids for Computational Fluid Dynamics (CFD). The method is tested with a Rayleigh-Taylor Instability problem, which is an instability of the interface between two fluids with differing densities. \\ 
 Normally in Earth science problems two or more fluids in a system with different properties are of interest. For example, lava dome growth in volcanology, with the contrast of the two mediums as being lava and air. The interface between the two mediums is often referred to as a free surface (free boundary value problem); the problem arises due to the large differences in densities between the lava and air, with their ratio being around 2000, and so the interface between the two fluids move with respect to each other.  
 %and so the lava with the much higher density is able to move independently with respect to the air, and the interface between the two fluids is not constrained.
 There are a number of numerical techniques to define and track the free surfaces. One of these methods, which is conceptually the simplest, is to construct a Lagrangian grid which moves with the fluid, and so it tracks the free surface. The limitation of this method is that it cannot track surfaces that break apart or intersect. Another limitation is that the elements in the grid can become severely distorted, resulting in numerical instability. The Arbitrary Lagrangian-Eulerian (ALE) method for CFD in moving domains is used to overcome this problem by remeshing, but there is an overhead in computational time, and it results in a loss of accuracy due to the process of mapping the state variables every remesh by interpolation.
@@ -86,61 +86,61 @@ into Equation (\ref{TAYLOR EXPANSION})
 \end{equation}
 
 
-\subsection{Governing Equations for Fluid Flow}
+%\subsection{Governing Equations for Fluid Flow}
 
-The fluid dynamics is governed by the Stokes equations. In geophysical problems the velocity of fluids are low; that is, the inertial forces are small compared with the viscous forces, therefore the inertial terms in the Navier-Stokes equations can be ignored. For a body force $f$ the governing equations are given by:
+%The fluid dynamics is governed by the Stokes equations. In geophysical problems the velocity of fluids are low; that is, the inertial forces are small compared with the viscous forces, therefore the inertial terms in the Navier-Stokes equations can be ignored. For a body force $f$ the governing equations are given by:
 %
-\begin{equation}
-\nabla \cdot (\eta(\nabla \vec{v} + \nabla^{T} \vec{v})) - \nabla p = -f,
-\label{GENERAL NAVIER STOKES}
-\end{equation}
+%\begin{equation}
+%\nabla \cdot (\eta(\nabla \vec{v} + \nabla^{T} \vec{v})) - \nabla p = -f,
+%\label{GENERAL NAVIER STOKES}
+%\end{equation}
 %
-with the incompressibility condition
+5with the incompressibility condition
 %
-\begin{equation}
-\nabla \cdot \vec{v} = 0.
-\label{INCOMPRESSIBILITY}
-\end{equation}
+%\begin{equation}
+%\nabla \cdot \vec{v} = 0.
+%\label{INCOMPRESSIBILITY}
+%\end{equation}
 %
-where $p$, $\eta$ and $f$ are the pressure, viscosity and body forces, respectively. 
-Alternatively, the Stokes equations can be represented in Einstein summation tensor notation (compact notation):
+%where $p$, $\eta$ and $f$ are the pressure, viscosity and body forces, respectively. 
+%Alternatively, the Stokes equations can be represented in Einstein summation tensor notation (compact notation):
 %
-\begin{equation}
--(\eta(v\hackscore{i,j} + v\hackscore{j,i})),\hackscore{j} - p,\hackscore{i} = f\hackscore{i},
-\label{GENERAL NAVIER STOKES COM}
-\end{equation}
+%\begin{equation}
+%-(\eta(v\hackscore{i,j} + v\hackscore{j,i})),\hackscore{j} - p,\hackscore{i} = f\hackscore{i},
+%\label{GENERAL NAVIER STOKES COM}
+%\end{equation}
 %
-with the incompressibility condition
+5with the incompressibility condition
 %
-\begin{equation}
--v\hackscore{i,i} = 0.
-\label{INCOMPRESSIBILITY COM}
-\end{equation}
+%\begin{equation}
+%-v\hackscore{i,i} = 0.
+%\label{INCOMPRESSIBILITY COM}
+%\end{equation}
 %
-The subscript comma $i$ denotes the derivative of the function with respect to $x\hackscore{i}$. A linear relationship between the deviatoric stress $\sigma^{'}\hackscore{ij}$ and the stretching $D\hackscore{ij} = \frac{1}{2}(v\hackscore{i,j} + v\hackscore{j,i})$ is defined as \cite{GROSS2006}:
+%The subscript comma $i$ denotes the derivative of the function with respect to $x\hackscore{i}$. A linear relationship between the deviatoric stress $\sigma^{'}\hackscore{ij}$ and the stretching $D\hackscore{ij} = \frac{1}{2}(v\hackscore{i,j} + v\hackscore{j,i})$ is defined as \cite{GROSS2006}:
 %
-\begin{equation}
-\sigma^{'}\hackscore{ij} = 2\eta D^{'}\hackscore{ij},
-\label{STRESS}
-\end{equation}
+%\begin{equation}
+%\sigma^{'}\hackscore{ij} = 2\eta D^{'}\hackscore{ij},
+%\label{STRESS}
+%\end{equation}
 %
-where the deviatoric stretching $D^{'}\hackscore{ij}$ is defined as
+5where the deviatoric stretching $D^{'}\hackscore{ij}$ is defined as
 %
-\begin{equation}
-D^{'}\hackscore{ij} = D^{'}\hackscore{ij} - \frac{1}{3}D\hackscore{kk}\delta\hackscore{ij}.
-\label{DEVIATORIC STRETCHING}
-\end{equation}
+%\begin{equation}
+%D^{'}\hackscore{ij} = D^{'}\hackscore{ij} - \frac{1}{3}D\hackscore{kk}\delta\hackscore{ij}.
+%\label{DEVIATORIC STRETCHING}
+%\end{equation}
 %
-where $\delta\hackscore{ij}$ is the Kronecker $\delta$-symbol, which is a matrix with ones for its diagonal entries ($i = j$) and zeros for the remaining entries ($i \neq j$). The body force $f$ in Equation (\ref{GENERAL NAVIER STOKES COM}) is the gravity acting in the $x\hackscore{3}$ direction and is given as $f = -g \rho \delta\hackscore{i3}$.
-The Stokes equations is a saddle point problem, and can be solved using a Uzawa scheme. A class called StokesProblemCartesian in Escript can be used to solve for velocity and pressure.
-In order to keep numerical stability, the time-step size needs to be below a certain value, known as the Courant number. The Courant number is defined as:
+%where $\delta\hackscore{ij}$ is the Kronecker $\delta$-symbol, which is a matrix with ones for its diagonal entries ($i = j$) and zeros for the remaining entries ($i \neq j$). The body force $f$ in Equation (\ref{GENERAL NAVIER STOKES COM}) is the gravity acting in the $x\hackscore{3}$ direction and is given as $f = -g \rho \delta\hackscore{i3}$.
+%The Stokes equations is a saddle point problem, and can be solved using a Uzawa scheme. A class called StokesProblemCartesian in Escript can be used to solve for velocity and pressure.
+%In order to keep numerical stability, the time-step size needs to be below a certain value, known as the Courant number. The Courant number is defined as:
 %
-\begin{equation}
-C = \frac{v \delta t}{h}.
-\label{COURANT}
-\end{equation}
+%\begin{equation}
+%C = \frac{v \delta t}{h}.
+%\label{COURANT}
+%\end{equation}
 %
-where $\delta t$, $v$, and $h$ are the time-step, velocity, and the width of an element in the mesh, respectively. The velocity $v$ may be chosen as the maximum velocity in the domain. In this problem the Courant number is taken to be 0.4 \cite{BOURGOUIN2006}.
+%where $\delta t$, $v$, and $h$ are the time-step, velocity, and the width of an element in the mesh, respectively. The velocity $v$ may be chosen as the maximum velocity in the domain. In this problem the Courant number is taken to be 0.4 \cite{BOURGOUIN2006}.
 
 
 \subsection{Reinitialization of Interface}
