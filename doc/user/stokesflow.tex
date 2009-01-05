@@ -2,7 +2,7 @@
 \section{Stokes Flow}
 \label{STOKES FLOW CHAP}
 
-In this section we will simulate the flow of fluid under the influence of gravity. The StokesProblemCartesian class will be used to calculate the velocity and pressure of the fluid.
+In this section we will look at Computational Fluid Dynamics (CFD) to simulate the flow of fluid under the influence of gravity. The StokesProblemCartesian class will be used to calculate the velocity and pressure of the fluid.
 The fluid dynamics is governed by the Stokes equation. In geophysical problems the velocity of fluids are low; that is, the inertial forces are small compared with the viscous forces, therefore the inertial terms in the Navier-Stokes equations can be ignored. For a body force, $f$, the governing equations are given by:
 %
 \begin{equation}
@@ -59,7 +59,7 @@ C = \frac{v \delta t}{h}.
 %
 where $\delta t$, $v$, and $h$ are the time-step, velocity, and the width of an element in the mesh, respectively. The velocity $v$ may be chosen as the maximum velocity in the domain. In this problem the time-step size was calculated for a Courant number of 0.4.
 
-The following PYTHON script is the setup for the simulation. It starts off by importing the classes, such as the StokesProblemCartesian class, for solving the Stokes equation and the incompressibility condition for velocity and pressure. Physical constants are define for the viscosity and density of the fluid, along with the acceleration due to gravity. Solver settings are set for the maximum iterations and tolerance for the solver; the default solver used is PCG. The mesh is defined as a rectangle, to represent the body of fluid. The gravitational force is calculated base on the fluid density, and the boundary conditions are set for a slip condition at the base of the mesh. An instance of the StokesProblemCartesian is defined for the given computational mesh, and the solver tolerance set. Inside the while loop, the boundary conditions, viscosity and body force are initialized. The Stokes equation is then solved for velocity and pressure. The time-step size is calculated base on the Courant condition, to ensure stable solutions. The nodes in the mesh are then displaced based on the current velocity and time-step size, to move the body of fluid. The output of the simulation of velocity and pressure is then save to file for visualization. 
+The following PYTHON script is the setup for the simulation. It starts off by importing the classes, such as the StokesProblemCartesian class, for solving the Stokes equation and the incompressibility condition for velocity and pressure. Physical constants are defined for the viscosity and density of the fluid, along with the acceleration due to gravity. Solver settings are set for the maximum iterations and tolerance; the default solver used is PCG. The mesh is defined as a rectangle, to represent the body of fluid. The gravitational force is calculated base on the fluid density and the acceleration due to gravity. The boundary conditions are set for a slip condition at the base of the mesh; fluid movement in the x-direction is free, but fixed in the y-direction. An instance of the StokesProblemCartesian is defined for the given computational mesh, and the solver tolerance set. Inside the while loop, the boundary conditions, viscosity and body force are initialized. The Stokes equation is then solved for velocity and pressure. The time-step size is calculated base on the Courant condition, to ensure stable solutions. The nodes in the mesh are then displaced based on the current velocity and time-step size, to move the body of fluid. The output for the simulation of velocity and pressure is then save to file for visualization. 
 %
 \begin{python}
 from esys.escript import *
@@ -141,7 +141,8 @@ The results from the simulation can be viewed with \mayavi, by executing the fol
 mayavi -d vel.00.vtu -m SurfaceMap
 \end{python}
 %
-Figures \ref{FLUID OUTPUT1} and \ref{FLUID OUTPUT2} shows the simulation output. Velocity vectors and a colour map for pressure are shown. As the time progresses the body of fluid falls under gravity. 
+Colour coded scalar maps and velocity flow fields can be viewed by selecting them in the menu. The time-steps can be sweeped through to view a movie of the simulation.
+Figures \ref{FLUID OUTPUT1} and \ref{FLUID OUTPUT2} shows the simulation output. Velocity vectors and a colour map for pressure are shown. As the time progresses the body of fluid falls under the influence of gravity. 
  
 \begin{figure}
 \center
