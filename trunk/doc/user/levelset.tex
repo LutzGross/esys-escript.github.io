@@ -24,7 +24,7 @@ There is a technique to overcome these limitations called the Level Set Method, 
 %
 \begin{figure}
 \center
-\scalebox{0.7}{\includegraphics{figures/unitcircle.eps}}
+\scalebox{0.8}{\includegraphics{figures/unitcircle.eps}}
 \caption{Implicit representation of the curve $x^2 + y^2 = 1$.}
 \label{UNITCIRCLE}
 \end{figure}
@@ -95,7 +95,7 @@ into Equation (\ref{TAYLOR EXPANSION})
 %\label{GENERAL NAVIER STOKES}
 %\end{equation}
 %
-5with the incompressibility condition
+%with the incompressibility condition
 %
 %\begin{equation}
 %\nabla \cdot \vec{v} = 0.
@@ -110,7 +110,7 @@ into Equation (\ref{TAYLOR EXPANSION})
 %\label{GENERAL NAVIER STOKES COM}
 %\end{equation}
 %
-5with the incompressibility condition
+%with the incompressibility condition
 %
 %\begin{equation}
 %-v\hackscore{i,i} = 0.
@@ -124,7 +124,7 @@ into Equation (\ref{TAYLOR EXPANSION})
 %\label{STRESS}
 %\end{equation}
 %
-5where the deviatoric stretching $D^{'}\hackscore{ij}$ is defined as
+%where the deviatoric stretching $D^{'}\hackscore{ij}$ is defined as
 %
 %\begin{equation}
 %D^{'}\hackscore{ij} = D^{'}\hackscore{ij} - \frac{1}{3}D\hackscore{kk}\delta\hackscore{ij}.
@@ -199,7 +199,7 @@ $\vec{w}$ is the characteristic velocity pointing outward from the free surface.
 \label{REINITIAL CONVERGE}
 \end{equation}
 %
-where $\epsilon$ is the convergence tolerance. Normally, the reinitialization procedure is performed every third time-step of solving the Stokes equation.
+where $\epsilon \hackscore{\psi}$ is the convergence tolerance. Normally, the reinitialization procedure is performed every third time-step of solving the Stokes equation.
 
 The mid-point technique works provided that the left-hand side of Equations (\ref{REINITIAL MIDPOINT2}) and (\ref{REINITIAL MIDPOINT3}) is a lumped mass matrix. Alternatively, for a one-step procedure, the reinitialization equation can be given by:
 %
@@ -212,8 +212,8 @@ The accuracy of $\phi$ is only needed within the transition zone; and so it can 
 %
 \begin{figure}
 \center
-\scalebox{0.45}{\includegraphics{figures/LevelSetFlowChart.eps}}
-\caption{Flow chart of level set procedure \cite{LIN2005}.}
+\scalebox{0.5}{\includegraphics{figures/LevelSetFlowChart.eps}}
+\caption{Flow chart of Level Set Method procedure \cite{LIN2005}.}
 \label{LEVELSET FLOWCHART}
 \end{figure}
 %
@@ -253,9 +253,9 @@ where $\Delta \rho$ is the difference in density between the two fluids, $\eta$ 
 \end{figure}
 %
 %
-The following python code is for the Rayleigh-Taylor instability problem, which is available in the example directory as 'RT2D.py'. This script uses the 'StokesProblemCartesian' class for solving the Stokes equation, along with the incompressibility condition. A class called 'LevelSet' is also used, which performs the advection and reinitialization procedures to track the movement of the interface of the fluids. The details and use of these classes are described in Chapter \ref{MODELS CHAPTER} (Models Chapter).
+The following PYTHON code is for the Rayleigh-Taylor instability problem, which is available in the example directory as 'RT2D.py'. This script uses the 'StokesProblemCartesian' class for solving the Stokes equation, along with the incompressibility condition. A class called 'LevelSet' is also used, which performs the advection and reinitialization procedures to track the movement of the interface of the fluids. The details and use of these classes are described in Chapter \ref{MODELS CHAPTER} (Models Chapter).
 
-The script starts off by importing the necessary classes. The physical properties of the two fluids are defined, such as density and viscosity. Acceleration due to gravity is taken as 10.0 $ms^{-2}$. Solver settings are set for solving the Stokes problem, with the number of time-steps, solver tolerance, maximum solver iterations, and the option to use the Uzawa scheme or not; the default solver is the PCG solver. A regular mesh is defined with 200$\times$200 elements. Level set parameters are set for the reinitialization procedure, such as the convergence tolerance, number of reinitialization steps, the frequency of the reinitialization, for example, every third time-step, and the smoothing parameter to smooth the physical properties across the interface. A no-slip boundary condition is set for the top and bottom of the domain, while on the left and right-hand sides there is a slip condition. The initial interface between the two fluids is defined as in Figure \ref{RT2DSETUP}. Instances of the StokesProblemCartesian and LevelSet class are created. The iteration throughout the time-steps involves the update of the physical parameters of the fluids; the initialization of the boundary conditions, viscosity, and body forces; the solving of the Stokes problem for velocity and pressure; then the level set procedure. The output of the level set function, velocity and pressure is saved to file. The time-step size is selected based on the Courant condition. The simulation may take a long time to complete on a desktop computer due to the number of elements, so it is recommended to run it on the super computer.  
+The script starts off by importing the necessary classes. The physical properties of the two fluids are defined, such as density and viscosity. Acceleration due to gravity is taken as 10.0 $ms^{-2}$. Solver settings are set for solving the Stokes problem, with the number of time-steps, solver tolerance, maximum solver iterations, and the option to use the Uzawa scheme or not; the default solver is the PCG solver. A regular mesh is defined with 200$\times$200 elements. Level set parameters are set for the reinitialization procedure, such as the convergence tolerance, number of reinitialization steps, the frequency of the reinitialization, for example, every third time-step, and the smoothing parameter to smooth the physical properties across the interface. A no-slip boundary condition is set for the top and bottom of the domain, while on the left and right-hand sides there is a slip condition. The initial interface between the two fluids is defined as in Figure \ref{RT2DSETUP}. Instances of the StokesProblemCartesian and LevelSet class are created. The iteration throughout the time-steps involves the update of the physical parameters of the fluids; the initialization of the boundary conditions, viscosity, and body forces; the solving of the Stokes problem for velocity and pressure; then the level set procedure. The output of the level set function, velocity and pressure is saved to file. The time-step size is selected based on the Courant condition. Due to the number of elements in the computational mesh, the simulation may take a long time to complete on a desktop computer, so it is recommended to run it on the super computer. At present, the fine mesh is required to capture the details of the fluid motion and for numerical stability.  
 %
 \begin{python}
 
@@ -304,7 +304,8 @@ smooth = alpha*h
 #boundary conditions
 x = mesh.getX()
 #left + bottom + right + top
-b_c = whereZero(x[0])*[1.0,0.0] + whereZero(x[1])*[1.0,1.0] + whereZero(x[0]-l0)*[1.0,0.0] + whereZero(x[1]-l1)*[1.0,1.0]
+b_c = whereZero(x[0])*[1.0,0.0] + whereZero(x[1])*[1.0,1.0] + whereZero(x[0]-l0)*[1.0,0.0] \
+      + whereZero(x[1]-l1)*[1.0,1.0]
 
 velocity = Vector(0.0, ContinuousFunction(mesh))
 pressure = Scalar(0.0, ContinuousFunction(mesh))
@@ -335,7 +336,8 @@ while t_step <= t_step_end:
   #get velocity and pressure of fluid
   Y[1] = -rho*g
   solution.initialize(fixed_u_mask=b_c,eta=eta,f=Y)
-  velocity,pressure=solution.solve(velocity,pressure,max_iter=max_iter,verbose=verbose,useUzawa=useUzawa)
+  velocity,pressure=solution.solve(velocity,pressure,max_iter=max_iter,verbose=verbose, \ 
+  useUzawa=useUzawa)
   
   #update the interface
   func = levelset.update_phi(velocity, dt, t_step)  
@@ -369,7 +371,7 @@ The simulation output is shown in Figures \ref{RT2D OUTPUT1} and \ref{RT2D OUTPU
 \subfigure[t=600]{\label{RT OUTPUT600}\includegraphics[scale=0.252]{figures/RT2D200by200t600.eps}}
 \subfigure[t=900]{\label{RT OUTPUT900}\includegraphics[scale=0.252]{figures/RT2D200by200t900.eps}}
 \subfigure[t=1200]{\label{RT OUTPUT1200}\includegraphics[scale=0.252]{figures/RT2D200by200t1200.eps}}
-\caption{Simulation output of Rayleigh-Taylor instability, showing the movement of the interface of the fluids. The contour line represents the interface between the two fluids; the zero contour of the level set function. Velocity vectors are displayed showing the flow field. Computational mesh used was 200$\times$200 elements.}
+\caption{Simulation output of Rayleigh-Taylor instability, showing the movement of the interface of the fluids. The contour line represents the interface between the two fluids; the zero contour of the Level Set function. Velocity vectors are displayed showing the flow field. Computational mesh used was 200$\times$200 elements.}
 \label{RT2D OUTPUT1}
 \end{figure}
 %
