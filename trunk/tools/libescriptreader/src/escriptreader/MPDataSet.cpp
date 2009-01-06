@@ -71,6 +71,7 @@ bool MPDataSet::load(const string meshFile, const StringVec& varFiles,
         VarInfo vi;
         vi.fileName = *fileIt;
         vi.varName = *nameIt;
+        vi.dataVar = NULL;
         vi.valid = true;
         variables.push_back(vi);
     }
