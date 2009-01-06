@@ -28,7 +28,11 @@ namespace EscriptReader {
 //
 //
 //
-MeshWithElements::MeshWithElements() : Mesh()
+MeshWithElements::MeshWithElements() : Mesh(),
+    cells(NULL),
+    faces(NULL),
+    contacts(NULL),
+    points(NULL)
 {
     name = "Elements";
 }

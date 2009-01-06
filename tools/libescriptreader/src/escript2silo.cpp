@@ -25,12 +25,29 @@
 using namespace std;
 using namespace EscriptReader;
 
+string insertTimestep(const string& fString, int timeStep)
+{
+    string s(fString);
+    size_t pos;
+    if ((pos = s.find("%")) != s.npos) {
+        size_t endpos = pos+1;
+        while (endpos<s.length() && s[endpos] != 'd')
+            endpos++;
+        string fmtStr = s.substr(pos, endpos-pos+1);
+        char ts[255];
+        snprintf(ts, 255, fmtStr.c_str(), timeStep);
+        s.replace(pos, endpos-pos+1, ts);
+    }
+    return s;
+}
+
 int main(int argc, char** argv)
 {
     // turn off for debugging purposes
     bool writeMultiMesh = true;
 
     // whether time-varying datasets should use the same mesh (from T=0)
+    // TODO: Add a command line option for this
     bool writeMeshOnce = true;
 
     if (argc < 2) {
@@ -38,9 +55,11 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    ifstream in(argv[1]);
+    string esdFile(argv[1]);
+
+    ifstream in(esdFile.c_str());
     if (!in.is_open()) {
-        cerr << "Could not open " << argv[1] << "." << endl;
+        cerr << "Could not open " << esdFile << "." << endl;
         return -1;
     }
 
@@ -49,7 +68,7 @@ int main(int argc, char** argv)
     in.getline(line, 256);
     int major, minor;
     if (sscanf(line, "#escript datafile V%d.%d", &major, &minor) != 2) {
-        cerr << argv[1] << " is not a valid escript datafile." << endl;
+        cerr << esdFile << " is not a valid escript datafile." << endl;
         in.close();
         return -1;
     }
@@ -78,7 +97,7 @@ int main(int argc, char** argv)
             varFiles.push_back(sVal);
             varNames.push_back(colon+1);
         } else {
-            cerr << argv[1] << " is not a valid escript datafile." << endl;
+            cerr << esdFile << " is not a valid escript datafile." << endl;
             in.close();
             return -1;
         }
@@ -87,15 +106,11 @@ int main(int argc, char** argv)
     in.close();
     
     if (nParts < 1 || meshFile == "" || nTimesteps < 1) {
-        cerr << argv[1] << " is not a valid escript datafile." << endl;
+        cerr << esdFile << " is not a valid escript datafile." << endl;
         return -1;
     }
 
-    cout << "Converting " << argv[1] << "..." << endl;
-    if (nParts > 1)
-        meshFile.append(".nc.%04d");
-    else
-        meshFile.append(".nc");
+    cout << "Converting " << esdFile << "..." << endl;
 
     MeshBlocks meshFromTzero;
 
@@ -106,17 +121,7 @@ int main(int argc, char** argv)
 
         // look for "%d" in filename and replace by timestep if found
         for (it=varFiles.begin(); it!=varFiles.end(); it++) {
-            string v(*it);
-            size_t pos;
-            if ((pos = v.find("%")) != v.npos) {
-                size_t endpos = pos+1;
-                while (endpos<v.length() && v[endpos] != 'd')
-                    endpos++;
-                string fmtStr = v.substr(pos, endpos-pos+1);
-                char ts[255];
-                snprintf(ts, 255, fmtStr.c_str(), timeStep);
-                v.replace(pos, endpos-pos+1, ts);
-            }
+            string v = insertTimestep(*it, timeStep);
             if (nParts > 1)
                 v.append(".nc.%04d");
             else
@@ -134,12 +139,20 @@ int main(int argc, char** argv)
                 delete ds;
                 break;
             }
-        } else if (!ds->load(meshFile, varFilesTS, varNames, nParts)) {
-            delete ds;
-            break;
+        } else {
+            string meshTS = insertTimestep(meshFile, timeStep);
+            if (nParts > 1)
+                meshTS.append(".nc.%04d");
+            else
+                meshTS.append(".nc");
+
+            if (!ds->load(meshTS, varFilesTS, varNames, nParts)) {
+                delete ds;
+                break;
+            }
         }
 
-        string baseName(argv[1]);
+        string baseName(esdFile);
         size_t dot = baseName.rfind('.');
         if (dot != baseName.npos)
             baseName.erase(dot, baseName.length()-dot);
