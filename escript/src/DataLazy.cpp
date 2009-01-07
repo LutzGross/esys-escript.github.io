@@ -331,6 +331,7 @@ DataLazy::DataLazy(DataAbstract_ptr p)
    {
 	DataReady_ptr dr=dynamic_pointer_cast<DataReady>(p);
 	makeIdentity(dr);
+cout << "Wrapping " << dr.get() << " id=" << m_id.get() << endl;
    }
 LAZYDEBUG(cout << "(1)Lazy created with " << m_samplesize << endl;)
 }
@@ -376,6 +377,7 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 	m_op(op),
 	m_SL(0), m_SM(0), m_SR(0)
 {
+cout << "Forming operator with " << left.get() << " " << right.get() << endl;
    if ((getOpgroup(op)!=G_BINARY))
    {
 	throw DataException("Programmer error - constructor DataLazy(left, right, op) will only process BINARY operations.");
@@ -392,24 +394,29 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
    {
 	Data tmp(Data(right),getFunctionSpace());
 	right=tmp.borrowDataPtr();
+cout << "Right interpolation required " << right.get() << endl;
    }
    left->operandCheck(*right);
 
    if (left->isLazy())			// the children need to be DataLazy. Wrap them in IDENTITY if required
    {
 	m_left=dynamic_pointer_cast<DataLazy>(left);
+cout << "Left is " << m_left->toString() << endl;
    }
    else
    {
 	m_left=DataLazy_ptr(new DataLazy(left));
+cout << "Left " << left.get() << " wrapped " << m_left->m_id.get() << endl;
    }
    if (right->isLazy())
    {
 	m_right=dynamic_pointer_cast<DataLazy>(right);
+cout << "Right is " << m_right->toString() << endl;
    }
    else
    {
 	m_right=DataLazy_ptr(new DataLazy(right));
+cout << "Right " << right.get() << " wrapped " << m_right->m_id.get() << endl;
    }
    char lt=m_left->m_readytype;
    char rt=m_right->m_readytype;
@@ -460,7 +467,7 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op, 
 	Data tmp(Data(right),getFunctionSpace());
 	right=tmp.borrowDataPtr();
    }
-   left->operandCheck(*right);
+//    left->operandCheck(*right);
 
    if (left->isLazy())			// the children need to be DataLazy. Wrap them in IDENTITY if required
    {
@@ -1177,6 +1184,21 @@ LAZYDEBUG(cout << " numsteps=" << numsteps << endl << "oleftstep=" << oleftstep 
 LAZYDEBUG(cout << "onumsteps=" << onumsteps << endl;)
 LAZYDEBUG(cout << " DPPS=" << m_left->getNumDPPSample() << "," <<m_right->getNumDPPSample() << endl;)
 LAZYDEBUG(cout << "" << LS << RS << LN << RN << LES << RES <<LEN << REN <<   endl;)
+// LAZYDEBUG(
+// cout << "Results of bin" << endl;
+// cout << "Left=";
+// for (int i=lroffset;i<lroffset+m_left->m_samplesize;++i)
+// {
+// cout << (*left)[i] << " ";
+// }
+// cout << endl << "Right=";
+// for (int i=rroffset;i<rroffset+(m_right->m_readytype=='E'?m_right->m_samplesize:m_right->getNoValues());++i)
+// {
+// cout << (*right)[i] << " ";
+// }
+// cout << endl;
+// )
+
   double* resultp=&(v[offset]);		// results are stored at the vector offset we recieved
   switch(m_op)
   {
@@ -1198,7 +1220,7 @@ LAZYDEBUG(cout << "" << LS << RS << LN << RN << LES << RES <<LEN << REN <<   end
     default:
 	throw DataException("Programmer error - resolveBinary can not resolve operator "+opToString(m_op)+".");
   }
-  roffset=offset;	
+  roffset=offset;
   return &v;
 }
 
@@ -1222,27 +1244,58 @@ LAZYDEBUG(cout << "" << LS << RS << LN << RN << LES << RES <<LEN << REN <<   end
 DataTypes::ValueType*
 DataLazy::resolveTProd(ValueType& v,  size_t offset, int sampleNo, size_t& roffset) const
 {
-LAZYDEBUG(cout << "Resolve TensorProduct: " << toString() << endl;)
+LAZYDEBUG(cout << "Resolve TensorProduct: " << toString()  << " to offset " << offset<< endl;)
 
   size_t lroffset=0, rroffset=0;	// offsets in the left and right result vectors
 	// first work out which of the children are expanded
   bool leftExp=(m_left->m_readytype=='E');
   bool rightExp=(m_right->m_readytype=='E');
   int steps=getNumDPPSample();
-  int leftStep=((leftExp && !rightExp)? m_right->getNoValues() : 0);
-  int rightStep=((rightExp && !leftExp)? m_left->getNoValues() : 0);
-  int resultStep=max(leftStep,rightStep);	// only one (at most) should be !=0
+/*  int leftStep=((leftExp && !rightExp)? m_right->getNoValues() : 0);
+  int rightStep=((rightExp && !leftExp)? m_left->getNoValues() : 0);*/
+  int leftStep=(leftExp? m_left->getNoValues() : 0);		// do not have scalars as input to this method
+  int rightStep=(rightExp?m_right->getNoValues() : 0);
+
+  int resultStep=getNoValues();
+//   int resultStep=max(leftStep,rightStep);	// only one (at most) should be !=0
 	// Get the values of sub-expressions (leave a gap of one sample for the result).
   int gap=offset+m_left->getMaxSampleSize();	// actually only needs to be m_left->m_samplesize
+
+LAZYDEBUG(cout << "Query left with offset=" << gap << endl;)
+
   const ValueType* left=m_left->resolveSample(v,gap,sampleNo,lroffset);
   gap+=m_right->getMaxSampleSize();
-  const ValueType* right=m_right->resolveSample(v,gap,sampleNo,rroffset); 
-LAZYDEBUG(cout << "Post sub calls: " << toString() << endl;)
+
+
+LAZYDEBUG(cout << "Query right with offset=" << gap << endl;)
+
+
+  const ValueType* right=m_right->resolveSample(v,gap,sampleNo,rroffset);
+
+LAZYDEBUG(cerr << "[Left shape]=" << DataTypes::shapeToString(m_left->getShape()) << "\n[Right shape]=" << DataTypes::shapeToString(m_right->getShape()) << " result=" <<DataTypes::shapeToString(getShape()) <<  endl;
+cout << getNoValues() << endl;)
+LAZYDEBUG(cerr << "Result of left=";)
+LAZYDEBUG(cerr << "[" << lroffset << " .. " << lroffset+m_left->getNoValues() << "]" << endl;
+for (int i=lroffset;i<lroffset+m_left->getNoValues();++i)
+{
+cout << (*left)[i] << " ";
+}) 
+LAZYDEBUG(cerr << "\nResult of right=" << endl;)
+LAZYDEBUG(cerr << "[" << rroffset << " .. " << rroffset+m_right->m_samplesize << "]" << endl;
+for (int i=rroffset;i<rroffset+m_right->m_samplesize;++i)
+{
+cerr << (*right)[i] << " ";
+}
+cerr << endl;
+)
+LAZYDEBUG(cerr << "Post sub calls: " << toString() << endl;)
 LAZYDEBUG(cout << "LeftExp=" << leftExp << " rightExp=" << rightExp << endl;)
 LAZYDEBUG(cout << "LeftR=" << m_left->getRank() << " rightExp=" << m_right->getRank() << endl;)
 LAZYDEBUG(cout << "LeftSize=" << m_left->getNoValues() << " RightSize=" << m_right->getNoValues() << endl;)
 LAZYDEBUG(cout << "m_samplesize=" << m_samplesize << endl;)
 LAZYDEBUG(cout << "outputshape=" << DataTypes::shapeToString(getShape()) << endl;)
+LAZYDEBUG(cout << "DPPS=" << m_right->getNumDPPSample() <<"."<<endl;)
+
   double* resultp=&(v[offset]);		// results are stored at the vector offset we recieved
   switch(m_op)
   {
@@ -1257,6 +1310,13 @@ LAZYDEBUG(cout << "m_SL=" << m_SL << " m_SM=" << m_SM << " m_SR=" << m_SR << end
 LAZYDEBUG(cout << DataTypes::pointToString(*left, m_left->getShape(),lroffset,"LEFT") << endl;)
 LAZYDEBUG(cout << DataTypes::pointToString(*right,m_right->getShape(),rroffset, "RIGHT") << endl;)
     	  matrix_matrix_product(m_SL, m_SM, m_SR, ptr_0, ptr_1, resultp, m_transpose);
+LAZYDEBUG(cout << "Results--\n";
+for (int z=0;z<getNoValues();++z)
+{
+cout << resultp[z] << " ";
+}
+cout << "\nWritten to: " << resultp << " resultStep=" << resultStep << endl;
+)
 	  lroffset+=leftStep;
 	  rroffset+=rightStep;
 	}
@@ -1431,7 +1491,7 @@ DataLazy::toString() const
 void
 DataLazy::intoString(ostringstream& oss) const
 {
-  oss << "[" << m_children <<";"<<m_height <<"]";
+//   oss << "[" << m_children <<";"<<m_height <<"]";
   switch (getOpgroup(m_op))
   {
   case G_IDENTITY:
