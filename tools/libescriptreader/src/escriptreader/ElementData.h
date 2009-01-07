@@ -34,6 +34,10 @@ typedef enum {
     ZONETYPE_TRIANGLE
 } ZoneType;
 
+//
+// Holds information that is used to convert from escript element types to
+// Silo.
+//
 struct FinleyElementInfo
 {
     ZoneType elementType, reducedElementType;
@@ -43,21 +47,26 @@ struct FinleyElementInfo
 };
 
 //
-//
+// A class that stores and manipulates one type of escript mesh elements
+// (elements, faces, contacts or points). The corresponding mesh nodes are
+// not part of this class but stored in a Mesh object which has to be provided
+// when constructing an ElementData object.
 //
 class ElementData
 {
     friend class DataVar;
     friend class MeshWithElements;
 public:
+
+    /// Constructor with name and accompanying Mesh object.
     ElementData(const std::string& elementName, const Mesh* mainMesh);
 
     /// Copy constructor
     ElementData(const ElementData& e);
-    
+
     /// Virtual destructor
     virtual ~ElementData();
-    
+
     bool readFromNc(NcFile* ncfile);
     void handleGhostZones(int ownIndex);
     void removeGhostZones();

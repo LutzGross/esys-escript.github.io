@@ -27,7 +27,8 @@ namespace EscriptReader {
 class MeshWithElements;
 
 //
-//
+// A class that provides functionality to read an escript data object in the
+// native NetCDF format and to write that data in Silo format (if available).
 //
 class DataVar
 {
@@ -35,51 +36,70 @@ public:
     /// Constructor with variable name
     DataVar(const std::string& name);
 
-    /// Copy constructor
+    /// Copy constructor. Performs a deep copy of the data values.
     DataVar(const DataVar& d);
 
-    /// Special constructor for integral mesh variables
+    /// Special constructor for integral mesh variables like node IDs
     DataVar(const std::string& name, const IntVec& data,
             MeshWithElements* mesh);
 
     /// Destructor
     ~DataVar();
 
-    /// Appends data from rhs
+    /// Appends raw data and IDs from rhs. Reordered data becomes invalid,
+    /// i.e. you have to call setMesh() again before getData().
+    /// Returns true if rhs is compatible and appending succeeded, false
+    /// otherwise.
     bool append(const DataVar& rhs);
 
-    /// Reads values and IDs for this variable from NetCDF file
-    bool readFromNc(const std::string& ncFile);
+    /// Reads values and IDs for this variable from escript NetCDF file.
+    /// Returns true if the file was found and contains valid escript data
+    /// with at least one sample, false otherwise.
+    /// Note that only expanded data of up to rank 2 is supported at the
+    /// moment.
+    bool readFromNc(const std::string& filename);
 
     /// Associates the data with the given mesh and reorders the samples
     /// according to the corresponding node IDs.
-    /// This method must be called before writeToSilo() or getData()
+    /// Returns true if the function space is supported and the number of
+    /// elements or nodes corresponds to the number of data samples.
+    /// Note: This method must be called before writeToSilo() or getData().
     bool setMesh(MeshWithElements* mesh);
 
-    /// Writes the data into given directory in given Silo file using
-    /// provided underlying mesh
+    /// Writes the data into given directory in given Silo file.
+    /// If Silo was not available at compile time or the mesh was not set
+    /// beforehand using setMesh() or if a Silo function fails this method
+    /// returns false.
     bool writeToSilo(DBfile* dbfile, const std::string& siloPath);
 
-    /// Returns the rank of the data
+    /// Returns the rank of the data.
     int getRank() const { return rank; }
 
-    /// Returns true if the variable is node centered, false if zone centered
+    /// Returns true if the variable is node centered, false if zone centered.
     bool isNodeCentered() const;
 
     /// Returns the name of the associated mesh which is one of the meshes
-    /// in mainMesh
+    /// in mainMesh depending on function space type and whether reduced
+    /// elements are used or not.
     std::string getMeshName(MeshWithElements* mainMesh) const;
 
-    /// Returns the shape vector of the data
+    /// Returns the shape vector of the data. The shape vector has as many
+    /// elements as the rank of this variable.
     const IntVec& getShape() const { return shape; }
 
-    /// Returns the variable name
+    /// Returns the variable name.
     const std::string& getName() const { return varName; }
+
+    /// If the data is tensor data then the components of the tensor are stored
+    /// separately in the Silo file. This method then returns a string that
+    /// contains the proper Silo expression to put the tensor together again.
+    /// For non-tensor data this method returns an empty string.
     std::string getTensorDef() const;
 
-    /// Returns the number of data values
+    /// Returns the number of data values.
     int getNumberOfSamples() const { return reorderedNumSamples; }
 
+    /// Returns the reordered (not raw!) data values.
     const CoordArray& getData() const { return reorderedData; }
 
 private:
@@ -88,18 +108,20 @@ private:
     /// In any case, the data is filtered according to the stride value.
     float* averageData(const float* src, size_t stride);
 
+    /// Prepares a sample ID -> index mapping which is used to reorder data.
     void buildIndexMap();
 
     void reorderSamples(const IndexMap& id2idxMap, const IntVec& requiredIDs);
+
     void handleGhostZones(const IntVec& reorderArray);
 
-    /// Reads scalar data from NetCDF file
+    /// Reads scalar data from NetCDF file.
     void readRank0Data(NcFile* ncfile);
 
-    /// Reads vector data from NetCDF file
+    /// Reads vector data from NetCDF file.
     void readRank1Data(NcFile* ncfile);
 
-    /// Reads tensor data from NetCDF file
+    /// Reads tensor data from NetCDF file.
     void readRank2Data(NcFile* ncfile);
 
     std::string varName;

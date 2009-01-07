@@ -559,16 +559,21 @@ bool ElementData::writeToSilo(DBfile* dbfile, const string& siloPath)
     ret = DBPutZonelist2(dbfile, varName.c_str(), count,
             originalMesh->getNumDims(), &nodes[0], arraylen, 0, 0,
             numGhostElements, &eltype, &nodesPerElement, &count, 1, NULL);
-    if (ret == 0)
+    if (ret == 0) {
+        CoordArray& coordbase = const_cast<CoordArray&>(fullMesh->getCoords());
         ret = DBPutUcdmesh(dbfile, siloMeshName.c_str(),
-                originalMesh->getNumDims(), NULL, &fullMesh->coords[0],
+                originalMesh->getNumDims(), NULL, &coordbase[0],
                 fullMesh->getNumNodes(), count, varName.c_str(),
                 /*"facelist"*/NULL, DB_FLOAT, NULL);
+    }
     
     // Point mesh is useful for debugging
-    //DBPutPointmesh(dbfile, "/pointmesh",
-    //        originalMesh->getNumDims(), &fullMesh->coords[0],
-    //        fullMesh->getNumNodes(), DB_FLOAT, NULL);
+    if (0) {
+        CoordArray& coordbase = const_cast<CoordArray&>(fullMesh->getCoords());
+        DBPutPointmesh(dbfile, "/pointmesh",
+              originalMesh->getNumDims(), &coordbase[0],
+              fullMesh->getNumNodes(), DB_FLOAT, NULL);
+    }
 
     if (ret != 0)
         return false;
@@ -586,11 +591,13 @@ bool ElementData::writeToSilo(DBfile* dbfile, const string& siloPath)
                 originalMesh->getNumDims(), &reducedNodes[0], arraylen, 0, 0,
                 numReducedGhostElements, &eltype, &reducedNodesPerElement,
                 &reducedCount, 1, NULL);
-        if (ret == 0)
+        if (ret == 0) {
+            CoordArray& coordbase = const_cast<CoordArray&>(reducedMesh->getCoords());
             ret = DBPutUcdmesh(dbfile, siloMeshName.c_str(),
-                   originalMesh->getNumDims(), NULL, &reducedMesh->coords[0],
+                   originalMesh->getNumDims(), NULL, &coordbase[0],
                    reducedMesh->getNumNodes(), reducedCount, varName.c_str(),
                    NULL, DB_FLOAT, NULL);
+        }
         if (ret != 0)
             return false;
         numCells = reducedCount;
