@@ -54,7 +54,6 @@ DataVar::~DataVar()
 
 //
 // Copy constructor
-// Performs a deep copy of the data values
 //
 DataVar::DataVar(const DataVar& d) :
     varName(d.varName), numSamples(d.numSamples),
@@ -77,7 +76,6 @@ DataVar::DataVar(const DataVar& d) :
 
 //
 // Special constructor for mesh data
-// Used to store "special" integral mesh variables such as IDs or tags
 //
 DataVar::DataVar(const string& name, const IntVec& data,
                  MeshWithElements* mesh) :
@@ -127,7 +125,7 @@ DataVar::DataVar(const string& name, const IntVec& data,
 }
 
 //
-// Appends raw data including IDs from rhs. Reordered data becomes invalid.
+// Appends raw data including IDs from rhs.
 //
 bool DataVar::append(const DataVar& rhs)
 {
@@ -256,12 +254,12 @@ void DataVar::readRank2Data(NcFile* ncfile)
 //
 // Reads a NetCDF file in escript/finley format.
 //
-bool DataVar::readFromNc(const string& ncFile)
+bool DataVar::readFromNc(const string& filename)
 {
     NcError ncerr(NcError::silent_nonfatal);    
-    NcFile* input = new NcFile(ncFile.c_str());
+    NcFile* input = new NcFile(filename.c_str());
     if (!input->is_valid()) {
-        cerr << "Could not open input file " << ncFile.c_str() << "." << endl;
+        cerr << "Could not open input file " << filename << "." << endl;
         delete input;
         return false;
     }

@@ -30,7 +30,6 @@ class ElementData;
 //
 class Mesh
 {
-    friend class ElementData;
 public:
     /// Constructor with mesh coordinates, dimensionality and size
     Mesh(CoordArray c, int nDims, int nNodes);
