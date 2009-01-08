@@ -119,7 +119,7 @@ int isExpanded(struct escriptDataC* data)
      if (temp->isEmpty()) {
         return false;
      } else {
-        return temp->isExpanded();
+        return temp->isExpanded() || temp->isLazy();	// THIS IS WRONG!!! we need actsExpanded from the branch
      }
   }
 }
