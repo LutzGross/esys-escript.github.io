@@ -2535,6 +2535,7 @@ class TransportPDE(LinearProblem):
      super(TransportPDE, self).__init__(domain,numEquations,numSolutions,debug)
 
      self.__theta=theta
+     self.setConstraintWeightingFactor()
      #
      #   the coefficients of the transport problem
      #
@@ -2757,6 +2758,26 @@ class TransportPDE(LinearProblem):
               any time step size can be used.
        """
        return self.getOperator().getSafeTimeStepSize()
+
+   def setConstraintWeightingFactor(self,value=1./util.sqrt(util.EPSILON)):
+       """
+       Sets the weighting factor used to insert the constraints into the problem
+
+       @param value: value for the weighting factor
+       @type value: large positive C{float}
+       """
+       if not value>0:
+         raise ValueError,"weighting factor needs to be positive."
+       self.__constraint_factor=value
+       self.trace("Weighting factor for constraints is set to %e."%value)
+
+   def getConstraintWeightingFactor(self):
+       """
+       returns the weighting factor used to insert the constraints into the problem
+       @return: value for the weighting factor
+       @rtype: C{float}
+       """
+       return self.__constraint_factor
    #====================================================================
    def getSolution(self,dt,**options):
        """
@@ -2815,7 +2836,7 @@ class TransportPDE(LinearProblem):
                             self.getCoefficient("y_reduced"),
                             self.getCoefficient("d_contact_reduced"),
                             self.getCoefficient("y_contact_reduced"))
-          operator.insertConstraint(righthandside,self.getCoefficient("q"),self.getCoefficient("r"))
+          operator.insertConstraint(righthandside,self.getCoefficient("q"),self.getCoefficient("r"),self.getConstraintWeightingFactor())
           self.trace("New system has been built.")
           self.validOperator()
           self.validRightHandSide()

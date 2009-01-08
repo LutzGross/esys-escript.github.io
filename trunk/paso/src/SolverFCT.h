@@ -15,6 +15,8 @@
 #ifndef INC_SOLVERFCT
 #define INC_SOLVERFCT
 
+#define DT_FACTOR_MAX 1000.
+
 #include "SystemMatrix.h"
 #include "Options.h"
 #include "performance.h"
@@ -24,9 +26,13 @@ typedef struct Paso_FCTransportProblem {
     double theta;
     double dt_max;
     bool_t valid_matrices;
+    double dt_factor; /* = MIN(1/(1-theta),DT_FACTOR_MAX) */
 
     Paso_SystemMatrix * transport_matrix;
     Paso_SystemMatrix * mass_matrix;
+
+    double constraint_factor;
+    double* constraint_weights;
 
     double* u;
     Paso_Coupler* u_coupler;
@@ -40,6 +46,7 @@ typedef struct Paso_FCTransportProblem {
     dim_t reference_counter;
 
 } Paso_FCTransportProblem;
+
 
 
 PASO_DLL_API
@@ -110,5 +117,13 @@ void Paso_FCT_setUp(Paso_FCTransportProblem* fctp, const double dt, const double
 
 PASO_DLL_API
 index_t Paso_FCTransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool_t symmetry);
+
+
+PASO_DLL_API
+void Paso_FCTransportProblem_insertConstraint(Paso_FCTransportProblem* fctp,  const double* r,  double* source);
+
+
+PASO_DLL_API
+void Paso_FCTransportProblem_setUpConstraint(Paso_FCTransportProblem* fctp,  const double* q, const double factor);
 
 #endif /* #ifndef INC_SOLVERFCT */
