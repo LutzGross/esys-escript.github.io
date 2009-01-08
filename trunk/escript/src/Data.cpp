@@ -1628,6 +1628,10 @@ Data
 Data::trace(int axis_offset) const
 {     
      MAKELAZYOPOFF(TRACE,axis_offset)
+     if ((axis_offset<0) || (axis_offset>getDataPointRank()))
+     {
+	throw DataException("Error - Data::trace, axis_offset must be between 0 and rank-2 inclusive.");
+     }
      DataTypes::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
         DataTypes::ShapeType ev_shape;

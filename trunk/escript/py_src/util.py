@@ -3440,13 +3440,13 @@ def trace(arg,axis_offset=0):
       if len(sh)<2:
         raise ValueError,"rank of argument must be greater than 1"
       if axis_offset<0 or axis_offset>len(sh)-2:
-        raise ValueError,"axis_offset must be between 0 and %s"%len(sh)-2
+        raise ValueError,"axis_offset must be between 0 and %d"%(len(sh)-2)
       s1=1
       for i in range(axis_offset): s1*=sh[i]
       s2=1
       for i in range(axis_offset+2,len(sh)): s2*=sh[i]
       if not sh[axis_offset] == sh[axis_offset+1]:
-        raise ValueError,"dimensions of component %s and %s must match."%(axis_offset.axis_offset+1)
+        raise ValueError,"dimensions of component %d and %d must match."%(axis_offset,axis_offset+1)
       arg_reshaped=numarray.reshape(arg,(s1,sh[axis_offset],sh[axis_offset],s2))
       out=numarray.zeros([s1,s2],numarray.Float64)
       for i1 in range(s1):
@@ -3458,10 +3458,10 @@ def trace(arg,axis_offset=0):
       if arg.getRank()<2:
         raise ValueError,"rank of argument must be greater than 1"
       if axis_offset<0 or axis_offset>arg.getRank()-2:
-        raise ValueError,"axis_offset must be between 0 and %s"%arg.getRank()-2
+        raise ValueError,"axis_offset must be between 0 and %d"%(arg.getRank()-2)
       s=list(arg.getShape())
       if not s[axis_offset] == s[axis_offset+1]:
-        raise ValueError,"dimensions of component %s and %s must match."%(axis_offset.axis_offset+1)
+        raise ValueError,"dimensions of component %d and %d must match."%(axis_offset,axis_offset+1)
       return arg._trace(axis_offset)
    elif isinstance(arg,float):
       raise TypeError,"illegal argument type float."
@@ -3491,10 +3491,10 @@ class Trace_Symbol(DependendSymbol):
       if arg.getRank()<2:
         raise ValueError,"rank of argument must be greater than 1"
       if axis_offset<0 or axis_offset>arg.getRank()-2:
-        raise ValueError,"axis_offset must be between 0 and %s"%arg.getRank()-2
+        raise ValueError,"axis_offset must be between 0 and %d"%(arg.getRank()-2)
       s=list(arg.getShape())
       if not s[axis_offset] == s[axis_offset+1]:
-        raise ValueError,"dimensions of component %s and %s must match."%(axis_offset.axis_offset+1)
+        raise ValueError,"dimensions of component %d and %d must match."%(axis_offset,axis_offset+1)
       super(Trace_Symbol,self).__init__(args=[arg,axis_offset],shape=tuple(s[0:axis_offset]+s[axis_offset+2:]),dim=arg.getDim())
 
    def getMyCode(self,argstrs,format="escript"):
