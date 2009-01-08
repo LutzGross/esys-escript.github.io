@@ -2293,7 +2293,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
   // deal with any lazy data
 //   if (arg_0.isLazy()) {arg_0.resolve();}
 //   if (arg_1.isLazy()) {arg_1.resolve();}
-  if (arg_0.isLazy() || arg_1.isLazy())
+  if (arg_0.isLazy() || arg_1.isLazy() || (AUTOLAZYON && (arg_0.isExpanded() || arg_1.isExpanded())))
   {
 	DataLazy* c=new DataLazy(arg_0.borrowDataPtr(), arg_1.borrowDataPtr(), PROD, axis_offset,transpose);
 	return Data(c);

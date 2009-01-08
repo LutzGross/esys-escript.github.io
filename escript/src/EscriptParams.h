@@ -61,6 +61,8 @@ protected:
   friend escript::Data escript::operator-(const escript::Data&, const boost::python::api::object&);
   friend escript::Data escript::operator*(const escript::Data&, const boost::python::api::object&);
   friend escript::Data escript::operator/(const escript::Data&, const boost::python::api::object&);
+  friend escript::Data escript::C_GeneralTensorProduct(escript::Data& arg_0, escript::Data& arg_1,
+                     int axis_offset, int transpose);
 
 };
 
