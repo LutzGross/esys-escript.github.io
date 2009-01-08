@@ -234,6 +234,6 @@ void Paso_FCTransportProblem_insertConstraint(Paso_FCTransportProblem* fctp,  co
    dim_t i, n;
    n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
 
-   #pragma omp for schedule(static) private(i,m,rtmp)
+   #pragma omp for schedule(static) private(i)
    for (i=0;i<n;++i) source[i]+=fctp->constraint_weights[i] * r[i];
 }
