@@ -137,6 +137,7 @@ ESCRIPT_DLL_API int isExpanded(escriptDataC* data);
   \param sampleNo Input - The sample number.
 */
 ESCRIPT_DLL_API double __const * getSampleDataRO(escriptDataC* data, int sampleNo, void* buffer);
+// Placement of __const might be important. See .cpp
 
 
 ESCRIPT_DLL_API double* getSampleDataRW(escriptDataC* data, int sampleNo);
