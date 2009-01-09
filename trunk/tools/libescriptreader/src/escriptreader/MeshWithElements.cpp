@@ -156,7 +156,7 @@ const IntVec& MeshWithElements::getVarDataByName(const string name) const
     else if (name.compare(0, 7, "Points_") == 0)
         return points->getVarDataByName(name);
     else
-        return *(IntVec*)(NULL);
+        throw "Invalid variable name";
 }
 
 ElementData* MeshWithElements::getElementsByName(const string name) const
