@@ -134,8 +134,10 @@ int isEmpty(escriptDataC* data)
   }
 }
 
-
-__const double* getSampleDataRO(struct escriptDataC* data, int sampleNo, void* buffer)
+// The unusual (for me) ordering of __const here is because I'm not sure
+// whether gcc would try to interpret __const as a function attribute rather than
+// a modifier on the return value. Putting it here should remove any ambiguity
+double* __const getSampleDataRO(struct escriptDataC* data, int sampleNo, void* buffer)
 {
   if (data == (struct escriptDataC*)0) {
        return NULL;
