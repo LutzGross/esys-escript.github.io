@@ -54,7 +54,7 @@ using namespace boost::python;
  *
  * - \ref finley
  *
- * - <a href=http://shake200.esscc.uq.edu.au/esys/esys13/release/epydoc/index.html>Python module documentation (epydoc generated)</a>
+ * - <a href="http://shake200.esscc.uq.edu.au/esys/esys13/release/epydoc/index.html">Python module documentation (epydoc generated)</a>
  *
  */
 
