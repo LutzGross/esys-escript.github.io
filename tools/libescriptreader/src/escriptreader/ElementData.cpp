@@ -185,7 +185,7 @@ const IntVec& ElementData::getVarDataByName(const string varName) const
     } else if (varName == name+string("_Tag"))
         return tag;
     else
-        return *(IntVec*)(NULL);
+        throw "Invalid variable name";
 }
 
 //
