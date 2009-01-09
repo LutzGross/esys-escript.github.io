@@ -57,11 +57,11 @@ typedef DataReady parent;
      this data object, where the number of data points is defined by
      the given function space.
 
-     \param value - Input - A single data value.
+     \param value - Input - The value of a single data point.
      \param what - Input - A description of what this data represents.
   */
   ESCRIPT_DLL_API
-  DataExpanded(const boost::python::numeric::array& value,
+  DataExpanded(const WrappedArray& value,
                const FunctionSpace& what);
 
   /**
@@ -131,6 +131,13 @@ TODO Note that this constructor will also copy data to all points if it only con
   {
     return true;
   };
+
+  ESCRIPT_DLL_API
+  bool
+  actsExpanded() const
+  {
+    return true;
+  }
 
   /**
      \brief
@@ -395,20 +402,10 @@ TODO Note that this constructor will also copy data to all points if it only con
 
      \param value Input - A single data point value.
   */
+
   void
-  copy(const boost::python::numeric::array& value);
+  copy(const WrappedArray& value);
 
-  /**
-     \brief
-     Copy the numarray object to the data points in this object.
-
-     Description:
-     Copy the numarray object to the data points in this object.
-
-     \param value Input - new values for the data points
-  */
-  void
-  copyAll(const boost::python::numeric::array& value);
 
   /**
      \brief
@@ -437,8 +434,9 @@ TODO Note that this constructor will also copy data to all points if it only con
      \param dataPointNo Input - data point of the sample
      \param value Input - new values for the data point
   */
-  void
-  copyToDataPoint(const int sampleNo, const int dataPointNo, const boost::python::numeric::array& value);
+  ESCRIPT_DLL_API
+  virtual void
+  copyToDataPoint(const int sampleNo, const int dataPointNo, const WrappedArray& value);
 
   //
   // The main data storage array, a 2D array of data blocks.

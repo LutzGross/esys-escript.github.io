@@ -49,7 +49,8 @@ void  Finley_Assemble_PDE_System2_C(Assemble_Parameters p, Finley_ElementFile* e
 
     index_t color;
     dim_t e;
-    double *EM_S, *EM_F, *Vol, *D_p, *Y_p;
+    __const double  *D_p, *Y_p;
+    double *EM_S, *EM_F, *Vol;
     index_t *row_index;
     register dim_t q, s,r,k,m;
     register double rtmp, rtmp_D;
@@ -57,12 +58,14 @@ void  Finley_Assemble_PDE_System2_C(Assemble_Parameters p, Finley_ElementFile* e
 
     bool_t extendedD=isExpanded(D);
     bool_t extendedY=isExpanded(Y);
-    double *F_p=getSampleData(F,0);
+    double *F_p=getSampleDataRW(F,0);
     double *S=p.row_jac->ReferenceElement->S;
 
 
     #pragma omp parallel private(color,EM_S, EM_F, Vol, D_p, Y_p,row_index,q, s,r,k,m,rtmp, rtmp_D,add_EM_F, add_EM_S)
     {
+       void* DBuff=allocSampleBuffer(D);
+       void* YBuff=allocSampleBuffer(Y);
        EM_S=THREAD_MEMALLOC(p.row_NN*p.col_NN*p.numEqu*p.numComp,double);
        EM_F=THREAD_MEMALLOC(p.row_NN*p.numEqu,double);
        row_index=THREAD_MEMALLOC(p.row_NN,index_t);
@@ -80,7 +83,7 @@ void  Finley_Assemble_PDE_System2_C(Assemble_Parameters p, Finley_ElementFile* e
                    /************************************************************* */
                    /* process D */
                    /**************************************************************/
-                   D_p=getSampleData(D,e);
+                   D_p=getSampleDataRO(D,e,DBuff);
                    if (NULL!=D_p) {
                      add_EM_S=TRUE;
                      if (extendedD) {
@@ -121,7 +124,7 @@ void  Finley_Assemble_PDE_System2_C(Assemble_Parameters p, Finley_ElementFile* e
                   /**************************************************************/
                   /*   process Y: */
                   /**************************************************************/
-                   Y_p=getSampleData(Y,e);
+                   Y_p=getSampleDataRO(Y,e,YBuff);
                    if (NULL!=Y_p) {
                      add_EM_F=TRUE;
                      if (extendedY) {
@@ -161,6 +164,8 @@ void  Finley_Assemble_PDE_System2_C(Assemble_Parameters p, Finley_ElementFile* e
          THREAD_MEMFREE(row_index);
 
       } /* end of pointer check */
+      freeSampleBuffer(DBuff);
+      freeSampleBuffer(YBuff);
    } /* end parallel region */
 }
 /*

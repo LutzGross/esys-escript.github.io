@@ -178,27 +178,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   getPointOffset(int sampleNo,
                  int dataPointNo) = 0;
 
-//  /**
-//	return the container storing points for this object
-//  */
-//   ESCRIPT_DLL_API
-//   virtual 
-//   ValueType&
-//   getVector();
-// 
-//   ESCRIPT_DLL_API
-//   virtual 
-//   const ValueType&
-//   getVector() const;
-
-
-//  /**
-//     \brief
-//     Return the sample data for the given sample number.
-//  */
-//  ESCRIPT_DLL_API
-//  double*
-//  getSampleData(ValueType::size_type sampleNo);
 
   /**
      \brief
@@ -218,6 +197,15 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   virtual
   double*
   getSampleDataByTag(int tag);
+
+  /**
+    This method is used primarily for LazyData.
+    \return the size of the buffer required to evaulate a sample for this object.
+  */
+  ESCRIPT_DLL_API
+  virtual size_t
+  getSampleBufferSize() const=0;
+
 
 
   /**
@@ -268,18 +256,7 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   DataAbstract*
   getSlice(const DataTypes::RegionType& region) const = 0;
 
-//  /**
-//     \brief
-//     Copy the specified region from the given object.
-//
-//     \param value - Input - Data to copy from
-//     \param region - Input - Region to copy.
-//  */
-//   ESCRIPT_DLL_API
-//   virtual
-//   void
-//   setSlice(const DataAbstract* value,
-//            const DataTypes::RegionType& region) = 0;
+
 
   /**
      \brief
@@ -302,21 +279,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
                  const DataTypes::ValueType& value,
 		 int dataOffset=0);
 
-
-
-
-  /**
-     \brief
-     Copy the numarray object to the data points in this object.
-
-     Description:
-     Copy the numarray object to the data points in this object.
-
-     \param value Input - new values for the data points
-  */
-  ESCRIPT_DLL_API
-  virtual void
-  copyAll(const boost::python::numeric::array& value);
 
   /**
      \brief
@@ -346,7 +308,7 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   */
   ESCRIPT_DLL_API
   virtual void
-  copyToDataPoint(const int sampleNo, const int dataPointNo, const boost::python::numeric::array& value);
+  copyToDataPoint(const int sampleNo, const int dataPointNo, const WrappedArray& value);
 
 
   /**
@@ -499,13 +461,25 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   ESCRIPT_DLL_API
   bool isLazy() const;	// a test to determine if this object is an instance of DataLazy
 
+  ESCRIPT_DLL_API
   virtual
   bool
   isConstant() const {return false;}
 
+  ESCRIPT_DLL_API
   virtual
   bool
   isExpanded() const {return false;}
+
+
+  /**
+     \brief
+     Return true if this Data is expanded or resolves to expanded.
+     That is, if it has a separate value for each datapoint in the sample.
+  */
+  virtual
+  bool
+  actsExpanded() const {return false;}
 
   virtual
   bool

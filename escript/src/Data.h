@@ -18,13 +18,14 @@
 #define DATA_H
 #include "system_dep.h"
 
+#include "DataTypes.h"
 #include "DataAbstract.h"
 #include "DataAlgorithm.h"
 #include "FunctionSpace.h"
 #include "BinaryOp.h"
 #include "UnaryOp.h"
 #include "DataException.h"
-#include "DataTypes.h"
+
 
 extern "C" {
 #include "DataC.h"
@@ -44,11 +45,16 @@ extern "C" {
 
 namespace escript {
 
+//Just here temporarily
+void jtest(boost::python::object& obj);
+
+
 //
 // Forward declaration for various implementations of Data.
 class DataConstant;
 class DataTagged;
 class DataExpanded;
+class DataLazy;
 
 /**
    \brief
@@ -141,20 +147,20 @@ class Data {
   Data(const Data& inData,
        const DataTypes::RegionType& region);
 
-  /**
-     \brief
-     Constructor which copies data from a python numarray.
-
-     \param value - Input - Data value for a single point.
-     \param what - Input - A description of what this data represents.
-     \param expanded - Input - Flag, if true fill the entire container with
-                       the value. Otherwise a more efficient storage
-                       mechanism will be used.
-  */
-  ESCRIPT_DLL_API
-  Data(const boost::python::numeric::array& value,
-       const FunctionSpace& what=FunctionSpace(),
-       bool expanded=false);
+//  /**
+//     \brief
+//     Constructor which copies data from a python numarray.
+//
+//     \param value - Input - Data value for a single point.
+//     \param what - Input - A description of what this data represents.
+//     \param expanded - Input - Flag, if true fill the entire container with
+//                       the value. Otherwise a more efficient storage
+//                       mechanism will be used.
+//  */
+//   ESCRIPT_DLL_API
+//   Data(const boost::python::numeric::array& value,
+//        const FunctionSpace& what=FunctionSpace(),
+//        bool expanded=false);
 
   /**
      \brief
@@ -228,7 +234,7 @@ class Data {
      \brief Return a pointer to a deep copy of this object.
   */
   ESCRIPT_DLL_API
-  Data
+  Data*
   copySelf();
 
 
@@ -269,13 +275,17 @@ class Data {
   bool
   isProtected() const;
 
-  /**
-     \brief
-     Return the values of a data point on this process
-  */
+ /**
+    \brief
+    Return the values of a data point on this process
+ */
+ ESCRIPT_DLL_API
+ const boost::python::numeric :: array
+ getValueOfDataPoint(int dataPointNo);
+
   ESCRIPT_DLL_API
-  const boost::python::numeric::array
-  getValueOfDataPoint(int dataPointNo);
+  const boost::python::object
+  getValueOfDataPointAsTuple(int dataPointNo);
 
   /**
      \brief
@@ -291,7 +301,7 @@ class Data {
   */
   ESCRIPT_DLL_API
   void
-  setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::array&);
+  setValueOfDataPointToArray(int dataPointNo, const boost::python::object&);
 
   /**
      \brief
@@ -308,6 +318,10 @@ class Data {
   ESCRIPT_DLL_API
   const boost::python::numeric::array
   getValueOfGlobalDataPoint(int procNo, int dataPointNo);
+
+  ESCRIPT_DLL_API
+  const boost::python::object
+  getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo);
 
   /**
      \brief
@@ -328,15 +342,6 @@ class Data {
 
 
 
-
-
-
-// REMOVE ME
-// ESCRIPT_DLL_API
-// void
-// CompareDebug(const Data& rd);
-
-
   /**
      \brief
      Return the C wrapper for the Data object - const version.
@@ -344,6 +349,15 @@ class Data {
   ESCRIPT_DLL_API
   escriptDataC
   getDataC() const;
+
+  /**
+	\brief How much space is required to evaulate a sample of the Data.
+  */
+  ESCRIPT_DLL_API
+  size_t
+  getSampleBufferSize() const;
+
+
 
   /**
      \brief
@@ -383,10 +397,21 @@ class Data {
   /**
      \brief
      Return true if this Data is expanded.
+     \note To determine if a sample will contain separate values for each datapoint. Use actsExpanded instead.
   */
   ESCRIPT_DLL_API
   bool
   isExpanded() const;
+
+  /**
+     \brief
+     Return true if this Data is expanded or resolves to expanded.
+     That is, if it has a separate value for each datapoint in the sample.
+  */
+  ESCRIPT_DLL_API
+  bool
+  actsExpanded() const;
+  
 
   /**
      \brief
@@ -555,12 +580,28 @@ contains datapoints.
      \brief
      Return the sample data for the given sample no. This is not the
      preferred interface but is provided for use by C code.
+     The buffer parameter is only required for LazyData.
      \param sampleNo - Input - the given sample no.
+     \param buffer - Vector to compute (and store) sample data in.
+     \return pointer to the sample data.
+  */
+  ESCRIPT_DLL_API
+  inline
+  const DataAbstract::ValueType::value_type*
+  getSampleDataRO(DataAbstract::ValueType::size_type sampleNo, DataTypes::ValueType* buffer=0);
+
+  /**
+     \brief
+     Return the sample data for the given sample no. This is not the
+     preferred interface but is provided for use by C code.
+     \param sampleNo - Input - the given sample no.
+     \return pointer to the sample data.
   */
   ESCRIPT_DLL_API
   inline
   DataAbstract::ValueType::value_type*
-  getSampleData(DataAbstract::ValueType::size_type sampleNo);
+  getSampleDataRW(DataAbstract::ValueType::size_type sampleNo);
+
 
   /**
      \brief
@@ -745,12 +786,22 @@ contains datapoints.
      *
   */
   ESCRIPT_DLL_API
-  boost::python::numeric::array
+  boost::python::object
   integrate_const() const;
 
   ESCRIPT_DLL_API
-  boost::python::numeric::array
+  boost::python::object
   integrate();
+
+  ESCRIPT_DLL_API
+  boost::python::object
+  integrateToTuple_const() const;
+
+  ESCRIPT_DLL_API
+  boost::python::object
+  integrateToTuple();
+
+
 
   /**
      \brief
@@ -1417,6 +1468,26 @@ contains datapoints.
         DataTypes::ValueType::reference
         getDataAtOffset(DataTypes::ValueType::size_type i);
 
+
+
+/**
+   \brief Create a buffer for use by getSample
+   Allocates a DataVector large enough for DataLazy::resolveSample to operate on for the current Data.
+   Do not use this buffer for other Data instances (unless you are sure they will be the same size).
+   
+   \return A DataVector* if Data is lazy, NULL otherwise.
+   \warning This pointer must be deallocated using freeSampleBuffer to avoid cross library memory issues.
+*/
+  ESCRIPT_DLL_API
+  DataTypes::ValueType*
+  allocSampleBuffer() const;
+
+/**
+   \brief Free a buffer allocated with allocSampleBuffer.
+   \param buffer Input - pointer to the buffer to deallocate.
+*/
+ESCRIPT_DLL_API void freeSampleBuffer(DataTypes::ValueType* buffer);
+
  protected:
 
  private:
@@ -1430,7 +1501,7 @@ contains datapoints.
   double
   infWorker() const;
 
-  boost::python::numeric::array
+  boost::python::object
   integrateWorker() const;
 
   /**
@@ -1512,7 +1583,7 @@ contains datapoints.
              bool expanded);
 
   void
-  initialise(const boost::python::numeric::array& value,
+  initialise(const WrappedArray& value,
                  const FunctionSpace& what,
                  bool expanded);
 
@@ -1548,6 +1619,7 @@ contains datapoints.
 // DataAbstact needs to be declared first, then DataReady needs to be fully declared
 // so that I can dynamic cast between them below.
 #include "DataReady.h"
+#include "DataLazy.h"
 
 namespace escript
 {
@@ -1591,7 +1663,7 @@ Data::getReadyPtr() const
 
 inline
 DataAbstract::ValueType::value_type*
-Data::getSampleData(DataAbstract::ValueType::size_type sampleNo)
+Data::getSampleDataRW(DataAbstract::ValueType::size_type sampleNo)
 {
    if (isLazy())
    {
@@ -1599,6 +1671,22 @@ Data::getSampleData(DataAbstract::ValueType::size_type sampleNo)
    }
    return getReady()->getSampleData(sampleNo);
 }
+
+inline
+const DataAbstract::ValueType::value_type*
+Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo, DataTypes::ValueType* buffer)
+{
+   DataLazy* l=dynamic_cast<DataLazy*>(m_data.get());
+   if (l!=0)
+   {
+	size_t offset=0;
+	EsysAssert((buffer!=NULL),"Error attempt to getSampleDataRO for lazy Data with buffer==NULL");
+	const DataTypes::ValueType* res=l->resolveSample(*buffer,0,sampleNo,offset);
+	return &((*res)[offset]);
+   }
+   return getReady()->getSampleData(sampleNo);
+}
+
 
 
 /**

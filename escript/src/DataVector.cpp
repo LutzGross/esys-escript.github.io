@@ -18,6 +18,7 @@
 #include "DataException.h"
 #include <boost/python/extract.hpp>
 #include "DataTypes.h"
+#include "WrappedArray.h"
 
 #include <cassert>
 
@@ -163,85 +164,87 @@ DataVector::operator!=(const DataVector& other) const
   return !(*this==other);
 }
 
+void 
+DataVector::copyFromArrayToOffset(const WrappedArray& value, size_type offset)
+{
+  using DataTypes::ValueType;
+  const DataTypes::ShapeType& tempShape=value.getShape();
+  size_type len=DataTypes::noValues(tempShape);
+  if (offset+len>size())
+  {
+cerr << "offset=" << offset << " len=" << len << " >= " << size() << endl;
+     throw DataException("Error - not enough room for that DataPoint at that offset.");
+  }
+  size_t si=0,sj=0,sk=0,sl=0;
+  switch (value.getRank())
+  {
+  case 0:
+	m_array_data[offset]=value.getElt();
+	break;
+  case 1:
+	for (size_t i=0;i<tempShape[0];++i)
+	{
+	  m_array_data[offset+i]=value.getElt(i);
+	}
+	break;
+  case 2:
+	si=tempShape[0];
+	sj=tempShape[1];
+        for (ValueType::size_type i=0;i<si;i++) {
+           for (ValueType::size_type j=0;j<sj;j++) {
+              m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j)]=value.getElt(i,j);
+           }
+        }
+	break;
+  case 3:
+	si=tempShape[0];
+	sj=tempShape[1];
+	sk=tempShape[2];
+        for (ValueType::size_type i=0;i<si;i++) {
+           for (ValueType::size_type j=0;j<sj;j++) {
+              for (ValueType::size_type k=0;k<sk;k++) {
+                 m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j,k)]=value.getElt(i,j,k);
+              }
+           }
+        }
+	break;
+  case 4:
+	si=tempShape[0];
+	sj=tempShape[1];
+	sk=tempShape[2];
+	sl=tempShape[3];
+        for (ValueType::size_type i=0;i<si;i++) {
+           for (ValueType::size_type j=0;j<sj;j++) {
+              for (ValueType::size_type k=0;k<sk;k++) {
+                 for (ValueType::size_type l=0;l<sl;l++) {
+                    m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j,k,l)]=value.getElt(i,j,k,l);
+                 }
+              }
+           }
+        }
+	break;
+  default:
+	ostringstream oss;
+	oss << "Error - unknown rank. Rank=" << value.getRank();
+	throw DataException(oss.str());
+  }
+}
+
 
 void
-DataVector::copyFromNumArray(const boost::python::numeric::array& value, size_t copies)
+DataVector::copyFromArray(const WrappedArray& value)
 {
   using DataTypes::ValueType;
   if (m_array_data!=0) {
     arrayManager.delete_array(m_array_data);
   }
-
-
-  m_array_data = arrayManager.new_array(1,value.nelements()*copies);
-
-  int si=0,sj=0,sk=0,sl=0;		// bounds for each dimension of the shape
-  DataTypes::ShapeType tempShape;    
-  for (int i=0; i<value.getrank(); i++) {
-     tempShape.push_back(extract<int>(value.getshape()[i]));
-  }
-
-  DataVector::ValueType tmpData=m_array_data;
-  if (value.getrank()==0) {
-     for (unsigned int z=0;z<copies;++z) {
-       m_array_data[z]=extract<double>(value[value.getshape()]);
-     }
-  } else if (value.getrank()==1) {
-     si=tempShape[0];
-     for (unsigned int z=0;z<copies;++z) {
-       for (ValueType::size_type i=0;i<si;i++) {
-         tmpData[i]=extract<double>(value[i]);
-       }
-       tmpData+=si;
-     }
-  } else if (value.getrank()==2) {
-	si=tempShape[0];
-	sj=tempShape[1];
-	for (unsigned int z=0;z<copies;++z) {
-          for (ValueType::size_type i=0;i<si;i++) {
-             for (ValueType::size_type j=0;j<sj;j++) {
-                tmpData[DataTypes::getRelIndex(tempShape,i,j)]=extract<double>(value[i][j]);
-             }
-          }
-	  tmpData+=si*sj;
-	}
-  } else if (value.getrank()==3) {
-	si=tempShape[0];
-	sj=tempShape[1];
-	sk=tempShape[2];
-	for (unsigned int z=0;z<copies;++z) {
-          for (ValueType::size_type i=0;i<si;i++) {
-            for (ValueType::size_type j=0;j<sj;j++) {
-              for (ValueType::size_type k=0;k<sk;k++) {
-                 tmpData[DataTypes::getRelIndex(tempShape,i,j,k)]=extract<double>(value[i][j][k]);
-              }
-            }
-          }
-	  tmpData+=si*sj*sk;
-	}
-  } else if (value.getrank()==4) {
-	si=tempShape[0];
-	sj=tempShape[1];
-	sk=tempShape[2];
-	sl=tempShape[3];
-	for (unsigned int z=0;z<copies;++z) {
-          for (ValueType::size_type i=0;i<si;i++) {
-            for (ValueType::size_type j=0;j<sj;j++) {
-              for (ValueType::size_type k=0;k<sk;k++) {
-                 for (ValueType::size_type l=0;l<sl;l++) {
-                    tmpData[DataTypes::getRelIndex(tempShape,i,j,k,l)]=extract<double>(value[i][j][k][l]);
-                 }
-              }
-            }
-          }
-	  tmpData+=si*sj*sk*sl;
-	}
-   }
-   m_size=value.nelements()*copies;	// total amount of elements
-   m_dim=m_size;		// elements per sample
-   m_N=1;			// number of samples
+  DataTypes::ShapeType tempShape=value.getShape();
+  DataVector::size_type nelements=DataTypes::noValues(tempShape);
+  m_array_data = arrayManager.new_array(1,nelements);
+  m_size=nelements;	// total amount of elements
+  m_dim=m_size;		// elements per sample
+  m_N=1;			// number of samples
+  copyFromArrayToOffset(value,0);
 }
- 
-
 
 } // end of namespace

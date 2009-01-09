@@ -93,12 +93,12 @@ namespace DataTypes {
      range of indexes to be sliced from the corresponding dimension. The
      first specifier corresponds to the first dimension, the second to the
      second and so on. Where n < the rank, the remaining dimensions are
-     sliced across the full range of their indices.
+     sliced across the full range of their indicies.
 
      Each slice specifier is of the form "a:b", which specifies a slice
-     from index a, up to but not including index b. Where index a is omitted
-     a is assumed to be 0. Where index b is omitted, b is assumed to be the
-     length of this dimension. Where both are omitted (eg: ":") the slice is
+     from index a, up to but not including index b. Where index a is ommitted
+     a is assumed to be 0. Where index b is ommitted, b is assumed to be the
+     length of this dimension. Where both are ommitted (eg: ":") the slice is
      assumed to encompass that entire dimension.
 
      Where one of the slice specifiers is a single integer, eg: [1], we
@@ -107,7 +107,7 @@ namespace DataTypes {
      dimension of size 1.
 
      The return value is a vector of pairs with length equal to the rank of
-     this object. Each pair corresponds to the range of indices from the
+     this object. Each pair corresponds to the range of indicies from the
      corresponding dimension to be sliced from, as specified in the input
      slice object.
 
@@ -193,7 +193,8 @@ namespace DataTypes {
   \brief Compute the offset (in 1D vector) of a given subscript with a shape.
 
   \param shape - Input - Shape of the datapoint.
-  \param i,j - Input - subscripts to locate.
+  \param i - Input - row
+  \param j - Input - column
   \return offset relative to the beginning of the datapoint.
   */
   ESCRIPT_DLL_API
@@ -202,6 +203,7 @@ namespace DataTypes {
   getRelIndex(const DataTypes::ShapeType& shape, DataTypes::ValueType::size_type i,
 	   DataTypes::ValueType::size_type j)
   {
+	// Warning: This is not C ordering. Do not try to figure out the params by looking at the code
   	EsysAssert((getRank(shape)==2),"Incorrect number of indices for the rank of this object.");
   	DataTypes::ValueType::size_type temp=i+j*shape[0];
   	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
@@ -221,6 +223,7 @@ namespace DataTypes {
   getRelIndex(const DataTypes::ShapeType& shape, DataTypes::ValueType::size_type i,
 	   DataTypes::ValueType::size_type j, DataTypes::ValueType::size_type k)
   {
+	// Warning: This is not C ordering. Do not try to figure out the params by looking at the code
   	EsysAssert((getRank(shape)==3),"Incorrect number of indices for the rank of this object.");
   	DataTypes::ValueType::size_type temp=i+j*shape[0]+k*shape[1]*shape[0];
   	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
@@ -241,6 +244,7 @@ namespace DataTypes {
 	   DataTypes::ValueType::size_type j, DataTypes::ValueType::size_type k,
 	   DataTypes::ValueType::size_type m)
   {
+	// Warning: This is not C ordering. Do not try to figure out the params by looking at the code
 	EsysAssert((getRank(shape)==4),"Incorrect number of indices for the rank of this object.");
 	DataTypes::ValueType::size_type temp=i+j*shape[0]+k*shape[1]*shape[0]+m*shape[2]*shape[1]*shape[0];
 	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
@@ -334,22 +338,6 @@ namespace DataTypes {
 
 
    /**
-      \brief Extract shape information from the supplied numarray.
-   */
-   inline
-   ShapeType
-   shapeFromNumArray(const boost::python::numeric::array& value)
-   {
-	  // extract the shape of the numarray
-	DataTypes::ShapeType tempShape;
-	for (int i=0; i < value.getrank(); i++) {
-		tempShape.push_back(boost::python::extract<int>(value.getshape()[i]));
-	}
-	return tempShape;
-   }
-
-
-   /**
       \brief  Copy a point from one vector to another. Note: This version does not check to see if shapes are the same.
 
    \param dest - vector to copy to
@@ -360,10 +348,10 @@ namespace DataTypes {
    */
    void copyPoint(ValueType& dest, ValueType::size_type doffset, ValueType::size_type nvals, const ValueType& src, ValueType::size_type soffset);
 
- }   // End of namespace DataTypes
+ }   // End namespace DataTypes
 
 
-} // End of namespace escript
+} // end of namespace escipt
 
 #endif
 

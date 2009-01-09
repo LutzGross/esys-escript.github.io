@@ -34,10 +34,10 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from primitives import *
 
-def Brick(start,end):
+def Brick(start,end): 
     """
-    Creates a brick with given start and end point.
-    """
+    create brick with start and end point.
+    """ 
     dx=end.getCoordinates()-start.getCoordinates()
     p000=start+[   0.,0.,0.]
     p100=start+[dx[0],0.,0.]
@@ -66,4 +66,3 @@ def Brick(start,end):
     left=PlaneSurface(CurveLoop(l11,-l42,-l41,l40))
     right=PlaneSurface(CurveLoop(-l21,l20,l31,-l22))
     return SurfaceLoop(bottom,top,front,back,left,right)
-

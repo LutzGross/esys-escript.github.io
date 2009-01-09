@@ -39,7 +39,7 @@ from primitives import Point, Spline, BezierCurve, BSpline, Line, Arc, CurveLoop
 
 class Design(design.Design):
     """
-    Design for gmsh.
+    design fo gmsh
     """
     DELAUNAY="iso"
     NETGEN="netgen"
@@ -47,22 +47,20 @@ class Design(design.Design):
 
     def __init__(self,dim=3,element_size=1.,order=1,keep_files=False):
        """
-       Initializes the gmsh design.
+       initializes the gmsh design
 
-       @param dim: spatial dimension
+       @param dim: patial dimension
        @param element_size: global element size
        @param order: element order
-       @param keep_files: flag to keep work files
-       """
+       @param keep_files: flag to keep work files.
+       """ 
        design.Design.__init__(self,dim=dim,element_size=element_size,order=order,keep_files=keep_files)
        self.setScriptFileName()
        self.setMeshFileName()
        self.setOptions()
-
     def setScriptFileName(self,name=None):
        """
-       Sets the filename for the gmsh input script. If no name is given a name
-       with extension I{geo} is generated.
+       set the filename for the gmsh input script. if no name is given a name with extension geo is generated.
        """
        if name == None:
            tmp_f_id=tempfile.mkstemp(suffix=".geo")
@@ -71,17 +69,14 @@ class Design(design.Design):
        else:
            self.__scriptname=name
            self.setKeepFilesOn()
-
     def getScriptFileName(self):
        """
-       Returns the name of the gmsh script file.
+       returns the name of the file for the gmsh script
        """
        return self.__scriptname
-
     def setMeshFileName(self, name=None):
        """
-       Sets the name for the gmsh mesh file. If no name is given a name with
-       extension I{msh} is generated.
+       sets the name for the gmsh mesh file. if no name is given a name with extension msh is generated.
        """
        if name == None:
            tmp_f_id=tempfile.mkstemp(suffix=".msh")
@@ -90,26 +85,23 @@ class Design(design.Design):
        else:
            self.__mshname=name
            self.setKeepFilesOn()
-
     def getMeshFileName(self):
        """
-       Returns the name of the gmsh mesh file.
+       returns the name of the file for the gmsh msh
        """
        return self.__mshname
-
     def setOptions(self,algorithm=None,optimize_quality=True,smoothing=1, curvature_based_element_size=False):
         """
-        Sets options for the mesh generator.
-        """
+        sets options for the mesh generator
+        """ 
         if algorithm==None: algorithm=self.DELAUNAY
         self.__curvature_based_element_size=curvature_based_element_size
         self.__algo=algorithm
         self.__optimize_quality=optimize_quality
         self.__smoothing=smoothing
-
     def __del__(self):
         """
-        Cleans up.
+        clean up
         """
         if not self.keepFiles() :
             os.unlink(self.getScriptFileName())
@@ -117,7 +109,7 @@ class Design(design.Design):
 
     def getCommandString(self):
         """
-        Returns the gmsh command line.
+        returns the gmsh comand
         """
         if self.__optimize_quality:
               opt="-optimize "
@@ -125,33 +117,36 @@ class Design(design.Design):
               opt=""
         if self.__curvature_based_element_size:
               clcurv="-clcurv "
-        else:
+        else: 
               clcurv=""
-
-        exe="gmsh -%s -algo %s %s-smooth %s %s-v 0 -order %s -o %s %s" % (
-                self.getDim(), self.__algo, clcurv, self.__smoothing, opt,
-                self.getElementOrder(), self.getMeshFileName(),
-                self.getScriptFileName())
+ 
+        exe="gmsh -%s -algo %s %s-smooth %s %s-v 0 -order %s -o %s %s"%(self.getDim(),
+                                                                       self.__algo,
+                                                                       clcurv,
+                                                                       self.__smoothing,
+                                                                       opt,
+                                                                       self.getElementOrder(),
+                                                                       self.getMeshFileName(),
+                                                                       self.getScriptFileName())
         return exe
-
     def getMeshHandler(self):
         """
-        Returns a handle to a mesh meshing the design. In the current
-        implementation a mesh file name in gmsh format is returned.
+        returns a handle to a mesh meshing the design. In the current implementation 
+        a mesh file name in gmsh format is returned.
         """
         f = open(self.getScriptFileName(),"w")
         f.write(self.getScriptString())
         f.close()
         cmd = self.getCommandString()
         ret = os.system(cmd) / 256
-        if ret > 0:
-          raise RuntimeError, "Could not build mesh: %s"%cmd
-        else:
+	if ret > 0:
+	  raise RuntimeError, "Could not build mesh: %s"%cmd
+	else:
           return self.getMeshFileName()
 
     def getScriptString(self):
         """
-        Returns the gmsh script to generate the mesh.
+        returns the gmsh script to generate the mesh
         """
         h=self.getElementSize()
         out="// generated by esys.pycad\n"
@@ -160,10 +155,10 @@ class Design(design.Design):
            if isinstance(p, Point):
                c=p.getCoordinates()
                out+="Point(%s) = {%s , %s, %s , %s };\n"%(p.getID(),c[0],c[1],c[2], p.getLocalScale()*h)
-
+         
            elif isinstance(p, Spline):
                out+="Spline(%s) = {%s};\n"%(p.getID(),self.__mkArgs(p.getControlPoints()))
-
+    
            elif isinstance(p, BezierCurve):
                out+="Bezier(%s) = {%s};\n"%(p.getID(),self.__mkArgs(p.getControlPoints()))
 
@@ -175,26 +170,26 @@ class Design(design.Design):
 
            elif isinstance(p, Arc):
               out+="Circle(%s) = {%s, %s, %s};\n"%(p.getID(),p.getStartPoint().getDirectedID(),p.getCenterPoint().getDirectedID(),p.getEndPoint().getDirectedID())
-
+       
            elif isinstance(p, Ellipse):
               out+="Ellipse(%s) = {%s, %s, %s, %s};\n"%(p.getID(),p.getStartPoint().getDirectedID(),p.getCenterPoint().getDirectedID(),p.getPointOnMainAxis().getDirectedID(), p.getEndPoint().getDirectedID())
 
            elif isinstance(p, CurveLoop):
                out+="Line Loop(%s) = {%s};\n"%(p.getID(),self.__mkArgs(p.getCurves()))
-
+       
            elif isinstance(p, RuledSurface):
                out+="Ruled Surface(%s) = {%s};\n"%(p.getID(),p.getBoundaryLoop().getDirectedID())
-
+       
            elif isinstance(p, PlaneSurface):
                line=self.__mkArgs(p.getHoles())
                if len(line)>0:
                  out+="Plane Surface(%s) = {%s, %s};\n"%(p.getID(),p.getBoundaryLoop().getDirectedID(), line)
                else:
                  out+="Plane Surface(%s) = {%s};\n"%(p.getID(),p.getBoundaryLoop().getDirectedID())
-
+       
            elif isinstance(p, SurfaceLoop):
                out+="Surface Loop(%s) = {%s};\n"%(p.getID(),self.__mkArgs(p.getSurfaces()))
-
+       
            elif isinstance(p, Volume):
                line=self.__mkArgs(p.getHoles())
                if len(line)>0:
@@ -203,14 +198,14 @@ class Design(design.Design):
                  out+="Volume(%s) = {%s};\n"%(p.getID(),p.getSurfaceLoop().getDirectedID())
 
            elif isinstance(p, PropertySet):
-               if p.getNumItems()>0:
-                  dim=p.getDim()
+               if p.getNumItems()>0: 
+	          dim=p.getDim()
                   line="Physical "
-                  if dim==0:
+                  if dim==0: 
                       line+="Point"
-                  elif dim==1:
+                  elif dim==1: 
                       line+="Line"
-                  elif dim==2:
+                  elif dim==2: 
                       line+="Surface"
                   else:
                       line+="Volume"
@@ -224,9 +219,8 @@ class Design(design.Design):
     def __mkArgs(self,args):
         line=""
         for i in args:
-            if len(line)>0:
+            if len(line)>0: 
                 line+=", %s"%i.getDirectedID()
             else:
                 line="%s"%i.getDirectedID()
-        return line
-
+        return line 

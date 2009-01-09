@@ -20,7 +20,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="http://www.uq.edu.au/esscc/escript-finley"
 
 """
-Template for the Design which defines regions and features
+template for the Design which defines a regions and features
 for a mesh generator.
 
 @var __author__: name of author
@@ -38,46 +38,39 @@ from xml.dom import minidom
 
 class TagMap(object):
     """
-    A class that allows to map tags to names.
-
-    Example::
-
-        tm=TagMap({5 : x })
-        tm.setMap(a=1,x=4)
-        assert tm.getTags("a") == [ 1 ]
-        assert tm.getTags("x") == [ 5, 4 ]
-        assert tm.map(x=10., a=20.) == { 5 : 10, 4: 10, 1 : 20 }
+    a class that allows to map tags to names
+   
+    tm=TagMap({5 : x })
+    tm.setMap(a=1,x=4)
+    assert tm.getTags("a") == [ 1 ]
+    assert tm.getTags("x") == [ 5, 4 ]
+    assert tm.map(x=10., a=20.) == { 5 : 10, 4: 10, 1 : 20 }
 
     """
     def __init__(self, mapping={}):
       """
-      Initializes the mapping. C{mapping} defines an initial mapping from tag
-      to a name.
+      initizlizes the mapping. map defines an initial mapping from tag to a name.
       """
       self.__mapping={}
       for tag, name in mapping.items():
           if not isinstance(tag, int):
-              raise TypeError("tag needs to be an int")
+              raise TypeError("tag needs to be int")
           if not isinstance(name, str):
               raise TypeError("name needs to be a str.")
           self.__mapping[tag]=name
-
     def setMap(self,**kwargs):
       """
-      Sets a new map where <name>=<tag> assigns the tag <tag> to name <name>.
-      <tag> has to be an integer. If <tag> has been assigned to a name before
-      the mapping will be overwritten. Otherwise a new mapping <tag> -> <name>
-      is set. Notice that a single name can be assigned to different tags.
+      set a new map where <name>=<tag> assigns the tag <tag> to name <name>. <tag> has to be integer.
+      If <tag> has been assigned to a name before the mapping will be overwritten. Otherwise a new 
+      mapping <tag> -> <name> is set. Notice that a single name can be assigned to different tags.
       """
-      for name, tag in kwargs.items():
+      for  name, tag in kwargs.items():
           if not isinstance(tag, int):
-             raise TypeError("tag needs to be an int")
+             raise TypeError("tag needs to be int")
           self.__mapping[tag]=name
-
     def getTags(self,name=None):
         """
-        Returns a list of the tags assigned to C{name}. If name is not present
-        a list of all tags is returned.
+        returns a list of the tags assigned to name. If name is not present a list of tags is returned.
         """
         if name == None:
            out=self.__mapping.keys()
@@ -86,11 +79,9 @@ class TagMap(object):
            for tag, arg in self.__mapping.items():
              if arg == name: out.append(tag)
         return out
-
     def getName(self,tag=None):
         """
-        Returns the name of a tag. If C{tag} is not present a list of all names
-        is returned.
+        returns the name of a tag. If tag is not present a list of names is returned.
         """
         if tag == None:
            return list(set(self.__mapping.values()))
@@ -99,23 +90,21 @@ class TagMap(object):
 
     def getMapping(self):
         """
-        Returns a dictionary where the tags define the keys and the values the
-        corresponding names.
+        returns a dictionary where the tags define the keys and the values the corresposnding names.
         """
         return self.__mapping
 
     def map(self,default=0,**kwargs):
         """
-        Returns a dictionary where the tags define the keys and the values give
-        the values assigned to the tag via name and kwargs::
+        returns a dictionary where the tags define the keys and the values give the values assigned to the tag via name 
+        and kwargs:
 
-            tm=TagMap(x=5)
-            tm.setMap(a=1,x=4)
-            print tm.map(x=10., a=20.)
-            { 5 : 10, 4: 10, 1 : 20 }
-
-        The default is used for tags which map onto name with unspecified
-        values.
+        tm=TagMap(x=5)
+        tm.setMap(a=1,x=4)
+        print tm.map(x=10., a=20.) 
+        { 5 : 10, 4: 10, 1 : 20 }
+   
+        the default is used for tags which map onto name with unspecified values
         """
         out={}
         for tag in self.__mapping:
@@ -127,24 +116,22 @@ class TagMap(object):
 
     def insert(self,data,default=0,**kwargs):
         """
-        Inserts values into the L{esys.escript.Data} object according to the
-        given values assigned to the keywords. The default is used for tags
-        which map onto name with unspecified values.
+        inserts values into the L{esys.escript.Data} object according to the given values assigned to the keywords.
+        the default is used for tags which map onto name with unspecified values
         """
         d=self.map(default=default,**kwargs)
         for t,v in d.items():
              data.setTaggedValue(t,v)
-
     def passToDomain(self,domain):
         """
-        Passes the tag map to the L{esys.escript.Domain} C{domain}.
+        passes the tag map to  L{esys.escript.Domain} domain.
         """
         for tag, name in self.__mapping.items():
           domain.setTagMap(name,tag)
-
+         
     def toDOM(self,dom):
          """
-         Adds object to C{dom}.
+         adds object to dom
          """
          tm=dom.createElement("TagMap")
          dom.appendChild(tm)
@@ -158,10 +145,9 @@ class TagMap(object):
              item_dom.appendChild(name_dom)
              tm.appendChild(item_dom)
          return tm
-
     def fromDom(self,node):
         """
-        Fills names and tags from dom C{node}.
+        fills from dom node
         """
         for node in node.childNodes:
            if isinstance(node, minidom.Element):
@@ -173,7 +159,7 @@ class TagMap(object):
 
     def fillFromXML(self,iostream):
        """
-       Uses the XML file or string to set the mapping.
+       uses the xml file or string to set the mapping
        """
        if isinstance(iostream,str):
              dom=minidom.parseString(iostream)
@@ -185,11 +171,12 @@ class TagMap(object):
               if node.tagName == 'TagMap':
                  self.fromDom(node)
                  return
+             
+          
 
     def writeXML(self,iostream=None):
          """
-         Serializes self as XML into C{iostream} or if not present returns the
-         XML as string.
+         writes XML serialization into the iostream or if not present returns the XML as string
          """
          dom=minidom.Document()
          esys=dom.createElement('ESys')
@@ -199,20 +186,20 @@ class TagMap(object):
             return dom.toprettyxml()
          else:
             iostream.write(dom.toprettyxml())
-
+        
 class Design(object):
     """
-    Template for a design which defines the input for a mesh generator.
+    template for a design which defines the input for a mesh generator
     """
     def __init__(self,dim=3,element_size=1.,order=1,keep_files=False):
        """
-       Initializes a design.
+       initializes a design 
 
-       @param dim: spatial dimension
+       @param dim: patial dimension
        @param element_size: global element size
        @param order: element order
-       @param keep_files: flag to keep work files
-       """
+       @param keep_files: flag to keep work files.
+       """ 
        self.clearItems()
        self.setElementSize(element_size)
        self.setDim(dim)
@@ -221,97 +208,88 @@ class Design(object):
           self.setKeepFilesOn()
        else:
           self.setKeepFilesOff()
-
     def setDim(self,dim=3):
         """
-        Sets the spatial dimension.
+        sets the spatial dimension
         """
-        if not dim  in [1,2,3]:
+        if not dim  in [1,2,3]: 
            raise ValueError("only dimension 1, 2, 3 are supported.")
         self.__dim=dim
-
     def getDim(self,dim=3):
         """
-        Returns the spatial dimension.
+        returns the spatial dimension
         """
         return self.__dim
-
     def setElementOrder(self,order=1):
         """
-        Sets the element order.
+        sets the element order
         """
         if not order in [1,2]:
-           raise ValueError("only element order 1 or 2 is supported.")
+           raise ValueError("only element orser 1 or 2 is supported.")
         self.__order=order
-
+        
     def getElementOrder(self):
         """
-        Returns the element order.
+        returns the element order
         """
         return self.__order
-
+        
     def setElementSize(self,element_size=1.):
         """
-        Sets the global element size.
+        set the global element size.
         """
         if element_size<=0.:
            raise ValueError("element size needs to be positive.")
         self.__element_size=element_size
-
+        
     def getElementSize(self):
         """
-        Returns the global element size.
+        returns the global element size.
         """
         return self.__element_size
-
+        
     def setKeepFilesOn(self):
         """
-        Work files are kept at the end of the generation.
+        work files are kept at the end of the generation
         """
         self.__keep_files=True
-
     def setKeepFilesOff(self):
         """
-        Work files are deleted at the end of the generation
+        work files are deleted at the end of the generation
         """
         self.__keep_files=False
-
     def keepFiles(self):
         """
-        Returns True if work files are kept, False otherwise.
+        returns True if work files are kept
         """
         return self.__keep_files
-
     def addItems(self,*items):
        """
-       Adds items to the design.
+       adds items to the design
        """
        for i in range(len(items)):
           if not isinstance(items[i],(Primitive, ReversePrimitive)):
              raise TypeError("%s-th argument is not a Primitive object"%i)
        for i in items:
           self.__items.append(i)
-
     def getItems(self):
         """
-        Returns a list of the items used in the design.
+        returns a list of the items used in the design
         """
         return self.__items
-
     def clearItems(self):
         """
-        Removes all items from the design.
+        resets the items in design
         """
         self.__items=[]
-
     def getAllPrimitives(self):
         """
-        Returns a list of all primitives used to create the design.
-        Each primitive appears once. The primitives are ordered by their
-        order of generation.
+        returns a list of all primitives used to create the design.
+        each primitve appears once. The primitives are ordered by their
+        order of generation
         """
         prims=[]
-        for i in self.getItems():
+        for i in self.getItems(): 
             for p in i.getPrimitives():
                 if not p in prims: prims.append(p)
         prims.sort()
@@ -319,28 +297,24 @@ class Design(object):
 
     def setOptions(self,**kwargs):
         """
-        Sets options of the mesh generator.
+        sets options of the mesh generator
 
-        @note: this method is typically overwritten by a particular design
-               implementation.
+        @note: this method is typically overwritten by a particular Design implementation
         """
         pass
-
     def getMeshHandler(self):
         """
-        Returns a handle to a mesh meshing the design.
+        returns a handle to a mesh meshing the design
 
-        @note: this method has to be overwritten by a particular design
-               implementation.
+        @note: this method has to be overwritten by a particular Design implementation
         """
         raise NotImplementedError()
 
     def getTagMap(self):
         """
-        Returns a L{TagMap} to map the names of L{PropertySet}s to tags.
+        returns a L{TagMap} to map the names of L{PropertySet}s to tags
         """
         m={}
         for p in self.getAllPrimitives():
            if isinstance(p, PropertySet): m[ p.getTag() ] = p.getName()
         return TagMap(m)
-
