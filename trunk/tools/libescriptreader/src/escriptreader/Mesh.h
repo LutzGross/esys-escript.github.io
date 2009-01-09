@@ -25,19 +25,17 @@ namespace EscriptReader {
 
 class ElementData;
 
-//
-//
-//
+/// \brief
 class Mesh
 {
 public:
-    /// Constructor with mesh coordinates, dimensionality and size
+    /// \brief Constructor with mesh coordinates, dimensionality and size.
     Mesh(CoordArray c, int nDims, int nNodes);
 
-    /// Copy constructor
+    /// \brief Copy constructor.
     Mesh(const Mesh& m);
 
-    /// Virtual destructor
+    /// \brief Virtual destructor
     virtual ~Mesh();
 
     virtual bool readFromNc(const std::string& ncFile);
@@ -49,7 +47,7 @@ public:
     void setSiloPath(const std::string& p) { siloPath = p; }
     std::string getSiloPath() const { return siloPath; }
 
-    /// Returns full Silo mesh name, e.g. "/block0000/Elements"
+    /// \brief Returns full Silo mesh name, e.g. "/block0000/Elements".
     std::string getFullSiloName() const;
 
     const IntVec& getNodeIDs() const { return nodeID; }
@@ -58,29 +56,31 @@ public:
     const IndexMap& getIndexMap() const { return nodeID2idx; }
     void setIndexMap(const IndexMap& map) { nodeID2idx = map; }
 
+    /// \brief Returns an array with the coordinates of the mesh nodes.
     const CoordArray& getCoords() const { return coords; }
+
+    /// \brief Returns the dimensionality of this mesh (2 or 3).
     int getNumDims() const { return numDims; }
+
+    /// \brief Returns the number of mesh nodes.
     int getNumNodes() const { return numNodes; }
 
 protected:
-    /// Protected default constructor
+    /// \brief Protected default constructor.
     Mesh() {}
     
     void buildIndexMap();
 
-    CoordArray coords;       // x, y[, z] coordinates of mesh nodes
-    int numDims;             // dimensionality of mesh (2 or 3)
-    int numNodes;            // number of mesh nodes
-    IntVec nodeID;           // node IDs
-    IndexMap nodeID2idx;     // mapping of node ID -> array index
-    std::string name;        // the name of this mesh
-    std::string siloPath;    // absolute path in Silo file
+    CoordArray coords;       /// x, y[, z] coordinates of mesh nodes
+    int numDims;             /// dimensionality of mesh (2 or 3)
+    int numNodes;            /// number of mesh nodes
+    IntVec nodeID;           /// node IDs
+    IndexMap nodeID2idx;     /// mapping of node ID -> array index
+    std::string name;        /// the name of this mesh
+    std::string siloPath;    /// absolute path in Silo file
 };
 
 
-//
-//
-//
 inline void Mesh::buildIndexMap()
 {
     nodeID2idx.clear();

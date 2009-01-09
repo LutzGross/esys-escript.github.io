@@ -17,8 +17,7 @@
 #ifndef __MPDATASET_H__
 #define __MPDATASET_H__
 
-#include <string>
-#include <vector>
+#include <escriptreader/common.h>
 
 class DBfile;
 
@@ -27,7 +26,6 @@ namespace EscriptReader {
 class DataVar;
 class MeshWithElements;
 
-typedef std::vector<std::string> StringVec;
 typedef std::vector<MeshWithElements*> MeshBlocks;
 
 struct VarInfo {
@@ -39,48 +37,41 @@ struct VarInfo {
 typedef std::vector<VarInfo> VarVector;
 
 
-//
-// Represents an escript/finley dataset including mesh and variables for one
-// timestep. The domain may consist of multiple blocks.
-//
+/// \brief Represents an escript/finley dataset including mesh and variables for
+/// one timestep. The domain may consist of multiple blocks.
 class MPDataSet
 {
 public:
-    //
-    // Constructor
-    //
+    /// \brief Constructor.
     MPDataSet();
 
-    //
-    // Destructor
-    //
+    /// \brief Destructor.
     ~MPDataSet();
 
-    //
-    // Loads mesh and variables
-    //
+    /// \brief Loads mesh and variables.
     bool load(const std::string meshFile, const StringVec& varFiles,
               const StringVec& varNames, int nBlocks);
 
-    //
-    // Loads only variables using given external mesh
-    //
+    /// \brief Loads only variables using given external mesh.
     bool load(const MeshBlocks& m, const std::string siloFile,
               const StringVec& varFiles, const StringVec& varNames);
 
-    //
-    // Saves the dataset to a Silo file
-    //
+    /// \brief Saves the dataset to a Silo file.
     bool saveAsSilo(const std::string siloFile, bool useMultiMesh=true);
 
-    //
-    // Returns the dataset's mesh. Caller is responsible for freeing the
-    // memory.
-    //
+    /// \brief Returns the dataset's mesh.
+    ///
+    /// \note The caller is responsible for freeing the memory of the returned
+    /// mesh.
     MeshBlocks extractMesh() { keepMesh = true; return meshBlocks; }
 
+    /// \brief Returns the dataset's mesh.
     const MeshBlocks& getMesh() const { return meshBlocks; }
+
+    /// \brief Returns a vector with the dataset's variables.
     const VarVector& getVariables() const { return variables; }
+
+    /// \brief Returns a vector with the mesh variables.
     const VarVector& getMeshVariables() const { return meshVariables; }
 
 private:

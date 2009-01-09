@@ -25,35 +25,52 @@ namespace EscriptReader {
 
 class ElementData;
 
-//
-//
-//
+/// \brief A full escript domain including elements.
+///
+/// This class represents a mesh including cells, faces, contact elements and
+/// points if applicable.
 class MeshWithElements : public Mesh
 {
 public:
-    /// Default constructor
+    /// \brief Default constructor.
     MeshWithElements();
 
-    /// Copy constructor
+    /// \brief Copy constructor.
     MeshWithElements(const MeshWithElements& m);
     
-    /// Virtual destructor
+    /// \brief Virtual destructor.
     virtual ~MeshWithElements();
 
     virtual bool readFromNc(const std::string& filename);
     virtual void handleGhostZones(int ownIndex);
     virtual void removeGhostZones();
     virtual bool writeToSilo(DBfile* dbfile, const std::string& pathInSilo);
+
+    /// \brief
     StringVec getMeshNames() const;
+
+    /// \brief
     StringVec getVarNames() const;
 
+    /// \brief
     ElementData* getElementsByName(const std::string name) const;
+
+    /// \brief
     Mesh* getMeshByName(const std::string name) const;
+
+    /// \brief
     const IntVec& getVarDataByName(const std::string name) const;
 
+    /// \brief Returns a pointer to the elements.
     ElementData* getElements() { return cells; }
+
+    /// \brief Returns a pointer to the face elements.
     ElementData* getFaceElements() { return faces; }
+
+    /// \brief Returns a pointer to the contact elements.
     ElementData* getContactElements() { return contacts; }
+
+    /// \brief Returns a pointer to the point "elements".
     ElementData* getPoints() { return points; }
 
 private:
