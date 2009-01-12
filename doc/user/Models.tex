@@ -249,10 +249,7 @@ f & \leftarrow & f - u^{N}\hackscore{k,k}
 \end{array}
 \end{equation} 
 we can assume that $u^{N}\hackscore{i}  \; n\hackscore{i}=0$ and 
-$p^{D}=0$. Notice that with this setting 
-\begin{equation}\label{DIV FREE DARCY FLUX}
-(\kappa\hackscore{ki} g\hackscore{k})\hackscore{,i} = 0 
-\end{equation}
+$p^{D}=0$. 
 We set 
 \begin{equation}
 V = \{ q \in H^{1}(\Omega) : q=0 \mbox{ on } \Gamma\hackscore{D} \}
@@ -276,11 +273,6 @@ u + Qp & = & g \\
 Du & = & f 
 \end{array}
 \end{equation} 
-Notice that because of~\ref{DIV FREE DARCY FLUX} we have
-\begin{equation} \label{ABSTRACT DIV FREE DARCY FLUX}
-Q^*g =0
-\end{equation}
-where $Q^*$ denote the adjoint operators of $Q$.
 We solve this equation by minimising the functional
 \begin{equation}
 J(u,p):=\|u + Qp - g\|^2\hackscore{0} + \|Du-f\|\hackscore{0}^2 
@@ -294,10 +286,10 @@ for all $v\in W$ and $q \in V$.which translates back into operator notation
 \begin{equation}
 \begin{array}{rcl}
 (I+D^*D)u + Qp & = & D^*f + g \\
-Q^*u  + Q^*Q p & = & 0 \\ 
+Q^*u  + Q^*Q p & = & Q^*g \\ 
 \end{array}
 \end{equation} 
-where $D^*$ and $Q^*$ denote the adjoint operators. We use the fact that $Q^*g=$. 
+where $D^*$ and $Q^*$ denote the adjoint operators. 
 In~\cite{XXX} it has been shown that this problem is continuous and coercive in $W \times V$ and therefore has a unique solution. Also standart FEM methods can be used for discretization. It is also possible 
 to solve the problem is coupled form, however this approach leads in some cases to a very ill-conditioned stiffness matrix in particular in the case of a very small or large permability ($\alpha\hackscore{1} \ll 1$ or $\alpha\hackscore{0} \gg 1$)  
 
@@ -307,18 +299,18 @@ v= (I+D^*D)^{-1} (D^*f + g - Qp)
 \end{equation} 
 (notice that $(I+D^*D)$ is coercive in $W$) which is inserted into the second equation
 \begin{equation}
-Q^* (I+D^*D)^{-1} (D^*f + g - Qp) + Q^* Q p = 0 
+Q^* (I+D^*D)^{-1} (D^*f + g - Qp) + Q^* Q p = Q^*g 
 \end{equation} 
 which is 
 \begin{equation}
-Q^* ( I - (I+D^*D)^{-1} ) Q p = - Q^* (I+D^*D)^{-1} (D^*f + g) ) 
+Q^* ( I - (I+D^*D)^{-1} ) Q p = Q^* (g-(I+D^*D)^{-1} (D^*f + g) ) 
 \end{equation} 
-We use the PCG method to solve this. The residual $r$ ($\in V^*$) is given as
+We use the PCG \index{linear solver!PCG}\index{PCG} method to solve this. The residual $r$ ($\in V^*$) is given as
 \begin{equation}
 \begin{array}{rcl}
-r & = & Q^*  \left( -(I+D^*D)^{-1} (D^*f + g) - Qp + (I+D^*D)^{-1}Q p \right)\\
+r & = & Q^*  \left( g -(I+D^*D)^{-1} (D^*f + g) - Qp + (I+D^*D)^{-1}Q p \right)\\
 & =&  Q^* \left( - Qp - (I+D^*D)^{-1} (D^*f + g - Qp) \right) \\
-& =&  - Q^* \left( Qp + v \right)
+& =&  Q^* \left( g - Qp - v \right)
 \end{array}
 \end{equation} 
 So in a partical implementation we use the pair $(Qp,v)$ to represent the residual. This will save the
@@ -330,41 +322,82 @@ returning $(Qp,w)$ where $w$ is the solution of
 \end{equation}
 We use $Q^*Q$ as a a preconditioner for the iteration operator $Q^* ( I - (I+D^*D)^{-1} ) Q$.
 
+The iteration PCG \index{linear solver!PCG}\index{PCG} is terminated if
+\begin{equation}\label{DARCY STOP}
+\int r \cdot (Q^*Q)^{-1} r \; dx \le \mbox{ATOL}^2
+\end{equation}
+where ATOL is a given absolute tolerance.
+The initial residual $r\hackscore{0}$ is 
+\begin{equation}\label{DARCY STOP 2}
+r\hackscore{0}=Q^* \left( g - v\hackscore{ref} \right) \mbox{ with } v\hackscore{ref} = (I+D^*D)^{-1} (D^*f + g)
+\end{equation}
+so the 
+\begin{equation}\label{DARCY NORM 0}
+\int r\hackscore0 \cdot (Q^*Q)^{-1} r\hackscore0 \; dx = \int \left( g - v\hackscore{ref} \right)  \cdot  Q  p\hackscore{ref} \; dx \mbox{ with }p\hackscore{ref} = (Q^*Q)^{-1} Q^* \left( g - v\hackscore{ref} \right)
+\end{equation}
+So we set 
+\begin{equation}\label{DARCY NORM 1}
+ATOL = atol + rtol \cdot \max(|g - v\hackscore{ref}|\hackscore{0}, |Q p\hackscore{ref} |\hackscore{0} )
+\end{equation}
+where atol and rtol a given absolute and relative tolerances, respectively. The reference flux $v\hackscore{ref}$
+and reference pressure $p\hackscore{ref}$ may be calcualated from their definition which would require to solve to
+PDEs but in a practical application estimates can be used for instance solutions from previous time steps or for simplified scenarious (e.g. constant permability). 
+
 \subsection{Functions}
 \begin{classdesc}{DarcyFlow}{domain}
 opens the Darcy flux problem\index{Darcy flux} on the \Domain domain.
 \end{classdesc}
-
-\begin{methoddesc}[DarcyFlow]{initialize}{\optional{f=Data(), \optional{fixed_u_mask=Data(), \optional{eta=1, \optional{surface_stress=Data(), \optional{stress=Data()}}}}}}
-assigns values to the model parameters. In any call all values must be set.
-\var{f} defines the external force $f$, \var{eta} the viscosity $\eta$,
-\var{surface_stress} the surface stress $s$ and \var{stress} the initial stress $\sigma$.
-The locations and compontents where the velocity is fixed are set by 
-the values of \var{fixed_u_mask}. The method will try to cast the given values to appropriate 
+\begin{methoddesc}[DarcyFlow]{setValue}{\optional{f=None, \optional{g=None, \optional{location_of_fixed_pressure=None, \optional{location_of_fixed_flux=None, \optional{permeability=None}}}}}}
+assigns values to the model parameters. Values can be assigned using various calls - in particular 
+in a time dependend problem only values that change over time needs to be reset. The permability can be defined as scalar (isotropic), a vector (orthotropic) or a matrix (anisotropic). 
+\var{f} and \var{g} are the corresponding parameters in~\ref{DARCY PROBLEM}.
+The locations and compontents where the flux is prescribed are set by positive values in
+\var{location_of_fixed_flux}. 
+The locations where the pressure is prescribed are set by 
+by positive values of \var{location_of_fixed_pressure}. 
+The values of the pressure and flux are defined by the initial guess.
+Notice that at any point on the boundary of the domain the pressure or the normal component of
+the flux must be defined. There must be at least one point where the pressure is prescribed. 
+The method will try to cast the given values to appropriate 
 \Data class objects.
+\end{methoddesc}
+
+\begin{methoddesc}[DarcyFlow]{setTolerance}{\optional{atol=0,\optional{rtol=1e-8,\optional{p_ref=None,\optional{v_ref=None}}}}}
+sets the absolute tolerance ATOL according to~\ref{DARCY NORM 1}. If \var{p_ref} is not present $0$ is used. 
+If \var{v_ref} is not present $0$ is used. If the final result ATOL is not positive an exception is thrown. 
+\end{methoddesc}
+
+
+
+\begin{methoddesc}[DarcyFlow]{solve}{u0,p0, \optional{max_iter=100, \optional{verbose=False \optional{sub_rtol=1.e-8}}}}
+solves the problem. and returns approximations for the flux $v$ and the pressure $p$. 
+\var{u0} and \var{p0} define initial guess for flux and pressure. Values marked
+by positive values \var{location_of_fixed_flux} and \var{location_of_fixed_pressure}, respectively, are kept unchanged.
+\var{sub_rtol} defines the tolerance used to solve the involved PDEs. \var{sub_rtol} needs to be choosen sufficiently small to ensure convergence but users need to keep in mind that a very small value for \var{sub_rtol} will result in a long compute time. Typically  $\var{sub_rtol}=\var{rtol}^2$ is a good choice if $\var{rtol}$ is not choosen too small.
 \end{methoddesc}
 
 
 \subsection{Example: Gravity Flow}
+later
 
 %================================================
-\section{Temperature Advection Diffusion\label{TEMP ADV DIFF}}
+% \section{Temperature Advection Diffusion\label{TEMP ADV DIFF}}
 
-\begin{equation}
-\rho c\hackscore{p} \left (\frac{\partial T}{\partial t} + \vec{v} \cdot \nabla T \right ) = k \nabla^{2}T
-\label{HEAT EQUATION}
-\end{equation}
+%\begin{equation}
+% \rho c\hackscore{p} \left (\frac{\partial T}{\partial t} + \vec{v} \cdot \nabla T \right ) = k \nabla^{2}T
+% \label{HEAT EQUATION}
+% \end{equation}
 
-where $\vec{v}$ is the velocity vector, $T$ is the temperature, $\rho$ is the density, $\eta$ is the viscosity, $c\hackscore{p}$ is the specific heat at constant pressure and $k$ is the thermal conductivity.
+% where $\vec{v}$ is the velocity vector, $T$ is the temperature, $\rho$ is the density, $\eta$ is the viscosity, % % $c\hackscore{p}$ is the specific heat at constant pressure and $k$ is the thermal conductivity.
 
-\subsection{Description}
+% \subsection{Description}
 
-\subsection{Method}
+% \subsection{Method}
+%
+% \begin{classdesc}{TemperatureCartesian}{dom,theta=THETA,useSUPG=SUPG}
+% \end{classdesc}
 
-\begin{classdesc}{TemperatureCartesian}{dom,theta=THETA,useSUPG=SUPG}
-\end{classdesc}
-
-\subsection{Benchmark Problem}
+% \subsection{Benchmark Problem}
 %===============================================================================================================
 
 %=========================================================
