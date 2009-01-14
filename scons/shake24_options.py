@@ -19,14 +19,14 @@
 # cc_flags		= '-ansi'
 # cc_optim		= '-O2'
 # cc_debug		= '-g'
-# omp_optim		= '-openmp'
-# omp_debug		= '-openmp'
+omp_optim		= '-openmp'
+omp_debug		= '-openmp'
 # omp_libs		= ['guide']
 
 # Use the default C/C++ flags but add something only for this host:
-cc_extra		= '-Wall'
+cc_extra		= '-Wno-long-long'
 #cc_extra		= '-pedantic -isystem /usr/include/python2.5/ -Wall'
-# ld_extra		= ''
+#ld_extra		= '-openmp'
 
 # Be picky about errors
 usepedantic		= 'no'
@@ -41,7 +41,7 @@ python_lib_path		= '/usr/lib'
 # python_cmd		= 'python'
 
 # Boost libraries
-boost_path		= '/opt/local/include/boost-1_35'
+boost_path		= '/opt/local/include/boost-1_35/'
 boost_lib_path		= '/opt/local/lib'
 boost_libs		= ['boost_python']
 
