@@ -361,6 +361,11 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   DataTypes::ValueType::reference
   getDataByTag(int tag, DataTypes::ValueType::size_type i);
 
+  ESCRIPT_DLL_API
+  DataTypes::ValueType::const_reference
+  getDataByTagRO(int tag, DataTypes::ValueType::size_type i) const;
+
+
 
   /**
       \brief 
@@ -389,19 +394,11 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   const DataTypes::ValueType&
   getVector() const;
 
+  ESCRIPT_DLL_API
+  const DataTypes::ValueType&
+  getVectorRO() const;
 
 
-  /**
-     \brief
-     getData
-
-     Description:
-     Return pointer to the data
-    T
-  */
-//   ESCRIPT_DLL_API
-//   const DataTypes::ValueType::ElementType*
-//   getData() const;
 
   /**
      \brief 
@@ -447,6 +444,11 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   ESCRIPT_DLL_API
   DataTypes::ValueType::const_reference
   getDefaultValue(DataTypes::ValueType::size_type i) const;
+
+  ESCRIPT_DLL_API
+  DataTypes::ValueType::const_reference
+  getDefaultValueRO(DataTypes::ValueType::size_type i) const;
+
 
 
 
@@ -626,23 +628,6 @@ DataTagged::isCurrentTag(int tag) const
   return (pos!=m_offsetLookup.end());
 }
 
-// inline
-// DataArrayView&
-// DataTagged::getDefaultValue()
-// {
-//   // The default value is always the first value.
-//   return getPointDataView();
-// }
-
-// inline
-// const DataArrayView&
-// DataTagged::getDefaultValue() const
-// {
-//   // The default value is always the first value.
-//   return getPointDataView();
-// }
-
-
 inline 
 DataTypes::ValueType::size_type
 DataTagged::getDefaultOffset() const
@@ -653,8 +638,8 @@ DataTagged::getDefaultOffset() const
 inline
 DataTypes::ValueType::reference
 DataTagged::getDefaultValue(DataTypes::ValueType::size_type i)
-{
-	return getVector()[i];
+{	
+	return getVector()[i];		// getVector has exclusive write checks
 }
 
 inline
@@ -664,15 +649,13 @@ DataTagged::getDefaultValue(DataTypes::ValueType::size_type i) const
 	return getVector()[i];
 }
 
-
-
-
-// inline
-// const DataTypes::ValueType::ElementType*
-// DataTagged::getData() const
-// {
-//    return &(m_data[0]);
-// }
+// To force the compiler to use the RO version
+inline
+DataTypes::ValueType::const_reference
+DataTagged::getDefaultValueRO(DataTypes::ValueType::size_type i) const
+{
+	return getVector()[i];
+}
 
 inline
 const DataTagged::DataMapType&

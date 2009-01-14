@@ -209,6 +209,11 @@ TODO Note that this constructor will also copy data to all points if it only con
   const DataTypes::ValueType&
   getVector() const;
 
+  ESCRIPT_DLL_API
+  const DataTypes::ValueType&
+  getVectorRO() const;
+
+
 
   /**
      \brief

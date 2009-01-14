@@ -63,10 +63,26 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   typedef DataTypes::ValueType ValueType;
   typedef DataTypes::ShapeType ShapeType;
 
+   /**
+   \brief Return shared pointer managing this object.
+
+   If there is not already a shared pointer managing this object then create one.
+   Once a shared pointer is created for an object, the deallocation of the object 
+   must be handled by shared_ptr.
+
+   \warning So, do not call this on an automatic object. 
+   Do not call this in a method where you do not pass the shared_pointer out and 
+   you need the object to outlast the method.
+
+   Note: This is _not_ equivalent to weak_ptr::lock.
+
+   */
    ESCRIPT_DLL_API
    DataAbstract_ptr getPtr();
    ESCRIPT_DLL_API
    const_DataAbstract_ptr getPtr() const; 
+
+
 
   /**
      \brief
@@ -433,31 +449,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   getNoValues() const;
 
 
-
-//  /**
-//      \brief get a reference to the beginning of a data point
-//  */
-//   ESCRIPT_DLL_API
-//   DataTypes::ValueType::const_reference
-//   getDataAtOffset(DataTypes::ValueType::size_type i) const;
-// 
-// 
-//   ESCRIPT_DLL_API
-//   DataTypes::ValueType::reference
-//   getDataAtOffset(DataTypes::ValueType::size_type i);
-
-
-//  /**
-//	\brief Provide access to underlying storage. Internal use only!
-//  */
-//   ESCRIPT_DLL_API
-//   virtual DataTypes::ValueType&
-//   getVector()=0;
-// 
-//   ESCRIPT_DLL_API
-//   virtual const DataTypes::ValueType&
-//   getVector() const=0;
-
   ESCRIPT_DLL_API
   bool isLazy() const;	// a test to determine if this object is an instance of DataLazy
 
@@ -490,7 +481,12 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
  protected:
 
-
+   /**
+   \brief Returns true if this object is not shared.
+   For internal use only. - It may not be particularly fast
+   */
+   ESCRIPT_DLL_API
+   bool checkNoSharing() const;
 
  private:
 

@@ -50,6 +50,10 @@ using namespace escript;
 // The idea was that we could add an optional warning whenever a resolve is forced
 #define FORCERESOLVE if (isLazy()) {resolve();}
 
+// Do not use the following unless you want to make copies on assignment rather than
+// share data.  CopyOnWrite should make this unnescessary.
+// #define ASSIGNMENT_MEANS_DEEPCOPY
+
 namespace
 {
 
@@ -136,7 +140,6 @@ pointToTuple( const DataTypes::ShapeType& shape,ARR v)
 }
 
 }  // anonymous namespace
-
 
 Data::Data()
 {
@@ -225,7 +228,7 @@ Data::Data(const Data& inData,
       }
       // if the data is not lazy, this will just be a cast to DataReady
       DataReady_ptr dr=inData.m_data->resolve();
-      DataConstant* dc=new DataConstant(functionspace,inData.m_data->getShape(),dr->getVector());	
+      DataConstant* dc=new DataConstant(functionspace,inData.m_data->getShape(),dr->getVectorRO());	
       m_data=DataAbstract_ptr(dc); 
     } else {
       Data tmp(0,inData.getDataPointShape(),functionspace,true);
@@ -536,6 +539,7 @@ Data::setToZero()
   {
      throw DataException("Error - Operations not permitted on instances of DataEmpty.");
   }
+  exclusiveWrite();
   m_data->setToZero();
 }
 
@@ -601,9 +605,9 @@ Data::copyWithMask(const Data& other,
 	throw DataException("Error - Unknown DataAbstract passed to copyWithMask.");
   }
   // Now we iterate over the elements
-  DataVector& self=getReadyPtr()->getVector();
-  const DataVector& ovec=other2.getReadyPtr()->getVector();
-  const DataVector& mvec=mask2.getReadyPtr()->getVector();
+  DataVector& self=getReady()->getVector();
+  const DataVector& ovec=other2.getReady()->getVectorRO();
+  const DataVector& mvec=mask2.getReady()->getVectorRO();
   if ((self.size()!=ovec.size()) || (self.size()!=mvec.size()))
   {
 	throw DataException("Error - size mismatch in arguments to copyWithMask.");
@@ -1911,6 +1915,7 @@ Data::operator+=(const Data& right)
   }
   else
   {
+	exclusiveWrite();			// Since Lazy data does not modify its leaves we only need to worry here
   	binaryOp(right,plus<double>());
   	return (*this);
   }
@@ -1923,24 +1928,22 @@ Data::operator+=(const boost::python::object& right)
         throw DataException("Error - attempt to update protected Data object.");
   }
   Data tmp(right,getFunctionSpace(),false);
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(m_data,tmp.borrowDataPtr(),ADD);	// for lazy + is equivalent to +=
-        m_data=c->getPtr();
-	return (*this);
-  }
-  else
-  {
-  	binaryOp(tmp,plus<double>());
-  	return (*this);
-  }
+  (*this)+=tmp;
+  return *this;
 }
 
 // Hmmm, operator= makes a deep copy but the copy constructor does not?
 Data&
 Data::operator=(const Data& other)
 {
+#if defined ASSIGNMENT_MEANS_DEEPCOPY	
+// This should not be used.
+// Just leaving this here until I have completed transition
   copy(other);
+#else
+  m_protected=false;		// since any changes should be caught by exclusiveWrite();
+  m_data=other.m_data;
+#endif
   return (*this);
 }
 
@@ -1958,6 +1961,7 @@ Data::operator-=(const Data& right)
   }
   else
   {
+	exclusiveWrite();
   	binaryOp(right,minus<double>());
   	return (*this);
   }
@@ -1970,17 +1974,8 @@ Data::operator-=(const boost::python::object& right)
         throw DataException("Error - attempt to update protected Data object.");
   }
   Data tmp(right,getFunctionSpace(),false);
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(m_data,tmp.borrowDataPtr(),SUB);	// for lazy - is equivalent to -=
-        m_data=c->getPtr();
-	return (*this);
-  }
-  else
-  {
-  	binaryOp(tmp,minus<double>());
-  	return (*this);
-  }
+  (*this)-=tmp;
+  return (*this);
 }
 
 Data&
@@ -1997,6 +1992,7 @@ Data::operator*=(const Data& right)
   }
   else
   {
+	exclusiveWrite();
   	binaryOp(right,multiplies<double>());
   	return (*this);
   }
@@ -2009,17 +2005,8 @@ Data::operator*=(const boost::python::object& right)
         throw DataException("Error - attempt to update protected Data object.");
   }
   Data tmp(right,getFunctionSpace(),false);
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(m_data,tmp.borrowDataPtr(),MUL);	// for lazy * is equivalent to *=
-        m_data=c->getPtr();
-	return (*this);
-  }
-  else
-  {
-  	binaryOp(tmp,multiplies<double>());
-  	return (*this);
-  }
+  (*this)*=tmp;
+  return (*this);
 }
 
 Data&
@@ -2036,6 +2023,7 @@ Data::operator/=(const Data& right)
   }
   else
   {
+	exclusiveWrite();
   	binaryOp(right,divides<double>());
   	return (*this);
   }
@@ -2048,17 +2036,8 @@ Data::operator/=(const boost::python::object& right)
         throw DataException("Error - attempt to update protected Data object.");
   }
   Data tmp(right,getFunctionSpace(),false);
-  if (isLazy())
-  {
-	DataLazy* c=new DataLazy(m_data,tmp.borrowDataPtr(),DIV);	// for lazy / is equivalent to /=
-        m_data=c->getPtr();
-	return (*this);
-  }
-  else
-  {
-  	binaryOp(tmp,divides<double>());
-  	return (*this);
-  }
+  (*this)/=tmp;
+  return (*this);
 }
 
 Data
@@ -2280,12 +2259,11 @@ void
 Data::setItemD(const boost::python::object& key,
                const Data& value)
 {
-//  const DataArrayView& view=getPointDataView();
-
   DataTypes::RegionType slice_region=DataTypes::getSliceRegion(getDataPointShape(),key);
   if (slice_region.size()!=getDataPointRank()) {
     throw DataException("Error - slice size does not match Data rank.");
   }
+  exclusiveWrite();
   if (getFunctionSpace()!=value.getFunctionSpace()) {
      setSlice(Data(value,getFunctionSpace()),slice_region);
   } else {
@@ -2305,6 +2283,7 @@ Data::setSlice(const Data& value,
   {
 	throw DataException("Error - setSlice not permitted on lazy data.");
   }*/
+  exclusiveWrite();		// In case someone finds a way to call this without going through setItemD
   Data tempValue(value);
   typeMatchLeft(tempValue);
   typeMatchRight(tempValue);
@@ -2353,10 +2332,12 @@ Data::setTaggedValueByName(std::string name,
 {
      if (getFunctionSpace().getDomain()->isValidTagName(name)) {
 	FORCERESOLVE;
+	exclusiveWrite();
         int tagKey=getFunctionSpace().getDomain()->getTag(name);
         setTaggedValue(tagKey,value);
      }
 }
+
 void
 Data::setTaggedValue(int tagKey,
                      const boost::python::object& value)
@@ -2367,6 +2348,7 @@ Data::setTaggedValue(int tagKey,
   //
   // Ensure underlying data object is of type DataTagged
   FORCERESOLVE;
+  exclusiveWrite();
   if (isConstant()) tag();
   WrappedArray w(value);
 
@@ -2390,6 +2372,7 @@ Data::setTaggedValueFromCPP(int tagKey,
   // Ensure underlying data object is of type DataTagged
   FORCERESOLVE;
   if (isConstant()) tag();
+  exclusiveWrite();
   //
   // Call DataAbstract::setTaggedValue
   m_data->setTaggedValue(tagKey,pointshape, value, dataOffset);
@@ -2548,7 +2531,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 //     double *ptr_1 = &((view_1.getData())[0]);
 //     double *ptr_2 = &((view_2.getData())[0]);
 
-    double *ptr_1 = &(tmp_1->getDefaultValue(0));
+    const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
     double *ptr_2 = &(tmp_2->getDefaultValue(0));
 
 
@@ -2564,7 +2547,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 //       double *ptr_1 = &view_1.getData(0);
 //       double *ptr_2 = &view_2.getData(0);
 
-      double *ptr_1 = &(tmp_1->getDataByTag(i->first,0));
+      const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
       double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
 	
       matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
@@ -2623,7 +2606,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 //     double *ptr_0 = &((view_0.getData())[0]);
 //     double *ptr_2 = &((view_2.getData())[0]);
 
-    double *ptr_0 = &(tmp_0->getDefaultValue(0));
+    const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
     double *ptr_2 = &(tmp_2->getDefaultValue(0));
 
     // Compute an MVP for the default
@@ -2639,7 +2622,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 //       double *ptr_2 = &view_2.getData(0);
 
       tmp_2->addTag(i->first);
-      double *ptr_0 = &(tmp_0->getDataByTag(i->first,0));
+      const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
       double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
       matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     }
@@ -2661,17 +2644,8 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
     if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
 
-//     // Get the views
-//     DataArrayView view_0 = tmp_0->getDefaultValue();
-//     DataArrayView view_1 = tmp_1->getDefaultValue();
-//     DataArrayView view_2 = tmp_2->getDefaultValue();
-//     // Get the pointers to the actual data
-//     double *ptr_0 = &((view_0.getData())[0]);
-//     double *ptr_1 = &((view_1.getData())[0]);
-//     double *ptr_2 = &((view_2.getData())[0]);
-
-    double *ptr_0 = &(tmp_0->getDefaultValue(0));
-    double *ptr_1 = &(tmp_1->getDefaultValue(0));
+    const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
+    const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
     double *ptr_2 = &(tmp_2->getDefaultValue(0));
 
 
@@ -2690,15 +2664,8 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     // Compute an MVP for each tag
     const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
     for (i=lookup_2.begin();i!=lookup_2.end();i++) {
-//       DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
-//       DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
-//       DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
-//       double *ptr_0 = &view_0.getData(0);
-//       double *ptr_1 = &view_1.getData(0);
-//       double *ptr_2 = &view_2.getData(0);
-
-      double *ptr_0 = &(tmp_0->getDataByTag(i->first,0));
-      double *ptr_1 = &(tmp_1->getDataByTag(i->first,0));
+      const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
+      const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
       double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
 
       matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
@@ -2872,11 +2839,8 @@ Data::getDataAtOffset(DataTypes::ValueType::size_type i) const
 DataTypes::ValueType::reference
 Data::getDataAtOffset(DataTypes::ValueType::size_type i)
 {
-//     if (isLazy())
-//     {
-// 	throw DataException("getDataAtOffset not permitted on lazy data.");
-//     }
     FORCERESOLVE;
+    exclusiveWrite();
     return getReady()->getDataAtOffset(i);
 }
 
@@ -2905,6 +2869,7 @@ Data::getDataPoint(int sampleNo, int dataPointNo)
   }
   else
   {
+	exclusiveWrite();
 	DataReady* dr=getReady();
 	return dr->getDataAtOffset(dr->getPointOffset(sampleNo, dataPointNo));
   }

@@ -65,6 +65,11 @@ public:
   virtual const DataTypes::ValueType&
   getVector() const=0;
 
+  ESCRIPT_DLL_API
+  virtual const DataTypes::ValueType&
+  getVectorRO() const=0;
+
+
   /**
      \brief
      Copy the specified region from the given object.
@@ -102,8 +107,7 @@ inline
 DataAbstract::ValueType::value_type*
 DataReady::getSampleData(ValueType::size_type sampleNo)
 {
-//   return &(m_pointDataView->getData(getPointOffset(sampleNo,0)));
-  return &(getVector()[getPointOffset(sampleNo,0)]);
+  return &(getVector()[getPointOffset(sampleNo,0)]);		// exclusive write checks will be done in getVector()
 }
 
 
@@ -116,7 +120,7 @@ DataReady::getDataAtOffset(DataTypes::ValueType::size_type i) const
 
 inline
 DataTypes::ValueType::reference
-DataReady::getDataAtOffset(DataTypes::ValueType::size_type i)
+DataReady::getDataAtOffset(DataTypes::ValueType::size_type i)	// exclusive write checks will be done in getVector()
 {
    return getVector()[i];
 }

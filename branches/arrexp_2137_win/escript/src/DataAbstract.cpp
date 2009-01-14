@@ -20,12 +20,6 @@ using namespace std;
 
 namespace escript {
 
-/**
-\brief Returns smart pointer which is managing this object.
-If one does not exist yet it creates one.
-
-Note: This is _not_ equivalent to weak_ptr::lock.
-*/
 DataAbstract_ptr DataAbstract::getPtr()
 {
   if (_internal_weak_this.expired())
@@ -48,6 +42,24 @@ const_DataAbstract_ptr DataAbstract::getPtr() const
   {
 	return shared_from_this();
   }
+}
+
+
+// Warning - this method uses .use_count() which the boost doco labels inefficient.
+// If this method needs to be called in debug contexts, we may need to do some
+// timing experiments to determine how inefficient and possibly switch over to
+// invasive pointers which can answer these questions faster
+bool DataAbstract::checkNoSharing() const
+{
+  if (_internal_weak_this.expired())	// there is no shared_ptr for this object yet
+  {
+	return true;
+  }
+  if (shared_from_this().use_count()==2)	// shared_from_this will increase the ref count
+  {						// which is the reason .unique is no use.
+	return true;
+  }
+  return false;
 }
 
 bool
