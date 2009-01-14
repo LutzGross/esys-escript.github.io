@@ -32,7 +32,6 @@ extern "C" {
 
 #include "esysUtils/esysExceptionTranslator.h"
 
-#include <boost/version.hpp>
 #include <boost/python.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
@@ -54,7 +53,7 @@ using namespace boost::python;
  *
  * - \ref finley
  *
- * - <a href="http://shake200.esscc.uq.edu.au/esys/esys13/release/epydoc/index.html">Python module documentation (epydoc generated)</a>
+ * - <a href=http://shake200.esscc.uq.edu.au/esys/esys13/release/epydoc/index.html>Python module documentation (epydoc generated)</a>
  *
  */
 
@@ -84,9 +83,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
 #if ((BOOST_VERSION/100)%1000 > 34) || (BOOST_VERSION/100000 >1)
 //#if ((BOOST_VERSION/100)%1000) > 34 
   // params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
-  #if BOOST_VERSION > 103399
   docstring_options docopt(true, true, false);
-  #endif
 #endif
 
   def("setNumberOfThreads",escript::setNumberOfThreads);
@@ -101,8 +98,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("printParallelThreadCounts",escript::printParallelThreadCnt);
   def("getMPISizeWorld",escript::getMPISizeWorld);
   def("getMPIRankWorld",escript::getMPIRankWorld);
-  def("getMachinePrecision",escript::getMachinePrecision);
-  def("getMaxFloat",escript::getMaxFloat);
+
+
   //
   // Interface for AbstractDomain
   //
@@ -156,7 +153,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   class_<escript::Data>("Data","Represents a collection of datapoints. It is used to store the values of a function. For more details please consult the c++ class documentation.",init<>() )
     // various constructors for Data objects
-    .def(init<const numeric::array&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
+//    .def(init<const numeric::array&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
     .def(init<const object&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
     .def(init<const double, const tuple&, optional<const escript::FunctionSpace&, bool> >(args("value","shape","what","expand")))
     .def(init<const escript::Data&, const escript::FunctionSpace&>(args("value","what")))
@@ -186,13 +183,15 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("tag",&escript::Data::tag)
     .def("resolve",&escript::Data::resolve)
     .def("copy",&escript::Data::copy)
-    .def("copy",&escript::Data::copySelf)
+    .def("copy",&escript::Data::copySelf,return_value_policy<manage_new_object>())
     .def("delay",&escript::Data::delay)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToPyObject)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToArray)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPoint)
     .def("getValueOfDataPoint",&escript::Data::getValueOfDataPoint)
+    .def("getTupleForDataPoint",&escript::Data::getValueOfDataPointAsTuple)
     .def("getValueOfGlobalDataPoint",&escript::Data::getValueOfGlobalDataPoint)
+    .def("getTupleForGlobalDataPoint",&escript::Data::getValueOfGlobalDataPointAsTuple)
     .def("setToZero",&escript::Data::setToZero)
     .def("interpolate",&escript::Data::interpolate)
     .def("minGlobalDataPoint",&escript::Data::minGlobalDataPoint)
@@ -242,6 +241,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("_sup",&escript::Data::sup)
     .def("_inf",&escript::Data::inf)
     .def("_integrate",&escript::Data::integrate)
+    .def("_integrateToTuple",&escript::Data::integrateToTuple)
 
     // following implements the python abs operator
     .def("__abs__",&escript::Data::abs)
@@ -368,8 +368,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
       (arg("value")=0));
   def("getEscriptParamInt",escript::getEscriptParamInt,
       (arg("sentinel")=0));
-  def("listEscriptParams",escript::listEscriptParams);
-
 
   //
   // Register esysExceptionTranslator

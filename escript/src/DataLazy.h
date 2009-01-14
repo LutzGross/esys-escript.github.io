@@ -61,9 +61,7 @@ enum ES_optype
 	LZ=GZ+1,
 	GEZ=GZ+2,
 	LEZ=GZ+3,
-	NEZ=GZ+4,
-	EZ=GZ+5,
-	SYM=EZ+1,
+	SYM=LEZ+1,
 	NSYM=SYM+1,
 	PROD=NSYM+1,
 	TRANS=PROD+1,
@@ -114,17 +112,6 @@ public:
   */
   ESCRIPT_DLL_API
   DataLazy(DataAbstract_ptr left, ES_optype op);
-
-  /**
-  \brief Produce a DataLazy for a unary operation.
-  \param left DataAbstract to be operated on.
-  \param op unary operation to perform.
-  \param tol tolerance for operation
-  \throws DataException if op is not a unary operation or if p cannot be converted to a DataLazy.
-  Note that IDENTITY is not considered a unary operation.
-  */
-  ESCRIPT_DLL_API
-  DataLazy(DataAbstract_ptr left, ES_optype op, double tol);
 
   /**
   \brief Produce a DataLazy for a unary operation which requires a parameter.
@@ -217,6 +204,33 @@ public:
   size_t
   getMaxSampleSize() const;
 
+  /**
+    \return the size of the buffer required to evaulate a sample for this object
+  */
+  ESCRIPT_DLL_API
+  size_t
+  getSampleBufferSize() const;
+
+  /**
+  \brief Compute the value of the expression for the given sample.
+  \return Vector which stores the value of the subexpression for the given sample.
+  \param v A vector to store intermediate results.
+  \param offset Index in v to begin storing results.
+  \param sampleNo Sample number to evaluate.
+  \param roffset (output parameter) the offset in the return vector where the result begins.
+
+  The return value will be an existing vector so do not deallocate it.
+  */
+  ESCRIPT_DLL_API
+  const ValueType*
+  resolveSample(ValueType& v,  size_t offset, int sampleNo, size_t& roffset);
+
+  /**
+  \brief if resolve() was called would it produce expanded data.
+  */
+  ESCRIPT_DLL_API
+  bool
+  actsExpanded() const;
 
   /**
      \brief Produces an IDENTITY DataLazy containing zero.
@@ -240,11 +254,7 @@ private:
   int m_transpose;
   int m_SL, m_SM, m_SR;	// computed properties used in general tensor product
 
-  double m_tol;		// required extra info for <>0 and ==0
-
-  size_t m_maxsamplesize;	// largest samplesize required by any node in the expression
-  size_t m_children;
-  size_t m_height;
+  unsigned int m_maxsamplesize;	// largest samplesize required by any node in the expression
 
 
   /**
@@ -270,32 +280,6 @@ private:
   */
   DataReady_ptr
   collapseToReady();
-
-  /**
-  \brief resolve the expression can store it in the current node
-  The current node will be converted to an identity node.
-  */
-  void
-  resolveToIdentity();
-
-  /**
-  \brief helper method for resolveToIdentity and the identity constructor
-  */
-  void 
-  makeIdentity(const DataReady_ptr& p);
-
-  /**
-  \brief Compute the value of the expression for the given sample.
-  \return Vector which stores the value of the subexpression for the given sample.
-  \param v A vector to store intermediate results.
-  \param offset Index in v to begin storing results.
-  \param sampleNo Sample number to evaluate.
-  \param roffset (output parameter) the offset in the return vector where the result begins.
-
-  The return value will be an existing vector so do not deallocate it.
-  */
-  const ValueType*
-  resolveSample(ValueType& v,  size_t offset ,int sampleNo, size_t& roffset);
 
   /**
   \brief Compute the value of the expression (unary operation) for the given sample.

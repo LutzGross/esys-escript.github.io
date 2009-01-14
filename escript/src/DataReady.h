@@ -44,6 +44,15 @@ public:
   double*
   getSampleData(ValueType::size_type sampleNo);
 
+  /**
+     This function is required primarily for LazyData. For ReadyData it returns 1. (Behaviour subject to change).
+  */
+  ESCRIPT_DLL_API
+  size_t
+  getSampleBufferSize() const
+  {
+	return 1;
+  }
 
   /**
 	\brief Provide access to underlying storage. Internal use only!
@@ -55,6 +64,11 @@ public:
   ESCRIPT_DLL_API
   virtual const DataTypes::ValueType&
   getVector() const=0;
+
+  ESCRIPT_DLL_API
+  virtual const DataTypes::ValueType&
+  getVectorRO() const=0;
+
 
   /**
      \brief
@@ -93,8 +107,7 @@ inline
 DataAbstract::ValueType::value_type*
 DataReady::getSampleData(ValueType::size_type sampleNo)
 {
-//   return &(m_pointDataView->getData(getPointOffset(sampleNo,0)));
-  return &(getVector()[getPointOffset(sampleNo,0)]);
+  return &(getVector()[getPointOffset(sampleNo,0)]);		// exclusive write checks will be done in getVector()
 }
 
 
@@ -107,7 +120,7 @@ DataReady::getDataAtOffset(DataTypes::ValueType::size_type i) const
 
 inline
 DataTypes::ValueType::reference
-DataReady::getDataAtOffset(DataTypes::ValueType::size_type i)
+DataReady::getDataAtOffset(DataTypes::ValueType::size_type i)	// exclusive write checks will be done in getVector()
 {
    return getVector()[i];
 }

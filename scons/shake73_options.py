@@ -61,18 +61,17 @@ netCDF_libs		= ['netcdf_c++', 'netcdf']
 # mkl_libs		= ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide', 'pthread']
 
 # UMFPACK (requires AMD and BLAS)
-useumfpack		= 'yes'
-
-ufc_path		= '/usr/include/ufsparse'
-umf_path		= '/usr/include/ufsparse'
-umf_lib_path		= '/usr/lib'
-umf_libs		= ['umfpack']
-amd_path		= '/usr/include/ufsparse'
-amd_lib_path		= '/usr/lib'
-amd_libs		= ['amd']
-blas_path		= '/usr/include/'
-blas_lib_path		= '/usr/lib/'
-blas_libs		= ['blas']
+# useumfpack		= 'yes'
+# ufc_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
+# umf_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
+# umf_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
+# umf_libs		= ['umfpack']
+# amd_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
+# amd_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
+# amd_libs		= ['amd']
+# blas_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
+# blas_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
+# blas_libs		= ['blas']
 
 # OpenMP
 useopenmp		= 'yes'

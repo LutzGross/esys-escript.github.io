@@ -29,12 +29,23 @@ import os
 from test_objects import Test_Dump, Test_SetDataPointValue
 from test_objects import Test_Domain
 
+from test_shared import Test_Shared
+
 try:
      FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
 except KeyError:
      FINLEY_WORKDIR='.'
 
 NE=4 # number elements, must be even
+
+class Test_SharedOnFinley(Test_Shared):
+  def setUp(self):
+	self.domain=Rectangle(NE,NE)
+	self.tol=0.001
+  def tearDown(self):
+	del self.domain
+	del self.tol
+
 class Test_DomainOnFinley(Test_Domain):
    def setUp(self):
        self.domain =Rectangle(NE,NE+1,2)
@@ -106,6 +117,7 @@ class Test_DataOpsOnFinley(Test_Dump, Test_SetDataPointValue):
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
+   suite.addTest(unittest.makeSuite(Test_SharedOnFinley))
    suite.addTest(unittest.makeSuite(Test_DataOpsOnFinley))
    suite.addTest(unittest.makeSuite(Test_DomainOnFinley))
    s=unittest.TextTestRunner(verbosity=2).run(suite)

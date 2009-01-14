@@ -81,7 +81,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
               break;
             case PASO_AMG:
               if (options->verbose) printf("AMG preconditioner is used.\n");
-              prec->amg=Paso_Solver_getAMG(A->mainBlock,options->verbose,0,options->couplingParam);
+              prec->amg=Paso_Solver_getAMG(A->mainBlock,options->verbose,options->levels);
               prec->type=PASO_AMG;
               break;
  
@@ -98,6 +98,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
 /* barrier synchronization is performed before the evaluation to make sure that the input vector is available */
 void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
     Paso_Solver_Preconditioner* prec=(Paso_Solver_Preconditioner*) A->solver;
+    
     
     switch (prec->type) {
         default:
@@ -154,6 +155,8 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
            MEMFREE(bnew); 
            
            }
+           /* prec->gs->sweeps=prec->gs->sweeps-1;*/
+          
            break;
          case PASO_AMG:
            Paso_Solver_solveAMG(prec->amg,x,b);

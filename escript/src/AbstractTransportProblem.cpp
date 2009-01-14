@@ -81,10 +81,8 @@ void AbstractTransportProblem::setInitialValue(Data& u) const
      Data u2=Data(u,getFunctionSpace());
      copyInitialValue(u2);
 }
-void AbstractTransportProblem::insertConstraint(Data& source, Data& q, Data& r, const double factor) const
+void AbstractTransportProblem::insertConstraint(Data& source, Data& q, Data& r) const
 {
-     if (factor <= 0.)
-          throw TransportProblemException("Error - weighting factor must be positive.");
      source.expand();
      if (isEmpty())
           throw TransportProblemException("Error - transport problem is empty.");
@@ -99,18 +97,18 @@ void AbstractTransportProblem::insertConstraint(Data& source, Data& q, Data& r, 
 
      if (r.isEmpty()) {
           Data r2=Data(0.,q.getDataPointShape(),getFunctionSpace());
-          copyConstraint(source,q2,r2, factor);
+          copyConstraint(source,q2,r2);
      } else {
         if (((getBlockSize()==1) && (r.getDataPointRank()>0)) || (r.getDataPointRank()>1))
              throw TransportProblemException("Error - illegal rank of constraint value.");
         if (r.getDataPointSize()!=getBlockSize())
              throw TransportProblemException("Error - block size of transport problem and constraint value don't match.");
         Data r2=Data(r,getFunctionSpace());
-        copyConstraint(source,q2,r2, factor);
+        copyConstraint(source,q2,r2);
      }
 }
 
-void AbstractTransportProblem::copyConstraint(Data& source, Data& q, Data& r, const double factor) const
+void AbstractTransportProblem::copyConstraint(Data& source, Data& q, Data& r) const
 {
     throw TransportProblemException("Error - copyConstraint is not available");
 }

@@ -63,10 +63,26 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   typedef DataTypes::ValueType ValueType;
   typedef DataTypes::ShapeType ShapeType;
 
+   /**
+   \brief Return shared pointer managing this object.
+
+   If there is not already a shared pointer managing this object then create one.
+   Once a shared pointer is created for an object, the deallocation of the object 
+   must be handled by shared_ptr.
+
+   \warning So, do not call this on an automatic object. 
+   Do not call this in a method where you do not pass the shared_pointer out and 
+   you need the object to outlast the method.
+
+   Note: This is _not_ equivalent to weak_ptr::lock.
+
+   */
    ESCRIPT_DLL_API
    DataAbstract_ptr getPtr();
    ESCRIPT_DLL_API
    const_DataAbstract_ptr getPtr() const; 
+
+
 
   /**
      \brief
@@ -178,27 +194,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   getPointOffset(int sampleNo,
                  int dataPointNo) = 0;
 
-//  /**
-//	return the container storing points for this object
-//  */
-//   ESCRIPT_DLL_API
-//   virtual 
-//   ValueType&
-//   getVector();
-// 
-//   ESCRIPT_DLL_API
-//   virtual 
-//   const ValueType&
-//   getVector() const;
-
-
-//  /**
-//     \brief
-//     Return the sample data for the given sample number.
-//  */
-//  ESCRIPT_DLL_API
-//  double*
-//  getSampleData(ValueType::size_type sampleNo);
 
   /**
      \brief
@@ -218,6 +213,15 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   virtual
   double*
   getSampleDataByTag(int tag);
+
+  /**
+    This method is used primarily for LazyData.
+    \return the size of the buffer required to evaulate a sample for this object.
+  */
+  ESCRIPT_DLL_API
+  virtual size_t
+  getSampleBufferSize() const=0;
+
 
 
   /**
@@ -268,18 +272,7 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   DataAbstract*
   getSlice(const DataTypes::RegionType& region) const = 0;
 
-//  /**
-//     \brief
-//     Copy the specified region from the given object.
-//
-//     \param value - Input - Data to copy from
-//     \param region - Input - Region to copy.
-//  */
-//   ESCRIPT_DLL_API
-//   virtual
-//   void
-//   setSlice(const DataAbstract* value,
-//            const DataTypes::RegionType& region) = 0;
+
 
   /**
      \brief
@@ -302,21 +295,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
                  const DataTypes::ValueType& value,
 		 int dataOffset=0);
 
-
-
-
-  /**
-     \brief
-     Copy the numarray object to the data points in this object.
-
-     Description:
-     Copy the numarray object to the data points in this object.
-
-     \param value Input - new values for the data points
-  */
-  ESCRIPT_DLL_API
-  virtual void
-  copyAll(const boost::python::numeric::array& value);
 
   /**
      \brief
@@ -346,7 +324,7 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   */
   ESCRIPT_DLL_API
   virtual void
-  copyToDataPoint(const int sampleNo, const int dataPointNo, const boost::python::numeric::array& value);
+  copyToDataPoint(const int sampleNo, const int dataPointNo, const WrappedArray& value);
 
 
   /**
@@ -471,41 +449,28 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   getNoValues() const;
 
 
-
-//  /**
-//      \brief get a reference to the beginning of a data point
-//  */
-//   ESCRIPT_DLL_API
-//   DataTypes::ValueType::const_reference
-//   getDataAtOffset(DataTypes::ValueType::size_type i) const;
-// 
-// 
-//   ESCRIPT_DLL_API
-//   DataTypes::ValueType::reference
-//   getDataAtOffset(DataTypes::ValueType::size_type i);
-
-
-//  /**
-//	\brief Provide access to underlying storage. Internal use only!
-//  */
-//   ESCRIPT_DLL_API
-//   virtual DataTypes::ValueType&
-//   getVector()=0;
-// 
-//   ESCRIPT_DLL_API
-//   virtual const DataTypes::ValueType&
-//   getVector() const=0;
-
   ESCRIPT_DLL_API
   bool isLazy() const;	// a test to determine if this object is an instance of DataLazy
 
+  ESCRIPT_DLL_API
   virtual
   bool
   isConstant() const {return false;}
 
+  ESCRIPT_DLL_API
   virtual
   bool
   isExpanded() const {return false;}
+
+
+  /**
+     \brief
+     Return true if this Data is expanded or resolves to expanded.
+     That is, if it has a separate value for each datapoint in the sample.
+  */
+  virtual
+  bool
+  actsExpanded() const {return false;}
 
   virtual
   bool
@@ -516,7 +481,12 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
  protected:
 
-
+   /**
+   \brief Returns true if this object is not shared.
+   For internal use only. - It may not be particularly fast
+   */
+   ESCRIPT_DLL_API
+   bool checkNoSharing() const;
 
  private:
 

@@ -139,7 +139,7 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
     *            it is assumed that q and r are not empty and has appropriate shape and function space.
     *                       */
     FINLEY_DLL_API
-    virtual void copyConstraint(escript::Data& source, escript::Data& q, escript::Data& r, const double factor) const;
+    virtual void copyConstraint(escript::Data& source, escript::Data& q, escript::Data& r) const;
 
 
    //

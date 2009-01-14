@@ -17,6 +17,7 @@
 #include "system_dep.h"
 
 #include "DataReady.h"
+#include "WrappedArray.h"
 
 #include <boost/python/numeric.hpp>
 
@@ -46,8 +47,9 @@ typedef DataReady parent;
      \param what - Input - A description of what this data object represents.
   */
   ESCRIPT_DLL_API
-  DataConstant(const boost::python::numeric::array& value,
+  DataConstant(const WrappedArray& value,
                const FunctionSpace& what);
+
 
   /**
      \brief
@@ -56,18 +58,6 @@ typedef DataReady parent;
   ESCRIPT_DLL_API
   DataConstant(const DataConstant& other);
 
-//  /**
-/*     \brief
-     Alternative constructor for DataConstant objects.
-
-     Description:
-     Alternative Constructor for DataConstant objects.
-     \param value - Input - Data value for a single point.
-     \param what - Input - A description of what this data object represents.*/
-//  */
-//   ESCRIPT_DLL_API
-//   DataConstant(const DataArrayView& value,
-//                const FunctionSpace& what);
 
   /**
      \brief
@@ -303,6 +293,9 @@ typedef DataReady parent;
   const DataTypes::ValueType&
   getVector() const;
 
+  ESCRIPT_DLL_API
+  const DataTypes::ValueType&
+  getVectorRO() const;
 
  protected:
 
@@ -312,21 +305,6 @@ typedef DataReady parent;
   DataTypes::ValueType m_data;
 
 };
-
-inline
-DataTypes::ValueType&
-DataConstant::getVector()
-{
-  return m_data;
-}
-
-inline
-const DataTypes::ValueType&
-DataConstant::getVector() const
-{
-  return m_data;
-}
-
 
 } // end of namespace
 #endif

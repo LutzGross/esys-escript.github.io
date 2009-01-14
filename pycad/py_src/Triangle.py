@@ -41,26 +41,24 @@ from esys.pycad.primitives import Point, Spline, BezierCurve, BSpline, Line, Arc
 
 class Design(design.Design):
     """
-    Design for Triangle.
+    design for Triangle
     """
     def __init__(self,dim=2,keep_files=False):
        """
-       Initializes the Triangle design.
+       initializes the gmsh design
 
-       @param dim: spatial dimension
-       @param keep_files: flag to keep work files
-       """
-       if dim != 2:
-           raise ValueError("only dimension 2 is supported by Triangle.")
+       @param dim: patial dimension
+       @param keep_files: flag to keep work files.
+       """ 
+       if dim != 2: 
+           raise ValueError("only dimension 2 is supported by Triangle.")       
        design.Design.__init__(self,dim=dim,keep_files=keep_files)
        self.setScriptFileName()
        self.setMeshFileName()
        self.setOptions()
-
     def setScriptFileName(self,name=None):
        """
-       Sets the filename for the Triangle input script. If no name is given
-       a name with extension I{poly} is generated.
+       set the filename for the Triangle input script. if no name is given a name with extension poly is generated.
        """
        if name == None:
            self.__scriptname=tempfile.mkstemp(suffix=".poly")[1]
@@ -68,81 +66,71 @@ class Design(design.Design):
            self.__scriptname=name
            self.setMeshFileName(name)
            self.setKeepFilesOn()
-
     def getScriptFileName(self):
        """
-       Returns the name of the gmsh script file.
+       returns the name of the file for the gmsh script
        """
        return self.__scriptname
-
     def setMeshFileName(self,name=None):
        """
-       Sets the name of the Triangle mesh file.
+       sets the name for the Triangle mesh file. Triangle creates a default filename so all we want to pass is the basename
        """
        if name == None:
            self.__mshname=tempfile.mkstemp(suffix="")[1]
        else:
-           # Triangle creates a default filename so all we want to pass is
-           # the basename
            if (".poly" in name) or (".ele" in name) or (".node" in name):
                s=name.split(".")[:-1]
                name=s[0]
                if len(s) > 1: name+=".%s"*(len(s)-1)%tuple(s[1:])
            self.__mshname=name
            self.setKeepFilesOn()
-
     def getMeshFileName(self):
        """
-       Returns the name of the Triangle mesh file.
+       returns the name of the file for the Triangle msh
        """
        return self.__mshname
-
     def setOptions(self,cmdLineArgs=""):
         """
-        Sets command line options for the mesh generator::
-
-            triangle [-prq__a__uAcDjevngBPNEIOXzo_YS__iFlsCQVh] input_file
-
-        	see U{http://www.cs.cmu.edu/~quake/triangle.switch.html}
-
-        @param cmdLineArgs: the switches you would ordinarily use at the
-                            command line (e.g. cmdLineArgs="pq25a7.5")
-        """
+        sets command line options for the mesh generator:
+        
+	triangle [-prq__a__uAcDjevngBPNEIOXzo_YS__iFlsCQVh] input_file
+        
+	see http://www.cs.cmu.edu/~quake/triangle.switch.html
+        
+        @param cmdLineArgs: the switches you would ordinarily use at the command line (ie. cmdLineArgs="pq25a7.5")
+        """ 
         self.__cmdLineArgs=cmdLineArgs
-
     def __del__(self):
         """
-        Cleans up.
+        clean up
         """
         if not self.keepFiles():
                os.unlink(self.getScriptFileName())
                os.unlink(self.getMeshFileName())
-
     def getCommandString(self):
         """
-        Returns the Triangle command line::
-
-            triangle [-prq__a__uAcDjevngBPNEIOXzo_YS__iFlsCQVh] input_file
-
-            see U{http://www.cs.cmu.edu/~quake/triangle.switch.html}
+        returns the Triangle comand:
+	    
+        triangle [-prq__a__uAcDjevngBPNEIOXzo_YS__iFlsCQVh] input_file
+	
+        see http://www.cs.cmu.edu/~quake/triangle.switch.html
         """
         if self.__cmdLineArgs == "":
             print "warning: using default command line arguments for Triangle"
         exe="triangle %s %s"%(self.__cmdLineArgs,
                                 self.getScriptFileName())
         return exe
-
     def getMeshHandler(self):
         """
-        Returns a handle to a mesh meshing the design. In the current
-        implementation a mesh file name in Triangle format is returned.
+        returns a handle to a mesh meshing the design. In the current implementation
+        a mesh file name in Triangle format is returned.
         """
         open(self.getScriptFileName(),"w").write(self.getScriptString())
         cmd = self.getCommandString()
         ret = os.system(cmd) / 256
         if ret > 0:
             raise RuntimeError, "Could not build mesh: %s"%cmd
-        else:
+        else:            
             # <hack> so that users can set the mesh filename they want.
             name=self.getScriptFileName()
             if (".poly" in name) or (".ele" in name) or (".node" in name):
@@ -159,7 +147,7 @@ class Design(design.Design):
 
     def getScriptString(self):
         """
-        Returns the Triangle script to generate the mesh.
+        returns the Triangle script to generate the mesh
         """
         # comment lines are prefixed by a '#' in triangle *.poly files
         out="# generated by esys.pycad\n"
@@ -168,28 +156,28 @@ class Design(design.Design):
         holestr="";holeCnt=0
         ctrlPts={}
         for prim in self.getItems():
-
+        
             p=prim.getUnderlyingPrimitive()
-
+            
             if isinstance(p, PropertySet):
                PSprims=p.getItems()
-               for PSp in PSprims:
+               for PSp in PSprims:                  
                    if isinstance(PSp, Point):
                        c=PSp.getCoordinates()
                        vertCnt+=1
                        vertices+="%s %s %s %s\n"%(vertCnt,c[0],c[1],p.getID())
-
+                                           
                    elif isinstance(PSp, Line):
                        # get end points and add them as vertices
                        # add line segments - bnd_mkr's are p.getID()
                        # and p.getID() should be mapped to the FID's from the GIS
                        pts=list(PSp.getControlPoints())
-                       for pt in pts:
-                           c=pt.getCoordinates()
+                       for pt in pts:                           
+                           c=pt.getCoordinates()                               
                            if pt not in ctrlPts.keys():
                                vertCnt+=1
                                vertices+="%s %s %s %s\n"%(vertCnt,c[0],c[1],p.getID())
-                               ctrlPts[pt]=vertCnt
+                               ctrlPts[pt]=vertCnt                                   
                            ptIndx=pts.index(pt)
                            if ptIndx != 0:
                                segCnt+=1
@@ -197,24 +185,29 @@ class Design(design.Design):
                                                           ctrlPts[pts[ptIndx-1]],
                                                           ctrlPts[pts[ptIndx]],
                                                           p.getID())
-
-                   elif isinstance(PSp, Spline) or isinstance(PSp, BezierCurve) or \
-                        isinstance(PSp, BSpline) or isinstance(PSp, Arc):
+                       
+                   elif isinstance(PSp, Spline):
                        TypeError("Triangle can only handle linear curves: not %s objects."%str(type(p)))
-
+                   elif isinstance(PSp, BezierCurve):
+                       TypeError("Triangle can only handle linear curves: not %s objects."%str(type(p)))
+                   elif isinstance(PSp, BSpline):
+                       TypeError("Triangle can only handle linear curves: not %s objects."%str(type(p)))
+                   elif isinstance(PSp, Arc):
+                       TypeError("Triangle can only handle linear curves: not %s objects."%str(type(p)))
+                   
                    elif isinstance(PSp, PlaneSurface):
-
-                       outerBnd=PSp.getBoundaryLoop()
+                                          
+                       outerBnd=PSp.getBoundaryLoop() 
                        holes=PSp.getHoles()
-
-                       for curve in outerBnd.getCurves():
-                           pts=list(curve.getControlPoints())
-                           for pt in pts:
-                               c=pt.getCoordinates()
+                       
+                       for curve in outerBnd.getCurves():                           
+                           pts=list(curve.getControlPoints())                           
+                           for pt in pts:                           
+                               c=pt.getCoordinates()                               
                                if pt not in ctrlPts.keys():
                                    vertCnt+=1
                                    vertices+="%s %s %s %s\n"%(vertCnt,c[0],c[1],p.getID())
-                                   ctrlPts[pt]=vertCnt
+                                   ctrlPts[pt]=vertCnt                                   
                                ptIndx=pts.index(pt)
                                if ptIndx != 0:
                                    segCnt+=1
@@ -227,18 +220,18 @@ class Design(design.Design):
 # (all internal angles < 180 degrees) this is easy, however, for concave
 # polygons (one or more internal angles > 180 degrees) this is much
 # more difficult. Easiest method is to find the smallest internal angle, and
-# place the hole node inside the triangle formed by the three vertices
+# place the hole node inside the triangle formed by the three vertices 
 # associated with that internal angle.
                        for hole in holes:
                            holePts=[]
                            for curve in hole.getCurves():
                                pts=list(curve.getControlPoints())
                                for pt in pts:
-                                   c=pt.getCoordinates()
+                                   c=pt.getCoordinates()                               
                                    if pt not in ctrlPts.keys():
                                        vertCnt+=1
                                        vertices+="%s %s %s %s\n"%(vertCnt,c[0],c[1],p.getID())
-                                       ctrlPts[pt]=vertCnt
+                                       ctrlPts[pt]=vertCnt                                   
                                    ptIndx=pts.index(pt)
                                    if ptIndx != 0:
                                        segCnt+=1
@@ -285,11 +278,11 @@ class Design(design.Design):
                            # use this node to define the hole.
                            holeCnt+=1
                            holestr+="%s %s %s\n"%(holeCnt,x,y)
-
+                           
                    else:
-                       raise TypeError("please pass correct PropertySet objects to Triangle design")
+                       raise TypeError("please pass correct PropertySet objects to Triangle design") 
             else:
-                raise TypeError("please pass only PropertySet objects to Triangle design")
+                raise TypeError("please pass only PropertySet objects to Triangle design")             
         out+="# vertices #\n"
         out+="%i 2 0 1\n"%(vertCnt)
         out+=vertices
@@ -300,7 +293,7 @@ class Design(design.Design):
         out+="%i\n"%(holeCnt)
         out+=holestr
         return out
-
+        
     def __getVector(self,A,B):
         # get the vector between two points.
         cA=A.getCoordinates()
@@ -308,12 +301,11 @@ class Design(design.Design):
         x=cB[0]-cA[0]
         y=cB[1]-cA[1]
         return [x,y]
-
+        
     def __getAngle(self,v,w):
         # get internal (directional) angle between two vectors (in degrees).
         theta=atan2(v[1],v[0]) - atan2(w[1],w[0])
         theta=theta*180./pi
         if theta < 0.:
-            theta+=360.
+            theta+=360.   
         return theta
-

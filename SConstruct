@@ -119,11 +119,6 @@ opts.AddOptions(
   ('umf_path', 'Path to UMFPACK includes', '/usr/include/suitesparse'),
   ('umf_lib_path', 'Path to UMFPACK libs', usr_lib),
   ('umf_libs', 'UMFPACK libraries to link with', ['umfpack']),
-# Silo
-  BoolOption('usesilo', 'switch on/off the usage of Silo', 'yes'),
-  ('silo_path', 'Path to Silo includes', '/usr/include'),
-  ('silo_lib_path', 'Path to Silo libs', usr_lib),
-  ('silo_libs', 'Silo libraries to link with', ['siloh5', 'hdf5']),
 # AMD (used by UMFPACK)
   ('amd_path', 'Path to AMD includes', '/usr/include/suitesparse'),
   ('amd_lib_path', 'Path to AMD libs', usr_lib),
@@ -169,8 +164,6 @@ if env['useMPI']: env['usempi'] = 1
 # Default compiler options (override allowed in hostname_options.py, but should not be necessary)
 # For both C and C++ you get: cc_flags and either the optim flags or debug flags
 
-sysheaderopt = ""		# how do we indicate that a header is a system header. Use "" for no action.
-
 if env["CC"] == "icc":
   # Intel compilers
   cc_flags		= "-fPIC -ansi -wd161 -w1 -vec-report0 -DBLOCKTIMER -DCORE_ID1"
@@ -181,10 +174,11 @@ if env["CC"] == "icc":
   omp_libs		= ['guide', 'pthread']
   pedantic		= ""
   fatalwarning		= ""		# Switch to turn warnings into errors
-  sysheaderopt		= ""
 elif env["CC"] == "gcc":
   # GNU C on any system
-  cc_flags		= "-pedantic -Wall -fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER  -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing"
+  cc_flags		= "-pedantic -Wall -fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER -isystem " + env['boost_path'] + "/boost -isystem " + env['python_path'] + " -Wno-sign-compare -Wno-system-headers -Wno-strict-aliasing -Wno-long-long"
+#the strict aliasing warning is triggered by some type punning in the boost headers for version 1.34
+#isystem does not seem to prevent this
 #the long long warning occurs on the Mac
   cc_optim		= "-O3"
   cc_debug		= "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
@@ -193,7 +187,6 @@ elif env["CC"] == "gcc":
   omp_libs		= []
   pedantic		= "-pedantic-errors -Wno-long-long"
   fatalwarning		= "-Werror"
-  sysheaderopt		= "-isystem "
 elif env["CC"] == "cl":
   # Microsoft Visual C on Windows
   cc_flags		= "/FD /EHsc /GR /wd4068 -D_USE_MATH_DEFINES -DDLL_NETCDF"
@@ -204,13 +197,10 @@ elif env["CC"] == "cl":
   omp_libs		= []
   pedantic		= ""
   fatalwarning		= ""
-  sysheaderopt		= ""
 elif env["CC"] == "icl":
   # intel C on Windows, see windows_intelc_options.py for a start
   pedantic		= ""
   fatalwarning		= ""
-  sysheaderopt		= ""
-
 
 # If not specified in hostname_options.py then set them here
 if env["cc_flags"]	== "-DEFAULT_1": env['cc_flags'] = cc_flags
@@ -332,12 +322,7 @@ if conf.CheckFunc('gethostname'):
 
 ############ python libraries (required) #######################
 
-
-if not sysheaderopt =="":
-  conf.env.Append(CCFLAGS=sysheaderopt+env['python_path'])
-else:
-  conf.env.AppendUnique(CPPPATH		= [env['python_path']])
-
+conf.env.AppendUnique(CPPPATH		= [env['python_path']])
 conf.env.AppendUnique(LIBPATH		= [env['python_lib_path']])
 conf.env.AppendUnique(LIBS		= [env['python_libs']])
 
@@ -352,11 +337,7 @@ if not conf.CheckFunc('Py_Main'):
 
 ############ boost (required) ##################################
 
-if not sysheaderopt =="":
-  conf.env.Append(CCFLAGS=sysheaderopt+env['boost_path']+'boost')
-else:
-  conf.env.AppendUnique(CPPPATH		= [env['boost_path']])
-
+conf.env.AppendUnique(CPPPATH		= [env['boost_path']])
 conf.env.AppendUnique(LIBPATH		= [env['boost_lib_path']])
 conf.env.AppendUnique(LIBS		= [env['boost_libs']])
 
@@ -469,7 +450,6 @@ if env['useumfpack']:
 
 if env['useumfpack'] and not conf.CheckCHeader('umfpack.h'): env['useumfpack'] = 0
 if env['useumfpack'] and not conf.CheckFunc('umfpack_di_symbolic'): env['useumfpack'] = 0
-if env['useumfpack'] and not conf.CheckFunc('daxpy'): env['useumfpack'] = 0 # this does not work on shake73?
 
 # Add UMFPACK to environment env if it was found
 if env['useumfpack']:
@@ -477,25 +457,6 @@ if env['useumfpack']:
   env.Append(CPPDEFINES = ['UMFPACK'])
 else:
   conf.Finish()
-
-############ Silo (optional) ###################################
-
-if env['usesilo']:
-  conf = Configure(clone_env(env))
-  conf.env.AppendUnique(CPPPATH = [env['silo_path']])
-  conf.env.AppendUnique(LIBPATH = [env['silo_lib_path']])
-  conf.env.AppendUnique(LIBS = [env['silo_libs']])
-  if not conf.CheckCHeader('silo.h'): env['usesilo'] = 0
-  if not conf.CheckFunc('DBMkDir'): env['usesilo'] = 0
-  conf.Finish()
-
-# Add the path to Silo to environment env if it was found.
-# Note that we do not add the libs since they are only needed for the
-# escriptreader library and tools.
-if env['usesilo']:
-  env.AppendUnique(CPPPATH = [env['silo_path']])
-  env.AppendUnique(LIBPATH = [env['silo_lib_path']])
-  env.Append(CPPDEFINES = ['HAVE_SILO'])
 
 ############ Add the compiler flags ############################
 
@@ -585,8 +546,6 @@ if env['usemkl']: print "	Using MKL"
 else: print "	Not using MKL"
 if env['useumfpack']: print "	Using UMFPACK"
 else: print "	Not using UMFPACK"
-if env['usesilo']: print "	Using Silo"
-else: print "	Not using Silo"
 if env['useopenmp']: print "	Using OpenMP"
 else: print "	Not using OpenMP"
 if env['usempi']: print "	Using MPI"
@@ -631,7 +590,6 @@ Export(
   )
 
 env.SConscript(dirs = ['tools/CppUnitTest/src'], build_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
-env.SConscript(dirs = ['tools/libescriptreader/src'], build_dir='build/$PLATFORM/tools/libescriptreader', duplicate=0)
 env.SConscript(dirs = ['paso/src'], build_dir='build/$PLATFORM/paso', duplicate=0)
 env.SConscript(dirs = ['escript/src'], build_dir='build/$PLATFORM/escript', duplicate=0)
 env.SConscript(dirs = ['esysUtils/src'], build_dir='build/$PLATFORM/esysUtils', duplicate=0)
@@ -642,7 +600,6 @@ env.SConscript(dirs = ['pyvisi/py_src'], build_dir='build/$PLATFORM/pyvisi', dup
 env.SConscript(dirs = ['pycad/py_src'], build_dir='build/$PLATFORM/pycad', duplicate=0)
 env.SConscript(dirs = ['pythonMPI/src'], build_dir='build/$PLATFORM/pythonMPI', duplicate=0)
 env.SConscript(dirs = ['scripts'], build_dir='build/$PLATFORM/scripts', duplicate=0)
-env.SConscript(dirs = ['paso/profiling'], build_dir='build/$PLATFORM/paso/profiling', duplicate=0)
 
 ############ Remember what optimizations we used ###############
 
@@ -685,7 +642,6 @@ build_all_list += ['build_escript']
 build_all_list += ['build_finley']
 if env['usempi']:		build_all_list += ['target_pythonMPI_exe']
 if not IS_WINDOWS_PLATFORM:	build_all_list += ['target_finley_wrapper']
-if env['usesilo']:	build_all_list += ['target_escript2silo']
 env.Alias('build_all', build_all_list)
 
 install_all_list = []
@@ -699,7 +655,6 @@ install_all_list += ['target_install_modellib_py']
 install_all_list += ['target_install_pycad_py']
 if env['usempi']:		install_all_list += ['target_install_pythonMPI_exe']
 if not IS_WINDOWS_PLATFORM:	install_all_list += ['target_install_finley_wrapper']
-if env['usesilo']:	install_all_list += ['target_install_escript2silo']
 install_all_list += ['remember_options']
 env.Alias('install_all', install_all_list)
 

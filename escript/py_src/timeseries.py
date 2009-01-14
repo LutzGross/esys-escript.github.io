@@ -40,10 +40,7 @@ DEFAULT_BUFFER_SIZE=1000
 DEFAULT_FLOAT_TYPE=numarray.Float64
 
 class TimeSeriesBase:
-   """
-   The TimeSeriesBase class is the base class for all classes of the TimeSeries
-   module.
-   """
+   """The TimeSeriesBase class is the base class for all class of the TimeSeries module."""
 
    def __init__(self,debug=False,description="TimeSeriesBase"):
        self.__debug=debug
@@ -51,42 +48,32 @@ class TimeSeriesBase:
 
    def __str__(self):
        return self.__description
-
+   
    def setDescription(self,text):
        self.__description=text
 
    def setDebugOn(self):
-      """
-      Enables debugging mode.
-      """
+      """switch on degugging mode"""
       self.__debug=True
 
    def setDebugOff(self):
-      """
-      Disables debugging mode.
-      """
+      """switch off degugging mode"""
       self.__debug=False
 
    def setDebug(self,flag=False):
-      """
-      Sets debug mode to C{flag}.
-      """
+      """sets debug mode to flag"""
       if flag:
          self.setDebugOn()
       else:
          self.setDebugOff()
-
+         
    def debug(self):
-      """
-      Returns True if debug mode is on, False otherwise.
-      """
+      """returns true if debug mode is on"""
       return self.__debug
 
-#==============================================================================
+#============================================================================================================
 class TimeSeriesBaseDataset(TimeSeriesBase):
-   """
-   Provides an interface for accessing a set of linearly ordered data.
-   """
+   """provides an interface for accessing a set of linearly ordered data."""
    def __init__(self,buffer,offset=0,debug=False,description="TimeSeriesDataset"):
        TimeSeriesBase.__init__(self,debug,description)
        self.__buffer=buffer
@@ -94,114 +81,71 @@ class TimeSeriesBaseDataset(TimeSeriesBase):
        if self.debug(): print "Debug: %s: offset %d to buffer"%(self,self.getOffset())
 
    def __len__(self):
-       """
-       Needed to handle negative indexing in slicing.
-       """
+       """needed to handle negative indexing in slicing"""
        return 0
 
    def getNumComponents(self):
-       """
-       Returns the number of components of the data (may be overwritten by
-       subclasses).
-       """
+       """returns the number of components of the data (may be overwritten by subclass)"""
        return self.getBaseBuffer().getNumComponents()
 
    def getIdOfLastDatum(self):
-      """
-      Returns the identification number of the last datum in the data set (may
-      be overwritten by subclasses).
-      """
+      """returns the identification number of the last datum in the data set (may be overwritten by subclass)"""
       return self.getBaseBuffer().getIdOfLastDatum()-self.getOffset()
 
    def getIdOfFirstDatum(self):
-      """
-      Returns the identification number of the first datum (may be overwritten
-      by subclasses).
-      """
+      """returns the identification number of the first datum (may be overwritten by subclass)"""
       return self.getBaseBuffer().getIdOfFirstDatum()-self.getOffset()
 
    def getIdOfFirstAvailableDatum(self):
-      """
-      Returns the identification number of the first avaiable datum (may be
-      overwritten by subclasses).
-      """
+      """returns the identification number of the first avaiable datum (may be overwritten by subclass)"""
       return self.getBaseBuffer().getIdOfFirstAvailableDatum()-self.getOffset()
 
    def getOffsetInBaseBuffer(self):
-      """
-      Returns the offset to access elements in getBaseBuffer() (may be
-      overwritten by subclasses).
-      """
-      return self.getOffset()
+      """returns the offset to access elements in getBaseBuffer() (may be overwritten by subclass)"""
+      return  self.getOffset()
 
    def getIdOfLastUnreferencedDatum(self):
-       """
-       Returns the identification number of the last datum which has been
-       unused by all TimeSeries referring to the TimeSeriesBaseDataset (may be
-       overwritten by subclasses).
-       """
+       """returns the identification number of the last datum which has been unused by all TimeSeries refering to the TimeSeriesBaseDataset (may be overwritten by subclass)"""
        return self.getBaseBuffer().getIdOfLastUnreferencedDatum()-self.getOffset()
 
    def updateIdOfLastUnreferencedDatum(self,last_unreferenced_datum):
-       """
-       Updates the identification number of the last unused datum (to be
-       overwritten by subclasses).
-       """
+       """updates the identification number of the last unused datum (to be overwritten by subclass)"""
        self.getBaseBuffer().updateIdOfLastUnreferencedDatum(last_unreferenced_datum+self.getOffset())
 
    def append(self,values):
-       """
-       Appends data to the buffer. If the buffer would be full the buffer is
-       rearranged before the data are appended (to be overwritten by
-       subclasses).
-       """
+       """appends data to the buffer. If the buffer would be full the buffer is rearranged before the data are appended  (to be overwritten by subclass)"""
        self.getBaseBuffer().append(values)
 
    def getBaseBufferSize(self):
-       """
-       Returns the size of the buffer (to be overwritten by subclasses).
-       """
+       """returns the size of the buffer (to be overwritten by subclass)"""
        return self.getBaseBuffer().getBaseBufferSize()
-
+   
    def needsRearrangement(self,num_new_data=0):
-       """
-       Returns True if the buffer will be full after num_new_data values have
-       been appended (to be overwritten by subclasses).
-       """
+       """returns True if the buffer will be full after num_new_data have been appended (to be overwritten by subclass)"""
        return self.getBaseBuffer().needsRearrangement(num_new_data)
 
    def isEmpty(self):
-       """
-       Returns True if no data are appended to buffer.
-       """
-       return self.getNumData()<=0
-
+      """returns true if no data are appeneded to buffer"""
+      return self.getNumData()<=0
+   
    def getNumData(self):
-       """
-       Returns the number of data (not all of them are accessible).
-       """
-       return self.getIdOfLastDatum()-self.getIdOfFirstDatum()+1
+      """returns the number of data (not all of them are accessible)"""
+      return self.getIdOfLastDatum()-self.getIdOfFirstDatum()+1
 
    def getBaseBuffer(self):
-       """
-       Returns the buffer referenced by the TimeSeriesBaseDataset.
-       """
-       return self.__buffer
+      """return the buffer referenced by the TimeSeriesBaseDataset"""
+      return self.__buffer
 
    def getOffset(self):
-       """
-       Returns the offset when referring to dataset elements.
-       """
-       return self.__offset
+      """return the offset when referring to dataset elements"""
+      return self.__offset
 
    def __getitem__(self,index):
-      """
-      Returns the datum with given index.
-      """
+      """returns the datum index"""
       if type(index)==SliceType:
          start=index.start
          end=index.stop
-         if start==end:
+         if start==end: 
             return self[start]
          else:
              if start<self.getIdOfFirstDatum() or start>self.getIdOfLastDatum() or \
@@ -212,10 +156,7 @@ class TimeSeriesBaseDataset(TimeSeriesBase):
          return self.getBaseBuffer()[index+self.getOffsetInBaseBuffer()]
 
 class TimeSeriesBaseBuffer(TimeSeriesBaseDataset):
-   """
-   An implementation of TimeSeriesBaseDataset which actually is storing data
-   in a numarray buffer.
-   """
+   """An inplementation of TimeSeriesBaseDataset which actually is storing data into a numarray buffer"""
    def __init__(self,buffer_size=DEFAULT_BUFFER_SIZE,numComponents=1,type=DEFAULT_FLOAT_TYPE,id_of_first_datum=0,debug=False,description="TimeSeriesBaseBuffer"):
        if numComponents<2:
           buffer=numarray.zeros((buffer_size,),type)
@@ -231,92 +172,56 @@ class TimeSeriesBaseBuffer(TimeSeriesBaseDataset):
 
 
    def getBaseBufferSize(self):
-       """
-       Returns the size of the buffer.
-       """
+       """returns the size of the buffer"""
        return self.getBaseBuffer().shape[0]
-
+   
    def getNumComponents(self):
-       """
-       Returns the number of components of the data (overwrites
-       TimeSeriesBaseDataset method).
-       """
+       """returns the number of components of the data (overwrites TimeSeriesBaseDataset method)"""
        if self.getBaseBuffer().rank==1:
           return 1
-       else:
+       else: 
           self.getBaseBuffer().shape[1]
 
    def getNumDataInBaseBuffer(self):
-       """
-       Returns the number of data currently in the buffer.
-       """
+       """returns the number of data currently in the buffer"""
        return self.__num_data_in_buffer
 
    def getIdOfLastDatum(self):
-      """
-      Returns the identification number of the last datum in the data set
-      (overwrites method from TimeSeriesBaseDataset).
-      """
+      """returns the identification number of the last datum in the data set (overwrites method from TimeSeriesBaseDataset)"""
       return self.__id_last_datum
 
    def getIdOfFirstDatum(self):
-      """
-      Returns the identification number of the first datum (overwrites method
-      from TimeSeriesBaseDataset).
-      """
+      """returns the identification number of the first datum (overwrites method from TimeSeriesBaseDataset)"""
       return self.__id_first_datum
 
    def getOffsetInBaseBuffer(self):
-      """
-      Returns the offset to access elements in the buffer (overwrites method
-      from TimeSeriesBaseDataset).
-      """
-      return -self.getIdOfLastDatum()+self.getNumDataInBaseBuffer()-1
+      """returns the offset to access elements in the buffer (overwrites method from TimeSeriesBaseDataset)"""  
+      return -self.getIdOfLastDatum()+self.getNumDataInBaseBuffer()-1  
 
    def getIdOfLastUnreferencedDatum(self):
-       """
-       Returns the identification number of the last datum which has been
-       unused by all TimeSeries referring to the TimeSeriesBaseDataset
-       (overwrites method from TimeSeriesBaseDataset).
-       """
+       """returns the identification number of the last datum which has been unused by all TimeSeries refering to the TimeSeriesBaseDataset (overwrites method from TimeSeriesBaseDataset)"""
        return self.__id_last_unreferenced_datum
 
    def updateIdOfLastUnreferencedDatum(self,last_unreferenced_datum):
-       """
-       Updates the identification number of the last unused datum (to be
-       overwritten by subclasses).
-       """
+       """updates the identification number of the last unused datum (to be overwritten by subclass)"""
        self.getBaseBuffer().updateIdOfLastUnreferencedDatum(last_unreferenced_datum-self.getOffset())
 
    def updateIdOfLastUnreferencedDatum(self,last_unreferenced_datum):
-       """
-       Updates the identification number of the last unused datum (overwrites
-       TimeSeriesBaseDataset method).
-       """
+       """updates the identification number of the last unused datum (overwrites TimeSeriesBaseDataset method)"""
        if self.__id_last_unreferenced_datum>last_unreferenced_datum:
            self.__id_last_unreferenced_datum=last_unreferenced_datum
            if self.debug(): print "Debug: %s: last unused datum is now %s"%(self,last_unreferenced_datum)
 
    def needsRearrangement(self,num_new_data=0):
-       """
-       Returns True if the buffer will be full after num_new_data values have
-       been appended.
-       """
+       """returns True if the buffer will be full after num_new_data have been appended"""
        return self.getNumDataInBaseBuffer()+num_new_data>self.getBaseBufferSize()
-
+         
    def getIdOfFirstAvailableDatum(self):
-      """
-      Returns the identification number of the first available datum
-      (overwrites TimeSeriesBaseDataset method).
-      """
+      """returns the identification number of the first avaiable datum (overwrites TimeSeriesBaseDataset method)"""
       return self.getIdOfLastDatum()-self.__num_data_in_buffer+1
 
    def append(self,data):
-      """
-      Appends data to the buffer. If the buffer would be full the buffer is
-      rearranged before the data are appended (overwrites TimeSeriesBaseDataset
-      method).
-      """
+      """appends data to the buffer. If the buffer would be full the buffer is rearranged before the data are appended (overwrites TimeSeriesBaseDataset method)"""
       data=numarray.array(data)
       nc=self.getNumComponents()
       if data.rank==0:
@@ -328,8 +233,8 @@ class TimeSeriesBaseBuffer(TimeSeriesBaseDataset):
         if nc==1:
              num_new_data=data.shape[0]
         else:
-             num_new_data=1
-      elif data.rank==2:
+             num_new_data=1  
+      elif data.rank==2: 
         if not nc==data.shape[1]: raise ValueError,"%s: illegal data shape"%self
         num_new_data=data.shape[0]
       else:
@@ -344,7 +249,7 @@ class TimeSeriesBaseBuffer(TimeSeriesBaseDataset):
         if num_protected_data>0: self.getBaseBuffer()[0:num_protected_data]=self.getBaseBuffer()[nn-num_protected_data:nn]
         self.__num_data_in_buffer=num_protected_data
         self.__id_last_unreferenced_datum=self.__id_last_datum
-        if self.debug():
+        if self.debug(): 
              print "Debug: %s: rearrangement: first data in buffer is %d."%(self,self.getIdOfLastDatum()-self.getNumDataInBaseBuffer()+1)
       # copy data over:
       nn=self.getNumDataInBaseBuffer()
@@ -356,12 +261,8 @@ class TimeSeriesBaseBuffer(TimeSeriesBaseDataset):
 
 # ======================================
 class TimeSeriesControlerView(TimeSeriesBase):
-      """
-      A TimeSeriesControlerView is attached to a Controler and moves forward in
-      time by increasing the id of the last processed datum.
-      Any implementation of a TimeSeriesControlerView must provide the
-      getControler method which returns the Controler.
-      """
+      """A TimeSeriesControlerView is attached to a Controler and moves forward in time by increasing the id of the last processed datum.
+         Any implementation of a TimeSeriesControlerView must provide the getControler method which returns the controler"""
       def __init__(self,id_first_datum=0,debug=False,description="TimeSeries"):
         TimeSeriesBase.__init__(self,debug,description)
         self.__id_last_processed_datum=id_first_datum-1
@@ -374,34 +275,23 @@ class TimeSeriesControlerView(TimeSeriesBase):
           self.__id_last_processed_datum=id_last_processed_datum
 
       # def getControler(self):
-      #     """
-      #     Returns the Controler of the time series (to be overwritten by
-      #     subclass)
-      #     """
-      #     pass
+      #      """returns the Controler of the time series (to be overwritten by subclass)"""
+      #      pass
 
 class TimeSeries(TimeSeriesBaseDataset,TimeSeriesControlerView):
-      """
-      Makes TimeSeriesBaseDataset look like a TimeSeries and introduces
-      operations. Any implementation of a TimeSeriesControlerView must provide
-      the getControler method which returns the Controler.
-      """
+      """makes TimeSeriesBaseDataset look like a TimeSeries and introduces operations
+         Any implementation of a TimeSeriesControlerView must provide the getControler method which returns the controler"""
       def __init__(self,dataset,debug=False,description="TimeSeries"):
         TimeSeriesControlerView.__init__(self,dataset.getIdOfFirstDatum(),debug,description)
         TimeSeriesBaseDataset.__init__(self,dataset,0,debug,description)
-
+      
       def getDataset(self):
-          """
-          Returns the TimeSeriesBaseDataset of the time series.
-          """
+          """returns the TimeSeriesBaseDataset of the time series"""
           return self.getBaseBuffer()
 
       # def getControler(self):
-      #     """
-      #     Returns the Controler of the time series (to be overwritten by
-      #     subclass)
-      #     """
-      #     pass
+      #      """returns the Controler of the time series (to be overwritten by subclass)"""
+      #      pass
 
       def __add__(self,arg):
          if isinstance(arg,TimeSeriesBaseDataset):
@@ -429,7 +319,7 @@ class TimeSeries(TimeSeriesBaseDataset,TimeSeriesControlerView):
             return TimeSeriesPower(self,arg)
          else:
             return TimeSeriesPowerScalar(self,arg)
-
+      
       def __radd__(self,arg):
          return self.__add__(arg)
 
@@ -464,14 +354,9 @@ class TimeSeries(TimeSeriesBaseDataset,TimeSeriesControlerView):
          return (1.0)*self
 
 class TimeSeriesOperator(TimeSeriesControlerView):
-      """
-      A TimeSeriesOperator decribes an operation acting on a list of TimeSeries
-      time_series_args. It allows to update its output (if there is any)
-      through the C{update} method which is overwritten by a particular
-      implementation of the class. The C{update} method is called to process
-      the data [start:end] using [start-left_wing_size:end+right_wing_size] of
-      its arguments.
-      """
+      """a TimeSeriesOperator decribes an operation acting on list of TimeSeries time_series_args. It allows to update its output (if there is any)
+         through the update method which is overwritten by a particular implementation of the class. The update method is called to process the data [start:end] using
+         [start-left_wing_size:end+right_wing_size] of its arguments"""
       def __init__(self,controler,time_series_args=[],left_wing_size=0,right_wing_size=0,debug=False,description="TimeSeriesOperator"):
           id_first_datum=controler.getIdOfFirstDatum()
           for i in time_series_args: id_first_datum=max(id_first_datum,i.getIdOfFirstDatum())
@@ -487,29 +372,19 @@ class TimeSeriesOperator(TimeSeriesControlerView):
           self.getControler().removeOperatorFromUpdateList(self)
 
       def getControler(self):
-          """
-          Returns the Controler updating the TimeSeriesOperator.
-          """
+          """returns the Controler updating the TimeSeriesOperator"""
           return self.__controler
 
       def getLeftWingSize(self):
-          """
-          Returns the left wing size.
-          """
+          """returns the left wing size"""  
           return self.__left_wing_size
 
       def getRightWingSize(self):
-          """
-          Returns the right wing size.
-          """
+          """returns the right wing size""" 
           return self.__right_wing_size
 
       def getArguments(self,index=None):
-          """
-          Returns the list of arguments or, if C{index} is present, the
-          argument with given index. In the latter case C{None} is returned
-          if no arguments are present.
-          """
+          """returns the list of arguments or, index is present, the argument with index index. In the latter case None is returned if no arguments are present"""
           if index==None:
              return self.__time_series_args
           else:
@@ -519,51 +394,37 @@ class TimeSeriesOperator(TimeSeriesControlerView):
                 return None
 
       def getArgumentDataset(self,index):
-          """
-          Returns the dataset of the argument with given index.
-          """
+          """returns the dataset of in the argument with index index"""
           arg=self.getArguments(index)
-          if arg==None:
+          if arg==None: 
              return None
           else:
               return self.getArguments(index).getDataset()
 
       def flush(self):
-          """
-          Calls the C{update} method with the maximum processable range. It
-          also updates the id of unused data for all arguments.
-          """
+          """calls the update method with all the maximum processable range. It also updates the id of unused datum for all arguments"""
           start=self.getIdOfLastProcessedDatum()+1
           end=self.getControler().getIdOfLastDatum()
           for i in self.getArguments(): end=min(end,i.getIdOfLastDatum())
           if start<=end-self.getRightWingSize():
              if self.debug(): print "Debug: %s: range [%d:%d] is updated."%(self,start,end-self.getRightWingSize())
-             self.update(start,end-self.getRightWingSize()+1)
+             self.update(start,end-self.getRightWingSize()+1)      
              for i in self.getArguments(): i.updateIdOfLastUnreferencedDatum(end-self.getLeftWingSize())
              self.updateIdOfLastProcessedDatum(end)
 
       def update(self,start,end):
-          """
-          Updates the data [start:end] using [start-left_wing_size:end+right_wing_size]
-          of its arguments (is overwritten by a particular TimeSeriesOperator).
-          """
+          """updates the the data [start:end] using [start-left_wing_size:end+right_wing_size] of its arguments (is overwritten by a particular TimeSeriesOperator)"""
           pass
 
 
 class TimeSeriesFilter(TimeSeries,TimeSeriesOperator):
-      """
-      A TimeSeriesFilter is a TimeSeries that is created through a
-      TimeSeriesOperator.
-      """
+      """a TimeSeriesFilter is a TimeSeries taht is created trough a TimeSeriesOperator"""
       def __init__(self,controler,dataset,time_series_args=[],left_wing_size=0,right_wing_size=0,debug=False,description="TimeSeriesFilter"):
          TimeSeriesOperator.__init__(self,controler,time_series_args,left_wing_size,right_wing_size,debug,description)
          TimeSeries.__init__(self,dataset,debug,description)
 
       def update(self,start,end):
-          """
-          Appends zeros to the dataset. This method should be overwritten by a
-          particular TimeSeriesFilter.
-          """
+          """appends zeros to the dataset. This method should be overwritten by a particular TimeSeriesFilter"""
           nc=self.getNumComponents()
           if nc>1:
              self.getDataset().append(numarray.zeros([nc,end-start]))
@@ -571,47 +432,33 @@ class TimeSeriesFilter(TimeSeries,TimeSeriesOperator):
              self.getDataset().append(numarray.zeros(end-start))
 
 class Controler(TimeSeries):
-   """
-   Controls a set of TimeSeries.
-   """
-   def __init__(self,buffer_size=DEFAULT_BUFFER_SIZE,debug=False,description="TimeSeriesControler"):
+   """controls a set of TimeSeries"""
+   def __init__(self,buffer_size=DEFAULT_BUFFER_SIZE,debug=False,description="TimeSeriesControler"): 
         TimeSeries.__init__(self,TimeSeriesBaseBuffer(buffer_size,1,DEFAULT_FLOAT_TYPE,0,debug,"node buffer of "+description),debug,"nodes of "+description)
-        self.setFlushRate()
+        self.setFlushRate()   
         self.__update_time_series=list()
-
+      
    def getControler(self):
-       """
-       Returns the C{Controler} of the time series (overwrites method of
-       TimeSeries).
-       """
+       """returns the Controler of the time series (overwrites method of by TimeSeries)"""
        return self
 
    def setFlushRate(self,rate=50):
-       """
-       Sets the flush rate, i.e. after C{rate} new time nodes have been
-       checked in the C{flush} method is called.
-       """
+       """set the flush rate, i.e. after rate new time nodes have been checked in the flush method is called."""
        self.__flush_rate=rate
        if self.debug(): print "Debug: %s: flush rate is set to %d"%(self,rate)
-
+ 
    def needsFlushing(self):
-      """
-      Returns True if the depending TimeSeriesFilters needs to be flushed
-      because the time nodes buffer is full or because of the set flush rate.
-      """
+      """returns true if the depending TimeSeriesFilters needs to be flushed becuase the time nodes buffer is full or because of the set flush rate"""
       return self.needsRearrangement(1) or (self.getNumData()+1)%self.__flush_rate==0
 
    def flush(self):
-       """
-       Flushes all dependent TimeSeriesFilters by processing their flush
-       method.
-       """
+       """flushes all dependend TimeSeriesFilters by processing their flush method"""
        if self.debug(): print "Debug: %s: start flushing"%self
        for time_serie in self.__update_time_series: time_serie.flush()
 
    def appendOperatorToUpdateList(self,time_serie):
        if not time_serie.getControler()==self: raise ValueError,"%s: TimeSeries %s is not defined on this controler."%(self,time_serie)
-       if not self.isEmpty(): raise ValueError,"%s: you can only check in a time series time_serie if controler is empty."%self
+       if not self.isEmpty(): raise ValueError,"%s: you can only check in a time series time_serie is controler is empty."%self
        self.__update_time_series.append(time_serie)
        if self.debug(): print "Debug: %s: %s has been added to update list."%(self,time_serie)
 
@@ -625,10 +472,7 @@ class Controler(TimeSeries):
        if self.debug(): print "Debug: %s: new time node %e has been added."%(self,value)
 
 class TimeSeriesShift(TimeSeries):
-      """
-      Creates a shift of the time series, i.e. if d[n] is the datum at time
-      t[n], the value at t[n] becomes v[n+shift] on the output.
-      """
+      """creates a shift of the time series, i.e. if d[n] is the datum at time t[n], the value at t[n] becomes v[n+shift] on the output"""
       def __init__(self,time_serie,shift=1):
           if shift<0:
               dsc="(%s)<<%d"%(time_serie,-shift)
@@ -641,14 +485,12 @@ class TimeSeriesShift(TimeSeries):
           return self.__controler
 
 class TimeSeriesAdd(TimeSeriesFilter):
-      """
-      Adds two TimeSeries.
-      """
+      """adds two TimeSeries"""
       def __init__(self,time_serie_1,time_serie_2):
           dsc="(%s)+(%s)"%(time_serie_1,time_serie_2)
           dbg=time_serie_1.debug() or time_serie_2.debug()
           cntrl=time_serie_1.getControler()
-          if not cntrl==time_serie_2.getControler():
+          if not cntrl==time_serie_2.getControler(): 
                   raise ValueError("TimeSeriesAdd: %s and %s have different controler."%(time_serie_1,time_serie_2))
           id_first_datum=max(time_serie_1.getIdOfFirstDatum(),time_serie_2.getIdOfFirstDatum())
           TimeSeriesFilter.__init__(self,cntrl, \
@@ -659,9 +501,7 @@ class TimeSeriesAdd(TimeSeriesFilter):
           self.append(self.getArgumentDataset(0)[start:end]+self.getArgumentDataset(1)[start:end])
 
 class TimeSeriesAddScalar(TimeSeriesFilter):
-      """
-      Adds a single value to a TimeSeries.
-      """
+      """adds a single value to a TimeSeries"""
       def __init__(self,time_serie,scalar):
           dsc="(%s)+(%s)"%(time_serie,scalar)
           dbg=time_serie.debug()
@@ -676,14 +516,12 @@ class TimeSeriesAddScalar(TimeSeriesFilter):
           self.append(self.getArgumentDataset(0)[start:end]+self.__scalar)
 
 class TimeSeriesMult(TimeSeriesFilter):
-      """
-      Multiplies two TimeSeries.
-      """
+      """multiplies two TimeSeries"""
       def __init__(self,time_serie_1,time_serie_2):
           dsc="(%s)*(%s)"%(time_serie_1,time_serie_2)
           dbg=time_serie_1.debug() or time_serie_2.debug()
           cntrl=time_serie_1.getControler()
-          if not cntrl==time_serie_2.getControler():
+          if not cntrl==time_serie_2.getControler(): 
                   raise ValueError("TimeSeriesMult: %s and %s have different controler."%(time_serie_1,time_serie_2))
           id_first_datum=max(time_serie_1.getIdOfFirstDatum(),time_serie_2.getIdOfFirstDatum())
           TimeSeriesFilter.__init__(self,cntrl, \
@@ -694,9 +532,7 @@ class TimeSeriesMult(TimeSeriesFilter):
           self.append(self.getArgumentDataset(0)[start:end]*self.getArgumentDataset(1)[start:end])
 
 class TimeSeriesMultScalar(TimeSeriesFilter):
-      """
-      Multiplies a TimeSeries with a single (scalar) value.
-      """
+      """multiplies a TimeSeries with a single value"""
       def __init__(self,time_serie,scalar):
           dsc="(%s)*%s"%(time_serie,scalar)
           dbg=time_serie.debug()
@@ -711,14 +547,12 @@ class TimeSeriesMultScalar(TimeSeriesFilter):
           self.append(self.getArgumentDataset(0)[start:end]*self.__scalar)
 
 class TimeSeriesDiv(TimeSeriesFilter):
-      """
-      Divides two TimeSeries.
-      """
+      """divides two TimeSeries"""
       def __init__(self,time_serie_1,time_serie_2):
           dsc="(%s)/(%s)"%(time_serie_1,time_serie_2)
           dbg=time_serie_1.debug() or time_serie_2.debug()
           cntrl=time_serie_1.getControler()
-          if not cntrl==time_serie_2.getControler():
+          if not cntrl==time_serie_2.getControler(): 
                   raise ValueError("TimeSeriesDiv: %s and %s have different controler."%(time_serie_1,time_serie_2))
           id_first_datum=max(time_serie_1.getIdOfFirstDatum(),time_serie_2.getIdOfFirstDatum())
           TimeSeriesFilter.__init__(self,cntrl, \
@@ -729,9 +563,7 @@ class TimeSeriesDiv(TimeSeriesFilter):
           self.append(self.getArgumentDataset(0)[start:end]/self.getArgumentDataset(1)[start:end])
 
 class TimeSeriesDivScalar(TimeSeriesFilter):
-      """
-      Divides a scalar by a TimeSeries.
-      """
+      """divides a scalar be a TimeSerie"""
       def __init__(self,time_serie,scalar):
           dsc="(%s)/(%s)"%(scalar,time_serie)
           dbg=time_serie.debug()
@@ -746,14 +578,12 @@ class TimeSeriesDivScalar(TimeSeriesFilter):
           self.append(self.__scalar/self.getArgumentDataset(0)[start:end])
 
 class TimeSeriesPower(TimeSeriesFilter):
-      """
-      Raises one TimeSeries to the power of another TimeSeries.
-      """
+      """raise one TimeSeries to the power of an other TimeSeries"""
       def __init__(self,time_serie_1,time_serie_2):
           dsc="(%s)**(%s)"%(time_serie_1,time_serie_2)
           dbg=time_serie_1.debug() or time_serie_2.debug()
           cntrl=time_serie_1.getControler()
-          if not cntrl==time_serie_2.getControler():
+          if not cntrl==time_serie_2.getControler(): 
                   raise ValueError("TimeSeriesPower: %s and %s have different controler."%(time_serie_1,time_serie_2))
           id_first_datum=max(time_serie_1.getIdOfFirstDatum(),time_serie_2.getIdOfFirstDatum())
           TimeSeriesFilter.__init__(self,cntrl, \
@@ -764,9 +594,7 @@ class TimeSeriesPower(TimeSeriesFilter):
           self.append(self.getArgumentDataset(0)[start:end]**self.getArgumentDataset(1)[start:end])
 
 class TimeSeriesPowerScalar(TimeSeriesFilter):
-      """
-      Raises a TimeSeries to the power of a scalar.
-      """
+      """raises a TimeSerie to the power of a scalar"""
       def __init__(self,time_serie,scalar):
           dsc="(%s)**(%s)"%(time_serie,scalar)
           dbg=time_serie.debug()
@@ -781,9 +609,7 @@ class TimeSeriesPowerScalar(TimeSeriesFilter):
           self.append(self.getArgumentDataset(0)[start:end]**self.__scalar)
 
 class Exp(TimeSeriesFilter):
-      """
-      Computes M{exp(TimeSeries)}.
-      """
+      """"""
       def __init__(self,time_serie):
           dsc="exp(%s)"%(time_serie)
           dbg=time_serie.debug()
@@ -797,11 +623,7 @@ class Exp(TimeSeriesFilter):
           self.append(numarray.exp(self.getArgumentDataset(0)[start:end]))
 
 class Writer(TimeSeriesOperator):
-      """
-      Writes the time series into an output stream C{ostream} which must have
-      the C{writeline} method. The values are separated by the string
-      C{separator}.
-      """
+      """writes the time series into an output strim ostream which mast have the writeline method. The values are seperated by the string seperator."""
       def __init__(self,time_serie,ostream,seperator=",",commend_tag="#"):
          dsc="write %s to %s"%(time_serie,ostream)
          dbg=time_serie.debug()
@@ -818,15 +640,13 @@ class Writer(TimeSeriesOperator):
          if n<2:
             for i in range(start,end): self.__ostream.writelines("%s%s%s\n"%(cntrl[i],self.__seperator,arg[i]))
          else:
-            for i in range(start,end):
+            for i in range(start,end): 
                l="%s"%cntrl[i]
                for j in range(n): l=l+"%s%s"(self.__seperator,arg[i][j])
                self.__ostream.writelines("%s\n"%l)
 
 class DataCatcher(TimeSeries):
-      """
-      Collects data into a time series.
-      """
+      """collects data into a time series."""
       def __init__(self,controler,numComponents=1,description="DataCatcher"):
          self.__controler=controler
          dbg=controler.debug()
@@ -836,9 +656,7 @@ class DataCatcher(TimeSeries):
           return self.__controler
 
       def nextValue(self,value):
-          """
-          Appends a value to the time series.
-          """
+          """append a value to the time series"""
           id_last=self.getIdOfLastDatum()
           id_current=self.getControler().getIdOfLastDatum()
           if id_last+1==id_current:
@@ -855,12 +673,10 @@ class DataCatcher(TimeSeries):
           else :
              raise ValueError,"%s: a new time node must be introduced before a new value can be added."
           self.updateIdOfLastUnreferencedDatum(id_last)
-
-
+          
+  
 class TimeSeriesCumulativeSum(TimeSeriesFilter):
-      """
-      Cumulative sum of the time series values.
-      """
+      """cummulative sum of the time series values"""
       def __init__(self,time_serie):
          dsc="cumsum(%s)"%(time_serie)
          dbg=time_serie.debug()
@@ -875,17 +691,14 @@ class TimeSeriesCumulativeSum(TimeSeriesFilter):
           out=numarray.cumsum(self.getArgumentDataset(0)[start:end])+self.__last_value
           self.__last_value=out[end-start-1]
           self.append(out)
-
+         
 
 class Reader(TimeSeriesBase):
-      """
-      Reads a list of input streams and creates a time series for each input
-      stream but on the same C{Controler} where the first column is used to
-      create the time nodes.
-      """
+      """reads a list of input streams and creates a time series for each input stream but on the same Controler where the first column
+         is used to create the time nodes"""
       def __init__(self,list_of_istreams,buffer_size=DEFAULT_BUFFER_SIZE,seperator=",",commend_tag="#",debug=False):
          TimeSeriesBase.__init__(self,debug=debug,description="reader")
-         if not isinstance(list_of_istreams,list):
+         if not isinstance(list_of_istreams,list): 
               self.__list_of_istreams=[list_of_istreams]
          else:
               self.__list_of_istreams=list_of_istreams
@@ -900,7 +713,7 @@ class Reader(TimeSeriesBase):
            line=self.__commend_tag
            while  not line=="" and line[0]==self.__commend_tag:
                line=i.readline().strip()
-           if line=="":
+           if line=="": 
               list_of_istreams.remove(i)
            else:
               d=line.split(self.__seperator)
@@ -910,7 +723,7 @@ class Reader(TimeSeriesBase):
               self.__v[i]=numarray.array(tmp)
               self.__time_series[i]=DataCatcher(self.__cntrl,len(d)-1,str(i))
 
-         #
+         # 
       def run(self):
          while len(self.__list_of_istreams)>0:
             if len(self.__time_series)>0:
@@ -932,7 +745,7 @@ class Reader(TimeSeriesBase):
                    while not line=="" and line[0]==self.__commend_tag:
                        line=i.readline().strip()
                    # if eof reached iostream is removed for searching
-                   if line=="":
+                   if line=="": 
                       self.__list_of_istreams.remove(i)
                    else:
                       d=line.split(self.__seperator)
@@ -942,17 +755,11 @@ class Reader(TimeSeriesBase):
                       self.__v[i]=numarray.array(tmp)
 
       def getControler(self):
-         """
-         Returns the Controler shared by all time series created through the
-         input streams.
-         """
+         """returns the controler shared by all time series created through the input streams"""
          return self.__cntrl
 
       def getTimeSeries(self,istream=None):
-         """
-         Returns the time series as a tuple. If C{istream} is present its time
-         series is returned.
-         """
+         """returns the time series as a tuple. If istream is present its time series is returned"""
          if istream==None:
             out=self.__time_series.values()
             if len(out)>1:
@@ -970,7 +777,7 @@ class Plotter(TimeSeriesOperator):
          if isinstance(time_series,list):
              dbg=time_series[0].getControler().debug()
              text=""
-             for i in time_series:
+             for i in time_series: 
                if len(text)==0:
                   text=str(i)
                else:
@@ -1001,23 +808,21 @@ class Plotter(TimeSeriesOperator):
          self.__line_plot.setData(*args)
          self.__line_plot.render()
          if self.__file_name==None:
-             raise SystemError,"Online viewing is not available yet!"
+             raise SystemError,"Online viewing is not avilabel yet!"
          else:
              self.__renderer.save(fname=self.__file_name, format=self.__format)
-
+             
 
 def viewer(time_serie,seperator=","):
-      """
-      Creates a viewer for a time series.
-      """
+      """creates a viewer for a time series"""
       import sys
       return Writer(time_serie,sys.stdout,seperator)
 
 def differential(time_serie):
-      """
-      Calculates the derivative M{Dv} of the time series v:
+      """calculates the derivative Dv of the time series v:
+         
+            Dv[n]=(v[n]-v[n-1])/(t[n]-t[n-1])
 
-      M{Dv[n]=(v[n]-v[n-1])/(t[n]-t[n-1])}
       """
       out=(((time_serie<<1)-time_serie)/((time_serie.getControler()<<1)-time_serie.getControler())+ \
            ((time_serie>>1)-time_serie)/((time_serie.getControler()>>1)-time_serie.getControler()))/2.
@@ -1026,11 +831,9 @@ def differential(time_serie):
       return out
 
 def integral(time_serie):
-      """
-      Calculates the intagral M{Iv} of the time series v using the trapezoidal
-      rule:
-
-      M{Iv[n]=int_{t_0}^{t_n} v ~ sum_{0<i<=n} n (v[i]+v[i-1])/2*(t[i]-t[i-1])}
+      """calculates the intagral Iv of the time series v using the trapozidal rule:
+         
+            Iv[n]=int_{t_0}^{t_n} v ~ sum_{0<i<=n} n (v[i]+v[i-1])/2*(t[i]-t[i-1])
 
       """
       out=TimeSeriesCumulativeSum(((time_serie>>1)+time_serie)/2.*(time_serie.getControler()-(time_serie.getControler()>>1)))
@@ -1039,10 +842,7 @@ def integral(time_serie):
       return out
 
 def smooth(time_serie,range=5):
-     """
-     Smoothes a time series using the previous and next range values at each
-     time.
-     """
+     """smoothes a time series using the at each time the previous and next range values"""
      i=integral(time_serie)
      out=((i>>range)-(i<<range))/((time_serie.getControler()>>range)-(time_serie.getControler()<<range))
      out.setDescription("smooth(%s,-%d:%d) dt"%(str(time_serie),range,range))
@@ -1050,11 +850,7 @@ def smooth(time_serie,range=5):
      return out
 
 def leakySmooth(time_serie,l=0.99):
-     """
-     Leaky smoother:
-
-     M{s(t)=int_{t_0}^{t} v(r) l^{t-r} dr/ int_{t_0}^{t} l^{t-r} dr}
-     """
+     """leaky smoother: s(t)=int_{t_0}^{t} v(r) l^{t-r} dr/ int_{t_0}^{t} l^{t-r} dr """
      w=l**(-time_serie.getControler())
      out=integrate(time_serie*w)/integrate(w)
      out.setDescription("leaky smoother(%s)"%str(time_serie))
@@ -1084,19 +880,19 @@ if __name__=="__main__":
    b=Controler(buffer_size=15,debug=True)
    s3=b>>3
    s1=b>>1
-   s_3=b<<3
+   s_3=b<<3 
    print s_3
    print b
    print b+s3
    sum=(s_3+b)+(b+s3)
-
+   
    for i in range(30):
        b.nextTime(i*1.)
    b.flush()
    print "should be all 28. :",s_3.getDataset()[25],b.getDataset()[28],s3.getDataset()[31]
    print "should be all 29. :",s_3.getDataset()[26],b.getDataset()[29],s3.getDataset()[32]
    print "should be all 96. :",sum.getDataset()[24]
-
+  
    print "Test of operators"
    print "================="
    b=Controler(buffer_size=15,debug=True)
@@ -1157,7 +953,7 @@ if __name__=="__main__":
    print "q[28] should be %e: %e"%(28*28.,q[28])
    print "q[29] should be %e: %e"%(29*28.,q[29])
    fl.flush()
-
+   
    rin=Reader(file("/tmp/test.csv","r+"),buffer_size=15,debug=True)
    rin.run()
    inp=rin.getTimeSeries()

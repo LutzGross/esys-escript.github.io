@@ -29,60 +29,26 @@
 #include <boost/python/extract.hpp>
 #include "DataMaths.h"
 
+#define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {throw DataException("Attempt to modify shared object");}
+
+// #define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {std::ostringstream ss; ss << " Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__; throw DataException(ss.str());}
+
 using namespace std;
 using namespace boost::python;
 
 namespace escript {
 
-DataConstant::DataConstant(const boost::python::numeric::array& value,
+DataConstant::DataConstant(const WrappedArray& value,
                            const FunctionSpace& what)
-  : parent(what,DataTypes::shapeFromNumArray(value))
+  : parent(what,value.getShape())
 {
-//   // extract the shape of the numarray
-//   DataTypes::ShapeType tempShape;
-//   for (int i=0; i < value.getrank(); i++) {
-//     tempShape.push_back(extract<int>(value.getshape()[i]));
-//   }
-
-  // get the space for the data vector
-//   int len = getNoValues();
-//   DataVector temp_data(len, 0.0, len);
-//   DataArrayView temp_dataView(temp_data, tempShape);
-//   temp_dataView.copy(value);
-
-  m_data.copyFromNumArray(value,1);
-  //
-
-  // copy the data in the correct format
-//   m_data=temp_data;
-  //
-  // create the view of the data
-//   DataArrayView tempView(m_data,temp_dataView.getShape());
-//   setPointDataView(tempView);
+  m_data.copyFromArray(value);
 }
-
-// DataConstant::DataConstant(const DataArrayView& value,
-//                            const FunctionSpace& what)
-//   : DataAbstract(what)
-// {
-//   //
-//   // copy the data in the correct format
-//   m_data=value.getData();
-//   //
-//   // create the view of the data
-//   DataArrayView tempView(m_data,value.getShape());
-//   setPointDataView(tempView);
-// }
 
 DataConstant::DataConstant(const DataConstant& other)
   : parent(other.getFunctionSpace(),other.getShape())
-{  //
-  // copy the data in the correct format
+{ 
   m_data=other.m_data;
-  //
-//   // create the view of the data
-//   DataArrayView tempView(m_data,other.getPointDataView().getShape());
-//   setPointDataView(tempView);
 }
 
 DataConstant::DataConstant(const DataConstant& other,
@@ -188,6 +154,7 @@ DataConstant::setSlice(const DataAbstract* value,
   if (tempDataConst==0) {
     throw DataException("Programming error - casting to DataConstant.");
   }
+  CHECK_FOR_EX_WRITE
   //
   DataTypes::ShapeType shape(DataTypes::getResultSliceShape(region));
   DataTypes::RegionLoopRangeType region_loop_range=DataTypes::getSliceRegionLoopRange(region);
@@ -300,6 +267,7 @@ DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
 void
 DataConstant::setToZero()
 {
+    CHECK_FOR_EX_WRITE
     DataTypes::ValueType::size_type n=m_data.size();
     for (int i=0; i<n ;++i) m_data[i]=0.;
 }
@@ -379,6 +347,27 @@ DataConstant::dump(const std::string fileName) const
    #else
    throw DataException("Error - DataConstant:: dump is not configured with netCDF. Please contact your installation manager.");
    #endif
+}
+
+// These used to be marked as inline in DataConstant.
+// But they are marked virtual in DataReady
+DataTypes::ValueType&
+DataConstant::getVector()
+{
+  CHECK_FOR_EX_WRITE
+  return m_data;
+}
+
+const DataTypes::ValueType&
+DataConstant::getVector() const
+{
+  return m_data;
+}
+
+const DataTypes::ValueType&
+DataConstant::getVectorRO() const
+{
+  return m_data;
 }
 
 }  // end of namespace

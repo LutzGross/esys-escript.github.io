@@ -37,7 +37,8 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
   FILE * fileHandle_p = NULL;
   int i,j,k,i_data, elementtype, numPoints = 0, nDim, *resortIndex=NULL, p,
       numDXNodesPerElement=0, numCells, NN, object_count, rank, nComp, numPointsPerSample;
-  double* values,rtmp;
+  __const double* values;
+  double rtmp;
   bool_t *isCellCentered=NULL;
   Finley_ElementFile* elements=NULL;
   ElementTypeId TypeId;
@@ -237,9 +238,10 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
                 numPointsPerSample=elements->ReferenceElement->numQuadNodes;
              }
              if (numPointsPerSample>0) {
+		void* buffer=allocSampleBuffer(data_pp[i_data]);
                 fprintf(fileHandle_p, "items %d data follows\n", numCells);
                 for (i=0;i<elements->numElements;i++) {
-                    values=getSampleData(data_pp[i_data],i);
+                    values=getSampleDataRO(data_pp[i_data],i,buffer);
                     for (k=0;k<nComp;k++) {
                         if ( isExpanded(data_pp[i_data]) ) {
                             rtmp=0.;
@@ -251,15 +253,18 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
                     }
 	            fprintf(fileHandle_p, "\n");
                 }
+		freeSampleBuffer(buffer);
                 fprintf(fileHandle_p, "attribute \"dep\" string \"connections\"\n");
             }
          } else {
+	     void* buffer=allocSampleBuffer(data_pp[i_data]);
              fprintf(fileHandle_p, "items %d data follows\n", numPoints);
              for (i=0;i<numPoints;i++) {
-                   values=getSampleData(data_pp[i_data],i);
+                   values=getSampleDataRO(data_pp[i_data],i,buffer);
                    for (k=0;k<nComp;k++) fprintf(fileHandle_p, " %g", values[k]);
 	           fprintf(fileHandle_p, "\n");
              }
+	     freeSampleBuffer(buffer);
              fprintf(fileHandle_p, "attribute \"dep\" string \"positions\"\n");
          }
      }

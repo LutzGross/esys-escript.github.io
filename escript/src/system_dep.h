@@ -74,4 +74,14 @@
 #ifndef ESCRIPT_MAX_DATA_RANK
 #define ESCRIPT_MAX_DATA_RANK 4
 #endif
+
+/* you'll need this one day. */
+#ifndef __const
+# if (defined __STDC__ && __STDC__) || defined __cplusplus
+#  define __const	const
+# else
+#  define __const
+# endif
+#endif
+
 #endif
