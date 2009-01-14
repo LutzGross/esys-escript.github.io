@@ -108,6 +108,13 @@ DataEmpty::getVector() const
   return dummy;			// dead code to stop the compiler complaining
 }
 
+const DataTypes::ValueType&
+DataEmpty::getVectorRO() const
+{
+  throwStandardException("getVector");	// always throws but the compiler doesn't know that.
+  return dummy;			// dead code to stop the compiler complaining
+}
+
 
 void
 DataEmpty::dump(const std::string fileName) const

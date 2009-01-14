@@ -293,6 +293,9 @@ typedef DataReady parent;
   const DataTypes::ValueType&
   getVector() const;
 
+  ESCRIPT_DLL_API
+  const DataTypes::ValueType&
+  getVectorRO() const;
 
  protected:
 
@@ -302,21 +305,6 @@ typedef DataReady parent;
   DataTypes::ValueType m_data;
 
 };
-
-inline
-DataTypes::ValueType&
-DataConstant::getVector()
-{
-  return m_data;
-}
-
-inline
-const DataTypes::ValueType&
-DataConstant::getVector() const
-{
-  return m_data;
-}
-
 
 } // end of namespace
 #endif

@@ -1592,19 +1592,35 @@ ESCRIPT_DLL_API void freeSampleBuffer(DataTypes::ValueType* buffer);
 //   boost::shared_ptr<DataAbstract> m_data;
   DataAbstract_ptr m_data;
 
-// If possible please use getReadyPtr instead
+// If possible please use getReadyPtr instead.
+// But see warning below.
   const DataReady*
   getReady() const;
 
   DataReady*
   getReady();
 
+
+// Be wary of using this for local operations since it (temporarily) increases reference count.
+// If you are just using this to call a method on DataReady instead of DataAbstract consider using 
+// getReady() instead
   DataReady_ptr
   getReadyPtr();
 
   const_DataReady_ptr
   getReadyPtr() const;
 
+  /**
+  \brief if another object is sharing out member data make a copy to work with instead. 
+  */
+  void exclusiveWrite()
+  {
+	if (!m_data.unique())
+	{
+	   DataAbstract* t=m_data->deepCopy();
+	   m_data=DataAbstract_ptr(t);
+	}
+  }
 
 };
 
@@ -1638,6 +1654,9 @@ Data::getReady()
    return dr;
 }
 
+// Be wary of using this for local operations since it (temporarily) increases reference count.
+// If you are just using this to call a method on DataReady instead of DataAbstract consider using 
+// getReady() instead
 inline
 DataReady_ptr
 Data::getReadyPtr()
@@ -1665,6 +1684,7 @@ Data::getSampleDataRW(DataAbstract::ValueType::size_type sampleNo)
    {
 	resolve();
    }
+   exclusiveWrite();
    return getReady()->getSampleData(sampleNo);
 }
 
@@ -1676,7 +1696,10 @@ Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo, DataTypes::Va
    if (l!=0)
    {
 	size_t offset=0;
-	EsysAssert((buffer!=NULL),"Error attempt to getSampleDataRO for lazy Data with buffer==NULL");
+	if (buffer==NULL)
+	{
+		throw DataException("Error attempt to getSampleDataRO for lazy Data with buffer==NULL");
+	}
 	const DataTypes::ValueType* res=l->resolveSample(*buffer,0,sampleNo,offset);
 	return &((*res)[offset]);
    }
@@ -2048,7 +2071,7 @@ C_TensorBinaryOperation(Data const &arg_0,
 
       // Prepare offset into DataConstant
       int offset_0 = tmp_0->getPointOffset(0,0);
-      double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+      const double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
       // Get the views
 //       DataArrayView view_1 = tmp_1->getDefaultValue();
 //       DataArrayView view_2 = tmp_2->getDefaultValue();
@@ -2057,7 +2080,7 @@ C_TensorBinaryOperation(Data const &arg_0,
 //       double *ptr_2 = &((view_2.getData())[0]);
 
       // Get the pointers to the actual data
-      double *ptr_1 = &(tmp_1->getDefaultValue(0));
+      const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
       double *ptr_2 = &(tmp_2->getDefaultValue(0));
 
       // Compute a result for the default
@@ -2071,7 +2094,7 @@ C_TensorBinaryOperation(Data const &arg_0,
         DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
         double *ptr_1 = &view_1.getData(0);
         double *ptr_2 = &view_2.getData(0);*/
-        double *ptr_1 = &(tmp_1->getDataByTag(i->first,0));
+        const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
         double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
 
         tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
@@ -2130,7 +2153,7 @@ C_TensorBinaryOperation(Data const &arg_0,
 //       double *ptr_0 = &((view_0.getData())[0]);
 //       double *ptr_2 = &((view_2.getData())[0]);
       // Get the pointers to the actual data
-      double *ptr_0 = &(tmp_0->getDefaultValue(0));
+      const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
       double *ptr_2 = &(tmp_2->getDefaultValue(0));
       // Compute a result for the default
       tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
@@ -2143,7 +2166,7 @@ C_TensorBinaryOperation(Data const &arg_0,
 //         DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
 //         double *ptr_0 = &view_0.getData(0);
 //         double *ptr_2 = &view_2.getData(0);
-        double *ptr_0 = &(tmp_0->getDataByTag(i->first,0));
+        const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
         double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
         tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
       }
@@ -2172,8 +2195,8 @@ C_TensorBinaryOperation(Data const &arg_0,
 //       double *ptr_2 = &((view_2.getData())[0]);
 
       // Get the pointers to the actual data
-      double *ptr_0 = &(tmp_0->getDefaultValue(0));
-      double *ptr_1 = &(tmp_1->getDefaultValue(0));
+      const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
+      const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
       double *ptr_2 = &(tmp_2->getDefaultValue(0));
 
       // Compute a result for the default
@@ -2192,15 +2215,8 @@ C_TensorBinaryOperation(Data const &arg_0,
       const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
       for (i=lookup_2.begin();i!=lookup_2.end();i++) {
 
-//         DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
-//         DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
-//         DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
-//         double *ptr_0 = &view_0.getData(0);
-//         double *ptr_1 = &view_1.getData(0);
-//         double *ptr_2 = &view_2.getData(0);
-
-        double *ptr_0 = &(tmp_0->getDataByTag(i->first,0));
-        double *ptr_1 = &(tmp_1->getDataByTag(i->first,0));
+        const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
+        const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
         double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
 
         tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
@@ -2226,8 +2242,6 @@ C_TensorBinaryOperation(Data const &arg_0,
           int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
 
-//           double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
-//           double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
           double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
           double *ptr_2 = &(res.getDataAtOffset(offset_2));
 
@@ -2353,7 +2367,7 @@ C_TensorBinaryOperation(Data const &arg_0,
 //       // Get the pointers to the actual data
 //       double *ptr_1 = &((view_1.getData())[0]);
 //       double *ptr_2 = &((view_2.getData())[0]);
-       double *ptr_1 = &(tmp_1->getDefaultValue(0));
+       const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
        double *ptr_2 = &(tmp_2->getDefaultValue(0));
 
       // Compute a result for the default
@@ -2367,7 +2381,7 @@ C_TensorBinaryOperation(Data const &arg_0,
 //         DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
 //         double *ptr_1 = &view_1.getData(0);
 //         double *ptr_2 = &view_2.getData(0);
-        double *ptr_1 = &(tmp_1->getDataByTag(i->first,0));
+        const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
         double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
         tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
       }
@@ -2423,7 +2437,7 @@ C_TensorBinaryOperation(Data const &arg_0,
       double *ptr_2 = &((view_2.getData())[0]);*/
 
       // Get the pointers to the actual data
-      double *ptr_0 = &(tmp_0->getDefaultValue(0));
+      const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
       double *ptr_2 = &(tmp_2->getDefaultValue(0));
 
 
@@ -2438,7 +2452,7 @@ C_TensorBinaryOperation(Data const &arg_0,
         DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
         double *ptr_0 = &view_0.getData(0);
         double *ptr_2 = &view_2.getData(0);*/
-        double *ptr_0 = &(tmp_0->getDataByTag(i->first,0));
+        const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
         double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
 
         tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
@@ -2468,8 +2482,8 @@ C_TensorBinaryOperation(Data const &arg_0,
       double *ptr_2 = &((view_2.getData())[0]);*/
 
       // Get the pointers to the actual data
-      double *ptr_0 = &(tmp_0->getDefaultValue(0));
-      double *ptr_1 = &(tmp_1->getDefaultValue(0));
+      const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
+      const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
       double *ptr_2 = &(tmp_2->getDefaultValue(0));
 
 
@@ -2496,8 +2510,8 @@ C_TensorBinaryOperation(Data const &arg_0,
         double *ptr_1 = &view_1.getData(0);
         double *ptr_2 = &view_2.getData(0);*/
 
-        double *ptr_0 = &(tmp_0->getDataByTag(i->first,0));
-        double *ptr_1 = &(tmp_1->getDataByTag(i->first,0));
+        const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
+        const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
         double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
 
         tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
@@ -2640,7 +2654,7 @@ C_TensorBinaryOperation(Data const &arg_0,
       double *ptr_1 = &((view_1.getData())[0]);
       double *ptr_2 = &((view_2.getData())[0]);*/
       //Get the pointers to the actual data
-      double *ptr_1 = &(tmp_1->getDefaultValue(0));
+      const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
       double *ptr_2 = &(tmp_2->getDefaultValue(0));
 
       // Compute a result for the default
@@ -2654,7 +2668,7 @@ C_TensorBinaryOperation(Data const &arg_0,
 //         DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
 //         double *ptr_1 = &view_1.getData(0);
 //         double *ptr_2 = &view_2.getData(0);
-        double *ptr_1 = &(tmp_1->getDataByTag(i->first,0));
+        const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
         double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
 
 
@@ -2709,7 +2723,7 @@ C_TensorBinaryOperation(Data const &arg_0,
 //       double *ptr_0 = &((view_0.getData())[0]);
 //       double *ptr_2 = &((view_2.getData())[0]);
       // Get the pointers to the actual data
-      double *ptr_0 = &(tmp_0->getDefaultValue(0));
+      const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
       double *ptr_2 = &(tmp_2->getDefaultValue(0));
       // Compute a result for the default
       tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
@@ -2722,7 +2736,7 @@ C_TensorBinaryOperation(Data const &arg_0,
         DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
         double *ptr_0 = &view_0.getData(0);
         double *ptr_2 = &view_2.getData(0);*/
-        double *ptr_0 = &(tmp_0->getDataByTag(i->first,0));
+        const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
         double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
         tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
       }
@@ -2751,8 +2765,8 @@ C_TensorBinaryOperation(Data const &arg_0,
 //       double *ptr_2 = &((view_2.getData())[0]);
 
       // Get the pointers to the actual data
-      double *ptr_0 = &(tmp_0->getDefaultValue(0));
-      double *ptr_1 = &(tmp_1->getDefaultValue(0));
+      const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
+      const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
       double *ptr_2 = &(tmp_2->getDefaultValue(0));
 
       // Compute a result for the default
@@ -2777,8 +2791,8 @@ C_TensorBinaryOperation(Data const &arg_0,
 //         double *ptr_1 = &view_1.getData(0);
 //         double *ptr_2 = &view_2.getData(0);
 
-        double *ptr_0 = &(tmp_0->getDataByTag(i->first,0));
-        double *ptr_1 = &(tmp_1->getDataByTag(i->first,0));
+        const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
+        const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
         double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
         tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
       }
@@ -2944,7 +2958,7 @@ C_TensorUnaryOperation(Data const &arg_0,
 //     double *ptr_0 = &((view_0.getData())[0]);
 //     double *ptr_2 = &((view_2.getData())[0]);
     // Get the pointers to the actual data
-    double *ptr_0 = &(tmp_0->getDefaultValue(0));
+    const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
     double *ptr_2 = &(tmp_2->getDefaultValue(0));
     // Compute a result for the default
     tensor_unary_operation(size0, ptr_0, ptr_2, operation);
@@ -2957,7 +2971,7 @@ C_TensorUnaryOperation(Data const &arg_0,
 //       DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
 //       double *ptr_0 = &view_0.getData(0);
 //       double *ptr_2 = &view_2.getData(0);
-      double *ptr_0 = &(tmp_0->getDataByTag(i->first,0));
+      const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
       double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
       tensor_unary_operation(size0, ptr_0, ptr_2, operation);
     }

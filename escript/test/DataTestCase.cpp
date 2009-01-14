@@ -1402,7 +1402,6 @@ TestSuite* DataTestCase::suite ()
   testSuite->addTest (new TestCaller< DataTestCase>("testConstructors",&DataTestCase::testConstructors));
   testSuite->addTest (new TestCaller< DataTestCase>("testSlicing",&DataTestCase::testSlicing));
   testSuite->addTest (new TestCaller< DataTestCase>("testOperations",&DataTestCase::testOperations));
-  //testSuite->addTest (new TestCaller< DataTestCase>("testRefValue",&DataTestCase::testRefValue));
   testSuite->addTest (new TestCaller< DataTestCase>("testMemAlloc",&DataTestCase::testMemAlloc));
   testSuite->addTest (new TestCaller< DataTestCase>("Resolving",&DataTestCase::testResolveType));
 

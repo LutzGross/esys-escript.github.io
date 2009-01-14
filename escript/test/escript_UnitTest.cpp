@@ -29,6 +29,7 @@
 #include "DataMathsTestCase.h"
 #include "DataTypesTestCase.h"
 #include "DataLazyTestCase.h"
+#include "SharedDataTestCase.h"
 
 #include "tools/CppUnitTest/TestRunner.h"
 
@@ -52,6 +53,7 @@ int main(int argc, char* argv[])
 	TestRunner runner;
 	//
 	// add the RangeTestCase suite of tests to the runner
+	runner.addTest ("SharedData", SharedDataTestCase::suite());
 	runner.addTest ("DataTypes", DataTypesTestCase::suite());
 	runner.addTest ("DataMaths", DataMathsTestCase::suite());
 	runner.addTest ("DataEmpty", DataEmptyTestCase::suite());

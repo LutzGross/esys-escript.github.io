@@ -32,6 +32,11 @@ using namespace boost::python;
 using namespace boost;
 using namespace escript::DataTypes;
 
+
+#define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {throw DataException("Attempt to modify shared object");}
+
+// #define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {std::ostringstream ss; ss << " Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__; throw DataException(ss.str());}
+
 namespace escript {
 
 DataExpanded::DataExpanded(const WrappedArray& value,
@@ -200,6 +205,7 @@ DataExpanded::setSlice(const DataAbstract* value,
   if (tempDataExp==0) {
     throw DataException("Programming error - casting to DataExpanded.");
   }
+  CHECK_FOR_EX_WRITE
   //
   // get shape of slice
   DataTypes::ShapeType shape(DataTypes::getResultSliceShape(region));
@@ -339,6 +345,7 @@ DataExpanded::getLength() const
 
 void
 DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const double value) {
+  CHECK_FOR_EX_WRITE
   //
   // Get the number of samples and data-points per sample.
   int numSamples = getNumSamples();
@@ -391,6 +398,7 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const d
 
 void
 DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const WrappedArray& value) {
+  CHECK_FOR_EX_WRITE
   //
   // Get the number of samples and data-points per sample.
   int numSamples = getNumSamples();
@@ -581,6 +589,7 @@ void
 DataExpanded::setToZero(){
 // TODO: Surely there is a more efficient way to do this????
 // Why is there no memset here? Parallel issues?
+  CHECK_FOR_EX_WRITE
   int numSamples = getNumSamples();
   int numDataPointsPerSample = getNumDPPSample();
   DataTypes::ValueType::size_type n = getNoValues();
@@ -697,6 +706,7 @@ DataExpanded::setTaggedValue(int tagKey,
                const DataTypes::ValueType& value,
 	       int dataOffset)
 {
+  CHECK_FOR_EX_WRITE
   int numSamples = getNumSamples();
   int numDataPointsPerSample = getNumDPPSample();
   int sampleNo,dataPointNo, i;
@@ -723,6 +733,7 @@ DataExpanded::setTaggedValue(int tagKey,
 void
 DataExpanded::reorderByReferenceIDs(int *reference_ids)
 {
+  CHECK_FOR_EX_WRITE
   int numSamples = getNumSamples();
   DataTypes::ValueType::size_type n = getNoValues() * getNumDPPSample();
   int sampleNo, sampleNo2,i;
@@ -760,6 +771,7 @@ DataExpanded::reorderByReferenceIDs(int *reference_ids)
 DataTypes::ValueType&
 DataExpanded::getVector()
 {
+	CHECK_FOR_EX_WRITE
 	return m_data.getData();
 }
 
@@ -768,5 +780,12 @@ DataExpanded::getVector() const
 {
 	return m_data.getData();
 }
+
+const DataTypes::ValueType&
+DataExpanded::getVectorRO() const
+{
+	return m_data.getData();
+}
+
 
 }  // end of namespace
