@@ -44,6 +44,10 @@ public:
   double*
   getSampleData(ValueType::size_type sampleNo);
 
+  ESCRIPT_DLL_API
+  const double*
+  getSampleDataRO(ValueType::size_type sampleNo) const;
+
   /**
      This function is required primarily for LazyData. For ReadyData it returns 1. (Behaviour subject to change).
   */
@@ -110,12 +114,18 @@ DataReady::getSampleData(ValueType::size_type sampleNo)
   return &(getVector()[getPointOffset(sampleNo,0)]);		// exclusive write checks will be done in getVector()
 }
 
+inline const double*
+DataReady::getSampleDataRO(ValueType::size_type sampleNo) const
+{
+  return &(getVectorRO()[getPointOffset(sampleNo,0)]);		
+}
+
 
 inline
 DataTypes::ValueType::const_reference
 DataReady::getDataAtOffset(DataTypes::ValueType::size_type i) const
 {
-   return getVector()[i];
+   return getVectorRO()[i];
 }
 
 inline

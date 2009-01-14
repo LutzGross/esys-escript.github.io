@@ -1703,7 +1703,7 @@ Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo, DataTypes::Va
 	const DataTypes::ValueType* res=l->resolveSample(*buffer,0,sampleNo,offset);
 	return &((*res)[offset]);
    }
-   return getReady()->getSampleData(sampleNo);
+   return getReady()->getSampleDataRO(sampleNo);
 }
 
 

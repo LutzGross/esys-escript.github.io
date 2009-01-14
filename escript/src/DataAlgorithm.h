@@ -176,13 +176,11 @@ struct AbsLTE : public std::binary_function<double,double,double>
    \brief
    Perform the given operation upon all values in all data-points in the
    given Data object and return the final result.
-
-   Calls DataArrayView::reductionOp
 */
 template <class BinaryFunction>
 inline
 double
-algorithm(DataExpanded& data,
+algorithm(const DataExpanded& data,
           BinaryFunction operation,
 	  double initial_value)
 {
@@ -192,7 +190,7 @@ algorithm(DataExpanded& data,
   double global_current_value=initial_value;
   double local_current_value;
 //  DataArrayView dataView=data.getPointDataView();
-  DataTypes::ValueType& vec=data.getVector();
+  const DataTypes::ValueType& vec=data.getVectorRO();
   const DataTypes::ShapeType& shape=data.getShape();
   // calculate the reduction operation value for each data point
   // reducing the result for each data-point into the current_value variables
@@ -223,7 +221,7 @@ algorithm(DataTagged& data,
 {
   double current_value=initial_value;
 
-  DataTypes::ValueType& vec=data.getVector();
+  const DataTypes::ValueType& vec=data.getVectorRO();
   const DataTypes::ShapeType& shape=data.getShape();
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   const std::list<int> used=data.getFunctionSpace().getListOfTagsSTL();
@@ -253,8 +251,7 @@ algorithm(DataConstant& data,
           BinaryFunction operation,
 	  double initial_value)
 {
-  return DataMaths::reductionOp(data.getVector(),data.getShape(),0,operation,initial_value);
-//  return data.getPointDataView().reductionOp(operation,initial_value);
+  return DataMaths::reductionOp(data.getVectorRO(),data.getShape(),0,operation,initial_value);
 }
 
 /**
