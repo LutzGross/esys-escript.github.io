@@ -42,6 +42,7 @@ void Paso_FCTransportProblem_free(Paso_FCTransportProblem* in) {
            Paso_MPIInfo_free(in->mpi_info);
            Paso_Coupler_free(in->u_coupler);
            MEMFREE(in->u);
+           MEMFREE(in->constraint_weights);
            MEMFREE(in->main_iptr);
            MEMFREE(in->lumped_mass_matrix);
            MEMFREE(in->main_diagonal_low_order_transport_matrix);
@@ -90,11 +91,18 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_System
      out->reference_counter=0;
      out->theta=theta;
      out->dt_max=LARGE_POSITIVE_FLOAT;
+     out->constraint_factor=sqrt(LARGE_POSITIVE_FLOAT);
+     if (out->theta < 1.) {
+            out->dt_factor=MIN(1./(1.-out->theta),DT_FACTOR_MAX);
+     } else {
+            out->dt_factor=DT_FACTOR_MAX;
+     }
      out->valid_matrices=FALSE;
      out->transport_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size);
      out->mass_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size);
      out->iteration_matrix=NULL;
      out->u=NULL;
+     out->constraint_weights=NULL;
      out->mpi_info=Paso_MPIInfo_getReference(pattern->mpi_info);
      out->main_iptr=NULL;
      out->lumped_mass_matrix=NULL;
@@ -103,14 +111,14 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_System
      if (Paso_noError()) {
          n=Paso_SystemMatrix_getTotalNumRows(out->transport_matrix);
          transport_pattern=out->transport_matrix->pattern;
-
          out->u=MEMALLOC(n,double);
+         out->constraint_weights=MEMALLOC(n,double);
          out->main_iptr=MEMALLOC(n,index_t);
          out->lumped_mass_matrix=MEMALLOC(n,double);
          out->main_diagonal_low_order_transport_matrix=MEMALLOC(n,double);
          out->u_coupler=Paso_Coupler_alloc(Paso_FCTransportProblem_borrowConnector(out),block_size);
 
-         if ( ! (Paso_checkPtr(out->u) || Paso_checkPtr(out->main_iptr) || 
+         if ( ! (Paso_checkPtr(out->u) || Paso_checkPtr(out->main_iptr) || Paso_checkPtr(out->constraint_weights) || 
                  Paso_checkPtr(out->lumped_mass_matrix) || Paso_checkPtr(out->main_diagonal_low_order_transport_matrix)) && Paso_noError()  ) {
              
              #pragma omp parallel 
@@ -190,3 +198,42 @@ index_t Paso_FCTransportProblem_getTypeId(const index_t solver,const index_t pre
    return MATRIX_FORMAT_DEFAULT + MATRIX_FORMAT_BLK1;
 }
 
+void Paso_FCTransportProblem_setUpConstraint(Paso_FCTransportProblem* fctp,  const double* q, const double factor)
+{
+   dim_t i, n;
+   register double m, rtmp;
+   double factor2= fctp->dt_factor * factor;
+   n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
+
+   if ( fctp->valid_matrices ) {
+      Paso_setError(VALUE_ERROR, "Paso_FCTransportProblem_insertConstraint: you must not insert a constraint is a valid system.");
+      return;
+   }
+   if (factor<=0) {
+      Paso_setError(VALUE_ERROR, "Paso_FCTransportProblem_insertConstraint: constraint_factor needs to be positive.");
+      return;
+   }
+
+   
+   #pragma omp for schedule(static) private(i,m,rtmp)
+   for (i=0;i<n;++i) {
+        if (q[i]>0) {
+           m=fctp->mass_matrix->mainBlock->val[fctp->main_iptr[i]];
+           rtmp=factor2 * (m == 0 ? 1 : m);
+           fctp->constraint_weights[i]=rtmp;
+           fctp->mass_matrix->mainBlock->val[fctp->main_iptr[i]]=m+rtmp;
+        } else {
+           fctp->constraint_weights[i]=0;
+        }
+   }
+   fctp->constraint_factor=factor;
+}
+
+void Paso_FCTransportProblem_insertConstraint(Paso_FCTransportProblem* fctp,  const double* r,  double* source)
+{
+   dim_t i, n;
+   n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
+
+   #pragma omp for schedule(static) private(i)
+   for (i=0;i<n;++i) source[i]+=fctp->constraint_weights[i] * r[i];
+}

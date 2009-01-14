@@ -181,7 +181,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
         } else {
              dt2=dt;
         }
-        while(t<dt && Paso_noError()) {
+        while( (t<dt*(1.-sqrt(EPSILON))) && Paso_noError()) {
             printf("substep step %d at t=%e (step size= %e)\n",i_substeps+1,t+dt2,dt2);
             Paso_FCT_setUp(fctp,dt2,sourceN,sourceP,b_n,uTilde_n,uTilde_n_coupler,QN_n,QN_n_coupler,QP_n,QP_n_coupler,
                            options,&pp);
@@ -198,6 +198,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                      * now we solve the linear system to get the correction dt:
                      *
                      */
+/* for (i=0;i<n;++i) printf("%d %f \n", i,z_m[i]); */
                      if (fctp->theta > 0) {
                           omega=1./(dt2*fctp->theta);
                           Paso_Solver_solvePreconditioner(fctp->iteration_matrix,du_m,z_m);  
@@ -278,20 +279,20 @@ double Paso_FCTransportProblem_getSafeTimeStepSize(Paso_FCTransportProblem* fctp
    double dt_max, dt_max_loc;
    register double l_ii,m;
    n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
-   if (! fctp->valid_matrices) {
-        fctp->dt_max=LARGE_POSITIVE_FLOAT;
-        /* extract the row sum of the advective part */
-        Paso_SystemMatrix_rowSum(fctp->mass_matrix,fctp->lumped_mass_matrix);
+   if ( ! fctp->valid_matrices) {
+      /* extract the row sum of the advective part */
+      Paso_SystemMatrix_rowSum(fctp->mass_matrix,fctp->lumped_mass_matrix);
 
-        /* set low order transport operator */
-        Paso_FCTransportProblem_setLowOrderOperator(fctp);
+      /* set low order transport operator */
+      Paso_FCTransportProblem_setLowOrderOperator(fctp);
+
+      if (Paso_noError()) {
         /*
          *  calculate time step size:                                           
         */
         dt_max=LARGE_POSITIVE_FLOAT;
-        if (fctp->theta < 1.) {
-            #pragma omp parallel private(dt_max_loc)
-            {
+        #pragma omp parallel private(dt_max_loc)
+        {
                dt_max_loc=LARGE_POSITIVE_FLOAT;
                #pragma omp for schedule(static) private(i,l_ii,m) 
                for (i=0;i<n;++i) {
@@ -305,21 +306,22 @@ double Paso_FCTransportProblem_getSafeTimeStepSize(Paso_FCTransportProblem* fctp
                {
                   dt_max=MIN(dt_max,dt_max_loc);
                }
-            }
-            #ifdef PASO_MPI
-               dt_max_loc = dt_max;
-               MPI_Allreduce(&dt_max_loc, &dt_max, 1, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
-            #endif
-            if (dt_max<LARGE_POSITIVE_FLOAT) dt_max*=1./(1.-fctp->theta);
          }
+         #ifdef PASO_MPI
+             dt_max_loc = dt_max;
+             MPI_Allreduce(&dt_max_loc, &dt_max, 1, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
+         #endif
+printf("dt_max = %e %e\n",dt_max, fctp->dt_factor);
+         if (dt_max<LARGE_POSITIVE_FLOAT) dt_max*=fctp->dt_factor;
          if (dt_max <= 0.)  {
             Paso_setError(TYPE_ERROR,"Paso_SolverFCT_solve: dt must be positive.");
          } else {
             if (dt_max<LARGE_POSITIVE_FLOAT)
                printf("maximum time step size is %e (theta = %e).\n",dt_max,fctp->theta);   
-        }
-        fctp->dt_max=dt_max;
-        fctp->valid_matrices=Paso_noError();
+         }
+         fctp->dt_max=dt_max;
+         fctp->valid_matrices=Paso_noError();
+      }
    }
    return fctp->dt_max;
 }

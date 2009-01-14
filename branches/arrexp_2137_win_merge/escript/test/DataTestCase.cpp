@@ -26,6 +26,14 @@
 
 #include "escript/Data.h"
 #include "escript/DataLazy.h"
+#include "escript/EscriptParams.h"
+
+#define AUTOLAZYON setEscriptParamInt("AUTOLAZY",1);
+#define AUTOLAZYOFF setEscriptParamInt("AUTOLAZY",0);
+#define CHECKAUTOLAZY (getEscriptParamInt("AUTOLAZY")==1)
+#define SAVELAZYSTATE int LAZYSTATE=getEscriptParamInt("AUTOLAZY");
+#define RESTORELAZYSTATE setEscriptParamInt("AUTOLAZY",LAZYSTATE);
+
 
 
 using namespace std;
@@ -93,14 +101,14 @@ void DataTestCase::testCopyingWorker(bool delayed)
   {
 	cout << "\tTest deep copy " << strs[k] << endl;
 	Data* d=dats[k];
-	Data* deep=d->copySelf();	// test self copy
+	Data deep=d->copySelf();	// test self copy
 	if (delayed)
 	{
-	  assert(deep->isLazy());
+	  assert(deep.isLazy());
 	}
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	if (d->getDataAtOffset(i)!=deep->getDataAtOffset(i))
+	if (d->getDataAtOffset(i)!=deep.getDataAtOffset(i))
 		assert(false);
 	}
 	if (delayed)
@@ -114,31 +122,30 @@ void DataTestCase::testCopyingWorker(bool delayed)
 	}
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	if (d->getDataAtOffset(i)==deep->getDataAtOffset(i))
+	if (d->getDataAtOffset(i)==deep.getDataAtOffset(i))
 		assert(false);
 	}
         if (delayed)
 	{
 	   d->delaySelf();
-	   deep->delaySelf();
+	   deep.delaySelf();
 	}
-	d->copy(*deep);			// test copy from object
+	d->copy(deep);			// test copy from object
 	if (delayed)
 	{
 	  assert(d->isLazy());
 	}
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	if (d->getDataAtOffset(i)!=deep->getDataAtOffset(i))
+	if (d->getDataAtOffset(i)!=deep.getDataAtOffset(i))
 		assert(false);
 	}
 	d->setToZero();
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	if (d->getDataAtOffset(i)==deep->getDataAtOffset(i))
+	if (d->getDataAtOffset(i)==deep.getDataAtOffset(i))
 		assert(false);
 	}
-	delete deep;
 	delete dats[k];
   }
 
@@ -410,10 +417,16 @@ void DataTestCase::testSlicing() {
   testSlicingWorker(true);
 }
 
-void DataTestCase::testSome() {
 
+void DataTestCase::testSomeDriver(bool autolazy)
+{
   cout << endl;
-
+  SAVELAZYSTATE
+  if (autolazy)
+  {
+	AUTOLAZYON
+	cout << "\tNow testing using autolazy." << endl;
+  }
   cout << "\tCreate a Data object." << endl;
 
   DataTypes::ShapeType viewShape;
@@ -434,7 +447,8 @@ void DataTestCase::testSome() {
 
   cout << "\tTest some basic operations" << endl;
   result=exData*cData;
-  assert(result.isExpanded());
+  cout << CHECKAUTOLAZY << " " << result.isLazy() << " " << result.isExpanded()<< endl;
+  assert(CHECKAUTOLAZY?result.isLazy():result.isExpanded());
 
   assert(result.Lsup()==4);
   assert(result.sup()==4);
@@ -450,7 +464,13 @@ void DataTestCase::testSome() {
   cout << "\tExercise copyWithMask method" << endl;
   exData.copyWithMask(result, exData.wherePositive());
   assert(!exData.wherePositive().isEmpty());
+  RESTORELAZYSTATE
 
+}
+
+void DataTestCase::testSome() {
+  testSomeDriver(false);
+  testSomeDriver(true);
 }
 
 

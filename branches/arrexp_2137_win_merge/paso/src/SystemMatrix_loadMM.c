@@ -148,7 +148,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	/* get matrix size */
 	if( mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0 )
 	{
-		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Could not parse matrix size");
+		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Could not read sparse matrix size");
                 Paso_MPIInfo_free(mpi_info);
 		fclose( fileHandle_p );
 		return NULL;
@@ -174,7 +174,16 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	for( i=0; i<nz; i++ )
 	{
 		scan_ret = fscanf( fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i] );
-		FSCANF_CHECK(scan_ret, "fscanf: read elements 1")
+		if (scan_ret!=3)
+		{
+			MEMFREE( val );
+			MEMFREE( row_ind );
+			MEMFREE( col_ind );
+			MEMFREE( row_ptr );
+			Paso_MPIInfo_free(mpi_info);
+			fclose(fileHandle_p);
+			return NULL;
+		}
 		row_ind[i]--;
 		col_ind[i]--;
 	}
@@ -200,9 +209,11 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
         output_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
         dist[1]=N;
         input_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
-        mainPattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,M,N,row_ptr,row_ind);
+        mainPattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,M,N,row_ptr,col_ind);
         couplePattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,M,N,NULL,NULL);
-        send=Paso_SharedComponents_alloc(M,0,NULL,NULL,NULL,1,0,mpi_info);
+	dist[0]=M;
+        send=Paso_SharedComponents_alloc(M,0,NULL,NULL,dist,1,0,mpi_info);
+	dist[0]=0;
         connector=Paso_Connector_alloc(send,send);
         pattern=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,output_dist,input_dist,
                                                mainPattern,couplePattern,couplePattern,connector,connector);
@@ -221,7 +232,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
         Paso_MPIInfo_free(mpi_info);
 	MEMFREE( val );
 	MEMFREE( row_ind );
-
 	return out;
 }
 
@@ -295,7 +305,16 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	for( i=0; i<nz; i++ )
 	{
 		scan_ret = fscanf( fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i] );
-		FSCANF_CHECK(scan_ret, "fscanf: read elements 2")
+		if (scan_ret!=3)
+		{
+			MEMFREE( val );
+			MEMFREE( row_ind );
+			MEMFREE( col_ind );
+			MEMFREE( col_ptr );
+			Paso_MPIInfo_free(mpi_info);
+			fclose(fileHandle_p);
+			return NULL;
+		}
 		row_ind[i]--;
 		col_ind[i]--;
 	}
@@ -339,6 +358,59 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	Paso_SharedComponents_free(send);
         Paso_MPIInfo_free(mpi_info);
 	MEMFREE( val );
-	MEMFREE( col_ind );
+	MEMFREE( row_ind );
 	return out;
+}
+
+void Paso_RHS_loadMM_toCSR( char *fileName_p, double *b, dim_t size)
+{
+	FILE *fileHandle_p = NULL;
+	int i, scan_ret;
+	MM_typecode matrixCode;
+        Paso_resetError();
+	/* open the file */
+	fileHandle_p = fopen( fileName_p, "r" );
+	if( fileHandle_p == NULL )
+	{
+		Paso_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Cannot read file for reading.");
+	}
+
+	/* process banner */
+	if( mm_read_banner(fileHandle_p, &matrixCode) != 0 )
+	{
+		Paso_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Error processing MM banner.");
+	}
+	if( !(mm_is_real(matrixCode) && mm_is_general(matrixCode) && mm_is_array(matrixCode)) )
+	{
+
+		Paso_setError(TYPE_ERROR,"Paso_RHS_loadMM_toCSR: found Matrix Market type is not supported.");
+	}
+
+	/* get matrix size */
+	if( mm_read_mtx_array_size(fileHandle_p, &M, &N) != 0 )
+	{
+		Paso_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Could not read sparse matrix size.");
+	}
+	
+	if(M!=size){
+		Paso_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Actual and provided sizes do not match.");
+	}
+
+       if (Paso_noError()) {
+		nz=M;
+		/* perform actual read of elements */
+		for( i=0; i<nz; i++ )
+		{
+			scan_ret = fscanf( fileHandle_p, "%le\n", &b[i] );
+		if (scan_ret!=1)
+		{
+			fclose(fileHandle_p);
+			Paso_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Could not read some of the values.");
+		}
+		}
+        }
+	else {
+		fclose( fileHandle_p );	
+	}
+
 }

@@ -336,7 +336,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
             } else {
                Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
             }
-          } else if (p.numDim==2) {
+          } else if (p.numDim==1) {
             if (p.row_NS == p.col_NS && p.row_NS == p.row_NN && p.col_NS == p.col_NN ) {
                Finley_Assemble_PDE_Single2_1D(p,elements,S,F,A,B,C,D,X,Y);
             } else if ( p.row_NS == p.col_NS &&  2*p.row_NS == p.row_NN && 2*p.col_NS == p.col_NN ) {

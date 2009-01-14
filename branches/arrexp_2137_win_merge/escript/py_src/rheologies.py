@@ -35,39 +35,54 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 from escript import *
 import util
 from linearPDEs import LinearPDE
-from pdetools import HomogeneousSaddlePointProblem,Projector
+from pdetools import Defect, NewtonGMRES, ArithmeticTuple
 
-class PlateMantelModel(HomogeneousSaddlePointProblem):
+class IncompressibleIsotropicKelvinFlow(Defect):
       """
-      This class implements the reology of a self-consistent plate-mantel model proposed in
-      U{Hans-Bernd Muhlhaus<emailto:h.muhlhaus@uq.edu.au>}  and U{Klaus Regenauer-Lieb<mailto:klaus.regenauer-lieb@csiro.au>}: 
-      I{Towards a self-consistent plate mantle model that includes elasticity: simple benchmarks and application to basic modes of convection}, 
-      see U{doi: 10.1111/j.1365-246X.2005.02742.x<http://www3.interscience.wiley.com/journal/118661486/abstract?CRETRY=1&SRETRY=0>}.
+      This class implements the rheology of an isotropic Kelvin material.
 
-      typical usage:
+      Typical usage::
 
-            sp=PlateMantelModel(domain,stress=0,v=0)
-            sp.setTolerance()
-            sp.initialize(...)
-            v,p=sp.solve(v0,p0)
+          sp = IncompressibleIsotropicKelvinFlow(domain, stress=0, v=0)
+          sp.setTolerance()
+          sp.initialize(...)
+          v,p = sp.solve(v0, p0)
+
+      @note: This model has been used in the self-consistent plate-mantle model
+             proposed in U{Hans-Bernd Muhlhaus<emailto:h.muhlhaus@uq.edu.au>}
+             and U{Klaus Regenauer-Lieb<mailto:klaus.regenauer-lieb@csiro.au>}:
+             I{Towards a self-consistent plate mantle model that includes elasticity: simple benchmarks and application to basic modes of convection},
+             see U{doi: 10.1111/j.1365-246X.2005.02742.x<http://www3.interscience.wiley.com/journal/118661486/abstract?CRETRY=1&SRETRY=0>}.
+
       """
-      def __init__(self, domain, stress=0, v=0, p=0, t=0, useJaumannStress=True, **kwargs):
+      def __init__(self, domain, stress=0, v=0, p=0, t=0, numMaterials=1, useJaumannStress=True, **kwargs):
          """
-         initializes PlateMantelModel 
+         Initializes the model.
 
          @param domain: problem domain
          @type domain: L{domain}
-         @param stress: initial stress
+         @param stress: initial deviatoric stress
          @param v: initial velocity field
+         @param p: initial pressure
          @param t: initial time
          @param useJaumannStress: C{True} if Jaumann stress is used
+                                  (not supported yet)
          """
-         HomogeneousSaddlePointProblem.__init__(self,**kwargs)
+         if numMaterials<1:
+            raise ValueError,"at least one material must be defined."
+         super(IncompressibleIsotropicKelvinFlow, self).__init__(**kwargs)
          self.__domain=domain
          self.__t=t
-         self.setSmall()
          self.__vol=util.integrate(1.,Function(self.__domain))
          self.__useJaumannStress=useJaumannStress
+         self.__numMaterials=numMaterials
+         self.__eta_N=[None for i in xrange(self.__numMaterials)]
+         self.__tau_t=[None for i in xrange(self.__numMaterials)]
+         self.__power=[1 for i in xrange(self.__numMaterials)]
+         self.__tau_Y=None
+         self.__friction=None
+         self.__mu=None
+         self.__v_boundary=Vector(0,Solution(self.__domain))
          #=======================
          # state variables:
          #
@@ -79,355 +94,282 @@ class PlateMantelModel(HomogeneousSaddlePointProblem):
          if isinstance(v,Data):
             self.__v=util.interpolate(v,Solution(domain))
          else:
-            self.__v=Data(v,(domain.getDim(),),Solution(domain)) 
+            self.__v=Data(v,(domain.getDim(),),Solution(domain))
          if isinstance(p,Data):
             self.__p=util.interpolate(p,ReducedSolution(domain))
          else:
             self.__p=Data(p,(),ReducedSolution(domain))
-         self.__tau=util.sqrt(0.5)*util.length(self.__stress)
-         self.__D=util.symmetric(util.grad(self.__v))
          #=======================
-         #  parameters
-         #
-         self.__mu=None
-         self.__eta_N=None
-         self.__eta_0=None
-         self.__tau_0=None
-         self.__n=None
-         self.__eta_Y=None
-         self.__tau_Y=None
-         self.__n_Y=None
-         #=======================
-         # solme value to track:
-         #
-	 self.__mu_eff=None
-	 self.__h_eff=None
-	 self.__eta_eff=None
-         #=======================
-         # PDE related stuff 
-         self.__pde_u=LinearPDE(domain,numEquations=self.getDomain().getDim(),numSolutions=self.getDomain().getDim())
-         self.__pde_u.setSymmetryOn()
-         # self.__pde_u.setSolverMethod(preconditioner=LinearPDE.ILU0)
-            
-         self.__pde_prec=LinearPDE(domain)
-         self.__pde_prec.setReducedOrderOn()
-         self.__pde_prec.setSymmetryOn()
+         # PDE related stuff
+         self.__pde_v=LinearPDE(domain,numEquations=self.getDomain().getDim(),numSolutions=self.getDomain().getDim())
+         self.__pde_v.setSymmetryOn()
+         self.__pde_v.setSolverMethod(preconditioner=LinearPDE.RILU)
 
-         self.__pde_proj=LinearPDE(domain)
-         self.__pde_proj.setReducedOrderOn()
-         self.__pde_proj.setSymmetryOn()
-         self.__pde_proj.setValue(D=1.)
+         self.__pde_p=LinearPDE(domain)
+         self.__pde_p.setReducedOrderOn()
+         self.__pde_p.setSymmetryOn()
+
+         self.setTolerance()
+         self.setSmall()
 
       def useJaumannStress(self):
-          """ 
-          return C{True} if Jaumann stress is included.
+          """
+          Returns C{True} if Jaumann stress is included.
           """
           return self.__useJaumannStress
+
       def setSmall(self,small=util.sqrt(util.EPSILON)):
           """
-          sets small value
-      
+          Sets a small value to be used.
+
           @param small: positive small value
           """
           self.__small=small
+
       def getSmall(self):
           """
-          returns small value
+          Returns small value.
           @rtype: positive float
           """
           return self.__small
+
+      def setTolerance(self,tol=1.e-4):
+          """
+          Sets the tolerance.
+          """
+          self.__pde_v.setTolerance(tol**2)
+          self.__pde_p.setTolerance(tol**2)
+          self.__tol=tol
+
+      def getTolerance(self):
+          """
+          Returns the set tolerance.
+          @rtype: positive float
+          """
+          return self.__tol
+
       def getDomain(self):
           """
-          returns the domain
+          Returns the domain.
           """
           return self.__domain
-      def getStress(self):
-          """
-          returns current stress
-          """
-          return self.__stress
-      def getStretching(self):
-          """
-          return stretching
-          """
-          return self.__D
-      def getTau(self):
-          """
-          returns current second stress deviatoric invariant
-          """
-          return self.__tau
-      def getPressure(self):
-          """
-          returns current pressure
-          """
-          return self.__p
-      def getVelocity(self):
-          """
-          returns current velocity
-          """
-          return self.__v
+
       def getTime(self):
           """
-          returns current time
+          Returns current time.
           """
           return self.__t
-      def getVolume(self):
-          """
-          returns domain volume
-          """
-          return self.__vol
 
-      def getEtaEffective(self):
+      def setPowerLaw(self,id,eta_N, tau_t=None, power=1):
           """
-          returns effective shear viscocity
+          Sets the power-law parameters for material q.
           """
-          return self.__eta_eff
-      def getMuEffective(self):
-          """
-          returns effective shear modulus
-          """
-          return self.__mu_eff
-      def getHEffective(self):
-          """
-          returns effective h
-          """
-          return self.__h_eff
-      def getMechanicalPower(self):
-          """
-          returns the locl mechanical power M{D_ij Stress_ij}
-          """
-          return util.inner(self.getStress(),self.getStretching())
-          
-      def initialize(self, mu=None, eta_N=None, eta_0=None, tau_0=None, n=None, eta_Y=None, tau_Y=None, n_Y=None, F=None, q=None):
-          """ 
-          sets the model parameters.
+          if id<0 or id>=self.__numMaterials:
+              raise ValueError,"Illegal material id %s."%id
+          self.__eta_N[id]=eta_N
+          self.__power[id]=power
+          self.__tau_t[id]=tau_t
 
-          @param mu: shear modulus. If C{mu==None} ...
-          @param eta_N: Newtonian viscosity. 
-          @param eta_0: power law viscovity for tau=tau0
-          @param tau_0: reference tau for power low. If C{tau_0==None} constant viscosity is assumed.
-          @param n: power of power law. if C{n=None}, constant viscosity is assumed.
-          @param eta_Y: =None
-          @param tau_Y: =None
-          @param n_Y: =None
-          @param F: external force.
+      def setPowerLaws(self,eta_N, tau_t, power):
+          """
+          Sets the parameters of the power-law for all materials.
+          """
+          if len(eta_N)!=self.__numMaterials or len(tau_t)!=self.__numMaterials or len(power)!=self.__numMaterials:
+              raise ValueError,"%s materials are expected."%self.__numMaterials
+          for i in xrange(self.__numMaterials):
+               self.setPowerLaw(i,eta_N[i],tau_t[i],power[i])
+
+      def setDruckerPragerLaw(self,tau_Y=None,friction=0):
+          """
+          Sets the parameters for the Drucker-Prager model.
+          """
+          self.__tau_Y=tau_Y
+          self.__friction=friction
+
+      def setElasticShearModulus(self,mu=None):
+          """
+          Sets the elastic shear modulus.
+          """
+          self.__mu=mu
+      def setExternals(self, F=None, f=None, q=None, v_boundary=None):
+          """
+          Sets externals.
+
+          @param F: external force
+          @param f: surface force
           @param q: location of constraints
           """
-          if mu != None: self.__mu=mu
-          if eta_N != None: self.__eta_N=eta_N
-          if eta_0 != None: self.__eta_0=eta_0
-          if tau_0 != None: self.__tau_0=tau_0
-          if n != None: self.__n=n
-          if eta_Y != None: self.__eta_Y=eta_Y
-          if tau_Y != None: self.__tau_Y=tau_Y
-          if n_Y != None: self.__n_Y=n_Y
-          if F != None: self.__pde_u.setValue(Y=F)
-          if q != None: self.__pde_u.setValue(q=q)
+          if F != None: self.__pde_v.setValue(Y=F)
+          if f != None: self.__pde_v.setValue(y=f)
+          if q != None: self.__pde_v.setValue(q=q)
+          if v_boundary != None: self.__v_boundary=v_boundary
 
-      def updateEffectiveCoefficients(self, dt, tau):
-          """
-          updates the effective coefficints depending on tau and time step size dt.
-          """
-          h_vis=None
-          h_yie=None
-          # calculate eta_eff = ( 1/eta_N + 1/eta_vis + 1/eta_yie)^{-1}
-          #    with   eta_vis = eta_0 * (tau/tau_0) ^ (1-n)
-          #           eta_yie = eta_Y * (tau/tau_Y) ^ (1-n_Y)
-          s=Scalar(0.,Function(self.getDomain()))
-          if self.__eta_N!=None:
-              s+=1/self.__eta_N
-          if self.__eta_0!=None and self.__tau_0 != None and self.__n!=None:
-              if self.__tau_0 !=None and  self.__n!=None:
-                 eta_vis=self.__eta_0*(tau/self.__tau_0)**(1-self.__n)
-                 s+=1./(eta_vis+self.__eta_0*self.getSmall())
-                 h_vis=eta_vis/(self.__n-1)
-          if self.__tau_Y!=None and self.__eta_Y!=None and self.__n_Y!=None:
-               eta_yie=self.__eta_Y*(tau/self.__tau_Y)**(1-self.__n_Y)
-               s+=1/(eta_yie+self.getSmall()*self.__eta_Y)
-               h_yie=self.__eta_Y/(self.__n_Y-1)
-          self.__eta_eff=1/s
-          # calculate eta_eff = ( 1/h_vis + 1/h_yie)^{-1}
-          #    with   h_vis = eta_vis/(n-1)
-          #           h_yie = eta_yie/(n_Y-1)
-          if h_vis == None: 
-             if h_yie==None:
-                self__h_eff=None
-             else:
-                self__h_eff=h_yie
-          else:
-             if h_yie==None:
-                self__h_eff=h_vis
-             else:
-                self__h_eff=1/((1./h_vis)+(1./h_yie))
-          # calculate mu_eff = ( 1/mu + dt/eta_eff)^{-1} = mu*eta_eff/(mu*dt+eta_eff)
-          if self.__mu == None:
-             self.__mu_eff=self.__eta_eff/dt
-          else:
-             self.__mu_eff=1./(1./self.__mu+dt/self.__eta_eff) 
+      def bilinearform(self,arg0,arg1):
+        s0=util.deviatoric(util.symmetric(util.grad(arg0[0])))
+        s1=util.deviatoric(util.symmetric(util.grad(arg1[0])))
+        # s0=util.interpolate(arg0[0],Function(self.getDomain()))
+        # s1=util.interpolate(arg1[0],Function(self.getDomain()))
+        p0=util.interpolate(arg0[1],Function(self.getDomain()))
+        p1=util.interpolate(arg1[1],Function(self.getDomain()))
+        a=util.integrate(self.__p_weight**2*util.inner(s0,s1))+util.integrate(p0*p1)
+        return a
 
-      def update(self,dt,max_inner_iter=20, verbose=False, show_details=False, tol=10., solver="PCG"):
+      def getEtaEff(self,strain, pressure):
+          if self.__mu==None:
+                eps=util.length(strain)*util.sqrt(2)
+          else:
+                eps=util.length(strain+self.__stress/((2*self.__dt)*self.__mu))*util.sqrt(2)
+          p=util.interpolate(pressure,eps.getFunctionSpace())
+          if self.__tau_Y!= None:
+             tmp=self.__tau_Y+self.__friction*p
+             m=util.wherePositive(eps)*util.wherePositive(tmp)
+             eta_max=m*tmp/(eps+(1-m)*util.EPSILON)+(1-m)*util.DBLE_MAX
+          else:
+             eta_max=util.DBLE_MAX
+          # initial guess:
+          tau=util.length(self.__stress)/util.sqrt(2)
+          # start the iteration:
+          cc=0
+          TOL=1e-7
+          dtau=util.DBLE_MAX
+          print "tau = ", tau, "eps =",eps
+          while cc<10 and dtau>TOL*util.Lsup(tau):
+             eta_eff2,eta_eff_dash=self.evalEtaEff(tau,return_dash=True)
+             eta_eff=util.clip(eta_eff2-eta_eff_dash*tau/(1-eta_eff_dash*eps),maxval=eta_max)
+             tau, tau2=eta_eff*eps, tau
+             dtau=util.Lsup(tau2-tau)
+             print "step ",cc,dtau, util.Lsup(tau)
+             cc+=1
+          return eta_eff
+
+      def getEtaCharacteristic(self):
+          a=0
+          for i in xrange(self.__numMaterials):
+            a=a+1./self.__eta_N[i]
+          return 1/a
+
+      def evalEtaEff(self, tau, return_dash=False):
+         a=Scalar(0,tau.getFunctionSpace())  # =1/eta
+         if return_dash: a_dash=Scalar(0,tau.getFunctionSpace()) # =(1/eta)'
+         s=util.Lsup(tau)
+         if s>0:
+            m=util.wherePositive(tau)
+            tau2=s*util.EPSILON*(1.-m)+m*tau
+            for i in xrange(self.__numMaterials):
+                 eta_N=self.__eta_N[i]
+                 tau_t=self.__tau_t[i]
+                 if tau_t==None:
+                    a+=1./eta_N
+                 else:
+                    power=1.-1./self.__power[i]
+                    c=1./(tau_t**power*eta_N)
+                    a+=c*tau2**power
+                    if return_dash: a_dash+=power*c*tau2**(power-1.)
+         else:
+            for i in xrange(self.__numMaterials):
+                 eta_N=self.__eta_N[i]
+                 power=1.-1./self.__power[i]
+                 a+=util.whereZero(power)/eta_N
+         if self.__mu!=None: a+=1./(self.__dt*self.__mu)
+         out=1/a
+         if return_dash:
+             return out,-out**2*a_dash
+         else:
+             return out
+
+      def eval(self,arg):
+         v=arg[0]
+         p=arg[1]
+         D=self.getDeviatoricStrain(v)
+         eta_eff=self.getEtaEff(D,p)
+         print "eta_eff=",eta_eff
+         # solve for dv
+         self.__pde_v.setValue(A=Data()) # save memory!
+         k3=util.kronecker(Function(self.getDomain()))
+         k3Xk3=util.outer(k3,k3)
+         self.__pde_v.setValue(A=eta_eff*(util.swap_axes(k3Xk3,0,3)+util.swap_axes(k3Xk3,1,3)),X=-eta_eff*D+p*util.kronecker(self.getDomain()))
+         dv=self.__pde_v.getSolution(verbose=self.__verbose)
+         print "resistep dv =",dv
+         # solve for dp
+         v2=v+dv
+         self.__pde_p.setValue(D=1/eta_eff,Y=util.div(v2))
+         dp=self.__pde_p.getSolution(verbose=self.__verbose)
+         print "resistep dp =",dp
+         return ArithmeticTuple(dv,dp)
+
+      def update(self, dt, iter_max=100, inner_iter_max=20, verbose=False):
           """
-          updates stress, velocity and pressure for time increment dt
+          Updates stress, velocity and pressure for time increment dt.
 
           @param dt: time increment
-          @param max_inner_iter: maximum number of iteration steps in the incompressible solver
-          @param verbose: prints some infos in the incompressible solve
-          @param show_details: prints some infos while solving PDEs
-          @param tol: tolerance for the time step
+          @param inner_iter_max: maximum number of iteration steps in the
+                                 incompressible solver
+          @param verbose: prints some infos in the incompressible solver
           """
-          stress_last=self.getStress()
-          # we should use something like FGMRES to merge the two iterations!
-          e=10.*tol
-          # get values from last time step and use them as initial guess:
-          v=self.__v
-          stress=self.__stress
-          p=self.__p
-          tau=self.__tau
-          while e > tol: # revise stress calculation if this is used.
-              #
-              #  update the effective coefficients:
-              #
-              self.updateEffectiveCoefficients(dt,tau)
-              eta_eff=self.getEtaEffective()
-              mu_eff=self.getMuEffective()
-              h_eff=self.getHEffective()
-              #
-              #   create some temporary variables:
-              #
-	      self.__pde_u.setValue(A=Data()) # save memory!
-              k3=util.kronecker(Function(self.getDomain()))
-              k3Xk3=util.outer(k3,k3)
-              self.__f3=mu_eff*dt
-              A=self.__f3*(util.swap_axes(k3Xk3,0,3)+util.swap_axes(k3Xk3,1,3))
-              print "mueff=",util.inf(mu_eff),util.sup(mu_eff)
-              if h_eff == None:
-                 s=0
-                 self.__f0=0
-                 self.__f1=mu_eff/eta_eff*dt
-              else:
-                 s=mu_eff*dt/(h_eff+mu_eff*dt)
-                 Lsup_tau=Lsup(tau)
-                 if Lsup>0:
-                    self.__f0=mu_eff*s*dt/(tau+Lsup_tau*self.getSmall())**2
-                    A+=util.outer((-self.__f0)*stress,stress)
-                 else:
-                    self.__f0=0.
-                 self.__f1=mu_eff/eta_eff*(1-s)*dt
-
-              if self.useJaumannStress():
-                 self.__f2=mu_eff/eta_eff*dt**2
-                 sXk3=util.outer(stress,self.__f2*(-k3/2))
-
-                 A+=util.swap_axes(sXk3,0,3)
-                 A+=util.swap_axes(sXk3,1,3)
-                 A-=util.swap_axes(sXk3,0,2)
-                 A-=util.swap_axes(sXk3,1,2)
-              else:
-                 self.__f2=0
-              self.__pde_u.setValue(A=A)
-	      self.__pde_prec.setValue(D=1/mu_eff) 
-
-              print "X f0:",util.inf(self.__f0), util.sup(self.__f0)
-              print "X f1:",util.inf(self.__f1), util.sup(self.__f1)
-              print "X f2:",util.inf(self.__f2), util.sup(self.__f2)
-              print "X f3:",util.inf(self.__f3), util.sup(self.__f3)
-
-              v_old=v
-              v,p=self.solve(v,p,max_iter=max_inner_iter, verbose=verbose, show_details=show_details, solver=solver)
-              # update stress
-              stress=stress_last+dt*self.getStressChange(v)
-              stress-=util.trace(stress)*(util.kronecker(self.getDomain())/self.getDomain().getDim())
-              tau=util.sqrt(0.5)*util.length(stress)
-              # calculate error:
-              e=util.Lsup(v_old-v)/util.Lsup(v)
-          # state variables:
+          self.__verbose=verbose
+          self.__dt=dt
+          tol=self.getTolerance()
+          # set the initial velocity:
+          m=util.wherePositive(self.__pde_v.getCoefficient("q"))
+          v_new=self.__v*(1-m)+self.__v_boundary*m
+          # and off we go:
+          x=ArithmeticTuple(v_new, self.__p)
+          # self.__p_weight=util.interpolate(1./self.getEtaCharacteristic(),Function(self.__domain))**2
+          self.__p_weight=self.getEtaCharacteristic()
+          # self.__p_weight=util.interpolate(1./self.getEtaCharacteristic()**2,self.__p.getFunctionSpace())
+          atol=self.norm(x)*self.__tol
+          x_new=NewtonGMRES(self, x, iter_max=iter_max,sub_iter_max=inner_iter_max, atol=atol,rtol=0., verbose=verbose)
+          self.__v=x_new[0]
+          self.__p=x_new[1]
+          1/0
+          # self.__stress=self.getUpdatedStress(...)
           self.__t+=dt
-          self.__v=v
-          self.__p=p
-          self.__stress=stress
-          self.__tau=tau
-          self.__D=util.symmetric(util.grad(v))
+          return self.__v, self.__p
 
-      def getStressChange(self,v):
+      #========================================================================
+
+      def getNewDeviatoricStress(self,D,eta_eff=None):
+         if eta_eff==None: eta_eff=self.evalEtaEff(self.__stress,D,self.__p)
+         s=(2*eta_eff)*D
+         if self.__mu!=None: s+=eta_eff/(self.__dt*self.__mu)*self.__last_stress
+         return s
+
+      def getDeviatoricStress(self):
           """
-          returns the stress change due to a given velocity field v
+          Returns current stress.
           """
-          stress=self.getStress()
-          g=util.grad(v)
-          D=util.symmetric(g)
-          W=util.nonsymmetric(g)
-          U=util.nonsymmetric(util.tensor_mult(W,stress))
-          dstress=2*self.__f3*D-self.__f0*util.inner(stress,D)*stress-self.__f1*stress-2*self.__f2*U
-          return dstress
+          return self.__stress
 
-      def B(self,arg):
-         """
-         div operator
-         """
-         d=util.div(arg)
-         self.__pde_proj.setValue(Y=d)
-         self.__pde_proj.setTolerance(self.getSubProblemTolerance())
-         return self.__pde_proj.getSolution(verbose=self.show_details)
+      def getDeviatoricStrain(self,velocity=None):
+          """
+          Returns strain.
+          """
+          if velocity==None: velocity=self.getVelocity()
+          return util.deviatoric(util.symmetric(util.grad(velocity)))
 
-      def solve_prec(self,p):
-         """
-         preconditioner
-         """
-	 #proj=Projector(domain=self.getDomain(), reduce = True, fast=False)
-         self.__pde_prec.setTolerance(self.getSubProblemTolerance())
-         self.__pde_prec.setValue(Y=p)
-         q=self.__pde_prec.getSolution(verbose=self.show_details)
-         return q
+      def getPressure(self):
+          """
+          Returns current pressure.
+          """
+          return self.__p
 
-      def inner(self,p0,p1):
-         """
-         inner product for pressure
-         """
-         s0=util.interpolate(p0,Function(self.getDomain()))
-         s1=util.interpolate(p1,Function(self.getDomain()))
-         return util.integrate(s0*s1)
+      def getVelocity(self):
+          """
+          Returns current velocity.
+          """
+          return self.__v
 
-      def solve_A(self,u,p):
-         """
-         solves Av=f-Au-B^*p (v=0 on fixed_u_mask)
-         """
-         self.__pde_u.setTolerance(self.getSubProblemTolerance())
-         self.__pde_u.setValue(X=-self.getStressChange(u)-p*util.kronecker(self.getDomain()))
-         return  self.__pde_u.getSolution(verbose=self.show_details)
+      def getTau(self,stress=None):
+          """
+          Returns current second stress deviatoric invariant.
+          """
+          if stress==None: stress=self.getDeviatoricStress()
+          return util.sqrt(0.5)*util.length(stress)
 
-##############Added by Artak ##########################
-      def inner_a(self,a0,a1):
-         p0=util.interpolate(a0[1],Function(self.domain))
-         p1=util.interpolate(a1[1],Function(self.domain))
-         alfa=(1/self.vol)*util.integrate(p0)
-         beta=(1/self.vol)*util.integrate(p1)
-	 v0=util.grad(a0[0])
-	 v1=util.grad(a1[0])
-         return util.integrate((p0-alfa)*(p1-beta)+((1/self.eta)**2)*util.inner(v0,v1))
+      def getGammaDot(self,strain=None):
+          """
+          Returns current second stress deviatoric invariant.
+          """
+          if strain==None: strain=self.getDeviatoricStrain()
+          return util.sqrt(2)*util.length(strain)
 
-      def stoppingcriterium(self,Bv,v,p):
-          n_r=util.sqrt(self.inner(Bv,Bv))
-          n_v=util.sqrt(util.integrate(util.length(util.grad(v))**2))
-          if self.verbose: print "PCG step %s: L2(div(v)) = %s, L2(grad(v))=%s"%(self.iter,n_r,n_v) 
-          if self.iter == 0: self.__n_v=n_v;
-          self.__n_v, n_v_old =n_v, self.__n_v
-          self.iter+=1
-          if self.iter>1 and n_r <= n_v*self.getTolerance() and abs(n_v_old-self.__n_v) <= n_v * self.getTolerance():
-              if self.verbose: print "PCG terminated after %s steps."%self.iter
-              return True
-          else:
-              return False
-
-      def stoppingcriterium2(self,norm_r,norm_b,solver='GMRES',TOL=None):
-	  if TOL==None:
-             TOL=self.getTolerance()
-          if self.verbose: print "%s step %s: L2(r) = %s, L2(b)*TOL=%s"%(solver,self.iter,norm_r,norm_b*TOL)
-          self.iter+=1
-          
-          if norm_r <= norm_b*TOL:
-              if self.verbose: print "%s terminated after %s steps."%(solver,self.iter)
-              return True
-          else:
-              return False
-
-######################################################

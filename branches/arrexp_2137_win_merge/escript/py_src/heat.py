@@ -37,62 +37,70 @@ import util
 from linearPDEs import TransportPDE
 
 class TemperatureCartesian(TransportPDE):
-      """
-      solves 
+    """
+    Represents and solves the temperature advection-diffusion problem
 
-          rhocp(T_{,t} + v_i T_{,i} - ( k T_{,i})_i = Q
-        
-                 k T_{,i}*n_i=surface_flux
-             
-                 T_{,t} = 0  where given_T_mask>0
+    M{rhocp(T_{,t} + v_i T_{,i} - ( k T_{,i})_i = Q}
 
-      if surface_flux is not give 0 is assumed. 
+    M{k T_{,i}*n_i=surface_flux} and M{T_{,t} = 0} where C{given_T_mask}>0.
 
-      typical usage:
+    If surface_flux is not given 0 is assumed.
 
-            sp=TemperatureCartesian(domain)
-            sp.setTolerance(1.e-4)
-            t=0
-            T=...
-            sp.setValues(rhocp = ..,  v=.., k=.., given_T_mask=..)
-            sp.setInitialTemperature(T)
-            while t < t_end:
-                sp.setValue(Q= ...)
-                T=sp.getTemperature(dt)
-                t+=dt
-      """
-      def __init__(self,domain,theta=0.5,**kwargs):
+    Typical usage::
+
+        sp = TemperatureCartesian(domain)
+        sp.setTolerance(1.e-4)
+        t = 0
+        T = ...
+        sp.setValues(rhocp=...,  v=..., k=..., given_T_mask=...)
+        sp.setInitialTemperature(T)
+        while t < t_end:
+            sp.setValue(Q=...)
+            T = sp.getTemperature(dt)
+            t += dt
+    """
+    def __init__(self,domain,theta=0.5,**kwargs):
         """
-        initializes tmperature advection-diffuision problem
+        Initializes the temperature advection-diffusion problem.
 
         @param domain: domain of the problem
-        @param theta: method control: theta=1. backward Euler 
-                                      theta=0.5: Crank-Nicholson scheme
-                                      thete=0.: forward Euler (not recommendable)
+        @param theta: method control:
+            - theta=1.0: backward Euler
+            - theta=0.5: Crank-Nicholson scheme
+            - theta=0.0: forward Euler (not recommended)
         """
         TransportPDE.__init__(self,domain,numEquations=1,theta=theta,**kwargs)
         self.setReducedOrderOn()
         self.__rhocp=None
         self.__v=None
-      def setInitialTemperature(self,T):
+
+    def setInitialTemperature(self,T):
+        """
+        Same as L{setInitialSolution}.
+        """
         self.setInitialSolution(T)
-      def setValue(self,rhocp=None,v=None,k=None,Q=None,surface_flux=None,given_T_mask=None):
-           if rhocp!=None:
-               self.__rhocp=rhocp
-           if v!=None:
-               self.__v=v
-           if rhocp!=None:
-               super(TemperatureCartesian,self).setValue(M=self.__rhocp)
-           if (rhocp!=None or v!=None) and self.__rhocp!=None and self.__v!=None:
-               super(TemperatureCartesian,self).setValue(C=-self.__rhocp*self.__v)
-           if k!=None:
-               super(TemperatureCartesian,self).setValue(A=-k*util.kronecker(self.getDomain()))
-           if Q!=None:
-               super(TemperatureCartesian,self).setValue(Y=Q)
-           if surface_flux!=None:
-               super(TemperatureCartesian,self).setValue(y=surface_flux)
-           if given_T_mask!=None:
-               super(TemperatureCartesian,self).setValue(q=given_T_mask)
-           
-      def getTemperature(self,dt,**kwargs):
-          return self.getSolution(dt,**kwargs)
+
+    def setValue(self,rhocp=None,v=None,k=None,Q=None,surface_flux=None,given_T_mask=None):
+        if rhocp!=None:
+            self.__rhocp=rhocp
+        if v!=None:
+            self.__v=v
+        if rhocp!=None:
+            super(TemperatureCartesian,self).setValue(M=self.__rhocp)
+        if (rhocp!=None or v!=None) and self.__rhocp!=None and self.__v!=None:
+            super(TemperatureCartesian,self).setValue(C=-self.__rhocp*self.__v)
+        if k!=None:
+            super(TemperatureCartesian,self).setValue(A=-k*util.kronecker(self.getDomain()))
+        if Q!=None:
+            super(TemperatureCartesian,self).setValue(Y=Q)
+        if surface_flux!=None:
+            super(TemperatureCartesian,self).setValue(y=surface_flux)
+        if given_T_mask!=None:
+            super(TemperatureCartesian,self).setValue(q=given_T_mask)
+
+    def getTemperature(self,dt,**kwargs):
+        """
+        Same as L{getSolution}.
+        """
+        return self.getSolution(dt,**kwargs)
+

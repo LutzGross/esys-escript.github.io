@@ -20,7 +20,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="http://www.uq.edu.au/esscc/escript-finley"
 
 """
-commandline utility to take an xml file, parse it, and run a simulation. 
+commandline utility to take an xml file, parse it, and run a simulation.
 invoke this by doing ./runmodel.py <filename.xml>
 
 @var __author__: name of author
@@ -38,9 +38,9 @@ from esys.escript import modelframe
 import optparse
 
 parser = optparse.OptionParser(usage="%prog [options] <ESySXML files>")
-parser.add_option('-f', '--file', dest='filename', 
+parser.add_option('-f', '--file', dest='filename',
         help='the input ESySXML file', metavar='FILE')
-parser.add_option('-d', '--debug', dest='dbg', action="store_true", 
+parser.add_option('-d', '--debug', dest='dbg', action="store_true",
         help='switch debug on', default=False)
 parser.add_option('-n', '--new', action="store",
         help='output ESySXML file',
@@ -49,9 +49,9 @@ def main():
     (options, args) = parser.parse_args()
     if options.filename:
        filenames=list(options.filename) + args
-    else: 
+    else:
        filenames=args
-    if len(filenames)<1: 
+    if len(filenames)<1:
         parser.error("no input file.")
 
     files = [(file(arg), arg) for arg in filenames]
@@ -59,10 +59,10 @@ def main():
         xml = modelframe.ESySXMLParser(f.read(), debug=options.dbg)
         sims = xml.parse()
         for s in sims:
-          if isinstance(s, modelframe.Simulation): 
+          if isinstance(s, modelframe.Simulation):
                if options.new_file_name: s.writeXML(file(options.new_file_name,'w'))
                s.run()
 
 if __name__=='__main__':
     main()
-    
+
