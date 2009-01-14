@@ -42,41 +42,44 @@ DEG=math.pi/180.
 RAD=1.
 class Transformation(object):
    """
-   general class to define an affine transformation x->Ax+b
+   General class to define an affine transformation M{x->Ax+b}.
    """
    def __init__(self):
        """
-       create a linear transformation 
+       Creates a linear transformation.
        """
        pass
+
    def __call__(self,x=numarray.zeros((3,))):
        """
-       applies transformation to x
+       Applies transformation to C{x}.
        """
        raise NotImplementeError()
+
 class Translation(Transformation):
     """
-    defines a translation x->x+b
+    Defines a translation M{x->x+b}.
     """
     def __init__(self,b=numarray.zeros((3,),type=_TYPE)):
        """
-       create linear transformation x->x+b
+       Creates the linear transformation M{x->x+b}.
        """
        super(Translation, self).__init__()
        self.__b=numarray.array(b,_TYPE)
+
     def __call__(self,x=numarray.zeros((3,))):
        """
-       applies translation to x
+       Applies translation to C{x}.
        """
        return numarray.array(x,_TYPE)+self.__b
-       
+
 class Rotatation(Transformation):
     """
-    defines a rotation 
+    Defines a rotation.
     """
     def __init__(self,axis=numarray.ones((3,),type=_TYPE),point=numarray.zeros((3,),type=_TYPE),angle=0.*RAD):
        """
-       creates a rotation using an axis and a point on the axis
+       Creates a rotation using an axis and a point on the axis.
        """
        self.__axis=numarray.array(axis,type=_TYPE)
        self.__point=numarray.array(point,type=_TYPE)
@@ -85,9 +88,10 @@ class Rotatation(Transformation):
           raise ValueError("points must be distinct.")
        self.__axis/=math.sqrt(lax)
        self.__angle=float(angle)
+
     def __call__(self,x=numarray.zeros((3,))):
        """
-       applies rotatation to x
+       Applies the rotation to C{x}.
        """
        x=numarray.array(x,_TYPE)
        z=x-self.__point
@@ -100,43 +104,46 @@ class Rotatation(Transformation):
          lax2=numarray.dot(axis2,axis2)
          if lax2>0:
             axis2/=math.sqrt(lax2)
-            return z0*self.__axis+math.sqrt(lz_per)*(math.cos(self.__angle)*axis1-math.sin(self.__angle)*axis2)+self.__point 
+            return z0*self.__axis+math.sqrt(lz_per)*(math.cos(self.__angle)*axis1-math.sin(self.__angle)*axis2)+self.__point
          else:
             return x
        else:
          return x
+
 def _cross(x, y):
     """
-    Returns the cross product of x and y
+    Returns the cross product of C{x} and C{y}.
     """
     return numarray.array([x[1] * y[2] - x[2] * y[1], x[2] * y[0] - x[0] * y[2], x[0] * y[1] - x[1] * y[0]], _TYPE)
 
 class Dilation(Transformation):
     """
-    defines a dilation 
+    Defines a dilation.
     """
     def __init__(self,factor=1.,center=numarray.zeros((3,),type=_TYPE)):
        """
-       creates a dilation with a center an a given expansion/contraction factor
+       Creates a dilation with a center and a given expansion/contraction
+       factor.
        """
        if not abs(factor)>0:
           raise ValueError("factor must be non-zero.")
        self.__factor=factor
        self.__center=numarray.array(center,type=_TYPE)
+
     def __call__(self,x=numarray.zeros((3,))):
        """
-       applies dilation to x
+       Applies dilation to C{x}.
        """
        x=numarray.array(x,_TYPE)
        return self.__factor*(x-self.__center)+self.__center
 
 class Reflection(Transformation):
     """
-    defines a reflection on a plain
+    Defines a reflection on a plane.
     """
     def __init__(self,normal=numarray.ones((3,),type=_TYPE),offset=0.):
        """
-       defines a reflection on a plain defined in normal form 
+       Defines a reflection on a plane defined in normal form.
        """
        self.__normal=numarray.array(normal,type=_TYPE)
        ln=math.sqrt(numarray.dot(self.__normal,self.__normal))
@@ -147,9 +154,11 @@ class Reflection(Transformation):
           self.__offset=offset/ln
        else:
           self.__offset=numarray.dot(numarray.array(offset,type=_TYPE),self.__normal)
+
     def __call__(self,x=numarray.zeros((3,))):
        """
-       applies reflection to x
+       Applies reflection to C{x}.
        """
        x=numarray.array(x,_TYPE)
        return x - 2*(numarray.dot(x,self.__normal)-self.__offset)*self.__normal
+
