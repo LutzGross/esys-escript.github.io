@@ -56,18 +56,24 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
    dim_t numEqua = Paso_SystemMatrix_getTotalNumRows(A);
    double blocktimer_precond, blocktimer_start = blocktimer_time();
  
-     tolerance=MAX(options->tolerance,EPSILON);
      Paso_resetError();
+     tolerance=options->tolerance;
+     if (tolerance < 100.* EPSILON) {
+       Paso_setError(VALUE_ERROR,"Paso_Solver: Tolerance is too small.");
+     }
+     if (tolerance >1.) {
+       Paso_setError(VALUE_ERROR,"Paso_Solver: Tolerance mut be less than one.");
+     }
      method=Paso_Options_getSolver(options->method,PASO_PASO,options->symmetric);
      /* check matrix type */
      if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1) || (A->type & MATRIX_FORMAT_SYM) ) {
-       Paso_setError(TYPE_ERROR,"Iterative solver requires CSR format with unsymmetric storage scheme and index offset 0.");
+       Paso_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires CSR format with unsymmetric storage scheme and index offset 0.");
      }
      if (A->col_block_size != A->row_block_size) {
-        Paso_setError(TYPE_ERROR,"Iterative solver requires row and column block sizes to be equal.");
+        Paso_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires row and column block sizes to be equal.");
      }
      if (Paso_SystemMatrix_getGlobalNumCols(A) != Paso_SystemMatrix_getGlobalNumRows(A)) {
-        Paso_setError(TYPE_ERROR,"Iterative solver requires a square matrix.");
+        Paso_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires a square matrix.");
         return;
      }
      /* this for testing only */
@@ -124,29 +130,29 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
             if (options->verbose) printf("right hand side is identical zero.\n");
          } else {
             if (options->verbose) {
-               printf("l2/lmax-norm of right hand side is  %e/%e.\n",norm2_of_b,norm_max_of_b);
-               printf("l2/lmax-stopping criterion is  %e/%e.\n",norm2_of_b*tolerance,norm_max_of_b*tolerance);
+               printf("Paso_Solver: l2/lmax-norm of right hand side is  %e/%e.\n",norm2_of_b,norm_max_of_b);
+               printf("Paso_Solver: l2/lmax-stopping criterion is  %e/%e.\n",norm2_of_b*tolerance,norm_max_of_b*tolerance);
                switch (method) {
                case PASO_BICGSTAB:
-                  printf("Iterative method is BiCGStab.\n");
+                  printf("Paso_Solver: Iterative method is BiCGStab.\n");
                   break;
                case PASO_PCG:
-                  printf("Iterative method is PCG.\n");
+                  printf("Paso_Solver: Iterative method is PCG.\n");
                   break;
                case PASO_TFQMR:
-                  printf("Iterative method is TFQMR.\n");
+                  printf("Paso_Solver: Iterative method is TFQMR.\n");
                   break;
                case PASO_MINRES:
-                  printf("Iterative method is MINRES.\n");
+                  printf("Paso_Solver: Iterative method is MINRES.\n");
                   break;
                case PASO_PRES20:
-                  printf("Iterative method is PRES20.\n");
+                  printf("Paso_Solver: Iterative method is PRES20.\n");
                   break;
                case PASO_GMRES:
                   if (options->restart>0) {
-                     printf("Iterative method is GMRES(%d,%d)\n",options->truncation,options->restart);
+                     printf("Paso_Solver: Iterative method is GMRES(%d,%d)\n",options->truncation,options->restart);
                   } else {
-                     printf("Iterative method is GMRES(%d)\n",options->truncation);
+                     printf("Paso_Solver: Iterative method is GMRES(%d)\n",options->truncation);
                   }
                   break;
                }
@@ -205,10 +211,10 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                     #endif
                     norm2_of_residual =sqrt(norm2_of_residual);
              
-                  if (options->verbose) printf("Step %5d: l2/lmax-norm of residual is  %e/%e",totIter,norm2_of_residual,norm_max_of_residual);
+                  if (options->verbose) printf("Paso_Solver: Step %5d: l2/lmax-norm of residual is  %e/%e",totIter,norm2_of_residual,norm_max_of_residual);
                   if (totIter>0 && norm2_of_residual>=last_norm2_of_residual &&  norm_max_of_residual>=last_norm_max_of_residual) {
                      if (options->verbose) printf(" divergence!\n");
-                     Paso_setError(WARNING, "No improvement during iteration. Iterative solver gives up.");
+                     Paso_setError(WARNING, "Paso_Solver: No improvement during iteration. Iterative solver gives up.");
                   } else {
                      /* */
                      if (norm2_of_residual>tolerance*norm2_of_b || norm_max_of_residual>tolerance*norm_max_of_b ) {
@@ -242,17 +248,17 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                         if (errorCode==NO_ERROR) {
                            finalizeIteration = FALSE;
                         } else if (errorCode==SOLVER_MAXITER_REACHED) {
-                           Paso_setError(WARNING,"maximum number of iteration step reached.\nReturned solution does not fulfil stopping criterion.");
-                           if (options->verbose) printf("Maximum number of iterations reached.!\n");
+                           Paso_setError(WARNING,"Paso_Solver: maximum number of iteration step reached.\nReturned solution does not fulfil stopping criterion.");
+                           if (options->verbose) printf("Paso_Solver: Maximum number of iterations reached.!\n");
                         } else if (errorCode == SOLVER_INPUT_ERROR ) {
-                           Paso_setError(SYSTEM_ERROR,"illegal dimension in iterative solver.");
-                           if (options->verbose) printf("Internal error!\n");
+                           Paso_setError(SYSTEM_ERROR,"Paso_Solver: illegal dimension in iterative solver.");
+                           if (options->verbose) printf("Paso_Solver: Internal error!\n");
                         } else if ( errorCode == SOLVER_BREAKDOWN ) {
                            if (cntIter <= 1) {
-                              Paso_setError(ZERO_DIVISION_ERROR, "fatal break down in iterative solver.");
-                              if (options->verbose) printf("Uncurable break down!\n");
+                              Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver: fatal break down in iterative solver.");
+                              if (options->verbose) printf("Paso_Solver: Uncurable break down!\n");
                            } else {
-                              if (options->verbose) printf("Breakdown at iter %d (residual = %e). Restarting ...\n", cntIter+totIter, tol);
+                              if (options->verbose) printf("Paso_Solver: Breakdown at iter %d (residual = %e). Restarting ...\n", cntIter+totIter, tol);
                               finalizeIteration = FALSE;
                            }
                       } else {
@@ -264,7 +270,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
               MEMFREE(r);
               time_iter=Paso_timer()-time_iter;
               if (options->verbose)  {
-                 printf("\ntiming: solver: %.4e sec\n",time_iter);
+                 printf("\ntiming: Paso_Solver:  %.4e sec\n",time_iter);
                  if (totIter>0) printf("timing: per iteration step: %.4e sec\n",time_iter/totIter);
               }
            }

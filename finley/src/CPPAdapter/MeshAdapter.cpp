@@ -25,9 +25,6 @@
 extern "C" {
 #include "esysUtils/blocktimer.h"
 }
-#include <vector>
-
-#define IS_THERE_A_REASON_FOR_THIS_MAGIC_NAME_LENGTH  256
 
 using namespace std;
 using namespace escript;
@@ -646,7 +643,8 @@ int MeshAdapter::getDiracDeltaFunctionCode() const
 //
 int MeshAdapter::getDim() const
 {
-   int numDim=Finley_Mesh_getDim(m_finleyMesh.get());
+   Finley_Mesh* mesh=m_finleyMesh.get();
+   int numDim=Finley_Mesh_getDim(mesh);
    checkFinleyError();
    return numDim;
 }
@@ -1445,7 +1443,9 @@ void MeshAdapter::setToSize(escript::Data& size) const
    checkFinleyError();
 }
 
-// sets the location of nodes:
+//
+// sets the location of nodes
+//
 void MeshAdapter::setNewX(const escript::Data& new_x)
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
@@ -1458,43 +1458,49 @@ void MeshAdapter::setNewX(const escript::Data& new_x)
    checkFinleyError();
 }
 
-// saves a data array in openDX format:
-void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& arg) const
+//
+// Helper for the save* methods. Extracts optional data variable names and the
+// corresponding pointers from python dictionary. Caller must free arrays.
+//
+void MeshAdapter::extractArgsFromDict(const boost::python::dict& arg, int& numData, char**& names, escriptDataC*& data, escriptDataC**& dataPtr) const
 {
-   unsigned int MAX_namelength=IS_THERE_A_REASON_FOR_THIS_MAGIC_NAME_LENGTH;
-   const int num_data=boost::python::extract<int>(arg.attr("__len__")());
+   numData = boost::python::extract<int>(arg.attr("__len__")());
    /* win32 refactor */
-   char* *names = (num_data>0) ? TMPMEMALLOC(num_data,char*) : (char**)NULL;
-   for(int i=0;i<num_data;i++)
-   {
-      names[i] = (MAX_namelength>0) ? TMPMEMALLOC(MAX_namelength,char) : (char*)NULL;
-   }
-
-   escriptDataC *data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC) : (escriptDataC*)NULL;
-   escriptDataC* *ptr_data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC*) : (escriptDataC**)NULL;
+   names = (numData>0) ? TMPMEMALLOC(numData, char*) : (char**)NULL;
+   data = (numData>0) ? TMPMEMALLOC(numData,escriptDataC) : (escriptDataC*)NULL;
+   dataPtr = (numData>0) ? TMPMEMALLOC(numData,escriptDataC*) : (escriptDataC**)NULL;
 
    boost::python::list keys=arg.keys();
-   for (int i=0;i<num_data;++i) {
+   for (int i=0; i<numData; ++i) {
       std::string n=boost::python::extract<std::string>(keys[i]);
       escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
       if (dynamic_cast<const MeshAdapter&>(*(d.getFunctionSpace().getDomain())) !=*this) 
-         throw FinleyAdapterException("Error  in saveVTK: Data must be defined on same Domain");
-      data[i]=d.getDataC();
-      ptr_data[i]= &(data[i]);
-      if (n.length()>MAX_namelength-1) {
-         strncpy(names[i],n.c_str(),MAX_namelength-1);
-         names[i][MAX_namelength-1]='\0';
-      } else {
-         strcpy(names[i],n.c_str());
-      }
+         throw FinleyAdapterException("Error: Data must be defined on same Domain");
+      data[i] = d.getDataC();
+      dataPtr[i] = &(data[i]);
+      names[i] = TMPMEMALLOC(n.length()+1, char);
+      strcpy(names[i], n.c_str());
    }
-   Finley_Mesh_saveDX(filename.c_str(),m_finleyMesh.get(),num_data,names,ptr_data);
+}
+
+//
+// saves mesh and optionally data arrays in openDX format
+//
+void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& arg) const
+{
+   int num_data;
+   char **names;
+   escriptDataC *data;
+   escriptDataC **ptr_data;
+
+   extractArgsFromDict(arg, num_data, names, data, ptr_data);
+   Finley_Mesh_saveDX(filename.c_str(), m_finleyMesh.get(), num_data, names, ptr_data);
    checkFinleyError();
  
    /* win32 refactor */
    TMPMEMFREE(data);
    TMPMEMFREE(ptr_data);
-   for(int i=0;i<num_data;i++)
+   for(int i=0; i<num_data; i++)
    {
       TMPMEMFREE(names[i]);
    }
@@ -1503,53 +1509,33 @@ void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& 
    return;
 }
 
-// saves a data array in openVTK format:
+//
+// saves mesh and optionally data arrays in VTK format
+//
 void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict& arg) const
 {
-   unsigned int MAX_namelength=IS_THERE_A_REASON_FOR_THIS_MAGIC_NAME_LENGTH;
-   const int num_data=boost::python::extract<int>(arg.attr("__len__")());
-   /* win32 refactor */
-   char* *names = (num_data>0) ? TMPMEMALLOC(num_data,char*) : (char**)NULL;
-   for(int i=0;i<num_data;i++)
-   {
-      names[i] = (MAX_namelength>0) ? TMPMEMALLOC(MAX_namelength,char) : (char*)NULL;
-   }
+   int num_data;
+   char **names;
+   escriptDataC *data;
+   escriptDataC **ptr_data;
 
-   escriptDataC *data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC) : (escriptDataC*)NULL;
-   escriptDataC* *ptr_data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC*) : (escriptDataC**)NULL;
-
-   boost::python::list keys=arg.keys();
-   for (int i=0;i<num_data;++i) {
-      std::string n=boost::python::extract<std::string>(keys[i]);
-      escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
-      if (dynamic_cast<const MeshAdapter&>(*(d.getFunctionSpace().getDomain())) !=*this) 
-         throw FinleyAdapterException("Error  in saveVTK: Data must be defined on same Domain");
-      data[i]=d.getDataC();
-      ptr_data[i]=&(data[i]);
-      if (n.length()>MAX_namelength-1) {
-         strncpy(names[i],n.c_str(),MAX_namelength-1);
-         names[i][MAX_namelength-1]='\0';
-      } else {
-         strcpy(names[i],n.c_str());
-      }
-   }
-   Finley_Mesh_saveVTK(filename.c_str(),m_finleyMesh.get(),num_data,names,ptr_data);
-
+   extractArgsFromDict(arg, num_data, names, data, ptr_data);
+   Finley_Mesh_saveVTK(filename.c_str(), m_finleyMesh.get(), num_data, names, ptr_data);
    checkFinleyError();
+
    /* win32 refactor */
    TMPMEMFREE(data);
    TMPMEMFREE(ptr_data);
-   for(int i=0;i<num_data;i++)
+   for(int i=0; i<num_data; i++)
    {
       TMPMEMFREE(names[i]);
    }
    TMPMEMFREE(names);
-
-   return;
 }
-                                                                                                                                                                     
-                                                                                                                                                                     
-// creates a SystemMatrixAdapter stiffness matrix an initializes it with zeros:
+
+//
+// creates a SystemMatrixAdapter stiffness matrix an initializes it with zeros
+//
 SystemMatrixAdapter MeshAdapter::newSystemMatrix(
                                                  const int row_blocksize,
                                                  const escript::FunctionSpace& row_functionspace,
@@ -1599,7 +1585,10 @@ SystemMatrixAdapter MeshAdapter::newSystemMatrix(
    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
    return SystemMatrixAdapter(fsystemMatrix,row_blocksize,row_functionspace,column_blocksize,column_functionspace);
 }
+
+//
 // creates a TransportProblemAdapter
+//
 TransportProblemAdapter MeshAdapter::newTransportProblem(
                                                          const double theta,
                                                          const int blocksize,

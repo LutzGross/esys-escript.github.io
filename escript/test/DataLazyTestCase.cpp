@@ -218,12 +218,14 @@ void DataLazyTestCase::testLazy2p()
   cout << "\tTesting UNARY (with arg) constructor (basic checks only)\n";
 
   DataTypes::ShapeType shape;
+  DataTypes::ShapeType traceshape;
   DataAbstract_ptr d1=getLazyUP(shape,TRANS,0);
   assert(d1->isLazy());
 
   for (int j=TRANS;j<=TRACE;++j)
   {
-    shape=DataTypes::scalarShape;
+    shape=DataTypes::scalarShape;	// traceshape is only used once so not initialised here
+    
     ES_optype op=(ES_optype)(j);			// not even reinterpret_cast works here
 					// if other compilers object I'll write a switch 
     cout << "\t" << opToString(op) << endl;
@@ -231,20 +233,27 @@ void DataLazyTestCase::testLazy2p()
     {
 	if (op==TRACE)
 	{
-	   TESTOPUP(getRank,0,op);
-    	   TESTOPUP(getNoValues,1,op);
-    	   TESTOPUP(getShape,DataTypes::scalarShape,op);
+	   if (i>1)	// trace only works 2 and up
+	   {
+	      TESTOPUP(getRank,i-2,op);
+    	      TESTOPUP(getNoValues, DataTypes::noValues(traceshape),op);
+    	      TESTOPUP(getShape,traceshape,op);
+
+    	      TESTOPUP(getNumDPPSample,1,op);
+    	      TESTOPUP(getNumSamples,1,op);
+	      TESTOPUP(getBuffsRequired,2,op);
+	      traceshape.push_back(3);
+	   }
 	}
 	else
 	{
 	   TESTOPUP(getRank,i,op);
     	   TESTOPUP(getNoValues,DataTypes::noValues(shape),op);
     	   TESTOPUP(getShape,shape,op);
-
+    	   TESTOPUP(getNumDPPSample,1,op);
+    	   TESTOPUP(getNumSamples,1,op);
+	   TESTOPUP(getBuffsRequired,2,op);
 	}
-    	TESTOPUP(getNumDPPSample,1,op);
-    	TESTOPUP(getNumSamples,1,op);
-	TESTOPUP(getBuffsRequired,2,op);
     	shape.push_back(3);
     }
   }
@@ -275,7 +284,7 @@ void DataLazyTestCase::testLazy3()
     	TESTOPB(getShape,shape,op);
     	TESTOPB(getNumDPPSample,1,op);
     	TESTOPB(getNumSamples,1,op);
-	TESTOPB(getBuffsRequired,2,op);
+	TESTOPB(getBuffsRequired,3,op);
     	shape.push_back(3);
     }
   }
@@ -335,15 +344,19 @@ void DataLazyTestCase::testBuffers()
   DataAbstract_ptr p2=(new DataLazy(p,SIN))->getPtr();
   DataAbstract_ptr p3=(new DataLazy(p2,COS))->getPtr();
   DataAbstract_ptr p4=(new DataLazy(p3,getLazy(shape),ADD))->getPtr();
-  assert(dynamic_pointer_cast<DataLazy>(p4)->getBuffsRequired()==2);
+  assert(dynamic_pointer_cast<DataLazy>(p4)->getBuffsRequired()==4);
   DataAbstract_ptr p5=(new DataLazy(p2,p4,ADD))->getPtr();
-  assert(dynamic_pointer_cast<DataLazy>(p5)->getBuffsRequired()==3);
+  assert(dynamic_pointer_cast<DataLazy>(p5)->getBuffsRequired()==6);
   DataAbstract_ptr p6=(new DataLazy(p5,TRANS,0))->getPtr();
-  assert(dynamic_pointer_cast<DataLazy>(p6)->getBuffsRequired()==4);
+  assert(dynamic_pointer_cast<DataLazy>(p6)->getBuffsRequired()==7);
   DataAbstract_ptr p7=(new DataLazy(p6,p6,PROD,0,0))->getPtr();
-  assert(dynamic_pointer_cast<DataLazy>(p7)->getBuffsRequired()==6);
-  DataAbstract_ptr p8=(new DataLazy(p7,TRACE,0))->getPtr();
-  assert(dynamic_pointer_cast<DataLazy>(p8)->getBuffsRequired()==7);
+  assert(dynamic_pointer_cast<DataLazy>(p7)->getBuffsRequired()==9);
+
+  DataTypes::ShapeType r2;
+  r2.push_back(4);
+  r2.push_back(4);
+  DataAbstract_ptr p8=(new DataLazy(getLazy(r2),TRACE,0))->getPtr();
+  assert(dynamic_pointer_cast<DataLazy>(p8)->getBuffsRequired()==2);
 }
 
 

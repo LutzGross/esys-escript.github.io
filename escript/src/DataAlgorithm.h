@@ -150,6 +150,29 @@ struct Trace : public std::binary_function<double,double,double>
 };
 
 /**
+   \brief Return 1 if abs(x)>y, otherwise return 0.
+*/
+struct AbsGT : public std::binary_function<double,double,double>
+{
+  inline double operator()(double x, double y) const
+  {
+    return fabs(x)>y;
+  }
+};
+
+/**
+   \brief Return 1 if abs(x)<=y, otherwise return 0.
+*/
+struct AbsLTE : public std::binary_function<double,double,double>
+{
+  inline double operator()(double x, double y) const
+  {
+    return fabs(x)<=y;
+  }
+};
+
+
+/**
    \brief
    Perform the given operation upon all values in all data-points in the
    given Data object and return the final result.

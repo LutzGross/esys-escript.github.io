@@ -278,7 +278,7 @@ DataExpanded::copy(const WrappedArray& value)
                         "Error - (DataExpanded) Cannot copy due to shape mismatch.",
                         value.getShape(),getShape()));
   }
-  getVector().copyFromArray(value);
+  getVector().copyFromArray(value, getNumDPPSample()*getNumSamples());
 }
 
 
@@ -417,7 +417,7 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const W
      }
      ValueType::size_type offset = getPointOffset(sampleNo, dataPointNo);
      ValueType& vec=getVector();
-     vec.copyFromArrayToOffset(value,offset);
+     vec.copyFromArrayToOffset(value,offset,1);
   }
 }
 

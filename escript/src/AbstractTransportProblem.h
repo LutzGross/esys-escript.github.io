@@ -119,10 +119,10 @@ class AbstractTransportProblem {
 
   /**
      \brief
-     inserts constraint u_{,t}=r where q>0  into the problem.
+     inserts constraint u_{,t}=r where q>0  into the problem using a weighting factor
   */
   ESCRIPT_DLL_API
-  void insertConstraint(Data& source, Data& q, Data& r) const;
+  void insertConstraint(Data& source, Data& q, Data& r, const double factor) const;
   /*
    *      \brief returns a safe time step size.
    */
@@ -159,7 +159,7 @@ class AbstractTransportProblem {
      appropriate shape and function space.
   */
   ESCRIPT_DLL_API
-  virtual void copyConstraint(Data& source, Data& q, Data& r) const;
+  virtual void copyConstraint(Data& source, Data& q, Data& r, const double factor) const;
 
   int m_empty;
   int m_blocksize;

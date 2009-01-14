@@ -165,63 +165,93 @@ DataVector::operator!=(const DataVector& other) const
 }
 
 void 
-DataVector::copyFromArrayToOffset(const WrappedArray& value, size_type offset)
+DataVector::copyFromArrayToOffset(const WrappedArray& value, size_type offset, size_type copies)
 {
   using DataTypes::ValueType;
   const DataTypes::ShapeType& tempShape=value.getShape();
   size_type len=DataTypes::noValues(tempShape);
-  if (offset+len>size())
+  if (offset+len*copies>size())
   {
-cerr << "offset=" << offset << " len=" << len << " >= " << size() << endl;
-     throw DataException("Error - not enough room for that DataPoint at that offset.");
+     ostringstream ss;
+     ss << "Error - not enough room for that DataPoint at that offset. (";
+     ss << "offset=" << offset << " + " << " len=" << len << " >= " << size();
+     throw DataException(ss.str());
   }
   size_t si=0,sj=0,sk=0,sl=0;
   switch (value.getRank())
   {
-  case 0:
-	m_array_data[offset]=value.getElt();
+  case 0:	
+	for (size_type z=0;z<copies;++z)
+	{
+	   m_array_data[offset]=value.getElt();
+	}
 	break;
   case 1:
-	for (size_t i=0;i<tempShape[0];++i)
+	for (size_type z=0;z<copies;++z)
 	{
-	  m_array_data[offset+i]=value.getElt(i);
+	   for (size_t i=0;i<tempShape[0];++i)
+	   {
+	      m_array_data[offset+i]=value.getElt(i);
+	   }
+	   offset+=z*len;
 	}
 	break;
   case 2:
 	si=tempShape[0];
 	sj=tempShape[1];
-        for (ValueType::size_type i=0;i<si;i++) {
-           for (ValueType::size_type j=0;j<sj;j++) {
-              m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j)]=value.getElt(i,j);
+	for (size_type z=0;z<copies;++z)
+	{
+           for (ValueType::size_type i=0;i<si;i++)
+	   {
+              for (ValueType::size_type j=0;j<sj;j++)
+	      {
+                 m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j)]=value.getElt(i,j);
+              }
            }
-        }
+	   offset+=z*len;
+	}
 	break;
   case 3:
 	si=tempShape[0];
 	sj=tempShape[1];
 	sk=tempShape[2];
-        for (ValueType::size_type i=0;i<si;i++) {
-           for (ValueType::size_type j=0;j<sj;j++) {
-              for (ValueType::size_type k=0;k<sk;k++) {
+	for (size_type z=0;z<copies;++z) 
+	{
+          for (ValueType::size_type i=0;i<si;i++)
+	  {
+            for (ValueType::size_type j=0;j<sj;j++)
+	    {
+              for (ValueType::size_type k=0;k<sk;k++)
+	      {
                  m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j,k)]=value.getElt(i,j,k);
               }
-           }
-        }
+            }
+          }
+	  offset+=len;
+	}
 	break;
   case 4:
 	si=tempShape[0];
 	sj=tempShape[1];
 	sk=tempShape[2];
 	sl=tempShape[3];
-        for (ValueType::size_type i=0;i<si;i++) {
-           for (ValueType::size_type j=0;j<sj;j++) {
-              for (ValueType::size_type k=0;k<sk;k++) {
-                 for (ValueType::size_type l=0;l<sl;l++) {
+	for (size_type z=0;z<copies;++z)
+	{
+          for (ValueType::size_type i=0;i<si;i++)
+	  {
+            for (ValueType::size_type j=0;j<sj;j++)
+	    {
+              for (ValueType::size_type k=0;k<sk;k++)
+	      {
+                 for (ValueType::size_type l=0;l<sl;l++)
+		 {
                     m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j,k,l)]=value.getElt(i,j,k,l);
                  }
               }
-           }
-        }
+            }
+          }
+	  offset+=len;
+	}
 	break;
   default:
 	ostringstream oss;
@@ -232,19 +262,19 @@ cerr << "offset=" << offset << " len=" << len << " >= " << size() << endl;
 
 
 void
-DataVector::copyFromArray(const WrappedArray& value)
+DataVector::copyFromArray(const WrappedArray& value, size_type copies)
 {
   using DataTypes::ValueType;
   if (m_array_data!=0) {
     arrayManager.delete_array(m_array_data);
   }
   DataTypes::ShapeType tempShape=value.getShape();
-  DataVector::size_type nelements=DataTypes::noValues(tempShape);
+  DataVector::size_type nelements=DataTypes::noValues(tempShape)*copies;
   m_array_data = arrayManager.new_array(1,nelements);
   m_size=nelements;	// total amount of elements
   m_dim=m_size;		// elements per sample
   m_N=1;			// number of samples
-  copyFromArrayToOffset(value,0);
+  copyFromArrayToOffset(value,0,copies);
 }
 
 } // end of namespace

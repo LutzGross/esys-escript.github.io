@@ -12,26 +12,25 @@
 *******************************************************/
 
 
-/**************************************************************/
-
-/*   Paso: Pattern_coupling                                            */
-
-/**************************************************************/
-
-/*   Author: PGH */
+#ifndef INC_PASO_TESTS
+#define INC_PASO_TESTS
 
 /**************************************************************/
 
-#ifndef INC_PASO_PATTERN_COUPLING
-#define INC_PASO_PATTERN_COUPLING
-
-#include "SparseMatrix.h"
+/*   Some testing routines: */
 
 /**************************************************************/
 
-void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thershold);
-void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta);
-void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double theta);
-void Paso_Pattern_color1(Paso_SparseMatrix* A, index_t* num_colors, index_t* colorOf);
- 
-#endif 
+/*   Copyrights by ACcESS Australia, 2003,2004,2005 */
+/*   author: artak@uq.edu.au */
+
+/**************************************************************/
+
+#include "paso/Common.h"
+
+/**************************************************************/
+
+void Paso_test_run(Paso_SystemMatrix* A,double* b,dim_t level) ;
+void Paso_test_matrix(Paso_SystemMatrix* A, double* b, Paso_Options* options );
+void Paso_test_data(char *fileName_p, double* b, Paso_Options* options );
+#endif /* #ifndef INC_PASO_TESTS */

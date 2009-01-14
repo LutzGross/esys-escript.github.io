@@ -28,8 +28,21 @@
 #include "UnaryFuncs.h"		// for escript::fsign
 #include "Utils.h"
 
-// #define LAZYDEBUG(X) X; 
+#include <iomanip>		// for some fancy formatting in debug
+
+// #define LAZYDEBUG(X) if (privdebug){X;} 
 #define LAZYDEBUG(X)
+namespace
+{
+bool privdebug=false;
+
+#define ENABLEDEBUG privdebug=true;
+#define DISABLEDEBUG privdebug=false;
+}
+
+#define SIZELIMIT 
+// #define SIZELIMIT if ((m_height>7) || (m_children>127)) {cerr << "\n!!!!!!! SIZE LIMIT EXCEEDED " << m_children << ";" << m_height << endl << toString() << endl; resolveToIdentity();}
+
 
 /*
 How does DataLazy work?
@@ -73,7 +86,7 @@ The convention that I use, is that the resolve methods should store their result
 For expressions which evaluate to Constant or Tagged, there is a different evaluation method.
 The collapse method invokes the (non-lazy) operations on the Data class to evaluate the expression.
 
-To add a new operator you need to do the following (plus anything I might have forgotten):
+To add a new operator you need to do the following (plus anything I might have forgotten - adding a new group for example):
 1) Add to the ES_optype.
 2) determine what opgroup your operation belongs to (X)
 3) add a string for the op to the end of ES_opstrings
@@ -99,6 +112,7 @@ enum ES_opgroup
    G_IDENTITY,
    G_BINARY,		// pointwise operations with two arguments
    G_UNARY,		// pointwise operations with one argument
+   G_UNARY_P,		// pointwise operations with one argument, requiring a parameter
    G_NP1OUT,		// non-pointwise op with one output
    G_NP1OUT_P,		// non-pointwise op with one output requiring a parameter
    G_TENSORPROD		// general tensor product
@@ -112,18 +126,17 @@ string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","^",
 			"asin","acos","atan","sinh","cosh","tanh","erf",
 			"asinh","acosh","atanh",
 			"log10","log","sign","abs","neg","pos","exp","sqrt",
-			"1/","where>0","where<0","where>=0","where<=0",
+			"1/","where>0","where<0","where>=0","where<=0", "where<>0","where=0",
 			"symmetric","nonsymmetric",
 			"prod",
-			"transpose",
-			"trace"};
-int ES_opcount=38;
+			"transpose", "trace"};
+int ES_opcount=40;
 ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY, G_BINARY,
 			G_UNARY,G_UNARY,G_UNARY, //10
 			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,	// 17
 			G_UNARY,G_UNARY,G_UNARY,					// 20
-			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,		// 28
-			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,			// 33
+			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,	// 28
+			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY, G_UNARY_P, G_UNARY_P,		// 35
 			G_NP1OUT,G_NP1OUT,
 			G_TENSORPROD,
 			G_NP1OUT_P, G_NP1OUT_P};
@@ -187,15 +200,81 @@ resultShape(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 // return the shape for "op left"
 
 DataTypes::ShapeType
-resultShape(DataAbstract_ptr left, ES_optype op)
+resultShape(DataAbstract_ptr left, ES_optype op, int axis_offset)
 {
 	switch(op)
 	{
     	case TRANS:
-		return left->getShape();
+	   {			// for the scoping of variables
+		const DataTypes::ShapeType& s=left->getShape();
+		DataTypes::ShapeType sh;
+		int rank=left->getRank();
+		if (axis_offset<0 || axis_offset>rank)
+		{
+        	   throw DataException("Error - Data::transpose must have 0 <= axis_offset <= rank=" + rank);
+     		}
+     		for (int i=0; i<rank; i++)
+		{
+		   int index = (axis_offset+i)%rank;
+       		   sh.push_back(s[index]); // Append to new shape
+     		}
+		return sh;
+	   }
 	break;
    	case TRACE:
-		return DataTypes::scalarShape;
+	   {
+		int rank=left->getRank();
+		if (rank<2)
+		{
+		   throw DataException("Trace can only be computed for objects with rank 2 or greater.");
+		}
+		if ((axis_offset>rank-2) || (axis_offset<0))
+		{
+		   throw DataException("Trace: axis offset must lie between 0 and rank-2 inclusive.");
+		}
+		if (rank==2)
+		{
+		   return DataTypes::scalarShape;
+		}
+		else if (rank==3)
+		{
+		   DataTypes::ShapeType sh;
+        	   if (axis_offset==0)
+		   {
+          		sh.push_back(left->getShape()[2]);
+        	   }
+        	   else 	// offset==1
+		   {
+			sh.push_back(left->getShape()[0]);
+        	   }
+		   return sh;
+		}
+		else if (rank==4)
+		{
+		   DataTypes::ShapeType sh;
+		   const DataTypes::ShapeType& s=left->getShape();
+        	   if (axis_offset==0)
+		   {
+          		sh.push_back(s[2]);
+          		sh.push_back(s[3]);
+        	   }
+        	   else if (axis_offset==1)
+		   {
+          		sh.push_back(s[0]);
+          		sh.push_back(s[3]);
+        	   }
+		   else 	// offset==2
+		   {
+	  		sh.push_back(s[0]);
+	  		sh.push_back(s[1]);
+		   }
+		   return sh;
+		}
+		else		// unknown rank
+		{
+		   throw DataException("Error - Data::trace can only be calculated for rank 2, 3 or 4 object.");
+		}
+	   }
 	break;
     	default:
 	throw DataException("Programmer error - resultShape(left,op) can't compute shapes for operator "+opToString(op)+".");
@@ -266,33 +345,21 @@ GTPShape(DataAbstract_ptr left, DataAbstract_ptr right, int axis_offset, int tra
   return shape2;
 }
 
-
-// determine the number of points in the result of "left op right"
-// note that determining the resultLength for G_TENSORPROD is more complex and will not be processed here
-// size_t
-// resultLength(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
-// {
-//    switch (getOpgroup(op))
-//    {
-//    case G_BINARY: return left->getLength();
-//    case G_UNARY: return left->getLength();
-//    case G_NP1OUT: return left->getLength();
-//    default: 
-// 	throw DataException("Programmer Error - attempt to getLength() for operator "+opToString(op)+".");
-//    }
-// }
-
 // determine the number of samples requires to evaluate an expression combining left and right
 // NP1OUT needs an extra buffer because we can't write the answers over the top of the input.
 // The same goes for G_TENSORPROD
+// It might seem that pointwise binary ops (G_BINARY) could be written over the top of the lefts.
+// This would be true were it not for the possibility that the LHS could be a scalar which needs to be examined
+// multiple times
 int
 calcBuffs(const DataLazy_ptr& left, const DataLazy_ptr& right, ES_optype op)
 {
    switch(getOpgroup(op))
    {
    case G_IDENTITY: return 1;
-   case G_BINARY: return max(left->getBuffsRequired(),right->getBuffsRequired()+1);
-   case G_UNARY: return max(left->getBuffsRequired(),1);
+   case G_BINARY: return 1+max(left->getBuffsRequired(),right->getBuffsRequired()+1);
+   case G_UNARY: 
+   case G_UNARY_P: return max(left->getBuffsRequired(),1);
    case G_NP1OUT: return 1+max(left->getBuffsRequired(),1);
    case G_NP1OUT_P: return 1+max(left->getBuffsRequired(),1);
    case G_TENSORPROD: return 1+max(left->getBuffsRequired(),right->getBuffsRequired()+1);
@@ -319,11 +386,7 @@ opToString(ES_optype op)
 
 
 DataLazy::DataLazy(DataAbstract_ptr p)
-	: parent(p->getFunctionSpace(),p->getShape()),
-	m_op(IDENTITY),
-	m_axis_offset(0),
-	m_transpose(0),
-	m_SL(0), m_SM(0), m_SR(0)
+	: parent(p->getFunctionSpace(),p->getShape())
 {
    if (p->isLazy())
    {
@@ -334,15 +397,10 @@ DataLazy::DataLazy(DataAbstract_ptr p)
    }
    else
    {
-	m_id=dynamic_pointer_cast<DataReady>(p);
-  	if(p->isConstant()) {m_readytype='C';}
-  	else if(p->isExpanded()) {m_readytype='E';}
-  	else if (p->isTagged()) {m_readytype='T';}
-	else {throw DataException("Unknown DataReady instance in DataLazy constructor.");}
+	DataReady_ptr dr=dynamic_pointer_cast<DataReady>(p);
+	makeIdentity(dr);
+LAZYDEBUG(cout << "Wrapping " << dr.get() << " id=" << m_id.get() << endl;)
    }
-   m_buffsRequired=1;
-   m_samplesize=getNumDPPSample()*getNoValues();
-   m_maxsamplesize=m_samplesize;
 LAZYDEBUG(cout << "(1)Lazy created with " << m_samplesize << endl;)
 }
 
@@ -375,6 +433,9 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
    m_buffsRequired=calcBuffs(m_left, m_right,m_op);	// yeah m_right will be null at this point
    m_samplesize=getNumDPPSample()*getNoValues();
    m_maxsamplesize=max(m_samplesize,m_left->getMaxSampleSize());
+   m_children=m_left->m_children+1;
+   m_height=m_left->m_height+1;
+   SIZELIMIT
 }
 
 
@@ -384,6 +445,7 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 	m_op(op),
 	m_SL(0), m_SM(0), m_SR(0)
 {
+LAZYDEBUG(cout << "Forming operator with " << left.get() << " " << right.get() << endl;)
    if ((getOpgroup(op)!=G_BINARY))
    {
 	throw DataException("Programmer error - constructor DataLazy(left, right, op) will only process BINARY operations.");
@@ -400,24 +462,29 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
    {
 	Data tmp(Data(right),getFunctionSpace());
 	right=tmp.borrowDataPtr();
+LAZYDEBUG(cout << "Right interpolation required " << right.get() << endl;)
    }
    left->operandCheck(*right);
 
    if (left->isLazy())			// the children need to be DataLazy. Wrap them in IDENTITY if required
    {
 	m_left=dynamic_pointer_cast<DataLazy>(left);
+LAZYDEBUG(cout << "Left is " << m_left->toString() << endl;)
    }
    else
    {
 	m_left=DataLazy_ptr(new DataLazy(left));
+LAZYDEBUG(cout << "Left " << left.get() << " wrapped " << m_left->m_id.get() << endl;)
    }
    if (right->isLazy())
    {
 	m_right=dynamic_pointer_cast<DataLazy>(right);
+LAZYDEBUG(cout << "Right is " << m_right->toString() << endl;)
    }
    else
    {
 	m_right=DataLazy_ptr(new DataLazy(right));
+LAZYDEBUG(cout << "Right " << right.get() << " wrapped " << m_right->m_id.get() << endl;)
    }
    char lt=m_left->m_readytype;
    char rt=m_right->m_readytype;
@@ -436,6 +503,9 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
    m_samplesize=getNumDPPSample()*getNoValues();
    m_maxsamplesize=max(max(m_samplesize,m_right->getMaxSampleSize()),m_left->getMaxSampleSize());	
    m_buffsRequired=calcBuffs(m_left, m_right,m_op);
+   m_children=m_left->m_children+m_right->m_children+2;
+   m_height=max(m_left->m_height,m_right->m_height)+1;
+   SIZELIMIT
 LAZYDEBUG(cout << "(3)Lazy created with " << m_samplesize << endl;)
 }
 
@@ -465,7 +535,7 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op, 
 	Data tmp(Data(right),getFunctionSpace());
 	right=tmp.borrowDataPtr();
    }
-   left->operandCheck(*right);
+//    left->operandCheck(*right);
 
    if (left->isLazy())			// the children need to be DataLazy. Wrap them in IDENTITY if required
    {
@@ -500,15 +570,19 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op, 
    m_samplesize=getNumDPPSample()*getNoValues();
    m_maxsamplesize=max(max(m_samplesize,m_right->getMaxSampleSize()),m_left->getMaxSampleSize());	
    m_buffsRequired=calcBuffs(m_left, m_right,m_op);
+   m_children=m_left->m_children+m_right->m_children+2;
+   m_height=max(m_left->m_height,m_right->m_height)+1;
+   SIZELIMIT
 LAZYDEBUG(cout << "(4)Lazy created with " << m_samplesize << endl;)
 }
 
 
 DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, int axis_offset)
-	: parent(left->getFunctionSpace(), resultShape(left,op)),
+	: parent(left->getFunctionSpace(), resultShape(left,op, axis_offset)),
 	m_op(op),
 	m_axis_offset(axis_offset),
-	m_transpose(0)
+	m_transpose(0),
+	m_tol(0)
 {
    if ((getOpgroup(op)!=G_NP1OUT_P))
    {
@@ -528,9 +602,42 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, int axis_offset)
    m_buffsRequired=calcBuffs(m_left, m_right,m_op);	// yeah m_right will be null at this point
    m_samplesize=getNumDPPSample()*getNoValues();
    m_maxsamplesize=max(m_samplesize,m_left->getMaxSampleSize());
+   m_children=m_left->m_children+1;
+   m_height=m_left->m_height+1;
+   SIZELIMIT
 LAZYDEBUG(cout << "(5)Lazy created with " << m_samplesize << endl;)
 }
 
+DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, double tol)
+	: parent(left->getFunctionSpace(), left->getShape()),
+	m_op(op),
+	m_axis_offset(0),
+	m_transpose(0),
+	m_tol(tol)
+{
+   if ((getOpgroup(op)!=G_UNARY_P))
+   {
+	throw DataException("Programmer error - constructor DataLazy(left, op, tol) will only process UNARY operations which require parameters.");
+   }
+   DataLazy_ptr lleft;
+   if (!left->isLazy())
+   {
+	lleft=DataLazy_ptr(new DataLazy(left));
+   }
+   else
+   {
+	lleft=dynamic_pointer_cast<DataLazy>(left);
+   }
+   m_readytype=lleft->m_readytype;
+   m_left=lleft;
+   m_buffsRequired=calcBuffs(m_left, m_right,m_op);	// yeah m_right will be null at this point
+   m_samplesize=getNumDPPSample()*getNoValues();
+   m_maxsamplesize=max(m_samplesize,m_left->getMaxSampleSize());
+   m_children=m_left->m_children+1;
+   m_height=m_left->m_height+1;
+   SIZELIMIT
+LAZYDEBUG(cout << "(6)Lazy created with " << m_samplesize << endl;)
+}
 
 DataLazy::~DataLazy()
 {
@@ -675,6 +782,12 @@ DataLazy::collapseToReady()
 	break;
     case LEZ:
 	result=left.whereNonPositive();
+	break;
+    case NEZ:
+	result=left.whereNonZero(m_tol);
+	break;
+    case EZ:
+	result=left.whereZero(m_tol);
 	break;
     case SYM:
 	result=left.symmetric();
@@ -842,12 +955,23 @@ DataLazy::resolveUnary(ValueType& v, size_t offset, int sampleNo, size_t& roffse
     case LEZ:
 	tensor_unary_operation(m_samplesize, left, result, bind2nd(less_equal<double>(),0.0));
 	break;
+// There are actually G_UNARY_P but I don't see a compelling reason to treat them differently
+    case NEZ:
+	tensor_unary_operation(m_samplesize, left, result, bind2nd(AbsGT(),m_tol));
+	break;
+    case EZ:
+	tensor_unary_operation(m_samplesize, left, result, bind2nd(AbsLTE(),m_tol));
+	break;
 
     default:
 	throw DataException("Programmer error - resolveUnary can not resolve operator "+opToString(m_op)+".");
   }
   return &v;
 }
+
+
+
+
 
 
 /*
@@ -874,15 +998,29 @@ DataLazy::resolveNP1OUT(ValueType& v, size_t offset, int sampleNo, size_t& roffs
   }
 	// since we can't write the result over the input, we need a result offset further along
   size_t subroffset=roffset+m_samplesize;
-  const ValueType* vleft=m_left->resolveSample(v,offset,sampleNo,subroffset);
+LAZYDEBUG(cerr << "subroffset=" << subroffset << endl;)
+  const ValueType* vleft=m_left->resolveSample(v,offset+m_left->m_samplesize,sampleNo,subroffset);
   roffset=offset;
+  size_t loop=0;
+  size_t numsteps=(m_readytype=='E')?getNumDPPSample():1;
+  size_t step=getNoValues();
   switch (m_op)
   {
     case SYM:
-	DataMaths::symmetric(*vleft,m_left->getShape(),subroffset, v, getShape(), offset);
+	for (loop=0;loop<numsteps;++loop)
+	{
+	    DataMaths::symmetric(*vleft,m_left->getShape(),subroffset, v, getShape(), offset);
+	    subroffset+=step;
+	    offset+=step;
+	}
 	break;
     case NSYM:
-	DataMaths::nonsymmetric(*vleft,m_left->getShape(),subroffset, v, getShape(), offset);
+	for (loop=0;loop<numsteps;++loop)
+	{
+	    DataMaths::nonsymmetric(*vleft,m_left->getShape(),subroffset, v, getShape(), offset);
+	    subroffset+=step;
+	    offset+=step;
+	}
 	break;
     default:
 	throw DataException("Programmer error - resolveNP1OUT can not resolve operator "+opToString(m_op)+".");
@@ -913,16 +1051,46 @@ DataLazy::resolveNP1OUT_P(ValueType& v, size_t offset, int sampleNo, size_t& rof
     throw DataException("Programmer error - resolveNP1OUT_P should only be called on expanded Data.");
   }
 	// since we can't write the result over the input, we need a result offset further along
-  size_t subroffset=roffset+m_samplesize;
-  const ValueType* vleft=m_left->resolveSample(v,offset,sampleNo,subroffset);
+  size_t subroffset;
+  const ValueType* vleft=m_left->resolveSample(v,offset+m_left->m_samplesize,sampleNo,subroffset);
+LAZYDEBUG(cerr << "srcsamplesize=" << offset+m_left->m_samplesize << " beg=" << subroffset << endl;)
+LAZYDEBUG(cerr << "Offset for 5800=" << getPointOffset(5800/getNumDPPSample(),5800%getNumDPPSample()) << endl;)
   roffset=offset;
+  size_t loop=0;
+  size_t numsteps=(m_readytype=='E')?getNumDPPSample():1;
+  size_t outstep=getNoValues();
+  size_t instep=m_left->getNoValues();
+LAZYDEBUG(cerr << "instep=" << instep << " outstep=" << outstep<< " numsteps=" << numsteps << endl;)
   switch (m_op)
   {
     case TRACE:
-         DataMaths::trace(*vleft,m_left->getShape(),subroffset, v,getShape(),offset,m_axis_offset);
+	for (loop=0;loop<numsteps;++loop)
+	{
+size_t zz=sampleNo*getNumDPPSample()+loop;
+if (zz==5800)
+{
+LAZYDEBUG(cerr << "point=" <<  zz<< endl;)
+LAZYDEBUG(cerr << "Input to  trace=" << DataTypes::pointToString(*vleft,m_left->getShape(),subroffset,"") << endl;)
+LAZYDEBUG(cerr << "Offset for point=" << getPointOffset(5800/getNumDPPSample(),5800%getNumDPPSample()) << " vs ";)
+LAZYDEBUG(cerr << subroffset << endl;)
+LAZYDEBUG(cerr << "output=" << offset << endl;)
+}
+            DataMaths::trace(*vleft,m_left->getShape(),subroffset, v ,getShape(),offset,m_axis_offset);
+if (zz==5800)
+{
+LAZYDEBUG(cerr << "Result of trace=" << DataTypes::pointToString(v,getShape(),offset,"") << endl;)
+}
+	    subroffset+=instep;
+	    offset+=outstep;
+	}
 	break;
     case TRANS:
-         DataMaths::transpose(*vleft,m_left->getShape(),subroffset, v,getShape(),offset,m_axis_offset);
+	for (loop=0;loop<numsteps;++loop)
+	{
+            DataMaths::transpose(*vleft,m_left->getShape(),subroffset, v,getShape(),offset,m_axis_offset);
+	    subroffset+=instep;
+	    offset+=outstep;
+	}
 	break;
     default:
 	throw DataException("Programmer error - resolveNP1OUTP can not resolve operator "+opToString(m_op)+".");
@@ -932,11 +1100,19 @@ DataLazy::resolveNP1OUT_P(ValueType& v, size_t offset, int sampleNo, size_t& rof
 
 
 #define PROC_OP(TYPE,X)                               \
-	for (int i=0;i<steps;++i,resultp+=resultStep) \
-	{ \
-	   tensor_binary_operation< TYPE >(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X); \
-	   lroffset+=leftStep; \
-	   rroffset+=rightStep; \
+	for (int j=0;j<onumsteps;++j)\
+	{\
+	  for (int i=0;i<numsteps;++i,resultp+=resultStep) \
+	  { \
+LAZYDEBUG(cout << "[left,right]=[" << lroffset << "," << rroffset << "]" << endl;)\
+LAZYDEBUG(cout << "{left,right}={" << (*left)[lroffset] << "," << (*right)[rroffset] << "}\n";)\
+	     tensor_binary_operation< TYPE >(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X); \
+LAZYDEBUG(cout << " result=      " << resultp[0] << endl;) \
+	     lroffset+=leftstep; \
+	     rroffset+=rightstep; \
+	  }\
+	  lroffset+=oleftstep;\
+	  rroffset+=orightstep;\
 	}
 
 /*
@@ -975,25 +1151,117 @@ LAZYDEBUG(cout << "Resolve binary: " << toString() << endl;)
   }
   bool leftScalar=(m_left->getRank()==0);
   bool rightScalar=(m_right->getRank()==0);
-  bool bigloops=((leftExp && rightExp) || (!leftExp && !rightExp));	// is processing in single step?
-  int steps=(bigloops?1:getNumDPPSample());
-  size_t chunksize=(bigloops? m_samplesize : getNoValues());	// if bigloops, pretend the whole sample is a datapoint
-  if (m_left->getRank()!=m_right->getRank())	// need to deal with scalar * ? ops
+  if ((m_left->getRank()!=m_right->getRank()) && (!leftScalar && !rightScalar))
   {
- 	if (!leftScalar && !rightScalar)
+	throw DataException("resolveBinary - ranks of arguments must match unless one of them is scalar."); 
+  }
+  size_t leftsize=m_left->getNoValues();
+  size_t rightsize=m_right->getNoValues();
+  size_t chunksize=1;			// how many doubles will be processed in one go
+  int leftstep=0;		// how far should the left offset advance after each step
+  int rightstep=0;
+  int numsteps=0;		// total number of steps for the inner loop
+  int oleftstep=0;	// the o variables refer to the outer loop
+  int orightstep=0;	// The outer loop is only required in cases where there is an extended scalar
+  int onumsteps=1;
+  
+  bool LES=(leftExp && leftScalar);	// Left is an expanded scalar
+  bool RES=(rightExp && rightScalar);
+  bool LS=(!leftExp && leftScalar);	// left is a single scalar
+  bool RS=(!rightExp && rightScalar);
+  bool LN=(!leftExp && !leftScalar);	// left is a single non-scalar
+  bool RN=(!rightExp && !rightScalar);
+  bool LEN=(leftExp && !leftScalar);	// left is an expanded non-scalar
+  bool REN=(rightExp && !rightScalar);
+
+  if ((LES && RES) || (LEN && REN))	// both are Expanded scalars or both are expanded non-scalars
+  {
+	chunksize=m_left->getNumDPPSample()*leftsize;
+	leftstep=0;
+	rightstep=0;
+	numsteps=1;
+  }
+  else if (LES || RES)
+  {
+	chunksize=1;
+	if (LES)		// left is an expanded scalar
 	{
-	   throw DataException("resolveBinary - ranks of arguments must match unless one of them is scalar."); 
+		if (RS)
+		{
+		   leftstep=1;
+		   rightstep=0;
+		   numsteps=m_left->getNumDPPSample();
+		}
+		else		// RN or REN
+		{
+		   leftstep=0;
+		   oleftstep=1;
+		   rightstep=1;
+		   orightstep=(RN ? -(int)rightsize : 0);
+		   numsteps=rightsize;
+		   onumsteps=m_left->getNumDPPSample();
+		}
 	}
-	steps=getNumDPPSample()*max(m_left->getNoValues(),m_right->getNoValues());
-	chunksize=1;	// for scalar
-  }		
-  int leftStep=((leftExp && (!rightExp || rightScalar))? m_right->getNoValues() : 0);
-  int rightStep=((rightExp && (!leftExp || leftScalar))? m_left->getNoValues() : 0);
-  int resultStep=max(leftStep,rightStep);	// only one (at most) should be !=0
+	else		// right is an expanded scalar
+	{
+		if (LS)
+		{
+		   rightstep=1;
+		   leftstep=0;
+		   numsteps=m_right->getNumDPPSample();
+		}
+		else
+		{
+		   rightstep=0;
+		   orightstep=1;
+		   leftstep=1;
+		   oleftstep=(LN ? -(int)leftsize : 0);
+		   numsteps=leftsize;
+		   onumsteps=m_right->getNumDPPSample();
+		}
+	}
+  }
+  else 	// this leaves (LEN, RS), (LEN, RN) and their transposes
+  {
+	if (LEN)	// and Right will be a single value 
+	{
+		chunksize=rightsize;
+		leftstep=rightsize;
+	   	rightstep=0;
+		numsteps=m_left->getNumDPPSample();
+		if (RS)
+		{
+		   numsteps*=leftsize;
+		}
+	}
+	else	// REN
+	{
+		chunksize=leftsize;
+		rightstep=leftsize;
+		leftstep=0;
+		numsteps=m_right->getNumDPPSample();
+		if (LS)
+		{
+		   numsteps*=rightsize;
+		}
+	}
+  }
+
+  int resultStep=max(leftstep,rightstep);	// only one (at most) should be !=0
 	// Get the values of sub-expressions
-  const ValueType* left=m_left->resolveSample(v,offset,sampleNo,lroffset);
-  const ValueType* right=m_right->resolveSample(v,offset+m_samplesize,sampleNo,rroffset); // Note
+  const ValueType* left=m_left->resolveSample(v,offset+getMaxSampleSize(),sampleNo,lroffset);	// see note on 
+	// calcBufss for why we can't put offset as the 2nd param above
+  const ValueType* right=m_right->resolveSample(v,offset+2*getMaxSampleSize(),sampleNo,rroffset); // Note
 	// the right child starts further along.
+LAZYDEBUG(cout << "Post sub calls in " << toString() << endl;)
+LAZYDEBUG(cout << "shapes=" << DataTypes::shapeToString(m_left->getShape()) << "," << DataTypes::shapeToString(m_right->getShape()) << endl;)
+LAZYDEBUG(cout << "chunksize=" << chunksize << endl << "leftstep=" << leftstep << " rightstep=" << rightstep;)
+LAZYDEBUG(cout << " numsteps=" << numsteps << endl << "oleftstep=" << oleftstep << " orightstep=" << orightstep;)
+LAZYDEBUG(cout << "onumsteps=" << onumsteps << endl;)
+LAZYDEBUG(cout << " DPPS=" << m_left->getNumDPPSample() << "," <<m_right->getNumDPPSample() << endl;)
+LAZYDEBUG(cout << "" << LS << RS << LN << RN << LES << RES <<LEN << REN <<   endl;)
+
+
   double* resultp=&(v[offset]);		// results are stored at the vector offset we recieved
   switch(m_op)
   {
@@ -1015,9 +1283,10 @@ LAZYDEBUG(cout << "Resolve binary: " << toString() << endl;)
     default:
 	throw DataException("Programmer error - resolveBinary can not resolve operator "+opToString(m_op)+".");
   }
-  roffset=offset;	
+  roffset=offset;
   return &v;
 }
+
 
 
 /*
@@ -1038,28 +1307,92 @@ LAZYDEBUG(cout << "Resolve binary: " << toString() << endl;)
 DataTypes::ValueType*
 DataLazy::resolveTProd(ValueType& v,  size_t offset, int sampleNo, size_t& roffset) const
 {
-LAZYDEBUG(cout << "Resolve TensorProduct: " << toString() << endl;)
+LAZYDEBUG(cout << "Resolve TensorProduct: " << toString()  << " to offset " << offset<< endl;)
 
   size_t lroffset=0, rroffset=0;	// offsets in the left and right result vectors
 	// first work out which of the children are expanded
   bool leftExp=(m_left->m_readytype=='E');
   bool rightExp=(m_right->m_readytype=='E');
   int steps=getNumDPPSample();
-  int leftStep=((leftExp && !rightExp)? m_right->getNoValues() : 0);
-  int rightStep=((rightExp && !leftExp)? m_left->getNoValues() : 0);
-  int resultStep=max(leftStep,rightStep);	// only one (at most) should be !=0
+/*  int leftStep=((leftExp && !rightExp)? m_right->getNoValues() : 0);
+  int rightStep=((rightExp && !leftExp)? m_left->getNoValues() : 0);*/
+  int leftStep=(leftExp? m_left->getNoValues() : 0);		// do not have scalars as input to this method
+  int rightStep=(rightExp?m_right->getNoValues() : 0);
+
+  int resultStep=getNoValues();
 	// Get the values of sub-expressions (leave a gap of one sample for the result).
-  const ValueType* left=m_left->resolveSample(v,offset+m_samplesize,sampleNo,lroffset);
-  const ValueType* right=m_right->resolveSample(v,offset+2*m_samplesize,sampleNo,rroffset); 
+  int gap=offset+m_samplesize;	
+
+LAZYDEBUG(cout << "Query left with offset=" << gap << endl;)
+
+  const ValueType* left=m_left->resolveSample(v,gap,sampleNo,lroffset);
+  gap+=m_left->getMaxSampleSize();
+
+
+LAZYDEBUG(cout << "Query right with offset=" << gap << endl;)
+
+
+  const ValueType* right=m_right->resolveSample(v,gap,sampleNo,rroffset);
+
+LAZYDEBUG(cerr << "[Left shape]=" << DataTypes::shapeToString(m_left->getShape()) << "\n[Right shape]=" << DataTypes::shapeToString(m_right->getShape()) << " result=" <<DataTypes::shapeToString(getShape()) <<  endl;
+cout << getNoValues() << endl;)
+LAZYDEBUG(cerr << "Result of left=";)
+LAZYDEBUG(cerr << "[" << lroffset << " .. " << lroffset+m_left->getNoValues() << "]" << endl;
+
+for (int i=lroffset, limit=lroffset+(leftExp?m_left->getNoValues()*m_left->getNumDPPSample():m_left->getNoValues());i<limit;++i)
+{
+cout << "[" << setw(2) << i-lroffset << "] " << setw(10) << (*left)[i] << " ";
+if (i%4==0) cout << endl;
+}) 
+LAZYDEBUG(cerr << "\nResult of right=" << endl;)
+LAZYDEBUG(
+for (int i=rroffset, limit=rroffset+(rightExp?m_right->getNoValues()*m_right->getNumDPPSample():m_right->getNoValues());i<limit;++i)
+{
+cerr << "[" <<  setw(2)<< i-rroffset << "] " << setw(10) << (*right)[i] << " ";
+if (i%4==0) cout << endl;
+}
+cerr << endl;
+)
+LAZYDEBUG(cerr << "Post sub calls: " << toString() << endl;)
+LAZYDEBUG(cout << "LeftExp=" << leftExp << " rightExp=" << rightExp << endl;)
+LAZYDEBUG(cout << "LeftR=" << m_left->getRank() << " rightExp=" << m_right->getRank() << endl;)
+LAZYDEBUG(cout << "LeftSize=" << m_left->getNoValues() << " RightSize=" << m_right->getNoValues() << endl;)
+LAZYDEBUG(cout << "m_samplesize=" << m_samplesize << endl;)
+LAZYDEBUG(cout << "outputshape=" << DataTypes::shapeToString(getShape()) << endl;)
+LAZYDEBUG(cout << "DPPS=" << m_right->getNumDPPSample() <<"."<<endl;)
+
   double* resultp=&(v[offset]);		// results are stored at the vector offset we recieved
   switch(m_op)
   {
     case PROD:
 	for (int i=0;i<steps;++i,resultp+=resultStep)
 	{
+
+LAZYDEBUG(cout << "lroffset=" << lroffset << "rroffset=" << rroffset << endl;)
+LAZYDEBUG(cout << "l*=" << left << " r*=" << right << endl;)
+LAZYDEBUG(cout << "m_SL=" << m_SL << " m_SM=" << m_SM << " m_SR=" << m_SR << endl;) 
+
     	  const double *ptr_0 = &((*left)[lroffset]);
     	  const double *ptr_1 = &((*right)[rroffset]);
+
+LAZYDEBUG(cout << DataTypes::pointToString(*left, m_left->getShape(),lroffset,"LEFT") << endl;)
+LAZYDEBUG(cout << DataTypes::pointToString(*right,m_right->getShape(),rroffset, "RIGHT") << endl;)
+
     	  matrix_matrix_product(m_SL, m_SM, m_SR, ptr_0, ptr_1, resultp, m_transpose);
+
+LAZYDEBUG(cout << "Results--\n";
+{
+  DataVector dv(getNoValues());
+for (int z=0;z<getNoValues();++z)
+{
+  cout << "[" << setw(2) << z<< "] " << setw(10) << resultp[z] << " ";
+  if (z%4==0) cout << endl;
+  dv[z]=resultp[z];
+}
+cout << endl << DataTypes::pointToString(dv,getShape(),0,"RESLT");
+cout << "\nWritten to: " << resultp << " resultStep=" << resultStep << endl;
+}
+)
 	  lroffset+=leftStep;
 	  rroffset+=rightStep;
 	}
@@ -1100,13 +1433,15 @@ LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
   }
   if (m_op==IDENTITY)	
   {
-    const ValueType& vec=m_id->getVector();
+    const ValueType& vec=m_id->getVectorRO();
     if (m_readytype=='C')
     {
 	roffset=0;
+LAZYDEBUG(cout << "Finish  sample " << toString() << endl;)
 	return &(vec);
     }
     roffset=m_id->getPointOffset(sampleNo, 0);
+LAZYDEBUG(cout << "Finish  sample " << toString() << endl;)
     return &(vec);
   }
   if (m_readytype!='E')
@@ -1115,7 +1450,8 @@ LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
   }
   switch (getOpgroup(m_op))
   {
-  case G_UNARY: return resolveUnary(v, offset,sampleNo,roffset);
+  case G_UNARY:
+  case G_UNARY_P: return resolveUnary(v, offset,sampleNo,roffset);
   case G_BINARY: return resolveBinary(v, offset,sampleNo,roffset);
   case G_NP1OUT: return resolveNP1OUT(v, offset, sampleNo,roffset);
   case G_NP1OUT_P: return resolveNP1OUT_P(v, offset, sampleNo,roffset);
@@ -1123,8 +1459,37 @@ LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
   default:
     throw DataException("Programmer Error - resolveSample does not know how to process "+opToString(m_op)+".");
   }
+
 }
 
+// This needs to do the work of the idenity constructor
+void
+DataLazy::resolveToIdentity()
+{
+   if (m_op==IDENTITY)
+	return;
+   DataReady_ptr p=resolve();
+   makeIdentity(p);
+}
+
+void DataLazy::makeIdentity(const DataReady_ptr& p)
+{
+   m_op=IDENTITY;
+   m_axis_offset=0;
+   m_transpose=0;
+   m_SL=m_SM=m_SR=0;
+   m_children=m_height=0;
+   m_id=p;
+   if(p->isConstant()) {m_readytype='C';}
+   else if(p->isExpanded()) {m_readytype='E';}
+   else if (p->isTagged()) {m_readytype='T';}
+   else {throw DataException("Unknown DataReady instance in convertToIdentity constructor.");}
+   m_buffsRequired=1;
+   m_samplesize=p->getNumDPPSample()*p->getNoValues();
+   m_maxsamplesize=m_samplesize;
+   m_left.reset();
+   m_right.reset();
+}
 
 // To simplify the memory management, all threads operate on one large vector, rather than one each.
 // Each sample is evaluated independently and copied into the result DataExpanded.
@@ -1159,9 +1524,13 @@ LAZYDEBUG(cout << "Buffer created with size=" << v.size() << endl;)
   int totalsamples=getNumSamples();
   const ValueType* res=0;	// Vector storing the answer
   size_t resoffset=0;		// where in the vector to find the answer
+LAZYDEBUG(cout << "Total number of samples=" <<totalsamples << endl;)
   #pragma omp parallel for private(sample,resoffset,outoffset,res) schedule(static)
   for (sample=0;sample<totalsamples;++sample)
   {
+      if (sample==0)  {ENABLEDEBUG}
+
+//       if (sample==5800/getNumDPPSample())  {ENABLEDEBUG}
 LAZYDEBUG(cout << "################################# " << sample << endl;)
 #ifdef _OPENMP
     res=resolveSample(v,threadbuffersize*omp_get_thread_num(),sample,resoffset);
@@ -1169,13 +1538,17 @@ LAZYDEBUG(cout << "################################# " << sample << endl;)
     res=resolveSample(v,0,sample,resoffset);   // res would normally be v, but not if its a single IDENTITY op.
 #endif
 LAZYDEBUG(cerr << "-------------------------------- " << endl;)
+LAZYDEBUG(cerr<< "Copying sample#" << sample << endl;)
     outoffset=result->getPointOffset(sample,0);
-LAZYDEBUG(cerr << "offset=" << outoffset << endl;)
+LAZYDEBUG(cerr << "offset=" << outoffset << " from offset=" << resoffset << " " << m_samplesize << " doubles" << endl;)
     for (unsigned int i=0;i<m_samplesize;++i,++outoffset,++resoffset)	// copy values into the output vector
     {
+LAZYDEBUG(cerr << "outoffset=" << outoffset << " resoffset=" << resoffset << " " << (*res)[resoffset]<< endl;)
 	resvec[outoffset]=(*res)[resoffset];
     }
+LAZYDEBUG(cerr << DataTypes::pointToString(resvec,getShape(),outoffset-m_samplesize+DataTypes::noValues(getShape()),"Final result:") << endl;)
 LAZYDEBUG(cerr << "*********************************" << endl;)
+    DISABLEDEBUG
   }
   return resptr;
 }
@@ -1193,6 +1566,7 @@ DataLazy::toString() const
 void
 DataLazy::intoString(ostringstream& oss) const
 {
+//   oss << "[" << m_children <<";"<<m_height <<"]";
   switch (getOpgroup(m_op))
   {
   case G_IDENTITY:
@@ -1222,6 +1596,7 @@ DataLazy::intoString(ostringstream& oss) const
 	oss << ')';
 	break;
   case G_UNARY:
+  case G_UNARY_P:
   case G_NP1OUT:
   case G_NP1OUT_P:
 	oss << opToString(m_op) << '(';

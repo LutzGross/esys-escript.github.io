@@ -126,13 +126,14 @@ class ESCRIPT_DLL_API DataVector {
   /**
     \brief 
     Populates the vector with the data from value.
-    Note: This function does not attempt to perform shape checking.
+    This method currently throws an exception if the specified number of copies won't fit.
+    \warning This function does not attempt to perform shape checking.
   */
   void
-  copyFromArray(const escript::WrappedArray& value);
+  copyFromArray(const escript::WrappedArray& value, size_type copies);
 
   void 
-  copyFromArrayToOffset(const WrappedArray& value, size_type offset);
+  copyFromArrayToOffset(const WrappedArray& value, size_type offset, size_type copies);
 
 
   /**
@@ -217,7 +218,7 @@ inline
 DataVector::reference
 DataVector::operator[](const DataVector::size_type i)
 {
-  EsysAssert(i<size(),"DataVector: invalid index specified.");
+  EsysAssert(i<size(),"DataVector: invalid index specified. " << i << " of " << size());
   return m_array_data[i];
 }
 
@@ -225,7 +226,7 @@ inline
 DataVector::const_reference
 DataVector::operator[](const DataVector::size_type i) const
 {
-  EsysAssert(i<size(),"DataVector: invalid index specified.");
+  EsysAssert(i<size(),"DataVector: invalid index specified. " << i << " of " << size());
   return m_array_data[i];
 }
 

@@ -42,7 +42,7 @@ DataConstant::DataConstant(const WrappedArray& value,
                            const FunctionSpace& what)
   : parent(what,value.getShape())
 {
-  m_data.copyFromArray(value);
+  m_data.copyFromArray(value,1);
 }
 
 DataConstant::DataConstant(const DataConstant& other)
