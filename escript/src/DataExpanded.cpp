@@ -33,9 +33,9 @@ using namespace boost;
 using namespace escript::DataTypes;
 
 
-#define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {throw DataException("Attempt to modify shared object");}
+// #define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {throw DataException("Attempt to modify shared object");}
 
-// #define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {std::ostringstream ss; ss << " Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__; throw DataException(ss.str());}
+#define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {std::ostringstream ss; ss << " Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__; *((int*)0)=17;throw DataException(ss.str());}
 
 namespace escript {
 
@@ -115,10 +115,6 @@ DataExpanded::DataExpanded(const DataExpanded& other,
   for (i=0;i<numRows;i++) {
     for (j=0;j<numCols;j++) {
       try {
-//         getPointDataView().copySlice(getPointOffset(i,j),
-//                                      other.getPointDataView(),
-//                                      other.getPointOffset(i,j),
-//                                      region_loop_range);
         DataTypes::copySlice(getVector(),getShape(),getPointOffset(i,j),
                                      other.getVector(),
 				     other.getShape(),
@@ -131,21 +127,6 @@ DataExpanded::DataExpanded(const DataExpanded& other,
     }
   }
 }
-
-// DataExpanded::DataExpanded(const DataArrayView& value,
-//                            const FunctionSpace& what)
-//   : DataAbstract(what)
-// {
-//   //
-//   // get the shape of the given data value
-//   DataTypes::ShapeType tempShape=value.getShape();
-//   //
-//   // initialise this Data object to the shape of the given data value
-//   initialise(tempShape,what.getNumSamples(),what.getNumDPPSample());
-//   //
-//   // copy the given value to every data point
-//   copy(value);
-// }
 
 DataExpanded::DataExpanded(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,

@@ -16,6 +16,8 @@
 #include "DataException.h"
 #include "DataLazy.h"
 
+#include "Data.h"		// So we can update the shared status when things change
+
 using namespace std;
 
 namespace escript {
@@ -51,7 +53,10 @@ const_DataAbstract_ptr DataAbstract::getPtr() const
 // invasive pointers which can answer these questions faster
 bool DataAbstract::checkNoSharing() const
 {
-  if (_internal_weak_this.expired())	// there is no shared_ptr for this object yet
+
+  return m_owners.size()<2;
+
+/*  if (_internal_weak_this.expired())	// there is no shared_ptr for this object yet
   {
 	return true;
   }
@@ -59,7 +64,8 @@ bool DataAbstract::checkNoSharing() const
   {						// which is the reason .unique is no use.
 	return true;
   }
-  return false;
+std::cerr << "-<"<<shared_from_this().use_count() << ">-" << endl;
+  return false;*/
 }
 
 bool
@@ -76,7 +82,8 @@ DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape, bo
     m_functionSpace(what),
     m_shape(shape),
     m_novalues(DataTypes::noValues(shape)),
-    m_rank(DataTypes::getRank(shape))
+    m_rank(DataTypes::getRank(shape)),
+    m_lazyshared(false)
 
 {
     m_isempty=isDataEmpty;
@@ -225,19 +232,50 @@ DataAbstract::reorderByReferenceIDs(int *reference_ids)
 }
 
 
-// DataTypes::ValueType&
-// DataAbstract::getVector()
-// {
-//    throw DataException("Error - DataAbstract:: does not have a DataVector.");
-// }
-// 
-// const DataTypes::ValueType&
-// DataAbstract::getVector() const
-// {
-//    throw DataException("Error - DataAbstract:: does not have a DataVector.");
-// }
+void DataAbstract::addOwner(Data* d)
+{
+  for (size_t i=0;i<m_owners.size();++i)
+  {
+	if (m_owners[i]==d)
+	{
+		return;
+	}
+  }
+  m_owners.push_back(d);
+// cerr << "Adding " << d << " as an owner of " << this << " now O=" << m_owners.size() << endl;
+  if (m_owners.size()==2)	// Means it used to be 1 so we need to tell people
+  {
+	for (size_t i=0;i<m_owners.size();++i)
+	{
+		m_owners[i]->updateShareStatus(true);
+	}
+  }
+/*
+	for (size_t i=0;i<m_owners.size();++i)
+	{
+		m_owners[i]->updateShareStatus(true);
+cerr << m_owners[i] << " ";
+	}
+cerr << endl;*/
 
 
+}
+
+void DataAbstract::removeOwner(Data* d)
+{
+  for (size_t i=0;i<m_owners.size();++i)
+  {
+	if (m_owners[i]==d)
+	{
+		m_owners.erase(m_owners.begin()+i,m_owners.begin()+(i+1));	// remove the element
+		break;
+	}
+  }
+  if (m_owners.size()==1)	// Means it used to be 2 so we need to tell people
+  {
+	m_owners[0]->updateShareStatus(false);
+  }
+}
 
 
 }  // end of namespace

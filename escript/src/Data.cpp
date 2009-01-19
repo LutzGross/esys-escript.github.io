@@ -64,7 +64,7 @@ using namespace escript;
 #define MAKELAZYBINSELF(R,X)   if (isLazy() || R.isLazy() || (AUTOLAZYON && (isExpanded() || R.isExpanded()))) \
   {\
 	DataLazy* c=new DataLazy(m_data,R.borrowDataPtr(),X);\
-        m_data=c->getPtr();\
+/*         m_data=c->getPtr();*/     set_m_data(c->getPtr());\
 	return (*this);\
   }
 
@@ -173,11 +173,13 @@ pointToTuple( const DataTypes::ShapeType& shape,ARR v)
 }  // anonymous namespace
 
 Data::Data()
+	: m_shared(false), m_lazy(false)
 {
   //
   // Default data is type DataEmpty
   DataAbstract* temp=new DataEmpty();
-  m_data=temp->getPtr();
+//   m_data=temp->getPtr();
+  set_m_data(temp->getPtr());
   m_protected=false;
 }
 
@@ -185,6 +187,7 @@ Data::Data(double value,
            const tuple& shape,
            const FunctionSpace& what,
            bool expanded)
+	: m_shared(false), m_lazy(false)
 {
   DataTypes::ShapeType dataPointShape;
   for (int i = 0; i < shape.attr("__len__")(); ++i) {
@@ -201,6 +204,7 @@ Data::Data(double value,
 	   const DataTypes::ShapeType& dataPointShape,
 	   const FunctionSpace& what,
            bool expanded)
+	: m_shared(false), m_lazy(false)
 {
   int len = DataTypes::noValues(dataPointShape);
 
@@ -214,14 +218,17 @@ Data::Data(double value,
 }
 
 Data::Data(const Data& inData)
+	: m_shared(false), m_lazy(false)
 {
-  m_data=inData.m_data;
+//   m_data=inData.m_data;
+  set_m_data(inData.m_data);
   m_protected=inData.isProtected();
 }
 
 
 Data::Data(const Data& inData,
            const DataTypes::RegionType& region)
+	: m_shared(false), m_lazy(false)
 {
   DataAbstract_ptr dat=inData.m_data;
   if (inData.isLazy())
@@ -235,19 +242,23 @@ Data::Data(const Data& inData,
   //
   // Create Data which is a slice of another Data
   DataAbstract* tmp = dat->getSlice(region);
-  m_data=DataAbstract_ptr(tmp);
+//   m_data=DataAbstract_ptr(tmp);
+  set_m_data(DataAbstract_ptr(tmp));
   m_protected=false;
+
 }
 
 Data::Data(const Data& inData,
            const FunctionSpace& functionspace)
+	: m_shared(false), m_lazy(false)
 {
   if (inData.isEmpty())
   {
     throw DataException("Error - will not interpolate for instances of DataEmpty.");
   }
   if (inData.getFunctionSpace()==functionspace) {
-    m_data=inData.m_data;
+//     m_data=inData.m_data;
+    set_m_data(inData.m_data);
   } 
   else 
   {
@@ -260,7 +271,8 @@ Data::Data(const Data& inData,
       // if the data is not lazy, this will just be a cast to DataReady
       DataReady_ptr dr=inData.m_data->resolve();
       DataConstant* dc=new DataConstant(functionspace,inData.m_data->getShape(),dr->getVectorRO());	
-      m_data=DataAbstract_ptr(dc); 
+//       m_data=DataAbstract_ptr(dc); 
+      set_m_data(DataAbstract_ptr(dc));
     } else {
       Data tmp(0,inData.getDataPointShape(),functionspace,true);
       // Note: Must use a reference or pointer to a derived object
@@ -274,13 +286,15 @@ Data::Data(const Data& inData,
       } else {
         inDataDomain->interpolateACross(tmp,inData);
       }
-      m_data=tmp.m_data;
+//       m_data=tmp.m_data;
+      set_m_data(tmp.m_data);
     }
   }
   m_protected=false;
 }
 
 Data::Data(DataAbstract* underlyingdata)
+	: m_shared(false), m_lazy(false)
 {
 // 	m_data=shared_ptr<DataAbstract>(underlyingdata);
 	m_data=underlyingdata->getPtr();
@@ -288,24 +302,18 @@ Data::Data(DataAbstract* underlyingdata)
 }
 
 Data::Data(DataAbstract_ptr underlyingdata)
+	: m_shared(false), m_lazy(false)
 {
-	m_data=underlyingdata;
+// 	m_data=underlyingdata;
+	set_m_data(underlyingdata);
 	m_protected=false;
 }
-
-
-// Data::Data(const numeric::array& value,
-// 	   const FunctionSpace& what,
-//            bool expanded)
-// {
-//   initialise(value,what,expanded);
-//   m_protected=false;
-// }
 
 Data::Data(const DataTypes::ValueType& value,
 		 const DataTypes::ShapeType& shape,
                  const FunctionSpace& what,
                  bool expanded)
+	: m_shared(false), m_lazy(false)
 {
    initialise(value,shape,what,expanded);
    m_protected=false;
@@ -315,6 +323,7 @@ Data::Data(const DataTypes::ValueType& value,
 Data::Data(const object& value,
 	   const FunctionSpace& what,
            bool expanded)
+	: m_shared(false), m_lazy(false)
 {
   //numeric::array asNumArray(value);
   WrappedArray w(value);
@@ -325,6 +334,7 @@ Data::Data(const object& value,
 
 Data::Data(const object& value,
            const Data& other)
+	: m_shared(false), m_lazy(false)
 {
   WrappedArray w(value);
 
@@ -342,22 +352,41 @@ Data::Data(const object& value,
 
     DataVector temp2_data(len, temp_data[0], len);
     DataConstant* t=new DataConstant(other.getFunctionSpace(),other.getDataPointShape(),temp2_data);
-    m_data=DataAbstract_ptr(t);
+//     m_data=DataAbstract_ptr(t);
+    set_m_data(DataAbstract_ptr(t));
 
   } else {
     //
     // Create a DataConstant with the same sample shape as other
     DataConstant* t=new DataConstant(w,other.getFunctionSpace());
-    m_data=DataAbstract_ptr(t);
+//     m_data=DataAbstract_ptr(t);
+    set_m_data(DataAbstract_ptr(t));
   }
   m_protected=false;
 }
 
 Data::~Data()
 {
-
+  set_m_data(DataAbstract_ptr());
 }
 
+
+// only call in thread safe contexts.
+// This method should be atomic
+void Data::set_m_data(DataAbstract_ptr p)
+{
+  if (m_data.get()!=0)	// release old ownership
+  {
+	m_data->removeOwner(this);
+  }
+  m_shared=false;
+  if (p.get()!=0)
+  {
+	m_data=p;
+	m_data->addOwner(this);
+	m_lazy=m_data->isLazy();
+  }
+}
 
 void Data::initialise(const WrappedArray& value,
                  const FunctionSpace& what,
@@ -370,10 +399,12 @@ void Data::initialise(const WrappedArray& value,
   // within the shared_ptr constructor.
   if (expanded) {
     DataAbstract* temp=new DataExpanded(value, what);
-    m_data=temp->getPtr();
+//     m_data=temp->getPtr();
+    set_m_data(temp->getPtr());
   } else {
     DataAbstract* temp=new DataConstant(value, what);
-    m_data=temp->getPtr();
+//     m_data=temp->getPtr();
+    set_m_data(temp->getPtr());
   }
 }
 
@@ -391,14 +422,12 @@ Data::initialise(const DataTypes::ValueType& value,
   // within the shared_ptr constructor.
   if (expanded) {
     DataAbstract* temp=new DataExpanded(what, shape, value);
-//     boost::shared_ptr<DataAbstract> temp_data(temp);
-//     m_data=temp_data;
-    m_data=temp->getPtr();
+//     m_data=temp->getPtr();
+    set_m_data(temp->getPtr());
   } else {
     DataAbstract* temp=new DataConstant(what, shape, value);
-//     boost::shared_ptr<DataAbstract> temp_data(temp);
-//     m_data=temp_data;
-    m_data=temp->getPtr();
+//     m_data=temp->getPtr();
+    set_m_data(temp->getPtr());
   }
 }
 
@@ -543,7 +572,8 @@ Data::copy(const Data& other)
 {
   DataAbstract* temp=other.m_data->deepCopy();
   DataAbstract_ptr p=temp->getPtr();
-  m_data=p;
+//   m_data=p;
+  set_m_data(p);
 }
 
 
@@ -559,7 +589,8 @@ Data::delaySelf()
 {
   if (!isLazy())
   {
-	m_data=(new DataLazy(m_data))->getPtr();
+// 	m_data=(new DataLazy(m_data))->getPtr();
+	set_m_data((new DataLazy(m_data))->getPtr());
   }
 }
 
@@ -734,15 +765,13 @@ Data::expand()
   if (isConstant()) {
     DataConstant* tempDataConst=dynamic_cast<DataConstant*>(m_data.get());
     DataAbstract* temp=new DataExpanded(*tempDataConst);
-//     shared_ptr<DataAbstract> temp_data(temp);
-//     m_data=temp_data;
-    m_data=temp->getPtr();
+//     m_data=temp->getPtr();
+    set_m_data(temp->getPtr());
   } else if (isTagged()) {
     DataTagged* tempDataTag=dynamic_cast<DataTagged*>(m_data.get());
     DataAbstract* temp=new DataExpanded(*tempDataTag);
-//     shared_ptr<DataAbstract> temp_data(temp);
-//     m_data=temp_data;
-    m_data=temp->getPtr();
+//     m_data=temp->getPtr();
+    set_m_data(temp->getPtr());
   } else if (isExpanded()) {
     //
     // do nothing
@@ -762,9 +791,8 @@ Data::tag()
   if (isConstant()) {
     DataConstant* tempDataConst=dynamic_cast<DataConstant*>(m_data.get());
     DataAbstract* temp=new DataTagged(*tempDataConst);
-//     shared_ptr<DataAbstract> temp_data(temp);
-//     m_data=temp_data;
-    m_data=temp->getPtr();
+//     m_data=temp->getPtr();
+    set_m_data(temp->getPtr());
   } else if (isTagged()) {
     // do nothing
   } else if (isExpanded()) {
@@ -777,7 +805,8 @@ Data::tag()
      {
 	throw DataException("Error - data would resolve to DataExpanded, tagging is not possible.");
      }
-     m_data=res;	
+//      m_data=res;	
+     set_m_data(res);
      tag();
   } else {
     throw DataException("Error - Tagging not implemented for this Data type.");
@@ -789,7 +818,8 @@ Data::resolve()
 {
   if (isLazy())
   {
-     m_data=m_data->resolve();
+//      m_data=m_data->resolve();
+    set_m_data(m_data->resolve());
   }
 }
 
@@ -1850,7 +1880,8 @@ Data::operator=(const Data& other)
   copy(other);
 #else
   m_protected=false;		// since any changes should be caught by exclusiveWrite();
-  m_data=other.m_data;
+//   m_data=other.m_data;
+  set_m_data(other.m_data);
 #endif
   return (*this);
 }

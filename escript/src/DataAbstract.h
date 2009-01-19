@@ -26,6 +26,7 @@
 
 #include <string>
 #include <fstream>
+#include <vector>
 
 #include "Pointers.h"
 
@@ -479,6 +480,29 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   ESCRIPT_DLL_API
   bool isEmpty() const;	// a fast test to determine if this object is an instance of DataEmpty
 
+
+  /**
+  	\warning should only be used in single threaded code (or inside a single/critical section)
+  */
+  void
+  addOwner(Data*);
+
+  /**
+  	\warning should only be used in single threaded code (or inside a single/critical section)
+  */
+  void
+  removeOwner(Data*);
+
+  /**
+	\brief Is this object owned by more than one Data object
+  */
+  ESCRIPT_DLL_API
+  bool
+  isShared() const
+  {
+	return m_lazyshared || (m_owners.size()>1);
+  }
+
  protected:
 
    /**
@@ -487,6 +511,8 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
    */
    ESCRIPT_DLL_API
    bool checkNoSharing() const;
+
+
 
  private:
 
@@ -520,6 +546,17 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   // 
   // Is this an instance of DataEmpty?
   bool m_isempty;
+
+public:			// these should be private once I have finished debugging
+  std::vector<Data*> m_owners;
+  bool m_lazyshared;
+
+public:		// hopefully I can do a friend thing to get this out of public
+   void
+   makeLazyShared()
+   {
+	m_lazyshared=true;
+   }		
 };
 
 inline
