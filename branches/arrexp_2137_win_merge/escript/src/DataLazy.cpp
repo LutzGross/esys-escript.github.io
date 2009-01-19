@@ -40,9 +40,9 @@ bool privdebug=false;
 #define DISABLEDEBUG privdebug=false;
 }
 
-#define SIZELIMIT 
+// #define SIZELIMIT 
 // #define SIZELIMIT if ((m_height>7) || (m_children>127)) {cerr << "\n!!!!!!! SIZE LIMIT EXCEEDED " << m_children << ";" << m_height << endl << toString() << endl; resolveToIdentity();}
-
+#define SIZELIMIT if ((m_height>7) || (m_children>127)) {resolveToIdentity();}
 
 /*
 How does DataLazy work?
@@ -397,6 +397,7 @@ DataLazy::DataLazy(DataAbstract_ptr p)
    }
    else
    {
+	p->makeLazyShared();
 	DataReady_ptr dr=dynamic_pointer_cast<DataReady>(p);
 	makeIdentity(dr);
 LAZYDEBUG(cout << "Wrapping " << dr.get() << " id=" << m_id.get() << endl;)
@@ -1566,7 +1567,7 @@ DataLazy::toString() const
 void
 DataLazy::intoString(ostringstream& oss) const
 {
-//   oss << "[" << m_children <<";"<<m_height <<"]";
+//    oss << "[" << m_children <<";"<<m_height <<"]";
   switch (getOpgroup(m_op))
   {
   case G_IDENTITY:

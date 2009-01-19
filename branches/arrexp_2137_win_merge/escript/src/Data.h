@@ -143,21 +143,6 @@ class Data {
   Data(const Data& inData,
        const DataTypes::RegionType& region);
 
-//  /**
-//     \brief
-//     Constructor which copies data from a python numarray.
-//
-//     \param value - Input - Data value for a single point.
-//     \param what - Input - A description of what this data represents.
-//     \param expanded - Input - Flag, if true fill the entire container with
-//                       the value. Otherwise a more efficient storage
-//                       mechanism will be used.
-//  */
-//   ESCRIPT_DLL_API
-//   Data(const boost::python::numeric::array& value,
-//        const FunctionSpace& what=FunctionSpace(),
-//        bool expanded=false);
-
   /**
      \brief
      Constructor which copies data from any object that can be converted into
@@ -1586,6 +1571,8 @@ ESCRIPT_DLL_API void freeSampleBuffer(DataTypes::ValueType* buffer);
   //
   // flag to protect the data object against any update
   bool m_protected;
+  mutable bool m_shared;
+  bool m_lazy;
 
   //
   // pointer to the actual data object
@@ -1610,17 +1597,88 @@ ESCRIPT_DLL_API void freeSampleBuffer(DataTypes::ValueType* buffer);
   const_DataReady_ptr
   getReadyPtr() const;
 
+
+  /**
+   \brief Update the Data's shared flag
+   This indicates that the DataAbstract used by this object is now shared (or no longer shared).
+   For internal use only.
+  */
+  void updateShareStatus(bool nowshared) const
+  {
+	m_shared=nowshared;		// m_shared is mutable
+  }
+
+  // In the isShared() method below:
+  // A problem would occur if m_data (the address pointed to) were being modified 
+  // while the call m_data->is_shared is being executed.
+  // 
+  // Q: So why do I think this code can be thread safe/correct?
+  // A: We need to make some assumptions.
+  // 1. We assume it is acceptable to return true under some conditions when we aren't shared.
+  // 2. We assume that no constructions or assignments which will share previously unshared
+  //    will occur while this call is executing. This is consistent with the way Data:: and C are written.
+  //
+  // This means that the only transition we need to consider, is when a previously shared object is
+  // not shared anymore. ie. the other objects have been destroyed or a deep copy has been made.
+  // In those cases the m_shared flag changes to false after m_data has completed changing.
+  // For any threads executing before the flag switches they will assume the object is still shared.
+  bool isShared() const
+  {
+	if (m_shared) return true;
+	if (m_data->isShared())			
+	{					
+		updateShareStatus(true);
+		return true;
+	}
+	return false;
+  }
+
   /**
   \brief if another object is sharing out member data make a copy to work with instead. 
   */
   void exclusiveWrite()
   {
-	if (!m_data.unique())
+// 	if (!m_data.unique())
+// 	{
+// 	   DataAbstract* t=m_data->deepCopy();
+// // 	   m_data=DataAbstract_ptr(t);
+//     	   set_m_data(DataAbstract_ptr(t));
+// 	}
+	if (isShared())
 	{
-	   DataAbstract* t=m_data->deepCopy();
-	   m_data=DataAbstract_ptr(t);
+	   #pragma OMP CRITICAL
+	   {
+		if (isShared())
+		{
+	   		DataAbstract* t=m_data->deepCopy();
+	   		set_m_data(DataAbstract_ptr(t));
+		}
+	   }
 	}
   }
+
+
+
+
+
+  /**
+  \brief Modify the data abstract hosted by this Data object
+  For internal use only.
+  Passing a pointer to null is permitted (do this in the destructor)
+  \warning Only to be called in single threaded code or inside a single/critical section. This method needs to be atomic.
+  */
+  void set_m_data(DataAbstract_ptr p);
+
+  friend class DataAbstract;		// To allow calls to updateShareStatus
+
+// public:
+//    void JDebug()
+// {
+// std::cerr << "UC=" << m_data.use_count() << " O=" << m_data->m_owners.size() << std::endl;
+// for (int i=0;i<m_data->m_owners.size();++i)
+// std::cerr << m_data->m_owners[i] << " ";
+// std::cerr << std::endl;
+// }
 
 };
 
@@ -1870,7 +1928,8 @@ Data::binaryOp(const Data& right,
        //
        // interpolate onto the RHS function space
        Data tempLeft(*this,right.getFunctionSpace());
-       m_data=tempLeft.m_data;
+//        m_data=tempLeft.m_data;
+       set_m_data(tempLeft.m_data);
      }
    }
    operandCheck(tempRight);
