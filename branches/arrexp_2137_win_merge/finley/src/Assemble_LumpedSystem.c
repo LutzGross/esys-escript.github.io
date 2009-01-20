@@ -106,6 +106,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
   }
 
   if (Finley_noError()) {
+    requireWrite(lumpedMat);
     lumpedMat_p=getSampleDataRW(lumpedMat,0);
     len_EM_lumpedMat=p.row_NN*p.numEqu;
     len_EM_lumpedMat_size=len_EM_lumpedMat*sizeof(double);

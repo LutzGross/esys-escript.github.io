@@ -166,7 +166,13 @@ double* getSampleDataRW(struct escriptDataC* data, int sampleNo)
   }
 }
 
-double* getSampleDataFast(struct escriptDataC* data, int sampleNo)
+const double* getSampleDataROFast(struct escriptDataC* data, int sampleNo, void* buffer)
+{
+  escript::Data* temp=(escript::Data*)(data->m_dataPtr);
+  return temp->getSampleDataRO(sampleNo, reinterpret_cast<escript::DataTypes::ValueType*>(buffer));
+}
+
+double* getSampleDataRWFast(struct escriptDataC* data, int sampleNo)
 {
   escript::Data* temp=(escript::Data*)(data->m_dataPtr);
   return temp->getSampleDataRW(sampleNo);
@@ -191,3 +197,11 @@ void freeSampleBuffer(void* buffer)
   }
 }
 
+void requireWrite(escriptDataC* data)
+{
+  if (data == (struct escriptDataC*)0) {
+       return;
+  } else {
+      ((escript::Data*)(data->m_dataPtr))->requireWrite();
+  }
+}

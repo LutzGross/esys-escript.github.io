@@ -53,7 +53,7 @@ void  Finley_Assemble_PDE_Single2_C(Assemble_Parameters p, Finley_ElementFile* e
 
     bool_t extendedD=isExpanded(D);
     bool_t extendedY=isExpanded(Y);
-    double *F_p=getSampleDataRW(F,0);
+    double *F_p=(requireWrite(F), getSampleDataRW(F,0));	/* use comma, to get around the mixed code and declarations thing */
     double *S=p.row_jac->ReferenceElement->S;
 
 

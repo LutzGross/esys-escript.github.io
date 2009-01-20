@@ -71,6 +71,7 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
   /* now we can start: */
 
   if (Finley_noError()) {
+	requireWrite(element_size);
         #pragma omp parallel private(local_X)
         {
 	   /* allocation of work arrays */

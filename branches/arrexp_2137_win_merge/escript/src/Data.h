@@ -29,7 +29,6 @@
 
 extern "C" {
 #include "DataC.h"
-/* #include "paso/Paso.h" doesn't belong in this file...causes trouble for BruceFactory.cpp */
 }
 
 #include "esysmpi.h"
@@ -374,6 +373,17 @@ class Data {
   void
   resolve();
 
+
+  /**
+   \brief Ensures data is ready for write access.
+  This means that the data will be resolved if lazy and will be copied if shared with another Data object.
+  \warning This method should only be called in single threaded sections of code. (It modifies m_data).
+  Do not create any Data objects from this one between calling requireWrite and getSampleDataRW.
+  Doing so might introduce additional sharing.
+  */
+  ESCRIPT_DLL_API
+  void
+  requireWrite();
 
   /**
      \brief
@@ -1456,6 +1466,8 @@ contains datapoints.
    Allocates a DataVector large enough for DataLazy::resolveSample to operate on for the current Data.
    Do not use this buffer for other Data instances (unless you are sure they will be the same size).
    
+   In multi-threaded sections, this needs to be called on each thread.
+
    \return A DataVector* if Data is lazy, NULL otherwise.
    \warning This pointer must be deallocated using freeSampleBuffer to avoid cross library memory issues.
 */
@@ -1635,6 +1647,7 @@ ESCRIPT_DLL_API void freeSampleBuffer(DataTypes::ValueType* buffer);
 
   /**
   \brief if another object is sharing out member data make a copy to work with instead. 
+  This code should only be called from single threaded sections of code.
   */
   void exclusiveWrite()
   {
@@ -1646,14 +1659,8 @@ ESCRIPT_DLL_API void freeSampleBuffer(DataTypes::ValueType* buffer);
 // 	}
 	if (isShared())
 	{
-	   #pragma OMP CRITICAL
-	   {
-		if (isShared())
-		{
-	   		DataAbstract* t=m_data->deepCopy();
-	   		set_m_data(DataAbstract_ptr(t));
-		}
-	   }
+		DataAbstract* t=m_data->deepCopy();
+   		set_m_data(DataAbstract_ptr(t));
 	}
   }
 
@@ -1738,11 +1745,15 @@ inline
 DataAbstract::ValueType::value_type*
 Data::getSampleDataRW(DataAbstract::ValueType::size_type sampleNo)
 {
+//    if (isLazy())
+//    {
+// 	resolve();
+//    }
+//    exclusiveWrite();
    if (isLazy())
    {
-	resolve();
+	throw DataException("Error, attempt to acquire RW access to lazy data. Please call requireWrite() first.");
    }
-   exclusiveWrite();
    return getReady()->getSampleData(sampleNo);
 }
 
@@ -1756,7 +1767,7 @@ Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo, DataTypes::Va
 	size_t offset=0;
 	if (buffer==NULL)
 	{
-		throw DataException("Error attempt to getSampleDataRO for lazy Data with buffer==NULL");
+		throw DataException("Error, attempt to getSampleDataRO for lazy Data with buffer==NULL");
 	}
 	const DataTypes::ValueType* res=l->resolveSample(*buffer,0,sampleNo,offset);
 	return &((*res)[offset]);

@@ -72,6 +72,8 @@ void SystemMatrixAdapter::ypAx(escript::Data& y,escript::Data& x) const
    }
    x.expand();
    y.expand();
+   x.requireWrite();
+   y.requireWrite();
    double* x_dp=x.getSampleDataRW(0);
    double* y_dp=y.getSampleDataRW(0);
    Paso_SystemMatrix_MatrixVector(1., mat,x_dp, 1.,y_dp);
@@ -221,6 +223,8 @@ void SystemMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,escript::Data&
    }
    row_q.expand();
    col_q.expand();
+   row_q.requireWrite();
+   col_q.requireWrite();
    double* row_q_dp=row_q.getSampleDataRW(0);
    double* col_q_dp=col_q.getSampleDataRW(0);
    Paso_SystemMatrix_nullifyRowsAndCols(mat,row_q_dp,col_q_dp, mdv);

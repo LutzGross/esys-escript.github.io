@@ -69,6 +69,7 @@ void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* eleme
    
   /* now we can start */
     if (Finley_noError()) {
+	  requireWrite(normal);
           #pragma omp parallel private(local_X,dVdv)
           {
              local_X=dVdv=NULL;

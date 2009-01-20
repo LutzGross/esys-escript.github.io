@@ -38,7 +38,6 @@ extern "C" {
 #include <boost/python/dict.hpp>
 #include <boost/python/extract.hpp>
 #include <boost/python/long.hpp>
-
 #include "WrappedArray.h"
 
 using namespace std;
@@ -823,6 +822,16 @@ Data::resolve()
   }
 }
 
+void 
+Data::requireWrite()
+{
+//   if (omp_in_parallel())
+//   {
+// 	throw DataException("Programming error. Please do not run requireWrite() in multi-threaded sections.");
+//   }
+  resolve();
+  exclusiveWrite();
+}
 
 Data
 Data::oneOver() const

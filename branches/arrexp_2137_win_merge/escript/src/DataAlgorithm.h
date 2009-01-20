@@ -318,7 +318,7 @@ dp_algorithm(const DataTagged& data,
   // and assign this to the default element in result
 //   result.getDefaultValue().getData(0) =
 //     data.getDefaultValue().reductionOp(operation,initial_value);
-  result.getVector()[result.getDefaultOffset()] = DataMaths::reductionOp(data.getVector(),data.getShape(),data.getDefaultOffset(),operation,initial_value);
+  result.getVector()[result.getDefaultOffset()] = DataMaths::reductionOp(data.getVectorRO(),data.getShape(),data.getDefaultOffset(),operation,initial_value);
 }
 
 template <class BinaryFunction>
@@ -334,7 +334,7 @@ dp_algorithm(DataConstant& data,
 //   result.getPointDataView().getData(0) =
 //     data.getPointDataView().reductionOp(operation,initial_value);
   result.getVector()[0] =
-    DataMaths::reductionOp(data.getVector(),data.getShape(),0,operation,initial_value);
+    DataMaths::reductionOp(data.getVectorRO(),data.getShape(),0,operation,initial_value);
 }
 
 } // end of namespace
