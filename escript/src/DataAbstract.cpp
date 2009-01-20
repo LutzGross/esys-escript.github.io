@@ -54,7 +54,7 @@ const_DataAbstract_ptr DataAbstract::getPtr() const
 bool DataAbstract::checkNoSharing() const
 {
 
-  return m_owners.size()<2;
+  return !m_lazyshared && (m_owners.size()<2);
 
 /*  if (_internal_weak_this.expired())	// there is no shared_ptr for this object yet
   {

@@ -129,6 +129,7 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
   /* now we can start */
 
   if (Finley_noError()) {
+       requireWrite(interpolated_data);
        #pragma omp parallel private(local_data, numComps_size)
        {
 	  void* buffer=allocSampleBuffer(data);

@@ -820,9 +820,9 @@ void DataTestCase::testOperations()
 		Data(smalldata,shape,FunctionSpace(),true)};
   sdats[1].tag();
   sdats[4].tag();
-  sdats[3].delaySelf();
-  sdats[4].delaySelf();
-  sdats[5].delaySelf();
+  sdats[3].delaySelf();		// 3 is a lazy constant
+  sdats[4].delaySelf();		// 4 is a lazy tagged
+  sdats[5].delaySelf();		// 5 is a lazy expanded
 
 
 
@@ -1305,7 +1305,7 @@ void DataTestCase::testOperations()
   }
   for (int z=0;z<NUMDATS;++z)
   {
-    assert(std::abs(results[z].getDataAtOffset(0) - 0) <= REL_TOL*0);
+    assert(std::abs(results[z].getDataAtOffset(0) - 0) <= REL_TOL*0); 
   }
   
 

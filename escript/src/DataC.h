@@ -143,20 +143,39 @@ ESCRIPT_DLL_API double __const * getSampleDataRO(escriptDataC* data, int sampleN
 ESCRIPT_DLL_API double* getSampleDataRW(escriptDataC* data, int sampleNo);
 
 
-/**
-   \brief
+/*   \brief
    Return a pointer to the data for the given sample number.
    Fast version of getSampledata: does no error checking.
   \param data Input - C wrapper for Data.
   \param sampleNo Input - The sample number.
 */
-ESCRIPT_DLL_API double* getSampleDataFast(escriptDataC* data, int sampleNo);
+/*ESCRIPT_DLL_API double* getSampleDataFast(escriptDataC* data, int sampleNo);*/
+
+/**
+   \brief
+   Return a pointer to the data for the given sample number.
+   Fast version of getSampledataRO: does no error checking.
+  \param data Input - C wrapper for Data.
+  \param sampleNo Input - The sample number.
+*/
+ESCRIPT_DLL_API double __const* getSampleDataROFast(escriptDataC* data, int sampleNo, void* buffer);
+
+/**
+   \brief
+   Return a pointer to the data for the given sample number.
+   Fast version of getSampledataRW: does no error checking.
+  \param data Input - C wrapper for Data.
+  \param sampleNo Input - The sample number.
+*/
+ESCRIPT_DLL_API double* getSampleDataRWFast(escriptDataC* data, int sampleNo);
 
 
 /**
    \brief Create a buffer for use by getSample
    Allocates a DataVector large enough for DataLazy::resolveSample to operate on for the current Data.
    Do not use this buffer for other DataC instances (unless you are sure they will be the same size).
+
+   In multi-threaded sections, this needs to be called for each thread.
    
    \return A DataVector* if Data is not-NULL and lazy, NULL otherwise.
    \warning This pointer must be deallocated using freeSampleBuffer to avoid cross library memory issues.
@@ -169,5 +188,14 @@ ESCRIPT_DLL_API void* allocSampleBuffer(escriptDataC* data);
    \param buffer Input - pointer to the buffer to deallocate.
 */
 ESCRIPT_DLL_API void freeSampleBuffer(void* buffer);
+
+/**
+   \brief Ensure that this object is ready for writing.
+   It will be resolved and copied if it is currently shared.
+   Use only in single threaded sections of code.
+   Do not create new Data objects based on this one between this call and 
+   writing to the object.
+*/
+ESCRIPT_DLL_API void requireWrite(escriptDataC* data);
 
 #endif

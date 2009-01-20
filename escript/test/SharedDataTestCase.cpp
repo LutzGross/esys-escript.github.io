@@ -120,6 +120,15 @@ void SharedDataTestCase::testGetSampleRW()
   Data d((double)42,DataTypes::scalarShape);
   Data L=d.delay();
   // now change the data directly
+  try
+  {
+  	*d.getSampleDataRW(0)=17;
+	assert(false);			// should have thrown 
+  } catch (DataException e)
+  {
+  }
+  // Now try again properly 
+  d.requireWrite();
   *d.getSampleDataRW(0)=17;
   L.resolve();
   assert(*L.getSampleDataRO(0)==42);

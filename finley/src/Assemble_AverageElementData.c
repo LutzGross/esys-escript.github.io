@@ -72,6 +72,7 @@ void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,escriptData
              vol=0;
              for (q=0; q< numQuad_in;++q) vol+=wq[q];
              volinv=1./vol;
+	     requireWrite(out);
 	     #pragma omp parallel private(n, i, rtmp, q, in_array, out_array)
 	     {
 	       void* buffer=allocSampleBuffer(in);
@@ -90,6 +91,7 @@ void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,escriptData
 	     }
          } else {
              numComps_size=numComps*sizeof(double);
+	     requireWrite(out);
 	     #pragma omp parallel private(q,n,out_array,in_array)
 	     {
 	       void* buffer=allocSampleBuffer(in);

@@ -99,6 +99,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
   }
   /* now we can start */
   if (Finley_noError()) {
+      requireWrite(grad_data);
       #pragma omp parallel private(e,q,l,s,n,data_array,grad_data_e)
       {
 	 void* buffer=allocSampleBuffer(data);

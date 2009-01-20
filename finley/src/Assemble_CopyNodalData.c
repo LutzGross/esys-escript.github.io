@@ -99,125 +99,182 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
         /*********************** FINLEY_NODES **************************************************/
         numComps_size=(size_t)numComps*sizeof(double);
         if (in_data_type == FINLEY_NODES) {
-
+	   requireWrite(out);
            if  (out_data_type == FINLEY_NODES) {
-              #pragma omp parallel for private(n) schedule(static)
-              for (n=0;n<nodes->nodesMapping->numNodes;n++) {
-                   memcpy(getSampleDataFast(out,n), getSampleDataFast(in,n), numComps_size);
-              }
+	      #pragma omp parallel private(n)
+	      {
+		void* buff=allocSampleBuffer(in);
+        	#pragma omp parallel for private(n) schedule(static)
+              	for (n=0;n<nodes->nodesMapping->numNodes;n++) {
+                   memcpy(getSampleDataRWFast(out,n), getSampleDataROFast(in,n,buff), numComps_size);
+              	}
+		freeSampleBuffer(buff);
+	      }
 
            } else if (out_data_type == FINLEY_REDUCED_NODES) {
-              #pragma omp parallel for private(n) schedule(static)
-              for (n=0;n<nodes->reducedNodesMapping->numTargets;n++) {
-                   memcpy(getSampleDataFast(out,n),
-                          getSampleDataFast(in,nodes->reducedNodesMapping->map[n]),
+	      #pragma omp parallel private(n)
+	      {
+		void* buff=allocSampleBuffer(in);
+        	#pragma omp for schedule(static)
+                for (n=0;n<nodes->reducedNodesMapping->numTargets;n++) {
+                   memcpy(getSampleDataRWFast(out,n),
+                          getSampleDataROFast(in,nodes->reducedNodesMapping->map[n],buff),
                           numComps_size);
+		}
+		freeSampleBuffer(buff);
               }
            } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
 	      int nComps = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
-              #pragma omp parallel for private(n) schedule(static)
-              for (n=0;n<nComps;n++) {
-                   memcpy(getSampleDataFast(out,n),
-                          getSampleDataFast(in,nodes->degreesOfFreedomMapping->map[n]),
+	      #pragma omp parallel private(n)
+	      {
+		void* buff=allocSampleBuffer(in);
+        	#pragma omp for schedule(static)
+              	for (n=0;n<nComps;n++) {
+                   memcpy(getSampleDataRWFast(out,n),
+                          getSampleDataROFast(in,nodes->degreesOfFreedomMapping->map[n],buff),
                           numComps_size);
+		}
+		freeSampleBuffer(buff);
               }
 
            } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
 	      int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
-              #pragma omp parallel for private(n) schedule(static)
-              for (n=0;n<nComps;n++) {
-                   memcpy(getSampleDataFast(out,n),
-                          getSampleDataFast(in,nodes->reducedDegreesOfFreedomMapping->map[n]),
+	      #pragma omp parallel private(n)
+	      {
+		void* buff=allocSampleBuffer(in);
+        	#pragma omp parallel for private(n) schedule(static)
+              	for (n=0;n<nComps;n++) {
+                   memcpy(getSampleDataRWFast(out,n),
+                          getSampleDataROFast(in,nodes->reducedDegreesOfFreedomMapping->map[n],buff),
                           numComps_size);
+		}
+		freeSampleBuffer(buff);
               }
            }
         /*********************** FINLEY_REDUCED_NODES **************************************************/
         } else if (in_data_type == FINLEY_REDUCED_NODES) {
-
+	   requireWrite(out);
            if  (out_data_type == FINLEY_NODES) {
              Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: cannot copy from reduced nodes to nodes.");
 
            } else if (out_data_type == FINLEY_REDUCED_NODES) {
-              #pragma omp parallel for private(n) schedule(static)
-              for (n=0;n<nodes->reducedNodesMapping->numNodes;n++) {
-                   memcpy(getSampleDataFast(out,n),getSampleDataFast(in,n),numComps_size);
+	      #pragma omp parallel private(n)
+	      {
+		void* buff=allocSampleBuffer(in);
+        	#pragma omp for schedule(static)
+              	for (n=0;n<nodes->reducedNodesMapping->numNodes;n++) {
+                   memcpy(getSampleDataRWFast(out,n),getSampleDataROFast(in,n,buff),numComps_size);
+		}
+		freeSampleBuffer(buff);
               }
 
            } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
              Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: cannot copy from reduced nodes to degrees of freedom.");
            } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
 	      int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
-              #pragma omp parallel for private(n,k) schedule(static)
-              for (n=0;n<nComps;n++) {
+	      #pragma omp parallel private(n)
+	      {
+		void* buff=allocSampleBuffer(in);
+        	#pragma omp for schedule(static)
+              	for (n=0;n<nComps;n++) {
                    k=nodes->reducedDegreesOfFreedomMapping->map[n];
-                   memcpy(getSampleDataFast(out,n),
-                          getSampleDataFast(in,nodes->reducedNodesMapping->target[k]),
+                   memcpy(getSampleDataRWFast(out,n),
+                          getSampleDataROFast(in,nodes->reducedNodesMapping->target[k],buff),
                           numComps_size);
+		}
+		freeSampleBuffer(buff);
               }
            }
 
         /*********************** FINLEY_DEGREES_OF_FREEDOM **************************************************/
         } else if (in_data_type == FINLEY_DEGREES_OF_FREEDOM) {
-
+	    requireWrite(out);
             if  (out_data_type == FINLEY_NODES) {
                coupler=Paso_Coupler_alloc(nodes->degreesOfFreedomConnector,numComps);
                if (Paso_noError()) {
-                    Paso_Coupler_startCollect(coupler,getSampleDataFast(in,0));
+		    /* It is not immediately clear whether coupler can be trusted with constant data so I'll assume RW */
+		    /* Also, it holds pointers so it might not be safe to use on lazy data anyway?*/
+		    requireWrite(in);
+                    Paso_Coupler_startCollect(coupler,getSampleDataRWFast(in,0));
                     recv_buffer=Paso_Coupler_finishCollect(coupler);
                     upperBound=Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
-                    #pragma omp parallel for private(n,k) schedule(static)
-                    for (n=0;n<nodes->numNodes;n++) {
+		    #pragma omp parallel private(n,k)
+		    {
+			void* buff=allocSampleBuffer(in);
+			#pragma omp for schedule(static)
+                    	for (n=0;n<nodes->numNodes;n++) {
                           k=nodes->degreesOfFreedomMapping->target[n];
                           if (k < upperBound) {
-                                memcpy(getSampleDataFast(out,n),
-                                       getSampleDataFast(in,k),
+                                memcpy(getSampleDataRWFast(out,n),
+                                       getSampleDataROFast(in,k,buff),
                                        numComps_size);
                            } else {
-                                memcpy(getSampleDataFast(out,n),
+                                memcpy(getSampleDataRWFast(out,n),
                                        &recv_buffer[(k-upperBound)*numComps],
                                        numComps_size);
                            }
-                    }
+                    	}
+			freeSampleBuffer(buff);
+		    }
                }
                Paso_Coupler_free(coupler);
             } else if  (out_data_type == FINLEY_REDUCED_NODES) {
                coupler=Paso_Coupler_alloc(nodes->degreesOfFreedomConnector,numComps);
                if (Paso_noError()) {
-                    Paso_Coupler_startCollect(coupler,getSampleDataFast(in,0));
+		    requireWrite(in);	/* See comment above about coupler and const */
+                    Paso_Coupler_startCollect(coupler,getSampleDataRWFast(in,0));
                     recv_buffer=Paso_Coupler_finishCollect(coupler);
                     upperBound=Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
-                    #pragma omp parallel for private(n,k,l) schedule(static)
-                    for (n=0;n<nodes->reducedNodesMapping->numTargets;n++) {
+		    requireWrite(out);
+		    #pragma omp parallel private(n,k,l)
+		    {
+			void* buff=allocSampleBuffer(in);
+			#pragma omp for schedule(static)
+                    	for (n=0;n<nodes->reducedNodesMapping->numTargets;n++) {
                           l=nodes->reducedNodesMapping->map[n];
                           k=nodes->degreesOfFreedomMapping->target[l];
                           if (k < upperBound) {
-                                memcpy(getSampleDataFast(out,n),
-                                       getSampleDataFast(in,k),
+                                memcpy(getSampleDataRWFast(out,n),
+                                       getSampleDataROFast(in,k,buff),
                                        numComps_size);
                            } else {
-                                memcpy(getSampleDataFast(out,n),
+                                memcpy(getSampleDataRWFast(out,n),
                                        &recv_buffer[(k-upperBound)*numComps],
                                        numComps_size);
                            }
-                    }
+                    	}
+			freeSampleBuffer(buff);
+		    }
                }
                Paso_Coupler_free(coupler);
            } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
 	      int nComps = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
-              #pragma omp parallel for private(n) schedule(static)
-              for (n=0;n<nComps;n++) {
-                    memcpy(getSampleDataFast(out,n),getSampleDataFast(in,n),numComps_size);
-              }
+	      requireWrite(out);
+	      #pragma omp parallel private(n)
+	      {
+		void* buff=allocSampleBuffer(in);
+		#pragma omp for schedule(static)
+              	for (n=0;n<nComps;n++) {
+                    memcpy(getSampleDataRWFast(out,n),getSampleDataROFast(in,n,buff),numComps_size);
+              	}
+		freeSampleBuffer(buff);
+	      }
 
            } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
 	      int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
-              #pragma omp parallel for private(n,k) schedule(static)
-              for (n=0;n<nComps;n++) {
+	      requireWrite(out);
+	      #pragma omp parallel private(n,k)
+	      {
+		void* buff=allocSampleBuffer(in);
+		#pragma omp for schedule(static)
+              	for (n=0;n<nComps;n++) {
                    k=nodes->reducedDegreesOfFreedomMapping->map[n];
-                   memcpy(getSampleDataFast(out,n),
-                          getSampleDataFast(in,nodes->degreesOfFreedomMapping->target[k]),
+                   memcpy(getSampleDataRWFast(out,n),
+                          getSampleDataROFast(in,nodes->degreesOfFreedomMapping->target[k],buff),
                           numComps_size);
-              }
+              	}
+		freeSampleBuffer(buff);
+	      }
            }
 
         } else if (in_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
@@ -228,31 +285,42 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
                coupler=Paso_Coupler_alloc(nodes->reducedDegreesOfFreedomConnector,numComps);
                if (Paso_noError()) {
                     upperBound=Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
-                    Paso_Coupler_startCollect(coupler,getSampleDataFast(in,0));
+		    requireWrite(in);			/* See comment about coupler and const */
+                    Paso_Coupler_startCollect(coupler,getSampleDataRWFast(in,0));
                     recv_buffer=Paso_Coupler_finishCollect(coupler);
-                    #pragma omp parallel for private(n,k,l) schedule(static)
-                    for (n=0;n<nodes->reducedNodesMapping->numTargets;n++) {
+		    requireWrite(out);
+		    #pragma omp parallel private(n,k,l)
+		    {
+			void* buff=allocSampleBuffer(in);
+			#pragma omp for schedule(static)
+                    	for (n=0;n<nodes->reducedNodesMapping->numTargets;n++) {
                           l=nodes->reducedNodesMapping->map[n];
                           k=nodes->reducedDegreesOfFreedomMapping->target[l];
                           if (k < upperBound) {
-                                memcpy(getSampleDataFast(out,n),
-                                       getSampleDataFast(in,k),
+                                memcpy(getSampleDataRWFast(out,n),
+                                       getSampleDataROFast(in,k,buff),
                                        numComps_size);
                            } else {
-                                memcpy(getSampleDataFast(out,n),
+                                memcpy(getSampleDataRWFast(out,n),
                                        &recv_buffer[(k-upperBound)*numComps],
                                        numComps_size);
                            }
-                    }
+                    	}
+			freeSampleBuffer(buff);
+		    }
                }
                Paso_Coupler_free(coupler);
            } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
 	      int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
-              #pragma omp parallel for private(n) schedule(static)
-              for (n=0;n<nComps;n++) {
-                    memcpy(getSampleDataFast(out,n),getSampleDataFast(in,n),numComps_size);
-              }
-
+	      requireWrite(out);
+	      #pragma omp parallel private(n)
+	      {
+		void* buff=allocSampleBuffer(in);
+		#pragma omp for schedule(static)
+              	for (n=0;n<nComps;n++) {
+                    memcpy(getSampleDataRWFast(out,n),getSampleDataROFast(in,n,buff),numComps_size);
+              	}
+	      }
            } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM ) {
              Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to degrees of freedom.");
            }
