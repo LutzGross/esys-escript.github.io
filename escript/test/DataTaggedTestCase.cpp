@@ -91,28 +91,28 @@ void DataTaggedTestCase::tearDown() {
 
 namespace {
 
-ValueType::reference
-getRef(DataTagged& data,int offset, int i, int j, int k)
+ValueType::const_reference
+getRefRO(DataTagged& data,int offset, int i, int j, int k)
 {
-   return data.getVector()[offset+getRelIndex(data.getShape(),i,j,k)];
-}
-
-ValueType::reference
-getRef(DataTagged& data,int offset, int i, int j, int k, int l)
-{
-   return data.getVector()[offset+getRelIndex(data.getShape(),i,j,k,l)];
-}
-
-ValueType::reference
-getRef(DataTagged& data,int offset, int i, int j)
-{
-   return data.getVector()[offset+getRelIndex(data.getShape(),i,j)];
+   return data.getVectorRO()[offset+getRelIndex(data.getShape(),i,j,k)];
 }
 
 ValueType::const_reference
-getRef(const DataTagged& data,int offset, int i)
+getRefRO(DataTagged& data,int offset, int i, int j, int k, int l)
 {
-   return data.getVector()[offset+getRelIndex(data.getShape(),i)];
+   return data.getVectorRO()[offset+getRelIndex(data.getShape(),i,j,k,l)];
+}
+
+ValueType::const_reference
+getRefRO(DataTagged& data,int offset, int i, int j)
+{
+   return data.getVectorRO()[offset+getRelIndex(data.getShape(),i,j)];
+}
+
+ValueType::const_reference
+getRefRO(const DataTagged& data,int offset, int i)
+{
+   return data.getVectorRO()[offset+getRelIndex(data.getShape(),i)];
 }
 
 }
@@ -236,9 +236,9 @@ void DataTaggedTestCase::testOperations() {
     int offset=myData.getDefaultOffset();
 //     DataArrayView myDataView = myData.getDefaultValue();
     assert(offset==0);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==2);
-    assert(getRef(myData,offset,2)==4);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==2);
+    assert(getRefRO(myData,offset,2)==4);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -294,13 +294,13 @@ void DataTaggedTestCase::testOperations() {
 //     DataArrayView myDataView = myData.getDataPointByTag(1);
     int offset=myData.getOffsetForTag(1);
     assert(offset==1);
-    assert(myData.getVector()[offset]==2.0);
+    assert(myData.getVectorRO()[offset]==2.0);
 
     // check result for default value
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
     assert(offset==0);
-    assert(myData.getVector()[offset]==0.0);
+    assert(myData.getVectorRO()[offset]==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -323,8 +323,8 @@ void DataTaggedTestCase::testOperations() {
     // be used for missing tags in each object
 //     myData.getDefaultValue()()=1.0;
 //     right.getDefaultValue()()=2.0;
-    myData.getVector()[myData.getDefaultOffset()]=1.0;
-    right.getVector()[right.getDefaultOffset()]=2.0;
+    myData.getVectorRW()[myData.getDefaultOffset()]=1.0;
+    right.getVectorRW()[right.getDefaultOffset()]=2.0;
 
     DataVector vOneData(1, 3.0 ,1);
     // create a view with an empty shape, a scalar.
@@ -408,8 +408,8 @@ void DataTaggedTestCase::testOperations() {
     // be used for missing tags in each object
 /*    myData.getDefaultValue()()=2.0;
     right.getDefaultValue()()=3.0;*/
-    myData.getVector()[myData.getDefaultOffset()]=2.0;
-    right.getVector()[right.getDefaultOffset()]=3.0;
+    myData.getVectorRW()[myData.getDefaultOffset()]=2.0;
+    right.getVectorRW()[right.getDefaultOffset()]=3.0;
 
 
     DataVector vOneData(1, 1.0 ,1);
@@ -538,9 +538,9 @@ void DataTaggedTestCase::testOperations() {
 //     DataArrayView myDataView = myData.getDefaultValue();
     int offset=myData.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==1);
-    assert(getRef(myData,offset,2)==4);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==1);
+    assert(getRefRO(myData,offset,2)==4);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -644,8 +644,8 @@ void DataTaggedTestCase::testOperations() {
     // be used for missing tags in each object
 //     myData.getDefaultValue()()=2.0;
 //     right.getDefaultValue()()=3.0;
-    myData.getVector()[myData.getDefaultOffset()]=2.0;
-    right.getVector()[right.getDefaultOffset()]=3.0;
+    myData.getVectorRW()[myData.getDefaultOffset()]=2.0;
+    right.getVectorRW()[right.getDefaultOffset()]=3.0;
 
     DataVector vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
@@ -834,9 +834,9 @@ void DataTaggedTestCase::testOperations() {
     int offset=myData.getDefaultOffset();
 //     DataArrayView myDataView = myData.getDefaultValue();
     assert(offset==0);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==-1);
-    assert(getRef(myData,offset,2)==-2);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==-1);
+    assert(getRefRO(myData,offset,2)==-2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1231,23 +1231,23 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
     int offset=myData.getPointOffset(0,0);
     assert(offset==3);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==1);
-    assert(getRef(myData,offset,2)==2);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==1);
+    assert(getRefRO(myData,offset,2)==2);
 
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==1);
-    assert(getRef(myData,offset,2)==2);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==1);
+    assert(getRefRO(myData,offset,2)==2);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==1);
-    assert(getRef(myData,offset,2)==2);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==1);
+    assert(getRefRO(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1308,23 +1308,23 @@ void DataTaggedTestCase::testAddTaggedValues() {
     int offset=myData.getPointOffset(0,0);
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
     assert(offset==3);
-    assert(getRef(myData,offset,0)==3);
-    assert(getRef(myData,offset,1)==4);
-    assert(getRef(myData,offset,2)==5);
+    assert(getRefRO(myData,offset,0)==3);
+    assert(getRefRO(myData,offset,1)==4);
+    assert(getRefRO(myData,offset,2)==5);
 
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(myData,offset,0)==3);
-    assert(getRef(myData,offset,1)==4);
-    assert(getRef(myData,offset,2)==5);
+    assert(getRefRO(myData,offset,0)==3);
+    assert(getRefRO(myData,offset,1)==4);
+    assert(getRefRO(myData,offset,2)==5);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==1);
-    assert(getRef(myData,offset,2)==2);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==1);
+    assert(getRefRO(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1388,37 +1388,37 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
     int offset=myData.getPointOffset(0,0);
     assert(offset==3);
-    assert(getRef(myData,offset,0)==3);
-    assert(getRef(myData,offset,1)==3);
-    assert(getRef(myData,offset,2)==3);
+    assert(getRefRO(myData,offset,0)==3);
+    assert(getRefRO(myData,offset,1)==3);
+    assert(getRefRO(myData,offset,2)==3);
 
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(myData,offset,0)==3);
-    assert(getRef(myData,offset,1)==3);
-    assert(getRef(myData,offset,2)==3);
+    assert(getRefRO(myData,offset,0)==3);
+    assert(getRefRO(myData,offset,1)==3);
+    assert(getRefRO(myData,offset,2)==3);
 
 //     myDataView = myData.getDataPointByTag(2);
     offset=myData.getOffsetForTag(2);
     assert(offset==6);
-    assert(getRef(myData,offset,0)==3);
-    assert(getRef(myData,offset,1)==3);
-    assert(getRef(myData,offset,2)==3);
+    assert(getRefRO(myData,offset,0)==3);
+    assert(getRefRO(myData,offset,1)==3);
+    assert(getRefRO(myData,offset,2)==3);
 
 //     myDataView = myData.getDataPointByTag(3);
     offset=myData.getOffsetForTag(3);
     assert(offset==9);
-    assert(getRef(myData,offset,0)==3);
-    assert(getRef(myData,offset,1)==3);
-    assert(getRef(myData,offset,2)==3);
+    assert(getRefRO(myData,offset,0)==3);
+    assert(getRefRO(myData,offset,1)==3);
+    assert(getRefRO(myData,offset,2)==3);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==1);
-    assert(getRef(myData,offset,2)==2);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==1);
+    assert(getRefRO(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1503,37 +1503,37 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
     int offset=myData.getPointOffset(0,0);
     assert(offset==3);
-    assert(getRef(myData,offset,0)==1);
-    assert(getRef(myData,offset,1)==2);
-    assert(getRef(myData,offset,2)==3);
+    assert(getRefRO(myData,offset,0)==1);
+    assert(getRefRO(myData,offset,1)==2);
+    assert(getRefRO(myData,offset,2)==3);
 
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(myData,offset,0)==1);
-    assert(getRef(myData,offset,1)==2);
-    assert(getRef(myData,offset,2)==3);
+    assert(getRefRO(myData,offset,0)==1);
+    assert(getRefRO(myData,offset,1)==2);
+    assert(getRefRO(myData,offset,2)==3);
 
 //     myDataView = myData.getDataPointByTag(2);
     offset=myData.getOffsetForTag(2);
     assert(offset==6);
-    assert(getRef(myData,offset,0)==2);
-    assert(getRef(myData,offset,1)==3);
-    assert(getRef(myData,offset,2)==4);
+    assert(getRefRO(myData,offset,0)==2);
+    assert(getRefRO(myData,offset,1)==3);
+    assert(getRefRO(myData,offset,2)==4);
 
 //     myDataView = myData.getDataPointByTag(3);
     offset=myData.getOffsetForTag(3);
     assert(offset==9);
-    assert(getRef(myData,offset,0)==3);
-    assert(getRef(myData,offset,1)==4);
-    assert(getRef(myData,offset,2)==5);
+    assert(getRefRO(myData,offset,0)==3);
+    assert(getRefRO(myData,offset,1)==4);
+    assert(getRefRO(myData,offset,2)==5);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==1);
-    assert(getRef(myData,offset,2)==2);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==1);
+    assert(getRefRO(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1621,9 +1621,9 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     DataArrayView myDataView = myData.getDataPointByTag(4);
     int offset=myData.getOffsetForTag(4);
     assert(offset==12);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==1);
-    assert(getRef(myData,offset,2)==2);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==1);
+    assert(getRefRO(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1722,9 +1722,9 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     DataArrayView myDataView = myData.getDataPointByTag(4);
     int offset=myData.getOffsetForTag(4);
     assert(offset==12);
-    assert(getRef(myData,offset,0)==4);
-    assert(getRef(myData,offset,1)==5);
-    assert(getRef(myData,offset,2)==6);
+    assert(getRefRO(myData,offset,0)==4);
+    assert(getRefRO(myData,offset,1)==5);
+    assert(getRefRO(myData,offset,2)==6);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1826,23 +1826,23 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     DataArrayView myDataView = myData.getDataPointByTag(4);
     int offset=myData.getOffsetForTag(4);
     assert(offset==12);
-    assert(getRef(myData,offset,0)==4);
-    assert(getRef(myData,offset,1)==5);
-    assert(getRef(myData,offset,2)==6);
+    assert(getRefRO(myData,offset,0)==4);
+    assert(getRefRO(myData,offset,1)==5);
+    assert(getRefRO(myData,offset,2)==6);
 
 //     myDataView = myData.getDataPointByTag(5);
     offset=myData.getOffsetForTag(5);
     assert(offset==15);
-    assert(getRef(myData,offset,0)==4);
-    assert(getRef(myData,offset,1)==5);
-    assert(getRef(myData,offset,2)==6);
+    assert(getRefRO(myData,offset,0)==4);
+    assert(getRefRO(myData,offset,1)==5);
+    assert(getRefRO(myData,offset,2)==6);
 
 //     myDataView = myData.getDataPointByTag(6);
     offset=myData.getOffsetForTag(6);
     assert(offset==18);
-    assert(getRef(myData,offset,0)==4);
-    assert(getRef(myData,offset,1)==5);
-    assert(getRef(myData,offset,2)==6);
+    assert(getRefRO(myData,offset,0)==4);
+    assert(getRefRO(myData,offset,1)==5);
+    assert(getRefRO(myData,offset,2)==6);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -1964,23 +1964,23 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     DataArrayView myDataView = myData.getDataPointByTag(4);
     int offset=myData.getOffsetForTag(4);
     assert(offset==12);
-    assert(getRef(myData,offset,0)==4);
-    assert(getRef(myData,offset,1)==5);
-    assert(getRef(myData,offset,2)==6);
+    assert(getRefRO(myData,offset,0)==4);
+    assert(getRefRO(myData,offset,1)==5);
+    assert(getRefRO(myData,offset,2)==6);
 
 //     myDataView = myData.getDataPointByTag(5);
     offset=myData.getOffsetForTag(5);
     assert(offset==15);
-    assert(getRef(myData,offset,0)==5);
-    assert(getRef(myData,offset,1)==6);
-    assert(getRef(myData,offset,2)==7);
+    assert(getRefRO(myData,offset,0)==5);
+    assert(getRefRO(myData,offset,1)==6);
+    assert(getRefRO(myData,offset,2)==7);
 
 //     myDataView = myData.getDataPointByTag(6);
     offset=myData.getOffsetForTag(6);
     assert(offset==18);
-    assert(getRef(myData,offset,0)==6);
-    assert(getRef(myData,offset,1)==7);
-    assert(getRef(myData,offset,2)==8);
+    assert(getRefRO(myData,offset,0)==6);
+    assert(getRefRO(myData,offset,1)==7);
+    assert(getRefRO(myData,offset,2)==8);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -2080,9 +2080,9 @@ void DataTaggedTestCase::testSetTaggedValue() {
 //     DataArrayView myDataView = myData.getDataPointByTag(2);
     int offset=myData.getOffsetForTag(2);
     assert(offset==6);
-    assert(getRef(myData,offset,0)==5);
-    assert(getRef(myData,offset,1)==6);
-    assert(getRef(myData,offset,2)==7);
+    assert(getRefRO(myData,offset,0)==5);
+    assert(getRefRO(myData,offset,1)==6);
+    assert(getRefRO(myData,offset,2)==7);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -2212,24 +2212,24 @@ void DataTaggedTestCase::testAll() {
 //    DataArrayView myDataView = myData.getDataPoint(0,0);
     int offset=myData.getPointOffset(0,0);
     assert(offset==0);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==1);
-    assert(getRef(myData,offset,2)==2);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==1);
+    assert(getRefRO(myData,offset,2)==2);
 
     // Test non-existent tag returns the default value.
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
     assert(offset==0);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==1);
-    assert(getRef(myData,offset,2)==2);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==1);
+    assert(getRefRO(myData,offset,2)==2);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==1);
-    assert(getRef(myData,offset,2)==2);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==1);
+    assert(getRefRO(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -2305,31 +2305,31 @@ void DataTaggedTestCase::testAll() {
     int offset=myData.getPointOffset(0,0);
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
     assert(offset==3);
-    assert(getRef(myData,offset,0)==1);
-    assert(getRef(myData,offset,1)==2);
-    assert(getRef(myData,offset,2)==3);
+    assert(getRefRO(myData,offset,0)==1);
+    assert(getRefRO(myData,offset,1)==2);
+    assert(getRefRO(myData,offset,2)==3);
 
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(myData,offset,0)==1);
-    assert(getRef(myData,offset,1)==2);
-    assert(getRef(myData,offset,2)==3);
+    assert(getRefRO(myData,offset,0)==1);
+    assert(getRefRO(myData,offset,1)==2);
+    assert(getRefRO(myData,offset,2)==3);
 
     // Test non-existent tag returns the default value.
 //     myDataView = myData.getDataPointByTag(9);
     offset=myData.getOffsetForTag(9);
     assert(offset==0);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==1);
-    assert(getRef(myData,offset,2)==2);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==1);
+    assert(getRefRO(myData,offset,2)==2);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==1);
-    assert(getRef(myData,offset,2)==2);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==1);
+    assert(getRefRO(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -2431,46 +2431,46 @@ void DataTaggedTestCase::testAll() {
     int offset=myData.getPointOffset(0,0);
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
     assert(offset==3);
-    assert(getRef(myData,offset,0)==1);
-    assert(getRef(myData,offset,1)==2);
-    assert(getRef(myData,offset,2)==3);
+    assert(getRefRO(myData,offset,0)==1);
+    assert(getRefRO(myData,offset,1)==2);
+    assert(getRefRO(myData,offset,2)==3);
 
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(myData,offset,0)==1);
-    assert(getRef(myData,offset,1)==2);
-    assert(getRef(myData,offset,2)==3);
+    assert(getRefRO(myData,offset,0)==1);
+    assert(getRefRO(myData,offset,1)==2);
+    assert(getRefRO(myData,offset,2)==3);
 
     // Test non-existent tag returns the default value.
 //     myDataView = myData.getDataPointByTag(0);
     offset=myData.getOffsetForTag(0);
     assert(offset==0);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==1);
-    assert(getRef(myData,offset,2)==2);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==1);
+    assert(getRefRO(myData,offset,2)==2);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData,offset,0)==0);
-    assert(getRef(myData,offset,1)==1);
-    assert(getRef(myData,offset,2)==2);
+    assert(getRefRO(myData,offset,0)==0);
+    assert(getRefRO(myData,offset,1)==1);
+    assert(getRefRO(myData,offset,2)==2);
 
     // Test data-points held for remaining tags
 //     myDataView = myData.getDataPointByTag(2);
     offset=myData.getOffsetForTag(2);
     assert(offset==6);
-    assert(getRef(myData,offset,0)==2);
-    assert(getRef(myData,offset,1)==3);
-    assert(getRef(myData,offset,2)==4);
+    assert(getRefRO(myData,offset,0)==2);
+    assert(getRefRO(myData,offset,1)==3);
+    assert(getRefRO(myData,offset,2)==4);
 
 //     myDataView = myData.getDataPointByTag(3);
     offset=myData.getOffsetForTag(3);
     assert(offset==9);
-    assert(getRef(myData,offset,0)==3);
-    assert(getRef(myData,offset,1)==4);
-    assert(getRef(myData,offset,2)==5);
+    assert(getRefRO(myData,offset,0)==3);
+    assert(getRefRO(myData,offset,1)==4);
+    assert(getRefRO(myData,offset,2)==5);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -2583,46 +2583,46 @@ void DataTaggedTestCase::testCopyConstructors() {
     int offset=myDataCopy.getPointOffset(0,0);
 //     DataArrayView myDataView = myDataCopy.getDataPoint(0,0);
     assert(offset==3);
-    assert(getRef(myDataCopy,offset,0)==1);
-    assert(getRef(myDataCopy,offset,1)==2);
-    assert(getRef(myDataCopy,offset,2)==3);
+    assert(getRefRO(myDataCopy,offset,0)==1);
+    assert(getRefRO(myDataCopy,offset,1)==2);
+    assert(getRefRO(myDataCopy,offset,2)==3);
 
 //     myDataView = myDataCopy.getDataPointByTag(1);
     offset=myDataCopy.getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(myDataCopy,offset,0)==1);
-    assert(getRef(myDataCopy,offset,1)==2);
-    assert(getRef(myDataCopy,offset,2)==3);
+    assert(getRefRO(myDataCopy,offset,0)==1);
+    assert(getRefRO(myDataCopy,offset,1)==2);
+    assert(getRefRO(myDataCopy,offset,2)==3);
 
     // Test non-existent tag returns the default value.
 //     myDataView = myDataCopy.getDataPointByTag(0);
     offset=myDataCopy.getOffsetForTag(0);
     assert(offset==0);
-    assert(getRef(myDataCopy,offset,0)==0);
-    assert(getRef(myDataCopy,offset,1)==1);
-    assert(getRef(myDataCopy,offset,2)==2);
+    assert(getRefRO(myDataCopy,offset,0)==0);
+    assert(getRefRO(myDataCopy,offset,1)==1);
+    assert(getRefRO(myDataCopy,offset,2)==2);
 
     //myDataView = myDataCopy.getDefaultValue();
     offset=myDataCopy.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myDataCopy,offset,0)==0);
-    assert(getRef(myDataCopy,offset,1)==1);
-    assert(getRef(myDataCopy,offset,2)==2);
+    assert(getRefRO(myDataCopy,offset,0)==0);
+    assert(getRefRO(myDataCopy,offset,1)==1);
+    assert(getRefRO(myDataCopy,offset,2)==2);
 
     // Test data-points held for remaining tags
 //     myDataView = myDataCopy.getDataPointByTag(2);
     offset=myDataCopy.getOffsetForTag(2);
     assert(offset==6);
-    assert(getRef(myDataCopy,offset,0)==2);
-    assert(getRef(myDataCopy,offset,1)==3);
-    assert(getRef(myDataCopy,offset,2)==4);
+    assert(getRefRO(myDataCopy,offset,0)==2);
+    assert(getRefRO(myDataCopy,offset,1)==3);
+    assert(getRefRO(myDataCopy,offset,2)==4);
 
 //     myDataView = myDataCopy.getDataPointByTag(3);
     offset=myDataCopy.getOffsetForTag(3);
     assert(offset==9);
-    assert(getRef(myDataCopy,offset,0)==3);
-    assert(getRef(myDataCopy,offset,1)==4);
-    assert(getRef(myDataCopy,offset,2)==5);
+    assert(getRefRO(myDataCopy,offset,0)==3);
+    assert(getRefRO(myDataCopy,offset,1)==4);
+    assert(getRefRO(myDataCopy,offset,2)==5);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
@@ -2736,7 +2736,7 @@ void DataTaggedTestCase::testGetSlice() {
     assert(myDataSliced->getRank()==0);
     assert(myDataSliced->getNoValues()==1);
     assert(myDataSliced->getShape().size()==0);
-    assert(myDataSliced->getVector()[0]==0.0);
+    assert(myDataSliced->getVectorRO()[0]==0.0);
 
     delete slicedDefault;
   }
@@ -2786,9 +2786,9 @@ void DataTaggedTestCase::testGetSlice() {
     int offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
 
-    assert(getRef(*myDataSliced,offset,0)==0.0);
-    assert(getRef(*myDataSliced,offset,1)==1.0);
-    assert(getRef(*myDataSliced,offset,2)==2.0);
+    assert(getRefRO(*myDataSliced,offset,0)==0.0);
+    assert(getRefRO(*myDataSliced,offset,1)==1.0);
+    assert(getRefRO(*myDataSliced,offset,2)==2.0);
 
     // scalar slice
 
@@ -2815,7 +2815,7 @@ void DataTaggedTestCase::testGetSlice() {
     assert(myDataSliced->getRank()==0);
     assert(myDataSliced->getNoValues()==1);
     assert(myDataSliced->getShape().size()==0);
-    assert(myDataSliced->getVector()[0]==0.0);
+    assert(myDataSliced->getVectorRO()[0]==0.0);
 
     delete slicedDefault;
   }
@@ -2897,9 +2897,9 @@ void DataTaggedTestCase::testGetSlice() {
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
-    assert(getRef(*myDataSliced,offset,0)==0.0);
-    assert(getRef(*myDataSliced,offset,1)==1.0);
-    assert(getRef(*myDataSliced,offset,2)==2.0);
+    assert(getRefRO(*myDataSliced,offset,0)==0.0);
+    assert(getRefRO(*myDataSliced,offset,1)==1.0);
+    assert(getRefRO(*myDataSliced,offset,2)==2.0);
 
     // scalar slice
 
@@ -2930,7 +2930,7 @@ void DataTaggedTestCase::testGetSlice() {
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
-    assert(myDataSliced->getVector()[0]==26);
+    assert(myDataSliced->getVectorRO()[0]==26);
     delete slicedDefault;
   }
 
@@ -2980,12 +2980,12 @@ void DataTaggedTestCase::testGetSlice() {
     assert(myDataSliced->getRank()==0);
     assert(myDataSliced->getNoValues()==1);
     assert(myDataSliced->getShape().size()==0);
-    assert(myDataSliced->getVector()[offset]==0);
+    assert(myDataSliced->getVectorRO()[offset]==0);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
     assert(offset==1);
-    assert(myDataSliced->getVector()[offset]==1);
+    assert(myDataSliced->getVectorRO()[offset]==1);
 
     delete slicedDefault;
 
@@ -3046,16 +3046,16 @@ void DataTaggedTestCase::testGetSlice() {
 //     DataArrayView myDataView = myDataSliced->getDefaultValue();
     int offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
-    assert(getRef(*myDataSliced,offset,0)==0);
-    assert(getRef(*myDataSliced,offset,1)==1);
-    assert(getRef(*myDataSliced,offset,2)==2);
+    assert(getRefRO(*myDataSliced,offset,0)==0);
+    assert(getRefRO(*myDataSliced,offset,1)==1);
+    assert(getRefRO(*myDataSliced,offset,2)==2);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(*myDataSliced,offset,0)==3);
-    assert(getRef(*myDataSliced,offset,1)==4);
-    assert(getRef(*myDataSliced,offset,2)==5);
+    assert(getRefRO(*myDataSliced,offset,0)==3);
+    assert(getRefRO(*myDataSliced,offset,1)==4);
+    assert(getRefRO(*myDataSliced,offset,2)==5);
 
     // scalar slice
 
@@ -3084,12 +3084,12 @@ void DataTaggedTestCase::testGetSlice() {
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
-    assert(myDataSliced->getVector()[offset]==1);
+    assert(myDataSliced->getVectorRO()[offset]==1);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
     assert(offset==1);
-    assert(myDataSliced->getVector()[offset]==4);
+    assert(myDataSliced->getVectorRO()[offset]==4);
     delete slicedDefault;
 
   }
@@ -3184,16 +3184,16 @@ void DataTaggedTestCase::testGetSlice() {
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
-    assert(getRef(*myDataSliced,offset,0)==0);
-    assert(getRef(*myDataSliced,offset,1)==1);
-    assert(getRef(*myDataSliced,offset,2)==2);
+    assert(getRefRO(*myDataSliced,offset,0)==0);
+    assert(getRefRO(*myDataSliced,offset,1)==1);
+    assert(getRefRO(*myDataSliced,offset,2)==2);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(*myDataSliced,offset,0)==27);
-    assert(getRef(*myDataSliced,offset,1)==28);
-    assert(getRef(*myDataSliced,offset,2)==29);
+    assert(getRefRO(*myDataSliced,offset,0)==27);
+    assert(getRefRO(*myDataSliced,offset,1)==28);
+    assert(getRefRO(*myDataSliced,offset,2)==29);
     // scalar slice
 
     region_element.first=1;
@@ -3222,12 +3222,12 @@ void DataTaggedTestCase::testGetSlice() {
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
-    assert(myDataSliced->getVector()[offset]==13);
+    assert(myDataSliced->getVectorRO()[offset]==13);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
     assert(offset==1);
-    assert(myDataSliced->getVector()[offset]==40);
+    assert(myDataSliced->getVectorRO()[offset]==40);
 
     delete slicedDefault;
   }
@@ -3296,22 +3296,22 @@ void DataTaggedTestCase::testGetSlice() {
 //     DataArrayView myDataView = myDataSliced->getDefaultValue();
     int offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
-    assert(myDataSliced->getVector()[offset]==0);
+    assert(myDataSliced->getVectorRO()[offset]==0);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
     assert(offset==1);
-    assert(myDataSliced->getVector()[offset]==1);
+    assert(myDataSliced->getVectorRO()[offset]==1);
 
 //     myDataView = myDataSliced->getDataPointByTag(2);
     offset=myDataSliced->getOffsetForTag(2);
     assert(offset==2);
-    assert(myDataSliced->getVector()[offset]==2);
+    assert(myDataSliced->getVectorRO()[offset]==2);
 
 //     myDataView = myDataSliced->getDataPointByTag(3);
     offset=myDataSliced->getOffsetForTag(3);
     assert(offset==3);
-    assert(myDataSliced->getVector()[offset]==3);
+    assert(myDataSliced->getVectorRO()[offset]==3);
 
     delete slicedDefault;
   }
@@ -3394,30 +3394,30 @@ void DataTaggedTestCase::testGetSlice() {
 //     DataArrayView myDataView = myDataSliced->getDefaultValue();
     int offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
-    assert(getRef(*myDataSliced,offset,0)==0);
-    assert(getRef(*myDataSliced,offset,1)==1);
-    assert(getRef(*myDataSliced,offset,2)==2);
+    assert(getRefRO(*myDataSliced,offset,0)==0);
+    assert(getRefRO(*myDataSliced,offset,1)==1);
+    assert(getRefRO(*myDataSliced,offset,2)==2);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(*myDataSliced,offset,0)==3);
-    assert(getRef(*myDataSliced,offset,1)==4);
-    assert(getRef(*myDataSliced,offset,2)==5);
+    assert(getRefRO(*myDataSliced,offset,0)==3);
+    assert(getRefRO(*myDataSliced,offset,1)==4);
+    assert(getRefRO(*myDataSliced,offset,2)==5);
 
 //     myDataView = myDataSliced->getDataPointByTag(2);
     offset=myDataSliced->getOffsetForTag(2);
     assert(offset==6);
-    assert(getRef(*myDataSliced,offset,0)==6);
-    assert(getRef(*myDataSliced,offset,1)==7);
-    assert(getRef(*myDataSliced,offset,2)==8);
+    assert(getRefRO(*myDataSliced,offset,0)==6);
+    assert(getRefRO(*myDataSliced,offset,1)==7);
+    assert(getRefRO(*myDataSliced,offset,2)==8);
 
 //     myDataView = myDataSliced->getDataPointByTag(3);
     offset=myDataSliced->getOffsetForTag(3);
     assert(offset==9);
-    assert(getRef(*myDataSliced,offset,0)==9);
-    assert(getRef(*myDataSliced,offset,1)==10);
-    assert(getRef(*myDataSliced,offset,2)==11);
+    assert(getRefRO(*myDataSliced,offset,0)==9);
+    assert(getRefRO(*myDataSliced,offset,1)==10);
+    assert(getRefRO(*myDataSliced,offset,2)==11);
 
     // scalar slice
 
@@ -3445,22 +3445,22 @@ void DataTaggedTestCase::testGetSlice() {
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
-    assert(myDataSliced->getVector()[offset]==1);
+    assert(myDataSliced->getVectorRO()[offset]==1);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
     assert(offset==1);
-    assert(myDataSliced->getVector()[offset]==4);
+    assert(myDataSliced->getVectorRO()[offset]==4);
 
 //     myDataView = myDataSliced->getDataPointByTag(2);
     offset=myDataSliced->getOffsetForTag(2);
     assert(offset==2);
-    assert(myDataSliced->getVector()[offset]==7);
+    assert(myDataSliced->getVectorRO()[offset]==7);
 
 //     myDataView = myDataSliced->getDataPointByTag(3);
     offset=myDataSliced->getOffsetForTag(3);
     assert(offset==3);
-    assert(myDataSliced->getVector()[offset]==10);
+    assert(myDataSliced->getVectorRO()[offset]==10);
     
     delete slicedDefault;
   }
@@ -3584,30 +3584,30 @@ void DataTaggedTestCase::testGetSlice() {
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
-    assert(getRef(*myDataSliced,offset,0)==0);
-    assert(getRef(*myDataSliced,offset,1)==1);
-    assert(getRef(*myDataSliced,offset,2)==2);
+    assert(getRefRO(*myDataSliced,offset,0)==0);
+    assert(getRefRO(*myDataSliced,offset,1)==1);
+    assert(getRefRO(*myDataSliced,offset,2)==2);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(*myDataSliced,offset,0)==27);
-    assert(getRef(*myDataSliced,offset,1)==28);
-    assert(getRef(*myDataSliced,offset,2)==29);
+    assert(getRefRO(*myDataSliced,offset,0)==27);
+    assert(getRefRO(*myDataSliced,offset,1)==28);
+    assert(getRefRO(*myDataSliced,offset,2)==29);
 
 //     myDataView = myDataSliced->getDataPointByTag(2);
     offset=myDataSliced->getOffsetForTag(2);
     assert(offset==6);
-    assert(getRef(*myDataSliced,offset,0)==54);
-    assert(getRef(*myDataSliced,offset,1)==55);
-    assert(getRef(*myDataSliced,offset,2)==56);
+    assert(getRefRO(*myDataSliced,offset,0)==54);
+    assert(getRefRO(*myDataSliced,offset,1)==55);
+    assert(getRefRO(*myDataSliced,offset,2)==56);
 
 //     myDataView = myDataSliced->getDataPointByTag(3);
     offset=myDataSliced->getOffsetForTag(3);
     assert(offset==9);
-    assert(getRef(*myDataSliced,offset,0)==81);
-    assert(getRef(*myDataSliced,offset,1)==82);
-    assert(getRef(*myDataSliced,offset,2)==83);
+    assert(getRefRO(*myDataSliced,offset,0)==81);
+    assert(getRefRO(*myDataSliced,offset,1)==82);
+    assert(getRefRO(*myDataSliced,offset,2)==83);
 
     // scalar slice
 
@@ -3636,22 +3636,22 @@ void DataTaggedTestCase::testGetSlice() {
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
     assert(offset==0);
-    assert(myDataSliced->getVector()[offset]==13);
+    assert(myDataSliced->getVectorRO()[offset]==13);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
     assert(offset==1);
-    assert(myDataSliced->getVector()[offset]==40);
+    assert(myDataSliced->getVectorRO()[offset]==40);
 
 //     myDataView = myDataSliced->getDataPointByTag(2);
     offset=myDataSliced->getOffsetForTag(2);
     assert(offset==2);
-    assert(myDataSliced->getVector()[offset]==67);
+    assert(myDataSliced->getVectorRO()[offset]==67);
 
 //     myDataView = myDataSliced->getDataPointByTag(3);
     offset=myDataSliced->getOffsetForTag(3);
     assert(offset==3);
-    assert(myDataSliced->getVector()[offset]==94);
+    assert(myDataSliced->getVectorRO()[offset]==94);
 
     delete slicedDefault;
   }
@@ -3736,9 +3736,9 @@ void DataTaggedTestCase::testSetSlice() {
 //     DataArrayView myDataView = myData1.getDefaultValue();
     int offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData1,offset,0)==3.0);
-    assert(getRef(myData1,offset,1)==4.0);
-    assert(getRef(myData1,offset,2)==5.0);
+    assert(getRefRO(myData1,offset,0)==3.0);
+    assert(getRefRO(myData1,offset,1)==4.0);
+    assert(getRefRO(myData1,offset,2)==5.0);
 
     // rank 1 slice
 
@@ -3767,9 +3767,9 @@ void DataTaggedTestCase::testSetSlice() {
 //     myDataView = myData1.getDefaultValue();
     offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData1,offset,0)==3.0);
-    assert(getRef(myData1,offset,1)==6.0);
-    assert(getRef(myData1,offset,2)==5.0);
+    assert(getRefRO(myData1,offset,0)==3.0);
+    assert(getRefRO(myData1,offset,1)==6.0);
+    assert(getRefRO(myData1,offset,2)==5.0);
 
     // scalar slice
 
@@ -3796,9 +3796,9 @@ void DataTaggedTestCase::testSetSlice() {
 //     myDataView = myData1.getDefaultValue();
     offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData1,offset,0)==7.0);
-    assert(getRef(myData1,offset,1)==6.0);
-    assert(getRef(myData1,offset,2)==5.0);
+    assert(getRefRO(myData1,offset,0)==7.0);
+    assert(getRefRO(myData1,offset,1)==6.0);
+    assert(getRefRO(myData1,offset,2)==5.0);
 
   }
 
@@ -3887,9 +3887,9 @@ void DataTaggedTestCase::testSetSlice() {
 //     myDataView = myData1.getDefaultValue();
     offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData1,offset,0,0,0)==60.0);
-    assert(getRef(myData1,offset,1,0,0)==61.0);
-    assert(getRef(myData1,offset,2,0,0)==62.0);
+    assert(getRefRO(myData1,offset,0,0,0)==60.0);
+    assert(getRefRO(myData1,offset,1,0,0)==61.0);
+    assert(getRefRO(myData1,offset,2,0,0)==62.0);
 
     // scalar slice
 
@@ -3918,7 +3918,7 @@ void DataTaggedTestCase::testSetSlice() {
 //     myDataView = myData1.getDefaultValue();
     offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData1,offset,0,0,0)==70.0);
+    assert(getRefRO(myData1,offset,0,0,0)==70.0);
 
   }
 
@@ -3978,12 +3978,12 @@ void DataTaggedTestCase::testSetSlice() {
 //     DataArrayView myDataView = myData1.getDefaultValue();
     int offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(myData1.getVector()[offset]==1.0);
+    assert(myData1.getVectorRO()[offset]==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
     assert(offset==1);
-    assert(myData1.getVector()[offset]==2.0);
+    assert(myData1.getVectorRO()[offset]==2.0);
   }
 
   {
@@ -4055,16 +4055,16 @@ void DataTaggedTestCase::testSetSlice() {
 //     DataArrayView myDataView = myData1.getDefaultValue();
     int offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData1,offset,0)==1.0);
-    assert(getRef(myData1,offset,1)==1.0);
-    assert(getRef(myData1,offset,2)==1.0);
+    assert(getRefRO(myData1,offset,0)==1.0);
+    assert(getRefRO(myData1,offset,1)==1.0);
+    assert(getRefRO(myData1,offset,2)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(myData1,offset,0)==2.0);
-    assert(getRef(myData1,offset,1)==2.0);
-    assert(getRef(myData1,offset,2)==2.0);
+    assert(getRefRO(myData1,offset,0)==2.0);
+    assert(getRefRO(myData1,offset,1)==2.0);
+    assert(getRefRO(myData1,offset,2)==2.0);
 
     // rank 1 slice
 
@@ -4102,16 +4102,16 @@ void DataTaggedTestCase::testSetSlice() {
 //     myDataView = myData1.getDefaultValue();
     offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData1,offset,0)==1.0);
-    assert(getRef(myData1,offset,1)==3.0);
-    assert(getRef(myData1,offset,2)==1.0);
+    assert(getRefRO(myData1,offset,0)==1.0);
+    assert(getRefRO(myData1,offset,1)==3.0);
+    assert(getRefRO(myData1,offset,2)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(myData1,offset,0)==2.0);
-    assert(getRef(myData1,offset,1)==4.0);
-    assert(getRef(myData1,offset,2)==2.0);
+    assert(getRefRO(myData1,offset,0)==2.0);
+    assert(getRefRO(myData1,offset,1)==4.0);
+    assert(getRefRO(myData1,offset,2)==2.0);
 
     // scalar slice
 
@@ -4145,16 +4145,16 @@ void DataTaggedTestCase::testSetSlice() {
 //     myDataView = myData1.getDefaultValue();
     offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData1,offset,0)==5.0);
-    assert(getRef(myData1,offset,1)==3.0);
-    assert(getRef(myData1,offset,2)==1.0);
+    assert(getRefRO(myData1,offset,0)==5.0);
+    assert(getRefRO(myData1,offset,1)==3.0);
+    assert(getRefRO(myData1,offset,2)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(myData1,offset,0)==6.0);
-    assert(getRef(myData1,offset,1)==4.0);
-    assert(getRef(myData1,offset,2)==2.0);
+    assert(getRefRO(myData1,offset,0)==6.0);
+    assert(getRefRO(myData1,offset,1)==4.0);
+    assert(getRefRO(myData1,offset,2)==2.0);
 
   }
 
@@ -4234,16 +4234,16 @@ void DataTaggedTestCase::testSetSlice() {
     int offset=myData1.getDefaultOffset();
 //     DataArrayView myDataView = myData1.getDefaultValue();
     assert(offset==0);
-    assert(getRef(myData1,offset,0,0,0)==1.0);
-    assert(getRef(myData1,offset,1,1,1)==1.0);
-    assert(getRef(myData1,offset,2,2,2)==1.0);
+    assert(getRefRO(myData1,offset,0,0,0)==1.0);
+    assert(getRefRO(myData1,offset,1,1,1)==1.0);
+    assert(getRefRO(myData1,offset,2,2,2)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
     assert(offset==27);
-    assert(getRef(myData1,offset,0,0,0)==2.0);
-    assert(getRef(myData1,offset,1,1,1)==2.0);
-    assert(getRef(myData1,offset,2,2,2)==2.0);
+    assert(getRefRO(myData1,offset,0,0,0)==2.0);
+    assert(getRefRO(myData1,offset,1,1,1)==2.0);
+    assert(getRefRO(myData1,offset,2,2,2)==2.0);
 
     // rank 1 slice
 
@@ -4292,16 +4292,16 @@ void DataTaggedTestCase::testSetSlice() {
     offset=myData1.getDefaultOffset();
 //     myDataView = myData1.getDefslicing DataTagged with rank 3 values and one tagaultValue();
     assert(offset==0);
-    assert(getRef(myData1,offset,0,0,0)==3.0);
-    assert(getRef(myData1,offset,1,0,0)==3.0);
-    assert(getRef(myData1,offset,2,0,0)==3.0);
+    assert(getRefRO(myData1,offset,0,0,0)==3.0);
+    assert(getRefRO(myData1,offset,1,0,0)==3.0);
+    assert(getRefRO(myData1,offset,2,0,0)==3.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
     assert(offset==27);
-    assert(getRef(myData1,offset,0,0,0)==4.0);
-    assert(getRef(myData1,offset,1,0,0)==4.0);
-    assert(getRef(myData1,offset,2,0,0)==4.0);
+    assert(getRefRO(myData1,offset,0,0,0)==4.0);
+    assert(getRefRO(myData1,offset,1,0,0)==4.0);
+    assert(getRefRO(myData1,offset,2,0,0)==4.0);
 
     // scalar slice
 
@@ -4339,12 +4339,12 @@ void DataTaggedTestCase::testSetSlice() {
     offset=myData1.getDefaultOffset();
 //     myDataView = myData1.getDefaultValue();
     assert(offset==0);
-    assert(getRef(myData1,offset,0,0,0)==5.0);
+    assert(getRefRO(myData1,offset,0,0,0)==5.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
     assert(offset==27);
-    assert(getRef(myData1,offset,0,0,0)==6.0);
+    assert(getRefRO(myData1,offset,0,0,0)==6.0);
 
   }
 
@@ -4560,30 +4560,30 @@ void DataTaggedTestCase::testSetSlice() {
 //     DataArrayView myDataView = myData1.getDefaultValue();
     int offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData1,offset,0)==1.0);
-    assert(getRef(myData1,offset,1)==1.0);
-    assert(getRef(myData1,offset,2)==1.0);
+    assert(getRefRO(myData1,offset,0)==1.0);
+    assert(getRefRO(myData1,offset,1)==1.0);
+    assert(getRefRO(myData1,offset,2)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(myData1,offset,0)==2.0);
-    assert(getRef(myData1,offset,1)==2.0);
-    assert(getRef(myData1,offset,2)==2.0);
+    assert(getRefRO(myData1,offset,0)==2.0);
+    assert(getRefRO(myData1,offset,1)==2.0);
+    assert(getRefRO(myData1,offset,2)==2.0);
 
 //     myDataView = myData1.getDataPointByTag(2);
     offset=myData1.getOffsetForTag(2);
     assert(offset==6);
-    assert(getRef(myData1,offset,0)==3.0);
-    assert(getRef(myData1,offset,1)==3.0);
-    assert(getRef(myData1,offset,2)==3.0);
+    assert(getRefRO(myData1,offset,0)==3.0);
+    assert(getRefRO(myData1,offset,1)==3.0);
+    assert(getRefRO(myData1,offset,2)==3.0);
 
 //     myDataView = myData1.getDataPointByTag(3);
     offset=myData1.getOffsetForTag(3);
     assert(offset==9);
-    assert(getRef(myData1,offset,0)==4.0);
-    assert(getRef(myData1,offset,1)==4.0);
-    assert(getRef(myData1,offset,2)==4.0);
+    assert(getRefRO(myData1,offset,0)==4.0);
+    assert(getRefRO(myData1,offset,1)==4.0);
+    assert(getRefRO(myData1,offset,2)==4.0);
 
     // rank 1 slice
 
@@ -4634,30 +4634,30 @@ void DataTaggedTestCase::testSetSlice() {
     offset=myData1.getDefaultOffset();
 //     myDataView = myData1.getDefaultValue();
     assert(offset==0);
-    assert(getRef(myData1,offset,0)==1.0);
-    assert(getRef(myData1,offset,1)==6.0);
-    assert(getRef(myData1,offset,2)==1.0);
+    assert(getRefRO(myData1,offset,0)==1.0);
+    assert(getRefRO(myData1,offset,1)==6.0);
+    assert(getRefRO(myData1,offset,2)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(myData1,offset,0)==2.0);
-    assert(getRef(myData1,offset,1)==7.0);
-    assert(getRef(myData1,offset,2)==2.0);
+    assert(getRefRO(myData1,offset,0)==2.0);
+    assert(getRefRO(myData1,offset,1)==7.0);
+    assert(getRefRO(myData1,offset,2)==2.0);
 
 //     myDataView = myData1.getDataPointByTag(2);
     offset=myData1.getOffsetForTag(2);
     assert(offset==6);
-    assert(getRef(myData1,offset,0)==3.0);
-    assert(getRef(myData1,offset,1)==8.0);
-    assert(getRef(myData1,offset,2)==3.0);
+    assert(getRefRO(myData1,offset,0)==3.0);
+    assert(getRefRO(myData1,offset,1)==8.0);
+    assert(getRefRO(myData1,offset,2)==3.0);
 
 //     myDataView = myData1.getDataPointByTag(3);
     offset=myData1.getOffsetForTag(3);
     assert(offset==9);
-    assert(getRef(myData1,offset,0)==4.0);
-    assert(getRef(myData1,offset,1)==9.0);
-    assert(getRef(myData1,offset,2)==4.0);
+    assert(getRefRO(myData1,offset,0)==4.0);
+    assert(getRefRO(myData1,offset,1)==9.0);
+    assert(getRefRO(myData1,offset,2)==4.0);
 
     // scalar slice
 
@@ -4703,30 +4703,30 @@ void DataTaggedTestCase::testSetSlice() {
     offset=myData1.getDefaultOffset();
 /*    myDataView = myData1.getDefaultValue();*/
     assert(offset==0);
-    assert(getRef(myData1,offset,0)==10.0);
-    assert(getRef(myData1,offset,1)==6.0);
-    assert(getRef(myData1,offset,2)==1.0);
+    assert(getRefRO(myData1,offset,0)==10.0);
+    assert(getRefRO(myData1,offset,1)==6.0);
+    assert(getRefRO(myData1,offset,2)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
     assert(offset==3);
-    assert(getRef(myData1,offset,0)==11.0);
-    assert(getRef(myData1,offset,1)==7.0);
-    assert(getRef(myData1,offset,2)==2.0);
+    assert(getRefRO(myData1,offset,0)==11.0);
+    assert(getRefRO(myData1,offset,1)==7.0);
+    assert(getRefRO(myData1,offset,2)==2.0);
 
 //     myDataView = myData1.getDataPointByTag(2);
     offset=myData1.getOffsetForTag(2);
     assert(offset==6);
-    assert(getRef(myData1,offset,0)==12.0);
-    assert(getRef(myData1,offset,1)==8.0);
-    assert(getRef(myData1,offset,2)==3.0);
+    assert(getRefRO(myData1,offset,0)==12.0);
+    assert(getRefRO(myData1,offset,1)==8.0);
+    assert(getRefRO(myData1,offset,2)==3.0);
 
 //     myDataView = myData1.getDataPointByTag(3);
     offset=myData1.getOffsetForTag(3);
     assert(offset==9);
-    assert(getRef(myData1,offset,0)==13.0);
-    assert(getRef(myData1,offset,1)==9.0);
-    assert(getRef(myData1,offset,2)==4.0);
+    assert(getRefRO(myData1,offset,0)==13.0);
+    assert(getRefRO(myData1,offset,1)==9.0);
+    assert(getRefRO(myData1,offset,2)==4.0);
 
   }
 
@@ -4840,30 +4840,30 @@ void DataTaggedTestCase::testSetSlice() {
     int offset=myData1.getDefaultOffset();
 //     DataArrayView myDataView = myData1.getDefaultValue();
     assert(offset==0);
-    assert(getRef(myData1,offset,0,0,0)==1.0);
-    assert(getRef(myData1,offset,1,0,0)==1.0);
-    assert(getRef(myData1,offset,2,0,0)==1.0);
+    assert(getRefRO(myData1,offset,0,0,0)==1.0);
+    assert(getRefRO(myData1,offset,1,0,0)==1.0);
+    assert(getRefRO(myData1,offset,2,0,0)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
     assert(offset==27);
-    assert(getRef(myData1,offset,0,0,0)==2.0);
-    assert(getRef(myData1,offset,1,0,0)==2.0);
-    assert(getRef(myData1,offset,2,0,0)==2.0);
+    assert(getRefRO(myData1,offset,0,0,0)==2.0);
+    assert(getRefRO(myData1,offset,1,0,0)==2.0);
+    assert(getRefRO(myData1,offset,2,0,0)==2.0);
 
 //     myDataView = myData1.getDataPointByTag(2);
     offset=myData1.getOffsetForTag(2);
     assert(offset==54);
-    assert(getRef(myData1,offset,0,0,0)==3.0);
-    assert(getRef(myData1,offset,1,0,0)==3.0);
-    assert(getRef(myData1,offset,2,0,0)==3.0);
+    assert(getRefRO(myData1,offset,0,0,0)==3.0);
+    assert(getRefRO(myData1,offset,1,0,0)==3.0);
+    assert(getRefRO(myData1,offset,2,0,0)==3.0);
 
 //     myDataView = myData1.getDataPointByTag(3);
     offset=myData1.getOffsetForTag(3);
     assert(offset==81);
-    assert(getRef(myData1,offset,0,0,0)==4.0);
-    assert(getRef(myData1,offset,1,0,0)==4.0);
-    assert(getRef(myData1,offset,2,0,0)==4.0);
+    assert(getRefRO(myData1,offset,0,0,0)==4.0);
+    assert(getRefRO(myData1,offset,1,0,0)==4.0);
+    assert(getRefRO(myData1,offset,2,0,0)==4.0);
 
     // rank 1 slice
 
@@ -4927,31 +4927,31 @@ void DataTaggedTestCase::testSetSlice() {
 //     assert(!myDataView.isEmpty());
     offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData1,offset,0,0,0)==6.0);
-    assert(getRef(myData1,offset,1,0,0)==6.0);
-    assert(getRef(myData1,offset,2,0,0)==6.0);
+    assert(getRefRO(myData1,offset,0,0,0)==6.0);
+    assert(getRefRO(myData1,offset,1,0,0)==6.0);
+    assert(getRefRO(myData1,offset,2,0,0)==6.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
     assert(offset==27);
-    assert(getRef(myData1,offset,0,0,0)==7.0);
-    assert(getRef(myData1,offset,1,0,0)==7.0);
-    assert(getRef(myData1,offset,2,0,0)==7.0);
+    assert(getRefRO(myData1,offset,0,0,0)==7.0);
+    assert(getRefRO(myData1,offset,1,0,0)==7.0);
+    assert(getRefRO(myData1,offset,2,0,0)==7.0);
 
     offset=myData1.getOffsetForTag(2);
 //     myDataView = myData1.getDataPointByTag(2);
 //     assert(!myDataView.isEmpty());
     assert(offset==54);
-    assert(getRef(myData1,offset,0,0,0)==8.0);
-    assert(getRef(myData1,offset,1,0,0)==8.0);
-    assert(getRef(myData1,offset,2,0,0)==8.0);
+    assert(getRefRO(myData1,offset,0,0,0)==8.0);
+    assert(getRefRO(myData1,offset,1,0,0)==8.0);
+    assert(getRefRO(myData1,offset,2,0,0)==8.0);
 
 //     myDataView = myData1.getDataPointByTag(3);
     offset=myData1.getOffsetForTag(3);
     assert(offset==81);
-    assert(getRef(myData1,offset,0,0,0)==9.0);
-    assert(getRef(myData1,offset,1,0,0)==9.0);
-    assert(getRef(myData1,offset,2,0,0)==9.0);
+    assert(getRefRO(myData1,offset,0,0,0)==9.0);
+    assert(getRefRO(myData1,offset,1,0,0)==9.0);
+    assert(getRefRO(myData1,offset,2,0,0)==9.0);
 
     // scalar slice
 
@@ -4994,21 +4994,21 @@ void DataTaggedTestCase::testSetSlice() {
 //     myDataView = myData1.getDefaultValue();
     offset=myData1.getDefaultOffset();
     assert(offset==0);
-    assert(getRef(myData1,offset,0,0,0)==10.0);
+    assert(getRefRO(myData1,offset,0,0,0)==10.0);
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
     assert(offset==27);
-    assert(getRef(myData1,offset,0,0,0)==11.0);
+    assert(getRefRO(myData1,offset,0,0,0)==11.0);
 
 //     myDataView = myData1.getDataPointByTag(2);
     offset=myData1.getOffsetForTag(2);
     assert(offset==54);
-    assert(getRef(myData1,offset,0,0,0)==12.0);
+    assert(getRefRO(myData1,offset,0,0,0)==12.0);
 
 //     myDataView = myData1.getDataPointByTag(3);
     offset=myData1.getOffsetForTag(3);
     assert(offset==81);
-    assert(getRef(myData1,offset,0,0,0)==13.0);
+    assert(getRefRO(myData1,offset,0,0,0)==13.0);
 
   }
 

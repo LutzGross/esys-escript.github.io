@@ -1518,7 +1518,7 @@ LAZYDEBUG(cout << "Buffers=" << m_buffsRequired << endl;)
   ValueType v(numthreads*threadbuffersize);	
 LAZYDEBUG(cout << "Buffer created with size=" << v.size() << endl;)
   DataExpanded* result=new DataExpanded(getFunctionSpace(),getShape(),  ValueType(getNoValues()));
-  ValueType& resvec=result->getVector();
+  ValueType& resvec=result->getVectorRW();
   DataReady_ptr resptr=DataReady_ptr(result);
   int sample;
   size_t outoffset;		// offset in the output data

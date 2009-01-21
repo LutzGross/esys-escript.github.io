@@ -42,12 +42,11 @@ unaryOp(DataExpanded& data,
   int i,j;
   DataTypes::ValueType::size_type numDPPSample=data.getNumDPPSample();
   DataTypes::ValueType::size_type numSamples=data.getNumSamples();
-  DataTypes::ValueType& left=data.getVector();
+  DataTypes::ValueType& left=data.getVectorRW();
   const DataTypes::ShapeType& shape=data.getShape();
   #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<numSamples;i++) {
     for (j=0;j<numDPPSample;j++) {
-      //data.getPointDataView().unaryOp(data.getPointOffset(i,j),operation);
       DataMaths::unaryOp(left,shape,data.getPointOffset(i,j),operation);
     }
   }
@@ -63,15 +62,12 @@ unaryOp(DataTagged& data,
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
-  //DataArrayView& dataView=data.getPointDataView();
-  DataTypes::ValueType& left=data.getVector();
+  DataTypes::ValueType& left=data.getVectorRW();
   const DataTypes::ShapeType& shape=data.getShape();
   for (i=lookup.begin();i!=lookupEnd;i++) {
-//    dataView.unaryOp(i->second,operation);
     DataMaths::unaryOp(left,shape,i->second,operation);
   }
   // perform the operation on the default value
-  //data.getDefaultValue().unaryOp(operation);
   DataMaths::unaryOp(left,shape,data.getDefaultOffset(),operation);
 }
 
@@ -81,8 +77,7 @@ void
 unaryOp(DataConstant& data,
         UnaryFunction operation)
 {
-  //data.getPointDataView().unaryOp(operation);
-  DataMaths::unaryOp(data.getVector(),data.getShape(),0,operation);
+  DataMaths::unaryOp(data.getVectorRW(),data.getShape(),0,operation);
 }
 
 } // end of namespace
