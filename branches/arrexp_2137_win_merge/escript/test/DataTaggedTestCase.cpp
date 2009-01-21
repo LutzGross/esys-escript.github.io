@@ -2156,11 +2156,11 @@ void DataTaggedTestCase::testAll() {
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
-    double* sampleData=myData.getSampleDataByTag(9);
+    const double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
       assert(sampleData[i]==i);
     }
-    sampleData=myData.getSampleData(0);
+    sampleData=myData.getSampleDataRO(0);
     for (unsigned int i=0; i<myData.getNoValues(); i++) {
       assert(sampleData[i]==i);
     }
@@ -2333,7 +2333,7 @@ void DataTaggedTestCase::testAll() {
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
-    double* sampleData=myData.getSampleDataByTag(9);
+    const double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
       if (i<3) {
         assert(sampleData[i]==i);
@@ -2341,7 +2341,7 @@ void DataTaggedTestCase::testAll() {
         assert(sampleData[i]==i-2);
       }
     }
-    sampleData=myData.getSampleData(0);
+    sampleData=myData.getSampleDataRO(0);
     for (unsigned int i=0; i<myData.getNoValues(); i++) {
       assert(sampleData[i]==i+1);
     }
@@ -2474,7 +2474,7 @@ void DataTaggedTestCase::testAll() {
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
-    double* sampleData=myData.getSampleDataByTag(9);
+    const double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
       if (i<3) {
         assert(sampleData[i]==i);
@@ -2486,7 +2486,7 @@ void DataTaggedTestCase::testAll() {
         assert(sampleData[i]==i-6);
       }
     }
-    sampleData=myData.getSampleData(0);
+    sampleData=myData.getSampleDataRO(0);
     for (unsigned int i=0; i<myData.getNoValues(); i++) {
       assert(sampleData[i]==i+1);
     }
