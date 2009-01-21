@@ -2603,19 +2603,21 @@ Data::toString() const
 }
 
 
+// This method is not thread-safe
 DataTypes::ValueType::reference
 Data::getDataAtOffsetRW(DataTypes::ValueType::size_type i)
 {
-    FORCERESOLVE;
-    exclusiveWrite();
+//    FORCERESOLVE;
+//    exclusiveWrite();
+
     return getReady()->getDataAtOffsetRW(i);
 }
 
-
+// This method is not thread-safe
 DataTypes::ValueType::const_reference
 Data::getDataAtOffsetRO(DataTypes::ValueType::size_type i)
 {
-    FORCERESOLVE;
+//    FORCERESOLVE;
     return getReady()->getDataAtOffsetRO(i);
 }
 
