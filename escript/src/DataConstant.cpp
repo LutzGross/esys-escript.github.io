@@ -123,17 +123,6 @@ DataConstant::getLength() const
   return m_data.size();
 }
 
-// DataArrayView
-// DataConstant::getDataPoint(int sampleNo,
-//                            int dataPointNo)
-// {
-//   EsysAssert((validSamplePointNo(dataPointNo) && validSampleNo(sampleNo)),
-//              "Invalid index, sampleNo: " << sampleNo << " dataPointNo: " << dataPointNo);
-//   //
-//   // Whatever the coord's always return the same value as this is constant data.
-//   return getPointDataView();
-// }
-
 DataAbstract*
 DataConstant::getSlice(const DataTypes::RegionType& region) const
 {

@@ -138,7 +138,7 @@ inline void binaryOp(DataTagged& left, const DataTagged& right,
   DataTagged::DataMapType::const_iterator leftLookupEnd=leftLookup.end();
   for (i=leftLookup.begin();i!=leftLookupEnd;i++) {
     if (right_rank==0) {
-       binaryOp(leftVec,leftShape,i->second, right.getDataByTag(i->first,0),operation);
+       binaryOp(leftVec,leftShape,i->second, right.getDataByTagRO(i->first,0),operation);
 
     } else {	// rank>0
        binaryOp(leftVec,leftShape,left.getOffsetForTag(i->first),right.getVectorRO(), right.getShape(), right.getOffsetForTag(i->first), operation);

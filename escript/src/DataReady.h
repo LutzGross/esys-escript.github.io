@@ -42,7 +42,7 @@ public:
   */
   ESCRIPT_DLL_API
   double*
-  getSampleData(ValueType::size_type sampleNo);
+  getSampleDataRW(ValueType::size_type sampleNo);
 
   ESCRIPT_DLL_API
   const double*
@@ -98,12 +98,12 @@ public:
  */
   ESCRIPT_DLL_API
   DataTypes::ValueType::const_reference
-  getDataAtOffset(DataTypes::ValueType::size_type i) const;
+  getDataAtOffsetRO(DataTypes::ValueType::size_type i) const;
 
 
   ESCRIPT_DLL_API
   DataTypes::ValueType::reference
-  getDataAtOffset(DataTypes::ValueType::size_type i);
+  getDataAtOffsetRW(DataTypes::ValueType::size_type i);
 
   ESCRIPT_DLL_API
   DataReady_ptr 
@@ -114,7 +114,7 @@ public:
 
 inline
 DataAbstract::ValueType::value_type*
-DataReady::getSampleData(ValueType::size_type sampleNo)
+DataReady::getSampleDataRW(ValueType::size_type sampleNo)
 {
   return &(getVectorRW()[getPointOffset(sampleNo,0)]);		// exclusive write checks will be done in getVectorRW()
 }
@@ -128,14 +128,14 @@ DataReady::getSampleDataRO(ValueType::size_type sampleNo) const
 
 inline
 DataTypes::ValueType::const_reference
-DataReady::getDataAtOffset(DataTypes::ValueType::size_type i) const
+DataReady::getDataAtOffsetRO(DataTypes::ValueType::size_type i) const
 {
    return getVectorRO()[i];
 }
 
 inline
 DataTypes::ValueType::reference
-DataReady::getDataAtOffset(DataTypes::ValueType::size_type i)	// exclusive write checks will be done in getVectorRW()
+DataReady::getDataAtOffsetRW(DataTypes::ValueType::size_type i)	// exclusive write checks will be done in getVectorRW()
 {
    return getVectorRW()[i];
 }

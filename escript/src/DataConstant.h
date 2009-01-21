@@ -152,18 +152,6 @@ typedef DataReady parent;
   getPointOffset(int sampleNo,
                  int dataPointNo);
 
-//  /**
-/*     \brief
-     Return a view into the data for the data point specified.
-     \param sampleNo - Input - sample number.
-     \param dataPointNo - Input - data point number for the sample.*/
-//  */
-//   ESCRIPT_DLL_API
-//   virtual
-//   DataArrayView
-//   getDataPoint(int sampleNo,
-//                int dataPointNo);
-
   /**
      \brief
      Return the number of doubles stored for the Data object.

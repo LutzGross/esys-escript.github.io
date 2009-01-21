@@ -892,7 +892,7 @@ Data::getValueOfDataPointAsTuple(int dataPointNo)
        }
        // TODO: global error handling
        DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
-       return pointToTuple(getDataPointShape(),&(getDataAtOffset(offset)));
+       return pointToTuple(getDataPointShape(),&(getDataAtOffsetRO(offset)));
   }
   else
   {
@@ -1009,11 +1009,9 @@ Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
 		throw DataException("Error - Data::convertToNumArray: invalid dataPointNoInSample.");
 	}
 	// TODO: global error handling
-	// create a view of the data if it is stored locally
-	//DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
 	DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
 
-	memcpy(tmpData,&(getDataAtOffset(offset)),length*sizeof(double));
+	memcpy(tmpData,&(getDataAtOffsetRO(offset)),length*sizeof(double));
      }
   }
 #ifdef PASO_MPI
@@ -1699,7 +1697,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
     #pragma omp for private(i,j) schedule(static)
     for (i=0; i<numSamples; i++) {
       for (j=0; j<numDPPSample; j++) {
-        next=temp.getDataAtOffset(temp.getDataOffset(i,j));
+        next=temp.getDataAtOffsetRO(temp.getDataOffset(i,j));
         if (next<local_min) {
           local_min=next;
           local_lowi=i;
@@ -1717,7 +1715,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
 
 #ifdef PASO_MPI
 	// determine the processor on which the minimum occurs
-	next = temp.getDataPoint(lowi,lowj);
+	next = temp.getDataPointRO(lowi,lowj);
 	int lowProc = 0;
 	double *globalMins = new double[get_MPISize()+1];
 	int error;
@@ -2305,9 +2303,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
   if      (arg_0_Z.isConstant()   && arg_1_Z.isConstant()) {
     res = Data(0.0, shape2, arg_1_Z.getFunctionSpace());	// DataConstant output
-    double *ptr_0 = &(arg_0_Z.getDataAtOffset(0));
-    double *ptr_1 = &(arg_1_Z.getDataAtOffset(0));
-    double *ptr_2 = &(res.getDataAtOffset(0));
+    const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
+    const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0));
+    double *ptr_2 = &(res.getDataAtOffsetRW(0));
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
   }
   else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged()) {
@@ -2328,17 +2326,10 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
     // Prepare offset into DataConstant
     int offset_0 = tmp_0->getPointOffset(0,0);
-    double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
-    // Get the views
-//     DataArrayView view_1 = tmp_1->getDefaultValue();
-//     DataArrayView view_2 = tmp_2->getDefaultValue();
-//     // Get the pointers to the actual data
-//     double *ptr_1 = &((view_1.getData())[0]);
-//     double *ptr_2 = &((view_2.getData())[0]);
+    const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
 
     const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
-    double *ptr_2 = &(tmp_2->getDefaultValue(0));
-
+    double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
 
     // Compute an MVP for the default
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
@@ -2347,13 +2338,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
     for (i=lookup_1.begin();i!=lookup_1.end();i++) {
       tmp_2->addTag(i->first);
-//       DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
-//       DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
-//       double *ptr_1 = &view_1.getData(0);
-//       double *ptr_2 = &view_2.getData(0);
 
       const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
-      double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
+      double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
 	
       matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     }
@@ -2377,9 +2364,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
       for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
         int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
         int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
-        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
-        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
-        double *ptr_2 = &(res.getDataAtOffset(offset_2));
+        const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+        const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+        double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2403,16 +2390,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
     // Prepare offset into DataConstant
     int offset_1 = tmp_1->getPointOffset(0,0);
-    double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
-    // Get the views
-//     DataArrayView view_0 = tmp_0->getDefaultValue();
-//     DataArrayView view_2 = tmp_2->getDefaultValue();
-//     // Get the pointers to the actual data
-//     double *ptr_0 = &((view_0.getData())[0]);
-//     double *ptr_2 = &((view_2.getData())[0]);
-
+    const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
     const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
-    double *ptr_2 = &(tmp_2->getDefaultValue(0));
+    double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
 
     // Compute an MVP for the default
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
@@ -2420,15 +2400,10 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
     DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
     for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-//      tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
-//       DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
-//       DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
-//       double *ptr_0 = &view_0.getData(0);
-//       double *ptr_2 = &view_2.getData(0);
 
       tmp_2->addTag(i->first);
       const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
-      double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
+      double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
       matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     }
 
@@ -2451,8 +2426,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
     const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
     const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
-    double *ptr_2 = &(tmp_2->getDefaultValue(0));
-
+    double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
 
     // Compute an MVP for the default
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
@@ -2471,7 +2445,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     for (i=lookup_2.begin();i!=lookup_2.end();i++) {
       const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
       const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
-      double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
+      double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
 
       matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     }
@@ -2493,12 +2467,12 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
     for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
       int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-      double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+      const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
       for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
-        double *ptr_2 = &(res.getDataAtOffset(offset_2));
+        const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+        double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2522,9 +2496,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
       for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
-        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
-        double *ptr_2 = &(res.getDataAtOffset(offset_2));
+        const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+        const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+        double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2547,12 +2521,12 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
     for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
       int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
-      double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+      const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
       for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
-        double *ptr_2 = &(res.getDataAtOffset(offset_2));
+        const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+        double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2577,9 +2551,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
-        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
-        double *ptr_2 = &(res.getDataAtOffset(offset_2));
+        const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+        const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+        double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2629,54 +2603,65 @@ Data::toString() const
 }
 
 
-
-DataTypes::ValueType::const_reference
-Data::getDataAtOffset(DataTypes::ValueType::size_type i) const
-{
-    if (isLazy())
-    {
-	throw DataException("Programmer error - getDataAtOffset not permitted on lazy data (object is const which prevents resolving).");
-    }
-    return getReady()->getDataAtOffset(i);
-}
-
-
 DataTypes::ValueType::reference
-Data::getDataAtOffset(DataTypes::ValueType::size_type i)
+Data::getDataAtOffsetRW(DataTypes::ValueType::size_type i)
 {
     FORCERESOLVE;
     exclusiveWrite();
-    return getReady()->getDataAtOffset(i);
+    return getReady()->getDataAtOffsetRW(i);
 }
+
 
 DataTypes::ValueType::const_reference
-Data::getDataPoint(int sampleNo, int dataPointNo) const
+Data::getDataAtOffsetRO(DataTypes::ValueType::size_type i)
 {
-  if (!isReady())
-  {
-	throw DataException("Programmer error - getDataPoint() not permitted on Lazy Data (object is const which prevents resolving).");
-  }
-  else
-  {
-	const DataReady* dr=getReady();
-	return dr->getDataAtOffset(dr->getPointOffset(sampleNo, dataPointNo));
-  }
+    FORCERESOLVE;
+    return getReady()->getDataAtOffsetRO(i);
 }
 
 
-DataTypes::ValueType::reference
-Data::getDataPoint(int sampleNo, int dataPointNo)
+// DataTypes::ValueType::const_reference
+// Data::getDataAtOffsetRO(DataTypes::ValueType::size_type i) const
+// {
+//     if (isLazy())
+//     {
+// 	throw DataException("Programmer error - getDataAtOffsetRO() not permitted on Lazy Data (object is const which prevents resolving).");
+//     }
+//     return getReady()->getDataAtOffsetRO(i);
+// }
+
+
+DataTypes::ValueType::const_reference
+Data::getDataPointRO(int sampleNo, int dataPointNo)
 {
   FORCERESOLVE;
   if (!isReady())
   {
-	throw DataException("Programmer error - getDataPoint() not permitted on Lazy Data.");
+	throw DataException("Programmer error -getDataPointRO() not permitted on Lazy Data.");
+  }
+  else
+  {
+	const DataReady* dr=getReady();
+	return dr->getDataAtOffsetRO(dr->getPointOffset(sampleNo, dataPointNo));
+  }
+}
+
+
+
+
+DataTypes::ValueType::reference
+Data::getDataPointRW(int sampleNo, int dataPointNo)
+{
+  FORCERESOLVE;
+  if (!isReady())
+  {
+	throw DataException("Programmer error - getDataPointRW() not permitted on Lazy Data.");
   }
   else
   {
 	exclusiveWrite();
 	DataReady* dr=getReady();
-	return dr->getDataAtOffset(dr->getPointOffset(sampleNo, dataPointNo));
+	return dr->getDataAtOffsetRW(dr->getPointOffset(sampleNo, dataPointNo));
   }
 }
 
