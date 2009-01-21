@@ -29,6 +29,9 @@ extern "C" {
 #include "esysUtils/blocktimer.h"
 }
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include <fstream>
 #include <algorithm>
 #include <vector>
@@ -431,86 +434,6 @@ Data::initialise(const DataTypes::ValueType& value,
 }
 
 
-// void
-// Data::CompareDebug(const Data& rd)
-// {
-// 	using namespace std;
-// 	bool mismatch=false;
-// 	std::cout << "Comparing left and right" << endl;
-// 	const DataTagged* left=dynamic_cast<DataTagged*>(m_data.get());
-// 	const DataTagged* right=dynamic_cast<DataTagged*>(rd.m_data.get());
-// 	
-// 	if (left==0)
-// 	{
-// 		cout << "left arg is not a DataTagged\n";
-// 		return;
-// 	}
-// 	
-// 	if (right==0)
-// 	{
-// 		cout << "right arg is not a DataTagged\n";
-// 		return;
-// 	}
-// 	cout << "Num elements=" << left->getVector().size() << ":" << right->getVector().size() << std::endl;
-// 	cout << "Shapes ";
-// 	if (left->getShape()==right->getShape())
-// 	{
-// 		cout << "ok\n";
-// 	}
-// 	else
-// 	{
-// 		cout << "Problem: shapes do not match\n";
-// 		mismatch=true;
-// 	}
-// 	int lim=left->getVector().size();
-// 	if (right->getVector().size()) lim=right->getVector().size();
-// 	for (int i=0;i<lim;++i)
-// 	{
-// 		if (left->getVector()[i]!=right->getVector()[i])
-// 		{
-// 			cout << "[" << i << "] value mismatch " << left->getVector()[i] << ":" << right->getVector()[i] << endl;
-// 			mismatch=true;
-// 		}
-// 	}
-// 
-// 	// still need to check the tag map
-// 	// also need to watch what is happening to function spaces, are they copied or what?
-// 
-// 	const DataTagged::DataMapType& mapleft=left->getTagLookup();
-// 	const DataTagged::DataMapType& mapright=right->getTagLookup();
-// 
-// 	if (mapleft.size()!=mapright.size())
-// 	{
-// 		cout << "Maps are different sizes " << mapleft.size() << ":" << mapright.size() << endl;
-// 		mismatch=true;
-// 		cout << "Left map\n";
-// 		DataTagged::DataMapType::const_iterator i,j;
-// 		for (i=mapleft.begin();i!=mapleft.end();++i) {
-// 			cout << "(" << i->first << "=>" << i->second << ")\n";
-// 		}
-// 		cout << "Right map\n";
-// 		for (i=mapright.begin();i!=mapright.end();++i) {
-// 			cout << "(" << i->first << "=>" << i->second << ")\n";
-// 		}
-// 		cout << "End map\n";
-// 
-// 	}
-// 
-// 	DataTagged::DataMapType::const_iterator i,j;
-// 	for (i=mapleft.begin(),j=mapright.begin();i!=mapleft.end() && j!=mapright.end();++i,++j) {
-// 	   if ((i->first!=j->first) || (i->second!=j->second))
-// 	   {
-// 		cout << "(" << i->first << "=>" << i->second << ")";
-// 		cout << ":(" << j->first << "=>" << j->second << ") ";
-// 		mismatch=true;
-//            }
-// 	}
-// 	if (mismatch)
-// 	{
-// 		cout << "#Mismatch\n";
-// 	}
-// }
-
 escriptDataC
 Data::getDataC()
 {
@@ -667,7 +590,7 @@ Data::copyWithMask(const Data& other,
   }
   exclusiveWrite();
   // Now we iterate over the elements
-  DataVector& self=getReady()->getVector();
+  DataVector& self=getReady()->getVectorRW();
   const DataVector& ovec=other2.getReady()->getVectorRO();
   const DataVector& mvec=mask2.getReady()->getVectorRO();
   if ((self.size()!=ovec.size()) || (self.size()!=mvec.size()))
@@ -825,10 +748,12 @@ Data::resolve()
 void 
 Data::requireWrite()
 {
-//   if (omp_in_parallel())
-//   {
-// 	throw DataException("Programming error. Please do not run requireWrite() in multi-threaded sections.");
-//   }
+#ifdef _OPENMP
+  if (omp_in_parallel())	// Yes this is throwing an exception inside a parallel region which is forbidden
+  {				// However, programs which do this are unsafe and need to be fixed
+	throw DataException("Programming error. Please do not run requireWrite() in multi-threaded sections.");
+  }
+#endif
   resolve();
   exclusiveWrite();
 }

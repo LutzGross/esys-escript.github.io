@@ -388,11 +388,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
 
   ESCRIPT_DLL_API
   DataTypes::ValueType&
-  getVector();
-
-  ESCRIPT_DLL_API
-  const DataTypes::ValueType&
-  getVector() const;
+  getVectorRW();
 
   ESCRIPT_DLL_API
   const DataTypes::ValueType&
@@ -639,14 +635,17 @@ inline
 DataTypes::ValueType::reference
 DataTagged::getDefaultValue(DataTypes::ValueType::size_type i)
 {	
-	return getVector()[i];		// getVector has exclusive write checks
+	return getVectorRW()[i];		// getVectorRW has exclusive write checks
 }
 
 inline
 DataTypes::ValueType::const_reference
 DataTagged::getDefaultValue(DataTypes::ValueType::size_type i) const
 {
-	return getVector()[i];
+
+//// This method should be removed
+
+	return getVectorRO()[i];
 }
 
 // To force the compiler to use the RO version
@@ -654,7 +653,7 @@ inline
 DataTypes::ValueType::const_reference
 DataTagged::getDefaultValueRO(DataTypes::ValueType::size_type i) const
 {
-	return getVector()[i];
+	return getVectorRO()[i];
 }
 
 inline

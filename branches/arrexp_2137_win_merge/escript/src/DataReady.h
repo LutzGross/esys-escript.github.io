@@ -61,13 +61,18 @@ public:
   /**
 	\brief Provide access to underlying storage. Internal use only!
   */
-  ESCRIPT_DLL_API
-  virtual DataTypes::ValueType&
-  getVector()=0;
+//   ESCRIPT_DLL_API
+//   virtual DataTypes::ValueType&
+//   getVector()=0;
+// 
+//   ESCRIPT_DLL_API
+//   virtual const DataTypes::ValueType&
+//   getVector() const=0;
 
   ESCRIPT_DLL_API
-  virtual const DataTypes::ValueType&
-  getVector() const=0;
+  virtual DataTypes::ValueType&
+  getVectorRW()=0;
+
 
   ESCRIPT_DLL_API
   virtual const DataTypes::ValueType&
@@ -111,7 +116,7 @@ inline
 DataAbstract::ValueType::value_type*
 DataReady::getSampleData(ValueType::size_type sampleNo)
 {
-  return &(getVector()[getPointOffset(sampleNo,0)]);		// exclusive write checks will be done in getVector()
+  return &(getVectorRW()[getPointOffset(sampleNo,0)]);		// exclusive write checks will be done in getVectorRW()
 }
 
 inline const double*
@@ -130,9 +135,9 @@ DataReady::getDataAtOffset(DataTypes::ValueType::size_type i) const
 
 inline
 DataTypes::ValueType::reference
-DataReady::getDataAtOffset(DataTypes::ValueType::size_type i)	// exclusive write checks will be done in getVector()
+DataReady::getDataAtOffset(DataTypes::ValueType::size_type i)	// exclusive write checks will be done in getVectorRW()
 {
-   return getVector()[i];
+   return getVectorRW()[i];
 }
 
 

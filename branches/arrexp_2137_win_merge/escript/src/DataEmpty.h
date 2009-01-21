@@ -151,11 +151,8 @@ typedef DataReady parent;
   */
   ESCRIPT_DLL_API
   virtual DataTypes::ValueType&
-  getVector();
+  getVectorRW();
 
-  ESCRIPT_DLL_API
-  virtual const DataTypes::ValueType&
-  getVector() const;
 
   ESCRIPT_DLL_API
   virtual const DataTypes::ValueType&

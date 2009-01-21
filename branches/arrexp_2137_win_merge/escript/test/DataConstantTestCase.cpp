@@ -40,10 +40,10 @@ void DataConstantTestCase::tearDown() {
 namespace
 {
 
-ValueType::reference
-getRef(DataReady& data,int i, int j, int k)
+ValueType::const_reference
+getRefRO(DataReady& data,int i, int j, int k)
 {
-   return data.getVector()[getRelIndex(data.getShape(),i,j,k)];
+   return data.getVectorRO()[getRelIndex(data.getShape(),i,j,k)];
 }
 
 
@@ -98,7 +98,7 @@ void DataConstantTestCase::testAll() {
   for (int k=0;k<shape[2];k++) {
     for (int j=0;j<shape[1];j++) {
       for (int i=0;i<shape[0];i++) {
-	assert(getRef(testData1,i,j,k)==1.0);
+	assert(getRefRO(testData1,i,j,k)==1.0);
       }
     }
   }
@@ -112,7 +112,7 @@ void DataConstantTestCase::testAll() {
   for (int k=0;k<shape[2];k++) {
     for (int j=0;j<shape[1];j++) {
       for (int i=0;i<shape[0];i++) {
-	assert(getRef(testData2,i,j,k)==data[0]);
+	assert(getRefRO(testData2,i,j,k)==data[0]);
       }
     }
   }
@@ -139,7 +139,7 @@ void DataConstantTestCase::testAll() {
   for (int k=0;k<shape[2];k++) {
     for (int j=0;j<shape[1];j++) {
       for (int i=0;i<shape[0];i++) {
-	assert(getRef(*testData3,i,j,k)==data[0]);
+	assert(getRefRO(*testData3,i,j,k)==data[0]);
       }
     }
   }
@@ -165,7 +165,7 @@ void DataConstantTestCase::testAll() {
   for (int k=0;k<2;k++) {
     for (int j=0;j<2;j++) {
       for (int i=0;i<2;i++) {
-	assert(getRef(*testData4,i,j,k)==data[0]);
+	assert(getRefRO(*testData4,i,j,k)==data[0]);
       }
     }
   }
@@ -191,7 +191,7 @@ void DataConstantTestCase::testAll() {
   for (int k=0;k<4;k++) {
     for (int j=0;j<2;j++) {
       for (int i=0;i<1;i++) {
-	assert(getRef(*testData5,i,j,k)==data[0]);
+	assert(getRefRO(*testData5,i,j,k)==data[0]);
       }
     }
   }
@@ -220,7 +220,7 @@ void DataConstantTestCase::testAll() {
   for (int k=0;k<4;k++) {
     for (int j=0;j<2;j++) {
       for (int i=0;i<1;i++) {
-	assert(getRef(*testData5,i,j,k)==data[0]);
+	assert(getRefRO(*testData5,i,j,k)==data[0]);
       }
     }
   }

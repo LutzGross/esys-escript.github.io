@@ -566,32 +566,6 @@ DataAbstract::isEmpty() const
 	return m_isempty;
 }
 
-// inline
-// DataTypes::ValueType::const_reference
-// DataAbstract::getDataAtOffset(DataTypes::ValueType::size_type i) const
-// {
-//    if (isLazy())
-//    {
-// 	throw DataException("Programmer error - getDataAtOffset() not permitted on Lazy Data.");
-//    }
-//    DataReady* d;
-//    return (dynamic_cast<const DataReady*>(this))->getVector()[i];
-// // 	return getVector()[i];
-// }
-
-// inline
-// DataTypes::ValueType::reference
-// DataAbstract::getDataAtOffset(DataTypes::ValueType::size_type i)
-// {
-//    if (isLazy())
-//    {
-// 	throw DataException("Programmer error - getDataAtOffset() not permitted on Lazy Data.");
-//    }
-//    return dynamic_cast<DataReady*>(this)->getVector()[i];
-// // 	return getVector()[i];
-// }
-
-
 inline
 bool
 DataAbstract::validSamplePointNo(int samplePointNo) const

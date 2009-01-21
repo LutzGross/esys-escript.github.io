@@ -203,11 +203,7 @@ TODO Note that this constructor will also copy data to all points if it only con
 
   ESCRIPT_DLL_API
   DataTypes::ValueType&
-  getVector();
-
-  ESCRIPT_DLL_API
-  const DataTypes::ValueType&
-  getVector() const;
+  getVectorRW();
 
   ESCRIPT_DLL_API
   const DataTypes::ValueType&

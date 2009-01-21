@@ -84,8 +84,8 @@ DataExpanded::DataExpanded(const DataTagged& other)
   for (i=0;i<numRows;i++) {
     for (j=0;j<numCols;j++) {
       try {
-           DataTypes::copyPoint(getVector(), getPointOffset(i,j), getNoValues(),
-                                other.getVector(),
+           DataTypes::copyPoint(getVectorRW(), getPointOffset(i,j), getNoValues(),
+                                other.getVectorRO(),
                                 other.getPointOffset(i,j));
       }
       catch (std::exception& e) {
@@ -115,8 +115,8 @@ DataExpanded::DataExpanded(const DataExpanded& other,
   for (i=0;i<numRows;i++) {
     for (j=0;j<numCols;j++) {
       try {
-        DataTypes::copySlice(getVector(),getShape(),getPointOffset(i,j),
-                                     other.getVector(),
+        DataTypes::copySlice(getVectorRW(),getShape(),getPointOffset(i,j),
+                                     other.getVectorRO(),
 				     other.getShape(),
                                      other.getPointOffset(i,j),
                                      region_loop_range);
@@ -205,17 +205,13 @@ DataExpanded::setSlice(const DataAbstract* value,
   DataTypes::ValueType::size_type numRows=m_data.getNumRows();
   DataTypes::ValueType::size_type numCols=m_data.getNumCols();
   int i, j;
-  ValueType& vec=getVector();
+  ValueType& vec=getVectorRW();
   const ShapeType& mshape=getShape();
-  const ValueType& tVec=tempDataExp->getVector();
+  const ValueType& tVec=tempDataExp->getVectorRO();
   const ShapeType& tShape=tempDataExp->getShape();
   #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<numRows;i++) {
     for (j=0;j<numCols;j++) {
-/*      getPointDataView().copySliceFrom(getPointOffset(i,j),
-                                       tempDataExp->getPointDataView(),
-                                       tempDataExp->getPointOffset(i,j),
-                                       region_loop_range);*/
         DataTypes::copySliceFrom(vec,mshape,getPointOffset(i,j),
                                        tVec,
 				       tShape,
@@ -240,12 +236,7 @@ DataExpanded::copy(const DataConstant& value)
   #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<nRows;i++) {
     for (j=0;j<nCols;j++) {
-      // NOTE: An exception may be thown from this call if
-      // DOASSERT is on which of course will play
-      // havoc with the omp threads. Run single threaded
-      // if using DOASSERT.
-      //getPointDataView().copy(getPointOffset(i,j),value);
-      DataTypes::copyPoint(getVector(), getPointOffset(i,j), getNoValues(), value.getVector(), 0);
+      DataTypes::copyPoint(getVectorRW(), getPointOffset(i,j), getNoValues(), value.getVectorRO(), 0);
     }
   }
 }
@@ -259,7 +250,7 @@ DataExpanded::copy(const WrappedArray& value)
                         "Error - (DataExpanded) Cannot copy due to shape mismatch.",
                         value.getShape(),getShape()));
   }
-  getVector().copyFromArray(value, getNumDPPSample()*getNumSamples());
+  getVectorRW().copyFromArray(value, getNumDPPSample()*getNumSamples());
 }
 
 
@@ -288,7 +279,7 @@ DataExpanded::toString() const
       offset=getPointOffset(i,j);
       stringstream suffix;
       suffix << "( id: " << i << ", ref: " << fs.getReferenceIDOfSample(i) << ", pnt: " << j << ")";
-      temp << DataTypes::pointToString(getVector(),getShape(),offset,suffix.str());
+      temp << DataTypes::pointToString(getVectorRO(),getShape(),offset,suffix.str());
       if (!(i==(m_data.getNumRows()-1) && j==(m_data.getNumCols()-1))) {
         temp << endl;
       }
@@ -342,7 +333,7 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const d
            throw DataException("Error - DataExpanded::copyDataPoint invalid dataPointNoInSample.");
      }
      ValueType::size_type offset = getPointOffset(sampleNo, dataPointNo);
-     ValueType& vec=getVector();
+     ValueType& vec=getVectorRW();
      if (dataPointRank==0) {
          vec[offset]=value;
      } else if (dataPointRank==1) {
@@ -397,7 +388,7 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const W
            throw DataException("Error - DataExpanded::copyDataPoint invalid dataPointNoInSample.");
      }
      ValueType::size_type offset = getPointOffset(sampleNo, dataPointNo);
-     ValueType& vec=getVector();
+     ValueType& vec=getVectorRW();
      vec.copyFromArrayToOffset(value,offset,1);
   }
 }
@@ -412,9 +403,9 @@ DataExpanded::symmetric(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataExpanded::symmetric: casting to DataExpanded failed (propably a programming error).");
   }
-  ValueType& vec=getVector();
+  const ValueType& vec=getVectorRO();
   const ShapeType& shape=getShape();
-  ValueType& evVec=temp_ev->getVector();
+  ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
   for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -434,9 +425,9 @@ DataExpanded::nonsymmetric(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataExpanded::nonsymmetric: casting to DataExpanded failed (propably a programming error).");
   }
-  ValueType& vec=getVector();
+  const ValueType& vec=getVectorRO();
   const ShapeType& shape=getShape();
-  ValueType& evVec=temp_ev->getVector();
+  ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
   for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -456,9 +447,9 @@ DataExpanded::trace(DataAbstract* ev, int axis_offset)
   if (temp_ev==0) {
     throw DataException("Error - DataExpanded::trace: casting to DataExpanded failed (propably a programming error).");
   }
-  ValueType& vec=getVector();
+  const ValueType& vec=getVectorRO();
   const ShapeType& shape=getShape();
-  ValueType& evVec=temp_ev->getVector();
+  ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
   for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -479,9 +470,9 @@ DataExpanded::transpose(DataAbstract* ev, int axis_offset)
   if (temp_ev==0) {
     throw DataException("Error - DataExpanded::transpose: casting to DataExpanded failed (propably a programming error).");
   }
-  ValueType& vec=getVector();
+  const ValueType& vec=getVectorRO();
   const ShapeType& shape=getShape();
-  ValueType& evVec=temp_ev->getVector();
+  ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
   for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -502,9 +493,9 @@ DataExpanded::swapaxes(DataAbstract* ev, int axis0, int axis1)
   if (temp_ev==0) {
     throw DataException("Error - DataExpanded::swapaxes: casting to DataExpanded failed (propably a programming error).");
   }
-  ValueType& vec=getVector();
+  const ValueType& vec=getVectorRO();
   const ShapeType& shape=getShape();
-  ValueType& evVec=temp_ev->getVector();
+  ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
   for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -524,9 +515,9 @@ DataExpanded::eigenvalues(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataExpanded::eigenvalues: casting to DataExpanded failed (propably a programming error).");
   }
-  ValueType& vec=getVector();
+  const ValueType& vec=getVectorRO();
   const ShapeType& shape=getShape();
-  ValueType& evVec=temp_ev->getVector();
+  ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
   for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -550,11 +541,11 @@ DataExpanded::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
   if (temp_V==0) {
     throw DataException("Error - DataExpanded::eigenvalues_and_eigenvectors: casting to DataExpanded failed (propably a programming error).");
   }
-  ValueType& vec=getVector();
+  const ValueType& vec=getVectorRO();
   const ShapeType& shape=getShape();
-  ValueType& evVec=temp_ev->getVector();
+  ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
-  ValueType& VVec=temp_V->getVector();
+  ValueType& VVec=temp_V->getVectorRW();
   const ShapeType& VShape=temp_V->getShape();
   #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
   for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -750,15 +741,9 @@ DataExpanded::reorderByReferenceIDs(int *reference_ids)
 }
 
 DataTypes::ValueType&
-DataExpanded::getVector()
+DataExpanded::getVectorRW()
 {
 	CHECK_FOR_EX_WRITE
-	return m_data.getData();
-}
-
-const DataTypes::ValueType&
-DataExpanded::getVector() const
-{
 	return m_data.getData();
 }
 
