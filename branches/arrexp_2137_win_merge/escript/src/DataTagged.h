@@ -351,15 +351,11 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      TODO Eventually these should be inlined.
      \param tag - Input - Integer key.
      \param i - position in the underlying datastructure
-    T
   */
-  ESCRIPT_DLL_API
-  DataTypes::ValueType::const_reference
-  getDataByTag(int tag, DataTypes::ValueType::size_type i) const;
 
   ESCRIPT_DLL_API
   DataTypes::ValueType::reference
-  getDataByTag(int tag, DataTypes::ValueType::size_type i);
+  getDataByTagRW(int tag, DataTypes::ValueType::size_type i);
 
   ESCRIPT_DLL_API
   DataTypes::ValueType::const_reference
@@ -431,15 +427,10 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      Return the default value. This value is associated with any tag which
      is not explicitly recorded in this DataTagged object's tag map.
      \param i - position in the underlying datastructure
-    T
   */
   ESCRIPT_DLL_API
   DataTypes::ValueType::reference
-  getDefaultValue(DataTypes::ValueType::size_type i);
-
-  ESCRIPT_DLL_API
-  DataTypes::ValueType::const_reference
-  getDefaultValue(DataTypes::ValueType::size_type i) const;
+  getDefaultValueRW(DataTypes::ValueType::size_type i);
 
   ESCRIPT_DLL_API
   DataTypes::ValueType::const_reference
@@ -633,22 +624,11 @@ DataTagged::getDefaultOffset() const
 
 inline
 DataTypes::ValueType::reference
-DataTagged::getDefaultValue(DataTypes::ValueType::size_type i)
+DataTagged::getDefaultValueRW(DataTypes::ValueType::size_type i)
 {	
 	return getVectorRW()[i];		// getVectorRW has exclusive write checks
 }
 
-inline
-DataTypes::ValueType::const_reference
-DataTagged::getDefaultValue(DataTypes::ValueType::size_type i) const
-{
-
-//// This method should be removed
-
-	return getVectorRO()[i];
-}
-
-// To force the compiler to use the RO version
 inline
 DataTypes::ValueType::const_reference
 DataTagged::getDefaultValueRO(DataTypes::ValueType::size_type i) const

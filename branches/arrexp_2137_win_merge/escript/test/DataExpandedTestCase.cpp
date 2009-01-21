@@ -106,7 +106,7 @@ void DataExpandedTestCase::testAll() {
 
   cout << "\tTest getDataAtOffset." << endl;
   for (int i=0;i<testData.getShape()[0];i++) {
-      assert(testData.getDataAtOffset(i)==data[i]);
+      assert(testData.getDataAtOffsetRO(i)==data[i]);
   }
 
   cout << "\tVerify data point attributes." << endl;
@@ -156,7 +156,7 @@ void DataExpandedTestCase::testAll() {
 
   cout << "\tTest getPointDataView." << endl;
   for (int i=0;i<testData2.getShape()[0];i++) {
-    assert(testData2.getDataAtOffset(i)==data[i]);
+    assert(testData2.getDataAtOffsetRO(i)==data[i]);
   }
 
   cout << "\tVerify data point attributes." << endl;
@@ -204,16 +204,8 @@ void DataExpandedTestCase::testSlicing() {
   // Verify data values
   cout << "\tVerify data point values." << endl;
   for (int i=0;i<testData2->getShape()[0];i++) {
-    assert(testData2->getDataAtOffset(i)==data[region[0].first+i]);
+    assert(testData2->getDataAtOffsetRO(i)==data[region[0].first+i]);
   }
-
-//   cout << "\tVerify data point attributes." << endl;
-//   DataArrayView dataView=testData2->getPointDataView();
-//   assert(data.getRank()==shape.size());
-//   assert(data.getNoValues()==shape[0]*1);
-//   assert(data.getShape()[0]==shape[0]);
-
-//   delete testData2;
 }
 
 void DataExpandedTestCase::testSlicing2() {

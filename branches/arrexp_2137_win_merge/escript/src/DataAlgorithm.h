@@ -309,7 +309,7 @@ dp_algorithm(const DataTagged& data,
   const DataTypes::ValueType& vec=data.getVectorRO();
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   for (DataTagged::DataMapType::const_iterator i=lookup.begin(); i!=lookup.end(); i++) {
-    result.getDataByTag(i->first,0) =
+    result.getDataByTagRW(i->first,0) =
 	DataMaths::reductionOp(vec,shape,data.getOffsetForTag(i->first),operation,initial_value);
   }
   // perform the operation on the default data value
