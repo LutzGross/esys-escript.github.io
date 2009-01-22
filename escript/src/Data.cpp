@@ -29,9 +29,6 @@ extern "C" {
 #include "esysUtils/blocktimer.h"
 }
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 #include <fstream>
 #include <algorithm>
 #include <vector>
@@ -50,7 +47,8 @@ using namespace escript;
 
 // ensure the current object is not a DataLazy
 // The idea was that we could add an optional warning whenever a resolve is forced
-#define FORCERESOLVE if (isLazy()) {resolve();}
+// #define forceResolve() if (isLazy()) {#resolve();}
+
 #define AUTOLAZYON escriptParams.getAUTOLAZY()
 #define MAKELAZYOP(X)   if (isLazy() || (AUTOLAZYON && m_data->isExpanded())) \
   {\
@@ -298,15 +296,13 @@ Data::Data(const Data& inData,
 Data::Data(DataAbstract* underlyingdata)
 	: m_shared(false), m_lazy(false)
 {
-// 	m_data=shared_ptr<DataAbstract>(underlyingdata);
-	m_data=underlyingdata->getPtr();
+	set_m_data(underlyingdata->getPtr());
 	m_protected=false;
 }
 
 Data::Data(DataAbstract_ptr underlyingdata)
 	: m_shared(false), m_lazy(false)
 {
-// 	m_data=underlyingdata;
 	set_m_data(underlyingdata);
 	m_protected=false;
 }
@@ -381,11 +377,11 @@ void Data::set_m_data(DataAbstract_ptr p)
   {
 	m_data->removeOwner(this);
   }
-  m_shared=false;
   if (p.get()!=0)
   {
 	m_data=p;
 	m_data->addOwner(this);
+	m_shared=m_data->isShared();
 	m_lazy=m_data->isLazy();
   }
 }
@@ -516,6 +512,15 @@ Data::delaySelf()
   }
 }
 
+
+// For lazy data, it would seem that DataTagged will need to be treated differently since even after setting all tags
+// to zero, all the tags from all the DataTags would be in the result.
+// However since they all have the same value (0) whether they are there or not should not matter.
+// So I have decided that for all types this method will create a constant 0.
+// It can be promoted up as required.
+// A possible efficiency concern might be expanded->constant->expanded which has an extra memory management
+// but we can deal with that if it arises.
+//
 void
 Data::setToZero()
 {
@@ -523,8 +528,18 @@ Data::setToZero()
   {
      throw DataException("Error - Operations not permitted on instances of DataEmpty.");
   }
-  exclusiveWrite();
-  m_data->setToZero();
+  if (isLazy())
+  {
+     DataTypes::ValueType v(getNoValues(),0);
+     DataConstant* dc=new DataConstant(getFunctionSpace(),getDataPointShape(),v);
+     DataLazy* dl=new DataLazy(dc->getPtr());
+     set_m_data(dl->getPtr());
+  }
+  else
+  {
+     exclusiveWrite();
+     m_data->setToZero();
+  }
 }
 
 void
@@ -656,7 +671,7 @@ Data::isConstant() const
 bool
 Data::isLazy() const
 {
-  return m_data->isLazy();
+  return m_lazy;	// not asking m_data because we need to be able to ask this while m_data is changing
 }
 
 // at the moment this is synonymous with !isLazy() but that could change
@@ -748,12 +763,12 @@ Data::resolve()
 void 
 Data::requireWrite()
 {
-#ifdef _OPENMP
-  if (omp_in_parallel())	// Yes this is throwing an exception inside a parallel region which is forbidden
-  {				// However, programs which do this are unsafe and need to be fixed
-	throw DataException("Programming error. Please do not run requireWrite() in multi-threaded sections.");
-  }
-#endif
+// #ifdef _OPENMP
+//   if (omp_in_parallel())	// Yes this is throwing an exception inside a parallel region which is forbidden
+//   {				// However, programs which do this are unsafe and need to be fixed
+// 	throw DataException("Programming error. Please do not run requireWrite() in multi-threaded sections.");
+//   }
+// #endif
   resolve();
   exclusiveWrite();
 }
@@ -875,7 +890,7 @@ Data:: getValueOfDataPoint(int dataPointNo)
 const boost::python::object
 Data::getValueOfDataPointAsTuple(int dataPointNo)
 {
-   FORCERESOLVE
+   forceResolve();
    if (getNumDataPointsPerSample()>0) {
        int sampleNo = dataPointNo/getNumDataPointsPerSample();
        int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
@@ -917,7 +932,7 @@ Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::object& o
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  FORCERESOLVE;
+  forceResolve();
 
   WrappedArray w(obj);
   //
@@ -954,7 +969,7 @@ Data::setValueOfDataPoint(int dataPointNo, const double value)
   }
   //
   // make sure data is expanded:
-  FORCERESOLVE;
+  forceResolve();
   if (!isExpanded()) {
     expand();
   }
@@ -979,7 +994,7 @@ boost::python::object
 Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
 {
   // This could be lazier than it is now
-  FORCERESOLVE;
+  forceResolve();
 
   // copy datapoint into a buffer
   // broadcast buffer to all nodes
@@ -2081,7 +2096,7 @@ Data::setSlice(const Data& value,
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  FORCERESOLVE;
+  forceResolve();
 /*  if (isLazy())
   {
 	throw DataException("Error - setSlice not permitted on lazy data.");
@@ -2134,7 +2149,7 @@ Data::setTaggedValueByName(std::string name,
                            const boost::python::object& value)
 {
      if (getFunctionSpace().getDomain()->isValidTagName(name)) {
-	FORCERESOLVE;
+	forceResolve();
 	exclusiveWrite();
         int tagKey=getFunctionSpace().getDomain()->getTag(name);
         setTaggedValue(tagKey,value);
@@ -2150,7 +2165,7 @@ Data::setTaggedValue(int tagKey,
   }
   //
   // Ensure underlying data object is of type DataTagged
-  FORCERESOLVE;
+  forceResolve();
   exclusiveWrite();
   if (isConstant()) tag();
   WrappedArray w(value);
@@ -2173,7 +2188,7 @@ Data::setTaggedValueFromCPP(int tagKey,
   }
   //
   // Ensure underlying data object is of type DataTagged
-  FORCERESOLVE;
+  forceResolve();
   if (isConstant()) tag();
   exclusiveWrite();
   //
@@ -2607,9 +2622,7 @@ Data::toString() const
 DataTypes::ValueType::reference
 Data::getDataAtOffsetRW(DataTypes::ValueType::size_type i)
 {
-//    FORCERESOLVE;
-//    exclusiveWrite();
-
+    exclusiveWrite();
     return getReady()->getDataAtOffsetRW(i);
 }
 
@@ -2617,7 +2630,7 @@ Data::getDataAtOffsetRW(DataTypes::ValueType::size_type i)
 DataTypes::ValueType::const_reference
 Data::getDataAtOffsetRO(DataTypes::ValueType::size_type i)
 {
-//    FORCERESOLVE;
+    forceResolve();
     return getReady()->getDataAtOffsetRO(i);
 }
 
@@ -2636,7 +2649,7 @@ Data::getDataAtOffsetRO(DataTypes::ValueType::size_type i)
 DataTypes::ValueType::const_reference
 Data::getDataPointRO(int sampleNo, int dataPointNo)
 {
-  FORCERESOLVE;
+  forceResolve();
   if (!isReady())
   {
 	throw DataException("Programmer error -getDataPointRO() not permitted on Lazy Data.");
@@ -2654,7 +2667,7 @@ Data::getDataPointRO(int sampleNo, int dataPointNo)
 DataTypes::ValueType::reference
 Data::getDataPointRW(int sampleNo, int dataPointNo)
 {
-  FORCERESOLVE;
+  forceResolve();
   if (!isReady())
   {
 	throw DataException("Programmer error - getDataPointRW() not permitted on Lazy Data.");

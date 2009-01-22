@@ -512,7 +512,14 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
    ESCRIPT_DLL_API
    bool checkNoSharing() const;
 
+   /**
+   \brief Marks this DataAbstract shared as LazyData
+   For internal use only.
+   */
+   void
+   makeLazyShared();	
 
+   friend class DataLazy;
 
  private:
 
@@ -550,13 +557,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 public:			// these should be private once I have finished debugging
   std::vector<Data*> m_owners;
   bool m_lazyshared;
-
-public:		// hopefully I can do a friend thing to get this out of public
-   void
-   makeLazyShared()
-   {
-	m_lazyshared=true;
-   }		
 };
 
 inline

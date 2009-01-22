@@ -29,7 +29,7 @@
 
 extern "C" {
 #include "DataC.h"
-#include <omp.h>
+//#include <omp.h>
 }
 
 #include "esysmpi.h"
@@ -1637,13 +1637,28 @@ ESCRIPT_DLL_API void freeSampleBuffer(DataTypes::ValueType* buffer);
   // For any threads executing before the flag switches they will assume the object is still shared.
   bool isShared() const
   {
-	if (m_shared) return true;
+	return m_shared;
+/*	if (m_shared) return true;
 	if (m_data->isShared())			
 	{					
 		updateShareStatus(true);
 		return true;
 	}
-	return false;
+	return false;*/
+  }
+
+  void forceResolve()
+  {
+	if (isLazy())
+	{
+	    #pragma omp critical (SHARE_XW)
+	    {
+		if (isLazy())
+		{
+			resolve();
+		}
+	    }
+	}
   }
 
   /**
@@ -1659,18 +1674,29 @@ ESCRIPT_DLL_API void freeSampleBuffer(DataTypes::ValueType* buffer);
 //     	   set_m_data(DataAbstract_ptr(t));
 // 	}
 
-#ifdef _OPENMP
-  if (omp_in_parallel())
-  {
-*((int*)0)=17;
-	throw DataException("Programming error. Please do not run exclusiveWrite() in multi-threaded sections.");
-  }
-#endif
+// #ifdef _OPENMP
+//   if (omp_in_parallel())
+//   {
+// *((int*)0)=17;
+// 	throw DataException("Programming error. Please do not run exclusiveWrite() in multi-threaded sections.");
+//   }
+// #endif
 
-	if (isShared())
+	if (isShared() || isLazy())
 	{
-		DataAbstract* t=m_data->deepCopy();
-   		set_m_data(DataAbstract_ptr(t));
+	    #pragma omp critical (SHARE_XW)
+	    {
+		if (isLazy())
+		{
+			resolve();
+		}
+		if (isShared())
+		{
+			DataAbstract* t=m_data->deepCopy();
+   			set_m_data(DataAbstract_ptr(t));
+		}
+
+	    }	// end critical
 	}
   }
 

@@ -250,15 +250,6 @@ void DataAbstract::addOwner(Data* d)
 		m_owners[i]->updateShareStatus(true);
 	}
   }
-/*
-	for (size_t i=0;i<m_owners.size();++i)
-	{
-		m_owners[i]->updateShareStatus(true);
-cerr << m_owners[i] << " ";
-	}
-cerr << endl;*/
-
-
 }
 
 void DataAbstract::removeOwner(Data* d)
@@ -273,9 +264,19 @@ void DataAbstract::removeOwner(Data* d)
   }
   if (m_owners.size()==1)	// Means it used to be 2 so we need to tell people
   {
-	m_owners[0]->updateShareStatus(false);
+	m_owners[0]->updateShareStatus(isShared());		// could still be lazy shared
   }
 }
+
+
+void DataAbstract::makeLazyShared()
+{
+	m_lazyshared=true;	// now we need to inform all the owners
+	for (size_t i=0;i<m_owners.size();++i)
+	{
+		m_owners[i]->updateShareStatus(true);
+	}
+}	
 
 
 }  // end of namespace
