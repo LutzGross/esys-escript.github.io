@@ -42,6 +42,8 @@ extern "C" {
 #include <boost/python/tuple.hpp>
 #include <boost/python/numeric.hpp>
 
+#include "BufferGroup.h"
+
 namespace escript {
 
 //
@@ -567,19 +569,35 @@ contains datapoints.
   void
   dump(const std::string fileName) const;
 
-  /**
-     \brief
-     Return the sample data for the given sample no. This is not the
-     preferred interface but is provided for use by C code.
-     The buffer parameter is only required for LazyData.
-     \param sampleNo - Input - the given sample no.
-     \param buffer - Vector to compute (and store) sample data in.
-     \return pointer to the sample data.
-  */
+//  /**
+//     \brief
+//     Return the sample data for the given sample no. This is not the
+//     preferred interface but is provided for use by C code.
+//     The buffer parameter is only required for LazyData.
+//     \param sampleNo - Input - the given sample no.
+//     \param buffer - Vector to compute (and store) sample data in.
+//     \return pointer to the sample data.
+//*/
+//   ESCRIPT_DLL_API
+//   inline
+//   const DataAbstract::ValueType::value_type*
+//   getSampleDataRO(DataAbstract::ValueType::size_type sampleNo, DataTypes::ValueType* buffer=0);
+
+
+ /**
+    \brief
+    Return the sample data for the given sample no. This is not the
+    preferred interface but is provided for use by C code.
+    The bufferg parameter is only required for LazyData.
+    \param sampleNo - Input - the given sample no.
+    \param buffer - A buffer to to compute (and store) sample data in will be selected from this group.
+    \return pointer to the sample data.
+*/
   ESCRIPT_DLL_API
   inline
   const DataAbstract::ValueType::value_type*
-  getSampleDataRO(DataAbstract::ValueType::size_type sampleNo, DataTypes::ValueType* buffer=0);
+  getSampleDataRO(DataAbstract::ValueType::size_type sampleNo, BufferGroup* bufferg=0);
+
 
   /**
      \brief
@@ -1469,18 +1487,18 @@ contains datapoints.
    
    In multi-threaded sections, this needs to be called on each thread.
 
-   \return A DataVector* if Data is lazy, NULL otherwise.
+   \return A BufferGroup* if Data is lazy, NULL otherwise.
    \warning This pointer must be deallocated using freeSampleBuffer to avoid cross library memory issues.
 */
   ESCRIPT_DLL_API
-  DataTypes::ValueType*
+  BufferGroup*
   allocSampleBuffer() const;
 
 /**
    \brief Free a buffer allocated with allocSampleBuffer.
    \param buffer Input - pointer to the buffer to deallocate.
 */
-ESCRIPT_DLL_API void freeSampleBuffer(DataTypes::ValueType* buffer);
+ESCRIPT_DLL_API void freeSampleBuffer(BufferGroup* buffer);
 
  protected:
 
@@ -1651,13 +1669,13 @@ ESCRIPT_DLL_API void freeSampleBuffer(DataTypes::ValueType* buffer);
   {
 	if (isLazy())
 	{
-	    #pragma omp critical (SHARE_XW)
-	    {
-		if (isLazy())
-		{
-			resolve();
-		}
+	    #ifdef _OPENMP
+	    if (omp_in_parallel())
+	    {	// Yes this is throwing an exception out of an omp thread which is forbidden.
+		throw DataException("Please do not call forceResolve() in a parallel region.");
 	    }
+	    #endif
+	    resolve();
 	}
   }
 
@@ -1667,42 +1685,31 @@ ESCRIPT_DLL_API void freeSampleBuffer(DataTypes::ValueType* buffer);
   */
   void exclusiveWrite()
   {
-// 	if (!m_data.unique())
-// 	{
-// 	   DataAbstract* t=m_data->deepCopy();
-// // 	   m_data=DataAbstract_ptr(t);
-//     	   set_m_data(DataAbstract_ptr(t));
-// 	}
-
-// #ifdef _OPENMP
-//   if (omp_in_parallel())
-//   {
+#ifdef _OPENMP
+  if (omp_in_parallel())
+  {
 // *((int*)0)=17;
-// 	throw DataException("Programming error. Please do not run exclusiveWrite() in multi-threaded sections.");
-//   }
-// #endif
-
-	if (isShared() || isLazy())
+	throw DataException("Programming error. Please do not run exclusiveWrite() in multi-threaded sections.");
+  }
+#endif
+	forceResolve();
+	if (isShared())
 	{
-	    #pragma omp critical (SHARE_XW)
-	    {
-		if (isLazy())
-		{
-			resolve();
-		}
-		if (isShared())
-		{
-			DataAbstract* t=m_data->deepCopy();
-   			set_m_data(DataAbstract_ptr(t));
-		}
-
-	    }	// end critical
+		DataAbstract* t=m_data->deepCopy();
+   		set_m_data(DataAbstract_ptr(t));
 	}
   }
 
-
-
-
+  /**
+  \brief checks if caller can have exclusive write to the object
+  */
+  void checkExclusiveWrite()
+  {
+	if  (isLazy() || isShared())
+	{
+		throw DataException("Programming error. ExclusiveWrite required - please call requireWrite()");
+	}
+  }
 
   /**
   \brief Modify the data abstract hosted by this Data object
@@ -1784,19 +1791,37 @@ Data::getSampleDataRW(DataAbstract::ValueType::size_type sampleNo)
    return getReady()->getSampleDataRW(sampleNo);
 }
 
+// inline
+// const DataAbstract::ValueType::value_type*
+// Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo, DataTypes::ValueType* buffer)
+// {
+//    DataLazy* l=dynamic_cast<DataLazy*>(m_data.get());
+//    if (l!=0)
+//    {
+// 	size_t offset=0;
+// 	if (buffer==NULL)
+// 	{
+// 		throw DataException("Error, attempt to getSampleDataRO for lazy Data with buffer==NULL");
+// 	}
+// 	const DataTypes::ValueType* res=l->resolveSample(*buffer,0,sampleNo,offset);
+// 	return &((*res)[offset]);
+//    }
+//    return getReady()->getSampleDataRO(sampleNo);
+// }
+
 inline
 const DataAbstract::ValueType::value_type*
-Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo, DataTypes::ValueType* buffer)
+Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo, BufferGroup* bufferg)
 {
    DataLazy* l=dynamic_cast<DataLazy*>(m_data.get());
    if (l!=0)
    {
 	size_t offset=0;
-	if (buffer==NULL)
+	if (bufferg==NULL)
 	{
 		throw DataException("Error, attempt to getSampleDataRO for lazy Data with buffer==NULL");
 	}
-	const DataTypes::ValueType* res=l->resolveSample(*buffer,0,sampleNo,offset);
+	const DataTypes::ValueType* res=l->resolveSample(*bufferg,sampleNo,offset);
 	return &((*res)[offset]);
    }
    return getReady()->getSampleDataRO(sampleNo);

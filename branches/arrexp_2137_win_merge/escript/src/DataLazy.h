@@ -22,6 +22,7 @@
 #include <functional>
 
 #include "LocalOps.h"		// for tensor_binary_op
+#include "BufferGroup.h"
 
 namespace escript {
 
@@ -237,6 +238,19 @@ public:
   ESCRIPT_DLL_API
   const ValueType*
   resolveSample(ValueType& v,  size_t offset, int sampleNo, size_t& roffset);
+
+   /**
+  \brief Compute the value of the expression for the given sample.
+  \return Vector which stores the value of the subexpression for the given sample.
+  \param v A BufferGroup to store intermediate results.
+  \param sampleNo Sample number to evaluate.
+  \param roffset (output parameter) the offset in the return vector where the result begins.
+
+  The return value will be an existing vector so do not deallocate it.
+  */
+  ESCRIPT_DLL_API
+  const ValueType*
+  resolveSample(BufferGroup& bg, int sampleNo, size_t& roffset); 
 
   /**
   \brief if resolve() was called would it produce expanded data.

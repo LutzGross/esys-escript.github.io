@@ -49,10 +49,10 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
             dim_t q,e,i;
 	    __const double *data_array=NULL;
             double *out_local=NULL, rtmp;
+	    void* buffer=allocSampleBuffer(data);
             for (q=0;q<numComps;q++) out[q]=0;
             #pragma omp parallel private(q,i,rtmp,data_array,out_local)
             {
-		void* buffer=allocSampleBuffer(data);
                 out_local=THREAD_MEMALLOC(numComps,double);
                 if (! Finley_checkPtr(out_local) ) {
                    /* initialize local result */
@@ -87,8 +87,8 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
                    for (i=0;i<numComps;i++) out[i]+=out_local[i];
                 }
                 THREAD_MEMFREE(out_local);
-		freeSampleBuffer(buffer);
             }
+	    freeSampleBuffer(buffer);
        }
    }
 }

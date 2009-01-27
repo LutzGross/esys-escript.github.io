@@ -1463,6 +1463,18 @@ LAZYDEBUG(cout << "Finish  sample " << toString() << endl;)
 
 }
 
+const DataTypes::ValueType*
+DataLazy::resolveSample(BufferGroup& bg, int sampleNo, size_t& roffset)
+{
+#ifdef _OPENMP
+	int tid=omp_get_thread_num();
+#else
+	int tid=0;
+#endif 
+	return resolveSample(bg.getBuffer(tid),bg.getOffset(tid),sampleNo,roffset);
+}
+
+
 // This needs to do the work of the idenity constructor
 void
 DataLazy::resolveToIdentity()
@@ -1513,7 +1525,7 @@ LAZYDEBUG(cout << "Buffers=" << m_buffsRequired << endl;)
 	// storage to evaluate its expression
   int numthreads=1;
 #ifdef _OPENMP
-  numthreads=getNumberOfThreads();
+  numthreads=omp_get_max_threads();
 #endif 
   ValueType v(numthreads*threadbuffersize);	
 LAZYDEBUG(cout << "Buffer created with size=" << v.size() << endl;)

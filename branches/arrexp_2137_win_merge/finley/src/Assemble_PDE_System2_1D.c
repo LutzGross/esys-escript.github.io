@@ -70,15 +70,14 @@ void  Finley_Assemble_PDE_System2_1D(Assemble_Parameters p, Finley_ElementFile* 
     dim_t len_EM_S=p.row_NN*p.col_NN*p.numEqu*p.numComp;
     dim_t len_EM_F=p.row_NN*p.numEqu;
 
-
+    void* ABuff=allocSampleBuffer(A);
+    void* BBuff=allocSampleBuffer(B);
+    void* CBuff=allocSampleBuffer(C);
+    void* DBuff=allocSampleBuffer(D);
+    void* XBuff=allocSampleBuffer(X);
+    void* YBuff=allocSampleBuffer(Y);
     #pragma omp parallel private(color, EM_S, EM_F, Vol, DSDX, A_p, B_p, C_p, D_p, X_p, Y_p,row_index, q, s,r,k,m,rtmp,add_EM_F, add_EM_S)
     {
-       void* ABuff=allocSampleBuffer(A);
-       void* BBuff=allocSampleBuffer(B);
-       void* CBuff=allocSampleBuffer(C);
-       void* DBuff=allocSampleBuffer(D);
-       void* XBuff=allocSampleBuffer(X);
-       void* YBuff=allocSampleBuffer(Y);
        EM_S=THREAD_MEMALLOC(len_EM_S,double);
        EM_F=THREAD_MEMALLOC(len_EM_F,double);
        row_index=THREAD_MEMALLOC(p.row_NN,index_t);
@@ -295,13 +294,13 @@ void  Finley_Assemble_PDE_System2_1D(Assemble_Parameters p, Finley_ElementFile* 
          THREAD_MEMFREE(row_index);
 
       } /* end of pointer check */
-      freeSampleBuffer(ABuff);
-      freeSampleBuffer(BBuff);
-      freeSampleBuffer(CBuff);
-      freeSampleBuffer(DBuff);
-      freeSampleBuffer(XBuff);
-      freeSampleBuffer(YBuff);
    } /* end parallel region */
+   freeSampleBuffer(ABuff);
+   freeSampleBuffer(BBuff);
+   freeSampleBuffer(CBuff);
+   freeSampleBuffer(DBuff);
+   freeSampleBuffer(XBuff);
+   freeSampleBuffer(YBuff);
 }
 /*
  * $Log$

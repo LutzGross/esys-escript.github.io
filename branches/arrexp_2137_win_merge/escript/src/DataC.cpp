@@ -147,7 +147,7 @@ double const* getSampleDataRO(struct escriptDataC* data, int sampleNo, void* buf
      if (temp->isEmpty()) {
         return NULL;
      } else {
-        return temp->getSampleDataRO(sampleNo,reinterpret_cast<escript::DataTypes::ValueType*>(buffer));
+        return temp->getSampleDataRO(sampleNo,reinterpret_cast<escript::BufferGroup*>(buffer));
      }
   }
 }
@@ -169,7 +169,7 @@ double* getSampleDataRW(struct escriptDataC* data, int sampleNo)
 const double* getSampleDataROFast(struct escriptDataC* data, int sampleNo, void* buffer)
 {
   escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-  return temp->getSampleDataRO(sampleNo, reinterpret_cast<escript::DataTypes::ValueType*>(buffer));
+  return temp->getSampleDataRO(sampleNo, reinterpret_cast<escript::BufferGroup*>(buffer));
 }
 
 double* getSampleDataRWFast(struct escriptDataC* data, int sampleNo)
@@ -193,7 +193,7 @@ void freeSampleBuffer(void* buffer)
 {
   if (buffer!=NULL)
   {
-    delete (reinterpret_cast<escript::DataTypes::ValueType*>(buffer));
+    delete (reinterpret_cast<escript::BufferGroup*>(buffer));
   }
 }
 

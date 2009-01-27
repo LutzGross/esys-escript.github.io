@@ -37,16 +37,17 @@ void Finley_NodeFile_setCoordinates(Finley_NodeFile* self,escriptDataC* newX) {
          sprintf(error_msg,"Finley_NodeFile_setCoordinates: number of give nodes must to be %d.",self->numNodes);
          Finley_setError(VALUE_ERROR,error_msg);
    } else {
+    	  void* buff=allocSampleBuffer(newX);
           numDim_size=self->numDim*sizeof(double);
           Finley_increaseStatus(self);
 	  #pragma omp parallel private(n)
 	  {
-	     void* buff=allocSampleBuffer(newX);
+
              #pragma omp for schedule(static)
              for (n=0;n<self->numNodes;n++) {
             	memcpy(&(self->Coordinates[INDEX2(0,n,self->numDim)]), getSampleDataROFast(newX,n,buff), numDim_size);
              }
-	     freeSampleBuffer(buff);
 	  }
+	  freeSampleBuffer(buff);
    }
 }
