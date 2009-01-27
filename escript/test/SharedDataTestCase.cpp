@@ -102,6 +102,7 @@ void SharedDataTestCase::testGetDataAtOffset()
   Data d((double)42,DataTypes::scalarShape);
   Data L=d.delay();
   // now change the data directly
+  d.requireWrite();
   d.getDataAtOffsetRW(0)=17;
   assert(L.getDataAtOffsetRO(0)==42);
 }
@@ -111,6 +112,7 @@ void SharedDataTestCase::testGetDataPoint()
   Data d((double)42,DataTypes::scalarShape);
   Data L=d.delay();
   // now change the data directly
+  d.requireWrite();
   d.getDataPointRW(0,0)=17;
   assert(L.getDataPointRO(0,0)==42);
 }

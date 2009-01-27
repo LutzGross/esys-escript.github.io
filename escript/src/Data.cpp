@@ -763,12 +763,6 @@ Data::resolve()
 void 
 Data::requireWrite()
 {
-// #ifdef _OPENMP
-//   if (omp_in_parallel())	// Yes this is throwing an exception inside a parallel region which is forbidden
-//   {				// However, programs which do this are unsafe and need to be fixed
-// 	throw DataException("Programming error. Please do not run requireWrite() in multi-threaded sections.");
-//   }
-// #endif
   resolve();
   exclusiveWrite();
 }
@@ -2097,10 +2091,6 @@ Data::setSlice(const Data& value,
         throw DataException("Error - attempt to update protected Data object.");
   }
   forceResolve();
-/*  if (isLazy())
-  {
-	throw DataException("Error - setSlice not permitted on lazy data.");
-  }*/
   exclusiveWrite();		// In case someone finds a way to call this without going through setItemD
   Data tempValue(value);
   typeMatchLeft(tempValue);
@@ -2622,7 +2612,7 @@ Data::toString() const
 DataTypes::ValueType::reference
 Data::getDataAtOffsetRW(DataTypes::ValueType::size_type i)
 {
-    exclusiveWrite();
+    checkExclusiveWrite();
     return getReady()->getDataAtOffsetRW(i);
 }
 
@@ -2667,25 +2657,22 @@ Data::getDataPointRO(int sampleNo, int dataPointNo)
 DataTypes::ValueType::reference
 Data::getDataPointRW(int sampleNo, int dataPointNo)
 {
-  forceResolve();
-  if (!isReady())
-  {
-	throw DataException("Programmer error - getDataPointRW() not permitted on Lazy Data.");
-  }
-  else
-  {
-	exclusiveWrite();
-	DataReady* dr=getReady();
-	return dr->getDataAtOffsetRW(dr->getPointOffset(sampleNo, dataPointNo));
-  }
+  checkExclusiveWrite();
+  DataReady* dr=getReady();
+  return dr->getDataAtOffsetRW(dr->getPointOffset(sampleNo, dataPointNo));
 }
 
-DataTypes::ValueType* 
+BufferGroup* 
 Data::allocSampleBuffer() const
 {
      if (isLazy())
      {
-	return new DataTypes::ValueType(getSampleBufferSize());
+	#ifdef _OPENMP
+	int tnum=omp_get_max_threads();
+	#else
+	int tnum=1;
+	#endif
+	return new BufferGroup(getSampleBufferSize(),tnum);
      }
      else
      {
@@ -2694,11 +2681,11 @@ Data::allocSampleBuffer() const
 }
 
 void
-Data::freeSampleBuffer(DataTypes::ValueType* buffer)
+Data::freeSampleBuffer(BufferGroup* bufferg)
 {
-     if (buffer!=0)
+     if (bufferg!=0)
      {
-	delete buffer;
+	delete bufferg;
      }
 }
 

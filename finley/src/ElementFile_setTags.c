@@ -51,20 +51,20 @@ void Finley_ElementFile_setTags(Finley_ElementFile* self,const int newTag, escri
 
     if (Finley_noError()) {
          if (isExpanded(mask)) {
+	   void* buffer=allocSampleBuffer(mask);	   
 	   #pragma omp parallel private(n,check,mask_array)
 	   {
-	     void* buffer=allocSampleBuffer(mask);
              #pragma omp for schedule(static)
              for (n=0;n<numElements;n++) {
                  mask_array=getSampleDataRO(mask,n,buffer);
                  if (mask_array[0]>0) self->Tag[n]=newTag;
              }
-	     freeSampleBuffer(buffer);
 	   }
+	   freeSampleBuffer(buffer);
          } else {
+	   void* buffer=allocSampleBuffer(mask);
 	   #pragma omp parallel private(q,n,check,mask_array)
 	   {
-	     void* buffer=allocSampleBuffer(mask);
              #pragma omp for schedule(static)
              for (n=0;n<numElements;n++) {
                  mask_array=getSampleDataRO(mask,n,buffer);
@@ -72,8 +72,8 @@ void Finley_ElementFile_setTags(Finley_ElementFile* self,const int newTag, escri
                  for (q=0;q<numQuad;q++) check=check || mask_array[q];
                  if (check) self->Tag[n]=newTag;
              }
-	     freeSampleBuffer(buffer);
 	   }
+	   freeSampleBuffer(buffer);
          }
          Finley_ElementFile_setTagsInUse(self);
     }

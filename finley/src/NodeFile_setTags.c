@@ -43,16 +43,16 @@ void Finley_NodeFile_setTags(Finley_NodeFile* self,const int newTag, escriptData
     /* now we can start */
 
     if (Finley_noError()) {
+	void* buffer=allocSampleBuffer(mask);	
 	#pragma omp parallel private(n,mask_array)
         {
-	    void* buffer=allocSampleBuffer(mask);
             #pragma omp for schedule(static)
             for (n=0;n<numNodes;n++) {
                  mask_array=getSampleDataRO(mask,n,buffer);
                  if (mask_array[0]>0) self->Tag[n]=newTag;
             }
-	    freeSampleBuffer(buffer);
         }
+	freeSampleBuffer(buffer);
         Finley_NodeFile_setTagsInUse(self);
     }
 }

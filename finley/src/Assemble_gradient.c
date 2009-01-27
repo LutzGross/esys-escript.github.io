@@ -99,10 +99,11 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
   }
   /* now we can start */
   if (Finley_noError()) {
+      void* buffer=allocSampleBuffer(data);     
       requireWrite(grad_data);
       #pragma omp parallel private(e,q,l,s,n,data_array,grad_data_e)
       {
-	 void* buffer=allocSampleBuffer(data);
+
          if (data_type==FINLEY_NODES) {
             if (jac->numDim==1) {
                 #define DIM 1
@@ -362,7 +363,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                 #undef DIM
             }
          }
-	 freeSampleBuffer(buffer);
       } /* end parallel region */
+      freeSampleBuffer(buffer);
   }
 }

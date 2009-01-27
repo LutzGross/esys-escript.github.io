@@ -186,6 +186,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
    for (int k=0;k<NUMDATS;++k)
    {
 	cout << "\t\tTest get-slicing " << strs[k] << endl;
+	dats[k]->requireWrite();
     	dats[k]->getDataAtOffsetRW(dats[k]->getDataOffset(0,0)+getRelIndex(viewShape,0,0))=1.0;
     	dats[k]->getDataAtOffsetRW(dats[k]->getDataOffset(0,0)+getRelIndex(viewShape,1,1))=2.0;
 

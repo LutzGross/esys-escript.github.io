@@ -61,30 +61,30 @@ void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* 
 
     if (Finley_noError()) {
          if (isExpanded(in)) {
+	     void* buffer=allocSampleBuffer(in);
              len_size=numComps*numQuad*sizeof(double);
 	     requireWrite(out);
 	     #pragma omp parallel private(n)
 	     {
-	       void* buffer=allocSampleBuffer(in);
                # pragma omp for schedule(static)
                for (n=0;n<numElements;n++) 
                  memcpy(getSampleDataRW(out,n),getSampleDataRO(in,n,buffer), len_size);
-	       freeSampleBuffer(buffer);
 	     }
+	     freeSampleBuffer(buffer);
          } else {
+	     void* buffer=allocSampleBuffer(in);
              len_size=numComps*sizeof(double);
 	     requireWrite(out);
 	     #pragma omp parallel private(q,n,out_array,in_array)
 	     {
-	       void* buffer=allocSampleBuffer(in);
                # pragma omp for schedule(static)
                for (n=0;n<numElements;n++) {
                  in_array=getSampleDataRO(in,n,buffer);
                  out_array=getSampleDataRW(out,n);
                  for (q=0;q<numQuad;q++) memcpy(out_array+q*numComps,in_array,len_size);
                }
-	       freeSampleBuffer(buffer);
 	     }
+	     freeSampleBuffer(buffer);
          }
     }
     return;

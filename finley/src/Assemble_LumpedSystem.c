@@ -106,16 +106,15 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
   }
 
   if (Finley_noError()) {
+    void* buffer=allocSampleBuffer(D);
     requireWrite(lumpedMat);
     lumpedMat_p=getSampleDataRW(lumpedMat,0);
     len_EM_lumpedMat=p.row_NN*p.numEqu;
     len_EM_lumpedMat_size=len_EM_lumpedMat*sizeof(double);
     expandedD=isExpanded(D);
     S=p.row_jac->ReferenceElement->S;
-
     #pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp)
     {
-       void* buffer=allocSampleBuffer(D);
        EM_lumpedMat=THREAD_MEMALLOC(len_EM_lumpedMat,double);
        row_index=THREAD_MEMALLOC(p.row_NN,index_t);
        if ( !Finley_checkPtr(EM_lumpedMat) && !Finley_checkPtr(row_index) ) {
@@ -304,10 +303,10 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                 } /* end color loop */
              }
           }
-	  freeSampleBuffer(buffer);
        } /* end of pointer check */
        THREAD_MEMFREE(EM_lumpedMat);
        THREAD_MEMFREE(row_index);
     } /* end parallel region */
+    freeSampleBuffer(buffer);
   }
 }

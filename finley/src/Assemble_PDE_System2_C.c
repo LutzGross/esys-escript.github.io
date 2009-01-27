@@ -61,11 +61,10 @@ void  Finley_Assemble_PDE_System2_C(Assemble_Parameters p, Finley_ElementFile* e
     double *F_p=(requireWrite(F), getSampleDataRW(F,0));	/* use comma, to get around the mixed code and declarations thing */
     double *S=p.row_jac->ReferenceElement->S;
 
-
+    void* DBuff=allocSampleBuffer(D);
+    void* YBuff=allocSampleBuffer(Y);
     #pragma omp parallel private(color,EM_S, EM_F, Vol, D_p, Y_p,row_index,q, s,r,k,m,rtmp, rtmp_D,add_EM_F, add_EM_S)
     {
-       void* DBuff=allocSampleBuffer(D);
-       void* YBuff=allocSampleBuffer(Y);
        EM_S=THREAD_MEMALLOC(p.row_NN*p.col_NN*p.numEqu*p.numComp,double);
        EM_F=THREAD_MEMALLOC(p.row_NN*p.numEqu,double);
        row_index=THREAD_MEMALLOC(p.row_NN,index_t);
@@ -164,9 +163,9 @@ void  Finley_Assemble_PDE_System2_C(Assemble_Parameters p, Finley_ElementFile* e
          THREAD_MEMFREE(row_index);
 
       } /* end of pointer check */
-      freeSampleBuffer(DBuff);
-      freeSampleBuffer(YBuff);
    } /* end parallel region */
+   freeSampleBuffer(DBuff);
+   freeSampleBuffer(YBuff);
 }
 /*
  * $Log$
