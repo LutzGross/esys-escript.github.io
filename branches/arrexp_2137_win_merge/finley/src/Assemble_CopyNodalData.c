@@ -242,8 +242,8 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
                                        numComps_size);
                            }
                     	}
-			freeSampleBuffer(buff);
 		    }
+		    freeSampleBuffer(buff);
                }
                Paso_Coupler_free(coupler);
            } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
