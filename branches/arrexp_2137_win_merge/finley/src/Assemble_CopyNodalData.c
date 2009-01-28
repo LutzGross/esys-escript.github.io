@@ -141,7 +141,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
 	      void* buff=allocSampleBuffer(in);
 	      #pragma omp parallel private(n)
 	      {
-        	#pragma omp parallel for private(n) schedule(static)
+        	#pragma omp for schedule(static)
               	for (n=0;n<nComps;n++) {
                    memcpy(getSampleDataRWFast(out,n),
                           getSampleDataROFast(in,nodes->reducedDegreesOfFreedomMapping->map[n],buff),
