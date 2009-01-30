@@ -15,7 +15,7 @@
 import os
 Import('*')
 
-local_env = clone_env(env)
+local_env = clone_env(env_mpi)
 
 src_dir = local_env.Dir('.').srcnode().abspath
 
