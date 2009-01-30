@@ -511,6 +511,18 @@ else:
 env.Append(CCFLAGS		= env['cc_flags'])
 env.Append(LIBS			= [env['omp_libs']])
 
+
+############ Add some custom builders ##########################
+
+py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
+env.Append(BUILDERS = {'PyCompile' : py_builder});
+
+runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', src_suffix=env['PROGSUFFIX'], single_source=True)
+env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
+
+runPyUnitTest_builder = Builder(action = scons_extensions.runPyUnitTest, suffix = '.passed', src_suffic='.py', single_source=True)
+env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
+
 ############ MPI (optional) ####################################
 
 # Create a modified environment for MPI programs (identical to env if usempi=no)
@@ -609,16 +621,6 @@ Execute(Delete(env['libinstall'] + "/Compiled.with.mpi"))
 Execute(Delete(env['libinstall'] + "/Compiled.with.openmp"))
 if not env['usempi']: Execute(Delete(env['libinstall'] + "/pythonMPI"))
 
-############ Add some custom builders ##########################
-
-py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
-env.Append(BUILDERS = {'PyCompile' : py_builder});
-
-runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', src_suffix=env['PROGSUFFIX'], single_source=True)
-env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
-
-runPyUnitTest_builder = Builder(action = scons_extensions.runPyUnitTest, suffix = '.passed', src_suffic='.py', single_source=True)
-env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
 
 ############ Build the subdirectories ##########################
 
