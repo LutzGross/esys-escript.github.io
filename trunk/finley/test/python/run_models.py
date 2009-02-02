@@ -39,6 +39,9 @@ from esys.escript import *
 from esys.escript.models import StokesProblemCartesian
 from esys.finley import Rectangle, Brick
 
+from esys.escript.models import Mountains
+from math import pi
+
 #====================================================================================================================
 class Test_StokesProblemCartesian2D(unittest.TestCase):
    def setUp(self):
@@ -674,13 +677,70 @@ class Test_Darcy3D(Test_Darcy):
         del self.dom
 
 
+class Test_Mountains3D(unittest.TestCase):
+   def setUp(self):
+       NE=16
+       self.TOL=1e-4
+       self.domain=Brick(NE,NE,NE,order=1,useFullElementOrder=True)
+   def tearDown(self):
+       del self.domain
+   def test_periodic(self):
+       EPS=0.01
 
+       x=self.domain.getX()
+       v = Vector(0.0, Solution(self.domain))
+       a0=1
+       a1=1
+       n0=2
+       n1=2
+       n2=0.5
+       a2=-(a0*n0+a1*n1)/n2
+       v[0]=a0*sin(pi*n0*x[0])* cos(pi*n1*x[1])* cos(pi*n2*x[2])
+       v[1]=a1*cos(pi*n0*x[0])* sin(pi*n1*x[1])* cos(pi*n2*x[2])
+       v[2]=a2*cos(pi*n0*x[0])* cos(pi*n1*x[1])* sin(pi*n2*x[2])
+
+       H_t=Scalar(0.0, Solution(self.domain))
+       mts=Mountains(self.domain,v,eps=EPS,z=1)
+       u,Z=mts.update(u=v,H_t=H_t)
+       
+       error_int=integrate(Z)
+       self.failUnless(error_int<self.TOL, "Boundary intergral is too large.")
+
+class Test_Mountains2D(unittest.TestCase):
+   def setUp(self):
+       NE=16
+       self.TOL=1e-4
+       self.domain=Rectangle(NE,NE,order=1,useFullElementOrder=True)
+   def tearDown(self):
+       del self.domain
+   def test_periodic(self):
+       EPS=0.01
+
+       x=self.domain.getX()
+       v = Vector(0.0, Solution(self.domain))
+       a0=1
+       n0=1
+       n1=0.5
+       a1=-(a0*n0)/n1
+       v[0]=a0*sin(pi*n0*x[0])* cos(pi*n1*x[1])
+       v[1]=a1*cos(pi*n0*x[0])* sin(pi*n1*x[1])
+       
+       H_t=Scalar(0.0, Solution(self.domain))
+       mts=Mountains(self.domain,v,eps=EPS,z=1)
+       u,Z=mts.update(u=v,H_t=H_t)
+       
+       error_int=integrate(Z)
+       self.failUnless(error_int<self.TOL, "Boundary intergral is too large.")
+       
 if __name__ == '__main__':
    suite = unittest.TestSuite()
+   
    suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian2D))
    suite.addTest(unittest.makeSuite(Test_Darcy3D))
    suite.addTest(unittest.makeSuite(Test_Darcy2D))
    suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian3D))
+   suite.addTest(unittest.makeSuite(Test_Mountains3D))
+   suite.addTest(unittest.makeSuite(Test_Mountains2D))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
 
