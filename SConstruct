@@ -624,11 +624,16 @@ if not env['usempi']: Execute(Delete(env['libinstall'] + "/pythonMPI"))
 
 ############ Build the subdirectories ##########################
 
+from grouptest import *
+
+TestGroups=[]
+
 Export(
   ["env",
    "env_mpi",
    "clone_env",
-   "IS_WINDOWS_PLATFORM"
+   "IS_WINDOWS_PLATFORM",
+   "TestGroups"
    ]
   )
 
@@ -645,6 +650,7 @@ env.SConscript(dirs = ['pycad/py_src'], build_dir='build/$PLATFORM/pycad', dupli
 env.SConscript(dirs = ['pythonMPI/src'], build_dir='build/$PLATFORM/pythonMPI', duplicate=0)
 env.SConscript(dirs = ['scripts'], build_dir='build/$PLATFORM/scripts', duplicate=0)
 env.SConscript(dirs = ['paso/profiling'], build_dir='build/$PLATFORM/paso/profiling', duplicate=0)
+
 
 ############ Remember what optimizations we used ###############
 
@@ -718,4 +724,16 @@ env.Alias('all_tests', ['install_all', 'target_install_cppunittest_a', 'run_test
 ############ Targets to build the documentation ################
 
 env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_doxygen', 'guide_pdf', 'guide_html'])
+
+if not IS_WINDOWS_PLATFORM:
+   try:
+   	utest=open("utest.sh","w")
+	utest.write(makeHeader())
+	for tests in TestGroups:
+	    utest.write(tests.makeString())
+	utest.close()
+	print "utest.sh written"
+   except IOError:
+	print "Error attempting to write unittests file."
+	sys.exit(1)
 
