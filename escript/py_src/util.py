@@ -4650,10 +4650,13 @@ def maximum(*args):
     out=None
     for a in args:
        if out==None:
-          out=a
+          out=a*1.
        else:
-          diff=add(a,-out)
-          out=add(out,mult(wherePositive(diff),diff))
+          if isinstance(out,escript.Data) and isinstance(a,escript.Data):
+             out.copyWithMask(a,wherePositive(a-out))
+          else:
+             diff=add(a-out)
+             out=add(out,wherePositive(diff),diff)
     return out
 
 def minimum(*args):
@@ -4671,10 +4674,13 @@ def minimum(*args):
     out=None
     for a in args:
        if out==None:
-          out=a
+          out=a*1.
        else:
-          diff=add(a,-out)
-          out=add(out,mult(whereNegative(diff),diff))
+          if isinstance(out,escript.Data) and isinstance(a,escript.Data):
+             out.copyWithMask(a,whereNegative(a-out))
+          else:
+             diff=add(a,-out)
+             out=add(out,mult(whereNegative(diff),diff))
     return out
 
 def clip(arg,minval=None,maxval=None):
