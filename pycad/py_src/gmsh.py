@@ -101,8 +101,9 @@ class Design(design.Design):
         """
         Sets options for the mesh generator.
         """
+        if curvature_based_element_size:
+              print "information: gmsh does not support curvature based element size anymore. Option ignored."
         if algorithm==None: algorithm=self.DELAUNAY
-        self.__curvature_based_element_size=curvature_based_element_size
         self.__algo=algorithm
         self.__optimize_quality=optimize_quality
         self.__smoothing=smoothing
@@ -123,13 +124,9 @@ class Design(design.Design):
               opt="-optimize "
         else:
               opt=""
-        if self.__curvature_based_element_size:
-              clcurv="-clcurv "
-        else:
-              clcurv=""
 
-        exe="gmsh -%s -algo %s %s-smooth %s %s-v 0 -order %s -o %s %s" % (
-                self.getDim(), self.__algo, clcurv, self.__smoothing, opt,
+        exe="gmsh -%s -algo %s-smooth %s %s-v 0 -order %s -o %s %s" % (
+                self.getDim(), self.__algo, self.__smoothing, opt,
                 self.getElementOrder(), self.getMeshFileName(),
                 self.getScriptFileName())
         return exe
