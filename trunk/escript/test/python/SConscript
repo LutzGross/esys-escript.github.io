@@ -58,6 +58,12 @@ env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
 #
 program = local_env.RunPyUnitTest(alltestruns)
 
+# Add a group of tests
+from grouptest import *
+tgroup=GroupTest("$PYTHONRUNNER ",(("ESCRIPT_TEST_DATA_ROOT","$BATCH_ROOT/escript/test/python"),('ESCRIPT_WORKDIR','$BUILD_DIR/escript/test/python')),"$BUILD_DIR/escript/test/python","$BATCH_ROOT/escript/test/python",testruns)
+
+TestGroups.append(tgroup)
+
 Depends(program, local_env['pyinstall'])
 Depends(program, dep_lib) 
 Depends(program, 'build_py_tests') 

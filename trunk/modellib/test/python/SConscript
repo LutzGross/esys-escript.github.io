@@ -52,6 +52,14 @@ env.Alias('build_py_tests',test_pyc)
 #
 program = local_env.RunPyUnitTest(alltestruns)
 
+# Add a group of tests
+from grouptest import *   
+tgroup=GroupTest("$PYTHONRUNNER ",(("MODELLIB_TEST_DATA_ROOT","$BATCH_ROOT/modellib/test/python"),('MODELLIB_WORKDIR','$BUILD_DIR/modellib/test/python')),"$BUILD_DIR/escript/test/python:$BUILD_DIR/modellib/test/python","$BATCH_ROOT/modellib/test/python",testruns)
+tgroup.makeDir("$BUILD_DIR/test")
+tgroup.makeDir("$BUILD_DIR/test/python")
+TestGroups.append(tgroup)
+
+
 Depends(program, local_env['pyinstall'])
 Depends(program, dep_lib) 
 Depends(program, 'build_py_tests')
