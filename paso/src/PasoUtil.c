@@ -221,7 +221,7 @@ double Paso_InnerProduct(const dim_t n,const double* x, const double* y, Paso_MP
    #else
        const int num_threads=1;
    #endif
-   #pragma omp parallel for private(i,local_out,local_n,rest,n_start,n_end,q) reduction(+:my_out)
+   #pragma omp parallel for private(i,local_out,local_n,rest,n_start,n_end,q)
    for (i=0;i<num_threads;++i) {
         local_out=0;
         local_n=n/num_threads;
@@ -230,7 +230,10 @@ double Paso_InnerProduct(const dim_t n,const double* x, const double* y, Paso_MP
         n_end=local_n*(i+1)+MIN(i+1,rest);
         #pragma ivdep
         for (q=n_start;q<n_end;++q) local_out+=x[q]*y[q];
-        my_out+=local_out;
+        #pragma omp critical
+        {
+            my_out+=local_out;
+        }
    }
    #ifdef PASO_MPI
       #pragma omp single
@@ -247,13 +250,13 @@ double Paso_InnerProduct(const dim_t n,const double* x, const double* y, Paso_MP
 double Paso_lsup(const dim_t n, const double* x, Paso_MPIInfo* mpiinfo) 
 {
    dim_t i,local_n,rest,n_start,n_end,q;
-   double my_out=SMALL_NEGATIVE_FLOAT, local_out=SMALL_NEGATIVE_FLOAT, out=SMALL_NEGATIVE_FLOAT;
+   double my_out=0., local_out=0., out=0.;
    #ifdef _OPENMP
        const int num_threads=omp_get_max_threads();
    #else
        const int num_threads=1;
    #endif
-   #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q, local_out) reduction(+:my_out)
+   #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q, local_out)
    for (i=0;i<num_threads;++i) {
         local_n=n/num_threads;
         rest=n-local_n*num_threads;
@@ -262,7 +265,9 @@ double Paso_lsup(const dim_t n, const double* x, Paso_MPIInfo* mpiinfo)
         local_out=0;
         for (q=n_start;q<n_end;++q) local_out=MAX(ABS(x[q]),local_out);
         #pragma omp critical
-        my_out=MAX(my_out,local_out);
+        {
+            my_out=MAX(my_out,local_out);
+        }
    }
    #ifdef PASO_MPI
       #pragma omp single
@@ -285,7 +290,7 @@ double Paso_l2(const dim_t n, const double* x, Paso_MPIInfo* mpiinfo)
    #else
        const int num_threads=1;
    #endif
-   #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q, local_out) reduction(+:my_out)
+   #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q, local_out)
    for (i=0;i<num_threads;++i) {
         local_n=n/num_threads;
         rest=n-local_n*num_threads;
@@ -293,7 +298,10 @@ double Paso_l2(const dim_t n, const double* x, Paso_MPIInfo* mpiinfo)
         n_end=local_n*(i+1)+MIN(i+1,rest);
         local_out=0;
         for (q=n_start;q<n_end;++q) local_out+=x[q]*x[q];
-        my_out+=local_out;
+        #pragma omp critical
+        {
+            my_out+=local_out;
+        }
    }
    #ifdef PASO_MPI
       #pragma omp single
