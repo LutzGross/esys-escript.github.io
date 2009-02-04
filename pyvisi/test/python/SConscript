@@ -96,3 +96,7 @@ if VTK_AVAILABLE:
    Depends(program, local_env['pyinstall'])
    # Depends(program, dep_lib) 
    Depends(program, 'build_py_tests') 
+
+   from grouptest import *
+   tgroup=GroupTest("$PYTHONRUNNER ",(("PYVISI_TEST_DATA_ROOT","$BATCH_ROOT/pyvisi/test/python"),("PYVISI_WORKDIR","$BUILD_DIR/pyvisi/test/python")),"$BUILD_DIR/pyvisi/test/python","$BATCH_ROOT/pyvisi/test/python",testruns)
+   TestGroups.append(tgroup)

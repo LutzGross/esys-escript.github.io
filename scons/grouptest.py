@@ -21,18 +21,18 @@ __url__="http://www.uq.edu.au/esscc/escript-finley"
 def makeHeader():
 	res="#!/bin/bash\n"
 	res=res+"function failed()\n{\n  echo ""Execution failed for $@""\n  exit 1\n}\n"
-	res=res+"\nexport OLD_PYTHON=$PYTHONPATH\nexport PYTHONRUNNER=$1\nBATCH_ROOT=`pwd`\nBUILD_DIR=$BATCH_ROOT/build/posix\n"
+	res=res+"\nexport OLD_PYTHON=$PYTHONPATH\nBINRUNNER=$1\nPYTHONRUNNER=\"$1 $2\"\nBATCH_ROOT=`pwd`\nBUILD_DIR=$BATCH_ROOT/build/posix\n"
 	res=res+"if [ ! -d $BUILD_DIR ]\nthen\n echo Can not find build directory $BUILD_DIR\n exit 2\nfi\n" 
-	res=res+"if [ $# -lt 1 ]\nthen\n echo Usage: $0 python_run_cmd\n exit 2\nfi\n"
+	res=res+"if [ $# -lt 2 ]\nthen\n echo Usage: $0 bin_run_cmd python_run_cmd\n exit 2\nfi\n"
 	return res
 
 class GroupTest:
-    def __init__(self, exec_cmd, vars, python_dir, working_dir, test_list):
+    def __init__(self, exec_cmd, evars, python_dir, working_dir, test_list):
 	self.python_dir=python_dir
 	self.working_dir=working_dir
 	self.test_list=test_list
 	self.exec_cmd=exec_cmd
-	self.vars=vars
+	self.evars=evars
 	self.mkdirs=[]
 	
     def makeDir(self,dirname):
@@ -42,7 +42,7 @@ class GroupTest:
 	res=""
 	for d in self.mkdirs:
 	    res="if [ ! -d "+str(d)+" ]\nthen\n  mkdir "+d+"\nfi"
-	for v in self.vars:
+	for v in self.evars:
 	    res=res+"\nexport "+str(v[0])+"="+str(v[1])
 	res=res+"\nexport PYTHONPATH="+self.python_dir+":$OLD_PYTHON"+"\n"+"cd "+self.working_dir+"\n"
 	for t in self.test_list:
