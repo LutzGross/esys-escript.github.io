@@ -158,7 +158,6 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                }
             }
             /* construct the preconditioner */
-              
             blocktimer_precond = blocktimer_time();
             Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
             Paso_Solver_setPreconditioner(A,options);
@@ -186,7 +185,6 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                     #pragma omp parallel for private(i) schedule(static)
                     for (i = 0; i < numEqua; i++) r[i]=b[i];
                     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A, x, DBLE(1), r);
-             
                     #pragma omp parallel private(norm2_of_residual_local,norm_max_of_residual_local)
                     {
                        norm2_of_residual_local = 0;
@@ -271,7 +269,16 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
               time_iter=Paso_timer()-time_iter;
               if (options->verbose)  {
                  printf("\ntiming: Paso_Solver:  %.4e sec\n",time_iter);
-                 if (totIter>0) printf("timing: per iteration step: %.4e sec\n",time_iter/totIter);
+                 if (totIter>0) {
+                    if(totIter==options->iter_max) {
+                        printf("timing: Total MAX steps, time per iteration step: %.4e sec\n",time_iter/totIter);
+                    } else {
+                        printf("timing: Total %d steps, time per iteration step: %.4e sec\n",totIter,time_iter/totIter);    
+                    }
+                 }
+                 else {
+                    printf("timing: Total 0 step, time per iteration step: %.4e sec\n",time_iter);
+                    }   
               }
            }
         }
