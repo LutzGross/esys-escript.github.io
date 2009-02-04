@@ -881,7 +881,7 @@ def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_rest
       else:
          r2=1*r
       x2=x*1.
-      x,stopped=__GMRESm(r2, Aprod, x, bilinearform, atol2, iter_max=iter_max-iter, iter_restart=m, verbose=verbose)
+      x,stopped=_GMRESm(r2, Aprod, x, bilinearform, atol2, iter_max=iter_max-iter, iter_restart=m, verbose=verbose)
       iter+=iter_restart
       if stopped: break
       if verbose: print "GMRES: restart."
@@ -889,7 +889,7 @@ def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_rest
    if verbose: print "GMRES: tolerance has reached."
    return x
 
-def __GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verbose=False):
+def _GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verbose=False):
    iter=0
 
    h=numarray.zeros((iter_restart+1,iter_restart),numarray.Float64)
