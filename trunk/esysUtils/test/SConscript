@@ -38,3 +38,8 @@ local_env.RunUnitTest('EsysExceptionTest')
 test_targets = os.path.splitext('EsysExceptionTest')[0]+'.passed'
 Alias("run_tests", test_targets)
 
+# Add a group of tests
+from grouptest import *
+tgroup=GroupTest("$BINRUNNER ", (),"","$BATCH_ROOT/esysUtils/test",('EsysExceptionTest',))
+TestGroups.append(tgroup)
+
