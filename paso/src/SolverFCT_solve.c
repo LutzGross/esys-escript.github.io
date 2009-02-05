@@ -182,7 +182,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
              dt2=dt;
         }
         while( (t<dt*(1.-sqrt(EPSILON))) && Paso_noError()) {
-            printf("substep step %d at t=%e (step size= %e)\n",i_substeps+1,t+dt2,dt2);
+            if (options->verbose) printf("substep step %d at t=%e (step size= %e)\n",i_substeps+1,t+dt2,dt2);
             Paso_FCT_setUp(fctp,dt2,sourceN,sourceP,b_n,uTilde_n,uTilde_n_coupler,QN_n,QN_n_coupler,QP_n,QP_n_coupler,
                            options,&pp);
             /* now the iteration starts */
@@ -219,7 +219,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                    }
                    norm_u_m=Paso_lsup(n,u, fctp->mpi_info);
                    norm_du_m=Paso_lsup(n,du_m, fctp->mpi_info)*omega;
-                   printf("iteration step %d completed: norm increment= %e (tolerance = %e)\n",m+1, norm_du_m, rtol * norm_u_m + atol);
+                   if (options->verbose) printf("iteration step %d completed: norm increment= %e (tolerance = %e)\n",m+1, norm_du_m, rtol * norm_u_m + atol);
 
                    max_m_reached=(m>max_m);
                    converged=(norm_du_m <= rtol * norm_u_m + atol);
@@ -241,7 +241,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                     if (Failed > FAILURES_MAX) {
                        Paso_setError(VALUE_ERROR,"Paso_SolverFCT_solve: no convergence after time step reduction.");
                     } else {
-                       printf("no convergence in Paso_Solver_NewtonGMRES: Trying smaller time step size.");
+                       if (options->verbose) printf("no convergence in Paso_Solver_NewtonGMRES: Trying smaller time step size.");
                        dt2=dt*0.5;
                        Failed++;
                     }
@@ -311,14 +311,10 @@ double Paso_FCTransportProblem_getSafeTimeStepSize(Paso_FCTransportProblem* fctp
              dt_max_loc = dt_max;
              MPI_Allreduce(&dt_max_loc, &dt_max, 1, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
          #endif
-printf("dt_max = %e %e\n",dt_max, fctp->dt_factor);
          if (dt_max<LARGE_POSITIVE_FLOAT) dt_max*=fctp->dt_factor;
          if (dt_max <= 0.)  {
             Paso_setError(TYPE_ERROR,"Paso_SolverFCT_solve: dt must be positive.");
-         } else {
-            if (dt_max<LARGE_POSITIVE_FLOAT)
-               printf("maximum time step size is %e (theta = %e).\n",dt_max,fctp->theta);   
-         }
+         } 
          fctp->dt_max=dt_max;
          fctp->valid_matrices=Paso_noError();
       }
