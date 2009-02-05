@@ -125,7 +125,7 @@ class Design(design.Design):
         else:
               opt=""
 
-        exe="gmsh -%s -algo %s-smooth %s %s-v 0 -order %s -o %s %s" % (
+        exe="gmsh -format msh -%s -algo %s -smooth %s %s-v 0 -order %s -o %s %s" % (
                 self.getDim(), self.__algo, self.__smoothing, opt,
                 self.getElementOrder(), self.getMeshFileName(),
                 self.getScriptFileName())
