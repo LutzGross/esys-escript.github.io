@@ -38,5 +38,5 @@ local_env.SConscript(dirs = ['#/finley/test/python'], build_dir='python', duplic
 
 # Add a group of tests
 from grouptest import *
-tgroup=GroupTest("$BINRUNNER ", (),"","$BUILD_ROOT/finley/test",('./finley_UnitTest',))
+tgroup=GroupTest("$BINRUNNER ", (),"","$BUILD_DIR/finley/test",('./finley_UnitTest',))
 TestGroups.append(tgroup)

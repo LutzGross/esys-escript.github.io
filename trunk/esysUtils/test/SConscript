@@ -40,6 +40,6 @@ Alias("run_tests", test_targets)
 
 # Add a group of tests
 from grouptest import *
-tgroup=GroupTest("$BINRUNNER ", (),"","$BUILD_ROOT/esysUtils/test",('./EsysExceptionTest',))
+tgroup=GroupTest("$BINRUNNER ", (),"","$BUILD_DIR/esysUtils/test",('./EsysExceptionTest',))
 TestGroups.append(tgroup)
 
