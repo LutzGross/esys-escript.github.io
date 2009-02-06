@@ -862,30 +862,32 @@ class Test_pdetools_noLumping(unittest.TestCase):
                self.Sinv=array([[ 9313.705360982807179,-5755.536981691270739,  806.289245589733696],
                                  [-5755.536981691271649, 4606.321002756208145,-1630.50619635660928 ],
                                  [  806.289245589733468,-1630.506196356609053, 2145.65035816388945 ]])
-           def inner_pBv(self,p,Bv):
-              return dot(p,Bv)
+           def inner_pBv(self,p,v):
+              return dot(p,matrixmultiply(transpose(self.Bt),v))
            def inner_p(self,p0,p1):
               return dot(p0,p1)
-           def inner_v(self,v0,v1):
-              return dot(v0,v1)
-           def B(self,v):
-               return matrixmultiply(transpose(self.Bt),v)
-           def solve_A(self,u,p):
-                out=self.b-matrixmultiply(self.A,u)-matrixmultiply(self.Bt,p)
-                # for i in xrange(size(self.b)): out[i]/=self.A[i,i]
-                return solve_linear_equations(self.A,out)+u*self.getSubProblemTolerance()
-           def solve_prec(self,p):
-                out=zeros((size(p),),Float64)
-                for i in xrange(size(p)): out[i]=p[i]*self.Sinv[i,i]
-                return out
+           def norm_v(self,v):
+               return sqrt(dot(v,v))
+           def getV(self,p,v):
+               out=self.b-matrixmultiply(self.Bt,p)
+               return solve_linear_equations(self.A,out)+v*self.getSubProblemTolerance()
+           def norm_Bv(self,v):
+               t=matrixmultiply(transpose(self.Bt),v) 
+               return sqrt(dot(t,t))
+           def solve_AinvBt(self,p):
+               out=matrixmultiply(self.Bt,p)
+               return solve_linear_equations(self.A,out)
+           def solve_precB(self,v):
+               out=matrixmultiply(transpose(self.Bt),v)
+               for i in xrange(size(out)): out[i]*=self.Sinv[i,i]
+               return out
 
-              
       tol=1.e-8
       ll=LL()
       ll.initialize()
       ll.setTolerance(tol)
       # ll.setSubToleranceReductionFactor(0.1)
-      x,p=ll.solve(ll.x_ref*1.20,ll.p_ref*(-2),max_iter=20, verbose=False, show_details=False, useUzawa=True, iter_restart=20,max_correction_steps=3)
+      x,p=ll.solve(ll.x_ref*1.20,ll.p_ref*(-2),max_iter=20, verbose=False, show_details=False, usePCG=True, iter_restart=20,max_correction_steps=3)
       self.failUnless(Lsup(x-ll.x_ref)<=Lsup(ll.x_ref)*tol*10.,"wrong x solution")
       self.failUnless(Lsup(p-ll.p_ref)<=Lsup(ll.p_ref)*tol*10.,"wrong p solution")
 
@@ -969,30 +971,32 @@ class Test_pdetools_noLumping(unittest.TestCase):
                self.Sinv=array([[ 9313.705360982807179,-5755.536981691270739,  806.289245589733696],
                                  [-5755.536981691271649, 4606.321002756208145,-1630.50619635660928 ],
                                  [  806.289245589733468,-1630.506196356609053, 2145.65035816388945 ]])
-           def inner_pBv(self,p,Bv):
-              return dot(p,Bv)
+           def inner_pBv(self,p,v):
+              return dot(p,matrixmultiply(transpose(self.Bt),v))
            def inner_p(self,p0,p1):
               return dot(p0,p1)
-           def inner_v(self,v0,v1):
-              return dot(v0,v1)
-           def B(self,v):
-               return matrixmultiply(transpose(self.Bt),v)
-           def solve_A(self,u,p):
-                out=self.b-matrixmultiply(self.A,u)-matrixmultiply(self.Bt,p)
-                return solve_linear_equations(self.A,out)+u*self.getSubProblemTolerance()
-           def solve_prec(self,p):
-                out=zeros((size(p),),Float64)
-                for i in xrange(size(p)): out[i]=p[i]*self.Sinv[i,i]
-                # out=matrixmultiply(self.Sinv,p)
-                return out
-
+           def norm_v(self,v):
+               return sqrt(dot(v,v))
+           def getV(self,p,v):
+               out=self.b-matrixmultiply(self.Bt,p)
+               return solve_linear_equations(self.A,out)+v*self.getSubProblemTolerance()
+           def norm_Bv(self,v):
+               t=matrixmultiply(transpose(self.Bt),v) 
+               return sqrt(dot(t,t))
+           def solve_AinvBt(self,p):
+               out=matrixmultiply(self.Bt,p)
+               return solve_linear_equations(self.A,out)
+           def solve_precB(self,v):
+               out=matrixmultiply(transpose(self.Bt),v)
+               for i in xrange(size(out)): out[i]*=self.Sinv[i,i]
+               return out
               
       tol=1.e-8
       ll=LL()
       ll.initialize()
       ll.setTolerance(tol)
       # ll.setSubToleranceReductionFactor(0.1)
-      x,p=ll.solve(ll.x_ref*1.20,ll.p_ref*(-2),max_iter=20, verbose=False, show_details=False, useUzawa=False, iter_restart=20,max_correction_steps=3)
+      x,p=ll.solve(ll.x_ref*1.20,ll.p_ref*(-2),max_iter=20, verbose=False, show_details=False, usePCG=False, iter_restart=20,max_correction_steps=3)
       self.failUnless(Lsup(x-ll.x_ref)<=Lsup(ll.x_ref)*tol*10.,"wrong x solution")
       self.failUnless(Lsup(p-ll.p_ref)<=Lsup(ll.p_ref)*tol*10.,"wrong p solution")
 

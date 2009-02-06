@@ -886,7 +886,7 @@ def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_rest
       if stopped: break
       if verbose: print "GMRES: restart."
       restarted=True
-   if verbose: print "GMRES: tolerance has reached."
+   if verbose: print "GMRES: tolerance has been reached."
    return x
 
 def _GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verbose=False):
@@ -1465,7 +1465,51 @@ class HomogeneousSaddlePointProblem(object):
         """
         pass
 
-      def B(self,v):
+      def inner_pBv(self,p,v):
+         """
+         Returns inner product of element p and Bv (overwrite).
+
+         @param p: a pressure increment
+         @param v: a residual
+         @return: inner product of element p and Bv
+         @rtype: C{float}
+         @note: used if PCG is applied.
+         """
+         raise NotImplementedError,"no inner product for p implemented."
+
+      def inner_p(self,p0,p1):
+         """
+         Returns inner product of p0 and p1 (overwrite).
+
+         @param p0: a pressure
+         @param p1: a pressure
+         @return: inner product of p0 and p1
+         @rtype: C{float}
+         """
+         raise NotImplementedError,"no inner product for p implemented."
+   
+      def norm_v(self,v):
+         """
+         Returns the norm of v (overwrite).
+
+         @param v: a velovity
+         @return: norm of v
+         @rtype: non-negative C{float}
+         """
+         raise NotImplementedError,"no norm of v implemented."
+
+
+      def getV(self, p, v0):
+         """
+         return the value for v for a given p (overwrite)
+
+         @param p: a pressure
+         @param v0: a initial guess for the value v to return. 
+         @return: v given as M{v= A^{-1} (f-B^*p)}
+         """
+         raise NotImplementedError,"no v calculation implemented."
+        
+      def norm_Bv(self,v):
         """
         Returns Bv (overwrite).
 
@@ -1474,48 +1518,18 @@ class HomogeneousSaddlePointProblem(object):
         """
         raise NotImplementedError, "no operator B implemented."
 
-      def inner_pBv(self,p,Bv):
+      def solve_AinvBt(self,p):
          """
-         Returns inner product of element p and Bv (overwrite).
-
-         @type p: equal to the type of p
-         @type Bv: equal to the type of result of operator B
-         @rtype: equal to the type of p
-         """
-         raise NotImplementedError,"no inner product for p implemented."
-
-      def inner_p(self,p0,p1):
-         """
-         Returns inner product of element p0 and p1 (overwrite).
-
-         @type p0: equal to the type of p
-         @type p1: equal to the type of p
-         @rtype: equal to the type of p
-         """
-         raise NotImplementedError,"no inner product for p implemented."
-
-      def inner_v(self,v0,v1):
-         """
-         Returns inner product of two elements v0 and v1 (overwrite).
-
-         @type v0: equal to the type of v
-         @type v1: equal to the type of v
-         @rtype: equal to the type of v
-         """
-         raise NotImplementedError,"no inner product for v implemented."
-         pass
-
-      def solve_A(self,u,p):
-         """
-         Solves M{Av=f-Au-B^*p} with accuracy L{self.getSubProblemTolerance()}
+         Solves M{Av=B^*p} with accuracy L{self.getSubProblemTolerance()}
          (overwrite).
 
-         @rtype: equal to the type of v
+         @param p: a pressure increment
+         @return: the solution of M{Av=B^*p} 
          @note: boundary conditions on v should be zero!
          """
          raise NotImplementedError,"no operator A implemented."
 
-      def solve_prec(self,p):
+      def solve_precB(self,v):
          """
          Provides a preconditioner for M{BA^{-1}B^*} with accuracy
          L{self.getSubProblemTolerance()} (overwrite).
@@ -1526,39 +1540,33 @@ class HomogeneousSaddlePointProblem(object):
          raise NotImplementedError,"no preconditioner for Schur complement implemented."
       #=============================================================
       def __Aprod_PCG(self,p):
-          # return (v,Bv) with v=A^-1B*p
-          #solve Av =B^*p as Av =f-Az-B^*(-p)
-          v=self.solve_A(self.__z,-p)
-          return ArithmeticTuple(v, self.B(v))
+          return self.solve_AinvBt(p)
 
-      def __inner_PCG(self,p,r):
-         return self.inner_pBv(p,r[1])
+      def __inner_PCG(self,p,v):
+         return self.inner_pBv(p,v)
 
-      def __Msolve_PCG(self,r):
-          return self.solve_prec(r[1])
+      def __Msolve_PCG(self,v):
+          return self.solve_precB(v)
       #=============================================================
-      def __Aprod_GMRES(self,x):
-          # return w,q  from v, p
-          # solve Aw =Av+B^*p as Aw =f-A(z-v)-B^*(-p)
-          #  and  Sq=B(v-w)
-          v=x[0]
-          p=x[1]
-          w=self.solve_A(self.__z-v,-p)
-          Bw=self.B(w-v)
-          q=self.solve_prec(Bw)
-          return ArithmeticTuple(w,q)
-
-      def __inner_GMRES(self,a1,a2):
-         return self.inner_p(a1[1],a2[1])+self.inner_v(a1[0],a2[0])
-
+      def __Aprod_GMRES(self,p):
+          return self.solve_precB(self.solve_AinvBt(p))
+      def __inner_GMRES(self,p0,p1):
+         return self.inner_p(p0,p1)
       #=============================================================
-      def norm(self,v,p):
-        f=self.inner_p(p,p)+self.inner_v(v,v)
-        if f<0:
-            raise ValueError,"negative norm."
-        return math.sqrt(f)
+      def norm_p(self,p):
+          """
+          calculates the norm of C{p}
+          
+          @param p: a pressure
+          @return: the norm of C{p} using the inner product for pressure
+          @rtype: C{float}
+          """
+          f=self.inner_p(p,p)
+          if f<0: raise ValueError,"negative pressure norm."
+          return math.sqrt(f)
+          
 
-      def solve(self,v,p,max_iter=20, verbose=False, show_details=False, useUzawa=True, iter_restart=20,max_correction_steps=3):
+      def solve(self,v,p,max_iter=20, verbose=False, show_details=False, usePCG=True, iter_restart=20, max_correction_steps=10):
          """
          Solves the saddle point problem using initial guesses v and p.
 
@@ -1566,8 +1574,7 @@ class HomogeneousSaddlePointProblem(object):
          @param p: initial guess for pressure
          @type v: L{Data}
          @type p: L{Data}
-         @param useUzawa: indicates the usage of the Uzawa scheme. Otherwise
-                          the problem is solved in coupled form.
+         @param usePCG: indicates the usage of the PCG rather than GMRES scheme.
          @param max_iter: maximum number of iteration steps per correction
                           attempt
          @param verbose: if True, shows information on the progress of the
@@ -1575,97 +1582,49 @@ class HomogeneousSaddlePointProblem(object):
          @param show_details: if True, shows details of the sub problem solver
          @param iter_restart: restart the iteration after C{iter_restart} steps
                               (only used if useUzaw=False)
-         @param max_correction_steps: maximum number of iteration steps in the
-                                      attempt to get |Bv| to zero.
-         @return: new approximations for velocity and pressure
-         @type useUzawa: C{bool}
+         @type usePCG: C{bool}
          @type max_iter: C{int}
          @type verbose: C{bool}
          @type show_details: C{bool}
          @type iter_restart: C{int}
-         @type max_correction_steps: C{int}
          @rtype: C{tuple} of L{Data} objects
          """
          self.verbose=verbose
          self.show_details=show_details and self.verbose
-         #=====================================================================
-         # Az=f is solved as A(z-v)=f-Av-B^*0 (typically with z-v=0 on boundary)
-         self.__z=v+self.solve_A(v,p*0)
-         # tolerances:
          rtol=self.getTolerance()
          atol=self.getAbsoluteTolerance()
-         if useUzawa:
-            p0=self.solve_prec(self.B(self.__z))
-            f0=self.norm(self.__z,p0)
-         else:
-            f0=util.sqrt(self.inner_v(self.__z,self.__z))
-         if not f0>0: return self.__z, p*0
-         ATOL=rtol*f0+atol
-         if not ATOL>0: raise ValueError,"overall absolute tolerance needs to be positive."
-         if self.verbose: print "saddle point solver: initial residual %e, tolerance = %e."%(f0,ATOL)
-         # initialization
-         self.iter=0
          correction_step=0
          converged=False
-         # initial guess:
-         q=p*1
-         u=v*1
-         while not converged :
-            if useUzawa:
-               # assume p is known: then v=z-A^-1B^*p
-               #
-               # which leads to BA^-1B^*p = Bz
-               #
-               # note that the residual r=Bz-BA^-1B^*p = B(z-A^-1B^*p) = Bv
-               # we use the (v,Bv) to represent the residual
-               #
-               # the norm of the right hand side Bv = f0
-               #
-               #                  and the initial residual
-               #
-               #     r=Bz-BA^-1B^*q = B(z-A^{-1}B^*q)=Bw with A(w-z)=Az-Az-B^*q = f -A*0 - B^{*}q
-               #
-               w=self.solve_A(self.__z,q)+self.__z
-               if self.verbose: print "enter PCG method (iter_max=%s, atol=%e, subtolerance=%e)"%(max_iter,ATOL, self.getSubProblemTolerance())
-               q,r=PCG(ArithmeticTuple(w,self.B(w)),self.__Aprod_PCG,q,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL, rtol=0.,iter_max=max_iter, verbose=self.verbose)
-               u=r[0]
-               Bu=r[1]
-            else:
-               #
-               #  with v=dv+z
-               #
-               #   A v + B p = f
-               #   B v       = 0
-               #
-               # apply the preconditioner [[A^{-1} 0][(S^{-1} B A^{-1})  -S^{-1}]]
-               #
-               w=self.solve_A(u,q)
-               if self.verbose: print "enter GMRES (iter_max=%s, atol=%e, subtolerance=%e)"%(max_iter,ATOL,self.getSubProblemTolerance())
-               x=GMRES(ArithmeticTuple(w,self.solve_prec(self.B(u+w))),self.__Aprod_GMRES, ArithmeticTuple(u,q), \
-                         self.__inner_GMRES,atol=ATOL, rtol=0.,iter_max=max_iter, iter_restart=iter_restart, verbose=self.verbose)
-               u=x[0]
-               q=x[1]
-               Bu=self.B(u)
-            # now we check if |Bu| ~ 0 or more precise |Bu|_p  <= rtol * |v|_v
-            nu=self.inner_v(u,u)
-            p2=self.solve_prec(Bu)
-            nBu=self.inner_p(p2,p2)
-            if not nu>=0 and not nBu>=0: raise NegativeNorm,"negative norm."
-            nu=math.sqrt(nu)
-            nBu=math.sqrt(nBu)
-            if self.verbose: print "saddle point solver: norm v= %e (Bv = %e)"%(nu,nBu)
-            QTOL=atol+nu*rtol
-            if nBu <= QTOL:
-                converged=True
-            else:
-                ATOL=QTOL/nBu*ATOL*0.3
-                if self.verbose: print "correction step %s: tolerance reduced to %e."%(correction_step,ATOL)
-                converged=False
-            correction_step+=1
-            if correction_step>max_correction_steps:
-               raise CorrectionFailed,"Given up after %d correction steps."%correction_step
+         while not converged:
+              # calculate velocity for current pressure:
+              v=self.getV(p,v)
+              #
+              norm_v=self.norm_v(v)
+              norm_Bv=self.norm_Bv(v)
+              ATOL=norm_v*rtol+atol
+              if self.verbose: print "saddle point solver: norm v= %e, norm_Bv= %e, tolerance = %e."%(norm_v, norm_Bv,ATOL)
+              if not ATOL>0: raise ValueError,"overall absolute tolerance needs to be positive."
+              if norm_Bv <= ATOL:
+                 converged=True
+              else:
+                 correction_step+=1
+                 if correction_step>max_correction_steps:
+                      raise CorrectionFailed,"Given up after %d correction steps."%correction_step
+                 dp=self.solve_precB(v)
+                 if usePCG:
+                   norm2=self.inner_pBv(dp,v)
+                   if norm2<0: raise ValueError,"negative PCG norm."
+                   norm2=math.sqrt(norm2)
+                 else:
+                   norm2=self.norm_p(dp)
+                 ATOL_ITER=ATOL/norm_Bv*norm2
+                 if self.verbose: print "saddle point solver: tolerance for solver: %e"%ATOL_ITER
+                 if usePCG:
+                       p,v0=PCG(v,self.__Aprod_PCG,p,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL_ITER, rtol=0.,iter_max=max_iter, verbose=self.verbose)
+                 else:
+                       p=GMRES(dp,self.__Aprod_GMRES, p, self.__inner_GMRES,atol=ATOL_ITER, rtol=0.,iter_max=max_iter, iter_restart=iter_restart, verbose=self.verbose)
          if self.verbose: print "saddle point solver: tolerance reached."
- 	 return u,q
+ 	 return v,p
 
       #========================================================================
       def setTolerance(self,tolerance=1.e-4):

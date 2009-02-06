@@ -61,77 +61,69 @@ with sufficient accuracy we check for
 \begin{equation}
 \|v\hackscore{k,k}\| \hackscore \le  \epsilon
 \|\sqrt{v\hackscore{j,k}v\hackscore{j,k}}\| 
+\label{STOKES STOP}
 \end{equation}
 where $\epsilon$ is the desired relative accuracy and 
 \begin{equation}
 \|p\|^2= \int\hackscore{\Omega} p^2 \; dx
 \label{PRESSURE NORM}
 \end{equation}
-defines the $L^2$-norm.
-There are two approaches to solve this problem. The first approach, called the Uzawa scheme \index{Uzawa scheme} 
-eliminates the velocity $v$ from the problem. The second approach solves the equation in coupled form after the application of a preconditioner. 
-
-\subsubsection{Uzawa scheme} 
-The first eqution in~\ref{SADDLEPOINT} gives $v=A^{-1}(G-B^{*}p)$ assuming $p$ is known. This is inserted into the 
-second eqution which leads to 
+defines the $L^2$-norm. We use the Uzawa scheme \index{Uzawa scheme} to solve the problem.
+ 
+In fact the first equation in~\ref{SADDLEPOINT} gives for a known pressure
+\begin{equation}
+v=A^{-1}(G-B^{*}p)
+\label{V CALC}
+\end{equation} 
+which is inserted into the second equation leading to
 \begin{equation}
 S p =  B A^{-1} G
 \end{equation}
-with the Schur complement \index{Schur complement} $S=BA^{-1}B^{*}$. This problem can be solved iteratively using the reconditioned Conjugate Gradient Method (PCG)~\index{PCG!Preconditioned Conjugate Gradient Method} 
+with the Schur complement \index{Schur complement} $S=BA^{-1}B^{*}$. This problem can be solved iteratively
 with the preconditioner $\hat{S}$ defined as $q=\hat{S}^{-1}p$ by solving
 \begin{equation}
 \frac{1}{\eta}q = p 
 \end{equation}
-see~\cite{ELMAN} for more details. The evaluation of $w=Sp$ is done in the form
+see~\cite{ELMAN} for more details. Note that the residual for the current approximation $p$ is given as 
 \begin{equation}
-\begin{array}{rcl}
-A v & = & B^{*}p \\
-w & = & Bv \\
-\end{array}
-\label{EVAL PCG}
+r=B A^{-1} (G - B^* p) = Bv 
 \end{equation}
-The residual \index{residual}  $r=B A^{-1} G - S p$ is given as 
-\begin{equation}
-r=B A^{-1} (G - B^* p) = Bv \mbox{ with } v = A^{-1}(G-B^{*}p)
-\end{equation}
-Therefore one uses the tuple $(v,Bv)$ to represent the residual of the current pressure $p$. Notice that before the iteration is started the right hand side $B A^{-1} G$ needs to be calculated. The bilinear form $(.,.)$ used is defined as
-\begin{equation}
-(p,(v,Bv))=\int\hackscore{\Omega} p \cdot Bv \; dx 
-\end{equation}
-where $p$ is the pressure increment and $(v,Bv)$ represents an increment in the residual.
+where $v$ is given by~\ref{V CALC}. 
 
-\subsubsection{Coupled Solver}
-An alternative approach to solve the saddle point problem~\ref{SADDLEPOINT} directly using an iterative such as 
-the generalized minimal residual method (GMRES) \index{generalized minimal residual method!GMRES} with a suitable
-preconditioner. Here we use the operator 
+If one uses the generalized minimal residual method (GMRES) \index{generalized minimal residual method!GMRES}
+the method is directly applied to the preconditioned system 
 \begin{equation}
-\left[ \begin{array}{cc}
-A^{-1}     & 0 \\
-S^{-1} B A^{-1}  & -S^{-1} \\
-\end{array} \right]
-\label{SADDLEPOINT PRECODITIONER}
+\hat{S}^{-1} S p =  \hat{S}^{-1} B A^{-1} G
 \end{equation}
-where again $S$ is the Schur complement~\cite{ELMAN}. In partice we will use an approximation $\hat{S}$ for $S$. The evaluation $(w,q)$ of the iteration operator for a given $(v,p)$ is done as 
+We use the norm
 \begin{equation}
-\begin{array}{rcl}
-A w & = & Av+B^{*}p \\
-\hat{S} q & = & B(w-v) \\
-\end{array}
-\label{COUPLES SADDLEPOINT iteration}
-\end{equation}
-We use the inner product induced by the norm
+\|p\|\hackscore{GMRES} = \|\hat{S} p \|
+\end{equation} 
+Notice that for the residual $\hat{r}=\hat{S}^{-1} r$ one has
 \begin{equation}
-\|(v,p)\|^2= \int\hackscore{\Omega}  v\hackscore{i,j}  v\hackscore{i,j} + \left( \frac{p}{\eta}\right)^2\; dx
-\label{COUPLES NORM}
-\end{equation}
-In PDE form~\ref{COUPLES SADDLEPOINT iteration} takes the form
+\
+\end{equation} 
+If $p^{0}$ provides an initial guess for the pressure we use~\ref{V CALC} to get a first initial guess for the 
+velocity $v^{0}$ which we use to set an absolute tolerance $ATOL =\epsilon \|\sqrt{v^{0}\hackscore{j,k}v^{0}\hackscore{j,k}}\|$.
+The GMRES is terminated when 
 \begin{equation}
-\begin{array}{rcl}
--\left(\eta(w\hackscore{i,j}+ w\hackscore{i,j})\right)\hackscore{,j} & = & -\left(\eta(v\hackscore{i,j}+ v\hackscore{i,j})\right)\hackscore{,j}+p\hackscore{,i} \\
-\frac{1}{\eta}  q & = & - (w-v)\hackscore{i,i} \\
-\end{array}
-\label{SADDLEPOINT iteration 2}
-\end{equation}
+\|\hat{r}\|\hackscore{GMRES} \le ATOL
+\end{equation} 
+Notice that $\|\hat{r}\|\hackscore{GMRES}= \|r \| = \|Bv\|  = \|v\hackscore{k,k}\|$ so we we can expect that
+the target stopping criterion~\ref{STOKES STOP} is fullfilled. However, if $v$ is very different from the
+initial choice of $v^{0}$ the value of $ATOL$ is corrected and GMRES is restarted with a new tolerance. For time dependend problems this apprach works well as value for $p$ form a previous time step provides a good initial guess.
+
+Alternatively, as $S$ is symmetric and positive definite one can apply the preconditioned conjugate gradient method (PCG) \index{preconditioned conjugate gradient method!PCG}. PCG use the norm 
+\begin{equation}
+\|r\|\hackscore{PCG}^2 = \int\hackscore{\Omega} r \hat{S}^{-1}r \; dx = \int\hackscore{\Omega}  \eta r^2 \; dx 
+\end{equation} 
+To take the extra factor $\eta$ into consideration when checking the stopping criterion we use the following
+definition for $ATOL$:
+\begin{equation}
+ATOL = \epsilon \frac{\|\sqrt{v^{0}\hackscore{j,k}v^{0}\hackscore{j,k}}\|  }{\|v^{0}\hackscore{k,k}\|} 
+\|v^{0}\hackscore{k,k}\|\hackscore{PCG}
+\end{equation} 
+
 
 
 \subsection{Functions}
@@ -151,19 +143,19 @@ the values of \var{fixed_u_mask}. The method will try to cast the given values t
 \end{methoddesc}
 
 \begin{methoddesc}[StokesProblemCartesian]{solve}{v,p,
-\optional{max_iter=20, \optional{verbose=False, \optional{useUzawa=True}}}}
+\optional{max_iter=20, \optional{verbose=False, \optional{usePCG=True}}}}
 solves the problem and return approximations for velocity and pressure. 
 The arguments \var{v} and \var{p} define initial guess. The values of \var{v} marked
 by \var{fixed_u_mask} remain unchanged. 
-If \var{useUzawa} is set to \True 
-the Uzawa\index{Uszwa} scheme is used. Otherwise the problem is solved in coupled form. In most cases 
-the Uzawa scheme is more efficient.
+If \var{usePCG} is set to \True 
+reconditioned conjugate gradient method (PCG) \index{preconditioned conjugate gradient method!PCG}  scheme is used. Otherwise the problem is solved generalized minimal residual method (GMRES) \index{generalized minimal residual method!GMRES}. In most cases 
+the PCG scheme is more efficient.
 \var{max_iter} defines the maximum number of iteration steps. 
 If \var{verbose} is set to \True informations on the progress of of the solver are printed.
 \end{methoddesc}
 
 
-\begin{methoddesc}[StokesProblemCartesian]{setTolerance}{\optional{tolerance=1.e-8}}
+\begin{methoddesc}[StokesProblemCartesian]{setTolerance}{\optional{tolerance=1.e-4}}
 sets the tolerance in an appropriate norm relative to the right hand side. The tolerance must be non-negative and less than 1.
 \end{methoddesc}
 \begin{methoddesc}[StokesProblemCartesian]{getTolerance}{}
@@ -176,16 +168,15 @@ absolute talerance is set to 0.
 \begin{methoddesc}[StokesProblemCartesian]{getAbsoluteTolerance}{}
 sreturns the current absolute tolerance.
 \end{methoddesc}
-\begin{methoddesc}[StokesProblemCartesian]{setSubToleranceReductionFactor}{\optional{reduction=None}}
-sets the reduction factor for the tolerance used to solve the PDEs. A reduction factor 
-in the order of one will minimize compute time per iteration step but my slow down convergence or even lead to 
-divergency. On the other hand a very small value for the PDE tolerance could result in a wast of compute time.
-If \var{reduction} is set to \var{None} the sub-tolerance is solved adaptively but
-in cases a very small tolerance is set ($<10^{-6}$) it is recommended to set the
-reduction factor by hand. This may require some experiments.
+\begin{methoddesc}[StokesProblemCartesian]{setSubProblemTolerance}{\optional{rtol=None}}
+sets the tolerance to solve the involved PDEs. The subtolerance \var{rtol} should not be choosen to large 
+in order to avoid feed back of errors in the subproblem solution into the outer iteration.
+On the otherhand is choosen to small compute time is wasted.
+If \var{rtol} is set to \var{None} the sub-tolerance is set automatically depending on the 
+tolerance choosen for the oter iteration.
 \end{methoddesc}
-\begin{methoddesc}[StokesProblemCartesian]{getSubToleranceReductionFactor}{}
-return the current reduction factor for the sub-problem tolerance.
+\begin{methoddesc}[StokesProblemCartesian]{getSubProblemTolerance}{}
+return the tolerance for the involved PDEs.
 \end{methoddesc}
 
 \subsection{Example: Lit Driven Cavity}
