@@ -6,10 +6,16 @@ SVNURL="https://shake200.esscc.uq.edu.au/svn/esys13/trunk"
 NUMJs=4
 TOPDIR=str(datetime.date.today())
 ERRMAIL="j.fenwick1@uq.edu.au"
+EXECUTELOCATION="/scratch/jfenwick/AUTOTESTS"
+OUTSIDEDIR=os.getcwd()
+
+#Settings for actual tests appear below the class declarations
+
 
 def failure(msg):
     print "Terminating - Error "+str(msg)
     print "Should be sending mail to "+str(ERRMAIL)
+    sys.exit(1)
 
 def progress(msg):
     print msg
@@ -28,11 +34,11 @@ class TestConfiguration(object):
 	res=res+'MAIL_RECIPIENTS="'+ERRMAIL+'"\n'
 	res=res+"function report()\n{\n"
 	res=res+"	NOW=`date '+%Y/%m/%d %H:%M'`\n"
-	res=res+"cat <<END_MSG | mail -s \"Esys tests `date` $TESTSTATE\" $MAIL_RECIPIENTS\n"
+	res=res+"	cat > $LOGDIR/message << END_MSG\n"
 	res=res+"Sucessful configurations:\n"
 	res=res+"$SUCCESSFUL\n\n"
 	res=res+"Failed on configuration:\n"
-	res=res+"$ATTEMPTED\n\n"
+	res=res+"$ATTEMPTING\n\n"
 	res=res+"Tests ran from $START until $NOW.\n"
 	res=res+"Log files can be found in $TOP.\n"
 	res=res+"This mail was sent from $SCRIPTNAME, running as $USER on `hostname`.\n"
@@ -40,49 +46,76 @@ class TestConfiguration(object):
 	res=res+"}\n"
 	res=res+"function progress()\n{\n"
 	res=res+"  echo $1\n"
-	res=res+"  cat $1 >> $LOGFILE\n"
+	res=res+"  echo $1 >> $PROGRESSFILE\n"
 	res=res+"}\n"
 	res=res+"function failure()\n{\n  echo $1\n"
 	res=res+"  report\n"
-	res=res+"  exit 1\n}\nTOP=`pwd`\nLOGFILE=$TOP/Logs\nOLDPYTH=$PYTHONPATH\nOLDLD=$LD_LIBRARY_PATH\n"
+	res=res+"  touch $LOGDIR/Failure\n"
+	res=res+"  exit 1\n}\nTOP=`pwd`\nLOGDIR=$TOP/Logs\nPROGRESSFILE=$LOGDIR/progress\nOLDPYTH=$PYTHONPATH\nOLDLD=$LD_LIBRARY_PATH\n"
 	res=res+". /usr/share/modules/init/sh		#So the module command works\n"
 	res=res+"module load subversion-1.3.1\nmodule load escript/current\nmodule load pbs\nmodule load mayavi/gcc-4.1.2/mayavi-1.5\n"
 	res=res+"module load mplayer/gcc-4.1.2/mplayer-1.0rc2\n\n"
+	res=res+"SCRIPTNAME=$0\n"
 	return res
 
     def toString(self):
 	runcount=1
-	ref="cp -r "+self.name+"_src "+self.name+"_test"+str(runcount)+"\n" 
-	ref=ref+"cd "+self.name+"_test"+str(runcount)+"\n"
-	ref=ref+"TESTROOT=`pwd`\n"
 	for o in self.omp:
-	    for m in self.mpi:
-		cmd="bash utest.sh 'mpiexec -np"+str(m)+"' $TESTROOT/lib/pythonMPI"
-		ref=ref+"export OMP_NUM_THREADS="+str(o)+"\n"
-		ref=ref+"export PYTHONPATH=`pwd`:$OLDPYTH\n"
-		ref=ref+"export LD_LIBRARY_PATH=`pwd`/lib:$OLDLD\n"
-		ref=ref+'RUNNAME="'+self.name+' omp='+str(o)+' mpi='+str(m)+'"\n'
-		ref=ref+'ATTEMPTING=$RUNNAME'
-		ref=ref+'progress "Starting '+cmd+'"'
-		ref=ref+cmd+' || failure "'+cmd+'"\n'
-		ref=ref+'SUCCESSFUL="$SUCCESSFUL, $RUNNAME"\n'
-		ref=ref+'completed "'+cmd+'"'
-		ref=ref+'ATTEMPTING=None\n'
-		ref=ref+"export OMP_NUM_THREADS=1\n"
+	    for m in self.mpi:		
+		cmd="bash utest.sh 'mpiexec -np"+str(m)+"' $TESTROOT/lib/pythonMPI  >$TESTLOGDIR/output 2>&1"
+		res="cp -r "+self.name+"_src "+self.name+"_test"+str(runcount)+"\n" 
+		res=res+"cd "+self.name+"_test"+str(runcount)+"\n"
+		res=res+"TESTROOT=`pwd`\n"
+		res=res+"TESTLOGDIR=$LOGDIR/"+self.name+"_test"+str(runcount)+"\n"
+		res=res+"mkdir $TESTLOGDIR\n"
+		res=res+"export OMP_NUM_THREADS="+str(o)+"\n"
+		res=res+"export PYTHONPATH=`pwd`:$OLDPYTH\n"
+		res=res+"export LD_LIBRARY_PATH=`pwd`/lib:$OLDLD\n"
+		res=res+'RUNNAME="'+self.name+' omp='+str(o)+' mpi='+str(m)+'"\n'
+		res=res+'ATTEMPTING=$RUNNAME\n'
+		res=res+'progress "Starting '+cmd+'"\n'
+		res=res+cmd+' || failure "'+cmd+'"\n'
+		res=res+'SUCCESSFUL="$SUCCESSFUL, $RUNNAME"\n'
+		res=res+'progress "completed '+cmd+'"\n'
+		res=res+'ATTEMPTING=None\n'
+		res=res+"export OMP_NUM_THREADS=1\n"
+		res=res+"cd $TOP\n"
+		res=res+"rm -rf "+self.name+"_src "+self.name+"_test"+str(runcount)+"\n"
 		++runcount
 	    if len(self.mpi)==0:
-		cmd="bash utest.sh '' python"
-		ref=ref+"export OMP_NUM_THREADS="+str(o)+"\n"
-		ref=ref+"export LD_LIBRARY_PATH=`pwd`/lib:$OLDLD\n"
-		ref=ref+"export PYTHONPATH=`pwd`:$OLDPYTH\n"
-		ref=ref+'progress "Starting '+cmd+'"' 
-		ref=ref+cmd+" || failure \""+cmd+"\" \n" 
-		ref=ref+'completed "'+cmd+'"'
+		cmd="bash utest.sh '' python $TESTROOT/lib/pythonMPI  >$TESTLOGDIR/output 2>&1"
+		res="cp -r "+self.name+"_src "+self.name+"_test"+str(runcount)+"\n" 
+		res=res+"cd "+self.name+"_test"+str(runcount)+"\n"
+		res=res+"TESTROOT=`pwd`\n"
+		res=res+"TESTLOGDIR=$LOGDIR/"+self.name+"_test"+str(runcount)+"\n"
+		res=res+"mkdir $TESTLOGDIR\n"
+		res=res+"export OMP_NUM_THREADS="+str(o)+"\n"
+		res=res+"export LD_LIBRARY_PATH=`pwd`/lib:$OLDLD\n"
+		res=res+"export PYTHONPATH=`pwd`:$OLDPYTH\n"
+		res=res+'RUNNAME="'+self.name+' omp='+str(o)+' mpi=n/a"\n'
+		res=res+'ATTEMPTING=$RUNNAME\n'
+		res=res+'progress "Starting '+cmd+'"\n' 
+		res=res+cmd+" || failure \""+cmd+"\" \n"
+		res=res+'ATTEMPTING=None\n'
+		res=res+'progress "completed '+cmd+'"\n'
+		res=res+"cd $TOP\n"
+		res=res+"rm -rf "+self.name+"_src "+self.name+"_test"+str(runcount)+"\n"
 		++runcount
-	ref=ref+"\ncd $TOP\n\n"
-	return ref
+	res=res+"\ncd $TOP\n\n"
+	return res
  
+    def getFooter():
+	res="\ntouch $LOGDIR/Success\n"
+	res=res+"report"
+	return res
+
     getHeader=staticmethod(getHeader)
+    getFooter=staticmethod(getFooter)
+
+#Test settings
+testconfs=[]
+testconfs.append(TestConfiguration("OMPNoMPI","",omp=(1,8),mpi=(),binexec="",pythonexec="python"))
+testconfs.append(TestConfiguration("MPI","usempi=yes",omp=(1,),mpi=(1,8),binexec="mpiexec -np ",pythonexec="lib/pythonMPI"))
 
 
 try:
@@ -103,9 +136,7 @@ if coresult!=0:
     failure("Unable to export working copy")
     sys.exit(1)
 
-testconfs=[]
-testconfs.append(TestConfiguration("OMPNoMPI","",omp=(1,8),mpi=(),binexec="",pythonexec="python"))
-testconfs.append(TestConfiguration("MPI","usempi=yes",omp=(1,),mpi=(1,8),binexec="mpiexec -np ",pythonexec="lib/pythonMPI"))
+
 
 
 dir=os.getcwd()
@@ -122,11 +153,11 @@ for conf in testconfs:
     res=os.system(cmdstr)
     os.chdir(str(dir))
     if res!=0:
-	failure("Error running scons build failed for "+conf.name+"_src")
+	failure("running scons build failed for "+conf.name+"_src")
     
 progress("Builds complete")
-#print "Removing export copy"
-#shutil.rmtree("src",ignore_errors=True)
+progress("Removing export copy")
+shutil.rmtree("src",ignore_errors=True)
 progress("Building test file")
 
 try:
@@ -139,7 +170,29 @@ except IOError:
 	failure("Creating testfile")
 	
 progress("Building test file complete")
+progress("Copying files to exec area")
+os.chdir(OUTSIDEDIR)
+try:
+	shutil.copytree(TOPDIR,EXECUTELOCATION)
+except IOError, OSError:
+	failure("copying to work area")
+progress("Copy to exec area complete")
 
 print "Should be submitting this test now"
-raise "Test not submitted"
+
+os.chdir(EXECUTELOCATION)
+os.chdir(TOPDIR)
+try:
+	res=os.system("bash dotests.sh")
+except OSError:
+	failure("Running tests")
+
+try:
+	shutil.copytree(EXECUTELOCATION+"/Logs",OUTSIDEDIR)
+except OSError:
+	failure("Log copy failed")
+
+
+
+raise "Test not submitted - not cleaned up either"
 #Now we build the script and submit it pbs (that behaviour should be optional?)
