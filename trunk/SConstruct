@@ -469,7 +469,7 @@ if env['useumfpack']:
 
 if env['useumfpack'] and not conf.CheckCHeader('umfpack.h'): env['useumfpack'] = 0
 if env['useumfpack'] and not conf.CheckFunc('umfpack_di_symbolic'): env['useumfpack'] = 0
-# if env['useumfpack'] and not conf.CheckFunc('daxpy'): env['useumfpack'] = 0 # this does not work on shake73?
+if env['useumfpack'] and not conf.CheckFunc('daxpy'): env['useumfpack'] = 0 # this does not work on shake73?
 
 # Add UMFPACK to environment env if it was found
 if env['useumfpack']:
@@ -728,7 +728,7 @@ env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_do
 if not IS_WINDOWS_PLATFORM:
    try:
    	utest=open("utest.sh","w")
-	utest.write(grouptest.makeHeader())
+	utest.write(GroupTest.makeHeader())
 	for tests in TestGroups:
 	    utest.write(tests.makeString())
 	utest.close()
