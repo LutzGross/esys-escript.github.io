@@ -18,13 +18,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="http://www.uq.edu.au/esscc/escript-finley"
 
-def makeHeader():
-	res="#!/bin/bash\n"
-	res=res+"function failed()\n{\n  echo ""Execution failed for $@""\n  exit 1\n}\n"
-	res=res+"\nexport OLD_PYTHON=$PYTHONPATH\nBINRUNNER=$1\nPYTHONRUNNER=\"$1 $2\"\nBATCH_ROOT=`pwd`\nBUILD_DIR=$BATCH_ROOT/build/posix\n"
-	res=res+"if [ ! -d $BUILD_DIR ]\nthen\n echo Can not find build directory $BUILD_DIR\n exit 2\nfi\n" 
-	res=res+"if [ $# -lt 2 ]\nthen\n echo Usage: $0 bin_run_cmd python_run_cmd\n exit 2\nfi\n"
-	return res
+
 
 class GroupTest:
     def __init__(self, exec_cmd, evars, python_dir, working_dir, test_list):
@@ -37,6 +31,15 @@ class GroupTest:
 	
     def makeDir(self,dirname):
     	self.mkdirs.append(dirname)
+
+    def makeHeader():
+	res="#!/bin/bash\n"
+	res=res+"function failed()\n{\n  echo ""Execution failed for $@""\n  exit 1\n}\n"
+	res=res+"\nexport OLD_PYTHON=$PYTHONPATH\nBINRUNNER=$1\nPYTHONRUNNER=\"$1 $2\"\nBATCH_ROOT=`pwd`\nBUILD_DIR=$BATCH_ROOT/build/posix\n"
+	res=res+"if [ ! -d $BUILD_DIR ]\nthen\n echo Can not find build directory $BUILD_DIR\n exit 2\nfi\n" 
+	res=res+"if [ $# -lt 2 ]\nthen\n echo Usage: $0 bin_run_cmd python_run_cmd\n exit 2\nfi\n"
+	return res
+    makeHeader=staticmethod(makeHeader)
 
     def makeString(self):
 	res=""
