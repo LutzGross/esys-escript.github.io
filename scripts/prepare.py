@@ -260,19 +260,19 @@ if not os.path.exists(LOGDIR+"/Success") and  not os.path.exists(LOGDIR+"/Failur
 
 if os.path.exists(LOGDIR+"/Failure"):
 	os.system("echo 'Also: the cleanup of work areas failed. "+EXECUTELOCATION+"/"+TOPDIR+" or "+OUTSIDEDIR+"/"+TOPDIR+"' >> "+LOGDIR+"/message\n")
-	os.system("echo '"+SRCMSG+"' >> "LOGDIR+"/message\n")
+	os.system("echo '"+SRCMSG+"' >> "+LOGDIR+"/message\n")
 	mailcmd="cat "+LOGDIR+"/message | mail -s 'Esys unit tests failed' "+ERRMAIL+"\n"
 	os.system(mailcmd)
 	sys.exit(1)
 #so we must have succeeded
 
 if cleanupfailure:
-	os.system("echo '"+SRCMSG+"' >> "LOGDIR+"/message\n")
+	os.system("echo '"+SRCMSG+"' >> "+LOGDIR+"/message\n")
 	mailcmd="cat "+LOGDIR+"/message | mail -s 'Esys unit tests cleanup failed - tests succeeded' "+ERRMAIL+"\n"
 	res=os.system(mailcmd)
 	sys.exit(res)
 else:
-	os.system("echo '"+SRCMSG+"' >> "LOGDIR+"/message\n")	
+	os.system("echo '"+SRCMSG+"' >> "+LOGDIR+"/message\n")	
 	mailcmd="cat "+LOGDIR+"/message | mail -s 'Esys unit tests succeeded' "+ERRMAIL+"\n"
 	res=os.system(mailcmd)
 	sys.exit(res)
