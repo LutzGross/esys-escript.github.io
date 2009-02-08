@@ -728,7 +728,7 @@ env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_do
 if not IS_WINDOWS_PLATFORM:
    try:
    	utest=open("utest.sh","w")
-	utest.write(makeHeader())
+	utest.write(grouptest.makeHeader())
 	for tests in TestGroups:
 	    utest.write(tests.makeString())
 	utest.close()

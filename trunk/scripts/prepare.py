@@ -12,6 +12,8 @@ EXECUTELOCATION="/scratch/jfenwick/AUTOTESTS"
 OUTSIDEDIR=os.getcwd()
 TESTSLEEP=30*60
 
+SRCMSG="This message was sent by prepare.py running as "+str(os.environ['USER'])+" on "+str(os.environ['HOSTNAME']+"\n")
+
 #Settings for actual tests appear below the class declarations
 
 
@@ -20,6 +22,7 @@ def failure(msg):
     print "Should be sending mail to "+str(ERRMAIL)
     mailcmd="cat << ENDMSG |mail -s 'Esys unit tests failed to execute properly' "+ERRMAIL+"\n"
     mailcmd=mailcmd+"Error preparing for test run:\n"+msg+"\n" 
+    mailcmd=mailcmd+SRCMSG
     mailcmd=mailcmd+"ENDMSG\n"
     os.system(mailcmd)
     sys.exit(1)
@@ -48,7 +51,6 @@ class TestConfiguration(object):
 	res=res+"$ATTEMPTING\n\n"
 	res=res+"Tests ran from $START until $NOW.\n"
 	res=res+"Log files can be found in $FINALLOGDIR.\n"
-	res=res+"This mail was sent from $SCRIPTNAME, running as $USER on `hostname`.\n"
 	res=res+"END_MSG\n"
 	res=res+"}\n"
 	res=res+"function progress()\n{\n"
@@ -250,6 +252,7 @@ if not os.path.exists(LOGDIR+"/Success") and  not os.path.exists(LOGDIR+"/Failur
 	mailcmd="cat << ENDMSG |mail -s 'Esys unit tests failed to execute properly' "+ERRMAIL+"\n"
 	mailcmd=mailcmd+"For some reason no Success or failure is recorded for unit tests in "+LOGDIR+"\n" 
 	mailcmd=mailcmd+"\nAlso: the cleanup of work areas failed. "+EXECUTELOCATION+"/"+TOPDIR+" or "+OUTSIDEDIR+"/"+TOPDIR+"\n"
+	mailcmd=mailcmd+SRCMSG
 	mailcmd=mailcmd+"ENDMSG\n"
 	os.system(mailcmd)
 	sys.exit(1)
@@ -257,13 +260,20 @@ if not os.path.exists(LOGDIR+"/Success") and  not os.path.exists(LOGDIR+"/Failur
 
 if os.path.exists(LOGDIR+"/Failure"):
 	os.system("echo 'Also: the cleanup of work areas failed. "+EXECUTELOCATION+"/"+TOPDIR+" or "+OUTSIDEDIR+"/"+TOPDIR+"' >> "+LOGDIR+"/message\n")
+	os.system("echo '"+SRCMSG+"' >> "LOGDIR+"/message\n")
 	mailcmd="cat "+LOGDIR+"/message | mail -s 'Esys unit tests failed' "+ERRMAIL+"\n"
 	os.system(mailcmd)
 	sys.exit(1)
 #so we must have succeeded
 
 if cleanupfailure:
+	os.system("echo '"+SRCMSG+"' >> "LOGDIR+"/message\n")
 	mailcmd="cat "+LOGDIR+"/message | mail -s 'Esys unit tests cleanup failed - tests succeeded' "+ERRMAIL+"\n"
+	res=os.system(mailcmd)
+	sys.exit(res)
+else:
+	os.system("echo '"+SRCMSG+"' >> "LOGDIR+"/message\n")	
+	mailcmd="cat "+LOGDIR+"/message | mail -s 'Esys unit tests succeeded' "+ERRMAIL+"\n"
 	res=os.system(mailcmd)
 	sys.exit(res)
 
