@@ -4655,8 +4655,8 @@ def maximum(*args):
           if isinstance(out,escript.Data) and isinstance(a,escript.Data):
              out.copyWithMask(a,wherePositive(a-out))
           else:
-             diff=add(a-out)
-             out=add(out,wherePositive(diff),diff)
+             diff=add(a,-out)
+             out=add(out,mult(wherePositive(diff),diff))
     return out
 
 def minimum(*args):
