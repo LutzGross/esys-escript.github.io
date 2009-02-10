@@ -4653,7 +4653,16 @@ def maximum(*args):
           out=a*1.
        else:
           if isinstance(out,escript.Data) and isinstance(a,escript.Data):
-             out.copyWithMask(a,wherePositive(a-out))
+	     if out.getRank()==0 and a.getRank()>0:
+		#We need to consider the case where we have scalars and higher 
+		#ranked objects mixed. If the scalar was first it will get
+		#picked as the initial out and we have a problem,
+		#so we swap the objects
+		res=a.copy()	#Deep copy of a
+		res.copyWithMask(out,wherePositive(out-a))
+		out=res
+	     else:
+             	out.copyWithMask(a,wherePositive(a-out))
           else:
              diff=add(a,-out)
              out=add(out,mult(wherePositive(diff),diff))
@@ -4677,7 +4686,16 @@ def minimum(*args):
           out=a*1.
        else:
           if isinstance(out,escript.Data) and isinstance(a,escript.Data):
-             out.copyWithMask(a,whereNegative(a-out))
+	     if out.getRank()==0 and a.getRank()>0:
+		#We need to consider the case where we have scalars and higher 
+		#ranked objects mixed. If the scalar was first it will get
+		#picked as the initial out and we have a problem,
+		#so we swap the objects
+		res=a.copy()	#Deep copy of a
+		res.copyWithMask(out,whereNegative(out-a))
+		out=res
+	     else:
+		out.copyWithMask(a,whereNegative(a-out))
           else:
              diff=add(a,-out)
              out=add(out,mult(whereNegative(diff),diff))
