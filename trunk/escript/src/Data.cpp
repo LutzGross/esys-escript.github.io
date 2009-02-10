@@ -593,6 +593,7 @@ Data::copyWithMask(const Data& other,
 	// first, add any tags missing from other or mask
 	const DataTagged::DataMapType& olookup=optr->getTagLookup();
         const DataTagged::DataMapType& mlookup=mptr->getTagLookup();
+	const DataTagged::DataMapType& tlookup=tptr->getTagLookup();
  	DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
 	for (i=olookup.begin();i!=olookup.end();i++)
 	{
@@ -607,37 +608,53 @@ Data::copyWithMask(const Data& other,
 	// There are two possibilities: 1. all objects have the same rank. 2. other is a scalar
 	if ((selfrank==otherrank) && (otherrank==maskrank))
 	{
-		for (i=olookup.begin();i!=olookup.end();i++)
+		for (i=tlookup.begin();i!=tlookup.end();i++)
 		{
 			// get the target offset
 			DataTypes::ValueType::size_type toff=tptr->getOffsetForTag(i->first);
            		DataTypes::ValueType::size_type moff=mptr->getOffsetForTag(i->first);
 			DataTypes::ValueType::size_type ooff=optr->getOffsetForTag(i->first);
-			for (int i=0;i<getDataPointSize();++i)
+			for (int j=0;j<getDataPointSize();++j)
 			{
-				if (mvec[i+moff]>0)
+				if (mvec[j+moff]>0)
 				{
-					self[i+toff]=ovec[i+ooff];
+					self[j+toff]=ovec[j+ooff];
 				}
 			}
         	}
+		// now for the default value
+		for (int j=0;j<getDataPointSize();++j)
+		{
+			if (mvec[j+mptr->getDefaultOffset()]>0)
+			{
+				self[j+tptr->getDefaultOffset()]=ovec[j+optr->getDefaultOffset()];
+			}
+		}
 	}
 	else	// other is a scalar
 	{
-		for (i=mlookup.begin();i!=mlookup.end();i++)
+		for (i=tlookup.begin();i!=tlookup.end();i++)
 		{
 			// get the target offset
 			DataTypes::ValueType::size_type toff=tptr->getOffsetForTag(i->first);
            		DataTypes::ValueType::size_type moff=mptr->getOffsetForTag(i->first);
 			DataTypes::ValueType::size_type ooff=optr->getOffsetForTag(i->first);
-			for (int i=0;i<getDataPointSize();++i)
+			for (int j=0;j<getDataPointSize();++j)
 			{
-				if (mvec[i+moff]>0)
+				if (mvec[j+moff]>0)
 				{
-					self[i+toff]=ovec[ooff];
+					self[j+toff]=ovec[ooff];
 				}
 			}
         	}
+		// now for the default value
+		for (int j=0;j<getDataPointSize();++j)
+		{
+			if (mvec[j+mptr->getDefaultOffset()]>0)
+			{
+				self[j+tptr->getDefaultOffset()]=ovec[0];
+			}
+		}
 	}
 
 	return;			// ugly
@@ -651,14 +668,15 @@ Data::copyWithMask(const Data& other,
   	long i;
 	#else
   	size_t i;
-	#endif		
+	#endif	
+	size_t psize=getDataPointSize();	
 	#pragma omp parallel for private(i) schedule(static)
   	for (i=0;i<num_points;++i)
   	{
 		if (mvec[i]>0)
 		{
-	   	    self[i]=ovec[0];
-		}
+	   	    self[i]=ovec[i/psize];		// since this is expanded there is one scalar 
+		}					// dest point
   	} 
 	return;			// ugly!
   }
