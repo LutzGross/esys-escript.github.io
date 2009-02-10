@@ -817,7 +817,7 @@ def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
 
    return xhat,stopped
 
-def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_restart=20, verbose=False):
+def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_restart=20, verbose=False,P_R=None):
    """
    Solver for
 
@@ -881,7 +881,7 @@ def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_rest
       else:
          r2=1*r
       x2=x*1.
-      x,stopped=_GMRESm(r2, Aprod, x, bilinearform, atol2, iter_max=iter_max-iter, iter_restart=m, verbose=verbose)
+      x,stopped=_GMRESm(r2, Aprod, x, bilinearform, atol2, iter_max=iter_max-iter, iter_restart=m, verbose=verbose,P_R=P_R)
       iter+=iter_restart
       if stopped: break
       if verbose: print "GMRES: restart."
@@ -889,7 +889,7 @@ def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_rest
    if verbose: print "GMRES: tolerance has been reached."
    return x
 
-def _GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verbose=False):
+def _GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verbose=False, P_R=None):
    iter=0
 
    h=numarray.zeros((iter_restart+1,iter_restart),numarray.Float64)
@@ -910,7 +910,10 @@ def _GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verb
 
 	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
 
-	p=Aprod(v[iter])
+        if P_R!=None:
+            p=Aprod(P_R(v[iter]))
+        else:
+	    p=Aprod(v[iter])
 	v.append(p)
 
 	v_norm1=math.sqrt(bilinearform(v[iter+1], v[iter+1]))
@@ -970,8 +973,10 @@ def _GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verb
 	xhat += v[i]*y[i]
    else:
      xhat=v[0] * 0
-
-   x += xhat
+   if P_R!=None:
+      x += P_R(xhat)
+   else:
+      x += xhat
    if iter<iter_restart-1:
       stopped=True
    else:
