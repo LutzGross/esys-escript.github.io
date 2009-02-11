@@ -285,7 +285,7 @@ In~\cite{XXX} it has been shown that this problem is continuous and coercive in 
 to solve the problem is coupled form, however this approach leads in some cases to a very ill-conditioned stiffness matrix in particular in the case of a very small or large permability ($\alpha\hackscore{1} \ll 1$ or $\alpha\hackscore{0} \gg 1$)  
 
 The approach we are taking is to eliminate the velocity $u$ from the problem. Assuming that $p$ is known we have
-\begin{equation}
+\begin{equation}\label{DARCY V FORM}
 v= (I+D^*D)^{-1} (D^*f + g - Qp)
 \end{equation} 
 (notice that $(I+D^*D)$ is coercive in $W$) which is inserted into the second equation
@@ -300,39 +300,38 @@ We use the PCG \index{linear solver!PCG}\index{PCG} method to solve this. The re
 \begin{equation}
 \begin{array}{rcl}
 r & = & Q^*  \left( g -(I+D^*D)^{-1} (D^*f + g) - Qp + (I+D^*D)^{-1}Q p \right)\\
-& =&  Q^* \left( - Qp - (I+D^*D)^{-1} (D^*f + g - Qp) \right) \\
+& =&  Q^* \left( g- Qp - (I+D^*D)^{-1} (D^*f + g - Qp) \right) \\
 & =&  Q^* \left( g - Qp - v \right)
 \end{array}
 \end{equation} 
-So in a partical implementation we use the pair $(Qp,v)$ to represent the residual. This will save the
-reconstruction of the velocity $v$. In this notation the right hand side is given as 
-$(0,(I+D^*D)^{-1} (D^*f + g))$. The evaluation of the iteration operator for a given $p$ is then 
-returning $(Qp,w)$ where $w$ is the solution of 
+So in a partical implementation we use $\hat{r}=g-Qp-v$ to represent the residual. 
+The evaluation of the iteration operator for a given $p$ is then 
+returning $Qp+v$ where $v$ is the solution of 
 \begin{equation}\label{UPDATE W}
-(I+D^*D)w = Qp
+(I+D^*D)v = Qp
 \end{equation}
-We use $Q^*Q$ as a a preconditioner for the iteration operator $Q^* ( I - (I+D^*D)^{-1} ) Q$.
-
-The iteration PCG \index{linear solver!PCG}\index{PCG} is terminated if
+We use $(Q^*Q)^{-1}$ as a preconditioner for the iteration operator $Q^* ( I - (I+D^*D)^{-1} ) Q$. So the application of the preconditioner to $\hat{r}$ representing the residual is given by solving
+implemented by solving 
+\begin{equation}\label{UPDATE P}
+Q^*Q q  = Q^*\hat{r}
+\end{equation}
+The residual norm used in the PCG is given as
+\begin{equation}\label{DARCY R NORM}
+\|r\|\hackscore{PCG}^2 = \int r \cdot (Q^*Q)^{-1} r \; dx =\int \hat{r} \cdot Q (Q^*Q)^{-1} Q^* \hat{r} \; dx \approx
+\|\hat{r}\|\hackscore{0}^2
+\end{equation}
+The iteration is terminated if 
 \begin{equation}\label{DARCY STOP}
-\int r \cdot (Q^*Q)^{-1} r \; dx \le \mbox{ATOL}^2
+\|r\|\hackscore{PCG} \le \mbox{ATOL}
 \end{equation}
-where ATOL is a given absolute tolerance.
-The initial residual $r\hackscore{0}$ is 
-\begin{equation}\label{DARCY STOP 2}
-r\hackscore{0}=Q^* \left( g - v\hackscore{ref} \right) \mbox{ with } v\hackscore{ref} = (I+D^*D)^{-1} (D^*f + g)
+where we set 
+\begin{equation}\label{DARCY ATOL DEF}
+\mbox{ATOL} = \mbox{atol} + \mbox{rtol} \cdot \left(\frac{1}{\|v\|\hackscore{0}} + \frac{1}{\|Qp\|\hackscore{0}} \right)^{-1} 
 \end{equation}
-so the 
-\begin{equation}\label{DARCY NORM 0}
-\int r\hackscore0 \cdot (Q^*Q)^{-1} r\hackscore0 \; dx = \int \left( g - v\hackscore{ref} \right)  \cdot  Q  p\hackscore{ref} \; dx \mbox{ with }p\hackscore{ref} = (Q^*Q)^{-1} Q^* \left( g - v\hackscore{ref} \right)
-\end{equation}
-So we set 
-\begin{equation}\label{DARCY NORM 1}
-ATOL = atol + rtol \cdot \max(|g - v\hackscore{ref}|\hackscore{0}, |Q p\hackscore{ref} |\hackscore{0} )
-\end{equation}
-where atol and rtol a given absolute and relative tolerances, respectively. The reference flux $v\hackscore{ref}$
-and reference pressure $p\hackscore{ref}$ may be calcualated from their definition which would require to solve to
-PDEs but in a practical application estimates can be used for instance solutions from previous time steps or for simplified scenarious (e.g. constant permability). 
+where rtol is a given relative tolerance and $\mbox{atol}$ is a given absolute tolerance (typically $=0$).  
+Notice that if $Qp$ and $v$ both are zero, the pair $(0,p)$ is a solution.
+The problem is that ATOL is depending on the solution $p$ (and $v$ calculated form~\ref{DARCY V FORM}). In partcice one use the initial guess for $p$ 
+to get a first value for ATOL. If the stopping crierion is met in the PCG iteration, a new $v$ is calculated from the current pressure approximation and ATOL is recalculated. If \ref{DARCY STOP} is still fullfilled the calculation is terminated and $(v,p)$ is returned. Otherwise PCG is restarted with a new ATOL.
 
 \subsection{Functions}
 \begin{classdesc}{DarcyFlow}{domain}
@@ -353,18 +352,23 @@ The method will try to cast the given values to appropriate
 \Data class objects.
 \end{methoddesc}
 
-\begin{methoddesc}[DarcyFlow]{setTolerance}{\optional{atol=0,\optional{rtol=1e-8,\optional{p_ref=None,\optional{v_ref=None}}}}}
-sets the absolute tolerance ATOL according to~\ref{DARCY NORM 1}. If \var{p_ref} is not present $0$ is used. 
-If \var{v_ref} is not present $0$ is used. If the final result ATOL is not positive an exception is thrown. 
+\begin{methoddesc}[DarcyFlow]{setTolerance}{\optional{rtol=1e-4}}
+sets the relative tolerance \mbox{rtol} in \ref{DARCY ATOL DEF}.
 \end{methoddesc}
 
+\begin{methoddesc}[DarcyFlow]{setAbsoluteTolerance}{\optional{atol=0.}}
+sets the absolute tolerance \mbox{atol} in \ref{DARCY ATOL DEF}.
+\end{methoddesc}
 
+\begin{methoddesc}[DarcyFlow]{setSubProblemTolerance}{\optional{rtol=None}}
+sets the relative tolerance used to solve the involved PDEs. If no argument is given,
+the square of the current relative tolerance is used. The sub-problem tolerance should be choosen as large as possible to minimize the compute time. However, a too large value for the sub-problem tolerance may lead to slow convergence or even dibergence in the outer iteration. 
+\end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{solve}{u0,p0, \optional{max_iter=100, \optional{verbose=False \optional{sub_rtol=1.e-8}}}}
 solves the problem. and returns approximations for the flux $v$ and the pressure $p$. 
 \var{u0} and \var{p0} define initial guess for flux and pressure. Values marked
 by positive values \var{location_of_fixed_flux} and \var{location_of_fixed_pressure}, respectively, are kept unchanged.
-\var{sub_rtol} defines the tolerance used to solve the involved PDEs. \var{sub_rtol} needs to be choosen sufficiently small to ensure convergence but users need to keep in mind that a very small value for \var{sub_rtol} will result in a long compute time. Typically  $\var{sub_rtol}=\var{rtol}^2$ is a good choice if $\var{rtol}$ is not choosen too small.
 \end{methoddesc}
 
 

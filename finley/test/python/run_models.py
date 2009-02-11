@@ -464,11 +464,11 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u_ref,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u_ref,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
-
     def testConstF_FixedBottom_mediumK(self):
         k=1.
         mp=self.getScalarMask(include_bottom=True)
@@ -481,8 +481,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p,max_iter=100, verbose=VERBOSE ,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p,max_iter=100, verbose=VERBOSE )
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
 
@@ -498,8 +499,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -515,8 +517,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -532,8 +535,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -549,8 +553,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -566,8 +571,9 @@ class Test_Darcy(unittest.TestCase):
                     location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -583,8 +589,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -600,8 +607,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -617,8 +625,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*25.*Lsup(u_ref), "flux error too big.")  # 25 because of disc. error.
         self.failUnless(Lsup(p-p_ref)<self.TOL*25.*Lsup(p_ref), "pressure error too big.")
 
@@ -634,8 +643,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -651,8 +661,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 

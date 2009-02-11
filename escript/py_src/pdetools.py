@@ -534,7 +534,7 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
        if rhat_dot_r<0: raise NegativeNorm,"negative norm."
        if verbose: print "PCG: iteration step %s: residual norm = %e"%(iter, math.sqrt(rhat_dot_r))
    if verbose: print "PCG: tolerance reached after %s steps."%iter
-   return x,r
+   return x,r,math.sqrt(rhat_dot_r)
 
 class Defect(object):
     """
@@ -1625,7 +1625,7 @@ class HomogeneousSaddlePointProblem(object):
                  ATOL_ITER=ATOL/norm_Bv*norm2
                  if self.verbose: print "saddle point solver: tolerance for solver: %e"%ATOL_ITER
                  if usePCG:
-                       p,v0=PCG(v,self.__Aprod_PCG,p,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL_ITER, rtol=0.,iter_max=max_iter, verbose=self.verbose)
+                       p,v0,a_norm=PCG(v,self.__Aprod_PCG,p,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL_ITER, rtol=0.,iter_max=max_iter, verbose=self.verbose)
                  else:
                        p=GMRES(dp,self.__Aprod_GMRES, p, self.__inner_GMRES,atol=ATOL_ITER, rtol=0.,iter_max=max_iter, iter_restart=iter_restart, verbose=self.verbose)
          if self.verbose: print "saddle point solver: tolerance reached."
