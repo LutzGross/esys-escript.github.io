@@ -693,8 +693,8 @@ class Test_pdetools_noLumping(unittest.TestCase):
       def Ap(x):
           return matrixmultiply(A,x)
       def P_Rp(x):
-          out=zeros(size(x))
-          for i in xrange(size(b)):
+          out=zeros(size(x), Float64)
+          for i in xrange(size(x)):
             out[i]=x[i]/A[i,i]
           return out
        
