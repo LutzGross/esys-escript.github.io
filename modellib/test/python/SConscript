@@ -55,8 +55,8 @@ program = local_env.RunPyUnitTest(alltestruns)
 # Add a group of tests
 from grouptest import *   
 tgroup=GroupTest("$PYTHONRUNNER ",(("MODELLIB_TEST_DATA_ROOT","$BATCH_ROOT/modellib/test/python"),('MODELLIB_WORKDIR','$BUILD_DIR/modellib/test/python')),"$BUILD_DIR/escript/test/python:$BUILD_DIR/modellib/test/python","$BATCH_ROOT/modellib/test/python",testruns)
-tgroup.makeDir("$BUILD_DIR/test")
-tgroup.makeDir("$BUILD_DIR/test/python")
+tgroup.makeDir("$BUILD_DIR/modellib/test")
+tgroup.makeDir("$BUILD_DIR/modellib/test/python")
 TestGroups.append(tgroup)
 
 
