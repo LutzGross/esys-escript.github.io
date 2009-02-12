@@ -4650,10 +4650,22 @@ def maximum(*args):
     out=None
     for a in args:
        if out==None:
-          out=a
+          out=a*1.
        else:
-          diff=add(a,-out)
-          out=add(out,mult(wherePositive(diff),diff))
+          if isinstance(out,escript.Data) and isinstance(a,escript.Data):
+	     if out.getRank()==0 and a.getRank()>0:
+		#We need to consider the case where we have scalars and higher 
+		#ranked objects mixed. If the scalar was first it will get
+		#picked as the initial out and we have a problem,
+		#so we swap the objects
+		res=a.copy()	#Deep copy of a
+		res.copyWithMask(out,wherePositive(out-a))
+		out=res
+	     else:
+             	out.copyWithMask(a,wherePositive(a-out))
+          else:
+             diff=add(a,-out)
+             out=add(out,mult(wherePositive(diff),diff))
     return out
 
 def minimum(*args):
@@ -4671,10 +4683,22 @@ def minimum(*args):
     out=None
     for a in args:
        if out==None:
-          out=a
+          out=a*1.
        else:
-          diff=add(a,-out)
-          out=add(out,mult(whereNegative(diff),diff))
+          if isinstance(out,escript.Data) and isinstance(a,escript.Data):
+	     if out.getRank()==0 and a.getRank()>0:
+		#We need to consider the case where we have scalars and higher 
+		#ranked objects mixed. If the scalar was first it will get
+		#picked as the initial out and we have a problem,
+		#so we swap the objects
+		res=a.copy()	#Deep copy of a
+		res.copyWithMask(out,whereNegative(out-a))
+		out=res
+	     else:
+		out.copyWithMask(a,whereNegative(a-out))
+          else:
+             diff=add(a,-out)
+             out=add(out,mult(whereNegative(diff),diff))
     return out
 
 def clip(arg,minval=None,maxval=None):
@@ -5793,7 +5817,7 @@ def getClosestValue(arg,origin=0):
     @return: value in C{arg} closest to origin
     @rtype: C{numarray.NumArray} or L{Symbol}
     """
-    return numarray.array(arg.getValueOfGlobalDataPoint(*(length(arg-origin).minGlobalDataPoint())))
+    return arg.getValueOfGlobalDataPoint(*(length(arg-origin).minGlobalDataPoint()))
 
 def normalize(arg,zerolength=0):
     """

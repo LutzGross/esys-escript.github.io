@@ -542,6 +542,7 @@ Data::setToZero()
   }
 }
 
+
 void
 Data::copyWithMask(const Data& other,
                    const Data& mask)
@@ -603,14 +604,156 @@ Data::copyWithMask(const Data& other,
   {
 	throw DataException("Error - Unknown DataAbstract passed to copyWithMask.");
   }
+  unsigned int selfrank=getDataPointRank();
+  unsigned int otherrank=other2.getDataPointRank();
+  unsigned int maskrank=mask2.getDataPointRank();
+  if ((selfrank==0) && (otherrank>0 || maskrank>0))
+  {
+	// to get here we must be copying from a large object into a scalar
+	// I am not allowing this.
+	// If you are calling copyWithMask then you are considering keeping some existing values
+	// and so I'm going to assume that you don't want your data objects getting a new shape.
+	throw DataException("Attempt to copyWithMask into a scalar from an object or mask with rank>0.");
+  }
   exclusiveWrite();
   // Now we iterate over the elements
-  DataVector& self=getReady()->getVectorRW();
-  const DataVector& ovec=other2.getReady()->getVectorRO();
-  const DataVector& mvec=mask2.getReady()->getVectorRO();
-  if ((self.size()!=ovec.size()) || (self.size()!=mvec.size()))
+  DataVector& self=getReady()->getVectorRW();;
+  const DataVector& ovec=other2.getReadyPtr()->getVectorRO();
+  const DataVector& mvec=mask2.getReadyPtr()->getVectorRO();
+
+  if ((selfrank>0) && (otherrank==0) &&(maskrank==0))
   {
-	throw DataException("Error - size mismatch in arguments to copyWithMask.");
+	// Not allowing this combination.
+	// it is not clear what the rank of the target should be.
+	// Should it be filled with the scalar (rank stays the same); 
+	// or should the target object be reshaped to be a scalar as well.
+	throw DataException("Attempt to copyWithMask from scalar mask and data into non-scalar target.");
+  }
+  if ((selfrank>0) && (otherrank>0) &&(maskrank==0))
+  {
+	if (mvec[0]>0)		// copy whole object if scalar is >0
+	{
+	    copy(other);
+	}
+	return;
+  }
+  if (isTagged())		// so all objects involved will also be tagged
+  {
+	// note the !
+	if (!((getDataPointShape()==mask2.getDataPointShape()) && 
+		((other2.getDataPointShape()==mask2.getDataPointShape()) || (otherrank==0))))
+	{
+		throw DataException("copyWithMask, shape mismatch.");
+	}
+
+	// We need to consider the possibility that tags are missing or in the wrong order
+	// My guiding assumption here is: All tagged Datas are assumed to have the default value for
+	// all tags which are not explicitly defined
+
+	const DataTagged* mptr=dynamic_cast<const DataTagged*>(mask2.m_data.get());
+	const DataTagged* optr=dynamic_cast<const DataTagged*>(other2.m_data.get());
+	DataTagged* tptr=dynamic_cast<DataTagged*>(m_data.get());
+
+	// first, add any tags missing from other or mask
+	const DataTagged::DataMapType& olookup=optr->getTagLookup();
+        const DataTagged::DataMapType& mlookup=mptr->getTagLookup();
+	const DataTagged::DataMapType& tlookup=tptr->getTagLookup();
+ 	DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+	for (i=olookup.begin();i!=olookup.end();i++)
+	{
+           tptr->addTag(i->first); 
+        }
+        for (i=mlookup.begin();i!=mlookup.end();i++) {
+           tptr->addTag(i->first);
+        }
+	// now we know that *this has all the required tags but they aren't guaranteed to be in
+	// the same order
+
+	// There are two possibilities: 1. all objects have the same rank. 2. other is a scalar
+	if ((selfrank==otherrank) && (otherrank==maskrank))
+	{
+		for (i=tlookup.begin();i!=tlookup.end();i++)
+		{
+			// get the target offset
+			DataTypes::ValueType::size_type toff=tptr->getOffsetForTag(i->first);
+           		DataTypes::ValueType::size_type moff=mptr->getOffsetForTag(i->first);
+			DataTypes::ValueType::size_type ooff=optr->getOffsetForTag(i->first);
+			for (int j=0;j<getDataPointSize();++j)
+			{
+				if (mvec[j+moff]>0)
+				{
+					self[j+toff]=ovec[j+ooff];
+				}
+			}
+        	}
+		// now for the default value
+		for (int j=0;j<getDataPointSize();++j)
+		{
+			if (mvec[j+mptr->getDefaultOffset()]>0)
+			{
+				self[j+tptr->getDefaultOffset()]=ovec[j+optr->getDefaultOffset()];
+			}
+		}
+	}
+	else	// other is a scalar
+	{
+		for (i=tlookup.begin();i!=tlookup.end();i++)
+		{
+			// get the target offset
+			DataTypes::ValueType::size_type toff=tptr->getOffsetForTag(i->first);
+           		DataTypes::ValueType::size_type moff=mptr->getOffsetForTag(i->first);
+			DataTypes::ValueType::size_type ooff=optr->getOffsetForTag(i->first);
+			for (int j=0;j<getDataPointSize();++j)
+			{
+				if (mvec[j+moff]>0)
+				{
+					self[j+toff]=ovec[ooff];
+				}
+			}
+        	}
+		// now for the default value
+		for (int j=0;j<getDataPointSize();++j)
+		{
+			if (mvec[j+mptr->getDefaultOffset()]>0)
+			{
+				self[j+tptr->getDefaultOffset()]=ovec[0];
+			}
+		}
+	}
+
+	return;			// ugly
+  }
+  // mixed scalar and non-scalar operation
+  if ((selfrank>0) && (otherrank==0) && (mask2.getDataPointShape()==getDataPointShape()))
+  {
+    	size_t num_points=self.size();
+  	// OPENMP 3.0 allows unsigned loop vars.
+	#if defined(_OPENMP) && (_OPENMP < 200805)
+  	long i;
+	#else
+  	size_t i;
+	#endif	
+	size_t psize=getDataPointSize();	
+	#pragma omp parallel for private(i) schedule(static)
+  	for (i=0;i<num_points;++i)
+  	{
+		if (mvec[i]>0)
+		{
+	   	    self[i]=ovec[i/psize];		// since this is expanded there is one scalar 
+		}					// dest point
+  	} 
+	return;			// ugly!
+  }
+  // tagged data is already taken care of so we only need to worry about shapes
+  // special cases with scalars are already dealt with so all we need to worry about is shape
+  if ((getDataPointShape()!=other2.getDataPointShape()) || getDataPointShape()!=mask2.getDataPointShape())
+  {
+	ostringstream oss;
+	oss <<"Error - size mismatch in arguments to copyWithMask.";
+	oss << "\nself_shape=" << DataTypes::shapeToString(getDataPointShape());
+	oss << " other2_shape=" << DataTypes::shapeToString(other2.getDataPointShape());
+	oss << " mask2_shape=" << DataTypes::shapeToString(mask2.getDataPointShape());
+	throw DataException(oss.str());
   }
   size_t num_points=self.size();
 
@@ -629,8 +772,6 @@ Data::copyWithMask(const Data& other,
 	}
   }
 }
-
-
 
 bool
 Data::isExpanded() const

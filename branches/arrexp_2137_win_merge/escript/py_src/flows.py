@@ -34,16 +34,16 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 from escript import *
 import util
 from linearPDEs import LinearPDE, LinearPDESystem, LinearSinglePDE
-from pdetools import HomogeneousSaddlePointProblem,Projector, ArithmeticTuple, PCG, NegativeNorm
+from pdetools import HomogeneousSaddlePointProblem,Projector, ArithmeticTuple, PCG, NegativeNorm, GMRES
 
 class DarcyFlow(object):
     """
-    solves the problem 
+    solves the problem
 
     M{u_i+k_{ij}*p_{,j} = g_i}
     M{u_{i,i} = f}
 
-    where M{p} represents the pressure and M{u} the Darcy flux. M{k} represents the permeability, 
+    where M{p} represents the pressure and M{u} the Darcy flux. M{k} represents the permeability,
 
     @note: The problem is solved in a least squares formulation.
     """
@@ -64,7 +64,9 @@ class DarcyFlow(object):
         if useReduced: self.__pde_p.setReducedOrderOn()
         self.__f=Scalar(0,self.__pde_v.getFunctionSpaceForCoefficient("X"))
         self.__g=Vector(0,self.__pde_v.getFunctionSpaceForCoefficient("Y"))
-        self.__ATOL= None
+        self.setTolerance()
+        self.setAbsoluteTolerance()
+        self.setSubProblemTolerance()
 
     def setValue(self,f=None, g=None, location_of_fixed_pressure=None, location_of_fixed_flux=None, permeability=None):
         """
@@ -78,8 +80,8 @@ class DarcyFlow(object):
         @type location_of_fixed_pressure: scalar value on the domain (e.g. L{Data})
         @param location_of_fixed_flux:  mask for locations where flux is fixed.
         @type location_of_fixed_flux: vector values on the domain (e.g. L{Data})
-        @param permeability: permeability tensor. If scalar C{s} is given the tensor with 
-                             C{s} on the main diagonal is used. If vector C{v} is given the tensor with 
+        @param permeability: permeability tensor. If scalar C{s} is given the tensor with
+                             C{s} on the main diagonal is used. If vector C{v} is given the tensor with
                              C{v} on the main diagonal is used.
         @type permeability: scalar, vector or tensor values on the domain (e.g. L{Data})
 
@@ -88,14 +90,14 @@ class DarcyFlow(object):
                or the normal component of the flux (C{location_of_fixed_flux[i]>0} if direction of the normal
                is along the M{x_i} axis.
         """
-        if f !=None: 
+        if f !=None:
            f=util.interpolate(f, self.__pde_v.getFunctionSpaceForCoefficient("X"))
            if f.isEmpty():
                f=Scalar(0,self.__pde_v.getFunctionSpaceForCoefficient("X"))
            else:
                if f.getRank()>0: raise ValueError,"illegal rank of f."
            self.f=f
-        if g !=None:   
+        if g !=None:
            g=util.interpolate(g, self.__pde_p.getFunctionSpaceForCoefficient("Y"))
            if g.isEmpty():
              g=Vector(0,self.__pde_v.getFunctionSpaceForCoefficient("Y"))
@@ -121,211 +123,254 @@ class DarcyFlow(object):
            self.__permeability=perm
            self.__pde_p.setValue(A=util.transposed_tensor_mult(self.__permeability,self.__permeability))
 
-
-    def getFlux(self,p=None, fixed_flux=Data(),tol=1.e-8, show_details=False):
+    def setTolerance(self,rtol=1e-4):
         """
-        returns the flux for a given pressure C{p} where the flux is equal to C{fixed_flux}
-        on locations where C{location_of_fixed_flux} is positive (see L{setValue}). 
-        Note that C{g} and C{f} are used, see L{setValue}.
-        
-        @param p: pressure.
-        @type p: scalar value on the domain (e.g. L{Data}).
-        @param fixed_flux: flux on the locations of the domain marked be C{location_of_fixed_flux}.
-        @type fixed_flux: vector values on the domain (e.g. L{Data}).
-        @param tol: relative tolerance to be used.
-        @type tol: positive C{float}.
-        @return: flux 
-        @rtype: L{Data}
-        @note: the method uses the least squares solution M{u=(I+D^*D)^{-1}(D^*f-g-Qp)} where M{D} is the M{div} operator and M{(Qp)_i=k_{ij}p_{,j}}
-               for the permeability M{k_{ij}}
+        sets the relative tolerance C{rtol} used to terminate the solution process. The iteration is terminated if
+
+        M{|g-v-Qp| <= atol + rtol * min( max( |g-v|, |Qp| ), max( |v|, |g-Qp| ) ) }
+
+        where C{atol} is an absolut tolerance (see L{setAbsoluteTolerance}), M{|f|^2 = integrate(length(f)^2)} and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}.
+
+        @param rtol: relative tolerance for the pressure
+        @type rtol: non-negative C{float}
         """
-        self.__pde_v.setTolerance(tol)
-        g=self.__g
-        f=self.__f
-        self.__pde_v.setValue(X=f*util.kronecker(self.domain), r=fixed_flux)
-        if p == None:
-           self.__pde_v.setValue(Y=g)
-        else:
-           self.__pde_v.setValue(Y=g-util.tensor_mult(self.__permeability,util.grad(p)))
-        return self.__pde_v.getSolution(verbose=show_details)
-
-    def getPressure(self,v=None, fixed_pressure=Data(),tol=1.e-8, show_details=False):
+        if rtol<0:
+            raise ValueError,"Relative tolerance needs to be non-negative."
+        self.__rtol=rtol
+    def getTolerance(self):
         """
-        returns the pressure for a given flux C{v} where the pressure is equal to C{fixed_pressure}
-        on locations where C{location_of_fixed_pressure} is positive (see L{setValue}). 
-        Note that C{g} is used, see L{setValue}.
-        
-        @param v: flux.
-        @type v: vector-valued on the domain (e.g. L{Data}).
-        @param fixed_pressure: pressure on the locations of the domain marked be C{location_of_fixed_pressure}.
-        @type fixed_pressure: vector values on the domain (e.g. L{Data}).
-        @param tol: relative tolerance to be used.
-        @type tol: positive C{float}.
-        @return: pressure 
-        @rtype: L{Data}
-        @note: the method uses the least squares solution M{p=(Q^*Q)^{-1}Q^*(g-u)} where and M{(Qp)_i=k_{ij}p_{,j}}
-               for the permeability M{k_{ij}}
+        returns the relative tolerance
+
+        @return: current relative tolerance
+        @rtype: C{float}
         """
-        self.__pde_v.setTolerance(tol)
-        g=self.__g
-        self.__pde_p.setValue(r=fixed_pressure)
-        if v == None:
-           self.__pde_p.setValue(X=util.transposed_tensor_mult(self.__permeability,g-v))
-        else:
-           self.__pde_p.setValue(X=util.transposed_tensor_mult(self.__permeability,g))
-        return self.__pde_p.getSolution(verbose=show_details)
+        return self.__rtol
 
-    def setTolerance(self,atol=0,rtol=1e-8,p_ref=None,v_ref=None):
+    def setAbsoluteTolerance(self,atol=0.):
         """
-        set the tolerance C{ATOL} used to terminate the solution process. It is used
+        sets the absolute tolerance C{atol} used to terminate the solution process. The iteration is terminated if
 
-        M{ATOL = atol + rtol * max( |g-v_ref|, |Qp_ref| )}
+        M{|g-v-Qp| <= atol + rtol * min( max( |g-v|, |Qp| ), max( |v|, |g-Qp| ) ) }
 
-        where M{|f|^2 = integrate(length(f)^2)} and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}. If C{v_ref} or C{p_ref} is not present zero is assumed.
-
-        The iteration is terminated if for the current approximation C{p}, flux C{v=(I+D^*D)^{-1}(D^*f-g-Qp)} and their residual
-
-        M{r=Q^*(g-Qp-v)}
-
-        the condition 
-
-        M{<(Q^*Q)^{-1} r,r> <= ATOL} 
-
-        holds. M{D} is the M{div} operator and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}
+        where C{rtol} is an absolut tolerance (see L{setTolerance}), M{|f|^2 = integrate(length(f)^2)} and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}.
 
         @param atol: absolute tolerance for the pressure
         @type atol: non-negative C{float}
-        @param rtol: relative tolerance for the pressure
-        @type rtol: non-negative C{float}
-        @param p_ref: reference pressure. If not present zero is used. You may use physical arguments to set a resonable value for C{p_ref}, use the 
-        L{getPressure} method or use  the value from a previous time step.
-        @type p_ref: scalar value on the domain (e.g. L{Data}).
-        @param v_ref: reference velocity.  If not present zero is used. You may use physical arguments to set a resonable value for C{v_ref}, use the 
-        L{getFlux} method or use  the value from a previous time step.
-        @type v_ref: vector-valued on the domain (e.g. L{Data}).
-        @return: used absolute tolerance.
-        @rtype: positive C{float}
         """
-        g=self.__g
-        if not v_ref == None:
-           f1=util.integrate(util.length(util.interpolate(g-v_ref,Function(self.domain)))**2)
-        else:
-           f1=util.integrate(util.length(util.interpolate(g))**2)
-        if not p_ref == None:
-           f2=util.integrate(util.length(util.tensor_mult(self.__permeability,util.grad(p_ref)))**2)
-        else:
-           f2=0
-        self.__ATOL= atol + rtol * util.sqrt(max(f1,f2))
-        if self.__ATOL<=0:
-           raise ValueError,"Positive tolerance (=%e) is expected."%self.__ATOL
-        return self.__ATOL
-        
-    def getTolerance(self):
-        """
-        returns the current tolerance.
-   
-        @return: used absolute tolerance.
-        @rtype: positive C{float}
-        """
-        if self.__ATOL==None:
-           raise ValueError,"no tolerance is defined."
-        return self.__ATOL
+        if atol<0:
+            raise ValueError,"Absolute tolerance needs to be non-negative."
+        self.__atol=atol
+    def getAbsoluteTolerance(self):
+       """
+       returns the absolute tolerance 
+       
+       @return: current absolute tolerance
+       @rtype: C{float}
+       """
+       return self.__atol
 
-    def solve(self,u0,p0, max_iter=100, verbose=False, show_details=False, sub_rtol=1.e-8):
-         """ 
+    def setSubProblemTolerance(self,rtol=None):
+         """
+         Sets the relative tolerance to solve the subproblem(s). If C{rtol} is not present
+         C{self.getTolerance()**2} is used.
+
+         @param rtol: relative tolerence
+         @type rtol: positive C{float}
+         """
+         if rtol == None:
+              if self.getTolerance()<=0.:
+                  raise ValueError,"A positive relative tolerance must be set."
+              self.__sub_tol=max(util.EPSILON**(0.75),self.getTolerance()**2)
+         else:
+             if rtol<=0:
+                 raise ValueError,"sub-problem tolerance must be positive."
+             self.__sub_tol=max(util.EPSILON**(0.75),rtol)
+
+    def getSubProblemTolerance(self):
+         """
+         Returns the subproblem reduction factor.
+
+         @return: subproblem reduction factor
+         @rtype: C{float}
+         """
+         return self.__sub_tol
+
+    def solve(self,u0,p0, max_iter=100, verbose=False, show_details=False, max_num_corrections=10):
+         """
          solves the problem.
- 
+
          The iteration is terminated if the residual norm is less then self.getTolerance().
 
          @param u0: initial guess for the flux. At locations in the domain marked by C{location_of_fixed_flux} the value of C{u0} is kept unchanged.
          @type u0: vector value on the domain (e.g. L{Data}).
          @param p0: initial guess for the pressure. At locations in the domain marked by C{location_of_fixed_pressure} the value of C{p0} is kept unchanged.
          @type p0: scalar value on the domain (e.g. L{Data}).
-         @param sub_rtol: tolerance to be used in the sub iteration. It is recommended that M{sub_rtol<rtol*5.e-3}
-         @type sub_rtol: positive-negative C{float}
          @param verbose: if set some information on iteration progress are printed
          @type verbose: C{bool}
          @param show_details:  if set information on the subiteration process are printed.
          @type show_details: C{bool}
          @return: flux and pressure
          @rtype: C{tuple} of L{Data}.
- 
+
          @note: The problem is solved as a least squares form
 
          M{(I+D^*D)u+Qp=D^*f+g}
          M{Q^*u+Q^*Qp=Q^*g}
 
-         where M{D} is the M{div} operator and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}. 
-         We eliminate the flux form the problem by setting 
+         where M{D} is the M{div} operator and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}.
+         We eliminate the flux form the problem by setting
 
          M{u=(I+D^*D)^{-1}(D^*f-g-Qp)} with u=u0 on location_of_fixed_flux
 
          form the first equation. Inserted into the second equation we get
 
          M{Q^*(I-(I+D^*D)^{-1})Qp= Q^*(g-(I+D^*D)^{-1}(D^*f+g))} with p=p0  on location_of_fixed_pressure
-         
-         which is solved using the PCG method (precondition is M{Q^*Q}). In each iteration step 
+
+         which is solved using the PCG method (precondition is M{Q^*Q}). In each iteration step
          PDEs with operator M{I+D^*D} and with M{Q^*Q} needs to be solved using a sub iteration scheme.
          """
          self.verbose=verbose
          self.show_details= show_details and self.verbose
-         self.__pde_v.setTolerance(sub_rtol) 
-         self.__pde_p.setTolerance(sub_rtol)
-         ATOL=self.getTolerance()
-         if self.verbose: print "DarcyFlux: absolute tolerance = %e"%ATOL
-         #########################################################################################################################
-         # 
-         #   we solve:
-         #  
-         #      Q^*(I-(I+D^*D)^{-1})Q dp =  Q^* (g-u0-Qp0 - (I+D^*D)^{-1} ( D^*(f-Du0)+g-u0-Qp0) ) 
-         #
-         #   residual is 
-         #
-         #    r=  Q^* (g-u0-Qp0 - (I+D^*D)^{-1} ( D^*(f-Du0)+g-u0-Qp0) - Q dp +(I+D^*D)^{-1})Q dp ) = Q^* (g - Qp - v)
-         #
-         #        with v = (I+D^*D)^{-1} (D^*f+g-Qp) including BC 
-         #
-         #    we use (g - Qp, v) to represent the residual. not that 
-         #
-         #    dr(dp)=( -Q(dp), dv) with dv = - (I+D^*D)^{-1} Q(dp)
-         #
-         #   while the initial residual is 
-         #
-         #      r0=( g - Qp0, v00) with v00=(I+D^*D)^{-1} (D^*f+g-Qp0) including BC
-         #   
-         d0=self.__g-util.tensor_mult(self.__permeability,util.grad(p0))
-         self.__pde_v.setValue(Y=d0, X=self.__f*util.kronecker(self.domain), r=u0)
-         v00=self.__pde_v.getSolution(verbose=show_details)
-         if self.verbose: print "DarcyFlux: range of initial flux = ",util.inf(v00), util.sup(v00)
-         self.__pde_v.setValue(r=Data())
-         # start CG
-         r=ArithmeticTuple(d0, v00)
-         p,r=PCG(r,self.__Aprod_PCG,p0,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL, rtol=0.,iter_max=max_iter, verbose=self.verbose)
-         return r[1],p
+         rtol=self.getTolerance()
+         atol=self.getAbsoluteTolerance()
+         if self.verbose: print "DarcyFlux: initial sub tolerance = %e"%self.getSubProblemTolerance()
 
-    def __Aprod_PCG(self,dp):
+         num_corrections=0
+         converged=False
+         p=p0
+         norm_r=None
+         while not converged:
+               v=self.getFlux(p, fixed_flux=u0, show_details=self.show_details)
+               Qp=self.__Q(p)
+               norm_v=self.__L2(v)
+               norm_Qp=self.__L2(Qp)
+               if norm_v == 0.: 
+                  if norm_Qp == 0.: 
+                     return v,p
+                  else:
+                    fac=norm_Qp
+               else:
+                  if norm_Qp == 0.: 
+                    fac=norm_v
+                  else:
+                    fac=2./(1./norm_v+1./norm_Qp)
+               ATOL=(atol+rtol*fac)
+               if self.verbose: 
+                    print "DarcyFlux: L2 norm of v = %e."%norm_v
+                    print "DarcyFlux: L2 norm of k.grad(p) = %e."%norm_Qp
+                    print "DarcyFlux: absolute tolerance ATOL = %e."%ATOL
+               if norm_r == None or norm_r>ATOL:
+                   if num_corrections>max_num_corrections:
+                         raise ValueError,"maximum number of correction steps reached."
+                   p,r, norm_r=PCG(self.__g-util.interpolate(v,Function(self.domain))-Qp,self.__Aprod,p,self.__Msolve_PCG,self.__inner_PCG,atol=0.1*ATOL, rtol=0.,iter_max=max_iter, verbose=self.verbose)
+                   num_corrections+=1
+               else: 
+                   converged=True
+         return v,p 
+#
+#               
+#               r_hat=g-util.interpolate(v,Function(self.domain))-Qp
+#               #===========================================================================
+#               norm_r_hat=self.__L2(r_hat)
+#               norm_v=self.__L2(v)
+#               norm_g=self.__L2(g)
+#               norm_gv=self.__L2(g-v)
+#               norm_Qp=self.__L2(Qp)
+#               norm_gQp=self.__L2(g-Qp)
+#               fac=min(max(norm_v,norm_gQp),max(norm_Qp,norm_gv))
+#               fac=min(norm_v,norm_Qp,norm_gv)
+#               norm_r_hat_PCG=util.sqrt(self.__inner_PCG(self.__Msolve_PCG(r_hat),r_hat))
+#               print "norm_r_hat = ",norm_r_hat,norm_r_hat_PCG, norm_r_hat_PCG/norm_r_hat
+#               if r!=None: 
+#                   print "diff = ",self.__L2(r-r_hat)/norm_r_hat
+#                   sub_tol=min(rtol/self.__L2(r-r_hat)*norm_r_hat,1.)*self.getSubProblemTolerance()
+#                   self.setSubProblemTolerance(sub_tol)
+#                   print "subtol_new=",self.getSubProblemTolerance()
+#               print "norm_v = ",norm_v
+#               print "norm_gv = ",norm_gv
+#               print "norm_Qp = ",norm_Qp
+#               print "norm_gQp = ",norm_gQp
+#               print "norm_g = ",norm_g
+#               print "max(norm_v,norm_gQp)=",max(norm_v,norm_gQp)
+#               print "max(norm_Qp,norm_gv)=",max(norm_Qp,norm_gv)
+#               if fac == 0:
+#                   if self.verbose: print "DarcyFlux: trivial case!"
+#                   return v,p
+#               #===============================================================================
+#               # norm_v=util.sqrt(self.__inner_PCG(self.__Msolve_PCG(v),v))
+#               # norm_Qp=self.__L2(Qp)
+#               norm_r_hat=util.sqrt(self.__inner_PCG(self.__Msolve_PCG(r_hat),r_hat))
+#               # print "**** norm_v, norm_Qp :",norm_v,norm_Qp 
+#
+#               ATOL=(atol+rtol*2./(1./norm_v+1./norm_Qp))
+#               if self.verbose:
+#                   print "DarcyFlux: residual = %e"%norm_r_hat
+#                   print "DarcyFlux: absolute tolerance ATOL = %e."%ATOL
+#               if norm_r_hat <= ATOL:
+#                   print "DarcyFlux: iteration finalized."
+#                   converged=True
+#               else:
+#                   # p=GMRES(r_hat,self.__Aprod, p, self.__inner_GMRES, atol=ATOL, rtol=0., iter_max=max_iter, iter_restart=20, verbose=self.verbose,P_R=self.__Msolve_PCG)
+#                   # p,r=PCG(r_hat,self.__Aprod,p,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL*min(0.1,norm_r_hat_PCG/norm_r_hat), rtol=0.,iter_max=max_iter, verbose=self.verbose)
+#                   p,r, norm_r=PCG(r_hat,self.__Aprod,p,self.__Msolve_PCG,self.__inner_PCG,atol=0.1*ATOL, rtol=0.,iter_max=max_iter, verbose=self.verbose)
+#               print "norm_r =",norm_r
+#         return v,p
+    def __L2(self,v):
+         return util.sqrt(util.integrate(util.length(util.interpolate(v,Function(self.domain)))**2))
+
+    def __Q(self,p):
+          return util.tensor_mult(self.__permeability,util.grad(p))
+
+    def __Aprod(self,dp):
+          self.__pde_v.setTolerance(self.getSubProblemTolerance())
           if self.show_details: print "DarcyFlux: Applying operator"
-          #  -dr(dp) = (Qdp,du) where du = (I+D^*D)^{-1} (Qdp)
-          mQdp=util.tensor_mult(self.__permeability,util.grad(dp))
-          self.__pde_v.setValue(Y=mQdp,X=Data(), r=Data())
+          Qdp=self.__Q(dp)
+          self.__pde_v.setValue(Y=-Qdp,X=Data(), r=Data())
           du=self.__pde_v.getSolution(verbose=self.show_details)
-          return ArithmeticTuple(mQdp,du)
-
+          return Qdp+du
+    def __inner_GMRES(self,r,s):
+         return util.integrate(util.inner(r,s))
+ 
     def __inner_PCG(self,p,r):
-         a=util.tensor_mult(self.__permeability,util.grad(p))
-         f0=util.integrate(util.inner(a,r[0]))
-         f1=util.integrate(util.inner(a,r[1]))
-         # print "__inner_PCG:",f0,f1,"->",f0-f1
-         return f0-f1
+         return util.integrate(util.inner(self.__Q(p), r))
 
     def __Msolve_PCG(self,r):
+          self.__pde_p.setTolerance(self.getSubProblemTolerance())
           if self.show_details: print "DarcyFlux: Applying preconditioner"
-          self.__pde_p.setValue(X=util.transposed_tensor_mult(self.__permeability,r[0]-r[1]), r=Data())
+          self.__pde_p.setValue(X=util.transposed_tensor_mult(self.__permeability,r), Y=Data(), r=Data())
           return self.__pde_p.getSolution(verbose=self.show_details)
 
+
+    def getFlux(self,p=None, fixed_flux=Data(), show_details=False):
+        """
+        returns the flux for a given pressure C{p} where the flux is equal to C{fixed_flux}
+        on locations where C{location_of_fixed_flux} is positive (see L{setValue}).
+        Note that C{g} and C{f} are used, see L{setValue}.
+
+        @param p: pressure.
+        @type p: scalar value on the domain (e.g. L{Data}).
+        @param fixed_flux: flux on the locations of the domain marked be C{location_of_fixed_flux}.
+        @type fixed_flux: vector values on the domain (e.g. L{Data}).
+        @param tol: relative tolerance to be used.
+        @type tol: positive C{float}.
+        @return: flux
+        @rtype: L{Data}
+        @note: the method uses the least squares solution M{u=(I+D^*D)^{-1}(D^*f-g-Qp)} where M{D} is the M{div} operator and M{(Qp)_i=k_{ij}p_{,j}}
+               for the permeability M{k_{ij}}
+        """
+        self.__pde_v.setTolerance(self.getSubProblemTolerance())
+        g=self.__g
+        f=self.__f
+        self.__pde_v.setValue(X=f*util.kronecker(self.domain), r=fixed_flux)
+        if p == None:
+           self.__pde_v.setValue(Y=g)
+        else:
+           self.__pde_v.setValue(Y=g-self.__Q(p))
+        return self.__pde_v.getSolution(verbose=show_details)
+
 class StokesProblemCartesian(HomogeneousSaddlePointProblem):
-      """
-      solves 
+     """
+     solves
 
           -(eta*(u_{i,j}+u_{j,i}))_j + p_i = f_i-stress_{ij,j}
                 u_{i,i}=0
@@ -333,16 +378,16 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
           u=0 where  fixed_u_mask>0
           eta*(u_{i,j}+u_{j,i})*n_j-p*n_i=surface_stress +stress_{ij}n_j
 
-      if surface_stress is not given 0 is assumed. 
+     if surface_stress is not given 0 is assumed.
 
-      typical usage:
+     typical usage:
 
             sp=StokesProblemCartesian(domain)
             sp.setTolerance()
             sp.initialize(...)
             v,p=sp.solve(v0,p0)
-      """
-      def __init__(self,domain,**kwargs):
+     """
+     def __init__(self,domain,**kwargs):
          """
          initialize the Stokes Problem
 
@@ -357,18 +402,13 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          self.__pde_u.setSymmetryOn()
          # self.__pde_u.setSolverMethod(self.__pde_u.DIRECT)
          # self.__pde_u.setSolverMethod(preconditioner=LinearPDE.RILU)
-            
+
          self.__pde_prec=LinearPDE(domain)
          self.__pde_prec.setReducedOrderOn()
          # self.__pde_prec.setSolverMethod(self.__pde_prec.LUMPING)
          self.__pde_prec.setSymmetryOn()
 
-         self.__pde_proj=LinearPDE(domain)
-         self.__pde_proj.setReducedOrderOn()
-         self.__pde_proj.setSymmetryOn()
-         self.__pde_proj.setValue(D=1.)
-
-      def initialize(self,f=Data(),fixed_u_mask=Data(),eta=1,surface_stress=Data(),stress=Data()):
+     def initialize(self,f=Data(),fixed_u_mask=Data(),eta=1,surface_stress=Data(),stress=Data()):
         """
         assigns values to the model parameters
 
@@ -383,89 +423,107 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
         @param stress: initial stress
 	@type stress: L{Tensor} object on L{FunctionSpace} L{Function} or similar
         @note: All values needs to be set.
- 
+
         """
         self.eta=eta
         A =self.__pde_u.createCoefficient("A")
 	self.__pde_u.setValue(A=Data())
         for i in range(self.domain.getDim()):
 		for j in range(self.domain.getDim()):
-			A[i,j,j,i] += 1. 
+			A[i,j,j,i] += 1.
 			A[i,j,i,j] += 1.
-	self.__pde_prec.setValue(D=1/self.eta) 
-        self.__pde_u.setValue(A=A*self.eta,q=fixed_u_mask,Y=f,y=surface_stress)
+	self.__pde_prec.setValue(D=1/self.eta)
+        self.__pde_u.setValue(A=A*self.eta,q=fixed_u_mask)
+        self.__f=f
+        self.__surface_stress=surface_stress
         self.__stress=stress
 
-      def B(self,v):
-        """
-        returns div(v)
-        @rtype: equal to the type of p
-
-        @note: boundary conditions on p should be zero!
-        """
-        if self.show_details: print "apply divergence:"
-        self.__pde_proj.setValue(Y=-util.div(v))
-        self.__pde_proj.setTolerance(self.getSubProblemTolerance())
-        return self.__pde_proj.getSolution(verbose=self.show_details)
-
-      def inner_pBv(self,p,Bv):
+     def inner_pBv(self,p,v):
          """
-         returns inner product of element p and Bv  (overwrite)
-         
-         @type p: equal to the type of p
-         @type Bv: equal to the type of result of operator B
+         returns inner product of element p and div(v)
+
+         @param p: a pressure increment
+         @param v: a residual
+         @return: inner product of element p and div(v)
          @rtype: C{float}
-
-         @rtype: equal to the type of p
          """
-         s0=util.interpolate(p,Function(self.domain))
-         s1=util.interpolate(Bv,Function(self.domain))
-         return util.integrate(s0*s1)
+         return util.integrate(-p*util.div(v))
 
-      def inner_p(self,p0,p1):
+     def inner_p(self,p0,p1):
          """
-         returns inner product of element p0 and p1  (overwrite)
-         
-         @type p0: equal to the type of p
-         @type p1: equal to the type of p
+         Returns inner product of p0 and p1
+
+         @param p0: a pressure
+         @param p1: a pressure
+         @return: inner product of p0 and p1
          @rtype: C{float}
-
-         @rtype: equal to the type of p
          """
          s0=util.interpolate(p0/self.eta,Function(self.domain))
          s1=util.interpolate(p1/self.eta,Function(self.domain))
          return util.integrate(s0*s1)
 
-      def inner_v(self,v0,v1):
+     def norm_v(self,v):
          """
-         returns inner product of two element v0 and v1  (overwrite)
-         
-         @type v0: equal to the type of v
-         @type v1: equal to the type of v
-         @rtype: C{float}
+         returns the norm of v
 
-         @rtype: equal to the type of v
+         @param v: a velovity
+         @return: norm of v
+         @rtype: non-negative C{float}
          """
-	 gv0=util.grad(v0)
-	 gv1=util.grad(v1)
-         return util.integrate(util.inner(gv0,gv1))
+         return util.sqrt(util.integrate(util.length(util.grad(v))))
 
-      def solve_A(self,u,p):
+     def getV(self, p, v0):
          """
-         solves Av=f-Au-B^*p (v=0 on fixed_u_mask)
+         return the value for v for a given p (overwrite)
+
+         @param p: a pressure
+         @param v0: a initial guess for the value v to return.
+         @return: v given as M{v= A^{-1} (f-B^*p)}
          """
-         if self.show_details: print "solve for velocity:"
          self.__pde_u.setTolerance(self.getSubProblemTolerance())
+         self.__pde_u.setValue(Y=self.__f, y=self.__surface_stress, r=v0)
          if self.__stress.isEmpty():
-            self.__pde_u.setValue(X=-2*self.eta*util.symmetric(util.grad(u))+p*util.kronecker(self.domain))
+            self.__pde_u.setValue(X=p*util.kronecker(self.domain))
          else:
-            self.__pde_u.setValue(X=self.__stress-2*self.eta*util.symmetric(util.grad(u))+p*util.kronecker(self.domain))
+            self.__pde_u.setValue(X=self.__stress+p*util.kronecker(self.domain))
          out=self.__pde_u.getSolution(verbose=self.show_details)
          return  out
 
-      def solve_prec(self,p):
-         if self.show_details: print "apply preconditioner:"
+
+         raise NotImplementedError,"no v calculation implemented."
+
+
+     def norm_Bv(self,v):
+        """
+        Returns Bv (overwrite).
+
+        @rtype: equal to the type of p
+        @note: boundary conditions on p should be zero!
+        """
+        return util.sqrt(util.integrate(util.div(v)**2))
+
+     def solve_AinvBt(self,p):
+         """
+         Solves M{Av=B^*p} with accuracy L{self.getSubProblemTolerance()}
+
+         @param p: a pressure increment
+         @return: the solution of M{Av=B^*p}
+         @note: boundary conditions on v should be zero!
+         """
+         self.__pde_u.setTolerance(self.getSubProblemTolerance())
+         self.__pde_u.setValue(Y=Data(), y=Data(), r=Data(),X=-p*util.kronecker(self.domain))
+         out=self.__pde_u.getSolution(verbose=self.show_details)
+         return  out
+
+     def solve_precB(self,v):
+         """
+         applies preconditioner for for M{BA^{-1}B^*} to M{Bv}
+         with accuracy L{self.getSubProblemTolerance()} (overwrite).
+
+         @param v: velocity increment
+         @return: M{p=P(Bv)} where M{P^{-1}} is an approximation of M{BA^{-1}B^*}
+         @note: boundary conditions on p are zero.
+         """
+         self.__pde_prec.setValue(Y=-util.div(v))
          self.__pde_prec.setTolerance(self.getSubProblemTolerance())
-         self.__pde_prec.setValue(Y=p)
-         q=self.__pde_prec.getSolution(verbose=self.show_details)
-         return q
+         return self.__pde_prec.getSolution(verbose=self.show_details)

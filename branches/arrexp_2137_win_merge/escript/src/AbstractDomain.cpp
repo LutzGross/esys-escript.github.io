@@ -62,6 +62,7 @@ int AbstractDomain::getMPIRank() const
 }
 void AbstractDomain::MPIBarrier() const
 {
+   throwStandardException("MPIBarrier");
    return;
 }
 bool AbstractDomain::onMasterProcessor() const

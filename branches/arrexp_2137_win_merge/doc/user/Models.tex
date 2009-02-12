@@ -61,77 +61,69 @@ with sufficient accuracy we check for
 \begin{equation}
 \|v\hackscore{k,k}\| \hackscore \le  \epsilon
 \|\sqrt{v\hackscore{j,k}v\hackscore{j,k}}\| 
+\label{STOKES STOP}
 \end{equation}
 where $\epsilon$ is the desired relative accuracy and 
 \begin{equation}
 \|p\|^2= \int\hackscore{\Omega} p^2 \; dx
 \label{PRESSURE NORM}
 \end{equation}
-defines the $L^2$-norm.
-There are two approaches to solve this problem. The first approach, called the Uzawa scheme \index{Uzawa scheme} 
-eliminates the velocity $v$ from the problem. The second approach solves the equation in coupled form after the application of a preconditioner. 
-
-\subsubsection{Uzawa scheme} 
-The first eqution in~\ref{SADDLEPOINT} gives $v=A^{-1}(G-B^{*}p)$ assuming $p$ is known. This is inserted into the 
-second eqution which leads to 
+defines the $L^2$-norm. We use the Uzawa scheme \index{Uzawa scheme} to solve the problem.
+ 
+In fact the first equation in~\ref{SADDLEPOINT} gives for a known pressure
+\begin{equation}
+v=A^{-1}(G-B^{*}p)
+\label{V CALC}
+\end{equation} 
+which is inserted into the second equation leading to
 \begin{equation}
 S p =  B A^{-1} G
 \end{equation}
-with the Schur complement \index{Schur complement} $S=BA^{-1}B^{*}$. This problem can be solved iteratively using the reconditioned Conjugate Gradient Method (PCG)~\index{PCG!Preconditioned Conjugate Gradient Method} 
+with the Schur complement \index{Schur complement} $S=BA^{-1}B^{*}$. This problem can be solved iteratively
 with the preconditioner $\hat{S}$ defined as $q=\hat{S}^{-1}p$ by solving
 \begin{equation}
 \frac{1}{\eta}q = p 
 \end{equation}
-see~\cite{ELMAN} for more details. The evaluation of $w=Sp$ is done in the form
+see~\cite{ELMAN} for more details. Note that the residual for the current approximation $p$ is given as 
 \begin{equation}
-\begin{array}{rcl}
-A v & = & B^{*}p \\
-w & = & Bv \\
-\end{array}
-\label{EVAL PCG}
+r=B A^{-1} (G - B^* p) = Bv 
 \end{equation}
-The residual \index{residual}  $r=B A^{-1} G - S p$ is given as 
-\begin{equation}
-r=B A^{-1} (G - B^* p) = Bv \mbox{ with } v = A^{-1}(G-B^{*}p)
-\end{equation}
-Therefore one uses the tuple $(v,Bv)$ to represent the residual of the current pressure $p$. Notice that before the iteration is started the right hand side $B A^{-1} G$ needs to be calculated. The bilinear form $(.,.)$ used is defined as
-\begin{equation}
-(p,(v,Bv))=\int\hackscore{\Omega} p \cdot Bv \; dx 
-\end{equation}
-where $p$ is the pressure increment and $(v,Bv)$ represents an increment in the residual.
+where $v$ is given by~\ref{V CALC}. 
 
-\subsubsection{Coupled Solver}
-An alternative approach to solve the saddle point problem~\ref{SADDLEPOINT} directly using an iterative such as 
-the generalized minimal residual method (GMRES) \index{generalized minimal residual method!GMRES} with a suitable
-preconditioner. Here we use the operator 
+If one uses the generalized minimal residual method (GMRES) \index{generalized minimal residual method!GMRES}
+the method is directly applied to the preconditioned system 
 \begin{equation}
-\left[ \begin{array}{cc}
-A^{-1}     & 0 \\
-S^{-1} B A^{-1}  & -S^{-1} \\
-\end{array} \right]
-\label{SADDLEPOINT PRECODITIONER}
+\hat{S}^{-1} S p =  \hat{S}^{-1} B A^{-1} G
 \end{equation}
-where again $S$ is the Schur complement~\cite{ELMAN}. In partice we will use an approximation $\hat{S}$ for $S$. The evaluation $(w,q)$ of the iteration operator for a given $(v,p)$ is done as 
+We use the norm
 \begin{equation}
-\begin{array}{rcl}
-A w & = & Av+B^{*}p \\
-\hat{S} q & = & B(w-v) \\
-\end{array}
-\label{COUPLES SADDLEPOINT iteration}
-\end{equation}
-We use the inner product induced by the norm
+\|p\|\hackscore{GMRES} = \|\hat{S} p \|
+\end{equation} 
+Notice that for the residual $\hat{r}=\hat{S}^{-1} r$ one has
 \begin{equation}
-\|(v,p)\|^2= \int\hackscore{\Omega}  v\hackscore{i,j}  v\hackscore{i,j} + \left( \frac{p}{\eta}\right)^2\; dx
-\label{COUPLES NORM}
-\end{equation}
-In PDE form~\ref{COUPLES SADDLEPOINT iteration} takes the form
+\
+\end{equation} 
+If $p^{0}$ provides an initial guess for the pressure we use~\ref{V CALC} to get a first initial guess for the 
+velocity $v^{0}$ which we use to set an absolute tolerance $ATOL =\epsilon \|\sqrt{v^{0}\hackscore{j,k}v^{0}\hackscore{j,k}}\|$.
+The GMRES is terminated when 
 \begin{equation}
-\begin{array}{rcl}
--\left(\eta(w\hackscore{i,j}+ w\hackscore{i,j})\right)\hackscore{,j} & = & -\left(\eta(v\hackscore{i,j}+ v\hackscore{i,j})\right)\hackscore{,j}+p\hackscore{,i} \\
-\frac{1}{\eta}  q & = & - (w-v)\hackscore{i,i} \\
-\end{array}
-\label{SADDLEPOINT iteration 2}
-\end{equation}
+\|\hat{r}\|\hackscore{GMRES} \le ATOL
+\end{equation} 
+Notice that $\|\hat{r}\|\hackscore{GMRES}= \|r \| = \|Bv\|  = \|v\hackscore{k,k}\|$ so we we can expect that
+the target stopping criterion~\ref{STOKES STOP} is fullfilled. However, if $v$ is very different from the
+initial choice of $v^{0}$ the value of $ATOL$ is corrected and GMRES is restarted with a new tolerance. For time dependend problems this apprach works well as value for $p$ form a previous time step provides a good initial guess.
+
+Alternatively, as $S$ is symmetric and positive definite one can apply the preconditioned conjugate gradient method (PCG) \index{preconditioned conjugate gradient method!PCG}. PCG use the norm 
+\begin{equation}
+\|r\|\hackscore{PCG}^2 = \int\hackscore{\Omega} r \hat{S}^{-1}r \; dx = \int\hackscore{\Omega}  \eta r^2 \; dx 
+\end{equation} 
+To take the extra factor $\eta$ into consideration when checking the stopping criterion we use the following
+definition for $ATOL$:
+\begin{equation}
+ATOL = \epsilon \frac{\|\sqrt{v^{0}\hackscore{j,k}v^{0}\hackscore{j,k}}\|  }{\|v^{0}\hackscore{k,k}\|} 
+\|v^{0}\hackscore{k,k}\|\hackscore{PCG}
+\end{equation} 
+
 
 
 \subsection{Functions}
@@ -151,19 +143,19 @@ the values of \var{fixed_u_mask}. The method will try to cast the given values t
 \end{methoddesc}
 
 \begin{methoddesc}[StokesProblemCartesian]{solve}{v,p,
-\optional{max_iter=20, \optional{verbose=False, \optional{useUzawa=True}}}}
+\optional{max_iter=20, \optional{verbose=False, \optional{usePCG=True}}}}
 solves the problem and return approximations for velocity and pressure. 
 The arguments \var{v} and \var{p} define initial guess. The values of \var{v} marked
 by \var{fixed_u_mask} remain unchanged. 
-If \var{useUzawa} is set to \True 
-the Uzawa\index{Uszwa} scheme is used. Otherwise the problem is solved in coupled form. In most cases 
-the Uzawa scheme is more efficient.
+If \var{usePCG} is set to \True 
+reconditioned conjugate gradient method (PCG) \index{preconditioned conjugate gradient method!PCG}  scheme is used. Otherwise the problem is solved generalized minimal residual method (GMRES) \index{generalized minimal residual method!GMRES}. In most cases 
+the PCG scheme is more efficient.
 \var{max_iter} defines the maximum number of iteration steps. 
 If \var{verbose} is set to \True informations on the progress of of the solver are printed.
 \end{methoddesc}
 
 
-\begin{methoddesc}[StokesProblemCartesian]{setTolerance}{\optional{tolerance=1.e-8}}
+\begin{methoddesc}[StokesProblemCartesian]{setTolerance}{\optional{tolerance=1.e-4}}
 sets the tolerance in an appropriate norm relative to the right hand side. The tolerance must be non-negative and less than 1.
 \end{methoddesc}
 \begin{methoddesc}[StokesProblemCartesian]{getTolerance}{}
@@ -176,16 +168,15 @@ absolute talerance is set to 0.
 \begin{methoddesc}[StokesProblemCartesian]{getAbsoluteTolerance}{}
 sreturns the current absolute tolerance.
 \end{methoddesc}
-\begin{methoddesc}[StokesProblemCartesian]{setSubToleranceReductionFactor}{\optional{reduction=None}}
-sets the reduction factor for the tolerance used to solve the PDEs. A reduction factor 
-in the order of one will minimize compute time per iteration step but my slow down convergence or even lead to 
-divergency. On the other hand a very small value for the PDE tolerance could result in a wast of compute time.
-If \var{reduction} is set to \var{None} the sub-tolerance is solved adaptively but
-in cases a very small tolerance is set ($<10^{-6}$) it is recommended to set the
-reduction factor by hand. This may require some experiments.
+\begin{methoddesc}[StokesProblemCartesian]{setSubProblemTolerance}{\optional{rtol=None}}
+sets the tolerance to solve the involved PDEs. The subtolerance \var{rtol} should not be choosen to large 
+in order to avoid feed back of errors in the subproblem solution into the outer iteration.
+On the otherhand is choosen to small compute time is wasted.
+If \var{rtol} is set to \var{None} the sub-tolerance is set automatically depending on the 
+tolerance choosen for the oter iteration.
 \end{methoddesc}
-\begin{methoddesc}[StokesProblemCartesian]{getSubToleranceReductionFactor}{}
-return the current reduction factor for the sub-problem tolerance.
+\begin{methoddesc}[StokesProblemCartesian]{getSubProblemTolerance}{}
+return the tolerance for the involved PDEs.
 \end{methoddesc}
 
 \subsection{Example: Lit Driven Cavity}
@@ -294,7 +285,7 @@ In~\cite{XXX} it has been shown that this problem is continuous and coercive in 
 to solve the problem is coupled form, however this approach leads in some cases to a very ill-conditioned stiffness matrix in particular in the case of a very small or large permability ($\alpha\hackscore{1} \ll 1$ or $\alpha\hackscore{0} \gg 1$)  
 
 The approach we are taking is to eliminate the velocity $u$ from the problem. Assuming that $p$ is known we have
-\begin{equation}
+\begin{equation}\label{DARCY V FORM}
 v= (I+D^*D)^{-1} (D^*f + g - Qp)
 \end{equation} 
 (notice that $(I+D^*D)$ is coercive in $W$) which is inserted into the second equation
@@ -309,39 +300,38 @@ We use the PCG \index{linear solver!PCG}\index{PCG} method to solve this. The re
 \begin{equation}
 \begin{array}{rcl}
 r & = & Q^*  \left( g -(I+D^*D)^{-1} (D^*f + g) - Qp + (I+D^*D)^{-1}Q p \right)\\
-& =&  Q^* \left( - Qp - (I+D^*D)^{-1} (D^*f + g - Qp) \right) \\
+& =&  Q^* \left( g- Qp - (I+D^*D)^{-1} (D^*f + g - Qp) \right) \\
 & =&  Q^* \left( g - Qp - v \right)
 \end{array}
 \end{equation} 
-So in a partical implementation we use the pair $(Qp,v)$ to represent the residual. This will save the
-reconstruction of the velocity $v$. In this notation the right hand side is given as 
-$(0,(I+D^*D)^{-1} (D^*f + g))$. The evaluation of the iteration operator for a given $p$ is then 
-returning $(Qp,w)$ where $w$ is the solution of 
+So in a partical implementation we use $\hat{r}=g-Qp-v$ to represent the residual. 
+The evaluation of the iteration operator for a given $p$ is then 
+returning $Qp+v$ where $v$ is the solution of 
 \begin{equation}\label{UPDATE W}
-(I+D^*D)w = Qp
+(I+D^*D)v = Qp
 \end{equation}
-We use $Q^*Q$ as a a preconditioner for the iteration operator $Q^* ( I - (I+D^*D)^{-1} ) Q$.
-
-The iteration PCG \index{linear solver!PCG}\index{PCG} is terminated if
+We use $(Q^*Q)^{-1}$ as a preconditioner for the iteration operator $Q^* ( I - (I+D^*D)^{-1} ) Q$. So the application of the preconditioner to $\hat{r}$ representing the residual is given by solving
+implemented by solving 
+\begin{equation}\label{UPDATE P}
+Q^*Q q  = Q^*\hat{r}
+\end{equation}
+The residual norm used in the PCG is given as
+\begin{equation}\label{DARCY R NORM}
+\|r\|\hackscore{PCG}^2 = \int r \cdot (Q^*Q)^{-1} r \; dx =\int \hat{r} \cdot Q (Q^*Q)^{-1} Q^* \hat{r} \; dx \approx
+\|\hat{r}\|\hackscore{0}^2
+\end{equation}
+The iteration is terminated if 
 \begin{equation}\label{DARCY STOP}
-\int r \cdot (Q^*Q)^{-1} r \; dx \le \mbox{ATOL}^2
+\|r\|\hackscore{PCG} \le \mbox{ATOL}
 \end{equation}
-where ATOL is a given absolute tolerance.
-The initial residual $r\hackscore{0}$ is 
-\begin{equation}\label{DARCY STOP 2}
-r\hackscore{0}=Q^* \left( g - v\hackscore{ref} \right) \mbox{ with } v\hackscore{ref} = (I+D^*D)^{-1} (D^*f + g)
+where we set 
+\begin{equation}\label{DARCY ATOL DEF}
+\mbox{ATOL} = \mbox{atol} + \mbox{rtol} \cdot \left(\frac{1}{\|v\|\hackscore{0}} + \frac{1}{\|Qp\|\hackscore{0}} \right)^{-1} 
 \end{equation}
-so the 
-\begin{equation}\label{DARCY NORM 0}
-\int r\hackscore0 \cdot (Q^*Q)^{-1} r\hackscore0 \; dx = \int \left( g - v\hackscore{ref} \right)  \cdot  Q  p\hackscore{ref} \; dx \mbox{ with }p\hackscore{ref} = (Q^*Q)^{-1} Q^* \left( g - v\hackscore{ref} \right)
-\end{equation}
-So we set 
-\begin{equation}\label{DARCY NORM 1}
-ATOL = atol + rtol \cdot \max(|g - v\hackscore{ref}|\hackscore{0}, |Q p\hackscore{ref} |\hackscore{0} )
-\end{equation}
-where atol and rtol a given absolute and relative tolerances, respectively. The reference flux $v\hackscore{ref}$
-and reference pressure $p\hackscore{ref}$ may be calcualated from their definition which would require to solve to
-PDEs but in a practical application estimates can be used for instance solutions from previous time steps or for simplified scenarious (e.g. constant permability). 
+where rtol is a given relative tolerance and $\mbox{atol}$ is a given absolute tolerance (typically $=0$).  
+Notice that if $Qp$ and $v$ both are zero, the pair $(0,p)$ is a solution.
+The problem is that ATOL is depending on the solution $p$ (and $v$ calculated form~\ref{DARCY V FORM}). In partcice one use the initial guess for $p$ 
+to get a first value for ATOL. If the stopping crierion is met in the PCG iteration, a new $v$ is calculated from the current pressure approximation and ATOL is recalculated. If \ref{DARCY STOP} is still fullfilled the calculation is terminated and $(v,p)$ is returned. Otherwise PCG is restarted with a new ATOL.
 
 \subsection{Functions}
 \begin{classdesc}{DarcyFlow}{domain}
@@ -362,18 +352,23 @@ The method will try to cast the given values to appropriate
 \Data class objects.
 \end{methoddesc}
 
-\begin{methoddesc}[DarcyFlow]{setTolerance}{\optional{atol=0,\optional{rtol=1e-8,\optional{p_ref=None,\optional{v_ref=None}}}}}
-sets the absolute tolerance ATOL according to~\ref{DARCY NORM 1}. If \var{p_ref} is not present $0$ is used. 
-If \var{v_ref} is not present $0$ is used. If the final result ATOL is not positive an exception is thrown. 
+\begin{methoddesc}[DarcyFlow]{setTolerance}{\optional{rtol=1e-4}}
+sets the relative tolerance \mbox{rtol} in \ref{DARCY ATOL DEF}.
 \end{methoddesc}
 
+\begin{methoddesc}[DarcyFlow]{setAbsoluteTolerance}{\optional{atol=0.}}
+sets the absolute tolerance \mbox{atol} in \ref{DARCY ATOL DEF}.
+\end{methoddesc}
 
+\begin{methoddesc}[DarcyFlow]{setSubProblemTolerance}{\optional{rtol=None}}
+sets the relative tolerance used to solve the involved PDEs. If no argument is given,
+the square of the current relative tolerance is used. The sub-problem tolerance should be choosen as large as possible to minimize the compute time. However, a too large value for the sub-problem tolerance may lead to slow convergence or even dibergence in the outer iteration. 
+\end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{solve}{u0,p0, \optional{max_iter=100, \optional{verbose=False \optional{sub_rtol=1.e-8}}}}
 solves the problem. and returns approximations for the flux $v$ and the pressure $p$. 
 \var{u0} and \var{p0} define initial guess for flux and pressure. Values marked
 by positive values \var{location_of_fixed_flux} and \var{location_of_fixed_pressure}, respectively, are kept unchanged.
-\var{sub_rtol} defines the tolerance used to solve the involved PDEs. \var{sub_rtol} needs to be choosen sufficiently small to ensure convergence but users need to keep in mind that a very small value for \var{sub_rtol} will result in a long compute time. Typically  $\var{sub_rtol}=\var{rtol}^2$ is a good choice if $\var{rtol}$ is not choosen too small.
 \end{methoddesc}
 
 
@@ -413,16 +408,16 @@ D\hackscore{ij}=D\hackscore{ij}^{el}+D\hackscore{ij}^{vp}
 \end{equation}
 with the elastic strain given as 
 \begin{equation}\label{IKM-EQU-3}
-D\hackscore{ij}'^{el}=\frac{1}{2 \mu} \dot{\sigma}\hackscore{ij}'
+D\hackscore{ij}^{el'}=\frac{1}{2 \mu} \dot{\sigma}\hackscore{ij}'
 \end{equation}
 where $\sigma'\hackscore{ij}$ is the deviatoric stress (Notice that $\sigma'\hackscore{ii}=0$).
 If the material is composed by materials $q$ the visco-plastic strain can be decomposed as
 \begin{equation}\label{IKM-EQU-4}
-D\hackscore{ij}'^{vp}=\sum\hackscore{q} D\hackscore{ij}'^{q} 
+D\hackscore{ij}^{vp'}=\sum\hackscore{q} D\hackscore{ij}^{q'} 
 \end{equation}
 where $D\hackscore{ij}^{q}$ is the strain in material $q$ given as 
 \begin{equation}\label{IKM-EQU-5}
-D\hackscore{ij}'^{q}=\frac{1}{2 \eta^{q}} \sigma'\hackscore{ij} 
+D\hackscore{ij}^{q'}=\frac{1}{2 \eta^{q}} \sigma'\hackscore{ij} 
 \end{equation}
 where $\eta^{q}$ is the viscosity of material $q$. We assume the following 
 betwee the the strain in material $q$ 
@@ -430,7 +425,7 @@ betwee the the strain in material $q$
 \eta^{q}=\eta^{q}\hackscore{N} \left(\frac{\tau}{\tau\hackscore{t}^q}\right)^{\frac{1}{n^{q}}-1}
 \mbox{ with } \tau=\sqrt{\frac{1}{2}\sigma'\hackscore{ij} \sigma'\hackscore{ij}}
 \end{equation}
-for a given power law coefficients $n^{q}$ and transition stresses $\tau\hackscore{t}^q$, see~\ref{POERLAW}.
+for a given power law coefficients $n^{q}\ge1$ and transition stresses $\tau\hackscore{t}^q$, see~\ref{POERLAW}.
 Notice that $n^{q}=1$ gives a constant viscosity.
 After inserting equation~\ref{IKM-EQU-5} into equation \ref{IKM-EQU-4} one gets:
 \begin{equation}\label{IKM-EQU-6}
@@ -493,43 +488,23 @@ After inserting~\ref{IKM-EQU-10} into~\ref{IKM-EQU-1} we get
 \right)\hackscore{,j}+p\hackscore{,i}=F\hackscore{i}+
 \frac{\eta\hackscore{eff}}{\mu dt } \sigma\hackscore{ij,j}^{'-}
 \end{equation}
-Together with the incomressibilty condition~\ref{IKM-EQU-2} we need to solve a problem with a form almost identical 
-to the Stokes problem discussed in section~\ref{STOKES SOLVE} but with the difference that $\eta\hackscore{eff}$ is depending on the solution. Analog to the iteration scheme~\ref{SADDLEPOINT iteration 2} we can run
+Combining this with the incomressibilty condition~\ref{IKM-EQU-2} we need to solve a
+Stokes problem as discussed in section~\ref{STOKES SOLVE} in each time step.
+In oder to perform step~\ref{IKM iteration 2} we need to calculate the $\eta\hackscore{eff}$ which 
+is a function of $\sigma\hackscore{ij}$ via $\tau$.  To get $\tau$ and $\eta\hackscore{eff}$ we need to solve the
+non-linear equation
 \begin{equation}
-\begin{array}{rcl}
--\left(\eta\hackscore{eff}(dv\hackscore{i,j}+ dv\hackscore{i,j}
-)\right)\hackscore{,j} & = & F\hackscore{i}+ \sigma\hackscore{ij,j}'-p\hackscore{,i} \\
-\frac{1}{\eta\hackscore{eff}} dp & = & - v\hackscore{i,i}^+
-\end{array}
-\label{IKM iteration 2}
-\end{equation}
-where $v^+=v+dv$. As this problem is non-linear the Jacobi-free Newton-GMRES method is used with the norm
-\begin{equation}
-\|(v, p)\|^2= \int\hackscore{\Omega} v\hackscore{i,j}^2 + \frac{1}{\bar{\eta}^2\hackscore{eff}} p^2 \; dx
-\label{IKM iteration 3}
-\end{equation}
-where  $\bar{\eta}\hackscore{eff}$ is the caracteristic viscosity, for instance:
-\begin{equation}
-\frac{1}{\bar{\eta}\hackscore{eff}} = \frac{1}{\tau^{-}}+\sum\hackscore{q}  \frac{1}{\eta^{q}\hackscore{N}}
-\label{IKM iteration 4}
-\end{equation}
-In oder to perform step~\ref{IKM iteration 2} we need to calculate the $\eta\hackscore{eff}$ as well as $\sigma\hackscore{ij}'$ while via $\tau$ the first is a function of the latter. The priority is the 
-calculation of $\eta\hackscore{eff}$ with the Newton-Raphson scheme. This value can then be used to calculate 
-$\sigma\hackscore{ij}'$ via~\ref{IKM-EQU-10}. We need to solve
-\begin{equation}
-\tau = \eta\hackscore{eff} \cdot \epsilon \mbox{ with }
-\epsilon = \sqrt{ 2 \left( D\hackscore{ij}' + 
+\tau = \eta\hackscore{eff} \cdot \dot{\gamma}\hackscore{total} \mbox{ with }
+\dot{\gamma}\hackscore{total} = \sqrt{ 2 \left( D\hackscore{ij}' + 
 \frac{1}{  2 \mu \; dt} \sigma\hackscore{ij}^{'-}\right)^2}
 \label{IKM iteration 5}
 \end{equation} 
 The Newton scheme takes the form 
 \begin{equation}
-\tau\hackscore{n+1} = \min(\tau\hackscore{n} - \frac{\tau\hackscore{n} - \eta\hackscore{eff}  \cdot \epsilon}{1 - \eta\hackscore{eff}'  \cdot  \epsilon}, \tau\hackscore{Y} + \beta \; p)
-= \min(\frac{\eta\hackscore{eff} - \tau\hackscore{n}  \eta\hackscore{eff}'}
-{1 - \eta\hackscore{eff}'  \cdot  \epsilon}, \frac{\tau\hackscore{Y} + \beta \; p}{\epsilon}) \epsilon
+\tau\hackscore{n+1} = \min(\tau\hackscore{n} - \frac{\tau\hackscore{n} - \eta\hackscore{eff}  \cdot \dot{\gamma}\hackscore{total}}{1 - \eta\hackscore{eff}'  \cdot  \dot{\gamma}\hackscore{total}}, \tau\hackscore{Y} + \beta \; p)
 \label{IKM iteration 6}
 \end{equation} 
-where $\eta\hackscore{eff}'$ denotes the derivative of $\eta\hackscore{eff}$ with respect of $\tau$. The second term in $\min$ is droped of $\tau\hackscore{Y} + \beta \; p<0$ or $\epsilon=0$. In fact we have
+where $\eta\hackscore{eff}'$ denotes the derivative of $\eta\hackscore{eff}$ with respect of $\tau$. The second term in $\min$ is droped of $\tau\hackscore{Y} + \beta \; p<0$ (?)). We have
 \begin{equation}
 \eta\hackscore{eff}' = - \eta\hackscore{eff}^2 \left(\frac{1}{\eta\hackscore{eff}}\right)'
 \mbox{ with } 
@@ -539,7 +514,7 @@ where $\eta\hackscore{eff}'$ denotes the derivative of $\eta\hackscore{eff}$ wit
 \begin{equation}\label{IKM-EQU-5XX}
 \left(\frac{1}{\eta^{q}} \right)'
 = \frac{1-\frac{1}{n^{q}}}{\eta^{q}\hackscore{N}} \frac{\tau^{-\frac{1}{n^{q}}}}{(\tau\hackscore{t}^q)^{1-\frac{1}{n^{q}}}}
-= \frac{1-\frac{1}{n^{q}}}{ \tau \eta^{q}} 
+= \frac{1-\frac{1}{n^{q}}}{\tau}\frac{1}{\eta^{q}} 
 \end{equation}
 Notice that allways $\eta\hackscore{eff}'\le 0$ which makes the denomionator in~\ref{IKM iteration 6}
 positive.
