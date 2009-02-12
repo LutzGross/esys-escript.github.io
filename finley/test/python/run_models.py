@@ -33,11 +33,15 @@ except KeyError:
      FINLEY_WORKDIR='.'
 
 
-VERBOSE=False # 
+VERBOSE=False  # or True
+DETAIL_VERBOSE=False
 
 from esys.escript import *
 from esys.escript.models import StokesProblemCartesian
 from esys.finley import Rectangle, Brick
+
+from esys.escript.models import Mountains
+from math import pi
 
 #====================================================================================================================
 class Test_StokesProblemCartesian2D(unittest.TestCase):
@@ -64,7 +68,7 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,useUzawa=True)
+       u,p=sp.solve(u0,p0,show_details=DETAIL_VERBOSE, verbose=VERBOSE,max_iter=100,usePCG=True)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
@@ -90,7 +94,7 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL*0.2)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,useUzawa=True)
+       u,p=sp.solve(u0,p0,show_details=DETAIL_VERBOSE, verbose=VERBOSE,max_iter=100,usePCG=True)
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
        error_p=Lsup(P1*x[0]*x[1]+p)
@@ -116,7 +120,7 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,useUzawa=True)
+       u,p=sp.solve(u0,p0,show_details=DETAIL_VERBOSE, verbose=VERBOSE,max_iter=100,usePCG=True)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
@@ -142,7 +146,7 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=50,useUzawa=False,iter_restart=18)
+       u,p=sp.solve(u0,p0,show_details=DETAIL_VERBOSE, verbose=VERBOSE,max_iter=50,usePCG=False,iter_restart=18)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
@@ -168,7 +172,7 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL*0.1)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=20,useUzawa=False)
+       u,p=sp.solve(u0,p0,show_details=DETAIL_VERBOSE, verbose=VERBOSE,max_iter=20,usePCG=False)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
@@ -194,7 +198,7 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,useUzawa=False)
+       u,p=sp.solve(u0,p0,show_details=DETAIL_VERBOSE, verbose=VERBOSE,max_iter=100,usePCG=False)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
@@ -231,7 +235,7 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE ,max_iter=100,useUzawa=True)
+       u,p=sp.solve(u0,p0,show_details=DETAIL_VERBOSE, verbose=VERBOSE ,max_iter=100,usePCG=True)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
@@ -261,9 +265,8 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       sp.setTolerance(self.TOL)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE ,max_iter=100,useUzawa=True)
-       
+       sp.setTolerance(self.TOL*0.1)
+       u,p=sp.solve(u0,p0,show_details=DETAIL_VERBOSE, verbose=VERBOSE ,max_iter=100,usePCG=True)
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
        error_v2=Lsup(u[2]-u0[2])/0.25**2
@@ -292,7 +295,7 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
-       u,p=sp.solve(u0,-p0,show_details=VERBOSE, verbose=VERBOSE ,max_iter=100,useUzawa=True)
+       u,p=sp.solve(u0,-p0,show_details=DETAIL_VERBOSE, verbose=VERBOSE ,max_iter=100,usePCG=True)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
@@ -324,13 +327,12 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,useUzawa=False,iter_restart=20)
+       u,p=sp.solve(u0,p0,show_details=DETAIL_VERBOSE, verbose=VERBOSE,max_iter=100,usePCG=False,iter_restart=20)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
        error_v2=Lsup(u[2]-u0[2])/0.25**2
        error_p=Lsup(P1*x[0]*x[1]*x[2]+p)
-       # print error_p, error_v0,error_v1,error_v2
        self.failUnless(error_p<10*self.TOL, "pressure error too large.")
        self.failUnless(error_v0<10*self.TOL, "0-velocity error too large.")
        self.failUnless(error_v1<10*self.TOL, "1-velocity error too large.")
@@ -354,17 +356,17 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       sp.setTolerance(self.TOL)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE ,max_iter=100,useUzawa=False)
+       sp.setTolerance(self.TOL*0.1)
+       u,p=sp.solve(u0,p0,show_details=DETAIL_VERBOSE and False, verbose=VERBOSE,max_iter=100,usePCG=False)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
        error_v2=Lsup(u[2]-u0[2])/0.25**2
        error_p=Lsup(P1*x[0]*x[1]*x[2]+p)/P1
-       self.failUnless(error_p<10*self.TOL, "pressure error too large.")
        self.failUnless(error_v0<10*self.TOL, "0-velocity error too large.")
        self.failUnless(error_v1<10*self.TOL, "1-velocity error too large.")
        self.failUnless(error_v2<10*self.TOL, "2-velocity error too large.")
+       self.failUnless(error_p<10*self.TOL, "pressure error too large.")
    def test_GMRES_P_large(self):
        ETA=1.
        P1=1000.
@@ -385,7 +387,7 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE ,max_iter=100,useUzawa=False)
+       u,p=sp.solve(u0,p0,show_details=DETAIL_VERBOSE, verbose=VERBOSE ,max_iter=100,usePCG=False)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
@@ -462,11 +464,11 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u_ref,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u_ref,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
-
     def testConstF_FixedBottom_mediumK(self):
         k=1.
         mp=self.getScalarMask(include_bottom=True)
@@ -479,8 +481,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p,max_iter=100, verbose=VERBOSE ,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p,max_iter=100, verbose=VERBOSE )
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
 
@@ -496,8 +499,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -513,8 +517,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -530,8 +535,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -547,8 +553,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -564,8 +571,9 @@ class Test_Darcy(unittest.TestCase):
                     location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -581,8 +589,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -598,8 +607,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -615,8 +625,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*25.*Lsup(u_ref), "flux error too big.")  # 25 because of disc. error.
         self.failUnless(Lsup(p-p_ref)<self.TOL*25.*Lsup(p_ref), "pressure error too big.")
 
@@ -632,8 +643,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -649,8 +661,9 @@ class Test_Darcy(unittest.TestCase):
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
-        df.setTolerance(rtol=self.TOL,p_ref=p_ref,v_ref=u_ref)
-        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE,sub_rtol=self.TOL/200)
+        df.setTolerance(rtol=self.TOL)
+        df.setSubProblemTolerance()
+        v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
         self.failUnless(Lsup(v-u_ref)<self.TOL*10.*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TOL*10.*Lsup(p_ref), "pressure error too big.")
 
@@ -674,13 +687,70 @@ class Test_Darcy3D(Test_Darcy):
         del self.dom
 
 
+class Test_Mountains3D(unittest.TestCase):
+   def setUp(self):
+       NE=16
+       self.TOL=1e-4
+       self.domain=Brick(NE,NE,NE,order=1,useFullElementOrder=True)
+   def tearDown(self):
+       del self.domain
+   def test_periodic(self):
+       EPS=0.01
 
+       x=self.domain.getX()
+       v = Vector(0.0, Solution(self.domain))
+       a0=1
+       a1=1
+       n0=2
+       n1=2
+       n2=0.5
+       a2=-(a0*n0+a1*n1)/n2
+       v[0]=a0*sin(pi*n0*x[0])* cos(pi*n1*x[1])* cos(pi*n2*x[2])
+       v[1]=a1*cos(pi*n0*x[0])* sin(pi*n1*x[1])* cos(pi*n2*x[2])
+       v[2]=a2*cos(pi*n0*x[0])* cos(pi*n1*x[1])* sin(pi*n2*x[2])
+
+       H_t=Scalar(0.0, Solution(self.domain))
+       mts=Mountains(self.domain,v,eps=EPS,z=1)
+       u,Z=mts.update(u=v,H_t=H_t)
+       
+       error_int=integrate(Z)
+       self.failUnless(error_int<self.TOL, "Boundary intergral is too large.")
+
+class Test_Mountains2D(unittest.TestCase):
+   def setUp(self):
+       NE=16
+       self.TOL=1e-4
+       self.domain=Rectangle(NE,NE,order=1,useFullElementOrder=True)
+   def tearDown(self):
+       del self.domain
+   def test_periodic(self):
+       EPS=0.01
+
+       x=self.domain.getX()
+       v = Vector(0.0, Solution(self.domain))
+       a0=1
+       n0=1
+       n1=0.5
+       a1=-(a0*n0)/n1
+       v[0]=a0*sin(pi*n0*x[0])* cos(pi*n1*x[1])
+       v[1]=a1*cos(pi*n0*x[0])* sin(pi*n1*x[1])
+       
+       H_t=Scalar(0.0, Solution(self.domain))
+       mts=Mountains(self.domain,v,eps=EPS,z=1)
+       u,Z=mts.update(u=v,H_t=H_t)
+       
+       error_int=integrate(Z)
+       self.failUnless(error_int<self.TOL, "Boundary intergral is too large.")
+       
 if __name__ == '__main__':
    suite = unittest.TestSuite()
+   
    suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian2D))
    suite.addTest(unittest.makeSuite(Test_Darcy3D))
    suite.addTest(unittest.makeSuite(Test_Darcy2D))
    suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian3D))
+   suite.addTest(unittest.makeSuite(Test_Mountains3D))
+   suite.addTest(unittest.makeSuite(Test_Mountains2D))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
 

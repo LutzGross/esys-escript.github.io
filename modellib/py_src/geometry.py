@@ -316,18 +316,20 @@ class ScalarConstrainerOverBox(Model):
           self.__location_of_constraint=Scalar(0,x.getFunctionSpace())
           if self.domain.getDim()==3:
                 x0,x1,x2=x[0],x[1],x[2]
-                if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol)
-                if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
-                if self.front: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
-                if self.back: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
-                if self.bottom: self.__location_of_constraint+=whereZero(x2-inf(x2),self.tol)
-                if self.top: self.__location_of_constraint+=whereZero(x2-sup(x2),self.tol)
+                d=max(sup(x0)-inf(x0), sup(x1)-inf(x1), sup(x2)-inf(x2))
+                if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol*d)
+                if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol*d)
+                if self.front: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol*d)
+                if self.back: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol*d)
+                if self.bottom: self.__location_of_constraint+=whereZero(x2-inf(x2),self.tol*d)
+                if self.top: self.__location_of_constraint+=whereZero(x2-sup(x2),self.tol*d)
           else:
                 x0,x1=x[0],x[1]
-                if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol)
-                if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
-                if self.bottom: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
-                if self.top: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
+                d=max(sup(x0)-inf(x0), sup(x1)-inf(x1))
+                if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol*d)
+                if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol*d)
+                if self.bottom: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol*d)
+                if self.top: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol*d)
           if not self.value == None:
               self.__value_of_constraint=self.__location_of_constraint*self.value
 
@@ -392,27 +394,28 @@ class VectorConstrainerOverBox(Model):
           self.__location_of_constraint=Vector(0,x.getFunctionSpace())
           if self.domain.getDim()==3:
              x0,x1,x2=x[0],x[1],x[2]
-             left_mask=whereZero(x0-inf(x0),self.tol)
+             d=max(sup(x0)-inf(x0), sup(x1)-inf(x1), sup(x2)-inf(x2))
+             left_mask=whereZero(x0-inf(x0),self.tol*d)
              if self.left[0]: self.__location_of_constraint+=left_mask*[1.,0.,0.]
              if self.left[1]: self.__location_of_constraint+=left_mask*[0.,1.,0.]
              if self.left[2]: self.__location_of_constraint+=left_mask*[0.,0.,1.]
-             right_mask=whereZero(x0-sup(x0),self.tol)
+             right_mask=whereZero(x0-sup(x0),self.tol*d)
              if self.right[0]: self.__location_of_constraint+=right_mask*[1.,0.,0.]
              if self.right[1]: self.__location_of_constraint+=right_mask*[0.,1.,0.]
              if self.right[2]: self.__location_of_constraint+=right_mask*[0.,0.,1.]
-             front_mask=whereZero(x1-inf(x1),self.tol)
+             front_mask=whereZero(x1-inf(x1),self.tol*d)
              if self.front[0]: self.__location_of_constraint+=front_mask*[1.,0.,0.]
              if self.front[1]: self.__location_of_constraint+=front_mask*[0.,1.,0.]
              if self.front[2]: self.__location_of_constraint+=front_mask*[0.,0.,1.]
-             back_mask=whereZero(x1-sup(x1),self.tol)
+             back_mask=whereZero(x1-sup(x1),self.tol*d)
              if self.back[0]: self.__location_of_constraint+=back_mask*[1.,0.,0.]
              if self.back[1]: self.__location_of_constraint+=back_mask*[0.,1.,0.]
              if self.back[2]: self.__location_of_constraint+=back_mask*[0.,0.,1.]
-             bottom_mask=whereZero(x2-inf(x2),self.tol)
+             bottom_mask=whereZero(x2-inf(x2),self.tol*d)
              if self.bottom[0]: self.__location_of_constraint+=bottom_mask*[1.,0.,0.]
              if self.bottom[1]: self.__location_of_constraint+=bottom_mask*[0.,1.,0.]
              if self.bottom[2]: self.__location_of_constraint+=bottom_mask*[0.,0.,1.]
-             top_mask=whereZero(x2-sup(x2),self.tol)
+             top_mask=whereZero(x2-sup(x2),self.tol*d)
              if self.top[0]: self.__location_of_constraint+=top_mask*[1.,0.,0.]
              if self.top[1]: self.__location_of_constraint+=top_mask*[0.,1.,0.]
              if self.top[2]: self.__location_of_constraint+=top_mask*[0.,0.,1.]
@@ -420,16 +423,17 @@ class VectorConstrainerOverBox(Model):
                 self.__value_of_constraint=self.__location_of_constraint*self.value
           else:
              x0,x1=x[0],x[1]
-             left_mask=whereZero(x0-inf(x0),self.tol)
+             d=max(sup(x0)-inf(x0), sup(x1)-inf(x1))
+             left_mask=whereZero(x0-inf(x0),self.tol*d)
              if self.left[0]: self.__location_of_constraint+=left_mask*[1.,0.]
              if self.left[1]: self.__location_of_constraint+=left_mask*[0.,1.]
-             right_mask=whereZero(x0-sup(x0),self.tol)
+             right_mask=whereZero(x0-sup(x0),self.tol*d)
              if self.right[0]: self.__location_of_constraint+=right_mask*[1.,0.]
              if self.right[1]: self.__location_of_constraint+=right_mask*[0.,1.]
-             bottom_mask=whereZero(x1-inf(x1),self.tol)
+             bottom_mask=whereZero(x1-inf(x1),self.tol*d)
              if self.bottom[0]: self.__location_of_constraint+=bottom_mask*[1.,0.]
              if self.bottom[1]: self.__location_of_constraint+=bottom_mask*[0.,1.]
-             top_mask=whereZero(x1-sup(x1),self.tol)
+             top_mask=whereZero(x1-sup(x1),self.tol*d)
              if self.top[0]: self.__location_of_constraint+=top_mask*[1.,0.]
              if self.top[1]: self.__location_of_constraint+=top_mask*[0.,1.]
              if not self.value == None:

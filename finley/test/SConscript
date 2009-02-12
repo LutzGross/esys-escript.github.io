@@ -35,3 +35,8 @@ test_targets = os.path.splitext('finley_UnitTest')[0]+'.passed'
 Alias("run_tests", test_targets)
 
 local_env.SConscript(dirs = ['#/finley/test/python'], build_dir='python', duplicate=0)
+
+# Add a group of tests
+from grouptest import *
+tgroup=GroupTest("$BINRUNNER ", (),"","$BUILD_DIR/finley/test",('./finley_UnitTest',))
+TestGroups.append(tgroup)
