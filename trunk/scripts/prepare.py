@@ -1,4 +1,4 @@
-
+#!/sw/apps/python/x86_64/gcc-4.1.2/python-2.4.4/bin/python
 import shutil, os, datetime, sys, os.path, time
 
 #This script does not use the python, platform independent path manipulation stuff.
@@ -9,7 +9,7 @@ NUMJs=4
 TOPDIR=str(datetime.date.today())
 ERRMAIL="j.fenwick1@uq.edu.au"
 EXECUTELOCATION="/scratch/jfenwick/AUTOTESTS"
-OUTSIDEDIR=os.getcwd()
+OUTSIDEDIR='/data1/jfenwick/EscriptDev'
 TESTSLEEP=30*60
 
 SRCMSG="This message was sent by prepare.py running as "+str(os.environ['USER'])+" on "+str(os.environ['HOSTNAME']+"\n")
@@ -66,11 +66,14 @@ class TestConfiguration(object):
 	res=res+"TOP=`pwd`\nLOGDIR=$TOP/Logs\nPROGRESSFILE=$LOGDIR/progress\nOLDPYTH=$PYTHONPATH\nOLDLD=$LD_LIBRARY_PATH\n"
 	res=res+". /usr/share/modules/init/sh		#So the module command works\n"
 	res=res+"module load subversion-1.3.1\nmodule load escript/current\nmodule load pbs\nmodule load mayavi/gcc-4.1.2/mayavi-1.5\n"
+	res=res+"module load netpbm\n"
 	res=res+"module load mplayer/gcc-4.1.2/mplayer-1.0rc2\n\n"
 	res=res+"SCRIPTNAME=$0\n"
 	res=res+"START=`date '+%Y/%m/%d %H:%M'`\n"
 	res=res+"TESTLOGDIR=$LOGDIR\n"
 	res=res+"FINALLOGDIR="+OUTSIDEDIR+"/"+TOPDIR+"_Logs\n"
+	res=res+"MPICOM='mpirun -np '   # Use this one for non-pbs jobs\n"
+	res=res+"MPICOM='mpiexec -n '\n"
 	return res
 
     def toString(self):
@@ -81,7 +84,7 @@ class TestConfiguration(object):
 	    print "o="+str(o)
 	    for m in self.mpi:
 		print "   m="+str(m)		
-		cmd="bash utest.sh 'mpiexec -np"+str(m)+"' $TESTROOT/lib/pythonMPI  >$TESTLOGDIR/output 2>&1"
+		cmd="bash utest.sh \"$MPICOM "+str(m)+"\" $TESTROOT/lib/pythonMPI  >$TESTLOGDIR/output 2>&1"
 		res=res+"cp -r "+self.name+"_src "+self.name+"_test"+str(runcount)+"\n" 
 		res=res+"cd "+self.name+"_test"+str(runcount)+"\n"
 		res=res+"TESTROOT=`pwd`\n"
@@ -140,6 +143,8 @@ testconfs=[]
 testconfs.append(TestConfiguration("OMPNoMPI","",omp=(1,8),mpi=(),binexec="",pythonexec="python"))
 testconfs.append(TestConfiguration("MPI","usempi=yes",omp=(1,),mpi=(1,8),binexec="mpiexec -np ",pythonexec="lib/pythonMPI"))
 
+
+os.chdir(OUTSIDEDIR)
 LOGDIR=OUTSIDEDIR+"/"+TOPDIR+"_Logs"
 
 if os.path.exists(LOGDIR):
@@ -205,10 +210,13 @@ except IOError:
 progress("Building test file complete")
 progress("Copying files to exec area")
 os.chdir(OUTSIDEDIR)
-try:
-	shutil.copytree(TOPDIR,EXECUTELOCATION+"/"+TOPDIR)
-except Error:
-	failure("copying to work area")
+#try:
+	#shutil.copytree(TOPDIR,EXECUTELOCATION+"/"+TOPDIR)
+#except OSError:
+#	failure("copying to work area")
+res=os.system("cp -r "+TOPDIR+" "+EXECUTELOCATION+"/"+TOPDIR)
+if res!=0:
+	failure("copying work area")
 progress("Copy to exec area complete")
 
 print "Submitting test"
@@ -231,7 +239,7 @@ print "Sleeping for "+str(TESTSLEEP)+" seconds to wait for results."
 time.sleep(TESTSLEEP)
 print "Waking up."
 
-########################
+######### end test section
 
 try:
 	shutil.copytree(EXECUTELOCATION+"/"+TOPDIR+"/Logs",OUTSIDEDIR+"/"+TOPDIR+"_Logs")
