@@ -55,10 +55,11 @@ class DarcyFlow(object):
         @type domain: L{Domain}
         """
         self.domain=domain
+        self.__l=util.integrate(Scalar(1.,Function(self.domain)))*(1./self.domain.getDim())
         self.__pde_v=LinearPDESystem(domain)
         if useReduced: self.__pde_v.setReducedOrderOn()
         self.__pde_v.setSymmetryOn()
-        self.__pde_v.setValue(D=util.kronecker(domain), A=util.outer(util.kronecker(domain),util.kronecker(domain)))
+        self.__pde_v.setValue(D=util.kronecker(domain), A=self.__l*util.outer(util.kronecker(domain),util.kronecker(domain)))
         self.__pde_p=LinearSinglePDE(domain)
         self.__pde_p.setSymmetryOn()
         if useReduced: self.__pde_p.setReducedOrderOn()
@@ -96,7 +97,7 @@ class DarcyFlow(object):
                f=Scalar(0,self.__pde_v.getFunctionSpaceForCoefficient("X"))
            else:
                if f.getRank()>0: raise ValueError,"illegal rank of f."
-           self.f=f
+           self.__f=f
         if g !=None:
            g=util.interpolate(g, self.__pde_p.getFunctionSpaceForCoefficient("Y"))
            if g.isEmpty():
@@ -340,7 +341,6 @@ class DarcyFlow(object):
           self.__pde_p.setValue(X=util.transposed_tensor_mult(self.__permeability,r), Y=Data(), r=Data())
           return self.__pde_p.getSolution(verbose=self.show_details)
 
-
     def getFlux(self,p=None, fixed_flux=Data(), show_details=False):
         """
         returns the flux for a given pressure C{p} where the flux is equal to C{fixed_flux}
@@ -361,7 +361,7 @@ class DarcyFlow(object):
         self.__pde_v.setTolerance(self.getSubProblemTolerance())
         g=self.__g
         f=self.__f
-        self.__pde_v.setValue(X=f*util.kronecker(self.domain), r=fixed_flux)
+        self.__pde_v.setValue(X=self.__l*f*util.kronecker(self.domain), r=fixed_flux)
         if p == None:
            self.__pde_v.setValue(Y=g)
         else:

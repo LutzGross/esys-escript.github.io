@@ -39,4 +39,9 @@ local_env.RunUnitTest('escript_UnitTest')
 test_targets = os.path.splitext('escript_UnitTest')[0]+'.passed'
 Alias("run_tests", test_targets)
 
+# Add a group of tests
+from grouptest import *
+tgroup=GroupTest("$BINRUNNER ", (),"","$BUILD_DIR/escript/test",('./escript_UnitTest',))
+TestGroups.append(tgroup)
+
 local_env.SConscript(dirs = ['#/escript/test/python'], build_dir='python', duplicate=0)
