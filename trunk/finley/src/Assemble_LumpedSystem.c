@@ -43,7 +43,8 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
   dim_t dimensions[ESCRIPT_MAX_DATA_RANK], k, e, len_EM_lumpedMat, q, s;
   type_t funcspace;
   index_t color,*row_index=NULL;
-  double *S=NULL, *EM_lumpedMat=NULL, *Vol=NULL, *D_p=NULL, *lumpedMat_p=NULL;
+  __const double *D_p=NULL;
+  double *S=NULL, *EM_lumpedMat=NULL, *Vol=NULL, *lumpedMat_p=NULL;
   register double rtmp;
   size_t len_EM_lumpedMat_size;
 
@@ -105,12 +106,13 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
   }
 
   if (Finley_noError()) {
-    lumpedMat_p=getSampleData(lumpedMat,0);
+    void* buffer=allocSampleBuffer(D);
+    requireWrite(lumpedMat);
+    lumpedMat_p=getSampleDataRW(lumpedMat,0);
     len_EM_lumpedMat=p.row_NN*p.numEqu;
     len_EM_lumpedMat_size=len_EM_lumpedMat*sizeof(double);
     expandedD=isExpanded(D);
     S=p.row_jac->ReferenceElement->S;
-
     #pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp)
     {
        EM_lumpedMat=THREAD_MEMALLOC(len_EM_lumpedMat,double);
@@ -125,7 +127,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                        if (elements->Color[e]==color) {
                           Vol=&(p.row_jac->volume[INDEX2(0,e,p.numQuad)]);
                           memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
-                          D_p=getSampleData(D,e);
+                          D_p=getSampleDataRO(D,e,buffer);
                           #ifdef NEW_LUMPING /* HRZ lumping */
                           /*
                            *           Number of PDEs: 1
@@ -170,7 +172,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                     if (elements->Color[e]==color) {
                           Vol=&(p.row_jac->volume[INDEX2(0,e,p.numQuad)]);
                           memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
-                          D_p=getSampleData(D,e);
+                          D_p=getSampleDataRO(D,e,buffer);
                           #ifdef NEW_LUMPING /* HRZ lumping */
                           /*
                            *           Number of PDEs: 1
@@ -215,7 +217,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                        if (elements->Color[e]==color) {
                           Vol=&(p.row_jac->volume[INDEX2(0,e,p.numQuad)]);
                           memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
-                          D_p=getSampleData(D,e);
+                          D_p=getSampleDataRO(D,e,buffer);
                           #ifdef NEW_LUMPING /* HRZ lumping */
                           /*
                            *           Number of PDEs: Multiple
@@ -262,7 +264,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                        if (elements->Color[e]==color) {
                           Vol=&(p.row_jac->volume[INDEX2(0,e,p.numQuad)]);
                           memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
-                          D_p=getSampleData(D,e);
+                          D_p=getSampleDataRO(D,e,buffer);
                           #ifdef NEW_LUMPING /* HRZ lumping */
                           /*
                            *           Number of PDEs: Multiple
@@ -305,5 +307,6 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
        THREAD_MEMFREE(EM_lumpedMat);
        THREAD_MEMFREE(row_index);
     } /* end parallel region */
+    freeSampleBuffer(buffer);
   }
 }

@@ -176,13 +176,11 @@ struct AbsLTE : public std::binary_function<double,double,double>
    \brief
    Perform the given operation upon all values in all data-points in the
    given Data object and return the final result.
-
-   Calls DataArrayView::reductionOp
 */
 template <class BinaryFunction>
 inline
 double
-algorithm(DataExpanded& data,
+algorithm(const DataExpanded& data,
           BinaryFunction operation,
 	  double initial_value)
 {
@@ -192,7 +190,7 @@ algorithm(DataExpanded& data,
   double global_current_value=initial_value;
   double local_current_value;
 //  DataArrayView dataView=data.getPointDataView();
-  DataTypes::ValueType& vec=data.getVector();
+  const DataTypes::ValueType& vec=data.getVectorRO();
   const DataTypes::ShapeType& shape=data.getShape();
   // calculate the reduction operation value for each data point
   // reducing the result for each data-point into the current_value variables
@@ -223,7 +221,7 @@ algorithm(DataTagged& data,
 {
   double current_value=initial_value;
 
-  DataTypes::ValueType& vec=data.getVector();
+  const DataTypes::ValueType& vec=data.getVectorRO();
   const DataTypes::ShapeType& shape=data.getShape();
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   const std::list<int> used=data.getFunctionSpace().getListOfTagsSTL();
@@ -253,8 +251,7 @@ algorithm(DataConstant& data,
           BinaryFunction operation,
 	  double initial_value)
 {
-  return DataMaths::reductionOp(data.getVector(),data.getShape(),0,operation,initial_value);
-//  return data.getPointDataView().reductionOp(operation,initial_value);
+  return DataMaths::reductionOp(data.getVectorRO(),data.getShape(),0,operation,initial_value);
 }
 
 /**
@@ -281,9 +278,9 @@ dp_algorithm(const DataExpanded& data,
   int numDPPSample=data.getNumDPPSample();
 //  DataArrayView dataView=data.getPointDataView();
 //  DataArrayView resultView=result.getPointDataView();
-  const DataTypes::ValueType& dataVec=data.getVector();
+  const DataTypes::ValueType& dataVec=data.getVectorRO();
   const DataTypes::ShapeType& shape=data.getShape();
-  DataTypes::ValueType& resultVec=result.getVector();
+  DataTypes::ValueType& resultVec=result.getVectorRW();
   // perform the operation on each data-point and assign
   // this to the corresponding element in result
   #pragma omp parallel for private(i,j) schedule(static)
@@ -309,19 +306,15 @@ dp_algorithm(const DataTagged& data,
   // perform the operation on each tagged value in data
   // and assign this to the corresponding element in result
   const DataTypes::ShapeType& shape=data.getShape();
-  const DataTypes::ValueType& vec=data.getVector();
+  const DataTypes::ValueType& vec=data.getVectorRO();
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   for (DataTagged::DataMapType::const_iterator i=lookup.begin(); i!=lookup.end(); i++) {
-//     result.getDataPointByTag(i->first).getData(0) =
-//       data.getDataPointByTag(i->first).reductionOp(operation,initial_value);
-    result.getDataByTag(i->first,0) =
+    result.getDataByTagRW(i->first,0) =
 	DataMaths::reductionOp(vec,shape,data.getOffsetForTag(i->first),operation,initial_value);
   }
   // perform the operation on the default data value
   // and assign this to the default element in result
-//   result.getDefaultValue().getData(0) =
-//     data.getDefaultValue().reductionOp(operation,initial_value);
-  result.getVector()[result.getDefaultOffset()] = DataMaths::reductionOp(data.getVector(),data.getShape(),data.getDefaultOffset(),operation,initial_value);
+  result.getVectorRW()[result.getDefaultOffset()] = DataMaths::reductionOp(data.getVectorRO(),data.getShape(),data.getDefaultOffset(),operation,initial_value);
 }
 
 template <class BinaryFunction>
@@ -334,10 +327,8 @@ dp_algorithm(DataConstant& data,
 {
   // perform the operation on the data value
   // and assign this to the element in result
-//   result.getPointDataView().getData(0) =
-//     data.getPointDataView().reductionOp(operation,initial_value);
-  result.getVector()[0] =
-    DataMaths::reductionOp(data.getVector(),data.getShape(),0,operation,initial_value);
+  result.getVectorRW()[0] =
+    DataMaths::reductionOp(data.getVectorRO(),data.getShape(),0,operation,initial_value);
 }
 
 } // end of namespace

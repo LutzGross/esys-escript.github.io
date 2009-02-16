@@ -119,7 +119,7 @@ int isExpanded(struct escriptDataC* data)
      if (temp->isEmpty()) {
         return false;
      } else {
-        return temp->isExpanded() || temp->isLazy();	// THIS IS WRONG!!! we need actsExpanded from the branch
+        return temp->actsExpanded();
      }
   }
 }
@@ -134,8 +134,11 @@ int isEmpty(escriptDataC* data)
   }
 }
 
-
-double* getSampleData(struct escriptDataC* data, int sampleNo)
+// The unusual (for me) ordering of __const here is because I'm not sure
+// whether gcc would try to interpret __const as a function attribute rather than
+// a modifier on the return value. Putting it here should remove any ambiguity
+// I have used const rather than __const in the cpp because only c++ will be reading the cpp.
+double const* getSampleDataRO(struct escriptDataC* data, int sampleNo, void* buffer)
 {
   if (data == (struct escriptDataC*)0) {
        return NULL;
@@ -144,13 +147,61 @@ double* getSampleData(struct escriptDataC* data, int sampleNo)
      if (temp->isEmpty()) {
         return NULL;
      } else {
-        return temp->getSampleData(sampleNo);
+        return temp->getSampleDataRO(sampleNo,reinterpret_cast<escript::BufferGroup*>(buffer));
      }
   }
 }
 
-double* getSampleDataFast(struct escriptDataC* data, int sampleNo)
+double* getSampleDataRW(struct escriptDataC* data, int sampleNo)
+{
+  if (data == (struct escriptDataC*)0) {
+       return NULL;
+  } else {
+      escript::Data* temp=(escript::Data*)(data->m_dataPtr);
+     if (temp->isEmpty()) {
+        return NULL;
+     } else {
+        return temp->getSampleDataRW(sampleNo);
+     }
+  }
+}
+
+const double* getSampleDataROFast(struct escriptDataC* data, int sampleNo, void* buffer)
 {
   escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-  return temp->getSampleData(sampleNo);
+  return temp->getSampleDataRO(sampleNo, reinterpret_cast<escript::BufferGroup*>(buffer));
+}
+
+double* getSampleDataRWFast(struct escriptDataC* data, int sampleNo)
+{
+  escript::Data* temp=(escript::Data*)(data->m_dataPtr);
+  return temp->getSampleDataRW(sampleNo);
+}
+
+void* allocSampleBuffer(escriptDataC* data)
+{
+  if (data == (struct escriptDataC*)0) {
+     return NULL;
+  } else {
+     escript::Data* temp=(escript::Data*)(data->m_dataPtr);
+     return temp->allocSampleBuffer();
+  }
+}
+
+// Not going to the c++ member for this because I don't need an instance to do this
+void freeSampleBuffer(void* buffer)
+{
+  if (buffer!=NULL)
+  {
+    delete (reinterpret_cast<escript::BufferGroup*>(buffer));
+  }
+}
+
+void requireWrite(escriptDataC* data)
+{
+  if (data == (struct escriptDataC*)0) {
+       return;
+  } else {
+      ((escript::Data*)(data->m_dataPtr))->requireWrite();
+  }
 }

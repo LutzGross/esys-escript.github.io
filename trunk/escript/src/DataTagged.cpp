@@ -26,6 +26,11 @@
 #endif
 #include "DataMaths.h"
 
+
+#define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {throw DataException("Attempt to modify shared object");}
+
+// #define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {std::ostringstream ss; ss << " Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__; throw DataException(ss.str());}
+
 using namespace std;
 
 namespace escript {
@@ -167,16 +172,11 @@ DataTagged::DataTagged(const DataConstant& other)
   }
 
   // fill the default value with the constant value item from "other"
-//   const DataArrayView& value=other.getPointDataView();
   int len = other.getNoValues();
   m_data.resize(len,0.,len);
   for (int i=0; i<len; i++) {
-    m_data[i]=other.getVector()[i];
+    m_data[i]=other.getVectorRO()[i];
   }
-
-//   // create the data view
-//   DataArrayView temp(m_data,value.getShape());
-//   setPointDataView(temp);
 }
 
 
@@ -246,21 +246,15 @@ DataTagged::DataTagged(const DataTagged& other,
   int len = DataTypes::noValues(regionShape)*(other.m_offsetLookup.size()+1);
   m_data.resize(len,0.0,len);
 
-  // create the data view
-//   DataArrayView temp(m_data,regionShape);
-//   setPointDataView(temp);
-
   // copy the default value from other to this
-//   getDefaultValue().copySlice(other.getDefaultValue(), regionLoopRange);
   const DataTypes::ShapeType& otherShape=other.getShape();
-  const DataTypes::ValueType& otherData=other.getVector();
-  DataTypes::copySlice(getVector(),getShape(),getDefaultOffset(),otherData,otherShape,other.getDefaultOffset(), regionLoopRange);
+  const DataTypes::ValueType& otherData=other.getVectorRO();
+  DataTypes::copySlice(getVectorRW(),getShape(),getDefaultOffset(),otherData,otherShape,other.getDefaultOffset(), regionLoopRange);
 
   // loop through the tag values copying these
   DataMapType::const_iterator pos;
   DataTypes::ValueType::size_type tagOffset=getNoValues();
   for (pos=other.m_offsetLookup.begin();pos!=other.m_offsetLookup.end();pos++){
-//     getPointDataView().copySlice(tagOffset,other.getPointDataView(),pos->second,regionLoopRange);
     DataTypes::copySlice(m_data,getShape(),tagOffset,otherData, otherShape, pos->second, regionLoopRange);
     m_offsetLookup.insert(DataMapType::value_type(pos->first,tagOffset));
     tagOffset+=getNoValues();
@@ -279,6 +273,8 @@ DataTagged::setSlice(const DataAbstract* other,
     throw DataException("Programming error - casting to DataTagged.");
   }
 
+  CHECK_FOR_EX_WRITE
+
   // determine shape of the specified region
   DataTypes::ShapeType regionShape(DataTypes::getResultSliceShape(region));
 
@@ -294,10 +290,9 @@ DataTagged::setSlice(const DataAbstract* other,
                          "Error - Couldn't copy slice due to shape mismatch.",regionShape,other->getShape()));
   }
 
-  const DataTypes::ValueType& otherData=otherTemp->getVector();
+  const DataTypes::ValueType& otherData=otherTemp->getVectorRO();
   const DataTypes::ShapeType& otherShape=otherTemp->getShape();
   // copy slice from other default value to this default value
-//   getDefaultValue().copySliceFrom(otherTemp->getDefaultValue(), regionLoopRange);
   DataTypes::copySliceFrom(m_data,getShape(),getDefaultOffset(),otherData,otherShape,otherTemp->getDefaultOffset(),regionLoopRange);
 
   // loop through tag values in other, adding any which aren't in this, using default value
@@ -310,7 +305,6 @@ DataTagged::setSlice(const DataAbstract* other,
 
   // loop through the tag values copying slices from other to this
   for (pos=m_offsetLookup.begin();pos!=m_offsetLookup.end();pos++) {
-//     getDataPointByTag(pos->first).copySliceFrom(otherTemp->getDataPointByTag(pos->first), regionLoopRange);
     DataTypes::copySliceFrom(m_data,getShape(),getOffsetForTag(pos->first),otherData, otherShape, otherTemp->getOffsetForTag(pos->first), regionLoopRange);
 
   }
@@ -347,13 +341,6 @@ DataTagged::getTagNumber(int dpno)
   return(tagNo);
 }
 
-// void
-// DataTagged::setTaggedValues(const TagListType& tagKeys,
-//                             const ValueListType& values)
-// {
-//   addTaggedValues(tagKeys,values);
-// }
-
 void
 DataTagged::setTaggedValue(int tagKey,
 			   const DataTypes::ShapeType& pointshape,
@@ -364,6 +351,7 @@ DataTagged::setTaggedValue(int tagKey,
       throw DataException(DataTypes::createShapeErrorMessage(
                           "Error - Cannot setTaggedValue due to shape mismatch.", pointshape,getShape()));
   }
+  CHECK_FOR_EX_WRITE
   DataMapType::iterator pos(m_offsetLookup.find(tagKey));
   if (pos==m_offsetLookup.end()) {
     // tag couldn't be found so use addTaggedValue
@@ -376,61 +364,6 @@ DataTagged::setTaggedValue(int tagKey,
     }
   }
 }
-
-
-/*
-void
-DataTagged::setTaggedValue(int tagKey,
-                           const DataArrayView& value)
-{
-  if (!getPointDataView().checkShape(value.getShape())) {
-      throw DataException(DataTypes::createShapeErrorMessage(
-                          "Error - Cannot setTaggedValue due to shape mismatch.", value.getShape(),getShape()));
-  }
-  DataMapType::iterator pos(m_offsetLookup.find(tagKey));
-  if (pos==m_offsetLookup.end()) {
-    // tag couldn't be found so use addTaggedValue
-    addTaggedValue(tagKey,value);
-  } else {
-    // copy the values into the data array at the offset determined by m_offsetLookup
-    int offset=pos->second;
-    for (int i=0; i<getPointDataView().noValues(); i++) {
-      m_data[offset+i]=value.getData(i);
-    }
-  }
-}*/
-
-// void
-// DataTagged::addTaggedValues(const TagListType& tagKeys,
-//                             const ValueListType& values)
-// {
-//   if (values.size()==0) {
-//     // copy the current default value for each of the tags
-//     TagListType::const_iterator iT;
-//     for (iT=tagKeys.begin();iT!=tagKeys.end();iT++) {
-//       // the point data view for DataTagged points at the default value
-//       addTaggedValue(*iT,getPointDataView());
-//     }
-//   } else if (values.size()==1 && tagKeys.size()>1) {
-//     // assume the one given value will be used for all tag values
-//     TagListType::const_iterator iT;
-//     for (iT=tagKeys.begin();iT!=tagKeys.end();iT++) {
-//       addTaggedValue(*iT,values[0]);
-//     }
-//   } else {
-//     if (tagKeys.size()!=values.size()) {
-//       stringstream temp;
-//       temp << "Error - (addTaggedValue) Number of tags: " << tagKeys.size()
-// 	   << " doesn't match number of values: " << values.size();
-//       throw DataException(temp.str());
-//     } else {
-//       unsigned int i;
-//       for (i=0;i<tagKeys.size();i++) {
-//         addTaggedValue(tagKeys[i],values[i]);
-//       }
-//     }
-//   }
-// }
 
 
 void
@@ -497,6 +430,7 @@ DataTagged::addTaggedValue(int tagKey,
     throw DataException(DataTypes::createShapeErrorMessage(
                         "Error - Cannot addTaggedValue due to shape mismatch.", pointshape,getShape()));
   }
+  CHECK_FOR_EX_WRITE
   DataMapType::iterator pos(m_offsetLookup.find(tagKey));
   if (pos!=m_offsetLookup.end()) {
     // tag already exists so use setTaggedValue
@@ -520,44 +454,10 @@ DataTagged::addTaggedValue(int tagKey,
   }
 }
 
-
-
-
-// void
-// DataTagged::addTaggedValue(int tagKey,
-//                            const DataArrayView& value)
-// {
-//   if (!getPointDataView().checkShape(value.getShape())) {
-//     throw DataException(DataTypes::createShapeErrorMessage(
-//                         "Error - Cannot addTaggedValue due to shape mismatch.", value.getShape(),getShape()));
-//   }
-//   DataMapType::iterator pos(m_offsetLookup.find(tagKey));
-//   if (pos!=m_offsetLookup.end()) {
-//     // tag already exists so use setTaggedValue
-//     setTaggedValue(tagKey,value);
-//   } else {
-//     // save the key and the location of its data in the lookup tab
-//     m_offsetLookup.insert(DataMapType::value_type(tagKey,m_data.size()));
-//     // add the data given in "value" at the end of m_data
-//     // need to make a temp copy of m_data, resize m_data, then copy
-//     // all the old values plus the value to be added back into m_data
-//     ValueType m_data_temp(m_data);
-//     int oldSize=m_data.size();
-//     int newSize=m_data.size()+value.noValues();
-//     m_data.resize(newSize,0.,newSize);
-//     for (int i=0;i<oldSize;i++) {
-//       m_data[i]=m_data_temp[i];
-//     }
-//     for (int i=0;i<value.noValues();i++) {
-//       m_data[oldSize+i]=value.getData(i);
-//     }
-//   }
-// }
-
-
 void
 DataTagged::addTag(int tagKey)
 {
+  CHECK_FOR_EX_WRITE
   DataMapType::iterator pos(m_offsetLookup.find(tagKey));
   if (pos!=m_offsetLookup.end()) {
     // tag already exists so use setTaggedValue
@@ -585,6 +485,7 @@ DataTagged::addTag(int tagKey)
 double*
 DataTagged::getSampleDataByTag(int tag)
 {
+  CHECK_FOR_EX_WRITE
   DataMapType::iterator pos(m_offsetLookup.find(tag));
   if (pos==m_offsetLookup.end()) {
     // tag couldn't be found so return the default value
@@ -641,21 +542,6 @@ DataTagged::getPointOffset(int sampleNo,
   return offset;
 }
 
-// DataArrayView
-// DataTagged::getDataPointByTag(int tag) const
-// {
-//   DataMapType::const_iterator pos(m_offsetLookup.find(tag));
-//   DataTypes::ValueType::size_type offset=m_defaultValueOffset;
-//   if (pos!=m_offsetLookup.end()) {
-//     offset=pos->second;
-//   }
-//   DataArrayView temp(getPointDataView());
-//   temp.setOffset(offset);
-//   return temp;
-// }
-// 
-
-
 DataTypes::ValueType::size_type
 DataTagged::getOffsetForTag(int tag) const
 {
@@ -668,7 +554,7 @@ DataTagged::getOffsetForTag(int tag) const
 }
 
 DataTypes::ValueType::const_reference
-DataTagged::getDataByTag(int tag, DataTypes::ValueType::size_type i) const
+DataTagged::getDataByTagRO(int tag, DataTypes::ValueType::size_type i) const
 {
   DataMapType::const_iterator pos(m_offsetLookup.find(tag));
   DataTypes::ValueType::size_type offset=m_defaultValueOffset;
@@ -676,40 +562,19 @@ DataTagged::getDataByTag(int tag, DataTypes::ValueType::size_type i) const
     offset=pos->second;
   }
   return m_data[offset+i];
-/*  DataArrayView temp(getPointDataView());
-  temp.setOffset(offset);
-  return temp.getData()[offset+i];*/
 }
-
 
 DataTypes::ValueType::reference
-DataTagged::getDataByTag(int tag, DataTypes::ValueType::size_type i)
+DataTagged::getDataByTagRW(int tag, DataTypes::ValueType::size_type i)
 {
+  CHECK_FOR_EX_WRITE
   DataMapType::const_iterator pos(m_offsetLookup.find(tag));
   DataTypes::ValueType::size_type offset=m_defaultValueOffset;
   if (pos!=m_offsetLookup.end()) {
     offset=pos->second;
   }
   return m_data[offset+i];
-/*  DataArrayView temp(getPointDataView());
-  temp.setOffset(offset);
-  return temp.getData()[offset+i];*/
 }
-
-
-
-
-
-
-// DataArrayView
-// DataTagged::getDataPoint(int sampleNo,
-//                          int dataPointNo)
-// {
-//   EsysAssert(validSampleNo(sampleNo),"(getDataPoint) Invalid sampleNo: " << sampleNo);
-//   int tagKey=getFunctionSpace().getTagFromSampleNo(sampleNo);
-//   return getDataPointByTag(tagKey);
-// }
-
 
 void
 DataTagged::symmetric(DataAbstract* ev)
@@ -721,19 +586,14 @@ DataTagged::symmetric(DataAbstract* ev)
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  ValueType& evVec=temp_ev->getVector();
+  ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
       DataTypes::ValueType::size_type offset=getOffsetForTag(i->first);
-//       DataArrayView thisView=getDataPointByTag(i->first);
-//       DataArrayView evView=temp_ev->getDataPointByTag(i->first);
       DataTypes::ValueType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
-
-//       DataArrayView::symmetric(thisView,0,evView,0);
       DataMaths::symmetric(m_data,getShape(),offset,evVec, evShape, evoffset);
   }
-//   symmetric(m_data,getShape(),getDefaultOffset(), 
   DataMaths::symmetric(m_data,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());
 }
 
@@ -748,12 +608,10 @@ DataTagged::nonsymmetric(DataAbstract* ev)
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  ValueType& evVec=temp_ev->getVector();
+  ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
-/*      DataArrayView thisView=getDataPointByTag(i->first);
-      DataArrayView evView=temp_ev->getDataPointByTag(i->first);*/
       DataTypes::ValueType::size_type offset=getOffsetForTag(i->first);
       DataTypes::ValueType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
       DataMaths::nonsymmetric(m_data,getShape(),offset,evVec, evShape, evoffset);
@@ -772,12 +630,10 @@ DataTagged::trace(DataAbstract* ev, int axis_offset)
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  ValueType& evVec=temp_ev->getVector();
+  ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
-//       DataArrayView thisView=getDataPointByTag(i->first);
-//       DataArrayView evView=temp_ev->getDataPointByTag(i->first);
       DataTypes::ValueType::size_type offset=getOffsetForTag(i->first);
       DataTypes::ValueType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
       DataMaths::trace(m_data,getShape(),offset,evVec, evShape, evoffset, axis_offset);
@@ -795,12 +651,10 @@ DataTagged::transpose(DataAbstract* ev, int axis_offset)
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  ValueType& evVec=temp_ev->getVector();
+  ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
-//       DataArrayView thisView=getDataPointByTag(i->first);
-//       DataArrayView evView=temp_ev->getDataPointByTag(i->first);
       DataTypes::ValueType::size_type offset=getOffsetForTag(i->first);
       DataTypes::ValueType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
       DataMaths::transpose(m_data,getShape(),offset,evVec, evShape, evoffset, axis_offset);
@@ -818,12 +672,10 @@ DataTagged::swapaxes(DataAbstract* ev, int axis0, int axis1)
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  ValueType& evVec=temp_ev->getVector();
+  ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
-/*      DataArrayView thisView=getDataPointByTag(i->first);
-      DataArrayView evView=temp_ev->getDataPointByTag(i->first);*/
       DataTypes::ValueType::size_type offset=getOffsetForTag(i->first);
       DataTypes::ValueType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
       DataMaths::swapaxes(m_data,getShape(),offset,evVec, evShape, evoffset,axis0,axis1);
@@ -841,7 +693,7 @@ DataTagged::eigenvalues(DataAbstract* ev)
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  ValueType& evVec=temp_ev->getVector();
+  ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
@@ -867,9 +719,9 @@ DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const 
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  ValueType& evVec=temp_ev->getVector();
+  ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
-  ValueType& VVec=temp_V->getVector();
+  ValueType& VVec=temp_V->getVectorRW();
   const ShapeType& VShape=temp_V->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
@@ -893,6 +745,7 @@ DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const 
 
 void
 DataTagged::setToZero(){
+    CHECK_FOR_EX_WRITE
     DataTypes::ValueType::size_type n=m_data.size();
     for (int i=0; i<n ;++i) m_data[i]=0.;
 }
@@ -1000,15 +853,16 @@ DataTagged::dump(const std::string fileName) const
 }
 
 DataTypes::ValueType&
-DataTagged::getVector()
+DataTagged::getVectorRW()
 {
+    CHECK_FOR_EX_WRITE
     return m_data;
 }
 
 const DataTypes::ValueType&
-DataTagged::getVector() const
+DataTagged::getVectorRO() const
 {
-    return m_data;
+	return m_data;
 }
 
 }  // end of namespace

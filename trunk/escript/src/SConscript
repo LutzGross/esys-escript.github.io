@@ -25,6 +25,7 @@ sources = """
 	AbstractDomain.cpp
 	AbstractSystemMatrix.cpp
 	AbstractTransportProblem.cpp
+	BufferGroup.cpp
 	Data.cpp
 	DataAbstract.cpp
 	DataBlocks2D.cpp
@@ -50,6 +51,7 @@ sources = """
 	Taipan.cpp
 	TransportProblemException.cpp
 	Utils.cpp
+	WrappedArray.cpp
 """.split()
 	# blocktimer.c
 headers = """
@@ -58,6 +60,7 @@ headers = """
 	AbstractSystemMatrix.h
 	AbstractTransportProblem.h
 	BinaryOp.h
+	BufferGroup.h
 	Data.h
 	DataAbstract.h
 	DataAlgorithm.h
@@ -89,6 +92,7 @@ headers = """
 	UnaryOp.h
 	UtilC.h
 	Utils.h
+	WrappedArray.h
 	esysmpi.h
 	system_dep.h
 """.split()

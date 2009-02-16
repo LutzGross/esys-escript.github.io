@@ -43,8 +43,9 @@ void Finley_Assemble_NodeCoordinates(Finley_NodeFile* nodes,escriptDataC* x) {
        Finley_setError(TYPE_ERROR,error_msg);
   } else {
        dim_size=nodes->numDim*sizeof(double);
+       requireWrite(x);
        #pragma omp parallel for private(n)
        for (n=0;n<nodes->numNodes;n++) 
-          memcpy(getSampleDataFast(x,n),&(nodes->Coordinates[INDEX2(0,n,nodes->numDim)]),dim_size);
+          memcpy(getSampleDataRWFast(x,n),&(nodes->Coordinates[INDEX2(0,n,nodes->numDim)]),dim_size);
   }
 }

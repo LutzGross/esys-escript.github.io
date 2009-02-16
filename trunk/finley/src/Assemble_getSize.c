@@ -71,6 +71,7 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
   /* now we can start: */
 
   if (Finley_noError()) {
+	requireWrite(element_size);
         #pragma omp parallel private(local_X)
         {
 	   /* allocation of work arrays */
@@ -99,7 +100,7 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
 	       }
 	       min_diff=sqrt(MAX(min_diff,0));
 	       /* set all values to min_diff */
-               element_size_array=getSampleData(element_size,e);
+               element_size_array=getSampleDataRW(element_size,e);
 	       for (q=0;q<numQuad;q++) element_size_array[q]=min_diff;
 	     }
 	   }

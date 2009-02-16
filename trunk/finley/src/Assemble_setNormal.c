@@ -69,6 +69,7 @@ void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* eleme
    
   /* now we can start */
     if (Finley_noError()) {
+	  requireWrite(normal);
           #pragma omp parallel private(local_X,dVdv)
           {
              local_X=dVdv=NULL;
@@ -84,7 +85,7 @@ void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* eleme
                           /*  calculate dVdv(i,j,q)=local_X(i,n)*DSDv(n,j,q) */
                           Finley_Util_SmallMatMult(numDim,numDim_local*numQuad,dVdv,NS,local_X,reference_element->dSdv);
                           /* get normalized vector:  */
-                          normal_array=getSampleData(normal,e);
+                          normal_array=getSampleDataRW(normal,e);
                           Finley_NormalVector(numQuad,numDim,numDim_local,dVdv,normal_array);
 			  for (q=0;q<numQuad*numDim;q++) normal_array[q]*=sign;
                        }

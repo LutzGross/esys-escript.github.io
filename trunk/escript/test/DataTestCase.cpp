@@ -58,17 +58,17 @@ namespace
 {
 
 inline
-DataTypes::ValueType::reference
+DataTypes::ValueType::const_reference
 getRef(Data& d,int s1, int p1, int x, int y)
 {
-	return d.getDataAtOffset(d.getDataOffset(s1,p1)+getRelIndex(d.getDataPointShape(),x,y));
+	return d.getDataAtOffsetRO(d.getDataOffset(s1,p1)+getRelIndex(d.getDataPointShape(),x,y));
 }
 
 inline
-DataTypes::ValueType::reference
+DataTypes::ValueType::const_reference
 getRef(Data& d, int x, int y)
 {
-	return d.getDataAtOffset(getRelIndex(d.getDataPointShape(),x,y));
+	return d.getDataAtOffsetRO(getRelIndex(d.getDataPointShape(),x,y));
 }
 
 }
@@ -108,7 +108,7 @@ void DataTestCase::testCopyingWorker(bool delayed)
 	}
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	if (d->getDataAtOffset(i)!=deep.getDataAtOffset(i))
+	if (d->getDataAtOffsetRO(i)!=deep.getDataAtOffsetRO(i))
 		assert(false);
 	}
 	if (delayed)
@@ -122,7 +122,7 @@ void DataTestCase::testCopyingWorker(bool delayed)
 	}
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	if (d->getDataAtOffset(i)==deep.getDataAtOffset(i))
+	if (d->getDataAtOffsetRO(i)==deep.getDataAtOffsetRO(i))
 		assert(false);
 	}
         if (delayed)
@@ -137,13 +137,13 @@ void DataTestCase::testCopyingWorker(bool delayed)
 	}
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	if (d->getDataAtOffset(i)!=deep.getDataAtOffset(i))
+	if (d->getDataAtOffsetRO(i)!=deep.getDataAtOffsetRO(i))
 		assert(false);
 	}
 	d->setToZero();
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	if (d->getDataAtOffset(i)==deep.getDataAtOffset(i))
+	if (d->getDataAtOffsetRO(i)==deep.getDataAtOffsetRO(i))
 		assert(false);
 	}
 	delete dats[k];
@@ -186,8 +186,9 @@ void DataTestCase::testSlicingWorker(bool delayed)
    for (int k=0;k<NUMDATS;++k)
    {
 	cout << "\t\tTest get-slicing " << strs[k] << endl;
-    	dats[k]->getDataAtOffset(dats[k]->getDataOffset(0,0)+getRelIndex(viewShape,0,0))=1.0;
-    	dats[k]->getDataAtOffset(dats[k]->getDataOffset(0,0)+getRelIndex(viewShape,1,1))=2.0;
+	dats[k]->requireWrite();
+    	dats[k]->getDataAtOffsetRW(dats[k]->getDataOffset(0,0)+getRelIndex(viewShape,0,0))=1.0;
+    	dats[k]->getDataAtOffsetRW(dats[k]->getDataOffset(0,0)+getRelIndex(viewShape,1,1))=2.0;
 
     	DataTypes::RegionType region;
     	region.push_back(DataTypes::RegionType::value_type(0,0));
@@ -197,7 +198,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
 
     	if (tags[k]) {assert(slice1.isTagged());}
     	assert(slice1.getDataPointRank()==0);
-    	assert(slice1.getDataPoint(0,0)==1.0);
+    	assert(slice1.getDataPointRO(0,0)==1.0);
 
 	//
 	// create a rank 2 slice with one value
@@ -213,7 +214,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
 	if (tags[k]) {assert(slice2.isTagged());}
 	assert(slice2.getDataPointRank()==2);
 	
-	assert(slice2.getDataAtOffset(slice2.getDataOffset(0,0)+getRelIndex(slice2.getDataPointShape(),0,0))==1.0);
+	assert(slice2.getDataAtOffsetRO(slice2.getDataOffset(0,0)+getRelIndex(slice2.getDataPointShape(),0,0))==1.0);
 
 	//
 	// create a rank 2 slice with four values
@@ -311,7 +312,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
 	region.push_back(DataTypes::RegionType::value_type(1,1));
 	region.push_back(DataTypes::RegionType::value_type(1,1));
 	target.setSlice(*(src[k]),region);
-	assert(getRef(target,0,0,1,1)==src[k]->getDataPoint(0,0));
+	assert(getRef(target,0,0,1,1)==src[k]->getDataPointRO(0,0));
   }
   
   // some extra tests on tagged data
@@ -342,7 +343,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
   assert(target.isTagged());
   assert(target.getDataPointRank()==2);
   assert(getRef(target,0,0,0,0)==0);
-  assert(getRef(target,0,0,0,1)==src[1]->getDataPoint(0,0));
+  assert(getRef(target,0,0,0,1)==src[1]->getDataPointRO(0,0));
   assert(getRef(target,0,0,0,2)==4);
   assert(getRef(target,0,0,1,0)==1);
   assert(getRef(target,0,0,1,1)==3);
@@ -614,11 +615,11 @@ void DataTestCase::testDataTagged() {
     assert(myData.getLength()==3);
     
     assert(myData.getNoValues()==3);
-    assert(myData.getDataAtOffset(0)==0.0);
-    assert(myData.getDataAtOffset(1)==1.0);
-    assert(myData.getDataAtOffset(2)==2.0);
+    assert(myData.getDataAtOffsetRO(0)==0.0);
+    assert(myData.getDataAtOffsetRO(1)==1.0);
+    assert(myData.getDataAtOffsetRO(2)==2.0);
 
-    double* sampleData=myData.getSampleData(0);
+    double* sampleData=myData.getSampleDataRW(0);
     for (int i=0; i<myData.getNoValues(); i++) {
       assert(sampleData[i]==i);
     }
@@ -647,9 +648,9 @@ void DataTestCase::testDataTagged() {
     assert(myData.getDataPointRank()==1);
     assert(myData.getNoValues()==3);
 
-    assert(myData.getDataAtOffset(offset+0)==2);
-    assert(myData.getDataAtOffset(offset+1)==3);
-    assert(myData.getDataAtOffset(offset+2)==4);
+    assert(myData.getDataAtOffsetRO(offset+0)==2);
+    assert(myData.getDataAtOffsetRO(offset+1)==3);
+    assert(myData.getDataAtOffsetRO(offset+2)==4);
 
     sampleData=myData.getSampleDataByTag(1);
     for (int i=0; i<myData.getNoValues(); i++) {
@@ -820,9 +821,9 @@ void DataTestCase::testOperations()
 		Data(smalldata,shape,FunctionSpace(),true)};
   sdats[1].tag();
   sdats[4].tag();
-  sdats[3].delaySelf();
-  sdats[4].delaySelf();
-  sdats[5].delaySelf();
+  sdats[3].delaySelf();		// 3 is a lazy constant
+  sdats[4].delaySelf();		// 4 is a lazy tagged
+  sdats[5].delaySelf();		// 5 is a lazy expanded
 
 
 
@@ -1305,7 +1306,7 @@ void DataTestCase::testOperations()
   }
   for (int z=0;z<NUMDATS;++z)
   {
-    assert(std::abs(results[z].getDataAtOffset(0) - 0) <= REL_TOL*0);
+    assert(std::abs(results[z].getDataAtOffsetRO(0) - 0) <= REL_TOL*0); 
   }
   
 
@@ -1316,7 +1317,7 @@ void DataTestCase::testOperations()
   }
   for (int z=0;z<NUMDATS;++z)
   {
-    assert(std::abs(results[z].getDataAtOffset(0) - 5) <= REL_TOL*5);
+    assert(std::abs(results[z].getDataAtOffsetRO(0) - 5) <= REL_TOL*5);
   }
 
 }
@@ -1372,10 +1373,10 @@ void DataTestCase::testBinary()
 	}
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	  assert(std::abs(r1.getDataAtOffset(i)-data[i]) <= REL_TOL*data[i]);
-	  assert(std::abs(r2.getDataAtOffset(i)-data[i]) <= REL_TOL*data[i]);
-	  assert(std::abs(r3.getDataAtOffset(i)-data[i]) <= REL_TOL*data[i]);
-	  assert(std::abs(r4.getDataAtOffset(i)-pow(data[i],i)) <=REL_TOL*pow(data[i],i));
+	  assert(std::abs(r1.getDataAtOffsetRO(i)-data[i]) <= REL_TOL*data[i]);
+	  assert(std::abs(r2.getDataAtOffsetRO(i)-data[i]) <= REL_TOL*data[i]);
+	  assert(std::abs(r3.getDataAtOffsetRO(i)-data[i]) <= REL_TOL*data[i]);
+	  assert(std::abs(r4.getDataAtOffsetRO(i)-pow(data[i],i)) <=REL_TOL*pow(data[i],i));
 	}
   }
 }
@@ -1422,7 +1423,6 @@ TestSuite* DataTestCase::suite ()
   testSuite->addTest (new TestCaller< DataTestCase>("testConstructors",&DataTestCase::testConstructors));
   testSuite->addTest (new TestCaller< DataTestCase>("testSlicing",&DataTestCase::testSlicing));
   testSuite->addTest (new TestCaller< DataTestCase>("testOperations",&DataTestCase::testOperations));
-  //testSuite->addTest (new TestCaller< DataTestCase>("testRefValue",&DataTestCase::testRefValue));
   testSuite->addTest (new TestCaller< DataTestCase>("testMemAlloc",&DataTestCase::testMemAlloc));
   testSuite->addTest (new TestCaller< DataTestCase>("Resolving",&DataTestCase::testResolveType));
 

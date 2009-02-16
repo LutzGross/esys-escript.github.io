@@ -682,7 +682,7 @@ Note that vector in this context refers to a data vector storing datapoints not 
   ESCRIPT_DLL_API
   inline
   void
-  eigenvalues(DataTypes::ValueType& in, 
+  eigenvalues(const DataTypes::ValueType& in, 
 	      const DataTypes::ShapeType& inShape,
               DataTypes::ValueType::size_type inOffset,
               DataTypes::ValueType& ev,

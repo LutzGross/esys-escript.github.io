@@ -762,7 +762,8 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                 txtBufferInUse = 0;
                 for (i=0; i<numCells; i++) {
                     if (elements->Owner[i] == my_mpi_rank) {
-                        double *values = getSampleData(data_pp[dataIdx], i);
+			void* sampleBuffer=allocSampleBuffer(data_pp[dataIdx]);
+                        __const double *values = getSampleDataRO(data_pp[dataIdx], i,sampleBuffer);
                         for (l = 0; l < numCellFactor; l++) {
                             double sampleAvg[NCOMP_MAX];
                             dim_t nCompUsed = MIN(nComp, NCOMP_MAX);
@@ -828,6 +829,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                                 fputs(tmpBuffer, fileHandle_p);
                             }
                         } /* for l (numCellFactor) */
+			freeSampleBuffer(sampleBuffer);
                     } /* if I am the owner */
                 } /* for i (numCells) */
 
@@ -943,7 +945,8 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                 for (i=0; i<mesh_p->Nodes->numNodes; i++) {
                     k = globalNodeIndex[i];
                     if ( (myFirstNode <= k) && (k < myLastNode) ) {
-                        double *values = getSampleData(data_pp[dataIdx], nodeMapping->target[i]);
+			void* sampleBuffer=allocSampleBuffer(data_pp[dataIdx]);
+                        __const double *values = getSampleDataRO(data_pp[dataIdx], nodeMapping->target[i], sampleBuffer);
                         /* if the number of mpi_required components is more than
                          * the number of actual components, pad with zeros.
                          * Probably only need to get shape of first element */
@@ -983,6 +986,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                         } else {
                             fputs(tmpBuffer, fileHandle_p);
                         }
+			freeSampleBuffer(sampleBuffer);			/* no-one needs values anymore */
                     } /* if this is my node */
                 } /* for i (numNodes) */
 

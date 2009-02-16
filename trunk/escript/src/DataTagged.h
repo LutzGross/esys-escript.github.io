@@ -351,15 +351,16 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      TODO Eventually these should be inlined.
      \param tag - Input - Integer key.
      \param i - position in the underlying datastructure
-    T
   */
-  ESCRIPT_DLL_API
-  DataTypes::ValueType::const_reference
-  getDataByTag(int tag, DataTypes::ValueType::size_type i) const;
 
   ESCRIPT_DLL_API
   DataTypes::ValueType::reference
-  getDataByTag(int tag, DataTypes::ValueType::size_type i);
+  getDataByTagRW(int tag, DataTypes::ValueType::size_type i);
+
+  ESCRIPT_DLL_API
+  DataTypes::ValueType::const_reference
+  getDataByTagRO(int tag, DataTypes::ValueType::size_type i) const;
+
 
 
   /**
@@ -383,25 +384,13 @@ TODO Make sure to document the relationship between tags and data, ie: data also
 
   ESCRIPT_DLL_API
   DataTypes::ValueType&
-  getVector();
+  getVectorRW();
 
   ESCRIPT_DLL_API
   const DataTypes::ValueType&
-  getVector() const;
+  getVectorRO() const;
 
 
-
-  /**
-     \brief
-     getData
-
-     Description:
-     Return pointer to the data
-    T
-  */
-//   ESCRIPT_DLL_API
-//   const DataTypes::ValueType::ElementType*
-//   getData() const;
 
   /**
      \brief 
@@ -438,15 +427,15 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      Return the default value. This value is associated with any tag which
      is not explicitly recorded in this DataTagged object's tag map.
      \param i - position in the underlying datastructure
-    T
   */
   ESCRIPT_DLL_API
   DataTypes::ValueType::reference
-  getDefaultValue(DataTypes::ValueType::size_type i);
+  getDefaultValueRW(DataTypes::ValueType::size_type i);
 
   ESCRIPT_DLL_API
   DataTypes::ValueType::const_reference
-  getDefaultValue(DataTypes::ValueType::size_type i) const;
+  getDefaultValueRO(DataTypes::ValueType::size_type i) const;
+
 
 
 
@@ -626,23 +615,6 @@ DataTagged::isCurrentTag(int tag) const
   return (pos!=m_offsetLookup.end());
 }
 
-// inline
-// DataArrayView&
-// DataTagged::getDefaultValue()
-// {
-//   // The default value is always the first value.
-//   return getPointDataView();
-// }
-
-// inline
-// const DataArrayView&
-// DataTagged::getDefaultValue() const
-// {
-//   // The default value is always the first value.
-//   return getPointDataView();
-// }
-
-
 inline 
 DataTypes::ValueType::size_type
 DataTagged::getDefaultOffset() const
@@ -652,27 +624,17 @@ DataTagged::getDefaultOffset() const
 
 inline
 DataTypes::ValueType::reference
-DataTagged::getDefaultValue(DataTypes::ValueType::size_type i)
-{
-	return getVector()[i];
+DataTagged::getDefaultValueRW(DataTypes::ValueType::size_type i)
+{	
+	return getVectorRW()[i];		// getVectorRW has exclusive write checks
 }
 
 inline
 DataTypes::ValueType::const_reference
-DataTagged::getDefaultValue(DataTypes::ValueType::size_type i) const
+DataTagged::getDefaultValueRO(DataTypes::ValueType::size_type i) const
 {
-	return getVector()[i];
+	return getVectorRO()[i];
 }
-
-
-
-
-// inline
-// const DataTypes::ValueType::ElementType*
-// DataTagged::getData() const
-// {
-//    return &(m_data[0]);
-// }
 
 inline
 const DataTagged::DataMapType&

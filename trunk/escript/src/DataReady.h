@@ -42,19 +42,42 @@ public:
   */
   ESCRIPT_DLL_API
   double*
-  getSampleData(ValueType::size_type sampleNo);
+  getSampleDataRW(ValueType::size_type sampleNo);
 
+  ESCRIPT_DLL_API
+  const double*
+  getSampleDataRO(ValueType::size_type sampleNo) const;
+
+  /**
+     This function is required primarily for LazyData. For ReadyData it returns 1. (Behaviour subject to change).
+  */
+  ESCRIPT_DLL_API
+  size_t
+  getSampleBufferSize() const
+  {
+	return 1;
+  }
 
   /**
 	\brief Provide access to underlying storage. Internal use only!
   */
+//   ESCRIPT_DLL_API
+//   virtual DataTypes::ValueType&
+//   getVector()=0;
+// 
+//   ESCRIPT_DLL_API
+//   virtual const DataTypes::ValueType&
+//   getVector() const=0;
+
   ESCRIPT_DLL_API
   virtual DataTypes::ValueType&
-  getVector()=0;
+  getVectorRW()=0;
+
 
   ESCRIPT_DLL_API
   virtual const DataTypes::ValueType&
-  getVector() const=0;
+  getVectorRO() const=0;
+
 
   /**
      \brief
@@ -75,12 +98,12 @@ public:
  */
   ESCRIPT_DLL_API
   DataTypes::ValueType::const_reference
-  getDataAtOffset(DataTypes::ValueType::size_type i) const;
+  getDataAtOffsetRO(DataTypes::ValueType::size_type i) const;
 
 
   ESCRIPT_DLL_API
   DataTypes::ValueType::reference
-  getDataAtOffset(DataTypes::ValueType::size_type i);
+  getDataAtOffsetRW(DataTypes::ValueType::size_type i);
 
   ESCRIPT_DLL_API
   DataReady_ptr 
@@ -91,25 +114,30 @@ public:
 
 inline
 DataAbstract::ValueType::value_type*
-DataReady::getSampleData(ValueType::size_type sampleNo)
+DataReady::getSampleDataRW(ValueType::size_type sampleNo)
 {
-//   return &(m_pointDataView->getData(getPointOffset(sampleNo,0)));
-  return &(getVector()[getPointOffset(sampleNo,0)]);
+  return &(getVectorRW()[getPointOffset(sampleNo,0)]);		// exclusive write checks will be done in getVectorRW()
+}
+
+inline const double*
+DataReady::getSampleDataRO(ValueType::size_type sampleNo) const
+{
+  return &(getVectorRO()[getPointOffset(sampleNo,0)]);		
 }
 
 
 inline
 DataTypes::ValueType::const_reference
-DataReady::getDataAtOffset(DataTypes::ValueType::size_type i) const
+DataReady::getDataAtOffsetRO(DataTypes::ValueType::size_type i) const
 {
-   return getVector()[i];
+   return getVectorRO()[i];
 }
 
 inline
 DataTypes::ValueType::reference
-DataReady::getDataAtOffset(DataTypes::ValueType::size_type i)
+DataReady::getDataAtOffsetRW(DataTypes::ValueType::size_type i)	// exclusive write checks will be done in getVectorRW()
 {
-   return getVector()[i];
+   return getVectorRW()[i];
 }
 
 

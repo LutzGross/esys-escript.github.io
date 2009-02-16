@@ -193,7 +193,8 @@ namespace DataTypes {
   \brief Compute the offset (in 1D vector) of a given subscript with a shape.
 
   \param shape - Input - Shape of the datapoint.
-  \param i,j - Input - subscripts to locate.
+  \param i - Input - row
+  \param j - Input - column
   \return offset relative to the beginning of the datapoint.
   */
   ESCRIPT_DLL_API
@@ -202,6 +203,7 @@ namespace DataTypes {
   getRelIndex(const DataTypes::ShapeType& shape, DataTypes::ValueType::size_type i,
 	   DataTypes::ValueType::size_type j)
   {
+	// Warning: This is not C ordering. Do not try to figure out the params by looking at the code
   	EsysAssert((getRank(shape)==2),"Incorrect number of indices for the rank of this object.");
   	DataTypes::ValueType::size_type temp=i+j*shape[0];
   	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
@@ -221,6 +223,7 @@ namespace DataTypes {
   getRelIndex(const DataTypes::ShapeType& shape, DataTypes::ValueType::size_type i,
 	   DataTypes::ValueType::size_type j, DataTypes::ValueType::size_type k)
   {
+	// Warning: This is not C ordering. Do not try to figure out the params by looking at the code
   	EsysAssert((getRank(shape)==3),"Incorrect number of indices for the rank of this object.");
   	DataTypes::ValueType::size_type temp=i+j*shape[0]+k*shape[1]*shape[0];
   	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
@@ -241,6 +244,7 @@ namespace DataTypes {
 	   DataTypes::ValueType::size_type j, DataTypes::ValueType::size_type k,
 	   DataTypes::ValueType::size_type m)
   {
+	// Warning: This is not C ordering. Do not try to figure out the params by looking at the code
 	EsysAssert((getRank(shape)==4),"Incorrect number of indices for the rank of this object.");
 	DataTypes::ValueType::size_type temp=i+j*shape[0]+k*shape[1]*shape[0]+m*shape[2]*shape[1]*shape[0];
 	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
@@ -331,22 +335,6 @@ namespace DataTypes {
    */
    std::string
    pointToString(const ValueType& data,const ShapeType& shape, int offset, const std::string& prefix);
-
-
-   /**
-      \brief Extract shape information from the supplied numarray.
-   */
-   inline
-   ShapeType
-   shapeFromNumArray(const boost::python::numeric::array& value)
-   {
-	  // extract the shape of the numarray
-	DataTypes::ShapeType tempShape;
-	for (int i=0; i < value.getrank(); i++) {
-		tempShape.push_back(boost::python::extract<int>(value.getshape()[i]));
-	}
-	return tempShape;
-   }
 
 
    /**
