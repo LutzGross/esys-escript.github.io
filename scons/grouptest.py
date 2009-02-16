@@ -39,7 +39,8 @@ class GroupTest:
 	res=res+"# It will be regenerated each time scons is run\n"
 	res=res+"#############################################\n\n"
 	res=res+"function failed()\n{\n  echo ""Execution failed for $@""\n  exit 1\n}\n"
-	res=res+"\nexport OLD_PYTHON=$PYTHONPATH\nBINRUNNER=$1\nPYTHONRUNNER=\"$1 $2\"\nBATCH_ROOT=`pwd`\nBUILD_DIR=$BATCH_ROOT/build/posix\n"
+	res=res+"\n export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH\n"
+	res=res+"\nexport OLD_PYTHON=`pwd`:$PYTHONPATH\nBINRUNNER=$1\nPYTHONRUNNER=\"$1 $2\"\nBATCH_ROOT=`pwd`\nBUILD_DIR=$BATCH_ROOT/build/posix\n"
 	res=res+"if [ ! -d $BUILD_DIR ]\nthen\n echo Can not find build directory $BUILD_DIR\n exit 2\nfi\n" 
 	res=res+"if [ $# -lt 2 ]\nthen\n echo Usage: $0 bin_run_cmd python_run_cmd\n exit 2\nfi\n"
 	return res

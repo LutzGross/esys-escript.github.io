@@ -1019,6 +1019,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
     if ( mpi_size > 1) {
 #ifdef PASO_MPI
         MPI_File_close(&mpi_fileHandle_p);
+	MPI_Barrier(mesh_p->Nodes->MPIInfo->comm);
 #endif
     } else {
         fclose(fileHandle_p);
