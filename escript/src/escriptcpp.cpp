@@ -156,7 +156,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   class_<escript::Data>("Data","Represents a collection of datapoints. It is used to store the values of a function. For more details please consult the c++ class documentation.",init<>() )
     // various constructors for Data objects
-    .def(init<const numeric::array&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
+//    .def(init<const numeric::array&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
     .def(init<const object&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
     .def(init<const double, const tuple&, optional<const escript::FunctionSpace&, bool> >(args("value","shape","what","expand")))
     .def(init<const escript::Data&, const escript::FunctionSpace&>(args("value","what")))
@@ -192,7 +192,9 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToArray)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPoint)
     .def("getValueOfDataPoint",&escript::Data::getValueOfDataPoint)
+    .def("getTupleForDataPoint",&escript::Data::getValueOfDataPointAsTuple)
     .def("getValueOfGlobalDataPoint",&escript::Data::getValueOfGlobalDataPoint)
+    .def("getTupleForGlobalDataPoint",&escript::Data::getValueOfGlobalDataPointAsTuple)
     .def("setToZero",&escript::Data::setToZero)
     .def("interpolate",&escript::Data::interpolate)
     .def("minGlobalDataPoint",&escript::Data::minGlobalDataPoint)
@@ -242,6 +244,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("_sup",&escript::Data::sup)
     .def("_inf",&escript::Data::inf)
     .def("_integrate",&escript::Data::integrate)
+    .def("_integrateToTuple",&escript::Data::integrateToTuple)
 
     // following implements the python abs operator
     .def("__abs__",&escript::Data::abs)
@@ -369,7 +372,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("getEscriptParamInt",escript::getEscriptParamInt,
       (arg("sentinel")=0));
   def("listEscriptParams",escript::listEscriptParams);
-
 
   //
   // Register esysExceptionTranslator

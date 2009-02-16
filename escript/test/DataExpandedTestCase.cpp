@@ -41,16 +41,16 @@ void DataExpandedTestCase::tearDown() {
 namespace
 {
 
-ValueType::reference
-getRef(DataReady& data,int i, int j)
+ValueType::const_reference
+getRefRO(DataReady& data,int i, int j)
 {
-   return data.getVector()[getRelIndex(data.getShape(),i,j)];
+   return data.getVectorRO()[getRelIndex(data.getShape(),i,j)];
 }
 
-ValueType::reference
-getRef(DataReady& data,int i, int j,int k)
+ValueType::const_reference
+getRefRO(DataReady& data,int i, int j,int k)
 {
-   return data.getVector()[getRelIndex(data.getShape(),i,j,k)];
+   return data.getVectorRO()[getRelIndex(data.getShape(),i,j,k)];
 }
 
 ValueType::reference
@@ -106,7 +106,7 @@ void DataExpandedTestCase::testAll() {
 
   cout << "\tTest getDataAtOffset." << endl;
   for (int i=0;i<testData.getShape()[0];i++) {
-      assert(testData.getDataAtOffset(i)==data[i]);
+      assert(testData.getDataAtOffsetRO(i)==data[i]);
   }
 
   cout << "\tVerify data point attributes." << endl;
@@ -156,7 +156,7 @@ void DataExpandedTestCase::testAll() {
 
   cout << "\tTest getPointDataView." << endl;
   for (int i=0;i<testData2.getShape()[0];i++) {
-    assert(testData2.getDataAtOffset(i)==data[i]);
+    assert(testData2.getDataAtOffsetRO(i)==data[i]);
   }
 
   cout << "\tVerify data point attributes." << endl;
@@ -204,16 +204,8 @@ void DataExpandedTestCase::testSlicing() {
   // Verify data values
   cout << "\tVerify data point values." << endl;
   for (int i=0;i<testData2->getShape()[0];i++) {
-    assert(testData2->getDataAtOffset(i)==data[region[0].first+i]);
+    assert(testData2->getDataAtOffsetRO(i)==data[region[0].first+i]);
   }
-
-//   cout << "\tVerify data point attributes." << endl;
-//   DataArrayView dataView=testData2->getPointDataView();
-//   assert(data.getRank()==shape.size());
-//   assert(data.getNoValues()==shape[0]*1);
-//   assert(data.getShape()[0]==shape[0]);
-
-//   delete testData2;
 }
 
 void DataExpandedTestCase::testSlicing2() {
@@ -257,7 +249,7 @@ void DataExpandedTestCase::testSlicing2() {
   cout << "\tVerify data point values." << endl;
   for (int j=0;j<testData2->getShape()[1];j++) {
     for (int i=0;i<testData2->getShape()[0];i++) {
-      assert(getRef(*testData2,i,j)==data[getRelIndex(shape,region[0].first+i,region[1].first+j)]);
+      assert(getRefRO(*testData2,i,j)==data[getRelIndex(shape,region[0].first+i,region[1].first+j)]);
     }
   }
 
@@ -278,7 +270,7 @@ void DataExpandedTestCase::testSlicing2() {
   cout << "\tVerify data point values." << endl;
   for (int j=0;j<testData3->getShape()[1];j++) {
     for (int i=0;i<testData3->getShape()[0];i++) {
-      assert(getRef(*testData3,i,j)==getDRef(data,shape,region2[0].first+i,region2[1].first+j));
+      assert(getRefRO(*testData3,i,j)==getDRef(data,shape,region2[0].first+i,region2[1].first+j));
     }
   }
 
@@ -357,7 +349,7 @@ void DataExpandedTestCase::testSlicing3() {
   for (int k=0;k<testData2->getShape()[2];k++) {
     for (int j=0;j<testData2->getShape()[1];j++) {
       for (int i=0;i<testData2->getShape()[0];i++) {
-        assert(getRef(*testData2,i,j,k)==getDRef(data,shape,region[0].first+i,
+        assert(getRefRO(*testData2,i,j,k)==getDRef(data,shape,region[0].first+i,
                                                                region[1].first+j,
                                                                region[2].first+k));
       }
@@ -387,7 +379,7 @@ void DataExpandedTestCase::testSlicing3() {
   for (int k=0;k<testData3->getShape()[2];k++) {
     for (int j=0;j<testData3->getShape()[1];j++) {
       for (int i=0;i<testData3->getShape()[0];i++) {
-        assert(getRef(*testData3,i,j,k)==getDRef(data,shape,region2[0].first+i,
+        assert(getRefRO(*testData3,i,j,k)==getDRef(data,shape,region2[0].first+i,
                                                                region2[1].first+j,
                                                                region2[2].first+k));
       }
@@ -477,7 +469,7 @@ void DataExpandedTestCase::testSliceSetting() {
   cout << "\tVerify data point values." << endl;
   for (int j=region2[1].first;j<region2[1].second;j++) {
     for (int i=region2[0].first;i<region2[0].second;i++) {
-      assert(getRef(testData2,i,j)==data[getRelIndex(shape,i-(region[0].second-1),j-(region[1].second-1))]);
+      assert(getRefRO(testData2,i,j)==data[getRelIndex(shape,i-(region[0].second-1),j-(region[1].second-1))]);
     }
    }
 
@@ -546,7 +538,7 @@ void DataExpandedTestCase::testSliceSetting2() {
   cout << "\tVerify data point values." << endl;
   for (int j=region2[1].first;j<region2[1].second;j++) {
     for (int i=region2[0].first;i<region2[0].second;i++) {
-      assert(getRef(testData2,i,j)==data[0]);
+      assert(getRefRO(testData2,i,j)==data[0]);
     }
    }
 

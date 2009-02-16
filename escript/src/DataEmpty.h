@@ -89,20 +89,6 @@ typedef DataReady parent;
   getPointOffset(int sampleNo,
                  int dataPointNo);
 
-//  /**
-/*     \brief
-     Return a view into the data for the data point specified.
-     NB: This will throw an exception as obviously an empty Data object contains no
-     data points. An implementation is required by parent DataAbstract class.
-     \param sampleNo - Input - Sample number.
-     \param dataPointNo - Input - data-point number.*/
-//  */
-//   ESCRIPT_DLL_API
-//   virtual
-//   DataArrayView
-//   getDataPoint(int sampleNo,
-//                int dataPointNo);
-
   /**
      \brief
      Return the number of doubles stored for the Data object.
@@ -151,11 +137,13 @@ typedef DataReady parent;
   */
   ESCRIPT_DLL_API
   virtual DataTypes::ValueType&
-  getVector();
+  getVectorRW();
+
 
   ESCRIPT_DLL_API
   virtual const DataTypes::ValueType&
-  getVector() const;
+  getVectorRO() const;
+
 
  private:
 

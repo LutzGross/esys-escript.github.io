@@ -95,14 +95,14 @@ DataEmpty::setSlice(const DataAbstract* value,
 
 
 DataTypes::ValueType&
-DataEmpty::getVector()
+DataEmpty::getVectorRW()
 {
   throwStandardException("getVector");	// always throws but the compiler doesn't know that.
   return dummy;			// dead code to stop the compiler complaining
 }
 
 const DataTypes::ValueType&
-DataEmpty::getVector() const
+DataEmpty::getVectorRO() const
 {
   throwStandardException("getVector");	// always throws but the compiler doesn't know that.
   return dummy;			// dead code to stop the compiler complaining

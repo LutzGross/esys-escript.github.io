@@ -40,9 +40,9 @@ bool privdebug=false;
 #define DISABLEDEBUG privdebug=false;
 }
 
-#define SIZELIMIT 
+// #define SIZELIMIT 
 // #define SIZELIMIT if ((m_height>7) || (m_children>127)) {cerr << "\n!!!!!!! SIZE LIMIT EXCEEDED " << m_children << ";" << m_height << endl << toString() << endl; resolveToIdentity();}
-
+#define SIZELIMIT if ((m_height>7) || (m_children>127)) {resolveToIdentity();}
 
 /*
 How does DataLazy work?
@@ -348,7 +348,7 @@ GTPShape(DataAbstract_ptr left, DataAbstract_ptr right, int axis_offset, int tra
 // determine the number of samples requires to evaluate an expression combining left and right
 // NP1OUT needs an extra buffer because we can't write the answers over the top of the input.
 // The same goes for G_TENSORPROD
-// It might seem that pointwise binary ops (G_BINARY) could be written over the top of the lefths.
+// It might seem that pointwise binary ops (G_BINARY) could be written over the top of the lefts.
 // This would be true were it not for the possibility that the LHS could be a scalar which needs to be examined
 // multiple times
 int
@@ -397,6 +397,7 @@ DataLazy::DataLazy(DataAbstract_ptr p)
    }
    else
    {
+	p->makeLazyShared();
 	DataReady_ptr dr=dynamic_pointer_cast<DataReady>(p);
 	makeIdentity(dr);
 LAZYDEBUG(cout << "Wrapping " << dr.get() << " id=" << m_id.get() << endl;)
@@ -655,6 +656,14 @@ size_t
 DataLazy::getMaxSampleSize() const
 {
 	return m_maxsamplesize;
+}
+
+
+
+size_t
+DataLazy::getSampleBufferSize() const
+{
+	return m_maxsamplesize*(max(1,m_buffsRequired));
 }
 
 /*
@@ -1425,7 +1434,7 @@ LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
   }
   if (m_op==IDENTITY)	
   {
-    const ValueType& vec=m_id->getVector();
+    const ValueType& vec=m_id->getVectorRO();
     if (m_readytype=='C')
     {
 	roffset=0;
@@ -1453,6 +1462,18 @@ LAZYDEBUG(cout << "Finish  sample " << toString() << endl;)
   }
 
 }
+
+const DataTypes::ValueType*
+DataLazy::resolveSample(BufferGroup& bg, int sampleNo, size_t& roffset)
+{
+#ifdef _OPENMP
+	int tid=omp_get_thread_num();
+#else
+	int tid=0;
+#endif 
+	return resolveSample(bg.getBuffer(tid),bg.getOffset(tid),sampleNo,roffset);
+}
+
 
 // This needs to do the work of the idenity constructor
 void
@@ -1491,7 +1512,6 @@ DataLazy::resolve()
 
 LAZYDEBUG(cout << "Sample size=" << m_samplesize << endl;)
 LAZYDEBUG(cout << "Buffers=" << m_buffsRequired << endl;)
-
   if (m_readytype!='E')		// if the whole sub-expression is Constant or Tagged, then evaluate it normally
   {
     collapse();
@@ -1505,12 +1525,12 @@ LAZYDEBUG(cout << "Buffers=" << m_buffsRequired << endl;)
 	// storage to evaluate its expression
   int numthreads=1;
 #ifdef _OPENMP
-  numthreads=getNumberOfThreads();
+  numthreads=omp_get_max_threads();
 #endif 
   ValueType v(numthreads*threadbuffersize);	
 LAZYDEBUG(cout << "Buffer created with size=" << v.size() << endl;)
   DataExpanded* result=new DataExpanded(getFunctionSpace(),getShape(),  ValueType(getNoValues()));
-  ValueType& resvec=result->getVector();
+  ValueType& resvec=result->getVectorRW();
   DataReady_ptr resptr=DataReady_ptr(result);
   int sample;
   size_t outoffset;		// offset in the output data
@@ -1559,7 +1579,7 @@ DataLazy::toString() const
 void
 DataLazy::intoString(ostringstream& oss) const
 {
-//   oss << "[" << m_children <<";"<<m_height <<"]";
+//    oss << "[" << m_children <<";"<<m_height <<"]";
   switch (getOpgroup(m_op))
   {
   case G_IDENTITY:
@@ -1699,23 +1719,27 @@ DataLazy::getPointOffset(int sampleNo,
   throw DataException("Programmer error - getPointOffset on lazy data may require collapsing (but this object is marked const).");
 }
 
-// It would seem that DataTagged will need to be treated differently since even after setting all tags
-// to zero, all the tags from all the DataTags would be in the result.
-// However since they all have the same value (0) whether they are there or not should not matter.
-// So I have decided that for all types this method will create a constant 0.
-// It can be promoted up as required.
-// A possible efficiency concern might be expanded->constant->expanded which has an extra memory management
-// but we can deal with that if it arrises.
+
+// I have decided to let Data:: handle this issue.
 void
 DataLazy::setToZero()
 {
-  DataTypes::ValueType v(getNoValues(),0);
-  m_id=DataReady_ptr(new DataConstant(getFunctionSpace(),getShape(),v));
-  m_op=IDENTITY;
-  m_right.reset();   
-  m_left.reset();
-  m_readytype='C';
-  m_buffsRequired=1;
+//   DataTypes::ValueType v(getNoValues(),0);
+//   m_id=DataReady_ptr(new DataConstant(getFunctionSpace(),getShape(),v));
+//   m_op=IDENTITY;
+//   m_right.reset();   
+//   m_left.reset();
+//   m_readytype='C';
+//   m_buffsRequired=1;
+
+  throw DataException("Programmer error - setToZero not supported for DataLazy (DataLazy objects should be read only).");
+
+}
+
+bool
+DataLazy::actsExpanded() const
+{
+	return (m_readytype=='E');
 }
 
 }	// end namespace

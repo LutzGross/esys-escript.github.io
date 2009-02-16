@@ -48,15 +48,13 @@ inline void binaryOp(DataTagged& left, const DataConstant& right,
   const DataTagged::DataMapType& lookup=left.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
-//  DataArrayView& leftView=left.getPointDataView();
-  DataTypes::ValueType& leftVec=left.getVector();
+  DataTypes::ValueType& leftVec=left.getVectorRW();
   const DataTypes::ShapeType& leftShape=left.getShape();
   const DataTypes::ShapeType& rightShape=right.getShape();
-  double rvalue=right.getVector()[0];		// for rank==0
-  const DataTypes::ValueType& rightVec=right.getVector();   // for rank>0
+  double rvalue=right.getVectorRO()[0];		// for rank==0
+  const DataTypes::ValueType& rightVec=right.getVectorRO();   // for rank>0
   if (right.getRank()==0) {
     for (i=lookup.begin();i!=lookupEnd;i++) {
-      //leftView.binaryOp(i->second,right(),operation);
       DataMaths::binaryOp(leftVec,leftShape,i->second,rvalue,operation);
     }
   } else {
@@ -88,8 +86,7 @@ inline void binaryOp(DataTagged& left, const DataTypes::ValueType& right,
   const DataTagged::DataMapType& lookup=left.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
-//   DataArrayView& leftView=left.getPointDataView();
-  DataTypes::ValueType& lvec=left.getVector();
+  DataTypes::ValueType& lvec=left.getVectorRW();
   const DataTypes::ShapeType& lshape=left.getShape();
   if (DataTypes::getRank(shape)==0) {
     for (i=lookup.begin();i!=lookupEnd;i++) {
@@ -104,9 +101,7 @@ inline void binaryOp(DataTagged& left, const DataTypes::ValueType& right,
   // finally perform the operation on the default value
   if (DataTypes::getRank(shape)==0) {
     DataMaths::binaryOp(lvec,lshape,left.getDefaultOffset(),right[0],operation);
-//     left.getDefaultValue().binaryOp(0,right(),operation);
   } else {
-//     left.getDefaultValue().binaryOp(right,operation);
     DataMaths::binaryOp(lvec,lshape,left.getDefaultOffset(),right, shape,0,operation);
   }
 }
@@ -135,7 +130,7 @@ inline void binaryOp(DataTagged& left, const DataTagged& right,
       left.addTag(i->first);
     }
   }
-  DataTypes::ValueType& leftVec=left.getVector();
+  DataTypes::ValueType& leftVec=left.getVectorRW();
   const DataTypes::ShapeType& leftShape=left.getShape();
   //
   // Perform the operation.
@@ -143,22 +138,18 @@ inline void binaryOp(DataTagged& left, const DataTagged& right,
   DataTagged::DataMapType::const_iterator leftLookupEnd=leftLookup.end();
   for (i=leftLookup.begin();i!=leftLookupEnd;i++) {
     if (right_rank==0) {
-/*       left.getDataPointByTag(i->first).binaryOp(i->second,right.getDataPointByTag(i->first)(),operation);*/
-       binaryOp(leftVec,leftShape,i->second, right.getDataByTag(i->first,0),operation);
+       binaryOp(leftVec,leftShape,i->second, right.getDataByTagRO(i->first,0),operation);
 
     } else {	// rank>0
-       binaryOp(leftVec,leftShape,left.getOffsetForTag(i->first),right.getVector(), right.getShape(), right.getOffsetForTag(i->first), operation);
-       //left.getDataPointByTag(i->first).binaryOp(right.getDataPointByTag(i->first),operation);
+       binaryOp(leftVec,leftShape,left.getOffsetForTag(i->first),right.getVectorRO(), right.getShape(), right.getOffsetForTag(i->first), operation);
     }
   }
   //
   // finally perform the operation on the default value
   if (right_rank==0) {
-     //left.getDefaultValue().binaryOp(0,right.getDefaultValue()(),operation);
-     binaryOp(leftVec,leftShape, left.getDefaultOffset(), right.getVector()[0],operation);
+     binaryOp(leftVec,leftShape, left.getDefaultOffset(), right.getVectorRO()[0],operation);
   } else {
-     //left.getDefaultValue().binaryOp(right.getDefaultValue(),operation);
-     binaryOp(leftVec,leftShape, left.getDefaultOffset(), right.getVector(), right.getShape(), right.getDefaultOffset(), operation);
+     binaryOp(leftVec,leftShape, left.getDefaultOffset(), right.getVectorRO(), right.getShape(), right.getDefaultOffset(), operation);
   }
 }
 
@@ -167,7 +158,7 @@ inline void binaryOp(DataConstant& left, const DataConstant& right,
 		     BinaryFunction operation)
 {
 
-  DataMaths::binaryOp(left.getVector(), left.getShape(),0, right.getVector(),right.getShape(),0,operation);
+  DataMaths::binaryOp(left.getVectorRW(), left.getShape(),0, right.getVectorRO(),right.getShape(),0,operation);
 
 }
 
@@ -183,27 +174,20 @@ inline void binaryOp(DataExpanded& left, const DataReady& right,
   if (right.getRank()==0) {
 
     const DataTypes::ShapeType& leftShape=left.getShape();
-    DataTypes::ValueType& leftVec=left.getVector();
+    DataTypes::ValueType& leftVec=left.getVectorRW();
     //
     // This will call the double version of binaryOp
     #pragma omp parallel for private(i,j) schedule(static)
     for (i=0;i<numSamples;i++) {
       for (j=0;j<numDPPSample;j++) {
-// 	left.getPointDataView().binaryOp(left.getPointOffset(i,j),
-// 					 right.getPointDataView().getData(right.getPointOffset(i,j)),
-//                                          operation);
-	DataMaths::binaryOp(leftVec,leftShape,left.getPointOffset(i,j), right.getVector()[right.getPointOffset(i,j)]  ,operation);
+	DataMaths::binaryOp(leftVec,leftShape,left.getPointOffset(i,j), right.getVectorRO()[right.getPointOffset(i,j)]  ,operation);
       }
     }
   } else {
     #pragma omp parallel for private(i,j) schedule(static)
     for (i=0;i<numSamples;i++) {
       for (j=0;j<numDPPSample;j++) {
-// 	left.getPointDataView().binaryOp(left.getPointOffset(i,j),
-// 					 right.getPointDataView(),
-// 					 right.getPointOffset(i,j),
-// 					 operation);
-	DataMaths::binaryOp(left.getVector(),left.getShape(),left.getPointOffset(i,j), right.getVector(), right.getShape(),right.getPointOffset(i,j), operation);
+	DataMaths::binaryOp(left.getVectorRW(),left.getShape(),left.getPointOffset(i,j), right.getVectorRO(), right.getShape(),right.getPointOffset(i,j), operation);
       }
     }
   }

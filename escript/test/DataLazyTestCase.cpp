@@ -47,13 +47,6 @@ void DataLazyTestCase::tearDown() {
 namespace
 {
 
-ValueType::reference
-getRef(DataReady& data,int i, int j, int k)
-{
-   return data.getVector()[getRelIndex(data.getShape(),i,j,k)];
-}
-
-
 DataReady_ptr
 resolveAndDelete(DataAbstract* p)
 {

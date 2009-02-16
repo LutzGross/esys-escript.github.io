@@ -38,6 +38,7 @@ extern "C" {
 #include <boost/python/dict.hpp>
 #include <boost/python/extract.hpp>
 #include <boost/python/long.hpp>
+#include "WrappedArray.h"
 
 using namespace std;
 using namespace boost::python;
@@ -46,7 +47,8 @@ using namespace escript;
 
 // ensure the current object is not a DataLazy
 // The idea was that we could add an optional warning whenever a resolve is forced
-#define FORCERESOLVE if (isLazy()) {resolve();}
+// #define forceResolve() if (isLazy()) {#resolve();}
+
 #define AUTOLAZYON escriptParams.getAUTOLAZY()
 #define MAKELAZYOP(X)   if (isLazy() || (AUTOLAZYON && m_data->isExpanded())) \
   {\
@@ -62,7 +64,7 @@ using namespace escript;
 #define MAKELAZYBINSELF(R,X)   if (isLazy() || R.isLazy() || (AUTOLAZYON && (isExpanded() || R.isExpanded()))) \
   {\
 	DataLazy* c=new DataLazy(m_data,R.borrowDataPtr(),X);\
-        m_data=c->getPtr();\
+/*         m_data=c->getPtr();*/     set_m_data(c->getPtr());\
 	return (*this);\
   }
 
@@ -79,12 +81,105 @@ using namespace escript;
 	return Data(c);\
   }
 
+// Do not use the following unless you want to make copies on assignment rather than
+// share data.  CopyOnWrite should make this unnescessary.
+// #define ASSIGNMENT_MEANS_DEEPCOPY
+
+namespace
+{
+
+// This should be safer once the DataC RO changes have been brought in
+template <class ARR>
+boost::python::tuple
+pointToTuple( const DataTypes::ShapeType& shape,ARR v)
+{
+   using namespace boost::python;
+   using boost::python::list;
+   int rank=shape.size();
+   if (rank==0)
+   {
+	return make_tuple(v[0]);
+   }
+   else if (rank==1)
+   {
+	list l;
+	for (size_t i=0;i<shape[0];++i)
+	{
+	   l.append(v[i]);
+	}
+	return tuple(l);
+   }
+   else if (rank==2)
+   {
+	list lj;
+	for (size_t j=0;j<shape[0];++j)
+	{
+	   list li;
+	   for (size_t i=0;i<shape[1];++i)
+	   {
+	      li.append(v[DataTypes::getRelIndex(shape,j,i)]);
+	   }
+	   lj.append(tuple(li));
+	}
+	return tuple(lj);
+   }
+   else if (rank==3)
+   {
+	list lk;
+	for (size_t k=0;k<shape[0];++k)
+	{
+	   list lj;
+	   for (size_t j=0;j<shape[1];++j)
+	   {
+		list li;
+		for (size_t i=0;i<shape[2];++i)
+		{
+		   li.append(v[DataTypes::getRelIndex(shape,k,j,i)]);
+		}
+		lj.append(tuple(li));
+	   }
+	   lk.append(tuple(lj));
+	}
+	return tuple(lk);
+   }
+   else if (rank==4)
+   {
+	list ll;
+	for (size_t l=0;l<shape[0];++l)
+	{
+	   list lk;
+	   for (size_t k=0;k<shape[1];++k)
+	   {
+		list lj;
+		for (size_t j=0;j<shape[2];++j)
+		{
+			list li;
+			for (size_t i=0;i<shape[3];++i)
+			{
+			   li.append(v[DataTypes::getRelIndex(shape,l,k,j,i)]);
+			}
+			lj.append(tuple(li));
+		}
+		lk.append(tuple(lj));
+	   }
+	   ll.append(tuple(lk));
+	}
+	return tuple(ll);
+   }
+   else
+     throw DataException("Unknown rank in pointToTuple.");
+}
+
+}  // anonymous namespace
+
 Data::Data()
+	: m_shared(false), m_lazy(false)
 {
   //
   // Default data is type DataEmpty
   DataAbstract* temp=new DataEmpty();
-  m_data=temp->getPtr();
+//   m_data=temp->getPtr();
+  set_m_data(temp->getPtr());
   m_protected=false;
 }
 
@@ -92,6 +187,7 @@ Data::Data(double value,
            const tuple& shape,
            const FunctionSpace& what,
            bool expanded)
+	: m_shared(false), m_lazy(false)
 {
   DataTypes::ShapeType dataPointShape;
   for (int i = 0; i < shape.attr("__len__")(); ++i) {
@@ -108,6 +204,7 @@ Data::Data(double value,
 	   const DataTypes::ShapeType& dataPointShape,
 	   const FunctionSpace& what,
            bool expanded)
+	: m_shared(false), m_lazy(false)
 {
   int len = DataTypes::noValues(dataPointShape);
 
@@ -121,14 +218,17 @@ Data::Data(double value,
 }
 
 Data::Data(const Data& inData)
+	: m_shared(false), m_lazy(false)
 {
-  m_data=inData.m_data;
+//   m_data=inData.m_data;
+  set_m_data(inData.m_data);
   m_protected=inData.isProtected();
 }
 
 
 Data::Data(const Data& inData,
            const DataTypes::RegionType& region)
+	: m_shared(false), m_lazy(false)
 {
   DataAbstract_ptr dat=inData.m_data;
   if (inData.isLazy())
@@ -142,19 +242,23 @@ Data::Data(const Data& inData,
   //
   // Create Data which is a slice of another Data
   DataAbstract* tmp = dat->getSlice(region);
-  m_data=DataAbstract_ptr(tmp);
+//   m_data=DataAbstract_ptr(tmp);
+  set_m_data(DataAbstract_ptr(tmp));
   m_protected=false;
+
 }
 
 Data::Data(const Data& inData,
            const FunctionSpace& functionspace)
+	: m_shared(false), m_lazy(false)
 {
   if (inData.isEmpty())
   {
     throw DataException("Error - will not interpolate for instances of DataEmpty.");
   }
   if (inData.getFunctionSpace()==functionspace) {
-    m_data=inData.m_data;
+//     m_data=inData.m_data;
+    set_m_data(inData.m_data);
   } 
   else 
   {
@@ -166,8 +270,9 @@ Data::Data(const Data& inData,
       }
       // if the data is not lazy, this will just be a cast to DataReady
       DataReady_ptr dr=inData.m_data->resolve();
-      DataConstant* dc=new DataConstant(functionspace,inData.m_data->getShape(),dr->getVector());	
-      m_data=DataAbstract_ptr(dc); 
+      DataConstant* dc=new DataConstant(functionspace,inData.m_data->getShape(),dr->getVectorRO());	
+//       m_data=DataAbstract_ptr(dc); 
+      set_m_data(DataAbstract_ptr(dc));
     } else {
       Data tmp(0,inData.getDataPointShape(),functionspace,true);
       // Note: Must use a reference or pointer to a derived object
@@ -181,38 +286,32 @@ Data::Data(const Data& inData,
       } else {
         inDataDomain->interpolateACross(tmp,inData);
       }
-      m_data=tmp.m_data;
+//       m_data=tmp.m_data;
+      set_m_data(tmp.m_data);
     }
   }
   m_protected=false;
 }
 
 Data::Data(DataAbstract* underlyingdata)
+	: m_shared(false), m_lazy(false)
 {
-// 	m_data=shared_ptr<DataAbstract>(underlyingdata);
-	m_data=underlyingdata->getPtr();
+	set_m_data(underlyingdata->getPtr());
 	m_protected=false;
 }
 
 Data::Data(DataAbstract_ptr underlyingdata)
+	: m_shared(false), m_lazy(false)
 {
-	m_data=underlyingdata;
+	set_m_data(underlyingdata);
 	m_protected=false;
-}
-
-
-Data::Data(const numeric::array& value,
-	   const FunctionSpace& what,
-           bool expanded)
-{
-  initialise(value,what,expanded);
-  m_protected=false;
 }
 
 Data::Data(const DataTypes::ValueType& value,
 		 const DataTypes::ShapeType& shape,
                  const FunctionSpace& what,
                  bool expanded)
+	: m_shared(false), m_lazy(false)
 {
    initialise(value,shape,what,expanded);
    m_protected=false;
@@ -222,54 +321,72 @@ Data::Data(const DataTypes::ValueType& value,
 Data::Data(const object& value,
 	   const FunctionSpace& what,
            bool expanded)
+	: m_shared(false), m_lazy(false)
 {
-  numeric::array asNumArray(value);
-  initialise(asNumArray,what,expanded);
+  //numeric::array asNumArray(value);
+  WrappedArray w(value);
+  initialise(w,what,expanded);
   m_protected=false;
 }
 
 
 Data::Data(const object& value,
            const Data& other)
+	: m_shared(false), m_lazy(false)
 {
-  numeric::array asNumArray(value);
+  WrappedArray w(value);
 
   // extract the shape of the numarray
-  DataTypes::ShapeType tempShape=DataTypes::shapeFromNumArray(asNumArray);
-  if (DataTypes::getRank(tempShape)==0) {
+  const DataTypes::ShapeType& tempShape=w.getShape();
+  if (w.getRank()==0) {
 
 
     // get the space for the data vector
     int len1 = DataTypes::noValues(tempShape);
     DataVector temp_data(len1, 0.0, len1);
-    temp_data.copyFromNumArray(asNumArray,1);
+    temp_data.copyFromArray(w,1);
 
     int len = DataTypes::noValues(other.getDataPointShape());
 
-    DataVector temp2_data(len, temp_data[0]/*temp_dataView()*/, len);
+    DataVector temp2_data(len, temp_data[0], len);
     DataConstant* t=new DataConstant(other.getFunctionSpace(),other.getDataPointShape(),temp2_data);
-    m_data=DataAbstract_ptr(t);
+//     m_data=DataAbstract_ptr(t);
+    set_m_data(DataAbstract_ptr(t));
 
   } else {
     //
     // Create a DataConstant with the same sample shape as other
-    DataConstant* t=new DataConstant(asNumArray,other.getFunctionSpace());
-//     boost::shared_ptr<DataAbstract> sp(t);
-//     m_data=sp;
-    m_data=DataAbstract_ptr(t);
+    DataConstant* t=new DataConstant(w,other.getFunctionSpace());
+//     m_data=DataAbstract_ptr(t);
+    set_m_data(DataAbstract_ptr(t));
   }
   m_protected=false;
 }
 
 Data::~Data()
 {
-
+  set_m_data(DataAbstract_ptr());
 }
 
 
+// only call in thread safe contexts.
+// This method should be atomic
+void Data::set_m_data(DataAbstract_ptr p)
+{
+  if (m_data.get()!=0)	// release old ownership
+  {
+	m_data->removeOwner(this);
+  }
+  if (p.get()!=0)
+  {
+	m_data=p;
+	m_data->addOwner(this);
+	m_shared=m_data->isShared();
+	m_lazy=m_data->isLazy();
+  }
+}
 
-void
-Data::initialise(const boost::python::numeric::array& value,
+void Data::initialise(const WrappedArray& value,
                  const FunctionSpace& what,
                  bool expanded)
 {
@@ -280,14 +397,12 @@ Data::initialise(const boost::python::numeric::array& value,
   // within the shared_ptr constructor.
   if (expanded) {
     DataAbstract* temp=new DataExpanded(value, what);
-//     boost::shared_ptr<DataAbstract> temp_data(temp);
-//     m_data=temp_data;
-    m_data=temp->getPtr();
+//     m_data=temp->getPtr();
+    set_m_data(temp->getPtr());
   } else {
     DataAbstract* temp=new DataConstant(value, what);
-//     boost::shared_ptr<DataAbstract> temp_data(temp);
-//     m_data=temp_data;
-    m_data=temp->getPtr();
+//     m_data=temp->getPtr();
+    set_m_data(temp->getPtr());
   }
 }
 
@@ -305,97 +420,15 @@ Data::initialise(const DataTypes::ValueType& value,
   // within the shared_ptr constructor.
   if (expanded) {
     DataAbstract* temp=new DataExpanded(what, shape, value);
-//     boost::shared_ptr<DataAbstract> temp_data(temp);
-//     m_data=temp_data;
-    m_data=temp->getPtr();
+//     m_data=temp->getPtr();
+    set_m_data(temp->getPtr());
   } else {
     DataAbstract* temp=new DataConstant(what, shape, value);
-//     boost::shared_ptr<DataAbstract> temp_data(temp);
-//     m_data=temp_data;
-    m_data=temp->getPtr();
+//     m_data=temp->getPtr();
+    set_m_data(temp->getPtr());
   }
 }
 
-
-// void
-// Data::CompareDebug(const Data& rd)
-// {
-// 	using namespace std;
-// 	bool mismatch=false;
-// 	std::cout << "Comparing left and right" << endl;
-// 	const DataTagged* left=dynamic_cast<DataTagged*>(m_data.get());
-// 	const DataTagged* right=dynamic_cast<DataTagged*>(rd.m_data.get());
-// 	
-// 	if (left==0)
-// 	{
-// 		cout << "left arg is not a DataTagged\n";
-// 		return;
-// 	}
-// 	
-// 	if (right==0)
-// 	{
-// 		cout << "right arg is not a DataTagged\n";
-// 		return;
-// 	}
-// 	cout << "Num elements=" << left->getVector().size() << ":" << right->getVector().size() << std::endl;
-// 	cout << "Shapes ";
-// 	if (left->getShape()==right->getShape())
-// 	{
-// 		cout << "ok\n";
-// 	}
-// 	else
-// 	{
-// 		cout << "Problem: shapes do not match\n";
-// 		mismatch=true;
-// 	}
-// 	int lim=left->getVector().size();
-// 	if (right->getVector().size()) lim=right->getVector().size();
-// 	for (int i=0;i<lim;++i)
-// 	{
-// 		if (left->getVector()[i]!=right->getVector()[i])
-// 		{
-// 			cout << "[" << i << "] value mismatch " << left->getVector()[i] << ":" << right->getVector()[i] << endl;
-// 			mismatch=true;
-// 		}
-// 	}
-// 
-// 	// still need to check the tag map
-// 	// also need to watch what is happening to function spaces, are they copied or what?
-// 
-// 	const DataTagged::DataMapType& mapleft=left->getTagLookup();
-// 	const DataTagged::DataMapType& mapright=right->getTagLookup();
-// 
-// 	if (mapleft.size()!=mapright.size())
-// 	{
-// 		cout << "Maps are different sizes " << mapleft.size() << ":" << mapright.size() << endl;
-// 		mismatch=true;
-// 		cout << "Left map\n";
-// 		DataTagged::DataMapType::const_iterator i,j;
-// 		for (i=mapleft.begin();i!=mapleft.end();++i) {
-// 			cout << "(" << i->first << "=>" << i->second << ")\n";
-// 		}
-// 		cout << "Right map\n";
-// 		for (i=mapright.begin();i!=mapright.end();++i) {
-// 			cout << "(" << i->first << "=>" << i->second << ")\n";
-// 		}
-// 		cout << "End map\n";
-// 
-// 	}
-// 
-// 	DataTagged::DataMapType::const_iterator i,j;
-// 	for (i=mapleft.begin(),j=mapright.begin();i!=mapleft.end() && j!=mapright.end();++i,++j) {
-// 	   if ((i->first!=j->first) || (i->second!=j->second))
-// 	   {
-// 		cout << "(" << i->first << "=>" << i->second << ")";
-// 		cout << ":(" << j->first << "=>" << j->second << ") ";
-// 		mismatch=true;
-//            }
-// 	}
-// 	if (mismatch)
-// 	{
-// 		cout << "#Mismatch\n";
-// 	}
-// }
 
 escriptDataC
 Data::getDataC()
@@ -412,6 +445,13 @@ Data::getDataC() const
   temp.m_dataPtr=(void*)this;
   return temp;
 }
+
+size_t
+Data::getSampleBufferSize() const
+{
+  return m_data->getSampleBufferSize();
+}
+
 
 const boost::python::tuple
 Data::getShapeTuple() const
@@ -450,7 +490,8 @@ Data::copy(const Data& other)
 {
   DataAbstract* temp=other.m_data->deepCopy();
   DataAbstract_ptr p=temp->getPtr();
-  m_data=p;
+//   m_data=p;
+  set_m_data(p);
 }
 
 
@@ -466,10 +507,20 @@ Data::delaySelf()
 {
   if (!isLazy())
   {
-	m_data=(new DataLazy(m_data))->getPtr();
+// 	m_data=(new DataLazy(m_data))->getPtr();
+	set_m_data((new DataLazy(m_data))->getPtr());
   }
 }
 
+
+// For lazy data, it would seem that DataTagged will need to be treated differently since even after setting all tags
+// to zero, all the tags from all the DataTags would be in the result.
+// However since they all have the same value (0) whether they are there or not should not matter.
+// So I have decided that for all types this method will create a constant 0.
+// It can be promoted up as required.
+// A possible efficiency concern might be expanded->constant->expanded which has an extra memory management
+// but we can deal with that if it arises.
+//
 void
 Data::setToZero()
 {
@@ -477,8 +528,20 @@ Data::setToZero()
   {
      throw DataException("Error - Operations not permitted on instances of DataEmpty.");
   }
-  m_data->setToZero();
+  if (isLazy())
+  {
+     DataTypes::ValueType v(getNoValues(),0);
+     DataConstant* dc=new DataConstant(getFunctionSpace(),getDataPointShape(),v);
+     DataLazy* dl=new DataLazy(dc->getPtr());
+     set_m_data(dl->getPtr());
+  }
+  else
+  {
+     exclusiveWrite();
+     m_data->setToZero();
+  }
 }
+
 
 void
 Data::copyWithMask(const Data& other,
@@ -552,10 +615,11 @@ Data::copyWithMask(const Data& other,
 	// and so I'm going to assume that you don't want your data objects getting a new shape.
 	throw DataException("Attempt to copyWithMask into a scalar from an object or mask with rank>0.");
   }
+  exclusiveWrite();
   // Now we iterate over the elements
-  DataVector& self=getReadyPtr()->getVector();
-  const DataVector& ovec=other2.getReadyPtr()->getVector();
-  const DataVector& mvec=mask2.getReadyPtr()->getVector();
+  DataVector& self=getReady()->getVectorRW();;
+  const DataVector& ovec=other2.getReadyPtr()->getVectorRO();
+  const DataVector& mvec=mask2.getReadyPtr()->getVectorRO();
 
   if ((selfrank>0) && (otherrank==0) &&(maskrank==0))
   {
@@ -709,14 +773,20 @@ Data::copyWithMask(const Data& other,
   }
 }
 
-
-
 bool
 Data::isExpanded() const
 {
   DataExpanded* temp=dynamic_cast<DataExpanded*>(m_data.get());
   return (temp!=0);
 }
+
+bool
+Data::actsExpanded() const
+{
+  return m_data->actsExpanded();
+
+}
+
 
 bool
 Data::isTagged() const
@@ -742,7 +812,7 @@ Data::isConstant() const
 bool
 Data::isLazy() const
 {
-  return m_data->isLazy();
+  return m_lazy;	// not asking m_data because we need to be able to ask this while m_data is changing
 }
 
 // at the moment this is synonymous with !isLazy() but that could change
@@ -773,15 +843,13 @@ Data::expand()
   if (isConstant()) {
     DataConstant* tempDataConst=dynamic_cast<DataConstant*>(m_data.get());
     DataAbstract* temp=new DataExpanded(*tempDataConst);
-//     shared_ptr<DataAbstract> temp_data(temp);
-//     m_data=temp_data;
-    m_data=temp->getPtr();
+//     m_data=temp->getPtr();
+    set_m_data(temp->getPtr());
   } else if (isTagged()) {
     DataTagged* tempDataTag=dynamic_cast<DataTagged*>(m_data.get());
     DataAbstract* temp=new DataExpanded(*tempDataTag);
-//     shared_ptr<DataAbstract> temp_data(temp);
-//     m_data=temp_data;
-    m_data=temp->getPtr();
+//     m_data=temp->getPtr();
+    set_m_data(temp->getPtr());
   } else if (isExpanded()) {
     //
     // do nothing
@@ -801,9 +869,8 @@ Data::tag()
   if (isConstant()) {
     DataConstant* tempDataConst=dynamic_cast<DataConstant*>(m_data.get());
     DataAbstract* temp=new DataTagged(*tempDataConst);
-//     shared_ptr<DataAbstract> temp_data(temp);
-//     m_data=temp_data;
-    m_data=temp->getPtr();
+//     m_data=temp->getPtr();
+    set_m_data(temp->getPtr());
   } else if (isTagged()) {
     // do nothing
   } else if (isExpanded()) {
@@ -816,7 +883,8 @@ Data::tag()
      {
 	throw DataException("Error - data would resolve to DataExpanded, tagging is not possible.");
      }
-     m_data=res;	
+//      m_data=res;	
+     set_m_data(res);
      tag();
   } else {
     throw DataException("Error - Tagging not implemented for this Data type.");
@@ -828,10 +896,17 @@ Data::resolve()
 {
   if (isLazy())
   {
-     m_data=m_data->resolve();
+//      m_data=m_data->resolve();
+    set_m_data(m_data->resolve());
   }
 }
 
+void 
+Data::requireWrite()
+{
+  resolve();
+  exclusiveWrite();
+}
 
 Data
 Data::oneOver() const
@@ -941,123 +1016,69 @@ Data::getLength() const
 }
 
 const
-boost::python::numeric::array
+boost::python::numeric :: array
 Data:: getValueOfDataPoint(int dataPointNo)
 {
-  int i, j, k, l;
+    return boost::python::numeric::array(getValueOfDataPointAsTuple(dataPointNo));
+}
 
-  FORCERESOLVE;
-
-  //
-  // determine the rank and shape of each data point
-  int dataPointRank = getDataPointRank();
-  const DataTypes::ShapeType& dataPointShape = getDataPointShape();
-
-  //
-  // create the numeric array to be returned
-  boost::python::numeric::array numArray(0.0);
-
-  //
-  // the shape of the returned numeric array will be the same
-  // as that of the data point
-  int arrayRank = dataPointRank;
-  const DataTypes::ShapeType& arrayShape = dataPointShape;
-
-  //
-  // resize the numeric array to the shape just calculated
-  if (arrayRank==0) {
-    numArray.resize(1);
-  }
-  if (arrayRank==1) {
-    numArray.resize(arrayShape[0]);
-  }
-  if (arrayRank==2) {
-    numArray.resize(arrayShape[0],arrayShape[1]);
-  }
-  if (arrayRank==3) {
-    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2]);
-  }
-  if (arrayRank==4) {
-    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3]);
-  }
-
-  if (getNumDataPointsPerSample()>0) {
+const boost::python::object
+Data::getValueOfDataPointAsTuple(int dataPointNo)
+{
+   forceResolve();
+   if (getNumDataPointsPerSample()>0) {
        int sampleNo = dataPointNo/getNumDataPointsPerSample();
        int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
        //
        // Check a valid sample number has been supplied
        if ((sampleNo >= getNumSamples()) || (sampleNo < 0 )) {
-           throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
+           throw DataException("Error - Data::getValueOfDataPointAsTuple: invalid sampleNo.");
        }
 
        //
        // Check a valid data point number has been supplied
        if ((dataPointNoInSample >= getNumDataPointsPerSample()) || (dataPointNoInSample < 0)) {
-           throw DataException("Error - Data::convertToNumArray: invalid dataPointNoInSample.");
+           throw DataException("Error - Data::getValueOfDataPointAsTuple: invalid dataPointNoInSample.");
        }
        // TODO: global error handling
-       // create a view of the data if it is stored locally
-//       DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
        DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
-
-
-       switch( dataPointRank ){
-			case 0 :
-				numArray[0] = getDataAtOffset(offset);
-				break;
-			case 1 :
-				for( i=0; i<dataPointShape[0]; i++ )
-					numArray[i]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i));
-				break;
-			case 2 :
-				for( i=0; i<dataPointShape[0]; i++ )
-					for( j=0; j<dataPointShape[1]; j++)
-						numArray[make_tuple(i,j)]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j));
-				break;
-			case 3 :
-				for( i=0; i<dataPointShape[0]; i++ )
-					for( j=0; j<dataPointShape[1]; j++ )
-						for( k=0; k<dataPointShape[2]; k++)
-							numArray[make_tuple(i,j,k)]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k));
-				break;
-			case 4 :
-				for( i=0; i<dataPointShape[0]; i++ )
-					for( j=0; j<dataPointShape[1]; j++ )
-						for( k=0; k<dataPointShape[2]; k++ )
-							for( l=0; l<dataPointShape[3]; l++)
-								numArray[make_tuple(i,j,k,l)]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k,l));
-				break;
-	}
+       return pointToTuple(getDataPointShape(),&(getDataAtOffsetRO(offset)));
   }
-  //
-  // return the array
-  return numArray;
+  else
+  {
+	// The old method would return an empty numArray of the given shape
+	// I'm going to throw an exception because if we have zero points per sample we have problems
+	throw DataException("Error - need at least 1 datapoint per sample.");
+  }
+
 }
+
 
 void
 Data::setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object& py_object)
 {
     // this will throw if the value cannot be represented
-    boost::python::numeric::array num_array(py_object);
-    setValueOfDataPointToArray(dataPointNo,num_array);
+    setValueOfDataPointToArray(dataPointNo,py_object);
 }
 
 void
-Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::array& num_array)
+Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::object& obj)
 {
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  FORCERESOLVE;
+  forceResolve();
+
+  WrappedArray w(obj);
   //
   // check rank
-  if (static_cast<unsigned int>(num_array.getrank())<getDataPointRank())
+  if (static_cast<unsigned int>(w.getRank())<getDataPointRank())
       throw DataException("Rank of numarray does not match Data object rank");
 
   //
   // check shape of num_array
   for (unsigned int i=0; i<getDataPointRank(); i++) {
-    if (extract<int>(num_array.getshape()[i])!=getDataPointShape()[i])
+    if (w.getShape()[i]!=getDataPointShape()[i])
        throw DataException("Shape of numarray does not match Data object rank");
   }
   //
@@ -1069,9 +1090,9 @@ Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::
   if (getNumDataPointsPerSample()>0) {
        int sampleNo = dataPointNo/getNumDataPointsPerSample();
        int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
-       m_data->copyToDataPoint(sampleNo, dataPointNoInSample,num_array);
+       m_data->copyToDataPoint(sampleNo, dataPointNoInSample,w);
   } else {
-       m_data->copyToDataPoint(-1, 0,num_array);
+       m_data->copyToDataPoint(-1, 0,w);
   }
 }
 
@@ -1083,7 +1104,7 @@ Data::setValueOfDataPoint(int dataPointNo, const double value)
   }
   //
   // make sure data is expanded:
-  FORCERESOLVE;
+  forceResolve();
   if (!isExpanded()) {
     expand();
   }
@@ -1100,145 +1121,65 @@ const
 boost::python::numeric::array
 Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
 {
-  size_t length=0;
-  int i, j, k, l, pos;
-  FORCERESOLVE;
-  //
-  // determine the rank and shape of each data point
-  int dataPointRank = getDataPointRank();
+   return boost::python::numeric::array(getValueOfGlobalDataPointAsTuple(procNo, dataPointNo));
+}
+
+const
+boost::python::object
+Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
+{
+  // This could be lazier than it is now
+  forceResolve();
+
+  // copy datapoint into a buffer
+  // broadcast buffer to all nodes
+  // convert buffer to tuple
+  // return tuple
+
   const DataTypes::ShapeType& dataPointShape = getDataPointShape();
-
-  //
-  // create the numeric array to be returned
-  boost::python::numeric::array numArray(0.0);
-
-  //
-  // the shape of the returned numeric array will be the same
-  // as that of the data point
-  int arrayRank = dataPointRank;
-  const DataTypes::ShapeType& arrayShape = dataPointShape;
-
-  //
-  // resize the numeric array to the shape just calculated
-  if (arrayRank==0) {
-    numArray.resize(1);
-  }
-  if (arrayRank==1) {
-    numArray.resize(arrayShape[0]);
-  }
-  if (arrayRank==2) {
-    numArray.resize(arrayShape[0],arrayShape[1]);
-  }
-  if (arrayRank==3) {
-    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2]);
-  }
-  if (arrayRank==4) {
-    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3]);
-  }
+  size_t length=DataTypes::noValues(dataPointShape);
 
   // added for the MPI communication
-  length=1;
-  for( i=0; i<arrayRank; i++ ) length *= arrayShape[i];
   double *tmpData = new double[length];
 
-  //
-  // load the values for the data point into the numeric array.
-
-	// updated for the MPI case
-	if( get_MPIRank()==procNo ){
-             if (getNumDataPointsPerSample()>0) {
-                int sampleNo = dataPointNo/getNumDataPointsPerSample();
-                int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
-                //
-                // Check a valid sample number has been supplied
-                if ((sampleNo >= getNumSamples()) || (sampleNo < 0 )) {
-                  throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
-                }
-
-                //
-                // Check a valid data point number has been supplied
-                if ((dataPointNoInSample >= getNumDataPointsPerSample()) || (dataPointNoInSample < 0)) {
-                  throw DataException("Error - Data::convertToNumArray: invalid dataPointNoInSample.");
-                }
-                // TODO: global error handling
-		// create a view of the data if it is stored locally
-		//DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
-		DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
-
-		// pack the data from the view into tmpData for MPI communication
-		pos=0;
-		switch( dataPointRank ){
-			case 0 :
-				tmpData[0] = getDataAtOffset(offset);
-				break;
-			case 1 :
-				for( i=0; i<dataPointShape[0]; i++ )
-					tmpData[i]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i));
-				break;
-			case 2 :
-				for( i=0; i<dataPointShape[0]; i++ )
-					for( j=0; j<dataPointShape[1]; j++, pos++ )
-						tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j));
-				break;
-			case 3 :
-				for( i=0; i<dataPointShape[0]; i++ )
-					for( j=0; j<dataPointShape[1]; j++ )
-						for( k=0; k<dataPointShape[2]; k++, pos++ )
-							tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k));
-				break;
-			case 4 :
-				for( i=0; i<dataPointShape[0]; i++ )
-					for( j=0; j<dataPointShape[1]; j++ )
-						for( k=0; k<dataPointShape[2]; k++ )
-							for( l=0; l<dataPointShape[3]; l++, pos++ )
-								tmpData[pos]=getDataAtOffset(offset+DataTypes::getRelIndex(dataPointShape, i,j,k,l));
-				break;
-		}
-            }
-	}
-        #ifdef PASO_MPI
-        // broadcast the data to all other processes
-	MPI_Bcast( tmpData, length, MPI_DOUBLE, procNo, get_MPIComm() );
-        #endif
-
-	// unpack the data
-	switch( dataPointRank ){
-		case 0 :
-			numArray[0]=tmpData[0];
-			break;
-		case 1 :
-			for( i=0; i<dataPointShape[0]; i++ )
-				numArray[i]=tmpData[i];
-			break;
-		case 2 :
-			for( i=0; i<dataPointShape[0]; i++ )
-				for( j=0; j<dataPointShape[1]; j++ )
-				   numArray[make_tuple(i,j)]=tmpData[i+j*dataPointShape[0]];
-			break;
-		case 3 :
-			for( i=0; i<dataPointShape[0]; i++ )
-				for( j=0; j<dataPointShape[1]; j++ )
-					for( k=0; k<dataPointShape[2]; k++ )
-						numArray[make_tuple(i,j,k)]=tmpData[i+dataPointShape[0]*(j*+k*dataPointShape[1])];
-			break;
-		case 4 :
-			for( i=0; i<dataPointShape[0]; i++ )
-				for( j=0; j<dataPointShape[1]; j++ )
-					for( k=0; k<dataPointShape[2]; k++ )
-						for( l=0; l<dataPointShape[3]; l++ )
-					        	numArray[make_tuple(i,j,k,l)]=tmpData[i+dataPointShape[0]*(j*+dataPointShape[1]*(k+l*dataPointShape[2]))];
-			break;
+  // updated for the MPI case
+  if( get_MPIRank()==procNo ){
+      if (getNumDataPointsPerSample()>0) {
+	int sampleNo = dataPointNo/getNumDataPointsPerSample();
+	int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
+	//
+	// Check a valid sample number has been supplied
+	if ((sampleNo >= getNumSamples()) || (sampleNo < 0 )) {
+		throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
 	}
 
-	delete [] tmpData;
+	//
+	// Check a valid data point number has been supplied
+	if ((dataPointNoInSample >= getNumDataPointsPerSample()) || (dataPointNoInSample < 0)) {
+		throw DataException("Error - Data::convertToNumArray: invalid dataPointNoInSample.");
+	}
+	// TODO: global error handling
+	DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
+
+	memcpy(tmpData,&(getDataAtOffsetRO(offset)),length*sizeof(double));
+     }
+  }
+#ifdef PASO_MPI
+  // broadcast the data to all other processes
+  MPI_Bcast( tmpData, length, MPI_DOUBLE, procNo, get_MPIComm() );
+#endif
+
+  boost::python::tuple t=pointToTuple(dataPointShape,tmpData);
+  delete [] tmpData;
   //
   // return the loaded array
-  return numArray;
+  return t;
+
 }
 
 
-boost::python::numeric::array
-Data::integrate_const() const
+boost::python::object
+Data::integrateToTuple_const() const
 {
   if (isLazy())
   {
@@ -1247,23 +1188,43 @@ Data::integrate_const() const
   return integrateWorker();
 }
 
-boost::python::numeric::array
-Data::integrate()
+boost::python::object
+Data::integrateToTuple()
 {
   if (isLazy())
   {
 	expand(); 
   }
   return integrateWorker();
+
+}
+
+
+boost::python::object
+Data::integrate_const() const
+{
+  if (isLazy())
+  {
+	throw DataException("Error - cannot integrate for constant lazy data.");
+  }
+  return boost::python::numeric::array(integrateWorker());
+}
+
+boost::python::object
+Data::integrate()
+{
+  if (isLazy())
+  {
+	expand(); 
+  }
+  return boost::python::numeric::array(integrateWorker());
 }
 
 
 
-boost::python::numeric::array
+boost::python::object
 Data::integrateWorker() const
 {
-  int index;
-  int rank = getDataPointRank();
   DataTypes::ShapeType shape = getDataPointShape();
   int dataPointSize = getDataPointSize();
 
@@ -1284,65 +1245,19 @@ Data::integrateWorker() const
   for (int i=0; i<dataPointSize; i++) { tmp_local[i] = integrals_local[i]; }
   MPI_Allreduce( &tmp_local[0], &tmp[0], dataPointSize, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
   for (int i=0; i<dataPointSize; i++) { integrals[i] = tmp[i]; }
+  tuple result=pointToTuple(shape,tmp);
   delete[] tmp;
   delete[] tmp_local;
 #else
   dom->setToIntegrals(integrals,*this);
+/*  double *tmp = new double[dataPointSize];
+  for (int i=0; i<dataPointSize; i++) { tmp[i]=integrals[i]; }*/
+  tuple result=pointToTuple(shape,integrals);
+//   delete tmp;
 #endif
 
-  //
-  // create the numeric array to be returned
-  // and load the array with the integral values
-  boost::python::numeric::array bp_array(1.0);
-  if (rank==0) {
-    bp_array.resize(1);
-    index = 0;
-    bp_array[0] = integrals[index];
-  }
-  if (rank==1) {
-    bp_array.resize(shape[0]);
-    for (int i=0; i<shape[0]; i++) {
-      index = i;
-      bp_array[i] = integrals[index];
-    }
-  }
-  if (rank==2) {
-       bp_array.resize(shape[0],shape[1]);
-       for (int i=0; i<shape[0]; i++) {
-         for (int j=0; j<shape[1]; j++) {
-           index = i + shape[0] * j;
-           bp_array[make_tuple(i,j)] = integrals[index];
-         }
-       }
-  }
-  if (rank==3) {
-    bp_array.resize(shape[0],shape[1],shape[2]);
-    for (int i=0; i<shape[0]; i++) {
-      for (int j=0; j<shape[1]; j++) {
-        for (int k=0; k<shape[2]; k++) {
-          index = i + shape[0] * ( j + shape[1] * k );
-          bp_array[make_tuple(i,j,k)] = integrals[index];
-        }
-      }
-    }
-  }
-  if (rank==4) {
-    bp_array.resize(shape[0],shape[1],shape[2],shape[3]);
-    for (int i=0; i<shape[0]; i++) {
-      for (int j=0; j<shape[1]; j++) {
-        for (int k=0; k<shape[2]; k++) {
-          for (int l=0; l<shape[3]; l++) {
-            index = i + shape[0] * ( j + shape[1] * ( k + shape[2] * l ) );
-            bp_array[make_tuple(i,j,k,l)] = integrals[index];
-          }
-        }
-      }
-    }
-  }
 
-  //
-  // return the loaded array
-  return bp_array;
+  return result;
 }
 
 Data
@@ -1932,7 +1847,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
     #pragma omp for private(i,j) schedule(static)
     for (i=0; i<numSamples; i++) {
       for (j=0; j<numDPPSample; j++) {
-        next=temp.getDataAtOffset(temp.getDataOffset(i,j));
+        next=temp.getDataAtOffsetRO(temp.getDataOffset(i,j));
         if (next<local_min) {
           local_min=next;
           local_lowi=i;
@@ -1950,7 +1865,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
 
 #ifdef PASO_MPI
 	// determine the processor on which the minimum occurs
-	next = temp.getDataPoint(lowi,lowj);
+	next = temp.getDataPointRO(lowi,lowj);
 	int lowProc = 0;
 	double *globalMins = new double[get_MPISize()+1];
 	int error;
@@ -2021,6 +1936,7 @@ Data::operator+=(const Data& right)
         throw DataException("Error - attempt to update protected Data object.");
   }
   MAKELAZYBINSELF(right,ADD)	// for lazy + is equivalent to +=
+  exclusiveWrite();			// Since Lazy data does not modify its leaves we only need to worry here
   binaryOp(right,plus<double>());
   return (*this);
 }
@@ -2032,16 +1948,23 @@ Data::operator+=(const boost::python::object& right)
         throw DataException("Error - attempt to update protected Data object.");
   }
   Data tmp(right,getFunctionSpace(),false);
-  MAKELAZYBINSELF(tmp,ADD)
-  binaryOp(tmp,plus<double>());
-  return (*this);
+  (*this)+=tmp;
+  return *this;
 }
 
 // Hmmm, operator= makes a deep copy but the copy constructor does not?
 Data&
 Data::operator=(const Data& other)
 {
+#if defined ASSIGNMENT_MEANS_DEEPCOPY	
+// This should not be used.
+// Just leaving this here until I have completed transition
   copy(other);
+#else
+  m_protected=false;		// since any changes should be caught by exclusiveWrite();
+//   m_data=other.m_data;
+  set_m_data(other.m_data);
+#endif
   return (*this);
 }
 
@@ -2052,6 +1975,7 @@ Data::operator-=(const Data& right)
         throw DataException("Error - attempt to update protected Data object.");
   }
   MAKELAZYBINSELF(right,SUB)
+  exclusiveWrite();
   binaryOp(right,minus<double>());
   return (*this);
 }
@@ -2063,8 +1987,7 @@ Data::operator-=(const boost::python::object& right)
         throw DataException("Error - attempt to update protected Data object.");
   }
   Data tmp(right,getFunctionSpace(),false);
-  MAKELAZYBINSELF(tmp,SUB)
-  binaryOp(tmp,minus<double>());
+  (*this)-=tmp;
   return (*this);
 }
 
@@ -2075,6 +1998,7 @@ Data::operator*=(const Data& right)
         throw DataException("Error - attempt to update protected Data object.");
   }
   MAKELAZYBINSELF(right,MUL)
+  exclusiveWrite();
   binaryOp(right,multiplies<double>());
   return (*this);
 }
@@ -2086,8 +2010,7 @@ Data::operator*=(const boost::python::object& right)
         throw DataException("Error - attempt to update protected Data object.");
   }
   Data tmp(right,getFunctionSpace(),false);
-  MAKELAZYBINSELF(tmp,MUL)
-  binaryOp(tmp,multiplies<double>());
+  (*this)*=tmp;
   return (*this);
 }
 
@@ -2098,6 +2021,7 @@ Data::operator/=(const Data& right)
         throw DataException("Error - attempt to update protected Data object.");
   }
   MAKELAZYBINSELF(right,DIV)
+  exclusiveWrite();
   binaryOp(right,divides<double>());
   return (*this);
 }
@@ -2109,8 +2033,7 @@ Data::operator/=(const boost::python::object& right)
         throw DataException("Error - attempt to update protected Data object.");
   }
   Data tmp(right,getFunctionSpace(),false);
-  MAKELAZYBINSELF(tmp,DIV)
-  binaryOp(tmp,divides<double>());
+  (*this)/=tmp;
   return (*this);
 }
 
@@ -2289,12 +2212,11 @@ void
 Data::setItemD(const boost::python::object& key,
                const Data& value)
 {
-//  const DataArrayView& view=getPointDataView();
-
   DataTypes::RegionType slice_region=DataTypes::getSliceRegion(getDataPointShape(),key);
   if (slice_region.size()!=getDataPointRank()) {
     throw DataException("Error - slice size does not match Data rank.");
   }
+  exclusiveWrite();
   if (getFunctionSpace()!=value.getFunctionSpace()) {
      setSlice(Data(value,getFunctionSpace()),slice_region);
   } else {
@@ -2309,11 +2231,8 @@ Data::setSlice(const Data& value,
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  FORCERESOLVE;
-/*  if (isLazy())
-  {
-	throw DataException("Error - setSlice not permitted on lazy data.");
-  }*/
+  forceResolve();
+  exclusiveWrite();		// In case someone finds a way to call this without going through setItemD
   Data tempValue(value);
   typeMatchLeft(tempValue);
   typeMatchRight(tempValue);
@@ -2361,11 +2280,13 @@ Data::setTaggedValueByName(std::string name,
                            const boost::python::object& value)
 {
      if (getFunctionSpace().getDomain()->isValidTagName(name)) {
-	FORCERESOLVE;
+	forceResolve();
+	exclusiveWrite();
         int tagKey=getFunctionSpace().getDomain()->getTag(name);
         setTaggedValue(tagKey,value);
      }
 }
+
 void
 Data::setTaggedValue(int tagKey,
                      const boost::python::object& value)
@@ -2375,20 +2296,15 @@ Data::setTaggedValue(int tagKey,
   }
   //
   // Ensure underlying data object is of type DataTagged
-  FORCERESOLVE;
+  forceResolve();
+  exclusiveWrite();
   if (isConstant()) tag();
-  numeric::array asNumArray(value);
-
-  // extract the shape of the numarray
-  DataTypes::ShapeType tempShape;
-  for (int i=0; i < asNumArray.getrank(); i++) {
-    tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
-  }
+  WrappedArray w(value);
 
   DataVector temp_data2;
-  temp_data2.copyFromNumArray(asNumArray,1);
+  temp_data2.copyFromArray(w,1);
 
-  m_data->setTaggedValue(tagKey,tempShape, temp_data2);
+  m_data->setTaggedValue(tagKey,w.getShape(), temp_data2);
 }
 
 
@@ -2403,8 +2319,9 @@ Data::setTaggedValueFromCPP(int tagKey,
   }
   //
   // Ensure underlying data object is of type DataTagged
-  FORCERESOLVE;
+  forceResolve();
   if (isConstant()) tag();
+  exclusiveWrite();
   //
   // Call DataAbstract::setTaggedValue
   m_data->setTaggedValue(tagKey,pointshape, value, dataOffset);
@@ -2532,9 +2449,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
   if      (arg_0_Z.isConstant()   && arg_1_Z.isConstant()) {
     res = Data(0.0, shape2, arg_1_Z.getFunctionSpace());	// DataConstant output
-    double *ptr_0 = &(arg_0_Z.getDataAtOffset(0));
-    double *ptr_1 = &(arg_1_Z.getDataAtOffset(0));
-    double *ptr_2 = &(res.getDataAtOffset(0));
+    const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
+    const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0));
+    double *ptr_2 = &(res.getDataAtOffsetRW(0));
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
   }
   else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged()) {
@@ -2555,17 +2472,10 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
     // Prepare offset into DataConstant
     int offset_0 = tmp_0->getPointOffset(0,0);
-    double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
-    // Get the views
-//     DataArrayView view_1 = tmp_1->getDefaultValue();
-//     DataArrayView view_2 = tmp_2->getDefaultValue();
-//     // Get the pointers to the actual data
-//     double *ptr_1 = &((view_1.getData())[0]);
-//     double *ptr_2 = &((view_2.getData())[0]);
+    const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
 
-    double *ptr_1 = &(tmp_1->getDefaultValue(0));
-    double *ptr_2 = &(tmp_2->getDefaultValue(0));
-
+    const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
+    double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
 
     // Compute an MVP for the default
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
@@ -2574,13 +2484,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
     for (i=lookup_1.begin();i!=lookup_1.end();i++) {
       tmp_2->addTag(i->first);
-//       DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
-//       DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
-//       double *ptr_1 = &view_1.getData(0);
-//       double *ptr_2 = &view_2.getData(0);
 
-      double *ptr_1 = &(tmp_1->getDataByTag(i->first,0));
-      double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
+      const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
+      double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
 	
       matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     }
@@ -2604,9 +2510,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
       for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
         int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
         int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
-        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
-        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
-        double *ptr_2 = &(res.getDataAtOffset(offset_2));
+        const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+        const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+        double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2630,16 +2536,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
     // Prepare offset into DataConstant
     int offset_1 = tmp_1->getPointOffset(0,0);
-    double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
-    // Get the views
-//     DataArrayView view_0 = tmp_0->getDefaultValue();
-//     DataArrayView view_2 = tmp_2->getDefaultValue();
-//     // Get the pointers to the actual data
-//     double *ptr_0 = &((view_0.getData())[0]);
-//     double *ptr_2 = &((view_2.getData())[0]);
-
-    double *ptr_0 = &(tmp_0->getDefaultValue(0));
-    double *ptr_2 = &(tmp_2->getDefaultValue(0));
+    const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+    const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
+    double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
 
     // Compute an MVP for the default
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
@@ -2647,15 +2546,10 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
     DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
     for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-//      tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
-//       DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
-//       DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
-//       double *ptr_0 = &view_0.getData(0);
-//       double *ptr_2 = &view_2.getData(0);
 
       tmp_2->addTag(i->first);
-      double *ptr_0 = &(tmp_0->getDataByTag(i->first,0));
-      double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
+      const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
+      double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
       matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     }
 
@@ -2676,19 +2570,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
     if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
 
-//     // Get the views
-//     DataArrayView view_0 = tmp_0->getDefaultValue();
-//     DataArrayView view_1 = tmp_1->getDefaultValue();
-//     DataArrayView view_2 = tmp_2->getDefaultValue();
-//     // Get the pointers to the actual data
-//     double *ptr_0 = &((view_0.getData())[0]);
-//     double *ptr_1 = &((view_1.getData())[0]);
-//     double *ptr_2 = &((view_2.getData())[0]);
-
-    double *ptr_0 = &(tmp_0->getDefaultValue(0));
-    double *ptr_1 = &(tmp_1->getDefaultValue(0));
-    double *ptr_2 = &(tmp_2->getDefaultValue(0));
-
+    const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
+    const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
+    double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
 
     // Compute an MVP for the default
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
@@ -2705,16 +2589,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     // Compute an MVP for each tag
     const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
     for (i=lookup_2.begin();i!=lookup_2.end();i++) {
-//       DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
-//       DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
-//       DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
-//       double *ptr_0 = &view_0.getData(0);
-//       double *ptr_1 = &view_1.getData(0);
-//       double *ptr_2 = &view_2.getData(0);
-
-      double *ptr_0 = &(tmp_0->getDataByTag(i->first,0));
-      double *ptr_1 = &(tmp_1->getDataByTag(i->first,0));
-      double *ptr_2 = &(tmp_2->getDataByTag(i->first,0));
+      const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
+      const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
+      double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
 
       matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     }
@@ -2736,12 +2613,12 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
     for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
       int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-      double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
+      const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
       for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
-        double *ptr_2 = &(res.getDataAtOffset(offset_2));
+        const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+        double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2765,9 +2642,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
       for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
-        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
-        double *ptr_2 = &(res.getDataAtOffset(offset_2));
+        const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+        const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+        double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2790,12 +2667,12 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
     for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
       int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
-      double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
+      const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
       for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
-        double *ptr_2 = &(res.getDataAtOffset(offset_2));
+        const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+        double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2820,9 +2697,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_0 = &(arg_0_Z.getDataAtOffset(offset_0));
-        double *ptr_1 = &(arg_1_Z.getDataAtOffset(offset_1));
-        double *ptr_2 = &(res.getDataAtOffset(offset_2));
+        const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+        const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+        double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
@@ -2872,57 +2749,85 @@ Data::toString() const
 }
 
 
-
-DataTypes::ValueType::const_reference
-Data::getDataAtOffset(DataTypes::ValueType::size_type i) const
+// This method is not thread-safe
+DataTypes::ValueType::reference
+Data::getDataAtOffsetRW(DataTypes::ValueType::size_type i)
 {
-    if (isLazy())
-    {
-	throw DataException("Programmer error - getDataAtOffset not permitted on lazy data (object is const which prevents resolving).");
-    }
-    return getReady()->getDataAtOffset(i);
+    checkExclusiveWrite();
+    return getReady()->getDataAtOffsetRW(i);
+}
+
+// This method is not thread-safe
+DataTypes::ValueType::const_reference
+Data::getDataAtOffsetRO(DataTypes::ValueType::size_type i)
+{
+    forceResolve();
+    return getReady()->getDataAtOffsetRO(i);
 }
 
 
-DataTypes::ValueType::reference
-Data::getDataAtOffset(DataTypes::ValueType::size_type i)
-{
+// DataTypes::ValueType::const_reference
+// Data::getDataAtOffsetRO(DataTypes::ValueType::size_type i) const
+// {
 //     if (isLazy())
 //     {
-// 	throw DataException("getDataAtOffset not permitted on lazy data.");
+// 	throw DataException("Programmer error - getDataAtOffsetRO() not permitted on Lazy Data (object is const which prevents resolving).");
 //     }
-    FORCERESOLVE;
-    return getReady()->getDataAtOffset(i);
-}
+//     return getReady()->getDataAtOffsetRO(i);
+// }
+
 
 DataTypes::ValueType::const_reference
-Data::getDataPoint(int sampleNo, int dataPointNo) const
+Data::getDataPointRO(int sampleNo, int dataPointNo)
 {
+  forceResolve();
   if (!isReady())
   {
-	throw DataException("Programmer error - getDataPoint() not permitted on Lazy Data (object is const which prevents resolving).");
+	throw DataException("Programmer error -getDataPointRO() not permitted on Lazy Data.");
   }
   else
   {
 	const DataReady* dr=getReady();
-	return dr->getDataAtOffset(dr->getPointOffset(sampleNo, dataPointNo));
+	return dr->getDataAtOffsetRO(dr->getPointOffset(sampleNo, dataPointNo));
   }
 }
 
 
+
+
 DataTypes::ValueType::reference
-Data::getDataPoint(int sampleNo, int dataPointNo)
+Data::getDataPointRW(int sampleNo, int dataPointNo)
 {
-  FORCERESOLVE;
-  if (!isReady())
-  {
-	throw DataException("Programmer error - getDataPoint() not permitted on Lazy Data.");
-  }
-  else
-  {
-	DataReady* dr=getReady();
-	return dr->getDataAtOffset(dr->getPointOffset(sampleNo, dataPointNo));
-  }
+  checkExclusiveWrite();
+  DataReady* dr=getReady();
+  return dr->getDataAtOffsetRW(dr->getPointOffset(sampleNo, dataPointNo));
+}
+
+BufferGroup* 
+Data::allocSampleBuffer() const
+{
+     if (isLazy())
+     {
+	#ifdef _OPENMP
+	int tnum=omp_get_max_threads();
+	#else
+	int tnum=1;
+	#endif
+	return new BufferGroup(getSampleBufferSize(),tnum);
+     }
+     else
+     {
+	return NULL;
+     }
+}
+
+void
+Data::freeSampleBuffer(BufferGroup* bufferg)
+{
+     if (bufferg!=0)
+     {
+	delete bufferg;
+     }
 }
 
 
@@ -2938,7 +2843,7 @@ Data::print()
   {
     printf( "[%6d]", i );
     for( j=0; j<getNumDataPointsPerSample(); j++ )
-      printf( "\t%10.7g", (getSampleData(i))[j] );
+      printf( "\t%10.7g", (getSampleDataRW(i))[j] );	// doesn't really need RW access
     printf( "\n" );
   }
 }

@@ -49,10 +49,10 @@ void DataAlgorithmAdapterTestCase::tearDown() {
 namespace
 {
 
-ValueType::reference
-getSRef(DataReady& data,int sample, int point)
+ValueType::const_reference
+getSRefRO(DataReady& data,int sample, int point)
 {
-   return data.getVector()[data.getPointOffset(sample,point)];
+   return data.getVectorRO()[data.getPointOffset(sample,point)];
 }
 
 
@@ -249,22 +249,22 @@ void DataAlgorithmAdapterTestCase::testDpAlgorithm() {
     // test dp_algorithm on DataExpanded
     FMin fmin_func;
     escript::dp_algorithm(dataExp,dataExp2,fmin_func,numeric_limits<double>::max());
-    assert(std::abs(getSRef(dataExp2,0,0)-0)<=REL_TOL*0);
+    assert(std::abs(getSRefRO(dataExp2,0,0)-0)<=REL_TOL*0);
     FMax fmax_func;
     escript::dp_algorithm(dataExp,dataExp2,fmax_func,numeric_limits<double>::max()*-1);
-    assert(std::abs(getSRef(dataExp2,0,0)-5)<=REL_TOL*5);
+    assert(std::abs(getSRefRO(dataExp2,0,0)-5)<=REL_TOL*5);
 
     // test dp_algorithm on DataTagged
     escript::dp_algorithm(dataTag,dataTag2,fmin_func,numeric_limits<double>::max());
-    assert(std::abs(getSRef(dataTag2,0,0)-0)<=REL_TOL*0);
+    assert(std::abs(getSRefRO(dataTag2,0,0)-0)<=REL_TOL*0);
     escript::dp_algorithm(dataTag,dataTag2,fmax_func,numeric_limits<double>::max()*-1);
-    assert(std::abs(getSRef(dataTag2,0,0)-5)<=REL_TOL*5);
+    assert(std::abs(getSRefRO(dataTag2,0,0)-5)<=REL_TOL*5);
 
     // test dp_algorithm on DataConstant
     escript::dp_algorithm(dataCon,dataCon2,fmin_func,numeric_limits<double>::max());
-    assert(std::abs(getSRef(dataCon2,0,0)-0)<=REL_TOL*0);
+    assert(std::abs(getSRefRO(dataCon2,0,0)-0)<=REL_TOL*0);
     escript::dp_algorithm(dataCon,dataCon2,fmax_func,numeric_limits<double>::max()*-1);
-    assert(std::abs(getSRef(dataCon2,0,0)-5)<=REL_TOL*5);
+    assert(std::abs(getSRefRO(dataCon2,0,0)-5)<=REL_TOL*5);
 
   }
 

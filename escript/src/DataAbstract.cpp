@@ -16,16 +16,12 @@
 #include "DataException.h"
 #include "DataLazy.h"
 
+#include "Data.h"		// So we can update the shared status when things change
+
 using namespace std;
 
 namespace escript {
 
-/**
-\brief Returns smart pointer which is managing this object.
-If one does not exist yet it creates one.
-
-Note: This is _not_ equivalent to weak_ptr::lock.
-*/
 DataAbstract_ptr DataAbstract::getPtr()
 {
   if (_internal_weak_this.expired())
@@ -50,6 +46,28 @@ const_DataAbstract_ptr DataAbstract::getPtr() const
   }
 }
 
+
+// Warning - this method uses .use_count() which the boost doco labels inefficient.
+// If this method needs to be called in debug contexts, we may need to do some
+// timing experiments to determine how inefficient and possibly switch over to
+// invasive pointers which can answer these questions faster
+bool DataAbstract::checkNoSharing() const
+{
+
+  return !m_lazyshared && (m_owners.size()<2);
+
+/*  if (_internal_weak_this.expired())	// there is no shared_ptr for this object yet
+  {
+	return true;
+  }
+  if (shared_from_this().use_count()==2)	// shared_from_this will increase the ref count
+  {						// which is the reason .unique is no use.
+	return true;
+  }
+std::cerr << "-<"<<shared_from_this().use_count() << ">-" << endl;
+  return false;*/
+}
+
 bool
 DataAbstract::isLazy() const
 {
@@ -64,7 +82,8 @@ DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape, bo
     m_functionSpace(what),
     m_shape(shape),
     m_novalues(DataTypes::noValues(shape)),
-    m_rank(DataTypes::getRank(shape))
+    m_rank(DataTypes::getRank(shape)),
+    m_lazyshared(false)
 
 {
     m_isempty=isDataEmpty;
@@ -146,23 +165,19 @@ DataAbstract::getTagNumber(int dpno)
     return (0);
 }
 
-
-
-void
-DataAbstract::copyAll(const boost::python::numeric::array& value)
-{
-    throw DataException("Error - DataAbstract::copying data from numarray objects is not supported.");
-}
 void
 DataAbstract::copyToDataPoint(const int sampleNo, const int dataPointNo, const double value)
 {
     throw DataException("Error - DataAbstract::copying data from double value to a single data point is not supported.");
 }
+
+
 void
-DataAbstract::copyToDataPoint(const int sampleNo, const int dataPointNo, const boost::python::numeric::array& value)
+DataAbstract::copyToDataPoint(const int sampleNo, const int dataPointNo, const WrappedArray& value)
 {
-    throw DataException("Error - DataAbstract::copying data from numarray objects to a single data point is not supported.");
+    throw DataException("Error - DataAbstract::copying data from WrappedArray objects to a single data point is not supported.");
 }
+
 
 void
 DataAbstract::symmetric(DataAbstract* ev) 
@@ -217,19 +232,51 @@ DataAbstract::reorderByReferenceIDs(int *reference_ids)
 }
 
 
-// DataTypes::ValueType&
-// DataAbstract::getVector()
-// {
-//    throw DataException("Error - DataAbstract:: does not have a DataVector.");
-// }
-// 
-// const DataTypes::ValueType&
-// DataAbstract::getVector() const
-// {
-//    throw DataException("Error - DataAbstract:: does not have a DataVector.");
-// }
+void DataAbstract::addOwner(Data* d)
+{
+  for (size_t i=0;i<m_owners.size();++i)
+  {
+	if (m_owners[i]==d)
+	{
+		return;
+	}
+  }
+  m_owners.push_back(d);
+// cerr << "Adding " << d << " as an owner of " << this << " now O=" << m_owners.size() << endl;
+  if (m_owners.size()==2)	// Means it used to be 1 so we need to tell people
+  {
+	for (size_t i=0;i<m_owners.size();++i)
+	{
+		m_owners[i]->updateShareStatus(true);
+	}
+  }
+}
+
+void DataAbstract::removeOwner(Data* d)
+{
+  for (size_t i=0;i<m_owners.size();++i)
+  {
+	if (m_owners[i]==d)
+	{
+		m_owners.erase(m_owners.begin()+i,m_owners.begin()+(i+1));	// remove the element
+		break;
+	}
+  }
+  if (m_owners.size()==1)	// Means it used to be 2 so we need to tell people
+  {
+	m_owners[0]->updateShareStatus(isShared());		// could still be lazy shared
+  }
+}
 
 
+void DataAbstract::makeLazyShared()
+{
+	m_lazyshared=true;	// now we need to inform all the owners
+	for (size_t i=0;i<m_owners.size();++i)
+	{
+		m_owners[i]->updateShareStatus(true);
+	}
+}	
 
 
 }  // end of namespace

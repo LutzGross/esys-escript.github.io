@@ -77,8 +77,10 @@ void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& s
     }
     out.expand();
     source.expand();
-    double* out_dp=out.getSampleData(0);
-    double* source_dp=source.getSampleData(0);
+    out.requireWrite();
+    source.requireWrite();
+    double* out_dp=out.getSampleDataRW(0);
+    double* source_dp=source.getSampleDataRW(0);
     Paso_SolverFCT_solve(transp,out_dp,dt,source_dp,&paso_options);
     checkPasoError();
 }
@@ -114,9 +116,12 @@ void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Dat
     r2.expand();
     source.expand();
     q.expand();
-    double* r2_dp=r2.getSampleData(0);
-    double* source_dp=source.getSampleData(0);
-    double* q_dp=q.getSampleData(0);
+    r2.requireWrite();
+    source.requireWrite();
+    q.requireWrite();
+    double* r2_dp=r2.getSampleDataRW(0);
+    double* source_dp=source.getSampleDataRW(0);
+    double* q_dp=q.getSampleDataRW(0);
 
     if (false) {
        cout << "v1\n";
@@ -149,7 +154,8 @@ void TransportProblemAdapter::copyInitialValue(escript::Data& u) const
      throw FinleyAdapterException("copyInitialValue : function spaces of solution and of transport problem don't match.");
     }
     u.expand();
-    double* u_dp=u.getSampleData(0);
+    u.requireWrite();
+    double* u_dp=u.getSampleDataRW(0);
     Paso_FCTransportProblem_checkinSolution( transp,u_dp);
     checkPasoError();
 }

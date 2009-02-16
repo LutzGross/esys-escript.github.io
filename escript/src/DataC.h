@@ -108,18 +108,24 @@ ESCRIPT_DLL_API int getDataPointShape(escriptDataC* data,int i);
    \param data Input - C wrapper for Data.
 */
 ESCRIPT_DLL_API int getDataPointSize(escriptDataC* data);
-/**
+
+/*
    \brief
    Return the number of doubles stored for the Data object.
    Argument data may be NULL, in which case 0 is returnd.
    \param data Input - C wrapper for Data.
+
+This function has been removed because it does not make sense for LazyData
 */
-ESCRIPT_DLL_API int getLength(escriptDataC* data);
+/*ESCRIPT_DLL_API int getLength(escriptDataC* data);*/
+
 /**
    \brief
-   Return true if data is expanded.
+   Return true if data can be treated as expanded.
+   
    Argument data may be NULL, in which case false is returnd.
    \param data Input - C wrapper for Data.
+   \return true if data is expanded or the data is lazy but would resolve to expanded. False otherwise.
 */
 ESCRIPT_DLL_API int isExpanded(escriptDataC* data);
 /**
@@ -130,13 +136,66 @@ ESCRIPT_DLL_API int isExpanded(escriptDataC* data);
   \param data Input - C wrapper for Data.
   \param sampleNo Input - The sample number.
 */
-ESCRIPT_DLL_API double* getSampleData(escriptDataC* data, int sampleNo);
-/**
-   \brief
+ESCRIPT_DLL_API double __const * getSampleDataRO(escriptDataC* data, int sampleNo, void* buffer);
+/* Placement of __const might be important. See .cpp */
+
+
+ESCRIPT_DLL_API double* getSampleDataRW(escriptDataC* data, int sampleNo);
+
+
+/*   \brief
    Return a pointer to the data for the given sample number.
    Fast version of getSampledata: does no error checking.
   \param data Input - C wrapper for Data.
   \param sampleNo Input - The sample number.
 */
-ESCRIPT_DLL_API double* getSampleDataFast(escriptDataC* data, int sampleNo);
+/*ESCRIPT_DLL_API double* getSampleDataFast(escriptDataC* data, int sampleNo);*/
+
+/**
+   \brief
+   Return a pointer to the data for the given sample number.
+   Fast version of getSampledataRO: does no error checking.
+  \param data Input - C wrapper for Data.
+  \param sampleNo Input - The sample number.
+*/
+ESCRIPT_DLL_API double __const* getSampleDataROFast(escriptDataC* data, int sampleNo, void* buffer);
+
+/**
+   \brief
+   Return a pointer to the data for the given sample number.
+   Fast version of getSampledataRW: does no error checking.
+  \param data Input - C wrapper for Data.
+  \param sampleNo Input - The sample number.
+*/
+ESCRIPT_DLL_API double* getSampleDataRWFast(escriptDataC* data, int sampleNo);
+
+
+/**
+   \brief Create a buffer for use by getSample
+   Allocates a DataVector large enough for DataLazy::resolveSample to operate on for the current Data.
+   Do not use this buffer for other DataC instances (unless you are sure they will be the same size).
+
+   In multi-threaded sections, this needs to be called for each thread.
+   
+   \return A DataVector* if Data is not-NULL and lazy, NULL otherwise.
+   \warning This pointer must be deallocated using freeSampleBuffer to avoid cross library memory issues.
+   \param data Input - C wrapper for Data.
+*/
+ESCRIPT_DLL_API void* allocSampleBuffer(escriptDataC* data);
+
+/**
+   \brief Free a buffer allocated with allocSampleBuffer.
+   \param buffer Input - pointer to the buffer to deallocate.
+*/
+ESCRIPT_DLL_API void freeSampleBuffer(void* buffer);
+
+/**
+   \brief Ensure that this object is ready for writing.
+   It will be resolved and copied if it is currently shared.
+   Use only in single threaded sections of code.
+   Do not create new Data objects based on this one between this call and 
+   writing to the object.
+*/
+ESCRIPT_DLL_API void requireWrite(escriptDataC* data);
+
 #endif

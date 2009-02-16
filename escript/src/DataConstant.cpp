@@ -29,60 +29,26 @@
 #include <boost/python/extract.hpp>
 #include "DataMaths.h"
 
+// #define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {throw DataException("Attempt to modify shared object");}
+
+#define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {std::ostringstream ss; ss << " Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__; ss << m_owners.size(); cerr << ss << endl; /* *((int*)0)=17; */throw DataException(ss.str());}
+
 using namespace std;
 using namespace boost::python;
 
 namespace escript {
 
-DataConstant::DataConstant(const boost::python::numeric::array& value,
+DataConstant::DataConstant(const WrappedArray& value,
                            const FunctionSpace& what)
-  : parent(what,DataTypes::shapeFromNumArray(value))
+  : parent(what,value.getShape())
 {
-//   // extract the shape of the numarray
-//   DataTypes::ShapeType tempShape;
-//   for (int i=0; i < value.getrank(); i++) {
-//     tempShape.push_back(extract<int>(value.getshape()[i]));
-//   }
-
-  // get the space for the data vector
-//   int len = getNoValues();
-//   DataVector temp_data(len, 0.0, len);
-//   DataArrayView temp_dataView(temp_data, tempShape);
-//   temp_dataView.copy(value);
-
-  m_data.copyFromNumArray(value,1);
-  //
-
-  // copy the data in the correct format
-//   m_data=temp_data;
-  //
-  // create the view of the data
-//   DataArrayView tempView(m_data,temp_dataView.getShape());
-//   setPointDataView(tempView);
+  m_data.copyFromArray(value,1);
 }
-
-// DataConstant::DataConstant(const DataArrayView& value,
-//                            const FunctionSpace& what)
-//   : DataAbstract(what)
-// {
-//   //
-//   // copy the data in the correct format
-//   m_data=value.getData();
-//   //
-//   // create the view of the data
-//   DataArrayView tempView(m_data,value.getShape());
-//   setPointDataView(tempView);
-// }
 
 DataConstant::DataConstant(const DataConstant& other)
   : parent(other.getFunctionSpace(),other.getShape())
-{  //
-  // copy the data in the correct format
+{ 
   m_data=other.m_data;
-  //
-//   // create the view of the data
-//   DataArrayView tempView(m_data,other.getPointDataView().getShape());
-//   setPointDataView(tempView);
 }
 
 DataConstant::DataConstant(const DataConstant& other,
@@ -90,21 +56,15 @@ DataConstant::DataConstant(const DataConstant& other,
   : parent(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
 {
   //
-  // get the shape of the slice to copy from
-//   DataTypes::ShapeType shape(DataTypes::getResultSliceShape(region));
-  //
   // allocate space for this new DataConstant's data
   int len = getNoValues();
   m_data.resize(len,0.,len);
   //
   // create a view of the data with the correct shape
-//   DataArrayView tempView(m_data,shape);
   DataTypes::RegionLoopRangeType region_loop_range=DataTypes::getSliceRegionLoopRange(region);
   //
   // load the view with the data from the slice
-//   tempView.copySlice(other.getPointDataView(),region_loop_range);
-  DataTypes::copySlice(m_data,getShape(),0,other.getVector(),other.getShape(),0,region_loop_range);
-//   setPointDataView(tempView);
+  DataTypes::copySlice(m_data,getShape(),0,other.getVectorRO(),other.getShape(),0,region_loop_range);
 }
 
 DataConstant::DataConstant(const FunctionSpace& what,
@@ -163,17 +123,6 @@ DataConstant::getLength() const
   return m_data.size();
 }
 
-// DataArrayView
-// DataConstant::getDataPoint(int sampleNo,
-//                            int dataPointNo)
-// {
-//   EsysAssert((validSamplePointNo(dataPointNo) && validSampleNo(sampleNo)),
-//              "Invalid index, sampleNo: " << sampleNo << " dataPointNo: " << dataPointNo);
-//   //
-//   // Whatever the coord's always return the same value as this is constant data.
-//   return getPointDataView();
-// }
-
 DataAbstract*
 DataConstant::getSlice(const DataTypes::RegionType& region) const
 {
@@ -188,6 +137,7 @@ DataConstant::setSlice(const DataAbstract* value,
   if (tempDataConst==0) {
     throw DataException("Programming error - casting to DataConstant.");
   }
+  CHECK_FOR_EX_WRITE
   //
   DataTypes::ShapeType shape(DataTypes::getResultSliceShape(region));
   DataTypes::RegionLoopRangeType region_loop_range=DataTypes::getSliceRegionLoopRange(region);
@@ -201,7 +151,7 @@ DataConstant::setSlice(const DataAbstract* value,
                 "Error - Couldn't copy slice due to shape mismatch.",shape,value->getShape()));
   }
   //   getPointDataView().copySliceFrom(tempDataConst->getPointDataView(),region_loop_range);
-  DataTypes::copySliceFrom(m_data,getShape(),0,tempDataConst->getVector(), tempDataConst->getShape(),0,region_loop_range);
+  DataTypes::copySliceFrom(m_data,getShape(),0,tempDataConst->getVectorRO(), tempDataConst->getShape(),0,region_loop_range);
 }
 
 
@@ -213,9 +163,7 @@ DataConstant::symmetric(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::symmetric: casting to DataConstant failed (propably a programming error).");
   }
-/*  DataArrayView& thisView=getPointDataView();
-  DataArrayView& evView=ev->getPointDataView();*/
-  DataMaths::symmetric(m_data,getShape(),0,temp_ev->getVector(), temp_ev->getShape(),0);
+  DataMaths::symmetric(m_data,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
 }
 
 void
@@ -225,9 +173,7 @@ DataConstant::nonsymmetric(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::nonsymmetric: casting to DataConstant failed (propably a programming error).");
   }
-/*  DataArrayView& thisView=getPointDataView();
-  DataArrayView& evView=ev->getPointDataView();*/
-  DataMaths::nonsymmetric(m_data,getShape(),0,temp_ev->getVector(), temp_ev->getShape(),0);
+  DataMaths::nonsymmetric(m_data,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
 }
 
 void
@@ -237,9 +183,7 @@ DataConstant::trace(DataAbstract* ev, int axis_offset)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::trace: casting to DataConstant failed (propably a programming error).");
   }
-/*  DataArrayView& thisView=getPointDataView();
-  DataArrayView& evView=ev->getPointDataView();*/
-  ValueType& evVec=temp_ev->getVector();
+  ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   DataMaths::trace(m_data,getShape(),0,evVec,evShape,0,axis_offset);
 }
@@ -251,9 +195,7 @@ DataConstant::swapaxes(DataAbstract* ev, int axis0, int axis1)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::swapaxes: casting to DataConstant failed (propably a programming error).");
   }
-//   DataArrayView& thisView=getPointDataView();
-//   DataArrayView& evView=ev->getPointDataView();
-  DataMaths::swapaxes(m_data,getShape(),0,temp_ev->getVector(), temp_ev->getShape(),0,axis0,axis1);
+  DataMaths::swapaxes(m_data,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,axis0,axis1);
 }
 
 void
@@ -263,9 +205,7 @@ DataConstant::transpose(DataAbstract* ev, int axis_offset)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::transpose: casting to DataConstant failed (propably a programming error).");
   }
-/*  DataArrayView& thisView=getPointDataView();
-  DataArrayView& evView=ev->getPointDataView();*/
-  DataMaths::transpose(m_data, getShape(),0, temp_ev->getVector(),temp_ev->getShape(),0,axis_offset);
+  DataMaths::transpose(m_data, getShape(),0, temp_ev->getVectorRW(),temp_ev->getShape(),0,axis_offset);
 }
 
 void
@@ -275,9 +215,7 @@ DataConstant::eigenvalues(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::eigenvalues: casting to DataConstant failed (propably a programming error).");
   }
-/*  DataArrayView& thisView=getPointDataView();
-  DataArrayView& evView=ev->getPointDataView();*/
-  DataMaths::eigenvalues(m_data,getShape(),0,temp_ev->getVector(), temp_ev->getShape(),0);
+  DataMaths::eigenvalues(m_data,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
 }
 void
 DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol)
@@ -290,16 +228,13 @@ DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
   if (temp_V==0) {
     throw DataException("Error - DataConstant::eigenvalues_and_eigenvectors: casting to DataConstant failed (propably a programming error).");
   }
-//   DataArrayView thisView=getPointDataView();
-//   DataArrayView evView=ev->getPointDataView();
-//   DataArrayView VView=V->getPointDataView();
-
-  DataMaths::eigenvalues_and_eigenvectors(m_data, getShape(),0,temp_ev->getVector(), temp_ev->getShape(),0,temp_V->getVector(), temp_V->getShape(),0,tol);
+  DataMaths::eigenvalues_and_eigenvectors(m_data, getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,temp_V->getVectorRW(), temp_V->getShape(),0,tol);
 }
 
 void
 DataConstant::setToZero()
 {
+    CHECK_FOR_EX_WRITE
     DataTypes::ValueType::size_type n=m_data.size();
     for (int i=0; i<n ;++i) m_data[i]=0.;
 }
@@ -379,6 +314,21 @@ DataConstant::dump(const std::string fileName) const
    #else
    throw DataException("Error - DataConstant:: dump is not configured with netCDF. Please contact your installation manager.");
    #endif
+}
+
+// These used to be marked as inline in DataConstant.
+// But they are marked virtual in DataReady
+DataTypes::ValueType&
+DataConstant::getVectorRW()
+{
+  CHECK_FOR_EX_WRITE
+  return m_data;
+}
+
+const DataTypes::ValueType&
+DataConstant::getVectorRO() const
+{
+  return m_data;
 }
 
 }  // end of namespace

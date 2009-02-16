@@ -30,7 +30,7 @@
 void Finley_ElementFile_setTags(Finley_ElementFile* self,const int newTag, escriptDataC* mask) {
     register dim_t n,q;
     dim_t numElements, numQuad;
-    register double *mask_array;
+    register __const double *mask_array;
     register bool_t check;
     Finley_resetError();
     if (self==NULL) return;
@@ -51,19 +51,29 @@ void Finley_ElementFile_setTags(Finley_ElementFile* self,const int newTag, escri
 
     if (Finley_noError()) {
          if (isExpanded(mask)) {
-             #pragma omp parallel for private(n,check,mask_array) schedule(static)
+	   void* buffer=allocSampleBuffer(mask);	   
+	   #pragma omp parallel private(n,check,mask_array)
+	   {
+             #pragma omp for schedule(static)
              for (n=0;n<numElements;n++) {
-                 mask_array=getSampleData(mask,n);
+                 mask_array=getSampleDataRO(mask,n,buffer);
                  if (mask_array[0]>0) self->Tag[n]=newTag;
              }
+	   }
+	   freeSampleBuffer(buffer);
          } else {
-             #pragma omp parallel for private(q,n,check,mask_array) schedule(static)
+	   void* buffer=allocSampleBuffer(mask);
+	   #pragma omp parallel private(q,n,check,mask_array)
+	   {
+             #pragma omp for schedule(static)
              for (n=0;n<numElements;n++) {
-                 mask_array=getSampleData(mask,n);
+                 mask_array=getSampleDataRO(mask,n,buffer);
                  check=FALSE;
                  for (q=0;q<numQuad;q++) check=check || mask_array[q];
                  if (check) self->Tag[n]=newTag;
              }
+	   }
+	   freeSampleBuffer(buffer);
          }
          Finley_ElementFile_setTagsInUse(self);
     }
