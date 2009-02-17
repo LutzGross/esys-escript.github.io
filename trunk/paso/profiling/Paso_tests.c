@@ -45,6 +45,11 @@ void Paso_test_run(Paso_SystemMatrix* A,double* b,dim_t level) {
       fprintf(stdout,"Test solver: PCG with JACOBI\n");
       Paso_test_matrix(A,b,&options);
       
+      fprintf(stdout,"Test solver: BICGSTAB with JACOBI\n");
+      A->solver=NULL;
+      options.method=PASO_BICGSTAB;
+      Paso_test_matrix(A,b,&options);
+      
       fprintf(stdout,"Test solver: GMRES with JACOBI\n");
       A->solver=NULL;
       options.method=PASO_GMRES;
@@ -141,3 +146,4 @@ void Paso_test_data(char *fileName_p, double* b, Paso_Options* options ) {
    Paso_SystemMatrix_free(A);
    MEMFREE(out);
 }
+
