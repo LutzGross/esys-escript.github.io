@@ -75,6 +75,7 @@ opts.AddOptions(
   BoolOption('useopenmp', 'Compile parallel version using OpenMP', 'yes'),
   BoolOption('usepedantic', 'Compile with -pedantic if using gcc', 'no'),
   BoolOption('usewarnings','Compile with warnings as errors if using gcc','yes'),
+  ('forcelazy','for testing use only - set the default value for autolazy','leave_alone'),
 # Python
   ('python_path', 'Path to Python includes', '/usr/include/'+python_version),
   ('python_lib_path', 'Path to Python libs', usr_lib),
@@ -219,6 +220,14 @@ if env["cc_debug"]	== "-DEFAULT_3": env['cc_debug'] = cc_debug
 if env["omp_optim"]	== "-DEFAULT_4": env['omp_optim'] = omp_optim
 if env["omp_debug"]	== "-DEFAULT_5": env['omp_debug'] = omp_debug
 if env["omp_libs"]	== "-DEFAULT_6": env['omp_libs'] = omp_libs
+
+#set up the autolazy values
+if env['forcelazy']    != "leave_alone":
+  if env['forcelazy'] == 'on':
+	env.Append(CPPDEFINES='FAUTOLAZYON')
+  else:
+     if env['forcelazy'] == 'off':
+	env.Append(CPPDEFINES='FAUTOLAZYOFF')
 
 # OpenMP is disabled if useopenmp=no or both variables omp_optim and omp_debug are empty
 if not env["useopenmp"]:

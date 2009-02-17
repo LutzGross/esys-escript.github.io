@@ -26,6 +26,16 @@ EscriptParams::EscriptParams()
 {
    too_many_lines=80;
    autolazy=0;
+			// These #defs are for performance testing only
+			// in general, I don't want people tweaking the
+			// default value using compiler options
+			// I've provided a python interface for that
+#ifdef FAUTOLAZYON
+   autolazy=1;
+#endif
+#ifdef FAUTOLAZYOFF
+   autolazy=0;
+#endif
 }
 
 int 
