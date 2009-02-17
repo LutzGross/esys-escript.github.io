@@ -27,6 +27,8 @@
 #include "mmio.h"
 #include "SystemMatrix.h"
 
+#include "limits.h"
+
 #define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) perror(reason); return NULL; }
 
 static void swap( index_t*, index_t*, double*, int, int );
@@ -71,17 +73,18 @@ void swap( index_t *r, index_t *c, double *v, int left, int right )
 void q_sort( index_t *row, index_t *col, double *val, int begin, int end )
 {
 	int l, r;
-	index_t pivot, lval;
+	unsigned long pivot, lval;
+
 
 	if( end > begin )
 	{
-		pivot = N * row[begin] + col[begin];
+		pivot = ((unsigned long)N) * row[begin]+col[begin] ;
 		l = begin + 1;
 		r = end;
 
 		while( l < r )
 		{
-			lval = N * row[l] + col[l];
+			lval = ((unsigned long)N) * row[l]+col[l];
 			if( lval < pivot )
 				l++;
 			else
@@ -148,7 +151,17 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	/* get matrix size */
 	if( mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0 )
 	{
-		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Could not read sparse matrix size");
+		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Could not read sparse matrix size.");
+                Paso_MPIInfo_free(mpi_info);
+		fclose( fileHandle_p );
+		return NULL;
+	}
+	
+	/* Check whether we can handle current matrix size.
+	  In the q_sort algorithm we use N*M+N expression which should be in the limits of "unsigned long".*/
+	if( M>=(ULONG_MAX-N)/N )  
+	{
+		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Matrix size is too big.");
                 Paso_MPIInfo_free(mpi_info);
 		fclose( fileHandle_p );
 		return NULL;
@@ -188,16 +201,16 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 		col_ind[i]--;
 	}
 	fclose( fileHandle_p );
-
 	/* sort the entries */
 	q_sort( row_ind, col_ind, val, 0, nz );
-
+	
 	/* setup row_ptr */
 	curr_row = 0;
 	for( i=0; (i<nz && curr_row<M); curr_row++ )
 	{
-		while( row_ind[i] != curr_row )
+		while( row_ind[i] != curr_row ){ 
 			i++;
+		}
 		row_ptr[curr_row] = i;
 	}
 	row_ptr[M] = nz;
@@ -290,6 +303,16 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 		Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_loadMM_toCSC: found Matrix Market type is not supported.");
 		fclose( fileHandle_p );
                 Paso_MPIInfo_free(mpi_info);
+		return NULL;
+	}
+
+	/* Check whether we can handle current matrix size.
+	  In the q_sort algorithm we use N*M+N expression which should be in the limits of "unsigned long".*/
+	if( M>=(ULONG_MAX-N)/N )  
+	{
+		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSC: Matrix size is too big.");
+                Paso_MPIInfo_free(mpi_info);
+		fclose( fileHandle_p );
 		return NULL;
 	}
 
