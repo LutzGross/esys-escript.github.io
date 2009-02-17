@@ -15,7 +15,7 @@
 EnsureSConsVersion(0,96,91)
 EnsurePythonVersion(2,3)
 
-import sys, os, re, socket
+import sys, os, re, socket, platform
 
 # Add our extensions
 if os.path.isdir('scons'): sys.path.append('scons')
@@ -737,7 +737,10 @@ env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_do
 if not IS_WINDOWS_PLATFORM:
    try:
    	utest=open("utest.sh","w")
-	utest.write(GroupTest.makeHeader())
+	build_platform=os.name		#Sometimes Mac python says it is posix
+	if (build_platform=='posix') and platform.system()=="Darwin":
+		build_platform='darwin'
+	utest.write(GroupTest.makeHeader(build_platform))
 	for tests in TestGroups:
 	    utest.write(tests.makeString())
 	utest.close()
