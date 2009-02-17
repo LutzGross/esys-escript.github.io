@@ -55,7 +55,7 @@ class DarcyFlow(object):
         @type domain: L{Domain}
         """
         self.domain=domain
-        self.__l=util.integrate(Scalar(1.,Function(self.domain)))*(1./self.domain.getDim())
+        self.__l=util.integrate(Scalar(1.,Function(self.domain)))**(1./self.domain.getDim())
         self.__pde_v=LinearPDESystem(domain)
         if useReduced: self.__pde_v.setReducedOrderOn()
         self.__pde_v.setSymmetryOn()
@@ -230,7 +230,7 @@ class DarcyFlow(object):
          which is solved using the PCG method (precondition is M{Q^*Q}). In each iteration step
          PDEs with operator M{I+D^*D} and with M{Q^*Q} needs to be solved using a sub iteration scheme.
          """
-         self.verbose=verbose
+         self.verbose=verbose or True
          self.show_details= show_details and self.verbose
          rtol=self.getTolerance()
          atol=self.getAbsoluteTolerance()
