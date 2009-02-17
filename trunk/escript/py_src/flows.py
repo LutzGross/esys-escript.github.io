@@ -55,7 +55,7 @@ class DarcyFlow(object):
         @type domain: L{Domain}
         """
         self.domain=domain
-        self.__l=util.integrate(Scalar(1.,Function(self.domain)))**(1./self.domain.getDim())
+        self.__l=util.integrate(Scalar(1.,Function(self.domain)))**(2./self.domain.getDim())
         self.__pde_v=LinearPDESystem(domain)
         if useReduced: self.__pde_v.setReducedOrderOn()
         self.__pde_v.setSymmetryOn()
