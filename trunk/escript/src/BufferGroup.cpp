@@ -26,3 +26,4 @@ BufferGroup::BufferGroup(size_t buffersize,size_t numbuffs)
 BufferGroup::~BufferGroup()
 {	// DataVector can deallocate itself
 }
+

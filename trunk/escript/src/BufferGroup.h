@@ -52,3 +52,4 @@ inline size_t BufferGroup::getOffset(size_t buffnum)
 } // end namespace
 
 #endif	// BUFFERGROUP_H
+
