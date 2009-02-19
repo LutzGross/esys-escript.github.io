@@ -73,25 +73,41 @@ void swap( index_t *r, index_t *c, double *v, int left, int right )
 void q_sort( index_t *row, index_t *col, double *val, int begin, int end )
 {
 	int l, r;
-	unsigned long pivot, lval;
-
-
+	int flag;
+	   
 	if( end > begin )
 	{
-		pivot = ((unsigned long)N) * row[begin]+col[begin] ;
 		l = begin + 1;
 		r = end;
 
 		while( l < r )
 		{
-			lval = ((unsigned long)N) * row[l]+col[l];
-			if( lval < pivot )
+			if (row[l]<row[begin])
+			 {
+				if (ABS(row[l]-row[begin])==1 && ABS(col[l]-col[begin])==N)
+				   flag=0;
+				else
+				   flag=1;	
+			 }
+			else if (row[l]==row[begin])
+			         if (col[l]<col[begin])
+				    flag=1;
+				 else
+				    flag=0;
+			else {
+				if (ABS(row[l]-row[begin])==1 && ABS(col[l]-col[begin])==N)
+				   flag=1;
+				else
+				   flag=0;
+			}
+			
+			if(flag==1)	
 				l++;
-			else
-			{
+			else {
 				r--;
 				swap( row, col, val, l, r );
 			}
+			
 		}
 		l--;
 		swap( row, col, val, begin, l );
@@ -157,16 +173,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 		return NULL;
 	}
 	
-	/* Check whether we can handle current matrix size.
-	  In the q_sort algorithm we use N*M+N expression which should be in the limits of "unsigned long".*/
-	if( M>=(ULONG_MAX-N)/N )  
-	{
-		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Matrix size is too big.");
-                Paso_MPIInfo_free(mpi_info);
-		fclose( fileHandle_p );
-		return NULL;
-	}
-
 	/* prepare storage */
 	col_ind = MEMALLOC( nz, index_t );
 	row_ind = MEMALLOC( nz, index_t );
@@ -303,16 +309,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 		Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_loadMM_toCSC: found Matrix Market type is not supported.");
 		fclose( fileHandle_p );
                 Paso_MPIInfo_free(mpi_info);
-		return NULL;
-	}
-
-	/* Check whether we can handle current matrix size.
-	  In the q_sort algorithm we use N*M+N expression which should be in the limits of "unsigned long".*/
-	if( M>=(ULONG_MAX-N)/N )  
-	{
-		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSC: Matrix size is too big.");
-                Paso_MPIInfo_free(mpi_info);
-		fclose( fileHandle_p );
 		return NULL;
 	}
 
