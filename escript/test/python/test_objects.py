@@ -76,7 +76,7 @@ class Test_Domain(unittest.TestCase):
         r.setTaggedValue(1,1.)
         s.setTaggedValue(tag2,2.)
         r.setTaggedValue(2,2.)
-        s.setTaggedValue(tag3,3.)
+        self.failUnlessRaises(RuntimeError,s.setTaggedValue,tag3,3.)	#tag3 does not exist
         self.failUnless(Lsup(s-r)<=0.)
         # get tag:
         names=getTagNames(self.domain)

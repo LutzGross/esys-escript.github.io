@@ -2275,6 +2275,10 @@ Data::typeMatchRight(const Data& right)
   }
 }
 
+// The normal TaggedValue adds the tag if it is not already present
+// This form does not. It throws instead.
+// This is because the names are maintained by the domain and cannot be added
+// without knowing the tag number to map it to.
 void
 Data::setTaggedValueByName(std::string name,
                            const boost::python::object& value)
@@ -2284,6 +2288,10 @@ Data::setTaggedValueByName(std::string name,
 	exclusiveWrite();
         int tagKey=getFunctionSpace().getDomain()->getTag(name);
         setTaggedValue(tagKey,value);
+     }
+     else
+     {					// The 
+	throw DataException("Error - unknown tag in setTaggedValueByName.");
      }
 }
 
