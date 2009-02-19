@@ -171,7 +171,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
               r=TMPMEMALLOC(numEqua,double);
               Paso_checkPtr(r);
               if (Paso_noError()) {
-                 totIter = 0;
+                 totIter = 1;
                  finalizeIteration = FALSE;
                  last_norm2_of_residual=norm2_of_b;
                  last_norm_max_of_residual=norm_max_of_b;
@@ -210,7 +210,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                     norm2_of_residual =sqrt(norm2_of_residual);
              
                   if (options->verbose) printf("Paso_Solver: Step %5d: l2/lmax-norm of residual is  %e/%e",totIter,norm2_of_residual,norm_max_of_residual);
-                  if (totIter>0 && norm2_of_residual>=last_norm2_of_residual &&  norm_max_of_residual>=last_norm_max_of_residual) {
+                  if (totIter>1 && norm2_of_residual>=last_norm2_of_residual &&  norm_max_of_residual>=last_norm_max_of_residual) {
                      if (options->verbose) printf(" divergence!\n");
                      Paso_setError(WARNING, "Paso_Solver: No improvement during iteration. Iterative solver gives up.");
                   } else {
@@ -269,7 +269,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
               time_iter=Paso_timer()-time_iter;
               if (options->verbose)  {
                  printf("\ntiming: Paso_Solver:  %.4e sec\n",time_iter);
-                 if (totIter>0) {
+                 if (totIter>1) {
                     if(totIter==options->iter_max) {
                         printf("timing: Total MAX steps, time per iteration step: %.4e sec\n",time_iter/totIter);
                     } else {
@@ -277,7 +277,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                     }
                  }
                  else {
-                    printf("timing: Total 0 step, time per iteration step: %.4e sec\n",time_iter);
+                    printf("timing: Total 1 step, time per iteration step: %.4e sec\n",time_iter);
                     }   
               }
            }
