@@ -18,5 +18,10 @@ Import('*')
 
 tmp = env.Command(env.Dir(env['prefix']+'/release/doc/doxygen'), [], [Mkdir(env['prefix']+'/release/doc/doxygen')])
 
-env.Alias('api_doxygen',[env.Dir(env['prefix']+'/release/doc/doxygen')],["doxygen doc/doxygen/doxygen_esys"])
+
+#Now some magic from the doxygen FAQ to get the global revision number into the doxyfile
+if os.name=='posix':
+	env.Alias('api_doxygen',[env.Dir(env['prefix']+'/release/doc/doxygen')],['(cat doc/doxygen/doxygen_esys; echo "PROJECT_NUMBER=\"Revision_`svnversion`\"" ) | doxygen - '])
+else:
+	env.Alias('api_doxygen',[env.Dir(env['prefix']+'/release/doc/doxygen')],["doxygen doc/doxygen/doxygen_esys"])
 env.AlwaysBuild('api_doxygen')
