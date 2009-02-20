@@ -21,3 +21,14 @@ __url__="http://www.uq.edu.au/esscc/escript-finley"
 
 from escript import *
 from util import *
+
+import os
+import atexit
+
+def escriptOnExitProfiling():
+    if os.name=='posix':
+	pid=os.getpid()
+	os.system("cat /proc/%d/status > memescript.%d"%(pid,pid))
+	
+if 'escriptExitProfiling' in os.environ:
+	atexit.register(escriptOnExitProfiling)
