@@ -333,8 +333,8 @@ conf = Configure(clone_env(env))
 
 # Test that the compiler is working
 if not conf.CheckFunc('printf'):
-  print "Cannot run C compiler '%s' (or libc is missing)" % (env['CC'])
-  sys.exit(1)
+   print "Cannot run C compiler '%s' (or libc is missing)" % (env['CC'])
+   sys.exit(1)
 
 if conf.CheckFunc('gethostname'):
   conf.env.Append(CPPDEFINES = ['HAVE_GETHOSTNAME'])
@@ -355,14 +355,14 @@ conf.env.PrependENVPath('LD_LIBRARY_PATH', env['python_lib_path'])	# The wrapper
 if not conf.CheckCHeader('Python.h'):
   print "Cannot find python include files (tried 'Python.h' in directory %s)" % (env['python_path'])
   sys.exit(1)
-if not conf.CheckFunc('Py_Main'):
+if not conf.CheckFunc('Py_Exit'):
   print "Cannot find python library method Py_Main (tried lib %s in directory %s)" % (env['python_libs'], env['python_lib_path'])
   sys.exit(1)
 
 ############ boost (required) ##################################
 
 if not sysheaderopt =="":
-  conf.env.Append(CCFLAGS=sysheaderopt+env['boost_path']+'boost')
+  conf.env.Append(CCFLAGS=sysheaderopt+os.path.join(env['boost_path'],'boost'))
 else:
   conf.env.AppendUnique(CPPPATH		= [env['boost_path']])
 
@@ -374,6 +374,7 @@ conf.env.PrependENVPath('LD_LIBRARY_PATH', env['boost_lib_path'])	# The wrapper 
 if not conf.CheckCXXHeader('boost/python.hpp'):
   print "Cannot find boost include files (tried boost/python.hpp in directory %s)" % (env['boost_path'])
   sys.exit(1)
+
 if not conf.CheckFunc('PyObject_SetAttr'):
   print "Cannot find boost library method PyObject_SetAttr (tried method PyObject_SetAttr in library %s in directory %s)" % (env['boost_libs'], env['boost_lib_path'])
   sys.exit(1)
@@ -476,9 +477,9 @@ if env['useumfpack']:
   conf.env.PrependENVPath('LD_LIBRARY_PATH', env['amd_lib_path'])	# The wrapper script needs to find these libs
   conf.env.PrependENVPath('LD_LIBRARY_PATH', env['blas_lib_path'])	# The wrapper script needs to find these libs
 
-if env['useumfpack'] and not conf.CheckCHeader('umfpack.h'): env['useumfpack'] = 0
 if env['useumfpack'] and not conf.CheckFunc('umfpack_di_symbolic'): env['useumfpack'] = 0
-if env['useumfpack'] and not conf.CheckFunc('daxpy'): env['useumfpack'] = 0 # this does not work on shake73?
+if env['useumfpack'] and not conf.CheckCHeader('umfpack.h'): env['useumfpack'] = 0
+# if env['useumfpack'] and not conf.CheckFunc('daxpy'): env['useumfpack'] = 0 # this does not work on shake73?
 
 # Add UMFPACK to environment env if it was found
 if env['useumfpack']:

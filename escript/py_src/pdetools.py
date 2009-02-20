@@ -723,12 +723,13 @@ def __givapp(c,s,vin):
     """
     vrot=vin
     if isinstance(c,float):
-        vrot=[c*vrot[0]-s*vrot[1],s*vrot[0]+c*vrot[1]]
+        vrot=numarray.array([c*vrot[0]-s*vrot[1],s*vrot[0]+c*vrot[1]])
     else:
         for i in range(len(c)):
             w1=c[i]*vrot[i]-s[i]*vrot[i+1]
 	    w2=s[i]*vrot[i]+c[i]*vrot[i+1]
-            vrot[i:i+2]=w1,w2
+            vrot[i]=w1
+            vrot[i+1]=w2
     return vrot
 
 def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
@@ -788,7 +789,9 @@ def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
             s[iter]=-h[iter+1,iter]/mu
             h[iter,iter]=c[iter]*h[iter,iter]-s[iter]*h[iter+1,iter]
             h[iter+1,iter]=0.0
-            g[iter:iter+2]=__givapp(c[iter],s[iter],g[iter:iter+2])
+            gg=__givapp(c[iter],s[iter],numarray.array([g[iter],g[iter+1]]))
+            g[iter]=gg[0] 
+            g[iter+1]=gg[1]
 
         # Update the residual norm
         rho=abs(g[iter+1])
@@ -949,7 +952,9 @@ def _GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verb
 		s[iter]=-h[iter+1,iter]/mu
 		h[iter,iter]=c[iter]*h[iter,iter]-s[iter]*h[iter+1,iter]
 		h[iter+1,iter]=0.0
-		g[iter:iter+2]=__givapp(c[iter],s[iter],g[iter:iter+2])
+                gg=__givapp(c[iter],s[iter],numarray.array([g[iter],g[iter+1]]))
+                g[iter]=gg[0] 
+                g[iter+1]=gg[1]
 # Update the residual norm
 
         rho=abs(g[iter+1])
