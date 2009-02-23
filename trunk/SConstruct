@@ -730,6 +730,7 @@ env.Alias('build_cppunittest', ['target_install_cppunittest_headers', 'target_cp
 env.Alias('install_cppunittest', ['build_cppunittest', 'target_install_cppunittest_a'])
 env.Alias('run_tests', ['install_all', 'target_install_cppunittest_a'])
 env.Alias('all_tests', ['install_all', 'target_install_cppunittest_a', 'run_tests', 'py_tests'])
+env.Alias('build_full',['install_all','build_tests','build_py_tests'])
 
 ############ Targets to build the documentation ################
 
