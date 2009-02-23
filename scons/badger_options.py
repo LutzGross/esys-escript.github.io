@@ -19,12 +19,13 @@
 # cc_flags		= '-ansi'
 # cc_optim		= '-O2'
 # cc_debug		= '-g'
-# omp_optim		= '-openmp'
-# omp_debug		= '-openmp'
-# omp_libs		= []
+omp_optim		= '-fopenmp'
+omp_debug		= '-fopenmp'
+omp_libs		= ['gomp']
 
 # Use the default C/C++ flags but add something only for this host:
 #cc_extra		= '-Wall -pedantic -isystem /usr/include/boost/ -isystem /usr/include/python2.5/ -Wno-sign-compare -Wno-long-long'
+#cc_extra		= '-fopenmp'
 # ld_extra		= ''
 
 # Be picky about errors
@@ -73,7 +74,7 @@ netCDF_lib_path		= '/usr/lib'
 # blas_libs		= ['blas']
 
 # OpenMP
-# useopenmp		= 'yes'
+#useopenmp		= 'yes'
 
 # MPICH2 (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
 # usempi		= 'no'
