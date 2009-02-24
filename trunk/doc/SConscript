@@ -31,4 +31,5 @@ env.Alias('examples_tarfile', '#release/doc/escript_examples.tar.gz')
 local_env.SConscript(dirs = ['#/doc/user'], build_dir='#/build/$PLATFORM/doc/user', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/epydoc'], build_dir='#/build/$PLATFORM/doc/epydoc', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/doxygen'], build_dir='#/build/$PLATFORM/doc/doxygen', duplicate=1)
+local_env.SConscript(dirs = ['#/doc/install'], build_dir='#/build/$PLATFORM/doc/install', duplicate=1)
 
