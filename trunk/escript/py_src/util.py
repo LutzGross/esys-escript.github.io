@@ -5849,12 +5849,37 @@ def diameter(domain):
     @type domain: L{escript.Domain}
     @rtype: C{float}
     """
+    out=0
+    for v in boundingBox(domain): out+=(v[1]-v[0])**2
+    return sqrt(out)
+
+def boundingBox(domain):
+    """
+    Returns the bounding box of a domain
+
+    @param domain: a domain
+    @type domain: L{escript.Domain}
+    @return: bounding box of the domain
+    @rtype: C{list} of pairs of C{float}
+    """
     x=domain.getX()
-    out=0.
+    out=[]
     for i in xrange(domain.getDim()):
        x_i=x[i]
-       out=max(out,sup(x_i)-inf(x_i))
+       out.append((inf(x_i),sup(x_i)))
     return out
+
+def longestEdge(domain):
+    """
+    Returns the length of the longest edge of the domain
+
+    @param domain: a domain
+    @type domain: L{escript.Domain}
+    @return: longest edge of the domain parallel to the Cartisean axis 
+    @rtype: C{float}
+    """
+    return max([v[1]-v[0] for v in boundingBox(domain) ])
+
 #=============================
 #
 
