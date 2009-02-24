@@ -1,0 +1,30 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2008 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Please do not use .ps only packages.
+% As a minimum this document should build under pdflatex
+
+\usepackage{xspace}
+
+
+\newcommand{\escript}{\module{esys.escript}\xspace}
+\newcommand{\finley}{\module{esys.finley}\xspace}
+% \newcommand{\esys}{\module{esys}\xspace}
+\newcommand{\esys}{\module{esys}\xspace}
+
+
+%Ensures that latex doesn't have an error if we don't specify the version
+\providecommand{\RepVersion}{Unknown\xspace}
+% to set this value use:
+% (pdf)latex '\newcommand{\RepVersion}{version\xspace}\input{install.tex}'
+% as your command-line
+
