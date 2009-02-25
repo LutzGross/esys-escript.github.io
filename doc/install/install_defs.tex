@@ -13,14 +13,8 @@
 % Please do not use .ps only packages.
 % As a minimum this document should build under pdflatex
 
+\usepackage{color}
 \usepackage{xspace}
-
-
-\newcommand{\escript}{\module{esys.escript}\xspace}
-\newcommand{\finley}{\module{esys.finley}\xspace}
-% \newcommand{\esys}{\module{esys}\xspace}
-\newcommand{\esys}{\module{esys}\xspace}
-
 
 %Ensures that latex doesn't have an error if we don't specify the version
 \providecommand{\RepVersion}{Unknown\xspace}
@@ -28,3 +22,55 @@
 % (pdf)latex '\newcommand{\RepVersion}{version\xspace}\input{install.tex}'
 % as your command-line
 
+
+
+% block to include
+
+\usepackage{subfigure}
+\usepackage{epsfig}
+\usepackage{makeidx}  % handle the index properly
+\usepackage{xspace}   % handle spaces after commands more nicely
+% use the ams math stuff, as it makes the maths easier to code, and
+% nicer output than the standard LaTeX stuff
+\usepackage{amsmath,amsfonts,amssymb} % this is handy for mathematicians and physicists
+			              % see http://www.ams.org/tex/amslatex.html
+\usepackage{alltt}   % handy verbatim stuff
+
+%End block to include
+
+
+\newcommand{\escript}{\module{esys.escript}\xspace}
+\newcommand{\finley}{\module{esys.finley}\xspace}
+\newcommand{\esys}{\module{esys}\xspace}
+
+\newcommand{\esfinley}{Escript/Finley\xspace}
+\newcommand{\linux}{Linux\xspace}
+\newcommand{\macosx}{MacOSX\xspace}
+\newcommand{\winxp}{Windows~XP\xspace}
+\newcommand{\openmp}{OpenMP\xspace}
+
+\newcommand{\Sec}[1] {Section~\ref{#1}}
+\newcommand*{\filename}[1]{\texttt{#1}\xspace}
+
+% defines the colour for the background of code examples
+\definecolor{LightGrey}{gray}{0.9}
+% add the listings package to pretty print the code output
+\usepackage{listings}
+
+\lstdefinestyle{myShell}{%
+%\lstset{%
+language=ksh,
+showstringspaces=false,
+basicstyle=\small\ttfamily,
+commentstyle=\color{black}\ttfamily,
+keywordstyle=\color{black}\ttfamily,
+%identifierstyle=\color[named]{Blue}\ttfamily,
+%functionstyle=\color[named]{Blue}\ttfamily,
+%typestyle=\color[named]{ForestGreen}\ttfamily,
+stringstyle=\color{black}\ttfamily,%
+frame=none,%
+backgroundcolor=\color{LightGrey}%
+}
+
+% this implements nicely formatted shell code
+\lstnewenvironment{shellCode}[1][]{\lstset{style=myShell}\lstset{#1}}{}
