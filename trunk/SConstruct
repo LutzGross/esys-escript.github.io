@@ -72,7 +72,7 @@ opts.AddOptions(
   ('ld_extra', 'Extra linker flags', ''),
   ('sys_libs', 'System libraries to link with', []),
   ('ar_flags', 'Static library archiver flags to use', ''),
-  BoolOption('useopenmp', 'Compile parallel version using OpenMP', 'yes'),
+  BoolOption('useopenmp', 'Compile parallel version using OpenMP', 'no'),
   BoolOption('usepedantic', 'Compile with -pedantic if using gcc', 'no'),
   BoolOption('usewarnings','Compile with warnings as errors if using gcc','yes'),
   ('forcelazy','for testing use only - set the default value for autolazy','leave_alone'),
