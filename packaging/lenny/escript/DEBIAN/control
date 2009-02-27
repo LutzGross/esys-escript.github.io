@@ -1,0 +1,10 @@
+Package: escript
+Version: ~2.0-1
+Description: Escript/Finley finite elements python system.
+  TODO: Lutz, more detailed description please.
+Maintainer: Escript team <esys@esscc.uq.edu.au>
+Priority: extra
+Section: main
+Depends: python-dev, libboost1.35-dev, python-numarray, g++
+Architecture: i386
+ 
