@@ -46,7 +46,7 @@ cp $SRCDIR/doc/manpage/$WRAPPERNAME.1 $OUTPUTROOT/usr/share/man/man1
 mkdir -p $LIBOUT/lib
 mkdir -p $BINOUT
 #Should be using install here?
-cp $SRCDIR/lib/* $LIBOUT/lib
+cp $SRCDIR/lib/libescript.so $SRCDIR/lib/libfinley.so $LIBOUT/lib
 cp -r $SRCDIR/esys $LIBOUT
 
 # content from finley_wrapper_writer.sh
