@@ -1,0 +1,103 @@
+#!/bin/bash
+
+#This script produced with the aid of "The Debian System concepts and techniques" By Martin F. Krafft
+# Its purpose is to produce a .deb for escript
+
+SRCDIR=`pwd`
+WRAPPERNAME=finleypython
+OUTPUTROOT=$SRCDIR/build/package/lenny/escript
+LIBOUT=$OUTPUTROOT/usr/lib/escript
+BINOUT=$OUTPUTROOT/usr/bin
+PKGFILES=$SRCDIR/packaging/lenny
+
+# check to be sure we are running from the project root and that we look like the root user
+
+if [ `whoami` != 'root' ]
+then
+	echo "Please execute this script under fakeroot."
+	echo "fakeroot $0"
+	exit 1
+fi
+
+if [ ! -d escript/src ]
+then
+  echo "Please execute this script from the root of the project"
+  exit 3
+fi
+
+if [ -d $OUTPUTROOT ]
+then
+  rm -rf $OUTPUTROOT || (echo "Error could not clean build area";exit 2)
+fi
+
+
+
+mkdir -p $OUTPUTROOT
+
+#First copy debian skeleton 
+cp -r $PKGFILES/escript/* $OUTPUTROOT
+
+
+mkdir -p $OUTPUTROOT/usr/share/man/man1
+
+#copy the man page
+cp $SRCDIR/doc/manpage/$WRAPPERNAME.1 $OUTPUTROOT/usr/share/man/man1
+
+mkdir -p $LIBOUT/lib
+mkdir -p $BINOUT
+#Should be using install here?
+cp $SRCDIR/lib/* $LIBOUT/lib
+cp -r $SRCDIR/esys $LIBOUT
+
+# content from finley_wrapper_writer.sh
+# Not calling the original script because it polutes the environment eg explicit python path
+
+# We should be using the standard python
+export PYTHON_CMD=python
+export ESCRIPT_ROOT=/usr/lib/escript
+
+sed	-e "s%@@ESCRIPT_ROOT@@%$ESCRIPT_ROOT%"		\
+  -e "s%@@LD_LIBRARY_PATH@@%\$ESCRIPT_ROOT/lib:\$LD_LIBRARY_PATH%"		\
+  -e "s%@@PYTHONPATH@@%\$ESCRIPT_ROOT:\$PYTHONPATH%"			\
+  -e "s%@@PYTHON_CMD@@%$PYTHON_CMD%"			\
+  -e "s%@@PATH@@%\$PATH%"				\
+< $SRCDIR/scripts/finley_wrapper_template > $BINOUT/$WRAPPERNAME
+
+#end content from finley_wrapper_writer.sh
+
+#Nuke any svn stuff that made it in
+find $OUTPUTROOT -name ".svn" | xargs rm -rf 
+
+
+#Say what version of debian packaging we are using:
+echo 2.0 > $OUTPUTROOT/../debian-binary
+
+#Check some permissions
+chmod og=rx $BINOUT/$WRAPPERNAME
+if [ -f $LIBOUT/pythonMPI ]
+then
+	chmod og=rx $LIBOUT/pythonMPI 
+fi
+
+cd $OUTPUTROOT 
+
+cd usr/share/doc/escript/
+gzip changelog.Debian
+
+cd $OUTPUTROOT
+#Fix directory perms
+chmod -R og-w .
+
+cd DEBIAN
+tar czf control.tar.gz .
+mv control.tar.gz ../../
+cd ..
+tar czf data.tar.gz usr
+mv data.tar.gz ..
+cd ..
+
+ar rcu escript.deb debian-binary control.tar.gz data.tar.gz
+
+
+
+
