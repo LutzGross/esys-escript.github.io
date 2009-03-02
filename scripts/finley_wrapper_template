@@ -67,9 +67,10 @@ shift `expr $OPTIND - 1`
 
 # Must have at least one command-line arg: the python script
 if [ $# -eq 0 ]; then
-  echo "Missing python script"
-  echo "$HELP_TEXT"
-  exit 1
+  echo "No python script specified. Starting python interpreter."
+#   echo "Missing python script"
+#   echo "$HELP_TEXT"
+#   exit 1
 fi
 
 # Using OpenMP?

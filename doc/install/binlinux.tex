@@ -13,3 +13,35 @@
 
 \section{Linux binary installation}
 \label{sec:binlinux}
+
+\esfinley can be installed as a standalone bundle, containing all the required tools.
+Alternatively, if we have a package for your distribution you can use the standard tools to install.
+
+Please note, the current packages do not support \openmp\footnote{This is due to a bug related to gcc 4.3.2.} or \mpi\footnote{Producing packages for MPI requires knowing something about your computer's configuration.}.
+If you need these features you may need to compile \esfinley from source (see Chapter~\ref{chap:src}.)
+
+
+\subsection{Debian 5.0(``Lenny'')}
+
+Download the escript.deb file.
+(At time of writing we only produce debs for the i386 architecture.)
+Execute the following commands as root (you need to be in the directory containing the file).
+\begin{shellCode}
+ dpkg --unpack escript.deb
+ aptitude install escript
+\end{shellCode}
+
+If you use sudo this would be:
+\begin{shellCode}
+sudo dpkg --unpack escript.deb
+sudo aptitude install escript
+\end{shellCode}
+
+\subsection{Ubuntu 8.10(``Intrepid Ibex'')}
+
+Since the installation process for \esfinley is pretty simple you should be able to use the same Lenny package for Ubuntu as well.
+You will need to use the ``sudo'' instructions.
+Please notify the development team if this is not the case.
+
+
+

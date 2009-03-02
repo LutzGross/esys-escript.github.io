@@ -702,7 +702,7 @@ build_all_list += ['build_paso']
 build_all_list += ['build_escript']
 build_all_list += ['build_finley']
 if env['usempi']:		build_all_list += ['target_pythonMPI_exe']
-if not IS_WINDOWS_PLATFORM:	build_all_list += ['target_finley_wrapper']
+if not IS_WINDOWS_PLATFORM:	build_all_list += ['target_escript_wrapper']
 if env['usesilo']:	build_all_list += ['target_escript2silo']
 env.Alias('build_all', build_all_list)
 
@@ -716,7 +716,7 @@ install_all_list += ['target_install_pyvisi_py']
 install_all_list += ['target_install_modellib_py']
 install_all_list += ['target_install_pycad_py']
 if env['usempi']:		install_all_list += ['target_install_pythonMPI_exe']
-if not IS_WINDOWS_PLATFORM:	install_all_list += ['target_install_finley_wrapper']
+if not IS_WINDOWS_PLATFORM:	install_all_list += ['target_install_escript_wrapper']
 if env['usesilo']:	install_all_list += ['target_install_escript2silo']
 install_all_list += ['remember_options']
 env.Alias('install_all', install_all_list)

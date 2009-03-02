@@ -4,7 +4,8 @@
 # Its purpose is to produce a .deb for escript
 
 SRCDIR=`pwd`
-WRAPPERNAME=finleypython
+WRAPPERNAME=escript
+ALTWRAPPERNAME=finleypython
 OUTPUTROOT=$SRCDIR/build/package/lenny/escript
 LIBOUT=$OUTPUTROOT/usr/lib/escript
 BINOUT=$OUTPUTROOT/usr/bin
@@ -30,8 +31,6 @@ then
   rm -rf $OUTPUTROOT || (echo "Error could not clean build area";exit 2)
 fi
 
-
-
 mkdir -p $OUTPUTROOT
 
 #First copy debian skeleton 
@@ -42,6 +41,9 @@ mkdir -p $OUTPUTROOT/usr/share/man/man1
 
 #copy the man page
 cp $SRCDIR/doc/manpage/$WRAPPERNAME.1 $OUTPUTROOT/usr/share/man/man1
+cp $SRCDIR/doc/manpage/$WRAPPERNAME.1 $OUTPUTROOT/usr/share/man/man1/$ALTWRAPPERNAME.1
+gzip $OUTPUTROOT/usr/share/man/man1/$WRAPPERNAME.1
+gzip $OUTPUTROOT/usr/share/man/man1/$ALTWRAPPERNAME.1
 
 mkdir -p $LIBOUT/lib
 mkdir -p $BINOUT
@@ -64,6 +66,12 @@ sed	-e "s%@@ESCRIPT_ROOT@@%$ESCRIPT_ROOT%"		\
 < $SRCDIR/scripts/finley_wrapper_template > $BINOUT/$WRAPPERNAME
 
 #end content from finley_wrapper_writer.sh
+
+cd $BINOUT
+ln -s $WRAPPERNAME $ALTWRAPPERNAME
+cd $SRCDIR
+
+cp release/doc/
 
 #Nuke any svn stuff that made it in
 find $OUTPUTROOT -name ".svn" | xargs rm -rf 
