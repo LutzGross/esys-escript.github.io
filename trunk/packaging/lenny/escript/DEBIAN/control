@@ -5,6 +5,6 @@ Description: Escript/Finley finite elements python system.
 Maintainer: Escript team <esys@esscc.uq.edu.au>
 Priority: extra
 Section: main
-Depends: python-dev, libboost-python1.35.0, python-numarray, libnetcdf4, python-vtk
+Depends: python2.5, libboost-python1.35.0, python-numarray, libnetcdf4, python-vtk
 Architecture: i386
  

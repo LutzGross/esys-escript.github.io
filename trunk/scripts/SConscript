@@ -23,8 +23,14 @@ wrapper = local_env.Command('finleypython', 'finley_wrapper_template', [
 	'/bin/sh ' + script_dir + 'finley_wrapper_writer.sh < $SOURCE > $TARGET',
 	Chmod('$TARGET', 0755),
 ])
-local_env.Alias('target_finley_wrapper', wrapper)
 
-tmp1 = local_env.Install(local_env['bininstall'], wrapper)
-local_env.Alias('target_install_finley_wrapper', tmp1)
+wrapper2 = local_env.Command('escript', 'finley_wrapper_template', [
+	'/bin/sh ' + script_dir + 'finley_wrapper_writer.sh < $SOURCE > $TARGET',
+	Chmod('$TARGET', 0755),
+])
+
+local_env.Alias('target_escript_wrapper', [wrapper, wrapper2])
+
+tmp1 = local_env.Install(local_env['bininstall'], [wrapper, wrapper2])
+local_env.Alias('target_install_escript_wrapper', tmp1)
 
