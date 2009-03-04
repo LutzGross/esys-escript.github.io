@@ -362,7 +362,11 @@ if not conf.CheckFunc('Py_Exit'):
 ############ boost (required) ##################################
 
 if not sysheaderopt =="":
-  conf.env.Append(CCFLAGS=sysheaderopt+os.path.join(env['boost_path'],'boost'))
+# This is required because we can't -isystem /usr/system because it breaks std includes
+  if os.path.normpath(env['boost_path']) =="/usr/include":
+    conf.env.Append(CCFLAGS=sysheaderopt+os.path.join(env['boost_path'],'boost'))
+  else:
+    conf.env.Append(CCFLAGS=sysheaderopt+env['boost_path'])
 else:
   conf.env.AppendUnique(CPPPATH		= [env['boost_path']])
 
