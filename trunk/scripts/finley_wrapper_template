@@ -10,6 +10,7 @@ Usage: escript [options] script.py [arguments...]
 	-l 'launcher'	MPI launcher, usually -l 'mpirun -np' or -l 'mpiexec -n'
 	-L /path	Prepend /path to library search path
 	-P /path	Prepend /path to python module search path
+	-e		Print export statements for environment and exit
 	script.py	Your python script
 	arguments...	The optional command-line arguments to your python script
 "
@@ -19,13 +20,45 @@ if [ "$1" = "--help" ]; then
   exit 0
 fi
 
+#Now we find the location of this script
+#Note that this location should be absolute but does not need to be unique
+scriptdir=""
+CURDIR=`pwd`
+
+#Need to match if the name contains /
+if [[ $0 =~ / ]]
+then
+    # We are not using the PATH to find the script
+    cd `dirname $0`
+    scriptdir=`pwd`
+    cd $CURDIR
+else
+    # name does not contain / therefore we are using 
+    tscriptdir=`which $0`
+    if [ $? != 0 ]
+    then
+        echo "Error unable to determine script directory. Exiting."
+	exit 1
+    fi
+    scriptdir=`dirname $tscriptdir`
+fi
+
+cd $scriptname/..
+ESCRIPT_ROOT=`pwd`
+cd $CURDIR
+
 PYTHON_CMD="@@PYTHON_CMD@@"
 
-ESCRIPT_ROOT="@@ESCRIPT_ROOT@@"
+#ESCRIPT_ROOT="@@ESCRIPT_ROOT@@"
 
 export PATH="@@PATH@@"
 
 export LD_LIBRARY_PATH="@@LD_LIBRARY_PATH@@"
+
+if [ `uname` == Darwin ]
+then
+    export DYLD_LIBRARY_PATH="@@LD_LIBRARY_PATH@@"
+fi
 
 export PYTHONPATH="@@PYTHONPATH@@"
 
@@ -45,7 +78,8 @@ OMP_NUM_THREADS=1
 MPI_NUM_PROCS=1
 
 # Parse the command-line options
-while getopts 'L:P:O:M:l:' option
+# option e should not be followed by a :
+while getopts 'L:P:O:M:l:e' option
 do
 	case "$option" in
 	  "L")	export LD_LIBRARY_PATH="$OPTARG:$LD_LIBRARY_PATH"
@@ -57,6 +91,15 @@ do
 	  "M")	MPI_NUM_PROCS="$OPTARG"
 		;;
 	  "l")	mpi_launcher="$OPTARG"
+		;;
+	  "e")  echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+		echo "export PYTHONPATH=$PYTHONPATH"
+		echo "export PATH=$PATH"
+		if [ `uname` == Darwin ]
+		then
+		    echo "export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
+		fi
+		exit 0
 		;;
 	  ?)	echo "$HELP_TEXT"
 		exit 1
