@@ -3,6 +3,15 @@
 # Escript/Finley wrapper for python
 # Sets LD_LIBRARY_PATH and PYTHONPATH and then runs either python or the MPI launcher
 
+
+EXTRAPATH=""
+EXTRALDLIBRARYPATH=""
+EXTRADYLDLIBRARYPATH=""
+EXTRAPYTHONPATH=""
+
+#@@SET_ADDITIONAL_REQUIRED_VARS_HERE@@
+
+
 HELP_TEXT="
 Usage: escript [options] script.py [arguments...]
 	-O N		Use N OpenMP threads (OMP_NUM_THREADS=N)
@@ -43,11 +52,26 @@ else
     scriptdir=`dirname $tscriptdir`
 fi
 
-cd $scriptname/..
+cd $scriptdir/..
 ESCRIPT_ROOT=`pwd`
 cd $CURDIR
 
-PYTHON_CMD="@@PYTHON_CMD@@"
+# PYTHON_CMD="@@PYTHON_CMD@@"
+# For stand-alone builds this will need to be changed
+PYTHON_CMD=python
+
+# Check to see if the python version we were compiled with matches the one of PYTHON_CMD
+if [ -f $ESCRIPT_ROOT/lib/pyversion ]
+then
+   compversion=`cat $ESCRIPT_ROOT/lib/pyversion`
+   intversion=`python --version 2>&1`
+   if [ "$compversion" != "$intversion" ]
+   then
+      echo "Python versions do not match. Escript was compiled for "$compversion"."
+      echo "Current version of Python appears to be "$intversion"."
+      exit 1
+   fi
+fi
 
 #ESCRIPT_ROOT="@@ESCRIPT_ROOT@@"
 

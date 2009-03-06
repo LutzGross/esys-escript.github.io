@@ -704,6 +704,13 @@ if env['omp_optim'] != '':
 
 env.Alias('remember_options', remember_list)
 
+
+############### Record python interpreter version ##############
+
+if not IS_WINDOWS_PLATFORM:
+  versionstring="Python "+str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])
+  os.system("echo "+versionstring+" > "+env['libinstall']+"/pyversion")
+
 ############ Targets to build and install libraries ############
 
 target_init = env.Command(env['pyinstall']+'/__init__.py', None, Touch('$TARGET'))
