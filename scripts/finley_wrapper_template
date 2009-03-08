@@ -3,31 +3,9 @@
 # Escript/Finley wrapper for python
 # Sets LD_LIBRARY_PATH and PYTHONPATH and then runs either python or the MPI launcher
 
+#Extra paths can be configured about a page further down
+#Search for EXTRA_PATH=""
 
-EXTRAPATH=""
-EXTRALDLIBRARYPATH=""
-EXTRADYLDLIBRARYPATH=""
-EXTRAPYTHONPATH=""
-
-#@@SET_ADDITIONAL_REQUIRED_VARS_HERE@@
-
-
-HELP_TEXT="
-Usage: escript [options] script.py [arguments...]
-	-O N		Use N OpenMP threads (OMP_NUM_THREADS=N)
-	-M K		Use K MPI processes
-	-l 'launcher'	MPI launcher, usually -l 'mpirun -np' or -l 'mpiexec -n'
-	-L /path	Prepend /path to library search path
-	-P /path	Prepend /path to python module search path
-	-e		Print export statements for environment and exit
-	script.py	Your python script
-	arguments...	The optional command-line arguments to your python script
-"
-
-if [ "$1" = "--help" ]; then
-  echo "$HELP_TEXT"
-  exit 0
-fi
 
 #Now we find the location of this script
 #Note that this location should be absolute but does not need to be unique
@@ -56,9 +34,39 @@ cd $scriptdir/..
 ESCRIPT_ROOT=`pwd`
 cd $CURDIR
 
-# PYTHON_CMD="@@PYTHON_CMD@@"
+##### End finding ESCRIPT_ROOT  ########
+
+# if possible please express paths relative to $ESCRIPT_ROOT unless
+# they are in an unrelated location
+
+EXTRA_PATH=""
+EXTRA_LD_LIBRARY_PATH=""
+EXTRA_DYLD_LIBRARY_PATH=""
+EXTRA_PYTHONPATH=""
+
 # For stand-alone builds this will need to be changed
 PYTHON_CMD=python
+
+EXTRA_PYTHONPATH=$ESCRIPT_ROOT:$EXTRA_PYTHONPATH
+EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib:$EXTRA_LD_LIBRARY_PATH
+
+
+HELP_TEXT="
+Usage: escript [options] script.py [arguments...]
+	-O N		Use N OpenMP threads (OMP_NUM_THREADS=N)
+	-M K		Use K MPI processes
+	-l 'launcher'	MPI launcher, usually -l 'mpirun -np' or -l 'mpiexec -n'
+	-L /path	Prepend /path to library search path
+	-P /path	Prepend /path to python module search path
+	-e		Print export statements for environment and exit
+	script.py	Your python script
+	arguments...	The optional command-line arguments to your python script
+"
+
+if [ "$1" = "--help" ]; then
+  echo "$HELP_TEXT"
+  exit 0
+fi
 
 # Check to see if the python version we were compiled with matches the one of PYTHON_CMD
 if [ -f $ESCRIPT_ROOT/lib/pyversion ]
@@ -72,19 +80,6 @@ then
       exit 1
    fi
 fi
-
-#ESCRIPT_ROOT="@@ESCRIPT_ROOT@@"
-
-export PATH="@@PATH@@"
-
-export LD_LIBRARY_PATH="@@LD_LIBRARY_PATH@@"
-
-if [ `uname` == Darwin ]
-then
-    export DYLD_LIBRARY_PATH="@@LD_LIBRARY_PATH@@"
-fi
-
-export PYTHONPATH="@@PYTHONPATH@@"
 
 # Avoid bug in hybrid runs with MPT MPI
 export MPI_NUM_MEMORY_REGIONS=0
@@ -116,12 +111,12 @@ do
 		;;
 	  "l")	mpi_launcher="$OPTARG"
 		;;
-	  "e")  echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
-		echo "export PYTHONPATH=$PYTHONPATH"
-		echo "export PATH=$PATH"
+	  "e")  echo "export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:\$LD_LIBRARY_PATH"
+		echo "export PYTHONPATH=$EXTRA_PYTHONPATH:\$PYTHONPATH"
+		echo "export PATH=$EXTRA_PATH:\$PATH"
 		if [ `uname` == Darwin ]
 		then
-		    echo "export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
+		    echo "export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:\$DYLD_LIBRARY_PATH"
 		fi
 		exit 0
 		;;
@@ -131,6 +126,16 @@ do
 	esac
 done
 shift `expr $OPTIND - 1`
+
+export PATH=$EXTRA_PATH:$PATH
+export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:$LD_LIBRARY_PATH
+export PYTHONPATH=$EXTRA_PYTHONPATH:$PYTHONPATH
+if [ `uname` == Darwin ]
+then
+    export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH
+fi
+
+
 
 # Must have at least one command-line arg: the python script
 if [ $# -eq 0 ]; then
