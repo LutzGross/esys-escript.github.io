@@ -75,7 +75,7 @@ useumfpack		= 'yes'
 # blas_libs		= ['blas']
 
 # OpenMP
-useopenmp		= 'yes'
+useopenmp		= 'no'
 
 # MPICH2 (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
 usempi= 'no'

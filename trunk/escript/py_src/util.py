@@ -55,7 +55,6 @@ def getMaxFloat():
      return escript.getMaxFloat()
 DBLE_MAX=getMaxFloat()
 
-
 def getTagNames(domain):
     """
     Returns a list of tag names used by the domain.

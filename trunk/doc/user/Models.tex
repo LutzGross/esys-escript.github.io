@@ -431,26 +431,15 @@ After inserting equation~\ref{IKM-EQU-5} into equation \ref{IKM-EQU-4} one gets:
 \begin{equation}\label{IKM-EQU-6}
 D\hackscore{ij}'^{vp}=\frac{1}{2 \eta^{vp}} \sigma'\hackscore{ij} \mbox{ with } \frac{1}{\eta^{vp}} = \sum\hackscore{q} \frac{1}{\eta^{q}} \;.
 \end{equation}
-With
-\begin{equation}\label{IKM-EQU-8}
-\dot{\gamma}=\sqrt{2 D\hackscore{ij} D\hackscore{ij}}
+and finally with~\ref{IKM-EQU-2} 
+\begin{equation}\label{IKM-EQU-2b}
+D\hackscore{ij}'=\frac{1}{2 \eta^{vp}} \sigma'\hackscore{ij}+\frac{1}{2 \mu} \dot{\sigma}\hackscore{ij}'
 \end{equation}
-one gets 
-\begin{equation}\label{IKM-EQU-8b}
-\tau = \eta^{vp} \dot{\gamma}^{vp} \;.
-\end{equation}
-With the Drucker-Prager cohesion factor $\tau\hackscore{Y}$, Drucker-Prager friction $\beta$ and total pressure $p$ we want to achieve 
+The total stress $\tau$ needs to fullfill the yield condition \index{yield condition} 
 \begin{equation}\label{IKM-EQU-8c}
 \tau \le \tau\hackscore{Y} + \beta \; p
 \end{equation}
-which leads to the condition
-\begin{equation}\label{IKM-EQU-8d}
-\eta^{vp} \le \frac{\tau\hackscore{Y} + \beta \; p}{ \dot{\gamma}^{vp}} \; .
-\end{equation}
-Therefore we modify the definition of $\eta^{vp}$ to the form
-\begin{equation}\label{IKM-EQU-6b}
-\frac{1}{\eta^{vp}}=\max(\sum\hackscore{q} \frac{1}{\eta^{q}}, \frac{\dot{\gamma}^{vp}} {\tau\hackscore{Y} + \beta \; p})
-\end{equation}
+with the Drucker-Prager \index{Druck-Prager} cohesion factor \index{cohesion factor} $\tau\hackscore{Y}$, Drucker-Prager friction $\beta$ and total pressure $p$.
 The deviatoric stress needs to fullfill the equilibrion equation
 \begin{equation}\label{IKM-EQU-1}
 -\sigma'\hackscore{ij,j}+p\hackscore{,i}=F\hackscore{i}
@@ -472,52 +461,92 @@ where the index $i$ may depend on the location $x$ on the bondary.
 \subsection{Solution Method \label{IKM-SOLVE}}
 By using a first order finite difference approximation wit step size $dt>0$~\ref{IKM-EQU-3} get the form
 \begin{equation}\label{IKM-EQU-3b}
-D\hackscore{ij}'^{el}=\frac{1}{2 \mu dt } \left( \sigma\hackscore{ij}' - \sigma\hackscore{ij}^{'-} \right)
+\dot{\sigma}\hackscore{ij}=\frac{1}{dt } \left( \sigma\hackscore{ij} - \sigma\hackscore{ij}^{-} \right)
 \end{equation}
-where $\sigma\hackscore{ij}^{'-}$ is the deviatoric stress at the precious time step.
-Now we can combine equations~\ref{IKM-EQU-2}, \ref{IKM-EQU-3b} and~\ref{IKM-EQU-6b} to get
+and 
+\begin{equation}\label{IKM-EQU-2b}
+D\hackscore{ij}'=\left(\frac{1}{2 \eta^{vp}} + \frac{1}{2 \mu dt}\right) \sigma\hackscore{ij}'+\frac{1}{2 \mu dt } \sigma\hackscore{ij}^{-'}
+\end{equation}
+where $\sigma\hackscore{ij}^{-}$ is the stress at the precious time step. With 
+\begin{equation}\label{IKM-EQU-2c}
+\dot{\gamma} = \sqrt{ 2 \left( D\hackscore{ij}' -
+\frac{1}{  2 \mu \; dt} \sigma\hackscore{ij}^{'-}\right)^2}
+\end{equation} 
+we have
+\begin{equation}
+\tau = \eta\hackscore{eff} \cdot \dot{\gamma}
+\end{equation} 
+where
+\begin{equation}
+\eta\hackscore{eff}= min( \left(\frac{1}{\mu \; dt}+\frac{1}{\eta^{vp}}\right)^{-1} 
+, \eta\hackscore{max}) \mbox{ with } 
+\eta\hackscore{max} = \left\{ 
+\begin{array}{rcl}
+\frac{\tau\hackscore{Y} + \beta \; p}{\dot{\gamma}} & & \dot{\gamma}>0 \\
+&\mbox{ if } \\ 
+\infty & & \mbox{otherwise}
+\end{array}
+\right.
+\end{equation}
+The upper bound $\eta\hackscore{max}$ makes sure that yield condtion~\ref{IKM-EQU-8c} holds. With this setting the eqaution \ref{IKM-EQU-2b} takes the form 
 \begin{equation}\label{IKM-EQU-10}
-\sigma\hackscore{ij}' =  2 \eta\hackscore{eff}  \left( D\hackscore{ij}' + 
-\frac{1}{  2 \mu \; dt} \sigma\hackscore{ij}^{'-}\right)  \mbox{ with }
-\frac{1}{\eta\hackscore{eff}}=\frac{1}{\mu \; dt}+\frac{1}{\eta^{vp}}
+\sigma\hackscore{ij}' =  2 \eta\hackscore{eff}  \left( D\hackscore{ij}' -
+\frac{1}{  2 \mu \; dt} \sigma\hackscore{ij}^{'-}\right)  
 \end{equation}
-Notice that $\eta\hackscore{eff}$ is a function of diatoric stress $\sigma\hackscore{ij}'$.
 After inserting~\ref{IKM-EQU-10} into~\ref{IKM-EQU-1} we get
 \begin{equation}\label{IKM-EQU-1ib}
 -\left(\eta\hackscore{eff} (v\hackscore{i,j}+ v\hackscore{i,j})
-\right)\hackscore{,j}+p\hackscore{,i}=F\hackscore{i}+
+\right)\hackscore{,j}+p\hackscore{,i}=F\hackscore{i}-
 \frac{\eta\hackscore{eff}}{\mu dt } \sigma\hackscore{ij,j}^{'-}
 \end{equation}
 Combining this with the incomressibilty condition~\ref{IKM-EQU-2} we need to solve a
 Stokes problem as discussed in section~\ref{STOKES SOLVE} in each time step.
-In oder to perform step~\ref{IKM iteration 2} we need to calculate the $\eta\hackscore{eff}$ which 
-is a function of $\sigma\hackscore{ij}$ via $\tau$.  To get $\tau$ and $\eta\hackscore{eff}$ we need to solve the
-non-linear equation
+
+If we set 
+\begin{equation}\label{IKM-EQU-44}
+\frac{1}{\eta(\tau)}= \frac{1}{\mu \; dt}+\frac{1}{\eta^{vp}}
+\end{equation}
+we need to solve the nonlinear problem
 \begin{equation}
-\tau = \eta\hackscore{eff} \cdot \dot{\gamma}\hackscore{total} \mbox{ with }
-\dot{\gamma}\hackscore{total} = \sqrt{ 2 \left( D\hackscore{ij}' + 
-\frac{1}{  2 \mu \; dt} \sigma\hackscore{ij}^{'-}\right)^2}
-\label{IKM iteration 5}
+\eta\hackscore{eff} -  min(\eta( \dot{\gamma} \cdot \eta\hackscore{eff}) 
+, \eta\hackscore{max}) =0 
+\end{equation}
+We use the Newton-Raphson Scheme \index{Newton-Raphson scheme} to solve this problem
+\begin{equation}\label{IKM-EQU-45}
+\eta\hackscore{eff}^{(n+1)} = \min(\eta\hackscore{max}, 
+\eta\hackscore{eff}^{(n)} -
+\frac{\eta\hackscore{eff}^{(n)} - \eta( \tau^{(n)}) }
+{1-\dot{\gamma} \cdot \eta'( \tau^{(n)} )} )
+=\min(\eta\hackscore{max},
+\frac{\eta( \tau^{(n)}) -\tau^{(n)} \cdot  \eta'( \tau^{(n)} )  }
+{1-\dot{\gamma} \cdot \eta'( \tau^{(n)} )} )
 \end{equation} 
-The Newton scheme takes the form 
+where $\eta'$ denotes the derivative of $\eta$ with respect of $\tau$
+and $\tau^{(n)} =  \dot{\gamma} \cdot \eta\hackscore{eff}^{(n)}$. 
+
+Looking at the evaluation of $\eta$ in~\ref{IKM-EQU-44} it makes sense formulate
+the iteration~\ref{IKM-EQU-45} using $\Theta=\eta^{-1}$. 
+In fact we have 
 \begin{equation}
-\tau\hackscore{n+1} = \min(\tau\hackscore{n} - \frac{\tau\hackscore{n} - \eta\hackscore{eff}  \cdot \dot{\gamma}\hackscore{total}}{1 - \eta\hackscore{eff}'  \cdot  \dot{\gamma}\hackscore{total}}, \tau\hackscore{Y} + \beta \; p)
-\label{IKM iteration 6}
-\end{equation} 
-where $\eta\hackscore{eff}'$ denotes the derivative of $\eta\hackscore{eff}$ with respect of $\tau$. The second term in $\min$ is droped of $\tau\hackscore{Y} + \beta \; p<0$ (?)). We have
-\begin{equation}
-\eta\hackscore{eff}' = - \eta\hackscore{eff}^2 \left(\frac{1}{\eta\hackscore{eff}}\right)'
+\eta' = - \frac{\Theta'}{\Theta^2} 
 \mbox{ with } 
-\left(\frac{1}{\eta\hackscore{eff}}\right)' = \sum\hackscore{q} \left(\frac{1}{\eta^{q}} \right)'
+\Theta' = \sum\hackscore{q} \left(\frac{1}{\eta^{q}} \right)'
 \label{IKM iteration 7}
 \end{equation} 
-\begin{equation}\label{IKM-EQU-5XX}
+As
+\begin{equation}\label{IKM-EQU-47}
 \left(\frac{1}{\eta^{q}} \right)'
 = \frac{1-\frac{1}{n^{q}}}{\eta^{q}\hackscore{N}} \frac{\tau^{-\frac{1}{n^{q}}}}{(\tau\hackscore{t}^q)^{1-\frac{1}{n^{q}}}}
-= \frac{1-\frac{1}{n^{q}}}{\tau}\frac{1}{\eta^{q}} 
+= \frac{1-\frac{1}{n^{q}}}{\eta^{q}}\frac{1}{\tau} 
 \end{equation}
-Notice that allways $\eta\hackscore{eff}'\le 0$ which makes the denomionator in~\ref{IKM iteration 6}
-positive.
-
-
-
+we have
+\begin{equation}\label{IKM-EQU-48}
+\Theta' = \frac{1}{\tau} \omega \mbox{ with } \omega = \sum\hackscore{q}\frac{1-\frac{1}{n^{q}}}{\eta^{q}} 
+\end{equation}
+which leads to 
+\begin{equation}\label{IKM-EQU-45}
+\eta\hackscore{eff}^{(n+1)} = \min(\eta\hackscore{max}, 
+\eta\hackscore{eff}^{(n)}
+\frac{\Theta^{(n)}  + \omega^{(n)}  }
+{\eta\hackscore{eff}^{(n)} \Theta^{(n)^2}+\omega^{(n)} })
+\end{equation} 
