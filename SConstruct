@@ -189,9 +189,9 @@ elif env["CC"] == "gcc":
 #the long long warning occurs on the Mac
   cc_optim		= "-O3"
   cc_debug		= "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
-  omp_optim		= ""
-  omp_debug		= ""
-  omp_libs		= []
+  omp_optim		= "-fopenmp"
+  omp_debug		= "-fopenmp"
+  omp_libs		= ['gomp']
   pedantic		= "-pedantic-errors -Wno-long-long"
   fatalwarning		= "-Werror"
   sysheaderopt		= "-isystem "

@@ -37,6 +37,269 @@ import util
 from linearPDEs import LinearPDE
 from pdetools import Defect, NewtonGMRES, ArithmeticTuple
 
+class PowerLaw(object):
+    """
+    this implements the power law for a composition of a set of materials where the viscosity eta of each material is given by a 
+    power law relationship of the form
+
+    M{eta=eta_N*(tau/tau_t)**(1.-1./power)}
+
+    where tau is equivalent stress and eta_N, tau_t and power are given constant. Moreover an elastic component can be considered. 
+    Moreover tau meets the Drucker-Prager type yield condition
+ 
+    M{tau <= tau_Y + friction * pressure}
+
+    where gamma_dot is the equivalent. 
+    """
+    def __init__(self, numMaterials=1,verbose=False):
+         """
+         initializes a power law
+   
+         @param numMaterials: number of materials
+         @type numMaterials: C{int}
+         @param verbose: if C{True} some informations are printed.
+         @type verbose: C{bool}
+         """
+         if numMaterials<1:
+            raise ValueError,"at least one material must be defined."
+         self.__numMaterials=numMaterials
+         self.__eta_N=[None for i in xrange(self.__numMaterials)]
+         self.__tau_t=[1. for i in xrange(self.__numMaterials)]
+         self.__power=[1. for i in xrange(self.__numMaterials)]
+         self.__tau_Y=None
+         self.__friction=0
+         self.__mu=None
+         self.__verbose=verbose
+         self.setEtaTolerance()
+    #===========================================================================
+    def getNumMaterials(self):
+         """
+         returns the numebr of materials
+         
+         @return: number of materials
+         @rtype: C{int}
+         """
+         return self.__numMaterials
+    def validMaterialId(self,id=0):
+         """
+         checks if a given material id is valid
+   
+         @param id: a material id
+         @type id: C{int}
+         @return: C{True} is the id is valid
+         @rtype: C{bool}
+         """
+         return 0<=id and id<self.getNumMaterials()
+    def setEtaTolerance(self,rtol=util.sqrt(util.EPSILON)):
+         """
+         sets the relative tolerance for the effectice viscosity.
+ 
+         @param rtol: relative tolerance
+         @type rtol: positive C{float}
+         """
+         if rtol<=0:
+             raise ValueError,"rtol needs to positive."
+         self.__rtol=rtol
+    def getEtaTolerance(self):
+         """
+         returns the relative tolerance for the effectice viscosity.
+ 
+         @return: relative tolerance
+         @rtype rtol: positive C{float}
+         """
+         return self.__rtol
+    #===========================================================================
+    def setDruckerPragerLaw(self,tau_Y=None,friction=0):
+          """
+          Sets the parameters for the Drucker-Prager model.
+
+          @param tau_Y: yield stress
+          @param friction: friction coefficient
+          """
+          self.__tau_Y=tau_Y
+          self.__friction=friction
+    def getFriction(self):
+         """
+         returns the friction coefficient
+
+         @return: friction coefficient
+         """
+         return self.__friction
+    def getTauY(self):
+         """
+         returns the yield stress
+
+         @return: the yield stress
+         """
+         return self.__tau_Y
+    #===========================================================================
+    def getElasticShearModulus(self):
+        """
+        returns the elastic shear modulus.
+
+        @return: elastic shear modulus
+        """
+        return self.__mu
+    def setElasticShearModulus(self,mu=None):
+        """
+        Sets the elastic shear modulus.
+
+        @param mu: elastic shear modulus
+        """
+        self.__mu=mu
+    #===========================================================================
+    def getPower(self, id=None):
+         """
+         returns the power in the power law
+
+         @param id:  if present, the power for material C{id} is returned.
+         @type id: C{int}
+         @return: the list of the powers for all matrials is returned. If C{id} is present only the power for material C{id} is returned.
+         """
+         if id == None:
+            return self.__power
+         else:
+            if self.validMaterialId(id):
+              return self.__power[id]
+            else:
+              raise ValueError,"Illegal material id %s."%id
+    def getEtaN(self, id=None):
+         """
+         returns the viscosity
+
+         @param id:  if present, the viscosity for material C{id} is returned.
+         @type id: C{int}
+         @return: the list of the viscosities for all matrials is returned. If C{id} is present only the viscosity for material C{id} is returned.
+         """
+         if id == None:
+            return self.__eta_N
+         else:
+            if self.validMaterialId(id):
+              return self.__eta_N[id]
+            else:
+             raise ValueError,"Illegal material id %s."%id
+    def getTauT(self, id=None):
+         """
+         returns the transition stress
+
+         @param id:  if present, the transition stress for material C{id} is returned.
+         @type id: C{int}
+         @return: the list of the transition stresses for all matrials is returned. If C{id} is present only the transition stress for material C{id} is returned.
+         """
+         if id == None:
+            return self.__tau_t
+         else:
+            if self.validMaterialId(id):
+              return self.__tau_t[id]
+            else:
+              raise ValueError,"Illegal material id %s."%id
+    
+    def setPowerLaw(self,eta_N, id=0, tau_t=1, power=1):
+          """
+          Sets the power-law parameters for material id
+          
+          @param id: material id
+          @type id: C{int}
+          @param eta_N: viscosity for tau=tau_t
+          @param tau_t: transition stress
+          @param power: power law coefficient
+          """
+          if self.validMaterialId(id):
+             self.__eta_N[id]=eta_N
+             self.__power[id]=power
+             self.__tau_t[id]=tau_t
+          else:
+              raise ValueError,"Illegal material id %s."%id
+
+    def setPowerLaws(self,eta_N, tau_t, power):
+          """
+          Sets the parameters of the power-law for all materials.
+
+          @param eta_N: list of viscosities for tau=tau_t
+          @param tau_t: list of transition stresses
+          @param power: list of power law coefficient
+          """
+          if len(eta_N)!=self.__numMaterials or len(tau_t)!=self.__numMaterials or len(power)!=self.__numMaterials:
+              raise ValueError,"%s materials are expected."%self.__numMaterials
+          for i in xrange(self.__numMaterials):
+               self.setPowerLaw(id=i, eta_N=eta_N[i],tau_t=tau_t[i],power=power[i])
+
+    #===========================================================================
+    def getEtaEff(self,gamma_dot, eta0=None, pressure=0,dt=None, iter_max=10):
+         """
+         returns the effective viscosity eta_eff such that 
+
+         M{tau=eta_eff * gamma_dot}
+
+         by solving a non-linear problem for tau.
+
+         @param gamma_dot: equivalent strain gamma_dot
+         @param eta0: initial guess for the effective viscosity (e.g from a previous time step). If not present, an initial guess is calculated.
+         @param pressure: pressure used to calculate yield condition
+         @param dt: time step size. only needed if elastic component is considered.
+         @type dt: positive C{float} if present
+         @param iter_max: maximum number of iteration steps.
+         @type iter_max: C{int}
+         @return: effective viscosity. 
+         """
+         numMaterial=self.getNumMaterials()
+         s=[1.-1./p for p in self.getPower() ]
+         eta_N=self.getEtaN()
+         tau_t=self.getTauT()
+         mu=self.getElasticShearModulus()
+         fric=self.getFriction()
+         tau_Y=self.getTauY()
+         if eta0==None:
+             theta=0.
+             for i in xrange(numMaterial): 
+                  inv_eta_i=0**s[i]/eta_N[i]
+                  theta=theta+inv_eta_i
+             if util.inf(theta)<=0: 
+                 raise ValueError,"unable to set positive initial guess for eta_eff. Most likely no power law with power 1 set."
+             eta_eff=1./theta
+         else:
+             if util.inf(eta0)<=0:
+                 raise ValueError,"initial guess for eta_eff is not positive."
+             eta_eff=eta0
+
+         if mu !=None and dt == None:
+             raise ValueError,"Time stepsize dt must be given."
+         if dt !=None:
+             if dt<=0: raise ValueEror,"time step size must be positive."
+         if tau_Y==None:
+             eta_max=None
+         else:
+              if util.inf(pressure)*fric<0:
+                   raise ValueError,"pressure needs to be non-negative."
+              eta_max=(tau_Y+fric*pressure)/(gamma_dot+util.whereZero(gamma_dot)/util.DBLE_MAX)
+         rtol=self.getEtaTolerance()
+         iter =0
+         converged=False
+         tau=eta_eff*gamma_dot
+         if self.__verbose: print "Start calculation of eta_eff (tolerance = %s)\ninitial max eta_eff = %s, tau = %s."%(rtol,util.Lsup(eta_eff),util.Lsup(tau))
+         while not converged:
+             if iter>max(iter_max,1):
+                raise RunTimeError,"tolerance not reached after %s steps."%max(iter_max,1)
+             #===========================================
+             theta=0. # =1/eta
+             omega=0. # = tau*theta'= eta'*tau/eta**2
+             if mu !=None: theta=1./(dt*mu)
+             for i in xrange(numMaterial):
+                  inv_eta_i=(tau/tau_t[i])**s[i]/eta_N[i]
+                  theta=theta+inv_eta_i
+                  omega=omega+s[i]*inv_eta_i
+             #===========================================
+             eta_eff, eta_eff_old=util.clip(eta_eff*(theta+omega)/(eta_eff*theta**2+omega),maxval=eta_max), eta_eff
+             tau=eta_eff*gamma_dot
+             d=util.Lsup(eta_eff-eta_eff_old)
+             l=util.Lsup(eta_eff)
+             iter+=1
+             if self.__verbose: print "step %s: correction = %s, max eta_eff = %s, max tau= %s"%(iter, d, l,util.Lsup(tau))
+             converged= d<= rtol* l
+         return eta_eff
+
+#====================================================================================================================================
+
 class IncompressibleIsotropicKelvinFlow(Defect):
       """
       This class implements the rheology of an isotropic Kelvin material.
@@ -68,20 +331,11 @@ class IncompressibleIsotropicKelvinFlow(Defect):
          @param useJaumannStress: C{True} if Jaumann stress is used
                                   (not supported yet)
          """
-         if numMaterials<1:
-            raise ValueError,"at least one material must be defined."
          super(IncompressibleIsotropicKelvinFlow, self).__init__(**kwargs)
          self.__domain=domain
          self.__t=t
          self.__vol=util.integrate(1.,Function(self.__domain))
          self.__useJaumannStress=useJaumannStress
-         self.__numMaterials=numMaterials
-         self.__eta_N=[None for i in xrange(self.__numMaterials)]
-         self.__tau_t=[None for i in xrange(self.__numMaterials)]
-         self.__power=[1 for i in xrange(self.__numMaterials)]
-         self.__tau_Y=None
-         self.__friction=None
-         self.__mu=None
          self.__v_boundary=Vector(0,Solution(self.__domain))
          #=======================
          # state variables:
@@ -160,37 +414,6 @@ class IncompressibleIsotropicKelvinFlow(Defect):
           """
           return self.__t
 
-      def setPowerLaw(self,id,eta_N, tau_t=None, power=1):
-          """
-          Sets the power-law parameters for material q.
-          """
-          if id<0 or id>=self.__numMaterials:
-              raise ValueError,"Illegal material id %s."%id
-          self.__eta_N[id]=eta_N
-          self.__power[id]=power
-          self.__tau_t[id]=tau_t
-
-      def setPowerLaws(self,eta_N, tau_t, power):
-          """
-          Sets the parameters of the power-law for all materials.
-          """
-          if len(eta_N)!=self.__numMaterials or len(tau_t)!=self.__numMaterials or len(power)!=self.__numMaterials:
-              raise ValueError,"%s materials are expected."%self.__numMaterials
-          for i in xrange(self.__numMaterials):
-               self.setPowerLaw(i,eta_N[i],tau_t[i],power[i])
-
-      def setDruckerPragerLaw(self,tau_Y=None,friction=0):
-          """
-          Sets the parameters for the Drucker-Prager model.
-          """
-          self.__tau_Y=tau_Y
-          self.__friction=friction
-
-      def setElasticShearModulus(self,mu=None):
-          """
-          Sets the elastic shear modulus.
-          """
-          self.__mu=mu
       def setExternals(self, F=None, f=None, q=None, v_boundary=None):
           """
           Sets externals.
