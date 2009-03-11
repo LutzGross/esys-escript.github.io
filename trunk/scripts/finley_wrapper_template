@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Escript/Finley wrapper for python
 # Sets LD_LIBRARY_PATH and PYTHONPATH and then runs either python or the MPI launcher
@@ -6,6 +6,8 @@
 #Extra paths can be configured about a page further down
 #Search for EXTRA_PATH=""
 
+#set to 1 if performing this is a standalone build and /packages contains the relevant tools
+STANDALONE=0
 
 #Now we find the location of this script
 #Note that this location should be absolute but does not need to be unique
@@ -32,6 +34,8 @@ fi
 
 cd $scriptdir/..
 ESCRIPT_ROOT=`pwd`
+cd ..
+ESCRIPT_PARENT=`pwd`
 cd $CURDIR
 
 ##### End finding ESCRIPT_ROOT  ########
@@ -43,6 +47,15 @@ EXTRA_PATH=""
 EXTRA_LD_LIBRARY_PATH=""
 EXTRA_DYLD_LIBRARY_PATH=""
 EXTRA_PYTHONPATH=""
+
+if [ $STANDALONE == 1 ]
+then
+    EXTRA_PATH=$ESCRIPT_PARENT/packages/python-2.6.1/bin:$EXTRA_PATH
+    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/boost_1_37_0/lib:$ESCRIPT_PARENT/packages/netcdf-4.0/lib/:$EXTRA_LD_LIBRARY_PATH
+    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/vtk-5.2.1/lib/vtk-5.2:$ESCRIPT_PARENT/packages/Mesa-7.2/lib:$EXTRA_LD_LIBRARY_PATH
+    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/python-2.6.1/lib:$EXTRA_LD_LIBRARY_PATH
+    EXTRA_PYTHONPATH=$ESCRIPT_PARENT/packages/numarray-1.5.2/lib:$ESCRIPT_PARENT/packages/vtk-5.2.1/lib/python2.6/site-packages:$EXTRA_PYTHONPATH
+fi
 
 # For stand-alone builds this will need to be changed
 PYTHON_CMD=python
@@ -68,18 +81,7 @@ if [ "$1" = "--help" ]; then
   exit 0
 fi
 
-# Check to see if the python version we were compiled with matches the one of PYTHON_CMD
-if [ -f $ESCRIPT_ROOT/lib/pyversion ]
-then
-   compversion=`cat $ESCRIPT_ROOT/lib/pyversion`
-   intversion=`python --version 2>&1`
-   if [ "$compversion" != "$intversion" ]
-   then
-      echo "Python versions do not match. Escript was compiled for "$compversion"."
-      echo "Current version of Python appears to be "$intversion"."
-      exit 1
-   fi
-fi
+
 
 # Avoid bug in hybrid runs with MPT MPI
 export MPI_NUM_MEMORY_REGIONS=0
@@ -101,9 +103,9 @@ MPI_NUM_PROCS=1
 while getopts 'L:P:O:M:l:e' option
 do
 	case "$option" in
-	  "L")	export LD_LIBRARY_PATH="$OPTARG:$LD_LIBRARY_PATH"
+	  "L")	EXTRA_LD_LIBRARY_PATH="$OPTARG:$EXTRA_LD_LIBRARY_PATH"
 		;;
-	  "P")	export PYTHONPATH="$OPTARG:$PYTHONPATH"
+	  "P")	EXTRA_PYTHONPATH="$OPTARG:$EXTRA_PYTHONPATH"
 		;;
 	  "O")	OMP_NUM_THREADS="$OPTARG"
 		;;
@@ -135,7 +137,18 @@ then
     export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH
 fi
 
-
+# Check to see if the python version we were compiled with matches the one of PYTHON_CMD
+if [ -f $ESCRIPT_ROOT/lib/pyversion ]
+then
+   compversion=`cat $ESCRIPT_ROOT/lib/pyversion`
+   intversion=`python --version 2>&1`
+   if [ "$compversion" != "$intversion" ]
+   then
+      echo "Python versions do not match. Escript was compiled for "$compversion"."
+      echo "Current version of Python appears to be "$intversion"."
+      exit 1
+   fi
+fi
 
 # Must have at least one command-line arg: the python script
 if [ $# -eq 0 ]; then
