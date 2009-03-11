@@ -15,7 +15,7 @@
 EnsureSConsVersion(0,96,91)
 EnsurePythonVersion(2,3)
 
-import sys, os, re, socket, platform
+import sys, os, re, socket, platform, stat
 
 # Add our extensions
 if os.path.isdir('scons'): sys.path.append('scons')
@@ -656,6 +656,7 @@ print ""
 Execute(Delete(env['libinstall'] + "/Compiled.with.debug"))
 Execute(Delete(env['libinstall'] + "/Compiled.with.mpi"))
 Execute(Delete(env['libinstall'] + "/Compiled.with.openmp"))
+Execute(Delete(env['libinstall'] + "pyversion"))
 if not env['usempi']: Execute(Delete(env['libinstall'] + "/pythonMPI"))
 
 
@@ -780,6 +781,7 @@ if not IS_WINDOWS_PLATFORM:
 	for tests in TestGroups:
 	    utest.write(tests.makeString())
 	utest.close()
+	os.chmod("utest.sh",stat.S_IRWXU|stat.S_IRGRP|stat.S_IXGRP|stat.S_IROTH|stat.S_IXOTH)
 	print "utest.sh written"
    except IOError:
 	print "Error attempting to write unittests file."
