@@ -1,4 +1,3 @@
-
 ########################################################
 #
 # Copyright (c) 2003-2008 by University of Queensland
@@ -67,7 +66,7 @@ class PowerLaw(object):
          self.__tau_t=[1. for i in xrange(self.__numMaterials)]
          self.__power=[1. for i in xrange(self.__numMaterials)]
          self.__tau_Y=None
-         self.__friction=0
+         self.__friction=None
          self.__mu=None
          self.__verbose=verbose
          self.setEtaTolerance()
@@ -109,7 +108,7 @@ class PowerLaw(object):
          """
          return self.__rtol
     #===========================================================================
-    def setDruckerPragerLaw(self,tau_Y=None,friction=0):
+    def setDruckerPragerLaw(self,tau_Y=None,friction=None):
           """
           Sets the parameters for the Drucker-Prager model.
 
@@ -225,7 +224,7 @@ class PowerLaw(object):
                self.setPowerLaw(id=i, eta_N=eta_N[i],tau_t=tau_t[i],power=power[i])
 
     #===========================================================================
-    def getEtaEff(self,gamma_dot, eta0=None, pressure=0,dt=None, iter_max=10):
+    def getEtaEff(self,gamma_dot, eta0=None, pressure=None,dt=None, iter_max=10):
          """
          returns the effective viscosity eta_eff such that 
 
@@ -242,6 +241,7 @@ class PowerLaw(object):
          @type iter_max: C{int}
          @return: effective viscosity. 
          """
+         SMALL=1./(util.DBLE_MAX/100.)
          numMaterial=self.getNumMaterials()
          s=[1.-1./p for p in self.getPower() ]
          eta_N=self.getEtaN()
@@ -265,13 +265,17 @@ class PowerLaw(object):
          if mu !=None and dt == None:
              raise ValueError,"Time stepsize dt must be given."
          if dt !=None:
-             if dt<=0: raise ValueEror,"time step size must be positive."
-         if tau_Y==None:
+             if dt<=0: raise ValueError,"time step size must be positive."
+         if tau_Y==None and fric==None:
              eta_max=None
          else:
-              if util.inf(pressure)*fric<0:
-                   raise ValueError,"pressure needs to be non-negative."
-              eta_max=(tau_Y+fric*pressure)/(gamma_dot+util.whereZero(gamma_dot)/util.DBLE_MAX)
+            if fric == None:
+                eta_max=tau_Y/(gamma_dot+SMALL*util.whereZero(gamma_dot))
+            else:
+                if tau_Y==None: tau_Y==0
+                if util.inf(fric)<=0: 
+                    raise ValueError,"if friction present it needs to be positive."
+                eta_max=fric*util.clip(tau_Y/fric+pressure,minval=0)/(gamma_dot+SMALL*util.whereZero(gamma_dot))
          rtol=self.getEtaTolerance()
          iter =0
          converged=False
@@ -279,7 +283,7 @@ class PowerLaw(object):
          if self.__verbose: print "Start calculation of eta_eff (tolerance = %s)\ninitial max eta_eff = %s, tau = %s."%(rtol,util.Lsup(eta_eff),util.Lsup(tau))
          while not converged:
              if iter>max(iter_max,1):
-                raise RunTimeError,"tolerance not reached after %s steps."%max(iter_max,1)
+                raise RuntimeError,"tolerance not reached after %s steps."%max(iter_max,1)
              #===========================================
              theta=0. # =1/eta
              omega=0. # = tau*theta'= eta'*tau/eta**2
