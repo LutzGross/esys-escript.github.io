@@ -700,7 +700,7 @@ if env['usedebug']:
 if env['usempi']:
   remember_list += env.Command(env['libinstall'] + "/Compiled.with.mpi", None, Touch('$TARGET'))
 
-if env['omp_optim'] != '':
+if env['useopenmp']:
   remember_list += env.Command(env['libinstall'] + "/Compiled.with.openmp", None, Touch('$TARGET'))
 
 env.Alias('remember_options', remember_list)
@@ -710,7 +710,44 @@ env.Alias('remember_options', remember_list)
 
 if not IS_WINDOWS_PLATFORM:
   versionstring="Python "+str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])
-  os.system("echo "+versionstring+" > "+env['libinstall']+"/pyversion")
+  os.system("echo "+versionstring+" > "+os.path.join(env['libinstall'],"pyversion"))
+
+############## Populate the buildvars file #####################
+
+buildvars=open(os.path.join(env['libinstall'],'buildvars'),'w')
+buildvars.write('python='+str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])+'\n')
+
+# Find the boost version by extracting it from version.hpp
+boosthpp=open(os.path.join(env['boost_path'],'boost','version.hpp'))
+boostversion='unknown'
+try:
+    for line in boosthpp:
+        ver=re.match(r'#define BOOST_VERSION (\d+)',line)
+        if ver:
+            boostversion=ver.group(1)
+except StopIteration: 
+    pass
+buildvars.write("boost="+boostversion+"\n")
+buildvars.write("svn_revision="+str(global_revision)+"\n")
+out="usedebug="
+if env['usedebug']:
+    out+="y"
+else:
+    out+="n"
+out+="\nusempi="
+if env['usempi']:
+    out+="y"
+else:
+    out+="n"
+out+="\nuseopenmp="
+if env['useopenmp']:
+    out+="y"
+else:
+    out+="n"
+buildvars.write(out+"\n")
+
+buildvars.close()
+
 
 ############ Targets to build and install libraries ############
 
