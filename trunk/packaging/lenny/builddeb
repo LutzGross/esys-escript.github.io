@@ -45,6 +45,12 @@ cp $SRCDIR/doc/manpage/$WRAPPERNAME.1 $OUTPUTROOT/usr/share/man/man1/$ALTWRAPPER
 gzip $OUTPUTROOT/usr/share/man/man1/$WRAPPERNAME.1
 gzip $OUTPUTROOT/usr/share/man/man1/$ALTWRAPPERNAME.1
 
+#copy the documentation
+cp $SRCDIR/release/doc/escript_examples.tar.gz $OUTPUTROOT/usr/share/doc/escript/
+cp $SRCDIR/release/doc/install/install.pdf $OUTPUTROOT/usr/share/doc/escript
+cp $SRCDIR/release/doc/user/guide.pdf $OUTPUTROOT/usr/share/doc/escript
+cp -r $SRCDIR/release/doc/epydoc $OUTPUTROOT/usr/share/doc/escript/python_html
+
 mkdir -p $LIBOUT/lib
 mkdir -p $BINOUT
 #Should be using install here?
@@ -70,8 +76,6 @@ sed	-e "s%@@ESCRIPT_ROOT@@%$ESCRIPT_ROOT%"		\
 cd $BINOUT
 ln -s $WRAPPERNAME $ALTWRAPPERNAME
 cd $SRCDIR
-
-cp release/doc/
 
 #Nuke any svn stuff that made it in
 find $OUTPUTROOT -name ".svn" | xargs rm -rf 
