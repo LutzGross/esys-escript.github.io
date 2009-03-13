@@ -1490,19 +1490,28 @@ def whereNonPositive(arg):
    else:
       raise TypeError,"whereNonPositive: Unknown argument type."
 
-def whereZero(arg,tol=0.):
+def whereZero(arg,tol=None,adaptTol=True,rtol=math.sqrt(EPSILON)):
    """
    Returns mask of zero entries of argument C{arg}.
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, C{numarray.NumArray}
-   @param tol: tolerance. Values with absolute value less than tol are accepted
-               as zero.
+   @param tol: absolute tolerance. Values with absolute value less than tol are accepted
+               as zero. If C{tol} is not present C{rtol}*C{L{Lsup}(arg)} is used. 
    @type tol: C{float}
+   @param rtol: relative tolerance used to define the absolute tolerance if C{tol} is not present.
+   @type rtol: non-negative C{float}
    @rtype: C{float}, L{escript.Data}, L{Symbol}, C{numarray.NumArray} depending
            on the type of C{arg}
+   @raises ValueError: if C{rtol} is non-negative.
    @raises TypeError: if the type of the argument is not expected
    """
+   if tol == None:
+      if not isinstance(arg,Symbol):
+         if rtol<=0: raise ValueError,"rtol must be non-negative."
+         tol = Lsup(arg)*rtol
+      else:
+         tol=0.
    if isinstance(arg,numarray.NumArray):
       out=numarray.less_equal(abs(arg)-tol,numarray.zeros(arg.shape,numarray.Float64))*1.
       if isinstance(out,float): out=numarray.array(out,type=numarray.Float64)
@@ -1587,11 +1596,23 @@ def whereNonZero(arg,tol=0.):
    Returns mask of values different from zero of argument C{arg}.
 
    @param arg: argument
-   @type arg: C{float}, L{escript.Data}, L{Symbol}, C{numarray.NumArray}.
+   @type arg: C{float}, L{escript.Data}, L{Symbol}, C{numarray.NumArray}
+   @param tol: absolute tolerance. Values with absolute value less than tol are accepted
+               as zero. If C{tol} is not present C{rtol}*C{L{Lsup}(arg)} is used. 
+   @type tol: C{float}
+   @param rtol: relative tolerance used to define the absolute tolerance if C{tol} is not present.
+   @type rtol: non-negative C{float}
    @rtype: C{float}, L{escript.Data}, L{Symbol}, C{numarray.NumArray} depending
            on the type of C{arg}
-   @raise TypeError: if the type of the argument is not expected
+   @raises ValueError: if C{rtol} is non-negative.
+   @raises TypeError: if the type of the argument is not expected
    """
+   if tol == None:
+      if not isinstance(arg,Symbol):
+         if rtol<=0: raise ValueError,"rtol must be non-negative."
+         tol = Lsup(arg)*rtol
+      else:
+         tol=0.
    if isinstance(arg,numarray.NumArray):
       out=numarray.greater(abs(arg)-tol,numarray.zeros(arg.shape,numarray.Float64))*1.
       if isinstance(out,float): out=numarray.array(out,type=numarray.Float64)

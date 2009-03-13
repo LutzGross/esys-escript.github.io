@@ -1081,12 +1081,12 @@ returns a function which is $1$ where \var{a} is non--negative and $0$ otherwise
 returns a function which is $1$ where \var{a} is non--positive and $0$ otherwise.
 \end{funcdesc}
 
-\begin{funcdesc}{whereZero}{a\optional{, tol=0.}}
-returns a function which is $1$ where \var{a} equals zero with tolerance \var{tol} and $0$ otherwise. 
+\begin{funcdesc}{whereZero}{a\optional{, tol=None, \optional{, rtol=1.e-8}}}
+returns a function which is $1$ where \var{a} equals zero with tolerance \var{tol} and $0$ otherwise. If \var{tol} is not present, the absolute maximum value of C{a} times C{rtol} is used.
 \end{funcdesc}
 
-\begin{funcdesc}{whereNonZero}{a\optional{, tol=0.}}
-returns a function which is $1$ where \var{a} different from zero with tolerance \var{tol} and $0$ otherwise. 
+\begin{funcdesc}{whereNonZero}{a, \optional{, tol=None, \optional{, rtol=1.e-8}}}
+returns a function which is $1$ where \var{a} different from zero with tolerance \var{tol} and $0$ otherwise. If \var{tol} is not present, the absolute maximum value of C{a} times C{rtol} is used.
 \end{funcdesc}
 
 \subsection{\Operator Class}
