@@ -6,7 +6,7 @@ from math import pi, ceil
 NE=16
 DIM=3
 H=1.
-L=1*H
+L=2*H
 TOL=1.e-4
 OMEGA=10
 EPS=0.01
@@ -44,7 +44,7 @@ dt=0.
 while t<T_END:
     print "STEP ", t
     u=v*cos(OMEGA*t)
-    u,Z=mts.update(u=u,H_t=H_t)
+    u,Z=mts.update(u=u,H_t=H_t,verbose=False)
     
     saveVTK("state.%d.vtu"%n,sol=Z)
     print "Integral(Z)=",integrate(Z),Lsup(u[DIM-1])
