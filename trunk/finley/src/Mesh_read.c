@@ -861,7 +861,10 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
       if (Finley_noError()) {
         char *remainder=0, *ptr;
         size_t len=0;
-        int tag_key, len_i;
+#ifdef PASO_MPI
+        int len_i;
+#endif
+        int tag_key;
         if (mpi_info->rank == 0) {	/* Master */
 	  /* Read the word 'Tag' */
 	  if (! feof(fileHandle_p)) {
