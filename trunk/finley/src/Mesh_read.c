@@ -921,7 +921,8 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
           }
 #endif
 	  len = strlen(remainder);
-	  while ((--len)>0 && isspace(remainder[len])) remainder[len]=0;
+/*	  while (((--len)>0) && isspace((int)(remainder[len]))) {remainder[len]=0;}  */
+	  while ((len>1) && isspace(remainder[--len])) {remainder[len]=0;}
 	  len = strlen(remainder);
           TMPMEMREALLOC(remainder,remainder,len+1,char);
         }
