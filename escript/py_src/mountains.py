@@ -66,7 +66,7 @@ class Mountains:
     self.__H_t=Scalar(0.0, Solution(domain))
     self.__dt=0.
 
-  def update(self,u=None,H_t=None,dt=None):
+  def update(self,u=None,H_t=None,dt=None,verbose=False):
       """
       Sets a new W and updates the H function.
 
@@ -80,7 +80,7 @@ class Mountains:
          
       for d in range(self.__DIM):
         self.__PDE_W.setValue(r=u[d]*self.__x[self.__DIM-1]/self.__z)
-        u[d]=self.__PDE_W.getSolution()
+        u[d]=self.__PDE_W.getSolution(verbose=verbose)
 
       if dt==None:
         dt=0.5*self.__h/sup(u)
@@ -107,7 +107,7 @@ class Mountains:
 
   def getDt(self):
       """
-      Returns the mesh size.
+      Returns the time step value.
       """
       return self.__dt
     
