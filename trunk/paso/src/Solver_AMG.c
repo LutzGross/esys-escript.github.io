@@ -112,8 +112,6 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
      /* identify independend set of rows/columns */
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
-     /*Paso_Pattern_RS(A_p,mis_marker,0.25);*/
-     /*Paso_Pattern_Aggregiation(A_p,mis_marker,0.5);*/
      Paso_Pattern_coup(A_p,mis_marker,couplingParam);
      if (Paso_noError()) {
         #pragma omp parallel for private(i) schedule(static)

@@ -103,7 +103,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
                     passed=FALSE;
                     break;
                 }
-              }
+              } 
             }
             if (passed) {
                mis_marker[i]=IS_IN_SET;
@@ -114,7 +114,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
 
     /* This check is to make sure we dont get some nusty rows which were not removed durring coarsing process.*/
     /* TODO: we have to mechanism that this does not happend at all, and get rid of this 'If'. */
-     /*This loop cannot be parallelized, as order matters here.*/ 
+    #pragma omp parallel for private(i,ipr,j,sum) schedule(static)
     for (i=0;i<n;i++) {
         if (mis_marker[i]==IS_REMOVED) {
            sum=0;
@@ -136,134 +136,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
      MEMFREE(diagptr);
 }
 
-/*
- *
- * Return a strength of connection mask using the classical 
- * strength of connection measure by Ruge and Stuben.
- *
- * Specifically, an off-diagonal entry A[i.j] is a strong 
- * connection if:
- *  
- *      -A[i,j] >= theta * max( -A[i,k] )   where k != i
- * 
- * Otherwise, the connection is weak.
- *  
- */  
-void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta) 
-{
-  dim_t i;
-  index_t iptr;
-  double threshold,max_offdiagonal;
-  dim_t n=A->numRows;
-  if (A->pattern->type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
-    return;
-  }
-
-    #pragma omp parallel for private(i,iptr,max_offdiagonal,threshold) schedule(static) 
-    for (i=0;i<n;++i) {
-      if(mis_marker[i]==IS_AVAILABLE) {
-        /*min_offdiagonal = A->val[A->pattern->ptr[i]-index_offset];*/
-        max_offdiagonal = -1.e+15;
-        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-            if(A->pattern->index[iptr] != i){
-                max_offdiagonal = MAX(max_offdiagonal,-(A->val[iptr]));
-            }
-        }
-
-        threshold = theta*max_offdiagonal;
-        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-            if(-(A->val[iptr])<threshold && A->pattern->index[iptr]!=i){
-                    A->val[iptr]=0.;
-            }
-        }
-       }
-      }
-
-    Paso_Pattern_coup(A,mis_marker,0.05);
-}
-
-
-
-
-void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double theta) 
-{
-  dim_t i,j;
-  index_t iptr;
-  double diag,eps_Aii,val;
-  dim_t n=A->numRows;
-  double* diags=MEMALLOC(n,double);
-  
-  if (A->pattern->type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
-    return;
-  }
-    
-
-    #pragma omp parallel for private(i,iptr,diag) schedule(static) 
-      for (i=0;i<n;++i) {
-        diag = 0;
-        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-            if(A->pattern->index[iptr] != i){
-                diag+=A->val[iptr];
-            }
-        }
-        diags[i]=ABS(diag);
-      }
-    
-   
-    #pragma omp parallel for private(i,iptr,j,val,eps_Aii) schedule(static) 
-     for (i=0;i<n;++i) {
-       if (mis_marker[i]==IS_AVAILABLE) {
-        eps_Aii = theta*theta*diags[i];
-        val=0.; 
-        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-            j=A->pattern->index[iptr];
-            val=A->val[iptr];
-            if(j!= i) {
-              if(val*val>=eps_Aii * diags[j]) {
-               A->val[iptr]=val;
-              }
-              else {
-               A->val[iptr]=0.;
-              }
-            }
-        }
-       }
-     }
-    
-    Paso_Pattern_coup(A,mis_marker,0.05);
-     MEMFREE(diags);
-}
-
 
 #undef IS_AVAILABLE 
 #undef IS_IN_SET 
 #undef IS_REMOVED
-
-void Paso_Pattern_color1(Paso_SparseMatrix* A, index_t* num_colors, index_t* colorOf) {
-  index_t out=0, *mis_marker=NULL,i;
-  dim_t n=A->numRows;
-  mis_marker=TMPMEMALLOC(n,index_t);
-  if ( !Paso_checkPtr(mis_marker) ) {
-    /* get coloring */
-    #pragma omp parallel for private(i) schedule(static)
-    for (i = 0; i < n; ++i) {
-        colorOf[i]=-1;
-        mis_marker[i]=-1;
-    }
-
-    while (Paso_Util_isAny(n,colorOf,-1) && Paso_noError()) {
-       Paso_Pattern_coup(A,mis_marker,0.05);
-
-       #pragma omp parallel for private(i) schedule(static)
-       for (i = 0; i < n; ++i) {
-        if (mis_marker[i]) colorOf[i]=out;
-        mis_marker[i]=colorOf[i];
-       }
-       ++out;
-    }
-    TMPMEMFREE(mis_marker);
-    *num_colors=out;
-  }
-}
