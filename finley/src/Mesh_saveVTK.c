@@ -221,7 +221,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
             sprintf(errorMsg, "saveVTK: File %s could not be opened for writing in parallel.", filename_p);
             Finley_setError(IO_ERROR, errorMsg);
         } else {
-            MPI_File_set_view(mpi_fileHandle_p, MPI_DISPLACEMENT_CURRENT,
+            ierr=MPI_File_set_view(mpi_fileHandle_p,MPI_DISPLACEMENT_CURRENT,
                     MPI_CHAR, MPI_CHAR, "native", mpi_info);
         }
 #endif /* PASO_MPI */

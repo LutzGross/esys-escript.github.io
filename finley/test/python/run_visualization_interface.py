@@ -153,6 +153,7 @@ class Test_VisualizationInterface(unittest.TestCase):
               return False, "Error: no matching node for node %s %s."%(n1,nodeMap1[n1])
            nodeMap1to2[n1]=v
 
+
      # Find the list of elements
      elementList1 = []
      withinTheElementList = False
@@ -180,13 +181,16 @@ class Test_VisualizationInterface(unittest.TestCase):
          v=None
          for n2 in range(0, len(elementList2)):
             if len(elementList1[n1]) == len(elementList2[n2]):
-               if min([ nnn in elementList2[n2] for nnn in elementList1[n1] ] ): 
-                  v=n2
-                  break
+               allmatched=True
+               for i in elementList1[n1]:
+                   if not max([ nnn in nodeMap1to2[i] for nnn in elementList2[n2]] ): allmatched=False
+               if allmatched: 
+                    v=n2
+                    break
          if v == None:
-              return False, "Error: element %s is missing."%elementList1[n1]
+             return False, "Error: element %s is missing."%elementList1[n1]
          else:
-            elementMap1to2[n1]=[n2]
+             elementMap1to2[n1]=[v]
      # Find the data sets and compare them
      dataList1 = []
      dataList2 = []
@@ -2973,7 +2977,7 @@ class Test_DXFiles(Test_VisualizationInterface):
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   #suite.addTest(Test_VTKFiles("test_hex_3D_order2p_ReducedFunctionOnBoundary_Tensor_vtk"))
+   # suite.addTest(Test_VTKFiles("test_hex_2D_order2p_Solution_Vector_vtk"))
    suite.addTest(unittest.makeSuite(Test_VTKFiles))
    # saveDX is not MPI parallel
    if getMPISizeWorld() == 1: suite.addTest(unittest.makeSuite(Test_DXFiles))
