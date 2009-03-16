@@ -36,6 +36,7 @@ import design
 import tempfile
 import os
 from primitives import Point, Spline, BezierCurve, BSpline, Line, Arc, CurveLoop, RuledSurface, PlaneSurface, SurfaceLoop, Volume, PropertySet, Ellipse
+from esys.escript import getMPIWorldMax, getMPIRankWorld
 
 class Design(design.Design):
     """
@@ -140,7 +141,11 @@ class Design(design.Design):
         f.write(self.getScriptString())
         f.close()
         cmd = self.getCommandString()
-        ret = os.system(cmd) / 256
+        if getMPIRankWorld():
+            ret = os.system(cmd) / 256
+        else:
+            ret=0
+        ret=getMPIWorldMax(ret)
         if ret > 0:
           raise RuntimeError, "Could not build mesh: %s"%cmd
         else:

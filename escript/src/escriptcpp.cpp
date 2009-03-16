@@ -101,6 +101,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("printParallelThreadCounts",escript::printParallelThreadCnt);
   def("getMPISizeWorld",escript::getMPISizeWorld);
   def("getMPIRankWorld",escript::getMPIRankWorld);
+  def("getMPIWorldMax",escript::getMPIWorldMax);
   def("getMachinePrecision",escript::getMachinePrecision);
   def("getMaxFloat",escript::getMaxFloat);
   //

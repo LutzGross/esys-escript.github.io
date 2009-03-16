@@ -205,9 +205,9 @@ void Finley_Mesh_saveVTK(const char *filename_p,
     my_mpi_rank = mesh_p->Nodes->MPIInfo->rank;
     mpi_size = mesh_p->Nodes->MPIInfo->size;
 
-    /************************************************************************/
-    /* open the file and check handle */
-
+    /************************************************************************
+     * open the file and check handle *
+     */
     if (mpi_size > 1) {
 #ifdef PASO_MPI
         const int amode = MPI_MODE_CREATE|MPI_MODE_WRONLY|MPI_MODE_UNIQUE_OPEN;

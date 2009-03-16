@@ -59,6 +59,11 @@ namespace escript {
      returns the MPI processor number within MPI_COMM_WORLD
   */
   ESCRIPT_DLL_API int getMPIRankWorld();
+  /**
+     \brief
+     returns the maximum value of an integer over all processors within MPI_COMM_WORLD
+  */
+  ESCRIPT_DLL_API int getMPIWorldMax(const int val);
 
  /**
     \brief 

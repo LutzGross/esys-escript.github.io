@@ -131,6 +131,19 @@ int getMPIRankWorld() {
   return mpi_iam;
 }
 
+ESCRIPT_DLL_API int getMPIWorldMax(const int val) {
+  #ifdef PASO_MPI
+  int val2 = val;
+  int out = val;
+  MPI_Allreduce( &val2, &out, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD );
+  #else
+  int out = val;
+  #endif
+  return out;
+}
+
+   
+
 double getMachinePrecision() {
    return DBL_EPSILON;
 }

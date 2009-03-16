@@ -572,7 +572,7 @@ if env_mpi['usempi']:
   conf.env.PrependENVPath('LD_LIBRARY_PATH', env['libinstall'])
 
 if env_mpi['usempi'] and not conf.CheckCHeader('mpi.h'): env_mpi['usempi'] = 0
-if env_mpi['usempi'] and not conf.CheckFunc('MPI_Init'): env_mpi['usempi'] = 0
+# if env_mpi['usempi'] and not conf.CheckFunc('MPI_Init'): env_mpi['usempi'] = 0
 
 # Add MPI to environment env_mpi if it was found
 if env_mpi['usempi']:
