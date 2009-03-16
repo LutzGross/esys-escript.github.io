@@ -38,6 +38,7 @@ import glob
 import esys.pycad.design as design
 from math import *
 from esys.pycad.primitives import Point, Spline, BezierCurve, BSpline, Line, Arc, CurveLoop, RuledSurface, PlaneSurface, SurfaceLoop, Volume, PropertySet
+from esys.escript import getMPIWorldMax, getMPIRankWorld
 
 class Design(design.Design):
     """
@@ -139,9 +140,13 @@ class Design(design.Design):
         """
         open(self.getScriptFileName(),"w").write(self.getScriptString())
         cmd = self.getCommandString()
-        ret = os.system(cmd) / 256
+        if getMPIRankWorld():
+            ret = os.system(cmd) / 256
+        else:
+            ret=0
+        ret=getMPIWorldMax(ret)
         if ret > 0:
-            raise RuntimeError, "Could not build mesh: %s"%cmd
+          raise RuntimeError, "Could not build mesh: %s"%cmd
         else:
             # <hack> so that users can set the mesh filename they want.
             name=self.getScriptFileName()

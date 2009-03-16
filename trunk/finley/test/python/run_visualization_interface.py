@@ -2973,9 +2973,9 @@ class Test_DXFiles(Test_VisualizationInterface):
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   # suite.addTest(Test_VTKFiles("test_hex_contact_3D_order2_onFace_ReducedFunctionOnContactZero_Vector_vtk"))
+   #suite.addTest(Test_VTKFiles("test_hex_3D_order2p_ReducedFunctionOnBoundary_Tensor_vtk"))
    suite.addTest(unittest.makeSuite(Test_VTKFiles))
    # saveDX is not MPI parallel
-   # if getMPISizeWorld() == 1: suite.addTest(unittest.makeSuite(Test_DXFiles))
+   if getMPISizeWorld() == 1: suite.addTest(unittest.makeSuite(Test_DXFiles))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)

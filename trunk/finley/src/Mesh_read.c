@@ -270,7 +270,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 
 {
 
-  Paso_MPIInfo *mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
+  Paso_MPIInfo *mpi_info = NULL;
   dim_t numNodes, numDim, numEle, i0, i1;
   Finley_Mesh *mesh_p=NULL;
   char name[LenString_MAX],element_type[LenString_MAX],frm[20];
@@ -283,6 +283,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
   int scan_ret;
 
   Finley_resetError();
+  mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
 
   if (mpi_info->rank == 0) {
      /* get file handle */
@@ -325,6 +326,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
     }
   }
 #endif
+
 
      /* allocate mesh */
      mesh_p = Finley_Mesh_alloc(name,numDim,order,reduced_order,mpi_info);
@@ -858,11 +860,8 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
       /* get the name tags */
       if (Finley_noError()) {
         char *remainder=0, *ptr;
-        size_t len;
-        int tag_key;
-
-
-
+        size_t len=0;
+        int tag_key, len_i;
         if (mpi_info->rank == 0) {	/* Master */
 	  /* Read the word 'Tag' */
 	  if (! feof(fileHandle_p)) {
@@ -925,17 +924,18 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
         }
 #ifdef PASO_MPI
 
-        if (MPI_Bcast (&len, 1, MPI_INT,  0, mpi_info->comm) != MPI_SUCCESS)
+        len_i=(int) len;
+        if (MPI_Bcast (&len_i, 1, MPI_INT,  0, mpi_info->comm) != MPI_SUCCESS)
         {
            Finley_setError(PASO_MPI_ERROR,
                            "Finley_Mesh_read: broadcast of tag len failed");
            return NULL;
         }
+        len=(size_t) len_i;
 	if (mpi_info->rank != 0) {
 	  remainder = TMPMEMALLOC(len+1, char);
 	  remainder[0] = 0;
 	}
-
         if (MPI_Bcast (remainder, len+1, MPI_CHAR,  0, mpi_info->comm) !=
             MPI_SUCCESS)
         {
@@ -944,6 +944,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
            return NULL;
         }
 #endif
+
 	if (remainder[0]) {
           ptr = remainder;
           do {
