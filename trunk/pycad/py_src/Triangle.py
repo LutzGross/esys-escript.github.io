@@ -138,9 +138,9 @@ class Design(design.Design):
         Returns a handle to a mesh meshing the design. In the current
         implementation a mesh file name in Triangle format is returned.
         """
-        open(self.getScriptFileName(),"w").write(self.getScriptString())
         cmd = self.getCommandString()
         if getMPIRankWorld():
+            open(self.getScriptFileName(),"w").write(self.getScriptString())
             ret = os.system(cmd) / 256
         else:
             ret=0
