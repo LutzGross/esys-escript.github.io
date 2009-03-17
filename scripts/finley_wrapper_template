@@ -50,11 +50,11 @@ EXTRA_PYTHONPATH=""
 
 if [ $STANDALONE == 1 ]
 then
-    EXTRA_PATH=$ESCRIPT_PARENT/packages/python-2.6.1/bin:$EXTRA_PATH
-    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/boost_1_37_0/lib:$ESCRIPT_PARENT/packages/netcdf-4.0/lib/:$EXTRA_LD_LIBRARY_PATH
-    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/vtk-5.2.1/lib/vtk-5.2:$ESCRIPT_PARENT/packages/Mesa-7.2/lib:$EXTRA_LD_LIBRARY_PATH
-    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/python-2.6.1/lib:$EXTRA_LD_LIBRARY_PATH
-    EXTRA_PYTHONPATH=$ESCRIPT_PARENT/packages/numarray-1.5.2/lib:$ESCRIPT_PARENT/packages/vtk-5.2.1/lib/python2.6/site-packages:$EXTRA_PYTHONPATH
+    EXTRA_PATH=$ESCRIPT_PARENT/packages/python/bin:$EXTRA_PATH
+    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/boost/lib:$ESCRIPT_PARENT/packages/netcdf/lib/:$EXTRA_LD_LIBRARY_PATH
+    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/vtk/lib/vtk-5.2:$ESCRIPT_PARENT/packages/mesa/lib:$EXTRA_LD_LIBRARY_PATH
+    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/python/lib:$EXTRA_LD_LIBRARY_PATH
+    EXTRA_PYTHONPATH=$ESCRIPT_PARENT/packages/numarray/lib:$ESCRIPT_PARENT/packages/vtk/lib/python2.6/site-packages:$EXTRA_PYTHONPATH
 fi
 
 # For stand-alone builds this will need to be changed
