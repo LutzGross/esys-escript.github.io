@@ -65,6 +65,13 @@ namespace escript {
   */
   ESCRIPT_DLL_API int getMPIWorldMax(const int val);
 
+
+  /**
+    \brief performs a barrier synchronization across all processors.
+  */
+
+  ESCRIPT_DLL_API void MPIBarrierWorld();
+
  /**
     \brief 
     returns machine precision

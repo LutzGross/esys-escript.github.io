@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class Glyph3D:
 	"""
@@ -42,7 +43,8 @@ class Glyph3D:
 		"""
 		Initialise the 3D glyph.
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.Glyph3D is not running on more than one processor."
 		self.__vtk_glyph3D = vtk.vtkGlyph3D()
 
 	def _setupGlyph3D(self, object, source):
@@ -180,7 +182,8 @@ class TensorGlyph:
 		"""
 		Initialise the tensor glyph.
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.TensorGlyph is not running on more than one processor."
 		self.__vtk_tensor_glyph = vtk.vtkTensorGlyph()
 
 	def _setupTensorGlyph(self, object, source):

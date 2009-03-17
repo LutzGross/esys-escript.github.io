@@ -23,6 +23,7 @@ from esys.pyvisi import Scene
 from esys.pyvisi.constant import *
 import unittest, os, sys
 from stat import ST_SIZE
+from esys.escript import getMPISizeWorld
 
 try:
 	PYVISI_WORKDIR=os.environ['PYVISI_WORKDIR']
@@ -51,6 +52,14 @@ class TestScene:
 	
 	def setBackground(self, c):
 		self.scene.setBackground(color = c)
+
+class TestSceneInit(unittest.TestCase):
+        def testInit(self):
+             if getMPISizeWorld() == 1: 
+                scene= Scene(renderer = JPG_RENDERER, num_viewport = 1,x_size = X_SIZE, y_size = Y_SIZE)
+             else:
+                self.failUnlessRaises(ValueError,Scene,renderer = JPG_RENDERER, num_viewport = 1,x_size = X_SIZE, y_size = Y_SIZE)
+           
 
 class TestSceneOneViewport(unittest.TestCase, TestScene):
 	def setUp(self): 
@@ -88,9 +97,14 @@ class TestSceneFourViewports(unittest.TestCase, TestScene):
 
 
 if __name__ == '__main__':
-	suite = unittest.TestSuite()
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestSceneInit))
+    if getMPISizeWorld() == 1: 
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestSceneOneViewport))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestSceneFourViewports))
-	s=unittest.TextTestRunner(verbosity=2).run(suite)
-        if not s.wasSuccessful(): sys.exit(1)
+    else:
+        print "some tests in run_scene.py are not executed as more than one processor is used."
+    s=unittest.TextTestRunner(verbosity=2).run(suite)
+    if not s.wasSuccessful(): sys.exit(1)
+    print "all done."
 

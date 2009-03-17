@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class Actor3D:
 	"""
@@ -42,7 +43,8 @@ class Actor3D:
 		"""
 		Initialise the 3D actor.
 		"""
-
+                if getMPISizeWorld()>1:
+                     raise ValueError,"pyvisi.Actor3D is not running on more than one processor."
 		self.__vtk_actor3D = vtk.vtkActor()
 
 	def _setupActor3D(self, mapper):
@@ -136,7 +138,8 @@ class Actor2D:
 		"""
 		Initialise the 2D actor.
 		"""
-
+                if getMPISizeWorld()>1:
+                     raise ValueError,"pyvisi.Actor2D is not running on more than one processor."
 		self._vtk_actor2D = vtk.vtkActor2D()
 
 	def _setupActor2D(self, mapper):

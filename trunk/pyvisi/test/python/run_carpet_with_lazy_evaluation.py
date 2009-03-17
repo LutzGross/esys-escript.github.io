@@ -21,6 +21,7 @@ __url__="http://www.uq.edu.au/esscc/escript-finley"
 
 from esys.pyvisi import DataCollector, Scene, Carpet, Camera
 from esys.pyvisi.constant import *
+from esys.escript import getMPISizeWorld
 import unittest, os, sys
 from stat import ST_SIZE
 
@@ -79,8 +80,11 @@ class TestCarpet(unittest.TestCase, TestCarpetWithLazyEvaluation):
 
 ##############################################################################
 if __name__ == '__main__':
+    if getMPISizeWorld() == 1: 
 	suite = unittest.TestSuite()
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestCarpet))
 	s=unittest.TextTestRunner(verbosity=2).run(suite)
         if not s.wasSuccessful(): sys.exit(1)
 
+    else:
+        print "run_carpet_with_lazy_evaluation.py is not executed as more than one processor is used."

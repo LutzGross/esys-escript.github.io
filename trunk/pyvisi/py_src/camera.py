@@ -34,6 +34,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 import vtk
 from position import GlobalPosition
 from constant import Viewport
+from esys.escript import getMPISizeWorld
 
 class Camera:
 	"""
@@ -54,7 +55,8 @@ class Camera:
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.Camera is not running on more than one processor."
 		self.__viewport = viewport
 		self.__vtk_camera = vtk.vtkCamera()
 

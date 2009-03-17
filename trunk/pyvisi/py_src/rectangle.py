@@ -36,6 +36,7 @@ from mapper import DataSetMapper
 from actor import Actor3D
 from constant import Viewport
 from cube import CubeSource
+from esys.escript import getMPISizeWorld
 
 # NOTE: CubeSource, DataSetMapper and Actor3D were inherited to allow 
 # access to their public methods from the driver.

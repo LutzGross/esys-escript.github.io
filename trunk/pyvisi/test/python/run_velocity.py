@@ -23,6 +23,7 @@ from esys.pyvisi import DataCollector, Scene, Velocity
 from esys.pyvisi.constant import *
 import unittest, os, sys
 from stat import ST_SIZE
+from esys.escript import getMPISizeWorld
 
 try:
 	PYVISI_WORKDIR=os.environ['PYVISI_WORKDIR']
@@ -142,10 +143,13 @@ class TestVelocity3DSecondOrder(unittest.TestCase, TestVelocity):
 
 
 if __name__ == '__main__':
+    if getMPISizeWorld() == 1:
 	suite = unittest.TestSuite()
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestVelocity2DArrowVectorColor))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestVelocity2DArrowScalarColor))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestVelocity3DSecondOrder))
 	s=unittest.TextTestRunner(verbosity=2).run(suite)
         if not s.wasSuccessful(): sys.exit(1)
+    else:
+        print "run_velocity.py is not executed as more than one processor is used."
 

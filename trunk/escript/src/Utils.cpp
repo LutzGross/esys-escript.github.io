@@ -115,7 +115,7 @@ int getNumberOfThreads()
 
 }
 
-int getMPISizeWorld() {
+ESCRIPT_DLL_API int getMPISizeWorld() {
   int mpi_num = 1;
   #ifdef PASO_MPI
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_num);
@@ -123,7 +123,7 @@ int getMPISizeWorld() {
   return mpi_num;
 }
 
-int getMPIRankWorld() {
+ESCRIPT_DLL_API int getMPIRankWorld() {
   int mpi_iam = 0;
   #ifdef PASO_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_iam);
@@ -144,11 +144,16 @@ ESCRIPT_DLL_API int getMPIWorldMax(const int val) {
 
    
 
-double getMachinePrecision() {
+ESCRIPT_DLL_API double getMachinePrecision() {
    return DBL_EPSILON;
 }
-double getMaxFloat() {
+ESCRIPT_DLL_API double getMaxFloat() {
    return DBL_MAX;
+}
+ESCRIPT_DLL_API void MPIBarrierWorld() {
+  #ifdef PASO_MPI
+  MPI_Barrier(MPI_COMM_WORLD );
+  #endif
 }
 
 

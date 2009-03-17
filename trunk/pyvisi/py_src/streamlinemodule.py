@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class StreamLineModule:
 	"""
@@ -42,7 +43,8 @@ class StreamLineModule:
 		"""
 		Initialise the streamline module.
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.StreamLineModule is not running on more than one processor."
 		self.__vtk_stream_line = vtk.vtkStreamLine()
 
 	def _setupStreamLineModule(self, object, source):

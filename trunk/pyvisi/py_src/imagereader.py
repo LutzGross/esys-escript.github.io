@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 import vtk
 from constant import ImageFormat
+from esys.escript import getMPISizeWorld
 
 class ImageReader:
 	"""
@@ -46,7 +47,8 @@ class ImageReader:
 		@type format:  L{ImageFormat <constant.ImageFormat>} constant
 		@param format: Format of the image 
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.ImageReader is not running on more than one processor."
 		self.__format = format
 		self.__vtk_image_reader = self.__getImageReader()
 

@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class Clipper:
 	"""
@@ -42,7 +43,8 @@ class Clipper:
 		"""
 		Initialise the clipper.
 		"""
-		
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.Clipper is not running on more than one processor"		
 		self.__vtk_clipper = vtk.vtkClipDataSet()
 
 	def _setupClipper(self, object, plane):

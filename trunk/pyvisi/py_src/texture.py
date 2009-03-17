@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class Texture:
 	"""
@@ -42,7 +43,8 @@ class Texture:
 		"""
 		Initialise the texture.
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.Texture is not running on more than one processor."
 		self.__vtk_texture = vtk.vtkTexture()
 
 	def _setupTexture(self, image):

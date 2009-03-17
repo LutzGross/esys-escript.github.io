@@ -31,6 +31,7 @@ __url__="http://www.uq.edu.au/esscc/escript-finley"
 __author__="John Ngui, john.ngui@uq.edu.au"
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class LookupTable:
 	"""
@@ -41,6 +42,8 @@ class LookupTable:
 		"""
 		Initialise the lookup table.
 		"""
+                if getMPISizeWorld()>1:
+                     raise ValueError,"pyvisi.LookupTable is not running on more than one processor."
 
 		self.__vtk_lookup_table = vtk.vtkLookupTable()
 		self.__vtk_inverse_lookup_table = vtk.vtkLookupTable()

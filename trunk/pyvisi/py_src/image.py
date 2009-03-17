@@ -38,6 +38,7 @@ from constant import Viewport
 from texture import Texture
 from plane import PlaneSource
 from transform import Transform, TransformFilter
+from esys.escript import getMPISizeWorld
 
 # NOTE: DataSetMapper, Actor3D, Texture, PlaneSource, Transform and
 # TransformFilter were inherited to  allow access to their public methods 

@@ -31,6 +31,7 @@ __url__="http://www.uq.edu.au/esscc/escript-finley"
 __author__="John Ngui, john.ngui@uq.edu.au"
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class Tube:
 	"""
@@ -41,7 +42,8 @@ class Tube:
 		"""
 		Initialise the tube.
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.Tube is not running on more than one processor."
 		self.__vtk_tube = vtk.vtkTubeFilter()
 
 	def _setupTube(self, object):

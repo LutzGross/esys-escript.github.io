@@ -34,6 +34,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 import vtk
 from actor import Actor2D
 from constant import Viewport, Color
+from esys.escript import getMPISizeWorld
 
 # NOTE: Actor2D was inherited to allow access to its public methods from 
 # the driver.
@@ -54,7 +55,8 @@ class Text2D(Actor2D):
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.Text2D is not running on more than one processor."
 		self.__text = text
 		self.__viewport = viewport
 		self._vtk_actor2D = vtk.vtkTextActor()

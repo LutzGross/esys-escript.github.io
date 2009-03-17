@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class Geometry:
 	"""
@@ -42,7 +43,8 @@ class Geometry:
 		"""
 		Initialise the geometry filter.
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.Geometry is not running on more than one processor"
 		self.__vtk_geometry_filter = vtk.vtkGeometryFilter()
 		self.__object = object
 		self.__setInput()

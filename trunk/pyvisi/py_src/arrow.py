@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class Arrow2D:
 	"""
@@ -42,7 +43,8 @@ class Arrow2D:
 		"""
 		Initialise the 2D arrows.
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.Arrow2D is not running on more than one processor"
 		self.__vtk_arrow2D = vtk.vtkGlyphSource2D()
 		self.__setupArrow2D()
 
@@ -79,7 +81,8 @@ class Arrow3D:
 		"""
 		Initialise the 3D arrows.
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.Arrow3D is not running on more than one processor"
 		self.__vtk_arrow3D = vtk.vtkArrowSource()
 		
 	def _getArrow3DOutput(self):

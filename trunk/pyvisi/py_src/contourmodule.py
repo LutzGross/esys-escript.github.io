@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class ContourModule:
 	"""
@@ -42,7 +43,8 @@ class ContourModule:
 		"""
 		Initliase the contour module.
 		"""
-
+                if getMPISizeWorld()>1:
+                     raise ValueError,"pyvisi.ContourModule is not running on more than one processor."
 		self.__vtk_contour = vtk.vtkContourFilter()
 		# Keeps track whether the number of contours and its range have 
 		# been specified.

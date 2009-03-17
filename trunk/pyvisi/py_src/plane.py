@@ -33,6 +33,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 import vtk
 from position import GlobalPosition
+from esys.escript import getMPISizeWorld
 
 class Plane:
 	"""
@@ -43,7 +44,8 @@ class Plane:
 		"""
 		Initialise the plane.	
 		"""
-
+                if getMPISizeWorld()>1:
+                     raise ValueError,"pyvisi.Plane is not running on more than one processor."
 		self.__vtk_plane = vtk.vtkPlane()
 	
 	def _setupPlane(self, transform):	
@@ -114,7 +116,8 @@ class PlaneSource:
 		origin is set to (0, 0, 0) and the two points are set to (1, 0, 0) 
 		and (0, 1, 0).
 		"""
-
+                if getMPISizeWorld()>1:
+                     raise ValueError,"pyvisi.PlaneSource is not running on more than one processor."
 		self.__vtk_plane_source = vtk.vtkPlaneSource()
 		# Default origin of the plane source is (0, 0, 0).
 		self.__setOrigin(GlobalPosition(0, 0, 0))

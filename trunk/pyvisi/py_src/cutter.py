@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class Cutter:
 	"""
@@ -42,7 +43,8 @@ class Cutter:
 		"""
 		Initialise the cutter.
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.Cutter is not running on more than one processor"
 		self.__vtk_cutter = vtk.vtkCutter()
 
 	def _setupCutter(self, object, plane):

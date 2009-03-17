@@ -41,6 +41,7 @@ from glyph import  Glyph3D
 from outline import Outline
 from point import MaskPoints
 from average import CellDataToPointData
+from esys.escript import getMPISizeWorld
 
 # NOTE: DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D and
 # MaskPoints were inherited to allow access to their public 

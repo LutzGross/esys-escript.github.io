@@ -32,7 +32,9 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 from esys.pyvisi.constant import ImageFormat
+from esys.escript import getMPIWorldMax, getMPIRankWorld
 import os
+
 
 class Movie:
     """
@@ -123,10 +125,22 @@ class Movie:
         # will be deleted automatically once the movie has been generated. 
         # However, if a paramter file name was specified, the file will be 
         # maintained.
-        os.system('ppmtompeg ' + self.__parameter_file)
+        if getMPIRankWorld():
+            ret = os.system('ppmtompeg ' + self.__parameter_file) / 256
+        else:
+            ret=0
+        ret=getMPIWorldMax(ret)
+        if ret > 0:
+          raise RuntimeError, "Could not  generate movie %s"%'ppmtompeg ' + self.__parameter_file
+        
         if(self.__parameter_file == "make_movie"):
-            os.system('rm ' + self.__parameter_file)
-
+            if getMPIRankWorld():
+            	ret = os.system('rm ' + self.__parameter_file) / 256
+            else:
+            	ret=0
+            ret=getMPIWorldMax(ret)
+            if ret > 0:
+          	raise RuntimeError, 'Could not remove file '+ self.__parameter_file
         return
 
     def __splitInput(self):
@@ -216,42 +230,51 @@ class Movie:
         else: # Image list was provided
             input = self.__images
 
-        parameter_file = open(self.__parameter_file, 'w')
+        
+        ret=0
+        if getMPIRankWorld() == 0:
+             try: 
+                  parameter_file = open(self.__parameter_file, 'w')
 
-        if os.name == 'nt' :
-            tmp_input_name = self.__input_directory.replace('\\','/')
-            tmp_movie_name = self.__movie.replace('\\','/')
-        else:
-            tmp_input_name = self.__input_directory
-            tmp_movie_name = self.__movie
-
-        parameter_file.write('PATTERN IBBPBBPBBPBBPBBP\n' +
-                             'OUTPUT ' + tmp_movie_name + '\n' 
-                             'BASE_FILE_FORMAT PNM\n' + 
-                             'INPUT_CONVERT ' +  self.__command + 'topnm *\n' +
-                             'GOP_SIZE 16\n' +
-                             'SLICES_PER_FRAME 10\n' +
-                             'INPUT_DIR ' + tmp_input_name + '\n' +
-                             'INPUT\n' +
-                             input +
-                             'END_INPUT\n' +
-                             'PIXEL HALF\n' +
-                             'RANGE 10\n' +
-                             'PSEARCH_ALG LOGARITHMIC\n' + 
-                             'BSEARCH_ALG CROSS2\n' +
-                             'IQSCALE 8\n' + 
-                             'PQSCALE 10\n' +
-                             'BQSCALE 25\n' + 
-                             'REFERENCE_FRAME DECODED\n' +
-                             'FORCE_ENCODE_LAST_FRAME\n' +
-                             'ASPECT_RATIO 1\n' +
-                             'FRAME_RATE 24')
-
-        parameter_file.close()
-        if os.name == 'nt' :
-            tmp_name = self.__parameter_file.replace('\\','/')
-            os.system('dos2unix ' + tmp_name)
-
+                  if os.name == 'nt' :
+                      tmp_input_name = self.__input_directory.replace('\\','/')
+                      tmp_movie_name = self.__movie.replace('\\','/')
+                  else:
+                      tmp_input_name = self.__input_directory
+                      tmp_movie_name = self.__movie
+      
+                  parameter_file.write('PATTERN IBBPBBPBBPBBPBBP\n' +
+                                       'OUTPUT ' + tmp_movie_name + '\n' 
+                                       'BASE_FILE_FORMAT PNM\n' + 
+                                       'INPUT_CONVERT ' +  self.__command + 'topnm *\n' +
+                                       'GOP_SIZE 16\n' +
+                                       'SLICES_PER_FRAME 10\n' +
+                                       'INPUT_DIR ' + tmp_input_name + '\n' +
+                                       'INPUT\n' +
+                                       input +
+                                       'END_INPUT\n' +
+                                       'PIXEL HALF\n' +
+                                       'RANGE 10\n' +
+                                       'PSEARCH_ALG LOGARITHMIC\n' + 
+                                       'BSEARCH_ALG CROSS2\n' +
+                                       'IQSCALE 8\n' + 
+                                       'PQSCALE 10\n' +
+                                       'BQSCALE 25\n' + 
+                                       'REFERENCE_FRAME DECODED\n' +
+                                       'FORCE_ENCODE_LAST_FRAME\n' +
+                                       'ASPECT_RATIO 1\n' +
+                                       'FRAME_RATE 24')
+      
+                  parameter_file.close()
+                  if os.name == 'nt' :
+                      tmp_name = self.__parameter_file.replace('\\','/')
+                      os.system('dos2unix ' + tmp_name) 
+             except Exception, e:
+                 ret=1
+        ret=getMPIWorldMax(ret)
+        if ret > 0:
+            if getMPIRankWorld() == 0:
+                raise e
+            else:
+                raise RuntimeError, "Movie generation on processor 0 failed."
         return
-
-

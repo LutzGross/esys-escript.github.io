@@ -34,6 +34,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 import vtk
 from position import LocalPosition
 from constant import Color
+from esys.escript import getMPISizeWorld
 
 class ScalarBar:
 	"""
@@ -44,7 +45,8 @@ class ScalarBar:
 		"""
 		Initialise the scalar bar.
 		"""
-
+                if getMPISizeWorld()>1:
+                     raise ValueError,"pyvisi.ScalarBar is not running on more than one processor."
 		self.__vtk_scalar_bar = vtk.vtkScalarBarActor()
 		self.__setupScalarBar()
 

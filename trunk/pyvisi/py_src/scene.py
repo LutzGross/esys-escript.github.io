@@ -33,6 +33,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 import vtk
 from constant import Renderer, Color, Viewport, ImageFormat
+from esys.escript import getMPISizeWorld
 
 class Scene:
 	"""
@@ -60,6 +61,8 @@ class Scene:
 		@type y_size: Number
 		@param y_size: Size of the render window along the y-axis
 		"""
+                if getMPISizeWorld()>1:
+                   raise ValueError,"pyvisi.Scene is not running on more than one processor."
 
 		self.__renderer = renderer
 		self.__num_viewport = num_viewport

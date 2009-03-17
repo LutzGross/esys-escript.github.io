@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class CubeSource:
 	"""
@@ -46,7 +47,8 @@ class CubeSource:
 		"""
 		Initialise the cube source. 
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.CubeSource is not running on more than one processor"		
 		self.__vtk_cube_source = vtk.vtkCubeSource()
 
 	def setCenter(self, center):
