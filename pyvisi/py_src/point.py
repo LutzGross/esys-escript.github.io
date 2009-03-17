@@ -33,6 +33,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 import vtk
 from position import GlobalPosition
+from esys.escript import getMPISizeWorld
 
 class PointSource:
 	"""
@@ -44,7 +45,8 @@ class PointSource:
 		"""
 		Initialise the point source.
 		"""
-
+                if getMPISizeWorld()>1:
+                     raise ValueError,"pyvisi.PointSource is not running on more than one processor."
 		self.__vtk_point_source = vtk.vtkPointSource()
 		self.__center = None
 
@@ -141,8 +143,9 @@ class MaskPoints:
 		"""
 		Initialise the mask points.
 		"""
-
-		self.__vtk_mask_points = vtk.vtkMaskPoints()
+		if getMPISizeWorld()>1:
+                     raise ValueError,"pyvisi.MaskPoints is not running on more than one processor."
+                self.__vtk_mask_points = vtk.vtkMaskPoints()
 
 	def _setupMaskPoints(self, object):
 		"""

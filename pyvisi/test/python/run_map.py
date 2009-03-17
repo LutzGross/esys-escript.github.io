@@ -23,6 +23,7 @@ from esys.pyvisi import DataCollector, Scene, Map
 from esys.pyvisi.constant import *
 import unittest, os, sys
 from stat import ST_SIZE
+from esys.escript import getMPISizeWorld
 
 try:
 	PYVISI_WORKDIR=os.environ['PYVISI_WORKDIR']
@@ -437,6 +438,7 @@ class TestMapOnScalarClipWithRotation(unittest.TestCase, TestMap):
 
 
 if __name__ == '__main__':
+    if getMPISizeWorld() == 1: 
 	suite = unittest.TestSuite()
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOneViewport))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapFourViewports))
@@ -453,4 +455,6 @@ if __name__ == '__main__':
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMap3DSecondOrder))
 	s=unittest.TextTestRunner(verbosity=2).run(suite)
         if not s.wasSuccessful(): sys.exit(1)
+    else:
+        print "run_map.py is not executed as more than one processor is used."
 

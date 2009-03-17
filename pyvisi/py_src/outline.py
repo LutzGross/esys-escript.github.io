@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class Outline:
 	"""
@@ -45,7 +46,8 @@ class Outline:
 		@type object: vtkUnstructuredGrid, etc
 		@param object: Data source to the outline
 		"""
-		
+                if getMPISizeWorld()>1:
+                     raise ValueError,"pyvisi.Outline is not running on more than one processor."
 		self.__object = object
 		self.__vtk_outline = vtk.vtkOutlineFilter()
 		self.__setInput()

@@ -31,6 +31,7 @@ __url__="http://www.uq.edu.au/esscc/escript-finley"
 __author__="John Ngui, john.ngui@uq.edu.au"
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class Transform:
 	"""
@@ -53,7 +54,8 @@ class Transform:
 		"""
 		Initialise the transform object.
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.Transform is not running on more than one processor."
 		# NOTE: VTK's coordinates are not 100% precise. The origin is not 
 		# exaclty (0,0,0) and the normal is not exactly (0, 0, 1). There is a 
 		# slight variance. As a result, a slight alteration has to be done 
@@ -166,7 +168,8 @@ class TransformFilter:
 		"""
 		Initialise the transoform poly data filter.
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.TransformFilter is not running on more than one processor."
 		self.__vtk_transform_filter = vtk.vtkTransformPolyDataFilter()
 
 	def _setupTransformFilter(self, plane_source, transform):

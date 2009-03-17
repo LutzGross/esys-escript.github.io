@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class Normals:
 	"""
@@ -44,7 +45,8 @@ class Normals:
 		"""
 		Initialise the normals.
 		"""
-
+                if getMPISizeWorld()>1:
+                     raise ValueError,"pyvisi.Normals is not running on more than one processor."
 		self.__vtk_poly_data_normals = vtk.vtkPolyDataNormals()
 
 	def _setupNormals(self, object):

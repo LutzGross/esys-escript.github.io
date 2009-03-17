@@ -33,6 +33,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 import vtk
 from constant import WarpMode
+from esys.escript import getMPISizeWorld
 
 class Warp:
 	"""
@@ -46,7 +47,8 @@ class Warp:
 		@type warp_mode: L{WarpMode <constant.WarpMode>} constant
 		@param warp_mode: Mode in which to deform the data
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.Warp is not running on more than one processor."
 		if(warp_mode == WarpMode.SCALAR): # Deform data with scalar data.
 			self.__vtk_warp = vtk.vtkWarpScalar()
 		elif(warp_mode == WarpMode.VECTOR): # Deform data with vector data.

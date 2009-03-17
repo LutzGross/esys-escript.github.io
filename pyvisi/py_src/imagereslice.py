@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class ImageReslice:
 	"""
@@ -43,7 +44,8 @@ class ImageReslice:
 		"""
 		Initialise the image reslice.
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.ImageReslice is not running on more than one processor."
 		self.__vtk_image_reslice = vtk.vtkImageReslice()
 
 	def _setupImageReslice(self, object):

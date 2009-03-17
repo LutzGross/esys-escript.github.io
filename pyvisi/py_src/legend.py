@@ -37,6 +37,7 @@ from actor import Actor2D, Actor3D
 from lookuptable import LookupTable
 from constant import Viewport, Color, Lut, LegendType
 from scalarbar import ScalarBar
+from esys.escript import getMPISizeWorld
 
 # NOTE: ScalarBarModule, DataSetMapper and Actor3D were inherited to allow 
 # access to their public methods from the driver.

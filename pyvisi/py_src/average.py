@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class CellDataToPointData:
 	"""
@@ -46,7 +47,8 @@ class CellDataToPointData:
 		@type object: vtkUnstructuredGrid, etc
 		@param object: Input for the cell to point data filter
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.CellDataToPointData is not running on more than one processor."
 		self.__object = object
 		self.__vtk_cell_to_point = vtk.vtkCellDataToPointData()
 

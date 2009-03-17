@@ -31,6 +31,7 @@ __url__="http://www.uq.edu.au/esscc/escript-finley"
 __author__="John Ngui, john.ngui@uq.edu.au"
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class DataSetMapper:
 	"""
@@ -41,6 +42,8 @@ class DataSetMapper:
 		"""
 		Initialise the data set mapper.
 		"""
+                if getMPISizeWorld()>1:
+                     raise ValueError,"pyvisi.DataSetMapper is not running on more than one processor."
 
 		self.__vtk_data_set_mapper = vtk.vtkDataSetMapper()
 		# Keeps track whether the scalar range has been specified
@@ -169,7 +172,8 @@ class ImageMapper:
 		"""
 		Initialise the image mapper.
 		"""
-
+                if getMPISizeWorld()>1:
+                     raise ValueError,"pyvisi.ImageMapper is not running on more than one processor."
 		self.__vtk_image_mapper = vtk.vtkImageMapper()
 
 	def _setupImageMapper(self, object):

@@ -34,10 +34,8 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 import vtk
 import tempfile, os, sys
 from constant import Source, ColorMode
-try:
-	import esys.escript 
-except ImportError:
-	print "Warning: importing esys.escript failed."
+from esys.escript import getMPISizeWorld
+import esys.escript 
 
 class DataCollector:
 	"""
@@ -59,7 +57,8 @@ class DataCollector:
 		@type source: L{Source <constant.Source>} constant
 		@param source: Source type
 		"""
-
+                if getMPISizeWorld()>1:
+                    raise ValueError,"pyvisi.DataCollector is not running on more than one processor"
 		self.__source = source
 		# Keeps track on whether DataCollector have been modified.
 		self.__modified = True
@@ -73,8 +72,6 @@ class DataCollector:
 		self.__set_tensor= False
 		self.__tmp_fd = None
 		self.__tmp_file = None
-
-
 		if(source == Source.XML): # Source is an XML file.
 			self.__vtk_xml_reader = vtk.vtkXMLUnstructuredGridReader()
 		# Source is a escript data object using a temp file in the background. 

@@ -21,6 +21,7 @@ __url__="http://www.uq.edu.au/esscc/escript-finley"
 
 from esys.pyvisi import DataCollector
 from esys.pyvisi.constant import *
+from esys.escript import getMPISizeWorld
 import unittest, os, sys
 
 try:
@@ -162,6 +163,7 @@ class TestSourceXml3DCellData(unittest.TestCase, TestSourceXml):
 
 
 if __name__ == '__main__':
+    if getMPISizeWorld() == 1: 
 	suite = unittest.TestSuite()
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestSourceXml2DPointData))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestSourceXml2DCellData))
@@ -169,4 +171,6 @@ if __name__ == '__main__':
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestSourceXml3DCellData))
 	s=unittest.TextTestRunner(verbosity=2).run(suite)
         if not s.wasSuccessful(): sys.exit(1)
+    else:
+        print "run_datacollector.py is not executed as more than one processor is used."
 

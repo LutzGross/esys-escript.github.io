@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class Sphere:
 	"""
@@ -42,7 +43,8 @@ class Sphere:
 		"""
 		Initialise the sphere.
 		"""
-
+                if getMPISizeWorld()>1:
+                     raise ValueError,"pyvisi.Sphere is not running on more than one processor."
 		self.__vtk_sphere = vtk.vtkSphereSource()
 
 	def setThetaResolution(self, resolution):

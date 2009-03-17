@@ -42,6 +42,7 @@ from glyph import  TensorGlyph
 from outline import Outline
 from point import MaskPoints
 from average import CellDataToPointData
+from esys.escript import getMPISizeWorld
 
 # NOTE: DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph 
 # and MaskPoints  were inherited to allow access to their 

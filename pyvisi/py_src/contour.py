@@ -39,6 +39,7 @@ from outline import Outline
 from constant import Viewport, Color, Lut, ColorMode
 from contourmodule import ContourModule
 from average import CellDataToPointData
+from esys.escript import getMPISizeWorld
 
 # NOTE: DataSetMapper, Actor3D and ContourModule were inherited to allow 
 # access to their public methods from the driver.

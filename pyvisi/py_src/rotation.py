@@ -32,6 +32,7 @@ __author__="John Ngui, john.ngui@uq.edu.au"
 
 
 import vtk
+from esys.escript import getMPISizeWorld
 
 class Rotation:
 	"""
@@ -42,7 +43,8 @@ class Rotation:
 		"""
 		Initialise the rotation.
 		"""
-
+                if getMPISizeWorld()>1:
+                     raise ValueError,"pyvisi.Rotation is not running on more than one processor."
 		self.__vtk_rotational_extrusion_filter = \
 				vtk.vtkRotationalExtrusionFilter()
 

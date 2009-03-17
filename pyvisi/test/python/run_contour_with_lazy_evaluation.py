@@ -22,6 +22,7 @@ __url__="http://www.uq.edu.au/esscc/escript-finley"
 from esys.pyvisi import DataCollector, Scene, Contour, ContourOnPlaneCut
 from esys.pyvisi import ContourOnPlaneClip, Camera
 from esys.pyvisi.constant import *
+from esys.escript import getMPISizeWorld
 import unittest, os, sys
 from stat import ST_SIZE
 
@@ -132,10 +133,13 @@ class TestContourOnPlaneClip(unittest.TestCase, TestContourWithLazyEvaluation):
 
 
 if __name__ == '__main__':
+    if getMPISizeWorld() == 1: 
 	suite = unittest.TestSuite()
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestContourGenerate))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestContourOnPlaneCut))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestContourOnPlaneClip))
 	s=unittest.TextTestRunner(verbosity=2).run(suite)
         if not s.wasSuccessful(): sys.exit(1)
+    else:
+        print "run_contour_with_lazy_evaluation.py is not executed as more than one processor is used."
 

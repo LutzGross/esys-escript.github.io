@@ -42,6 +42,7 @@ from point import PointSource
 from outline import Outline
 from average import CellDataToPointData
 from position import GlobalPosition
+from esys.escript import getMPISizeWorld
 
 # NOTE: DataSetMapper, Actor3D, PointSource, StreamLineModule and Tube  were 
 # inherited to allow access to their public methods from the driver.

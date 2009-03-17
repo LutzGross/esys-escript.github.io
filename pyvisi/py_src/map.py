@@ -38,6 +38,7 @@ from lookuptable import LookupTable
 from outline import Outline
 from constant import Viewport, Color, Lut, ColorMode
 from average import CellDataToPointData
+from esys.escript import getMPISizeWorld
 
 # NOTE: DataSetMapper and Actor3D were inherited to allow access to their 
 # public methods from the driver.

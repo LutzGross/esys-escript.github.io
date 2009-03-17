@@ -23,6 +23,7 @@ from esys.pyvisi import DataCollector, Scene, StreamLine, GlobalPosition
 from esys.pyvisi.constant import *
 import unittest, os, sys
 from stat import ST_SIZE
+from esys.escript import getMPISizeWorld
 
 try:
 	PYVISI_WORKDIR=os.environ['PYVISI_WORKDIR']
@@ -140,10 +141,13 @@ class TestStreamLineTube(unittest.TestCase, TestStreamLine):
 
 
 if __name__ == '__main__':
+    if getMPISizeWorld() == 1: 
 	suite = unittest.TestSuite()
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestStreamLinePointSource))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestStreamLineModule))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestStreamLineTube))
 	s=unittest.TextTestRunner(verbosity=2).run(suite)
         if not s.wasSuccessful(): sys.exit(1)
+    else:
+        print "run_streamline.py is not executed as more than one processor is used."
 

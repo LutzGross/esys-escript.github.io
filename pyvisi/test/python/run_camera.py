@@ -21,6 +21,7 @@ __url__="http://www.uq.edu.au/esscc/escript-finley"
 
 from esys.pyvisi import DataCollector, Scene, Camera, GlobalPosition, Map
 from esys.pyvisi.constant import *
+from esys.escript import getMPISizeWorld
 import unittest, os, gc, sys
 from stat import ST_SIZE
 
@@ -117,9 +118,11 @@ class TestCamera3D(unittest.TestCase, TestCamera):
 
 
 if __name__ == '__main__':
-	suite = unittest.TestSuite()
-	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestCamera2D))
-	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestCamera3D))
-	s=unittest.TextTestRunner(verbosity=2).run(suite)
-        if not s.wasSuccessful(): sys.exit(1)
-
+        if getMPISizeWorld() == 1: 
+	    suite = unittest.TestSuite()
+	    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestCamera2D))
+	    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestCamera3D))
+	    s=unittest.TextTestRunner(verbosity=2).run(suite)
+            if not s.wasSuccessful(): sys.exit(1)
+        else:
+            print "run_camera.py is not executed as more than one processor is used."

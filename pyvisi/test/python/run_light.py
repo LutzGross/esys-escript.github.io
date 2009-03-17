@@ -23,6 +23,7 @@ from esys.pyvisi import DataCollector, Scene, Light, GlobalPosition, Map
 from esys.pyvisi.constant import *
 import unittest, os, sys
 from stat import ST_SIZE
+from esys.escript import getMPISizeWorld
 
 try:
 	PYVISI_WORKDIR=os.environ['PYVISI_WORKDIR']
@@ -118,9 +119,12 @@ class TestLight3D(unittest.TestCase, TestLight):
 
 
 if __name__ == '__main__':
+    if getMPISizeWorld() == 1: 
 	suite = unittest.TestSuite()
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestLight2D))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestLight3D))
 	s=unittest.TextTestRunner(verbosity=2).run(suite)
         if not s.wasSuccessful(): sys.exit(1)
+    else:
+        print "run_light.py is not executed as more than one processor is used."
 
