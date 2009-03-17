@@ -125,7 +125,7 @@ class Movie:
         # will be deleted automatically once the movie has been generated. 
         # However, if a paramter file name was specified, the file will be 
         # maintained.
-        if getMPIRankWorld():
+        if getMPIRankWorld() == 0:
             ret = os.system('ppmtompeg ' + self.__parameter_file) / 256
         else:
             ret=0
@@ -134,8 +134,8 @@ class Movie:
           raise RuntimeError, "Could not  generate movie %s"%'ppmtompeg ' + self.__parameter_file
         
         if(self.__parameter_file == "make_movie"):
-            if getMPIRankWorld():
-            	ret = os.system('rm ' + self.__parameter_file) / 256
+            if getMPIRankWorld() == 0:
+           	ret = os.system('rm ' + self.__parameter_file) / 256
             else:
             	ret=0
             ret=getMPIWorldMax(ret)
@@ -266,9 +266,11 @@ class Movie:
                                        'FRAME_RATE 24')
       
                   parameter_file.close()
-                  if os.name == 'nt' :
+                  if os.name == 'nt':
                       tmp_name = self.__parameter_file.replace('\\','/')
-                      os.system('dos2unix ' + tmp_name) 
+                      ret = os.system('dos2unix ' + tmp_name) / 256
+                      if ret >0:
+                          raise RuntimeError,"execution of %s has failed."%('dos2unix ' + tmp_name)
              except Exception, e:
                  ret=1
         ret=getMPIWorldMax(ret)
