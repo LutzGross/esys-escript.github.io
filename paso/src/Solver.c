@@ -64,7 +64,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
      if (tolerance >1.) {
        Paso_setError(VALUE_ERROR,"Paso_Solver: Tolerance mut be less than one.");
      }
-     method=Paso_Options_getSolver(options->method,PASO_PASO,options->symmetric);
+     method=Paso_Options_getSolver(options->method,PASO_PASO,options->symmetric,A->mpi_info);
      /* check matrix type */
      if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1) || (A->type & MATRIX_FORMAT_SYM) ) {
        Paso_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires CSR format with unsymmetric storage scheme and index offset 0.");

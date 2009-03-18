@@ -55,7 +55,7 @@ void Paso_solve(Paso_SystemMatrix* A,
        return;
   }
   Performance_open(&pp,options->verbose);
-  package=Paso_Options_getPackage(options->method,options->package,options->symmetric);
+  package=Paso_Options_getPackage(options->method,options->package,options->symmetric, A->mpi_info);
   if (Paso_noError()) {
      switch(package) {
 

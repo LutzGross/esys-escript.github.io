@@ -28,21 +28,24 @@
 
 /**************************************************************/
 
-index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry) {
+index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry, Paso_MPIInfo *mpi_info) {
   index_t out=PASO_PASO;
   if (package==PASO_DEFAULT) {
       if (solver==PASO_DIRECT) {
          #ifdef MKL
             out=PASO_MKL;
          #else
-            #ifdef SCSL
-              out=PASO_SCSL;
+            #ifdef UMFPACK
+              out=PASO_UMFPACK;
             #else
-              #ifdef UMFPACK
-                out=PASO_UMFPACK;
+              #ifdef SCSL
+               out=PASO_SCSL;
               #endif
             #endif
          #endif
+         if (((out==PASO_UMFPACK) || (out == PASO_SCSL)) && (mpi_info->size>1) ) {  /* these packages require CSC  which is not supported with MPI */
+              out= PASO_PASO;
+         }
       } else {
          out=PASO_PASO;
       }
@@ -61,16 +64,3 @@ index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry)
   }
   return out;
 }
-
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:38  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:46  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */
