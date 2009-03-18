@@ -1830,13 +1830,15 @@ bool MeshAdapter::operator!=(const AbstractDomain& other) const
 
 int MeshAdapter::getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
 {
-   int out=Paso_SystemMatrix_getSystemMatrixTypeId(SystemMatrixAdapter::mapOptionToPaso(solver),SystemMatrixAdapter::mapOptionToPaso(preconditioner), SystemMatrixAdapter::mapOptionToPaso(package),symmetry?1:0);
+   Finley_Mesh* mesh=m_finleyMesh.get();
+   int out=Paso_SystemMatrix_getSystemMatrixTypeId(SystemMatrixAdapter::mapOptionToPaso(solver),SystemMatrixAdapter::mapOptionToPaso(preconditioner), SystemMatrixAdapter::mapOptionToPaso(package),symmetry?1:0, mesh->MPIInfo);
    checkPasoError();
    return out;
 }
 int MeshAdapter::getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
 {
-   int out=Paso_FCTransportProblem_getTypeId(SystemMatrixAdapter::mapOptionToPaso(solver),SystemMatrixAdapter::mapOptionToPaso(preconditioner), SystemMatrixAdapter::mapOptionToPaso(package),symmetry?1:0);
+   Finley_Mesh* mesh=m_finleyMesh.get();
+   int out=Paso_FCTransportProblem_getTypeId(SystemMatrixAdapter::mapOptionToPaso(solver),SystemMatrixAdapter::mapOptionToPaso(preconditioner), SystemMatrixAdapter::mapOptionToPaso(package),symmetry?1:0, mesh->MPIInfo);
    checkPasoError();
    return out;
 }

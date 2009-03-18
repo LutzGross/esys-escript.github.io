@@ -116,7 +116,7 @@ void Paso_FCT_setUp(Paso_FCTransportProblem* fctp, const double dt, const double
                      Paso_Options* options, Paso_Performance* pp);
 
 PASO_DLL_API
-index_t Paso_FCTransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool_t symmetry);
+index_t Paso_FCTransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool_t symmetry, Paso_MPIInfo *mpi_info);
 
 
 PASO_DLL_API

@@ -92,6 +92,7 @@ if __name__ == '__main__':
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DOrder1))
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DOrder2))
    else:
+      suite.addTest(Test_LinearPDEOnFinleyHex2DOrder1("test_DIRECT"))
       pass
 
    s=unittest.TextTestRunner(verbosity=2).run(suite)

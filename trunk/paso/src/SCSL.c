@@ -43,7 +43,7 @@ void Paso_SCSL(Paso_SystemMatrix* A,
                           Paso_Options* options,
                           Paso_Performance* pp) {
 
-  index_t method=Paso_Options_getSolver(options->method,PASO_SCSL,options->symmetric);
+  index_t method=Paso_Options_getSolver(options->method,PASO_SCSL,options->symmetric, A->mpi_info);
 
   if (Paso_noError()) {
       if (method==PASO_CHOLEVSKY || method==PASO_DIRECT) {
@@ -53,21 +53,3 @@ void Paso_SCSL(Paso_SystemMatrix* A,
       }
   }
 }
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:39  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.3  2005/09/07 00:59:08  gross
- * some inconsistent renaming fixed to make the linking work.
- *
- * Revision 1.1.2.2  2005/09/05 10:05:06  gross
- * naming error fixed
- *
- * Revision 1.1.2.1  2005/09/05 06:29:49  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

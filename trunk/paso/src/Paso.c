@@ -47,7 +47,7 @@ void Paso_resetError(void) {
 void Paso_setError(Paso_ErrorCodeType err,__const char* msg) {
   size_t lenMsg=strlen(msg);
   if (Paso_noError()) {
-printf("error set = %d %s\n",err,msg);
+/* printf("error set = %d %s\n",err,msg); */
      Paso_ErrorCode_=err;
      strncpy(Paso_ErrorMsg_,msg,MIN(LenErrorMsg_MAX,lenMsg));
      Paso_ErrorMsg_[MIN(LenErrorMsg_MAX,lenMsg)]='\0';

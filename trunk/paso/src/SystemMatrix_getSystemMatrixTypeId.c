@@ -29,10 +29,10 @@
 
 /**************************************************************/
 
-index_t Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool_t symmetry) {
+index_t Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool_t symmetry, Paso_MPIInfo *mpi_info) {
   index_t true_package;
   index_t out=MATRIX_FORMAT_DEFAULT;
-  true_package=Paso_Options_getPackage(solver,package,symmetry);
+  true_package=Paso_Options_getPackage(solver,package,symmetry, mpi_info);
 
   switch(true_package)  {
 
@@ -45,6 +45,10 @@ index_t Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index
        break;
 
      case PASO_SCSL:
+       if (mpi_info->size > 1) {
+           Paso_setError(VALUE_ERROR,"The selected solver SCSL requires CSC format which is not supported with MPI.");
+           return -1;
+       }
        out=MATRIX_FORMAT_CSC + MATRIX_FORMAT_BLK1;
        /* if (solver == PASO_CHOLEVSKY) out+=MATRIX_FORMAT_SYM */
        break;
@@ -55,6 +59,10 @@ index_t Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index
        break;
 
      case PASO_UMFPACK:
+       if (mpi_info->size > 1) {
+           Paso_setError(VALUE_ERROR,"The selected solver UMFPACK requires CSC format which is not supported with MPI.");
+           return -1;
+       }
        out=MATRIX_FORMAT_CSC + MATRIX_FORMAT_BLK1;
       break;
 
