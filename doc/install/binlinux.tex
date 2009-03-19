@@ -14,12 +14,13 @@
 \section{Linux binary installation}
 \label{sec:binlinux}
 
-\esfinley can be installed as a standalone bundle, containing all the required tools.
+\esfinley can be installed as a stand-alone bundle, containing all the required tools.
 Alternatively, if we have a package for your distribution you can use the standard tools to install.
 
 Please note, the current packages do not support \openmp\footnote{This is due to a bug related to gcc 4.3.2.} or \mpi\footnote{Producing packages for MPI requires knowing something about your computer's configuration.}.
 If you need these features you may need to compile \esfinley from source (see Chapter~\ref{chap:src}.)
 
+For more information on using the \filename{escript} command please see the User Guide.
 
 \subsection{Debian 5.0(``Lenny'')}
 
@@ -40,8 +41,25 @@ sudo aptitude install escript
 \subsection{Ubuntu 8.10(``Intrepid Ibex'')}
 
 Since the installation process for \esfinley is pretty simple you should be able to use the same Lenny package for Ubuntu as well.
-You will need to use the ``sudo'' instructions.
 Please notify the development team if this is not the case.
+Note that you will need to use the ``sudo'' instructions.
+
+
+\subsection{Stand-alone bundle}
+
+Download the bundle and decompress it.
+\begin{shellCode}
+tar -xjf escript.tar.bz2 
+\end{shellCode}
+This will produce a directory called \filename{stand}. 
+You can rename or move it as is convienient to you.
+Test your installation by running:
+\begin{shellCode}
+ stand/escript.d/bin/escript
+\end{shellCode}
+You should get a normal python shell.
+If you wish to save on typing you can add \filename{x/escript.d/bin} to your PATH variable (where x is the absolute path to your install). 
+
 
 
 
