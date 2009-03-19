@@ -2239,7 +2239,10 @@ class Helmholtz(LinearPDE):
      @raise IllegalCoefficient: invalid name
      """
      if name == "A" :
-         return escript.Data(numarray.identity(self.getDim()),escript.Function(self.getDomain()))*self.getCoefficient("k")
+         if self.getCoefficient("k").isEmpty():
+              return escript.Data(numarray.identity(self.getDim()),escript.Function(self.getDomain()))
+         else:
+              return escript.Data(numarray.identity(self.getDim()),escript.Function(self.getDomain()))*self.getCoefficient("k")
      elif name == "D" :
          return self.getCoefficient("omega")
      elif name == "Y" :

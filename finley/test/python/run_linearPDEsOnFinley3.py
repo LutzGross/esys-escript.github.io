@@ -36,7 +36,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 import os
 
 import unittest
-from test_linearPDEs import Test_Poisson,Test_LinearPDE, Test_LinearPDE_noLumping, Test_TransportPDE
+from test_linearPDEs import Test_Poisson,Test_LinearPDE, Test_LinearPDE_noLumping, Test_TransportPDE, Test_Helmholtz
 from test_assemblage import Test_assemblage_2Do1, Test_assemblage_2Do2, Test_assemblage_3Do1, Test_assemblage_3Do2, \
                             Test_assemblage_2Do1_Contact,Test_assemblage_2Do2_Contact, Test_assemblage_3Do1_Contact, Test_assemblage_3Do2_Contact
 from test_pdetools import Test_pdetools, Test_pdetools_noLumping
@@ -55,6 +55,14 @@ FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 NE=8 # number of element in each spatial direction (must be even)
 
 class Test_PoissonOnFinley(Test_Poisson):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = Rectangle(NE,NE,2,useFullElementOrder=True)
+   def tearDown(self):
+        del self.domain
+
+class Test_HelmholtzOnFinley(Test_Helmholtz):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -188,6 +196,7 @@ if __name__ == '__main__':
    suite = unittest.TestSuite()
    if True :
       suite.addTest(unittest.makeSuite(Test_PoissonOnFinley))
+      suite.addTest(unittest.makeSuite(Test_HelmholtzOnFinley))
       suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do1_Contact))
       suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact))
       suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact))
