@@ -653,11 +653,12 @@ print ""
 
 ############ Delete option-dependent files #####################
 
-Execute(Delete(env['libinstall'] + "/Compiled.with.debug"))
-Execute(Delete(env['libinstall'] + "/Compiled.with.mpi"))
-Execute(Delete(env['libinstall'] + "/Compiled.with.openmp"))
-Execute(Delete(env['libinstall'] + "pyversion"))
-if not env['usempi']: Execute(Delete(env['libinstall'] + "/pythonMPI"))
+Execute(Delete(os.path.join(env['libinstall'],"Compiled.with.debug")))
+Execute(Delete(os.path.join(env['libinstall'],"Compiled.with.mpi")))
+Execute(Delete(os.path.join(env['libinstall'],"Compiled.with.openmp")))
+Execute(Delete(os.path.join(env['libinstall'],"pyversion")))
+Execute(Delete(os.path.join(env['libinstall'],"buildvars")))
+if not env['usempi']: Execute(Delete(os.path.join(env['libinstall'],"pythonMPI")))
 
 
 ############ Build the subdirectories ##########################
@@ -695,13 +696,13 @@ env.SConscript(dirs = ['paso/profiling'], build_dir='build/$PLATFORM/paso/profil
 remember_list = []
 
 if env['usedebug']:
-  remember_list += env.Command(env['libinstall'] + "/Compiled.with.debug", None, Touch('$TARGET'))
+  remember_list += env.Command(os.path.join(env['libinstall'],"Compiled.with.debug"), None, Touch('$TARGET'))
 
 if env['usempi']:
-  remember_list += env.Command(env['libinstall'] + "/Compiled.with.mpi", None, Touch('$TARGET'))
+  remember_list += env.Command(os.path.join(env['libinstall'],"Compiled.with.mpi"), None, Touch('$TARGET'))
 
 if env['useopenmp']:
-  remember_list += env.Command(env['libinstall'] + "/Compiled.with.openmp", None, Touch('$TARGET'))
+  remember_list += env.Command(os.path.join(env['libinstall'],"Compiled.with.openmp"), None, Touch('$TARGET'))
 
 env.Alias('remember_options', remember_list)
 
