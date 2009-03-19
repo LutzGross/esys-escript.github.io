@@ -138,7 +138,7 @@ class Design(design.Design):
         implementation a mesh file name in gmsh format is returned.
         """
         cmd = self.getCommandString()
-        if getMPIRankWorld():
+        if getMPIRankWorld() == 0:
             open(self.getScriptFileName(),"w").write(self.getScriptString())
             ret = os.system(cmd) / 256
         else:

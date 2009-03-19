@@ -48,13 +48,12 @@ TEST_FILE_EXT=".test"
 class Test_Generators(unittest.TestCase):
 
    def checker(self,dom,reference):
-      if getMPISizeWorld() > 1: return
       dom_file=FINLEY_WORKDIR_PATH+TEST_FILE_EXT
       dom.write(dom_file)
 # Uncomment this section to dump the files for regression testing
 #      if True:
 #         dom.write(FINLEY_TEST_MESH_PATH+reference)
-      dom_string=open(dom_file).read().splitlines()
+      dom_string=open(dom_file).read().splitlines() 
       ref_string=open(FINLEY_TEST_MESH_PATH+reference).read().splitlines()
       self.failUnlessEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
       for l in range(1,len(ref_string)):
@@ -104,7 +103,6 @@ class Test_Generators(unittest.TestCase):
       self.checker(my_dom,file)
 
    def test_hex_contact_2D_order1(self):
-      if getMPISizeWorld() != 1: return
       file="hex_contact_2D_order1.msh"
       ms1=Rectangle(1,1,1,l1=0.5,useElementsOnFace=False)
       ms2=Rectangle(1,1,1,l1=0.5,useElementsOnFace=False)
@@ -113,7 +111,6 @@ class Test_Generators(unittest.TestCase):
       self.checker(my_dom,file)
 
    def test_hex_contact_2D_order1_onFace(self):
-      if getMPISizeWorld() != 1: return
       file="hex_contact_2D_order1_onFace.msh"
       ms1=Rectangle(1,1,1,l1=0.5,useElementsOnFace=True)
       ms2=Rectangle(1,1,1,l1=0.5,useElementsOnFace=True)
@@ -122,7 +119,6 @@ class Test_Generators(unittest.TestCase):
       self.checker(my_dom,file)
 
    def test_hex_contact_2D_order2(self):
-      if getMPISizeWorld() != 1: return
       file="hex_contact_2D_order2.msh"
       ms1=Rectangle(1,1,2,l1=0.5,useElementsOnFace=False)
       ms2=Rectangle(1,1,2,l1=0.5,useElementsOnFace=False)
@@ -131,7 +127,6 @@ class Test_Generators(unittest.TestCase):
       self.checker(my_dom,file)
 
    def test_hex_contact_2D_order2_onFace(self):
-      if getMPISizeWorld() != 1: return
       file="hex_contact_2D_order2_onFace.msh"
       ms1=Rectangle(1,1,2,l1=0.5,useElementsOnFace=True)
       ms2=Rectangle(1,1,2,l1=0.5,useElementsOnFace=True)
@@ -140,7 +135,6 @@ class Test_Generators(unittest.TestCase):
       self.checker(my_dom,file)
 
    def test_hex_contact_3D_order1(self):
-      if getMPISizeWorld() != 1: return
       file="hex_contact_3D_order1.msh"
       ms1=Brick(1,1,1,1,l2=0.5,useElementsOnFace=False)
       ms2=Brick(1,1,1,1,l2=0.5,useElementsOnFace=False)
@@ -149,7 +143,6 @@ class Test_Generators(unittest.TestCase):
       self.checker(my_dom,file)
 
    def test_hex_contact_3D_order1_onFace(self):
-      if getMPISizeWorld() != 1: return
       file="hex_contact_3D_order1_onFace.msh"
       ms1=Brick(1,1,1,1,l2=0.5,useElementsOnFace=True)
       ms2=Brick(1,1,1,1,l2=0.5,useElementsOnFace=True)
@@ -158,7 +151,6 @@ class Test_Generators(unittest.TestCase):
       self.checker(my_dom,file)
 
    def test_hex_contact_3D_order2(self):
-      if getMPISizeWorld() != 1: return
       file="hex_contact_3D_order2.msh"
       ms1=Brick(1,1,1,2,l2=0.5,useElementsOnFace=False)
       ms2=Brick(1,1,1,2,l2=0.5,useElementsOnFace=False)
@@ -167,7 +159,6 @@ class Test_Generators(unittest.TestCase):
       self.checker(my_dom,file)
 
    def test_hex_contact_3D_order2_onFace(self):
-      if getMPISizeWorld() != 1: return
       file="hex_contact_3D_order2_onFace.msh"
       ms1=Brick(1,1,1,2,l2=0.5,useElementsOnFace=True)
       ms2=Brick(1,1,1,2,l2=0.5,useElementsOnFace=True)
@@ -187,8 +178,6 @@ class Test_GMSHReader(unittest.TestCase):
          self.failUnlessEqual(line,ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),line))
 
    def test_Tri3(self):
-       # ReadGmsh is not MPI parallel
-       if getMPISizeWorld() == 1:
          file="tri3_gmsh.msh"
          ref ="tri3.fly"
          test = FINLEY_WORKDIR+os.sep+"tri3_test.fly"
@@ -197,8 +186,6 @@ class Test_GMSHReader(unittest.TestCase):
          self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
    def test_Tri6(self):
-       # ReadGmsh is not MPI parallel
-       if getMPISizeWorld() == 1:
          file="tri6_gmsh.msh"
          ref="tri6.fly"
          test = FINLEY_WORKDIR+os.sep+"tri8_test.fly"
@@ -207,8 +194,6 @@ class Test_GMSHReader(unittest.TestCase):
          self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
    def test_Tet4(self):
-       # ReadGmsh is not MPI parallel
-       if getMPISizeWorld() == 1:
          file="tet4_gmsh.msh"
          ref="tet4.fly"
          test = FINLEY_WORKDIR+os.sep+"tet4_test.fly"
@@ -217,8 +202,6 @@ class Test_GMSHReader(unittest.TestCase):
          self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
    def test_Tet10(self):
-       # ReadGmsh is not MPI parallel
-       if getMPISizeWorld() == 1:
          file="tet10_gmsh.msh"
          ref="tet10.fly"
          test = FINLEY_WORKDIR+os.sep+"tet10_test.fly"
@@ -228,7 +211,6 @@ class Test_GMSHReader(unittest.TestCase):
 
 class Test_Reader(unittest.TestCase):
    def test_ReadWriteTagNames(self):
-       if getMPISizeWorld() != 1: return
        file="hex_2D_order2.msh"
        test = FINLEY_WORKDIR+os.sep+"test.fly"
        dom = ReadMesh(FINLEY_TEST_MESH_PATH+os.sep+file,3,optimize=False)
@@ -353,34 +335,44 @@ class Test_Integration(unittest.TestCase):
                 self.failUnless(error<=self.TOL*raise_tol,"surface integration for order (%s,%s,%s) failed. True value = %s, calculated = %s"%(i,j,k,ref,res))
 
    def test_hex2D_order1(self):
-      my_dom=Rectangle(1,1,integrationOrder=1)
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,integrationOrder=1)
       self.__test_2DQ(my_dom,1)
    def test_hex2D_order2(self):
-      my_dom=Rectangle(1,1,integrationOrder=2)
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,integrationOrder=2)
       self.__test_2DQ(my_dom,2)
    def test_hex2D_order3(self):
-      my_dom=Rectangle(1,1,integrationOrder=3)
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,integrationOrder=3)
       self.__test_2DQ(my_dom,3)
    def test_hex2D_order4(self):
-      my_dom=Rectangle(1,1,integrationOrder=4)
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,integrationOrder=4)
       self.__test_2DQ(my_dom,4)
    def test_hex2D_order5(self):
-      my_dom=Rectangle(1,1,integrationOrder=5)
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,integrationOrder=5)
       self.__test_2DQ(my_dom,5)
    def test_hex2D_order6(self):
-      my_dom=Rectangle(1,1,integrationOrder=6)
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,integrationOrder=6)
       self.__test_2DQ(my_dom,6)
    def test_hex2D_order7(self):
-      my_dom=Rectangle(1,1,integrationOrder=7)
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,integrationOrder=7)
       self.__test_2DQ(my_dom,7)
    def test_hex2D_order8(self):
-      my_dom=Rectangle(1,1,integrationOrder=8)
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,integrationOrder=8)
       self.__test_2DQ(my_dom,8)
    def test_hex2D_order9(self):
-      my_dom=Rectangle(1,1,integrationOrder=9)
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,integrationOrder=9)
       self.__test_2DQ(my_dom,9)
    def test_hex2D_order10(self):
-      my_dom=Rectangle(1,1,integrationOrder=10)
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,integrationOrder=10)
       self.__test_2DQ(my_dom,10)
 
    def test_Tet2D_order1(self):
@@ -415,34 +407,44 @@ class Test_Integration(unittest.TestCase):
       self.__test_2DT(my_dom,10)
 
    def test_hex3D_order1(self):
-      my_dom=Brick(1,1,1,integrationOrder=1)
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,integrationOrder=1)
       self.__test_3DQ(my_dom,1)
    def test_hex3D_order2(self):
-      my_dom=Brick(1,1,1,integrationOrder=2)
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,integrationOrder=2)
       self.__test_3DQ(my_dom,2)
    def test_hex3D_order3(self):
-      my_dom=Brick(1,1,1,integrationOrder=3)
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,integrationOrder=3)
       self.__test_3DQ(my_dom,3)
    def test_hex3D_order4(self):
-      my_dom=Brick(1,1,1,integrationOrder=4)
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,integrationOrder=4)
       self.__test_3DQ(my_dom,4)
    def test_hex3D_order5(self):
-      my_dom=Brick(1,1,1,integrationOrder=5)
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,integrationOrder=5)
       self.__test_3DQ(my_dom,5)
    def test_hex3D_order6(self):
-      my_dom=Brick(1,1,1,integrationOrder=6)
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,integrationOrder=6)
       self.__test_3DQ(my_dom,6)
    def test_hex3D_order7(self):
-      my_dom=Brick(1,1,1,integrationOrder=7)
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,integrationOrder=7)
       self.__test_3DQ(my_dom,7)
    def test_hex3D_order8(self):
-      my_dom=Brick(1,1,1,integrationOrder=8)
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,integrationOrder=8)
       self.__test_3DQ(my_dom,8)
    def test_hex3D_order9(self):
-      my_dom=Brick(1,1,1,integrationOrder=9)
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,integrationOrder=9)
       self.__test_3DQ(my_dom,9)
    def test_hex3D_order10(self):
-      my_dom=Brick(1,1,1,integrationOrder=10)
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,integrationOrder=10)
       self.__test_3DQ(my_dom,10)
 
    def test_Tet3D_order1(self):
@@ -478,10 +480,22 @@ class Test_Integration(unittest.TestCase):
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_Generators))
-   suite.addTest(unittest.makeSuite(Test_GMSHReader))
-   suite.addTest(unittest.makeSuite(Test_Reader))
+
+   if getMPISizeWorld() == 1: 
+        suite.addTest(unittest.makeSuite(Test_Generators))
+   else:
+        print "Test_Generators is dropped as number of processors >1"
+
+   if getMPISizeWorld() == 1: 
+        suite.addTest(unittest.makeSuite(Test_GMSHReader))
+   else:
+        print "Test_GMSHReader is dropped as number of processors >1"
+
+   if getMPISizeWorld() == 1: 
+        suite.addTest(unittest.makeSuite(Test_Reader))
+   else:
+        print "Test_Reader is dropped as number of processors >1"
+
    suite.addTest(unittest.makeSuite(Test_Integration))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
-
