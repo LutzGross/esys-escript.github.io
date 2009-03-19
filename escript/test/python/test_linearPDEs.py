@@ -44,9 +44,9 @@ The tests must be linked with a Domain class object in the setUp method:
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-from esys.escript.util import Lsup,kronecker,interpolate,whereZero
+from esys.escript.util import Lsup,kronecker,interpolate,whereZero, outer, swap_axes
 from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data, Tensor4, Tensor
-from esys.escript.linearPDEs import LinearPDE,IllegalCoefficientValue,Poisson, IllegalCoefficientFunctionSpace, TransportPDE, IllegalCoefficient, Helmholtz
+from esys.escript.linearPDEs import LinearPDE,IllegalCoefficientValue,Poisson, IllegalCoefficientFunctionSpace, TransportPDE, IllegalCoefficient, Helmholtz, LameEquation
 import numarray
 import unittest
 
@@ -62,6 +62,270 @@ class Test_linearPDEs(unittest.TestCase):
         if tol==None: tol=self.TOL
         return Lsup(arg-ref_arg)<=tol*Lsup(ref_arg)
     
+class Test_LameEquation(Test_linearPDEs):
+
+    def test_config(self):
+        mypde=LameEquation(self.domain,debug=self.DEBUG)
+        d=self.domain.getDim()
+        self.failUnlessEqual((mypde.getNumEquations(),mypde.getNumSolutions(),mypde.isSymmetric()),(d,d,True),"set up incorrect")
+
+    def test_setCoefficient_q(self):
+        mypde=LameEquation(self.domain,debug=self.DEBUG)
+        x=self.domain.getX()
+        mypde.setValue(q=x)
+
+        q_ref=interpolate(x,Solution(self.domain))
+        self.failUnless(self.check(mypde.getCoefficient("A"),0),"A is not 0")
+        self.failUnless(mypde.getCoefficient("B").isEmpty(),"B is not empty")
+        self.failUnless(mypde.getCoefficient("C").isEmpty(),"C is not empty")
+        self.failUnless(mypde.getCoefficient("D").isEmpty(),"D is not empty")
+        self.failUnless(mypde.getCoefficient("X").isEmpty(),"X is not empty")
+        self.failUnless(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
+        self.failUnless(mypde.getCoefficient("y").isEmpty(),"y is not empty")
+        self.failUnless(mypde.getCoefficient("d").isEmpty(),"d is not empty")
+        self.failUnless(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
+        self.failUnless(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
+        self.failUnless(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
+        self.failUnless(self.check(mypde.getCoefficient("q"),q_ref),"q is not empty")
+        self.failUnless(mypde.getCoefficient("r").isEmpty(),"r is not empty")
+
+    def test_setCoefficient_r(self):
+        mypde=LameEquation(self.domain,debug=self.DEBUG)
+        x=self.domain.getX()
+        mypde.setValue(r=x)
+
+        r_ref=interpolate(x,Solution(self.domain))
+        self.failUnless(self.check(mypde.getCoefficient("A"),0),"A is not 0")
+        self.failUnless(mypde.getCoefficient("B").isEmpty(),"B is not empty")
+        self.failUnless(mypde.getCoefficient("C").isEmpty(),"C is not empty")
+        self.failUnless(mypde.getCoefficient("D").isEmpty(),"D is not empty")
+        self.failUnless(mypde.getCoefficient("X").isEmpty(),"X is not empty")
+        self.failUnless(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
+        self.failUnless(mypde.getCoefficient("y").isEmpty(),"y is not empty")
+        self.failUnless(mypde.getCoefficient("d").isEmpty(),"d is not empty")
+        self.failUnless(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
+        self.failUnless(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
+        self.failUnless(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
+        self.failUnless(self.check(mypde.getCoefficient("r"),r_ref),"r is nor x")
+        self.failUnless(mypde.getCoefficient("q").isEmpty(),"q is not empty")
+
+
+    def test_setCoefficient_F(self):
+        mypde=LameEquation(self.domain,debug=self.DEBUG)
+        x=self.domain.getX()
+        mypde.setValue(F=x)
+
+        Y_ref=interpolate(x,Function(self.domain))
+        self.failUnless(self.check(mypde.getCoefficient("A"),0),"A is not 0")
+        self.failUnless(mypde.getCoefficient("B").isEmpty(),"B is not empty")
+        self.failUnless(mypde.getCoefficient("C").isEmpty(),"C is not empty")
+        self.failUnless(mypde.getCoefficient("D").isEmpty(),"D is not empty")
+        self.failUnless(mypde.getCoefficient("X").isEmpty(),"X is not empty")
+        self.failUnless(self.check(mypde.getCoefficient("Y"),Y_ref),"Y is not x")
+        self.failUnless(mypde.getCoefficient("y").isEmpty(),"y is not empty")
+        self.failUnless(mypde.getCoefficient("d").isEmpty(),"d is not empty")
+        self.failUnless(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
+        self.failUnless(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
+        self.failUnless(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("q").isEmpty(),"q is not empty")
+        self.failUnless(mypde.getCoefficient("r").isEmpty(),"r is not empty")
+
+    def test_setCoefficient_f(self):
+        mypde=LameEquation(self.domain,debug=self.DEBUG)
+        x=self.domain.getX()
+        mypde.setValue(f=x)
+
+        y_ref=interpolate(x,FunctionOnBoundary(self.domain))
+        self.failUnless(self.check(mypde.getCoefficient("A"),0),"A is not 0")
+        self.failUnless(mypde.getCoefficient("B").isEmpty(),"B is not empty")
+        self.failUnless(mypde.getCoefficient("C").isEmpty(),"C is not empty")
+        self.failUnless(mypde.getCoefficient("D").isEmpty(),"D is not empty")
+        self.failUnless(mypde.getCoefficient("X").isEmpty(),"X is not empty")
+        self.failUnless(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
+        self.failUnless(mypde.getCoefficient("d").isEmpty(),"d is not empty")
+        self.failUnless(self.check(mypde.getCoefficient("y"),y_ref),"d is not x[0]")
+        self.failUnless(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
+        self.failUnless(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
+        self.failUnless(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("Y_reduced").isEmpty(),"X_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("q").isEmpty(),"q is not empty")
+        self.failUnless(mypde.getCoefficient("r").isEmpty(),"r is not empty")
+
+    def test_setCoefficient_sigma(self):
+        mypde=LameEquation(self.domain,debug=self.DEBUG)
+        x=self.domain.getX()
+        mypde.setValue(sigma=outer(x,x))
+
+        X_ref=interpolate(outer(x,x),Function(self.domain))
+        self.failUnless(self.check(mypde.getCoefficient("A"),0),"A is not 0")
+        self.failUnless(mypde.getCoefficient("B").isEmpty(),"B is not empty")
+        self.failUnless(mypde.getCoefficient("C").isEmpty(),"C is not empty")
+        self.failUnless(mypde.getCoefficient("D").isEmpty(),"D is not empty")
+        self.failUnless(self.check(mypde.getCoefficient("X"),X_ref),"X is not x X x")
+        self.failUnless(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
+        self.failUnless(mypde.getCoefficient("d").isEmpty(),"d is not empty")
+        self.failUnless(mypde.getCoefficient("y").isEmpty(),"y is not empty")
+        self.failUnless(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
+        self.failUnless(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
+        self.failUnless(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("Y_reduced").isEmpty(),"X_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("q").isEmpty(),"q is not empty")
+        self.failUnless(mypde.getCoefficient("r").isEmpty(),"r is not empty")
+
+    def test_setCoefficient_lambda(self):
+        mypde=LameEquation(self.domain,debug=self.DEBUG)
+        x=self.domain.getX()
+        mypde.setValue(lame_lambda=x[0])
+
+
+        k3=kronecker(Function(self.domain))
+        k3Xk3=outer(k3,k3)
+        A_ref=x[0]*k3Xk3
+
+        self.failUnless(self.check(mypde.getCoefficient("A"),A_ref),"A is not kronecker")
+        self.failUnless(mypde.getCoefficient("B").isEmpty(),"B is not empty")
+        self.failUnless(mypde.getCoefficient("C").isEmpty(),"C is not empty")
+        self.failUnless(mypde.getCoefficient("D").isEmpty(),"D is not empty")
+        self.failUnless(mypde.getCoefficient("X").isEmpty(),"X is not empty")
+        self.failUnless(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
+        self.failUnless(mypde.getCoefficient("d").isEmpty(),"d is not empty")
+        self.failUnless(mypde.getCoefficient("y").isEmpty(),"y is not empty")
+        self.failUnless(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
+        self.failUnless(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
+        self.failUnless(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("q").isEmpty(),"q is not empty")
+        self.failUnless(mypde.getCoefficient("r").isEmpty(),"r is not empty")
+
+    def test_setCoefficient_mu(self):
+        mypde=LameEquation(self.domain,debug=self.DEBUG)
+        x=self.domain.getX()
+        mypde.setValue(lame_mu=x[0])
+
+
+        k3=kronecker(Function(self.domain))
+        k3Xk3=outer(k3,k3)
+        A_ref=x[0]*(swap_axes(k3Xk3,0,3)+swap_axes(k3Xk3,1,3))
+
+        self.failUnless(self.check(mypde.getCoefficient("A"),A_ref),"A is not kronecker")
+        self.failUnless(mypde.getCoefficient("B").isEmpty(),"B is not empty")
+        self.failUnless(mypde.getCoefficient("C").isEmpty(),"C is not empty")
+        self.failUnless(mypde.getCoefficient("D").isEmpty(),"D is not empty")
+        self.failUnless(mypde.getCoefficient("X").isEmpty(),"X is not empty")
+        self.failUnless(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
+        self.failUnless(mypde.getCoefficient("d").isEmpty(),"d is not empty")
+        self.failUnless(mypde.getCoefficient("y").isEmpty(),"y is not empty")
+        self.failUnless(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
+        self.failUnless(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
+        self.failUnless(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("q").isEmpty(),"q is not empty")
+        self.failUnless(mypde.getCoefficient("r").isEmpty(),"r is not empty")
+
+    def test_setCoefficient_lambdamu(self):
+        mypde=LameEquation(self.domain,debug=self.DEBUG)
+        x=self.domain.getX()
+        mypde.setValue(lame_lambda=x[0], lame_mu=x[1])
+
+        k3=kronecker(Function(self.domain))
+        k3Xk3=outer(k3,k3)
+        A_ref=x[0]*k3Xk3+x[1]*(swap_axes(k3Xk3,0,3)+swap_axes(k3Xk3,1,3))
+
+        self.failUnless(self.check(mypde.getCoefficient("A"),A_ref),"A is not kronecker")
+        self.failUnless(mypde.getCoefficient("B").isEmpty(),"B is not empty")
+        self.failUnless(mypde.getCoefficient("C").isEmpty(),"C is not empty")
+        self.failUnless(mypde.getCoefficient("D").isEmpty(),"D is not empty")
+        self.failUnless(mypde.getCoefficient("X").isEmpty(),"X is not empty")
+        self.failUnless(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
+        self.failUnless(mypde.getCoefficient("d").isEmpty(),"d is not empty")
+        self.failUnless(mypde.getCoefficient("y").isEmpty(),"y is not empty")
+        self.failUnless(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
+        self.failUnless(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
+        self.failUnless(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficient("q").isEmpty(),"q is not empty")
+        self.failUnless(mypde.getCoefficient("r").isEmpty(),"r is not empty")
+
+    def test_solve(self):
+       d=self.domain.getDim()
+       mypde=LameEquation(self.domain)
+       cf=ContinuousFunction(self.domain)
+       x=cf.getX()
+       u_ex=x
+       msk=Vector(0.,cf)
+       for i in range(d): msk[i]=whereZero(x[i])
+       mypde.setValue(q=msk,r=u_ex,lame_mu=3,lame_lambda=50,f=(2*3+50*d)*FunctionOnBoundary(self.domain).getNormal())
+
+       u=mypde.getSolution()
+       self.failUnless(self.check(u,u_ex,10*self.TOL),"incorrect solution")
+
 class Test_Helmholtz(Test_linearPDEs):
 
     def test_config(self):
