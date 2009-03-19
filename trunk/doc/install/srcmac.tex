@@ -14,18 +14,23 @@
 \section{Installing from source for \macosx}
 \label{sec:srcmac}
 
-The following instructions assume you are running the \filename{bash} shell.
-Comments are indicated with \# characters.
-
-Make sure you have the following installed:
+First of all before you start installing from source you will need Mac OS X development tools installed on your Mac. This will ensure that you have  the following installed:
 \begin{itemize}
 \item \filename{g++} and associated tools.
 \item \filename{make}
 \end{itemize}
 
+Here are the instruction on how to install them. 
+\begin{enumerate}
+\item Insert the Mac OS X v10.5 (Leopard) DVD. 
+\item Double-click on XcodeTools.mpkg, located inside Optional Installs/Xcode Tools. 
+\item Follow the instructions in the Installer. 
+\item Authenticate as the administrative user. The Þrst user you create when setting up Mac OS X has administrator privileges by default. 
+\end{enumerate}
+
 You will also need a copy of the \esfinley source code.
 If you retrieved the source using subversion, don't forget that one can use the export command instead of checkout to get a smaller copy.
-For additional visualisation functionality see Section~\ref{sec:linaddfunc}.
+For additional visualisation functionality see Section~\ref{sec:macaddfunc}.
 
 These instructions will produce the following structure:
 \begin{itemize}
@@ -39,6 +44,11 @@ These instructions will produce the following structure:
 \end{itemize}
 
 The build directory can be removed when you are finished.
+
+The following instructions assume you are running the \filename{bash} shell.
+Comments are indicated with \# characters. 
+
+Open a terminal~\footnote{If you do not know how to open a terminal on Mac, then just type terminal in the spotlight (search tool on the top of the right corner) and once found just click on it.} and type
 
 \begin{shellCode}
 mkdir stand
@@ -322,7 +332,7 @@ Hidden files can be removed with
 find . -name .?* | xargs rm -rf
 \end{shellCode}
 
-\section{Additional Functionality}\label{sec:macddfunc}
+\section{Additional Functionality}\label{sec:macaddfunc}
 To perform visualisations you will need some additional tools.
 Since these do not need to be linked with any of the packages above, you can install versions available for your
 system, or build them from source.
