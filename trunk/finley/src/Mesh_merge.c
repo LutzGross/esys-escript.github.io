@@ -51,14 +51,16 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
   if (numMsh==0) {
      Finley_setError(VALUE_ERROR,"Finley_Mesh_merge: Empty mesh list");
   } else {
+    for  (i=0;i<numMsh;i++) }
+         if (mpi_info=msh[i]->MPIInfo->size > 1) {
+              Finley_setError(TYPE_ERROR,"Finley_Mesh_merge: more than processor is not supported yet.");
+              return NULL;
+         }
+    }
     order=msh[0]->order;
     reduced_order=msh[0]->reduced_order;
     numDim=msh[0]->Nodes->numDim;
     mpi_info=msh[0]->MPIInfo;
-    if (mpi_info->size > 1) {
-         Finley_setError(TYPE_ERROR,"Finley_Mesh_merge: more than processor is not supported yet.");
-         return NULL;
-    }
     strcpy(newName,"");
     for (i=0;i<numMsh;i++) {
        /* check if all mesh have the same type and dimensions */
