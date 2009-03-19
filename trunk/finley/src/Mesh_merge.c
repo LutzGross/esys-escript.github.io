@@ -51,8 +51,8 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
   if (numMsh==0) {
      Finley_setError(VALUE_ERROR,"Finley_Mesh_merge: Empty mesh list");
   } else {
-    for  (i=0;i<numMsh;i++) }
-         if (mpi_info=msh[i]->MPIInfo->size > 1) {
+    for  (i=0;i<numMsh;i++) {
+         if (msh[i]->MPIInfo->size > 1) {
               Finley_setError(TYPE_ERROR,"Finley_Mesh_merge: more than processor is not supported yet.");
               return NULL;
          }
