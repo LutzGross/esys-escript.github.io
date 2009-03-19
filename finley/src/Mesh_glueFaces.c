@@ -37,7 +37,6 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
      return;
    }
        
-
    if (self->FaceElements==NULL) return;
 
    if (self->FaceElements->ReferenceElement->Type->numNodesOnFace<=0) {
