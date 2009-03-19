@@ -2336,13 +2336,27 @@ class LameEquation(LinearPDE):
      @rtype: L{Data<escript.Data>}
      @raise IllegalCoefficient: invalid coefficient name
      """
+     out =self.createCoefficient("A")
      if name == "A" :
-         out =self.createCoefficient("A")
-         for i in range(self.getDim()):
-           for j in range(self.getDim()):
-             out[i,i,j,j] += self.getCoefficient("lame_lambda")
-             out[i,j,j,i] += self.getCoefficient("lame_mu")
-             out[i,j,i,j] += self.getCoefficient("lame_mu")
+         if self.getCoefficient("lame_lambda").isEmpty(): 
+            if self.getCoefficient("lame_mu").isEmpty():
+                pass
+            else:
+                for i in range(self.getDim()):
+                  for j in range(self.getDim()):
+                    out[i,j,j,i] += self.getCoefficient("lame_mu")
+                    out[i,j,i,j] += self.getCoefficient("lame_mu")
+         else: 
+            if self.getCoefficient("lame_mu").isEmpty():
+                for i in range(self.getDim()):
+                  for j in range(self.getDim()):
+                    out[i,i,j,j] += self.getCoefficient("lame_lambda")
+            else:
+                for i in range(self.getDim()):
+                  for j in range(self.getDim()):
+                    out[i,i,j,j] += self.getCoefficient("lame_lambda")
+                    out[i,j,j,i] += self.getCoefficient("lame_mu")
+                    out[i,j,i,j] += self.getCoefficient("lame_mu")
          return out
      elif name == "X" :
          return self.getCoefficient("sigma")
