@@ -352,25 +352,27 @@ Otherwise \False is returned.
 (python str() function) returns string representation of the \Domain.
 \end{methoddesc}
 
-\begin{methoddesc}[Domain]{onMasterProcessor}{}
- returns \True if executed on the MPI master processor, \False otherwise.
-This can be used in conjunction with MPIBarrier to ensure commands only run once.
-\end{methoddesc}
-
-\begin{methoddesc}[Domain]{MPIBarrier}{}
- executes an MPIBarrier command. If MPI support is not enabled, this command does nothing. 
-\end{methoddesc}
-
-\begin{methoddesc}[Domain]{MPIBarrier}{}
- executes an MPIBarrier command. If MPI support is not enabled, this command does nothing. 
+\begin{methoddesc}[Domain]{onMasterProcessor)}{}
+returns \True if the processor is the master processor within 
+the \MPI processor group used by the \Domain. This is the processor with rank 0.
+If \MPI support is not enabled the return value is always \True.
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{getMPISize}{}
- returns the number of MPI processors used for this domain. 
+ returns the number of \MPI processors used for this \Domain. If \MPI support is not enabled
+1 is returned.
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{getMPIRank}{}
- returns the rank of the processor executing the statement. 
+ returns the rank of the processor executing the statement 
+within the  \MPI processor group used by the \Domain. 
+If \MPI support is not enabled 0 is returned.
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{MPIBarrier}{}
+executes barrier synchronization within 
+the \MPI processor group used by the \Domain.
+If \MPI support is not enabled, this command does nothing. 
 \end{methoddesc}
 
 \subsection{\FunctionSpace class}
@@ -1124,3 +1126,34 @@ saves the object to a matrix market format file of name
 \index{Matrix Market}
 \end{methoddesc}
 
+\section{Utilities}
+\begin{funcdesc}{setEscriptParamInt}{name,value}
+assignes the ineger value \var{value} to the parameter \var{name}.
+If \var{name}="TOO_MANY_LINES" convertion of any \Data object to a string is switching to a 
+condensed format if more than \var{value} lines would be created.
+\end{funcdesc}
+
+\begin{funcdesc}{getEscriptParamInt}{name}
+returns the current value of integer parameter \var{name}. 
+\end{funcdesc}
+
+\begin{funcdesc}{listEscriptParams}{a}
+returns a list of valid parameters and their description.
+\end{funcdesc}
+
+\begin{funcdesc}{getMPISizeWorld}{}
+returns the number of \MPI processors in use in the \env{MPI_COMM_WORLD} processor group.
+If \MPI is not used 1 is returend.
+\end{funcdesc}
+\begin{funcdesc}{getMPIRankWorld}{}
+returns the rank of the process within the \env{MPI_COMM_WORLD} processor group.
+If \MPI is not used 0 is returend.
+\end{funcdesc}
+\begin{funcdesc}{MPIBarrierWorld}{}
+performs a barrier synchronization across all processors within \env{MPI_COMM_WORLD}
+processor group.
+\end{funcdesc}
+\begin{funcdesc}{getMPIWorldMax}{a}
+returns the maximum value of the interger \var{a} across all 
+processors within \env{MPI_COMM_WORLD}.
+\end{funcdesc}
