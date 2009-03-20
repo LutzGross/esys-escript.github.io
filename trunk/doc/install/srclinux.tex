@@ -68,15 +68,15 @@ tar -zxf ../package_src/scons-1.2.0.tar.gz
 Build python.
 \begin{shellCode}
 cd Python*
-./configure --prefix=\$PKG_ROOT/python-2.6.1 --enable-shared 2>&1 \
+./configure --prefix=$PKG_ROOT/python-2.6.1 --enable-shared 2>&1 \
   | tee tt.configure.out
 make install 2>&1 | tee tt.make.out
 
 cd ..
 
-export PATH=\$PKG_ROOT/python/bin:\$PATH
-export PYTHONHOME=\$PKG_ROOT/python
-export LD_LIBRARY_PATH=\$PKG_ROOT/python/lib:\$LD_LIBRARY_PATH
+export PATH=$PKG_ROOT/python/bin:$PATH
+export PYTHONHOME=$PKG_ROOT/python
+export LD_LIBRARY_PATH=$PKG_ROOT/python/lib:$LD_LIBRARY_PATH
 
 pushd ../packages
 ln -s python-2.6.1/ python
@@ -91,12 +91,12 @@ Now build numarray.
 cd numarray-1.5.2
 
 python setup.py install \
- --gencode --install-lib=\$PKG_ROOT/numarray-1.5.2/lib \
- --install-headers=\$PKG_ROOT=\$PKG_ROOT/numarray-1.5.2/include/numarray \ 
+ --gencode --install-lib=$PKG_ROOT/numarray-1.5.2/lib \
+ --install-headers=$PKG_ROOT=$PKG_ROOT/numarray-1.5.2/include/numarray \ 
    2>&1 | tee tt.install.out
 
 
-export PYTHONPATH=\$PKG_ROOT/numarray/lib:\$PYTHONPATH
+export PYTHONPATH=$PKG_ROOT/numarray/lib:$PYTHONPATH
 cd ..
 pushd ../packages
 ln -s numarray-1.5.2 numarray
@@ -106,9 +106,9 @@ popd
 Now we build scons.
 \begin{shellCode}
 cd scons-1.2.0
-python setup.py install --prefix=\$PKG_ROOT/scons-1.2.0
+python setup.py install --prefix=$PKG_ROOT/scons-1.2.0
 
-export PATH=\$PKG_ROOT/scons/bin:\$PATH
+export PATH=$PKG_ROOT/scons/bin:$PATH
 cd ..
 pushd ../packages
 ln -s scons-1.2.0 scons
@@ -119,13 +119,13 @@ popd
 \begin{shellCode}
 cd boost_1_37_0
 
-./configure --prefix=\$PKG_ROOT/boost_1_37_0 --with-python-root=\$PKG_ROOT/python \
+./configure --prefix=$PKG_ROOT/boost_1_37_0 --with-python-root=$PKG_ROOT/python \
   --with-python-version=2.6 --with-libraries=python
 
 make
 make install
-ln -s \$PKG_ROOT/boost_1_37_0 \$PKG_ROOT/boost
-export LD_LIBRARY_PATH=\$PKG_ROOT/boost/lib:\$LD_LIBRARY_PATH
+ln -s $PKG_ROOT/boost_1_37_0 $PKG_ROOT/boost
+export LD_LIBRARY_PATH=$PKG_ROOT/boost/lib:$LD_LIBRARY_PATH
 cd ..
 pushd ../packages
 ln -s boost_1_37_0 boost
@@ -137,12 +137,12 @@ popd
 cd netcdf-4.0
 CFLAGS="-O2 fPIC -Df2cFortran" CXXFLAGS="-O2 fPIC -Df2cFortran" \
 FFLAGS="-O2 fPIC -Df2cFortran" FCFLAGS="-O2 fPIC -Df2cFortran" \
-./configure --prefix=\$PKG_ROOT/netcdf-4.0
+./configure --prefix=$PKG_ROOT/netcdf-4.0
 
 make -j2
 make install
 
-export LD_LIBRARY_PATH=\$PKG_ROOT/netcdf/lib:\$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PKG_ROOT/netcdf/lib:$LD_LIBRARY_PATH
 cd ..
 pushd ../packages
 ln -s netcdf-4.0 netcdf
@@ -152,11 +152,11 @@ popd
 CMake and Mesa are required for VTK. 
 \begin{shellCode}
 cd cmake-2.6.3
-./configure --prefix=\$PKG_ROOT/cmake-2.6.3 2>&1 | tee tt.configure
+./configure --prefix=$PKG_ROOT/cmake-2.6.3 2>&1 | tee tt.configure
 make -j 4
 make install
 
-export PATH=\$PKG_ROOT/cmake/bin:\$PATH
+export PATH=$PKG_ROOT/cmake/bin:$PATH
 cd ..
 pushd ../packages
 ln -s cmake-2.6.3 cmake
@@ -167,12 +167,12 @@ These instructions do not compile MesaDemos or GLUT.
 If you need to check if Mesa compiled correctly, then the demos are a good test.
 \begin{shellCode}
 cd Mesa-7.2
-./configure --prefix=\$PKG_ROOT/mesa-7.2 --enable-gl-osmesa --with-driver=xlib
+./configure --prefix=$PKG_ROOT/mesa-7.2 --enable-gl-osmesa --with-driver=xlib
 
 make -j 4
 make install
 
-export LD_LIBRARY_PATH=\$PKG_ROOT/mesa:\$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PKG_ROOT/mesa:$LD_LIBRARY_PATH
 cd ..
 pushd ../packages
 ln -s mesa-7.2 mesa
@@ -267,13 +267,13 @@ boost_libs		= ['boost_python-gcc43-mt']
 usevtk		= 'yes'
 #-------------------------------------------------------------------
 
-ln -s \$PKG_ROOT/vtk-5.2.1 \$PKG_ROOT/vtk
+ln -s $PKG_ROOT/vtk-5.2.1 $PKG_ROOT/vtk
 
 Modify /scripts/finley_wrapper_template
 
 STANDALONE=1
 
-#Check to make sure the paths in the if [ \$STANDALONE == 1 ]
+#Check to make sure the paths in the if [ $STANDALONE == 1 ]
 # Section are correct
 
 #-----------------------------------------------------------------
@@ -282,7 +282,7 @@ scons bin/escript
 
 #start a new terminal
 cd stand
-export PATH=`pwd`/packages/scons/bin:\$PATH
+export PATH=`pwd`/packages/scons/bin:$PATH
 cd escript.d
 eval `bin/escript -e`
 scons
