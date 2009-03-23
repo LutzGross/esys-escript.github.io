@@ -739,7 +739,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCas
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_RILU(unittest.TestCase):
+class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -771,7 +771,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_RILU(unittest.TestCase)
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
         pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.MINRES,pde.RILU)
+        pde.setSolverMethod(pde.MINRES,pde.JACOBI)
         pde.setSolverPackage(pde.PASO)
         u=pde.getSolution(verbose=SOLVER_VERBOSE)
         # -------- test the solution ---------------------------
@@ -851,7 +851,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_RILU(unittest.TestCase):
+class SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -871,14 +871,14 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_RILU(unittest.TestCase):
         pde.setValue(A=kronecker(3),y=inner(g_ex,domain.getNormal()),Y=-60.)
         # -------- get the solution ---------------------------
         pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.MINRES,pde.RILU)
+        pde.setSolverMethod(pde.MINRES,pde.JACOBI)
         pde.setSolverPackage(pde.PASO)
         u=pde.getSolution(verbose=SOLVER_VERBOSE)
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_RILU(unittest.TestCase):
+class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -918,7 +918,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_RILU(unittest.TestCase):
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
         pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.MINRES,pde.RILU)
+        pde.setSolverMethod(pde.MINRES,pde.JACOBI)
         pde.setSolverPackage(pde.PASO)
         u=pde.getSolution(verbose=SOLVER_VERBOSE)
         # -------- test the solution ---------------------------
@@ -947,11 +947,11 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SinglePDE_Paso_MINRES_Jacobi))
    suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SinglePDE_Paso_MINRES_Jacobi))
    suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SinglePDE_Paso_MINRES_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_RILU))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_Jacobi))
    suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SinglePDE_Paso_MINRES_Jacobi))
    suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_RILU))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_RILU))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_Jacobi))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_Jacobi))
  
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
