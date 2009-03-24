@@ -87,7 +87,7 @@ hosts defined in \var{hostfile} must be greater or equal to the number of requst
 
  \item[\programopt{-e}] shows additional environment variables and commands used during \program{escript} execution. This option is useful if users wish to excute scripts without using the \program{escript} command.
 
- \item[\programopt{-o}] switches on the redirection of standart and error output of processors with \MPI rank greater than zero to the files \file{stdout_\var{r}.out} and \file{stderr_\var{r}.out} where \var{r} is the rank of the processor. The option overwrites the value of the \env{ESCRIPT_STDFILES} environment variable 
+ \item[\programopt{-o}] switches on the redirection of output of processors with \MPI rank greater than zero to the files \file{stdout_\var{r}.out} and \file{stderr_\var{r}.out} where \var{r} is the rank of the processor. The option overwrites the value of the \env{ESCRIPT_STDFILES} environment variable 
 
 %  \item[\programopt{-x}] interpret \var{file} as an \esysxml \footnote{{\it esysxml} has not been released yet.} task.
 % This option is still expermental.
