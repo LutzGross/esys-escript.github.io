@@ -14,6 +14,10 @@ STANDALONE=0
 scriptdir=""
 CURDIR=`pwd`
 
+#Environment vars which control operations:
+# ESCRIPT_NUM_NODES, ESCRIPT_NUM_PROC, ESCRIPT_NUM_THREADS, ESCRIPT_HOSTFILE, ESCRIPT_STDFILES
+
+
 #Need to match if the name contains /
 if [[ $0 =~ / ]]
 then
@@ -66,14 +70,19 @@ EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib:$EXTRA_LD_LIBRARY_PATH
 
 HELP_TEXT="
 Usage: escript [options] script.py [arguments...]
-	-O N		Use N OpenMP threads (OMP_NUM_THREADS=N)
-	-M K		Use K MPI processes
-	-l 'launcher'	MPI launcher, usually -l 'mpirun -np' or -l 'mpiexec -n'
-	-L /path	Prepend /path to library search path
-	-P /path	Prepend /path to python module search path
-	-e		Print export statements for environment and exit
+	-n nn		number of nodes to use
+	-p np		number of MPI processes to spawn
+	-t nt		number of OpenMP threads to use
+	-f file		name of MPI hostfile
+	-c 		print compile information for escript and exit
+	-V		print escript version and exit
+	-i		interactive mode 
+	-e		print export statements for environment and exit
+	-o		redirect output from MPI to files
+	-v		print diagnostics
+	-x		..reserved for future use ..
 	script.py	Your python script
-	arguments...	The optional command-line arguments to your python script
+	arguments...	The optional command-line arguments to your script
 "
 
 if [ "$1" = "--help" ]; then
@@ -100,18 +109,27 @@ MPI_NUM_PROCS=1
 
 # Parse the command-line options
 # option e should not be followed by a :
-while getopts 'L:P:O:M:l:e' option
+while getopts 'n:p:t:f:h:ecVviox' option
 do
 	case "$option" in
-	  "L")	EXTRA_LD_LIBRARY_PATH="$OPTARG:$EXTRA_LD_LIBRARY_PATH"
+	  "n")	ESCRIPT_NUM_NODES=$OPTARG
 		;;
-	  "P")	EXTRA_PYTHONPATH="$OPTARG:$EXTRA_PYTHONPATH"
+	  "p")	ESCRIPT_NUM_PROC=$OPTARG
 		;;
-	  "O")	OMP_NUM_THREADS="$OPTARG"
+	  "t")	ESCRIPT_NUM_THREADS=$OPTARG
 		;;
-	  "M")	MPI_NUM_PROCS="$OPTARG"
+	  "f")	ESCRIPT_HOSTFILE=$OPTARG
 		;;
-	  "l")	mpi_launcher="$OPTARG"
+	  "c")  cat $ESCRIPT_ROOT/lib/buildvars
+		exit 0
+		;;
+	  "V")	echo "escript-pre2.0(build "`grep svn_revision $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`")"
+		exit 0
+		;;
+	  "h")  echo "$HELPTEXT"
+		exit 0
+		;;
+	  "i")  DOINTERACTIVE=yes
 		;;
 	  "e")  echo "export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:\$LD_LIBRARY_PATH"
 		echo "export PYTHONPATH=$EXTRA_PYTHONPATH:\$PYTHONPATH"
@@ -122,12 +140,23 @@ do
 		fi
 		exit 0
 		;;
+	  "o")  ESCRIPT_STDFILES="yes"
+		;;
+	  "v")  echo "Diagnostics:"
+		exit 0
+		;;
+	  "x")  echo "-x not implemented yet"
+		exit 1
+		;;
 	  ?)	echo "$HELP_TEXT"
 		exit 1
 		;;
 	esac
 done
 shift `expr $OPTIND - 1`
+
+
+
 
 export PATH=$EXTRA_PATH:$PATH
 export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:$LD_LIBRARY_PATH
@@ -153,24 +182,57 @@ fi
 # Must have at least one command-line arg: the python script
 if [ $# -eq 0 ]; then
   echo "No python script specified. Starting python interpreter."
-#   echo "Missing python script"
-#   echo "$HELP_TEXT"
-#   exit 1
+fi
+
+#Ensure the variables have sensible values
+if [ -z $ESCRIPT_NUM_NODES ]
+then
+  ESCRIPT_NUM_NODES=1
+fi
+
+if [ -z $ESCRIPT_NUM_PROCS ]
+then
+  ESCRIPT_NUM_PROCS=1
+fi
+
+if [ -z $ESCRIPT_NUM_THREADS ]
+then
+  ESCRIPT_NUM_THREADS=$OMP_NUM_THREADS
+  if [ -z $ESCRIPT_NUM_THREADS ]
+  then
+    ESCRIPT_NUM_THREADS=1
+  fi
+fi
+
+#Now we compute total number of Processes
+(( TOTPROC=$ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS))
+if [ $? -ne 0 ]		#Some compute error 
+then			#This could happen if the args were not a number
+  ESCRIPT_NUM_NODES=1
+  ESCRIPT_NUM_PROCS=1
+fi
+
+# Test to ensure people aren't trying to combine interactive and multi-process
+
+if [[ ( ( -z $DOINTERACTIVE ) || ( $# -eq 0 ) ) && ( $TOTPROC -gt 1) ]]
+then
+  echo "Interactive mode cannot be used with more than one process"
+  exit 1
 fi
 
 # Using OpenMP?
 OMP_OPTIONS=''
 if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.openmp" ]; then
 #  PYTHON_CMD="$mpi_launcher $MPI_NUM_PROCS $PYTHON_MPI"
-  OMP_OPTIONS="env OMP_NUM_THREADS=$OMP_NUM_THREADS"
+  OMP_OPTIONS="env OMP_NUM_THREADS=$ESCRIPT_NUM_THREADS"
 fi
 
 # Using MPI?
 if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.mpi" ]; then
   PYTHON_CMD="$mpi_launcher $MPI_NUM_PROCS $PYTHON_MPI"
 else
-  if [ "$MPI_NUM_PROCS" -ne 1 ]; then
-    echo "Escript/Finley was not compiled for MPI so you must use -M 1"
+  if [ "$TOTPROC" -ne 1 ]; then
+    echo "Escript/Finley was not compiled for MPI. You can not use the -n and -p options."
     exit 1
   fi
 fi
