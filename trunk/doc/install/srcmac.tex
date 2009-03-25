@@ -348,7 +348,7 @@ you would also need \filename{libjpeg} and its headers as well as \filename{libp
 
 As we mentioned in the Section~\ref{sec:srcmac}, before you start installing from source you will need Mac OS X development tools installed on your Mac. 
 
-If you do not have Macports already, please install Macports from \url{www.macports.org} . You can also install porticus (GUI for Macports).
+If you do not have Macports already, please install Macports from \url{www.macports.org}. You can also install porticus (GUI for Macports).
  
 Once you have Macports working Install boost using porticus or from terminal 
 \begin{shellCode}
@@ -370,7 +370,8 @@ python setup.py install
 
 Note: Do not try to install scons using porticus or sudo port install scons, because if automatically installs another python version and you are likely run into problems with different python versions.  
  
-Download numarray-1.5.2.tar.gz from \url{http://www.stsci.edu/resources/software_hardware/numarray/numarray.html}. 
+Download numarray-1.5.2.tar.gz from \\
+\url{http://www.stsci.edu/resources/software_hardware/numarray/numarray.html}. 
 \begin{shellCode}
 tar xfz numarray-1.5.2.tar.gz
 cd numarray-1.5.2
@@ -398,7 +399,7 @@ Downlaod gmsh-2.2.3-source.tar and install from sources.
 \end{shellCode}
 Note: if you install using porticus or sudo port  it automaticall installs in \filename{/opt/local/}, but if you install from sources it installs in /usr/local. So, make sure these paths are right.
 \begin{shellCode}
-sudo make Ðj2
+sudo make -j2
 sudo make install
 \end{shellCode} 
  
