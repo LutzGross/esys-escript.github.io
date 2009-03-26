@@ -234,17 +234,27 @@
 % add the listings package to pretty print the code output
 \usepackage{listings}
 
+
+%Some colour definitions added to keep pdflatex happy
+%I make no claim that these values are particularly good
+\definecolor{Purple}{rgb}{0.7, 0, 0.6}
+\definecolor{Tan}{rgb}{0.5,0.5,0.5}
+\definecolor{BrickRed}{rgb}{0.7, 0.2, 0.2}
+
+% All the \color{x} used to be \color[named]{x}
+%end color defs
+
 \lstdefinestyle{myC++}{%
 %\lstset{%
 language=C++,
 showstringspaces=false,
 basicstyle=\small\ttfamily,
-commentstyle=\color[named]{BrickRed}\ttfamily,
-keywordstyle=\color[named]{Purple}\ttfamily,
-%identifierstyle=\color[named]{Blue}\ttfamily,
-%functionstyle=\color[named]{Blue}\ttfamily,
-%typestyle=\color[named]{ForestGreen}\ttfamily,
-stringstyle=\color[named]{Tan}\ttfamily,%
+commentstyle=\color{BrickRed}\ttfamily,
+keywordstyle=\color{Purple}\ttfamily,
+%identifierstyle=\color{Blue}\ttfamily,
+%functionstyle=\color{Blue}\ttfamily,
+%typestyle=\color{ForestGreen}\ttfamily,
+stringstyle=\color{Tan}\ttfamily,%
 morekeywords={,complex,}%
 frame=none,%
 backgroundcolor=\color{LightGrey}%
@@ -255,12 +265,12 @@ backgroundcolor=\color{LightGrey}%
 language=Matlab,
 showstringspaces=false,
 basicstyle=\small\ttfamily,
-commentstyle=\color[named]{BrickRed}\ttfamily,
-keywordstyle=\color[named]{Purple}\ttfamily,
-%identifierstyle=\color[named]{Blue}\ttfamily,
-%functionstyle=\color[named]{Blue}\ttfamily,
-%typestyle=\color[named]{ForestGreen}\ttfamily,
-stringstyle=\color[named]{Tan}\ttfamily,%
+commentstyle=\color{BrickRed}\ttfamily,
+keywordstyle=\color{Purple}\ttfamily,
+%identifierstyle=\color{Blue}\ttfamily,
+%functionstyle=\color{Blue}\ttfamily,
+%typestyle=\color{ForestGreen}\ttfamily,
+stringstyle=\color{Tan}\ttfamily,%
 frame=none,%
 backgroundcolor=\color{LightGrey}%
 }
@@ -270,12 +280,12 @@ backgroundcolor=\color{LightGrey}%
 language=Scilab,
 showstringspaces=false,
 basicstyle=\small\ttfamily,
-commentstyle=\color[named]{BrickRed}\ttfamily,
-keywordstyle=\color[named]{Purple}\ttfamily,
-%identifierstyle=\color[named]{Blue}\ttfamily,
-%functionstyle=\color[named]{Blue}\ttfamily,
-%typestyle=\color[named]{ForestGreen}\ttfamily,
-stringstyle=\color[named]{Tan}\ttfamily,%
+commentstyle=\color{BrickRed}\ttfamily,
+keywordstyle=\color{Purple}\ttfamily,
+%identifierstyle=\color{Blue}\ttfamily,
+%functionstyle=\color{Blue}\ttfamily,
+%typestyle=\color{ForestGreen}\ttfamily,
+stringstyle=\color{Tan}\ttfamily,%
 frame=none,%
 backgroundcolor=\color{LightGrey}%
 }
@@ -285,12 +295,12 @@ backgroundcolor=\color{LightGrey}%
 language=ksh,
 showstringspaces=false,
 basicstyle=\small\ttfamily,
-commentstyle=\color[named]{Black}\ttfamily,
-keywordstyle=\color[named]{Black}\ttfamily,
-%identifierstyle=\color[named]{Blue}\ttfamily,
-%functionstyle=\color[named]{Blue}\ttfamily,
-%typestyle=\color[named]{ForestGreen}\ttfamily,
-stringstyle=\color[named]{Black}\ttfamily,%
+commentstyle=\color{Black}\ttfamily,
+keywordstyle=\color{Black}\ttfamily,
+%identifierstyle=\color{Blue}\ttfamily,
+%functionstyle=\color{Blue}\ttfamily,
+%typestyle=\color{ForestGreen}\ttfamily,
+stringstyle=\color{Black}\ttfamily,%
 frame=none,%
 backgroundcolor=\color{LightGrey}%
 }
@@ -300,12 +310,12 @@ backgroundcolor=\color{LightGrey}%
 language=python,
 showstringspaces=false,
 basicstyle=\small\ttfamily,
-commentstyle=\color[named]{BrickRed}\ttfamily,
-keywordstyle=\color[named]{Purple}\ttfamily,
-%identifierstyle=\color[named]{Blue}\ttfamily,
-%functionstyle=\color[named]{Blue}\ttfamily,
-%typestyle=\color[named]{ForestGreen}\ttfamily,
-stringstyle=\color[named]{Tan}\ttfamily,%
+commentstyle=\color{BrickRed}\ttfamily,
+keywordstyle=\color{Purple}\ttfamily,
+%identifierstyle=\color{Blue}\ttfamily,
+%functionstyle=\color{Blue}\ttfamily,
+%typestyle=\color{ForestGreen}\ttfamily,
+stringstyle=\color{Tan}\ttfamily,%
 frame=none,%
 %backgroundcolor=\color{LightGrey}%
 }
@@ -315,12 +325,12 @@ frame=none,%
 language=xml,
 showstringspaces=false,
 basicstyle=\small\ttfamily,
-commentstyle=\color[named]{BrickRed}\ttfamily,
-keywordstyle=\color[named]{Purple}\ttfamily,
-%identifierstyle=\color[named]{Blue}\ttfamily,
-%functionstyle=\color[named]{Blue}\ttfamily,
-%typestyle=\color[named]{ForestGreen}\ttfamily,
-stringstyle=\color[named]{Tan}\ttfamily,
+commentstyle=\color{BrickRed}\ttfamily,
+keywordstyle=\color{Purple}\ttfamily,
+%identifierstyle=\color{Blue}\ttfamily,
+%functionstyle=\color{Blue}\ttfamily,
+%typestyle=\color{ForestGreen}\ttfamily,
+stringstyle=\color{Tan}\ttfamily,
 morekeywords={,simulation,prop_dim,error_check,stochastic,%
   globals,field,dimensions,lattice,domains,samples,vector,%
   components,fourier_space,sequence,integrate,algorithm,%
