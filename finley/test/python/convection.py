@@ -55,7 +55,7 @@ NE=int(options.NE)
 DIM=2
 H=1.
 L=4*H
-THETA=0.5 # time stepping THETA=0.5 cranck nicolson
+USE_BACKWARD_EULER=False
 TOL=1.e-4
 PERTURBATION=0.1
 DT=1.e-4
@@ -180,7 +180,7 @@ x=dom.getX()
 #
 #   set up heat problem:
 #
-heat=TemperatureCartesian(dom,theta=THETA)
+heat=TemperatureCartesian(dom,useBackwardEuler=USE_BACKWARD_EULER)
 heat.setTolerance(TOL*extratol)
 
 fixed_T_at=whereZero(x[DIM-1])+whereZero(H-x[DIM-1])

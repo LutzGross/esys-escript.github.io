@@ -2529,7 +2529,7 @@ class TransportPDE(LinearProblem):
            u = p.solve(dt)
 
    """
-   def __init__(self,domain,numEquations=None,numSolutions=None, theta=0.5,debug=False):
+   def __init__(self,domain,numEquations=None,numSolutions=None, useBackwardEuler=False, debug=False):
      """
      Initializes a transport problem.
 
@@ -2541,17 +2541,15 @@ class TransportPDE(LinearProblem):
                           of solution components is extracted from the
                           coefficients.
      @param debug: if True debug information is printed
-     @param theta: time stepping control:
-        - 1.0: backward Euler,
-        - 0.0: forward Euler,
-        - 0.5: Crank-Nicholson scheme, U{see here<http://en.wikipedia.org/wiki/Crank-Nicolson_method>}
-
+     @param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Note that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
+     @type useBackwardEuler: C{bool}
      """
-     if theta<0 or theta>1:
-              raise ValueError,"theta (=%s) needs to be between 0 and 1 (inclusive)."%theta
+     if useBackwardEuler:
+         self.__useBackwardEuler=True
+     else:
+         self.__useBackwardEuler=False
      super(TransportPDE, self).__init__(domain,numEquations,numSolutions,debug)
 
-     self.__theta=theta
      self.setConstraintWeightingFactor()
      #
      #   the coefficients of the transport problem
@@ -2593,12 +2591,12 @@ class TransportPDE(LinearProblem):
      """
      return "<TransportPDE %d>"%id(self)
 
-   def getTheta(self):
+   def useBackwardEuler(self):
       """
-      Returns the time stepping control parameter.
-      @rtype: float
+      Returns true if backward Euler is used. Otherwise false is returned.
+      @rtype: bool
       """
-      return self.__theta
+      return self.__useBackwardEuler
 
 
    def checkSymmetry(self,verbose=True):
@@ -2719,9 +2717,14 @@ class TransportPDE(LinearProblem):
        """
        Returns an instance of a new transport operator.
        """
+       if self.useBackwardEuler():
+         theta=1.
+       else:
+         theta=0.5
+
        self.trace("New Transport problem is allocated.")
        return self.getDomain().newTransportProblem( \
-                               self.getTheta(),
+                               theta,
                                self.getNumEquations(), \
                                self.getFunctionSpaceForSolution(), \
                                self.getSystemType())
