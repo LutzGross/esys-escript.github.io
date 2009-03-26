@@ -296,15 +296,15 @@ if env['usepedantic']: env.Append(CCFLAGS = pedantic)
 
 # MS Windows
 if IS_WINDOWS_PLATFORM:
-  env.PrependENVPath('PATH',	[env['boost_lib_path']])
-  env.PrependENVPath('PATH',	[env['libinstall']])
+  env.AppendENVPath('PATH',	[env['boost_lib_path']])
+  env.AppendENVPath('PATH',	[env['libinstall']])
   if not env['share_esysUtils'] :
     env.Append(CPPDEFINES = ['ESYSUTILS_STATIC_LIB'])
   if not env['share_paso'] :
     env.Append(CPPDEFINES = ['PASO_STATIC_LIB'])
 
   if env['usenetcdf']:
-    env.PrependENVPath('PATH',	[env['netCDF_lib_path']])
+    env.AppendENVPath('PATH',	[env['netCDF_lib_path']])
 
 env.Append(ARFLAGS = env['ar_flags'])
 
@@ -408,6 +408,9 @@ if env['usevtk']:
 
 conf = Configure(clone_env(env))
 
+print "<1<<<<"+str(conf.env['ENV']['LD_LIBRARY_PATH'])
+
+
 if env['usenetcdf']:
   conf.env.AppendUnique(CPPPATH	= [env['netCDF_path']])
   conf.env.AppendUnique(LIBPATH	= [env['netCDF_lib_path']])
@@ -420,12 +423,16 @@ if env['usenetcdf']:
 if env['usenetcdf'] and not conf.CheckCHeader('netcdf.h'): env['usenetcdf'] = 0
 if env['usenetcdf'] and not conf.CheckFunc('nc_open'): env['usenetcdf'] = 0
 
+print "<2<<<<"+str(conf.env['ENV']['LD_LIBRARY_PATH'])
+
 # Add NetCDF to environment env if it was found
 if env['usenetcdf']:
   env = conf.Finish()
   env.Append(CPPDEFINES = ['USE_NETCDF'])
 else:
   conf.Finish()
+
+print "<A<<<<"+str(env['ENV']['LD_LIBRARY_PATH'])
 
 ############ PAPI (optional) ###################################
 
@@ -807,7 +814,7 @@ env.Alias('build_full',['install_all','build_tests','build_py_tests'])
 
 ############ Targets to build the documentation ################
 
-env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_doxygen', 'guide_pdf', 'guide_html'])
+env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_doxygen', 'guide_pdf', 'guide_html','install_pdf'])
 
 if not IS_WINDOWS_PLATFORM:
    try:
