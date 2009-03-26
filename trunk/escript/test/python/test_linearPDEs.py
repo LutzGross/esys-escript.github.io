@@ -1722,12 +1722,12 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
 
 class Test_TransportPDE(Test_linearPDEs):
     N=4
-    def test_init_theta(self):
-        mypde=TransportPDE(self.domain,debug=self.DEBUG, theta=1.)
-        self.failUnless(mypde.getTheta()==1.,'wrong theta')
-    def test_init_invalid_theta(self):
-        self.failUnlessRaises(ValueError,TransportPDE,self.domain,debug=self.DEBUG, theta=-1.)
-
+    def test_init_useBackwardEuler(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG, useBackwardEuler=True)
+        self.failUnless(mypde.useBackwardEuler()==True,'backward Euler should be used')
+    def test_init_donntUseBackwardEuler(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG, useBackwardEuler=False)
+        self.failUnless(mypde.useBackwardEuler()==False,'backward Euler should not be used')
     def test_setCoefficient_WithWrongName(self):
         mypde=TransportPDE(self.domain,debug=self.DEBUG)
         self.failUnlessRaises(IllegalCoefficient,mypde.setValue, ROMA=Vector(0.,FunctionOnBoundary(self.domain)))

@@ -59,17 +59,15 @@ class TemperatureCartesian(TransportPDE):
             T = sp.getTemperature(dt)
             t += dt
     """
-    def __init__(self,domain,theta=0.5,**kwargs):
+    def __init__(self,domain,useBackwardEuler=False,**kwargs):
         """
         Initializes the temperature advection-diffusion problem.
 
         @param domain: domain of the problem
-        @param theta: method control:
-            - theta=1.0: backward Euler
-            - theta=0.5: Crank-Nicholson scheme
-            - theta=0.0: forward Euler (not recommended)
+        @param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Not that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. So other measures need to be applied to control the time step size. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
+        @type useBackwardEuler: C{bool}
         """
-        TransportPDE.__init__(self,domain,numEquations=1,theta=theta,**kwargs)
+        TransportPDE.__init__(self,domain,numEquations=1,useBackwardEuler=useBackwardEuler,**kwargs)
         self.setReducedOrderOn()
         self.__rhocp=None
         self.__v=None
