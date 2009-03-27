@@ -30,7 +30,7 @@ figs=[ os.path.splitext(x)[0] for x in os.listdir(tex_dir+os.path.sep+'figures')
 
 latexcmd="pdflatex %s \\\\newcommand{\\\\RepVersion}{`svnversion`\\\\xspace}\\\\input{guide.tex}"%latexmode
 
-env.Command('guide.pdf',tex,
+env.Command(env['prefix']+'/doc/user/guide.pdf',tex,
             [ "epstopdf "+os.path.join('figures',name+".eps")+" -o "\
 	      +os.path.join('figures',name+".pdf") for name in figs ]+ \
 	    [ latexcmd,  \
@@ -40,7 +40,7 @@ env.Command('guide.pdf',tex,
               latexcmd],      \
             chdir=tex_dir)
 
-tmp=local_env.InstallAs(target=env['prefix']+'/release/doc/user/guide.pdf', source='guide.pdf')
+tmp=local_env.InstallAs(target=env['prefix']+'/release/doc/user/guide.pdf', source=env['prefix']+'/doc/user/guide.pdf')
 
 env.Alias('guide_pdf', tmp)
 
