@@ -33,14 +33,14 @@ tex= [ env.File(x) for x in os.listdir(tex_dir) if not x.startswith('.') and not
 
 latexcmd="pdflatex %s \\\\newcommand{\\\\RepVersion}{`svnversion`\\\\xspace}\\\\input{install.tex}"%latexmode
 
-env.Command('install.pdf',tex,
+env.Command(env['prefix']+'doc/install/install.pdf',tex,
             [ latexcmd,  \
               "makeindex install",               \
               latexcmd,      \
               latexcmd],      \
             chdir=tex_dir)
 
-tmp=local_env.InstallAs(target=env['prefix']+'/release/doc/install/install.pdf', source='install.pdf')
+tmp=local_env.InstallAs(target=env['prefix']+'/release/doc/install/install.pdf', source=env['prefix']+'doc/install/install.pdf')
 
 env.Alias('install_pdf', tmp)
 
