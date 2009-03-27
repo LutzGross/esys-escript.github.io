@@ -33,7 +33,7 @@ tex= [ env.File(x) for x in os.listdir(tex_dir) if not x.startswith('.') and not
 
 latexcmd="pdflatex %s \\\\newcommand{\\\\RepVersion}{`svnversion`\\\\xspace}\\\\input{install.tex}"%latexmode
 
-env.Command(env['prefix']+'doc/install/install.pdf',tex,
+env.Command(env['prefix']+'/doc/install/install.pdf',tex,
             [ latexcmd,  \
               "makeindex install",               \
               latexcmd,      \
