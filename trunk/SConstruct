@@ -98,6 +98,7 @@ opts.AddOptions(
   ('mpi_run', 'mpirun name' , 'mpiexec -np 1'),
   ('mpi_lib_path', 'Path to MPI libs (needs to be added to the LD_LIBRARY_PATH)', usr_lib),
   ('mpi_libs', 'MPI libraries to link with (needs to be shared!)', ['mpich' , 'pthread', 'rt']),
+  ('mpi_flavour','Type of MPI execution environment','none'), 
 # ParMETIS
   BoolOption('useparmetis', 'Compile parallel version using ParMETIS', 'yes'),
   ('parmetis_path', 'Path to ParMETIS includes', '/usr/include'),
@@ -408,9 +409,6 @@ if env['usevtk']:
 
 conf = Configure(clone_env(env))
 
-print "<1<<<<"+str(conf.env['ENV']['LD_LIBRARY_PATH'])
-
-
 if env['usenetcdf']:
   conf.env.AppendUnique(CPPPATH	= [env['netCDF_path']])
   conf.env.AppendUnique(LIBPATH	= [env['netCDF_lib_path']])
@@ -423,16 +421,12 @@ if env['usenetcdf']:
 if env['usenetcdf'] and not conf.CheckCHeader('netcdf.h'): env['usenetcdf'] = 0
 if env['usenetcdf'] and not conf.CheckFunc('nc_open'): env['usenetcdf'] = 0
 
-print "<2<<<<"+str(conf.env['ENV']['LD_LIBRARY_PATH'])
-
 # Add NetCDF to environment env if it was found
 if env['usenetcdf']:
   env = conf.Finish()
   env.Append(CPPDEFINES = ['USE_NETCDF'])
 else:
   conf.Finish()
-
-print "<A<<<<"+str(env['ENV']['LD_LIBRARY_PATH'])
 
 ############ PAPI (optional) ###################################
 
@@ -753,6 +747,7 @@ if env['useopenmp']:
 else:
     out+="n"
 buildvars.write(out+"\n")
+buildvars.write("mpi_flavour="+env['mpi_flavour']+'\n')
 
 buildvars.close()
 

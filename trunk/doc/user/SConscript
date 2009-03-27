@@ -28,14 +28,16 @@ tex= [ env.File(x) for x in os.listdir(tex_dir) if not x.startswith('.') and not
 figs=[ os.path.splitext(x)[0] for x in os.listdir(tex_dir+os.path.sep+'figures') if not x.startswith('.') and os.path.splitext(x)[1] in ['.eps']]
 
 
+latexcmd="pdflatex %s \\\\newcommand{\\\\RepVersion}{`svnversion`\\\\xspace}\\\\input{guide.tex}"%latexmode
+
 env.Command('guide.pdf',tex,
             [ "epstopdf "+os.path.join('figures',name+".eps")+" -o "\
 	      +os.path.join('figures',name+".pdf") for name in figs ]+ \
-	    [ "pdflatex %s guide.tex"%latexmode,  \
+	    [ latexcmd,  \
               "bibtex guide",                  \
               "makeindex guide",               \
-              "pdflatex %s guide"%latexmode,      \
-              "pdflatex %s guide"%latexmode],      \
+              latexcmd,      \
+              latexcmd],      \
             chdir=tex_dir)
 
 tmp=local_env.InstallAs(target=env['prefix']+'/release/doc/user/guide.pdf', source='guide.pdf')
