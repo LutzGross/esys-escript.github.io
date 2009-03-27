@@ -155,8 +155,8 @@ do
 done
 shift `expr $OPTIND - 1`
 
-
-
+#Read the MPI_FLAVOUR from the buildvars
+MPI_FLAVOUR=`grep mpi_flavour $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`
 
 export PATH=$EXTRA_PATH:$PATH
 export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:$LD_LIBRARY_PATH

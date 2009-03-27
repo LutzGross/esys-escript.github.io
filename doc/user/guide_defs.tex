@@ -368,3 +368,8 @@ backgroundcolor=\color{LightGrey}%
 % this implements nicely formatted scilab code
 \lstnewenvironment{scilabCode}{\lstset{style=myScilab}}{}
 
+%Ensures that latex doesn't have an error if we don't specify the version
+\providecommand{\RepVersion}{Unknown\xspace}
+% to set this value use:
+% (pdf)latex '\newcommand{\RepVersion}{version\xspace}\input{guide.tex}'
+% as your command-line
