@@ -327,7 +327,7 @@ class DarcyFlow(object):
           if self.show_details: print "DarcyFlux: Applying operator"
           Qdp=self.__Q(dp)
           self.__pde_v.setValue(Y=-Qdp,X=Data(), r=Data())
-          du=self.__pde_v.getSolution(verbose=self.show_details)
+          du=self.__pde_v.getSolution(verbose=self.show_details, iter_max = 100000)
           return Qdp+du
     def __inner_GMRES(self,r,s):
          return util.integrate(util.inner(r,s))
@@ -339,7 +339,7 @@ class DarcyFlow(object):
           self.__pde_p.setTolerance(self.getSubProblemTolerance())
           if self.show_details: print "DarcyFlux: Applying preconditioner"
           self.__pde_p.setValue(X=util.transposed_tensor_mult(self.__permeability,r), Y=Data(), r=Data())
-          return self.__pde_p.getSolution(verbose=self.show_details)
+          return self.__pde_p.getSolution(verbose=self.show_details, iter_max = 100000)
 
     def getFlux(self,p=None, fixed_flux=Data(), show_details=False):
         """
@@ -366,7 +366,7 @@ class DarcyFlow(object):
            self.__pde_v.setValue(Y=g)
         else:
            self.__pde_v.setValue(Y=g-self.__Q(p))
-        return self.__pde_v.getSolution(verbose=show_details)
+        return self.__pde_v.getSolution(verbose=show_details, iter_max=100000)
 
 class StokesProblemCartesian(HomogeneousSaddlePointProblem):
      """

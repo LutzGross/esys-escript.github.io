@@ -15,7 +15,7 @@ scriptdir=""
 CURDIR=`pwd`
 
 #Environment vars which control operations:
-# ESCRIPT_NUM_NODES, ESCRIPT_NUM_PROC, ESCRIPT_NUM_THREADS, ESCRIPT_HOSTFILE, ESCRIPT_STDFILES
+# ESCRIPT_NUM_NODES, ESCRIPT_NUM_PROC, ESCRIPT_NUM_THREADS, ESCRIPT_HOSTFILE, ESCRIPT_CREATESTDFILES
 
 
 #Need to match if the name contains /
@@ -41,16 +41,17 @@ ESCRIPT_ROOT=`pwd`
 cd ..
 ESCRIPT_PARENT=`pwd`
 cd $CURDIR
-
 ##### End finding ESCRIPT_ROOT  ########
+
+PYTHON_MPI="$ESCRIPT_ROOT/lib/pythonMPI"
 
 # if possible please express paths relative to $ESCRIPT_ROOT unless
 # they are in an unrelated location
 
-EXTRA_PATH=""
-EXTRA_LD_LIBRARY_PATH=""
 EXTRA_DYLD_LIBRARY_PATH=""
-EXTRA_PYTHONPATH=""
+EXTRA_PATH=$ESCRIPT_ROOT/bin
+EXTRA_PYTHONPATH=$ESCRIPT_ROOT
+EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib
 
 if [ $STANDALONE == 1 ]
 then
@@ -61,11 +62,6 @@ then
     EXTRA_PYTHONPATH=$ESCRIPT_PARENT/packages/numarray/lib:$ESCRIPT_PARENT/packages/vtk/lib/python2.6/site-packages:$EXTRA_PYTHONPATH
 fi
 
-# For stand-alone builds this will need to be changed
-PYTHON_CMD=python
-
-EXTRA_PYTHONPATH=$ESCRIPT_ROOT:$EXTRA_PYTHONPATH
-EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib:$EXTRA_LD_LIBRARY_PATH
 
 
 HELP_TEXT="
@@ -90,23 +86,10 @@ if [ "$1" = "--help" ]; then
   echo "$HELP_TEXT"
   exit 0
 fi
-
-
+#=======================================================================================
 
 # Avoid bug in hybrid runs with MPT MPI
-export MPI_NUM_MEMORY_REGIONS=0
 
-# Try to guess the MPI launcher (mpirun unless in PBS batch job in which case mpiexec)
-mpi_launcher='mpirun -np'
-if [ $?PBS_ENVIRONMENT ]; then
-  if [ "X_$PBS_ENVIRONMENT" = "X_PBS_BATCH" ]; then
-    mpi_launcher='mpiexec -n'
-  fi  
-fi
-
-PYTHON_MPI="$ESCRIPT_ROOT/lib/pythonMPI"
-OMP_NUM_THREADS=1
-MPI_NUM_PROCS=1
 
 # Parse the command-line options
 # option e should not be followed by a :
@@ -143,10 +126,9 @@ do
 		fi
 		exit 0
 		;;
-	  "o")  ESCRIPT_STDFILES="yes"
+	  "o")  ESCRIPT_CREATESTDFILES="yes"
 		;;
-	  "v")  echo "Diagnostics:"
-		exit 0
+	  "v")  ESCRIPT_VERBOSE="yes"
 		;;
 	  "x")  echo "-x not implemented yet"
 		exit 1
@@ -157,102 +139,191 @@ do
 	esac
 done
 shift `expr $OPTIND - 1`
-
-#Read the MPI_FLAVOUR from the buildvars
+#==============================================
+#
+#   Read the MPI_FLAVOUR from the buildvars
+#
 MPI_FLAVOUR=`grep mpi_flavour $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`
 
+if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.mpi" ] && [ $MPI_FLAVOUR  == "none" ]
+then
+     echo "compiled with MPI but no MPI flavour specified."
+     exit 1
+fi
+
+if [ ! -z $ESCRIPT_VERBOSE  ]; then echo "MPI flavor is $MPI_FLAVOUR."; fi
+if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.openmp" ]; 
+then
+    ESCRIPT_WITH_OPENMP="yes"
+fi
+if [ ! -z $ESCRIPT_VERBOSE ] && [ ! -z $ESCRIPT_WITH_OPENMP ]; then echo "OpenMP enbaled."; fi
+#
+#  extend path variables
+#
 export PATH=$EXTRA_PATH:$PATH
 export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:$LD_LIBRARY_PATH
 export PYTHONPATH=$EXTRA_PYTHONPATH:$PYTHONPATH
+EXPORT_ENV="PATH, LD_LIBRARY_PATH, PYTHONPATH"
 if [ `uname` == Darwin ]
 then
     export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH
+    EXPORT_ENV="$EXPORT_ENV, DYLD_LIBRARY_PATH"
 fi
-
-if [ ! -z $DOBINARY ]
-then
-    PYTHON_CMD=''
+if [ ! -z $ESCRIPT_VERBOSE  ] 
+then 
+    echo "PATH = $PATH "
+    echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH "
+    echo "PYTHONPATH = $PYTHONPATH "
+    if [ ! -z $DYLD_LIBRARY_PATH ]; then echo "DYLD_LIBRARY_PATH = $DYLD_LIBRARY_PATH "; fi
 fi
-
-
-# Check to see if the python version we were compiled with matches the one of PYTHON_CMD
-# We should only do this check if they are running a python script
-if [[ (! -z $PYTHON_CMD ) && -f $ESCRIPT_ROOT/lib/pyversion ]]
+#==============================================
+#
+#  Ensure the variables have sensible values
+#
+if [ $MPI_FLAVOUR  == "none" ] 
 then
-   compversion=`cat $ESCRIPT_ROOT/lib/pyversion`
-   intversion=`$PYTHON_CMD --version 2>&1`
-   if [ "$compversion" != "$intversion" ]
-   then
-      echo "Python versions do not match. Escript was compiled for "$compversion"."
-      echo "Current version of Python appears to be "$intversion"."
-      exit 1
+    if [ ! -z $ESCRIPT_NUM_NODES ]
+    then
+        echo "Warning: MPI disabled but number of nodes set. Option ignored."
+    fi
+    if [ ! -z $ESCRIPT_NUM_PROCS ]
+    then
+        echo "Warning: MPI disabled but number of processors per node set. Option ignored."
+    fi
+    ESCRIPT_NUM_NODES=1
+    ESCRIPT_NUM_PROCS=1
+else
+    if [ -z $ESCRIPT_NUM_NODES ]
+    then
+      ESCRIPT_NUM_NODES=1
+    fi
+    if [ -z $ESCRIPT_NUM_PROCS ]
+    then
+      ESCRIPT_NUM_PROCS=1
+    fi
+    if [ ! -z $ESCRIPT_VERBOSE  ]
+    then 
+          echo "ESCRIPT_NUM_NODES = $ESCRIPT_NUM_NODES "
+          echo "ESCRIPT_NUM_PROCS = $ESCRIPT_NUM_PROCS "
+    fi
+fi
+if [ ! -z $ESCRIPT_WITH_OPENMP ]
+then
+   if [ -z $ESCRIPT_NUM_THREADS ]
+     then
+     ESCRIPT_NUM_THREADS=$OMP_NUM_THREADS
+     if [ -z $ESCRIPT_NUM_THREADS ]
+     then
+       ESCRIPT_NUM_THREADS=1
+     fi
+     if [ ! -z $ESCRIPT_VERBOSE ]; then echo "Number of threads is $ESCRIPT_NUM_THREADS."; fi
    fi
+else
+   ESCRIPT_NUM_THREADS=1
 fi
-
-# Must have at least one command-line arg: the python script
-if [ $# -eq 0 ]; then
-  if [ ! -z $DOBINARY ]
-  then
-    echo "No program to run was specified. Exiting."
-    exit 1
-  else
-    echo "No python script specified. Starting python interpreter."
-  fi
-fi
-
-#Ensure the variables have sensible values
-if [ -z $ESCRIPT_NUM_NODES ]
-then
-  ESCRIPT_NUM_NODES=1
-fi
-
-if [ -z $ESCRIPT_NUM_PROCS ]
-then
-  ESCRIPT_NUM_PROCS=1
-fi
-
-if [ -z $ESCRIPT_NUM_THREADS ]
-then
-  ESCRIPT_NUM_THREADS=$OMP_NUM_THREADS
-  if [ -z $ESCRIPT_NUM_THREADS ]
-  then
-    ESCRIPT_NUM_THREADS=1
-  fi
-fi
-
-#Now we compute total number of Processes
+#
+# Now we compute total number of Processes
+#
 (( TOTPROC=$ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS))
 if [ $? -ne 0 ]		#Some compute error 
 then			#This could happen if the args were not a number
-  ESCRIPT_NUM_NODES=1
-  ESCRIPT_NUM_PROCS=1
+  echo "expression of total number of processors = $ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS is not numerical."
+  exit 1
 fi
-
+#
 # Test to ensure people aren't trying to combine interactive and multi-process
-
+#
 if [[ ( ( -z $DOINTERACTIVE ) || ( $# -eq 0 ) ) && ( $TOTPROC -gt 1) ]]
 then
   echo "Interactive mode cannot be used with more than one process"
   exit 1
 fi
-
-# Using OpenMP?
-OMP_OPTIONS=''
-if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.openmp" ]; then
-#  PYTHON_CMD="$mpi_launcher $MPI_NUM_PROCS $PYTHON_MPI"
-  OMP_OPTIONS="env OMP_NUM_THREADS=$ESCRIPT_NUM_THREADS"
-fi
-
-# Using MPI?
-if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.mpi" ]; then
-  PYTHON_CMD="$mpi_launcher $MPI_NUM_PROCS $PYTHON_MPI"
+#=========================================================================================================
+if [ ! -z $DOBINARY ]
+then
+    PYTHON_CMD=""
 else
-  if [ "$TOTPROC" -ne 1 ]; then
-    echo "Escript/Finley was not compiled for MPI. You can not use the -n and -p options."
+    PYTHON_CMD=python
+    if [ $TOTPROC -gt 1 ] 
+    then
+        PYTHON_CMD="$PYTHONMPI $@"
+    else
+        # Check to see if the python version we were compiled with matches the one of PYTHON_CMD
+        # We should only do this check if they are running a python script
+        if [ -f $ESCRIPT_ROOT/lib/pyversion ]
+        then
+           compversion=`cat $ESCRIPT_ROOT/lib/pyversion`
+           intversion=`$PYTHON_CMD --version 2>&1`
+           if [ "$compversion" != "$intversion" ]
+           then
+              echo "Python versions do not match. Escript was compiled for "$compversion"."
+              echo "Current version of Python appears to be "$intversion"."
+              exit 1
+           fi
+        fi
+	if [ ! -z $DOINTERACTIVE ]
+        then
+           PYTHON_CMD="python -i $@"
+        else
+           PYTHON_CMD="python $@"
+        fi
+    fi
+    if [ ! -z $ESCRIPT_VERBOSE ]; then echo "Python command is $PYTHON_CMD."; fi
+fi
+#=========================================================================================================
+# Must have at least one command-line arg: the python script
+if [ $# -eq 0 ]
+then
+  if [ ! -z $DOBINARY ]
+  then
+    echo "No program to run was specified. Exiting."
     exit 1
   fi
 fi
+#===============================================================================================
+#
+#   now we start to spwan things:
+#
+if [ ! -z $ESCRIPT_WITH_OPENMP ]
+then
+   export OMP_NUM_THREADS=$ESCRIPT_NUM_THREADS
+   EXPORT_ENV="$EXPORT_ENV, OMP_NUM_THREADS"
+fi
 
-set -x
-$OMP_OPTIONS $PYTHON_CMD "$@"
+if [ $MPI_FLAVOUR  == "none" ] 
+then
+   $PYTHON_CMD 
+elif [ $MPI_FLAVOUR == "OPENMPI" ] 
+then 
+   echo "OPENMPI not implemented yet."
 
+elif [ $MPI_FLAVOR == "MLP" ]
+then
+   export MPI_NUM_MEMORY_REGIONS=0
+   echo "MLP not implemented yet."
+
+elif [ $MPI_FLAVOR == "MPICH" ]
+then
+   echo "MPICH not implemented yet."
+else
+   echo "unknown MPI falvour $MPI_FLAVOR."
+   exit 1
+fi
+exit 0
+# Using OpenMP?
+#OMP_OPTIONS=''
+#if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.openmp" ]; then
+#  PYTHON_CMD="$mpi_launcher $MPI_NUM_PROCS $PYTHON_MPI"
+#  ESCRIPT_NUM_THREADS=$OMP_NUM_THREADS
+#  OMP_OPTIONS="env OMP_NUM_THREADS=$ESCRIPT_NUM_THREADS"
+#fi
+
+# Using MPI?
+#if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.mpi" ]; then
+#  PYTHON_CMD="$mpi_launcher $MPI_NUM_PROCS $PYTHON_MPI"
+#else
+#  if [ "$TOTPROC" -ne 1 ]; then
+#    echo "Escript/Finley was not compiled for MPI. You can not use the -n and -p options."
+#    exit 1
+#  fi
+#fi
