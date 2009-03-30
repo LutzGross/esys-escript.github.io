@@ -17,7 +17,7 @@ http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
-__url__="http://www.uq.edu.au/esscc/escript-finley"
+__url__="https://launchpad.net/escript-finley"
 
 from run_camera import TestCamera2D, TestCamera3D 
 from run_carpet import TestCarpetScalarWarp, TestCarpetVectorWarp 
