@@ -77,6 +77,7 @@ Usage: escript [options] script.py [arguments...]
 	-c 		print compile information for escript and exit
 	-V		print escript version and exit
 	-i		interactive mode 
+	-b		do not invoke python (run non-python programs)
 	-e		print export statements for environment and exit
 	-o		redirect output from MPI to files
 	-v		print diagnostics
@@ -109,9 +110,11 @@ MPI_NUM_PROCS=1
 
 # Parse the command-line options
 # option e should not be followed by a :
-while getopts 'n:p:t:f:h:ecVviox' option
+while getopts 'bn:p:t:f:h:ecVviox' option
 do
 	case "$option" in
+	  "b")  DOBINARY=yes
+		;;
 	  "n")	ESCRIPT_NUM_NODES=$OPTARG
 		;;
 	  "p")	ESCRIPT_NUM_PROC=$OPTARG
@@ -166,11 +169,18 @@ then
     export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH
 fi
 
+if [ ! -z $DOBINARY ]
+then
+    PYTHON_CMD=''
+fi
+
+
 # Check to see if the python version we were compiled with matches the one of PYTHON_CMD
-if [ -f $ESCRIPT_ROOT/lib/pyversion ]
+# We should only do this check if they are running a python script
+if [[ (! -z $PYTHON_CMD ) && -f $ESCRIPT_ROOT/lib/pyversion ]]
 then
    compversion=`cat $ESCRIPT_ROOT/lib/pyversion`
-   intversion=`python --version 2>&1`
+   intversion=`$PYTHON_CMD --version 2>&1`
    if [ "$compversion" != "$intversion" ]
    then
       echo "Python versions do not match. Escript was compiled for "$compversion"."
@@ -181,7 +191,13 @@ fi
 
 # Must have at least one command-line arg: the python script
 if [ $# -eq 0 ]; then
-  echo "No python script specified. Starting python interpreter."
+  if [ ! -z $DOBINARY ]
+  then
+    echo "No program to run was specified. Exiting."
+    exit 1
+  else
+    echo "No python script specified. Starting python interpreter."
+  fi
 fi
 
 #Ensure the variables have sensible values
