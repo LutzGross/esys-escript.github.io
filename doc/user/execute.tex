@@ -57,6 +57,7 @@ The general form of the \program{escript} launcher is as follows:
 \optional{\programopt{-o}}
 \optional{\programopt{-c}}
 \optional{\programopt{-i}}
+\optional{\programopt{-b}}
 \optional{\var{file}}
 \optional{\var{ARGS}}
 
@@ -83,7 +84,8 @@ hosts defined in \var{hostfile} must be greater or equal to the number of requst
  \item[\programopt{-c}] prints the information about the settings used to compile {\it escript} and stops execution..
  \item[\programopt{-V}] prints the version of {\it escript} and stops execution.
  \item[\programopt{-h}] prints a help message and stops execution.
- \item[\programopt{-i}] excutes the script \var{file} and switches to interactive mode after the execution is finished or an exception has occured. This option is useful for debugging a script. The option cannot be used if more then one process ($\var{nn} \cdot \var{np}>1$) is used.
+ \item[\programopt{-i}] executes the script \var{file} and switches to interactive mode after the execution is finished or an exception has occured. This option is useful for debugging a script. The option cannot be used if more then one process ($\var{nn} \cdot \var{np}>1$) is used.
+\item[\programopt{-b}] do not invoke python. This is used to run non-python programs.
 
  \item[\programopt{-e}] shows additional environment variables and commands used during \program{escript} execution. This option is useful if users wish to excute scripts without using the \program{escript} command.
 
