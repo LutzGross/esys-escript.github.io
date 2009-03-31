@@ -48,18 +48,22 @@ class DarcyFlow(object):
     @note: The problem is solved in a least squares formulation.
     """
 
-    def __init__(self, domain,useReduced=False):
+    def __init__(self, domain, weight=None, useReduced=False):
         """
         initializes the Darcy flux problem
         @param domain: domain of the problem
         @type domain: L{Domain}
         """
         self.domain=domain
-        self.__l=util.longestEdge(self.domain)**2
+        if weight == None:
+           self.__l=10.*util.longestEdge(self.domain)**2
+        else:
+           self.__l=weight
         self.__pde_v=LinearPDESystem(domain)
         if useReduced: self.__pde_v.setReducedOrderOn()
         self.__pde_v.setSymmetryOn()
         self.__pde_v.setValue(D=util.kronecker(domain), A=self.__l*util.outer(util.kronecker(domain),util.kronecker(domain)))
+        # self.__pde_v.setSolverMethod(preconditioner=self.__pde_v.ILU0)
         self.__pde_p=LinearSinglePDE(domain)
         self.__pde_p.setSymmetryOn()
         if useReduced: self.__pde_p.setReducedOrderOn()
@@ -401,7 +405,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          self.__pde_u=LinearPDE(domain,numEquations=self.domain.getDim(),numSolutions=self.domain.getDim())
          self.__pde_u.setSymmetryOn()
          # self.__pde_u.setSolverMethod(self.__pde_u.DIRECT)
-         # self.__pde_u.setSolverMethod(preconditioner=LinearPDE.RILU)
+         # self.__pde_u.setSolverMethod(preconditioner=LinearPDE.ILU0)
 
          self.__pde_prec=LinearPDE(domain)
          self.__pde_prec.setReducedOrderOn()
