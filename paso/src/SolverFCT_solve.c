@@ -108,7 +108,7 @@ err_t Paso_FCT_setUpRightHandSide(Paso_FCTransportProblem* fctp, const double dt
 }
 
 void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, double* source, Paso_Options* options) {
-   const dim_t FAILURES_MAX=5;
+   const dim_t FAILURES_MAX=100;
    dim_t m, i_substeps, Failed=0, i;
    double *z_m=NULL, *b_n=NULL, *sourceP=NULL, *sourceN=NULL, *uTilde_n=NULL, *QN_n=NULL, *QP_n=NULL, *RN_m=NULL, *RP_m=NULL, *du_m=NULL;
    Paso_Coupler *QN_n_coupler=NULL, *QP_n_coupler=NULL, *RN_m_coupler=NULL, *RP_m_coupler=NULL, *uTilde_n_coupler=NULL, *u_m_coupler=NULL;
@@ -173,9 +173,8 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
         */
         t=0;
         i_substeps=0;
-        Paso_Copy(n,u,fctp->u);
-        norm_u_m=Paso_lsup(n,u, fctp->mpi_info);
-        /* while(i_substeps<n_substeps && Paso_noError()) { */
+        norm_u_m=Paso_lsup(n,fctp->u, fctp->mpi_info);
+        /* while(i_substeps<n_substeps && Paso_noError()) */
         if (fctp->dt_max < LARGE_POSITIVE_FLOAT) {
             dt2=MIN(dt_max,dt);
         } else {
@@ -185,6 +184,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
             if (options->verbose) printf("substep step %d at t=%e (step size= %e)\n",i_substeps+1,t+dt2,dt2);
             Paso_FCT_setUp(fctp,dt2,sourceN,sourceP,b_n,uTilde_n,uTilde_n_coupler,QN_n,QN_n_coupler,QP_n,QP_n_coupler,
                            options,&pp);
+            Paso_Copy(n,u,fctp->u);
             /* now the iteration starts */
             m=0;
             converged=FALSE;
@@ -232,9 +232,9 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                     i_substeps++;
                     t+=dt2;
                     if (fctp->dt_max < LARGE_POSITIVE_FLOAT) {
-                       dt2=MIN3(dt_max,dt2*1.5,dt-t);
+                       dt2=MIN3(dt_max,dt2*1.1,dt-t);
                     } else {
-                       dt2=MIN(dt2*1.5,dt-t);
+                       dt2=MIN(dt2*1.1,dt-t);
                     }
             } else if (max_m_reached) {
                     /* if FAILURES_MAX failures in a row: give up */
@@ -242,11 +242,10 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                        Paso_setError(VALUE_ERROR,"Paso_SolverFCT_solve: no convergence after time step reduction.");
                     } else {
                        if (options->verbose) printf("no convergence in Paso_Solver_NewtonGMRES: Trying smaller time step size.");
-                       dt2=dt*0.5;
+                       dt2*=0.5;
                        Failed++;
                     }
             }
-        
       }
       /* 
        *  clean-up:
