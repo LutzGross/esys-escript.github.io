@@ -335,7 +335,7 @@ then
    echo "OPENMPI not implemented yet."
 
 #=============== Intel MPI ===================================
-elif [ $MPI_FLAVOR == "INTEL" ]
+elif [ $MPI_FLAVOR == "INTELMPI" ]
 then
    if [ -z $HOSTFILE ] 
    then
