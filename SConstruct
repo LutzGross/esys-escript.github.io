@@ -543,7 +543,6 @@ else:
 env.Append(CCFLAGS		= env['cc_flags'])
 env.Append(LIBS			= [env['omp_libs']])
 
-
 ############ Add some custom builders ##########################
 
 py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
@@ -564,6 +563,9 @@ env_mpi = clone_env(env)
 conf = Configure(clone_env(env_mpi))
 
 if env_mpi['usempi']:
+  VALID_MPIs=[ "MPT", "OPENMPI", "MPICH", "OPENMPI", "INTELMPI" ]
+  if not env_mpi['mpi_flavour'] in VALID_MPIs: 
+      raise ValueError,"MPI is enabled but mpi_flavour = %s is not a valid key from %s."( env_mpi['mpi_flavour'],VALID_MPIs)
   conf.env.AppendUnique(CPPPATH	= [env_mpi['mpi_path']])
   conf.env.AppendUnique(LIBPATH	= [env_mpi['mpi_lib_path']])
   conf.env.AppendUnique(LIBS	= [env_mpi['mpi_libs']])
@@ -639,7 +641,7 @@ if env['usesilo']: print "	Using Silo"
 else: print "	Not using Silo"
 if env['useopenmp']: print "	Using OpenMP"
 else: print "	Not using OpenMP"
-if env['usempi']: print "	Using MPI"
+if env['usempi']: print "	Using MPI (flavour = %s)"%env['mpi_flavour']
 else: print "	Not using MPI"
 if env['useparmetis']: print "	Using ParMETIS"
 else: print "	Not using ParMETIS (requires MPI)"

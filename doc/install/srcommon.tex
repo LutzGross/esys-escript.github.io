@@ -155,6 +155,13 @@ You will need to have MPI installed on your system.
 There are a number of implementations so we do not provide any specific advice here.
 You will need to modify the following variables in your options file.
 \begin{itemize}
+\item \texttt{mpi_flavour} \\
+	which MPI implementation is used. Valid values are  \begin{itemize}
+    \item[\texttt{MPT}] SGI MPI implementation    \\     \url{http://techpubs.sgi.com/library/manuals/3000/007-3687-010/pdf/007-3687-010.pdf}
+     \item[\texttt{MPICH}] Argonne's MPICH implementation \\ \url{http://www.mcs.anl.gov/research/projects/mpi/mpich1/}
+      \item[\texttt{OPENMPI}] Open MPI \url{http://www.open-mpi.org/}
+      \item[\texttt{INTELMPI}] Intel's MPI \url{http://software.intel.com/en-us/intel-mpi-library/}
+   \end{itemize}
  \item \texttt{mpi_path} \\
 	where to find \filename{mpi.h}
 \item \texttt{mpi_lib_path} \\
