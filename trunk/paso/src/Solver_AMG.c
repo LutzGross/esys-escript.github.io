@@ -152,7 +152,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
            if( Paso_noError()) {
               /* if there are no nodes in the coarse level there is no more work to do */
               out->n_C=n-out->n_F;
-              if (level<3) {
+              if (level>0) {
                /*if (out->n_F>500) {*/
                    out->rows_in_C=MEMALLOC(out->n_C,index_t);
                    out->mask_C=MEMALLOC(n,index_t);
@@ -207,7 +207,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
                                 
                             if (Paso_noError()) {
                                 Paso_Solver_updateIncompleteSchurComplement(schur_withFillIn,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
-                                out->AMG_of_Schur=Paso_Solver_getAMG(schur_withFillIn,verbose,level+1,couplingParam);
+                                out->AMG_of_Schur=Paso_Solver_getAMG(schur_withFillIn,verbose,level-1,couplingParam);
                                 Paso_SparseMatrix_free(schur);
                             }
                             /* allocate work arrays for AMG application */
@@ -247,7 +247,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   if (Paso_noError()) {
       if (verbose) {
          printf("AMG: %d unknowns eliminated. %d left.\n",out->n_F,n-out->n_F);
-         if (level<3) {
+         if (level>0) {
         /* if (out->n_F<500) {*/
             printf("timing: AMG: MIS/reordering/elemination : %e/%e/%e\n",time2,time0,time1);
          } else {
@@ -292,7 +292,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      double *x0=MEMALLOC(amg->n,double);
      double time0=0;
      
-     if (amg->level==3) {
+     if (amg->level==0) {
      /*if (amg->n_F<=500) {*/
       time0=Paso_timer();
         

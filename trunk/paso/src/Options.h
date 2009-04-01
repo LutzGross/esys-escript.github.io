@@ -81,6 +81,7 @@ typedef struct {
     dim_t truncation;
     dim_t restart;
     dim_t sweeps;
+    dim_t AMGlevels;
     double couplingParam;
 
 } Paso_Options;
