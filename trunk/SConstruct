@@ -467,7 +467,7 @@ if env['usemkl']:
   conf.env.PrependENVPath('LD_LIBRARY_PATH', env['libinstall'])
 
 if env['usemkl'] and not conf.CheckCHeader('mkl_solver.h'): env['usemkl'] = 0
-if env['usemkl'] and not conf.CheckFunc('pardiso_'): env['usemkl'] = 0
+if env['usemkl'] and not conf.CheckFunc('pardiso'): env['usemkl'] = 0
 
 # Add MKL to environment env if it was found
 if env['usemkl']:
@@ -565,7 +565,7 @@ conf = Configure(clone_env(env_mpi))
 if env_mpi['usempi']:
   VALID_MPIs=[ "MPT", "OPENMPI", "MPICH", "OPENMPI", "INTELMPI" ]
   if not env_mpi['mpi_flavour'] in VALID_MPIs: 
-      raise ValueError,"MPI is enabled but mpi_flavour = %s is not a valid key from %s."( env_mpi['mpi_flavour'],VALID_MPIs)
+      raise ValueError,"MPI is enabled but mpi_flavour = %s is not a valid key from %s."%( env_mpi['mpi_flavour'],VALID_MPIs)
   conf.env.AppendUnique(CPPPATH	= [env_mpi['mpi_path']])
   conf.env.AppendUnique(LIBPATH	= [env_mpi['mpi_lib_path']])
   conf.env.AppendUnique(LIBS	= [env_mpi['mpi_libs']])
