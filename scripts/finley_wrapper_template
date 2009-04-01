@@ -324,13 +324,39 @@ then
    EXPORT_ENV="$EXPORT_ENV, OMP_NUM_THREADS"
 fi
 
+#=============== no MPI ===================================
 if [ $MPI_FLAVOUR  == "none" ] 
 then
    $EXEC_CMD 
+
+#=============== OpenMPI ===================================
 elif [ $MPI_FLAVOUR == "OPENMPI" ] 
 then 
    echo "OPENMPI not implemented yet."
 
+#=============== Intel MPI ===================================
+elif [ $MPI_FLAVOR == "INTEL" ]
+then
+   if [ -z $HOSTFILE ] 
+   then
+      mpdboot -n $ESCRIPT_NUM_PROCS -r ssh -f $HOSTFILE
+      if [ $? -ne 0 ] 
+      then
+         echo "mpdboot with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_PROCS nodes failed."
+         exit 1
+      else 
+          if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_PROCS nodes."; fi
+      fi
+   fi
+   $CMD="mpiexec -n $ESCRIPT_NUM_PROCS -perhost $ESCRIPT_NUM_PROCS -envall -$EXEC_CMD"
+   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is $CMD."; fi
+   $CMD
+   if [ -z $HOSTFILE ]
+   then
+       mpdallexit
+       if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdallexit executed."; fi
+   fi 
+#=============== SGI's MPIMPT ===================================
 elif [ $MPI_FLAVOR == "MPT" ]
 then
    export MPI_NUM_MEMORY_REGIONS=0
@@ -344,6 +370,7 @@ then
    fi 
    if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is $CMD."; fi
    $CMD
+#=============== SGI's MPICH ===================================
 elif [ $MPI_FLAVOR == "MPICH" ]
 then
    echo "MPICH not implemented yet."
