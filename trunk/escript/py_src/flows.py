@@ -56,7 +56,8 @@ class DarcyFlow(object):
         """
         self.domain=domain
         if weight == None:
-           self.__l=10.*util.longestEdge(self.domain)**2
+           s=self.domain.getSize()
+           self.__l=(3.*util.longestEdge(self.domain)*s/util.sup(s))**2
         else:
            self.__l=weight
         self.__pde_v=LinearPDESystem(domain)
@@ -267,7 +268,7 @@ class DarcyFlow(object):
                if norm_r == None or norm_r>ATOL:
                    if num_corrections>max_num_corrections:
                          raise ValueError,"maximum number of correction steps reached."
-                   p,r, norm_r=PCG(self.__g-util.interpolate(v,Function(self.domain))-Qp,self.__Aprod,p,self.__Msolve_PCG,self.__inner_PCG,atol=0.1*ATOL, rtol=0.,iter_max=max_iter, verbose=self.verbose)
+                   p,r, norm_r=PCG(self.__g-util.interpolate(v,Function(self.domain))-Qp,self.__Aprod,p,self.__Msolve_PCG,self.__inner_PCG,atol=0.5*ATOL, rtol=0.,iter_max=max_iter, verbose=self.verbose)
                    num_corrections+=1
                else: 
                    converged=True
