@@ -88,8 +88,8 @@ silo_lib_path		= '/sw/libs/silo/x86_64/gcc-4.1.2/silo-4.6.1/lib'
 # OpenMP
 useopenmp		= 'yes'
 
+usempi		= 'no'
 # MPI MPT (no module load required)
-usempi		= 'yes'
 mpi_path		= '/usr/include'
 mpi_lib_path		= '/usr/lib64'
 mpi_libs		= ['mpi']
