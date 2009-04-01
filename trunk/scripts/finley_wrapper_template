@@ -15,7 +15,7 @@ scriptdir=""
 CURDIR=`pwd`
 
 #Environment vars which control operations:
-# ESCRIPT_NUM_NODES, ESCRIPT_NUM_PROC, ESCRIPT_NUM_THREADS, ESCRIPT_HOSTFILE, ESCRIPT_CREATESTDFILES
+# ESCRIPT_NUM_NODES, ESCRIPT_NUM_PROCS, ESCRIPT_NUM_THREADS, ESCRIPT_HOSTFILE, ESCRIPT_CREATESTDFILES
 
 HOSTFILE=/tmp/escript.$$
 
@@ -103,7 +103,7 @@ do
 		;;
 	  "n")	ESCRIPT_NUM_NODES=$OPTARG
 		;;
-	  "p")	ESCRIPT_NUM_PROC=$OPTARG
+	  "p")	ESCRIPT_NUM_PROCS=$OPTARG
 		;;
 	  "t")	ESCRIPT_NUM_THREADS=$OPTARG
 		;;
@@ -179,6 +179,7 @@ then
     echo "PYTHONPATH = $PYTHONPATH "
     if [ ! -z $DYLD_LIBRARY_PATH ]; then echo "DYLD_LIBRARY_PATH = $DYLD_LIBRARY_PATH "; fi
 fi
+set -x
 #==============================================
 #
 #  Ensure the variables have sensible values
@@ -205,7 +206,7 @@ else
         if [ -f $ESCRIPT_HOSTFILE ]
         then
             cat $ESCRIPT_HOSTFILE | sort -u > $HOSTFILE
-            NUM_HOSTS = `wc -l $HOSTFILE`
+            NUM_HOSTS=`cat $HOSTFILE | wc -l`
             if [ ! -z $ESCRIPT_NUM_NODES ] 
             then
                 if [ $NUM_HOSTS -ne $ESCRIPT_NUM_NODES ]
@@ -214,7 +215,7 @@ else
                     exit 1
                 fi
              else
-                ESCRIPT_NUM_NODES = $NUM_HOSTS
+                ESCRIPT_NUM_NODES=$NUM_HOSTS
              fi
         else
            echo "cannot find hostfile $ESCRIPT_HOSTFILE."
@@ -267,7 +268,7 @@ fi
 #
 # Test to ensure people aren't trying to combine interactive and multi-process
 #
-if [[ ( ( -z $DOINTERACTIVE ) || ( $# -eq 0 ) ) && ( $TOTPROC -gt 1) ]]
+if [[ ( ( ! -z $DOINTERACTIVE ) || ( $# -eq 0 ) ) && ( $TOTPROC -gt 1) ]]
 then
   echo "Interactive mode cannot be used with more than one process"
   exit 1
@@ -310,7 +311,7 @@ else
            EXEC_CMD="$PYTHON_CMD $@"
         fi
     else
-        EXEC_CMD="$PYTHONMPI $@"
+        EXEC_CMD="$PYTHON_MPI $@"
     fi
 fi
 if [ ! -z $ESCRIPT_VERBOSE ]; then echo "Command to be executed is $EXEC_CMD."; fi
@@ -335,9 +336,9 @@ then
    echo "OPENMPI not implemented yet."
 
 #=============== Intel MPI ===================================
-elif [ $MPI_FLAVOR == "INTELMPI" ]
+elif [ $MPI_FLAVOUR == "INTELMPI" ]
 then
-   if [ -z $HOSTFILE ] 
+   if [ ! -z $HOSTFILE ] 
    then
       mpdboot -n $ESCRIPT_NUM_PROCS -r ssh -f $HOSTFILE
       if [ $? -ne 0 ] 
@@ -351,31 +352,31 @@ then
    $CMD="mpiexec -n $ESCRIPT_NUM_PROCS -perhost $ESCRIPT_NUM_PROCS -envall -$EXEC_CMD"
    if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is $CMD."; fi
    $CMD
-   if [ -z $HOSTFILE ]
+   if [ ! -z $HOSTFILE ]
    then
        mpdallexit
        if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdallexit executed."; fi
    fi 
 #=============== SGI's MPIMPT ===================================
-elif [ $MPI_FLAVOR == "MPT" ]
+elif [ $MPI_FLAVOUR == "MPT" ]
 then
    export MPI_NUM_MEMORY_REGIONS=0
    EXPORT_ENV="$EXPORT_ENV, MPI_NUM_MEMORY_REGIONS"
-   if [ -z $HOSTFILE ] 
+   if [ ! -z $HOSTFILE ] 
    then
       HOST_LIST=`awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}' $HOSTFILE`
-      CMD="mpiexec $HOST_LIST $ESCRIPT_NUM_PROCS $EXEC_CMD"
+      CMD="mpirun $HOST_LIST $ESCRIPT_NUM_PROCS $EXEC_CMD"
    else
-      CMD="mpiexec -np $TOTPROC -$EXEC_CMD"
+      CMD="mpirun -np $TOTPROC $EXEC_CMD"
    fi 
    if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is $CMD."; fi
    $CMD
 #=============== SGI's MPICH ===================================
-elif [ $MPI_FLAVOR == "MPICH" ]
+elif [ $MPI_FLAVOUR == "MPICH" ]
 then
    echo "MPICH not implemented yet."
 else
-   echo "unknown MPI falvour $MPI_FLAVOR."
+   echo "unknown MPI falvour $MPI_FLAVOUR."
    exit 1
 fi
 exit 0
