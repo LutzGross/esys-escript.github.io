@@ -9,6 +9,11 @@
 #set to 1 if performing this is a standalone build and /packages contains the relevant tools
 STANDALONE=0
 
+#set to 1 if this is part of a packaged build (.deb) and files will be installed in standard locations
+#rather than everything in a single directory
+#Do not use this together with $STANDALONE
+STDLOCATION=0
+
 #Now we find the location of this script
 #Note that this location should be absolute but does not need to be unique
 scriptdir=""
@@ -19,30 +24,37 @@ CURDIR=`pwd`
 
 HOSTFILE=/tmp/escript.$$
 
-
-#Need to match if the name contains /
-if [[ $0 =~ / ]]
+#Begin finding ESCRIPT_ROOT
+if [ $STDLOCATION != 0 ]
 then
-    # We are not using the PATH to find the script
-    cd `dirname $0`
-    scriptdir=`pwd`
-    cd $CURDIR
+    ESCRIPT_ROOT=/usr/lib/escript
 else
-    # name does not contain / therefore we are using 
-    tscriptdir=`which $0`
-    if [ $? != 0 ]
-    then
-        echo "Error unable to determine script directory. Exiting."
-	exit 1
-    fi
-    scriptdir=`dirname $tscriptdir`
-fi
+  #We don't know the escript root so we need to work it out from the invocation
+  #Need to match if the name contains /
+  if [[ $0 =~ / ]]
+  then
+      # We are not using the PATH to find the script
+      cd `dirname $0`
+      scriptdir=`pwd`
+      cd $CURDIR
+  else
+      # name does not contain / therefore we are using 
+      tscriptdir=`which $0`
+      if [ $? != 0 ]
+      then
+          echo "Error unable to determine script directory. Exiting."
+	  exit 1
+      fi
+      scriptdir=`dirname $tscriptdir`
+  fi
 
-cd $scriptdir/..
-ESCRIPT_ROOT=`pwd`
-cd ..
-ESCRIPT_PARENT=`pwd`
-cd $CURDIR
+  cd $scriptdir/..
+  ESCRIPT_ROOT=`pwd`
+  cd ..
+  ESCRIPT_PARENT=`pwd`
+  cd $CURDIR
+
+fi
 ##### End finding ESCRIPT_ROOT  ########
 
 PYTHON_MPI="$ESCRIPT_ROOT/lib/pythonMPI"
@@ -159,7 +171,7 @@ if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.openmp" ];
 then
     ESCRIPT_WITH_OPENMP="yes"
 fi
-if [ ! -z $ESCRIPT_VERBOSE ] && [ ! -z $ESCRIPT_WITH_OPENMP ]; then echo "OpenMP enbaled."; fi
+if [ ! -z $ESCRIPT_VERBOSE ] && [ ! -z $ESCRIPT_WITH_OPENMP ]; then echo "OpenMP enabled."; fi
 #
 #  extend path variables
 #
@@ -179,7 +191,6 @@ then
     echo "PYTHONPATH = $PYTHONPATH "
     if [ ! -z $DYLD_LIBRARY_PATH ]; then echo "DYLD_LIBRARY_PATH = $DYLD_LIBRARY_PATH "; fi
 fi
-set -x
 #==============================================
 #
 #  Ensure the variables have sensible values
@@ -328,6 +339,7 @@ fi
 #=============== no MPI ===================================
 if [ $MPI_FLAVOUR  == "none" ] 
 then
+   echo $EXEC_CMD
    $EXEC_CMD 
 
 #=============== OpenMPI ===================================
@@ -351,6 +363,7 @@ then
    fi
    $CMD="mpiexec -n $ESCRIPT_NUM_PROCS -perhost $ESCRIPT_NUM_PROCS -envall -$EXEC_CMD"
    if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is $CMD."; fi
+   echo $CMD
    $CMD
    if [ ! -z $HOSTFILE ]
    then
@@ -370,6 +383,7 @@ then
       CMD="mpirun -np $TOTPROC $EXEC_CMD"
    fi 
    if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is $CMD."; fi
+   echo $CMD
    $CMD
 #=============== SGI's MPICH ===================================
 elif [ $MPI_FLAVOUR == "MPICH" ]
