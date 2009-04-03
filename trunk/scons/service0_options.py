@@ -99,16 +99,19 @@ mpi_flavour     = "MPT"
 # mpi_path		= '/sw/libs/mpich2/x86_64/gcc-4.1.2/mpich2-1.0.7/include'
 # mpi_lib_path		= '/sw/libs/mpich2/x86_64/gcc-4.1.2/mpich2-1.0.7/lib'
 # mpi_libs		= ['mpich', 'rt']
+# mpi_falvour		= 'MPICH'
 
 # MPICH2 for jumpshot (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
 # mpi_path		= '/sw/libs/mpich2/x86_64/gcc-4.1.2/mpich2-1.0.7/include'
 # mpi_lib_path		= '/sw/libs/mpich2/x86_64/gcc-4.1.2/mpich2-1.0.7/lib'
 # mpi_libs		= ['lmpe', 'mpe', 'mpich', 'rt']
+# mpi_falvour		= 'MPICH'
 
 # Intel MPI (to run Escript use: module load intel-mpi/3.1.038)
 # mpi_path		= '/sw/sdev/intel/mpi/3.1.038/x86_64/include64'
 # mpi_lib_path		= '/sw/sdev/intel/mpi/3.1.038/x86_64/lib64'
 # mpi_libs		= ['mpi']
+# mpi_falvour		= 'INTELMPI'
 
 # ParMETIS setting needs to be overwritten in intel-mpi is used
 # parmetis_path = "/sw/libs/parmetis/x86_64/gcc-4.1.2/intelmpi/parmetis-3.1/include"
@@ -118,13 +121,13 @@ mpi_flavour     = "MPT"
 # mpi_path		= '/usr/diags/mpi/mvapich/intel/include'
 # mpi_lib_path		= '/usr/diags/mpi/mvapich/intel/lib/shared'
 # mpi_libs		= ['mpich']
-# mpi_run		= 'mpirun -np 1'
+# mpi_falvour		= 'MPICH'
 
 # OpenMPI (to run Escript use: module load openmpi/gcc-4.1.2/openmpi-1.2.6) (This doesn't compile)
 # mpi_path		= '/sw/libs/openmpi/x86_64/gcc-4.1.2/openmpi-1.2.6/include'
 # mpi_lib_path		= '/sw/libs/openmpi/x86_64/gcc-4.1.2/openmpi-1.2.6/lib'
 # mpi_libs		= ['mpi']
-# mpi_run		= 'mpirun -np 1'
+# mpi_falvour		= 'OPENMPI'
 
 # PAPI
 # usepapi		= 'no'

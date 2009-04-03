@@ -69,12 +69,13 @@ where \var{file} is the name of a script, \var{ARGS} are arguments for the scrip
 The \program{escript} program will import your current environment variables. 
 If no \var{file} is given, then you will be given a \PYTHON prompt (see \programopt{-i} for restrictions).
 
-
 The options are used as follows:
 \begin{itemize}
 
  \item[\programopt{-n} \var{nn}] the number of compute nodes \var{nn} to be used. The total number of process being used is 
-$\var{nn} \cdot \var{ns}$. This option overwrites the value of the \env{ESCRIPT_NUM_NODES} environment variable. If $\var{nn}>1$ but {\it escript}  is not compiled for \MPI a warning is printed but execution is continued with $\var{nn}=1$. If \programopt{-n} is not set the
+$\var{nn} \cdot \var{ns}$. This option overwrites the value of the \env{ESCRIPT_NUM_NODES} environment variable. 
+If a hostfile is given, the number of nodes needs to match the number hosts given in the host file.
+If $\var{nn}>1$ but {\it escript}  is not compiled for \MPI a warning is printed but execution is continued with $\var{nn}=1$. If \programopt{-n} is not set the
 number of hosts in the host file is used. The default value is 1.
  
 \item[\programopt{-p} \var{np}] the number of MPI processes per node.  The total number of processes to be used is 

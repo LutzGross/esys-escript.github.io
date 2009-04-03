@@ -82,37 +82,37 @@ boost_libs		= ['boost_python-vc71-mt-1_33']
 # mpi_path		= '/usr/include'
 # mpi_lib_path		= '/usr/lib64'
 # mpi_libs		= ['mpi']
-# mpi_run		= 'mpirun -np 1'
+# mpi_flavour		= 'MPT'
 
 # MPICH2 (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
 # mpi_path		= '/sw/libs/mpich2/x86_64/gcc-4.1.2/mpich2-1.0.7/include'
 # mpi_lib_path		= '/sw/libs/mpich2/x86_64/gcc-4.1.2/mpich2-1.0.7/lib'
 # mpi_libs		= ['mpich', 'rt']
-# mpi_run		= 'mpirun -np 1'
+# mpi_flavour		= 'MPICH'
 
 # MPICH2 for jumpshot (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
 # mpi_path		= '/sw/libs/mpich2/x86_64/gcc-4.1.2/mpich2-1.0.7/include'
 # mpi_lib_path		= '/sw/libs/mpich2/x86_64/gcc-4.1.2/mpich2-1.0.7/lib'
 # mpi_libs		= ['lmpe', 'mpe', 'mpich', 'rt']
-# mpi_run		= 'mpirun -np 1'
+# mpi_flavour		= 'MPICH'
 
 # Intel MPI (to run Escript use: module load intel-mpi/3.1.038)
 # mpi_path		= '/sw/sdev/intel/mpi/3.1.038/x86_64/include64'
 # mpi_lib_path		= '/sw/sdev/intel/mpi/3.1.038/x86_64/lib64'
 # mpi_libs		= ['mpi']
-# mpi_run		= 'mpirun -np 1'
+# mpi_flavour		= 'INTELMPI'
 
 # mvapich (to run Escript use: module load mvapich/mvapich-1.0.1)
 # mpi_path		= '/usr/diags/mpi/mvapich/intel/include'
 # mpi_lib_path		= '/usr/diags/mpi/mvapich/intel/lib/shared'
 # mpi_libs		= ['mpich']
-# mpi_run		= 'mpirun -np 1'
+# mpi_flavour		= 'MPICH'
 
 # OpenMPI (to run Escript use: module load openmpi/gcc-4.1.2/openmpi-1.2.6) (This doesn't compile)
 # mpi_path		= '/sw/libs/openmpi/x86_64/gcc-4.1.2/openmpi-1.2.6/include'
 # mpi_lib_path		= '/sw/libs/openmpi/x86_64/gcc-4.1.2/openmpi-1.2.6/lib'
 # mpi_libs		= ['mpi']
-# mpi_run		= 'mpirun -np 1'
+# mpi_flavour		= 'OPENMPI'
 
 # ParMETIS (for use with MPI)
 # useparmetis		= 'yes'

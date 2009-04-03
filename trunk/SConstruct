@@ -243,6 +243,18 @@ if env['omp_optim'] == "" and env['omp_debug'] == "": env["useopenmp"] = 0
 try: env['ENV']['OMP_NUM_THREADS'] = os.environ['OMP_NUM_THREADS']
 except KeyError: env['ENV']['OMP_NUM_THREADS'] = 1
 
+try: env['ENV']['ESCRIPT_NUM_THREADS'] = os.environ['ESCRIPT_NUM_THREADS']
+except KeyError: pass
+
+try: env['ENV']['ESCRIPT_NUM_PROCS'] = os.environ['ESCRIPT_NUM_PROCS']
+except KeyError: pass
+
+try: env['ENV']['ESCRIPT_NUM_NODES'] = os.environ['ESCRIPT_NUM_NODES']
+except KeyError: pass
+
+try: env['ENV']['ESCRIPT_HOSTFILE'] = os.environ['ESCRIPT_HOSTFILE']
+except KeyError: pass
+
 try: env['ENV']['PATH'] = os.environ['PATH']
 except KeyError: pass
 

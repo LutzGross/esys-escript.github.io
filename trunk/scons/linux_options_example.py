@@ -81,13 +81,13 @@ netCDF_lib_path		= '/usr/lib'
 # mpi_path		= '/home/Work/InstallArea/mpich2-1.0.7/include'
 # mpi_lib_path		= '/home/Work/InstallArea/mpich2-1.0.7/lib'
 # mpi_libs		= ['mpich', 'rt']
-# mpi_run		= 'mpirun -np 1'
+# mpi_flavour		= 'MPICH'
 
 # MPICH2 for jumpshot (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
 # mpi_path		= '/home/Work/InstallArea/mpich2-1.0.7/include'
 # mpi_lib_path		= '/home/Work/InstallArea/mpich2-1.0.7/lib'
 # mpi_libs		= ['lmpe', 'mpe', 'mpich', 'rt']
-# mpi_run		= 'mpirun -np 1'
+# mpi_flavour		= 'MPICH'
 
 # ParMETIS (for use with MPI)
 # useparmetis		= 'yes'
