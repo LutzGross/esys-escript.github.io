@@ -567,6 +567,7 @@ runPyUnitTest_builder = Builder(action = scons_extensions.runPyUnitTest, suffix 
 env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
 
 ############ MPI (optional) ####################################
+if not env['usempi']: env['mpi_flavour']='none'
 
 # Create a modified environment for MPI programs (identical to env if usempi=no)
 env_mpi = clone_env(env)
@@ -575,7 +576,7 @@ env_mpi = clone_env(env)
 conf = Configure(clone_env(env_mpi))
 
 if env_mpi['usempi']:
-  VALID_MPIs=[ "MPT", "OPENMPI", "MPICH", "OPENMPI", "INTELMPI" ]
+  VALID_MPIs=[ "MPT", "MPICH", "OPENMPI", "INTELMPI" ]
   if not env_mpi['mpi_flavour'] in VALID_MPIs: 
       raise ValueError,"MPI is enabled but mpi_flavour = %s is not a valid key from %s."%( env_mpi['mpi_flavour'],VALID_MPIs)
   conf.env.AppendUnique(CPPPATH	= [env_mpi['mpi_path']])
@@ -597,6 +598,7 @@ else:
   conf.Finish()
 
 env['usempi'] = env_mpi['usempi']
+
 
 ############ ParMETIS (optional) ###############################
 
