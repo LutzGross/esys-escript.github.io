@@ -159,19 +159,10 @@ shift `expr $OPTIND - 1`
 #   Read the MPI_FLAVOUR from the buildvars
 #
 MPI_FLAVOUR=`grep mpi_flavour $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`
-
-if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.mpi" ] && [ $MPI_FLAVOUR  == "none" ]
-then
-     echo "compiled with MPI but no MPI flavour specified."
-     exit 1
-fi
+WITH_OPENMP=`grep useopenmp $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`
 
 if [ ! -z $ESCRIPT_VERBOSE  ]; then echo "MPI flavor is $MPI_FLAVOUR."; fi
-if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.openmp" ]; 
-then
-    ESCRIPT_WITH_OPENMP="yes"
-fi
-if [ ! -z $ESCRIPT_VERBOSE ] && [ ! -z $ESCRIPT_WITH_OPENMP ]; then echo "OpenMP enabled."; fi
+if [ ! -z $ESCRIPT_VERBOSE ] && [  $WITH_OPENMP == "y"  ]; then echo "OpenMP enabled."; fi
 #
 #  extend path variables
 #
@@ -253,7 +244,7 @@ else
     fi
 fi
 
-if [ ! -z $ESCRIPT_WITH_OPENMP ]
+if [  $WITH_OPENMP == "y"  ]
 then
    if [ -z $ESCRIPT_NUM_THREADS ]
      then
@@ -325,23 +316,22 @@ else
         EXEC_CMD="$PYTHON_MPI $@"
     fi
 fi
-if [ ! -z $ESCRIPT_VERBOSE ]; then echo "Command to be executed is $EXEC_CMD."; fi
+if [ ! -z $ESCRIPT_VERBOSE ]; then echo "Command to be executed is \"$EXEC_CMD\"."; fi
 #===============================================================================================
 #
 #   now we start to spwan things:
 #
-if [ ! -z $ESCRIPT_WITH_OPENMP ]
+if [  $WITH_OPENMP == "y"  ]
 then
    export OMP_NUM_THREADS=$ESCRIPT_NUM_THREADS
    EXPORT_ENV="$EXPORT_ENV, OMP_NUM_THREADS"
 fi
-
+EXIT_CODE=1
 #=============== no MPI ===================================
 if [ $MPI_FLAVOUR  == "none" ] 
 then
-   echo $EXEC_CMD
    $EXEC_CMD 
-
+   EXIT_CODE=$?
 #=============== OpenMPI ===================================
 elif [ $MPI_FLAVOUR == "OPENMPI" ] 
 then 
@@ -361,10 +351,10 @@ then
           if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_PROCS nodes."; fi
       fi
    fi
-   $CMD="mpiexec -n $ESCRIPT_NUM_PROCS -perhost $ESCRIPT_NUM_PROCS -envall -$EXEC_CMD"
-   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is $CMD."; fi
-   echo $CMD
+   CMD="mpiexec -n $ESCRIPT_NUM_PROCS -perhost $ESCRIPT_NUM_PROCS -envall -$EXEC_CMD"
+   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
    $CMD
+   EXIT_CODE=$?
    if [ ! -z $HOSTFILE ]
    then
        mpdallexit
@@ -382,32 +372,14 @@ then
    else
       CMD="mpirun -np $TOTPROC $EXEC_CMD"
    fi 
-   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is $CMD."; fi
-   echo $CMD
+   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
    $CMD
+   EXIT_CODE=$?
 #=============== SGI's MPICH ===================================
 elif [ $MPI_FLAVOUR == "MPICH" ]
 then
    echo "MPICH not implemented yet."
 else
    echo "unknown MPI falvour $MPI_FLAVOUR."
-   exit 1
 fi
-exit 0
-# Using OpenMP?
-#OMP_OPTIONS=''
-#if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.openmp" ]; then
-#  EXEC_CMD="$mpi_launcher $MPI_NUM_PROCS $PYTHON_MPI"
-#  ESCRIPT_NUM_THREADS=$OMP_NUM_THREADS
-#  OMP_OPTIONS="env OMP_NUM_THREADS=$ESCRIPT_NUM_THREADS"
-#fi
-
-# Using MPI?
-#if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.mpi" ]; then
-#  EXEC_CMD="$mpi_launcher $MPI_NUM_PROCS $PYTHON_MPI"
-#else
-#  if [ "$TOTPROC" -ne 1 ]; then
-#    echo "Escript/Finley was not compiled for MPI. You can not use the -n and -p options."
-#    exit 1
-#  fi
-#fi
+exit $EXIT_CODE
