@@ -298,7 +298,7 @@ else
         if [ -f $ESCRIPT_ROOT/lib/pyversion ]
         then
            compversion=`cat $ESCRIPT_ROOT/lib/pyversion`
-           intversion=`$PYTHON_CMD --version 2>&1`
+           intversion=`$PYTHON_CMD -V 2>&1`
            if [ "$compversion" != "$intversion" ]
            then
               echo "Python versions do not match. Escript was compiled for "$compversion"."
@@ -342,16 +342,16 @@ elif [ $MPI_FLAVOUR == "INTELMPI" ]
 then
    if [ ! -z $HOSTFILE ] 
    then
-      mpdboot -n $ESCRIPT_NUM_PROCS -r ssh -f $HOSTFILE
+      mpdboot -n $ESCRIPT_NUM_NODES -r ssh -f $HOSTFILE
       if [ $? -ne 0 ] 
       then
-         echo "mpdboot with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_PROCS nodes failed."
+         echo "mpdboot with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes failed."
          exit 1
       else 
-          if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_PROCS nodes."; fi
+          if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes."; fi
       fi
    fi
-   CMD="mpiexec -n $ESCRIPT_NUM_PROCS -perhost $ESCRIPT_NUM_PROCS -envall -$EXEC_CMD"
+   CMD="mpiexec -perhost $ESCRIPT_NUM_PROCS -envall -n $TOTPROC $EXEC_CMD"
    if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
    $CMD
    EXIT_CODE=$?
