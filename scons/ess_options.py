@@ -62,7 +62,7 @@ papi_instrument_solver = 0
 mpi_path = '/usr/include'
 mpi_lib_path = '/usr/lib'
 mpi_libs = [ 'mpi' ]
-mpi_run = 'mpirun -np 1'
+mpi_flavour = "MPT"
 
 omp_flags = '-openmp -openmp_report2 '
 omp_flags_debug = '-openmp -openmp_report0'

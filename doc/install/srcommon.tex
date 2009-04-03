@@ -150,6 +150,12 @@ Then recompile.
  scons useopenmp=yes
 \end{shellCode}
 
+You can test your build on for instance 4 threads using 
+\begin{shellCode}
+export ESCRIPT_NUM_THREADS=4
+scons all_tests
+\end{shellCode}
+
 \subsection{Compilation with MPI}
 You will need to have MPI installed on your system.
 There are a number of implementations so we do not provide any specific advice here.
@@ -176,6 +182,25 @@ Then compile with:
 \end{shellCode}
 
 As with debug and openmp, you can make this a more permanent setting by modifying your options file.
+
+You can test your build on for instance 6 processors using 
+\begin{shellCode}
+export ESCRIPT_NUM_NODES=6
+scons all_tests
+\end{shellCode}
+and on  6 processors with 4 threads each using 
+\begin{shellCode}
+export ESCRIPT_NUM_THREADS=4
+export ESCRIPT_NUM_NODES=6
+scons all_tests
+\end{shellCode}
+Alternatively, you can give a hostfile
+\begin{shellCode}
+export ESCRIPT_NUM_THREADS=4
+export ESCRIPT_HOSTFILE=myhostfile
+scons all_tests
+\end{shellCode}
+
 
 \subsection{Difficulties}
 

@@ -87,7 +87,7 @@ usempi          = 'yes'
 mpi_path        = '/usr/include/mpi'
 mpi_lib_path    = '/usr/lib/openmpi/lib'
 mpi_libs        = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
-mpi_run         = 'mpiexec -np 4'
+mpi_flavour         = 'MPICH'
 
 # ParMETIS (for use with MPI)
 #useparmetis        = 'yes'

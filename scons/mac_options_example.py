@@ -81,7 +81,7 @@ useopenmp		= 'yes'
 # mpi_path		= '/usr/include'
 # mpi_lib_path		= '/usr/lib64'
 # mpi_libs		= ['mpi']
-# mpi_run		= 'mpirun -np 1'
+# mpi_flavour		= 'MPT'
 
 # ParMETIS (for use with MPI)
 # useparmetis		= 'yes'

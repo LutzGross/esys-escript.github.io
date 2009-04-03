@@ -66,14 +66,14 @@ usempi			= 'no'
 mpi_path		= ESCRIPT_ROOT + '/mpich2-1.0.7/include'
 mpi_lib_path		= ESCRIPT_ROOT + '/mpich2-1.0.7/lib'
 mpi_libs		= ['mpich', 'rt']
-mpi_run			= 'mpirun -np 1'
+mpi_flavour		= 'MPICH'
 
 # MPICH2 for jumpshot (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
 # usempi		= 'no'
 # mpi_path		= ESCRIPT_ROOT + '/mpich2-1.0.7/include'
 # mpi_lib_path		= ESCRIPT_ROOT + '/mpich2-1.0.7/lib'
 # mpi_libs		= ['lmpe', 'mpe', 'mpich', 'rt']
-# mpi_run		= 'mpirun -np 1'
+# mpi_flavour		= 'MPICH'
 
 # ParMETIS (for use with MPI)
 useparmetis		= 'yes'
