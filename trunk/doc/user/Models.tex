@@ -183,7 +183,7 @@ return the tolerance for the involved PDEs.
  The following script \file{lit\hackscore driven\hackscore cavity.py} 
 \index{scripts!\file{helmholtz.py}} which is available in the \ExampleDirectory
 illustrates the usage of the \class{StokesProblemCartesian} class to solve
-the lit driven cavity problem~\cite{LITDRIVENCAVITY}:
+the lit driven cavity problem:
 \begin{python}
 from esys.escript import *
 from esys.finley import Rectangle
@@ -281,7 +281,7 @@ Q^*u  + Q^*Q p & = & Q^*g \\
 \end{array}
 \end{equation} 
 where $D^*$ and $Q^*$ denote the adjoint operators. 
-In~\cite{XXX} it has been shown that this problem is continuous and coercive in $W \times V$ and therefore has a unique solution. Also standart FEM methods can be used for discretization. It is also possible 
+In~\cite{LEASTSQUARESFEM1994} it has been shown that this problem is continuous and coercive in $W \times V$ and therefore has a unique solution. Also standart FEM methods can be used for discretization. It is also possible 
 to solve the problem is coupled form, however this approach leads in some cases to a very ill-conditioned stiffness matrix in particular in the case of a very small or large permability ($\alpha\hackscore{1} \ll 1$ or $\alpha\hackscore{0} \gg 1$)  
 
 The approach we are taking is to eliminate the velocity $u$ from the problem. Assuming that $p$ is known we have
@@ -401,7 +401,7 @@ later
 % \section{Drucker Prager Model}
 
 \section{Isotropic Kelvin Material \label{IKM}}
-As proposed by Kelvin~\ref{KELVN} material strain $D\hackscore{ij}=v\hackscore{i,j}+v\hackscore{j,i}$ can be decomposed into
+As proposed by Kelvin~\cite{Muhlhaus2005} material strain $D\hackscore{ij}=v\hackscore{i,j}+v\hackscore{j,i}$ can be decomposed into
 an elastic part $D\hackscore{ij}^{el}$ and visco-plastic part $D\hackscore{ij}^{vp}$:
 \begin{equation}\label{IKM-EQU-2}
 D\hackscore{ij}=D\hackscore{ij}^{el}+D\hackscore{ij}^{vp}
@@ -425,14 +425,14 @@ betwee the the strain in material $q$
 \eta^{q}=\eta^{q}\hackscore{N} \left(\frac{\tau}{\tau\hackscore{t}^q}\right)^{\frac{1}{n^{q}}-1}
 \mbox{ with } \tau=\sqrt{\frac{1}{2}\sigma'\hackscore{ij} \sigma'\hackscore{ij}}
 \end{equation}
-for a given power law coefficients $n^{q}\ge1$ and transition stresses $\tau\hackscore{t}^q$, see~\ref{POERLAW}.
+for a given power law coefficients $n^{q}\ge1$ and transition stresses $\tau\hackscore{t}^q$, see~\cite{Muhlhaus2005}.
 Notice that $n^{q}=1$ gives a constant viscosity.
 After inserting equation~\ref{IKM-EQU-5} into equation \ref{IKM-EQU-4} one gets:
 \begin{equation}\label{IKM-EQU-6}
 D\hackscore{ij}'^{vp}=\frac{1}{2 \eta^{vp}} \sigma'\hackscore{ij} \mbox{ with } \frac{1}{\eta^{vp}} = \sum\hackscore{q} \frac{1}{\eta^{q}} \;.
 \end{equation}
 and finally with~\ref{IKM-EQU-2} 
-\begin{equation}\label{IKM-EQU-2b}
+\begin{equation}\label{IKM-EQU-2bb}
 D\hackscore{ij}'=\frac{1}{2 \eta^{vp}} \sigma'\hackscore{ij}+\frac{1}{2 \mu} \dot{\sigma}\hackscore{ij}'
 \end{equation}
 The total stress $\tau$ needs to fullfill the yield condition \index{yield condition} 
@@ -445,7 +445,7 @@ The deviatoric stress needs to fullfill the equilibrion equation
 -\sigma'\hackscore{ij,j}+p\hackscore{,i}=F\hackscore{i}
 \end{equation}
 where $F\hackscore{j}$ is a given external fource. We assume an incompressible media:
-\begin{equation}\label{IKM-EQU-2}
+\begin{equation}\label{IKM-EQU-2bbb}
 -v\hackscore{i,i}=0
 \end{equation}
 Natural boundary conditions are taken in the form 
@@ -544,7 +544,7 @@ we have
 \Theta' = \frac{1}{\tau} \omega \mbox{ with } \omega = \sum\hackscore{q}\frac{1-\frac{1}{n^{q}}}{\eta^{q}} 
 \end{equation}
 which leads to 
-\begin{equation}\label{IKM-EQU-45}
+\begin{equation}\label{IKM-EQU-49}
 \eta\hackscore{eff}^{(n+1)} = \min(\eta\hackscore{max}, 
 \eta\hackscore{eff}^{(n)}
 \frac{\Theta^{(n)}  + \omega^{(n)}  }
