@@ -77,12 +77,12 @@ useumfpack		= 'yes'
 # OpenMP
 useopenmp		= 'no'
 
-# MPICH2 (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
-usempi= 'no'
+# OPENMP
+usempi= 'yes'
 mpi_path		= '/usr/include/mpi'
 mpi_lib_path		= '/usr/lib'
 mpi_libs                = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
-mpi_flavour		= 'MPICH'
+mpi_flavour		= 'OPENMPI'
 
 # MPICH2 for jumpshot (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
 # mpi_path		= '/home/Work/InstallArea/mpich2-1.0.7/include'

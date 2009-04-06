@@ -31,12 +31,12 @@ __url__="https://launchpad.net/escript-finley"
 __author__="John Ngui, john.ngui@uq.edu.au"
 
 
-import vtk
 from mapper import ImageMapper
 from imagereslice import ImageReslice
 from actor import Actor2D
 from constant import Viewport
 from esys.escript import getMPISizeWorld
+if getMPISizeWorld()==1: import vtk
 
 # NOTE: ImageMapper, ImageReslice and Actor2D were inherited to allow access 
 # to their public methods from the driver.

@@ -30,9 +30,9 @@ __url__="https://launchpad.net/escript-finley"
 
 __author__="John Ngui, john.ngui@uq.edu.au"
 
-import vtk
 from constant import ImageFormat
 from esys.escript import getMPISizeWorld
+if getMPISizeWorld()==1: import vtk
 
 class ImageReader:
 	"""

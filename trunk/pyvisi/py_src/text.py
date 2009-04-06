@@ -31,10 +31,10 @@ __url__="https://launchpad.net/escript-finley"
 __author__="John Ngui, john.ngui@uq.edu.au"
 
 
-import vtk
 from actor import Actor2D
 from constant import Viewport, Color
 from esys.escript import getMPISizeWorld
+if getMPISizeWorld()==1: import vtk
 
 # NOTE: Actor2D was inherited to allow access to its public methods from 
 # the driver.
