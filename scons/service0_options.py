@@ -75,8 +75,8 @@ mkl_libs                =  [ "mkl_core", "mkl_intel_lp64",  "mkl_intel_thread", 
 
 # ParMETIS (for use with MPI) (these setting my be overwritten depending on the mpi version used)
 useparmetis		= 'yes'
-parmetis_path		= '/sw/libs/parmetis/x86_64/gcc-4.1.2/parmetis-3.1/include'
-parmetis_lib_path	= '/sw/libs/parmetis/x86_64/gcc-4.1.2/parmetis-3.1/lib'
+parmetis_path		= '/sw/libs/parmetis/x86_64/gcc-4.1.2/intelmpi/parmetis-3.1/include'
+parmetis_lib_path	= '/sw/libs/parmetis/x86_64/gcc-4.1.2/intelmpi/parmetis-3.1/lib'
 parmetis_libs		= ['parmetis', 'metis']
 # Silo
 # usesilo		= 'yes'
@@ -88,7 +88,7 @@ silo_lib_path		= '/sw/libs/silo/x86_64/gcc-4.1.2/silo-4.6.1/lib'
 # OpenMP
 useopenmp		= 'yes'
 
-usempi		= 'no'
+usempi		= 'yes'
 # MPI MPT (no module load required)
 # mpi_path		= '/usr/include'
 # mpi_lib_path		= '/usr/lib64'

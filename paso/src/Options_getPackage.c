@@ -43,7 +43,7 @@ index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry,
               #endif
             #endif
          #endif
-         if (((out==PASO_UMFPACK) || (out == PASO_SCSL)) && (mpi_info->size>1) ) {  /* these packages require CSC  which is not supported with MPI */
+         if (( (out == PASO_MKL) || (out==PASO_UMFPACK) || (out == PASO_SCSL) ) && (mpi_info->size>1) ) {  /* these packages require CSC  which is not supported with MPI */
               out= PASO_PASO;
          }
       } else {
