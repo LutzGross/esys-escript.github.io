@@ -23,6 +23,7 @@ CURDIR=`pwd`
 # ESCRIPT_NUM_NODES, ESCRIPT_NUM_PROCS, ESCRIPT_NUM_THREADS, ESCRIPT_HOSTFILE, ESCRIPT_CREATESTDFILES
 
 HOSTFILE=/tmp/escript.$$
+HOSTFILE2=/tmp/escript2.$$
 
 #Begin finding ESCRIPT_ROOT
 if [ $STDLOCATION != 0 ]
@@ -169,11 +170,11 @@ if [ ! -z $ESCRIPT_VERBOSE ] && [  $WITH_OPENMP == "y"  ]; then echo "OpenMP ena
 export PATH=$EXTRA_PATH:$PATH
 export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:$LD_LIBRARY_PATH
 export PYTHONPATH=$EXTRA_PYTHONPATH:$PYTHONPATH
-EXPORT_ENV="PATH, LD_LIBRARY_PATH, PYTHONPATH"
+EXPORT_ENV="PATH,LD_LIBRARY_PATH,PYTHONPATH"
 if [ `uname` == Darwin ]
 then
     export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH
-    EXPORT_ENV="$EXPORT_ENV, DYLD_LIBRARY_PATH"
+    EXPORT_ENV="$EXPORT_ENV,DYLD_LIBRARY_PATH"
 fi
 if [ ! -z $ESCRIPT_VERBOSE  ] 
 then 
@@ -324,7 +325,7 @@ if [ ! -z $ESCRIPT_VERBOSE ]; then echo "Command to be executed is \"$EXEC_CMD\"
 if [  $WITH_OPENMP == "y"  ]
 then
    export OMP_NUM_THREADS=$ESCRIPT_NUM_THREADS
-   EXPORT_ENV="$EXPORT_ENV, OMP_NUM_THREADS"
+   EXPORT_ENV="$EXPORT_ENV,OMP_NUM_THREADS"
 fi
 EXIT_CODE=1
 #=============== no MPI ===================================
@@ -373,7 +374,7 @@ then
 elif [ $MPI_FLAVOUR == "MPT" ]
 then
    export MPI_NUM_MEMORY_REGIONS=0
-   EXPORT_ENV="$EXPORT_ENV, MPI_NUM_MEMORY_REGIONS"
+   EXPORT_ENV="$EXPORT_ENV,MPI_NUM_MEMORY_REGIONS"
    if [ ! -z $HOSTFILE ] 
    then
       HOST_LIST=`awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}' $HOSTFILE`
@@ -384,10 +385,33 @@ then
    if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
    $CMD
    EXIT_CODE=$?
-#=============== SGI's MPICH ===================================
+#=============== MPICH ===================================
 elif [ $MPI_FLAVOUR == "MPICH" ]
 then
-   echo "MPICH not implemented yet."
+   if [ ! -z $HOSTFILE ] 
+   then
+      touch $HOSTFILE2
+      for (( i=1;i<=$ESCRIPT_NUM_PROCS;i+=1 )) ; do cat $HOSTFILE >> $HOSTFILE2  ; done
+      CMD="mpirun -machinefile $HOSTFILE2  -np $TOTPROC $EXEC_CMD"
+   else
+      CMD="mpirun -np $TOTPROC $EXEC_CMD"
+   fi 
+   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
+   $CMD
+   EXIT_CODE=$?
+#=============== MPICH2 ===================================
+elif [ $MPI_FLAVOUR == "MPICH2" ]
+then
+   if [ ! -z $HOSTFILE ] 
+   then
+      HOST_LIST=`awk 'BEGIN{S=""; N='$ESCRIPT_NUM_PROCS'}{ S = S " " $0 " " N }END{print S}' $HOSTFILE`
+      CMD="mpiexec -hosts $ESCRIPT_NUM_NODES $HOST_LIST -genvlist $EXPORT_ENV $EXEC_CMD"
+   else
+      CMD="mpiexec -np $TOTPROC -genvlist EXPORT_ENV $EXEC_CMD"
+   fi 
+   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
+   $CMD
+   EXIT_CODE=$?
 else
    echo "unknown MPI falvour $MPI_FLAVOUR."
 fi
