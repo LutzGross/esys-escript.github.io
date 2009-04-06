@@ -73,7 +73,7 @@ env.Command(env['prefix']+'/release/doc/user/html/index.htm',tex,			      \
                         -address \"esys@esscc.uq.edu.au\"                             \
                         -antialias_text -antialias -transparent                       \
                         -noshort_extn                                                 \
-                        -up_url \"http://www.access.edu.au/escript\",		      \
+                        -up_url \"https://launchpad.net/escript-finley\",		      \
 			-up_title \"escript\" guide.tex"], chdir=tex_dir)
 env.Alias('guide_html', env['prefix']+'/release/doc/user/html/index.htm')
 
