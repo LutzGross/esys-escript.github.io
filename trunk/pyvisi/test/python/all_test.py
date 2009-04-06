@@ -316,7 +316,10 @@ if __name__ == '__main__':
     else:
 	print "test TestGenerateMovie is dropped as MPI size > 1"
     if getMPISizeWorld() == 1:
-	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestGenerateMovie))
+	if os.system('ppmtompeg')/256==127:
+	    print "test TestGenerateMovie is dropped as ppmtompeg is not available"
+	else:
+	    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestGenerateMovie))
     else:
 	print "test TestRectangleOnAMap is dropped as MPI size > 1"
     if getMPISizeWorld() == 1:

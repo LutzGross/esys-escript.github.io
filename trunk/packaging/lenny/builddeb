@@ -3,6 +3,7 @@
 #This script produced with the aid of "The Debian System concepts and techniques" By Martin F. Krafft
 # Its purpose is to produce a .deb for escript
 
+VERSION=~2.0-1
 SRCDIR=`pwd`
 WRAPPERNAME=escript
 ALTWRAPPERNAME=finleypython
@@ -109,7 +110,7 @@ tar czf data.tar.gz usr
 mv data.tar.gz ..
 cd ..
 
-ar rcu escript.deb debian-binary control.tar.gz data.tar.gz
+ar rcu escript$VERSION.deb debian-binary control.tar.gz data.tar.gz
 
 
 

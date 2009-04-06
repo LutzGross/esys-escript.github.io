@@ -140,10 +140,13 @@ class TestGenerateMovie(unittest.TestCase, TestMovie):
 
 if __name__ == '__main__':
     if getMPISizeWorld() == 1: 
-	suite = unittest.TestSuite()
-	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestGenerateMovie))
-	s=unittest.TextTestRunner(verbosity=2).run(suite)
+	if os.system('ppmtompeg')/256==127:	#Command not found
+	    print "run_movie_with_lazy_evaluation.py was not executed because more than one processor is in use."
+	else:
+	    suite = unittest.TestSuite()
+	    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestGenerateMovie))
+	    s=unittest.TextTestRunner(verbosity=2).run(suite)
         if not s.wasSuccessful(): sys.exit(1)
     else:
-        print "run_movie_with_lazy_evaluation.py is not executed as more than one processor is used."
+        print "run_movie_with_lazy_evaluation.py was not executed because more than one processor is in use."
 
