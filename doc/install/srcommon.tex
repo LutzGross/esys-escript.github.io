@@ -164,6 +164,7 @@ You will need to modify the following variables in your options file.
 \item \texttt{mpi_flavour} \\
 	which MPI implementation is used. Valid values are  \begin{itemize}
     \item[\texttt{MPT}] SGI MPI implementation    \\     \url{http://techpubs.sgi.com/library/manuals/3000/007-3687-010/pdf/007-3687-010.pdf}
+     \item[\texttt{MPICH2}] Argonne's MPICH vesrion 2 implementation \\ \url{http://www.mcs.anl.gov/research/projects/mpi/mpich2/}
      \item[\texttt{MPICH}] Argonne's MPICH implementation \\ \url{http://www.mcs.anl.gov/research/projects/mpi/mpich1/}
       \item[\texttt{OPENMPI}] Open MPI \url{http://www.open-mpi.org/}
       \item[\texttt{INTELMPI}] Intel's MPI \url{http://software.intel.com/en-us/intel-mpi-library/}
@@ -186,20 +187,21 @@ As with debug and openmp, you can make this a more permanent setting by modifyin
 You can test your build on for instance 6 processors using 
 \begin{shellCode}
 export ESCRIPT_NUM_NODES=6
-scons all_tests
+scons usempi=yes all_tests
 \end{shellCode}
 and on  6 processors with 4 threads each using 
 \begin{shellCode}
 export ESCRIPT_NUM_THREADS=4
 export ESCRIPT_NUM_NODES=6
-scons all_tests
+scons usempi=yes all_tests
 \end{shellCode}
 Alternatively, you can give a hostfile
 \begin{shellCode}
 export ESCRIPT_NUM_THREADS=4
 export ESCRIPT_HOSTFILE=myhostfile
-scons all_tests
+scons usempi=yes all_tests
 \end{shellCode}
+Notice that depending on your MPI flavour it may be required to start a demon before running the tests under MPI.
 
 
 \subsection{Difficulties}
