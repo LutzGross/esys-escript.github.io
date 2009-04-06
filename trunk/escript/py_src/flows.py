@@ -333,6 +333,7 @@ class DarcyFlow(object):
           Qdp=self.__Q(dp)
           self.__pde_v.setValue(Y=-Qdp,X=Data(), r=Data())
           du=self.__pde_v.getSolution(verbose=self.show_details, iter_max = 100000)
+          # self.__pde_v.getOperator().saveMM("proj.mm")
           return Qdp+du
     def __inner_GMRES(self,r,s):
          return util.integrate(util.inner(r,s))
@@ -344,6 +345,7 @@ class DarcyFlow(object):
           self.__pde_p.setTolerance(self.getSubProblemTolerance())
           if self.show_details: print "DarcyFlux: Applying preconditioner"
           self.__pde_p.setValue(X=util.transposed_tensor_mult(self.__permeability,r), Y=Data(), r=Data())
+          # self.__pde_p.getOperator().saveMM("prec.mm")
           return self.__pde_p.getSolution(verbose=self.show_details, iter_max = 100000)
 
     def getFlux(self,p=None, fixed_flux=Data(), show_details=False):

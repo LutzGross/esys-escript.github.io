@@ -153,8 +153,30 @@ elements is called a mesh\index{finite element
 method!mesh}. \fig{fig:FirstSteps.2} shows an
 example of a FEM mesh with four elements in the $x_0$ and four elements
 in the $x_1$ direction over the unit square.  
-For more details we refer the reader to the literature, for instance
-\Ref{Zienc,NumHand}.
+For more details we refer the reader to the literature, for instance \Ref{Zienc,NumHand}.
+
+The \escript solver we want to use to solve this problem is embedded into the python interpreter language. So you can solve the problem interactively but you will learn quickly 
+that is more efficient to use scripts which you can edit with your favourite editor. 
+To enter the escript environment you use \program{escript} command\footnote{\program{escript} is not available under Windows yet. If you run under windows you can just use the
+\program{python} command and the \env{OMP_NUM_THREADS} environment variable to control the number
+of threads.}:
+\begin{verbatim}
+  escript
+\end{verbatim}
+which will pass you on to the python prompt
+\begin{verbatim}
+Python 2.5.2 (r252:60911, Oct  5 2008, 19:29:17) 
+[GCC 4.3.2] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> 
+\end{verbatim}
+Here you can use all available python commands and language features, for instance
+\begin{python}
+ >>> x=2+3
+>>> print "2+3=",x
+2+3= 5
+\end{python}
+We refer to the python users guide if you not familar with python.
 
 \escript provides the class \Poisson to define a Poisson equation \index{Poisson equation}.
 (We will discuss a more general form of a PDE \index{partial differential equation!PDE} 
@@ -293,9 +315,10 @@ The entire code is available as \file{poisson.py} in the \ExampleDirectory
 
 The last statement writes the solution (tagged with the name "sol") to a file named \file{u.xml} in 
 \VTK file format.
-Now you may run the script and visualize the solution using \mayavi:
+Now you may run the script using the \escript environment
+and visualize the solution using \mayavi:
 \begin{verbatim}
-  python poisson.py
+  escript poisson.py
   mayavi -d u.xml -m SurfaceMap
 \end{verbatim}
 See \fig{fig:FirstSteps.3}.

@@ -79,7 +79,7 @@ If $\var{nn}>1$ but {\it escript}  is not compiled for \MPI a warning is printed
 number of hosts in the host file is used. The default value is 1.
  
 \item[\programopt{-p} \var{np}] the number of MPI processes per node.  The total number of processes to be used is 
-$\var{nn} \cdot \var{np}$. This option overwrites the value of the \env{ESCRIPT_NUM_PROC} environment variable. If $\var{np}>1$ but {\it escript}  is not compiled for \MPI a warning is printed but execution is continued with $\var{np}=1$. The default value is 1.
+$\var{nn} \cdot \var{np}$. This option overwrites the value of the \env{ESCRIPT_NUM_PROCS} environment variable. If $\var{np}>1$ but {\it escript}  is not compiled for \MPI a warning is printed but execution is continued with $\var{np}=1$. The default value is 1.
 
  \item[\programopt{-t} \var{nt}] the number of threads used per processes.
 The option overwrites the value of the \env{ESCRIPT_NUM_THREADS} environment variable.
@@ -102,6 +102,12 @@ hosts defined in \var{hostfile} must be equal to the number of requsted compute 
 % This option is still expermental.
 
  \item[\programopt{-v}] prints some diagonstic information.
+\end{itemize}
+\subsection{Notes}
+\begin{itemize}
+ \item Make sure that \program{mpiexec} is in your \env{PATH}. 
+ \item For MPICH and INTELMPI and for the case a hostfile is present 
+\program{escript} will start the \program{mpd} demon before execution.
 \end{itemize}
 
 \section{Input and Output}
