@@ -404,14 +404,24 @@ elif [ $MPI_FLAVOUR == "MPICH2" ]
 then
    if [ ! -z $HOSTFILE ] 
    then
-      HOST_LIST=`awk 'BEGIN{S=""; N='$ESCRIPT_NUM_PROCS'}{ S = S " " $0 " " N }END{print S}' $HOSTFILE`
-      CMD="mpiexec -hosts $ESCRIPT_NUM_NODES $HOST_LIST -genvlist $EXPORT_ENV $EXEC_CMD"
-   else
-      CMD="mpiexec -np $TOTPROC -genvlist EXPORT_ENV $EXEC_CMD"
-   fi 
+         mpdboot -n $ESCRIPT_NUM_NODES -r ssh -f $HOSTFILE
+         if [ $? -ne 0 ] 
+         then
+            echo "mpdboot with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes failed."
+            exit 1
+         else 
+             if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes."; fi
+         fi
+   fi
+   CMD="mpiexec -genvlist $EXPORT_ENV -np $TOTPROC $EXEC_CMD"
    if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
    $CMD
    EXIT_CODE=$?
+   if [ ! -z $HOSTFILE ]
+   then
+       mpdallexit
+       if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdallexit executed."; fi
+   fi 
 else
    echo "unknown MPI falvour $MPI_FLAVOUR."
 fi
