@@ -152,7 +152,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
                                           &edgecut,
                                           partition,				/* new CPU ownership of elements */
                                           &(in->MPIInfo->comm));
-		 printf("ParMETIS number of edges cut by partitioning per processor: %d\n", edgecut/MAX(in->MPIInfo->size,1));
+		 /* printf("ParMETIS number of edges cut by partitioning per processor: %d\n", edgecut/MAX(in->MPIInfo->size,1)); */
                  TMPMEMFREE(ubvec);
                  TMPMEMFREE(tpwgts);
 	      } else {

@@ -254,7 +254,7 @@ then
      then
        ESCRIPT_NUM_THREADS=1
      fi
-     if [ ! -z $ESCRIPT_VERBOSE ]; then echo "Number of threads is $ESCRIPT_NUM_THREADS."; fi
+     if [ ! -z $ESCRIPT_VERBOSE ]; then echo "ESCRIPT_NUM_THREADS is $ESCRIPT_NUM_THREADS."; fi
    fi
 else
    ESCRIPT_NUM_THREADS=1
