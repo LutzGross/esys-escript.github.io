@@ -31,7 +31,6 @@ __url__="https://launchpad.net/escript-finley"
 __author__="John Ngui, john.ngui@uq.edu.au"
 
 
-import vtk
 from mapper import DataSetMapper
 from actor import Actor3D
 from constant import Viewport
@@ -39,6 +38,7 @@ from texture import Texture
 from plane import PlaneSource
 from transform import Transform, TransformFilter
 from esys.escript import getMPISizeWorld
+if getMPISizeWorld()==1: import vtk
 
 # NOTE: DataSetMapper, Actor3D, Texture, PlaneSource, Transform and
 # TransformFilter were inherited to  allow access to their public methods 

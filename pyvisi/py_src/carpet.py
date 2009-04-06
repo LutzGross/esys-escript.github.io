@@ -30,7 +30,6 @@ __url__="https://launchpad.net/escript-finley"
 
 __author__="John Ngui, john.ngui@uq.edu.au"
 
-import vtk
 from mapper import DataSetMapper
 from lookuptable import LookupTable
 from actor import Actor3D

@@ -31,12 +31,12 @@ __url__="https://launchpad.net/escript-finley"
 __author__="John Ngui, john.ngui@uq.edu.au"
 
 
-import vtk
 from mapper import DataSetMapper
 from actor import Actor3D
 from constant import Viewport
 from cube import CubeSource
 from esys.escript import getMPISizeWorld
+if getMPISizeWorld()==1: import vtk
 
 # NOTE: CubeSource, DataSetMapper and Actor3D were inherited to allow 
 # access to their public methods from the driver.

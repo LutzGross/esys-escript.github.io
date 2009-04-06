@@ -31,11 +31,11 @@ __url__="https://launchpad.net/escript-finley"
 __author__="John Ngui, john.ngui@uq.edu.au"
 
 
-import vtk
 import tempfile, os, sys
 from constant import Source, ColorMode
 from esys.escript import getMPISizeWorld
 import esys.escript 
+if getMPISizeWorld()==1: import vtk
 
 class DataCollector:
 	"""

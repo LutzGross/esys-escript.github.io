@@ -31,13 +31,13 @@ __url__="https://launchpad.net/escript-finley"
 __author__="John Ngui, john.ngui@uq.edu.au"
 
 
-import vtk
 from mapper import DataSetMapper
 from actor import Actor2D, Actor3D
 from lookuptable import LookupTable
 from constant import Viewport, Color, Lut, LegendType
 from scalarbar import ScalarBar
 from esys.escript import getMPISizeWorld
+if getMPISizeWorld()==1: import vtk
 
 # NOTE: ScalarBarModule, DataSetMapper and Actor3D were inherited to allow 
 # access to their public methods from the driver.

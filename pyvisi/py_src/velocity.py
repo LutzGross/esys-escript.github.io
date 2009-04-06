@@ -31,7 +31,6 @@ __url__="https://launchpad.net/escript-finley"
 __author__="John Ngui, john.ngui@uq.edu.au"
 
 
-import vtk
 from mapper import DataSetMapper
 from lookuptable import LookupTable
 from actor import Actor3D
@@ -42,6 +41,7 @@ from outline import Outline
 from point import MaskPoints
 from average import CellDataToPointData
 from esys.escript import getMPISizeWorld
+if getMPISizeWorld()==1: import vtk
 
 # NOTE: DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D and
 # MaskPoints were inherited to allow access to their public 

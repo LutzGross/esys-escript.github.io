@@ -31,7 +31,6 @@ __url__="https://launchpad.net/escript-finley"
 __author__="John Ngui, john.ngui@uq.edu.au"
 
 
-import vtk
 from mapper import DataSetMapper
 from actor import Actor3D
 from lookuptable import LookupTable
@@ -40,6 +39,7 @@ from constant import Viewport, Color, Lut, ColorMode
 from contourmodule import ContourModule
 from average import CellDataToPointData
 from esys.escript import getMPISizeWorld
+if getMPISizeWorld()==1: import vtk
 
 # NOTE: DataSetMapper, Actor3D and ContourModule were inherited to allow 
 # access to their public methods from the driver.

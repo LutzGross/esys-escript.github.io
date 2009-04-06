@@ -31,10 +31,10 @@ __url__="https://launchpad.net/escript-finley"
 __author__="John Ngui, john.ngui@uq.edu.au"
 
 
-import vtk
 from position import LocalPosition
 from constant import Color
 from esys.escript import getMPISizeWorld
+if getMPISizeWorld()==1: import vtk
 
 class ScalarBar:
 	"""

@@ -31,7 +31,6 @@ __url__="https://launchpad.net/escript-finley"
 __author__="John Ngui, john.ngui@uq.edu.au"
 
 
-import vtk
 from mapper import DataSetMapper
 from lookuptable import LookupTable
 from actor import Actor3D
@@ -43,6 +42,7 @@ from outline import Outline
 from average import CellDataToPointData
 from position import GlobalPosition
 from esys.escript import getMPISizeWorld
+if getMPISizeWorld()==1: import vtk
 
 # NOTE: DataSetMapper, Actor3D, PointSource, StreamLineModule and Tube  were 
 # inherited to allow access to their public methods from the driver.
