@@ -48,7 +48,7 @@ def runPyUnitTest(target, source, env):
    if os.name== "nt":
      app = sys.executable + " " + app
    else:
-     app = os.path.join(env['bininstall'],"escript")+" -v "+app
+     app = os.path.join(env['bininstall'],"escript")+" -ov "+app
    print "Executing test: " + app
    if env.Execute(app) == 0:
       open(str(target[0]),'w').write("PASSED\n")

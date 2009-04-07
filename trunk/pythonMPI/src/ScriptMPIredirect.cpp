@@ -43,8 +43,13 @@ int main( int argc, char **argv ) {
 
     if( mpi_info->rank )
     {
+      char fname[256];
+      sprintf( fname, "stdout_%04d.out", mpi_info->rank );
       FILE *fp_out;
-      fp_out = freopen( "/dev/null", "w+", stdout );
+      fp_out = freopen( fname, "w+", stdout );
+      sprintf( fname, "stdout_%04d.err", mpi_info->rank );
+      FILE *fp_err;
+      fp_err = freopen( fname, "w+", stderr );
     }
     /*
      * Start the python parser
