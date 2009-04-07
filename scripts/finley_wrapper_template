@@ -58,7 +58,8 @@ else
 fi
 ##### End finding ESCRIPT_ROOT  ########
 
-PYTHON_MPI="$ESCRIPT_ROOT/lib/pythonMPI"
+PYTHON_MPI_NULL="$ESCRIPT_ROOT/lib/pythonMPI"
+PYTHON_MPI_REDIRECT="$ESCRIPT_ROOT/lib/pythonMPIredirect"
 PYTHON_CMD=python
 
 # if possible please express paths relative to $ESCRIPT_ROOT unless
@@ -268,6 +269,7 @@ then			#This could happen if the args were not a number
   echo "expression of total number of processors = $ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS is not numerical."
   exit 1
 fi
+
 #
 # Test to ensure people aren't trying to combine interactive and multi-process
 #
@@ -275,6 +277,18 @@ if [[ ( ( ! -z $DOINTERACTIVE ) || ( $# -eq 0 ) ) && ( $TOTPROC -gt 1) ]]
 then
   echo "Interactive mode cannot be used with more than one process"
   exit 1
+fi
+
+if [ $TOTPROC -gt 1 ] 
+then
+   if [ "$ESCRIPT_CREATESTDFILES" == "yes" ]
+   then
+       PYTHON_MPI=$PYTHON_MPI_REDIRECT
+   else
+       PYTHON_MPI=$PYTHON_MPI_NULL
+   fi
+else
+    PYTHON_MPI=$PYTHON_MPI_NULL
 fi
 #=========================================================================================================
 # Must have at least one command-line arg: the python script
