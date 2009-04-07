@@ -42,10 +42,11 @@ class GroupTest:
 	res=res+"\nexport LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH\n"
 	if build_platform=='darwin':
 		res=res+"export DYLD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH\n"
-	res=res+"\nexport OLD_PYTHON=`pwd`:$PYTHONPATH\nBINRUNNER=$1\nPYTHONRUNNER=\"$1 $2\"\nBATCH_ROOT=`pwd`\n"
+	res=res+"\nexport OLD_PYTHON=`pwd`:$PYTHONPATH\nBINRUNNER=\"`pwd`/bin/escript -b $1\"\nPYTHONRUNNER=\"`pwd`/bin/escript $1\"\nBATCH_ROOT=`pwd`\n"
 	res=res+"BUILD_DIR=$BATCH_ROOT/build/"+build_platform
 	res=res+"\nif [ ! -d $BUILD_DIR ]\nthen\n echo Can not find build directory $BUILD_DIR\n exit 2\nfi\n" 
-	res=res+"if [ $# -lt 2 ]\nthen\n echo Usage: $0 bin_run_cmd python_run_cmd\n exit 2\nfi\n"
+	res=res+"if [ $# -ne 1 ]\nthen\n echo Usage: $0 wrapper_options\necho Runs all unit tests. Options must be a single string.\nexit 2\nfi\n"
+	#res=res+"if [ $# -lt 2 ]\nthen\n echo Usage: $0 bin_run_cmd python_run_cmd\n exit 2\nfi\n"
 	return res
     makeHeader=staticmethod(makeHeader)
 
