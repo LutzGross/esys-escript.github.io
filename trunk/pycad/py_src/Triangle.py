@@ -36,7 +36,7 @@ import tempfile
 import os
 import glob
 import esys.pycad.design as design
-from math import *
+import math 
 from esys.pycad.primitives import Point, Spline, BezierCurve, BSpline, Line, Arc, CurveLoop, RuledSurface, PlaneSurface, SurfaceLoop, Volume, PropertySet
 from esys.escript import getMPIWorldMax, getMPIRankWorld
 

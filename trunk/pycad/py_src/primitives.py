@@ -43,7 +43,7 @@ except:
 
 import numarray
 from transformations import _TYPE, Translation, Dilation, Transformation
-from math import sqrt
+import math 
 
 
 def resetGlobalPrimitiveIdCounter():
@@ -845,8 +845,8 @@ class Ellipse(EllipseBase, Primitive):
             p=self.getPointOnMainAxis().getCoordinates()-self_c
             q=primitive.getPointOnMainAxis().getCoordinates()-self_c
             # are p and q orthogonal or collinear?
-            len_p=sqrt(p[0]**2+p[1]**2+p[2]**2)
-            len_q=sqrt(q[0]**2+q[1]**2+q[2]**2)
+            len_p=math.sqrt(p[0]**2+p[1]**2+p[2]**2)
+            len_q=math.sqrt(q[0]**2+q[1]**2+q[2]**2)
             p_q= abs(p[0]*q[0]+p[1]*q[1]+p[2]*q[2])
             return ((p_q <= getToleranceForColocation() * len_q * p_q) or \
                     (abs(p_q - len_q * p_q) <= getToleranceForColocation())) and \
