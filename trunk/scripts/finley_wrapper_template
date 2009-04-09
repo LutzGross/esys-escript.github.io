@@ -249,15 +249,22 @@ fi
 if [  $WITH_OPENMP == "y"  ]
 then
    if [ -z $ESCRIPT_NUM_THREADS ]
-     then
-     ESCRIPT_NUM_THREADS=$OMP_NUM_THREADS
-     if [ -z $ESCRIPT_NUM_THREADS ]
-     then
-       ESCRIPT_NUM_THREADS=1
-     fi
-     if [ ! -z $ESCRIPT_VERBOSE ]; then echo "ESCRIPT_NUM_THREADS is $ESCRIPT_NUM_THREADS."; fi
+   then
+        ESCRIPT_NUM_THREADS=$OMP_NUM_THREADS
+        if [ -z $ESCRIPT_NUM_THREADS ]
+        then
+           ESCRIPT_NUM_THREADS=1
+        fi
+   fi
+   if [ ! -z $ESCRIPT_VERBOSE ]
+   then
+        echo "ESCRIPT_NUM_THREADS is $ESCRIPT_NUM_THREADS."
    fi
 else
+   if [[ ( ! -z $ESCRIPT_NUM_THREADS ) && ( $ESCRIPT_NUM_THREADS != 1 ) ]]
+   then
+       echo "Warning: OpenMP is disabled but number of threads requested is $ESCRIPT_NUM_THREADS!=1. Running without threads."
+   fi
    ESCRIPT_NUM_THREADS=1
 fi
 #
