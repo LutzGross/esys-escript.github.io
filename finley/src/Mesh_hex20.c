@@ -155,7 +155,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
   offset2=e_offset2*N_PER_E;
   local_N0=local_NE0>0 ? local_NE0*N_PER_E+1 : 0;
   local_N1=local_NE1>0 ? local_NE1*N_PER_E+1 : 0;
-  local_N2=local_NE0>0 ? local_NE2*N_PER_E+1 : 0;
+  local_N2=local_NE2>0 ? local_NE2*N_PER_E+1 : 0;
 
   /* get the number of surface elements */
 
