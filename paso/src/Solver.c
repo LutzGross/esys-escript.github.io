@@ -48,7 +48,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
 #ifdef PASO_MPI
    double loc_norm;
 #endif
-   dim_t i,totIter,cntIter,method;
+   dim_t i,totIter=0,cntIter,method;
    bool_t finalizeIteration;
    err_t errorCode=NO_ERROR;
    dim_t numSol = Paso_SystemMatrix_getTotalNumCols(A);
@@ -258,6 +258,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                               if (options->verbose) printf("Paso_Solver: Breakdown at iter %d (residual = %e). Restarting ...\n", cntIter+totIter, tol);
                               finalizeIteration = FALSE;
                            }
+                        }
                       } else {
                          if (options->verbose) printf(". convergence! \n");
                       }
@@ -267,7 +268,8 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
               MEMFREE(r);
               time_iter=Paso_timer()-time_iter;
               if (options->verbose)  {
-                 printf("\ntiming: Paso_Solver:  %.4e sec\n",time_iter);
+               printf("\ntiming: Paso_Solver:  %.4e sec\n",time_iter);
+               if (Paso_noError()) {
                  if (totIter>1) {
                     if(totIter==options->iter_max) {
                         printf("timing: Total MAX steps, time per iteration step: %.4e sec\n",time_iter/totIter);
@@ -278,11 +280,14 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                  else {
                     printf("timing: Total 1 step, time per iteration step: %.4e sec\n",time_iter);
                     }   
+               }
+               else {
+                   printf("timing: Total: Diverged.\n");
+               }
               }
            }
         }
       }
-   }
    Performance_stopMonitor(pp,PERFORMANCE_ALL);
    blocktimer_increment("Paso_Solver()", blocktimer_start);
 }

@@ -81,7 +81,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   dim_t i,k,j;
   Paso_SparseMatrix * schur=NULL;
   Paso_SparseMatrix * schur_withFillIn=NULL;
-  double time0=0,time1=0,time2=0,S=0;
+  double S=0;
   /*Paso_Pattern* test;*/
   
   /* identify independend set of rows/columns */
@@ -112,7 +112,9 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
      /* identify independend set of rows/columns */
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
-     Paso_Pattern_coup(A_p,mis_marker,couplingParam);
+     /*Paso_Pattern_coup(A_p,mis_marker,couplingParam);*/
+    Paso_Pattern_RS(A_p,mis_marker,couplingParam);
+     /*Paso_Pattern_Aggregiation(A_p,mis_marker,couplingParam);*/
      if (Paso_noError()) {
         #pragma omp parallel for private(i) schedule(static)
         for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
@@ -152,7 +154,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
            if( Paso_noError()) {
               /* if there are no nodes in the coarse level there is no more work to do */
               out->n_C=n-out->n_F;
-              if (level>0 && out->n_F>500) {
+              if (level>0 && out->n_C>500) {
                /*if (out->n_F>500) {*/
                    out->rows_in_C=MEMALLOC(out->n_C,index_t);
                    out->mask_C=MEMALLOC(n,index_t);
@@ -247,12 +249,12 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   if (Paso_noError()) {
       if (verbose) {
          printf("AMG: %d unknowns eliminated. %d left.\n",out->n_F,n-out->n_F);
-         if (level>0 && out->n_F>500) {
+         /*if (level>0 && out->n_F>500) {*/
         /* if (out->n_F<500) {*/
-            printf("timing: AMG: MIS/reordering/elemination : %e/%e/%e\n",time2,time0,time1);
+        /*   printf("timing: AMG: MIS/reordering/elemination : %e/%e\n",time0,time1);
          } else {
             printf("timing: AMG: MIS: %e\n",time2); 
-         }
+         }*/
      }
      return out;
   } else  {
@@ -267,7 +269,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
 
      in fact it solves 
 
-  [      I         0  ]  [ A_FF 0 ] [ I    invA_FF*A_FF ]  [ x_F ]  = [b_F]
+  [      I         0  ]  [ A_FF 0 ] [ I    invA_FF*A_FC ]  [ x_F ]  = [b_F]
   [ A_CF*invA_FF   I  ]  [   0  S ] [ 0          I      ]  [ x_C ]  = [b_C]
 
  in the form 
@@ -288,13 +290,12 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
 void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      dim_t i;
      double *r=MEMALLOC(amg->n,double);
-     /*Paso_Solver_GS* GS=NULL;*/
      double *x0=MEMALLOC(amg->n,double);
-     double time0=0;
+     /*double time0=0;*/
      
-     if (amg->level==0  || amg->n_F<=500) {
+     if (amg->level==0  || amg->n_C<=500) {
      /*if (amg->n_F<=500) {*/
-      time0=Paso_timer();
+      /*time0=Paso_timer();*/
         
         Paso_Solver_solveJacobi(amg->GS,x,b);
         
@@ -307,10 +308,11 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
          x[i]+=x0[i];
         }
         */
+        
         /*Paso_UMFPACK1(amg->A,x,b,0);*/
-
-       time0=Paso_timer()-time0;
-       /*fprintf(stderr,"timing: DIRECT SOLVER: %e/\n",time0);*/
+        
+       /*time0=Paso_timer()-time0;
+       fprintf(stderr,"timing: DIRECT SOLVER: %e/\n",time0);*/
      } else {
      
         /* presmoothing */
