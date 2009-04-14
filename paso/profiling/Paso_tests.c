@@ -39,6 +39,7 @@ void Paso_test_run(Paso_SystemMatrix* A,double* b,dim_t level) {
    
  if(level==1) /* Solvers only*/
     {
+      Paso_Options_setDefaults(&options);
       options.method=PASO_PCG;
       options.verbose=TRUE;
       options.preconditioner=PASO_JACOBI;
@@ -46,26 +47,31 @@ void Paso_test_run(Paso_SystemMatrix* A,double* b,dim_t level) {
       Paso_test_matrix(A,b,&options);
       
       fprintf(stdout,"Test solver: BICGSTAB with JACOBI\n");
+      Paso_Options_setDefaults(&options);
       A->solver=NULL;
       options.method=PASO_BICGSTAB;
       Paso_test_matrix(A,b,&options);
       
       fprintf(stdout,"Test solver: GMRES with JACOBI\n");
+      Paso_Options_setDefaults(&options);
       A->solver=NULL;
       options.method=PASO_GMRES;
       Paso_test_matrix(A,b,&options);
       
       fprintf(stdout,"Test solver: PRES20 with JACOBI\n");
+      Paso_Options_setDefaults(&options);
       A->solver=NULL;
       options.method=PASO_PRES20;
       Paso_test_matrix(A,b,&options); 
       
       fprintf(stdout,"Test solver: MINRES with JACOBI\n");
+      Paso_Options_setDefaults(&options);
       A->solver=NULL;
       options.method=PASO_MINRES;
       Paso_test_matrix(A,b,&options); 
       
       fprintf(stdout,"Test solver: TFQMR with JACOBI\n");
+      Paso_Options_setDefaults(&options);
       A->solver=NULL;
       options.method=PASO_TFQMR;
       Paso_test_matrix(A,b,&options); 
@@ -73,7 +79,7 @@ void Paso_test_run(Paso_SystemMatrix* A,double* b,dim_t level) {
  else if (level==2) /* Preconditiones only with default solver*/
     {
       Paso_Options_setDefaults(&options);
-      options.method=PASO_DEFAULT;
+      options.method=PASO_PCG;
       options.verbose=TRUE;
       options.preconditioner=PASO_JACOBI;
       fprintf(stdout,"Test preconditioner: PASO_DEFAULT with JACOBI\n");
@@ -81,33 +87,33 @@ void Paso_test_run(Paso_SystemMatrix* A,double* b,dim_t level) {
       
       Paso_Options_setDefaults(&options);
       A->solver=NULL;
+      options.method=PASO_PCG;
       options.verbose=TRUE;
       fprintf(stdout,"Test preconditioner: PASO_DEFAULT with ILU\n");
-      options.method=PASO_DEFAULT;
       options.preconditioner=PASO_ILU0;
       Paso_test_matrix(A,b,&options);
       
       Paso_Options_setDefaults(&options);
       A->solver=NULL;
+      options.method=PASO_PCG;
       options.verbose=TRUE;
       fprintf(stdout,"Test preconditioner: PASO_DEFAULT with RILU\n");
-      options.method=PASO_DEFAULT;
       options.preconditioner=PASO_RILU;
       Paso_test_matrix(A,b,&options); 
 
       Paso_Options_setDefaults(&options);
       A->solver=NULL;
+      options.method=PASO_PCG;
       options.verbose=TRUE;
       fprintf(stdout,"Test preconditioner: PASO_DEFAULT with GS\n");
-      options.method=PASO_DEFAULT;
       options.preconditioner=PASO_GS;
       Paso_test_matrix(A,b,&options); 
 
       Paso_Options_setDefaults(&options);
       A->solver=NULL;
+      options.method=PASO_PCG;
       options.verbose=TRUE;
       fprintf(stdout,"Test preconditioner: PASO_DEFAULT with AMG\n");
-      options.method=PASO_DEFAULT;
       options.preconditioner=PASO_AMG;
       Paso_test_matrix(A,b,&options);  
       
