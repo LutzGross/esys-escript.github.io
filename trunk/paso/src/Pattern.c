@@ -102,7 +102,7 @@ Paso_Pattern* Paso_Pattern_alloc(int type, dim_t input_block_size, dim_t output_
       }
   }
   #ifdef Paso_TRACE
-  printf("Paso_Pattern_alloc: system matrix pattern as been allocated.\n");
+  printf("Paso_Pattern_alloc: system matrix pattern has been allocated.\n");
   #endif
   return out;
 }
