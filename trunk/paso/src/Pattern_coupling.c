@@ -30,6 +30,7 @@
 
 #include "PasoUtil.h"
 #include "Pattern_coupling.h"
+#include <limits.h>
 
 
 /***************************************************************/
@@ -112,7 +113,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
         }
     }
 
-    /* This check is to make sure we dont get some nusty rows which were not removed durring coarsing process.*/
+    /* This check is to make sure we dont get some nusty rows which were not removed durring coarsening process.*/
     /* TODO: we have to mechanism that this does not happend at all, and get rid of this 'If'. */
     #pragma omp parallel for private(i,iptr,j,sum) schedule(static)
     for (i=0;i<n;i++) {
@@ -123,7 +124,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
              if (mis_marker[j]==IS_REMOVED)
                 sum+=A->val[iptr];
            }
-           if(ABS(sum)<1.e-12)
+           if(ABS(sum)<1.e-25)
              mis_marker[i]=IS_IN_SET;
         }
     }
@@ -135,6 +136,147 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
      
      MEMFREE(diagptr);
 }
+
+/*
+ * Ruge-Stueben strength of connection mask.
+ *
+ */
+void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
+{
+  dim_t i,n,j;
+  index_t iptr;
+  double threshold,min_offdiagonal;
+  
+  Paso_Pattern *out=NULL;
+  
+  Paso_IndexList* index_list=NULL;
+
+ index_list=TMPMEMALLOC(A->pattern->numOutput,Paso_IndexList);
+   if (! Paso_checkPtr(index_list)) {
+        #pragma omp parallel for private(i) schedule(static)
+        for(i=0;i<A->pattern->numOutput;++i) {
+             index_list[i].extension=NULL;
+             index_list[i].n=0;
+        }
+    }
+  
+  
+  n=A->numRows;
+  if (A->pattern->type & PATTERN_FORMAT_SYM) {
+    Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
+    return;
+  }
+
+    #pragma omp parallel for private(i,iptr,min_offdiagonal,threshold) schedule(static)
+    for (i=0;i<n;++i) {
+      if(mis_marker[i]==IS_AVAILABLE) {
+        min_offdiagonal = DBL_MAX;
+        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+            if(A->pattern->index[iptr] != i){
+                min_offdiagonal = MIN(min_offdiagonal,A->val[iptr]);
+            }
+        }
+
+        threshold = theta*min_offdiagonal;
+        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+            j=A->pattern->index[iptr];
+            if(A->val[iptr]<=threshold) {
+               if(j!=i) {
+                Paso_IndexList_insertIndex(&(index_list[i]),j);
+                }
+            }
+        }
+       }
+      }
+    
+    out=Paso_IndexList_createPattern(0, A->pattern->numOutput,index_list,0,A->pattern->numInput,0);
+    
+     /* clean up */
+   if (index_list!=NULL) {
+        #pragma omp parallel for private(i) schedule(static)
+        for(i=0;i<A->pattern->numOutput;++i) Paso_IndexList_free(index_list[i].extension);
+     }
+    TMPMEMFREE(index_list);
+
+    Paso_Pattern_mis(out,mis_marker);
+}
+
+void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
+{
+  dim_t i,j,n;
+  index_t iptr;
+  double diag,eps_Aii,val;
+  double* diags;
+
+
+  Paso_Pattern *out=NULL;
+  Paso_IndexList* index_list=NULL;
+
+  n=A->numRows;  
+  diags=MEMALLOC(n,double);
+
+  index_list=TMPMEMALLOC(A->pattern->numOutput,Paso_IndexList);
+   if (! Paso_checkPtr(index_list)) {
+        #pragma omp parallel for private(i) schedule(static)
+        for(i=0;i<A->pattern->numOutput;++i) {
+             index_list[i].extension=NULL;
+             index_list[i].n=0;
+        }
+    }
+    
+  if (A->pattern->type & PATTERN_FORMAT_SYM) {
+    Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
+    return;
+  }
+
+
+    #pragma omp parallel for private(i,iptr,diag) schedule(static)
+      for (i=0;i<n;++i) {
+        diag = 0;
+        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+            if(A->pattern->index[iptr] != i){
+                diag+=A->val[iptr];
+            }
+        }
+        diags[i]=ABS(diag);
+      }
+
+
+    #pragma omp parallel for private(i,iptr,j,val,eps_Aii) schedule(static)
+     for (i=0;i<n;++i) {
+       if (mis_marker[i]==IS_AVAILABLE) {
+        eps_Aii = theta*theta*diags[i];
+        val=0.;
+        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+            j=A->pattern->index[iptr];
+            val=A->val[iptr];
+            if(j!= i) {
+              if(val*val>=eps_Aii * diags[j]) {
+               Paso_IndexList_insertIndex(&(index_list[i]),j);
+              }
+            }
+        }
+       }
+     }
+
+    out=Paso_IndexList_createPattern(0, A->pattern->numOutput,index_list,0,A->pattern->numInput,0);
+    
+     /* clean up */
+    if (index_list!=NULL) {
+        #pragma omp parallel for private(i) schedule(static)
+        for(i=0;i<A->pattern->numOutput;++i) Paso_IndexList_free(index_list[i].extension);
+     }
+
+    TMPMEMFREE(index_list);
+    MEMFREE(diags);
+    
+    Paso_Pattern_mis(out,mis_marker);
+
+
+}
+
+
+
 
 
 #undef IS_AVAILABLE 
