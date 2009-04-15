@@ -171,6 +171,17 @@ ESCRIPT_DLL_API double* getSampleDataRWFast(escriptDataC* data, int sampleNo);
 
 
 /**
+   \brief
+   Return getSampleDataRWFast(escriptDataC* data, 0) if there are samples.
+   if not, returns NULL.
+   \warning This function calls requireWrite if there are samples so do not use in parallel sections.
+   \warning Please do not use this in new code.
+  \param data Input - C wrapper for Data.
+*/
+ESCRIPT_DLL_API double* getDataRW(escriptDataC* data);
+
+
+/**
    \brief Create a buffer for use by getSample
    Allocates a DataVector large enough for DataLazy::resolveSample to operate on for the current Data.
    Do not use this buffer for other DataC instances (unless you are sure they will be the same size).
