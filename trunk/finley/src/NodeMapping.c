@@ -28,7 +28,7 @@ Finley_NodeMapping* Finley_NodeMapping_alloc(dim_t numNodes, index_t* target, in
   }
   /* now we assume min_target=0! */
   max_target=Finley_Util_getFlaggedMaxInt(1,numNodes,target,unused);
-  numTargets= min_target<max_target ? max_target+1 :0;
+  numTargets= min_target<=max_target ? max_target+1 :0;
   out=MEMALLOC(1,Finley_NodeMapping);
   if (!Finley_checkPtr(out)) {
      out->reference_counter=1;

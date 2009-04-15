@@ -39,20 +39,24 @@ do {\
 } while(0)
 
 #ifdef PASO_MPI
-
 /* writes buffer to file catching the empty buffer case which causes problems
  * with some MPI versions */
-#define MPI_WRITE_ORDERED(BUF, LEN) \
+#define MPI_WRITE_ORDERED(BUF) \
 do {\
-    if (LEN==0) { strcpy(BUF, " "); LEN=1; }\
-    MPI_File_write_ordered(mpi_fileHandle_p, BUF, LEN, MPI_CHAR, &mpi_status);\
+    int LLEN=0; \
+    LLEN=(int) strlen(BUF); \
+    if (LLEN==0) { strcpy(BUF, ""); LLEN=0; }\
+    MPI_File_write_ordered(mpi_fileHandle_p, BUF, LLEN, MPI_CHAR, &mpi_status);\
 } while(0)
 
 /* writes buffer to file on master only */
 #define MPI_RANK0_WRITE_SHARED(BUF) \
 do {\
+    int LLEN=0; \
     if (my_mpi_rank == 0) {\
-        MPI_File_iwrite_shared(mpi_fileHandle_p, BUF, strlen(BUF), MPI_CHAR, &mpi_req);\
+        LLEN=(int) strlen(BUF); \
+        if (LLEN==0) { strcpy(BUF,""); LLEN=0; }\
+        MPI_File_iwrite_shared(mpi_fileHandle_p, BUF, LLEN, MPI_CHAR, &mpi_req);\
         MPI_Wait(&mpi_req, &mpi_status);\
     }\
 } while(0)
@@ -75,7 +79,7 @@ void create_MPIInfo(MPI_Info& info)
 
 #else
 
-#define MPI_WRITE_ORDERED(A, B)
+#define MPI_WRITE_ORDERED(A)
 #define MPI_RANK0_WRITE_SHARED(A)
 
 #endif /* PASO_MPI */
@@ -485,8 +489,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
 
     /* allocate enough memory for text buffer */
 
-    txtBufferSize = strlen(vtkHeader) + 3*LEN_INT_FORMAT + (30+3*maxNameLen);
-
+    txtBufferSize = strlen(vtkHeader) + 3*LEN_INT_FORMAT + (30+3*maxNameLen); 
     if (mpi_size > 1) {
        txtBufferSize = MAX(txtBufferSize, myNumPoints * LEN_TMP_BUFFER);
         txtBufferSize = MAX(txtBufferSize, numCellFactor * myNumCells *
@@ -548,7 +551,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                     }
                 }
             } /* nDim */
-            MPI_WRITE_ORDERED(txtBuffer, txtBufferInUse);
+            MPI_WRITE_ORDERED(txtBuffer);
 
             /* write the cells */
             MPI_RANK0_WRITE_SHARED(tags_End_Points_and_Start_Conn);
@@ -578,7 +581,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                     }
                 }
             } /* nodeIndex */
-            MPI_WRITE_ORDERED(txtBuffer, txtBufferInUse);
+            MPI_WRITE_ORDERED(txtBuffer);
 
             /* write the offsets */
             MPI_RANK0_WRITE_SHARED(tags_End_Conn_and_Start_Offset);
@@ -590,7 +593,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                 sprintf(tmpBuffer, INT_NEWLINE_FORMAT, i);
                 __STRCAT(txtBuffer, tmpBuffer, txtBufferInUse);
             }
-            MPI_WRITE_ORDERED(txtBuffer, txtBufferInUse);
+            MPI_WRITE_ORDERED(txtBuffer);
 
             /* write element type */
             sprintf(tmpBuffer, INT_NEWLINE_FORMAT, cellType);
@@ -602,7 +605,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
             {
                 __STRCAT(txtBuffer, tmpBuffer, txtBufferInUse);
             }
-            MPI_WRITE_ORDERED(txtBuffer, txtBufferInUse);
+            MPI_WRITE_ORDERED(txtBuffer);
             /* finalize cell information */
             strcpy(txtBuffer, "</DataArray>\n</Cells>\n");
             MPI_RANK0_WRITE_SHARED(txtBuffer);
@@ -834,7 +837,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                 } /* for i (numCells) */
 
                 if ( mpi_size > 1) {
-                    MPI_WRITE_ORDERED(txtBuffer, txtBufferInUse);
+                    MPI_WRITE_ORDERED(txtBuffer);
                     MPI_RANK0_WRITE_SHARED(tag_End_DataArray);
                 } else {
                     fputs(tag_End_DataArray, fileHandle_p);
@@ -991,7 +994,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                 } /* for i (numNodes) */
 
                 if ( mpi_size > 1) {
-                    MPI_WRITE_ORDERED(txtBuffer, txtBufferInUse);
+                    MPI_WRITE_ORDERED(txtBuffer);
                     MPI_RANK0_WRITE_SHARED(tag_End_DataArray);
                 } else {
                     fputs(tag_End_DataArray, fileHandle_p);

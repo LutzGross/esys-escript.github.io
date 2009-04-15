@@ -194,7 +194,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
 		    /* It is not immediately clear whether coupler can be trusted with constant data so I'll assume RW */
 		    /* Also, it holds pointers so it might not be safe to use on lazy data anyway?*/
 		    requireWrite(in);
-                    Paso_Coupler_startCollect(coupler,getSampleDataRWFast(in,0));
+                    Paso_Coupler_startCollect(coupler,getDataRW(in));
                     recv_buffer=Paso_Coupler_finishCollect(coupler);
                     upperBound=Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
 		    #pragma omp parallel private(n,k)
@@ -221,7 +221,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
                if (Paso_noError()) {
 		    void* buff=allocSampleBuffer(in);
 		    requireWrite(in);	/* See comment above about coupler and const */
-                    Paso_Coupler_startCollect(coupler,getSampleDataRWFast(in,0));
+                    Paso_Coupler_startCollect(coupler,getDataRW(in));
                     recv_buffer=Paso_Coupler_finishCollect(coupler);
                     upperBound=Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
 		    requireWrite(out);
@@ -275,6 +275,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
 	      freeSampleBuffer(buff);
            }
 
+        /*********************** FINLEY_REDUCED_DEGREES_OF_FREEDOM **************************************************/
         } else if (in_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
 
            if  (out_data_type == FINLEY_NODES) {
@@ -285,7 +286,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
 		    void* buff=allocSampleBuffer(in);
                     upperBound=Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
 		    requireWrite(in);			/* See comment about coupler and const */
-                    Paso_Coupler_startCollect(coupler,getSampleDataRWFast(in,0));
+                    Paso_Coupler_startCollect(coupler,getDataRW(in));
                     recv_buffer=Paso_Coupler_finishCollect(coupler);
 		    requireWrite(out);
 		    #pragma omp parallel private(n,k,l)
