@@ -2977,9 +2977,12 @@ class Test_DXFiles(Test_VisualizationInterface):
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   # suite.addTest(Test_VTKFiles("test_hex_2D_order2p_Solution_Vector_vtk"))
+   # suite.addTest(Test_VTKFiles("test_hex_2D_order2_AllPoints_Scalar_vtk"))
    suite.addTest(unittest.makeSuite(Test_VTKFiles))
    # saveDX is not MPI parallel
-   if getMPISizeWorld() == 1: suite.addTest(unittest.makeSuite(Test_DXFiles))
+   if getMPISizeWorld() == 1: 
+       suite.addTest(unittest.makeSuite(Test_DXFiles))
+   else:
+       print "Test_DXFiles is dropped as number of processors >1"
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
