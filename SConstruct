@@ -35,7 +35,8 @@ prefix = ARGUMENTS.get('prefix', Dir('#.').abspath)
 
 # Read configuration options from file scons/<hostname>_options.py
 hostname = re.sub("[^0-9a-zA-Z]", "_", socket.gethostname().split('.')[0])
-tmp = os.path.join("scons",hostname+"_options.py")
+ehostname = scons_extensions.effectiveName(hostname)
+tmp = os.path.join("scons",ehostname+"_options.py")
 options_file = ARGUMENTS.get('options_file', tmp)
 if not os.path.isfile(options_file):
   options_file = False

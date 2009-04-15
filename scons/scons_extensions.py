@@ -19,7 +19,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-import sys, os, time, glob, fnmatch, types, py_compile
+import sys, os, time, glob, fnmatch, types, py_compile, re
 
 from SCons.Script.SConscript import SConsEnvironment
 
@@ -61,3 +61,9 @@ def eps2pdf(target, source, env):
    if env.Execute("epstopdf "+str(source[0].abspath)+" -o "+str(target[0].abspath))!=0:
 	   return 1
    return None
+
+def effectiveName(inname):
+   m=re.compile("^r1i[0-9]{1,2}n[0-9]{1,2}$")	# savanna names take the form r1i?n?
+   if m.match(inname):
+	return "service0"
+   return inname
