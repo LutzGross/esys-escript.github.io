@@ -33,7 +33,7 @@ except KeyError:
      FINLEY_WORKDIR='.'
 
 
-VERBOSE=False  # or True
+VERBOSE=False # or True
 DETAIL_VERBOSE=False
 
 from esys.escript import *
