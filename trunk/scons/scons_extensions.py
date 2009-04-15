@@ -57,3 +57,7 @@ def runPyUnitTest(target, source, env):
    print "Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath)
    return None
 
+def eps2pdf(target, source, env):
+   if env.Execute("epstopdf "+str(source[0].abspath)+" -o "+str(target[0].abspath))!=0:
+	   return 1
+   return None
