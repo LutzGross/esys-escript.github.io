@@ -178,6 +178,18 @@ double* getSampleDataRWFast(struct escriptDataC* data, int sampleNo)
   return temp->getSampleDataRW(sampleNo);
 }
 
+double* getDataRW(escriptDataC* data)
+{
+  escript::Data* temp=(escript::Data*)(data->m_dataPtr);
+  if (temp->getNumSamples()>0)
+  {
+     requireWrite(data);
+     return getSampleDataRWFast(data,0);
+  }
+  return 0;
+}
+
+
 void* allocSampleBuffer(escriptDataC* data)
 {
   if (data == (struct escriptDataC*)0) {
