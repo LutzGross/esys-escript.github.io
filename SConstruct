@@ -566,6 +566,9 @@ env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
 runPyUnitTest_builder = Builder(action = scons_extensions.runPyUnitTest, suffix = '.passed', src_suffic='.py', single_source=True)
 env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
 
+epstopdfbuilder = Builder(action = scons_extensions.eps2pdf, suffix=".pdf", src_suffix=".eps", single_source=True)
+env.Append(BUILDERS = {'EpsToPDF' : epstopdfbuilder});
+
 ############ MPI (optional) ####################################
 if not env['usempi']: env['mpi_flavour']='none'
 

@@ -20,19 +20,23 @@ local_env = clone_env(env)
 latexmode='-interaction=nonstopmode'
 
 tex_dir = local_env.Dir('.').srcnode().abspath
+
 tex= [ env.File(x) for x in os.listdir(tex_dir) if not x.startswith('.') and not os.path.isdir(tex_dir+os.path.sep+x) and os.path.splitext(x)[1] in ['.tex', '.bib', '.sty', '.cfg', '.cls'] ] + \
      [ env.File('figures'+os.path.sep+x) for x in os.listdir(tex_dir+os.path.sep+'figures') if not x.startswith('.') ]
 
 # We would like any figures in .eps to be converted into .pdfs
 
-figs=[ os.path.splitext(x)[0] for x in os.listdir(tex_dir+os.path.sep+'figures') if not x.startswith('.') and os.path.splitext(x)[1] in ['.eps']]
+#epsfigs=[ env.File('figures'+os.path.sep+x) for x in os.listdir(tex_dir+os.path.sep+'figures') if not x.startswith('.') and x.endswith('.eps') ]
 
+epsfigs=[ os.path.join(tex_dir,'figures',x) for x in os.listdir(tex_dir+os.path.sep+'figures') if not x.startswith('.') and x.endswith('.eps') ]
+
+#figs=[ os.path.join('figures',os.path.splitext(x)[0]+'.pdf') for x in os.listdir(tex_dir+os.path.sep+'figures') if not x.startswith('.') and os.path.splitext(x)[1] in ['.eps']]
+
+figtarget=env.EpsToPDF(source=epsfigs,chdir=tex_dir)
 
 latexcmd="pdflatex %s \\\\newcommand{\\\\RepVersion}{`svnversion`\\\\xspace}\\\\input{guide.tex}"%latexmode
 
-env.Command(env['prefix']+'/doc/user/guide.pdf',tex,
-            [ "epstopdf "+os.path.join('figures',name+".eps")+" -o "\
-	      +os.path.join('figures',name+".pdf") for name in figs ]+ \
+env.Command(env['prefix']+'/doc/user/guide.pdf',[tex, figtarget], \
 	    [ latexcmd,  \
               "bibtex guide",                  \
               "makeindex guide",               \
