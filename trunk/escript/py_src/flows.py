@@ -235,7 +235,7 @@ class DarcyFlow(object):
          which is solved using the PCG method (precondition is M{Q^*Q}). In each iteration step
          PDEs with operator M{I+D^*D} and with M{Q^*Q} needs to be solved using a sub iteration scheme.
          """
-         self.verbose=verbose or True
+         self.verbose=verbose
          self.show_details= show_details and self.verbose
          rtol=self.getTolerance()
          atol=self.getAbsoluteTolerance()
@@ -273,54 +273,6 @@ class DarcyFlow(object):
                else: 
                    converged=True
          return v,p 
-#
-#               
-#               r_hat=g-util.interpolate(v,Function(self.domain))-Qp
-#               #===========================================================================
-#               norm_r_hat=self.__L2(r_hat)
-#               norm_v=self.__L2(v)
-#               norm_g=self.__L2(g)
-#               norm_gv=self.__L2(g-v)
-#               norm_Qp=self.__L2(Qp)
-#               norm_gQp=self.__L2(g-Qp)
-#               fac=min(max(norm_v,norm_gQp),max(norm_Qp,norm_gv))
-#               fac=min(norm_v,norm_Qp,norm_gv)
-#               norm_r_hat_PCG=util.sqrt(self.__inner_PCG(self.__Msolve_PCG(r_hat),r_hat))
-#               print "norm_r_hat = ",norm_r_hat,norm_r_hat_PCG, norm_r_hat_PCG/norm_r_hat
-#               if r!=None: 
-#                   print "diff = ",self.__L2(r-r_hat)/norm_r_hat
-#                   sub_tol=min(rtol/self.__L2(r-r_hat)*norm_r_hat,1.)*self.getSubProblemTolerance()
-#                   self.setSubProblemTolerance(sub_tol)
-#                   print "subtol_new=",self.getSubProblemTolerance()
-#               print "norm_v = ",norm_v
-#               print "norm_gv = ",norm_gv
-#               print "norm_Qp = ",norm_Qp
-#               print "norm_gQp = ",norm_gQp
-#               print "norm_g = ",norm_g
-#               print "max(norm_v,norm_gQp)=",max(norm_v,norm_gQp)
-#               print "max(norm_Qp,norm_gv)=",max(norm_Qp,norm_gv)
-#               if fac == 0:
-#                   if self.verbose: print "DarcyFlux: trivial case!"
-#                   return v,p
-#               #===============================================================================
-#               # norm_v=util.sqrt(self.__inner_PCG(self.__Msolve_PCG(v),v))
-#               # norm_Qp=self.__L2(Qp)
-#               norm_r_hat=util.sqrt(self.__inner_PCG(self.__Msolve_PCG(r_hat),r_hat))
-#               # print "**** norm_v, norm_Qp :",norm_v,norm_Qp 
-#
-#               ATOL=(atol+rtol*2./(1./norm_v+1./norm_Qp))
-#               if self.verbose:
-#                   print "DarcyFlux: residual = %e"%norm_r_hat
-#                   print "DarcyFlux: absolute tolerance ATOL = %e."%ATOL
-#               if norm_r_hat <= ATOL:
-#                   print "DarcyFlux: iteration finalized."
-#                   converged=True
-#               else:
-#                   # p=GMRES(r_hat,self.__Aprod, p, self.__inner_GMRES, atol=ATOL, rtol=0., iter_max=max_iter, iter_restart=20, verbose=self.verbose,P_R=self.__Msolve_PCG)
-#                   # p,r=PCG(r_hat,self.__Aprod,p,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL*min(0.1,norm_r_hat_PCG/norm_r_hat), rtol=0.,iter_max=max_iter, verbose=self.verbose)
-#                   p,r, norm_r=PCG(r_hat,self.__Aprod,p,self.__Msolve_PCG,self.__inner_PCG,atol=0.1*ATOL, rtol=0.,iter_max=max_iter, verbose=self.verbose)
-#               print "norm_r =",norm_r
-#         return v,p
     def __L2(self,v):
          return util.sqrt(util.integrate(util.length(util.interpolate(v,Function(self.domain)))**2))
 
