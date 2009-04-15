@@ -40,6 +40,7 @@ Paso_Connector* Paso_Connector_alloc(Paso_SharedComponents* send,
       out->recv= Paso_SharedComponents_getReference(recv);
       out->mpi_info = Paso_MPIInfo_getReference(send->mpi_info);
       out->reference_counter=1;
+
 /*
 { int i;
 for (i=0; i< out->recv->numNeighbors; ++i) 
@@ -50,6 +51,7 @@ printf("Coupler: %d send %d data at %d to %d\n",send->mpi_info->rank,out->send->
 out->send->offsetInShared[i],out->send->neighbor[i]);
 }
 */
+
   }
   if (Paso_noError()) {
      return out;

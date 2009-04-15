@@ -309,9 +309,15 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
   /* MPI Broadcast numDim, numNodes, name if there are multiple MPI procs*/
   if (mpi_info->size > 1) {
     int temp1[3], error_code;
-    temp1[0] = numDim;
-    temp1[1] = numNodes;
-    temp1[2] = strlen(name) + 1;
+    if (mpi_info->rank == 0) {
+       temp1[0] = numDim;
+       temp1[1] = numNodes;
+       temp1[2] = strlen(name) + 1;
+    } else {
+       temp1[0] = 0;
+       temp1[1] = 0;
+       temp1[2] = 1;
+    }
     error_code = MPI_Bcast (temp1, 3, MPI_INT,  0, mpi_info->comm);
     if (error_code != MPI_SUCCESS) {
       Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: broadcast of temp1 failed");

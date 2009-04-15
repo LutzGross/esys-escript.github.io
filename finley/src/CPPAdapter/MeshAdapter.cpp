@@ -881,265 +881,265 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
    escriptDataC _in=in.getDataC();
    switch(in.getFunctionSpace().getTypeCode()) {
    case(Nodes):
-   switch(target.getFunctionSpace().getTypeCode()) {
-   case(Nodes):
-   case(ReducedNodes):
-   case(DegreesOfFreedom):
-   case(ReducedDegreesOfFreedom):
-   Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
-   break;
-   case(Elements):
-   case(ReducedElements):
-   Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
-   break;
-   case(FaceElements):
-   case(ReducedFaceElements):
-   Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in,&_target);
-   break;
-   case(Points):
-   Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
-   break;
-   case(ContactElementsZero):
-   case(ReducedContactElementsZero):
-   Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
-   break;
-   case(ContactElementsOne):
-   case(ReducedContactElementsOne):
-   Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
-   break;
-   default:
-      stringstream temp;
-      temp << "Error - Interpolation on Domain: Finley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
-      throw FinleyAdapterException(temp.str());
+      switch(target.getFunctionSpace().getTypeCode()) {
+      case(Nodes):
+      case(ReducedNodes):
+      case(DegreesOfFreedom):
+      case(ReducedDegreesOfFreedom):
+      Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
       break;
-   }
-   break;
-   case(ReducedNodes):
-   switch(target.getFunctionSpace().getTypeCode()) {
-   case(Nodes):
-   case(ReducedNodes):
-   case(DegreesOfFreedom):
-   case(ReducedDegreesOfFreedom):
-   Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
-   break;
-   case(Elements):
-   case(ReducedElements):
-   Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
-   break;
-   case(FaceElements):
-   case(ReducedFaceElements):
-   Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in,&_target);
-   break;
-   case(Points):
-   Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
-   break;
-   case(ContactElementsZero):
-   case(ReducedContactElementsZero):
-   Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
-   break;
-   case(ContactElementsOne):
-   case(ReducedContactElementsOne):
-   Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
-   break;
-   default:
-      stringstream temp;
-      temp << "Error - Interpolation on Domain: Finley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
-      throw FinleyAdapterException(temp.str());
+      case(Elements):
+      case(ReducedElements):
+      Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
       break;
-   }
-   break;
+      case(FaceElements):
+      case(ReducedFaceElements):
+      Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in,&_target);
+      break;
+      case(Points):
+      Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
+      break;
+      case(ContactElementsZero):
+      case(ReducedContactElementsZero):
+      Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
+      break;
+      case(ContactElementsOne):
+      case(ReducedContactElementsOne):
+      Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
+      break;
+      default:
+         stringstream temp;
+         temp << "Error - Interpolation on Domain: Finley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
+         throw FinleyAdapterException(temp.str());
+         break;
+      }
+      break;
+   case(ReducedNodes):
+      switch(target.getFunctionSpace().getTypeCode()) {
+      case(Nodes):
+      case(ReducedNodes):
+      case(DegreesOfFreedom):
+      case(ReducedDegreesOfFreedom):
+      Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
+      break;
+      case(Elements):
+      case(ReducedElements):
+      Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
+      break;
+      case(FaceElements):
+      case(ReducedFaceElements):
+      Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in,&_target);
+      break;
+      case(Points):
+      Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
+      break;
+      case(ContactElementsZero):
+      case(ReducedContactElementsZero):
+      Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
+      break;
+      case(ContactElementsOne):
+      case(ReducedContactElementsOne):
+      Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
+      break;
+      default:
+         stringstream temp;
+         temp << "Error - Interpolation on Domain: Finley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
+         throw FinleyAdapterException(temp.str());
+         break;
+      }
+      break;
    case(Elements):
-   if (target.getFunctionSpace().getTypeCode()==Elements) {
-      Finley_Assemble_CopyElementData(mesh->Elements,&_target,&_in);
-   } else if (target.getFunctionSpace().getTypeCode()==ReducedElements) {
-      Finley_Assemble_AverageElementData(mesh->Elements,&_target,&_in);
-   } else {
-      throw FinleyAdapterException("Error - No interpolation with data on elements possible.");
-   }
-   break;
+      if (target.getFunctionSpace().getTypeCode()==Elements) {
+         Finley_Assemble_CopyElementData(mesh->Elements,&_target,&_in);
+      } else if (target.getFunctionSpace().getTypeCode()==ReducedElements) {
+         Finley_Assemble_AverageElementData(mesh->Elements,&_target,&_in);
+      } else {
+         throw FinleyAdapterException("Error - No interpolation with data on elements possible.");
+      }
+      break;
    case(ReducedElements):
-   if (target.getFunctionSpace().getTypeCode()==ReducedElements) {
-      Finley_Assemble_CopyElementData(mesh->Elements,&_target,&_in);
-   } else {
-      throw FinleyAdapterException("Error - No interpolation with data on elements with reduced integration order possible.");
-   }
-   break;
+      if (target.getFunctionSpace().getTypeCode()==ReducedElements) {
+         Finley_Assemble_CopyElementData(mesh->Elements,&_target,&_in);
+      } else {
+         throw FinleyAdapterException("Error - No interpolation with data on elements with reduced integration order possible.");
+      }
+      break;
    case(FaceElements):
-   if (target.getFunctionSpace().getTypeCode()==FaceElements) {
-      Finley_Assemble_CopyElementData(mesh->FaceElements,&_target,&_in);
-   } else if (target.getFunctionSpace().getTypeCode()==ReducedFaceElements) {
-      Finley_Assemble_AverageElementData(mesh->FaceElements,&_target,&_in);
-   } else {
-      throw FinleyAdapterException("Error - No interpolation with data on face elements possible.");
-   }
-   break;
+      if (target.getFunctionSpace().getTypeCode()==FaceElements) {
+         Finley_Assemble_CopyElementData(mesh->FaceElements,&_target,&_in);
+      } else if (target.getFunctionSpace().getTypeCode()==ReducedFaceElements) {
+         Finley_Assemble_AverageElementData(mesh->FaceElements,&_target,&_in);
+      } else {
+         throw FinleyAdapterException("Error - No interpolation with data on face elements possible.");
+      }
+      break;
    case(ReducedFaceElements):
-   if (target.getFunctionSpace().getTypeCode()==ReducedFaceElements) {
-      Finley_Assemble_CopyElementData(mesh->FaceElements,&_target,&_in);
-   } else {
-      throw FinleyAdapterException("Error - No interpolation with data on face elements with reduced integration order possible.");
-   }
-   break;
+      if (target.getFunctionSpace().getTypeCode()==ReducedFaceElements) {
+         Finley_Assemble_CopyElementData(mesh->FaceElements,&_target,&_in);
+      } else {
+         throw FinleyAdapterException("Error - No interpolation with data on face elements with reduced integration order possible.");
+      }
+      break;
    case(Points):
-   if (target.getFunctionSpace().getTypeCode()==Points) {
-      Finley_Assemble_CopyElementData(mesh->Points,&_target,&_in);
-   } else {
-      throw FinleyAdapterException("Error - No interpolation with data on points possible.");
-   }
-   break;
+      if (target.getFunctionSpace().getTypeCode()==Points) {
+         Finley_Assemble_CopyElementData(mesh->Points,&_target,&_in);
+      } else {
+         throw FinleyAdapterException("Error - No interpolation with data on points possible.");
+      }
+      break;
    case(ContactElementsZero):
    case(ContactElementsOne):
-   if (target.getFunctionSpace().getTypeCode()==ContactElementsZero || target.getFunctionSpace().getTypeCode()==ContactElementsOne) {
-      Finley_Assemble_CopyElementData(mesh->ContactElements,&_target,&_in);
-   } else if (target.getFunctionSpace().getTypeCode()==ReducedContactElementsZero || target.getFunctionSpace().getTypeCode()==ReducedContactElementsOne) {
-      Finley_Assemble_AverageElementData(mesh->ContactElements,&_target,&_in);
-   } else {
-      throw FinleyAdapterException("Error - No interpolation with data on contact elements possible.");
-   }
-   break;
+      if (target.getFunctionSpace().getTypeCode()==ContactElementsZero || target.getFunctionSpace().getTypeCode()==ContactElementsOne) {
+         Finley_Assemble_CopyElementData(mesh->ContactElements,&_target,&_in);
+      } else if (target.getFunctionSpace().getTypeCode()==ReducedContactElementsZero || target.getFunctionSpace().getTypeCode()==ReducedContactElementsOne) {
+         Finley_Assemble_AverageElementData(mesh->ContactElements,&_target,&_in);
+      } else {
+         throw FinleyAdapterException("Error - No interpolation with data on contact elements possible.");
+      }
+      break;
    case(ReducedContactElementsZero):
    case(ReducedContactElementsOne):
-   if (target.getFunctionSpace().getTypeCode()==ReducedContactElementsZero || target.getFunctionSpace().getTypeCode()==ReducedContactElementsOne) {
-      Finley_Assemble_CopyElementData(mesh->ContactElements,&_target,&_in);
-   } else {
-      throw FinleyAdapterException("Error - No interpolation with data on contact elements with reduced integration order possible.");
-   }
-   break;
+      if (target.getFunctionSpace().getTypeCode()==ReducedContactElementsZero || target.getFunctionSpace().getTypeCode()==ReducedContactElementsOne) {
+         Finley_Assemble_CopyElementData(mesh->ContactElements,&_target,&_in);
+      } else {
+         throw FinleyAdapterException("Error - No interpolation with data on contact elements with reduced integration order possible.");
+      }
+      break;
    case(DegreesOfFreedom):      
-   switch(target.getFunctionSpace().getTypeCode()) {
-   case(ReducedDegreesOfFreedom):
-   case(DegreesOfFreedom):
-   Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
-   break;
-
-   case(Nodes):
-   case(ReducedNodes):
-   if (getMPISize()>1) {
-      escript::Data temp=escript::Data(in);
-      temp.expand();
-      escriptDataC _in2 = temp.getDataC();
-      Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in2);
-   } else {
+      switch(target.getFunctionSpace().getTypeCode()) {
+      case(ReducedDegreesOfFreedom):
+      case(DegreesOfFreedom):
       Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
-   }
-   break;
-   case(Elements):
-   case(ReducedElements):
-   if (getMPISize()>1) {
-      escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
-      escriptDataC _in2 = temp.getDataC();
-      Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in2,&_target);
-   } else {
-      Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
-   }
-   break;
-   case(FaceElements):
-   case(ReducedFaceElements):
-   if (getMPISize()>1) {
-      escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
-      escriptDataC _in2 = temp.getDataC();
-      Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in2,&_target);
-
-   } else {
-      Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in,&_target);
-   }
-   break;
-   case(Points):
-   if (getMPISize()>1) {
-      escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
-      escriptDataC _in2 = temp.getDataC();
-   } else {
-      Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
-   }
-   break;
-   case(ContactElementsZero):
-   case(ContactElementsOne):
-   case(ReducedContactElementsZero):
-   case(ReducedContactElementsOne):
-   if (getMPISize()>1) {
-      escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
-      escriptDataC _in2 = temp.getDataC();
-      Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in2,&_target);
-   } else {
-      Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
-   }
-   break;
-   default:
-      stringstream temp;
-      temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
-      throw FinleyAdapterException(temp.str());
       break;
-   }
-   break;
+   
+      case(Nodes):
+      case(ReducedNodes):
+      if (getMPISize()>1) {
+         escript::Data temp=escript::Data(in);
+         temp.expand();
+         escriptDataC _in2 = temp.getDataC();
+         Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in2);
+      } else {
+         Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
+      }
+      break;
+      case(Elements):
+      case(ReducedElements):
+      if (getMPISize()>1) {
+         escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+         escriptDataC _in2 = temp.getDataC();
+         Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in2,&_target);
+      } else {
+         Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
+      }
+      break;
+      case(FaceElements):
+      case(ReducedFaceElements):
+      if (getMPISize()>1) {
+         escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+         escriptDataC _in2 = temp.getDataC();
+         Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in2,&_target);
+   
+      } else {
+         Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in,&_target);
+      }
+      break;
+      case(Points):
+      if (getMPISize()>1) {
+         escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+         escriptDataC _in2 = temp.getDataC();
+      } else {
+         Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
+      }
+      break;
+      case(ContactElementsZero):
+      case(ContactElementsOne):
+      case(ReducedContactElementsZero):
+      case(ReducedContactElementsOne):
+      if (getMPISize()>1) {
+         escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+         escriptDataC _in2 = temp.getDataC();
+         Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in2,&_target);
+      } else {
+         Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
+      }
+      break;
+      default:
+         stringstream temp;
+         temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
+         throw FinleyAdapterException(temp.str());
+         break;
+      }
+      break;
    case(ReducedDegreesOfFreedom):
-   switch(target.getFunctionSpace().getTypeCode()) {
-   case(Nodes):
-   throw FinleyAdapterException("Error - Finley does not support interpolation from reduced degrees of freedom to mesh nodes.");
-   break;
-   case(ReducedNodes):
-   if (getMPISize()>1) {
-      escript::Data temp=escript::Data(in);
-      temp.expand();
-      escriptDataC _in2 = temp.getDataC();
-      Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in2);
-   } else {
+      switch(target.getFunctionSpace().getTypeCode()) {
+      case(Nodes):
+      throw FinleyAdapterException("Error - Finley does not support interpolation from reduced degrees of freedom to mesh nodes.");
+      break;
+      case(ReducedNodes):
+      if (getMPISize()>1) {
+         escript::Data temp=escript::Data(in);
+         temp.expand();
+         escriptDataC _in2 = temp.getDataC();
+         Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in2);
+      } else {
+         Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
+      }
+      break;
+      case(DegreesOfFreedom):
+      throw FinleyAdapterException("Error - Finley does not support interpolation from reduced degrees of freedom to degrees of freedom");
+      break;
+      case(ReducedDegreesOfFreedom):
       Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
-   }
-   break;
-   case(DegreesOfFreedom):
-   throw FinleyAdapterException("Error - Finley does not support interpolation from reduced degrees of freedom to degrees of freedom");
-   break;
-   case(ReducedDegreesOfFreedom):
-   Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
-   break;
-   case(Elements):
-   case(ReducedElements):
-   if (getMPISize()>1) {
-      escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
-      escriptDataC _in2 = temp.getDataC();
-      Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in2,&_target);
-   } else {
-      Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
-   }
-   break;
-   case(FaceElements):
-   case(ReducedFaceElements):
-   if (getMPISize()>1) {
-      escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
-      escriptDataC _in2 = temp.getDataC();
-      Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in2,&_target);
-   } else {
-      Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in,&_target);
-   }
-   break;
-   case(Points):
-   if (getMPISize()>1) {
-      escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
-      escriptDataC _in2 = temp.getDataC();
-      Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in2,&_target);
-   } else {
-      Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
-   }
-   break;
-   case(ContactElementsZero):
-   case(ContactElementsOne):
-   case(ReducedContactElementsZero):
-   case(ReducedContactElementsOne):
-   if (getMPISize()>1) {
-      escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
-      escriptDataC _in2 = temp.getDataC();
-      Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in2,&_target);
-   } else {
-      Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
-   }
-   break;
-   default:
-      stringstream temp;
-      temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
-      throw FinleyAdapterException(temp.str());
       break;
-   }
-   break;
+      case(Elements):
+      case(ReducedElements):
+      if (getMPISize()>1) {
+         escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
+         escriptDataC _in2 = temp.getDataC();
+         Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in2,&_target);
+      } else {
+         Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
+      }
+      break;
+      case(FaceElements):
+      case(ReducedFaceElements):
+      if (getMPISize()>1) {
+         escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
+         escriptDataC _in2 = temp.getDataC();
+         Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in2,&_target);
+      } else {
+         Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in,&_target);
+      }
+      break;
+      case(Points):
+      if (getMPISize()>1) {
+         escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
+         escriptDataC _in2 = temp.getDataC();
+         Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in2,&_target);
+      } else {
+         Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
+      }
+      break;
+      case(ContactElementsZero):
+      case(ContactElementsOne):
+      case(ReducedContactElementsZero):
+      case(ReducedContactElementsOne):
+      if (getMPISize()>1) {
+         escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
+         escriptDataC _in2 = temp.getDataC();
+         Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in2,&_target);
+      } else {
+         Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
+      }
+      break;
+      default:
+         stringstream temp;
+         temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
+         throw FinleyAdapterException(temp.str());
+         break;
+      }
+      break;
    default:
       stringstream temp;
       temp << "Error - Interpolation On Domain: Finley does not know anything about function space type %d" << in.getFunctionSpace().getTypeCode();

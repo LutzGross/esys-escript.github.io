@@ -313,7 +313,7 @@ dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in, index_t* node
          }
    }
    /* allocate a buffer */
-   my_buffer_len=max_id> min_id ? max_id-min_id+1 :0;
+   my_buffer_len=max_id>=min_id ? max_id-min_id+1 :0;
 
    #ifdef PASO_MPI
    MPI_Allreduce( &my_buffer_len, &buffer_len, 1, MPI_INT, MPI_MAX, in->MPIInfo->comm );
@@ -350,6 +350,8 @@ dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in, index_t* node
        #else
          node_distribution[0]=myNewNumNodes;
        #endif
+
+
        globalNumNodes=0;
        for (p=0; p< in->MPIInfo->size; ++p) {
            itmp=node_distribution[p];
@@ -362,6 +364,7 @@ dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in, index_t* node
        itmp=node_distribution[in->MPIInfo->rank];
        #pragma omp for private(n) schedule(static)
        for (n=0;n<my_buffer_len;n++) Node_buffer[n+header_len]+=itmp;
+
 
        /* now we send this buffer around to assign global node index: */
        dest=Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
