@@ -33,14 +33,22 @@ IS_WINDOWS_PLATFORM = (os.name== "nt")
 
 prefix = ARGUMENTS.get('prefix', Dir('#.').abspath)
 
-# Read configuration options from file scons/<hostname>_options.py
-hostname = re.sub("[^0-9a-zA-Z]", "_", socket.gethostname().split('.')[0])
-ehostname = scons_extensions.effectiveName(hostname)
-tmp = os.path.join("scons",ehostname+"_options.py")
-options_file = ARGUMENTS.get('options_file', tmp)
+#Determine where to read options from use:
+#1. command line
+#2. scons/<hostname>_options.py
+#3. name as part of a cluster
+options_file=ARGUMENTS.get('options_file', None)
+if not options_file:
+  hostname = re.sub("[^0-9a-zA-Z]", "_", socket.gethostname().split('.')[0])
+  options_file = os.path.join("scons",hostname+"_options.py")
+  #If there is no options file with that name see if there is a substitute
+  if not os.path.isfile(options_file):
+    tmp = scons_extensions.effectiveName(hostname)
+    options_file = os.path.join("scons",tmp+"_options.py")
+
 if not os.path.isfile(options_file):
+  print "Options file not found (expected '%s')" % options_file
   options_file = False
-  print "Options file not found (expected '%s')" % tmp
 else:
   print "Options file is", options_file
 
