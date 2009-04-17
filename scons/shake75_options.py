@@ -25,7 +25,7 @@ omp_debug       = ''
 # omp_libs      = []
 
 # Use the default C/C++ flags but add something only for this host:
-cc_extra        = '-Wall -mmmx -msse3'
+cc_extra        = '-Wall -mmmx'
 ld_extra        = '-fopenmp'
 
 # Be picky about errors
@@ -87,7 +87,7 @@ usempi          = 'yes'
 mpi_path        = '/usr/include/mpi'
 mpi_lib_path    = '/usr/lib/openmpi/lib'
 mpi_libs        = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
-mpi_flavour         = 'MPICH'
+mpi_flavour     = 'OPENMPI'
 
 # ParMETIS (for use with MPI)
 #useparmetis        = 'yes'
