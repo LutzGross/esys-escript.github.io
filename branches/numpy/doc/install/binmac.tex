@@ -1,0 +1,44 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2008 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{MacOSX binary installation}
+\label{sec:binmac}
+
+\esfinley can be installed as a stand-alone bundle, containing all the required tools.
+
+Please note, the current packages do not support \openmp\footnote{This is due to a bug related to gcc 4.3.2.} or \mpi\footnote{Producing packages for MPI requires knowing something about your computer's configuration.}.
+If you need these features you may need to compile \esfinley from source (see Chapter~\ref{chap:src}.)
+
+For more information on using the \filename{escript} command please see the User Guide.
+
+\subsection{Stand-alone bundle Mac OS X 10.5.6 (``Leopard'')}
+
+Download the bundle, double-click on it and copy  \filename{stand} anywhere you want.
+Then open a terminal\footnote{If you do not know how to open a terminal on Mac, then just type terminal in the spotlight (search tool on the top of the right corner) and once found just click on it.} and type
+\begin{shellCode}
+cd x/stand 
+\end{shellCode}
+where \textit{x} is the absolute path to your install. 
+Now type
+\begin{shellCode}
+./install.sh 
+\end{shellCode}
+which will make some changes to your dynamic libraries to take into account your current location. Remember, you have  to do this only once, when you just copied from our bundle. This procedure will not work if you decide to move your already working bundle into another folder. You have to copy it from our bundle again into your desired new location.
+
+Test your installation by running:
+\begin{shellCode}
+ x/stand/escript.d/bin/escript
+\end{shellCode}
+You should get a normal python shell.
+If you wish to save on typing you can add \filename{x/escript.d/bin} to your PATH variable (where \textit{x} is the absolute path to your install). 
+
