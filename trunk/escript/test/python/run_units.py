@@ -20,11 +20,142 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import unittest
+import sys
 from esys.escript.unitsSI import *
 from esys.escript.util import EPSILON
 
 class UnitsSITestCase(unittest.TestCase):
     TOL=EPSILON*100.
+    def testUnit(self):
+       s=Unit("s","something",1.,4.)
+       self.failUnless(s.getName() == "s", "wrong name")
+       s.setName("t")
+       self.failUnless(s.getName() == "t", "wrong reset name")
+       self.failUnless(s.getLongName() == "something", "wrong long name")
+       s.setLongName("test")
+       self.failUnless(s.getLongName() == "test", "wrong reset long name")
+       self.failUnless(abs( s(3.)-13.) <= self.TOL*13. , " s(3.) wrong.")
+       self.failUnless(abs( 3.*s-13.) <= self.TOL*13. , " 13.s wrong.")
+       self.failUnless(abs( 10.*s-41.) <= self.TOL*41. , " 10.s wrong.")
+       self.failUnless(abs( 41./s-10.) <= self.TOL*10. , " 10/s wrong.")
+       self.failUnless(abs( 13./s-3.) <= self.TOL*3. , " 13/s wrong.")
+
+       x=Unit("x","X",10.,2.)
+       y=Unit("y","Y",0.,4.)
+       z=Unit("z","Z",0.,0.5)
+       p_m=x*s
+       self.failUnless(p_m.getName() == "xt", "wrong p_m name")
+       self.failUnless(p_m.getLongName() == "X*test", "wrong p_m long name")
+       self.failUnless(abs(p_m(0.)-12.) <= self.TOL*12 , " p_m(0) wrong.")
+       self.failUnless(abs(p_m(1.)-20.) <= self.TOL*20 , " p_m(1) wrong.")
+
+       p_d=y/z
+       self.failUnless(p_d.getName() == "y/z", "wrong p_d name")
+       self.failUnless(p_d.getLongName() == "Y/Z", "wrong p_d long name")
+       self.failUnless(abs(p_d(1.)-8.) <= self.TOL*8. , " p_d(0) wrong.")
+       self.failUnless(abs(p_d(2.)-16.) <= self.TOL*16. , " p_d(1) wrong.")
+
+       p_p=y**3
+       self.failUnless(p_p.getName() == "y^3", "p_p mult name")
+       self.failUnless(p_p.getLongName() == "Y^3", "wrong p_p long name")
+       self.failUnless(abs(p_p(1.)-64.) <= self.TOL*64. , " p_p(0) wrong.")
+       self.failUnless(abs(p_p(.5)-32) <= self.TOL*32. , " p_p(1) wrong.")
+
+        
+       x=Unit("x","X",0.,2.)
+       y=Unit("y","Y",0.,4.)
+       z=Unit("z","Z",0.,0.5)
+
+       self.failUnless(((x*x)).getName() == "xx", "wrong name")
+       self.failUnless((x*(x*z)).getName() == "xxz", "wrong name")
+       self.failUnless((x*(x/z)).getName() == "xx/z", "wrong name")
+       self.failUnless((x*(y**3)).getName() == "x y^3", "wrong name")
+
+       self.failUnless(((x*z)*x).getName() == "xzx", "wrong name")
+       self.failUnless(((x*z)*(x*z)).getName() == "xzxz", "wrong name")
+       self.failUnless(((x*z)*(x/z)).getName() == "xzx/z", "wrong name")
+       self.failUnless(((x*z)*(y**3)).getName() == "xz y^3", "wrong name")
+
+       self.failUnless(((x/z)*x).getName() == "x/z x", "wrong name")
+       self.failUnless(((x/z)*(x*z)).getName() == "x/z xz", "wrong name")
+       self.failUnless(((x/z)*(x/z)).getName() == "x/z x/z", "wrong name")
+       self.failUnless(((x/z)*(y**3)).getName() == "x/z y^3", "wrong name")
+
+       self.failUnless(((y**3)*x).getName() == "y^3 x", "wrong name")
+       self.failUnless(((y**3)*(x*z)).getName() == "y^3 xz", "wrong name")
+       self.failUnless(((y**3)*(x/z)).getName() == "y^3 x/z", "wrong name")
+       self.failUnless(((y**3)*(y**3)).getName() == "y^3 y^3", "wrong name")
+
+       self.failUnless((x/x).getName() == "x/x", "wrong name")
+       self.failUnless((x/(x*z)).getName() == "x/(xz)", "wrong name")
+       self.failUnless((x/(x/z)).getName() == "x/(x/z)", "wrong name")
+       self.failUnless((x/(y**3)).getName() == "x/y^3", "wrong name")
+
+       self.failUnless(((x*z)/x).getName() == "xz/x", "wrong name")
+       self.failUnless(((x*z)/(x*z)).getName() == "xz/(xz)", "wrong name")
+       self.failUnless(((x*z)/(x/z)).getName() == "xz/(x/z)", "wrong name")
+       self.failUnless(((x*z)/(y**3)).getName() == "xz/y^3", "wrong name")
+
+       self.failUnless(((x/z)/x).getName() == "x/z/x", "wrong name")
+       self.failUnless(((x/z)/(x*z)).getName() == "x/z/(xz)", "wrong name")
+       self.failUnless(((x/z)/(x/z)).getName() == "x/z/(x/z)", "wrong name")
+       self.failUnless(((x/z)/(y**3)).getName() == "x/z/y^3", "wrong name")
+
+       self.failUnless(((y**3)/x).getName() == "y^3/x", "wrong name")
+       self.failUnless(((y**3)/(x*z)).getName() == "y^3/(xz)", "wrong name")
+       self.failUnless(((y**3)/(x/z)).getName() == "y^3/(x/z)", "wrong name")
+       self.failUnless(((y**3)/(y**3)).getName() == "y^3/y^3", "wrong name")
+
+       self.failUnless((x**2).getName() == "x^2", "wrong name")
+       self.failUnless(((x*z)**2).getName() == "(xz)^2", "wrong name")
+       self.failUnless(((x/z)**2).getName() == "(x/z)^2", "wrong name")
+       self.failUnless(((y**3)**2).getName() == "(y^3)^2", "wrong name")
+
+       self.failUnless(((x*x)).getLongName() == "X*X", "wrong long name")
+       self.failUnless((x*(x*z)).getLongName() == "X*X*Z", "wrong long name")
+       self.failUnless((x*(x/z)).getLongName() == "X*X/Z", "wrong long name")
+       self.failUnless((x*(y**3)).getLongName() == "X*Y^3", "wrong long name")
+
+       self.failUnless(((x*z)*x).getLongName() == "X*Z*X", "wrong long name")
+       self.failUnless(((x*z)*(x*z)).getLongName() == "X*Z*X*Z", "wrong long name")
+       self.failUnless(((x*z)*(x/z)).getLongName() == "X*Z*X/Z", "wrong long name")
+       self.failUnless(((x*z)*(y**3)).getLongName() == "X*Z*Y^3", "wrong long name")
+
+       self.failUnless(((x/z)*x).getLongName() == "X/Z*X", "wrong long name")
+       self.failUnless(((x/z)*(x*z)).getLongName() == "X/Z*X*Z", "wrong long name")
+       self.failUnless(((x/z)*(x/z)).getLongName() == "X/Z*X/Z", "wrong long name")
+       self.failUnless(((x/z)*(y**3)).getLongName() == "X/Z*Y^3", "wrong long name")
+
+       self.failUnless(((y**3)*x).getLongName() == "Y^3*X", "wrong long name")
+       self.failUnless(((y**3)*(x*z)).getLongName() == "Y^3*X*Z", "wrong long name")
+       self.failUnless(((y**3)*(x/z)).getLongName() == "Y^3*X/Z", "wrong long name")
+       self.failUnless(((y**3)*(y**3)).getLongName() == "Y^3*Y^3", "wrong long name")
+
+       self.failUnless((x/x).getLongName() == "X/X", "wrong long name")
+       self.failUnless((x/(x*z)).getLongName() == "X/(X*Z)", "wrong long name")
+       self.failUnless((x/(x/z)).getLongName() == "X/(X/Z)", "wrong long name")
+       self.failUnless((x/(y**3)).getLongName() == "X/Y^3", "wrong long name")
+
+       self.failUnless(((x*z)/x).getLongName() == "X*Z/X", "wrong long name")
+       self.failUnless(((x*z)/(x*z)).getLongName() == "X*Z/(X*Z)", "wrong long name")
+       self.failUnless(((x*z)/(x/z)).getLongName() == "X*Z/(X/Z)", "wrong long name")
+       self.failUnless(((x*z)/(y**3)).getLongName() == "X*Z/Y^3", "wrong long name")
+
+       self.failUnless(((x/z)/x).getLongName() == "X/Z/X", "wrong long name")
+       self.failUnless(((x/z)/(x*z)).getLongName() == "X/Z/(X*Z)", "wrong long name")
+       self.failUnless(((x/z)/(x/z)).getLongName() == "X/Z/(X/Z)", "wrong long name")
+       self.failUnless(((x/z)/(y**3)).getLongName() == "X/Z/Y^3", "wrong long name")
+
+       self.failUnless(((y**3)/x).getLongName() == "Y^3/X", "wrong long name")
+       self.failUnless(((y**3)/(x*z)).getLongName() == "Y^3/(X*Z)", "wrong long name")
+       self.failUnless(((y**3)/(x/z)).getLongName() == "Y^3/(X/Z)", "wrong long name")
+       self.failUnless(((y**3)/(y**3)).getLongName() == "Y^3/Y^3", "wrong long name")
+
+       self.failUnless((x**2).getLongName() == "X^2", "wrong long name")
+       self.failUnless(((x*z)**2).getLongName() == "(X*Z)^2", "wrong long name")
+       self.failUnless(((x/z)**2).getLongName() == "(X/Z)^2", "wrong long name")
+       self.failUnless(((y**3)**2).getLongName() == "(Y^3)^2", "wrong long name")
+
     def testPrefix(self):
        self.failUnless(abs( Yotta * Yocto - 1.) <= self.TOL , " Yotta or Yocto wrong.")
        self.failUnless(abs( Zetta * Zepto - 1.) <= self.TOL , "  Zetta or Zepto  wrong.")
@@ -62,7 +193,7 @@ class UnitsSITestCase(unittest.TestCase):
        self.failUnless(abs( N- 1.) <= self.TOL , " N wrong.")
     def testPressure(self):
        self.failUnless(abs( Pa- 1.) <= self.TOL , " Pa wrong.")
-       self.failUnless(abs( atm- 101325.024) <= self.TOL*101,325.024 , " Pa wrong.")
+       self.failUnless(abs( atm- 101325.024) <= self.TOL*101325.024 , " Pa wrong.")
     def testEnegry(self):
        self.failUnless(abs( J- 1.) <= self.TOL , " J wrong.")
     def testPower(self):
