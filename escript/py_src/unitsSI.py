@@ -84,6 +84,172 @@ some tools supporting the usage of symbols.
 @var R_Earth: Earth's radius
 @var v_light: speed of light
 """
+class Unit(object):
+   """
+   a general class to define a physical unit and a linear converter a+b*x to get transfert to a referene unit system (typically SI)
+   """
+   def __init__(self, name, longname,a ,b ):
+       """
+       initializes the unit
+       
+       @param name: short name of the unit or prefix
+       @type name: C{str}
+       @param longname: long name of the unit or prefix
+       @type longname: C{str}
+       @param a: absolute value in transformation
+       @type a: C{float}
+       @param b: slop in translation
+       @type b: C{float}
+       """
+       self.setName(name)
+       self.setLongName(longname)
+       self.__a=a
+       self.__b=b
+
+   def __str__(self):
+       return self.getName()
+
+   def getName(self):
+       """
+       Returns the name of the unit
+ 
+       @return: name of the unit
+       @rtype: C{str}
+       """
+       return self.__name
+
+   def setName(self, name):
+       """
+       Sets the name of the unit
+ 
+       @param name: new name of the unit
+       @type name: C{str}
+       """
+       self.__name=name
+
+   def getLongName(self):
+       """
+       Returns the long name of the unit
+ 
+       @return: name of the unit
+       @rtype: C{str}
+       """
+       return self.__longname
+
+   def setLongName(self, name):
+       """
+       Sets the long name of the unit
+ 
+       @param name: new long name of the unit
+       @type name: C{str}
+       """
+       self.__longname=name
+
+   def __call__(self,x):
+       """
+       Converts a value x in the unit self to SI 
+
+       @param x: value to convert
+       @type x: an arithmetic object
+       """
+       return self.__b*x+self.__a
+
+   def __mul__(self,other):
+       """
+       Performs self*other operation for two L{Unit} objects
+
+       @param other: an other unit
+       @type other: L{Unit}
+       @rtype: L{Unit} or C{NotImplemented}
+       """
+       if isinstance(other, Unit):
+          a=self(other(0.))
+          b=(self(other(1.))-a)
+          if isinstance(other, PowUnit) or isinstance(self,DivUnit) or  isinstance(self, PowUnit):
+            return ProdUnit(self.getName()+" "+other.getName(),self.getLongName()+"*"+other.getLongName(),a ,b)
+          else:
+            return ProdUnit(self.getName()+other.getName(),self.getLongName()+"*"+other.getLongName(),a ,b)
+       else:
+          return NotImplemented
+
+   def __rmul__(self,other):
+       """
+       Performs other*self operation
+
+       @param other: an other L{Unit} or an arithmetic object
+       @type other: L{Unit} 
+       @rtype: L{Unit} or an arithmetic object
+       """
+       if isinstance(other, Unit):
+          a=other(self(0.))
+          b=(other(self(1.))-a)
+          if isinstance(other, PowUnit) or  isinstance(self, PowUnit) or isinstance(other, DivUnit):
+             return ProdUnit(other.getName()+" "+self.getName(),other.getLongName()+"*"+self.getLongName(),a ,b)
+          else:
+             return ProdUnit(other.getName()+self.getName(),other.getLongName()+"*"+self.getLongName(),a ,b)
+       else:
+          return self(other)
+
+   def __div__(self,other):
+       """
+       Performs self*other operation for two L{Unit} objects
+
+       @param other: an other unit
+       @type other: L{Unit}
+       @rtype: L{Unit} or C{NotImplemented}
+       """
+       if isinstance(other, Unit):
+          if abs(self(0.))+abs(other(0.))>0:
+              raise ValueError,"Division of units requires 0 absolute values"
+          if  isinstance(other, (ProdUnit, DivUnit)):
+              # X/(c*d) or X/(c/d) requires brackets:
+              return DivUnit(self.getName()+"/("+other.getName()+")",self.getLongName()+"/("+other.getLongName()+")",0 , self(1.)/other(1.))
+          else:
+              return DivUnit(self.getName()+"/"+other.getName(),self.getLongName()+"/"+other.getLongName(),0 , self(1.)/other(1.))
+       else:
+          return NotImplemented
+   def __rdiv__(self,other):
+       """
+       Performs other/self operation
+
+       @param other: an other L{Unit} or an arithmetic object
+       @type other: L{Unit} or an arithmetic object
+       @rtype: L{Unit} or an arithmetic object
+       """
+       if isinstance(other, Unit):
+          if abs(self(0.))+abs(other(0.))>0:
+              raise ValueError,"Division of units requires 0 absolute values"
+          if  isinstance(self, (ProdUnit, DivUnit)):
+              # X/(a*b) or X/(a/b) requires brackets:
+              return DivUnit(other.getName()+"/("+self.getName()+")",other.getLongName()+"/("+self.getLongName()+")",0 , other(1.)/self(1.))
+          else:
+              return DivUnit(other.getName()+"/"+self.getName(),other.getLongName()+"/"+self.getLongName(),0 , other(1.)/self(1.))
+       else:
+          return (other-self(0.))/(self(1.)-self(0.))
+   def __pow__(self,other):
+       """
+       Performs self**other operation
+
+       @param other: an exponent
+       @type other: C{int} or C{float}
+       @rtype: L{Unit} 
+       """
+       if isinstance(other, float) or isinstance(other, int):
+          if abs(self(0.))>0:
+              raise ValueError,"Power of unit requires 0 absolute values"
+          if  isinstance(self, (ProdUnit, DivUnit, PowUnit)):
+              return PowUnit("("+self.getName()+")^%s"%other, "("+self.getLongName()+")^%s"%other, 0., self(1.)**other)
+          else:
+              return PowUnit(self.getName()+"^%s"%other, self.getLongName()+"^%s"%other, 0., self(1.)**other)
+       else:
+          return NotImplemented
+
+class ProdUnit(Unit):
+    pass
+class DivUnit(Unit):
+    pass
+class PowUnit(Unit):
+    pass
 #
 #  prefixes:
 #
