@@ -49,7 +49,7 @@ import unittest
 from esys.escript import *
 from esys.escript.pdetools import Locator,Projector,TimeIntegrationManager,NoPDE,PCG, ArithmeticTuple, GMRES, MINRES, TFQMR, HomogeneousSaddlePointProblem
 from esys.escript.pdetools import Defect, NewtonGMRES
-from numarray.linear_algebra import solve_linear_equations
+from numpy.linalg import solve as solve_linear_equations
 
 class Test_pdetools_noLumping(unittest.TestCase):
     DEBUG=False
@@ -77,25 +77,25 @@ class Test_pdetools_noLumping(unittest.TestCase):
 
     def test_Locator(self):
         x=self.domain.getX()
-        l=Locator(self.domain,numarray.ones((self.domain.getDim(),)))
+        l=Locator(self.domain,numpy.ones((self.domain.getDim(),)))
         self.failUnless(ContinuousFunction(self.domain)==l.getFunctionSpace(),"wrong function space from domain")
 
-        l=Locator(ContinuousFunction(self.domain),numarray.ones((self.domain.getDim(),)))
+        l=Locator(ContinuousFunction(self.domain),numpy.ones((self.domain.getDim(),)))
         self.failUnless(ContinuousFunction(self.domain)==l.getFunctionSpace(),"wrong function space")
 
         xx=l.getX()
-        self.failUnless(isinstance(xx,numarray.NumArray),"wrong vector type")
-        self.failUnless(Lsup(xx-numarray.ones((self.domain.getDim(),)))<self.RES_TOL,"location wrong")
+        self.failUnless(isinstance(xx,numpy.ndarray),"wrong vector type")
+        self.failUnless(Lsup(xx-numpy.ones((self.domain.getDim(),)))<self.RES_TOL,"location wrong")
         xx=l(x)
-        self.failUnless(isinstance(xx,numarray.NumArray),"wrong vector type")
-        self.failUnless(Lsup(xx-numarray.ones((self.domain.getDim(),)))<self.RES_TOL,"value wrong vector")
+        self.failUnless(isinstance(xx,numpy.ndarray),"wrong vector type")
+        self.failUnless(Lsup(xx-numpy.ones((self.domain.getDim(),)))<self.RES_TOL,"value wrong vector")
         xx=l(x[0]+x[1])
         self.failUnless(isinstance(xx,float),"wrong scalar type")
         self.failUnless(abs(xx-2.)<self.RES_TOL,"value wrong scalar")
 
     def test_Locator_withList(self):
         x=self.domain.getX()
-        arg=[numarray.ones((self.domain.getDim(),)), numarray.zeros((self.domain.getDim(),))]
+        arg=[numpy.ones((self.domain.getDim(),)), numpy.zeros((self.domain.getDim(),))]
         l=Locator(self.domain,arg)
         self.failUnless(ContinuousFunction(self.domain)==l.getFunctionSpace(),"wrong function space from domain")
 
@@ -105,12 +105,12 @@ class Test_pdetools_noLumping(unittest.TestCase):
         xx=l.getX()
         self.failUnless(isinstance(xx,list),"list expected")
         for i in range(len(xx)):
-           self.failUnless(isinstance(xx[i],numarray.NumArray),"vector expected for %s item"%i)
+           self.failUnless(isinstance(xx[i],numpy.ndarray),"vector expected for %s item"%i)
            self.failUnless(Lsup(xx[i]-arg[i])<self.RES_TOL,"%s-th location is wrong"%i)
         xx=l(x)
         self.failUnless(isinstance(xx,list),"list expected (2)")
         for i in range(len(xx)):
-           self.failUnless(isinstance(xx[i],numarray.NumArray),"vector expected for %s item (2)"%i)
+           self.failUnless(isinstance(xx[i],numpy.ndarray),"vector expected for %s item (2)"%i)
            self.failUnless(Lsup(xx[i]-arg[i])<self.RES_TOL,"%s-th location is wrong (2)"%i)
         xx=l(x[0]+x[1])
         self.failUnless(isinstance(xx,list),"list expected (3)")
@@ -235,28 +235,28 @@ class Test_pdetools_noLumping(unittest.TestCase):
     def testProjector_rank1_reduced_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=True,fast=False)
-      td_ref=numarray.array([1.,2.,3.])
+      td_ref=numpy.array([1.,2.,3.])
       td=p(Data(td_ref,ReducedFunction(self.domain)))
       self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
 
     def testProjector_rank2_reduced_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=True,fast=False)
-      td_ref=numarray.array([[11.,12.],[21,22.]])
+      td_ref=numpy.array([[11.,12.],[21,22.]])
       td=p(Data(td_ref,ReducedFunction(self.domain)))
       self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
 
     def testProjector_rank3_reduced_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=True,fast=False)
-      td_ref=numarray.array([[[111.,112.],[121,122.]],[[211.,212.],[221,222.]]])
+      td_ref=numpy.array([[[111.,112.],[121,122.]],[[211.,212.],[221,222.]]])
       td=p(Data(td_ref,ReducedFunction(self.domain)))
       self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
 
     def testProjector_rank4_reduced_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=True,fast=False)
-      td_ref=numarray.array([[[[1111.,1112.],[1121,1122.]],[[1211.,1212.],[1221,1222.]]],[[[2111.,2112.],[2121,2122.]],[[2211.,2212.],[2221,2222.]]]])
+      td_ref=numpy.array([[[[1111.,1112.],[1121,1122.]],[[1211.,1212.],[1221,1222.]]],[[[2111.,2112.],[2121,2122.]],[[2211.,2212.],[2221,2222.]]]])
       td=p(Data(td_ref,ReducedFunction(self.domain)))
       self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
 
@@ -301,7 +301,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       p=NoPDE(self.domain)
       x=self.domain.getX()
       msk=whereZero(x[0])*[1.,0.]
-      p.setValue(D=numarray.ones([2]),q=msk,r=2.)
+      p.setValue(D=numpy.ones([2]),q=msk,r=2.)
       u=p.getSolution()
       u_ex=msk*2.
       self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
@@ -310,7 +310,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       p=NoPDE(self.domain)
       x=self.domain.getX()
       msk=whereZero(x[0])*[1.,0.]
-      p.setValue(D=numarray.ones([2]),Y=numarray.ones([2]),q=msk)
+      p.setValue(D=numpy.ones([2]),Y=numpy.ones([2]),q=msk)
       u=p.getSolution()
       u_ex=(1.-msk)
       self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
@@ -319,7 +319,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       p=NoPDE(self.domain)
       x=self.domain.getX()
       msk=whereZero(x[0])*[1.,0.]
-      p.setValue(D=numarray.ones([2]),Y=numarray.ones([2]),q=msk,r=2.)
+      p.setValue(D=numpy.ones([2]),Y=numpy.ones([2]),q=msk,r=2.)
       u=p.getSolution()
       u_ex=(1.-msk)+msk*2.
       self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
@@ -334,7 +334,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
     #=====
     def testPCG(self):
-      from numarray import array,matrixmultiply, zeros, dot, size, Float64
+      from numpy import array, dot, zeros, size, float64
       from math import sqrt
       A=array([[  4.752141253159452e+02, -2.391895572674098e-01,
                   5.834798554135237e-01, -3.704394311709722e+00,
@@ -396,9 +396,9 @@ class Test_pdetools_noLumping(unittest.TestCase):
                 -8.7934289814322  ])
 
       def Ap(x):
-          return matrixmultiply(A,x)
+          return dot(A,x)
       def Ms(b):
-          out=zeros((size(b),),Float64)
+          out=zeros((b.size,),float64)
           for i in xrange(size(b)):
             out[i]=b[i]/A[i,i]
           return out
@@ -406,10 +406,10 @@ class Test_pdetools_noLumping(unittest.TestCase):
       tol=1.e-4
       x,r,a_norm=PCG(b*1.,Ap,x_ref*0.,Ms,dot, atol=0, rtol=tol, iter_max=12)
       self.failUnless(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
-      self.failUnless(Lsup(r-(b-matrixmultiply(A,x)))<=Lsup(b)*EPSILON*100.,"wrong solution")
+      self.failUnless(Lsup(r-(b-dot(A,x)))<=Lsup(b)*EPSILON*100.,"wrong solution")
 
     def testMINRES(self):
-      from numarray import array,matrixmultiply, zeros, dot, size, Float64
+      from numpy import array, dot, zeros, size, float64
       from math import sqrt
       A=array([[  4.752141253159452e+02, -2.391895572674098e-01,
                   5.834798554135237e-01, -3.704394311709722e+00,
@@ -471,9 +471,9 @@ class Test_pdetools_noLumping(unittest.TestCase):
                 -8.7934289814322  ])
 
       def Ap(x):
-          return matrixmultiply(A,x)
+          return dot(A,x)
       def Ms(b):
-          out=zeros((size(b),),Float64)
+          out=zeros((size(b),),float64)
           for i in xrange(size(b)):
             out[i]=b[i]/A[i,i]
           return out
@@ -483,7 +483,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       self.failUnless(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
 
     def testTFQMR(self):
-      from numarray import array,matrixmultiply, zeros, dot, size, Float64
+      from numpy import array, dot, zeros, size, float64
       from math import sqrt
       A=array([[  4.752141253159452e+02, -2.391895572674098e-01,
                   5.834798554135237e-01, -3.704394311709722e+00,
@@ -545,7 +545,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
                 -8.7934289814322  ])
 
       def Ap(x):
-          out=matrixmultiply(A,x)
+	  out=dot(A,x)
           for i in xrange(size(x)):
             out[i]/=A[i,i]
           return out
@@ -556,7 +556,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       self.failUnless(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
 
     def testGMRES(self):
-      from numarray import array,matrixmultiply, zeros, dot, size, Float64
+      from numpy import array, dot, zeros, size, float64
       from math import sqrt
       A=array([[  4.752141253159452e+02, -2.391895572674098e-01,
                   5.834798554135237e-01, -3.704394311709722e+00,
@@ -618,7 +618,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
                 -8.7934289814322  ])
 
       def Ap(x):
-          b=matrixmultiply(A,x)
+          b=dot(A,x)
           for i in xrange(size(b)):
             b[i]/=A[i,i]
           return b
@@ -629,7 +629,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       self.failUnless(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
 
     def testGMRES_P_R(self):
-      from numarray import array,matrixmultiply, zeros, dot, size, Float64
+      from numpy import array,  dot, zeros, size, float64
       from math import sqrt
       A=array([[  4.752141253159452e+02, -2.391895572674098e-01,
                   5.834798554135237e-01, -3.704394311709722e+00,
@@ -691,9 +691,9 @@ class Test_pdetools_noLumping(unittest.TestCase):
                 -8.7934289814322  ])
 
       def Ap(x):
-          return matrixmultiply(A,x)
+          return dot(A,x)
       def P_Rp(x):
-          out=zeros(size(x), Float64)
+          out=zeros(size(x), float64)
           for i in xrange(size(x)):
             out[i]=x[i]/A[i,i]
           return out
@@ -703,7 +703,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       self.failUnless(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
 
     def testNewtonGMRES(self):
-      from numarray import array,matrixmultiply, zeros, dot, size, Float64
+      from numpy import array, dot, zeros, size, float64
       from math import sqrt
       class LL(Defect):
            def __init__(self,*kwargs):
@@ -767,7 +767,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
                      27.210293789825833,   47.122067744075842,  199.267136417856847,
                      -8.7934289814322  ])
            def eval(self,x):
-              out=matrixmultiply(self.A,x)-self.b
+              out=dot(self.A,x)-self.b
               for i in xrange(size(self.b)):
                 out[i]/=self.A[i,i]
               return out
@@ -780,7 +780,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       self.failUnless(Lsup(x-ll.x_ref)<=Lsup(ll.x_ref)*tol*10.,"wrong solution")
 
     def testNewtonGMRES(self):
-      from numarray import array,matrixmultiply, zeros, dot, size, Float64
+      from numpy import array,  dot, zeros, size, float64
       from math import sqrt
       class LL(Defect):
            def __init__(self,*kwargs):
@@ -844,7 +844,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
                      27.210293789825833,   47.122067744075842,  199.267136417856847,
                      -8.7934289814322  ])
            def eval(self,x):
-              out=matrixmultiply(self.A,x)-self.b
+              out=dot(self.A,x)-self.b
               for i in xrange(size(self.b)):
                 out[i]/=self.A[i,i]
               return out
@@ -857,7 +857,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       self.failUnless(Lsup(x-ll.x_ref)<=Lsup(ll.x_ref)*tol*10.,"wrong solution")
 
     def testHomogeneousSaddlePointProblem_PCG(self):
-      from numarray import array,matrixmultiply, zeros, dot, size, Float64
+      from numpy import array,  dot, zeros, size, float64
       from math import sqrt
       class LL(HomogeneousSaddlePointProblem):
            def initialize(self):
@@ -937,22 +937,22 @@ class Test_pdetools_noLumping(unittest.TestCase):
                                  [-5755.536981691271649, 4606.321002756208145,-1630.50619635660928 ],
                                  [  806.289245589733468,-1630.506196356609053, 2145.65035816388945 ]])
            def inner_pBv(self,p,v):
-              return dot(p,matrixmultiply(transpose(self.Bt),v))
+              return dot(p,dot(transpose(self.Bt),v))
            def inner_p(self,p0,p1):
               return dot(p0,p1)
            def norm_v(self,v):
                return sqrt(dot(v,v))
            def getV(self,p,v):
-               out=self.b-matrixmultiply(self.Bt,p)
+               out=self.b-dot(self.Bt,p)
                return solve_linear_equations(self.A,out)+v*self.getSubProblemTolerance()
            def norm_Bv(self,v):
-               t=matrixmultiply(transpose(self.Bt),v) 
+               t=dot(transpose(self.Bt),v) 
                return sqrt(dot(t,t))
            def solve_AinvBt(self,p):
-               out=matrixmultiply(self.Bt,p)
+               out=dot(self.Bt,p)
                return solve_linear_equations(self.A,out)
            def solve_precB(self,v):
-               out=matrixmultiply(transpose(self.Bt),v)
+               out=dot(transpose(self.Bt),v)
                for i in xrange(size(out)): out[i]*=self.Sinv[i,i]
                return out
 
@@ -966,7 +966,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       self.failUnless(Lsup(p-ll.p_ref)<=Lsup(ll.p_ref)*tol*10.,"wrong p solution")
 
     def testHomogeneousSaddlePointProblem_GMRES(self):
-      from numarray import array,matrixmultiply, zeros, dot, size, Float64
+      from numpy import array, prod, dot, zeros, size, float64
       from math import sqrt
       class LL(HomogeneousSaddlePointProblem):
            def initialize(self):
@@ -1046,22 +1046,22 @@ class Test_pdetools_noLumping(unittest.TestCase):
                                  [-5755.536981691271649, 4606.321002756208145,-1630.50619635660928 ],
                                  [  806.289245589733468,-1630.506196356609053, 2145.65035816388945 ]])
            def inner_pBv(self,p,v):
-              return dot(p,matrixmultiply(transpose(self.Bt),v))
+              return dot(p,dot(transpose(self.Bt),v))
            def inner_p(self,p0,p1):
               return dot(p0,p1)
            def norm_v(self,v):
                return sqrt(dot(v,v))
            def getV(self,p,v):
-               out=self.b-matrixmultiply(self.Bt,p)
+               out=self.b-dot(self.Bt,p)
                return solve_linear_equations(self.A,out)+v*self.getSubProblemTolerance()
            def norm_Bv(self,v):
-               t=matrixmultiply(transpose(self.Bt),v) 
+               t=dot(transpose(self.Bt),v) 
                return sqrt(dot(t,t))
            def solve_AinvBt(self,p):
-               out=matrixmultiply(self.Bt,p)
+               out=dot(self.Bt,p)
                return solve_linear_equations(self.A,out)
            def solve_precB(self,v):
-               out=matrixmultiply(transpose(self.Bt),v)
+               out=dot(transpose(self.Bt),v)
                for i in xrange(size(out)): out[i]*=self.Sinv[i,i]
                return out
               
@@ -1148,7 +1148,7 @@ class Test_pdetools(Test_pdetools_noLumping):
       x=ContinuousFunction(self.domain).getX()
       h=Lsup(self.domain.getSize())
       p=Projector(self.domain,reduce=True,fast=True)
-      td_ref=numarray.array([1.,2.,3.])
+      td_ref=numpy.array([1.,2.,3.])
       td=p(Data(td_ref,ReducedFunction(self.domain)))
       self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
 
@@ -1156,7 +1156,7 @@ class Test_pdetools(Test_pdetools_noLumping):
       x=ContinuousFunction(self.domain).getX()
       h=Lsup(self.domain.getSize())
       p=Projector(self.domain,reduce=True,fast=True)
-      td_ref=numarray.array([[11.,12.],[21,22.]])
+      td_ref=numpy.array([[11.,12.],[21,22.]])
       td=p(Data(td_ref,ReducedFunction(self.domain)))
       self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
 
@@ -1164,7 +1164,7 @@ class Test_pdetools(Test_pdetools_noLumping):
       x=ContinuousFunction(self.domain).getX()
       h=Lsup(self.domain.getSize())
       p=Projector(self.domain,reduce=True,fast=True)
-      td_ref=numarray.array([[[111.,112.],[121,122.]],[[211.,212.],[221,222.]]])
+      td_ref=numpy.array([[[111.,112.],[121,122.]],[[211.,212.],[221,222.]]])
       td=p(Data(td_ref,ReducedFunction(self.domain)))
       self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
 
@@ -1172,7 +1172,7 @@ class Test_pdetools(Test_pdetools_noLumping):
       x=ContinuousFunction(self.domain).getX()
       h=Lsup(self.domain.getSize())
       p=Projector(self.domain,reduce=True,fast=True)
-      td_ref=numarray.array([[[[1111.,1112.],[1121,1122.]],[[1211.,1212.],[1221,1222.]]],[[[2111.,2112.],[2121,2122.]],[[2211.,2212.],[2221,2222.]]]])
+      td_ref=numpy.array([[[[1111.,1112.],[1121,1122.]],[[1211.,1212.],[1221,1222.]]],[[[2111.,2112.],[2121,2122.]],[[2211.,2212.],[2221,2222.]]]])
       td=p(Data(td_ref,ReducedFunction(self.domain)))
       self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
 
