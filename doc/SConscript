@@ -18,13 +18,21 @@ Import('*')
 local_env = clone_env(env)
 
 # get all the file names in doc/examples:
-src_dir = local_env.Dir('examples').srcnode().abspath
-example_files = os.popen("find " + src_dir + " -name .svn -prune -o -type f -print").read().split(None)
+#src_dir = local_env.Dir('examples').srcnode().abspath
+src_dir = local_env.Dir('.').srcnode().abspath
+cur_dir = os.path.abspath(os.curdir)
+outputdir=local_env.Dir('#/release/doc/').srcnode().abspath
 
-tmp1 = env.Command("release/doc/escript_examples.zip", None, "zip release/doc/escript_examples.zip "+" ".join(example_files))
+os.chdir(src_dir)
+example_files = os.popen("find examples -name .svn -prune -o -type f -print").read().split(None)
+os.chdir(cur_dir)
+
+tmp1 = env.Command("#/release/doc/escript_examples.zip", None, 
+   "zip "+os.path.join(outputdir,"escript_examples.zip ") +" ".join(example_files),chdir=src_dir)
 env.Alias('examples_zipfile', tmp1)
 
-env=Environment(TARFLAGS = '-c -z')
+# Need to strip the unwanted doc/ from the front of the path
+env=Environment(TARFLAGS = "--transform 's,doc/examples,examples,' -c -z")
 if 'Tar' in dir(env): env.Tar('#release/doc/escript_examples.tar.gz', example_files)
 env.Alias('examples_tarfile', '#release/doc/escript_examples.tar.gz')
 
@@ -32,4 +40,5 @@ local_env.SConscript(dirs = ['#/doc/user'], build_dir='#/build/$PLATFORM/doc/use
 local_env.SConscript(dirs = ['#/doc/epydoc'], build_dir='#/build/$PLATFORM/doc/epydoc', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/doxygen'], build_dir='#/build/$PLATFORM/doc/doxygen', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/install'], build_dir='#/build/$PLATFORM/doc/install', duplicate=1)
+
 
