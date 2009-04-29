@@ -395,7 +395,7 @@ returns the location of the \DataSamplePoints.
 
 \begin{methoddesc}[FunctionSpace]{getNormal}{}
 If the domain of functions in the \FunctionSpace 
-is a hypermanifold (e.g. the boundary of a domain)
+is a hyper-manifold (e.g. the boundary of a domain)
 the method returns the outer normal at each of the 
 \DataSamplePoints. Otherwise an exception is raised.
 \end{methoddesc}
@@ -571,7 +571,7 @@ where a \Data object is required.
 
 \begin{funcdesc}{Scalar}{value=0.,what=FunctionSpace(),expand=\False}
 returns a \Data object of rank 0 (a constant) in the \FunctionSpace \var{what}.
-Values are initialised with \var{value}, a double precision quantity. If \var{expanded} is \True
+Values are initialized with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
@@ -599,7 +599,7 @@ the \Data object is re\var{arg}presented in expanded from.
 \begin{funcdesc}{Tensor4}{value=0.,what=FunctionSpace(),expand=\False}
 returns a \Data object of \Shape \var{(d,d,d,d)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
-Values are initialised with \var{value}, a double precision quantity. If \var{expanded} is \True
+Values are initialized with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
@@ -1126,6 +1126,219 @@ saves the object to a matrix market format file of name
 % \ulink{maths.nist.gov/MatrixMarket}{\url{http://maths.nist.gov/MatrixMarket}}.
 \index{Matrix Market}
 \end{methoddesc}
+
+\section{Physical Units}
+\escript provides support for physical units in the SI system \index{SI units} including unit conversion. So the
+user can define variables in the form
+\begin{python}
+from esys.escript.unitsSI import *
+l=20*m
+w=30*kg
+w2=40*lb
+T=100*Celsius
+\end{python}
+In the two latter cases an conversion from pounds\index{pounds} and degree Celsius\index{Celsius} is performed into the appropriate SI units kg and Kelvin is performed. In addition 
+composed units can be used, for instance
+\begin{python}
+from esys.escript.unitsSI import *
+rho=40*lb/cm**3
+\end{python}
+to define the density in the units of pounds per cubic centimeter. The value $40$ will be converted 
+into SI units, in this case kg per cubic meter.
+Moreover unit prefixes are supported:
+\begin{python}
+from esys.escript.unitsSI import *
+p=40*Mega*Pa
+\end{python}
+to the the pressure to 40 Mega Pascal. Units can also be converted back from the SI system into
+a desired unit, e.g
+\begin{python}
+from esys.escript.unitsSI import *
+print p/atm
+\end{python}
+can be used print the pressure in units of atmosphere\index{atmosphere}.  
+
+This is an incomplete list of supported physical units:
+
+\begin{datadesc}{km}
+unit of kilo meter
+\end{datadesc}
+
+\begin{datadesc}{m}
+unit of meter
+\end{datadesc}
+
+\begin{datadesc}{cm}
+unit of centi meter
+\end{datadesc}
+
+\begin{datadesc}{mm}
+  unit of milli meter
+\end{datadesc}
+
+\begin{datadesc}{sec}
+ unit of second
+\end{datadesc}
+
+\begin{datadesc}{minute}
+  unit of minute
+\end{datadesc}
+
+\begin{datadesc}{h}
+unit of hour 
+\end{datadesc}
+\begin{datadesc}{day}
+unit of day 
+\end{datadesc}
+\begin{datadesc}{yr}
+ unit of year
+\end{datadesc}
+
+\begin{datadesc}{gram}
+unit of gram
+\end{datadesc}
+\begin{datadesc}{kg}
+unit of kilo gram
+ \end{datadesc}
+\begin{datadesc}{lb}
+unit of pound 
+\end{datadesc}
+\begin{datadesc}{ton}
+ metric ton
+\end{datadesc}
+
+\begin{datadesc}{A}
+ unit of Ampere
+\end{datadesc}
+
+\begin{datadesc}{Hz}
+ unit of Hertz
+\end{datadesc}
+
+\begin{datadesc}{N}
+ unit of Newton
+\end{datadesc}
+\begin{datadesc}{Pa}
+unit of Pascal 
+\end{datadesc}
+\begin{datadesc}{atm}
+unit of atmosphere 
+\end{datadesc}
+\begin{datadesc}{J}
+unit of Joule 
+\end{datadesc}
+
+\begin{datadesc}{W}
+unit of Watt 
+\end{datadesc}
+
+\begin{datadesc}{C}
+unit of Coulomb 
+\end{datadesc}
+\begin{datadesc}{V}
+unit of Volt 
+\end{datadesc}
+\begin{datadesc}{F}
+ unit of Farad 
+\end{datadesc}
+
+\begin{datadesc}{Ohm}
+ unit of Ohm
+\end{datadesc}
+\begin{datadesc}{K}
+unit of Kelvin 
+\end{datadesc}
+\begin{datadesc}{Celsius}
+ unit of Celsius
+\end{datadesc}
+
+\begin{datadesc}{Fahrenheit}
+unit of Fahrenheit 
+\end{datadesc}
+
+Moreover unit prefixes are supported:
+
+\begin{datadesc}{Yotta}
+prefix yotta = $10^{24}$.
+ 
+\end{datadesc}
+
+\begin{datadesc}{Zetta}
+prefix zetta= $10^{21}$.
+\end{datadesc}
+
+\begin{datadesc}{Exa}
+prefix exa= $10^{18}$.
+ \end{datadesc}
+
+\begin{datadesc}{Peta}
+prefix peta= $10^{15}$.
+ \end{datadesc}
+
+\begin{datadesc}{Tera}
+prefix tera= $10^{12}$.
+ \end{datadesc}
+
+\begin{datadesc}{Giga}
+prefix giga= $10^9$.
+ \end{datadesc}
+
+\begin{datadesc}{Mega}
+prefix mega= $10^6$.
+ \end{datadesc}
+
+\begin{datadesc}{Kilo}
+prefix kilo= $10^3$.
+ \end{datadesc}
+
+\begin{datadesc}{Hecto}
+prefix hecto= $10^2$.
+ \end{datadesc}
+
+\begin{datadesc}{Deca}
+prefix deca= $10^1$.
+ \end{datadesc}
+
+\begin{datadesc}{Deci}
+prefix deci= $10^{-1}$.
+ \end{datadesc}
+
+\begin{datadesc}{Centi}
+prefix centi= $10^{-2}$. 
+\end{datadesc}
+
+\begin{datadesc}{Milli}
+prefix milli= $10^{-3}$.
+\end{datadesc}
+
+\begin{datadesc}{Micro}
+prefix micro= $10^{-6}$.
+ \end{datadesc}
+
+\begin{datadesc}{Nano}
+prefix nano= $10^{-9}$.
+ \end{datadesc}
+
+\begin{datadesc}{Pico}
+prefix pico= $10^{-12}$.
+ \end{datadesc}
+
+\begin{datadesc}{Femto}
+prefix femto= $10^{-15}$.
+ \end{datadesc}
+
+\begin{datadesc}{Atto}
+prefix atto= $10^{-18}$.
+ \end{datadesc}
+
+\begin{datadesc}{Zepto}
+prefix zepto= $10^{-21}$.
+ \end{datadesc}
+
+\begin{datadesc}{Yocto}
+prefix yocto= $10^{-24}$.
+ \end{datadesc}
+
 
 \section{Utilities}
 \begin{funcdesc}{setEscriptParamInt}{name,value}
