@@ -27,14 +27,22 @@ os.chdir(src_dir)
 example_files = os.popen("find examples -name .svn -prune -o -type f -print").read().split(None)
 os.chdir(cur_dir)
 
+print example_files
+
 tmp1 = env.Command("#/release/doc/escript_examples.zip", None, 
-   "zip "+os.path.join(outputdir,"escript_examples.zip ") +" ".join(example_files),chdir=src_dir)
+"zip "+os.path.join(outputdir,"escript_examples.zip ") +" ".join(example_files),chdir=src_dir)
 env.Alias('examples_zipfile', tmp1)
 
-# Need to strip the unwanted doc/ from the front of the path
-env=Environment(TARFLAGS = "--transform 's,doc/examples,examples,' -c -z")
-if 'Tar' in dir(env): env.Tar('#release/doc/escript_examples.tar.gz', example_files)
-env.Alias('examples_tarfile', '#release/doc/escript_examples.tar.gz')
+
+#Need to use explicit tar rather than the tar builder due to problems getting it not to put
+#unwanted path components in the tar file
+#--transform on tar is not supported on savanna
+tmp2 = env.Command("#/release/doc/escript_examples.tar.gz", None, "tar -czf "+os.path.join(outputdir,"escript_examples.tar.gz ")+"  ".join(example_files), chdir=src_dir)
+env.Alias('examples_tarfile',tmp2)
+
+#env=Environment(TARFLAGS = "-c -z",chdir=src_dir)
+#if 'Tar' in dir(env): env.Tar('#/release/doc/escript_examples.tar.gz', example_files,chdir=src_dir)
+#env.Alias('examples_tarfile', '#release/doc/escript_examples.tar.gz')
 
 local_env.SConscript(dirs = ['#/doc/user'], build_dir='#/build/$PLATFORM/doc/user', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/epydoc'], build_dir='#/build/$PLATFORM/doc/epydoc', duplicate=1)
