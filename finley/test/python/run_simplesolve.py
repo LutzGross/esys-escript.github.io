@@ -38,6 +38,7 @@ import unittest, sys
 from esys.escript import *
 from esys.finley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE
+import numpy
 OPTIMIZE=True
 SOLVER_VERBOSE=False 
 # setNumberOfThreads(2)
@@ -139,7 +140,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=2)
         mask=whereZero(x[0])
-        pde.setValue(r=u_ex,q=mask*numarray.ones(2,))
+        pde.setValue(r=u_ex,q=mask*numpy.ones(2,))
         A=Tensor4(0,Function(domain))
         A[0,:,0,:]=kronecker(2)
         A[1,:,1,:]=kronecker(2)
@@ -147,7 +148,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         Y[0]=u_ex[0]*FAC_DIAG+u_ex[1]*FAC_OFFDIAG
         Y[1]=u_ex[1]*FAC_DIAG+u_ex[0]*FAC_OFFDIAG
         pde.setValue(A=A,
-                     D=kronecker(2)*(FAC_DIAG-FAC_OFFDIAG)+numarray.ones((2,2))*FAC_OFFDIAG,
+                     D=kronecker(2)*(FAC_DIAG-FAC_OFFDIAG)+numpy.ones((2,2))*FAC_OFFDIAG,
                      Y=Y,
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
@@ -202,7 +203,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=2)
         mask=whereZero(x[0])
-        pde.setValue(r=u_ex,q=mask*numarray.ones(2,))
+        pde.setValue(r=u_ex,q=mask*numpy.ones(2,))
         A=Tensor4(0,Function(domain))
         A[0,:,0,:]=kronecker(2)
         A[1,:,1,:]=kronecker(2)
@@ -210,7 +211,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         Y[0]=u_ex[0]*FAC_DIAG+u_ex[1]*FAC_OFFDIAG
         Y[1]=u_ex[1]*FAC_DIAG+u_ex[0]*FAC_OFFDIAG
         pde.setValue(A=A,
-                     D=kronecker(2)*(FAC_DIAG-FAC_OFFDIAG)+numarray.ones((2,2))*FAC_OFFDIAG,
+                     D=kronecker(2)*(FAC_DIAG-FAC_OFFDIAG)+numpy.ones((2,2))*FAC_OFFDIAG,
                      Y=Y-[20.,10.],
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
@@ -271,7 +272,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=3)
         mask=whereZero(x[0])
-        pde.setValue(r=u_ex,q=mask*numarray.ones(3,))
+        pde.setValue(r=u_ex,q=mask*numpy.ones(3,))
         A=Tensor4(0,Function(domain))
         A[0,:,0,:]=kronecker(3)
         A[1,:,1,:]=kronecker(3)
@@ -281,7 +282,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         Y[1]=u_ex[1]*FAC_DIAG+u_ex[0]*FAC_OFFDIAG+u_ex[2]*FAC_OFFDIAG
         Y[2]=u_ex[2]*FAC_DIAG+u_ex[1]*FAC_OFFDIAG+u_ex[0]*FAC_OFFDIAG
         pde.setValue(A=A,
-                     D=kronecker(3)*(FAC_DIAG-FAC_OFFDIAG)+numarray.ones((3,3))*FAC_OFFDIAG,
+                     D=kronecker(3)*(FAC_DIAG-FAC_OFFDIAG)+numpy.ones((3,3))*FAC_OFFDIAG,
                      Y=Y,
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
@@ -343,7 +344,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=3)
         mask=whereZero(x[0])
-        pde.setValue(r=u_ex,q=mask*numarray.ones(3,))
+        pde.setValue(r=u_ex,q=mask*numpy.ones(3,))
         Y=Vector(0.,Function(domain))
         Y[0]=u_ex[0]*FAC_DIAG+u_ex[2]*FAC_OFFDIAG+u_ex[1]*FAC_OFFDIAG
         Y[1]=u_ex[1]*FAC_DIAG+u_ex[0]*FAC_OFFDIAG+u_ex[2]*FAC_OFFDIAG
@@ -353,8 +354,8 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         A[1,:,1,:]=kronecker(3)
         A[2,:,2,:]=kronecker(3)
         pde.setValue(A=A,
-                     D=kronecker(3)*(FAC_DIAG-FAC_OFFDIAG)+numarray.ones((3,3))*FAC_OFFDIAG,
-                     Y=Y-numarray.array([60.,20.,22.]),
+                     D=kronecker(3)*(FAC_DIAG-FAC_OFFDIAG)+numpy.ones((3,3))*FAC_OFFDIAG,
+                     Y=Y-numpy.array([60.,20.,22.]),
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
         pde.setTolerance(SOLVER_TOL)
@@ -438,7 +439,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=2)
         mask=whereZero(x[0])
-        pde.setValue(r=u_ex,q=mask*numarray.ones(2,))
+        pde.setValue(r=u_ex,q=mask*numpy.ones(2,))
         A=Tensor4(0,Function(domain))
         A[0,:,0,:]=kronecker(2)
         A[1,:,1,:]=kronecker(2)
@@ -446,7 +447,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase
         Y[0]=u_ex[0]*FAC_DIAG+u_ex[1]*FAC_OFFDIAG
         Y[1]=u_ex[1]*FAC_DIAG+u_ex[0]*FAC_OFFDIAG
         pde.setValue(A=A,
-                     D=kronecker(2)*(FAC_DIAG-FAC_OFFDIAG)+numarray.ones((2,2))*FAC_OFFDIAG,
+                     D=kronecker(2)*(FAC_DIAG-FAC_OFFDIAG)+numpy.ones((2,2))*FAC_OFFDIAG,
                      Y=Y,
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
@@ -477,7 +478,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=2)
         mask=whereZero(x[0])
-        pde.setValue(r=u_ex,q=mask*numarray.ones(2,))
+        pde.setValue(r=u_ex,q=mask*numpy.ones(2,))
         A=Tensor4(0,Function(domain))
         A[0,:,0,:]=kronecker(2)
         A[1,:,1,:]=kronecker(2)
@@ -485,7 +486,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase
         Y[0]=u_ex[0]*FAC_DIAG+u_ex[1]*FAC_OFFDIAG
         Y[1]=u_ex[1]*FAC_DIAG+u_ex[0]*FAC_OFFDIAG
         pde.setValue(A=A,
-                     D=kronecker(2)*(FAC_DIAG-FAC_OFFDIAG)+numarray.ones((2,2))*FAC_OFFDIAG,
+                     D=kronecker(2)*(FAC_DIAG-FAC_OFFDIAG)+numpy.ones((2,2))*FAC_OFFDIAG,
                      Y=Y-[20.,10.],
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
@@ -548,7 +549,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=3)
         mask=whereZero(x[0])
-        pde.setValue(r=u_ex,q=mask*numarray.ones(3,))
+        pde.setValue(r=u_ex,q=mask*numpy.ones(3,))
         A=Tensor4(0,Function(domain))
         A[0,:,0,:]=kronecker(3)
         A[1,:,1,:]=kronecker(3)
@@ -558,7 +559,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         Y[1]=u_ex[1]*FAC_DIAG+u_ex[0]*FAC_OFFDIAG+u_ex[2]*FAC_OFFDIAG
         Y[2]=u_ex[2]*FAC_DIAG+u_ex[1]*FAC_OFFDIAG+u_ex[0]*FAC_OFFDIAG
         pde.setValue(A=A,
-                     D=kronecker(3)*(FAC_DIAG-FAC_OFFDIAG)+numarray.ones((3,3))*FAC_OFFDIAG,
+                     D=kronecker(3)*(FAC_DIAG-FAC_OFFDIAG)+numpy.ones((3,3))*FAC_OFFDIAG,
                      Y=Y,
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
@@ -622,7 +623,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=3)
         mask=whereZero(x[0])
-        pde.setValue(r=u_ex,q=mask*numarray.ones(3,))
+        pde.setValue(r=u_ex,q=mask*numpy.ones(3,))
         Y=Vector(0.,Function(domain))
         Y[0]=u_ex[0]*FAC_DIAG+u_ex[2]*FAC_OFFDIAG+u_ex[1]*FAC_OFFDIAG
         Y[1]=u_ex[1]*FAC_DIAG+u_ex[0]*FAC_OFFDIAG+u_ex[2]*FAC_OFFDIAG
@@ -632,8 +633,8 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         A[1,:,1,:]=kronecker(3)
         A[2,:,2,:]=kronecker(3)
         pde.setValue(A=A,
-                     D=kronecker(3)*(FAC_DIAG-FAC_OFFDIAG)+numarray.ones((3,3))*FAC_OFFDIAG,
-                     Y=Y-numarray.array([60.,20.,22.]),
+                     D=kronecker(3)*(FAC_DIAG-FAC_OFFDIAG)+numpy.ones((3,3))*FAC_OFFDIAG,
+                     Y=Y-numpy.array([60.,20.,22.]),
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
         pde.setTolerance(SOLVER_TOL)
@@ -719,7 +720,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCas
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=2)
         mask=whereZero(x[0])
-        pde.setValue(r=u_ex,q=mask*numarray.ones(2,))
+        pde.setValue(r=u_ex,q=mask*numpy.ones(2,))
         A=Tensor4(0,Function(domain))
         A[0,:,0,:]=kronecker(2)
         A[1,:,1,:]=kronecker(2)
@@ -727,7 +728,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCas
         Y[0]=u_ex[0]*FAC_DIAG+u_ex[1]*FAC_OFFDIAG
         Y[1]=u_ex[1]*FAC_DIAG+u_ex[0]*FAC_OFFDIAG
         pde.setValue(A=A,
-                     D=kronecker(2)*(FAC_DIAG-FAC_OFFDIAG)+numarray.ones((2,2))*FAC_OFFDIAG,
+                     D=kronecker(2)*(FAC_DIAG-FAC_OFFDIAG)+numpy.ones((2,2))*FAC_OFFDIAG,
                      Y=Y,
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
@@ -758,7 +759,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCas
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=2)
         mask=whereZero(x[0])
-        pde.setValue(r=u_ex,q=mask*numarray.ones(2,))
+        pde.setValue(r=u_ex,q=mask*numpy.ones(2,))
         A=Tensor4(0,Function(domain))
         A[0,:,0,:]=kronecker(2)
         A[1,:,1,:]=kronecker(2)
@@ -766,7 +767,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCas
         Y[0]=u_ex[0]*FAC_DIAG+u_ex[1]*FAC_OFFDIAG
         Y[1]=u_ex[1]*FAC_DIAG+u_ex[0]*FAC_OFFDIAG
         pde.setValue(A=A,
-                     D=kronecker(2)*(FAC_DIAG-FAC_OFFDIAG)+numarray.ones((2,2))*FAC_OFFDIAG,
+                     D=kronecker(2)*(FAC_DIAG-FAC_OFFDIAG)+numpy.ones((2,2))*FAC_OFFDIAG,
                      Y=Y-[20.,10.],
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
@@ -829,7 +830,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=3)
         mask=whereZero(x[0])
-        pde.setValue(r=u_ex,q=mask*numarray.ones(3,))
+        pde.setValue(r=u_ex,q=mask*numpy.ones(3,))
         A=Tensor4(0,Function(domain))
         A[0,:,0,:]=kronecker(3)
         A[1,:,1,:]=kronecker(3)
@@ -839,7 +840,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         Y[1]=u_ex[1]*FAC_DIAG+u_ex[0]*FAC_OFFDIAG+u_ex[2]*FAC_OFFDIAG
         Y[2]=u_ex[2]*FAC_DIAG+u_ex[1]*FAC_OFFDIAG+u_ex[0]*FAC_OFFDIAG
         pde.setValue(A=A,
-                     D=kronecker(3)*(FAC_DIAG-FAC_OFFDIAG)+numarray.ones((3,3))*FAC_OFFDIAG,
+                     D=kronecker(3)*(FAC_DIAG-FAC_OFFDIAG)+numpy.ones((3,3))*FAC_OFFDIAG,
                      Y=Y,
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
@@ -903,7 +904,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=3)
         mask=whereZero(x[0])
-        pde.setValue(r=u_ex,q=mask*numarray.ones(3,))
+        pde.setValue(r=u_ex,q=mask*numpy.ones(3,))
         Y=Vector(0.,Function(domain))
         Y[0]=u_ex[0]*FAC_DIAG+u_ex[2]*FAC_OFFDIAG+u_ex[1]*FAC_OFFDIAG
         Y[1]=u_ex[1]*FAC_DIAG+u_ex[0]*FAC_OFFDIAG+u_ex[2]*FAC_OFFDIAG
@@ -913,8 +914,8 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         A[1,:,1,:]=kronecker(3)
         A[2,:,2,:]=kronecker(3)
         pde.setValue(A=A,
-                     D=kronecker(3)*(FAC_DIAG-FAC_OFFDIAG)+numarray.ones((3,3))*FAC_OFFDIAG,
-                     Y=Y-numarray.array([60.,20.,22.]),
+                     D=kronecker(3)*(FAC_DIAG-FAC_OFFDIAG)+numpy.ones((3,3))*FAC_OFFDIAG,
+                     Y=Y-numpy.array([60.,20.,22.]),
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
         pde.setTolerance(SOLVER_TOL)
