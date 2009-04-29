@@ -23,7 +23,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 ## @file unitsSI.py
 
 """
-some tools supporting the usage of symbols.
+some tools supporting physical units and conversion
 
 @var __author__: name of author
 @var __copyright__: copyrights
@@ -69,7 +69,7 @@ some tools supporting the usage of symbols.
 @var lb : unit of pound
 @var ton : metric ton
 @var A : unit of Ampere
-@var Hz: unit of Hertz (frequency)
+@var Hz: unit of Hertz (frequenacy)
 @var N: unit of Newton (force)
 @var Pa: unit of Pascal (pressure, stress)
 @var atm: unit of atmosphere (pressure)
@@ -77,8 +77,11 @@ some tools supporting the usage of symbols.
 @var W: unit of Watt (power)
 @var C: unit of Coulomb (electric charge)
 @var V: unit of Volt (electric potential)
-@var F: unit of Farad (Capacitance)
+@var F: unit of Farad (capacitance)
 @var Ohm: unit of Ohm (electric resistance)
+@var K : unit of Kelvin (temperature)
+@var Celsius: unit of Celsius (temperature)
+@var Fahrenheit : unit of Fahrenheit (temperature)
 @var R_Earth_equator: Earth's equatorial radius
 @var R_Earth_poles: Earth's polar radius
 @var R_Earth: Earth's radius
@@ -86,15 +89,20 @@ some tools supporting the usage of symbols.
 """
 class Unit(object):
    """
-   a general class to define a physical unit and a linear converter a+b*x to get transfert to a referene unit system (typically SI)
+   a general class to define a physical unit and convert from this unit to an appropriate SI unit.
+
+   L{Unit} object have a dual purpose: Firstly physical units can be combined through *,/ and ** to form new physical units or to add prefixes such as
+   Milli to m to form mm=Milli*m. Moreover, a given floating point number x (or any other arithmetic object) can be converted from the physical unit to 
+   the SI system, eg. 10*mm to create the value for 10mm which is the float number 0.01 in the SI system. In addition, a value in the SI unit can be 
+   converted back to the given unit, eg. to express 0.01m in physical units of mm use 0.01/mm which will return 10.
    """
    def __init__(self, name, longname,a ,b ):
        """
-       initializes the unit
+       initializes the physical unit
        
-       @param name: short name of the unit or prefix
+       @param name: short name of the physical unit or prefix
        @type name: C{str}
-       @param longname: long name of the unit or prefix
+       @param longname: long name of the physical unit or prefix
        @type longname: C{str}
        @param a: absolute value in transformation
        @type a: C{float}
@@ -111,43 +119,43 @@ class Unit(object):
 
    def getName(self):
        """
-       Returns the name of the unit
+       Returns the name of the physical unit
  
-       @return: name of the unit
+       @return: name of the physical unit
        @rtype: C{str}
        """
        return self.__name
 
    def setName(self, name):
        """
-       Sets the name of the unit
+       Sets the name of the physical unit
  
-       @param name: new name of the unit
+       @param name: new name of the physical unit
        @type name: C{str}
        """
        self.__name=name
 
    def getLongName(self):
        """
-       Returns the long name of the unit
+       Returns the long name of the physical unit
  
-       @return: name of the unit
+       @return: name of the physical unit
        @rtype: C{str}
        """
        return self.__longname
 
    def setLongName(self, name):
        """
-       Sets the long name of the unit
+       Sets the long name of the physical unit
  
-       @param name: new long name of the unit
+       @param name: new long name of the physical unit
        @type name: C{str}
        """
        self.__longname=name
 
    def __call__(self,x):
        """
-       Converts a value x in the unit self to SI 
+       Converts a value x in the physical unit self to SI 
 
        @param x: value to convert
        @type x: an arithmetic object
@@ -158,17 +166,17 @@ class Unit(object):
        """
        Performs self*other operation for two L{Unit} objects
 
-       @param other: an other unit
+       @param other: an other physical unit
        @type other: L{Unit}
        @rtype: L{Unit} or C{NotImplemented}
        """
        if isinstance(other, Unit):
           a=self(other(0.))
           b=(self(other(1.))-a)
-          if isinstance(other, PowUnit) or isinstance(self,DivUnit) or  isinstance(self, PowUnit):
-            return ProdUnit(self.getName()+" "+other.getName(),self.getLongName()+"*"+other.getLongName(),a ,b)
+          if isinstance(other, _PowUnit) or isinstance(self,_DivUnit) or  isinstance(self, _PowUnit):
+            return _ProdUnit(self.getName()+" "+other.getName(),self.getLongName()+"*"+other.getLongName(),a ,b)
           else:
-            return ProdUnit(self.getName()+other.getName(),self.getLongName()+"*"+other.getLongName(),a ,b)
+            return _ProdUnit(self.getName()+other.getName(),self.getLongName()+"*"+other.getLongName(),a ,b)
        else:
           return NotImplemented
 
@@ -176,17 +184,18 @@ class Unit(object):
        """
        Performs other*self operation
 
-       @param other: an other L{Unit} or an arithmetic object
-       @type other: L{Unit} 
-       @rtype: L{Unit} or an arithmetic object
+       @param other: an other L{Unit} or an arithmetic object. if other is a arithmetic object such as C{float} other is assumed to be given in the
+       physical unit C{self} and is converted into the corresponding SI unit.
+       @type other: L{Unit} or 
+       @rtype: L{Unit} of or an arithmetic object
        """
        if isinstance(other, Unit):
           a=other(self(0.))
           b=(other(self(1.))-a)
-          if isinstance(other, PowUnit) or  isinstance(self, PowUnit) or isinstance(other, DivUnit):
-             return ProdUnit(other.getName()+" "+self.getName(),other.getLongName()+"*"+self.getLongName(),a ,b)
+          if isinstance(other, _PowUnit) or  isinstance(self, _PowUnit) or isinstance(other, _DivUnit):
+             return _ProdUnit(other.getName()+" "+self.getName(),other.getLongName()+"*"+self.getLongName(),a ,b)
           else:
-             return ProdUnit(other.getName()+self.getName(),other.getLongName()+"*"+self.getLongName(),a ,b)
+             return _ProdUnit(other.getName()+self.getName(),other.getLongName()+"*"+self.getLongName(),a ,b)
        else:
           return self(other)
 
@@ -194,18 +203,18 @@ class Unit(object):
        """
        Performs self*other operation for two L{Unit} objects
 
-       @param other: an other unit
+       @param other: an other physical unit
        @type other: L{Unit}
        @rtype: L{Unit} or C{NotImplemented}
        """
        if isinstance(other, Unit):
           if abs(self(0.))+abs(other(0.))>0:
-              raise ValueError,"Division of units requires 0 absolute values"
-          if  isinstance(other, (ProdUnit, DivUnit)):
+              raise ValueError,"Division of physical units requires 0 absolute values"
+          if  isinstance(other, (_ProdUnit, _DivUnit)):
               # X/(c*d) or X/(c/d) requires brackets:
-              return DivUnit(self.getName()+"/("+other.getName()+")",self.getLongName()+"/("+other.getLongName()+")",0 , self(1.)/other(1.))
+              return _DivUnit(self.getName()+"/("+other.getName()+")",self.getLongName()+"/("+other.getLongName()+")",0 , self(1.)/other(1.))
           else:
-              return DivUnit(self.getName()+"/"+other.getName(),self.getLongName()+"/"+other.getLongName(),0 , self(1.)/other(1.))
+              return _DivUnit(self.getName()+"/"+other.getName(),self.getLongName()+"/"+other.getLongName(),0 , self(1.)/other(1.))
        else:
           return NotImplemented
    def __rdiv__(self,other):
@@ -218,12 +227,12 @@ class Unit(object):
        """
        if isinstance(other, Unit):
           if abs(self(0.))+abs(other(0.))>0:
-              raise ValueError,"Division of units requires 0 absolute values"
-          if  isinstance(self, (ProdUnit, DivUnit)):
+              raise ValueError,"Division of physical units requires 0 absolute values"
+          if  isinstance(self, (_ProdUnit, _DivUnit)):
               # X/(a*b) or X/(a/b) requires brackets:
-              return DivUnit(other.getName()+"/("+self.getName()+")",other.getLongName()+"/("+self.getLongName()+")",0 , other(1.)/self(1.))
+              return _DivUnit(other.getName()+"/("+self.getName()+")",other.getLongName()+"/("+self.getLongName()+")",0 , other(1.)/self(1.))
           else:
-              return DivUnit(other.getName()+"/"+self.getName(),other.getLongName()+"/"+self.getLongName(),0 , other(1.)/self(1.))
+              return _DivUnit(other.getName()+"/"+self.getName(),other.getLongName()+"/"+self.getLongName(),0 , other(1.)/self(1.))
        else:
           return (other-self(0.))/(self(1.)-self(0.))
    def __pow__(self,other):
@@ -236,86 +245,92 @@ class Unit(object):
        """
        if isinstance(other, float) or isinstance(other, int):
           if abs(self(0.))>0:
-              raise ValueError,"Power of unit requires 0 absolute values"
-          if  isinstance(self, (ProdUnit, DivUnit, PowUnit)):
-              return PowUnit("("+self.getName()+")^%s"%other, "("+self.getLongName()+")^%s"%other, 0., self(1.)**other)
+              raise ValueError,"Power of physical unit requires 0 absolute values"
+          if  isinstance(self, (_ProdUnit, _DivUnit, _PowUnit)):
+              return _PowUnit("("+self.getName()+")^%s"%other, "("+self.getLongName()+")^%s"%other, 0., self(1.)**other)
           else:
-              return PowUnit(self.getName()+"^%s"%other, self.getLongName()+"^%s"%other, 0., self(1.)**other)
+              return _PowUnit(self.getName()+"^%s"%other, self.getLongName()+"^%s"%other, 0., self(1.)**other)
        else:
           return NotImplemented
 
-class ProdUnit(Unit):
+class _ProdUnit(Unit):
     pass
-class DivUnit(Unit):
+class _DivUnit(Unit):
     pass
-class PowUnit(Unit):
+class _PowUnit(Unit):
     pass
+
 #
 #  prefixes:
 #
-Yotta=1.e24
-Zetta=1.e21
-Exa=1.e18
-Peta=1.e15
-Tera=1.e12
-Giga=1.e9
-Mega=1.e6
-Kilo=1.e3
-Hecto=1.e2
-Deca=1.e1
-Deci=1.e-1
-Centi=1.e-2
-Milli=1.e-3
-Micro=1.e-6
-Nano=1.e-9
-Pico=1.e-12
-Femto=1.e-15
-Atto=1.e-18
-Zepto=1.e-21
-Yocto=1.e-24
+Yotta=Unit("Y","Yotta",0.,1.e24)
+Zetta=Unit("Z","Zetta",0.,1.e21)
+Exa=Unit("E","Exa",0.,1.e18)
+Peta=Unit("P","Peta",0.,1.e15)
+Tera=Unit("T","Tera",0.,1.e12)
+Giga=Unit("G","Giga",0.,1.e9)
+Mega=Unit("M","Mega",0.,1.e6)
+Kilo=Unit("k","Kilo",0.,1.e3)
+Hecto=Unit("h","Hecto",0.,1.e2)
+Deca=Unit("da","Deca",0.,1.e1)
+one=Unit("1","1",0.,1.)
+Deci=Unit("d","Deci",0.,1.e-1)
+Centi=Unit("c","Centi",0.,1.e-2)
+Milli=Unit("m","Milli",0.,1.e-3)
+Micro=Unit("mu","Micro",0.,1.e-6)
+Nano=Unit("n","Nano",0.,1.e-9)
+Pico=Unit("p","Pico",0.,1.e-12)
+Femto=Unit("f","Femto",0.,1.e-15)
+Atto=Unit("a","Atto",0.,1.e-18)
+Zepto=Unit("z","Zepto",0.,1.e-21)
+Yocto=Unit("y","Yocto",0.,1.e-24)
 #
 #   length
 #
-m=1.
+m=Unit("m","meter",0.,1.)
 km=Kilo*m
 cm=Centi*m
 mm=Milli*m
 #
 #  time
 #
-sec=1.
-minute=60.*sec
-h=60.*minute
-day=h*24.
-yr=day*365.2425 
+sec=Unit("sec","second",0.,1.)
+minute=Unit("min","minute",0.,60.)
+h=Unit("h","hour",0.,60.*60.)
+day=Unit("d","day",0.,60.*60.*24.)
+yr=Unit("yr","year",0.,60.*60.*24.*365.2425)
 Myr=Mega*yr
 Gyr=Giga*yr
 #
 #  mass
 #
-kg=1.
+kg=Unit("kg","kg",0.,1.)
 gram=Milli*kg
-lb=453.59237*gram
+lb=Unit("lb","pound",0.,0.45359237)
 ton=Kilo*kg
 #
 #   electric current
 #
-A=1.
+A=Unit("A","Ampere",0.,1.)
+#
+#   Temperature
+#
+K=Unit("K","Kelvin",0.,1.)
+Celsius=Unit("C","Celsius",273.15,1.)
+Fahrenheit=Unit("F","Fahrenheit",459.67*5./9.,5./9.)
 #
 #  others
 #
-Hz=1./sec
-N = m*kg/sec**2
-
-Pa = N/m**2
-atm=101325.024*Pa
-
-J = N*m 
-W= J/sec
-C=sec*A
-V = W/A 
-F = C/V
-Ohm=V/A
+Hz=one/sec
+N = Unit("N","Newton",0.,1.)
+Pa = Unit("Pa","Pascal",0.,1.)
+atm= Unit("atm","atmosphere",0.,101325.024)
+J = Unit("J","Joule",0.,1.)
+W= Unit("W","Watt",0.,1.)
+C=Unit("C","Coulomb",0.,1.)
+V = Unit("V","Volt",0.,1.)
+F = Unit("F","Farad",0.,1.)
+Ohm=Unit("Ohm","Ohm",0.,1.)
 #
 #  some constants
 #
