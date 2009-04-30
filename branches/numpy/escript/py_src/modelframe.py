@@ -438,7 +438,7 @@ class ParameterSet(LinkableObject):
         - a ParameterSet object
         - a Simulation object
         - a Model object
-        - a numarray object
+        - a numpy object
         - a list of booleans
         - any other object (not considered by writeESySXML and writeXML)
 
@@ -561,7 +561,7 @@ class ParameterSet(LinkableObject):
 
     def _parametersToDom(self, esysxml, node):
         for name,value in self:
-            # convert list to numarray when possible:
+            # convert list to numpy when possible:
             if isinstance (value, list):
                 elem_type=-1
                 for i in value:
@@ -604,7 +604,7 @@ class ParameterSet(LinkableObject):
                       arraytype_str="complex_"
                 else:
                       arraytype_str=str(arraytype)
-                numarrayElement = esysxml.createElement('NumArray')
+                numarrayElement = esysxml.createElement('ndarray')
                 numarrayElement.appendChild(esysxml.createDataNode('ArrayType', arraytype_str))
                 numarrayElement.appendChild(esysxml.createDataNode('Shape', shape))
                 numarrayElement.appendChild(esysxml.createDataNode('Data', ' '.join(
