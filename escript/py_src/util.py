@@ -3942,7 +3942,7 @@ def inverse(arg):
     """
     import numpy.linalg
     if isinstance(arg,numpy.ndarray):
-      return numpy.linalg.tensorinv(arg)
+      return numpy.linalg.tensorinv(arg,ind=1)
     elif isinstance(arg,escript.Data):
       return escript_inverse(arg)
     elif isinstance(arg,float):
@@ -4703,7 +4703,11 @@ def minimum(*args):
     out=None
     for a in args:
        if out==None:
-          out=a*1.
+          #out=a*1
+	  if isinstance(a, numpy.ndarray):	#Coz rank0 array * a scalar = scalar not array
+	      out=a.copy()
+	  else:
+	      out=a*1
        else:
           if isinstance(out,escript.Data) and isinstance(a,escript.Data):
 	     if out.getRank()==0 and a.getRank()>0:
@@ -4896,7 +4900,7 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
     C{out[s,t]=S{Sigma}_r arg0[s,r]*arg1[r,t]}
 
     where
-        - s runs through C{arg0.Shape[:arg0.Rank-axis_offset]}
+        - s runs through C{arg0.Shape[:arg0.ndim-axis_offset]}
         - r runs through C{arg0.Shape[:axis_offset]}
         - t runs through C{arg1.Shape[axis_offset:]}
 
@@ -4919,13 +4923,13 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
        if isinstance(arg1,Symbol):
            return GeneralTensorProduct_Symbol(arg0,arg1,axis_offset)
        else:
-           if not arg0.shape[arg0.rank-axis_offset:]==arg1.shape[:axis_offset]:
+           if not arg0.shape[arg0.ndim-axis_offset:]==arg1.shape[:axis_offset]:
                raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset)
            arg0_c=arg0.copy()
            arg1_c=arg1.copy()
            sh0,sh1=arg0.shape,arg1.shape
            d0,d1,d01=1,1,1
-           for i in sh0[:arg0.rank-axis_offset]: d0*=i
+           for i in sh0[:arg0.ndim-axis_offset]: d0*=i
            for i in sh1[axis_offset:]: d1*=i
            for i in sh1[:axis_offset]: d01*=i
            arg0_c.resize((d0,d01))
@@ -4934,7 +4938,7 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
            for i0 in range(d0):
                     for i1 in range(d1):
                          out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[:,i1])
-           out.resize(sh0[:arg0.rank-axis_offset]+sh1[axis_offset:])
+           out.resize(sh0[:arg0.ndim-axis_offset]+sh1[axis_offset:])
            return out
     elif isinstance(arg0,escript.Data):
        if isinstance(arg1,Symbol):
@@ -5117,7 +5121,7 @@ def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
 
     The function call C{generalTransposedTensorProduct(arg0,arg1,axis_offset)}
     is equivalent to
-    C{generalTensorProduct(transpose(arg0,arg0.rank-axis_offset),arg1,axis_offset)}.
+    C{generalTensorProduct(transpose(arg0,arg0.ndim-axis_offset),arg1,axis_offset)}.
 
     @param arg0: first argument
     @type arg0: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{float},
@@ -5321,13 +5325,13 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
     C{out[s,t]=S{Sigma}_r arg0[s,r]*arg1[t,r]}
 
     where
-        - s runs through C{arg0.Shape[:arg0.Rank-axis_offset]}
-        - r runs through C{arg0.Shape[arg1.Rank-axis_offset:]}
-        - t runs through C{arg1.Shape[arg1.Rank-axis_offset:]}
+        - s runs through C{arg0.Shape[:arg0.ndim-axis_offset]}
+        - r runs through C{arg0.Shape[arg1.ndim-axis_offset:]}
+        - t runs through C{arg1.Shape[arg1.ndim-axis_offset:]}
 
     The function call C{generalTensorTransposedProduct(arg0,arg1,axis_offset)}
     is equivalent to
-    C{generalTensorProduct(arg0,transpose(arg1,arg1.Rank-axis_offset),axis_offset)}.
+    C{generalTensorProduct(arg0,transpose(arg1,arg1.ndim-axis_offset),axis_offset)}.
 
     @param arg0: first argument
     @type arg0: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{float},
@@ -5348,22 +5352,22 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
        if isinstance(arg1,Symbol):
            return GeneralTensorTransposedProduct_Symbol(arg0,arg1,axis_offset)
        else:
-           if not arg0.shape[arg0.rank-axis_offset:]==arg1.shape[arg1.rank-axis_offset:]:
+           if not arg0.shape[arg0.ndim-axis_offset:]==arg1.shape[arg1.ndim-axis_offset:]:
                raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset)
            arg0_c=arg0.copy()
            arg1_c=arg1.copy()
            sh0,sh1=arg0.shape,arg1.shape
            d0,d1,d01=1,1,1
-           for i in sh0[:arg0.rank-axis_offset]: d0*=i
-           for i in sh1[:arg1.rank-axis_offset]: d1*=i
-           for i in sh1[arg1.rank-axis_offset:]: d01*=i
+           for i in sh0[:arg0.ndim-axis_offset]: d0*=i
+           for i in sh1[:arg1.ndim-axis_offset]: d1*=i
+           for i in sh1[arg1.ndim-axis_offset:]: d01*=i
            arg0_c.resize((d0,d01))
            arg1_c.resize((d1,d01))
            out=numpy.zeros((d0,d1),numpy.float64)
            for i0 in range(d0):
                     for i1 in range(d1):
                          out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[i1,:])
-           out.resize(sh0[:arg0.rank-axis_offset]+sh1[:arg1.rank-axis_offset])
+           out.resize(sh0[:arg0.ndim-axis_offset]+sh1[:arg1.ndim-axis_offset])
            return out
     elif isinstance(arg0,escript.Data):
        if isinstance(arg1,Symbol):
