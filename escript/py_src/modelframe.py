@@ -604,12 +604,12 @@ class ParameterSet(LinkableObject):
                       arraytype_str="complex_"
                 else:
                       arraytype_str=str(arraytype)
-                numarrayElement = esysxml.createElement('ndarray')
-                numarrayElement.appendChild(esysxml.createDataNode('ArrayType', arraytype_str))
-                numarrayElement.appendChild(esysxml.createDataNode('Shape', shape))
-                numarrayElement.appendChild(esysxml.createDataNode('Data', ' '.join(
+                ndarrayElement = esysxml.createElement('ndarray')
+                ndarrayElement.appendChild(esysxml.createDataNode('ArrayType', arraytype_str))
+                ndarrayElement.appendChild(esysxml.createDataNode('Shape', shape))
+                ndarrayElement.appendChild(esysxml.createDataNode('Data', ' '.join(
                     [str(x) for x in numpy.reshape(value, size)])))
-                val.appendChild(numarrayElement)
+                val.appendChild(ndarrayElement)
                 param.appendChild(val)
             elif isinstance(value, list):
                 param.appendChild(esysxml.createDataNode('Value', ' '.join([str(x) for x in value]) ))
