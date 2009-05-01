@@ -35,7 +35,7 @@ from esys.escript.modelframe import Model, ParameterSet
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from mines import parse
-import numarray
+import numpy
 
 class MiningHistory(Model):
     """
@@ -235,9 +235,9 @@ class CoulombFailureStress(ParameterSet):
         """
         """
         super(CoulombFailureStress,self).__init__(**kwargs)
-        self.declareParameter(stress=numarray.zeros((3,3)),
+        self.declareParameter(stress=numpy.zeros((3,3)),
                               friction_coefficient=0.,
-                              normal=numarray.array([1.,0.,0.]))
+                              normal=numpy.array([1.,0.,0.]))
     def cfs(self):
         """
         returns  Coulomb failure stress
