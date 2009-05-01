@@ -214,16 +214,16 @@ class ParamaterSetTestCase(unittest.TestCase):
 
     def testFromDomNumarrayVector(self):
         p3 = ParameterSet()
-        mynumarray = numpy.array([3., 4., 5.], dtype=numpy.float64)
-        p3.declareParameter(numtest=mynumarray)
+        mynumpy = numpy.array([3., 4., 5.], dtype=numpy.float64)
+        p3.declareParameter(numtest=mynumpy)
         doc = self._class(p3)
         assert doc.numtest.dtype == numpy.float64
         assert type(doc.numtest) == numpy.ndarray
 
     def testFromDomNumarrayMulti(self):
         p3 = ParameterSet()
-        mynumarray = numpy.array([[1., 2., 3.], [3., 4., 5.]], dtype=numpy.float64)
-        p3.declareParameter(numtest=mynumarray)
+        mynumpy = numpy.array([[1., 2., 3.], [3., 4., 5.]], dtype=numpy.float64)
+        p3.declareParameter(numtest=mynumpy)
         doc = self._class(p3)
         assert doc.numtest.dtype == numpy.float64
         assert type(doc.numtest) == numpy.ndarray

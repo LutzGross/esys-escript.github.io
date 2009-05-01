@@ -237,7 +237,7 @@ class ConstrainerOverBox(Model):
                 shape=()
              elif isinstance(val, list) or isinstance(val, tuple) :
                 shape=(len(val),)
-             elif isinstance(val, numarray.NumArray):
+             elif isinstance(val, numpy.ndarray):
                  shape=val.shape
              elif val == None:
                   shape=()
@@ -486,7 +486,7 @@ class ConstrainerAtBoxVertex(Model):
                 shape=()
              elif isinstance(val, list) or isinstance(val, tuple) :
                 shape=(len(val),)
-             elif isinstance(val, numarray.NumArray):
+             elif isinstance(val, numpy.ndarray):
                  shape=val.shape
              elif val == None:
                   shape=()
@@ -496,7 +496,7 @@ class ConstrainerAtBoxVertex(Model):
                    vertex=[inf(x[0]),inf(x[1]),inf(x[2])]
              else:
                    vertex=[inf(x[0]),inf(x[1])]
-             self.__location_of_constraint=whereZero(length(x-vertex),self.tol)*numarray.ones(shape)
+             self.__location_of_constraint=whereZero(length(x-vertex),self.tol)*numpy.ones(shape)
              if not self.value == None:
                    self.__value_of_constraint=self.__location_of_constraint*self.value
 class ScalarConstrainerAtBoxVertex(Model):
@@ -594,16 +594,16 @@ class VectorConstrainerAtBoxVertex(Model):
           self.__location_of_constraint=Vector(0,x.getFunctionSpace())
           if self.domain.getDim()==3:
              vertex=[inf(x[0]),inf(x[1]),inf(x[2])]
-             msk=numarray.zeros((3,))
+             msk=numpy.zeros((3,))
              if self.comp_mask[0]: msk[0]=1
              if self.comp_mask[1]: msk[1]=1
              if self.comp_mask[2]: msk[2]=1
           else:
              vertex=[inf(x[0]),inf(x[1])]
-             msk=numarray.zeros((2,))
+             msk=numpy.zeros((2,))
              if self.comp_mask[0]: msk[0]=1
              if self.comp_mask[1]: msk[1]=1
-          self.__location_of_constraint=whereZero(length(x-vertex),self.tol)*numarray.ones(shape)
+          self.__location_of_constraint=whereZero(length(x-vertex),self.tol)*numpy.ones(shape)
           if not self.value == None:
                 self.__value_of_constraint=self.__location_of_constraint*self.value
 

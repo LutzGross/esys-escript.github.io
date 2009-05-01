@@ -22,7 +22,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript.modelframe import Model,IterationDivergenceError
 from esys.escript.linearPDEs import LinearPDE
-import numarray
+
 
 
 class TemperatureAdvection(Model):
@@ -43,7 +43,7 @@ class TemperatureAdvection(Model):
            super(TemperatureAdvection, self).__init__(**kwargs)
            self.declareParameter(domain=None, \
                                  temperature=1., \
-                                 velocity=numarray.zeros([3]),
+                                 velocity=numpy.zeros([3]),
                                  density=1., \
                                  heat_capacity=1., \
                                  thermal_permabilty=1., \
