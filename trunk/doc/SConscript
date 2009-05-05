@@ -27,8 +27,6 @@ os.chdir(src_dir)
 example_files = os.popen("find examples -name .svn -prune -o -type f -print").read().split(None)
 os.chdir(cur_dir)
 
-print example_files
-
 tmp1 = env.Command("#/release/doc/escript_examples.zip", None, 
 "zip "+os.path.join(outputdir,"escript_examples.zip ") +" ".join(example_files),chdir=src_dir)
 env.Alias('examples_zipfile', tmp1)
