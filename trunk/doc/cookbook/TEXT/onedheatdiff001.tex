@@ -82,9 +82,25 @@ Because we have a symmetrical problem we will also need to set the symmetry on b
 \begin{verbatim}
  myPDE.setSymmetryOn()
 \end{verbatim}
-To input the PDE into \verb escript it must be compared with the general form equation of a linear PDE which is described by:
-\begin{equation}\label{eqn:genfrm}
--(A\hackscore{jl} u\hackscore{,l})\hackscore{,j}-(B\hackscore{j} u)\hackscore{,j}+C\hackscore{l} u\hackscore{,l}+D u =-X\hackscore{j,j}+Y \; .
+To input the PDE into \esc it must be compared with the general form\footnote{Available in section ?? of the users guide to \esc }. For most simple PDEs however, the general form is over complicated and confusing. Thus for this example, we will use a simplified version that suits our heat diffusion problem. This simpler form is described by;
+\begin{equation}\label{eqn:simpfrm}
+-(A\hackscore{jl} u\hackscore{,l})\hackscore{,j}+D u =+Y
+\end{equation}
+This can be written in the form;
+\begin{equation}	
+-\nabla.(A.\nabla u) + Du = f
+\end{equation}
+or;
+\begin{equation}\label{eqn:commonform}
+-A\frac{\partial^{2}u}{\partial x^{2}\hackscore{i}} + Du = f
+\end{equation}
+When comparing equations \eqref{eqn:hd} and \eqref{eqn:commonform} we see that;
+\begin{equation}
+A = \kappa . \delta; D = \frac{\rho c \hackscore{p}}{h}; f = q \hackscore{H}
+\end{equation}
+Additionally we must also consider the boundary conditions of our PDE. They take the form:
+\begin{equation}
+\eta \hackscore{j} A\hackscore{jl} u\hackscore{,l} + du = y
 \end{equation}
 
 
