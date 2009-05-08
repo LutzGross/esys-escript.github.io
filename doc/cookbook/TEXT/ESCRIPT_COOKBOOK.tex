@@ -12,16 +12,48 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \documentclass{manual}
+
+% grab the handy definitions and \usepackage statements etc
+\input{cookbook_defs}
+
+% title, author, etc stuff
 \title{The Escript COOKBOOK}
 
-\newcommand{\editor}[1] {\textit{EDITORIAL: {#1}}}
-\newcommand{\eqref}[1] {(\ref{#1})}
-\newcommand{\esc}{\verb escript}
+\ifpdf
+\pdfinfo {
+/Author (Antony Hallam)
+/Title (escript COOKBOOK)
+/Keywords (escript, PDEs)
+}
+\fi
+
+\author{Antony Hallam}
+\authoraddress{
+Earth Systems Science Computational Centre (ESSCC) \\
+School of Earth Sciences \\
+The University of Queensland \\
+Brisbane, Australia \\
+Email: \email{esys@esscc.uq.edu.au}
+}                                                                                         
+\date{\today}      
+\release{Alpha}
+\setshortversion{}
+
+\makeindex
 
 \begin{document}
 
+\maketitle
+
+\tableofcontents
+
 \chapter{Introduction}
 \input{intro}
+\input{quickstart}
+\input{escpybas}
+\input{einsteinETA}
+\input{PDEsintro}
+
 
 \chapter{Getting Started with Heat Diffusion}
 \input{onedheatdiff001}
