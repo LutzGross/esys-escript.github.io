@@ -56,6 +56,13 @@ cc_flags  = '/EHsc /GR /wd4068  /MD'
 cc_optim  = '/O2 /Op /W3'
 cc_debug  = '/Od /RTCcsu /ZI /Yd /Y-'
 
+# MPI version using MPICH2
+usempi = 'yes'
+mpi_path = 'C:/Program Files/MPICH2/include'
+mpi_lib_path = 'C:/Program Files/MPICH2/lib'
+mpi_libs = ['mpi']
+mpi_flavour = 'MPICH2'
+
 # linker flags to use
 #link_flags = ''
 #link_flags_debug = '/debug /incremental:no /opt:ref /opt:icf'
