@@ -99,7 +99,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      }
      out->logical_row_block_size=row_block_size;
      out->logical_col_block_size=col_block_size;
-     out->logical_block_size=out->logical_row_block_size*out->logical_block_size;
+     out->logical_block_size=out->logical_row_block_size*out->logical_col_block_size;
      out->block_size=out->row_block_size*out->col_block_size;
      out->col_coupler=Paso_Coupler_alloc(pattern->col_connector,out->col_block_size);
      out->row_coupler=Paso_Coupler_alloc(pattern->row_connector,out->row_block_size);
