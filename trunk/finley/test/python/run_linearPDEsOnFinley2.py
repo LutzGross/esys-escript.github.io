@@ -50,7 +50,7 @@ try:
 except KeyError:
      FINLEY_TEST_DATA='.'
 
-FINLEY_TEST_MESH_PATH=FINLEY_TEST_DATA+"/data_meshes/"
+FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
 NE=6 # number of element in each spatial direction (must be even)
 
@@ -58,7 +58,7 @@ class Test_LinearPDEOnFinleyTet2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemb
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = ReadMesh(FINLEY_TEST_MESH_PATH+"tet_2D_order1.fly",optimize=False)
+        self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
    def tearDown(self):
         del self.domain
 
@@ -66,7 +66,7 @@ class Test_LinearPDEOnFinleyTet2DOrder2(Test_LinearPDE_noLumping,Test_pdetools_n
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = ReadMesh(FINLEY_TEST_MESH_PATH+"tet_2D_order2.fly",optimize=False)
+        self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
    def tearDown(self):
         del self.domain
 
@@ -74,7 +74,7 @@ class Test_LinearPDEOnFinleyTet3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemb
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = ReadMesh(FINLEY_TEST_MESH_PATH+"tet_3D_order1.fly",optimize=False)
+        self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
    def tearDown(self):
         del self.domain
 
@@ -82,7 +82,7 @@ class Test_LinearPDEOnFinleyTet3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemb
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = ReadMesh(FINLEY_TEST_MESH_PATH+"tet_3D_order2.fly",optimize=False)
+        self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
    def tearDown(self):
         del self.domain
 

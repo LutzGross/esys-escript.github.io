@@ -47,7 +47,7 @@ try:
 except KeyError:
      FINLEY_TEST_DATA='.'
 
-FINLEY_TEST_MESH_PATH=FINLEY_TEST_DATA+"/data_meshes/"
+FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
 # number of elements in the spatial directions
 NE0=8

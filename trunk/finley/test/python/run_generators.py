@@ -39,22 +39,22 @@ try:
 except KeyError:
      FINLEY_WORKDIR='.'
 
-FINLEY_TEST_MESH_PATH=FINLEY_TEST_DATA+"/data_meshes/"
+FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 #if os.name == "nt":
-#   FINLEY_TEST_MESH_PATH = FINLEY_TEST_MESH_PATH+"win32/"
-FINLEY_WORKDIR_PATH=FINLEY_WORKDIR+"/"
+#   FINLEY_TEST_MESH_PATH = os.path.join(FINLEY_TEST_MESH_PATH,"win32")
+FINLEY_WORKDIR_PATH=FINLEY_WORKDIR
 
 TEST_FILE_EXT=".test"
 class Test_Generators(unittest.TestCase):
 
    def checker(self,dom,reference):
-      dom_file=FINLEY_WORKDIR_PATH+TEST_FILE_EXT
+      dom_file=os.path.join(FINLEY_WORKDIR_PATH,TEST_FILE_EXT)
       dom.write(dom_file)
 # Uncomment this section to dump the files for regression testing
 #      if True:
-#         dom.write(FINLEY_TEST_MESH_PATH+reference)
+#         dom.write(os.path.join(FINLEY_TEST_MESH_PATH,reference))
       dom_string=open(dom_file).read().splitlines() 
-      ref_string=open(FINLEY_TEST_MESH_PATH+reference).read().splitlines()
+      ref_string=open(os.path.join(FINLEY_TEST_MESH_PATH,reference)).read().splitlines()
       self.failUnlessEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
       for l in range(1,len(ref_string)):
 	 line=dom_string[l].strip()

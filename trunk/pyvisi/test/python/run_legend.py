@@ -35,7 +35,7 @@ except KeyError:
 	PYVISI_TEST_DATA_ROOT='.'
 
 PYVISI_TEST_MESHES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT, "data_meshes")
-PYVISI_TEST_LEGEND_IMAGES_PATH = os.path.join(PYVISI_WORKDIR, \
+PYVISI_TEST_LEGEND_IMAGES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT, \
 		"data_sample_images", "legend")
 
 MIN_IMAGE_SIZE = 100

@@ -106,7 +106,7 @@ vis.t=Link(sq)
 vis.data0=Link(temp,"temperature")
 vis.data1=Link(vel,"velocity")
 vis.dt=0.0001
-vis.filename=WORKDIR+"/temp.xml"
+vis.filename=os.path.join(WORKDIR,"temp.xml")
 
 per=GaussianProfile()
 per.domain=Link(dom)

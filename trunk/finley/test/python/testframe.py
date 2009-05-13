@@ -29,7 +29,7 @@ from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle, JoinFaces, Brick
 
 import numarray
-FINLEY_TEST_MESH_PATH="data_meshes/"
+FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_MESH_PATH,"data_meshes")
 
 NE=1 # number of element in each spatial direction (must be even)
 

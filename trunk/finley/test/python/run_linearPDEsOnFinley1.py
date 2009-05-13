@@ -50,7 +50,7 @@ try:
 except KeyError:
      FINLEY_TEST_DATA='.'
 
-FINLEY_TEST_MESH_PATH=FINLEY_TEST_DATA+"/data_meshes/"
+FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
 NE=6 # number of element in each spatial direction (must be even)
 

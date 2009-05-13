@@ -40,7 +40,7 @@ try:
 except KeyError:
 	PYVISI_TEST_DATA_ROOT='.'
 
-PYVISI_TEST_ESCRIPT_IMAGES_PATH = os.path.join(PYVISI_WORKDIR, \
+PYVISI_TEST_ESCRIPT_IMAGES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT, \
 		"data_sample_images", "escript")
 
 MIN_IMAGE_SIZE = 100
