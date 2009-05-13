@@ -1608,11 +1608,10 @@ class HomogeneousSaddlePointProblem(object):
          while not converged:
               # calculate velocity for current pressure:
               v=self.getV(p,v)
-              #
               norm_v=self.norm_v(v)
               norm_Bv=self.norm_Bv(v)
               ATOL=norm_v*rtol+atol
-              if self.verbose: print "saddle point solver: norm v= %e, norm_Bv= %e, tolerance = %e."%(norm_v, norm_Bv,ATOL)
+              if self.verbose: print "HomogeneousSaddlePointProblem: norm v= %e, norm_Bv= %e, tolerance = %e."%(norm_v, norm_Bv,ATOL)
               if not ATOL>0: raise ValueError,"overall absolute tolerance needs to be positive."
               if norm_Bv <= ATOL:
                  converged=True
@@ -1628,12 +1627,12 @@ class HomogeneousSaddlePointProblem(object):
                  else:
                    norm2=self.norm_p(dp)
                  ATOL_ITER=ATOL/norm_Bv*norm2
-                 if self.verbose: print "saddle point solver: tolerance for solver: %e"%ATOL_ITER
+                 if self.verbose: print "HomogeneousSaddlePointProblem: tolerance for solver: %e"%ATOL_ITER
                  if usePCG:
                        p,v0,a_norm=PCG(v,self.__Aprod_PCG,p,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL_ITER, rtol=0.,iter_max=max_iter, verbose=self.verbose)
                  else:
                        p=GMRES(dp,self.__Aprod_GMRES, p, self.__inner_GMRES,atol=ATOL_ITER, rtol=0.,iter_max=max_iter, iter_restart=iter_restart, verbose=self.verbose)
-         if self.verbose: print "saddle point solver: tolerance reached."
+         if self.verbose: print "HomogeneousSaddlePointProblem: tolerance reached."
  	 return v,p
 
       #========================================================================

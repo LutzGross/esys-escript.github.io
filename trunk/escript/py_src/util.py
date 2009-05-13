@@ -40,7 +40,7 @@ import numarray
 import escript
 import os
 from esys.escript import C_GeneralTensorProduct
-from esys.escript import getVersion
+from esys.escript import getVersion, getMPIRankWorld, getMPIWorldMax
 from esys.escript import printParallelThreadCounts
 from esys.escript import listEscriptParams
 
@@ -5861,6 +5861,17 @@ def deviatoric(arg):
     """
     return arg-(trace(arg)/trace(kronecker(arg.getDomain())))*kronecker(arg.getDomain())
 
+def vol(arg):
+    """
+    Returns the volume or area of the oject C{arg}
+
+    @param arg: a geometrical object
+    @type arg: L{escript.FunctionSpace} or L{escript.Domain}
+    @rtype: C{float}
+    """
+    if isinstance(arg,escript.Domain): arg=escript.Function(arg)
+    return integrate(escript.Scalar(1.,arg))
+ 
 def diameter(domain):
     """
     Returns the diameter of a domain.
@@ -5900,8 +5911,124 @@ def longestEdge(domain):
     """
     return max([v[1]-v[0] for v in boundingBox(domain) ])
 
-#=============================
-#
+class FileWriter(object):
+    """
+    Interface to write data to a file. In essence this class wrappes the standart C{file} object to write data that are global in MPI
+    to a file. In fact, data are writen on the processor with MPI rank 0 only. It is recommended to use C{FileWriter} rather than C{open} in order to write
+    code that is running with as well as with MPI. It is save to use C{open} onder MPI to read data which are global under MPI.
+    @var name: name of file
+    @var mode: access mode (='w' or ='a')
+    @var closed: True to indicate closed file
+    @var newlines: line seperator
+    """
+    def __init__(self,fn,append=False,createLocalFiles=False):
+         """
+         Opens a file of name C{fn} for writing. If running under MPI only the first processor with rank==0
+         will open the file and write to it. If C{createLocalFiles} each individual processor will create a file
+         where for any processor with rank>0 the file name is extended by its rank. This option is normally only used for 
+         debug purposes.
+
+         @param fn: filename. 
+         @type fn: C{str}
+         @param append: switches on the creation of local files.
+         @type append: C{bool}
+         @param createLocalFiles: switches on the creation of local files.
+         @type createLocalFiles: C{bool}
+         """
+         errno=0
+         self.name=fn
+         if append:
+             self.mode='a'
+         else:
+             self.mode='w'
+         self.__file=None
+         self.closed=False
+         self.newlines=os.linesep
+         e=None
+         # if not the master:
+         if getMPIRankWorld()>0:
+              if createLocalFiles:
+                  fn2=fn+".%s"%getMPIRankWorld()
+                  try:
+                     self.__file=open(fn2,self.mode)
+                  except Exception, e:
+                     errno=1
+         else:
+              try:
+                  self.__file=open(fn,self.mode)
+              except Exception, e:
+                  print e.message
+                  errno=1
+         self.__handelerror(errno,e,"opening")
+
+    def __handelerror(self,errno,e,operation):
+         errno=getMPIWorldMax(errno)
+         if errno>0:
+            if e==None:
+               raise IOError,"Unable to access file %s in mode %s for %s."%(self.name,self.mode,operation)
+            else:
+               raise IOError,e.message
+         
+    def close(self):
+        """
+        Closes the file
+        """
+        errno=0
+        e=None
+        try:
+           if not self.__file == None:
+               self.__file.close()
+        except Exception, e:
+           errno=1
+        self.__handelerror(errno,e,"closing")
+        self.closed=True
+
+    def flush(self):
+        """
+        Flush the internal I/O buffer.
+        """
+        errno=0
+        e=None
+        try:
+           if not self.__file == None:
+               self.__file.flush()
+        except Exception, e:
+           errno=1
+        self.__handelerror(errno,e,"flushing")
+
+    def write(self,txt):
+        """
+        Write string C{txt} to file.
+
+        @param txt: string C{txt} to be written to file
+        @type txt: C{str}
+        """
+        errno=0
+        e=None
+        try:
+           if not self.__file == None:
+               self.__file.write(txt)
+        except Exception, e:
+           errno=1
+        self.__handelerror(errno,e,"writing")
+
+    def writelines(self, txts):
+        """
+        Write the list C{txt} of strings to the file.
+    
+        @param txts: sequense of strings to be written to file
+        @type txts: any iterable object producing strings 
+        @note: Note that newlines are not added. This method is equivalent to call write() for each string.
+        """
+        errno=0
+        e=None
+        try:
+           if not self.__file == None:
+               self.__file.writelines(txts)
+        except Exception, e:
+           errno=1
+        self.__handelerror(errno,e,"writing strings")
+
 
 def reorderComponents(arg,index):
     """
