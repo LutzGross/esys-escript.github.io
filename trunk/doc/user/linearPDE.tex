@@ -68,7 +68,7 @@ have a constraint at all locations.
 
 \LinearPDE also supports solution discontinuities \index{discontinuity} over contact region $\Gamma^{contact}$
 in the domain $\Omega$. To specify the conditions across the discontinuity we are using the
-generalised flux $J$ which is in the case of a systems of PDEs and several components of the solution
+generalised flux $J$\footnote{In some applications the definition of flux used here can be different from the commonly used definition. For instance, if $T$ is a temperature field the heat flux $q$ is defined as $q\hackscore{,i}=-\kappa T\hackscore{,i}$ ($\kappa$ is diffusifity) which differs from the definition used here by the sign. This needs to be kept in mind when defining natural boundary conditions.\index{boundary condition!natural}} which is in the case of a systems of PDEs and several components of the solution
 defined as
 \begin{equation}\label{LINEARPDE.SYSTEM.5}
 J\hackscore{ij}=A\hackscore{ijkl}u\hackscore{k,l}+B\hackscore{ijk}u\hackscore{k}-X\hackscore{ij}
