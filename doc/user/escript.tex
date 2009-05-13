@@ -272,18 +272,22 @@ processing the value for each individual sample point.
 Use these to save data for visualization, checkpoint/restart or simply to save and reuse data that was expensive to compute.
 
 For instance to save the coordinates of the data points of the
-\ContinuousFunction to the file {\tt x.nc} use
+\ContinuousFunction to the file {\tt x.nc} use 
 \begin{python}
   x=ContinuousFunction(mydomain).getX()
   x.dump("x.nc")
+  mydomain.dump(`dom.nc`)
 \end{python}
-To recover the object \var{x} use
+To recover the object \var{x} and \var{mydomain} was a \finley mesh use
 \begin{python}
+  from esys.finley import LoadMesh
+  mydomain=LoadMesh('dom.nc')
   x=load("x.nc", mydomain)
 \end{python}
-The dump file {\tt x.nc} does not contain a representation of the \Domain, even though it is required to recreate \var{x}.
-It is common to simply recreate the \Domain before reading a \Data, or you may read and write your \Domain in a separate file with
-\var{domain=ReadMesh(fileName)} and \var{domain.write(fileName)}.
+It possible to rerun the mechanism that was originally used to generates
+\var{mydomain} to recreate \var{mydomain}. However in most cases using \var{dump} and
+load is faster in particuar if optimization has been applied. In case that
+\escript is running on more than one \MPI processor the \var{dump} will create an individual file for each processor containing the local data. In order to avoid conflicts the file name is extended by the \MPI processor rank.
 
 The function space of the \Data is stored in {\tt x.nc}, though.
 If the \Data object
@@ -307,7 +311,9 @@ The following methods are available:
 \begin{methoddesc}[Domain]{getDim}{}
 returns the spatial dimension of the \Domain.
 \end{methoddesc}
-
+\begin{methoddesc}[Domain]{dump}{filename}
+dumps the \Domain into the file \var{filename}.
+\end{methoddesc}
 \begin{methoddesc}[Domain]{getX}{}
 returns the locations in the \Domain. The \FunctionSpace of the returned
 \Data object is chosen by the \Domain implementation. Typically it will be
