@@ -256,10 +256,10 @@ try: env['ENV']['ESCRIPT_NUM_THREADS'] = os.environ['ESCRIPT_NUM_THREADS']
 except KeyError: pass
 
 try: env['ENV']['ESCRIPT_NUM_PROCS'] = os.environ['ESCRIPT_NUM_PROCS']
-except KeyError: pass
+except KeyError: env['ENV']['ESCRIPT_NUM_PROCS']=1
 
 try: env['ENV']['ESCRIPT_NUM_NODES'] = os.environ['ESCRIPT_NUM_NODES']
-except KeyError: pass
+except KeyError: env['ENV']['ESCRIPT_NUM_NODES']=1
 
 try: env['ENV']['ESCRIPT_HOSTFILE'] = os.environ['ESCRIPT_HOSTFILE']
 except KeyError: pass

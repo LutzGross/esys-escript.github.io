@@ -107,7 +107,7 @@ vis.data0=Link(m,"plastic_stress")
 vis.data1=Link(m,"velocity")
 vis.data2=Link(m,"stress")
 vis.dt=0.01
-vis.filename=WORKDIR+"/temp.xml"
+vis.filename=os.path.join(WORKDIR,"temp.xml")
 
 s=Simulation([sq,cv,m,vis],debug=True)
 s.writeXML()

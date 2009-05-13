@@ -41,7 +41,7 @@ try:
 except KeyError:
      FINLEY_TEST_DATA='.'
 
-FINLEY_TEST_MESH_PATH=FINLEY_TEST_DATA+"/data_meshes/"
+FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
 REL_TOL=1.e-6
 
@@ -132,13 +132,13 @@ class InputOutput(unittest.TestCase):
      def test_mesh_read_rectangle_from_finley_file(self):
 	if getMPISizeWorld() < 16:
 	  mydomain1 = Rectangle(n0=8, n1=10, order=1, l0=1., l1=1., optimize=False)
-          mydomain2 = ReadMesh(FINLEY_TEST_MESH_PATH+"rectangle_8x10.fly")
+          mydomain2 = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"rectangle_8x10.fly"))
           self.domainsEqual(mydomain1, mydomain2)
 
      def test_mesh_read_brick_from_finley_file(self):
 	if getMPISizeWorld() < 16:
           mydomain1 = Brick(n0=8, n1=10, n2=12, order=1, l0=1., l1=1., l2=1., optimize=False)
-          mydomain2 = ReadMesh(FINLEY_TEST_MESH_PATH+"brick_8x10x12.fly")
+          mydomain2 = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"brick_8x10x12.fly"))
           self.domainsEqual(mydomain1, mydomain2)
 
 if __name__ == '__main__':

@@ -339,7 +339,7 @@ def wavePropagation(dom,rho,mu,lmbd,eta):
      # ... save current acceleration in units of gravity and displacements 
      if output:
           if t>=t_write: 
-             saveVTK(WORKDIR+"disp.%i.vtu"%n_write,displacement=u, amplitude=length(u))
+             saveVTK(os.path.join(WORKDIR,"disp.%i.vtu"%n_write),displacement=u, amplitude=length(u))
              t_write+=dt_write
              n_write+=1
      t+=dt
