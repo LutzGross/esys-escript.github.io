@@ -201,7 +201,7 @@ void AbstractDomain::saveDX(const std::string& filename,const boost::python::dic
   return;
 }
 
-void AbstractDomain::saveVTK(const std::string& filename,const boost::python::dict& arg) const 
+void AbstractDomain::saveVTK(const std::string& filename,const boost::python::dict& arg, const std::string& metadata, const std::string& metadata_schema) const 
 {
   throwStandardException("AbstractDomain::saveVTK");
   return;

@@ -23,6 +23,7 @@ import sys, math, re
 import unittest
 from esys.escript import *
 from esys.finley import ReadMesh
+from xml.dom import minidom
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
@@ -239,6 +240,122 @@ class Test_VisualizationInterface(unittest.TestCase):
            c+=1
 
 class Test_VTKFiles(Test_VisualizationInterface):
+  def test_metadata_0(self):
+     fn=os.path.join(FINLEY_WORKDIR_PATH,"metadata0.xml")
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"hex_2D_order2.msh"),optimize=False)
+     saveVTK(fn,x=dom.getX(), metadata_schema={"gml":"http://www.opengis.net/gml"}, metadata='<dummy>hello world</dummy><timeStamp uom="s">1234</timeStamp>')
+     # testing:
+     dummy=None
+     timeStamp=None
+     unstructured=None
+     dom=minidom.parseString(open("metadata0.xml",'r').read())
+     for node in dom.childNodes:
+        if isinstance(node, minidom.Element):
+           if node.tagName == 'VTKFile':
+              type = node.getAttribute("type")
+              version = node.getAttribute("version")
+              ns = node.getAttribute("xmlns:gml")
+              self.failUnless(type == "UnstructuredGrid","Type wrong")
+              self.failUnless(version == "0.1", "wrong version")
+              self.failUnless(ns == "http://www.opengis.net/gml", "wrong name space")
+              for vtk_node in node.childNodes:
+                 if isinstance(vtk_node, minidom.Element):
+                    if vtk_node.tagName == 'MetaData':
+                       for meta_node in vtk_node.childNodes:
+                           if isinstance(meta_node, minidom.Element):
+                               if meta_node.tagName == 'dummy':
+                                  for txt_node in meta_node.childNodes:
+                                     if isinstance(txt_node, minidom.Text): 
+                                         dummy=txt_node.nodeValue.strip()
+                                         self.failUnless( dummy == "hello world","dummy is wrong")
+                               if meta_node.tagName == 'timeStamp':
+                                  uom=meta_node.getAttribute("uom")
+                                  self.failUnless( uom == "s","uom is wrong")
+                                  for txt_node in meta_node.childNodes:
+                                     if isinstance(txt_node, minidom.Text): 
+                                         timeStamp=txt_node.nodeValue.strip()
+                                         self.failUnless( timeStamp == "1234","dummy is wrong")
+                    if vtk_node.tagName == 'UnstructuredGrid': unstructured=True
+     self.failUnless( dummy !=None, "dummy is missing.")
+     self.failUnless( timeStamp !=None, "timeStamp is missing.")
+     self.failUnless( unstructured !=None, "dummy is missing.")
+  def test_metadata_1(self):
+     fn=os.path.join(FINLEY_WORKDIR_PATH,"metadata1.xml")
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"hex_2D_order2.msh"),optimize=False)
+     saveVTK(fn,x=dom.getX(), metadata='<dummy>hello world</dummy><timeStamp uom="s">1234</timeStamp>')
+     # testing:
+     dummy=None
+     timeStamp=None
+     unstructured=None
+     dom=minidom.parseString(open("metadata1.xml",'r').read())
+     for node in dom.childNodes:
+        if isinstance(node, minidom.Element):
+           if node.tagName == 'VTKFile':
+              type = node.getAttribute("type")
+              version = node.getAttribute("version")
+              self.failUnless(type == "UnstructuredGrid","Type wrong")
+              self.failUnless(version == "0.1", "wrong version")
+              for vtk_node in node.childNodes:
+                 if isinstance(vtk_node, minidom.Element):
+                    if vtk_node.tagName == 'MetaData':
+                       for meta_node in vtk_node.childNodes:
+                           if isinstance(meta_node, minidom.Element):
+                               if meta_node.tagName == 'dummy':
+                                  for txt_node in meta_node.childNodes:
+                                     if isinstance(txt_node, minidom.Text): 
+                                         dummy=txt_node.nodeValue.strip()
+                                         self.failUnless( dummy == "hello world","dummy is wrong")
+                               if meta_node.tagName == 'timeStamp':
+                                  uom=meta_node.getAttribute("uom")
+                                  self.failUnless( uom == "s","uom is wrong")
+                                  for txt_node in meta_node.childNodes:
+                                     if isinstance(txt_node, minidom.Text): 
+                                         timeStamp=txt_node.nodeValue.strip()
+                                         self.failUnless( timeStamp == "1234","dummy is wrong")
+                    if vtk_node.tagName == 'UnstructuredGrid': unstructured=True
+     self.failUnless( dummy !=None, "dummy is missing.")
+     self.failUnless( timeStamp !=None, "timeStamp is missing.")
+     self.failUnless( unstructured !=None, "dummy is missing.")
+  def test_metadata_2(self):
+     fn=os.path.join(FINLEY_WORKDIR_PATH,"metadata2.xml")
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"hex_2D_order2.msh"),optimize=False)
+     saveVTK(fn,x=dom.getX(), metadata_schema={"gml":"http://www.opengis.net/gml"})
+     # testing:
+     unstructured=None
+     dom=minidom.parseString(open("metadata2.xml",'r').read())
+     for node in dom.childNodes:
+        if isinstance(node, minidom.Element):
+           if node.tagName == 'VTKFile':
+              type = node.getAttribute("type")
+              version = node.getAttribute("version")
+              ns = node.getAttribute("xmlns:gml")
+              self.failUnless(type == "UnstructuredGrid","Type wrong")
+              self.failUnless(version == "0.1", "wrong version")
+              self.failUnless(ns == "http://www.opengis.net/gml", "wrong name space")
+              for vtk_node in node.childNodes:
+                 if isinstance(vtk_node, minidom.Element):
+                    if vtk_node.tagName == 'UnstructuredGrid': unstructured=True
+     self.failUnless( unstructured !=None, "dummy is missing.")
+  def test_metadata_3(self):
+     fn=os.path.join(FINLEY_WORKDIR_PATH,"metadata3.xml")
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"hex_2D_order2.msh"),optimize=False)
+     saveVTK(fn,x=dom.getX())
+     # testing:
+     unstructured=None
+     dom=minidom.parseString(open("metadata3.xml",'r').read())
+     for node in dom.childNodes:
+        if isinstance(node, minidom.Element):
+           if node.tagName == 'VTKFile':
+              type = node.getAttribute("type")
+              version = node.getAttribute("version")
+              self.failUnless(type == "UnstructuredGrid","Type wrong")
+              self.failUnless(version == "0.1", "wrong version")
+              for vtk_node in node.childNodes:
+                 if isinstance(vtk_node, minidom.Element):
+                    if vtk_node.tagName == 'UnstructuredGrid': unstructured=True
+     self.failUnless( unstructured !=None, "dummy is missing.")
+      
+      
   # ======================================================================================================================
   def test_hex_2D_order2_vtk(self):
      reference="hex_2D_o2.xml"
@@ -2977,7 +3094,7 @@ class Test_DXFiles(Test_VisualizationInterface):
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   # suite.addTest(Test_VTKFiles("test_hex_2D_order2_AllPoints_Scalar_vtk"))
+   #suite.addTest(Test_VTKFiles("test_metadata_3"))
    suite.addTest(unittest.makeSuite(Test_VTKFiles))
    # saveDX is not MPI parallel
    if getMPISizeWorld() == 1: 

@@ -1512,7 +1512,7 @@ void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& 
 //
 // saves mesh and optionally data arrays in VTK format
 //
-void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict& arg) const
+void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict& arg,  const std::string& metadata, const std::string& metadata_schema) const
 {
    int num_data;
    char **names;
@@ -1520,7 +1520,7 @@ void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict&
    escriptDataC **ptr_data;
 
    extractArgsFromDict(arg, num_data, names, data, ptr_data);
-   Finley_Mesh_saveVTK(filename.c_str(), m_finleyMesh.get(), num_data, names, ptr_data);
+   Finley_Mesh_saveVTK(filename.c_str(), m_finleyMesh.get(), num_data, names, ptr_data, metadata.c_str(), metadata_schema.c_str());
    checkFinleyError();
 
    /* win32 refactor */
