@@ -39,8 +39,10 @@ try:
 except KeyError:
      PYCAD_WORKDIR='.'
 
-PYCAD_TEST_MESH_PATH=PYCAD_TEST_DATA+os.sep+"data_meshes"+os.sep
-PYCAD_WORKDIR_PATH=PYCAD_WORKDIR+os.sep
+#PYCAD_TEST_MESH_PATH=PYCAD_TEST_DATA+os.sep+"data_meshes"+os.sep
+#PYCAD_WORKDIR_PATH=PYCAD_WORKDIR+os.sep
+
+
 
 def _cross(x, y):
     return numarray.array([x[1] * y[2] - x[2] * y[1], x[2] * y[0] - x[0] * y[2], x[0] * y[1] - x[1] * y[0]])
@@ -3658,24 +3660,24 @@ class Test_PyCAD_Design(unittest.TestCase):
        script_name=d.getScriptFileName()
        self.failUnless(isinstance(script_name,str))
        self.failUnless(script_name.split(".")[-1] == "geo")
-       script_name=PYCAD_WORKDIR+os.sep+"script.geo"
+       script_name=os.path.join(PYCAD_WORKDIR,"script.geo")
        d.setScriptFileName(script_name)
        self.failUnless(script_name == d.getScriptFileName())
 
        mesh_name=d.getMeshFileName()
        self.failUnless(isinstance(mesh_name,str))
        self.failUnless(mesh_name.split(".")[-1] == "msh")
-       mesh_name=PYCAD_WORKDIR+os.sep+"mesh.msh"
+       mesh_name=os.path.join(PYCAD_WORKDIR,"mesh.msh")
        d.setMeshFileName(mesh_name)
        self.failUnless(mesh_name == d.getMeshFileName())
        
        d.setOptions(algorithm=d.TETGEN,optimize_quality=False,smoothing=4)
        cmd=d.getCommandString()
-       self.failUnless("gmsh -format msh -2 -algo tetgen -smooth 4 -v 0 -order 1 -o .%smesh.msh .%sscript.geo"%(os.sep,os.sep) == cmd)
+       self.failUnless("gmsh -format msh -2 -algo tetgen -smooth 4 -v 0 -order 1 -o %s %s"%(os.path.join(".","mesh.msh"), os.path.join(".","script.geo")) == cmd)
 
        d.setOptions(optimize_quality=True)
        cmd=d.getCommandString()
-       self.failUnless("gmsh -format msh -2 -algo iso -smooth 1 -optimize -v 0 -order 1 -o .%smesh.msh .%sscript.geo"%(os.sep,os.sep) == cmd)
+       self.failUnless("gmsh -format msh -2 -algo iso -smooth 1 -optimize -v 0 -order 1 -o %s %s"%(os.path.join(".","mesh.msh"), os.path.join(".","script.geo")) == cmd)
 
        p0=Point(0.,0.,0.)
        p1=Point(1.,0.,0.)
@@ -3719,19 +3721,19 @@ Physical Line(13) = {6, 7};
        script_name=d.getScriptFileName()
        self.failUnless(isinstance(script_name,str))
        self.failUnless(script_name.split(".")[-1] == "poly")
-       script_name=PYCAD_WORKDIR+os.sep+"script.poly"
+       script_name=os.path.join(PYCAD_WORKDIR,"script.poly")
        d.setScriptFileName(script_name)
        self.failUnless(script_name == d.getScriptFileName())
 
        mesh_name=d.getMeshFileName()
        self.failUnless(isinstance(mesh_name,str))
-       mesh_name=PYCAD_WORKDIR+os.sep+"mesh"
+       mesh_name=os.path.join(PYCAD_WORKDIR,"mesh")
        d.setMeshFileName(mesh_name)
        self.failUnless(mesh_name == d.getMeshFileName())
        
        d.setOptions(cmdLineArgs="-Qpqa7.5")
        cmd=d.getCommandString()
-       self.failUnless("triangle -Qpqa7.5 .%sscript.poly"%(os.sep) == cmd)
+       self.failUnless("triangle -Qpqa7.5 .%s"%(os.path.join(".","script.poly")) == cmd)
 
        p0=Point(0.,0.,0.)
        p1=Point(1.,0.,0.)
