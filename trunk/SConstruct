@@ -282,7 +282,7 @@ except KeyError: pass
 try: env['ENV']['CPLUS_INCLUDE_PATH'] = os.environ['CPLUS_INCLUDE_PATH']
 except KeyError: pass
 
-try: PrependENVPath['ENV'][LD_LIBRARY_PATH_KEY] = os.environ['LD_LIBRARY_PATH']
+try: env.PrependENVPath(LD_LIBRARY_PATH_KEY,os.environ['LD_LIBRARY_PATH'])
 except KeyError: pass
 
 try: env['ENV']['LIBRARY_PATH'] = os.environ['LIBRARY_PATH']
