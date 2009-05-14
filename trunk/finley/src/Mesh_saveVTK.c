@@ -142,7 +142,9 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                          Finley_Mesh *mesh_p,
                          const dim_t num_data,
                          char **names_p,
-                         escriptDataC **data_pp)
+                         escriptDataC **data_pp,
+                         const char* metadata, 
+                         const char*metadata_schema)
 {
 #ifdef PASO_MPI
     MPI_File mpi_fileHandle_p;
@@ -171,7 +173,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
 
     const char *vtkHeader = \
       "<?xml version=\"1.0\"?>\n" \
-      "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\">\n" \
+      "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\"%s%s>\n%s%s" \
       "<UnstructuredGrid>\n" \
       "<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n" \
       "<Points>\n" \
@@ -489,7 +491,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
 
     /* allocate enough memory for text buffer */
 
-    txtBufferSize = strlen(vtkHeader) + 3*LEN_INT_FORMAT + (30+3*maxNameLen); 
+    txtBufferSize = strlen(vtkHeader) + 3*LEN_INT_FORMAT + (30+3*maxNameLen)+strlen(metadata)+strlen(metadata_schema); 
     if (mpi_size > 1) {
        txtBufferSize = MAX(txtBufferSize, myNumPoints * LEN_TMP_BUFFER);
         txtBufferSize = MAX(txtBufferSize, numCellFactor * myNumCells *
@@ -522,8 +524,19 @@ void Finley_Mesh_saveVTK(const char *filename_p,
             nodeIndex = NULL;
         }
 
-        sprintf(txtBuffer, vtkHeader, globalNumPoints,
-                numCellFactor*globalNumCells, 3);
+        if (strlen(metadata)>0) {
+           if (strlen(metadata_schema)>0) {
+              sprintf(txtBuffer, vtkHeader," ",metadata_schema,metadata,"\n",globalNumPoints, numCellFactor*globalNumCells, 3);
+           } else {
+              sprintf(txtBuffer, vtkHeader,"","",metadata,"\n",globalNumPoints, numCellFactor*globalNumCells, 3);
+           }
+        } else {
+           if (strlen(metadata_schema)>0) {
+              sprintf(txtBuffer, vtkHeader," ",metadata_schema,"","",globalNumPoints, numCellFactor*globalNumCells, 3);
+           } else {
+              sprintf(txtBuffer, vtkHeader,"","","","",globalNumPoints, numCellFactor*globalNumCells, 3);
+           }
+        }
 
         if (mpi_size > 1) {
             /* write the nodes */

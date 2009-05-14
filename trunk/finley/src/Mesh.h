@@ -158,7 +158,7 @@ dim_t Finley_Mesh_FindMinDegreeNode(Paso_SystemMatrixPattern* pattern_p,index_t*
 index_t Finley_Mesh_getDegree(Paso_SystemMatrixPattern* pattern_p, index_t *label);
 
 
-void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp);
+void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp, const char* metadata, const char*metadata_schema);
 void Finley_Mesh_setTagsInUse(Finley_Mesh* in);
 
 #endif /* #ifndef INC_FINLEY_MESH */
