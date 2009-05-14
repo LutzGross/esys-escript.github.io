@@ -54,6 +54,13 @@ import numarray
 from esys.escript import *
 
 class Test_Domain(unittest.TestCase):
+
+   def test_getListOfTags(self): # requires self.boundary_tag_list
+       tags=FunctionOnBoundary(self.domain).getListOfTags()
+       self.failUnless(len(self.boundary_tag_list) == len(tags), "tag list length does not match")
+       for i in self.boundary_tag_list:
+           self.failUnless(i in tags, "tag %s is missing."%i)
+
    def test_addTags(self):
         tag1="A"
         tag2="B"
