@@ -131,45 +131,31 @@ When \MPI is used on more than one process ($\var{nn} \cdot \var{np} >1$) the us
 \escript assumes that an argument of the type \var{int}, \var{float}, \var{str} 
 and \numarray has an identical value across all processors. All 
 values of these types returned by \escript have the same value on all processors.
-If values produced by other modules are used as argument the user has to make sure that
-the value is identical on all processors. For instance, the usage of a random number
- generator to create a value for argument bears the risk that the value may depend on
-the processor.
+If values produced by other modules are used as arguments the user has to make sure that the argument values are identical on all processors. For instance, the usage of a random number generator to create argument values bears the risk that the value may depend on the processor. 
 
-An other case which needs special attention is the usage of files. When reading data
-from a file it advisable to use the \var{'r'} for readable when opened. Keep in mind that 
-several scripts will simultaneously access the file. If data are written to a file
-only one processor must open the file for writing. The function \function{getMPIRankWorld}
-which returns the processor id between $0$ and the number of processors 
-helps to achieve this. The following script writes to the file 
+Special attention is required when using files on more then one processor as 
+several processors access the file at the same time. Open a file for
+reading is safe, however the user has to make sure that the variables which are 
+set from reading data from files are identical on all processors.
+
+When writing data to a file it is important that only one processor is writing to
+the file at any time. As all values in \escript are global it is sufficient
+to write values on the processor with \MPI rank $0$ only. 
+The \class{FileWriter} class provides a convenient way to write global data
+to a simple file.  The following script writes to the file 
 \var{'test.txt'} on the processor with id $0$ only:
 \begin{python}
 from esys.escript import *
-if getMPIRankWorld() == 0 :
-   f = open('test.txt', 'w')
-   f.write('test message')
-   f.close()
-\end{python}
-Another technique is to extend the file name by the processor id to avoid conflicts while
-writing into a shared file system:
-\begin{python}
-from esys.escript import *
-f = open('test.txt.%s'%getMPIRankWorld(), 'w')
+f = FileWriter('test.txt')
 f.write('test message')
 f.close()
 \end{python}
-creating files with names 
-\var{test.txt.0}, 
-\var{test.txt.1}, 
-\var{test.txt.2}, 
-$\ldots$.
+It is highly recommendable to use this class rather than the build \function{open}
+function as it will guarantee a script which will run in single processor mode as well as under \MPI.
 
-If there is the situation that if execution on one of the processors is throwing an exception, 
-for instance as opening a file for writing fails, are not made aware of this as \MPI
+If there is the situation that on one of the processors is throwing an exception, 
+for instance as opening a file for writing fails, the other processors 
+are not automatically made aware of this as \MPI
 is not handling exceptions. However, \MPI will terminate the other processes but 
-may not inform the user of the reason in the obvious way. The user needs to inspect the
+may not inform the user of the reason in an obvious way. The user needs to inspect the
 error output files to identify the exception.
-
-
-
- 

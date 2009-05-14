@@ -286,7 +286,7 @@ To recover the object \var{x} and \var{mydomain} was a \finley mesh use
 \end{python}
 It possible to rerun the mechanism that was originally used to generates
 \var{mydomain} to recreate \var{mydomain}. However in most cases using \var{dump} and
-load is faster in particuar if optimization has been applied. In case that
+load is faster in particular if optimization has been applied. In case that
 \escript is running on more than one \MPI processor the \var{dump} will create an individual file for each processor containing the local data. In order to avoid conflicts the file name is extended by the \MPI processor rank.
 
 The function space of the \Data is stored in {\tt x.nc}, though.
@@ -1347,6 +1347,53 @@ prefix yocto= $10^{-24}$.
 
 
 \section{Utilities}
+
+The \class{FileWriter} provides a mechanism to write data to a file. 
+In essence, this class wraps the standard \class{file} class to write data 
+that are global in MPI to a file. In fact, data are written on the processor 
+with \MPI rank 0 only. It is recommended to use \class{FileWriter} 
+rather than \class{open} in order to write code that is running 
+with and without \MPI. It is save to use \class{open} under MPI to read data which are global under \MPI.
+
+\begin{classdesc}{FileWriter}{fn\optional{,append=\False, \optional{createLocalFiles=\False}})}
+Opens a file of name \var{fn} for writing. If \var{append} is set to \True
+written data are append at the end of the file.
+If running under \MPI only the first processor with rank==0
+will open the file and write to it. 
+If \var{createLocalFiles} is set each individual processor will create a file
+where for any processor with rank>0 the file name is extended by its rank. This option is normally used for debug purposes only.
+\end{classdesc}
+
+The following methods are available:
+\begin{methoddesc}[FileWriter]{close}{}
+closes the file.
+\end{methoddesc}
+\begin{methoddesc}[FileWriter]{flush}{}
+flushes the internal buffer to disk.
+\end{methoddesc}
+\begin{methoddesc}[FileWriter]{write}{txt}
+Write string \var{txt} to file.
+Note that newline is not added.
+\end{methoddesc}
+\begin{methoddesc}[FileWriter]{writelines}{txts}
+Write the list \var{txts} of strings to the file..
+Note that newlines are not added. 
+This method is equivalent to call write() for each string.
+\end{methoddesc}
+\begin{memberdesc}[FileWriter]{closed}
+\True if file is closed.
+\end{memberdesc}
+\begin{memberdesc}[FileWriter]{mode}
+access mode. 
+\end{memberdesc}
+\begin{memberdesc}[FileWriter]{name}
+file name.
+\end{memberdesc}
+\begin{memberdesc}[FileWriter]{newlines}
+line separator
+\end{memberdesc}
+
+
 \begin{funcdesc}{setEscriptParamInt}{name,value}
 assigns the integer value \var{value} to the parameter \var{name}.
 If \var{name}="TOO_MANY_LINES" conversion of any \Data object to a string switches to a 
@@ -1363,17 +1410,18 @@ returns a list of valid parameters and their description.
 
 \begin{funcdesc}{getMPISizeWorld}{}
 returns the number of \MPI processors in use in the \env{MPI_COMM_WORLD} processor group.
-If \MPI is not used 1 is returend.
+If \MPI is not used 1 is returned.
 \end{funcdesc}
 \begin{funcdesc}{getMPIRankWorld}{}
 returns the rank of the process within the \env{MPI_COMM_WORLD} processor group.
-If \MPI is not used 0 is returend.
+If \MPI is not used 0 is returned.
 \end{funcdesc}
 \begin{funcdesc}{MPIBarrierWorld}{}
 performs a barrier synchronization across all processors within \env{MPI_COMM_WORLD}
 processor group.
 \end{funcdesc}
 \begin{funcdesc}{getMPIWorldMax}{a}
-returns the maximum value of the interger \var{a} across all 
+returns the maximum value of the integer \var{a} across all 
 processors within \env{MPI_COMM_WORLD}.
 \end{funcdesc}
+

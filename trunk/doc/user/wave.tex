@@ -139,7 +139,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
    u_pc_y = u_pc[1]
    u_pc_z = u_pc[2]
    # open file to save displacement at point source
-   u_pc_data=open('./data/U_pc.out','w')
+   u_pc_data=FileWriter('./data/U_pc.out')
    u_pc_data.write("%f %f %f %f\n"%(t,u_pc_x,u_pc_y,u_pc_z))
    while t<tend:
      # ... get current stress ....
