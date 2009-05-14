@@ -37,7 +37,7 @@ def runUnitTest(target, source, env):
   else:
       if env['usempi']:
           app = "mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
-            "FINLEY_TEST_DATA,PYVISI_TEST_DATA_ROOT,PYVISI_WORKDIR %s"\
+            "FINLEY_TEST_DATA,PYVISI_TEST_DATA_ROOT,PYVISI_WORKDIR,PATH %s"\
             %(env['ENV']['ESCRIPT_NUM_NODES'], app)
   print "Executing test: " + app
   if not env.Execute(app):
@@ -53,7 +53,7 @@ def runPyUnitTest(target, source, env):
    if os.name== "nt":
        if env['usempi']:
            app = "mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
-              "FINLEY_TEST_DATA,PYVISI_TEST_DATA_ROOT,PYVISI_WORKDIR %s\pythonMPIredirect.exe %s"\
+              "FINLEY_TEST_DATA,PYVISI_TEST_DATA_ROOT,PYVISI_WORKDIR,PATH %s\pythonMPIredirect.exe %s"\
               %(env['ENV']['ESCRIPT_NUM_NODES'],env['libinstall'],app)
        else:
            app = sys.executable + " " + app
