@@ -5987,7 +5987,10 @@ class FileWriter(object):
             if e==None:
                raise IOError,"Unable to access file %s in mode %s for %s."%(self.name,self.mode,operation)
             else:
-               raise IOError,e.message
+               if hasattr(e,"message"):
+                  raise IOError,e.message
+               else:
+                  raise IOError,"Unable to access file %s in mode %s for %s."%(self.name,self.mode,operation)
          
     def close(self):
         """

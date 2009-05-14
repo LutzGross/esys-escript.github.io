@@ -248,7 +248,7 @@ class Test_VTKFiles(Test_VisualizationInterface):
      dummy=None
      timeStamp=None
      unstructured=None
-     dom=minidom.parseString(open("metadata0.xml",'r').read())
+     dom=minidom.parseString(open(fn,'r').read())
      for node in dom.childNodes:
         if isinstance(node, minidom.Element):
            if node.tagName == 'VTKFile':
@@ -287,7 +287,7 @@ class Test_VTKFiles(Test_VisualizationInterface):
      dummy=None
      timeStamp=None
      unstructured=None
-     dom=minidom.parseString(open("metadata1.xml",'r').read())
+     dom=minidom.parseString(open(fn,'r').read())
      for node in dom.childNodes:
         if isinstance(node, minidom.Element):
            if node.tagName == 'VTKFile':
@@ -322,7 +322,7 @@ class Test_VTKFiles(Test_VisualizationInterface):
      saveVTK(fn,x=dom.getX(), metadata_schema={"gml":"http://www.opengis.net/gml"})
      # testing:
      unstructured=None
-     dom=minidom.parseString(open("metadata2.xml",'r').read())
+     dom=minidom.parseString(open(fn,'r').read())
      for node in dom.childNodes:
         if isinstance(node, minidom.Element):
            if node.tagName == 'VTKFile':
@@ -342,7 +342,7 @@ class Test_VTKFiles(Test_VisualizationInterface):
      saveVTK(fn,x=dom.getX())
      # testing:
      unstructured=None
-     dom=minidom.parseString(open("metadata3.xml",'r').read())
+     dom=minidom.parseString(open(fn,'r').read())
      for node in dom.childNodes:
         if isinstance(node, minidom.Element):
            if node.tagName == 'VTKFile':
