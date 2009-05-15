@@ -28,6 +28,7 @@
 \newcommand{\editor}[1] {\textit{EDITORIAL: {#1}}}
 %\newcommand{\eqref}[1] {(\ref{#1})}
 \newcommand{\esc}{\module{escript}\xspace}
+\newcommand{\fileex}[1]{\module{\textbackslash examples\textbackslash {#1}}\xspace}
 
 % % define some handy commands for escript stuff
 % \newcommand{\LINUX}{{\it Linux}\xspace}
@@ -152,25 +153,25 @@
 % % \usepackage{fancyvrb}  % fancy verbatim stuff.  Needed so code below goes
 % %%% this code grabbed from the PyScript docs
 % %%% pyscript.sourceforge.net
-% 
-% % --------------------------------------------------------------
-% % Code format within \Verb
-% % --------------------------------------------------------------
-% 
-% % \definecolor{pycolor}{rgb}{0,0.4,0}
-% 
-% %% \DefineVerbatimEnvironment{python}{Verbatim}
-% %% {frame=leftline,framerule=.5mm,rulecolor=\color{pycolor},
-% %% formatcom=\color{pycolor}\small,fontshape=rm}
-% 
-% %\DefineShortVerb[formatcom=\color{dgreen}\small,fontshape=sl]{\|}
-% 
-% % \RecustomVerbatimCommand{\Verb}{Verb}{formatcom=\color{pycolor}\small,fontshape=rm}
-% 
-% %%% end of grabbed code
-% 
-% % this is for when one uses pdflatex and therefore needs to load pdf
-% % figures into \includegraphics
+
+% --------------------------------------------------------------
+% Code format within \Verb
+% --------------------------------------------------------------
+
+% \definecolor{pycolor}{rgb}{0,0.4,0}
+
+%% \DefineVerbatimEnvironment{python}{Verbatim}
+%% {frame=leftline,framerule=.5mm,rulecolor=\color{pycolor},
+%% formatcom=\color{pycolor}\small,fontshape=rm}
+
+%\DefineShortVerb[formatcom=\color{dgreen}\small,fontshape=sl]{\|}
+
+% \RecustomVerbatimCommand{\Verb}{Verb}{formatcom=\color{pycolor}\small,fontshape=rm}
+
+%%% end of grabbed code
+
+% this is for when one uses pdflatex and therefore needs to load pdf
+% figures into \includegraphics
 % \ifpdf
 % 	\DeclareGraphicsExtensions{.pdf}  % this command defined in graphicx
 % 	\pdfcompresslevel=9  % 0: no compression, 9: highest compression
@@ -321,6 +322,6 @@
 % 
 % %Ensures that latex doesn't have an error if we don't specify the version
 % \providecommand{\RepVersion}{Unknown\xspace}
-% % to set this value use:
-% % (pdf)latex '\newcommand{\RepVersion}{version\xspace}\input{guide.tex}'
-% % as your command-line
+% to set this value use:
+% (pdf)latex '\newcommand{\RepVersion}{version\xspace}\input{guide.tex}'
+% as your command-line
