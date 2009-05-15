@@ -3,7 +3,7 @@ img_extIsRegExp=false
 img_extensions=.eps .jpg .jpeg .png .pdf .ps .fig .gif
 kileprversion=2
 kileversion=2.0
-lastDocument=ESCRIPT_COOKBOOK.tex
+lastDocument=twodswp001.tex
 masterDocument=
 name=escript_project
 pkg_extIsRegExp=false
@@ -35,12 +35,12 @@ order=4
 
 [item:cookbook_defs.tex]
 archive=true
-column=51
+column=55
 encoding=UTF-8
 highlight=LaTeX
-line=38
-open=false
-order=3
+line=30
+open=true
+order=5
 
 [item:einsteinETA.tex]
 archive=true
@@ -84,8 +84,8 @@ column=129
 encoding=UTF-8
 highlight=LaTeX
 line=84
-open=false
-order=4
+open=true
+order=7
 
 [item:onedheatdiff002.tex]
 archive=true
@@ -110,15 +110,15 @@ archive=true
 column=0
 encoding=UTF-8
 highlight=LaTeX
-line=0
-open=false
-order=6
+line=44
+open=true
+order=8
 
 [item:twodswp001.tex]
 archive=true
-column=52
+column=102
 encoding=UTF-8
 highlight=LaTeX
-line=13
-open=false
-order=2
+line=37
+open=true
+order=6
