@@ -5977,7 +5977,6 @@ class FileWriter(object):
               try:
                   self.__file=open(fn,self.mode)
               except Exception, e:
-                  print e.message
                   errno=1
          self.__handelerror(errno,e,"opening")
 
