@@ -58,8 +58,9 @@ press=whereNegative(fe.getX()[0]-0.1)*200000.*[1.,0.]
 mypde=LinearPDE(domain)
 mypde.setValue(A=setHookTensor(e,lamb,nu),y=press,q=msk,r=[0,0])
 mypde.setSymmetryOn()
+mypde.setSolverMethod(preconditioner=mypde.AMG)
 # solve for the displacements:
-u_d=mypde.getSolution()
+u_d=mypde.getSolution(verbose=True)
 # get the gradient and calculate the stress:
 g=grad(u_d)
 stress=lamb*trace(g)*kronecker(domain)+nu*(g+transpose(g))
