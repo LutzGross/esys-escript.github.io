@@ -533,7 +533,6 @@ which leads to
 
 \subsection{Functions}
 
-#=============================================================================
 \begin{classdesc}{IncompressibleIsotropicFlowCartesian}{
 domain
 \optional{, stress=0
@@ -542,7 +541,8 @@ domain
 \optional{, t=0
 \optional{, numMaterials=1
 \optional{, verbose=True}}}}}}}
-opens an incompressible, isotropic flow problem in Cartesian cooridninates.
+opens an incompressible, isotropic flow problem in Cartesian cooridninates
+on the domain \var{domain}.
 \var{stress},
 \var{v},
 \var{p}, and
@@ -552,54 +552,93 @@ model. Some progress information are printed if \var{verbose} is set to
 \True.
 \end{classdesc}
 
- setExternals(self, F=None, f=None, fixed_v_mask=None, v_boundary=None):
-\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setExternals}{\optional{F=None, \optional{f=None, \optional{fixed_v_mask=None, \optional{v_boundary=None}}}}}
-assigns values to external forces and boundary conditions. Between two calls only variables with a new values need to be set. 
-
-In any call all values must be set.
-\var{f} defines the external force $f$, \var{eta} the viscosity $\eta$,
-\var{surface_stress} the surface stress $s$ and \var{stress} the initial stress $\sigma$.
-The locations and compontents where the velocity is fixed are set by 
-the values of \var{fixed_u_mask}. The method will try to cast the given values to appropriate 
-\Data class objects.
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getDomain}{}
+returns the domain.
 \end{methoddesc}
 
-\begin{methoddesc}[StokesProblemCartesian]{solve}{v,p,
-\optional{max_iter=20, \optional{verbose=False, \optional{usePCG=True}}}}
-solves the problem and return approximations for velocity and pressure. 
-The arguments \var{v} and \var{p} define initial guess. The values of \var{v} marked
-by \var{fixed_u_mask} remain unchanged. 
-If \var{usePCG} is set to \True 
-reconditioned conjugate gradient method (PCG) \index{preconditioned conjugate gradient method!PCG}  scheme is used. Otherwise the problem is solved generalized minimal residual method (GMRES) \index{generalized minimal residual method!GMRES}. In most cases 
-the PCG scheme is more efficient.
-\var{max_iter} defines the maximum number of iteration steps. 
-If \var{verbose} is set to \True informations on the progress of of the solver are printed.
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getTime}{}
+Returns current time.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getStress}{}
+Returns current stress.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getDeviatoricStress}{}
+Returns current deviatoric stress.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getPressure}{}
+Returns current pressure.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getVelocity}{}
+Returns current velocity.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getDeviatoricStrain}{}
+Returns deviatoric strain of current velocity
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getTau}{}
+Returns current second invariant of deviatoric stress
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getGammaDot}{}
+Returns current second invariant of deviatoric strain
 \end{methoddesc}
 
 
-\begin{methoddesc}[StokesProblemCartesian]{setTolerance}{\optional{tolerance=1.e-4}}
-sets the tolerance in an appropriate norm relative to the right hand side. The tolerance must be non-negative and less than 1.
-\end{methoddesc}
-\begin{methoddesc}[StokesProblemCartesian]{getTolerance}{}
-returns the current relative tolerance.
-\end{methoddesc}
-\begin{methoddesc}[StokesProblemCartesian]{setAbsoluteTolerance}{\optional{tolerance=0.}}
-sets the absolute tolerance for the error in the relevant norm. The tolerance must be non-negative. Typically the
-absolute talerance is set to 0.
-\end{methoddesc}
-\begin{methoddesc}[StokesProblemCartesian]{getAbsoluteTolerance}{}
-sreturns the current absolute tolerance.
-\end{methoddesc}
-\begin{methoddesc}[StokesProblemCartesian]{setSubProblemTolerance}{\optional{rtol=None}}
-sets the tolerance to solve the involved PDEs. The subtolerance \var{rtol} should not be choosen to large 
-in order to avoid feed back of errors in the subproblem solution into the outer iteration.
-On the otherhand is choosen to small compute time is wasted.
-If \var{rtol} is set to \var{None} the sub-tolerance is set automatically depending on the 
-tolerance choosen for the oter iteration.
-\end{methoddesc}
-\begin{methoddesc}[StokesProblemCartesian]{getSubProblemTolerance}{}
-return the tolerance for the involved PDEs.
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setTolerance}{tol=1.e-4}
+Sets the tolerance used to terminate the iteration on a time step.
 \end{methoddesc}
 
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setFlowTolerance}{tol=1.e-4}
+Sets the relative tolerance for the incompressible solver, see \class{StokesProblemCartesian} for details.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setFlowSubTolerance}{tol=1.e-8}
+Sets the relative tolerance for the subsolver of the flow solver, see
+\class{StokesProblemCartesian} for details.\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setElasticShearModulus}{mu=None}
+Sets the elastic shear modulus $\mu$. If \var{mu} is set to None (default) elasticity is not applied.
+\end{methoddesc}
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setEtaTolerance=}{rtol=1.e-8}
+sets the relative tolerance for the effectice viscosity. Iteration on a time step is completed if the realtive of the effective viscosity is less than \var{rtol}.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setDruckerPragerLaw}
+{\optional{tau_Y=None, \optional{friction=None}}}
+Sets the parameters $\tau\hackscore{Y}$ and $\beta$ for the Drucker-Prager model in condition~\ref{IKM-EQU-8c}. If \var{tau_Y} is set to None (default) Drucker-Prager
+condition is not applied.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setElasticShearModulus}{mu=None}
+Sets the elastic shear modulus $\mu$. If \var{mu} is set to None (default) elasticity is not applied.
+\end{methoddesc}
+
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setPowerLaws}{eta_N, tau_t, power}
+Sets the parameters of the power-law for all materials as defined in 
+equation~\ref{IKM-EQU-5b}.
+\var{eta_N} is the list of viscosities $\eta^{q}\hackscore{N}$,
+\var{tau_t} is the list of reference stresses  $\tau\hackscore{t}^q$,
+and \var{power} is the list of  power law coefficients $n^{q}$.
+\end{methoddesc}
+
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{update}{dt
+\optional{, iter_max=100
+\optional{, inner_iter_max=20
+}}}
+Updates stress, velocity and pressure for time increment \var{dt}.
+where \var{iter_max} is the maximum number of iteration steps on a time step to
+update the effective viscosity and \var{inner_iter_max} is the maximum
+number of itertion steps in the incompressible solver.
+\end{methoddesc}
+
+\subsection{Example}
+later
 
 % \section{Drucker Prager Model}
