@@ -675,7 +675,6 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
              if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: eta_eff has been initialied."
           else:
              eta_eff = self.__eta_eff
-
           iter=0 
           converged=False
           while not converged:
@@ -696,21 +695,14 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
                 v0=v_b*mask_v+v*(1.-mask_v)
              v,p=self.__solver.solve(v0,p,show_details=False, 
                                           verbose=self.checkVerbose(),max_iter=inner_iter_max,usePCG=usePCG)
-             util.saveVTK("v.xml",v=v)
-             util.saveVTK("p.xml",p=p)
              # 
              #   update eta_eff:
              #
              D=self.__getDeviatoricStrain(v)
-             print D[0,0]
-             print D[1,1]
-             print D[1,0]
              if mu==None:
                  gamma=util.sqrt(2.)*util.length(D)
              else:
                  gamma=util.sqrt(2.)*util.length(D+s_last/(2*dt*mu))
-             print gamma
-             1/0
              eta_eff_old ,eta_eff=eta_eff, self.getEtaEff(gamma, pressure=p,dt=dt, eta0=eta_eff, iter_max=iter_max)
              if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: eta_eff has been updated."
              #
@@ -743,7 +735,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
           """
           Returns deviatoric strain of velocity v:
           """
-          return util.deviatoric(util.symmetric(util.grad(2.*v)))
+          return util.deviatoric(util.symmetric(util.grad(v)))
 
       def setFlowTolerance(self, tol=1.e-6):
           """

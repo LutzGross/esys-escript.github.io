@@ -37,7 +37,7 @@ VERBOSE=False # or True
 DETAIL_VERBOSE=False
 
 from esys.escript import *
-from esys.escript.models import StokesProblemCartesian, PowerLaw
+from esys.escript.models import StokesProblemCartesian, PowerLaw, IncompressibleIsotropicFlowCartesian
 from esys.finley import Rectangle, Brick
 
 from esys.escript.models import Mountains
@@ -924,9 +924,190 @@ class Test_Rheologies(unittest.TestCase):
          self.failUnlessRaises(ValueError, pl.getEtaEff,gamma_dot_s[0])
          for i in xrange(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i],dt=dt),taus[i])
 
+class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
+   TOL=1.e-6
+   VERBOSE=False
+   A=1.
+   P_max=100
+   NE=2*getMPISizeWorld()
+   tau_Y=10.
+   N_dt=10
+
+   # material parameter:
+   tau_1=5.
+   tau_2=5.
+   eta_0=100.
+   eta_1=50.
+   eta_2=400.
+   N_1=2.
+   N_2=3.
+   def getReference(self, t):
+
+      B=self.tau_Y/sqrt((self.dom.getDim()-1)*self.dom.getDim()*0.5)
+      x=self.dom.getX()
+
+      s_00=min(self.A*t,B)
+      tau=sqrt((self.dom.getDim()-1)*self.dom.getDim()*0.5)*abs(s_00)
+      inv_eta= 1./self.eta_0 + 1./self.eta_1*(tau/self.tau_1)**(1.-1./self.N_1) + 1./self.eta_2*(tau/self.tau_2)**(1.-1./self.N_2)
+
+      alpha=0.5*inv_eta*s_00
+      if s_00 <= B and self.mu !=None: alpha+=1./(2*self.mu)*self.A
+      u_ref=x*alpha
+      u_ref[self.dom.getDim()-1]=(1.-x[self.dom.getDim()-1])*alpha*(self.dom.getDim()-1)
+      sigma_ref=kronecker(self.dom)*s_00
+      sigma_ref[self.dom.getDim()-1,self.dom.getDim()-1]=-s_00*(self.dom.getDim()-1)
+
+      p_ref=self.P_max
+      for d in range(self.dom.getDim()): p_ref=p_ref*x[d]
+      p_ref-=integrate(p_ref)/vol(self.dom)
+      return u_ref, sigma_ref, p_ref
+
+   def runIt(self, free=None):
+      x=self.dom.getX()
+      B=self.tau_Y/sqrt((self.dom.getDim()-1)*self.dom.getDim()*0.5)
+      dt=B/int(self.N_dt/2)
+      if self.VERBOSE: print "dt =",dt
+      if self.latestart:
+          t=dt
+      else:
+          t=0
+      v,s,p=self.getReference(t)
+
+      mod=IncompressibleIsotropicFlowCartesian(self.dom, stress=s, v=v, p=p, t=t, numMaterials=3, verbose=self.VERBOSE)
+      mod.setDruckerPragerLaw(tau_Y=self.tau_Y,friction=None)
+      mod.setElasticShearModulus(self.mu)
+      mod.setPowerLaws([self.eta_0, self.eta_1, self.eta_2], [ 1., self.tau_1, self.tau_2],  [1.,self.N_1,self.N_2])
+      mod.setTolerance(self.TOL)
+      mod.setFlowSubTolerance(self.TOL**2)
+      mod.setFlowTolerance(self.TOL)
+
+      BF=Vector(self.P_max,Function(self.dom))
+      for d in range(self.dom.getDim()):
+          for d2 in range(self.dom.getDim()):
+              if d!=d2: BF[d]*=x[d2]
+      v_mask=Vector(0,Solution(self.dom))
+      if free==None:
+         for d in range(self.dom.getDim()):
+            v_mask[d]=whereZero(x[d])+whereZero(x[d]-1.)
+      else:
+         for d in range(self.dom.getDim()):
+            if d == self.dom.getDim()-1:
+               v_mask[d]=whereZero(x[d]-1.)
+            else:
+               v_mask[d]=whereZero(x[d])
+      mod.setExternals(F=BF,fixed_v_mask=v_mask)
+       
+      n=self.dom.getNormal()
+      N_t=0
+      errors=[]
+      while N_t < self.N_dt:
+         t_ref=t+dt
+         v_ref, s_ref,p_ref=self.getReference(t_ref)
+         mod.setExternals(f=matrixmult(s_ref,n)-p_ref*n, v_boundary=v_ref)
+         mod.update(dt, iter_max=100, inner_iter_max=20, verbose=self.VERBOSE, usePCG=True)
+         self.check(N_t,mod,t_ref,v_ref, s_ref,p_ref)
+         t+=dt
+         N_t+=1
+
+   def check(self,N_t,mod,t_ref,v_ref, s_ref,p_ref):
+         p=mod.getPressure()
+         p-=integrate(p)/vol(self.dom)
+         error_p=Lsup(mod.getPressure()-p_ref)/Lsup(p_ref)
+         error_s=Lsup(mod.getDeviatoricStress()-s_ref)/Lsup(s_ref)
+         error_v=Lsup(mod.getVelocity()-v_ref)/Lsup(v_ref)
+         error_t=abs(mod.getTime()-t_ref)/abs(t_ref)
+         if self.VERBOSE: print "time step ",N_t,"time = ",mod.getTime(),"errors s,p,v = ",error_s, error_p, error_v
+         self.failUnless( error_p <= 10*self.TOL, "time step %s: pressure error %s too high."%(N_t,error_p) )
+         self.failUnless( error_s <= 10*self.TOL, "time step %s: stress error %s too high."%(N_t,error_s) )
+         self.failUnless( error_v <= 10*self.TOL, "time step %s: velocity error %s too high."%(N_t,error_v) )
+         self.failUnless( error_t <= 10*self.TOL, "time step %s: time marker error %s too high."%(N_t,error_t) )
+   def tearDown(self):
+        del self.dom
+
+   def test_D2_Fixed_MuNone_LateStart(self):
+       self.dom = Rectangle(self.NE,self.NE,order=2)
+       self.mu=None
+       self.latestart=True
+       self.runIt()
+   def test_D2_Fixed_Mu_LateStart(self):
+       self.dom = Rectangle(self.NE,self.NE,order=2)
+       self.mu=555.
+       self.latestart=True
+       self.runIt()
+   def test_D2_Fixed_MuNone(self):
+       self.dom = Rectangle(self.NE,self.NE,order=2)
+       self.mu=None
+       self.latestart=False
+       self.runIt()
+   def test_D2_Fixed_Mu(self):
+       self.dom = Rectangle(self.NE,self.NE,order=2)
+       self.mu=555.
+       self.latestart=False
+       self.runIt()
+   def test_D2_Free_MuNone_LateStart(self):
+       self.dom = Rectangle(self.NE,self.NE,order=2)
+       self.mu=None
+       self.latestart=True
+       self.runIt(free=0)
+   def test_D2_Free_Mu_LateStart(self):
+       self.dom = Rectangle(self.NE,self.NE,order=2)
+       self.mu=555.
+       self.latestart=True
+       self.runIt(free=0)
+   def test_D2_Free_MuNone(self):
+       self.dom = Rectangle(self.NE,self.NE,order=2)
+       self.mu=None
+       self.latestart=False
+       self.runIt(free=0)
+   def test_D2_Free_Mu(self):
+       self.dom = Rectangle(self.NE,self.NE,order=2)
+       self.mu=555.
+       self.latestart=False
+       self.runIt(free=0)
+
+   def test_D3_Fixed_MuNone_LateStart(self):
+       self.dom = Brick(self.NE,self.NE,self.NE,order=2)
+       self.mu=None
+       self.latestart=True
+       self.runIt()
+   def test_D3_Fixed_Mu_LateStart(self):
+       self.dom = Brick(self.NE,self.NE,self.NE,order=2)
+       self.mu=555.
+       self.latestart=True
+       self.runIt()
+   def test_D3_Fixed_MuNone(self):
+       self.dom = Brick(self.NE,self.NE,self.NE,order=2)
+       self.mu=None
+       self.latestart=False
+       self.runIt()
+   def test_D3_Fixed_Mu(self):
+       self.dom = Brick(self.NE,self.NE,self.NE,order=2)
+       self.mu=555.
+       self.latestart=False
+       self.runIt()
+   def test_D3_Free_MuNone_LateStart(self):
+       self.dom = Brick(self.NE,self.NE,self.NE,order=2)
+       self.mu=None
+       self.latestart=True
+       self.runIt(free=0)
+   def test_D3_Free_Mu_LateStart(self):
+       self.dom = Brick(self.NE,self.NE,self.NE,order=2)
+       self.mu=555.
+       self.latestart=True
+       self.runIt(free=0)
+   def test_D3_Free_MuNone(self):
+       self.dom = Brick(self.NE,self.NE,self.NE,order=2)
+       self.mu=None
+       self.latestart=False
+       self.runIt(free=0)
+   def test_D3_Free_Mu(self):
+       self.dom = Brick(self.NE,self.NE,self.NE,order=2)
+       self.mu=555.
+       self.latestart=False
+       self.runIt(free=0)
+
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   
    suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian2D))
    suite.addTest(unittest.makeSuite(Test_Darcy3D))
    suite.addTest(unittest.makeSuite(Test_Darcy2D))
@@ -934,6 +1115,7 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(Test_Mountains3D))
    suite.addTest(unittest.makeSuite(Test_Mountains2D))
    suite.addTest(unittest.makeSuite(Test_Rheologies))
+   suite.addTest(unittest.makeSuite(Test_IncompressibleIsotropicFlowCartesian))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
 
