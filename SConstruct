@@ -52,12 +52,21 @@ if not os.path.isfile(options_file):
 else:
   print "Options file is", options_file
 
-# Load options file and command-line arguments
-opts = Options(options_file, ARGUMENTS)
+#Does our scons support the newer Variables class or do we need to use Options?
+
+try:
+   dummyvar=Variables
+   opts = Variables(options_file, ARGUMENTS)
+   adder = opts.AddVariables
+except:
+   opts = Options(options_file, ARGUMENTS)
+   adder = opts.AddOptions
+   BoolVariable = BoolOption
 
 ############ Load build options ################################
 
-opts.AddOptions(
+adder(
+#opts.AddOptions(
 # Where to install esys stuff
   ('prefix', 'where everything will be installed',                       Dir('#.').abspath),
   ('incinstall', 'where the esys headers will be installed',             os.path.join(Dir('#.').abspath,'include')),
@@ -65,9 +74,9 @@ opts.AddOptions(
   ('libinstall', 'where the esys libraries will be installed',           os.path.join(prefix,'lib')),
   ('pyinstall', 'where the esys python modules will be installed',       os.path.join(prefix,'esys')),
 # Compilation options
-  BoolOption('dodebug', 'For backwards compatibility', 'no'),
-  BoolOption('usedebug', 'Do you want a debug build?', 'no'),
-  BoolOption('usevtk', 'Do you want to use VTK?', 'yes'),
+  BoolVariable('dodebug', 'For backwards compatibility', 'no'),
+  BoolVariable('usedebug', 'Do you want a debug build?', 'no'),
+  BoolVariable('usevtk', 'Do you want to use VTK?', 'yes'),
   ('options_file', 'File of paths/options. Default: scons/<hostname>_options.py', options_file),
   ('win_cc_name', 'windows C compiler name if needed', 'msvc'),
   # The strings -DDEFAULT_ get replaced by scons/<hostname>_options.py or by defaults below
@@ -81,9 +90,9 @@ opts.AddOptions(
   ('ld_extra', 'Extra linker flags', ''),
   ('sys_libs', 'System libraries to link with', []),
   ('ar_flags', 'Static library archiver flags to use', ''),
-  BoolOption('useopenmp', 'Compile parallel version using OpenMP', 'no'),
-  BoolOption('usepedantic', 'Compile with -pedantic if using gcc', 'no'),
-  BoolOption('usewarnings','Compile with warnings as errors if using gcc','yes'),
+  BoolVariable('useopenmp', 'Compile parallel version using OpenMP', 'no'),
+  BoolVariable('usepedantic', 'Compile with -pedantic if using gcc', 'no'),
+  BoolVariable('usewarnings','Compile with warnings as errors if using gcc','yes'),
   ('forcelazy','for testing use only - set the default value for autolazy','leave_alone'),
 # Python
   ('python_path', 'Path to Python includes', '/usr/include/'+python_version),
@@ -95,13 +104,13 @@ opts.AddOptions(
   ('boost_lib_path', 'Path to Boost libs', usr_lib),
   ('boost_libs', 'Boost libraries to link with', ['boost_python']),
 # NetCDF
-  BoolOption('usenetcdf', 'switch on/off the usage of netCDF', 'yes'),
+  BoolVariable('usenetcdf', 'switch on/off the usage of netCDF', 'yes'),
   ('netCDF_path', 'Path to netCDF includes', '/usr/include'),
   ('netCDF_lib_path', 'Path to netCDF libs', usr_lib),
   ('netCDF_libs', 'netCDF C++ libraries to link with', ['netcdf_c++', 'netcdf']),
 # MPI
-  BoolOption('useMPI', 'For backwards compatibility', 'no'),
-  BoolOption('usempi', 'Compile parallel version using MPI', 'no'),
+  BoolVariable('useMPI', 'For backwards compatibility', 'no'),
+  BoolVariable('usempi', 'Compile parallel version using MPI', 'no'),
   ('MPICH_IGNORE_CXX_SEEK', 'name of macro to ignore MPI settings of C++ SEEK macro (for MPICH)' , 'MPICH_IGNORE_CXX_SEEK'),
   ('mpi_path', 'Path to MPI includes', '/usr/include'),
   ('mpi_run', 'mpirun name' , 'mpiexec -np 1'),
@@ -109,29 +118,29 @@ opts.AddOptions(
   ('mpi_libs', 'MPI libraries to link with (needs to be shared!)', ['mpich' , 'pthread', 'rt']),
   ('mpi_flavour','Type of MPI execution environment','none'), 
 # ParMETIS
-  BoolOption('useparmetis', 'Compile parallel version using ParMETIS', 'yes'),
+  BoolVariable('useparmetis', 'Compile parallel version using ParMETIS', 'yes'),
   ('parmetis_path', 'Path to ParMETIS includes', '/usr/include'),
   ('parmetis_lib_path', 'Path to ParMETIS library', usr_lib),
   ('parmetis_libs', 'ParMETIS library to link with', ['parmetis', 'metis']),
 # PAPI
-  BoolOption('usepapi', 'switch on/off the usage of PAPI', 'no'),
+  BoolVariable('usepapi', 'switch on/off the usage of PAPI', 'no'),
   ('papi_path', 'Path to PAPI includes', '/usr/include'),
   ('papi_lib_path', 'Path to PAPI libs', usr_lib),
   ('papi_libs', 'PAPI libraries to link with', ['papi']),
-  BoolOption('papi_instrument_solver', 'use PAPI in Solver.c to instrument each iteration of the solver', False),
+  BoolVariable('papi_instrument_solver', 'use PAPI in Solver.c to instrument each iteration of the solver', False),
 # MKL
-  BoolOption('usemkl', 'switch on/off the usage of MKL', 'no'),
+  BoolVariable('usemkl', 'switch on/off the usage of MKL', 'no'),
   ('mkl_path', 'Path to MKL includes', '/sw/sdev/cmkl/10.0.2.18/include'),
   ('mkl_lib_path', 'Path to MKL libs', '/sw/sdev/cmkl/10.0.2.18/lib/em64t'),
   ('mkl_libs', 'MKL libraries to link with', ['mkl_solver', 'mkl_em64t', 'guide', 'pthread']),
 # UMFPACK
-  BoolOption('useumfpack', 'switch on/off the usage of UMFPACK', 'no'),
+  BoolVariable('useumfpack', 'switch on/off the usage of UMFPACK', 'no'),
   ('ufc_path', 'Path to UFconfig includes', '/usr/include/suitesparse'),
   ('umf_path', 'Path to UMFPACK includes', '/usr/include/suitesparse'),
   ('umf_lib_path', 'Path to UMFPACK libs', usr_lib),
   ('umf_libs', 'UMFPACK libraries to link with', ['umfpack']),
 # Silo
-  BoolOption('usesilo', 'switch on/off the usage of Silo', 'yes'),
+  BoolVariable('usesilo', 'switch on/off the usage of Silo', 'yes'),
   ('silo_path', 'Path to Silo includes', '/usr/include'),
   ('silo_lib_path', 'Path to Silo libs', usr_lib),
   ('silo_libs', 'Silo libraries to link with', ['siloh5', 'hdf5']),
