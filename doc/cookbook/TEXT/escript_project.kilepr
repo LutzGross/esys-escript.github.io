@@ -116,9 +116,9 @@ order=8
 
 [item:twodswp001.tex]
 archive=true
-column=102
+column=14
 encoding=UTF-8
 highlight=LaTeX
-line=37
+line=22
 open=true
 order=6

@@ -58,7 +58,7 @@ if proceeder == "n":
 U0=0.01 # amplitude of point source
 #  spherical source at middle of bottom face
 
-xc=[mx/2.,0.]
+xc=[mx/2.,my/2.]
 
 mydomain=Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
 wavesolver2d(mydomain,h,tend,lam,mu,rho,U0,xc,savepath)
