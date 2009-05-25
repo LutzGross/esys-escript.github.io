@@ -22,27 +22,38 @@ using namespace std;
 
 namespace escript {
 
+// The boost methods enable_shared_from_this return a shared_ptr managing the object
+// when all you have is the object. It explicitly fails in the case where
+// you haven't made a shared_ptr for this object yet.
+// _Currently_ we need this behaviour, hence the exception squashing.
+// An execption would be thrown in two circumstances:
+//    1. The object doesn't have a shared_ptr attached yet.
+//    2. All shared_ptrs have let go and the object is in the process of being destroyed.
+// An attempt to getPtr() in the second case is doomed anyway.
+// 
+// Use of something equivalent to boost_1_39's make_shared used elsewhere might remove
+// the need for the hack.
 DataAbstract_ptr DataAbstract::getPtr()
 {
-  if (_internal_weak_this.expired())
+  try
   {
-	return DataAbstract_ptr(this);	
+      return shared_from_this();
   }
-  else
+  catch (boost::bad_weak_ptr p)		
   {
-	return shared_from_this();
+      return DataAbstract_ptr(this);
   }
 }
 
 const_DataAbstract_ptr DataAbstract::getPtr() const 
 {
-  if (_internal_weak_this.expired())
+  try
   {
-	return const_DataAbstract_ptr(this);
+      return shared_from_this();
   }
-  else
+  catch (boost::bad_weak_ptr p)		
   {
-	return shared_from_this();
+      return const_DataAbstract_ptr(this);
   }
 }
 

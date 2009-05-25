@@ -21,30 +21,32 @@ using namespace std;
 
 namespace escript {
 
-
+// Please see the discusion in DataAbstract's version of this method
+// and why I squash the exception
 Domain_ptr AbstractDomain::getPtr()
 {
-  if (_internal_weak_this.expired())
+  try
   {
-	return Domain_ptr(this);	
+      return shared_from_this();
   }
-  else
+  catch (boost::bad_weak_ptr p)		
   {
-	return shared_from_this();
+      return Domain_ptr(this);
   }
 }
 
 const_Domain_ptr AbstractDomain::getPtr() const 
-{
-  if (_internal_weak_this.expired())
+{  
+  try
   {
-	return const_Domain_ptr(this);
+      return shared_from_this();
   }
-  else
+  catch (boost::bad_weak_ptr p)		
   {
-	return shared_from_this();
+      return const_Domain_ptr(this);
   }
 }
+
 
 AbstractDomain::AbstractDomain() {
 }
