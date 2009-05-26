@@ -82,7 +82,11 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   Paso_SparseMatrix * schur=NULL;
   Paso_SparseMatrix * schur_withFillIn=NULL;
   double S=0;
-  /*Paso_Pattern* test;*/
+  
+  /*Make sure we have block sizes 1*/
+  A_p->pattern->input_block_size=A_p->col_block_size;
+  A_p->pattern->output_block_size=A_p->row_block_size;
+  A_p->pattern->block_size=A_p->block_size;
   
   /* identify independend set of rows/columns */
   mis_marker=TMPMEMALLOC(n,index_t);
@@ -107,13 +111,13 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   out->GS=Paso_Solver_getJacobi(A_p);
   /*out->GS->sweeps=2;*/
   out->level=level;
-   
+  
   if ( !(Paso_checkPtr(mis_marker) || Paso_checkPtr(out) || Paso_checkPtr(counter) ) ) {
      /* identify independend set of rows/columns */
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
-     /*Paso_Pattern_coup(A_p,mis_marker,couplingParam);*/
-    Paso_Pattern_RS(A_p,mis_marker,couplingParam);
+     Paso_Pattern_coup(A_p,mis_marker,couplingParam);
+    /*Paso_Pattern_RS(A_p,mis_marker,couplingParam);*/
      /*Paso_Pattern_Aggregiation(A_p,mis_marker,couplingParam);*/
      if (Paso_noError()) {
         #pragma omp parallel for private(i) schedule(static)
@@ -308,13 +312,11 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
          x[i]+=x0[i];
         }
         */
-        
         /*Paso_UMFPACK1(amg->A,x,b,0);*/
         
        /*time0=Paso_timer()-time0;
        fprintf(stderr,"timing: DIRECT SOLVER: %e/\n",time0);*/
      } else {
-     
         /* presmoothing */
          Paso_Solver_solveJacobi(amg->GS,x,b);
          /*
