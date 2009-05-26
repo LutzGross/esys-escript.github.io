@@ -401,7 +401,7 @@ D\hackscore{ij}^{q'}=\frac{1}{2 \eta^{q}} \sigma'\hackscore{ij}
 where $\eta^{q}$ is the viscosity of material $q$. We assume the following 
 betwee the the strain in material $q$ 
 \begin{equation}\label{IKM-EQU-5b}
-\eta^{q}=\eta^{q}\hackscore{N} \left(\frac{\tau}{\tau\hackscore{t}^q}\right)^{\frac{1}{n^{q}}-1}
+\eta^{q}=\eta^{q}\hackscore{N} \left(\frac{\tau}{\tau\hackscore{t}^q}\right)^{1-n^{q}}
 \mbox{ with } \tau=\sqrt{\frac{1}{2}\sigma'\hackscore{ij} \sigma'\hackscore{ij}}
 \end{equation}
 for a given power law coefficients $n^{q}\ge1$ and transition stresses $\tau\hackscore{t}^q$, see~\cite{Muhlhaus2005}.
@@ -515,12 +515,12 @@ In fact we have
 As
 \begin{equation}\label{IKM-EQU-47}
 \left(\frac{1}{\eta^{q}} \right)'
-= \frac{1-\frac{1}{n^{q}}}{\eta^{q}\hackscore{N}} \frac{\tau^{-\frac{1}{n^{q}}}}{(\tau\hackscore{t}^q)^{1-\frac{1}{n^{q}}}}
-= \frac{1-\frac{1}{n^{q}}}{\eta^{q}}\frac{1}{\tau} 
+= \frac{n^{q}-1}{\eta^{q}\hackscore{N}} \cdot \frac{\tau^{n^{q}-2}}{(\tau\hackscore{t}^q)^{n^{q}-1}}
+= \frac{n^{q}-1}{\eta^{q}}\cdot\frac{1}{\tau} 
 \end{equation}
 we have
 \begin{equation}\label{IKM-EQU-48}
-\Theta' = \frac{1}{\tau} \omega \mbox{ with } \omega = \sum\hackscore{q}\frac{1-\frac{1}{n^{q}}}{\eta^{q}} 
+\Theta' = \frac{1}{\tau} \omega \mbox{ with } \omega = \sum\hackscore{q}\frac{n^{q}-1}{\eta^{q}} 
 \end{equation}
 which leads to 
 \begin{equation}\label{IKM-EQU-49}

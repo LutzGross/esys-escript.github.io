@@ -41,7 +41,7 @@ class PowerLaw(object):
     this implements the power law for a composition of a set of materials where the viscosity eta of each material is given by a 
     power law relationship of the form
 
-    M{eta=eta_N*(tau/tau_t)**(1.-1./power)}
+    M{eta=eta_N*(tau/tau_t)**(1./power-1.)}
 
     where tau is equivalent stress and eta_N, tau_t and power are given constant. Moreover an elastic component can be considered. 
     Moreover tau meets the Drucker-Prager type yield condition
@@ -224,7 +224,7 @@ class PowerLaw(object):
                self.setPowerLaw(id=i, eta_N=eta_N[i],tau_t=tau_t[i],power=power[i])
 
     #===========================================================================
-    def getEtaEff(self,gamma_dot, eta0=None, pressure=None,dt=None, iter_max=10):
+    def getEtaEff(self,gamma_dot, eta0=None, pressure=None,dt=None, iter_max=30):
          """
          returns the effective viscosity eta_eff such that 
 
@@ -243,7 +243,7 @@ class PowerLaw(object):
          """
          SMALL=1./(util.DBLE_MAX/100.)
          numMaterial=self.getNumMaterials()
-         s=[1.-1./p for p in self.getPower() ]
+         s=[p-1. for p in self.getPower() ]
          eta_N=self.getEtaN()
          tau_t=self.getTauT()
          mu=self.getElasticShearModulus()
@@ -606,8 +606,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
              proposed in U{Hans-Bernd Muhlhaus<emailto:h.muhlhaus@uq.edu.au>}
              and U{Klaus Regenauer-Lieb<mailto:klaus.regenauer-lieb@csiro.au>}:
              I{Towards a self-consistent plate mantle model that includes elasticity: simple benchmarks and application to basic modes of convection},
-             see U{doi: 10.1111/j.1365-246X.2005.02742.x<http://www3.interscience.wiley.com/journal/118661486/abstract?CRETRY=1&SRETRY=0>}.
-
+             see U{doi: 10.1111/j.1365-246X.2005.02742.x<http://www3.interscience.wiley.com/journal/118661486/abstract>}
       """
       def __init__(self, domain, stress=0, v=0, p=0, t=0, numMaterials=1, verbose=True):
          """

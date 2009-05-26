@@ -1,4 +1,3 @@
-
 ########################################################
 #
 # Copyright (c) 2003-2008 by University of Queensland
@@ -10,7 +9,10 @@
 # http://www.opensource.org/licenses/osl-3.0.php
 #
 ########################################################
+"""
+this is a convection simulation over a domain [0,L] X [0,L] x [0,H]
 
+"""
 __copyright__="""Copyright (c) 2003-2008 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
@@ -24,47 +26,26 @@ from esys.escript.models import TemperatureCartesian, StokesProblemCartesian
 from esys.finley import Rectangle, Brick, LoadMesh
 from optparse import OptionParser
 from math import pi, ceil
-
-
-def removeRestartDirectory(dir_name):
-   if dom.onMasterProcessor() and os.path.isdir(dir_name):
-       for root, dirs, files in os.walk(dir_name, topdown=False):
-           for name in files: os.remove(os.path.join(root,name))
-           for name in dirs: os.remove(os.path.join(root,name))
-       os.rmdir(dir_name)
-       print "Restart files %s have been removed."%dir_name
-   dom.MPIBarrier()
-
-
 import sys
 import time
-t1 = time.time()
 
-extratol=1
+# ======================= Default Values ==================================================
+DIM=2                           # spatial dimension
+H=1.                            # height
+L=4*H                           # length
+NE=10                           # number of elements in H-direction. 
+PERTURBATION=0.1                # initial temperature perturbation
+DT=1.e-4                        # initial time step size
+USE_BACKWARD_EULER=False        # use backward Euler in time integartion of temperature otherwise Crank-Nicholson is used
+CREATE_TOPGRAPHY=False          # create topgraphy
+TOL=1.e-4                       # tolerance 
+DT_MIN=1.e-5                    # minumum time step size
+T_END=0.1                       # end time
 
-# read options:
-parser = OptionParser(usage="%prog [-r [DIR]] [-e [NE]]")
-parser.add_option("-e", "--elements", dest="NE", help="number of elements in one direction.",metavar="NE", default=16)
-parser.add_option("-r", "--restart", dest="restart", help="restart from latest directory. It will be deleted after a new directory has been created.", default=False, action="store_true")
-parser.add_option("-d", "--dir", dest="restart_dir", help="restart from directory DIR. The directory will not be deleted but new restart directories are created.",metavar="DIR", default=None)
-(options, args) = parser.parse_args()
-restart=options.restart or (options.restart_dir !=None)
-
-NE=int(options.NE)
-
-DIM=2
-H=1.
-L=4*H
-USE_BACKWARD_EULER=False
-TOL=1.e-4
-PERTURBATION=0.1
-DT=1.e-4
-DT_MIN=1.e-5
-T_END=0.1
 DT_OUT=T_END/500
 Dn_OUT=2
 VERBOSE=True
-create_restartfiles_every_step=10
+CREATE_RESTARTFILES_EVERY_STEP=10
 if True:
    # this is a simple linear Stokes model:
    RA=1.e6 # Rayleigh number
@@ -103,10 +84,60 @@ else:
    ETAP0=ETA0
    useJAUMANNSTRESS=True
 
-print "total number of elements = ",NE**DIM*int(L/H)**(DIM-1)
 
+# =========================================================================================
+
+def removeRestartDirectory(dir_name):
+   if dom.onMasterProcessor() and os.path.isdir(dir_name):
+       for root, dirs, files in os.walk(dir_name, topdown=False):
+           for name in files: os.remove(os.path.join(root,name))
+           for name in dirs: os.remove(os.path.join(root,name))
+       os.rmdir(dir_name)
+       print "Restart files %s have been removed."%dir_name
+   dom.MPIBarrier()
+# =========================================================================================
 #
-#   set up domain:
+# read options:
+#
+parser = OptionParser(usage="%prog [Options]")
+parser.add_option("-r", "--restart", dest="restart", help="restart from latest directory. It will be deleted after a new directory has been created.", default=False, action="store_true")
+parser.add_option("-d", "--dir", dest="restart_dir", help="restart from directory DIR. The directory will not be deleted but new restart directories are created.",metavar="DIR", default=None)
+parser.add_option("-p", "--param", dest="param", help="name of file to be imported ",metavar="PARAM", default=None)
+(options, args) = parser.parse_args()
+restart=options.restart or (options.restart_dir !=None)
+#
+#  overwrite the default options:
+#
+print "Execution started ",time.asctime()
+if options.param !=None: 
+     exec(open(options.param,'r'))
+     print "Parameters are imported from file ",options.param
+print "Parameters:"
+print "\tDimension\tDIM=\t",DIM
+print "\tHeight:\tH=\t",H
+print "\tLength:\tL=\t",L
+print "\telements in H:\tNE=\t",NE
+print "\ttotal #element\t\t=\t",NE**DIM*int(L/H)**(DIM-1)
+print "\ttolerance\tTOL=\t",TOL
+print "\ttemperature perturbation\tPERTURBATION=\t",PERTURBATION
+print "\tinitial time step size\tDT=\t",DT
+print "\tminimum time step size\tDT_MIN=\t",tDT_MIN
+print "\tend time\tT_END=\t",T_END
+print "\tbackward Euler?\tUSE_BACKWARD_EULER=\t",USE_BACKWARD_EULER
+print "\ttopgraphy?\tCREATE_TOPOGRAPHY=\t",CREATE_TOPOGRAPHY
+#  some control variables (will be overwritten in  case of a restart:
+#
+t=0         # time stamp
+n=0         # time step counter
+dt=DT       # current time step size
+
+t_out=0     # 
+n_out=0
+out_count=0
+a=None
+dt_a=None
+#
+#   set up domain or read restart file
 #
 if restart:
    if options.restart_dir ==None:
@@ -119,14 +150,14 @@ if restart:
       f=restart_files[-1]
    else:
        f=options.restart_dir
-   print "restart from directory ",f
+   print ">>>Restart from directory ",f
    try:
       dom=LoadMesh("mesh.nc")
    except:
       pass
    FF=open(os.path.join(f,"stamp.%d"%dom.getMPIRank()),"r").read().split(";")
-   t=float(FF[0])
-   t_out=float(FF[1])
+   t=float(FF[0])          # time stamp
+   t_out=float(FF[1])      # 
    n_out=int(FF[2])
    n=int(FF[3])
    out_count=int(FF[4])
@@ -165,14 +196,6 @@ else:
   x2=ReducedSolution(dom).getX()
   p=-RA*(x2[DIM-1]-0.5*x2[DIM-1]**2)
   if dom.onMasterProcessor(): nusselt_file=open("nusselt.csv","w")
-  t=0
-  t_out=0
-  n_out=0
-  n=0
-  out_count=0
-  dt=DT
-  a=None
-  dt_a=None
 
 vol=integrate(1.,Function(dom))
 p-=integrate(p)/vol
@@ -181,8 +204,7 @@ x=dom.getX()
 #   set up heat problem:
 #
 heat=TemperatureCartesian(dom,useBackwardEuler=USE_BACKWARD_EULER)
-heat.setTolerance(TOL*extratol)
-
+heat.setTolerance(TOL)
 fixed_T_at=whereZero(x[DIM-1])+whereZero(H-x[DIM-1])
 print "initial Temperature range ",inf(T),sup(T)
 heat.setInitialTemperature(clip(T,0))
@@ -197,10 +219,14 @@ for d in range(DIM):
        ll = H
     else:
        ll = L
-    fixed_v_mask+=(whereZero(x[d])+whereZero(x[d]-ll))*unitVector(d,DIM)
+    if CREATE_TOPOGRAPHY and d==DIM-1:
+       fixed_v_mask+=whereZero(x[d])*unitVector(d,DIM)
+    else:
+       fixed_v_mask+=(whereZero(x[d])+whereZero(x[d]-ll))*unitVector(d,DIM)
+1/0
 #
 #   set up velovity problem
-#
+# ????????????????????
 sp=StokesProblemCartesian(dom)
 # ,stress,v,p,t,useJaumannStress=useJAUMANNSTRESS)
 # sp=PlateMantelModel(dom,stress,v,p,t,useJaumannStress=useJAUMANNSTRESS)
@@ -210,6 +236,7 @@ sp.setTolerance(TOL*extratol)
 #
 #  let the show begin:
 #
+t1 = time.time()
 while t<T_END:
     v_last=v*1
     print "============== solve for v ========================"
