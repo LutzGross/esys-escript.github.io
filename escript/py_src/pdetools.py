@@ -1626,7 +1626,7 @@ class HomogeneousSaddlePointProblem(object):
                    norm2=math.sqrt(norm2)
                  else:
                    norm2=self.norm_p(dp)
-                 ATOL_ITER=ATOL/norm_Bv*norm2
+                 ATOL_ITER=ATOL/norm_Bv*norm2*0.5
                  if self.verbose: print "HomogeneousSaddlePointProblem: tolerance for solver: %e"%ATOL_ITER
                  if usePCG:
                        p,v0,a_norm=PCG(v,self.__Aprod_PCG,p,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL_ITER, rtol=0.,iter_max=max_iter, verbose=self.verbose)

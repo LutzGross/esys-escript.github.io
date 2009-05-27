@@ -89,7 +89,7 @@ class PowerLaw(object):
          @rtype: C{bool}
          """
          return 0<=id and id<self.getNumMaterials()
-    def setEtaTolerance(self,rtol=util.sqrt(util.EPSILON)):
+    def setEtaTolerance(self,rtol=1.e-4):
          """
          sets the relative tolerance for the effectice viscosity.
  
@@ -709,7 +709,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
              #
              diff=util.Lsup(eta_eff_old-eta_eff)
              n=util.Lsup(eta_eff)
-             if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: step %s: max. change in eta_eff is %s."%(iter,diff)
+             if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: step %s: max. rel. change in eta_eff is %s."%(iter,diff/n)
              converged = diff <= self.getTolerance()* n
              iter+=1
              if iter >= iter_max:
@@ -730,13 +730,19 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
           if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: iteration on time step %s completed after %s steps."%(self.getTime(),iter)
           return self.getVelocity(), self.getPressure()
 
+      def getCurrentEtaEff(self):
+          """
+          returns the effective viscosity
+          """
+          return self.__eta_eff
+
       def __getDeviatoricStrain(self, v):
           """
           Returns deviatoric strain of velocity v:
           """
           return util.deviatoric(util.symmetric(util.grad(v)))
 
-      def setFlowTolerance(self, tol=1.e-6):
+      def setFlowTolerance(self, tol=1.e-4):
           """
           Sets the relative tolerance for the flow solver. See L{StokesProblemCartesian.setTolerance} for details.
 
@@ -752,7 +758,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
           @rtype: C{float}
           """
           return self.__solver.getTolerance()
-      def setFlowSubTolerance(self, tol=1.e-12):
+      def setFlowSubTolerance(self, tol=1.e-8):
           """
           Sets the relative tolerance for the subsolver of the flow solver. See L{StokesProblemCartesian.setSubProblemTolerance} for details
 
