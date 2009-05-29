@@ -29,7 +29,7 @@ import os
 from cblib import *
 
 # Establish a save path.
-savepath = "data/wavesolver2d001nw"
+savepath = "data/wavesolver2d001nwlo"
 # Creating a directory automatically to store the output data.
 if not os.path.isdir("data"):
    os.mkdir("data")
