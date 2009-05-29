@@ -28,19 +28,20 @@ import sys
 import os
 from cblib import *
 
+# Establish a save path.
+savepath = "data/wavesolver2d001nw"
 # Creating a directory automatically to store the output data.
 if not os.path.isdir("data"):
    os.mkdir("data")
-if not os.path.isdir("data/wavesolver2d001"):
-   os.mkdir("data/wavesolver2d001")
-# Establish a save path.
-savepath = "data/wavesolver2d001"
+if not os.path.isdir(savepath):
+   os.mkdir(savepath)
+
 
 #Geometric and material property related variables.
 mx = 500 # model lenght
 my = 500 # model width
-ndx = 50 # steps in x direction 
-ndy = 50 # steps in y direction
+ndx = 100 # steps in x direction 
+ndy = 100 # steps in y direction
 lam=3.462e9 #lames constant
 mu=3.462e9  #bulk modulus
 rho=1154.   #density
