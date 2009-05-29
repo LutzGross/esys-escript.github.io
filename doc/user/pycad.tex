@@ -122,52 +122,146 @@ enclosed area, but gmsh will fail to create a mesh for it.
 Some of the most commonly-used objects in {\it pycad} are listed here. For a more complete
 list see the full API documentation.
 
-\begin{classdesc}{Point}{x1, x2, x3}
-Create a point with from coordinates.
+\begin{classdesc}{Point}{x=0.,y=0.,z=0.\optional{,local_scale=1.}}
+Create a point with from coordinates with local characteristic length \var{local_scale}
 \end{classdesc}
 
 \begin{classdesc}{Line}{point1, point2}
 Create a line with between starting and ending points.
 \end{classdesc}
+\begin{methoddesc}[Line]{setElementDistribution}{n\optional{,progression=1\optional{,createBump=\False}}}
+Defines the number of elements on the line. If set it overwrites the local length setting which would be applied. The progression factor \var{progression} defines the change of element size between naighboured elements. If \var{createBump} is set
+progression is applied towards the center of the line.
+\end{methoddesc}
+\begin{methoddesc}[Line]{resetElementDistribution}{}
+removes a previously set element distribution from the line.
+\end{methoddesc}
+\begin{methoddesc}[Line]{getElemenofDistribution}{}
+Returns the element distribution as tuple of
+number of elements, progression factor and bump flag. If
+no element distribution is set None is returned.
+\end{methoddesc}
 
-\begin{classdesc}{Curve}{point1, point2, ...}
-Create a \code{Curve}, which is simply a list of points.
-\end{classdesc}
 
-\begin{classdesc}{Spline}{curve}
-Interpret a \code{Curve} using a spline.
+\begin{classdesc}{Spline}{point0, point1, ...}
+A spline curve defined by a list of points \var{point0}, \var{point1},....
 \end{classdesc}
+\begin{methoddesc}[Spline]{setElementDistribution}{n\optional{,progression=1\optional{,createBump=\False}}}
+Defines the number of elements on the line. If set it overwrites the local length setting which would be applied. The progression factor \var{progression} defines the change of element size between naighboured elements. If \var{createBump} is set
+progression is applied towards the center of the line.
+\end{methoddesc}
+\begin{methoddesc}[Spline]{resetElementDistribution}{}
+removes a previously set element distribution from the line.
+\end{methoddesc}
+\begin{methoddesc}[Spline]{getElemenofDistribution}{}
+Returns the element distribution as tuple of
+number of elements, progression factor and bump flag. If
+no element distribution is set None is returned.
+\end{methoddesc}
 
-\begin{classdesc}{BSpline}{curve}
-Interpret a \code{Curve} using a b-spline.
+\begin{classdesc}{BSpline}{point0, point1, ...}
+A B-spline curve defined by a list of points \var{point0}, \var{point1},....
 \end{classdesc}
+\begin{methoddesc}[BSpline]{setElementDistribution}{n\optional{,progression=1\optional{,createBump=\False}}}
+Defines the number of elements on the line. If set it overwrites the local length setting which would be applied. The progression factor \var{progression} defines the change of element size between naighboured elements. If \var{createBump} is set
+progression is applied towards the center of the line.
+\end{methoddesc}
+\begin{methoddesc}[BSpline]{resetElementDistribution}{}
+removes a previously set element distribution from the line.
+\end{methoddesc}
+\begin{methoddesc}[BSpline]{getElemenofDistribution}{}
+Returns the element distribution as tuple of
+number of elements, progression factor and bump flag. If
+no element distribution is set None is returned.
+\end{methoddesc}
 
-\begin{classdesc}{BezierCurve}{curve}
-Interpret a \code{Curve} using a Bezier curve.
+\begin{classdesc}{BezierCurve}{point0, point1, ...}
+A Brezier spline curve defined by a list of points \var{point0}, \var{point1},....
 \end{classdesc}
-
-\begin{classdesc}{CurveLoop}{list}
-Create a closed \code{Curve} connecting the lines and/or points given in the \code{list}.
-\end{classdesc}
+\begin{methoddesc}[BezierCurve]{setElementDistribution}{n\optional{,progression=1\optional{,createBump=\False}}}
+Defines the number of elements on the line. If set it overwrites the local length setting which would be applied. The progression factor \var{progression} defines the change of element size between naighboured elements. If \var{createBump} is set
+progression is applied towards the center of the line.
+\end{methoddesc}
+\begin{methoddesc}[BezierCurve]{resetElementDistribution}{}
+removes a previously set element distribution from the line.
+\end{methoddesc}
+\begin{methoddesc}[BezierCurve]{getElemenofDistribution}{}
+Returns the element distribution as tuple of
+number of elements, progression factor and bump flag. If
+no element distribution is set None is returned.
+\end{methoddesc}
 
 \begin{classdesc}{Arc}{center_point, start_point, end_point}
 Create an arc by specifying a center for a circle and start and end points. An arc may subtend an angle of at most $\pi$ radians.
 \end{classdesc}
+\begin{methoddesc}[Arc]{setElementDistribution}{n\optional{,progression=1\optional{,createBump=\False}}}
+Defines the number of elements on the line. If set it overwrites the local length setting which would be applied. The progression factor \var{progression} defines the change of element size between naighboured elements. If \var{createBump} is set
+progression is applied towards the center of the line.
+\end{methoddesc}
+\begin{methoddesc}[Arc]{resetElementDistribution}{}
+removes a previously set element distribution from the line.
+\end{methoddesc}
+\begin{methoddesc}[Arc]{getElemenofDistribution}{}
+Returns the element distribution as tuple of
+number of elements, progression factor and bump flag. If
+no element distribution is set None is returned.
+\end{methoddesc}
+
+\begin{classdesc}{CurveLoop}{list}
+Create a closed curve from the \code{list}. of
+\class{Line}, \class{Arc}, \class{Spline}, \class{BSpline},
+\class{BrezierSpline}.
+\end{classdesc}
 
 \begin{classdesc}{PlaneSurface}{loop, \optional{holes=[list]}}
-Create a surface for a 2-D mesh, which may have one or more holes.
+Create a plane surface from a \class{CurveLoop}, which may have one or more holes
+described by \var{list} of \class{CurveLoop}.
 \end{classdesc}
+\begin{methoddesc}[PlaneSurface]{setRecombination}{max_deviation}
+the mesh generator will try to recombine triangular elements 
+into quadrilateral elements. \var{max_deviation} (in radians) defines the
+maximum deviation of any angle in the quadrilaterals from the right angle.  
+Set \var{max_deviation}=\var{None} to remove recombination.
+\end{methoddesc}
+\begin{methoddesc}[PlaneSurface]{setTransfiniteMeshing}{\optional{orientation="Left"}}
+applies 2D transfinite meshing to the surface. 
+\var{orientation} defines the orientation of triangles. Allowed values
+are \var{``Left''}, \var{``Right''} or \var{``Alternate''}. The 
+boundary of the surface muist be defined by three or four lines where an
+element distribution must be defined on all faces where opposite 
+faces uses the same element distribution. No holes must be present.
+\end{methoddesc}
+
+
 
 \begin{classdesc}{RuledSurface}{list}
 Create a surface that can be interpolated using transfinite interpolation.
+\var{list} gives a list of three or four lines defining the boundary of the
+surface.
 \end{classdesc}
+\begin{methoddesc}[RuledSurface]{setRecombination}{max_deviation}
+the mesh generator will try to recombine triangular elements 
+into quadrilateral elements. \var{max_deviation} (in radians) defines the
+maximum deviation of any angle in the quadrilaterals from the right angle.  
+Set \var{max_deviation}=\var{None} to remove recombination.
+\end{methoddesc}
+\begin{methoddesc}[RuledSurface]{setTransfiniteMeshing}{\optional{orientation="Left"}}
+applies 2D transfinite meshing to the surface. 
+\var{orientation} defines the orientation of triangles. Allowed values
+are \var{``Left''}, \var{``Right''} or \var{``Alternate''}. The 
+boundary of the surface muist be defined by three or four lines where an
+element distribution must be defined on all faces where opposite 
+faces uses the same element distribution. No holes must be present.
+\end{methoddesc}
+
 
 \begin{classdesc}{SurfaceLoop}{list}
-Create a loop of 2D primitives, which defines the shell of a volume.
+Create a loop of \class{PlaneSurface} or \class{RuledSurface}, which defines the shell of a volume.
 \end{classdesc}
 
 \begin{classdesc}{Volume}{loop, \optional{holes=[list]}}
-Create a volume for a 3-D mesh given a SurfaceLoop, which may have one or more holes.
+Create a volume given a \class{SurfaceLoop}, which may have one or more holes
+define by the list of \class{SurfaceLoop}.
 \end{classdesc}
 
 \begin{classdesc}{PropertySet}{list}

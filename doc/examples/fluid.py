@@ -52,7 +52,7 @@ while t <= t_end:
   print "Time = %s seconds"%( time )  
  
   solution.initialize(fixed_u_mask=boundary_cond,eta=eta,f=Y)
-  velocity,pressure=solution.solve(velocity,pressure,max_iter=max_iter,verbose=verbose,useUzawa=useUzawa)
+  velocity,pressure=solution.solve(velocity,pressure,max_iter=max_iter,verbose=verbose,usePCG=True)
   
   print "Max velocity =", Lsup(velocity), "m/s"
   

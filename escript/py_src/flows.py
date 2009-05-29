@@ -367,6 +367,12 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          # self.__pde_prec.setSolverMethod(self.__pde_prec.LUMPING)
          self.__pde_prec.setSymmetryOn()
 
+         self.__pde_proj=LinearPDE(domain)
+         self.__pde_proj.setReducedOrderOn()
+	 self.__pde_proj.setValue(D=1)
+         self.__pde_proj.setSymmetryOn()
+
+
      def initialize(self,f=Data(),fixed_u_mask=Data(),eta=1,surface_stress=Data(),stress=Data()):
         """
         assigns values to the model parameters
@@ -459,7 +465,9 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
         @rtype: equal to the type of p
         @note: boundary conditions on p should be zero!
         """
-        return util.sqrt(util.integrate(util.div(v)**2))
+        self.__pde_proj.setValue(Y=util.div(v))
+        self.__pde_prec.setTolerance(self.getSubProblemTolerance())
+        return util.sqrt(util.integrate(util.interpolate(self.__pde_proj.getSolution(),Function(self.domain))**2))
 
      def solve_AinvBt(self,p):
          """

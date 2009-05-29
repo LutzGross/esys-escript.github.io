@@ -34,7 +34,7 @@ try:
 except KeyError:
 	PYVISI_TEST_DATA_ROOT='.'
 
-PYVISI_TEST_SCENE_IMAGES_PATH = os.path.join(PYVISI_WORKDIR, \
+PYVISI_TEST_SCENE_IMAGES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT, \
 		"data_sample_images", "scene")
 
 MIN_IMAGE_SIZE = 100

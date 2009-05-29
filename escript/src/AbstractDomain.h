@@ -359,12 +359,13 @@ Note: This is _not_ equivalent to weak_ptr::lock.
 
   /**
      \brief
-     Saves a dictonary of Data objects to an VTK XML input file. The keywords are used as identifier
+     Saves a dictonary of Data objects to an VTK XML input file. The keywords are used as identifier.
+     metadata is string representing some meta data to be added. metadata_schema assign schema to namespaces used in the meta data.
 
      This has to be implemented by the actual Domain adapter.
   */
   ESCRIPT_DLL_API
-  virtual void saveVTK(const std::string& filename,const boost::python::dict& arg) const;
+  virtual void saveVTK(const std::string& filename,const boost::python::dict& arg, const std::string& metadata, const std::string& metadata_schema) const;
 
   /**
      \brief assigns new tag newTag to all samples of functionspace with a positive

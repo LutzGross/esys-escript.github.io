@@ -37,6 +37,7 @@ import tempfile
 import os
 from primitives import Point, Spline, BezierCurve, BSpline, Line, Arc, CurveLoop, RuledSurface, PlaneSurface, SurfaceLoop, Volume, PropertySet, Ellipse
 from esys.escript import getMPIWorldMax, getMPIRankWorld
+from transformations import DEG
 
 class Design(design.Design):
     """
@@ -149,6 +150,7 @@ class Design(design.Design):
         else:
           return self.getMeshFileName()
 
+        
     def getScriptString(self):
         """
         Returns the gmsh script to generate the mesh.
@@ -162,35 +164,35 @@ class Design(design.Design):
                out+="Point(%s) = {%s , %s, %s , %s };\n"%(p.getID(),c[0],c[1],c[2], p.getLocalScale()*h)
 
            elif isinstance(p, Spline):
-               out+="Spline(%s) = {%s};\n"%(p.getID(),self.__mkArgs(p.getControlPoints()))
+               out+="Spline(%s) = {%s};\n"%(p.getID(),self.__mkArgs(p.getControlPoints()))+self.__mkTransfiniteLine(p)
 
            elif isinstance(p, BezierCurve):
-               out+="Bezier(%s) = {%s};\n"%(p.getID(),self.__mkArgs(p.getControlPoints()))
+               out+="Bezier(%s) = {%s};\n"%(p.getID(),self.__mkArgs(p.getControlPoints()))+self.__mkTransfiniteLine(p)
 
            elif isinstance(p, BSpline):
-               out+="BSpline(%s) = {%s};\n"%(p.getID(),self.__mkArgs(p.getControlPoints()))
+               out+="BSpline(%s) = {%s};\n"%(p.getID(),self.__mkArgs(p.getControlPoints()))+self.__mkTransfiniteLine(p)
 
            elif isinstance(p, Line):
-               out+="Line(%s) = {%s, %s};\n"%(p.getID(),p.getStartPoint().getDirectedID(),p.getEndPoint().getDirectedID())
+               out+="Line(%s) = {%s, %s};\n"%(p.getID(),p.getStartPoint().getDirectedID(),p.getEndPoint().getDirectedID())+self.__mkTransfiniteLine(p)
 
            elif isinstance(p, Arc):
-              out+="Circle(%s) = {%s, %s, %s};\n"%(p.getID(),p.getStartPoint().getDirectedID(),p.getCenterPoint().getDirectedID(),p.getEndPoint().getDirectedID())
+              out+="Circle(%s) = {%s, %s, %s};\n"%(p.getID(),p.getStartPoint().getDirectedID(),p.getCenterPoint().getDirectedID(),p.getEndPoint().getDirectedID())+self.__mkTransfiniteLine(p)
 
            elif isinstance(p, Ellipse):
-              out+="Ellipse(%s) = {%s, %s, %s, %s};\n"%(p.getID(),p.getStartPoint().getDirectedID(),p.getCenterPoint().getDirectedID(),p.getPointOnMainAxis().getDirectedID(), p.getEndPoint().getDirectedID())
+              out+="Ellipse(%s) = {%s, %s, %s, %s};\n"%(p.getID(),p.getStartPoint().getDirectedID(),p.getCenterPoint().getDirectedID(),p.getPointOnMainAxis().getDirectedID(), p.getEndPoint().getDirectedID())+self.__mkTransfiniteLine(p)
 
            elif isinstance(p, CurveLoop):
                out+="Line Loop(%s) = {%s};\n"%(p.getID(),self.__mkArgs(p.getCurves()))
 
            elif isinstance(p, RuledSurface):
-               out+="Ruled Surface(%s) = {%s};\n"%(p.getID(),p.getBoundaryLoop().getDirectedID())
+               out+="Ruled Surface(%s) = {%s};\n"%(p.getID(),p.getBoundaryLoop().getDirectedID())+self.__mkTransfiniteSurface(p)
 
            elif isinstance(p, PlaneSurface):
                line=self.__mkArgs(p.getHoles())
                if len(line)>0:
-                 out+="Plane Surface(%s) = {%s, %s};\n"%(p.getID(),p.getBoundaryLoop().getDirectedID(), line)
+                 out+="Plane Surface(%s) = {%s, %s};\n"%(p.getID(),p.getBoundaryLoop().getDirectedID(), line)+self.__mkTransfiniteSurface(p)
                else:
-                 out+="Plane Surface(%s) = {%s};\n"%(p.getID(),p.getBoundaryLoop().getDirectedID())
+                 out+="Plane Surface(%s) = {%s};\n"%(p.getID(),p.getBoundaryLoop().getDirectedID())+self.__mkTransfiniteSurface(p)
 
            elif isinstance(p, SurfaceLoop):
                out+="Surface Loop(%s) = {%s};\n"%(p.getID(),self.__mkArgs(p.getSurfaces()))
@@ -230,3 +232,33 @@ class Design(design.Design):
                 line="%s"%i.getDirectedID()
         return line
 
+    def __mkTransfiniteLine(self,p):
+          s=p.getElementDistribution()
+          if not s == None:
+              if s[2]:
+                  out="Transfinite Line{%d} = %d Using Bump %s;\n"%(p.getID(),s[0],s[1])
+              else:
+                  out="Transfinite Line{%d} = %d Using Progression %s;\n"%(p.getID(),s[0],s[1])
+          else:
+               out=""
+          return out
+    def __mkTransfiniteSurface(self,p):
+         out=""
+         o=p.getRecombination()
+         s=p.getTransfiniteMeshing()
+         if not s == None:
+             out2=""
+             if not s[0] == None:
+               for q in s[0]:
+                  if len(out2)==0:
+                      out2="%s"%q.getID()
+                  else:
+                      out2="%s,%s"%(out2,q.getID())
+             if o == None:
+                out+="Transfinite Surface{%s} = {%s};\n"%(p.getID(),out2)
+             else:
+                out+="Transfinite Surface{%s} = {%s} %s;\n"%(p.getID(),out2,s[1])
+         if not o == None:
+           out+="Recombine Surface {%s} = %s;\n"%(p.getID(),o/DEG)
+         return out
+     

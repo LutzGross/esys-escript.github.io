@@ -36,7 +36,7 @@ import os #This package is necessary to handle saving our data.
 q=50.e6 #our heat source temperature
 Tref=0. #the starting temperature of our iron bar
 rho=2.6e6
-eta=75.
+eta=0#75.
 kappa=240.
 #Script/Iteration Related
 t=0 #our start time, usually zero
@@ -51,7 +51,7 @@ save_path = "data/onedheatdiff" #the folder to put our outputs in, leave blank "
 #... generate domain ...
 rod = Rectangle(l0=0.05,l1=.01,n0=500, n1=1)
 # extract finite points
-x=r	od.getX()
+x=rod.getX()
 #... open PDE ...
 mypde=LinearPDE(rod)
 mypde.setSymmetryOn()
@@ -66,7 +66,7 @@ T=Tref
 while t<=tend:
       i+=1
       t+=h
-      mypde.setValue(Y=qH+rhocp/h*T)
+      mypde.setValue(Y=qH+rho/h*T)
       T=mypde.getSolution()
       print T
       saveVTK(os.path.join(save_path,"data%03d.xml") %i,sol=T)

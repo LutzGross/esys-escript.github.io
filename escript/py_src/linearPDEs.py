@@ -2862,3 +2862,28 @@ class TransportPDE(LinearProblem):
           self.validRightHandSide()
        return (self.getCurrentOperator(), self.getCurrentRightHandSide())
 
+   def setDebug(self, flag):
+     """
+     Switches debug output on if C{flag} is True,
+     otherwise it is switched off.
+
+     @param flag: desired debug status
+     @type flag: C{bool}
+     """
+     if flag:
+         self.setDebugOn()
+     else:
+         self.setDebugOff()
+
+   def setDebugOn(self):
+     """
+     Switches debug output on.
+     """
+     super(TransportPDE,self).setDebugOn()
+     
+   def setDebugOff(self):
+     """
+     Switches debug output off.
+     """
+     super(TransportPDE,self).setDebugOff()
+     

@@ -39,8 +39,10 @@ try:
 except KeyError:
      PYCAD_WORKDIR='.'
 
-PYCAD_TEST_MESH_PATH=PYCAD_TEST_DATA+os.sep+"data_meshes"+os.sep
-PYCAD_WORKDIR_PATH=PYCAD_WORKDIR+os.sep
+#PYCAD_TEST_MESH_PATH=PYCAD_TEST_DATA+os.sep+"data_meshes"+os.sep
+#PYCAD_WORKDIR_PATH=PYCAD_WORKDIR+os.sep
+
+
 
 def _cross(x, y):
     return numpy.array([x[1] * y[2] - x[2] * y[1], x[2] * y[0] - x[0] * y[2], x[0] * y[1] - x[1] * y[0]])
@@ -1183,6 +1185,16 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(not p1 == dccp[1],"2nd point of Dilation is identical to source.")
         self.failUnless(dccp[1].isColocated(Point(1,1,1)),"2st point of Dilation is is wrongly located.")
 
+        self.failUnless(dc.getElementDistribution() == None, "element distribution set.")
+        dc.setElementDistribution(10,0.2,False)
+        d=dc.getElementDistribution()
+        self.failUnless(d[0] == 10, "number of element is wrong.")
+        self.failUnless(d[1] == 0.2, "propagation factor is wrong.")
+        self.failUnless(d[2] == False, "bump flag wrong")
+        dc.resetElementDistribution()
+        self.failUnless(dc.getElementDistribution() == None, "resetted element distribution set.")
+        
+
    def test_ReverseLineSegment(self):
         p0=Point(0,0,0,0.1)
         p1=Point(1,1,1,0.2)
@@ -1242,6 +1254,16 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(dccp[0].isColocated(Point(1,1,1)),"1st point of Dilation is is wrongly located.")
         self.failUnless(not p1 == dccp[1],"2nd point of Dilation is identical to source.")
         self.failUnless(dccp[1].isColocated(Point(0,0,0)),"2st point of Dilation is is wrongly located.")
+
+        self.failUnless(dc.getElementDistribution() == None, "element distribution set.")
+        dc.setElementDistribution(10,0.2,False)
+        d=dc.getElementDistribution()
+        self.failUnless(d[0] == 10, "number of element is wrong.")
+        self.failUnless(d[1] == 0.2, "propagation factor is wrong.")
+        self.failUnless(d[2] == False, "bump flag wrong")
+        dc.resetElementDistribution()
+        self.failUnless(dc.getElementDistribution() == None, "resetted element distribution set.")
+        
 
    def test_Arc(self):
         center=Point(0,0,0,0.1)
@@ -1304,6 +1326,16 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(not dc.getEndPoint() == p_end,"end point of dilation is identical to source.")
         self.failUnless(dc.getEndPoint().isColocated(Point(1,2,3)),"end point of dilation is wrong.")
 
+        self.failUnless(dc.getElementDistribution() == None, "element distribution set.")
+        dc.setElementDistribution(10,0.2,False)
+        d=dc.getElementDistribution()
+        self.failUnless(d[0] == 10, "number of element is wrong.")
+        self.failUnless(d[1] == 0.2, "propagation factor is wrong.")
+        self.failUnless(d[2] == False, "bump flag wrong")
+        dc.resetElementDistribution()
+        self.failUnless(dc.getElementDistribution() == None, "resetted element distribution set.")
+        
+
    def test_ReverseArc(self):
         center=Point(0,0,0,0.1)
         p_start=Point(1,1,1,0.2)
@@ -1365,6 +1397,16 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(dc.getStartPoint().isColocated(Point(1,2,3)),"start point of dilation is wrong.")
         self.failUnless(not dc.getEndPoint() == p_end,"end point of dilation is identical to source.")
         self.failUnless(dc.getEndPoint().isColocated(Point(1,1,1)),"end point of dilation is wrong.")
+
+        self.failUnless(dc.getElementDistribution() == None, "element distribution set.")
+        dc.setElementDistribution(10,0.2,False)
+        d=dc.getElementDistribution()
+        self.failUnless(d[0] == 10, "number of element is wrong.")
+        self.failUnless(d[1] == 0.2, "propagation factor is wrong.")
+        self.failUnless(d[2] == False, "bump flag wrong")
+        dc.resetElementDistribution()
+        self.failUnless(dc.getElementDistribution() == None, "resetted element distribution set.")
+        
 
    def test_Ellipse(self):
         center=Point(0,0,0,0.1)
@@ -1441,6 +1483,16 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(not dc.getPointOnMainAxis() == main_axis_point,"point on main axis is identical to source.")
         self.failUnless(dc.getPointOnMainAxis().isColocated(Point(0,1,0)),"point on main axis of dilation is wrong.")
 
+        self.failUnless(dc.getElementDistribution() == None, "element distribution set.")
+        dc.setElementDistribution(10,0.2,False)
+        d=dc.getElementDistribution()
+        self.failUnless(d[0] == 10, "number of element is wrong.")
+        self.failUnless(d[1] == 0.2, "propagation factor is wrong.")
+        self.failUnless(d[2] == False, "bump flag wrong")
+        dc.resetElementDistribution()
+        self.failUnless(dc.getElementDistribution() == None, "resetted element distribution set.")
+        
+
    def test_ReverseEllipse(self):
         center=Point(0,0,0,0.1)
         main_axis_point=Point(0,1,0,0.1)
@@ -1512,6 +1564,16 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(dc.getEndPoint().isColocated(Point(1,1,1)),"end point of dilation is wrong.")
         self.failUnless(not dc.getPointOnMainAxis() == main_axis_point,"point on main axis is identical to source.")
         self.failUnless(dc.getPointOnMainAxis().isColocated(Point(0,1,0)),"point on main axis of dilation is wrong.")
+
+        self.failUnless(dc.getElementDistribution() == None, "element distribution set.")
+        dc.setElementDistribution(10,0.2,False)
+        d=dc.getElementDistribution()
+        self.failUnless(d[0] == 10, "number of element is wrong.")
+        self.failUnless(d[1] == 0.2, "propagation factor is wrong.")
+        self.failUnless(d[2] == False, "bump flag wrong")
+        dc.resetElementDistribution()
+        self.failUnless(dc.getElementDistribution() == None, "resetted element distribution set.")
+        
 
    def test_CurveLoop(self):
         p0=Point(0,0,0,0.1)
@@ -1842,6 +1904,31 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(cl1 == p, "inplace dilation s.getBoundaryLoop does not return cl1")
         self.failUnless(p.hasSameOrientation(cl1),"cl1 in getBoundaryLoop after dilation has incorrect orientation.")
 
+        self.failUnless(s.getRecombination() == None, "recombination meshing set.")
+        self.failUnlessRaises(ValueError,s.setRecombination,-10*DEG)
+        s.setRecombination(30*DEG)
+        self.failUnless(s.getRecombination() == 30*DEG, "recombination parameter wrong.")
+        self.failUnlessRaises(ValueError,s.setTransfiniteMeshing,orientation="X")
+        
+        # now the same but without holes:
+        s=PlaneSurface(cl)
+        self.failUnless(s.getTransfiniteMeshing() == None, "transfinite meshing set.")
+        self.failUnlessRaises(ValueError,s.setTransfiniteMeshing,orientation="X")
+        self.failUnlessRaises(ValueError,s.setTransfiniteMeshing)
+         
+        l01.setElementDistribution(3)
+        l12_1.setElementDistribution(3)
+        l20.setElementDistribution(3)
+        s.setTransfiniteMeshing()
+        q=s.getTransfiniteMeshing()
+        self.failUnless(not q == None, "transfinite meshing not set.")
+        self.failUnless(q[1] == RuledSurface.LEFT, "orientation is wrong.")
+        self.failUnless(len(q[0])==3, "number of corner points is wrong.")
+        self.failUnless(p0 in q[0], "p0 is missing.")
+        self.failUnless(p1 in q[0], "p1 is missing.")
+        self.failUnless(p2 in q[0], "p2 is missing.")
+        s.resetTransfiniteMeshing()
+        self.failUnless(s.getTransfiniteMeshing() == None, "reset transfinite meshing failed.")
    def test_ReverseRuledSurface(self):
         p0=Point(0,0,0,0.1)
         p1=Point(1,1,1,0.2)
@@ -1981,6 +2068,31 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(cl1 == p, "inplace dilation s.getBoundaryLoop does not return cl1")
         self.failUnless(p.hasSameOrientation(-cl1),"cl1 in getBoundaryLoop after dilation has incorrect orientation.")
 
+        self.failUnless(s.getRecombination() == None, "recombination meshing set.")
+        self.failUnlessRaises(ValueError,s.setRecombination,-10*DEG)
+        s.setRecombination(30*DEG)
+        self.failUnless(s.getRecombination() == 30*DEG, "recombination parameter wrong.")
+        self.failUnlessRaises(ValueError,s.setTransfiniteMeshing,orientation="X")
+        
+        # now the same but without holes:
+        s=PlaneSurface(cl1)
+        self.failUnless(s.getTransfiniteMeshing() == None, "transfinite meshing set.")
+        self.failUnlessRaises(ValueError,s.setTransfiniteMeshing,orientation="X")
+        self.failUnlessRaises(ValueError,s.setTransfiniteMeshing)
+         
+        l01.setElementDistribution(3)
+        l12_1.setElementDistribution(3)
+        l20.setElementDistribution(3)
+        s.setTransfiniteMeshing()
+        q=s.getTransfiniteMeshing()
+        self.failUnless(not q == None, "transfinite meshing not set.")
+        self.failUnless(q[1] == RuledSurface.LEFT, "orientation is wrong.")
+        self.failUnless(len(q[0])==3, "number of corner points is wrong.")
+        self.failUnless(p0 in q[0], "p0 is missing.")
+        self.failUnless(p1 in q[0], "p1 is missing.")
+        self.failUnless(p2 in q[0], "p2 is missing.")
+        s.resetTransfiniteMeshing()
+        self.failUnless(s.getTransfiniteMeshing() == None, "reset transfinite meshing failed.")
 
    def test_PlaneSurface(self):
         p0=Point(0,0,0,0.1)
@@ -2118,7 +2230,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(not p6 in cp, "copy contains p6")
         del sp
          
-
         p0_m=Point(0,0,0,0.1)
         p1_m=Point(-10,0,0,0.2)
         p2_m=Point(-10,-10,0,0.3)
@@ -2195,6 +2306,35 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(p4 in cp, "inplace dilation must use p4")
         self.failUnless(p5 in cp, "inplace dilation must use p5")
         self.failUnless(p6 in cp, "inplace dilation must use p6")
+
+        self.failUnless(s.getRecombination() == None, "recombination meshing set.")
+        self.failUnlessRaises(ValueError,s.setRecombination,-10*DEG)
+        s.setRecombination(30*DEG)
+        self.failUnless(s.getRecombination() == 30*DEG, "recombination parameter wrong.")
+        self.failUnlessRaises(ValueError,s.setTransfiniteMeshing,orientation="X")
+        
+        # now the same but without holes:
+        s=PlaneSurface(cl)
+        self.failUnless(s.getTransfiniteMeshing() == None, "transfinite meshing set.")
+        self.failUnlessRaises(ValueError,s.setTransfiniteMeshing,orientation="X")
+        self.failUnlessRaises(ValueError,s.setTransfiniteMeshing)
+         
+        l0.setElementDistribution(6)
+        l1.setElementDistribution(3)
+        l2.setElementDistribution(6)
+        l3.setElementDistribution(3)
+        s.setTransfiniteMeshing()
+        q=s.getTransfiniteMeshing()
+        self.failUnless(not q == None, "transfinite meshing not set.")
+        self.failUnless(q[1] == RuledSurface.LEFT, "orientation is wrong.")
+        self.failUnless(len(q[0])==4, "number of corner points is wrong.")
+        self.failUnless(p0 in q[0], "p0 is missing.")
+        self.failUnless(p1 in q[0], "p1 is missing.")
+        self.failUnless(p2 in q[0], "p2 is missing.")
+        self.failUnless(p3 in q[0], "p3 is missing.")
+        s.resetTransfiniteMeshing()
+        self.failUnless(s.getTransfiniteMeshing() == None, "reset transfinite meshing failed.")
+        
 
    def test_SurfaceLoop(self):
         p0=Point( 0, 0, 0,0.1)
@@ -2517,6 +2657,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(cc[cc.index(s10)].hasSameOrientation(-s10),"s10 in modified object has wrong orientation.")
         self.failUnless(s10.isColocated(s10_m),"s10 in modified object as wrong location.")
 
+        
    def test_ReverseSurfaceLoop(self):
         p0=Point( 0, 0, 0,0.1)
         p1=Point(10, 0, 0,0.1)
@@ -3658,24 +3799,24 @@ class Test_PyCAD_Design(unittest.TestCase):
        script_name=d.getScriptFileName()
        self.failUnless(isinstance(script_name,str))
        self.failUnless(script_name.split(".")[-1] == "geo")
-       script_name=PYCAD_WORKDIR+os.sep+"script.geo"
+       script_name=os.path.join(PYCAD_WORKDIR,"script.geo")
        d.setScriptFileName(script_name)
        self.failUnless(script_name == d.getScriptFileName())
 
        mesh_name=d.getMeshFileName()
        self.failUnless(isinstance(mesh_name,str))
        self.failUnless(mesh_name.split(".")[-1] == "msh")
-       mesh_name=PYCAD_WORKDIR+os.sep+"mesh.msh"
+       mesh_name=os.path.join(PYCAD_WORKDIR,"mesh.msh")
        d.setMeshFileName(mesh_name)
        self.failUnless(mesh_name == d.getMeshFileName())
        
        d.setOptions(algorithm=d.TETGEN,optimize_quality=False,smoothing=4)
        cmd=d.getCommandString()
-       self.failUnless("gmsh -format msh -2 -algo tetgen -smooth 4 -v 0 -order 1 -o .%smesh.msh .%sscript.geo"%(os.sep,os.sep) == cmd)
+       self.failUnless("gmsh -format msh -2 -algo tetgen -smooth 4 -v 0 -order 1 -o %s %s"%(os.path.join(".","mesh.msh"), os.path.join(".","script.geo")) == cmd)
 
        d.setOptions(optimize_quality=True)
        cmd=d.getCommandString()
-       self.failUnless("gmsh -format msh -2 -algo iso -smooth 1 -optimize -v 0 -order 1 -o .%smesh.msh .%sscript.geo"%(os.sep,os.sep) == cmd)
+       self.failUnless("gmsh -format msh -2 -algo iso -smooth 1 -optimize -v 0 -order 1 -o %s %s"%(os.path.join(".","mesh.msh"), os.path.join(".","script.geo")) == cmd)
 
        p0=Point(0.,0.,0.)
        p1=Point(1.,0.,0.)
@@ -3719,19 +3860,19 @@ Physical Line(13) = {6, 7};
        script_name=d.getScriptFileName()
        self.failUnless(isinstance(script_name,str))
        self.failUnless(script_name.split(".")[-1] == "poly")
-       script_name=PYCAD_WORKDIR+os.sep+"script.poly"
+       script_name=os.path.join(PYCAD_WORKDIR,"script.poly")
        d.setScriptFileName(script_name)
        self.failUnless(script_name == d.getScriptFileName())
 
        mesh_name=d.getMeshFileName()
        self.failUnless(isinstance(mesh_name,str))
-       mesh_name=PYCAD_WORKDIR+os.sep+"mesh"
+       mesh_name=os.path.join(PYCAD_WORKDIR,"mesh")
        d.setMeshFileName(mesh_name)
        self.failUnless(mesh_name == d.getMeshFileName())
        
        d.setOptions(cmdLineArgs="-Qpqa7.5")
        cmd=d.getCommandString()
-       self.failUnless("triangle -Qpqa7.5 .%sscript.poly"%(os.sep) == cmd)
+       self.failUnless("triangle -Qpqa7.5 .%s"%(os.path.join(".","script.poly")) == cmd)
 
        p0=Point(0.,0.,0.)
        p1=Point(1.,0.,0.)
@@ -4138,16 +4279,16 @@ Ruled Surface(16) = {13};
        self.failUnless(scrpt == ref )
 
    def test_generate_PlaneSurface(self):
-       d=GMSHDesign(dim=2, element_size=0.01)
+       d=GMSHDesign(dim=2, element_size=0.1)
        p0=Point(0,0,0,0.1)
        p1=Point(10,0,0,0.2)
        p2=Point(10,10,0,0.3)
        p3=Point(0,10,3,0.4)
-       p4=Point(5,5,0,0.001)
-       p5=Point(7,5,0,0.001)
-       p6=Point(5,7,0,0.001)
-       p7=Point(8,8,0,0.001)
-       p8=Point(9,9,0,0.001)
+       p4=Point(5,5,0,0.01)
+       p5=Point(7,5,0,0.01)
+       p6=Point(5,7,0,0.01)
+       p7=Point(8,8,0,0.01)
+       p8=Point(9,9,0,0.01)
 
        l0=Line(p0,p1)
        l1=Line(p1,p2)
@@ -4176,16 +4317,15 @@ Ruled Surface(16) = {13};
        d.addItems(PlaneSurface(cl,holes=[h]))
 
        scrpt=d.getScriptString()
-       if os.name == 'nt' :
-            ref = \
+       ref = \
 """// generated by esys.pycad
-Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
-Point(2) = {10.0 , 0.0, 0.0 , 0.002 };
-Point(3) = {10.0 , 10.0, 0.0 , 0.003 };
-Point(4) = {0.0 , 10.0, 3.0 , 0.004 };
-Point(5) = {5.0 , 5.0, 0.0 , 1e-005 };
-Point(6) = {7.0 , 5.0, 0.0 , 1e-005 };
-Point(7) = {5.0 , 7.0, 0.0 , 1e-005 };
+Point(1) = {0.0 , 0.0, 0.0 , 0.01 };
+Point(2) = {10.0 , 0.0, 0.0 , 0.02 };
+Point(3) = {10.0 , 10.0, 0.0 , 0.03 };
+Point(4) = {0.0 , 10.0, 3.0 , 0.04 };
+Point(5) = {5.0 , 5.0, 0.0 , 0.001 };
+Point(6) = {7.0 , 5.0, 0.0 , 0.001 };
+Point(7) = {5.0 , 7.0, 0.0 , 0.001 };
 Line(10) = {1, 2};
 Line(11) = {2, 3};
 Line(12) = {3, 4};
@@ -4197,31 +4337,48 @@ Line Loop(23) = {10, 11, 12, 13};
 Line Loop(24) = {16, 17, 18};
 Plane Surface(29) = {23, 24};
 """
-       else :
-            ref = \
+       self.failUnless(scrpt == ref)
+
+   def test_generate_PlaneSurfaceTransfinite(self):
+       d=GMSHDesign(dim=2, element_size=0.1)
+       p0=Point(0,0,0,0.1)
+       p1=Point(10,0,0,0.2)
+       p2=Point(10,10,0,0.3)
+       p3=Point(0,10,0,0.4)
+       l0=Line(p0,p1)
+       l1=Line(p1,p2)
+       l2=Line(p2,p3)
+       l3=Line(p3,p0)
+       l0.setElementDistribution(4)
+       l1.setElementDistribution(5)
+       l2.setElementDistribution(4)
+       l3.setElementDistribution(5)
+       p=PlaneSurface(CurveLoop(l0,l1,l2,l3))
+       p.setRecombination(30*DEG)
+       p.setTransfiniteMeshing()
+       d.addItems(p)
+       scrpt=d.getScriptString()
+       ref = \
 """// generated by esys.pycad
-Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
-Point(2) = {10.0 , 0.0, 0.0 , 0.002 };
-Point(3) = {10.0 , 10.0, 0.0 , 0.003 };
-Point(4) = {0.0 , 10.0, 3.0 , 0.004 };
-Point(5) = {5.0 , 5.0, 0.0 , 1e-05 };
-Point(6) = {7.0 , 5.0, 0.0 , 1e-05 };
-Point(7) = {5.0 , 7.0, 0.0 , 1e-05 };
-Line(10) = {1, 2};
-Line(11) = {2, 3};
-Line(12) = {3, 4};
-Line(13) = {4, 1};
-Line(16) = {5, 6};
-Line(17) = {6, 7};
-Line(18) = {7, 5};
-Line Loop(23) = {10, 11, 12, 13};
-Line Loop(24) = {16, 17, 18};
-Plane Surface(29) = {23, 24};
+Point(1) = {0.0 , 0.0, 0.0 , 0.01 };
+Point(2) = {10.0 , 0.0, 0.0 , 0.02 };
+Point(3) = {10.0 , 10.0, 0.0 , 0.03 };
+Point(4) = {0.0 , 10.0, 0.0 , 0.04 };
+Line(5) = {1, 2};
+Transfinite Line{5} = 4 Using Progression 1;
+Line(6) = {2, 3};
+Transfinite Line{6} = 5 Using Progression 1;
+Line(7) = {3, 4};
+Transfinite Line{7} = 4 Using Progression 1;
+Line(8) = {4, 1};
+Transfinite Line{8} = 5 Using Progression 1;
+Line Loop(9) = {5, 6, 7, 8};
+Plane Surface(10) = {9};
+Transfinite Surface{10} = {4,1,2,3} Left;
+Recombine Surface {10} = 30.0;
+
 """
-
-
-            
-       self.failUnless(scrpt[0:217] == ref[0:217])
+       self.failUnless(scrpt.strip() == ref.strip())
 
    def test_generate_SurfaceLoop(self):
        d=GMSHDesign(dim=3, element_size=0.01)
@@ -4726,11 +4883,11 @@ Physical Line(8) = {5, 6, 7};
        self.failUnless(scrpt == ref )
  
    def test_generate_PropertySet2D(self):
-       d=GMSHDesign(dim=2, element_size=0.01)
+       d=GMSHDesign(dim=2, element_size=0.1)
        p0=Point(0,0,0,0.1)
        p1=Point(10,0,0,0.2)
        p2=Point(10,10,0,0.3)
-       p3=Point(0,10,3,0.4)
+       p3=Point(0,10,0,0.4)
        p4=Point(5,5,0,0.001)
        p5=Point(7,5,0,0.001)
        p6=Point(5,7,0,0.001)
@@ -4743,6 +4900,9 @@ Physical Line(8) = {5, 6, 7};
        l4=Line(p4,p5)
        l5=Line(p5,p6)
        l6=Line(p6,p4)
+       
+       l6.setElementDistribution(5,1.2,True)
+       l5.setElementDistribution(5,0.8,False)
 
        cl=CurveLoop(l0,l1,l2,l3)
        h=CurveLoop(l4,l5,l6)
@@ -4752,50 +4912,30 @@ Physical Line(8) = {5, 6, 7};
        d.addItems(PropertySet("test0", s))
 
        scrpt=d.getScriptString()
-       if os.name == 'nt' :
-            ref = \
+       ref = \
 """// generated by esys.pycad
-Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
-Point(2) = {10.0 , 0.0, 0.0 , 0.002 };
-Point(3) = {10.0 , 10.0, 0.0 , 0.003 };
-Point(4) = {0.0 , 10.0, 3.0 , 0.004 };
-Point(5) = {5.0 , 5.0, 0.0 , 1e-005 };
-Point(6) = {7.0 , 5.0, 0.0 , 1e-005 };
-Point(7) = {5.0 , 7.0, 0.0 , 1e-005 };
+Point(1) = {0.0 , 0.0, 0.0 , 0.01 };
+Point(2) = {10.0 , 0.0, 0.0 , 0.02 };
+Point(3) = {10.0 , 10.0, 0.0 , 0.03 };
+Point(4) = {0.0 , 10.0, 0.0 , 0.04 };
+Point(5) = {5.0 , 5.0, 0.0 , 0.0001 };
+Point(6) = {7.0 , 5.0, 0.0 , 0.0001 };
+Point(7) = {5.0 , 7.0, 0.0 , 0.0001 };
 Line(8) = {1, 2};
 Line(9) = {2, 3};
 Line(10) = {3, 4};
 Line(11) = {4, 1};
 Line(12) = {5, 6};
 Line(13) = {6, 7};
+Transfinite Line{13} = 5 Using Progression 0.8;
 Line(14) = {7, 5};
+Transfinite Line{14} = 5 Using Bump 1.2;
 Line Loop(15) = {8, 9, 10, 11};
 Line Loop(16) = {12, 13, 14};
 Plane Surface(17) = {15, 16};
 Physical Surface(18) = {17};
 """
-       else:
-            ref = \
-"""// generated by esys.pycad
-Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
-Point(2) = {10.0 , 0.0, 0.0 , 0.002 };
-Point(3) = {10.0 , 10.0, 0.0 , 0.003 };
-Point(4) = {0.0 , 10.0, 3.0 , 0.004 };
-Point(5) = {5.0 , 5.0, 0.0 , 1e-05 };
-Point(6) = {7.0 , 5.0, 0.0 , 1e-05 };
-Point(7) = {5.0 , 7.0, 0.0 , 1e-05 };
-Line(8) = {1, 2};
-Line(9) = {2, 3};
-Line(10) = {3, 4};
-Line(11) = {4, 1};
-Line(12) = {5, 6};
-Line(13) = {6, 7};
-Line(14) = {7, 5};
-Line Loop(15) = {8, 9, 10, 11};
-Line Loop(16) = {12, 13, 14};
-Plane Surface(17) = {15, 16};
-Physical Surface(18) = {17};
-"""
+       self.failUnless(scrpt == ref )
 
    def test_generate_PropertySet3D(self):
        d=GMSHDesign(dim=3, element_size=0.01)
