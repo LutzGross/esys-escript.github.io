@@ -71,7 +71,7 @@ to
    then AMG is applied to S again until S becomes empty 
 
 */
-Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t level, double couplingParam) {
+Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t level, double coarsening_threshold) {
   Paso_Solver_AMG* out=NULL;
   dim_t n=A_p->numRows;
   dim_t n_block=A_p->row_block_size;
@@ -116,9 +116,9 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
      /* identify independend set of rows/columns */
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
-     Paso_Pattern_coup(A_p,mis_marker,couplingParam);
-    /*Paso_Pattern_RS(A_p,mis_marker,couplingParam);*/
-     /*Paso_Pattern_Aggregiation(A_p,mis_marker,couplingParam);*/
+     Paso_Pattern_coup(A_p,mis_marker,coarsening_threshold);
+    /*Paso_Pattern_RS(A_p,mis_marker,coarsening_threshold);*/
+     /*Paso_Pattern_Aggregiation(A_p,mis_marker,coarsening_threshold);*/
      if (Paso_noError()) {
         #pragma omp parallel for private(i) schedule(static)
         for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
@@ -213,7 +213,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
                                 
                             if (Paso_noError()) {
                                 Paso_Solver_updateIncompleteSchurComplement(schur_withFillIn,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
-                                out->AMG_of_Schur=Paso_Solver_getAMG(schur_withFillIn,verbose,level-1,couplingParam);
+                                out->AMG_of_Schur=Paso_Solver_getAMG(schur_withFillIn,verbose,level-1,coarsening_threshold);
                                 Paso_SparseMatrix_free(schur);
                             }
                             /* allocate work arrays for AMG application */
