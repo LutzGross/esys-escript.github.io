@@ -222,7 +222,7 @@ void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double
     }
     
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
+    Paso_setError(TYPE_ERROR,"Paso_Pattern_Aggregiation: symmetric matrix pattern is not supported yet");
     return;
   }
 
@@ -231,7 +231,7 @@ void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double
       for (i=0;i<n;++i) {
         diag = 0;
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-            if(A->pattern->index[iptr] != i){
+            if(A->pattern->index[iptr] == i){
                 diag+=A->val[iptr];
             }
         }

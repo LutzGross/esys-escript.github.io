@@ -19,8 +19,8 @@
 # cc_flags		= '-ansi'
 # cc_optim		= '-O2'
 # cc_debug		= '-g'
-omp_optim		= '-fopenmp'
-omp_debug		= '-fopenmp'
+#omp_optim		= '-fopenmp'
+#omp_debug		= '-fopenmp'
 # omp_libs		= ['guide']
 
 # Use the default C/C++ flags but add something only for this host:
@@ -41,9 +41,9 @@ python_lib_path		= '/usr/lib'
 # python_cmd		= 'python'
 
 # Boost libraries
-boost_path		= '/opt/local/include/boost-1_35/'
-boost_lib_path		= '/opt/local/lib'
-boost_libs		= ['boost_python']
+boost_path		= '/usr/local/include/boost-1_38'
+boost_lib_path		= '/usr/local/lib'
+boost_libs		= ['boost_python-xgcc40-mt']
 
 # Specify whether or not to use VTK
 usevtk		= 'yes'
@@ -74,14 +74,14 @@ blas_lib_path		= '/opt/local/include/umfpack-5.0.3/Lib'
 blas_libs		= ['blas']
 
 # OpenMP
-useopenmp		= 'yes'
+useopenmp		= 'no'
 
 # MPI MPT (no module load required)
 # usempi		= 'no'
-# mpi_path		= '/usr/include'
-# mpi_lib_path		= '/usr/lib64'
-# mpi_libs		= ['mpi']
-# mpi_flavour		= 'MPT'
+mpi_path		= '/opt/local/include'
+mpi_lib_path		= '/opt/local/lib'
+mpi_libs		= ['mpi']
+mpi_flavour		= 'MPICH2'
 
 # ParMETIS (for use with MPI)
 # useparmetis		= 'yes'
