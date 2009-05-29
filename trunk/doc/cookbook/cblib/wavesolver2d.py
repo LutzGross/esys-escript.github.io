@@ -47,7 +47,7 @@ def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath):
    x=domain.getX()
    # ... open new PDE ...
    mypde=LinearPDE(domain)
-   #mypde.setSolverMethod(LinearPDE.LUMPING)
+   mypde.setSolverMethod(LinearPDE.LUMPING)
    mypde.setSymmetryOn()
    kmat = kronecker(domain)
    mypde.setValue(D=kmat*rho)
@@ -64,17 +64,15 @@ def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath):
    n=0
    # initial value of displacement at point source is constant (U0=0.01)
    # for first two time steps
-   u=U0*whereNegative(length(x-xc)-src_radius)*dunit
-   print u
-   u_m1=U0*whereNegative(length(x-xc)-src_radius)*dunit
+   u=U0*(cos(length(x-xc)*3.1415/src_radius)+1)*whereNegative(length(x-xc)-src_radius)*dunit
+   u_m1=U0*(cos(length(x-xc)*3.1415/src_radius)+1)*whereNegative(length(x-xc)-src_radius)*dunit
    t=0
 
    # define the location of the point source 
    L=Locator(domain,numarray.array(xc))
    # find potential at point source
    u_pc=L.getValue(u)
-   print "u at point charge=",u_pc
-  
+ 
    u_pc_x = u_pc[0]
    u_pc_y = u_pc[1]
 
@@ -98,10 +96,9 @@ def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath):
      ### ... get new displacement ...
      #u_p1=2*u-u_m1+h*h*a
 ###NEW WAY
-     mypde.setValue(X=-stress*h**2)
-     mypde.setValue(Y=rho*(2*u-u_m1))
+     mypde.setValue(X=-stress*(h*h))
+     mypde.setValue(Y=(rho*2*u-rho*u_m1))
      u_p1 = mypde.getSolution()
-     print type(u_p1)
      # ... shift displacements ....
      u_m1=u
      u=u_p1
@@ -122,7 +119,5 @@ def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath):
      #saveVTK(os.path.join(savepath,"usoln.%i.vtu"%n),acceleration=length(a)/9.81,
      #displacement = length(u), tensor = stress, Ux = u[0] )
      saveVTK(os.path.join(savepath,"tonysol.%i.vtu"%n),output1 = length(u),tensor=stress)
-     matplotlib.plot(x,y)
-     matplotlib.show()
 
    u_pc_data.close()

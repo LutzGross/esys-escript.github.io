@@ -86,6 +86,7 @@ some tools supporting physical units and conversion
 @var R_Earth_poles: Earth's polar radius
 @var R_Earth: Earth's radius
 @var v_light: speed of light
+@var pi: value of pi accurate to 10 decimal places
 """
 class Unit(object):
    """
