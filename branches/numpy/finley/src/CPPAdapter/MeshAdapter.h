@@ -514,7 +514,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      This has to be implemented by the actual Domain adapter.
   */
   FINLEY_DLL_API
-  virtual void saveVTK(const std::string& filename,const boost::python::dict& arg) const;
+  virtual void saveVTK(const std::string& filename,const boost::python::dict& arg,  const std::string& metadata, const std::string& metadata_schema) const;
 
   /**
      \brief

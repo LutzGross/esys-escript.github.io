@@ -271,8 +271,18 @@ in storage allowed in the
 incomplete elimination process (default is 1.20).
 
 \subsection{Functions}
-\begin{funcdesc}{Mesh}{fileName,integrationOrder=-1}
+\begin{funcdesc}{ReadMesh}{fileName,integrationOrder=-1}
 creates a \Domain object form the FEM mesh defined in 
+file \var{fileName}. The file must be given the \finley file format.
+If \var{integrationOrder} is positive, a numerical integration scheme
+chosen which is accurate on each element up to a polynomial of
+degree \var{integrationOrder} \index{integration order}. Otherwise
+an appropriate integration order is chosen independently.
+\end{funcdesc}
+
+\begin{funcdesc}{load}{fileName}
+recovers a \Domain object from a dump file created by the \ 
+eateseates a \Domain object form the FEM mesh defined in 
 file \var{fileName}. The file must be given the \finley file format.
 If \var{integrationOrder} is positive, a numerical integration scheme
 chosen which is accurate on each element up to a polynomial of

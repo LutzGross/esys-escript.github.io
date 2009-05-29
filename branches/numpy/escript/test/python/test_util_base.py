@@ -36,6 +36,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import unittest
 import numpy
+import os
 from esys.escript import *
 
 class Test_util_base(unittest.TestCase):
@@ -44,6 +45,87 @@ class Test_util_base(unittest.TestCase):
    """
    RES_TOL=1.e-7 # RES_TOLerance to compare results
    DIFF_TOL=1.e-7 # RES_TOLerance to derivatices
+#=========================================================
+#  File writer
+#=========================================================
+   def __checkContent(self,fn,ref_cont):
+        cont=open(fn,'r').readlines()
+        self.failUnless(len(cont)==len(ref_cont),"wrong number of records")
+        for i in xrange(len(cont)):
+           self.failUnless(cont[i].strip()==ref_cont[i],"wrong records %s"%i)
+   def test_FileWriter_W(self):
+        fn="filewriter_w.txt"
+        self.failUnlessRaises(IOError,FileWriter,fn="",append=False)
+        f=FileWriter(fn,append=False)
+        self.failUnless(f.name==fn, "wrong file name.")
+        self.failUnless(f.mode=='w', "wrong mode")
+        self.failUnless(f.newlines==os.linesep, "wrong line seps")
+        self.failUnless(not f.closed,"file shuold not be closed.")
+        f.write("line1"+f.newlines)
+        f.flush()
+        self.__checkContent(fn,["line1"])
+        f.writelines(["line2"+f.newlines, "line3"+f.newlines])
+        f.close()
+        self.failUnless(f.closed,"file shuold be closed.")
+        self.__checkContent(fn,["line1", "line2", "line3"])
+
+   def test_FileWriter_A(self):
+        fn="filewriter_a.txt"
+        if getMPIRankWorld()==0: open(fn,'w').write("line1"+os.linesep)
+        self.failUnlessRaises(IOError,FileWriter,fn="",append=True)
+        f=FileWriter(fn,append=True)
+        self.failUnless(f.name==fn, "wrong file name.")
+        self.failUnless(f.mode=='a', "wrong mode")
+        self.failUnless(f.newlines==os.linesep, "wrong line seps")
+        self.failUnless(not f.closed,"file shuold not be closed.")
+        f.write("line2"+f.newlines)
+        f.flush()
+        self.__checkContent(fn,["line1", "line2"])
+        f.writelines(["line3"+f.newlines, "line4"+f.newlines])
+        f.close()
+        self.failUnless(f.closed,"file shuold be closed.")
+        self.__checkContent(fn,["line1", "line2", "line3", "line4"])
+
+   def test_FileWriter_A_loc(self):
+        fn="filewriter_a_loc.txt"
+        if getMPIRankWorld()>0:
+            fn2=fn+".%s"%getMPIRankWorld()
+        else:
+            fn2=fn
+        open(fn2,'w').write("line1"+os.linesep)
+        self.failUnlessRaises(IOError,FileWriter,fn="",append=True, createLocalFiles=True)
+        f=FileWriter(fn,append=True,createLocalFiles=True)
+        self.failUnless(f.name==fn, "wrong file name.")
+        self.failUnless(f.mode=='a', "wrong mode")
+        self.failUnless(f.newlines==os.linesep, "wrong line seps")
+        self.failUnless(not f.closed,"file shuold not be closed.")
+        f.write("line2"+f.newlines)
+        f.flush()
+        self.__checkContent(fn2,["line1", "line2"])
+        f.writelines(["line3"+f.newlines, "line4"+f.newlines])
+        f.close()
+        self.failUnless(f.closed,"file shuold be closed.")
+        self.__checkContent(fn2,["line1", "line2", "line3", "line4"])
+
+   def test_FileWriter_W_loc(self):
+        fn="filewriter_w_loc.txt"
+        if getMPIRankWorld()>0:
+            fn2=fn+".%s"%getMPIRankWorld()
+        else:
+            fn2=fn
+        self.failUnlessRaises(IOError,FileWriter,fn="",append=True, createLocalFiles=True)
+        f=FileWriter(fn,append=False,createLocalFiles=True)
+        self.failUnless(f.name==fn, "wrong file name.")
+        self.failUnless(f.mode=='w', "wrong mode")
+        self.failUnless(f.newlines==os.linesep, "wrong line seps")
+        self.failUnless(not f.closed,"file shuold not be closed.")
+        f.write("line1"+f.newlines)
+        f.flush()
+        self.__checkContent(fn2,["line1"])
+        f.writelines(["line2"+f.newlines, "line3"+f.newlines])
+        f.close()
+        self.failUnless(f.closed,"file shuold be closed.")
+        self.__checkContent(fn2,["line1", "line2", "line3"])
 #=========================================================
 #  constants
 #=========================================================

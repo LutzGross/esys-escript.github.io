@@ -52,12 +52,21 @@ if not os.path.isfile(options_file):
 else:
   print "Options file is", options_file
 
-# Load options file and command-line arguments
-opts = Options(options_file, ARGUMENTS)
+#Does our scons support the newer Variables class or do we need to use Options?
+
+try:
+   dummyvar=Variables
+   opts = Variables(options_file, ARGUMENTS)
+   adder = opts.AddVariables
+except:
+   opts = Options(options_file, ARGUMENTS)
+   adder = opts.AddOptions
+   BoolVariable = BoolOption
 
 ############ Load build options ################################
 
-opts.AddOptions(
+adder(
+#opts.AddOptions(
 # Where to install esys stuff
   ('prefix', 'where everything will be installed',                       Dir('#.').abspath),
   ('incinstall', 'where the esys headers will be installed',             os.path.join(Dir('#.').abspath,'include')),
@@ -65,9 +74,9 @@ opts.AddOptions(
   ('libinstall', 'where the esys libraries will be installed',           os.path.join(prefix,'lib')),
   ('pyinstall', 'where the esys python modules will be installed',       os.path.join(prefix,'esys')),
 # Compilation options
-  BoolOption('dodebug', 'For backwards compatibility', 'no'),
-  BoolOption('usedebug', 'Do you want a debug build?', 'no'),
-  BoolOption('usevtk', 'Do you want to use VTK?', 'yes'),
+  BoolVariable('dodebug', 'For backwards compatibility', 'no'),
+  BoolVariable('usedebug', 'Do you want a debug build?', 'no'),
+  BoolVariable('usevtk', 'Do you want to use VTK?', 'yes'),
   ('options_file', 'File of paths/options. Default: scons/<hostname>_options.py', options_file),
   ('win_cc_name', 'windows C compiler name if needed', 'msvc'),
   # The strings -DDEFAULT_ get replaced by scons/<hostname>_options.py or by defaults below
@@ -81,9 +90,9 @@ opts.AddOptions(
   ('ld_extra', 'Extra linker flags', ''),
   ('sys_libs', 'System libraries to link with', []),
   ('ar_flags', 'Static library archiver flags to use', ''),
-  BoolOption('useopenmp', 'Compile parallel version using OpenMP', 'no'),
-  BoolOption('usepedantic', 'Compile with -pedantic if using gcc', 'no'),
-  BoolOption('usewarnings','Compile with warnings as errors if using gcc','yes'),
+  BoolVariable('useopenmp', 'Compile parallel version using OpenMP', 'no'),
+  BoolVariable('usepedantic', 'Compile with -pedantic if using gcc', 'no'),
+  BoolVariable('usewarnings','Compile with warnings as errors if using gcc','yes'),
   ('forcelazy','for testing use only - set the default value for autolazy','leave_alone'),
 # Python
   ('python_path', 'Path to Python includes', '/usr/include/'+python_version),
@@ -95,13 +104,13 @@ opts.AddOptions(
   ('boost_lib_path', 'Path to Boost libs', usr_lib),
   ('boost_libs', 'Boost libraries to link with', ['boost_python']),
 # NetCDF
-  BoolOption('usenetcdf', 'switch on/off the usage of netCDF', 'yes'),
+  BoolVariable('usenetcdf', 'switch on/off the usage of netCDF', 'yes'),
   ('netCDF_path', 'Path to netCDF includes', '/usr/include'),
   ('netCDF_lib_path', 'Path to netCDF libs', usr_lib),
   ('netCDF_libs', 'netCDF C++ libraries to link with', ['netcdf_c++', 'netcdf']),
 # MPI
-  BoolOption('useMPI', 'For backwards compatibility', 'no'),
-  BoolOption('usempi', 'Compile parallel version using MPI', 'no'),
+  BoolVariable('useMPI', 'For backwards compatibility', 'no'),
+  BoolVariable('usempi', 'Compile parallel version using MPI', 'no'),
   ('MPICH_IGNORE_CXX_SEEK', 'name of macro to ignore MPI settings of C++ SEEK macro (for MPICH)' , 'MPICH_IGNORE_CXX_SEEK'),
   ('mpi_path', 'Path to MPI includes', '/usr/include'),
   ('mpi_run', 'mpirun name' , 'mpiexec -np 1'),
@@ -109,29 +118,29 @@ opts.AddOptions(
   ('mpi_libs', 'MPI libraries to link with (needs to be shared!)', ['mpich' , 'pthread', 'rt']),
   ('mpi_flavour','Type of MPI execution environment','none'), 
 # ParMETIS
-  BoolOption('useparmetis', 'Compile parallel version using ParMETIS', 'yes'),
+  BoolVariable('useparmetis', 'Compile parallel version using ParMETIS', 'yes'),
   ('parmetis_path', 'Path to ParMETIS includes', '/usr/include'),
   ('parmetis_lib_path', 'Path to ParMETIS library', usr_lib),
   ('parmetis_libs', 'ParMETIS library to link with', ['parmetis', 'metis']),
 # PAPI
-  BoolOption('usepapi', 'switch on/off the usage of PAPI', 'no'),
+  BoolVariable('usepapi', 'switch on/off the usage of PAPI', 'no'),
   ('papi_path', 'Path to PAPI includes', '/usr/include'),
   ('papi_lib_path', 'Path to PAPI libs', usr_lib),
   ('papi_libs', 'PAPI libraries to link with', ['papi']),
-  BoolOption('papi_instrument_solver', 'use PAPI in Solver.c to instrument each iteration of the solver', False),
+  BoolVariable('papi_instrument_solver', 'use PAPI in Solver.c to instrument each iteration of the solver', False),
 # MKL
-  BoolOption('usemkl', 'switch on/off the usage of MKL', 'no'),
+  BoolVariable('usemkl', 'switch on/off the usage of MKL', 'no'),
   ('mkl_path', 'Path to MKL includes', '/sw/sdev/cmkl/10.0.2.18/include'),
   ('mkl_lib_path', 'Path to MKL libs', '/sw/sdev/cmkl/10.0.2.18/lib/em64t'),
   ('mkl_libs', 'MKL libraries to link with', ['mkl_solver', 'mkl_em64t', 'guide', 'pthread']),
 # UMFPACK
-  BoolOption('useumfpack', 'switch on/off the usage of UMFPACK', 'no'),
+  BoolVariable('useumfpack', 'switch on/off the usage of UMFPACK', 'no'),
   ('ufc_path', 'Path to UFconfig includes', '/usr/include/suitesparse'),
   ('umf_path', 'Path to UMFPACK includes', '/usr/include/suitesparse'),
   ('umf_lib_path', 'Path to UMFPACK libs', usr_lib),
   ('umf_libs', 'UMFPACK libraries to link with', ['umfpack']),
 # Silo
-  BoolOption('usesilo', 'switch on/off the usage of Silo', 'yes'),
+  BoolVariable('usesilo', 'switch on/off the usage of Silo', 'yes'),
   ('silo_path', 'Path to Silo includes', '/usr/include'),
   ('silo_lib_path', 'Path to Silo libs', usr_lib),
   ('silo_libs', 'Silo libraries to link with', ['siloh5', 'hdf5']),
@@ -247,6 +256,12 @@ if not env["useopenmp"]:
 
 if env['omp_optim'] == "" and env['omp_debug'] == "": env["useopenmp"] = 0
 
+# Windows doesn't use LD_LIBRARY_PATH but PATH instead
+if IS_WINDOWS_PLATFORM:
+    LD_LIBRARY_PATH_KEY='PATH'
+    env['ENV']['LD_LIBRARY_PATH']=''
+else:
+    LD_LIBRARY_PATH_KEY='LD_LIBRARY_PATH'
 ############ Copy environment variables into scons env #########
 
 try: env['ENV']['OMP_NUM_THREADS'] = os.environ['OMP_NUM_THREADS']
@@ -256,10 +271,10 @@ try: env['ENV']['ESCRIPT_NUM_THREADS'] = os.environ['ESCRIPT_NUM_THREADS']
 except KeyError: pass
 
 try: env['ENV']['ESCRIPT_NUM_PROCS'] = os.environ['ESCRIPT_NUM_PROCS']
-except KeyError: pass
+except KeyError: env['ENV']['ESCRIPT_NUM_PROCS']=1
 
 try: env['ENV']['ESCRIPT_NUM_NODES'] = os.environ['ESCRIPT_NUM_NODES']
-except KeyError: pass
+except KeyError: env['ENV']['ESCRIPT_NUM_NODES']=1
 
 try: env['ENV']['ESCRIPT_HOSTFILE'] = os.environ['ESCRIPT_HOSTFILE']
 except KeyError: pass
@@ -276,7 +291,7 @@ except KeyError: pass
 try: env['ENV']['CPLUS_INCLUDE_PATH'] = os.environ['CPLUS_INCLUDE_PATH']
 except KeyError: pass
 
-try: env['ENV']['LD_LIBRARY_PATH'] = os.environ['LD_LIBRARY_PATH']
+try: env.PrependENVPath(LD_LIBRARY_PATH_KEY,os.environ['LD_LIBRARY_PATH'])
 except KeyError: pass
 
 try: env['ENV']['LIBRARY_PATH'] = os.environ['LIBRARY_PATH']
@@ -292,9 +307,10 @@ try: env['ENV']['HOME'] = os.environ['HOME']
 except KeyError: pass
 
 # Configure for test suite
-env.PrependENVPath('PYTHONPATH', prefix)
-env.PrependENVPath('LD_LIBRARY_PATH', env['libinstall'])
 
+
+env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['libinstall'])
+env.PrependENVPath('PYTHONPATH', prefix)
 env['ENV']['ESCRIPT_ROOT'] = prefix
 
 ############ Set up paths for Configure() ######################
@@ -372,9 +388,9 @@ else:
 conf.env.AppendUnique(LIBPATH		= [env['python_lib_path']])
 conf.env.AppendUnique(LIBS		= [env['python_libs']])
 
-conf.env.PrependENVPath('LD_LIBRARY_PATH', env['python_lib_path'])	# The wrapper script needs to find these libs
 conf.env.PrependENVPath('PYTHONPATH', prefix)
-conf.env.PrependENVPath('LD_LIBRARY_PATH', env['libinstall'])
+conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['python_lib_path'])	# The wrapper script needs to find these libs
+conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['libinstall'])
 
 if not conf.CheckCHeader('Python.h'):
   print "Cannot find python include files (tried 'Python.h' in directory %s)" % (env['python_path'])
@@ -397,10 +413,10 @@ else:
 conf.env.AppendUnique(LIBPATH		= [env['boost_lib_path']])
 conf.env.AppendUnique(LIBS		= [env['boost_libs']])
 
-conf.env.PrependENVPath('LD_LIBRARY_PATH', env['boost_lib_path'])	# The wrapper script needs to find these libs
+conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['boost_lib_path'])	# The wrapper script needs to find these libs
 #ensure that our path entries remain at the front
 conf.env.PrependENVPath('PYTHONPATH', prefix)
-conf.env.PrependENVPath('LD_LIBRARY_PATH', env['libinstall'])
+conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['libinstall'])
 
 if not conf.CheckCXXHeader('boost/python.hpp'):
   print "Cannot find boost include files (tried boost/python.hpp in directory %s)" % (env['boost_path'])
@@ -434,10 +450,10 @@ if env['usenetcdf']:
   conf.env.AppendUnique(CPPPATH	= [env['netCDF_path']])
   conf.env.AppendUnique(LIBPATH	= [env['netCDF_lib_path']])
   conf.env.AppendUnique(LIBS	= [env['netCDF_libs']])
-  conf.env.PrependENVPath('LD_LIBRARY_PATH', env['netCDF_lib_path'])	# The wrapper script needs to find these libs
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['netCDF_lib_path'])	# The wrapper script needs to find these libs
   #ensure that our path entries remain at the front
   conf.env.PrependENVPath('PYTHONPATH', prefix)
-  conf.env.PrependENVPath('LD_LIBRARY_PATH', env['libinstall'])
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['libinstall'])
 
 if env['usenetcdf'] and not conf.CheckCHeader('netcdf.h'): env['usenetcdf'] = 0
 if env['usenetcdf'] and not conf.CheckFunc('nc_open'): env['usenetcdf'] = 0
@@ -458,10 +474,10 @@ if env['usepapi']:
   conf.env.AppendUnique(CPPPATH	= [env['papi_path']])
   conf.env.AppendUnique(LIBPATH	= [env['papi_lib_path']])
   conf.env.AppendUnique(LIBS	= [env['papi_libs']])
-  conf.env.PrependENVPath('LD_LIBRARY_PATH', env['papi_lib_path'])	# The wrapper script needs to find these libs
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['papi_lib_path'])	# The wrapper script needs to find these libs
   #ensure that our path entries remain at the front
   conf.env.PrependENVPath('PYTHONPATH', prefix)
-  conf.env.PrependENVPath('LD_LIBRARY_PATH', env['libinstall'])
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['libinstall'])
 
 if env['usepapi'] and not conf.CheckCHeader('papi.h'): env['usepapi'] = 0
 if env['usepapi'] and not conf.CheckFunc('PAPI_start_counters'): env['usepapi'] = 0
@@ -482,10 +498,10 @@ if env['usemkl']:
   conf.env.AppendUnique(CPPPATH	= [env['mkl_path']])
   conf.env.AppendUnique(LIBPATH	= [env['mkl_lib_path']])
   conf.env.AppendUnique(LIBS	= [env['mkl_libs']])
-  conf.env.PrependENVPath('LD_LIBRARY_PATH', env['mkl_lib_path'])	# The wrapper script needs to find these libs
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['mkl_lib_path'])	# The wrapper script needs to find these libs
   #ensure that our path entries remain at the front
   conf.env.PrependENVPath('PYTHONPATH', prefix)
-  conf.env.PrependENVPath('LD_LIBRARY_PATH', env['libinstall'])
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['libinstall'])
 
 if env['usemkl'] and not conf.CheckCHeader('mkl_solver.h'): env['usemkl'] = 0
 if env['usemkl'] and not conf.CheckFunc('pardiso'): env['usemkl'] = 0
@@ -513,12 +529,12 @@ if env['useumfpack']:
   conf.env.AppendUnique(CPPPATH	= [env['blas_path']])
   conf.env.AppendUnique(LIBPATH	= [env['blas_lib_path']])
   conf.env.AppendUnique(LIBS	= [env['blas_libs']])
-  conf.env.PrependENVPath('LD_LIBRARY_PATH', env['umf_lib_path'])	# The wrapper script needs to find these libs
-  conf.env.PrependENVPath('LD_LIBRARY_PATH', env['amd_lib_path'])	# The wrapper script needs to find these libs
-  conf.env.PrependENVPath('LD_LIBRARY_PATH', env['blas_lib_path'])	# The wrapper script needs to find these libs
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['umf_lib_path'])	# The wrapper script needs to find these libs
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['amd_lib_path'])	# The wrapper script needs to find these libs
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['blas_lib_path'])	# The wrapper script needs to find these libs
   #ensure that our path entries remain at the front
   conf.env.PrependENVPath('PYTHONPATH', prefix)
-  conf.env.PrependENVPath('LD_LIBRARY_PATH', env['libinstall'])
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['libinstall'])
 
 if env['useumfpack'] and not conf.CheckFunc('umfpack_di_symbolic'): env['useumfpack'] = 0
 if env['useumfpack'] and not conf.CheckCHeader('umfpack.h'): env['useumfpack'] = 0
@@ -594,10 +610,10 @@ if env_mpi['usempi']:
   conf.env.AppendUnique(CPPPATH	= [env_mpi['mpi_path']])
   conf.env.AppendUnique(LIBPATH	= [env_mpi['mpi_lib_path']])
   conf.env.AppendUnique(LIBS	= [env_mpi['mpi_libs']])
-  conf.env.PrependENVPath('LD_LIBRARY_PATH', env['mpi_lib_path'])	# The wrapper script needs to find these libs
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['mpi_lib_path'])	# The wrapper script needs to find these libs
   #ensure that our path entries remain at the front
   conf.env.PrependENVPath('PYTHONPATH', prefix)
-  conf.env.PrependENVPath('LD_LIBRARY_PATH', env['libinstall'])
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['libinstall'])
 
 if env_mpi['usempi'] and not conf.CheckCHeader('mpi.h'): env_mpi['usempi'] = 0
 # if env_mpi['usempi'] and not conf.CheckFunc('MPI_Init'): env_mpi['usempi'] = 0
@@ -623,10 +639,10 @@ if env_mpi['useparmetis']:
   conf.env.AppendUnique(CPPPATH	= [env_mpi['parmetis_path']])
   conf.env.AppendUnique(LIBPATH	= [env_mpi['parmetis_lib_path']])
   conf.env.AppendUnique(LIBS	= [env_mpi['parmetis_libs']])
-  conf.env.PrependENVPath('LD_LIBRARY_PATH', env['parmetis_lib_path'])	# The wrapper script needs to find these libs
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['parmetis_lib_path'])	# The wrapper script needs to find these libs
   #ensure that our path entries remain at the front
   conf.env.PrependENVPath('PYTHONPATH', prefix)
-  conf.env.PrependENVPath('LD_LIBRARY_PATH', env['libinstall'])
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['libinstall'])
 
 if env_mpi['useparmetis'] and not conf.CheckCHeader('parmetis.h'): env_mpi['useparmetis'] = 0
 if env_mpi['useparmetis'] and not conf.CheckFunc('ParMETIS_V3_PartGeomKway'): env_mpi['useparmetis'] = 0
@@ -805,7 +821,7 @@ build_all_list += ['build_paso']
 build_all_list += ['build_escript']
 build_all_list += ['build_finley']
 if env['usempi']:		build_all_list += ['target_pythonMPI_exe']
-if not IS_WINDOWS_PLATFORM:	build_all_list += ['target_escript_wrapper']
+#if not IS_WINDOWS_PLATFORM:	build_all_list += ['target_escript_wrapper']
 if env['usesilo']:	build_all_list += ['target_escript2silo']
 env.Alias('build_all', build_all_list)
 
@@ -819,7 +835,7 @@ install_all_list += ['target_install_pyvisi_py']
 install_all_list += ['target_install_modellib_py']
 install_all_list += ['target_install_pycad_py']
 if env['usempi']:		install_all_list += ['target_install_pythonMPI_exe']
-if not IS_WINDOWS_PLATFORM:	install_all_list += ['target_install_escript_wrapper']
+#if not IS_WINDOWS_PLATFORM:	install_all_list += ['target_install_escript_wrapper']
 if env['usesilo']:	install_all_list += ['target_install_escript2silo']
 install_all_list += ['remember_options']
 env.Alias('install_all', install_all_list)

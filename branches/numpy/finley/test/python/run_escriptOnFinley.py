@@ -48,9 +48,11 @@ class Test_SharedOnFinley(Test_Shared):
 
 class Test_DomainOnFinley(Test_Domain):
    def setUp(self):
+       self.boundary_tag_list = [1, 2, 10, 20]
        self.domain =Rectangle(NE,NE+1,2)
    def tearDown(self):
        del self.domain
+       del self.boundary_tag_list 
 
    def test_tagsContinuousFunction(self):
        ref_tags=[0]

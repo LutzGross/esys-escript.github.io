@@ -34,6 +34,11 @@ def runUnitTest(target, source, env):
   app = str(source[0].abspath)
   if not os.name== "nt":
      app = os.path.join(env['bininstall'],"escript")+" -bv "+app
+  else:
+      if env['usempi']:
+          app = "mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
+            "FINLEY_TEST_DATA,PYVISI_TEST_DATA_ROOT,PYVISI_WORKDIR,PATH %s"\
+            %(env['ENV']['ESCRIPT_NUM_NODES'], app)
   print "Executing test: " + app
   if not env.Execute(app):
     open(str(target[0]),'w').write("PASSED\n")
@@ -46,7 +51,12 @@ def runPyUnitTest(target, source, env):
    time_start = time.time()
    app = str(source[0].abspath)
    if os.name== "nt":
-     app = sys.executable + " " + app
+       if env['usempi']:
+           app = "mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
+              "FINLEY_TEST_DATA,PYVISI_TEST_DATA_ROOT,PYVISI_WORKDIR,PATH %s\pythonMPIredirect.exe %s"\
+              %(env['ENV']['ESCRIPT_NUM_NODES'],env['libinstall'],app)
+       else:
+           app = sys.executable + " " + app
    else:
      app = os.path.join(env['bininstall'],"escript")+" -ov "+app
    print "Executing test: " + app

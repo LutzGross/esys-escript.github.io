@@ -272,18 +272,22 @@ processing the value for each individual sample point.
 Use these to save data for visualization, checkpoint/restart or simply to save and reuse data that was expensive to compute.
 
 For instance to save the coordinates of the data points of the
-\ContinuousFunction to the file {\tt x.nc} use
+\ContinuousFunction to the file {\tt x.nc} use 
 \begin{python}
   x=ContinuousFunction(mydomain).getX()
   x.dump("x.nc")
+  mydomain.dump(`dom.nc`)
 \end{python}
-To recover the object \var{x} use
+To recover the object \var{x} and \var{mydomain} was a \finley mesh use
 \begin{python}
+  from esys.finley import LoadMesh
+  mydomain=LoadMesh('dom.nc')
   x=load("x.nc", mydomain)
 \end{python}
-The dump file {\tt x.nc} does not contain a representation of the \Domain, even though it is required to recreate \var{x}.
-It is common to simply recreate the \Domain before reading a \Data, or you may read and write your \Domain in a separate file with
-\var{domain=ReadMesh(fileName)} and \var{domain.write(fileName)}.
+It possible to rerun the mechanism that was originally used to generates
+\var{mydomain} to recreate \var{mydomain}. However in most cases using \var{dump} and
+load is faster in particular if optimization has been applied. In case that
+\escript is running on more than one \MPI processor the \var{dump} will create an individual file for each processor containing the local data. In order to avoid conflicts the file name is extended by the \MPI processor rank.
 
 The function space of the \Data is stored in {\tt x.nc}, though.
 If the \Data object
@@ -307,7 +311,9 @@ The following methods are available:
 \begin{methoddesc}[Domain]{getDim}{}
 returns the spatial dimension of the \Domain.
 \end{methoddesc}
-
+\begin{methoddesc}[Domain]{dump}{filename}
+dumps the \Domain into the file \var{filename}.
+\end{methoddesc}
 \begin{methoddesc}[Domain]{getX}{}
 returns the locations in the \Domain. The \FunctionSpace of the returned
 \Data object is chosen by the \Domain implementation. Typically it will be
@@ -395,7 +401,7 @@ returns the location of the \DataSamplePoints.
 
 \begin{methoddesc}[FunctionSpace]{getNormal}{}
 If the domain of functions in the \FunctionSpace 
-is a hypermanifold (e.g. the boundary of a domain)
+is a hyper-manifold (e.g. the boundary of a domain)
 the method returns the outer normal at each of the 
 \DataSamplePoints. Otherwise an exception is raised.
 \end{methoddesc}
@@ -571,7 +577,7 @@ where a \Data object is required.
 
 \begin{funcdesc}{Scalar}{value=0.,what=FunctionSpace(),expand=\False}
 returns a \Data object of rank 0 (a constant) in the \FunctionSpace \var{what}.
-Values are initialised with \var{value}, a double precision quantity. If \var{expanded} is \True
+Values are initialized with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
@@ -599,7 +605,7 @@ the \Data object is re\var{arg}presented in expanded from.
 \begin{funcdesc}{Tensor4}{value=0.,what=FunctionSpace(),expand=\False}
 returns a \Data object of \Shape \var{(d,d,d,d)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
-Values are initialised with \var{value}, a double precision quantity. If \var{expanded} is \True
+Values are initialized with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
@@ -1127,7 +1133,267 @@ saves the object to a matrix market format file of name
 \index{Matrix Market}
 \end{methoddesc}
 
+\section{Physical Units}
+\escript provides support for physical units in the SI system \index{SI units} including unit conversion. So the
+user can define variables in the form
+\begin{python}
+from esys.escript.unitsSI import *
+l=20*m
+w=30*kg
+w2=40*lb
+T=100*Celsius
+\end{python}
+In the two latter cases an conversion from pounds\index{pounds} and degree Celsius\index{Celsius} is performed into the appropriate SI units kg and Kelvin is performed. In addition 
+composed units can be used, for instance
+\begin{python}
+from esys.escript.unitsSI import *
+rho=40*lb/cm**3
+\end{python}
+to define the density in the units of pounds per cubic centimeter. The value $40$ will be converted 
+into SI units, in this case kg per cubic meter.
+Moreover unit prefixes are supported:
+\begin{python}
+from esys.escript.unitsSI import *
+p=40*Mega*Pa
+\end{python}
+to the the pressure to 40 Mega Pascal. Units can also be converted back from the SI system into
+a desired unit, e.g
+\begin{python}
+from esys.escript.unitsSI import *
+print p/atm
+\end{python}
+can be used print the pressure in units of atmosphere\index{atmosphere}.  
+
+This is an incomplete list of supported physical units:
+
+\begin{datadesc}{km}
+unit of kilo meter
+\end{datadesc}
+
+\begin{datadesc}{m}
+unit of meter
+\end{datadesc}
+
+\begin{datadesc}{cm}
+unit of centi meter
+\end{datadesc}
+
+\begin{datadesc}{mm}
+  unit of milli meter
+\end{datadesc}
+
+\begin{datadesc}{sec}
+ unit of second
+\end{datadesc}
+
+\begin{datadesc}{minute}
+  unit of minute
+\end{datadesc}
+
+\begin{datadesc}{h}
+unit of hour 
+\end{datadesc}
+\begin{datadesc}{day}
+unit of day 
+\end{datadesc}
+\begin{datadesc}{yr}
+ unit of year
+\end{datadesc}
+
+\begin{datadesc}{gram}
+unit of gram
+\end{datadesc}
+\begin{datadesc}{kg}
+unit of kilo gram
+ \end{datadesc}
+\begin{datadesc}{lb}
+unit of pound 
+\end{datadesc}
+\begin{datadesc}{ton}
+ metric ton
+\end{datadesc}
+
+\begin{datadesc}{A}
+ unit of Ampere
+\end{datadesc}
+
+\begin{datadesc}{Hz}
+ unit of Hertz
+\end{datadesc}
+
+\begin{datadesc}{N}
+ unit of Newton
+\end{datadesc}
+\begin{datadesc}{Pa}
+unit of Pascal 
+\end{datadesc}
+\begin{datadesc}{atm}
+unit of atmosphere 
+\end{datadesc}
+\begin{datadesc}{J}
+unit of Joule 
+\end{datadesc}
+
+\begin{datadesc}{W}
+unit of Watt 
+\end{datadesc}
+
+\begin{datadesc}{C}
+unit of Coulomb 
+\end{datadesc}
+\begin{datadesc}{V}
+unit of Volt 
+\end{datadesc}
+\begin{datadesc}{F}
+ unit of Farad 
+\end{datadesc}
+
+\begin{datadesc}{Ohm}
+ unit of Ohm
+\end{datadesc}
+\begin{datadesc}{K}
+unit of Kelvin 
+\end{datadesc}
+\begin{datadesc}{Celsius}
+ unit of Celsius
+\end{datadesc}
+
+\begin{datadesc}{Fahrenheit}
+unit of Fahrenheit 
+\end{datadesc}
+
+Moreover unit prefixes are supported:
+
+\begin{datadesc}{Yotta}
+prefix yotta = $10^{24}$.
+ 
+\end{datadesc}
+
+\begin{datadesc}{Zetta}
+prefix zetta= $10^{21}$.
+\end{datadesc}
+
+\begin{datadesc}{Exa}
+prefix exa= $10^{18}$.
+ \end{datadesc}
+
+\begin{datadesc}{Peta}
+prefix peta= $10^{15}$.
+ \end{datadesc}
+
+\begin{datadesc}{Tera}
+prefix tera= $10^{12}$.
+ \end{datadesc}
+
+\begin{datadesc}{Giga}
+prefix giga= $10^9$.
+ \end{datadesc}
+
+\begin{datadesc}{Mega}
+prefix mega= $10^6$.
+ \end{datadesc}
+
+\begin{datadesc}{Kilo}
+prefix kilo= $10^3$.
+ \end{datadesc}
+
+\begin{datadesc}{Hecto}
+prefix hecto= $10^2$.
+ \end{datadesc}
+
+\begin{datadesc}{Deca}
+prefix deca= $10^1$.
+ \end{datadesc}
+
+\begin{datadesc}{Deci}
+prefix deci= $10^{-1}$.
+ \end{datadesc}
+
+\begin{datadesc}{Centi}
+prefix centi= $10^{-2}$. 
+\end{datadesc}
+
+\begin{datadesc}{Milli}
+prefix milli= $10^{-3}$.
+\end{datadesc}
+
+\begin{datadesc}{Micro}
+prefix micro= $10^{-6}$.
+ \end{datadesc}
+
+\begin{datadesc}{Nano}
+prefix nano= $10^{-9}$.
+ \end{datadesc}
+
+\begin{datadesc}{Pico}
+prefix pico= $10^{-12}$.
+ \end{datadesc}
+
+\begin{datadesc}{Femto}
+prefix femto= $10^{-15}$.
+ \end{datadesc}
+
+\begin{datadesc}{Atto}
+prefix atto= $10^{-18}$.
+ \end{datadesc}
+
+\begin{datadesc}{Zepto}
+prefix zepto= $10^{-21}$.
+ \end{datadesc}
+
+\begin{datadesc}{Yocto}
+prefix yocto= $10^{-24}$.
+ \end{datadesc}
+
+
 \section{Utilities}
+
+The \class{FileWriter} provides a mechanism to write data to a file. 
+In essence, this class wraps the standard \class{file} class to write data 
+that are global in MPI to a file. In fact, data are written on the processor 
+with \MPI rank 0 only. It is recommended to use \class{FileWriter} 
+rather than \class{open} in order to write code that is running 
+with and without \MPI. It is save to use \class{open} under MPI to read data which are global under \MPI.
+
+\begin{classdesc}{FileWriter}{fn\optional{,append=\False, \optional{createLocalFiles=\False}})}
+Opens a file of name \var{fn} for writing. If \var{append} is set to \True
+written data are append at the end of the file.
+If running under \MPI only the first processor with rank==0
+will open the file and write to it. 
+If \var{createLocalFiles} is set each individual processor will create a file
+where for any processor with rank>0 the file name is extended by its rank. This option is normally used for debug purposes only.
+\end{classdesc}
+
+The following methods are available:
+\begin{methoddesc}[FileWriter]{close}{}
+closes the file.
+\end{methoddesc}
+\begin{methoddesc}[FileWriter]{flush}{}
+flushes the internal buffer to disk.
+\end{methoddesc}
+\begin{methoddesc}[FileWriter]{write}{txt}
+Write string \var{txt} to file.
+Note that newline is not added.
+\end{methoddesc}
+\begin{methoddesc}[FileWriter]{writelines}{txts}
+Write the list \var{txts} of strings to the file..
+Note that newlines are not added. 
+This method is equivalent to call write() for each string.
+\end{methoddesc}
+\begin{memberdesc}[FileWriter]{closed}
+\True if file is closed.
+\end{memberdesc}
+\begin{memberdesc}[FileWriter]{mode}
+access mode. 
+\end{memberdesc}
+\begin{memberdesc}[FileWriter]{name}
+file name.
+\end{memberdesc}
+\begin{memberdesc}[FileWriter]{newlines}
+line separator
+\end{memberdesc}
+
+
 \begin{funcdesc}{setEscriptParamInt}{name,value}
 assigns the integer value \var{value} to the parameter \var{name}.
 If \var{name}="TOO_MANY_LINES" conversion of any \Data object to a string switches to a 
@@ -1144,17 +1410,18 @@ returns a list of valid parameters and their description.
 
 \begin{funcdesc}{getMPISizeWorld}{}
 returns the number of \MPI processors in use in the \env{MPI_COMM_WORLD} processor group.
-If \MPI is not used 1 is returend.
+If \MPI is not used 1 is returned.
 \end{funcdesc}
 \begin{funcdesc}{getMPIRankWorld}{}
 returns the rank of the process within the \env{MPI_COMM_WORLD} processor group.
-If \MPI is not used 0 is returend.
+If \MPI is not used 0 is returned.
 \end{funcdesc}
 \begin{funcdesc}{MPIBarrierWorld}{}
 performs a barrier synchronization across all processors within \env{MPI_COMM_WORLD}
 processor group.
 \end{funcdesc}
 \begin{funcdesc}{getMPIWorldMax}{a}
-returns the maximum value of the interger \var{a} across all 
+returns the maximum value of the integer \var{a} across all 
 processors within \env{MPI_COMM_WORLD}.
 \end{funcdesc}
+

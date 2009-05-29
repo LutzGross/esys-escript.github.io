@@ -541,13 +541,15 @@ void Finley_Util_setValuesInUse(const index_t *values, const dim_t numValues, di
                if ((itmp>lastFoundValue) && (itmp<local_minFoundValue)) local_minFoundValue=itmp;
             }
             #pragma omp critical
-            minFoundValue=MIN(local_minFoundValue,minFoundValue);
+            {
+               if (local_minFoundValue<minFoundValue) minFoundValue=local_minFoundValue;
+            }
+
          }
          #ifdef PASO_MPI
          local_minFoundValue=minFoundValue;
-         MPI_Allreduce(&local_minFoundValue,&minFoundValue, 1, MPI_INT, MPI_MAX, mpiinfo->comm );
+         MPI_Allreduce(&local_minFoundValue,&minFoundValue, 1, MPI_INT, MPI_MIN, mpiinfo->comm );
          #endif
-
          /* if we found a new tag we need to add this too the valuesInUseList */
 
          if (minFoundValue < INDEX_T_MAX) {

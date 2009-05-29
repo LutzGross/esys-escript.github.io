@@ -26,7 +26,6 @@ Author: John Ngui, john.ngui@uq.edu.au
 
 # Import the necessary modules.
 from esys.escript import *
-from esys.escript.pdetools import Locator
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
 from numpy import identity,zeros,ones
@@ -73,19 +72,6 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
    u_last=U0*whereNegative(length(x-xc)-src_radius)*dunit
    t=0
 
-   # define the location of the point source 
-   L=Locator(domain,numpy.array(xc))
-   # find potential at point source
-   u_pc=L.getValue(u)
-  
-   u_pc_x = u_pc[0]
-   u_pc_y = u_pc[1]
-   u_pc_z = u_pc[2]
-
-   # open file to save displacement at point source
-   #u_pc_data=open('./data/U_pc.out','w')
-   #u_pc_data.write("%f %f %f %f\n"%(t,u_pc_x,u_pc_y,u_pc_z))
- 
    # Create a Scene.
    s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
 
@@ -118,12 +104,6 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
      u=u_new
      t+=h
      n+=1
-     u_pc=L.getValue(u)
-     
-     u_pc_x=u_pc[0]
-     u_pc_y=u_pc[1]
-     u_pc_z=u_pc[2]
-      
      # ... save current acceleration in units of gravity and displacements 
      if n==1 or n%10==0: 
 

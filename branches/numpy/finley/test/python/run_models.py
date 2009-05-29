@@ -37,7 +37,7 @@ VERBOSE=False # or True
 DETAIL_VERBOSE=False
 
 from esys.escript import *
-from esys.escript.models import StokesProblemCartesian, PowerLaw
+from esys.escript.models import StokesProblemCartesian, PowerLaw, IncompressibleIsotropicFlowCartesian
 from esys.finley import Rectangle, Brick
 
 from esys.escript.models import Mountains
@@ -745,7 +745,6 @@ class Test_Mountains2D(unittest.TestCase):
 
 
 class Test_Rheologies(unittest.TestCase):
-
      """
      this is the program used to generate the powerlaw tests:
 
@@ -841,7 +840,7 @@ class Test_Rheologies(unittest.TestCase):
         
      def test_PowerLaw_QuadLarge(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
-         gamma_dot_s=[0.0, 637.45553203367592, 1798.8543819998317, 3301.3353450309969, 5079.6442562694074, 7096.067811865476, 9325.1600308977995, 11748.240371477059, 14350.835055998656, 17121.29936490925, 20050.0, 22055.0, 24060.0, 26065.0, 28070.0, 30075.0]
+         gamma_dot_s=[0.0, 405.0, 1610.0, 3615.0, 6420.0, 10025.0, 14430.0, 19635.0, 25640.0, 32445.0, 40050.0, 44055.0, 48060.0, 52065.0, 56070.0, 60075.0]
          pl=PowerLaw(numMaterials=2,verbose=VERBOSE)
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaws(eta_N=[2.,0.01],tau_t=[1, 25.], power=[1,2])
@@ -850,7 +849,7 @@ class Test_Rheologies(unittest.TestCase):
 
      def test_PowerLaw_QuadSmall(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
-         gamma_dot_s=[0.0, 5.632455532033676, 11.788854381999831, 18.286335345030995, 25.059644256269408, 32.071067811865476, 39.295160030897804, 46.713240371477056, 54.310835055998652, 62.076299364909254, 70.0, 77.0, 84.0, 91.0, 98.0, 105.0]
+         gamma_dot_s=[0.0, 5.4, 11.6, 18.6, 26.4, 35.0, 44.4, 54.6, 65.6, 77.4, 90.0, 99.0, 108.0, 117.0, 126.0, 135.0]
          pl=PowerLaw(numMaterials=2,verbose=VERBOSE)
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaws(eta_N=[2.,10.],tau_t=[1, 25.], power=[1,2])
@@ -859,7 +858,7 @@ class Test_Rheologies(unittest.TestCase):
 
      def test_PowerLaw_CubeLarge(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
-         gamma_dot_s=[0.0, 51.415888336127786, 157.36125994561547, 304.6468153816889, 487.84283811405851, 703.60440414872664, 949.57131887226353, 1223.9494765692673, 1525.3084267560891, 1852.4689652218574, 2204.4346900318833, 2424.8781590350718, 2645.3216280382603, 2865.7650970414484, 3086.2085660446369, 3306.6520350478249]
+         gamma_dot_s=[0.0, 8.90625, 41.25, 120.46875, 270.0, 513.28125, 873.75, 1374.84375, 2040.0, 2892.65625, 3956.25, 4351.875, 4747.5, 5143.125, 5538.75, 5934.375]
          pl=PowerLaw(numMaterials=2,verbose=VERBOSE)
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaws(eta_N=[2.,1./16.],tau_t=[1, 64.], power=[1,3])
@@ -868,7 +867,7 @@ class Test_Rheologies(unittest.TestCase):
 
      def test_PowerLaw_CubeSmall(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
-         gamma_dot_s=[0.0, 5.4641588833612778, 11.473612599456157, 17.89646815381689, 24.678428381140588, 31.786044041487269, 39.195713188722635, 46.889494765692675, 54.853084267560895, 63.074689652218574, 71.544346900318828, 78.698781590350706, 85.853216280382583, 93.007650970414474, 100.16208566044635, 107.316520350478]
+         gamma_dot_s=[0.0, 5.0390625, 10.3125, 16.0546875, 22.5, 29.8828125, 38.4375, 48.3984375, 60.0, 73.4765625, 89.0625, 97.96875, 106.875, 115.78125, 124.6875, 133.59375]
          pl=PowerLaw(numMaterials=2,verbose=VERBOSE)
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaws(eta_N=[2.,25./4.],tau_t=[1, 64.], power=[1,3])
@@ -877,7 +876,8 @@ class Test_Rheologies(unittest.TestCase):
 
      def test_PowerLaw_QuadLarge_CubeLarge(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
-         gamma_dot_s=[0.0, 683.87142036980367, 1946.2156419454475, 3590.982160412686, 5547.4870943834667, 7774.6722160142008, 10244.731349770063, 12937.189848046326, 15836.143482754744, 18928.768330131104, 22204.434690031885, 24424.878159035074, 26645.321628038262, 28865.765097041451, 31086.208566044639, 33306.652035047824]
+         gamma_dot_s=[0.0, 408.90625, 1641.25, 3720.46875, 6670.0, 10513.28125, 15273.75, 20974.84375, 27640.000000000004, 35292.65625, 43956.25, 48351.875, 52747.5, 57143.125, 61538.75, 65934.375]
+
          pl=PowerLaw(numMaterials=3,verbose=VERBOSE)
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaws(eta_N=[2.,0.01,1./16.],tau_t=[1, 25.,64.], power=[1,2,3])
@@ -886,7 +886,8 @@ class Test_Rheologies(unittest.TestCase):
 
      def test_PowerLaw_QuadLarge_CubeSmall(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
-         gamma_dot_s=[0.0, 637.9196909170372, 1800.3279945992881, 3304.2318131848137, 5084.3226846505486, 7102.853855906963, 9334.3557440865225, 11760.129866242751, 14365.688140266215, 17139.374054561471, 20071.544346900318, 22078.698781590349, 24085.853216280382, 26093.007650970416, 28100.162085660446, 30107.316520350476]
+         gamma_dot_s=[0.0, 405.0390625, 1610.3125, 3616.0546875, 6422.5, 10029.8828125, 14438.4375, 19648.3984375, 25660.0, 32473.4765625, 40089.0625, 44097.96875, 48106.875, 52115.78125, 56124.6875, 60133.59375]
+
          pl=PowerLaw(numMaterials=3,verbose=VERBOSE)
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaws(eta_N=[2.,0.01,25./4.],tau_t=[1, 25.,64.], power=[1,2,3])
@@ -895,8 +896,7 @@ class Test_Rheologies(unittest.TestCase):
 
      def test_PowerLaw_QuadSmall_CubeLarge(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
-         gamma_dot_s=[0.0, 52.04834386816146, 159.15011432761528, 307.93315072671987, 492.9024823703279, 710.67547196059206, 958.86647890316135, 1235.6627169407443, 1539.6192618120876, 1869.5452645867665, 2224.4346900318833, 2446.8781590350718, 2669.3216280382603, 2891.7650970414484, 3114.2085660446369, 3336.6520350478249]
-
+         gamma_dot_s=[0.0, 9.30625, 42.85, 124.06875, 276.4, 523.28125, 888.15, 1394.44375, 2065.6, 2925.05625, 3996.25, 4395.875, 4795.5, 5195.125, 5594.75, 5994.375]
          pl=PowerLaw(numMaterials=3,verbose=VERBOSE)
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaws(eta_N=[2.,10.,1./16.],tau_t=[1, 25.,64.], power=[1,2,3])
@@ -905,7 +905,7 @@ class Test_Rheologies(unittest.TestCase):
 
      def test_PowerLaw_QuadSmall_CubeSmall(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
-         gamma_dot_s=[0.0, 6.0966144153949529, 13.262466981455987, 21.182803498847885, 29.738072637409996, 38.857111853352741, 48.49087321962044, 58.602735137169738, 69.16391932355954, 80.150989017127827, 91.544346900318828, 100.69878159035071, 109.85321628038258, 119.00765097041447, 128.16208566044637, 137.31652035047824]
+         gamma_dot_s=[0.0, 5.4390625, 11.9125, 19.6546875, 28.9, 39.8828125, 52.8375, 67.9984375, 85.6, 105.8765625, 129.0625, 141.96875, 154.875, 167.78125, 180.6875, 193.59375]
          pl=PowerLaw(numMaterials=3,verbose=VERBOSE)
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaws(eta_N=[2.,10.,25./4.],tau_t=[1, 25.,64.], power=[1,2,3])
@@ -924,9 +924,190 @@ class Test_Rheologies(unittest.TestCase):
          self.failUnlessRaises(ValueError, pl.getEtaEff,gamma_dot_s[0])
          for i in xrange(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i],dt=dt),taus[i])
 
+class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
+   TOL=1.e-6
+   VERBOSE=False
+   A=1.
+   P_max=100
+   NE=2*getMPISizeWorld()
+   tau_Y=10.
+   N_dt=10
+
+   # material parameter:
+   tau_1=5.
+   tau_2=5.
+   eta_0=100.
+   eta_1=50.
+   eta_2=400.
+   N_1=2.
+   N_2=3.
+   def getReference(self, t):
+
+      B=self.tau_Y/sqrt((self.dom.getDim()-1)*self.dom.getDim()*0.5)
+      x=self.dom.getX()
+
+      s_00=min(self.A*t,B)
+      tau=sqrt((self.dom.getDim()-1)*self.dom.getDim()*0.5)*abs(s_00)
+      inv_eta= 1./self.eta_0 + 1./self.eta_1*(tau/self.tau_1)**(self.N_1-1.) + 1./self.eta_2*(tau/self.tau_2)**(self.N_2-1.)
+
+      alpha=0.5*inv_eta*s_00
+      if s_00 <= B and self.mu !=None: alpha+=1./(2*self.mu)*self.A
+      u_ref=x*alpha
+      u_ref[self.dom.getDim()-1]=(1.-x[self.dom.getDim()-1])*alpha*(self.dom.getDim()-1)
+      sigma_ref=kronecker(self.dom)*s_00
+      sigma_ref[self.dom.getDim()-1,self.dom.getDim()-1]=-s_00*(self.dom.getDim()-1)
+
+      p_ref=self.P_max
+      for d in range(self.dom.getDim()): p_ref=p_ref*x[d]
+      p_ref-=integrate(p_ref)/vol(self.dom)
+      return u_ref, sigma_ref, p_ref
+
+   def runIt(self, free=None):
+      x=self.dom.getX()
+      B=self.tau_Y/sqrt((self.dom.getDim()-1)*self.dom.getDim()*0.5)
+      dt=B/int(self.N_dt/2)
+      if self.VERBOSE: print "dt =",dt
+      if self.latestart:
+          t=dt
+      else:
+          t=0
+      v,s,p=self.getReference(t)
+
+      mod=IncompressibleIsotropicFlowCartesian(self.dom, stress=s, v=v, p=p, t=t, numMaterials=3, verbose=self.VERBOSE)
+      mod.setDruckerPragerLaw(tau_Y=self.tau_Y,friction=None)
+      mod.setElasticShearModulus(self.mu)
+      mod.setPowerLaws([self.eta_0, self.eta_1, self.eta_2], [ 1., self.tau_1, self.tau_2],  [1.,self.N_1,self.N_2])
+      mod.setTolerance(self.TOL)
+      mod.setFlowSubTolerance(self.TOL**2)
+      mod.setFlowTolerance(self.TOL)
+
+      BF=Vector(self.P_max,Function(self.dom))
+      for d in range(self.dom.getDim()):
+          for d2 in range(self.dom.getDim()):
+              if d!=d2: BF[d]*=x[d2]
+      v_mask=Vector(0,Solution(self.dom))
+      if free==None:
+         for d in range(self.dom.getDim()):
+            v_mask[d]=whereZero(x[d])+whereZero(x[d]-1.)
+      else:
+         for d in range(self.dom.getDim()):
+            if d == self.dom.getDim()-1:
+               v_mask[d]=whereZero(x[d]-1.)
+            else:
+               v_mask[d]=whereZero(x[d])
+      mod.setExternals(F=BF,fixed_v_mask=v_mask)
+       
+      n=self.dom.getNormal()
+      N_t=0
+      errors=[]
+      while N_t < self.N_dt:
+         t_ref=t+dt
+         v_ref, s_ref,p_ref=self.getReference(t_ref)
+         mod.setExternals(f=matrixmult(s_ref,n)-p_ref*n, v_boundary=v_ref)
+         mod.update(dt, iter_max=100, inner_iter_max=20, verbose=self.VERBOSE, usePCG=True)
+         self.check(N_t,mod,t_ref,v_ref, s_ref,p_ref)
+         t+=dt
+         N_t+=1
+
+   def check(self,N_t,mod,t_ref,v_ref, s_ref,p_ref):
+         p=mod.getPressure()
+         p-=integrate(p)/vol(self.dom)
+         error_p=Lsup(mod.getPressure()-p_ref)/Lsup(p_ref)
+         error_s=Lsup(mod.getDeviatoricStress()-s_ref)/Lsup(s_ref)
+         error_v=Lsup(mod.getVelocity()-v_ref)/Lsup(v_ref)
+         error_t=abs(mod.getTime()-t_ref)/abs(t_ref)
+         if self.VERBOSE: print "time step ",N_t,"time = ",mod.getTime(),"errors s,p,v = ",error_s, error_p, error_v
+         self.failUnless( error_p <= 10*self.TOL, "time step %s: pressure error %s too high."%(N_t,error_p) )
+         self.failUnless( error_s <= 10*self.TOL, "time step %s: stress error %s too high."%(N_t,error_s) )
+         self.failUnless( error_v <= 10*self.TOL, "time step %s: velocity error %s too high."%(N_t,error_v) )
+         self.failUnless( error_t <= 10*self.TOL, "time step %s: time marker error %s too high."%(N_t,error_t) )
+   def tearDown(self):
+        del self.dom
+
+   def test_D2_Fixed_MuNone_LateStart(self):
+       self.dom = Rectangle(self.NE,self.NE,order=2)
+       self.mu=None
+       self.latestart=True
+       self.runIt()
+   def test_D2_Fixed_Mu_LateStart(self):
+       self.dom = Rectangle(self.NE,self.NE,order=2)
+       self.mu=555.
+       self.latestart=True
+       self.runIt()
+   def test_D2_Fixed_MuNone(self):
+       self.dom = Rectangle(self.NE,self.NE,order=2)
+       self.mu=None
+       self.latestart=False
+       self.runIt()
+   def test_D2_Fixed_Mu(self):
+       self.dom = Rectangle(self.NE,self.NE,order=2)
+       self.mu=555.
+       self.latestart=False
+       self.runIt()
+   def test_D2_Free_MuNone_LateStart(self):
+       self.dom = Rectangle(self.NE,self.NE,order=2)
+       self.mu=None
+       self.latestart=True
+       self.runIt(free=0)
+   def test_D2_Free_Mu_LateStart(self):
+       self.dom = Rectangle(self.NE,self.NE,order=2)
+       self.mu=555.
+       self.latestart=True
+       self.runIt(free=0)
+   def test_D2_Free_MuNone(self):
+       self.dom = Rectangle(self.NE,self.NE,order=2)
+       self.mu=None
+       self.latestart=False
+       self.runIt(free=0)
+   def test_D2_Free_Mu(self):
+       self.dom = Rectangle(self.NE,self.NE,order=2)
+       self.mu=555.
+       self.latestart=False
+       self.runIt(free=0)
+
+   def test_D3_Fixed_MuNone_LateStart(self):
+       self.dom = Brick(self.NE,self.NE,self.NE,order=2)
+       self.mu=None
+       self.latestart=True
+       self.runIt()
+   def test_D3_Fixed_Mu_LateStart(self):
+       self.dom = Brick(self.NE,self.NE,self.NE,order=2)
+       self.mu=555.
+       self.latestart=True
+       self.runIt()
+   def test_D3_Fixed_MuNone(self):
+       self.dom = Brick(self.NE,self.NE,self.NE,order=2)
+       self.mu=None
+       self.latestart=False
+       self.runIt()
+   def test_D3_Fixed_Mu(self):
+       self.dom = Brick(self.NE,self.NE,self.NE,order=2)
+       self.mu=555.
+       self.latestart=False
+       self.runIt()
+   def test_D3_Free_MuNone_LateStart(self):
+       self.dom = Brick(self.NE,self.NE,self.NE,order=2)
+       self.mu=None
+       self.latestart=True
+       self.runIt(free=0)
+   def test_D3_Free_Mu_LateStart(self):
+       self.dom = Brick(self.NE,self.NE,self.NE,order=2)
+       self.mu=555.
+       self.latestart=True
+       self.runIt(free=0)
+   def test_D3_Free_MuNone(self):
+       self.dom = Brick(self.NE,self.NE,self.NE,order=2)
+       self.mu=None
+       self.latestart=False
+       self.runIt(free=0)
+   def test_D3_Free_Mu(self):
+       self.dom = Brick(self.NE,self.NE,self.NE,order=2)
+       self.mu=555.
+       self.latestart=False
+       self.runIt(free=0)
+
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   
    suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian2D))
    suite.addTest(unittest.makeSuite(Test_Darcy3D))
    suite.addTest(unittest.makeSuite(Test_Darcy2D))
@@ -934,6 +1115,7 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(Test_Mountains3D))
    suite.addTest(unittest.makeSuite(Test_Mountains2D))
    suite.addTest(unittest.makeSuite(Test_Rheologies))
+   suite.addTest(unittest.makeSuite(Test_IncompressibleIsotropicFlowCartesian))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
 

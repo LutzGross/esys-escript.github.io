@@ -33,15 +33,15 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from escript import *
 import util
-from linearPDEs import LinearPDE
-from pdetools import Defect, NewtonGMRES, ArithmeticTuple
+from flows import StokesProblemCartesian
+from pdetools import MaxIterReached
 
 class PowerLaw(object):
     """
     this implements the power law for a composition of a set of materials where the viscosity eta of each material is given by a 
     power law relationship of the form
 
-    M{eta=eta_N*(tau/tau_t)**(1.-1./power)}
+    M{eta=eta_N*(tau/tau_t)**(1./power-1.)}
 
     where tau is equivalent stress and eta_N, tau_t and power are given constant. Moreover an elastic component can be considered. 
     Moreover tau meets the Drucker-Prager type yield condition
@@ -89,7 +89,7 @@ class PowerLaw(object):
          @rtype: C{bool}
          """
          return 0<=id and id<self.getNumMaterials()
-    def setEtaTolerance(self,rtol=util.sqrt(util.EPSILON)):
+    def setEtaTolerance(self,rtol=1.e-4):
          """
          sets the relative tolerance for the effectice viscosity.
  
@@ -224,7 +224,7 @@ class PowerLaw(object):
                self.setPowerLaw(id=i, eta_N=eta_N[i],tau_t=tau_t[i],power=power[i])
 
     #===========================================================================
-    def getEtaEff(self,gamma_dot, eta0=None, pressure=None,dt=None, iter_max=10):
+    def getEtaEff(self,gamma_dot, eta0=None, pressure=None,dt=None, iter_max=30):
          """
          returns the effective viscosity eta_eff such that 
 
@@ -243,7 +243,7 @@ class PowerLaw(object):
          """
          SMALL=1./(util.DBLE_MAX/100.)
          numMaterial=self.getNumMaterials()
-         s=[1.-1./p for p in self.getPower() ]
+         s=[p-1. for p in self.getPower() ]
          eta_N=self.getEtaN()
          tau_t=self.getTauT()
          mu=self.getElasticShearModulus()
@@ -280,7 +280,7 @@ class PowerLaw(object):
          iter =0
          converged=False
          tau=eta_eff*gamma_dot
-         if self.__verbose: print "Start calculation of eta_eff (tolerance = %s)\ninitial max eta_eff = %s, tau = %s."%(rtol,util.Lsup(eta_eff),util.Lsup(tau))
+         if self.__verbose: print "PowerLaw: Start calculation of eta_eff (tolerance = %s)\nPowerLaw: initial max eta_eff = %s, tau = %s."%(rtol,util.Lsup(eta_eff),util.Lsup(tau))
          while not converged:
              if iter>max(iter_max,1):
                 raise RuntimeError,"tolerance not reached after %s steps."%max(iter_max,1)
@@ -298,233 +298,344 @@ class PowerLaw(object):
              d=util.Lsup(eta_eff-eta_eff_old)
              l=util.Lsup(eta_eff)
              iter+=1
-             if self.__verbose: print "step %s: correction = %s, max eta_eff = %s, max tau= %s"%(iter, d, l,util.Lsup(tau))
+             if self.__verbose: print "PowerLaw: step %s: correction = %s, max eta_eff = %s, max tau= %s"%(iter, d, l,util.Lsup(tau))
              converged= d<= rtol* l
+         if self.__verbose: print "PowerLaw: Start calculation of eta_eff finalized after %s steps."%iter
          return eta_eff
 
 #====================================================================================================================================
-
-class IncompressibleIsotropicKelvinFlow(Defect):
+class Rheology(object):
       """
-      This class implements the rheology of an isotropic Kelvin material.
-
-      Typical usage::
-
-          sp = IncompressibleIsotropicKelvinFlow(domain, stress=0, v=0)
-          sp.setTolerance()
-          sp.initialize(...)
-          v,p = sp.solve(v0, p0)
-
-      @note: This model has been used in the self-consistent plate-mantle model
-             proposed in U{Hans-Bernd Muhlhaus<emailto:h.muhlhaus@uq.edu.au>}
-             and U{Klaus Regenauer-Lieb<mailto:klaus.regenauer-lieb@csiro.au>}:
-             I{Towards a self-consistent plate mantle model that includes elasticity: simple benchmarks and application to basic modes of convection},
-             see U{doi: 10.1111/j.1365-246X.2005.02742.x<http://www3.interscience.wiley.com/journal/118661486/abstract?CRETRY=1&SRETRY=0>}.
-
+      General framework to implement a rheology
       """
-      def __init__(self, domain, stress=0, v=0, p=0, t=0, numMaterials=1, useJaumannStress=True, **kwargs):
+      def __init__(self, domain, stress=None, v=None, p=None, t=0, verbose=True):
          """
-         Initializes the model.
+         Initializes the rheology
 
          @param domain: problem domain
-         @type domain: L{domain}
-         @param stress: initial deviatoric stress
+         @type domain: L{Domain}
+         @param stress: initial (deviatoric) stress
+         @type stress: a tensor value/field of order 2
          @param v: initial velocity field
+         @type stress: a vector value/field
          @param p: initial pressure
+         @type p: a scalar value/field
          @param t: initial time
-         @param useJaumannStress: C{True} if Jaumann stress is used
-                                  (not supported yet)
+         @type t: C{float}
          """
-         super(IncompressibleIsotropicKelvinFlow, self).__init__(**kwargs)
          self.__domain=domain
          self.__t=t
-         self.__vol=util.integrate(1.,Function(self.__domain))
-         self.__useJaumannStress=useJaumannStress
-         self.__v_boundary=Vector(0,Solution(self.__domain))
+         self.__verbose=verbose
          #=======================
+         #
          # state variables:
          #
-         if isinstance(stress,Data):
-            self.__stress=util.interpolate(stress,Function(domain))
-         else:
-            self.__stress=Data(stress,(domain.getDim(),domain.getDim()),Function(domain))
-         self.__stress-=util.trace(self.__stress)*(util.kronecker(domain)/domain.getDim())
-         if isinstance(v,Data):
-            self.__v=util.interpolate(v,Solution(domain))
-         else:
-            self.__v=Data(v,(domain.getDim(),),Solution(domain))
-         if isinstance(p,Data):
-            self.__p=util.interpolate(p,ReducedSolution(domain))
-         else:
-            self.__p=Data(p,(),ReducedSolution(domain))
-         #=======================
-         # PDE related stuff
-         self.__pde_v=LinearPDE(domain,numEquations=self.getDomain().getDim(),numSolutions=self.getDomain().getDim())
-         self.__pde_v.setSymmetryOn()
-         self.__pde_v.setSolverMethod(preconditioner=LinearPDE.RILU)
-
-         self.__pde_p=LinearPDE(domain)
-         self.__pde_p.setReducedOrderOn()
-         self.__pde_p.setSymmetryOn()
-
-         self.setTolerance()
-         self.setSmall()
-
-      def useJaumannStress(self):
-          """
-          Returns C{True} if Jaumann stress is included.
-          """
-          return self.__useJaumannStress
-
-      def setSmall(self,small=util.sqrt(util.EPSILON)):
-          """
-          Sets a small value to be used.
-
-          @param small: positive small value
-          """
-          self.__small=small
-
-      def getSmall(self):
-          """
-          Returns small value.
-          @rtype: positive float
-          """
-          return self.__small
-
-      def setTolerance(self,tol=1.e-4):
-          """
-          Sets the tolerance.
-          """
-          self.__pde_v.setTolerance(tol**2)
-          self.__pde_p.setTolerance(tol**2)
-          self.__tol=tol
-
-      def getTolerance(self):
-          """
-          Returns the set tolerance.
-          @rtype: positive float
-          """
-          return self.__tol
-
+         if stress == None: stress=Tensor(0.,Function(self.__domain))
+         if v == None: v=Vector(0.,Solution(self.__domain))
+         if p == None: p=Vector(0.,ReducedSolution(self.__domain))
+         self.setDeviatoricStress(stress)
+         self.setVelocity(v)
+         self.setPressure(p)
+         self.setDeviatoricStrain()
+         self.setTime(t)
+         #=============================================================
+         self.setExternals(F=Data(), f=Data(), fixed_v_mask=Data(), v_boundary=Data())
+         
       def getDomain(self):
           """
-          Returns the domain.
+          returns the domain.
+
+          @return: the domain
+          @rtype: L{Domain}
           """
           return self.__domain
 
       def getTime(self):
           """
           Returns current time.
-          """
-          return self.__t
 
-      def setExternals(self, F=None, f=None, q=None, v_boundary=None):
+          @return: current time
+          @rtype: C{float}
           """
-          Sets externals.
+          return self.__t   
+
+      def setExternals(self, F=None, f=None, fixed_v_mask=None, v_boundary=None):
+          """
+          sets external forces and velocity constraints
 
           @param F: external force
+          @type F: vector value/field 
           @param f: surface force
-          @param q: location of constraints
+          @type f: vector value/field on boundary
+          @param fixed_v_mask: location of constraints maked by positive values
+          @type fixed_v_mask: vector value/field 
+          @param v_boundary: value of velocity at location of constraints
+          @type v_boundary: vector value/field 
+          @note: Only changing parameters need to be specified.
           """
-          if F != None: self.__pde_v.setValue(Y=F)
-          if f != None: self.__pde_v.setValue(y=f)
-          if q != None: self.__pde_v.setValue(q=q)
-          if v_boundary != None: self.__v_boundary=v_boundary
+          if F != None: self.__F=F
+          if f != None: self.__f=f
+          if fixed_v_mask != None: self.__fixed_v_mask=fixed_v_mask
+          if v_boundary != None: self.__v_boundary=v_boundary 
+          
+      def getForce(self):
+          """
+          Returns the external force
 
-      def bilinearform(self,arg0,arg1):
-        s0=util.deviatoric(util.symmetric(util.grad(arg0[0])))
-        s1=util.deviatoric(util.symmetric(util.grad(arg1[0])))
-        # s0=util.interpolate(arg0[0],Function(self.getDomain()))
-        # s1=util.interpolate(arg1[0],Function(self.getDomain()))
-        p0=util.interpolate(arg0[1],Function(self.getDomain()))
-        p1=util.interpolate(arg1[1],Function(self.getDomain()))
-        a=util.integrate(self.__p_weight**2*util.inner(s0,s1))+util.integrate(p0*p1)
-        return a
+          @return:  external force
+          @rtype: L{Data}
+          """
+          return self.__F
 
-      def getEtaEff(self,strain, pressure):
-          if self.__mu==None:
-                eps=util.length(strain)*util.sqrt(2)
-          else:
-                eps=util.length(strain+self.__stress/((2*self.__dt)*self.__mu))*util.sqrt(2)
-          p=util.interpolate(pressure,eps.getFunctionSpace())
-          if self.__tau_Y!= None:
-             tmp=self.__tau_Y+self.__friction*p
-             m=util.wherePositive(eps)*util.wherePositive(tmp)
-             eta_max=m*tmp/(eps+(1-m)*util.EPSILON)+(1-m)*util.DBLE_MAX
-          else:
-             eta_max=util.DBLE_MAX
-          # initial guess:
-          tau=util.length(self.__stress)/util.sqrt(2)
-          # start the iteration:
-          cc=0
-          TOL=1e-7
-          dtau=util.DBLE_MAX
-          print "tau = ", tau, "eps =",eps
-          while cc<10 and dtau>TOL*util.Lsup(tau):
-             eta_eff2,eta_eff_dash=self.evalEtaEff(tau,return_dash=True)
-             eta_eff=util.clip(eta_eff2-eta_eff_dash*tau/(1-eta_eff_dash*eps),maxval=eta_max)
-             tau, tau2=eta_eff*eps, tau
-             dtau=util.Lsup(tau2-tau)
-             print "step ",cc,dtau, util.Lsup(tau)
-             cc+=1
-          return eta_eff
+      def getSurfaceForce(self):
+          """
+          Returns the surface force
 
-      def getEtaCharacteristic(self):
-          a=0
-          for i in xrange(self.__numMaterials):
-            a=a+1./self.__eta_N[i]
-          return 1/a
+          @return:  surface force
+          @rtype: L{Data}
+          """
+          return self.__f
 
-      def evalEtaEff(self, tau, return_dash=False):
-         a=Scalar(0,tau.getFunctionSpace())  # =1/eta
-         if return_dash: a_dash=Scalar(0,tau.getFunctionSpace()) # =(1/eta)'
-         s=util.Lsup(tau)
-         if s>0:
-            m=util.wherePositive(tau)
-            tau2=s*util.EPSILON*(1.-m)+m*tau
-            for i in xrange(self.__numMaterials):
-                 eta_N=self.__eta_N[i]
-                 tau_t=self.__tau_t[i]
-                 if tau_t==None:
-                    a+=1./eta_N
-                 else:
-                    power=1.-1./self.__power[i]
-                    c=1./(tau_t**power*eta_N)
-                    a+=c*tau2**power
-                    if return_dash: a_dash+=power*c*tau2**(power-1.)
-         else:
-            for i in xrange(self.__numMaterials):
-                 eta_N=self.__eta_N[i]
-                 power=1.-1./self.__power[i]
-                 a+=util.whereZero(power)/eta_N
-         if self.__mu!=None: a+=1./(self.__dt*self.__mu)
-         out=1/a
-         if return_dash:
-             return out,-out**2*a_dash
-         else:
-             return out
+      def getVelocityConstraint(self):
+          """
+          Returns the constraint for the velocity as a pair of the 
+          mask of the location of the constraint and the values.
 
-      def eval(self,arg):
-         v=arg[0]
-         p=arg[1]
-         D=self.getDeviatoricStrain(v)
-         eta_eff=self.getEtaEff(D,p)
-         print "eta_eff=",eta_eff
-         # solve for dv
-         self.__pde_v.setValue(A=Data()) # save memory!
-         k3=util.kronecker(Function(self.getDomain()))
-         k3Xk3=util.outer(k3,k3)
-         self.__pde_v.setValue(A=eta_eff*(util.swap_axes(k3Xk3,0,3)+util.swap_axes(k3Xk3,1,3)),X=-eta_eff*D+p*util.kronecker(self.getDomain()))
-         dv=self.__pde_v.getSolution(verbose=self.__verbose)
-         print "resistep dv =",dv
-         # solve for dp
-         v2=v+dv
-         self.__pde_p.setValue(D=1/eta_eff,Y=util.div(v2))
-         dp=self.__pde_p.getSolution(verbose=self.__verbose)
-         print "resistep dp =",dp
-         return ArithmeticTuple(dv,dp)
+          @return: the locations of fixed velocity and value of velocities at these locations
+          @rtype: C{tuple} of L{Data}s
+          """
+          return self.__fixed_v_mask, self.__v_boundary       
 
-      def update(self, dt, iter_max=100, inner_iter_max=20, verbose=False):
+      def checkVerbose(self):
+          """
+          Returns True if verbose is switched on
+
+          @return: value of verbosity flag
+          @rtype: C{bool}
+          """
+          return self.__verbose
+
+      def setTime(self,t=0.):
+          """
+          Updates current time.
+
+          @param t: new time mark
+          @type t: C{float}
+          """
+          self.__t=t
+      #=======================================================================================
+      def getStress(self):
+          """
+          Returns current stress. 
+
+          @return: current stress
+          @rtype: L{Data} of rank 2
+          """
+          s=self.getDeviatoricStress()
+          p=self.getPressure()
+          k=util.kronecker(self.getDomain())
+          return s-p*(k/trace(k))
+            
+      def getDeviatoricStress(self):
+          """
+          Returns current deviatoric stress.
+
+          @return: current deviatoric stress
+          @rtype: L{Data} of rank 2
+          """
+          return self.__stress
+
+      def setDeviatoricStress(self, stress):
+          """
+          Sets the current deviatoric stress
+
+          @param stress: new deviatoric stress
+          @type stress: L{Data} of rank 2
+          """
+          dom=self.getDomain()
+          s=util.interpolate(stress,Function(dom))
+          self.__stress=util.deviatoric(s)
+
+      def getPressure(self):
+          """
+          Returns current pressure.
+
+          @return: current stress
+          @rtype: scalar L{Data} 
+          """
+          return self.__p
+
+      def setPressure(self, p):
+          """
+          Sets current pressure.
+          @param p: new deviatoric stress
+          @type p: scalar L{Data}
+          """
+          self.__p=util.interpolate(p,ReducedSolution(self.getDomain()))
+
+      def getVelocity(self):
+          """
+          Returns current velocity.
+
+          @return: current velocity
+          @rtype: vector L{Data} 
+          """
+          return self.__v
+
+      def setVelocity(self, v):
+          """
+          Sets current velocity.
+
+          @param v: new current velocity
+          @type v: vector L{Data} 
+          """
+          self.__v=util.interpolate(v,Solution(self.getDomain()))
+
+      def setDeviatoricStrain(self, D=None):
+          """
+          set deviatoric strain 
+
+          @param D: new deviatoric strain. If D is not present the current velocity is used.
+          @type D: L{Data} of rank 2
+          """
+          if D==None: D=util.deviatoric(util.symmetric(util.grad(2.*self.getVelocity())))
+          self.__D=util.deviatoric(util.interpolate(D,Function(self.getDomain())))
+
+      def getDeviatoricStrain(self):
+          """
+          Returns deviatoric strain of current velocity. 
+
+          @return: deviatoric strain
+          @rtype: L{Data}  of rank 2
+          """
+          return self.__D
+
+      def getTau(self):
+          """
+          Returns current second invariant of deviatoric stress
+
+          @return: second invariant of deviatoric stress
+          @rtype: scalar L{Data}
+          """
+          s=self.getDeviatoricStress()
+          return util.sqrt(0.5)*util.length(s)
+
+      def getGammaDot(self):
+          """
+          Returns current second invariant of deviatoric strain
+
+          @return: second invariant of deviatoric strain
+          @rtype: scalar L{Data}
+          """
+          s=self.getDeviatoricStrain()
+          return util.sqrt(2)*util.length(s)
+
+      def setTolerance(self,tol=1.e-4):
+          """
+          Sets the tolerance used to terminate the iteration on a time step.
+          See the implementation of the rheology for details.
+
+          @param tol: relative tolerance to terminate iteration on time step.
+          @type tol: positive C{float}
+          """
+          if tol<=0.:
+              raise ValueError,"tolerance must be non-negative."
+          self.__tol=tol
+
+      def getTolerance(self):
+          """
+          Returns the set tolerance for terminate the iteration on a time step.
+
+          @rtype: positive C{float}
+          """
+          return self.__tol
+
+      #=======================================================================
+      def setFlowTolerance(self, tol=1.e-4):
+          """
+          Sets the relative tolerance for the flow solver
+
+          @param tol: desired relative tolerance for the flow solver
+          @type tol: positive C{float}
+          @note: Typically this method is overwritten by a subclass.
+          """
+          pass
+      def getFlowTolerance(self):
+          """
+          Returns the relative tolerance for the flow solver
+
+          @return: tolerance of the flow solver
+          @rtype: C{float}
+          @note: Typically this method is overwritten by a subclass.
+          """
+          pass
+      def setFlowSubTolerance(self, tol=1.e-8):
+          """
+          Sets the relative tolerance for the subsolver of the flow solver
+
+          @param tol: desired relative tolerance for the subsolver
+          @type tol: positive C{float}
+          @note: Typically this method is overwritten by a subclass.
+          """
+          pass
+      def getFlowSubTolerance(self):
+          """
+          Returns the relative tolerance for the subsolver of the flow solver
+
+          @return: tolerance of the flow subsolver
+          @rtype: C{float}
+          @note: Typically this method is overwritten by a subclass.
+          """
+          pass
+
+
+#====================================================================================================================================
+
+class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
+      """
+      This class implements the rheology of an isotropic Kelvin material.
+
+      Typical usage::
+
+          sp = IncompressibleIsotropicFlow(domain, stress=0, v=0)
+          sp.setTolerance()
+          sp.initialize(...)
+          v,p = sp.solve()
+
+      @note: This model has been used in the self-consistent plate-mantle model
+             proposed in U{Hans-Bernd Muhlhaus<emailto:h.muhlhaus@uq.edu.au>}
+             and U{Klaus Regenauer-Lieb<mailto:klaus.regenauer-lieb@csiro.au>}:
+             I{Towards a self-consistent plate mantle model that includes elasticity: simple benchmarks and application to basic modes of convection},
+             see U{doi: 10.1111/j.1365-246X.2005.02742.x<http://www3.interscience.wiley.com/journal/118661486/abstract>}
+      """
+      def __init__(self, domain, stress=0, v=0, p=0, t=0, numMaterials=1, verbose=True):
+         """
+         Initializes the model.
+
+         @param domain: problem domain
+         @type domain: L{Domain}
+         @param stress: initial (deviatoric) stress
+         @type stress: a tensor value/field of order 2
+         @param v: initial velocity field
+         @type stress: a vector value/field
+         @param p: initial pressure
+         @type p: a scalar value/field
+         @param t: initial time
+         @type t: C{float}
+         @param numMaterials: number of materials
+         @type numMaterials: C{int}
+         @param verbose: if C{True} some informations are printed.
+         @type verbose: C{bool}         
+         """
+         PowerLaw. __init__(self, numMaterials,verbose)
+         Rheology. __init__(self, domain, stress, v, p, t, verbose)
+         self.__solver=StokesProblemCartesian(self.getDomain(),verbose=verbose)
+         self.__eta_eff=None
+         self.setTolerance()
+         self.setFlowTolerance()
+         self.setFlowSubTolerance()
+
+      def update(self, dt, iter_max=100, inner_iter_max=20, verbose=False, usePCG=True):
           """
           Updates stress, velocity and pressure for time increment dt.
 
@@ -533,70 +644,134 @@ class IncompressibleIsotropicKelvinFlow(Defect):
                                  incompressible solver
           @param verbose: prints some infos in the incompressible solver
           """
-          self.__verbose=verbose
-          self.__dt=dt
-          tol=self.getTolerance()
-          # set the initial velocity:
-          m=util.wherePositive(self.__pde_v.getCoefficient("q"))
-          v_new=self.__v*(1-m)+self.__v_boundary*m
-          # and off we go:
-          x=ArithmeticTuple(v_new, self.__p)
-          # self.__p_weight=util.interpolate(1./self.getEtaCharacteristic(),Function(self.__domain))**2
-          self.__p_weight=self.getEtaCharacteristic()
-          # self.__p_weight=util.interpolate(1./self.getEtaCharacteristic()**2,self.__p.getFunctionSpace())
-          atol=self.norm(x)*self.__tol
-          x_new=NewtonGMRES(self, x, iter_max=iter_max,sub_iter_max=inner_iter_max, atol=atol,rtol=0., verbose=verbose)
-          self.__v=x_new[0]
-          self.__p=x_new[1]
-          1/0
-          # self.__stress=self.getUpdatedStress(...)
-          self.__t+=dt
-          return self.__v, self.__p
+          if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: start iteration for t = %s."%(self.getTime()+dt,)
+          v_last=self.getVelocity()
+          s_last=self.getDeviatoricStress()
+          F=self.getForce()
+          f=self.getSurfaceForce()
+          mask_v,v_b=self.getVelocityConstraint()
+          mu=self.getElasticShearModulus()
+          #=========================================================================
+          #
+          #   we use velocity and pressure from the last time step as initial guess:
+          #
+          v=v_last
+          p=self.getPressure()
+          #
+          #  calculate eta_eff  if we don't have one or elasticity is present.
+          #
+          if self.__eta_eff == None or  mu!=None: 
+             D=self.__getDeviatoricStrain(v)
+             if mu==None:
+                 gamma=util.sqrt(2.)*util.length(D)
+             else:
+                 gamma=util.sqrt(2.)*util.length(D+s_last/(2*dt*mu))
+             if self.__eta_eff == None:
+                 eta0=None
+             else:
+                  eta0=self.__eta_eff
+             eta_eff=self.getEtaEff(gamma, pressure=p,dt=dt, eta0=eta0, iter_max=iter_max)
+             if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: eta_eff has been initialied."
+          else:
+             eta_eff = self.__eta_eff
+          iter=0 
+          converged=False
+          while not converged:
+             #
+             #   intialize the solver 
+             #
+             if mu==None:          
+                stress0=Data()
+             else:
+                stress0=-(eta_eff/(dt*mu))*s_last
+             self.__solver.initialize(f=F,fixed_u_mask=mask_v,eta=eta_eff,surface_stress=f,stress=stress0)
+             # 
+             # get a new velcocity and pressure:
+             #
+             if mask_v.isEmpty() or v_b.isEmpty():
+                v0=v
+             else:
+                v0=v_b*mask_v+v*(1.-mask_v)
+             v,p=self.__solver.solve(v0,p,show_details=False, 
+                                          verbose=self.checkVerbose(),max_iter=inner_iter_max,usePCG=usePCG)
+             # 
+             #   update eta_eff:
+             #
+             D=self.__getDeviatoricStrain(v)
+             if mu==None:
+                 gamma=util.sqrt(2.)*util.length(D)
+             else:
+                 gamma=util.sqrt(2.)*util.length(D+s_last/(2*dt*mu))
+             eta_eff_old ,eta_eff=eta_eff, self.getEtaEff(gamma, pressure=p,dt=dt, eta0=eta_eff, iter_max=iter_max)
+             if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: eta_eff has been updated."
+             #
+             # check the change on eta_eff:
+             #
+             diff=util.Lsup(eta_eff_old-eta_eff)
+             n=util.Lsup(eta_eff)
+             if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: step %s: max. rel. change in eta_eff is %s."%(iter,diff/n)
+             converged = diff <= self.getTolerance()* n
+             iter+=1
+             if iter >= iter_max:
+                 raise MaxIterReached,"maximum number of iteration steps on time step %e reached."%(self.getTime()+dt)
+          #
+          #   finally we can update the return values:
+          #
+          self.setPressure(p)
+          self.setVelocity(v)
+          self.setDeviatoricStrain(D)
+          if mu==None:          
+              stress=(2*eta_eff)*D
+          else:
+              stress=(2.*eta_eff)*(D+s_last/(2*dt*mu))
+          self.setDeviatoricStress(stress)
+          self.__eta_eff = eta_eff 
+          self.setTime(self.getTime()+dt)
+          if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: iteration on time step %s completed after %s steps."%(self.getTime(),iter)
+          return self.getVelocity(), self.getPressure()
 
-      #========================================================================
+      def getCurrentEtaEff(self):
+          """
+          returns the effective viscosity
+          """
+          return self.__eta_eff
 
-      def getNewDeviatoricStress(self,D,eta_eff=None):
-         if eta_eff==None: eta_eff=self.evalEtaEff(self.__stress,D,self.__p)
-         s=(2*eta_eff)*D
-         if self.__mu!=None: s+=eta_eff/(self.__dt*self.__mu)*self.__last_stress
-         return s
+      def __getDeviatoricStrain(self, v):
+          """
+          Returns deviatoric strain of velocity v:
+          """
+          return util.deviatoric(util.symmetric(util.grad(v)))
 
-      def getDeviatoricStress(self):
+      def setFlowTolerance(self, tol=1.e-4):
           """
-          Returns current stress.
-          """
-          return self.__stress
+          Sets the relative tolerance for the flow solver. See L{StokesProblemCartesian.setTolerance} for details.
 
-      def getDeviatoricStrain(self,velocity=None):
+          @param tol: desired relative tolerance for the flow solver
+          @type tol: positive C{float}
           """
-          Returns strain.
+          self.__solver.setTolerance(tol)
+      def getFlowTolerance(self):
           """
-          if velocity==None: velocity=self.getVelocity()
-          return util.deviatoric(util.symmetric(util.grad(velocity)))
+          Returns the relative tolerance for the flow solver
 
-      def getPressure(self):
+          @return: tolerance of the flow solver
+          @rtype: C{float}
           """
-          Returns current pressure.
+          return self.__solver.getTolerance()
+      def setFlowSubTolerance(self, tol=1.e-8):
           """
-          return self.__p
+          Sets the relative tolerance for the subsolver of the flow solver. See L{StokesProblemCartesian.setSubProblemTolerance} for details
 
-      def getVelocity(self):
+          @param tol: desired relative tolerance for the subsolver
+          @type tol: positive C{float}
           """
-          Returns current velocity.
+          self.__solver.setSubProblemTolerance(tol)
+      def getFlowSubTolerance(self):
           """
-          return self.__v
+          Returns the relative tolerance for the subsolver of the flow solver
 
-      def getTau(self,stress=None):
+          @return: tolerance of the flow subsolver
+          @rtype: C{float}
           """
-          Returns current second stress deviatoric invariant.
-          """
-          if stress==None: stress=self.getDeviatoricStress()
-          return util.sqrt(0.5)*util.length(stress)
-
-      def getGammaDot(self,strain=None):
-          """
-          Returns current second stress deviatoric invariant.
-          """
-          if strain==None: strain=self.getDeviatoricStrain()
-          return util.sqrt(2)*util.length(strain)
+          return self.__solver.getSubProblemTolerance()
 

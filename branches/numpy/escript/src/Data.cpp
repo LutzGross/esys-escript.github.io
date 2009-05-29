@@ -1929,7 +1929,7 @@ Data::saveVTK(std::string fileName) const
   }
   boost::python::dict args;
   args["data"]=boost::python::object(this);
-  getDomain()->saveVTK(fileName,args);
+  getDomain()->saveVTK(fileName,args,"","");
   return;
 }
 
