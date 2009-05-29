@@ -52,5 +52,5 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->truncation=20;
   options->sweeps=2;
   options->couplingParam=0.05;
-  options->AMGlevels=2;
+  options->AMGlevels=3;
 }
