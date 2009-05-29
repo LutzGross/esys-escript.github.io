@@ -403,7 +403,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
         self.__surface_stress=surface_stress
         self.__stress=stress
 
-     def inner_pBv(self,p,v):
+     def Bv(self,v):
          """
          returns inner product of element p and div(v)
 
@@ -412,7 +412,20 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          @return: inner product of element p and div(v)
          @rtype: C{float}
          """
-         return util.integrate(-p*util.div(v))
+         self.__pde_proj.setValue(Y=-util.div(v))
+         self.__pde_prec.setTolerance(self.getSubProblemTolerance())
+         return self.__pde_proj.getSolution()
+
+     def inner_pBv(self,p,Bv):
+         """
+         returns inner product of element p and Bv=-div(v)
+
+         @param p: a pressure increment
+         @param v: a residual
+         @return: inner product of element p and Bv=-div(v)
+         @rtype: C{float}
+         """
+         return util.integrate(util.interpolate(p,Function(self.domain))*util.interpolate(Bv,Function(self.domain)))
 
      def inner_p(self,p0,p1):
          """
@@ -454,20 +467,14 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          out=self.__pde_u.getSolution(verbose=self.show_details)
          return  out
 
-
-         raise NotImplementedError,"no v calculation implemented."
-
-
-     def norm_Bv(self,v):
+     def norm_Bv(self,Bv):
         """
         Returns Bv (overwrite).
 
         @rtype: equal to the type of p
         @note: boundary conditions on p should be zero!
         """
-        self.__pde_proj.setValue(Y=util.div(v))
-        self.__pde_prec.setTolerance(self.getSubProblemTolerance())
-        return util.sqrt(util.integrate(util.interpolate(self.__pde_proj.getSolution(),Function(self.domain))**2))
+        return util.sqrt(util.integrate(util.interpolate(Bv,Function(self.domain))**2))
 
      def solve_AinvBt(self,p):
          """
@@ -482,15 +489,21 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          out=self.__pde_u.getSolution(verbose=self.show_details)
          return  out
 
-     def solve_precB(self,v):
+     def solve_prec(self,Bv):
          """
          applies preconditioner for for M{BA^{-1}B^*} to M{Bv}
-         with accuracy L{self.getSubProblemTolerance()} (overwrite).
+         with accuracy L{self.getSubProblemTolerance()} 
 
          @param v: velocity increment
          @return: M{p=P(Bv)} where M{P^{-1}} is an approximation of M{BA^{-1}B^*}
          @note: boundary conditions on p are zero.
          """
-         self.__pde_prec.setValue(Y=-util.div(v))
+         self.__pde_prec.setValue(Y=Bv)
          self.__pde_prec.setTolerance(self.getSubProblemTolerance())
          return self.__pde_prec.getSolution(verbose=self.show_details)
+
+# rename solve_prec and change argument v to Bv
+# chnage the argument of inner_pBv to v->Bv
+# add Bv 
+# inner p still needed?
+# change norm_Bv argument to Bv

@@ -936,8 +936,10 @@ class Test_pdetools_noLumping(unittest.TestCase):
                self.Sinv=array([[ 9313.705360982807179,-5755.536981691270739,  806.289245589733696],
                                  [-5755.536981691271649, 4606.321002756208145,-1630.50619635660928 ],
                                  [  806.289245589733468,-1630.506196356609053, 2145.65035816388945 ]])
-           def inner_pBv(self,p,v):
-              return dot(p,matrixmultiply(transpose(self.Bt),v))
+           def inner_pBv(self,p,Bv):
+              return dot(p,Bv)
+           def Bv(self,v):
+              return matrixmultiply(transpose(self.Bt),v)
            def inner_p(self,p0,p1):
               return dot(p0,p1)
            def norm_v(self,v):
@@ -945,14 +947,13 @@ class Test_pdetools_noLumping(unittest.TestCase):
            def getV(self,p,v):
                out=self.b-matrixmultiply(self.Bt,p)
                return solve_linear_equations(self.A,out)+v*self.getSubProblemTolerance()
-           def norm_Bv(self,v):
-               t=matrixmultiply(transpose(self.Bt),v) 
-               return sqrt(dot(t,t))
+           def norm_Bv(self,Bv):
+               return sqrt(dot(Bv,Bv))
            def solve_AinvBt(self,p):
                out=matrixmultiply(self.Bt,p)
                return solve_linear_equations(self.A,out)
-           def solve_precB(self,v):
-               out=matrixmultiply(transpose(self.Bt),v)
+           def solve_prec(self,Bv):
+               out=Bv*1.
                for i in xrange(size(out)): out[i]*=self.Sinv[i,i]
                return out
 
@@ -1045,8 +1046,10 @@ class Test_pdetools_noLumping(unittest.TestCase):
                self.Sinv=array([[ 9313.705360982807179,-5755.536981691270739,  806.289245589733696],
                                  [-5755.536981691271649, 4606.321002756208145,-1630.50619635660928 ],
                                  [  806.289245589733468,-1630.506196356609053, 2145.65035816388945 ]])
-           def inner_pBv(self,p,v):
-              return dot(p,matrixmultiply(transpose(self.Bt),v))
+           def inner_pBv(self,p,Bv):
+              return dot(p,Bv)
+           def Bv(self,v):
+              return matrixmultiply(transpose(self.Bt),v)
            def inner_p(self,p0,p1):
               return dot(p0,p1)
            def norm_v(self,v):
@@ -1054,14 +1057,13 @@ class Test_pdetools_noLumping(unittest.TestCase):
            def getV(self,p,v):
                out=self.b-matrixmultiply(self.Bt,p)
                return solve_linear_equations(self.A,out)+v*self.getSubProblemTolerance()
-           def norm_Bv(self,v):
-               t=matrixmultiply(transpose(self.Bt),v) 
-               return sqrt(dot(t,t))
+           def norm_Bv(self,Bv):
+               return sqrt(dot(Bv,Bv))
            def solve_AinvBt(self,p):
                out=matrixmultiply(self.Bt,p)
                return solve_linear_equations(self.A,out)
-           def solve_precB(self,v):
-               out=matrixmultiply(transpose(self.Bt),v)
+           def solve_prec(self,Bv):
+               out=Bv*1.
                for i in xrange(size(out)): out[i]*=self.Sinv[i,i]
                return out
               
