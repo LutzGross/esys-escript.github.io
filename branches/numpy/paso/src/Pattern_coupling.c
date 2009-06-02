@@ -195,7 +195,8 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
      }
     TMPMEMFREE(index_list);
 
-    Paso_Pattern_mis(out,mis_marker);
+    /*Paso_Pattern_mis(out,mis_marker);*/
+    Paso_Pattern_greedy(out,mis_marker);
 }
 
 void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
@@ -267,11 +268,64 @@ void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double
     TMPMEMFREE(index_list);
     MEMFREE(diags);
     
-    Paso_Pattern_mis(out,mis_marker);
-
+    /*Paso_Pattern_mis(out,mis_marker);*/
+    Paso_Pattern_greedy(out,mis_marker);
 
 }
 
+/* Greedy algorithm */
+void Paso_Pattern_greedy(Paso_Pattern* pattern, index_t* mis_marker) {
+
+  dim_t i,j;
+  /*double sum;*/
+  index_t iptr;
+  bool_t passed=FALSE;
+  dim_t n=pattern->numOutput;
+
+  if (pattern->type & PATTERN_FORMAT_SYM) {
+    Paso_setError(TYPE_ERROR,"Paso_Pattern_greedy: symmetric matrix pattern is not supported yet");
+    return;
+  }
+   
+   #pragma omp parallel for private(i) schedule(static)
+   for (i=0;i<n;++i)
+        if(mis_marker[i]==IS_AVAILABLE)
+                    mis_marker[i]=IS_IN_SET;
+
+
+    for (i=0;i<n;++i) {
+      if (mis_marker[i]==IS_IN_SET) {
+        for (iptr=pattern->ptr[i];iptr<pattern->ptr[i+1]; ++iptr) {
+             j=pattern->index[iptr];
+             mis_marker[j]=IS_REMOVED;
+        }
+      }
+    }
+    
+    
+     
+    for (i=0;i<n;i++) {
+        if (mis_marker[i]==IS_REMOVED) {
+           passed=TRUE;
+           for (iptr=pattern->ptr[i];iptr<pattern->ptr[i+1]; ++iptr) {
+              j=pattern->index[iptr];
+                if (mis_marker[j]==IS_REMOVED) {
+                    passed=TRUE;
+                }
+                else {
+                    passed=FALSE;
+                    break;
+                }
+              } 
+           }
+           if (passed) mis_marker[i]=IS_IN_SET;
+        }
+
+     /* swap to TRUE/FALSE in mis_marker */
+     #pragma omp parallel for private(i) schedule(static)
+     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]!=IS_IN_SET);
+     
+}
 
 
 
