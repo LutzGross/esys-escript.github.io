@@ -75,14 +75,22 @@ typedef struct {
     index_t preconditioner;
     dim_t iter_max;
     dim_t inner_iter_max;
-    dim_t iter;
     double drop_tolerance;
     double drop_storage;
     dim_t truncation;
     dim_t restart;
     dim_t sweeps;
-    dim_t AMGlevels;
-    double couplingParam;
+    dim_t pre_sweeps;
+    dim_t post_sweeps;
+    dim_t level_max;
+    double coarsening_threshold;
+
+    /* diagnostic values */
+    double num_iter;
+    dim_t num_level;
+    dim_t num_inner_iter;
+    double time;
+    double time_per_iter;
 
 } Paso_Options;
 

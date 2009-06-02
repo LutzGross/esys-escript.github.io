@@ -36,14 +36,13 @@
 /***************************************************************/
  
 #define IS_AVAILABLE -1
-#define IS_IN_SET -3
-#define IS_REMOVED -4
+#define IS_IN_SET -3   /* Week connection */
+#define IS_REMOVED -4  /* strong */
 
 void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double threshold) {
 
   dim_t i,j;
-  /*double threshold=0.05;*/
-  double sum;
+  /*double sum;*/
   index_t iptr,*index,*where_p,*diagptr;
   bool_t passed=FALSE;
   dim_t n=A->numRows;
@@ -94,6 +93,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
       /*This loop cannot be parallelized, as order matters here.*/ 
     for (i=0;i<n;i++) {
         if (mis_marker[i]==IS_REMOVED) {
+           passed=TRUE;
            for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
               j=A->pattern->index[iptr];
               if (mis_marker[j]==IS_IN_SET) {
@@ -105,17 +105,13 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
                     break;
                 }
               } 
-            }
-            if (passed) {
-               mis_marker[i]=IS_IN_SET;
-               passed=FALSE;
-            }
+           }
+           if (passed) mis_marker[i]=IS_IN_SET;
         }
     }
-
     /* This check is to make sure we dont get some nusty rows which were not removed durring coarsening process.*/
     /* TODO: we have to mechanism that this does not happend at all, and get rid of this 'If'. */
-    #pragma omp parallel for private(i,iptr,j,sum) schedule(static)
+    /*#pragma omp parallel for private(i,iptr,j,sum) schedule(static)
     for (i=0;i<n;i++) {
         if (mis_marker[i]==IS_REMOVED) {
            sum=0;
@@ -128,7 +124,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thresho
              mis_marker[i]=IS_IN_SET;
         }
     }
-
+    */
 
      /* swap to TRUE/FALSE in mis_marker */
      #pragma omp parallel for private(i) schedule(static)
@@ -183,6 +179,7 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
             if(A->val[iptr]<=threshold) {
                if(j!=i) {
                 Paso_IndexList_insertIndex(&(index_list[i]),j);
+                Paso_IndexList_insertIndex(&(index_list[j]),i);
                 }
             }
         }
@@ -225,7 +222,7 @@ void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double
     }
     
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
+    Paso_setError(TYPE_ERROR,"Paso_Pattern_Aggregiation: symmetric matrix pattern is not supported yet");
     return;
   }
 
@@ -234,7 +231,7 @@ void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double
       for (i=0;i<n;++i) {
         diag = 0;
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-            if(A->pattern->index[iptr] != i){
+            if(A->pattern->index[iptr] == i){
                 diag+=A->val[iptr];
             }
         }
