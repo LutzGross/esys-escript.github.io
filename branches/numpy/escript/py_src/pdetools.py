@@ -522,8 +522,10 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
        q=Aprod(d)
        alpha = rhat_dot_r / bilinearform(d, q)
        x += alpha * d
-       r += (-alpha) * q
-
+       if isinstance(q,ArithmeticTuple):
+	   r += q * (-alpha)      # Doing it the other way calls the float64.__mul__ not AT.__rmul__ 
+       else:
+           r += (-alpha) * q
        rhat=Msolve(r)
        rhat_dot_r_new = bilinearform(rhat, r)
        beta = rhat_dot_r_new / rhat_dot_r
@@ -1475,7 +1477,7 @@ class HomogeneousSaddlePointProblem(object):
         """
         pass
 
-      def inner_pBv(self,p,v):
+      def inner_pBv(self,p,Bv):
          """
          Returns inner product of element p and Bv (overwrite).
 
@@ -1485,7 +1487,7 @@ class HomogeneousSaddlePointProblem(object):
          @rtype: C{float}
          @note: used if PCG is applied.
          """
-         raise NotImplementedError,"no inner product for p implemented."
+         raise NotImplementedError,"no inner product for p and Bv implemented."
 
       def inner_p(self,p0,p1):
          """
@@ -1507,8 +1509,6 @@ class HomogeneousSaddlePointProblem(object):
          @rtype: non-negative C{float}
          """
          raise NotImplementedError,"no norm of v implemented."
-
-
       def getV(self, p, v0):
          """
          return the value for v for a given p (overwrite)
@@ -1518,8 +1518,9 @@ class HomogeneousSaddlePointProblem(object):
          @return: v given as M{v= A^{-1} (f-B^*p)}
          """
          raise NotImplementedError,"no v calculation implemented."
+
         
-      def norm_Bv(self,v):
+      def Bv(self,v):
         """
         Returns Bv (overwrite).
 
@@ -1527,6 +1528,15 @@ class HomogeneousSaddlePointProblem(object):
         @note: boundary conditions on p should be zero!
         """
         raise NotImplementedError, "no operator B implemented."
+
+      def norm_Bv(self,Bv):
+        """
+        Returns the norm of Bv (overwrite).
+
+        @rtype: equal to the type of p
+        @note: boundary conditions on p should be zero!
+        """
+        raise NotImplementedError, "no norm of Bv implemented."
 
       def solve_AinvBt(self,p):
          """
@@ -1539,9 +1549,9 @@ class HomogeneousSaddlePointProblem(object):
          """
          raise NotImplementedError,"no operator A implemented."
 
-      def solve_precB(self,v):
+      def solve_prec(self,Bv):
          """
-         Provides a preconditioner for M{BA^{-1}B^*} with accuracy
+         Provides a preconditioner for M{BA^{-1}B^*} applied to Bv with accuracy
          L{self.getSubProblemTolerance()} (overwrite).
 
          @rtype: equal to the type of p
@@ -1550,16 +1560,22 @@ class HomogeneousSaddlePointProblem(object):
          raise NotImplementedError,"no preconditioner for Schur complement implemented."
       #=============================================================
       def __Aprod_PCG(self,p):
-          return self.solve_AinvBt(p)
+          dv=self.solve_AinvBt(p)
+          return ArithmeticTuple(dv,self.Bv(dv))
 
-      def __inner_PCG(self,p,v):
-         return self.inner_pBv(p,v)
+      def __inner_PCG(self,p,r):
+         return self.inner_pBv(p,r[1])
 
-      def __Msolve_PCG(self,v):
-          return self.solve_precB(v)
+      def __Msolve_PCG(self,r):
+          return self.solve_prec(r[1])
       #=============================================================
+# rename solve_prec and change argument v to Bv
+# chnage the argument of inner_pBv to v->Bv
+# add Bv
+# inner p still needed?
+# change norm_Bv argument to Bv
       def __Aprod_GMRES(self,p):
-          return self.solve_precB(self.solve_AinvBt(p))
+          return self.solve_prec(self.Bv(self.solve_AinvBt(p)))
       def __inner_GMRES(self,p0,p1):
          return self.inner_p(p0,p1)
       #=============================================================
@@ -1608,8 +1624,9 @@ class HomogeneousSaddlePointProblem(object):
          while not converged:
               # calculate velocity for current pressure:
               v=self.getV(p,v)
+              Bv=self.Bv(v)
               norm_v=self.norm_v(v)
-              norm_Bv=self.norm_Bv(v)
+              norm_Bv=self.norm_Bv(Bv)
               ATOL=norm_v*rtol+atol
               if self.verbose: print "HomogeneousSaddlePointProblem: norm v= %e, norm_Bv= %e, tolerance = %e."%(norm_v, norm_Bv,ATOL)
               if not ATOL>0: raise ValueError,"overall absolute tolerance needs to be positive."
@@ -1619,9 +1636,9 @@ class HomogeneousSaddlePointProblem(object):
                  correction_step+=1
                  if correction_step>max_correction_steps:
                       raise CorrectionFailed,"Given up after %d correction steps."%correction_step
-                 dp=self.solve_precB(v)
+                 dp=self.solve_prec(Bv)
                  if usePCG:
-                   norm2=self.inner_pBv(dp,v)
+                   norm2=self.inner_pBv(dp,Bv)
                    if norm2<0: raise ValueError,"negative PCG norm."
                    norm2=math.sqrt(norm2)
                  else:
@@ -1629,7 +1646,7 @@ class HomogeneousSaddlePointProblem(object):
                  ATOL_ITER=ATOL/norm_Bv*norm2*0.5
                  if self.verbose: print "HomogeneousSaddlePointProblem: tolerance for solver: %e"%ATOL_ITER
                  if usePCG:
-                       p,v0,a_norm=PCG(v,self.__Aprod_PCG,p,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL_ITER, rtol=0.,iter_max=max_iter, verbose=self.verbose)
+                       p,v0,a_norm=PCG(ArithmeticTuple(v,Bv),self.__Aprod_PCG,p,self.__Msolve_PCG,self.__inner_PCG,atol=ATOL_ITER, rtol=0.,iter_max=max_iter, verbose=self.verbose)
                  else:
                        p=GMRES(dp,self.__Aprod_GMRES, p, self.__inner_GMRES,atol=ATOL_ITER, rtol=0.,iter_max=max_iter, iter_restart=iter_restart, verbose=self.verbose)
          if self.verbose: print "HomogeneousSaddlePointProblem: tolerance reached."

@@ -45,12 +45,21 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->preconditioner=PASO_JACOBI;
   options->iter_max=10000;
   options->inner_iter_max=10;
-  options->iter=0;
   options->drop_tolerance=0.01;
   options->drop_storage=2.;
   options->restart=-1;
   options->truncation=20;
   options->sweeps=2;
-  options->couplingParam=0.05;
-  options->AMGlevels=2;
+  options->pre_sweeps=2;
+  options->post_sweeps=2;
+  options->coarsening_threshold=0.05;
+  options->level_max=3;
+
+  /* diagnostic values */
+  options->num_iter=0;
+  options->num_level=0;
+  options->num_inner_iter=0;
+  options->time=0.;
+  options->time_per_iter=0;
+
 }

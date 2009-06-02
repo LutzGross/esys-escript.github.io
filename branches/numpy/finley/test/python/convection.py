@@ -52,7 +52,7 @@ C_P=1                           # heat capacity
 K=1.                            # thermal conductivity
 CHI=0.                          # Taylor Quinny coefficient
 MUE=None                        # elastic shear modulus
-TAU_Y=3*10**(2.5)               # Drucker-Prager cohesion factor
+TAU_Y=5*10**(2.5)               # Drucker-Prager cohesion factor
 BETA=0                          # Drucker-Prager friction factor
 TAU_0=2*10**(2.5)               # transition stress
 N=3                             # power for power law
@@ -65,8 +65,8 @@ ETA_N0=1.                       # viscosity at surface
 
 T_TOL=1.e-4                     # tolerance temperature transport
 TOL2=0.1                        # tolerance for flow update at a timestep. (large value will do only one correction step)
-FLOW_TOL=1.e-5                  # tolerance for inconcompressible flow solver
-FLOW_SUB_TOL=1.e-10             # sub-tolerance for inconcompressible flow solver
+FLOW_TOL=1.e-4                  # tolerance for inconcompressible flow solver
+FLOW_SUB_TOL=1.e-8             # sub-tolerance for inconcompressible flow solver
 NUSSELT_FN="nusselt.csv"
 VERBOSE=True
 DT_VIS=T_END/500                # time distane between two visulaization files
@@ -250,6 +250,7 @@ else:
   p=Ra*(x2[DIM-1]-0.5*x2[DIM-1]**2-0.5)
   nusselt_file=FileWriter(NUSSELT_FN,append=False)
 
+p_last=p
 x=dom.getX()
 #
 #   set up heat problem:
