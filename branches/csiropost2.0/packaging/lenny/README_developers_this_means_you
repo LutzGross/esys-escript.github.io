@@ -1,0 +1,23 @@
+Procedure for producing a new debian package.
+
+Update the changelog file. Remember to record the repository version you built this package from.
+(trunk/packaging/lenny/escript/usr/share/doc/changelog.Debian)
+Do not remove the old entries in the log.
+
+Update the control file to include the new version number.
+(trunk/packaging/lenny/escript/DEBIAN/control)
+~2.0-1
+.... .......
+ X     Y
+
+X is the escript version ie the publicly visible release number.
+Y is the debian package version for escript version X.
+
+If you are going to distribute the package and you are not building from exactly the same repository version,
+then you should increase this number (Y).
+If X increases, then Y should go back to 1
+
+Update trunk/doc/manpages/finleypython.1  (or whatever it is called now) to record any changes.
+
+Commit any changes you have made.
+
