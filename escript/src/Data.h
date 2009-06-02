@@ -41,10 +41,6 @@ extern "C" {
 #include <boost/python/object.hpp>
 #include <boost/python/tuple.hpp>
 
-#ifndef NONUMARRAY
-#include <boost/python/numeric.hpp>
-#endif
-
 #include "BufferGroup.h"
 
 namespace escript {
@@ -261,19 +257,6 @@ class Data {
   isProtected() const;
 
 
-#ifndef NONUMARRAY
-
- /**
-    \brief
-    Return the values of a data point on this process
-    \deprecated Please use getValueOfDataPointAsTuple
- */
-
- ESCRIPT_DLL_API
- const boost::python::numeric :: array
- getValueOfDataPoint(int dataPointNo);
-#endif
-
 /**
    \brief 
    Return teh value of a data point as a python tuple.
@@ -305,20 +288,6 @@ class Data {
   ESCRIPT_DLL_API
   void
   setValueOfDataPoint(int dataPointNo, const double);
-
-#ifndef NONUMARRAY
-  /**
-     \brief
-     Return the value of the specified data-point across all processors
-     \deprecated Please use getValueOfGlobalDataPointAsTuple
- */
-
-
-  ESCRIPT_DLL_API
-  const boost::python::numeric::array
-  getValueOfGlobalDataPoint(int procNo, int dataPointNo);
-#endif
-
 
   /**
      \brief Return a data point across all processors as a python tuple.
@@ -810,21 +779,6 @@ contains datapoints.
   ESCRIPT_DLL_API
   Data
   grad() const;
-
-#ifndef NONUMARRAY
-  /**
-     \brief
-     Calculate the integral over the function space domain as a numarray.
-     \deprecated Please use the integrateToTuple forms.
-  */
-  ESCRIPT_DLL_API
-  boost::python::object
-  integrate_const() const;
-
-  ESCRIPT_DLL_API
-  boost::python::object
-  integrate();
-#endif
 
   /**
     \brief
