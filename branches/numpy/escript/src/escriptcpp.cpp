@@ -194,13 +194,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToPyObject)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToArray)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPoint)
-#ifndef NONUMARRAY
-    .def("getValueOfDataPoint",&escript::Data::getValueOfDataPoint)
-#endif
     .def("getTupleForDataPoint",&escript::Data::getValueOfDataPointAsTuple)
-#ifndef NONUMARRAY
-    .def("getValueOfGlobalDataPoint",&escript::Data::getValueOfGlobalDataPoint)
-#endif
     .def("getTupleForGlobalDataPoint",&escript::Data::getValueOfGlobalDataPointAsTuple)
     .def("setToZero",&escript::Data::setToZero)
     .def("interpolate",&escript::Data::interpolate)
@@ -250,9 +244,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("_Lsup",&escript::Data::Lsup)
     .def("_sup",&escript::Data::sup)
     .def("_inf",&escript::Data::inf)
-#ifndef NONUMARRAY
-    .def("_integrate",&escript::Data::integrate)
-#endif
     .def("_integrateToTuple",&escript::Data::integrateToTuple)
 
     // following implements the python abs operator
