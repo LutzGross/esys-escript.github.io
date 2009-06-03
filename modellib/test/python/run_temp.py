@@ -30,7 +30,7 @@ from esys.modellib.geometry import RectangularDomain,ScalarConstrainerOverBox
 from esys.modellib.input import Sequencer
 from esys.modellib.probe import Probe,EvaluateExpression
 from esys.modellib.temperature import TemperatureAdvection
-import numpy
+import numarray
 import os
 
 dom=RectangularDomain()
@@ -59,7 +59,7 @@ boundaryvalue.t=Link(sqe)
 tt=TemperatureAdvection()
 tt.domain=Link(dom)
 tt.temperature=Link(boundaryvalue,"out")
-tt.velocity=numpy.array([1,-1])
+tt.velocity=numarray.array([1,-1])
 tt.thermal_source=Link(source,"out")
 tt.location_fixed_temperature=Link(constraints,"location_of_constraint")
 tt.fixed_temperature=Link(boundaryvalue,"out")

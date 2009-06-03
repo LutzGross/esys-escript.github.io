@@ -28,7 +28,7 @@ Author: John Ngui, john.ngui@uq.edu.au
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
-from numpy import identity,zeros,ones
+from numarray import identity,zeros,ones
 from esys.pyvisi import Scene, DataCollector, Ellipsoid, Camera
 from esys.pyvisi.constant import *
 import os
@@ -61,7 +61,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
    # define small radius around point xc
    # Lsup(x) returns the maximum value of the argument x
    src_radius = 0.1*Lsup(domain.getSize())
-   dunit=numpy.array([1.,0.,0.]) # defines direction of point source
+   dunit=numarray.array([1.,0.,0.]) # defines direction of point source
 
    mypde.setValue(D=kronecker*rho)
    # ... set initial values ....

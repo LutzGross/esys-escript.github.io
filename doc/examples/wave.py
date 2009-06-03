@@ -25,7 +25,7 @@ from esys.escript import *
 from esys.escript.pdetools import Locator
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
-from numpy import identity,zeros,ones
+from numarray import identity,zeros,ones
 
 if not os.path.isdir("data"):
    print "\nCreating subdirectory 'data'\n"
@@ -57,7 +57,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
    src_radius = 0.1*Lsup(domain.getSize())
    print "src_radius = ",src_radius
 
-   dunit=numpy.array([1.,0.,0.]) # defines direction of point source
+   dunit=numarray.array([1.,0.,0.]) # defines direction of point source
 
    mypde.setValue(D=kronecker*rho)
    # ... set initial values ....
@@ -69,7 +69,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
    t=0
 
    # define the location of the point source 
-   L=Locator(domain,numpy.array(xc))
+   L=Locator(domain,numarray.array(xc))
    # find potential at point source
    u_pc=L.getValue(u)
    print "u at point charge=",u_pc

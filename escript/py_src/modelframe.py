@@ -35,7 +35,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from types import StringType,IntType,FloatType,BooleanType,ListType,DictType
 from sys import stdout
-import numpy
+import numarray
 import operator
 import itertools
 import time
@@ -438,7 +438,7 @@ class ParameterSet(LinkableObject):
         - a ParameterSet object
         - a Simulation object
         - a Model object
-        - a numpy object
+        - a numarray object
         - a list of booleans
         - any other object (not considered by writeESySXML and writeXML)
 
@@ -561,7 +561,7 @@ class ParameterSet(LinkableObject):
 
     def _parametersToDom(self, esysxml, node):
         for name,value in self:
-            # convert list to numpy when possible:
+            # convert list to numarray when possible:
             if isinstance (value, list):
                 elem_type=-1
                 for i in value:
@@ -571,9 +571,9 @@ class ParameterSet(LinkableObject):
                         elem_type = max(elem_type,1)
                     elif isinstance(i, float):
                         elem_type = max(elem_type,2)
-                if elem_type == 0: value = numpy.array(value,numpy.bool_)
-                if elem_type == 1: value = numpy.array(value,numpy.int_)
-                if elem_type == 2: value = numpy.array(value,numpy.float_)
+                if elem_type == 0: value = numarray.array(value,numarray.Bool)
+                if elem_type == 1: value = numarray.array(value,numarray.Int)
+                if elem_type == 2: value = numarray.array(value,numarray.Float)
 
             param = esysxml.createElement('Parameter')
             param.setAttribute('type', value.__class__.__name__)
@@ -584,8 +584,8 @@ class ParameterSet(LinkableObject):
             if isinstance(value,(ParameterSet,Link,DataSource)):
                 value.toDom(esysxml, val)
                 param.appendChild(val)
-            elif isinstance(value, numpy.ndarray):
-                shape = value.shape
+            elif isinstance(value, numarray.NumArray):
+                shape = value.getshape()
                 if isinstance(shape, tuple):
                     size = reduce(operator.mul, shape)
                     shape = ' '.join(map(str, shape))
@@ -593,23 +593,23 @@ class ParameterSet(LinkableObject):
                     size = shape
                     shape = str(shape)
 
-                arraytype = value.dtype.kind
-                if arraytype=='b':
-                      arraytype_str="bool_"
-                elif arraytype=='i':
-                      arraytype_str="int_"
-                elif arraytype=='f':
-                      arraytype_str="float_"
-                elif arraytype=='c':
-                      arraytype_str="complex_"
+                arraytype = value.type()
+                if isinstance(arraytype, numarray.BooleanType):
+                      arraytype_str="Bool"
+                elif isinstance(arraytype, numarray.IntegralType):
+                      arraytype_str="Int"
+                elif isinstance(arraytype, numarray.FloatingType):
+                      arraytype_str="Float"
+                elif isinstance(arraytype, numarray.ComplexType):
+                      arraytype_str="Complex"
                 else:
                       arraytype_str=str(arraytype)
-                ndarrayElement = esysxml.createElement('ndarray')
-                ndarrayElement.appendChild(esysxml.createDataNode('ArrayType', arraytype_str))
-                ndarrayElement.appendChild(esysxml.createDataNode('Shape', shape))
-                ndarrayElement.appendChild(esysxml.createDataNode('Data', ' '.join(
-                    [str(x) for x in numpy.reshape(value, size)])))
-                val.appendChild(ndarrayElement)
+                numarrayElement = esysxml.createElement('NumArray')
+                numarrayElement.appendChild(esysxml.createDataNode('ArrayType', arraytype_str))
+                numarrayElement.appendChild(esysxml.createDataNode('Shape', shape))
+                numarrayElement.appendChild(esysxml.createDataNode('Data', ' '.join(
+                    [str(x) for x in numarray.reshape(value, size)])))
+                val.appendChild(numarrayElement)
                 param.appendChild(val)
             elif isinstance(value, list):
                 param.appendChild(esysxml.createDataNode('Value', ' '.join([str(x) for x in value]) ))
@@ -661,7 +661,7 @@ class ParameterSet(LinkableObject):
         def _nonefromValue(esysxml, node):
             return None
 
-        def _ndarrayfromValue(esysxml, node):
+        def _numarrayfromValue(esysxml, node):
             for node in _children(node):
                 if node.tagName == 'ArrayType':
                     arraytype = node.firstChild.nodeValue.strip()
@@ -671,7 +671,7 @@ class ParameterSet(LinkableObject):
                 if node.tagName == 'Data':
                     data = node.firstChild.nodeValue.strip()
                     data = [float(x) for x in data.split()]
-            return numpy.reshape(numpy.array(data, dtype=getattr(numpy, arraytype)),
+            return numarray.reshape(numarray.array(data, type=getattr(numarray, arraytype)),
                                     shape)
 
         def _listfromValue(esysxml, node):
@@ -693,7 +693,7 @@ class ParameterSet(LinkableObject):
                     "str":_stringfromValue,
                     "bool":_boolfromValue,
                     "list":_listfromValue,
-		    "ndarray" : _ndarrayfromValue,
+                    "NumArray":_numarrayfromValue,
                     "NoneType":_nonefromValue,
                     }
 

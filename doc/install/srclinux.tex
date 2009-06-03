@@ -230,9 +230,6 @@ OPENGL_gl_LIBRARY	..../stand/packages/mesa/lib/libGL.so
 #----------------
 
 cmake .
-
-chmod +w Utilities/vtktiff/tif_fax3sm.c
-
 make
 make install
 
@@ -272,14 +269,16 @@ usevtk		= 'yes'
 
 ln -s $PKG_ROOT/vtk-5.2.1 $PKG_ROOT/vtk
 
-Modify bin/escript
+Modify /scripts/finley_wrapper_template
 
 STANDALONE=1
 
 #Check to make sure the paths in the if [ $STANDALONE == 1 ]
-#block are correct
+# Section are correct
 
 #-----------------------------------------------------------------
+
+scons bin/escript
 
 #start a new terminal
 cd stand

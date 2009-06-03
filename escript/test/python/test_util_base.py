@@ -35,7 +35,7 @@ basic tests for util.py
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import unittest
-import numpy
+import numarray
 import os
 from esys.escript import *
 
@@ -132,12 +132,12 @@ class Test_util_base(unittest.TestCase):
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_kronecker_1(self):
       val=kronecker(d=1)
-      self.failUnless(isinstance(val,numpy.ndarray),"wrong type of result.")
+      self.failUnless(isinstance(val,numarray.ArrayType),"wrong type of result.")
       self.failUnlessEqual(val[0,0],1.0,"wrong value for (0,0)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_kronecker_2(self):
       val=kronecker(d=2)
-      self.failUnless(isinstance(val,numpy.ndarray),"wrong type of result.")
+      self.failUnless(isinstance(val,numarray.ArrayType),"wrong type of result.")
       self.failUnlessEqual(val[0,0],1.0,"wrong value for (0,0)")
       self.failUnlessEqual(val[0,1],0.0,"wrong value for (0,1)")
       self.failUnlessEqual(val[1,0],0.0,"wrong value for (1,0)")
@@ -145,7 +145,7 @@ class Test_util_base(unittest.TestCase):
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_kronecker_3(self):
       val=kronecker(d=3)
-      self.failUnless(isinstance(val,numpy.ndarray),"wrong type of result.")
+      self.failUnless(isinstance(val,numarray.ArrayType),"wrong type of result.")
       self.failUnlessEqual(val[0,0],1.0,"wrong value for (0,0)")
       self.failUnlessEqual(val[0,1],0.0,"wrong value for (0,1)")
       self.failUnlessEqual(val[0,2],0.0,"wrong value for (0,2)")
@@ -158,7 +158,7 @@ class Test_util_base(unittest.TestCase):
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_kronecker_domain(self):
       val=kronecker(d=self.domain)
-      self.failUnless(isinstance(val,numpy.ndarray),"wrong type of result.")
+      self.failUnless(isinstance(val,numarray.ArrayType),"wrong type of result.")
       self.failUnlessEqual(val.shape,(self.domain.getDim(),self.domain.getDim()),"wrong shape.")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_kronecker_functionspace(self):
@@ -168,12 +168,12 @@ class Test_util_base(unittest.TestCase):
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_identityTensor_1(self):
       val=identityTensor(d=1)
-      self.failUnless(isinstance(val,numpy.ndarray),"wrong type of result.")
+      self.failUnless(isinstance(val,numarray.ArrayType),"wrong type of result.")
       self.failUnlessEqual(val[0,0],1.0,"wrong value for (0,0)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_identityTensor_2(self):
       val=identityTensor(d=2)
-      self.failUnless(isinstance(val,numpy.ndarray),"wrong type of result.")
+      self.failUnless(isinstance(val,numarray.ArrayType),"wrong type of result.")
       self.failUnlessEqual(val[0,0],1.0,"wrong value for (0,0)")
       self.failUnlessEqual(val[0,1],0.0,"wrong value for (0,1)")
       self.failUnlessEqual(val[1,0],0.0,"wrong value for (1,0)")
@@ -181,7 +181,7 @@ class Test_util_base(unittest.TestCase):
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_identityTensor_3(self):
       val=identityTensor(d=3)
-      self.failUnless(isinstance(val,numpy.ndarray),"wrong type of result.")
+      self.failUnless(isinstance(val,numarray.ArrayType),"wrong type of result.")
       self.failUnlessEqual(val[0,0],1.0,"wrong value for (0,0)")
       self.failUnlessEqual(val[0,1],0.0,"wrong value for (0,1)")
       self.failUnlessEqual(val[0,2],0.0,"wrong value for (0,2)")
@@ -194,7 +194,7 @@ class Test_util_base(unittest.TestCase):
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_identityTensor_domain(self):
       val=identityTensor(d=self.domain)
-      self.failUnless(isinstance(val,numpy.ndarray),"wrong type of result.")
+      self.failUnless(isinstance(val,numarray.ArrayType),"wrong type of result.")
       self.failUnlessEqual(val.shape,(self.domain.getDim(),self.domain.getDim()),"wrong shape.")
       if self.domain.getDim()==2:
          self.failUnlessEqual(val[0,0],1.0,"wrong value for (0,0)")
@@ -234,12 +234,12 @@ class Test_util_base(unittest.TestCase):
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_identityTensor4_1(self):
       val=identityTensor4(d=1)
-      self.failUnless(isinstance(val,numpy.ndarray),"wrong type of result.")
+      self.failUnless(isinstance(val,numarray.ArrayType),"wrong type of result.")
       self.failUnlessEqual(val[0,0,0,0],1.0,"wrong value for (0,0,0,0)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_identityTensor4_2(self):
       val=identityTensor4(d=2)
-      self.failUnless(isinstance(val,numpy.ndarray),"wrong type of result.")
+      self.failUnless(isinstance(val,numarray.ArrayType),"wrong type of result.")
       self.failUnlessEqual(val[0,0,0,0],1.0,"wrong value for (0,0,0,0)")
       self.failUnlessEqual(val[0,0,0,1],0.0,"wrong value for (0,0,0,1)")
       self.failUnlessEqual(val[0,0,1,0],0.0,"wrong value for (0,0,1,0)")
@@ -259,7 +259,7 @@ class Test_util_base(unittest.TestCase):
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_identityTensor4_3(self):
       val=identityTensor4(d=3)
-      self.failUnless(isinstance(val,numpy.ndarray),"wrong type of result.")
+      self.failUnless(isinstance(val,numarray.ArrayType),"wrong type of result.")
       self.failUnlessEqual(val[0,0,0,0],1.0,"wrong value for (0,0,0,0)")
       self.failUnlessEqual(val[0,0,0,1],0.0,"wrong value for (0,0,0,1)")
       self.failUnlessEqual(val[0,0,0,2],0.0,"wrong value for (0,0,0,2)")
@@ -344,7 +344,7 @@ class Test_util_base(unittest.TestCase):
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_identityTensor4_domain(self):
       val=identityTensor4(d=self.domain)
-      self.failUnless(isinstance(val,numpy.ndarray),"wrong type of result.")
+      self.failUnless(isinstance(val,numarray.ArrayType),"wrong type of result.")
       self.failUnlessEqual(val.shape,(self.domain.getDim(),self.domain.getDim(),self.domain.getDim(),self.domain.getDim()),"wrong shape.")
       if self.domain.getDim()==2:
          self.failUnlessEqual(val[0,0,0,0],1.0,"wrong value for (0,0,0,0)")
@@ -578,7 +578,7 @@ class Test_util_base(unittest.TestCase):
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_unitVector_domain(self):
       val=unitVector(i=0,d=self.domain)
-      self.failUnless(isinstance(val,numpy.ndarray),"wrong type of result.")
+      self.failUnless(isinstance(val,numarray.ArrayType),"wrong type of result.")
       self.failUnlessEqual(val.shape,(self.domain.getDim(),),"wrong shape.")
       if self.domain.getDim()==2:
          self.failUnlessEqual(val[0],1.0,"wrong value for 0 in the 0 vector")
@@ -611,11 +611,11 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),None,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros(())})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros(())})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
@@ -624,19 +624,19 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(isinstance(dsdarg,float),"ds/ds() has wrong type.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(3, 2, 3, 4)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(3, 2, 3, 4) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(3, 2, 3, 4) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds(3, 2, 3, 4) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(3, 2, 3, 4) has wrong value.")
 
@@ -652,8 +652,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(),dim=None)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros(())),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros(())),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank0_dNone_nargs1(self):
       s2=Symbol(shape=())
@@ -663,11 +663,11 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),None,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros(())})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros(())})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
@@ -676,19 +676,19 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(isinstance(dsdarg,float),"ds/ds() has wrong type.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(3, 2, 3, 4)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(3, 2, 3, 4) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(3, 2, 3, 4) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds(3, 2, 3, 4) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(3, 2, 3, 4) has wrong value.")
 
@@ -706,8 +706,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(),dim=None)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros(())),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros(())),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank0_dNone_nargs2(self):
       s2=Symbol(shape=())
@@ -717,11 +717,11 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),None,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros(())})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros(())})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
@@ -730,19 +730,19 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(isinstance(dsdarg,float),"ds/ds() has wrong type.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(3, 2, 3, 4)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(3, 2, 3, 4) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(3, 2, 3, 4) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds(3, 2, 3, 4) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(3, 2, 3, 4) has wrong value.")
 
@@ -762,8 +762,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(),dim=None)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros(())),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros(())),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank0_dd_nargs0(self):
       s2=Symbol(shape=())
@@ -773,11 +773,11 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),self.functionspace.getDim(),"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros(())})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros(())})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
@@ -786,19 +786,19 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(isinstance(dsdarg,float),"ds/ds() has wrong type.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(3, 2, 3, 4)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(3, 2, 3, 4) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(3, 2, 3, 4) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds(3, 2, 3, 4) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(3, 2, 3, 4) has wrong value.")
 
@@ -815,8 +815,8 @@ class Test_util_base(unittest.TestCase):
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failUnless(s.isAppropriateValue(escript.Data(0.,(),self.functionspace)),"Data is appropriate substitute")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros(())),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros(())),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank0_dd_nargs1(self):
       s2=Symbol(shape=())
@@ -826,11 +826,11 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),self.functionspace.getDim(),"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros(())})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros(())})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
@@ -839,19 +839,19 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(isinstance(dsdarg,float),"ds/ds() has wrong type.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(3, 2, 3, 4)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(3, 2, 3, 4) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(3, 2, 3, 4) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds(3, 2, 3, 4) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(3, 2, 3, 4) has wrong value.")
 
@@ -870,8 +870,8 @@ class Test_util_base(unittest.TestCase):
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failUnless(s.isAppropriateValue(escript.Data(0.,(),self.functionspace)),"Data is appropriate substitute")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros(())),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros(())),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank0_dd_nargs2(self):
       s2=Symbol(shape=())
@@ -881,11 +881,11 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),self.functionspace.getDim(),"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros(())})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros(())})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
@@ -894,19 +894,19 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(isinstance(dsdarg,float),"ds/ds() has wrong type.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(3, 2, 3, 4)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(3, 2, 3, 4) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(3, 2, 3, 4) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds(3, 2, 3, 4) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(3, 2, 3, 4) has wrong value.")
 
@@ -927,8 +927,8 @@ class Test_util_base(unittest.TestCase):
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failUnless(s.isAppropriateValue(escript.Data(0.,(),self.functionspace)),"Data is appropriate substitute")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros(())),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros(())),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank0_d1_nargs0(self):
       s2=Symbol(shape=())
@@ -938,11 +938,11 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),1,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros(())})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros(())})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
@@ -951,19 +951,19 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(isinstance(dsdarg,float),"ds/ds() has wrong type.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(3, 2, 3, 4)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(3, 2, 3, 4) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(3, 2, 3, 4) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds(3, 2, 3, 4) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(3, 2, 3, 4) has wrong value.")
 
@@ -979,8 +979,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(),dim=1)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(),dim=2)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros(())),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros(())),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank0_d1_nargs1(self):
       s2=Symbol(shape=())
@@ -990,11 +990,11 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),1,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros(())})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros(())})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
@@ -1003,19 +1003,19 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(isinstance(dsdarg,float),"ds/ds() has wrong type.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(3, 2, 3, 4)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(3, 2, 3, 4) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(3, 2, 3, 4) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds(3, 2, 3, 4) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(3, 2, 3, 4) has wrong value.")
 
@@ -1033,8 +1033,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(),dim=1)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(),dim=2)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros(())),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros(())),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank0_d1_nargs2(self):
       s2=Symbol(shape=())
@@ -1044,11 +1044,11 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),1,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros(())})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros(())})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
@@ -1057,19 +1057,19 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(isinstance(dsdarg,float),"ds/ds() has wrong type.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(3, 2, 3, 4)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(3, 2, 3, 4) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(3, 2, 3, 4) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds(3, 2, 3, 4) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(3, 2, 3, 4) has wrong value.")
 
@@ -1089,8 +1089,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(),dim=1)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(),dim=2)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros(())),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros(())),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank0_d2_nargs0(self):
       s2=Symbol(shape=())
@@ -1100,11 +1100,11 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),2,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros(())})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros(())})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
@@ -1113,19 +1113,19 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(isinstance(dsdarg,float),"ds/ds() has wrong type.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(3, 2, 3, 4)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(3, 2, 3, 4) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(3, 2, 3, 4) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds(3, 2, 3, 4) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(3, 2, 3, 4) has wrong value.")
 
@@ -1141,8 +1141,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(),dim=2)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(),dim=3)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros(())),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros(())),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank0_d2_nargs1(self):
       s2=Symbol(shape=())
@@ -1152,11 +1152,11 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),2,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros(())})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros(())})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
@@ -1165,19 +1165,19 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(isinstance(dsdarg,float),"ds/ds() has wrong type.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(3, 2, 3, 4)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(3, 2, 3, 4) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(3, 2, 3, 4) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds(3, 2, 3, 4) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(3, 2, 3, 4) has wrong value.")
 
@@ -1195,8 +1195,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(),dim=2)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(),dim=3)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros(())),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros(())),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank0_d2_nargs2(self):
       s2=Symbol(shape=())
@@ -1206,11 +1206,11 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),2,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros(())})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros(())})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
@@ -1219,19 +1219,19 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(isinstance(dsdarg,float),"ds/ds() has wrong type.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(3, 2, 3, 4)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(3, 2, 3, 4) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(3, 2, 3, 4) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds(3, 2, 3, 4) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(3, 2, 3, 4) has wrong value.")
 
@@ -1251,8 +1251,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(),dim=2)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(),dim=3)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros(())),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros(())),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank0_d3_nargs0(self):
       s2=Symbol(shape=())
@@ -1262,11 +1262,11 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),3,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros(())})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros(())})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
@@ -1275,19 +1275,19 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(isinstance(dsdarg,float),"ds/ds() has wrong type.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(3, 2, 3, 4)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(3, 2, 3, 4) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(3, 2, 3, 4) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds(3, 2, 3, 4) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(3, 2, 3, 4) has wrong value.")
 
@@ -1303,8 +1303,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(),dim=3)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(),dim=4)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros(())),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros(())),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank0_d3_nargs1(self):
       s2=Symbol(shape=())
@@ -1314,11 +1314,11 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),3,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros(())})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros(())})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
@@ -1327,19 +1327,19 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(isinstance(dsdarg,float),"ds/ds() has wrong type.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(3, 2, 3, 4)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(3, 2, 3, 4) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(3, 2, 3, 4) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds(3, 2, 3, 4) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(3, 2, 3, 4) has wrong value.")
 
@@ -1357,8 +1357,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(),dim=3)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(),dim=4)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros(())),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros(())),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank0_d3_nargs2(self):
       s2=Symbol(shape=())
@@ -1368,11 +1368,11 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),3,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros(())})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros(())})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
@@ -1381,19 +1381,19 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(isinstance(dsdarg,float),"ds/ds() has wrong type.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(3, 2, 3, 4)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(3, 2, 3, 4) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(3, 2, 3, 4) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds(3, 2, 3, 4) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(3, 2, 3, 4) has wrong value.")
 
@@ -1413,8 +1413,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(),dim=3)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(),dim=4)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros(())),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros(())),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank1_dNone_nargs0(self):
       s2=Symbol(shape=())
@@ -1424,34 +1424,34 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),None,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((2,))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((2,))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(2,),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(2, 2),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0],1.0,"ds/ds has wrong value at (0,0).")
       self.failUnlessEqual(dsds[0,1],0.0,"ds/ds has wrong value at (0,1).")
@@ -1466,8 +1466,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(2,),dim=None)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((2,))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((2,))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank1_dNone_nargs1(self):
       s2=Symbol(shape=())
@@ -1477,34 +1477,34 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),None,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((2,))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((2,))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(2,),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(2, 2),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0],1.0,"ds/ds has wrong value at (0,0).")
       self.failUnlessEqual(dsds[0,1],0.0,"ds/ds has wrong value at (0,1).")
@@ -1521,8 +1521,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(2,),dim=None)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((2,))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((2,))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank1_dNone_nargs2(self):
       s2=Symbol(shape=())
@@ -1532,34 +1532,34 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),None,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((2,))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((2,))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(2,),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(2, 2),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0],1.0,"ds/ds has wrong value at (0,0).")
       self.failUnlessEqual(dsds[0,1],0.0,"ds/ds has wrong value at (0,1).")
@@ -1578,8 +1578,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(2,),dim=None)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((2,))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((2,))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank1_dd_nargs0(self):
       s2=Symbol(shape=())
@@ -1589,34 +1589,34 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),self.functionspace.getDim(),"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((2,))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((2,))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(2,),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(2, 2),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0],1.0,"ds/ds has wrong value at (0,0).")
       self.failUnlessEqual(dsds[0,1],0.0,"ds/ds has wrong value at (0,1).")
@@ -1632,8 +1632,8 @@ class Test_util_base(unittest.TestCase):
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failUnless(s.isAppropriateValue(escript.Data(0.,(2,),self.functionspace)),"Data is appropriate substitute")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((2,))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((2,))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank1_dd_nargs1(self):
       s2=Symbol(shape=())
@@ -1643,34 +1643,34 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),self.functionspace.getDim(),"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((2,))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((2,))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(2,),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(2, 2),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0],1.0,"ds/ds has wrong value at (0,0).")
       self.failUnlessEqual(dsds[0,1],0.0,"ds/ds has wrong value at (0,1).")
@@ -1688,8 +1688,8 @@ class Test_util_base(unittest.TestCase):
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failUnless(s.isAppropriateValue(escript.Data(0.,(2,),self.functionspace)),"Data is appropriate substitute")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((2,))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((2,))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank1_dd_nargs2(self):
       s2=Symbol(shape=())
@@ -1699,34 +1699,34 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),self.functionspace.getDim(),"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((2,))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((2,))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(2,),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(2, 2),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0],1.0,"ds/ds has wrong value at (0,0).")
       self.failUnlessEqual(dsds[0,1],0.0,"ds/ds has wrong value at (0,1).")
@@ -1746,8 +1746,8 @@ class Test_util_base(unittest.TestCase):
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failUnless(s.isAppropriateValue(escript.Data(0.,(2,),self.functionspace)),"Data is appropriate substitute")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((2,))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((2,))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank1_d1_nargs0(self):
       s2=Symbol(shape=())
@@ -1757,34 +1757,34 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),1,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((2,))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((2,))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(2,),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(2, 2),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0],1.0,"ds/ds has wrong value at (0,0).")
       self.failUnlessEqual(dsds[0,1],0.0,"ds/ds has wrong value at (0,1).")
@@ -1799,8 +1799,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(2,),dim=1)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(2,),dim=2)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((2,))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((2,))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank1_d1_nargs1(self):
       s2=Symbol(shape=())
@@ -1810,34 +1810,34 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),1,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((2,))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((2,))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(2,),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(2, 2),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0],1.0,"ds/ds has wrong value at (0,0).")
       self.failUnlessEqual(dsds[0,1],0.0,"ds/ds has wrong value at (0,1).")
@@ -1854,8 +1854,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(2,),dim=1)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(2,),dim=2)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((2,))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((2,))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank1_d1_nargs2(self):
       s2=Symbol(shape=())
@@ -1865,34 +1865,34 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),1,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((2,))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((2,))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(2,),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(2, 2),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0],1.0,"ds/ds has wrong value at (0,0).")
       self.failUnlessEqual(dsds[0,1],0.0,"ds/ds has wrong value at (0,1).")
@@ -1911,8 +1911,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(2,),dim=1)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(2,),dim=2)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((2,))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((2,))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank1_d2_nargs0(self):
       s2=Symbol(shape=())
@@ -1922,34 +1922,34 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),2,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((2,))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((2,))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(2,),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(2, 2),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0],1.0,"ds/ds has wrong value at (0,0).")
       self.failUnlessEqual(dsds[0,1],0.0,"ds/ds has wrong value at (0,1).")
@@ -1964,8 +1964,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(2,),dim=2)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(2,),dim=3)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((2,))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((2,))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank1_d2_nargs1(self):
       s2=Symbol(shape=())
@@ -1975,34 +1975,34 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),2,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((2,))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((2,))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(2,),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(2, 2),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0],1.0,"ds/ds has wrong value at (0,0).")
       self.failUnlessEqual(dsds[0,1],0.0,"ds/ds has wrong value at (0,1).")
@@ -2019,8 +2019,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(2,),dim=2)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(2,),dim=3)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((2,))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((2,))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank1_d2_nargs2(self):
       s2=Symbol(shape=())
@@ -2030,34 +2030,34 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),2,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((2,))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((2,))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(2,),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(2, 2),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0],1.0,"ds/ds has wrong value at (0,0).")
       self.failUnlessEqual(dsds[0,1],0.0,"ds/ds has wrong value at (0,1).")
@@ -2076,8 +2076,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(2,),dim=2)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(2,),dim=3)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((2,))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((2,))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank1_d3_nargs0(self):
       s2=Symbol(shape=())
@@ -2087,34 +2087,34 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),3,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((2,))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((2,))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(2,),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(2, 2),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0],1.0,"ds/ds has wrong value at (0,0).")
       self.failUnlessEqual(dsds[0,1],0.0,"ds/ds has wrong value at (0,1).")
@@ -2129,8 +2129,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(2,),dim=3)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(2,),dim=4)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((2,))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((2,))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank1_d3_nargs1(self):
       s2=Symbol(shape=())
@@ -2140,34 +2140,34 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),3,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((2,))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((2,))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(2,),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(2, 2),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0],1.0,"ds/ds has wrong value at (0,0).")
       self.failUnlessEqual(dsds[0,1],0.0,"ds/ds has wrong value at (0,1).")
@@ -2184,8 +2184,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(2,),dim=3)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(2,),dim=4)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((2,))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((2,))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank1_d3_nargs2(self):
       s2=Symbol(shape=())
@@ -2195,34 +2195,34 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),3,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((2,))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((2,))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(2,),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2,),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(6, 2, 2)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(6, 2, 2) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(6, 2, 2) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(2, 6, 2, 2),"ds/ds(6, 2, 2) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(6, 2, 2) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(2, 2),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0],1.0,"ds/ds has wrong value at (0,0).")
       self.failUnlessEqual(dsds[0,1],0.0,"ds/ds has wrong value at (0,1).")
@@ -2241,8 +2241,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(2,),dim=3)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(2,),dim=4)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((2,))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((2,))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank2_dNone_nargs0(self):
       s2=Symbol(shape=())
@@ -2252,30 +2252,30 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),None,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((4, 5))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((4, 5))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(4, 5),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(4, 5, 4, 5),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0,0,0],1.0,"ds/ds has wrong value at (0,0,0,0).")
       self.failUnlessEqual(dsds[0,0,0,1],0.0,"ds/ds has wrong value at (0,0,0,1).")
@@ -2686,8 +2686,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(4, 5),dim=None)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((4, 5))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((4, 5))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank2_dNone_nargs1(self):
       s2=Symbol(shape=())
@@ -2697,30 +2697,30 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),None,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((4, 5))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((4, 5))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(4, 5),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(4, 5, 4, 5),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0,0,0],1.0,"ds/ds has wrong value at (0,0,0,0).")
       self.failUnlessEqual(dsds[0,0,0,1],0.0,"ds/ds has wrong value at (0,0,0,1).")
@@ -3133,8 +3133,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(4, 5),dim=None)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((4, 5))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((4, 5))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank2_dNone_nargs2(self):
       s2=Symbol(shape=())
@@ -3144,30 +3144,30 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),None,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((4, 5))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((4, 5))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(4, 5),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(4, 5, 4, 5),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0,0,0],1.0,"ds/ds has wrong value at (0,0,0,0).")
       self.failUnlessEqual(dsds[0,0,0,1],0.0,"ds/ds has wrong value at (0,0,0,1).")
@@ -3582,8 +3582,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(4, 5),dim=None)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((4, 5))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((4, 5))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank2_dd_nargs0(self):
       s2=Symbol(shape=())
@@ -3593,30 +3593,30 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),self.functionspace.getDim(),"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((4, 5))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((4, 5))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(4, 5),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(4, 5, 4, 5),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0,0,0],1.0,"ds/ds has wrong value at (0,0,0,0).")
       self.failUnlessEqual(dsds[0,0,0,1],0.0,"ds/ds has wrong value at (0,0,0,1).")
@@ -4028,8 +4028,8 @@ class Test_util_base(unittest.TestCase):
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failUnless(s.isAppropriateValue(escript.Data(0.,(4, 5),self.functionspace)),"Data is appropriate substitute")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((4, 5))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((4, 5))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank2_dd_nargs1(self):
       s2=Symbol(shape=())
@@ -4039,30 +4039,30 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),self.functionspace.getDim(),"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((4, 5))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((4, 5))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(4, 5),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(4, 5, 4, 5),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0,0,0],1.0,"ds/ds has wrong value at (0,0,0,0).")
       self.failUnlessEqual(dsds[0,0,0,1],0.0,"ds/ds has wrong value at (0,0,0,1).")
@@ -4476,8 +4476,8 @@ class Test_util_base(unittest.TestCase):
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failUnless(s.isAppropriateValue(escript.Data(0.,(4, 5),self.functionspace)),"Data is appropriate substitute")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((4, 5))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((4, 5))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank2_dd_nargs2(self):
       s2=Symbol(shape=())
@@ -4487,30 +4487,30 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),self.functionspace.getDim(),"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((4, 5))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((4, 5))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(4, 5),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(4, 5, 4, 5),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0,0,0],1.0,"ds/ds has wrong value at (0,0,0,0).")
       self.failUnlessEqual(dsds[0,0,0,1],0.0,"ds/ds has wrong value at (0,0,0,1).")
@@ -4926,8 +4926,8 @@ class Test_util_base(unittest.TestCase):
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failUnless(s.isAppropriateValue(escript.Data(0.,(4, 5),self.functionspace)),"Data is appropriate substitute")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((4, 5))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((4, 5))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank2_d1_nargs0(self):
       s2=Symbol(shape=())
@@ -4937,30 +4937,30 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),1,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((4, 5))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((4, 5))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(4, 5),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(4, 5, 4, 5),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0,0,0],1.0,"ds/ds has wrong value at (0,0,0,0).")
       self.failUnlessEqual(dsds[0,0,0,1],0.0,"ds/ds has wrong value at (0,0,0,1).")
@@ -5371,8 +5371,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(4, 5),dim=1)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(4, 5),dim=2)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((4, 5))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((4, 5))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank2_d1_nargs1(self):
       s2=Symbol(shape=())
@@ -5382,30 +5382,30 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),1,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((4, 5))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((4, 5))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(4, 5),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(4, 5, 4, 5),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0,0,0],1.0,"ds/ds has wrong value at (0,0,0,0).")
       self.failUnlessEqual(dsds[0,0,0,1],0.0,"ds/ds has wrong value at (0,0,0,1).")
@@ -5818,8 +5818,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(4, 5),dim=1)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(4, 5),dim=2)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((4, 5))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((4, 5))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank2_d1_nargs2(self):
       s2=Symbol(shape=())
@@ -5829,30 +5829,30 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),1,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((4, 5))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((4, 5))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(4, 5),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(4, 5, 4, 5),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0,0,0],1.0,"ds/ds has wrong value at (0,0,0,0).")
       self.failUnlessEqual(dsds[0,0,0,1],0.0,"ds/ds has wrong value at (0,0,0,1).")
@@ -6267,8 +6267,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(4, 5),dim=1)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(4, 5),dim=2)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((4, 5))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((4, 5))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank2_d2_nargs0(self):
       s2=Symbol(shape=())
@@ -6278,30 +6278,30 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),2,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((4, 5))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((4, 5))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(4, 5),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(4, 5, 4, 5),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0,0,0],1.0,"ds/ds has wrong value at (0,0,0,0).")
       self.failUnlessEqual(dsds[0,0,0,1],0.0,"ds/ds has wrong value at (0,0,0,1).")
@@ -6712,8 +6712,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(4, 5),dim=2)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(4, 5),dim=3)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((4, 5))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((4, 5))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank2_d2_nargs1(self):
       s2=Symbol(shape=())
@@ -6723,30 +6723,30 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),2,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((4, 5))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((4, 5))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(4, 5),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(4, 5, 4, 5),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0,0,0],1.0,"ds/ds has wrong value at (0,0,0,0).")
       self.failUnlessEqual(dsds[0,0,0,1],0.0,"ds/ds has wrong value at (0,0,0,1).")
@@ -7159,8 +7159,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(4, 5),dim=2)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(4, 5),dim=3)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((4, 5))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((4, 5))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank2_d2_nargs2(self):
       s2=Symbol(shape=())
@@ -7170,30 +7170,30 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),2,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((4, 5))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((4, 5))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(4, 5),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(4, 5, 4, 5),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0,0,0],1.0,"ds/ds has wrong value at (0,0,0,0).")
       self.failUnlessEqual(dsds[0,0,0,1],0.0,"ds/ds has wrong value at (0,0,0,1).")
@@ -7608,8 +7608,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(4, 5),dim=2)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(4, 5),dim=3)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((4, 5))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((4, 5))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank2_d3_nargs0(self):
       s2=Symbol(shape=())
@@ -7619,30 +7619,30 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),3,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((4, 5))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((4, 5))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(4, 5),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(4, 5, 4, 5),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0,0,0],1.0,"ds/ds has wrong value at (0,0,0,0).")
       self.failUnlessEqual(dsds[0,0,0,1],0.0,"ds/ds has wrong value at (0,0,0,1).")
@@ -8053,8 +8053,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(4, 5),dim=3)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(4, 5),dim=4)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((4, 5))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((4, 5))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank2_d3_nargs1(self):
       s2=Symbol(shape=())
@@ -8064,30 +8064,30 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),3,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((4, 5))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((4, 5))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(4, 5),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(4, 5, 4, 5),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0,0,0],1.0,"ds/ds has wrong value at (0,0,0,0).")
       self.failUnlessEqual(dsds[0,0,0,1],0.0,"ds/ds has wrong value at (0,0,0,1).")
@@ -8500,8 +8500,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(4, 5),dim=3)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(4, 5),dim=4)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((4, 5))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((4, 5))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank2_d3_nargs2(self):
       s2=Symbol(shape=())
@@ -8511,30 +8511,30 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),3,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((4, 5))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((4, 5))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(4, 5),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
       dsdarg=s.diff(Symbol(shape=(4, 5)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(4, 5) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(4, 5) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(4, 5, 4, 5),"ds/ds(4, 5) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(4, 5) has wrong value.")
 
       dsds=s.diff(s)
-      self.failUnless(isinstance(dsds,numpy.ndarray),"ds/ds has wrong type.")
+      self.failUnless(isinstance(dsds,numarray.NumArray),"ds/ds has wrong type.")
       self.failUnlessEqual(dsds.shape,(4, 5, 4, 5),"ds/ds has wrong shape.")
       self.failUnlessEqual(dsds[0,0,0,0],1.0,"ds/ds has wrong value at (0,0,0,0).")
       self.failUnlessEqual(dsds[0,0,0,1],0.0,"ds/ds has wrong value at (0,0,0,1).")
@@ -8949,8 +8949,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(4, 5),dim=3)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(4, 5),dim=4)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((4, 5))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((4, 5))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank3_dNone_nargs0(self):
       s2=Symbol(shape=())
@@ -8960,21 +8960,21 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),None,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((6, 2, 2))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((6, 2, 2))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(6, 2, 2),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
 
@@ -8986,8 +8986,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=None)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((6, 2, 2))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((6, 2, 2))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank3_dNone_nargs1(self):
       s2=Symbol(shape=())
@@ -8997,21 +8997,21 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),None,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((6, 2, 2))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((6, 2, 2))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(6, 2, 2),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
 
@@ -9025,8 +9025,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=None)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((6, 2, 2))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((6, 2, 2))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank3_dNone_nargs2(self):
       s2=Symbol(shape=())
@@ -9036,21 +9036,21 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),None,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((6, 2, 2))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((6, 2, 2))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(6, 2, 2),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
 
@@ -9066,8 +9066,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=None)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((6, 2, 2))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((6, 2, 2))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank3_dd_nargs0(self):
       s2=Symbol(shape=())
@@ -9077,21 +9077,21 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),self.functionspace.getDim(),"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((6, 2, 2))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((6, 2, 2))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(6, 2, 2),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
 
@@ -9104,8 +9104,8 @@ class Test_util_base(unittest.TestCase):
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failUnless(s.isAppropriateValue(escript.Data(0.,(6, 2, 2),self.functionspace)),"Data is appropriate substitute")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((6, 2, 2))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((6, 2, 2))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank3_dd_nargs1(self):
       s2=Symbol(shape=())
@@ -9115,21 +9115,21 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),self.functionspace.getDim(),"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((6, 2, 2))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((6, 2, 2))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(6, 2, 2),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
 
@@ -9144,8 +9144,8 @@ class Test_util_base(unittest.TestCase):
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failUnless(s.isAppropriateValue(escript.Data(0.,(6, 2, 2),self.functionspace)),"Data is appropriate substitute")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((6, 2, 2))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((6, 2, 2))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank3_dd_nargs2(self):
       s2=Symbol(shape=())
@@ -9155,21 +9155,21 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),self.functionspace.getDim(),"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((6, 2, 2))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((6, 2, 2))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(6, 2, 2),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
 
@@ -9186,8 +9186,8 @@ class Test_util_base(unittest.TestCase):
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failUnless(s.isAppropriateValue(escript.Data(0.,(6, 2, 2),self.functionspace)),"Data is appropriate substitute")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((6, 2, 2))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((6, 2, 2))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank3_d1_nargs0(self):
       s2=Symbol(shape=())
@@ -9197,21 +9197,21 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),1,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((6, 2, 2))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((6, 2, 2))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(6, 2, 2),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
 
@@ -9223,8 +9223,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=1)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=2)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((6, 2, 2))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((6, 2, 2))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank3_d1_nargs1(self):
       s2=Symbol(shape=())
@@ -9234,21 +9234,21 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),1,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((6, 2, 2))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((6, 2, 2))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(6, 2, 2),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
 
@@ -9262,8 +9262,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=1)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=2)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((6, 2, 2))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((6, 2, 2))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank3_d1_nargs2(self):
       s2=Symbol(shape=())
@@ -9273,21 +9273,21 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),1,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((6, 2, 2))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((6, 2, 2))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(6, 2, 2),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
 
@@ -9303,8 +9303,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=1)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=2)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((6, 2, 2))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((6, 2, 2))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank3_d2_nargs0(self):
       s2=Symbol(shape=())
@@ -9314,21 +9314,21 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),2,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((6, 2, 2))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((6, 2, 2))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(6, 2, 2),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
 
@@ -9340,8 +9340,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=2)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=3)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((6, 2, 2))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((6, 2, 2))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank3_d2_nargs1(self):
       s2=Symbol(shape=())
@@ -9351,21 +9351,21 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),2,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((6, 2, 2))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((6, 2, 2))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(6, 2, 2),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
 
@@ -9379,8 +9379,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=2)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=3)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((6, 2, 2))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((6, 2, 2))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank3_d2_nargs2(self):
       s2=Symbol(shape=())
@@ -9390,21 +9390,21 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),2,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((6, 2, 2))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((6, 2, 2))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(6, 2, 2),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
 
@@ -9420,8 +9420,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=2)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=3)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((6, 2, 2))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((6, 2, 2))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank3_d3_nargs0(self):
       s2=Symbol(shape=())
@@ -9431,21 +9431,21 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),3,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((6, 2, 2))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((6, 2, 2))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(6, 2, 2),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
 
@@ -9457,8 +9457,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=3)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=4)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((6, 2, 2))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((6, 2, 2))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank3_d3_nargs1(self):
       s2=Symbol(shape=())
@@ -9468,21 +9468,21 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),3,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((6, 2, 2))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((6, 2, 2))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(6, 2, 2),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
 
@@ -9496,8 +9496,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=3)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=4)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((6, 2, 2))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((6, 2, 2))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank3_d3_nargs2(self):
       s2=Symbol(shape=())
@@ -9507,21 +9507,21 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),3,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((6, 2, 2))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((6, 2, 2))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(6, 2, 2),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
       dsdarg=s.diff(Symbol(shape=(2,)))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds(2,) has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds(2,) has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(6, 2, 2, 2),"ds/ds(2,) has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds(2,) has wrong value.")
 
@@ -9537,8 +9537,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=3)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(6, 2, 2),dim=4)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((6, 2, 2))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((6, 2, 2))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank4_dNone_nargs0(self):
       s2=Symbol(shape=())
@@ -9548,17 +9548,17 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),None,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((3, 2, 3, 4))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((3, 2, 3, 4))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(3, 2, 3, 4),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
 
@@ -9570,8 +9570,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=None)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((3, 2, 3, 4))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((3, 2, 3, 4))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank4_dNone_nargs1(self):
       s2=Symbol(shape=())
@@ -9581,17 +9581,17 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),None,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((3, 2, 3, 4))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((3, 2, 3, 4))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(3, 2, 3, 4),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
 
@@ -9605,8 +9605,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=None)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((3, 2, 3, 4))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((3, 2, 3, 4))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank4_dNone_nargs2(self):
       s2=Symbol(shape=())
@@ -9616,17 +9616,17 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),None,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((3, 2, 3, 4))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((3, 2, 3, 4))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(3, 2, 3, 4),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
 
@@ -9642,8 +9642,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=None)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((3, 2, 3, 4))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((3, 2, 3, 4))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank4_dd_nargs0(self):
       s2=Symbol(shape=())
@@ -9653,17 +9653,17 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),self.functionspace.getDim(),"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((3, 2, 3, 4))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((3, 2, 3, 4))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(3, 2, 3, 4),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
 
@@ -9676,8 +9676,8 @@ class Test_util_base(unittest.TestCase):
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failUnless(s.isAppropriateValue(escript.Data(0.,(3, 2, 3, 4),self.functionspace)),"Data is appropriate substitute")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((3, 2, 3, 4))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((3, 2, 3, 4))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank4_dd_nargs1(self):
       s2=Symbol(shape=())
@@ -9687,17 +9687,17 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),self.functionspace.getDim(),"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((3, 2, 3, 4))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((3, 2, 3, 4))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(3, 2, 3, 4),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
 
@@ -9712,8 +9712,8 @@ class Test_util_base(unittest.TestCase):
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failUnless(s.isAppropriateValue(escript.Data(0.,(3, 2, 3, 4),self.functionspace)),"Data is appropriate substitute")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((3, 2, 3, 4))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((3, 2, 3, 4))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank4_dd_nargs2(self):
       s2=Symbol(shape=())
@@ -9723,17 +9723,17 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),self.functionspace.getDim(),"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((3, 2, 3, 4))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((3, 2, 3, 4))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(3, 2, 3, 4),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
 
@@ -9750,8 +9750,8 @@ class Test_util_base(unittest.TestCase):
       self.failIf(s.isAppropriateValue(Symbol(shape=(5,))),"Symbol is not appropriate substitute (shape)")
       self.failUnless(s.isAppropriateValue(escript.Data(0.,(3, 2, 3, 4),self.functionspace)),"Data is appropriate substitute")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((3, 2, 3, 4))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((3, 2, 3, 4))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank4_d1_nargs0(self):
       s2=Symbol(shape=())
@@ -9761,17 +9761,17 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),1,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((3, 2, 3, 4))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((3, 2, 3, 4))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(3, 2, 3, 4),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
 
@@ -9783,8 +9783,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=1)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=2)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((3, 2, 3, 4))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((3, 2, 3, 4))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank4_d1_nargs1(self):
       s2=Symbol(shape=())
@@ -9794,17 +9794,17 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),1,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((3, 2, 3, 4))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((3, 2, 3, 4))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(3, 2, 3, 4),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
 
@@ -9818,8 +9818,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=1)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=2)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((3, 2, 3, 4))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((3, 2, 3, 4))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank4_d1_nargs2(self):
       s2=Symbol(shape=())
@@ -9829,17 +9829,17 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),1,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((3, 2, 3, 4))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((3, 2, 3, 4))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(3, 2, 3, 4),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
 
@@ -9855,8 +9855,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=1)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=2)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((3, 2, 3, 4))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((3, 2, 3, 4))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank4_d2_nargs0(self):
       s2=Symbol(shape=())
@@ -9866,17 +9866,17 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),2,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((3, 2, 3, 4))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((3, 2, 3, 4))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(3, 2, 3, 4),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
 
@@ -9888,8 +9888,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=2)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=3)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((3, 2, 3, 4))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((3, 2, 3, 4))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank4_d2_nargs1(self):
       s2=Symbol(shape=())
@@ -9899,17 +9899,17 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),2,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((3, 2, 3, 4))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((3, 2, 3, 4))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(3, 2, 3, 4),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
 
@@ -9923,8 +9923,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=2)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=3)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((3, 2, 3, 4))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((3, 2, 3, 4))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank4_d2_nargs2(self):
       s2=Symbol(shape=())
@@ -9934,17 +9934,17 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),2,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((3, 2, 3, 4))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((3, 2, 3, 4))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(3, 2, 3, 4),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
 
@@ -9960,8 +9960,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=2)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=3)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((3, 2, 3, 4))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((3, 2, 3, 4))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank4_d3_nargs0(self):
       s2=Symbol(shape=())
@@ -9971,17 +9971,17 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),3,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((3, 2, 3, 4))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((3, 2, 3, 4))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(3, 2, 3, 4),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
 
@@ -9993,8 +9993,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=3)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=4)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((3, 2, 3, 4))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((3, 2, 3, 4))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank4_d3_nargs1(self):
       s2=Symbol(shape=())
@@ -10004,17 +10004,17 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),3,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[s2],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((3, 2, 3, 4))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((3, 2, 3, 4))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(3, 2, 3, 4),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
 
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
 
@@ -10028,8 +10028,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=3)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=4)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((3, 2, 3, 4))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((3, 2, 3, 4))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Symbol_rank4_d3_nargs2(self):
       s2=Symbol(shape=())
@@ -10039,16 +10039,16 @@ class Test_util_base(unittest.TestCase):
       self.failUnlessEqual(s.getDim(),3,"wrong spatial dimension.")
       self.failUnlessEqual(s.getArgument(),[1, -1.0],"wrong arguments.")
 
-      ss=s.substitute({s:numpy.zeros((3, 2, 3, 4))})
-      self.failUnless(isinstance(ss,numpy.ndarray),"value after substitution is not ndarray.")
+      ss=s.substitute({s:numarray.zeros((3, 2, 3, 4))})
+      self.failUnless(isinstance(ss,numarray.NumArray),"value after substitution is not numarray.")
       self.failUnlessEqual(ss.shape,(3, 2, 3, 4),"value after substitution has not expected shape")
       try:
-        s.substitute({s:numpy.zeros((5,))})
+        s.substitute({s:numarray.zeros((5,))})
         fail("illegal substition was successful")
       except TypeError:
         pass
       dsdarg=s.diff(Symbol(shape=()))
-      self.failUnless(isinstance(dsdarg,numpy.ndarray),"ds/ds() has wrong type.")
+      self.failUnless(isinstance(dsdarg,numarray.NumArray),"ds/ds() has wrong type.")
       self.failUnlessEqual(dsdarg.shape,(3, 2, 3, 4),"ds/ds() has wrong shape.")
       self.failIf(Lsup(dsdarg)>0.,"ds/ds() has wrong value.")
 
@@ -10064,8 +10064,8 @@ class Test_util_base(unittest.TestCase):
       self.failUnless(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=3)),"Symbol is appropriate substitute")
       self.failIf(s.isAppropriateValue(Symbol(shape=(3, 2, 3, 4),dim=4)),"Symbol is not appropriate substitute (dim)")
       self.failIf(s.isAppropriateValue(escript.Data(0.,(5,),self.functionspace)),"Data is not appropriate substitute (shape)")
-      self.failUnless(s.isAppropriateValue(numpy.zeros((3, 2, 3, 4))),"ndarray is appropriate substitute")
-      self.failIf(s.isAppropriateValue(numpy.zeros((5,))),"ndarray is not appropriate substitute (shape)")
+      self.failUnless(s.isAppropriateValue(numarray.zeros((3, 2, 3, 4))),"NumArray is appropriate substitute")
+      self.failIf(s.isAppropriateValue(numarray.zeros((5,))),"NumArray is not appropriate substitute (shape)")
 
    def test_DependendSymbol(self):
       class TestC(DependendSymbol):

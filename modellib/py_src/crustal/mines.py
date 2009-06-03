@@ -67,7 +67,7 @@ class LocationOnEarth(object):
        X=self.AGD84_semi_major_axis*sin(I7-C_LAT)
        Y=self.AGD84_semi_major_axis*sin(I8-C_LONG)
        Z=(self.__altitude-C_ALT)
-       return numpy.array([X,Y,Z])
+       return numarray.array([X,Y,Z])
   
 
     def getXYZ(self,center=None,reference_grid=None):
@@ -88,7 +88,7 @@ class LocationOnEarth(object):
           Z=((1-D16)*D17+self.__altitude)*sin(I7)
        else:
           raise ValueError("reference  grid %s is not supported."%reference_grid)
-       return numpy.array([X,Y,Z])
+       return numarray.array([X,Y,Z])
 
 def unitConverter(val,val_unit,out_unit):
     VAL_UNIT=val_unit.upper()

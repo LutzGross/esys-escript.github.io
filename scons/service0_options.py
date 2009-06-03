@@ -34,15 +34,15 @@ ld_extra		= '-shared-intel'	# Fix warning about feupdate in icc v10
 # sys_libs		= []
 
 # Python libraries
-python_path		= '/sw/apps/python/x86_64/gcc-4.1.2/python-2.6.2/include/python2.6'
-python_lib_path		= '/sw/apps/python/x86_64/gcc-4.1.2/python-2.6.2/lib'
+python_path		= '/sw/apps/python/x86_64/gcc-4.1.2/python-2.4.4/include/python2.4'
+python_lib_path		= '/sw/apps/python/x86_64/gcc-4.1.2/python-2.4.4/lib'
 # python_libs		= ['python2.4']
 # python_cmd		= 'python'
 
 # Boost libraries
-boost_path		= '/sw/libs/boost/x86_64/gcc-4.1.2/python-2.6.2/boost_1_39_0/include/boost-1_39'
-boost_lib_path		= '/sw/libs/boost/x86_64/gcc-4.1.2/python-2.6.2/boost_1_39_0/lib'
-boost_libs		= ['boost_python-gcc41-mt']
+boost_path		= '/sw/libs/boost/x86_64/gcc-4.1.2/python-2.4.4/boost_1_33/include/boost-1_33/'
+boost_lib_path		= '/sw/libs/boost/x86_64/gcc-4.1.2/python-2.4.4/boost_1_33/lib'
+# boost_libs		= ['boost_python-gcc']
 
 # Specify whether or not to use VTK
 # usevtk		= 'yes'

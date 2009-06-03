@@ -40,6 +40,7 @@ extern "C" {
 #include <boost/shared_ptr.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/tuple.hpp>
+#include <boost/python/numeric.hpp>
 
 #include "BufferGroup.h"
 
@@ -256,11 +257,14 @@ class Data {
   bool
   isProtected() const;
 
+ /**
+    \brief
+    Return the values of a data point on this process
+ */
+ ESCRIPT_DLL_API
+ const boost::python::numeric :: array
+ getValueOfDataPoint(int dataPointNo);
 
-/**
-   \brief 
-   Return teh value of a data point as a python tuple.
-*/
   ESCRIPT_DLL_API
   const boost::python::object
   getValueOfDataPointAsTuple(int dataPointNo);
@@ -290,8 +294,13 @@ class Data {
   setValueOfDataPoint(int dataPointNo, const double);
 
   /**
-     \brief Return a data point across all processors as a python tuple.
+     \brief
+     Return the value of the specified data-point across all processors
   */
+  ESCRIPT_DLL_API
+  const boost::python::numeric::array
+  getValueOfGlobalDataPoint(int procNo, int dataPointNo);
+
   ESCRIPT_DLL_API
   const boost::python::object
   getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo);
@@ -781,18 +790,22 @@ contains datapoints.
   grad() const;
 
   /**
-    \brief
-     Calculate the integral over the function space domain as a python tuple.
+     \brief
+     Calculate the integral over the function space domain.
+     *
   */
+  ESCRIPT_DLL_API
+  boost::python::object
+  integrate_const() const;
+
+  ESCRIPT_DLL_API
+  boost::python::object
+  integrate();
+
   ESCRIPT_DLL_API
   boost::python::object
   integrateToTuple_const() const;
 
-
-  /**
-    \brief
-     Calculate the integral over the function space domain as a python tuple.
-  */
   ESCRIPT_DLL_API
   boost::python::object
   integrateToTuple();

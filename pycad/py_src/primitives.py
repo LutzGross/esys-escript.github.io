@@ -41,7 +41,7 @@ try:
 except:
    numpyImported=False
 
-import numpy
+import numarray
 from transformations import _TYPE, Translation, Dilation, Transformation, DEG
 import math 
 
@@ -124,26 +124,26 @@ class PrimitiveBase(object):
         """
         Returns a new object shifted by C{other}.
         """
-        return self.apply(Translation(numpy.array(other,_TYPE)))
+        return self.apply(Translation(numarray.array(other,_TYPE)))
 
     def __sub__(self,other):
         """
         Returns a new object shifted by C{-other}.
         """
-        return self.apply(Translation(-numpy.array(other,_TYPE)))
+        return self.apply(Translation(-numarray.array(other,_TYPE)))
 
     def __iadd__(self,other):
         """
         Shifts the point inplace by C{other}.
         """
-        self.modifyBy(Translation(numpy.array(other,_TYPE)))
+        self.modifyBy(Translation(numarray.array(other,_TYPE)))
         return self
 
     def __isub__(self,other):
         """
         Shifts the point inplace by C{-other}.
         """
-        self.modifyBy(Translation(-numpy.array(other,_TYPE)))
+        self.modifyBy(Translation(-numarray.array(other,_TYPE)))
         return self
 
     def __imul__(self,other):
@@ -153,7 +153,7 @@ class PrimitiveBase(object):
         """
         if isinstance(other,int) or isinstance(other,float):
             trafo=Dilation(other)
-        elif isinstance(other,numpy.ndarray):
+        elif isinstance(other,numarray.NumArray):
             trafo=Translation(other)
         elif isinstance(other,Transformation):
             trafo=other
@@ -169,7 +169,7 @@ class PrimitiveBase(object):
         """
         if isinstance(other,int) or isinstance(other,float):
             trafo=Dilation(other)
-        elif isinstance(other,numpy.ndarray):
+        elif isinstance(other,numarray.NumArray):
             trafo=Translation(other)
         elif isinstance(other,Transformation):
             trafo=other
@@ -354,7 +354,7 @@ class Point(Primitive, PrimitiveBase):
        """
        PrimitiveBase.__init__(self)
        Primitive.__init__(self)
-       self.setCoordinates(numpy.array([x,y,z],_TYPE))
+       self.setCoordinates(numarray.array([x,y,z],_TYPE))
        self.setLocalScale(local_scale)
 
     def setLocalScale(self,factor=1.):
@@ -373,16 +373,16 @@ class Point(Primitive, PrimitiveBase):
 
     def getCoordinates(self):
        """
-       Returns the coodinates of the point as a C{numpy.ndarray} object.
+       Returns the coodinates of the point as a C{numarray.NumArray} object.
        """
        return self._x
 
     def setCoordinates(self,x):
        """
-       Sets the coodinates of the point from a C{numpy.ndarray} object C{x}.
+       Sets the coodinates of the point from a C{numarray.NumArray} object C{x}.
        """
-       if not isinstance(x, numpy.ndarray):
-          self._x=numpy.array(x,_TYPE)
+       if not isinstance(x, numarray.NumArray):
+          self._x=numarray.array(x,_TYPE)
        else:
           self._x=x
 
@@ -405,7 +405,7 @@ class Point(Primitive, PrimitiveBase):
           if numpyImported:
             return numpy.dot(d,d)<=getToleranceForColocation()**2*max(numpy.dot(c,c),numpy.dot(primitive,primitive))
           else:
-            return numpy.dot(d,d)<=getToleranceForColocation()**2*max(numpy.dot(c,c),numpy.dot(primitive,primitive))
+            return numarray.dot(d,d)<=getToleranceForColocation()**2*max(numarray.dot(c,c),numarray.dot(primitive,primitive))
        else:
           return False
 

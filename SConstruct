@@ -356,12 +356,12 @@ except:
 if global_revision == "": global_revision="-2"
 env.Append(CPPDEFINES = ["SVN_VERSION="+global_revision])
 
-############ numpy (required) ###############################
+############ numarray (required) ###############################
 
 try:
-  from numpy import identity
+  from numarray import identity
 except ImportError:
-  print "Cannot import numpy, you need to set your PYTHONPATH"
+  print "Cannot import numarray, you need to set your PYTHONPATH"
   sys.exit(1)
 
 ############ C compiler (required) #############################

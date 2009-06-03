@@ -62,29 +62,29 @@ WrappedArray::getElt() const
 
 inline double
 WrappedArray::getElt(unsigned int i) const
-{  // __float__ added to deal with numpy. If this causes problems we may have to register a custom converter
-        return boost::python::extract<double>(obj[i].attr("__float__")());	
+{
+	return boost::python::extract<double>(obj[i]);
 }
 
 inline
 double 
 WrappedArray::getElt(unsigned int i, unsigned int j) const
 {
-	return boost::python::extract<double>(obj[i][j].attr("__float__")());
+	return boost::python::extract<double>(obj[i][j]);
 }
 
 inline
 double 
 WrappedArray::getElt(unsigned int i, unsigned int j, unsigned int k) const
 {
-	return boost::python::extract<double>(obj[i][j][k].attr("__float__")());
+	return boost::python::extract<double>(obj[i][j][k]);
 }
 
 inline
 double 
 WrappedArray::getElt(unsigned int i, unsigned int j, unsigned int k, unsigned int m) const
 {
-	return boost::python::extract<double>(obj[i][j][k][m].attr("__float__")());
+	return boost::python::extract<double>(obj[i][j][k][m]);
 }
 
 }

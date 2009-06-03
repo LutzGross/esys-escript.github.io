@@ -47,6 +47,7 @@ const_Domain_ptr AbstractDomain::getPtr() const
   }
 }
 
+
 AbstractDomain::AbstractDomain() {
 }
 

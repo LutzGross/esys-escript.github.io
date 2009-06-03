@@ -85,7 +85,7 @@ class GaussianProfile(ParameterSet):
     def __init__(self,**kwargs):
         super(GaussianProfile, self).__init__(**kwargs)
         self.declareParameter(domain=None, 
-                              x_c=numpy.zeros([3]),
+                              x_c=numarray.zeros([3]),
                               A=1.,
                               width=0.1,
                               r=0)
