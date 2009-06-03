@@ -24,7 +24,7 @@ import vtk
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.modelframe import Model
-import numarray
+import numpy
 import math
 from tempfile import mkstemp
 
@@ -62,11 +62,11 @@ class GridData:
             x_shape0 = x.getNumberOfDataPoints()
             return_data_object = True
         else:
-            x_array = numarray.array(x)
+            x_array = numpy.array(x)
             x_shape0 = x_array.shape[0]
             return_data_object = False
 
-        data=numarray.zeros(x_shape0, numarray.Float)
+        data=numpy.zeros(x_shape0, numpy.float_)
         ox,oy = self.getOrigin()
         dx,dy = self.getSpacing()
         data_array = self.getData()
@@ -74,7 +74,7 @@ class GridData:
         i_dy = 1
         for i in range(x_shape0):
             if return_data_object:
-                x_array = x.getValueOfDataPoint(i)
+                x_array = x.getTupleForDataPoint(i)
                 x_long = x_array[0]-ox
                 x_lat = x_array[1]-oy
             else:
@@ -759,9 +759,9 @@ class Bathymetry(Model):
             data_grd_list.append(float(v[2]))
             line=f.readline().strip()
         self.trace("%s lines have been read from %s." % (len(data_grd_list), self.source))
-        data_grd=numarray.array(data_grd_list)
-        x_grd=numarray.array(x_grd_list)
-        y_grd=numarray.array(y_grd_list)
+        data_grd=numpy.array(data_grd_list)
+        x_grd=numpy.array(x_grd_list)
+        y_grd=numpy.array(y_grd_list)
         if len(x_grd)<2:
             raise ValueError,"%s: data base is too small"%str(self)
         ox=x_grd[0]
@@ -921,7 +921,7 @@ class TsunamiInDeepWater(Model):
         self.__pde = LinearPDE(self.domain)
         self.__pde.setSolverMethod(self.__pde.LUMPING)
         self.__pde.setValue(D=1.)
-        self.__c2 = RegionOnEarthSurface.GRAVITY*self.bathymetry/(RegionOnEarthSurface.RADIUS*2*numarray.pi/360.)**2
+        self.__c2 = RegionOnEarthSurface.GRAVITY*self.bathymetry/(RegionOnEarthSurface.RADIUS*2*numpy.pi/360.)**2
         c_max = math.sqrt(Lsup(self.__c2))
         self.__dt = self.safety_factor*inf(self.domain.getSize()/(sqrt(self.__c2)+EPS*c_max))
         if self.initial_time_step==None:
@@ -1008,8 +1008,8 @@ class SurfMovie(Model):
         numYPoints = bathZData.shape[0]
         numPoints = numXPoints*numYPoints
 
-        bathXData = numarray.zeros(numXPoints, numarray.Float)
-        bathYData = numarray.zeros(numYPoints, numarray.Float)
+        bathXData = numpy.zeros(numXPoints, numpy.float_)
+        bathYData = numpy.zeros(numYPoints, numpy.float_)
         for i in range(numXPoints):
             bathXData[i] = bathOrigin[0] + i*bathSpacing[0]
 
@@ -1075,10 +1075,10 @@ class SurfMovie(Model):
         numColours = len(data)
 
         # convert the colourmap into something vtk is more happy with
-        height = numarray.zeros(numColours, numarray.Float)
-        red = numarray.zeros(numColours, numarray.Float)
-        green = numarray.zeros(numColours, numarray.Float)
-        blue = numarray.zeros(numColours, numarray.Float)
+        height = numpy.zeros(numColours, numpy.float_)
+        red = numpy.zeros(numColours, numpy.float_)
+        green = numpy.zeros(numColours, numpy.float_)
+        blue = numpy.zeros(numColours, numpy.float_)
         for i in range(numColours):
             (h, r, g, b) = data[i]
             height[i] = float(h)

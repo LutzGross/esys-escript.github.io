@@ -24,7 +24,7 @@ from esys.escript import *
 from esys.escript.pdetools import Locator
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle, Brick
-from numarray import identity,zeros,ones
+from numpy import identity,zeros,ones
 from esys.pyvisi import Scene, DataCollector, Map, Velocity, Ellipsoid, Camera
 from esys.pyvisi.constant import *
 import unittest, os, sys
@@ -213,7 +213,7 @@ class TestEscriptEllipsoid(unittest.TestCase, TestEscript):
 		# define small radius around point xc
 		# Lsup(x) returns the maximum value of the argument x
 		src_radius = 0.1*Lsup(domain.getSize())
-		dunit=numarray.array([1.,0.,0.]) # defines direction of point source
+		dunit=numpy.array([1.,0.,0.]) # defines direction of point source
 
 		mypde.setValue(D=kronecker*rho)
 		# ... set initial values ....
@@ -225,7 +225,7 @@ class TestEscriptEllipsoid(unittest.TestCase, TestEscript):
 		t=0
 
 		# define the location of the point source 
-		L=Locator(domain,numarray.array(xc))
+		L=Locator(domain,numpy.array(xc))
 		# find potential at point source
 		u_pc=L.getValue(u)
 

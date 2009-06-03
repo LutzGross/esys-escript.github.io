@@ -27,9 +27,9 @@ from esys.escript import *
 from esys.escript.linearPDEs import *
 from esys import finley
 
-import numarray
+import numpy
 
-Pi=numarray.pi
+Pi=numpy.pi
 numElements=15
 sml=0.1
 
@@ -51,7 +51,7 @@ def TheTest(msh,constraints,reduce):
     mypde.setSymmetryOn()
     mypde.setDebugOn()
     mypde.setReducedOrderTo(reduce)
-    mypde.setValue(A=numarray.identity(msh.getDim()),D=sml,Y=(sml+4*Pi**2*msh.getDim())*u_ex,q=constraints,r=u_ex)
+    mypde.setValue(A=numpy.identity(msh.getDim()),D=sml,Y=(sml+4*Pi**2*msh.getDim())*u_ex,q=constraints,r=u_ex)
     return Lsup(mypde.getSolution()-u_ex)/Lsup(u_ex)
 
 max_error=0

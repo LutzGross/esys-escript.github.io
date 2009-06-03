@@ -27,6 +27,7 @@ omp_libs		= ['gomp']
 #cc_extra		= '-Wall -pedantic -isystem /usr/include/boost/ -isystem /usr/include/python2.5/ -Wno-sign-compare -Wno-long-long'
 #cc_extra		= '-fopenmp'
 # ld_extra		= ''
+cc_extra = ''
 
 # Be picky about errors
 # usepedantic		= 'no'

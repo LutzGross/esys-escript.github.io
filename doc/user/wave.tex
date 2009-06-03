@@ -106,7 +106,7 @@ and the end time of the simulation. \var{lam}, \var{mu} and
 \var{rho} are material properties. 
 \begin{python}
 from esys.linearPDEs import LinearPDE
-from numarray import identity,zeros,ones
+from numpy import identity,zeros,ones
 from esys.escript import *
 from esys.escript.pdetools import Locator
 def wavePropagation(domain,h,tend,lam,mu,rho,U0):
@@ -121,7 +121,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
    # Lsup(x) returns the maximum value of the argument x
    src_radius = 0.1*Lsup(domain.getSize())
    print "src_radius = ",src_radius
-   dunit=numarray.array([1.,0.,0.]) # defines direction of point source
+   dunit=numpy.array([1.,0.,0.]) # defines direction of point source
    mypde.setValue(D=kronecker*rho)
    # ... set initial values ....
    n=0
