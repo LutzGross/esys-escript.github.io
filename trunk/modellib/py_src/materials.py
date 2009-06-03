@@ -21,7 +21,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript.modelframe import Model,ParameterSet
 from esys.escript.util import exp
-import numarray
+import numpy
 
 class GravityForce(ParameterSet):
        """
@@ -48,7 +48,7 @@ class GravityForce(ParameterSet):
            return the gravity force as L{density}*L{gravity}*L{direction}
            """
            if isinstance(self.direction,list): 
-               dir=numarray.array(self.direction[:self.domain.getDim()])
+               dir=numpy.array(self.direction[:self.domain.getDim()])
            else:
                dir=self.direction[:self.domain.getDim()]
            return self.gravity*self.density*dir

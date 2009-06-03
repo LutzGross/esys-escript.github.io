@@ -36,7 +36,7 @@ from setups import MiningHistory, DensityChange, LinearElasticStressChange, Coul
 from esys.modellib.geometry import FinleyReader,VectorConstrainerOverBox
 from esys.modellib.input import Sequencer
 from esys.escript.modelframe import Link,Simulation, DataSource
-import numarray
+import numpy
 from esys.modellib.visualization import WriteVTK
 
 dom=FinleyReader(debug=d)
@@ -78,7 +78,7 @@ el.density_rate=Link(dens_dot,"density_rate")
 cfs=CoulombFailureStress(debug=d)
 cfs.stress=Link(el,"stress")
 cfs.friction_coefficient=0.
-cfs.normal=numarray.array([-1,0,1])
+cfs.normal=numpy.array([-1,0,1])
 
 vis=WriteVTK()
 vis.t=Link(sq)

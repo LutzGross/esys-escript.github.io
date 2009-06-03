@@ -41,7 +41,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import escript
 import linearPDEs
-import numarray
+import numpy
 import util
 import math
 
@@ -223,13 +223,13 @@ class NoPDE:
          @param domain: domain of the PDE
          @type domain: L{Domain}
          @param D: coefficient of the solution
-         @type D: C{float}, C{int}, C{numarray.NumArray}, L{Data}
+         @type D: C{float}, C{int}, C{numpy.ndarray}, L{Data}
          @param Y: right hand side
-         @type Y: C{float}, C{int}, C{numarray.NumArray}, L{Data}
+         @type Y: C{float}, C{int}, C{numpy.ndarray}, L{Data}
          @param q: location of constraints
-         @type q: C{float}, C{int}, C{numarray.NumArray}, L{Data}
+         @type q: C{float}, C{int}, C{numpy.ndarray}, L{Data}
          @param r: value of solution at locations of constraints
-         @type r: C{float}, C{int}, C{numarray.NumArray}, L{Data}
+         @type r: C{float}, C{int}, C{numpy.ndarray}, L{Data}
          """
          self.__domain=domain
          self.__D=D
@@ -258,13 +258,13 @@ class NoPDE:
          Assigns values to the parameters.
 
          @param D: coefficient of the solution
-         @type D: C{float}, C{int}, C{numarray.NumArray}, L{Data}
+         @type D: C{float}, C{int}, C{numpy.ndarray}, L{Data}
          @param Y: right hand side
-         @type Y: C{float}, C{int}, C{numarray.NumArray}, L{Data}
+         @type Y: C{float}, C{int}, C{numpy.ndarray}, L{Data}
          @param q: location of constraints
-         @type q: C{float}, C{int}, C{numarray.NumArray}, L{Data}
+         @type q: C{float}, C{int}, C{numpy.ndarray}, L{Data}
          @param r: value of solution at locations of constraints
-         @type r: C{float}, C{int}, C{numarray.NumArray}, L{Data}
+         @type r: C{float}, C{int}, C{numpy.ndarray}, L{Data}
          """
          if not D==None:
             self.__D=D
@@ -312,7 +312,7 @@ class Locator:
      given function space or domain which is closest to the given point x.
      """
 
-     def __init__(self,where,x=numarray.zeros((3,))):
+     def __init__(self,where,x=numpy.zeros((3,))):
        """
        Initializes a Locator to access values in Data objects on the Doamin
        or FunctionSpace for the sample point which is closest to the given
@@ -321,7 +321,7 @@ class Locator:
        @param where: function space
        @type where: L{escript.FunctionSpace}
        @param x: coefficient of the solution
-       @type x: C{numarray.NumArray} or C{list} of C{numarray.NumArray}
+       @type x: C{numpy.ndarray} or C{list} of C{numpy.ndarray}
        """
        if isinstance(where,escript.FunctionSpace):
           self.__function_space=where
@@ -399,14 +399,14 @@ class Locator:
            if isinstance(id,list):
                out=[]
                for i in id:
-                  o=data.getValueOfGlobalDataPoint(*i)
+                  o=numpy.array(data.getTupleForGlobalDataPoint(*i))
                   if data.getRank()==0:
                      out.append(o[0])
                   else:
                      out.append(o)
                return out
            else:
-             out=data.getValueOfGlobalDataPoint(*id)
+             out=numpy.array(data.getTupleForGlobalDataPoint(*id))
              if data.getRank()==0:
                 return out[0]
              else:
@@ -522,8 +522,10 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
        q=Aprod(d)
        alpha = rhat_dot_r / bilinearform(d, q)
        x += alpha * d
-       r += (-alpha) * q
-
+       if isinstance(q,ArithmeticTuple):
+	   r += q * (-alpha)      # Doing it the other way calls the float64.__mul__ not AT.__rmul__ 
+       else:
+           r += (-alpha) * q
        rhat=Msolve(r)
        rhat_dot_r_new = bilinearform(rhat, r)
        beta = rhat_dot_r_new / rhat_dot_r
@@ -645,7 +647,7 @@ def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub
    @type defect: L{Defect}
    @param x: initial guess for the solution, C{x} is altered.
    @type x: any object type allowing basic operations such as
-            C{numarray.NumArray}, L{Data}
+            C{numpy.ndarray}, L{Data}
    @param iter_max: maximum number of iteration steps
    @type iter_max: positive C{int}
    @param sub_iter_max: maximum number of inner iteration steps
@@ -733,10 +735,10 @@ def __givapp(c,s,vin):
     return vrot
 
 def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
-   h=numarray.zeros((iter_restart,iter_restart),numarray.Float64)
-   c=numarray.zeros(iter_restart,numarray.Float64)
-   s=numarray.zeros(iter_restart,numarray.Float64)
-   g=numarray.zeros(iter_restart,numarray.Float64)
+   h=numpy.zeros((iter_restart,iter_restart),numpy.float64)
+   c=numpy.zeros(iter_restart,numpy.float64)
+   s=numpy.zeros(iter_restart,numpy.float64)
+   g=numpy.zeros(iter_restart,numpy.float64)
    v=[]
 
    rho=defect.norm(F0)
@@ -777,7 +779,7 @@ def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
 
         #   Form and store the information for the new Givens rotation
         if iter > 0 :
-            hhat=numarray.zeros(iter+1,numarray.Float64)
+            hhat=numpy.zeros(iter+1,numpy.float64)
             for i in range(iter+1) : hhat[i]=h[i,iter]
             hhat=__givapp(c[0:iter],s[0:iter],hhat);
             for i in range(iter+1) : h[i,iter]=hhat[i]
@@ -800,12 +802,12 @@ def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
    # At this point either iter > iter_max or rho < tol.
    # It's time to compute x and leave.
    if iter > 0 :
-     y=numarray.zeros(iter,numarray.Float64)
+     y=numpy.zeros(iter,numpy.float64)
      y[iter-1] = g[iter-1] / h[iter-1,iter-1]
      if iter > 1 :
         i=iter-2
         while i>=0 :
-          y[i] = ( g[i] - numarray.dot(h[i,i+1:iter], y[i+1:iter])) / h[i,i]
+          y[i] = ( g[i] - numpy.dot(h[i,i+1:iter], y[i+1:iter])) / h[i,i]
           i=i-1
      xhat=v[iter-1]*y[iter-1]
      for i in range(iter-1):
@@ -895,10 +897,10 @@ def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_rest
 def _GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verbose=False, P_R=None):
    iter=0
 
-   h=numarray.zeros((iter_restart+1,iter_restart),numarray.Float64)
-   c=numarray.zeros(iter_restart,numarray.Float64)
-   s=numarray.zeros(iter_restart,numarray.Float64)
-   g=numarray.zeros(iter_restart+1,numarray.Float64)
+   h=numpy.zeros((iter_restart+1,iter_restart),numpy.float64)
+   c=numpy.zeros(iter_restart,numpy.float64)
+   s=numpy.zeros(iter_restart,numpy.float64)
+   g=numpy.zeros(iter_restart+1,numpy.float64)
    v=[]
 
    r_dot_r = bilinearform(r, r)
@@ -966,12 +968,12 @@ def _GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verb
 
    if verbose: print "GMRES: iteration stopped after %s step."%iter
    if iter > 0 :
-     y=numarray.zeros(iter,numarray.Float64)
+     y=numpy.zeros(iter,numpy.float64)
      y[iter-1] = g[iter-1] / h[iter-1,iter-1]
      if iter > 1 :
         i=iter-2
         while i>=0 :
-          y[i] = ( g[i] - numarray.dot(h[i,i+1:iter], y[i+1:iter])) / h[i,i]
+          y[i] = ( g[i] - numpy.dot(h[i,i+1:iter], y[i+1:iter])) / h[i,i]
           i=i-1
      xhat=v[iter-1]*y[iter-1]
      for i in range(iter-1):
@@ -1279,7 +1281,7 @@ class ArithmeticTuple(object):
    Example of usage::
 
        from esys.escript import Data
-       from numarray import array
+       from numpy import array
        a=Data(...)
        b=array([1.,4.])
        x=ArithmeticTuple(a,b)
@@ -1467,7 +1469,6 @@ class HomogeneousSaddlePointProblem(object):
         self.setTolerance()
         self.setAbsoluteTolerance()
         self.setSubProblemTolerance()
-
 
       #=============================================================
       def initialize(self):
