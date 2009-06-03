@@ -323,7 +323,6 @@ Data::Data(const object& value,
            bool expanded)
 	: m_shared(false), m_lazy(false)
 {
-  //numeric::array asNumArray(value);
   WrappedArray w(value);
   initialise(w,what,expanded);
   m_protected=false;
@@ -336,7 +335,7 @@ Data::Data(const object& value,
 {
   WrappedArray w(value);
 
-  // extract the shape of the numarray
+  // extract the shape of the array
   const DataTypes::ShapeType& tempShape=w.getShape();
   if (w.getRank()==0) {
 
@@ -1066,13 +1065,13 @@ Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::object& o
   //
   // check rank
   if (static_cast<unsigned int>(w.getRank())<getDataPointRank())
-      throw DataException("Rank of numarray does not match Data object rank");
+      throw DataException("Rank of array does not match Data object rank");
 
   //
-  // check shape of num_array
+  // check shape of array
   for (unsigned int i=0; i<getDataPointRank(); i++) {
     if (w.getShape()[i]!=getDataPointShape()[i])
-       throw DataException("Shape of numarray does not match Data object rank");
+       throw DataException("Shape of array does not match Data object rank");
   }
   //
   // make sure data is expanded:

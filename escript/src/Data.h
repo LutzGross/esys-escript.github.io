@@ -145,8 +145,7 @@ class Data {
 
   /**
      \brief
-     Constructor which copies data from any object that can be converted into
-     a python numarray.
+     Constructor which copies data from any object that can be treated like a python array/sequence.
 
      \param value - Input - Input data.
      \param what - Input - A description of what this data represents.
@@ -162,8 +161,8 @@ class Data {
   /**
      \brief
      Constructor which creates a DataConstant.
-     Copies data from any object that can be converted
-     into a numarray. All other parameters are copied from other.
+     Copies data from any object that can be treated like a python array/sequence.
+     All other parameters are copied from other.
 
      \param value - Input - Input data.
      \param other - Input - contains all other parameters.
@@ -275,7 +274,7 @@ class Data {
 
   /**
      \brief
-     sets the values of a data-point from a numarray object on this process
+     sets the values of a data-point from a array-like object on this process
   */
   ESCRIPT_DLL_API
   void

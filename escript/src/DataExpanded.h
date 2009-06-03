@@ -396,10 +396,7 @@ TODO Note that this constructor will also copy data to all points if it only con
 
   /**
      \brief
-     Copy the given data point value given a numarray object to all data points in this object.
-
-     Description:
-     Copy the given data point value given a numarray object to all data points in this object.
+     Copy the given data point value to all data points in this object.
 
      \param value Input - A single data point value.
   */
@@ -426,10 +423,7 @@ TODO Note that this constructor will also copy data to all points if it only con
 
   /**
      \brief
-     Copy the numarray object to the data point dataPointNo of sample sampleNo in this object.
-
-     Description:
-     Copy the numarray object to the data point dataPointNo of sample sampleNo in this object.
+     Copy the value to the data point dataPointNo of sample sampleNo in this object.
 
      \param sampleNo Input - sample number
      \param dataPointNo Input - data point of the sample

@@ -378,7 +378,7 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const W
   //
   // check rank:
   if (value.getRank()!=getRank())
-       throw DataException("Rank of numarray does not match Data object rank");
+       throw DataException("Rank of value does not match Data object rank");
   if (numSamples*numDataPointsPerSample > 0) {
      //TODO: global error handling
      if ((sampleNo >= numSamples) || (sampleNo < 0 )) {
