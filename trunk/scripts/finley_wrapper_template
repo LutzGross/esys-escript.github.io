@@ -1,5 +1,14 @@
 #!/bin/bash
 
+
+########################################################
+#  This wrapper is no longer in use.
+#  It was used to generate bin/escript before we managed
+#  it directly via svn
+########################################################
+
+
+
 # Escript/Finley wrapper for python
 # Sets LD_LIBRARY_PATH and PYTHONPATH and then runs either python or the MPI launcher
 
@@ -76,7 +85,7 @@ then
     EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/boost/lib:$ESCRIPT_PARENT/packages/netcdf/lib/:$EXTRA_LD_LIBRARY_PATH
     EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/vtk/lib/vtk-5.2:$ESCRIPT_PARENT/packages/mesa/lib:$EXTRA_LD_LIBRARY_PATH
     EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/python/lib:$EXTRA_LD_LIBRARY_PATH
-    EXTRA_PYTHONPATH=$ESCRIPT_PARENT/packages/numarray/lib:$ESCRIPT_PARENT/packages/vtk/lib/python2.6/site-packages:$EXTRA_PYTHONPATH
+    EXTRA_PYTHONPATH=$ESCRIPT_PARENT/packages/numpy/lib:$ESCRIPT_PARENT/packages/vtk/lib/python2.6/site-packages:$EXTRA_PYTHONPATH
 fi
 
 

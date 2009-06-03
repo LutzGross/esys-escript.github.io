@@ -669,7 +669,7 @@ if ((fatalwarning != "") and (env['usewarnings'])):
 print ""
 print "Summary of configuration (see ./config.log for information)"
 print "	Using python libraries"
-print "	Using numarray"
+print "	Using numpy"
 print "	Using boost"
 if env['usenetcdf']: print "	Using NetCDF"
 else: print "	Not using NetCDF"

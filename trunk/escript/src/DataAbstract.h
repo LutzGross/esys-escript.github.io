@@ -314,10 +314,7 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
   /**
      \brief
-     Copy the numarray object to the data point dataPointNo of sample sampleNo in this object.
-
-     Description:
-     Copy the numarray object to the data point dataPointNo of sample sampleNo in this object.
+     Copy the array object to the data point dataPointNo of sample sampleNo in this object.
 
      \param sampleNo Input - sample number
      \param dataPointNo Input - data point of the sample
