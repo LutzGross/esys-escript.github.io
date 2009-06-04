@@ -88,6 +88,117 @@ using namespace escript;
 namespace
 {
 
+template <class ARR>
+inline
+boost::python::tuple
+pointToTuple1(const DataTypes::ShapeType& shape, ARR v, unsigned long offset)
+{
+    using namespace boost::python;
+    using boost::python::tuple;
+    using boost::python::list;
+
+    list l;
+    unsigned int dim=shape[0];
+    for (size_t i=0;i<dim;++i)
+    {
+	l.append(v[i+offset]);
+    }
+    return tuple(l);
+}
+
+template <class ARR>
+inline
+boost::python::tuple
+pointToTuple2(const DataTypes::ShapeType& shape, ARR v, unsigned long offset)
+{
+    using namespace boost::python;
+    using boost::python::tuple;
+    using boost::python::list;
+
+    unsigned int shape0=shape[0];
+    unsigned int shape1=shape[1];
+    list lj;
+    for (size_t j=0;j<shape0;++j)
+    {
+        list li;
+	for (size_t i=0;i<shape1;++i)
+	{
+	    li.append(v[offset+DataTypes::getRelIndex(shape,j,i)]);
+	}
+	lj.append(tuple(li));
+    }
+    return tuple(lj);
+}
+
+template <class ARR>
+inline
+boost::python::tuple
+pointToTuple3(const DataTypes::ShapeType& shape, ARR v, unsigned long offset)
+{
+    using namespace boost::python;
+    using boost::python::tuple;
+    using boost::python::list;
+
+    unsigned int shape0=shape[0];
+    unsigned int shape1=shape[1];
+    unsigned int shape2=shape[2];
+
+    list lk;
+    for (size_t k=0;k<shape0;++k)
+    {
+        list lj;
+	for (size_t j=0;j<shape1;++j)
+	{
+	    list li;
+	    for (size_t i=0;i<shape2;++i)
+	    {
+                li.append(v[DataTypes::getRelIndex(shape,k,j,i)]);
+            }
+	    lj.append(tuple(li));
+        }
+        lk.append(tuple(lj));
+    }
+    return tuple(lk);
+}
+
+template <class ARR>
+inline
+boost::python::tuple
+pointToTuple4(const DataTypes::ShapeType& shape, ARR v, unsigned long offset)
+{
+    using namespace boost::python;
+    using boost::python::tuple;
+    using boost::python::list;
+
+    unsigned int shape0=shape[0];
+    unsigned int shape1=shape[1];
+    unsigned int shape2=shape[2];
+    unsigned int shape3=shape[3];
+
+    list ll;
+    for (size_t l=0;l<shape0;++l)
+    {
+        list lk;
+	for (size_t k=0;k<shape1;++k)
+	{
+            list lj;
+            for (size_t j=0;j<shape2;++j)
+            {
+                list li;
+                for (size_t i=0;i<shape3;++i)
+                {
+                    li.append(v[DataTypes::getRelIndex(shape,l,k,j,i)]);
+                }
+                lj.append(tuple(li));
+            }
+            lk.append(tuple(lj));
+	}
+        ll.append(tuple(lk));
+    }
+    return tuple(ll);
+}
+
+
 // This should be safer once the DataC RO changes have been brought in
 template <class ARR>
 boost::python::tuple
@@ -102,69 +213,19 @@ pointToTuple( const DataTypes::ShapeType& shape,ARR v)
    }
    else if (rank==1)
    {
-	list l;
-	for (size_t i=0;i<shape[0];++i)
-	{
-	   l.append(v[i]);
-	}
-	return tuple(l);
+        return pointToTuple1(shape,v,0);
    }
    else if (rank==2)
    {
-	list lj;
-	for (size_t j=0;j<shape[0];++j)
-	{
-	   list li;
-	   for (size_t i=0;i<shape[1];++i)
-	   {
-	      li.append(v[DataTypes::getRelIndex(shape,j,i)]);
-	   }
-	   lj.append(tuple(li));
-	}
-	return tuple(lj);
+	return pointToTuple2(shape,v,0);
    }
    else if (rank==3)
    {
-	list lk;
-	for (size_t k=0;k<shape[0];++k)
-	{
-	   list lj;
-	   for (size_t j=0;j<shape[1];++j)
-	   {
-		list li;
-		for (size_t i=0;i<shape[2];++i)
-		{
-		   li.append(v[DataTypes::getRelIndex(shape,k,j,i)]);
-		}
-		lj.append(tuple(li));
-	   }
-	   lk.append(tuple(lj));
-	}
-	return tuple(lk);
+	return pointToTuple3(shape,v,0);
    }
    else if (rank==4)
    {
-	list ll;
-	for (size_t l=0;l<shape[0];++l)
-	{
-	   list lk;
-	   for (size_t k=0;k<shape[1];++k)
-	   {
-		list lj;
-		for (size_t j=0;j<shape[2];++j)
-		{
-			list li;
-			for (size_t i=0;i<shape[3];++i)
-			{
-			   li.append(v[DataTypes::getRelIndex(shape,l,k,j,i)]);
-			}
-			lj.append(tuple(li));
-		}
-		lk.append(tuple(lj));
-	   }
-	   ll.append(tuple(lk));
-	}
-	return tuple(ll);
+	return pointToTuple4(shape,v,0);
    }
    else
      throw DataException("Unknown rank in pointToTuple.");
@@ -207,20 +268,14 @@ Data::Data(double value,
 	: m_shared(false), m_lazy(false)
 {
   int len = DataTypes::noValues(dataPointShape);
-
   DataVector temp_data(len,value,len);
-//   DataArrayView temp_dataView(temp_data, dataPointShape);
-
-//   initialise(temp_dataView, what, expanded);
   initialise(temp_data, dataPointShape, what, expanded);
-
   m_protected=false;
 }
 
 Data::Data(const Data& inData)
 	: m_shared(false), m_lazy(false)
 {
-//   m_data=inData.m_data;
   set_m_data(inData.m_data);
   m_protected=inData.isProtected();
 }
@@ -242,7 +297,6 @@ Data::Data(const Data& inData,
   //
   // Create Data which is a slice of another Data
   DataAbstract* tmp = dat->getSlice(region);
-//   m_data=DataAbstract_ptr(tmp);
   set_m_data(DataAbstract_ptr(tmp));
   m_protected=false;
 
@@ -257,7 +311,6 @@ Data::Data(const Data& inData,
     throw DataException("Error - will not interpolate for instances of DataEmpty.");
   }
   if (inData.getFunctionSpace()==functionspace) {
-//     m_data=inData.m_data;
     set_m_data(inData.m_data);
   } 
   else 
@@ -1008,10 +1061,95 @@ Data::getDataPointSize() const
   return m_data->getNoValues();
 }
 
+
 DataTypes::ValueType::size_type
 Data::getLength() const
 {
   return m_data->getLength();
+}
+
+// does not return tuples for scalars
+// There is no parallelism here ... elements need to be added in the correct order.
+//   If we could presize the list and then fill in the elements it might work
+//   This would need setting elements to be threadsafe.
+//   Having mulitple C threads calling into one interpreter is aparently a no-no.
+const boost::python::object
+Data::toListOfTuples(bool scalarastuple)
+{
+    using namespace boost::python;
+    if (get_MPISize()>1)
+    {
+        throw DataException("::toListOfTuples is not available for MPI with more than one process.");
+    }
+    unsigned int rank=getDataPointRank();
+    unsigned int size=getDataPointSize();
+    boost::python::list res;
+    int npoints=getNumDataPoints();
+    expand();			// This will also resolve if required
+    const DataTypes::ValueType& vec=getReady()->getVectorRO();
+    if (rank==0)
+    {
+        long count;
+        if (scalarastuple)
+        {
+            for (count=0;count<npoints;++count)
+            {
+                res.append(make_tuple(vec[count]));
+            }
+        }
+        else
+        {
+            for (count=0;count<npoints;++count)
+            {
+                res.append(vec[count]);
+            }
+        }
+    }
+    else if (rank==1)
+    {
+        size_t count;
+        size_t offset=0;
+        for (count=0;count<npoints;++count,offset+=size)
+        {
+	    // need to pull a pointer to the start of the element (also need a way to skip to the next element)
+            res.append(pointToTuple1(getDataPointShape(), vec, offset));
+        }
+    }
+    else if (rank==2)
+    {
+        size_t count;
+        size_t offset=0;
+        for (count=0;count<npoints;++count,offset+=size)
+        {
+	    // need to pull a pointer to the start of the element (also need a way to skip to the next element)
+            res.append(pointToTuple2(getDataPointShape(), vec, offset));
+        }
+    }
+    else if (rank==3)
+    {
+        size_t count;
+        size_t offset=0;
+        for (count=0;count<npoints;++count,offset+=size)
+        {
+	    // need to pull a pointer to the start of the element (also need a way to skip to the next element)
+            res.append(pointToTuple3(getDataPointShape(), vec, offset));
+        }
+    }
+    else if (rank==4)
+    {
+        size_t count;
+        size_t offset=0;
+        for (count=0;count<npoints;++count,offset+=size)
+        {
+	    // need to pull a pointer to the start of the element (also need a way to skip to the next element)
+            res.append(pointToTuple4(getDataPointShape(), vec, offset));
+        }
+    }
+    else
+    {
+        throw DataException("Unknown rank in ::toListOfTuples()");
+    }
+    return res;
 }
 
 const boost::python::object

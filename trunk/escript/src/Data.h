@@ -117,7 +117,7 @@ class Data {
 
   /**
      \brief
-     Constructor which creates a Data from a DataArrayView shape.
+     Constructor which creates a Data with points having the specified shape.
 
      \param value - Input - Single value applied to all Data.
      \param dataPointShape - Input - The shape of each data point.
@@ -559,19 +559,15 @@ contains datapoints.
   void
   dump(const std::string fileName) const;
 
-//  /**
-//     \brief
-//     Return the sample data for the given sample no. This is not the
-//     preferred interface but is provided for use by C code.
-//     The buffer parameter is only required for LazyData.
-//     \param sampleNo - Input - the given sample no.
-//     \param buffer - Vector to compute (and store) sample data in.
-//     \return pointer to the sample data.
-//*/
-//   ESCRIPT_DLL_API
-//   inline
-//   const DataAbstract::ValueType::value_type*
-//   getSampleDataRO(DataAbstract::ValueType::size_type sampleNo, DataTypes::ValueType* buffer=0);
+ /**
+  \brief returns the values of the object as a list of tuples (one for each datapoint).
+
+  \param scalarastuple If true, scalar data will produce single valued tuples [(1,) (2,) ...]
+If false, the result is a list of scalars [1, 2, ...]
+ */
+  ESCRIPT_DLL_API
+  const boost::python::object
+  toListOfTuples(bool scalarastuple=false);
 
 
  /**
@@ -618,9 +614,7 @@ contains datapoints.
 
   /**
      \brief
-     Return a view into the data for the data point specified.
-     NOTE: Construction of the DataArrayView is a relatively expensive
-     operation.
+     Return a reference into the DataVector which points to the specified data point.
      \param sampleNo - Input -
      \param dataPointNo - Input -
   */
@@ -628,7 +622,12 @@ contains datapoints.
   DataTypes::ValueType::const_reference
   getDataPointRO(int sampleNo, int dataPointNo);
 
-
+  /**
+     \brief
+     Return a reference into the DataVector which points to the specified data point.
+     \param sampleNo - Input -
+     \param dataPointNo - Input -
+  */
   ESCRIPT_DLL_API
   DataTypes::ValueType::reference
   getDataPointRW(int sampleNo, int dataPointNo);
@@ -2533,14 +2532,6 @@ C_TensorBinaryOperation(Data const &arg_0,
       // Compute a result for each tag
       const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
       for (i=lookup_2.begin();i!=lookup_2.end();i++) {
-
-/*        DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
-        DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
-        DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
-        double *ptr_0 = &view_0.getData(0);
-        double *ptr_1 = &view_1.getData(0);
-        double *ptr_2 = &view_2.getData(0);*/
-
         const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
         const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
         double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
@@ -2748,10 +2739,6 @@ C_TensorBinaryOperation(Data const &arg_0,
       DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
       for (i=lookup_0.begin();i!=lookup_0.end();i++) {
         tmp_2->addTag(i->first);
-/*        DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
-        DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
-        double *ptr_0 = &view_0.getData(0);
-        double *ptr_2 = &view_2.getData(0);*/
         const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
         double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
         tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
@@ -2791,13 +2778,6 @@ C_TensorBinaryOperation(Data const &arg_0,
       // Compute a result for each tag
       const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
       for (i=lookup_2.begin();i!=lookup_2.end();i++) {
-//         DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
-//         DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
-//         DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
-//         double *ptr_0 = &view_0.getData(0);
-//         double *ptr_1 = &view_1.getData(0);
-//         double *ptr_2 = &view_2.getData(0);
-
         const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
         const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
         double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
@@ -2936,7 +2916,6 @@ C_TensorUnaryOperation(Data const &arg_0,
   Data arg_0_Z = Data(arg_0);
 
   // Get rank and shape of inputs
-//  int rank0 = arg_0_Z.getDataPointRank();
   const DataTypes::ShapeType& shape0 = arg_0_Z.getDataPointShape();
   int size0 = arg_0_Z.getDataPointSize();
 
@@ -2945,8 +2924,6 @@ C_TensorUnaryOperation(Data const &arg_0,
 
   if (arg_0_Z.isConstant()) {
     res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
-//     double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[0]);
-//     double *ptr_2 = &((res.getPointDataView().getData())[0]);
     const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
     double *ptr_2 = &(res.getDataAtOffsetRW(0));
     tensor_unary_operation(size0, ptr_0, ptr_2, operation);
