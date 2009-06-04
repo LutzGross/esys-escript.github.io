@@ -46,7 +46,7 @@ using namespace boost::python;
 
 /*! \mainpage Esys Documentation
  *
- * \version 1.0.0
+ * \version 2.9.0
  *
  * - \ref escript
  *
@@ -62,7 +62,7 @@ using namespace boost::python;
  * Escript is the python module that contains the interfaces
  * to the C++ side of escript.
  *
- * \version 1.0.0 
+ * 
  *
  * \section class_desc Class Description:
  * Data
@@ -159,7 +159,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   class_<escript::Data>("Data","Represents a collection of datapoints. It is used to store the values of a function. For more details please consult the c++ class documentation.",init<>() )
     // various constructors for Data objects
-//    .def(init<const numeric::array&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
     .def(init<const object&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
     .def(init<const double, const tuple&, optional<const escript::FunctionSpace&, bool> >(args("value","shape","what","expand")))
     .def(init<const escript::Data&, const escript::FunctionSpace&>(args("value","what")))
@@ -167,7 +166,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
     // Note for Lutz, Need to specify the call policy in order to return a
     // reference. In this case return_internal_reference.
     .def("__str__",&escript::Data::toString)
-//     .def("getDomain",&escript::Data::getDomain,return_internal_reference<>())
     .def("getDomain",&escript::Data::getDomainPython)
     .def("getFunctionSpace",&escript::Data::getFunctionSpace,return_value_policy<copy_const_reference>())
     .def("isEmpty",&escript::Data::isEmpty)
@@ -176,6 +174,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("getShape",&escript::Data::getShapeTuple)
     .def("getRank",&escript::Data::getDataPointRank)
     .def("dump",&escript::Data::dump)
+    .def("toListOfTuples",&escript::Data::toListOfTuples, (arg("scalarastuple")=false))
     .def("copyWithMask",&escript::Data::copyWithMask)
     .def("setTaggedValue",&escript::Data::setTaggedValue)
     .def("setTaggedValue",&escript::Data::setTaggedValueByName)
