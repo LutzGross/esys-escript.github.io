@@ -50,18 +50,32 @@ There are a few differences between the wave equation and the heat diffusion pro
 \begin{verbatim}
 mypde.setSolverMethod(LinearPDE.LUMPING)
 \end{verbatim}
-the PDE would take a significant amount of time to solve. The \verb LUMPING  functionality implements an aggressive approximation for the $D$ coefficient matrix of the \esc linear PDE general form. While \verb LUMPING  introduces additional error to the solution it can significantly reduce the solution time. Care should be taken with however as this function can only be used when the $A$, $B$ and$C$ coefficients of the general form are zero. 
+the PDE would take a significant amount of time to solve. The \verb LUMPING  functionality implements an aggressive approximation for the $D$ coefficient matrix of the \esc linear PDE general form. While \verb LUMPING  introduces additional error to the solution it can significantly reduce the solution time. Care should be taken however, as this function can only be used when the $A$, $B$ and $C$ coefficients of the general form are zero. 
 
-As the wave equation has a double time derivative, it is not sufficient to only stipulate the initial conditions for one time step. Two time steps must be specified so that the equation can be solved. For this example $u$ (\verb u ) and $u(t-1)$ (\verb u_m1 ) will be the same but if both of these condititions are known, they can specified individually. It should be noted here that if multiple time steps are known or understood in the begining of a modle, they can be added to the simulation manually. The solver is then able to continue the model from where the data ends. Alternatively, if the source motion is understood, its position can be corrected for each itteration to create a more accurate recreation of an event. The source in this example will induce a radially propagating wave. To do this we will introduce a small displacement to the medium about a singularity which we have called \verb xc  , this is the source location. We start by giving the source some spatial magnitude by defining a small radius about \verb xc  which is affected. The \verb src_radius  is defined by 0.1 times the maxium (\verb Lsup() ) size of the domain;
+As the wave equation has a double time derivative, it is not sufficient to only stipulate the initial conditions for one time step. Two time steps must be specified so that the equation can be solved. For this example $u$ (\verb u ) and $u(t-1)$ (\verb u_m1 ) will be the same but if both of these condititions are known, they can be specified individually. It should be noted here that if multiple time steps are known for the begining of a model, they can be added to the simulation manually. The solver can then continue the model from the known data. Alternatively, if the source motion is understood, its position can be corrected for each itteration to create a more accurate recreation of an event. 
+
+The source in this example will induce a radially propagating wave. A small displacement will be applied to the medium about a singularity which we have called \verb xc  , this is the source location. We start by giving the source some spatial magnitude by defining a small radius about \verb xc  which is affected. The \verb src_radius  needs to cover a significant portion of grid nodes, otherwise the waves generated will suffer from dispersion due to an inadequate grid step size. If the source is small, the grid steping must reflect the size of the source for more accurate results. Our radius will be;
 \begin{verbatim}
- src_radius = 0.1*Lsup(domain.getSize())
+ src_radius = 50
+\end{verbatim}
+Now that the extent of the source has been allocated it needs two more things; a direction and a magnitude. We can choose a direction based on the 360 degrees that exist in a full circle. If we take $\theta=0$ to be the x-axis and move counter clockwise then we can create a directional vector $U=[dx,dy]$  where $tan(\theta) = dy/dx$. It is also necessary to ensure that our directional vector is a unit $|U|=1$ which implies $\sqrt{dx^2+dy^2}=1$. By doing this we ensure that no accidental scaling is introduced to our source term. Here are three examples of different directions which satisfy the above conditions;
+\begin{enumerate}
+ \item Along the x-axis: $U=[dx=1,dy=0]$
+ \item Along the y-axis: $U=[dx=0,dy=1]$
+ \item At 45deg: $U=[dx=\frac{1}{\sqrt2},dy=\frac{1}{\sqrt2}]$
+\end{enumerate}
+There are limitation to specifying the source in this manner. Realistically we would not expect a 2D surface source to move form side to side as an isotropic source makes more sense. \editor{I am not sure here how to create an isotropic source function.}. In the 3D case things are not quite so bad. Normally we are interested in the p-waves that are directed dowwards and thus we need not have any x or y component to our source directionality. This still introduced assumptions and removes realistic wave motions both s and p from the model.
+For our example we will use;
+\begin{verbatim}
+ dunit=numarray.array([1.,0.])
+\end{verbatim}
+Next we must define the values of our entire domain for the first and second time step. For the purposes of this example it is sufficient to have these to timesteps as equal. Setting the source is similar to earlier problems where we can use \esc functions to set specific areas of the domain to certain values. We must also smooth our sourse to its surrounds to prevent ?diffusion? errors. This is acheived using a cosine taper. Our source terms then become;
+\begin{verbatim}
+ u=U0*(cos(length(x-xc)*3.1415/src_radius)+1)*whereNegative(length(x-xc)-src_radius)*dunit
+ u_m1=u
 \end{verbatim}
 
-
- \esc can be used to model the propgation of waves through a medium. 
-
-
-
+Write now about phones.py, work on fitting form of wave equation to source terms.
 
 
 In this example we will see how the wave equation can be implemented using \esc and solved for in two dimensions. Our domain is defined by a thin sheet that has dimensions $x$ and $y$ and to model waves we will introduce a point source displacement at time zero. The affects of this displacement should propagate radially from the source and eventually be reflected from the boundaries of the model.
