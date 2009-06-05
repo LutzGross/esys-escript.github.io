@@ -76,7 +76,7 @@ then
     EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/boost/lib:$ESCRIPT_PARENT/packages/netcdf/lib/:$EXTRA_LD_LIBRARY_PATH
     EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/vtk/lib/vtk-5.2:$ESCRIPT_PARENT/packages/mesa/lib:$EXTRA_LD_LIBRARY_PATH
     EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/python/lib:$EXTRA_LD_LIBRARY_PATH
-    EXTRA_PYTHONPATH=$ESCRIPT_PARENT/packages/numpy/lib:$ESCRIPT_PARENT/packages/vtk/lib/python2.6/site-packages:$EXTRA_PYTHONPATH
+    EXTRA_PYTHONPATH=$ESCRIPT_PARENT/packages/numpy/lib/python2.6/site-packages:$ESCRIPT_PARENT/packages/vtk/lib/python2.6/site-packages:$EXTRA_PYTHONPATH
 fi
 
 
