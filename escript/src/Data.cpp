@@ -1077,16 +1077,20 @@ const boost::python::object
 Data::toListOfTuples(bool scalarastuple)
 {
     using namespace boost::python;
+    using boost::python::list;
     if (get_MPISize()>1)
     {
         throw DataException("::toListOfTuples is not available for MPI with more than one process.");
     }
     unsigned int rank=getDataPointRank();
     unsigned int size=getDataPointSize();
-    boost::python::list res;
+
     int npoints=getNumDataPoints();
     expand();			// This will also resolve if required
     const DataTypes::ValueType& vec=getReady()->getVectorRO();
+    boost::python::list temp;
+    temp.append(object());
+    boost::python::list res(temp*npoints);// presize the list by the "[None] * npoints"  trick
     if (rank==0)
     {
         long count;
@@ -1094,14 +1098,14 @@ Data::toListOfTuples(bool scalarastuple)
         {
             for (count=0;count<npoints;++count)
             {
-                res.append(make_tuple(vec[count]));
+		res[count]=make_tuple(vec[count]);
             }
         }
         else
         {
             for (count=0;count<npoints;++count)
             {
-                res.append(vec[count]);
+                res[count]=vec[count];
             }
         }
     }
@@ -1111,8 +1115,7 @@ Data::toListOfTuples(bool scalarastuple)
         size_t offset=0;
         for (count=0;count<npoints;++count,offset+=size)
         {
-	    // need to pull a pointer to the start of the element (also need a way to skip to the next element)
-            res.append(pointToTuple1(getDataPointShape(), vec, offset));
+            res[count]=pointToTuple1(getDataPointShape(), vec, offset);
         }
     }
     else if (rank==2)
@@ -1121,8 +1124,7 @@ Data::toListOfTuples(bool scalarastuple)
         size_t offset=0;
         for (count=0;count<npoints;++count,offset+=size)
         {
-	    // need to pull a pointer to the start of the element (also need a way to skip to the next element)
-            res.append(pointToTuple2(getDataPointShape(), vec, offset));
+	    res[count]=pointToTuple2(getDataPointShape(), vec, offset);
         }
     }
     else if (rank==3)
@@ -1131,8 +1133,7 @@ Data::toListOfTuples(bool scalarastuple)
         size_t offset=0;
         for (count=0;count<npoints;++count,offset+=size)
         {
-	    // need to pull a pointer to the start of the element (also need a way to skip to the next element)
-            res.append(pointToTuple3(getDataPointShape(), vec, offset));
+            res[count]=pointToTuple3(getDataPointShape(), vec, offset);
         }
     }
     else if (rank==4)
@@ -1141,8 +1142,7 @@ Data::toListOfTuples(bool scalarastuple)
         size_t offset=0;
         for (count=0;count<npoints;++count,offset+=size)
         {
-	    // need to pull a pointer to the start of the element (also need a way to skip to the next element)
-            res.append(pointToTuple4(getDataPointShape(), vec, offset));
+            res[count]=pointToTuple4(getDataPointShape(), vec, offset);
         }
     }
     else
