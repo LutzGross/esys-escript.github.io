@@ -44,7 +44,7 @@ The build directory can be removed when you are finished.
 \begin{shellCode}
 mkdir stand
 cd stand
-export PKG_ROOT=`pwd`/packages
+export PKG_ROOT=$(pwd)/packages
 \end{shellCode}
 
 Copy compressed source bundles into \filename{stand/package_src}.
@@ -60,9 +60,9 @@ tar -jxf ../package_src/MesaLib-7.2.tar.bz2
 tar -zxf ../package_src/netcdf-4.0.tar.gz
 tar -zxf ../package_src/vtk-5.2.1.tar.gz
 tar -zxf ../package_src/vtkdata-5.2.1.tar.gz
-tar -zxf ../package_src/numarray-1.5.2.tar.gz
 tar -zxf ../package_src/cmake-2.6.3.tar.gz
 tar -zxf ../package_src/scons-1.2.0.tar.gz
+tar -zxf ../package_src/numpy-1.3.0.tar.gz
 \end{shellCode}
 
 Build python.
@@ -85,23 +85,35 @@ popd
 \end{shellCode}
 
 Run python to make sure it works.
-Now build numarray.
+Now build numpy.
 
 \begin{shellCode}
-cd numarray-1.5.2
-
-python setup.py install \
- --gencode --install-lib=$PKG_ROOT/numarray-1.5.2/lib \
- --install-headers=$PKG_ROOT=$PKG_ROOT/numarray-1.5.2/include/numarray \ 
-   2>&1 | tee tt.install.out
-
-
-export PYTHONPATH=$PKG_ROOT/numarray/lib:$PYTHONPATH
+cd numpy-1.3.0
+python setup.py build
+python setup.py install --prefix $PKG_ROOT/numpy-1.3.0
 cd ..
 pushd ../packages
-ln -s numarray-1.5.2 numarray
+ln -s numpy-1.3.0 numpy
 popd
+export PYTHONPATH=$PKG_ROOT/numpy/lib/python2.6/site-packages:$PYTHONPATH
 \end{shellCode}
+
+
+% \begin{shellCode}
+% cd numarray-1.5.2
+% 
+% python setup.py install \
+%  --gencode --install-lib=$PKG_ROOT/numarray-1.5.2/lib \
+%  --install-headers=$PKG_ROOT=$PKG_ROOT/numarray-1.5.2/include/numarray \ 
+%    2>&1 | tee tt.install.out
+% 
+% 
+% export PYTHONPATH=$PKG_ROOT/numarray/lib:$PYTHONPATH
+% cd ..
+% pushd ../packages
+% ln -s numarray-1.5.2 numarray
+% popd
+% \end{shellCode}
 
 Now we build scons.
 \begin{shellCode}
@@ -135,8 +147,8 @@ popd
 ... and netcdf.
 \begin{shellCode}
 cd netcdf-4.0
-CFLAGS="-O2 fPIC -Df2cFortran" CXXFLAGS="-O2 fPIC -Df2cFortran" \
-FFLAGS="-O2 fPIC -Df2cFortran" FCFLAGS="-O2 fPIC -Df2cFortran" \
+CFLAGS="-O2 -fPIC -Df2cFortran" CXXFLAGS="-O2 -fPIC -Df2cFortran" \
+FFLAGS="-O2 -fPIC -Df2cFortran" FCFLAGS="-O2 -fPIC -Df2cFortran" \
 ./configure --prefix=$PKG_ROOT/netcdf-4.0
 
 make -j2
@@ -183,7 +195,7 @@ popd
 cd VTK
 cmake .
 
-#Edit the CMakeCache and make the following changes: 
+#Edit the CMakeCache.txt file and make the following changes: 
 #(Please replace .... with an absolute path to the stand directory)
 
 #-----------------
@@ -255,25 +267,25 @@ cp linux_options_example.py YourMachineName_options.py
 #edit the options file and make the following changes:
 #-----------------------------------------------------------------
 declare a PKG_ROOT variable at the top of the file eg:
-PKG_ROOT='/home/jfenwick/stand/packages'
+PKG_ROOT="/home/jfenwick/stand/packages"
 
-python_path		= PKG_ROOT+'python/include/python2.6'
-python_lib_path		= PKG_ROOT+'python/lib'
-python_libs		= 'python2.6'
+python_path		= PKG_ROOT+"python/include/python2.6"
+python_lib_path		= PKG_ROOT+"python/lib"
+python_libs		= "python2.6"
 
-boost_path		= PKG_ROOT+'boost/include/boost-1_37'
-boost_lib_path		= PKG_ROOT+'boost/lib'
-boost_libs		= ['boost_python-gcc43-mt']
+boost_path		= PKG_ROOT+"boost/include/boost-1_37"
+boost_lib_path		= PKG_ROOT+"boost/lib"
+boost_libs		= ["boost_python-gcc43-mt"]
 # You could simlink the boost python library to give a shorter 
 # name but it's not worth it
 
-usevtk		= 'yes'
+usevtk		= "yes"
 #-------------------------------------------------------------------
 
-ln -s $PKG_ROOT/vtk-5.2.1 $PKG_ROOT/vtk
+cd ..
 
-Modify bin/escript
-
+#Modify bin/escript
+#--------------------------------------------------
 STANDALONE=1
 
 #Check to make sure the paths in the if [ $STANDALONE == 1 ]
@@ -283,9 +295,9 @@ STANDALONE=1
 
 #start a new terminal
 cd stand
-export PATH=`pwd`/packages/scons/bin:$PATH
+export PATH=$(pwd)/packages/scons/bin:$PATH
 cd escript.d
-eval `bin/escript -e`
+eval $(bin/escript -e)
 scons
 \end{shellCode}
 
