@@ -28,6 +28,7 @@ from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle
 from numarray import identity,zeros,ones
 import os
+from phones import *
 
 ########################################################
 # subroutine: wavesolver2d
@@ -47,7 +48,7 @@ def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath):
    x=domain.getX()
    # ... open new PDE ...
    mypde=LinearPDE(domain)
-   mypde.setSolverMethod(LinearPDE.LUMPING)
+   #mypde.setSolverMethod(LinearPDE.LUMPING)
    mypde.setSymmetryOn()
    kmat = kronecker(domain)
    mypde.setValue(D=kmat*rho)
@@ -65,16 +66,13 @@ def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath):
    # initial value of displacement at point source is constant (U0=0.01)
    # for first two time steps
    u=U0*(cos(length(x-xc)*3.1415/src_radius)+1)*whereNegative(length(x-xc)-src_radius)*dunit
-   u_m1=U0*(cos(length(x-xc)*3.1415/src_radius)+1)*whereNegative(length(x-xc)-src_radius)*dunit
+   u_m1=u
    t=0
 
-   # define the location of the point source 
-   L=Locator(domain,numarray.array(xc))
-   # find potential at point source
-   u_pc=L.getValue(u)
- 
-   u_pc_x = u_pc[0]
-   u_pc_y = u_pc[1]
+   u_pot = cbphones(domain,u,[[125,250],[250,250],[250,375]],2)
+   print u_pot[0,1]
+   u_pc_x = u_pot[0,0]
+   u_pc_y = u_pot[0,1]
 
    # open file to save displacement at point source
    u_pc_data=open(os.path.join(savepath,'U_pc.out'),'w')
@@ -106,12 +104,12 @@ def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath):
      t+=h
      n+=1
      print n,"-th time step t ",t
-     u_pc=L.getValue(u)
+     u_pot = cbphones(domain,u,[[125.,250.],[250.,250.],[250.,375.]],2)
+
 #     print "u at point charge=",u_pc
      
-     u_pc_x=u_pc[0]
-     u_pc_y=u_pc[1]
-           
+     u_pc_x = u_pot[0,0]
+     u_pc_y = u_pot[0,1]           
      # save displacements at point source to file for t > 0
      u_pc_data.write("%f %f %f\n"%(t,u_pc_x,u_pc_y))
  
