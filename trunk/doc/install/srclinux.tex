@@ -197,25 +197,30 @@ cmake .
 
 #Edit the CMakeCache.txt file and make the following changes: 
 #(Please replace .... with an absolute path to the stand directory)
-
+#The text before the = is the text to search for.
+#For example, 
+#   BUILD_SHARED_LIBS:BOOL=OFF
+# should be changed to read
+#   BUILD_SHARED_LIBS:BOOL=ON
 #-----------------
 
-BUILD_EXAMPLES should be OFF
-BUILD_SHARED_LIBS should be ON
+BUILD_EXAMPLES:BOOL=OFF
+BUILD_SHARED_LIBS:BOOL=ON
 
-CMAKE_INSTALL_PREFIX	..../stand/packages/vtk-5.2.1
-CMAKE_VERBOSE_MAKEFILE	TRUE
+CMAKE_INSTALL_PREFIX:PATH=..../stand/packages/vtk-5.2.1
+CMAKE_VERBOSE_MAKEFILE:BOOL=TRUE
 
 #check PYTHON_EXECUTABLE is correct.
 #but it seems to be when I went through these steps
 
-VTK_OPENGL_HAS_OSMESA	TRUE
-VTK_USE_64BIT_IDS	ON
+VTK_OPENGL_HAS_OSMESA:BOOL=TRUE
+VTK_USE_64BIT_IDS:BOOL=ON
 # That last one is marked as "May cause some bugs" in the original instructions
 
-VTK_WRAP_PYTHON	ON
-VTK_USE_MANGLED_MESA	OFF
+VTK_WRAP_PYTHON:BOOL=ON
+VTK_USE_MANGLED_MESA:BOOL=OFF
 
+VTK_USE_OFFSCREEN:BOOL=ON
 #--------------------
 
 cmake .
@@ -225,19 +230,19 @@ cmake .
 
 #----------------
 
-VTK_USE_TK	OFF
+VTK_USE_TK:BOOL=OFF
 
-OSMESA_INCLUDE_DIR	..../stand/packages/mesa/include
+OSMESA_INCLUDE_DIR:PATH=..../stand/packages/mesa/include
 
-OSMESA_LIBRARY	..../stand/packages/mesa/lib/libOSMesa.so
+OSMESA_LIBRARY:FILEPATH=..../stand/packages/mesa/lib/libOSMesa.so
 
-PYTHON_INCLUDE_PATH	..../stand/packages/python/include/python2.6
+PYTHON_INCLUDE_PATH:PATH=..../stand/packages/python/include/python2.6
 
-PYTHON_LIBRARY	..../stand/packages/python/lib/libpython2.6.so
+PYTHON_LIBRARY:FILEPATH=..../stand/packages/python/lib/libpython2.6.so
 
-OPENGL_INCLUDE_DIR	..../stand/packages/mesa/include
+OPENGL_INCLUDE_DIR:PATH=..../stand/packages/mesa/include
 
-OPENGL_gl_LIBRARY	..../stand/packages/mesa/lib/libGL.so
+OPENGL_gl_LIBRARY:FILEPATH=..../stand/packages/mesa/lib/libGL.so
 
 #----------------
 
