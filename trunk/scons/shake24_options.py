@@ -78,10 +78,10 @@ useopenmp		= 'no'
 
 # MPI MPT (no module load required)
 # usempi		= 'no'
-mpi_path		= '/opt/local/include'
-mpi_lib_path		= '/opt/local/lib'
-mpi_libs		= ['mpi']
-mpi_flavour		= 'MPICH2'
+mpi_path		= '/usr/local/include'
+mpi_lib_path		= '/usr/local/lib'
+mpi_libs		= ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
+mpi_flavour		= 'OPENMPI'
 
 # ParMETIS (for use with MPI)
 # useparmetis		= 'yes'
