@@ -248,7 +248,7 @@ class Data {
 
   /**
      \brief
-     Returns trueif the data object is protected against update
+     Returns true, if the data object is protected against update
 
   */
   ESCRIPT_DLL_API
@@ -258,7 +258,7 @@ class Data {
 
 /**
    \brief 
-   Return teh value of a data point as a python tuple.
+   Return the value of a data point as a python tuple.
 */
   ESCRIPT_DLL_API
   const boost::python::object
@@ -567,7 +567,7 @@ If false, the result is a list of scalars [1, 2, ...]
  */
   ESCRIPT_DLL_API
   const boost::python::object
-  toListOfTuples(bool scalarastuple=false);
+  toListOfTuples(bool scalarastuple=true);
 
 
  /**
