@@ -1176,7 +1176,7 @@ Data::getValueOfDataPointAsTuple(int dataPointNo)
   }
   else
   {
-	// The old method would return an empty numArray of the given shape
+	// The pre-numpy method would return an empty array of the given shape
 	// I'm going to throw an exception because if we have zero points per sample we have problems
 	throw DataException("Error - need at least 1 datapoint per sample.");
   }
@@ -1273,13 +1273,13 @@ Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
 	//
 	// Check a valid sample number has been supplied
 	if ((sampleNo >= getNumSamples()) || (sampleNo < 0 )) {
-		throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
+		throw DataException("Error - Data::getValueOfGlobalDataPointAsTuple: invalid sampleNo.");
 	}
 
 	//
 	// Check a valid data point number has been supplied
 	if ((dataPointNoInSample >= getNumDataPointsPerSample()) || (dataPointNoInSample < 0)) {
-		throw DataException("Error - Data::convertToNumArray: invalid dataPointNoInSample.");
+		throw DataException("Error - Data::getValueOfGlobalDataPointAsTuple: invalid dataPointNoInSample.");
 	}
 	// TODO: global error handling
 	DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);

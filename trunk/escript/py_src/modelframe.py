@@ -670,8 +670,12 @@ class ParameterSet(LinkableObject):
                     shape = [int(x) for x in shape.split()]
                 if node.tagName == 'Data':
                     data = node.firstChild.nodeValue.strip()
-                    data = [float(x) for x in data.split()]
-            return numpy.reshape(numpy.array(data, dtype=getattr(numpy, arraytype)),
+	    ndtype=getattr(numpy,arraytype)
+	    if ndtype==numpy.bool_:
+		data=[(x=="True") for x in data.split()]
+	    else:
+		data=[ndtype(x) for x in data.split()]
+            return numpy.reshape(numpy.array(data, dtype=ndtype),
                                     shape)
 
         def _listfromValue(esysxml, node):
