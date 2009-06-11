@@ -37,14 +37,14 @@ with fix for contact elements at FAULT ENDS
 __author__="Louise Kettle"
 
 from esys.escript import *
-from numarray import zeros,Float,array,size
+from numpy import zeros,float64,array,size
 
 #... generate domain ...
 ne = 10
 width  = 100000.
 height =  30000.
-fstart=numarray.array([width/2.,7.*width/16.,3.*height/8.])
-fend=numarray.array([width/2.,9.*width/16.,5.*height/8.])
+fstart=array([width/2.,7.*width/16.,3.*height/8.])
+fend=array([width/2.,9.*width/16.,5.*height/8.])
 
 def faultL(l0,l1, l2,ne0, ne1, ne2,contact=False,xstart=zeros(3),xend=zeros(3)):
    meshfaultL=open('meshfault3D.fly','w')
@@ -136,10 +136,10 @@ def faultL(l0,l1, l2,ne0, ne1, ne2,contact=False,xstart=zeros(3),xend=zeros(3)):
    # define nodes for normal elements
    # there are N0*N1*N2 normal nodes
    
-   Node=zeros([3,numNodes],Float)
-   Node_ref=zeros(numNodes,Float)
-   Node_DOF=zeros(numNodes,Float)
-   Node_tag=zeros(numNodes,Float)
+   Node=zeros([3,numNodes],float64)
+   Node_ref=zeros(numNodes,float64)
+   Node_DOF=zeros(numNodes,float64)
+   Node_tag=zeros(numNodes,float64)
 
    meshfaultL.write("KettleFault\n")
    #print 'Nodes'
@@ -198,9 +198,9 @@ def faultL(l0,l1, l2,ne0, ne1, ne2,contact=False,xstart=zeros(3),xend=zeros(3)):
    # defining interior elements
    # there are ne0*ne1*ne2 interior elements
 
-   Element_Nodes=zeros([8,ne0*ne1*ne2],Float)
-   Element_ref=zeros(ne0*ne1*ne2,Float)
-   Element_tag=zeros(ne0*ne1*ne2,Float)
+   Element_Nodes=zeros([8,ne0*ne1*ne2],float64)
+   Element_ref=zeros(ne0*ne1*ne2,float64)
+   Element_tag=zeros(ne0*ne1*ne2,float64)
 
    #print 'Interior elements'
 
@@ -428,9 +428,9 @@ def faultL(l0,l1, l2,ne0, ne1, ne2,contact=False,xstart=zeros(3),xend=zeros(3)):
 
    meshfaultL.write("%s %d\n"%(FaceElement_Type,FaceElement_Num))
 
-   FaceElement_Nodes=zeros([FaceElement_numNodes,FaceElement_Num],Float)
-   FaceElement_ref=zeros(FaceElement_Num,Float)
-   FaceElement_tag=zeros(FaceElement_Num,Float)
+   FaceElement_Nodes=zeros([FaceElement_numNodes,FaceElement_Num],float64)
+   FaceElement_ref=zeros(FaceElement_Num,float64)
+   FaceElement_tag=zeros(FaceElement_Num,float64)
    
    kcount=0
 
@@ -572,9 +572,9 @@ def faultL(l0,l1, l2,ne0, ne1, ne2,contact=False,xstart=zeros(3),xend=zeros(3)):
    if contact==True:
       if n0double==0:
          ContactElement_Num=(n1double)*(n2double)
-         ContactElement_Nodes=zeros([ContactElement_numNodes,ContactElement_Num],Float)
-         ContactElement_ref=zeros(ContactElement_Num,Float)
-         ContactElement_tag=zeros(ContactElement_Num,Float)
+         ContactElement_Nodes=zeros([ContactElement_numNodes,ContactElement_Num],float64)
+         ContactElement_ref=zeros(ContactElement_Num,float64)
+         ContactElement_tag=zeros(ContactElement_Num,float64)
          #print ContactElement_Num
 
          for i2 in range(n2double):

@@ -46,14 +46,14 @@
 						</Link>
 					</Value>
 				</Parameter>
-				<Parameter type="NumArray">
+				<Parameter type="ndarray">
 					<Name>
 						right
 					</Name>
 					<Value>
-						<NumArray>
+						<ndarray>
 							<ArrayType>
-								Int
+								int_
 							</ArrayType>
 							<Shape>
 								3
@@ -61,17 +61,17 @@
 							<Data>
 								1 0 0
 							</Data>
-						</NumArray>
+						</ndarray>
 					</Value>
 				</Parameter>
-				<Parameter type="NumArray">
+				<Parameter type="ndarray">
 					<Name>
 						bottom
 					</Name>
 					<Value>
-						<NumArray>
+						<ndarray>
 							<ArrayType>
-								Int
+								int_
 							</ArrayType>
 							<Shape>
 								3
@@ -79,17 +79,17 @@
 							<Data>
 								0 1 0
 							</Data>
-						</NumArray>
+						</ndarray>
 					</Value>
 				</Parameter>
-				<Parameter type="NumArray">
+				<Parameter type="ndarray">
 					<Name>
 						top
 					</Name>
 					<Value>
-						<NumArray>
+						<ndarray>
 							<ArrayType>
-								Int
+								int_
 							</ArrayType>
 							<Shape>
 								3
@@ -97,17 +97,17 @@
 							<Data>
 								0 1 0
 							</Data>
-						</NumArray>
+						</ndarray>
 					</Value>
 				</Parameter>
-				<Parameter type="NumArray">
+				<Parameter type="ndarray">
 					<Name>
 						back
 					</Name>
 					<Value>
-						<NumArray>
+						<ndarray>
 							<ArrayType>
-								Int
+								int_
 							</ArrayType>
 							<Shape>
 								3
@@ -115,7 +115,7 @@
 							<Data>
 								0 0 1
 							</Data>
-						</NumArray>
+						</ndarray>
 					</Value>
 				</Parameter>
 				<Parameter type="NoneType">
@@ -134,14 +134,14 @@
 						1e-08
 					</Value>
 				</Parameter>
-				<Parameter type="NumArray">
+				<Parameter type="ndarray">
 					<Name>
 						front
 					</Name>
 					<Value>
-						<NumArray>
+						<ndarray>
 							<ArrayType>
-								Int
+								int_
 							</ArrayType>
 							<Shape>
 								3
@@ -149,17 +149,17 @@
 							<Data>
 								0 0 1
 							</Data>
-						</NumArray>
+						</ndarray>
 					</Value>
 				</Parameter>
-				<Parameter type="NumArray">
+				<Parameter type="ndarray">
 					<Name>
 						left
 					</Name>
 					<Value>
-						<NumArray>
+						<ndarray>
 							<ArrayType>
-								Int
+								int_
 							</ArrayType>
 							<Shape>
 								3
@@ -167,7 +167,7 @@
 							<Data>
 								1 0 0
 							</Data>
-						</NumArray>
+						</ndarray>
 					</Value>
 				</Parameter>
 			</Model>
@@ -899,14 +899,14 @@
 				2
 			</Value>
 		</Parameter>
-		<Parameter type="NumArray">
+		<Parameter type="ndarray">
 			<Name>
 				l
 			</Name>
 			<Value>
-				<NumArray>
+				<ndarray>
 					<ArrayType>
-						Float
+						float_
 					</ArrayType>
 					<Shape>
 						3
@@ -914,7 +914,7 @@
 					<Data>
 						1.0 1.0 1.0
 					</Data>
-				</NumArray>
+				</ndarray>
 			</Value>
 		</Parameter>
 		<Parameter type="int">
@@ -925,14 +925,14 @@
 				-1
 			</Value>
 		</Parameter>
-		<Parameter type="NumArray">
+		<Parameter type="ndarray">
 			<Name>
 				n
 			</Name>
 			<Value>
-				<NumArray>
+				<ndarray>
 					<ArrayType>
-						Int
+						int_
 					</ArrayType>
 					<Shape>
 						3
@@ -940,25 +940,25 @@
 					<Data>
 						10 10 10
 					</Data>
-				</NumArray>
+				</ndarray>
 			</Value>
 		</Parameter>
-		<Parameter type="NumArray">
+		<Parameter type="ndarray">
 			<Name>
 				periodic
 			</Name>
 			<Value>
-				<NumArray>
+				<ndarray>
 					<ArrayType>
-						Bool
+						bool_
 					</ArrayType>
 					<Shape>
 						3
 					</Shape>
 					<Data>
-						0 0 0
+						False False False
 					</Data>
-				</NumArray>
+				</ndarray>
 			</Value>
 		</Parameter>
 		<Parameter type="int">
@@ -1001,14 +1001,14 @@
 				</Link>
 			</Value>
 		</Parameter>
-		<Parameter type="NumArray">
+		<Parameter type="ndarray">
 			<Name>
 				direction
 			</Name>
 			<Value>
-				<NumArray>
+				<ndarray>
 					<ArrayType>
-						Float
+						float_
 					</ArrayType>
 					<Shape>
 						3
@@ -1016,7 +1016,7 @@
 					<Data>
 						0.0 -1.0 0.0
 					</Data>
-				</NumArray>
+				</ndarray>
 			</Value>
 		</Parameter>
 		<Parameter type="Link">
@@ -1333,14 +1333,14 @@
 				0
 			</Value>
 		</Parameter>
-		<Parameter type="NumArray">
+		<Parameter type="ndarray">
 			<Name>
 				x_c
 			</Name>
 			<Value>
-				<NumArray>
+				<ndarray>
 					<ArrayType>
-						Float
+						float_
 					</ArrayType>
 					<Shape>
 						3
@@ -1348,7 +1348,7 @@
 					<Data>
 						0.5 0.5 0.5
 					</Data>
-				</NumArray>
+				</ndarray>
 			</Value>
 		</Parameter>
 	</ParameterSet>
