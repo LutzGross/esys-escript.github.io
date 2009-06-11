@@ -29,7 +29,7 @@ import os
 from cblib import *
 
 # Establish a save path.
-savepath = "data/wavesolver2d001nwtest"
+savepath = "data/wavesolver2d002nwtest"
 # Creating a directory automatically to store the output data.
 if not os.path.isdir("data"):
    os.mkdir("data")
@@ -46,7 +46,7 @@ lam=3.462e9 #lames constant
 mu=3.462e9  #bulk modulus
 rho=1154.   #density
 # Time related variables.
-tend=0.5    #end time
+tend=0.1    #end time
 #calculating )the timestep
 h=(1./5.)*sqrt(rho/(lam+2*mu))*(mx/ndx)
 #Check to make sure number of time steps is not too large.
@@ -62,5 +62,5 @@ U0=0.01 # amplitude of point source
 xc=[300,200]
 
 mydomain=Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
-wavesolver2d(mydomain,h,tend,lam,mu,rho,U0,xc,savepath)
+wavesolver2df(mydomain,h,tend,lam,mu,rho,U0,xc,savepath)
 

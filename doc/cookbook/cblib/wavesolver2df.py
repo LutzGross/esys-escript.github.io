@@ -33,7 +33,7 @@ from phones import *
 ########################################################
 # subroutine: wavesolver2d
 # Can solve a generic 2D wave propagation problem with a
-# point source in a homogeneous medium.
+# point source in a homogeneous medium with friction.
 # Arguments:
 #	domain  : domain to solve over
 #	h       : time step
@@ -44,14 +44,15 @@ from phones import *
 #	xc	: source location in domain (Vector)
 #	savepath: where to output the data files
 ########################################################
-def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath):
+def wavesolver2df(domain,h,tend,lam,mu,rho,U0,xc,savepath):
    x=domain.getX()
    # ... open new PDE ...
    mypde=LinearPDE(domain)
    #mypde.setSolverMethod(LinearPDE.LUMPING)
    mypde.setSymmetryOn()
    kmat = kronecker(domain)
-   mypde.setValue(D=kmat*rho)
+   mypde.setValue(D=kmat)
+   b=0.9
 
    # define small radius around point xc
    # Lsup(x) returns the maximum value of the argument x
@@ -93,7 +94,8 @@ def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath):
      ### ... get new displacement ...
      #u_p1=2*u-u_m1+h*h*a
 ###NEW WAY
-     mypde.setValue(X=-stress*(h*h),Y=(rho*2*u-rho*u_m1))
+     y = ((rho/(-rho-b*h))*(u_m1-2*u))+(((b*h)/(-rho-(b*h)))*-u)
+     mypde.setValue(X=-stress*((h*h)/(-rho-h*b)),Y=y)
      u_p1 = mypde.getSolution()
      # ... shift displacements ....
      u_m1=u

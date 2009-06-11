@@ -8,6 +8,7 @@ import os
 sys.path.insert(0,'cblib')
 #import all examples to library
 from wavesolver2d import *
+from wavesolver2df import *
 from phones import *
 #exit subdirectory
 del sys.path[0]

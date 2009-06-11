@@ -26,27 +26,28 @@ from esys.escript import *
 from esys.escript.pdetools import Locator
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle
-from numarray import identity,zeros,ones
+from numpy import identity,zeros,ones
 import os
 
 ########################################################
-# subroutine: wavesolver2d
-# Can solve a generic 2D wave propagation problem with a
-# point source in a homogeneous medium.
+# subroutine: cbphones
+# Allows us to record the values of a PDE at various 
+# specified locations in the model.
 # Arguments:
+#	domain  : domain of model
 #	U       : Current time state displacement solution.
 #	phones  : Geophone Locations
 #	dim     : model dimesions
-#	savepath: where to output the data files
+#	savepath: where to output the data files local is default
 ########################################################
 def cbphones(domain,U,phones,dim,savepath=""):
    #find the number of geophones
    nphones = len(phones)
-   u_pot = zeros(shape=[nphones,dim],type='Float32')
+   u_pot = zeros([nphones,dim],float)
    
    for i in range(0,nphones):
      # define the location of the phone source 
-     L=Locator(domain,numarray.array(phones[i]))
+     L=Locator(domain,numpy.array(phones[i]))
      # find potential at point source.
      temp = L.getValue(U)
      for j in range(0,dim):
