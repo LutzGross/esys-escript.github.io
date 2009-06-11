@@ -78,7 +78,7 @@ useumfpack		= 'yes'
 useopenmp		= 'no'
 
 # OPENMP
-usempi= 'yes'
+usempi= 'no'
 mpi_path		= '/usr/include/mpi'
 mpi_lib_path		= '/usr/lib'
 mpi_libs                = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']

@@ -44,6 +44,818 @@ import numpy
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 
+class SolverOptions(object):
+    """
+    this class defines the solver options for a linear or non-linear solver.
+    
+    The option also supports the handling of diagnostic informations. 
+    
+    Typical usage is 
+    
+    opts=SolverOptions()
+    print opts
+    opts.resetDiagnostics()
+    u=solver(opts)
+    print "number of iteration steps: =",opts.getDiagnostics("num_iter")
+    
+
+    @cvar DEFAULT: The default method used to solve the system of linear equations
+    @cvar DIRECT: The direct solver based on LDU factorization
+    @cvar CHOLEVSKY: The direct solver based on LDLt factorization (can only be applied for symmetric PDEs)
+    @cvar PCG: The preconditioned conjugate gradient method (can only be applied for symmetric PDEs)
+    @cvar CR: The conjugate residual method
+    @cvar CGS: The conjugate gradient square method
+    @cvar BICGSTAB: The stabilized Bi-Conjugate Gradient method
+    @cvar TFQMR: Transport Free Quasi Minimal Residual method
+    @cvar MINRES: Minimum residual method
+    @cvar SSOR: The symmetric over-relaxation method
+    @cvar ILU0: The incomplete LU factorization preconditioner with no fill-in
+    @cvar ILUT: The incomplete LU factorization preconditioner with fill-in
+    @cvar JACOBI: The Jacobi preconditioner
+    @cvar GMRES: The Gram-Schmidt minimum residual method
+    @cvar PRES20: Special GMRES with restart after 20 steps and truncation after 5 residuals
+    @cvar LUMPING: Matrix lumping
+    @cvar NO_REORDERING: No matrix reordering allowed
+    @cvar MINIMUM_FILL_IN: Reorder matrix to reduce fill-in during factorization
+    @cvar NESTED_DISSECTION: Reorder matrix to improve load balancing during factorization
+    @cvar PASO: PASO solver package
+    @cvar SCSL: SGI SCSL solver library
+    @cvar MKL: Intel's MKL solver library
+    @cvar UMFPACK: The UMFPACK library
+    @cvar TRILINOS: The TRILINOS parallel solver class library from Sandia National Labs
+    @cvar ITERATIVE: The default iterative solver
+    @cvar AMG: Algebraic Multi Grid
+    @cvar REC_ILU: recursive ILU0
+    @cvar RILU: relaxed ILU0
+    @cvar GAUSS_SEIDEL: Gauss-Seidel solver
+    @cvar DEFAULT_REORDERING: the reordering method recommended by the solver
+    @cvar SUPER_LU: the Super_LU solver package
+    @cvar PASTIX: the Pastix direct solver_package
+    @cvar YAIR_SHAPIRA_COARSENING: AMG coarsening method by Yair-Shapira
+    @cvar RUGE_STUEBEN_COARSENING: AMG coarsening method by Ruge and Stueben
+    @cvar AGGREGATION_COARSENING: AMG coarsening using (symmetric) aggregation
+    @cvar NO_PRECONDITIONER: no preconditioner is applied.
+    """
+    DEFAULT= 0
+    DIRECT= 1
+    CHOLEVSKY= 2
+    PCG= 3
+    CR= 4
+    CGS= 5
+    BICGSTAB= 6
+    SSOR= 7
+    ILU0= 8
+    ILUT= 9
+    JACOBI= 10
+    GMRES= 11
+    PRES20= 12
+    LUMPING= 13
+    NO_REORDERING= 17
+    MINIMUM_FILL_IN= 18
+    NESTED_DISSECTION= 19
+    MKL= 15
+    UMFPACK= 16
+    ITERATIVE= 20
+    PASO= 21
+    AMG= 22
+    REC_ILU = 23
+    TRILINOS = 24
+    NONLINEAR_GMRES = 25
+    TFQMR = 26
+    MINRES = 27
+    GAUSS_SEIDEL=28
+    RILU=29
+    DEFAULT_REORDERING=30
+    SUPER_LU=31
+    PASTIX=32
+    YAIR_SHAPIRA_COARSENING=33
+    RUGE_STUEBEN_COARSENING=34
+    AGGREGATION_COARSENING=35
+    NO_PRECONDITIONER=36
+    def __init__(self):
+        self.setLevelMax()
+        self.setCoarseningThreshold()
+        self.setNumSweeps()
+        self.setNumPreSweeps()
+        self.setNumPostSweeps()
+        self.setTolerance()
+        self.setAbsoluteTolerance()
+        self.setInnerTolerance()
+        self.setDropTolerance()
+        self.setDropStorage()
+        self.setIterMax()
+        self.setInnerIterMax()
+        self.setTruncation()
+        self.setRestart()
+        self.setSymmetry()
+        self.setVerbosity()
+        self.setInnerToleranceAdaption()
+        self.setAcceptanceConvergenceFailure()
+        self.setReordering()
+        self.setPackage()
+        self.setSolverMethod()
+        self.setPreconditioner()
+        self.setCoarsening()
+        self.setRelaxationFactor()        
+        self.resetDiagnostics(all=True)
+
+    def __str__(self):
+        return self.getSummary()
+    def getSummary(self):
+        """
+        Returns a string reporting the current settings
+        """
+        out="Solver Package: %s"%(self.getName(self.getPackage()))
+        out+="\nVerbosity = %s"%self.isVerbose()
+        out+="\nAccept failed convergence = %s"%self.acceptConvergenceFailure()
+        out+="\nRelative tolerance = %e"%self.getTolerance()
+        out+="\nAbsolute tolerance = %e"%self.getAbsoluteTolerance()
+        out+="\nSymmetric problem = %s"%self.isSymmetric()
+        out+="\nMaximum number of iteration steps = %s"%self.getIterMax()
+        if self.getPackage() == self.PASO:
+            out+="\nSolver method = %s"%self.getName(self.getSolverMethod())
+            if self.getSolverMethod() == self.GMRES:
+                out+="\nTruncation  = %s"%self.getTruncation()
+                out+="\nRestart  = %s"%self.getRestart()
+            if self.getSolverMethod() == self.AMG:
+                out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
+                out+="\nMaximum number of levels = %s"%self.LevelMax()
+                out+="\nCoarsening threshold = %e"%self.getCoarseningThreshold()
+                out+="\Coarsening method = %s"%self.getName(self.getCoarsening())
+            out+="\nPreconditioner = %s"%self.getName(self.getPreconditioner())
+            if self.getPreconditioner() == self.AMG:
+                out+="\nMaximum number of levels = %s"%self.LevelMax()
+                out+="\nCoarsening method = %s"%self.getName(self.getCoarsening())
+                out+="\nCoarsening threshold = %e"%self.getCoarseningThreshold()
+                out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
+            if self.getPreconditioner() == self.GAUSS_SEIDEL:
+                out+="\nNumber of sweeps = %s"%self.getNumSweeps()
+            if self.getPreconditioner() == self.ILUT:
+                out+="\nDrop tolerance = %e"%self.getDropTolerance()
+                out+="\nStorage increase = %e"%self.getDropStorage()
+            if self.getPreconditioner() == self.RILU:
+                out+="\nRelaxation factor = %e"%self.getRelaxationFactor()
+        return out
+        
+    def getName(self,key):
+        """
+        returns the name of a given key
+        
+        @param key: a valid key
+        """
+        if key == self.DEFAULT: return "DEFAULT"
+        if key == self.DIRECT: return "DIRECT"
+        if key == self.CHOLEVSKY: return "CHOLEVSKY"
+        if key == self.PCG: return "PCG"
+        if key == self.CR: return "CR"
+        if key == self.CGS: return "CGS"
+        if key == self.BICGSTAB: return "BICGSTAB"
+        if key == self.SSOR: return "SSOR"
+        if key == self.ILU0: return "ILU0:"
+        if key == self.ILUT: return "ILUT"
+        if key == self.JACOBI: return "JACOBI"
+        if key == self.GMRES: return "GMRES"
+        if key == self.PRES20: return "PRES20"
+        if key == self.LUMPING: return "LUMPING"
+        if key == self.NO_REORDERING: return "NO_REORDERING"
+        if key == self.MINIMUM_FILL_IN: return "MINIMUM_FILL_IN"
+        if key == self.NESTED_DISSECTION: return "NESTED_DISSECTION"
+        if key == self.MKL: return "MKL"
+        if key == self.UMFPACK: return "UMFPACK"
+        if key == self.ITERATIVE: return "ITERATIVE"
+        if key == self.PASO: return "PASO"
+        if key == self.AMG: return "AMG"
+        if key == self.REC_ILU: return "REC_ILU"
+        if key == self.TRILINOS: return "TRILINOS"
+        if key == self.NONLINEAR_GMRES: return "NONLINEAR_GMRES"
+        if key == self.TFQMR: return "TFQMR"
+        if key == self.MINRES: return "MINRES"
+        if key == self.GAUSS_SEIDEL: return "GAUSS_SEIDEL"
+        if key == self.RILU: return "RILU"
+        if key == self.DEFAULT_REORDERING: return "DEFAULT_REORDERING"
+        if key == self.SUPER_LU: return "SUPER_LU"
+        if key == self.PASTIX: return "PASTIX"
+        if key == self.YAIR_SHAPIRA_COARSENING: return "YAIR_SHAPIRA_COARSENING"
+        if key == self.RUGE_STUEBEN_COARSENING: return "RUGE_STUEBEN_COARSENING"
+        if key == self.AGGREGATION_COARSENING: return "AGGREGATION_COARSENING"
+        if key == self.NO_PRECONDITIONER: return "NO_PRECONDITIONER"
+        
+    def resetDiagnostics(self,all=False):
+        """
+        resets the diagnostics
+        
+        @param all: if C{all} is C{True} all diagnostics including accumulative counters are reset.
+        @type all: C{bool}
+        """
+        self.__num_iter=None
+        self.__num_level=None
+        self.__num_inner_iter=None
+        self.__time=None
+        self.__set_up_time=None
+        self.__residual_norm=None
+        self.__converged=None
+        if all: 
+            self.__cum_num_inner_iter=0
+            self.__cum_num_iter=0
+            self.__cum_time=0
+            self.__cum_set_up_time=0
+
+    def _updateDiagnostics(self, name, value):
+        """
+        Updates diagnostic information 
+        
+        @param name: name of  diagnostic information
+        @type name: C{str} in the list "num_iter", "num_level", "num_inner_iter", "time", "set_up_time", "residual_norm", "converged".
+        @param vale: new value of the diagnostic information
+        @note: this function is used by a solver to report diagnostics informations.
+        """
+        if name == "num_iter": 
+            self.__num_iter=int(value)
+            self.__cum_num_iter+=self.__num_iter
+        if name == "num_level":
+            self.__num_iter=int(value)
+        if name == "num_inner_iter":
+            self.__num_inner_iter=int(value)
+            self.__cum_num_inner_iter+=self.__num_inner_iter
+        if name == "time":
+            self.__time=float(value)
+            self.__cum_time+=self.__time
+        if name == "set_up_time":
+            self.__set_up_time=float(value)
+            self.__cum_set_up_time+=self.__set_up_time
+        if name == "residual_norm":
+            self.__residual_norm=float(value)
+        if name == "converged":
+            self.__converged = (value == True)
+    def getDiagnostics(self, name):
+        """
+        Returns the diagnostic information C{name} 
+        
+        @param name: name of diagnostic information where
+        - "num_iter": the number of iteration steps
+        - "cum_num_iter": the cumulative number of iteration steps
+        - "num_level": the number of level in multi level solver
+        - "num_inner_iter": the number of inner iteration steps
+        - "cum_num_inner_iter": the cumulative number of inner iteration steps
+        - "time": execution time 
+        - "cum_time": cumulative execution time
+        - "set_up_time": time to set up of the solver, typically this includes factorization and reordering
+        - "cum_set_up_time": cumulative time to set up of the solver
+        - "residual_norm": norm of the final residual
+        - "converged": return self.__converged     
+        @type name: C{str} in the list "num_iter", "num_level", "num_inner_iter", "time", "set_up_time", "residual_norm", "converged".
+        @return: requested value. C{None} is returned if the value is undefined.
+        @note: If the solver has thrown an exception diagnostic values have an undefined status.
+        """
+        if name == "num_iter": return self.__num_iter
+        elif name == "cum_num_iter": return self.__cum_num_iter
+        elif name == "num_level": return self.__num_level
+        elif name == "num_inner_iter": return self.__num_inner_iter
+        elif name == "cum_num_inner_iter": return self.__cum_num_inner_iter
+        elif name == "time": return self.__time
+        elif name == "cum_time": return self.__cum_time
+        elif name == "set_up_time": return self.__set_up_time
+        elif name == "cum_set_up_time": return self.__cum_set_up_time
+        elif name == "residual_norm": return self.__residual_norm
+        elif name == "converged": return self.__converged      
+        else:
+            raise ValueError,"unknown diagnostic item %s"%name
+    def hasConverged(self):
+        """
+        Returns C{True} if the last solver call has been finalized successfully.
+        @note: if an exception has been thrown by the solver the status of this flag is undefined.
+        """
+        return self.getDiagnostics("converged")
+    def setCoarsening(self,method=0):
+        """
+        Sets the key of the coarsening method to be applied in AMG.
+
+        @param method: selects the coarsening method .
+        @type method: in L{SolverOptions.DEFAULT}, L{SolverOptions.YAIR_SHAPIRA_COARSENING}, 
+        L{SolverOptions.RUGE_STUEBEN_COARSENING}, L{SolverOptions.AGGREGATION_COARSENING}
+        """
+        if not method in [self.DEFAULT, self.YAIR_SHAPIRA_COARSENING, self.RUGE_STUEBEN_COARSENING, self.AGGREGATION_COARSENING]:
+             raise ValueError,"unknown coarsening method %s"%method
+        self.__coarsening=method
+    def getCoarsening(self):
+        """
+        Returns the key of the coarsening algorithm to be applied AMG.
+
+        @rtype: in the list L{SolverOptions.DEFAULT}, L{SolverOptions.YAIR_SHAPIRA_COARSENING}, 
+        L{SolverOptions.RUGE_STUEBEN_COARSENING}, L{SolverOptions.AGGREGATION_COARSENING}
+        """
+        return self.__coarsening
+    def setPreconditioner(self, preconditioner=10):
+        """
+        Sets the preconditioner to be used. 
+
+        @param preconditioner: key of the preconditioner to be used.
+        @type preconditioner: in L{SolverOptions.SSOR}, L{SolverOptions.ILU0}, L{SolverOptions.ILUT}, L{SolverOptions.JACOBI}, 
+                                    L{SolverOptions.AMG}, L{SolverOptions.REC_ILU}, L{SolverOptions.GAUSS_SEIDEL}, L{SolverOptions.RILU},
+                                    L{SolverOptions.NO_PRECONDITIONER}
+        @note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters
+        an unknown preconditioner. 
+        """
+        if not preconditioner in [ SolverOptions.SSOR, SolverOptions.ILU0, SolverOptions.ILUT, SolverOptions.JACOBI, 
+                                    SolverOptions.AMG, SolverOptions.REC_ILU, SolverOptions.GAUSS_SEIDEL, SolverOptions.RILU,
+                                    SolverOptions.NO_PRECONDITIONER] :
+             raise ValueError,"unknown preconditioner %s"%preconditioner
+        self.__preconditioner=preconditioner    
+    def getPreconditioner(self):
+        """
+        Returns key of the preconditioner to be used. 
+
+        @rtype: in the list L{SolverOptions.SSOR}, L{SolverOptions.ILU0}, L{SolverOptions.ILUT}, L{SolverOptions.JACOBI}, 
+                                    L{SolverOptions.AMG}, L{SolverOptions.REC_ILU}, L{SolverOptions.GAUSS_SEIDEL}, L{SolverOptions.RILU},
+                                    L{SolverOptions.NO_PRECONDITIONER}
+        """
+        return self.__preconditioner
+    def setSolverMethod(self, method=0):
+        """
+        Sets the solver method to be used. Use C{method}=C{SolverOptions.DIRECT} to indicate that a direct rather than an iterative
+        solver should be used and Use C{method}=C{SolverOptions.ITERATIVE} to indicate that an iterative rather than a direct
+        solver should be used. 
+
+        @param method: key of the solver method to be used.
+        @type method: in L{SolverOptions.DEFAULT}, L{SolverOptions.DIRECT}, L{SolverOptions.CHOLEVSKY}, L{SolverOptions.PCG}, 
+                        L{SolverOptions.CR}, L{SolverOptions.CGS}, L{SolverOptions.BICGSTAB}, L{SolverOptions.SSOR}, 
+                        L{SolverOptions.GMRES}, L{SolverOptions.PRES20}, L{SolverOptions.LUMPING}, L{SolverOptions.ITERATIVE}, 
+                        L{SolverOptions.AMG}, L{SolverOptions.NONLINEAR_GMRES}, L{SolverOptions.TFQMR}, L{SolverOptions.MINRES}, 
+                        L{SolverOptions.GAUSS_SEIDEL}
+        @note: Not all packages support all solvers. It can be assumed that a package makes a reasonable choice if it encounters
+        an unknown solver method. 
+        """
+        if not method in [ SolverOptions.DEFAULT, SolverOptions.DIRECT, SolverOptions.CHOLEVSKY, SolverOptions.PCG, 
+                           SolverOptions.CR, SolverOptions.CGS, SolverOptions.BICGSTAB, SolverOptions.SSOR, 
+                           SolverOptions.GMRES, SolverOptions.PRES20, SolverOptions.LUMPING, SolverOptions.ITERATIVE, SolverOptions.AMG, 
+                           SolverOptions.NONLINEAR_GMRES, SolverOptions.TFQMR, SolverOptions.MINRES, SolverOptions.GAUSS_SEIDEL]:
+             raise ValueError,"unknown solver method %s"%method
+        self.__method=method
+    def getSolverMethod(self):
+        """
+        Returns key of the solver method to be used. 
+
+        @rtype: in the list L{SolverOptions.DEFAULT}, L{SolverOptions.DIRECT}, L{SolverOptions.CHOLEVSKY}, L{SolverOptions.PCG}, 
+                        L{SolverOptions.CR}, L{SolverOptions.CGS}, L{SolverOptions.BICGSTAB}, L{SolverOptions.SSOR}, 
+                        L{SolverOptions.GMRES}, L{SolverOptions.PRES20}, L{SolverOptions.LUMPING}, L{SolverOptions.ITERATIVE}, 
+                        L{SolverOptions.AMG}, L{SolverOptions.NONLINEAR_GMRES}, L{SolverOptions.TFQMR}, L{SolverOptions.MINRES}, 
+                        L{SolverOptions.GAUSS_SEIDEL}
+        """
+        return self.__method
+        
+    def setPackage(self, package=0):
+        """
+        Sets the solver package to be used as a solver.  
+
+        @param package: key of the solver package to be used.
+        @type package: in L{SolverOptions.DEFAULT}, L{SolverOptions.PASO}, L{SolverOptions.SUPER_LU}, L{SolverOptions.PASTIX}, L{SolverOptions.MKL}, L{SolverOptions.UMFPACK}, L{SolverOptions.TRILINOS}
+        @note: Not all packages are support on all implementation. An exception may be thrown on some platforms if a particular is requested. 
+        """
+        if not package in [SolverOptions.DEFAULT, SolverOptions.PASO, SolverOptions.SUPER_LU, SolverOptions.PASTIX, SolverOptions.MKL, SolverOptions.UMFPACK, SolverOptions.TRILINOS]:
+             raise ValueError,"unknown solver package %s"%package
+        self.__package=package
+    def getPackage(self):
+        """
+        Returns the solver package key
+
+        @rtype: in the list L{SolverOptions.DEFAULT}, L{SolverOptions.PASO}, L{SolverOptions.SUPER_LU}, L{SolverOptions.PASTIX}, L{SolverOptions.MKL}, L{SolverOptions.UMFPACK}, L{SolverOptions.TRILINOS}
+        """
+        return self.__package
+    def setReordering(self,ordering=30):
+        """
+        Sets the key of the reordering method to be applied if supported by the solver. Some direct solvers support reordering 
+        to optimize compute time and storage use during elimination. 
+
+        @param ordering: selects the reordering strategy.
+        @type ordering: in L{SolverOptions.NO_REORDERING}, L{SolverOptions.NO_REORDERING}, 
+        L{SolverOptions.NO_REORDERING}, L{SolverOptions.DEFAULT_REORDERING}
+        """
+        if not ordering in [self.NO_REORDERING, self.MINIMUM_FILL_IN, self.NESTED_DISSECTION, self.DEFAULT_REORDERING]:
+             raise ValueError,"unknown reordering strategy %s"%ordering
+        self.__reordering=ordering
+    def getReordering(self):
+        """
+        Returns the key of the reordering method to be applied if supported by the solver.
+
+        @rtype: in the list L{SolverOptions.NO_REORDERING}, L{SolverOptions.NO_REORDERING}, 
+        L{SolverOptions.NO_REORDERING}, L{SolverOptions.DEFAULT_REORDERING}
+        """
+        return self.__reordering
+    def setRestart(self,restart=None):
+        """
+        Sets the number of iterations steps after which GMRES is performing a restart.
+
+        @param restart: number of iteration steps after which to perform a restart. If equal to C{None} no
+                        restart is performed.
+        @type restart: C{int} or C{None}
+        """
+        if restart == None:
+            self.__restart=restart
+        else:
+            restart=int(restart)
+            if restart<1:
+                raise ValueError,"restart must be positive."
+            self.__restart=restart
+    def getRestart(self):
+        """
+        Returns the number of iterations steps after which GMRES is performing a restart.
+        If C{None} is returned no restart is performed.
+
+        @rtype: C{int} or C{None}
+        """
+        if self.__restart < 0:
+            return None
+        else:
+            return self.__restart
+    def setTruncation(self,truncation=20):
+        """
+        Sets the number of residuals in GMRES to be stored for orthogonalization.  The more residuals are stored
+        the faster GMRES converged but
+
+        @param truncation: truncation
+        @type truncation: C{int}
+        """
+        truncation=int(truncation)
+        if truncation<1:
+           raise ValueError,"truncation must be positive."
+        self.__truncation=truncation
+    def getTruncation(self):
+        """
+        Returns the number of residuals in GMRES to be stored for orthogonalization
+
+        @rtype: C{int}
+        """
+        return self.__truncation
+    def setInnerIterMax(self,iter_max=10):
+        """
+        Sets the maximum number of iteration steps for the inner iteration.
+
+        @param iter_max: maximum number of inner iterations
+        @type iter_max: C{int}
+        """
+        iter_max=int(iter_max)
+        if iter_max<1:
+           raise ValueError,"maximum number of inner iteration must be positive."
+        self.__inner_iter_max=iter_max
+    def getInnerIterMax(self):
+        """
+        Returns maximum number of inner iteration steps
+
+        @rtype: C{int}
+        """
+        return self.__inner_iter_max
+    def setIterMax(self,iter_max=10000):
+        """
+        Sets the maximum number of iteration steps
+
+        @param iter_max: maximum number of iteration steps
+        @type iter_max: C{int}
+        """
+        iter_max=int(iter_max)
+        if iter_max<1:
+           raise ValueError,"maximum number of iteration steps must be positive."
+        self.__iter_max=iter_max
+    def getIterMax(self):
+        """
+        Returns maximum number of iteration steps
+
+        @rtype: C{int}
+        """
+        return self.__iter_max
+    def setLevelMax(self,level_max=10):
+        """
+        Sets the maximum number of coarsening levels to be used in an algebraic multi level solver or preconditioner
+
+        @param level_max: maximum number of levels
+        @type level_max: C{int}
+        """
+        level_max=int(level_max)
+        if level_max<0:
+           raise ValueError,"maximum number of coarsening levels must be non-negative."
+        self.__level_max=level_max
+    def getLevelMax(self):
+        """
+        Returns the maximum number of coarsening levels to be used in an algebraic multi level solver or preconditioner
+
+        @rtype: C{int}
+        """
+        return self.__level_max
+    def setCoarseningThreshold(self,theta=0.05):
+        """
+        Sets the threshold for coarsening in the algebraic multi level solver or preconditioner
+
+        @param theta: threshold for coarsening
+        @type theta: positive C{float}
+        """
+        theta=float(theta)
+        if theta<0 or theta>1:
+           raise ValueError,"threshold must be non-negative and less or equal 1."
+        self.__coarsening_threshold=theta
+    def getCoarseningThreshold(self):
+        """
+        Returns the threshold for coarsening in the algebraic multi level solver or preconditioner
+
+        @rtype: C{float}
+        """
+        return self.__coarsening_threshold
+    def setNumSweeps(self,sweeps=2):
+        """
+        Sets the number of sweeps in a Jacobi or Gauss-Seidel/SOR preconditioner.
+
+        @param sweeps: number of sweeps
+        @type theta: positive C{int}
+        """
+        sweeps=int(sweeps)
+        if sweeps<1:
+           raise ValueError,"number of sweeps must be positive."
+        self.__sweeps=sweeps
+    def getNumSweeps(self):
+        """
+        Returns the number of sweeps in a Jacobi or Gauss-Seidel/SOR preconditioner.
+
+        @rtype: C{int}
+        """
+        return self.__sweeps
+    def setNumPreSweeps(self,sweeps=2):
+        """
+        Sets the number of sweeps in the pre-smoothing step of a multi level solver or preconditioner
+
+        @param sweeps: number of sweeps
+        @type theta: positive C{int}
+        """
+        sweeps=int(sweeps)
+        if sweeps<1:
+           raise ValueError,"number of sweeps must be positive."
+        self.__pre_sweeps=sweeps
+    def getNumPreSweeps(self):
+        """
+        Returns he number of sweeps in the pre-smoothing step of a multi level solver or preconditioner
+
+        @rtype: C{int}
+        """
+        return self.__pre_sweeps
+    def setNumPostSweeps(self,sweeps=2):
+        """
+        Sets the number of sweeps in the post-smoothing step of a multi level solver or preconditioner
+
+        @param sweeps: number of sweeps
+        @type theta: positive C{int}
+        """
+        sweeps=int(sweeps)
+        if sweeps<1:
+           raise ValueError,"number of sweeps must be positive."
+        self.__post_sweeps=sweeps
+    def getNumPostSweeps(self):
+        """
+        Returns he number of sweeps in the post-smoothing step of a multi level solver or preconditioner
+
+        @rtype: C{int}
+        """
+        return self.__post_sweeps
+
+    def setTolerance(self,rtol=1.e-8):
+        """
+        Sets the relative tolerance for the solver
+
+        @param rtol: relative tolerance
+        @type rtol: non-negative C{float}
+        """
+        rtol=float(rtol)
+        if rtol<0 or rtol>1:
+           raise ValueError,"tolerance must be non-negative and less or equal 1."
+        self.__tolerance=rtol
+    def getTolerance(self):
+        """
+        Returns the relative tolerance for the solver
+
+        @rtype: C{float}
+        """
+        return self.__tolerance
+    def setAbsoluteTolerance(self,atol=0.):
+        """
+        Sets the absolute tolerance for the solver
+
+        @param atol:  absolute tolerance
+        @type atol: non-negative C{float}
+        """
+        atol=float(atol)
+        if atol<0:
+           raise ValueError,"tolerance must be non-negative."
+        self.__absolute_tolerance=atol
+    def getAbsoluteTolerance(self):
+        """
+        Returns the absolute tolerance for the solver
+
+        @rtype: C{float}
+        """
+        return self.__absolute_tolerance
+
+    def setInnerTolerance(self,rtol=0.9):
+        """
+         Sets the relative tolerance for an inner iteration scheme for instance
+        on the coarsest level in a multi-level scheme.
+
+        @param rtol: inner relative tolerance
+        @type rtol: positive C{float}
+        """
+        rtol=float(rtol)
+        if rtol<=0 or rtol>1:
+            raise ValueError,"tolerance must be positive and less or equal 1."
+        self.__inner_tolerance=rtol
+    def getInnerTolerance(self):
+        """
+        Returns the relative tolerance for an inner iteration scheme
+
+        @rtype: C{float}
+        """
+        return self.__inner_tolerance
+    def setDropTolerance(self,drop_tol=0.01):
+        """
+        Sets the relative drop tolerance in ILUT
+
+        @param drop_tol: drop tolerance
+        @type drop_tol: positive C{float}
+        """
+        drop_tol=float(drop_tol)
+        if drop_tol<=0 or drop_tol>1:
+            raise ValueError,"drop tolerance must be positive and less or equal 1."
+        self.__drop_tolerance=drop_tol
+    def getDropTolerance(self):
+        """
+        Returns the relative drop tolerance in ILUT
+
+        @rtype: C{float}
+        """
+        return self.__drop_tolerance
+    def setDropStorage(self,storage=2.):
+        """
+        Sets the maximum allowed increase in storage for ILUT. C{storage}=2 would mean that
+        a doubling of the storage needed for the coefficient matrix is allowed in the ILUT factorization.
+
+        @param storage: allowed storage increase
+        @type storage: C{float}
+        """
+        storage=float(storage)
+        if storage<1:
+            raise ValueError,"allowed storage increase must be greater or equal to 1."
+        self.__drop_storage=storage
+    def getDropStorage(self):
+    
+        """
+        Returns the maximum allowed increase in storage for ILUT
+
+        @rtype: C{float}
+        """
+        return self.__drop_storage
+    def setRelaxationFactor(self,factor=0.3):
+        """
+        Sets the relaxation factor used to add dropped elements in RILU to the main diagonal.
+
+        @param factor: relaxation factor
+        @type factor: C{float}
+        @note: RILU with a relaxation factor 0 is identical to ILU0
+        """
+        factor=float(factor)
+        if factor<0: 
+            raise ValueError,"relaxation factor must be non-negative."
+        self.__relaxation=factor
+    def getRelaxationFactor(self):
+    
+        """
+        Returns the relaxation factor used to add dropped elements in RILU to the main diagonal.
+
+        @rtype: C{float}
+        """
+        return self.__relaxation
+    def isSymmetric(self):
+        """
+        Checks if symmetry of the  coefficient matrix is indicated.
+
+        @return: True if a symmetric PDE is indicated, False otherwise
+        @rtype: C{bool}
+        """
+        return self.__symmetric
+    def setSymmetryOn(self):
+        """
+        Sets the symmetry flag to indicate that the coefficient matrix is symmetric.
+        """
+        self.__symmetric=True
+    def setSymmetryOff(self):
+        """
+        Clears the symmetry flag for the coefficient matrix.
+        """
+        self.__symmetric=False
+    def setSymmetry(self,flag=False):
+        """
+        Sets the symmetry flag for the coefficient matrix to C{flag}.
+
+        @param flag: If True, the symmetry flag is set otherwise reset.
+        @type flag: C{bool}
+        """
+        if flag:
+            self.setSymmetryOn()
+        else:
+            self.setSymmetryOff()
+    def isVerbose(self):
+        """
+        Returns C{True} if the solver is expected to be verbose.
+
+        @return: True if verbosity of switched on.
+        @rtype: C{bool}
+        """
+        return self.__verbose
+
+    def setVerbosityOn(self):
+        """
+        Switches the verbosity of the solver on.
+        """
+        self.__verbose=True
+    def setVerbosityOff(self):
+        """
+        Switches the verbosity of the solver off.
+        """
+        self.__verbose=False
+    def setVerbosity(self,verbose=True):
+        """
+        Sets the verbosity flag for the solver to C{flag}.
+
+        @param flag: If C{True}, the verbosity of the solver is switched on.
+        @type flag: C{bool}
+        """
+        if verbose:
+            self.setVerbosityOn()
+        else:
+            self.setVerbosityOff()
+
+        self.__adapt_inner_tolerance=True
+    def adaptInnerTolerance(self):
+        """
+        Returns C{True} if the tolerance of the inner solver is selected automatically. 
+        Otherwise the inner tolerance set by L{setInnerTolerance} is used.
+
+        @return: C{True} if inner tolerance adaption is chosen.
+        @rtype: C{bool}
+        """
+        return self.__adapt_inner_tolerance
+
+    def setInnerToleranceAdaptionOn(self):
+        """
+        Switches the automatic selection of inner tolerance on 
+        """
+        self.__adapt_inner_tolerance=True
+    def setInnerToleranceAdaptionOff(self):
+        """
+        Switches the automatic selection of inner tolerance off.
+        """
+        self.__adapt_inner_tolerance=False
+    def setInnerToleranceAdaption(self,adapt=True):
+        """
+        Sets a flag to indicate automatic selection of the inner tolerance. 
+
+        @param adapt: If C{True}, the inner tolerance is selected automatically.
+        @type adapt: C{bool}
+        """
+        if adapt:
+            self.setInnerToleranceAdaptionOn()
+        else:
+            self.setInnerToleranceAdaptionOff()
+
+    def acceptConvergenceFailure(self):
+        """
+        Returns C{True} if a failure to meet the stopping criteria within the
+        given number of iteration steps is not raising in exception. This is useful 
+        if a solver is used in a non-linear context where the non-linear solver can 
+        continue even if the returned the solution does not necessarily meet the
+        stopping criteria. One can use the L{hasConverged} method to check if the
+        last call to the solver was successful.
+
+        @return: C{True} if a failure to achieve convergence is accepted.
+        @rtype: C{bool}
+        """
+        return self.__accept_convergence_failure
+
+    def setAcceptanceConvergenceFailureOn(self):
+        """
+        Switches the acceptance of a failure of convergence on 
+        """
+        self.__accept_convergence_failure=True
+    def setAcceptanceConvergenceFailureOff(self):
+        """
+        Switches the acceptance of a failure of convergence off.
+        """
+        self.__accept_convergence_failure=False
+    def setAcceptanceConvergenceFailure(self,accept=False):
+        """
+        Sets a flag to indicate the acceptance of a failure of convergence. 
+
+        @param accept: If C{True}, any failure to achieve convergence is accepted.
+        @type accept: C{bool}
+        """
+        if accept:
+            self.setAcceptanceConvergenceFailureOn()
+        else:
+            self.setAcceptanceConvergenceFailureOff()
+
 class IllegalCoefficient(ValueError):
    """
    Exception that is raised if an illegal coefficient of the general or
@@ -378,6 +1190,8 @@ class PDECoef(object):
              else:
                 s=s+(dim,)
        return s
+
+#====================================================================================================================
 
 class LinearProblem(object):
    """
