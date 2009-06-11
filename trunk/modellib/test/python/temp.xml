@@ -206,12 +206,12 @@
 						1.0
 					</Value>
 				</Parameter>
-				<Parameter type="NumArray">
+				<Parameter type="ndarray">
 					<Name>
 						velocity
 					</Name>
 					<Value>
-						<NumArray>
+						<ndarray>
 							<ArrayType>
 								Int
 							</ArrayType>
@@ -221,7 +221,7 @@
 							<Data>
 								1 -1
 							</Data>
-						</NumArray>
+						</ndarray>
 					</Value>
 				</Parameter>
 				<Parameter type="Link">
@@ -301,12 +301,12 @@
 				2
 			</Value>
 		</Parameter>
-		<Parameter type="NumArray">
+		<Parameter type="ndarray">
 			<Name>
 				l
 			</Name>
 			<Value>
-				<NumArray>
+				<ndarray>
 					<ArrayType>
 						Float
 					</ArrayType>
@@ -316,7 +316,7 @@
 					<Data>
 						1.0 1.0 1.0
 					</Data>
-				</NumArray>
+				</ndarray>
 			</Value>
 		</Parameter>
 		<Parameter type="int">
@@ -327,12 +327,12 @@
 				-1
 			</Value>
 		</Parameter>
-		<Parameter type="NumArray">
+		<Parameter type="ndarray">
 			<Name>
 				n
 			</Name>
 			<Value>
-				<NumArray>
+				<ndarray>
 					<ArrayType>
 						Int
 					</ArrayType>
@@ -342,15 +342,15 @@
 					<Data>
 						10 10 10
 					</Data>
-				</NumArray>
+				</ndarray>
 			</Value>
 		</Parameter>
-		<Parameter type="NumArray">
+		<Parameter type="ndarray">
 			<Name>
 				periodic
 			</Name>
 			<Value>
-				<NumArray>
+				<ndarray>
 					<ArrayType>
 						Bool
 					</ArrayType>
@@ -360,7 +360,7 @@
 					<Data>
 						0 0 0
 					</Data>
-				</NumArray>
+				</ndarray>
 			</Value>
 		</Parameter>
 		<Parameter type="int">

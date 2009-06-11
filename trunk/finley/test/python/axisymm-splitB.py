@@ -93,7 +93,7 @@ while istep < nstep:
     #
     # calculate normal 
     n_d=dom.getNormal()
-    t_d=matrixmult(numarray.array([[0.,-1.],[1.,0]]),n_d)
+    t_d=matrixmult(numpy.array([[0.,-1.],[1.,0]]),n_d)
     sigma_d=(sign(inner(t_d,U))*alpha_w*t_d-n_d)*Pen*clip(inner(n_d,U),0.)
     print "	sigma_d =",inf(sigma_d),sup(sigma_d)
 
@@ -103,7 +103,6 @@ while istep < nstep:
                            y=sigma_d*face_mask*r_b)
     U_star=momentumStep1.getSolution()
     saveVTK("u.xml",u=U_star,u0=U)
-    1/0
     #
     #  step 2:
     #

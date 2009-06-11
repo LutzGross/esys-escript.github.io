@@ -46,76 +46,76 @@
                                                 </Link>
                                         </Value>
                                 </Parameter>
-                                <Parameter type="NumArray">
+                                <Parameter type="ndarray">
                                         <Name>
                                                 right
                                         </Name>
                                         <Value>
-                                                <NumArray>
+                                                <ndarray>
                                                         <ArrayType>
-                                                                Bool
+                                                                bool_
                                                         </ArrayType>
                                                         <Shape>
                                                                 3
                                                         </Shape>
                                                         <Data>
-                                                                1 1 1
+                                                                True True True
                                                         </Data>
-                                                </NumArray>
+                                                </ndarray>
                                         </Value>
                                 </Parameter>
-                                <Parameter type="NumArray">
+                                <Parameter type="ndarray">
                                         <Name>
                                                 bottom
                                         </Name>
                                         <Value>
-                                                <NumArray>
+                                                <ndarray>
                                                         <ArrayType>
-                                                                Bool
+                                                                bool_
                                                         </ArrayType>
                                                         <Shape>
                                                                 3
                                                         </Shape>
                                                         <Data>
-                                                                0 0 0
+                                                                False False False
                                                         </Data>
-                                                </NumArray>
+                                                </ndarray>
                                         </Value>
                                 </Parameter>
-                                <Parameter type="NumArray">
+                                <Parameter type="ndarray">
                                         <Name>
                                                 top
                                         </Name>
                                         <Value>
-                                                <NumArray>
+                                                <ndarray>
                                                         <ArrayType>
-                                                                Bool
+                                                                bool_
                                                         </ArrayType>
                                                         <Shape>
                                                                 3
                                                         </Shape>
                                                         <Data>
-                                                                0 0 0
+                                                                False False False
                                                         </Data>
-                                                </NumArray>
+                                                </ndarray>
                                         </Value>
                                 </Parameter>
-                                <Parameter type="NumArray">
+                                <Parameter type="ndarray">
                                         <Name>
                                                 back
                                         </Name>
                                         <Value>
-                                                <NumArray>
+                                                <ndarray>
                                                         <ArrayType>
-                                                                Bool
+                                                                bool_
                                                         </ArrayType>
                                                         <Shape>
                                                                 3
                                                         </Shape>
                                                         <Data>
-                                                                0 0 0
+                                                                False False False
                                                         </Data>
-                                                </NumArray>
+                                                </ndarray>
                                         </Value>
                                 </Parameter>
                                 <Parameter type="Link">
@@ -141,40 +141,40 @@
                                                 1e-08
                                         </Value>
                                 </Parameter>
-                                <Parameter type="NumArray">
+                                <Parameter type="ndarray">
                                         <Name>
                                                 front
                                         </Name>
                                         <Value>
-                                                <NumArray>
+                                                <ndarray>
                                                         <ArrayType>
-                                                                Bool
+                                                                bool_
                                                         </ArrayType>
                                                         <Shape>
                                                                 3
                                                         </Shape>
                                                         <Data>
-                                                                0 0 0
+                                                                False False False
                                                         </Data>
-                                                </NumArray>
+                                                </ndarray>
                                         </Value>
                                 </Parameter>
-                                <Parameter type="NumArray">
+                                <Parameter type="ndarray">
                                         <Name>
                                                 left
                                         </Name>
                                         <Value>
-                                                <NumArray>
+                                                <ndarray>
                                                         <ArrayType>
-                                                                Bool
+                                                                bool_
                                                         </ArrayType>
                                                         <Shape>
                                                                 3
                                                         </Shape>
                                                         <Data>
-                                                                1 0 0
+                                                                True False False
                                                         </Data>
-                                                </NumArray>
+                                                </ndarray>
                                         </Value>
                                 </Parameter>
                         </Model>
@@ -765,14 +765,14 @@
                                 3
                         </Value>
                 </Parameter>
-                <Parameter type="NumArray">
+                <Parameter type="ndarray">
                         <Name>
                                 l
                         </Name>
                         <Value>
-                                <NumArray>
+                                <ndarray>
                                         <ArrayType>
-                                                Float
+                                                float_
                                         </ArrayType>
                                         <Shape>
                                                 3
@@ -780,7 +780,7 @@
                                         <Data>
                                                 0.5 1.0 1.0
                                         </Data>
-                                </NumArray>
+                                </ndarray>
                         </Value>
                 </Parameter>
                 <Parameter type="int">
@@ -791,14 +791,14 @@
                                 -1
                         </Value>
                 </Parameter>
-                <Parameter type="NumArray">
+                <Parameter type="ndarray">
                         <Name>
                                 n
                         </Name>
                         <Value>
-                                <NumArray>
+                                <ndarray>
                                         <ArrayType>
-                                                Int
+                                                int_
                                         </ArrayType>
                                         <Shape>
                                                 3
@@ -806,25 +806,25 @@
                                         <Data>
                                                 30 6 6
                                         </Data>
-                                </NumArray>
+                                </ndarray>
                         </Value>
                 </Parameter>
-                <Parameter type="NumArray">
+                <Parameter type="ndarray">
                         <Name>
                                 periodic
                         </Name>
                         <Value>
-                                <NumArray>
+                                <ndarray>
                                         <ArrayType>
-                                                Bool
+                                                bool_
                                         </ArrayType>
                                         <Shape>
                                                 3
                                         </Shape>
                                         <Data>
-                                                0 0 0
+                                                False False False
                                         </Data>
-                                </NumArray>
+                                </ndarray>
                         </Value>
                 </Parameter>
                 <Parameter type="int">
@@ -852,14 +852,14 @@
                                 </Link>
                         </Value>
                 </Parameter>
-                <Parameter type="NumArray">
+                <Parameter type="ndarray">
                         <Name>
                                 value_left_top_back
                         </Name>
                         <Value>
-                                <NumArray>
+                                <ndarray>
                                         <ArrayType>
-                                                Float
+                                                float_
                                         </ArrayType>
                                         <Shape>
                                                 3
@@ -867,17 +867,17 @@
                                         <Data>
                                                 -1.0 0.0 0.0
                                         </Data>
-                                </NumArray>
+                                </ndarray>
                         </Value>
                 </Parameter>
-                <Parameter type="NumArray">
+                <Parameter type="ndarray">
                         <Name>
                                 value_right_top_front
                         </Name>
                         <Value>
-                                <NumArray>
+                                <ndarray>
                                         <ArrayType>
-                                                Float
+                                                float_
                                         </ArrayType>
                                         <Shape>
                                                 3
@@ -885,17 +885,17 @@
                                         <Data>
                                                 0.0 0.0 0.0
                                         </Data>
-                                </NumArray>
+                                </ndarray>
                         </Value>
                 </Parameter>
-                <Parameter type="NumArray">
+                <Parameter type="ndarray">
                         <Name>
                                 value_left_bottom_front
                         </Name>
                         <Value>
-                                <NumArray>
+                                <ndarray>
                                         <ArrayType>
-                                                Float
+                                                float_
                                         </ArrayType>
                                         <Shape>
                                                 3
@@ -903,17 +903,17 @@
                                         <Data>
                                                 -1.0 0.0 0.0
                                         </Data>
-                                </NumArray>
+                                </ndarray>
                         </Value>
                 </Parameter>
-                <Parameter type="NumArray">
+                <Parameter type="ndarray">
                         <Name>
                                 value_right_bottom_back
                         </Name>
                         <Value>
-                                <NumArray>
+                                <ndarray>
                                         <ArrayType>
-                                                Float
+                                                float_
                                         </ArrayType>
                                         <Shape>
                                                 3
@@ -921,17 +921,17 @@
                                         <Data>
                                                 0.0 0.0 0.0
                                         </Data>
-                                </NumArray>
+                                </ndarray>
                         </Value>
                 </Parameter>
-                <Parameter type="NumArray">
+                <Parameter type="ndarray">
                         <Name>
                                 value_left_top_front
                         </Name>
                         <Value>
-                                <NumArray>
+                                <ndarray>
                                         <ArrayType>
-                                                Float
+                                                float_
                                         </ArrayType>
                                         <Shape>
                                                 3
@@ -939,17 +939,17 @@
                                         <Data>
                                                 -1.0 0.0 0.0
                                         </Data>
-                                </NumArray>
+                                </ndarray>
                         </Value>
                 </Parameter>
-                <Parameter type="NumArray">
+                <Parameter type="ndarray">
                         <Name>
                                 value_right_top_back
                         </Name>
                         <Value>
-                                <NumArray>
+                                <ndarray>
                                         <ArrayType>
-                                                Float
+                                                float_
                                         </ArrayType>
                                         <Shape>
                                                 3
@@ -957,17 +957,17 @@
                                         <Data>
                                                 0.0 0.0 0.0
                                         </Data>
-                                </NumArray>
+                                </ndarray>
                         </Value>
                 </Parameter>
-                <Parameter type="NumArray">
+                <Parameter type="ndarray">
                         <Name>
                                 value_right_bottom_front
                         </Name>
                         <Value>
-                                <NumArray>
+                                <ndarray>
                                         <ArrayType>
-                                                Float
+                                                float_
                                         </ArrayType>
                                         <Shape>
                                                 3
@@ -975,17 +975,17 @@
                                         <Data>
                                                 0.0 0.0 0.0
                                         </Data>
-                                </NumArray>
+                                </ndarray>
                         </Value>
                 </Parameter>
-                <Parameter type="NumArray">
+                <Parameter type="ndarray">
                         <Name>
                                 value_left_bottom_back
                         </Name>
                         <Value>
-                                <NumArray>
+                                <ndarray>
                                         <ArrayType>
-                                                Float
+                                                float_
                                         </ArrayType>
                                         <Shape>
                                                 3
@@ -993,7 +993,7 @@
                                         <Data>
                                                 -1.0 0.0 0.0
                                         </Data>
-                                </NumArray>
+                                </ndarray>
                         </Value>
                 </Parameter>
         </ParameterSet>

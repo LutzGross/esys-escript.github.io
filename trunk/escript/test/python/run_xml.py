@@ -91,7 +91,7 @@ class SimulationTestCase(unittest.TestCase):
         
         xml = ESySXMLParser(self.xml)
         newSim = xml.parse()[0]
-        assert (isinstance (newSim, Simulation))
+        assert isinstance(newSim, Simulation)
         newout = StringIO()
         newSim.writeXML(newout)
         newout.reset()
@@ -230,15 +230,15 @@ class ParamaterSetTestCase(unittest.TestCase):
 
 # This method is disabled until the correct behaviour for lists of bools is decided
 #numarray converts them into ints whereas numpy leaves them as bools
-    #def testBoolLists(self):
-        #p4 = ParameterSet()
-        #mylist = [True, False, False, True]
-        #p4.declareParameter(listest=mylist)
-        #doc = self._class(p4)
-        #assert type(doc.listest) == numpy.ndarray
-        #assert doc.listest.type() == numpy.bool_
-        #assert len(doc.listest) == len(mylist)
-        #assert min([ mylist[i] == doc.listest[i] for i in range(len( doc.listest)) ])
+    def testBoolLists(self):
+        p4 = ParameterSet()
+        mylist = [True, False, False, True]
+        p4.declareParameter(listest=mylist)
+        doc = self._class(p4)
+        assert type(doc.listest) == numpy.ndarray
+        assert doc.listest.dtype == numpy.bool_
+        assert len(doc.listest) == len(mylist)
+        assert min([ mylist[i] == doc.listest[i] for i in range(len( doc.listest)) ])
 
     def testIntLists(self):
         p4 = ParameterSet()
@@ -307,7 +307,7 @@ class ModeltoDomTestCase(unittest.TestCase):
 
     def testModelExists(self):
         modeldoc = self._class()
-        assert (isinstance, (modeldoc, Model))
+        assert isinstance(modeldoc, Model)
         assert self._dom().getElementsByTagName("Model")
     
     def testModelhasID(self):

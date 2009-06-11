@@ -65,7 +65,7 @@ origin={"x": -d_absorber, "y" : -d_absorber , "z" : -h-d_absorber }
 xc=[l*0.2,l*0.3,-h*0.7]
 src_radius  = 2*resolution
 # direction of event:
-event=numarray.array([0.,0.,1.])*1.e6
+event=numpy.array([0.,0.,1.])*1.e6
 # time and length of the event
 tc=2.
 tc_length=0.5

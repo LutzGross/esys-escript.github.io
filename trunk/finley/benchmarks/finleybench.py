@@ -37,7 +37,7 @@ import esys.finley
 from esys.escript.linearPDEs import LinearPDE
 import os
 import math
-import numarray
+import numpy
 
 class FinleyFilter(BenchmarkFilter):
    """
@@ -311,7 +311,7 @@ class AnisotropicSystem(RegularFinleyProblem):
     """
     def __init__(self,n,order,dim,mu0,normal,alpha):
         self.mu0=mu0
-        self.normal=numarray.array(normal)
+        self.normal=numpy.array(normal)
         self.alpha=alpha
         super(AnisotropicSystem,self).__init__(n,order,dim,dim)
 
@@ -331,7 +331,7 @@ class AnisotropicSystem(RegularFinleyProblem):
          msk=whereZero(x[0])+whereZero(x[0]-1.)
          for i in range(1,d):
             msk+=whereZero(x[i])+whereZero(x[i]-1.)
-         msk=msk*numarray.ones((d,),numarray.Float)
+         msk=msk*numpy.ones((d,),numpy.float64)
 
          u=x[:]
          for i in range(d):
@@ -340,7 +340,7 @@ class AnisotropicSystem(RegularFinleyProblem):
                if not i==k: s=s*x[k]
             u[i]+=1./d*s
 
-         s=whereNegative(inner(x-numarray.ones((d,),numarray.Float)/2,self.normal))
+         s=whereNegative(inner(x-numpy.ones((d,),numpy.float64)/2,self.normal))
          mu=s+self.mu0*(1.-s)
          lam=max(1.,self.mu0)*self.alpha
 

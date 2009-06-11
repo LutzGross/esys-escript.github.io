@@ -97,9 +97,9 @@ prop=SlippingFault(dom)
 d=dom.getDim()
 x=dom.getX()[0]
 # x=dom.getX()[d-1]
-mask=whereZero(x-inf(x))*numarray.ones((d,))
+mask=whereZero(x-inf(x))*numpy.ones((d,))
 x=FunctionOnContactZero(dom).getX()
-s=numarray.array([-100000.,1.,1.])
+s=numpy.array([-100000.,1.,1.])
 for i in range(3):
      d=fend[i]-fstart[i]
      if d>0:
