@@ -21,6 +21,7 @@ namespace escript
 {
 
 class Data;
+class DataLazy;
 
 class EscriptParams
 {
@@ -39,6 +40,8 @@ private:
   // If we get more params we can replace this with a map
 	int too_many_lines;
 	int autolazy;
+	int too_many_levels;
+	int too_many_nodes;
 
 protected: 
   // This is to provide fast access for methods in Data.
@@ -47,8 +50,11 @@ protected:
 
   int getTOO_MANY_LINES() {return too_many_lines;}
   int getAUTOLAZY() { return autolazy;}
+  int getTOO_MANY_LEVELS() {return too_many_levels;}
+  int getTOO_MANY_NODES() {return too_many_nodes;}
 
   friend class escript::Data;
+  friend class escript::DataLazy;
   friend Data operator+(const boost::python::api::object&, const escript::Data&);
   friend Data operator-(const boost::python::api::object&, const escript::Data&);
   friend Data operator*(const boost::python::api::object&, const escript::Data&);
