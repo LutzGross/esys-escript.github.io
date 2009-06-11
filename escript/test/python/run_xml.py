@@ -228,8 +228,6 @@ class ParamaterSetTestCase(unittest.TestCase):
         assert doc.numtest.dtype == numpy.float64
         assert type(doc.numtest) == numpy.ndarray
 
-# This method is disabled until the correct behaviour for lists of bools is decided
-#numarray converts them into ints whereas numpy leaves them as bools
     def testBoolLists(self):
         p4 = ParameterSet()
         mylist = [True, False, False, True]
