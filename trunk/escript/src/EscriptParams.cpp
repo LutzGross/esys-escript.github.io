@@ -26,6 +26,8 @@ EscriptParams::EscriptParams()
 {
    too_many_lines=80;
    autolazy=0;
+   too_many_levels=7;
+   too_many_nodes=127;
 			// These #defs are for performance testing only
 			// in general, I don't want people tweaking the
 			// default value using compiler options
@@ -49,6 +51,14 @@ EscriptParams::getInt(const char* name, int sentinel) const
    {
 	return autolazy;
    }
+   if (!strcmp(name,"TOO_MANY_LEVELS"))
+   {
+	return too_many_levels;
+   }
+   if (!strcmp(name,"TOO_MANY_NODES"))
+   {
+	return too_many_nodes;
+   }
    return sentinel;
 }
   
@@ -62,6 +72,14 @@ EscriptParams::setInt(const char* name, int value)
    if (!strcmp(name,"AUTOLAZY"))
    {
 	autolazy=!(value==0);	// set to 1 or zero
+   }
+   if (!strcmp(name,"TOO_MANY_LEVELS"))
+   {
+	too_many_levels=value;
+   }
+   if (!strcmp(name,"TOO_MANY_NODES"))
+   {
+	too_many_nodes=value;
    }
 }
 
