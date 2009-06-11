@@ -52,52 +52,88 @@ mypde.setSolverMethod(LinearPDE.LUMPING)
 \end{verbatim}
 the PDE would take a significant amount of time to solve. The \verb LUMPING  functionality implements an aggressive approximation for the $D$ coefficient matrix of the \esc linear PDE general form. While \verb LUMPING  introduces additional error to the solution it can significantly reduce the solution time. Care should be taken however, as this function can only be used when the $A$, $B$ and $C$ coefficients of the general form are zero. 
 
-As the wave equation has a double time derivative, it is not sufficient to only stipulate the initial conditions for one time step. Two time steps must be specified so that the equation can be solved. For this example $u$ (\verb u ) and $u(t-1)$ (\verb u_m1 ) will be the same but if both of these condititions are known, they can be specified individually. It should be noted here that if multiple time steps are known for the begining of a model, they can be added to the simulation manually. The solver can then continue the model from the known data. Alternatively, if the source motion is understood, its position can be corrected for each itteration to create a more accurate recreation of an event. 
+As the wave equation has a double time derivative, it is not sufficient to only stipulate the initial conditions for one time step. Two time steps must be specified so that the equation can be solved. For this example $u$ (\verb u ) and $u(t-1)$ (\verb u_m1 ) will be the same but if both of these condititions are known, they can be specified individually. It should be noted here that if multiple time steps are known at the begining of a model, they can be added to the simulation manually. The solver can then continue the model from the end of the known data. Alternatively, if the source motion is understood, its position can be corrected for each iteration to create a more accurate recreation of an event. 
 
-The source in this example will induce a radially propagating wave. A small displacement will be applied to the medium about a singularity which we have called \verb xc  , this is the source location. We start by giving the source some spatial magnitude by defining a small radius about \verb xc  which is affected. The \verb src_radius  needs to cover a significant portion of grid nodes, otherwise the waves generated will suffer from dispersion due to an inadequate grid step size. If the source is small, the grid steping must reflect the size of the source for more accurate results. Our radius will be;
+The source in this example will induce a radially propagating wave. A small displacement will be applied to the medium about a singularity which we have called \verb xc  , this is the source location. We start by giving the source some spatial magnitude by defining a small radius about \verb xc  which is affected. The \verb src_radius  needs to cover a significant portion of grid nodes, otherwise the waves generated will suffer from dispersion due to an inadequate grid step size. If the source is small, the grid stepping must reflect the size of the source for more accurate results. Our radius will be;
 \begin{verbatim}
  src_radius = 50
 \end{verbatim}
-Now that the extent of the source has been allocated it needs two more things; a direction and a magnitude. We can choose a direction based on the 360 degrees that exist in a full circle. If we take $\theta=0$ to be the x-axis and move counter clockwise then we can create a directional vector $U=[dx,dy]$  where $tan(\theta) = dy/dx$. It is also necessary to ensure that our directional vector is a unit $|U|=1$ which implies $\sqrt{dx^2+dy^2}=1$. By doing this we ensure that no accidental scaling is introduced to our source term. Here are three examples of different directions which satisfy the above conditions;
+Now that the extent of the source has been allocated it needs two more things; a direction and a magnitude. We can choose a direction based on the 360 degrees that exist in a full circle. If we take $\theta=0$ to be the x-axis and move counter clockwise then we can create a directional vector $U=[dx,dy]$  where $tan(\theta) = dy/dx$. It is also necessary to ensure that our directional vector of unit length such that $|U|=1$; which implies $\sqrt{dx^2+dy^2}=1$. By doing this we ensure that no accidental scaling is introduced to our source term. Here are three examples of different directions which satisfy the above conditions;
 \begin{enumerate}
  \item Along the x-axis: $U=[dx=1,dy=0]$
  \item Along the y-axis: $U=[dx=0,dy=1]$
  \item At 45deg: $U=[dx=\frac{1}{\sqrt2},dy=\frac{1}{\sqrt2}]$
 \end{enumerate}
-There are limitation to specifying the source in this manner. Realistically we would not expect a 2D surface source to move form side to side as an isotropic source makes more sense. \editor{I am not sure here how to create an isotropic source function.}. In the 3D case things are not quite so bad. Normally we are interested in the p-waves that are directed dowwards and thus we need not have any x or y component to our source directionality. This still introduced assumptions and removes realistic wave motions both s and p from the model.
+There are limitations to specifying the source in this manner. Realistically we would not expect a 2D surface source to move form side to side as an isotropic source makes more sense. \editor{I am not sure here how to create an isotropic source function.}. In the 3D case things are not quite so bad. Normally we are interested in the p-waves that are directed dowwards and thus we need not have any x or y component in our source directionality. This still introduced assumptions and removes realistic wave motions both P and S from the model.
 For our example we will use;
 \begin{verbatim}
  dunit=numarray.array([1.,0.])
 \end{verbatim}
-Next we must define the values of our entire domain for the first and second time step. For the purposes of this example it is sufficient to have these to timesteps as equal. Setting the source is similar to earlier problems where we can use \esc functions to set specific areas of the domain to certain values. We must also smooth our sourse to its surrounds to prevent ?diffusion? errors. This is acheived using a cosine taper. Our source terms then become;
+Next we must define the values of our entire domain for the first and second time step. For the purposes of this example it is sufficient to have these two timesteps as equal. Setting the source is similar to earlier problems where we can use \esc functions to set specific areas of the domain to certain values. We must also smooth our sourse to its surrounds to prevent ?diffusion? errors. This is acheived by using a cosine taper. Our source terms then become;
 \begin{verbatim}
  u=U0*(cos(length(x-xc)*3.1415/src_radius)+1)*whereNegative(length(x-xc)-src_radius)*dunit
  u_m1=u
 \end{verbatim}
 
-Write now about phones.py, work on fitting form of wave equation to source terms.
-
-
-In this example we will see how the wave equation can be implemented using \esc and solved for in two dimensions. Our domain is defined by a thin sheet that has dimensions $x$ and $y$ and to model waves we will introduce a point source displacement at time zero. The affects of this displacement should propagate radially from the source and eventually be reflected from the boundaries of the model.
-
-
-
-
-
-
-The code described in this section can be found in \fileex{wavesolver2d001.py}
-In a similar manner to the previous chapter the first step to creating our script is to import the necessary modules and functions. Following this the PDE and control variables must be defined. This includes the domain dimensions and type, the time scale and the time step. To ensure stability the time step can be calcuated such that it satisfies the Courant stability criteria \editor{MORE HERE ONCE METHOD FINALISED}. Considering the complexity of the computational solution to the wave equation it is proudant to consider how many steps will need to be solved. This example includes an acknowledgement clause
+It is often useful to know the values of PDE at certain locations in the model. To acheive this we are going to use a new generic function called \verb cbphones  which allows us to specify receiver locations to record the PDE values at those points. The function \verb cbphones as the arguments;
 \begin{verbatim}
- #Check to make sure number of time steps is not too large.
+#	domain  : domain of model
+#	U       : Current time state displacement solution.
+#	phones  : Geophone Locations
+#	dim     : model dimesions
+#	savepath: where to output the data files local is default
+\end{verbatim}
+\editor{not generic as of yet but may move to make cbphones and the phones positioning a serious part of wavesolver 2d}
+We have chosen to have three receivers and they are called using;
+\begin{verbatim}
+u_pot = cbphones(domain,u,[[0,500],[250,500],[400,500]],2)
+\end{verbatim}
+This places the receivers on the surface at the source location and two locations further along the top of the model. The output \verb u_pot  can then be split and saved to file using the following command;
+\begin{verbatim}
+u_pc_data=open(os.path.join(savepath,'U_pc.out'),'w')
+u_pc_data.write("%f %f %f %f %f %f %f\n"%(t,u_pc_x1,u_pc_y1,u_pc_x2,u_pc_y2,u_pc_x3,u_pc_y3))
+\end{verbatim}
+Convieniently this saves the time, x direction displacement and y direction displacement values for these locations. Now that the initial conditions have been defined we can tackle the task of solving the wave equation for the number of required time steps. To do this we require a while loop and form of the wave equation which fits our general linear PDE form. We start with the form of the equation for stress \ref{eqn:sigw}. We can define the kronecker matrix using the domain and take the derivative of \verb u  via the function \verb|grad(u)|  . As $\lambda$ and $\mu$ are constants we can now define $\sigma$;
+\begin{verbatim}
+g=grad(u)
+stress=lam*trace(g)*kmat+mu*(g+transpose(g))
+\end{verbatim}
+Solving for the double time derivative of u on the LHS of \ref{eqn:wav} required us to use the centred difference forumlua which returns;
+\begin{equation}
+u^n = 2u^{n-1}-u^{n-2}+h^2 \biggl(\frac{\partial ^2 u}{\partial t^2}\biggr)^n
+\end{equation}
+Substituting for the double time derivative we see;
+\begin{equation}
+\rho u^n = 2\rho u^{n-1}- \rho u^{n-2}+h^2 \sigma \hackscore{ij,j} ^n
+\end{equation}
+This fits the general form $Du=-X \hackscore{j,j} + Y$ where $D=rho$; $Y=2\rho u^{n-1}- \rho u^{n-2}$ and $X=-h^2 \sigma \hackscore{ij,j} ^n$. \verb D does not vary between time steps can be defined before our iteration loop via;
+\begin{verbatim}
+mypde.setValue(D=kmat*rho)
+\end{verbatim}
+The values for \verb u  must be refreshed after each iteration and are thus defined within our while loop via;
+\begin{verbatim}
+mypde.setValue(X=-stress*(h*h),Y=(rho*2*u-rho*u_m1))
+\end{verbatim}
+With each iteration we update \verb u  and migrate our answers into the correct variables. The iterative values must also be updated as well as the response from our receiver locations. All this is acheived via;
+\begin{verbatim}
+u_p1 = mypde.getSolution()
+u_m1=u
+u=u_p1
+t+=h
+n+=1
+u_pot = cbphones(domain,u,[[125.,250.],[250.,250.],[250.,375.]],2)
+# save displacements at point source to file for t > 0
+u_pc_data.write("%f %f %f %f %f %f %f\n"%(t,u_pc_x1,u_pc_y1,u_pc_x2,u_pc_y2,u_pc_x3,u_pc_y3))
+\end{verbatim}
+With an appropriate file saving output we now have a working generic solver for our 2D wave equation problem. We have also included our two new generic programs in the \verb cblib  library so they can be more simply imported along with their own dependancies to our test script.
+
+Writing a test program will allow us to more easily pass the variables required to the solver to generate an output solution. Our testing code described in this section can be found in \fileex{wavesolver2d001.py}. In a similar manner to the previous chapter the first step to creating our script is to import the necessary modules and functions including our new library file. Following this the PDE and control variables must be defined. This includes the domain dimensions and type, the time scale and the time step. To ensure stability the time step can be calcuated such that it satisfies the Courant stability criteria \editor{MORE HERE ONCE METHOD FINALISED}. Considering the complexity of the computational solution to the wave equation it is proudant to consider how many steps will need to be solved. Our test script thus includes an acknowledgement clause;
+\begin{verbatim}
+#Check to make sure number of time steps is not too large.
 print "Time step size= ",h, "Expected number of outputs= ",tend/h
 proceeder = raw_input("Is this ok?(y/n)")
 #Exit if user thinks too many outputs.
 if proceeder == "n":
-   sys.exit()
+sys.exit()
 \end{verbatim}
-This requires that the user knows the number of itterations that will be required to solve the model for the time period \verb 0  to \verb tend . The command \verb sys.exit()  is used here to halt the script if the input to preceeder is \verb n  and thus prevent a forced crash of the script should its projected solve time be too large. 
-
-To solve this PDE we are going to introduce the concept of a python library. A library is useful as it allows a user to store defined functions that can be called to solve generic problems. The 2D wave equation satisfies this criteria. The first step is to create a new python file which we have called \verb cblib.py  within this file we can set all of the necessary includes to make things easier in the future. Other advantages of libraries include a reduction in the duplication of code and the ability to modularise functions and variables.
-
-
- 
+This requires that the user knows the number of itterations that will be required to solve the model for the time period \verb 0  to \verb tend . The command \verb sys.exit()  is used here to halt the script if the input to preceeder is \verb n  and thus prevent a forced crash of the script should its projected solve time be too large.
