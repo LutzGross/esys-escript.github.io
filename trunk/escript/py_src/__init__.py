@@ -25,10 +25,11 @@ from util import *
 import os
 import atexit
 
-def escriptOnExitProfiling():
+# To have this function called automatically
+def escriptLogMemoryStatusNow(prefix='memescript'):
     if os.name=='posix':
 	pid=os.getpid()
-	os.system("cat /proc/%d/status > memescript.%d"%(pid,pid))
+	os.system("cat /proc/%d/status > %s.%d"%(pid,prefix,pid))
 	
 if 'escriptExitProfiling' in os.environ:
-	atexit.register(escriptOnExitProfiling)
+	atexit.register(escriptLogMemoryStatusNow)
