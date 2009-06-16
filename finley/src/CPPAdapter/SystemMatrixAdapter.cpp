@@ -81,6 +81,7 @@ void SystemMatrixAdapter::ypAx(escript::Data& y,escript::Data& x) const
 }
 
 int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
+
    switch (option) {
        case  ESCRIPT_DEFAULT:
           return PASO_DEFAULT;
@@ -108,14 +109,14 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_GMRES;
        case  ESCRIPT_PRES20:
           return PASO_PRES20;
+       case  ESCRIPT_LUMPING:
+          return PASO_LUMPING;
        case  ESCRIPT_NO_REORDERING:
           return PASO_NO_REORDERING;
        case  ESCRIPT_MINIMUM_FILL_IN:
           return PASO_MINIMUM_FILL_IN;
        case  ESCRIPT_NESTED_DISSECTION:
           return PASO_NESTED_DISSECTION;
-       case  ESCRIPT_SCSL:
-          return PASO_SCSL;
        case  ESCRIPT_MKL:
           return PASO_MKL;
        case  ESCRIPT_UMFPACK:
@@ -124,22 +125,36 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_ITERATIVE;
        case  ESCRIPT_PASO:
           return PASO_PASO;
-       case  ESCRIPT_LUMPING:
-          return PASO_LUMPING;
        case  ESCRIPT_AMG:
           return PASO_AMG;
-       case  ESCRIPT_RILU:
-          return PASO_RILU;
+       case  ESCRIPT_REC_ILU:
+          return PASO_REC_ILU;
        case  ESCRIPT_TRILINOS:
           return PASO_TRILINOS;
        case  ESCRIPT_NONLINEAR_GMRES:
           return PASO_NONLINEAR_GMRES;
-       case  ESCRIPT_TFQMR:
+       case  ESCRIPT_TFQMR :
           return PASO_TFQMR;
        case  ESCRIPT_MINRES:
           return PASO_MINRES;
-       case  ESCRIPT_GS:
-          return PASO_GS;
+       case  ESCRIPT_GAUSS_SEIDEL:
+          return PASO_GAUSS_SEIDEL;
+       case  ESCRIPT_RILU:
+          return PASO_RILU;
+       case  ESCRIPT_DEFAULT_REORDERING:
+          return PASO_DEFAULT_REORDERING;
+       case  ESCRIPT_SUPER_LU:
+          return PASO_SUPER_LU;
+       case  ESCRIPT_PASTIX:
+          return PASO_PASTIX;
+       case  ESCRIPT_YAIR_SHAPIRA_COARSENING:
+          return PASO_YAIR_SHAPIRA_COARSENING;
+       case  ESCRIPT_RUGE_STUEBEN_COARSENING:
+          return PASO_RUGE_STUEBEN_COARSENING;
+       case  ESCRIPT_AGGREGATION_COARSENING:
+          return PASO_AGGREGATION_COARSENING;
+       case  ESCRIPT_NO_PRECONDITIONER:
+          return PASO_NO_PRECONDITIONER;
        default:
            stringstream temp;
            temp << "Error - Cannot map option value "<< option << " onto Paso";
@@ -187,11 +202,12 @@ void finley::SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
 
 }
 
-void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, const boost::python::dict& options) const
+void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, boost::python::object& options) const
 {
    Paso_SystemMatrix* mat=getPaso_SystemMatrix();
    Paso_Options paso_options;
-   dictToPasoOptions(&paso_options,options);
+   options.attr("resetDiagnostics")();
+   escriptToPasoOptions(&paso_options,options);
    if ( out.getDataPointSize()  != getColumnBlockSize()) {
       throw FinleyAdapterException("solve : column block size does not match the number of components of solution.");
    } else if ( in.getDataPointSize() != getRowBlockSize()) {
@@ -206,6 +222,7 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, co
    double* out_dp=out.getSampleDataRW(0);	
    double* in_dp=in.getSampleDataRW(0);		
    Paso_solve(mat,out_dp,in_dp,&paso_options);
+   pasoToEscriptOptions(&paso_options,options);
    checkPasoError();
 }
 
@@ -273,24 +290,49 @@ void SystemMatrixAdapter::resetValues() const
    checkPasoError();
 }
 
-void SystemMatrixAdapter::dictToPasoOptions(Paso_Options* paso_options, const boost::python::dict& options) 
+void SystemMatrixAdapter::pasoToEscriptOptions(const Paso_Options* paso_options,boost::python::object& options) 
 {
+#define SET(__key__,__val__,__type__) options.attr("_updateDiagnostics")(__key__,(__type__)paso_options->__val__)
+   SET("num_iter", num_iter, int);
+   SET("num_level", num_level, int);
+   SET("num_inner_iter", num_inner_iter, int);
+   SET("time", time, double);
+   SET("set_up_time", set_up_time, double);
+   SET("residual_norm", residual_norm, double);
+   SET("converged",converged, bool);
+#undef SET
+}
+void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const boost::python::object& options) 
+{
+#define EXTRACT(__key__,__val__,__type__) paso_options->__val__=boost::python::extract<__type__>(options.attr(__key__)())
+#define EXTRACT_OPTION(__key__,__val__,__type__) paso_options->__val__=mapOptionToPaso(boost::python::extract<__type__>(options.attr(__key__)()))
+ 
    Paso_Options_setDefaults(paso_options);
-#define EXTRACT(__key__,__val__,__type__) if ( options.has_key(__key__)) paso_options->__val__=boost::python::extract<__type__>(options.get(__key__))
-#define EXTRACT_OPTION(__key__,__val__,__type__) if ( options.has_key(__key__)) paso_options->__val__=mapOptionToPaso(boost::python::extract<__type__>(options.get(__key__)))
-   EXTRACT("verbose",verbose,int);
-   EXTRACT_OPTION("reordering",reordering,int);
-   EXTRACT(ESCRIPT_TOLERANCE_KEY,tolerance,double);
-   EXTRACT_OPTION(ESCRIPT_METHOD_KEY,method,int);
-   EXTRACT(ESCRIPT_SYMMETRY_KEY,symmetric,int);
-   EXTRACT_OPTION(ESCRIPT_PACKAGE_KEY,package,int);
-   EXTRACT_OPTION("preconditioner",preconditioner,int);
-   EXTRACT("iter_max",iter_max,int);
-   EXTRACT("drop_tolerance",drop_tolerance,double);
-   EXTRACT("drop_storage",drop_storage,double);
-   EXTRACT("truncation",truncation,int);
-   EXTRACT("restart",restart,int);
-   EXTRACT("sweeps",sweeps,int);
+   EXTRACT_OPTION("getSolverMethod",method,index_t);
+   EXTRACT_OPTION("getPackage",package,index_t);
+   EXTRACT("isVerbose",verbose,bool_t);
+   EXTRACT("isSymmetric",symmetric,bool_t);
+   EXTRACT("getTolerance",tolerance, double);
+   EXTRACT("getAbsoluteTolerance",absolute_tolerance, double);
+   EXTRACT("getInnerTolerance",inner_tolerance, double);
+   EXTRACT("adaptInnerTolerance",adapt_inner_tolerance, bool_t);
+   EXTRACT_OPTION("getReordering", reordering, index_t);
+   EXTRACT_OPTION("getPreconditioner", preconditioner, index_t);
+   EXTRACT("getIterMax", iter_max, dim_t);
+   EXTRACT("getInnerIterMax", inner_iter_max, dim_t);
+   EXTRACT("getDropTolerance", drop_tolerance, double);
+   EXTRACT("getDropStorage", drop_storage, double);
+   EXTRACT("getTruncation", truncation, dim_t);
+   EXTRACT("_getRestartForC", restart, index_t);
+   EXTRACT("getNumSweeps", sweeps, index_t);
+   EXTRACT("getNumPreSweeps", pre_sweeps, dim_t);
+   EXTRACT("getNumPostSweeps", post_sweeps, dim_t);
+   EXTRACT("getLevelMax", level_max, dim_t);
+   EXTRACT("getCoarseningThreshold", coarsening_threshold, double);
+   EXTRACT("acceptConvergenceFailure", accept_failed_convergence, bool_t);
+   EXTRACT_OPTION("getCoarsening", coarsening_method, index_t); 
+   EXTRACT("getRelaxationFactor",  relaxation_factor,  double);  
+  
 #undef EXTRACT
 #undef EXTRACT_OPTION
 }

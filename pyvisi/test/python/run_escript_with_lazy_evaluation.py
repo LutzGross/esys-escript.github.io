@@ -204,7 +204,7 @@ class TestEscriptEllipsoid(unittest.TestCase, TestEscript):
 		x=domain.getX()
 		# ... open new PDE ...
 		mypde=LinearPDE(domain)
-		mypde.setSolverMethod(LinearPDE.LUMPING)
+		mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
 		kronecker=identity(mypde.getDim())
 
 		#  spherical source at middle of bottom face

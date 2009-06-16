@@ -20,7 +20,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
-from esys.escript.linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearPDE, SolverOptions
 from esys import finley
 import sys
 
@@ -51,7 +51,7 @@ class Mountains:
     self.__PDE_H = LinearPDE(domain)
     self.__PDE_H.setSymmetryOn()
     self.__PDE_H.setValue(D=1.0)
-    self.__PDE_H.setSolverMethod(solver=LinearPDE.LUMPING)
+    self.__PDE_H.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
     self.__h = inf(domain.getSize())
     self.__v=v
     self.__z=z
@@ -66,7 +66,7 @@ class Mountains:
     self.__H_t=Scalar(0.0, Solution(domain))
     self.__dt=0.
 
-  def update(self,u=None,H_t=None,dt=None,verbose=False):
+  def update(self,u=None,H_t=None,dt=None):
       """
       Sets a new W and updates the H function.
 
@@ -80,7 +80,7 @@ class Mountains:
          
       for d in range(self.__DIM):
         self.__PDE_W.setValue(r=u[d]*self.__x[self.__DIM-1]/self.__z)
-        u[d]=self.__PDE_W.getSolution(verbose=verbose)
+        u[d]=self.__PDE_W.getSolution()
 
       if dt==None:
         dt=0.5*self.__h/sup(u)
@@ -119,7 +119,7 @@ class Mountains:
       return self.__domain
 
   def setTolerance(self,tolerance=1e-3):
-    self.__PDE_W.setTolerance(tolerance)
-    self.__PDE_H.setTolerance(tolerance)
+    self.__PDE_W.getSolverOptions().setTolerance(tolerance)
+    self.__PDE_H.getSolverOptions().setTolerance(tolerance)
 
 

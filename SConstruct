@@ -536,8 +536,8 @@ if env['useumfpack']:
   conf.env.PrependENVPath('PYTHONPATH', prefix)
   conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['libinstall'])
 
-if env['useumfpack'] and not conf.CheckFunc('umfpack_di_symbolic'): env['useumfpack'] = 0
 if env['useumfpack'] and not conf.CheckCHeader('umfpack.h'): env['useumfpack'] = 0
+if env['useumfpack'] and not conf.CheckFunc('umfpack_di_symbolic'): env['useumfpack'] = 0
 # if env['useumfpack'] and not conf.CheckFunc('daxpy'): env['useumfpack'] = 0 # this does not work on shake73?
 
 # Add UMFPACK to environment env if it was found

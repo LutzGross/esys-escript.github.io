@@ -18,9 +18,7 @@
 
 #include "FunctionSpace.h"
 #include "SystemMatrixException.h"
-
-#include <boost/python/dict.hpp>
-
+#include <boost/python/object.hpp>
 //
 // Forward declaration
 class Data;
@@ -137,7 +135,7 @@ class AbstractSystemMatrix {
      returns the solution u of the linear system this*u=in
   */
   ESCRIPT_DLL_API
-  Data solve(Data& in,const boost::python::dict& options) const;
+  Data solve(Data& in, boost::python::object& options) const;
 
   /**
      \brief writes the matrix to a file using the Matrix Market file format
@@ -166,7 +164,7 @@ class AbstractSystemMatrix {
      solves the linear system this*out=in
   */
   ESCRIPT_DLL_API
-  virtual void setToSolution(Data& out,Data& in,const boost::python::dict& options) const;
+  virtual void setToSolution(Data& out,Data& in, boost::python::object& options) const;
 
   /**
      \brief

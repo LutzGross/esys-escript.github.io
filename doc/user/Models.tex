@@ -81,7 +81,7 @@ S p =  B A^{-1} G
 \end{equation}
 with the Schur complement \index{Schur complement} $S=BA^{-1}B^{*}$. This problem can be solved iteratively
 with the preconditioner $\hat{S}$ defined as $q=\hat{S}^{-1}p$ by solving
-\begin{equation}
+\begin{equation} \label{P PREC}
 \frac{1}{\eta}q = p 
 \end{equation}
 see~\cite{ELMAN} for more details. Note that the residual for the current approximation $p$ is given as 
@@ -128,9 +128,11 @@ ATOL = \epsilon \frac{\|\sqrt{v^{0}\hackscore{j,k}v^{0}\hackscore{j,k}}\|  }{\|v
 
 \subsection{Functions}
 
-\begin{classdesc}{StokesProblemCartesian}{domain}
+\begin{classdesc}{StokesProblemCartesian}{domain\optional{, adaptSubTolerance=\True}}
 opens the Stokes problem\index{Stokes problem} on the \Domain domain. The approximation
 order needs to be two.
+If \var{adaptSubTolerance} is \True 
+the tolerances for all subproblems are set automatically.
 \end{classdesc}
 
 \begin{methoddesc}[StokesProblemCartesian]{initialize}{\optional{f=Data(), \optional{fixed_u_mask=Data(), \optional{eta=1, \optional{surface_stress=Data(), \optional{stress=Data()}}}}}}
@@ -142,8 +144,8 @@ the values of \var{fixed_u_mask}. The method will try to cast the given values t
 \Data class objects.
 \end{methoddesc}
 
-\begin{methoddesc}[StokesProblemCartesian]{solve}{v,p,
-\optional{max_iter=20, \optional{verbose=False, \optional{usePCG=True}}}}
+\begin{methoddesc}[StokesProblemCartesian]{solve}{v,p
+\optional{, max_iter=100 \optional{, verbose=False \optional{, usePCG=True }}}}
 solves the problem and return approximations for velocity and pressure. 
 The arguments \var{v} and \var{p} define initial guess. The values of \var{v} marked
 by \var{fixed_u_mask} remain unchanged. 
@@ -151,6 +153,7 @@ If \var{usePCG} is set to \True
 reconditioned conjugate gradient method (PCG) \index{preconditioned conjugate gradient method!PCG}  scheme is used. Otherwise the problem is solved generalized minimal residual method (GMRES) \index{generalized minimal residual method!GMRES}. In most cases 
 the PCG scheme is more efficient.
 \var{max_iter} defines the maximum number of iteration steps. 
+
 If \var{verbose} is set to \True informations on the progress of of the solver are printed.
 \end{methoddesc}
 
@@ -165,19 +168,23 @@ returns the current relative tolerance.
 sets the absolute tolerance for the error in the relevant norm. The tolerance must be non-negative. Typically the
 absolute talerance is set to 0.
 \end{methoddesc}
+
 \begin{methoddesc}[StokesProblemCartesian]{getAbsoluteTolerance}{}
 sreturns the current absolute tolerance.
 \end{methoddesc}
-\begin{methoddesc}[StokesProblemCartesian]{setSubProblemTolerance}{\optional{rtol=None}}
-sets the tolerance to solve the involved PDEs. The subtolerance \var{rtol} should not be choosen to large 
-in order to avoid feed back of errors in the subproblem solution into the outer iteration.
-On the otherhand is choosen to small compute time is wasted.
-If \var{rtol} is set to \var{None} the sub-tolerance is set automatically depending on the 
-tolerance choosen for the oter iteration.
+
+\begin{methoddesc}[StokesProblemCartesian]{getSolverOptionsVelocity}{}
+returns the solver options used  solve the equations~(\ref{V CALC}) for velocity.
 \end{methoddesc}
-\begin{methoddesc}[StokesProblemCartesian]{getSubProblemTolerance}{}
-return the tolerance for the involved PDEs.
+
+\begin{methoddesc}[StokesProblemCartesian]{getSolverOptionsPressure}{}
+returns the solver options used  solve the equation~(\label{P PREC}) for pressure.
 \end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{getSolverOptionsDiv}{}
+set the solver options for solving the equation to project the divergence of the velocity onto the function space of pressure.
+\end{methoddesc}
+
 
 \subsection{Example: Lit Driven Cavity}
  The following script \file{lit\hackscore driven\hackscore cavity.py} 
@@ -334,9 +341,13 @@ The problem is that ATOL is depending on the solution $p$ (and $v$ calculated fo
 to get a first value for ATOL. If the stopping crierion is met in the PCG iteration, a new $v$ is calculated from the current pressure approximation and ATOL is recalculated. If \ref{DARCY STOP} is still fullfilled the calculation is terminated and $(v,p)$ is returned. Otherwise PCG is restarted with a new ATOL.
 
 \subsection{Functions}
-\begin{classdesc}{DarcyFlow}{domain}
+\begin{classdesc}{DarcyFlow}{domain \optional{, adaptSubTolerance=\True}}
 opens the Darcy flux problem\index{Darcy flux} on the \Domain domain.
+If \var{adaptSubTolerance} is set to \True, 
+the relative tolerances for solving~(\ref{DARCY V FORM}),~(\ref{UPDATE W})
+and~(\ref{UPDATE P}) are set automatically.
 \end{classdesc}
+
 \begin{methoddesc}[DarcyFlow]{setValue}{\optional{f=None, \optional{g=None, \optional{location_of_fixed_pressure=None, \optional{location_of_fixed_flux=None, \optional{permeability=None}}}}}}
 assigns values to the model parameters. Values can be assigned using various calls - in particular 
 in a time dependend problem only values that change over time needs to be reset. The permability can be defined as scalar (isotropic), a vector (orthotropic) or a matrix (anisotropic). 
@@ -360,15 +371,21 @@ sets the relative tolerance \mbox{rtol} in \ref{DARCY ATOL DEF}.
 sets the absolute tolerance \mbox{atol} in \ref{DARCY ATOL DEF}.
 \end{methoddesc}
 
-\begin{methoddesc}[DarcyFlow]{setSubProblemTolerance}{\optional{rtol=None}}
-sets the relative tolerance used to solve the involved PDEs. If no argument is given,
-the square of the current relative tolerance is used. The sub-problem tolerance should be choosen as large as possible to minimize the compute time. However, a too large value for the sub-problem tolerance may lead to slow convergence or even dibergence in the outer iteration. 
+\begin{methoddesc}[DarcyFlow]{getSolverOptionsFlux}{}
+Returns the solver options used to solve the flux problems~(\ref{DARCY V FORM}) and~(\ref{UPDATE W}). Use the returned \SolverOptions object to control the solution algorithms. If the adaption of subtolerance is choosen, the tolerance will 
+be overwritten before the solver is called.
 \end{methoddesc}
 
-\begin{methoddesc}[DarcyFlow]{solve}{u0,p0, \optional{max_iter=100, \optional{verbose=False \optional{sub_rtol=1.e-8}}}}
+\begin{methoddesc}[DarcyFlow]{getSolverOptionsPressure}{}
+Returns the solver options used to solve the pressure problems~(\ref{UPDATE P}). 
+Use the returned \SolverOptions object to control the solution algorithms. If the adaption of subtolerance is choosen, the tolerance will 
+be overwritten before the solver is called. 
+\end{methoddesc}
+
+\begin{methoddesc}[DarcyFlow]{solve}{u0,p0, \optional{max_iter=100, \optional{verbose=False}}}
 solves the problem. and returns approximations for the flux $v$ and the pressure $p$. 
 \var{u0} and \var{p0} define initial guess for flux and pressure. Values marked
-by positive values \var{location_of_fixed_flux} and \var{location_of_fixed_pressure}, respectively, are kept unchanged.
+by positive values \var{location_of_fixed_flux} and \var{location_of_fixed_pressure}, respectively, are kept unchanged. \var{max_iter} sets the maximum number of iterations steps allowed for solving the coupled problem.
 \end{methoddesc}
 
 
@@ -540,7 +557,9 @@ domain
 \optional{, p=0
 \optional{, t=0
 \optional{, numMaterials=1
-\optional{, verbose=True}}}}}}}
+\optional{, verbose=True
+\optional{, adaptSubTolerance=True
+}}}}}}}}
 opens an incompressible, isotropic flow problem in Cartesian cooridninates
 on the domain \var{domain}.
 \var{stress},
@@ -549,7 +568,7 @@ on the domain \var{domain}.
 \var{t} set the initial deviatoric stress, velocity, pressure and time.
 \var{numMaterials} specifies the number of materials used in the power law
 model. Some progress information are printed if \var{verbose} is set to
-\True.
+\True. If \var{adaptSubTolerance} is equal to True the tolerances for subproblems are set automatically.
 \end{classdesc}
 
 \begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getDomain}{}
@@ -597,11 +616,8 @@ Sets the tolerance used to terminate the iteration on a time step.
 Sets the relative tolerance for the incompressible solver, see \class{StokesProblemCartesian} for details.
 \end{methoddesc}
 
-\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setFlowSubTolerance}{tol=1.e-8}
-Sets the relative tolerance for the subsolver of the flow solver, see
-\class{StokesProblemCartesian} for details.\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setElasticShearModulus}{mu=None}
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setElasticShearModulus}{mu=None}
 Sets the elastic shear modulus $\mu$. If \var{mu} is set to None (default) elasticity is not applied.
-\end{methoddesc}
 \end{methoddesc}
 
 \begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setEtaTolerance=}{rtol=1.e-8}

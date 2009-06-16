@@ -172,6 +172,9 @@ class SolverOptions(object):
         out+="\nAbsolute tolerance = %e"%self.getAbsoluteTolerance()
         out+="\nSymmetric problem = %s"%self.isSymmetric()
         out+="\nMaximum number of iteration steps = %s"%self.getIterMax()
+        out+="\nInner tolerance = %e"%self.getInnerTolerance()
+        out+="\nAdapt innner tolerance = %s"%self.adaptInnerTolerance()
+	
         if self.getPackage() == self.PASO:
             out+="\nSolver method = %s"%self.getName(self.getSolverMethod())
             if self.getSolverMethod() == self.GMRES:
@@ -331,9 +334,10 @@ class SolverOptions(object):
         Sets the key of the coarsening method to be applied in AMG.
 
         @param method: selects the coarsening method .
-        @type method: in L{SolverOptions.DEFAULT}, L{SolverOptions.YAIR_SHAPIRA_COARSENING}, 
+        @type method: in {SolverOptions.DEFAULT}, L{SolverOptions.YAIR_SHAPIRA_COARSENING}, 
         L{SolverOptions.RUGE_STUEBEN_COARSENING}, L{SolverOptions.AGGREGATION_COARSENING}
         """
+	if method==None: method=0
         if not method in [self.DEFAULT, self.YAIR_SHAPIRA_COARSENING, self.RUGE_STUEBEN_COARSENING, self.AGGREGATION_COARSENING]:
              raise ValueError,"unknown coarsening method %s"%method
         self.__coarsening=method
@@ -356,6 +360,7 @@ class SolverOptions(object):
         @note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters
         an unknown preconditioner. 
         """
+	if preconditioner==None: preconditioner=10
         if not preconditioner in [ SolverOptions.SSOR, SolverOptions.ILU0, SolverOptions.ILUT, SolverOptions.JACOBI, 
                                     SolverOptions.AMG, SolverOptions.REC_ILU, SolverOptions.GAUSS_SEIDEL, SolverOptions.RILU,
                                     SolverOptions.NO_PRECONDITIONER] :
@@ -385,6 +390,7 @@ class SolverOptions(object):
         @note: Not all packages support all solvers. It can be assumed that a package makes a reasonable choice if it encounters
         an unknown solver method. 
         """
+	if method==None: method=0
         if not method in [ SolverOptions.DEFAULT, SolverOptions.DIRECT, SolverOptions.CHOLEVSKY, SolverOptions.PCG, 
                            SolverOptions.CR, SolverOptions.CGS, SolverOptions.BICGSTAB, SolverOptions.SSOR, 
                            SolverOptions.GMRES, SolverOptions.PRES20, SolverOptions.LUMPING, SolverOptions.ITERATIVE, SolverOptions.AMG, 
@@ -411,6 +417,7 @@ class SolverOptions(object):
         @type package: in L{SolverOptions.DEFAULT}, L{SolverOptions.PASO}, L{SolverOptions.SUPER_LU}, L{SolverOptions.PASTIX}, L{SolverOptions.MKL}, L{SolverOptions.UMFPACK}, L{SolverOptions.TRILINOS}
         @note: Not all packages are support on all implementation. An exception may be thrown on some platforms if a particular is requested. 
         """
+	if package==None: package=0
         if not package in [SolverOptions.DEFAULT, SolverOptions.PASO, SolverOptions.SUPER_LU, SolverOptions.PASTIX, SolverOptions.MKL, SolverOptions.UMFPACK, SolverOptions.TRILINOS]:
              raise ValueError,"unknown solver package %s"%package
         self.__package=package
@@ -456,6 +463,7 @@ class SolverOptions(object):
             if restart<1:
                 raise ValueError,"restart must be positive."
             self.__restart=restart
+	    
     def getRestart(self):
         """
         Returns the number of iterations steps after which GMRES is performing a restart.
@@ -467,6 +475,12 @@ class SolverOptions(object):
             return None
         else:
             return self.__restart
+    def _getRestartForC(self):
+	    r=self.getRestart()
+	    if r == None: 
+		    return -1
+            else: 
+		    return r
     def setTruncation(self,truncation=20):
         """
         Sets the number of residuals in GMRES to be stored for orthogonalization.  The more residuals are stored
@@ -775,7 +789,7 @@ class SolverOptions(object):
         Switches the verbosity of the solver off.
         """
         self.__verbose=False
-    def setVerbosity(self,verbose=True):
+    def setVerbosity(self,verbose=False):
         """
         Sets the verbosity flag for the solver to C{flag}.
 
@@ -786,8 +800,7 @@ class SolverOptions(object):
             self.setVerbosityOn()
         else:
             self.setVerbosityOff()
-
-        self.__adapt_inner_tolerance=True
+	    
     def adaptInnerTolerance(self):
         """
         Returns C{True} if the tolerance of the inner solver is selected automatically. 
@@ -1208,80 +1221,7 @@ class LinearProblem(object):
    where M{L} is an operator and M{f} is the right hand side. This operator
    problem will be solved to get the unknown M{u}.
 
-   @cvar DEFAULT: The default method used to solve the system of linear
-                  equations
-   @cvar DIRECT: The direct solver based on LDU factorization
-   @cvar CHOLEVSKY: The direct solver based on LDLt factorization (can only be
-                    applied for symmetric PDEs)
-   @cvar PCG: The preconditioned conjugate gradient method (can only be applied
-              for symmetric PDEs)
-   @cvar CR: The conjugate residual method
-   @cvar CGS: The conjugate gradient square method
-   @cvar BICGSTAB: The stabilized BiConjugate Gradient method
-   @cvar TFQMR: Transport Free Quasi Minimal Residual method
-   @cvar MINRES: Minimum residual method
-   @cvar SSOR: The symmetric overrelaxation method
-   @cvar ILU0: The incomplete LU factorization preconditioner with no fill-in
-   @cvar ILUT: The incomplete LU factorization preconditioner with fill-in
-   @cvar JACOBI: The Jacobi preconditioner
-   @cvar GMRES: The Gram-Schmidt minimum residual method
-   @cvar PRES20: Special GMRES with restart after 20 steps and truncation after
-                 5 residuals
-   @cvar LUMPING: Matrix lumping
-   @cvar NO_REORDERING: No matrix reordering allowed
-   @cvar MINIMUM_FILL_IN: Reorder matrix to reduce fill-in during factorization
-   @cvar NESTED_DISSECTION: Reorder matrix to improve load balancing during
-                            factorization
-   @cvar PASO: PASO solver package
-   @cvar SCSL: SGI SCSL solver library
-   @cvar MKL: Intel's MKL solver library
-   @cvar UMFPACK: The UMFPACK library
-   @cvar TRILINOS: The TRILINOS parallel solver class library from Sandia Natl
-                   Labs
-   @cvar ITERATIVE: The default iterative solver
-   @cvar AMG: Algebraic Multi Grid
-   @cvar RILU: Recursive ILU
-   @cvar GS: Gauss-Seidel solver
-
    """
-   DEFAULT= 0
-   DIRECT= 1
-   CHOLEVSKY= 2
-   PCG= 3
-   CR= 4
-   CGS= 5
-   BICGSTAB= 6
-   SSOR= 7
-   ILU0= 8
-   ILUT= 9
-   JACOBI= 10
-   GMRES= 11
-   PRES20= 12
-   LUMPING= 13
-   NO_REORDERING= 17
-   MINIMUM_FILL_IN= 18
-   NESTED_DISSECTION= 19
-   SCSL= 14
-   MKL= 15
-   UMFPACK= 16
-   ITERATIVE= 20
-   PASO= 21
-   AMG= 22
-   RILU = 23
-   TRILINOS = 24
-   NONLINEAR_GMRES = 25
-   TFQMR = 26
-   MINRES = 27
-   GS=28
-
-   SMALL_TOLERANCE=1.e-13
-   PACKAGE_KEY="package"
-   METHOD_KEY="method"
-   SYMMETRY_KEY="symmetric"
-   TOLERANCE_KEY="tolerance"
-   PRECONDITIONER_KEY="preconditioner"
-
-
    def __init__(self,domain,numEquations=None,numSolutions=None,debug=False):
      """
      Initializes a linear problem.
@@ -1305,18 +1245,17 @@ class LinearProblem(object):
      self.__altered_coefficients=False
      self.__reduce_equation_order=False
      self.__reduce_solution_order=False
-     self.__tolerance=1.e-8
-     self.__solver_method=self.DEFAULT
-     self.__solver_package=self.DEFAULT
-     self.__preconditioner=self.DEFAULT
+     self.__sym=False
+     self.setSolverOptions()
      self.__is_RHS_valid=False
      self.__is_operator_valid=False
-     self.__sym=False
      self.__COEFFICIENTS={}
+     self.__solution_rtol=1.e99
+     self.__solution_atol=1.e99
+     self.setSymmetryOff()
      # initialize things:
      self.resetAllCoefficients()
-     self.__system_type=None
-     self.updateSystemType()
+     self.initializeSystem()
    # ==========================================================================
    #    general stuff:
    # ==========================================================================
@@ -1481,106 +1420,31 @@ class LinearProblem(object):
    # ==========================================================================
    #   solver settings:
    # ==========================================================================
-   def setSolverMethod(self,solver=None,preconditioner=None):
+   def setSolverOptions(self,options=None):
        """
-       Sets a new solver method and/or preconditioner.
+       Sets the solver options.
 
-       @param solver: new solver method to use
-       @type solver: one of L{DEFAULT}, L{ITERATIVE} L{DIRECT}, L{CHOLEVSKY},
-                     L{PCG}, L{CR}, L{CGS}, L{BICGSTAB}, L{SSOR}, L{GMRES},
-                     L{TFQMR}, L{MINRES}, L{PRES20}, L{LUMPING}, L{AMG}
-       @param preconditioner: new preconditioner to use
-       @type preconditioner: one of L{DEFAULT}, L{JACOBI} L{ILU0}, L{ILUT},
-                             L{SSOR}, L{RILU}, L{GS}
-
-       @note: the solver method chosen may not be available by the selected
-              package.
+       @param options: the new solver options. If equal C{None}, the solver options are set to the default.
+       @type options: L{SolverOptions} or C{None}
+       @note: The symmetry flag of options is overwritten by the symmetry flag of the L{LinearProblem}.
        """
-       if solver==None: solver=self.__solver_method
-       if preconditioner==None: preconditioner=self.__preconditioner
-       if solver==None: solver=self.DEFAULT
-       if preconditioner==None: preconditioner=self.DEFAULT
-       if not (solver,preconditioner)==self.getSolverMethod():
-           self.__solver_method=solver
-           self.__preconditioner=preconditioner
-           self.updateSystemType()
-           self.trace("New solver is %s"%self.getSolverMethodName())
-
-   def getSolverMethodName(self):
+       if options==None:
+          self.__solver_options=SolverOptions()
+       elif isinstance(options, SolverOptions):
+          self.__solver_options=options
+       else:
+          raise ValueError,"options must be a SolverOptions object."
+       self.__solver_options.setSymmetry(self.__sym)
+     
+   def getSolverOptions(self):
        """
-       Returns the name of the solver currently used.
-
-       @return: the name of the solver currently used
-       @rtype: C{string}
+       Returns the solver options
+   
+       @rtype: L{SolverOptions}
        """
-
-       m=self.getSolverMethod()
-       p=self.getSolverPackage()
-       method=""
-       if m[0]==self.DEFAULT: method="DEFAULT"
-       elif m[0]==self.DIRECT: method= "DIRECT"
-       elif m[0]==self.ITERATIVE: method= "ITERATIVE"
-       elif m[0]==self.CHOLEVSKY: method= "CHOLEVSKY"
-       elif m[0]==self.PCG: method= "PCG"
-       elif m[0]==self.TFQMR: method= "TFQMR"
-       elif m[0]==self.MINRES: method= "MINRES"
-       elif m[0]==self.CR: method= "CR"
-       elif m[0]==self.CGS: method= "CGS"
-       elif m[0]==self.BICGSTAB: method= "BICGSTAB"
-       elif m[0]==self.SSOR: method= "SSOR"
-       elif m[0]==self.GMRES: method= "GMRES"
-       elif m[0]==self.PRES20: method= "PRES20"
-       elif m[0]==self.LUMPING: method= "LUMPING"
-       elif m[0]==self.AMG: method= "AMG"
-       if m[1]==self.DEFAULT: method+="+DEFAULT"
-       elif m[1]==self.JACOBI: method+= "+JACOBI"
-       elif m[1]==self.ILU0: method+= "+ILU0"
-       elif m[1]==self.ILUT: method+= "+ILUT"
-       elif m[1]==self.SSOR: method+= "+SSOR"
-       elif m[1]==self.AMG: method+= "+AMG"
-       elif m[1]==self.RILU: method+= "+RILU"
-       elif m[1]==self.GS: method+= "+GS"
-       if p==self.DEFAULT: package="DEFAULT"
-       elif p==self.PASO: package= "PASO"
-       elif p==self.MKL: package= "MKL"
-       elif p==self.SCSL: package= "SCSL"
-       elif p==self.UMFPACK: package= "UMFPACK"
-       elif p==self.TRILINOS: package= "TRILINOS"
-       else : method="unknown"
-       return "%s solver of %s package"%(method,package)
-
-   def getSolverMethod(self):
-       """
-       Returns the solver method and preconditioner used.
-
-       @return: the solver method currently used.
-       @rtype: C{tuple} of C{int}
-       """
-       return self.__solver_method,self.__preconditioner
-
-   def setSolverPackage(self,package=None):
-       """
-       Sets a new solver package.
-
-       @param package: the new solver package
-       @type package: one of L{DEFAULT}, L{PASO} L{SCSL}, L{MKL}, L{UMFPACK},
-                      L{TRILINOS}
-       """
-       if package==None: package=self.DEFAULT
-       if not package==self.getSolverPackage():
-           self.__solver_package=package
-           self.updateSystemType()
-           self.trace("New solver is %s"%self.getSolverMethodName())
-
-   def getSolverPackage(self):
-       """
-       Returns the package of the solver.
-
-       @return: the solver package currently being used
-       @rtype: C{int}
-       """
-       return self.__solver_package
-
+       self.__solver_options.setSymmetry(self.__sym)
+       return self.__solver_options
+       
    def isUsingLumping(self):
       """
       Checks if matrix lumping is the current solver method.
@@ -1588,33 +1452,7 @@ class LinearProblem(object):
       @return: True if the current solver method is lumping
       @rtype: C{bool}
       """
-      return self.getSolverMethod()[0]==self.LUMPING
-
-   def setTolerance(self,tol=1.e-8):
-       """
-       Resets the tolerance for the solver method to C{tol}.
-
-       @param tol: new tolerance for the solver. If C{tol} is lower than the
-                   current tolerence the system will be resolved.
-       @type tol: positive C{float}
-       @raise ValueError: if tolerance is not positive
-       """
-       if not tol>0:
-           raise ValueError,"Tolerance has to be positive"
-       if tol<self.getTolerance(): self.invalidateSolution()
-       self.trace("New tolerance %e"%tol)
-       self.__tolerance=tol
-       return
-
-   def getTolerance(self):
-       """
-       Returns the tolerance currently set for the solution.
-
-       @return: tolerance currently used
-       @rtype: C{float}
-       """
-       return self.__tolerance
-
+      return self.getSolverOptions().getSolverMethod()==self.getSolverOptions().LUMPING
    # ==========================================================================
    #    symmetry  flag:
    # ==========================================================================
@@ -1624,39 +1462,35 @@ class LinearProblem(object):
 
       @return: True if a symmetric PDE is indicated, False otherwise
       @rtype: C{bool}
+      @note: the method is equivalent to use getSolverOptions().isSymmetric()
       """
-      return self.__sym
+      self.getSolverOptions().isSymmetric()
 
    def setSymmetryOn(self):
       """
-      Sets the symmetry flag.
+      Sets the symmetry flag. 
+      @note: The method overwrites the symmetry flag set by the solver options
       """
-      if not self.isSymmetric():
-         self.trace("PDE is set to be symmetric")
-         self.__sym=True
-         self.updateSystemType()
+      self.__sym=True
+      self.getSolverOptions().setSymmetryOn()
 
    def setSymmetryOff(self):
       """
       Clears the symmetry flag.
+      @note: The method overwrites the symmetry flag set by the solver options
       """
-      if self.isSymmetric():
-         self.trace("PDE is set to be nonsymmetric")
-         self.__sym=False
-         self.updateSystemType()
+      self.__sym=False
+      self.getSolverOptions().setSymmetryOff()
 
-   def setSymmetryTo(self,flag=False):
+   def setSymmetry(self,flag=False):
       """
       Sets the symmetry flag to C{flag}.
 
       @param flag: If True, the symmetry flag is set otherwise reset.
       @type flag: C{bool}
+      @note: The method overwrites the symmetry flag set by the solver options
       """
-      if flag:
-         self.setSymmetryOn()
-      else:
-         self.setSymmetryOff()
-
+      self.getSolverOptions().setSymmetry(flag)
    # ==========================================================================
    # function space handling for the equation as well as the solution
    # ==========================================================================
@@ -1783,23 +1617,11 @@ class LinearProblem(object):
         self.setReducedOrderForEquationOn()
      else:
         self.setReducedOrderForEquationOff()
-
-   def updateSystemType(self):
-     """
-     Reassesses the system type and, if a new matrix is needed, resets the
-     system.
-     """
-     new_system_type=self.getRequiredSystemType()
-     if not new_system_type==self.__system_type:
-         self.trace("Matrix type is now %d."%new_system_type)
-         self.__system_type=new_system_type
-         self.initializeSystem()
-
-   def getSystemType(self):
+   def getOperatorType(self):
       """
       Returns the current system type.
       """
-      return self.__system_type
+      return self.__operator_type
 
    def checkSymmetricTensor(self,name,verbose=True):
       """
@@ -1813,11 +1635,12 @@ class LinearProblem(object):
       @return: True if coefficient C{name} is symmetric
       @rtype: C{bool}
       """
+      SMALL_TOLERANCE=util.EPSILON*10.
       A=self.getCoefficient(name)
       verbose=verbose or self.__debug
       out=True
       if not A.isEmpty():
-         tol=util.Lsup(A)*self.SMALL_TOLERANCE
+         tol=util.Lsup(A)*SMALL_TOLERANCE
          s=A.getShape()
          if A.getRank() == 4:
             if s[0]==s[2] and s[1] == s[3]:
@@ -1862,6 +1685,7 @@ class LinearProblem(object):
                symmetric.
       @rtype: C{bool}
       """
+      SMALL_TOLERANCE=util.EPSILON*10.
       B=self.getCoefficient(name0)
       C=self.getCoefficient(name1)
       verbose=verbose or self.__debug
@@ -1875,7 +1699,7 @@ class LinearProblem(object):
       elif not B.isEmpty() and not C.isEmpty():
          sB=B.getShape()
          sC=C.getShape()
-         tol=(util.Lsup(B)+util.Lsup(C))*self.SMALL_TOLERANCE/2.
+         tol=(util.Lsup(B)+util.Lsup(C))*SMALL_TOLERANCE/2.
          if len(sB) != len(sC):
              if verbose: print "non-symmetric problem because ranks of %s (=%s) and %s (=%s) are different."%(name0,len(sB),name1,len(sC))
              out=False
@@ -2020,6 +1844,9 @@ class LinearProblem(object):
        """
        Returns True if the solution is still valid.
        """
+       if self.__solution_rtol>self.getSolverOptions().getTolerance() or \
+          self.__solution_atol>self.getSolverOptions().getAbsoluteTolerance():
+	     self.invalidateSolution()  
        return self.__is_solution_valid
 
    def validOperator(self):
@@ -2040,6 +1867,7 @@ class LinearProblem(object):
        """
        Returns True if the operator is still valid.
        """
+       if self.getRequiredOperatorType()==self.getOperatorType(): self.invalidateOperator()
        return self.__is_operator_valid
 
    def validRightHandSide(self):
@@ -2066,7 +1894,6 @@ class LinearProblem(object):
        """
        Announces that everything has to be rebuilt.
        """
-       if self.isRightHandSideValid(): self.trace("System has to be rebuilt.")
        self.invalidateSolution()
        self.invalidateOperator()
        self.invalidateRightHandSide()
@@ -2082,6 +1909,7 @@ class LinearProblem(object):
        Resets the system clearing the operator, right hand side and solution.
        """
        self.trace("New System has been created.")
+       self.__operator_type=None
        self.__operator=escript.Operator()
        self.__righthandside=escript.Data()
        self.__solution=escript.Data()
@@ -2136,8 +1964,11 @@ class LinearProblem(object):
 
    def setSolution(self,u):
        """
-       Sets the solution assuming that makes the system valid.
+       Sets the solution assuming that makes the system valid with the tolrance
+       defined by the solver options
        """
+       self.__solution_rtol=self.getSolverOptions().getTolerance()
+       self.__solution_atol=self.getSolverOptions().getAbsoluteTolerance()
        self.__solution=u
        self.validSolution()
 
@@ -2170,11 +2001,12 @@ class LinearProblem(object):
        Makes sure that the operator is instantiated and returns it initialized
        with zeros.
        """
-       if self.__operator.isEmpty():
+       if self.getOperatorType() == None:
            if self.isUsingLumping():
                self.__operator=self.createSolution()
            else:
                self.__operator=self.createOperator()
+	   self.__operator_type=self.getRequiredOperatorType()
        else:
            if self.isUsingLumping():
                self.__operator.setToZero()
@@ -2186,7 +2018,6 @@ class LinearProblem(object):
        """
        Returns the operator in its current state.
        """
-       if self.__operator.isEmpty(): self.resetOperator()
        return self.__operator
 
    def setValue(self,**coefficients):
@@ -2248,14 +2079,14 @@ class LinearProblem(object):
    # methods that are typically overwritten when implementing a particular
    # linear problem
    # ==========================================================================
-   def getRequiredSystemType(self):
+   def getRequiredOperatorType(self):
       """
       Returns the system type which needs to be used by the current set up.
 
       @note: Typically this method is overwritten when implementing a
              particular linear problem.
       """
-      return 0
+      return None
 
    def createOperator(self):
        """
@@ -2304,7 +2135,6 @@ class LinearProblem(object):
               linear problem.
        """
        return (self.getCurrentOperator(), self.getCurrentRightHandSide())
-#=====================
 
 class LinearPDE(LinearProblem):
    """
@@ -2489,11 +2319,12 @@ class LinearPDE(LinearProblem):
      """
      return "<LinearPDE %d>"%id(self)
 
-   def getRequiredSystemType(self):
+   def getRequiredOperatorType(self):
       """
       Returns the system type which needs to be used by the current set up.
       """
-      return self.getDomain().getSystemMatrixTypeId(self.getSolverMethod()[0],self.getSolverMethod()[1],self.getSolverPackage(),self.isSymmetric())
+      solver_options=self.getSolverOptions()
+      return self.getDomain().getSystemMatrixTypeId(solver_options.getSolverMethod(), solver_options.getPreconditioner(),solver_options.getPackage(), solver_options.isSymmetric())
 
    def checkSymmetry(self,verbose=True):
       """
@@ -2524,45 +2355,31 @@ class LinearPDE(LinearProblem):
        """
        Returns an instance of a new operator.
        """
-       self.trace("New operator is allocated.")
+       optype=self.getRequiredOperatorType()
+       self.trace("New operator of type %s is allocated."%optype)
        return self.getDomain().newOperator( \
                            self.getNumEquations(), \
                            self.getFunctionSpaceForEquation(), \
                            self.getNumSolutions(), \
                            self.getFunctionSpaceForSolution(), \
-                           self.getSystemType())
+                           optype)
 
-   def getSolution(self,**options):
+   def getSolution(self):
        """
        Returns the solution of the PDE.
 
        @return: the solution
        @rtype: L{Data<escript.Data>}
-       @param options: solver options
-       @keyword verbose: True to get some information during PDE solution
-       @type verbose: C{bool}
-       @keyword reordering: reordering scheme to be used during elimination.
-                            Allowed values are L{NO_REORDERING},
-                            L{MINIMUM_FILL_IN} and L{NESTED_DISSECTION}
-       @keyword iter_max: maximum number of iteration steps allowed
-       @keyword drop_tolerance: threshold for dropping in L{ILUT}
-       @keyword drop_storage: maximum of allowed memory in L{ILUT}
-       @keyword truncation: maximum number of residuals in L{GMRES}
-       @keyword restart: restart cycle length in L{GMRES}
        """
+       option_class=self.getSolverOptions()
        if not self.isSolutionValid():
           mat,f=self.getSystem()
           if self.isUsingLumping():
              self.setSolution(f*1/mat)
           else:
-             options[self.TOLERANCE_KEY]=self.getTolerance()
-             options[self.METHOD_KEY]=self.getSolverMethod()[0]
-             options[self.PRECONDITIONER_KEY]=self.getSolverMethod()[1]
-             options[self.PACKAGE_KEY]=self.getSolverPackage()
-             options[self.SYMMETRY_KEY]=self.isSymmetric()
              self.trace("PDE is resolved.")
-             self.trace("solver options: %s"%str(options))
-             self.setSolution(mat.solve(f,options))
+             self.trace("solver options: %s"%str(option_class))
+             self.setSolution(mat.solve(f,option_class))
        return self.getCurrentSolution()
 
    def getSystem(self):
@@ -3535,13 +3352,13 @@ class TransportPDE(LinearProblem):
          theta=1.
        else:
          theta=0.5
-
-       self.trace("New Transport problem is allocated.")
+       optype=self.getRequiredOperatorType()
+       self.trace("New Transport problem pf type %s is allocated."%optype)
        return self.getDomain().newTransportProblem( \
                                theta,
                                self.getNumEquations(), \
                                self.getFunctionSpaceForSolution(), \
-                               self.getSystemType())
+                               optype)
 
    def setInitialSolution(self,u):
        """
@@ -3561,14 +3378,15 @@ class TransportPDE(LinearProblem):
               raise ValueError,"Illegal shape %s of initial solution."%(u2.getShape(),)
        self.getOperator().setInitialValue(u2)
 
-   def getRequiredSystemType(self):
+   def getRequiredOperatorType(self):
       """
       Returns the system type which needs to be used by the current set up.
 
       @return: a code to indicate the type of transport problem scheme used
       @rtype: C{float}
       """
-      return self.getDomain().getTransportTypeId(self.getSolverMethod()[0],self.getSolverMethod()[1],self.getSolverPackage(),self.isSymmetric())
+      solver_options=self.getSolverOptions()
+      return self.getDomain().getTransportTypeId(solver_options.getSolverMethod(), solver_options.getPreconditioner(),solver_options.getPackage(), solver_options.isSymmetric())
 
    def getUnlimitedTimeStepSize(self):
       """
@@ -3613,18 +3431,17 @@ class TransportPDE(LinearProblem):
        """
        return self.__constraint_factor
    #====================================================================
-   def getSolution(self,dt,**options):
+   def getSolution(self,dt):
        """
        Returns the solution of the problem.
 
        @return: the solution
        @rtype: L{Data<escript.Data>}
-
        """
+       option_class=self.getSolverOptions()
        if dt<=0:
            raise ValueError,"step size needs to be positive."
-       options[self.TOLERANCE_KEY]=self.getTolerance()
-       self.setSolution(self.getOperator().solve(self.getRightHandSide(),dt,options))
+       self.setSolution(self.getOperator().solve(self.getRightHandSide(),dt,option_class))
        self.validSolution()
        return self.getCurrentSolution()
 

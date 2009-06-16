@@ -37,7 +37,7 @@ import unittest, sys
 
 from esys.escript import *
 from esys.finley import Rectangle,Brick
-from esys.escript.linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearPDE, SolverOptions
 import numpy
 OPTIMIZE=True
 SOLVER_VERBOSE=False 
@@ -87,10 +87,12 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestC
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=kronecker(2),y=inner(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.BICGSTAB,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -114,10 +116,12 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=kronecker(2),y=inner(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.PCG,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -152,10 +156,12 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
                      Y=Y,
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.PCG,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -177,10 +183,12 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=kronecker(2),y=inner(g_ex,domain.getNormal()),Y=-20.)
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.PCG,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -215,10 +223,12 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
                      Y=Y-[20.,10.],
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.PCG,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -240,10 +250,12 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=kronecker(3),y=inner(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.PCG,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -286,10 +298,12 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
                      Y=Y,
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.PCG,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -312,10 +326,12 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=kronecker(3),y=inner(g_ex,domain.getNormal()),Y=-60.)
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.PCG,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -358,10 +374,12 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
                      Y=Y-numpy.array([60.,20.,22.]),
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.PCG,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -386,10 +404,12 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=kronecker(2),y=inner(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.TFQMR,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -412,10 +432,12 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=kronecker(2),y=inner(g_ex,domain.getNormal()),Y=-20.)
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.TFQMR,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -451,10 +473,12 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase
                      Y=Y,
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.TFQMR,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -490,10 +514,12 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase
                      Y=Y-[20.,10.],
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.TFQMR,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -516,10 +542,12 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=kronecker(3),y=inner(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.TFQMR,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -563,10 +591,12 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
                      Y=Y,
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.TFQMR,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -590,10 +620,12 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=kronecker(3),y=inner(g_ex,domain.getNormal()),Y=-60.)
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.TFQMR,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -637,10 +669,12 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
                      Y=Y-numpy.array([60.,20.,22.]),
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.TFQMR,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -666,11 +700,13 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCas
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=kronecker(2),y=inner(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.MINRES,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
         
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -693,10 +729,12 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCas
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=kronecker(2),y=inner(g_ex,domain.getNormal()),Y=-20.)
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.MINRES,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -732,10 +770,12 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCas
                      Y=Y,
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.MINRES,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -771,10 +811,12 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCas
                      Y=Y-[20.,10.],
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.MINRES,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -797,10 +839,12 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=kronecker(3),y=inner(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.MINRES,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -844,10 +888,12 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
                      Y=Y,
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.MINRES,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -871,10 +917,12 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=kronecker(3),y=inner(g_ex,domain.getNormal()),Y=-60.)
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.MINRES,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
@@ -918,10 +966,12 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
                      Y=Y-numpy.array([60.,20.,22.]),
                      y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
-        pde.setTolerance(SOLVER_TOL)
-        pde.setSolverMethod(pde.MINRES,pde.JACOBI)
-        pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        pde.getSolverOptions().setTolerance(SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        pde.getSolverOptions().setPackage(SolverOptions.PASO)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)

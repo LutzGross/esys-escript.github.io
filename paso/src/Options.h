@@ -44,21 +44,30 @@
 #define PASO_GMRES 11
 #define PASO_PRES20 12
 #define PASO_LUMPING 13
-#define PASO_SCSL 14
-#define PASO_MKL 15
-#define PASO_UMFPACK 16
 #define PASO_NO_REORDERING 17
 #define PASO_MINIMUM_FILL_IN 18
 #define PASO_NESTED_DISSECTION 19
+#define PASO_MKL 15
+#define PASO_UMFPACK 16
 #define PASO_ITERATIVE 20
 #define PASO_PASO 21
-#define PASO_RILU 22
-#define PASO_AMG 23
-#define PASO_TRILINOS 24
-#define PASO_NONLINEAR_GMRES 25
-#define PASO_TFQMR 26
-#define PASO_MINRES 27
-#define PASO_GS 28
+#define PASO_AMG 22
+#define PASO_REC_ILU  23
+#define PASO_TRILINOS  24
+#define PASO_NONLINEAR_GMRES  25
+#define PASO_TFQMR  26
+#define PASO_MINRES  27
+#define PASO_GAUSS_SEIDEL 28
+#define PASO_GS PASO_GAUSS_SEIDEL
+#define PASO_RILU 29
+#define PASO_DEFAULT_REORDERING 30
+#define PASO_SUPER_LU 31
+#define PASO_PASTIX 32
+#define PASO_YAIR_SHAPIRA_COARSENING 33
+#define PASO_RUGE_STUEBEN_COARSENING 34
+#define PASO_AGGREGATION_COARSENING 35
+#define PASO_NO_PRECONDITIONER 36
+#define PASO_SCSL 9999999
 
 typedef struct {
     index_t method;
@@ -68,29 +77,32 @@ typedef struct {
     double absolute_tolerance;
     double inner_tolerance;
     bool_t adapt_inner_tolerance;
-
     bool_t verbose;
     bool_t reordering;
-    double final_residual;
     index_t preconditioner;
     dim_t iter_max;
     dim_t inner_iter_max;
     double drop_tolerance;
     double drop_storage;
-    dim_t truncation;
-    dim_t restart;
+    index_t truncation;
+    index_t restart;
     dim_t sweeps;
     dim_t pre_sweeps;
     dim_t post_sweeps;
     dim_t level_max;
     double coarsening_threshold;
+    bool_t accept_failed_convergence;
+    index_t coarsening_method;
+    double relaxation_factor;
 
     /* diagnostic values */
-    double num_iter;
+    dim_t num_iter;
     dim_t num_level;
     dim_t num_inner_iter;
     double time;
-    double time_per_iter;
+    double set_up_time;
+    double residual_norm;
+    bool_t converged;
 
 } Paso_Options;
 
@@ -100,6 +112,12 @@ typedef struct {
 PASO_DLL_API
 void Paso_Options_setDefaults(Paso_Options* in);
 
+PASO_DLL_API
+void Paso_Options_show(const Paso_Options* options);
+
+PASO_DLL_API
+void Paso_Options_showDiagnostics(const Paso_Options* options);
+const char* Paso_Options_name(const index_t key);
 index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry, Paso_MPIInfo *mpi_info);
 
 index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry, Paso_MPIInfo *mpi_info);

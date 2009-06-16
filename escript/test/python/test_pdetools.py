@@ -962,7 +962,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       ll.initialize()
       ll.setTolerance(tol)
       # ll.setSubToleranceReductionFactor(0.1)
-      x,p=ll.solve(ll.x_ref*1.20,ll.p_ref*(-2),max_iter=20, verbose=False, show_details=False, usePCG=True, iter_restart=20,max_correction_steps=3)
+      x,p=ll.solve(ll.x_ref*1.20,ll.p_ref*(-2),max_iter=20, verbose=False, usePCG=True, iter_restart=20,max_correction_steps=3)
       self.failUnless(Lsup(x-ll.x_ref)<=Lsup(ll.x_ref)*tol*10.,"wrong x solution")
       self.failUnless(Lsup(p-ll.p_ref)<=Lsup(ll.p_ref)*tol*10.,"wrong p solution")
 
@@ -1072,7 +1072,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       ll.initialize()
       ll.setTolerance(tol)
       # ll.setSubToleranceReductionFactor(0.1)
-      x,p=ll.solve(ll.x_ref*1.20,ll.p_ref*(-2),max_iter=20, verbose=False, show_details=False, usePCG=False, iter_restart=20,max_correction_steps=3)
+      x,p=ll.solve(ll.x_ref*1.20,ll.p_ref*(-2),max_iter=20, verbose=False, usePCG=False, iter_restart=20,max_correction_steps=3)
       self.failUnless(Lsup(x-ll.x_ref)<=Lsup(ll.x_ref)*tol*10.,"wrong x solution")
       self.failUnless(Lsup(p-ll.p_ref)<=Lsup(ll.p_ref)*tol*10.,"wrong p solution")
 

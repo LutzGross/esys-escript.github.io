@@ -569,26 +569,6 @@ class Rheology(object):
           @note: Typically this method is overwritten by a subclass.
           """
           pass
-      def setFlowSubTolerance(self, tol=1.e-8):
-          """
-          Sets the relative tolerance for the subsolver of the flow solver
-
-          @param tol: desired relative tolerance for the subsolver
-          @type tol: positive C{float}
-          @note: Typically this method is overwritten by a subclass.
-          """
-          pass
-      def getFlowSubTolerance(self):
-          """
-          Returns the relative tolerance for the subsolver of the flow solver
-
-          @return: tolerance of the flow subsolver
-          @rtype: C{float}
-          @note: Typically this method is overwritten by a subclass.
-          """
-          pass
-
-
 #====================================================================================================================================
 
 class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
@@ -608,7 +588,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
              I{Towards a self-consistent plate mantle model that includes elasticity: simple benchmarks and application to basic modes of convection},
              see U{doi: 10.1111/j.1365-246X.2005.02742.x<http://www3.interscience.wiley.com/journal/118661486/abstract>}
       """
-      def __init__(self, domain, stress=0, v=0, p=0, t=0, numMaterials=1, verbose=True):
+      def __init__(self, domain, stress=0, v=0, p=0, t=0, numMaterials=1, verbose=True, adaptSubTolerance=True):
          """
          Initializes the model.
 
@@ -626,14 +606,15 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
          @type numMaterials: C{int}
          @param verbose: if C{True} some informations are printed.
          @type verbose: C{bool}         
+	 @param adaptSubTolerance: If True the tolerance for subproblem is set automatically.
+	 @type adaptSubTolerance: C{bool}
          """
          PowerLaw. __init__(self, numMaterials,verbose)
          Rheology. __init__(self, domain, stress, v, p, t, verbose)
-         self.__solver=StokesProblemCartesian(self.getDomain(),verbose=verbose)
+         self.__solver=StokesProblemCartesian(self.getDomain(),verbose=verbose,adaptSubTolerance=adaptSubTolerance)
          self.__eta_eff=None
          self.setTolerance()
          self.setFlowTolerance()
-         self.setFlowSubTolerance()
 
       def update(self, dt, iter_max=100, inner_iter_max=20, verbose=False, usePCG=True):
           """
@@ -692,8 +673,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
                 v0=v
              else:
                 v0=v_b*mask_v+v*(1.-mask_v)
-             v,p=self.__solver.solve(v0,p,show_details=False, 
-                                          verbose=self.checkVerbose(),max_iter=inner_iter_max,usePCG=usePCG)
+             v,p=self.__solver.solve(v0,p,verbose=self.checkVerbose(),max_iter=inner_iter_max,usePCG=usePCG)
              # 
              #   update eta_eff:
              #
@@ -758,20 +738,58 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
           @rtype: C{float}
           """
           return self.__solver.getTolerance()
-      def setFlowSubTolerance(self, tol=1.e-8):
-          """
-          Sets the relative tolerance for the subsolver of the flow solver. See L{StokesProblemCartesian.setSubProblemTolerance} for details
+	  
+      def getSolverOptionsVelocity(self):
+         """
+	 returns the solver options used solve the equation for velocity in the 
+	 incompressible solver, see L{StokesProblemCartesian.getSolverOptionsVelocity} for details.
+	 
+	 @rtype: L{SolverOptions}
+	 """
+	 return self.__solver.getSolverOptionsVelocity()
+      def setSolverOptionsVelocity(self, options=None):
+         """
+	 set the solver options for solving the equation for velocity in the 
+	 incompressible solver, see L{StokesProblemCartesian.setSolverOptionsVelocity} for details.
+	 
+	 @param options: new solver  options
+	 @type options: L{SolverOptions}
+	 """
+         self.__solver.setSolverOptionsVelocity(options)
+	 
+      def getSolverOptionsPressure(self):
+         """
+	 returns the solver options used  solve the equation for pressure in the 
+	 incompressible solver, see L{StokesProblemCartesian.getSolverOptionsPressure} for details.
+	 @rtype: L{SolverOptions}
+	 """
+	 return self.__solver.getSolverOptionsPressure()
+      def setSolverOptionsPressure(self, options=None):
+         """
+	 set the solver options for solving the equation for pressure in the 
+	 incompressible solver, see L{StokesProblemCartesian.setSolverOptionsPressure} for details.
+	 @param options: new solver  options
+	 @type options: L{SolverOptions}
+	 """
+	 self.__solver.setSolverOptionsPressure(options)
 
-          @param tol: desired relative tolerance for the subsolver
-          @type tol: positive C{float}
-          """
-          self.__solver.setSubProblemTolerance(tol)
-      def getFlowSubTolerance(self):
-          """
-          Returns the relative tolerance for the subsolver of the flow solver
-
-          @return: tolerance of the flow subsolver
-          @rtype: C{float}
-          """
-          return self.__solver.getSubProblemTolerance()
+      def setSolverOptionsDiv(self, options=None):
+         """
+	 set the solver options for solving the equation to project the divergence of
+	 the velocity onto the function space of pressure in the 
+	 incompressible solver, see L{StokesProblemCartesian.setSolverOptionsDiv} for details.
+	 
+	 @param options: new solver options
+	 @type options: L{SolverOptions}
+	 """
+	 self.__solver.setSolverOptionsDiv(options)
+      def getSolverOptionsDiv(self):
+         """
+	 returns the solver options for solving the equation to project the divergence of
+	 the velocity onto the function space of presure in the 
+	 incompressible solver, see L{StokesProblemCartesian.getSolverOptionsDiv} for details..
+	 
+	 @rtype: L{SolverOptions}
+	 """
+	 return self.__solver.getSolverOptionsDiv()
 

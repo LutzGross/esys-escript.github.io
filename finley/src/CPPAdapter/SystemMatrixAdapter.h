@@ -28,7 +28,7 @@ extern "C" {
 #include "escript/Data.h"
 #include "escript/UtilC.h"
 
-#include <boost/python/dict.hpp>
+#include <boost/python/object.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/python/extract.hpp>
 
@@ -131,12 +131,19 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
   static int mapOptionToPaso(const int option);
 
   /**
-     \brief extract paso options from a dictionary
+     \brief extract paso options from SolutionOptions class
   */
  
   FINLEY_DLL_API
-  static void dictToPasoOptions(Paso_Options* paso_options, const boost::python::dict& options);
+  static void escriptToPasoOptions(Paso_Options* paso_options, const boost::python::object& options);
 
+  /**
+     \brief copied diagonistic data back to the solver option.
+  */
+ 
+  FINLEY_DLL_API
+  static void pasoToEscriptOptions(const Paso_Options* paso_options,boost::python::object& options);
+ 
   /**
      \brief prints information about a system matrix
   */
@@ -152,7 +159,7 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
       solves the linear system this*out=in
    */
    FINLEY_DLL_API
-   virtual void setToSolution(escript::Data& out, escript::Data& in, const boost::python::dict& options) const;
+   virtual void setToSolution(escript::Data& out, escript::Data& in, boost::python::object& options) const;
 
    /**
        \brief

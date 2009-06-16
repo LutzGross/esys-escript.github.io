@@ -59,7 +59,7 @@ class SteadyIncompressibleFlow(Model):
            self.__p_very_old=None
            self.__dt_old=None
            self.__pde=LameEquation(self.domain)
-           self.__pde.setSolverMethod(LameEquation.DIRECT)
+           self.__pde.getSolverOptions().setSolverMethod(self.__pde.getSolverOptions().DIRECT)
            if self.location_prescribed_velocity == None: self.location_prescribed_velocit=Data()
            if self.prescribed_velocity == None: self.prescribed_velocity=Data()
 
@@ -104,7 +104,7 @@ class SteadyIncompressibleFlow(Model):
                               sigma=self.pressure*kronecker(self.__pde.getDomain()), \
                               r=self.prescribed_velocity, \
                               q=self.location_prescribed_velocity)
-          self.__pde.setTolerance(self.rel_tol/10.)
+          self.__pde.getSolverOptions().setTolerance(self.rel_tol/10.)
           self.velocity=self.__pde.getSolution()
           update=penalty*div(self.velocity)
           self.pressure=self.pressure-update

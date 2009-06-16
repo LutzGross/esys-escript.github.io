@@ -44,12 +44,11 @@
 \newcommand{\OPENMP}{{\it OpenMP}\xspace\index{OpenMP!threading}\xspace}
 \newcommand{\linearPDEs}{\module{esys.escript.linearPDEs}\xspace}
 \newcommand{\LinearPDE}{\class{LinearPDE}\xspace}
-\newcommand{\timeseries}{\module{esys.timeseries}\xspace}
 \newcommand{\modelframe}{\module{esys.modelframe}\xspace}
 \newcommand{\pdetools}{\module{esys.pdetools}\xspace}
 \newcommand{\esysxml}{{\it esysxml}}
 
-\newcommand{\AdvectivePDE}{\class{AdvectivePDE}\xspace}
+\newcommand{\SolverOptions}{\class{SolverOptions}\xspace}
 \newcommand{\Poisson}{\class{Poisson}\xspace}
 \newcommand{\Helmholtz}{\class{Helmholtz}\xspace}
 \newcommand{\Lame}{\class{Lame}\xspace}
@@ -63,18 +62,21 @@
 \newcommand{\finleyelement}[1]{{\it #1}\index{finley!#1}}
 \newcommand{\False}{\constant{False}\xspace}
 \newcommand{\True}{\constant{True}\xspace}
-\newcommand{\PCG}{\constant{LinearPDE.PCG}\xspace\index{linear solver!PCG}\index{PCG}}
-\newcommand{\BiCGStab}{\constant{LinearPDE.BICGSTAB}\xspace\index{linear solver!BiCGStab}\index{BiCGStab}}
-\newcommand{\Direct}{\constant{LinearPDE.DIRECT}\xspace\index{linear solver!Direct}\index{Direct solver}}
-\newcommand{\GMRES}{\constant{LinearPDE.GMRES}\xspace\index{linear solver!GMRES}\index{GMRES}}
-\newcommand{\PRESTWENTY}{\constant{LinearPDE.PRES20}\xspace\index{linear solver!PRES20}\index{PRES20}}
-\newcommand{\JACOBI}{\constant{LinearPDE.JACOBI}\xspace\index{preconditioner!Jacobi}\index{Jacobi}}
-\newcommand{\ILU}{\constant{LinearPDE.ILU0}\xspace\index{preconditioner!ILU0}\index{ILU0}}
-\newcommand{\ILUT}{\constant{LinearPDE.ILUT}\xspace\index{preconditioner!ILUT}\index{ILUT}}
-\newcommand{\LUMPING}{\constant{LinearPDE.LUMPING}\xspace\index{linear solver!lumping}\index{lumping}}
-\newcommand{\NOREORDERING}{\constant{LinearPDE.NO\hackscore REORDERING}\xspace}
-\newcommand{\MINIMUMFILLIN}{\constant{LinearPDE.MINIMUM\hackscore FILL\hackscore IN}\xspace\index{linear solver!minimum fill-in ordering}\index{minimum fill-in ordering}}
-\newcommand{\NESTEDDESCTION}{\constant{LinearPDE.NESTED\hackscore DISSECTION}\xspace\index{linear solver!nested dissection ordering}\index{nested dissection}}
+\newcommand{\PCG}{\constant{SolverOptions.PCG}\xspace\index{linear solver!PCG}\index{PCG}}
+\newcommand{\BiCGStab}{\constant{SolverOptions.BICGSTAB}\xspace\index{linear solver!BiCGStab}\index{BiCGStab}}
+\newcommand{\Direct}{\constant{SolverOptions.DIRECT}\xspace\index{linear solver!Direct}\index{Direct solver}}
+\newcommand{\GMRES}{\constant{SolverOptions.GMRES}\xspace\index{linear solver!GMRES}\index{GMRES}}
+\newcommand{\PRESTWENTY}{\constant{SolverOptions.PRES20}\xspace\index{linear solver!PRES20}\index{PRES20}}
+\newcommand{\JACOBI}{\constant{SolverOptions.JACOBI}\xspace\index{preconditioner!Jacobi}\index{Jacobi}}
+\newcommand{\ILU}{\constant{SolverOptions.ILU0}\xspace\index{preconditioner!ILU0}\index{ILU0}}
+\newcommand{\ILUT}{\constant{SolverOptions.ILUT}\xspace\index{preconditioner!ILUT}\index{ILUT}}
+\newcommand{\RILU}{\constant{SolverOptions.RILU}\xspace\index{preconditioner!RILU}\index{RILU}}
+\newcommand{\LUMPING}{\constant{SolverOptions.LUMPING}\xspace\index{linear solver!lumping}\index{lumping}}
+\newcommand{\NOREORDERING}{\constant{SolverOptions.NO\hackscore REORDERING}\xspace}
+\newcommand{\MINIMUMFILLIN}{\constant{SolverOptions.MINIMUM\hackscore FILL\hackscore IN}\xspace\index{linear solver!minimum fill-in ordering}\index{minimum fill-in ordering}}
+\newcommand{\NESTEDDESCTION}{\constant{SolverOptions.NESTED\hackscore DISSECTION}\xspace\index{linear solver!nested dissection ordering}\index{nested dissection}}
+\newcommand{\AMG}{\constant{SolverOptions.AMG}\xspace\index{linear solver!AMG}\index{algebraic Multi-grid}\index{AMG}}
+\newcommand{\GAUSSSEIDEL}{\constant{SolverOptions.GAUSS\hackscore SEIDEL}\xspace\index{linear solver!Gauss-Seidel}\index{preconditioner!Gauss-Seidel}\index{Gauss-Seidel Scheme}}
 
 \newcommand{\FunctionSpace}{\class{FunctionSpace}\xspace}
 \newcommand{\Operator}{\class{Operator}\xspace}

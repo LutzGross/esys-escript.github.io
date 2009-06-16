@@ -28,7 +28,7 @@ extern "C" {
 #include "escript/Data.h"
 #include "escript/UtilC.h"
 
-#include <boost/python/dict.hpp>
+#include <boost/python/object.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/python/extract.hpp>
 
@@ -124,7 +124,7 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
     *           sets solution out by time step dt.
     *             */
     FINLEY_DLL_API
-    virtual void setToSolution(escript::Data& out,escript::Data& source,const double dt, const boost::python::dict& options) const;
+    virtual void setToSolution(escript::Data& out,escript::Data& source,const double dt, boost::python::object& options) const;
    
    /**
    *      \brief

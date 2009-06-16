@@ -59,11 +59,12 @@ Paso_FCTransportProblem* TransportProblemAdapter::getPaso_FCTransportProblem() c
 }
 
 
-void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& source, const double dt, const boost::python::dict& options) const
+void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& source, const double dt, boost::python::object& options) const
 {
     Paso_FCTransportProblem* transp=getPaso_FCTransportProblem();
     Paso_Options paso_options;
-    SystemMatrixAdapter::dictToPasoOptions(&paso_options,options);
+    SystemMatrixAdapter::escriptToPasoOptions(&paso_options,options);
+    options.attr("resetDiagnostics")();
     if ( out.getDataPointSize()  != getBlockSize()) {
      throw FinleyAdapterException("solve : block size of solution does not match block size of transport problems.");
     } else if ( source.getDataPointSize() != getBlockSize()) {
@@ -82,6 +83,7 @@ void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& s
     double* out_dp=out.getSampleDataRW(0);
     double* source_dp=source.getSampleDataRW(0);
     Paso_SolverFCT_solve(transp,out_dp,dt,source_dp,&paso_options);
+    SystemMatrixAdapter::pasoToEscriptOptions(&paso_options,options);
     checkPasoError();
 }
 
