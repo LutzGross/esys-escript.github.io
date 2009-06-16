@@ -18,8 +18,7 @@
 
 #include "FunctionSpace.h"
 #include "TransportProblemException.h"
-
-#include <boost/python/dict.hpp>
+#include <boost/python/object.hpp>
 
 //
 // Forward declaration
@@ -102,7 +101,7 @@ class AbstractTransportProblem {
      returns the solution u for a time step dt>0
   */
   ESCRIPT_DLL_API
-  Data solve(Data& source, const double dt, const boost::python::dict& options) const;
+  Data solve(Data& source, const double dt, boost::python::object& options) const;
 
   /**
      \brief
@@ -144,7 +143,7 @@ class AbstractTransportProblem {
      sets solution out by time step dt.
   */
   ESCRIPT_DLL_API
-  virtual void setToSolution(Data& out,Data& source,const double dt, const boost::python::dict& options) const;
+  virtual void setToSolution(Data& out,Data& source,const double dt, boost::python::object& options) const;
 
   /**
      \brief

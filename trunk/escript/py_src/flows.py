@@ -33,7 +33,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from escript import *
 import util
-from linearPDEs import LinearPDE, LinearPDESystem, LinearSinglePDE
+from linearPDEs import LinearPDE, LinearPDESystem, LinearSinglePDE, SolverOptions
 from pdetools import HomogeneousSaddlePointProblem,Projector, ArithmeticTuple, PCG, NegativeNorm, GMRES
 
 class DarcyFlow(object):
@@ -48,11 +48,15 @@ class DarcyFlow(object):
     @note: The problem is solved in a least squares formulation.
     """
 
-    def __init__(self, domain, weight=None, useReduced=False):
+    def __init__(self, domain, weight=None, useReduced=False, adaptSubTolerance=True):
         """
         initializes the Darcy flux problem
         @param domain: domain of the problem
         @type domain: L{Domain}
+	@param useReduced: uses reduced oreder on flux and pressure
+	@type useReduced: C{bool}
+	@param adaptSubTolerance: switches on automatic subtolerance selection
+	@type adaptSubTolerance: C{bool}	
         """
         self.domain=domain
         if weight == None:
@@ -64,7 +68,6 @@ class DarcyFlow(object):
         if useReduced: self.__pde_v.setReducedOrderOn()
         self.__pde_v.setSymmetryOn()
         self.__pde_v.setValue(D=util.kronecker(domain), A=self.__l*util.outer(util.kronecker(domain),util.kronecker(domain)))
-        # self.__pde_v.setSolverMethod(preconditioner=self.__pde_v.ILU0)
         self.__pde_p=LinearSinglePDE(domain)
         self.__pde_p.setSymmetryOn()
         if useReduced: self.__pde_p.setReducedOrderOn()
@@ -72,7 +75,48 @@ class DarcyFlow(object):
         self.__g=Vector(0,self.__pde_v.getFunctionSpaceForCoefficient("Y"))
         self.setTolerance()
         self.setAbsoluteTolerance()
-        self.setSubProblemTolerance()
+	self.__adaptSubTolerance=adaptSubTolerance
+	self.verbose=False
+    def getSolverOptionsFlux(self):
+	"""
+	Returns the solver options used to solve the flux problems
+	
+	M{(I+D^*D)u=F}
+	
+	@return: L{SolverOptions}
+	"""
+	return self.__pde_v.getSolverOptions()
+    def setSolverOptionsFlux(self, options=None):
+	"""
+	Sets the solver options used to solve the flux problems
+	
+	M{(I+D^*D)u=F}
+	
+	If C{options} is not present, the options are reset to default
+	@param options: L{SolverOptions}
+	@note: if the adaption of subtolerance is choosen, the tolerance set by C{options} will be overwritten before the solver is called.
+	"""
+	return self.__pde_v.setSolverOptions(options)
+    def getSolverOptionsPressure(self):
+	"""
+	Returns the solver options used to solve the pressure problems
+	
+	M{(Q^*Q)p=Q^*G}
+	
+	@return: L{SolverOptions}
+	"""
+	return self.__pde_p.getSolverOptions()
+    def setSolverOptionsPressure(self, options=None):
+	"""
+	Sets the solver options used to solve the pressure problems
+	
+	M{(Q^*Q)p=Q^*G}
+	
+	If C{options} is not present, the options are reset to default
+	@param options: L{SolverOptions}
+	@note: if the adaption of subtolerance is choosen, the tolerance set by C{options} will be overwritten before the solver is called.
+	"""
+	return self.__pde_p.setSolverOptions(options)
 
     def setValue(self,f=None, g=None, location_of_fixed_pressure=None, location_of_fixed_flux=None, permeability=None):
         """
@@ -174,34 +218,25 @@ class DarcyFlow(object):
        @rtype: C{float}
        """
        return self.__atol
-
-    def setSubProblemTolerance(self,rtol=None):
-         """
-         Sets the relative tolerance to solve the subproblem(s). If C{rtol} is not present
-         C{self.getTolerance()**2} is used.
-
-         @param rtol: relative tolerence
-         @type rtol: positive C{float}
-         """
-         if rtol == None:
-              if self.getTolerance()<=0.:
-                  raise ValueError,"A positive relative tolerance must be set."
-              self.__sub_tol=max(util.EPSILON**(0.75),self.getTolerance()**2)
-         else:
-             if rtol<=0:
-                 raise ValueError,"sub-problem tolerance must be positive."
-             self.__sub_tol=max(util.EPSILON**(0.75),rtol)
-
     def getSubProblemTolerance(self):
+	"""
+	Returns a suitable subtolerance
+	@type: C{float}
+	"""
+	return max(util.EPSILON**(0.75),self.getTolerance()**2)
+    def setSubProblemTolerance(self):
          """
-         Returns the subproblem reduction factor.
-
-         @return: subproblem reduction factor
-         @rtype: C{float}
+         Sets the relative tolerance to solve the subproblem(s) if subtolerance adaption is selected.
          """
-         return self.__sub_tol
+	 if self.__adaptSubTolerance:
+		 sub_tol=self.getSubProblemTolerance()
+	         self.getSolverOptionsFlux().setTolerance(sub_tol)
+		 self.getSolverOptionsFlux().setAbsoluteTolerance(0.)
+		 self.getSolverOptionsPressure().setTolerance(sub_tol)
+		 self.getSolverOptionsPressure().setAbsoluteTolerance(0.)
+		 if self.verbose: print "DarcyFlux: relative subtolerance is set to %e."%sub_tol
 
-    def solve(self,u0,p0, max_iter=100, verbose=False, show_details=False, max_num_corrections=10):
+    def solve(self,u0,p0, max_iter=100, verbose=False, max_num_corrections=10):
          """
          solves the problem.
 
@@ -213,8 +248,6 @@ class DarcyFlow(object):
          @type p0: scalar value on the domain (e.g. L{Data}).
          @param verbose: if set some information on iteration progress are printed
          @type verbose: C{bool}
-         @param show_details:  if set information on the subiteration process are printed.
-         @type show_details: C{bool}
          @return: flux and pressure
          @rtype: C{tuple} of L{Data}.
 
@@ -236,17 +269,16 @@ class DarcyFlow(object):
          PDEs with operator M{I+D^*D} and with M{Q^*Q} needs to be solved using a sub iteration scheme.
          """
          self.verbose=verbose
-         self.show_details= show_details and self.verbose
          rtol=self.getTolerance()
          atol=self.getAbsoluteTolerance()
-         if self.verbose: print "DarcyFlux: initial sub tolerance = %e"%self.getSubProblemTolerance()
-
+	 self.setSubProblemTolerance()
+	 
          num_corrections=0
          converged=False
          p=p0
          norm_r=None
          while not converged:
-               v=self.getFlux(p, fixed_flux=u0, show_details=self.show_details)
+               v=self.getFlux(p, fixed_flux=u0)
                Qp=self.__Q(p)
                norm_v=self.__L2(v)
                norm_Qp=self.__L2(Qp)
@@ -280,11 +312,10 @@ class DarcyFlow(object):
           return util.tensor_mult(self.__permeability,util.grad(p))
 
     def __Aprod(self,dp):
-          self.__pde_v.setTolerance(self.getSubProblemTolerance())
-          if self.show_details: print "DarcyFlux: Applying operator"
+          if self.getSolverOptionsFlux().isVerbose(): print "DarcyFlux: Applying operator"
           Qdp=self.__Q(dp)
           self.__pde_v.setValue(Y=-Qdp,X=Data(), r=Data())
-          du=self.__pde_v.getSolution(verbose=self.show_details, iter_max = 100000)
+          du=self.__pde_v.getSolution()
           # self.__pde_v.getOperator().saveMM("proj.mm")
           return Qdp+du
     def __inner_GMRES(self,r,s):
@@ -294,13 +325,12 @@ class DarcyFlow(object):
          return util.integrate(util.inner(self.__Q(p), r))
 
     def __Msolve_PCG(self,r):
-          self.__pde_p.setTolerance(self.getSubProblemTolerance())
-          if self.show_details: print "DarcyFlux: Applying preconditioner"
+	  if self.getSolverOptionsPressure().isVerbose(): print "DarcyFlux: Applying preconditioner"
           self.__pde_p.setValue(X=util.transposed_tensor_mult(self.__permeability,r), Y=Data(), r=Data())
           # self.__pde_p.getOperator().saveMM("prec.mm")
-          return self.__pde_p.getSolution(verbose=self.show_details, iter_max = 100000)
+          return self.__pde_p.getSolution()
 
-    def getFlux(self,p=None, fixed_flux=Data(), show_details=False):
+    def getFlux(self,p=None, fixed_flux=Data()):
         """
         returns the flux for a given pressure C{p} where the flux is equal to C{fixed_flux}
         on locations where C{location_of_fixed_flux} is positive (see L{setValue}).
@@ -317,7 +347,7 @@ class DarcyFlow(object):
         @note: the method uses the least squares solution M{u=(I+D^*D)^{-1}(D^*f-g-Qp)} where M{D} is the M{div} operator and M{(Qp)_i=k_{ij}p_{,j}}
                for the permeability M{k_{ij}}
         """
-        self.__pde_v.setTolerance(self.getSubProblemTolerance())
+	self.setSubProblemTolerance()
         g=self.__g
         f=self.__f
         self.__pde_v.setValue(X=self.__l*f*util.kronecker(self.domain), r=fixed_flux)
@@ -325,7 +355,7 @@ class DarcyFlow(object):
            self.__pde_v.setValue(Y=g)
         else:
            self.__pde_v.setValue(Y=g-self.__Q(p))
-        return self.__pde_v.getSolution(verbose=show_details, iter_max=100000)
+        return self.__pde_v.getSolution()
 
 class StokesProblemCartesian(HomogeneousSaddlePointProblem):
      """
@@ -346,25 +376,24 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
             sp.initialize(...)
             v,p=sp.solve(v0,p0)
      """
-     def __init__(self,domain,**kwargs):
+     def __init__(self,domain,adaptSubTolerance=True, **kwargs):
          """
          initialize the Stokes Problem
 
          @param domain: domain of the problem. The approximation order needs to be two.
          @type domain: L{Domain}
+	 @param adaptSubTolerance: If True the tolerance for subproblem is set automatically.
+	 @type adaptSubTolerance: C{bool}
          @warning: The apprximation order needs to be two otherwise you may see oscilations in the pressure.
          """
-         HomogeneousSaddlePointProblem.__init__(self,**kwargs)
+         HomogeneousSaddlePointProblem.__init__(self,adaptSubTolerance=adaptSubTolerance,**kwargs)
          self.domain=domain
          self.vol=util.integrate(1.,Function(self.domain))
          self.__pde_u=LinearPDE(domain,numEquations=self.domain.getDim(),numSolutions=self.domain.getDim())
          self.__pde_u.setSymmetryOn()
-         # self.__pde_u.setSolverMethod(self.__pde_u.DIRECT)
-         # self.__pde_u.setSolverMethod(preconditioner=LinearPDE.ILU0)
-
+	 
          self.__pde_prec=LinearPDE(domain)
          self.__pde_prec.setReducedOrderOn()
-         # self.__pde_prec.setSolverMethod(self.__pde_prec.LUMPING)
          self.__pde_prec.setSymmetryOn()
 
          self.__pde_proj=LinearPDE(domain)
@@ -372,6 +401,65 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 	 self.__pde_proj.setValue(D=1)
          self.__pde_proj.setSymmetryOn()
 
+     def getSolverOptionsVelocity(self):
+         """
+	 returns the solver options used  solve the equation for velocity.
+	 
+	 @rtype: L{SolverOptions}
+	 """
+	 return self.__pde_u.getSolverOptions()
+     def setSolverOptionsVelocity(self, options=None):
+         """
+	 set the solver options for solving the equation for velocity.
+	 
+	 @param options: new solver  options
+	 @type options: L{SolverOptions}
+	 """
+         self.__pde_u.setSolverOptions(options)
+     def getSolverOptionsPressure(self):
+         """
+	 returns the solver options used  solve the equation for pressure.
+	 @rtype: L{SolverOptions}
+	 """
+	 return self.__pde_prec.getSolverOptions()
+     def setSolverOptionsPressure(self, options=None):
+         """
+	 set the solver options for solving the equation for pressure.
+	 @param options: new solver  options
+	 @type options: L{SolverOptions}
+	 """
+	 self.__pde_prec.setSolverOptions(options)
+
+     def setSolverOptionsDiv(self, options=None):
+         """
+	 set the solver options for solving the equation to project the divergence of
+	 the velocity onto the function space of presure.
+	 
+	 @param options: new solver options
+	 @type options: L{SolverOptions}
+	 """
+	 self.__pde_prec.setSolverOptions(options)
+     def getSolverOptionsDiv(self):
+         """
+	 returns the solver options for solving the equation to project the divergence of
+	 the velocity onto the function space of presure.
+	 
+	 @rtype: L{SolverOptions}
+	 """
+	 return self.__pde_prec.getSolverOptions()
+     def setSubProblemTolerance(self):
+         """
+	 Updates the tolerance for subproblems
+         """
+	 if self.adaptSubTolerance():
+             sub_tol=self.getSubProblemTolerance()
+	     self.getSolverOptionsDiv().setTolerance(sub_tol)
+	     self.getSolverOptionsDiv().setAbsoluteTolerance(0.)
+	     self.getSolverOptionsPressure().setTolerance(sub_tol)
+	     self.getSolverOptionsPressure().setAbsoluteTolerance(0.)
+	     self.getSolverOptionsVelocity().setTolerance(sub_tol)
+	     self.getSolverOptionsVelocity().setAbsoluteTolerance(0.)
+	     
 
      def initialize(self,f=Data(),fixed_u_mask=Data(),eta=1,surface_stress=Data(),stress=Data()):
         """
@@ -388,7 +476,6 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
         @param stress: initial stress
 	@type stress: L{Tensor} object on L{FunctionSpace} L{Function} or similar
         @note: All values needs to be set.
-
         """
         self.eta=eta
         A =self.__pde_u.createCoefficient("A")
@@ -413,7 +500,6 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          @rtype: C{float}
          """
          self.__pde_proj.setValue(Y=-util.div(v))
-         self.__pde_prec.setTolerance(self.getSubProblemTolerance())
          return self.__pde_proj.getSolution()
 
      def inner_pBv(self,p,Bv):
@@ -458,13 +544,12 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          @param v0: a initial guess for the value v to return.
          @return: v given as M{v= A^{-1} (f-B^*p)}
          """
-         self.__pde_u.setTolerance(self.getSubProblemTolerance())
          self.__pde_u.setValue(Y=self.__f, y=self.__surface_stress, r=v0)
          if self.__stress.isEmpty():
             self.__pde_u.setValue(X=p*util.kronecker(self.domain))
          else:
             self.__pde_u.setValue(X=self.__stress+p*util.kronecker(self.domain))
-         out=self.__pde_u.getSolution(verbose=self.show_details)
+         out=self.__pde_u.getSolution()
          return  out
 
      def norm_Bv(self,Bv):
@@ -484,9 +569,8 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          @return: the solution of M{Av=B^*p}
          @note: boundary conditions on v should be zero!
          """
-         self.__pde_u.setTolerance(self.getSubProblemTolerance())
          self.__pde_u.setValue(Y=Data(), y=Data(), r=Data(),X=-p*util.kronecker(self.domain))
-         out=self.__pde_u.getSolution(verbose=self.show_details)
+         out=self.__pde_u.getSolution()
          return  out
 
      def solve_prec(self,Bv):
@@ -499,11 +583,4 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          @note: boundary conditions on p are zero.
          """
          self.__pde_prec.setValue(Y=Bv)
-         self.__pde_prec.setTolerance(self.getSubProblemTolerance())
-         return self.__pde_prec.getSolution(verbose=self.show_details)
-
-# rename solve_prec and change argument v to Bv
-# chnage the argument of inner_pBv to v->Bv
-# add Bv 
-# inner p still needed?
-# change norm_Bv argument to Bv
+         return self.__pde_prec.getSolution()

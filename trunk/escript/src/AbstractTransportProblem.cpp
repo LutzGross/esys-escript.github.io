@@ -48,7 +48,7 @@ int AbstractTransportProblem::isEmpty() const {
 }
 
 
-Data AbstractTransportProblem::solve(Data& source, const double dt, const boost::python::dict& options) const
+Data AbstractTransportProblem::solve(Data& source, const double dt, boost::python::object& options) const
 {
      if (isEmpty())
           throw TransportProblemException("Error - transport problem is empty.");
@@ -118,7 +118,7 @@ void AbstractTransportProblem::copyInitialValue(Data& u) const
 {
     throw TransportProblemException("Error - copyInitialValue is not available");
 }
-void AbstractTransportProblem::setToSolution(Data& out,Data& source,const double dt, const boost::python::dict& options) const
+void AbstractTransportProblem::setToSolution(Data& out,Data& source,const double dt, boost::python::object& options) const
 {
     throw TransportProblemException("Error - setToSolution is not available");
 }

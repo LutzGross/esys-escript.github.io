@@ -257,7 +257,8 @@ x=dom.getX()
 #
 heat=TemperatureCartesian(dom,useBackwardEuler=False)
 print "<%s> Temperature transport has been set up."%time.asctime()
-heat.setTolerance(T_TOL)
+heat.getSolverOptions().setTolerance(T_TOL)
+heat.getSolverOptions().setVerbosity(VERBOSE)
 fixed_T_at=whereZero(x[DIM-1])+whereZero(H-x[DIM-1])
 heat.setInitialTemperature(clip(T,T_0))
 heat.setValue(rhocp=1,k=1,given_T_mask=fixed_T_at)
@@ -284,7 +285,6 @@ flow.setDruckerPragerLaw(tau_Y=TAU_Y/P_REF+BETA*(1.-Function(dom).getX()[DIM-1])
 flow.setElasticShearModulus(MUE)
 flow.setTolerance(TOL2)
 flow.setFlowTolerance(FLOW_TOL)
-flow.setFlowSubTolerance(FLOW_SUB_TOL)
 flow.setEtaTolerance(FLOW_TOL)
 flow.setExternals(fixed_v_mask=fixed_v_mask)
 print "<%s> Flow solver has been set up."%time.asctime()
@@ -322,7 +322,7 @@ while t<T_END:
     #
     #  solve temperature:
     #
-    T=heat.getSolution(dt, verbose=VERBOSE)
+    T=heat.getSolution(dt)
     print "Temperature range ",inf(T),sup(T)
     print "<%s> temperature update completed."%time.asctime()
     #======= anaysis ==================================================================================

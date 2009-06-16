@@ -54,6 +54,7 @@ void Paso_solve(Paso_SystemMatrix* A,
        Paso_setError(VALUE_ERROR,"Paso_solve: matrix has to be a square matrix.");
        return;
   }
+  Paso_Options_show(options);
   Performance_open(&pp,options->verbose);
   package=Paso_Options_getPackage(options->method,options->package,options->symmetric, A->mpi_info);
   if (Paso_noError()) {
@@ -104,6 +105,7 @@ void Paso_solve(Paso_SystemMatrix* A,
      }
   }
   Performance_close(&pp,options->verbose);
+  Paso_Options_showDiagnostics(options);
   return;
 }
 

@@ -58,7 +58,7 @@ class TemperatureAdvection(Model):
            self.__pde=LinearPDE(self.domain)
            self.__pde.setSymmetryOn()
            self.__pde.setReducedOrderOn()
-           self.__pde.setSolverMethod(self.__pde.LUMPING)
+           self.__pde.getSolverOptions().setSolverMethod(self.__pde.getSolverOptions().LUMPING)
            self.__pde.setValue(D=self.heat_capacity*self.density)
 
        def getSafeTimeStepSize(self,dt):

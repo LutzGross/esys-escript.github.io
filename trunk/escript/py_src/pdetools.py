@@ -145,11 +145,17 @@ class Projector:
     """
     self.__pde = linearPDEs.LinearPDE(domain)
     if fast:
-        self.__pde.setSolverMethod(linearPDEs.LinearPDE.LUMPING)
+        self.__pde.getSolverOptions().setSolverMethod(linearPDEs.SolverOptions.LUMPING)
     self.__pde.setSymmetryOn()
     self.__pde.setReducedOrderTo(reduce)
     self.__pde.setValue(D = 1.)
     return
+  def getSolverOptions(self):
+	"""
+	Returns the solver options of the PDE solver.
+	
+	@rtype: L{linearPDEs.SolverOptions}
+	"""
 
   def __call__(self, input_data):
     """
@@ -1465,11 +1471,16 @@ class HomogeneousSaddlePointProblem(object):
       for the unknowns M{v} and M{p} and given operators M{A} and M{B} and
       given right hand side M{f}. M{B^*} is the adjoint operator of M{B}.
       """
-      def __init__(self,**kwargs):
+      def __init__(self, adaptSubTolerance=True, **kwargs):
+	"""
+	initializes the saddle point problem
+	
+	@param adaptSubTolerance: If True the tolerance for subproblem is set automatically.
+	@type adaptSubTolerance: C{bool}
+	"""
         self.setTolerance()
         self.setAbsoluteTolerance()
-        self.setSubProblemTolerance()
-
+	self.__adaptSubTolerance=adaptSubTolerance
       #=============================================================
       def initialize(self):
         """
@@ -1558,6 +1569,12 @@ class HomogeneousSaddlePointProblem(object):
          @note: boundary conditions on p should be zero!
          """
          raise NotImplementedError,"no preconditioner for Schur complement implemented."
+      def setSubProblemTolerance(self):
+         """
+	 Updates the tolerance for subproblems
+	 @note: method is typically the method is overwritten.
+         """
+         pass
       #=============================================================
       def __Aprod_PCG(self,p):
           dv=self.solve_AinvBt(p)
@@ -1569,15 +1586,11 @@ class HomogeneousSaddlePointProblem(object):
       def __Msolve_PCG(self,r):
           return self.solve_prec(r[1])
       #=============================================================
-# rename solve_prec and change argument v to Bv
-# chnage the argument of inner_pBv to v->Bv
-# add Bv
-# inner p still needed?
-# change norm_Bv argument to Bv
       def __Aprod_GMRES(self,p):
           return self.solve_prec(self.Bv(self.solve_AinvBt(p)))
       def __inner_GMRES(self,p0,p1):
          return self.inner_p(p0,p1)
+
       #=============================================================
       def norm_p(self,p):
           """
@@ -1590,9 +1603,13 @@ class HomogeneousSaddlePointProblem(object):
           f=self.inner_p(p,p)
           if f<0: raise ValueError,"negative pressure norm."
           return math.sqrt(f)
-          
-
-      def solve(self,v,p,max_iter=20, verbose=False, show_details=False, usePCG=True, iter_restart=20, max_correction_steps=10):
+      def adaptSubTolerance(self):
+	  """
+	  Returns True if tolerance adaption for subproblem is choosen.
+	  """
+          self.__adaptSubTolerance
+	  
+      def solve(self,v,p,max_iter=20, verbose=False, usePCG=True, iter_restart=20, max_correction_steps=10):
          """
          Solves the saddle point problem using initial guesses v and p.
 
@@ -1605,20 +1622,18 @@ class HomogeneousSaddlePointProblem(object):
                           attempt
          @param verbose: if True, shows information on the progress of the
                          saddlepoint problem solver.
-         @param show_details: if True, shows details of the sub problem solver
          @param iter_restart: restart the iteration after C{iter_restart} steps
                               (only used if useUzaw=False)
          @type usePCG: C{bool}
          @type max_iter: C{int}
          @type verbose: C{bool}
-         @type show_details: C{bool}
          @type iter_restart: C{int}
          @rtype: C{tuple} of L{Data} objects
          """
          self.verbose=verbose
-         self.show_details=show_details and self.verbose
          rtol=self.getTolerance()
          atol=self.getAbsoluteTolerance()
+	 if self.adaptSubTolerance(): self.setSubProblemTolerance()
          correction_step=0
          converged=False
          while not converged:
@@ -1663,7 +1678,6 @@ class HomogeneousSaddlePointProblem(object):
          if tolerance<0:
              raise ValueError,"tolerance must be positive."
          self.__rtol=tolerance
-         self.setSubProblemTolerance()
 
       def getTolerance(self):
          """
@@ -1694,27 +1708,14 @@ class HomogeneousSaddlePointProblem(object):
          """
          return self.__atol
 
-      def setSubProblemTolerance(self,rtol=None):
+      def getSubProblemTolerance(self):
          """
          Sets the relative tolerance to solve the subproblem(s).
 
          @param rtol: relative tolerence
          @type rtol: positive C{float}
          """
-         if rtol == None:
-              rtol=max(200.*util.EPSILON,self.getTolerance()**2)
-         if rtol<=0:
-             raise ValueError,"tolerance must be positive."
-         self.__sub_tol=rtol
-
-      def getSubProblemTolerance(self):
-         """
-         Returns the subproblem reduction factor.
-
-         @return: subproblem reduction factor
-         @rtype: C{float}
-         """
-         return self.__sub_tol
+         return max(200.*util.EPSILON,self.getTolerance()**2)
 
 def MaskFromBoundaryTag(domain,*tags):
    """
@@ -1737,221 +1738,4 @@ def MaskFromBoundaryTag(domain,*tags):
    pde.setValue(y=d)
    return util.whereNonZero(pde.getRightHandSide())
 
-#==============================================================================
-class SaddlePointProblem(object):
-   """
-   This implements a solver for a saddle point problem
-
-   M{f(u,p)=0}
-   M{g(u)=0}
-
-   for u and p. The problem is solved with an inexact Uszawa scheme for p:
-
-   M{Q_f (u^{k+1}-u^{k}) = - f(u^{k},p^{k})}
-   M{Q_g (p^{k+1}-p^{k}) =   g(u^{k+1})}
-
-   where Q_f is an approximation of the Jacobian A_f of f with respect to u and
-   Q_f is an approximation of A_g A_f^{-1} A_g with A_g is the Jacobian of g
-   with respect to p. As a the construction of a 'proper' Q_g can be difficult,
-   non-linear conjugate gradient method is applied to solve for p, so Q_g plays
-   in fact the role of a preconditioner.
-   """
-   def __init__(self,verbose=False,*args):
-       """
-       Initializes the problem.
-
-       @param verbose: if True, some information is printed in the process
-       @type verbose: C{bool}
-       @note: this method may be overwritten by a particular saddle point
-              problem
-       """
-       print "SaddlePointProblem should not be used anymore!"
-       if not isinstance(verbose,bool):
-            raise TypeError("verbose needs to be of type bool.")
-       self.__verbose=verbose
-       self.relaxation=1.
-       DeprecationWarning("SaddlePointProblem should not be used anymore.")
-
-   def trace(self,text):
-       """
-       Prints C{text} if verbose has been set.
-
-       @param text: a text message
-       @type text: C{str}
-       """
-       if self.__verbose: print "%s: %s"%(str(self),text)
-
-   def solve_f(self,u,p,tol=1.e-8):
-       """
-       Solves
-
-       A_f du = f(u,p)
-
-       with tolerance C{tol} and returns du. A_f is Jacobian of f with respect
-       to u.
-
-       @param u: current approximation of u
-       @type u: L{escript.Data}
-       @param p: current approximation of p
-       @type p: L{escript.Data}
-       @param tol: tolerance expected for du
-       @type tol: C{float}
-       @return: increment du
-       @rtype: L{escript.Data}
-       @note: this method has to be overwritten by a particular saddle point
-              problem
-       """
-       pass
-
-   def solve_g(self,u,tol=1.e-8):
-       """
-       Solves
-
-       Q_g dp = g(u)
-
-       where Q_g is a preconditioner for A_g A_f^{-1} A_g with A_g is the
-       Jacobian of g with respect to p.
-
-       @param u: current approximation of u
-       @type u: L{escript.Data}
-       @param tol: tolerance expected for dp
-       @type tol: C{float}
-       @return: increment dp
-       @rtype: L{escript.Data}
-       @note: this method has to be overwritten by a particular saddle point
-              problem
-       """
-       pass
-
-   def inner(self,p0,p1):
-       """
-       Inner product of p0 and p1 approximating p. Typically this returns
-       C{integrate(p0*p1)}.
-       @return: inner product of p0 and p1
-       @rtype: C{float}
-       """
-       pass
-
-   subiter_max=3
-   def solve(self,u0,p0,tolerance=1.e-6,tolerance_u=None,iter_max=100,accepted_reduction=0.995,relaxation=None):
-        """
-        Runs the solver.
-
-        @param u0: initial guess for C{u}
-        @type u0: L{esys.escript.Data}
-        @param p0: initial guess for C{p}
-        @type p0: L{esys.escript.Data}
-        @param tolerance: tolerance for relative error in C{u} and C{p}
-        @type tolerance: positive C{float}
-        @param tolerance_u: tolerance for relative error in C{u} if different
-                            from C{tolerance}
-        @type tolerance_u: positive C{float}
-        @param iter_max: maximum number of iteration steps
-        @type iter_max: C{int}
-        @param accepted_reduction: if the norm g cannot be reduced by
-                                   C{accepted_reduction} backtracking to adapt
-                                   the relaxation factor. If
-                                   C{accepted_reduction=None} no backtracking
-                                   is used.
-        @type accepted_reduction: positive C{float} or C{None}
-        @param relaxation: initial relaxation factor. If C{relaxation==None},
-                           the last relaxation factor is used.
-        @type relaxation: C{float} or C{None}
-        """
-        tol=1.e-2
-        if tolerance_u==None: tolerance_u=tolerance
-        if not relaxation==None: self.relaxation=relaxation
-        if accepted_reduction ==None:
-              angle_limit=0.
-        elif accepted_reduction>=1.:
-              angle_limit=0.
-        else:
-              angle_limit=util.sqrt(1-accepted_reduction**2)
-        self.iter=0
-        u=u0
-        p=p0
-        #
-        #   initialize things:
-        #
-        converged=False
-        #
-        #  start loop:
-        #
-        #  initial search direction is g
-        #
-        while not converged :
-            if self.iter>iter_max:
-                raise ArithmeticError("no convergence after %s steps."%self.iter)
-            f_new=self.solve_f(u,p,tol)
-            norm_f_new = util.Lsup(f_new)
-            u_new=u-f_new
-            g_new=self.solve_g(u_new,tol)
-            self.iter+=1
-            norm_g_new = util.sqrt(self.inner(g_new,g_new))
-            if norm_f_new==0. and norm_g_new==0.: return u, p
-            if self.iter>1 and not accepted_reduction==None:
-               #
-               #   did we manage to reduce the norm of G? I
-               #   if not we start a backtracking procedure
-               #
-               # print "new/old norm = ",norm_g_new, norm_g, norm_g_new/norm_g
-               if norm_g_new > accepted_reduction * norm_g:
-                  sub_iter=0
-                  s=self.relaxation
-                  d=g
-                  g_last=g
-                  self.trace("    start substepping: f = %s, g = %s, relaxation = %s."%(norm_f_new, norm_g_new, s))
-                  while sub_iter < self.subiter_max and  norm_g_new > accepted_reduction * norm_g:
-                     dg= g_new-g_last
-                     norm_dg=abs(util.sqrt(self.inner(dg,dg))/self.relaxation)
-                     rad=self.inner(g_new,dg)/self.relaxation
-                     # print "   ",sub_iter,": rad, norm_dg:",abs(rad), norm_dg*norm_g_new * angle_limit
-                     # print "   ",sub_iter,": rad, norm_dg:",rad, norm_dg, norm_g_new, norm_g
-                     if abs(rad) < norm_dg*norm_g_new * angle_limit:
-                         if sub_iter>0: self.trace("    no further improvements expected from backtracking.")
-                         break
-                     r=self.relaxation
-                     self.relaxation= - rad/norm_dg**2
-                     s+=self.relaxation
-                     #####
-                     # a=g_new+self.relaxation*dg/r
-                     # print "predicted new norm = ",util.sqrt(self.inner(a,a)),util.sqrt(self.inner(g_new,g_new)), self.relaxation
-                     #####
-                     g_last=g_new
-                     p+=self.relaxation*d
-                     f_new=self.solve_f(u,p,tol)
-                     u_new=u-f_new
-                     g_new=self.solve_g(u_new,tol)
-                     self.iter+=1
-                     norm_f_new = util.Lsup(f_new)
-                     norm_g_new = util.sqrt(self.inner(g_new,g_new))
-                     # print "   ",sub_iter," new g norm",norm_g_new
-                     self.trace("    %s th sub-step: f = %s, g = %s, relaxation = %s."%(sub_iter, norm_f_new, norm_g_new, s))
-                     #
-                     #   can we expect reduction of g?
-                     #
-                     # u_last=u_new
-                     sub_iter+=1
-                  self.relaxation=s
-            #
-            #  check for convergence:
-            #
-            norm_u_new = util.Lsup(u_new)
-            p_new=p+self.relaxation*g_new
-            norm_p_new = util.sqrt(self.inner(p_new,p_new))
-            self.trace("%s th step: f = %s, f/u = %s, g = %s, g/p = %s, relaxation = %s."%(self.iter, norm_f_new ,norm_f_new/norm_u_new, norm_g_new, norm_g_new/norm_p_new, self.relaxation))
-
-            if self.iter>1:
-               dg2=g_new-g
-               df2=f_new-f
-               norm_dg2=util.sqrt(self.inner(dg2,dg2))
-               norm_df2=util.Lsup(df2)
-               # print norm_g_new, norm_g, norm_dg, norm_p, tolerance
-               tol_eq_g=tolerance*norm_dg2/(norm_g*abs(self.relaxation))*norm_p_new
-               tol_eq_f=tolerance_u*norm_df2/norm_f*norm_u_new
-               if norm_g_new <= tol_eq_g and norm_f_new <= tol_eq_f:
-                   converged=True
-            f, norm_f, u, norm_u, g, norm_g, p, norm_p = f_new, norm_f_new, u_new, norm_u_new, g_new, norm_g_new, p_new, norm_p_new
-        self.trace("convergence after %s steps."%self.iter)
-        return u,p
 

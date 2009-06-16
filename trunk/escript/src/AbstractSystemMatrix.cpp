@@ -76,7 +76,7 @@ void AbstractSystemMatrix::ypAx(Data& y,Data& x) const
     throw SystemMatrixException("Error - ypAx not available");
 }
 
-Data AbstractSystemMatrix::solve(Data& in,const boost::python::dict& options) const
+Data AbstractSystemMatrix::solve(Data& in, boost::python::object& options) const
 {
      if (isEmpty())
           throw SystemMatrixException("Error - Matrix is empty.");
@@ -90,7 +90,7 @@ Data AbstractSystemMatrix::solve(Data& in,const boost::python::dict& options) co
      setToSolution(out,in,options);
      return out;
 }
-void AbstractSystemMatrix::setToSolution(Data& out,Data& in,const boost::python::dict& options) const
+void AbstractSystemMatrix::setToSolution(Data& out,Data& in, boost::python::object& options) const
 {
     throw SystemMatrixException("Error - setToSolution not available");
 }
