@@ -14,11 +14,11 @@
 
 /**************************************************************/
 
-/*   Paso: Pattern_coupling                                            */
+/*   Paso: Pattern_coupling                                   */
 
 /**************************************************************/
 
-/*   Author: PGH */
+/*   Author: Artak Amirbekyan */
 
 /**************************************************************/
 
@@ -33,5 +33,7 @@ void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double thersho
 void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta);
 void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double theta);
 void Paso_Pattern_greedy(Paso_Pattern* pattern, index_t* mis_marker);
+void Paso_Pattern_greedy_color(Paso_Pattern* pattern, index_t* mis_marker);
+
 
 #endif 

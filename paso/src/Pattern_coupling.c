@@ -162,8 +162,7 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
     Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
     return;
   }
-
-    #pragma omp parallel for private(i,iptr,min_offdiagonal,threshold) schedule(static)
+    #pragma omp parallel for private(i,iptr,min_offdiagonal,threshold,j) schedule(static)
     for (i=0;i<n;++i) {
       if(mis_marker[i]==IS_AVAILABLE) {
         min_offdiagonal = DBL_MAX;
@@ -172,7 +171,7 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
                 min_offdiagonal = MIN(min_offdiagonal,A->val[iptr]);
             }
         }
-
+        
         threshold = theta*min_offdiagonal;
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             j=A->pattern->index[iptr];
@@ -186,6 +185,7 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
        }
       }
     
+   
     out=Paso_IndexList_createPattern(0, A->pattern->numOutput,index_list,0,A->pattern->numInput,0);
     
      /* clean up */
@@ -268,6 +268,7 @@ void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double
     TMPMEMFREE(index_list);
     MEMFREE(diags);
     
+    
     /*Paso_Pattern_mis(out,mis_marker);*/
     Paso_Pattern_greedy(out,mis_marker);
 
@@ -287,6 +288,7 @@ void Paso_Pattern_greedy(Paso_Pattern* pattern, index_t* mis_marker) {
     return;
   }
    
+   /* We do not need this loop if we set IS_IN_MIS=IS_AVAILABLE. */
    #pragma omp parallel for private(i) schedule(static)
    for (i=0;i<n;++i)
         if(mis_marker[i]==IS_AVAILABLE)
@@ -327,6 +329,82 @@ void Paso_Pattern_greedy(Paso_Pattern* pattern, index_t* mis_marker) {
      
 }
 
+
+void Paso_Pattern_greedy_color(Paso_Pattern* pattern, index_t* mis_marker) {
+
+  dim_t i,j;
+  /*double sum;*/
+  index_t iptr;
+  index_t num_colors;
+  index_t* colorOf;
+  register index_t color;
+  bool_t passed=FALSE;
+  dim_t n=pattern->numOutput;
+
+  
+  colorOf=MEMALLOC(n,index_t);
+
+  if (pattern->type & PATTERN_FORMAT_SYM) {
+    Paso_setError(TYPE_ERROR,"Paso_Pattern_greedy: symmetric matrix pattern is not supported yet");
+    return;
+  }
+   
+   Paso_Pattern_color(pattern,&num_colors,colorOf);
+   
+   /* We do not need this loop if we set IS_IN_MIS=IS_AVAILABLE. */
+   #pragma omp parallel for private(i) schedule(static)
+   for (i=0;i<n;++i)
+        if(mis_marker[i]==IS_AVAILABLE)
+                    mis_marker[i]=IS_IN_SET;
+
+   #pragma omp barrier
+   for (color=0;color<num_colors;++color) {
+    #pragma omp parallel for schedule(static) private(i,iptr,j)
+    for (i=0;i<n;++i) {
+     if (colorOf[i]==color) {  
+      if (mis_marker[i]==IS_IN_SET) {
+        for (iptr=pattern->ptr[i];iptr<pattern->ptr[i+1]; ++iptr) {
+             j=pattern->index[iptr];
+             if (colorOf[j]<color)
+              mis_marker[j]=IS_REMOVED;
+        }
+      }
+     }
+    }
+   }
+    
+    
+   #pragma omp barrier
+   for (color=0;color<num_colors;++color) {
+   #pragma omp parallel for schedule(static) private(i,iptr,j) 
+    for (i=0;i<n;i++) {
+      if (colorOf[i]==color) {  
+        if (mis_marker[i]==IS_REMOVED) {
+           passed=TRUE;
+           for (iptr=pattern->ptr[i];iptr<pattern->ptr[i+1]; ++iptr) {
+              j=pattern->index[iptr];
+               if (colorOf[j]<color && passed) {
+                if (mis_marker[j]==IS_REMOVED) {
+                    passed=TRUE;
+                }
+                else {
+                    passed=FALSE;
+                    /*break;*/
+                }
+              }
+           }
+           }
+           if (passed) mis_marker[i]=IS_IN_SET;
+        }
+    }
+   }
+
+     /* swap to TRUE/FALSE in mis_marker */
+     #pragma omp parallel for private(i) schedule(static)
+     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]!=IS_IN_SET);
+    
+    MEMFREE(colorOf); 
+}
 
 
 
