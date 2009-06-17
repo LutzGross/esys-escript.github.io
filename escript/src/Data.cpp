@@ -1956,7 +1956,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
       }
     }
     #pragma omp critical
-    if (local_min<min) {
+    if (local_min<min) {	// If we found a smaller value than our sentinel
       min=local_min;
       lowi=local_lowi;
       lowj=local_lowj;
@@ -1964,29 +1964,109 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
   }
 
 #ifdef PASO_MPI
-	// determine the processor on which the minimum occurs
-	next = temp.getDataPointRO(lowi,lowj);
-	int lowProc = 0;
-	double *globalMins = new double[get_MPISize()+1];
-	int error;
-    error = MPI_Gather ( &next, 1, MPI_DOUBLE, globalMins, 1, MPI_DOUBLE, 0, get_MPIComm() );
+  // determine the processor on which the minimum occurs
+  next = temp.getDataPointRO(lowi,lowj);
+  int lowProc = 0;
+  double *globalMins = new double[get_MPISize()+1];
+  int error;
+  error = MPI_Gather ( &next, 1, MPI_DOUBLE, globalMins, 1, MPI_DOUBLE, 0, get_MPIComm() );
 
-	if( get_MPIRank()==0 ){
-		next = globalMins[lowProc];
-		for( i=1; i<get_MPISize(); i++ )
-			if( next>globalMins[i] ){
-				lowProc = i;
-				next = globalMins[i];
-			}
-	}
-	MPI_Bcast( &lowProc, 1, MPI_DOUBLE, 0, get_MPIComm() );
+  if( get_MPIRank()==0 ){
+	next = globalMins[lowProc];
+	for( i=1; i<get_MPISize(); i++ )
+		if( next>globalMins[i] ){
+			lowProc = i;
+			next = globalMins[i];
+		}
+  }
+  MPI_Bcast( &lowProc, 1, MPI_DOUBLE, 0, get_MPIComm() );
 
-	delete [] globalMins;
-	ProcNo = lowProc;
+  delete [] globalMins;
+  ProcNo = lowProc;
 #else
-	ProcNo = 0;
+  ProcNo = 0;
 #endif
   DataPointNo = lowj + lowi * numDPPSample;
+}
+
+
+const boost::python::tuple
+Data::maxGlobalDataPoint() const
+{
+  int DataPointNo;
+  int ProcNo;
+  calc_maxGlobalDataPoint(ProcNo,DataPointNo);
+  return make_tuple(ProcNo,DataPointNo);
+}
+
+void
+Data::calc_maxGlobalDataPoint(int& ProcNo,
+       	                int& DataPointNo) const
+{
+  if (isLazy())
+  {
+    Data temp(*this);	// to get around the fact that you can't resolve a const Data
+    temp.resolve();
+    return temp.calc_maxGlobalDataPoint(ProcNo,DataPointNo);
+  }
+  int i,j;
+  int highi=0,highj=0;
+//-------------
+  double max=numeric_limits<double>::min();
+
+  Data temp=maxval();
+
+  int numSamples=temp.getNumSamples();
+  int numDPPSample=temp.getNumDataPointsPerSample();
+
+  double next,local_max;
+  int local_highi=0,local_highj=0;	
+
+  #pragma omp parallel firstprivate(local_highi,local_highj) private(next,local_max)
+  {
+    local_max=max;
+    #pragma omp for private(i,j) schedule(static)
+    for (i=0; i<numSamples; i++) {
+      for (j=0; j<numDPPSample; j++) {
+        next=temp.getDataAtOffsetRO(temp.getDataOffset(i,j));
+        if (next>local_max) {
+          local_max=next;
+          local_highi=i;
+          local_highj=j;
+        }
+      }
+    }
+    #pragma omp critical
+    if (local_max>max) {	// If we found a larger value than our sentinel
+      max=local_max;
+      highi=local_highi;
+      highj=local_highj;
+    }
+  }
+
+#ifdef PASO_MPI
+  // determine the processor on which the maximum occurs
+  next = temp.getDataPointRO(highi,highj);
+  int highProc = 0;
+  double *globalMaxs = new double[get_MPISize()+1];
+  int error;
+  error = MPI_Gather ( &next, 1, MPI_DOUBLE, globalMaxs, 1, MPI_DOUBLE, 0, get_MPIComm() );
+
+  if( get_MPIRank()==0 ){
+  next = globalMaxs[highProc];
+  for( i=1; i<get_MPISize(); i++ )
+	if( next>globalMaxs[i] ){
+		highProc = i;
+		next = globalMaxs[i];
+	}
+  }
+  MPI_Bcast( &highProc, 1, MPI_DOUBLE, 0, get_MPIComm() );
+  delete [] globalMaxs;
+  ProcNo = highProc;
+#else
+  ProcNo = 0;
+#endif
+  DataPointNo = highj + highi * numDPPSample;
 }
 
 void
