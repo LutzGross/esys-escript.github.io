@@ -950,15 +950,27 @@ If false, the result is a list of scalars [1, 2, ...]
   /**
      \brief
      Return the (sample number, data-point number) of the data point with
-     the minimum value in this Data object.
+     the minimum component value in this Data object.
+     \note If you are working in python, please consider using Locator 
+instead of manually manipulating process and point IDs.
   */
   ESCRIPT_DLL_API
   const boost::python::tuple
   minGlobalDataPoint() const;
 
+  /**
+     \brief
+     Return the (sample number, data-point number) of the data point with
+     the minimum component value in this Data object.
+     \note If you are working in python, please consider using Locator 
+instead of manually manipulating process and point IDs.
+  */
   ESCRIPT_DLL_API
-  void
-  calc_minGlobalDataPoint(int& ProcNo,  int& DataPointNo) const;
+  const boost::python::tuple
+  maxGlobalDataPoint() const;
+
+
+
   /**
      \brief
      Return the sign of each data point of this Data object.
@@ -1500,6 +1512,13 @@ ESCRIPT_DLL_API void freeSampleBuffer(BufferGroup* buffer);
 
   boost::python::object
   integrateWorker() const;
+
+  void
+  calc_minGlobalDataPoint(int& ProcNo,  int& DataPointNo) const;
+
+  void
+  calc_maxGlobalDataPoint(int& ProcNo,  int& DataPointNo) const;
+
 
   /**
      \brief
