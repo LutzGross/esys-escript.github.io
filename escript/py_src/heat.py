@@ -102,3 +102,59 @@ class TemperatureCartesian(TransportPDE):
         """
         return self.getSolution(dt,**kwargs)
 
+
+class Tracer(TransportPDE):
+    """
+    Represents and solves the tracer problem
+
+    M{C_{,t} + v_i C_{,i} - ( k T_{,i})_i) = 0}
+
+    M{C_{,t} = 0} where C{given_C_mask}>0.
+    M{C_{,i}*n_i=0} 
+
+    Typical usage::
+
+        sp = Tracer(domain)
+        sp.setTolerance(1.e-4)
+        t = 0
+        T = ...
+        sp.setValues(given_C_mask=...)
+        sp.setInitialTracer(C)
+        while t < t_end:
+            sp.setValue(v=...)
+            dt.getSaveTimeStepSize()
+            C = sp.getTracer(dt)
+            t += dt
+    """
+    def __init__(self,domain,useBackwardEuler=False,**kwargs):
+        """
+        Initializes the Tracer advection problem
+
+        @param domain: domain of the problem
+        @param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Not that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. So other measures need to be applied to control the time step size. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
+        @type useBackwardEuler: C{bool}
+        """
+        TransportPDE.__init__(self,domain,numEquations=1,useBackwardEuler=useBackwardEuler,**kwargs)
+        self.setReducedOrderOn()
+        super(Tracer,self).setValue(M=1.)
+
+    def setInitialTracer(self,C):
+        """
+        Same as L{setInitialSolution}.
+        """
+        self.setInitialSolution(C)
+
+    def setValue(self,v=None,given_C_mask=None, k=None):
+        if v!=None:
+            super(Tracer,self).setValue(C=-v)
+        if k!=None:
+            super(Tracer,self).setValue(A=-k*util.kronecker(self.getDomain()))
+        if given_C_mask!=None:
+            super(Tracer,self).setValue(q=given_C_mask)
+
+    def getTracer(self,dt,**kwargs):
+        """
+        Same as L{getSolution}.
+        """
+        return self.getSolution(dt,**kwargs)
+

@@ -67,7 +67,6 @@
 #define PASO_RUGE_STUEBEN_COARSENING 34
 #define PASO_AGGREGATION_COARSENING 35
 #define PASO_NO_PRECONDITIONER 36
-#define PASO_SCSL 9999999
 
 typedef struct {
     index_t method;

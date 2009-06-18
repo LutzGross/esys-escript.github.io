@@ -38,12 +38,12 @@ index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry,
             #ifdef UMFPACK
               out=PASO_UMFPACK;
             #else
-              #ifdef SCSL
-               out=PASO_SCSL;
+              #ifdef PASTIX
+               out=PASO_PASTIX
               #endif
             #endif
          #endif
-         if (( (out == PASO_MKL) || (out==PASO_UMFPACK) || (out == PASO_SCSL) ) && (mpi_info->size>1) ) {  /* these packages require CSC  which is not supported with MPI */
+         if (( (out == PASO_MKL) || (out==PASO_UMFPACK) || (out == PASO_PASTIX) ) && (mpi_info->size>1) ) {  /* these packages require CSC  which is not supported with MPI */
               out= PASO_PASO;
          }
       } else {
@@ -51,8 +51,8 @@ index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry,
       }
   } else if (package==PASO_PASO) {
       out=PASO_PASO;
-  } else if (package==PASO_SCSL) {
-      out=PASO_SCSL;
+  } else if (package==PASO_PASTIX) {
+      out=PASO_PASTIX;
   } else if (package==PASO_MKL) {
       out=PASO_MKL;
   } else if (package==PASO_UMFPACK) {

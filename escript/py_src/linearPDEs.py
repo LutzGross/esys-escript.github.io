@@ -518,7 +518,7 @@ class SolverOptions(object):
         @rtype: C{int}
         """
         return self.__inner_iter_max
-    def setIterMax(self,iter_max=10000):
+    def setIterMax(self,iter_max=100000):
         """
         Sets the maximum number of iteration steps
 

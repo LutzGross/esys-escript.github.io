@@ -54,6 +54,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
    dim_t numSol = Paso_SystemMatrix_getTotalNumCols(A);
    dim_t numEqua = Paso_SystemMatrix_getTotalNumRows(A);
    double blocktimer_precond, blocktimer_start = blocktimer_time();
+
  
      Paso_resetError();
      tolerance=options->tolerance;
@@ -75,6 +76,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
         Paso_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires a square matrix.");
         return;
      }
+     time_iter=Paso_timer();
      /* this for testing only */
      if (method==PASO_NONLINEAR_GMRES) {
         Paso_Function* F=NULL;
@@ -162,8 +164,8 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
             Paso_Solver_setPreconditioner(A,options);
             Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
             blocktimer_increment("Paso_Solver_setPreconditioner()", blocktimer_precond);
+            options->set_up_time=Paso_timer()-time_iter;
             if (! Paso_noError()) return;
-              time_iter=Paso_timer();
               /* get an initial guess by evaluating the preconditioner */
               Paso_Solver_solvePreconditioner(A,x,b);
               /* start the iteration process :*/
@@ -207,6 +209,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                         MPI_Allreduce(&loc_norm,&norm_max_of_residual, 1, MPI_DOUBLE, MPI_MAX, A->mpi_info->comm);
                     #endif
                     norm2_of_residual =sqrt(norm2_of_residual);
+                    options->residual_norm=norm2_of_residual;
              
                   if (options->verbose) printf("Paso_Solver: Step %5d: l2/lmax-norm of residual is  %e/%e",totIter,norm2_of_residual,norm_max_of_residual);
                   if (totIter>1 && norm2_of_residual>=last_norm2_of_residual &&  norm_max_of_residual>=last_norm_max_of_residual) {
@@ -261,33 +264,20 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                         }
                       } else {
                          if (options->verbose) printf(". convergence! \n");
+                         options->converged=TRUE;
                       }
                    }
                  } /* while */
               }
               MEMFREE(r);
-              time_iter=Paso_timer()-time_iter;
-              if (options->verbose)  {
-               printf("\ntiming: Paso_Solver:  %.4e sec\n",time_iter);
-               if (Paso_noError()) {
-                 if (totIter>1) {
-                    if(totIter==options->iter_max) {
-                        printf("timing: Total MAX steps, time per iteration step: %.4e sec\n",time_iter/totIter);
-                    } else {
-                        printf("timing: Total %d steps, time per iteration step: %.4e sec\n",totIter,time_iter/totIter);    
-                    }
-                 }
-                 else {
-                    printf("timing: Total 1 step, time per iteration step: %.4e sec\n",time_iter);
-                    }   
-               }
-               else {
-                   printf("timing: Total: Diverged.\n");
-               }
-              }
+              options->num_level=0;
+              options->num_inner_iter=0;
+              options->num_iter=totIter;
            }
         }
       }
+   options->time=Paso_timer()-time_iter;
    Performance_stopMonitor(pp,PERFORMANCE_ALL);
    blocktimer_increment("Paso_Solver()", blocktimer_start);
+
 }

@@ -44,14 +44,6 @@ index_t Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index
        }
        break;
 
-     case PASO_SCSL:
-       if (mpi_info->size > 1) {
-           Paso_setError(VALUE_ERROR,"The selected solver SCSL requires CSC format which is not supported with MPI.");
-           return -1;
-       }
-       out=MATRIX_FORMAT_CSC + MATRIX_FORMAT_BLK1;
-       /* if (solver == PASO_CHOLEVSKY) out+=MATRIX_FORMAT_SYM */
-       break;
 
      case PASO_MKL:
        out=MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1;
