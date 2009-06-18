@@ -22,6 +22,8 @@ namespace {
 int defaultList[1]={0};		// an array to return in borrowListOfTagsInUse();
 int NullDomainFS=1;		// Null domains only support 1 functionspace type.
 			// The choice of =1 as the value is arbitrary
+
+int referenceID=10;	// arbitrary
 }
 
 
@@ -115,6 +117,8 @@ std::pair<int,int> NullDomain::getDataShape(int functionSpaceCode) const
 {
   //
   // return an arbitary value
+  // - I know it says arbitrary but its not a good idea to change it now.
+  // - some tests assume that the null domain holds a single value
   return std::pair<int,int>(1,1);
 }
 
@@ -125,7 +129,7 @@ int NullDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
   return 1; 
 }
 
-int referenceID=10;
+
 
 int* NullDomain::borrowSampleReferenceIDs(int functionSpaceType) const
 {

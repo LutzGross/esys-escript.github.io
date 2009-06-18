@@ -183,7 +183,7 @@ DataVector::copyFromArrayToOffset(const WrappedArray& value, size_type offset, s
   case 0:	
 	for (size_type z=0;z<copies;++z)
 	{
-	   m_array_data[offset]=value.getElt();
+	   m_array_data[offset+z]=value.getElt();
 	}
 	break;
   case 1:
