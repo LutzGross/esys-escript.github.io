@@ -29,6 +29,7 @@
 #include <omp.h>
 #endif
 
+
 /**************************************************************/
 
 /*  free any extra stuff possibly used by the MKL library */
@@ -67,13 +68,14 @@ void Paso_MKL(Paso_SystemMatrix* A,
                           Paso_Options* options,
                           Paso_Performance* pp) {
 #ifdef MKL
-     double time0;
+     double time0, time1;
      index_t i;
 
      if (! (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
         Paso_setError(TYPE_ERROR,"Paso_MKL: MKL requires CSR format with index offset 1 and block size 1.");
         return;
      }
+     options->converged=FALSE;
      Performance_startMonitor(pp,PERFORMANCE_ALL);
      _INTEGER_t mtype = MKL_MTYPE_UNSYM;
      if (A->type & MATRIX_FORMAT_SYM) mtype=MKL_MTYPE_SYM;
@@ -138,8 +140,11 @@ void Paso_MKL(Paso_SystemMatrix* A,
              Paso_setError(ZERO_DIVISION_ERROR,"factorization in paradiso library failed. Most likely the matrix is singular.");
              Paso_MKL_free(A);
            }
-           if (options->verbose) printf("timing MKL: LDU factorization: %.4e sec.\n",Paso_timer()-time0);
+           if (options->verbose) printf("MKL: LDU factorization completed.");
         }
+        options->set_up_time=Paso_timer()-time0;
+     } else {
+        options->set_up_time=0;
      }
      /* forward backward substitution\ */
      if (Paso_noError())  {
@@ -148,10 +153,17 @@ void Paso_MKL(Paso_SystemMatrix* A,
         PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
                  &n, A->mainBlock->val, A->mainBlock->pattern->ptr, A->mainBlock->pattern->index, &idum, &nrhs,
                  iparm, &msglvl, in, out, &error);
-        if (options->verbose) printf("timing MKL: solve: %.4e sec\n",Paso_timer()-time0);
+        if (options->verbose) printf("MKL: solve completed.");
         if (error != MKL_ERROR_NO) {
               Paso_setError(VALUE_ERROR,"forward/backward substition in paradiso library failed. Most likely the matrix is singular.");
+        } else {
+            options->residual_norm=0.;
+            options->num_iter=0;
+            options->num_level=0;
+            options->num_inner_iter=0;
+            options->converged=TRUE;
         }
+        options->time=Paso_timer()-time0 + options->set_up_time;
      }
      Performance_stopMonitor(pp,PERFORMANCE_ALL);
 #else

@@ -44,9 +44,6 @@ sources = """
 	Pattern_coupling.c
 	Pattern_reduceBandwidth.c
 	Pattern_unrollBlocks.c
-	SCSL.c
-	SCSL_direct.c
-	SCSL_iterative.c
 	SharedComponents.c
 	Solver.c
 	SolverFCT.c
@@ -102,7 +99,6 @@ headers = """
 	Paso_MPI.h
 	Pattern.h
 	Pattern_coupling.h
-	SCSL.h
 	SharedComponents.h
 	Solver.h
 	SolverFCT.h

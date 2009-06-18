@@ -46,6 +46,7 @@ void Paso_UMFPACK_free(Paso_SystemMatrix* A) {
      }
 #endif
 }
+
 /*  call the solver: */
 
 void Paso_UMFPACK(Paso_SystemMatrix* A,
@@ -66,6 +67,7 @@ void Paso_UMFPACK(Paso_SystemMatrix* A,
      Performance_startMonitor(pp,PERFORMANCE_ALL);
      pt = (Paso_UMFPACK_Handler *)(A->solver);
      umfpack_di_defaults(control);
+     options->converged=FALSE;
 
      if (pt==NULL) {
         int n = A->mainBlock->numRows;
@@ -85,7 +87,8 @@ void Paso_UMFPACK(Paso_SystemMatrix* A,
              Paso_setError(ZERO_DIVISION_ERROR,"factorization failed. Most likely the matrix is singular.");
              Paso_UMFPACK_free(A);
            }
-           if (options->verbose) printf("timing UMFPACK: LDU factorization: %.4e sec.\n",Paso_timer()-time0);
+           if (options->verbose) printf("UMFPACK: LDU factorization completed.");
+           options->set_up_time=Paso_timer()-time0;
         }
      }
      if (Paso_noError())  {
@@ -93,9 +96,16 @@ void Paso_UMFPACK(Paso_SystemMatrix* A,
         /* call forward backward substitution: */
         control[UMFPACK_IRSTEP]=2; /* number of refinement steps */
         error=umfpack_di_solve(UMFPACK_A,A->mainBlock->pattern->ptr,A->mainBlock->pattern->index,A->mainBlock->val,out,in,pt->numeric,control,info);
-        if (options->verbose) printf("timing UMFPACK: solve: %.4e sec\n",Paso_timer()-time0);
+        if (options->verbose) printf("UMFPACK: solve completed.");
         if (error != UMFPACK_OK) {
               Paso_setError(VALUE_ERROR,"forward/backward substition failed. Most likely the matrix is singular.");
+        } else {
+           options->converged=TRUE;
+           options->time=Paso_timer()-time0+options->set_up_time;
+           options->residual_norm=0;
+           options->num_iter=1;
+           options->num_level=0;
+           options->num_inner_iter=0;
         }
      }
      Performance_stopMonitor(pp,PERFORMANCE_ALL);

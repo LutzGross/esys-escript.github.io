@@ -62,48 +62,6 @@ index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry, 
             }
             break;
      }
-  /* SCSL */
-  } else if (package==PASO_SCSL) {
-    switch (solver) {
-      case PASO_PCG:
-        out=PASO_PCG;
-        break;
-      case PASO_CR:
-        out=PASO_CR;
-        break;
-      case PASO_CGS:
-        out=PASO_CGS;
-        break;
-      case PASO_BICGSTAB:
-        out=PASO_BICGSTAB;
-        break;
-      case PASO_TFQMR:
-        out=PASO_TFQMR;
-        break;
-      case PASO_MINRES:
-        out=PASO_MINRES;
-        break;
-      case PASO_ITERATIVE:
-        if (symmetry) {
-          out=PASO_PCG;
-        } else {
-          out=PASO_BICGSTAB;
-        }
-        break;
-      case PASO_CHOLEVSKY:
-        out=PASO_CHOLEVSKY;
-        break;
-      case PASO_DIRECT:
-        out=PASO_DIRECT;
-        break;
-      default:
-        if (symmetry) {
-          out=PASO_CHOLEVSKY;
-        } else {
-          out=PASO_DIRECT;
-        }
-        break;
-     }
   /* MKL */
   } else if (package==PASO_MKL) {
     switch (solver) {

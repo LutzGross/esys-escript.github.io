@@ -27,10 +27,6 @@
 #include "performance.h"
 #include "Solver.h"
 
-#ifdef SCSL
-#include "SCSL.h"
-#endif
-
 #ifdef MKL
 #include "MKL.h"
 #endif
@@ -54,7 +50,7 @@ void Paso_solve(Paso_SystemMatrix* A,
        Paso_setError(VALUE_ERROR,"Paso_solve: matrix has to be a square matrix.");
        return;
   }
-  Paso_Options_show(options);
+  /* Paso_Options_show(options); */
   Performance_open(&pp,options->verbose);
   package=Paso_Options_getPackage(options->method,options->package,options->symmetric, A->mpi_info);
   if (Paso_noError()) {
@@ -65,18 +61,6 @@ void Paso_solve(Paso_SystemMatrix* A,
           A->solver_package=PASO_PASO;
           break;
 
-        #ifdef SCSL
-        case PASO_SCSL:
-          if (A->mpi_info->size>1) {
-              Paso_setError(VALUE_ERROR,"Paso_solve: SCSL package does not support MPI.");
-              return;
-          }
-          Paso_SCSL(A,out,in,options,&pp);
-          A->solver_package=PASO_SCSL;
-          break;
-        #endif
-
-  
         #ifdef MKL
         case PASO_MKL:
           if (A->mpi_info->size>1) {
@@ -103,6 +87,14 @@ void Paso_solve(Paso_SystemMatrix* A,
            Paso_setError(VALUE_ERROR,"Paso_solve: unknown package code");
            break;
      }
+/*
+     if (options->accept_failed_convergence) {
+         if ( 
+             if (options->verbose) printf("PASO: failed convergence has been unnullated as requested.");
+
+         } 
+     }
+*/
   }
   Performance_close(&pp,options->verbose);
   Paso_Options_showDiagnostics(options);
@@ -121,13 +113,6 @@ void Paso_solve_free(Paso_SystemMatrix* in) {
           Paso_Solver_free(in);
           break;
 
-        #ifdef SCSL
-        case PASO_SCSL:
-          Paso_SCSL_free(in);
-          break;
-        #endif
-
-  
         #ifdef MKL
         case PASO_MKL:
           Paso_MKL_free(in); 
