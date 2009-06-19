@@ -699,7 +699,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.failUnless(so.getRelaxationFactor() == 0.1, "Relaxation is wrong.")
 
 
-        self.failUnless(so.getIterMax() == 10000, "initial IterMax is wrong.")
+        self.failUnless(so.getIterMax() == 100000, "initial IterMax is wrong.")
         self.failUnlessRaises(ValueError,so.setIterMax,0)
         so.setIterMax(11)
         self.failUnless(so.getIterMax() == 11, "IterMax is wrong.")
