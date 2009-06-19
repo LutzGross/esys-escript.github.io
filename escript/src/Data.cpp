@@ -1068,7 +1068,7 @@ Data::getLength() const
   return m_data->getLength();
 }
 
-// does not return tuples for scalars
+
 // There is no parallelism here ... elements need to be added in the correct order.
 //   If we could presize the list and then fill in the elements it might work
 //   This would need setting elements to be threadsafe.
@@ -3092,5 +3092,4 @@ Data::get_MPIComm() const
 	return -1;
 #endif
 }
-
 

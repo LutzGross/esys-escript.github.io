@@ -193,7 +193,7 @@ DataVector::copyFromArrayToOffset(const WrappedArray& value, size_type offset, s
 	   {
 	      m_array_data[offset+i]=value.getElt(i);
 	   }
-	   offset+=z*len;
+	   offset+=len;
 	}
 	break;
   case 2:
@@ -208,7 +208,7 @@ DataVector::copyFromArrayToOffset(const WrappedArray& value, size_type offset, s
                  m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j)]=value.getElt(i,j);
               }
            }
-	   offset+=z*len;
+	   offset+=len;
 	}
 	break;
   case 3:
