@@ -24,6 +24,7 @@
 #include "DataVector.h"
 #include "paso/Paso_MPI.h"
 #include "EscriptParams.h"
+#include "TestDomain.h"
 
 
 extern "C" {
@@ -135,6 +136,15 @@ BOOST_PYTHON_MODULE(escriptcpp)
        .def("getSystemMatrixTypeId",&escript::AbstractContinuousDomain::getSystemMatrixTypeId)
        .def("getTransportTypeId",&escript::AbstractContinuousDomain::getTransportTypeId);
 
+
+  //
+  // Interface for TestDomain
+  //
+  class_ <escript::TestDomain, bases<escript::AbstractDomain> >("TestDomain", "Test Class for domains with no structure. May be removed from future releases without notice.", init<int,int>());
+
+  // This is the only python visible way to get a TestDomain
+  def("getTestDomainFunctionSpace",&escript::getTestDomainFunctionSpace, "For testing only. May be removed without notice.");
+
   //
   // Interface for FunctionSpace
   //
@@ -174,7 +184,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("getShape",&escript::Data::getShapeTuple)
     .def("getRank",&escript::Data::getDataPointRank)
     .def("dump",&escript::Data::dump)
-    .def("toListOfTuples",&escript::Data::toListOfTuples, (arg("scalarastuple")=false))
+    .def("toListOfTuples",&escript::Data::toListOfTuples, (arg("scalarastuple")=true))
     .def("copyWithMask",&escript::Data::copyWithMask)
     .def("setTaggedValue",&escript::Data::setTaggedValue)
     .def("setTaggedValue",&escript::Data::setTaggedValueByName)
@@ -377,5 +387,4 @@ BOOST_PYTHON_MODULE(escriptcpp)
   // Register esysExceptionTranslator
   //
   register_exception_translator<esysUtils::EsysException>(&esysUtils::esysExceptionTranslator);
-
 }
