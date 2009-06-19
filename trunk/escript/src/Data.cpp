@@ -152,7 +152,7 @@ pointToTuple3(const DataTypes::ShapeType& shape, ARR v, unsigned long offset)
 	    list li;
 	    for (size_t i=0;i<shape2;++i)
 	    {
-                li.append(v[DataTypes::getRelIndex(shape,k,j,i)]);
+                li.append(v[offset+DataTypes::getRelIndex(shape,k,j,i)]);
             }
 	    lj.append(tuple(li));
         }
@@ -187,7 +187,7 @@ pointToTuple4(const DataTypes::ShapeType& shape, ARR v, unsigned long offset)
                 list li;
                 for (size_t i=0;i<shape3;++i)
                 {
-                    li.append(v[DataTypes::getRelIndex(shape,l,k,j,i)]);
+                    li.append(v[offset+DataTypes::getRelIndex(shape,l,k,j,i)]);
                 }
                 lj.append(tuple(li));
             }

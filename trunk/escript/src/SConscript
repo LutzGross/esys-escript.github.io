@@ -49,6 +49,7 @@ sources = """
 	NullDomain.cpp
 	SystemMatrixException.cpp
 	Taipan.cpp
+	TestDomain.cpp
 	TransportProblemException.cpp
 	Utils.cpp
 	WrappedArray.cpp
@@ -87,6 +88,7 @@ headers = """
 	Pointers.h
 	SystemMatrixException.h
 	Taipan.h
+	TestDomain.h
 	TransportProblemException.h
 	UnaryFuncs.h
 	UnaryOp.h

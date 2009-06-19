@@ -33,6 +33,7 @@ testdata_dir = [x for x in filenames if x.startswith('data_') ]
 testruns = []
 testruns += ['run_xml.py']
 testruns += ['run_units.py']
+testruns += ['run_data_access.py']
 #
 # files defining tests run locally (not as part of a release)
 #
