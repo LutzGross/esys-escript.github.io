@@ -326,14 +326,23 @@ class Locator:
 
        @param where: function space
        @type where: L{escript.FunctionSpace}
-       @param x: coefficient of the solution
+       @param x: location(s) of the Locator
        @type x: C{numpy.ndarray} or C{list} of C{numpy.ndarray}
        """
        if isinstance(where,escript.FunctionSpace):
           self.__function_space=where
        else:
           self.__function_space=escript.ContinuousFunction(where)
+       iterative=False
        if isinstance(x, list):
+           if len(x)==0: 
+              raise "ValueError", "At least one point must be given."
+           try:
+             iter(x[0])
+             iterative=True
+           except TypeError:
+             iterative=False
+       if iterative:
            self.__id=[]
            for p in x:
               self.__id.append(util.length(self.__function_space.getX()-p[:self.__function_space.getDim()]).minGlobalDataPoint())

@@ -373,7 +373,7 @@ err_t Paso_Solver_PCG(
                 #endif
                 norm_of_residual=sqrt(sum_5);
                 convergeFlag = norm_of_residual <= tol;
-                maxIterFlag = num_iter == maxit;
+                maxIterFlag = num_iter > maxit;
                 breakFlag = (ABS(tau) <= TOLERANCE_FOR_SCALARS);
            }
     }

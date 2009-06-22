@@ -214,7 +214,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                   if (options->verbose) printf("Paso_Solver: Step %5d: l2/lmax-norm of residual is  %e/%e",totIter,norm2_of_residual,norm_max_of_residual);
                   if (totIter>1 && norm2_of_residual>=last_norm2_of_residual &&  norm_max_of_residual>=last_norm_max_of_residual) {
                      if (options->verbose) printf(" divergence!\n");
-                     Paso_setError(WARNING, "Paso_Solver: No improvement during iteration. Iterative solver gives up.");
+                     Paso_setError(DIVERGED, "Paso_Solver: No improvement during iteration. Iterative solver gives up.");
                   } else {
                      /* */
                      if (norm2_of_residual>tolerance*norm2_of_b || norm_max_of_residual>tolerance*norm_max_of_b ) {
@@ -248,7 +248,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                         if (errorCode==NO_ERROR) {
                            finalizeIteration = FALSE;
                         } else if (errorCode==SOLVER_MAXITER_REACHED) {
-                           Paso_setError(WARNING,"Paso_Solver: maximum number of iteration step reached.\nReturned solution does not fulfil stopping criterion.");
+                           Paso_setError(DIVERGED,"Paso_Solver: maximum number of iteration step reached.\nReturned solution does not fulfil stopping criterion.");
                            if (options->verbose) printf("Paso_Solver: Maximum number of iterations reached.!\n");
                         } else if (errorCode == SOLVER_INPUT_ERROR ) {
                            Paso_setError(SYSTEM_ERROR,"Paso_Solver: illegal dimension in iterative solver.");

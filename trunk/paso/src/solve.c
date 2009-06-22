@@ -87,14 +87,15 @@ void Paso_solve(Paso_SystemMatrix* A,
            Paso_setError(VALUE_ERROR,"Paso_solve: unknown package code");
            break;
      }
-/*
-     if (options->accept_failed_convergence) {
-         if ( 
-             if (options->verbose) printf("PASO: failed convergence has been unnullated as requested.");
-
+  }
+  /*
+       cancel divergence errors
+  */
+  if (options->accept_failed_convergence) {
+         if (Paso_getErrorType() == DIVERGED) {
+             Paso_resetError();
+             if (options->verbose) printf("PASO: failed convergence error has been canceled requested.");
          } 
-     }
-*/
   }
   Performance_close(&pp,options->verbose);
   Paso_Options_showDiagnostics(options);

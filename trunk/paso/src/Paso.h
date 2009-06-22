@@ -33,6 +33,7 @@
 enum Paso_ErrorCodeType {
   NO_ERROR,
   WARNING,
+  DIVERGED,
   VALUE_ERROR,
   TYPE_ERROR,
   MEMORY_ERROR,
