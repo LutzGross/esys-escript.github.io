@@ -124,21 +124,21 @@ of \Shape $(2,3)$ and rank $2$:
 The initial value is the constant $1$ for all \DataSamplePoints and
 all components.
 
-\Data objects can also be created from any \numarray
+\Data objects can also be created from any \numpy
 array or any object, such as a list of floating point numbers, 
-that can be converted into a \numarrayNA \cite{NUMARRAY}. 
+that can be converted into a \numpyNDA \cite{NUMPY}. 
 The following two statements
 create objects which are equivalent to \var{mydat}:
 \begin{python}
-  mydat1=Data(value=numarray.ones((2,3)),what=ContinuousFunction(myDomain))
+  mydat1=Data(value=numpy.ones((2,3)),what=ContinuousFunction(myDomain))
   mydat2=Data(value=[[1,1],[1,1],[1,1]],what=ContinuousFunction(myDomain))
 \end{python}
-In the first case the initial value is \var{numarray.ones((2,3))}
-which generates a $2 \times 3$ matrix as a \numarrayNA 
+In the first case the initial value is \var{numpy.ones((2,3))}
+which generates a $2 \times 3$ matrix as a \numpyNDA
 filled with ones. The \Shape of the created \Data object
 it taken from the \Shape of the array. In the second
 case, the creator converts the initial value, which is a list of lists,
-and converts it into a \numarrayNA before creating the actual
+and converts it into a \numpyNDA before creating the actual
 \Data object.      
 
 For convenience \escript provides creators for the most common types
@@ -154,7 +154,7 @@ eg. a stress field.
 \item \var{Tensor4(0,Function(mydomain))} is the same as \var{Data(0,Function(myDomain),(d,d,d,d))}
 eg. a Hook tensor field.   
 \end{itemize}
-Here the initial value is $0$ but any object that can be converted into a \numarrayNA and whose \Shape
+Here the initial value is $0$ but any object that can be converted into a \numpyNDA and whose \Shape
 is consistent with \Shape of the \Data object to be created can be used as the initial value.
 
 \Data objects can be manipulated by applying unary operations (eg. cos, sin, log) point
@@ -495,7 +495,7 @@ The following table shows arithmetic operations that can be performed point-wise
 \end{tableii}
 At least one of the arguments \var{arg0} or \var{arg1} must be a
 \Data object.
-Either of the arguments may be a \Data object, a python number or a numarray object.
+Either of the arguments may be a \Data object, a python number or a \numpy object.
 
 If \var{arg0} or \var{arg1} are
 not defined on the same \FunctionSpace, then an attempt is made to convert \var{arg0}
@@ -563,8 +563,8 @@ the \Data object is represented in expanded from.
 
 \begin{classdesc}{Data}{value,what=FunctionSpace(),expand=\False}
 creates a \Data object in the \FunctionSpace \var{what}. 
-The value for each \DataSamplePoints is set to \var{value}, which could be a \numarray, \Data object \var{value} or a dictionary of 
-\numarray or floating point numbers. In the latter case the keys must be integers and are used
+The value for each \DataSamplePoints is set to \var{value}, which could be a \numpy, \Data object \var{value} or a dictionary of 
+\numpy or floating point numbers. In the latter case the keys must be integers and are used
 as tags.
 The \Shape of the returned object is equal to the \Shape of \var{value}. If \var{expanded} is \True
 the \Data object is represented in expanded form.
@@ -642,9 +642,9 @@ Note that this is not the same as asking if the object contains no \DataSamplePo
 \begin{methoddesc}[Data]{setTaggedValue}{tag_name,value}
 assigns the \var{value} to all \DataSamplePoints which have the tag
 assigned to \var{tag_name}. \var{value} must be an object of class
-\class{numarray.NumArray} or must be convertible into a
-\class{numarray.NumArray} object. \var{value} (or the corresponding
-\class{numarray.NumArray} object) must be of rank $0$ or must have the
+\class{numpy.ndarray} or must be convertible into a
+\class{numpy.ndarray} object. \var{value} (or the corresponding
+\class{numpy.ndarray} object) must be of rank $0$ or must have the
 same rank like the object.
 If a value has already be defined for tag \var{tag_name} within the object
 it is overwritten by the new \var{value}.  If the object is expanded,
@@ -693,7 +693,7 @@ returns a \RankTwo \Data object in \FunctionSpace \var{d} such that
 \end{array}
 \right.
 \end{equation}
-If \var{d} is an integer a $(d,d)$ \numarray array is returned.
+If \var{d} is an integer a $(d,d)$ \numpy array is returned.
 \end{funcdesc}
 \begin{funcdesc}{identityTensor}{d}
 is a synonym for \code{kronecker} (see above).
@@ -706,7 +706,7 @@ is a synonym for \code{kronecker} (see above).
 % \end{array}
 % \right.
 % \end{equation}
-% If \var{d} is an integer a $(d,d)$ \numarray array is returned.
+% If \var{d} is an integer a $(d,d)$ \numpy array is returned.
 \end{funcdesc}
 \begin{funcdesc}{identityTensor4}{d}
 returns a \RankFour \Data object in \FunctionSpace \var{d} such that
@@ -718,7 +718,7 @@ returns a \RankFour \Data object in \FunctionSpace \var{d} such that
 \end{array}
 \right.
 \end{equation}
-If \var{d} is an integer a $(d,d,d,d)$ \numarray array is returned.
+If \var{d} is an integer a $(d,d,d,d)$ \numpy array is returned.
 \end{funcdesc}
 \begin{funcdesc}{unitVector}{i,d}
 returns a \RankOne \Data object in \FunctionSpace \var{d} such that
@@ -730,7 +730,7 @@ returns a \RankOne \Data object in \FunctionSpace \var{d} such that
 \end{array}
 \right.
 \end{equation}
-If \var{d} is an integer a $(d,)$ \numarray array is returned.
+If \var{d} is an integer a $(d,)$ \numpy array is returned.
 
 \end{funcdesc}
 

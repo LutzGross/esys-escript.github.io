@@ -129,7 +129,7 @@ In general a script based on the \escript module does not require modifications 
 When \MPI is used on more than one process ($\var{nn} \cdot \var{np} >1$) the user needs to keep in mind that several copies of his script are executed at the same time 
 \footnote{In case of OpenMP only one copy is running but \escript temporarily spawns threads.} while data exchange is performed through the \escript module. At any time, 
 \escript assumes that an argument of the type \var{int}, \var{float}, \var{str} 
-and \numarray has an identical value across all processors. All 
+and \numpy has an identical value across all processors. All 
 values of these types returned by \escript have the same value on all processors.
 If values produced by other modules are used as arguments the user has to make sure that the argument values are identical on all processors. For instance, the usage of a random number generator to create argument values bears the risk that the value may depend on the processor. 
 

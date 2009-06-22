@@ -102,7 +102,7 @@ sources = """
 	ShapeFunctions.c
 	TagMap.c
 	Util.c
-	CPPAdapter/FinleAdapterException.cpp
+	CPPAdapter/FinleyAdapterException.cpp
 	CPPAdapter/FinleyError.cpp
 	CPPAdapter/MeshAdapter.cpp
 	CPPAdapter/MeshAdapterFactory.cpp

@@ -230,7 +230,7 @@ err_t Paso_Solver_BiCGStab(
                 #endif
 	        norm_of_residual = sqrt(sum_4);
 	        convergeFlag = norm_of_residual <= tol;
-	        maxIterFlag = num_iter == maxit;
+	        maxIterFlag = num_iter > maxit;
 	        breakFlag = (ABS(omega) <= TOLERANCE_FOR_SCALARS);
 	      }
 	   }

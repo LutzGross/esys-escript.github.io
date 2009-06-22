@@ -25,6 +25,7 @@ outputdir=local_env.Dir('#/release/doc/').srcnode().abspath
 
 os.chdir(src_dir)
 example_files = os.popen("find examples -name .svn -prune -o -type f -print").read().split(None)
+print example_files
 os.chdir(cur_dir)
 
 tmp1 = env.Command("#/release/doc/escript_examples.zip", None, 

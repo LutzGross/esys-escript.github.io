@@ -278,13 +278,13 @@ resize them.
 
 \begin{classdesc}{Translation}{\optional{b=[0,0,0]}}
 defines a translation $x \to x+b$. \var{b} can be any object that can be converted 
-into a \numarray object of shape $(3,)$.
+into a \numpy object of shape $(3,)$.
 \end{classdesc}
               
 \begin{classdesc}{Rotatation}{\optional{axis=[1,1,1], \optional{ point = [0,0,0], \optional{angle=0*RAD} } } }
 defines a rotation by \var{angle} around axis through point \var{point} and direction \var{axis}. 
 \var{axis} and \var{point} can be any object that can be converted 
-into a \numarray object of shape $(3,)$.
+into a \numpy object of shape $(3,)$.
 \var{axis} does not have to be normalized but must have positive length. The right hand rule~\cite{RIGHTHANDRULE}
 applies.
 \end{classdesc}
@@ -294,14 +294,14 @@ applies.
 defines a dilation by the expansion/contraction \var{factor} with 
 \var{center} as the dilation center.
 \var{center} can be any object that can be converted 
-into a \numarray object of shape $(3,)$.
+into a \numpy object of shape $(3,)$.
 \end{classdesc}
 
 \begin{classdesc}{Reflection}{\optional{normal=[1,1,1], \optional{offset=0}}}
 defines a reflection on a plane defined in normal form $n^t x = d$ 
 where $n$ is the surface normal \var{normal} and $d$ is the plane \var{offset}.
 \var{normal} can be any object that can be converted 
-into a \numarray object of shape $(3,)$.
+into a \numpy object of shape $(3,)$.
 \var{normal} does not have to be normalized but must have positive length. 
 \end{classdesc}
 
