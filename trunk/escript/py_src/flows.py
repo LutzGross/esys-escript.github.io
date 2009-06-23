@@ -62,6 +62,8 @@ class DarcyFlow(object):
         if weight == None:
            s=self.domain.getSize()
            self.__l=(3.*util.longestEdge(self.domain)*s/util.sup(s))**2
+           # self.__l=(3.*util.longestEdge(self.domain))**2
+           # self.__l=(0.1*util.longestEdge(self.domain)*s/util.sup(s))**2
         else:
            self.__l=weight
         self.__pde_v=LinearPDESystem(domain)
@@ -296,6 +298,8 @@ class DarcyFlow(object):
                if self.verbose: 
                     print "DarcyFlux: L2 norm of v = %e."%norm_v
                     print "DarcyFlux: L2 norm of k.grad(p) = %e."%norm_Qp
+                    print "DarcyFlux: L2 defect u = %e."%(util.integrate(util.length(self.__g-util.interpolate(v,Function(self.domain))-Qp)**2)**(0.5),)
+                    print "DarcyFlux: L2 defect div(v) = %e."%(util.integrate((self.__f-util.div(v))**2)**(0.5),)
                     print "DarcyFlux: absolute tolerance ATOL = %e."%ATOL
                if norm_r == None or norm_r>ATOL:
                    if num_corrections>max_num_corrections:
