@@ -4,6 +4,7 @@
 #include "paso/Solver.h"
 #include "paso/SystemMatrix.h"
 #include "Paso_tests.h"
+#include "getopt.h"
 #include <math.h>
 
 #define PI (3.141592653589793)
@@ -18,7 +19,7 @@
                    1 - test all solvers with default preconditioner
                    2 - test all preconditioners with default solver
                    3 - compare solution obtained by using AMG and Jacobi precondioners
-        rhs matris - right hand side vector in CSR Matrix Market format.
+        rhs matrix - right hand side vector in CSR Matrix Market format.
         coupling parameter for AMG - this is the threshold value used in AMG in courenening process. Default is 0.05. 
 */
 
@@ -68,6 +69,10 @@ int main (int argc, char *argv[]) {
                 options.method=PASO_TFQMR;
             else if (strcmp(solver,"MINRES")==0)
                 options.method=PASO_MINRES;
+            else if (strcmp(solver,"DIRECT")==0) {
+                options.package=PASO_MKL;
+                options.verbose=1;
+            }
         break;
         case 'p':
             prec=optarg;
@@ -110,7 +115,7 @@ int main (int argc, char *argv[]) {
             level=atoi(optarg);
             break;
         case 'c':
-            options.couplingParam=atof(optarg);
+            options.coarsening_threshold=atof(optarg);
         break;
         case '?':
             printf("unknown arg %c\n", optopt);
@@ -125,7 +130,7 @@ int main (int argc, char *argv[]) {
             printf("\t\t 1 - test all solvers with default preconditioner\n");            
             printf("\t\t 2 - test all preconditioners with default solver\n");
             printf("\t\t 3 - compare solution obtained by using AMG and Jacobi precondioners\n");            
-            printf("\trhs matris - right hand side vector in CSR Matrix Market format.\n");
+            printf("\trhs matrix - right hand side vector in CSR Matrix Market format.\n");
             printf("\tcoupling parameter for AMG - this is the threshold value used in AMG in courenening process. Default is 0.05.\n");            
             break;
         }
@@ -156,9 +161,34 @@ int main (int argc, char *argv[]) {
         A->solver=NULL;
         options.method=PASO_PCG;
         options.preconditioner=PASO_AMG;
-        options.couplingParam=0.25;
-        options.AMGlevels=3;
         
+        Paso_solve(A,x,b,&options);
+        
+        for(i=0;i<n;i++) {
+          error[i]=x[i]-x_ref[i];
+        }
+        Lsuperror=Lsup(error,n)/Lsup(x_ref,n);
+        fprintf(stdout,"Lsup error AMG %e\n",Lsuperror);
+    }
+    else if (level==4) {
+        options.method=PASO_PCG;
+        options.verbose=TRUE;
+        options.preconditioner=PASO_AMG;
+        
+        Paso_Solver_setPreconditioner(A,&options);
+        Paso_Solver_solvePreconditioner(A,x,b);
+ 
+
+        for(i=0;i<n;i++) {
+          error[i]=x[i]-x_ref[i];
+        }
+        Lsuperror=Lsup(error,n)/Lsup(x_ref,n);
+        fprintf(stdout,"Lsup error AMG as a solver %e\n\n",Lsuperror);
+        
+        A->solver=NULL;
+        options.method=PASO_PCG;
+        options.preconditioner=PASO_AMG;
+                
         Paso_solve(A,x,b,&options);
         
         for(i=0;i<n;i++) {

@@ -49,30 +49,35 @@ void Paso_test_run(Paso_SystemMatrix* A,double* b,dim_t level) {
       fprintf(stdout,"Test solver: BICGSTAB with JACOBI\n");
       Paso_Options_setDefaults(&options);
       A->solver=NULL;
+      options.verbose=TRUE;
       options.method=PASO_BICGSTAB;
       Paso_test_matrix(A,b,&options);
       
       fprintf(stdout,"Test solver: GMRES with JACOBI\n");
       Paso_Options_setDefaults(&options);
       A->solver=NULL;
+      options.verbose=TRUE;
       options.method=PASO_GMRES;
       Paso_test_matrix(A,b,&options);
       
       fprintf(stdout,"Test solver: PRES20 with JACOBI\n");
       Paso_Options_setDefaults(&options);
       A->solver=NULL;
+      options.verbose=TRUE;
       options.method=PASO_PRES20;
       Paso_test_matrix(A,b,&options); 
       
       fprintf(stdout,"Test solver: MINRES with JACOBI\n");
       Paso_Options_setDefaults(&options);
       A->solver=NULL;
+      options.verbose=TRUE;
       options.method=PASO_MINRES;
       Paso_test_matrix(A,b,&options); 
       
       fprintf(stdout,"Test solver: TFQMR with JACOBI\n");
       Paso_Options_setDefaults(&options);
       A->solver=NULL;
+      options.verbose=TRUE;
       options.method=PASO_TFQMR;
       Paso_test_matrix(A,b,&options); 
     }
