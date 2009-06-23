@@ -60,4 +60,7 @@
 
 void Paso_MKL_free(Paso_SystemMatrix* A);
 void Paso_MKL(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options,Paso_Performance* pp);
+
+void Paso_MKL_free1(Paso_SparseMatrix* A);
+void Paso_MKL1(Paso_SparseMatrix* A, double* out, double* in, bool_t verbose);
 #endif
