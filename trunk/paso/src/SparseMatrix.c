@@ -116,6 +116,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
      out->val=NULL;  
      out->reference_counter=1;
      out->type=type;
+     out->solver=NULL; 
 
      pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? PATTERN_FORMAT_OFFSET1:  PATTERN_FORMAT_DEFAULT;
      /* ====== compressed sparse columns === */

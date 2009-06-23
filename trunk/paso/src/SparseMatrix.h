@@ -56,6 +56,7 @@ typedef struct Paso_SparseMatrix {
   Paso_Pattern* pattern;
   dim_t len;
   double *val;         /* this is used for classical CSR or CSC */
+  void* solver;
 } Paso_SparseMatrix;
 
 /*  interfaces: */
