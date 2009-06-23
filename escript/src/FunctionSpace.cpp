@@ -172,7 +172,7 @@ int FunctionSpace::getReferenceIDFromDataPointNo(int dataPointNo) const
      // Get the number of samples and data-points per sample
      int numSamples = getNumSamples();
      int numDataPointsPerSample = getNumDPPSample();
-     int*referenceIDs= borrowSampleReferenceIDs();
+     const int* referenceIDs= borrowSampleReferenceIDs();
      int numDataPoints = numSamples * numDataPointsPerSample;
 
      if (numDataPointsPerSample==0) {
@@ -185,7 +185,7 @@ int FunctionSpace::getReferenceIDFromDataPointNo(int dataPointNo) const
      return referenceIDs[sampleNo];
 }
 
-int*
+const int*
 FunctionSpace::borrowSampleReferenceIDs() const
 {
   return m_domain->borrowSampleReferenceIDs(m_functionSpaceType);
@@ -258,7 +258,7 @@ FunctionSpace::getNumberOfTagsInUse() const
    return  m_domain->getNumberOfTagsInUse(m_functionSpaceType);
 }
 
-int* 
+const int* 
 FunctionSpace::borrowListOfTagsInUse() const
 {
    return  m_domain->borrowListOfTagsInUse(m_functionSpaceType);
@@ -269,7 +269,7 @@ FunctionSpace::getListOfTagsSTL() const
 {
   std::list<int> taglist;
   int i;
-  int* tags=borrowListOfTagsInUse();
+  const int* tags=borrowListOfTagsInUse();
   for (i=0;i<getNumberOfTagsInUse();++i) taglist.push_back(tags[i]);
   return taglist;
 }
@@ -280,7 +280,7 @@ FunctionSpace::getListOfTags() const
 {
   boost::python::list taglist;
   int i;
-  int* tags=borrowListOfTagsInUse();
+  const int* tags=borrowListOfTagsInUse();
   for (i=0;i<getNumberOfTagsInUse();++i) taglist.append(tags[i]);
   return taglist;
 }

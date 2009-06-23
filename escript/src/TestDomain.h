@@ -187,7 +187,7 @@ class TestDomain : public AbstractDomain {
      \param functionSpaceType Input - The function space type.
   */
   ESCRIPT_DLL_API
-  virtual int* borrowSampleReferenceIDs(int functionSpaceType) const;
+  virtual const int* borrowSampleReferenceIDs(int functionSpaceType) const;
 
   /**
      \brief
@@ -224,7 +224,7 @@ class TestDomain : public AbstractDomain {
      For this class the answer will always be {0} 
   */
   ESCRIPT_DLL_API 
-  virtual int* borrowListOfTagsInUse(int functionSpaceCode) const;
+  virtual const int* borrowListOfTagsInUse(int functionSpaceCode) const;
 
  protected:
 

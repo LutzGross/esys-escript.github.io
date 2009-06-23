@@ -252,7 +252,7 @@ Note: This is _not_ equivalent to weak_ptr::lock.
      \param functionSpaceType Input - The function space type.
   */
   ESCRIPT_DLL_API
-  virtual int* borrowSampleReferenceIDs(int functionSpaceType) const;
+  virtual const int* borrowSampleReferenceIDs(int functionSpaceType) const;
 
   /**
      \brief
@@ -410,7 +410,7 @@ Note: This is _not_ equivalent to weak_ptr::lock.
   virtual int getNumberOfTagsInUse(int functionSpaceCode) const;
 
   ESCRIPT_DLL_API
-  virtual int* borrowListOfTagsInUse(int functionSpaceCode) const;
+  virtual const int* borrowListOfTagsInUse(int functionSpaceCode) const;
 
   /**
     \brief Checks if this domain allows tags for the specified functionSpaceCode.

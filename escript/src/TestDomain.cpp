@@ -19,8 +19,8 @@
 namespace escript {
 
 namespace {
-int defaultList[1]={0};		// an array to return in borrowListOfTagsInUse();
-int TestDomainFS=1;		// Null domains only support 1 functionspace type.
+const int defaultList[1]={0};		// an array to return in borrowListOfTagsInUse();
+const int TestDomainFS=1;		// Null domains only support 1 functionspace type.
 			// The choice of =1 as the value is arbitrary
 }
 
@@ -142,7 +142,7 @@ int TestDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
   return 0; 
 }
 
-int* TestDomain::borrowSampleReferenceIDs(int functionSpaceType) const
+const int* TestDomain::borrowSampleReferenceIDs(int functionSpaceType) const
 {
   //
   // return an arbitary value
@@ -184,7 +184,7 @@ int TestDomain::getNumberOfTagsInUse(int functionSpaceCode) const
   return 1;	// this is not arbitrary. It allows us to report that the default tag is in use
 }
 
-int* TestDomain::borrowListOfTagsInUse(int functionSpaceCode) const
+const int* TestDomain::borrowListOfTagsInUse(int functionSpaceCode) const
 {
   return defaultList;
 }

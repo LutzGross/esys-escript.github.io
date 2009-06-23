@@ -125,7 +125,7 @@ int AbstractDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) cons
   return 0;
 }
 
-int* AbstractDomain::borrowSampleReferenceIDs(int functionSpaceType) const
+const int* AbstractDomain::borrowSampleReferenceIDs(int functionSpaceType) const
 {
   throwStandardException("AbstractDomain::borrowSampleReferenceIDs");
   return 0;
@@ -268,7 +268,8 @@ int AbstractDomain::getNumberOfTagsInUse(int functionSpaceCode) const
   throwStandardException("AbstractDomain::getNumberOfTagsInUse is not implemented.");
   return 0;
 }
-int* AbstractDomain::borrowListOfTagsInUse(int functionSpaceCode) const
+
+const int* AbstractDomain::borrowListOfTagsInUse(int functionSpaceCode) const
 {
   throwStandardException("AbstractDomain::borrowListOfTagsInUse is not implemented.");
   return NULL;
