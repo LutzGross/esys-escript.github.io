@@ -25,8 +25,14 @@ outputdir=local_env.Dir('#/release/doc/').srcnode().abspath
 
 os.chdir(src_dir)
 example_files = os.popen("find examples -name .svn -prune -o -type f -print").read().split(None)
-print example_files
 os.chdir(cur_dir)
+# extract all the example files: 
+# test_location=local_env.Dir('#/build/$PLATFORM/doc/examples')
+# Command(src_dir,  test_location, Copy("tempfile", "$SOURCE"))
+# to_be_tested=[]
+# for i in example_files:
+#     if i.endswith(".py"): to_be_tested.append(i)
+# print to_be_tested
 
 tmp1 = env.Command("#/release/doc/escript_examples.zip", None, 
 "zip "+os.path.join(outputdir,"escript_examples.zip ") +" ".join(example_files),chdir=src_dir)
