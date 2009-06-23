@@ -220,7 +220,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \param functionSpaceType Input - The function space type.
   */
   FINLEY_DLL_API
-  int* borrowSampleReferenceIDs(int functionSpaceType) const;
+  const int* borrowSampleReferenceIDs(int functionSpaceType) const;
 
   /**
      \brief
@@ -633,7 +633,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   virtual int getNumberOfTagsInUse(int functionSpaceCode) const;
 
   FINLEY_DLL_API 
-  virtual int* borrowListOfTagsInUse(int functionSpaceCode) const;
+  virtual const int* borrowListOfTagsInUse(int functionSpaceCode) const;
 
 
   /**

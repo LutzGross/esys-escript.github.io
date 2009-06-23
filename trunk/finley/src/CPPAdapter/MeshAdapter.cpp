@@ -1858,7 +1858,7 @@ escript::Data MeshAdapter::getSize() const
    return escript::function(asAbstractContinuousDomain()).getSize();
 }
 
-int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
+const int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
 {
    int *out = NULL;
    Finley_Mesh* mesh=m_finleyMesh.get();
@@ -2095,7 +2095,8 @@ int MeshAdapter::getNumberOfTagsInUse(int functionSpaceCode) const
   }
   return numTags;
 }
-int* MeshAdapter::borrowListOfTagsInUse(int functionSpaceCode) const
+
+const int* MeshAdapter::borrowListOfTagsInUse(int functionSpaceCode) const
 {
   Finley_Mesh* mesh=m_finleyMesh.get();
   index_t* tags=NULL;

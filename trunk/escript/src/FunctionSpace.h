@@ -213,7 +213,7 @@ public:
    Return a borrowed reference to the list of sample reference IDs
   */
   ESCRIPT_DLL_API
-  int*
+  const int*
   borrowSampleReferenceIDs() const;
 
   /**
@@ -302,7 +302,7 @@ public:
   int getNumberOfTagsInUse() const;
 
   ESCRIPT_DLL_API
-  int* borrowListOfTagsInUse() const;
+  const int* borrowListOfTagsInUse() const;
 
   ESCRIPT_DLL_API
   bool
