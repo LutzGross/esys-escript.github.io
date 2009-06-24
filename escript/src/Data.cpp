@@ -1979,7 +1979,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
 			next = globalMins[i];
 		}
   }
-  MPI_Bcast( &lowProc, 1, MPI_DOUBLE, 0, get_MPIComm() );
+  MPI_Bcast( &lowProc, 1, MPI_INT, 0, get_MPIComm() );
 
   delete [] globalMins;
   ProcNo = lowProc;
@@ -2060,7 +2060,7 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
 		next = globalMaxs[i];
 	}
   }
-  MPI_Bcast( &highProc, 1, MPI_DOUBLE, 0, get_MPIComm() );
+  MPI_Bcast( &highProc, 1, MPI_INT, 0, get_MPIComm() );
   delete [] globalMaxs;
   ProcNo = highProc;
 #else
