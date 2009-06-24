@@ -360,9 +360,9 @@ then
    if [ ! -z $HOSTFILE ] 
    then
       HOST_LIST=`awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}' $HOSTFILE`
-      CMD="mpirun  --bynode -np $TOTPROC --host $HOST_LIST $EXEC_CMD"
+      CMD="mpirun -x ${EXPORT_ENV//,/ -x } --bynode -np $TOTPROC --host $HOST_LIST $EXEC_CMD"
    else
-      CMD="mpirun -np $TOTPROC $EXEC_CMD"
+      CMD="mpirun -x ${EXPORT_ENV//,/ -x } -np $TOTPROC $EXEC_CMD"
    fi 
    if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
    $CMD
