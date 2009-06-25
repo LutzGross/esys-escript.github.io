@@ -148,8 +148,16 @@ Taipan::new_array(int dim, int N) {
     tab_prev->next = new_tab;
   }
 
-  // allocate and initialise the new array
-  new_tab->array = new double[len];
+  try
+  {
+     // allocate and initialise the new array
+     new_tab->array = new double[len];
+  }
+  catch (...)
+  {
+     cerr << "Memory manager failed to create array of size " << len << " doubles" << endl;
+     throw;
+  }
   int i,j;
   if (N==1) {
     for (j=0; j<dim; j++) 
