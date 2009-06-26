@@ -68,7 +68,8 @@ enum ES_optype
 	NSYM=SYM+1,
 	PROD=NSYM+1,
 	TRANS=PROD+1,
-	TRACE=TRANS+1
+	TRACE=TRANS+1,
+	SWAP=TRACE+1
 };
 
 ESCRIPT_DLL_API
@@ -160,6 +161,18 @@ public:
   */
   ESCRIPT_DLL_API
   DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op, int axis_offset, int transpose);
+
+  /**
+  \brief Produce a DataLazy for a unary operation which requires two integer parameters.
+  \param left DataAbstract to be operated on.
+  \param op unary operation to perform.
+  \param axis0 the first parameter for the operation
+  \param axis1 the second parameter for the operation
+  \throws DataException if op is not a unary operation or if p cannot be converted to a DataLazy.
+  Note that IDENTITY is not considered a unary operation.
+  */
+  ESCRIPT_DLL_API
+  DataLazy(DataAbstract_ptr left, ES_optype op, const int axis0, const int axis1);
 
   ESCRIPT_DLL_API
   ~DataLazy();
@@ -278,8 +291,9 @@ private:
   char m_readytype;	// E for expanded, T for tagged, C for constant
 
   int m_axis_offset;	// required extra info for general tensor product
-  int m_transpose;
+  int m_transpose;	// offset and transpose are used for swapaxes as well
   int m_SL, m_SM, m_SR;	// computed properties used in general tensor product
+
 
   double m_tol;		// required extra info for <>0 and ==0
 
@@ -374,6 +388,21 @@ private:
 */
 DataTypes::ValueType*
 resolveNP1OUT_P(ValueType& v, size_t offset, int sampleNo, size_t& roffset) const;
+
+/**
+  \brief Compute the value of the expression (unary operation with int params) for the given sample.
+  \return Vector which stores the value of the subexpression for the given sample.
+  \param v A vector to store intermediate results.
+  \param offset Index in v to begin storing results.
+  \param sampleNo Sample number to evaluate.
+  \param roffset (output parameter) the offset in the return vector where the result begins.
+
+  The return value will be an existing vector so do not deallocate it.
+  If the result is stored in v it should be stored at the offset given.
+  Everything from offset to the end of v should be considered available for this method to use.
+*/
+DataTypes::ValueType*
+resolveNP1OUT_2P(ValueType& v, size_t offset, int sampleNo, size_t& roffset) const;
 
 
   /**

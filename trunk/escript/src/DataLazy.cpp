@@ -119,7 +119,8 @@ enum ES_opgroup
    G_UNARY_P,		// pointwise operations with one argument, requiring a parameter
    G_NP1OUT,		// non-pointwise op with one output
    G_NP1OUT_P,		// non-pointwise op with one output requiring a parameter
-   G_TENSORPROD		// general tensor product
+   G_TENSORPROD,	// general tensor product
+   G_NP1OUT_2P		// non-pointwise op with one output requiring two params
 };
 
 
@@ -133,8 +134,9 @@ string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","^",
 			"1/","where>0","where<0","where>=0","where<=0", "where<>0","where=0",
 			"symmetric","nonsymmetric",
 			"prod",
-			"transpose", "trace"};
-int ES_opcount=40;
+			"transpose", "trace",
+			"swapaxes"};
+int ES_opcount=41;
 ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY, G_BINARY,
 			G_UNARY,G_UNARY,G_UNARY, //10
 			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,	// 17
@@ -143,7 +145,8 @@ ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY,
 			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY, G_UNARY_P, G_UNARY_P,		// 35
 			G_NP1OUT,G_NP1OUT,
 			G_TENSORPROD,
-			G_NP1OUT_P, G_NP1OUT_P};
+			G_NP1OUT_P, G_NP1OUT_P,
+			G_NP1OUT_2P};
 inline
 ES_opgroup
 getOpgroup(ES_optype op)
@@ -285,6 +288,49 @@ resultShape(DataAbstract_ptr left, ES_optype op, int axis_offset)
 	}
 }
 
+DataTypes::ShapeType
+SwapShape(DataAbstract_ptr left, const int axis0, const int axis1)
+{
+     // This code taken from the Data.cpp swapaxes() method
+     // Some of the checks are probably redundant here
+     int axis0_tmp,axis1_tmp;
+     const DataTypes::ShapeType& s=left->getShape();
+     DataTypes::ShapeType out_shape;
+     // Here's the equivalent of python s_out=s[axis_offset:]+s[:axis_offset]
+     // which goes thru all shape vector elements starting with axis_offset (at index=rank wrap around to 0)
+     int rank=left->getRank();
+     if (rank<2) {
+        throw DataException("Error - Data::swapaxes argument must have at least rank 2.");
+     }
+     if (axis0<0 || axis0>rank-1) {
+        throw DataException("Error - Data::swapaxes: axis0 must be between 0 and rank-1=" + rank-1);
+     }
+     if (axis1<0 || axis1>rank-1) {
+         throw DataException("Error - Data::swapaxes: axis1 must be between 0 and rank-1=" + rank-1);
+     }
+     if (axis0 == axis1) {
+         throw DataException("Error - Data::swapaxes: axis indices must be different.");
+     }
+     if (axis0 > axis1) {
+         axis0_tmp=axis1;
+         axis1_tmp=axis0;
+     } else {
+         axis0_tmp=axis0;
+         axis1_tmp=axis1;
+     }
+     for (int i=0; i<rank; i++) {
+       if (i == axis0_tmp) {
+          out_shape.push_back(s[axis1_tmp]);
+       } else if (i == axis1_tmp) {
+          out_shape.push_back(s[axis0_tmp]);
+       } else {
+          out_shape.push_back(s[i]);
+       }
+     }
+    return out_shape;
+}
+
+
 // determine the output shape for the general tensor product operation
 // the additional parameters return information required later for the product
 // the majority of this code is copy pasted from C_General_Tensor_Product
@@ -367,6 +413,7 @@ calcBuffs(const DataLazy_ptr& left, const DataLazy_ptr& right, ES_optype op)
    case G_NP1OUT: return 1+max(left->getBuffsRequired(),1);
    case G_NP1OUT_P: return 1+max(left->getBuffsRequired(),1);
    case G_TENSORPROD: return 1+max(left->getBuffsRequired(),right->getBuffsRequired()+1);
+   case G_NP1OUT_2P: return 1+max(left->getBuffsRequired(),1);
    default: 
 	throw DataException("Programmer Error - attempt to calcBuffs() for operator "+opToString(op)+".");
    }
@@ -644,6 +691,38 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, double tol)
 LAZYDEBUG(cout << "(6)Lazy created with " << m_samplesize << endl;)
 }
 
+
+DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, const int axis0, const int axis1)
+	: parent(left->getFunctionSpace(), SwapShape(left,axis0,axis1)),
+	m_op(op),
+	m_axis_offset(axis0),
+	m_transpose(axis1),
+	m_tol(0)
+{
+   if ((getOpgroup(op)!=G_NP1OUT_2P))
+   {
+	throw DataException("Programmer error - constructor DataLazy(left, op, tol) will only process UNARY operations which require two integer parameters.");
+   }
+   DataLazy_ptr lleft;
+   if (!left->isLazy())
+   {
+	lleft=DataLazy_ptr(new DataLazy(left));
+   }
+   else
+   {
+	lleft=dynamic_pointer_cast<DataLazy>(left);
+   }
+   m_readytype=lleft->m_readytype;
+   m_left=lleft;
+   m_buffsRequired=calcBuffs(m_left, m_right,m_op);	// yeah m_right will be null at this point
+   m_samplesize=getNumDPPSample()*getNoValues();
+   m_maxsamplesize=max(m_samplesize,m_left->getMaxSampleSize());
+   m_children=m_left->m_children+1;
+   m_height=m_left->m_height+1;
+   SIZELIMIT
+LAZYDEBUG(cout << "(7)Lazy created with " << m_samplesize << endl;)
+}
+
 DataLazy::~DataLazy()
 {
 }
@@ -808,6 +887,9 @@ DataLazy::collapseToReady()
 	break;
     case TRACE:
 	result=left.trace(m_axis_offset);
+	break;
+    case SWAP:
+	result=left.swapaxes(m_axis_offset, m_transpose);
 	break;
     default:
 	throw DataException("Programmer error - collapseToReady does not know how to resolve operator "+opToString(m_op)+".");
@@ -1102,6 +1184,57 @@ LAZYDEBUG(cerr << "Result of trace=" << DataTypes::pointToString(v,getShape(),of
   }
   return &v;
 }
+
+
+/*
+  \brief Compute the value of the expression (unary operation with int params) for the given sample.
+  \return Vector which stores the value of the subexpression for the given sample.
+  \param v A vector to store intermediate results.
+  \param offset Index in v to begin storing results.
+  \param sampleNo Sample number to evaluate.
+  \param roffset (output parameter) the offset in the return vector where the result begins.
+
+  The return value will be an existing vector so do not deallocate it.
+  If the result is stored in v it should be stored at the offset given.
+  Everything from offset to the end of v should be considered available for this method to use.
+*/
+DataTypes::ValueType*
+DataLazy::resolveNP1OUT_2P(ValueType& v, size_t offset, int sampleNo, size_t& roffset) const
+{
+	// we assume that any collapsing has been done before we get here
+	// since we only have one argument we don't need to think about only
+	// processing single points.
+  if (m_readytype!='E')
+  {
+    throw DataException("Programmer error - resolveNP1OUT_2P should only be called on expanded Data.");
+  }
+	// since we can't write the result over the input, we need a result offset further along
+  size_t subroffset;
+  const ValueType* vleft=m_left->resolveSample(v,offset+m_left->m_samplesize,sampleNo,subroffset);
+LAZYDEBUG(cerr << "srcsamplesize=" << offset+m_left->m_samplesize << " beg=" << subroffset << endl;)
+LAZYDEBUG(cerr << "Offset for 5800=" << getPointOffset(5800/getNumDPPSample(),5800%getNumDPPSample()) << endl;)
+  roffset=offset;
+  size_t loop=0;
+  size_t numsteps=(m_readytype=='E')?getNumDPPSample():1;
+  size_t outstep=getNoValues();
+  size_t instep=m_left->getNoValues();
+LAZYDEBUG(cerr << "instep=" << instep << " outstep=" << outstep<< " numsteps=" << numsteps << endl;)
+  switch (m_op)
+  {
+    case SWAP:
+	for (loop=0;loop<numsteps;++loop)
+	{
+            DataMaths::swapaxes(*vleft,m_left->getShape(),subroffset, v,getShape(),offset,m_axis_offset, m_transpose);
+	    subroffset+=instep;
+	    offset+=outstep;
+	}
+	break;
+    default:
+	throw DataException("Programmer error - resolveNP1OUT2P can not resolve operator "+opToString(m_op)+".");
+  }
+  return &v;
+}
+
 
 
 #define PROC_OP(TYPE,X)                               \
@@ -1461,6 +1594,7 @@ LAZYDEBUG(cout << "Finish  sample " << toString() << endl;)
   case G_NP1OUT: return resolveNP1OUT(v, offset, sampleNo,roffset);
   case G_NP1OUT_P: return resolveNP1OUT_P(v, offset, sampleNo,roffset);
   case G_TENSORPROD: return resolveTProd(v,offset, sampleNo,roffset);
+  case G_NP1OUT_2P: return resolveNP1OUT_2P(v, offset, sampleNo, roffset);
   default:
     throw DataException("Programmer Error - resolveSample does not know how to process "+opToString(m_op)+".");
   }
@@ -1626,6 +1760,12 @@ DataLazy::intoString(ostringstream& oss) const
 	oss << ", ";
 	m_right->intoString(oss);
 	oss << ')'; 
+	break;
+  case G_NP1OUT_2P:
+	oss << opToString(m_op) << '(';
+	m_left->intoString(oss);
+	oss << ", " << m_axis_offset << ", " << m_transpose;
+	oss << ')';
 	break;
   default:
 	oss << "UNKNOWN";
