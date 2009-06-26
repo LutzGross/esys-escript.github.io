@@ -212,7 +212,7 @@ A\hackscore{jl}=A\hackscore{lj}\;.
 \end{equation}
 Note that $D$ and $d$ may have any value and the right hand sides $Y$, $y$ as well as the constraints
 are not relevant. The Helmholtz problem is symmetric. 
-The \LinearPDE class provides the method \method{checkSymmetry} method to check if the given PDE is symmetric. 
+The \LinearPDE class provides the method \method{checkSymmetry} to check if the given PDE is symmetric. 
 \begin{python}
 mypde=LinearPDE(mydomain)
 mypde.setValue(A=kappa*kronecker(mydomain),d=eta)
