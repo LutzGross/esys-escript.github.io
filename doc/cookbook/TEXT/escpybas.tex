@@ -20,7 +20,7 @@
  \item information on plotting depending on path chosen,
 \end{enumerate}
 
-The Python scripting language is a powerful and easy to learn tool with a wide variety of applications. \ESCRIPT.has been developed as a packaged module for Python specifically to solve complex partial differential equations. As a result, all the conventions and programming syntaxes associated with Python are coherrent with \ESCRIPT. If you are unfamiliar with Python there are a large number of simple to advanced guides and tutorials availabe which provide a good introduction. These should enable you to understand both this cookbook and the guide for \ESCRIPT. Some of these python tutorials are, for instance
+The Python scripting language is a powerful and easy to learn environment with a wide variety of applications. \textit{Escript} has been developed as a packaged module for Python specifically to solve complex partial differential equations. As a result, all the conventions and programming syntaxes associated with Python are coherrent with \ESCRIPT. If you are unfamiliar with Python, there are a large number of simple to advanced guides and tutorials availabe online. These texts should provide an introduction that is comprehensive enough for the use of \ESCRIPT. A handful of python tutorials have been listed below.
 \begin{itemize}
 \item This is a very crisp introduction \url{http://hetland.org/writing/instant-python.html}. It covers everthing you need to get started with \ESCRIPT.
 \item A nice and easy to follow introduction: \url{http://www.sthurlow.com/python/}
@@ -29,13 +29,21 @@ The Python scripting language is a powerful and easy to learn tool with a wide v
 \item Another comprehensive tutorial: \url{http://www.tutorialspoint.com/python/index.htm}
 \end{itemize} 
 
+\subsection{The \modesys Library Tree}
 The \verb esys  library tree has \textbf{3} main modules.\verb escript , \verb finley  and \verb pycad . 
 \begin{enumerate}
-\item \verb escript  is the PDE solving module.
-\item \verb finley  is the discretisation tool and is the finite element package.
-\item \verb pycad  is a special development for creating irregular domains and models. 
+\item \modescript  is the PDE solving module.
+\item \modfinley is the discretisation tool and is the finite element package.
+\item \modpycad  is a special development for creating irregular domains and models. 
 \end{enumerate}
-Further explanations on each of these is available in the user guide. \ESCRIPT is also dependent on a few other open-source packages. These are \verb numpy  an array and matrix handling package, \verb matplotlib  a simple plotting and visualisation tool, \verb vtk  the advanced plotting and visualisation package and ......
+Further explanations on each of these is available in the user guide. \ESCRIPT is also dependent on a few other open-source packages which are not maintained by the \ESCRIPT developers. These are \modnumpy an array and matrix handling package, \modmpl a simple plotting and visualisation tool, \modvtk  the advanced plotting and visualisation package and ...... These packages are included with the binary release but may not be the most recent and up to date. 
+
+\begin{tabular}{l l l}
+esys. & finley. &\\
+	& escript. &\\
+\end{tabular}
+
+
 
 \subsection{File Commands and Opperations in \ESCRIPT}
 A number of common file opperations and commands are used throughout this cookbook. It is often advantageous to implement these commands when large numbers of output files are generated or dependencies are located in other locations.

@@ -21,6 +21,7 @@
 % nicer output than the standard LaTeX stuff
 \usepackage{amsmath,amsfonts,amssymb} % this is handy for mathematicians and physici % see http://www.ams.org/tex/amslatex.html
 \usepackage{alltt}   % handy verbatim stuff
+\usepackage{textcomp}
 
 %Tony's Commands
 \newcommand{\editor}[1] {\textit{EDITORIAL: {#1}}}
@@ -31,6 +32,20 @@
 \newcommand{\ESCRIPT}{\textit{escript}\xspace}
 \newcommand{\ESYS}{\textit{esys}\xspace}
 \newcommand{\FINLEY}{\textit{finley}\xspace}
+
+%referencing
+\newcommand{\reffig}[1]{(Figure \ref{#1})}
+\newcommand{\refeq}[1]{equation \ref{#1}}
+\newcommand{\refEq}[1]{Equation \ref{#1}}
+
+%modules
+\newcommand{\modesys}{\module{esys}\xspace}
+\newcommand{\modescript}{\module{esys.escript}\xspace}
+\newcommand{\modfinley}{\module{esys.finley}\xspace}
+\newcommand{\modpycad}{\module{esys.pycad}\xspace}
+\newcommand{\modvtk}{\module{vtk}\xspace}
+\newcommand{\modnumpy}{\module{numpy}\xspace}
+\newcommand{\modmpl}{\module{matplotlib}\xspace}
 
 % % define some handy commands for escript stuff
 % \newcommand{\LINUX}{{\it Linux}\xspace}

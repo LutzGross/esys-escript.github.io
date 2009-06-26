@@ -12,10 +12,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \documentclass{manual}
-
+%%% Table of contents to list down to subsections and no further
+\setcounter{tocdepth}{3}
+%%% Number down to subsubsections only
+\setcounter{secnumdepth}{3}
 % grab the handy definitions and \usepackage statements etc
 \input{cookbook_defs}
-
 % title, author, etc stuff
 \title{The Escript COOKBOOK}
 
@@ -44,8 +46,10 @@ Email: \email{esys@esscc.uq.edu.au}
 \begin{document}
 
 \maketitle
-
+\newpage
 \tableofcontents
+
+\newpage
 
 \chapter{Introduction}
 \input{intro}
@@ -53,7 +57,6 @@ Email: \email{esys@esscc.uq.edu.au}
 \input{escpybas} 
 \input{einsteinETA}
 \input{PDEsintro}
-
 
 \chapter{Getting Started with Heat Diffusion}
 \input{onedheatdiff001}
