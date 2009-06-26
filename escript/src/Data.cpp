@@ -61,6 +61,12 @@ using namespace escript;
 	return Data(c);\
   }
 
+#define MAKELAZYOP2(X,Y,Z) if (isLazy() || (AUTOLAZYON && m_data->isExpanded())) \
+  {\
+	DataLazy* c=new DataLazy(borrowDataPtr(),X,Y,Z);\
+	return Data(c);\
+  }
+
 #define MAKELAZYBINSELF(R,X)   if (isLazy() || R.isLazy() || (AUTOLAZYON && (isExpanded() || R.isExpanded()))) \
   {\
 	DataLazy* c=new DataLazy(m_data,R.borrowDataPtr(),X);\
@@ -1676,12 +1682,6 @@ Data::minval() const
 Data
 Data::swapaxes(const int axis0, const int axis1) const
 {
-     if (isLazy())
-     {
-	Data temp(*this);
-	temp.resolve();
-	return temp.swapaxes(axis0,axis1);
-     }
      int axis0_tmp,axis1_tmp;
      DataTypes::ShapeType s=getDataPointShape();
      DataTypes::ShapeType ev_shape;
@@ -1700,27 +1700,36 @@ Data::swapaxes(const int axis0, const int axis1) const
      if (axis0 == axis1) {
          throw DataException("Error - Data::swapaxes: axis indices must be different.");
      }
-     if (axis0 > axis1) {
-         axis0_tmp=axis1;
-         axis1_tmp=axis0;
-     } else {
-         axis0_tmp=axis0;
-         axis1_tmp=axis1;
+     MAKELAZYOP2(SWAP,axis0,axis1)
+     if (axis0 > axis1)
+     {
+	axis0_tmp=axis1;
+	axis1_tmp=axis0;
      }
-     for (int i=0; i<rank; i++) {
-       if (i == axis0_tmp) {
-          ev_shape.push_back(s[axis1_tmp]);
-       } else if (i == axis1_tmp) {
-          ev_shape.push_back(s[axis0_tmp]);
-       } else {
-          ev_shape.push_back(s[i]);
-       }
+     else
+     {
+	axis0_tmp=axis0;
+	axis1_tmp=axis1;
+     }
+     for (int i=0; i<rank; i++)
+     {
+	if (i == axis0_tmp)
+	{
+		ev_shape.push_back(s[axis1_tmp]);
+	} 
+	else if (i == axis1_tmp)
+	{
+		ev_shape.push_back(s[axis0_tmp]);
+	}
+	else
+	{
+		ev_shape.push_back(s[i]);
+	}
      }
      Data ev(0.,ev_shape,getFunctionSpace());
      ev.typeMatchRight(*this);
      m_data->swapaxes(ev.m_data.get(), axis0_tmp, axis1_tmp);
      return ev;
-
 }
 
 Data
