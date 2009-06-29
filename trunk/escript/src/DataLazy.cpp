@@ -1613,13 +1613,13 @@ DataLazy::resolveSample(BufferGroup& bg, int sampleNo, size_t& roffset)
 }
 
 
-// This needs to do the work of the idenity constructor
+// This needs to do the work of the identity constructor
 void
 DataLazy::resolveToIdentity()
 {
    if (m_op==IDENTITY)
 	return;
-   DataReady_ptr p=resolve();
+   DataReady_ptr p=resolveVectorWorker();
    makeIdentity(p);
 }
 
@@ -1642,10 +1642,18 @@ void DataLazy::makeIdentity(const DataReady_ptr& p)
    m_right.reset();
 }
 
+
+DataReady_ptr
+DataLazy::resolve()
+{
+    resolveToIdentity();
+    return m_id;
+}
+
 // To simplify the memory management, all threads operate on one large vector, rather than one each.
 // Each sample is evaluated independently and copied into the result DataExpanded.
 DataReady_ptr
-DataLazy::resolve()
+DataLazy::resolveVectorWorker()
 {
 
 LAZYDEBUG(cout << "Sample size=" << m_samplesize << endl;)
@@ -1681,7 +1689,6 @@ LAZYDEBUG(cout << "Total number of samples=" <<totalsamples << endl;)
   {
       if (sample==0)  {ENABLEDEBUG}
 
-//       if (sample==5800/getNumDPPSample())  {ENABLEDEBUG}
 LAZYDEBUG(cout << "################################# " << sample << endl;)
 #ifdef _OPENMP
     res=resolveSample(v,threadbuffersize*omp_get_thread_num(),sample,resoffset);
