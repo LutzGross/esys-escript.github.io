@@ -80,8 +80,10 @@ some tools supporting physical units and conversion
 @var F: unit of Farad (capacitance)
 @var Ohm: unit of Ohm (electric resistance)
 @var K : unit of Kelvin (temperature)
+@var Mol : unit of Mole (temperature)
 @var Celsius: unit of Celsius (temperature)
 @var Fahrenheit : unit of Fahrenheit (temperature)
+@var Poise : unit of Poise (dynamic viscosity)
 @var R_Earth_equator: Earth's equatorial radius
 @var R_Earth_poles: Earth's polar radius
 @var R_Earth: Earth's radius
@@ -322,6 +324,7 @@ Fahrenheit=Unit("F","Fahrenheit",459.67*5./9.,5./9.)
 #
 #  others
 #
+Mol=Unit("mole","Mole",0.,1.)
 Hz=one/sec
 N = Unit("N","Newton",0.,1.)
 Pa = Unit("Pa","Pascal",0.,1.)
@@ -332,6 +335,10 @@ C=Unit("C","Coulomb",0.,1.)
 V = Unit("V","Volt",0.,1.)
 F = Unit("F","Farad",0.,1.)
 Ohm=Unit("Ohm","Ohm",0.,1.)
+#
+#  Derived 
+#
+Poise= gram/cm/sec
 #
 #  some constants
 #
