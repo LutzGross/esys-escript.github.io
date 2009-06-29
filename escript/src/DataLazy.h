@@ -340,6 +340,12 @@ private:
   makeIdentity(const DataReady_ptr& p);
 
   /**
+  \brief resolve to a ReadyData object using a vector buffer.
+  */
+  DataReady_ptr
+  resolveVectorWorker();
+
+  /**
   \brief Compute the value of the expression (unary operation) for the given sample.
   \return Vector which stores the value of the subexpression for the given sample.
   \param v A vector to store intermediate results.
