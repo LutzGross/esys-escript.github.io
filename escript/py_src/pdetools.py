@@ -1747,4 +1747,25 @@ def MaskFromBoundaryTag(domain,*tags):
    pde.setValue(y=d)
    return util.whereNonZero(pde.getRightHandSide())
 
+def MaskFromTag(domain,*tags):
+   """
+   Creates a mask on the Solution(domain) function space where the value is
+   one for samples that touch regions tagged by tags.
+
+   Usage: m=MaskFromTag(domain, "ham")
+
+   @param domain: domain to be used
+   @type domain: L{escript.Domain}
+   @param tags: boundary tags
+   @type tags: C{str}
+   @return: a mask which marks samples that are touching the boundary tagged
+            by any of the given tags
+   @rtype: L{escript.Data} of rank 0
+   """
+   pde=linearPDEs.LinearPDE(domain,numEquations=1, numSolutions=1)
+   d=escript.Scalar(0.,escript.Function(domain))
+   for t in tags: d.setTaggedValue(t,1.)
+   pde.setValue(Y=d)
+   return util.whereNonZero(pde.getRightHandSide())
+
 
