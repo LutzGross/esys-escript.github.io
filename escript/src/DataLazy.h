@@ -23,6 +23,10 @@
 
 #include "LocalOps.h"		// for tensor_binary_op
 #include "BufferGroup.h"
+#include "DataVector.h"		// for ElementType
+
+
+//#define LAZY_NODE_STORAGE
 
 namespace escript {
 
@@ -301,6 +305,43 @@ private:
   size_t m_children;
   size_t m_height;
 
+#ifdef LAZY_NODE_STORAGE
+
+  int* m_sampleids;		// may be NULL
+  DataVector m_samples;  
+
+#endif // LAZY_NODE_STORAGE
+
+
+#ifdef LAZY_NODE_STORAGE
+  /**
+  Allocates sample storage at each node
+  */
+  void LazyNodeSetup();
+
+
+  const DataTypes::ValueType*
+  resolveNodeUnary(int tid, int sampleNo, size_t& roffset);
+
+  const DataTypes::ValueType*
+  resolveNodeSample(int tid, int sampleNo, size_t& roffset);
+
+  const DataTypes::ValueType*
+  resolveNodeBinary(int tid, int sampleNo, size_t& roffset);
+
+  const DataTypes::ValueType*
+  resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset);
+
+  const DataTypes::ValueType*
+  resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset);
+
+  const DataTypes::ValueType*
+  resolveNodeTProd(int tid, int sampleNo, size_t& roffset);
+
+  const DataTypes::ValueType*
+  resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset);
+  
+#endif
 
   /**
   Does the work for toString. 
@@ -344,6 +385,14 @@ private:
   */
   DataReady_ptr
   resolveVectorWorker();
+
+#ifdef LAZY_NODE_STORAGE
+  /**
+  \brief resolve to a ReadyData object using storage at nodes
+  */
+  DataReady_ptr
+  resolveNodeWorker();
+#endif
 
   /**
   \brief Compute the value of the expression (unary operation) for the given sample.
