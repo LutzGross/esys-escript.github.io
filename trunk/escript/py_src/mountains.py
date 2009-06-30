@@ -121,5 +121,3 @@ class Mountains:
   def setTolerance(self,tolerance=1e-3):
     self.__PDE_W.getSolverOptions().setTolerance(tolerance)
     self.__PDE_H.getSolverOptions().setTolerance(tolerance)
-
-

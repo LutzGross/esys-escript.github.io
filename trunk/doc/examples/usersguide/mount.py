@@ -11,7 +11,7 @@ TOL=1.e-4
 OMEGA=10
 EPS=0.01
 t=0
-T_END=(2*pi)/OMEGA
+T_END=0.05 # set T_END=(2*pi)/OMEGA to run a full simulation
 n=0
 if DIM==2:
   mydomain=Rectangle(int(ceil(L*NE/H)),NE,l0=L,l1=H,order=1, useFullElementOrder=True,optimize=True)
@@ -44,7 +44,7 @@ dt=0.
 while t<T_END:
     print "STEP ", t
     u=v*cos(OMEGA*t)
-    u,Z=mts.update(u=u,H_t=H_t,verbose=False)
+    u,Z=mts.update(u=u,H_t=H_t)
     
     saveVTK("state.%d.vtu"%n,sol=Z)
     print "Integral(Z)=",integrate(Z),Lsup(u[DIM-1])

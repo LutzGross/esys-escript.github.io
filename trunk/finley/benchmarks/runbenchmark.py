@@ -31,8 +31,9 @@ var __url__: url entry point on documentation
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-from esys.finley.finleybench import *
 from esys.escript.benchmark import BenchmarkSuite,Benchmark
+# from esys.finley.finleybench import *
+from finleybench import *
 
 type="all" 
 type="mantle"
@@ -45,10 +46,10 @@ thlist=[1,2,4,8,16]
 show=True
 ff=FinleyFilter()
 
-opt1=FinleyOptions(solver_method=LinearPDE.PCG,preconditioner=LinearPDE.JACOBI,verbose=show)
-opt2=FinleyOptions(solver_method=LinearPDE.PCG,preconditioner=LinearPDE.ILU0,verbose=show)
-opt3=FinleyOptions(solver_method=LinearPDE.PCG,preconditioner=LinearPDE.RILU,verbose=show)
-opt4=FinleyOptions(solver_method=LinearPDE.DIRECT,verbose=show)
+opt1=FinleyOptions(solver_method=SolverOptions.PCG,preconditioner=SolverOptions.JACOBI,verbose=show)
+opt2=FinleyOptions(solver_method=SolverOptions.PCG,preconditioner=SolverOptions.ILU0,verbose=show)
+opt3=FinleyOptions(solver_method=SolverOptions.PCG,preconditioner=SolverOptions.RILU,verbose=show)
+opt4=FinleyOptions(solver_method=SolverOptions.DIRECT,verbose=show)
 ops=(opt1,opt3,opt4)
 ops=(opt1,opt3)
 
@@ -1103,7 +1104,6 @@ if type in ["all"]:
    bms.addBenchmark(bm_CLA3D_o2_c2)
    bms.addBenchmark(bm_CLA3D_o2_c2_n45)
    
->>>>>>> .r489
 bms.run(scale=thlist)
 out=bms.getHTML(filter=ff)
 print out

@@ -21,13 +21,14 @@ __url__="https://launchpad.net/escript-finley"
 
 
 class GroupTest:
-    def __init__(self, exec_cmd, evars, python_dir, working_dir, test_list):
+    def __init__(self, exec_cmd, evars, python_dir, working_dir, test_list, single_processor_only=False):
 	self.python_dir=python_dir
 	self.working_dir=working_dir
 	self.test_list=test_list
 	self.exec_cmd=exec_cmd
 	self.evars=evars
 	self.mkdirs=[]
+        self.single_processor_only=single_processor_only
 	
     def makeDir(self,dirname):
     	self.mkdirs.append(dirname)
@@ -52,15 +53,25 @@ class GroupTest:
 
     def makeString(self):
 	res=""
+        if self.single_processor_only:
+            res+="if [ ( $ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS  ) -le 1 ]; then\n"
+            tt="\t"
+        else:
+            tt=""
 	for d in self.mkdirs:
-	    res=res+"if [ ! -d "+str(d)+" ]\nthen\n  mkdir "+d+"\nfi\n"
+	    res=res+tt+"if [ ! -d "+str(d)+" ]\n"+tt+"then\n"+tt+"\tmkdir "+d+"\n"+tt+"fi\n"
 	for v in self.evars:
-	    res=res+"\nexport "+str(v[0])+"="+str(v[1])
-	res=res+"\nexport PYTHONPATH="+self.python_dir+":$OLD_PYTHON"+"\n"+"cd "+self.working_dir+"\n"
+	    res=res+tt+"export "+str(v[0])+"="+str(v[1])+"\n"
+        if len(self.python_dir)>0:
+	    res=res+tt+"export PYTHONPATH="+self.python_dir+":$OLD_PYTHON"+"\n"+tt+"cd "+self.working_dir+"\n"
+        else:
+	    res=res+tt+"export PYTHONPATH=$OLD_PYTHON"+"\n"+tt+"cd "+self.working_dir+"\n"
 	for t in self.test_list:
-	    res=res+"echo Starting "+t+"\n"
-	    res=res+self.exec_cmd+' '+t+' || failed '+t+'\n'
-	    res=res+"echo Completed "+t+"\n"
+	    res=res+tt+"echo Starting "+t+"\n"
+	    res=res+tt+self.exec_cmd+' '+t+' || failed '+t+'\n'
+	    res=res+tt+"echo Completed "+t+"\n"
+        if self.single_processor_only:
+            res+="fi\n"
 	res=res+"\n"
 	return res
 	

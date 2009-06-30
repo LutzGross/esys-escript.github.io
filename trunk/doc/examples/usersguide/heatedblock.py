@@ -50,9 +50,9 @@ msk=whereZero(x[0])*[1.,0.,0.] \
    +whereZero(x[2])*[0.,0.,1.]
 sigma0=(lam+2./3.*mu)*alpha*(T-T_ref)*kronecker(mydomain)
 mypde.setValue(A=C,X=sigma0,q=msk)
-mypde.setSolverMethod(mypde.PCG,mypde.AMG)
+mypde.getSolverOptions().setVerbosityOn()
 #... solve pde ...
-u=mypde.getSolution(verbose=True)
+u=mypde.getSolution()
 #... calculate von-Misses
 g=grad(u)
 sigma=mu*(g+transpose(g))+lam*trace(g)*kronecker(mydomain)-sigma0

@@ -1,0 +1,62 @@
+
+########################################################
+#
+# Copyright (c) 2003-2008 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+from grouptest import *
+import os
+Import('*')
+example_files = example_files_allow_mpi + example_files_no_mpi
+
+
+local_env = clone_env(env)
+src_dir = local_env.Dir('.').srcnode().abspath
+test_dir= Dir('test', local_env.Dir('.'))
+cc=Command(test_dir, [], Mkdir("$TARGET"))
+# Execute(Delete(test_dir.srcnode().abspath))
+# Execute(Mkdir(test_dir.srcnode().abspath))
+#
+#   create copy of all non-py files:
+#
+data_files=[]
+for i in example_files:
+  if not i.endswith('.py'):
+    f_in=File(os.path.join(src_dir,i))
+    f_out=File(i,test_dir)
+    data_files.append(Command(f_out, f_in, Copy("$TARGET", "$SOURCE")))
+Depends(cc, data_files)
+
+np=int(local_env['ENV']['ESCRIPT_NUM_NODES'])
+programs=[]
+for i in example_files:
+  if i.endswith('.py') and (np==1 or not i in example_files_no_mpi):
+    f_in=File(os.path.join(src_dir,i))
+    f_out=File(i, test_dir)
+    c=Command(f_out, f_in, Copy("$TARGET", "$SOURCE"))
+    programs+=local_env.RunPyUnitTest(c)
+env.Alias('py_tests', programs)
+Depends(programs, env['pyinstall'])
+Depends(programs, data_files)
+Depends(cc, data_files)
+# Add a group of tests
+# find all directories:
+for single_processor_only in [True, False]:
+   dirs=[]
+   for i in example_files:
+      if i.endswith('.py'): 
+         if single_processor_only == (i in example_files_no_mpi):
+               d=os.path.split(i)[0]
+               if not d in dirs: dirs.append(d)
+   for d in dirs:
+      runs=[]
+      for i in example_files:
+          if i.startswith(d) and i.endswith('.py') and (single_processor_only == (i in example_files_no_mpi)): runs.append(os.path.split(i)[1])
+      TestGroups.append(GroupTest("$PYTHONRUNNER ",(),"",os.path.join("$BATCH_ROOT/doc/examples/test",d),runs, single_processor_only=single_processor_only))

@@ -14,35 +14,132 @@
 
 import os
 Import('*')
+#
+# these are the release examples in example sub directory:
+#
+example_files_allow_mpi = [
+ 'geotutorial/steadystate_variablek.py', 
+ 'geotutorial/steadystate.py', 
+ 'geotutorial/forward_euler.py', 
+ 'geotutorial/myfirstscript.py', 
+ 'geotutorial/backward_euler.py', 
+ 'usersguide/lit_driven_cavity.py',
+ 'usersguide/mount.py',
+ 'usersguide/wave.py',
+ 'usersguide/heatedblock.py',
+ 'usersguide/helmholtz.py',
+ 'usersguide/fluid.py',
+ 'usersguide/poisson.py',
+ 'usersguide/diffusion.py',
+]
+
+example_files_no_mpi = [
+ 'pyvisi/poisson_with_pyvisi.py', 
+ 'pyvisi/streamline.py', 
+ 'pyvisi/legend.py', 
+ 'pyvisi/data_sample_images/image.jpg', 
+ 'pyvisi/data_sample_images/wave00.jpg',
+ 'pyvisi/data_sample_images/seriesofcuts04.jpg',
+ 'pyvisi/data_sample_images/movie000943.jpg',
+ 'pyvisi/data_sample_images/seriesofreads0102.jpg',
+ 'pyvisi/data_sample_images/text.jpg',
+ 'pyvisi/data_sample_images/map.jpg',
+ 'pyvisi/data_sample_images/seriesofcuts02.jpg',
+ 'pyvisi/data_sample_images/diffusion02.jpg',
+ 'pyvisi/data_sample_images/movie000941.jpg',
+ 'pyvisi/data_sample_images/rectangle.jpg',
+ 'pyvisi/data_sample_images/seriesofreads0103.jpg',
+ 'pyvisi/data_sample_images/movie000940.jpg',
+ 'pyvisi/data_sample_images/diffusion04.jpg',
+ 'pyvisi/data_sample_images/legend.jpg',
+ 'pyvisi/data_sample_images/carpet.jpg',
+ 'pyvisi/data_sample_images/diffusion01.jpg',
+ 'pyvisi/data_sample_images/poisson.jpg',
+ 'pyvisi/data_sample_images/diffusion03.jpg',
+ 'pyvisi/data_sample_images/velocity.jpg',
+ 'pyvisi/data_sample_images/movie000946.jpg',
+ 'pyvisi/data_sample_images/movie000945.jpg',
+ 'pyvisi/data_sample_images/all.jpg',
+ 'pyvisi/data_sample_images/movie000942.jpg',
+ 'pyvisi/data_sample_images/seriesofcuts03.jpg',
+ 'pyvisi/data_sample_images/streamline.jpg',
+ 'pyvisi/data_sample_images/seriesofcuts01.jpg',
+ 'pyvisi/data_sample_images/wave02.jpg',
+ 'pyvisi/data_sample_images/ellipsoid.jpg',
+ 'pyvisi/data_sample_images/seriesofreads0100.jpg',
+ 'pyvisi/data_sample_images/seriesofreads0099.jpg',
+ 'pyvisi/data_sample_images/movie.mpg',
+ 'pyvisi/data_sample_images/movie000947.jpg',
+ 'pyvisi/data_sample_images/logo.jpg',
+ 'pyvisi/data_sample_images/heatedblock.jpg',
+ 'pyvisi/data_sample_images/contour.jpg',
+ 'pyvisi/data_sample_images/seriesofreads0101.jpg',
+ 'pyvisi/data_sample_images/movie000948.jpg',
+ 'pyvisi/data_sample_images/maponscalarclipwithrotation.jpg',
+ 'pyvisi/data_sample_images/movie000938.jpg',
+ 'pyvisi/data_sample_images/movie000944.jpg',
+ 'pyvisi/data_sample_images/wave01.jpg',
+ 'pyvisi/data_sample_images/movie000939.jpg',
+ 'pyvisi/data_sample_images/helmholtz.jpg',
+ 'pyvisi/data_sample_images/seriesofcuts00.jpg',
+ 'pyvisi/text.py',
+ 'pyvisi/wave_with_pyvisi.py',
+ 'pyvisi/data_meshes/tempvel-000942.vtu',
+ 'pyvisi/data_meshes/tempvel-000943.vtu',
+ 'pyvisi/data_meshes/interior_3D.xml',
+ 'pyvisi/data_meshes/tempvel-000947.vtu',
+ 'pyvisi/data_meshes/without_st.0700.xml',
+ 'pyvisi/data_meshes/tempvel-000940.vtu',
+ 'pyvisi/data_meshes/access_logo.jpg',
+ 'pyvisi/data_meshes/phi_talus_lava.0101.vtu',
+ 'pyvisi/data_meshes/phi_talus_lava.0099.vtu',
+ 'pyvisi/data_meshes/tempvel-000945.vtu',
+ 'pyvisi/data_meshes/tempvel-000944.vtu',
+ 'pyvisi/data_meshes/phi_talus_lava.0103.vtu',
+ 'pyvisi/data_meshes/tempvel-000938.vtu',
+ 'pyvisi/data_meshes/flinders.jpg',
+ 'pyvisi/data_meshes/phi_talus_lava.0102.vtu',
+ 'pyvisi/data_meshes/tempvel-000941.vtu',
+ 'pyvisi/data_meshes/phi_talus_lava.0100.vtu',
+ 'pyvisi/data_meshes/tempvel-000946.vtu',
+ 'pyvisi/data_meshes/tempvel-000948.vtu',
+ 'pyvisi/data_meshes/tempvel-000939.vtu',
+ 'pyvisi/helmholtz_with_pyvisi.py',
+ 'pyvisi/all.py',
+ 'pyvisi/map.py',
+ 'pyvisi/offscreen.py',
+ 'pyvisi/logo.py',
+ 'pyvisi/rectangle.py',
+ 'pyvisi/diffusion_with_pyvisi.py',
+ 'pyvisi/heatedblock_with_pyvisi.py',
+ 'pyvisi/movie.py',
+ 'pyvisi/seriesofcuts.py',
+ 'pyvisi/velocityonplanecut.py',
+ 'pyvisi/ellipsoidonplaneclip.py',
+ 'pyvisi/maponscalarclipwithrotation.py',
+ 'pyvisi/seriesofreads.py',
+ 'pyvisi/contour.py',
+ 'pyvisi/carpet.py',
+ 'pyvisi/image.py'
+]
+
+example_files= example_files_allow_mpi + example_files_no_mpi
+
+#==========================================================================================
 
 local_env = clone_env(env)
-
-# get all the file names in doc/examples:
-#src_dir = local_env.Dir('examples').srcnode().abspath
 src_dir = local_env.Dir('.').srcnode().abspath
-cur_dir = os.path.abspath(os.curdir)
-outputdir=local_env.Dir('#/release/doc/').srcnode().abspath
-
-os.chdir(src_dir)
-example_files = os.popen("find examples -name .svn -prune -o -type f -print").read().split(None)
-os.chdir(cur_dir)
-# extract all the example files: 
-# test_location=local_env.Dir('#/build/$PLATFORM/doc/examples')
-# Command(src_dir,  test_location, Copy("tempfile", "$SOURCE"))
-# to_be_tested=[]
-# for i in example_files:
-#     if i.endswith(".py"): to_be_tested.append(i)
-# print to_be_tested
+release_dir=local_env.Dir('#/release/doc/').srcnode().abspath
 
 tmp1 = env.Command("#/release/doc/escript_examples.zip", None, 
-"zip "+os.path.join(outputdir,"escript_examples.zip ") +" ".join(example_files),chdir=src_dir)
+"zip "+os.path.join(release_dir,"escript_examples.zip ") +" ".join(example_files),chdir=src_dir)
 env.Alias('examples_zipfile', tmp1)
 
 
 #Need to use explicit tar rather than the tar builder due to problems getting it not to put
 #unwanted path components in the tar file
 #--transform on tar is not supported on savanna
-tmp2 = env.Command("#/release/doc/escript_examples.tar.gz", None, "tar -czf "+os.path.join(outputdir,"escript_examples.tar.gz ")+"  ".join(example_files), chdir=src_dir)
+tmp2 = env.Command("#/release/doc/escript_examples.tar.gz", None, "tar -czf "+os.path.join(release_dir,"escript_examples.tar.gz ")+"  ".join(example_files), chdir=src_dir)
 env.Alias('examples_tarfile',tmp2)
 
 #env=Environment(TARFLAGS = "-c -z",chdir=src_dir)
@@ -53,5 +150,6 @@ local_env.SConscript(dirs = ['#/doc/user'], build_dir='#/build/$PLATFORM/doc/use
 local_env.SConscript(dirs = ['#/doc/epydoc'], build_dir='#/build/$PLATFORM/doc/epydoc', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/doxygen'], build_dir='#/build/$PLATFORM/doc/doxygen', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/install'], build_dir='#/build/$PLATFORM/doc/install', duplicate=1)
+local_env.SConscript(dirs = ['#/doc/examples'], build_dir='#/build/$PLATFORM/doc/examples', duplicate=1, exports=[ 'example_files_allow_mpi' , 'example_files_no_mpi' ])
 
 
