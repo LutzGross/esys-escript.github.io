@@ -34,7 +34,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 from esys.escript import *
 from esys.escript.benchmark import BenchmarkProblem, Options, BenchmarkFilter
 import esys.finley 
-from esys.escript.linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearPDE, SolverOptions
 import os
 import math
 import numpy
@@ -92,41 +92,40 @@ class FinleyOptions(Options):
                      tolerance=None,
                      verbose=False):
        self.strmap={
-                      LinearPDE.DIRECT : "DIRECT",
-                      LinearPDE.PCG:  "PCG",
-                      LinearPDE.CR:  "CR",
-                      LinearPDE.CGS: "CGS",
-                      LinearPDE.BICGSTAB: "BICGSTAB",
-                      LinearPDE.SSOR: "SSOR",
-                      LinearPDE.ILU0: "ILU0",
-                      LinearPDE.ILUT: "ILUT",
-                      LinearPDE.JACOBI: "JACOBI",
-                      LinearPDE.GMRES:  "GMRES",
-                      LinearPDE.PRES20:  "PRES20",
-                      LinearPDE.LUMPING:  "LUMPIMG",
-                      LinearPDE.NO_REORDERING:  "NO_REORDERING",
-                      LinearPDE.MINIMUM_FILL_IN:  "MINIMUM_FILL_IN",
-                      LinearPDE.NESTED_DISSECTION: "NESTED_DISSECTION",
-                      LinearPDE.SCSL:  "SCSL",
-                      LinearPDE.MKL:  "MKL",
-                      LinearPDE.UMFPACK: "UMFPACK",
-                      LinearPDE.TRILINOS: "TRILINOS",
-                      LinearPDE.PASO:  "PASO",
-                      LinearPDE.RILU: "RILU",
-                      LinearPDE.AMG:  "AMG"
+                      SolverOptions.DIRECT : "DIRECT",
+                      SolverOptions.PCG:  "PCG",
+                      SolverOptions.CR:  "CR",
+                      SolverOptions.CGS: "CGS",
+                      SolverOptions.BICGSTAB: "BICGSTAB",
+                      SolverOptions.SSOR: "SSOR",
+                      SolverOptions.ILU0: "ILU0",
+                      SolverOptions.ILUT: "ILUT",
+                      SolverOptions.JACOBI: "JACOBI",
+                      SolverOptions.GMRES:  "GMRES",
+                      SolverOptions.PRES20:  "PRES20",
+                      SolverOptions.LUMPING:  "LUMPIMG",
+                      SolverOptions.NO_REORDERING:  "NO_REORDERING",
+                      SolverOptions.MINIMUM_FILL_IN:  "MINIMUM_FILL_IN",
+                      SolverOptions.NESTED_DISSECTION: "NESTED_DISSECTION",
+                      SolverOptions.MKL:  "MKL",
+                      SolverOptions.UMFPACK: "UMFPACK",
+                      SolverOptions.TRILINOS: "TRILINOS",
+                      SolverOptions.PASO:  "PASO",
+                      SolverOptions.RILU: "RILU",
+                      SolverOptions.AMG:  "AMG"
                   }
        name=""
        if solver_method==None: 
-             solver_method==LinearPDE.PRES20
+             solver_method==SolverOptions.PRES20
        else:
              name+=self.strmap[solver_method]
        if preconditioner==None: 
-             preconditioner==LinearPDE.JACOBI
+             preconditioner==SolverOptions.JACOBI
        else:
              if not name=="": name+="+"
              name+=self.strmap[preconditioner]
        if package==None: 
-             package==LinearPDE.PASO
+             package==SolverOptions.PASO
        else:
              if not name=="": name+=" with "
              name+=self.strmap[package]
@@ -160,11 +159,14 @@ class FinleyProblem(BenchmarkProblem):
        """
        domain=self.getDomain()
        pde,u=self.getTestProblem(domain)
-       pde.setTolerance(options.tolerance)
-       pde.setSolverMethod(options.solver_method,options.preconditioner)
-       pde.setSolverPackage(options.package)
+       pde.getSolverOptions().setTolerance(options.tolerance)
+       pde.getSolverOptions().setPreconditioner(options.preconditioner)
+       pde.getSolverOptions().setSolverMethod(options.solver_method)
+       pde.getSolverOptions().setPackage(options.package)
+       pde.getSolverOptions().setVerbosity(options.verbose)
+       pde.getSolverOptions().setIterMax(6000)
        a=os.times()[4]
-       uh=pde.getSolution(verbose=options.verbose,iter_max=6000)
+       uh=pde.getSolution()
        a=os.times()[4]-a
        if u==None:
           return {FinleyFilter.TIME : a , FinleyFilter.ERROR : None }

@@ -3,7 +3,7 @@ import esys.finley
 from esys.escript.models import StokesProblemCartesian
 from esys.finley import finley
 from esys.finley import Rectangle
-from LevelSet import *
+
 
 #physical properties
 rho1 = 1000		#fluid density on bottom
@@ -61,7 +61,6 @@ func_new = func.interpolate(ReducedSolution(mesh))
 #Stokes Cartesian
 solution=StokesProblemCartesian(mesh,debug=True)
 solution.setTolerance(TOL)
-solution.setSubProblemTolerance(TOL**2)
 
 #level set
 levelset = LevelSet(mesh, func_new, reinit_max, reinit_each, tolerance, smooth)    

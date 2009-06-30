@@ -26,17 +26,20 @@ Author: John Ngui, john.ngui@uq.edu.au
 # Import the necessary modules
 from esys.pyvisi import Scene, DataCollector, VelocityOnPlaneCut, Camera
 from esys.pyvisi.constant import *
+from esys.escript import getMPIRankWorld
 import os
 
 PYVISI_EXAMPLE_MESHES_PATH = "data_meshes"
-PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images"
+PYVISI_EXAMPLE_IMAGES_PATH = "images_out"
+if not os.path.isdir(PYVISI_EXAMPLE_IMAGES_PATH) and getMPIRankWorld()==0: os.mkdir(PYVISI_EXAMPLE_IMAGES_PATH)
+
 X_SIZE = 400
 Y_SIZE = 400
 
 VECTOR_FIELD_CELL_DATA = "velocity"
 FILE_3D = "interior_3D.xml"
 IMAGE_NAME = "velocity.jpg"
-JPG_RENDERER = Renderer.ONLINE_JPG
+JPG_RENDERER = Renderer.OFFLINE_JPG # change to Renderer.ONLINE_JPG to interact with visualiztion window
 
 # Create a Scene.
 s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 

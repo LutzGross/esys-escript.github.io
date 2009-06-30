@@ -98,7 +98,7 @@ void Paso_solve(Paso_SystemMatrix* A,
          } 
   }
   Performance_close(&pp,options->verbose);
-  Paso_Options_showDiagnostics(options);
+  /* Paso_Options_showDiagnostics(options); */
   return;
 }
 

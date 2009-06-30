@@ -32,10 +32,12 @@ from esys.pyvisi import Scene, DataCollector, Velocity, Camera
 from esys.pyvisi.constant import *
 import os
 
-PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images"
+PYVISI_EXAMPLE_IMAGES_PATH = "images_out"
+if not os.path.isdir(PYVISI_EXAMPLE_IMAGES_PATH) and getMPIRankWorld()==0: os.mkdir(PYVISI_EXAMPLE_IMAGES_PATH)
+
 X_SIZE = 400
 Y_SIZE = 400
-JPG_RENDERER = Renderer.ONLINE_JPG
+JPG_RENDERER = Renderer.OFFLINE_JPG # change to Renderer.ONLINE_JPG to interact with visualiztion window
 
 #... set some parameters ...
 lam=1.

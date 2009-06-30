@@ -32,13 +32,16 @@ def build_py(target, source, env):
 def runUnitTest(target, source, env):
   time_start = time.time()
   app = str(source[0].abspath)
+  pn, sn= os.path.split(app)
   if not os.name== "nt":
-     app = os.path.join(env['bininstall'],"escript")+" -bv "+app
+     app = "cd "+pn+"; "+os.path.join(env['bininstall'],"escript")+" -bv "+sn
   else:
       if env['usempi']:
-          app = "mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
+          app = "cd %s | mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
             "FINLEY_TEST_DATA,PYVISI_TEST_DATA_ROOT,PYVISI_WORKDIR,PATH %s"\
-            %(env['ENV']['ESCRIPT_NUM_NODES'], app)
+            %(pn,env['ENV']['ESCRIPT_NUM_NODES'], sn)
+      else:
+           app = "cd "+ pn +" | "+ sn
   print "Executing test: " + app
   if not env.Execute(app):
     open(str(target[0]),'w').write("PASSED\n")
@@ -50,16 +53,17 @@ def runUnitTest(target, source, env):
 def runPyUnitTest(target, source, env): 
    time_start = time.time()
    app = str(source[0].abspath)
+   pn, sn= os.path.split(app)
    if os.name== "nt":
        if env['usempi']:
-           app = "mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
+           app = "cd %s | mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
               "FINLEY_TEST_DATA,PYVISI_TEST_DATA_ROOT,PYVISI_WORKDIR,PATH %s\pythonMPIredirect.exe %s"\
-              %(env['ENV']['ESCRIPT_NUM_NODES'],env['libinstall'],app)
+              %(pn,env['ENV']['ESCRIPT_NUM_NODES'],env['libinstall'],sn)
        else:
-           app = sys.executable + " " + app
+           app = "cd "+ pn +" | "+sys.executable + " " + sn
    else:
-     app = os.path.join(env['bininstall'],"escript")+" -ov "+app
-   print "Executing test: " + app
+     app = "cd "+pn+"; "+os.path.join(env['bininstall'],"escript")+" -ov "+sn
+   print "Executing test: ",app
    if env.Execute(app) == 0:
       open(str(target[0]),'w').write("PASSED\n")
    else:

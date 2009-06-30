@@ -24,19 +24,22 @@ Author: John Ngui, john.ngui@uq.edu.au
 """
 
 # Import the necessary modules.
+from esys.escript import getMPIRankWorld
 from esys.pyvisi import Scene, ImageReader, Logo
 from esys.pyvisi import LocalPosition
 from esys.pyvisi.constant import *
 import os
 
 PYVISI_EXAMPLE_MESHES_PATH = "data_meshes"
-PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images"
+PYVISI_EXAMPLE_IMAGES_PATH = "images_out"
+if not os.path.isdir(PYVISI_EXAMPLE_IMAGES_PATH) and getMPIRankWorld()==0: os.mkdir(PYVISI_EXAMPLE_IMAGES_PATH)
+
 X_SIZE = 600
 Y_SIZE = 300
 
 LOAD_LOGO_NAME = "access_logo.jpg"
 SAVE_IMAGE_NAME = "logo.jpg"
-JPG_RENDERER = Renderer.ONLINE_JPG
+JPG_RENDERER = Renderer.OFFLINE_JPG # change to Renderer.ONLINE_JPG to interact with visualiztion window
 
 # Create a Scene.
 s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
