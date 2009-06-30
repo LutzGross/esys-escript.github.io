@@ -26,7 +26,7 @@
 #include "DataVector.h"		// for ElementType
 
 
-//#define LAZY_NODE_STORAGE
+#define LAZY_NODE_STORAGE
 
 namespace escript {
 
