@@ -26,8 +26,8 @@ EscriptParams::EscriptParams()
 {
    too_many_lines=80;
    autolazy=0;
-   too_many_levels=7;
-   too_many_nodes=127;
+   too_many_levels=70;
+   too_many_nodes=15000;
 			// These #defs are for performance testing only
 			// in general, I don't want people tweaking the
 			// default value using compiler options

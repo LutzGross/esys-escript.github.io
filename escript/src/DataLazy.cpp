@@ -42,11 +42,10 @@ bool privdebug=false;
 #define DISABLEDEBUG privdebug=false;
 }
 
-// #define SIZELIMIT 
-// #define SIZELIMIT if ((m_height>7) || (m_children>127)) {cerr << "\n!!!!!!! SIZE LIMIT EXCEEDED " << m_children << ";" << m_height << endl << toString() << endl; resolveToIdentity();}
-//#define SIZELIMIT if ((m_height>7) || (m_children>127)) {resolveToIdentity();}
+// #define SIZELIMIT if ((m_height>escript::escriptParams.getTOO_MANY_LEVELS()) || (m_children>escript::escriptParams.getTOO_MANY_NODES())) {cerr << "\n!!!!!!! SIZE LIMIT EXCEEDED " << m_children << ";" << m_height << endl << toString() << endl;resolveToIdentity();}
 
 #define SIZELIMIT if ((m_height>escript::escriptParams.getTOO_MANY_LEVELS()) || (m_children>escript::escriptParams.getTOO_MANY_NODES())) {resolveToIdentity();}
+
 
 /*
 How does DataLazy work?
@@ -1593,7 +1592,6 @@ cout << "\nWritten to: " << resultp << " resultStep=" << resultStep << endl;
 const DataTypes::ValueType*
 DataLazy::resolveNodeSample(int tid, int sampleNo, size_t& roffset)
 {
-ENABLEDEBUG
 LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
 	// collapse so we have a 'E' node or an IDENTITY for some other type
   if (m_readytype!='E' && m_op!=IDENTITY)
@@ -1615,6 +1613,12 @@ LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
   {
     throw DataException("Programmer Error - Collapse did not produce an expanded node.");
   }
+  if (m_sampleids[tid]==sampleNo)
+  {
+	roffset=tid*m_samplesize;
+	return &(m_samples);		// sample is already resolved
+  }
+  m_sampleids[tid]=sampleNo;
   switch (getOpgroup(m_op))
   {
   case G_UNARY:
@@ -1643,11 +1647,6 @@ DataLazy::resolveNodeUnary(int tid, int sampleNo, size_t& roffset)
   if (m_op==IDENTITY)
   {
     throw DataException("Programmer error - resolveNodeUnary should not be called on identity nodes.");
-  }
-  if (m_sampleids[tid]==sampleNo)
-  {
-	roffset=tid*m_samplesize;
-	return &(m_samples);		// sample is already resolved
   }
   const DataTypes::ValueType* leftres=m_left->resolveNodeSample(tid, sampleNo, roffset);
   const double* left=&((*leftres)[roffset]);
