@@ -40,6 +40,21 @@ class GroupTest:
 	res=res+"# It will be regenerated each time scons is run\n"
 	res=res+"#############################################\n\n"
 	res=res+"function failed()\n{\n  echo ""Execution failed for $@""\n  exit 1\n}\n"
+	res=res+'CMDSTR="getopt -uq -o p:n: -- $1"\nSTR=`$CMDSTR`\nNUMPROCS=1\n'
+	res=res+'NUMNODES=1\n#This little complication is required because set --\n'
+	res=res+'#does not seem to like -n as the first positional parameter\n'
+	res=res+'STATE=0\nfor name in $STR\ndo \n'
+	res=res+'case $STATE in\n'
+	res=res+'     0) case $name in\n'
+	res=res+'	  -n) STATE=1;;\n'
+	res=res+'	  -p) STATE=2;;\n'
+	res=res+'	  --) break 2;;\n'
+	res=res+'        esac;;\n'
+	res=res+'     1) if [ $name == "--" ];then break; fi; NUMNODES=$name; STATE=0;;\n'
+	res=res+'     2) if [ $name == "--" ];then break; fi; NUMPROCS=$name; STATE=0;;\n'
+	res=res+'   esac\n'
+	res=res+'done\n'
+	res=res+'let MPIPROD="$NUMPROCS * $NUMNODES"\n'
 	res=res+"\nexport LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH\n"
 	if build_platform=='darwin':
 		res=res+"export DYLD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH\n"
@@ -54,7 +69,7 @@ class GroupTest:
     def makeString(self):
 	res=""
         if self.single_processor_only:
-            res+="if [ ( $ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS  ) -le 1 ]; then\n"
+            res+="if [ $MPIPROD -le 1 ]; then\n"
             tt="\t"
         else:
             tt=""
