@@ -37,22 +37,24 @@ for all time $t>0$.
 
 \begin{figure}[t!]
 \centerline{\includegraphics[angle=-90,width=4.in]{figures/waveu}}
-\caption{Displacement at Source Point}
+\caption{Input Displacement at Source Point ($\alpha=0.7$, $t\hackscore{0}=3$, $U\hackscore{0}=1$).}
 \label{WAVE FIG 1.2}
 \end{figure}
 
 \begin{figure}[t!]
 \centerline{\includegraphics[angle=-90,width=4.in]{figures/wavea}}
-\caption{Acceleration at Source Point}
+\caption{Input Acceleration at Source Point ($\alpha=0.7$, $t\hackscore{0}=3$, $U\hackscore{0}=1$).}
 \label{WAVE FIG 1.1}
 \end{figure}
 
 Here we are modelling a point source at the point $x\hackscore C$ in the $x\hackscore{0}$-direction
-which raise from zero to a maximum displacement $U\hackscore 0$ with in $\alpha$ seconds and then falls back to zero over the same period. In mathematical terms we use
+which is a negative puls of amplitude $U\hackscore{0}$ followd by the same 
+positive puls. In mathematical terms we use
 \begin{eqnarray} \label{WAVE source}
-u\hackscore 0(x\hackscore C,t)= U\hackscore 0 \frac{t^2}{\alpha^2} e^{1-\frac{t^2}{\alpha^2}} \ 
+u\hackscore{0}(x\hackscore C,t)= U\hackscore{0} \; \sqrt{2}  \frac{(t-t\hackscore{0})}{\alpha} e^{\frac{1}{2}-\frac{(t-t\hackscore{0})^2}{\alpha^2}} \ 
 \end{eqnarray}
-for all $t\ge0$. In the simulations we will choose $\alpha=0.3$, see Figure~\ref{WAVE FIG 1.2}
+for all $t\ge0$ where $\alpha$ is the width of the puls and $t\hackscore{0}$ is the time when
+the puls changes from negative to positive. In the simulations we will choose $\alpha=0.3$ and $t\hackscore{0}=2$, see Figure~\ref{WAVE FIG 1.2}
 and will apply the source as a constraint in a in a sphere of small radius around the point
 $x\hackscore C$.  
 
@@ -83,11 +85,10 @@ derived from \eqn{WAVE natural} where
 We also need to apply the constraint 
 \begin{eqnarray} \label{WAVE dyn 3aa}
 a^{(n)}\hackscore{0}(x\hackscore C,t)= U\hackscore{0} 
-\frac{2}{\alpha^2} \left( 1- 5 \frac{t^2}{\alpha^2} +2  \frac{t^4}{\alpha^4}
-\right) e^{1-\frac{t^2}{\alpha^2}} 
+\frac{\sqrt(2.)}{\alpha^2} (4\frac{(t-t\hackscore{0})^3}{\alpha^3}-6\frac{t-t\hackscore{0}}{\alpha})e^{\frac{1}{2}-\frac{(t-t\hackscore{0})^2}{\alpha^2}}
 \end{eqnarray}
 which is derived from equation~\ref{WAVE source} by calculating the second order time derivative,
-see~\ref{WAVE FIG 1.2}. Now we have converted our problem for displacement, $u^{(n)}$, into a problem for 
+see Figure~\ref{WAVE FIG 1.1}. Now we have converted our problem for displacement, $u^{(n)}$, into a problem for 
 acceleration, $a^{(n)}$, which now depends 
 on the solution at the previous two time steps, $u^{(n-1)}$  and $u^{(n-2)}$.
 
@@ -112,7 +113,7 @@ X\hackscore{ij}=-\sigma^{(n-1)}\hackscore{ij} \\
 Moreover we need to define the location $r$ where the constraint~\ref{WAVE dyn 3aa} is applied. We will apply
 the constraint on a small sphere of radius $R$ around $x\hackscore C$ (we will use 3p.c. of the width of the domain):  
 \begin{equation}\label{WAVE  dyn 6 1}
-r\hackscore{i}(x) = 
+q\hackscore{i}(x) = 
 \left\{
 \begin{array}{rc}
 1 & \|x-x_c\|\le R \\
@@ -127,27 +128,20 @@ defines the domain of the problem. \var{h} and \var{tend} are the time step size
 and the end time of the simulation. \var{lam}, \var{mu} and 
 \var{rho} are material properties. 
 \begin{python}
-def wavePropagation(domain,h,tend,lam,mu,rho,U0):
+def wavePropagation(domain,h,tend,lam,mu,rho, x_c, src_radius, U0):
    x=domain.getX()
    # ... open new PDE ...
    mypde=LinearPDE(domain)
    mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
    kronecker=identity(mypde.getDim())
 
-   #  spherical source at middle of bottom face
 
-   xc=[width/2.,width/2.,0.]
-   # define small radius around point xc
-   # Lsup(x) returns the maximum value of the argument x
-   src_radius = 0.03*width
-   print "src_radius = ",src_radius
 
    dunit=numpy.array([1.,0.,0.]) # defines direction of point source
 
    mypde.setValue(D=kronecker*rho, q=whereNegative(length(x-xc)-src_radius)*dunit)
    # ... set initial values ....
    n=0
-   # initial value of displacement at point source is constant (U0=0.01)
    # for first two time steps
    u=Vector(0.,Solution(domain))
    u_last=Vector(0.,Solution(domain))
@@ -168,7 +162,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
      g=grad(u)
      stress=lam*trace(g)*kronecker+mu*(g+transpose(g))
      # ... get new acceleration ....
-     amplitude=U0*2*exp(1)/alpha**2*(1-5*(t/alpha)**2+2*(t/alpha)**4)*exp(-(t/alpha)**2)
+     amplitude=U0*(4*(t-t0)**3/alpha**3-6*(t-t0)/alpha)*sqrt(2.)/alpha**2*exp(1./2.-(t-t0)**2/alpha**2)
      mypde.setValue(X=-stress, r=dunit*amplitude)
      a=mypde.getSolution()
      # ... get new displacement ...
@@ -232,7 +226,7 @@ plotted easily using any plotting package. In gnuplot the command:
  plot 'U_pc.out' u 1:2 title 'U_x' w l lw 2, 'U_pc.out' u 1:3 title 'U_y' w l lw 2, 
 'U_pc.out' u 1:4 title 'U_z' w l lw 2
 \end{verbatim}
-will reproduce Figure~\ref{WAVE FIG 1}. It is pointed out that we are not using the
+will reproduce Figure~\ref{WAVE FIG 1} (As expected this is identical to the input signal shown in Figure~\ref{WAVE FIG 1.2})2. It is pointed out that we are not using the
 standart \PYTHON \function{open} to create the file \code{U_pc.out} as it is not 
 when running \escript under MPI, see chapter~\ref{EXECUTION} for more details.
 
@@ -281,39 +275,42 @@ lam=3.462e9
 mu=3.462e9
 rho=1154.
 tend=60
-U0=0.01 # amplitude of point source
+U0=1. # amplitude of point source
+# spherical source at middle of bottom face
+xc=[width/2.,width/2.,0.]
+# define small radius around point xc
+src_radius = 0.03*width
+print "src_radius = ",src_radius
 
 mydomain=Brick(ne,ne,10,l0=width,l1=width,l2=10.*width/32.)
 h=(1./5.)*inf(sqrt(rho/(lam+2*mu))*inf(domain.getSize())
 print "time step size = ",h
-wavePropagation(mydomain,h,tend,lam,mu,rho,U0)
+wavePropagation(mydomain,h,tend,lam,mu,rho,xc, src_radius, U0)
 \end{python}
 The \function{domain.getSize()} return the local element size $\Delta x$. The 
 \function{inf} makes sure that the Courant condition~\ref{WAVE dyn 66} olds everywhere in the domain. 
 
-The script is available as \file{wave.py} in the \ExampleDirectory \index{scripts!\file{wave.py}}. Before running the code make sure you have created a directory called \code{data} in the current
-working directory.
+The script is available as \file{wave.py} in the \ExampleDirectory \index{scripts!\file{wave.py}}. 
 To visualize the results from the data directory: 
 \begin{verbatim} mayavi -d usoln.1.vtu -m SurfaceMap &\end{verbatim} You can rotate this figure by clicking on it with the mouse and moving it around.
 Again use \code{Configure Data} to move backwards and forward in time, and 
 also to choose the results (acceleration, displacement or $u\hackscore x$) by using \code{Select Scalar}. Figure \ref{WAVE FIG 2} shows the results for the displacement at various time steps.
 
 \begin{figure}[t!]
-\centerline{\includegraphics[width=4.in]{figures/WavePC}}
-\caption{Amplitude at Point source}
+\centerline{\includegraphics[width=4.in, angle=-90]{figures/WavePC}}
+\caption{Amplitude at Point source from the Simulation.}
 \label{WAVE FIG 1}
 \end{figure}
 
 \begin{figure}[t]
 \begin{center}
-\includegraphics[width=2in]{figures/Wavet0}
-\includegraphics[width=2in]{figures/Wavet1}
-\includegraphics[width=2in]{figures/Wavet3}
-\includegraphics[width=2in]{figures/Wavet10}
-\includegraphics[width=2in]{figures/Wavet30}
-\includegraphics[width=2in]{figures/Wavet288}
+\includegraphics[width=2in]{figures/Wave11}
+\includegraphics[width=2in]{figures/Wave22}
+\includegraphics[width=2in]{figures/Wave28}
+\includegraphics[width=2in]{figures/Wave32}
+\includegraphics[width=2in]{figures/Wave36}
 \end{center}
-\caption{Selected time steps ($n = 0,1,30,100,300$ and $2880$) of a wave propagation over a $10\mbox{km} \times 10\mbox{km} \times 3.125\mbox{km}$ block 
+\caption{Selected time steps ($n = 11, 22, 32, 36$) of a wave propagation over a $10\mbox{km} \times 10\mbox{km} \times 3.125\mbox{km}$ block 
 from a point source initially at $(5\mbox{km},5\mbox{km},0)$
 with time step size $h=0.02083$. Color represents the displacement.
 Here the view is oriented onto the bottom face.

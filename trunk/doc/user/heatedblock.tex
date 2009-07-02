@@ -59,7 +59,7 @@ the Lame equation\index{Lame equation}. We want to solve
 this using the \LinearPDE class to this. For a system of PDEs and a solution with several components the \LinearPDE class 
 takes PDEs of the form
 \begin{equation}\label{LINEARPDE.SYSTEM.1 TUTORIAL}
--A\hackscore{ijkl} u\hackscore{k,l}){,j}=-X\hackscore{ij,j} \; .
+-(A\hackscore{ijkl} u\hackscore{k,l})\hackscore{,j}=-X\hackscore{ij,j} \; .
 \end{equation}
 $A$ is of \RankFour and $X$ is of \RankTwo. We show here the coefficients relevant 
 for the we trying to solve. The full form is given in~\eqn{LINEARPDE.SYSTEM.1}. 
@@ -104,10 +104,10 @@ The \LinearPDE class is notified of this fact by calling its \method{setSymmetry
 After we have solved the Lame equation we want to analyse the actual stress distribution. Typically the von--Mises stress\index{von--Mises stress} defined by
 \begin{equation}
 \sigma\hackscore{mises} = \sqrt{
-\frac{1}{6} ((\sigma\hackscore{00}-\sigma\hackscore{11})^2
+\frac{1}{2} ((\sigma\hackscore{00}-\sigma\hackscore{11})^2
             + (\sigma\hackscore{11}-\sigma\hackscore{22})^2
             + (\sigma\hackscore{22}-\sigma\hackscore{00})^2)
-+  \sigma\hackscore{01}^2+\sigma\hackscore{12}^2+\sigma\hackscore{20}^2}
++ 3( \sigma\hackscore{01}^2+\sigma\hackscore{12}^2+\sigma\hackscore{20}^2) }
 \end{equation}
 is used to detect material damage. Here we want to calculate the von--Mises and write the stress to a file for visualization.
 
@@ -152,8 +152,8 @@ u=mypde.getSolution()
 g=grad(u)
 sigma=mu*(g+transpose(g))+lam*trace(g)*kronecker(mydomain)-sigma0
 sigma_mises=sqrt(((sigma[0,0]-sigma[1,1])**2+(sigma[1,1]-sigma[2,2])**2+ \
-                  (sigma[2,2]-sigma[0,0])**2)/6. \
-                 +sigma[0,1]**2 + sigma[1,2]**2 + sigma[2,0]**2)
+                  (sigma[2,2]-sigma[0,0])**2)/2. \
+                 +3*(sigma[0,1]**2 + sigma[1,2]**2 + sigma[2,0]**2))
 #... output ...
 saveVTK("deform.xml",disp=u,stress=sigma_mises)
 \end{python}
