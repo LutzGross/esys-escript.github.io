@@ -85,7 +85,6 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
   Paso_SparseMatrix * schur=NULL;
   Paso_SparseMatrix * schur_withFillIn=NULL;
   double S=0;
-  double time0;
   
   /*Make sure we have block sizes 1*/
   A_p->pattern->input_block_size=A_p->col_block_size;
@@ -121,8 +120,6 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
      
-     time0=Paso_timer();
-
      if (coarsening_method == PASO_YAIR_SHAPIRA_COARSENING) {
       Paso_Pattern_coup(A_p,mis_marker,coarsening_threshold);
      }
@@ -136,9 +133,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
       /*Default coarseneing*/
       Paso_Pattern_RS(A_p,mis_marker,coarsening_threshold);
      }
-     
-     time0=Paso_timer()-time0;
-     if (verbose) fprintf(stderr,"timing: Coarseneing: %e\n",time0);
+
     if (Paso_noError()) {
         #pragma omp parallel for private(i) schedule(static)
         for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
@@ -208,12 +203,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
                             schur=Paso_SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_C,out->rows_in_C,out->mask_C);
                             /*find the pattern of the schur complement with fill in*/
      
-                            time0=Paso_timer();
                             schur_withFillIn=Paso_SparseMatrix_alloc(A_p->type,Paso_Pattern_binop(PATTERN_FORMAT_DEFAULT, schur->pattern, Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,out->A_CF->pattern,out->A_FC->pattern)),1,1);
-                            time0=Paso_timer()-time0;
-                            if (verbose) fprintf(stderr,"timing: Fill_in pattern computation: %e\n",time0);
-     
-                            time0=Paso_timer();
                             /* copy values over*/ 
                             #pragma omp parallel for private(i,iPtr,j,iPtr_s,index,where_p) schedule(static)
                             for (i = 0; i < schur_withFillIn->numRows; ++i) {
@@ -231,10 +221,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
                                     schur_withFillIn->val[iPtr]=schur->val[iPtr_s+(index_t)(where_p-index)];
                                 }
                               }
-                            }
-                            time0=Paso_timer()-time0;
-                            if (verbose) fprintf(stderr,"timing: Copying values for Fill in: %e\n",time0);
-                                
+                            }                                
                             if (Paso_noError()) {
                                 Paso_Solver_updateIncompleteSchurComplement(schur_withFillIn,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
                                 out->AMG_of_Schur=Paso_Solver_getAMG(schur_withFillIn,verbose,level-1,coarsening_threshold,coarsening_method);
@@ -314,7 +301,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      double *r=MEMALLOC(amg->n,double);
      double *x0=MEMALLOC(amg->n,double);
      double time0=0;
-     bool_t verbose=1;
+     bool_t verbose=0;
      
      #ifdef MKL
      Paso_SparseMatrix *temp=NULL;
@@ -323,30 +310,8 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      
      if (amg->level==0  || amg->n_C<=500) {
       
-     /*if (amg->n_F<=500) {*/
       time0=Paso_timer();
-      
-        
-       /* Paso_Solver_solveJacobi(amg->GS,x,b);*/
-        
-        /* #pragma omp parallel for private(i) schedule(static)
-        for (i=0;i<amg->n;++i) r[i]=b[i];
-        Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
-        Paso_Solver_solveGS(amg->GS,x0,r);
-        #pragma omp parallel for private(i) schedule(static)
-        for (i=0;i<amg->n;++i) {
-         x[i]+=x0[i];
-        }
-        */
-       
        #ifdef MKL
-        /*dim_t iptr; 
-        temp=Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, amg->A->pattern,1,1);
-        #pragma omp parallel for private(i,iptr) schedule(static)
-        for (i=0;i<amg->A->numRows;++i) {
-         for (iptr=amg->A->pattern->ptr[i];iptr<amg->A->pattern->ptr[i+1]; ++iptr) 
-             temp->val[iptr]=amg->A->val[iptr];
-        }*/
         temp=Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, amg->A->pattern,1,1);
         #pragma omp parallel for private(i) schedule(static)
         for (i=0;i<amg->A->len;++i) {
@@ -371,17 +336,6 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
          Paso_Solver_solveJacobi(amg->GS,x,b);
          time0=Paso_timer()-time0;
          if (verbose) fprintf(stderr,"timing: Presmooting: %e\n",time0);
-         /* #pragma omp parallel for private(i) schedule(static)
-         for (i=0;i<amg->n;++i) r[i]=b[i];
-
-          Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
-          Paso_Solver_solveJacobi(amg->GS,x0,r);
-          
-          #pragma omp parallel for private(i) schedule(static)
-          for (i=0;i<amg->n;++i) {
-           x[i]+=x0[i];
-          }
-         */
         /* end of presmoothing */
         
         
@@ -444,18 +398,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      
      time0=Paso_timer()-time0;
      if (verbose) fprintf(stderr,"timing: Postsmoothing: %e\n",time0);
-     /*
-     #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<amg->n;++i) r[i]=b[i];
-     
-     Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
-     Paso_Solver_solveJacobi(amg->GS,x0,r);
-     
-     #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<amg->n;++i) {
-      x[i]+=x0[i];
-     }
-     */
+
      /*end of postsmoothing*/
      
      }
