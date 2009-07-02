@@ -17,7 +17,7 @@
 
 \esfinley is known to compile and run on the following systems:
 \begin{itemize}
- \item \linux under gcc\footnote{There are some problems with OpenMP under gcc prior to version 4.3.2} - \Sec{sec:srclinux}
+ \item \linux under gcc\footnote{There are some problems with OpenMP under gcc prior to version 4.3.2. Also do not link the gomp library with gcc 4.3.3 it causes problems.} - \Sec{sec:srclinux}
 \item \linux under icc on SGI ICE 8200.
 \item \macosx under gcc - \Sec{sec:srcmac}
 \end{itemize}
@@ -32,7 +32,7 @@ You must take greater care if downloading sources separately.
 \begin{itemize}
  \item python-2.5.1 (\url{http://python.org}) \\
 - Python  interpreter (You must compile with shared libraries.)
-\item numarray 1.5.2 \\ (\url{http://www.stsci.edu/resources/software_hardware/numarray/numarray.html}) \\
+\item numpy 1.1.0 (\url{http://numpy.scipy.org})
 - Arrays for python.
 \item boost-1.35 (\url{http://www.boost.org}) \\
 - Provides an interface between C++ and python.
@@ -43,7 +43,7 @@ You must take greater care if downloading sources separately.
 The version numbers given here are not strict requirements, more recent (and in some cases older) versions will
 still work. 
 The following packages should be sufficient (but not necessarily minimal) for Debian 5.0 (``Lenny''):
-python-dev, libboost1.35-dev, scons, python-numarray, g++.
+python-dev, libboost1.35-dev, scons, python-numpy, g++.
 
 
 These packages may be required for some of the optional capabilities of the system.
@@ -218,3 +218,8 @@ Some reasons for this error message include:
 Another error we sometimes see is unsatisfied externals when trying to run a python script. This is usually due to not having \texttt{LD_LIBRARY_PATH} and \texttt{PYTHONPATH} set correctly so that you run with different libraries from the ones the code was compiled against. Check which libraries you are running against with \texttt{ldd lib/libfinley.so} and \texttt{ldd esys/finley/finleycpp.so}.
 
 It is also possible that the person who compiled \esfinley used incompatible libraries. For example, if you run with Python2.4 but the software was compiled against Python2.5 then you will get unsatisfied externals or a large error message with a long traceback. Another case is when Boost or Numarray was compiled against the wrong Python library. To avoid these problems everyone (builder and user) must make certain they are using the same python libraries. 
+
+\subsubsection{OpenMP builds segfault running examples}
+
+One known cause for this is linking the \filename{gomp} library with escript built using gcc 4.3.3.
+While you need the -fomp switch you should not need to link \filename{gomp}.

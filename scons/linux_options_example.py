@@ -12,7 +12,7 @@
 ########################################################
 
 
-# Configuration for shake63 (32-bit Intel running Fedora Linux)
+# Example configuration for linux running gcc
 
 # If you cannot use the default compiler flags set in SConstruct, then change them here
 # C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
@@ -21,7 +21,9 @@
 # cc_debug		= '-g'
 omp_optim		= '-fopenmp'
 omp_debug		= '-fopenmp'
-omp_libs		= ['gomp']
+#omp_libs		= ['gomp']
+omp_libs		= []
+#Do not link gomp unless you are sure you need to
 
 # Use the default C/C++ flags but add something only for this host:
 #cc_extra		= '-Wall -pedantic -isystem /usr/include/boost/ -isystem /usr/include/python2.5/ -Wno-sign-compare -Wno-long-long'
