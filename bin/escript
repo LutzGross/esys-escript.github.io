@@ -371,6 +371,13 @@ then
 #=============== Intel MPI ===================================
 elif [ $MPI_FLAVOUR == "INTELMPI" ]
 then
+
+   if [  $WITH_OPENMP == "y"  ]
+   then
+       export I_MPI_PIN_DOMAIN=omp
+       EXPORT_ENV="$EXPORT_ENV, I_MPI_PIN_DOMAIN"
+   fi
+
    if [ ! -z $HOSTFILE ] 
    then
       mpdboot -n $ESCRIPT_NUM_NODES -r ssh -f $HOSTFILE
