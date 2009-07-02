@@ -34,7 +34,7 @@ def runUnitTest(target, source, env):
   app = str(source[0].abspath)
   pn, sn= os.path.split(app)
   if not os.name== "nt":
-     app = "cd "+pn+"; "+os.path.join(env['bininstall'],"escript")+" -bv "+sn
+     app = "cd "+pn+"; "+os.path.join(env['bininstall'],"escript")+" -bv "+os.path.join('.',sn)
   else:
       if env['usempi']:
           app = "cd %s | mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
