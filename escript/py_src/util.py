@@ -5935,6 +5935,32 @@ def longestEdge(domain):
     """
     return max([v[1]-v[0] for v in boundingBox(domain) ])
 
+def mkDir(pathname):
+    """
+    creates a directory of name C{pathname} if the directory does not exist.
+
+    @param pathname: valid path name
+    @type pathname: C{str}
+    @note: The method is MPI save.
+    """
+    if not os.path.isdir(pathname):
+       errno=0
+       if getMPIRankWorld()==0:
+          try:
+              os.mkdir(pathname)
+          except Exception, e:
+              errno=1
+    
+       errno=getMPIWorldMax(errno)
+       if errno>0:
+         if e==None:
+            raise IOError,"Unable to create directory%s."%pathname
+         else:
+            if hasattr(e,"message"):
+               raise IOError,e.message
+            else:
+               raise IOError,"Unable to create directory%s."%pathname
+
 class FileWriter(object):
     """
     Interface to write data to a file. In essence this class wrappes the standart C{file} object to write data that are global in MPI
