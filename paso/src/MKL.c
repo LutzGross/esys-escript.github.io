@@ -103,7 +103,7 @@ void Paso_MKL(Paso_SystemMatrix* A,
                 break;
      }
      #ifdef _OPENMP
-     iparm[2] = omp_get_max_threads();
+     iparm[2] =omp_get_max_threads();
      #else
      iparm[2] = 1;
      #endif
@@ -227,7 +227,7 @@ void Paso_MKL1(Paso_SparseMatrix* A,
      /* set iparm */
      for (i=0;i<64;++i) iparm[i]=0;
      iparm[0] = 1; /* no default settings*/
-     iparm[1]=MKL_REORDERING_NESTED_DISSECTION;
+     iparm[1]=MKL_REORDERING_MINIMUM_DEGREE;
      #ifdef _OPENMP
      iparm[2] = omp_get_max_threads();
      #else
