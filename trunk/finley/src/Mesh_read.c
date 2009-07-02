@@ -352,7 +352,9 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 
 	if (mpi_info->rank == 0) {	/* Master */
 	  for (;;) {			/* Infinite loop */
+            #pragma omp parallel for private (i0) schedule(static)
 	    for (i0=0; i0<chunkSize*3+1; i0++) tempInts[i0] = -1;
+            #pragma omp parallel for private (i0) schedule(static)
 	    for (i0=0; i0<chunkSize*numDim; i0++) tempCoords[i0] = -1.0;
 	    chunkNodes = 0;
 	    for (i1=0; i1<chunkSize; i1++) {
@@ -426,6 +428,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	/* Copy node data from tempMem to mesh_p */
         Finley_NodeFile_allocTable(mesh_p->Nodes, chunkNodes);
         if (Finley_noError()) {
+          #pragma omp parallel for private (i0, i1) schedule(static)
 	  for (i0=0; i0<chunkNodes; i0++) {
 	    mesh_p->Nodes->Id[i0]				= tempInts[0+i0];
 	    mesh_p->Nodes->globalDegreesOfFreedom[i0]		= tempInts[chunkSize+i0];
@@ -479,6 +482,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	/* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
 	if (mpi_info->rank == 0) {	/* Master */
 	  for (;;) {			/* Infinite loop */
+            #pragma omp parallel for private (i0) schedule(static)
 	    for (i0=0; i0<chunkSize*(2+numNodes)+1; i0++) tempInts[i0] = -1;
 	    chunkEle = 0;
 	    for (i0=0; i0<chunkSize; i0++) {
@@ -530,7 +534,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
         mesh_p->Elements->minColor=0;
         mesh_p->Elements->maxColor=chunkEle-1;
         if (Finley_noError()) {
-          #pragma omp parallel for private (i0, i1)
+          #pragma omp parallel for private (i0, i1) schedule(static)
 	  for (i0=0; i0<chunkEle; i0++) {
 	    mesh_p->Elements->Id[i0]	= tempInts[i0*(2+numNodes)+0];
 	    mesh_p->Elements->Tag[i0]	= tempInts[i0*(2+numNodes)+1];
@@ -585,6 +589,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	/* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
 	if (mpi_info->rank == 0) {	/* Master */
 	  for (;;) {			/* Infinite loop */
+            #pragma omp parallel for private (i0) schedule(static)
 	    for (i0=0; i0<chunkSize*(2+numNodes)+1; i0++) tempInts[i0] = -1;
 	    chunkEle = 0;
 	    for (i0=0; i0<chunkSize; i0++) {
@@ -691,6 +696,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	/* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
 	if (mpi_info->rank == 0) {	/* Master */
 	  for (;;) {			/* Infinite loop */
+            #pragma omp parallel for private (i0) schedule(static)
 	    for (i0=0; i0<chunkSize*(2+numNodes)+1; i0++) tempInts[i0] = -1;
 	    chunkEle = 0;
 	    for (i0=0; i0<chunkSize; i0++) {
@@ -797,6 +803,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	/* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
 	if (mpi_info->rank == 0) {	/* Master */
 	  for (;;) {			/* Infinite loop */
+            #pragma omp parallel for private (i0) schedule(static)
 	    for (i0=0; i0<chunkSize*(2+numNodes)+1; i0++) tempInts[i0] = -1;
 	    chunkEle = 0;
 	    for (i0=0; i0<chunkSize; i0++) {
@@ -848,7 +855,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
         mesh_p->Points->minColor=0;
         mesh_p->Points->maxColor=chunkEle-1;
         if (Finley_noError()) {
-          #pragma omp parallel for private (i0, i1)
+          #pragma omp parallel for private (i0, i1) schedule(static)
 	  for (i0=0; i0<chunkEle; i0++) {
 	    mesh_p->Points->Id[i0]	= tempInts[i0*(2+numNodes)+0];
 	    mesh_p->Points->Tag[i0]	= tempInts[i0*(2+numNodes)+1];
