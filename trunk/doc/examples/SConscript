@@ -36,12 +36,17 @@ Depends(cc, data_files)
 
 np=int(local_env['ENV']['ESCRIPT_NUM_NODES'])
 programs=[]
+copies=[]
 for i in example_files:
   if i.endswith('.py') and (np==1 or not i in example_files_no_mpi):
     f_in=File(os.path.join(src_dir,i))
     f_out=File(i, test_dir)
     c=Command(f_out, f_in, Copy("$TARGET", "$SOURCE"))
+    copies+=c
     programs+=local_env.RunPyUnitTest(c)
+#env.Alias('build_py_tests', programs)
+env.Alias('build_py_tests', data_files)
+env.Alias('build_py_tests', copies)
 env.Alias('py_tests', programs)
 Depends(programs, env['pyinstall'])
 Depends(programs, data_files)
@@ -59,4 +64,4 @@ for single_processor_only in [True, False]:
       runs=[]
       for i in example_files:
           if i.startswith(d) and i.endswith('.py') and (single_processor_only == (i in example_files_no_mpi)): runs.append(os.path.split(i)[1])
-      TestGroups.append(GroupTest("$PYTHONRUNNER ",(),"",os.path.join("$BATCH_ROOT/doc/examples/test",d),runs, single_processor_only=single_processor_only))
+      TestGroups.append(GroupTest("$PYTHONRUNNER ",(),"",os.path.join("$BUILD_DIR/doc/examples/test",d),runs, single_processor_only=single_processor_only))
