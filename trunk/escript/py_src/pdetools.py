@@ -405,23 +405,20 @@ class Locator:
         object otherwise the object is returned.
         """
         if isinstance(data,escript.Data):
-           if data.getFunctionSpace()==self.getFunctionSpace():
-             dat=data
-           else:
-             dat=data.interpolate(self.getFunctionSpace())
+           dat=util.interpolate(data,self.getFunctionSpace())
            id=self.getId()
            r=data.getRank()
            if isinstance(id,list):
                out=[]
                for i in id:
-                  o=numpy.array(data.getTupleForGlobalDataPoint(*i))
+                  o=numpy.array(dat.getTupleForGlobalDataPoint(*i))
                   if data.getRank()==0:
                      out.append(o[0])
                   else:
                      out.append(o)
                return out
            else:
-             out=numpy.array(data.getTupleForGlobalDataPoint(*id))
+             out=numpy.array(dat.getTupleForGlobalDataPoint(*id))
              if data.getRank()==0:
                 return out[0]
              else:
