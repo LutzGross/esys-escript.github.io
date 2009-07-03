@@ -34,7 +34,7 @@ void Finley_NodeFile_setCoordinates(Finley_NodeFile* self,escriptDataC* newX) {
       sprintf(error_msg,"Finley_NodeFile_setCoordinates: dimension of new coordinates has to be %d.",self->numDim);
       Finley_setError(VALUE_ERROR,error_msg);
    } else if (! numSamplesEqual(newX,1,self->numNodes)) {
-         sprintf(error_msg,"Finley_NodeFile_setCoordinates: number of give nodes must to be %d.",self->numNodes);
+         sprintf(error_msg,"Finley_NodeFile_setCoordinates: number of given nodes must to be %d.",self->numNodes);
          Finley_setError(VALUE_ERROR,error_msg);
    } else {
     	  void* buff=allocSampleBuffer(newX);
