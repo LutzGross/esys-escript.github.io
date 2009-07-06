@@ -81,7 +81,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
               break;
             case PASO_AMG:
               if (options->verbose) printf("AMG preconditioner is used.\n");
-              prec->amg=Paso_Solver_getAMG(A->mainBlock,options->verbose,options->level_max,options->coarsening_threshold,options->coarsening_method);
+              prec->amg=Paso_Solver_getAMG(A->mainBlock,options->level_max,options);
               prec->type=PASO_AMG;
               break;
  
