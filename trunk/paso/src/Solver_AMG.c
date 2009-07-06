@@ -74,8 +74,9 @@ to
    then AMG is applied to S again until S becomes empty 
 
 */
-Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t level, double coarsening_threshold, dim_t coarsening_method) {
+Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Options* options) {
   Paso_Solver_AMG* out=NULL;
+  bool_t verbose=options->verbose;
   dim_t n=A_p->numRows;
   dim_t n_block=A_p->row_block_size;
   index_t* mis_marker=NULL;  
@@ -120,18 +121,18 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
      
-     if (coarsening_method == PASO_YAIR_SHAPIRA_COARSENING) {
-      Paso_Pattern_coup(A_p,mis_marker,coarsening_threshold);
+     if (options->coarsening_method == PASO_YAIR_SHAPIRA_COARSENING) {
+      Paso_Pattern_coup(A_p,mis_marker,options->coarsening_threshold);
      }
-     else if (coarsening_method == PASO_RUGE_STUEBEN_COARSENING) {
-      Paso_Pattern_RS(A_p,mis_marker,coarsening_threshold);
+     else if (options->coarsening_method == PASO_RUGE_STUEBEN_COARSENING) {
+      Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);
      }
-     else if (coarsening_method == PASO_AGGREGATION_COARSENING) {
-      Paso_Pattern_Aggregiation(A_p,mis_marker,coarsening_threshold);
+     else if (options->coarsening_method == PASO_AGGREGATION_COARSENING) {
+      Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);
      }
      else {
       /*Default coarseneing*/
-      Paso_Pattern_RS(A_p,mis_marker,coarsening_threshold);
+      Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);
      }
 
     if (Paso_noError()) {
@@ -224,7 +225,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,bool_t verbose,dim_t 
                             }                                
                             if (Paso_noError()) {
                                 Paso_Solver_updateIncompleteSchurComplement(schur_withFillIn,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
-                                out->AMG_of_Schur=Paso_Solver_getAMG(schur_withFillIn,verbose,level-1,coarsening_threshold,coarsening_method);
+                                out->AMG_of_Schur=Paso_Solver_getAMG(schur_withFillIn,level-1,options);
                                 Paso_SparseMatrix_free(schur);
                             }
                             /* allocate work arrays for AMG application */
