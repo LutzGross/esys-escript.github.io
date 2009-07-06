@@ -89,10 +89,9 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \brief
      Constructor for DataAbstract.
 
-     Description:
-     Constructor for DataAbstract.
-
-     \param what - Input - A description of what this data represents.
+     \param what - Input - The functionspace to use.
+     \param shape - Input - Shape of each data value.
+     \param isDataEmpty - Input - Is this an instance of DataEmpty (for internal use only)
   */
   ESCRIPT_DLL_API
   DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty=false);
@@ -286,7 +285,11 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
      \param tagKey - Input - Integer key.
      \param pointshape - Input - the shape of the value parameter.
-     \param value - Input - 
+     \param value - Input - vector to copy data value from
+     \param dataOffset - Input - Offset within value to begin copying from
+
+     The final parameter is to allow for the case whete the vector contains
+     multiple data values.
   */
   ESCRIPT_DLL_API
   virtual
@@ -364,7 +367,7 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      Computes the trace of a matrix
 
      \param ev - Output - the trace of a matrix
-
+     \param axis_offset
   */
   ESCRIPT_DLL_API
   virtual void
@@ -375,7 +378,7 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      Transpose each data point of this Data object around the given axis.
 
      \param ev - Output - the transpose of a matrix
-
+     \param axis_offset
   */
   ESCRIPT_DLL_API
   virtual void
@@ -386,7 +389,8 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      swaps components axis0 and axis1
 
      \param ev - Output - swapped components
-
+     \param axis0
+     \param axis1
   */
   ESCRIPT_DLL_API
   virtual void

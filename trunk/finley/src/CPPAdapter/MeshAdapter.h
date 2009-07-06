@@ -184,11 +184,10 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
-     Write the current mesh to a file with the given name.
-     \param fileName Input - The name of the file to write to.
+     \param full
   */
   FINLEY_DLL_API
-  void Print_Mesh_Info(const bool) const;
+  void Print_Mesh_Info(const bool full=false) const;
 
   /**
      \brief
@@ -471,8 +470,9 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \brief
      return the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, package, perconditioner,
      and symmetric matrix is used.
-     \param precondioner
      \param solver 
+     \param preconditioner
+     \param package
      \param symmetry 
   */
   FINLEY_DLL_API
@@ -482,8 +482,9 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \brief
      return the identifier of the transport problem type to be used when a particular solver, perconditioner, package
      and symmetric matrix is used.
-     \param precondioner
      \param solver 
+     \param preconditioner
+     \param package
      \param symmetry 
   */
   FINLEY_DLL_API

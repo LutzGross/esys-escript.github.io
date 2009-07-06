@@ -527,7 +527,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      Computes the trace of a matrix
 
      \param ev - Output - the trace of a matrix
-
+     \param axis_offset
   */
   ESCRIPT_DLL_API
   virtual void
@@ -538,7 +538,8 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      swaps components axis0 and axis1
 
      \param ev - Output - swapped components
-
+     \param axis0
+     \param axis1
   */
   ESCRIPT_DLL_API
   virtual void
@@ -549,7 +550,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      Transpose each data point of this Data object around the given axis.
 
      \param ev - Output - the transpose of a matrix
-
+     \param axis_offset
   */
   ESCRIPT_DLL_API
   virtual void

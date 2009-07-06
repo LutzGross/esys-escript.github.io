@@ -96,6 +96,8 @@ namespace finley {
      \param useElementsOnFace Input - whether or not to use elements on face
      \param periodic0, periodic1, periodic2 Input - whether or not boundary 
      conditions of the dimension are periodic
+     \param useFullElementOrder
+     \param optimize
   */
   FINLEY_DLL_API
 //   escript::AbstractContinuousDomain* brick(int n0=1,int n1=1,int n2=1,int order=1,
@@ -124,6 +126,8 @@ namespace finley {
      \param periodic0, periodic1 Input - whether or not the boundary
      conditions of the dimension are periodic
      \param useElementsOnFace Input - whether or not to use elements on face
+     \param useFullElementOrder
+     \param optimize
   */
   FINLEY_DLL_API
 //   escript::AbstractContinuousDomain* rectangle(int n0=1,int n1=1,int order=1,

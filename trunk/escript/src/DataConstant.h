@@ -213,6 +213,7 @@ typedef DataReady parent;
      Computes the trace of a matrix
 
      \param ev - Output - trace of matrix
+     \param axis_offset
 
   */
   ESCRIPT_DLL_API
@@ -224,7 +225,7 @@ typedef DataReady parent;
      Transpose each data point of this Data object around the given axis.
 
      \param ev - Output - transpose of matrix
-
+     \param axis_offset
   */
   ESCRIPT_DLL_API
   virtual void
@@ -235,7 +236,8 @@ typedef DataReady parent;
      swaps components axis0 and axis1
 
      \param ev - Output - swapped components
-
+     \param axis0
+     \param axis1
   */
   ESCRIPT_DLL_API
   virtual void
