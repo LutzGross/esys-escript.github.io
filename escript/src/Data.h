@@ -576,7 +576,7 @@ If false, the result is a list of scalars [1, 2, ...]
     preferred interface but is provided for use by C code.
     The bufferg parameter is only required for LazyData.
     \param sampleNo - Input - the given sample no.
-    \param buffer - A buffer to to compute (and store) sample data in will be selected from this group.
+    \param bufferg - A buffer to compute (and store) sample data in will be selected from this group.
     \return pointer to the sample data.
 */
   ESCRIPT_DLL_API
@@ -691,9 +691,8 @@ If false, the result is a list of scalars [1, 2, ...]
      Assign the given value to the tag assocciated with name. Implicitly converts this
      object to type DataTagged. Throws an exception if this object
      cannot be converted to a DataTagged object or name cannot be mapped onto a tag key.
-     \param tagKey - Input - Integer key.
+     \param name - Input - name of tag.
      \param value - Input - Value to associate with given key.
-    ==>*
   */
   ESCRIPT_DLL_API
   void
@@ -1949,15 +1948,15 @@ ESCRIPT_DLL_API std::ostream& operator<<(std::ostream& o, const Data& data);
 /**
   \brief
   Compute a tensor product of two Data objects
-  \param arg0 - Input - Data object
-  \param arg1 - Input - Data object
+  \param arg_0 - Input - Data object
+  \param arg_1 - Input - Data object
   \param axis_offset - Input - axis offset
   \param transpose - Input - 0: transpose neither, 1: transpose arg0, 2: transpose arg1
 */
 ESCRIPT_DLL_API
 Data
-C_GeneralTensorProduct(Data& arg0,
-                     Data& arg1,
+C_GeneralTensorProduct(Data& arg_0,
+                     Data& arg_1,
                      int axis_offset=0,
                      int transpose=0);
 
@@ -2121,8 +2120,8 @@ Data::dp_algorithm(BinaryFunction operation, double initial_value) const
 /**
   \brief
   Compute a tensor operation with two Data objects
-  \param arg0 - Input - Data object
-  \param arg1 - Input - Data object
+  \param arg_0 - Input - Data object
+  \param arg_1 - Input - Data object
   \param operation - Input - Binary op functor
 */
 template <typename BinaryFunction>

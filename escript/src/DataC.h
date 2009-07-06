@@ -128,6 +128,7 @@ This function has been removed because it does not make sense for LazyData
    \return true if data is expanded or the data is lazy but would resolve to expanded. False otherwise.
 */
 ESCRIPT_DLL_API int isExpanded(escriptDataC* data);
+
 /**
    \brief
    Return a pointer to the data for the given sample number.
@@ -135,6 +136,9 @@ ESCRIPT_DLL_API int isExpanded(escriptDataC* data);
    data may be NULL, in which case NULL is returnd.
   \param data Input - C wrapper for Data.
   \param sampleNo Input - The sample number.
+  \param buffer - storage to be used when computing the value of the sample.
+
+  Buffers can be created and freed using the allocSampleBuffer and freeSampleBuffer calls.
 */
 ESCRIPT_DLL_API double __const * getSampleDataRO(escriptDataC* data, int sampleNo, void* buffer);
 /* Placement of __const might be important. See .cpp */
@@ -157,6 +161,9 @@ ESCRIPT_DLL_API double* getSampleDataRW(escriptDataC* data, int sampleNo);
    Fast version of getSampledataRO: does no error checking.
   \param data Input - C wrapper for Data.
   \param sampleNo Input - The sample number.
+  \param buffer - storage to be used when computing the value of the sample.
+
+  Buffers can be created and freed using the allocSampleBuffer and freeSampleBuffer calls.
 */
 ESCRIPT_DLL_API double __const* getSampleDataROFast(escriptDataC* data, int sampleNo, void* buffer);
 

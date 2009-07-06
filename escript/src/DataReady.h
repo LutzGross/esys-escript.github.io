@@ -25,7 +25,9 @@ namespace escript {
 
 
 /**
-  \class DataReady ...Purpose...
+  \class DataReady 
+  Base class for Data which do not need to be resolved.
+  Internally this means they have getVectorRO and getVectorRW methods.
 */
 class DataReady : public DataAbstract
 {
@@ -61,13 +63,6 @@ public:
   /**
 	\brief Provide access to underlying storage. Internal use only!
   */
-//   ESCRIPT_DLL_API
-//   virtual DataTypes::ValueType&
-//   getVector()=0;
-// 
-//   ESCRIPT_DLL_API
-//   virtual const DataTypes::ValueType&
-//   getVector() const=0;
 
   ESCRIPT_DLL_API
   virtual DataTypes::ValueType&
