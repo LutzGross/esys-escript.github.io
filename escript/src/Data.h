@@ -1782,35 +1782,12 @@ inline
 DataAbstract::ValueType::value_type*
 Data::getSampleDataRW(DataAbstract::ValueType::size_type sampleNo)
 {
-//    if (isLazy())
-//    {
-// 	resolve();
-//    }
-//    exclusiveWrite();
    if (isLazy())
    {
 	throw DataException("Error, attempt to acquire RW access to lazy data. Please call requireWrite() first.");
    }
    return getReady()->getSampleDataRW(sampleNo);
 }
-
-// inline
-// const DataAbstract::ValueType::value_type*
-// Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo, DataTypes::ValueType* buffer)
-// {
-//    DataLazy* l=dynamic_cast<DataLazy*>(m_data.get());
-//    if (l!=0)
-//    {
-// 	size_t offset=0;
-// 	if (buffer==NULL)
-// 	{
-// 		throw DataException("Error, attempt to getSampleDataRO for lazy Data with buffer==NULL");
-// 	}
-// 	const DataTypes::ValueType* res=l->resolveSample(*buffer,0,sampleNo,offset);
-// 	return &((*res)[offset]);
-//    }
-//    return getReady()->getSampleDataRO(sampleNo);
-// }
 
 inline
 const DataAbstract::ValueType::value_type*

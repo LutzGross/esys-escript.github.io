@@ -308,13 +308,22 @@ void  normalizeVector3(double* V0,double* V1,double* V2)
 
    \param A00 Input - A_00
    \param A01 Input - A_01
+   \param A02 Input - A_02
    \param A11 Input - A_11
+   \param A12 Input - A_12
+   \param A22 Input - A_22
    \param ev0 Output - smallest eigenvalue
    \param ev1 Output - eigenvalue
+   \param ev2 Output -
    \param V00 Output - eigenvector componenent coresponding to ev0
    \param V10 Output - eigenvector componenent coresponding to ev0
+   \param V20 Output -
    \param V01 Output - eigenvector componenent coresponding to ev1
    \param V11 Output - eigenvector componenent coresponding to ev1
+   \param V21 Output -
+   \param V02 Output -
+   \param V12 Output -
+   \param V22 Output -
    \param tol Input - tolerance to identify to eigenvalues
 */
 inline

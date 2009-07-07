@@ -982,7 +982,7 @@ DataLazy::resolveUnary(ValueType& v, size_t offset, int sampleNo, size_t& roffse
   {
     throw DataException("Programmer error - resolveUnary should only be called on expanded Data.");
   }
-  const ValueType* vleft=m_left->resolveSample(v,offset,sampleNo,roffset);
+  const ValueType* vleft=m_left->resolveVectorSample(v,offset,sampleNo,roffset);
   const double* left=&((*vleft)[roffset]);
   double* result=&(v[offset]);
   roffset=offset;
@@ -1128,7 +1128,7 @@ DataLazy::resolveNP1OUT(ValueType& v, size_t offset, int sampleNo, size_t& roffs
 	// since we can't write the result over the input, we need a result offset further along
   size_t subroffset=roffset+m_samplesize;
 LAZYDEBUG(cerr << "subroffset=" << subroffset << endl;)
-  const ValueType* vleft=m_left->resolveSample(v,offset+m_left->m_samplesize,sampleNo,subroffset);
+  const ValueType* vleft=m_left->resolveVectorSample(v,offset+m_left->m_samplesize,sampleNo,subroffset);
   roffset=offset;
   size_t loop=0;
   size_t numsteps=(m_readytype=='E')?getNumDPPSample():1;
@@ -1181,7 +1181,7 @@ DataLazy::resolveNP1OUT_P(ValueType& v, size_t offset, int sampleNo, size_t& rof
   }
 	// since we can't write the result over the input, we need a result offset further along
   size_t subroffset;
-  const ValueType* vleft=m_left->resolveSample(v,offset+m_left->m_samplesize,sampleNo,subroffset);
+  const ValueType* vleft=m_left->resolveVectorSample(v,offset+m_left->m_samplesize,sampleNo,subroffset);
 LAZYDEBUG(cerr << "srcsamplesize=" << offset+m_left->m_samplesize << " beg=" << subroffset << endl;)
 LAZYDEBUG(cerr << "Offset for 5800=" << getPointOffset(5800/getNumDPPSample(),5800%getNumDPPSample()) << endl;)
   roffset=offset;
@@ -1252,7 +1252,7 @@ DataLazy::resolveNP1OUT_2P(ValueType& v, size_t offset, int sampleNo, size_t& ro
   }
 	// since we can't write the result over the input, we need a result offset further along
   size_t subroffset;
-  const ValueType* vleft=m_left->resolveSample(v,offset+m_left->m_samplesize,sampleNo,subroffset);
+  const ValueType* vleft=m_left->resolveVectorSample(v,offset+m_left->m_samplesize,sampleNo,subroffset);
 LAZYDEBUG(cerr << "srcsamplesize=" << offset+m_left->m_samplesize << " beg=" << subroffset << endl;)
 LAZYDEBUG(cerr << "Offset for 5800=" << getPointOffset(5800/getNumDPPSample(),5800%getNumDPPSample()) << endl;)
   roffset=offset;
@@ -1429,9 +1429,9 @@ LAZYDEBUG(cout << "Resolve binary: " << toString() << endl;)
 
   int resultStep=max(leftstep,rightstep);	// only one (at most) should be !=0
 	// Get the values of sub-expressions
-  const ValueType* left=m_left->resolveSample(v,offset+getMaxSampleSize(),sampleNo,lroffset);	// see note on 
+  const ValueType* left=m_left->resolveVectorSample(v,offset+getMaxSampleSize(),sampleNo,lroffset);	// see note on 
 	// calcBufss for why we can't put offset as the 2nd param above
-  const ValueType* right=m_right->resolveSample(v,offset+2*getMaxSampleSize(),sampleNo,rroffset); // Note
+  const ValueType* right=m_right->resolveVectorSample(v,offset+2*getMaxSampleSize(),sampleNo,rroffset); // Note
 	// the right child starts further along.
 LAZYDEBUG(cout << "Post sub calls in " << toString() << endl;)
 LAZYDEBUG(cout << "shapes=" << DataTypes::shapeToString(m_left->getShape()) << "," << DataTypes::shapeToString(m_right->getShape()) << endl;)
@@ -1505,14 +1505,14 @@ LAZYDEBUG(cout << "Resolve TensorProduct: " << toString()  << " to offset " << o
 
 LAZYDEBUG(cout << "Query left with offset=" << gap << endl;)
 
-  const ValueType* left=m_left->resolveSample(v,gap,sampleNo,lroffset);
+  const ValueType* left=m_left->resolveVectorSample(v,gap,sampleNo,lroffset);
   gap+=m_left->getMaxSampleSize();
 
 
 LAZYDEBUG(cout << "Query right with offset=" << gap << endl;)
 
 
-  const ValueType* right=m_right->resolveSample(v,gap,sampleNo,rroffset);
+  const ValueType* right=m_right->resolveVectorSample(v,gap,sampleNo,rroffset);
 
 LAZYDEBUG(cerr << "[Left shape]=" << DataTypes::shapeToString(m_left->getShape()) << "\n[Right shape]=" << DataTypes::shapeToString(m_right->getShape()) << " result=" <<DataTypes::shapeToString(getShape()) <<  endl;
 cout << getNoValues() << endl;)
@@ -2138,7 +2138,7 @@ LAZYDEBUG(cout << DataTypes::pointToString(*right,m_right->getShape(),rroffset, 
 
 // the roffset is the offset within the returned vector where the data begins
 const DataTypes::ValueType*
-DataLazy::resolveSample(ValueType& v, size_t offset, int sampleNo, size_t& roffset)
+DataLazy::resolveVectorSample(ValueType& v, size_t offset, int sampleNo, size_t& roffset)
 {
 LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
 	// collapse so we have a 'E' node or an IDENTITY for some other type
@@ -2186,7 +2186,11 @@ DataLazy::resolveSample(BufferGroup& bg, int sampleNo, size_t& roffset)
 #else
 	int tid=0;
 #endif 
-	return resolveSample(bg.getBuffer(tid),bg.getOffset(tid),sampleNo,roffset);
+#ifdef LAZY_NODE_STORAGE
+	return resolveNodeSample(tid, sampleNo, roffset);
+#else
+	return resolveVectorSample(bg.getBuffer(tid),bg.getOffset(tid),sampleNo,roffset);
+#endif
 }
 
 
@@ -2312,9 +2316,9 @@ LAZYDEBUG(cout << "Total number of samples=" <<totalsamples << endl;)
   {
 LAZYDEBUG(cout << "################################# " << sample << endl;)
 #ifdef _OPENMP
-    res=resolveSample(v,threadbuffersize*omp_get_thread_num(),sample,resoffset);
+    res=resolveVectorSample(v,threadbuffersize*omp_get_thread_num(),sample,resoffset);
 #else
-    res=resolveSample(v,0,sample,resoffset);   // res would normally be v, but not if its a single IDENTITY op.
+    res=resolveVectorSample(v,0,sample,resoffset);   // res would normally be v, but not if its a single IDENTITY op.
 #endif
 LAZYDEBUG(cerr << "-------------------------------- " << endl;)
 LAZYDEBUG(cerr<< "Copying sample#" << sample << endl;)

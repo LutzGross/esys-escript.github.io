@@ -421,6 +421,8 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   */
   FINLEY_DLL_API
   virtual void interpolateOnDomain(escript::Data& target,const escript::Data& source) const;
+
+
   FINLEY_DLL_API
   virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
 
@@ -431,8 +433,13 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   */
   FINLEY_DLL_API
   virtual void interpolateACross(escript::Data& target, const escript::Data& source) const;
+
+  /**
+  \brief determines whether interpolation from source to target is possible.
+  Must be implemented by the actual Domain adapter
+  */
   FINLEY_DLL_API
-  virtual bool probeInterpolationACross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const;
+  virtual bool probeInterpolationACross(int functionSpaceType_source,const escript::AbstractDomain& targetDomain, int functionSpaceType_target) const;
 
   /**
      \brief
@@ -614,9 +621,9 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \brief comparison operators
   */
   FINLEY_DLL_API
-  virtual bool operator==(const AbstractDomain& other) const;
+  virtual bool operator==(const escript::AbstractDomain& other) const;
   FINLEY_DLL_API
-  virtual bool operator!=(const AbstractDomain& other) const;
+  virtual bool operator!=(const escript::AbstractDomain& other) const;
 
   /**
      \brief assigns new tag newTag to all samples of functionspace with a positive
