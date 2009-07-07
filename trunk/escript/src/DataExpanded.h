@@ -254,7 +254,8 @@ TODO Note that this constructor will also copy data to all points if it only con
 
      \param tagKey - Input - Integer key.
      \param pointshape - Input - The shape of the value parameter
-     \param value - Input - .
+     \param value - Input - 
+     \param dataOffset - Input - where in the value parameter to start reading the data point value.
   */
   void  
   setTaggedValue(int tagKey,
@@ -291,6 +292,7 @@ TODO Note that this constructor will also copy data to all points if it only con
      Computes the trace of a matrix
 
      \param ev - Output - trace of your matrix
+     \param axis_offset - 
 
   */
   ESCRIPT_DLL_API
@@ -302,7 +304,7 @@ TODO Note that this constructor will also copy data to all points if it only con
      Transpose each data point of this Data object around the given axis.
 
      \param ev - Output - transpose of your matrix
-
+     \param axis_offset - 
   */
   ESCRIPT_DLL_API
   virtual void
@@ -313,7 +315,8 @@ TODO Note that this constructor will also copy data to all points if it only con
      swaps components axis0 and axis1
 
      \param ev - Output - swapped components
-
+     \param axis0
+     \param axis1
   */
   ESCRIPT_DLL_API
   virtual void
