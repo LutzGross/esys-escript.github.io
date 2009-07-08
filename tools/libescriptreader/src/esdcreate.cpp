@@ -105,8 +105,8 @@ int main(int argc, char** argv)
         cout << "a format string at the right place of the filename which will be replaced" << endl;
         cout << "by the actual timestep when loading the files." << endl;
         cout << "Examples:" << endl;
-        cout << "  temp.%d:temperature would be resolved to temp.1.nc, temp.2.nc etc." << endl;
-        cout << "  temp.%04d:temperature would be resolved to temp.0001.nc, temp.0002.nc etc." << endl;
+        cout << "  temp.%d:temperature would be resolved to temp.0.nc, temp.1.nc etc." << endl;
+        cout << "  temp.%04d:temperature would be resolved to temp.0000.nc, temp.0001.nc etc." << endl;
     }
     cout << endl;
     cout << "When you are finished please enter: done" << endl;
@@ -121,6 +121,25 @@ int main(int argc, char** argv)
             cout << "Your input is invalid! Please enter filename:varname or done." << endl;
         } else
             esdFile << "V=" << varString << endl;
+    }
+
+    if (numTS > 1) {
+        int tsIncrement = 0;
+        cout << endl;
+        cout << "Please supply the timestep increment to find your files." << endl;
+        cout << "For example, if your files are named temp.0, temp.10, temp.20, etc." << endl;
+        cout << "the increment is 10, whereas temp.0, temp.1, temp.2 have an increment of 1." << endl;
+        while (tsIncrement <= 0) {
+            cout << "Timestep increment for filenames: ";
+            cin >> tsIncrement;
+            if (!cin.good()) {
+                cin.clear();
+                cin.ignore(100, '\n');
+            }
+            if (tsIncrement <= 0)
+                cout << "Please enter a value > 0!" << endl;
+        }
+        esdFile << "DT=" << tsIncrement << endl;
     }
 
     esdFile.close();
