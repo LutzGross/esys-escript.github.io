@@ -155,6 +155,8 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_AGGREGATION_COARSENING;
        case  ESCRIPT_NO_PRECONDITIONER:
           return PASO_NO_PRECONDITIONER;
+       case  ESCRIPT_MIN_COARSE_MATRIX_SIZE:
+          return PASO_MIN_COARSE_MATRIX_SIZE;
        default:
            stringstream temp;
            temp << "Error - Cannot map option value "<< option << " onto Paso";
@@ -328,6 +330,7 @@ void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const
    EXTRACT("getNumPreSweeps", pre_sweeps, dim_t);
    EXTRACT("getNumPostSweeps", post_sweeps, dim_t);
    EXTRACT("getLevelMax", level_max, dim_t);
+   EXTRACT("getMinCoarseMatrixSize", min_coarse_matrix_size, dim_t);
    EXTRACT("getCoarseningThreshold", coarsening_threshold, double);
    EXTRACT("acceptConvergenceFailure", accept_failed_convergence, bool_t);
    EXTRACT_OPTION("getCoarsening", coarsening_method, index_t); 

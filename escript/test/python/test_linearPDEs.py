@@ -652,6 +652,11 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.failUnlessRaises(ValueError,so.setCoarseningThreshold,-1)
         so.setCoarseningThreshold(0.1)
         self.failUnless(so.getCoarseningThreshold() == 0.1, "CoarseningThreshold is wrong.")
+        
+        self.failUnless(so.getMinCoarseMatrixSize() == 500, "initial  Minimum Coarse Matrix Size is wrong.")
+        self.failUnlessRaises(ValueError,so.setMinCoarseMatrixSize,-1)
+        so.setMinCoarseMatrixSize(1000)
+        self.failUnless(so.getMinCoarseMatrixSize() == 1000, "Minimum Coarse Matrix Size is wrong.")
 
         self.failUnless(so.getNumSweeps() == 2, "initial  Sweeps is wrong.")
         self.failUnlessRaises(ValueError,so.setNumSweeps,-1)

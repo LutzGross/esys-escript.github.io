@@ -544,6 +544,14 @@ Sets the threshold for coarsening in the \AMG solver or preconditioner
 Returns the threshold for coarsening in the \AMG solver or preconditioner
 \end{methoddesc}
 
+\begin{methoddesc}[SolverOptions]{setMinCoarseMatrixSize}{\optional{size=500}}
+Sets the minumum size of the coarsest level matrix in AMG.
+\end{methoddesc}
+
+\begin{methoddesc}[SolverOptions]{getMinCoarseMatrixSize}{}
+Returns the minumum size of the coarsest level matrix in AMG.
+\end{methoddesc}
+
 \begin{methoddesc}[SolverOptions]{setNumSweeps}{\optional{sweeps=2}}
 Sets the number of sweeps in a \JACOBI or \GAUSSSEIDEL preconditioner.
 \end{methoddesc}

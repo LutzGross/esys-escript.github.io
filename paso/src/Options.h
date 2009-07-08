@@ -67,6 +67,7 @@
 #define PASO_RUGE_STUEBEN_COARSENING 34
 #define PASO_AGGREGATION_COARSENING 35
 #define PASO_NO_PRECONDITIONER 36
+#define PASO_MIN_COARSE_MATRIX_SIZE 37
 
 typedef struct {
     index_t method;
@@ -89,6 +90,7 @@ typedef struct {
     dim_t pre_sweeps;
     dim_t post_sweeps;
     dim_t level_max;
+    dim_t min_coarse_matrix_size;
     double coarsening_threshold;
     bool_t accept_failed_convergence;
     index_t coarsening_method;

@@ -113,10 +113,14 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
   out->A=Paso_SparseMatrix_getReference(A_p);
   /*out->GS=Paso_Solver_getGS(A_p,verbose);*/
   out->GS=Paso_Solver_getJacobi(A_p);
-  /*out->GS->sweeps=2;*/
   out->level=level;
+  
+  if (level==0 || n<=options->min_coarse_matrix_size)
+    out->coarsest_level=TRUE;
+  else
+    out->coarsest_level=FALSE;
  
-  if ( !(Paso_checkPtr(mis_marker) || Paso_checkPtr(out) || Paso_checkPtr(counter) || level==0 ) ) {
+  if ( !(Paso_checkPtr(mis_marker) || Paso_checkPtr(out) || Paso_checkPtr(counter) || level==0 || n<=options->min_coarse_matrix_size) ) {
      /* identify independend set of rows/columns */
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
@@ -174,7 +178,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
            if( Paso_noError()) {
               /* if there are no nodes in the coarse level there is no more work to do */
               out->n_C=n-out->n_F;
-              if (level>0 && out->n_C>500) {
+              
                /*if (out->n_F>500) {*/
                    out->rows_in_C=MEMALLOC(out->n_C,index_t);
                    out->mask_C=MEMALLOC(n,index_t);
@@ -255,7 +259,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                          }
                      }
                  }
-              }
+              
            }
         }
      }
@@ -263,7 +267,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
   TMPMEMFREE(mis_marker);
   TMPMEMFREE(counter);
   if (Paso_noError()) {
-      if (verbose && level>0) {
+      if (verbose && level>0 && !out->coarsest_level) {
          printf("AMG: %d unknowns eliminated. %d left.\n",out->n_F,out->n_C);
      }
      return out;
@@ -309,7 +313,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      #endif
      
      
-     if (amg->level==0  || amg->n_C<=500) {
+     if (amg->coarsest_level) {
       
       time0=Paso_timer();
        #ifdef MKL
