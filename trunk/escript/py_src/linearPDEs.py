@@ -94,6 +94,7 @@ class SolverOptions(object):
     @cvar YAIR_SHAPIRA_COARSENING: AMG coarsening method by Yair-Shapira
     @cvar RUGE_STUEBEN_COARSENING: AMG coarsening method by Ruge and Stueben
     @cvar AGGREGATION_COARSENING: AMG coarsening using (symmetric) aggregation
+    @cvar MIN_COARSE_MATRIX_SIZE: minimum size of the coarsest level matrix to use direct solver.
     @cvar NO_PRECONDITIONER: no preconditioner is applied.
     """
     DEFAULT= 0
@@ -132,6 +133,8 @@ class SolverOptions(object):
     RUGE_STUEBEN_COARSENING=34
     AGGREGATION_COARSENING=35
     NO_PRECONDITIONER=36
+    MIN_COARSE_MATRIX_SIZE=37
+    
     def __init__(self):
         self.setLevelMax()
         self.setCoarseningThreshold()
@@ -156,6 +159,7 @@ class SolverOptions(object):
         self.setSolverMethod()
         self.setPreconditioner()
         self.setCoarsening()
+        self.setMinCoarseMatrixSize()
         self.setRelaxationFactor()        
         self.resetDiagnostics(all=True)
 
@@ -189,7 +193,8 @@ class SolverOptions(object):
             if self.getPreconditioner() == self.AMG:
                 out+="\nMaximum number of levels = %s"%self.LevelMax()
                 out+="\nCoarsening method = %s"%self.getName(self.getCoarsening())
-                out+="\nCoarsening threshold = %e"%self.getCoarseningThreshold()
+                out+="\nCoarsening threshold = %e"%self.getMinCoarseMatrixSize()
+                out+="\nMinimum size of the coarsest level matrix = %e"%self.getCoarseningThreshold()
                 out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
             if self.getPreconditioner() == self.GAUSS_SEIDEL:
                 out+="\nNumber of sweeps = %s"%self.getNumSweeps()
@@ -242,6 +247,7 @@ class SolverOptions(object):
         if key == self.RUGE_STUEBEN_COARSENING: return "RUGE_STUEBEN_COARSENING"
         if key == self.AGGREGATION_COARSENING: return "AGGREGATION_COARSENING"
         if key == self.NO_PRECONDITIONER: return "NO_PRECONDITIONER"
+        if key == self.MIN_COARSE_MATRIX_SIZE: return "MIN_COARSE_MATRIX_SIZE"
         
     def resetDiagnostics(self,all=False):
         """
@@ -341,6 +347,7 @@ class SolverOptions(object):
         if not method in [self.DEFAULT, self.YAIR_SHAPIRA_COARSENING, self.RUGE_STUEBEN_COARSENING, self.AGGREGATION_COARSENING]:
              raise ValueError,"unknown coarsening method %s"%method
         self.__coarsening=method
+    
     def getCoarsening(self):
         """
         Returns the key of the coarsening algorithm to be applied AMG.
@@ -349,6 +356,28 @@ class SolverOptions(object):
         L{SolverOptions.RUGE_STUEBEN_COARSENING}, L{SolverOptions.AGGREGATION_COARSENING}
         """
         return self.__coarsening
+      
+    def setMinCoarseMatrixSize(self,size=500):
+        """
+        Sets the minumum size of the coarsest level matrix in AMG.
+
+        @param size: minumum size of the coarsest level matrix .
+        @type size: positive C{int} or C{None}
+        """
+        size=int(size)
+        if size<0:
+           raise ValueError,"minumum size of the coarsest level matrix must be non-negative."
+	if size==None: size=500
+        self.__MinCoarseMatrixSize=size
+        
+    def getMinCoarseMatrixSize(self):
+        """
+        Returns the minumum size of the coarsest level matrix in AMG.
+
+        @rtype: C{int}
+        """
+        return self.__MinCoarseMatrixSize
+      
     def setPreconditioner(self, preconditioner=10):
         """
         Sets the preconditioner to be used. 

@@ -51,7 +51,8 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->pre_sweeps=2;
   options->post_sweeps=2;
   options->coarsening_threshold=0.05;
-  options->level_max=300;
+  options->min_coarse_matrix_size=500;
+  options->level_max=5;
   options->accept_failed_convergence=FALSE;
   options->coarsening_method=PASO_DEFAULT;
   options->relaxation_factor=0.95;
@@ -149,6 +150,8 @@ const char* Paso_Options_name(const index_t key){
           return "AGGREGATION_COARSENING";
        case  PASO_NO_PRECONDITIONER:
           return "NO_PRECONDITIONER";
+       case  PASO_MIN_COARSE_MATRIX_SIZE:
+          return "MIN_COARSE_MATRIX_SIZE";
        default:
 	  return "<unknown>";
     }

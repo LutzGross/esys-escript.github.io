@@ -99,6 +99,7 @@ typedef struct Paso_Solver_RILU Paso_Solver_RILU;
 struct Paso_Solver_AMG {
   dim_t n;
   dim_t level;
+  bool_t coarsest_level;
   dim_t n_block;
   dim_t n_F;
   dim_t n_C;
