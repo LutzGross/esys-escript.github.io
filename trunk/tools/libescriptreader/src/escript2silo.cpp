@@ -25,7 +25,7 @@
 using namespace std;
 using namespace EscriptReader;
 
-string insertTimestep(const string& fString, int timeStep)
+string insertTimestep(const string& fString, int timeStep, int tsMultiplier)
 {
     string s(fString);
     size_t pos;
@@ -35,7 +35,7 @@ string insertTimestep(const string& fString, int timeStep)
             endpos++;
         string fmtStr = s.substr(pos, endpos-pos+1);
         char ts[255];
-        snprintf(ts, 255, fmtStr.c_str(), timeStep);
+        snprintf(ts, 255, fmtStr.c_str(), timeStep*tsMultiplier);
         s.replace(pos, endpos-pos+1, ts);
     }
     return s;
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    int nParts=0, nTimesteps=1;
+    int nParts=0, nTimesteps=1, tsMultiplier=1;
     string meshFile;
     StringVec varFiles;
     StringVec varNames;
@@ -88,6 +88,8 @@ int main(int argc, char** argv)
             nParts = iVal;
         else if (sscanf(line, "T=%d", &iVal) == 1)
             nTimesteps = iVal;
+        else if (sscanf(line, "DT=%d", &iVal) == 1)
+            tsMultiplier = iVal;
         else if (sscanf(line, "M=%s", sVal) == 1)
             meshFile = sVal;
         else if (sscanf(line, "V=%s", sVal) == 1 && strchr(sVal, ':')) {
@@ -105,7 +107,7 @@ int main(int argc, char** argv)
 
     in.close();
     
-    if (nParts < 1 || meshFile == "" || nTimesteps < 1) {
+    if (nParts < 1 || meshFile == "" || nTimesteps < 1 || tsMultiplier < 1) {
         cerr << esdFile << " is not a valid escript datafile." << endl;
         return -1;
     }
@@ -119,9 +121,9 @@ int main(int argc, char** argv)
         StringVec varFilesTS;
         StringVec::const_iterator it;
 
-        // look for "%d" in filename and replace by timestep if found
+        // look for "%d" in filename and replace by timestep*multiplier if found
         for (it=varFiles.begin(); it!=varFiles.end(); it++) {
-            string v = insertTimestep(*it, timeStep);
+            string v = insertTimestep(*it, timeStep, tsMultiplier);
             if (nParts > 1)
                 v.append(".nc.%04d");
             else
@@ -140,7 +142,7 @@ int main(int argc, char** argv)
                 break;
             }
         } else {
-            string meshTS = insertTimestep(meshFile, timeStep);
+            string meshTS = insertTimestep(meshFile, timeStep, tsMultiplier);
             if (nParts > 1)
                 meshTS.append(".nc.%04d");
             else
