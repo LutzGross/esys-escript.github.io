@@ -94,7 +94,7 @@ void Paso_solve(Paso_SystemMatrix* A,
   if (options->accept_failed_convergence) {
          if (Paso_getErrorType() == DIVERGED) {
              Paso_resetError();
-             if (options->verbose) printf("PASO: failed convergence error has been canceled requested.");
+             if (options->verbose) printf("PASO: failed convergence error has been canceled requested.\n");
          } 
   }
   Performance_close(&pp,options->verbose);
