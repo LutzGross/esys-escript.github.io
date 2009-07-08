@@ -5943,16 +5943,16 @@ def mkDir(pathname):
     @type pathname: C{str}
     @note: The method is MPI save.
     """
-    if not os.path.isdir(pathname):
-       errno=0
-       if getMPIRankWorld()==0:
+    errno=0
+    if getMPIRankWorld()==0:
+       if not os.path.isdir(pathname):
           try:
               os.mkdir(pathname)
           except Exception, e:
               errno=1
     
-       errno=getMPIWorldMax(errno)
-       if errno>0:
+    errno=getMPIWorldMax(errno)
+    if errno>0:
          if e==None:
             raise IOError,"Unable to create directory%s."%pathname
          else:
