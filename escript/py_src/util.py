@@ -107,11 +107,13 @@ def saveVTK(filename,domain=None, metadata=None, metadata_schema=None, **data):
     C{tmp} and C{v} are written into "solution.xml" where C{tmp} is named
     "temperature" and C{v} is named "velocity".
 
-    Meta tags, e.g. a timeStamp, can be added to the file, for instance
+    Meta tags, e.g. a timeStamp, can be added to the file, for instance::
 
         tmp=Scalar(..)
         v=Vector(..)
-        saveVTK("solution.xml", temperature=tmp, velocity=v, metadata="<timeStamp>1.234</timeStamp>",metadata_schema={ "gml" : "http://www.opengis.net/gml"})
+        saveVTK("solution.xml", temperature=tmp, velocity=v,
+                metadata="<timeStamp>1.234</timeStamp>",
+                metadata_schema={ "gml" : "http://www.opengis.net/gml"})
 
     The argument C{metadata_schema} allows the definition of name spaces with a schema used in the definition of meta tags.
 
@@ -201,16 +203,26 @@ def saveDX(filename,domain=None,**data):
         raise ValueError,"saveDX: no domain detected."
     domain.saveDX(filename,new_data)
 
-def saveESD(datasetName, dataDir=".", domain=None, **data):
+def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, **data):
     """
     Saves L{Data} objects to files and creates an I{escript dataset} (ESD) file
     for convenient processing/visualisation.
 
-    Example::
+    Single timestep example::
 
         tmp = Scalar(..)
         v = Vector(..)
         saveESD("solution", "data", temperature=tmp, velocity=v)
+
+    Time series example::
+
+        while t < t_end:
+            tmp = Scalar(..)
+            v = Vector(..)
+            # save every 10 timesteps
+            if t % 10 == 0:
+                saveESD("solution", "data", timeStep=t, deltaT=10, temperature=tmp, velocity=v)
+            t = t + 1
 
     tmp, v and the domain are saved in native format in the "data"
     directory and the file "solution.esd" is created that refers to tmp by
@@ -223,13 +235,20 @@ def saveESD(datasetName, dataDir=".", domain=None, **data):
     @param domain: domain of the L{Data} object(s). If not specified, the
                    domain of the given L{Data} objects is used.
     @type domain: L{escript.Domain}
+    @param timeStep: current timestep or sequence number - first one must be 0
+    @type timeStep: L{int}
+    @param deltaT: timestep or sequence increment, see example above
+    @type deltaT: L{int}
     @keyword <name>: writes the assigned value to the file using <name> as
                      identifier
-    @type <name>: L{Data} object.
+    @type <name>: L{Data} object
     @note: The data objects have to be defined on the same domain. They may not
            be in the same L{FunctionSpace} but one cannot expect that all
            L{FunctionSpace}s can be mixed. Typically, data on the boundary and
            data on the interior cannot be mixed.
+    @note: When saving a time series the first timestep must be 0 and it is
+           assumed that data from all timesteps share the domain. The dataset
+           file is updated in each iteration.
     """
     new_data = {}
     for n,d in data.items():
@@ -250,12 +269,20 @@ def saveESD(datasetName, dataDir=".", domain=None, **data):
         os.mkdir(dataDir)
 
     meshFile = os.path.join(dataDir, datasetName+"_mesh")
-    domain.dump(meshFile + ".nc")
+
+    # later timesteps reuse mesh from t=0
+    if timeStep == 0:
+        domain.dump(meshFile + ".nc")
+
     outputString = ""
+    fileNumber = timeStep / deltaT
+
     if domain.onMasterProcessor():
         outputString += "#escript datafile V1.0\n"
         # number of timesteps (currently only 1 is supported)
-        outputString += "T=1\n"
+        outputString += "T=%d\n" % (fileNumber+1)
+        # timestep increment
+        outputString += "DT=1\n"
         # name of the mesh file
         outputString += "M=%s\n" % meshFile
         # number of blocks (MPI size)
@@ -263,8 +290,8 @@ def saveESD(datasetName, dataDir=".", domain=None, **data):
 
     # now add the variables
     for varName, d in new_data.items():
-        varFile = os.path.join(dataDir, datasetName+"_"+varName)
-        d.dump(varFile + ".nc")
+        varFile = os.path.join(dataDir, datasetName+"_"+varName+".%04d")
+        d.dump((varFile + ".nc") % fileNumber)
         if domain.onMasterProcessor():
             outputString += "V=%s:%s\n" % (varFile, varName)
 
