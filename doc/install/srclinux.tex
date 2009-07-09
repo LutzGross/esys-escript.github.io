@@ -20,6 +20,7 @@ Make sure you have the following installed:
 \begin{itemize}
  \item \filename{g++} and associated tools.
 \item \filename{make}
+% I suspect that these are only needed by VTK and if we aren't using it anymore they could be removed
 \item \filename{libXext.so}\footnote{In Debian this is in the libXext-dev package.}
 \item \filename{libxt.so}\footnote{In Debian this is in the libxt-dev package.}
 \end{itemize}
@@ -32,8 +33,8 @@ These instructions will produce the following structure:
 \begin{itemize}
 \item \filename{stand}: \begin{itemize}
  \item \filename{escript.d}
-\item \filename{packages}
-\item \filename{package_src}
+\item \filename{pkg}
+\item \filename{pkg_src}
 \item \filename{build}
 \item \filename{doc}
   \end{itemize}
@@ -41,28 +42,45 @@ These instructions will produce the following structure:
 
 The build directory can be removed when you are finished.
 
+These instructions refer to versions of software in the \filename{escript-support-3-src} and \filename{escript-support-visi-3-src} bundles.
+If you download your own versions of those packages substitute their version numbers and names as appropriate
+There are a number of uses of the \filename{make} command in the following instructions.
+If your computer has multiple cores/processors you can speed up the compilation process by adding -j 2 after the make command:
+on a computer with 4 cores:
+\begin{shellCode}
+ make
+\end{shellCode}
+Becomes
+\begin{shellCode}
+ make -j 4
+\end{shellCode}
+
 \begin{shellCode}
 mkdir stand
 cd stand
-export PKG_ROOT=$(pwd)/packages
+mkdir pkg_src
+mkdir doc
+mkdir pkg
+mkdir build
+export PKG_ROOT=$(pwd)/pkg
 \end{shellCode}
 
-Copy compressed source bundles into \filename{stand/package_src}.
+Copy the compressed sources for the packages into \filename{stand/pkg_src}.
+If you are using the support bundles, decrompress them in the stand directory.
+\begin{shellCode}
+tar -xjf escript-support-3-src.tar.bz2
+\end{shellCode}
+
 Copy documentation files into \filename{doc}.
 
 \begin{shellCode}
-mkdir packages
-mkdir build
 cd build
-tar -jxf ../package_src/Python-2.6.1.tar.bz2
-tar -jxf ../package_src/boost_1_37_0.tar.bz2
-tar -jxf ../package_src/MesaLib-7.2.tar.bz2
-tar -zxf ../package_src/netcdf-4.0.tar.gz
-tar -zxf ../package_src/vtk-5.2.1.tar.gz
-tar -zxf ../package_src/vtkdata-5.2.1.tar.gz
-tar -zxf ../package_src/cmake-2.6.3.tar.gz
-tar -zxf ../package_src/scons-1.2.0.tar.gz
-tar -zxf ../package_src/numpy-1.3.0.tar.gz
+tar -jxf ../pkg_src/Python-2.6.1.tar.bz2
+tar -jxf ../pkg_src/boost_1_39_0.tar.bz2
+tar -zxf ../pkg_src/scons-1.2.0.tar.gz
+tar -zxf ../pkg_src/numpy-1.3.0.tar.gz
+tar -zxf ../pkg_src/netcdf-4.0.tar.gz
+tar -zxf ../pkg_src/matplotlib-0.98.5.3.tar.gz
 \end{shellCode}
 
 Build python.
@@ -78,7 +96,7 @@ export PATH=$PKG_ROOT/python/bin:$PATH
 export PYTHONHOME=$PKG_ROOT/python
 export LD_LIBRARY_PATH=$PKG_ROOT/python/lib:$LD_LIBRARY_PATH
 
-pushd ../packages
+pushd ../pkg
 ln -s python-2.6.1/ python
 popd
 
@@ -92,7 +110,7 @@ cd numpy-1.3.0
 python setup.py build
 python setup.py install --prefix $PKG_ROOT/numpy-1.3.0
 cd ..
-pushd ../packages
+pushd ../pkg
 ln -s numpy-1.3.0 numpy
 popd
 export PYTHONPATH=$PKG_ROOT/numpy/lib/python2.6/site-packages:$PYTHONPATH
@@ -110,7 +128,7 @@ export PYTHONPATH=$PKG_ROOT/numpy/lib/python2.6/site-packages:$PYTHONPATH
 % 
 % export PYTHONPATH=$PKG_ROOT/numarray/lib:$PYTHONPATH
 % cd ..
-% pushd ../packages
+% pushd ../pkg
 % ln -s numarray-1.5.2 numarray
 % popd
 % \end{shellCode}
@@ -122,25 +140,25 @@ python setup.py install --prefix=$PKG_ROOT/scons-1.2.0
 
 export PATH=$PKG_ROOT/scons/bin:$PATH
 cd ..
-pushd ../packages
+pushd ../pkg
 ln -s scons-1.2.0 scons
 popd
 \end{shellCode}
 
 ...Boost libraries ...
 \begin{shellCode}
-cd boost_1_37_0
-
-./configure --prefix=$PKG_ROOT/boost_1_37_0 --with-python-root=$PKG_ROOT/python \
-  --with-python-version=2.6 --with-libraries=python
-
-make
-make install
-ln -s $PKG_ROOT/boost_1_37_0 $PKG_ROOT/boost
+pushd ../pkg
+mkdir boost_1_39_0
+ln -s boost_1_39_0 boost
+popd
+cd boost_1_39_0
+./bootstrap.sh --with-libraries=python --prefix=$PKG_ROOT/boost
+./bjam --build-type=complete
+./bjam install --prefix=$PKG_ROOT/boost --libdir=$PKG_ROOT/boost/lib
 export LD_LIBRARY_PATH=$PKG_ROOT/boost/lib:$LD_LIBRARY_PATH
 cd ..
-pushd ../packages
-ln -s boost_1_37_0 boost
+pushd ../pkg/boost/lib/
+ln *.so.* libboost_python.so
 popd
 \end{shellCode}
 
@@ -151,26 +169,58 @@ CFLAGS="-O2 -fPIC -Df2cFortran" CXXFLAGS="-O2 -fPIC -Df2cFortran" \
 FFLAGS="-O2 -fPIC -Df2cFortran" FCFLAGS="-O2 -fPIC -Df2cFortran" \
 ./configure --prefix=$PKG_ROOT/netcdf-4.0
 
-make -j2
+make 
 make install
 
 export LD_LIBRARY_PATH=$PKG_ROOT/netcdf/lib:$LD_LIBRARY_PATH
 cd ..
-pushd ../packages
+pushd ../pkg
 ln -s netcdf-4.0 netcdf
 popd
+\end{shellCode}
+
+Now matplotlib.
+
+\begin{shellCode}
+cd matplotlib-0.98.5.3
+python setup.py build
+python setup.py install --prefix=$PKG_ROOT/matplotlib-0.98.5.3
+cd ..
+pushd ../pkg
+ln -s matplotlib-0.98.5.3 matplotlib
+popd
+cd ..
+\end{shellCode}
+
+\subsection{VTK support}
+These packages are currently required for pyvisi.
+They can be downloaded independently or in the \filename{escript-support-visi-3-src}.
+If you will not be using pyvisi, then skip to Section~\ref{sec:srclinux-escript}
+
+Copy the compressed sources for the packages into \filename{stand/pkg_src}.
+If you are using the support bundles, decrompress them in the stand directory.
+\begin{shellCode}
+tar -xjf escript-support-visi-3-src.tar.bz2
+\end{shellCode}
+
+\begin{shellCode}
+cd build
+tar -jxf ../pkg_src/MesaLib-7.2.tar.bz2
+tar -zxf ../pkg_src/vtk-5.2.1.tar.gz
+tar -zxf ../pkg_src/vtkdata-5.2.1.tar.gz
+tar -zxf ../pkg_src/cmake-2.6.3.tar.gz
 \end{shellCode}
 
 CMake and Mesa are required for VTK. 
 \begin{shellCode}
 cd cmake-2.6.3
 ./configure --prefix=$PKG_ROOT/cmake-2.6.3 2>&1 | tee tt.configure
-make -j 4
+make 
 make install
 
 export PATH=$PKG_ROOT/cmake/bin:$PATH
 cd ..
-pushd ../packages
+pushd ../pkg
 ln -s cmake-2.6.3 cmake
 popd
 \end{shellCode}
@@ -181,83 +231,74 @@ If you need to check if Mesa compiled correctly, then the demos are a good test.
 cd Mesa-7.2
 ./configure --prefix=$PKG_ROOT/mesa-7.2 --enable-gl-osmesa --with-driver=xlib
 
-make -j 4
+make 
 make install
 
-export LD_LIBRARY_PATH=$PKG_ROOT/mesa:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PKG_ROOT/mesa/lib:$LD_LIBRARY_PATH
 cd ..
-pushd ../packages
+pushd ../pkg
 ln -s mesa-7.2 mesa
 popd
 \end{shellCode}
 
+Build VTK
 \begin{shellCode}
 cd VTK
 cmake .
+\end{shellCode}
 
-#Edit the CMakeCache.txt file and make the following changes: 
-#(Please replace .... with an absolute path to the stand directory)
-#The text before the = is the text to search for.
-#For example, 
-#   BUILD_SHARED_LIBS:BOOL=OFF
-# should be changed to read
-#   BUILD_SHARED_LIBS:BOOL=ON
-#-----------------
-
+Now edit the \filename{CMakeCache.txt} file and make the following changes.
+Where .... appears please replace it with the absolute path to pkg directory.
+For example,
+replace \filename{CMAKE_INSTALL_PREFX=..../vtk-5.2.1} with
+\filename{CMAKE_INSTALL_PREFIX:PATH=/home/bob/stand/pkg/vtk-5.2.1}.
+(Search for the text before the =)
+\begin{shellCode}
 BUILD_EXAMPLES:BOOL=OFF
 BUILD_SHARED_LIBS:BOOL=ON
-
-CMAKE_INSTALL_PREFIX:PATH=..../stand/packages/vtk-5.2.1
+CMAKE_INSTALL_PREFIX:PATH=..../vtk-5.2.1
 CMAKE_VERBOSE_MAKEFILE:BOOL=TRUE
-
-#check PYTHON_EXECUTABLE is correct.
-#but it seems to be when I went through these steps
-
 VTK_OPENGL_HAS_OSMESA:BOOL=TRUE
 VTK_USE_64BIT_IDS:BOOL=ON
-# That last one is marked as "May cause some bugs" in the original instructions
-
 VTK_WRAP_PYTHON:BOOL=ON
 VTK_USE_MANGLED_MESA:BOOL=OFF
+\end{shellCode}
 
+Now rerun cmake (it won't work but it adds some variables you need).
+
+\begin{shellCode}
+cmake .
+\end{shellCode}
+
+Edit \filename{CMakeCache.txt} and change the following variables.
+
+\begin{shellCode}
 VTK_USE_OFFSCREEN:BOOL=ON
-#--------------------
-
-cmake .
-#It won't work but it will put some variables in that you need.
-
-#Edit CMakeCache again and make the following changes
-
-#----------------
-
 VTK_USE_TK:BOOL=OFF
+OSMESA_INCLUDE_DIR:PATH=..../mesa/include
+OSMESA_LIBRARY:FILEPATH=..../mesa/lib/libOSMesa.so
+PYTHON_INCLUDE_PATH:PATH=..../python/include/python2.6
+PYTHON_LIBRARY:FILEPATH=..../python/lib/libpython2.6.so
+OPENGL_INCLUDE_DIR:PATH=..../mesa/include
+OPENGL_gl_LIBRARY:FILEPATH=..../mesa/lib/libGL.so
+\end{shellCode}
 
-OSMESA_INCLUDE_DIR:PATH=..../stand/packages/mesa/include
-
-OSMESA_LIBRARY:FILEPATH=..../stand/packages/mesa/lib/libOSMesa.so
-
-PYTHON_INCLUDE_PATH:PATH=..../stand/packages/python/include/python2.6
-
-PYTHON_LIBRARY:FILEPATH=..../stand/packages/python/lib/libpython2.6.so
-
-OPENGL_INCLUDE_DIR:PATH=..../stand/packages/mesa/include
-
-OPENGL_gl_LIBRARY:FILEPATH=..../stand/packages/mesa/lib/libGL.so
-
-#----------------
-
+The following steps will take a while.
+\begin{shellCode}
 cmake .
-
-chmod +w Utilities/vtktiff/tif_fax3sm.c
-
 make
+chmod +w Utilities/vtktiff/tif_fax3sm.c
 make install
+\end{shellCode}
 
-
-cd ../../packages
+\begin{shellCode}
+cd ../../pkg
 ln -s vtk-5.2.1 vtk
 cd ..
 \end{shellCode}
+
+\subsection{escript}
+\label{sec:srclinux-escript}
 
 Now copy the \esfinley source into an \filename{escript.d} directory in \filename{stand}.
 
@@ -266,41 +307,30 @@ Now copy the \esfinley source into an \filename{escript.d} directory in \filenam
 Change to the directory containing your escript source (\filename{escript.d}), then:
 
 \begin{shellCode}
-cd scons
+cd escript.d/scons
 cp linux_options_example.py YourMachineName_options.py
 
-#edit the options file and make the following changes:
-#-----------------------------------------------------------------
-declare a PKG_ROOT variable at the top of the file eg:
-PKG_ROOT="/home/jfenwick/stand/packages"
+echo $PKG_ROOT
+\end{shellCode}
 
-python_path		= PKG_ROOT+"python/include/python2.6"
-python_lib_path		= PKG_ROOT+"python/lib"
-python_libs		= "python2.6"
+edit the options file and put the value of PKG_ROOT between the quotes in the PKG_ROOT= line.
+For example:
+\begin{shellCode}
+PKG_ROOT="/home/bob/stand/pkg"
+\end{shellCode}
 
-boost_path		= PKG_ROOT+"boost/include/boost-1_37"
-boost_lib_path		= PKG_ROOT+"boost/lib"
-boost_libs		= ["boost_python-gcc43-mt"]
-# You could simlink the boost python library to give a shorter 
-# name but it's not worth it
+\begin{shellCode}
+cd ../bin
+\end{shellCode}
 
-usevtk		= "yes"
-#-------------------------------------------------------------------
-
-cd ..
-
-#Modify bin/escript
-#--------------------------------------------------
+Modify the STANDALONE line of \figurename{escript} to read:
+ 
 STANDALONE=1
 
-#Check to make sure the paths in the if [ $STANDALONE == 1 ]
-#block are correct
+Start a new terminal and go to the \filename{stand} directory.
 
-#-----------------------------------------------------------------
-
-#start a new terminal
-cd stand
-export PATH=$(pwd)/packages/scons/bin:$PATH
+\begin{shellCode}
+export PATH=$(pwd)/pkg/scons/bin:$PATH
 cd escript.d
 eval $(bin/escript -e)
 scons
@@ -326,7 +356,7 @@ find . -name .?* | xargs rm -rf
 \end{shellCode}
 in the \filename{escript.d} directory.
 \end{itemize}
-\item from the \filename{packages} directory:
+\item from the \filename{pkg} directory:
 \begin{itemize}
 \item  \filename{scons}, \filename{scons-1.2.0}, \filename{cmake-2.6.3} and \filename{cmake}
 \end{itemize}
