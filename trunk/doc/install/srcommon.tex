@@ -15,14 +15,22 @@
 
 % The original version of this content came from the esscc twiki page maintained by ksteube
 
+This chapter describes how to build \escript from source assuming that the dependencies are already installed.
+For example using precompiled packages for your OS.
+Section~\ref{sec:deps} describes the dependencies, while Section~\ref{sec:compilesrc} gives the compile instructions.
+
+If you would prefer to build all the dependecies from source in the escript-support packages please see Chapter~\ref{chap:srcall}
+
 \esfinley is known to compile and run on the following systems:
 \begin{itemize}
  \item \linux under gcc\footnote{There are some problems with OpenMP under gcc prior to version 4.3.2. Also do not link the gomp library with gcc 4.3.3 it causes problems.} - \Sec{sec:srclinux}
 \item \linux under icc on SGI ICE 8200.
 \item \macosx under gcc - \Sec{sec:srcmac}
+\item \winxp with visual studio (we do not specifically discuss windows builds in this guide).
 \end{itemize}
 
 \section{External dependencies}
+\label{sec:deps}
 The following external packages are required in order to compile and run \esfinley.
 Where version numbers are specified, more recent versions can probably be subsituted.
 You can either try the standard/precompiled packages available for your operating system or you can download and build them from source.
@@ -59,7 +67,8 @@ These packages may be required for some of the optional capabilities of the syst
   \item     mesa-7.0.3 (\url{http://www.mesa3d.org})\\-
         Free OpenGL replacement used by VTK.
   \end{itemize}
-
+\item netpbm (\url{http://netpbm.sourceforge.com}) \\-
+    tools for producing movies from images
 \item     mpich2-1.0.7 (\url{http://www.mcs.anl.gov/research/projects/mpich2}) \\-
         Parallelization with MPI.
 \item     parmetis-3.1 (\url{http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview}) \\-
@@ -90,7 +99,7 @@ Packages for visualization:
 \end{itemize}
 
 \section{Compilation}\label{sec:compilesrc}
-Throughout this section we will assume that the source code is uncompressed in a directory called trunk.
+Throughout this section we will assume that the source code is uncompressed in a directory called \filename{escript.d}.
 You can call the directory anything you like, provided that you make the change before you compile.
 
 You need to indicate where to find the external dependencies.
@@ -107,7 +116,7 @@ As a starting point use one of the following:
 To actually compile (if you have $n$ processors, then you can use \texttt{scons -j$n$} instead):
 
 \begin{shellCode}
-cd trunk
+cd escript.d
 scons
 \end{shellCode}
 

@@ -22,7 +22,12 @@ If you need these features you may need to compile \esfinley from source (see Se
 
 For more information on using the \filename{escript} command please see the User Guide.
 
-\subsection{Debian 5.0(``Lenny'')}
+If you are using Debian then see Section~\ref{sec:lenny}.
+If you are using Debian (5.0 - ``Lenny'') or Ubuntu (8.10-``Intrepid Ibex'', 9.04-``Jaunty Jakalope'') then see Section~\ref{sec:lenny}
+If you are using some other distribution of Linux, see Section~\ref{sec:standalonelinux} 
+
+
+\subsection{Debian 5.0(``Lenny'')}\label{sec:lenny}
 
 Download the \filename{escript.deb} file.
 (At time of writing we only produce debs for the i386 architecture.)
@@ -38,14 +43,14 @@ sudo dpkg --unpack escript.deb
 sudo aptitude install escript
 \end{shellCode}
 
-\subsection{Ubuntu 8.10(``Intrepid Ibex'')}
+\subsection{Ubuntu 8.10(``Intrepid Ibex''), 9.04(``Jaunty Jakalope'')}
 
-Since the installation process for \esfinley is pretty simple you should be able to use the same Lenny package for Ubuntu as well.
+Since the installation process for \esfinley is pretty simple you should be able to use the Debian package for Ubuntu as well.
 Please notify the development team if this is not the case.
 Note that you will need to use the ``sudo'' instructions.
 
 
-\subsection{Stand-alone bundle}
+\subsection{Stand-alone bundle}\label{sec:standalonelinux}
 
 Download the bundle and decompress it.
 \begin{shellCode}
