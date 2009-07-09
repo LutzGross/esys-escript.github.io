@@ -853,6 +853,8 @@ env.Alias('build_full',['install_all','build_tests','build_py_tests'])
 
 ############ Targets to build the documentation ################
 
+env.Alias('api_epydoc','install_all')
+
 env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_doxygen', 'guide_pdf', 'guide_html','install_pdf'])
 
 if not IS_WINDOWS_PLATFORM:

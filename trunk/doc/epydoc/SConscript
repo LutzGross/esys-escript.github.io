@@ -19,9 +19,14 @@ Import('*')
 #env.Alias('api_epydoc', env['prefix']+'/release/doc/epydoc')
 #env.AlwaysBuild('api_epydoc')
 
-env.Command(env['prefix']+'/release/doc/epydoc', [], [Mkdir(env['prefix']+'/release/doc/epydoc')])
+dirname=os.path.join(env['prefix'],'release','doc','epydoc')
 
-env.Alias('api_epydoc', [env['pyinstall'], env['prefix']+'/release/doc/epydoc'], "epydoc -v --html -o "+env['prefix']+'/release/doc/epydoc'+" esys")
+env.Command(dirname, [], [Mkdir(dirname)])
 
+env.Alias('api_epydoc', [env['pyinstall'], dirname], "epydoc -v --html -o "+dirname+" esys")
+
+#This will need to be here at least until the output of api_epydoc properly depends on 
+#the libraries it uses as input
+env.AlwaysBuild('api_epydoc')
 
 
