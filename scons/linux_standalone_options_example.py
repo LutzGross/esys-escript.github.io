@@ -38,23 +38,23 @@ omp_libs		= []
 # sys_libs		= ['guide', 'pthread', 'stdc++']
 
 # Python libraries
-python_path		= PKG_ROOT+"python/include/python2.6"
-python_lib_path		= PKG_ROOT+"python/lib"
+python_path		= PKG_ROOT+"/python/include/python2.6"
+python_lib_path		= PKG_ROOT+"/python/lib"
 python_libs		= 'python2.6'
 # python_cmd		= 'python'
 
 # Boost libraries
-boost_path		= PKG_ROOT+"boost/include/boost-1_39"
-boost_lib_path		= PKG_ROOT+"boost/lib"
-boost_libs		= ['boost_python-gcc43-mt']
+boost_path		= PKG_ROOT+"/boost/include/boost-1_39"
+boost_lib_path		= PKG_ROOT+"/boost/lib"
+boost_libs		= ['boost_python']
 
 # Specify whether or not to use VTK
 # usevtk		= 'yes'
 
 # NetCDF
 # usenetcdf		= 'yes'
-netCDF_path		= PKG_ROOT+'netcdf/include'
-netCDF_lib_path		= PKG_ROOT+'netcdf/lib'
+netCDF_path		= PKG_ROOT+'/netcdf/include'
+netCDF_lib_path		= PKG_ROOT+'/netcdf/lib'
 # netCDF_libs		= ['netcdf_c++', 'netcdf']
 
 # MKL
