@@ -67,7 +67,7 @@ AC_ARG_WITH([escript-prefix],
 
 AC_MSG_CHECKING([for escript include files])
 if test "x$ESCRIPTDIR" = "x"; then
-    ESCRIPTDIR=`../..`
+    ESCRIPTDIR="../.."
 fi
 
 if ! test -f "$ESCRIPTDIR/include/finley/ReferenceElements.h"; then
