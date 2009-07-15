@@ -110,6 +110,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   // Interface for AbstractDomain
   //
   class_<escript::AbstractDomain, escript::Domain_ptr>("Domain","Base class for all domains.",no_init)
+     .def("getStatus",&escript::AbstractDomain::getStatus)
      .def("setTagMap",&escript::AbstractDomain::setTagMap)
      .def("getTag",&escript::AbstractDomain::getTag)
      .def("isValidTagName",&escript::AbstractDomain::isValidTagName)

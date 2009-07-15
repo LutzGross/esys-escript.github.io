@@ -239,7 +239,6 @@ bool AbstractDomain::operator!=(const AbstractDomain& other) const
 
 AbstractDomain::StatusType AbstractDomain::getStatus() const 
 {
-  throwStandardException("AbstractDomain::getStatus");
   return 0;
 }
 void AbstractDomain::setTagMap(const std::string& name,  int tag)
@@ -281,7 +280,6 @@ bool AbstractDomain::canTag(int functionspacecode) const
   throwStandardException("AbstractDomain::canTag is not implemented.");
   return false;
 }
-
 
 
 } // end of namespace

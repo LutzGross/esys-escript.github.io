@@ -5922,6 +5922,26 @@ def vol(arg):
     """
     if isinstance(arg,escript.Domain): arg=escript.Function(arg)
     return integrate(escript.Scalar(1.,arg))
+
+def meanValue(arg):
+    """
+    return the mean value of the argument over its domain
+
+    @param arg: function
+    @type arg: L{escript.Data}
+    @return: mean value
+    @rtype: C{float} or {numpy.ndarray}
+    """
+    fs=arg.getFunctionSpace()
+    d=fs.getDomain()
+    if fs == Solution(d) or fs == ContinuousFunction(d):
+       fs=Function(d)
+    if fs == ReducedSolution(d) or fs == ReducedContinuousFunction(d):
+       fs=ReducedFunction(d)
+    a=vol(fs)
+    if a == 0:
+        raise ValueError,"FunctionSpace %s with zero volume."%str(fs)
+    return integrate(arg,fs)/a
  
 def diameter(domain):
     """
