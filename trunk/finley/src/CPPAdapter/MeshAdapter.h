@@ -355,6 +355,18 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
+      Returns a status indicator of the domain. The status identifier should be unique over 
+      the live time if the object but may be updated if changes to the domain happen, e.g. 
+      modifications to its geometry. 
+
+     This has to be implemented by the actual Domain adapter.
+  */
+  FINLEY_DLL_API
+  virtual StatusType getStatus() const;
+
+
+  /**
+     \brief
      Return the number of data points summed across all MPI processes
   */
   FINLEY_DLL_API

@@ -138,4 +138,12 @@ void Finley_Mesh_setPoints(Finley_Mesh* self,Finley_ElementFile *elements) {
     Finley_ElementFile_free(self->Points);
     self->Points=elements;
 }
-
+int  Finley_Mesh_getStatus(Finley_Mesh* in) {
+   if  (in == NULL) {
+        return -1;
+   } else if (in->Nodes == NULL) {
+        return -1;
+   } else {
+        return in->Nodes->status;
+   }
+}

@@ -2168,5 +2168,12 @@ bool MeshAdapter::canTag(int functionSpaceCode) const
   }
 }
 
+AbstractDomain::StatusType MeshAdapter::getStatus() const
+{
+  Finley_Mesh* mesh=m_finleyMesh.get();
+  return Finley_Mesh_getStatus(mesh);
+}
+
+
 
 }  // end of namespace
