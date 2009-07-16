@@ -1360,6 +1360,26 @@ class LinearProblem(object):
      @rtype: L{Domain<escript.Domain>}
      """
      return self.__domain
+   def getDomainStatus(self):
+     """
+     Return the status indicator of the domain
+     """
+     return self.getDomain().getStatus()
+
+   def getSystemStatus(self):
+     """
+     Return the domain status used to build the current system
+     """
+     return self.__system_status
+   def setSystemStatus(self,status=None):
+     """
+     Sets the system status to C{status} if C{status} is not present the 
+     current status of the domain is used.
+     """
+     if status == None:
+         self.__system_status=self.getDomainStatus()
+     else: 
+         self.__system_status=status
 
    def getDim(self):
      """
@@ -1873,6 +1893,7 @@ class LinearProblem(object):
        """
        Returns True if the solution is still valid.
        """
+       if not self.getDomainStatus()==self.getSystemStatus(): self.invalidateSolution()
        if self.__solution_rtol>self.getSolverOptions().getTolerance() or \
           self.__solution_atol>self.getSolverOptions().getAbsoluteTolerance():
 	     self.invalidateSolution()  
@@ -1896,7 +1917,8 @@ class LinearProblem(object):
        """
        Returns True if the operator is still valid.
        """
-       if self.getRequiredOperatorType()==self.getOperatorType(): self.invalidateOperator()
+       if not self.getDomainStatus()==self.getSystemStatus(): self.invalidateOperator()
+       if not self.getRequiredOperatorType()==self.getOperatorType(): self.invalidateOperator()
        return self.__is_operator_valid
 
    def validRightHandSide(self):
@@ -1909,7 +1931,7 @@ class LinearProblem(object):
        """
        Indicates the right hand side has to be rebuilt next time it is used.
        """
-       if self.isRightHandSideValid(): self.trace("Right hand side has to be rebuilt.")
+       self.trace("Right hand side has to be rebuilt.")
        self.invalidateSolution()
        self.__is_RHS_valid=False
 
@@ -1917,6 +1939,7 @@ class LinearProblem(object):
        """
        Returns True if the operator is still valid.
        """
+       if not self.getDomainStatus()==self.getSystemStatus(): self.invalidateRightHandSide()
        return self.__is_RHS_valid
 
    def invalidateSystem(self):
@@ -1939,6 +1962,7 @@ class LinearProblem(object):
        """
        self.trace("New System has been created.")
        self.__operator_type=None
+       self.setSystemStatus()
        self.__operator=escript.Operator()
        self.__righthandside=escript.Data()
        self.__solution=escript.Data()
@@ -2584,6 +2608,8 @@ class LinearPDE(LinearProblem):
                  self.insertConstraint(rhs_only=False)
                  self.trace("New operator has been built.")
                  self.validOperator()
+       self.setSystemStatus()
+       self.trace("System status is %s."%self.getSystemStatus())
        return (self.getCurrentOperator(), self.getCurrentRightHandSide())
 
    def insertConstraint(self, rhs_only=False):
@@ -3520,6 +3546,8 @@ class TransportPDE(LinearProblem):
           self.trace("New system has been built.")
           self.validOperator()
           self.validRightHandSide()
+       self.setSystemStatus()
+       self.trace("System status is %s."%self.getSystemStatus())
        return (self.getCurrentOperator(), self.getCurrentRightHandSide())
 
    def setDebug(self, flag):
