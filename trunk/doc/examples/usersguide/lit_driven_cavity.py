@@ -33,4 +33,5 @@ v=Vector(0.,Solution(dom))
 v[0]+=whereZero(x[1]-1.)
 p=Scalar(0.,ReducedSolution(dom))
 v,p=sc.solve(v,p, verbose=True)
-saveVTK("u.xml",velocity=v,pressure=p)
+saveVTK("u.vtu",velocity=v,pressure=p)
+

@@ -102,7 +102,7 @@ while istep < nstep:
                            X=-dt*r*(dev_stress-teta3*p*kronecker(dom)), 
                            y=sigma_d*face_mask*r_b)
     U_star=momentumStep1.getSolution()
-    saveVTK("u.xml",u=U_star,u0=U)
+    saveVTK("u.vtu",u=U_star,u0=U)
     #
     #  step 2:
     #
@@ -156,5 +156,5 @@ while istep < nstep:
     #
     dom.setX(dom.getX()+U*dt)
     t=t+dt
-    if (istep-1)%w_step==0:saveVTK("u.%d.xml"%((istep-1)/w_step),p=p,eta=eta_d,U=U_star,U_star=U_star,gamma=gamma)
+    if (istep-1)%w_step==0:saveVTK("u.%d.vtu"%((istep-1)/w_step),p=p,eta=eta_d,U=U_star,U_star=U_star,gamma=gamma)
     if istep == 3: 1/0

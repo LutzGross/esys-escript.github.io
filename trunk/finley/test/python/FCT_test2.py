@@ -114,7 +114,7 @@ if TEST_SUPG:
    u_supg=u0*1.
 
 c=0
-saveVTK("u.%s.xml"%c,u=u0)
+saveVTK("u.%s.vtu"%c,u=u0)
 fc.setInitialSolution(u0)
 t=T0
 while t<T_END:
@@ -136,8 +136,8 @@ while t<T_END:
     print "QUALITY FCT: time = %s pi"%(t/pi),QUALITY(t,u),
     if TEST_SUPG: 
        print "QUALITY SUPG: ",QUALITY(t,u_supg)
-       # saveVTK("u.%s.xml"%c,u=u,u_supg=u_supg)
+       # saveVTK("u.%s.vtu"%c,u=u,u_supg=u_supg)
     else:
-       # saveVTK("u.%s.xml"%c,u=u)
+       # saveVTK("u.%s.vtu"%c,u=u)
        pass
     # if c == 20: 1/0

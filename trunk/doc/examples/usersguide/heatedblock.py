@@ -60,5 +60,5 @@ sigma_mises=sqrt(((sigma[0,0]-sigma[1,1])**2+(sigma[1,1]-sigma[2,2])**2+ \
                   (sigma[2,2]-sigma[0,0])**2)/2. \
                    +3*(sigma[0,1]**2 + sigma[1,2]**2 + sigma[2,0]**2))
 #... output ...
-saveVTK("deform.xml",disp=u,stress=sigma_mises)
+saveVTK("deform.vtu",disp=u,stress=sigma_mises)
  

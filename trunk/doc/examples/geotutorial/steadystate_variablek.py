@@ -49,5 +49,6 @@ mypde.setValue(A=k*kronecker(mydomain),Y=Q, r=T_D, \
                 q=whereZero(x[1])+whereZero(x[1]-L1))
 # get temperature:
 T=mypde.getSolution()
-# save to VTK for mayavi:
-saveVTK("u.xml",T=T)
+# save as VTK for visualisation:
+saveVTK("u.vtu",T=T)
+

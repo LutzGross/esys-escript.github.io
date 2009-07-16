@@ -156,4 +156,4 @@ for d in [2,3]:
                        fs.setTags(1,m)
                        fs.setTags(100,1-m)
                   dom.write(os.path.join(MESH_DIRECTORY,filename))
-                  # saveVTK(os.path.join(MESH_DIRECTORY,filename+".xml"),dom)
+                  # saveVTK(os.path.join(MESH_DIRECTORY,filename+".vtu"),dom)

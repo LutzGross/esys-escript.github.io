@@ -475,7 +475,7 @@ class LevelSet2(object):
         #==============================================
         TVD=integrate(length(grad_phi))
         print "initial range ",inf(self.__phi),sup(self.__phi),"error:",Lsup(1.-len_grad_phi),"volume =",vol,TVD
-        # saveVTK("test.%s.xml"%c,l=length(grad(self.__phi,fs))-1,s=s,phi=self.__phi)
+        # saveVTK("test.%s.vtu"%c,l=length(grad(self.__phi,fs))-1,s=s,phi=self.__phi)
 
         dtau=f*inf(h/abs(s))
         while c < self.__reinit_max: # and abs(diff) >= 0.01:
@@ -504,7 +504,7 @@ class LevelSet2(object):
           r=Lsup(length(grad(self.__phi))-1.)
           TVD=integrate(length(grad(self.__phi,fs)))
           print "iteration :", c, "range ",inf(self.__phi),sup(self.__phi),"error :",r,"volume change:",diff,TVD
-          # saveVTK("test.%s.xml"%(c+1),l=length(grad(self.__phi,fs)),s=s,phi=self.__phi,v=grad(self.__phi,fs))
+          # saveVTK("test.%s.vtu"%(c+1),l=length(grad(self.__phi,fs)),s=s,phi=self.__phi,v=grad(self.__phi,fs))
           c += 1
         return
         #==============================================
@@ -538,7 +538,7 @@ class LevelSet2(object):
         vol,vol_old=self.getVolumeOfNegativeDomain(),vol
         diff=(vol-vol_old)/vol
         print "iteration :", inf(self.__phi),sup(self.__phi),r,diff
-        # saveVTK("test.%s.xml"%0,l=length(grad(self.__phi,fs)),s=s,phi=self.__phi,v=grad(self.__phi,fs),s2=s2)
+        # saveVTK("test.%s.vtu"%0,l=length(grad(self.__phi,fs)),s=s,phi=self.__phi,v=grad(self.__phi,fs),s2=s2)
         return
         #=============================================
 

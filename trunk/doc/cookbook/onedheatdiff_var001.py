@@ -72,7 +72,7 @@ mypde.setValue(A=kappa*kronecker(model),D=rhocp/h,d=eta,y=eta*Tref)
 bound = x[0]-mx/(ndx/250.)
 T= 0*Tref*whereNegative(bound)+Tref*wherePositive(bound)
 
-saveVTK(os.path.join(save_path,"data%03d.xml") %i,sol=T)
+saveVTK(os.path.join(save_path,"data%03d.vtu") %i,sol=T)
 
 # ... start iteration:
 while t<=tend:
@@ -80,7 +80,7 @@ while t<=tend:
       t+=h
       mypde.setValue(Y=rhocp/h*T)
       T=mypde.getSolution()
-      saveVTK(os.path.join(save_path,"data%03d.xml") %i,sol=T)
+      saveVTK(os.path.join(save_path,"data%03d.vtu") %i,sol=T)
       
 # iteration var 2
 #Tl = 0

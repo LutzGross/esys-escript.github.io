@@ -34,5 +34,6 @@ x=mydomain.getX()
 print x  
 # set a function 
 T_D=T_bot/L1*(L1-x[1])
-# save T_D for visualization with mayavi
-saveVTK("u.xml",T=T_D)
+# save T_D for visualisation
+saveVTK("u.vtu",T=T_D)
+

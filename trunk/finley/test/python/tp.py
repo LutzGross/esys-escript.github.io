@@ -48,7 +48,7 @@ u0=whereNonPositive(abs(x[0]-0.4)-0.2)*whereNonPositive(abs(x[1]-0.5)-0.2)
 # u0=x[0]
 u0/=Lsup(u0)
 c=0
-saveVTK("u.%s.xml"%c,u=u0)
+saveVTK("u.%s.vtu"%c,u=u0)
 fc.setInitialSolution(u0)
 
 t_end=0.6
@@ -70,8 +70,8 @@ while t<t_end and c< c_stop:
     t+=dt
     if t>=t_out+dt_out:
          c_out,t_out=c_out+1,t_out+dt_out
-         saveVTK("u.%s.xml"%c_out,u=u)
-         print "write time step ",c,"(t=%s) to file u.%s.xml"%(t,c_out)
+         saveVTK("u.%s.vtu"%c_out,u=u)
+         print "write time step ",c,"(t=%s) to file u.%s.vtu"%(t,c_out)
 
 if True:
    pde=LinearPDE(dom)
@@ -92,5 +92,5 @@ if True:
        t+=dt
        if t>=t_out+dt_out:
          c_out,t_out=c_out+1,t_out+dt_out
-         saveVTK("u2.%s.xml"%c_out,u=u)
-         print "write time step ",c,"(t=%s) to file u2.%s.xml"%(t,c_out)
+         saveVTK("u2.%s.vtu"%c_out,u=u)
+         print "write time step ",c,"(t=%s) to file u2.%s.vtu"%(t,c_out)

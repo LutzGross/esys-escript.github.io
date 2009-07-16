@@ -53,4 +53,5 @@ while t<tend:
       print "time step :",t
       mypde.setValue(Y=qH+rhocp/h*T)
       T=mypde.getSolution()
-      saveVTK("T.%d.xml"%i,temp=T)
+      saveVTK("T.%d.vtu"%i,temp=T)
+

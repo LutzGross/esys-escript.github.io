@@ -45,4 +45,5 @@ mypde.setValue(A=k*kronecker(mydomain),Y=Q, r=T_D, \
 # get temperature:
 T=mypde.getSolution()
 # write to file:
-saveVTK("u.xml",T=T)
+saveVTK("u.vtu",T=T)
+

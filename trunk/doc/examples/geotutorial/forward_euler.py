@@ -60,7 +60,7 @@ while t<t_end:
     mypde.setValue(Y=rhocp*T+dt*Q, X=-k*dt*grad(T))
     # new temperature:
     T=mypde.getSolution()
-    # save to vtk for mayavi:
-    # saveVTK("u.%s.xml"%N,T=T)
+    # save as VTK for visualisation:
+    # saveVTK("u.%s.vtu"%N,T=T)
     # increase counter and marker:
     N+=1; t+=dt

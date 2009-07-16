@@ -119,11 +119,11 @@ p0=Scalar(0,ReducedSolution(dom))
 # prop.initialize(fixed_u_mask=mask)
 prop.initialize(fixed_u_mask=mask,eta=10.)
 u,p=prop.solve(u0,p0,tolerance=0.01)
-# saveVTK("stokes.xml",u=u,p=p,m=mask,u0=u0)
+# saveVTK("stokes.vtu",u=u,p=p,m=mask,u0=u0)
 
 eta=whereNegative(x[1]-0.5)*1.e6+whereNonNegative(x[1]-0.5)
 prop.initialize(fixed_u_mask=mask,eta=eta)
 u,p=prop.solve(u0,p0,tolerance=0.01,tolerance_u=0.1,accepted_reduction=0.8)
-saveVTK("stokes.xml",u=u,p=p,m=mask,u0=u0)
+saveVTK("stokes.vtu",u=u,p=p,m=mask,u0=u0)
           
 # vim: expandtab shiftwidth=4:

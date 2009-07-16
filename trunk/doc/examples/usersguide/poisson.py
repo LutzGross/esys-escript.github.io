@@ -32,4 +32,5 @@ mypde = Poisson(domain=mydomain)
 mypde.setValue(f=1,q=gammaD)
 u = mypde.getSolution()
 # write u to an external file
-saveVTK("u.xml",sol=u)
+saveVTK("u.vtu",sol=u)
+
