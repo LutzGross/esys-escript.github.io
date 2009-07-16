@@ -80,6 +80,6 @@ while t<=tend:
       mypde.setValue(Y=qH+rhocp/h*T)
       T=mypde.getSolution()
       #ptool.plot(T)
-      saveVTK(os.path.join(save_path,"data%03d.xml") %i,sol=T)
+      saveVTK(os.path.join(save_path,"data%03d.vtu") %i,sol=T)
       
 

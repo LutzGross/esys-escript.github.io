@@ -102,16 +102,16 @@ def saveVTK(filename,domain=None, metadata=None, metadata_schema=None, **data):
 
         tmp=Scalar(..)
         v=Vector(..)
-        saveVTK("solution.xml", temperature=tmp, velocity=v)
+        saveVTK("solution.vtu", temperature=tmp, velocity=v)
 
-    C{tmp} and C{v} are written into "solution.xml" where C{tmp} is named
+    C{tmp} and C{v} are written into "solution.vtu" where C{tmp} is named
     "temperature" and C{v} is named "velocity".
 
     Meta tags, e.g. a timeStamp, can be added to the file, for instance::
 
         tmp=Scalar(..)
         v=Vector(..)
-        saveVTK("solution.xml", temperature=tmp, velocity=v,
+        saveVTK("solution.vtu", temperature=tmp, velocity=v,
                 metadata="<timeStamp>1.234</timeStamp>",
                 metadata_schema={ "gml" : "http://www.opengis.net/gml"})
 

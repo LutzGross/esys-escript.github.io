@@ -63,7 +63,7 @@ if DIM==2:
 else:
   dom=Brick(NE,NE,NE)
 u0=dom.getX()[0]
-# saveVTK("u.%s.xml"%0,u=u0)
+# saveVTK("u.%s.vtu"%0,u=u0)
 # print "XX"*80
 dom.setX(2*dom.getX()-1)
 
@@ -90,7 +90,7 @@ if TEST_SUPG:
    u_supg=u0*1.
 
 c=0
-# saveVTK("u.%s.xml"%c,u=u0)
+# saveVTK("u.%s.vtu"%c,u=u0)
 fc.setInitialSolution(u0)
 t=T0
 print "QUALITY FCT: time = %s pi"%(t/pi),inf(u0),sup(u0),integrate(u0)
@@ -113,8 +113,8 @@ while t<T_END:
     t+=dt
     if TEST_SUPG: 
        print "QUALITY SUPG: time = %s pi"%(t/pi),inf(u_supg),sup(u_supg),integrate(u_supg)
-       # saveVTK("u2.%s.xml"%c,u=u,u_supg=u_supg)
+       # saveVTK("u2.%s.vtu"%c,u=u,u_supg=u_supg)
     else:
-       # saveVTK("u.%s.xml"%c,u=u)
+       # saveVTK("u.%s.vtu"%c,u=u)
        pass
     # if c == 20: 1/0

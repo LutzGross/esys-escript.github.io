@@ -40,5 +40,5 @@ mypde.setValue(A=kappa*kronecker(mydomain),D=omega,Y=omega*x[0], \
 u=mypde.getSolution()
 print "error is ",Lsup(u-x[0])
 # output should be similar to "error is 1.e-7"
-saveVTK("x0.xml",sol=u)
+saveVTK("x0.vtu",sol=u)
  

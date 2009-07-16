@@ -90,8 +90,8 @@ mypde.setValue(A=A*kronecker(model),D=D,d=eta,y=eta*Tc)
 # ... set initial temperature ....
 
 T= Ti*whereNegative(bound)+Tc*wherePositive(bound) #defining the initial temperatures.
-saveVTK(os.path.join(save_path,"dataedge.xml"), sol=bound)
-saveVTK(os.path.join(save_path,"data%03d.xml") %i,sol=T)
+saveVTK(os.path.join(save_path,"dataedge.vtu"), sol=bound)
+saveVTK(os.path.join(save_path,"data%03d.vtu") %i,sol=T)
 
 #... start iteration:
 while t<=tend:
@@ -100,4 +100,5 @@ while t<=tend:
       Y = T*D
       mypde.setValue(Y=Y)
       T=mypde.getSolution()
-      saveVTK(os.path.join(save_path,"data%03d.xml") %i,sol=T)
+      saveVTK(os.path.join(save_path,"data%03d.vtu") %i,sol=T)
+

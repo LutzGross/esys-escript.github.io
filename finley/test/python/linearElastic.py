@@ -65,4 +65,4 @@ u_d=mypde.getSolution(verbose=True)
 g=grad(u_d)
 stress=lamb*trace(g)*kronecker(domain)+nu*(g+transpose(g))
 # write the hydrostatic pressure:
-saveVTK("result.xml",displacement=u_d,pressure=trace(stress)/domain.getDim())
+saveVTK("result.vtu",displacement=u_d,pressure=trace(stress)/domain.getDim())
