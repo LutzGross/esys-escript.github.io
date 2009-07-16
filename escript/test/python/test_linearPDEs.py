@@ -1411,6 +1411,29 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u2=mypde.getSolution()
         self.failUnless(self.check(u2,2*u1),'second solution is wrong.')
 
+    def test_Status(self):
+        DIM=self.domain.getDim()
+        x=self.domain.getX()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.getSolverOptions().setSymmetryOn()
+        mypde.getSolverOptions().setTolerance(self.RES_TOL)
+        mypde.setValue(A=kronecker(self.domain), q=whereZero(x[0])+whereZero(x[0]-1.), Y=2.)
+        x1=self.domain.getX()
+        u1_ref=x1[0]*(1.-x1[0])
+        u1=mypde.getSolution()
+        error1=Lsup(u1-u1_ref)/Lsup(u1_ref)
+        self.failUnless(mypde.getDomainStatus() == mypde.getSystemStatus(), "status of first pde does not match domain status.")
+
+        self.domain.setX(x*5)
+
+        self.failUnless(mypde.getDomainStatus() != mypde.getSystemStatus(), "status of first pde matches updated domain status.")
+        x2=self.domain.getX()
+        u2_ref=x2[0]*(5.-x2[0])
+        u2=mypde.getSolution()
+        error2=Lsup(u2-u2_ref)/Lsup(u2_ref)
+        self.failUnless(error2 <= max(error1,self.RES_TOL)*10., "solution of second PDE wrong.")
+        self.failUnless(mypde.getDomainStatus() == mypde.getSystemStatus(), "status of second pde does not match domain status.")
+
     def test_symmetryCheckTrue_System(self):
         d=self.domain.getDim()
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
