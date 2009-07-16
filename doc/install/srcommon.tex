@@ -15,18 +15,17 @@
 
 % The original version of this content came from the esscc twiki page maintained by ksteube
 
-This chapter describes how to build \escript from source assuming that the dependencies are already installed.
-For example using precompiled packages for your OS.
+This chapter describes how to build \esfinley from source assuming that the dependencies are already installed (for example using precompiled packages for your OS).
 Section~\ref{sec:deps} describes the dependencies, while Section~\ref{sec:compilesrc} gives the compile instructions.
 
-If you would prefer to build all the dependecies from source in the escript-support packages please see Chapter~\ref{chap:srcall}
+If you would prefer to build all the dependecies from source in the escript-support packages please see Chapter~\ref{chap:allsrc}
 
 \esfinley is known to compile and run on the following systems:
 \begin{itemize}
- \item \linux under gcc\footnote{There are some problems with OpenMP under gcc prior to version 4.3.2. Also do not link the gomp library with gcc 4.3.3 it causes problems.} - \Sec{sec:srclinux}
-\item \linux under icc on SGI ICE 8200.
-\item \macosx under gcc - \Sec{sec:srcmac}
-\item \winxp with visual studio (we do not specifically discuss windows builds in this guide).
+ \item \linux using gcc\footnote{There are some problems with \openmp under gcc prior to version 4.3.2. Also do not link the gomp library with gcc 4.3.3 - it causes problems.} - \Sec{sec:srclinux}
+\item \linux using icc on SGI ICE 8200.
+\item \macosx using gcc - \Sec{sec:srcmac}
+\item \winxp using the Visual C compiler (we do not specifically discuss Windows builds in this guide).
 \end{itemize}
 
 \section{External dependencies}
@@ -34,12 +33,12 @@ If you would prefer to build all the dependecies from source in the escript-supp
 The following external packages are required in order to compile and run \esfinley.
 Where version numbers are specified, more recent versions can probably be subsituted.
 You can either try the standard/precompiled packages available for your operating system or you can download and build them from source.
-The advantage of using existing packages is that they will probably all work togther properly.
+The advantage of using existing packages is that they are more likely to work together properly.
 You must take greater care if downloading sources separately.
 
 \begin{itemize}
  \item python-2.5.1 (\url{http://python.org}) \\
-- Python  interpreter (You must compile with shared libraries.)
+- Python interpreter (You must compile with shared libraries.)
 \item numpy 1.1.0 (\url{http://numpy.scipy.org})
 - Arrays for python.
 \item boost-1.35 (\url{http://www.boost.org}) \\
@@ -48,33 +47,32 @@ You must take greater care if downloading sources separately.
 - a python-based alternative to ``make''.
 \end{itemize}
 
-The version numbers given here are not strict requirements, more recent (and in some cases older) versions will
-still work. 
+The version numbers given here are not strict requirements, more recent (and in some cases older) versions will still work. 
 The following packages should be sufficient (but not necessarily minimal) for Debian 5.0 (``Lenny''):
 python-dev, libboost1.35-dev, scons, python-numpy, g++.
 
 
-These packages may be required for some of the optional capabilities of the system.
+These packages may be required for some of the optional capabilities of the system:
 
 \begin{itemize}
  \item netcdf-3.6.2 (\url{http://www.unidata.ucar.edu/software/netcdf}) \\-
         Used to save data sets in binary form for checkpoint/restart (must be compiled with -fPIC).
-\item vtk-5.0.4 (\url{http://www.vtk.org}) \\-
+ \item vtk-5.0.4 (\url{http://www.vtk.org}) \\-
         This is used to save VTK files for visualization.
   \begin{itemize}
-  \item cmake-2.4.6 (\url{http://www.cmake.org}) \\-
-        This is used to build VTK.
-  \item     mesa-7.0.3 (\url{http://www.mesa3d.org})\\-
+   \item cmake-2.4.6 (\url{http://www.cmake.org}) \\-
+        Required to build VTK.
+   \item mesa-7.0.3 (\url{http://www.mesa3d.org})\\-
         Free OpenGL replacement used by VTK.
   \end{itemize}
-\item netpbm (\url{http://netpbm.sourceforge.com}) \\-
-    tools for producing movies from images
-\item     mpich2-1.0.7 (\url{http://www.mcs.anl.gov/research/projects/mpich2}) \\-
+ \item netpbm (\url{http://netpbm.sourceforge.com}) \\-
+        Tools for producing movies from images
+ \item mpich2-1.0.7 (\url{http://www.mcs.anl.gov/research/projects/mpich2}) \\-
         Parallelization with MPI.
-\item     parmetis-3.1 (\url{http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview}) \\-
+ \item parmetis-3.1 (\url{http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview}) \\-
         Optimization of the stiffness matrix.
-\item MKL \\(\url{http://www.intel.com/cd/software/products/asmo-na/eng/307757.htm}) \\-
-        Intel's Math Kernel Library for use with their c compiler.
+ \item MKL \\(\url{http://www.intel.com/cd/software/products/asmo-na/eng/307757.htm}) \\-
+        Intel's Math Kernel Library for use with their C compiler.
 \end{itemize}
 
 The following packages might be useful for mesh generation:
@@ -82,20 +80,20 @@ The following packages might be useful for mesh generation:
  \item gmsh-2.2.0 (\url{http://www.geuz.org/gmsh}) \\-
     Mesh generation and viewing.
   \begin{itemize}
- \item fltk-1.1.9 (\url{http://www.fltk.org}) \\-
-    This is used to build gmsh 
-\item gsl-1.10 (\url{http://www.gnu.org/software/gsl}) \\-
-    This is used to build gmsh 
-\end{itemize}
-
-\item triangle-1.6 (\url{http://www.cs.cmu.edu/~quake/triangle.html}) 
+   \item fltk-1.1.9 (\url{http://www.fltk.org}) \\-
+    Required to build gmsh 
+   \item gsl-1.10 (\url{http://www.gnu.org/software/gsl}) \\-
+    Required to build gmsh 
+  \end{itemize}
+ \item triangle-1.6 (\url{http://www.cs.cmu.edu/~quake/triangle.html}) 
 \end{itemize}
 
 Packages for visualization:
 \begin{itemize}
  \item mayavi-1.5 (\url{http://mayavi.sourceforge.net}) \\-
     MayaVi is referenced in our User Guide for viewing VTK files.
- \item visit-1.9 (\url{https://wci.llnl.gov/codes/visit/})
+ \item visit-1.11 (\url{https://wci.llnl.gov/codes/visit/}) \\-
+    A featureful visualization system with movie-making capabilities.
 \end{itemize}
 
 \section{Compilation}\label{sec:compilesrc}
@@ -104,7 +102,7 @@ You can call the directory anything you like, provided that you make the change 
 
 You need to indicate where to find the external dependencies.
 Unless specified otherwise, all paths will be relative to the top level of the source.
-To do this, create a file in the \filename{scons} directory called \filename{x_options.py} where ``x'' is the name of your computer.
+To do this, create a file in the \filename{scons} directory called \filename{x_options.py} where ``x'' is the name of your computer (output of the \texttt{hostname} command).
 As a starting point use one of the following:
 \begin{itemize}
  \item \filename{scons/linux_options_example.py} (\linux desktop)
@@ -127,7 +125,7 @@ If you require debug versions of the libraries, use:
 \begin{shellCode}
  scons usedebug=yes
 \end{shellCode}
-A note about scons: if you recompile later with different options (eg leaving off usedebug), scons will revert 
+A note about scons: if you recompile later with different options (e.g. leaving out usedebug), scons will revert 
 to its default values. If you wish to make a change more permanent, then modify your options file.
 
 
@@ -140,49 +138,57 @@ You can test your build using
 \begin{shellCode}
 scons all_tests
 \end{shellCode}
-An alternative method is available for performing tests on \openmp and MPI builds.
+Grab a coffee or two while the tests compile and run.
+An alternative method is available for performing tests on \openmp and \mpi builds.
 
 \subsection{Compilation with \openmp}
-You will need to consult your compiler documentation for the precise switches to use to enable OpenMP features.
+You will need to consult your compiler documentation for the precise switches to use to enable \openmp features.
 Once you know the options, modify the omp_optim, omp_debug and omp_libs variables in your options.py file.
 
-For example, for gcc compilers which support \openmp use.
+For example, for gcc compilers which support \openmp use:
 \begin{shellCode}
 omp_optim		= '-fopenmp'
 omp_debug		= '-fopenmp'
 omp_libs		= ['gomp']
 \end{shellCode}
-Depending on your version, last change may not be required.
+Depending on your version, the last change may not be required.
+If you're unsure try without the gomp library first and add it if you get linker errors.
 
 Then recompile.
 \begin{shellCode}
  scons useopenmp=yes
 \end{shellCode}
 
-You can test your build on for instance 4 threads using 
+You can test your build, e.g. using 4 threads by issuing
 \begin{shellCode}
 export ESCRIPT_NUM_THREADS=4
 scons all_tests
 \end{shellCode}
 
-\subsection{Compilation with MPI}
-You will need to have MPI installed on your system.
+\subsection{Compilation with \mpi}
+You will need to have \mpi installed on your system.
 There are a number of implementations so we do not provide any specific advice here.
 You will need to modify the following variables in your options file.
 \begin{itemize}
-\item \texttt{mpi_flavour} \\
-	which MPI implementation is used. Valid values are  \begin{itemize}
-    \item[\texttt{MPT}] SGI MPI implementation    \\     \url{http://techpubs.sgi.com/library/manuals/3000/007-3687-010/pdf/007-3687-010.pdf}
-     \item[\texttt{MPICH2}] Argonne's MPICH vesrion 2 implementation \\ \url{http://www.mcs.anl.gov/research/projects/mpi/mpich2/}
-     \item[\texttt{MPICH}] Argonne's MPICH implementation \\ \url{http://www.mcs.anl.gov/research/projects/mpi/mpich1/}
-      \item[\texttt{OPENMPI}] Open MPI \url{http://www.open-mpi.org/}
-      \item[\texttt{INTELMPI}] Intel's MPI \url{http://software.intel.com/en-us/intel-mpi-library/}
-   \end{itemize}
+ \item \texttt{mpi_flavour} \\
+	which \mpi implementation is used. Valid values are
+    \begin{itemize}
+        \item[\texttt{MPT}] SGI MPI implementation \\
+            \url{http://techpubs.sgi.com/library/manuals/3000/007-3687-010/pdf/007-3687-010.pdf}
+        \item[\texttt{MPICH2}] Argonne's MPICH version 2 implementation \\
+            \url{http://www.mcs.anl.gov/research/projects/mpi/mpich2/}
+        \item[\texttt{MPICH}] Argonne's MPICH implementation \\
+            \url{http://www.mcs.anl.gov/research/projects/mpi/mpich1/}
+        \item[\texttt{OPENMPI}] Open MPI \\
+            \url{http://www.open-mpi.org/}
+        \item[\texttt{INTELMPI}] Intel's MPI \\
+            \url{http://software.intel.com/en-us/intel-mpi-library/}
+    \end{itemize}
  \item \texttt{mpi_path} \\
 	where to find \filename{mpi.h}
-\item \texttt{mpi_lib_path} \\
-	where to find libraries for mpi
-\item \texttt{mpi_libs} \\
+ \item \texttt{mpi_lib_path} \\
+	where to find libraries for \mpi
+ \item \texttt{mpi_libs} \\
 	which libraries to link to.
 \end{itemize}
 
@@ -193,12 +199,12 @@ Then compile with:
 
 As with debug and openmp, you can make this a more permanent setting by modifying your options file.
 
-You can test your build on for instance 6 processors using 
+To test your build using 6 processors enter:
 \begin{shellCode}
 export ESCRIPT_NUM_NODES=6
 scons usempi=yes all_tests
 \end{shellCode}
-and on  6 processors with 4 threads each using 
+and on 6 processors with 4 threads each using 
 \begin{shellCode}
 export ESCRIPT_NUM_THREADS=4
 export ESCRIPT_NUM_NODES=6
@@ -210,25 +216,29 @@ export ESCRIPT_NUM_THREADS=4
 export ESCRIPT_HOSTFILE=myhostfile
 scons usempi=yes all_tests
 \end{shellCode}
-Notice that depending on your MPI flavour it may be required to start a daemon before running the tests under MPI.
+Note that depending on your \mpi flavour it may be required to start a daemon before running the tests under \mpi.
 
 
 \subsection{Difficulties}
 
-%This is copied from Ken's notes on teh old Twiki page
+%This is copied from Ken's notes on the old Twiki page
 \subsubsection{``Bad magic number''}
 Some reasons for this error message include:
 \begin{itemize}
  \item Using different versions of python when installing and running escript (Use \texttt{which python} and \texttt{python --version} to check)
-\item Using different versions of libraries (Make sure \texttt{LD_LIBRARY_PATH} has \filename{/trunk/lib} listed first)
+\item Using different versions of libraries (Make sure \texttt{LD_LIBRARY_PATH} has \filename{x/lib} listed first, where x is the escript install path)
 \item Using different versions of python modules (Make sure \texttt{PYTHONPATH} has \filename{/trunk/escript} directory listed first) 
 \end{itemize}
 
 Another error we sometimes see is unsatisfied externals when trying to run a python script. This is usually due to not having \texttt{LD_LIBRARY_PATH} and \texttt{PYTHONPATH} set correctly so that you run with different libraries from the ones the code was compiled against. Check which libraries you are running against with \texttt{ldd lib/libfinley.so} and \texttt{ldd esys/finley/finleycpp.so}.
 
-It is also possible that the person who compiled \esfinley used incompatible libraries. For example, if you run with Python2.4 but the software was compiled against Python2.5 then you will get unsatisfied externals or a large error message with a long traceback. Another case is when Boost or Numarray was compiled against the wrong Python library. To avoid these problems everyone (builder and user) must make certain they are using the same python libraries. 
+It is also possible that incompatible libraries were used when compiling \esfinley.
+For example, if you run with Python2.4 but the software was compiled against Python2.5 then you will get unsatisfied externals or a large error message with a long traceback.
+Another case is when Boost or Numarray was compiled against the wrong Python library.
+To avoid these problems both builder and user must ensure they are using the same python libraries.
 
-\subsubsection{OpenMP builds segfault running examples}
+\subsubsection{\openmp builds segfault running examples}
 
 One known cause for this is linking the \filename{gomp} library with escript built using gcc 4.3.3.
-While you need the -fomp switch you should not need to link \filename{gomp}.
+While you need the \texttt{-fopenmp} switch you should not need to link \filename{gomp}.
+

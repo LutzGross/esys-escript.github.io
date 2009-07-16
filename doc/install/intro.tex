@@ -17,12 +17,12 @@ This document describes how to install \esfinley on your computer.
 To learn how to use \esfinley please see the User guide or, for
 more detailed information, the API documentation.
 
-\esfinley is developed primarily on Linux desktop systems,  SGI ICE and MacOS.
+\esfinley is developed primarily on Linux desktop systems, SGI ICE and \macosx.
 Binary distributions (discussed in Chapter~\ref{chap:bin}) are available for the following platforms:
 \begin{itemize}
 \item Debian and Ubuntu Linux distributions ($32$-bit i686) (.deb package)
 \item Linux desktop systems with gcc (stand-alone bundle)
-\item MacOS X Leopard systems with gcc (stand-alone bundle)
+\item \macosx Leopard systems with gcc (stand-alone bundle)
 \item Windows systems with Visual Studio (stand-alone bundle) 
 \end{itemize}
 
@@ -30,14 +30,14 @@ Compiling escript when its dependencies are already installed is discussed in Ch
 To compile escript and its dependencies from source please see Chapter~\ref{chap:allsrc}.
 
 You can test your installation using the Python scripts in \filename{examples.zip} or \filename{examples.tar.gz}
-\footnote{These will should either be in \filename{escript.d/release/doc} or in the case of Debian, in \filename{/usr/share/doc/escript}.}.
-A simple test is
+\footnote{These should either be in \filename{escript.d/release/doc} or in the case of Debian, in \filename{/usr/share/doc/escript}.}.
+To test your installation try to run the following from a terminal:
 \begin{shellCode}
  escript poission.py
 \end{shellCode}
-It should produce a file called \filename{u.xml} (which can be removed).
+This should produce a VTK file called \filename{u.vtu} (which can be removed).
 If this is successful, then the main features of \escript have been sucessfully installed.
 
 For visualisation we suggest \filename{visit}\footnote{\url{https://wci.llnl.gov/codes/visit/}} or \filename{mayavi}\footnote{\url{http://mayavi.sourceforge.net}}.
 
-For online help, see the site \url{https://answers.launchpad.net/escript-finley}.
+See the site \url{https://answers.launchpad.net/escript-finley} for online help.

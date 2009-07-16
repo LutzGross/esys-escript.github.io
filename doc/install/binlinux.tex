@@ -14,40 +14,34 @@
 \section{Linux binary installation}
 \label{sec:binlinux}
 
-\esfinley can be installed as a stand-alone bundle, containing all the required tools.
+\esfinley can be installed as a stand-alone bundle, containing all the required dependencies.
 Alternatively, if we have a package for your distribution you can use the standard tools to install.
-
-Please note, the current packages do not support \openmp\footnote{This is due to a bug related to gcc 4.3.2.} or \mpi\footnote{Producing packages for MPI requires knowing something about your computer's configuration.}.
+Please note, however, that the current binary packages do not support \openmp\footnote{This is due to a bug related to gcc 4.3.2.} or \mpi\footnote{Producing packages for \mpi requires knowing something about your computer's configuration.}.
 If you need these features you may need to compile \esfinley from source (see Sections~\ref{sec:compilesrc} and \ref{sec:compileescriptlinux}.)
 
 For more information on using the \filename{escript} command please see the User Guide.
 
-If you are using Debian then see Section~\ref{sec:lenny}.
-If you are using Debian (5.0 - ``Lenny'') or Ubuntu (8.10-``Intrepid Ibex'', 9.04-``Jaunty Jakalope'') then see Section~\ref{sec:lenny}
-If you are using some other distribution of Linux, see Section~\ref{sec:standalonelinux} 
+If you are using Debian (5.0 - ``Lenny'') or Ubuntu (8.10-``Intrepid Ibex'', 9.04-``Jaunty Jackalope'') then see Section~\ref{sec:debian}.
+For other Linux distributions refer to Section~\ref{sec:standalonelinux} 
 
-
-\subsection{Debian 5.0(``Lenny'')}\label{sec:lenny}
+\subsection{Debian 5.0(``Lenny''), Ubuntu 8.10(``Intrepid Ibex'') or 9.04(``Jaunty Jakalope'')}\label{sec:debian}
 
 Download the \filename{escript.deb} file.
-(At time of writing we only produce debs for the i386 architecture.)
+(At the time of writing we only produce deb's for the i386 architecture.)
 Execute the following commands as root (you need to be in the directory containing the file).
 \begin{shellCode}
  dpkg --unpack escript.deb
  aptitude install escript
 \end{shellCode}
 
-If you use sudo this would be:
+If you use sudo (for example on Ubuntu) this would be:
 \begin{shellCode}
 sudo dpkg --unpack escript.deb
 sudo aptitude install escript
 \end{shellCode}
 
-\subsection{Ubuntu 8.10(``Intrepid Ibex''), 9.04(``Jaunty Jakalope'')}
-
-Since the installation process for \esfinley is pretty simple you should be able to use the Debian package for Ubuntu as well.
-Please notify the development team if this is not the case.
-Note that you will need to use the ``sudo'' instructions.
+This should install \esfinley and its dependencies on your system.
+Please notify the development team if something goes wrong.
 
 
 \subsection{Stand-alone bundle}\label{sec:standalonelinux}
@@ -63,8 +57,5 @@ Test your installation by running:
  stand/escript.d/bin/escript
 \end{shellCode}
 You should get a normal python shell.
-If you wish to save on typing you can add \filename{x/escript.d/bin} to your PATH variable (where x is the absolute path to your install). 
-
-
-
+If you wish to save on typing you can add \filename{x/escript.d/bin} to your PATH variable (where x is the absolute path to your install).
 

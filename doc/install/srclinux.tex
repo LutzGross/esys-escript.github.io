@@ -13,44 +13,46 @@
 
 \section{Installing from source for \linux}
 \label{sec:srclinux}
+
+\subsection{Preliminaries}
+
 The following instructions assume you are running the \filename{bash} shell.
 Comments are indicated with \# characters.
 
 Make sure you have the following installed:
 \begin{itemize}
  \item \filename{g++} and associated tools.
-\item \filename{make}
-% I suspect that these are only needed by VTK and if we aren't using it anymore they could be removed
-\item \filename{libXext.so}\footnote{In Debian this is in the libXext-dev package.}
-\item \filename{libxt.so}\footnote{In Debian this is in the libxt-dev package.}
+ \item \filename{make}
+ % I suspect that these are only needed by VTK and if we aren't using it anymore they could be removed
+ \item \filename{libXext.so}\footnote{In Debian this is in the libXext-dev package.}
+ \item \filename{libxt.so}\footnote{In Debian this is in the libxt-dev package.}
 \end{itemize}
 
 You will also need a copy of the \esfinley source code.
 If you retrieved the source using subversion, don't forget that one can use the export command instead of checkout to get a smaller copy.
 For additional visualisation functionality see Section~\ref{sec:linaddfunc}.
 
-These instructions will produce the following structure:
+These instructions will produce the following directory structure:
 \begin{itemize}
-\item \filename{stand}: \begin{itemize}
- \item \filename{escript.d}
-\item \filename{pkg}
-\item \filename{pkg_src}
-\item \filename{build}
-\item \filename{doc}
-  \end{itemize}
+ \item[] \filename{stand} \begin{itemize}
+  \item[] \filename{escript.d}
+  \item[] \filename{pkg}
+  \item[] \filename{pkg_src}
+  \item[] \filename{build}
+  \item[] \filename{doc}
+ \end{itemize}
 \end{itemize}
 
-The build directory can be removed when you are finished.
-
-These instructions refer to versions of software in the \filename{escript-support-3-src} and \filename{escript-support-visi-3-src} bundles.
-If you download your own versions of those packages substitute their version numbers and names as appropriate
+Before you start copy the \esfinley source into the \filename{escript.d} directory.
+The following instructions refer to software versions in the \filename{escript-support-3-src} and \filename{escript-support-visi-3-src} bundles.
+If you download your own versions of those packages substitute their version numbers and names as appropriate.
 There are a number of uses of the \filename{make} command in the following instructions.
-If your computer has multiple cores/processors you can speed up the compilation process by adding -j 2 after the make command:
-on a computer with 4 cores:
+If your computer has multiple cores/processors you can speed up the compilation process by adding -j 2 after the make command.
+For example to use all processors on a computer with 4 cores:
 \begin{shellCode}
  make
 \end{shellCode}
-Becomes
+becomes
 \begin{shellCode}
  make -j 4
 \end{shellCode}
@@ -58,20 +60,19 @@ Becomes
 \begin{shellCode}
 mkdir stand
 cd stand
-mkdir pkg_src
-mkdir doc
-mkdir pkg
-mkdir build
+mkdir build doc pkg pkg_src
 export PKG_ROOT=$(pwd)/pkg
 \end{shellCode}
 
+\subsection{Building the dependencies}
+
 Copy the compressed sources for the packages into \filename{stand/pkg_src}.
-If you are using the support bundles, decrompress them in the stand directory.
+If you are using the support bundles, decompress them in the stand directory:
 \begin{shellCode}
 tar -xjf escript-support-3-src.tar.bz2
 \end{shellCode}
 
-Copy documentation files into \filename{doc}.
+Copy documentation files into \filename{doc} then unpack the archives:
 
 \begin{shellCode}
 cd build
@@ -83,7 +84,9 @@ tar -zxf ../pkg_src/netcdf-4.0.tar.gz
 tar -zxf ../pkg_src/matplotlib-0.98.5.3.tar.gz
 \end{shellCode}
 
-Build python.
+\begin{itemize}
+
+\item Build Python:
 \begin{shellCode}
 cd Python*
 ./configure --prefix=$PKG_ROOT/python-2.6.1 --enable-shared 2>&1 \
@@ -99,12 +102,11 @@ export LD_LIBRARY_PATH=$PKG_ROOT/python/lib:$LD_LIBRARY_PATH
 pushd ../pkg
 ln -s python-2.6.1/ python
 popd
-
 \end{shellCode}
 
-Run python to make sure it works.
-Now build numpy.
+Run the new python executable to make sure it works.
 
+\item Now build NumPy:
 \begin{shellCode}
 cd numpy-1.3.0
 python setup.py build
@@ -115,7 +117,6 @@ ln -s numpy-1.3.0 numpy
 popd
 export PYTHONPATH=$PKG_ROOT/numpy/lib/python2.6/site-packages:$PYTHONPATH
 \end{shellCode}
-
 
 % \begin{shellCode}
 % cd numarray-1.5.2
@@ -133,7 +134,7 @@ export PYTHONPATH=$PKG_ROOT/numpy/lib/python2.6/site-packages:$PYTHONPATH
 % popd
 % \end{shellCode}
 
-Now we build scons.
+\item Next build scons:
 \begin{shellCode}
 cd scons-1.2.0
 python setup.py install --prefix=$PKG_ROOT/scons-1.2.0
@@ -145,7 +146,7 @@ ln -s scons-1.2.0 scons
 popd
 \end{shellCode}
 
-...Boost libraries ...
+\item The Boost libraries...:
 \begin{shellCode}
 pushd ../pkg
 mkdir boost_1_39_0
@@ -153,7 +154,7 @@ ln -s boost_1_39_0 boost
 popd
 cd boost_1_39_0
 ./bootstrap.sh --with-libraries=python --prefix=$PKG_ROOT/boost
-./bjam --build-type=complete
+./bjam
 ./bjam install --prefix=$PKG_ROOT/boost --libdir=$PKG_ROOT/boost/lib
 export LD_LIBRARY_PATH=$PKG_ROOT/boost/lib:$LD_LIBRARY_PATH
 cd ..
@@ -162,7 +163,7 @@ ln *.so.* libboost_python.so
 popd
 \end{shellCode}
 
-... and netcdf.
+\item ...and NetCDF:
 \begin{shellCode}
 cd netcdf-4.0
 CFLAGS="-O2 -fPIC -Df2cFortran" CXXFLAGS="-O2 -fPIC -Df2cFortran" \
@@ -179,8 +180,7 @@ ln -s netcdf-4.0 netcdf
 popd
 \end{shellCode}
 
-Now matplotlib.
-
+\item Finally matplotlib:
 \begin{shellCode}
 cd matplotlib-0.98.5.3
 python setup.py build
@@ -192,13 +192,15 @@ popd
 cd ..
 \end{shellCode}
 
+\end{itemize}
+
 \subsection{VTK support}
-These packages are currently required for pyvisi.
-They can be downloaded independently or in the \filename{escript-support-visi-3-src}.
-If you will not be using pyvisi, then skip to Section~\ref{sec:srclinux-escript}
+VTK is only required for pyvisi. To build it you need CMake and Mesa.
+The packages can be downloaded independently or in the \filename{escript-support-visi-3-src}.
+If you will not be using pyvisi, then skip to Section~\ref{sec:compileescriptlinux}
 
 Copy the compressed sources for the packages into \filename{stand/pkg_src}.
-If you are using the support bundles, decrompress them in the stand directory.
+If you are using the support bundles, decompress them in the stand directory.
 \begin{shellCode}
 tar -xjf escript-support-visi-3-src.tar.bz2
 \end{shellCode}
@@ -211,7 +213,9 @@ tar -zxf ../pkg_src/vtkdata-5.2.1.tar.gz
 tar -zxf ../pkg_src/cmake-2.6.3.tar.gz
 \end{shellCode}
 
-CMake and Mesa are required for VTK. 
+\begin{itemize}
+
+\item Build CMake:
 \begin{shellCode}
 cd cmake-2.6.3
 ./configure --prefix=$PKG_ROOT/cmake-2.6.3 2>&1 | tee tt.configure
@@ -225,8 +229,7 @@ ln -s cmake-2.6.3 cmake
 popd
 \end{shellCode}
 
-These instructions do not compile MesaDemos or GLUT.
-If you need to check if Mesa compiled correctly, then the demos are a good test.
+\item Build Mesa:
 \begin{shellCode}
 cd Mesa-7.2
 ./configure --prefix=$PKG_ROOT/mesa-7.2 --enable-gl-osmesa --with-driver=xlib
@@ -240,19 +243,20 @@ pushd ../pkg
 ln -s mesa-7.2 mesa
 popd
 \end{shellCode}
+These instructions do not compile MesaDemos or GLUT.
+If you need to check if Mesa compiled correctly, then the demos are a good test.
 
-Build VTK
+\item Finally, build VTK:
 \begin{shellCode}
 cd VTK
 cmake .
 \end{shellCode}
 
 Now edit the \filename{CMakeCache.txt} file and make the following changes.
-Where .... appears please replace it with the absolute path to pkg directory.
-For example,
-replace \filename{CMAKE_INSTALL_PREFX=..../vtk-5.2.1} with
-\filename{CMAKE_INSTALL_PREFIX:PATH=/home/bob/stand/pkg/vtk-5.2.1}.
-(Search for the text before the =)
+Where .... appears please replace it with the absolute path to the pkg directory.
+For example, replace \filename{CMAKE_INSTALL_PREFIX:PATH=..../vtk-5.2.1} with
+\filename{CMAKE_INSTALL_PREFIX:PATH=/home/bob/stand/pkg/vtk-5.2.1}
+(Search for the text before the =).
 \begin{shellCode}
 BUILD_EXAMPLES:BOOL=OFF
 BUILD_SHARED_LIBS:BOOL=ON
@@ -270,7 +274,7 @@ Now rerun cmake (it won't work but it adds some variables you need).
 cmake .
 \end{shellCode}
 
-Edit \filename{CMakeCache.txt} and change the following variables.
+Edit \filename{CMakeCache.txt} and change the following variables:
 
 \begin{shellCode}
 VTK_USE_OFFSCREEN:BOOL=ON
@@ -283,24 +287,19 @@ OPENGL_INCLUDE_DIR:PATH=..../mesa/include
 OPENGL_gl_LIBRARY:FILEPATH=..../mesa/lib/libGL.so
 \end{shellCode}
 
-The following steps will take a while.
+The following steps will take a while so grab a coffee while it compiles.
 \begin{shellCode}
 cmake .
 make
 chmod +w Utilities/vtktiff/tif_fax3sm.c
 make install
-\end{shellCode}
 
-\begin{shellCode}
 cd ../../pkg
 ln -s vtk-5.2.1 vtk
 cd ..
 \end{shellCode}
 
-\subsection{escript}
-\label{sec:srclinux-escript}
-
-Now copy the \esfinley source into an \filename{escript.d} directory in \filename{stand}.
+\end{itemize}
 
 \subsection{Compiling escript}\label{sec:compileescriptlinux}
 
@@ -313,7 +312,7 @@ cp linux_options_example.py YourMachineName_options.py
 echo $PKG_ROOT
 \end{shellCode}
 
-edit the options file and put the value of PKG_ROOT between the quotes in the PKG_ROOT= line.
+Edit the options file and put the value of PKG_ROOT between the quotes in the PKG_ROOT= line.
 For example:
 \begin{shellCode}
 PKG_ROOT="/home/bob/stand/pkg"
@@ -323,7 +322,7 @@ PKG_ROOT="/home/bob/stand/pkg"
 cd ../bin
 \end{shellCode}
 
-Modify the STANDALONE line of \figurename{escript} to read:
+Modify the STANDALONE line of \filename{escript} to read:
  
 STANDALONE=1
 
@@ -337,7 +336,7 @@ scons
 \end{shellCode}
 
 If you wish to test your build, then you can do the following. 
-Note this may take a while if you have a slow processor and/or less than 1Gb of RAM.
+Note this may take a while if you have a slow processor and/or less than 1GB of RAM.
 \begin{shellCode}
 scons all_tests
 \end{shellCode}
@@ -345,7 +344,7 @@ scons all_tests
 \subsection{Cleaning up}
 Once you are satisfied, the \filename{escript.d/build} and \filename{\$PKG_ROOT/build} directories can be removed.
 
-If you \emph{really} want to save space and do not wish to be able to edit or recompile escript, you can remove the following:
+If you \emph{really} want to save space and do not wish to be able to edit or recompile \esfinley, you can remove the following:
 \begin{itemize}
  \item From the \filename{escript.d} directory:\begin{itemize}
 \item Everything except: \filename{bin}, \filename{include}, \filename{lib}, \filename{esys},
@@ -366,14 +365,12 @@ in the \filename{escript.d} directory.
 Please note that removing all these files may make it more difficult for us to diagnose problems.
 
 
-
-
 \section{Additional Functionality}\label{sec:linaddfunc}
 To perform visualisations you will need some additional tools.
-Since these do not need to be linked with any of the packages above, you can install versions available for your
-system, or build them from source.
+Since these do not need to be linked with any of the packages above, you can install versions available for your system, or build them from source.
 \begin{itemize}
-\item \filename{ppmtompeg} and \filename{jpegtopnm} from the \filename{netpbm} suite. - To build from source 
+\item \filename{ppmtompeg} and \filename{jpegtopnm} from the \filename{netpbm} suite - to build from source 
 you would also need \filename{libjpeg} and its headers as well as \filename{libpng}\footnote{libpng requires zlib to build} and its headers.
 \item A tool to visualise VTK files. For example Mayavi or Visit.
 \end{itemize}
+
