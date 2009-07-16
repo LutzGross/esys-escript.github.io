@@ -14,36 +14,35 @@
 \section{Installing from source for \macosx}
 \label{sec:srcmac}
 
-First of all before you start installing from source you will need Mac OS X development tools installed on your Mac. This will ensure that you have  the following installed:
+Before you start installing from source you will need \macosx development tools installed on your Mac.
+This will ensure that you have the following available:
 \begin{itemize}
 \item \filename{g++} and associated tools.
 \item \filename{make}
 \end{itemize}
 
-Here are the instruction on how to install them. 
+Here are the instructions on how to install these.
 \begin{enumerate}
-\item Insert the Mac OS X v10.5 (Leopard) DVD. 
-\item Double-click on XcodeTools.mpkg, located inside Optional Installs/Xcode Tools. 
-\item Follow the instructions in the Installer. 
-\item Authenticate as the administrative user. The first user you create when setting up Mac OS X has administrator privileges by default. 
+\item Insert the \macosx 10.5 (Leopard) DVD
+\item Double-click on XcodeTools.mpkg, located inside Optional Installs/Xcode Tools
+\item Follow the instructions in the Installer
+\item Authenticate as the administrative user (the first user you create when setting up \macosx has administrator privileges by default)
 \end{enumerate}
 
 You will also need a copy of the \esfinley source code.
 If you retrieved the source using subversion, don't forget that one can use the export command instead of checkout to get a smaller copy.
 For additional visualisation functionality see Section~\ref{sec:macaddfunc}.
 
-These instructions will produce the following structure:
+These instructions will produce the following directory structure:
 \begin{itemize}
-\item \filename{stand}: \begin{itemize}
-\item \filename{escript.d}
-\item \filename{packages}
-\item \filename{package_src}
-\item \filename{build}
-\item \filename{doc}
-  \end{itemize}
+ \item[] \filename{stand}: \begin{itemize}
+  \item[] \filename{escript.d}
+  \item[] \filename{packages}
+  \item[] \filename{package_src}
+  \item[] \filename{build}
+  \item[] \filename{doc}
+ \end{itemize}
 \end{itemize}
-
-The build directory can be removed when you are finished.
 
 The following instructions assume you are running the \filename{bash} shell.
 Comments are indicated with \# characters. 
@@ -74,7 +73,9 @@ tar -zxf ../package_src/cmake-2.6.3.tar.gz
 tar -zxf ../package_src/scons-1.2.0.tar.gz
 \end{shellCode}
 
-Build python.
+\begin{itemize}
+
+\item Build python:
 \begin{shellCode}
 cd Python*
 
@@ -104,11 +105,11 @@ export LD_LIBRARY_PATH=$PKG_ROOT/python/lib:$LD_LIBRARY_PATH
 pushd ../packages
 ln -s python-2.6.1/ python
 popd
-
 \end{shellCode}
 
-Run python to make sure~(check the version number) it works.
-Now build numarray.
+Run python to make sure it works (check the version number).
+
+\item Now build numarray:
 
 \begin{shellCode}
 cd numarray-1.5.2
@@ -138,7 +139,7 @@ ln -s scons-1.2.0 scons
 popd
 \end{shellCode}
 
-...Boost libraries ...
+\item The Boost libraries...:
 \begin{shellCode}
 cd boost_1_38_0
 
@@ -155,7 +156,7 @@ ln -s boost_1_38_0 boost
 popd
 \end{shellCode}
 
-... and netcdf.
+\item ...and NetCDF:
 \begin{shellCode}
 cd netcdf-4.0
 CFLAGS="-O2 fPIC -Df2cFortran" CXXFLAGS="-O2 fPIC -Df2cFortran" \
@@ -172,7 +173,7 @@ ln -s netcdf-4.0 netcdf
 popd
 \end{shellCode}
 
-CMake and Mesa are required for VTK. 
+\item CMake is required to build VTK:
 \begin{shellCode}
 cd cmake-2.6.3
 ./configure --prefix=$PKG_ROOT/cmake-2.6.3 2>&1 | tee tt.configure
@@ -186,8 +187,7 @@ ln -s cmake-2.6.3 cmake
 popd
 \end{shellCode}
 
-These instructions do not compile MesaDemos or GLUT.
-If you need to check if Mesa compiled correctly, then the demos are a good test.
+\item VTK also requires Mesa:
 \begin{shellCode}
 cd Mesa-7.2
 ./configure --prefix=$PKG_ROOT/mesa-7.2 --enable-gl-osmesa
@@ -202,6 +202,10 @@ ln -s mesa-7.2 mesa
 popd
 \end{shellCode}
 
+These instructions do not compile MesaDemos or GLUT.
+If you need to check if Mesa compiled correctly, then the demos are a good test.
+
+\item Now build VTK:
 \begin{shellCode}
 cd VTK
 cmake .
@@ -262,7 +266,8 @@ ln -s vtk-5.2.1 vtk
 cd ..
 \end{shellCode}
 
-Now copy the \esfinley source into an \filename{escript.d} directory in \filename{stand}.
+\item Finally, build escript:\\
+Copy the \esfinley source into an \filename{escript.d} directory in \filename{stand}.
 
 \begin{shellCode}
 cd scons
@@ -307,8 +312,10 @@ eval `bin/escript -e`
 scons
 \end{shellCode}
 
+\end{itemize}
+
 If you wish to test your build, then you can do the following. 
-Note this may take a while if you have a slow processor and/or less than 1Gb of RAM.
+Note this may take a while if you have a slow processor and/or less than 1GB of RAM.
 \begin{shellCode}
 scons all_tests
 \end{shellCode}
@@ -321,10 +328,10 @@ If you do not plan to edit or recompile the source you can remove it.
 The only entries which are required in \filename{escript.d} are:
 \begin{itemize}
  \item \filename{bin}
-\item \filename{esys}
-\item \filename{include}
-\item \filename{lib}
-\item \filename{README_LICENSE}
+ \item \filename{esys}
+ \item \filename{include}
+ \item \filename{lib}
+ \item \filename{README_LICENSE}
 \end{itemize}
 
 Hidden files can be removed with
@@ -337,20 +344,19 @@ To perform visualisations you will need some additional tools.
 Since these do not need to be linked with any of the packages above, you can install versions available for your
 system, or build them from source.
 \begin{itemize}
-\item \filename{ppmtompeg} and \filename{jpegtopnm} from the \filename{netpbm} suite. - To build from source 
-you would also need \filename{libjpeg} and its headers as well as \filename{libpng}\footnote{libpng requires zlib to build} and its headers.
-\item A tool to visualise VTK files. For example Mayavi or Visit.
+\item \filename{ppmtompeg} and \filename{jpegtopnm} from the \filename{netpbm} suite - to build from source 
+you would also need \filename{libjpeg} and its headers as well as \filename{libpng}\footnote{libpng requires zlib to build} and its headers
+\item A tool to visualise VTK files - for example Mayavi or Visit
 \end{itemize}
 
 
 \section{Installing from source for \macosx using Macports}
 \label{sec:srcmacports}
 
-As we mentioned in the Section~\ref{sec:srcmac}, before you start installing from source you will need Mac OS X development tools installed on your Mac. 
-
+As we mentioned in Section~\ref{sec:srcmac}, before you start installing from source you will need \macosx development tools installed on your Mac. 
 If you do not have Macports already, please install Macports from \url{www.macports.org}. You can also install porticus (GUI for Macports).
  
-Once you have Macports working Install boost using porticus or from terminal 
+Once you have Macports working install boost using porticus or from the terminal 
 \begin{shellCode}
 sudo port install boost@1.35.0_2+complete
 \end{shellCode}
@@ -368,7 +374,7 @@ cd scons-0.98.5
 python setup.py install
 \end{shellCode}
 
-Note: Do not try to install scons using porticus or sudo port install scons, because if automatically installs another python version and you are likely run into problems with different python versions.  
+Note: Do not try to install scons using porticus or \texttt{sudo port install scons}, because it automatically installs another python version and you are likely run into problems with different python versions.  
  
 Download numarray-1.5.2.tar.gz from \\
 \url{http://www.stsci.edu/resources/software_hardware/numarray/numarray.html}. 
@@ -378,7 +384,7 @@ cd numarray-1.5.2
 python setup.py install --gencode  2>&1 | tee tt.install.out
 \end{shellCode}
 
-You can ran a test to check numarray installation by
+You can run a test to check the numarray installation by
 \begin{shellCode}
 python
 import numarray.testall as testall
@@ -414,7 +420,8 @@ sudo make -j 2
 make install
 \end{shellCode} 
  
-Install vtk-5.0.4 from source. If you install from ports it won't configure to use shared libraries. Once you untar it you will have (assume user is john) /Users/john/Downloads/VTK folder, then run following:
+Install vtk-5.0.4 from source. If you install from ports it won't configure to use shared libraries.
+Once you untar it you will have (assume user is john) /Users/john/Downloads/VTK folder, then run the following:
  
 \begin{shellCode}
 sudo mkdir /usr/local/VTKBuild/
@@ -435,7 +442,7 @@ sudo make -j2
 sudo make install
 \end{shellCode}
  
-Note: you need to set following ENV variables into your \filename{/Users/john/.profile} for VTK to work:
+Note: you need to set the following ENV variables in your \filename{/Users/john/.profile} for VTK to work:
 \begin{shellCode}
 export LD_LIBRARY_PATH = /usr/local/VTKBuild/bin: \
              /usr/local/VTKBuild/bin:${LD_LIBRARY_PATH}
@@ -447,11 +454,9 @@ python
 import vtk
 \end{shellCode}
  
-Left only to install triangle and netpbm (required for ppmtompeg) using Macports 
+All that's left to install is triangle and netpbm (required for ppmtompeg) using Macports:
 \begin{shellCode}
 sudo port install triangle
 sudo port install netpbm
 \end{shellCode}
- 
-
 
