@@ -1,5 +1,3 @@
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Copyright (c) 2003-2008 by University of Queensland
@@ -14,30 +12,42 @@
 
 \chapter{Introduction}
 This document describes how to install \esfinley on your computer.
-To learn how to use \esfinley please see the User guide or, for
-more detailed information, the API documentation.
+To learn how to use \esfinley please see the User's guide or, for more detailed
+information, the API documentation.
 
-\esfinley is developed primarily on Linux desktop systems, SGI ICE and \macosx.
-Binary distributions (discussed in Chapter~\ref{chap:bin}) are available for the following platforms:
+\esfinley is primarily developed on Linux desktop, SGI ICE and \macosx systems.
+It is distributed in two forms:
+\begin{enumerate}
+    \item Binary bundles -- these are great for first time users or for those who want to start using \esfinley immediately
+    \item Source bundles -- these require compilation and should be used if the binary bundles don't work on the target machine or if extra functionality is required such as \mpi parallelisation.
+\end{enumerate}
+
+The binary bundles are currently available for the following platforms:
 \begin{itemize}
-\item Debian and Ubuntu Linux distributions ($32$-bit i686) (.deb package)
-\item Linux desktop systems with gcc (stand-alone bundle)
-\item \macosx Leopard systems with gcc (stand-alone bundle)
-\item Windows systems with Visual Studio (stand-alone bundle) 
+    \item Debian and Ubuntu Linux distributions ($32$-bit i686) (.deb package)
+    \item Linux desktop systems with gcc (stand-alone bundle)
+    \item \macosx Leopard systems with gcc (stand-alone bundle)
+    \item Windows systems with Visual Studio (stand-alone bundle) 
 \end{itemize}
 
-Compiling escript when its dependencies are already installed is discussed in Chapter~\ref{chap:essrc}.
-To compile escript and its dependencies from source please see Chapter~\ref{chap:allsrc}.
+See \Chap{chap:bin} for instructions on how to set these up and run \esfinley.
+If you choose to compile from source your options are to
+\begin{itemize}
+    \item install dependencies (e.g. using your package manager) and only compile \esfinley, OR
+    \item compile everything from source.
+\end{itemize}
 
-You can test your installation using the Python scripts in \filename{examples.zip} or \filename{examples.tar.gz}
-\footnote{These should either be in \filename{escript.d/release/doc} or in the case of Debian, in \filename{/usr/share/doc/escript}.}.
-To test your installation try to run the following from a terminal:
+Compiling \esfinley when its dependencies are already installed is discussed in \Chap{chap:essrc}.
+To compile \esfinley and all dependencies from source please see \Chap{chap:allsrc}.
+The latter option takes a significant amount of time and is only required if the versions of the dependent libraries available on your system do not work with \esfinley.
+
+Once everything is installed you can test your installation using the Python scripts in \filename{examples.zip} or \filename{examples.tar.gz}\footnote{These should either be in \filename{escript.d/release/doc} or in the case of Debian, in \filename{/usr/share/doc/escript}.}.
+Unpack the examples and try to run the following from a terminal:
 \begin{shellCode}
  escript poission.py
 \end{shellCode}
-This should produce a VTK file called \filename{u.vtu} (which can be removed).
-If this is successful, then the main features of \escript have been sucessfully installed.
-
-For visualisation we suggest \filename{visit}\footnote{\url{https://wci.llnl.gov/codes/visit/}} or \filename{mayavi}\footnote{\url{http://mayavi.sourceforge.net}}.
+If this produces a VTK file called \filename{u.vtu} then you are likely to have a functional \esfinley installation.
+You can try and visualise the VTK data or delete the file.
+For visualisation we suggest using \filename{VisIt}\footnote{\url{https://wci.llnl.gov/codes/visit/}} or \filename{MayaVi}\footnote{\url{http://mayavi.sourceforge.net}} which are both freely available.
 
 See the site \url{https://answers.launchpad.net/escript-finley} for online help.
