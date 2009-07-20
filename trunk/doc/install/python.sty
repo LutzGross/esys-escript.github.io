@@ -301,6 +301,12 @@
     \ifx\py@modulebadkey#1\def\py@modulekey{#2}\else\def\py@modulekey{#1}\fi%
     \py@linkToName{label-module-\py@modulekey}{\module{#2}}%
   }
+  % added by Cihan since we can't use the hyperref package
+  \newcommand{\hyref}[2]{%
+    \pdfstartlink attr{/Border [0 0 0]} goto name{label-#1}%
+      \py@LinkColor#2\py@NormalColor%
+    \pdfendlink%
+  }
 \else
   \newcommand{\refmodule}[2][\py@modulebadkey]{\module{#2}}
 \fi

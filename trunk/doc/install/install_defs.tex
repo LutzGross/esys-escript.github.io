@@ -25,8 +25,8 @@
 \usepackage{listings}        % add the listings package to pretty print the code output
 
 
-% Try to make this the last \usepackage
-\usepackage[colorlinks=true, pdftitle={Escript/Finley Installation Guide}, pdfauthor={Escript development team}, pdfdisplaydoctitle=true]{hyperref}
+% hyperref is incompatible with python.sty which defines \ispdf and \url
+%\usepackage[colorlinks=true, pdftitle={Escript/Finley Installation Guide}, pdfauthor={Escript development team}, pdfdisplaydoctitle=true]{hyperref}
 %pdfpagelayout=TwoColumnRight
 
 \newcommand{\escript}{\module{esys.escript}\xspace}
@@ -40,8 +40,10 @@
 \newcommand{\openmp}{OpenMP\xspace}
 \newcommand{\mpi}{MPI\xspace}
 
-\newcommand{\Sec}[1] {\hyperref[#1]{Section~\ref{#1}}}
-\newcommand{\Chap}[1] {\hyperref[#1]{Chapter~\ref{#1}}}
+% hyref is defined in python.sty as an alternative to hyperref which we can't
+% use
+\newcommand{\Sec}[1] {\hyref{#1}{Section~\ref{#1}}}
+\newcommand{\Chap}[1] {\hyref{#1}{Chapter~\ref{#1}}}
 \newcommand*{\filename}[1]{\texttt{#1}\xspace}
 
 % defines the colour for the background of code examples
