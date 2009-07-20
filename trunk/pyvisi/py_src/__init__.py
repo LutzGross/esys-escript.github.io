@@ -19,6 +19,9 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
+__deprecated__="""The pyvisi module has been deprecated and is no longer supported.
+Please see the escript user guide and tutorials for suggestions
+ on visualisation."""
 """
 @var __author__: name of author
 @var __copyright__: copyrights
@@ -30,6 +33,8 @@ __url__="https://launchpad.net/escript-finley"
 
 __author__="John Ngui, john.ngui@uq.edu.au"
 
+import warnings
+warnings.warn("pyvisi is deprecated. Please see the escript user guide and tutorials for visualisation suggestions.", DeprecationWarning, stacklevel=2)
 
 from camera import *
 from carpet import *
@@ -50,3 +55,5 @@ from legend import *
 from movie import *
 from rectangle import *
 from rotation import *
+
+
