@@ -37,7 +37,7 @@ Brisbane, Australia \\
 Email: \email{esys@esscc.uq.edu.au}
 }                                                                                         
 \date{\today}      
-\release{2.0}
+\release{- nightly}
 \setreleaseinfo{\\(r\RepVersion)} 
 \setshortversion{}
 
@@ -58,11 +58,12 @@ It consists of four major components
 \item \escript core library
 \item finite element solver \finley (which uses fast vendor-supplied solvers or our paso linear solver library)
 \item the meshing interface \pycad
-\item VTK visualization interface \pyvisi
+% \item VTK visualization interface \pyvisi
 \item model library modellib
 \end{itemize}
 The current version supports parallelization through both MPI for distributed memory and OpenMP for distributed shared memory. 
-For changes from previous releases see Appendix~\ref{app:changes}.
+The \pyvisi module from previous releases has been deprecated.
+For more info on this and other changes from previous releases see Appendix~\ref{app:changes}.
 
 If you use this software in your research, then we would appreciate (but do not require) a citation.
 Some relevant references can be found in Appendix~\ref{app:ourrefs}.
@@ -78,16 +79,18 @@ Some relevant references can be found in Appendix~\ref{app:ourrefs}.
 
 \include{pycad}
 
-\include{pyvisi}
+
 
 \include{Models}
 
 \include{finley}
-
+\appendix
 
 %\input{modelframe}
 
 \include{appendix}
+
+\include{pyvisi}
 
 \makemodindex
 
