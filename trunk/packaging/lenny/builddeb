@@ -3,7 +3,9 @@
 #This script produced with the aid of "The Debian System concepts and techniques" By Martin F. Krafft
 # Its purpose is to produce a .deb for escript
 
-VERSION=-2.0-1
+
+#A ~ in front of the version number indicates a pre-release and will sort earlier than versions without ~
+VERSION=~3.0-1
 SRCDIR=`pwd`
 WRAPPERNAME=escript
 #ALTWRAPPERNAME=finleypython
@@ -32,6 +34,15 @@ then
   rm -rf $OUTPUTROOT || (echo "Error could not clean build area";exit 2)
 fi
 
+ARCHV=`uname -m`
+
+
+case "$ARCHV" in 
+   "i686" ) ARCH="i686";;
+   "x86_64" ) ARCH="amd64";;
+   *) echo "Unknown architecture $ARCHV. Unable to build package";exit 3;;
+esac
+
 mkdir -p $OUTPUTROOT
 
 #First copy debian skeleton 
@@ -58,20 +69,11 @@ mkdir -p $BINOUT
 cp $SRCDIR/lib/* $LIBOUT/lib
 cp -r $SRCDIR/esys $LIBOUT
 
-# content from finley_wrapper_writer.sh
-# Not calling the original script because it polutes the environment eg explicit python path
-
 # We should be using the standard python
-export PYTHON_CMD=python
 export ESCRIPT_ROOT=/usr/lib/escript
 
-sed	-e "s%@@ESCRIPT_ROOT@@%$ESCRIPT_ROOT%"		\
-  -e "s%@@LD_LIBRARY_PATH@@%\$ESCRIPT_ROOT/lib:\$LD_LIBRARY_PATH%"		\
-  -e "s%@@PYTHONPATH@@%\$ESCRIPT_ROOT:\$PYTHONPATH%"			\
-  -e "s%@@PYTHON_CMD@@%$PYTHON_CMD%"			\
-  -e "s%@@PATH@@%\$PATH%"				\
-  -e "s%STDLOCATION=0%STDLOCATION=1%" \
-< $SRCDIR/scripts/finley_wrapper_template > $BINOUT/$WRAPPERNAME
+sed	-e "s%STDLOCATION=0%STDLOCATION=1%" \
+< $SRCDIR/bin/escript > $BINOUT/$WRAPPERNAME
 
 #end content from finley_wrapper_writer.sh
 
@@ -83,7 +85,8 @@ cd $SRCDIR
 find $OUTPUTROOT -name ".svn" | xargs rm -rf 
 
 
-#Say what version of debian packaging we are using:
+#Say what version of the debian packaging format we are using:
+#This is NOT the package version
 echo 2.0 > $OUTPUTROOT/../debian-binary
 
 #Check some permissions
@@ -103,14 +106,18 @@ cd $OUTPUTROOT
 chmod -R og-w .
 
 cd DEBIAN
-tar czf control.tar.gz .
-mv control.tar.gz ../../
+
+#Now we need to update the architecture
+mv control control.old
+sed -e "s%Architecture: i386%Architecture: $ARCH%" < control.old > control
+rm control.old
+
+tar czf ../../control.tar.gz .
 cd ..
-tar czf data.tar.gz usr
-mv data.tar.gz ..
+tar czf ../data.tar.gz usr
 cd ..
 
-ar rcu escript$VERSION.deb debian-binary control.tar.gz data.tar.gz
+ar rcu escript-$VERSION\_$ARCH.deb debian-binary control.tar.gz data.tar.gz
 
 
 
