@@ -74,9 +74,9 @@ if [ $STANDALONE == 1 ]
 then
     EXTRA_PATH=$ESCRIPT_PARENT/pkg/python/bin:$EXTRA_PATH
     EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/pkg/boost/lib:$ESCRIPT_PARENT/pkg/netcdf/lib/:$EXTRA_LD_LIBRARY_PATH
-    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/pkg/vtk/lib/vtk-5.2:$ESCRIPT_PARENT/pkg/mesa/lib:$EXTRA_LD_LIBRARY_PATH
+    EXTRA_LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH
     EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/pkg/python/lib:$EXTRA_LD_LIBRARY_PATH
-    EXTRA_PYTHONPATH=$ESCRIPT_PARENT/pkg/numpy/lib/python2.6/site-packages:$ESCRIPT_PARENT/pkg/vtk/lib/python2.6/site-packages:$EXTRA_PYTHONPATH
+    EXTRA_PYTHONPATH=$ESCRIPT_PARENT/pkg/numpy/lib/python2.6/site-packages:$ESCRIPT_PARENT/pkg/matplotlib/lib/python2.6/site-packages:$EXTRA_PYTHONPATH
 fi
 
 
