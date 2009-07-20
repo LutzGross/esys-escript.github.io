@@ -1,3 +1,15 @@
+########################################################
+#
+# Copyright (c) 2008-2009 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
 ########      August 2008      ########
 ##########    Leon Graham    ########## 
 ## Newtonian fluid using StokesProblemCartesian class##
