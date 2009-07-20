@@ -17,13 +17,12 @@
 This chapter describes how to build \esfinley from source assuming that the dependencies are already installed (for example using precompiled packages for your OS).
 \Sec{sec:deps} describes the dependencies, while \Sec{sec:compilesrc} gives the compile instructions.
 
-If you would prefer to build all the dependecies from source in the escript-support packages please see \Chap{chap:allsrc}
-
+If you would prefer to build all the dependecies from source in the escript-support packages please see \Chap{chap:allsrc}.
 \esfinley is known to compile and run on the following systems:
 \begin{itemize}
- \item \linux using gcc\footnote{There are some problems with \openmp under gcc prior to version 4.3.2. Also do not link the gomp library with gcc 4.3.3 - it causes problems.} - \Sec{sec:srclinux}
-\item \linux using icc on SGI ICE 8200.
-\item \macosx using gcc - \Sec{sec:srcmac}
+ \item \linux using gcc\footnote{There are some problems with \openmp under gcc prior to version 4.3.2. Also do not link the gomp library with gcc 4.3.3 - it causes problems.}
+\item \linux using icc on SGI ICE 8200
+\item \macosx using gcc
 \item \winxp using the Visual C compiler (we do not specifically discuss Windows builds in this guide).
 \end{itemize}
 
@@ -36,40 +35,39 @@ The advantage of using existing packages is that they are more likely to work to
 You must take greater care if downloading sources separately.
 
 \begin{itemize}
- \item python-2.5.1 (\url{http://python.org}) \\
-- Python interpreter (You must compile with shared libraries.)
-\item numpy 1.1.0 (\url{http://numpy.scipy.org})
-- Arrays for python.
-\item boost-1.35 (\url{http://www.boost.org}) \\
-- Provides an interface between C++ and python.
-\item scons-0.989.5 (\url{http://www.scons.org/}) \\
-- a python-based alternative to ``make''.
+ \item python-2.5.1 (\url{http://python.org}) \\-
+        Python interpreter (you must compile with shared libraries.)
+ \item numpy 1.1.0 (\url{http://numpy.scipy.org}) \\-
+        Arrays for python
+ \item boost-1.35 (\url{http://www.boost.org}) \\-
+        Interface between C++ and Python
+ \item scons-0.989.5 (\url{http://www.scons.org/}) \\-
+        Python-based alternative to ``make''.
 \end{itemize}
 
-The version numbers given here are not strict requirements, more recent (and in some cases older) versions will still work. 
+The version numbers given here are not strict requirements, more recent (and in some cases older) versions are very likely to work.
 The following packages should be sufficient (but not necessarily minimal) for Debian 5.0 (``Lenny''):
 python-dev, libboost1.35-dev, scons, python-numpy, g++.
-
 
 These packages may be required for some of the optional capabilities of the system:
 
 \begin{itemize}
  \item netcdf-3.6.2 (\url{http://www.unidata.ucar.edu/software/netcdf}) \\-
-        Used to save data sets in binary form for checkpoint/restart (must be compiled with -fPIC).
+        Used to save data sets in binary form for checkpoint/restart (must be compiled with -fPIC)
  \item vtk-5.0.4 (\url{http://www.vtk.org}) \\-
-        This is used to save VTK files for visualization.
+        Used to save VTK files for visualization
   \begin{itemize}
    \item cmake-2.4.6 (\url{http://www.cmake.org}) \\-
-        Required to build VTK.
+        Required to build VTK
    \item mesa-7.0.3 (\url{http://www.mesa3d.org})\\-
-        Free OpenGL replacement used by VTK.
+        Free OpenGL replacement used by VTK
   \end{itemize}
  \item netpbm (\url{http://netpbm.sourceforge.com}) \\-
         Tools for producing movies from images
  \item mpich2-1.0.7 (\url{http://www.mcs.anl.gov/research/projects/mpich2}) \\-
-        Parallelization with MPI.
+        Parallelization with \mpi
  \item parmetis-3.1 (\url{http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview}) \\-
-        Optimization of the stiffness matrix.
+        Optimization of the stiffness matrix
  \item MKL \\(\url{http://www.intel.com/cd/software/products/asmo-na/eng/307757.htm}) \\-
         Intel's Math Kernel Library for use with their C compiler.
 \end{itemize}
@@ -77,22 +75,23 @@ These packages may be required for some of the optional capabilities of the syst
 The following packages might be useful for mesh generation:
 \begin{itemize}
  \item gmsh-2.2.0 (\url{http://www.geuz.org/gmsh}) \\-
-    Mesh generation and viewing.
+        Mesh generation and viewing
   \begin{itemize}
    \item fltk-1.1.9 (\url{http://www.fltk.org}) \\-
-    Required to build gmsh 
+        Required to build gmsh 
    \item gsl-1.10 (\url{http://www.gnu.org/software/gsl}) \\-
-    Required to build gmsh 
+        Required to build gmsh 
   \end{itemize}
- \item triangle-1.6 (\url{http://www.cs.cmu.edu/~quake/triangle.html}) 
+ \item triangle-1.6 (\url{http://www.cs.cmu.edu/~quake/triangle.html}) \\-
+        Two-dimensional mesh generator and Delaunay triangulator.
 \end{itemize}
 
 Packages for visualization:
 \begin{itemize}
  \item mayavi-1.5 (\url{http://mayavi.sourceforge.net}) \\-
-    MayaVi is referenced in our User Guide for viewing VTK files.
- \item visit-1.11 (\url{https://wci.llnl.gov/codes/visit/}) \\-
-    A featureful visualization system with movie-making capabilities.
+        MayaVi is referenced in our User's Guide for viewing VTK files
+ \item visit-1.11.2 (\url{https://wci.llnl.gov/codes/visit/}) \\-
+        A featureful visualization system with movie-making capabilities.
 \end{itemize}
 
 \section{Compilation}\label{sec:compilesrc}
@@ -222,14 +221,7 @@ Note that depending on your \mpi flavour it may be required to start a daemon be
 
 %This is copied from Ken's notes on the old Twiki page
 \subsubsection{``Bad magic number''}
-Some reasons for this error message include:
-\begin{itemize}
- \item Using different versions of python when installing and running escript (Use \texttt{which python} and \texttt{python --version} to check)
-\item Using different versions of libraries (Make sure \texttt{LD_LIBRARY_PATH} has \filename{x/lib} listed first, where x is the escript install path)
-\item Using different versions of python modules (Make sure \texttt{PYTHONPATH} has \filename{/trunk/escript} directory listed first) 
-\end{itemize}
-
-Another error we sometimes see is unsatisfied externals when trying to run a python script. This is usually due to not having \texttt{LD_LIBRARY_PATH} and \texttt{PYTHONPATH} set correctly so that you run with different libraries from the ones the code was compiled against. Check which libraries you are running against with \texttt{ldd lib/libfinley.so} and \texttt{ldd esys/finley/finleycpp.so}.
+This error usually indicates that the version of python used to run escript differs from the version used when installing escript (Use \texttt{which python} and \texttt{python --version} to check).
 
 It is also possible that incompatible libraries were used when compiling \esfinley.
 For example, if you run with Python2.4 but the software was compiled against Python2.5 then you will get unsatisfied externals or a large error message with a long traceback.

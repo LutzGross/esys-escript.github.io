@@ -30,7 +30,7 @@ Here are the instructions on how to install these.
 
 You will also need a copy of the \esfinley source code.
 If you retrieved the source using subversion, don't forget that one can use the export command instead of checkout to get a smaller copy.
-For additional visualisation functionality see \Sec{sec:macaddfunc}.
+For additional visualization functionality see \Sec{sec:addfunc}.
 
 These instructions will produce the following directory structure:
 \begin{itemize}
@@ -337,17 +337,6 @@ Hidden files can be removed with
 \begin{shellCode}
 find . -name .?* | xargs rm -rf
 \end{shellCode}
-
-\section{Additional Functionality}\label{sec:macaddfunc}
-To perform visualisations you will need some additional tools.
-Since these do not need to be linked with any of the packages above, you can install versions available for your
-system, or build them from source.
-\begin{itemize}
-\item \filename{ppmtompeg} and \filename{jpegtopnm} from the \filename{netpbm} suite - to build from source 
-you would also need \filename{libjpeg} and its headers as well as \filename{libpng}\footnote{libpng requires zlib to build} and its headers
-\item A tool to visualise VTK files - for example Mayavi or Visit
-\end{itemize}
-
 
 \section{Installing from source for \macosx using Macports}
 \label{sec:srcmacports}
