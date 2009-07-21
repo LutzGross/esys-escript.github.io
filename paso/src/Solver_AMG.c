@@ -88,9 +88,14 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
   double S=0;
   
   /*Make sure we have block sizes 1*/
-  A_p->pattern->input_block_size=A_p->col_block_size;
-  A_p->pattern->output_block_size=A_p->row_block_size;
-  A_p->pattern->block_size=A_p->block_size;
+  if (A_p->col_block_size>1) {
+     Paso_setError(TYPE_ERROR,"Paso_Solver_getAMG: AMG requires column block size 1.");
+     return NULL;
+  }
+  if (A_p->row_block_size>1) {
+     Paso_setError(TYPE_ERROR,"Paso_Solver_getAMG: AMG requires row block size 1.");
+     return NULL;
+  }
   
   /* identify independend set of rows/columns */
   mis_marker=TMPMEMALLOC(n,index_t);
