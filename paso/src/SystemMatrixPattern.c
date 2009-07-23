@@ -79,18 +79,6 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type,
   if (row_couplePattern->numOutput != row_connector->recv->numSharedComponents) {
      Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of inputs for row couple pattern and number of received components in connector don't match.");
   }
-  if (mainPattern->output_block_size != col_couplePattern->output_block_size) {
-     Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: output block sizes of main and column couple pattern do not match.");
-  }
-  if (mainPattern->input_block_size != col_couplePattern->input_block_size) {
-     Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: input block sizes of main and column couple pattern do not match.");
-  }
-  if (mainPattern->output_block_size != row_couplePattern->output_block_size) {
-     Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: output block sizes of main and row couple pattern do not match.");
-  }
-  if (mainPattern->input_block_size != col_couplePattern->input_block_size) {
-     Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: input block sizes of main and row couple pattern do not match.");
-  }
 
   out=MEMALLOC(1,Paso_SystemMatrixPattern);
   if (Paso_checkPtr(out)) return NULL;
@@ -112,7 +100,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type,
 
 /* returns a reference to in */
 
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_reference(Paso_SystemMatrixPattern* in) {
+Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_getReference(Paso_SystemMatrixPattern* in) {
      if (in!=NULL) {
         ++(in->reference_counter);
      }

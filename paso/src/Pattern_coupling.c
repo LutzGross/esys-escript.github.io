@@ -178,7 +178,7 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
             if(A->val[iptr]<=threshold) {
                if(j!=i) {
                 Paso_IndexList_insertIndex(&(index_list[i]),j);
-                /*Paso_IndexList_insertIndex(&(index_list[j]),i);*/
+                Paso_IndexList_insertIndex(&(index_list[j]),i);
                 }
             }
         }
@@ -197,6 +197,7 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
 
     /*Paso_Pattern_mis(out,mis_marker);*/
     Paso_Pattern_greedy(out,mis_marker);
+    Paso_Pattern_free(out);
 }
 
 void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double theta)

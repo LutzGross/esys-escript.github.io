@@ -159,7 +159,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
    flux_matrix_m=Paso_SystemMatrix_alloc(fctp->transport_matrix->type,
                                                  fctp->transport_matrix->pattern,
                                                  fctp->transport_matrix->row_block_size,
-                                                 fctp->transport_matrix->col_block_size);
+                                                 fctp->transport_matrix->col_block_size, TRUE);
 
    if (Paso_noError()) {
        /*

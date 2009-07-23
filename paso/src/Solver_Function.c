@@ -30,7 +30,7 @@ Paso_Function * Paso_Function_LinearSystem_alloc(Paso_SystemMatrix* A, double* b
         out->kind=LINEAR_SYSTEM;
         out->mpi_info=Paso_MPIInfo_getReference(A->mpi_info);
         out->n=Paso_SystemMatrix_getTotalNumRows(A);
-        out->more=(void*)Paso_SystemMatrix_reference(A);
+        out->more=(void*)Paso_SystemMatrix_getReference(A);
         out->b=b;
         out->tmp=MEMALLOC(out->n, double);
         Paso_checkPtr(out->tmp);

@@ -1585,7 +1585,7 @@ SystemMatrixAdapter MeshAdapter::newSystemMatrix(
 #endif
    }
    else {
-      fsystemMatrix=Paso_SystemMatrix_alloc(type,fsystemMatrixPattern,row_blocksize,column_blocksize);
+      fsystemMatrix=Paso_SystemMatrix_alloc(type,fsystemMatrixPattern,row_blocksize,column_blocksize,FALSE);
    }
    checkPasoError();
    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);

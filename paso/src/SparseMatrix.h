@@ -61,7 +61,7 @@ typedef struct Paso_SparseMatrix {
 
 /*  interfaces: */
 
-Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType,Paso_Pattern*,dim_t,dim_t);
+Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType,Paso_Pattern*,dim_t,dim_t,const bool_t);
 Paso_SparseMatrix* Paso_SparseMatrix_getReference(Paso_SparseMatrix*);
 void Paso_SparseMatrix_free(Paso_SparseMatrix*);
 void Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);

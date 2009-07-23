@@ -225,7 +225,7 @@ Paso_Pattern* Finley_IndexList_createPattern(dim_t n0, dim_t n,Finley_IndexList*
               for(i=n0;i<n;++i) {
                   Finley_IndexList_toArray(&index_list[i],&index[ptr[i-n0]],range_min,range_max,index_offset);
               }
-              out=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,n-n0,range_max+index_offset,ptr,index);
+              out=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,n-n0,range_max+index_offset,ptr,index);
        }
   }
   if (! Finley_noError()) {
