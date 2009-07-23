@@ -54,7 +54,7 @@ void Paso_FCTransportProblem_setLowOrderOperator(Paso_FCTransportProblem * fc) {
       fc->iteration_matrix=Paso_SystemMatrix_alloc(fc->transport_matrix->type,
                                                    fc->transport_matrix->pattern,
                                                    fc->transport_matrix->row_block_size,
-                                                   fc->transport_matrix->col_block_size);
+                                                   fc->transport_matrix->col_block_size, TRUE);
   }
 
   if (Paso_noError()) {

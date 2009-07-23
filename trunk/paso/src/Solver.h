@@ -116,6 +116,7 @@ struct Paso_Solver_AMG {
   double* x_C;
   double* b_C;
   Paso_SparseMatrix * A;
+  void* solver;
   Paso_Solver_Jacobi* GS;
   struct Paso_Solver_AMG * AMG_of_Schur;
 };

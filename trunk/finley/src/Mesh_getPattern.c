@@ -45,15 +45,15 @@ Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_
    if (Finley_noError()) {
       if (reduce_row_order) {
          if (reduce_col_order) {
-            out=Paso_SystemMatrixPattern_reference(mesh->ReducedReducedPattern);
+            out=Paso_SystemMatrixPattern_getReference(mesh->ReducedReducedPattern);
          } else {
-            out=Paso_SystemMatrixPattern_reference(mesh->ReducedFullPattern);
+            out=Paso_SystemMatrixPattern_getReference(mesh->ReducedFullPattern);
          }
       } else {
          if (reduce_col_order) {
-            out=Paso_SystemMatrixPattern_reference(mesh->FullReducedPattern);
+            out=Paso_SystemMatrixPattern_getReference(mesh->FullReducedPattern);
          } else {
-            out=Paso_SystemMatrixPattern_reference(mesh->FullFullPattern);
+            out=Paso_SystemMatrixPattern_getReference(mesh->FullFullPattern);
          }
       }
    }  

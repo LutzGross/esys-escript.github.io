@@ -98,8 +98,8 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_System
             out->dt_factor=DT_FACTOR_MAX;
      }
      out->valid_matrices=FALSE;
-     out->transport_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size);
-     out->mass_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size);
+     out->transport_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size,FALSE);
+     out->mass_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size,FALSE);
      out->iteration_matrix=NULL;
      out->u=NULL;
      out->constraint_weights=NULL;

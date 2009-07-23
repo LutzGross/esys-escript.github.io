@@ -27,20 +27,40 @@
 /**************************************************************/
 
 /* allocates a SystemMatrix of type type using the given matrix pattern 
-   if type is UNKOWN CSR is used.
-   if CSC or CSC_BLK1 is used pattern has to give the CSC pattern.
-   if CSR or CSR_BLK1 is used pattern has to give the CSR pattern.
-   Values are initialized by zero.  */
+   Values are initialized by zero. 
+   if patternIsUnrolled and type & MATRIX_FORMAT_BLK1, it is assumed that the pattern is allready unrolled to match the requested block size
+   and offsets otherwise unrolling and offset adjustment will be performed. 
+*/
 
-Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_SystemMatrixPattern *pattern, int row_block_size, int col_block_size) {
+Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_SystemMatrixPattern *pattern, int row_block_size, int col_block_size,
+  const bool_t patternIsUnrolled) {
 
-  double time0;
   Paso_SystemMatrix*out=NULL;
   dim_t n_norm,i;
   Paso_SystemMatrixType pattern_format_out;
+  bool_t unroll=FALSE;
 
+  pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? PATTERN_FORMAT_OFFSET1:  PATTERN_FORMAT_DEFAULT;
   Paso_resetError();
-  time0=Paso_timer();
+  if (type & MATRIX_FORMAT_SYM) {
+      Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_alloc: Symmetric matrix patterns are not supported.");
+      return NULL;
+  }
+  if (patternIsUnrolled) {
+     if ( (type & MATRIX_FORMAT_OFFSET1) != ( pattern->type & PATTERN_FORMAT_OFFSET1) ) {
+         Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_alloc: requested offset and pattern offset does not match.");
+         return NULL;
+     }
+  }
+  /* do we need to apply unrolling ? */
+  unroll  
+        /* we don't like non-square blocks */
+    =   (row_block_size!=col_block_size)
+        /* or any block size bigger than 3 */
+    ||  (col_block_size>3) 
+        /* or if lock size one requested and the block size is not 1 */
+    ||  ((type & MATRIX_FORMAT_BLK1) &&  (col_block_size>1) ) ;
+  
   out=MEMALLOC(1,Paso_SystemMatrix);
   if (! Paso_checkPtr(out)) {  
      out->type=type;
@@ -59,90 +79,90 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->solver=NULL;  
      out->trilinos_data=NULL;
      out->reference_counter=1;
-
-
-     pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? PATTERN_FORMAT_OFFSET1:  PATTERN_FORMAT_DEFAULT;
-     /* ====== compressed sparse columns === */
-     if (type & MATRIX_FORMAT_CSC) {
-        if (type & MATRIX_FORMAT_SYM) {
-           Paso_setError(TYPE_ERROR,"Generation of matrix pattern for symmetric CSC is not implemented yet.");
-        } else {
-           if ((type & MATRIX_FORMAT_BLK1) || row_block_size!=col_block_size || col_block_size>3) {
-              out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,pattern_format_out,col_block_size,row_block_size);
-              out->row_block_size=1;
-              out->col_block_size=1;
-           } else {
-              out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,pattern_format_out,1,1);
-              out->row_block_size=row_block_size;
-              out->col_block_size=col_block_size;
-           }
-        }
-        out->row_distribution=Paso_Distribution_getReference(out->pattern->input_distribution);
-        out->col_distribution=Paso_Distribution_getReference(out->pattern->output_distribution);
-     } else {
-     /* ====== compressed sparse row === */
-        if (type & MATRIX_FORMAT_SYM) {
-           Paso_setError(TYPE_ERROR,"Generation of matrix pattern for symmetric CSR is not implemented yet.");
-        } else {
-           if ((type & MATRIX_FORMAT_BLK1) || row_block_size!=col_block_size || col_block_size>3)  {
-              out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,pattern_format_out,row_block_size,col_block_size);
-              out->row_block_size=1;
-              out->col_block_size=1;
-           } else {
-              out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,pattern_format_out,1,1);
-              out->row_block_size=row_block_size;
-              out->col_block_size=col_block_size;
-           }
-        }
-        out->row_distribution=Paso_Distribution_getReference(out->pattern->output_distribution);
-        out->col_distribution=Paso_Distribution_getReference(out->pattern->input_distribution);
-     }
      out->logical_row_block_size=row_block_size;
      out->logical_col_block_size=col_block_size;
-     out->logical_block_size=out->logical_row_block_size*out->logical_col_block_size;
-     out->block_size=out->row_block_size*out->col_block_size;
-     out->col_coupler=Paso_Coupler_alloc(pattern->col_connector,out->col_block_size);
-     out->row_coupler=Paso_Coupler_alloc(pattern->row_connector,out->row_block_size);
-     /* this should be bypassed if trilinos is used */
-     if (type & MATRIX_FORMAT_TRILINOS_CRS) {
-        #ifdef TRILINOS
-        out->trilinos_data=Paso_TRILINOS_alloc();
-        #endif
+
+
+     if (type & MATRIX_FORMAT_CSC) {
+         if (unroll) {
+               if (patternIsUnrolled) {
+                  out->pattern=Paso_SystemMatrixPattern_getReference(pattern);
+               } else {
+                  out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,pattern_format_out,col_block_size,row_block_size);
+               }
+               out->row_block_size=1;
+               out->col_block_size=1;
+         } else {
+              out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,pattern_format_out,1,1);
+              out->row_block_size=row_block_size;
+              out->col_block_size=col_block_size;
+         }
+         if (Paso_noError()) {
+           out->row_distribution=Paso_Distribution_getReference(out->pattern->input_distribution);
+           out->col_distribution=Paso_Distribution_getReference(out->pattern->output_distribution);
+         }
      } else {
-        out->solver_package=PASO_PASO;  
-        out->mainBlock=Paso_SparseMatrix_alloc(type,out->pattern->mainPattern,row_block_size,col_block_size);
-        out->col_coupleBlock=Paso_SparseMatrix_alloc(type,out->pattern->col_couplePattern,row_block_size,col_block_size);
-        out->row_coupleBlock=Paso_SparseMatrix_alloc(type,out->pattern->row_couplePattern,row_block_size,col_block_size);
-        /* allocate memory for matrix entries */
-        if (type & MATRIX_FORMAT_CSC) {
-           n_norm = out->mainBlock->numCols * out->col_block_size;
+         if (unroll) {
+              if (patternIsUnrolled) {
+                  out->pattern=Paso_SystemMatrixPattern_getReference(pattern);
+              } else {
+                  out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,pattern_format_out,row_block_size,col_block_size);
+              }
+              out->row_block_size=1;
+              out->col_block_size=1;
+         } else {
+              out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,pattern_format_out,1,1);
+              out->row_block_size=row_block_size;
+              out->col_block_size=col_block_size;
+         }
+         if (Paso_noError()) {
+              out->row_distribution=Paso_Distribution_getReference(out->pattern->output_distribution);
+              out->col_distribution=Paso_Distribution_getReference(out->pattern->input_distribution);
+         }
+     }
+     if (Paso_noError()) {
+        out->block_size=out->row_block_size*out->col_block_size;
+        out->col_coupler=Paso_Coupler_alloc(pattern->col_connector,out->col_block_size);
+        out->row_coupler=Paso_Coupler_alloc(pattern->row_connector,out->row_block_size);
+        /* this should be bypassed if trilinos is used */
+        if (type & MATRIX_FORMAT_TRILINOS_CRS) {
+           #ifdef TRILINOS
+           out->trilinos_data=Paso_TRILINOS_alloc();
+           #endif
         } else {
-           n_norm = out->mainBlock->numRows * out->row_block_size;
+           out->solver_package=PASO_PASO;  
+           out->mainBlock=Paso_SparseMatrix_alloc(type,out->pattern->mainPattern,row_block_size,col_block_size,TRUE);
+           out->col_coupleBlock=Paso_SparseMatrix_alloc(type,out->pattern->col_couplePattern,row_block_size,col_block_size,TRUE);
+           out->row_coupleBlock=Paso_SparseMatrix_alloc(type,out->pattern->row_couplePattern,row_block_size,col_block_size,TRUE);
+           if (Paso_noError()) {
+              /* allocate memory for matrix entries */
+              if (type & MATRIX_FORMAT_CSC) {
+                 n_norm = out->mainBlock->numCols * out->col_block_size;
+              } else {
+                 n_norm = out->mainBlock->numRows * out->row_block_size;
+              }
+              out->normalizer=MEMALLOC(n_norm,double);
+              out->normalizer_is_valid=FALSE;
+              if (! Paso_checkPtr(out->normalizer)) {
+                 #pragma omp parallel for private(i) schedule(static)
+                 for (i=0;i<n_norm;++i) out->normalizer[i]=0.;
+              }
+           }
         }
-        out->normalizer=MEMALLOC(n_norm,double);
-        out->normalizer_is_valid=FALSE;
-        if (! Paso_checkPtr(out->normalizer)) {
-           #pragma omp parallel for private(i) schedule(static)
-           for (i=0;i<n_norm;++i) out->normalizer[i]=0.;
-       }
-    }
+     }
   }
   /* all done: */
   if (! Paso_noError()) {
     Paso_SystemMatrix_free(out);
     return NULL;
   } else {
-    #ifdef Paso_TRACE
-    printf("timing: system matrix %.4e sec\n",Paso_timer()-time0);
-    printf("Paso_SystemMatrix_alloc: system matrix has been allocated.\n");
-    #endif
     return out;
   }
 }
 
 /* returns a reference to Paso_SystemMatrix in */
 
-Paso_SystemMatrix* Paso_SystemMatrix_reference(Paso_SystemMatrix* in) {
+Paso_SystemMatrix* Paso_SystemMatrix_getReference(Paso_SystemMatrix* in) {
    if (in!=NULL) ++(in->reference_counter);
    return in;
 }

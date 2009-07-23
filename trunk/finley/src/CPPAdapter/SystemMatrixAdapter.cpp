@@ -200,7 +200,6 @@ void finley::SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
    fprintf(stdout, "\tblock_size %d\n", mat->block_size);
    fprintf(stdout, "\tlogical_row_block_size %d\n", mat->logical_row_block_size);
    fprintf(stdout, "\tlogical_col_block_size %d\n", mat->logical_col_block_size);
-   fprintf(stdout, "\tlogical_block_size %d\n", mat->logical_block_size);
 
 }
 

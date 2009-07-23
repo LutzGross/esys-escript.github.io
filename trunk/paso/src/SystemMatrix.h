@@ -56,7 +56,6 @@ typedef struct Paso_SystemMatrix {
 
   dim_t logical_row_block_size;
   dim_t logical_col_block_size;
-  dim_t logical_block_size;
 
   dim_t row_block_size;
   dim_t col_block_size;
@@ -84,8 +83,8 @@ typedef struct Paso_SystemMatrix {
 
 /*  interfaces: */
 
-Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType,Paso_SystemMatrixPattern*,dim_t,dim_t);
-Paso_SystemMatrix* Paso_SystemMatrix_reference(Paso_SystemMatrix*);
+Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType,Paso_SystemMatrixPattern*,dim_t,dim_t, const bool_t patternIsUnrolled);
+Paso_SystemMatrix* Paso_SystemMatrix_getReference(Paso_SystemMatrix*);
 void Paso_SystemMatrix_free(Paso_SystemMatrix*);
 
 void Paso_SystemMatrix_MatrixVector(const double alpha, Paso_SystemMatrix* A, const double* in, const double beta, double* out);

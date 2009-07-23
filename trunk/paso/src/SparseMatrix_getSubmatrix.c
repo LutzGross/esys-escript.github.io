@@ -50,7 +50,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getSubmatrix(Paso_SparseMatrix* A,int n_row
          sub_pattern=Paso_Pattern_getSubpattern(A->pattern,n_row_sub,n_col_sub,row_list,new_col_index);
          if (Paso_noError()) {
             /* create the return object */
-            out=Paso_SparseMatrix_alloc(type,sub_pattern,A->row_block_size,A->col_block_size);
+            out=Paso_SparseMatrix_alloc(type,sub_pattern,A->row_block_size,A->col_block_size,TRUE);
             if (Paso_noError()) {
                  #pragma omp parallel for private(i,k,m,subpattern_row,tmp) schedule(static)
                  for (i=0;i<n_row_sub;++i) {

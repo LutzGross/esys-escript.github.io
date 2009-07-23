@@ -30,7 +30,7 @@
 
 /* allocates a Pattern  */
 
-Paso_Pattern* Paso_Pattern_alloc(int type, dim_t input_block_size, dim_t output_block_size, dim_t numOutput, dim_t numInput, index_t* ptr, index_t* index) {
+Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, dim_t numInput, index_t* ptr, index_t* index) {
   Paso_Pattern *out=NULL;
   index_t index_offset=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   index_t loc_min_index,loc_max_index,min_index=index_offset,max_index=index_offset-1;
@@ -92,9 +92,7 @@ Paso_Pattern* Paso_Pattern_alloc(int type, dim_t input_block_size, dim_t output_
       out->numInput=numInput;
       out->ptr=ptr;
       out->index=index;
-      out->input_block_size=input_block_size;
-      out->output_block_size=output_block_size;
-      out->block_size=out->input_block_size * out->output_block_size;
+
       if (out->ptr == NULL) {
           out->len=0;
       } else {
@@ -378,7 +376,7 @@ Paso_Pattern* Paso_IndexList_createPattern(dim_t n0, dim_t n,Paso_IndexList* ind
               for(i=n0;i<n;++i) {
                   Paso_IndexList_toArray(&index_list[i],&index[ptr[i-n0]],range_min,range_max,index_offset);
               }
-              out=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,n-n0,range_max+index_offset,ptr,index);
+              out=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,n-n0,range_max+index_offset,ptr,index);
        }
   }
   if (! Paso_noError()) {

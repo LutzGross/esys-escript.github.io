@@ -2064,7 +2064,11 @@ class LinearProblem(object):
            if self.isUsingLumping():
                self.__operator.setToZero()
            else:
-               self.__operator.resetValues()
+               if self.getOperatorType() == self.getRequiredOperatorType():
+                   self.__operator.resetValues()
+               else:
+                   self.__operator=self.createOperator()
+	           self.__operator_type=self.getRequiredOperatorType()
            self.trace("Operator reset to zero")
 
    def getCurrentOperator(self):

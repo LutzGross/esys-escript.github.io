@@ -54,7 +54,6 @@ void Paso_SystemMatrix_saveMM(Paso_SystemMatrix * A_p, char * fileName_p) {
     Paso_setError(IO_ERROR,"file could not be opened for writing");
     return;
   }
-
   if (A_p->type & MATRIX_FORMAT_CSC) {
     Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_saveMM does not support CSC yet.");
   } else {
@@ -63,7 +62,7 @@ void Paso_SystemMatrix_saveMM(Paso_SystemMatrix * A_p, char * fileName_p) {
     mm_set_coordinate(&matcode);
     mm_set_real(&matcode);
 
-    N= Paso_SystemMatrix_getGlobalNumRows(A_p);
+    N=Paso_SystemMatrix_getGlobalNumRows(A_p);
     M=Paso_SystemMatrix_getGlobalNumCols(A_p);
     mm_write_banner(fileHandle_p, matcode); 
     mm_write_mtx_crd_size(fileHandle_p, N*A_p->row_block_size, M*A_p->col_block_size, A_p->mainBlock->pattern->ptr[N]*A_p->block_size);

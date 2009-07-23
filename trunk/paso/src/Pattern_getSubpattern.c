@@ -78,7 +78,7 @@ Paso_Pattern* Paso_Pattern_getSubpattern(Paso_Pattern* pattern, \
              }
         }
         /* create return value */
-        out=Paso_Pattern_alloc(pattern->type,pattern->input_block_size,pattern->output_block_size,newNumRows,newNumCols,ptr,index);
+        out=Paso_Pattern_alloc(pattern->type,newNumRows,newNumCols,ptr,index);
         if (! Paso_noError()) {
           MEMFREE(index);
           MEMFREE(ptr);
