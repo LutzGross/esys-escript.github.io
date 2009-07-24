@@ -99,17 +99,11 @@ usempi		= 'yes'
 # mpi_path		= '/sw/libs/mpich2/x86_64/gcc-4.1.2/mpich2-1.0.7/include'
 # mpi_lib_path		= '/sw/libs/mpich2/x86_64/gcc-4.1.2/mpich2-1.0.7/lib'
 # mpi_libs		= ['mpich', 'rt']
-# mpi_flavour		= 'MPICH'
+# mpi_flavour		= 'MPICH2'
 
-# MPICH2 for jumpshot (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
-# mpi_path		= '/sw/libs/mpich2/x86_64/gcc-4.1.2/mpich2-1.0.7/include'
-# mpi_lib_path		= '/sw/libs/mpich2/x86_64/gcc-4.1.2/mpich2-1.0.7/lib'
-# mpi_libs		= ['lmpe', 'mpe', 'mpich', 'rt']
-# mpi_flavour		= 'MPICH'
-
-# Intel MPI (to run Escript use: module load intel-mpi/3.1.038)
-mpi_path		= '/sw/sdev/intel/mpi/3.1.038/x86_64/include64'
-mpi_lib_path		= '/sw/sdev/intel/mpi/3.1.038/x86_64/lib64'
+# Intel MPI (to run Escript use: module load intel-mpi/3.2.0.011
+mpi_path		= '/sw/sdev/intel/mpi/3.2.0.011/x86_64/include64'
+mpi_lib_path		= '/sw/sdev/intel/mpi/3.2.0.011/x86_64/lib64'
 mpi_libs		= ['mpi']
 mpi_flavour		= 'INTELMPI'
 

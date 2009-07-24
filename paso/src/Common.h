@@ -92,6 +92,7 @@ typedef int err_t;
                                 _a0_= (_a1_); \
                                 _a1_=s; \
                                }
+#define XNOR(_a0_,_a1_) ( ( (_a0_) && (_a1_) ) || ( !(_a0_) && !(_a1_) ) )
 /**************************************************************/
 /*    memory allocation:                                      */
 /*    Wise to not use PASO_MALLOC/FREE/REALLOC and            */

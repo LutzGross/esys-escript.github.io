@@ -47,7 +47,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
       return NULL;
   }
   if (patternIsUnrolled) {
-     if ( (type & MATRIX_FORMAT_OFFSET1) != ( pattern->type & PATTERN_FORMAT_OFFSET1) ) {
+     if ( ! XNOR(type & MATRIX_FORMAT_OFFSET1, pattern->type & PATTERN_FORMAT_OFFSET1) ) {
          Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_alloc: requested offset and pattern offset does not match.");
          return NULL;
      }
@@ -59,7 +59,9 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
         /* or any block size bigger than 3 */
     ||  (col_block_size>3) 
         /* or if lock size one requested and the block size is not 1 */
-    ||  ((type & MATRIX_FORMAT_BLK1) &&  (col_block_size>1) ) ;
+    ||  ((type & MATRIX_FORMAT_BLK1) &&  (col_block_size>1) )
+        /* or the offsets are wrong */
+    ||  ((type & MATRIX_FORMAT_OFFSET1) != ( pattern->type & PATTERN_FORMAT_OFFSET1));
   
   out=MEMALLOC(1,Paso_SystemMatrix);
   if (! Paso_checkPtr(out)) {  

@@ -112,9 +112,10 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
      Paso_setError(TYPE_ERROR,"Paso_SparseMatrix_alloc: symmetric matrix pattern are not supported.");
      return NULL;
   }
+
   if (patternIsUnrolled) {
-     if ( (type & MATRIX_FORMAT_OFFSET1) != ( pattern->type & PATTERN_FORMAT_OFFSET1) ) {
-         Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_alloc: requested offset and pattern offset does not match.");
+     if (! XNOR(type & MATRIX_FORMAT_OFFSET1, pattern->type & PATTERN_FORMAT_OFFSET1) ) {
+         Paso_setError(TYPE_ERROR,"Paso_SparseMatrix_alloc: requested offset and pattern offset does not match.");
          return NULL;
      }
   }
@@ -125,7 +126,9 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
         /* or any block size bigger than 3 */
     ||  (col_block_size>3)
         /* or if lock size one requested and the block size is not 1 */
-    ||  ((type & MATRIX_FORMAT_BLK1) &&  (col_block_size>1) ) ;
+    ||  ((type & MATRIX_FORMAT_BLK1) &&  (col_block_size>1) ) 
+        /* offsets don't match */
+    || ( (type & MATRIX_FORMAT_OFFSET1) != ( pattern->type & PATTERN_FORMAT_OFFSET1) ) ;
 
   pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? PATTERN_FORMAT_OFFSET1:  PATTERN_FORMAT_DEFAULT;
 
