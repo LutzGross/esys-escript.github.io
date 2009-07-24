@@ -89,7 +89,7 @@ void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes)
        in->globalNodesIndex[n]=-1;
        in->reducedNodesId[n]=-1;
        in->degreesOfFreedomId[n]=-1;
-       in->reducedDegreesOfFreedomId[n]=-1;
+       in->reducedDegreesOfFreedomId[n]=-1; 
     }
   }
   return;
