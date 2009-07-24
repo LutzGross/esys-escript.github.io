@@ -178,7 +178,7 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
             if(A->val[iptr]<=threshold) {
                if(j!=i) {
                 Paso_IndexList_insertIndex(&(index_list[i]),j);
-                Paso_IndexList_insertIndex(&(index_list[j]),i);
+                /*Paso_IndexList_insertIndex(&(index_list[j]),i);*/
                 }
             }
         }
@@ -229,7 +229,7 @@ void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double
   }
 
 
-    #pragma omp parallel for private(i,iptr) reduction(+:diag) schedule(static)
+    #pragma omp parallel for private(i,iptr,diag) schedule(static)
       for (i=0;i<n;++i) {
         diag = 0;
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
