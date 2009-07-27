@@ -94,7 +94,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestC
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -123,7 +123,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -163,7 +163,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -190,7 +190,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -230,7 +230,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -257,7 +257,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -305,7 +305,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -333,7 +333,7 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -381,7 +381,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
@@ -411,7 +411,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
@@ -439,7 +439,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
@@ -480,7 +480,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
@@ -521,7 +521,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 class SimpleSolve_Brick_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
@@ -549,7 +549,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Brick_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
@@ -598,7 +598,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Brick_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
@@ -627,7 +627,7 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Brick_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
@@ -676,7 +676,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 
@@ -708,7 +708,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCas
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
@@ -736,7 +736,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCas
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
@@ -777,7 +777,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCas
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
@@ -818,7 +818,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCas
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 class SimpleSolve_Brick_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
@@ -846,7 +846,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
@@ -895,7 +895,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
@@ -924,7 +924,7 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
@@ -973,7 +973,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)/Lsup(u_ex)
+        error=Lsup(u-u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 if __name__ == '__main__':
