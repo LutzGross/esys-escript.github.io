@@ -272,6 +272,7 @@ void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double
     
     /*Paso_Pattern_mis(out,mis_marker);*/
     Paso_Pattern_greedy(out,mis_marker);
+    Paso_Pattern_free(out);
 
 }
 
