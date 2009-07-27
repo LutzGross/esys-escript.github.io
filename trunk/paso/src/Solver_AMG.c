@@ -43,6 +43,7 @@ void Paso_Solver_AMG_free(Paso_Solver_AMG * in) {
         MEMFREE(in->A_FF_pivot);
         Paso_SparseMatrix_free(in->A_FC);
         Paso_SparseMatrix_free(in->A_CF);
+        Paso_SparseMatrix_free(in->A);
         MEMFREE(in->rows_in_F);
         MEMFREE(in->rows_in_C);
         MEMFREE(in->mask_F);
@@ -84,6 +85,8 @@ to
 */
 Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Options* options) {
   Paso_Solver_AMG* out=NULL;
+  Paso_Pattern* temp1=NULL;
+  Paso_Pattern* temp2=NULL;
   bool_t verbose=options->verbose;
   dim_t n=A_p->numRows;
   dim_t n_block=A_p->row_block_size;
@@ -94,6 +97,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
   Paso_SparseMatrix * schur=NULL;
   Paso_SparseMatrix * schur_withFillIn=NULL;
   double S=0;
+  char fname[6];
   
   /*Make sure we have block sizes 1*/
   if (A_p->col_block_size>1) {
@@ -128,6 +132,10 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      out->solver=NULL;
      /*out->GS=Paso_Solver_getGS(A_p,verbose);*/
      out->level=level;
+     
+       sprintf(fname,"A%d.mat",level);
+  
+       Paso_SparseMatrix_saveMM(A_p,fname);
   
      if (level==0 || n<=options->min_coarse_matrix_size) {
          out->coarsest_level=TRUE;
@@ -157,9 +165,9 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
         }
         else {
            /*Default coarseneing*/
-           /* Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold); */
+            Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold); 
 
-             Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);
+             /*Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);*/
         }
      
         if (Paso_noError()) {
@@ -191,14 +199,14 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
               #pragma omp parallel for private(i,iPtr,j,S) schedule(static)
               for (i = 0; i < out->n_F; ++i) {
                 S=0;
-printf("%d : %d -> ",i, out->rows_in_F[i]);
+/*printf("%d : %d -> ",i, out->rows_in_F[i]);*/
                 for (iPtr=A_p->pattern->ptr[out->rows_in_F[i]];iPtr<A_p->pattern->ptr[out->rows_in_F[i] + 1]; ++iPtr) {
                  j=A_p->pattern->index[iPtr];
-if (j==out->rows_in_F[i]) printf("%e",A_p->val[iPtr]);
-                 if (mis_marker[j])
-                     S+=A_p->val[iPtr];
+/*if (j==out->rows_in_F[i]) printf("diagonal %e",A_p->val[iPtr]);*/
+                 if (mis_marker[j] && j==out->rows_in_F[i])
+                     S=A_p->val[iPtr];
                 }
-printf("-> %e\n",S);
+/*printf("-> %e\n",S);*/
                 out->inv_A_FF[i]=1./S;
               }
            }
@@ -240,8 +248,11 @@ printf("-> %e\n",S);
         }
         if ( Paso_noError()) {
                /*find the pattern of the schur complement with fill in*/
-    
-              schur_withFillIn=Paso_SparseMatrix_alloc(A_p->type,Paso_Pattern_binop(PATTERN_FORMAT_DEFAULT, schur->pattern, Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,out->A_CF->pattern,out->A_FC->pattern)),1,1, TRUE);
+              temp1=Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,out->A_CF->pattern,out->A_FC->pattern);
+              temp2=Paso_Pattern_binop(PATTERN_FORMAT_DEFAULT, schur->pattern, temp1);
+              schur_withFillIn=Paso_SparseMatrix_alloc(A_p->type,temp2,1,1, TRUE);
+              Paso_Pattern_free(temp1);
+              Paso_Pattern_free(temp2);
         }
         if ( Paso_noError()) {
               /* copy values over*/ 
