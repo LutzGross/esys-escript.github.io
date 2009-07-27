@@ -254,21 +254,192 @@ $7$, $10$, $15$ and $20$, respectively. The node section of the \finley mesh get
 \input{finleyelements}
 \clearpage
 
-\subsection{Linear Solvers in \LinearPDE}
-Currently \finley supports the linear solvers \PCG, \GMRES, \PRESTWENTY and \BiCGStab. 
-For \GMRES the options \var{truncation} and \var{restart} of the \method{getSolution} can be
-used to control the truncation and restart during iteration. Default values are
-\var{truncation}=5 and \var{restart}=20.
-The default solver is \BiCGStab  but if the symmetry flag is set \PCG is the default solver.
-\finley supports the solver options \var{iter_max} which specifies the maximum number of iterations steps,
-\var{verbose}=\True or \False and \var{preconditioner}=\constant{JACOBI} or \constant {ILU0}.
-In some installations \finley supports the \Direct solver and the
-solver options \var{reordering}=\constant{util.NO_REORDERING}, 
-\constant{util.MINIMUM_FILL_IN} or \constant{util.NESTED_DISSECTION} (default is \constant{util.NO_REORDERING}),
-\var{drop_tolerance} specifying the threshold for values to be dropped in the 
-incomplete elimination process (default is 0.01) and \var{drop_storage} specifying the maximum increase 
-in storage allowed in the 
-incomplete elimination process (default is 1.20).
+
+\begin{table}
+{\small
+\begin{tabular}{l||c|c|c|c|c|c|c|c}
+\member{setSolverMethod} & \member{DIRECT}& \member{PCG} & \member{GMRES} & \member{TFQMR} & \member{MINRES} & \member{PRES20} & \member{BICGSTAB} & \member{LUMPING} \\
+\hline
+ \hline
+ \member{setReordering} & $\checkmark$ & & & & & &\\
+ \hline  \member{setRestart} &  & & $\checkmark$ & & & $20$ & \\
+ \hline\member{setTruncation} &  & & $\checkmark$ & & & $5$ & \\
+   \hline\member{setIterMax} &  & $\checkmark$& $\checkmark$ & $\checkmark$& $\checkmark$& $\checkmark$ & $\checkmark$ \\
+ \hline\member{setTolerance} &  & $\checkmark$& $\checkmark$ & $\checkmark$& $\checkmark$& $\checkmark$ & $\checkmark$ \\
+ \hline\member{setAbsoluteTolerance} &  & $\checkmark$& $\checkmark$ & $\checkmark$& $\checkmark$& $\checkmark$ & $\checkmark$ \\
+\end{tabular}
+}
+\caption{Solvers available for \finley and the \PASO package and the relevant options in \class{SolverOptions} 
+ \label{TAB FINLEY SOLVER OPTIONS 1}} 
+\end{table} 
+
+\begin{table}
+{\scriptsize
+\begin{tabular}{l||c|c|c|c|c|c|c|c}
+\member{setPreconditioner} & 
+\member{NO_PRECONDITIONER} &
+\member{AMG} & 
+\member{JACOBI} & 
+\member{GAUSS_SEIDEL}& 
+\member{REC_ILU}&
+\member{RILU} &
+\member{ILU0} &
+\member{DIRECT} \\
+ \hline
+ status: &
+later &
+later & 
+$\checkmark$ & 
+$\checkmark$& 
+$\checkmark$ &
+later &
+$\checkmark$ &
+later \\
+\hline
+\hline
+\member{setCoarsening}& 
+ &
+$\checkmark$ & 
+& 
+& 
+&
+ &
+ &
+ \\
+
+
+\hline\member{setLevelMax}& 
+ &
+$\checkmark$ & 
+ & 
+& 
+&
+ &
+ &
+ \\
+
+\hline\member{setCoarseningThreshold}&
+&
+$\checkmark$ & 
+ & 
+& 
+&
+ &
+ &
+ \\
+
+\hline\member{setMinCoarseMatrixSize} &
+ &
+$\checkmark$ & 
+ & 
+& 
+&
+ &
+ &
+ \\
+
+\hline\member{setNumSweeps} &
+ &
+ & 
+$\checkmark$ & 
+$\checkmark$ & 
+&
+ &
+ &
+ \\
+
+\hline\member{setNumPreSweeps}&
+ &
+$\checkmark$ & 
+  & 
+ & 
+ &
+  &
+  &
+  \\
+
+\hline\member{setNumPostSweeps} &
+ &
+$\checkmark$ & 
+ & 
+& 
+&
+ &
+&
+ \\
+
+\hline\member{setInnerTolerance}&
+ &
+ & 
+ & 
+& 
+&
+ &
+&
+ \\
+
+\hline\member{setDropTolerance}&
+ &
+ & 
+ & 
+& 
+&
+ &
+&
+ \\
+
+\hline\member{setDropStorage}&
+ &
+ & 
+ & 
+& 
+&
+ &
+&
+ \\
+
+\hline\member{setRelaxationFactor}&
+ &
+ & 
+ & 
+& 
+&
+$\checkmark$  &
+ &
+ \\
+
+\hline\member{adaptInnerTolerance}&
+ &
+ & 
+ & 
+& 
+&
+ &
+&
+ \\
+
+\hline\member{setInnerIterMax}&
+ &
+ & 
+ & 
+& 
+&
+ &
+&
+ \\
+\end{tabular}
+}
+\caption{Preconditioners available for \finley and the \PASO package and the relevant options in \class{SolverOptions}. \label{TAB FINLEY SOLVER OPTIONS 2}} 
+\end{table}
+
+\subsection{Linear Solvers in \SolverOptions}
+Table~\ref{TAB FINLEY SOLVER OPTIONS 1} and
+Table~\ref{TAB FINLEY SOLVER OPTIONS 2} show the solvers and preconditioners supported by 
+\finley through the \PASO library. Currently direct solvers are not supported under MPI. 
+By default, \finley is using the iterative solvers \PCG for symmetric and \BiCGStab for non-symmetric problems. 
+If the direct solver is selected which can be useful when solving very ill-posedequations
+\finley uses the \MKL solver package. If \MKL is not available \UMFPACK is used. If \UMFPACK is not available 
+a suitable iterative solver from the \PASO is used.
 
 \subsection{Functions}
 \begin{funcdesc}{ReadMesh}{fileName,integrationOrder=-1}
