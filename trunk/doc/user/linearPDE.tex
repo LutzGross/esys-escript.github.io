@@ -138,7 +138,7 @@ mypde.getSolverOptions().setVerbosityOn()
 mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
 mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
 mypde.getSolverOptions().setTolerance(1e-8)
-mypde.getSolverOptions().setMaxIter(1000)
+mypde.getSolverOptions().setIterMax(1000)
 u=mypde.getSolution()
 \end{python}
 In this code the preconditoned conjugate gradient method \PCG
