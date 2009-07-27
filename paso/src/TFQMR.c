@@ -41,10 +41,10 @@
 *  =========
 *
 *  r       (input) DOUBLE PRECISION array, dimension N.
-*          On entry, residual of inital guess x
+*        
 *
 *  x       (input/output) DOUBLE PRECISION array, dimension N.
-*          On input, the initial guess.
+*         
 *
 *  ITER    (input/output) INT
 *          On input, the maximum iterations to be performed.
