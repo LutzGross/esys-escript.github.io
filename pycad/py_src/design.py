@@ -140,6 +140,7 @@ class TagMap(object):
         Passes the tag map to the L{esys.escript.Domain} C{domain}.
         """
         for tag, name in self.__mapping.items():
+          print name, ">>", tag
           domain.setTagMap(name,tag)
 
     def toDOM(self,dom):
@@ -289,6 +290,11 @@ class Design(object):
        for i in range(len(items)):
           if not isinstance(items[i],(Primitive, ReversePrimitive)):
              raise TypeError("%s-th argument is not a Primitive object"%i)
+          if isinstance(items[i],PropertySet):
+             for p in self.getAllPrimitives():
+                if isinstance(p, PropertySet): 
+                   if items[i].getName() == p.getName():
+                       raise ValueError("Property set name %s is allready in use."%items[i].getName())
        for i in items:
           self.__items.append(i)
 
