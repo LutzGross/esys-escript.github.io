@@ -35,28 +35,32 @@ class Mountains:
       where w_hat=w*[1,1,0], dt<0.5*d/max(w_i), d is a characteristic element size; H(x_3=1)=lambda (?) 
       
   """
-  def __init__(self,domain,eps=0.01):
+  def __init__(self,domain,eps=0.01, reduced=False):
     """
     Sets up the level set method.
 
     @param domain: the domain where the mountains is used
     @param eps: the smoothing parameter for (1)
+    @param reduced: if True topography reduced order is used for reconstruction of internal velocity and topography
     """
     if eps<=0:
         raise ValueError("Smmoting parameter eps must be positive.")
     self.__domain = domain
     self.__eps = eps
+    self.__reduced=reduced
     self.__DIM=domain.getDim()
     z=domain.getX()[self.__DIM-1]
 
     self.__PDE_W = LinearPDE(domain)
     self.__PDE_W.setSymmetryOn()
+    if reduced: self.__PDE_W.setReducedOrderOn()
     A=kronecker(domain)
     A[self.__DIM-1,self.__DIM-1]=1/self.__eps
     self.__PDE_W.setValue(A=A, q=whereZero(sup(z)-z)+whereZero(inf(z)-z))
 
     self.__PDE_H = LinearPDE(domain)
     self.__PDE_H.setSymmetryOn()
+    if reduced: self.__PDE_H.setReducedOrderOn()
     self.__PDE_H.setValue(D=1.0)
     self.__PDE_H.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
     self.__PDE_H.setValue(q=whereZero(inf(z)-z))
@@ -88,7 +92,11 @@ class Mountains:
       @type v: vector
       """
       self.__dt=None
-      self.__v=Vector(0.,Solution(self.getDomain()))
+      if self.__reduced:
+         fs=ReducedSolution(self.getDomain())
+      else:
+         fs=Solution(self.getDomain())
+      self.__v=Vector(0.,fs)
       if not v == None:
         z=self.getDomain().getX()[self.__DIM-1]
         z_min=inf(z)
@@ -111,11 +119,15 @@ class Mountains:
     @param H: the topography.  If None zero is used.
     @type H: scalar
     """
+    if self.__reduced:
+         fs=ReducedSolution(self.getDomain())
+    else:
+         fs=Solution(self.getDomain())
 
     if H==None: 
-       self.__H=Scalar(0.0, Solution(self.getDomain()))
+       self.__H=Scalar(0.0, fs)
     else:
-       self.__H=interpolate(H, Solution(self.getDomain()))
+       self.__H=interpolate(H, fs)
        
   def getTopography(self):
      """

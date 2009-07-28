@@ -700,7 +700,7 @@ class Test_Mountains3D(unittest.TestCase):
        mts.setVelocity(v)
        Z=mts.update()
        
-       error_int=integrate(Z)
+       error_int=abs(integrate(Z*whereZero(FunctionOnBoundary(self.domain).getX()[2]-1.)))
        self.failUnless(error_int<self.TOL, "Boundary intergral is too large.")
 
 class Test_Mountains2D(unittest.TestCase):
@@ -727,7 +727,7 @@ class Test_Mountains2D(unittest.TestCase):
        mts.setVelocity(v)
        Z=mts.update()
        
-       error_int=integrate(Z)
+       error_int=abs(integrate(Z*whereZero(FunctionOnBoundary(self.domain).getX()[1]-1.)))
        self.failUnless(error_int<self.TOL, "Boundary intergral is too large.")
        
 
