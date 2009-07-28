@@ -696,9 +696,9 @@ class Test_Mountains3D(unittest.TestCase):
        v[1]=a1*cos(pi*n0*x[0])* sin(pi*n1*x[1])* cos(pi*n2*x[2])
        v[2]=a2*cos(pi*n0*x[0])* cos(pi*n1*x[1])* sin(pi*n2*x[2])
 
-       H_t=Scalar(0.0, Solution(self.domain))
-       mts=Mountains(self.domain,v,eps=EPS,z=1)
-       u,Z=mts.update(u=v,H_t=H_t)
+       mts=Mountains(self.domain,eps=EPS)
+       mts.setVelocity(v)
+       Z=mts.update()
        
        error_int=integrate(Z)
        self.failUnless(error_int<self.TOL, "Boundary intergral is too large.")
@@ -723,8 +723,9 @@ class Test_Mountains2D(unittest.TestCase):
        v[1]=a1*cos(pi*n0*x[0])* sin(pi*n1*x[1])
        
        H_t=Scalar(0.0, Solution(self.domain))
-       mts=Mountains(self.domain,v,eps=EPS,z=1)
-       u,Z=mts.update(u=v,H_t=H_t)
+       mts=Mountains(self.domain,eps=EPS)
+       mts.setVelocity(v)
+       Z=mts.update()
        
        error_int=integrate(Z)
        self.failUnless(error_int<self.TOL, "Boundary intergral is too large.")
