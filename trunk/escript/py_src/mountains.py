@@ -34,90 +34,128 @@ class Mountains:
       H^(t+dt)=H^t+dt*w_3+w_hat*dt*[(div(w_hat*H^t)+w_3)+(dt/2)+H^t],
       where w_hat=w*[1,1,0], dt<0.5*d/max(w_i), d is a characteristic element size; H(x_3=1)=lambda (?) 
       
-
   """
-  def __init__(self,domain,v,eps=0.01,z=1):
+  def __init__(self,domain,eps=0.01):
     """
     Sets up the level set method.
 
     @param domain: the domain where the mountains is used
-    @param eps: the parameter for (1)
-    @param z: the height of the box
+    @param eps: the smoothing parameter for (1)
     """
+    if eps<=0:
+        raise ValueError("Smmoting parameter eps must be positive.")
     self.__domain = domain
     self.__eps = eps
+    self.__DIM=domain.getDim()
+    z=domain.getX()[self.__DIM-1]
+
     self.__PDE_W = LinearPDE(domain)
     self.__PDE_W.setSymmetryOn()
+    A=kronecker(domain)
+    A[self.__DIM-1,self.__DIM-1]=1/self.__eps
+    self.__PDE_W.setValue(A=A, q=whereZero(sup(z)-z)+whereZero(inf(z)-z))
+
     self.__PDE_H = LinearPDE(domain)
     self.__PDE_H.setSymmetryOn()
     self.__PDE_H.setValue(D=1.0)
     self.__PDE_H.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
-    self.__h = inf(domain.getSize())
-    self.__v=v
-    self.__z=z
-    self.__x=domain.getX()
-    self.__DIM=domain.getDim()
-    self.__fixed_w_mask=whereZero(self.__z-self.__x[self.__DIM-1])+whereZero(self.__x[self.__DIM-1])
-    self.__fixed_H_mask=whereZero(self.__x[self.__DIM-1])
-    self.__A=kronecker(domain)
-    self.__A[self.__DIM-1,self.__DIM-1]=1/self.__eps
-    self.__PDE_W.setValue(A=self.__A, q=self.__fixed_w_mask)
-    self.__PDE_H.setValue(q=self.__fixed_H_mask)
-    self.__H_t=Scalar(0.0, Solution(domain))
-    self.__dt=0.
+    self.__PDE_H.setValue(q=whereZero(inf(z)-z))
 
-  def update(self,u=None,H_t=None,dt=None):
-      """
-      Sets a new W and updates the H function.
+    self.setVelocity()
+    self.setTopography()
+  def getSolverOptionsForSmooting(self):
+     """
+     returns the solver options for the smoothing/extrapolation
+     """
+     return self.__PDE_W.getSolverOptions()
 
-      @param dt: time step forward
-      """
-      if H_t==None:
-        H_t=self.__H_t
-        
-      if u==None:
-         u=self.__v
-         
-      for d in range(self.__DIM):
-        self.__PDE_W.setValue(r=u[d]*self.__x[self.__DIM-1]/self.__z)
-        u[d]=self.__PDE_W.getSolution()
-
-      if dt==None:
-        dt=0.5*self.__h/sup(u)
-        self.__dt=dt
-      else:
-        self.__dt=dt
- 
-      w=u
-      w_tilda=1.*w
-      w_tilda[self.__DIM-1]=0
-
-      self.__PDE_H.setValue(X=((div(w_tilda*H_t)+w[self.__DIM-1])*dt/2+H_t)*w_tilda*dt, Y=w[self.__DIM-1]*dt+H_t)
-      self.__H_t=self.__PDE_H.getSolution()
-      
-      self.__v=w
-
-      return w,self.__H_t
-
-  def getH(self):
-      """
-      Returns the mesh size.
-      """
-      return self.__h
-
-  def getDt(self):
-      """
-      Returns the time step value.
-      """
-      return self.__dt
-    
-
+  def getSolverOptionsForUpdate(self):
+     """
+     returns the solver options for the topograthy update
+     """
+     return self.__PDE_H.getSolverOptions()
   def getDomain(self):
       """
       Returns the domain.
       """
       return self.__domain
 
-  def setTolerance(self,tolerance=1e-3):
-    self.__PDE_W.getSolverOptions().setTolerance(tolerance)
-    self.__PDE_H.getSolverOptions().setTolerance(tolerance)
+  def setVelocity(self,v=None):
+      """
+      set a new velocity. v is define on the entire domain but only the surface values are used.
+
+      @param v: velocity field. If None zero is used.
+      @type v: vector
+      """
+      self.__dt=None
+      self.__v=Vector(0.,Solution(self.getDomain()))
+      if not v == None:
+        z=self.getDomain().getX()[self.__DIM-1]
+        z_min=inf(z)
+        z_max=sup(z)
+        f=(z-z_min)/(z_max-z_min)
+        for d in range(self.__DIM):
+           self.__PDE_W.setValue(r=v[d]*f)
+           self.__v[d]=self.__PDE_W.getSolution()
+  def getVelocity(self):
+      """
+      returns the smoothed/extrapolated velocity
+      @rtype: vector L{Data} 
+      """
+      return self.__v
+
+  def setTopography(self,H=None):
+    """
+    set the topography to H where H defines the vertical displacement. H is defined for the entire domain.
+
+    @param H: the topography.  If None zero is used.
+    @type H: scalar
+    """
+
+    if H==None: 
+       self.__H=Scalar(0.0, Solution(self.getDomain()))
+    else:
+       self.__H=interpolate(H, Solution(self.getDomain()))
+       
+  def getTopography(self):
+     """
+     returns the current topography.
+     @rtype: scalar L{Data}
+     """
+     return self.__H
+
+  def getSafeTimeStepSize(self):
+      """
+      Returns the time step value.
+
+      @rtype: C{float}
+      """
+      if self.__dt == None:
+           self.__dt=0.5*inf(self.getDomain().getSize()/length(self.getVelocity()))
+      return self.__dt
+  def update(self,dt=None):
+      """
+      Sets a new W and updates the H function.
+
+      @param dt: time step forward. If None the save time step size is used.
+      @type dt: positve C{float} which is less or equal than the safe time step size.
+      
+      """
+      if dt == None: 
+            dt = self.getSafeTimeStepSize()
+      if dt<=0:
+           raise ValueError("Time step size must be positive.")
+      if dt>self.getSafeTimeStepSize():
+           raise ValueError("Time step must be less than safe time step size = %e."%self.getSafeTimeStepSize())
+      
+      H=self.getTopography()
+      w=self.getVelocity()
+      w_tilda=1.*w
+      w_tilda[self.__DIM-1]=0
+      w_z=w[self.__DIM-1]
+
+      self.__PDE_H.setValue(X=((div(w_tilda*H)+w_z)*dt/2+H)*w_tilda*dt, Y=w_z*dt+H, r=H)
+      self.setTopography(self.__PDE_H.getSolution())
+
+      return self.getTopography()
+
