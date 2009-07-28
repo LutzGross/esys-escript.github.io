@@ -83,8 +83,8 @@ err_t Paso_Solver_MINRES(
   dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
   double  *w=NULL, *w1=NULL, *w2=NULL, *r1=NULL, *r2=NULL, *y=NULL, *v=NULL;
 
-  double Anorm,ynorm,oldb,dbar,epsln,phibar,rhs1,rhs2,rnorm,tnorm2,ynorm2,cs,sn,eps,s,alfa,denom,z,beta1,beta;
-  double gmax,gmin,oldeps,delta,gbar,gamma,phi;
+  double Anorm,Arnorm,ynorm,oldb,dbar,epsln,phibar,rhs1,rhs2,rnorm,tnorm2,ynorm2,cs,sn,eps,s,alfa,denom,z,beta1,beta;
+  double gmax,gmin,oldeps,delta,gbar,gamma,phi,root,epsx;
  
   double norm_of_residual=0;
   
@@ -151,7 +151,7 @@ err_t Paso_Solver_MINRES(
   ynorm2 = 0;
   cs     = -1;
   sn     = 0;
-  eps    = 0.0001;
+  eps    = 0.000001;
  
   while (!(convergeFlag || maxIterFlag || breakFlag || (status !=SOLVER_NO_ERROR) ))
   {
@@ -204,6 +204,9 @@ err_t Paso_Solver_MINRES(
      epsln  =               sn * beta ; 
      dbar   =            -  cs * beta;
      
+     root   = sqrt(gbar*gbar+dbar*dbar) ;
+     Arnorm = phibar*root;
+     
      gamma  = sqrt(gbar*gbar+beta*beta) ;
      gamma  = MAX(gamma,eps) ;
      cs     = gbar / gamma ;            
@@ -234,11 +237,11 @@ err_t Paso_Solver_MINRES(
      ynorm  = sqrt( ynorm2 ) ;
 
      rnorm  = phibar;
+     epsx   = Anorm*ynorm*eps;
 
      maxIterFlag = (num_iter > maxit);
-     norm_of_residual=rnorm/Anorm*ynorm;
-     convergeFlag=(norm_of_residual<(*tolerance));
-    
+     norm_of_residual=rnorm;
+     convergeFlag=((norm_of_residual/(Anorm*ynorm))<(*tolerance) || 1+(norm_of_residual/(Anorm*ynorm)) <=1);
     
      if (maxIterFlag) {
          status = SOLVER_MAXITER_REACHED;
