@@ -37,11 +37,13 @@ index_t Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index
   switch(true_package)  {
 
      case PASO_PASO:
-       if (preconditioner == PASO_AMG) {
+      /* AMG on blocksize > 1 not supported yet */
+  /*     if (preconditioner == PASO_AMG) {
           out=MATRIX_FORMAT_DEFAULT + MATRIX_FORMAT_BLK1;
        } else {
+  */
           out=MATRIX_FORMAT_DEFAULT;
-       }
+   /*    } */
        break;
 
 
