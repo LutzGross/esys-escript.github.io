@@ -99,14 +99,14 @@ Throughout this section we will assume that the source code is uncompressed in a
 You can call the directory anything you like, provided that you make the change before you compile.
 
 You need to indicate where to find the external dependencies.
-Unless specified otherwise, all paths will be relative to the top level of the source.
-To do this, create a file in the \filename{scons} directory called \filename{x_options.py} where ``x'' is the name of your computer (output of the \texttt{hostname} command).
-As a starting point use one of the following:
+To do this, create a file in the \filename{escript.d/scons} directory called \filename{x_options.py} where ``x'' is the name of your computer (output of the \texttt{hostname} command).
+From now on all paths will be relative to the top level of the source.
+As a starting point copy the contents one of the following files :
 \begin{itemize}
  \item \filename{scons/linux_options_example.py} (\linux desktop)
 \item \filename{scons/mac_options_example.py} (\macosx desktop)
-\item \filename{ice_options_example.py} (SGI ICE 8200)
-\item \filename{winxp_options_example.py} (\winxp)
+\item \filename{scons/ice_options_example.py} (SGI ICE 8200)
+\item \filename{scons/winxp_options_example.py} (\winxp)
 \end{itemize}
 
 To actually compile (if you have $n$ processors, then you can use \texttt{scons -j$n$} instead):

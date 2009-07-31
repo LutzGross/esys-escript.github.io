@@ -36,8 +36,8 @@ These instructions will produce the following directory structure:
 \begin{itemize}
  \item[] \filename{stand}: \begin{itemize}
   \item[] \filename{escript.d}
-  \item[] \filename{packages}
-  \item[] \filename{package_src}
+  \item[] \filename{pkg}
+  \item[] \filename{pkg_src}
   \item[] \filename{build}
   \item[] \filename{doc}
  \end{itemize}
@@ -51,7 +51,7 @@ Open a terminal~\footnote{If you do not know how to open a terminal on Mac, then
 \begin{shellCode}
 mkdir stand
 cd stand
-export PKG_ROOT=`pwd`/packages
+export PKG_ROOT=`pwd`/pkg
 \end{shellCode}
 
 Copy compressed source bundles into \filename{stand/package_src}.
@@ -61,15 +61,12 @@ Copy documentation files into \filename{doc}.
 mkdir packages
 mkdir build
 cd build
-tar -jxf ../package_src/Python-2.6.1.tar.bz2
-tar -jxf ../package_src/boost_1_38_0.tar.bz2
-tar -jxf ../package_src/MesaLib-7.2.tar.bz2
-tar -zxf ../package_src/netcdf-4.0.tar.gz
-tar -zxf ../package_src/vtk-5.2.1.tar.gz
-tar -zxf ../package_src/vtkdata-5.2.1.tar.gz
-tar -zxf ../package_src/numarray-1.5.2.tar.gz
-tar -zxf ../package_src/cmake-2.6.3.tar.gz
-tar -zxf ../package_src/scons-1.2.0.tar.gz
+tar -jxf ../pkg_src/Python-2.6.2.tar.bz2
+tar -jxf ../pkg_src/boost_1_39_0.tar.bz2
+tar -zxf ../pkg_src/scons-1.2.0.tar.gz
+tar -zxf ../pkg_src/numpy-1.3.0.tar.gz
+tar -zxf ../pkg_src/netcdf-4.0.tar.gz
+tar -zxf ../pkg_src/matplotlib-0.98.5.3.tar.gz
 \end{shellCode}
 
 \begin{itemize}
@@ -77,23 +74,10 @@ tar -zxf ../package_src/scons-1.2.0.tar.gz
 \item Build python:
 \begin{shellCode}
 cd Python*
-
-./configure --prefix=$PKG_ROOT/python-2.6.1 \
-  --exec-prefix=$PKG_ROOT/python-2.6.1 --enable-shared \
-  --enable-framework=$PKG_ROOT/python-2.6.1 2>&1 | tee tt.configure.out
-  
-make -j2
-
+./configure --prefix=$PKG_ROOT/python-2.6.2 --enable-shared 2>&1 \
+  | tee tt.configure.out
+make 
 make install 2>&1 | tee tt.make.out
-
-cp ../../packages/python-2.6.1/Python.framework/Versions/2.6/Python \
-     ../../packages/python-2.6.1/lib/libpython2.6.dylib
-
-cp ../../packages/python-2.6.1/Python.framework/Versions/2.6/Python \
-      ../../packages/python-2.6.1/lib/libpython.dylib
-
-cp ../../packages/python-2.6.1/include/python2.6/pyconfig.h \
-     ../../packages/python-2.6.1/Python.framework/Headers/
 
 cd ..
 
@@ -101,217 +85,117 @@ export PATH=$PKG_ROOT/python/bin:$PATH
 export PYTHONHOME=$PKG_ROOT/python
 export LD_LIBRARY_PATH=$PKG_ROOT/python/lib:$LD_LIBRARY_PATH
 
-pushd ../packages
-ln -s python-2.6.1/ python
+pushd ../pkg
+ln -s python-2.6.2/ python
 popd
 \end{shellCode}
 
-Run python to make sure it works (check the version number).
+Run the new python executable to make sure it works.
 
-\item Now build numarray:
-
+\item Now build NumPy:
 \begin{shellCode}
-cd numarray-1.5.2
-
-python setup.py install \
- --gencode --install-lib=$PKG_ROOT/numarray-1.5.2/lib \
- --install-headers=$PKG_ROOT=$PKG_ROOT/numarray-1.5.2/include/numarray \ 
-   2>&1 | tee tt.install.out
-
-
-export PYTHONPATH=$PKG_ROOT/numarray/lib:$PYTHONPATH
+cd numpy-1.3.0
+python setup.py build
+python setup.py install --prefix $PKG_ROOT/numpy-1.3.0
 cd ..
-pushd ../packages
-ln -s numarray-1.5.2 numarray
+pushd ../pkg
+ln -s numpy-1.3.0 numpy
 popd
+export PYTHONPATH=$PKG_ROOT/numpy/lib/python2.6/site-packages:$PYTHONPATH
 \end{shellCode}
 
-Now we build scons.
+\item Next build scons:
 \begin{shellCode}
 cd scons-1.2.0
 python setup.py install --prefix=$PKG_ROOT/scons-1.2.0
 
 export PATH=$PKG_ROOT/scons/bin:$PATH
 cd ..
-pushd ../packages
+pushd ../pkg
 ln -s scons-1.2.0 scons
 popd
 \end{shellCode}
 
 \item The Boost libraries...:
 \begin{shellCode}
-cd boost_1_38_0
-
-./configure --prefix=$PKG_ROOT/boost_1_38_0 --with-python-root=$PKG_ROOT/python \
-  --with-python-version=2.6 --with-libraries=python
-
-make -j2
-make install
-ln -s $PKG_ROOT/boost_1_38_0 $PKG_ROOT/boost
+pushd ../pkg
+mkdir boost_1_39_0
+ln -s boost_1_39_0 boost
+popd
+cd boost_1_39_0
+./bootstrap.sh --with-libraries=python --prefix=$PKG_ROOT/boost
+./bjam
+./bjam install --prefix=$PKG_ROOT/boost --libdir=$PKG_ROOT/boost/lib
 export LD_LIBRARY_PATH=$PKG_ROOT/boost/lib:$LD_LIBRARY_PATH
 cd ..
-pushd ../packages
-ln -s boost_1_38_0 boost
+pushd ../pkg/boost/lib/
+ln -s libboost_python*-1_39.dylib libboost_python.dylib
 popd
 \end{shellCode}
 
 \item ...and NetCDF:
 \begin{shellCode}
 cd netcdf-4.0
-CFLAGS="-O2 fPIC -Df2cFortran" CXXFLAGS="-O2 fPIC -Df2cFortran" \
-FFLAGS="-O2 fPIC -Df2cFortran" FCFLAGS="-O2 fPIC -Df2cFortran" \
+CFLAGS="-O2 -fPIC -Df2cFortran" CXXFLAGS="-O2 -fPIC -Df2cFortran" \
+FFLAGS="-O2 -fPIC -Df2cFortran" FCFLAGS="-O2 -fPIC -Df2cFortran" \
 ./configure --prefix=$PKG_ROOT/netcdf-4.0
 
-make -j2
+make 
 make install
 
 export LD_LIBRARY_PATH=$PKG_ROOT/netcdf/lib:$LD_LIBRARY_PATH
 cd ..
-pushd ../packages
+pushd ../pkg
 ln -s netcdf-4.0 netcdf
 popd
 \end{shellCode}
 
-\item CMake is required to build VTK:
+\item Finally matplotlib:
 \begin{shellCode}
-cd cmake-2.6.3
-./configure --prefix=$PKG_ROOT/cmake-2.6.3 2>&1 | tee tt.configure
-make -j 4
-make install
-
-export PATH=$PKG_ROOT/cmake/bin:$PATH
+cd matplotlib-0.98.5.3
+python setup.py build
+python setup.py install --prefix=$PKG_ROOT/matplotlib-0.98.5.3
 cd ..
-pushd ../packages
-ln -s cmake-2.6.3 cmake
+pushd ../pkg
+ln -s matplotlib-0.98.5.3 matplotlib
 popd
-\end{shellCode}
-
-\item VTK also requires Mesa:
-\begin{shellCode}
-cd Mesa-7.2
-./configure --prefix=$PKG_ROOT/mesa-7.2 --enable-gl-osmesa
-
-make -j 4
-make install
-
-export LD_LIBRARY_PATH=$PKG_ROOT/mesa:$LD_LIBRARY_PATH
-cd ..
-pushd ../packages
-ln -s mesa-7.2 mesa
-popd
-\end{shellCode}
-
-These instructions do not compile MesaDemos or GLUT.
-If you need to check if Mesa compiled correctly, then the demos are a good test.
-
-\item Now build VTK:
-\begin{shellCode}
-cd VTK
-cmake .
-
-#Edit the CMakeCache and make the following changes: 
-#(Please replace .... with an absolute path to the stand directory)
-
-#-----------------
-
-BUILD_EXAMPLES should be OFF
-BUILD_SHARED_LIBS should be ON
-
-CMAKE_INSTALL_PREFIX	..../stand/packages/vtk-5.2.1
-CMAKE_VERBOSE_MAKEFILE	TRUE
-
-#check PYTHON_EXECUTABLE is correct.
-#but it seems to be when I went through these steps
-
-VTK_OPENGL_HAS_OSMESA	TRUE
-VTK_USE_64BIT_IDS	ON
-# That last one is marked as "May cause some bugs" in the original instructions
-
-VTK_WRAP_PYTHON	ON
-VTK_USE_MANGLED_MESA	OFF
-
-#--------------------
-
-cmake .
-#It won't work but it will put some variables in that you need.
-
-#Edit CMakeCache again and make the following changes
-
-#----------------
-
-VTK_USE_TK	OFF
-
-OSMESA_INCLUDE_DIR	..../stand/packages/mesa/include
-
-OSMESA_LIBRARY	..../stand/packages/mesa/lib/libOSMesa.dylib
-
-PYTHON_INCLUDE_PATH	..../stand/packages/python/include/python2.6
-
-PYTHON_LIBRARY	..../stand/packages/python/lib/libpython2.6.dylib
-
-OPENGL_INCLUDE_DIR	..../stand/packages/mesa/include
-
-OPENGL_gl_LIBRARY	..../stand/packages/mesa/lib/libGL.dylib
-
-#----------------
-
-cmake .
-make
-make install
-
-
-cd ../../packages
-ln -s vtk-5.2.1 vtk
 cd ..
 \end{shellCode}
+\end{itemize}
 
-\item Finally, build escript:\\
-Copy the \esfinley source into an \filename{escript.d} directory in \filename{stand}.
+\subsection{Compiling escript}\label{sec:compileescriptmac}
+
+Change to the directory containing your escript source (\filename{stand/escript.d}), then:
 
 \begin{shellCode}
-cd scons
-cp mac_options_example.py YourMachineName_options.py
+cd escript.d/scons
+cp mac_standalone_options_example.py YourMachineName_options.py
 
-#edit the options file and make the following changes:
-#-----------------------------------------------------------------
-declare a PKG_ROOT variable at the top of the file eg:
-PKG_ROOT='/Users/artak/stand/packages'
+echo $PKG_ROOT
+\end{shellCode}
 
-python_path		= PKG_ROOT+'python/include/python2.6'
-python_lib_path		= PKG_ROOT+'python/lib'
-python_libs		= 'python2.6'
+Edit the options file and put the value of PKG_ROOT between the quotes in the PKG_ROOT= line.
+For example:
+\begin{shellCode}
+PKG_ROOT="/home/bob/stand/pkg"
+\end{shellCode}
 
-boost_path		= PKG_ROOT+'boost/include/boost-1_38'
-boost_lib_path		= PKG_ROOT+'boost/lib'
-boost_libs		= ['boost_python-gcc43-mt']
-# You could simlink the boost python library to give a shorter 
-# name but it's not worth it
+\begin{shellCode}
+cd ../bin
+\end{shellCode}
 
-usevtk		= 'yes'
-#-------------------------------------------------------------------
-
-ln -s $PKG_ROOT/vtk-5.2.1 $PKG_ROOT/vtk
-
-Modify /scripts/finley_wrapper_template
-
+Modify the STANDALONE line of \filename{escript} to read:
+ 
 STANDALONE=1
 
-#Check to make sure the paths in the if [ $STANDALONE == 1 ]
-# Section are correct
+Start a new terminal and go to the \filename{stand} directory.
 
-#-----------------------------------------------------------------
-
-scons bin/escript
-
-#start a new terminal
-cd stand
-export PATH=`pwd`/packages/scons/bin:$PATH
+\begin{shellCode}
+export PATH=$(pwd)/pkg/scons/bin:$PATH
 cd escript.d
-eval `bin/escript -e`
+eval $(bin/escript -e)
 scons
 \end{shellCode}
-
-\end{itemize}
 
 If you wish to test your build, then you can do the following. 
 Note this may take a while if you have a slow processor and/or less than 1GB of RAM.
@@ -338,113 +222,115 @@ Hidden files can be removed with
 find . -name .?* | xargs rm -rf
 \end{shellCode}
 
-\section{Installing from source for \macosx using Macports}
-\label{sec:srcmacports}
+%Mac ports removed until Artak has a chance to update it
 
-As we mentioned in \Sec{sec:srcmac}, before you start installing from source you will need \macosx development tools installed on your Mac. 
-If you do not have Macports already, please install Macports from \url{www.macports.org}. You can also install porticus (GUI for Macports).
- 
-Once you have Macports working install boost using porticus or from the terminal 
-\begin{shellCode}
-sudo port install boost@1.35.0_2+complete
-\end{shellCode}
-Sometimes this fails due to unknown reasons, but to overcome this problem you need to run
-\begin{shellCode}
-sudo port clean boost@1.35.0_2+complete
-
-sudo port install boost@1.35.0_2+complete
- \end{shellCode}
-  
-Download scons source scons-0.98.5.tar.gz from \url{www.scons.org}.
-\begin{shellCode}
-tar xfz scons-0.98.5.tar.gz
-cd scons-0.98.5
-python setup.py install
-\end{shellCode}
-
-Note: Do not try to install scons using porticus or \texttt{sudo port install scons}, because it automatically installs another python version and you are likely run into problems with different python versions.  
- 
-Download numarray-1.5.2.tar.gz from \\
-\url{http://www.stsci.edu/resources/software_hardware/numarray/numarray.html}. 
-\begin{shellCode}
-tar xfz numarray-1.5.2.tar.gz
-cd numarray-1.5.2
-python setup.py install --gencode  2>&1 | tee tt.install.out
-\end{shellCode}
-
-You can run a test to check the numarray installation by
-\begin{shellCode}
-python
-import numarray.testall as testall
-testall.test()
-\end{shellCode}
- 
-Install netcdf, gsl and fltk using Macports 
-\begin{shellCode}
-sudo port install netcdf
-sudo port install gsl
-sudo port intall fltk
-\end{shellCode}
-Note: If this fails, download and install from sources. 
- 
-Downlaod gmsh-2.2.3-source.tar and install from sources.
-\begin{shellCode}
-./configure --with-gsl-prefix=/opt/local/  --with-fltk    --prefix=/usr/local/
-\end{shellCode}
-Note: if you install using porticus or sudo port  it automaticall installs in \filename{/opt/local/}, but if you install from sources it installs in /usr/local. So, make sure these paths are right.
-\begin{shellCode}
-sudo make -j2
-sudo make install
-\end{shellCode} 
- 
-Download and install Mesa-7.0.3 (required for VTK) from sources
-\begin{shellCode}
-tar xjf MesaDemos-7.0.3.tar.bz2
-tar xjf MesaGLUT-7.0.3.tar.bz2
-tar xjf MesaLib-7.0.3.tar.bz2
-cd Mesa-7.0.3
- 
-sudo make -j 2
-make install
-\end{shellCode} 
- 
-Install vtk-5.0.4 from source. If you install from ports it won't configure to use shared libraries.
-Once you untar it you will have (assume user is john) /Users/john/Downloads/VTK folder, then run the following:
- 
-\begin{shellCode}
-sudo mkdir /usr/local/VTKBuild/
-cd /usr/local/VTKBuild/
-sudo ccmake /Users/john/Downloads/VTK/ 
-# It will create CMakeCache.txt. Make sure  you use the following configurations.
- 
-#       Advanced options			ON
-#       BUILD_EXAMPLES				ON
-#       BUILD_SHARED_LIBS			ON
-#       VTK_WRAP_PYTHON				ON
-#       CMAKE_VERBOSE_MAKEFILE			TRUE
-#       VTK_OPENGL_HAS_OSMESA			ON
-#       VTK_USE_MANGLED_MESA			OFF
-#       VTK_USE_OFFSCREEN			OFF
- 
-sudo make -j2
-sudo make install
-\end{shellCode}
- 
-Note: you need to set the following ENV variables in your \filename{/Users/john/.profile} for VTK to work:
-\begin{shellCode}
-export LD_LIBRARY_PATH = /usr/local/VTKBuild/bin: \
-             /usr/local/VTKBuild/bin:${LD_LIBRARY_PATH}
-export PYTHONPATH = /usr/local/VTKBuild/Wrapping/Python:\ 
-            /usr/local/VTKBuild/bin:${PYTHONPATH}
-     
-#     For testing you can run:
-python
-import vtk
-\end{shellCode}
- 
-All that's left to install is triangle and netpbm (required for ppmtompeg) using Macports:
-\begin{shellCode}
-sudo port install triangle
-sudo port install netpbm
-\end{shellCode}
+% \section{Installing from source for \macosx using Macports}
+% \label{sec:srcmacports}
+% 
+% As we mentioned in \Sec{sec:srcmac}, before you start installing from source you will need \macosx development tools installed on your Mac. 
+% If you do not have Macports already, please install Macports from \url{www.macports.org}. You can also install porticus (GUI for Macports).
+%  
+% Once you have Macports working install boost using porticus or from the terminal 
+% \begin{shellCode}
+% sudo port install boost@1.35.0_2+complete
+% \end{shellCode}
+% Sometimes this fails due to unknown reasons, but to overcome this problem you need to run
+% \begin{shellCode}
+% sudo port clean boost@1.35.0_2+complete
+% 
+% sudo port install boost@1.35.0_2+complete
+%  \end{shellCode}
+%   
+% Download scons source scons-0.98.5.tar.gz from \url{www.scons.org}.
+% \begin{shellCode}
+% tar xfz scons-0.98.5.tar.gz
+% cd scons-0.98.5
+% python setup.py install
+% \end{shellCode}
+% 
+% Note: Do not try to install scons using porticus or \texttt{sudo port install scons}, because it automatically installs another python version and you are likely run into problems with different python versions.  
+%  
+% Download numarray-1.5.2.tar.gz from \\
+% \url{http://www.stsci.edu/resources/software_hardware/numarray/numarray.html}. 
+% \begin{shellCode}
+% tar xfz numarray-1.5.2.tar.gz
+% cd numarray-1.5.2
+% python setup.py install --gencode  2>&1 | tee tt.install.out
+% \end{shellCode}
+% 
+% You can run a test to check the numarray installation by
+% \begin{shellCode}
+% python
+% import numarray.testall as testall
+% testall.test()
+% \end{shellCode}
+%  
+% Install netcdf, gsl and fltk using Macports 
+% \begin{shellCode}
+% sudo port install netcdf
+% sudo port install gsl
+% sudo port intall fltk
+% \end{shellCode}
+% Note: If this fails, download and install from sources. 
+%  
+% Downlaod gmsh-2.2.3-source.tar and install from sources.
+% \begin{shellCode}
+% ./configure --with-gsl-prefix=/opt/local/  --with-fltk    --prefix=/usr/local/
+% \end{shellCode}
+% Note: if you install using porticus or sudo port  it automaticall installs in \filename{/opt/local/}, but if you install from sources it installs in /usr/local. So, make sure these paths are right.
+% \begin{shellCode}
+% sudo make -j2
+% sudo make install
+% \end{shellCode} 
+%  
+% Download and install Mesa-7.0.3 (required for VTK) from sources
+% \begin{shellCode}
+% tar xjf MesaDemos-7.0.3.tar.bz2
+% tar xjf MesaGLUT-7.0.3.tar.bz2
+% tar xjf MesaLib-7.0.3.tar.bz2
+% cd Mesa-7.0.3
+%  
+% sudo make -j 2
+% make install
+% \end{shellCode} 
+%  
+% % Install vtk-5.0.4 from source. If you install from ports it won't configure to use shared libraries.
+% % Once you untar it you will have (assume user is john) /Users/john/Downloads/VTK folder, then run the following:
+% %  
+% % \begin{shellCode}
+% % sudo mkdir /usr/local/VTKBuild/
+% % cd /usr/local/VTKBuild/
+% % sudo ccmake /Users/john/Downloads/VTK/ 
+% % # It will create CMakeCache.txt. Make sure  you use the following configurations.
+% %  
+% % #       Advanced options			ON
+% % #       BUILD_EXAMPLES				ON
+% % #       BUILD_SHARED_LIBS			ON
+% % #       VTK_WRAP_PYTHON				ON
+% % #       CMAKE_VERBOSE_MAKEFILE			TRUE
+% % #       VTK_OPENGL_HAS_OSMESA			ON
+% % #       VTK_USE_MANGLED_MESA			OFF
+% % #       VTK_USE_OFFSCREEN			OFF
+% %  
+% % sudo make -j2
+% % sudo make install
+% % \end{shellCode}
+% %  
+% % Note: you need to set the following ENV variables in your \filename{/Users/john/.profile} for VTK to work:
+% % \begin{shellCode}
+% % export LD_LIBRARY_PATH = /usr/local/VTKBuild/bin: \
+% %              /usr/local/VTKBuild/bin:${LD_LIBRARY_PATH}
+% % export PYTHONPATH = /usr/local/VTKBuild/Wrapping/Python:\ 
+% %             /usr/local/VTKBuild/bin:${PYTHONPATH}
+% %      
+% % #     For testing you can run:
+% % python
+% % import vtk
+% % \end{shellCode}
+%  
+% All that's left to install is triangle and netpbm (required for ppmtompeg) using Macports:
+% \begin{shellCode}
+% sudo port install triangle
+% sudo port install netpbm
+% \end{shellCode}
 
