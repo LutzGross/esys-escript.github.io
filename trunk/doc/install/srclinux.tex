@@ -23,8 +23,8 @@ Make sure you have the following installed:
  \item \filename{g++} and associated tools.
  \item \filename{make}
  % I suspect that these are only needed by VTK and if we aren't using it anymore they could be removed
- \item \filename{libXext.so}\footnote{In Debian this is in the libXext-dev package.}
- \item \filename{libxt.so}\footnote{In Debian this is in the libxt-dev package.}
+%  \item \filename{libXext.so}\footnote{In Debian this is in the libXext-dev package.}
+%  \item \filename{libxt.so}\footnote{In Debian this is in the libxt-dev package.}
 \end{itemize}
 
 You will also need a copy of the \esfinley source code.
@@ -43,7 +43,7 @@ These instructions will produce the following directory structure:
 \end{itemize}
 
 Before you start copy the \esfinley source into the \filename{escript.d} directory.
-The following instructions refer to software versions in the \filename{escript-support-3-src} and \filename{escript-support-visi-3-src} bundles.
+The following instructions refer to software versions in the \filename{escript-support-3-src} bundle.
 If you download your own versions of those packages substitute their version numbers and names as appropriate.
 There are a number of uses of the \filename{make} command in the following instructions.
 If your computer has multiple cores/processors you can speed up the compilation process by adding -j 2 after the make command.
@@ -75,7 +75,7 @@ Copy documentation files into \filename{doc} then unpack the archives:
 
 \begin{shellCode}
 cd build
-tar -jxf ../pkg_src/Python-2.6.1.tar.bz2
+tar -jxf ../pkg_src/Python-2.6.2.tar.bz2
 tar -jxf ../pkg_src/boost_1_39_0.tar.bz2
 tar -zxf ../pkg_src/scons-1.2.0.tar.gz
 tar -zxf ../pkg_src/numpy-1.3.0.tar.gz
@@ -88,8 +88,9 @@ tar -zxf ../pkg_src/matplotlib-0.98.5.3.tar.gz
 \item Build Python:
 \begin{shellCode}
 cd Python*
-./configure --prefix=$PKG_ROOT/python-2.6.1 --enable-shared 2>&1 \
+./configure --prefix=$PKG_ROOT/python-2.6.2 --enable-shared 2>&1 \
   | tee tt.configure.out
+make 
 make install 2>&1 | tee tt.make.out
 
 cd ..
@@ -99,7 +100,7 @@ export PYTHONHOME=$PKG_ROOT/python
 export LD_LIBRARY_PATH=$PKG_ROOT/python/lib:$LD_LIBRARY_PATH
 
 pushd ../pkg
-ln -s python-2.6.1/ python
+ln -s python-2.6.2/ python
 popd
 \end{shellCode}
 
@@ -193,120 +194,120 @@ cd ..
 
 \end{itemize}
 
-\subsection{VTK support}
-VTK is only required for pyvisi. To build it you need CMake and Mesa.
-The packages can be downloaded independently or in the \filename{escript-support-visi-3-src}.
-If you will not be using pyvisi, then skip to \Sec{sec:compileescriptlinux}
-
-Copy the compressed sources for the packages into \filename{stand/pkg_src}.
-If you are using the support bundles, decompress them in the stand directory.
-\begin{shellCode}
-tar -xjf escript-support-visi-3-src.tar.bz2
-\end{shellCode}
-
-\begin{shellCode}
-cd build
-tar -jxf ../pkg_src/MesaLib-7.2.tar.bz2
-tar -zxf ../pkg_src/vtk-5.2.1.tar.gz
-tar -zxf ../pkg_src/vtkdata-5.2.1.tar.gz
-tar -zxf ../pkg_src/cmake-2.6.3.tar.gz
-\end{shellCode}
-
-\begin{itemize}
-
-\item Build CMake:
-\begin{shellCode}
-cd cmake-2.6.3
-./configure --prefix=$PKG_ROOT/cmake-2.6.3 2>&1 | tee tt.configure
-make 
-make install
-
-export PATH=$PKG_ROOT/cmake/bin:$PATH
-cd ..
-pushd ../pkg
-ln -s cmake-2.6.3 cmake
-popd
-\end{shellCode}
-
-\item Build Mesa:
-\begin{shellCode}
-cd Mesa-7.2
-./configure --prefix=$PKG_ROOT/mesa-7.2 --enable-gl-osmesa --with-driver=xlib
-
-make 
-make install
-
-export LD_LIBRARY_PATH=$PKG_ROOT/mesa/lib:$LD_LIBRARY_PATH
-cd ..
-pushd ../pkg
-ln -s mesa-7.2 mesa
-popd
-\end{shellCode}
-These instructions do not compile MesaDemos or GLUT.
-If you need to check if Mesa compiled correctly, then the demos are a good test.
-
-\item Finally, build VTK:
-\begin{shellCode}
-cd VTK
-cmake .
-\end{shellCode}
-
-Now edit the \filename{CMakeCache.txt} file and make the following changes.
-Where .... appears please replace it with the absolute path to the pkg directory.
-For example, replace \filename{CMAKE_INSTALL_PREFIX:PATH=..../vtk-5.2.1} with
-\filename{CMAKE_INSTALL_PREFIX:PATH=/home/bob/stand/pkg/vtk-5.2.1}
-(Search for the text before the =).
-\begin{shellCode}
-BUILD_EXAMPLES:BOOL=OFF
-BUILD_SHARED_LIBS:BOOL=ON
-CMAKE_INSTALL_PREFIX:PATH=..../vtk-5.2.1
-CMAKE_VERBOSE_MAKEFILE:BOOL=TRUE
-VTK_OPENGL_HAS_OSMESA:BOOL=TRUE
-VTK_USE_64BIT_IDS:BOOL=ON
-VTK_WRAP_PYTHON:BOOL=ON
-VTK_USE_MANGLED_MESA:BOOL=OFF
-\end{shellCode}
-
-Now rerun cmake (it won't work but it adds some variables you need).
-
-\begin{shellCode}
-cmake .
-\end{shellCode}
-
-Edit \filename{CMakeCache.txt} and change the following variables:
-
-\begin{shellCode}
-VTK_USE_OFFSCREEN:BOOL=ON
-VTK_USE_TK:BOOL=OFF
-OSMESA_INCLUDE_DIR:PATH=..../mesa/include
-OSMESA_LIBRARY:FILEPATH=..../mesa/lib/libOSMesa.so
-PYTHON_INCLUDE_PATH:PATH=..../python/include/python2.6
-PYTHON_LIBRARY:FILEPATH=..../python/lib/libpython2.6.so
-OPENGL_INCLUDE_DIR:PATH=..../mesa/include
-OPENGL_gl_LIBRARY:FILEPATH=..../mesa/lib/libGL.so
-\end{shellCode}
-
-The following steps will take a while so grab a coffee while it compiles.
-\begin{shellCode}
-cmake .
-make
-chmod +w Utilities/vtktiff/tif_fax3sm.c
-make install
-
-cd ../../pkg
-ln -s vtk-5.2.1 vtk
-cd ..
-\end{shellCode}
-
-\end{itemize}
+% \subsection{VTK support}
+% VTK is only required for pyvisi. To build it you need CMake and Mesa.
+% The packages can be downloaded independently or in the \filename{escript-support-visi-3-src}.
+% If you will not be using pyvisi, then skip to \Sec{sec:compileescriptlinux}
+% 
+% Copy the compressed sources for the packages into \filename{stand/pkg_src}.
+% If you are using the support bundles, decompress them in the stand directory.
+% \begin{shellCode}
+% tar -xjf escript-support-visi-3-src.tar.bz2
+% \end{shellCode}
+% 
+% \begin{shellCode}
+% cd build
+% tar -jxf ../pkg_src/MesaLib-7.2.tar.bz2
+% tar -zxf ../pkg_src/vtk-5.2.1.tar.gz
+% tar -zxf ../pkg_src/vtkdata-5.2.1.tar.gz
+% tar -zxf ../pkg_src/cmake-2.6.3.tar.gz
+% \end{shellCode}
+% 
+% \begin{itemize}
+% 
+% \item Build CMake:
+% \begin{shellCode}
+% cd cmake-2.6.3
+% ./configure --prefix=$PKG_ROOT/cmake-2.6.3 2>&1 | tee tt.configure
+% make 
+% make install
+% 
+% export PATH=$PKG_ROOT/cmake/bin:$PATH
+% cd ..
+% pushd ../pkg
+% ln -s cmake-2.6.3 cmake
+% popd
+% \end{shellCode}
+% 
+% \item Build Mesa:
+% \begin{shellCode}
+% cd Mesa-7.2
+% ./configure --prefix=$PKG_ROOT/mesa-7.2 --enable-gl-osmesa --with-driver=xlib
+% 
+% make 
+% make install
+% 
+% export LD_LIBRARY_PATH=$PKG_ROOT/mesa/lib:$LD_LIBRARY_PATH
+% cd ..
+% pushd ../pkg
+% ln -s mesa-7.2 mesa
+% popd
+% \end{shellCode}
+% These instructions do not compile MesaDemos or GLUT.
+% If you need to check if Mesa compiled correctly, then the demos are a good test.
+% 
+% \item Finally, build VTK:
+% \begin{shellCode}
+% cd VTK
+% cmake .
+% \end{shellCode}
+% 
+% Now edit the \filename{CMakeCache.txt} file and make the following changes.
+% Where .... appears please replace it with the absolute path to the pkg directory.
+% For example, replace \filename{CMAKE_INSTALL_PREFIX:PATH=..../vtk-5.2.1} with
+% \filename{CMAKE_INSTALL_PREFIX:PATH=/home/bob/stand/pkg/vtk-5.2.1}
+% (Search for the text before the =).
+% \begin{shellCode}
+% BUILD_EXAMPLES:BOOL=OFF
+% BUILD_SHARED_LIBS:BOOL=ON
+% CMAKE_INSTALL_PREFIX:PATH=..../vtk-5.2.1
+% CMAKE_VERBOSE_MAKEFILE:BOOL=TRUE
+% VTK_OPENGL_HAS_OSMESA:BOOL=TRUE
+% VTK_USE_64BIT_IDS:BOOL=ON
+% VTK_WRAP_PYTHON:BOOL=ON
+% VTK_USE_MANGLED_MESA:BOOL=OFF
+% \end{shellCode}
+% 
+% Now rerun cmake (it won't work but it adds some variables you need).
+% 
+% \begin{shellCode}
+% cmake .
+% \end{shellCode}
+% 
+% Edit \filename{CMakeCache.txt} and change the following variables:
+% 
+% \begin{shellCode}
+% VTK_USE_OFFSCREEN:BOOL=ON
+% VTK_USE_TK:BOOL=OFF
+% OSMESA_INCLUDE_DIR:PATH=..../mesa/include
+% OSMESA_LIBRARY:FILEPATH=..../mesa/lib/libOSMesa.so
+% PYTHON_INCLUDE_PATH:PATH=..../python/include/python2.6
+% PYTHON_LIBRARY:FILEPATH=..../python/lib/libpython2.6.so
+% OPENGL_INCLUDE_DIR:PATH=..../mesa/include
+% OPENGL_gl_LIBRARY:FILEPATH=..../mesa/lib/libGL.so
+% \end{shellCode}
+% 
+% The following steps will take a while so grab a coffee while it compiles.
+% \begin{shellCode}
+% cmake .
+% make
+% chmod +w Utilities/vtktiff/tif_fax3sm.c
+% make install
+% 
+% cd ../../pkg
+% ln -s vtk-5.2.1 vtk
+% cd ..
+% \end{shellCode}
+% 
+% \end{itemize}
 
 \subsection{Compiling escript}\label{sec:compileescriptlinux}
 
-Change to the directory containing your escript source (\filename{escript.d}), then:
+Change to the directory containing your escript source (\filename{stand/escript.d}), then:
 
 \begin{shellCode}
 cd escript.d/scons
-cp linux_options_example.py YourMachineName_options.py
+cp linux_standalone_options_example.py YourMachineName_options.py
 
 echo $PKG_ROOT
 \end{shellCode}
