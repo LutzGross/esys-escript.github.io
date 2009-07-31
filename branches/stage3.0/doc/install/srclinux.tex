@@ -1,0 +1,367 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2009 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Installing from source for \linux}
+\label{sec:srclinux}
+
+\subsection{Preliminaries}
+
+The following instructions assume you are running the \filename{bash} shell.
+Comments are indicated with \# characters.
+
+Make sure you have the following installed:
+\begin{itemize}
+ \item \filename{g++} and associated tools.
+ \item \filename{make}
+ % I suspect that these are only needed by VTK and if we aren't using it anymore they could be removed
+%  \item \filename{libXext.so}\footnote{In Debian this is in the libXext-dev package.}
+%  \item \filename{libxt.so}\footnote{In Debian this is in the libxt-dev package.}
+\end{itemize}
+
+You will also need a copy of the \esfinley source code.
+If you retrieved the source using subversion, don't forget that one can use the export command instead of checkout to get a smaller copy.
+For additional visualization functionality see \Sec{sec:addfunc}.
+
+These instructions will produce the following directory structure:
+\begin{itemize}
+ \item[] \filename{stand} \begin{itemize}
+  \item[] \filename{escript.d}
+  \item[] \filename{pkg}
+  \item[] \filename{pkg_src}
+  \item[] \filename{build}
+  \item[] \filename{doc}
+ \end{itemize}
+\end{itemize}
+
+Before you start copy the \esfinley source into the \filename{escript.d} directory.
+The following instructions refer to software versions in the \filename{escript-support-3-src} bundle.
+If you download your own versions of those packages substitute their version numbers and names as appropriate.
+There are a number of uses of the \filename{make} command in the following instructions.
+If your computer has multiple cores/processors you can speed up the compilation process by adding -j 2 after the make command.
+For example to use all processors on a computer with 4 cores:
+\begin{shellCode}
+ make
+\end{shellCode}
+becomes
+\begin{shellCode}
+ make -j 4
+\end{shellCode}
+
+\begin{shellCode}
+mkdir stand
+cd stand
+mkdir build doc pkg pkg_src
+export PKG_ROOT=$(pwd)/pkg
+\end{shellCode}
+
+\subsection{Building the dependencies}
+
+Copy the compressed sources for the packages into \filename{stand/pkg_src}.
+If you are using the support bundles, decompress them in the stand directory:
+\begin{shellCode}
+tar -xjf escript-support-3-src.tar.bz2
+\end{shellCode}
+
+Copy documentation files into \filename{doc} then unpack the archives:
+
+\begin{shellCode}
+cd build
+tar -jxf ../pkg_src/Python-2.6.2.tar.bz2
+tar -jxf ../pkg_src/boost_1_39_0.tar.bz2
+tar -zxf ../pkg_src/scons-1.2.0.tar.gz
+tar -zxf ../pkg_src/numpy-1.3.0.tar.gz
+tar -zxf ../pkg_src/netcdf-4.0.tar.gz
+tar -zxf ../pkg_src/matplotlib-0.98.5.3.tar.gz
+\end{shellCode}
+
+\begin{itemize}
+
+\item Build Python:
+\begin{shellCode}
+cd Python*
+./configure --prefix=$PKG_ROOT/python-2.6.2 --enable-shared 2>&1 \
+  | tee tt.configure.out
+make 
+make install 2>&1 | tee tt.make.out
+
+cd ..
+
+export PATH=$PKG_ROOT/python/bin:$PATH
+export PYTHONHOME=$PKG_ROOT/python
+export LD_LIBRARY_PATH=$PKG_ROOT/python/lib:$LD_LIBRARY_PATH
+
+pushd ../pkg
+ln -s python-2.6.2/ python
+popd
+\end{shellCode}
+
+Run the new python executable to make sure it works.
+
+\item Now build NumPy:
+\begin{shellCode}
+cd numpy-1.3.0
+python setup.py build
+python setup.py install --prefix $PKG_ROOT/numpy-1.3.0
+cd ..
+pushd ../pkg
+ln -s numpy-1.3.0 numpy
+popd
+export PYTHONPATH=$PKG_ROOT/numpy/lib/python2.6/site-packages:$PYTHONPATH
+\end{shellCode}
+
+% \begin{shellCode}
+% cd numarray-1.5.2
+% 
+% python setup.py install \
+%  --gencode --install-lib=$PKG_ROOT/numarray-1.5.2/lib \
+%  --install-headers=$PKG_ROOT=$PKG_ROOT/numarray-1.5.2/include/numarray \ 
+%    2>&1 | tee tt.install.out
+% 
+% 
+% export PYTHONPATH=$PKG_ROOT/numarray/lib:$PYTHONPATH
+% cd ..
+% pushd ../pkg
+% ln -s numarray-1.5.2 numarray
+% popd
+% \end{shellCode}
+
+\item Next build scons:
+\begin{shellCode}
+cd scons-1.2.0
+python setup.py install --prefix=$PKG_ROOT/scons-1.2.0
+
+export PATH=$PKG_ROOT/scons/bin:$PATH
+cd ..
+pushd ../pkg
+ln -s scons-1.2.0 scons
+popd
+\end{shellCode}
+
+\item The Boost libraries...:
+\begin{shellCode}
+pushd ../pkg
+mkdir boost_1_39_0
+ln -s boost_1_39_0 boost
+popd
+cd boost_1_39_0
+./bootstrap.sh --with-libraries=python --prefix=$PKG_ROOT/boost
+./bjam
+./bjam install --prefix=$PKG_ROOT/boost --libdir=$PKG_ROOT/boost/lib
+export LD_LIBRARY_PATH=$PKG_ROOT/boost/lib:$LD_LIBRARY_PATH
+cd ..
+pushd ../pkg/boost/lib/
+ln *.so.* libboost_python.so
+popd
+\end{shellCode}
+
+\item ...and NetCDF:
+\begin{shellCode}
+cd netcdf-4.0
+CFLAGS="-O2 -fPIC -Df2cFortran" CXXFLAGS="-O2 -fPIC -Df2cFortran" \
+FFLAGS="-O2 -fPIC -Df2cFortran" FCFLAGS="-O2 -fPIC -Df2cFortran" \
+./configure --prefix=$PKG_ROOT/netcdf-4.0
+
+make 
+make install
+
+export LD_LIBRARY_PATH=$PKG_ROOT/netcdf/lib:$LD_LIBRARY_PATH
+cd ..
+pushd ../pkg
+ln -s netcdf-4.0 netcdf
+popd
+\end{shellCode}
+
+\item Finally matplotlib:
+\begin{shellCode}
+cd matplotlib-0.98.5.3
+python setup.py build
+python setup.py install --prefix=$PKG_ROOT/matplotlib-0.98.5.3
+cd ..
+pushd ../pkg
+ln -s matplotlib-0.98.5.3 matplotlib
+popd
+cd ..
+\end{shellCode}
+
+\end{itemize}
+
+% \subsection{VTK support}
+% VTK is only required for pyvisi. To build it you need CMake and Mesa.
+% The packages can be downloaded independently or in the \filename{escript-support-visi-3-src}.
+% If you will not be using pyvisi, then skip to \Sec{sec:compileescriptlinux}
+% 
+% Copy the compressed sources for the packages into \filename{stand/pkg_src}.
+% If you are using the support bundles, decompress them in the stand directory.
+% \begin{shellCode}
+% tar -xjf escript-support-visi-3-src.tar.bz2
+% \end{shellCode}
+% 
+% \begin{shellCode}
+% cd build
+% tar -jxf ../pkg_src/MesaLib-7.2.tar.bz2
+% tar -zxf ../pkg_src/vtk-5.2.1.tar.gz
+% tar -zxf ../pkg_src/vtkdata-5.2.1.tar.gz
+% tar -zxf ../pkg_src/cmake-2.6.3.tar.gz
+% \end{shellCode}
+% 
+% \begin{itemize}
+% 
+% \item Build CMake:
+% \begin{shellCode}
+% cd cmake-2.6.3
+% ./configure --prefix=$PKG_ROOT/cmake-2.6.3 2>&1 | tee tt.configure
+% make 
+% make install
+% 
+% export PATH=$PKG_ROOT/cmake/bin:$PATH
+% cd ..
+% pushd ../pkg
+% ln -s cmake-2.6.3 cmake
+% popd
+% \end{shellCode}
+% 
+% \item Build Mesa:
+% \begin{shellCode}
+% cd Mesa-7.2
+% ./configure --prefix=$PKG_ROOT/mesa-7.2 --enable-gl-osmesa --with-driver=xlib
+% 
+% make 
+% make install
+% 
+% export LD_LIBRARY_PATH=$PKG_ROOT/mesa/lib:$LD_LIBRARY_PATH
+% cd ..
+% pushd ../pkg
+% ln -s mesa-7.2 mesa
+% popd
+% \end{shellCode}
+% These instructions do not compile MesaDemos or GLUT.
+% If you need to check if Mesa compiled correctly, then the demos are a good test.
+% 
+% \item Finally, build VTK:
+% \begin{shellCode}
+% cd VTK
+% cmake .
+% \end{shellCode}
+% 
+% Now edit the \filename{CMakeCache.txt} file and make the following changes.
+% Where .... appears please replace it with the absolute path to the pkg directory.
+% For example, replace \filename{CMAKE_INSTALL_PREFIX:PATH=..../vtk-5.2.1} with
+% \filename{CMAKE_INSTALL_PREFIX:PATH=/home/bob/stand/pkg/vtk-5.2.1}
+% (Search for the text before the =).
+% \begin{shellCode}
+% BUILD_EXAMPLES:BOOL=OFF
+% BUILD_SHARED_LIBS:BOOL=ON
+% CMAKE_INSTALL_PREFIX:PATH=..../vtk-5.2.1
+% CMAKE_VERBOSE_MAKEFILE:BOOL=TRUE
+% VTK_OPENGL_HAS_OSMESA:BOOL=TRUE
+% VTK_USE_64BIT_IDS:BOOL=ON
+% VTK_WRAP_PYTHON:BOOL=ON
+% VTK_USE_MANGLED_MESA:BOOL=OFF
+% \end{shellCode}
+% 
+% Now rerun cmake (it won't work but it adds some variables you need).
+% 
+% \begin{shellCode}
+% cmake .
+% \end{shellCode}
+% 
+% Edit \filename{CMakeCache.txt} and change the following variables:
+% 
+% \begin{shellCode}
+% VTK_USE_OFFSCREEN:BOOL=ON
+% VTK_USE_TK:BOOL=OFF
+% OSMESA_INCLUDE_DIR:PATH=..../mesa/include
+% OSMESA_LIBRARY:FILEPATH=..../mesa/lib/libOSMesa.so
+% PYTHON_INCLUDE_PATH:PATH=..../python/include/python2.6
+% PYTHON_LIBRARY:FILEPATH=..../python/lib/libpython2.6.so
+% OPENGL_INCLUDE_DIR:PATH=..../mesa/include
+% OPENGL_gl_LIBRARY:FILEPATH=..../mesa/lib/libGL.so
+% \end{shellCode}
+% 
+% The following steps will take a while so grab a coffee while it compiles.
+% \begin{shellCode}
+% cmake .
+% make
+% chmod +w Utilities/vtktiff/tif_fax3sm.c
+% make install
+% 
+% cd ../../pkg
+% ln -s vtk-5.2.1 vtk
+% cd ..
+% \end{shellCode}
+% 
+% \end{itemize}
+
+\subsection{Compiling escript}\label{sec:compileescriptlinux}
+
+Change to the directory containing your escript source (\filename{stand/escript.d}), then:
+
+\begin{shellCode}
+cd escript.d/scons
+cp linux_standalone_options_example.py YourMachineName_options.py
+
+echo $PKG_ROOT
+\end{shellCode}
+
+Edit the options file and put the value of PKG_ROOT between the quotes in the PKG_ROOT= line.
+For example:
+\begin{shellCode}
+PKG_ROOT="/home/bob/stand/pkg"
+\end{shellCode}
+
+\begin{shellCode}
+cd ../bin
+\end{shellCode}
+
+Modify the STANDALONE line of \filename{escript} to read:
+ 
+STANDALONE=1
+
+Start a new terminal and go to the \filename{stand} directory.
+
+\begin{shellCode}
+export PATH=$(pwd)/pkg/scons/bin:$PATH
+cd escript.d
+eval $(bin/escript -e)
+scons
+\end{shellCode}
+
+If you wish to test your build, then you can do the following. 
+Note this may take a while if you have a slow processor and/or less than 1GB of RAM.
+\begin{shellCode}
+scons all_tests
+\end{shellCode}
+
+\subsection{Cleaning up}
+Once you are satisfied, the \filename{escript.d/build} and \filename{\$PKG_ROOT/build} directories can be removed.
+
+If you \emph{really} want to save space and do not wish to be able to edit or recompile \esfinley, you can remove the following:
+\begin{itemize}
+ \item From the \filename{escript.d} directory:\begin{itemize}
+\item Everything except: \filename{bin}, \filename{include}, \filename{lib}, \filename{esys},
+\filename{README_LICENSE}.
+\item Hidden files, which can be removed using
+\begin{shellCode}
+find . -name .?* | xargs rm -rf
+\end{shellCode}
+in the \filename{escript.d} directory.
+\end{itemize}
+\item from the \filename{pkg} directory:
+\begin{itemize}
+\item  \filename{scons}, \filename{scons-1.2.0}, \filename{cmake-2.6.3} and \filename{cmake}
+\end{itemize}
+\item \filename{package\_src}\footnote{Do not remove this if you intend to redistribute.}.
+\end{itemize}
+
+Please note that removing all these files may make it more difficult for us to diagnose problems.
+
+

@@ -1,0 +1,336 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2009 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Installing from source for \macosx}
+\label{sec:srcmac}
+
+Before you start installing from source you will need \macosx development tools installed on your Mac.
+This will ensure that you have the following available:
+\begin{itemize}
+\item \filename{g++} and associated tools.
+\item \filename{make}
+\end{itemize}
+
+Here are the instructions on how to install these.
+\begin{enumerate}
+\item Insert the \macosx 10.5 (Leopard) DVD
+\item Double-click on XcodeTools.mpkg, located inside Optional Installs/Xcode Tools
+\item Follow the instructions in the Installer
+\item Authenticate as the administrative user (the first user you create when setting up \macosx has administrator privileges by default)
+\end{enumerate}
+
+You will also need a copy of the \esfinley source code.
+If you retrieved the source using subversion, don't forget that one can use the export command instead of checkout to get a smaller copy.
+For additional visualization functionality see \Sec{sec:addfunc}.
+
+These instructions will produce the following directory structure:
+\begin{itemize}
+ \item[] \filename{stand}: \begin{itemize}
+  \item[] \filename{escript.d}
+  \item[] \filename{pkg}
+  \item[] \filename{pkg_src}
+  \item[] \filename{build}
+  \item[] \filename{doc}
+ \end{itemize}
+\end{itemize}
+
+The following instructions assume you are running the \filename{bash} shell.
+Comments are indicated with \# characters. 
+
+Open a terminal~\footnote{If you do not know how to open a terminal on Mac, then just type terminal in the spotlight (search tool on the top of the right corner) and once found just click on it.} and type
+
+\begin{shellCode}
+mkdir stand
+cd stand
+export PKG_ROOT=`pwd`/pkg
+\end{shellCode}
+
+Copy compressed source bundles into \filename{stand/package_src}.
+Copy documentation files into \filename{doc}.
+
+\begin{shellCode}
+mkdir packages
+mkdir build
+cd build
+tar -jxf ../pkg_src/Python-2.6.2.tar.bz2
+tar -jxf ../pkg_src/boost_1_39_0.tar.bz2
+tar -zxf ../pkg_src/scons-1.2.0.tar.gz
+tar -zxf ../pkg_src/numpy-1.3.0.tar.gz
+tar -zxf ../pkg_src/netcdf-4.0.tar.gz
+tar -zxf ../pkg_src/matplotlib-0.98.5.3.tar.gz
+\end{shellCode}
+
+\begin{itemize}
+
+\item Build python:
+\begin{shellCode}
+cd Python*
+./configure --prefix=$PKG_ROOT/python-2.6.2 --enable-shared 2>&1 \
+  | tee tt.configure.out
+make 
+make install 2>&1 | tee tt.make.out
+
+cd ..
+
+export PATH=$PKG_ROOT/python/bin:$PATH
+export PYTHONHOME=$PKG_ROOT/python
+export LD_LIBRARY_PATH=$PKG_ROOT/python/lib:$LD_LIBRARY_PATH
+
+pushd ../pkg
+ln -s python-2.6.2/ python
+popd
+\end{shellCode}
+
+Run the new python executable to make sure it works.
+
+\item Now build NumPy:
+\begin{shellCode}
+cd numpy-1.3.0
+python setup.py build
+python setup.py install --prefix $PKG_ROOT/numpy-1.3.0
+cd ..
+pushd ../pkg
+ln -s numpy-1.3.0 numpy
+popd
+export PYTHONPATH=$PKG_ROOT/numpy/lib/python2.6/site-packages:$PYTHONPATH
+\end{shellCode}
+
+\item Next build scons:
+\begin{shellCode}
+cd scons-1.2.0
+python setup.py install --prefix=$PKG_ROOT/scons-1.2.0
+
+export PATH=$PKG_ROOT/scons/bin:$PATH
+cd ..
+pushd ../pkg
+ln -s scons-1.2.0 scons
+popd
+\end{shellCode}
+
+\item The Boost libraries...:
+\begin{shellCode}
+pushd ../pkg
+mkdir boost_1_39_0
+ln -s boost_1_39_0 boost
+popd
+cd boost_1_39_0
+./bootstrap.sh --with-libraries=python --prefix=$PKG_ROOT/boost
+./bjam
+./bjam install --prefix=$PKG_ROOT/boost --libdir=$PKG_ROOT/boost/lib
+export LD_LIBRARY_PATH=$PKG_ROOT/boost/lib:$LD_LIBRARY_PATH
+cd ..
+pushd ../pkg/boost/lib/
+ln -s libboost_python*-1_39.dylib libboost_python.dylib
+popd
+\end{shellCode}
+
+\item ...and NetCDF:
+\begin{shellCode}
+cd netcdf-4.0
+CFLAGS="-O2 -fPIC -Df2cFortran" CXXFLAGS="-O2 -fPIC -Df2cFortran" \
+FFLAGS="-O2 -fPIC -Df2cFortran" FCFLAGS="-O2 -fPIC -Df2cFortran" \
+./configure --prefix=$PKG_ROOT/netcdf-4.0
+
+make 
+make install
+
+export LD_LIBRARY_PATH=$PKG_ROOT/netcdf/lib:$LD_LIBRARY_PATH
+cd ..
+pushd ../pkg
+ln -s netcdf-4.0 netcdf
+popd
+\end{shellCode}
+
+\item Finally matplotlib:
+\begin{shellCode}
+cd matplotlib-0.98.5.3
+python setup.py build
+python setup.py install --prefix=$PKG_ROOT/matplotlib-0.98.5.3
+cd ..
+pushd ../pkg
+ln -s matplotlib-0.98.5.3 matplotlib
+popd
+cd ..
+\end{shellCode}
+\end{itemize}
+
+\subsection{Compiling escript}\label{sec:compileescriptmac}
+
+Change to the directory containing your escript source (\filename{stand/escript.d}), then:
+
+\begin{shellCode}
+cd escript.d/scons
+cp mac_standalone_options_example.py YourMachineName_options.py
+
+echo $PKG_ROOT
+\end{shellCode}
+
+Edit the options file and put the value of PKG_ROOT between the quotes in the PKG_ROOT= line.
+For example:
+\begin{shellCode}
+PKG_ROOT="/home/bob/stand/pkg"
+\end{shellCode}
+
+\begin{shellCode}
+cd ../bin
+\end{shellCode}
+
+Modify the STANDALONE line of \filename{escript} to read:
+ 
+STANDALONE=1
+
+Start a new terminal and go to the \filename{stand} directory.
+
+\begin{shellCode}
+export PATH=$(pwd)/pkg/scons/bin:$PATH
+cd escript.d
+eval $(bin/escript -e)
+scons
+\end{shellCode}
+
+If you wish to test your build, then you can do the following. 
+Note this may take a while if you have a slow processor and/or less than 1GB of RAM.
+\begin{shellCode}
+scons all_tests
+\end{shellCode}
+
+Once you are satisfied, the \filename{build} and \filename{\$PKG_ROOT/build} directories can be removed.
+Within the \filename{packages} directory, the \filename{scons}, \filename{scons-1.2.0}, \filename{cmake-2.6.3} and \filename{cmake} entries can also be removed.
+If you are not redistributing this bundle you can remove \filename{\$PKG_ROOT/package_src}.
+
+If you do not plan to edit or recompile the source you can remove it.
+The only entries which are required in \filename{escript.d} are:
+\begin{itemize}
+ \item \filename{bin}
+ \item \filename{esys}
+ \item \filename{include}
+ \item \filename{lib}
+ \item \filename{README_LICENSE}
+\end{itemize}
+
+Hidden files can be removed with
+\begin{shellCode}
+find . -name .?* | xargs rm -rf
+\end{shellCode}
+
+%Mac ports removed until Artak has a chance to update it
+
+% \section{Installing from source for \macosx using Macports}
+% \label{sec:srcmacports}
+% 
+% As we mentioned in \Sec{sec:srcmac}, before you start installing from source you will need \macosx development tools installed on your Mac. 
+% If you do not have Macports already, please install Macports from \url{www.macports.org}. You can also install porticus (GUI for Macports).
+%  
+% Once you have Macports working install boost using porticus or from the terminal 
+% \begin{shellCode}
+% sudo port install boost@1.35.0_2+complete
+% \end{shellCode}
+% Sometimes this fails due to unknown reasons, but to overcome this problem you need to run
+% \begin{shellCode}
+% sudo port clean boost@1.35.0_2+complete
+% 
+% sudo port install boost@1.35.0_2+complete
+%  \end{shellCode}
+%   
+% Download scons source scons-0.98.5.tar.gz from \url{www.scons.org}.
+% \begin{shellCode}
+% tar xfz scons-0.98.5.tar.gz
+% cd scons-0.98.5
+% python setup.py install
+% \end{shellCode}
+% 
+% Note: Do not try to install scons using porticus or \texttt{sudo port install scons}, because it automatically installs another python version and you are likely run into problems with different python versions.  
+%  
+% Download numarray-1.5.2.tar.gz from \\
+% \url{http://www.stsci.edu/resources/software_hardware/numarray/numarray.html}. 
+% \begin{shellCode}
+% tar xfz numarray-1.5.2.tar.gz
+% cd numarray-1.5.2
+% python setup.py install --gencode  2>&1 | tee tt.install.out
+% \end{shellCode}
+% 
+% You can run a test to check the numarray installation by
+% \begin{shellCode}
+% python
+% import numarray.testall as testall
+% testall.test()
+% \end{shellCode}
+%  
+% Install netcdf, gsl and fltk using Macports 
+% \begin{shellCode}
+% sudo port install netcdf
+% sudo port install gsl
+% sudo port intall fltk
+% \end{shellCode}
+% Note: If this fails, download and install from sources. 
+%  
+% Downlaod gmsh-2.2.3-source.tar and install from sources.
+% \begin{shellCode}
+% ./configure --with-gsl-prefix=/opt/local/  --with-fltk    --prefix=/usr/local/
+% \end{shellCode}
+% Note: if you install using porticus or sudo port  it automaticall installs in \filename{/opt/local/}, but if you install from sources it installs in /usr/local. So, make sure these paths are right.
+% \begin{shellCode}
+% sudo make -j2
+% sudo make install
+% \end{shellCode} 
+%  
+% Download and install Mesa-7.0.3 (required for VTK) from sources
+% \begin{shellCode}
+% tar xjf MesaDemos-7.0.3.tar.bz2
+% tar xjf MesaGLUT-7.0.3.tar.bz2
+% tar xjf MesaLib-7.0.3.tar.bz2
+% cd Mesa-7.0.3
+%  
+% sudo make -j 2
+% make install
+% \end{shellCode} 
+%  
+% % Install vtk-5.0.4 from source. If you install from ports it won't configure to use shared libraries.
+% % Once you untar it you will have (assume user is john) /Users/john/Downloads/VTK folder, then run the following:
+% %  
+% % \begin{shellCode}
+% % sudo mkdir /usr/local/VTKBuild/
+% % cd /usr/local/VTKBuild/
+% % sudo ccmake /Users/john/Downloads/VTK/ 
+% % # It will create CMakeCache.txt. Make sure  you use the following configurations.
+% %  
+% % #       Advanced options			ON
+% % #       BUILD_EXAMPLES				ON
+% % #       BUILD_SHARED_LIBS			ON
+% % #       VTK_WRAP_PYTHON				ON
+% % #       CMAKE_VERBOSE_MAKEFILE			TRUE
+% % #       VTK_OPENGL_HAS_OSMESA			ON
+% % #       VTK_USE_MANGLED_MESA			OFF
+% % #       VTK_USE_OFFSCREEN			OFF
+% %  
+% % sudo make -j2
+% % sudo make install
+% % \end{shellCode}
+% %  
+% % Note: you need to set the following ENV variables in your \filename{/Users/john/.profile} for VTK to work:
+% % \begin{shellCode}
+% % export LD_LIBRARY_PATH = /usr/local/VTKBuild/bin: \
+% %              /usr/local/VTKBuild/bin:${LD_LIBRARY_PATH}
+% % export PYTHONPATH = /usr/local/VTKBuild/Wrapping/Python:\ 
+% %             /usr/local/VTKBuild/bin:${PYTHONPATH}
+% %      
+% % #     For testing you can run:
+% % python
+% % import vtk
+% % \end{shellCode}
+%  
+% All that's left to install is triangle and netpbm (required for ppmtompeg) using Macports:
+% \begin{shellCode}
+% sudo port install triangle
+% sudo port install netpbm
+% \end{shellCode}
+

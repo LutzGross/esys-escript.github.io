@@ -1,0 +1,537 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2009 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\chapter{ The Module \finley}
+ \label{CHAPTER ON FINLEY}
+
+\begin{figure}
+\centerline{\includegraphics[width=\figwidth]{figures/FinleyMesh}}
+\caption{Subdivision of an Ellipse into triangles order 1 (\finleyelement{Tri3})}
+\label{FINLEY FIG 0}
+\end{figure}
+
+\begin{figure}
+\centerline{\includegraphics[width=\figwidth]{figures/FinleyContact}}
+\caption{Mesh around a contact region (\finleyelement{Rec4})}
+\label{FINLEY FIG 01}
+\end{figure}
+
+\declaremodule{extension}{finley} \modulesynopsis{Solving linear, steady partial differential equations using
+finite elements}
+
+{\it finley} is a library of C functions solving linear, steady partial differential equations
+\index{partial differential equations} (PDEs) or systems of PDEs using isoparametrical finite 
+elements \index{FEM!isoparametrical}.
+It supports unstructured, 1D, 2D and 3D meshes. The module \finley provides an access to the
+library through the \LinearPDE class of \escript supporting its full functionality. {\it finley} 
+is parallelized using the OpenMP \index{OpenMP} paradigm. 
+
+\section{Formulation}
+
+For a single PDE with a solution with a single component the linear PDE is defined in the
+following form:
+\begin{equation}\label{FINLEY.SINGLE.1}
+\begin{array}{cl} &
+\displaystyle{
+\int\hackscore{\Omega} 
+A\hackscore{jl} \cdot v\hackscore{,j}u\hackscore{,l}+ B\hackscore{j} \cdot v\hackscore{,j} u+ C\hackscore{l} \cdot v u\hackscore{,l}+D \cdot vu \; d\Omega }  \\
++ & \displaystyle{\int\hackscore{\Gamma} d \cdot vu \; d{\Gamma} } 
++  \displaystyle{\int\hackscore{\Gamma^{contact}} d^{contact} \cdot [v][u] \; d{\Gamma} } \\
+= & \displaystyle{\int\hackscore{\Omega}  X\hackscore{j} \cdot v\hackscore{,j}+ Y \cdot v \; d\Omega }\\ 
++ & \displaystyle{\int\hackscore{\Gamma} y \cdot v \; d{\Gamma}}  + 
+\displaystyle{\int\hackscore{\Gamma^{contact}} y^{contact}\cdot [v] \; d{\Gamma}} \\
+\end{array}
+\end{equation}
+
+\section{Meshes}
+To understand the usage of \finley one needs to have an understanding of how the finite element meshes
+\index{FEM!mesh} are defined. \fig{FINLEY FIG 0} shows an example of the
+subdivision of an ellipse into so called elements \index{FEM!elements} \index{element}. 
+In this case, triangles have been used but other forms of subdivisions
+can be constructed, e.g. into quadrilaterals or, in the three dimensional case, into tetrahedrons
+and hexahedrons. The idea of the finite element method is to approximate the solution by a function
+which is a polynomial of a certain order and is continuous across it boundary to neighbor elements.
+In the example of \fig{FINLEY FIG 0} a linear polynomial is used on each triangle. As one can see, the triangulation
+is quite a poor approximation of the ellipse. It can be improved by introducing a midpoint on each element edge then
+positioning those nodes located on an edge expected to describe the boundary, onto the boundary.
+In this case the triangle gets a curved edge which requires a parametrization of the triangle using a 
+quadratic polynomial. For this case, the solution is also approximated by a piecewise quadratic polynomial
+(which explains the name isoparametrical elements), see \Ref{Zienc,NumHand} for more details.   
+
+The union of all elements defines the domain of the PDE.
+Each element is defined by the nodes used to describe its shape. In \fig{FINLEY FIG 0} the element,
+which has type \finleyelement{Tri3},
+with element reference number $19$ \index{element!reference number} is defined by the nodes
+with reference numbers $9$, $11$ and $0$ \index{node!reference number}. Notice that the order is counterclockwise. 
+The coefficients of the PDE are evaluated at integration nodes with each individual element. 
+For quadrilateral elements a Gauss quadrature scheme is used. In the case of triangular elements a 
+modified form is applied. The boundary of the domain is also subdivided into elements. \index{element!face} In \fig{FINLEY FIG 0}
+line elements with two nodes are used. The elements are also defined by their describing nodes, e.g.
+the face element reference number $20$ which has type \finleyelement{Line2} is defined by the nodes
+with the reference numbers $11$ and $0$. Again the order is crucial, if moving from the first
+to second node the domain has to lie on the left hand side (in the case of a two dimension surface element
+the domain has to lie on the left hand side when moving counterclockwise). If the gradient on the
+surface of the domain is to be calculated rich face elements face to be used. Rich elements on a face
+are identical to interior elements but with a modified order of nodes such that the 'first' face of the element aligns
+with the surface of the domain. In \fig{FINLEY FIG 0}
+elements of the type \finleyelement{Tri3Face} are used. 
+The face element reference number $20$ as a rich face element is defined by the nodes
+with reference numbers $11$, $0$ and $9$. Notice that the face element $20$ is identical to the
+interior element $19$ except that, in this case, the order of the node is different to align the first
+edge of the triangle (which is the edge starting with the first node) with the boundary of the domain.
+
+Be aware that face elements and elements in the interior of the domain must match, i.e. a face element must be the face
+of an interior element or, in case of a rich face element, it must be identical to an interior element.
+If no face elements are specified
+\finley implicitly assumes homogeneous natural boundary conditions \index{natural boundary conditions!homogeneous},
+i.e. \var{d}=$0$ and \var{y}=$0$, on the entire boundary of the domain. For  
+inhomogeneous natural boundary conditions \index{natural boundary conditions!inhomogeneous}, 
+the boundary must be described by face elements. 
+
+If discontinuities of the PDE solution are considered contact elements 
+\index{element!contact}\index{contact conditions} are introduced to describe the contact region $\Gamma^{contact}$ 
+even if $d^{contact}$ and $y^{contact}$ are zero. \fig{FINLEY FIG 01} shows a simple example of a mesh
+of rectangular elements around a contact region $\Gamma^{contact}$ \index{element!contact}. 
+The contact region is described by the
+elements $4$, $3$ and $6$. Their element type is \finleyelement{Line2_Contact}. 
+The nodes $9$, $12$, $6$, $5$ define contact element $4$, where the coordinates of nodes $12$ and $5$ and
+nodes $4$ and $6$ are identical with the idea that nodes $12$ and $9$ are located above and 
+nodes $5$ and $6$ below the contact region.  
+Again, the order of the nodes within an element is crucial. There is also the option of using rich elements
+if the gradient is to be calculated on the contact region. Similarly to the rich face elements 
+these are constructed from two interior elements by reordering the nodes such that
+the 'first' face of the element above and the 'first' face of the element below the 
+contact regions line up.  The rich version of element 
+$4$ is of type \finleyelement{Rec4Face_Contact} and is defined by the nodes $9$, $12$, $16$, $18$, $6$, $5$, $0$ and 
+$2$.
+
+\tab{FINLEY TAB 1} shows the interior element types and the corresponding element types to be used
+on the face and contacts. \fig{FINLEY.FIG:1}, \fig{FINLEY.FIG:2} and \fig{FINLEY.FIG:4} show the ordering of
+the nodes within an element.
+
+\begin{table}
+\begin{tablev}{l|llll}{textrm}{interior}{face}{rich face}{contact}{rich contact}
+\linev{\finleyelement{Line2}}{\finleyelement{Point1}}{\finleyelement{Line2Face}}{\finleyelement{Point1_Contact}}{\finleyelement{Line2Face_Contact}}
+\linev{\finleyelement{Line3}}{\finleyelement{Point1}}{\finleyelement{Line3Face}}{\finleyelement{Point1_Contact}}{\finleyelement{Line3Face_Contact}}
+\linev{\finleyelement{Tri3}}{\finleyelement{Line2}}{\finleyelement{Tri3Face}}{\finleyelement{Line2_Contact}}{\finleyelement{Tri3Face_Contact}}
+\linev{\finleyelement{Tri6}}{\finleyelement{Line3}}{\finleyelement{Tri6Face}}{\finleyelement{Line3_Contact}}{\finleyelement{Tri6Face_Contact}}
+\linev{\finleyelement{Rec4}}{\finleyelement{Line2}}{\finleyelement{Rec4Face}}{\finleyelement{Line2_Contact}}{\finleyelement{Rec4Face_Contact}}
+\linev{\finleyelement{Rec8}}{\finleyelement{Line3}}{\finleyelement{Rec8Face}}{\finleyelement{Line3_Contact}}{\finleyelement{Rec8Face_Contact}}
+\linev{\finleyelement{Rec9}}{\finleyelement{Line3}}{\finleyelement{Rec9Face}}{\finleyelement{Line3_Contact}}{\finleyelement{Rec9Face_Contact}}
+\linev{\finleyelement{Tet4}}{\finleyelement{Tri6}}{\finleyelement{Tet4Face}}{\finleyelement{Tri6_Contact}}{\finleyelement{Tet4Face_Contact}}
+\linev{\finleyelement{Tet10}}{\finleyelement{Tri9}}{\finleyelement{Tet10Face}}{\finleyelement{Tri9_Contact}}{\finleyelement{Tet10Face_Contact}}
+\linev{\finleyelement{Hex8}}{\finleyelement{Rec4}}{\finleyelement{Hex8Face}}{\finleyelement{Rec4_Contact}}{\finleyelement{Hex8Face_Contact}}
+\linev{\finleyelement{Hex20}}{\finleyelement{Rec8}}{\finleyelement{Hex20Face}}{\finleyelement{Rec8_Contact}}{\finleyelement{Hex20Face_Contact}}
+\end{tablev}
+\caption{Finley elements and corresponding elements to be used on domain faces and contacts.
+The rich types have to be used if the gradient of function is to be calculated on faces and contacts, respectively.}
+\label{FINLEY TAB 1}
+\end{table}
+
+The native \finley file format is defined as follows.
+Each node \var{i} has \var{dim} spatial coordinates \var{Node[i]}, a reference number
+\var{Node_ref[i]}, a degree of freedom \var{Node_DOF[i]} and tag \var{Node_tag[i]}.
+In most cases \var{Node_DOF[i]}=\var{Node_ref[i]} however, for periodic boundary conditions,
+\var{Node_DOF[i]} is chosen differently, see example below. The tag can be used to mark nodes sharing
+the same properties. Element \var{i} is defined by the \var{Element_numNodes} nodes \var{Element_Nodes[i]}
+which is a list of node reference numbers. The order is crucial.
+It has a reference number \var{Element_ref[i]} and a tag \var{Element_tag[i]}. The tag 
+can be used to mark elements  sharing the same properties. For instance elements above 
+a contact region are marked with $2$ and elements below a contact region are marked with $1$. 
+\var{Element_Type} and \var{Element_Num} give the element type and the number of elements in the mesh.
+Analogue notations are used for face and contact elements. The following Python script
+prints the mesh definition in the \finley file format:
+\begin{python}
+print "%s\n"%mesh_name
+# node coordinates:
+print "%dD-nodes %d\n"%(dim,numNodes)
+for i in range(numNodes): 
+   print "%d %d %d"%(Node_ref[i],Node_DOF[i],Node_tag[i])
+   for j in range(dim): print " %e"%Node[i][j]
+   print "\n"
+# interior elements
+print "%s %d\n"%(Element_Type,Element_Num)
+for i in range(Element_Num):
+   print "%d %d"%(Element_ref[i],Element_tag[i])
+   for j in range(Element_numNodes): print " %d"%Element_Nodes[i][j]
+   print "\n"
+# face elements
+print "%s %d\n"%(FaceElement_Type,FaceElement_Num)
+for i in range(FaceElement_Num):
+   print "%d %d"%(FaceElement_ref[i],FaceElement_tag[i])
+   for j in range(FaceElement_numNodes): print " %d"%FaceElement_Nodes[i][j]
+   print "\n"
+# contact elements
+print "%s %d\n"%(ContactElement_Type,ContactElement_Num)
+for i in range(ContactElement_Num):
+   print "%d %d"%(ContactElement_ref[i],ContactElement_tag[i])
+   for j in range(ContactElement_numNodes): print " %d"%ContactElement_Nodes[i][j]
+   print "\n"
+# point sources (not supported yet)
+write("Point1 0",face_element_type,numFaceElements)
+\end{python}
+
+The following example of a mesh file defines the mesh shown in \fig{FINLEY FIG 01}:
+\begin{verbatim}
+Example 1
+2D Nodes 16
+0   0 0 0.   0.
+2   2 0 0.33 0.
+3   3 0 0.66 0.
+7   4 0 1.   0.
+5   5 0 0.   0.5
+6   6 0 0.33 0.5
+8   8 0 0.66 0.5
+10 10 0 1.0  0.5
+12 12 0 0.   0.5
+9   9 0 0.33 0.5
+13 13 0 0.66 0.5
+15 15 0 1.0  0.5
+16 16 0 0.   1.0
+18 18 0 0.33 1.0
+19 19 0 0.66 1.0
+20 20 0 1.0  1.0
+Rec4 6
+ 0 1  0  2  6  5
+ 1 1  2  3  8  6
+ 2 1  3  7 10  8
+ 5 2 12  9 18 16
+ 7 2 13 19 18  9
+10 2 20 19 13 15
+Line2 0
+Line2_Contact 3
+ 4 0  9 12  6 5
+ 3 0 13  9  8 6
+ 6 0 15 13 10 8
+Point1 0
+\end{verbatim}
+Notice that the order in which the nodes and elements are given is arbitrary.
+In the case that rich contact elements are used the contact element section gets
+ the form
+\begin{verbatim}
+Rec4Face_Contact 3
+ 4 0  9 12 16 18  6  5  0  2
+ 3 0 13  9 18 19  8  6  2  3
+ 6 0 15 13 19 20 10  8  3  7
+\end{verbatim}
+Periodic boundary condition \index{boundary conditions!periodic} can be introduced by altering \var{Node_DOF}.
+It allows identification of nodes even if they have different physical locations. For instance, to
+enforce periodic boundary conditions at the face $x_0=0$ and $x_0=1$ one identifies
+the degrees of freedom for nodes $0$, $5$, $12$ and $16$ with the degrees of freedom for
+$7$, $10$, $15$ and $20$, respectively. The node section of the \finley mesh gets now the form:  
+\begin{verbatim}
+2D Nodes 16
+0   0 0 0.   0.
+2   2 0 0.33 0.
+3   3 0 0.66 0.
+7   0 0 1.   0.
+5   5 0 0.   0.5
+6   6 0 0.33 0.5
+8   8 0 0.66 0.5
+10  5 0 1.0  0.5
+12 12 0 0.   0.5
+9   9 0 0.33 0.5
+13 13 0 0.66 0.5
+15 12 0 1.0  0.5
+16 16 0 0.   1.0
+18 18 0 0.33 1.0
+19 19 0 0.66 1.0
+20 16 0 1.0  1.0
+\end{verbatim}
+
+\clearpage
+\input{finleyelements}
+\clearpage
+
+
+\begin{table}
+{\small
+\begin{tabular}{l||c|c|c|c|c|c|c|c}
+\member{setSolverMethod} & \member{DIRECT}& \member{PCG} & \member{GMRES} & \member{TFQMR} & \member{MINRES} & \member{PRES20} & \member{BICGSTAB} & \member{LUMPING} \\
+\hline
+ \hline
+ \member{setReordering} & $\checkmark$ & & & & & &\\
+ \hline  \member{setRestart} &  & & $\checkmark$ & & & $20$ & \\
+ \hline\member{setTruncation} &  & & $\checkmark$ & & & $5$ & \\
+   \hline\member{setIterMax} &  & $\checkmark$& $\checkmark$ & $\checkmark$& $\checkmark$& $\checkmark$ & $\checkmark$ \\
+ \hline\member{setTolerance} &  & $\checkmark$& $\checkmark$ & $\checkmark$& $\checkmark$& $\checkmark$ & $\checkmark$ \\
+ \hline\member{setAbsoluteTolerance} &  & $\checkmark$& $\checkmark$ & $\checkmark$& $\checkmark$& $\checkmark$ & $\checkmark$ \\
+\end{tabular}
+}
+\caption{Solvers available for \finley and the \PASO package and the relevant options in \class{SolverOptions} 
+ \label{TAB FINLEY SOLVER OPTIONS 1}} 
+\end{table} 
+
+\begin{table}
+{\scriptsize
+\begin{tabular}{l||c|c|c|c|c|c|c|c}
+\member{setPreconditioner} & 
+\member{NO_PRECONDITIONER} &
+\member{AMG} & 
+\member{JACOBI} & 
+\member{GAUSS_SEIDEL}& 
+\member{REC_ILU}&
+\member{RILU} &
+\member{ILU0} &
+\member{DIRECT} \\
+ \hline
+ status: &
+later &
+later & 
+$\checkmark$ & 
+$\checkmark$& 
+$\checkmark$ &
+later &
+$\checkmark$ &
+later \\
+\hline
+\hline
+\member{setCoarsening}& 
+ &
+$\checkmark$ & 
+& 
+& 
+&
+ &
+ &
+ \\
+
+
+\hline\member{setLevelMax}& 
+ &
+$\checkmark$ & 
+ & 
+& 
+&
+ &
+ &
+ \\
+
+\hline\member{setCoarseningThreshold}&
+&
+$\checkmark$ & 
+ & 
+& 
+&
+ &
+ &
+ \\
+
+\hline\member{setMinCoarseMatrixSize} &
+ &
+$\checkmark$ & 
+ & 
+& 
+&
+ &
+ &
+ \\
+
+\hline\member{setNumSweeps} &
+ &
+ & 
+$\checkmark$ & 
+$\checkmark$ & 
+&
+ &
+ &
+ \\
+
+\hline\member{setNumPreSweeps}&
+ &
+$\checkmark$ & 
+  & 
+ & 
+ &
+  &
+  &
+  \\
+
+\hline\member{setNumPostSweeps} &
+ &
+$\checkmark$ & 
+ & 
+& 
+&
+ &
+&
+ \\
+
+\hline\member{setInnerTolerance}&
+ &
+ & 
+ & 
+& 
+&
+ &
+&
+ \\
+
+\hline\member{setDropTolerance}&
+ &
+ & 
+ & 
+& 
+&
+ &
+&
+ \\
+
+\hline\member{setDropStorage}&
+ &
+ & 
+ & 
+& 
+&
+ &
+&
+ \\
+
+\hline\member{setRelaxationFactor}&
+ &
+ & 
+ & 
+& 
+&
+$\checkmark$  &
+ &
+ \\
+
+\hline\member{adaptInnerTolerance}&
+ &
+ & 
+ & 
+& 
+&
+ &
+&
+ \\
+
+\hline\member{setInnerIterMax}&
+ &
+ & 
+ & 
+& 
+&
+ &
+&
+ \\
+\end{tabular}
+}
+\caption{Preconditioners available for \finley and the \PASO package and the relevant options in \class{SolverOptions}. \label{TAB FINLEY SOLVER OPTIONS 2}} 
+\end{table}
+
+\subsection{Linear Solvers in \SolverOptions}
+Table~\ref{TAB FINLEY SOLVER OPTIONS 1} and
+Table~\ref{TAB FINLEY SOLVER OPTIONS 2} show the solvers and preconditioners supported by 
+\finley through the \PASO library. Currently direct solvers are not supported under MPI. 
+By default, \finley is using the iterative solvers \PCG for symmetric and \BiCGStab for non-symmetric problems. 
+If the direct solver is selected which can be useful when solving very ill-posedequations
+\finley uses the \MKL solver package. If \MKL is not available \UMFPACK is used. If \UMFPACK is not available 
+a suitable iterative solver from the \PASO is used.
+
+\subsection{Functions}
+\begin{funcdesc}{ReadMesh}{fileName,integrationOrder=-1}
+creates a \Domain object form the FEM mesh defined in 
+file \var{fileName}. The file must be given the \finley file format.
+If \var{integrationOrder} is positive, a numerical integration scheme
+chosen which is accurate on each element up to a polynomial of
+degree \var{integrationOrder} \index{integration order}. Otherwise
+an appropriate integration order is chosen independently.
+\end{funcdesc}
+
+\begin{funcdesc}{load}{fileName}
+recovers a \Domain object from a dump file created by the \ 
+eateseates a \Domain object form the FEM mesh defined in 
+file \var{fileName}. The file must be given the \finley file format.
+If \var{integrationOrder} is positive, a numerical integration scheme
+chosen which is accurate on each element up to a polynomial of
+degree \var{integrationOrder} \index{integration order}. Otherwise
+an appropriate integration order is chosen independently.
+\end{funcdesc}
+
+\begin{funcdesc}{Rectangle}{n0,n1,order=1,l0=1.,l1=1., integrationOrder=-1, \\
+  periodic0=\False,periodic1=\False,useElementsOnFace=\False,optimize=\False}
+Generates a \Domain object representing a two dimensional rectangle between
+$(0,0)$ and $(l0,l1)$ with orthogonal edges. The rectangle is filled with
+\var{n0} elements along the $x_0$-axis and
+\var{n1} elements along the $x_1$-axis. 
+For \var{order}=1 and \var{order}=2
+\finleyelement{Rec4} and  
+\finleyelement{Rec8} are used, respectively. 
+In the case of \var{useElementsOnFace}=\False,
+\finleyelement{Line2} and  
+\finleyelement{Line3} are used to subdivide the edges of the rectangle, respectively. 
+In the case of \var{useElementsOnFace}=\True (this option should be used if gradients
+are calculated on domain faces),
+\finleyelement{Rec4Face} and  
+\finleyelement{Rec8Face} are used on the edges, respectively.  
+If \var{integrationOrder} is positive, a numerical integration scheme
+chosen which is accurate on each element up to a polynomial of
+degree \var{integrationOrder} \index{integration order}. Otherwise
+an appropriate integration order is chosen independently. If
+\var{periodic0}=\True, periodic boundary conditions \index{periodic boundary conditions}
+along the $x_0$-directions are enforced. That means when for any solution of a PDE solved by \finley
+the value on the line $x_0=0$ will be identical to the values on $x_0=\var{l0}$.
+Correspondingly,
+\var{periodic1}=\False sets periodic boundary conditions
+in $x_1$-direction.
+If \var{optimize}=\True mesh node relabeling will be attempted to reduce the computation and also ParMETIS will be used to improve the mesh partition if running on multiple CPUs with MPI.
+\end{funcdesc}
+
+\begin{funcdesc}{Brick}{n0,n1,n2,order=1,l0=1.,l1=1.,l2=1., integrationOrder=-1, \\
+  periodic0=\False,periodic1=\False,periodic2=\False,useElementsOnFace=\False,optimize=\False}
+Generates a \Domain object representing a three dimensional brick between
+$(0,0,0)$ and $(l0,l1,l2)$ with orthogonal faces. The brick is filled with
+\var{n0} elements along the $x_0$-axis, 
+\var{n1} elements along the $x_1$-axis and 
+\var{n2} elements along the $x_2$-axis. 
+For \var{order}=1 and \var{order}=2
+\finleyelement{Hex8} and  
+\finleyelement{Hex20} are used, respectively. 
+In the case of \var{useElementsOnFace}=\False,
+\finleyelement{Rec4} and  
+\finleyelement{Rec8} are used to subdivide the faces of the brick, respectively. 
+In the case of \var{useElementsOnFace}=\True (this option should be used if gradients
+are calculated on domain faces),
+\finleyelement{Hex8Face} and  
+\finleyelement{Hex20Face} are used on the brick faces, respectively.  
+If \var{integrationOrder} is positive, a numerical integration scheme
+chosen which is accurate on each element up to a polynomial of
+degree \var{integrationOrder} \index{integration order}. Otherwise
+an appropriate integration order is chosen independently. If
+\var{periodic0}=\True, periodic boundary conditions \index{periodic boundary conditions}
+along the $x_0$-directions are enforced. That means when for any solution of a PDE solved by \finley
+the value on the plane $x_0=0$ will be identical to the values on $x_0=\var{l0}$. Correspondingly,
+\var{periodic1}=\False and \var{periodic2}=\False sets periodic boundary conditions
+in $x_1$-direction and $x_2$-direction, respectively.
+If \var{optimize}=\True mesh node relabeling will be attempted to reduce the computation and also ParMETIS will be used to improve the mesh partition if running on multiple CPUs with MPI.
+\end{funcdesc}
+
+\begin{funcdesc}{GlueFaces}{meshList,safetyFactor=0.2,tolerance=1.e-13}
+Generates a new \Domain object from the list \var{meshList} of \finley meshes.
+Nodes in face elements whose difference of coordinates is less then \var{tolerance} times the 
+diameter of the domain are merged. The corresponding face elements are removed from the mesh.  
+
+TODO: explain \var{safetyFactor} and show an example.
+\end{funcdesc}
+
+\begin{funcdesc}{JoinFaces}{meshList,safetyFactor=0.2,tolerance=1.e-13}
+Generates a new \Domain object from the list \var{meshList} of \finley meshes.
+Face elements whose nodes coordinates have difference is less then \var{tolerance} times the 
+diameter of the domain are combined to form a contact element \index{element!contact} 
+The corresponding face elements are removed from the mesh.  
+
+TODO: explain \var{safetyFactor} and show an example.
+\end{funcdesc}

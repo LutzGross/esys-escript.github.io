@@ -1,0 +1,124 @@
+#!/bin/bash
+
+#This script produced with the aid of "The Debian System concepts and techniques" By Martin F. Krafft
+# Its purpose is to produce a .deb for escript
+
+
+#A ~ in front of the version number indicates a pre-release and will sort earlier than versions without ~
+VERSION=~3.0-1
+SRCDIR=`pwd`
+WRAPPERNAME=escript
+#ALTWRAPPERNAME=finleypython
+OUTPUTROOT=$SRCDIR/build/package/lenny/escript
+LIBOUT=$OUTPUTROOT/usr/lib/escript
+BINOUT=$OUTPUTROOT/usr/bin
+PKGFILES=$SRCDIR/packaging/lenny
+
+# check to be sure we are running from the project root and that we look like the root user
+
+if [ `whoami` != 'root' ]
+then
+	echo "Please execute this script under fakeroot."
+	echo "fakeroot $0"
+	exit 1
+fi
+
+if [ ! -d escript/src ]
+then
+  echo "Please execute this script from the root of the project"
+  exit 3
+fi
+
+if [ -d $OUTPUTROOT ]
+then
+  rm -rf $OUTPUTROOT || (echo "Error could not clean build area";exit 2)
+fi
+
+ARCHV=`uname -m`
+
+
+case "$ARCHV" in 
+   "i686" ) ARCH="i686";;
+   "x86_64" ) ARCH="amd64";;
+   *) echo "Unknown architecture $ARCHV. Unable to build package";exit 3;;
+esac
+
+mkdir -p $OUTPUTROOT
+
+#First copy debian skeleton 
+cp -r $PKGFILES/escript/* $OUTPUTROOT
+
+
+mkdir -p $OUTPUTROOT/usr/share/man/man1
+
+#copy the man page
+cp $SRCDIR/doc/manpage/man1/$WRAPPERNAME.1 $OUTPUTROOT/usr/share/man/man1
+#cp $SRCDIR/doc/manpage/man1/$WRAPPERNAME.1 $OUTPUTROOT/usr/share/man/man1/$ALTWRAPPERNAME.1
+gzip $OUTPUTROOT/usr/share/man/man1/$WRAPPERNAME.1
+#gzip $OUTPUTROOT/usr/share/man/man1/$ALTWRAPPERNAME.1
+
+#copy the documentation
+cp $SRCDIR/release/doc/escript_examples.tar.gz $OUTPUTROOT/usr/share/doc/escript/
+cp $SRCDIR/release/doc/install/install.pdf $OUTPUTROOT/usr/share/doc/escript
+cp $SRCDIR/release/doc/user/guide.pdf $OUTPUTROOT/usr/share/doc/escript
+cp -r $SRCDIR/release/doc/epydoc $OUTPUTROOT/usr/share/doc/escript/python_html
+
+mkdir -p $LIBOUT/lib
+mkdir -p $BINOUT
+#Should be using install here?
+cp $SRCDIR/lib/* $LIBOUT/lib
+cp -r $SRCDIR/esys $LIBOUT
+
+# We should be using the standard python
+export ESCRIPT_ROOT=/usr/lib/escript
+
+sed	-e "s%STDLOCATION=0%STDLOCATION=1%" \
+< $SRCDIR/bin/escript > $BINOUT/$WRAPPERNAME
+
+#end content from finley_wrapper_writer.sh
+
+cd $BINOUT
+#ln -s $WRAPPERNAME $ALTWRAPPERNAME
+cd $SRCDIR
+
+#Nuke any svn stuff that made it in
+find $OUTPUTROOT -name ".svn" | xargs rm -rf 
+
+
+#Say what version of the debian packaging format we are using:
+#This is NOT the package version
+echo 2.0 > $OUTPUTROOT/../debian-binary
+
+#Check some permissions
+chmod og=rx $BINOUT/$WRAPPERNAME
+if [ -f $LIBOUT/pythonMPI ]
+then
+	chmod og=rx $LIBOUT/pythonMPI 
+fi
+
+cd $OUTPUTROOT 
+
+cd usr/share/doc/escript/
+gzip changelog.Debian
+
+cd $OUTPUTROOT
+#Fix directory perms
+chmod -R og-w .
+
+cd DEBIAN
+
+#Now we need to update the architecture
+mv control control.old
+sed -e "s%Architecture: i386%Architecture: $ARCH%" < control.old > control
+rm control.old
+
+tar czf ../../control.tar.gz .
+cd ..
+tar czf ../data.tar.gz usr
+cd ..
+
+ar rcu escript-$VERSION\_$ARCH.deb debian-binary control.tar.gz data.tar.gz
+
+
+
+

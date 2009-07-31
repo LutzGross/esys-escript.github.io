@@ -1,0 +1,11 @@
+escript(~3.0-1) lenny; urgency=low
+ Post release 2.0.
+ By JFenwick (revision 2456)
+ Switched from numarray to numpy. A number of post release bugs in the documentation
+ and examples files fixed.
+
+escript (~2.0-1) lenny; urgency=low
+ Initial packaging attempt.
+ By JFenwick (revision 2288:2290M)
+
+
