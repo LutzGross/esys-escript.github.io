@@ -1,5 +1,5 @@
 Package: escript
-Version: ~3.0-1
+Version: 3.0-1
 Description: Escript/Finley finite elements python system.
  Solve partial differential equations using finite element methods.
 Maintainer: Escript team <esys@esscc.uq.edu.au>

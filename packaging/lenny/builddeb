@@ -5,7 +5,7 @@
 
 
 #A ~ in front of the version number indicates a pre-release and will sort earlier than versions without ~
-VERSION=~3.0-1
+VERSION=3.0-1
 SRCDIR=`pwd`
 WRAPPERNAME=escript
 #ALTWRAPPERNAME=finleypython
