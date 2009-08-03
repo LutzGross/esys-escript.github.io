@@ -31,9 +31,13 @@ example_files_allow_mpi = [
  'usersguide/fluid.py',
  'usersguide/poisson.py',
  'usersguide/diffusion.py',
+ 'usersguide/poisson_matplotlib.py'
 ]
 
-example_files_no_mpi = []
+example_files_no_mpi = [
+'usersguide/poisson_matplotlib.py'
+'usersguide/poisson.py'
+]
 
 example_files= example_files_allow_mpi + example_files_no_mpi
 

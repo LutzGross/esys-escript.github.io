@@ -308,20 +308,113 @@ Now we can write the script to solve our Poisson problem
   mypde = Poisson(domain=mydomain)
   mypde.setValue(f=1,q=gammaD)
   u = mypde.getSolution()
-  # write u to an external file
-  saveVTK("u.xml",sol=u)
 \end{python}
-The entire code is available as \file{poisson.py} in the \ExampleDirectory
+The question is what we do with the calculated solution \var{u}. Besides postprocessing, eg. calculating the gradient or the average value, which will be discussed later, plotting the solution is one one things you might want to do. \escript offers two ways to do this, both base on external modules or packages and so data need to converted
+to hand over the solution. The first option is using the \MATPLOTLIB module which allows plotting 2D results relatively quickly, see~\cite{matplotlib}. However, there are limitations when using this tool, eg. in problem size and when solving 3D problems. Therefore \escript provides a second options based on \VTK files which is especially
+designed for large scale and 3D problem and which can be read by a variety of software packages such as \mayavi \cite{mayavi}, \VisIt~\cite{VisIt}. 
 
-The last statement writes the solution (tagged with the name "sol") to a file named \file{u.xml} in 
-\VTK file format.
-Now you may run the script using the \escript environment
-and visualize the solution using \mayavi:
+\subsection{Plotting Using \MATPLOTLIB}
+The \MATPLOTLIB module provides a simple and easy to use way to visualize PDE solutions (or other \Data objects). 
+To hand over data from \escript to \MATPLOTLIB the values need to mapped onto a rectangular grid. We will make use 
+of the \numpy module.
+
+First we need to create a rectangular grid. We use the following statements:
+\begin{python}
+import numpy
+x_grid = numpy.linspace(0.,1.,50)
+y_grid = numpy.linspace(0.,1.,50)
+\end{python}
+\var{x_grid} is an array defining the x coordinates of the grids while 
+\var{y_grid} defines the y coordinates of the grid. In this case we use $50$ points over the interval $[0,1]$
+in both directions. 
+
+Now created by \escript need to be interpolated to this grid. We will use the \MATPLOTLIB
+\function{mlab.griddata} function to do this. We can easily extract spatial coordinates as a \var{list} by
+\begin{python}
+x=mydomain.getX()[0].toListOfTuples()
+y=mydomain.getX()[1].toListOfTuples()
+\end{python}
+In principle we can apply the same \member{toListOfTuples} method to extract the values from the 
+PDE solution \var{u}. However, we have to make sure that the \Data object we extract the values from 
+uses the same \FunctionSpace as we have us when extracting \var{x} and \var{y}. By applying the 
+\function{interpolation} to \var{u} before extraction we can achieve this:
+\begin{python}
+z=interpolate(u,mydomain.getX().getFunctionSpace())
+\end{python}
+The values in \var{z} are now the values at the points with the coordinates given by \var{x} and \var{y}. These 
+values are now interpolated to the grid defined by \var{x_grid} and \var{y_grid} by using
+\begin{python}
+import matplotlib
+z_grid = matplotlib.mlab.griddata(x,y,z,xi=x_grid,yi=y_grid )
+\end{python}
+\var{z_grid} gives now the values of the PDE solution \var{u} at the grid. The values can be plotted now
+using the \function{contourf}:
+\begin{python}
+matplotlib.pyplot.contourf(x_grid, y_grid, z_grid, 5)
+matplotlib.pyplot.savefig("u.png")
+\end{python}
+Here we use $5$ contours. The last statement writes the plot to the file \file{u.png} in the PNG format. Alternatively, one can use 
+\begin{python}
+matplotlib.pyplot.contourf(x_grid, y_grid, z_grid, 5)
+matplotlib.pyplot.show()
+\end{python}
+which gives an interactive browser window.
+
+\begin{figure}
+\centerline{\includegraphics[width=\figwidth]{figures/FirstStepResultMATPLOTLIB}}
+\caption{Visualization of the Poisson Equation Solution for $f=1$ using \MATPLOTLIB.}
+\label{fig:FirstSteps.3b}
+\end{figure}
+
+Now we can write the script to solve our Poisson problem
+\begin{python}
+from esys.escript import *
+from esys.escript.linearPDEs import Poisson
+from esys.finley import Rectangle
+import numpy
+import matplotlib
+import pylab
+# generate domain:
+mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
+# define characteristic function of Gamma^D
+x = mydomain.getX()
+gammaD = whereZero(x[0])+whereZero(x[1])
+# define PDE and get its solution u
+mypde = Poisson(domain=mydomain)
+mypde.setValue(f=1,q=gammaD)
+u = mypde.getSolution()
+# interpolate u to a matplotlib grid:
+x_grid = numpy.linspace(0.,1.,50)
+y_grid = numpy.linspace(0.,1.,50)
+x=mydomain.getX()[0].toListOfTuples()
+y=mydomain.getX()[1].toListOfTuples()
+z=interpolate(u,mydomain.getX().getFunctionSpace())
+z_grid = matplotlib.mlab.griddata(x,y,z,xi=x_grid,yi=y_grid )
+# interpolate u to a rectangular grid:
+matplotlib.pyplot.contourf(x_grid, y_grid, z_grid, 5)
+matplotlib.pyplot.savefig("u.png")
+\end{python}
+The entire code is available as \file{poisson\hackscore matplotlib.py} in the \ExampleDirectory.
+You can run the script using the {\it escript} environment
 \begin{verbatim}
-  escript poisson.py
-  mayavi -d u.xml -m SurfaceMap
+  escript poisson_matplotlib.py
 \end{verbatim}
-See \fig{fig:FirstSteps.3}.
+This will create the \file{u.png}, see Figure~\fig{fig:FirstSteps.3b}.
+For details on the usage of the \MATPLOTLIB module we refer to the documentation~\cite{matplotlib}.
+
+As pointed out, \MATPLOTLIB is restricted to the two-dimensional case and 
+should be used for small problems only. It can not be used under \MPI as the \member{toListOfTuples} method is
+not safe under \MPI\footnote{The term 'safe under \MPI' means that a program will produce correct results when run on more than one processors under \MPI.}.
+
+\subsection{Visualization using \VTK}
+
+As an alternative {\it escript} supports the usage of visualization tools which base on \VTK, eg. mayavi \cite{mayavi}, \VisIt~\cite{VisIt}. In this case the solution is written to a file in the \VTK format. This file the can read by the tool of choice. Using \VTK file is \MPI safe.
+
+To write the solution \var{u} in  Poisson problem to the file \file{u.xml} one need to add the line
+\begin{python}
+saveVTK("u.xml",sol=u)
+\end{python}
+The solution \var{u} is now available in the \file{u.xml} tagged with the name "sol". 
 
 \begin{figure}
 \centerline{\includegraphics[width=\figwidth]{figures/FirstStepResult}}
@@ -329,3 +422,29 @@ See \fig{fig:FirstSteps.3}.
 \label{fig:FirstSteps.3}
 \end{figure}
 
+The Poisson problem script is now 
+\begin{python}
+  from esys.escript import *
+  from esys.escript.linearPDEs import Poisson
+  from esys.finley import Rectangle
+  # generate domain:
+  mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
+  # define characteristic function of Gamma^D
+  x = mydomain.getX()
+  gammaD = whereZero(x[0])+whereZero(x[1])
+  # define PDE and get its solution u
+  mypde = Poisson(domain=mydomain)
+  mypde.setValue(f=1,q=gammaD)
+  u = mypde.getSolution()
+  # write u to an external file
+  saveVTK("u.xml",sol=u)
+\end{python}
+The entire code is available as \file{poisson\hackscore VTK.py} in the \ExampleDirectory
+
+You can run the script using the {\it escript} environment
+and visualize the solution using \mayavi:
+\begin{verbatim}
+  escript poisson\hackscore VTK.py
+  mayavi2 -d u.xml -m SurfaceMap
+\end{verbatim}
+The result is shown in Figure~\fig{fig:FirstSteps.3}. 
