@@ -314,6 +314,12 @@ to hand over the solution. The first option is using the \MATPLOTLIB module whic
 designed for large scale and 3D problem and which can be read by a variety of software packages such as \mayavi \cite{mayavi}, \VisIt~\cite{VisIt}. 
 
 \subsection{Plotting Using \MATPLOTLIB}
+
+Users of Debian 5(Lenny) please note: this example makes use of the griddata method in \module{matplotlib.mlab}.
+This method is not part of version 0.98.1 which is available with Lenny.
+If you wish to use \MATPLOTLIB, you may need to install a later version.
+Users of Ubuntu 8.10 or later and people should be fine.
+
 The \MATPLOTLIB module provides a simple and easy to use way to visualize PDE solutions (or other \Data objects). 
 To hand over data from \escript to \MATPLOTLIB the values need to mapped onto a rectangular grid. We will make use 
 of the \numpy module.
@@ -328,7 +334,7 @@ y_grid = numpy.linspace(0.,1.,50)
 \var{y_grid} defines the y coordinates of the grid. In this case we use $50$ points over the interval $[0,1]$
 in both directions. 
 
-Now created by \escript need to be interpolated to this grid. We will use the \MATPLOTLIB
+Now the values created by \escript need to be interpolated to this grid. We will use the \MATPLOTLIB
 \function{mlab.griddata} function to do this. We can easily extract spatial coordinates as a \var{list} by
 \begin{python}
 x=mydomain.getX()[0].toListOfTuples()
@@ -404,7 +410,7 @@ For details on the usage of the \MATPLOTLIB module we refer to the documentation
 
 As pointed out, \MATPLOTLIB is restricted to the two-dimensional case and 
 should be used for small problems only. It can not be used under \MPI as the \member{toListOfTuples} method is
-not safe under \MPI\footnote{The term 'safe under \MPI' means that a program will produce correct results when run on more than one processors under \MPI.}.
+not safe under \MPI\footnote{The phrase 'safe under \MPI' means that a program will produce correct results when run on more than one processor under \MPI.}.
 
 \subsection{Visualization using \VTK}
 
