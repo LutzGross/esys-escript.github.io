@@ -149,7 +149,7 @@ mv control control.old
 sed -e "s%Architecture: i386%Architecture: $ARCH%" < control.old > control
 if [ $distro == "jaunty" ]
 then
-  echo "Replacing python2.5 dependency with python2.6 for jaunty
+  echo "Replacing python2.5 dependency with python2.6 for jaunty"
   rm control.old
   mv control control.old
   sed -e "s%Depends: python2.5%Depends: python2.6%" < control.old > control 
