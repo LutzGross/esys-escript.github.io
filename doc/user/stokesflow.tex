@@ -78,8 +78,7 @@ max_iter=200
 t_end=50
 t=0.0
 time=0
-verbose='TRUE'
-useUzawa='TRUE'
+verbose=True
 
 #define mesh 
 H=2.0
@@ -113,7 +112,7 @@ while t <= t_end:
  
   solution.initialize(fixed_u_mask=boundary_cond,eta=eta,f=Y)
   velocity,pressure=solution.solve(velocity,pressure,max_iter=max_iter, \
-  verbose=verbose,useUzawa=useUzawa)
+  verbose=verbose)
   
   print "Max velocity =", Lsup(velocity), "m/s"
   

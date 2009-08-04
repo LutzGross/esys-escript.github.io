@@ -27,7 +27,7 @@ where the stress $\sigma$ is given by
 \end{eqnarray}
 In this formula $\lambda$ and $\mu$ are the Lame coefficients, $\alpha$ is the 
 temperature expansion coefficient, $T$ is the temperature distribution and $T_{ref}$ a reference temperature. Note that 
-\eqn{HEATEDBLOCK general problem} is similar to eqn{WAVE general problem} introduced in section~\Sec{WAVE CHAP} but the
+\eqn{HEATEDBLOCK general problem} is similar to \eqn{WAVE general problem} introduced in section~\Sec{WAVE CHAP} but the
 inertia term $\rho u\hackscore{i,tt}$ has been dropped as we assume a static scenario here. Moreover, in 
 comparison to the \eqn{WAVE stress}
 definition of stress $\sigma$ in \eqn{HEATEDBLOCK linear elastic} an extra term is introduced 
@@ -35,7 +35,7 @@ to bring in stress due to volume changes trough temperature dependent expansion.
 
 Our domain is the unit cube 
 \begin{eqnarray} \label{HEATEDBLOCK natural location}
-\Omega=\{(x\hackscore{i} | 0 \le x\hackscore{i} \le 1 \}
+\Omega=\{(x\hackscore{i}) | 0 \le x\hackscore{i} \le 1 \}
 \end{eqnarray}
 On the boundary the normal stress component is set to zero
 \begin{eqnarray} \label{HEATEDBLOCK natural}
@@ -89,7 +89,7 @@ q\hackscore{i}(x)=\left\{
 \right. 
 \end{equation}
 Under the assumption that $\lambda$, $\mu$, $\beta$ and $T\hackscore{ref}$ 
-are constant we may use $Y\hackscore{i}=\lambda+\frac{2}{3} \mu) \; \alpha \; T\hackscore{i}$. However,
+are constant we may use $Y\hackscore{i}=(\lambda+\frac{2}{3} \mu) \; \alpha \; T\hackscore{i}$. However,
 this choice would lead to a different natural boundary condition which does not set the normal stress component as defined
 in~\eqn{HEATEDBLOCK linear elastic} to zero.
 
