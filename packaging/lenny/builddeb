@@ -5,7 +5,6 @@
 
 
 #A ~ in front of the version number indicates a pre-release and will sort earlier than versions without ~
-VERSION=3.0-1
 SRCDIR=`pwd`
 WRAPPERNAME=escript
 #ALTWRAPPERNAME=finleypython
@@ -29,6 +28,20 @@ then
   exit 3
 fi
 
+if [ $# -lt 1 ]
+then
+  echo "Usage: builddeb distro"
+  exit 4
+fi
+
+distro=$1
+
+case "$distro" in
+  "lenny" ) echo "" ;;
+  "jaunty" ) echo "";;
+  *) echo "Unknown distro $distro"; exit 4;;
+esac
+
 if [ -d $OUTPUTROOT ]
 then
   rm -rf $OUTPUTROOT || (echo "Error could not clean build area";exit 2)
@@ -42,6 +55,30 @@ case "$ARCHV" in
    "x86_64" ) ARCH="amd64";;
    *) echo "Unknown architecture $ARCHV. Unable to build package";exit 3;;
 esac
+
+#Check to ensure people are only building from clean checkouts
+#(Or at least a single consistent version).
+SVNREV=`svnversion` || (echo "Error - can't determine svn version"; exit 5)
+SVNERR=`echo $SVNREV | grep '[^[:digit:]]'`
+
+if [ -n "$SVNERR" ]
+then
+   echo "Please build packages using a clean checkout."
+   echo "Your version string shows $SVNREV"
+   exit 6
+fi
+
+echo "Reading package version from  $PKGFILES/escript/DEBIAN/control"
+#Now get the package version
+VERSION=`grep "Version:" $PKGFILES/escript/DEBIAN/control | cut -f2 -d\ `
+
+read -p "Build package with version $VERSION?(Y/N)" DOBUILD
+
+if [ "$DOBUILD" != 'Y' ]
+then
+   echo "Aborting"
+   exit 7
+fi
 
 mkdir -p $OUTPUTROOT
 
@@ -110,6 +147,13 @@ cd DEBIAN
 #Now we need to update the architecture
 mv control control.old
 sed -e "s%Architecture: i386%Architecture: $ARCH%" < control.old > control
+if [ $distro == "jaunty" ]
+then
+  echo "Replacing python2.5 dependency with python2.6 for jaunty
+  rm control.old
+  mv control control.old
+  sed -e "s%Depends: python2.5%Depends: python2.6%" < control.old > control 
+fi
 rm control.old
 
 tar czf ../../control.tar.gz .
@@ -117,7 +161,7 @@ cd ..
 tar czf ../data.tar.gz usr
 cd ..
 
-ar rcu escript-$VERSION\_$ARCH.deb debian-binary control.tar.gz data.tar.gz
+ar rcu escript-$VERSION-$distro\_$ARCH.deb debian-binary control.tar.gz data.tar.gz
 
 
 
