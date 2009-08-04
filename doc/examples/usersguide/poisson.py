@@ -22,10 +22,6 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript.linearPDEs import Poisson
 from esys.finley import Rectangle
-import numpy
-import matplotlib
-
-import pylab 
 # generate domain:
 mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
 # define characteristic function of Gamma^D
@@ -35,15 +31,6 @@ gammaD = whereZero(x[0])+whereZero(x[1])
 mypde = Poisson(domain=mydomain)
 mypde.setValue(f=1,q=gammaD)
 u = mypde.getSolution()
-
-# interpolate u to a matplotlib grid:
-x_grid = numpy.linspace(0.,1.,50)
-y_grid = numpy.linspace(0.,1.,50)
-z_grid = matplotlib.mlab.griddata(x=mydomain.getX()[0].toListOfTuples(),y=mydomain.getX()[1].toListOfTuples(),
-                                  z=interpolate(u,mydomain.getX().getFunctionSpace()).toListOfTuples(),
-                                  xi=x_grid,yi=y_grid )
-# interpolate u to a rectangular grid:
-matplotlib.pyplot.contourf(x_grid, y_grid, z_grid, 5)
-matplotlib.pyplot.show()
-matplotlib.pyplot.savefig("u.png")
+# write u to an external file
+saveVTK("u.vtu",sol=u)
 
