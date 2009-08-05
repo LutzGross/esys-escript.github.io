@@ -24,20 +24,25 @@ from esys.escript.pdetools import Locator
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
 from numpy import identity,zeros,ones
+import matplotlib.pyplot as plt
+
 
 ne=32          # number of cells in x_0 and x_1 directions
 width=10000.  # length in x_0 and x_1 directions
 lam=3.462e9
 mu=3.462e9
 rho=1154.
-tend=20. # to ran a full simulation change tend to 60.
+tend=10. # to ran a full simulation change tend to 60.
 alpha=0.7
 t0=3.
+
 
 U0=1. # maximum displacement
 mkDir("data") # create directory data if it does not exist already.
 
 def wavePropagation(domain,h,tend,lam,mu,rho, xc, src_radius, U0):
+   # lists to collect displacement at point source
+   ts, u_pc0,u_pc1,u_pc2=[], [], [], []
    x=domain.getX()
    # ... open new PDE ...
    mypde=LinearPDE(domain)
@@ -59,9 +64,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho, xc, src_radius, U0):
    # find potential at point source
    u_pc=L.getValue(u)
    print "u at point charge=",u_pc
-   # open file to save displacement at point source
-   u_pc_data=FileWriter('./data/U_pc.out')
-   u_pc_data.write("%f %f %f %f\n"%(t,u_pc[0],u_pc[1],u_pc[2]))
+   ts.append(t); u_pc0.append(u_pc[0]), u_pc1.append(u_pc[1]), u_pc2.append(u_pc[2])
  
    while t<tend:
      t+=h
@@ -81,22 +84,48 @@ def wavePropagation(domain,h,tend,lam,mu,rho, xc, src_radius, U0):
      print n,"-th time step t ",t
      u_pc=L.getValue(u)
      print "u at point charge=",u_pc
-     # save displacements at point source to file for t > 0
-     u_pc_data.write("%f %f %f %f\n"%(t,u_pc[0],u_pc[1],u_pc[2]))
+     ts.append(t); u_pc0.append(u_pc[0]), u_pc1.append(u_pc[1]), u_pc2.append(u_pc[2])
  
      # ... save current acceleration in units of gravity and displacements 
      if n==1 or n%10==0: saveVTK("./data/usoln.%i.vtu"%(n/10),acceleration=length(a)/9.81,
      displacement = length(u), tensor = stress, Ux = u[0] )
+   return ts, u_pc0,u_pc1,u_pc2
 
-   u_pc_data.close()
-  
+#
+# create domain:
+#
 mydomain=Brick(ne,ne,10,l0=width,l1=width,l2=10.*width/ne)
+#
+#  sety time step size:
+#
 h=inf(1./5.)*inf(sqrt(rho/(lam+2*mu))*mydomain.getSize())
 print "time step size = ",h
+#
 #  spherical source at middle of bottom face
+#
 xc=[width/2.,width/2.,0.]
 # define small radius around point xc
 src_radius = 0.03*width
 print "src_radius = ",src_radius
-wavePropagation(mydomain,h,tend,lam,mu,rho, xc, src_radius, U0)
+#
+# run it
+#
+ts, u_pc0,u_pc1,u_pc2 = wavePropagation(mydomain,h,tend,lam,mu,rho, xc, src_radius, U0)
+#
+# create a plot:
+#
+if getMPIRankWorld() == 0:
+    plt.title("Displacement at Point Source")
+    plt.plot(ts, u_pc0, '-', label="x_0", linewidth=1)
+    plt.plot(ts, u_pc1, '-', label="x_1", linewidth=1)
+    plt.plot(ts, u_pc2, '-', label="x_2", linewidth=1)
+    plt.xlabel('time')
+    plt.ylabel('displacement')
+    plt.legend()
+    plt.savefig('u_pc.png', format='png')
+# or save displacement
+u_pc_data=FileWriter('./data/U_pc.out')
+for i in xrange(len(ts)) :
+    u_pc_data.write("%f %f %f %f\n"%(ts[i],u_pc0[i],u_pc1[i],u_pc2[i]))
+u_pc_data.close()
 

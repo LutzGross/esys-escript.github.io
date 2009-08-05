@@ -267,10 +267,19 @@ $7$, $10$, $15$ and $20$, respectively. The node section of the \finley mesh get
    \hline\member{setIterMax} &  & $\checkmark$& $\checkmark$ & $\checkmark$& $\checkmark$& $\checkmark$ & $\checkmark$ \\
  \hline\member{setTolerance} &  & $\checkmark$& $\checkmark$ & $\checkmark$& $\checkmark$& $\checkmark$ & $\checkmark$ \\
  \hline\member{setAbsoluteTolerance} &  & $\checkmark$& $\checkmark$ & $\checkmark$& $\checkmark$& $\checkmark$ & $\checkmark$ \\
+\hline\member{setReordering} & $\checkmark$ & & & & & & & \\
 \end{tabular}
 }
-\caption{Solvers available for \finley and the \PASO package and the relevant options in \class{SolverOptions} 
- \label{TAB FINLEY SOLVER OPTIONS 1}} 
+\caption{Solvers available for
+\finley 
+and the \PASO package and the relevant options in \class{SolverOptions}. 
+\MKL supports 
+\MINIMUMFILLIN 
+and 
+\NESTEDDESCTION 
+reordering. 
+Currently the \UMFPACK interface does not support any reordering. 
+\label{TAB FINLEY SOLVER OPTIONS 1} }
 \end{table} 
 
 \begin{table}

@@ -19,8 +19,8 @@
 \usepackage{xspace}   % handle spaces after commands more nicely
 % use the ams math stuff, as it makes the maths easier to code, and
 % nicer output than the standard LaTeX stuff
-\usepackage{amsmath,amsfonts,amssymb} % this is handy for mathematicians and physicists
-			              % see http://www.ams.org/tex/amslatex.html
+\usepackage{amsmath,amsfonts,amssymb} % this is handy for mathematicians and physici
+				      % see http://www.ams.org/tex/amslatex.html
 \usepackage{alltt}   % handy verbatim stuff
 
 
@@ -37,6 +37,7 @@
 \newcommand{\pycad}{\module{esys.pycad}\xspace}
 \newcommand{\gmsh}{\module{esys.pycad.gmsh}\xspace}
 \newcommand{\gmshextern}{{\it Gmsh}\cite{GMSH}\index{Gmsh} \xspace}
+\newcommand{\SCIPY}{{\it SciPy}\cite{SCIPY}\index{SciPy} \xspace}
 \newcommand{\env}[1]{\textbf{\mbox{#1}}\index{Environment!#1}}
 % \newcommand{\MPI}{{\it MPI}\xspace\index{Message Passing Interface!MPI}\cite{MPI}\xspace}
 % \newcommand{\OPENMP}{{\it OpenMP}\xspace\index{OpenMP!threading}\cite{OPENMP}\xspace}
@@ -55,28 +56,26 @@
 \newcommand{\Data}{\class{Data}\xspace}
 \newcommand{\EmptyData}{empty \class{Data}\index{empty Data}\xspace}
 \newcommand{\Domain}{\class{Domain}\xspace}
-%\newcommand{\VTK}{{\it vtk} \cite{VTK}\index{visualization!vtk} \xspace}
-\newcommand{\GnuPlot}{{\it gnuplot} \cite{GNUPLOT}\index{visualization!gnuplot}\index{gnuplot}}
-\newcommand{\mayavi}{{\it mayavi}\index{visualization!mayavi}\index{mayavi}}
-\newcommand{\OpenDX}{{\it OpenDX} \cite{OPENDX}\xspace}
+\newcommand{\gnuplot}{{\it gnuplot} \cite{GNUPLOT}\index{visualization!gnuplot}\index{gnuplot}}
 \newcommand{\finleyelement}[1]{{\it #1}\index{finley!#1}}
 \newcommand{\False}{\constant{False}\xspace}
 \newcommand{\True}{\constant{True}\xspace}
-\newcommand{\PCG}{\constant{SolverOptions.PCG}\xspace\index{linear solver!PCG}\index{PCG}}
-\newcommand{\BiCGStab}{\constant{SolverOptions.BICGSTAB}\xspace\index{linear solver!BiCGStab}\index{BiCGStab}}
-\newcommand{\Direct}{\constant{SolverOptions.DIRECT}\xspace\index{linear solver!Direct}\index{Direct solver}}
-\newcommand{\GMRES}{\constant{SolverOptions.GMRES}\xspace\index{linear solver!GMRES}\index{GMRES}}
-\newcommand{\PRESTWENTY}{\constant{SolverOptions.PRES20}\xspace\index{linear solver!PRES20}\index{PRES20}}
-\newcommand{\JACOBI}{\constant{SolverOptions.JACOBI}\xspace\index{preconditioner!Jacobi}\index{Jacobi}}
-\newcommand{\ILU}{\constant{SolverOptions.ILU0}\xspace\index{preconditioner!ILU0}\index{ILU0}}
-\newcommand{\ILUT}{\constant{SolverOptions.ILUT}\xspace\index{preconditioner!ILUT}\index{ILUT}}
-\newcommand{\RILU}{\constant{SolverOptions.RILU}\xspace\index{preconditioner!RILU}\index{RILU}}
-\newcommand{\LUMPING}{\constant{SolverOptions.LUMPING}\xspace\index{linear solver!lumping}\index{lumping}}
-\newcommand{\NOREORDERING}{\constant{SolverOptions.NO\hackscore REORDERING}\xspace}
-\newcommand{\MINIMUMFILLIN}{\constant{SolverOptions.MINIMUM\hackscore FILL\hackscore IN}\xspace\index{linear solver!minimum fill-in ordering}\index{minimum fill-in ordering}}
-\newcommand{\NESTEDDESCTION}{\constant{SolverOptions.NESTED\hackscore DISSECTION}\xspace\index{linear solver!nested dissection ordering}\index{nested dissection}}
-\newcommand{\AMG}{\constant{SolverOptions.AMG}\xspace\index{linear solver!AMG}\index{algebraic Multi-grid}\index{AMG}}
-\newcommand{\GAUSSSEIDEL}{\constant{SolverOptions.GAUSS\hackscore SEIDEL}\xspace\index{linear solver!Gauss-Seidel}\index{preconditioner!Gauss-Seidel}\index{Gauss-Seidel Scheme}}
+\newcommand{\PCG}{\member{SolverOptions.PCG}\xspace\index{linear solver!PCG}\index{PCG}}
+\newcommand{\BiCGStab}{\member{SolverOptions.BICGSTAB}\xspace\index{linear solver!BiCGStab}\index{BiCGStab}}
+\newcommand{\Direct}{\member{SolverOptions.DIRECT}\xspace\index{linear solver!Direct}\index{Direct solver}}
+\newcommand{\GMRES}{\member{SolverOptions.GMRES}\xspace\index{linear solver!GMRES}\index{GMRES}}
+\newcommand{\PRESTWENTY}{\member{SolverOptions.PRES20}\xspace\index{linear solver!PRES20}\index{PRES20}}
+\newcommand{\JACOBI}{\member{SolverOptions.JACOBI}\xspace\index{preconditioner!Jacobi}\index{Jacobi}}
+\newcommand{\ILU}{\member{SolverOptions.ILU0}\xspace\index{preconditioner!ILU0}\index{ILU0}}
+\newcommand{\ILUT}{\member{SolverOptions.ILUT}\xspace\index{preconditioner!ILUT}\index{ILUT}}
+\newcommand{\RILU}{\member{SolverOptions.RILU}\xspace\index{preconditioner!RILU}\index{RILU}}
+\newcommand{\LUMPING}{\member{SolverOptions.LUMPING}\xspace\index{linear solver!lumping}\index{lumping}}
+\newcommand{\NOREORDERING}{\member{SolverOptions.NO\hackscore REORDERING}\xspace}
+\newcommand{\MINIMUMFILLIN}{\member{SolverOptions.MINIMUM\hackscore FILL\hackscore IN}\xspace
+\index{linear solver!minimum fill-in ordering}\index{minimum fill-in ordering}}
+\newcommand{\NESTEDDESCTION}{\member{SolverOptions.NESTED\hackscore DISSECTION}\xspace\index{linear solver!nested dissection ordering}\index{nested dissection}}
+\newcommand{\AMG}{\member{SolverOptions.AMG}\xspace\index{linear solver!AMG}\index{algebraic Multi-grid}\index{AMG}}
+\newcommand{\GAUSSSEIDEL}{\member{SolverOptions.GAUSS\hackscore SEIDEL}\xspace\index{linear solver!Gauss-Seidel}\index{preconditioner!Gauss-Seidel}\index{Gauss-Seidel Scheme}}
 \newcommand{\MKL}{\texttt{MKL}\xspace\index{packages!MKL}\index{MKL}}
 \newcommand{\UMFPACK}{\texttt{UMFPACK}\xspace\index{packages!UMFPACK}\index{UMFPACK}}
 \newcommand{\PASO}{\texttt{PASO}\xspace\index{packages!PASO}\index{PASO}}
@@ -115,8 +114,13 @@
 \newcommand{\ManifoldThreeD}{\class{Manifold3D} \xspace}
 
 % handy commands for pyvisi
-\newcommand{\VTK}{{\it VTK} \xspace}
-\newcommand{\VTKUrl}{\url{http://www.vtk.org/}\xspace}
+\newcommand{\VTK}{{\it VTK}\index{visualization!VTK}\index{VTK}\xspace}
+\newcommand{\MATPLOTLIB}{\module{matplotlib}\index{visualization!matplotlib}\index{matplotlib}\xspace}
+\newcommand{\VTKUrl}{\url{http://www.vtk.org/}\index{visualization!VTK}\index{VTK}\xspace}
+\newcommand{\VisIt}{{\it VisIt}\index{visualization!VisIt}\index{VisIt}\xspace}
+\newcommand{\mayavi}{{\it mayavi}\index{visualization!mayavi}\index{mayavi}\xspace}
+\newcommand{\OpenDX}{{\it OpenDX} \index{visualization!OpenDX}\index{OpenDX}\cite{OPENDX}\xspace}
+
 \newcommand{\Scene}{\class{Scene}\xspace}
 \newcommand{\Camera}{\class{Camera}\xspace}
 \newcommand{\Light}{\class{Light}\xspace}
