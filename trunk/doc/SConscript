@@ -25,7 +25,6 @@ example_files_allow_mpi = [
  'geotutorial/backward_euler.py', 
  'usersguide/lit_driven_cavity.py',
  'usersguide/mount.py',
- 'usersguide/wave.py',
  'usersguide/heatedblock.py',
  'usersguide/helmholtz.py',
  'usersguide/fluid.py',
@@ -37,9 +36,11 @@ example_files_allow_mpi = [
 example_files_no_mpi = [
 ]
 
+#Now we add tests which depend on matplotlib
 try:
    import matplotlib
    example_files_no_mpi.append('usersguide/poisson_matplotlib.py')
+   example_files_allow_mpi.append('usersguide/wave.py')
 except ImportError:
    print "matplotlib not found - skipping example"
 
