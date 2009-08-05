@@ -47,7 +47,7 @@ using namespace boost::python;
 
 /*! \mainpage Esys Documentation
  *
- * \version 2.9.0
+ * \version 3.0.0
  *
  * - \ref escript
  *
