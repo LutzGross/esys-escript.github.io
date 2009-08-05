@@ -321,6 +321,9 @@ cp linux_standalone_options_example.py YourMachineName_options.py
 
 echo $PKG_ROOT
 \end{shellCode}
+Where \texttt{YourMachineName} is the name of your computer as returned by the hostname command.
+If the name contains non-alphanumeric characters, then you will need to replace them with underscores.
+For example the options file for \texttt{bob-desktop} would be named \filename{bob_desktop_options.py}.
 
 Edit the options file and put the value of PKG_ROOT between the quotes in the PKG_ROOT= line.
 For example:
