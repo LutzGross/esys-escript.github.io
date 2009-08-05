@@ -27,6 +27,16 @@ Make sure you have the following installed:
 %  \item \filename{libxt.so}\footnote{In Debian this is in the libxt-dev package.}
 \end{itemize}
 
+To compile matplotlib you will also need the following\footnote{For Debian and Ubuntu users, installing \filename{libfreetype6-dev} and \filename{libpng-dev} will be sufficient.} (if your distribution separates development files,
+make sure to get the development packages):
+\begin{itemize}
+ \item \filename{freetype2}
+\item \filename{zlib}
+\item \filename{libpng}
+\end{itemize}
+
+
+
 You will also need a copy of the \esfinley source code.
 If you retrieved the source using subversion, don't forget that one can use the export command instead of checkout to get a smaller copy.
 For additional visualization functionality see \Sec{sec:addfunc}.
