@@ -30,11 +30,16 @@ import numpy as np
 #import numpy as n
 from math import *
 
+# routine to find consecutive coordinates of a loop in pycad
 def loopcoords(loop):
+	# return all construction points of input
 	temp = loop.getConstructionPoints()
+	#create a numpy array for xyz components or construction points
 	coords = np.zeros([len(temp),3],float)
+	#place construction points in array
 	for i in range(0,len(temp)):
 		coords[i,:]=temp[i].getCoordinates()
+	#return a numpy array
 	return coords
 
 # Overall Domain
