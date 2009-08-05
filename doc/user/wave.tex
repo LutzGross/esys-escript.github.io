@@ -48,13 +48,13 @@ for all time $t>0$.
 \end{figure}
 
 Here we are modelling a point source at the point $x\hackscore C$ in the $x\hackscore{0}$-direction
-which is a negative puls of amplitude $U\hackscore{0}$ followd by the same 
-positive puls. In mathematical terms we use
+which is a negative pulse of amplitude $U\hackscore{0}$ followed by the same 
+positive pulse. In mathematical terms we use
 \begin{eqnarray} \label{WAVE source}
 u\hackscore{0}(x\hackscore C,t)= U\hackscore{0} \; \sqrt{2}  \frac{(t-t\hackscore{0})}{\alpha} e^{\frac{1}{2}-\frac{(t-t\hackscore{0})^2}{\alpha^2}} \ 
 \end{eqnarray}
-for all $t\ge0$ where $\alpha$ is the width of the puls and $t\hackscore{0}$ is the time when
-the puls changes from negative to positive. In the simulations we will choose $\alpha=0.3$ and $t\hackscore{0}=2$, see Figure~\ref{WAVE FIG 1.2}
+for all $t\ge0$ where $\alpha$ is the width of the pulse and $t\hackscore{0}$ is the time when
+the pulse changes from negative to positive. In the simulations we will choose $\alpha=0.3$ and $t\hackscore{0}=2$, see Figure~\ref{WAVE FIG 1.2}
 and will apply the source as a constraint in a in a sphere of small radius around the point
 $x\hackscore C$.  
 
@@ -129,16 +129,15 @@ and the end time of the simulation. \var{lam}, \var{mu} and
 \var{rho} are material properties. 
 \begin{python}
 def wavePropagation(domain,h,tend,lam,mu,rho, x_c, src_radius, U0):
+   # lists to collect displacement at point source which is returned to the caller
+   ts, u_pc0,u_pc1,u_pc2=[], [], [], []
+  
    x=domain.getX()
    # ... open new PDE ...
    mypde=LinearPDE(domain)
    mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
    kronecker=identity(mypde.getDim())
-
-
-
    dunit=numpy.array([1.,0.,0.]) # defines direction of point source
-
    mypde.setValue(D=kronecker*rho, q=whereNegative(length(x-xc)-src_radius)*dunit)
    # ... set initial values ....
    n=0
@@ -146,7 +145,6 @@ def wavePropagation(domain,h,tend,lam,mu,rho, x_c, src_radius, U0):
    u=Vector(0.,Solution(domain))
    u_last=Vector(0.,Solution(domain))
    t=0
-
    # define the location of the point source 
    L=Locator(domain,xc)
    # find potential at point source
@@ -154,7 +152,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho, x_c, src_radius, U0):
    print "u at point charge=",u_pc
    # open file to save displacement at point source
    u_pc_data=FileWriter('./data/U_pc.out')
-   u_pc_data.write("%f %f %f %f\n"%(t,u_pc[0],u_pc[1],u_pc[2]))
+   ts.append(t); u_pc0.append(u_pc[0]), u_pc1.append(u_pc[1]), u_pc2.append(u_pc[2])
 
    while t<tend:
      t+=h
@@ -162,7 +160,8 @@ def wavePropagation(domain,h,tend,lam,mu,rho, x_c, src_radius, U0):
      g=grad(u)
      stress=lam*trace(g)*kronecker+mu*(g+transpose(g))
      # ... get new acceleration ....
-     amplitude=U0*(4*(t-t0)**3/alpha**3-6*(t-t0)/alpha)*sqrt(2.)/alpha**2*exp(1./2.-(t-t0)**2/alpha**2)
+     amplitude=U0*(4*(t-t0)**3/alpha**3-6*(t-t0)/alpha)*sqrt(2.)/alpha**2 \
+                                             *exp(1./2.-(t-t0)**2/alpha**2)
      mypde.setValue(X=-stress, r=dunit*amplitude)
      a=mypde.getSolution()
      # ... get new displacement ...
@@ -175,13 +174,16 @@ def wavePropagation(domain,h,tend,lam,mu,rho, x_c, src_radius, U0):
      u_pc=L.getValue(u)
      print "u at point charge=",u_pc
      # save displacements at point source to file for t > 0
-     u_pc_data.write("%f %f %f %f\n"%(t,u_pc[0],u_pc[1],u_pc[2]))
+     ts.append(t); u_pc0.append(u_pc[0]), u_pc1.append(u_pc[1]), \
+                                                    u_pc2.append(u_pc[2])
 
      # ... save current acceleration in units of gravity and displacements 
-     if n==1 or n%10==0: saveVTK("./data/usoln.%i.vtu"%(n/10),acceleration=length(a)/9.81,
-     displacement = length(u), tensor = stress, Ux = u[0] )
+     if n==1 or n%10==0: saveVTK("./data/usoln.%i.vtu"%(n/10), \
+                                 acceleration=length(a)/9.81,
+                                 displacement = length(u), \
+				 tensor = stress, Ux = u[0] )
 
-   u_pc_data.close()
+   return ts, u_pc0, u_pc1, u_pc2
 \end{python}
 Notice that 
 all coefficients of the PDE which are independent of time $t$ are set outside the \code{while} 
@@ -214,21 +216,10 @@ L=Locator(domain,xc)
 u=...
 u_pc=L.getValue(u)
 \end{python}
-The return value \code{u_pc} is the value of \code{u} at the location \code{xc}\footnote{In fact the finite element node which is closest to the given position. The usage of  \class{Locator} is MPI save.}.
-
-
-The output \code{U_pc.out} and \code{vtu} files are saved in a directory called \code{data}.
-The \code{U_pc.out} stores 4 columns of data: $t,u\hackscore x,u\hackscore y,u\hackscore z$ 
-respectively, where $u\hackscore x,u\hackscore y,u\hackscore z$ are the $x\hackscore 0,x\hackscore 1,x\hackscore 2$ components of 
-the displacement vector $u$ at the point source. These can be
-plotted easily using any plotting package. In gnuplot the command:
-\begin{verbatim}
- plot 'U_pc.out' u 1:2 title 'U_x' w l lw 2, 'U_pc.out' u 1:3 title 'U_y' w l lw 2, 
-'U_pc.out' u 1:4 title 'U_z' w l lw 2
-\end{verbatim}
-will reproduce Figure~\ref{WAVE FIG 1} (As expected this is identical to the input signal shown in Figure~\ref{WAVE FIG 1.2})2. It is pointed out that we are not using the
-standart \PYTHON \function{open} to create the file \code{U_pc.out} as it is not 
-when running \escript under MPI, see chapter~\ref{EXECUTION} for more details.
+The return value \code{u_pc} is the value of \code{u} at the location \code{xc}\footnote{In fact the finite element node which is closest to the given position. The usage of  \class{Locator} is MPI save.}. The values
+are collected in the lists \var{u_pc0}, \var{u_pc1} and \var{u_pc2} together with the 
+corresponding time marker in \var{ts}. The values are handed back to the caller. Later we will show to ways to
+access these data.
 
 One of the big advantages of the Verlet scheme is the fact that the problem to be solved 
 in each time step is very simple and does not involve any spatial derivatives (which is what allows us to use lumping in this simulation).
@@ -256,6 +247,21 @@ h= \frac{1}{5} \sqrt{\frac{\rho}{\lambda+2\mu}} \Delta x
 where $\Delta x$ is the cell diameter. The factor $\frac{1}{5}$ is a safety factor considering the heuristics of 
 the formula. 
 
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=2in]{figures/Wave11}
+\includegraphics[width=2in]{figures/Wave22}
+\includegraphics[width=2in]{figures/Wave28}
+\includegraphics[width=2in]{figures/Wave32}
+\includegraphics[width=2in]{figures/Wave36}
+\end{center}
+\caption{Selected time steps ($n = 11, 22, 32, 36$) of a wave propagation over a $10\mbox{km} \times 10\mbox{km} \times 3.125\mbox{km}$ block 
+from a point source initially at $(5\mbox{km},5\mbox{km},0)$
+with time step size $h=0.02083$. Color represents the displacement.
+Here the view is oriented onto the bottom face.
+\label{WAVE FIG 2}}
+\end{figure}
+
 The following script uses the \code{wavePropagation} function to solve the
 wave equation for a point source located at the bottom face of a block. The width of the block in 
 each direction on the bottom face is $10\mbox{km}$ ($x\hackscore 0$ and $x\hackscore 1$ directions ie. \code{l0} and \code{l1}).
@@ -281,18 +287,21 @@ xc=[width/2.,width/2.,0.]
 # define small radius around point xc
 src_radius = 0.03*width
 print "src_radius = ",src_radius
-
 mydomain=Brick(ne,ne,10,l0=width,l1=width,l2=10.*width/32.)
 h=(1./5.)*inf(sqrt(rho/(lam+2*mu))*inf(domain.getSize())
 print "time step size = ",h
-wavePropagation(mydomain,h,tend,lam,mu,rho,xc, src_radius, U0)
+ts, u_pc0, u_pc1, u_pc2 =   \
+                    wavePropagation(mydomain,h,tend,lam,mu,rho,xc, src_radius, U0)
 \end{python}
 The \function{domain.getSize()} return the local element size $\Delta x$. The 
 \function{inf} makes sure that the Courant condition~\ref{WAVE dyn 66} olds everywhere in the domain. 
 
 The script is available as \file{wave.py} in the \ExampleDirectory \index{scripts!\file{wave.py}}. 
 To visualize the results from the data directory: 
-\begin{verbatim} mayavi -d usoln.1.vtu -m SurfaceMap &\end{verbatim} You can rotate this figure by clicking on it with the mouse and moving it around.
+\begin{verbatim} 
+mayavi2 -d usoln.1.vtu -m SurfaceMap &
+\end{verbatim}
+You can rotate this figure by clicking on it with the mouse and moving it around.
 Again use \code{Configure Data} to move backwards and forward in time, and 
 also to choose the results (acceleration, displacement or $u\hackscore x$) by using \code{Select Scalar}. Figure \ref{WAVE FIG 2} shows the results for the displacement at various time steps.
 
@@ -302,17 +311,44 @@ also to choose the results (acceleration, displacement or $u\hackscore x$) by us
 \label{WAVE FIG 1}
 \end{figure}
 
-\begin{figure}[t]
-\begin{center}
-\includegraphics[width=2in]{figures/Wave11}
-\includegraphics[width=2in]{figures/Wave22}
-\includegraphics[width=2in]{figures/Wave28}
-\includegraphics[width=2in]{figures/Wave32}
-\includegraphics[width=2in]{figures/Wave36}
-\end{center}
-\caption{Selected time steps ($n = 11, 22, 32, 36$) of a wave propagation over a $10\mbox{km} \times 10\mbox{km} \times 3.125\mbox{km}$ block 
-from a point source initially at $(5\mbox{km},5\mbox{km},0)$
-with time step size $h=0.02083$. Color represents the displacement.
-Here the view is oriented onto the bottom face.
-\label{WAVE FIG 2}}
-\end{figure}
+It remains to show some possibilities to inspect the collected data \var{u_pc0}, \var{u_pc1} and \var{u_pc2}.
+One way is to write the data to a file and then use an external package such as \gnuplot, excel or OpenOffice to read the data for further analysis. The following code shows one possible form to write the data to the 
+file \file{./data/U_pc.out}:
+\begin{python}
+u_pc_data=FileWriter('./data/U_pc.out')
+for i in xrange(len(ts)) :
+    u_pc_data.write("%f %f %f %f\n"%(ts[i],u_pc0[i],u_pc1[i],u_pc2[i]))
+u_pc_data.close()
+\end{python}
+The \code{U_pc.out} stores 4 columns of data: $t,u\hackscore x,u\hackscore y,u\hackscore z$ 
+respectively, where $u\hackscore x,u\hackscore y,u\hackscore z$ are the $x\hackscore 0,x\hackscore 1,x\hackscore 2$ components of the displacement vector $u$ at the point source. These can be
+plotted easily using any plotting package. In \gnuplot the command:
+\begin{verbatim}
+ plot 'U_pc.out' u 1:2 title 'U_x' w l lw 2, 'U_pc.out' u 1:3 title 'U_y' w l lw 2, 
+'U_pc.out' u 1:4 title 'U_z' w l lw 2
+\end{verbatim}
+will reproduce Figure~\ref{WAVE FIG 1} (As expected this is identical to the input signal shown in Figure~\ref{WAVE FIG 1.2})2. It is pointed out that we are not using the
+standard \PYTHON \function{open} to write to the file \code{U_pc.out} as it is not safe
+when running \escript under MPI, see chapter~\ref{EXECUTION} for more details.
+
+Alternatively, one can implement plotting the results at run time rather than in a post-processing step. This avoids
+the generation of an intermediate data file. In {\it escript} the preferred way of creating 2D plots of 
+time dependent data is \MATPLOTLIB. The following script creates the plot and writes it into the 
+file \file{u_pc.png} in the PNG image format:
+\begin{python}
+import matplotlib.pyplot as plt
+if getMPIRankWorld() == 0:
+    plt.title("Displacement at Point Source")
+    plt.plot(ts, u_pc0, '-', label="x_0", linewidth=1)
+    plt.plot(ts, u_pc1, '-', label="x_1", linewidth=1)
+    plt.plot(ts, u_pc2, '-', label="x_2", linewidth=1)
+    plt.xlabel('time')
+    plt.ylabel('displacement')
+    plt.legend()
+    plt.savefig('u_pc.png', format='png')
+\end{python}
+You can add the \function{plt.show()} to create a interactive browser window. Please not that 
+through the \code{getMPIRankWorld() == 0} statement the plot is generated on one processor only (in this case the rank 0 processor) when run under MPI. 
+
+Both options for processing the point source data are include in the example file \file{wave.py}. There other options available to process these data in particular through the \SCIPY package , eg Fourier transformations. It is beyond the scope of this users guide to document the usage of \SCIPY for time series analysis but is highly recommended that users  use \SCIPY to any further data processing.
+
