@@ -28,6 +28,8 @@ from esys.escript import * # This imports everything from the escript library
 from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE
 from esys.finley import Rectangle # This imports the rectangle domain function from finley
 from esys.escript.unitsSI import * # A useful unit handling package which will make sure all our units match up in the equations.
+import pylab as pl
+import numpy as np
 import os #This package is necessary to handle saving our data.
 #plotting tools
 #import matplotlib as ptool
@@ -75,11 +77,19 @@ T=Tref
 
 # ... start iteration:
 while t<=tend:
-      i+=1
-      t+=h
-      mypde.setValue(Y=qH+rhocp/h*T)
-      T=mypde.getSolution()
-      #ptool.plot(T)
-      saveVTK(os.path.join(save_path,"data%03d.vtu") %i,sol=T)
-      
+	i+=1
+	t+=h
+	mypde.setValue(Y=qH+rhocp/h*T)
+	T=mypde.getSolution()
+	#ptool.plot(T)
+	saveVTK(os.path.join(save_path,"data%03d.vtu") %i,sol=T)
+	plx = x.toListOfTuples()
+	plx = np.array(plx)
+	plx = plx[:,0]
+	tempT = T.toListOfTuples(scalarastuple=False)
+	pl.plot(plx,tempT)
+	pl.title("Temperatuer accross Rod")
+	#~ pl.axis([0.0,1.0,0.0,0.004*2.73146e2])
+	pl.savefig(os.path.join(save_path,"rodpyplot%03d.png") %i)
+	pl.clf()      
 
