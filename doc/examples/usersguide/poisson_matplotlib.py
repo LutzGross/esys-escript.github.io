@@ -43,15 +43,15 @@ try:
 	# interpolate u to a matplotlib grid:
 	x_grid = numpy.linspace(0.,1.,50)
 	y_grid = numpy.linspace(0.,1.,50)
-	x=mydomain.getX()[0].toListOfTuples()
-	y=mydomain.getX()[1].toListOfTuples()
-	z=interpolate(u,mydomain.getX().getFunctionSpace()).toListOfTuples()
+	x=mydomain.getX()[0].toListOfTuples(scalarastuple=False)
+	y=mydomain.getX()[1].toListOfTuples(scalarastuple=False)
+	z=interpolate(u,mydomain.getX().getFunctionSpace()).toListOfTuples(scalarastuple=False)
 	z_grid = matplotlib.mlab.griddata(x,y,z,xi=x_grid,yi=y_grid )
 	# interpolate u to a rectangular grid:
 	matplotlib.pyplot.contourf(x_grid, y_grid, z_grid, 5)
 	matplotlib.pyplot.savefig("u.png")
-	# uncommend this line if you want to interact with a plot window
-	matplotlib.pyplot.show()
+	# uncomment this line if you want to interact with a plot window
+	#matplotlib.pyplot.show()
 
 except AttributeError:
 	print "Your version of matplotlib does not provide the griddata method.\nSkipping example.\n"
