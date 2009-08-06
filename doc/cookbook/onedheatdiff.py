@@ -71,4 +71,16 @@ while t<=tend:
       print T
       saveVTK(os.path.join(save_path,"data%03d.vtu") %i,sol=T)
       
+#~ command = ('mencoder',
+           #~ 'mf://*.png',
+           #~ '-mf',
+           #~ 'type=png:w=800:h=600:fps=25',
+           #~ '-ovc',
+           #~ 'lavc',
+           #~ '-lavcopts',
+           #~ 'vcodec=mpeg4',
+           #~ '-oac',
+           #~ 'copy',
+           #~ '-o',
+           #~ 'output.avi')
 

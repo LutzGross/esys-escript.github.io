@@ -10,5 +10,6 @@ sys.path.insert(0,'cblib')
 from wavesolver2d import *
 from wavesolver2df import *
 from phones import *
+from getLoopCoords import *
 #exit subdirectory
 del sys.path[0]
