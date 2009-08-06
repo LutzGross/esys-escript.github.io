@@ -46,9 +46,11 @@ Please notify the development team if something goes wrong.
 
 \subsection{Stand-alone bundle}\label{sec:standalonelinux}
 
-If there is no package available for your distribution download the generic \linux bundle and decompress it:
+If there is no package available for your distribution, you may be able to use one of our stand alone bundles.
+These come in two parts: escript itself (\filename{escript_3.0_i386.tar.bz2}) and a group of required programs (\filename{escript-support_3.0_i386.tar.bz2}). For $64$-bit Intel and Amd processors substitute \texttt{amd64} for \texttt{i386}.
 \begin{shellCode}
-tar -xjf escript.tar.bz2 
+tar -xjf escript-support_3.0_i386.tar.bz2
+tar -xjf escript_3.0_i386.tar.bz2
 \end{shellCode}
 This will produce a directory called \filename{stand} which contains a stand-alone version of \esfinley and its dependencies.
 You can rename or move it as is convenient to you, no installation is required.
@@ -57,5 +59,5 @@ Test your installation by running:
 stand/escript.d/bin/escript
 \end{shellCode}
 This should give you a normal python shell.
-If you wish to save on typing you can add \filename{x/escript.d/bin} to your \texttt{PATH} variable (where x is the absolute path to your install).
+If you wish to save on typing you can add \filename{x/stand/escript.d/bin}\footnote{or whatever you renamed \texttt{stand} to.} to your \texttt{PATH} variable (where x is the absolute path to your install).
 
