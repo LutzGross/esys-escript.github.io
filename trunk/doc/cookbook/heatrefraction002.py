@@ -35,35 +35,51 @@ import pylab as pl
 from esys.escript.pdetools import *
 
 ##ESTABLISHING VARIABLES
-#DOMAIN
-mymesh = ReadMesh("heatrefraction_mesh003.fly")
-#~ print Function(mymesh).getListOfTags()
-
-qin=70*Milli*W/(m*m) #our heat source temperature is now zero
+qin=300.*Milli*W/(m*m) #our heat source temperature is now zero
 Ti=290.15*K # Kelvin #the starting temperature of our iron bar
+
+# the folder to gett our outputs from, leave blank "" for script path - 
+# note these depen. are generated from heatrefraction_mesher001.py
+saved_path = "data/heatrefrac002" 
+
+###### 2 BLOCK MODEL #########
+## DOMAIN
+## Anticline
+mymesh=ReadMesh(os.path.join(saved_path,"heatrefraction_mesh003.fly"))
+tpg = np.loadtxt(os.path.join(saved_path,"toppg"))
+tpgx = tpg[:,0]
+tpgy = tpg[:,1]
+bpgl = np.loadtxt(os.path.join(saved_path,"botpgl"))
+bpglx = bpgl[:,0]
+bpgly = bpgl[:,1]
+bpgr = np.loadtxt(os.path.join(saved_path,"botpgr"))
+bpgrx = bpgr[:,0]
+bpgry = bpgr[:,1]
 
 # set up kappa (thermal conductivity across domain) using tags
 kappa=Scalar(0,Function(mymesh))
-kappa.setTaggedValue("tblockloop",2.0)
-kappa.setTaggedValue("bblockloopl",3.0)
-kappa.setTaggedValue("bblockloopr",4.0)
+kappa.setTaggedValue("top",2.0)
+kappa.setTaggedValue("bottomleft",18.0)
+kappa.setTaggedValue("bottomright",6.0)
 
 #... generate functionspace...
 #... open PDE ...
 mypde=LinearPDE(mymesh)
+mypde.setSymmetryOn()
 #define first coefficient
 mypde.setValue(A=kappa*kronecker(mymesh))
 
 # ... set initial temperature ....
 x=mymesh.getX()
 
-qH=qin*whereZero(x[1]+6000)
-mypde.setValue(q=Ti*whereZero(x[1]),r=Ti)
-mypde.setValue(Y=qH,y=17*Celsius)
+qH=Scalar(0,FunctionOnBoundary(mymesh))
+qH.setTaggedValue("linebottom",qin)
+mypde.setValue(q=whereZero(x[1]),r=Ti)
+mypde.setValue(y=qH)
 
 # get steady state solution and export to vtk.
 T=mypde.getSolution()
-saveVTK("tempheatrefract.xml",sol=T, q=-kappa*grad(T))
+#saveVTK("tempheatrefract.xml",sol=T, q=-kappa*grad(T))
 
 # rearrage mymesh to suit solution function space      
 oldspacecoords=mymesh.getX()
@@ -111,41 +127,16 @@ ziK = pl.matplotlib.mlab.griddata(coordKX,coordKY,kappaT,xi,yi)
 # contour the gridded data, plotting dots at the randomly spaced data points.
 
 pl.matplotlib.pyplot.autumn()
-CKL = pl.contour(xi,yi,ziK,1,linewidths=1.0)
-CK = pl.contourf(xi,yi,ziK,1)
+CKL = pl.fill(tpgx,tpgy,'brown',bpglx,bpgly,'red',bpgrx,bpgry,'orange',zorder=-1000)
+#~ CK = pl.contourf(xi,yi,ziK,2)
 CS = pl.contour(xi,yi,zi,5,linewidths=0.5,colors='k')
 pl.clabel(CS, inline=1, fontsize=8)
-CB = pl.colorbar(CS, shrink=0.8, extend='both')
-pl.savefig("temp.png")
+pl.title("Heat Refraction across an anisotropic structure.")
+pl.xlabel("Horizontal Displacement (m)")
+pl.ylabel("Depth (m)")
+#~ CB = pl.colorbar(CS, shrink=0.8, extend='both')
+pl.savefig(os.path.join(saved_path,"heatrefraction001_cont.png"))
 
-#~ dx = np.zeros(82,float)
-#~ dy = np.zeros(82,float)
-#~ vlocs = np.zeros([82,2],float)
-#~ delx = 5000.0/100
-#~ dely = 6000.0/100
-#~ ind = 0
-#~ 
-#~ for i in range(1,10):
-	#~ for j in range(1,10):
-		#~ iloc = i*10
-		#~ jloc = j*10
-		#~ ind += 1
-		#~ 
-		#~ vlocs[ind,0] = iloc*delx; vlocs[ind,1]=-jloc*dely
-		#~ 
-		#~ print zi[iloc,jloc], zi[iloc+5,jloc]
-		#~ print zi[iloc,jloc], zi[iloc,jloc+5]
-		#~ dx[ind] = (zi[iloc,jloc] - zi[iloc+5,jloc])/delx
-		#~ dy[ind] = (zi[iloc,jloc] - zi[iloc,jloc+5])/dely
-
-#~ zpoints = [zi[iloc,jloc],zi[iloc+2,jloc],zi[iloc+4,jloc]]
-#~ xpoints = [vlocs[ind,0],vlocs[ind+2,0],vlocs[ind+4,0]]
-#~ print pl.matplotlib.mlab.slopes(xpoints,zpoints)
-#~ dx[ind] = pl.matplotlib.mlab.slopes(xpoints,zpoints)
-		#~ 
-#~ ypoints = [vlocs[ind,1],vlocs[ind+2,1],vlocs[ind+4,]]
-#~ zpoints = [zi[iloc,jloc],zi[iloc,jloc+2],zi[iloc,jloc+4]]
-#~ dy[ind] = pl.matplotlib.mlab.slopes(ypoints,zpoints)
-#~ 
-pl.quiver(qulocs[:,0],qulocs[:,1],qu[:,0],qu[:,1],angles='xy',color="green")
-pl.savefig("temp2.png")
+QUIV=pl.quiver(qulocs[:,0],qulocs[:,1],qu[:,0],qu[:,1],angles='xy',color="white")
+pl.title("Heat Refraction across an anisotropic structure \n with gradient quivers.")
+pl.savefig(os.path.join(saved_path,"heatrefraction001_contqu.png"))

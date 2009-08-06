@@ -38,14 +38,18 @@ from esys.escript.pdetools import *
 qin=70*Milli*W/(m*m) #our heat source temperature is now zero
 Ti=290.15*K # Kelvin #the starting temperature of our iron bar
 
+# the folder to gett our outputs from, leave blank "" for script path - 
+# note these depen. are generated from heatrefraction_mesher001.py
+saved_path = "data/heatrefrac001" 
+
 ###### 2 BLOCK MODEL #########
 ## DOMAIN
 ## Anticline
-mymesh = ReadMesh("heatrefraction_mesh001.fly")
-tpg = np.loadtxt("toppg")
+mymesh=ReadMesh(os.path.join(saved_path,"heatrefraction_mesh001.fly"))
+tpg = np.loadtxt(os.path.join(saved_path,"toppg"))
 tpgx = tpg[:,0]
 tpgy = tpg[:,1]
-bpg = np.loadtxt("botpg")
+bpg = np.loadtxt(os.path.join(saved_path,"botpg"))
 bpgx = bpg[:,0]
 bpgy = bpg[:,1]
 ## Syncline
@@ -73,13 +77,14 @@ mypde.setValue(A=kappa*kronecker(mymesh))
 # ... set initial temperature ....
 x=mymesh.getX()
 
-qH=qin*whereZero(x[1]-inf(x[1]))
+qH=Scalar(0,FunctionOnBoundary(mymesh))
+qH.setTaggedValue("linebottom",qin)
 mypde.setValue(q=whereZero(x[1]),r=Ti)
 mypde.setValue(y=qH)#,r=17*Celsius)
 
 # get steady state solution and export to vtk.
 T=mypde.getSolution()
-saveVTK("tempheatrefract.xml",sol=T, q=-kappa*grad(T))
+#saveVTK("tempheatrefract.xml",sol=T, q=-kappa*grad(T))
 
 # rearrage mymesh to suit solution function space      
 oldspacecoords=mymesh.getX()
@@ -131,8 +136,16 @@ CKL = pl.fill(tpgx,tpgy,'brown',bpgx,bpgy,'red',zorder=-1000)
 #~ CK = pl.contourf(xi,yi,ziK,2)
 CS = pl.contour(xi,yi,zi,5,linewidths=0.5,colors='k')
 pl.clabel(CS, inline=1, fontsize=8)
+pl.title("Heat Refraction across a clinal structure.")
+pl.xlabel("Horizontal Displacement (m)")
+pl.ylabel("Depth (m)")
 #~ CB = pl.colorbar(CS, shrink=0.8, extend='both')
-pl.savefig("temp.png")
+pl.savefig(os.path.join(saved_path,"heatrefraction001_cont.png"))
 
-QUIV = pl.quiver(qulocs[:,0],qulocs[:,1],qu[:,0],qu[:,1],angles='xy',color="white")
-pl.savefig("temp2.png")
+QUIV=pl.quiver(qulocs[:,0],qulocs[:,1],qu[:,0],qu[:,1],angles='xy',color="white")
+pl.title("Heat Refraction across a clinal structure \n with gradient quivers.")
+pl.savefig(os.path.join(saved_path,"heatrefraction001_contqu.png"))
+
+pl.clf()
+CKL = pl.fill(tpgx,tpgy,'white',bpgx,bpgy,'white',zorder=-1000)
+pl.savefig('model.png')
