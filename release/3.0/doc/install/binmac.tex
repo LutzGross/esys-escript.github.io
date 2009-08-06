@@ -23,19 +23,18 @@ For more information on using the \filename{escript} command please see the User
 \subsection{Stand-alone bundle \macosx 10.5.6 (``Leopard'')}
 
 You will need to download both escript (\filename{escript_3.0_osx.dmg}) and the support files (\filename{escript-support_3.0_osx.dmg}).
-Open the \filename{.dmg} files and copy the contents to where you wish to install.
-You should end up with a single \filename{stand} folder containing \filename{pkg}, \filename{pkg_src} and
-\filename{escript.d}. 
-Once this is done, you can rename \filename{stand} to something else if you wish.
-Just substitute your new name for "stand" in the following. 
+\begin{itemize}
+\item Create a folder to hold escript (no spaces in the name please).
+\item Open the \filename{.dmg} files and copy the contents to the folder you just created.
+\end{itemize}
 
 To use escript, open a terminal\footnote{If you do not know how to open a terminal on Mac, then just type \texttt{terminal} in the spotlight (search tool on the top of the right corner) and once found just click on it.} and type
 \begin{shellCode}
-cd x/stand/escript.d/bin/escript
+cd x/escript.d/bin/escript
 \end{shellCode}
 where \textit{x} is the absolute path to your install.
 
-If you wish to save on typing you can add \filename{x/stand/escript.d/bin} to your PATH variable (where \textit{x} is the absolute path to your install). 
+If you wish to save on typing you can add \filename{x/escript.d/bin} to your PATH variable (where \textit{x} is the absolute path to your install). 
 
 
 
