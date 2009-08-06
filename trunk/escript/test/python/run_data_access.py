@@ -31,7 +31,7 @@ class DataAccessTestCase(unittest.TestCase):
     def testtoListOfTuplesScalarOnNullDomain(self):
 	inp=42.0
 	d=Data(inp)
-	t=d.toListOfTuples()[0]
+	t=d.toListOfTuples(scalarastuple=True)[0]
 	self.failUnless(type(t)==type((1.0,)), "Did not return tuple for scalar data")
 	self.failUnless(abs(inp-t[0])<EPSILON, "Did not return correct value")
 	t=d.toListOfTuples(scalarastuple=False)[0]
@@ -45,7 +45,7 @@ class DataAccessTestCase(unittest.TestCase):
 	d=Data(inp,fs,True)
 	for x in range(5):
 	    d.setValueOfDataPoint(x,43+x)
-	t=d.toListOfTuples()
+	t=d.toListOfTuples(scalarastuple=True)
 	self.failUnless(len(t)==5,"Returned list has the wrong length")
 	total=0
 	for x in range(5):
@@ -55,7 +55,7 @@ class DataAccessTestCase(unittest.TestCase):
 	d=Data(inp,fs,True)
 	for x in range(5):
 	    d.setValueOfDataPoint(x,((x,x+1),(x+2,x+3)))
-	t=d.toListOfTuples()
+	t=d.toListOfTuples(scalarastuple=True)
 	ok=True
 	for x in range(5):
 	    if t[x]!=((x,x+1),(x+2,x+3)): ok=False
@@ -68,7 +68,7 @@ class DataAccessTestCase(unittest.TestCase):
 	for x in range(15):
 	    d.setValueOfDataPoint(x,x)
 	ok=True
-	t=d.toListOfTuples()
+	t=d.toListOfTuples(scalarastuple=True)
 	for x in range(15):
 	    if t[x]!=(x,): ok=False
 	self.failUnless(ok,"Returned scalar does not match")
@@ -76,7 +76,7 @@ class DataAccessTestCase(unittest.TestCase):
 	d=Data(inp,fs,True)
 	for x in range(15):
 	    d.setValueOfDataPoint(x,(2*(x/2),(2*(x/2)+1)))
-	t=d.toListOfTuples()
+	t=d.toListOfTuples(scalarastuple=True)
 	ok=True
 	for x in range(15):
 	    if t[x]!=(2*(x/2),2*(x/2)+1): ok=False
@@ -86,7 +86,7 @@ class DataAccessTestCase(unittest.TestCase):
 	d=Data(inp,fs,True)
 	for x in range(15):
 	    d.setValueOfDataPoint(x,((x,x+1),(x+2,x+3)))
-	t=d.toListOfTuples()
+	t=d.toListOfTuples(scalarastuple=True)
 	ok=True
 	for x in range(15):
 	    if t[x]!=((x,x+1),(x+2,x+3)): ok=False
@@ -96,7 +96,7 @@ class DataAccessTestCase(unittest.TestCase):
 	d=Data(inp,fs,True)
 	for x in range(15):
 	    d.setValueOfDataPoint(x,(((x,x+1),(x+2,x+3)),((x+4,x+5),(x+6,x+7))))
-	t=d.toListOfTuples()
+	t=d.toListOfTuples(scalarastuple=True)
 	ok=True
 	for x in range(15):
 	    if t[x]!=(((x,x+1),(x+2,x+3)),((x+4,x+5),(x+6,x+7))): ok=False
