@@ -261,6 +261,7 @@ class SolverOptions(object):
         self.__num_inner_iter=None
         self.__time=None
         self.__set_up_time=None
+        self.__net_time=None
         self.__residual_norm=None
         self.__converged=None
         if all: 
@@ -268,13 +269,14 @@ class SolverOptions(object):
             self.__cum_num_iter=0
             self.__cum_time=0
             self.__cum_set_up_time=0
+            self.__cum_net_time=0
 
     def _updateDiagnostics(self, name, value):
         """
         Updates diagnostic information 
         
         @param name: name of  diagnostic information
-        @type name: C{str} in the list "num_iter", "num_level", "num_inner_iter", "time", "set_up_time", "residual_norm", "converged".
+        @type name: C{str} in the list "num_iter", "num_level", "num_inner_iter", "time", "set_up_time", "net_time", "residual_norm", "converged".
         @param vale: new value of the diagnostic information
         @note: this function is used by a solver to report diagnostics informations.
         """
@@ -282,7 +284,7 @@ class SolverOptions(object):
             self.__num_iter=int(value)
             self.__cum_num_iter+=self.__num_iter
         if name == "num_level":
-            self.__num_iter=int(value)
+            self.__num_level=int(value)
         if name == "num_inner_iter":
             self.__num_inner_iter=int(value)
             self.__cum_num_inner_iter+=self.__num_inner_iter
@@ -292,6 +294,9 @@ class SolverOptions(object):
         if name == "set_up_time":
             self.__set_up_time=float(value)
             self.__cum_set_up_time+=self.__set_up_time
+        if name == "net_time":
+            self.__net_time=float(value)
+            self.__cum_net_time+=self.__net_time
         if name == "residual_norm":
             self.__residual_norm=float(value)
         if name == "converged":
@@ -310,9 +315,11 @@ class SolverOptions(object):
         - "cum_time": cumulative execution time
         - "set_up_time": time to set up of the solver, typically this includes factorization and reordering
         - "cum_set_up_time": cumulative time to set up of the solver
+        - "net_time": net execution time, excluding setup time for the solver and execution time for preconditioner
+        - "cum_net_time": cumulative net execution time
         - "residual_norm": norm of the final residual
         - "converged": return self.__converged     
-        @type name: C{str} in the list "num_iter", "num_level", "num_inner_iter", "time", "set_up_time", "residual_norm", "converged".
+        @type name: C{str} in the list "num_iter", "num_level", "num_inner_iter", "time", "set_up_time", "net_time", "residual_norm", "converged".
         @return: requested value. C{None} is returned if the value is undefined.
         @note: If the solver has thrown an exception diagnostic values have an undefined status.
         """
@@ -325,6 +332,8 @@ class SolverOptions(object):
         elif name == "cum_time": return self.__cum_time
         elif name == "set_up_time": return self.__set_up_time
         elif name == "cum_set_up_time": return self.__cum_set_up_time
+        elif name == "net_time": return self.__net_time
+        elif name == "cum_net_time": return self.__cum_net_time
         elif name == "residual_norm": return self.__residual_norm
         elif name == "converged": return self.__converged      
         else:

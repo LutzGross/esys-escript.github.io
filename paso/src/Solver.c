@@ -40,7 +40,7 @@ void Paso_Solver_free(Paso_SystemMatrix* A) {
 void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                  Paso_Options* options,Paso_Performance* pp) {
 
-   double norm2_of_b,tol,tolerance,time_iter;
+   double norm2_of_b,tol,tolerance,time_iter,net_time_start;
    double *r=NULL,norm2_of_residual,last_norm2_of_residual,norm_max_of_b;
    double norm2_of_b_local,norm_max_of_b_local,norm2_of_residual_local;
    double norm_max_of_residual_local,norm_max_of_residual;
@@ -179,6 +179,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                  finalizeIteration = FALSE;
                  last_norm2_of_residual=norm2_of_b;
                  last_norm_max_of_residual=norm_max_of_b;
+		 net_time_start=Paso_timer();
                  /* Loop */
                  while (! finalizeIteration) {
                     cntIter = options->iter_max - totIter;
@@ -271,6 +272,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                       }
                    }
                  } /* while */
+                 options->net_time=Paso_timer()-net_time_start;
               }
               MEMFREE(r);
               options->num_level=0;
