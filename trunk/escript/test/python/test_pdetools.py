@@ -92,6 +92,17 @@ class Test_pdetools_noLumping(unittest.TestCase):
         xx=l(x[0]+x[1])
         self.failUnless(isinstance(xx,float),"wrong scalar type")
         self.failUnless(abs(xx-2.)<self.RES_TOL,"value wrong scalar")
+  
+        # now with interpolation:
+        l=Locator(Function(self.domain),numpy.ones((self.domain.getDim(),)))
+        x2=Function(self.domain).getX()
+        xx=l(x)
+        self.failUnless(isinstance(xx,numpy.ndarray),"wrong vector type")
+        self.failUnless(Lsup(xx-l(x2))<self.RES_TOL,"location wrong")
+        xx=l(x[0]+x[1])
+        self.failUnless(isinstance(xx,float),"wrong scalar type")
+        self.failUnless(abs(xx-l(x2[0])-l(x2[1]))<self.RES_TOL,"value wrong scalar")
+
 
     def test_Locator_withList(self):
         x=self.domain.getX()
@@ -117,6 +128,22 @@ class Test_pdetools_noLumping(unittest.TestCase):
         for i in range(len(xx)):
            self.failUnless(isinstance(xx[i],float),"wrong scalar type")
            self.failUnless(abs(xx[i]-(arg[i][0]+arg[i][1]))<self.RES_TOL,"value wrong scalar")
+
+        # now with interpolation:
+        l=Locator(Function(self.domain),arg)
+        self.failUnless(Function(self.domain)==l.getFunctionSpace(),"wrong function space")
+        xx=l(x)
+        x2=Function(self.domain).getX()
+        self.failUnless(isinstance(xx,list),"list expected (2)")
+        for i in range(len(xx)):
+           self.failUnless(isinstance(xx[i],numpy.ndarray),"vector expected for %s item (2)"%i)
+           self.failUnless(Lsup(xx[i]-l(x2)[i])<self.RES_TOL,"%s-th location is wrong (2)"%i)
+        xx=l(x[0]+x[1])
+        self.failUnless(isinstance(xx,list),"list expected (3)")
+        for i in range(len(xx)):
+           self.failUnless(isinstance(xx[i],float),"wrong scalar type")
+           self.failUnless(abs(xx[i]-(l(x2[0])[i]+l(x2[1])[i]))<self.RES_TOL,"value wrong scalar")
+         
       
     def testProjector_rank0(self):
       x=ContinuousFunction(self.domain).getX()
