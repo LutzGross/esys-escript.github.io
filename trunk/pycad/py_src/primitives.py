@@ -629,7 +629,7 @@ class ReverseCurve(CurveBase, ReversePrimitive):
          """
          out=[p for p in self.getUnderlyingPrimitive().getControlPoints()]
          out.reverse()
-         return out
+         return tuple(out)
 
 class Spline(Curve):
     """
