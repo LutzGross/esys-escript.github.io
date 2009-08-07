@@ -203,7 +203,7 @@ def saveDX(filename,domain=None,**data):
         raise ValueError,"saveDX: no domain detected."
     domain.saveDX(filename,new_data)
 
-def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, **data):
+def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamicMesh=0, **data):
     """
     Saves L{Data} objects to files and creates an I{escript dataset} (ESD) file
     for convenient processing/visualisation.
@@ -239,6 +239,11 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, **data)
     @type timeStep: L{int}
     @param deltaT: timestep or sequence increment, see example above
     @type deltaT: L{int}
+    @param dynamicMesh: by default the mesh is assumed to be static and thus
+                        only saved once at timestep 0 to save disk space.
+                        Setting this to 1 changes the behaviour and the mesh
+                        is saved at each timestep.
+    @type dynamicMesh: L{int}
     @keyword <name>: writes the assigned value to the file using <name> as
                      identifier
     @type <name>: L{Data} object
@@ -269,13 +274,17 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, **data)
         os.mkdir(dataDir)
 
     meshFile = os.path.join(dataDir, datasetName+"_mesh")
+    fileNumber = timeStep / deltaT
 
-    # later timesteps reuse mesh from t=0
-    if timeStep == 0:
-        domain.dump(meshFile + ".nc")
+    if dynamicMesh == 0:
+        # later timesteps reuse mesh from t=0
+        if timeStep == 0:
+            domain.dump(meshFile + ".nc")
+    else:
+        meshFile += ".%04d"
+        domain.dump((meshFile + ".nc") % fileNumber)
 
     outputString = ""
-    fileNumber = timeStep / deltaT
 
     if domain.onMasterProcessor():
         outputString += "#escript datafile V1.0\n"
