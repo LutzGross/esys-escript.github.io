@@ -152,6 +152,7 @@ u=mypde.getSolution()
 print 'Number of iteration steps =', mypde.getDiagnostics('num_iter')
 print 'Total solution time =', mypde.getDiagnostics('time')
 print 'Set-up time =', mypde.getDiagnostics('set_up_time')
+print 'Net time =', mypde.getDiagnostics('net_time')
 print 'Residual norm of returned solution =', mypde.getDiagnostics('residual_norm')
 \end{python}
 Typically a negative value for a diagnostic value indicates that the value is undefined.
@@ -469,6 +470,8 @@ supported:
  \item "cum_time": cumulative execution time
  \item "set_up_time": time to set up of the solver, typically this includes factorization and reordering
  \item "cum_set_up_time": cumulative time to set up of the solver
+ \item "net_time": net execution time, excluding setup time for the solver and execution time for preconditioner
+ \item "cum_net_time": cumulative net execution time
  \item "residual_norm": norm of the final residual
  \item "converged": return self.__converged     
 \end{itemize}

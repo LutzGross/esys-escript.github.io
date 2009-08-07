@@ -24,6 +24,11 @@ from esys.escript.pdetools import Locator
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
 from numpy import identity,zeros,ones
+import matplotlib
+
+matplotlib.use('agg')    #For interactive use, you can comment out this line
+#It's just here to make testing easier
+
 import matplotlib.pyplot as plt
 
 

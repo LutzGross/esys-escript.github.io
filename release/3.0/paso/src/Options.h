@@ -102,6 +102,7 @@ typedef struct {
     dim_t num_inner_iter;
     double time;
     double set_up_time;
+    double net_time;
     double residual_norm;
     bool_t converged;
 

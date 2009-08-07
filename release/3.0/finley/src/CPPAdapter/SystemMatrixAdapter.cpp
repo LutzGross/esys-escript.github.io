@@ -299,6 +299,7 @@ void SystemMatrixAdapter::pasoToEscriptOptions(const Paso_Options* paso_options,
    SET("num_inner_iter", num_inner_iter, int);
    SET("time", time, double);
    SET("set_up_time", set_up_time, double);
+   SET("net_time", net_time, double);
    SET("residual_norm", residual_norm, double);
    SET("converged",converged, bool);
 #undef SET

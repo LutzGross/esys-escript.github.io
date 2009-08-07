@@ -25,6 +25,9 @@ from esys.finley import Rectangle
 import numpy
 import matplotlib
 
+matplotlib.use('agg')	#For interactive use, you can comment out this line
+#It's just here to make testing easier
+
 import pylab 
 
 #Testing whether we have a late enough version of matplotlib
@@ -43,14 +46,14 @@ try:
 	# interpolate u to a matplotlib grid:
 	x_grid = numpy.linspace(0.,1.,50)
 	y_grid = numpy.linspace(0.,1.,50)
-	x=mydomain.getX()[0].toListOfTuples(scalarastuple=False)
-	y=mydomain.getX()[1].toListOfTuples(scalarastuple=False)
-	z=interpolate(u,mydomain.getX().getFunctionSpace()).toListOfTuples(scalarastuple=False)
+	x=mydomain.getX()[0].toListOfTuples()
+	y=mydomain.getX()[1].toListOfTuples()
+	z=interpolate(u,mydomain.getX().getFunctionSpace()).toListOfTuples()
 	z_grid = matplotlib.mlab.griddata(x,y,z,xi=x_grid,yi=y_grid )
 	# interpolate u to a rectangular grid:
 	matplotlib.pyplot.contourf(x_grid, y_grid, z_grid, 5)
 	matplotlib.pyplot.savefig("u.png")
-	# uncomment this line if you want to interact with a plot window
+	# uncommend this line if you want to interact with a plot window
 	#matplotlib.pyplot.show()
 
 except AttributeError:

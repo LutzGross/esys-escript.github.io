@@ -63,6 +63,7 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->num_inner_iter=-1;
   options->time=-1.;
   options->set_up_time=-1.;
+  options->net_time=-1.;
   options->residual_norm=-1.;
   options->converged=FALSE;
 }
@@ -73,6 +74,7 @@ void Paso_Options_showDiagnostics(const Paso_Options* options) {
 	printf("\tnum_inner_iter = %d\n",options->num_inner_iter);
 	printf("\ttime = %e\n",options->time);
 	printf("\tset_up_time = %e\n",options->set_up_time);
+        printf("\tnet_time = %e\n",options->net_time);
 	printf("\tresidual_norm = %e\n",options->residual_norm);
 	printf("\tconverged = %d\n",options->converged);
 }
