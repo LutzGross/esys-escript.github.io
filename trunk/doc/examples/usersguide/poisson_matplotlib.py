@@ -25,6 +25,9 @@ from esys.finley import Rectangle
 import numpy
 import matplotlib
 
+matplotlib.use('agg')	#For interactive use, you can comment out this line
+#It's just here to make testing easier
+
 import pylab 
 
 #Testing whether we have a late enough version of matplotlib
@@ -51,7 +54,7 @@ try:
 	matplotlib.pyplot.contourf(x_grid, y_grid, z_grid, 5)
 	matplotlib.pyplot.savefig("u.png")
 	# uncommend this line if you want to interact with a plot window
-	matplotlib.pyplot.show()
+	#matplotlib.pyplot.show()
 
 except AttributeError:
 	print "Your version of matplotlib does not provide the griddata method.\nSkipping example.\n"
