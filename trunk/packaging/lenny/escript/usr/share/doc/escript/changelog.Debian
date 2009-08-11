@@ -1,3 +1,7 @@
+escript (3.0-1) lenny; urgency=low
+ Release 3.0.
+ No pyvisi anymore.
+
 escript(~3.0-1) lenny; urgency=low
  Post release 2.0.
  By JFenwick (revision 2456)

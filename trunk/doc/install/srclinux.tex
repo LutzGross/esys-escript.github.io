@@ -27,6 +27,16 @@ Make sure you have the following installed:
 %  \item \filename{libxt.so}\footnote{In Debian this is in the libxt-dev package.}
 \end{itemize}
 
+To compile matplotlib you will also need the following\footnote{For Debian and Ubuntu users, installing \filename{libfreetype6-dev} and \filename{libpng-dev} will be sufficient.} (if your distribution separates development files,
+make sure to get the development packages):
+\begin{itemize}
+ \item \filename{freetype2}
+\item \filename{zlib}
+\item \filename{libpng}
+\end{itemize}
+
+
+
 You will also need a copy of the \esfinley source code.
 If you retrieved the source using subversion, don't forget that one can use the export command instead of checkout to get a smaller copy.
 For additional visualization functionality see \Sec{sec:addfunc}.
@@ -311,6 +321,9 @@ cp linux_standalone_options_example.py YourMachineName_options.py
 
 echo $PKG_ROOT
 \end{shellCode}
+Where \texttt{YourMachineName} is the name of your computer as returned by the hostname command.
+If the name contains non-alphanumeric characters, then you will need to replace them with underscores.
+For example the options file for \texttt{bob-desktop} would be named \filename{bob_desktop_options.py}.
 
 Edit the options file and put the value of PKG_ROOT between the quotes in the PKG_ROOT= line.
 For example:
@@ -351,7 +364,7 @@ If you \emph{really} want to save space and do not wish to be able to edit or re
 \filename{README_LICENSE}.
 \item Hidden files, which can be removed using
 \begin{shellCode}
-find . -name .?* | xargs rm -rf
+find . -name '.?*' | xargs rm -rf
 \end{shellCode}
 in the \filename{escript.d} directory.
 \end{itemize}
