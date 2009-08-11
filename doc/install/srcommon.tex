@@ -100,6 +100,9 @@ You can call the directory anything you like, provided that you make the change 
 
 You need to indicate where to find the external dependencies.
 To do this, create a file in the \filename{escript.d/scons} directory called \filename{x_options.py} where ``x'' is the name of your computer (output of the \texttt{hostname} command).
+Please note that if your hostname has non-alphanumeric characters in it (eg - ) you need to replace them with underscores.
+For example the options file for \texttt{bob-desktop} would be named \filename{bob_desktop_options.py}.
+
 From now on all paths will be relative to the top level of the source.
 As a starting point copy the contents one of the following files :
 \begin{itemize}
