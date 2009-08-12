@@ -23,13 +23,13 @@
 
 \ifpdf
 \pdfinfo {
-/Author (Antony Hallam)
+/Author (Antony Hallam and Lutz Gross)
 /Title (escript COOKBOOK)
 /Keywords (escript, PDEs)
 }
 \fi
 
-\author{Antony Hallam}
+\author{Antony Hallam, Lutz Gross}
 \authoraddress{
 Earth Systems Science Computational Centre (ESSCC) \\
 School of Earth Sciences \\
@@ -46,17 +46,19 @@ Email: \email{esys@esscc.uq.edu.au}
 \begin{document}
 
 \maketitle
-\newpage
+
+\input{../../user/copyrights}
+
+\begin{abstract}
+\esc is a python-based environment for implementing mathematical models, in particular those based on coupled, non-linear, time-dependent partial differential equations. The intention of this cookbook is to give new \esc users a comprehensive introduction to the usage of \esc. Particular focus is put to application from the 
+area of geophysics and geology but the introduction is suitable for users from other areas.  
+\end{abstract}
 \tableofcontents
 
 \newpage
 
-\chapter{Introduction}
 \input{intro}
-\input{quickstart}
-\input{escpybas} 
-\input{einsteinETA}
-\input{PDEsintro}
+
 
 \chapter{Getting Started with Heat Diffusion}
 \input{onedheatdiff001}
