@@ -14,6 +14,10 @@
 
 # Configuration for Savanna (SGI ICE 8200 running SUSE Linux)
 
+# Append environment variables which need to be passed through scons to 
+# other tools
+env_export=['INTEL_LICENSE_FILE']
+
 # If you cannot use the default compiler flags set in SConstruct, then change them here
 # C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
 # cc_flags		= '-ansi'
