@@ -33,18 +33,24 @@ IS_WINDOWS_PLATFORM = (os.name== "nt")
 
 prefix = ARGUMENTS.get('prefix', Dir('#.').abspath)
 
+#Holds names of variables from the calling environment which need to be passed
+#to tools
+env_export=[]
+
 #Determine where to read options from use:
 #1. command line
 #2. scons/<hostname>_options.py
 #3. name as part of a cluster
 options_file=ARGUMENTS.get('options_file', None)
+effective_hostname=socket.gethostname().split('.')[0]
 if not options_file:
-  hostname = re.sub("[^0-9a-zA-Z]", "_", socket.gethostname().split('.')[0])
-  options_file = os.path.join("scons",hostname+"_options.py")
+  mangledhostname = re.sub("[^0-9a-zA-Z]", "_", effective_hostname)
+  options_file = os.path.join("scons",mangledhostname+"_options.py")
   #If there is no options file with that name see if there is a substitute
   if not os.path.isfile(options_file):
-    tmp = scons_extensions.effectiveName(hostname)
-    options_file = os.path.join("scons",tmp+"_options.py")
+    effective_hostname = scons_extensions.effectiveName(effective_hostname)
+    mangledhostname = re.sub("[^0-9a-zA-Z]", "_", effective_hostname)
+    options_file = os.path.join("scons",mangledhostname+"_options.py")
 
 if not os.path.isfile(options_file):
   print "Options file not found (expected '%s')" % options_file
@@ -157,7 +163,8 @@ adder(
 # finer control over library building, intel aggressive global optimisation
 # works with dynamic libraries on windows.
   ('share_esysUtils', 'control static or dynamic esysUtils lib', False),
-  ('share_paso', 'control static or dynamic paso lib', False)
+  ('share_paso', 'control static or dynamic paso lib', False),
+  ('env_export','Environment variables to be passed to children',[])
 )
 
 ############ Specify which compilers to use ####################
@@ -170,7 +177,7 @@ if IS_WINDOWS_PLATFORM:
       env = Environment(tools = ['default'] + env['tools_names'],
                         options = opts)
 else:
-   if socket.gethostname().split('.')[0] == 'service0':
+   if effective_hostname == 'service0':
       env = Environment(tools = ['default', 'intelc'], options = opts)
    elif os.uname()[4]=='ia64':
       env = Environment(tools = ['default', 'intelc'], options = opts)
@@ -180,6 +187,11 @@ else:
       env = Environment(tools = ['default'], options = opts)
 Help(opts.GenerateHelpText(env))
 
+########## Copy required environment vars ######################
+
+for i in env['env_export']:
+   env.Append(ENV = {i:os.environ[i]})
+ 
 ############ Fill in compiler options if not set above #########
 
 # Backwards compatibility: allow dodebug=yes and useMPI=yes
