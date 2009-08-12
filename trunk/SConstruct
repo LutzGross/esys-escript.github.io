@@ -16,6 +16,8 @@ EnsureSConsVersion(0,96,91)
 EnsurePythonVersion(2,3)
 
 import sys, os, re, socket, platform, stat
+# For copy()
+import shutil
 
 # Add our extensions
 if os.path.isdir('scons'): sys.path.append('scons')
@@ -167,6 +169,8 @@ adder(
   ('env_export','Environment variables to be passed to children',[])
 )
 
+
+
 ############ Specify which compilers to use ####################
 
 # intelc uses regular expressions improperly and emits a warning about
@@ -186,6 +190,16 @@ else:
    else:
       env = Environment(tools = ['default'], options = opts)
 Help(opts.GenerateHelpText(env))
+
+
+############ Make sure target directories exist ################
+
+if not os.path.isdir(env['bininstall']):
+    os.makedirs(env['bininstall'])
+if not os.path.isdir(env['libinstall']):
+    os.makedirs(env['libinstall'])
+if not os.path.isdir(env['pyinstall']):
+    os.makedirs(env['pyinstall'])
 
 ########## Copy required environment vars ######################
 
@@ -885,3 +899,7 @@ if not IS_WINDOWS_PLATFORM:
 	print "Error attempting to write unittests file."
 	sys.exit(1)
 
+   #Make sure that the escript wrapper is in place
+   if not os.path.isfile(os.path.join(env['bininstall'],'escript')):
+       print "Copying escript wrapper"
+       shutil.copy("bin/escript",os.path.join(env['bininstall'],'escript'))
