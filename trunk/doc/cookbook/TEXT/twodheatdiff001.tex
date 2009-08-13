@@ -13,9 +13,15 @@
 
 \section{Two Dimensional Heat Diffusion for a basic Magmatic Intrusion}
 %\label{Sec:2DHD}
- Building upon our success from the 1D models it is now prudent to expand our domain by another dimension. For this example we will again be using an intrusion as the basis for our model. The simulattion will be a single event where some molten granite has formed a hemisphericle dome at the base of some cold sandstone country rock. \editor{the aim of this example is to introduce the second dimension, as well as some more complicated boundary and initial conditions} . A hemisphere is semetric so taking a cross-section through its centre will effectively model a 3D problem in 2D.
+ Building upon our success from the 1D models it is now prudent to expand our domain by another dimension. For this example we will be using a very simple magmatic intrusion as the basis for our model. The simulation will be a single event where some molten granite has formed a hemisphericle dome at the base of some cold sandstone country rock. A hemisphere is semetric so taking a cross-section through its centre will effectively model a 3D problem in 2D. New concepts will include non-linear boundaries and the abilitity to prescribe location specific variables.
 
-To expand upon our 1D problem, the domain must first be expanded. This will be done in our definition phase by creating a square domain in $x$ and $y$ that is 600 meters along eacy side. The number of discrete spatial cells will be 100. The radius of the intrusion will be 200 meters  And the location of the centre of the intrusion will be at the 300 meter mark on the x-axis. This is done with the following block of code:
+\begin{figure}[h!]
+\centerline{\includegraphics[width=4.in]{figures/twodheatdiff}}
+\caption{2D model: granitic intrusion of sandstone country rock.}
+\label{fig:twodhdmodel}
+\end{figure}
+
+To expand upon our 1D problem, the domain must first be expanded. This will be done in our definition phase by creating a square domain in $x$ and $y$ that is 600 meters along eacy side \reffig{fig:twodhdmodel}. The number of discrete spatial cells will be 100. The radius of the intrusion will be 200 meters  And the location of the centre of the intrusion will be at the 300 meter mark on the x-axis. The domain variables are;
 \begin{verbatim}
 mx = 600 # model lenght
 my = 600 # model width
@@ -43,4 +49,18 @@ Our PDE has now been properly established. The initial conditions for temperatur
 \begin{verbatim}
  T= Ti*whereNegative(bound)+Tc*wherePositive(bound) #defining the initial temperatures.
 \end{verbatim}
-The itteration process now begins as before, but using our new conditions for \verb D  as defined above. Additionally we will also save a copy of the boundary to *.xml so that it can be used for visualisation purposes in \verb mayavi .
+The itteration process now begins as before, but using our new conditions for \verb D  as defined above.
+
+\subsection{Contouring escript data}
+\begin{verbatim}
+# rearrage mymesh to suit solution function space      
+oldspacecoords=model.getX()
+coords=Data(oldspacecoords, T.getFunctionSpace())
+coords = np.array(coords.toListOfTuples())
+coordX = coords[:,0]
+coordY = coords[:,1]
+# create regular grid
+xi = np.linspace(0.0,600.0,100)
+yi = np.linspace(0.0,600.0,100)
+\end{verbatim}
+
