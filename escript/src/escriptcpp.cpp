@@ -81,14 +81,11 @@ using namespace boost::python;
 
 BOOST_PYTHON_MODULE(escriptcpp)
 {
-// This feature was added in boost v1.34
-#if ((BOOST_VERSION/100)%1000 > 34) || (BOOST_VERSION/100000 >1)
-//#if ((BOOST_VERSION/100)%1000) > 34 
-  // params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
-  #if BOOST_VERSION > 103399
-  docstring_options docopt(true, true, false);
+
+  #if BOOST_VERSION >= 103500
+// params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
+  docstring_options docopt(true,true,false);
   #endif
-#endif
 
   def("setNumberOfThreads",escript::setNumberOfThreads,"Use of this method is strongly discouraged.");
   def("getNumberOfThreads",escript::getNumberOfThreads);

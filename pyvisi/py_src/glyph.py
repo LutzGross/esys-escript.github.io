@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -51,10 +51,10 @@ class Glyph3D:
 		"""
 		Setup the 3D glyph.
 
-		@type object: vtkDataSet, etc
-		@param object: Input for the 3D glyph 
-		@type source: vtkPolyData 	
-		@param source: Source for the 3D glyph (i.e. Arrow2D, Arrow3D, etc)
+		:type object: vtkDataSet, etc
+		:param object: Input for the 3D glyph 
+		:type source: vtkPolyData 	
+		:param source: Source for the 3D glyph (i.e. Arrow2D, Arrow3D, etc)
 		"""
 
 		self.__object = object
@@ -122,8 +122,8 @@ class Glyph3D:
 		"""
 		Set the 3D glyph scale factor.
 		
-		@type scale_factor: Number
-		@param scale_factor: Scale factor
+		:type scale_factor: Number
+		:param scale_factor: Scale factor
 		"""
 
 		self.__vtk_glyph3D.SetScaleFactor(scale_factor)
@@ -153,8 +153,8 @@ class Glyph3D:
 		"""
 		Set the range to map scalar values.
 
-		@type range: Two column tuple containing numbers
-		@param range: Range to map scalar values 
+		:type range: Two column tuple containing numbers
+		:param range: Range to map scalar values 
 		"""
 
 		self.__vtk_glyph3D.SetRange(range)
@@ -163,8 +163,8 @@ class Glyph3D:
 		"""
 		Return the output of the 3D glyph.
 
-		@rtype: vtkPolyData
-		@return Polygonal data
+		:rtype: vtkPolyData
+		:return Polygonal data
 		"""
 
 		return self.__vtk_glyph3D.GetOutput()
@@ -190,10 +190,10 @@ class TensorGlyph:
 		"""
 		Setup the tensor glyph.
 
-		@type object: vtkDataSet, etc
-		@param object: Input for the 3D glyph 
-		@type source: vtkPolyData 	
-		@param source: Source for the 3D glyph (i.e. Sphere, etc)
+		:type object: vtkDataSet, etc
+		:param object: Input for the 3D glyph 
+		:type source: vtkPolyData 	
+		:param source: Source for the 3D glyph (i.e. Sphere, etc)
 		"""
 
 		self.__object = object
@@ -221,8 +221,8 @@ class TensorGlyph:
 		"""
 		Set the scale factor for the tensor glyph.
 		
-		@type scale_factor: Number
-		@param scale_factor: Scale factor
+		:type scale_factor: Number
+		:param scale_factor: Scale factor
 		"""
 
 		self.__vtk_tensor_glyph.SetScaleFactor(scale_factor)
@@ -231,8 +231,8 @@ class TensorGlyph:
 		"""
 		Set the maximum allowable scale factor for the tensor glyph.	
 
-		@type max_scale_factor: Number
-		@param max_scale_factor: Maximum allowable scale factor.
+		:type max_scale_factor: Number
+		:param max_scale_factor: Maximum allowable scale factor.
 		"""
 
 		self.__vtk_tensor_glyph.SetMaxScaleFactor(max_scale_factor)
@@ -241,8 +241,8 @@ class TensorGlyph:
 		"""
 		Return the output of the tensor glyph.
 
-		@rtype: vtkPolyData
-		@return: Polygonal data
+		:rtype: vtkPolyData
+		:return: Polygonal data
 		"""
 
 		return self.__vtk_tensor_glyph.GetOutput()

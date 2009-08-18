@@ -22,11 +22,11 @@ __url__="https://launchpad.net/escript-finley"
 """
 some mesh handling
 
-@var __author__: name of author
-@var __licence__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __licence__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -40,17 +40,17 @@ def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeL
     Creates a Finley L{Domain} from a L{esys.pycad.design.Design} object.
     Currently only gmsh is supported.
 
-    @param design: the geometry
-    @type design: L{esys.pycad.design.Design}
-    @param integrationOrder: integration order. If -1 the default is used.
-    @type integrationOrder: C{int}
-    @param reducedIntegrationOrder: reduced integration order. If -1 the
+    :param design: the geometry
+    :type design: L{esys.pycad.design.Design}
+    :param integrationOrder: integration order. If -1 the default is used.
+    :type integrationOrder: C{int}
+    :param reducedIntegrationOrder: reduced integration order. If -1 the
                                     default is used.
-    @type reducedIntegrationOrder: C{int}
-    @param optimizeLabeling: if set the labeling of the mesh nodes is optimized
-    @type optimizeLabeling: C{bool}
-    @return: the Finley domain defined by the design
-    @rtype: L{Domain}
+    :type reducedIntegrationOrder: C{int}
+    :param optimizeLabeling: if set the labeling of the mesh nodes is optimized
+    :type optimizeLabeling: C{bool}
+    :return: the Finley domain defined by the design
+    :rtype: L{Domain}
     """
     if isinstance(design, GMSHDesign):
         mshname=design.getMeshHandler()

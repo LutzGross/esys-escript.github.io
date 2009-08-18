@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -48,12 +48,12 @@ class Text2D(Actor2D):
 		"""
 		Initialise the 2D text actor.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
-		@type text: String
-		@param text: 2D text to be displayed
-		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which objects are to be rendered on
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
+		:type text: String
+		:param text: 2D text to be displayed
+		:type viewport: L{Viewport <constant.Viewport>} constant
+		:param viewport: Viewport in which objects are to be rendered on
 		"""
                 if getMPISizeWorld()>1:
                     raise ValueError,"pyvisi.Text2D is not running on more than one processor."
@@ -67,8 +67,8 @@ class Text2D(Actor2D):
 		"""
 		Setup the 2D text.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
 		"""
 
 		self.__setInput()
@@ -88,8 +88,8 @@ class Text2D(Actor2D):
 		"""
 		Set the 2D text size.
 
-		@type size: Number
-		@param size: Size of the 2D text
+		:type size: Number
+		:param size: Size of the 2D text
 		"""
 
 		self._vtk_actor2D.GetTextProperty().SetFontSize(size)
@@ -133,8 +133,8 @@ class Text2D(Actor2D):
 		"""
 		Set the color of the 2D text.
 
-		@type color: L{Color <constant.Color>} constant
-		@param color: 2D text color
+		:type color: L{Color <constant.Color>} constant
+		:param color: 2D text color
 		"""
 
 		self._vtk_actor2D.GetTextProperty().SetColor(color)

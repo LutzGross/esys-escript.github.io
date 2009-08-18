@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -68,8 +68,8 @@ class ScalarBar:
 		"""
 		Set the scalar bar's lookup table.
 
-		@type lookup_table: vtkScalarsToColors
-		@param lookup_table: Converts scalar data to colors
+		:type lookup_table: vtkScalarsToColors
+		:param lookup_table: Converts scalar data to colors
 		"""
 
 		self.__vtk_scalar_bar.SetLookupTable(lookup_table)
@@ -78,8 +78,8 @@ class ScalarBar:
 		"""
 		Set the number of labels on the scalar bar.
 
-		@type labels: Number
-		@param labels: Number of labels on the scalar bar
+		:type labels: Number
+		:param labels: Number of labels on the scalar bar
 		"""
 
 		self.__vtk_scalar_bar.SetNumberOfLabels(labels)
@@ -88,8 +88,8 @@ class ScalarBar:
 		"""
 		Set the title on the scalar bar.
 
-		@type title: String
-		@param title: Title on the scalar bar
+		:type title: String
+		:param title: Title on the scalar bar
 		"""
 
 		self.__vtk_scalar_bar.SetTitle(title)
@@ -98,8 +98,8 @@ class ScalarBar:
 		"""
 		Set the local position of the scalar bar.
 
-		@type position: L{LocalPosition <position.LocalPosition>} object
-		@param position: Position of the scalar bar
+		:type position: L{LocalPosition <position.LocalPosition>} object
+		:param position: Position of the scalar bar
 		"""
 
 		self.__vtk_scalar_bar.SetPosition(position._getXCoor(), \
@@ -131,8 +131,8 @@ class ScalarBar:
 		"""
 		Set the height of the scalar bar.
 	
-		@type height: Number
-		@param height: Height of the scalar bar
+		:type height: Number
+		:param height: Height of the scalar bar
 		"""
 
 		self.__vtk_scalar_bar.SetHeight(height)
@@ -141,8 +141,8 @@ class ScalarBar:
 		"""
 		Set the width of the scalar bar.
 
-		@type width: Number
-		@param width: Width of the scalar bar.
+		:type width: Number
+		:param width: Width of the scalar bar.
 		"""
 
 		self.__vtk_scalar_bar.SetWidth(width)
@@ -151,8 +151,8 @@ class ScalarBar:
 		"""
 		Set the color of the scalar bar's label.
 
-		@type color: L{Color <constant.Color>} constant
-		@param color: Color of the scalar bar label
+		:type color: L{Color <constant.Color>} constant
+		:param color: Color of the scalar bar label
 		"""
 
 		self.__getLabelProperty().SetColor(color)
@@ -175,8 +175,8 @@ class ScalarBar:
 		"""
 		Set the color of the scalar bar's title.
 
-		@type color: L{Color <constant.Color>} constant
-		@param color: Color of the scalar bar title
+		:type color: L{Color <constant.Color>} constant
+		:param color: Color of the scalar bar title
 		"""
 
 		self.__getTitleProperty().SetColor(color)
@@ -199,8 +199,8 @@ class ScalarBar:
 		"""
 		Return the scalar bar's label property.
 
-		@rtype: vtkTextPorperty
-		@return: Scalar bar's label property 
+		:rtype: vtkTextPorperty
+		:return: Scalar bar's label property 
 		"""
 
 		return self.__vtk_scalar_bar.GetLabelTextProperty()
@@ -209,8 +209,8 @@ class ScalarBar:
 		"""
 		Return the scalar bar's title property.
 
-		@rtype: vtkTextPorperty
-		@return: Scalar bar's title property 
+		:rtype: vtkTextPorperty
+		:return: Scalar bar's title property 
 		"""
 
 		return self.__vtk_scalar_bar.GetTitleTextProperty()
@@ -219,8 +219,8 @@ class ScalarBar:
 		"""
 		Return the scalar bar.
 
-		@rtype: vtkScalarBarActor
-		@return: Scalar bar actor
+		:rtype: vtkScalarBarActor
+		:return: Scalar bar actor
 		"""
 
 		return self.__vtk_scalar_bar

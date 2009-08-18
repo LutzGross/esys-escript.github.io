@@ -26,12 +26,12 @@ it is assumed that the domain is the usint square/cube
 
 not all these test will run for all domains. check the doc string for the assumptions of a particular test
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 __author__="Lutz Gross, l.gross@uq.edu.au"
 

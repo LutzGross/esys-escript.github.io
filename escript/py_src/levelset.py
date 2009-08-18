@@ -46,11 +46,11 @@ class LevelSet:
     """
     Sets up the level set method.
 
-    @param domain: the domain where the level set is used
-    @param phi: the initial level set function
-    @param reinit_max: maximum number of reinitialization steps
-    @param reinit_each: C{phi} is reinitialized every C{reinit_each} step
-    @param smooth: smoothing width
+    :param domain: the domain where the level set is used
+    :param phi: the initial level set function
+    :param reinit_max: maximum number of reinitialization steps
+    :param reinit_each: C{phi} is reinitialized every C{reinit_each} step
+    :param smooth: smoothing width
     """
     self.__domain = domain
     self.__phi = phi
@@ -74,9 +74,9 @@ class LevelSet:
 
     This implementation uses the 2-step Taylor-Galerkin method.
 
-    @param velocity: velocity field
-    @param dt: time increment
-    @return: the advected level set function
+    :param velocity: velocity field
+    :param dt: time increment
+    :return: the advected level set function
     """
     Y = self.__phi-dt/2.*inner(velocity,grad(self.__phi))
     self.__PDE.setValue(Y=Y)
@@ -93,7 +93,7 @@ class LevelSet:
 
     It solves the PDE...
 
-    @return: reinitialized level set
+    :return: reinitialized level set
     """
     phi=self.__phi
     s = sign(phi.interpolate(Function(self.__domain)))
@@ -121,7 +121,7 @@ class LevelSet:
        """
        Returns a new C{dt} for a given C{velocity} using the Courant condition.
 
-       @param velocity: velocity field
+       :param velocity: velocity field
        """
        self.__velocity=velocity
        dt=0.5*self.__h/sup(length(velocity))
@@ -131,7 +131,7 @@ class LevelSet:
       """
       Sets a new velocity and updates the level set function.
 
-      @param dt: time step forward
+      :param dt: time step forward
       """
       self.__phi=self.__advect(self.__velocity, dt)
       self.__n_step+=1
@@ -149,8 +149,8 @@ class LevelSet:
 
       otherwise substepping is used.
 
-      @param velocity: velocity field
-      @param dt: time step forward
+      :param velocity: velocity field
+      :param dt: time step forward
       """
       dt2=self.getTimeStepSize(velocity)
       n=math.ceil(dt/dt2)
@@ -171,7 +171,7 @@ class LevelSet:
       """
       Returns a mask for the M{phi(x)=1} region
 
-      @param rel_width_factor: relative width of region around zero contour
+      :param rel_width_factor: relative width of region around zero contour
       """
       return whereNegative(abs(self.__phi)-rel_width_factor*self.__h)
 
@@ -198,9 +198,9 @@ class LevelSet:
       Creates a function with C{param_neg} where C{phi<0} and C{param_pos}
       where C{phi>0} (no smoothing).
 
-      @param param_neg: value of parameter on the negative side (phi<0)
-      @param param_pos: value of parameter on the positive side (phi>0)
-      @param phi: level set function to be used. If not present the current
+      :param param_neg: value of parameter on the negative side (phi<0)
+      :param param_pos: value of parameter on the positive side (phi>0)
+      :param phi: level set function to be used. If not present the current
                   level set is used.
       """
       mask_neg = whereNegative(self.__phi)
@@ -214,7 +214,7 @@ class LevelSet:
       C{param_pos} where C{phi>0} which is smoothed over a length
       C{smoothing_width} across the interface.
 
-      @param smoothing_width: width of the smoothing zone relative to mesh size.
+      :param smoothing_width: width of the smoothing zone relative to mesh size.
                               If not present the initial value of C{smooth} is
                               used.
       """
@@ -242,9 +242,9 @@ class LevelSet:
       Makes a smooth characteristic function of the region C{phi(x)>contour} if
       C{positiveSide} and C{phi(x)<contour} otherwise.
 
-      @param phi: level set function to be used. If not present the current
+      :param phi: level set function to be used. If not present the current
                   level set is used.
-      @param smoothing_width: width of the smoothing zone relative to mesh size.
+      :param smoothing_width: width of the smoothing zone relative to mesh size.
                               If not present the initial value of C{smooth} is
                               used.
       """
@@ -327,7 +327,7 @@ class LevelSet2(object):
          """
          Sets a new velocity and updates the level set function.
 
-         @param dt: time step forward
+         :param dt: time step forward
          """
          if self.__FC:
             self.__phi=self.__fc.solve(dt, verbose=False)-self.__diam

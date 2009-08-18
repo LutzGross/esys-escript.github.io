@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -43,8 +43,8 @@ class Outline:
 		"""
 		Initialise the outline.
 
-		@type object: vtkUnstructuredGrid, etc
-		@param object: Data source to the outline
+		:type object: vtkUnstructuredGrid, etc
+		:param object: Data source to the outline
 		"""
                 if getMPISizeWorld()>1:
                      raise ValueError,"pyvisi.Outline is not running on more than one processor."
@@ -63,8 +63,8 @@ class Outline:
 		"""
 		Return the output of the outline.
 
-		@rtype: vtkPolyData
-		@return: Polyognal data
+		:rtype: vtkPolyData
+		:return: Polyognal data
 		"""
 
 		return self.__vtk_outline.GetOutput()

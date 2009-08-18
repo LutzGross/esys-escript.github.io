@@ -25,12 +25,12 @@ Geometrical Primitives
 the concept is inspired by gmsh and very much focused on the fact that
 the classes are used to wrk with gmsh.
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -237,7 +237,7 @@ class Primitive(object):
         """
         Returns a view onto the curve with reversed ordering.
 
-        @note: This method is overwritten by subclasses.
+        :note: This method is overwritten by subclasses.
         """
         raise NotImplementedError("__neg__ is not implemented.")
 
@@ -248,7 +248,7 @@ class Primitive(object):
         the object is given by C{sub_dict} the value is returned, otherwise a
         new instance with substituted arguments is returned.
 
-        @note: This method is overwritten by subclasses.
+        :note: This method is overwritten by subclasses.
         """
         raise NotImplementedError("substitute is not implemented.")
 
@@ -257,7 +257,7 @@ class Primitive(object):
         Returns a list of primitives used to construct the primitive. It may
         contain primitives twice.
 
-        @note: This method is overwritten by subclasses.
+        :note: This method is overwritten by subclasses.
         """
         raise NotImplementedError("collectPrimitiveBases is not implemented.")
 
@@ -265,7 +265,7 @@ class Primitive(object):
        """
        Rreturns True if the two primitives are located at the same position.
 
-       @note: This method is overwritten by subclasses.
+       :note: This method is overwritten by subclasses.
        """
        raise NotImplementedError("isColocated is not implemented.")
 
@@ -339,7 +339,7 @@ class ReversePrimitive(object):
        """
        Returns True if the two primitives are located at the same position.
 
-       @note: This method is overwritten by subclasses.
+       :note: This method is overwritten by subclasses.
        """
        return self.__primitive.isColocated(primitive)
 
@@ -470,12 +470,12 @@ class Manifold1D(PrimitiveBase):
         The progression factor C{progression} defines the change of element size between naighboured elements. If C{createBump} is set
         progression is applied towards the center of the line.
 
-        @param n: number of elements on the line
-        @type n: C{int}
-        @param progression: a positive progression factor
-        @type progression: positive C{float}
-        @param numberteBump: of elements on the line
-        @type createBump: C{bool}
+        :param n: number of elements on the line
+        :type n: C{int}
+        :param progression: a positive progression factor
+        :type progression: positive C{float}
+        :param numberteBump: of elements on the line
+        :type createBump: C{bool}
         """
         if n<1:
            raise ValueError,"number of elements must be positive."
@@ -496,8 +496,8 @@ class Manifold1D(PrimitiveBase):
         """
         Returns the element distribution.
 
-        @return: the tuple of the number of elements, the progression factor and the bump flag. If no element distribution is set C{None} is returned
-        @rtype: C{tuple}
+        :return: the tuple of the number of elements, the progression factor and the bump flag. If no element distribution is set C{None} is returned
+        :rtype: C{tuple}
         """
         if self.__apply_elements:
            return (self.__n, self.__progression_factor, self.__createBump)
@@ -1049,9 +1049,9 @@ class Manifold2D(PrimitiveBase):
     """
     General two-dimensional manifold.
  
-    @var LEFT: left element orientation when meshing with transifinite meshing
-    @var RIGHT: right element orientation when meshing with transifinite meshing
-    @var ALTERNATE: alternate element orientation when meshing with transifinite meshing
+    :var LEFT: left element orientation when meshing with transifinite meshing
+    :var RIGHT: right element orientation when meshing with transifinite meshing
+    :var ALTERNATE: alternate element orientation when meshing with transifinite meshing
     """
     LEFT="Left"
     RIGHT="Right"
@@ -1081,8 +1081,8 @@ class Manifold2D(PrimitiveBase):
         """
         returns a list of points used to define the boundary
         
-        @return: list of points used to define the boundary
-        @rtype: C{list} of  L{Point}s
+        :return: list of points used to define the boundary
+        :rtype: C{list} of  L{Point}s
         """
         out=[]
         boundary=self.getBoundary()
@@ -1097,8 +1097,8 @@ class Manifold2D(PrimitiveBase):
         C{max_deviation} specifies the maximum derivation of the largest angle in the quadrangle 
         from the right angle. Use C{max_deviation}==C{None} to switch off recombination.
 
-        @param max_deviation: maximum derivation of the largest angle in the quadrangle from the right angle. 
-        @type max_deviation: C{float} or C{None}.
+        :param max_deviation: maximum derivation of the largest angle in the quadrangle from the right angle. 
+        :type max_deviation: C{float} or C{None}.
         """
         if not max_deviation==None:
             if max_deviation<=0:
@@ -1111,8 +1111,8 @@ class Manifold2D(PrimitiveBase):
         """
         returns max deviation from right angle in the recombination algorithm 
 
-        @return: max deviation from right angle in the recombination algorithm. If recombination is switched off, C{None} is returned.
-        @rtype: C{float} or C{None}
+        :return: max deviation from right angle in the recombination algorithm. If recombination is switched off, C{None} is returned.
+        :rtype: C{float} or C{None}
         """
         return self.__recombination_angle
 
@@ -1120,9 +1120,9 @@ class Manifold2D(PrimitiveBase):
         """
         applies 2D transfinite meshing to the surface. 
 
-        @param orientation: sets the orientation of the triangles. It is only used if recombination is not used.
-        @type orientation: L{Manifold2D.LEFT}, L{Manifold2D.RIGHT}, L{Manifold2D.ALTERNATE}
-        @note: Transfinite meshing can not be applied if holes are present.
+        :param orientation: sets the orientation of the triangles. It is only used if recombination is not used.
+        :type orientation: L{Manifold2D.LEFT}, L{Manifold2D.RIGHT}, L{Manifold2D.ALTERNATE}
+        :note: Transfinite meshing can not be applied if holes are present.
         """
         if not orientation in [ Manifold2D.LEFT, Manifold2D.RIGHT, Manifold2D.ALTERNATE]:
               raise ValueError,"invalid orientation %s."%orientation
@@ -1174,8 +1174,8 @@ class Manifold2D(PrimitiveBase):
         """
         returns the transfinite meshing setings. If transfinite meshing is not set, C{None} is returned.
         
-        @return: a tuple of the tuple of points used to define the transfinite meshing and the orientation. If no points are set the points tuple is returned as C{None}. If no ransfinite meshing is not set, C{None} is returned.
-        @rtype: C{tuple} of a C{tuple} of L{Point}s (or C{None}) and the orientation which is one of the values  L{Manifold2D.LEFT}, L{Manifold2D.RIGHT}, L{Manifold2D.ALTERNATE}
+        :return: a tuple of the tuple of points used to define the transfinite meshing and the orientation. If no points are set the points tuple is returned as C{None}. If no ransfinite meshing is not set, C{None} is returned.
+        :rtype: C{tuple} of a C{tuple} of L{Point}s (or C{None}) and the orientation which is one of the values  L{Manifold2D.LEFT}, L{Manifold2D.RIGHT}, L{Manifold2D.ALTERNATE}
         """
         if self.__transfinitemeshing:
             return (self.__points, self.__orientation)
@@ -1191,7 +1191,7 @@ class RuledSurface(Primitive, Manifold2D):
        """
        Creates a ruled surface with boundary C{loop}.
 
-       @param loop: L{CurveLoop} defining the boundary of the surface.
+       :param loop: L{CurveLoop} defining the boundary of the surface.
        """
        if not isinstance(loop.getUnderlyingPrimitive(),CurveLoop):
            raise TypeError("argument loop needs to be a CurveLoop object.")
@@ -1303,11 +1303,11 @@ class PlaneSurface(Primitive, Manifold2D):
        """
        Creates a plane surface with holes.
 
-       @param loop: L{CurveLoop} defining the boundary of the surface
-       @param holes: list of L{CurveLoop}s defining holes in the surface
-       @note: A CurveLoop defining a hole should not have any lines in common
+       :param loop: L{CurveLoop} defining the boundary of the surface
+       :param holes: list of L{CurveLoop}s defining holes in the surface
+       :note: A CurveLoop defining a hole should not have any lines in common
               with the exterior CurveLoop.
-       @note: A CurveLoop defining a hole should not have any lines in common
+       :note: A CurveLoop defining a hole should not have any lines in common
               with another CurveLoop defining a hole in the same surface.
        """
        if not isinstance(loop.getUnderlyingPrimitive(),CurveLoop):
@@ -1562,11 +1562,11 @@ class Volume(Manifold3D, Primitive):
        """
        Creates a volume with holes.
 
-       @param loop: L{SurfaceLoop} defining the boundary of the surface
-       @param holes: list of L{SurfaceLoop} defining holes in the surface
-       @note: A SurfaceLoop defining a hole should not have any surfaces in
+       :param loop: L{SurfaceLoop} defining the boundary of the surface
+       :param holes: list of L{SurfaceLoop} defining holes in the surface
+       :note: A SurfaceLoop defining a hole should not have any surfaces in
               common with the exterior SurfaceLoop.
-       @note: A SurfaceLoop defining a hole should not have any surfaces in
+       :note: A SurfaceLoop defining a hole should not have any surfaces in
               common with another SurfaceLoop defining a hole in the same
               volume.
        """

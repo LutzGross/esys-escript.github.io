@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -50,10 +50,10 @@ class Camera:
 		"""
 		Initialise the camera.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
-		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which objects are to be rendered on
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
+		:type viewport: L{Viewport <constant.Viewport>} constant
+		:param viewport: Viewport in which objects are to be rendered on
 		"""
                 if getMPISizeWorld()>1:
                     raise ValueError,"pyvisi.Camera is not running on more than one processor."
@@ -71,8 +71,8 @@ class Camera:
 		"""
 		Setup the camera.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
 		"""
 
 		# Assign the camera to the appropriate renderer
@@ -83,8 +83,8 @@ class Camera:
 		"""
 		Set the focal point of the camera.
 
-		@type position: L{GlobalPosition <position.GlobalPosition>} object
-		@param position: Camera focal point
+		:type position: L{GlobalPosition <position.GlobalPosition>} object
+		:param position: Camera focal point
 		"""
 
 		self.__vtk_camera.SetFocalPoint(position._getGlobalPosition())		
@@ -94,8 +94,8 @@ class Camera:
 		"""
 		Set the position of the camera.
 
-		@type position: L{GlobalPosition <position.GlobalPosition>} object
-		@param position: Camera position
+		:type position: L{GlobalPosition <position.GlobalPosition>} object
+		:param position: Camera position
 		"""
 
 		self.__vtk_camera.SetPosition(position._getGlobalPosition())
@@ -105,10 +105,10 @@ class Camera:
 		"""
 		Set the near and far clipping plane of the camera.
 
-		@type near_clipping: Number
-		@param near_clipping: Distance to the near clipping plane
-		@type far_clipping: Number
-		@param far_clipping: Distance to the far clipping plane
+		:type near_clipping: Number
+		:param near_clipping: Distance to the near clipping plane
+		:type far_clipping: Number
+		:param far_clipping: Distance to the far clipping plane
 		"""
 	
 		self.__vtk_camera.SetClippingRange(near_clipping, far_clipping)
@@ -117,8 +117,8 @@ class Camera:
 		"""
 		Set the view up direction of the camera.
 
-		@type position: L{GlobalPosition <position.GlobalPosition>} object
-		@param position: Camera view up direction
+		:type position: L{GlobalPosition <position.GlobalPosition>} object
+		:param position: Camera view up direction
 		"""
 
 		self.__vtk_camera.SetViewUp(position._getGlobalPosition())
@@ -127,8 +127,8 @@ class Camera:
 		"""
 		Rotate the camera to the left and right.
 
-		@type angle: Number
-		@param angle: Degree to rotate the camera
+		:type angle: Number
+		:param angle: Degree to rotate the camera
 		"""
 
 		self.__vtk_camera.Azimuth(angle)
@@ -138,8 +138,8 @@ class Camera:
 		"""
 		Rotate the camera to the top and bottom.
 		
-		@type angle: Number
-		@param angle: Degree to rotate the camera (only between -90 and 90)
+		:type angle: Number
+		:param angle: Degree to rotate the camera (only between -90 and 90)
 		"""
 
 		self.__vtk_camera.Elevation(angle)
@@ -155,8 +155,8 @@ class Camera:
 		"""
 		Roll the camera to the left and right.
 
-		@type angle: Number
-		@param angle: Degree to roll the camera
+		:type angle: Number
+		:param angle: Degree to roll the camera
 		"""
 
 		self.__vtk_camera.Roll(-angle)
@@ -210,8 +210,8 @@ class Camera:
 		Move the camera towards (greater than 1) the rendered object. However,
 		the camera is unable to be moved away from the rendered object.
 
-		@type distance: Number
-		@param distance: Amount to move towards the rendered object
+		:type distance: Number
+		:param distance: Amount to move towards the rendered object
 		"""
 
 		self.__vtk_camera.Dolly(distance)
@@ -239,8 +239,8 @@ class Camera:
 		actors. This ensures the rendered object is not cut-off.
 		Needs to be called whenever the camera's settings are modified.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
 		"""
 
 		scene._getRenderer()[self.__viewport].ResetCameraClippingRange() 
@@ -249,8 +249,8 @@ class Camera:
 		"""
 		Repositions the camera to view the center point of the actors.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
 		"""
 
 		scene._getRenderer()[self.__viewport].ResetCamera() 
@@ -259,8 +259,8 @@ class Camera:
 		"""
 		Return whether the Camera has been modified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		if (self.__modified == True):
@@ -272,8 +272,8 @@ class Camera:
 		"""
 		Render the camera.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
 		"""
 
 		if(self._isModified() == True):

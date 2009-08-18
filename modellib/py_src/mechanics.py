@@ -27,28 +27,28 @@ class Mechanics(Model):
       """
       base class for mechanics models in updated lagrangean framework
 
-      @ivar domain: domain (in)
-      @ivar internal_force: =Data()
-      @ivar external_force: =Data()
-      @ivar prescribed_velocity: =Data()
-      @ivar location_prescribed_velocity: =Data()
-      @ivar temperature:  = None
-      @ivar expansion_coefficient:  = 0.
-      @ivar bulk_modulus: =1.
-      @ivar shear_modulus: =1.
-      @ivar rel_tol: =1.e-3
-      @ivar abs_tol: =1.e-15
-      @ivar max_iter: =10
-      @ivar displacement: =None
-      @ivar stress: =None
+      :ivar domain: domain (in)
+      :ivar internal_force: =Data()
+      :ivar external_force: =Data()
+      :ivar prescribed_velocity: =Data()
+      :ivar location_prescribed_velocity: =Data()
+      :ivar temperature:  = None
+      :ivar expansion_coefficient:  = 0.
+      :ivar bulk_modulus: =1.
+      :ivar shear_modulus: =1.
+      :ivar rel_tol: =1.e-3
+      :ivar abs_tol: =1.e-15
+      :ivar max_iter: =10
+      :ivar displacement: =None
+      :ivar stress: =None
       """
       SAFTY_FACTOR_ITERATION=1./100.
       def __init__(self,**kwargs):
          """
          set up the model
          
-         @keyword debug: debug flag
-         @type debug: C{bool}
+         :keyword debug: debug flag
+         :type debug: C{bool}
          """
          super(Mechanics, self).__init__(self,**kwargs)
          self.declareParameter(domain=None, \

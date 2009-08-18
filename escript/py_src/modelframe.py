@@ -22,12 +22,12 @@ __url__="https://launchpad.net/escript-finley"
 """
 Environment for implementing models in escript
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -181,8 +181,8 @@ class ESySXMLCreator(object):
         C{createDataNode}s are the building blocks of the XML documents
         constructed in this module.
 
-        @param tagName: the associated XML tag
-        @param data: the values in the tag
+        :param tagName: the associated XML tag
+        :param data: the values in the tag
         """
         n = self.createElement(tagName)
         n.appendChild(self.createTextNode(str(data)))
@@ -1290,10 +1290,10 @@ class RestartManager(object):
      restart data, namely for the current and previous dump. This way the
      previous dump can be used for restart in the case the current dump failed.
 
-     @cvar SEC: unit of seconds, for instance 5*RestartManager.SEC defines 5 seconds
-     @cvar MIN: unit of minutes, for instance 5*RestartManager.MIN defines 5 minutes
-     @cvar H: unit of hours, for instance 5*RestartManager.H defines 5 hours
-     @cvar D: unit of days, for instance 5*RestartManager.D defines 5 days
+     :cvar SEC: unit of seconds, for instance 5*RestartManager.SEC defines 5 seconds
+     :cvar MIN: unit of minutes, for instance 5*RestartManager.MIN defines 5 minutes
+     :cvar H: unit of hours, for instance 5*RestartManager.H defines 5 hours
+     :cvar D: unit of days, for instance 5*RestartManager.D defines 5 days
      """
      SEC=1.
      MIN=60.
@@ -1303,12 +1303,12 @@ class RestartManager(object):
          """
          Initializes the RestartManager.
 
-         @param dump_time: defines the minimum time interval in SEC between two
+         :param dump_time: defines the minimum time interval in SEC between two
                            dumps. If C{None}, time is not used as criterion.
-         @param dump_step: defines the number of calls of doDump between two
+         :param dump_step: defines the number of calls of doDump between two
                            dump events. If C{None}, the call counter is not
                            used as criterion.
-         @param dumper: defines the directory for dumping restart files.
+         :param dumper: defines the directory for dumping restart files.
                         Additionally, the directories dumper+"_bkp" and
                         dumper+"_bkp2" are used. If the directory does not
                         exist it is created. If dumper is not present a unique

@@ -22,12 +22,12 @@ __url__="https://launchpad.net/escript-finley"
 """
 mesh generation using gmsh
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -51,10 +51,10 @@ class Design(design.Design):
        """
        Initializes the gmsh design.
 
-       @param dim: spatial dimension
-       @param element_size: global element size
-       @param order: element order
-       @param keep_files: flag to keep work files
+       :param dim: spatial dimension
+       :param element_size: global element size
+       :param order: element order
+       :param keep_files: flag to keep work files
        """
        design.Design.__init__(self,dim=dim,element_size=element_size,order=order,keep_files=keep_files)
        self.setScriptFileName()

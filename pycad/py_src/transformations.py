@@ -22,14 +22,14 @@ __url__="https://launchpad.net/escript-finley"
 """
 transformations
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
-@var DEG: unit of degree
-@var RAD: unit of radiant
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
+:var DEG: unit of degree
+:var RAD: unit of radiant
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"

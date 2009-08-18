@@ -24,12 +24,12 @@ __url__="https://launchpad.net/escript-finley"
 """
 some tools supporting the usage of symbols.
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -40,12 +40,12 @@ def ScalarSymbol(dim=None):
       """
       Returns a rank 0 L{Symbol}.
 
-      @param dim: spatial dimension or an object that has the C{getDim} method
+      :param dim: spatial dimension or an object that has the C{getDim} method
                   defining the spatial dimension. If dim=C{None}, the spatial
                   diminsion of the returned L{Symbol} is undefined.
-      @type dim: C{None}, C{int} or any object with a C{getDim} method
-      @return: a L{Symbol} of rank 0
-      @rtype: L{Symbol}
+      :type dim: C{None}, C{int} or any object with a C{getDim} method
+      :return: a L{Symbol} of rank 0
+      :rtype: L{Symbol}
       """
       if hasattr(dim,"getDim"):
            d=dim.getDim()
@@ -58,11 +58,11 @@ def VectorSymbol(dim=3):
       """
       Returns a vector L{Symbol} of rank 1 and spatial dimension C{dim}.
 
-      @param dim: spatial dimension or an object that has the C{getDim} method
+      :param dim: spatial dimension or an object that has the C{getDim} method
                   defining the spatial dimension
-      @type dim: C{int} or any object with a C{getDim} method
-      @return: a L{Symbol} of shape (C{dim},)
-      @rtype: L{Symbol}
+      :type dim: C{int} or any object with a C{getDim} method
+      :return: a L{Symbol} of shape (C{dim},)
+      :rtype: L{Symbol}
       """
       if hasattr(dim,"getDim"):
            d=dim.getDim()
@@ -74,11 +74,11 @@ def TensorSymbol(dim=3):
       """
       Returns a tensor L{Symbol} of rank 2 and spatial dimension C{dim}.
 
-      @param dim: spatial dimension or an object that has the C{getDim} method
+      :param dim: spatial dimension or an object that has the C{getDim} method
                   defining the spatial dimension
-      @type dim: C{int} or any object with a C{getDim} method
-      @return: a L{Symbol} of shape (C{dim},C{dim})
-      @rtype: L{Symbol}
+      :type dim: C{int} or any object with a C{getDim} method
+      :return: a L{Symbol} of shape (C{dim},C{dim})
+      :rtype: L{Symbol}
       """
       if hasattr(dim,"getDim"):
            d=dim.getDim()
@@ -90,11 +90,11 @@ def Tensor3Symbol(dim=3):
       """
       Returns a tensor L{Symbol} of rank 3 and spatial dimension C{dim}.
 
-      @param dim: spatial dimension or an object that has the C{getDim} method
+      :param dim: spatial dimension or an object that has the C{getDim} method
                   defining the spatial dimension
-      @type dim: C{int} or any object with a C{getDim} method
-      @return: a L{Symbol} of shape (C{dim},C{dim},C{dim})
-      @rtype: L{Symbol}
+      :type dim: C{int} or any object with a C{getDim} method
+      :return: a L{Symbol} of shape (C{dim},C{dim},C{dim})
+      :rtype: L{Symbol}
       """
       if hasattr(dim,"getDim"):
            d=dim.getDim()
@@ -106,11 +106,11 @@ def Tensor4Symbol(dim=3):
       """
       Returns a tensor L{Symbol} of rank 4 and spatial dimension C{dim}.
 
-      @param dim: spatial dimension or an object that has the C{getDim} method
+      :param dim: spatial dimension or an object that has the C{getDim} method
                   defining the spatial dimension
-      @type dim: C{int} or any object with a C{getDim} method
-      @return: a L{Symbol} of shape (C{dim},C{dim},C{dim},C{dim})
-      @rtype: L{Symbol}
+      :type dim: C{int} or any object with a C{getDim} method
+      :return: a L{Symbol} of shape (C{dim},C{dim},C{dim},C{dim})
+      :rtype: L{Symbol}
       """
       if hasattr(dim,"getDim"):
            d=dim.getDim()

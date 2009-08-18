@@ -22,11 +22,11 @@ __url__="https://launchpad.net/escript-finley"
 """
 some benchmarks for tetsing the finley solver. The idea is to develop a set of standart benchmarks.
 
-@var __author__: name of author
-@var __licence__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __licence__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -51,8 +51,8 @@ class FinleyFilter(BenchmarkFilter):
       """
       sets up the filter
 
-      @param args: list of value names to be filtered
-      @type args: C{list} of L{TIME}, L{ERROR}
+      :param args: list of value names to be filtered
+      :type args: C{list} of L{TIME}, L{ERROR}
       """
       if args==None: args=[FinleyFilter.TIME,FinleyFilter.ERROR]
       super(FinleyFilter,self).__init__()
@@ -62,8 +62,8 @@ class FinleyFilter(BenchmarkFilter):
        """
        return the names of the results produced when run() is called.
        
-       @return: names the list of the names to be used when the results of the run() call are printed
-       @rtype: C{list} of C{str}
+       :return: names the list of the names to be used when the results of the run() call are printed
+       :rtype: C{list} of C{str}
        """
        return self.__args
 
@@ -71,10 +71,10 @@ class FinleyFilter(BenchmarkFilter):
        """
        filters out the characteristic values
        
-       @param result: characteristics rturned by a L{FinleyProblem} run
-       @type result: C{dict}
-       @return: filtered values
-       @rtype: C{list} of C{str}
+       :param result: characteristics rturned by a L{FinleyProblem} run
+       :type result: C{dict}
+       :return: filtered values
+       :rtype: C{list} of C{str}
        """
        out=[]
        for a in self.__args:
@@ -152,10 +152,10 @@ class FinleyProblem(BenchmarkProblem):
        creates a domain and a PDE on this domain, solves it (with the given options) and returns the 
        elapsed time and the error.
        
-       @param options: solver options
-       @type options:  L{FinleyOptions}
-       @return:  elapsed time and the error of calculated solution
-       @rtype: pair of C{float}
+       :param options: solver options
+       :type options:  L{FinleyOptions}
+       :return:  elapsed time and the error of calculated solution
+       :rtype: pair of C{float}
        """
        domain=self.getDomain()
        pde,u=self.getTestProblem(domain)
@@ -178,11 +178,11 @@ class FinleyProblem(BenchmarkProblem):
        """
        returns a PDEto be solved and an exact solution
 
-       @param domain: the PDE domain
-       @type domain: L{escript.Domain}
-       @return: a linear PDE to be solved an a reference solution
-       @rtype: L{LinearPDE},L{escript.Data}
-       @note: must be overwritten by a particular problem
+       :param domain: the PDE domain
+       :type domain: L{escript.Domain}
+       :return: a linear PDE to be solved an a reference solution
+       :rtype: L{LinearPDE},L{escript.Data}
+       :note: must be overwritten by a particular problem
        """
        raise NotImplementedError
 
@@ -190,9 +190,9 @@ class FinleyProblem(BenchmarkProblem):
        """
        returns the domain of the problem
 
-       @return: a domain
-       @rtype: L{escript.Domain}
-       @note: must be overwritten by a particular problem
+       :return: a domain
+       :rtype: L{escript.Domain}
+       :note: must be overwritten by a particular problem
        """
        raise NotImplementedError
 
@@ -204,14 +204,14 @@ class RegularFinleyProblem(FinleyProblem):
        """
        sets up a recangular mesh in finley on a unit cube/square
  
-       @param n: number of elements in each spactial direction
-       @type n: C{int}
-       @param order: element order
-       @type order: 1 or 2
-       @param dim: spatial dimension
-       @type dim: 2 or 3
-       @param num_equations: number of equations
-       @type num_equations: C{int}
+       :param n: number of elements in each spactial direction
+       :type n: C{int}
+       :param order: element order
+       :type order: 1 or 2
+       :param dim: spatial dimension
+       :type dim: 2 or 3
+       :param num_equations: number of equations
+       :type num_equations: C{int}
        """
        super(RegularFinleyProblem,self).__init__(name=str(num_equations*(order*n+1)**dim))
        self.__n=n
@@ -223,8 +223,8 @@ class RegularFinleyProblem(FinleyProblem):
        """
        returns the unit square/cube with a rectangular mesh
 
-       @return: a domain
-       @rtype: L{escript.Domain}
+       :return: a domain
+       :rtype: L{escript.Domain}
        """
        if self.__dim==2:
           domain=esys.finley.Rectangle(n0=self.__n,n1=self.__n,order=self.__order)
@@ -240,10 +240,10 @@ class LaplaceProblem(RegularFinleyProblem):
          """
          returns a PDE and a test solution on the given domain
      
-         @param domain: a domain
-         @type domain: L{escript.Domain}
-         @return: the Laplace equation and a test solution
-         @rtype: C{tuple} of C{LinearPDE} and C{escript.Data}
+         :param domain: a domain
+         :type domain: L{escript.Domain}
+         :return: the Laplace equation and a test solution
+         :rtype: C{tuple} of C{LinearPDE} and C{escript.Data}
          """
          x=domain.getX()
          msk=whereZero(x[0])+whereZero(x[0]-1.)
@@ -270,10 +270,10 @@ class AnisotropicProblem(RegularFinleyProblem):
          """
          returns a PDE and a test solution on the given domain
      
-         @param domain: a domain
-         @type domain: L{escript.Domain}
-         @return: the Laplace equation and a test solution
-         @rtype: C{tuple} of C{LinearPDE} and C{escript.Data}
+         :param domain: a domain
+         :type domain: L{escript.Domain}
+         :return: the Laplace equation and a test solution
+         :rtype: C{tuple} of C{LinearPDE} and C{escript.Data}
          """
          x=domain.getX()
          msk=whereZero(x[0])+whereZero(x[0]-1.)
@@ -322,10 +322,10 @@ class AnisotropicSystem(RegularFinleyProblem):
          """
          returns a PDE and a test solution on the given domain
      
-         @param domain: a domain
-         @type domain: L{escript.Domain}
-         @return: the Laplace equation and a test solution
-         @rtype: C{tuple} of C{LinearPDE} and C{escript.Data}
+         :param domain: a domain
+         :type domain: L{escript.Domain}
+         :return: the Laplace equation and a test solution
+         :rtype: C{tuple} of C{LinearPDE} and C{escript.Data}
          """
          x=domain.getX()
          d=domain.getDim()

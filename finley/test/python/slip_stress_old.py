@@ -24,12 +24,12 @@ calculation of the stress distribution around a fault from the slip on the fault
 
 e.g. use slip_stress_mesh.py to generate mesh
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, Louise Kettle"

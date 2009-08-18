@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -48,10 +48,10 @@ class Light:
 		"""
 		Initialise the light.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which components are to be added to	
-		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which objects are to be rendered on
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which components are to be added to	
+		:type viewport: L{Viewport <constant.Viewport>} constant
+		:param viewport: Viewport in which objects are to be rendered on
 		"""
                 if getMPISizeWorld()>1:
                      raise ValueError,"pyvisi.Light is not running on more than one processor."
@@ -70,8 +70,8 @@ class Light:
 		"""
 		Set up the light and associate it with the renderer.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
 		"""
 
 		scene._addLight(self.__viewport, self.__vtk_light)
@@ -80,8 +80,8 @@ class Light:
 		"""
 		Set the light color.
 
-		@type color: L{Color <constant.Color>} constant
-		@param color: Light color
+		:type color: L{Color <constant.Color>} constant
+		:param color: Light color
 		"""
 
 		self.__vtk_light.SetColor(color)
@@ -91,8 +91,8 @@ class Light:
 		"""
 		Set the focal point of the light.
 
-		@type position: L{GlobalPosition <position.GlobalPosition>} object
-		@param position: Light focal point
+		:type position: L{GlobalPosition <position.GlobalPosition>} object
+		:param position: Light focal point
 		"""
 
 		self.__vtk_light.SetFocalPoint(position._getGlobalPosition())
@@ -102,8 +102,8 @@ class Light:
 		"""
 		Set the position of the light.
 
-		@type position: L{GlobalPosition <position.GlobalPosition>} object
-		@param position: Light position
+		:type position: L{GlobalPosition <position.GlobalPosition>} object
+		:param position: Light position
 		"""
 
 		self.__vtk_light.SetPosition(position._getGlobalPosition())
@@ -116,10 +116,10 @@ class Light:
 		An alternative to set the position and focal point of the light 
 		by using the elevation and azimuth.	
 
-		@type elevation: Number
-		@param elevation: Degree to rotate the light to the top and bottom
-		@type azimuth: Number
-		@param azimuth: Degree to rotate the light to the left and right
+		:type elevation: Number
+		:param elevation: Degree to rotate the light to the top and bottom
+		:type azimuth: Number
+		:param azimuth: Degree to rotate the light to the left and right
 		"""
 
 		# NOTE: The elevation angle of light does not appear to suffer the same
@@ -132,8 +132,8 @@ class Light:
 		"""
 		Set the intensity (brightness) of the light.
 
-		@type intensity: Number
-		@param intensity: Intensity (brightness) of the light
+		:type intensity: Number
+		:param intensity: Intensity (brightness) of the light
 		"""
 
 		self.__vtk_light.SetIntensity(intensity)
@@ -143,8 +143,8 @@ class Light:
 		"""
 		Return whether the Light has been modified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		if (self.__modified == True):
@@ -156,8 +156,8 @@ class Light:
 		"""
 		Render the light.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
 		"""
 
 		if(self._isModified() == True):

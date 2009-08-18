@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -37,11 +37,11 @@ class Transform:
 	"""
 	Class that defines the orientation of planes.
 	
-	@attention: There is a difference between performing rotation first 
+	:attention: There is a difference between performing rotation first 
 	followed by translation, and performing translation first followed 
 	by rotation.
 
-	@attention: VTK's coordinate system and translation is NOT 100% precise. 
+	:attention: VTK's coordinate system and translation is NOT 100% precise. 
 	Consequently, performing maximum rotation and translation can potentially
 	yield incorrect results. For instance, rotating a XY plane along the x-axis 
 	90 degrees may NOT produce any results (as it is possible that the XY 
@@ -69,12 +69,12 @@ class Transform:
 		"""
 		Translate the rendered object along the x, y and z-axes.
 
-		@type x_offset: Number
-		@param x_offset: Amount to translate along the x-axis
-		@type y_offset: Number
-		@param y_offset: Amount to translate along the y-axis
-		@type z_offset: Number
-		@param z_offset: Amount to translate along the z-axis 
+		:type x_offset: Number
+		:param x_offset: Amount to translate along the x-axis
+		:type y_offset: Number
+		:param y_offset: Amount to translate along the y-axis
+		:type z_offset: Number
+		:param z_offset: Amount to translate along the z-axis 
 		"""
 
 		self.__vtk_transform.Translate(-x_offset, -y_offset, -z_offset)
@@ -83,8 +83,8 @@ class Transform:
 		"""
 		Rotate the plane along the x-axis.
 
-		@type angle: Number
-		@param angle: Angle to rotate the plane
+		:type angle: Number
+		:param angle: Angle to rotate the plane
 		"""
 
 		self.__vtk_transform.RotateX(-angle)
@@ -93,8 +93,8 @@ class Transform:
 		"""
 		Rotate the plane along the y-axis.
 
-		@type angle: Number
-		@param angle: Angle to rotate the plane
+		:type angle: Number
+		:param angle: Angle to rotate the plane
 		"""
 
 		self.__vtk_transform.RotateY(angle)
@@ -103,8 +103,8 @@ class Transform:
 		"""
 		Rotate the plane along the z-axis.
 
-		@type angle: Number
-		@param angle: Angle to rotate the plane
+		:type angle: Number
+		:param angle: Angle to rotate the plane
 		"""
 
 		self.__vtk_transform.RotateZ(angle)
@@ -113,8 +113,8 @@ class Transform:
 		"""
 		Set the plane orthogonal to the z-axis.
 
-		@type offset: Number
-		@param offset: Amount to translate along the z-axis
+		:type offset: Number
+		:param offset: Amount to translate along the z-axis
 		"""
 	
 		self.translate(0, 0, offset + self.__OFFSET_VARIANCE)
@@ -123,8 +123,8 @@ class Transform:
 		"""
 		Set the plane orthogonal to the x-axis.
 
-		@type offset: Number
-		@param offset: Amount to translate along the x-axis
+		:type offset: Number
+		:param offset: Amount to translate along the x-axis
 		"""
 		
 		# NOTE: rotateY must come first before translate. Otherwise, 
@@ -136,8 +136,8 @@ class Transform:
 		"""
 		Set the plane orthogonal to the y-axis.
 
-		@type offset: Number
-		@param offset: Amount to translate along the y-axis
+		:type offset: Number
+		:param offset: Amount to translate along the y-axis
 		"""
 
 		# rotateX must come first before translate. Otherwise, it won't work.
@@ -148,8 +148,8 @@ class Transform:
 		"""
 		Return the transform instance.
 
-		@rtype: vtkTransform
-		@return: Transform instance that is used to specify the orientation
+		:rtype: vtkTransform
+		:return: Transform instance that is used to specify the orientation
 			of the plane
 		"""
 
@@ -176,10 +176,10 @@ class TransformFilter:
 		"""
 		Setup the transform filter.
 
-		@type plane_source: vtkPolyData
-		@param plane_source: Polygonal data
-		@type transform: L{Transform <transform.Transform>} object
-		@param transform: Specifies the orientation of the plane source
+		:type plane_source: vtkPolyData
+		:param plane_source: Polygonal data
+		:type transform: L{Transform <transform.Transform>} object
+		:param transform: Specifies the orientation of the plane source
 		"""
 
 		self.__plane_source = plane_source

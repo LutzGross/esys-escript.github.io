@@ -22,12 +22,12 @@ __url__="https://launchpad.net/escript-finley"
 """
 Some models for heat advection-diffusion
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -63,9 +63,9 @@ class TemperatureCartesian(TransportPDE):
         """
         Initializes the temperature advection-diffusion problem.
 
-        @param domain: domain of the problem
-        @param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Not that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. So other measures need to be applied to control the time step size. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
-        @type useBackwardEuler: C{bool}
+        :param domain: domain of the problem
+        :param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Not that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. So other measures need to be applied to control the time step size. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
+        :type useBackwardEuler: C{bool}
         """
         TransportPDE.__init__(self,domain,numEquations=1,useBackwardEuler=useBackwardEuler,**kwargs)
         self.setReducedOrderOn()
@@ -130,9 +130,9 @@ class Tracer(TransportPDE):
         """
         Initializes the Tracer advection problem
 
-        @param domain: domain of the problem
-        @param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Not that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. So other measures need to be applied to control the time step size. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
-        @type useBackwardEuler: C{bool}
+        :param domain: domain of the problem
+        :param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Not that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. So other measures need to be applied to control the time step size. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
+        :type useBackwardEuler: C{bool}
         """
         TransportPDE.__init__(self,domain,numEquations=1,useBackwardEuler=useBackwardEuler,**kwargs)
         self.setReducedOrderOn()
