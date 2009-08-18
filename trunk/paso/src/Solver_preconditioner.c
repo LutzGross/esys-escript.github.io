@@ -19,7 +19,7 @@
 /**************************************************************/
 
 /* Copyrights by ACcESS Australia 2003/04 */
-/* Author: gross@access.edu.au */
+/* Author: Lutz Gross, l.gross@uq.edu.au */
 
 /**************************************************************/
 
