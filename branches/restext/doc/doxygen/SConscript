@@ -1,0 +1,27 @@
+
+########################################################
+#
+# Copyright (c) 2003-2009 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+
+import os
+Import('*')
+
+
+tmp = env.Command(env.Dir(env['prefix']+'/release/doc/doxygen'), [], [Mkdir(env['prefix']+'/release/doc/doxygen')])
+
+
+#Now some magic from the doxygen FAQ to get the global revision number into the doxyfile
+if os.name=='posix':
+	env.Alias('api_doxygen',[env.Dir(env['prefix']+'/release/doc/doxygen')],['(cat doc/doxygen/doxygen_esys; echo "PROJECT_NUMBER=\"Revision_`svnversion`\"" ) | doxygen - '])
+else:
+	env.Alias('api_doxygen',[env.Dir(env['prefix']+'/release/doc/doxygen')],["doxygen doc/doxygen/doxygen_esys"])
+env.AlwaysBuild('api_doxygen')

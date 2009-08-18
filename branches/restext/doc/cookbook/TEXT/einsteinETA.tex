@@ -1,0 +1,34 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2009 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{The Einstein Summation Convention}
+
+The Einstein Summation Convention (ESC) is a notational convention that is prefered by the \ESCRIPT developers. It is a condensed and practical way to deal with multi-dimensional and convoluted PDEs. By suppressing the need to write out the many terms of each problem it is possible to increase efficiency and reduce the number of errors created through poor working. According to the convention, when an index variable appears twice in a single term, it implies that we are summing over all of its possible values.
+So we have;
+\begin{equation}
+a_1\frac{\partial^2 f}{\partial x_1^2} + a_2\frac{\partial^2 f}{\partial x_2^2} = a_i\frac{\partial^2 f}{\partial x_i^2}
+\end{equation}
+
+For a scalar function $f(x_1,x_2,..x_i)$ and a vector $\mathbf{u}(u_1,u_2,..u_i)$ with $u_i(x_1,x_2,..x_i)$, we have the following notation:
+\begin{equation}
+\mathbf{u}=\sum_{i}u_ie^i = u_ie^i
+\end{equation}
+\begin{equation}
+\mathbf{grad}(f) = \mathbf{\nabla}(f) = \sum_{i}\frac{\partial f}{\partial x_i}e^i = (\partial_i f)e^i = f_{,i}e^i
+\end{equation}
+\begin{equation}
+div(\mathbf{u}) = \mathbf{\nabla}.\mathbf{u} = \sum_{i}\frac{\partial u_i}{\partial x_i} = \partial_i u_i = u_{i,i}
+\end{equation}
+\begin{equation}
+div(\mathbf{grad}(f)) = \nabla^2 f = \Delta f = \sum_{i}\frac{\partial^2 f}{\partial x_i^2} = f_{,ii}
+\end{equation}

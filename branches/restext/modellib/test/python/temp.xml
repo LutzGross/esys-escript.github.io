@@ -1,0 +1,455 @@
+<?xml version="1.0" ?>
+<ESys>
+	<Simulation id="100">
+		<Component rank="0">
+			<Model id="101" module="esys.modellib.input" type="Sequencer">
+				<Parameter type="float">
+					<Name>
+						t_end
+					</Name>
+					<Value>
+						0.05
+					</Value>
+				</Parameter>
+				<Parameter type="float">
+					<Name>
+						dt_max
+					</Name>
+					<Value>
+						1e+300
+					</Value>
+				</Parameter>
+				<Parameter type="int">
+					<Name>
+						t
+					</Name>
+					<Value>
+						0
+					</Value>
+				</Parameter>
+			</Model>
+		</Component>
+		<Component rank="1">
+			<Model id="102" module="esys.modellib.geometry" type="ScalarConstrainerOverBox">
+				<Parameter type="Link">
+					<Name>
+						domain
+					</Name>
+					<Value>
+						<Link>
+							<Target>
+								103
+							</Target>
+							<Attribute>
+								domain
+							</Attribute>
+						</Link>
+					</Value>
+				</Parameter>
+				<Parameter type="int">
+					<Name>
+						right
+					</Name>
+					<Value>
+						1
+					</Value>
+				</Parameter>
+				<Parameter type="int">
+					<Name>
+						bottom
+					</Name>
+					<Value>
+						1
+					</Value>
+				</Parameter>
+				<Parameter type="int">
+					<Name>
+						top
+					</Name>
+					<Value>
+						1
+					</Value>
+				</Parameter>
+				<Parameter type="bool">
+					<Name>
+						back
+					</Name>
+					<Value>
+						False
+					</Value>
+				</Parameter>
+				<Parameter type="NoneType">
+					<Name>
+						value
+					</Name>
+					<Value>
+						None
+					</Value>
+				</Parameter>
+				<Parameter type="float">
+					<Name>
+						tol
+					</Name>
+					<Value>
+						1e-08
+					</Value>
+				</Parameter>
+				<Parameter type="bool">
+					<Name>
+						front
+					</Name>
+					<Value>
+						False
+					</Value>
+				</Parameter>
+				<Parameter type="int">
+					<Name>
+						left
+					</Name>
+					<Value>
+						1
+					</Value>
+				</Parameter>
+			</Model>
+		</Component>
+		<Component rank="2">
+			<Model id="104" module="esys.modellib.temperature" type="TemperatureAdvection">
+				<Parameter type="float">
+					<Name>
+						safety_factor
+					</Name>
+					<Value>
+						0.1
+					</Value>
+				</Parameter>
+				<Parameter type="Link">
+					<Name>
+						domain
+					</Name>
+					<Value>
+						<Link>
+							<Target>
+								103
+							</Target>
+							<Attribute>
+								domain
+							</Attribute>
+						</Link>
+					</Value>
+				</Parameter>
+				<Parameter type="Link">
+					<Name>
+						temperature
+					</Name>
+					<Value>
+						<Link>
+							<Target>
+								105
+							</Target>
+							<Attribute>
+								out
+							</Attribute>
+						</Link>
+					</Value>
+				</Parameter>
+				<Parameter type="float">
+					<Name>
+						thermal_permabilty
+					</Name>
+					<Value>
+						1.0
+					</Value>
+				</Parameter>
+				<Parameter type="Link">
+					<Name>
+						fixed_temperature
+					</Name>
+					<Value>
+						<Link>
+							<Target>
+								105
+							</Target>
+							<Attribute>
+								out
+							</Attribute>
+						</Link>
+					</Value>
+				</Parameter>
+				<Parameter type="float">
+					<Name>
+						density
+					</Name>
+					<Value>
+						1.0
+					</Value>
+				</Parameter>
+				<Parameter type="Link">
+					<Name>
+						location_fixed_temperature
+					</Name>
+					<Value>
+						<Link>
+							<Target>
+								102
+							</Target>
+							<Attribute>
+								location_of_constraint
+							</Attribute>
+						</Link>
+					</Value>
+				</Parameter>
+				<Parameter type="float">
+					<Name>
+						heat_capacity
+					</Name>
+					<Value>
+						1.0
+					</Value>
+				</Parameter>
+				<Parameter type="ndarray">
+					<Name>
+						velocity
+					</Name>
+					<Value>
+						<ndarray>
+							<ArrayType>
+								Int
+							</ArrayType>
+							<Shape>
+								2
+							</Shape>
+							<Data>
+								1 -1
+							</Data>
+						</ndarray>
+					</Value>
+				</Parameter>
+				<Parameter type="Link">
+					<Name>
+						thermal_source
+					</Name>
+					<Value>
+						<Link>
+							<Target>
+								106
+							</Target>
+							<Attribute>
+								out
+							</Attribute>
+						</Link>
+					</Value>
+				</Parameter>
+			</Model>
+		</Component>
+		<Component rank="3">
+			<Model id="107" module="esys.modellib.probe" type="Probe">
+				<Parameter type="str">
+					<Name>
+						expression
+					</Name>
+					<Value>
+						x[0]*x[1]*exp(-t)
+					</Value>
+				</Parameter>
+				<Parameter type="Link">
+					<Name>
+						t
+					</Name>
+					<Value>
+						<Link>
+							<Target>
+								101
+							</Target>
+							<Attribute>
+								t
+							</Attribute>
+						</Link>
+					</Value>
+				</Parameter>
+				<Parameter type="Link">
+					<Name>
+						value
+					</Name>
+					<Value>
+						<Link>
+							<Target>
+								104
+							</Target>
+							<Attribute>
+								temperature
+							</Attribute>
+						</Link>
+					</Value>
+				</Parameter>
+				<Parameter type="str">
+					<Name>
+						line_tag
+					</Name>
+					<Value>
+						PROBE
+					</Value>
+				</Parameter>
+			</Model>
+		</Component>
+	</Simulation>
+	<ParameterSet id="103" module="esys.modellib.geometry" type="RectangularDomain">
+		<Parameter type="int">
+			<Name>
+				dim
+			</Name>
+			<Value>
+				2
+			</Value>
+		</Parameter>
+		<Parameter type="ndarray">
+			<Name>
+				l
+			</Name>
+			<Value>
+				<ndarray>
+					<ArrayType>
+						Float
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						1.0 1.0 1.0
+					</Data>
+				</ndarray>
+			</Value>
+		</Parameter>
+		<Parameter type="int">
+			<Name>
+				integrationOrder
+			</Name>
+			<Value>
+				-1
+			</Value>
+		</Parameter>
+		<Parameter type="ndarray">
+			<Name>
+				n
+			</Name>
+			<Value>
+				<ndarray>
+					<ArrayType>
+						Int
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						10 10 10
+					</Data>
+				</ndarray>
+			</Value>
+		</Parameter>
+		<Parameter type="ndarray">
+			<Name>
+				periodic
+			</Name>
+			<Value>
+				<ndarray>
+					<ArrayType>
+						Bool
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0 0 0
+					</Data>
+				</ndarray>
+			</Value>
+		</Parameter>
+		<Parameter type="int">
+			<Name>
+				order
+			</Name>
+			<Value>
+				2
+			</Value>
+		</Parameter>
+	</ParameterSet>
+	<ParameterSet id="105" module="esys.modellib.probe" type="EvaluateExpression">
+		<Parameter type="Link">
+			<Name>
+				domain
+			</Name>
+			<Value>
+				<Link>
+					<Target>
+						103
+					</Target>
+					<Attribute>
+						domain
+					</Attribute>
+				</Link>
+			</Value>
+		</Parameter>
+		<Parameter type="str">
+			<Name>
+				expression
+			</Name>
+			<Value>
+				x[0]*x[1]*exp(-t)
+			</Value>
+		</Parameter>
+		<Parameter type="Link">
+			<Name>
+				t
+			</Name>
+			<Value>
+				<Link>
+					<Target>
+						101
+					</Target>
+					<Attribute>
+						t
+					</Attribute>
+				</Link>
+			</Value>
+		</Parameter>
+	</ParameterSet>
+	<ParameterSet id="106" module="esys.modellib.probe" type="EvaluateExpression">
+		<Parameter type="Link">
+			<Name>
+				domain
+			</Name>
+			<Value>
+				<Link>
+					<Target>
+						103
+					</Target>
+					<Attribute>
+						domain
+					</Attribute>
+				</Link>
+			</Value>
+		</Parameter>
+		<Parameter type="str">
+			<Name>
+				expression
+			</Name>
+			<Value>
+				(x[1]-x[0])*exp(-t)-exp(-t)*x[0]*x[1]
+			</Value>
+		</Parameter>
+		<Parameter type="Link">
+			<Name>
+				t
+			</Name>
+			<Value>
+				<Link>
+					<Target>
+						101
+					</Target>
+					<Attribute>
+						t
+					</Attribute>
+				</Link>
+			</Value>
+		</Parameter>
+	</ParameterSet>
+</ESys>
