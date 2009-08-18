@@ -90,7 +90,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   #endif
 #endif
 
-  def("setNumberOfThreads",escript::setNumberOfThreads);
+  def("setNumberOfThreads",escript::setNumberOfThreads,"Use of this method is strongly discouraged.");
   def("getNumberOfThreads",escript::getNumberOfThreads);
   def("releaseUnusedMemory",escript::releaseUnusedMemory);
   def("blocktimer_initialize",blocktimer_initialize);
@@ -98,12 +98,13 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("blocktimer_reportSortByTime",blocktimer_reportSortByTime);
   def("blocktimer_increment",blocktimer_increment);
   def("blocktimer_time",blocktimer_time);
-  def("getVersion",escript::getSvnVersion);
+  def("getVersion",escript::getSvnVersion,"This method will only report accurate version numbers for clean checkouts.");
   def("printParallelThreadCounts",escript::printParallelThreadCnt);
   def("getMPISizeWorld",escript::getMPISizeWorld);
   def("getMPIRankWorld",escript::getMPIRankWorld);
   def("MPIBarrierWorld",escript::MPIBarrierWorld);
   def("getMPIWorldMax",escript::getMPIWorldMax);
+  def("getMPIWorldSum",escript::getMPIWorldSum);
   def("getMachinePrecision",escript::getMachinePrecision);
   def("getMaxFloat",escript::getMaxFloat);
   //

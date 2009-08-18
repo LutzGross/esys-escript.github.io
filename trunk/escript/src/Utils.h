@@ -39,6 +39,7 @@ namespace escript {
   /**
      \brief
      set the number of threads 
+     \warning Use of this method is strongly discouraged. It may be deprecated in future.
   */
   ESCRIPT_DLL_API void setNumberOfThreads(const int num_threads);
 
@@ -65,6 +66,10 @@ namespace escript {
   */
   ESCRIPT_DLL_API int getMPIWorldMax(const int val);
 
+  /**
+     \brief returns sum of an integer over all processors with MPI_COMM_WORLD
+  */
+  ESCRIPT_DLL_API int getMPIWorldSum(const int val);
 
   /**
     \brief performs a barrier synchronization across all processors.
