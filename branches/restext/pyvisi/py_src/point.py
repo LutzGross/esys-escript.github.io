@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -54,8 +54,8 @@ class PointSource:
 		"""
 		Setup the point source.
 
-		@type object: vtkPolyData, etc
-		@param object: Used to define the location of the sphere 
+		:type object: vtkPolyData, etc
+		:param object: Used to define the location of the sphere 
 		"""
 
 		self.__object = object
@@ -69,8 +69,8 @@ class PointSource:
 		"""
 		Set the radius of the sphere.
 
-		@type radius: Number
-		@param radius: Radius of the sphere
+		:type radius: Number
+		:param radius: Radius of the sphere
 		"""
 
 		self.__vtk_point_source.SetRadius(radius)
@@ -81,8 +81,8 @@ class PointSource:
 		"""
 		Specity the sphere's center.
 		
-		@type center: L{GLobalPosition <position.GlobalPosition>} object
-		@param center: Center of the sphere
+		:type center: L{GLobalPosition <position.GlobalPosition>} object
+		:param center: Center of the sphere
 		"""
 		
 		self.__center = center
@@ -99,8 +99,8 @@ class PointSource:
 		Set the number of points to generate within the sphere (the larger the
 		number of points, the more streamlines are generated)
 
-		@type points: Number
-		@param points: Number of points to generate
+		:type points: Number
+		:param points: Number of points to generate
 		"""
 
 		self.__vtk_point_source.SetNumberOfPoints(points)	
@@ -109,8 +109,8 @@ class PointSource:
 		"""
 		Return the output of the point source.
 
-		@rtype: vtkPolyData
-		@return: Polygonal data
+		:rtype: vtkPolyData
+		:return: Polygonal data
 		"""
 
 		return self.__vtk_point_source.GetOutput()
@@ -119,8 +119,8 @@ class PointSource:
 		"""
 		Return whether the center has been specified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		if(self.__center != None):
@@ -151,8 +151,8 @@ class MaskPoints:
 		"""
 		Setup the mask points.
 
-		@type object: vtkDataSet (i.e. vtkUnstructuredGrid, etc)
-		@param object: Data source from which to mask points 
+		:type object: vtkDataSet (i.e. vtkUnstructuredGrid, etc)
+		:param object: Data source from which to mask points 
 		"""
 
 		self.__object = object
@@ -169,8 +169,8 @@ class MaskPoints:
 		"""
 		Mask every n'th point.
 
-		@type ratio: Number
-		@param ratio: Masking ratio
+		:type ratio: Number
+		:param ratio: Masking ratio
 		"""
 
 		self.__vtk_mask_points.SetOnRatio(ratio)
@@ -193,8 +193,8 @@ class MaskPoints:
 		"""
 		Return the output of the masked points.
 
-		@rtype: vtkPolyData
-		@return: Polygonal datda
+		:rtype: vtkPolyData
+		:return: Polygonal datda
 		"""
 
 		return self.__vtk_mask_points.GetOutput()

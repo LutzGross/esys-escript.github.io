@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -85,10 +85,10 @@ class LookupTable:
 		"""
 		Set the value range (brightness) for the lookup table (between 0 and 1).
 
-		@type lower_range: Number
-		@param lower_range:Lower value range 
-		@type upper_range: Number
-		@param upper_range: Upper value range
+		:type lower_range: Number
+		:param lower_range:Lower value range 
+		:type upper_range: Number
+		:param upper_range: Upper value range
 		"""
 
 		self.__vtk_lookup_table.SetValueRange(lower_range, upper_range)
@@ -97,10 +97,10 @@ class LookupTable:
 		"""
 		Set the hue (color) range for the lookup table (between 0 and 1).
 
-		@type lower_range: Number
-		@param lower_range:Lower hue range 
-		@type upper_range: Number
-		@param upper_range: Upper hue range
+		:type lower_range: Number
+		:param lower_range:Lower hue range 
+		:type upper_range: Number
+		:param upper_range: Upper hue range
 		"""
 
 		self.__vtk_lookup_table.SetHueRange(lower_range, upper_range)
@@ -110,10 +110,10 @@ class LookupTable:
 		Set the saturation (vibrancy) range for the lookup table \
 		(between 0 and 1).
 
-		@type lower_range: Number
-		@param lower_range:Lower saturantion range 
-		@type upper_range: Number
-		@param upper_range: Upper saturation range
+		:type lower_range: Number
+		:param lower_range:Lower saturantion range 
+		:type upper_range: Number
+		:param upper_range: Upper saturation range
 		"""
 
 		self.__vtk_lookup_table.SetSaturationRange(lower_range, upper_range)
@@ -129,8 +129,8 @@ class LookupTable:
 		"""
 		Set the number of values (i.e. colors) in the lookup table.	
 
-		@type table_values: Number
-		@param table_values: Number of colors in the lookup table.
+		:type table_values: Number
+		:param table_values: Number of colors in the lookup table.
 		"""
 
 		self.__vtk_lookup_table.SetNumberOfTableValues(table_values)
@@ -139,8 +139,8 @@ class LookupTable:
 		"""
 		Return the lookup table.
 
-		@rtype: vtkLookupTable
-		@return: Lookup table
+		:rtype: vtkLookupTable
+		:return: Lookup table
 		"""
 
 		return self.__vtk_lookup_table

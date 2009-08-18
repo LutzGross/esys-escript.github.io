@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -58,14 +58,14 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 		"""
 		Initialise the Carpet.
 
-		@attention: The source can either be point or cell data. If the 
+		:attention: The source can either be point or cell data. If the 
 		source is cell data, a conversion to point data may or may not be 
 		required, in order for the object to be rendered correctly. 
 		If a conversion is needed, the 'cell_to_point' flag must be set to 
 		'True', otherwise 'False' (which is the default). On occasions, an
 		inaccurate object may be rendered from cell data even after conversion.
 
-		@attention:  When 3D data is used, a cut will be performed on the 
+		:attention:  When 3D data is used, a cut will be performed on the 
 		scalar field using a 
 		plane before deformation occurs on the plane. However, if 2D data is 
 		used a cut will NOT be performed and deformation will instead occur 
@@ -79,21 +79,21 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 		z-axis length. However, such exceptions are not taken into account 
 		at this stage.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
-		@type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
+		:type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
-		@param data_collector: Deal with source of data for visualisation
-		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which objects are to be rendered on
-		@param warp_mode: L{WarpMode <constant.WarpMode>} constant
-		@type warp_mode: Mode in which to deform the scalar field 
-		@type lut : L{Lut <constant.Lut>} constant
-		@param lut: Lookup table color scheme
-		@type cell_to_point: Boolean
-		@param cell_to_point: Converts cell data to point data (by averaging)
-		@type outline: Boolean
-		@param outline: Places an outline around the domain surface
+		:param data_collector: Deal with source of data for visualisation
+		:type viewport: L{Viewport <constant.Viewport>} constant
+		:param viewport: Viewport in which objects are to be rendered on
+		:param warp_mode: L{WarpMode <constant.WarpMode>} constant
+		:type warp_mode: Mode in which to deform the scalar field 
+		:type lut : L{Lut <constant.Lut>} constant
+		:param lut: Lookup table color scheme
+		:type cell_to_point: Boolean
+		:param cell_to_point: Converts cell data to point data (by averaging)
+		:type outline: Boolean
+		:param outline: Places an outline around the domain surface
 		"""
 
 		self.__data_collector = data_collector
@@ -149,8 +149,8 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 		"""
 		Return whether the Carpet or DataCollector has been modified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		return self.__modified or self.__data_collector._isModified()
@@ -159,8 +159,8 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 		"""
 		Render the carpet.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
 		"""
 
 		# This entire 'if' section had to be moved from the __init__ method

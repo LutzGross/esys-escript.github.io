@@ -23,12 +23,12 @@ __url__="https://launchpad.net/escript-finley"
 Template for the Design which defines regions and features
 for a mesh generator.
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -209,10 +209,10 @@ class Design(object):
        """
        Initializes a design.
 
-       @param dim: spatial dimension
-       @param element_size: global element size
-       @param order: element order
-       @param keep_files: flag to keep work files
+       :param dim: spatial dimension
+       :param element_size: global element size
+       :param order: element order
+       :param keep_files: flag to keep work files
        """
        self.clearItems()
        self.setElementSize(element_size)
@@ -327,7 +327,7 @@ class Design(object):
         """
         Sets options of the mesh generator.
 
-        @note: this method is typically overwritten by a particular design
+        :note: this method is typically overwritten by a particular design
                implementation.
         """
         pass
@@ -336,7 +336,7 @@ class Design(object):
         """
         Returns a handle to a mesh meshing the design.
 
-        @note: this method has to be overwritten by a particular design
+        :note: this method has to be overwritten by a particular design
                implementation.
         """
         raise NotImplementedError()

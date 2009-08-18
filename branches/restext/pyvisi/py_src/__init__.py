@@ -23,12 +23,12 @@ __deprecated__="""The pyvisi module has been deprecated and is no longer support
 Please see the escript user guide and tutorials for suggestions
  on visualisation."""
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"

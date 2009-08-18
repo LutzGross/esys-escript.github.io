@@ -28,12 +28,12 @@ Currently includes:
     - TimeIntegrationManager - to handle extrapolation in time
     - SaddlePointProblem - solver for Saddle point problems using the inexact uszawa scheme
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -64,7 +64,7 @@ class TimeIntegrationManager:
          tm.checkin(dt,v)
          t+=dt
 
-  @note: currently only p=1 is supported.
+  :note: currently only p=1 is supported.
   """
   def __init__(self,*inital_values,**kwargs):
      """
@@ -139,9 +139,9 @@ class Projector:
     """
     Creates a continuous function space projector for a domain.
 
-    @param domain: Domain of the projection.
-    @param reduce: Flag to reduce projection order
-    @param fast: Flag to use a fast method based on matrix lumping
+    :param domain: Domain of the projection.
+    :param reduce: Flag to reduce projection order
+    :param fast: Flag to use a fast method based on matrix lumping
     """
     self.__pde = linearPDEs.LinearPDE(domain)
     if fast:
@@ -154,14 +154,14 @@ class Projector:
 	"""
 	Returns the solver options of the PDE solver.
 	
-	@rtype: L{linearPDEs.SolverOptions}
+	:rtype: L{linearPDEs.SolverOptions}
 	"""
 
   def __call__(self, input_data):
     """
     Projects C{input_data} onto a continuous function.
 
-    @param input_data: the data to be projected
+    :param input_data: the data to be projected
     """
     out=escript.Data(0.,input_data.getShape(),self.__pde.getFunctionSpaceForSolution())
     self.__pde.setValue(Y = escript.Data(), Y_reduced = escript.Data())
@@ -216,7 +216,7 @@ class NoPDE:
 
      The constraint overwrites any other condition.
 
-     @note: This class is similar to the L{linearPDEs.LinearPDE} class with
+     :note: This class is similar to the L{linearPDEs.LinearPDE} class with
             A=B=C=X=0 but has the intention that all input parameters are given
             in L{Solution} or L{ReducedSolution}.
      """
@@ -226,16 +226,16 @@ class NoPDE:
          """
          Initializes the problem.
 
-         @param domain: domain of the PDE
-         @type domain: L{Domain}
-         @param D: coefficient of the solution
-         @type D: C{float}, C{int}, C{numpy.ndarray}, L{Data}
-         @param Y: right hand side
-         @type Y: C{float}, C{int}, C{numpy.ndarray}, L{Data}
-         @param q: location of constraints
-         @type q: C{float}, C{int}, C{numpy.ndarray}, L{Data}
-         @param r: value of solution at locations of constraints
-         @type r: C{float}, C{int}, C{numpy.ndarray}, L{Data}
+         :param domain: domain of the PDE
+         :type domain: L{Domain}
+         :param D: coefficient of the solution
+         :type D: C{float}, C{int}, C{numpy.ndarray}, L{Data}
+         :param Y: right hand side
+         :type Y: C{float}, C{int}, C{numpy.ndarray}, L{Data}
+         :param q: location of constraints
+         :type q: C{float}, C{int}, C{numpy.ndarray}, L{Data}
+         :param r: value of solution at locations of constraints
+         :type r: C{float}, C{int}, C{numpy.ndarray}, L{Data}
          """
          self.__domain=domain
          self.__D=D
@@ -263,14 +263,14 @@ class NoPDE:
          """
          Assigns values to the parameters.
 
-         @param D: coefficient of the solution
-         @type D: C{float}, C{int}, C{numpy.ndarray}, L{Data}
-         @param Y: right hand side
-         @type Y: C{float}, C{int}, C{numpy.ndarray}, L{Data}
-         @param q: location of constraints
-         @type q: C{float}, C{int}, C{numpy.ndarray}, L{Data}
-         @param r: value of solution at locations of constraints
-         @type r: C{float}, C{int}, C{numpy.ndarray}, L{Data}
+         :param D: coefficient of the solution
+         :type D: C{float}, C{int}, C{numpy.ndarray}, L{Data}
+         :param Y: right hand side
+         :type Y: C{float}, C{int}, C{numpy.ndarray}, L{Data}
+         :param q: location of constraints
+         :type q: C{float}, C{int}, C{numpy.ndarray}, L{Data}
+         :param r: value of solution at locations of constraints
+         :type r: C{float}, C{int}, C{numpy.ndarray}, L{Data}
          """
          if not D==None:
             self.__D=D
@@ -289,8 +289,8 @@ class NoPDE:
          """
          Returns the solution.
 
-         @return: the solution of the problem
-         @rtype: L{Data} object in the L{FunctionSpace} L{Solution} or
+         :return: the solution of the problem
+         :rtype: L{Data} object in the L{FunctionSpace} L{Solution} or
                  L{ReducedSolution}
          """
          if self.__u==None:
@@ -324,10 +324,10 @@ class Locator:
        or FunctionSpace for the sample point which is closest to the given
        point x.
 
-       @param where: function space
-       @type where: L{escript.FunctionSpace}
-       @param x: location(s) of the Locator
-       @type x: C{numpy.ndarray} or C{list} of C{numpy.ndarray}
+       :param where: function space
+       :type where: L{escript.FunctionSpace}
+       :param x: location(s) of the Locator
+       :type x: C{numpy.ndarray} or C{list} of C{numpy.ndarray}
        """
        if isinstance(where,escript.FunctionSpace):
           self.__function_space=where
@@ -487,31 +487,31 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
    T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo,
    C. Romine, and H. van der Vorst}.
 
-   @param r: initial residual M{r=b-Ax}. C{r} is altered.
-   @type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
-   @param x: an initial guess for the solution
-   @type x: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
-   @param Aprod: returns the value Ax
-   @type Aprod: function C{Aprod(x)} where C{x} is of the same object like
+   :param r: initial residual M{r=b-Ax}. C{r} is altered.
+   :type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
+   :param x: an initial guess for the solution
+   :type x: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
+   :param Aprod: returns the value Ax
+   :type Aprod: function C{Aprod(x)} where C{x} is of the same object like
                 argument C{x}. The returned object needs to be of the same type
                 like argument C{r}.
-   @param Msolve: solves Mx=r
-   @type Msolve: function C{Msolve(r)} where C{r} is of the same type like
+   :param Msolve: solves Mx=r
+   :type Msolve: function C{Msolve(r)} where C{r} is of the same type like
                  argument C{r}. The returned object needs to be of the same
                  type like argument C{x}.
-   @param bilinearform: inner product C{<x,r>}
-   @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same
+   :param bilinearform: inner product C{<x,r>}
+   :type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same
                        type like argument C{x} and C{r} is. The returned value
                        is a C{float}.
-   @param atol: absolute tolerance
-   @type atol: non-negative C{float}
-   @param rtol: relative tolerance
-   @type rtol: non-negative C{float}
-   @param iter_max: maximum number of iteration steps
-   @type iter_max: C{int}
-   @return: the solution approximation and the corresponding residual
-   @rtype: C{tuple}
-   @warning: C{r} and C{x} are altered.
+   :param atol: absolute tolerance
+   :type atol: non-negative C{float}
+   :param rtol: relative tolerance
+   :type rtol: non-negative C{float}
+   :param iter_max: maximum number of iteration steps
+   :type iter_max: C{int}
+   :return: the solution approximation and the corresponding residual
+   :rtype: C{tuple}
+   :warning: C{r} and C{x} are altered.
    """
    iter=0
    rhat=Msolve(r)
@@ -564,10 +564,10 @@ class Defect(object):
         """
         Returns the inner product of x0 and x1
 
-        @param x0: value for x0
-        @param x1: value for x1
-        @return: the inner product of x0 and x1
-        @rtype: C{float}
+        :param x0: value for x0
+        :param x1: value for x1
+        :return: the inner product of x0 and x1
+        :rtype: C{float}
         """
         return 0
 
@@ -575,10 +575,10 @@ class Defect(object):
         """
         Returns the norm of argument C{x}.
 
-        @param x: a value
-        @return: norm of argument x
-        @rtype: C{float}
-        @note: by default C{sqrt(self.bilinearform(x,x)} is returned.
+        :param x: a value
+        :return: norm of argument x
+        :rtype: C{float}
+        :note: by default C{sqrt(self.bilinearform(x,x)} is returned.
         """
         s=self.bilinearform(x,x)
         if s<0: raise NegativeNorm,"negative norm."
@@ -588,8 +588,8 @@ class Defect(object):
         """
         Returns the value F of a given C{x}.
 
-        @param x: value for which the defect C{F} is evaluated
-        @return: value of the defect at C{x}
+        :param x: value for which the defect C{F} is evaluated
+        :return: value of the defect at C{x}
         """
         return 0
 
@@ -602,8 +602,8 @@ class Defect(object):
         derivative of the defect. The increment is inc*norm(x)/norm(v)*v in the
         direction of v with x as a starting point.
 
-        @param inc: relative increment length
-        @type inc: positive C{float}
+        :param inc: relative increment length
+        :type inc: positive C{float}
         """
         if inc<=0: raise ValueError,"positive increment required."
         self.__inc=inc
@@ -612,8 +612,8 @@ class Defect(object):
         """
         Returns the relative increment length used to approximate the
         derivative of the defect.
-        @return: value of the defect at C{x}
-        @rtype: positive C{float}
+        :return: value of the defect at C{x}
+        :rtype: positive C{float}
         """
         return self.__inc
 
@@ -621,13 +621,13 @@ class Defect(object):
         """
         Returns the directional derivative at C{x0} in the direction of C{v}.
 
-        @param F0: value of this defect at x0
-        @param x0: value at which derivative is calculated
-        @param v: direction
-        @param v_is_normalised: True to indicate that C{v} is nomalized
+        :param F0: value of this defect at x0
+        :param x0: value at which derivative is calculated
+        :param v: direction
+        :param v_is_normalised: True to indicate that C{v} is nomalized
                                 (self.norm(v)=0)
-        @return: derivative of this defect at x0 in the direction of C{v}
-        @note: by default numerical evaluation (self.eval(x0+eps*v)-F0)/eps is
+        :return: derivative of this defect at x0 in the direction of C{v}
+        :note: by default numerical evaluation (self.eval(x0+eps*v)-F0)/eps is
                used but this method maybe overwritten to use exact evaluation.
         """
         normx=self.norm(x0)
@@ -654,26 +654,26 @@ def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub
 
    where M{x0} is the initial guess.
 
-   @param defect: object defining the function M{F}. C{defect.norm} defines the
+   :param defect: object defining the function M{F}. C{defect.norm} defines the
                   M{norm} used in the stopping criterion.
-   @type defect: L{Defect}
-   @param x: initial guess for the solution, C{x} is altered.
-   @type x: any object type allowing basic operations such as
+   :type defect: L{Defect}
+   :param x: initial guess for the solution, C{x} is altered.
+   :type x: any object type allowing basic operations such as
             C{numpy.ndarray}, L{Data}
-   @param iter_max: maximum number of iteration steps
-   @type iter_max: positive C{int}
-   @param sub_iter_max: maximum number of inner iteration steps
-   @type sub_iter_max: positive C{int}
-   @param atol: absolute tolerance for the solution
-   @type atol: positive C{float}
-   @param rtol: relative tolerance for the solution
-   @type rtol: positive C{float}
-   @param gamma: tolerance safety factor for inner iteration
-   @type gamma: positive C{float}, less than 1
-   @param sub_tol_max: upper bound for inner tolerance
-   @type sub_tol_max: positive C{float}, less than 1
-   @return: an approximation of the solution with the desired accuracy
-   @rtype: same type as the initial guess
+   :param iter_max: maximum number of iteration steps
+   :type iter_max: positive C{int}
+   :param sub_iter_max: maximum number of inner iteration steps
+   :type sub_iter_max: positive C{int}
+   :param atol: absolute tolerance for the solution
+   :type atol: positive C{float}
+   :param rtol: relative tolerance for the solution
+   :type rtol: positive C{float}
+   :param gamma: tolerance safety factor for inner iteration
+   :type gamma: positive C{float}, less than 1
+   :param sub_tol_max: upper bound for inner tolerance
+   :type sub_tol_max: positive C{float}, less than 1
+   :return: an approximation of the solution with the desired accuracy
+   :rtype: same type as the initial guess
    """
    lmaxit=iter_max
    if atol<0: raise ValueError,"atol needs to be non-negative."
@@ -733,7 +733,7 @@ def __givapp(c,s,vin):
     Applies a sequence of Givens rotations (c,s) recursively to the vector
     C{vin}
 
-    @warning: C{vin} is altered.
+    :warning: C{vin} is altered.
     """
     vrot=vin
     if isinstance(c,float):
@@ -851,31 +851,31 @@ def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_rest
 
    M{|r| = sqrt( bilinearform(r,r))}
 
-   @param r: initial residual M{r=b-Ax}. C{r} is altered.
-   @type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
-   @param x: an initial guess for the solution
-   @type x: same like C{r}
-   @param Aprod: returns the value Ax
-   @type Aprod: function C{Aprod(x)} where C{x} is of the same object like
+   :param r: initial residual M{r=b-Ax}. C{r} is altered.
+   :type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
+   :param x: an initial guess for the solution
+   :type x: same like C{r}
+   :param Aprod: returns the value Ax
+   :type Aprod: function C{Aprod(x)} where C{x} is of the same object like
                 argument C{x}. The returned object needs to be of the same
                 type like argument C{r}.
-   @param bilinearform: inner product C{<x,r>}
-   @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same
+   :param bilinearform: inner product C{<x,r>}
+   :type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same
                        type like argument C{x} and C{r}. The returned value is
                        a C{float}.
-   @param atol: absolute tolerance
-   @type atol: non-negative C{float}
-   @param rtol: relative tolerance
-   @type rtol: non-negative C{float}
-   @param iter_max: maximum number of iteration steps
-   @type iter_max: C{int}
-   @param iter_restart: in order to save memory the orthogonalization process
+   :param atol: absolute tolerance
+   :type atol: non-negative C{float}
+   :param rtol: relative tolerance
+   :type rtol: non-negative C{float}
+   :param iter_max: maximum number of iteration steps
+   :type iter_max: C{int}
+   :param iter_restart: in order to save memory the orthogonalization process
                         is terminated after C{iter_restart} steps and the
                         iteration is restarted.
-   @type iter_restart: C{int}
-   @return: the solution approximation and the corresponding residual
-   @rtype: C{tuple}
-   @warning: C{r} and C{x} are altered.
+   :type iter_restart: C{int}
+   :return: the solution approximation and the corresponding residual
+   :rtype: C{tuple}
+   :warning: C{r} and C{x} are altered.
    """
    m=iter_restart
    restarted=False
@@ -1027,31 +1027,31 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
     T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo,
     C. Romine, and H. van der Vorst}.
 
-    @param r: initial residual M{r=b-Ax}. C{r} is altered.
-    @type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
-    @param x: an initial guess for the solution
-    @type x: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
-    @param Aprod: returns the value Ax
-    @type Aprod: function C{Aprod(x)} where C{x} is of the same object like
+    :param r: initial residual M{r=b-Ax}. C{r} is altered.
+    :type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
+    :param x: an initial guess for the solution
+    :type x: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
+    :param Aprod: returns the value Ax
+    :type Aprod: function C{Aprod(x)} where C{x} is of the same object like
                  argument C{x}. The returned object needs to be of the same
                  type like argument C{r}.
-    @param Msolve: solves Mx=r
-    @type Msolve: function C{Msolve(r)} where C{r} is of the same type like
+    :param Msolve: solves Mx=r
+    :type Msolve: function C{Msolve(r)} where C{r} is of the same type like
                   argument C{r}. The returned object needs to be of the same
                   type like argument C{x}.
-    @param bilinearform: inner product C{<x,r>}
-    @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same
+    :param bilinearform: inner product C{<x,r>}
+    :type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same
                         type like argument C{x} and C{r} is. The returned value
                         is a C{float}.
-    @param atol: absolute tolerance
-    @type atol: non-negative C{float}
-    @param rtol: relative tolerance
-    @type rtol: non-negative C{float}
-    @param iter_max: maximum number of iteration steps
-    @type iter_max: C{int}
-    @return: the solution approximation and the corresponding residual
-    @rtype: C{tuple}
-    @warning: C{r} and C{x} are altered.
+    :param atol: absolute tolerance
+    :type atol: non-negative C{float}
+    :param rtol: relative tolerance
+    :type rtol: non-negative C{float}
+    :param iter_max: maximum number of iteration steps
+    :type iter_max: C{int}
+    :return: the solution approximation and the corresponding residual
+    :rtype: C{tuple}
+    :warning: C{r} and C{x} are altered.
     """
     #------------------------------------------------------------------
     # Set up y and v for the first Lanczos vector v1.
@@ -1198,26 +1198,26 @@ def TFQMR(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
 
   M{|r| = sqrt( bilinearform(r,r))}
 
-  @param r: initial residual M{r=b-Ax}. C{r} is altered.
-  @type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
-  @param x: an initial guess for the solution
-  @type x: same like C{r}
-  @param Aprod: returns the value Ax
-  @type Aprod: function C{Aprod(x)} where C{x} is of the same object like
+  :param r: initial residual M{r=b-Ax}. C{r} is altered.
+  :type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
+  :param x: an initial guess for the solution
+  :type x: same like C{r}
+  :param Aprod: returns the value Ax
+  :type Aprod: function C{Aprod(x)} where C{x} is of the same object like
                argument C{x}. The returned object needs to be of the same type
                like argument C{r}.
-  @param bilinearform: inner product C{<x,r>}
-  @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same
+  :param bilinearform: inner product C{<x,r>}
+  :type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same
                       type like argument C{x} and C{r}. The returned value is
                       a C{float}.
-  @param atol: absolute tolerance
-  @type atol: non-negative C{float}
-  @param rtol: relative tolerance
-  @type rtol: non-negative C{float}
-  @param iter_max: maximum number of iteration steps
-  @type iter_max: C{int}
-  @rtype: C{tuple}
-  @warning: C{r} and C{x} are altered.
+  :param atol: absolute tolerance
+  :type atol: non-negative C{float}
+  :param rtol: relative tolerance
+  :type rtol: non-negative C{float}
+  :param iter_max: maximum number of iteration steps
+  :type iter_max: C{int}
+  :rtype: C{tuple}
+  :warning: C{r} and C{x} are altered.
   """
   u1=0
   u2=0
@@ -1304,7 +1304,7 @@ class ArithmeticTuple(object):
        """
        Initializes object with elements C{args}.
 
-       @param args: tuple of objects that support inplace add (x+=y) and
+       :param args: tuple of objects that support inplace add (x+=y) and
                     scaling (x=a*y)
        """
        self.__items=list(args)
@@ -1313,8 +1313,8 @@ class ArithmeticTuple(object):
        """
        Returns the number of items.
 
-       @return: number of items
-       @rtype: C{int}
+       :return: number of items
+       :rtype: C{int}
        """
        return len(self.__items)
 
@@ -1322,9 +1322,9 @@ class ArithmeticTuple(object):
        """
        Returns item at specified position.
 
-       @param index: index of item to be returned
-       @type index: C{int}
-       @return: item with index C{index}
+       :param index: index of item to be returned
+       :type index: C{int}
+       :return: item with index C{index}
        """
        return self.__items.__getitem__(index)
 
@@ -1332,10 +1332,10 @@ class ArithmeticTuple(object):
        """
        Scales by C{other} from the right.
 
-       @param other: scaling factor
-       @type other: C{float}
-       @return: itemwise self*other
-       @rtype: L{ArithmeticTuple}
+       :param other: scaling factor
+       :type other: C{float}
+       :return: itemwise self*other
+       :rtype: L{ArithmeticTuple}
        """
        out=[]
        try:
@@ -1351,10 +1351,10 @@ class ArithmeticTuple(object):
        """
        Scales by C{other} from the left.
 
-       @param other: scaling factor
-       @type other: C{float}
-       @return: itemwise other*self
-       @rtype: L{ArithmeticTuple}
+       :param other: scaling factor
+       :type other: C{float}
+       :return: itemwise other*self
+       :rtype: L{ArithmeticTuple}
        """
        out=[]
        try:
@@ -1370,10 +1370,10 @@ class ArithmeticTuple(object):
        """
        Scales by (1/C{other}) from the right.
 
-       @param other: scaling factor
-       @type other: C{float}
-       @return: itemwise self/other
-       @rtype: L{ArithmeticTuple}
+       :param other: scaling factor
+       :type other: C{float}
+       :return: itemwise self/other
+       :rtype: L{ArithmeticTuple}
        """
        return self*(1/other)
 
@@ -1381,10 +1381,10 @@ class ArithmeticTuple(object):
        """
        Scales by (1/C{other}) from the left.
 
-       @param other: scaling factor
-       @type other: C{float}
-       @return: itemwise other/self
-       @rtype: L{ArithmeticTuple}
+       :param other: scaling factor
+       :type other: C{float}
+       :return: itemwise other/self
+       :rtype: L{ArithmeticTuple}
        """
        out=[]
        try:
@@ -1400,8 +1400,8 @@ class ArithmeticTuple(object):
        """
        Inplace addition of C{other} to self.
 
-       @param other: increment
-       @type other: C{ArithmeticTuple}
+       :param other: increment
+       :type other: C{ArithmeticTuple}
        """
        if len(self) != len(other):
            raise ValueError,"tuple lengths must match."
@@ -1413,8 +1413,8 @@ class ArithmeticTuple(object):
        """
        Adds C{other} to self.
 
-       @param other: increment
-       @type other: C{ArithmeticTuple}
+       :param other: increment
+       :type other: C{ArithmeticTuple}
        """
        out=[]
        try:
@@ -1430,8 +1430,8 @@ class ArithmeticTuple(object):
        """
        Subtracts C{other} from self.
 
-       @param other: decrement
-       @type other: C{ArithmeticTuple}
+       :param other: decrement
+       :type other: C{ArithmeticTuple}
        """
        out=[]
        try:
@@ -1447,8 +1447,8 @@ class ArithmeticTuple(object):
        """
        Inplace subtraction of C{other} from self.
 
-       @param other: decrement
-       @type other: C{ArithmeticTuple}
+       :param other: decrement
+       :type other: C{ArithmeticTuple}
        """
        if len(self) != len(other):
            raise ValueError,"tuple length must match."
@@ -1481,8 +1481,8 @@ class HomogeneousSaddlePointProblem(object):
 	"""
 	initializes the saddle point problem
 	
-	@param adaptSubTolerance: If True the tolerance for subproblem is set automatically.
-	@type adaptSubTolerance: C{bool}
+	:param adaptSubTolerance: If True the tolerance for subproblem is set automatically.
+	:type adaptSubTolerance: C{bool}
 	"""
         self.setTolerance()
         self.setAbsoluteTolerance()
@@ -1498,11 +1498,11 @@ class HomogeneousSaddlePointProblem(object):
          """
          Returns inner product of element p and Bv (overwrite).
 
-         @param p: a pressure increment
-         @param v: a residual
-         @return: inner product of element p and Bv
-         @rtype: C{float}
-         @note: used if PCG is applied.
+         :param p: a pressure increment
+         :param v: a residual
+         :return: inner product of element p and Bv
+         :rtype: C{float}
+         :note: used if PCG is applied.
          """
          raise NotImplementedError,"no inner product for p and Bv implemented."
 
@@ -1510,10 +1510,10 @@ class HomogeneousSaddlePointProblem(object):
          """
          Returns inner product of p0 and p1 (overwrite).
 
-         @param p0: a pressure
-         @param p1: a pressure
-         @return: inner product of p0 and p1
-         @rtype: C{float}
+         :param p0: a pressure
+         :param p1: a pressure
+         :return: inner product of p0 and p1
+         :rtype: C{float}
          """
          raise NotImplementedError,"no inner product for p implemented."
    
@@ -1521,18 +1521,18 @@ class HomogeneousSaddlePointProblem(object):
          """
          Returns the norm of v (overwrite).
 
-         @param v: a velovity
-         @return: norm of v
-         @rtype: non-negative C{float}
+         :param v: a velovity
+         :return: norm of v
+         :rtype: non-negative C{float}
          """
          raise NotImplementedError,"no norm of v implemented."
       def getV(self, p, v0):
          """
          return the value for v for a given p (overwrite)
 
-         @param p: a pressure
-         @param v0: a initial guess for the value v to return. 
-         @return: v given as M{v= A^{-1} (f-B^*p)}
+         :param p: a pressure
+         :param v0: a initial guess for the value v to return. 
+         :return: v given as M{v= A^{-1} (f-B^*p)}
          """
          raise NotImplementedError,"no v calculation implemented."
 
@@ -1541,8 +1541,8 @@ class HomogeneousSaddlePointProblem(object):
         """
         Returns Bv (overwrite).
 
-        @rtype: equal to the type of p
-        @note: boundary conditions on p should be zero!
+        :rtype: equal to the type of p
+        :note: boundary conditions on p should be zero!
         """
         raise NotImplementedError, "no operator B implemented."
 
@@ -1550,8 +1550,8 @@ class HomogeneousSaddlePointProblem(object):
         """
         Returns the norm of Bv (overwrite).
 
-        @rtype: equal to the type of p
-        @note: boundary conditions on p should be zero!
+        :rtype: equal to the type of p
+        :note: boundary conditions on p should be zero!
         """
         raise NotImplementedError, "no norm of Bv implemented."
 
@@ -1560,9 +1560,9 @@ class HomogeneousSaddlePointProblem(object):
          Solves M{Av=B^*p} with accuracy L{self.getSubProblemTolerance()}
          (overwrite).
 
-         @param p: a pressure increment
-         @return: the solution of M{Av=B^*p} 
-         @note: boundary conditions on v should be zero!
+         :param p: a pressure increment
+         :return: the solution of M{Av=B^*p} 
+         :note: boundary conditions on v should be zero!
          """
          raise NotImplementedError,"no operator A implemented."
 
@@ -1571,14 +1571,14 @@ class HomogeneousSaddlePointProblem(object):
          Provides a preconditioner for M{BA^{-1}B^*} applied to Bv with accuracy
          L{self.getSubProblemTolerance()} (overwrite).
 
-         @rtype: equal to the type of p
-         @note: boundary conditions on p should be zero!
+         :rtype: equal to the type of p
+         :note: boundary conditions on p should be zero!
          """
          raise NotImplementedError,"no preconditioner for Schur complement implemented."
       def setSubProblemTolerance(self):
          """
 	 Updates the tolerance for subproblems
-	 @note: method is typically the method is overwritten.
+	 :note: method is typically the method is overwritten.
          """
          pass
       #=============================================================
@@ -1602,9 +1602,9 @@ class HomogeneousSaddlePointProblem(object):
           """
           calculates the norm of C{p}
           
-          @param p: a pressure
-          @return: the norm of C{p} using the inner product for pressure
-          @rtype: C{float}
+          :param p: a pressure
+          :return: the norm of C{p} using the inner product for pressure
+          :rtype: C{float}
           """
           f=self.inner_p(p,p)
           if f<0: raise ValueError,"negative pressure norm."
@@ -1619,22 +1619,22 @@ class HomogeneousSaddlePointProblem(object):
          """
          Solves the saddle point problem using initial guesses v and p.
 
-         @param v: initial guess for velocity
-         @param p: initial guess for pressure
-         @type v: L{Data}
-         @type p: L{Data}
-         @param usePCG: indicates the usage of the PCG rather than GMRES scheme.
-         @param max_iter: maximum number of iteration steps per correction
+         :param v: initial guess for velocity
+         :param p: initial guess for pressure
+         :type v: L{Data}
+         :type p: L{Data}
+         :param usePCG: indicates the usage of the PCG rather than GMRES scheme.
+         :param max_iter: maximum number of iteration steps per correction
                           attempt
-         @param verbose: if True, shows information on the progress of the
+         :param verbose: if True, shows information on the progress of the
                          saddlepoint problem solver.
-         @param iter_restart: restart the iteration after C{iter_restart} steps
+         :param iter_restart: restart the iteration after C{iter_restart} steps
                               (only used if useUzaw=False)
-         @type usePCG: C{bool}
-         @type max_iter: C{int}
-         @type verbose: C{bool}
-         @type iter_restart: C{int}
-         @rtype: C{tuple} of L{Data} objects
+         :type usePCG: C{bool}
+         :type max_iter: C{int}
+         :type verbose: C{bool}
+         :type iter_restart: C{int}
+         :rtype: C{tuple} of L{Data} objects
          """
          self.verbose=verbose
          rtol=self.getTolerance()
@@ -1678,8 +1678,8 @@ class HomogeneousSaddlePointProblem(object):
          """
          Sets the relative tolerance for (v,p).
 
-         @param tolerance: tolerance to be used
-         @type tolerance: non-negative C{float}
+         :param tolerance: tolerance to be used
+         :type tolerance: non-negative C{float}
          """
          if tolerance<0:
              raise ValueError,"tolerance must be positive."
@@ -1689,8 +1689,8 @@ class HomogeneousSaddlePointProblem(object):
          """
          Returns the relative tolerance.
 
-         @return: relative tolerance
-         @rtype: C{float}
+         :return: relative tolerance
+         :rtype: C{float}
          """
          return self.__rtol
 
@@ -1698,8 +1698,8 @@ class HomogeneousSaddlePointProblem(object):
          """
          Sets the absolute tolerance.
 
-         @param tolerance: tolerance to be used
-         @type tolerance: non-negative C{float}
+         :param tolerance: tolerance to be used
+         :type tolerance: non-negative C{float}
          """
          if tolerance<0:
              raise ValueError,"tolerance must be non-negative."
@@ -1709,8 +1709,8 @@ class HomogeneousSaddlePointProblem(object):
          """
          Returns the absolute tolerance.
 
-         @return: absolute tolerance
-         @rtype: C{float}
+         :return: absolute tolerance
+         :rtype: C{float}
          """
          return self.__atol
 
@@ -1718,8 +1718,8 @@ class HomogeneousSaddlePointProblem(object):
          """
          Sets the relative tolerance to solve the subproblem(s).
 
-         @param rtol: relative tolerence
-         @type rtol: positive C{float}
+         :param rtol: relative tolerence
+         :type rtol: positive C{float}
          """
          return max(200.*util.EPSILON,self.getTolerance()**2)
 
@@ -1730,13 +1730,13 @@ def MaskFromBoundaryTag(domain,*tags):
 
    Usage: m=MaskFromBoundaryTag(domain, "left", "right")
 
-   @param domain: domain to be used
-   @type domain: L{escript.Domain}
-   @param tags: boundary tags
-   @type tags: C{str}
-   @return: a mask which marks samples that are touching the boundary tagged
+   :param domain: domain to be used
+   :type domain: L{escript.Domain}
+   :param tags: boundary tags
+   :type tags: C{str}
+   :return: a mask which marks samples that are touching the boundary tagged
             by any of the given tags
-   @rtype: L{escript.Data} of rank 0
+   :rtype: L{escript.Data} of rank 0
    """
    pde=linearPDEs.LinearPDE(domain,numEquations=1, numSolutions=1)
    d=escript.Scalar(0.,escript.FunctionOnBoundary(domain))
@@ -1751,13 +1751,13 @@ def MaskFromTag(domain,*tags):
 
    Usage: m=MaskFromTag(domain, "ham")
 
-   @param domain: domain to be used
-   @type domain: L{escript.Domain}
-   @param tags: boundary tags
-   @type tags: C{str}
-   @return: a mask which marks samples that are touching the boundary tagged
+   :param domain: domain to be used
+   :type domain: L{escript.Domain}
+   :param tags: boundary tags
+   :type tags: C{str}
+   :return: a mask which marks samples that are touching the boundary tagged
             by any of the given tags
-   @rtype: L{escript.Data} of rank 0
+   :rtype: L{escript.Data} of rank 0
    """
    pde=linearPDEs.LinearPDE(domain,numEquations=1, numSolutions=1)
    d=escript.Scalar(0.,escript.Function(domain))

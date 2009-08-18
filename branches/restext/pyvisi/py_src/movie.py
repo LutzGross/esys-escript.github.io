@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -42,7 +42,7 @@ class Movie:
     file name is not speficied) which contains a list of parameters required 
     by the 'ppmtompeg' command to generate a movie from a series of images.
 
-    @attention: A movie cannot be generated from postscript (.ps) images.
+    :attention: A movie cannot be generated from postscript (.ps) images.
     """
 
     def __init__(self, parameter_file = "make_movie"):      
@@ -52,8 +52,8 @@ class Movie:
         generated. Otherwise, the temporary parameter file created will 
         automatically be removed at the end.
 
-        @type parameter_file: String
-        @param parameter_file: Name of the file containing the list of 
+        :type parameter_file: String
+        :param parameter_file: Name of the file containing the list of 
             parameters required by the 'ppmtompeg' command.
         """
 
@@ -65,13 +65,13 @@ class Movie:
         """
         The image range from which the movie is to be generated from.
         
-        @type input_directory: String
-        @param input_directory: Directory in which the series of images can 
+        :type input_directory: String
+        :param input_directory: Directory in which the series of images can 
         be found
-        @type first_image: String
-        @param first_image: First image name (including the extension)
-        @type last_image: String
-        @param last_image: Last image name (including the extension)
+        :type first_image: String
+        :param first_image: First image name (including the extension)
+        :type last_image: String
+        :param last_image: Last image name (including the extension)
         """
 
         # Keeps track whether an image range or image list was provided as
@@ -91,11 +91,11 @@ class Movie:
         """
         The image list from which the movie is to be generated from.
 
-        @type input_directory: String
-        @param input_directory: Directory in which the series of images can 
+        :type input_directory: String
+        :param input_directory: Directory in which the series of images can 
         be found
-        @type image_list: List
-        @param image_list: List of images name (including the extension)
+        :type image_list: List
+        :param image_list: List of images name (including the extension)
         """
 
         self.__image_range_used = False 
@@ -114,8 +114,8 @@ class Movie:
         """
         Generate the movie.
 
-        @type movie : String
-        @param movie: Movie name (including the .mpg extension)
+        :type movie : String
+        :param movie: Movie name (including the .mpg extension)
         """
 
         self.__movie = movie

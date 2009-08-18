@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -44,8 +44,8 @@ class Warp:
 		"""
 		Initialise the warp scalar/vector.
 
-		@type warp_mode: L{WarpMode <constant.WarpMode>} constant
-		@param warp_mode: Mode in which to deform the data
+		:type warp_mode: L{WarpMode <constant.WarpMode>} constant
+		:param warp_mode: Mode in which to deform the data
 		"""
                 if getMPISizeWorld()>1:
                     raise ValueError,"pyvisi.Warp is not running on more than one processor."
@@ -58,8 +58,8 @@ class Warp:
 		"""
 		Setup the warp.
 
-		@type object: vtkPolyData, etc
-		@param object: Input for the warp scalar or warp vector
+		:type object: vtkPolyData, etc
+		:param object: Input for the warp scalar or warp vector
 		"""
 
 		self.__object = object
@@ -76,8 +76,8 @@ class Warp:
 		"""
 		Set the displacement scale factor.
 
-		@type scale_factor: Number
-		@param scale_factor: Scale factor for the displacement
+		:type scale_factor: Number
+		:param scale_factor: Scale factor for the displacement
 		"""
 
 		self.__vtk_warp.SetScaleFactor(scale_factor)
@@ -86,8 +86,8 @@ class Warp:
 		"""
 		Return the output of the deformed data. 
 		
-		@rtype: vtkPointSet
-		@return: PointSet data
+		:rtype: vtkPointSet
+		:return: PointSet data
 		"""
 		
 		return self.__vtk_warp.GetOutput()

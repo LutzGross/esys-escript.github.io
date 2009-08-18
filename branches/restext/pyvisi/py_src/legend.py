@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -54,17 +54,17 @@ class Legend(ScalarBar, DataSetMapper, Actor3D):
 		"""
 		Initialise the Legend.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
-		@type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
+		:type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
-		@param data_collector: Deal with source of data for vizualisation
-		@type viewport: L{Viewport <constant.Viewport>} constant  
-		@param viewport: Viewport in which objects are to be rendered on 
-		@type lut : L{Lut <constant.Lut>} constant
-		@param lut: Lookup table color scheme
-		@type legend: L{Lut <constant.LegendType>} constant
-		@param legend: Type of legend
+		:param data_collector: Deal with source of data for vizualisation
+		:type viewport: L{Viewport <constant.Viewport>} constant  
+		:param viewport: Viewport in which objects are to be rendered on 
+		:type lut : L{Lut <constant.Lut>} constant
+		:param lut: Lookup table color scheme
+		:type legend: L{Lut <constant.LegendType>} constant
+		:param legend: Type of legend
 		"""
 
 		self.__data_collector = data_collector
@@ -108,8 +108,8 @@ class Legend(ScalarBar, DataSetMapper, Actor3D):
 		"""
 		Return whether the Legend or DataCollector has been modified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		return self.__modified or self.__data_collector._isModified()
@@ -118,8 +118,8 @@ class Legend(ScalarBar, DataSetMapper, Actor3D):
 		"""
 		Render the legend.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):

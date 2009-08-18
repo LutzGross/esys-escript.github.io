@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -64,30 +64,30 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, MaskPoints):
 		"""
 		Initialise the Velocity.
 
-		@attention: The source can either be point or cell data. If the 
+		:attention: The source can either be point or cell data. If the 
 		source is cell data, a conversion to point data may or may not be 
 		required, in order for the object to be rendered correctly. 
 		If a conversion is needed, the 'cell_to_point' flag must be set to 
 		'True', otherwise 'False' (which is the default). On occasions, an
 		inaccurate object may be rendered from cell data even after conversion.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
-		@type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
+		:type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
-		@param data_collector: Deal with source of data for visualisation
-		@type arrow: L{Arrow <constant.Arrow>} constant 
-		@param arrow: Type of arrow (two dimensional or three dimensional)
-		@type color_mode: L{ColorMode <constant.ColorMode>} constant
-		@param color_mode: Type of color mode
-		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which objects are to be rendered on
-		@type lut : L{Lut <constant.Lut>} constant
-		@param lut: Lookup table color scheme
-		@type cell_to_point: Boolean
-		@param cell_to_point: Converts cell data to point data (by averaging)
-		@type outline: Boolean
-		@param outline: Places an outline around the domain surface
+		:param data_collector: Deal with source of data for visualisation
+		:type arrow: L{Arrow <constant.Arrow>} constant 
+		:param arrow: Type of arrow (two dimensional or three dimensional)
+		:type color_mode: L{ColorMode <constant.ColorMode>} constant
+		:param color_mode: Type of color mode
+		:type viewport: L{Viewport <constant.Viewport>} constant
+		:param viewport: Viewport in which objects are to be rendered on
+		:type lut : L{Lut <constant.Lut>} constant
+		:param lut: Lookup table color scheme
+		:type cell_to_point: Boolean
+		:param cell_to_point: Converts cell data to point data (by averaging)
+		:type outline: Boolean
+		:param outline: Places an outline around the domain surface
 		"""
 
 		self.__data_collector = data_collector
@@ -161,8 +161,8 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, MaskPoints):
 		"""
 		Return whether the Velocity or DataCollector has been modified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		return self.__modified or self.__data_collector._isModified()
@@ -171,8 +171,8 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, MaskPoints):
 		"""
 		Render the velocity.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):
@@ -238,30 +238,30 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		"""
 		Initialise the VelocityOnPlaneCut.
 
-		@attention: The source can either be point or cell data. If the 
+		:attention: The source can either be point or cell data. If the 
 		source is cell data, a conversion to point data may or may not be 
 		required, in order for the object to be rendered correctly. 
 		If a conversion is needed, the 'cell_to_point' flag must be set to 
 		'True', otherwise 'False' (which is the default). On occasions, an
 		inaccurate object may be rendered from cell data even after conversion.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
-		@type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
+		:type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
-		@param data_collector: Deal with source of data for visualisation
-		@type arrow: L{Arrow <constant.Arrow>} constant 
-		@param arrow: Type of arrow (two dimensional or three dimensional)
-		@type color_mode: L{ColorMode <constant.ColorMode>} constant
-		@param color_mode: Type of color mode
-		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which objects are to be rendered on
-		@type lut : L{Lut <constant.Lut>} constant
-		@param lut: Lookup table color scheme
-		@type cell_to_point: Boolean
-		@param cell_to_point: Converts cell data to point data (by averaging)
-		@type outline: Boolean
-		@param outline: Places an outline around the domain surface
+		:param data_collector: Deal with source of data for visualisation
+		:type arrow: L{Arrow <constant.Arrow>} constant 
+		:param arrow: Type of arrow (two dimensional or three dimensional)
+		:type color_mode: L{ColorMode <constant.ColorMode>} constant
+		:param color_mode: Type of color mode
+		:type viewport: L{Viewport <constant.Viewport>} constant
+		:param viewport: Viewport in which objects are to be rendered on
+		:type lut : L{Lut <constant.Lut>} constant
+		:param lut: Lookup table color scheme
+		:type cell_to_point: Boolean
+		:param cell_to_point: Converts cell data to point data (by averaging)
+		:type outline: Boolean
+		:param outline: Places an outline around the domain surface
 		"""
 
 		self.__data_collector = data_collector
@@ -345,8 +345,8 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		Return whether the VelocityOnPlaneCut or DataCollector has been 
 		modified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		return self.__modified or self.__data_collector._isModified()
@@ -355,8 +355,8 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		"""
 		Render the velocity cut using a plane.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):
@@ -417,30 +417,30 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		"""
 		Initialise the VelocityOnPlaneClip.
 
-		@attention: The source can either be point or cell data. If the 
+		:attention: The source can either be point or cell data. If the 
 		source is cell data, a conversion to point data may or may not be 
 		required, in order for the object to be rendered correctly. 
 		If a conversion is needed, the 'cell_to_point' flag must be set to 
 		'True', otherwise 'False' (which is the default). On occasions, an
 		inaccurate object may be rendered from cell data even after conversion.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
-		@type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
+		:type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
-		@param data_collector: Deal with source of data for visualisation
-		@type arrow: L{Arrow <constant.Arrow>} constant 
-		@param arrow: Type of arrow (two dimensional or three dimensional)
-		@type color_mode: L{ColorMode <constant.ColorMode>} constant
-		@param color_mode: Type of color mode
-		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which objects are to be rendered on
-		@type lut : L{Lut <constant.Lut>} constant
-		@param lut: Lookup table color scheme
-		@type cell_to_point: Boolean
-		@param cell_to_point: Converts cell data to point data (by averaging)
-		@type outline: Boolean
-		@param outline: Places an outline around the domain surface
+		:param data_collector: Deal with source of data for visualisation
+		:type arrow: L{Arrow <constant.Arrow>} constant 
+		:param arrow: Type of arrow (two dimensional or three dimensional)
+		:type color_mode: L{ColorMode <constant.ColorMode>} constant
+		:param color_mode: Type of color mode
+		:type viewport: L{Viewport <constant.Viewport>} constant
+		:param viewport: Viewport in which objects are to be rendered on
+		:type lut : L{Lut <constant.Lut>} constant
+		:param lut: Lookup table color scheme
+		:type cell_to_point: Boolean
+		:param cell_to_point: Converts cell data to point data (by averaging)
+		:type outline: Boolean
+		:param outline: Places an outline around the domain surface
 		"""
 
 		self.__data_collector = data_collector
@@ -529,8 +529,8 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		Return whether the VelocityOnPlaneClip or DataCollector has been 
 		modified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		return self.__modified or self.__data_collector._isModified()
@@ -539,8 +539,8 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		"""
 		Render the velocity clip using a plane..
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		:type scene: L{Scene <scene.Scene>} object
+		:param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):
