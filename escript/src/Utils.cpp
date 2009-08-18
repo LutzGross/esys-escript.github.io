@@ -91,6 +91,7 @@ void printParallelThreadCnt()
     omp_iam = omp_get_thread_num(); /* Call in a parallel region */
     omp_num = omp_get_num_threads();
     #endif
+    #pragma omp critical (printthrdcount)
     printf("printParallelThreadCounts: MPI=%03d/%03d OpenMP=%03d/%03d running on %s core %d\n",
       mpi_iam, mpi_num, omp_iam, omp_num, hname, get_core_id());
   }
@@ -142,7 +143,16 @@ ESCRIPT_DLL_API int getMPIWorldMax(const int val) {
   return out;
 }
 
-   
+ESCRIPT_DLL_API int getMPIWorldSum(const int val) {
+  #ifdef PASO_MPI
+  int val2 = val;
+  int out = 0;
+  MPI_Allreduce( &val2, &out, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );
+  #else
+  int out = val;
+  #endif
+  return out;
+}
 
 ESCRIPT_DLL_API double getMachinePrecision() {
    return DBL_EPSILON;
