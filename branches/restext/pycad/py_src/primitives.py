@@ -148,8 +148,8 @@ class PrimitiveBase(object):
 
     def __imul__(self,other):
         """
-        Modifies object by applying L{Transformation} C{other}. If C{other}
-        is not a L{Transformation} it is first tried to be converted.
+        Modifies object by applying `Transformation` C{other}. If C{other}
+        is not a `Transformation` it is first tried to be converted.
         """
         if isinstance(other,int) or isinstance(other,float):
             trafo=Dilation(other)
@@ -164,8 +164,8 @@ class PrimitiveBase(object):
 
     def __rmul__(self,other):
         """
-        Applies L{Transformation} C{other} to object. If C{other} is not a
-        L{Transformation} it is first tried to be converted.
+        Applies `Transformation` C{other} to object. If C{other} is not a
+        `Transformation` it is first tried to be converted.
         """
         if isinstance(other,int) or isinstance(other,float):
             trafo=Dilation(other)
@@ -394,7 +394,7 @@ class Point(Primitive, PrimitiveBase):
 
     def isColocated(self,primitive):
        """
-       Returns True if the L{Point} C{primitive} is colocated (has the same
+       Returns True if the `Point` C{primitive} is colocated (has the same
        coordinates) with self. That is, if
        M{|self-primitive| <= tol * max(|self|,|primitive|)}.
        """
@@ -943,7 +943,7 @@ class CurveLoop(Primitive, PrimitiveBase):
     """
     An oriented loop of one-dimensional manifolds (= curves and arcs).
 
-    The loop must be closed and the L{Manifold1D}s should be oriented
+    The loop must be closed and the `Manifold1D` s should be oriented
     consistently.
     """
     def __init__(self,*curves):
@@ -1082,7 +1082,7 @@ class Manifold2D(PrimitiveBase):
         returns a list of points used to define the boundary
         
         :return: list of points used to define the boundary
-        :rtype: C{list} of  L{Point}s
+        :rtype: C{list} of  `Point` s
         """
         out=[]
         boundary=self.getBoundary()
@@ -1121,7 +1121,7 @@ class Manifold2D(PrimitiveBase):
         applies 2D transfinite meshing to the surface. 
 
         :param orientation: sets the orientation of the triangles. It is only used if recombination is not used.
-        :type orientation: L{Manifold2D.LEFT}, L{Manifold2D.RIGHT}, L{Manifold2D.ALTERNATE}
+        :type orientation: `Manifold2D.LEFT`, `Manifold2D.RIGHT`, `Manifold2D.ALTERNATE`
         :note: Transfinite meshing can not be applied if holes are present.
         """
         if not orientation in [ Manifold2D.LEFT, Manifold2D.RIGHT, Manifold2D.ALTERNATE]:
@@ -1174,8 +1174,8 @@ class Manifold2D(PrimitiveBase):
         """
         returns the transfinite meshing setings. If transfinite meshing is not set, C{None} is returned.
         
-        :return: a tuple of the tuple of points used to define the transfinite meshing and the orientation. If no points are set the points tuple is returned as C{None}. If no ransfinite meshing is not set, C{None} is returned.
-        :rtype: C{tuple} of a C{tuple} of L{Point}s (or C{None}) and the orientation which is one of the values  L{Manifold2D.LEFT}, L{Manifold2D.RIGHT}, L{Manifold2D.ALTERNATE}
+        :return: a tuple of the tuple of points used to define the transfinite meshing and the orientation. If no points are set the points tuple is returned as C{None}. If no transfinite meshing is not set, C{None} is returned.
+        :rtype: C{tuple} of a C{tuple} of `Point` s (or C{None}) and the orientation which is one of the values  `Manifold2D.LEFT` , `Manifold2D.RIGHT` , `Manifold2D.ALTERNATE`
         """
         if self.__transfinitemeshing:
             return (self.__points, self.__orientation)
@@ -1191,7 +1191,7 @@ class RuledSurface(Primitive, Manifold2D):
        """
        Creates a ruled surface with boundary C{loop}.
 
-       :param loop: L{CurveLoop} defining the boundary of the surface.
+       :param loop: `CurveLoop` defining the boundary of the surface.
        """
        if not isinstance(loop.getUnderlyingPrimitive(),CurveLoop):
            raise TypeError("argument loop needs to be a CurveLoop object.")
@@ -1256,14 +1256,14 @@ class RuledSurface(Primitive, Manifold2D):
 
 def createRuledSurface(*curves):
       """
-      An easier way to create a L{RuledSurface} from given curves.
+      An easier way to create a `RuledSurface` from given curves.
       """
       return RuledSurface(CurveLoop(*curves))
 
 
 class ReverseRuledSurface(ReversePrimitive, Manifold2D):
     """
-    Creates a view onto a L{RuledSurface} but with reverse orientation.
+    Creates a view onto a `RuledSurface` but with reverse orientation.
     """
     def __init__(self,surface):
        """
@@ -1303,8 +1303,8 @@ class PlaneSurface(Primitive, Manifold2D):
        """
        Creates a plane surface with holes.
 
-       :param loop: L{CurveLoop} defining the boundary of the surface
-       :param holes: list of L{CurveLoop}s defining holes in the surface
+       :param loop: `CurveLoop` defining the boundary of the surface
+       :param holes: list of `CurveLoop` s defining holes in the surface
        :note: A CurveLoop defining a hole should not have any lines in common
               with the exterior CurveLoop.
        :note: A CurveLoop defining a hole should not have any lines in common
@@ -1394,11 +1394,11 @@ class PlaneSurface(Primitive, Manifold2D):
 
 class ReversePlaneSurface(ReversePrimitive, Manifold2D):
     """
-    Creates a view onto a L{PlaneSurface} but with reverse orientation.
+    Creates a view onto a `PlaneSurface` but with reverse orientation.
     """
     def __init__(self,surface):
        """
-       Creates a polygon from a L{PlaneSurface}.
+       Creates a polygon from a `PlaneSurface`.
        """
        if not isinstance(surface, PlaneSurface):
            raise TypeError("arguments need to be an instance of PlaneSurface.")
@@ -1562,8 +1562,8 @@ class Volume(Manifold3D, Primitive):
        """
        Creates a volume with holes.
 
-       :param loop: L{SurfaceLoop} defining the boundary of the surface
-       :param holes: list of L{SurfaceLoop} defining holes in the surface
+       :param loop: `SurfaceLoop` defining the boundary of the surface
+       :param holes: list of `SurfaceLoop` defining holes in the surface
        :note: A SurfaceLoop defining a hole should not have any surfaces in
               common with the exterior SurfaceLoop.
        :note: A SurfaceLoop defining a hole should not have any surfaces in
@@ -1640,7 +1640,7 @@ class Volume(Manifold3D, Primitive):
 
 class PropertySet(Primitive, PrimitiveBase):
     """
-    Defines a group of L{Primitive}s which can be accessed through a name.
+    Defines a group of `Primitive` s which can be accessed through a name.
     """
     def __init__(self,name,*items):
        Primitive.__init__(self)
@@ -1703,13 +1703,13 @@ class PropertySet(Primitive, PrimitiveBase):
 
     def addItems(self,*items):
         """
-        Adds items. An item my be any L{Primitive} but no L{PropertySet}.
+        Adds items. An item my be any `Primitive` but no `PropertySet`.
         """
         self.addItem(*items)
 
     def addItem(self,*items):
         """
-        Adds items. An item my be any L{Primitive} but no L{PropertySet}.
+        Adds items. An item my be any `Primitive` but no `PropertySet`.
         """
         for i in items:
             if not i in self.__items:

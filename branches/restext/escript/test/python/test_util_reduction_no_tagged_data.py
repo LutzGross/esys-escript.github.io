@@ -22,7 +22,7 @@ __url__="https://launchpad.net/escript-finley"
 """
 test for util operations for reduction operations without tagged data
 
-:remark: use see L{test_util}
+:remark: use see `test_util`
 :var __author__: name of author
 :var __copyright__: copyrights
 :var __license__: licence agreement

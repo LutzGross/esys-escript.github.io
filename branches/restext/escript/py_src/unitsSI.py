@@ -94,7 +94,7 @@ class Unit(object):
    """
    a general class to define a physical unit and convert from this unit to an appropriate SI unit.
 
-   L{Unit} object have a dual purpose: Firstly physical units can be combined through *,/ and ** to form new physical units or to add prefixes such as
+   `Unit` object have a dual purpose: Firstly physical units can be combined through *,/ and ** to form new physical units or to add prefixes such as
    Milli to m to form mm=Milli*m. Moreover, a given floating point number x (or any other arithmetic object) can be converted from the physical unit to 
    the SI system, eg. 10*mm to create the value for 10mm which is the float number 0.01 in the SI system. In addition, a value in the SI unit can be 
    converted back to the given unit, eg. to express 0.01m in physical units of mm use 0.01/mm which will return 10.
@@ -167,11 +167,11 @@ class Unit(object):
 
    def __mul__(self,other):
        """
-       Performs self*other operation for two L{Unit} objects
+       Performs self*other operation for two `Unit` objects
 
        :param other: an other physical unit
-       :type other: L{Unit}
-       :rtype: L{Unit} or C{NotImplemented}
+       :type other: `Unit`
+       :rtype: `Unit` or C{NotImplemented}
        """
        if isinstance(other, Unit):
           a=self(other(0.))
@@ -187,10 +187,10 @@ class Unit(object):
        """
        Performs other*self operation
 
-       :param other: an other L{Unit} or an arithmetic object. if other is a arithmetic object such as C{float} other is assumed to be given in the
+       :param other: an other `Unit` or an arithmetic object. if other is a arithmetic object such as C{float} other is assumed to be given in the
        physical unit C{self} and is converted into the corresponding SI unit.
-       :type other: L{Unit} or 
-       :rtype: L{Unit} of or an arithmetic object
+       :type other: `Unit` or 
+       :rtype: `Unit` of or an arithmetic object
        """
        if isinstance(other, Unit):
           a=other(self(0.))
@@ -204,11 +204,11 @@ class Unit(object):
 
    def __div__(self,other):
        """
-       Performs self*other operation for two L{Unit} objects
+       Performs self*other operation for two `Unit` objects
 
        :param other: an other physical unit
-       :type other: L{Unit}
-       :rtype: L{Unit} or C{NotImplemented}
+       :type other: `Unit`
+       :rtype: `Unit` or C{NotImplemented}
        """
        if isinstance(other, Unit):
           if abs(self(0.))+abs(other(0.))>0:
@@ -224,9 +224,9 @@ class Unit(object):
        """
        Performs other/self operation
 
-       :param other: an other L{Unit} or an arithmetic object
-       :type other: L{Unit} or an arithmetic object
-       :rtype: L{Unit} or an arithmetic object
+       :param other: an other `Unit` or an arithmetic object
+       :type other: `Unit` or an arithmetic object
+       :rtype: `Unit` or an arithmetic object
        """
        if isinstance(other, Unit):
           if abs(self(0.))+abs(other(0.))>0:
@@ -244,7 +244,7 @@ class Unit(object):
 
        :param other: an exponent
        :type other: C{int} or C{float}
-       :rtype: L{Unit} 
+       :rtype: `Unit` 
        """
        if isinstance(other, float) or isinstance(other, int):
           if abs(self(0.))>0:

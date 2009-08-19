@@ -127,7 +127,7 @@ class TagMap(object):
 
     def insert(self,data,default=0,**kwargs):
         """
-        Inserts values into the L{esys.escript.Data} object according to the
+        Inserts values into the `esys.escript.Data` object according to the
         given values assigned to the keywords. The default is used for tags
         which map onto name with unspecified values.
         """
@@ -137,7 +137,7 @@ class TagMap(object):
 
     def passToDomain(self,domain):
         """
-        Passes the tag map to the L{esys.escript.Domain} C{domain}.
+        Passes the tag map to the `esys.escript.Domain` C{domain}.
         """
         for tag, name in self.__mapping.items():
           print name, ">>", tag
@@ -343,7 +343,7 @@ class Design(object):
 
     def getTagMap(self):
         """
-        Returns a L{TagMap} to map the names of L{PropertySet}s to tags.
+        Returns a `TagMap` to map the names of `PropertySet` s to tags.
         """
         m={}
         for p in self.getAllPrimitives():

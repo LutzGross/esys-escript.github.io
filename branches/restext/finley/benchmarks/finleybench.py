@@ -41,7 +41,7 @@ import numpy
 
 class FinleyFilter(BenchmarkFilter):
    """
-   defines a filter for L{FinleyProblem} characteristics
+   defines a filter for `FinleyProblem` characteristics
    """
    TIME="t [sec]"
    ERROR="rel. error"
@@ -52,7 +52,7 @@ class FinleyFilter(BenchmarkFilter):
       sets up the filter
 
       :param args: list of value names to be filtered
-      :type args: C{list} of L{TIME}, L{ERROR}
+      :type args: C{list} of `TIME`, `ERROR`
       """
       if args==None: args=[FinleyFilter.TIME,FinleyFilter.ERROR]
       super(FinleyFilter,self).__init__()
@@ -71,7 +71,7 @@ class FinleyFilter(BenchmarkFilter):
        """
        filters out the characteristic values
        
-       :param result: characteristics rturned by a L{FinleyProblem} run
+       :param result: characteristics rturned by a `FinleyProblem` run
        :type result: C{dict}
        :return: filtered values
        :rtype: C{list} of C{str}
@@ -153,7 +153,7 @@ class FinleyProblem(BenchmarkProblem):
        elapsed time and the error.
        
        :param options: solver options
-       :type options:  L{FinleyOptions}
+       :type options:  `FinleyOptions`
        :return:  elapsed time and the error of calculated solution
        :rtype: pair of C{float}
        """
@@ -179,9 +179,9 @@ class FinleyProblem(BenchmarkProblem):
        returns a PDEto be solved and an exact solution
 
        :param domain: the PDE domain
-       :type domain: L{escript.Domain}
+       :type domain: `escript.Domain`
        :return: a linear PDE to be solved an a reference solution
-       :rtype: L{LinearPDE},L{escript.Data}
+       :rtype: `LinearPDE`,`escript.Data`
        :note: must be overwritten by a particular problem
        """
        raise NotImplementedError
@@ -191,7 +191,7 @@ class FinleyProblem(BenchmarkProblem):
        returns the domain of the problem
 
        :return: a domain
-       :rtype: L{escript.Domain}
+       :rtype: `escript.Domain`
        :note: must be overwritten by a particular problem
        """
        raise NotImplementedError
@@ -224,7 +224,7 @@ class RegularFinleyProblem(FinleyProblem):
        returns the unit square/cube with a rectangular mesh
 
        :return: a domain
-       :rtype: L{escript.Domain}
+       :rtype: `escript.Domain`
        """
        if self.__dim==2:
           domain=esys.finley.Rectangle(n0=self.__n,n1=self.__n,order=self.__order)
@@ -241,7 +241,7 @@ class LaplaceProblem(RegularFinleyProblem):
          returns a PDE and a test solution on the given domain
      
          :param domain: a domain
-         :type domain: L{escript.Domain}
+         :type domain: `escript.Domain`
          :return: the Laplace equation and a test solution
          :rtype: C{tuple} of C{LinearPDE} and C{escript.Data}
          """
@@ -271,7 +271,7 @@ class AnisotropicProblem(RegularFinleyProblem):
          returns a PDE and a test solution on the given domain
      
          :param domain: a domain
-         :type domain: L{escript.Domain}
+         :type domain: `escript.Domain`
          :return: the Laplace equation and a test solution
          :rtype: C{tuple} of C{LinearPDE} and C{escript.Data}
          """
@@ -323,7 +323,7 @@ class AnisotropicSystem(RegularFinleyProblem):
          returns a PDE and a test solution on the given domain
      
          :param domain: a domain
-         :type domain: L{escript.Domain}
+         :type domain: `escript.Domain`
          :return: the Laplace equation and a test solution
          :rtype: C{tuple} of C{LinearPDE} and C{escript.Data}
          """

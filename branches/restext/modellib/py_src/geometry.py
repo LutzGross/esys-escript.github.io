@@ -54,7 +54,7 @@ class FinleyReader(ParameterSet):
           returns the domain
 
           :return: the domain
-          :rtype: L{Domain}
+          :rtype: `Domain`
           """
           if self.__domain == None:
              if  self.source.fileformat == "fly":
@@ -104,7 +104,7 @@ class RectangularDomain(ParameterSet):
            returns the domain
 
            :return: the domain
-           :rtype: L{Domain}
+           :rtype: `Domain`
            """
            if self.__domain==None:
               if self.dim==2:
@@ -135,9 +135,9 @@ class UpdateGeometry(Model):
       applies a displacement field to a domain
       
       :ivar displacement: displacements applied to the original mesh coordinates (in).
-      :type displacement: L{escript.Vector}
+      :type displacement: `escript.Vector`
       :ivar domain: domain
-      :type domain: L{escript.Domain}
+      :type domain: `escript.Domain`
       """
       def __init__(self,**kwargs):
            """
@@ -157,7 +157,7 @@ class UpdateGeometry(Model):
          
       def doStepPreprocessing(self,dt):
          """
-         applies the current L{displacement} to mesh nodes if required.
+         applies the current `displacement` to mesh nodes if required.
          """
          if self.__reset:
             self.trace("mesh nodes updated.")
@@ -166,7 +166,7 @@ class UpdateGeometry(Model):
 
       def doStep(self,dt):
          """
-         applies the current L{displacement} to mesh nodes. 
+         applies the current `displacement` to mesh nodes. 
          """
          self.trace("mesh nodes updated.")
          self.domain.setX(self.__x+self.displacement)
@@ -213,7 +213,7 @@ class ConstrainerOverBox(Model):
           return the values used to constrain a solution
 
           :return: the mask marking the locations of the constraints
-          :rtype: L{escript.Scalar}
+          :rtype: `escript.Scalar`
           """
           if self.__location_of_constraint == None: self.__setOutput()
           return self.__location_of_constraint
@@ -224,7 +224,7 @@ class ConstrainerOverBox(Model):
 
           :return: values to be used at the locations of the constraints. If 
                   C{value} is not given C{None} is rerturned.
-          :rtype: L{escript.Scalar}
+          :rtype: `escript.Scalar`
           """
           if self.__location_of_constraint == None: self.__setOutput()
           return self.__value_of_constraint
@@ -295,7 +295,7 @@ class ScalarConstrainerOverBox(Model):
           return the values used to constrain a solution
 
           :return: the mask marking the locations of the constraints
-          :rtype: L{escript.Scalar}
+          :rtype: `escript.Scalar`
           """
           if self.__location_of_constraint == None: self.__setOutput()
           return self.__location_of_constraint
@@ -306,7 +306,7 @@ class ScalarConstrainerOverBox(Model):
 
           :return: values to be used at the locations of the constraints. If 
                   C{value} is not given C{None} is rerturned.
-          :rtype: L{escript.Scalar}
+          :rtype: `escript.Scalar`
           """
           if self.__location_of_constraint == None: self.__setOutput()
           return self.__value_of_constraint
@@ -373,7 +373,7 @@ class VectorConstrainerOverBox(Model):
           return the values used to constrain a solution
 
           :return: the mask marking the locations of the constraints
-          :rtype: L{escript.Vector}
+          :rtype: `escript.Vector`
           """
           if self.__location_of_constraint == None: self.__setOutput()
           return self.__location_of_constraint
@@ -384,7 +384,7 @@ class VectorConstrainerOverBox(Model):
 
           :return: values to be used at the locations of the constraints. If 
                   C{value} is not given C{None} is rerturned.
-          :rtype: L{escript.Vector}
+          :rtype: `escript.Vector`
           """
           if self.__location_of_constraint == None: self.__setOutput()
           return self.__value_of_constraint
@@ -462,7 +462,7 @@ class ConstrainerAtBoxVertex(Model):
           return the values used to constrain a solution
 
           :return: the mask marking the locations of the constraints
-          :rtype: L{escript.Scalar}
+          :rtype: `escript.Scalar`
           """
           if self.__location_of_constraint == None: self.__setOutput()
           return self.__location_of_constraint
@@ -473,7 +473,7 @@ class ConstrainerAtBoxVertex(Model):
 
           :return: values to be used at the locations of the constraints. If 
                   C{value} is not given C{None} is rerturned.
-          :rtype: L{escript.Scalar}
+          :rtype: `escript.Scalar`
           """
           if self.__location_of_constraint == None: self.__setOutput()
           return self.__value_of_constraint
@@ -522,7 +522,7 @@ class ScalarConstrainerAtBoxVertex(Model):
           return the values used to constrain a solution
 
           :return: the mask marking the locations of the constraints
-          :rtype: L{escript.Scalar}
+          :rtype: `escript.Scalar`
           """
           if self.__location_of_constraint == None: self.__setOutput()
           return self.__location_of_constraint
@@ -533,7 +533,7 @@ class ScalarConstrainerAtBoxVertex(Model):
 
           :return: values to be used at the locations of the constraints. If 
                   C{value} is not given C{None} is rerturned.
-          :rtype: L{escript.Scalar}
+          :rtype: `escript.Scalar`
           """
           if self.__location_of_constraint == None: self.__setOutput()
           return self.__value_of_constraint
@@ -573,7 +573,7 @@ class VectorConstrainerAtBoxVertex(Model):
           return the values used to constrain a solution
 
           :return: the mask marking the locations of the constraints
-          :rtype: L{escript.Vector}
+          :rtype: `escript.Vector`
           """
           if self.__location_of_constraint == None: self.__setOutput()
           return self.__location_of_constraint
@@ -584,7 +584,7 @@ class VectorConstrainerAtBoxVertex(Model):
 
           :return: values to be used at the locations of the constraints. If 
                   C{value} is not given C{None} is rerturned.
-          :rtype: L{escript.Vector}
+          :rtype: `escript.Vector`
           """
           if self.__location_of_constraint == None: self.__setOutput()
           return self.__value_of_constraint

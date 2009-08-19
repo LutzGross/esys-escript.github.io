@@ -313,7 +313,7 @@ class Rheology(object):
          Initializes the rheology
 
          :param domain: problem domain
-         :type domain: L{Domain}
+         :type domain: `Domain`
          :param stress: initial (deviatoric) stress
          :type stress: a tensor value/field of order 2
          :param v: initial velocity field
@@ -346,7 +346,7 @@ class Rheology(object):
           returns the domain.
 
           :return: the domain
-          :rtype: L{Domain}
+          :rtype: `Domain`
           """
           return self.__domain
 
@@ -383,7 +383,7 @@ class Rheology(object):
           Returns the external force
 
           :return:  external force
-          :rtype: L{Data}
+          :rtype: `Data`
           """
           return self.__F
 
@@ -392,7 +392,7 @@ class Rheology(object):
           Returns the surface force
 
           :return:  surface force
-          :rtype: L{Data}
+          :rtype: `Data`
           """
           return self.__f
 
@@ -402,7 +402,7 @@ class Rheology(object):
           mask of the location of the constraint and the values.
 
           :return: the locations of fixed velocity and value of velocities at these locations
-          :rtype: C{tuple} of L{Data}s
+          :rtype: C{tuple} of `Data` s
           """
           return self.__fixed_v_mask, self.__v_boundary       
 
@@ -429,7 +429,7 @@ class Rheology(object):
           Returns current stress. 
 
           :return: current stress
-          :rtype: L{Data} of rank 2
+          :rtype: `Data` of rank 2
           """
           s=self.getDeviatoricStress()
           p=self.getPressure()
@@ -441,7 +441,7 @@ class Rheology(object):
           Returns current deviatoric stress.
 
           :return: current deviatoric stress
-          :rtype: L{Data} of rank 2
+          :rtype: `Data` of rank 2
           """
           return self.__stress
 
@@ -450,7 +450,7 @@ class Rheology(object):
           Sets the current deviatoric stress
 
           :param stress: new deviatoric stress
-          :type stress: L{Data} of rank 2
+          :type stress: `Data` of rank 2
           """
           dom=self.getDomain()
           s=util.interpolate(stress,Function(dom))
@@ -461,7 +461,7 @@ class Rheology(object):
           Returns current pressure.
 
           :return: current stress
-          :rtype: scalar L{Data} 
+          :rtype: scalar `Data` 
           """
           return self.__p
 
@@ -469,7 +469,7 @@ class Rheology(object):
           """
           Sets current pressure.
           :param p: new deviatoric stress
-          :type p: scalar L{Data}
+          :type p: scalar `Data`
           """
           self.__p=util.interpolate(p,ReducedSolution(self.getDomain()))
 
@@ -478,7 +478,7 @@ class Rheology(object):
           Returns current velocity.
 
           :return: current velocity
-          :rtype: vector L{Data} 
+          :rtype: vector `Data` 
           """
           return self.__v
 
@@ -487,7 +487,7 @@ class Rheology(object):
           Sets current velocity.
 
           :param v: new current velocity
-          :type v: vector L{Data} 
+          :type v: vector `Data` 
           """
           self.__v=util.interpolate(v,Solution(self.getDomain()))
 
@@ -496,7 +496,7 @@ class Rheology(object):
           set deviatoric strain 
 
           :param D: new deviatoric strain. If D is not present the current velocity is used.
-          :type D: L{Data} of rank 2
+          :type D: `Data` of rank 2
           """
           if D==None: D=util.deviatoric(util.symmetric(util.grad(2.*self.getVelocity())))
           self.__D=util.deviatoric(util.interpolate(D,Function(self.getDomain())))
@@ -506,7 +506,7 @@ class Rheology(object):
           Returns deviatoric strain of current velocity. 
 
           :return: deviatoric strain
-          :rtype: L{Data}  of rank 2
+          :rtype: `Data`  of rank 2
           """
           return self.__D
 
@@ -515,7 +515,7 @@ class Rheology(object):
           Returns current second invariant of deviatoric stress
 
           :return: second invariant of deviatoric stress
-          :rtype: scalar L{Data}
+          :rtype: scalar `Data`
           """
           s=self.getDeviatoricStress()
           return util.sqrt(0.5)*util.length(s)
@@ -525,7 +525,7 @@ class Rheology(object):
           Returns current second invariant of deviatoric strain
 
           :return: second invariant of deviatoric strain
-          :rtype: scalar L{Data}
+          :rtype: scalar `Data`
           """
           s=self.getDeviatoricStrain()
           return util.sqrt(2)*util.length(s)
@@ -593,7 +593,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
          Initializes the model.
 
          :param domain: problem domain
-         :type domain: L{Domain}
+         :type domain: `Domain`
          :param stress: initial (deviatoric) stress
          :type stress: a tensor value/field of order 2
          :param v: initial velocity field
@@ -724,7 +724,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
 
       def setFlowTolerance(self, tol=1.e-4):
           """
-          Sets the relative tolerance for the flow solver. See L{StokesProblemCartesian.setTolerance} for details.
+          Sets the relative tolerance for the flow solver. See `StokesProblemCartesian.setTolerance` for details.
 
           :param tol: desired relative tolerance for the flow solver
           :type tol: positive C{float}
@@ -742,34 +742,34 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
       def getSolverOptionsVelocity(self):
          """
 	 returns the solver options used solve the equation for velocity in the 
-	 incompressible solver, see L{StokesProblemCartesian.getSolverOptionsVelocity} for details.
+	 incompressible solver, see `StokesProblemCartesian.getSolverOptionsVelocity` for details.
 	 
-	 :rtype: L{SolverOptions}
+	 :rtype: `SolverOptions`
 	 """
 	 return self.__solver.getSolverOptionsVelocity()
       def setSolverOptionsVelocity(self, options=None):
          """
 	 set the solver options for solving the equation for velocity in the 
-	 incompressible solver, see L{StokesProblemCartesian.setSolverOptionsVelocity} for details.
+	 incompressible solver, see `StokesProblemCartesian.setSolverOptionsVelocity` for details.
 	 
 	 :param options: new solver  options
-	 :type options: L{SolverOptions}
+	 :type options: `SolverOptions`
 	 """
          self.__solver.setSolverOptionsVelocity(options)
 	 
       def getSolverOptionsPressure(self):
          """
 	 returns the solver options used  solve the equation for pressure in the 
-	 incompressible solver, see L{StokesProblemCartesian.getSolverOptionsPressure} for details.
-	 :rtype: L{SolverOptions}
+	 incompressible solver, see `StokesProblemCartesian.getSolverOptionsPressure` for details.
+	 :rtype: `SolverOptions`
 	 """
 	 return self.__solver.getSolverOptionsPressure()
       def setSolverOptionsPressure(self, options=None):
          """
 	 set the solver options for solving the equation for pressure in the 
-	 incompressible solver, see L{StokesProblemCartesian.setSolverOptionsPressure} for details.
+	 incompressible solver, see `StokesProblemCartesian.setSolverOptionsPressure` for details.
 	 :param options: new solver  options
-	 :type options: L{SolverOptions}
+	 :type options: `SolverOptions`
 	 """
 	 self.__solver.setSolverOptionsPressure(options)
 
@@ -777,19 +777,19 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
          """
 	 set the solver options for solving the equation to project the divergence of
 	 the velocity onto the function space of pressure in the 
-	 incompressible solver, see L{StokesProblemCartesian.setSolverOptionsDiv} for details.
+	 incompressible solver, see `StokesProblemCartesian.setSolverOptionsDiv` for details.
 	 
 	 :param options: new solver options
-	 :type options: L{SolverOptions}
+	 :type options: `SolverOptions`
 	 """
 	 self.__solver.setSolverOptionsDiv(options)
       def getSolverOptionsDiv(self):
          """
 	 returns the solver options for solving the equation to project the divergence of
 	 the velocity onto the function space of presure in the 
-	 incompressible solver, see L{StokesProblemCartesian.getSolverOptionsDiv} for details..
+	 incompressible solver, see `StokesProblemCartesian.getSolverOptionsDiv` for details..
 	 
-	 :rtype: L{SolverOptions}
+	 :rtype: `SolverOptions`
 	 """
 	 return self.__solver.getSolverOptionsDiv()
 

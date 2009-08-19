@@ -21,11 +21,11 @@ __url__="https://launchpad.net/escript-finley"
 
 """
 The module provides an interface to define and solve linear partial
-differential equations (PDEs) and Transport problems within L{escript}.
-L{linearPDEs} does not provide any solver capabilities in itself but hands the
+differential equations (PDEs) and Transport problems within `escript`.
+`linearPDEs` does not provide any solver capabilities in itself but hands the
 PDE over to the PDE solver library defined through the L{Domain<escript.Domain>}
-of the PDE. The general interface is provided through the L{LinearPDE} class.
-L{TransportProblem} provides an interface to initial value problems dominated
+of the PDE. The general interface is provided through the `LinearPDE` class.
+`TransportProblem` provides an interface to initial value problems dominated
 by its advective terms.
 
 :var __author__: name of author
@@ -349,8 +349,8 @@ class SolverOptions(object):
         Sets the key of the coarsening method to be applied in AMG.
 
         :param method: selects the coarsening method .
-        :type method: in {SolverOptions.DEFAULT}, L{SolverOptions.YAIR_SHAPIRA_COARSENING}, 
-        L{SolverOptions.RUGE_STUEBEN_COARSENING}, L{SolverOptions.AGGREGATION_COARSENING}
+        :type method: in {SolverOptions.DEFAULT}, `SolverOptions.YAIR_SHAPIRA_COARSENING`, 
+        `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`
         """
 	if method==None: method=0
         if not method in [self.DEFAULT, self.YAIR_SHAPIRA_COARSENING, self.RUGE_STUEBEN_COARSENING, self.AGGREGATION_COARSENING]:
@@ -361,8 +361,8 @@ class SolverOptions(object):
         """
         Returns the key of the coarsening algorithm to be applied AMG.
 
-        :rtype: in the list L{SolverOptions.DEFAULT}, L{SolverOptions.YAIR_SHAPIRA_COARSENING}, 
-        L{SolverOptions.RUGE_STUEBEN_COARSENING}, L{SolverOptions.AGGREGATION_COARSENING}
+        :rtype: in the list `SolverOptions.DEFAULT`, `SolverOptions.YAIR_SHAPIRA_COARSENING`, 
+        `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`
         """
         return self.__coarsening
       
@@ -392,9 +392,9 @@ class SolverOptions(object):
         Sets the preconditioner to be used. 
 
         :param preconditioner: key of the preconditioner to be used.
-        :type preconditioner: in L{SolverOptions.SSOR}, L{SolverOptions.ILU0}, L{SolverOptions.ILUT}, L{SolverOptions.JACOBI}, 
-                                    L{SolverOptions.AMG}, L{SolverOptions.REC_ILU}, L{SolverOptions.GAUSS_SEIDEL}, L{SolverOptions.RILU},
-                                    L{SolverOptions.NO_PRECONDITIONER}
+        :type preconditioner: in `SolverOptions.SSOR`, `SolverOptions.ILU0`, `SolverOptions.ILUT`, `SolverOptions.JACOBI`, 
+                                    `SolverOptions.AMG`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`,
+                                    `SolverOptions.NO_PRECONDITIONER`
         :note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters
         an unknown preconditioner. 
         """
@@ -408,9 +408,9 @@ class SolverOptions(object):
         """
         Returns key of the preconditioner to be used. 
 
-        :rtype: in the list L{SolverOptions.SSOR}, L{SolverOptions.ILU0}, L{SolverOptions.ILUT}, L{SolverOptions.JACOBI}, 
-                                    L{SolverOptions.AMG}, L{SolverOptions.REC_ILU}, L{SolverOptions.GAUSS_SEIDEL}, L{SolverOptions.RILU},
-                                    L{SolverOptions.NO_PRECONDITIONER}
+        :rtype: in the list `SolverOptions.SSOR`, `SolverOptions.ILU0`, `SolverOptions.ILUT`, `SolverOptions.JACOBI`, 
+                                    `SolverOptions.AMG`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`,
+                                    `SolverOptions.NO_PRECONDITIONER`
         """
         return self.__preconditioner
     def setSolverMethod(self, method=0):
@@ -420,11 +420,11 @@ class SolverOptions(object):
         solver should be used. 
 
         :param method: key of the solver method to be used.
-        :type method: in L{SolverOptions.DEFAULT}, L{SolverOptions.DIRECT}, L{SolverOptions.CHOLEVSKY}, L{SolverOptions.PCG}, 
-                        L{SolverOptions.CR}, L{SolverOptions.CGS}, L{SolverOptions.BICGSTAB}, L{SolverOptions.SSOR}, 
-                        L{SolverOptions.GMRES}, L{SolverOptions.PRES20}, L{SolverOptions.LUMPING}, L{SolverOptions.ITERATIVE}, 
-                        L{SolverOptions.AMG}, L{SolverOptions.NONLINEAR_GMRES}, L{SolverOptions.TFQMR}, L{SolverOptions.MINRES}, 
-                        L{SolverOptions.GAUSS_SEIDEL}
+        :type method: in `SolverOptions.DEFAULT`, `SolverOptions.DIRECT`, `SolverOptions.CHOLEVSKY`, `SolverOptions.PCG`, 
+                        `SolverOptions.CR`, `SolverOptions.CGS`, `SolverOptions.BICGSTAB`, `SolverOptions.SSOR`, 
+                        `SolverOptions.GMRES`, `SolverOptions.PRES20`, `SolverOptions.LUMPING`, `SolverOptions.ITERATIVE`, 
+                        `SolverOptions.AMG`, `SolverOptions.NONLINEAR_GMRES`, `SolverOptions.TFQMR`, `SolverOptions.MINRES`, 
+                        `SolverOptions.GAUSS_SEIDEL`
         :note: Not all packages support all solvers. It can be assumed that a package makes a reasonable choice if it encounters
         an unknown solver method. 
         """
@@ -439,11 +439,11 @@ class SolverOptions(object):
         """
         Returns key of the solver method to be used. 
 
-        :rtype: in the list L{SolverOptions.DEFAULT}, L{SolverOptions.DIRECT}, L{SolverOptions.CHOLEVSKY}, L{SolverOptions.PCG}, 
-                        L{SolverOptions.CR}, L{SolverOptions.CGS}, L{SolverOptions.BICGSTAB}, L{SolverOptions.SSOR}, 
-                        L{SolverOptions.GMRES}, L{SolverOptions.PRES20}, L{SolverOptions.LUMPING}, L{SolverOptions.ITERATIVE}, 
-                        L{SolverOptions.AMG}, L{SolverOptions.NONLINEAR_GMRES}, L{SolverOptions.TFQMR}, L{SolverOptions.MINRES}, 
-                        L{SolverOptions.GAUSS_SEIDEL}
+        :rtype: in the list `SolverOptions.DEFAULT`, `SolverOptions.DIRECT`, `SolverOptions.CHOLEVSKY`, `SolverOptions.PCG`, 
+                        `SolverOptions.CR`, `SolverOptions.CGS`, `SolverOptions.BICGSTAB`, `SolverOptions.SSOR`, 
+                        `SolverOptions.GMRES`, `SolverOptions.PRES20`, `SolverOptions.LUMPING`, `SolverOptions.ITERATIVE`, 
+                        `SolverOptions.AMG`, `SolverOptions.NONLINEAR_GMRES`, `SolverOptions.TFQMR`, `SolverOptions.MINRES`, 
+                        `SolverOptions.GAUSS_SEIDEL`
         """
         return self.__method
         
@@ -452,7 +452,7 @@ class SolverOptions(object):
         Sets the solver package to be used as a solver.  
 
         :param package: key of the solver package to be used.
-        :type package: in L{SolverOptions.DEFAULT}, L{SolverOptions.PASO}, L{SolverOptions.SUPER_LU}, L{SolverOptions.PASTIX}, L{SolverOptions.MKL}, L{SolverOptions.UMFPACK}, L{SolverOptions.TRILINOS}
+        :type package: in `SolverOptions.DEFAULT`, `SolverOptions.PASO`, `SolverOptions.SUPER_LU`, `SolverOptions.PASTIX`, `SolverOptions.MKL`, `SolverOptions.UMFPACK`, `SolverOptions.TRILINOS`
         :note: Not all packages are support on all implementation. An exception may be thrown on some platforms if a particular is requested. 
         """
 	if package==None: package=0
@@ -463,7 +463,7 @@ class SolverOptions(object):
         """
         Returns the solver package key
 
-        :rtype: in the list L{SolverOptions.DEFAULT}, L{SolverOptions.PASO}, L{SolverOptions.SUPER_LU}, L{SolverOptions.PASTIX}, L{SolverOptions.MKL}, L{SolverOptions.UMFPACK}, L{SolverOptions.TRILINOS}
+        :rtype: in the list `SolverOptions.DEFAULT`, `SolverOptions.PASO`, `SolverOptions.SUPER_LU`, `SolverOptions.PASTIX`, `SolverOptions.MKL`, `SolverOptions.UMFPACK`, `SolverOptions.TRILINOS`
         """
         return self.__package
     def setReordering(self,ordering=30):
@@ -472,8 +472,8 @@ class SolverOptions(object):
         to optimize compute time and storage use during elimination. 
 
         :param ordering: selects the reordering strategy.
-        :type ordering: in L{SolverOptions.NO_REORDERING}, L{SolverOptions.NO_REORDERING}, 
-        L{SolverOptions.NO_REORDERING}, L{SolverOptions.DEFAULT_REORDERING}
+        :type ordering: in `SolverOptions.NO_REORDERING`, `SolverOptions.NO_REORDERING`, 
+        `SolverOptions.NO_REORDERING`, `SolverOptions.DEFAULT_REORDERING`
         """
         if not ordering in [self.NO_REORDERING, self.MINIMUM_FILL_IN, self.NESTED_DISSECTION, self.DEFAULT_REORDERING]:
              raise ValueError,"unknown reordering strategy %s"%ordering
@@ -482,8 +482,8 @@ class SolverOptions(object):
         """
         Returns the key of the reordering method to be applied if supported by the solver.
 
-        :rtype: in the list L{SolverOptions.NO_REORDERING}, L{SolverOptions.NO_REORDERING}, 
-        L{SolverOptions.NO_REORDERING}, L{SolverOptions.DEFAULT_REORDERING}
+        :rtype: in the list `SolverOptions.NO_REORDERING`, `SolverOptions.NO_REORDERING`, 
+        `SolverOptions.NO_REORDERING`, `SolverOptions.DEFAULT_REORDERING`
         """
         return self.__reordering
     def setRestart(self,restart=None):
@@ -842,7 +842,7 @@ class SolverOptions(object):
     def adaptInnerTolerance(self):
         """
         Returns C{True} if the tolerance of the inner solver is selected automatically. 
-        Otherwise the inner tolerance set by L{setInnerTolerance} is used.
+        Otherwise the inner tolerance set by `setInnerTolerance` is used.
 
         :return: C{True} if inner tolerance adaption is chosen.
         :rtype: C{bool}
@@ -877,7 +877,7 @@ class SolverOptions(object):
         given number of iteration steps is not raising in exception. This is useful 
         if a solver is used in a non-linear context where the non-linear solver can 
         continue even if the returned the solution does not necessarily meet the
-        stopping criteria. One can use the L{hasConverged} method to check if the
+        stopping criteria. One can use the `hasConverged` method to check if the
         last call to the solver was successful.
 
         :return: C{True} if a failure to achieve convergence is accepted.
@@ -989,23 +989,23 @@ class PDECoef(object):
        Initialises a PDE coefficient type.
 
        :param where: describes where the coefficient lives
-       :type where: one of L{INTERIOR}, L{BOUNDARY}, L{CONTACT}, L{SOLUTION},
-                    L{REDUCED}, L{INTERIOR_REDUCED}, L{BOUNDARY_REDUCED},
-                    L{CONTACT_REDUCED}
+       :type where: one of `INTERIOR`, `BOUNDARY`, `CONTACT`, `SOLUTION`,
+                    `REDUCED`, `INTERIOR_REDUCED`, `BOUNDARY_REDUCED`,
+                    `CONTACT_REDUCED`
        :param pattern: describes the shape of the coefficient and how the shape
                        is built for a given spatial dimension and numbers of
                        equations and solutions in then PDE. For instance,
-                       (L{BY_EQUATION},L{BY_SOLUTION},L{BY_DIM}) describes a
+                       (`BY_EQUATION`,`BY_SOLUTION`,`BY_DIM`) describes a
                        rank 3 coefficient which is instantiated as shape (3,2,2)
                        in case of three equations and two solution components
                        on a 2-dimensional domain. In the case of single equation
                        and a single solution component the shape components
-                       marked by L{BY_EQUATION} or L{BY_SOLUTION} are dropped.
+                       marked by `BY_EQUATION` or `BY_SOLUTION` are dropped.
                        In this case the example would be read as (2,).
-       :type pattern: C{tuple} of L{BY_EQUATION}, L{BY_SOLUTION}, L{BY_DIM}
+       :type pattern: C{tuple} of `BY_EQUATION`, `BY_SOLUTION`, `BY_DIM`
        :param altering: indicates what part of the PDE is altered if the
                         coefficient is altered
-       :type altering: one of L{OPERATOR}, L{RIGHTHANDSIDE}, L{BOTH}
+       :type altering: one of `OPERATOR`, `RIGHTHANDSIDE`, `BOTH`
        """
        super(PDECoef, self).__init__()
        self.what=where
@@ -1435,7 +1435,7 @@ class LinearProblem(object):
 
      :return: True if reduced interpolation order is used for the
               representation of the equation, False otherwise
-     :rtype: L{bool}
+     :rtype: `bool`
      """
      return self.__reduce_equation_order
 
@@ -1445,7 +1445,7 @@ class LinearProblem(object):
 
      :return: True if reduced interpolation order is used for the
               representation of the solution, False otherwise
-     :rtype: L{bool}
+     :rtype: `bool`
      """
      return self.__reduce_solution_order
 
@@ -1483,8 +1483,8 @@ class LinearProblem(object):
        Sets the solver options.
 
        :param options: the new solver options. If equal C{None}, the solver options are set to the default.
-       :type options: L{SolverOptions} or C{None}
-       :note: The symmetry flag of options is overwritten by the symmetry flag of the L{LinearProblem}.
+       :type options: `SolverOptions` or C{None}
+       :note: The symmetry flag of options is overwritten by the symmetry flag of the `LinearProblem`.
        """
        if options==None:
           self.__solver_options=SolverOptions()
@@ -1498,7 +1498,7 @@ class LinearProblem(object):
        """
        Returns the solver options
    
-       :rtype: L{SolverOptions}
+       :rtype: `SolverOptions`
        """
        self.__solver_options.setSymmetry(self.__sym)
        return self.__solver_options
@@ -2286,7 +2286,7 @@ class LinearPDE(LinearProblem):
       - M{d[i,k]=d[k,i]}
       - M{d_reduced[i,k]=d_reduced[k,i]}
 
-   L{LinearPDE} also supports solution discontinuities over a contact region
+   `LinearPDE` also supports solution discontinuities over a contact region
    in the domain. To specify the conditions across the discontinuity we are
    using the generalised flux M{J} which, in the case of a system of PDEs
    and several components of the solution, is defined as
@@ -2400,7 +2400,7 @@ class LinearPDE(LinearProblem):
                       which break the symmetry is printed.
       :type verbose: C{bool}
       :return: True if the PDE is symmetric
-      :rtype: L{bool}
+      :rtype: `bool`
       :note: This is a very expensive operation. It should be used for
              degugging only! The symmetry flag is not altered.
       """
@@ -2749,7 +2749,7 @@ class LinearPDE(LinearProblem):
      Returns the residual of u or the current solution if u is not present.
 
      :param u: argument in the residual calculation. It must be representable
-               in L{self.getFunctionSpaceForSolution()}. If u is not present
+               in `self.getFunctionSpaceForSolution()`. If u is not present
                or equals C{None} the current solution is used.
      :type u: L{Data<escript.Data>} or None
      :return: residual of u
@@ -2770,7 +2770,7 @@ class LinearPDE(LinearProblem):
 
      M{J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[l]+(B[j]+B_reduced[j])u-X[j]-X_reduced[j]}
 
-     :param u: argument in the flux. If u is not present or equals L{None} the
+     :param u: argument in the flux. If u is not present or equals `None` the
                current solution is used.
      :type u: L{Data<escript.Data>} or None
      :return: flux
@@ -2788,7 +2788,7 @@ class LinearPDE(LinearProblem):
 class Poisson(LinearPDE):
    """
    Class to define a Poisson equation problem. This is generally a
-   L{LinearPDE} of the form
+   `LinearPDE` of the form
 
    M{-grad(grad(u)[j])[j] = f}
 
@@ -2859,7 +2859,7 @@ class Poisson(LinearPDE):
 class Helmholtz(LinearPDE):
    """
    Class to define a Helmholtz equation problem. This is generally a
-   L{LinearPDE} of the form
+   `LinearPDE` of the form
 
    M{S{omega}*u - grad(k*grad(u)[j])[j] = f}
 
@@ -3073,7 +3073,7 @@ def LinearSinglePDE(domain,debug=False):
    :param domain: domain of the PDE
    :type domain: L{Domain<escript.Domain>}
    :param debug: if True debug information is printed
-   :rtype: L{LinearPDE}
+   :rtype: `LinearPDE`
    """
    return LinearPDE(domain,numEquations=1,numSolutions=1,debug=debug)
 
@@ -3084,7 +3084,7 @@ def LinearPDESystem(domain,debug=False):
    :param domain: domain of the PDEs
    :type domain: L{Domain<escript.Domain>}
    :param debug: if True debug information is printed
-   :rtype: L{LinearPDE}
+   :rtype: `LinearPDE`
    """
    return LinearPDE(domain,numEquations=domain.getDim(),numSolutions=domain.getDim(),debug=debug)
 
@@ -3179,7 +3179,7 @@ class TransportPDE(LinearProblem):
       - M{d[i,k]=d[k,i]}
       - M{d_reduced[i,k]=d_reduced[k,i]}
 
-   L{TransportPDE} also supports solution discontinuities over a contact region
+   `TransportPDE` also supports solution discontinuities over a contact region
    in the domain. To specify the conditions across the discontinuity we are
    using the generalised flux M{J} which, in the case of a system of PDEs and
    several components of the solution, is defined as

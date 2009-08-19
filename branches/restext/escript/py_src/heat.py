@@ -74,7 +74,7 @@ class TemperatureCartesian(TransportPDE):
 
     def setInitialTemperature(self,T):
         """
-        Same as L{setInitialSolution}.
+        Same as `setInitialSolution`.
         """
         self.setInitialSolution(T)
 
@@ -98,7 +98,7 @@ class TemperatureCartesian(TransportPDE):
 
     def getTemperature(self,dt,**kwargs):
         """
-        Same as L{getSolution}.
+        Same as `getSolution`.
         """
         return self.getSolution(dt,**kwargs)
 
@@ -140,7 +140,7 @@ class Tracer(TransportPDE):
 
     def setInitialTracer(self,C):
         """
-        Same as L{setInitialSolution}.
+        Same as `setInitialSolution`.
         """
         self.setInitialSolution(C)
 
@@ -154,7 +154,7 @@ class Tracer(TransportPDE):
 
     def getTracer(self,dt,**kwargs):
         """
-        Same as L{getSolution}.
+        Same as `getSolution`.
         """
         return self.getSolution(dt,**kwargs)
 

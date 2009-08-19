@@ -108,7 +108,7 @@ class Mountains:
   def getVelocity(self):
       """
       returns the smoothed/extrapolated velocity
-      :rtype: vector L{Data} 
+      :rtype: vector `Data` 
       """
       return self.__v
 
@@ -132,7 +132,7 @@ class Mountains:
   def getTopography(self):
      """
      returns the current topography.
-     :rtype: scalar L{Data}
+     :rtype: scalar `Data`
      """
      return self.__H
 

@@ -40,7 +40,7 @@ from esys.escript import setNumberOfThreads
 
 class BenchmarkSuite(object):
    """
-   Framework to run a bunch of L{Benchmark}s using the object and creating a
+   Framework to run a bunch of `Benchmark` s using the object and creating a
    table of statistics.
 
    :cvar MAX_LEVEL: maximum number of level in headers for output
@@ -73,10 +73,10 @@ class BenchmarkSuite(object):
 
    def addBenchmark(self,benchmark):
        """
-       Adds a new L{Benchmark} to the suite.
+       Adds a new `Benchmark` to the suite.
 
        :param benchmark: the benchmark to add
-       :type benchmark: L{Benchmark}
+       :type benchmark: `Benchmark`
        """
        self.__benchmarks.append(benchmark)
 
@@ -96,7 +96,7 @@ class BenchmarkSuite(object):
        :param i: index of the requested benchmark
        :type i: C{int}
        :return: i-th benchmark
-       :rtype: L{Benchmark}
+       :rtype: `Benchmark`
 
        """
        return self.__benchmarks[i]
@@ -121,7 +121,7 @@ class BenchmarkSuite(object):
        Returns the results of the last benchmark run in HTML format.
 
        :param filter: filter to be applied to the results
-       :type filter: L{BenchmarkFilter}
+       :type filter: `BenchmarkFilter`
        :param level: level used in header <H?> tags
        :type level: C{int}
        :return: HTML document
@@ -153,7 +153,7 @@ class BenchmarkSuite(object):
 
 class Benchmark(object):
    """
-   Runs a bunch of similar L{BenchmarkProblem}s with a bunch of L{Options}.
+   Runs a bunch of similar `BenchmarkProblem` s with a bunch of `Options`.
    """
    def __init__(self,name=None,description=None):
        """
@@ -190,7 +190,7 @@ class Benchmark(object):
        Adds a problem to the benchmark.
 
        :param problem: the problem to be added
-       :type problem: L{BenchmarkProblem}
+       :type problem: `BenchmarkProblem`
        """
        self.__problems.append(problem)
 
@@ -200,7 +200,7 @@ class Benchmark(object):
 
        :param options: the options to be added to the benchmark. If
                        options==None the options are left unchanged.
-       :type options: L{Options}
+       :type options: `Options`
        """
        if options!=None: self.__options.append(options)
 
@@ -249,7 +249,7 @@ class Benchmark(object):
        Returns the results of the last benchmark run in HTML format.
 
        :param filter: filter to be applied to the results
-       :type filter: L{BenchmarkFilter}
+       :type filter: `BenchmarkFilter`
        :param level: level used in header <H?> tags
        :type level: C{int}
        :return: HTML document
@@ -341,10 +341,10 @@ class BenchmarkProblem(object):
 
        :param options: the options that are used for the run. Note that the
                        number of OpenMP threads is controlled by the
-                       L{Benchmark} the problem is run in.
-       :type options: L{Options}
+                       `Benchmark` the problem is run in.
+       :type options: `Options`
        :return: run characteristics
-       :rtype: any type that can be read by the L{BenchmarkFilter} applied
+       :rtype: any type that can be read by the `BenchmarkFilter` applied
                to it
        :note: this function has to be overwritten by a particular problem
        """
@@ -379,7 +379,7 @@ class BenchmarkFilter(object):
        Filters out results returned as characteristics of a problem run.
 
        :param result: values to be filtered
-       :type result: any type that is produced by the L{BenchmarkProblem}
+       :type result: any type that is produced by the `BenchmarkProblem`
                      it is applied to
        :return: a list of strings selected from result
        :rtype: C{list} of C{str}
@@ -391,7 +391,7 @@ class BenchmarkFilter(object):
 
 class Options(object):
     """
-    Defines a set of options to be used to run a L{BenchmarkProblem}.
+    Defines a set of options to be used to run a `BenchmarkProblem`.
     """
     def __init__(self,name=None):
        """
