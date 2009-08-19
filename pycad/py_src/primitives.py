@@ -396,7 +396,7 @@ class Point(Primitive, PrimitiveBase):
        """
        Returns True if the `Point` ``primitive`` is colocated (has the same
        coordinates) with self. That is, if
-       M{|self-primitive| <= tol * max(|self|,|primitive|)}.
+       *|self - primitive| <= tol * max(\|self\|,|primitive|)*.
        """
        if isinstance(primitive,Point):
           primitive=primitive.getCoordinates()
@@ -689,7 +689,7 @@ class ArcBase(Manifold1D):
 
 class Arc(ArcBase, Primitive):
     """
-    Defines an arc which is strictly smaller than S{pi}.
+    Defines an arc which is strictly smaller than pi.
     """
     def __init__(self,center,start,end):
        """
@@ -756,7 +756,7 @@ class Arc(ArcBase, Primitive):
 
 class ReverseArc(ArcBase, ReversePrimitive):
     """
-    Defines an arc which is strictly smaller than S{pi}.
+    Defines an arc which is strictly smaller than pi.
     """
     def __init__(self,arc):
        """
@@ -808,7 +808,7 @@ class EllipseBase(Manifold1D):
 
 class Ellipse(EllipseBase, Primitive):
     """
-    Defines an ellipse which is strictly smaller than S{pi}.
+    Defines an ellipse which is strictly smaller than pi.
     """
     def __init__(self,center,point_on_main_axis,start,end):
        """
@@ -903,7 +903,7 @@ class Ellipse(EllipseBase, Primitive):
 
 class ReverseEllipse(EllipseBase, ReversePrimitive):
     """
-    Defines an ellipse which is strictly smaller than S{pi}.
+    Defines an ellipse which is strictly smaller than pi.
     """
     def __init__(self,arc):
        """

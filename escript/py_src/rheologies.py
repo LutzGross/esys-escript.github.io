@@ -41,12 +41,12 @@ class PowerLaw(object):
     this implements the power law for a composition of a set of materials where the viscosity eta of each material is given by a 
     power law relationship of the form
 
-    M{eta=eta_N*(tau/tau_t)**(1./power-1.)}
+    *eta=eta_N*(tau/tau_t)**(1./power-1.)*
 
     where tau is equivalent stress and eta_N, tau_t and power are given constant. Moreover an elastic component can be considered. 
     Moreover tau meets the Drucker-Prager type yield condition
  
-    M{tau <= tau_Y + friction * pressure}
+    *tau <= tau_Y + friction * pressure*
 
     where gamma_dot is the equivalent. 
     """
@@ -228,7 +228,7 @@ class PowerLaw(object):
          """
          returns the effective viscosity eta_eff such that 
 
-         M{tau=eta_eff * gamma_dot}
+         *tau=eta_eff * gamma_dot*
 
          by solving a non-linear problem for tau.
 

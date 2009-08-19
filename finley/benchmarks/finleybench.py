@@ -306,8 +306,8 @@ class AnisotropicSystem(RegularFinleyProblem):
        
     where 
            - M{u_i=x_i+1/d*\prod{i!=j} x_j}
-           - M{mu(x) = 1} for inner(x,normal)<inner(1.,normal)/2.
-             and M{mu(x) =  mu0} for inner(x,normal)>inner(1.,normal)/2.
+           - *mu(x) = 1* for inner(x,normal)<inner(1.,normal)/2.
+             and *mu(x) =  mu0* for inner(x,normal)>inner(1.,normal)/2.
            - lam(x)=max(1,mu0)*alpha (constant)
     plus constraints on the boundary
     """

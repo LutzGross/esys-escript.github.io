@@ -897,7 +897,7 @@ class TsunamiInDeepWater(Model):
     Runs the deep water tsunami model based on a simplified form of the
     shallow water equation.
 
-    M{d^2 h/dt^2 =div(c grad(h)) }
+    *d^2 h/dt^2 =div(c grad(h)) *
 
     where h is the wave height above sea level, and c=sqrt(g*H),
     with H - depth of the water level, g - gravity constant

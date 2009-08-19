@@ -76,13 +76,13 @@ class RectangularDomain(ParameterSet):
        :ivar dim: spatial dimension, default =2 (in).
        :type dim: spatial dimension
        :ivar l: spatial lengths, default [1.,1.,1.] (in).
-       :type l: ``list`` of ``floats``s
+       :type l: ``list`` of ``float``
        :ivar n: number of elements, default [10,10,10] (in).
-       :type n: ``list`` of ``int``s
+       :type n: ``list`` of ``int``
        :ivar order: element order, default 1 (in).
        :type order: ``int``
        :ivar periodic: flags for periodicity, default [False,False,False] (in).
-       :type periodic: ``list`` of ``bool``s
+       :type periodic: ``list`` of ``bool``
        :ivar intergrationOrder: integration order, default -1 (in).
        :type intergrationOrder: ``int``
        """

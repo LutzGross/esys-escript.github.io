@@ -163,13 +163,13 @@ class LevelSet:
 
   def getVolume(self):
       """
-      Returns the volume of the M{phi(x)<0} region.
+      Returns the volume of the *phi(x)<0* region.
       """
       return integrate(whereNegative(self.__phi.interpolate(Function(self.__domain))))
 
   def getSurface(self,rel_width_factor=0.5):
       """
-      Returns a mask for the M{phi(x)=1} region
+      Returns a mask for the *phi(x)=1* region
 
       :param rel_width_factor: relative width of region around zero contour
       """
@@ -226,7 +226,7 @@ class LevelSet:
   def __makeInterface(self,phi,smoothing_width):
       """
       Creates a smooth interface from -1 to 1 over the length
-      M{2*h*smoothing_width} where -1 is used where the level set is negative
+      *2*h*smoothing_width* where -1 is used where the level set is negative
       and 1 where the level set is 1.
       """
       s=smoothing_width*self.__h

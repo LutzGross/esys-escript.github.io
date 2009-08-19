@@ -109,9 +109,9 @@ class BenchmarkSuite(object):
                      ``scale`` is a scalar all benchmarks are run with ``scale``
                      number of threads. If ``scale`` is a ``list``, the p-th
                      problem in each of the benchmarks in the suite is run with
-                     ``scale[p]`` threads. If ``scale[p]``<1 the p-th problem is
+                     ``scale[p]`` threads. If ``scale[p]`` <1 the p-th problem is
                      omitted.
-       :type scale: ``int`` or ``list`` of ``int``s
+       :type scale: ``int`` or ``list`` of ``int``
        """
        self.__scale=scale
        for i in range(len(self)): self[i].run(scale=scale)
@@ -210,11 +210,11 @@ class Benchmark(object):
 
        :param scale: defines the number of (OpenMP) threads to be used. If
                      ``scale`` is a scalar all benchmarks are run with ``scale``
-                     number of threads. If ``scale`` is a ``list``, the p-th
+                     number of threads. If ``scale`` is a ``list`` , the p-th
                      problem in each of the benchmarks in the suite is run with
-                     ``scale[p]`` threads. If ``scale[p]``<1 the p-th problem is
+                     ``scale[p]`` threads. If ``scale[p]`` <1 the p-th problem is
                      omitted.
-       :type scale: ``int`` or ``list`` of ``int``s
+       :type scale: ``int`` or ``list`` of ``int`` s
        """
        if isinstance(scale,list):
            c_max=min(len(scale),len(self.__problems))

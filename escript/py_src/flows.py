@@ -43,7 +43,7 @@ class DarcyFlow(object):
     M{u_i+k_{ij}*p_{,j} = g_i}
     M{u_{i,i} = f}
 
-    where M{p} represents the pressure and M{u} the Darcy flux. M{k} represents the permeability,
+    where *p* represents the pressure and *u* the Darcy flux. *k* represents the permeability,
 
     :note: The problem is solved in a least squares formulation.
     """
@@ -83,7 +83,7 @@ class DarcyFlow(object):
 	"""
 	Returns the solver options used to solve the flux problems
 	
-	M{(I+D^*D)u=F}
+	*(I+D^*D)u=F*
 	
 	:return: `SolverOptions`
 	"""
@@ -92,7 +92,7 @@ class DarcyFlow(object):
 	"""
 	Sets the solver options used to solve the flux problems
 	
-	M{(I+D^*D)u=F}
+	*(I+D^*D)u=F*
 	
 	If ``options`` is not present, the options are reset to default
 	:param options: `SolverOptions`
@@ -103,7 +103,7 @@ class DarcyFlow(object):
 	"""
 	Returns the solver options used to solve the pressure problems
 	
-	M{(Q^*Q)p=Q^*G}
+	*(Q^*Q)p=Q^*G*
 	
 	:return: `SolverOptions`
 	"""
@@ -112,7 +112,7 @@ class DarcyFlow(object):
 	"""
 	Sets the solver options used to solve the pressure problems
 	
-	M{(Q^*Q)p=Q^*G}
+	*(Q^*Q)p=Q^*G*
 	
 	If ``options`` is not present, the options are reset to default
 	:param options: `SolverOptions`
@@ -140,7 +140,7 @@ class DarcyFlow(object):
         :note: the values of parameters which are not set by calling ``setValue`` are not altered.
         :note: at any point on the boundary of the domain the pressure (``location_of_fixed_pressure`` >0)
                or the normal component of the flux (``location_of_fixed_flux[i]>0`` if direction of the normal
-               is along the M{x_i} axis.
+               is along the *x_i* axis.
         """
         if f !=None:
            f=util.interpolate(f, self.__pde_v.getFunctionSpaceForCoefficient("X"))
@@ -179,9 +179,9 @@ class DarcyFlow(object):
         """
         sets the relative tolerance ``rtol`` used to terminate the solution process. The iteration is terminated if
 
-        M{|g-v-Qp| <= atol + rtol * min( max( |g-v|, |Qp| ), max( |v|, |g-Qp| ) ) }
+        *|g-v-Qp| <= atol + rtol * min( max( |g-v|, |Qp| ), max( |v|, |g-Qp| ) )*
 
-        where ``atol`` is an absolut tolerance (see `setAbsoluteTolerance`), M{|f|^2 = integrate(length(f)^2)} and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}.
+        where ``atol`` is an absolut tolerance (see `setAbsoluteTolerance`), *|f|^2 = integrate(length(f)^2)* and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}.
 
         :param rtol: relative tolerance for the pressure
         :type rtol: non-negative ``float``
@@ -202,9 +202,9 @@ class DarcyFlow(object):
         """
         sets the absolute tolerance ``atol`` used to terminate the solution process. The iteration is terminated if
 
-        M{|g-v-Qp| <= atol + rtol * min( max( |g-v|, |Qp| ), max( |v|, |g-Qp| ) ) }
+        *|g-v-Qp| <= atol + rtol * min( max( |g-v|, |Qp| ), max( |v|, |g-Qp| ) )*
 
-        where ``rtol`` is an absolut tolerance (see `setTolerance`), M{|f|^2 = integrate(length(f)^2)} and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}.
+        where ``rtol`` is an absolut tolerance (see `setTolerance`), *|f|^2 = integrate(length(f)^2)* and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}.
 
         :param atol: absolute tolerance for the pressure
         :type atol: non-negative ``float``
@@ -255,10 +255,10 @@ class DarcyFlow(object):
 
          :note: The problem is solved as a least squares form
 
-         M{(I+D^*D)u+Qp=D^*f+g}
-         M{Q^*u+Q^*Qp=Q^*g}
+         *(I+D^*D)u+Qp=D^*f+g*
+         *Q^*u+Q^*Qp=Q^*g*
 
-         where M{D} is the M{div} operator and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}.
+         where *D* is the *div* operator and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}.
          We eliminate the flux form the problem by setting
 
          M{u=(I+D^*D)^{-1}(D^*f-g-Qp)} with u=u0 on location_of_fixed_flux
@@ -267,8 +267,8 @@ class DarcyFlow(object):
 
          M{Q^*(I-(I+D^*D)^{-1})Qp= Q^*(g-(I+D^*D)^{-1}(D^*f+g))} with p=p0  on location_of_fixed_pressure
 
-         which is solved using the PCG method (precondition is M{Q^*Q}). In each iteration step
-         PDEs with operator M{I+D^*D} and with M{Q^*Q} needs to be solved using a sub iteration scheme.
+         which is solved using the PCG method (precondition is *Q^*Q*). In each iteration step
+         PDEs with operator *I+D^*D* and with *Q^*Q* needs to be solved using a sub iteration scheme.
          """
          self.verbose=verbose
          rtol=self.getTolerance()
@@ -348,7 +348,7 @@ class DarcyFlow(object):
         :type tol: positive ``float``.
         :return: flux
         :rtype: `Data`
-        :note: the method uses the least squares solution M{u=(I+D^*D)^{-1}(D^*f-g-Qp)} where M{D} is the M{div} operator and M{(Qp)_i=k_{ij}p_{,j}}
+        :note: the method uses the least squares solution M{u=(I+D^*D)^{-1}(D^*f-g-Qp)} where *D* is the *div* operator and M{(Qp)_i=k_{ij}p_{,j}}
                for the permeability M{k_{ij}}
         """
 	self.setSubProblemTolerance()
@@ -567,10 +567,10 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 
      def solve_AinvBt(self,p):
          """
-         Solves M{Av=B^*p} with accuracy `self.getSubProblemTolerance()`
+         Solves *Av=B^*p* with accuracy `self.getSubProblemTolerance()`
 
          :param p: a pressure increment
-         :return: the solution of M{Av=B^*p}
+         :return: the solution of *Av=B^*p*
          :note: boundary conditions on v should be zero!
          """
          self.__pde_u.setValue(Y=Data(), y=Data(), r=Data(),X=-p*util.kronecker(self.domain))
@@ -579,11 +579,11 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 
      def solve_prec(self,Bv):
          """
-         applies preconditioner for for M{BA^{-1}B^*} to M{Bv}
+         applies preconditioner for for M{BA^{-1}B^*} to *Bv*
          with accuracy `self.getSubProblemTolerance()` 
 
          :param v: velocity increment
-         :return: M{p=P(Bv)} where M{P^{-1}} is an approximation of M{BA^{-1}B^*}
+         :return: *p=P(Bv)* where M{P^{-1}} is an approximation of M{BA^{-1}B^*}
          :note: boundary conditions on p are zero.
          """
          self.__pde_prec.setValue(Y=Bv)

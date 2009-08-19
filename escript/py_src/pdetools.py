@@ -196,23 +196,23 @@ class NoPDE:
      """
      Solves the following problem for u:
 
-     M{kronecker[i,j]*D[j]*u[j]=Y[i]}
+     *kronecker[i,j]*D[j]*u[j]=Y[i]*
 
      with constraint
 
-     M{u[j]=r[j]}  where M{q[j]>0}
+     *u[j]=r[j]*  where *q[j]>0*
 
-     where M{D}, M{Y}, M{r} and M{q} are given functions of rank 1.
+     where *D*, *Y*, *r* and *q* are given functions of rank 1.
 
      In the case of scalars this takes the form
 
-     M{D*u=Y}
+     *D*u=Y*
 
      with constraint
 
-     M{u=r} where M{q>0}
+     *u=r* where *q>0*
 
-     where M{D}, M{Y}, M{r} and M{q} are given scalar functions.
+     where *D*, *Y*, *r* and *q* are given scalar functions.
 
      The constraint overwrites any other condition.
 
@@ -467,7 +467,7 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
    """
    Solver for
 
-   M{Ax=b}
+   *Ax=b*
 
    with a symmetric and positive definite operator A (more details required!).
    It uses the conjugate gradient method with preconditioner M providing an
@@ -475,11 +475,11 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
 
    The iteration is terminated if
 
-   M{|r| <= atol+rtol*|r0|}
+   *|r| <= atol+rtol*|r0|*
 
-   where M{r0} is the initial residual and M{|.|} is the energy norm. In fact
+   where *r0* is the initial residual and *|.|* is the energy norm. In fact
 
-   M{|r| = sqrt( bilinearform(Msolve(r),r))}
+   *|r| = sqrt( bilinearform(Msolve(r),r))*
 
    For details on the preconditioned conjugate gradient method see the book:
 
@@ -487,7 +487,7 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
    T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo,
    C. Romine, and H. van der Vorst}.
 
-   :param r: initial residual M{r=b-Ax}. ``r`` is altered.
+   :param r: initial residual *r=b-Ax*. ``r`` is altered.
    :type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
    :param x: an initial guess for the solution
    :type x: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
@@ -647,15 +647,15 @@ class Defect(object):
 ######################################
 def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub_tol_max=0.5, gamma=0.9, verbose=False):
    """
-   Solves a non-linear problem M{F(x)=0} for unknown M{x} using the stopping
+   Solves a non-linear problem *F(x)=0* for unknown *x* using the stopping
    criterion:
 
-   M{norm(F(x) <= atol + rtol * norm(F(x0)}
+   *norm(F(x) <= atol + rtol * norm(F(x0)*
 
-   where M{x0} is the initial guess.
+   where *x0* is the initial guess.
 
-   :param defect: object defining the function M{F}. ``defect.norm`` defines the
-                  M{norm} used in the stopping criterion.
+   :param defect: object defining the function *F*. ``defect.norm`` defines the
+                  *norm* used in the stopping criterion.
    :type defect: `Defect`
    :param x: initial guess for the solution, ``x`` is altered.
    :type x: any object type allowing basic operations such as
@@ -838,20 +838,20 @@ def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_rest
    """
    Solver for
 
-   M{Ax=b}
+   *Ax=b*
 
    with a general operator A (more details required!).
    It uses the generalized minimum residual method (GMRES).
 
    The iteration is terminated if
 
-   M{|r| <= atol+rtol*|r0|}
+   *|r| <= atol+rtol*|r0|*
 
-   where M{r0} is the initial residual and M{|.|} is the energy norm. In fact
+   where *r0* is the initial residual and *|.|* is the energy norm. In fact
 
-   M{|r| = sqrt( bilinearform(r,r))}
+   *|r| = sqrt( bilinearform(r,r))*
 
-   :param r: initial residual M{r=b-Ax}. ``r`` is altered.
+   :param r: initial residual *r=b-Ax*. ``r`` is altered.
    :type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
    :param x: an initial guess for the solution
    :type x: same like ``r``
@@ -1007,7 +1007,7 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
     """
     Solver for
 
-    M{Ax=b}
+    *Ax=b*
 
     with a symmetric and positive definite operator A (more details required!).
     It uses the minimum residual method (MINRES) with preconditioner M
@@ -1015,11 +1015,11 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
 
     The iteration is terminated if
 
-    M{|r| <= atol+rtol*|r0|}
+    *|r| <= atol+rtol*|r0|*
 
-    where M{r0} is the initial residual and M{|.|} is the energy norm. In fact
+    where *r0* is the initial residual and *|.|* is the energy norm. In fact
 
-    M{|r| = sqrt( bilinearform(Msolve(r),r))}
+    *|r| = sqrt( bilinearform(Msolve(r),r))*
 
     For details on the preconditioned conjugate gradient method see the book:
 
@@ -1027,7 +1027,7 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
     T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo,
     C. Romine, and H. van der Vorst}.
 
-    :param r: initial residual M{r=b-Ax}. ``r`` is altered.
+    :param r: initial residual *r=b-Ax*. ``r`` is altered.
     :type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
     :param x: an initial guess for the solution
     :type x: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
@@ -1185,20 +1185,20 @@ def TFQMR(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
   """
   Solver for
 
-  M{Ax=b}
+  *Ax=b*
 
   with a general operator A (more details required!).
   It uses the Transpose-Free Quasi-Minimal Residual method (TFQMR).
 
   The iteration is terminated if
 
-  M{|r| <= atol+rtol*|r0|}
+  *|r| <= atol+rtol*|r0|*
 
-  where M{r0} is the initial residual and M{|.|} is the energy norm. In fact
+  where *r0* is the initial residual and *|.|* is the energy norm. In fact
 
-  M{|r| = sqrt( bilinearform(r,r))}
+  *|r| = sqrt( bilinearform(r,r))*
 
-  :param r: initial residual M{r=b-Ax}. ``r`` is altered.
+  :param r: initial residual *r=b-Ax*. ``r`` is altered.
   :type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
   :param x: an initial guess for the solution
   :type x: same like ``r``
@@ -1471,11 +1471,11 @@ class HomogeneousSaddlePointProblem(object):
       This class provides a framework for solving linear homogeneous saddle
       point problems of the form::
 
-          M{Av+B^*p=f}
-          M{Bv     =0}
+          *Av+B^*p=f*
+          *Bv     =0*
 
-      for the unknowns M{v} and M{p} and given operators M{A} and M{B} and
-      given right hand side M{f}. M{B^*} is the adjoint operator of M{B}.
+      for the unknowns *v* and *p* and given operators *A* and *B* and
+      given right hand side *f*. *B^** is the adjoint operator of *B*.
       """
       def __init__(self, adaptSubTolerance=True, **kwargs):
 	"""
@@ -1557,11 +1557,11 @@ class HomogeneousSaddlePointProblem(object):
 
       def solve_AinvBt(self,p):
          """
-         Solves M{Av=B^*p} with accuracy `self.getSubProblemTolerance()`
+         Solves *Av=B^*p* with accuracy `self.getSubProblemTolerance()`
          (overwrite).
 
          :param p: a pressure increment
-         :return: the solution of M{Av=B^*p} 
+         :return: the solution of *Av=B^*p* 
          :note: boundary conditions on v should be zero!
          """
          raise NotImplementedError,"no operator A implemented."
