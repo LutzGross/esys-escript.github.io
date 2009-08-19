@@ -55,7 +55,7 @@ class CubeSource:
 		"""
 		Set the cube source center.
 
-		:type center: L{GlobalPosition <position.GlobalPosition>} object
+		:type center: `GlobalPosition` object
 		:param center: Cube source center
 		"""
 

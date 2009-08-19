@@ -44,7 +44,7 @@ class ImageReader:
 		"""	
 		Initialise the image reader.
 
-		:type format:  L{ImageFormat <constant.ImageFormat>} constant
+		:type format:  `ImageFormat` constant
 		:param format: Format of the image 
 		"""
                 if getMPISizeWorld()>1:

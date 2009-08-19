@@ -89,7 +89,7 @@ class Actor3D:
 		"""
 		Set the color of the 3D actor.
 
-		:type color: L{Color <constant.Color>} constant
+		:type color: `Color` constant
 		:param color: Color of the 3D actor 
 		"""
 
@@ -165,7 +165,7 @@ class Actor2D:
 		Set the position (XY) of the 2D actor. Default position is the lower 
 		left hand corner of the window / viewport.
 
-		:type position: L{LocalPosition <position.LocalPosition>} object
+		:type position: `LocalPosition` object
 		:param position: Position of the 2D actor 
 		"""
 

@@ -65,14 +65,14 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 		'True', otherwise 'False' (which is the default). On occasions, an
 		inaccurate object may be rendered from cell data even after conversion.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type data_collector: `DataCollector`
 				object
 		:param data_collector: Deal with source of data for visualisation
-		:type viewport: L{Viewport <constant.Viewport>} constant  
+		:type viewport: `Viewport` constant  
 		:param viewport: Viewport in which objects are to be rendered on 
-		:type lut : L{Lut <constant.Lut>} constant
+		:type lut : `Lut` constant
 		:param lut: Lookup table color scheme
 		:type cell_to_point: Boolean
 		:param cell_to_point: Converts cell data to point data (by averaging)
@@ -150,7 +150,7 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 		"""
 		Render the contour.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 
@@ -194,7 +194,7 @@ from cutter import Cutter
 class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform, 
 		Plane, Cutter):
 	"""
-	This class works in a similar way to L{MapOnPlaneCut <map.MapOnPlaneCut>},
+	This class works in a similar way to `MapOnPlaneCut`,
 	except that it shows a scalar field by contour surfaces cut using a plane.
 	"""
 
@@ -213,14 +213,14 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 		If a conversion is needed, the 'cell_to_point' flag must be set to 
 		'True', otherwise 'False' (which is the default).
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type data_collector: `DataCollector`
 				object
 		:param data_collector: Deal with source of data for visualisation
-		:type viewport: L{Viewport <constant.Viewport>} constant
+		:type viewport: `Viewport` constant
 		:param viewport: Viewport in which objects are to be rendered on
-		:type lut : L{Lut <constant.Lut>} constant
+		:type lut : `Lut` constant
 		:param lut: Lookup table color scheme
 		:type cell_to_point: Boolean
 		:param cell_to_point: Converts cell data to point data (by averaging)
@@ -304,7 +304,7 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 		"""
 		Render the contour cut using a plane.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 
@@ -346,7 +346,7 @@ from clipper import Clipper
 class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform, 
 		Plane, Clipper):
 	"""
-	This class works in a similar way to L{MapOnPlaneClip <map.MapOnPlaneClip>}
+	This class works in a similar way to `MapOnPlaneClip`
 	, except that it shows a scalar field by contour surfaces clipped using
 	a plane.
 	"""
@@ -366,14 +366,14 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 		If a conversion is needed, the 'cell_to_point' flag must be set to 
 		'True', otherwise 'False' (which is the default).
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type data_collector: `DataCollector`
 				object
 		:param data_collector: Deal with source of data for visualisation
-		:type viewport: L{Viewport <constant.Viewport>} constant
+		:type viewport: `Viewport` constant
 		:param viewport: Viewport in which objects are to be rendered on
-		:type lut : L{Lut <constant.Lut>} constant
+		:type lut : `Lut` constant
 		:param lut: Lookup table color scheme
 		:type cell_to_point: Boolean
 		:param cell_to_point: Converts cell data to point data (by averaging)
@@ -461,7 +461,7 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 		"""
 		Render the contour clip using a plane.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 

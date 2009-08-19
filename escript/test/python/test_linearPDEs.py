@@ -57,7 +57,7 @@ class Test_linearPDEs(unittest.TestCase):
     VERBOSE=False
     def check(self,arg,ref_arg,tol=None):
         """
-        checks if arg and ref_arg are nearly identical using the L{Lsup<esys.escript.util.Lsup>}
+        checks if arg and ref_arg are nearly identical using the `Lsup`
         """
         if tol==None: tol=self.TOL
         return Lsup(arg-ref_arg)<=tol*Lsup(ref_arg)

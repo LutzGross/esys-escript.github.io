@@ -44,7 +44,7 @@ class Warp:
 		"""
 		Initialise the warp scalar/vector.
 
-		:type warp_mode: L{WarpMode <constant.WarpMode>} constant
+		:type warp_mode: `WarpMode` constant
 		:param warp_mode: Mode in which to deform the data
 		"""
                 if getMPISizeWorld()>1:

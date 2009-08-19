@@ -52,7 +52,7 @@ class Plane:
 		"""
 		Setup the plane.
 
-		:type transform: L{Transform <transform.Transform>} object
+		:type transform: `Transform` object
 		:param transform: Specifies the orientation of the plane
 		"""
 
@@ -68,7 +68,7 @@ class Plane:
 		"""
 		Set the origin of the plane.
 
-		:type position: L{GlobalPosition <position.GlobalPosition>} object
+		:type position: `GlobalPosition` object
 		:param position: Origin of the plane
 		"""
 		self.__vtk_plane.SetOrigin(position._getGlobalPosition())
@@ -77,7 +77,7 @@ class Plane:
 		"""
 		Set the normal of the plane.
 
-		:type position: L{GlobalPosition <position.GlobalPosition>} object
+		:type position: `GlobalPosition` object
 		:param position: Normal of the plane
 		"""
 
@@ -130,7 +130,7 @@ class PlaneSource:
 		"""
 		Set the origin of the plane source.
 
-		:type position: L{GlobalPosition <position.GlobalPosition>} object
+		:type position: `GlobalPosition` object
 		:param position: Plane source origin
 		"""
 
@@ -140,7 +140,7 @@ class PlaneSource:
 		"""
 		Set the first point from the origin of the plane source.
 
-		:type position: L{GlobalPosition <position.GlobalPosition>} object
+		:type position: `GlobalPosition` object
 		:param position: Position of the first axis of the plane source
 		"""
 
@@ -150,7 +150,7 @@ class PlaneSource:
 		"""
 		Set the second point from the origin of the plane source.
 
-		:type position: L{GlobalPosition <position.GlobalPosition>} object
+		:type position: `GlobalPosition` object
 		:param position: Position of the second axis of the plane source
 		"""
 

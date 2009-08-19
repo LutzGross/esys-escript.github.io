@@ -79,16 +79,16 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 		z-axis length. However, such exceptions are not taken into account 
 		at this stage.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type data_collector: `DataCollector`
 				object
 		:param data_collector: Deal with source of data for visualisation
-		:type viewport: L{Viewport <constant.Viewport>} constant
+		:type viewport: `Viewport` constant
 		:param viewport: Viewport in which objects are to be rendered on
-		:param warp_mode: L{WarpMode <constant.WarpMode>} constant
+		:param warp_mode: `WarpMode` constant
 		:type warp_mode: Mode in which to deform the scalar field 
-		:type lut : L{Lut <constant.Lut>} constant
+		:type lut : `Lut` constant
 		:param lut: Lookup table color scheme
 		:type cell_to_point: Boolean
 		:param cell_to_point: Converts cell data to point data (by averaging)
@@ -159,7 +159,7 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 		"""
 		Render the carpet.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 

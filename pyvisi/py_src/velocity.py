@@ -71,18 +71,18 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, MaskPoints):
 		'True', otherwise 'False' (which is the default). On occasions, an
 		inaccurate object may be rendered from cell data even after conversion.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type data_collector: `DataCollector`
 				object
 		:param data_collector: Deal with source of data for visualisation
-		:type arrow: L{Arrow <constant.Arrow>} constant 
+		:type arrow: `Arrow` constant 
 		:param arrow: Type of arrow (two dimensional or three dimensional)
-		:type color_mode: L{ColorMode <constant.ColorMode>} constant
+		:type color_mode: `ColorMode` constant
 		:param color_mode: Type of color mode
-		:type viewport: L{Viewport <constant.Viewport>} constant
+		:type viewport: `Viewport` constant
 		:param viewport: Viewport in which objects are to be rendered on
-		:type lut : L{Lut <constant.Lut>} constant
+		:type lut : `Lut` constant
 		:param lut: Lookup table color scheme
 		:type cell_to_point: Boolean
 		:param cell_to_point: Converts cell data to point data (by averaging)
@@ -171,7 +171,7 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, MaskPoints):
 		"""
 		Render the velocity.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 
@@ -225,7 +225,7 @@ from cutter import Cutter
 class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  
 		Glyph3D, Transform, Plane, Cutter, MaskPoints):
 	"""
-	This class works in a similar way to L{MapOnPlaneCut <map.MapOnPlaneCut>},
+	This class works in a similar way to `MapOnPlaneCut`,
 	except that it shows a vector field using arrows cut using a plane.
 	"""
 
@@ -245,18 +245,18 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		'True', otherwise 'False' (which is the default). On occasions, an
 		inaccurate object may be rendered from cell data even after conversion.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type data_collector: `DataCollector`
 				object
 		:param data_collector: Deal with source of data for visualisation
-		:type arrow: L{Arrow <constant.Arrow>} constant 
+		:type arrow: `Arrow` constant 
 		:param arrow: Type of arrow (two dimensional or three dimensional)
-		:type color_mode: L{ColorMode <constant.ColorMode>} constant
+		:type color_mode: `ColorMode` constant
 		:param color_mode: Type of color mode
-		:type viewport: L{Viewport <constant.Viewport>} constant
+		:type viewport: `Viewport` constant
 		:param viewport: Viewport in which objects are to be rendered on
-		:type lut : L{Lut <constant.Lut>} constant
+		:type lut : `Lut` constant
 		:param lut: Lookup table color scheme
 		:type cell_to_point: Boolean
 		:param cell_to_point: Converts cell data to point data (by averaging)
@@ -355,7 +355,7 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		"""
 		Render the velocity cut using a plane.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 
@@ -404,7 +404,7 @@ from clipper import Clipper
 class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  
 		Glyph3D, Transform, Plane, Clipper, MaskPoints):
 	"""
-	This class works in a similar way to L{MapOnPlaneClip <map.MapOnPlaneClip>}
+	This class works in a similar way to `MapOnPlaneClip`
 	, except that it shows a vector field using arrows clipped using a plane.
 	"""
 
@@ -424,18 +424,18 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		'True', otherwise 'False' (which is the default). On occasions, an
 		inaccurate object may be rendered from cell data even after conversion.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type data_collector: `DataCollector`
 				object
 		:param data_collector: Deal with source of data for visualisation
-		:type arrow: L{Arrow <constant.Arrow>} constant 
+		:type arrow: `Arrow` constant 
 		:param arrow: Type of arrow (two dimensional or three dimensional)
-		:type color_mode: L{ColorMode <constant.ColorMode>} constant
+		:type color_mode: `ColorMode` constant
 		:param color_mode: Type of color mode
-		:type viewport: L{Viewport <constant.Viewport>} constant
+		:type viewport: `Viewport` constant
 		:param viewport: Viewport in which objects are to be rendered on
-		:type lut : L{Lut <constant.Lut>} constant
+		:type lut : `Lut` constant
 		:param lut: Lookup table color scheme
 		:type cell_to_point: Boolean
 		:param cell_to_point: Converts cell data to point data (by averaging)
@@ -539,7 +539,7 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		"""
 		Render the velocity clip using a plane..
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 

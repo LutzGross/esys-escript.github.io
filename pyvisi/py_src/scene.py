@@ -52,7 +52,7 @@ class Scene:
 		"""
 		Initialise the scene.
 
-		:type renderer: L{Renderer <constant.Renderer>} constant
+		:type renderer: `Renderer` constant
 		:param renderer: Type of renderer 
 		:type num_viewport: Number
 		:param num_viewport: Number of viewport(s) in the scene. Either 1 or 4 
@@ -137,7 +137,7 @@ class Scene:
 		"""
 		Set the background color of the scene.
 
-		:type color: L{Color <constant.Color>} constant
+		:type color: `Color` constant
 		:param color: Scene background color
 		"""
 		
@@ -310,7 +310,7 @@ class Scene:
 		"""
 		Add the actor3D to the appropriate viewport.
 
-		:type viewport: L{Viewport <constant.Viewport>} constant 
+		:type viewport: `Viewport` constant 
 		:param viewport: Viewport in which the actor3D is to be added to 
 		:type actor: vtkActor
 		:param actor: Actor3D which is to be added to the viewport 
@@ -322,7 +322,7 @@ class Scene:
 		"""
 		Add the actor2D to the appropriate viewport.
 
-		:type viewport: L{Viewport <constant.Viewport>} constant 
+		:type viewport: `Viewport` constant 
 		:param viewport: Viewport in which the actor2D is to be added to 
 		:type actor: vtkActor2D
 		:param actor: Actor2D which is to be added to the viewport 
@@ -334,7 +334,7 @@ class Scene:
 		"""
 		Set the camera to the appropriate viewport.	
 
-		:type viewport: L{Viewport <constant.Viewport>} constant 
+		:type viewport: `Viewport` constant 
 		:param viewport: Viewport in which the camera is to be added to 
 		:type camera: vtkCamera
 		:param camera: Camera which is to be assigned to the viewport
@@ -346,7 +346,7 @@ class Scene:
 		"""
 		Add the light to the appropriate viewport.
 
-		:type viewport: L{Viewport <constant.Viewport>} constant 
+		:type viewport: `Viewport` constant 
 		:param viewport: Viewport in which the camera is to be added to 
 		:type light: vtkLight
 		:param light: Light which is to be assigned to the viewport

@@ -48,11 +48,11 @@ class Text2D(Actor2D):
 		"""
 		Initialise the 2D text actor.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		:type text: String
 		:param text: 2D text to be displayed
-		:type viewport: L{Viewport <constant.Viewport>} constant
+		:type viewport: `Viewport` constant
 		:param viewport: Viewport in which objects are to be rendered on
 		"""
                 if getMPISizeWorld()>1:
@@ -67,7 +67,7 @@ class Text2D(Actor2D):
 		"""
 		Setup the 2D text.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 
@@ -133,7 +133,7 @@ class Text2D(Actor2D):
 		"""
 		Set the color of the 2D text.
 
-		:type color: L{Color <constant.Color>} constant
+		:type color: `Color` constant
 		:param color: 2D text color
 		"""
 

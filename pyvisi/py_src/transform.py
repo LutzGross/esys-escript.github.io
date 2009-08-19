@@ -178,7 +178,7 @@ class TransformFilter:
 
 		:type plane_source: vtkPolyData
 		:param plane_source: Polygonal data
-		:type transform: L{Transform <transform.Transform>} object
+		:type transform: `Transform` object
 		:param transform: Specifies the orientation of the plane source
 		"""
 
