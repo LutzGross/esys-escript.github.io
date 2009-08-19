@@ -1656,8 +1656,6 @@ def whereNonZero(arg,tol=0.):
    :param tol: absolute tolerance. Values with absolute value less than tol are accepted
                as zero. If ``tol`` is not present ``rtol``*```Lsup` (arg)`` is used. 
    :type tol: ``float``
-   :param rtol: relative tolerance used to define the absolute tolerance if ``tol`` is not present.
-   :type rtol: non-negative ``float``
    :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise ValueError: if ``rtol`` is non-negative.

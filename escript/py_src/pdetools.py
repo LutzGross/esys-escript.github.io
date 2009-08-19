@@ -1499,7 +1499,7 @@ class HomogeneousSaddlePointProblem(object):
          Returns inner product of element p and Bv (overwrite).
 
          :param p: a pressure increment
-         :param v: a residual
+         :param Bv: a residual
          :return: inner product of element p and Bv
          :rtype: ``float``
          :note: used if PCG is applied.
@@ -1532,7 +1532,7 @@ class HomogeneousSaddlePointProblem(object):
 
          :param p: a pressure
          :param v0: a initial guess for the value v to return. 
-         :return: v given as M{v= A^{-1} (f-B^*p)}
+         :return: v given as *v= A^{-1} (f-B^*p)*
          """
          raise NotImplementedError,"no v calculation implemented."
 
@@ -1568,7 +1568,7 @@ class HomogeneousSaddlePointProblem(object):
 
       def solve_prec(self,Bv):
          """
-         Provides a preconditioner for M{BA^{-1}B^*} applied to Bv with accuracy
+         Provides a preconditioner for *(BA^{-1}B^ * )* applied to Bv with accuracy
          `self.getSubProblemTolerance()` (overwrite).
 
          :rtype: equal to the type of p
@@ -1717,9 +1717,6 @@ class HomogeneousSaddlePointProblem(object):
       def getSubProblemTolerance(self):
          """
          Sets the relative tolerance to solve the subproblem(s).
-
-         :param rtol: relative tolerence
-         :type rtol: positive ``float``
          """
          return max(200.*util.EPSILON,self.getTolerance()**2)
 

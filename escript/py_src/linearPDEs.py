@@ -277,7 +277,7 @@ class SolverOptions(object):
         
         :param name: name of  diagnostic information
         :type name: ``str`` in the list "num_iter", "num_level", "num_inner_iter", "time", "set_up_time", "net_time", "residual_norm", "converged".
-        :param vale: new value of the diagnostic information
+        :param value: new value of the diagnostic information
         :note: this function is used by a solver to report diagnostics informations.
         """
         if name == "num_iter": 
@@ -615,7 +615,7 @@ class SolverOptions(object):
         Sets the number of sweeps in a Jacobi or Gauss-Seidel/SOR preconditioner.
 
         :param sweeps: number of sweeps
-        :type theta: positive ``int``
+        :type sweeps: positive ``int``
         """
         sweeps=int(sweeps)
         if sweeps<1:
@@ -633,7 +633,7 @@ class SolverOptions(object):
         Sets the number of sweeps in the pre-smoothing step of a multi level solver or preconditioner
 
         :param sweeps: number of sweeps
-        :type theta: positive ``int``
+        :type sweeps: positive ``int``
         """
         sweeps=int(sweeps)
         if sweeps<1:
@@ -651,7 +651,7 @@ class SolverOptions(object):
         Sets the number of sweeps in the post-smoothing step of a multi level solver or preconditioner
 
         :param sweeps: number of sweeps
-        :type theta: positive ``int``
+        :type sweeps: positive ``int``
         """
         sweeps=int(sweeps)
         if sweeps<1:
@@ -831,8 +831,8 @@ class SolverOptions(object):
         """
         Sets the verbosity flag for the solver to ``flag``.
 
-        :param flag: If ``True``, the verbosity of the solver is switched on.
-        :type flag: ``bool``
+        :param verbose: If ``True``, the verbosity of the solver is switched on.
+        :type verbose: ``bool``
         """
         if verbose:
             self.setVerbosityOn()
@@ -2317,7 +2317,7 @@ class LinearPDE(LinearProblem):
    In case of a single PDE and a single component solution the contact
    condition takes the form
 
-   M{n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)}
+   *n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)*
 
    In this case the coefficient *d_contact* and *y_contact* are each scalar
    both in `FunctionOnContactZero` or
@@ -3208,7 +3208,7 @@ class TransportPDE(LinearProblem):
    In case of a single PDE and a single component solution the contact
    condition takes the form
 
-   M{n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)}
+   *n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)*
 
    In this case the coefficient *d_contact* and *y_contact* are each scalar
    both in `FunctionOnContactZero` or

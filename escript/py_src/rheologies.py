@@ -317,7 +317,7 @@ class Rheology(object):
          :param stress: initial (deviatoric) stress
          :type stress: a tensor value/field of order 2
          :param v: initial velocity field
-         :type stress: a vector value/field
+         :type v: a vector value/field
          :param p: initial pressure
          :type p: a scalar value/field
          :param t: initial time
@@ -597,7 +597,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
          :param stress: initial (deviatoric) stress
          :type stress: a tensor value/field of order 2
          :param v: initial velocity field
-         :type stress: a vector value/field
+         :type v: a vector value/field
          :param p: initial pressure
          :type p: a scalar value/field
          :param t: initial time
