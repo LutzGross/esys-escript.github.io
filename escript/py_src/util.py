@@ -60,7 +60,7 @@ def getTagNames(domain):
     Returns a list of tag names used by the domain.
 
     :param domain: a domain object
-    :type domain: L{escript.Domain}
+    :type domain: `escript.Domain`
     :return: a list of tag names used by the domain
     :rtype: C{list} of C{str}
     """
@@ -83,11 +83,11 @@ def insertTaggedValues(target,**kwargs):
     Inserts tagged values into the target using tag names.
 
     :param target: data to be filled by tagged values
-    :type target: L{escript.Data}
+    :type target: `escript.Data`
     :keyword <tag_name>: value to be used for <tag_name>
     :type <tag_name>: C{float} or C{numpy.ndarray}
     :return: C{target}
-    :rtype: L{escript.Data}
+    :rtype: `escript.Data`
     """
     for k in kwargs:
         target.setTaggedValue(k,kwargs[k])
@@ -95,7 +95,7 @@ def insertTaggedValues(target,**kwargs):
 
 def saveVTK(filename,domain=None, metadata=None, metadata_schema=None, **data):
     """
-    Writes L{Data} objects and their mesh into a file using the VTK XML file
+    Writes `Data` objects and their mesh into a file using the VTK XML file
     format.
 
     Example::
@@ -119,9 +119,9 @@ def saveVTK(filename,domain=None, metadata=None, metadata_schema=None, **data):
 
     :param filename: file name of the output file
     :type filename: C{str}
-    :param domain: domain of the L{Data} objects. If not specified, the domain
-                   of the given L{Data} objects is used.
-    :type domain: L{escript.Domain}
+    :param domain: domain of the `Data` objects. If not specified, the domain
+                   of the given `Data` objects is used.
+    :type domain: `escript.Domain`
     :keyword <name>: writes the assigned value to the VTK file using <name> as
                      identifier
     :param metadata: additional XML meta data which are inserted into the VTK file. The meta data are marked by the tag C{<MetaData>}.
@@ -129,8 +129,8 @@ def saveVTK(filename,domain=None, metadata=None, metadata_schema=None, **data):
     :param metadata_schema: assignes schema to namespaces which have been used to define  meta data.
     :type metadata_schema: C{dict} with C{metadata_schema[<namespace>]=<URI>} to assign the scheme C{<URI>} to the name space C{<namespace>}.
     :note: The data objects have to be defined on the same domain. They may not
-           be in the same L{FunctionSpace} but one cannot expect that all
-           L{FunctionSpace}s can be mixed. Typically, data on the boundary and
+           be in the same `FunctionSpace` but one cannot expect that all
+           `FunctionSpace` s can be mixed. Typically, data on the boundary and
            data on the interior cannot be mixed.
     """
     # create the string if meta data:
@@ -160,7 +160,7 @@ def saveVTK(filename,domain=None, metadata=None, metadata_schema=None, **data):
 
 def saveDX(filename,domain=None,**data):
     """
-    Writes L{Data} objects into a file using the OpenDX file format.
+    Writes `Data` objects into a file using the OpenDX file format.
 
     Example::
 
@@ -173,16 +173,16 @@ def saveDX(filename,domain=None,**data):
 
     :param filename: file name of the output file
     :type filename: C{str}
-    :param domain: domain of the L{Data} objects. If not specified, the domain
-                   of the given L{Data} objects is used.
-    :type domain: L{escript.Domain}
+    :param domain: domain of the `Data` objects. If not specified, the domain
+                   of the given `Data` objects is used.
+    :type domain: `escript.Domain`
     :keyword <name>: writes the assigned value to the DX file using <name> as
                      identifier. The identifier can be used to select the data
                      set when data are imported into DX.
-    :type <name>: L{Data} object
+    :type <name>: `Data` object
     :note: The data objects have to be defined on the same domain. They may not
-           be in the same L{FunctionSpace} but one cannot expect that all
-           L{FunctionSpace}s can be mixed. Typically, data on the boundary and
+           be in the same `FunctionSpace` but one cannot expect that all
+           `FunctionSpace` s can be mixed. Typically, data on the boundary and
            data on the interior cannot be mixed.
     """
     new_data={}
@@ -205,7 +205,7 @@ def saveDX(filename,domain=None,**data):
 
 def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamicMesh=0, **data):
     """
-    Saves L{Data} objects to files and creates an I{escript dataset} (ESD) file
+    Saves `Data` objects to files and creates an I{escript dataset} (ESD) file
     for convenient processing/visualisation.
 
     Single timestep example::
@@ -232,24 +232,24 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
     :type datasetName: C{str}
     :param dataDir: optional directory where the data files should be saved
     :type dataDir: C{str}
-    :param domain: domain of the L{Data} object(s). If not specified, the
-                   domain of the given L{Data} objects is used.
-    :type domain: L{escript.Domain}
+    :param domain: domain of the `Data` object(s). If not specified, the
+                   domain of the given `Data` objects is used.
+    :type domain: `escript.Domain`
     :param timeStep: current timestep or sequence number - first one must be 0
-    :type timeStep: L{int}
+    :type timeStep: `int`
     :param deltaT: timestep or sequence increment, see example above
-    :type deltaT: L{int}
+    :type deltaT: `int`
     :param dynamicMesh: by default the mesh is assumed to be static and thus
                         only saved once at timestep 0 to save disk space.
                         Setting this to 1 changes the behaviour and the mesh
                         is saved at each timestep.
-    :type dynamicMesh: L{int}
+    :type dynamicMesh: `int`
     :keyword <name>: writes the assigned value to the file using <name> as
                      identifier
-    :type <name>: L{Data} object
+    :type <name>: `Data` object
     :note: The data objects have to be defined on the same domain. They may not
-           be in the same L{FunctionSpace} but one cannot expect that all
-           L{FunctionSpace}s can be mixed. Typically, data on the boundary and
+           be in the same `FunctionSpace` but one cannot expect that all
+           `FunctionSpace` s can be mixed. Typically, data on the boundary and
            data on the interior cannot be mixed.
     :note: When saving a time series the first timestep must be 0 and it is
            assumed that data from all timesteps share the domain. The dataset
@@ -315,10 +315,10 @@ def kronecker(d=3):
 
    :param d: dimension or an object that has the C{getDim} method defining the
              dimension
-   :type d: C{int}, L{escript.Domain} or L{escript.FunctionSpace}
+   :type d: C{int}, `escript.Domain` or `escript.FunctionSpace`
    :return: the object u of rank 2 with M{u[i,j]=1} for M{i=j} and M{u[i,j]=0}
             otherwise
-   :rtype: C{numpy.ndarray} or L{escript.Data} of rank 2
+   :rtype: C{numpy.ndarray} or `escript.Data` of rank 2
    """
    return identityTensor(d)
 
@@ -355,10 +355,10 @@ def identityTensor(d=3):
 
    :param d: dimension or an object that has the C{getDim} method defining the
              dimension
-   :type d: C{int}, L{escript.Domain} or L{escript.FunctionSpace}
+   :type d: C{int}, `escript.Domain` or `escript.FunctionSpace`
    :return: the object u of rank 2 with M{u[i,j]=1} for M{i=j} and M{u[i,j]=0}
             otherwise
-   :rtype: C{numpy.ndarray} or L{escript.Data} of rank 2
+   :rtype: C{numpy.ndarray} or `escript.Data` of rank 2
    """
    if isinstance(d,escript.FunctionSpace):
        return escript.Data(identity((d.getDim(),)),d)
@@ -376,7 +376,7 @@ def identityTensor4(d=3):
    :type d: C{int} or any object with a C{getDim} method
    :return: the object u of rank 4 with M{u[i,j,k,l]=1} for M{i=k and j=l} and
             M{u[i,j,k,l]=0} otherwise
-   :rtype: C{numpy.ndarray} or L{escript.Data} of rank 4
+   :rtype: C{numpy.ndarray} or `escript.Data` of rank 4
    """
    if isinstance(d,escript.FunctionSpace):
        return escript.Data(identity((d.getDim(),d.getDim())),d)
@@ -393,10 +393,10 @@ def unitVector(i=0,d=3):
    :type i: C{int}
    :param d: dimension or an object that has the C{getDim} method defining the
              dimension
-   :type d: C{int}, L{escript.Domain} or L{escript.FunctionSpace}
+   :type d: C{int}, `escript.Domain` or `escript.FunctionSpace`
    :return: the object u of rank 1 with M{u[j]=1} for M{j=index} and M{u[j]=0}
             otherwise
-   :rtype: C{numpy.ndarray} or L{escript.Data} of rank 1
+   :rtype: C{numpy.ndarray} or `escript.Data` of rank 1
    """
    return kronecker(d)[i]
 
@@ -409,7 +409,7 @@ def Lsup(arg):
     over all data points. This function is equivalent to C{sup(abs(arg))}.
 
     :param arg: argument
-    :type arg: C{float}, C{int}, L{escript.Data}, C{numpy.ndarray}
+    :type arg: C{float}, C{int}, `escript.Data`, C{numpy.ndarray}
     :return: maximum value of the absolute value of C{arg}over all components
              and all data points
     :rtype: C{float}
@@ -431,7 +431,7 @@ def sup(arg):
     Returns the maximum value over all data points.
 
     :param arg: argument
-    :type arg: C{float}, C{int}, L{escript.Data}, C{numpy.ndarray}
+    :type arg: C{float}, C{int}, `escript.Data`, C{numpy.ndarray}
     :return: maximum value of C{arg}over all components and all data points
     :rtype: C{float}
     :raise TypeError: if type of C{arg}cannot be processed
@@ -452,7 +452,7 @@ def inf(arg):
     Returns the minimum value over all data points.
 
     :param arg: argument
-    :type arg: C{float}, C{int}, L{escript.Data}, C{numpy.ndarray}
+    :type arg: C{float}, C{int}, `escript.Data`, C{numpy.ndarray}
     :return: minimum value of C{arg}over all components and all data points
     :rtype: C{float}
     :raise TypeError: if type of C{arg}cannot be processed
@@ -477,7 +477,7 @@ def getRank(arg):
     Identifies the rank of the argument.
 
     :param arg: an object whose rank is to be returned
-    :type arg: C{numpy.ndarray}, L{escript.Data}, C{float}, C{int},
+    :type arg: C{numpy.ndarray}, `escript.Data`, C{float}, C{int},
                C{Symbol}
     :return: the rank of the argument
     :rtype: C{int}
@@ -502,7 +502,7 @@ def getShape(arg):
     Identifies the shape of the argument.
 
     :param arg: an object whose shape is to be returned
-    :type arg: C{numpy.ndarray}, L{escript.Data}, C{float}, C{int},
+    :type arg: C{numpy.ndarray}, `escript.Data`, C{float}, C{int},
                C{Symbol}
     :return: the shape of the argument
     :rtype: C{tuple} of C{int}
@@ -544,8 +544,8 @@ def commonShape(arg0, arg1):
     Returns a shape to which C{arg0} can be extended from the right and C{arg1}
     can be extended from the left.
 
-    :param arg0: an object with a shape (see L{getShape})
-    :param arg1: an object with a shape (see L{getShape})
+    :param arg0: an object with a shape (see `getShape`)
+    :param arg1: an object with a shape (see `getShape`)
     :return: the shape of C{arg0} or C{arg1} such that the left part equals the
              shape of C{arg0} and the right end equals the shape of C{arg1}
     :rtype: C{tuple} of C{int}
@@ -573,7 +573,7 @@ def commonDim(*args):
 
     :param args: given objects
     :return: the spatial dimension of the objects with identifiable dimension
-             (see L{pokeDim}). If none of the objects has a spatial dimension
+             (see `pokeDim`). If none of the objects has a spatial dimension
              C{None} is returned.
     :rtype: C{int} or C{None}
     :raise ValueError: if the objects with identifiable dimension don't have
@@ -594,7 +594,7 @@ def testForZero(arg):
     Tests if the argument is identical to zero.
 
     :param arg: the object to test for zero
-    :type arg: typically C{numpy.ndarray}, L{escript.Data}, C{float}, C{int}
+    :type arg: typically C{numpy.ndarray}, `escript.Data`, C{float}, C{int}
     :return: True if the argument is identical to zero, False otherwise
     :rtype: C{bool}
     """
@@ -614,18 +614,18 @@ def testForZero(arg):
 def matchType(arg0=0.,arg1=0.):
     """
     Converts C{arg0} and C{arg1} both to the same type C{numpy.ndarray} or
-    L{escript.Data} or, if one of C{arg0} or C{arg1} is of type L{Symbol}, the
-    other one to be of type C{numpy.ndarray} or L{escript.Data}.
+    `escript.Data` or, if one of C{arg0} or C{arg1} is of type `Symbol`, the
+    other one to be of type C{numpy.ndarray} or `escript.Data`.
 
     :param arg0: first argument
-    :type arg0: C{numpy.ndarray},L{escript.Data},C{float}, C{int}, C{Symbol}
+    :type arg0: C{numpy.ndarray},`escript.Data`,C{float}, C{int}, C{Symbol}
     :param arg1: second argument
-    :type arg1: C{numpy.ndarray},L{escript.Data},C{float}, C{int}, C{Symbol}
+    :type arg1: C{numpy.ndarray},`escript.Data`,C{float}, C{int}, C{Symbol}
     :return: a tuple representing C{arg0} and C{arg1} with the same type or
-             with one of them being a L{Symbol}
-    :rtype: C{tuple} of two C{numpy.ndarray}, two L{escript.Data},
+             with one of them being a `Symbol`
+    :rtype: C{tuple} of two C{numpy.ndarray}, two `escript.Data`,
             a C{Symbol} and one of the types C{numpy.ndarray} or
-            L{escript.Data}
+            `escript.Data`
     :raise TypeError: if type of C{arg0} or C{arg1} cannot be processed
     """
     if isinstance(arg0,numpy.ndarray):
@@ -707,9 +707,9 @@ def matchShape(arg0,arg1):
     Returns a representation of C{arg0} and C{arg1} which have the same shape.
 
     :param arg0: first argument
-    :type arg0: C{numpy.ndarray},L{escript.Data},C{float}, C{int}, L{Symbol}
+    :type arg0: C{numpy.ndarray},`escript.Data`,C{float}, C{int}, `Symbol`
     :param arg1: second argument
-    :type arg1: C{numpy.ndarray},L{escript.Data},C{float}, C{int}, L{Symbol}
+    :type arg1: C{numpy.ndarray},`escript.Data`,C{float}, C{int}, `Symbol`
     :return: C{arg0} and C{arg1} where copies are returned when the shape has
              to be changed
     :rtype: C{tuple}
@@ -730,7 +730,7 @@ def matchShape(arg0,arg1):
 class Symbol(object):
    """
    Symbol class objects provide the same functionality as C{numpy.ndarray}
-   and L{escript.Data} objects but they do not have a value and therefore
+   and `escript.Data` objects but they do not have a value and therefore
    cannot be plotted or visualized. The main purpose is the possibility to
    calculate derivatives with respect to other Symbols used to define a Symbol.
 
@@ -821,13 +821,13 @@ class Symbol(object):
        Substitutes symbols in the arguments of this object and returns the
        result as a list.
 
-       :param argvals: L{Symbol} and their substitutes. The L{Symbol} u in the
+       :param argvals: `Symbol` and their substitutes. The `Symbol` u in the
                        expression defining this object is replaced by
                        argvals[u].
-       :type argvals: C{dict} with keywords of type L{Symbol}
+       :type argvals: C{dict} with keywords of type `Symbol`
        :rtype: C{list} of objects
        :return: list of the object assigned to the arguments through
-                substitution or for the arguments which are not L{Symbol}s the
+                substitution or for the arguments which are not `Symbol` s the
                 value assigned to the argument at instantiation.
        """
        out=[]
@@ -844,8 +844,8 @@ class Symbol(object):
        result as a list.
 
        :param arg: the derivative is calculated with respect to C{arg}
-       :type arg: typically L{escript.Symbol} but can also be C{float},
-                  L{escript.Data}, C{numpy.ndarray} depending on the
+       :type arg: typically `escript.Symbol` but can also be C{float},
+                  `escript.Data`, C{numpy.ndarray} depending on the
                   involved functions and data
        :rtype: C{list} of objects
        :return: list of object obtained by calculating the derivatives of the
@@ -870,7 +870,7 @@ class Symbol(object):
       dimension is defined, the spatial dimension of C{arg}.
 
       :param arg: object to be checked
-      :type arg: C{numpy.ndarray}, L{escript.Data}, C{float}, C{int},
+      :type arg: C{numpy.ndarray}, `escript.Data`, C{float}, C{int},
                  C{Symbol}
       :return: True if C{arg} is a suitable object to be used for substitution,
                False otherwise
@@ -922,19 +922,19 @@ class Symbol(object):
       """
       Assigns new values to symbols in the definition of the symbol.
 
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :note: this method has to be overwritten by a particular L{Symbol}
+      :note: this method has to be overwritten by a particular `Symbol`
       :raise NotImplementedError: if no implementation for the given format is
                                   available
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -947,16 +947,16 @@ class Symbol(object):
 
    def diff(self,arg):
        """
-       Returns the derivative of the symbol with respect to L{Symbol} C{arg}.
+       Returns the derivative of the symbol with respect to `Symbol` C{arg}.
 
        :param arg: the derivative is calculated with respect to C{arg}
-       :type arg: typically L{escript.Symbol} but can also be C{float},
-                  L{escript.Data}, C{numpy.ndarray} depending on the
+       :type arg: typically `escript.Symbol` but can also be C{float},
+                  `escript.Data`, C{numpy.ndarray} depending on the
                   involved functions and data
        :return: derivative with respect to C{arg}
-       :rtype: typically L{escript.Symbol} but other types such as C{float},
-               L{escript.Data}, C{numpy.ndarray} are possible
-       :note: this method is overwritten by a particular L{Symbol}.
+       :rtype: typically `escript.Symbol` but other types such as C{float},
+               `escript.Data`, C{numpy.ndarray} are possible
+       :note: this method is overwritten by a particular `Symbol`.
        """
        if arg==self:
           return identity(self.getShape())
@@ -971,8 +971,8 @@ class Symbol(object):
        """
        Returns -self.
 
-       :return: a L{Symbol} representing the negative of the object
-       :rtype: L{DependendSymbol}
+       :return: a `Symbol` representing the negative of the object
+       :rtype: `DependendSymbol`
        """
        return self*(-1.)
 
@@ -980,14 +980,14 @@ class Symbol(object):
        """
        Returns +self.
 
-       :return: a L{Symbol} representing the positive of the object
-       :rtype: L{DependendSymbol}
+       :return: a `Symbol` representing the positive of the object
+       :rtype: `DependendSymbol`
        """
        return self*(1.)
 
    def __abs__(self):
        """
-       Returns a L{Symbol} representing the absolute value of the object.
+       Returns a `Symbol` representing the absolute value of the object.
        """
        return Abs_Symbol(self)
 
@@ -996,10 +996,10 @@ class Symbol(object):
        Adds another object to this object.
 
        :param other: object to be added to this object
-       :type other: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type other: `escript.Symbol`, C{float}, `escript.Data`,
                     C{numpy.ndarray}.
-       :return: a L{Symbol} representing the sum of this object and C{other}
-       :rtype: L{DependendSymbol}
+       :return: a `Symbol` representing the sum of this object and C{other}
+       :rtype: `DependendSymbol`
        """
        return add(self,other)
 
@@ -1008,10 +1008,10 @@ class Symbol(object):
        Adds this object to another object.
 
        :param other: object to add this object to
-       :type other: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type other: `escript.Symbol`, C{float}, `escript.Data`,
                     C{numpy.ndarray}
-       :return: a L{Symbol} representing the sum of C{other} and this object
-       :rtype: L{DependendSymbol}
+       :return: a `Symbol` representing the sum of C{other} and this object
+       :rtype: `DependendSymbol`
        """
        return add(other,self)
 
@@ -1020,11 +1020,11 @@ class Symbol(object):
        Subtracts another object from this object.
 
        :param other: object to be subtracted from this object
-       :type other: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type other: `escript.Symbol`, C{float}, `escript.Data`,
                     C{numpy.ndarray}
-       :return: a L{Symbol} representing the difference of C{other} and this
+       :return: a `Symbol` representing the difference of C{other} and this
                 object
-       :rtype: L{DependendSymbol}
+       :rtype: `DependendSymbol`
        """
        return add(self,-other)
 
@@ -1033,11 +1033,11 @@ class Symbol(object):
        Subtracts this object from another object.
 
        :param other: object this object is to be subtracted from
-       :type other: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type other: `escript.Symbol`, C{float}, `escript.Data`,
                     C{numpy.ndarray}
-       :return: a L{Symbol} representing the difference of this object and
+       :return: a `Symbol` representing the difference of this object and
                 C{other}.
-       :rtype: L{DependendSymbol}
+       :rtype: `DependendSymbol`
        """
        return add(-self,other)
 
@@ -1046,10 +1046,10 @@ class Symbol(object):
        Multiplies this object with another object.
 
        :param other: object to be mutiplied by this object
-       :type other: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type other: `escript.Symbol`, C{float}, `escript.Data`,
                     C{numpy.ndarray}
-       :return: a L{Symbol} representing the product of the object and C{other}
-       :rtype: L{DependendSymbol} or 0 if other is identical to zero.
+       :return: a `Symbol` representing the product of the object and C{other}
+       :rtype: `DependendSymbol` or 0 if other is identical to zero.
        """
        return mult(self,other)
 
@@ -1058,10 +1058,10 @@ class Symbol(object):
        Multiplies another object by this object.
 
        :param other: object this object is multiplied with
-       :type other: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type other: `escript.Symbol`, C{float}, `escript.Data`,
                     C{numpy.ndarray}
-       :return: a L{Symbol} representing the product of C{other} and the object
-       :rtype: L{DependendSymbol} or 0 if other is identical to zero
+       :return: a `Symbol` representing the product of C{other} and the object
+       :rtype: `DependendSymbol` or 0 if other is identical to zero
        """
        return mult(other,self)
 
@@ -1070,11 +1070,11 @@ class Symbol(object):
        Divides this object by another object.
 
        :param other: object dividing this object
-       :type other: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type other: `escript.Symbol`, C{float}, `escript.Data`,
                     C{numpy.ndarray}
-       :return: a L{Symbol} representing the quotient of this object and
+       :return: a `Symbol` representing the quotient of this object and
                 C{other}
-       :rtype: L{DependendSymbol}
+       :rtype: `DependendSymbol`
        """
        return quotient(self,other)
 
@@ -1083,11 +1083,11 @@ class Symbol(object):
        Divides another object by this object.
 
        :param other: object to be divided by this object
-       :type other: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type other: `escript.Symbol`, C{float}, `escript.Data`,
                     C{numpy.ndarray}
-       :return: a L{Symbol} representing the quotient of C{other} and this
+       :return: a `Symbol` representing the quotient of C{other} and this
                 object
-       :rtype: L{DependendSymbol} or 0 if C{other} is identical to zero
+       :rtype: `DependendSymbol` or 0 if C{other} is identical to zero
        """
        return quotient(other,self)
 
@@ -1096,10 +1096,10 @@ class Symbol(object):
        Raises this object to the power of C{other}.
 
        :param other: exponent
-       :type other: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type other: `escript.Symbol`, C{float}, `escript.Data`,
                     C{numpy.ndarray}
-       :return: a L{Symbol} representing the power of this object to C{other}
-       :rtype: L{DependendSymbol} or 1 if C{other} is identical to zero
+       :return: a `Symbol` representing the power of this object to C{other}
+       :rtype: `DependendSymbol` or 1 if C{other} is identical to zero
        """
        return power(self,other)
 
@@ -1108,10 +1108,10 @@ class Symbol(object):
        Raises an object to the power of this object.
 
        :param other: basis
-       :type other: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type other: `escript.Symbol`, C{float}, `escript.Data`,
                     C{numpy.ndarray}
-       :return: a L{Symbol} representing the power of C{other} to this object
-       :rtype: L{DependendSymbol} or 0 if C{other} is identical to zero
+       :return: a `Symbol` representing the power of C{other} to this object
+       :rtype: `DependendSymbol` or 0 if C{other} is identical to zero
        """
        return power(other,self)
 
@@ -1121,14 +1121,14 @@ class Symbol(object):
 
        :param index: the slice index
        :type index: C{slice} or C{int} or a C{tuple} of them
-       :return: a L{Symbol} representing the slice defined by index
-       :rtype: L{DependendSymbol}
+       :return: a `Symbol` representing the slice defined by index
+       :rtype: `DependendSymbol`
        """
        return GetSlice_Symbol(self,index)
 
 class DependendSymbol(Symbol):
    """
-   DependendSymbol extents L{Symbol} by modifying the == operator to allow two
+   DependendSymbol extents `Symbol` by modifying the == operator to allow two
    instances to be equal. Two C{DependendSymbol}s are equal if they have the
    same shape, the same arguments and one of them has an unspecified spatial
    dimension or the spatial dimension is identical.
@@ -1149,7 +1149,7 @@ class DependendSymbol(Symbol):
      True False
 
    :note: DependendSymbol should be used as return value of functions with
-          L{Symbol} arguments. This will allow the optimizer to remove
+          `Symbol` arguments. This will allow the optimizer to remove
           redundant function calls.
    """
    def __eq__(self,other):
@@ -1184,14 +1184,14 @@ class DependendSymbol(Symbol):
 #========================================================
 class GetSlice_Symbol(DependendSymbol):
    """
-   L{Symbol} representing getting a slice for a L{Symbol}.
+   `Symbol` representing getting a slice for a `Symbol`.
    """
    def __init__(self,arg,index):
       """
-      Initialization of the L{Symbol} with argument C{arg}.
+      Initialization of the `Symbol` with argument C{arg}.
 
       :param arg: argument
-      :type arg: L{Symbol}
+      :type arg: `Symbol`
       :param index: defines index
       :type index: C{slice} or C{int} or a C{tuple} of them
       :raise IndexError: if length of index is larger than rank of arg or
@@ -1256,16 +1256,16 @@ class GetSlice_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -1284,8 +1284,8 @@ def log10(arg):
    Returns base-10 logarithm of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1307,8 +1307,8 @@ def wherePositive(arg):
    Returns mask of positive values of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}.
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}.
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1335,14 +1335,14 @@ def wherePositive(arg):
 
 class WherePositive_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the mask of positive values function.
+   `Symbol` representing the result of the mask of positive values function.
    """
    def __init__(self,arg):
       """
-      Initialization of wherePositive L{Symbol} with argument C{arg}.
+      Initialization of wherePositive `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -1372,16 +1372,16 @@ class WherePositive_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -1398,8 +1398,8 @@ def whereNegative(arg):
    Returns mask of negative values of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1426,14 +1426,14 @@ def whereNegative(arg):
 
 class WhereNegative_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the mask of negative values function.
+   `Symbol` representing the result of the mask of negative values function.
    """
    def __init__(self,arg):
       """
-      Initialization of whereNegative L{Symbol} with argument C{arg}.
+      Initialization of whereNegative `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -1463,16 +1463,16 @@ class WhereNegative_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -1489,8 +1489,8 @@ def whereNonNegative(arg):
    Returns mask of non-negative values of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1520,8 +1520,8 @@ def whereNonPositive(arg):
    Returns mask of non-positive values of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1551,13 +1551,13 @@ def whereZero(arg,tol=None,adaptTol=True,rtol=math.sqrt(EPSILON)):
    Returns mask of zero entries of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
+   :type arg: C{float}, `escript.Data` , `Symbol` , C{numpy.ndarray}
    :param tol: absolute tolerance. Values with absolute value less than tol are accepted
-               as zero. If C{tol} is not present C{rtol}*C{L{Lsup}(arg)} is used. 
+               as zero. If C{tol} is not present C{rtol}*C{`Lsup` (arg)} is used. 
    :type tol: C{float}
    :param rtol: relative tolerance used to define the absolute tolerance if C{tol} is not present.
    :type rtol: non-negative C{float}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :rtype: C{float}, `escript.Data` , `Symbol` , C{numpy.ndarray} depending
            on the type of C{arg}
    :raise ValueError: if C{rtol} is non-negative.
    :raise TypeError: if the type of the argument is not expected
@@ -1591,14 +1591,14 @@ def whereZero(arg,tol=None,adaptTol=True,rtol=math.sqrt(EPSILON)):
 
 class WhereZero_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the mask of zero entries function.
+   `Symbol` representing the result of the mask of zero entries function.
    """
    def __init__(self,arg,tol=0.):
       """
-      Initialization of whereZero L{Symbol} with argument C{arg}.
+      Initialization of whereZero `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg,tol],shape=arg.getShape(),dim=arg.getDim())
 
@@ -1626,16 +1626,16 @@ class WhereZero_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -1652,13 +1652,13 @@ def whereNonZero(arg,tol=0.):
    Returns mask of values different from zero of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
    :param tol: absolute tolerance. Values with absolute value less than tol are accepted
-               as zero. If C{tol} is not present C{rtol}*C{L{Lsup}(arg)} is used. 
+               as zero. If C{tol} is not present C{rtol}*C{`Lsup` (arg)} is used. 
    :type tol: C{float}
    :param rtol: relative tolerance used to define the absolute tolerance if C{tol} is not present.
    :type rtol: non-negative C{float}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise ValueError: if C{rtol} is non-negative.
    :raise TypeError: if the type of the argument is not expected
@@ -1695,8 +1695,8 @@ def erf(arg):
    Returns the error function M{erf} of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}.
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}.
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1710,8 +1710,8 @@ def sin(arg):
    Returns sine of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}.
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}.
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1730,14 +1730,14 @@ def sin(arg):
 
 class Sin_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the sine function.
+   `Symbol` representing the result of the sine function.
    """
    def __init__(self,arg):
       """
-      Initialization of sin L{Symbol} with argument C{arg}.
+      Initialization of sin `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -1767,16 +1767,16 @@ class Sin_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -1793,10 +1793,10 @@ class Sin_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -1810,8 +1810,8 @@ def cos(arg):
    Returns cosine of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1830,14 +1830,14 @@ def cos(arg):
 
 class Cos_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the cosine function.
+   `Symbol` representing the result of the cosine function.
    """
    def __init__(self,arg):
       """
-      Initialization of cos L{Symbol} with argument C{arg}.
+      Initialization of cos `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -1867,16 +1867,16 @@ class Cos_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -1893,10 +1893,10 @@ class Cos_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -1910,8 +1910,8 @@ def tan(arg):
    Returns tangent of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1930,14 +1930,14 @@ def tan(arg):
 
 class Tan_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the tangent function.
+   `Symbol` representing the result of the tangent function.
    """
    def __init__(self,arg):
       """
-      Initialization of tan L{Symbol} with argument C{arg}.
+      Initialization of tan `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -1967,16 +1967,16 @@ class Tan_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -1993,10 +1993,10 @@ class Tan_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -2010,8 +2010,8 @@ def asin(arg):
    Returns the inverse sine of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -2030,14 +2030,14 @@ def asin(arg):
 
 class Asin_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the inverse sine function.
+   `Symbol` representing the result of the inverse sine function.
    """
    def __init__(self,arg):
       """
-      Initialization of asin L{Symbol} with argument C{arg}.
+      Initialization of asin `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -2067,16 +2067,16 @@ class Asin_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -2093,10 +2093,10 @@ class Asin_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -2110,8 +2110,8 @@ def acos(arg):
    Returns the inverse cosine of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -2130,14 +2130,14 @@ def acos(arg):
 
 class Acos_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the inverse cosine function.
+   `Symbol` representing the result of the inverse cosine function.
    """
    def __init__(self,arg):
       """
-      Initialization of acos L{Symbol} with argument C{arg}.
+      Initialization of acos `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -2167,16 +2167,16 @@ class Acos_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -2193,10 +2193,10 @@ class Acos_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -2210,8 +2210,8 @@ def atan(arg):
    Returns inverse tangent of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -2230,14 +2230,14 @@ def atan(arg):
 
 class Atan_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the inverse tangent function.
+   `Symbol` representing the result of the inverse tangent function.
    """
    def __init__(self,arg):
       """
-      Initialization of atan L{Symbol} with argument C{arg}.
+      Initialization of atan `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -2267,16 +2267,16 @@ class Atan_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -2293,10 +2293,10 @@ class Atan_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -2310,8 +2310,8 @@ def sinh(arg):
    Returns the hyperbolic sine of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -2330,14 +2330,14 @@ def sinh(arg):
 
 class Sinh_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the hyperbolic sine function.
+   `Symbol` representing the result of the hyperbolic sine function.
    """
    def __init__(self,arg):
       """
-      Initialization of sinh L{Symbol} with argument C{arg}.
+      Initialization of sinh `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -2367,16 +2367,16 @@ class Sinh_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -2393,10 +2393,10 @@ class Sinh_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -2410,8 +2410,8 @@ def cosh(arg):
    Returns the hyperbolic cosine of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -2430,14 +2430,14 @@ def cosh(arg):
 
 class Cosh_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the hyperbolic cosine function.
+   `Symbol` representing the result of the hyperbolic cosine function.
    """
    def __init__(self,arg):
       """
-      Initialization of cosh L{Symbol} with argument C{arg}.
+      Initialization of cosh `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -2467,16 +2467,16 @@ class Cosh_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -2493,10 +2493,10 @@ class Cosh_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -2510,8 +2510,8 @@ def tanh(arg):
    Returns the hyperbolic tangent of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -2530,14 +2530,14 @@ def tanh(arg):
 
 class Tanh_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the hyperbolic tangent function.
+   `Symbol` representing the result of the hyperbolic tangent function.
    """
    def __init__(self,arg):
       """
-      Initialization of tanh L{Symbol} with argument C{arg}.
+      Initialization of tanh `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -2567,16 +2567,16 @@ class Tanh_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -2593,10 +2593,10 @@ class Tanh_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -2610,8 +2610,8 @@ def asinh(arg):
    Returns the inverse hyperbolic sine of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -2630,14 +2630,14 @@ def asinh(arg):
 
 class Asinh_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the inverse hyperbolic sine function.
+   `Symbol` representing the result of the inverse hyperbolic sine function.
    """
    def __init__(self,arg):
       """
-      Initialization of asinh L{Symbol} with argument C{arg}.
+      Initialization of asinh `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -2667,16 +2667,16 @@ class Asinh_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -2693,10 +2693,10 @@ class Asinh_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -2710,8 +2710,8 @@ def acosh(arg):
    Returns the inverse hyperbolic cosine of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -2730,14 +2730,14 @@ def acosh(arg):
 
 class Acosh_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the inverse hyperbolic cosine function.
+   `Symbol` representing the result of the inverse hyperbolic cosine function.
    """
    def __init__(self,arg):
       """
-      Initialization of acosh L{Symbol} with argument C{arg}.
+      Initialization of acosh `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -2767,16 +2767,16 @@ class Acosh_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -2793,10 +2793,10 @@ class Acosh_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -2810,8 +2810,8 @@ def atanh(arg):
    Returns the inverse hyperbolic tangent of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -2830,14 +2830,14 @@ def atanh(arg):
 
 class Atanh_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the inverse hyperbolic tangent function.
+   `Symbol` representing the result of the inverse hyperbolic tangent function.
    """
    def __init__(self,arg):
       """
-      Initialization of atanh L{Symbol} with argument C{arg}.
+      Initialization of atanh `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -2867,16 +2867,16 @@ class Atanh_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -2893,10 +2893,10 @@ class Atanh_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -2910,8 +2910,8 @@ def exp(arg):
    Returns M{e} to the power of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}.
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}.
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of arg
    :raise TypeError: if the type of the argument is not expected
    """
@@ -2930,14 +2930,14 @@ def exp(arg):
 
 class Exp_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the exponential function.
+   `Symbol` representing the result of the exponential function.
    """
    def __init__(self,arg):
       """
-      Initialization of exp L{Symbol} with argument C{arg}.
+      Initialization of exp `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -2967,16 +2967,16 @@ class Exp_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -2993,10 +2993,10 @@ class Exp_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -3010,8 +3010,8 @@ def sqrt(arg):
    Returns the square root of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
            depending on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -3030,14 +3030,14 @@ def sqrt(arg):
 
 class Sqrt_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the square root function.
+   `Symbol` representing the result of the square root function.
    """
    def __init__(self,arg):
       """
-      Initialization of sqrt L{Symbol} with argument C{arg}.
+      Initialization of sqrt `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -3067,16 +3067,16 @@ class Sqrt_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -3093,10 +3093,10 @@ class Sqrt_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -3110,8 +3110,8 @@ def log(arg):
    Returns the natural logarithm of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}.
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}.
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -3130,14 +3130,14 @@ def log(arg):
 
 class Log_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the natural logarithm function.
+   `Symbol` representing the result of the natural logarithm function.
    """
    def __init__(self,arg):
       """
-      Initialization of log L{Symbol} with argument C{arg}.
+      Initialization of log `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -3167,16 +3167,16 @@ class Log_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -3193,10 +3193,10 @@ class Log_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -3210,8 +3210,8 @@ def sign(arg):
    Returns the sign of argument C{arg}.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray} depending
            on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
@@ -3240,14 +3240,14 @@ def sign(arg):
 
 class Abs_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the absolute value function.
+   `Symbol` representing the result of the absolute value function.
    """
    def __init__(self,arg):
       """
-      Initialization of abs L{Symbol} with argument C{arg}.
+      Initialization of abs `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
 
@@ -3277,16 +3277,16 @@ class Abs_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -3303,10 +3303,10 @@ class Abs_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -3320,8 +3320,8 @@ def minval(arg):
    Returns the minimum value over all components of C{arg} at each data point.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol} depending on the type of C{arg}
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol` depending on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
@@ -3342,14 +3342,14 @@ def minval(arg):
 
 class Minval_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the minimum value function.
+   `Symbol` representing the result of the minimum value function.
    """
    def __init__(self,arg):
       """
-      Initialization of minimum value L{Symbol} with argument C{arg}.
+      Initialization of minimum value `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=(),dim=arg.getDim())
 
@@ -3379,16 +3379,16 @@ class Minval_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -3405,8 +3405,8 @@ def maxval(arg):
    Returns the maximum value over all components of C{arg} at each data point.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol} depending on the type of C{arg}
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol` depending on the type of C{arg}
    :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
@@ -3427,14 +3427,14 @@ def maxval(arg):
 
 class Maxval_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the maximum value function.
+   `Symbol` representing the result of the maximum value function.
    """
    def __init__(self,arg):
       """
-      Initialization of maximum value L{Symbol} with argument C{arg}.
+      Initialization of maximum value `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: typically L{Symbol}
+      :type arg: typically `Symbol`
       """
       DependendSymbol.__init__(self,args=[arg],shape=(),dim=arg.getDim())
 
@@ -3464,16 +3464,16 @@ class Maxval_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -3490,8 +3490,8 @@ def length(arg):
    Returns the length (Euclidean norm) of argument C{arg} at each data point.
 
    :param arg: argument
-   :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
-   :rtype: C{float}, L{escript.Data}, L{Symbol} depending on the type of C{arg}
+   :type arg: C{float}, `escript.Data`, `Symbol`, C{numpy.ndarray}
+   :rtype: C{float}, `escript.Data`, `Symbol` depending on the type of C{arg}
    """
    return sqrt(inner(arg,arg))
 
@@ -3500,7 +3500,7 @@ def trace(arg,axis_offset=0):
    Returns the trace of C{arg} which is the sum of C{arg[k,k]} over k.
 
    :param arg: argument
-   :type arg: L{escript.Data}, L{Symbol}, C{numpy.ndarray}
+   :type arg: `escript.Data`, `Symbol`, C{numpy.ndarray}
    :param axis_offset: C{axis_offset} to components to sum over. C{axis_offset}
                        must be non-negative and less than the rank of C{arg} +1.
                        The dimensions of component C{axis_offset} and
@@ -3508,7 +3508,7 @@ def trace(arg,axis_offset=0):
    :type axis_offset: C{int}
    :return: trace of arg. The rank of the returned object is rank of C{arg}
             minus 2.
-   :rtype: L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending on the
+   :rtype: `escript.Data`, `Symbol`, C{numpy.ndarray} depending on the
            type of C{arg}
    """
    if isinstance(arg,numpy.ndarray):
@@ -3550,14 +3550,14 @@ def trace(arg,axis_offset=0):
 
 class Trace_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the trace function.
+   `Symbol` representing the result of the trace function.
    """
    def __init__(self,arg,axis_offset=0):
       """
-      Initialization of trace L{Symbol} with argument C{arg}.
+      Initialization of trace `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: L{Symbol}
+      :type arg: `Symbol`
       :param axis_offset: C{axis_offset} to components to sum over.
                           C{axis_offset} must be non-negative and less than the
                           rank of C{arg} +1. The dimensions on component
@@ -3597,16 +3597,16 @@ class Trace_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -3623,10 +3623,10 @@ class Trace_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -3639,7 +3639,7 @@ def transpose(arg,axis_offset=None):
    last C{rank-axis_offset} components.
 
    :param arg: argument
-   :type arg: L{escript.Data}, L{Symbol}, C{numpy.ndarray}, C{float}, C{int}
+   :type arg: `escript.Data`, `Symbol`, C{numpy.ndarray}, C{float}, C{int}
    :param axis_offset: the first C{axis_offset} components are swapped with the
                        rest. C{axis_offset} must be non-negative and less or
                        equal to the rank of C{arg}. If C{axis_offset} is not
@@ -3647,7 +3647,7 @@ def transpose(arg,axis_offset=None):
                        used.
    :type axis_offset: C{int}
    :return: transpose of C{arg}
-   :rtype: L{escript.Data}, L{Symbol}, C{numpy.ndarray}, C{float}, C{int}
+   :rtype: `escript.Data`, `Symbol`, C{numpy.ndarray}, C{float}, C{int}
            depending on the type of C{arg}
    """
    if isinstance(arg,numpy.ndarray):
@@ -3675,14 +3675,14 @@ def transpose(arg,axis_offset=None):
 
 class Transpose_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the transpose function.
+   `Symbol` representing the result of the transpose function.
    """
    def __init__(self,arg,axis_offset=None):
       """
-      Initialization of transpose L{Symbol} with argument C{arg}.
+      Initialization of transpose `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: L{Symbol}
+      :type arg: `Symbol`
       :param axis_offset: the first C{axis_offset} components are swapped with
                           the rest. C{axis_offset} must be non-negative and
                           less than or equal to the rank of C{arg}. If
@@ -3720,16 +3720,16 @@ class Transpose_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -3746,10 +3746,10 @@ class Transpose_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -3761,7 +3761,7 @@ def swap_axes(arg,axis0=0,axis1=1):
    Returns the swap of C{arg} by swapping the components C{axis0} and C{axis1}.
 
    :param arg: argument
-   :type arg: L{escript.Data}, L{Symbol}, C{numpy.ndarray}
+   :type arg: `escript.Data`, `Symbol`, C{numpy.ndarray}
    :param axis0: first axis. C{axis0} must be non-negative and less than the
                  rank of C{arg}.
    :type axis0: C{int}
@@ -3769,7 +3769,7 @@ def swap_axes(arg,axis0=0,axis1=1):
                  rank of C{arg}.
    :type axis1: C{int}
    :return: C{arg} with swapped components
-   :rtype: L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending on the
+   :rtype: `escript.Data`, `Symbol`, C{numpy.ndarray} depending on the
            type of C{arg}
    """
    if axis0 > axis1:
@@ -3789,14 +3789,14 @@ def swap_axes(arg,axis0=0,axis1=1):
 
 class SwapAxes_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the swap function.
+   `Symbol` representing the result of the swap function.
    """
    def __init__(self,arg,axis0=0,axis1=1):
       """
-      Initialization of swap L{Symbol} with argument C{arg}.
+      Initialization of swap `Symbol` with argument C{arg}.
 
       :param arg: argument
-      :type arg: L{Symbol}
+      :type arg: `Symbol`
       :param axis0: first axis. C{axis0} must be non-negative and less than the
                     rank of C{arg}.
       :type axis0: C{int}
@@ -3849,16 +3849,16 @@ class SwapAxes_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -3875,10 +3875,10 @@ class SwapAxes_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -3891,9 +3891,9 @@ def symmetric(arg):
     M{(arg+transpose(arg))/2}.
 
     :param arg: input matrix. Must have rank 2 or 4 and be square.
-    :type arg: C{numpy.ndarray}, L{escript.Data}, L{Symbol}
+    :type arg: C{numpy.ndarray}, `escript.Data`, `Symbol`
     :return: symmetric part of C{arg}
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol} depending on the
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol` depending on the
             input
     """
     if isinstance(arg,numpy.ndarray):
@@ -3940,9 +3940,9 @@ def nonsymmetric(arg):
     M{(arg-transpose(arg))/2}.
 
     :param arg: input matrix. Must have rank 2 or 4 and be square.
-    :type arg: C{numpy.ndarray}, L{escript.Data}, L{Symbol}
+    :type arg: C{numpy.ndarray}, `escript.Data`, `Symbol`
     :return: non-symmetric part of C{arg}
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol} depending on the
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol` depending on the
             input
     """
     if isinstance(arg,numpy.ndarray):
@@ -3989,12 +3989,12 @@ def inverse(arg):
 
     :param arg: square matrix. Must have rank 2 and the first and second
                 dimension must be equal.
-    :type arg: C{numpy.ndarray}, L{escript.Data}, L{Symbol}
+    :type arg: C{numpy.ndarray}, `escript.Data`, `Symbol`
     :return: inverse of the argument. C{matrix_mult(inverse(arg),arg)} will be
              almost equal to C{kronecker(arg.getShape()[0])}
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol} depending on the
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol` depending on the
             input
-    :note: for L{escript.Data} objects the dimension is restricted to 3.
+    :note: for `escript.Data` objects the dimension is restricted to 3.
     """
     import numpy.linalg
     if isinstance(arg,numpy.ndarray):
@@ -4064,14 +4064,14 @@ def escript_inverse(arg): # this should be escript._inverse and use LAPACK
 
 class Inverse_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the inverse function.
+   `Symbol` representing the result of the inverse function.
    """
    def __init__(self,arg):
       """
-      Initialization of inverse L{Symbol} with argument C{arg}.
+      Initialization of inverse `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: L{Symbol}
+      :type arg: `Symbol`
       """
       if not arg.getRank()==2:
         raise ValueError,"Inverse_Symbol:: argument must have rank 2"
@@ -4104,16 +4104,16 @@ class Inverse_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -4130,10 +4130,10 @@ class Inverse_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -4147,11 +4147,11 @@ def eigenvalues(arg):
     :param arg: square matrix. Must have rank 2 and the first and second
                 dimension must be equal. It must also be symmetric, ie.
                 C{transpose(arg)==arg} (this is not checked).
-    :type arg: C{numpy.ndarray}, L{escript.Data}, L{Symbol}
+    :type arg: C{numpy.ndarray}, `escript.Data`, `Symbol`
     :return: the eigenvalues in increasing order
-    :rtype: C{numpy.ndarray},L{escript.Data}, L{Symbol} depending on the
+    :rtype: C{numpy.ndarray},`escript.Data`, `Symbol` depending on the
             input
-    :note: for L{escript.Data} and L{Symbol} objects the dimension is
+    :note: for `escript.Data` and `Symbol` objects the dimension is
            restricted to 3.
     """
     if isinstance(arg,numpy.ndarray):
@@ -4218,12 +4218,12 @@ def eigenvalues_and_eigenvectors(arg):
     :param arg: square matrix. Must have rank 2 and the first and second
                 dimension must be equal. It must also be symmetric, ie.
                 C{transpose(arg)==arg} (this is not checked).
-    :type arg: L{escript.Data}
+    :type arg: `escript.Data`
     :return: the eigenvalues and eigenvectors. The eigenvalues are ordered by
              increasing value. The eigenvectors are orthogonal and normalized.
              If V are the eigenvectors then V[:,i] is the eigenvector
              corresponding to the i-th eigenvalue.
-    :rtype: L{tuple} of L{escript.Data}
+    :rtype: `tuple` of `escript.Data`
     :note: The dimension is restricted to 3.
     """
     if isinstance(arg,numpy.ndarray):
@@ -4247,16 +4247,16 @@ def add(arg0,arg1):
        Adds C{arg0} and C{arg1} together.
 
        :param arg0: first term
-       :type arg0: L{escript.Symbol}, C{float}, C{int}, L{escript.Data},
+       :type arg0: `escript.Symbol`, C{float}, C{int}, `escript.Data`,
                    C{numpy.ndarray}
        :param arg1: second term
-       :type arg1: L{escript.Symbol}, C{float}, C{int}, L{escript.Data},
+       :type arg1: `escript.Symbol`, C{float}, C{int}, `escript.Data`,
                    C{numpy.ndarray}
        :return: the sum of C{arg0} and C{arg1}
-       :rtype: L{escript.Symbol}, C{float}, C{int}, L{escript.Data},
+       :rtype: `escript.Symbol`, C{float}, C{int}, `escript.Data`,
                C{numpy.ndarray}
        :note: The shape of both arguments is matched according to the rules
-              used in L{matchShape}.
+              used in `matchShape`.
        """
        args=matchShape(arg0,arg1)
        if testForZero(args[0]):
@@ -4277,13 +4277,13 @@ class Add_Symbol(DependendSymbol):
    """
    def __init__(self,arg0,arg1):
        """
-       Initialization of the L{Symbol} representing the sum of two arguments.
+       Initialization of the `Symbol` representing the sum of two arguments.
 
        :param arg0: first term in the sum
-       :type arg0: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type arg0: `escript.Symbol`, C{float}, `escript.Data`,
                    C{numpy.ndarray}
        :param arg1: second term in the sum
-       :type arg1: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type arg1: `escript.Symbol`, C{float}, `escript.Data`,
                    C{numpy.ndarray}
        :raise ValueError: if both arguments do not have the same shape
        :note: if both arguments have a spatial dimension, they must be equal.
@@ -4320,16 +4320,16 @@ class Add_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -4347,10 +4347,10 @@ class Add_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -4363,16 +4363,16 @@ def mult(arg0,arg1):
        Product of C{arg0} and C{arg1}.
 
        :param arg0: first term
-       :type arg0: L{escript.Symbol}, C{float}, C{int}, L{escript.Data},
+       :type arg0: `escript.Symbol`, C{float}, C{int}, `escript.Data`,
                    C{numpy.ndarray}
        :param arg1: second term
-       :type arg1: L{escript.Symbol}, C{float}, C{int}, L{escript.Data},
+       :type arg1: `escript.Symbol`, C{float}, C{int}, `escript.Data`,
                    C{numpy.ndarray}
        :return: the product of C{arg0} and C{arg1}
-       :rtype: L{escript.Symbol}, C{float}, C{int}, L{escript.Data},
+       :rtype: `escript.Symbol`, C{float}, C{int}, `escript.Data`,
                C{numpy.ndarray}
        :note: The shape of both arguments is matched according to the rules
-              used in L{matchShape}.
+              used in `matchShape`.
        """
        args=matchShape(arg0,arg1)
        if testForZero(args[0]) or testForZero(args[1]):
@@ -4391,14 +4391,14 @@ class Mult_Symbol(DependendSymbol):
    """
    def __init__(self,arg0,arg1):
        """
-       Initialization of the L{Symbol} representing the product of two
+       Initialization of the `Symbol` representing the product of two
        arguments.
 
        :param arg0: first factor
-       :type arg0: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type arg0: `escript.Symbol`, C{float}, `escript.Data`,
                    C{numpy.ndarray}
        :param arg1: second factor
-       :type arg1: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type arg1: `escript.Symbol`, C{float}, `escript.Data`,
                    C{numpy.ndarray}
        :raise ValueError: if both arguments do not have the same shape
        :note: if both arguments have a spatial dimension, they must be equal.
@@ -4435,16 +4435,16 @@ class Mult_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}.
+      :type argvals: C{dict} with keywords of type `Symbol`.
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -4461,10 +4461,10 @@ class Mult_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -4478,16 +4478,16 @@ def quotient(arg0,arg1):
        Quotient of C{arg0} and C{arg1}.
 
        :param arg0: numerator
-       :type arg0: L{escript.Symbol}, C{float}, C{int}, L{escript.Data},
+       :type arg0: `escript.Symbol`, C{float}, C{int}, `escript.Data`,
                    C{numpy.ndarray}
        :param arg1: denominator
-       :type arg1: L{escript.Symbol}, C{float}, C{int}, L{escript.Data},
+       :type arg1: `escript.Symbol`, C{float}, C{int}, `escript.Data`,
                    C{numpy.ndarray}
        :return: the quotient of C{arg0} and C{arg1}
-       :rtype: L{escript.Symbol}, C{float}, C{int}, L{escript.Data},
+       :rtype: `escript.Symbol`, C{float}, C{int}, `escript.Data`,
                C{numpy.ndarray}
        :note: The shape of both arguments is matched according to the rules
-              used in L{matchShape}.
+              used in `matchShape`.
        """
        args=matchShape(arg0,arg1)
        if testForZero(args[0]):
@@ -4511,13 +4511,13 @@ class Quotient_Symbol(DependendSymbol):
    """
    def __init__(self,arg0,arg1):
        """
-       Initialization of L{Symbol} representing the quotient of two arguments.
+       Initialization of `Symbol` representing the quotient of two arguments.
 
        :param arg0: numerator
-       :type arg0: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type arg0: `escript.Symbol`, C{float}, `escript.Data`,
                    C{numpy.ndarray}
        :param arg1: denominator
-       :type arg1: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type arg1: `escript.Symbol`, C{float}, `escript.Data`,
                    C{numpy.ndarray}
        :raise ValueError: if both arguments do not have the same shape
        :note: if both arguments have a spatial dimension, they must be equal.
@@ -4554,16 +4554,16 @@ class Quotient_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -4580,10 +4580,10 @@ class Quotient_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -4598,16 +4598,16 @@ def power(arg0,arg1):
        Raises C{arg0} to the power of C{arg1}.
 
        :param arg0: basis
-       :type arg0: L{escript.Symbol}, C{float}, C{int}, L{escript.Data},
+       :type arg0: `escript.Symbol`, C{float}, C{int}, `escript.Data`,
                    C{numpy.ndarray}
        :param arg1: exponent
-       :type arg1: L{escript.Symbol}, C{float}, C{int}, L{escript.Data},
+       :type arg1: `escript.Symbol`, C{float}, C{int}, `escript.Data`,
                    C{numpy.ndarray}
        :return: C{arg0} to the power of C{arg1}
-       :rtype: L{escript.Symbol}, C{float}, C{int}, L{escript.Data},
+       :rtype: `escript.Symbol`, C{float}, C{int}, `escript.Data`,
                C{numpy.ndarray}
        :note: The shape of both arguments is matched according to the rules
-              used in L{matchShape}
+              used in `matchShape`
        """
        args=matchShape(arg0,arg1)
        if testForZero(args[0]):
@@ -4627,14 +4627,14 @@ class Power_Symbol(DependendSymbol):
    """
    def __init__(self,arg0,arg1):
        """
-       Initialization of the L{Symbol} representing raising the first argument
+       Initialization of the `Symbol` representing raising the first argument
        to the power of the second.
 
        :param arg0: basis
-       :type arg0: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type arg0: `escript.Symbol`, C{float}, `escript.Data`,
                    C{numpy.ndarray}
        :param arg1: exponent
-       :type arg1: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type arg1: `escript.Symbol`, C{float}, `escript.Data`,
                    C{numpy.ndarray}
        :raise ValueError: if both arguments do not have the same shape
        :note: if both arguments have a spatial dimension, they must be equal
@@ -4673,16 +4673,16 @@ class Power_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -4699,10 +4699,10 @@ class Power_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -4716,11 +4716,11 @@ def maximum(*args):
     The maximum over arguments C{args}.
 
     :param args: arguments
-    :type args: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{int} or
+    :type args: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{int} or
                 C{float}
     :return: an object which in each entry gives the maximum of the
              corresponding values in C{args}
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{int} or
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{int} or
             C{float} depending on the input
     """
     out=None
@@ -4749,11 +4749,11 @@ def minimum(*args):
     The minimum over arguments C{args}.
 
     :param args: arguments
-    :type args: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{int} or
+    :type args: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{int} or
                 C{float}
     :return: an object which gives in each entry the minimum of the
              corresponding values in C{args}
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{int} or
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{int} or
             C{float} depending on the input
     """
     out=None
@@ -4786,7 +4786,7 @@ def clip(arg,minval=None,maxval=None):
     Cuts the values of C{arg} between C{minval} and C{maxval}.
 
     :param arg: argument
-    :type arg: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{int} or
+    :type arg: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{int} or
                C{float}
     :param minval: lower range. If None no lower range is applied
     :type minval: C{float} or C{None}
@@ -4794,7 +4794,7 @@ def clip(arg,minval=None,maxval=None):
     :type maxval: C{float} or C{None}
     :return: an object that contains all values from C{arg} between C{minval}
              and C{maxval}
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{int} or
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{int} or
             C{float} depending on the input
     :raise ValueError: if C{minval>maxval}
     """
@@ -4822,13 +4822,13 @@ def inner(arg0,arg1):
     C{arg0} and C{arg1} must have the same shape.
 
     :param arg0: first argument
-    :type arg0: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{float},
+    :type arg0: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{float},
                 C{int}
     :param arg1: second argument
-    :type arg1: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{float},
+    :type arg1: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{float},
                 C{int}
     :return: the inner product of C{arg0} and C{arg1} at each data point
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{float}
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{float}
             depending on the input
     :raise ValueError: if the shapes of the arguments are not identical
     """
@@ -4849,20 +4849,20 @@ def outer(arg0,arg1):
         - t runs through C{arg1.Shape}
 
     :param arg0: first argument
-    :type arg0: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{float},
+    :type arg0: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{float},
                 C{int}
     :param arg1: second argument
-    :type arg1: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{float},
+    :type arg1: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{float},
                 C{int}
     :return: the outer product of C{arg0} and C{arg1} at each data point
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol} depending on the
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol` depending on the
             input
     """
     return generalTensorProduct(arg0,arg1,axis_offset=0)
 
 def matrixmult(arg0,arg1):
     """
-    See L{matrix_mult}.
+    See `matrix_mult`.
     """
     return matrix_mult(arg0,arg1)
 
@@ -4880,12 +4880,12 @@ def matrix_mult(arg0,arg1):
     match.
 
     :param arg0: first argument of rank 2
-    :type arg0: C{numpy.ndarray}, L{escript.Data}, L{Symbol}
+    :type arg0: C{numpy.ndarray}, `escript.Data`, `Symbol`
     :param arg1: second argument of at least rank 1
-    :type arg1: C{numpy.ndarray}, L{escript.Data}, L{Symbol}
+    :type arg1: C{numpy.ndarray}, `escript.Data`, `Symbol`
     :return: the matrix-matrix or matrix-vector product of C{arg0} and C{arg1}
              at each data point
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol} depending on the
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol` depending on the
             input
     :raise ValueError: if the shapes of the arguments are not appropriate
     """
@@ -4899,7 +4899,7 @@ def matrix_mult(arg0,arg1):
 
 def tensormult(arg0,arg1):
     """
-    See L{tensor_mult}.
+    See `tensor_mult`.
     """
     return tensor_mult(arg0,arg1)
 
@@ -4932,12 +4932,12 @@ def tensor_mult(arg0,arg1):
     must match the two first dimensions of C{arg1}.
 
     :param arg0: first argument of rank 2 or 4
-    :type arg0: C{numpy.ndarray}, L{escript.Data}, L{Symbol}
+    :type arg0: C{numpy.ndarray}, `escript.Data`, `Symbol`
     :param arg1: second argument of shape greater than 1 or 2 depending on the
                  rank of C{arg0}
-    :type arg1: C{numpy.ndarray}, L{escript.Data}, L{Symbol}
+    :type arg1: C{numpy.ndarray}, `escript.Data`, `Symbol`
     :return: the tensor product of C{arg0} and C{arg1} at each data point
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol} depending on the
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol` depending on the
             input
     """
     sh0=getShape(arg0)
@@ -4961,14 +4961,14 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
         - t runs through C{arg1.Shape[axis_offset:]}
 
     :param arg0: first argument
-    :type arg0: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{float},
+    :type arg0: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{float},
                 C{int}
     :param arg1: second argument
-    :type arg1: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{float},
+    :type arg1: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{float},
                 C{int}
     :return: the general tensor product of C{arg0} and C{arg1} at each data
              point
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol} depending on the
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol` depending on the
             input
     """
     if isinstance(arg0,float) and isinstance(arg1,float): return arg1*arg0
@@ -5010,14 +5010,14 @@ class GeneralTensorProduct_Symbol(DependendSymbol):
    """
    def __init__(self,arg0,arg1,axis_offset=0):
        """
-       Initialization of L{Symbol} representing the general tensor product of
+       Initialization of `Symbol` representing the general tensor product of
        two arguments.
 
        :param arg0: first argument
-       :type arg0: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type arg0: `escript.Symbol`, C{float}, `escript.Data`,
                    C{numpy.ndarray}
        :param arg1: second argument
-       :type arg1: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type arg1: `escript.Symbol`, C{float}, `escript.Data`,
                    C{numpy.ndarray}
        :raise ValueError: illegal dimension
        :note: if both arguments have a spatial dimension, they must be equal.
@@ -5056,16 +5056,16 @@ class GeneralTensorProduct_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -5098,12 +5098,12 @@ def transposed_matrix_mult(arg0,arg1):
     The first dimension of C{arg0} and C{arg1} must match.
 
     :param arg0: first argument of rank 2
-    :type arg0: C{numpy.ndarray}, L{escript.Data}, L{Symbol}
+    :type arg0: C{numpy.ndarray}, `escript.Data`, `Symbol`
     :param arg1: second argument of at least rank 1
-    :type arg1: C{numpy.ndarray}, L{escript.Data}, L{Symbol}
+    :type arg1: C{numpy.ndarray}, `escript.Data`, `Symbol`
     :return: the product of the transpose of C{arg0} and C{arg1} at each data
              point
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol} depending on the
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol` depending on the
             input
     :raise ValueError: if the shapes of the arguments are not appropriate
     """
@@ -5147,12 +5147,12 @@ def transposed_tensor_mult(arg0,arg1):
     C{tensor_mult(transpose(arg0),arg1)}.
 
     :param arg0: first argument of rank 2 or 4
-    :type arg0: C{numpy.ndarray}, L{escript.Data}, L{Symbol}
+    :type arg0: C{numpy.ndarray}, `escript.Data`, `Symbol`
     :param arg1: second argument of shape greater of 1 or 2 depending on the
                  rank of C{arg0}
-    :type arg1: C{numpy.ndarray}, L{escript.Data}, L{Symbol}
+    :type arg1: C{numpy.ndarray}, `escript.Data`, `Symbol`
     :return: the tensor product of transpose of arg0 and arg1 at each data point
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol} depending on the
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol` depending on the
             input
     """
     sh0=getShape(arg0)
@@ -5180,14 +5180,14 @@ def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
     C{generalTensorProduct(transpose(arg0,arg0.ndim-axis_offset),arg1,axis_offset)}.
 
     :param arg0: first argument
-    :type arg0: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{float},
+    :type arg0: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{float},
                 C{int}
     :param arg1: second argument
-    :type arg1: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{float},
+    :type arg1: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{float},
                 C{int}
     :return: the general tensor product of C{transpose(arg0)} and C{arg1} at
              each data point
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol} depending on the
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol` depending on the
             input
     """
     if isinstance(arg0,float) and isinstance(arg1,float): return arg1*arg0
@@ -5231,14 +5231,14 @@ class GeneralTransposedTensorProduct_Symbol(DependendSymbol):
    """
    def __init__(self,arg0,arg1,axis_offset=0):
        """
-       Initialization of L{Symbol} representing tensor product of the
+       Initialization of `Symbol` representing tensor product of the
        transpose of C{arg0} and C{arg1}.
 
        :param arg0: first argument
-       :type arg0: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type arg0: `escript.Symbol`, C{float}, `escript.Data`,
                    C{numpy.ndarray}
        :param arg1: second argument
-       :type arg1: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type arg1: `escript.Symbol`, C{float}, `escript.Data`,
                    C{numpy.ndarray}
        :raise ValueError: inconsistent dimensions of arguments
        :note: if both arguments have a spatial dimension, they must be equal.
@@ -5277,16 +5277,16 @@ class GeneralTransposedTensorProduct_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -5315,12 +5315,12 @@ def matrix_transposed_mult(arg0,arg1):
     The last dimensions of C{arg0} and C{arg1} must match.
 
     :param arg0: first argument of rank 2
-    :type arg0: C{numpy.ndarray}, L{escript.Data}, L{Symbol}
+    :type arg0: C{numpy.ndarray}, `escript.Data`, `Symbol`
     :param arg1: second argument of rank 1 or 2
-    :type arg1: C{numpy.ndarray}, L{escript.Data}, L{Symbol}
+    :type arg1: C{numpy.ndarray}, `escript.Data`, `Symbol`
     :return: the product of C{arg0} and the transposed of C{arg1} at each data
              point
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol} depending on the
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol` depending on the
             input
     :raise ValueError: if the shapes of the arguments are not appropriate
     """
@@ -5356,13 +5356,13 @@ def tensor_transposed_mult(arg0,arg1):
     C{tensor_mult(arg0,transpose(arg1))}.
 
     :param arg0: first argument of rank 2 or 4
-    :type arg0: C{numpy.ndarray}, L{escript.Data}, L{Symbol}
+    :type arg0: C{numpy.ndarray}, `escript.Data`, `Symbol`
     :param arg1: second argument of shape greater of 1 or 2 depending on rank
                  of C{arg0}
-    :type arg1: C{numpy.ndarray}, L{escript.Data}, L{Symbol}
+    :type arg1: C{numpy.ndarray}, `escript.Data`, `Symbol`
     :return: the tensor product of the transposed of C{arg0} and C{arg1} at
              each data point
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol} depending on the
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol` depending on the
             input
     """
     sh0=getShape(arg0)
@@ -5390,14 +5390,14 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
     C{generalTensorProduct(arg0,transpose(arg1,arg1.ndim-axis_offset),axis_offset)}.
 
     :param arg0: first argument
-    :type arg0: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{float},
+    :type arg0: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{float},
                 C{int}
     :param arg1: second argument
-    :type arg1: C{numpy.ndarray}, L{escript.Data}, L{Symbol}, C{float},
+    :type arg1: C{numpy.ndarray}, `escript.Data`, `Symbol`, C{float},
                 C{int}
     :return: the general tensor product of C{arg0} and C{transpose(arg1)} at
              each data point
-    :rtype: C{numpy.ndarray}, L{escript.Data}, L{Symbol} depending on the
+    :rtype: C{numpy.ndarray}, `escript.Data`, `Symbol` depending on the
             input
     """
     if isinstance(arg0,float) and isinstance(arg1,float): return arg1*arg0
@@ -5441,14 +5441,14 @@ class GeneralTensorTransposedProduct_Symbol(DependendSymbol):
    """
    def __init__(self,arg0,arg1,axis_offset=0):
        """
-       Initialization of L{Symbol} representing the general tensor product of
+       Initialization of `Symbol` representing the general tensor product of
        C{arg0} and the transpose of C{arg1}.
 
        :param arg0: first argument
-       :type arg0: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type arg0: `escript.Symbol`, C{float}, `escript.Data`,
                    C{numpy.ndarray}
        :param arg1: second argument
-       :type arg1: L{escript.Symbol}, C{float}, L{escript.Data},
+       :type arg1: `escript.Symbol`, C{float}, `escript.Data`,
                    C{numpy.ndarray}
        :raise ValueError: inconsistent dimensions of arguments
        :note: if both arguments have a spatial dimension, they must be equal.
@@ -5487,16 +5487,16 @@ class GeneralTensorTransposedProduct_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -5533,12 +5533,12 @@ def grad(arg,where=None):
 
     :param arg: function of which the gradient is to be calculated. Its rank
                 has to be less than 3.
-    :type arg: L{escript.Data} or L{Symbol}
+    :type arg: `escript.Data` or `Symbol`
     :param where: FunctionSpace in which the gradient is calculated.
                   If not present or C{None} an appropriate default is used.
-    :type where: C{None} or L{escript.FunctionSpace}
+    :type where: C{None} or `escript.FunctionSpace`
     :return: gradient of C{arg}
-    :rtype: L{escript.Data} or L{Symbol}
+    :rtype: `escript.Data` or `Symbol`
     """
     if isinstance(arg,Symbol):
        return Grad_Symbol(arg,where)
@@ -5552,17 +5552,17 @@ def grad(arg,where=None):
 
 class Grad_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the gradient operator.
+   `Symbol` representing the result of the gradient operator.
    """
    def __init__(self,arg,where=None):
       """
-      Initialization of gradient L{Symbol} with argument C{arg}.
+      Initialization of gradient `Symbol` with argument C{arg}.
 
       :param arg: argument of function
-      :type arg: L{Symbol}
+      :type arg: `Symbol`
       :param where: FunctionSpace in which the gradient will be calculated.
                     If not present or C{None} an appropriate default is used.
-      :type where: C{None} or L{escript.FunctionSpace}
+      :type where: C{None} or `escript.FunctionSpace`
       """
       d=arg.getDim()
       if d==None:
@@ -5593,16 +5593,16 @@ class Grad_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -5619,10 +5619,10 @@ class Grad_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to arg
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -5635,12 +5635,12 @@ def integrate(arg,where=None):
     present C{arg} is interpolated to C{where} before integration.
 
     :param arg: the function which is integrated
-    :type arg: L{escript.Data} or L{Symbol}
+    :type arg: `escript.Data` or `Symbol`
     :param where: FunctionSpace in which the integral is calculated.
                   If not present or C{None} an appropriate default is used.
-    :type where: C{None} or L{escript.FunctionSpace}
+    :type where: C{None} or `escript.FunctionSpace`
     :return: integral of C{arg}
-    :rtype: C{float}, C{numpy.ndarray} or L{Symbol}
+    :rtype: C{float}, C{numpy.ndarray} or `Symbol`
     """
     if isinstance(arg,Symbol):
        return Integrate_Symbol(arg,where)
@@ -5659,17 +5659,17 @@ def integrate(arg,where=None):
 
 class Integrate_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the spatial integration operator.
+   `Symbol` representing the result of the spatial integration operator.
    """
    def __init__(self,arg,where=None):
       """
-      Initialization of integration L{Symbol} with argument C{arg}.
+      Initialization of integration `Symbol` with argument C{arg}.
 
       :param arg: argument of the integration
-      :type arg: L{Symbol}
+      :type arg: `Symbol`
       :param where: FunctionSpace in which the integration will be performed.
                     If not present or C{None} an appropriate default is used.
-      :type where: C{None} or L{escript.FunctionSpace}
+      :type where: C{None} or `escript.FunctionSpace`
       """
       super(Integrate_Symbol,self).__init__(args=[arg,where],shape=arg.getShape(),dim=arg.getDim())
 
@@ -5697,16 +5697,16 @@ class Integrate_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -5723,10 +5723,10 @@ class Integrate_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: typically L{Symbol} but other types such as C{float},
-              L{escript.Data}, C{numpy.ndarray} are possible
+      :rtype: typically `Symbol` but other types such as C{float},
+              `escript.Data`, C{numpy.ndarray} are possible
       """
       if arg==self:
          return identity(self.getShape())
@@ -5736,16 +5736,16 @@ class Integrate_Symbol(DependendSymbol):
 
 def interpolate(arg,where):
     """
-    Interpolates the function into the L{FunctionSpace} C{where}. If the
+    Interpolates the function into the `FunctionSpace` C{where}. If the
     argument C{arg} has the requested function space C{where} no interpolation
     is performed and C{arg} is returned.
 
     :param arg: interpolant
-    :type arg: L{escript.Data} or L{Symbol}
-    :param where: L{FunctionSpace} to be interpolated to
-    :type where: L{escript.FunctionSpace}
+    :type arg: `escript.Data` or `Symbol`
+    :param where: `FunctionSpace` to be interpolated to
+    :type where: `escript.FunctionSpace`
     :return: interpolated argument
-    :rtype: C{escript.Data} or L{Symbol}
+    :rtype: C{escript.Data} or `Symbol`
     """
     if isinstance(arg,Symbol):
        return Interpolate_Symbol(arg,where)
@@ -5761,16 +5761,16 @@ def interpolate(arg,where):
 
 class Interpolate_Symbol(DependendSymbol):
    """
-   L{Symbol} representing the result of the interpolation operator.
+   `Symbol` representing the result of the interpolation operator.
    """
    def __init__(self,arg,where):
       """
-      Initialization of interpolation L{Symbol} with argument C{arg}.
+      Initialization of interpolation `Symbol` with argument C{arg}.
 
       :param arg: argument of the interpolation
-      :type arg: L{Symbol}
-      :param where: L{FunctionSpace} into which the argument is interpolated
-      :type where: L{escript.FunctionSpace}
+      :type arg: `Symbol`
+      :param where: `FunctionSpace` into which the argument is interpolated
+      :type where: `escript.FunctionSpace`
       """
       super(Interpolate_Symbol,self).__init__(args=[arg,where],shape=arg.getShape(),dim=arg.getDim())
 
@@ -5798,16 +5798,16 @@ class Interpolate_Symbol(DependendSymbol):
    def substitute(self,argvals):
       """
       Assigns new values to symbols in the definition of the symbol.
-      The method replaces the L{Symbol} u by argvals[u] in the expression
+      The method replaces the `Symbol` u by argvals[u] in the expression
       defining this object.
 
       :param argvals: new values assigned to symbols
-      :type argvals: C{dict} with keywords of type L{Symbol}
+      :type argvals: C{dict} with keywords of type `Symbol`
       :return: result of the substitution process. Operations are executed as
                much as possible.
-      :rtype: L{escript.Symbol}, C{float}, L{escript.Data}, C{numpy.ndarray}
+      :rtype: `escript.Symbol`, C{float}, `escript.Data`, C{numpy.ndarray}
               depending on the degree of substitution
-      :raise TypeError: if a value for a L{Symbol} cannot be substituted
+      :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
       if argvals.has_key(self):
          arg=argvals[self]
@@ -5824,9 +5824,9 @@ class Interpolate_Symbol(DependendSymbol):
       Differential of this object.
 
       :param arg: the derivative is calculated with respect to C{arg}
-      :type arg: L{escript.Symbol}
+      :type arg: `escript.Symbol`
       :return: derivative with respect to C{arg}
-      :rtype: L{Symbol} but other types such as L{escript.Data},
+      :rtype: `Symbol` but other types such as `escript.Data`,
               C{numpy.ndarray} are possible
       """
       if arg==self:
@@ -5841,12 +5841,12 @@ def div(arg,where=None):
 
     :param arg: function of which the divergence is to be calculated. Its
                 shape has to be (d,) where d is the spatial dimension.
-    :type arg: L{escript.Data} or L{Symbol}
-    :param where: L{FunctionSpace} in which the divergence will be calculated.
+    :type arg: `escript.Data` or `Symbol`
+    :param where: `FunctionSpace` in which the divergence will be calculated.
                   If not present or C{None} an appropriate default is used.
-    :type where: C{None} or L{escript.FunctionSpace}
+    :type where: C{None} or `escript.FunctionSpace`
     :return: divergence of C{arg}
-    :rtype: L{escript.Data} or L{Symbol}
+    :rtype: `escript.Data` or `Symbol`
     """
     if isinstance(arg,Symbol):
         dim=arg.getDim()
@@ -5863,13 +5863,13 @@ def jump(arg,domain=None):
     Returns the jump of C{arg} across the continuity of the domain.
 
     :param arg: argument
-    :type arg: L{escript.Data} or L{Symbol}
+    :type arg: `escript.Data` or `Symbol`
     :param domain: the domain where the discontinuity is located. If domain is
                    not present or equal to C{None} the domain of C{arg} is used.
-                   If C{arg} is a L{Symbol} the domain must be present.
-    :type domain: C{None} or L{escript.Domain}
+                   If C{arg} is a `Symbol` the domain must be present.
+    :type domain: C{None} or `escript.Domain`
     :return: jump of C{arg}
-    :rtype: L{escript.Data} or L{Symbol}
+    :rtype: `escript.Data` or `Symbol`
     """
     if domain==None: domain=arg.getDomain()
     return interpolate(arg,escript.FunctionOnContactOne(domain))-interpolate(arg,escript.FunctionOnContactZero(domain))
@@ -5879,9 +5879,9 @@ def L2(arg):
     Returns the L2 norm of C{arg} at C{where}.
 
     :param arg: function of which the L2 norm is to be calculated
-    :type arg: L{escript.Data} or L{Symbol}
+    :type arg: `escript.Data` or `Symbol`
     :return: L2 norm of C{arg}
-    :rtype: L{float} or L{Symbol}
+    :rtype: `float` or `Symbol`
     :note: L2(arg) is equivalent to C{sqrt(integrate(inner(arg,arg)))}
     """
     return sqrt(integrate(inner(arg,arg)))
@@ -5891,11 +5891,11 @@ def getClosestValue(arg,origin=0):
     Returns the value in C{arg} which is closest to origin.
 
     :param arg: function
-    :type arg: L{escript.Data} or L{Symbol}
+    :type arg: `escript.Data` or `Symbol`
     :param origin: reference value
-    :type origin: C{float} or L{escript.Data}
+    :type origin: C{float} or `escript.Data`
     :return: value in C{arg} closest to origin
-    :rtype: C{numpy.ndarray} or L{Symbol}
+    :rtype: C{numpy.ndarray} or `Symbol`
     """
     return arg.getValueOfGlobalDataPoint(*(length(arg-origin).minGlobalDataPoint()))
 
@@ -5904,11 +5904,11 @@ def normalize(arg,zerolength=0):
     Returns the normalized version of C{arg} (=C{arg/length(arg)}).
 
     :param arg: function
-    :type arg: L{escript.Data} or L{Symbol}
+    :type arg: `escript.Data` or `Symbol`
     :param zerolength: relative tolerance for arg == 0
     :type zerolength: C{float}
     :return: normalized C{arg} where C{arg} is non-zero, and zero elsewhere
-    :rtype: L{escript.Data} or L{Symbol}
+    :rtype: `escript.Data` or `Symbol`
     """
     l=length(arg)
     m=whereZero(l,zerolength*Lsup(l))
@@ -5926,7 +5926,7 @@ def vol(arg):
     Returns the volume or area of the oject C{arg}
 
     :param arg: a geometrical object
-    :type arg: L{escript.FunctionSpace} or L{escript.Domain}
+    :type arg: `escript.FunctionSpace` or `escript.Domain`
     :rtype: C{float}
     """
     if isinstance(arg,escript.Domain): arg=escript.Function(arg)
@@ -5937,7 +5937,7 @@ def meanValue(arg):
     return the mean value of the argument over its domain
 
     :param arg: function
-    :type arg: L{escript.Data}
+    :type arg: `escript.Data`
     :return: mean value
     :rtype: C{float} or {numpy.ndarray}
     """
@@ -5957,7 +5957,7 @@ def diameter(domain):
     Returns the diameter of a domain.
 
     :param domain: a domain
-    :type domain: L{escript.Domain}
+    :type domain: `escript.Domain`
     :rtype: C{float}
     """
     out=0
@@ -5969,7 +5969,7 @@ def boundingBox(domain):
     Returns the bounding box of a domain
 
     :param domain: a domain
-    :type domain: L{escript.Domain}
+    :type domain: `escript.Domain`
     :return: bounding box of the domain
     :rtype: C{list} of pairs of C{float}
     """
@@ -5985,7 +5985,7 @@ def longestEdge(domain):
     Returns the length of the longest edge of the domain
 
     :param domain: a domain
-    :type domain: L{escript.Domain}
+    :type domain: `escript.Domain`
     :return: longest edge of the domain parallel to the Cartisean axis 
     :rtype: C{float}
     """

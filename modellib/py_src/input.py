@@ -30,7 +30,7 @@ class Sequencer(Model):
 
     :ivar t_end: model is terminated when t_end is passed, default 1 (in).
     :type t_end: C{float}
-    :ivar dt_max: maximum time step size, default L{Model.UNDEF_DT} (in)
+    :ivar dt_max: maximum time step size, default `Model.UNDEF_DT` (in)
     :type dt_max: C{float}
     :ivar t: current time stamp (in/out). By default it is initialized with zero.
     :type t: C{float}
@@ -58,13 +58,13 @@ class Sequencer(Model):
 
     def finalize(self):
         """
-        returns true when L{t} has reached L{t_end}
+        returns true when `t` has reached `t_end`
         """
         return self.t >= self.t_end
 
     def getSafeTimeStepSize(self, dt):
         """
-        returns L{dt_max}
+        returns `dt_max`
         """
         return self.dt_max
 
@@ -219,7 +219,7 @@ class ScalarDistributionFromTags(ParameterSet):
     the tags can be given a names and tag_map is used to map it into domain tags.
             
     :ivar domain: domain
-    :type domain: L{esys.escript.Domain}
+    :type domain: `esys.escript.Domain`
     :ivar default: default value 
     :ivar tag0: tag 0
     :type tag0: C{int}
@@ -290,7 +290,7 @@ class ScalarDistributionFromTags(ParameterSet):
 
     def out(self):
         """
-        returns a L{esys.escript.Data} object
+        returns a `esys.escript.Data` object
         Link against this method to get the output of this model.
         """
         d=Scalar(self.default,Function(self.domain))
@@ -311,7 +311,7 @@ class SmoothScalarDistributionFromTags(ParameterSet):
     creates a smooth scalar distribution on a domain from region tags
             
     :ivar domain: domain
-    :type domain: L{esys.escript.Domain}
+    :type domain: `esys.escript.Domain`
     :ivar default: default value 
     :ivar tag0: tag 0
     :type tag0: C{int}
@@ -393,7 +393,7 @@ class SmoothScalarDistributionFromTags(ParameterSet):
 
     def out(self):
         """
-        returns a L{esys.escript.Data} object
+        returns a `esys.escript.Data` object
         Link against this method to get the output of this model.
         """
         d=Scalar(self.default,Solution(self.domain)) 
@@ -501,7 +501,7 @@ class MergeConstraints(ParameterSet):
           return the values used to constrain a solution
 
           :return: the mask marking the locations of the constraints
-          :rtype: L{escript.Scalar}
+          :rtype: `escript.Scalar`
           """
           out_loc=0
           if not self.location_of_constraint0 == None:
@@ -520,7 +520,7 @@ class MergeConstraints(ParameterSet):
 
           :return: values to be used at the locations of the constraints. If
                   C{value} is not given C{None} is rerturned.
-          :rtype: L{escript.Scalar}
+          :rtype: `escript.Scalar`
           """
           out_loc=0
           out=0

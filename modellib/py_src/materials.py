@@ -28,7 +28,7 @@ class GravityForce(ParameterSet):
        Sets a gravity force of given direction in given domain:
 
        :ivar domain: domain of interest (in).
-       :type domain: L{esys.escript.Domain}
+       :type domain: `esys.escript.Domain`
        :ivar density: density, default 1 (in).
        :ivar gravity: the gravity constant, default 9.81 (in).
        :ivar direction: the direction of gravity, default [1.,0.,0.] (in).
@@ -45,7 +45,7 @@ class GravityForce(ParameterSet):
 
        def gravity_force(self):
            """
-           return the gravity force as L{density}*L{gravity}*L{direction}
+           return the gravity force as `density` * `gravity` * `direction`
            """
            if isinstance(self.direction,list): 
                dir=numpy.array(self.direction[:self.domain.getDim()])

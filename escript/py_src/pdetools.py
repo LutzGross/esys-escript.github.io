@@ -154,7 +154,7 @@ class Projector:
 	"""
 	Returns the solver options of the PDE solver.
 	
-	:rtype: L{linearPDEs.SolverOptions}
+	:rtype: `linearPDEs.SolverOptions`
 	"""
 
   def __call__(self, input_data):
@@ -216,9 +216,9 @@ class NoPDE:
 
      The constraint overwrites any other condition.
 
-     :note: This class is similar to the L{linearPDEs.LinearPDE} class with
+     :note: This class is similar to the `linearPDEs.LinearPDE` class with
             A=B=C=X=0 but has the intention that all input parameters are given
-            in L{Solution} or L{ReducedSolution}.
+            in `Solution` or `ReducedSolution`.
      """
      # The whole thing is a bit strange and I blame Rob Woodcock (CSIRO) for
      # this.
@@ -227,15 +227,15 @@ class NoPDE:
          Initializes the problem.
 
          :param domain: domain of the PDE
-         :type domain: L{Domain}
+         :type domain: `Domain`
          :param D: coefficient of the solution
-         :type D: C{float}, C{int}, C{numpy.ndarray}, L{Data}
+         :type D: C{float}, C{int}, C{numpy.ndarray}, `Data`
          :param Y: right hand side
-         :type Y: C{float}, C{int}, C{numpy.ndarray}, L{Data}
+         :type Y: C{float}, C{int}, C{numpy.ndarray}, `Data`
          :param q: location of constraints
-         :type q: C{float}, C{int}, C{numpy.ndarray}, L{Data}
+         :type q: C{float}, C{int}, C{numpy.ndarray}, `Data`
          :param r: value of solution at locations of constraints
-         :type r: C{float}, C{int}, C{numpy.ndarray}, L{Data}
+         :type r: C{float}, C{int}, C{numpy.ndarray}, `Data`
          """
          self.__domain=domain
          self.__D=D
@@ -247,14 +247,14 @@ class NoPDE:
 
      def setReducedOn(self):
          """
-         Sets the L{FunctionSpace} of the solution to L{ReducedSolution}.
+         Sets the `FunctionSpace` of the solution to `ReducedSolution`.
          """
          self.__function_space=escript.ReducedSolution(self.__domain)
          self.__u=None
 
      def setReducedOff(self):
          """
-         Sets the L{FunctionSpace} of the solution to L{Solution}.
+         Sets the `FunctionSpace` of the solution to `Solution`.
          """
          self.__function_space=escript.Solution(self.__domain)
          self.__u=None
@@ -264,13 +264,13 @@ class NoPDE:
          Assigns values to the parameters.
 
          :param D: coefficient of the solution
-         :type D: C{float}, C{int}, C{numpy.ndarray}, L{Data}
+         :type D: C{float}, C{int}, C{numpy.ndarray}, `Data`
          :param Y: right hand side
-         :type Y: C{float}, C{int}, C{numpy.ndarray}, L{Data}
+         :type Y: C{float}, C{int}, C{numpy.ndarray}, `Data`
          :param q: location of constraints
-         :type q: C{float}, C{int}, C{numpy.ndarray}, L{Data}
+         :type q: C{float}, C{int}, C{numpy.ndarray}, `Data`
          :param r: value of solution at locations of constraints
-         :type r: C{float}, C{int}, C{numpy.ndarray}, L{Data}
+         :type r: C{float}, C{int}, C{numpy.ndarray}, `Data`
          """
          if not D==None:
             self.__D=D
@@ -290,8 +290,8 @@ class NoPDE:
          Returns the solution.
 
          :return: the solution of the problem
-         :rtype: L{Data} object in the L{FunctionSpace} L{Solution} or
-                 L{ReducedSolution}
+         :rtype: `Data` object in the `FunctionSpace` `Solution` or
+                 `ReducedSolution`
          """
          if self.__u==None:
             if self.__D==None:
@@ -325,7 +325,7 @@ class Locator:
        point x.
 
        :param where: function space
-       :type where: L{escript.FunctionSpace}
+       :type where: `escript.FunctionSpace`
        :param x: location(s) of the Locator
        :type x: C{numpy.ndarray} or C{list} of C{numpy.ndarray}
        """
@@ -401,7 +401,7 @@ class Locator:
 
      def getValue(self,data):
         """
-        Returns the value of C{data} at the Locator if C{data} is a L{Data}
+        Returns the value of C{data} at the Locator if C{data} is a `Data`
         object otherwise the object is returned.
         """
         if isinstance(data,escript.Data):
@@ -656,10 +656,10 @@ def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub
 
    :param defect: object defining the function M{F}. C{defect.norm} defines the
                   M{norm} used in the stopping criterion.
-   :type defect: L{Defect}
+   :type defect: `Defect`
    :param x: initial guess for the solution, C{x} is altered.
    :type x: any object type allowing basic operations such as
-            C{numpy.ndarray}, L{Data}
+            C{numpy.ndarray}, `Data`
    :param iter_max: maximum number of iteration steps
    :type iter_max: positive C{int}
    :param sub_iter_max: maximum number of inner iteration steps
@@ -1335,7 +1335,7 @@ class ArithmeticTuple(object):
        :param other: scaling factor
        :type other: C{float}
        :return: itemwise self*other
-       :rtype: L{ArithmeticTuple}
+       :rtype: `ArithmeticTuple`
        """
        out=[]
        try:
@@ -1354,7 +1354,7 @@ class ArithmeticTuple(object):
        :param other: scaling factor
        :type other: C{float}
        :return: itemwise other*self
-       :rtype: L{ArithmeticTuple}
+       :rtype: `ArithmeticTuple`
        """
        out=[]
        try:
@@ -1373,7 +1373,7 @@ class ArithmeticTuple(object):
        :param other: scaling factor
        :type other: C{float}
        :return: itemwise self/other
-       :rtype: L{ArithmeticTuple}
+       :rtype: `ArithmeticTuple`
        """
        return self*(1/other)
 
@@ -1384,7 +1384,7 @@ class ArithmeticTuple(object):
        :param other: scaling factor
        :type other: C{float}
        :return: itemwise other/self
-       :rtype: L{ArithmeticTuple}
+       :rtype: `ArithmeticTuple`
        """
        out=[]
        try:
@@ -1557,7 +1557,7 @@ class HomogeneousSaddlePointProblem(object):
 
       def solve_AinvBt(self,p):
          """
-         Solves M{Av=B^*p} with accuracy L{self.getSubProblemTolerance()}
+         Solves M{Av=B^*p} with accuracy `self.getSubProblemTolerance()`
          (overwrite).
 
          :param p: a pressure increment
@@ -1569,7 +1569,7 @@ class HomogeneousSaddlePointProblem(object):
       def solve_prec(self,Bv):
          """
          Provides a preconditioner for M{BA^{-1}B^*} applied to Bv with accuracy
-         L{self.getSubProblemTolerance()} (overwrite).
+         `self.getSubProblemTolerance()` (overwrite).
 
          :rtype: equal to the type of p
          :note: boundary conditions on p should be zero!
@@ -1621,8 +1621,8 @@ class HomogeneousSaddlePointProblem(object):
 
          :param v: initial guess for velocity
          :param p: initial guess for pressure
-         :type v: L{Data}
-         :type p: L{Data}
+         :type v: `Data`
+         :type p: `Data`
          :param usePCG: indicates the usage of the PCG rather than GMRES scheme.
          :param max_iter: maximum number of iteration steps per correction
                           attempt
@@ -1634,7 +1634,7 @@ class HomogeneousSaddlePointProblem(object):
          :type max_iter: C{int}
          :type verbose: C{bool}
          :type iter_restart: C{int}
-         :rtype: C{tuple} of L{Data} objects
+         :rtype: C{tuple} of `Data` objects
          """
          self.verbose=verbose
          rtol=self.getTolerance()
@@ -1731,12 +1731,12 @@ def MaskFromBoundaryTag(domain,*tags):
    Usage: m=MaskFromBoundaryTag(domain, "left", "right")
 
    :param domain: domain to be used
-   :type domain: L{escript.Domain}
+   :type domain: `escript.Domain`
    :param tags: boundary tags
    :type tags: C{str}
    :return: a mask which marks samples that are touching the boundary tagged
             by any of the given tags
-   :rtype: L{escript.Data} of rank 0
+   :rtype: `escript.Data` of rank 0
    """
    pde=linearPDEs.LinearPDE(domain,numEquations=1, numSolutions=1)
    d=escript.Scalar(0.,escript.FunctionOnBoundary(domain))
@@ -1752,12 +1752,12 @@ def MaskFromTag(domain,*tags):
    Usage: m=MaskFromTag(domain, "ham")
 
    :param domain: domain to be used
-   :type domain: L{escript.Domain}
+   :type domain: `escript.Domain`
    :param tags: boundary tags
    :type tags: C{str}
    :return: a mask which marks samples that are touching the boundary tagged
             by any of the given tags
-   :rtype: L{escript.Data} of rank 0
+   :rtype: `escript.Data` of rank 0
    """
    pde=linearPDEs.LinearPDE(domain,numEquations=1, numSolutions=1)
    d=escript.Scalar(0.,escript.Function(domain))

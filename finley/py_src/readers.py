@@ -37,11 +37,11 @@ from finleycpp import ReadGmsh
 
 def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True):
     """
-    Creates a Finley L{Domain} from a L{esys.pycad.design.Design} object.
+    Creates a Finley `Domain` from a `esys.pycad.design.Design` object.
     Currently only gmsh is supported.
 
     :param design: the geometry
-    :type design: L{esys.pycad.design.Design}
+    :type design: `esys.pycad.design.Design`
     :param integrationOrder: integration order. If -1 the default is used.
     :type integrationOrder: C{int}
     :param reducedIntegrationOrder: reduced integration order. If -1 the
@@ -50,7 +50,7 @@ def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeL
     :param optimizeLabeling: if set the labeling of the mesh nodes is optimized
     :type optimizeLabeling: C{bool}
     :return: the Finley domain defined by the design
-    :rtype: L{Domain}
+    :rtype: `Domain`
     """
     if isinstance(design, GMSHDesign):
         mshname=design.getMeshHandler()
