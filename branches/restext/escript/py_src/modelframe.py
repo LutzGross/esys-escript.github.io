@@ -52,7 +52,7 @@ from xml.dom import minidom
 
 def all(seq):
     """
-    Returns True if no element in C{seq} is C{None}, False otherwise.
+    Returns True if no element in ``seq`` is ``None``, False otherwise.
     """
     for x in seq:
         if not x:
@@ -61,7 +61,7 @@ def all(seq):
 
 def any(seq):
     """
-    Returns True if not all elements in C{seq} are C{None}, False otherwise.
+    Returns True if not all elements in ``seq`` are ``None``, False otherwise.
     """
     for x in seq:
         if x:
@@ -178,7 +178,7 @@ class ESySXMLCreator(object):
 
     def createDataNode(self, tagName, data):
         """
-        C{createDataNode}s are the building blocks of the XML documents
+        ``createDataNode``s are the building blocks of the XML documents
         constructed in this module.
 
         :param tagName: the associated XML tag
@@ -197,7 +197,7 @@ class ESySXMLCreator(object):
 
     def registerLinkableObject(self, obj, node):
         """
-        Returns a unique object id for object C{obj}.
+        Returns a unique object id for object ``obj``.
         """
         id=self.getLinkableObjectId(obj)
         node.setAttribute('id',str(id))
@@ -297,7 +297,7 @@ class Link:
 
     def toDom(self, esysxml, node):
         """
-        C{toDom} method of Link. Creates a Link node and appends it to the
+        ``toDom`` method of Link. Creates a Link node and appends it to the
         current XML esysxml.
         """
         link = esysxml.createElement('Link')
@@ -327,11 +327,11 @@ class LinkableObject(object):
         p.x = Link(o,"name")
         print p.x
 
-    links attribute C{x} of C{p} to the attribute name of object C{o}.
+    links attribute ``x`` of ``p`` to the attribute name of object ``o``.
 
-    C{p.x} will contain the current value of attribute C{name} of object C{o}.
+    ``p.x`` will contain the current value of attribute ``name`` of object ``o``.
 
-    If the value of C{getattr(o, "name")} is callable, C{p.x} will return
+    If the value of ``getattr(o, "name")`` is callable, ``p.x`` will return
     the return value of the call.
     """
 
@@ -362,7 +362,7 @@ class LinkableObject(object):
 
     def getAttributeObject(self,name):
         """
-        Returns the object stored for attribute C{name}.
+        Returns the object stored for attribute ``name``.
         """
 
         if self.__dict__.has_key(name):
@@ -378,7 +378,7 @@ class LinkableObject(object):
 
     def hasAttribute(self,name):
         """
-        Returns True if self has attribute C{name}.
+        Returns True if self has attribute ``name``.
         """
         return self.__dict__.has_key(name) or self.__linked_attributes.has_key(name) or  self.__class__.__dict__.has_key(name)
 
@@ -402,7 +402,7 @@ class LinkableObject(object):
 
     def __delattr__(self,name):
         """
-        Removes the attribute C{name}.
+        Removes the attribute ``name``.
         """
 
         if self.__linked_attributes.has_key[name]:
@@ -540,7 +540,7 @@ class ParameterSet(LinkableObject):
 
     def __delattr__(self,name):
         """
-        Removes the attribute C{name}.
+        Removes the attribute ``name``.
         """
         LinkableObject.__delattr__(self,name)
         try:
@@ -550,7 +550,7 @@ class ParameterSet(LinkableObject):
 
     def toDom(self, esysxml, node):
         """
-        C{toDom} method of Model class.
+        ``toDom`` method of Model class.
         """
         pset = esysxml.createElement('ParameterSet')
         pset.setAttribute('type', self.__class__.__name__)
@@ -758,9 +758,9 @@ class Model(ParameterSet):
             doStepPostprocessing(dt)
         doFinalization()
 
-    where C{doInitialization}, C{finalize}, C{getSafeTimeStepSize},
-    C{doStepPreprocessing}, C{terminateIteration}, C{doStepPostprocessing},
-    C{doFinalization} are methods of the particular instance of a Model. The
+    where ``doInitialization``, ``finalize``, ``getSafeTimeStepSize``,
+    ``doStepPreprocessing``, ``terminateIteration``, ``doStepPostprocessing``,
+    ``doFinalization`` are methods of the particular instance of a Model. The
     default implementations of these methods have to be overwritten by the
     subclass implementing a Model.
     """
@@ -824,7 +824,7 @@ class Model(ParameterSet):
         """
         Returns a time step size which can be safely used.
 
-        C{dt} gives the previously used step size.
+        ``dt`` gives the previously used step size.
 
         This function may be overwritten.
         """
@@ -858,7 +858,7 @@ class Model(ParameterSet):
         """
         Executes an iteration step at a time step.
 
-        C{dt} is the currently used time step size.
+        ``dt`` is the currently used time step size.
 
         This function may be overwritten.
         """
@@ -882,7 +882,7 @@ class Model(ParameterSet):
 
     def toDom(self, esysxml, node):
         """
-        C{toDom} method of Model class.
+        ``toDom`` method of Model class.
         """
         pset = esysxml.createElement('Model')
         pset.setAttribute('type', self.__class__.__name__)
@@ -895,9 +895,9 @@ class Simulation(Model):
     """
     A Simulation object is a special Model which runs a sequence of Models.
 
-    The methods C{doInitialization}, C{finalize}, C{getSafeTimeStepSize},
-    C{doStepPreprocessing}, C{terminateIteration}, C{doStepPostprocessing},
-    C{doFinalization} execute the corresponding methods of the models in
+    The methods ``doInitialization``, ``finalize``, ``getSafeTimeStepSize``,
+    ``doStepPreprocessing``, ``terminateIteration``, ``doStepPostprocessing``,
+    ``doFinalization`` execute the corresponding methods of the models in
     the simulation.
     """
 
@@ -1113,15 +1113,15 @@ class Simulation(Model):
                 self.doStepPostprocessing(dt_new)
             self.doFinalization()
 
-        If one of the models throws a C{FailedTimeStepError} exception a
+        If one of the models throws a ``FailedTimeStepError`` exception a
         new time step size is computed through getSafeTimeStepSize() and the
         time step is repeated.
 
-        If one of the models throws a C{IterationDivergenceError}
+        If one of the models throws a ``IterationDivergenceError``
         exception the time step size is halved and the time step is repeated.
 
         In both cases the time integration is given up after
-        C{Simulation.FAILED_TIME_STEPS_MAX} attempts.
+        ``Simulation.FAILED_TIME_STEPS_MAX`` attempts.
         """
         # check the completeness of the models:
         # first a list of all the models involved in the simulation including
@@ -1179,7 +1179,7 @@ class Simulation(Model):
 
     def toDom(self, esysxml, node):
         """
-        C{toDom} method of Simulation class.
+        ``toDom`` method of Simulation class.
         """
         simulation = esysxml.createElement('Simulation')
         esysxml.registerLinkableObject(self, simulation)
@@ -1258,7 +1258,7 @@ class DataSource(object):
 
     def toDom(self, esysxml, node):
         """
-        C{toDom} method of DataSource. Creates a DataSource node and appends
+        ``toDom`` method of DataSource. Creates a DataSource node and appends
         it to the current XML esysxml.
         """
         ds = esysxml.createElement('DataSource')
@@ -1304,9 +1304,9 @@ class RestartManager(object):
          Initializes the RestartManager.
 
          :param dump_time: defines the minimum time interval in SEC between two
-                           dumps. If C{None}, time is not used as criterion.
+                           dumps. If ``None``, time is not used as criterion.
          :param dump_step: defines the number of calls of doDump between two
-                           dump events. If C{None}, the call counter is not
+                           dump events. If ``None``, the call counter is not
                            used as criterion.
          :param dumper: defines the directory for dumping restart files.
                         Additionally, the directories dumper+"_bkp" and
@@ -1338,7 +1338,7 @@ class RestartManager(object):
 
      def doDump(self):
         """
-        Returns true if the restart should be dumped. Use C{getNewDumper} to
+        Returns true if the restart should be dumped. Use ``getNewDumper`` to
         retrieve the directory name to be used for dumping.
         """
         if self.__dump_step == None:

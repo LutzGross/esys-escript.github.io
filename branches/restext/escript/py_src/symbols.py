@@ -40,10 +40,10 @@ def ScalarSymbol(dim=None):
       """
       Returns a rank 0 `Symbol`.
 
-      :param dim: spatial dimension or an object that has the C{getDim} method
-                  defining the spatial dimension. If dim=C{None}, the spatial
+      :param dim: spatial dimension or an object that has the ``getDim`` method
+                  defining the spatial dimension. If dim=``None``, the spatial
                   diminsion of the returned `Symbol` is undefined.
-      :type dim: C{None}, C{int} or any object with a C{getDim} method
+      :type dim: ``None``, ``int`` or any object with a ``getDim`` method
       :return: a `Symbol` of rank 0
       :rtype: `Symbol`
       """
@@ -56,12 +56,12 @@ def ScalarSymbol(dim=None):
 
 def VectorSymbol(dim=3):
       """
-      Returns a vector `Symbol` of rank 1 and spatial dimension C{dim}.
+      Returns a vector `Symbol` of rank 1 and spatial dimension ``dim``.
 
-      :param dim: spatial dimension or an object that has the C{getDim} method
+      :param dim: spatial dimension or an object that has the ``getDim`` method
                   defining the spatial dimension
-      :type dim: C{int} or any object with a C{getDim} method
-      :return: a `Symbol` of shape (C{dim},)
+      :type dim: ``int`` or any object with a ``getDim`` method
+      :return: a `Symbol` of shape (``dim``,)
       :rtype: `Symbol`
       """
       if hasattr(dim,"getDim"):
@@ -72,12 +72,12 @@ def VectorSymbol(dim=3):
 
 def TensorSymbol(dim=3):
       """
-      Returns a tensor `Symbol` of rank 2 and spatial dimension C{dim}.
+      Returns a tensor `Symbol` of rank 2 and spatial dimension ``dim``.
 
-      :param dim: spatial dimension or an object that has the C{getDim} method
+      :param dim: spatial dimension or an object that has the ``getDim`` method
                   defining the spatial dimension
-      :type dim: C{int} or any object with a C{getDim} method
-      :return: a `Symbol` of shape (C{dim},C{dim})
+      :type dim: ``int`` or any object with a ``getDim`` method
+      :return: a `Symbol` of shape (``dim``,``dim``)
       :rtype: `Symbol`
       """
       if hasattr(dim,"getDim"):
@@ -88,12 +88,12 @@ def TensorSymbol(dim=3):
 
 def Tensor3Symbol(dim=3):
       """
-      Returns a tensor `Symbol` of rank 3 and spatial dimension C{dim}.
+      Returns a tensor `Symbol` of rank 3 and spatial dimension ``dim``.
 
-      :param dim: spatial dimension or an object that has the C{getDim} method
+      :param dim: spatial dimension or an object that has the ``getDim`` method
                   defining the spatial dimension
-      :type dim: C{int} or any object with a C{getDim} method
-      :return: a `Symbol` of shape (C{dim},C{dim},C{dim})
+      :type dim: ``int`` or any object with a ``getDim`` method
+      :return: a `Symbol` of shape (``dim``,``dim``,``dim``)
       :rtype: `Symbol`
       """
       if hasattr(dim,"getDim"):
@@ -104,12 +104,12 @@ def Tensor3Symbol(dim=3):
 
 def Tensor4Symbol(dim=3):
       """
-      Returns a tensor `Symbol` of rank 4 and spatial dimension C{dim}.
+      Returns a tensor `Symbol` of rank 4 and spatial dimension ``dim``.
 
-      :param dim: spatial dimension or an object that has the C{getDim} method
+      :param dim: spatial dimension or an object that has the ``getDim`` method
                   defining the spatial dimension
-      :type dim: C{int} or any object with a C{getDim} method
-      :return: a `Symbol` of shape (C{dim},C{dim},C{dim},C{dim})
+      :type dim: ``int`` or any object with a ``getDim`` method
+      :return: a `Symbol` of shape (``dim``,``dim``,``dim``,``dim``)
       :rtype: `Symbol`
       """
       if hasattr(dim,"getDim"):

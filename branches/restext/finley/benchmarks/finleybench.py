@@ -52,7 +52,7 @@ class FinleyFilter(BenchmarkFilter):
       sets up the filter
 
       :param args: list of value names to be filtered
-      :type args: C{list} of `TIME`, `ERROR`
+      :type args: ``list`` of `TIME`, `ERROR`
       """
       if args==None: args=[FinleyFilter.TIME,FinleyFilter.ERROR]
       super(FinleyFilter,self).__init__()
@@ -63,7 +63,7 @@ class FinleyFilter(BenchmarkFilter):
        return the names of the results produced when run() is called.
        
        :return: names the list of the names to be used when the results of the run() call are printed
-       :rtype: C{list} of C{str}
+       :rtype: ``list`` of ``str``
        """
        return self.__args
 
@@ -72,9 +72,9 @@ class FinleyFilter(BenchmarkFilter):
        filters out the characteristic values
        
        :param result: characteristics rturned by a `FinleyProblem` run
-       :type result: C{dict}
+       :type result: ``dict``
        :return: filtered values
-       :rtype: C{list} of C{str}
+       :rtype: ``list`` of ``str``
        """
        out=[]
        for a in self.__args:
@@ -155,7 +155,7 @@ class FinleyProblem(BenchmarkProblem):
        :param options: solver options
        :type options:  `FinleyOptions`
        :return:  elapsed time and the error of calculated solution
-       :rtype: pair of C{float}
+       :rtype: pair of ``float``
        """
        domain=self.getDomain()
        pde,u=self.getTestProblem(domain)
@@ -205,13 +205,13 @@ class RegularFinleyProblem(FinleyProblem):
        sets up a recangular mesh in finley on a unit cube/square
  
        :param n: number of elements in each spactial direction
-       :type n: C{int}
+       :type n: ``int``
        :param order: element order
        :type order: 1 or 2
        :param dim: spatial dimension
        :type dim: 2 or 3
        :param num_equations: number of equations
-       :type num_equations: C{int}
+       :type num_equations: ``int``
        """
        super(RegularFinleyProblem,self).__init__(name=str(num_equations*(order*n+1)**dim))
        self.__n=n
@@ -243,7 +243,7 @@ class LaplaceProblem(RegularFinleyProblem):
          :param domain: a domain
          :type domain: `escript.Domain`
          :return: the Laplace equation and a test solution
-         :rtype: C{tuple} of C{LinearPDE} and C{escript.Data}
+         :rtype: ``tuple`` of ``LinearPDE`` and ``escript.Data``
          """
          x=domain.getX()
          msk=whereZero(x[0])+whereZero(x[0]-1.)
@@ -273,7 +273,7 @@ class AnisotropicProblem(RegularFinleyProblem):
          :param domain: a domain
          :type domain: `escript.Domain`
          :return: the Laplace equation and a test solution
-         :rtype: C{tuple} of C{LinearPDE} and C{escript.Data}
+         :rtype: ``tuple`` of ``LinearPDE`` and ``escript.Data``
          """
          x=domain.getX()
          msk=whereZero(x[0])+whereZero(x[0]-1.)
@@ -325,7 +325,7 @@ class AnisotropicSystem(RegularFinleyProblem):
          :param domain: a domain
          :type domain: `escript.Domain`
          :return: the Laplace equation and a test solution
-         :rtype: C{tuple} of C{LinearPDE} and C{escript.Data}
+         :rtype: ``tuple`` of ``LinearPDE`` and ``escript.Data``
          """
          x=domain.getX()
          d=domain.getDim()

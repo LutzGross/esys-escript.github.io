@@ -42,7 +42,7 @@ class TemperatureCartesian(TransportPDE):
 
     M{rhocp(T_{,t} + v_i T_{,i} - ( k T_{,i})_i = Q}
 
-    M{k T_{,i}*n_i=surface_flux} and M{T_{,t} = 0} where C{given_T_mask}>0.
+    M{k T_{,i}*n_i=surface_flux} and M{T_{,t} = 0} where ``given_T_mask``>0.
 
     If surface_flux is not given 0 is assumed.
 
@@ -65,7 +65,7 @@ class TemperatureCartesian(TransportPDE):
 
         :param domain: domain of the problem
         :param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Not that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. So other measures need to be applied to control the time step size. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
-        :type useBackwardEuler: C{bool}
+        :type useBackwardEuler: ``bool``
         """
         TransportPDE.__init__(self,domain,numEquations=1,useBackwardEuler=useBackwardEuler,**kwargs)
         self.setReducedOrderOn()
@@ -109,7 +109,7 @@ class Tracer(TransportPDE):
 
     M{C_{,t} + v_i C_{,i} - ( k T_{,i})_i) = 0}
 
-    M{C_{,t} = 0} where C{given_C_mask}>0.
+    M{C_{,t} = 0} where ``given_C_mask``>0.
     M{C_{,i}*n_i=0} 
 
     Typical usage::
@@ -132,7 +132,7 @@ class Tracer(TransportPDE):
 
         :param domain: domain of the problem
         :param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Not that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. So other measures need to be applied to control the time step size. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
-        :type useBackwardEuler: C{bool}
+        :type useBackwardEuler: ``bool``
         """
         TransportPDE.__init__(self,domain,numEquations=1,useBackwardEuler=useBackwardEuler,**kwargs)
         self.setReducedOrderOn()

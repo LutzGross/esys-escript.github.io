@@ -43,12 +43,12 @@ def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeL
     :param design: the geometry
     :type design: `esys.pycad.design.Design`
     :param integrationOrder: integration order. If -1 the default is used.
-    :type integrationOrder: C{int}
+    :type integrationOrder: ``int``
     :param reducedIntegrationOrder: reduced integration order. If -1 the
                                     default is used.
-    :type reducedIntegrationOrder: C{int}
+    :type reducedIntegrationOrder: ``int``
     :param optimizeLabeling: if set the labeling of the mesh nodes is optimized
-    :type optimizeLabeling: C{bool}
+    :type optimizeLabeling: ``bool``
     :return: the Finley domain defined by the design
     :rtype: `Domain`
     """

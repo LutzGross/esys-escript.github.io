@@ -104,13 +104,13 @@ class Unit(object):
        initializes the physical unit
        
        :param name: short name of the physical unit or prefix
-       :type name: C{str}
+       :type name: ``str``
        :param longname: long name of the physical unit or prefix
-       :type longname: C{str}
+       :type longname: ``str``
        :param a: absolute value in transformation
-       :type a: C{float}
+       :type a: ``float``
        :param b: slop in translation
-       :type b: C{float}
+       :type b: ``float``
        """
        self.setName(name)
        self.setLongName(longname)
@@ -125,7 +125,7 @@ class Unit(object):
        Returns the name of the physical unit
  
        :return: name of the physical unit
-       :rtype: C{str}
+       :rtype: ``str``
        """
        return self.__name
 
@@ -134,7 +134,7 @@ class Unit(object):
        Sets the name of the physical unit
  
        :param name: new name of the physical unit
-       :type name: C{str}
+       :type name: ``str``
        """
        self.__name=name
 
@@ -143,7 +143,7 @@ class Unit(object):
        Returns the long name of the physical unit
  
        :return: name of the physical unit
-       :rtype: C{str}
+       :rtype: ``str``
        """
        return self.__longname
 
@@ -152,7 +152,7 @@ class Unit(object):
        Sets the long name of the physical unit
  
        :param name: new long name of the physical unit
-       :type name: C{str}
+       :type name: ``str``
        """
        self.__longname=name
 
@@ -171,7 +171,7 @@ class Unit(object):
 
        :param other: an other physical unit
        :type other: `Unit`
-       :rtype: `Unit` or C{NotImplemented}
+       :rtype: `Unit` or ``NotImplemented``
        """
        if isinstance(other, Unit):
           a=self(other(0.))
@@ -187,8 +187,8 @@ class Unit(object):
        """
        Performs other*self operation
 
-       :param other: an other `Unit` or an arithmetic object. if other is a arithmetic object such as C{float} other is assumed to be given in the
-       physical unit C{self} and is converted into the corresponding SI unit.
+       :param other: an other `Unit` or an arithmetic object. if other is a arithmetic object such as ``float`` other is assumed to be given in the
+       physical unit ``self`` and is converted into the corresponding SI unit.
        :type other: `Unit` or 
        :rtype: `Unit` of or an arithmetic object
        """
@@ -208,7 +208,7 @@ class Unit(object):
 
        :param other: an other physical unit
        :type other: `Unit`
-       :rtype: `Unit` or C{NotImplemented}
+       :rtype: `Unit` or ``NotImplemented``
        """
        if isinstance(other, Unit):
           if abs(self(0.))+abs(other(0.))>0:
@@ -243,7 +243,7 @@ class Unit(object):
        Performs self**other operation
 
        :param other: an exponent
-       :type other: C{int} or C{float}
+       :type other: ``int`` or ``float``
        :rtype: `Unit` 
        """
        if isinstance(other, float) or isinstance(other, int):

@@ -52,7 +52,7 @@ class BenchmarkSuite(object):
 
        :param name: name of the benchmark suite. If no name is given the class
                     name is used.
-       :type name: C{str}
+       :type name: ``str``
        """
        super(BenchmarkSuite,self).__init__()
        self.__benchmarks=[]
@@ -67,7 +67,7 @@ class BenchmarkSuite(object):
        Returns the name of the benchmark suite.
 
        :return: the name
-       :rtype: C{str}
+       :rtype: ``str``
        """
        return self.__name
 
@@ -85,7 +85,7 @@ class BenchmarkSuite(object):
        Returns the number of benchmarks in the suite.
 
        :return: number of benchmarks
-       :rtype: C{int}
+       :rtype: ``int``
        """
        return len(self.__benchmarks)
 
@@ -94,7 +94,7 @@ class BenchmarkSuite(object):
        Returns the i-th benchmark in the suite through self[i].
 
        :param i: index of the requested benchmark
-       :type i: C{int}
+       :type i: ``int``
        :return: i-th benchmark
        :rtype: `Benchmark`
 
@@ -106,12 +106,12 @@ class BenchmarkSuite(object):
        Runs all benchmarks.
 
        :param scale: defines the number of (OpenMP) threads to be used. If
-                     C{scale} is a scalar all benchmarks are run with C{scale}
-                     number of threads. If C{scale} is a C{list}, the p-th
+                     ``scale`` is a scalar all benchmarks are run with ``scale``
+                     number of threads. If ``scale`` is a ``list``, the p-th
                      problem in each of the benchmarks in the suite is run with
-                     C{scale[p]} threads. If C{scale[p]}<1 the p-th problem is
+                     ``scale[p]`` threads. If ``scale[p]``<1 the p-th problem is
                      omitted.
-       :type scale: C{int} or C{list} of C{int}s
+       :type scale: ``int`` or ``list`` of ``int``s
        """
        self.__scale=scale
        for i in range(len(self)): self[i].run(scale=scale)
@@ -123,9 +123,9 @@ class BenchmarkSuite(object):
        :param filter: filter to be applied to the results
        :type filter: `BenchmarkFilter`
        :param level: level used in header <H?> tags
-       :type level: C{int}
+       :type level: ``int``
        :return: HTML document
-       :rtype: C{str}
+       :rtype: ``str``
        """
        out=""
        if level==1: out+="<HTML><HEAD><TITLE>Benchmark: %s</TITLE></HEAD><BODY>\n"%str(self)
@@ -161,9 +161,9 @@ class Benchmark(object):
 
        :param name: name of the benchmark. If no name is given the class name
                     is used.
-       :type name: C{str}
+       :type name: ``str``
        :param description: description of the benchmark
-       :type description: C{str} or C{None}
+       :type description: ``str`` or ``None``
        """
        super(Benchmark,self).__init__()
        self.__options=[]
@@ -181,7 +181,7 @@ class Benchmark(object):
        Returns the name of the benchmark suite.
 
        :return: the name
-       :rtype: C{str}
+       :rtype: ``str``
        """
        return self.__name
 
@@ -209,12 +209,12 @@ class Benchmark(object):
        Runs all problems with all options.
 
        :param scale: defines the number of (OpenMP) threads to be used. If
-                     C{scale} is a scalar all benchmarks are run with C{scale}
-                     number of threads. If C{scale} is a C{list}, the p-th
+                     ``scale`` is a scalar all benchmarks are run with ``scale``
+                     number of threads. If ``scale`` is a ``list``, the p-th
                      problem in each of the benchmarks in the suite is run with
-                     C{scale[p]} threads. If C{scale[p]}<1 the p-th problem is
+                     ``scale[p]`` threads. If ``scale[p]``<1 the p-th problem is
                      omitted.
-       :type scale: C{int} or C{list} of C{int}s
+       :type scale: ``int`` or ``list`` of ``int``s
        """
        if isinstance(scale,list):
            c_max=min(len(scale),len(self.__problems))
@@ -251,9 +251,9 @@ class Benchmark(object):
        :param filter: filter to be applied to the results
        :type filter: `BenchmarkFilter`
        :param level: level used in header <H?> tags
-       :type level: C{int}
+       :type level: ``int``
        :return: HTML document
-       :rtype: C{str}
+       :rtype: ``str``
        """
        out=""
        if level==1: out+="<HTML><HEAD><TITLE>Benchmark: %s</TITLE></HEAD><BODY>\n"%str(self)
@@ -318,7 +318,7 @@ class BenchmarkProblem(object):
 
        :param name: name of the problem. If no name is given the class name
                     is used.
-       :type name: C{str}
+       :type name: ``str``
        """
        super(BenchmarkProblem,self).__init__()
        if name==None:
@@ -331,7 +331,7 @@ class BenchmarkProblem(object):
        Returns the name of the benchmark suite.
 
        :return: the name
-       :rtype: C{str}
+       :rtype: ``str``
        """
        return self.__name
 
@@ -364,11 +364,11 @@ class BenchmarkFilter(object):
 
    def getResultNames(self):
        """
-       Returns the names of the results produced when C{run()} is called.
+       Returns the names of the results produced when ``run()`` is called.
 
        :return: the list of the names to be used when the results of
-                the C{run()} call are printed
-       :rtype: C{list} of C{str}
+                the ``run()`` call are printed
+       :rtype: ``list`` of ``str``
        :note: this function has to overwritten by a particular problem
        """
        raise NotImplementedError
@@ -382,7 +382,7 @@ class BenchmarkFilter(object):
        :type result: any type that is produced by the `BenchmarkProblem`
                      it is applied to
        :return: a list of strings selected from result
-       :rtype: C{list} of C{str}
+       :rtype: ``list`` of ``str``
        :note: this function has to be overwritten by a particular problem
        """
        raise NotImplementedError
@@ -399,7 +399,7 @@ class Options(object):
 
        :param name: name of the option. If no name is given the class name
                     is used.
-       :type name: C{str}
+       :type name: ``str``
        """
        super(Options,self).__init__()
        if name==None:
@@ -412,7 +412,7 @@ class Options(object):
        Returns the name of this options object.
 
        :return: the name
-       :rtype: C{str}
+       :rtype: ``str``
        """
        return self.__name
 

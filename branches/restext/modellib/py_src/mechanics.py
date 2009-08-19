@@ -48,7 +48,7 @@ class Mechanics(Model):
          set up the model
          
          :keyword debug: debug flag
-         :type debug: C{bool}
+         :type debug: ``bool``
          """
          super(Mechanics, self).__init__(self,**kwargs)
          self.declareParameter(domain=None, \

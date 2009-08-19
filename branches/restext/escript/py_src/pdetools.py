@@ -68,7 +68,7 @@ class TimeIntegrationManager:
   """
   def __init__(self,*inital_values,**kwargs):
      """
-     Sets up the value manager where C{inital_values} are the initial values
+     Sets up the value manager where ``inital_values`` are the initial values
      and p is the order used for extrapolation.
      """
      if kwargs.has_key("p"):
@@ -113,7 +113,7 @@ class TimeIntegrationManager:
 
   def extrapolate(self,dt):
       """
-      Extrapolates to C{dt} forward in time.
+      Extrapolates to ``dt`` forward in time.
       """
       if self.__order==0:
          out=self.__v_mem[0]
@@ -159,7 +159,7 @@ class Projector:
 
   def __call__(self, input_data):
     """
-    Projects C{input_data} onto a continuous function.
+    Projects ``input_data`` onto a continuous function.
 
     :param input_data: the data to be projected
     """
@@ -229,13 +229,13 @@ class NoPDE:
          :param domain: domain of the PDE
          :type domain: `Domain`
          :param D: coefficient of the solution
-         :type D: C{float}, C{int}, C{numpy.ndarray}, `Data`
+         :type D: ``float``, ``int``, ``numpy.ndarray``, `Data`
          :param Y: right hand side
-         :type Y: C{float}, C{int}, C{numpy.ndarray}, `Data`
+         :type Y: ``float``, ``int``, ``numpy.ndarray``, `Data`
          :param q: location of constraints
-         :type q: C{float}, C{int}, C{numpy.ndarray}, `Data`
+         :type q: ``float``, ``int``, ``numpy.ndarray``, `Data`
          :param r: value of solution at locations of constraints
-         :type r: C{float}, C{int}, C{numpy.ndarray}, `Data`
+         :type r: ``float``, ``int``, ``numpy.ndarray``, `Data`
          """
          self.__domain=domain
          self.__D=D
@@ -264,13 +264,13 @@ class NoPDE:
          Assigns values to the parameters.
 
          :param D: coefficient of the solution
-         :type D: C{float}, C{int}, C{numpy.ndarray}, `Data`
+         :type D: ``float``, ``int``, ``numpy.ndarray``, `Data`
          :param Y: right hand side
-         :type Y: C{float}, C{int}, C{numpy.ndarray}, `Data`
+         :type Y: ``float``, ``int``, ``numpy.ndarray``, `Data`
          :param q: location of constraints
-         :type q: C{float}, C{int}, C{numpy.ndarray}, `Data`
+         :type q: ``float``, ``int``, ``numpy.ndarray``, `Data`
          :param r: value of solution at locations of constraints
-         :type r: C{float}, C{int}, C{numpy.ndarray}, `Data`
+         :type r: ``float``, ``int``, ``numpy.ndarray``, `Data`
          """
          if not D==None:
             self.__D=D
@@ -327,7 +327,7 @@ class Locator:
        :param where: function space
        :type where: `escript.FunctionSpace`
        :param x: location(s) of the Locator
-       :type x: C{numpy.ndarray} or C{list} of C{numpy.ndarray}
+       :type x: ``numpy.ndarray`` or ``list`` of ``numpy.ndarray``
        """
        if isinstance(where,escript.FunctionSpace):
           self.__function_space=where
@@ -401,7 +401,7 @@ class Locator:
 
      def getValue(self,data):
         """
-        Returns the value of C{data} at the Locator if C{data} is a `Data`
+        Returns the value of ``data`` at the Locator if ``data`` is a `Data`
         object otherwise the object is returned.
         """
         if isinstance(data,escript.Data):
@@ -487,31 +487,31 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
    T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo,
    C. Romine, and H. van der Vorst}.
 
-   :param r: initial residual M{r=b-Ax}. C{r} is altered.
+   :param r: initial residual M{r=b-Ax}. ``r`` is altered.
    :type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
    :param x: an initial guess for the solution
    :type x: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
    :param Aprod: returns the value Ax
-   :type Aprod: function C{Aprod(x)} where C{x} is of the same object like
-                argument C{x}. The returned object needs to be of the same type
-                like argument C{r}.
+   :type Aprod: function ``Aprod(x)`` where ``x`` is of the same object like
+                argument ``x``. The returned object needs to be of the same type
+                like argument ``r``.
    :param Msolve: solves Mx=r
-   :type Msolve: function C{Msolve(r)} where C{r} is of the same type like
-                 argument C{r}. The returned object needs to be of the same
-                 type like argument C{x}.
-   :param bilinearform: inner product C{<x,r>}
-   :type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same
-                       type like argument C{x} and C{r} is. The returned value
-                       is a C{float}.
+   :type Msolve: function ``Msolve(r)`` where ``r`` is of the same type like
+                 argument ``r``. The returned object needs to be of the same
+                 type like argument ``x``.
+   :param bilinearform: inner product ``<x,r>``
+   :type bilinearform: function ``bilinearform(x,r)`` where ``x`` is of the same
+                       type like argument ``x`` and ``r`` is. The returned value
+                       is a ``float``.
    :param atol: absolute tolerance
-   :type atol: non-negative C{float}
+   :type atol: non-negative ``float``
    :param rtol: relative tolerance
-   :type rtol: non-negative C{float}
+   :type rtol: non-negative ``float``
    :param iter_max: maximum number of iteration steps
-   :type iter_max: C{int}
+   :type iter_max: ``int``
    :return: the solution approximation and the corresponding residual
-   :rtype: C{tuple}
-   :warning: C{r} and C{x} are altered.
+   :rtype: ``tuple``
+   :warning: ``r`` and ``x`` are altered.
    """
    iter=0
    rhat=Msolve(r)
@@ -567,18 +567,18 @@ class Defect(object):
         :param x0: value for x0
         :param x1: value for x1
         :return: the inner product of x0 and x1
-        :rtype: C{float}
+        :rtype: ``float``
         """
         return 0
 
     def norm(self,x):
         """
-        Returns the norm of argument C{x}.
+        Returns the norm of argument ``x``.
 
         :param x: a value
         :return: norm of argument x
-        :rtype: C{float}
-        :note: by default C{sqrt(self.bilinearform(x,x)} is returned.
+        :rtype: ``float``
+        :note: by default ``sqrt(self.bilinearform(x,x)`` is returned.
         """
         s=self.bilinearform(x,x)
         if s<0: raise NegativeNorm,"negative norm."
@@ -586,10 +586,10 @@ class Defect(object):
 
     def eval(self,x):
         """
-        Returns the value F of a given C{x}.
+        Returns the value F of a given ``x``.
 
-        :param x: value for which the defect C{F} is evaluated
-        :return: value of the defect at C{x}
+        :param x: value for which the defect ``F`` is evaluated
+        :return: value of the defect at ``x``
         """
         return 0
 
@@ -603,7 +603,7 @@ class Defect(object):
         direction of v with x as a starting point.
 
         :param inc: relative increment length
-        :type inc: positive C{float}
+        :type inc: positive ``float``
         """
         if inc<=0: raise ValueError,"positive increment required."
         self.__inc=inc
@@ -612,21 +612,21 @@ class Defect(object):
         """
         Returns the relative increment length used to approximate the
         derivative of the defect.
-        :return: value of the defect at C{x}
-        :rtype: positive C{float}
+        :return: value of the defect at ``x``
+        :rtype: positive ``float``
         """
         return self.__inc
 
     def derivative(self, F0, x0, v, v_is_normalised=True):
         """
-        Returns the directional derivative at C{x0} in the direction of C{v}.
+        Returns the directional derivative at ``x0`` in the direction of ``v``.
 
         :param F0: value of this defect at x0
         :param x0: value at which derivative is calculated
         :param v: direction
-        :param v_is_normalised: True to indicate that C{v} is nomalized
+        :param v_is_normalised: True to indicate that ``v`` is nomalized
                                 (self.norm(v)=0)
-        :return: derivative of this defect at x0 in the direction of C{v}
+        :return: derivative of this defect at x0 in the direction of ``v``
         :note: by default numerical evaluation (self.eval(x0+eps*v)-F0)/eps is
                used but this method maybe overwritten to use exact evaluation.
         """
@@ -654,24 +654,24 @@ def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub
 
    where M{x0} is the initial guess.
 
-   :param defect: object defining the function M{F}. C{defect.norm} defines the
+   :param defect: object defining the function M{F}. ``defect.norm`` defines the
                   M{norm} used in the stopping criterion.
    :type defect: `Defect`
-   :param x: initial guess for the solution, C{x} is altered.
+   :param x: initial guess for the solution, ``x`` is altered.
    :type x: any object type allowing basic operations such as
-            C{numpy.ndarray}, `Data`
+            ``numpy.ndarray``, `Data`
    :param iter_max: maximum number of iteration steps
-   :type iter_max: positive C{int}
+   :type iter_max: positive ``int``
    :param sub_iter_max: maximum number of inner iteration steps
-   :type sub_iter_max: positive C{int}
+   :type sub_iter_max: positive ``int``
    :param atol: absolute tolerance for the solution
-   :type atol: positive C{float}
+   :type atol: positive ``float``
    :param rtol: relative tolerance for the solution
-   :type rtol: positive C{float}
+   :type rtol: positive ``float``
    :param gamma: tolerance safety factor for inner iteration
-   :type gamma: positive C{float}, less than 1
+   :type gamma: positive ``float``, less than 1
    :param sub_tol_max: upper bound for inner tolerance
-   :type sub_tol_max: positive C{float}, less than 1
+   :type sub_tol_max: positive ``float``, less than 1
    :return: an approximation of the solution with the desired accuracy
    :rtype: same type as the initial guess
    """
@@ -731,9 +731,9 @@ def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub
 def __givapp(c,s,vin):
     """
     Applies a sequence of Givens rotations (c,s) recursively to the vector
-    C{vin}
+    ``vin``
 
-    :warning: C{vin} is altered.
+    :warning: ``vin`` is altered.
     """
     vrot=vin
     if isinstance(c,float):
@@ -851,31 +851,31 @@ def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_rest
 
    M{|r| = sqrt( bilinearform(r,r))}
 
-   :param r: initial residual M{r=b-Ax}. C{r} is altered.
+   :param r: initial residual M{r=b-Ax}. ``r`` is altered.
    :type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
    :param x: an initial guess for the solution
-   :type x: same like C{r}
+   :type x: same like ``r``
    :param Aprod: returns the value Ax
-   :type Aprod: function C{Aprod(x)} where C{x} is of the same object like
-                argument C{x}. The returned object needs to be of the same
-                type like argument C{r}.
-   :param bilinearform: inner product C{<x,r>}
-   :type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same
-                       type like argument C{x} and C{r}. The returned value is
-                       a C{float}.
+   :type Aprod: function ``Aprod(x)`` where ``x`` is of the same object like
+                argument ``x``. The returned object needs to be of the same
+                type like argument ``r``.
+   :param bilinearform: inner product ``<x,r>``
+   :type bilinearform: function ``bilinearform(x,r)`` where ``x`` is of the same
+                       type like argument ``x`` and ``r``. The returned value is
+                       a ``float``.
    :param atol: absolute tolerance
-   :type atol: non-negative C{float}
+   :type atol: non-negative ``float``
    :param rtol: relative tolerance
-   :type rtol: non-negative C{float}
+   :type rtol: non-negative ``float``
    :param iter_max: maximum number of iteration steps
-   :type iter_max: C{int}
+   :type iter_max: ``int``
    :param iter_restart: in order to save memory the orthogonalization process
-                        is terminated after C{iter_restart} steps and the
+                        is terminated after ``iter_restart`` steps and the
                         iteration is restarted.
-   :type iter_restart: C{int}
+   :type iter_restart: ``int``
    :return: the solution approximation and the corresponding residual
-   :rtype: C{tuple}
-   :warning: C{r} and C{x} are altered.
+   :rtype: ``tuple``
+   :warning: ``r`` and ``x`` are altered.
    """
    m=iter_restart
    restarted=False
@@ -1027,31 +1027,31 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
     T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo,
     C. Romine, and H. van der Vorst}.
 
-    :param r: initial residual M{r=b-Ax}. C{r} is altered.
+    :param r: initial residual M{r=b-Ax}. ``r`` is altered.
     :type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
     :param x: an initial guess for the solution
     :type x: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
     :param Aprod: returns the value Ax
-    :type Aprod: function C{Aprod(x)} where C{x} is of the same object like
-                 argument C{x}. The returned object needs to be of the same
-                 type like argument C{r}.
+    :type Aprod: function ``Aprod(x)`` where ``x`` is of the same object like
+                 argument ``x``. The returned object needs to be of the same
+                 type like argument ``r``.
     :param Msolve: solves Mx=r
-    :type Msolve: function C{Msolve(r)} where C{r} is of the same type like
-                  argument C{r}. The returned object needs to be of the same
-                  type like argument C{x}.
-    :param bilinearform: inner product C{<x,r>}
-    :type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same
-                        type like argument C{x} and C{r} is. The returned value
-                        is a C{float}.
+    :type Msolve: function ``Msolve(r)`` where ``r`` is of the same type like
+                  argument ``r``. The returned object needs to be of the same
+                  type like argument ``x``.
+    :param bilinearform: inner product ``<x,r>``
+    :type bilinearform: function ``bilinearform(x,r)`` where ``x`` is of the same
+                        type like argument ``x`` and ``r`` is. The returned value
+                        is a ``float``.
     :param atol: absolute tolerance
-    :type atol: non-negative C{float}
+    :type atol: non-negative ``float``
     :param rtol: relative tolerance
-    :type rtol: non-negative C{float}
+    :type rtol: non-negative ``float``
     :param iter_max: maximum number of iteration steps
-    :type iter_max: C{int}
+    :type iter_max: ``int``
     :return: the solution approximation and the corresponding residual
-    :rtype: C{tuple}
-    :warning: C{r} and C{x} are altered.
+    :rtype: ``tuple``
+    :warning: ``r`` and ``x`` are altered.
     """
     #------------------------------------------------------------------
     # Set up y and v for the first Lanczos vector v1.
@@ -1198,26 +1198,26 @@ def TFQMR(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
 
   M{|r| = sqrt( bilinearform(r,r))}
 
-  :param r: initial residual M{r=b-Ax}. C{r} is altered.
+  :param r: initial residual M{r=b-Ax}. ``r`` is altered.
   :type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
   :param x: an initial guess for the solution
-  :type x: same like C{r}
+  :type x: same like ``r``
   :param Aprod: returns the value Ax
-  :type Aprod: function C{Aprod(x)} where C{x} is of the same object like
-               argument C{x}. The returned object needs to be of the same type
-               like argument C{r}.
-  :param bilinearform: inner product C{<x,r>}
-  :type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same
-                      type like argument C{x} and C{r}. The returned value is
-                      a C{float}.
+  :type Aprod: function ``Aprod(x)`` where ``x`` is of the same object like
+               argument ``x``. The returned object needs to be of the same type
+               like argument ``r``.
+  :param bilinearform: inner product ``<x,r>``
+  :type bilinearform: function ``bilinearform(x,r)`` where ``x`` is of the same
+                      type like argument ``x`` and ``r``. The returned value is
+                      a ``float``.
   :param atol: absolute tolerance
-  :type atol: non-negative C{float}
+  :type atol: non-negative ``float``
   :param rtol: relative tolerance
-  :type rtol: non-negative C{float}
+  :type rtol: non-negative ``float``
   :param iter_max: maximum number of iteration steps
-  :type iter_max: C{int}
-  :rtype: C{tuple}
-  :warning: C{r} and C{x} are altered.
+  :type iter_max: ``int``
+  :rtype: ``tuple``
+  :warning: ``r`` and ``x`` are altered.
   """
   u1=0
   u2=0
@@ -1287,8 +1287,8 @@ def TFQMR(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
 
 class ArithmeticTuple(object):
    """
-   Tuple supporting inplace update x+=y and scaling x=a*y where C{x,y} is an
-   ArithmeticTuple and C{a} is a float.
+   Tuple supporting inplace update x+=y and scaling x=a*y where ``x,y`` is an
+   ArithmeticTuple and ``a`` is a float.
 
    Example of usage::
 
@@ -1302,7 +1302,7 @@ class ArithmeticTuple(object):
    """
    def __init__(self,*args):
        """
-       Initializes object with elements C{args}.
+       Initializes object with elements ``args``.
 
        :param args: tuple of objects that support inplace add (x+=y) and
                     scaling (x=a*y)
@@ -1314,7 +1314,7 @@ class ArithmeticTuple(object):
        Returns the number of items.
 
        :return: number of items
-       :rtype: C{int}
+       :rtype: ``int``
        """
        return len(self.__items)
 
@@ -1323,17 +1323,17 @@ class ArithmeticTuple(object):
        Returns item at specified position.
 
        :param index: index of item to be returned
-       :type index: C{int}
-       :return: item with index C{index}
+       :type index: ``int``
+       :return: item with index ``index``
        """
        return self.__items.__getitem__(index)
 
    def __mul__(self,other):
        """
-       Scales by C{other} from the right.
+       Scales by ``other`` from the right.
 
        :param other: scaling factor
-       :type other: C{float}
+       :type other: ``float``
        :return: itemwise self*other
        :rtype: `ArithmeticTuple`
        """
@@ -1349,10 +1349,10 @@ class ArithmeticTuple(object):
 
    def __rmul__(self,other):
        """
-       Scales by C{other} from the left.
+       Scales by ``other`` from the left.
 
        :param other: scaling factor
-       :type other: C{float}
+       :type other: ``float``
        :return: itemwise other*self
        :rtype: `ArithmeticTuple`
        """
@@ -1368,10 +1368,10 @@ class ArithmeticTuple(object):
 
    def __div__(self,other):
        """
-       Scales by (1/C{other}) from the right.
+       Scales by (1/``other``) from the right.
 
        :param other: scaling factor
-       :type other: C{float}
+       :type other: ``float``
        :return: itemwise self/other
        :rtype: `ArithmeticTuple`
        """
@@ -1379,10 +1379,10 @@ class ArithmeticTuple(object):
 
    def __rdiv__(self,other):
        """
-       Scales by (1/C{other}) from the left.
+       Scales by (1/``other``) from the left.
 
        :param other: scaling factor
-       :type other: C{float}
+       :type other: ``float``
        :return: itemwise other/self
        :rtype: `ArithmeticTuple`
        """
@@ -1398,10 +1398,10 @@ class ArithmeticTuple(object):
 
    def __iadd__(self,other):
        """
-       Inplace addition of C{other} to self.
+       Inplace addition of ``other`` to self.
 
        :param other: increment
-       :type other: C{ArithmeticTuple}
+       :type other: ``ArithmeticTuple``
        """
        if len(self) != len(other):
            raise ValueError,"tuple lengths must match."
@@ -1411,10 +1411,10 @@ class ArithmeticTuple(object):
 
    def __add__(self,other):
        """
-       Adds C{other} to self.
+       Adds ``other`` to self.
 
        :param other: increment
-       :type other: C{ArithmeticTuple}
+       :type other: ``ArithmeticTuple``
        """
        out=[]
        try:
@@ -1428,10 +1428,10 @@ class ArithmeticTuple(object):
 
    def __sub__(self,other):
        """
-       Subtracts C{other} from self.
+       Subtracts ``other`` from self.
 
        :param other: decrement
-       :type other: C{ArithmeticTuple}
+       :type other: ``ArithmeticTuple``
        """
        out=[]
        try:
@@ -1445,10 +1445,10 @@ class ArithmeticTuple(object):
 
    def __isub__(self,other):
        """
-       Inplace subtraction of C{other} from self.
+       Inplace subtraction of ``other`` from self.
 
        :param other: decrement
-       :type other: C{ArithmeticTuple}
+       :type other: ``ArithmeticTuple``
        """
        if len(self) != len(other):
            raise ValueError,"tuple length must match."
@@ -1482,7 +1482,7 @@ class HomogeneousSaddlePointProblem(object):
 	initializes the saddle point problem
 	
 	:param adaptSubTolerance: If True the tolerance for subproblem is set automatically.
-	:type adaptSubTolerance: C{bool}
+	:type adaptSubTolerance: ``bool``
 	"""
         self.setTolerance()
         self.setAbsoluteTolerance()
@@ -1501,7 +1501,7 @@ class HomogeneousSaddlePointProblem(object):
          :param p: a pressure increment
          :param v: a residual
          :return: inner product of element p and Bv
-         :rtype: C{float}
+         :rtype: ``float``
          :note: used if PCG is applied.
          """
          raise NotImplementedError,"no inner product for p and Bv implemented."
@@ -1513,7 +1513,7 @@ class HomogeneousSaddlePointProblem(object):
          :param p0: a pressure
          :param p1: a pressure
          :return: inner product of p0 and p1
-         :rtype: C{float}
+         :rtype: ``float``
          """
          raise NotImplementedError,"no inner product for p implemented."
    
@@ -1523,7 +1523,7 @@ class HomogeneousSaddlePointProblem(object):
 
          :param v: a velovity
          :return: norm of v
-         :rtype: non-negative C{float}
+         :rtype: non-negative ``float``
          """
          raise NotImplementedError,"no norm of v implemented."
       def getV(self, p, v0):
@@ -1600,11 +1600,11 @@ class HomogeneousSaddlePointProblem(object):
       #=============================================================
       def norm_p(self,p):
           """
-          calculates the norm of C{p}
+          calculates the norm of ``p``
           
           :param p: a pressure
-          :return: the norm of C{p} using the inner product for pressure
-          :rtype: C{float}
+          :return: the norm of ``p`` using the inner product for pressure
+          :rtype: ``float``
           """
           f=self.inner_p(p,p)
           if f<0: raise ValueError,"negative pressure norm."
@@ -1628,13 +1628,13 @@ class HomogeneousSaddlePointProblem(object):
                           attempt
          :param verbose: if True, shows information on the progress of the
                          saddlepoint problem solver.
-         :param iter_restart: restart the iteration after C{iter_restart} steps
+         :param iter_restart: restart the iteration after ``iter_restart`` steps
                               (only used if useUzaw=False)
-         :type usePCG: C{bool}
-         :type max_iter: C{int}
-         :type verbose: C{bool}
-         :type iter_restart: C{int}
-         :rtype: C{tuple} of `Data` objects
+         :type usePCG: ``bool``
+         :type max_iter: ``int``
+         :type verbose: ``bool``
+         :type iter_restart: ``int``
+         :rtype: ``tuple`` of `Data` objects
          """
          self.verbose=verbose
          rtol=self.getTolerance()
@@ -1679,7 +1679,7 @@ class HomogeneousSaddlePointProblem(object):
          Sets the relative tolerance for (v,p).
 
          :param tolerance: tolerance to be used
-         :type tolerance: non-negative C{float}
+         :type tolerance: non-negative ``float``
          """
          if tolerance<0:
              raise ValueError,"tolerance must be positive."
@@ -1690,7 +1690,7 @@ class HomogeneousSaddlePointProblem(object):
          Returns the relative tolerance.
 
          :return: relative tolerance
-         :rtype: C{float}
+         :rtype: ``float``
          """
          return self.__rtol
 
@@ -1699,7 +1699,7 @@ class HomogeneousSaddlePointProblem(object):
          Sets the absolute tolerance.
 
          :param tolerance: tolerance to be used
-         :type tolerance: non-negative C{float}
+         :type tolerance: non-negative ``float``
          """
          if tolerance<0:
              raise ValueError,"tolerance must be non-negative."
@@ -1710,7 +1710,7 @@ class HomogeneousSaddlePointProblem(object):
          Returns the absolute tolerance.
 
          :return: absolute tolerance
-         :rtype: C{float}
+         :rtype: ``float``
          """
          return self.__atol
 
@@ -1719,7 +1719,7 @@ class HomogeneousSaddlePointProblem(object):
          Sets the relative tolerance to solve the subproblem(s).
 
          :param rtol: relative tolerence
-         :type rtol: positive C{float}
+         :type rtol: positive ``float``
          """
          return max(200.*util.EPSILON,self.getTolerance()**2)
 
@@ -1733,7 +1733,7 @@ def MaskFromBoundaryTag(domain,*tags):
    :param domain: domain to be used
    :type domain: `escript.Domain`
    :param tags: boundary tags
-   :type tags: C{str}
+   :type tags: ``str``
    :return: a mask which marks samples that are touching the boundary tagged
             by any of the given tags
    :rtype: `escript.Data` of rank 0
@@ -1754,7 +1754,7 @@ def MaskFromTag(domain,*tags):
    :param domain: domain to be used
    :type domain: `escript.Domain`
    :param tags: boundary tags
-   :type tags: C{str}
+   :type tags: ``str``
    :return: a mask which marks samples that are touching the boundary tagged
             by any of the given tags
    :rtype: `escript.Data` of rank 0

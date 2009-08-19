@@ -28,13 +28,13 @@ class FinleyReader(ParameterSet):
        reads finley mesh file.
 
        :ivar source: mesh file in finley or gmsh format
-       :type source: C{DataSource}
+       :type source: ``DataSource``
        :ivar intergrationOrder: integration order, default -1 (in).
-       :type intergrationOrder: C{int}
+       :type intergrationOrder: ``int``
        :ivar reducedIntegrationOrder: reduced integration order, default -1 (in).
-       :type reducedIntegrationOrder: C{int}
+       :type reducedIntegrationOrder: ``int``
        :ivar optimizeLabeling: switches on optimization of the labeling of the nodes
-       :type optimizeLabeling: C{bool}
+       :type optimizeLabeling: ``bool``
        """
        def __init__(self,**kwargs):
           """
@@ -76,15 +76,15 @@ class RectangularDomain(ParameterSet):
        :ivar dim: spatial dimension, default =2 (in).
        :type dim: spatial dimension
        :ivar l: spatial lengths, default [1.,1.,1.] (in).
-       :type l: C{list} of C{floats}s
+       :type l: ``list`` of ``floats``s
        :ivar n: number of elements, default [10,10,10] (in).
-       :type n: C{list} of C{int}s
+       :type n: ``list`` of ``int``s
        :ivar order: element order, default 1 (in).
-       :type order: C{int}
+       :type order: ``int``
        :ivar periodic: flags for periodicity, default [False,False,False] (in).
-       :type periodic: C{list} of C{bool}s
+       :type periodic: ``list`` of ``bool``s
        :ivar intergrationOrder: integration order, default -1 (in).
-       :type intergrationOrder: C{int}
+       :type intergrationOrder: ``int``
        """
        def __init__(self,**kwargs):
            """
@@ -223,7 +223,7 @@ class ConstrainerOverBox(Model):
           return the values used to constrain a solution
 
           :return: values to be used at the locations of the constraints. If 
-                  C{value} is not given C{None} is rerturned.
+                  ``value`` is not given ``None`` is rerturned.
           :rtype: `escript.Scalar`
           """
           if self.__location_of_constraint == None: self.__setOutput()
@@ -305,7 +305,7 @@ class ScalarConstrainerOverBox(Model):
           return the values used to constrain a solution
 
           :return: values to be used at the locations of the constraints. If 
-                  C{value} is not given C{None} is rerturned.
+                  ``value`` is not given ``None`` is rerturned.
           :rtype: `escript.Scalar`
           """
           if self.__location_of_constraint == None: self.__setOutput()
@@ -383,7 +383,7 @@ class VectorConstrainerOverBox(Model):
           return the values used to constrain a solution
 
           :return: values to be used at the locations of the constraints. If 
-                  C{value} is not given C{None} is rerturned.
+                  ``value`` is not given ``None`` is rerturned.
           :rtype: `escript.Vector`
           """
           if self.__location_of_constraint == None: self.__setOutput()
@@ -472,7 +472,7 @@ class ConstrainerAtBoxVertex(Model):
           return the values used to constrain a solution
 
           :return: values to be used at the locations of the constraints. If 
-                  C{value} is not given C{None} is rerturned.
+                  ``value`` is not given ``None`` is rerturned.
           :rtype: `escript.Scalar`
           """
           if self.__location_of_constraint == None: self.__setOutput()
@@ -532,7 +532,7 @@ class ScalarConstrainerAtBoxVertex(Model):
           return the values used to constrain a solution
 
           :return: values to be used at the locations of the constraints. If 
-                  C{value} is not given C{None} is rerturned.
+                  ``value`` is not given ``None`` is rerturned.
           :rtype: `escript.Scalar`
           """
           if self.__location_of_constraint == None: self.__setOutput()
@@ -583,7 +583,7 @@ class VectorConstrainerAtBoxVertex(Model):
           return the values used to constrain a solution
 
           :return: values to be used at the locations of the constraints. If 
-                  C{value} is not given C{None} is rerturned.
+                  ``value`` is not given ``None`` is rerturned.
           :rtype: `escript.Vector`
           """
           if self.__location_of_constraint == None: self.__setOutput()
