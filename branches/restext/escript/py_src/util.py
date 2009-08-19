@@ -1194,9 +1194,9 @@ class GetSlice_Symbol(DependendSymbol):
       :type arg: L{Symbol}
       :param index: defines index
       :type index: C{slice} or C{int} or a C{tuple} of them
-      @raises IndexError: if length of index is larger than rank of arg or
+      :raise IndexError: if length of index is larger than rank of arg or
                           index start or stop is out of range
-      @raises ValueError: if a step is given
+      :raise ValueError: if a step is given
       """
       if not isinstance(index,tuple): index=(index,)
       if len(index)>arg.getRank():
@@ -1287,7 +1287,7 @@ def log10(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.log10(arg)
@@ -1310,7 +1310,7 @@ def wherePositive(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}.
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       out=numpy.greater(arg,numpy.zeros(arg.shape,numpy.float64))*1.
@@ -1401,7 +1401,7 @@ def whereNegative(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       out=numpy.less(arg,numpy.zeros(arg.shape,numpy.float64))*1.
@@ -1492,7 +1492,7 @@ def whereNonNegative(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       out=numpy.greater_equal(arg,numpy.zeros(arg.shape,numpy.float64))*1.
@@ -1523,7 +1523,7 @@ def whereNonPositive(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       out=numpy.less_equal(arg,numpy.zeros(arg.shape,numpy.float64))*1.
@@ -1559,8 +1559,8 @@ def whereZero(arg,tol=None,adaptTol=True,rtol=math.sqrt(EPSILON)):
    :type rtol: non-negative C{float}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises ValueError: if C{rtol} is non-negative.
-   @raises TypeError: if the type of the argument is not expected
+   :raise ValueError: if C{rtol} is non-negative.
+   :raise TypeError: if the type of the argument is not expected
    """
    if tol == None:
       if not isinstance(arg,Symbol):
@@ -1660,8 +1660,8 @@ def whereNonZero(arg,tol=0.):
    :type rtol: non-negative C{float}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises ValueError: if C{rtol} is non-negative.
-   @raises TypeError: if the type of the argument is not expected
+   :raise ValueError: if C{rtol} is non-negative.
+   :raise TypeError: if the type of the argument is not expected
    """
    if tol == None:
       if not isinstance(arg,Symbol):
@@ -1813,7 +1813,7 @@ def cos(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.cos(arg)
@@ -1913,7 +1913,7 @@ def tan(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.tan(arg)
@@ -2013,7 +2013,7 @@ def asin(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.arcsin(arg)
@@ -2113,7 +2113,7 @@ def acos(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.arccos(arg)
@@ -2213,7 +2213,7 @@ def atan(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.arctan(arg)
@@ -2313,7 +2313,7 @@ def sinh(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.sinh(arg)
@@ -2413,7 +2413,7 @@ def cosh(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.cosh(arg)
@@ -2513,7 +2513,7 @@ def tanh(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.tanh(arg)
@@ -2613,7 +2613,7 @@ def asinh(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.arcsinh(arg)
@@ -2713,7 +2713,7 @@ def acosh(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.arccosh(arg)
@@ -2813,7 +2813,7 @@ def atanh(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.arctanh(arg)
@@ -2913,7 +2913,7 @@ def exp(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}.
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of arg
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.exp(arg)
@@ -3013,7 +3013,7 @@ def sqrt(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
            depending on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.sqrt(arg)
@@ -3113,7 +3113,7 @@ def log(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}.
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.log(arg)
@@ -3213,7 +3213,7 @@ def sign(arg):
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray} depending
            on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       return wherePositive(arg)-whereNegative(arg)
@@ -3322,7 +3322,7 @@ def minval(arg):
    :param arg: argument
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol} depending on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       if arg.ndim==0:
@@ -3407,7 +3407,7 @@ def maxval(arg):
    :param arg: argument
    :type arg: C{float}, L{escript.Data}, L{Symbol}, C{numpy.ndarray}
    :rtype: C{float}, L{escript.Data}, L{Symbol} depending on the type of C{arg}
-   @raises TypeError: if the type of the argument is not expected
+   :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
       if arg.ndim==0:
