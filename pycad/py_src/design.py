@@ -51,7 +51,7 @@ class TagMap(object):
     """
     def __init__(self, mapping={}):
       """
-      Initializes the mapping. C{mapping} defines an initial mapping from tag
+      Initializes the mapping. ``mapping`` defines an initial mapping from tag
       to a name.
       """
       self.__mapping={}
@@ -76,7 +76,7 @@ class TagMap(object):
 
     def getTags(self,name=None):
         """
-        Returns a list of the tags assigned to C{name}. If name is not present
+        Returns a list of the tags assigned to ``name``. If name is not present
         a list of all tags is returned.
         """
         if name == None:
@@ -89,7 +89,7 @@ class TagMap(object):
 
     def getName(self,tag=None):
         """
-        Returns the name of a tag. If C{tag} is not present a list of all names
+        Returns the name of a tag. If ``tag`` is not present a list of all names
         is returned.
         """
         if tag == None:
@@ -137,7 +137,7 @@ class TagMap(object):
 
     def passToDomain(self,domain):
         """
-        Passes the tag map to the `esys.escript.Domain` C{domain}.
+        Passes the tag map to the `esys.escript.Domain` ``domain``.
         """
         for tag, name in self.__mapping.items():
           print name, ">>", tag
@@ -145,7 +145,7 @@ class TagMap(object):
 
     def toDOM(self,dom):
          """
-         Adds object to C{dom}.
+         Adds object to ``dom``.
          """
          tm=dom.createElement("TagMap")
          dom.appendChild(tm)
@@ -162,7 +162,7 @@ class TagMap(object):
 
     def fromDom(self,node):
         """
-        Fills names and tags from dom C{node}.
+        Fills names and tags from dom ``node``.
         """
         for node in node.childNodes:
            if isinstance(node, minidom.Element):
@@ -189,7 +189,7 @@ class TagMap(object):
 
     def writeXML(self,iostream=None):
          """
-         Serializes self as XML into C{iostream} or if not present returns the
+         Serializes self as XML into ``iostream`` or if not present returns the
          XML as string.
          """
          dom=minidom.Document()

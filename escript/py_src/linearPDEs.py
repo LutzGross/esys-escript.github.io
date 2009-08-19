@@ -253,8 +253,8 @@ class SolverOptions(object):
         """
         resets the diagnostics
         
-        :param all: if C{all} is C{True} all diagnostics including accumulative counters are reset.
-        :type all: C{bool}
+        :param all: if ``all`` is ``True`` all diagnostics including accumulative counters are reset.
+        :type all: ``bool``
         """
         self.__num_iter=None
         self.__num_level=None
@@ -276,7 +276,7 @@ class SolverOptions(object):
         Updates diagnostic information 
         
         :param name: name of  diagnostic information
-        :type name: C{str} in the list "num_iter", "num_level", "num_inner_iter", "time", "set_up_time", "net_time", "residual_norm", "converged".
+        :type name: ``str`` in the list "num_iter", "num_level", "num_inner_iter", "time", "set_up_time", "net_time", "residual_norm", "converged".
         :param vale: new value of the diagnostic information
         :note: this function is used by a solver to report diagnostics informations.
         """
@@ -303,7 +303,7 @@ class SolverOptions(object):
             self.__converged = (value == True)
     def getDiagnostics(self, name):
         """
-        Returns the diagnostic information C{name} 
+        Returns the diagnostic information ``name`` 
         
         :param name: name of diagnostic information where
         - "num_iter": the number of iteration steps
@@ -319,8 +319,8 @@ class SolverOptions(object):
         - "cum_net_time": cumulative net execution time
         - "residual_norm": norm of the final residual
         - "converged": return self.__converged     
-        :type name: C{str} in the list "num_iter", "num_level", "num_inner_iter", "time", "set_up_time", "net_time", "residual_norm", "converged".
-        :return: requested value. C{None} is returned if the value is undefined.
+        :type name: ``str`` in the list "num_iter", "num_level", "num_inner_iter", "time", "set_up_time", "net_time", "residual_norm", "converged".
+        :return: requested value. ``None`` is returned if the value is undefined.
         :note: If the solver has thrown an exception diagnostic values have an undefined status.
         """
         if name == "num_iter": return self.__num_iter
@@ -340,7 +340,7 @@ class SolverOptions(object):
             raise ValueError,"unknown diagnostic item %s"%name
     def hasConverged(self):
         """
-        Returns C{True} if the last solver call has been finalized successfully.
+        Returns ``True`` if the last solver call has been finalized successfully.
         :note: if an exception has been thrown by the solver the status of this flag is undefined.
         """
         return self.getDiagnostics("converged")
@@ -371,7 +371,7 @@ class SolverOptions(object):
         Sets the minumum size of the coarsest level matrix in AMG.
 
         :param size: minumum size of the coarsest level matrix .
-        :type size: positive C{int} or C{None}
+        :type size: positive ``int`` or ``None``
         """
         size=int(size)
         if size<0:
@@ -383,7 +383,7 @@ class SolverOptions(object):
         """
         Returns the minumum size of the coarsest level matrix in AMG.
 
-        :rtype: C{int}
+        :rtype: ``int``
         """
         return self.__MinCoarseMatrixSize
       
@@ -415,8 +415,8 @@ class SolverOptions(object):
         return self.__preconditioner
     def setSolverMethod(self, method=0):
         """
-        Sets the solver method to be used. Use C{method}=C{SolverOptions.DIRECT} to indicate that a direct rather than an iterative
-        solver should be used and Use C{method}=C{SolverOptions.ITERATIVE} to indicate that an iterative rather than a direct
+        Sets the solver method to be used. Use ``method``=``SolverOptions.DIRECT`` to indicate that a direct rather than an iterative
+        solver should be used and Use ``method``=``SolverOptions.ITERATIVE`` to indicate that an iterative rather than a direct
         solver should be used. 
 
         :param method: key of the solver method to be used.
@@ -490,9 +490,9 @@ class SolverOptions(object):
         """
         Sets the number of iterations steps after which GMRES is performing a restart.
 
-        :param restart: number of iteration steps after which to perform a restart. If equal to C{None} no
+        :param restart: number of iteration steps after which to perform a restart. If equal to ``None`` no
                         restart is performed.
-        :type restart: C{int} or C{None}
+        :type restart: ``int`` or ``None``
         """
         if restart == None:
             self.__restart=restart
@@ -505,9 +505,9 @@ class SolverOptions(object):
     def getRestart(self):
         """
         Returns the number of iterations steps after which GMRES is performing a restart.
-        If C{None} is returned no restart is performed.
+        If ``None`` is returned no restart is performed.
 
-        :rtype: C{int} or C{None}
+        :rtype: ``int`` or ``None``
         """
         if self.__restart < 0:
             return None
@@ -525,7 +525,7 @@ class SolverOptions(object):
         the faster GMRES converged but
 
         :param truncation: truncation
-        :type truncation: C{int}
+        :type truncation: ``int``
         """
         truncation=int(truncation)
         if truncation<1:
@@ -535,7 +535,7 @@ class SolverOptions(object):
         """
         Returns the number of residuals in GMRES to be stored for orthogonalization
 
-        :rtype: C{int}
+        :rtype: ``int``
         """
         return self.__truncation
     def setInnerIterMax(self,iter_max=10):
@@ -543,7 +543,7 @@ class SolverOptions(object):
         Sets the maximum number of iteration steps for the inner iteration.
 
         :param iter_max: maximum number of inner iterations
-        :type iter_max: C{int}
+        :type iter_max: ``int``
         """
         iter_max=int(iter_max)
         if iter_max<1:
@@ -553,7 +553,7 @@ class SolverOptions(object):
         """
         Returns maximum number of inner iteration steps
 
-        :rtype: C{int}
+        :rtype: ``int``
         """
         return self.__inner_iter_max
     def setIterMax(self,iter_max=100000):
@@ -561,7 +561,7 @@ class SolverOptions(object):
         Sets the maximum number of iteration steps
 
         :param iter_max: maximum number of iteration steps
-        :type iter_max: C{int}
+        :type iter_max: ``int``
         """
         iter_max=int(iter_max)
         if iter_max<1:
@@ -571,7 +571,7 @@ class SolverOptions(object):
         """
         Returns maximum number of iteration steps
 
-        :rtype: C{int}
+        :rtype: ``int``
         """
         return self.__iter_max
     def setLevelMax(self,level_max=10):
@@ -579,7 +579,7 @@ class SolverOptions(object):
         Sets the maximum number of coarsening levels to be used in an algebraic multi level solver or preconditioner
 
         :param level_max: maximum number of levels
-        :type level_max: C{int}
+        :type level_max: ``int``
         """
         level_max=int(level_max)
         if level_max<0:
@@ -589,7 +589,7 @@ class SolverOptions(object):
         """
         Returns the maximum number of coarsening levels to be used in an algebraic multi level solver or preconditioner
 
-        :rtype: C{int}
+        :rtype: ``int``
         """
         return self.__level_max
     def setCoarseningThreshold(self,theta=0.05):
@@ -597,7 +597,7 @@ class SolverOptions(object):
         Sets the threshold for coarsening in the algebraic multi level solver or preconditioner
 
         :param theta: threshold for coarsening
-        :type theta: positive C{float}
+        :type theta: positive ``float``
         """
         theta=float(theta)
         if theta<0 or theta>1:
@@ -607,7 +607,7 @@ class SolverOptions(object):
         """
         Returns the threshold for coarsening in the algebraic multi level solver or preconditioner
 
-        :rtype: C{float}
+        :rtype: ``float``
         """
         return self.__coarsening_threshold
     def setNumSweeps(self,sweeps=2):
@@ -615,7 +615,7 @@ class SolverOptions(object):
         Sets the number of sweeps in a Jacobi or Gauss-Seidel/SOR preconditioner.
 
         :param sweeps: number of sweeps
-        :type theta: positive C{int}
+        :type theta: positive ``int``
         """
         sweeps=int(sweeps)
         if sweeps<1:
@@ -625,7 +625,7 @@ class SolverOptions(object):
         """
         Returns the number of sweeps in a Jacobi or Gauss-Seidel/SOR preconditioner.
 
-        :rtype: C{int}
+        :rtype: ``int``
         """
         return self.__sweeps
     def setNumPreSweeps(self,sweeps=2):
@@ -633,7 +633,7 @@ class SolverOptions(object):
         Sets the number of sweeps in the pre-smoothing step of a multi level solver or preconditioner
 
         :param sweeps: number of sweeps
-        :type theta: positive C{int}
+        :type theta: positive ``int``
         """
         sweeps=int(sweeps)
         if sweeps<1:
@@ -643,7 +643,7 @@ class SolverOptions(object):
         """
         Returns he number of sweeps in the pre-smoothing step of a multi level solver or preconditioner
 
-        :rtype: C{int}
+        :rtype: ``int``
         """
         return self.__pre_sweeps
     def setNumPostSweeps(self,sweeps=2):
@@ -651,7 +651,7 @@ class SolverOptions(object):
         Sets the number of sweeps in the post-smoothing step of a multi level solver or preconditioner
 
         :param sweeps: number of sweeps
-        :type theta: positive C{int}
+        :type theta: positive ``int``
         """
         sweeps=int(sweeps)
         if sweeps<1:
@@ -661,7 +661,7 @@ class SolverOptions(object):
         """
         Returns he number of sweeps in the post-smoothing step of a multi level solver or preconditioner
 
-        :rtype: C{int}
+        :rtype: ``int``
         """
         return self.__post_sweeps
 
@@ -670,7 +670,7 @@ class SolverOptions(object):
         Sets the relative tolerance for the solver
 
         :param rtol: relative tolerance
-        :type rtol: non-negative C{float}
+        :type rtol: non-negative ``float``
         """
         rtol=float(rtol)
         if rtol<0 or rtol>1:
@@ -680,7 +680,7 @@ class SolverOptions(object):
         """
         Returns the relative tolerance for the solver
 
-        :rtype: C{float}
+        :rtype: ``float``
         """
         return self.__tolerance
     def setAbsoluteTolerance(self,atol=0.):
@@ -688,7 +688,7 @@ class SolverOptions(object):
         Sets the absolute tolerance for the solver
 
         :param atol:  absolute tolerance
-        :type atol: non-negative C{float}
+        :type atol: non-negative ``float``
         """
         atol=float(atol)
         if atol<0:
@@ -698,7 +698,7 @@ class SolverOptions(object):
         """
         Returns the absolute tolerance for the solver
 
-        :rtype: C{float}
+        :rtype: ``float``
         """
         return self.__absolute_tolerance
 
@@ -708,7 +708,7 @@ class SolverOptions(object):
         on the coarsest level in a multi-level scheme.
 
         :param rtol: inner relative tolerance
-        :type rtol: positive C{float}
+        :type rtol: positive ``float``
         """
         rtol=float(rtol)
         if rtol<=0 or rtol>1:
@@ -718,7 +718,7 @@ class SolverOptions(object):
         """
         Returns the relative tolerance for an inner iteration scheme
 
-        :rtype: C{float}
+        :rtype: ``float``
         """
         return self.__inner_tolerance
     def setDropTolerance(self,drop_tol=0.01):
@@ -726,7 +726,7 @@ class SolverOptions(object):
         Sets the relative drop tolerance in ILUT
 
         :param drop_tol: drop tolerance
-        :type drop_tol: positive C{float}
+        :type drop_tol: positive ``float``
         """
         drop_tol=float(drop_tol)
         if drop_tol<=0 or drop_tol>1:
@@ -736,16 +736,16 @@ class SolverOptions(object):
         """
         Returns the relative drop tolerance in ILUT
 
-        :rtype: C{float}
+        :rtype: ``float``
         """
         return self.__drop_tolerance
     def setDropStorage(self,storage=2.):
         """
-        Sets the maximum allowed increase in storage for ILUT. C{storage}=2 would mean that
+        Sets the maximum allowed increase in storage for ILUT. ``storage``=2 would mean that
         a doubling of the storage needed for the coefficient matrix is allowed in the ILUT factorization.
 
         :param storage: allowed storage increase
-        :type storage: C{float}
+        :type storage: ``float``
         """
         storage=float(storage)
         if storage<1:
@@ -756,7 +756,7 @@ class SolverOptions(object):
         """
         Returns the maximum allowed increase in storage for ILUT
 
-        :rtype: C{float}
+        :rtype: ``float``
         """
         return self.__drop_storage
     def setRelaxationFactor(self,factor=0.3):
@@ -764,7 +764,7 @@ class SolverOptions(object):
         Sets the relaxation factor used to add dropped elements in RILU to the main diagonal.
 
         :param factor: relaxation factor
-        :type factor: C{float}
+        :type factor: ``float``
         :note: RILU with a relaxation factor 0 is identical to ILU0
         """
         factor=float(factor)
@@ -776,7 +776,7 @@ class SolverOptions(object):
         """
         Returns the relaxation factor used to add dropped elements in RILU to the main diagonal.
 
-        :rtype: C{float}
+        :rtype: ``float``
         """
         return self.__relaxation
     def isSymmetric(self):
@@ -784,7 +784,7 @@ class SolverOptions(object):
         Checks if symmetry of the  coefficient matrix is indicated.
 
         :return: True if a symmetric PDE is indicated, False otherwise
-        :rtype: C{bool}
+        :rtype: ``bool``
         """
         return self.__symmetric
     def setSymmetryOn(self):
@@ -799,10 +799,10 @@ class SolverOptions(object):
         self.__symmetric=False
     def setSymmetry(self,flag=False):
         """
-        Sets the symmetry flag for the coefficient matrix to C{flag}.
+        Sets the symmetry flag for the coefficient matrix to ``flag``.
 
         :param flag: If True, the symmetry flag is set otherwise reset.
-        :type flag: C{bool}
+        :type flag: ``bool``
         """
         if flag:
             self.setSymmetryOn()
@@ -810,10 +810,10 @@ class SolverOptions(object):
             self.setSymmetryOff()
     def isVerbose(self):
         """
-        Returns C{True} if the solver is expected to be verbose.
+        Returns ``True`` if the solver is expected to be verbose.
 
         :return: True if verbosity of switched on.
-        :rtype: C{bool}
+        :rtype: ``bool``
         """
         return self.__verbose
 
@@ -829,10 +829,10 @@ class SolverOptions(object):
         self.__verbose=False
     def setVerbosity(self,verbose=False):
         """
-        Sets the verbosity flag for the solver to C{flag}.
+        Sets the verbosity flag for the solver to ``flag``.
 
-        :param flag: If C{True}, the verbosity of the solver is switched on.
-        :type flag: C{bool}
+        :param flag: If ``True``, the verbosity of the solver is switched on.
+        :type flag: ``bool``
         """
         if verbose:
             self.setVerbosityOn()
@@ -841,11 +841,11 @@ class SolverOptions(object):
 	    
     def adaptInnerTolerance(self):
         """
-        Returns C{True} if the tolerance of the inner solver is selected automatically. 
+        Returns ``True`` if the tolerance of the inner solver is selected automatically. 
         Otherwise the inner tolerance set by `setInnerTolerance` is used.
 
-        :return: C{True} if inner tolerance adaption is chosen.
-        :rtype: C{bool}
+        :return: ``True`` if inner tolerance adaption is chosen.
+        :rtype: ``bool``
         """
         return self.__adapt_inner_tolerance
 
@@ -863,8 +863,8 @@ class SolverOptions(object):
         """
         Sets a flag to indicate automatic selection of the inner tolerance. 
 
-        :param adapt: If C{True}, the inner tolerance is selected automatically.
-        :type adapt: C{bool}
+        :param adapt: If ``True``, the inner tolerance is selected automatically.
+        :type adapt: ``bool``
         """
         if adapt:
             self.setInnerToleranceAdaptionOn()
@@ -873,15 +873,15 @@ class SolverOptions(object):
 
     def acceptConvergenceFailure(self):
         """
-        Returns C{True} if a failure to meet the stopping criteria within the
+        Returns ``True`` if a failure to meet the stopping criteria within the
         given number of iteration steps is not raising in exception. This is useful 
         if a solver is used in a non-linear context where the non-linear solver can 
         continue even if the returned the solution does not necessarily meet the
         stopping criteria. One can use the `hasConverged` method to check if the
         last call to the solver was successful.
 
-        :return: C{True} if a failure to achieve convergence is accepted.
-        :rtype: C{bool}
+        :return: ``True`` if a failure to achieve convergence is accepted.
+        :rtype: ``bool``
         """
         return self.__accept_convergence_failure
 
@@ -899,8 +899,8 @@ class SolverOptions(object):
         """
         Sets a flag to indicate the acceptance of a failure of convergence. 
 
-        :param accept: If C{True}, any failure to achieve convergence is accepted.
-        :type accept: C{bool}
+        :param accept: If ``True``, any failure to achieve convergence is accepted.
+        :type accept: ``bool``
         """
         if accept:
             self.setAcceptanceConvergenceFailureOn()
@@ -1002,7 +1002,7 @@ class PDECoef(object):
                        and a single solution component the shape components
                        marked by `BY_EQUATION` or `BY_SOLUTION` are dropped.
                        In this case the example would be read as (2,).
-       :type pattern: C{tuple} of `BY_EQUATION`, `BY_SOLUTION`, `BY_DIM`
+       :type pattern: ``tuple`` of `BY_EQUATION`, `BY_SOLUTION`, `BY_DIM`
        :param altering: indicates what part of the PDE is altered if the
                         coefficient is altered
        :type altering: one of `OPERATOR`, `RIGHTHANDSIDE`, `BOTH`
@@ -1027,10 +1027,10 @@ class PDECoef(object):
        :type domain: `Domain`
        :param reducedEquationOrder: True to indicate that reduced order is used
                                     to represent the equation
-       :type reducedEquationOrder: C{bool}
+       :type reducedEquationOrder: ``bool``
        :param reducedSolutionOrder: True to indicate that reduced order is used
                                     to represent the solution
-       :type reducedSolutionOrder: C{bool}
+       :type reducedSolutionOrder: ``bool``
        :return: `FunctionSpace` of the coefficient
        :rtype: `FunctionSpace`
        """
@@ -1070,15 +1070,15 @@ class PDECoef(object):
        :param domain: domain on which the PDE uses the coefficient
        :type domain: `Domain`
        :param numEquations: number of equations of the PDE
-       :type numEquations: C{int}
+       :type numEquations: ``int``
        :param numSolutions: number of components of the PDE solution
-       :type numSolutions: C{int}
+       :type numSolutions: ``int``
        :param reducedEquationOrder: True to indicate that reduced order is used
                                     to represent the equation
-       :type reducedEquationOrder: C{bool}
+       :type reducedEquationOrder: ``bool``
        :param reducedSolutionOrder: True to indicate that reduced order is used
                                     to represent the solution
-       :type reducedSolutionOrder: C{bool}
+       :type reducedSolutionOrder: ``bool``
        :param newValue: number of components of the PDE solution
        :type newValue: any object that can be converted into a
                        `Data` object with the appropriate shape
@@ -1110,7 +1110,7 @@ class PDECoef(object):
 
         :return: True if the operator of the PDE is changed when the
                  coefficient is changed
-        :rtype: C{bool}
+        :rtype: ``bool``
         """
         if self.altering==self.OPERATOR or self.altering==self.BOTH:
             return not None
@@ -1121,9 +1121,9 @@ class PDECoef(object):
         """
         Checks if the coefficient alters the right hand side of the PDE.
 
-        :rtype: C{bool}
+        :rtype: ``bool``
         :return: True if the right hand side of the PDE is changed when the
-                 coefficient is changed, C{None} otherwise.
+                 coefficient is changed, ``None`` otherwise.
         """
         if self.altering==self.RIGHTHANDSIDE or self.altering==self.BOTH:
             return not None
@@ -1138,11 +1138,11 @@ class PDECoef(object):
        :param domain: domain on which the PDE uses the coefficient
        :type domain: `Domain`
        :param shape: suggested shape of the coefficient
-       :type shape: C{tuple} of C{int} values
+       :type shape: ``tuple`` of ``int`` values
        :return: the number of equations and number of solutions of the PDE if
                 the coefficient has given shape. If no appropriate numbers
-                could be identified, C{None} is returned
-       :rtype: C{tuple} of two C{int} values or C{None}
+                could be identified, ``None`` is returned
+       :rtype: ``tuple`` of two ``int`` values or ``None``
        """
        dim=domain.getDim()
        if len(shape)>0:
@@ -1185,7 +1185,7 @@ class PDECoef(object):
 
        :return: True if the coefficient allows an estimate of the number of
                 solution components, False otherwise
-       :rtype: C{bool}
+       :rtype: ``bool``
        """
        for i in self.pattern:
              if i==self.BY_SOLUTION: return True
@@ -1197,7 +1197,7 @@ class PDECoef(object):
 
        :return: True if the coefficient allows an estimate of the number of
                 equations, False otherwise
-       :rtype: C{bool}
+       :rtype: ``bool``
        """
        for i in self.pattern:
              if i==self.BY_EQUATION: return True
@@ -1225,11 +1225,11 @@ class PDECoef(object):
        :param domain: domain on which the PDE uses the coefficient
        :type domain: `Domain`
        :param numEquations: number of equations of the PDE
-       :type numEquations: C{int}
+       :type numEquations: ``int``
        :param numSolutions: number of components of the PDE solution
-       :type numSolutions: C{int}
+       :type numSolutions: ``int``
        :return: shape of the coefficient
-       :rtype: C{tuple} of C{int} values
+       :rtype: ``tuple`` of ``int`` values
        """
        dim=domain.getDim()
        s=()
@@ -1266,9 +1266,9 @@ class LinearProblem(object):
 
      :param domain: domain of the PDE
      :type domain: `Domain`
-     :param numEquations: number of equations. If C{None} the number of
+     :param numEquations: number of equations. If ``None`` the number of
                           equations is extracted from the coefficients.
-     :param numSolutions: number of solution components. If C{None} the number
+     :param numSolutions: number of solution components. If ``None`` the number
                           of solution components is extracted from the
                           coefficients.
      :param debug: if True debug information is printed
@@ -1302,7 +1302,7 @@ class LinearProblem(object):
      Returns a string representation of the PDE.
 
      :return: a simple representation of the PDE
-     :rtype: C{str}
+     :rtype: ``str``
      """
      return "<LinearProblem %d>"%id(self)
    # ==========================================================================
@@ -1322,10 +1322,10 @@ class LinearProblem(object):
 
    def setDebug(self, flag):
      """
-     Switches debug output on if C{flag} is True otherwise it is switched off.
+     Switches debug output on if ``flag`` is True otherwise it is switched off.
 
      :param flag: desired debug status
-     :type flag: C{bool}
+     :type flag: ``bool``
      """
      if flag:
          self.setDebugOn()
@@ -1337,7 +1337,7 @@ class LinearProblem(object):
      Prints the text message if debug mode is switched on.
 
      :param text: message to be printed
-     :type text: C{string}
+     :type text: ``string``
      """
      if self.__debug: print "%s: %s"%(str(self),text)
 
@@ -1382,7 +1382,7 @@ class LinearProblem(object):
      return self.__system_status
    def setSystemStatus(self,status=None):
      """
-     Sets the system status to C{status} if C{status} is not present the 
+     Sets the system status to ``status`` if ``status`` is not present the 
      current status of the domain is used.
      """
      if status == None:
@@ -1395,7 +1395,7 @@ class LinearProblem(object):
      Returns the spatial dimension of the PDE.
 
      :return: the spatial dimension of the PDE domain
-     :rtype: C{int}
+     :rtype: ``int``
      """
      return self.getDomain().getDim()
 
@@ -1404,7 +1404,7 @@ class LinearProblem(object):
      Returns the number of equations.
 
      :return: the number of equations
-     :rtype: C{int}
+     :rtype: ``int``
      :raise UndefinedPDEError: if the number of equations is not specified yet
      """
      if self.__numEquations==None:
@@ -1419,7 +1419,7 @@ class LinearProblem(object):
      Returns the number of unknowns.
 
      :return: the number of unknowns
-     :rtype: C{int}
+     :rtype: ``int``
      :raise UndefinedPDEError: if the number of unknowns is not specified yet
      """
      if self.__numSolutions==None:
@@ -1482,8 +1482,8 @@ class LinearProblem(object):
        """
        Sets the solver options.
 
-       :param options: the new solver options. If equal C{None}, the solver options are set to the default.
-       :type options: `SolverOptions` or C{None}
+       :param options: the new solver options. If equal ``None``, the solver options are set to the default.
+       :type options: `SolverOptions` or ``None``
        :note: The symmetry flag of options is overwritten by the symmetry flag of the `LinearProblem`.
        """
        if options==None:
@@ -1508,7 +1508,7 @@ class LinearProblem(object):
       Checks if matrix lumping is the current solver method.
 
       :return: True if the current solver method is lumping
-      :rtype: C{bool}
+      :rtype: ``bool``
       """
       return self.getSolverOptions().getSolverMethod()==self.getSolverOptions().LUMPING
    # ==========================================================================
@@ -1519,7 +1519,7 @@ class LinearProblem(object):
       Checks if symmetry is indicated.
 
       :return: True if a symmetric PDE is indicated, False otherwise
-      :rtype: C{bool}
+      :rtype: ``bool``
       :note: the method is equivalent to use getSolverOptions().isSymmetric()
       """
       self.getSolverOptions().isSymmetric()
@@ -1542,10 +1542,10 @@ class LinearProblem(object):
 
    def setSymmetry(self,flag=False):
       """
-      Sets the symmetry flag to C{flag}.
+      Sets the symmetry flag to ``flag``.
 
       :param flag: If True, the symmetry flag is set otherwise reset.
-      :type flag: C{bool}
+      :type flag: ``bool``
       :note: The method overwrites the symmetry flag set by the solver options
       """
       self.getSolverOptions().setSymmetry(flag)
@@ -1580,7 +1580,7 @@ class LinearProblem(object):
      :param flag: if True, the order reduction is switched on for both solution
                   and equation representation, otherwise or if flag is not
                   present order reduction is switched off
-     :type flag: C{bool}
+     :type flag: ``bool``
      :raise RuntimeError: if order reduction is altered after a coefficient has
                           been set
      """
@@ -1623,7 +1623,7 @@ class LinearProblem(object):
      :param flag: if flag is True, the order reduction is switched on for
                   solution representation, otherwise or if flag is not present
                   order reduction is switched off
-     :type flag: C{bool}
+     :type flag: ``bool``
      :raise RuntimeError: if order reduction is altered after a coefficient has
                           been set
      """
@@ -1667,7 +1667,7 @@ class LinearProblem(object):
      :param flag: if flag is True, the order reduction is switched on for
                   equation representation, otherwise or if flag is not present
                   order reduction is switched off
-     :type flag: C{bool}
+     :type flag: ``bool``
      :raise RuntimeError: if order reduction is altered after a coefficient has
                           been set
      """
@@ -1686,12 +1686,12 @@ class LinearProblem(object):
       Tests a coefficient for symmetry.
 
       :param name: name of the coefficient
-      :type name: C{str}
+      :type name: ``str``
       :param verbose: if set to True or not present a report on coefficients
                       which break the symmetry is printed.
-      :type verbose: C{bool}
-      :return: True if coefficient C{name} is symmetric
-      :rtype: C{bool}
+      :type verbose: ``bool``
+      :return: True if coefficient ``name`` is symmetric
+      :rtype: ``bool``
       """
       SMALL_TOLERANCE=util.EPSILON*10.
       A=self.getCoefficient(name)
@@ -1733,15 +1733,15 @@ class LinearProblem(object):
       Tests two coefficients for reciprocal symmetry.
 
       :param name0: name of the first coefficient
-      :type name0: C{str}
+      :type name0: ``str``
       :param name1: name of the second coefficient
-      :type name1: C{str}
+      :type name1: ``str``
       :param verbose: if set to True or not present a report on coefficients
                       which break the symmetry is printed
-      :type verbose: C{bool}
-      :return: True if coefficients C{name0} and C{name1} are reciprocally
+      :type verbose: ``bool``
+      :return: True if coefficients ``name0`` and ``name1`` are reciprocally
                symmetric.
-      :rtype: C{bool}
+      :rtype: ``bool``
       """
       SMALL_TOLERANCE=util.EPSILON*10.
       B=self.getCoefficient(name0)
@@ -1790,13 +1790,13 @@ class LinearProblem(object):
 
    def getCoefficient(self,name):
      """
-     Returns the value of the coefficient C{name}.
+     Returns the value of the coefficient ``name``.
 
      :param name: name of the coefficient requested
-     :type name: C{string}
+     :type name: ``string``
      :return: the value of the coefficient
      :rtype: `Data`
-     :raise IllegalCoefficient: if C{name} is not a coefficient of the PDE
+     :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
      """
      if self.hasCoefficient(name):
          return self.__COEFFICIENTS[name].getValue()
@@ -1805,24 +1805,24 @@ class LinearProblem(object):
 
    def hasCoefficient(self,name):
      """
-     Returns True if C{name} is the name of a coefficient.
+     Returns True if ``name`` is the name of a coefficient.
 
      :param name: name of the coefficient enquired
-     :type name: C{string}
-     :return: True if C{name} is the name of a coefficient of the general PDE,
+     :type name: ``string``
+     :return: True if ``name`` is the name of a coefficient of the general PDE,
               False otherwise
-     :rtype: C{bool}
+     :rtype: ``bool``
      """
      return self.__COEFFICIENTS.has_key(name)
 
    def createCoefficient(self, name):
      """
      Creates a `Data` object corresponding to coefficient
-     C{name}.
+     ``name``.
 
-     :return: the coefficient C{name} initialized to 0
+     :return: the coefficient ``name`` initialized to 0
      :rtype: `Data`
-     :raise IllegalCoefficient: if C{name} is not a coefficient of the PDE
+     :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
      """
      if self.hasCoefficient(name):
         return escript.Data(0.,self.getShapeOfCoefficient(name),self.getFunctionSpaceForCoefficient(name))
@@ -1832,13 +1832,13 @@ class LinearProblem(object):
    def getFunctionSpaceForCoefficient(self,name):
      """
      Returns the `FunctionSpace` to be used for
-     coefficient C{name}.
+     coefficient ``name``.
 
      :param name: name of the coefficient enquired
-     :type name: C{string}
-     :return: the function space to be used for coefficient C{name}
+     :type name: ``string``
+     :return: the function space to be used for coefficient ``name``
      :rtype: `FunctionSpace`
-     :raise IllegalCoefficient: if C{name} is not a coefficient of the PDE
+     :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
      """
      if self.hasCoefficient(name):
         return self.__COEFFICIENTS[name].getFunctionSpace(self.getDomain())
@@ -1847,13 +1847,13 @@ class LinearProblem(object):
 
    def getShapeOfCoefficient(self,name):
      """
-     Returns the shape of the coefficient C{name}.
+     Returns the shape of the coefficient ``name``.
 
      :param name: name of the coefficient enquired
-     :type name: C{string}
-     :return: the shape of the coefficient C{name}
-     :rtype: C{tuple} of C{int}
-     :raise IllegalCoefficient: if C{name} is not a coefficient of the PDE
+     :type name: ``string``
+     :return: the shape of the coefficient ``name``
+     :rtype: ``tuple`` of ``int``
+     :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
      """
      if self.hasCoefficient(name):
         return self.__COEFFICIENTS[name].getShape(self.getDomain(),self.getNumEquations(),self.getNumSolutions())
@@ -1869,12 +1869,12 @@ class LinearProblem(object):
 
    def alteredCoefficient(self,name):
      """
-     Announces that coefficient C{name} has been changed.
+     Announces that coefficient ``name`` has been changed.
 
      :param name: name of the coefficient affected
-     :type name: C{string}
-     :raise IllegalCoefficient: if C{name} is not a coefficient of the PDE
-     :note: if C{name} is q or r, the method will not trigger a rebuild of the
+     :type name: ``string``
+     :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
+     :note: if ``name`` is q or r, the method will not trigger a rebuild of the
             system as constraints are applied to the solved system.
      """
      if self.hasCoefficient(name):
@@ -2169,9 +2169,9 @@ class LinearProblem(object):
 
       :param verbose: if set to True or not present a report on coefficients
                       which break the symmetry is printed
-      :type verbose: C{bool}
+      :type verbose: ``bool``
       :return: True if the problem is symmetric
-      :rtype: C{bool}
+      :rtype: ``bool``
       :note: Typically this method is overwritten when implementing a
              particular linear problem.
       """
@@ -2195,7 +2195,7 @@ class LinearProblem(object):
        Returns the operator and right hand side of the PDE.
 
        :return: the discrete version of the PDE
-       :rtype: C{tuple} of `Operator` and `Data`.
+       :rtype: ``tuple`` of `Operator` and `Data`.
 
        :note: This method is overwritten when implementing a particular
               linear problem.
@@ -2299,7 +2299,7 @@ class LinearPDE(LinearProblem):
 
    In the context of discontinuities M{n} denotes the normal on the
    discontinuity pointing from side 0 towards side 1 calculated from
-   `getNormal` of `FunctionOnContactZero`.
+   `FunctionSpace.getNormal` of `FunctionOnContactZero`.
    For a system of PDEs the contact condition takes the form
 
    M{n[j]*J0[i,j]=n[j]*J1[i,j]=(y_contact[i]+y_contact_reduced[i])- (d_contact[i,k]+d_contact_reduced[i,k])*jump(u)[k]}
@@ -2340,9 +2340,9 @@ class LinearPDE(LinearProblem):
 
      :param domain: domain of the PDE
      :type domain: `Domain`
-     :param numEquations: number of equations. If C{None} the number of
+     :param numEquations: number of equations. If ``None`` the number of
                           equations is extracted from the PDE coefficients.
-     :param numSolutions: number of solution components. If C{None} the number
+     :param numSolutions: number of solution components. If ``None`` the number
                           of solution components is extracted from the PDE
                           coefficients.
      :param debug: if True debug information is printed
@@ -2381,7 +2381,7 @@ class LinearPDE(LinearProblem):
      Returns the string representation of the PDE.
 
      :return: a simple representation of the PDE
-     :rtype: C{str}
+     :rtype: ``str``
      """
      return "<LinearPDE %d>"%id(self)
 
@@ -2398,7 +2398,7 @@ class LinearPDE(LinearProblem):
 
       :param verbose: if set to True or not present a report on coefficients
                       which break the symmetry is printed.
-      :type verbose: C{bool}
+      :type verbose: ``bool``
       :return: True if the PDE is symmetric
       :rtype: `bool`
       :note: This is a very expensive operation. It should be used for
@@ -2453,7 +2453,7 @@ class LinearPDE(LinearProblem):
        Returns the operator and right hand side of the PDE.
 
        :return: the discrete version of the PDE
-       :rtype: C{tuple} of `Operator` and
+       :rtype: ``tuple`` of `Operator` and
                `Data`
        """
        if not self.isOperatorValid() or not self.isRightHandSideValid():
@@ -2631,7 +2631,7 @@ class LinearPDE(LinearProblem):
 
       :param rhs_only: if True only the right hand side is altered by the
                        constraint
-      :type rhs_only: C{bool}
+      :type rhs_only: ``bool``
       """
       q=self.getCoefficient("q")
       r=self.getCoefficient("r")
@@ -2660,64 +2660,64 @@ class LinearPDE(LinearProblem):
       Sets new values to coefficients.
 
       :param coefficients: new values assigned to coefficients
-      :keyword A: value for coefficient C{A}
+      :keyword A: value for coefficient ``A``
       :type A: any type that can be cast to a `Data` object on
                `Function`
-      :keyword A_reduced: value for coefficient C{A_reduced}
+      :keyword A_reduced: value for coefficient ``A_reduced``
       :type A_reduced: any type that can be cast to a `Data`
                        object on `ReducedFunction`
-      :keyword B: value for coefficient C{B}
+      :keyword B: value for coefficient ``B``
       :type B: any type that can be cast to a `Data` object on
                `Function`
-      :keyword B_reduced: value for coefficient C{B_reduced}
+      :keyword B_reduced: value for coefficient ``B_reduced``
       :type B_reduced: any type that can be cast to a `Data`
                        object on `ReducedFunction`
-      :keyword C: value for coefficient C{C}
+      :keyword C: value for coefficient ``C``
       :type C: any type that can be cast to a `Data` object on
                `Function`
-      :keyword C_reduced: value for coefficient C{C_reduced}
+      :keyword C_reduced: value for coefficient ``C_reduced``
       :type C_reduced: any type that can be cast to a `Data`
                        object on `ReducedFunction`
-      :keyword D: value for coefficient C{D}
+      :keyword D: value for coefficient ``D``
       :type D: any type that can be cast to a `Data` object on
                `Function`
-      :keyword D_reduced: value for coefficient C{D_reduced}
+      :keyword D_reduced: value for coefficient ``D_reduced``
       :type D_reduced: any type that can be cast to a `Data`
                        object on `ReducedFunction`
-      :keyword X: value for coefficient C{X}
+      :keyword X: value for coefficient ``X``
       :type X: any type that can be cast to a `Data` object on
                `Function`
-      :keyword X_reduced: value for coefficient C{X_reduced}
+      :keyword X_reduced: value for coefficient ``X_reduced``
       :type X_reduced: any type that can be cast to a `Data`
                        object on `ReducedFunction`
-      :keyword Y: value for coefficient C{Y}
+      :keyword Y: value for coefficient ``Y``
       :type Y: any type that can be cast to a `Data` object on
                `Function`
-      :keyword Y_reduced: value for coefficient C{Y_reduced}
+      :keyword Y_reduced: value for coefficient ``Y_reduced``
       :type Y_reduced: any type that can be cast to a `Data`
                        object on `ReducedFunction`
-      :keyword d: value for coefficient C{d}
+      :keyword d: value for coefficient ``d``
       :type d: any type that can be cast to a `Data` object on
                `FunctionOnBoundary`
-      :keyword d_reduced: value for coefficient C{d_reduced}
+      :keyword d_reduced: value for coefficient ``d_reduced``
       :type d_reduced: any type that can be cast to a `Data`
                        object on `ReducedFunctionOnBoundary`
-      :keyword y: value for coefficient C{y}
+      :keyword y: value for coefficient ``y``
       :type y: any type that can be cast to a `Data` object on
                `FunctionOnBoundary`
-      :keyword d_contact: value for coefficient C{d_contact}
+      :keyword d_contact: value for coefficient ``d_contact``
       :type d_contact: any type that can be cast to a `Data`
                        object on `FunctionOnContactOne`
                        or `FunctionOnContactZero`
-      :keyword d_contact_reduced: value for coefficient C{d_contact_reduced}
+      :keyword d_contact_reduced: value for coefficient ``d_contact_reduced``
       :type d_contact_reduced: any type that can be cast to a `Data`
                                object on `ReducedFunctionOnContactOne`
                                or `ReducedFunctionOnContactZero`
-      :keyword y_contact: value for coefficient C{y_contact}
+      :keyword y_contact: value for coefficient ``y_contact``
       :type y_contact: any type that can be cast to a `Data`
                        object on `FunctionOnContactOne`
                        or `FunctionOnContactZero`
-      :keyword y_contact_reduced: value for coefficient C{y_contact_reduced}
+      :keyword y_contact_reduced: value for coefficient ``y_contact_reduced``
       :type y_contact_reduced: any type that can be cast to a `Data`
                                object on `ReducedFunctionOnContactOne`
                                or `ReducedFunctionOnContactZero`
@@ -2750,7 +2750,7 @@ class LinearPDE(LinearProblem):
 
      :param u: argument in the residual calculation. It must be representable
                in `self.getFunctionSpaceForSolution()`. If u is not present
-               or equals C{None} the current solution is used.
+               or equals ``None`` the current solution is used.
      :type u: `Data` or None
      :return: residual of u
      :rtype: `Data`
@@ -2837,11 +2837,11 @@ class Poisson(LinearPDE):
 
    def getCoefficient(self,name):
      """
-     Returns the value of the coefficient C{name} of the general PDE.
+     Returns the value of the coefficient ``name`` of the general PDE.
 
      :param name: name of the coefficient requested
-     :type name: C{string}
-     :return: the value of the coefficient C{name}
+     :type name: ``string``
+     :return: the value of the coefficient ``name``
      :rtype: `Data`
      :raise IllegalCoefficient: invalid coefficient name
      :note: This method is called by the assembling routine to map the Poisson
@@ -2929,11 +2929,11 @@ class Helmholtz(LinearPDE):
 
    def getCoefficient(self,name):
      """
-     Returns the value of the coefficient C{name} of the general PDE.
+     Returns the value of the coefficient ``name`` of the general PDE.
 
      :param name: name of the coefficient requested
-     :type name: C{string}
-     :return: the value of the coefficient C{name}
+     :type name: ``string``
+     :return: the value of the coefficient ``name``
      :rtype: `Data`
      :raise IllegalCoefficient: invalid name
      """
@@ -3027,11 +3027,11 @@ class LameEquation(LinearPDE):
 
    def getCoefficient(self,name):
      """
-     Returns the value of the coefficient C{name} of the general PDE.
+     Returns the value of the coefficient ``name`` of the general PDE.
 
      :param name: name of the coefficient requested
-     :type name: C{string}
-     :return: the value of the coefficient C{name}
+     :type name: ``string``
+     :return: the value of the coefficient ``name``
      :rtype: `Data`
      :raise IllegalCoefficient: invalid coefficient name
      """
@@ -3192,7 +3192,7 @@ class TransportPDE(LinearProblem):
 
    In the context of discontinuities M{n} denotes the normal on the
    discontinuity pointing from side 0 towards side 1 calculated from
-   `getNormal` of `FunctionOnContactZero`.
+   `FunctionSpace.getNormal` of `FunctionOnContactZero`.
    For a system of transport problems the contact condition takes the form
 
    M{n[j]*J0[i,j]=n[j]*J1[i,j]=(y_contact[i]+y_contact_reduced[i])- (d_contact[i,k]+d_contact_reduced[i,k])*jump(u)[k]}
@@ -3234,14 +3234,14 @@ class TransportPDE(LinearProblem):
 
      :param domain: domain of the PDE
      :type domain: `Domain`
-     :param numEquations: number of equations. If C{None} the number of
+     :param numEquations: number of equations. If ``None`` the number of
                           equations is extracted from the coefficients.
-     :param numSolutions: number of solution components. If C{None} the number
+     :param numSolutions: number of solution components. If ``None`` the number
                           of solution components is extracted from the
                           coefficients.
      :param debug: if True debug information is printed
      :param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Note that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
-     :type useBackwardEuler: C{bool}
+     :type useBackwardEuler: ``bool``
      """
      if useBackwardEuler:
          self.__useBackwardEuler=True
@@ -3286,7 +3286,7 @@ class TransportPDE(LinearProblem):
      Returns the string representation of the transport problem.
 
      :return: a simple representation of the transport problem
-     :rtype: C{str}
+     :rtype: ``str``
      """
      return "<TransportPDE %d>"%id(self)
 
@@ -3304,9 +3304,9 @@ class TransportPDE(LinearProblem):
 
       :param verbose: if set to True or not present a report on coefficients
                       which break the symmetry is printed.
-      :type verbose: C{bool}
+      :type verbose: ``bool``
       :return:  True if the PDE is symmetric
-      :rtype: C{bool}
+      :rtype: ``bool``
       :note: This is a very expensive operation. It should be used for
              degugging only! The symmetry flag is not altered.
       """
@@ -3332,72 +3332,72 @@ class TransportPDE(LinearProblem):
       Sets new values to coefficients.
 
       :param coefficients: new values assigned to coefficients
-      :keyword M: value for coefficient C{M}
+      :keyword M: value for coefficient ``M``
       :type M: any type that can be cast to a `Data` object on
                `Function`
-      :keyword M_reduced: value for coefficient C{M_reduced}
+      :keyword M_reduced: value for coefficient ``M_reduced``
       :type M_reduced: any type that can be cast to a `Data`
                        object on `Function`
-      :keyword A: value for coefficient C{A}
+      :keyword A: value for coefficient ``A``
       :type A: any type that can be cast to a `Data` object on
                `Function`
-      :keyword A_reduced: value for coefficient C{A_reduced}
+      :keyword A_reduced: value for coefficient ``A_reduced``
       :type A_reduced: any type that can be cast to a `Data`
                        object on `ReducedFunction`
-      :keyword B: value for coefficient C{B}
+      :keyword B: value for coefficient ``B``
       :type B: any type that can be cast to a `Data` object on
                `Function`
-      :keyword B_reduced: value for coefficient C{B_reduced}
+      :keyword B_reduced: value for coefficient ``B_reduced``
       :type B_reduced: any type that can be cast to a `Data`
                        object on `ReducedFunction`
-      :keyword C: value for coefficient C{C}
+      :keyword C: value for coefficient ``C``
       :type C: any type that can be cast to a `Data` object on
                `Function`
-      :keyword C_reduced: value for coefficient C{C_reduced}
+      :keyword C_reduced: value for coefficient ``C_reduced``
       :type C_reduced: any type that can be cast to a `Data`
                        object on `ReducedFunction`
-      :keyword D: value for coefficient C{D}
+      :keyword D: value for coefficient ``D``
       :type D: any type that can be cast to a `Data` object on
                `Function`
-      :keyword D_reduced: value for coefficient C{D_reduced}
+      :keyword D_reduced: value for coefficient ``D_reduced``
       :type D_reduced: any type that can be cast to a `Data`
                        object on `ReducedFunction`
-      :keyword X: value for coefficient C{X}
+      :keyword X: value for coefficient ``X``
       :type X: any type that can be cast to a `Data` object on
                `Function`
-      :keyword X_reduced: value for coefficient C{X_reduced}
+      :keyword X_reduced: value for coefficient ``X_reduced``
       :type X_reduced: any type that can be cast to a `Data`
                        object on `ReducedFunction`
-      :keyword Y: value for coefficient C{Y}
+      :keyword Y: value for coefficient ``Y``
       :type Y: any type that can be cast to a `Data` object on
                `Function`
-      :keyword Y_reduced: value for coefficient C{Y_reduced}
+      :keyword Y_reduced: value for coefficient ``Y_reduced``
       :type Y_reduced: any type that can be cast to a `Data`
                        object on `ReducedFunction`
-      :keyword m: value for coefficient C{m}
+      :keyword m: value for coefficient ``m``
       :type m: any type that can be cast to a `Data` object on
                `FunctionOnBoundary`
-      :keyword m_reduced: value for coefficient C{m_reduced}
+      :keyword m_reduced: value for coefficient ``m_reduced``
       :type m_reduced: any type that can be cast to a `Data`
                        object on `FunctionOnBoundary`
-      :keyword d: value for coefficient C{d}
+      :keyword d: value for coefficient ``d``
       :type d: any type that can be cast to a `Data` object on
                `FunctionOnBoundary`
-      :keyword d_reduced: value for coefficient C{d_reduced}
+      :keyword d_reduced: value for coefficient ``d_reduced``
       :type d_reduced: any type that can be cast to a `Data`
                        object on `ReducedFunctionOnBoundary`
-      :keyword y: value for coefficient C{y}
+      :keyword y: value for coefficient ``y``
       :type y: any type that can be cast to a `Data` object on
                `FunctionOnBoundary`
-      :keyword d_contact: value for coefficient C{d_contact}
+      :keyword d_contact: value for coefficient ``d_contact``
       :type d_contact: any type that can be cast to a `Data`
                        object on `FunctionOnContactOne` or `FunctionOnContactZero`
-      :keyword d_contact_reduced: value for coefficient C{d_contact_reduced}
+      :keyword d_contact_reduced: value for coefficient ``d_contact_reduced``
       :type d_contact_reduced: any type that can be cast to a `Data` object on `ReducedFunctionOnContactOne` or `ReducedFunctionOnContactZero`
-      :keyword y_contact: value for coefficient C{y_contact}
+      :keyword y_contact: value for coefficient ``y_contact``
       :type y_contact: any type that can be cast to a `Data`
                        object on `FunctionOnContactOne` or `FunctionOnContactZero`
-      :keyword y_contact_reduced: value for coefficient C{y_contact_reduced}
+      :keyword y_contact_reduced: value for coefficient ``y_contact_reduced``
       :type y_contact_reduced: any type that can be cast to a `Data` object on `ReducedFunctionOnContactOne` or `ReducedFunctionOnContactZero`
       :keyword r: values prescribed to the solution at the locations of constraints
       :type r: any type that can be cast to a `Data` object on
@@ -3435,7 +3435,7 @@ class TransportPDE(LinearProblem):
        :param u: new initial solution
        :type u: any object that can be interpolated to a `Data`
                 object on `Solution` or `ReducedSolution`
-       :note: C{u} must be non-negative
+       :note: ``u`` must be non-negative
        """
        u2=util.interpolate(u,self.getFunctionSpaceForSolution())
        if self.getNumSolutions() == 1:
@@ -3451,19 +3451,19 @@ class TransportPDE(LinearProblem):
       Returns the system type which needs to be used by the current set up.
 
       :return: a code to indicate the type of transport problem scheme used
-      :rtype: C{float}
+      :rtype: ``float``
       """
       solver_options=self.getSolverOptions()
       return self.getDomain().getTransportTypeId(solver_options.getSolverMethod(), solver_options.getPreconditioner(),solver_options.getPackage(), solver_options.isSymmetric())
 
    def getUnlimitedTimeStepSize(self):
       """
-      Returns the value returned by the C{getSafeTimeStepSize} method to
+      Returns the value returned by the ``getSafeTimeStepSize`` method to
       indicate no limit on the safe time step size.
 
        :return: the value used to indicate that no limit is set to the time
                 step size
-       :rtype: C{float}
+       :rtype: ``float``
        :note: Typically the biggest positive float is returned
       """
       return self.getOperator().getUnlimitedTimeStepSize()
@@ -3473,8 +3473,8 @@ class TransportPDE(LinearProblem):
        Returns a safe time step size to do the next time step.
 
        :return: safe time step size
-       :rtype: C{float}
-       :note: If not C{getSafeTimeStepSize()} < C{getUnlimitedTimeStepSize()}
+       :rtype: ``float``
+       :note: If not ``getSafeTimeStepSize()`` < ``getUnlimitedTimeStepSize()``
               any time step size can be used.
        """
        return self.getOperator().getSafeTimeStepSize()
@@ -3484,7 +3484,7 @@ class TransportPDE(LinearProblem):
        Sets the weighting factor used to insert the constraints into the problem
 
        :param value: value for the weighting factor
-       :type value: large positive C{float}
+       :type value: large positive ``float``
        """
        if not value>0:
          raise ValueError,"weighting factor needs to be positive."
@@ -3495,7 +3495,7 @@ class TransportPDE(LinearProblem):
        """
        returns the weighting factor used to insert the constraints into the problem
        :return: value for the weighting factor
-       :rtype: C{float}
+       :rtype: ``float``
        """
        return self.__constraint_factor
    #====================================================================
@@ -3518,7 +3518,7 @@ class TransportPDE(LinearProblem):
        Returns the operator and right hand side of the PDE.
 
        :return: the discrete version of the PDE
-       :rtype: C{tuple} of `Operator` and
+       :rtype: ``tuple`` of `Operator` and
                `Data`
 
        """
@@ -3565,11 +3565,11 @@ class TransportPDE(LinearProblem):
 
    def setDebug(self, flag):
      """
-     Switches debug output on if C{flag} is True,
+     Switches debug output on if ``flag`` is True,
      otherwise it is switched off.
 
      :param flag: desired debug status
-     :type flag: C{bool}
+     :type flag: ``bool``
      """
      if flag:
          self.setDebugOn()

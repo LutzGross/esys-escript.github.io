@@ -140,7 +140,7 @@ class Mountains:
       """
       Returns the time step value.
 
-      :rtype: C{float}
+      :rtype: ``float``
       """
       if self.__dt == None:
            self.__dt=0.5*inf(self.getDomain().getSize()/length(self.getVelocity()))
@@ -150,7 +150,7 @@ class Mountains:
       Sets a new W and updates the H function.
 
       :param dt: time step forward. If None the save time step size is used.
-      :type dt: positve C{float} which is less or equal than the safe time step size.
+      :type dt: positve ``float`` which is less or equal than the safe time step size.
       
       """
       if dt == None: 

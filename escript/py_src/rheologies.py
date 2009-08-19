@@ -55,9 +55,9 @@ class PowerLaw(object):
          initializes a power law
    
          :param numMaterials: number of materials
-         :type numMaterials: C{int}
-         :param verbose: if C{True} some informations are printed.
-         :type verbose: C{bool}
+         :type numMaterials: ``int``
+         :param verbose: if ``True`` some informations are printed.
+         :type verbose: ``bool``
          """
          if numMaterials<1:
             raise ValueError,"at least one material must be defined."
@@ -76,7 +76,7 @@ class PowerLaw(object):
          returns the numebr of materials
          
          :return: number of materials
-         :rtype: C{int}
+         :rtype: ``int``
          """
          return self.__numMaterials
     def validMaterialId(self,id=0):
@@ -84,9 +84,9 @@ class PowerLaw(object):
          checks if a given material id is valid
    
          :param id: a material id
-         :type id: C{int}
-         :return: C{True} is the id is valid
-         :rtype: C{bool}
+         :type id: ``int``
+         :return: ``True`` is the id is valid
+         :rtype: ``bool``
          """
          return 0<=id and id<self.getNumMaterials()
     def setEtaTolerance(self,rtol=1.e-4):
@@ -94,7 +94,7 @@ class PowerLaw(object):
          sets the relative tolerance for the effectice viscosity.
  
          :param rtol: relative tolerance
-         :type rtol: positive C{float}
+         :type rtol: positive ``float``
          """
          if rtol<=0:
              raise ValueError,"rtol needs to positive."
@@ -104,7 +104,7 @@ class PowerLaw(object):
          returns the relative tolerance for the effectice viscosity.
  
          :return: relative tolerance
-         @rtype rtol: positive C{float}
+         @rtype rtol: positive ``float``
          """
          return self.__rtol
     #===========================================================================
@@ -151,9 +151,9 @@ class PowerLaw(object):
          """
          returns the power in the power law
 
-         :param id:  if present, the power for material C{id} is returned.
-         :type id: C{int}
-         :return: the list of the powers for all matrials is returned. If C{id} is present only the power for material C{id} is returned.
+         :param id:  if present, the power for material ``id`` is returned.
+         :type id: ``int``
+         :return: the list of the powers for all matrials is returned. If ``id`` is present only the power for material ``id`` is returned.
          """
          if id == None:
             return self.__power
@@ -166,9 +166,9 @@ class PowerLaw(object):
          """
          returns the viscosity
 
-         :param id:  if present, the viscosity for material C{id} is returned.
-         :type id: C{int}
-         :return: the list of the viscosities for all matrials is returned. If C{id} is present only the viscosity for material C{id} is returned.
+         :param id:  if present, the viscosity for material ``id`` is returned.
+         :type id: ``int``
+         :return: the list of the viscosities for all matrials is returned. If ``id`` is present only the viscosity for material ``id`` is returned.
          """
          if id == None:
             return self.__eta_N
@@ -181,9 +181,9 @@ class PowerLaw(object):
          """
          returns the transition stress
 
-         :param id:  if present, the transition stress for material C{id} is returned.
-         :type id: C{int}
-         :return: the list of the transition stresses for all matrials is returned. If C{id} is present only the transition stress for material C{id} is returned.
+         :param id:  if present, the transition stress for material ``id`` is returned.
+         :type id: ``int``
+         :return: the list of the transition stresses for all matrials is returned. If ``id`` is present only the transition stress for material ``id`` is returned.
          """
          if id == None:
             return self.__tau_t
@@ -198,7 +198,7 @@ class PowerLaw(object):
           Sets the power-law parameters for material id
           
           :param id: material id
-          :type id: C{int}
+          :type id: ``int``
           :param eta_N: viscosity for tau=tau_t
           :param tau_t: transition stress
           :param power: power law coefficient
@@ -236,9 +236,9 @@ class PowerLaw(object):
          :param eta0: initial guess for the effective viscosity (e.g from a previous time step). If not present, an initial guess is calculated.
          :param pressure: pressure used to calculate yield condition
          :param dt: time step size. only needed if elastic component is considered.
-         :type dt: positive C{float} if present
+         :type dt: positive ``float`` if present
          :param iter_max: maximum number of iteration steps.
-         :type iter_max: C{int}
+         :type iter_max: ``int``
          :return: effective viscosity. 
          """
          SMALL=1./(util.DBLE_MAX/100.)
@@ -321,7 +321,7 @@ class Rheology(object):
          :param p: initial pressure
          :type p: a scalar value/field
          :param t: initial time
-         :type t: C{float}
+         :type t: ``float``
          """
          self.__domain=domain
          self.__t=t
@@ -355,7 +355,7 @@ class Rheology(object):
           Returns current time.
 
           :return: current time
-          :rtype: C{float}
+          :rtype: ``float``
           """
           return self.__t   
 
@@ -402,7 +402,7 @@ class Rheology(object):
           mask of the location of the constraint and the values.
 
           :return: the locations of fixed velocity and value of velocities at these locations
-          :rtype: C{tuple} of `Data` s
+          :rtype: ``tuple`` of `Data` s
           """
           return self.__fixed_v_mask, self.__v_boundary       
 
@@ -411,7 +411,7 @@ class Rheology(object):
           Returns True if verbose is switched on
 
           :return: value of verbosity flag
-          :rtype: C{bool}
+          :rtype: ``bool``
           """
           return self.__verbose
 
@@ -420,7 +420,7 @@ class Rheology(object):
           Updates current time.
 
           :param t: new time mark
-          :type t: C{float}
+          :type t: ``float``
           """
           self.__t=t
       #=======================================================================================
@@ -536,7 +536,7 @@ class Rheology(object):
           See the implementation of the rheology for details.
 
           :param tol: relative tolerance to terminate iteration on time step.
-          :type tol: positive C{float}
+          :type tol: positive ``float``
           """
           if tol<=0.:
               raise ValueError,"tolerance must be non-negative."
@@ -546,7 +546,7 @@ class Rheology(object):
           """
           Returns the set tolerance for terminate the iteration on a time step.
 
-          :rtype: positive C{float}
+          :rtype: positive ``float``
           """
           return self.__tol
 
@@ -556,7 +556,7 @@ class Rheology(object):
           Sets the relative tolerance for the flow solver
 
           :param tol: desired relative tolerance for the flow solver
-          :type tol: positive C{float}
+          :type tol: positive ``float``
           :note: Typically this method is overwritten by a subclass.
           """
           pass
@@ -565,7 +565,7 @@ class Rheology(object):
           Returns the relative tolerance for the flow solver
 
           :return: tolerance of the flow solver
-          :rtype: C{float}
+          :rtype: ``float``
           :note: Typically this method is overwritten by a subclass.
           """
           pass
@@ -601,13 +601,13 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
          :param p: initial pressure
          :type p: a scalar value/field
          :param t: initial time
-         :type t: C{float}
+         :type t: ``float``
          :param numMaterials: number of materials
-         :type numMaterials: C{int}
-         :param verbose: if C{True} some informations are printed.
-         :type verbose: C{bool}         
+         :type numMaterials: ``int``
+         :param verbose: if ``True`` some informations are printed.
+         :type verbose: ``bool``         
 	 :param adaptSubTolerance: If True the tolerance for subproblem is set automatically.
-	 :type adaptSubTolerance: C{bool}
+	 :type adaptSubTolerance: ``bool``
          """
          PowerLaw. __init__(self, numMaterials,verbose)
          Rheology. __init__(self, domain, stress, v, p, t, verbose)
@@ -727,7 +727,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
           Sets the relative tolerance for the flow solver. See `StokesProblemCartesian.setTolerance` for details.
 
           :param tol: desired relative tolerance for the flow solver
-          :type tol: positive C{float}
+          :type tol: positive ``float``
           """
           self.__solver.setTolerance(tol)
       def getFlowTolerance(self):
@@ -735,7 +735,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
           Returns the relative tolerance for the flow solver
 
           :return: tolerance of the flow solver
-          :rtype: C{float}
+          :rtype: ``float``
           """
           return self.__solver.getTolerance()
 	  

@@ -52,7 +52,7 @@ class Transformation(object):
 
    def __call__(self,x=numpy.zeros((3,))):
        """
-       Applies transformation to C{x}.
+       Applies transformation to ``x``.
        """
        raise NotImplementeError()
 
@@ -69,7 +69,7 @@ class Translation(Transformation):
 
     def __call__(self,x=numpy.zeros((3,))):
        """
-       Applies translation to C{x}.
+       Applies translation to ``x``.
        """
        return numpy.array(x,_TYPE)+self.__b
 
@@ -91,7 +91,7 @@ class Rotatation(Transformation):
 
     def __call__(self,x=numpy.zeros((3,))):
        """
-       Applies the rotation to C{x}.
+       Applies the rotation to ``x``.
        """
        x=numpy.array(x,_TYPE)
        z=x-self.__point
@@ -112,7 +112,7 @@ class Rotatation(Transformation):
 
 def _cross(x, y):
     """
-    Returns the cross product of C{x} and C{y}.
+    Returns the cross product of ``x`` and ``y``.
     """
     return numpy.array([x[1] * y[2] - x[2] * y[1], x[2] * y[0] - x[0] * y[2], x[0] * y[1] - x[1] * y[0]], _TYPE)
 
@@ -132,7 +132,7 @@ class Dilation(Transformation):
 
     def __call__(self,x=numpy.zeros((3,))):
        """
-       Applies dilation to C{x}.
+       Applies dilation to ``x``.
        """
        x=numpy.array(x,_TYPE)
        return self.__factor*(x-self.__center)+self.__center
@@ -157,7 +157,7 @@ class Reflection(Transformation):
 
     def __call__(self,x=numpy.zeros((3,))):
        """
-       Applies reflection to C{x}.
+       Applies reflection to ``x``.
        """
        x=numpy.array(x,_TYPE)
        return x - 2*(numpy.dot(x,self.__normal)-self.__offset)*self.__normal

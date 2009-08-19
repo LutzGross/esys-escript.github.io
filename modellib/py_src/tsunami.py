@@ -934,9 +934,9 @@ class TsunamiInDeepWater(Model):
         Returns new step size
 
         :param dt: last time step size used
-        :type dt: C{float}
+        :type dt: ``float``
         :return: time step size that can safely be used
-        :rtype: C{float}
+        :rtype: ``float``
         """
         return self.__dt
 
@@ -945,7 +945,7 @@ class TsunamiInDeepWater(Model):
         Performs the time step using the Verlet scheme
 
         :param dt: time step size to be used
-        :type dt: C{float}
+        :type dt: ``float``
         """
         self.__pde.setValue(X=-self.__c2*grad(self.wave_height))
 
@@ -1251,9 +1251,9 @@ class SurfMovie(Model):
         returns new step size
 
         :param dt: last time step size used
-        :type dt: C{float}
+        :type dt: ``float``
         :return: time step size that can savely be used
-        :rtype: C{float}
+        :rtype: ``float``
         """
         return self.__next_t-self.t
 

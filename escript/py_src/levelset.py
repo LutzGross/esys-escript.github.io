@@ -49,7 +49,7 @@ class LevelSet:
     :param domain: the domain where the level set is used
     :param phi: the initial level set function
     :param reinit_max: maximum number of reinitialization steps
-    :param reinit_each: C{phi} is reinitialized every C{reinit_each} step
+    :param reinit_each: ``phi`` is reinitialized every ``reinit_each`` step
     :param smooth: smoothing width
     """
     self.__domain = domain
@@ -119,7 +119,7 @@ class LevelSet:
 
   def getTimeStepSize(self,velocity):
        """
-       Returns a new C{dt} for a given C{velocity} using the Courant condition.
+       Returns a new ``dt`` for a given ``velocity`` using the Courant condition.
 
        :param velocity: velocity field
        """
@@ -140,7 +140,7 @@ class LevelSet:
 
   def update_phi(self, velocity, dt):
       """
-      Updates C{phi} under the presence of a velocity field.
+      Updates ``phi`` under the presence of a velocity field.
 
       If dt is small this call is equivalent to::
 
@@ -195,8 +195,8 @@ class LevelSet:
 
   def update_parameter_sharp(self, param_neg=-1, param_pos=1, phi=None):
       """
-      Creates a function with C{param_neg} where C{phi<0} and C{param_pos}
-      where C{phi>0} (no smoothing).
+      Creates a function with ``param_neg`` where ``phi<0`` and ``param_pos``
+      where ``phi>0`` (no smoothing).
 
       :param param_neg: value of parameter on the negative side (phi<0)
       :param param_pos: value of parameter on the positive side (phi>0)
@@ -210,12 +210,12 @@ class LevelSet:
 
   def update_parameter(self, param_neg=-1, param_pos=1, phi=None, smoothing_width=None):
       """
-      Creates a smoothed function with C{param_neg} where C{phi<0} and
-      C{param_pos} where C{phi>0} which is smoothed over a length
-      C{smoothing_width} across the interface.
+      Creates a smoothed function with ``param_neg`` where ``phi<0`` and
+      ``param_pos`` where ``phi>0`` which is smoothed over a length
+      ``smoothing_width`` across the interface.
 
       :param smoothing_width: width of the smoothing zone relative to mesh size.
-                              If not present the initial value of C{smooth} is
+                              If not present the initial value of ``smooth`` is
                               used.
       """
       if smoothing_width==None: smoothing_width = self.__smooth
@@ -239,13 +239,13 @@ class LevelSet:
 
   def makeCharacteristicFunction(self, contour=0, phi=None, positiveSide=True, smoothing_width=None):
       """
-      Makes a smooth characteristic function of the region C{phi(x)>contour} if
-      C{positiveSide} and C{phi(x)<contour} otherwise.
+      Makes a smooth characteristic function of the region ``phi(x)>contour`` if
+      ``positiveSide`` and ``phi(x)<contour`` otherwise.
 
       :param phi: level set function to be used. If not present the current
                   level set is used.
       :param smoothing_width: width of the smoothing zone relative to mesh size.
-                              If not present the initial value of C{smooth} is
+                              If not present the initial value of ``smooth`` is
                               used.
       """
       if phi==None: phi=self.__phi

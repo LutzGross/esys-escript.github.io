@@ -29,11 +29,11 @@ class Sequencer(Model):
     Runs through time until t_end is reached. 
 
     :ivar t_end: model is terminated when t_end is passed, default 1 (in).
-    :type t_end: C{float}
+    :type t_end: ``float``
     :ivar dt_max: maximum time step size, default `Model.UNDEF_DT` (in)
-    :type dt_max: C{float}
+    :type dt_max: ``float``
     :ivar t: current time stamp (in/out). By default it is initialized with zero.
-    :type t: C{float}
+    :type t: ``float``
 
     """
     def __init__(self,**kwargs):
@@ -222,45 +222,45 @@ class ScalarDistributionFromTags(ParameterSet):
     :type domain: `esys.escript.Domain`
     :ivar default: default value 
     :ivar tag0: tag 0
-    :type tag0: C{int}
+    :type tag0: ``int``
     :ivar value0: value for tag 0
-    :type value0: C{float}
+    :type value0: ``float``
     :ivar tag1: tag 1
-    :type tag1: C{int}
+    :type tag1: ``int``
     :ivar value1: value for tag 1
-    :type value1: C{float}
+    :type value1: ``float``
     :ivar tag2: tag 2
-    :type tag2: C{int}
+    :type tag2: ``int``
     :ivar value2: value for tag 2
-    :type value2: C{float}
+    :type value2: ``float``
     :ivar tag3: tag 3
-    :type tag3: C{int}
+    :type tag3: ``int``
     :ivar value3: value for tag 3
-    :type value3: C{float}
+    :type value3: ``float``
     :ivar tag4: tag 4
-    :type tag4: C{int}
+    :type tag4: ``int``
     :ivar value4: value for tag 4
-    :type value4: C{float}
+    :type value4: ``float``
     :ivar tag5: tag 5
-    :type tag5: C{int}
+    :type tag5: ``int``
     :ivar value5: value for tag 5
-    :type value5: C{float}
+    :type value5: ``float``
     :ivar tag6: tag 6
-    :type tag6: C{int}
+    :type tag6: ``int``
     :ivar value6: value for tag 6
-    :type value6: C{float}
+    :type value6: ``float``
     :ivar tag7: tag 7
-    :type tag7: C{int}
+    :type tag7: ``int``
     :ivar value7: value for tag 7
-    :type value7: C{float}
+    :type value7: ``float``
     :ivar tag8: tag 8
-    :type tag8: C{int}
+    :type tag8: ``int``
     :ivar value8: value for tag 8
-    :type value8: C{float}
+    :type value8: ``float``
     :ivar tag9: tag 9
-    :type tag9: C{int}
+    :type tag9: ``int``
     :ivar value9: value for tag 9
-    :type value9: C{float}
+    :type value9: ``float``
     """
     def __init__(self,**kwargs):
         super(ScalarDistributionFromTags, self).__init__(**kwargs)
@@ -314,45 +314,45 @@ class SmoothScalarDistributionFromTags(ParameterSet):
     :type domain: `esys.escript.Domain`
     :ivar default: default value 
     :ivar tag0: tag 0
-    :type tag0: C{int}
+    :type tag0: ``int``
     :ivar value0: value for tag 0
-    :type value0: C{float}
+    :type value0: ``float``
     :ivar tag1: tag 1
-    :type tag1: C{int}
+    :type tag1: ``int``
     :ivar value1: value for tag 1
-    :type value1: C{float}
+    :type value1: ``float``
     :ivar tag2: tag 2
-    :type tag2: C{int}
+    :type tag2: ``int``
     :ivar value2: value for tag 2
-    :type value2: C{float}
+    :type value2: ``float``
     :ivar tag3: tag 3
-    :type tag3: C{int}
+    :type tag3: ``int``
     :ivar value3: value for tag 3
-    :type value3: C{float}
+    :type value3: ``float``
     :ivar tag4: tag 4
-    :type tag4: C{int}
+    :type tag4: ``int``
     :ivar value4: value for tag 4
-    :type value4: C{float}
+    :type value4: ``float``
     :ivar tag5: tag 5
-    :type tag5: C{int}
+    :type tag5: ``int``
     :ivar value5: value for tag 5
-    :type value5: C{float}
+    :type value5: ``float``
     :ivar tag6: tag 6
-    :type tag6: C{int}
+    :type tag6: ``int``
     :ivar value6: value for tag 6
-    :type value6: C{float}
+    :type value6: ``float``
     :ivar tag7: tag 7
-    :type tag7: C{int}
+    :type tag7: ``int``
     :ivar value7: value for tag 7
-    :type value7: C{float}
+    :type value7: ``float``
     :ivar tag8: tag 8
-    :type tag8: C{int}
+    :type tag8: ``int``
     :ivar value8: value for tag 8
-    :type value8: C{float}
+    :type value8: ``float``
     :ivar tag9: tag 9
-    :type tag9: C{int}
+    :type tag9: ``int``
     :ivar value9: value for tag 9
-    :type value9: C{float}
+    :type value9: ``float``
     """
     def __init__(self,**kwargs):
         super(SmoothScalarDistributionFromTags, self).__init__(**kwargs)
@@ -519,7 +519,7 @@ class MergeConstraints(ParameterSet):
           return the values used to constrain a solution
 
           :return: values to be used at the locations of the constraints. If
-                  C{value} is not given C{None} is rerturned.
+                  ``value`` is not given ``None`` is rerturned.
           :rtype: `escript.Scalar`
           """
           out_loc=0

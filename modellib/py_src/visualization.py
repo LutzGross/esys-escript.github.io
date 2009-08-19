@@ -87,9 +87,9 @@ class Visualization(Model):
        returns new step size
 
        :param dt: last time step size used
-       :type dt: C{float}
+       :type dt: ``float``
        :return: time step size that can savely be used
-       :rtype: C{float}
+       :rtype: ``float``
        """
        return self.__last_t+self.dt-self.t
 
@@ -228,90 +228,90 @@ class WriteVTK(Visualization):
     :ivar data0: data set 0 to be written
     :type data0: `escript.Data`
     :ivar name0: name tag for data set 0
-    :type name0: C{str} or C{None}
+    :type name0: ``str`` or ``None``
     :ivar data1: data set 1 to be written
     :type data1: `escript.Data`
     :ivar name1: name tag for data set 1
-    :type name1: C{str} or C{None}
+    :type name1: ``str`` or ``None``
     :ivar data2: data set 2 to be written
     :type data2: `escript.Data`
     :ivar name2: name tag for data set 2
-    :type name2: C{str} or C{None}
+    :type name2: ``str`` or ``None``
     :ivar data3: data set 3 to be written
     :type data3: `escript.Data`
     :ivar name3: name tag for data set 3
-    :type name3: C{str} or C{None}
+    :type name3: ``str`` or ``None``
     :ivar data4: data set 4 to be written
     :type data4: `escript.Data`
     :ivar name4: name tag for data set 4
-    :type name4: C{str} or C{None}
+    :type name4: ``str`` or ``None``
     :ivar data5: data set 5 to be written
     :type data5: `escript.Data`
     :ivar name5: name tag for data set 5
-    :type name5: C{str} or C{None}
+    :type name5: ``str`` or ``None``
     :ivar data6: data set 6 to be written
     :type data6: `escript.Data`
     :ivar name6: name tag for data set 6
-    :type name6: C{str} or C{None}
+    :type name6: ``str`` or ``None``
     :ivar data7: data set 7 to be written
     :type data7: `escript.Data`
     :ivar name7: name tag for data set 7
-    :type name7: C{str} or C{None}
+    :type name7: ``str`` or ``None``
     :ivar data8: data set 8 to be written
     :type data8: `escript.Data`
     :ivar name8: name tag for data set 8
-    :type name8: C{str} or C{None}
+    :type name8: ``str`` or ``None``
     :ivar data9: data set 9 to be written
     :type data9: `escript.Data`
     :ivar name9: name tag for data set 9
-    :type name9: C{str} or C{None}
+    :type name9: ``str`` or ``None``
     :ivar data10: data set 10 to be written
     :type data10: `escript.Data`
     :ivar name10: name tag for data set 10
-    :type name10: C{str} or C{None}
+    :type name10: ``str`` or ``None``
     :ivar data11: data set 11 to be written
     :type data11: `escript.Data`
     :ivar name11: name tag for data set 11
-    :type name11: C{str} or C{None}
+    :type name11: ``str`` or ``None``
     :ivar data12: data set 12 to be written
     :type data12: `escript.Data`
     :ivar name12: name tag for data set 12
-    :type name12: C{str} or C{None}
+    :type name12: ``str`` or ``None``
     :ivar data13: data set 13 to be written
     :type data13: `escript.Data`
     :ivar name13: name tag for data set 13
-    :type name13: C{str} or C{None}
+    :type name13: ``str`` or ``None``
     :ivar data14: data set 14 to be written
     :type data14: `escript.Data`
     :ivar name14: name tag for data set 14
-    :type name14: C{str} or C{None}
+    :type name14: ``str`` or ``None``
     :ivar data15: data set 15 to be written
     :type data15: `escript.Data`
     :ivar name15: name tag for data set 15
-    :type name15: C{str} or C{None}
+    :type name15: ``str`` or ``None``
     :ivar data16: data set 16 to be written
     :type data16: `escript.Data`
     :ivar name16: name tag for data set 16
-    :type name16: C{str} or C{None}
+    :type name16: ``str`` or ``None``
     :ivar data17: data set 17 to be written
     :type data17: `escript.Data`
     :ivar name17: name tag for data set 17
-    :type name17: C{str} or C{None}
+    :type name17: ``str`` or ``None``
     :ivar data18: data set 18 to be written
     :type data18: `escript.Data`
     :ivar name18: name tag for data set 18
-    :type name18: C{str} or C{None}
+    :type name18: ``str`` or ``None``
     :ivar data19: data set 19 to be written
     :type data19: `escript.Data`
     :ivar name19: name tag for data set 19
-    :type name19: C{str} or C{None}
+    :type name19: ``str`` or ``None``
     """
     def __init__(self, **kwargs):
         """
         Initialisation of the WriteVTK object
 
         :keyword debug: debugging flag
-        :type debug: C{bool}
+        :type debug: ``bool``
         """
         super(WriteVTK,self).__init__(**kwargs)
         self.declareParameter(data0=None,name0=None,
