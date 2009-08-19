@@ -69,14 +69,14 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 		'True', otherwise 'False' (which is the default). On occasions, an
 		inaccurate object may be rendered from cell data even after conversion.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type data_collector: `DataCollector`
 				object
 		:param data_collector: Deal with source of data for vizualisation
-		:type viewport: L{Viewport <constant.Viewport>} constant
+		:type viewport: `Viewport` constant
 		:param viewport: Viewport in which objects are to be rendered on
-		:type lut : L{Lut <constant.Lut>} constant
+		:type lut : `Lut` constant
 		:param lut: Lookup table color scheme
 		:type cell_to_point: Boolean
 		:param cell_to_point: Converts cell data to point data (by averaging)
@@ -162,7 +162,7 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 		"""
 		Render the ellipsoids.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 
@@ -193,7 +193,7 @@ from cutter import Cutter
 class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,  
 		TensorGlyph, Transform, Plane, Cutter, MaskPoints):
 	"""
-	This class works in a similar way to L{MapOnPlaneCut <map.MapOnPlaneCut>},
+	This class works in a similar way to `MapOnPlaneCut`,
 	except that it shows a tensor field using ellipsoids cut using a plane.
 	"""
 
@@ -211,14 +211,14 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 		If a conversion is needed, the 'cell_to_point' flag must be set to 
 		'True', otherwise 'False' (which is the default).
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type data_collector: `DataCollector`
 				object
 		:param data_collector: Deal with source of data for vizualisation
-		:type viewport: L{Viewport <constant.Viewport>} constant
+		:type viewport: `Viewport` constant
 		:param viewport: Viewport in which objects are to be rendered on
-		:type lut : L{Lut <constant.Lut>} constant
+		:type lut : `Lut` constant
 		:param lut: Lookup table color scheme
 		:type cell_to_point: Boolean
 		:param cell_to_point: Converts cell data to point data (by averaging)
@@ -312,7 +312,7 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 		"""
 		Render the ellipsoids cut using a plane.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 
@@ -341,7 +341,7 @@ from clipper import Clipper
 class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,  
 	TensorGlyph, Transform, Plane, Clipper, MaskPoints):
 	"""
-	This class works in a similar way to L{MapOnPlaneClip <map.MapOnPlaneClip>},
+	This class works in a similar way to `MapOnPlaneClip`,
 	except that it shows a tensor field using ellipsoids clipped using a plane.
 	"""
 
@@ -359,14 +359,14 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 		If a conversion is needed, the 'cell_to_point' flag must be set to 
 		'True', otherwise 'False' (which is the default).
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type data_collector: `DataCollector`
 				object
 		:param data_collector: Deal with source of data for visualisation
-		:type viewport: L{Viewport <constant.Viewport>} constant
+		:type viewport: `Viewport` constant
 		:param viewport: Viewport in which object are to be rendered on
-		:type lut : L{Lut <constant.Lut>} constant
+		:type lut : `Lut` constant
 		:param lut: Lookup table color scheme
 		:type cell_to_point: Boolean
 		:param cell_to_point: Converts cell data to point data (by averaging)
@@ -466,7 +466,7 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 		"""
 		Render the ellipsoids clip using a plane.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 

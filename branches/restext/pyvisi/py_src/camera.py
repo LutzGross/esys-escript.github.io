@@ -40,7 +40,7 @@ class Camera:
 	"""
 	Class that defines a camera. A camera controls the display angle of
 	the rendered object and one is usually created for a
-	L{Scene <scene.Scene>}. However, if a L{Scene <scene.Scene>} has four
+	`Scene`. However, if a `Scene` has four
 	viewports, then a separate camera may be created for each viewport.
 	"""
 
@@ -50,9 +50,9 @@ class Camera:
 		"""
 		Initialise the camera.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type viewport: L{Viewport <constant.Viewport>} constant
+		:type viewport: `Viewport` constant
 		:param viewport: Viewport in which objects are to be rendered on
 		"""
                 if getMPISizeWorld()>1:
@@ -71,7 +71,7 @@ class Camera:
 		"""
 		Setup the camera.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 
@@ -83,7 +83,7 @@ class Camera:
 		"""
 		Set the focal point of the camera.
 
-		:type position: L{GlobalPosition <position.GlobalPosition>} object
+		:type position: `GlobalPosition` object
 		:param position: Camera focal point
 		"""
 
@@ -94,7 +94,7 @@ class Camera:
 		"""
 		Set the position of the camera.
 
-		:type position: L{GlobalPosition <position.GlobalPosition>} object
+		:type position: `GlobalPosition` object
 		:param position: Camera position
 		"""
 
@@ -117,7 +117,7 @@ class Camera:
 		"""
 		Set the view up direction of the camera.
 
-		:type position: L{GlobalPosition <position.GlobalPosition>} object
+		:type position: `GlobalPosition` object
 		:param position: Camera view up direction
 		"""
 
@@ -239,7 +239,7 @@ class Camera:
 		actors. This ensures the rendered object is not cut-off.
 		Needs to be called whenever the camera's settings are modified.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 
@@ -249,7 +249,7 @@ class Camera:
 		"""
 		Repositions the camera to view the center point of the actors.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 
@@ -272,7 +272,7 @@ class Camera:
 		"""
 		Render the camera.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 

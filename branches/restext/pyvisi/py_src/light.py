@@ -39,7 +39,7 @@ if getMPISizeWorld()==1: import vtk
 class Light:
 	"""
 	Class that defines a light. A light controls the lighting for the
-	rendered object and works in a similar way to L{Camera <camera.Camera>}.
+	rendered object and works in a similar way to `Camera`.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
@@ -48,9 +48,9 @@ class Light:
 		"""
 		Initialise the light.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which components are to be added to	
-		:type viewport: L{Viewport <constant.Viewport>} constant
+		:type viewport: `Viewport` constant
 		:param viewport: Viewport in which objects are to be rendered on
 		"""
                 if getMPISizeWorld()>1:
@@ -70,7 +70,7 @@ class Light:
 		"""
 		Set up the light and associate it with the renderer.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 
@@ -80,7 +80,7 @@ class Light:
 		"""
 		Set the light color.
 
-		:type color: L{Color <constant.Color>} constant
+		:type color: `Color` constant
 		:param color: Light color
 		"""
 
@@ -91,7 +91,7 @@ class Light:
 		"""
 		Set the focal point of the light.
 
-		:type position: L{GlobalPosition <position.GlobalPosition>} object
+		:type position: `GlobalPosition` object
 		:param position: Light focal point
 		"""
 
@@ -102,7 +102,7 @@ class Light:
 		"""
 		Set the position of the light.
 
-		:type position: L{GlobalPosition <position.GlobalPosition>} object
+		:type position: `GlobalPosition` object
 		:param position: Light position
 		"""
 
@@ -156,7 +156,7 @@ class Light:
 		"""
 		Render the light.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 

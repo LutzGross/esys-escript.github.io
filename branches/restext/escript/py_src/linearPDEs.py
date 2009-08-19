@@ -23,7 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 The module provides an interface to define and solve linear partial
 differential equations (PDEs) and Transport problems within `escript`.
 `linearPDEs` does not provide any solver capabilities in itself but hands the
-PDE over to the PDE solver library defined through the L{Domain<escript.Domain>}
+PDE over to the PDE solver library defined through the `Domain`
 of the PDE. The general interface is provided through the `LinearPDE` class.
 `TransportProblem` provides an interface to initial value problems dominated
 by its advective terms.
@@ -1021,18 +1021,18 @@ class PDECoef(object):
 
     def getFunctionSpace(self,domain,reducedEquationOrder=False,reducedSolutionOrder=False):
        """
-       Returns the L{FunctionSpace<escript.FunctionSpace>} of the coefficient.
+       Returns the `FunctionSpace` of the coefficient.
 
        :param domain: domain on which the PDE uses the coefficient
-       :type domain: L{Domain<escript.Domain>}
+       :type domain: `Domain`
        :param reducedEquationOrder: True to indicate that reduced order is used
                                     to represent the equation
        :type reducedEquationOrder: C{bool}
        :param reducedSolutionOrder: True to indicate that reduced order is used
                                     to represent the solution
        :type reducedSolutionOrder: C{bool}
-       :return: L{FunctionSpace<escript.FunctionSpace>} of the coefficient
-       :rtype: L{FunctionSpace<escript.FunctionSpace>}
+       :return: `FunctionSpace` of the coefficient
+       :rtype: `FunctionSpace`
        """
        if self.what==self.INTERIOR:
             return escript.Function(domain)
@@ -1059,7 +1059,7 @@ class PDECoef(object):
        Returns the value of the coefficient.
 
        :return: value of the coefficient
-       :rtype: L{Data<escript.Data>}
+       :rtype: `Data`
        """
        return self.value
 
@@ -1068,7 +1068,7 @@ class PDECoef(object):
        Sets the value of the coefficient to a new value.
 
        :param domain: domain on which the PDE uses the coefficient
-       :type domain: L{Domain<escript.Domain>}
+       :type domain: `Domain`
        :param numEquations: number of equations of the PDE
        :type numEquations: C{int}
        :param numSolutions: number of components of the PDE solution
@@ -1081,8 +1081,8 @@ class PDECoef(object):
        :type reducedSolutionOrder: C{bool}
        :param newValue: number of components of the PDE solution
        :type newValue: any object that can be converted into a
-                       L{Data<escript.Data>} object with the appropriate shape
-                       and L{FunctionSpace<escript.FunctionSpace>}
+                       `Data` object with the appropriate shape
+                       and `FunctionSpace`
        :raise IllegalCoefficientValue: if the shape of the assigned value does
                                        not match the shape of the coefficient
        :raise IllegalCoefficientFunctionSpace: if unable to interpolate value
@@ -1136,7 +1136,7 @@ class PDECoef(object):
        the coefficient has the given shape.
 
        :param domain: domain on which the PDE uses the coefficient
-       :type domain: L{Domain<escript.Domain>}
+       :type domain: `Domain`
        :param shape: suggested shape of the coefficient
        :type shape: C{tuple} of C{int} values
        :return: the number of equations and number of solutions of the PDE if
@@ -1223,7 +1223,7 @@ class PDECoef(object):
        Builds the required shape of the coefficient.
 
        :param domain: domain on which the PDE uses the coefficient
-       :type domain: L{Domain<escript.Domain>}
+       :type domain: `Domain`
        :param numEquations: number of equations of the PDE
        :type numEquations: C{int}
        :param numSolutions: number of components of the PDE solution
@@ -1248,7 +1248,7 @@ class LinearProblem(object):
    """
    This is the base class to define a general linear PDE-type problem for
    for an unknown function M{u} on a given domain defined through a
-   L{Domain<escript.Domain>} object. The problem can be given as a single
+   `Domain` object. The problem can be given as a single
    equation or as a system of equations.
 
    The class assumes that some sort of assembling process is required to form
@@ -1265,7 +1265,7 @@ class LinearProblem(object):
      Initializes a linear problem.
 
      :param domain: domain of the PDE
-     :type domain: L{Domain<escript.Domain>}
+     :type domain: `Domain`
      :param numEquations: number of equations. If C{None} the number of
                           equations is extracted from the coefficients.
      :param numSolutions: number of solution components. If C{None} the number
@@ -1366,7 +1366,7 @@ class LinearProblem(object):
      Returns the domain of the PDE.
 
      :return: the domain of the PDE
-     :rtype: L{Domain<escript.Domain>}
+     :rtype: `Domain`
      """
      return self.__domain
    def getDomainStatus(self):
@@ -1451,11 +1451,11 @@ class LinearProblem(object):
 
    def getFunctionSpaceForEquation(self):
      """
-     Returns the L{FunctionSpace<escript.FunctionSpace>} used to discretize
+     Returns the `FunctionSpace` used to discretize
      the equation.
 
      :return: representation space of equation
-     :rtype: L{FunctionSpace<escript.FunctionSpace>}
+     :rtype: `FunctionSpace`
      """
      if self.reduceEquationOrder():
          return escript.ReducedSolution(self.getDomain())
@@ -1464,11 +1464,11 @@ class LinearProblem(object):
 
    def getFunctionSpaceForSolution(self):
      """
-     Returns the L{FunctionSpace<escript.FunctionSpace>} used to represent
+     Returns the `FunctionSpace` used to represent
      the solution.
 
      :return: representation space of solution
-     :rtype: L{FunctionSpace<escript.FunctionSpace>}
+     :rtype: `FunctionSpace`
      """
      if self.reduceSolutionOrder():
          return escript.ReducedSolution(self.getDomain())
@@ -1795,7 +1795,7 @@ class LinearProblem(object):
      :param name: name of the coefficient requested
      :type name: C{string}
      :return: the value of the coefficient
-     :rtype: L{Data<escript.Data>}
+     :rtype: `Data`
      :raise IllegalCoefficient: if C{name} is not a coefficient of the PDE
      """
      if self.hasCoefficient(name):
@@ -1817,11 +1817,11 @@ class LinearProblem(object):
 
    def createCoefficient(self, name):
      """
-     Creates a L{Data<escript.Data>} object corresponding to coefficient
+     Creates a `Data` object corresponding to coefficient
      C{name}.
 
      :return: the coefficient C{name} initialized to 0
-     :rtype: L{Data<escript.Data>}
+     :rtype: `Data`
      :raise IllegalCoefficient: if C{name} is not a coefficient of the PDE
      """
      if self.hasCoefficient(name):
@@ -1831,13 +1831,13 @@ class LinearProblem(object):
 
    def getFunctionSpaceForCoefficient(self,name):
      """
-     Returns the L{FunctionSpace<escript.FunctionSpace>} to be used for
+     Returns the `FunctionSpace` to be used for
      coefficient C{name}.
 
      :param name: name of the coefficient enquired
      :type name: C{string}
      :return: the function space to be used for coefficient C{name}
-     :rtype: L{FunctionSpace<escript.FunctionSpace>}
+     :rtype: `FunctionSpace`
      :raise IllegalCoefficient: if C{name} is not a coefficient of the PDE
      """
      if self.hasCoefficient(name):
@@ -1990,7 +1990,7 @@ class LinearProblem(object):
      Returns the right hand side of the linear problem.
 
      :return: the right hand side of the problem
-     :rtype: L{Data<escript.Data>}
+     :rtype: `Data`
      """
      return self.getSystem()[1]
 
@@ -2183,7 +2183,7 @@ class LinearProblem(object):
        Returns the solution of the problem.
 
        :return: the solution
-       :rtype: L{Data<escript.Data>}
+       :rtype: `Data`
 
        :note: This method is overwritten when implementing a particular
               linear problem.
@@ -2195,7 +2195,7 @@ class LinearProblem(object):
        Returns the operator and right hand side of the PDE.
 
        :return: the discrete version of the PDE
-       :rtype: C{tuple} of L{Operator,<escript.Operator>} and L{Data<escript.Data>}.
+       :rtype: C{tuple} of `Operator` and `Data`.
 
        :note: This method is overwritten when implementing a particular
               linear problem.
@@ -2206,7 +2206,7 @@ class LinearPDE(LinearProblem):
    """
    This class is used to define a general linear, steady, second order PDE
    for an unknown function M{u} on a given domain defined through a
-   L{Domain<escript.Domain>} object.
+   `Domain` object.
 
    For a single PDE having a solution with a single component the linear PDE
    is defined in the following form:
@@ -2217,12 +2217,12 @@ class LinearPDE(LinearProblem):
    summation convention, ie. summation over indexes appearing twice in a term
    of a sum performed, is used.
    The coefficients M{A}, M{B}, M{C}, M{D}, M{X} and M{Y} have to be specified
-   through L{Data<escript.Data>} objects in L{Function<escript.Function>} and
+   through `Data` objects in `Function` and
    the coefficients M{A_reduced}, M{B_reduced}, M{C_reduced}, M{D_reduced},
    M{X_reduced} and M{Y_reduced} have to be specified through
-   L{Data<escript.Data>} objects in L{ReducedFunction<escript.ReducedFunction>}.
+   `Data` objects in `ReducedFunction`.
    It is also allowed to use objects that can be converted into such
-   L{Data<escript.Data>} objects. M{A} and M{A_reduced} are rank two, M{B},
+   `Data` objects. M{A} and M{A_reduced} are rank two, M{B},
    M{C}, M{X}, M{B_reduced}, M{C_reduced} and M{X_reduced} are rank one and
    M{D}, M{D_reduced}, M{Y} and M{Y_reduced} are scalar.
 
@@ -2233,9 +2233,9 @@ class LinearPDE(LinearProblem):
    where M{n} is the outer normal field. Notice that the coefficients M{A},
    M{A_reduced}, M{B}, M{B_reduced}, M{X} and M{X_reduced} are defined in the
    PDE. The coefficients M{d} and M{y} are each a scalar in
-   L{FunctionOnBoundary<escript.FunctionOnBoundary>} and the coefficients
+   `FunctionOnBoundary` and the coefficients
    M{d_reduced} and M{y_reduced} are each a scalar in
-   L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}.
+   `ReducedFunctionOnBoundary`.
 
    Constraints for the solution prescribe the value of the solution at certain
    locations in the domain. They have the form
@@ -2264,9 +2264,9 @@ class LinearPDE(LinearProblem):
    M{n[j]*((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])+(d[i,k]+d_reduced[i,k])*u[k]=n[j]*(X[i,j]+X_reduced[i,j])+y[i]+y_reduced[i]}
 
    The coefficient M{d} is of rank two and M{y} is of rank one both in
-   L{FunctionOnBoundary<escript.FunctionOnBoundary>}. The coefficients
+   `FunctionOnBoundary`. The coefficients
    M{d_reduced} is of rank two and M{y_reduced} is of rank one both in
-   L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}.
+   `ReducedFunctionOnBoundary`.
 
    Constraints take the form
 
@@ -2299,7 +2299,7 @@ class LinearPDE(LinearProblem):
 
    In the context of discontinuities M{n} denotes the normal on the
    discontinuity pointing from side 0 towards side 1 calculated from
-   L{getNormal<escript.FunctionSpace.getNormal>} of L{FunctionOnContactZero<escript.FunctionOnContactZero>}.
+   `getNormal` of `FunctionOnContactZero`.
    For a system of PDEs the contact condition takes the form
 
    M{n[j]*J0[i,j]=n[j]*J1[i,j]=(y_contact[i]+y_contact_reduced[i])- (d_contact[i,k]+d_contact_reduced[i,k])*jump(u)[k]}
@@ -2307,24 +2307,24 @@ class LinearPDE(LinearProblem):
    where M{J0} and M{J1} are the fluxes on side 0 and side 1 of the
    discontinuity, respectively. M{jump(u)}, which is the difference of the
    solution at side 1 and at side 0, denotes the jump of M{u} across
-   discontinuity along the normal calculated by L{jump<util.jump>}.
+   discontinuity along the normal calculated by `jump`.
    The coefficient M{d_contact} is of rank two and M{y_contact} is of rank one
-   both in L{FunctionOnContactZero<escript.FunctionOnContactZero>} or
-   L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
+   both in `FunctionOnContactZero` or
+   `FunctionOnContactOne`.
    The coefficient M{d_contact_reduced} is of rank two and M{y_contact_reduced}
-   is of rank one both in L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>}
-   or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
+   is of rank one both in `ReducedFunctionOnContactZero`
+   or `ReducedFunctionOnContactOne`.
    In case of a single PDE and a single component solution the contact
    condition takes the form
 
    M{n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)}
 
    In this case the coefficient M{d_contact} and M{y_contact} are each scalar
-   both in L{FunctionOnContactZero<escript.FunctionOnContactZero>} or
-   L{FunctionOnContactOne<escript.FunctionOnContactOne>} and the coefficient
+   both in `FunctionOnContactZero` or
+   `FunctionOnContactOne` and the coefficient
    M{d_contact_reduced} and M{y_contact_reduced} are each scalar both in
-   L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or
-   L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
+   `ReducedFunctionOnContactZero` or
+   `ReducedFunctionOnContactOne`.
 
    Typical usage::
 
@@ -2339,7 +2339,7 @@ class LinearPDE(LinearProblem):
      Initializes a new linear PDE.
 
      :param domain: domain of the PDE
-     :type domain: L{Domain<escript.Domain>}
+     :type domain: `Domain`
      :param numEquations: number of equations. If C{None} the number of
                           equations is extracted from the PDE coefficients.
      :param numSolutions: number of solution components. If C{None} the number
@@ -2435,7 +2435,7 @@ class LinearPDE(LinearProblem):
        Returns the solution of the PDE.
 
        :return: the solution
-       :rtype: L{Data<escript.Data>}
+       :rtype: `Data`
        """
        option_class=self.getSolverOptions()
        if not self.isSolutionValid():
@@ -2453,8 +2453,8 @@ class LinearPDE(LinearProblem):
        Returns the operator and right hand side of the PDE.
 
        :return: the discrete version of the PDE
-       :rtype: C{tuple} of L{Operator,<escript.Operator>} and
-               L{Data<escript.Data>}
+       :rtype: C{tuple} of `Operator` and
+               `Data`
        """
        if not self.isOperatorValid() or not self.isRightHandSideValid():
           if self.isUsingLumping():
@@ -2661,74 +2661,74 @@ class LinearPDE(LinearProblem):
 
       :param coefficients: new values assigned to coefficients
       :keyword A: value for coefficient C{A}
-      :type A: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
+      :type A: any type that can be cast to a `Data` object on
+               `Function`
       :keyword A_reduced: value for coefficient C{A_reduced}
-      :type A_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
+      :type A_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
       :keyword B: value for coefficient C{B}
-      :type B: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
+      :type B: any type that can be cast to a `Data` object on
+               `Function`
       :keyword B_reduced: value for coefficient C{B_reduced}
-      :type B_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
+      :type B_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
       :keyword C: value for coefficient C{C}
-      :type C: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
+      :type C: any type that can be cast to a `Data` object on
+               `Function`
       :keyword C_reduced: value for coefficient C{C_reduced}
-      :type C_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
+      :type C_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
       :keyword D: value for coefficient C{D}
-      :type D: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
+      :type D: any type that can be cast to a `Data` object on
+               `Function`
       :keyword D_reduced: value for coefficient C{D_reduced}
-      :type D_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
+      :type D_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
       :keyword X: value for coefficient C{X}
-      :type X: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
+      :type X: any type that can be cast to a `Data` object on
+               `Function`
       :keyword X_reduced: value for coefficient C{X_reduced}
-      :type X_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
+      :type X_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
       :keyword Y: value for coefficient C{Y}
-      :type Y: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
+      :type Y: any type that can be cast to a `Data` object on
+               `Function`
       :keyword Y_reduced: value for coefficient C{Y_reduced}
-      :type Y_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.Function>}
+      :type Y_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
       :keyword d: value for coefficient C{d}
-      :type d: any type that can be cast to a L{Data<escript.Data>} object on
-               L{FunctionOnBoundary<escript.FunctionOnBoundary>}
+      :type d: any type that can be cast to a `Data` object on
+               `FunctionOnBoundary`
       :keyword d_reduced: value for coefficient C{d_reduced}
-      :type d_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}
+      :type d_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunctionOnBoundary`
       :keyword y: value for coefficient C{y}
-      :type y: any type that can be cast to a L{Data<escript.Data>} object on
-               L{FunctionOnBoundary<escript.FunctionOnBoundary>}
+      :type y: any type that can be cast to a `Data` object on
+               `FunctionOnBoundary`
       :keyword d_contact: value for coefficient C{d_contact}
-      :type d_contact: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{FunctionOnContactOne<escript.FunctionOnContactOne>}
-                       or L{FunctionOnContactZero<escript.FunctionOnContactZero>}
+      :type d_contact: any type that can be cast to a `Data`
+                       object on `FunctionOnContactOne`
+                       or `FunctionOnContactZero`
       :keyword d_contact_reduced: value for coefficient C{d_contact_reduced}
-      :type d_contact_reduced: any type that can be cast to a L{Data<escript.Data>}
-                               object on L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}
-                               or L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>}
+      :type d_contact_reduced: any type that can be cast to a `Data`
+                               object on `ReducedFunctionOnContactOne`
+                               or `ReducedFunctionOnContactZero`
       :keyword y_contact: value for coefficient C{y_contact}
-      :type y_contact: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{FunctionOnContactOne<escript.FunctionOnContactOne>}
-                       or L{FunctionOnContactZero<escript.FunctionOnContactZero>}
+      :type y_contact: any type that can be cast to a `Data`
+                       object on `FunctionOnContactOne`
+                       or `FunctionOnContactZero`
       :keyword y_contact_reduced: value for coefficient C{y_contact_reduced}
-      :type y_contact_reduced: any type that can be cast to a L{Data<escript.Data>}
-                               object on L{ReducedFunctionOnContactOne<escript.FunctionOnContactOne>}
-                               or L{ReducedFunctionOnContactZero<escript.FunctionOnContactZero>}
+      :type y_contact_reduced: any type that can be cast to a `Data`
+                               object on `ReducedFunctionOnContactOne`
+                               or `ReducedFunctionOnContactZero`
       :keyword r: values prescribed to the solution at the locations of
                   constraints
-      :type r: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
+      :type r: any type that can be cast to a `Data` object on
+               `Solution` or `ReducedSolution`
                depending on whether reduced order is used for the solution
       :keyword q: mask for location of constraints
-      :type q: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
+      :type q: any type that can be cast to a `Data` object on
+               `Solution` or `ReducedSolution`
                depending on whether reduced order is used for the
                representation of the equation
       :raise IllegalCoefficient: if an unknown coefficient keyword is used
@@ -2751,9 +2751,9 @@ class LinearPDE(LinearProblem):
      :param u: argument in the residual calculation. It must be representable
                in `self.getFunctionSpaceForSolution()`. If u is not present
                or equals C{None} the current solution is used.
-     :type u: L{Data<escript.Data>} or None
+     :type u: `Data` or None
      :return: residual of u
-     :rtype: L{Data<escript.Data>}
+     :rtype: `Data`
      """
      if u==None:
         return self.getOperator()*self.getSolution()-self.getRightHandSide()
@@ -2772,9 +2772,9 @@ class LinearPDE(LinearProblem):
 
      :param u: argument in the flux. If u is not present or equals `None` the
                current solution is used.
-     :type u: L{Data<escript.Data>} or None
+     :type u: `Data` or None
      :return: flux
-     :rtype: L{Data<escript.Data>}
+     :rtype: `Data`
      """
      if u==None: u=self.getSolution()
      return util.tensormult(self.getCoefficient("A"),util.grad(u,Funtion(self.getDomain))) \
@@ -2807,7 +2807,7 @@ class Poisson(LinearPDE):
      Initializes a new Poisson equation.
 
      :param domain: domain of the PDE
-     :type domain: L{Domain<escript.Domain>}
+     :type domain: `Domain`
      :param debug: if True debug information is printed
 
      """
@@ -2823,12 +2823,12 @@ class Poisson(LinearPDE):
 
      :param coefficients: new values assigned to coefficients
      :keyword f: value for right hand side M{f}
-     :type f: any type that can be cast to a L{Scalar<escript.Scalar>} object
-              on L{Function<escript.Function>}
+     :type f: any type that can be cast to a `Scalar` object
+              on `Function`
      :keyword q: mask for location of constraints
-     :type q: any type that can be cast to a rank zero L{Data<escript.Data>}
-              object on L{Solution<escript.Solution>} or
-              L{ReducedSolution<escript.ReducedSolution>} depending on whether
+     :type q: any type that can be cast to a rank zero `Data`
+              object on `Solution` or
+              `ReducedSolution` depending on whether
               reduced order is used for the representation of the equation
      :raise IllegalCoefficient: if an unknown coefficient keyword is used
      """
@@ -2842,7 +2842,7 @@ class Poisson(LinearPDE):
      :param name: name of the coefficient requested
      :type name: C{string}
      :return: the value of the coefficient C{name}
-     :rtype: L{Data<escript.Data>}
+     :rtype: `Data`
      :raise IllegalCoefficient: invalid coefficient name
      :note: This method is called by the assembling routine to map the Poisson
             equation onto the general PDE.
@@ -2878,7 +2878,7 @@ class Helmholtz(LinearPDE):
      Initializes a new Helmholtz equation.
 
      :param domain: domain of the PDE
-     :type domain: L{Domain<escript.Domain>}
+     :type domain: `Domain`
      :param debug: if True debug information is printed
 
      """
@@ -2899,29 +2899,29 @@ class Helmholtz(LinearPDE):
 
      :param coefficients: new values assigned to coefficients
      :keyword omega: value for coefficient M{S{omega}}
-     :type omega: any type that can be cast to a L{Scalar<escript.Scalar>}
-                  object on L{Function<escript.Function>}
+     :type omega: any type that can be cast to a `Scalar`
+                  object on `Function`
      :keyword k: value for coefficient M{k}
-     :type k: any type that can be cast to a L{Scalar<escript.Scalar>} object
-              on L{Function<escript.Function>}
+     :type k: any type that can be cast to a `Scalar` object
+              on `Function`
      :keyword f: value for right hand side M{f}
-     :type f: any type that can be cast to a L{Scalar<escript.Scalar>} object
-              on L{Function<escript.Function>}
+     :type f: any type that can be cast to a `Scalar` object
+              on `Function`
      :keyword alpha: value for right hand side M{S{alpha}}
-     :type alpha: any type that can be cast to a L{Scalar<escript.Scalar>}
-                  object on L{FunctionOnBoundary<escript.FunctionOnBoundary>}
+     :type alpha: any type that can be cast to a `Scalar`
+                  object on `FunctionOnBoundary`
      :keyword g: value for right hand side M{g}
-     :type g: any type that can be cast to a L{Scalar<escript.Scalar>} object
-              on L{FunctionOnBoundary<escript.FunctionOnBoundary>}
+     :type g: any type that can be cast to a `Scalar` object
+              on `FunctionOnBoundary`
      :keyword r: prescribed values M{r} for the solution in constraints
-     :type r: any type that can be cast to a L{Scalar<escript.Scalar>} object
-              on L{Solution<escript.Solution>} or
-              L{ReducedSolution<escript.ReducedSolution>} depending on whether
+     :type r: any type that can be cast to a `Scalar` object
+              on `Solution` or
+              `ReducedSolution` depending on whether
               reduced order is used for the representation of the equation
      :keyword q: mask for the location of constraints
-     :type q: any type that can be cast to a L{Scalar<escript.Scalar>} object
-              on L{Solution<escript.Solution>} or
-              L{ReducedSolution<escript.ReducedSolution>} depending on whether
+     :type q: any type that can be cast to a `Scalar` object
+              on `Solution` or
+              `ReducedSolution` depending on whether
               reduced order is used for the representation of the equation
      :raise IllegalCoefficient: if an unknown coefficient keyword is used
      """
@@ -2934,7 +2934,7 @@ class Helmholtz(LinearPDE):
      :param name: name of the coefficient requested
      :type name: C{string}
      :return: the value of the coefficient C{name}
-     :rtype: L{Data<escript.Data>}
+     :rtype: `Data`
      :raise IllegalCoefficient: invalid name
      """
      if name == "A" :
@@ -2978,7 +2978,7 @@ class LameEquation(LinearPDE):
       Initializes a new Lame equation.
 
       :param domain: domain of the PDE
-      :type domain: L{Domain<escript.Domain>}
+      :type domain: `Domain`
       :param debug: if True debug information is printed
 
       """
@@ -2997,29 +2997,29 @@ class LameEquation(LinearPDE):
 
      :param coefficients: new values assigned to coefficients
      :keyword lame_mu: value for coefficient M{S{mu}}
-     :type lame_mu: any type that can be cast to a L{Scalar<escript.Scalar>}
-                    object on L{Function<escript.Function>}
+     :type lame_mu: any type that can be cast to a `Scalar`
+                    object on `Function`
      :keyword lame_lambda: value for coefficient M{S{lambda}}
-     :type lame_lambda: any type that can be cast to a L{Scalar<escript.Scalar>}
-                        object on L{Function<escript.Function>}
+     :type lame_lambda: any type that can be cast to a `Scalar`
+                        object on `Function`
      :keyword F: value for internal force M{F}
-     :type F: any type that can be cast to a L{Vector<escript.Vector>} object
-              on L{Function<escript.Function>}
+     :type F: any type that can be cast to a `Vector` object
+              on `Function`
      :keyword sigma: value for initial stress M{S{sigma}}
-     :type sigma: any type that can be cast to a L{Tensor<escript.Tensor>}
-                  object on L{Function<escript.Function>}
+     :type sigma: any type that can be cast to a `Tensor`
+                  object on `Function`
      :keyword f: value for external force M{f}
-     :type f: any type that can be cast to a L{Vector<escript.Vector>} object
-              on L{FunctionOnBoundary<escript.FunctionOnBoundary>}
+     :type f: any type that can be cast to a `Vector` object
+              on `FunctionOnBoundary`
      :keyword r: prescribed values M{r} for the solution in constraints
-     :type r: any type that can be cast to a L{Vector<escript.Vector>} object
-              on L{Solution<escript.Solution>} or
-              L{ReducedSolution<escript.ReducedSolution>} depending on whether
+     :type r: any type that can be cast to a `Vector` object
+              on `Solution` or
+              `ReducedSolution` depending on whether
               reduced order is used for the representation of the equation
      :keyword q: mask for the location of constraints
-     :type q: any type that can be cast to a L{Vector<escript.Vector>} object
-              on L{Solution<escript.Solution>} or
-              L{ReducedSolution<escript.ReducedSolution>} depending on whether
+     :type q: any type that can be cast to a `Vector` object
+              on `Solution` or
+              `ReducedSolution` depending on whether
               reduced order is used for the representation of the equation
      :raise IllegalCoefficient: if an unknown coefficient keyword is used
      """
@@ -3032,7 +3032,7 @@ class LameEquation(LinearPDE):
      :param name: name of the coefficient requested
      :type name: C{string}
      :return: the value of the coefficient C{name}
-     :rtype: L{Data<escript.Data>}
+     :rtype: `Data`
      :raise IllegalCoefficient: invalid coefficient name
      """
      out =self.createCoefficient("A")
@@ -3071,7 +3071,7 @@ def LinearSinglePDE(domain,debug=False):
    Defines a single linear PDE.
 
    :param domain: domain of the PDE
-   :type domain: L{Domain<escript.Domain>}
+   :type domain: `Domain`
    :param debug: if True debug information is printed
    :rtype: `LinearPDE`
    """
@@ -3082,7 +3082,7 @@ def LinearPDESystem(domain,debug=False):
    Defines a system of linear PDEs.
 
    :param domain: domain of the PDEs
-   :type domain: L{Domain<escript.Domain>}
+   :type domain: `Domain`
    :param debug: if True debug information is printed
    :rtype: `LinearPDE`
    """
@@ -3094,7 +3094,7 @@ class TransportPDE(LinearProblem):
    This class is used to define a transport problem given by a general linear,
    time dependent, second order PDE for an unknown, non-negative,
    time-dependent function M{u} on a given domain defined through a
-   L{Domain<escript.Domain>} object.
+   `Domain` object.
 
    For a single equation with a solution with a single component the transport
    problem is defined in the following form:
@@ -3105,12 +3105,12 @@ class TransportPDE(LinearProblem):
    spatial derivative of M{F}. Einstein's summation convention,  ie. summation
    over indexes appearing twice in a term of a sum performed, is used.
    The coefficients M{M}, M{A}, M{B}, M{C}, M{D}, M{X} and M{Y} have to be
-   specified through L{Data<escript.Data>} objects in L{Function<escript.Function>}
+   specified through `Data` objects in `Function`
    and the coefficients M{M_reduced}, M{A_reduced}, M{B_reduced}, M{C_reduced},
    M{D_reduced}, M{X_reduced} and M{Y_reduced} have to be specified through
-   L{Data<escript.Data>} objects in L{ReducedFunction<escript.ReducedFunction>}.
+   `Data` objects in `ReducedFunction`.
    It is also allowed to use objects that can be converted into such
-   L{Data<escript.Data>} objects. M{M} and M{M_reduced} are scalar, M{A} and
+   `Data` objects. M{M} and M{M_reduced} are scalar, M{A} and
    M{A_reduced} are rank two, M{B}, M{C}, M{X}, M{B_reduced}, M{C_reduced} and
    M{X_reduced} are rank one and M{D}, M{D_reduced}, M{Y} and M{Y_reduced} are
    scalar.
@@ -3122,9 +3122,9 @@ class TransportPDE(LinearProblem):
    where M{n} is the outer normal field. Notice that the coefficients M{A},
    M{A_reduced}, M{B}, M{B_reduced}, M{X} and M{X_reduced} are defined in the
    transport problem. The coefficients M{m}, M{d} and M{y} are each a scalar in
-   L{FunctionOnBoundary<escript.FunctionOnBoundary>} and the coefficients
+   `FunctionOnBoundary` and the coefficients
    M{m_reduced}, M{d_reduced} and M{y_reduced} are each a scalar in
-   L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}.
+   `ReducedFunctionOnBoundary`.
 
    Constraints for the solution prescribing the value of the solution at
    certain locations in the domain have the form
@@ -3153,9 +3153,9 @@ class TransportPDE(LinearProblem):
    M{n[j]*((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]+X[i,j]+X_reduced[i,j])+(d[i,k]+d_reduced[i,k])*u[k]+y[i]+y_reduced[i]= (m[i,k]+m_reduced[i,k])*u[k]_t}
 
    The coefficient M{d} and M{m} are of rank two and M{y} is of rank one with
-   all in L{FunctionOnBoundary<escript.FunctionOnBoundary>}. The coefficients
+   all in `FunctionOnBoundary`. The coefficients
    M{d_reduced} and M{m_reduced} are of rank two and M{y_reduced} is of rank
-   one all in L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}.
+   one all in `ReducedFunctionOnBoundary`.
 
    Constraints take the form
 
@@ -3192,7 +3192,7 @@ class TransportPDE(LinearProblem):
 
    In the context of discontinuities M{n} denotes the normal on the
    discontinuity pointing from side 0 towards side 1 calculated from
-   L{getNormal<escript.FunctionSpace.getNormal>} of L{FunctionOnContactZero<escript.FunctionOnContactZero>}.
+   `getNormal` of `FunctionOnContactZero`.
    For a system of transport problems the contact condition takes the form
 
    M{n[j]*J0[i,j]=n[j]*J1[i,j]=(y_contact[i]+y_contact_reduced[i])- (d_contact[i,k]+d_contact_reduced[i,k])*jump(u)[k]}
@@ -3200,22 +3200,22 @@ class TransportPDE(LinearProblem):
    where M{J0} and M{J1} are the fluxes on side 0 and side 1 of the
    discontinuity, respectively. M{jump(u)}, which is the difference of the
    solution at side 1 and at side 0, denotes the jump of M{u} across
-   discontinuity along the normal calculated by L{jump<util.jump>}.
+   discontinuity along the normal calculated by `jump`.
    The coefficient M{d_contact} is of rank two and M{y_contact} is of rank one
-   both in L{FunctionOnContactZero<escript.FunctionOnContactZero>} or L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
+   both in `FunctionOnContactZero` or `FunctionOnContactOne`.
    The coefficient M{d_contact_reduced} is of rank two and M{y_contact_reduced}
-   is of rank one both in L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
+   is of rank one both in `ReducedFunctionOnContactZero` or `ReducedFunctionOnContactOne`.
    In case of a single PDE and a single component solution the contact
    condition takes the form
 
    M{n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)}
 
    In this case the coefficient M{d_contact} and M{y_contact} are each scalar
-   both in L{FunctionOnContactZero<escript.FunctionOnContactZero>} or
-   L{FunctionOnContactOne<escript.FunctionOnContactOne>} and the coefficient
+   both in `FunctionOnContactZero` or
+   `FunctionOnContactOne` and the coefficient
    M{d_contact_reduced} and M{y_contact_reduced} are each scalar both in
-   L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or
-   L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
+   `ReducedFunctionOnContactZero` or
+   `ReducedFunctionOnContactOne`.
 
    Typical usage::
 
@@ -3233,7 +3233,7 @@ class TransportPDE(LinearProblem):
      Initializes a transport problem.
 
      :param domain: domain of the PDE
-     :type domain: L{Domain<escript.Domain>}
+     :type domain: `Domain`
      :param numEquations: number of equations. If C{None} the number of
                           equations is extracted from the coefficients.
      :param numSolutions: number of solution components. If C{None} the number
@@ -3333,80 +3333,80 @@ class TransportPDE(LinearProblem):
 
       :param coefficients: new values assigned to coefficients
       :keyword M: value for coefficient C{M}
-      :type M: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
+      :type M: any type that can be cast to a `Data` object on
+               `Function`
       :keyword M_reduced: value for coefficient C{M_reduced}
-      :type M_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{Function<escript.ReducedFunction>}
+      :type M_reduced: any type that can be cast to a `Data`
+                       object on `Function`
       :keyword A: value for coefficient C{A}
-      :type A: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
+      :type A: any type that can be cast to a `Data` object on
+               `Function`
       :keyword A_reduced: value for coefficient C{A_reduced}
-      :type A_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
+      :type A_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
       :keyword B: value for coefficient C{B}
-      :type B: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
+      :type B: any type that can be cast to a `Data` object on
+               `Function`
       :keyword B_reduced: value for coefficient C{B_reduced}
-      :type B_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
+      :type B_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
       :keyword C: value for coefficient C{C}
-      :type C: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
+      :type C: any type that can be cast to a `Data` object on
+               `Function`
       :keyword C_reduced: value for coefficient C{C_reduced}
-      :type C_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
+      :type C_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
       :keyword D: value for coefficient C{D}
-      :type D: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
+      :type D: any type that can be cast to a `Data` object on
+               `Function`
       :keyword D_reduced: value for coefficient C{D_reduced}
-      :type D_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
+      :type D_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
       :keyword X: value for coefficient C{X}
-      :type X: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
+      :type X: any type that can be cast to a `Data` object on
+               `Function`
       :keyword X_reduced: value for coefficient C{X_reduced}
-      :type X_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
+      :type X_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
       :keyword Y: value for coefficient C{Y}
-      :type Y: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
+      :type Y: any type that can be cast to a `Data` object on
+               `Function`
       :keyword Y_reduced: value for coefficient C{Y_reduced}
-      :type Y_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.Function>}
+      :type Y_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
       :keyword m: value for coefficient C{m}
-      :type m: any type that can be cast to a L{Data<escript.Data>} object on
-               L{FunctionOnBoundary<escript.FunctionOnBoundary>}
+      :type m: any type that can be cast to a `Data` object on
+               `FunctionOnBoundary`
       :keyword m_reduced: value for coefficient C{m_reduced}
-      :type m_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{FunctionOnBoundary<escript.ReducedFunctionOnBoundary>}
+      :type m_reduced: any type that can be cast to a `Data`
+                       object on `FunctionOnBoundary`
       :keyword d: value for coefficient C{d}
-      :type d: any type that can be cast to a L{Data<escript.Data>} object on
-               L{FunctionOnBoundary<escript.FunctionOnBoundary>}
+      :type d: any type that can be cast to a `Data` object on
+               `FunctionOnBoundary`
       :keyword d_reduced: value for coefficient C{d_reduced}
-      :type d_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}
+      :type d_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunctionOnBoundary`
       :keyword y: value for coefficient C{y}
-      :type y: any type that can be cast to a L{Data<escript.Data>} object on
-               L{FunctionOnBoundary<escript.FunctionOnBoundary>}
+      :type y: any type that can be cast to a `Data` object on
+               `FunctionOnBoundary`
       :keyword d_contact: value for coefficient C{d_contact}
-      :type d_contact: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{FunctionOnContactOne<escript.FunctionOnContactOne>} or L{FunctionOnContactZero<escript.FunctionOnContactZero>}
+      :type d_contact: any type that can be cast to a `Data`
+                       object on `FunctionOnContactOne` or `FunctionOnContactZero`
       :keyword d_contact_reduced: value for coefficient C{d_contact_reduced}
-      :type d_contact_reduced: any type that can be cast to a L{Data<escript.Data>} object on L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>} or L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>}
+      :type d_contact_reduced: any type that can be cast to a `Data` object on `ReducedFunctionOnContactOne` or `ReducedFunctionOnContactZero`
       :keyword y_contact: value for coefficient C{y_contact}
-      :type y_contact: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{FunctionOnContactOne<escript.FunctionOnContactOne>} or L{FunctionOnContactZero<escript.FunctionOnContactZero>}
+      :type y_contact: any type that can be cast to a `Data`
+                       object on `FunctionOnContactOne` or `FunctionOnContactZero`
       :keyword y_contact_reduced: value for coefficient C{y_contact_reduced}
-      :type y_contact_reduced: any type that can be cast to a L{Data<escript.Data>} object on L{ReducedFunctionOnContactOne<escript.FunctionOnContactOne>} or L{ReducedFunctionOnContactZero<escript.FunctionOnContactZero>}
+      :type y_contact_reduced: any type that can be cast to a `Data` object on `ReducedFunctionOnContactOne` or `ReducedFunctionOnContactZero`
       :keyword r: values prescribed to the solution at the locations of constraints
-      :type r: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
+      :type r: any type that can be cast to a `Data` object on
+               `Solution` or `ReducedSolution`
                depending on whether reduced order is used for the solution
       :keyword q: mask for the location of constraints
-      :type q: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Solution<escript.Solution>} or
-               L{ReducedSolution<escript.ReducedSolution>} depending on whether
+      :type q: any type that can be cast to a `Data` object on
+               `Solution` or
+               `ReducedSolution` depending on whether
                reduced order is used for the representation of the equation
       :raise IllegalCoefficient: if an unknown coefficient keyword is used
       """
@@ -3433,8 +3433,8 @@ class TransportPDE(LinearProblem):
        Sets the initial solution.
 
        :param u: new initial solution
-       :type u: any object that can be interpolated to a L{Data<escript.Data>}
-                object on L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
+       :type u: any object that can be interpolated to a `Data`
+                object on `Solution` or `ReducedSolution`
        :note: C{u} must be non-negative
        """
        u2=util.interpolate(u,self.getFunctionSpaceForSolution())
@@ -3504,7 +3504,7 @@ class TransportPDE(LinearProblem):
        Returns the solution of the problem.
 
        :return: the solution
-       :rtype: L{Data<escript.Data>}
+       :rtype: `Data`
        """
        option_class=self.getSolverOptions()
        if dt<=0:
@@ -3518,8 +3518,8 @@ class TransportPDE(LinearProblem):
        Returns the operator and right hand side of the PDE.
 
        :return: the discrete version of the PDE
-       :rtype: C{tuple} of L{Operator,<escript.Operator>} and
-               L{Data<escript.Data>}
+       :rtype: C{tuple} of `Operator` and
+               `Data`
 
        """
        if not self.isOperatorValid() or not self.isRightHandSideValid():

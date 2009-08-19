@@ -98,7 +98,7 @@ class ScalarBar:
 		"""
 		Set the local position of the scalar bar.
 
-		:type position: L{LocalPosition <position.LocalPosition>} object
+		:type position: `LocalPosition` object
 		:param position: Position of the scalar bar
 		"""
 
@@ -151,7 +151,7 @@ class ScalarBar:
 		"""
 		Set the color of the scalar bar's label.
 
-		:type color: L{Color <constant.Color>} constant
+		:type color: `Color` constant
 		:param color: Color of the scalar bar label
 		"""
 
@@ -175,7 +175,7 @@ class ScalarBar:
 		"""
 		Set the color of the scalar bar's title.
 
-		:type color: L{Color <constant.Color>} constant
+		:type color: `Color` constant
 		:param color: Color of the scalar bar title
 		"""
 

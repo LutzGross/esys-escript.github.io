@@ -54,7 +54,7 @@ class DataCollector:
 		"""
 		Initialise the data collector.
 
-		:type source: L{Source <constant.Source>} constant
+		:type source: `Source` constant
 		:param source: Source type
 		"""
                 if getMPISizeWorld()>1:

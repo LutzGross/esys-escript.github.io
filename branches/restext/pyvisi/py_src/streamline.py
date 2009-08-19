@@ -71,16 +71,16 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 		'True', otherwise 'False' (which is the default). On occasions, an
 		inaccurate object may be rendered from cell data even after conversion.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type data_collector: `DataCollector`
 				object
 		:param data_collector: Deal with source of data for visualisation
-		:type viewport: L{Viewport <constant.Viewport>} constant
+		:type viewport: `Viewport` constant
 		:param viewport: Viewport in which the object is to be rendered on
-		:type color_mode: L{ColorMode <constant.ColorMode>} constant
+		:type color_mode: `ColorMode` constant
 		:param color_mode: Type of color mode
-		:type lut : L{Lut <constant.Lut>} constant
+		:type lut : `Lut` constant
 		:param lut: Lookup table color scheme
 		:type cell_to_point: Boolean
 		:param cell_to_point: Converts cell data to point data (by averaging)
@@ -168,7 +168,7 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 		"""
 		Render the streamline.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 

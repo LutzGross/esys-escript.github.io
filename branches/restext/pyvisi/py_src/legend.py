@@ -54,16 +54,16 @@ class Legend(ScalarBar, DataSetMapper, Actor3D):
 		"""
 		Initialise the Legend.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type data_collector: L{DataCollector <datacollector.DataCollector>}
+		:type data_collector: `DataCollector`
 				object
 		:param data_collector: Deal with source of data for vizualisation
-		:type viewport: L{Viewport <constant.Viewport>} constant  
+		:type viewport: `Viewport` constant  
 		:param viewport: Viewport in which objects are to be rendered on 
-		:type lut : L{Lut <constant.Lut>} constant
+		:type lut : `Lut` constant
 		:param lut: Lookup table color scheme
-		:type legend: L{Lut <constant.LegendType>} constant
+		:type legend: `Lut` constant
 		:param legend: Type of legend
 		"""
 
@@ -118,7 +118,7 @@ class Legend(ScalarBar, DataSetMapper, Actor3D):
 		"""
 		Render the legend.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
 		"""
 

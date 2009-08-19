@@ -51,9 +51,9 @@ class Rectangle(CubeSource, DataSetMapper, Actor3D):
 		"""
 		Initialise the Rectangle.
 
-		:type scene: L{Scene <scene.Scene>} object
+		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type viewport: L{Viewport <constant.Viewport>} constant  
+		:type viewport: `Viewport` constant  
 		:param viewport: Viewport in which objects are to be rendered on 
 		"""
 
