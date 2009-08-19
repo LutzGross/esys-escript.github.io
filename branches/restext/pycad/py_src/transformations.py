@@ -42,7 +42,7 @@ DEG=math.pi/180.
 RAD=1.
 class Transformation(object):
    """
-   General class to define an affine transformation M{x->Ax+b}.
+   General class to define an affine transformation *x->Ax+b*.
    """
    def __init__(self):
        """
@@ -58,11 +58,11 @@ class Transformation(object):
 
 class Translation(Transformation):
     """
-    Defines a translation M{x->x+b}.
+    Defines a translation *x->x+b*.
     """
     def __init__(self,b=numpy.zeros((3,),dtype=_TYPE)):
        """
-       Creates the linear transformation M{x->x+b}.
+       Creates the linear transformation *x->x+b*.
        """
        super(Translation, self).__init__()
        self.__b=numpy.array(b,_TYPE)

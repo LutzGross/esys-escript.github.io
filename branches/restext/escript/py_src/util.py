@@ -311,12 +311,12 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
 
 def kronecker(d=3):
    """
-   Returns the kronecker S{delta}-symbol.
+   Returns the kronecker delta-symbol.
 
    :param d: dimension or an object that has the ``getDim`` method defining the
              dimension
    :type d: ``int``, `escript.Domain` or `escript.FunctionSpace`
-   :return: the object u of rank 2 with M{u[i,j]=1} for M{i=j} and M{u[i,j]=0}
+   :return: the object u of rank 2 with *u[i,j]=1* for *i=j* and *u[i,j]=0*
             otherwise
    :rtype: ``numpy.ndarray`` or `escript.Data` of rank 2
    """
@@ -328,9 +328,9 @@ def identity(shape=()):
 
    :param shape: input shape for the identity tensor
    :type shape: ``tuple`` of ``int``
-   :return: array whose shape is shape x shape where M{u[i,k]=1} for M{i=k} and
-            M{u[i,k]=0} otherwise for len(shape)=1. If len(shape)=2:
-            M{u[i,j,k,l]=1} for M{i=k and j=l} and M{u[i,j,k,l]=0} otherwise.
+   :return: array whose shape is shape x shape where *u[i,k]=1* for *i=k* and
+            *u[i,k]=0* otherwise for len(shape)=1. If len(shape)=2:
+            *u[i,j,k,l]=1* for *i=k and j=l* and *u[i,j,k,l]=0* otherwise.
    :rtype: ``numpy.ndarray`` of rank 1, rank 2 or rank 4
    :raise ValueError: if len(shape)>2
    """
@@ -356,7 +356,7 @@ def identityTensor(d=3):
    :param d: dimension or an object that has the ``getDim`` method defining the
              dimension
    :type d: ``int``, `escript.Domain` or `escript.FunctionSpace`
-   :return: the object u of rank 2 with M{u[i,j]=1} for M{i=j} and M{u[i,j]=0}
+   :return: the object u of rank 2 with *u[i,j]=1* for *i=j* and *u[i,j]=0*
             otherwise
    :rtype: ``numpy.ndarray`` or `escript.Data` of rank 2
    """
@@ -374,8 +374,8 @@ def identityTensor4(d=3):
    :param d: dimension or an object that has the ``getDim`` method defining the
              dimension
    :type d: ``int`` or any object with a ``getDim`` method
-   :return: the object u of rank 4 with M{u[i,j,k,l]=1} for M{i=k and j=l} and
-            M{u[i,j,k,l]=0} otherwise
+   :return: the object u of rank 4 with *u[i,j,k,l]=1* for *i=k and j=l* and
+            *u[i,j,k,l]=0* otherwise
    :rtype: ``numpy.ndarray`` or `escript.Data` of rank 4
    """
    if isinstance(d,escript.FunctionSpace):
@@ -394,7 +394,7 @@ def unitVector(i=0,d=3):
    :param d: dimension or an object that has the ``getDim`` method defining the
              dimension
    :type d: ``int``, `escript.Domain` or `escript.FunctionSpace`
-   :return: the object u of rank 1 with M{u[j]=1} for M{j=index} and M{u[j]=0}
+   :return: the object u of rank 1 with *u[j]=1* for *j=index* and *u[j]=0*
             otherwise
    :rtype: ``numpy.ndarray`` or `escript.Data` of rank 1
    """
@@ -410,10 +410,10 @@ def Lsup(arg):
 
     :param arg: argument
     :type arg: ``float``, ``int``, `escript.Data`, ``numpy.ndarray``
-    :return: maximum value of the absolute value of ``arg``over all components
+    :return: maximum value of the absolute value of ``arg`` over all components
              and all data points
     :rtype: ``float``
-    :raise TypeError: if type of ``arg``cannot be processed
+    :raise TypeError: if type of ``arg`` cannot be processed
     """
     if isinstance(arg,numpy.ndarray):
         return sup(abs(arg))
@@ -432,9 +432,9 @@ def sup(arg):
 
     :param arg: argument
     :type arg: ``float``, ``int``, `escript.Data`, ``numpy.ndarray``
-    :return: maximum value of ``arg``over all components and all data points
+    :return: maximum value of ``arg`` over all components and all data points
     :rtype: ``float``
-    :raise TypeError: if type of ``arg``cannot be processed
+    :raise TypeError: if type of ``arg`` cannot be processed
     """
     if isinstance(arg,numpy.ndarray):
         return arg.max()
@@ -453,9 +453,9 @@ def inf(arg):
 
     :param arg: argument
     :type arg: ``float``, ``int``, `escript.Data`, ``numpy.ndarray``
-    :return: minimum value of ``arg``over all components and all data points
+    :return: minimum value of ``arg`` over all components and all data points
     :rtype: ``float``
-    :raise TypeError: if type of ``arg``cannot be processed
+    :raise TypeError: if type of ``arg`` cannot be processed
     """
     if isinstance(arg,numpy.ndarray):
         return arg.min()
@@ -481,7 +481,7 @@ def getRank(arg):
                ``Symbol``
     :return: the rank of the argument
     :rtype: ``int``
-    :raise TypeError: if type of ``arg``cannot be processed
+    :raise TypeError: if type of ``arg`` cannot be processed
     """
 
     if isinstance(arg,numpy.ndarray):
@@ -506,7 +506,7 @@ def getShape(arg):
                ``Symbol``
     :return: the shape of the argument
     :rtype: ``tuple`` of ``int``
-    :raise TypeError: if type of ``arg``cannot be processed
+    :raise TypeError: if type of ``arg`` cannot be processed
     """
 
     if isinstance(arg,numpy.ndarray):
@@ -1129,7 +1129,7 @@ class Symbol(object):
 class DependendSymbol(Symbol):
    """
    DependendSymbol extents `Symbol` by modifying the == operator to allow two
-   instances to be equal. Two ``DependendSymbol``s are equal if they have the
+   instances to be equal. Two ``DependendSymbol`` s are equal if they have the
    same shape, the same arguments and one of them has an unspecified spatial
    dimension or the spatial dimension is identical.
 
@@ -1692,7 +1692,7 @@ def whereNonZero(arg,tol=0.):
 
 def erf(arg):
    """
-   Returns the error function M{erf} of argument ``arg``.
+   Returns the error function *erf* of argument ``arg``.
 
    :param arg: argument
    :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``.
@@ -2907,7 +2907,7 @@ class Atanh_Symbol(DependendSymbol):
 
 def exp(arg):
    """
-   Returns M{e} to the power of argument ``arg``.
+   Returns *e* to the power of argument ``arg``.
 
    :param arg: argument
    :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``.
@@ -3888,7 +3888,7 @@ class SwapAxes_Symbol(DependendSymbol):
 def symmetric(arg):
     """
     Returns the symmetric part of the square matrix ``arg``. That is,
-    M{(arg+transpose(arg))/2}.
+    *(arg+transpose(arg))/2*.
 
     :param arg: input matrix. Must have rank 2 or 4 and be square.
     :type arg: ``numpy.ndarray``, `escript.Data`, `Symbol`
@@ -3937,7 +3937,7 @@ def symmetric(arg):
 def nonsymmetric(arg):
     """
     Returns the non-symmetric part of the square matrix ``arg``. That is,
-    M{(arg-transpose(arg))/2}.
+    *(arg-transpose(arg))/2*.
 
     :param arg: input matrix. Must have rank 2 or 4 and be square.
     :type arg: ``numpy.ndarray``, `escript.Data`, `Symbol`
@@ -4815,7 +4815,7 @@ def inner(arg0,arg1):
     """
     Inner product of the two arguments. The inner product is defined as:
 
-    C{out=S{Sigma}_s arg0[s]*arg1[s]}
+    C{out=Sigma_s arg0[s]*arg1[s]}
 
     where s runs through ``arg0.Shape``.
 
@@ -4870,11 +4870,11 @@ def matrix_mult(arg0,arg1):
     """
     matrix-matrix or matrix-vector product of the two arguments.
 
-    C{out[s0]=S{Sigma}_{r0} arg0[s0,r0]*arg1[r0]}
+    C{out[s0]=Sigma_{r0} arg0[s0,r0]*arg1[r0]}
 
     or
 
-    C{out[s0,s1]=S{Sigma}_{r0} arg0[s0,r0]*arg1[r0,s1]}
+    C{out[s0,s1]=Sigma_{r0} arg0[s0,r0]*arg1[r0,s1]}
 
     The second dimension of ``arg0`` and the first dimension of ``arg1`` must
     match.
@@ -4909,23 +4909,23 @@ def tensor_mult(arg0,arg1):
 
     For ``arg0`` of rank 2 this is
 
-    C{out[s0]=S{Sigma}_{r0} arg0[s0,r0]*arg1[r0]}
+    C{out[s0]=Sigma_{r0} arg0[s0,r0]*arg1[r0]}
 
     or
 
-    C{out[s0,s1]=S{Sigma}_{r0} arg0[s0,r0]*arg1[r0,s1]}
+    C{out[s0,s1]=Sigma_{r0} arg0[s0,r0]*arg1[r0,s1]}
 
     and for ``arg0`` of rank 4 this is
 
-    C{out[s0,s1,s2,s3]=S{Sigma}_{r0,r1} arg0[s0,s1,r0,r1]*arg1[r0,r1,s2,s3]}
+    C{out[s0,s1,s2,s3]=Sigma_{r0,r1} arg0[s0,s1,r0,r1]*arg1[r0,r1,s2,s3]}
 
     or
 
-    C{out[s0,s1,s2]=S{Sigma}_{r0,r1} arg0[s0,s1,r0,r1]*arg1[r0,r1,s2]}
+    C{out[s0,s1,s2]=Sigma_{r0,r1} arg0[s0,s1,r0,r1]*arg1[r0,r1,s2]}
 
     or
 
-    C{out[s0,s1]=S{Sigma}_{r0,r1} arg0[s0,s1,r0,r1]*arg1[r0,r1]}
+    C{out[s0,s1]=Sigma_{r0,r1} arg0[s0,s1,r0,r1]*arg1[r0,r1]}
 
     In the first case the second dimension of ``arg0`` and the last dimension of
     ``arg1`` must match and in the second case the two last dimensions of ``arg0``
@@ -4953,7 +4953,7 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
     """
     Generalized tensor product.
 
-    C{out[s,t]=S{Sigma}_r arg0[s,r]*arg1[r,t]}
+    C{out[s,t]=Sigma_r arg0[s,r]*arg1[r,t]}
 
     where
         - s runs through ``arg0.Shape[:arg0.ndim-axis_offset]``
@@ -5086,11 +5086,11 @@ def transposed_matrix_mult(arg0,arg1):
     transposed(matrix)-matrix or transposed(matrix)-vector product of the two
     arguments.
 
-    C{out[s0]=S{Sigma}_{r0} arg0[r0,s0]*arg1[r0]}
+    C{out[s0]=Sigma_{r0} arg0[r0,s0]*arg1[r0]}
 
     or
 
-    C{out[s0,s1]=S{Sigma}_{r0} arg0[r0,s0]*arg1[r0,s1]}
+    C{out[s0,s1]=Sigma_{r0} arg0[r0,s0]*arg1[r0,s1]}
 
     The function call ``transposed_matrix_mult(arg0,arg1)`` is equivalent to
     ``matrix_mult(transpose(arg0),arg1)``.
@@ -5121,23 +5121,23 @@ def transposed_tensor_mult(arg0,arg1):
 
     For ``arg0`` of rank 2 this is
 
-    C{out[s0]=S{Sigma}_{r0} arg0[r0,s0]*arg1[r0]}
+    C{out[s0]=Sigma_{r0} arg0[r0,s0]*arg1[r0]}
 
     or
 
-    C{out[s0,s1]=S{Sigma}_{r0} arg0[r0,s0]*arg1[r0,s1]}
+    C{out[s0,s1]=Sigma_{r0} arg0[r0,s0]*arg1[r0,s1]}
 
     and for ``arg0`` of rank 4 this is
 
-    C{out[s0,s1,s2,s3]=S{Sigma}_{r0,r1} arg0[r0,r1,s0,s1]*arg1[r0,r1,s2,s3]}
+    C{out[s0,s1,s2,s3]=Sigma_{r0,r1} arg0[r0,r1,s0,s1]*arg1[r0,r1,s2,s3]}
 
     or
 
-    C{out[s0,s1,s2]=S{Sigma}_{r0,r1} arg0[r0,r1,s0,s1]*arg1[r0,r1,s2]}
+    C{out[s0,s1,s2]=Sigma_{r0,r1} arg0[r0,r1,s0,s1]*arg1[r0,r1,s2]}
 
     or
 
-    C{out[s0,s1]=S{Sigma}_{r0,r1} arg0[r0,r1,s0,s1]*arg1[r0,r1]}
+    C{out[s0,s1]=Sigma_{r0,r1} arg0[r0,r1,s0,s1]*arg1[r0,r1]}
 
     In the first case the first dimension of ``arg0`` and the first dimension of
     ``arg1`` must match and in the second case the two first dimensions of
@@ -5168,7 +5168,7 @@ def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
     """
     Generalized tensor product of transposed of ``arg0`` and ``arg1``.
 
-    C{out[s,t]=S{Sigma}_r arg0[r,s]*arg1[r,t]}
+    C{out[s,t]=Sigma_r arg0[r,s]*arg1[r,t]}
 
     where
         - s runs through ``arg0.Shape[axis_offset:]``
@@ -5307,7 +5307,7 @@ def matrix_transposed_mult(arg0,arg1):
     """
     matrix-transposed(matrix) product of the two arguments.
 
-    C{out[s0,s1]=S{Sigma}_{r0} arg0[s0,r0]*arg1[s1,r0]}
+    C{out[s0,s1]=Sigma_{r0} arg0[s0,r0]*arg1[s1,r0]}
 
     The function call ``matrix_transposed_mult(arg0,arg1)`` is equivalent to
     ``matrix_mult(arg0,transpose(arg1))``.
@@ -5338,15 +5338,15 @@ def tensor_transposed_mult(arg0,arg1):
 
     For ``arg0`` of rank 2 this is
 
-    C{out[s0,s1]=S{Sigma}_{r0} arg0[s0,r0]*arg1[s1,r0]}
+    C{out[s0,s1]=Sigma_{r0} arg0[s0,r0]*arg1[s1,r0]}
 
     and for ``arg0`` of rank 4 this is
 
-    C{out[s0,s1,s2,s3]=S{Sigma}_{r0,r1} arg0[s0,s1,r0,r1]*arg1[s2,s3,r0,r1]}
+    C{out[s0,s1,s2,s3]=Sigma_{r0,r1} arg0[s0,s1,r0,r1]*arg1[s2,s3,r0,r1]}
 
     or
 
-    C{out[s0,s1,s2]=S{Sigma}_{r0,r1} arg0[s0,s1,r0,r1]*arg1[s2,r0,r1]}
+    C{out[s0,s1,s2]=Sigma_{r0,r1} arg0[s0,s1,r0,r1]*arg1[s2,r0,r1]}
 
     In the first case the the second dimension of ``arg0`` and ``arg1`` must
     match and in the second case the two last dimensions of ``arg0`` must match
@@ -5378,7 +5378,7 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
     """
     Generalized tensor product of ``arg0`` and transpose of ``arg1``.
 
-    C{out[s,t]=S{Sigma}_r arg0[s,r]*arg1[t,r]}
+    C{out[s,t]=Sigma_r arg0[s,r]*arg1[t,r]}
 
     where
         - s runs through ``arg0.Shape[:arg0.ndim-axis_offset]``

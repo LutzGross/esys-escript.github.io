@@ -178,7 +178,7 @@ class ESySXMLCreator(object):
 
     def createDataNode(self, tagName, data):
         """
-        ``createDataNode``s are the building blocks of the XML documents
+        ``createDataNode`` s are the building blocks of the XML documents
         constructed in this module.
 
         :param tagName: the associated XML tag

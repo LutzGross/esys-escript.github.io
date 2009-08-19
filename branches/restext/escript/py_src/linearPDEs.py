@@ -741,7 +741,7 @@ class SolverOptions(object):
         return self.__drop_tolerance
     def setDropStorage(self,storage=2.):
         """
-        Sets the maximum allowed increase in storage for ILUT. ``storage``=2 would mean that
+        Sets the maximum allowed increase in storage for ILUT. ``storage`` =2 would mean that
         a doubling of the storage needed for the coefficient matrix is allowed in the ILUT factorization.
 
         :param storage: allowed storage increase
@@ -1247,17 +1247,17 @@ class PDECoef(object):
 class LinearProblem(object):
    """
    This is the base class to define a general linear PDE-type problem for
-   for an unknown function M{u} on a given domain defined through a
+   for an unknown function *u* on a given domain defined through a
    `Domain` object. The problem can be given as a single
    equation or as a system of equations.
 
    The class assumes that some sort of assembling process is required to form
    a problem of the form
 
-   M{L u=f}
+   *L u=f*
 
-   where M{L} is an operator and M{f} is the right hand side. This operator
-   problem will be solved to get the unknown M{u}.
+   where *L* is an operator and *f* is the right hand side. This operator
+   problem will be solved to get the unknown *u*.
 
    """
    def __init__(self,domain,numEquations=None,numSolutions=None,debug=False):
@@ -1352,7 +1352,7 @@ class LinearProblem(object):
 
        p.introduceCoefficients(A=PDECoef(...), B=PDECoef(...))
 
-       to introduce the coefficients M{A} ans M{B}.
+       to introduce the coefficients *A* ans *B*.
        """
        for name, type in coeff.items():
            if not isinstance(type,PDECoef):
@@ -2205,113 +2205,113 @@ class LinearProblem(object):
 class LinearPDE(LinearProblem):
    """
    This class is used to define a general linear, steady, second order PDE
-   for an unknown function M{u} on a given domain defined through a
+   for an unknown function *u* on a given domain defined through a
    `Domain` object.
 
    For a single PDE having a solution with a single component the linear PDE
    is defined in the following form:
 
-   M{-(grad(A[j,l]+A_reduced[j,l])*grad(u)[l]+(B[j]+B_reduced[j])u)[j]+(C[l]+C_reduced[l])*grad(u)[l]+(D+D_reduced)=-grad(X+X_reduced)[j,j]+(Y+Y_reduced)}
+   *-(grad(A[j,l]+A_reduced[j,l])*grad(u)[l]+(B[j]+B_reduced[j])u)[j]+(C[l]+C_reduced[l])*grad(u)[l]+(D+D_reduced)=-grad(X+X_reduced)[j,j]+(Y+Y_reduced)*
 
-   where M{grad(F)} denotes the spatial derivative of M{F}. Einstein's
+   where *grad(F)* denotes the spatial derivative of *F*. Einstein's
    summation convention, ie. summation over indexes appearing twice in a term
    of a sum performed, is used.
-   The coefficients M{A}, M{B}, M{C}, M{D}, M{X} and M{Y} have to be specified
+   The coefficients *A*, *B*, *C*, *D*, *X* and *Y* have to be specified
    through `Data` objects in `Function` and
-   the coefficients M{A_reduced}, M{B_reduced}, M{C_reduced}, M{D_reduced},
-   M{X_reduced} and M{Y_reduced} have to be specified through
+   the coefficients *A_reduced*, *B_reduced*, *C_reduced*, *D_reduced*,
+   *X_reduced* and *Y_reduced* have to be specified through
    `Data` objects in `ReducedFunction`.
    It is also allowed to use objects that can be converted into such
-   `Data` objects. M{A} and M{A_reduced} are rank two, M{B},
-   M{C}, M{X}, M{B_reduced}, M{C_reduced} and M{X_reduced} are rank one and
-   M{D}, M{D_reduced}, M{Y} and M{Y_reduced} are scalar.
+   `Data` objects. *A* and *A_reduced* are rank two, *B*,
+   *C*, *X*, *B_reduced*, *C_reduced* and *X_reduced* are rank one and
+   *D*, *D_reduced*, *Y* and *Y_reduced* are scalar.
 
    The following natural boundary conditions are considered:
 
-   M{n[j]*((A[i,j]+A_reduced[i,j])*grad(u)[l]+(B+B_reduced)[j]*u)+(d+d_reduced)*u=n[j]*(X[j]+X_reduced[j])+y}
+   *n[j]*((A[i,j]+A_reduced[i,j])*grad(u)[l]+(B+B_reduced)[j]*u)+(d+d_reduced)*u=n[j]*(X[j]+X_reduced[j])+y*
 
-   where M{n} is the outer normal field. Notice that the coefficients M{A},
-   M{A_reduced}, M{B}, M{B_reduced}, M{X} and M{X_reduced} are defined in the
-   PDE. The coefficients M{d} and M{y} are each a scalar in
+   where *n* is the outer normal field. Notice that the coefficients *A*,
+   *A_reduced*, *B*, *B_reduced*, *X* and *X_reduced* are defined in the
+   PDE. The coefficients *d* and *y* are each a scalar in
    `FunctionOnBoundary` and the coefficients
-   M{d_reduced} and M{y_reduced} are each a scalar in
+   *d_reduced* and *y_reduced* are each a scalar in
    `ReducedFunctionOnBoundary`.
 
    Constraints for the solution prescribe the value of the solution at certain
    locations in the domain. They have the form
 
-   M{u=r} where M{q>0}
+   *u=r* where *q>0*
 
-   M{r} and M{q} are each scalar where M{q} is the characteristic function
+   *r* and *q* are each scalar where *q* is the characteristic function
    defining where the constraint is applied. The constraints override any
    other condition set by the PDE or the boundary condition.
 
    The PDE is symmetrical if
 
-   M{A[i,j]=A[j,i]}  and M{B[j]=C[j]} and M{A_reduced[i,j]=A_reduced[j,i]}
-   and M{B_reduced[j]=C_reduced[j]}
+   *A[i,j]=A[j,i]*  and *B[j]=C[j]* and *A_reduced[i,j]=A_reduced[j,i]*
+   and *B_reduced[j]=C_reduced[j]*
 
    For a system of PDEs and a solution with several components the PDE has the
    form
 
-   M{-grad((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])[j]+(C[i,k,l]+C_reduced[i,k,l])*grad(u[k])[l]+(D[i,k]+D_reduced[i,k]*u[k] =-grad(X[i,j]+X_reduced[i,j])[j]+Y[i]+Y_reduced[i] }
+   *-grad((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])[j]+(C[i,k,l]+C_reduced[i,k,l])*grad(u[k])[l]+(D[i,k]+D_reduced[i,k]*u[k] =-grad(X[i,j]+X_reduced[i,j])[j]+Y[i]+Y_reduced[i]*
 
-   M{A} and M{A_reduced} are of rank four, M{B}, M{B_reduced}, M{C} and
-   M{C_reduced} are each of rank three, M{D}, M{D_reduced}, M{X_reduced} and
-   M{X} are each of rank two and M{Y} and M{Y_reduced} are of rank one.
+   *A* and *A_reduced* are of rank four, *B*, *B_reduced*, *C* and
+   *C_reduced* are each of rank three, *D*, *D_reduced*, *X_reduced* and
+   *X* are each of rank two and *Y* and *Y_reduced* are of rank one.
    The natural boundary conditions take the form:
 
-   M{n[j]*((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])+(d[i,k]+d_reduced[i,k])*u[k]=n[j]*(X[i,j]+X_reduced[i,j])+y[i]+y_reduced[i]}
+   *n[j]*((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])+(d[i,k]+d_reduced[i,k])*u[k]=n[j]*(X[i,j]+X_reduced[i,j])+y[i]+y_reduced[i]*
 
-   The coefficient M{d} is of rank two and M{y} is of rank one both in
+   The coefficient *d* is of rank two and *y* is of rank one both in
    `FunctionOnBoundary`. The coefficients
-   M{d_reduced} is of rank two and M{y_reduced} is of rank one both in
+   *d_reduced* is of rank two and *y_reduced* is of rank one both in
    `ReducedFunctionOnBoundary`.
 
    Constraints take the form
 
-   M{u[i]=r[i]}  where  M{q[i]>0}
+   *u[i]=r[i]*  where  *q[i]>0*
 
-   M{r} and M{q} are each rank one. Notice that at some locations not
+   *r* and *q* are each rank one. Notice that at some locations not
    necessarily all components must have a constraint.
 
    The system of PDEs is symmetrical if
 
-      - M{A[i,j,k,l]=A[k,l,i,j]}
-      - M{A_reduced[i,j,k,l]=A_reduced[k,l,i,j]}
-      - M{B[i,j,k]=C[k,i,j]}
-      - M{B_reduced[i,j,k]=C_reduced[k,i,j]}
-      - M{D[i,k]=D[i,k]}
-      - M{D_reduced[i,k]=D_reduced[i,k]}
-      - M{d[i,k]=d[k,i]}
-      - M{d_reduced[i,k]=d_reduced[k,i]}
+      - *A[i,j,k,l]=A[k,l,i,j]*
+      - *A_reduced[i,j,k,l]=A_reduced[k,l,i,j]*
+      - *B[i,j,k]=C[k,i,j]*
+      - *B_reduced[i,j,k]=C_reduced[k,i,j]*
+      - *D[i,k]=D[i,k]*
+      - *D_reduced[i,k]=D_reduced[i,k]*
+      - *d[i,k]=d[k,i]*
+      - *d_reduced[i,k]=d_reduced[k,i]*
 
    `LinearPDE` also supports solution discontinuities over a contact region
    in the domain. To specify the conditions across the discontinuity we are
-   using the generalised flux M{J} which, in the case of a system of PDEs
+   using the generalised flux *J* which, in the case of a system of PDEs
    and several components of the solution, is defined as
 
-   M{J[i,j]=(A[i,j,k,l]+A_reduced[[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]-X[i,j]-X_reduced[i,j]}
+   *J[i,j]=(A[i,j,k,l]+A_reduced[[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]-X[i,j]-X_reduced[i,j]*
 
-   For the case of single solution component and single PDE M{J} is defined as
+   For the case of single solution component and single PDE *J* is defined as
 
-   M{J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[j]+(B[i]+B_reduced[i])*u-X[i]-X_reduced[i]}
+   *J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[j]+(B[i]+B_reduced[i])*u-X[i]-X_reduced[i]*
 
-   In the context of discontinuities M{n} denotes the normal on the
+   In the context of discontinuities *n* denotes the normal on the
    discontinuity pointing from side 0 towards side 1 calculated from
    `FunctionSpace.getNormal` of `FunctionOnContactZero`.
    For a system of PDEs the contact condition takes the form
 
-   M{n[j]*J0[i,j]=n[j]*J1[i,j]=(y_contact[i]+y_contact_reduced[i])- (d_contact[i,k]+d_contact_reduced[i,k])*jump(u)[k]}
+   *n[j]*J0[i,j]=n[j]*J1[i,j]=(y_contact[i]+y_contact_reduced[i])- (d_contact[i,k]+d_contact_reduced[i,k])*jump(u)[k]*
 
-   where M{J0} and M{J1} are the fluxes on side 0 and side 1 of the
-   discontinuity, respectively. M{jump(u)}, which is the difference of the
-   solution at side 1 and at side 0, denotes the jump of M{u} across
+   where *J0* and *J1* are the fluxes on side 0 and side 1 of the
+   discontinuity, respectively. *jump(u)*, which is the difference of the
+   solution at side 1 and at side 0, denotes the jump of *u* across
    discontinuity along the normal calculated by `jump`.
-   The coefficient M{d_contact} is of rank two and M{y_contact} is of rank one
+   The coefficient *d_contact* is of rank two and *y_contact* is of rank one
    both in `FunctionOnContactZero` or
    `FunctionOnContactOne`.
-   The coefficient M{d_contact_reduced} is of rank two and M{y_contact_reduced}
+   The coefficient *d_contact_reduced* is of rank two and *y_contact_reduced*
    is of rank one both in `ReducedFunctionOnContactZero`
    or `ReducedFunctionOnContactOne`.
    In case of a single PDE and a single component solution the contact
@@ -2319,10 +2319,10 @@ class LinearPDE(LinearProblem):
 
    M{n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)}
 
-   In this case the coefficient M{d_contact} and M{y_contact} are each scalar
+   In this case the coefficient *d_contact* and *y_contact* are each scalar
    both in `FunctionOnContactZero` or
    `FunctionOnContactOne` and the coefficient
-   M{d_contact_reduced} and M{y_contact_reduced} are each scalar both in
+   *d_contact_reduced* and *y_contact_reduced* are each scalar both in
    `ReducedFunctionOnContactZero` or
    `ReducedFunctionOnContactOne`.
 
@@ -2762,13 +2762,13 @@ class LinearPDE(LinearProblem):
 
    def getFlux(self,u=None):
      """
-     Returns the flux M{J} for a given M{u}.
+     Returns the flux *J* for a given *u*.
 
-     M{J[i,j]=(A[i,j,k,l]+A_reduced[A[i,j,k,l]]*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])u[k]-X[i,j]-X_reduced[i,j]}
+     *J[i,j]=(A[i,j,k,l]+A_reduced[A[i,j,k,l]]*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])u[k]-X[i,j]-X_reduced[i,j]*
 
      or
 
-     M{J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[l]+(B[j]+B_reduced[j])u-X[j]-X_reduced[j]}
+     *J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[l]+(B[j]+B_reduced[j])u-X[j]-X_reduced[j]*
 
      :param u: argument in the flux. If u is not present or equals `None` the
                current solution is used.
@@ -2790,15 +2790,15 @@ class Poisson(LinearPDE):
    Class to define a Poisson equation problem. This is generally a
    `LinearPDE` of the form
 
-   M{-grad(grad(u)[j])[j] = f}
+   *-grad(grad(u)[j])[j] = f*
 
    with natural boundary conditions
 
-   M{n[j]*grad(u)[j] = 0 }
+   *n[j]*grad(u)[j] = 0*
 
    and constraints:
 
-   M{u=0} where M{q>0}
+   *u=0* where *q>0*
 
    """
 
@@ -2822,7 +2822,7 @@ class Poisson(LinearPDE):
      Sets new values to coefficients.
 
      :param coefficients: new values assigned to coefficients
-     :keyword f: value for right hand side M{f}
+     :keyword f: value for right hand side *f*
      :type f: any type that can be cast to a `Scalar` object
               on `Function`
      :keyword q: mask for location of constraints
@@ -2861,15 +2861,15 @@ class Helmholtz(LinearPDE):
    Class to define a Helmholtz equation problem. This is generally a
    `LinearPDE` of the form
 
-   M{S{omega}*u - grad(k*grad(u)[j])[j] = f}
+   *omega*u - grad(k*grad(u)[j])[j] = f*
 
    with natural boundary conditions
 
-   M{k*n[j]*grad(u)[j] = g- S{alpha}u }
+   *k*n[j]*grad(u)[j] = g- alphau*
 
    and constraints:
 
-   M{u=r} where M{q>0}
+   *u=r* where *q>0*
 
    """
 
@@ -2898,22 +2898,22 @@ class Helmholtz(LinearPDE):
      Sets new values to coefficients.
 
      :param coefficients: new values assigned to coefficients
-     :keyword omega: value for coefficient M{S{omega}}
+     :keyword omega: value for coefficient *omega*
      :type omega: any type that can be cast to a `Scalar`
                   object on `Function`
-     :keyword k: value for coefficient M{k}
+     :keyword k: value for coefficient *k*
      :type k: any type that can be cast to a `Scalar` object
               on `Function`
-     :keyword f: value for right hand side M{f}
+     :keyword f: value for right hand side *f*
      :type f: any type that can be cast to a `Scalar` object
               on `Function`
-     :keyword alpha: value for right hand side M{S{alpha}}
+     :keyword alpha: value for right hand side *alpha*
      :type alpha: any type that can be cast to a `Scalar`
                   object on `FunctionOnBoundary`
-     :keyword g: value for right hand side M{g}
+     :keyword g: value for right hand side *g*
      :type g: any type that can be cast to a `Scalar` object
               on `FunctionOnBoundary`
-     :keyword r: prescribed values M{r} for the solution in constraints
+     :keyword r: prescribed values *r* for the solution in constraints
      :type r: any type that can be cast to a `Scalar` object
               on `Solution` or
               `ReducedSolution` depending on whether
@@ -2961,15 +2961,15 @@ class LameEquation(LinearPDE):
    """
    Class to define a Lame equation problem. This problem is defined as:
 
-   M{-grad(S{mu}*(grad(u[i])[j]+grad(u[j])[i]))[j] - grad(S{lambda}*grad(u[k])[k])[j] = F_i -grad(S{sigma}[ij])[j] }
+   *-grad(mu*(grad(u[i])[j]+grad(u[j])[i]))[j] - grad(lambda*grad(u[k])[k])[j] = F_i -grad(sigma[ij])[j]*
 
    with natural boundary conditions:
 
-   M{n[j]*(S{mu}*(grad(u[i])[j]+grad(u[j])[i]) + S{lambda}*grad(u[k])[k]) = f_i +n[j]*S{sigma}[ij] }
+   *n[j]*(mu*(grad(u[i])[j]+grad(u[j])[i]) + lambda*grad(u[k])[k]) = f_i +n[j]*sigma[ij]*
 
    and constraints:
 
-   M{u[i]=r[i]} where M{q[i]>0}
+   *u[i]=r[i]* where *q[i]>0*
 
    """
 
@@ -2996,22 +2996,22 @@ class LameEquation(LinearPDE):
      Sets new values to coefficients.
 
      :param coefficients: new values assigned to coefficients
-     :keyword lame_mu: value for coefficient M{S{mu}}
+     :keyword lame_mu: value for coefficient *mu*
      :type lame_mu: any type that can be cast to a `Scalar`
                     object on `Function`
-     :keyword lame_lambda: value for coefficient M{S{lambda}}
+     :keyword lame_lambda: value for coefficient *lambda*
      :type lame_lambda: any type that can be cast to a `Scalar`
                         object on `Function`
-     :keyword F: value for internal force M{F}
+     :keyword F: value for internal force *F*
      :type F: any type that can be cast to a `Vector` object
               on `Function`
-     :keyword sigma: value for initial stress M{S{sigma}}
+     :keyword sigma: value for initial stress *sigma*
      :type sigma: any type that can be cast to a `Tensor`
                   object on `Function`
-     :keyword f: value for external force M{f}
+     :keyword f: value for external force *f*
      :type f: any type that can be cast to a `Vector` object
               on `FunctionOnBoundary`
-     :keyword r: prescribed values M{r} for the solution in constraints
+     :keyword r: prescribed values *r* for the solution in constraints
      :type r: any type that can be cast to a `Vector` object
               on `Solution` or
               `ReducedSolution` depending on whether
@@ -3093,127 +3093,127 @@ class TransportPDE(LinearProblem):
    """
    This class is used to define a transport problem given by a general linear,
    time dependent, second order PDE for an unknown, non-negative,
-   time-dependent function M{u} on a given domain defined through a
+   time-dependent function *u* on a given domain defined through a
    `Domain` object.
 
    For a single equation with a solution with a single component the transport
    problem is defined in the following form:
 
-   M{(M+M_reduced)*u_t=-(grad(A[j,l]+A_reduced[j,l])*grad(u)[l]+(B[j]+B_reduced[j])u)[j]+(C[l]+C_reduced[l])*grad(u)[l]+(D+D_reduced)-grad(X+X_reduced)[j,j]+(Y+Y_reduced)}
+   *(M+M_reduced)*u_t=-(grad(A[j,l]+A_reduced[j,l]) * grad(u)[l]+(B[j]+B_reduced[j])u)[j]+(C[l]+C_reduced[l])*grad(u)[l]+(D+D_reduced)-grad(X+X_reduced)[j,j]+(Y+Y_reduced)*
 
-   where M{u_t} denotes the time derivative of M{u} and M{grad(F)} denotes the
-   spatial derivative of M{F}. Einstein's summation convention,  ie. summation
+   where *u_t* denotes the time derivative of *u* and *grad(F)* denotes the
+   spatial derivative of *F*. Einstein's summation convention,  ie. summation
    over indexes appearing twice in a term of a sum performed, is used.
-   The coefficients M{M}, M{A}, M{B}, M{C}, M{D}, M{X} and M{Y} have to be
+   The coefficients *M*, *A*, *B*, *C*, *D*, *X* and *Y* have to be
    specified through `Data` objects in `Function`
-   and the coefficients M{M_reduced}, M{A_reduced}, M{B_reduced}, M{C_reduced},
-   M{D_reduced}, M{X_reduced} and M{Y_reduced} have to be specified through
+   and the coefficients *M_reduced*, *A_reduced*, *B_reduced*, *C_reduced*,
+   *D_reduced*, *X_reduced* and *Y_reduced* have to be specified through
    `Data` objects in `ReducedFunction`.
    It is also allowed to use objects that can be converted into such
-   `Data` objects. M{M} and M{M_reduced} are scalar, M{A} and
-   M{A_reduced} are rank two, M{B}, M{C}, M{X}, M{B_reduced}, M{C_reduced} and
-   M{X_reduced} are rank one and M{D}, M{D_reduced}, M{Y} and M{Y_reduced} are
+   `Data` objects. *M* and *M_reduced* are scalar, *A* and
+   *A_reduced* are rank two, *B*, *C*, *X*, *B_reduced*, *C_reduced* and
+   *X_reduced* are rank one and *D*, *D_reduced*, *Y* and *Y_reduced* are
    scalar.
 
    The following natural boundary conditions are considered:
 
-   M{n[j]*((A[i,j]+A_reduced[i,j])*grad(u)[l]+(B+B_reduced)[j]*u+X[j]+X_reduced[j])+(d+d_reduced)*u+y+y_reduced=(m+m_reduced)*u_t}
+   *n[j]*((A[i,j]+A_reduced[i,j])*grad(u)[l]+(B+B_reduced)[j]*u+X[j]+X_reduced[j])+(d+d_reduced)*u+y+y_reduced=(m+m_reduced)*u_t*
 
-   where M{n} is the outer normal field. Notice that the coefficients M{A},
-   M{A_reduced}, M{B}, M{B_reduced}, M{X} and M{X_reduced} are defined in the
-   transport problem. The coefficients M{m}, M{d} and M{y} are each a scalar in
+   where *n* is the outer normal field. Notice that the coefficients *A*,
+   *A_reduced*, *B*, *B_reduced*, *X* and *X_reduced* are defined in the
+   transport problem. The coefficients *m*, *d* and *y* are each a scalar in
    `FunctionOnBoundary` and the coefficients
-   M{m_reduced}, M{d_reduced} and M{y_reduced} are each a scalar in
+   *m_reduced*, *d_reduced* and *y_reduced* are each a scalar in
    `ReducedFunctionOnBoundary`.
 
    Constraints for the solution prescribing the value of the solution at
    certain locations in the domain have the form
 
-   M{u_t=r} where M{q>0}
+   *u_t=r* where *q>0*
 
-   M{r} and M{q} are each scalar where M{q} is the characteristic function
+   *r* and *q* are each scalar where *q* is the characteristic function
    defining where the constraint is applied. The constraints override any other
    condition set by the transport problem or the boundary condition.
 
    The transport problem is symmetrical if
 
-   M{A[i,j]=A[j,i]} and M{B[j]=C[j]} and M{A_reduced[i,j]=A_reduced[j,i]} and
-   M{B_reduced[j]=C_reduced[j]}
+   *A[i,j]=A[j,i]* and *B[j]=C[j]* and *A_reduced[i,j]=A_reduced[j,i]* and
+   *B_reduced[j]=C_reduced[j]*
 
    For a system and a solution with several components the transport problem
    has the form
 
-   M{(M[i,k]+M_reduced[i,k])*u[k]_t=-grad((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])[j]+(C[i,k,l]+C_reduced[i,k,l])*grad(u[k])[l]+(D[i,k]+D_reduced[i,k]*u[k]-grad(X[i,j]+X_reduced[i,j])[j]+Y[i]+Y_reduced[i] }
+   *(M[i,k]+M_reduced[i,k]) * u[k]_t=-grad((A[i,j,k,l]+A_reduced[i,j,k,l]) * grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k]) * u[k])[j]+(C[i,k,l]+C_reduced[i,k,l]) * grad(u[k])[l]+(D[i,k]+D_reduced[i,k] * u[k]-grad(X[i,j]+X_reduced[i,j])[j]+Y[i]+Y_reduced[i]*
 
-   M{A} and M{A_reduced} are of rank four, M{B}, M{B_reduced}, M{C} and
-   M{C_reduced} are each of rank three, M{M}, M{M_reduced}, M{D}, M{D_reduced},
-   M{X_reduced} and M{X} are each of rank two and M{Y} and M{Y_reduced} are of
+   *A* and *A_reduced* are of rank four, *B*, *B_reduced*, *C* and
+   *C_reduced* are each of rank three, *M*, *M_reduced*, *D*, *D_reduced*,
+   *X_reduced* and *X* are each of rank two and *Y* and *Y_reduced* are of
    rank one. The natural boundary conditions take the form:
 
-   M{n[j]*((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]+X[i,j]+X_reduced[i,j])+(d[i,k]+d_reduced[i,k])*u[k]+y[i]+y_reduced[i]= (m[i,k]+m_reduced[i,k])*u[k]_t}
+   *n[j]*((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]+X[i,j]+X_reduced[i,j])+(d[i,k]+d_reduced[i,k])*u[k]+y[i]+y_reduced[i]= (m[i,k]+m_reduced[i,k])*u[k]_t*
 
-   The coefficient M{d} and M{m} are of rank two and M{y} is of rank one with
+   The coefficient *d* and *m* are of rank two and *y* is of rank one with
    all in `FunctionOnBoundary`. The coefficients
-   M{d_reduced} and M{m_reduced} are of rank two and M{y_reduced} is of rank
+   *d_reduced* and *m_reduced* are of rank two and *y_reduced* is of rank
    one all in `ReducedFunctionOnBoundary`.
 
    Constraints take the form
 
-   M{u[i]_t=r[i]} where M{q[i]>0}
+   *u[i]_t=r[i]* where *q[i]>0*
 
-   M{r} and M{q} are each rank one. Notice that at some locations not
+   *r* and *q* are each rank one. Notice that at some locations not
    necessarily all components must have a constraint.
 
    The transport problem is symmetrical if
 
-      - M{M[i,k]=M[i,k]}
-      - M{M_reduced[i,k]=M_reduced[i,k]}
-      - M{A[i,j,k,l]=A[k,l,i,j]}
-      - M{A_reduced[i,j,k,l]=A_reduced[k,l,i,j]}
-      - M{B[i,j,k]=C[k,i,j]}
-      - M{B_reduced[i,j,k]=C_reduced[k,i,j]}
-      - M{D[i,k]=D[i,k]}
-      - M{D_reduced[i,k]=D_reduced[i,k]}
-      - M{m[i,k]=m[k,i]}
-      - M{m_reduced[i,k]=m_reduced[k,i]}
-      - M{d[i,k]=d[k,i]}
-      - M{d_reduced[i,k]=d_reduced[k,i]}
+      - *M[i,k]=M[i,k]*
+      - *M_reduced[i,k]=M_reduced[i,k]*
+      - *A[i,j,k,l]=A[k,l,i,j]*
+      - *A_reduced[i,j,k,l]=A_reduced[k,l,i,j]*
+      - *B[i,j,k]=C[k,i,j]*
+      - *B_reduced[i,j,k]=C_reduced[k,i,j]*
+      - *D[i,k]=D[i,k]*
+      - *D_reduced[i,k]=D_reduced[i,k]*
+      - *m[i,k]=m[k,i]*
+      - *m_reduced[i,k]=m_reduced[k,i]*
+      - *d[i,k]=d[k,i]*
+      - *d_reduced[i,k]=d_reduced[k,i]*
 
    `TransportPDE` also supports solution discontinuities over a contact region
    in the domain. To specify the conditions across the discontinuity we are
-   using the generalised flux M{J} which, in the case of a system of PDEs and
+   using the generalised flux *J* which, in the case of a system of PDEs and
    several components of the solution, is defined as
 
-   M{J[i,j]=(A[i,j,k,l]+A_reduced[[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]+X[i,j]+X_reduced[i,j]}
+   *J[i,j]=(A[i,j,k,l]+A_reduced[[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]+X[i,j]+X_reduced[i,j]*
 
-   For the case of single solution component and single PDE M{J} is defined as
+   For the case of single solution component and single PDE *J* is defined as
 
-   M{J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[j]+(B[i]+B_reduced[i])*u+X[i]+X_reduced[i]}
+   *J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[j]+(B[i]+B_reduced[i])*u+X[i]+X_reduced[i]*
 
-   In the context of discontinuities M{n} denotes the normal on the
+   In the context of discontinuities *n* denotes the normal on the
    discontinuity pointing from side 0 towards side 1 calculated from
    `FunctionSpace.getNormal` of `FunctionOnContactZero`.
    For a system of transport problems the contact condition takes the form
 
-   M{n[j]*J0[i,j]=n[j]*J1[i,j]=(y_contact[i]+y_contact_reduced[i])- (d_contact[i,k]+d_contact_reduced[i,k])*jump(u)[k]}
+   *n[j]*J0[i,j]=n[j]*J1[i,j]=(y_contact[i]+y_contact_reduced[i])- (d_contact[i,k]+d_contact_reduced[i,k])*jump(u)[k]*
 
-   where M{J0} and M{J1} are the fluxes on side 0 and side 1 of the
-   discontinuity, respectively. M{jump(u)}, which is the difference of the
-   solution at side 1 and at side 0, denotes the jump of M{u} across
+   where *J0* and *J1* are the fluxes on side 0 and side 1 of the
+   discontinuity, respectively. *jump(u)*, which is the difference of the
+   solution at side 1 and at side 0, denotes the jump of *u* across
    discontinuity along the normal calculated by `jump`.
-   The coefficient M{d_contact} is of rank two and M{y_contact} is of rank one
+   The coefficient *d_contact* is of rank two and *y_contact* is of rank one
    both in `FunctionOnContactZero` or `FunctionOnContactOne`.
-   The coefficient M{d_contact_reduced} is of rank two and M{y_contact_reduced}
+   The coefficient *d_contact_reduced* is of rank two and *y_contact_reduced*
    is of rank one both in `ReducedFunctionOnContactZero` or `ReducedFunctionOnContactOne`.
    In case of a single PDE and a single component solution the contact
    condition takes the form
 
    M{n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)}
 
-   In this case the coefficient M{d_contact} and M{y_contact} are each scalar
+   In this case the coefficient *d_contact* and *y_contact* are each scalar
    both in `FunctionOnContactZero` or
    `FunctionOnContactOne` and the coefficient
-   M{d_contact_reduced} and M{y_contact_reduced} are each scalar both in
+   *d_contact_reduced* and *y_contact_reduced* are each scalar both in
    `ReducedFunctionOnContactZero` or
    `ReducedFunctionOnContactOne`.
 
