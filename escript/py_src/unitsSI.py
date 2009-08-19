@@ -20,7 +20,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-## @file unitsSI.py
+## :file unitsSI.py
 
 """
 some tools supporting physical units and conversion

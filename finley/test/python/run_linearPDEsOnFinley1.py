@@ -22,7 +22,7 @@ __url__="https://launchpad.net/escript-finley"
 """
 Test suite for the linearPDE  and pdetools test on finley
 
-@remark:
+:remark:
 
 :var __author__: name of author
 :var __licence__: licence agreement

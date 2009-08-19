@@ -19,7 +19,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-## @file symbols.py
+## :file symbols.py
 
 """
 some tools supporting the usage of symbols.
