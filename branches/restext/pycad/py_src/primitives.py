@@ -474,7 +474,7 @@ class Manifold1D(PrimitiveBase):
         :type n: ``int``
         :param progression: a positive progression factor
         :type progression: positive ``float``
-        :param numberteBump: of elements on the line
+        :param createBump: of elements on the line
         :type createBump: ``bool``
         """
         if n<1:
@@ -1049,9 +1049,9 @@ class Manifold2D(PrimitiveBase):
     """
     General two-dimensional manifold.
  
-    :var LEFT: left element orientation when meshing with transifinite meshing
-    :var RIGHT: right element orientation when meshing with transifinite meshing
-    :var ALTERNATE: alternate element orientation when meshing with transifinite meshing
+    :ivar LEFT: left element orientation when meshing with transifinite meshing
+    :ivar RIGHT: right element orientation when meshing with transifinite meshing
+    :ivar ALTERNATE: alternate element orientation when meshing with transifinite meshing
     """
     LEFT="Left"
     RIGHT="Right"

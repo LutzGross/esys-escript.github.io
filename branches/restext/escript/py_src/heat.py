@@ -40,9 +40,9 @@ class TemperatureCartesian(TransportPDE):
     """
     Represents and solves the temperature advection-diffusion problem
 
-    M{rhocp(T_{,t} + v_i T_{,i} - ( k T_{,i})_i = Q}
+    *rhocp(T_{,t} + v_i T_{,i} - ( k T_{,i})_i = Q*
 
-    M{k T_{,i}*n_i=surface_flux} and M{T_{,t} = 0} where ``given_T_mask``>0.
+    *k T_{,i}*n_i=surface_flux* and *T_{,t} = 0* where ``given_T_mask``>0.
 
     If surface_flux is not given 0 is assumed.
 
@@ -107,10 +107,10 @@ class Tracer(TransportPDE):
     """
     Represents and solves the tracer problem
 
-    M{C_{,t} + v_i C_{,i} - ( k T_{,i})_i) = 0}
+    *C_{,t} + v_i C_{,i} - ( k T_{,i})_i) = 0*
 
-    M{C_{,t} = 0} where ``given_C_mask``>0.
-    M{C_{,i}*n_i=0} 
+    *C_{,t} = 0* where ``given_C_mask``>0.
+    *C_{,i}*n_i=0* 
 
     Typical usage::
 

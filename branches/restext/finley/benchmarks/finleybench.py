@@ -302,10 +302,10 @@ class AnisotropicSystem(RegularFinleyProblem):
     base class for the Anisotropic system problem on a rectangular mesh
     with an anisotropic 
 
-    M{- (mu*(u_{i,j}+u_{j,i}))_j+lam*u_{k,k})_j=X_{ij,j}}
+    *- (mu*(u_{i,j}+u_{j,i}))_j+lam*u_{k,k})_j=X_{ij,j}*
        
     where 
-           - M{u_i=x_i+1/d*\prod{i!=j} x_j}
+           - *u_i=x_i+1/d*\prod{i!=j} x_j*
            - *mu(x) = 1* for inner(x,normal)<inner(1.,normal)/2.
              and *mu(x) =  mu0* for inner(x,normal)>inner(1.,normal)/2.
            - lam(x)=max(1,mu0)*alpha (constant)

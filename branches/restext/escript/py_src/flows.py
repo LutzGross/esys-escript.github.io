@@ -40,8 +40,8 @@ class DarcyFlow(object):
     """
     solves the problem
 
-    M{u_i+k_{ij}*p_{,j} = g_i}
-    M{u_{i,i} = f}
+    *u_i+k_{ij}*p_{,j} = g_i*
+    *u_{i,i} = f*
 
     where *p* represents the pressure and *u* the Darcy flux. *k* represents the permeability,
 
@@ -181,7 +181,7 @@ class DarcyFlow(object):
 
         *|g-v-Qp| <= atol + rtol * min( max( |g-v|, |Qp| ), max( |v|, |g-Qp| ) )*
 
-        where ``atol`` is an absolut tolerance (see `setAbsoluteTolerance`), *|f|^2 = integrate(length(f)^2)* and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}.
+        where ``atol`` is an absolut tolerance (see `setAbsoluteTolerance`), *|f|^2 = integrate(length(f)^2)* and *(Qp)_i=k_{ij}p_{,j}* for the permeability *k_{ij}*.
 
         :param rtol: relative tolerance for the pressure
         :type rtol: non-negative ``float``
@@ -204,7 +204,7 @@ class DarcyFlow(object):
 
         *|g-v-Qp| <= atol + rtol * min( max( |g-v|, |Qp| ), max( |v|, |g-Qp| ) )*
 
-        where ``rtol`` is an absolut tolerance (see `setTolerance`), *|f|^2 = integrate(length(f)^2)* and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}.
+        where ``rtol`` is an absolut tolerance (see `setTolerance`), *|f|^2 = integrate(length(f)^2)* and *(Qp)_i=k_{ij}p_{,j}* for the permeability *k_{ij}*.
 
         :param atol: absolute tolerance for the pressure
         :type atol: non-negative ``float``
@@ -258,14 +258,14 @@ class DarcyFlow(object):
          *(I+D^*D)u+Qp=D^*f+g*
          *Q^*u+Q^*Qp=Q^*g*
 
-         where *D* is the *div* operator and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}.
+         where *D* is the *div* operator and *(Qp)_i=k_{ij}p_{,j}* for the permeability *k_{ij}*.
          We eliminate the flux form the problem by setting
 
-         M{u=(I+D^*D)^{-1}(D^*f-g-Qp)} with u=u0 on location_of_fixed_flux
+         *u=(I+D^*D)^{-1}(D^*f-g-Qp)* with u=u0 on location_of_fixed_flux
 
          form the first equation. Inserted into the second equation we get
 
-         M{Q^*(I-(I+D^*D)^{-1})Qp= Q^*(g-(I+D^*D)^{-1}(D^*f+g))} with p=p0  on location_of_fixed_pressure
+         *Q^*(I-(I+D^*D)^{-1})Qp= Q^*(g-(I+D^*D)^{-1}(D^*f+g))* with p=p0  on location_of_fixed_pressure
 
          which is solved using the PCG method (precondition is *Q^*Q*). In each iteration step
          PDEs with operator *I+D^*D* and with *Q^*Q* needs to be solved using a sub iteration scheme.
@@ -344,12 +344,10 @@ class DarcyFlow(object):
         :type p: scalar value on the domain (e.g. `Data`).
         :param fixed_flux: flux on the locations of the domain marked be ``location_of_fixed_flux``.
         :type fixed_flux: vector values on the domain (e.g. `Data`).
-        :param tol: relative tolerance to be used.
-        :type tol: positive ``float``.
         :return: flux
         :rtype: `Data`
-        :note: the method uses the least squares solution M{u=(I+D^*D)^{-1}(D^*f-g-Qp)} where *D* is the *div* operator and M{(Qp)_i=k_{ij}p_{,j}}
-               for the permeability M{k_{ij}}
+        :note: the method uses the least squares solution *u=(I+D^*D)^{-1}(D^*f-g-Qp)* where *D* is the *div* operator and *(Qp)_i=k_{ij}p_{,j}*
+               for the permeability *k_{ij}*
         """
 	self.setSubProblemTolerance()
         g=self.__g
@@ -476,7 +474,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
         :param eta: viscosity
         :type eta: `Scalar` object on `FunctionSpace` `Function` or similar
         :param surface_stress: normal surface stress
-        :type eta: `Vector` object on `FunctionSpace` `FunctionOnBoundary` or similar
+        :type surface_stress: `Vector` object on `FunctionSpace` `FunctionOnBoundary` or similar
         :param stress: initial stress
 	:type stress: `Tensor` object on `FunctionSpace` `Function` or similar
         :note: All values needs to be set.
@@ -498,7 +496,6 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          """
          returns inner product of element p and div(v)
 
-         :param p: a pressure increment
          :param v: a residual
          :return: inner product of element p and div(v)
          :rtype: ``float``
@@ -511,7 +508,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          returns inner product of element p and Bv=-div(v)
 
          :param p: a pressure increment
-         :param v: a residual
+         :param Bv: a residual
          :return: inner product of element p and Bv=-div(v)
          :rtype: ``float``
          """
@@ -546,7 +543,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 
          :param p: a pressure
          :param v0: a initial guess for the value v to return.
-         :return: v given as M{v= A^{-1} (f-B^*p)}
+         :return: v given as *v= A^{-1} (f-B^*p)*
          """
          self.__pde_u.setValue(Y=self.__f, y=self.__surface_stress, r=v0)
          if self.__stress.isEmpty():
@@ -579,11 +576,11 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 
      def solve_prec(self,Bv):
          """
-         applies preconditioner for for M{BA^{-1}B^*} to *Bv*
+         applies preconditioner for for *BA^{-1}B^** to *Bv*
          with accuracy `self.getSubProblemTolerance()` 
 
-         :param v: velocity increment
-         :return: *p=P(Bv)* where M{P^{-1}} is an approximation of M{BA^{-1}B^*}
+         :param Bv: velocity increment
+         :return: *p=P(Bv)* where *P^{-1}* is an approximation of *BA^{-1}B^ * )*
          :note: boundary conditions on p are zero.
          """
          self.__pde_prec.setValue(Y=Bv)
