@@ -187,9 +187,8 @@ class Unit(object):
        """
        Performs other*self operation
 
-       :param other: an other `Unit` or an arithmetic object. if other is a arithmetic object such as ``float`` other is assumed to be given in the
-       physical unit ``self`` and is converted into the corresponding SI unit.
-       :type other: `Unit` or 
+       :param other: an other `Unit` or an arithmetic object. if other is a arithmetic object such as ``float`` other is assumed to be given in the physical unit ``self`` and is converted into the corresponding SI unit.
+       :type other: `Unit` or
        :rtype: `Unit` of or an arithmetic object
        """
        if isinstance(other, Unit):

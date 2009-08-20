@@ -52,12 +52,13 @@ class SolverOptions(object):
     
     Typical usage is 
     
-    opts=SolverOptions()
-    print opts
-    opts.resetDiagnostics()
-    u=solver(opts)
-    print "number of iteration steps: =",opts.getDiagnostics("num_iter")
-    
+    ::
+	
+      opts=SolverOptions()
+      print opts
+      opts.resetDiagnostics()
+      u=solver(opts)
+      print "number of iteration steps: =",opts.getDiagnostics("num_iter")
 
     :cvar DEFAULT: The default method used to solve the system of linear equations
     :cvar DIRECT: The direct solver based on LDU factorization
@@ -303,10 +304,9 @@ class SolverOptions(object):
             self.__converged = (value == True)
     def getDiagnostics(self, name):
         """
-        Returns the diagnostic information ``name`` 
-        
-        :param name: name of diagnostic information where
-        - "num_iter": the number of iteration steps
+        Returns the diagnostic information ``name``. Possible values are:
+	    
+	- "num_iter": the number of iteration steps
         - "cum_num_iter": the cumulative number of iteration steps
         - "num_level": the number of level in multi level solver
         - "num_inner_iter": the number of inner iteration steps
@@ -318,8 +318,12 @@ class SolverOptions(object):
         - "net_time": net execution time, excluding setup time for the solver and execution time for preconditioner
         - "cum_net_time": cumulative net execution time
         - "residual_norm": norm of the final residual
-        - "converged": return self.__converged     
-        :type name: ``str`` in the list "num_iter", "num_level", "num_inner_iter", "time", "set_up_time", "net_time", "residual_norm", "converged".
+        - "converged": return self.__converged
+    
+	
+        
+        :param name: name of diagnostic information to return
+        :type name: ``str`` in the list above.
         :return: requested value. ``None`` is returned if the value is undefined.
         :note: If the solver has thrown an exception diagnostic values have an undefined status.
         """
@@ -349,8 +353,7 @@ class SolverOptions(object):
         Sets the key of the coarsening method to be applied in AMG.
 
         :param method: selects the coarsening method .
-        :type method: in {SolverOptions.DEFAULT}, `SolverOptions.YAIR_SHAPIRA_COARSENING`, 
-        `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`
+        :type method: in {SolverOptions.DEFAULT}, `SolverOptions.YAIR_SHAPIRA_COARSENING`,  `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`
         """
 	if method==None: method=0
         if not method in [self.DEFAULT, self.YAIR_SHAPIRA_COARSENING, self.RUGE_STUEBEN_COARSENING, self.AGGREGATION_COARSENING]:
@@ -361,8 +364,7 @@ class SolverOptions(object):
         """
         Returns the key of the coarsening algorithm to be applied AMG.
 
-        :rtype: in the list `SolverOptions.DEFAULT`, `SolverOptions.YAIR_SHAPIRA_COARSENING`, 
-        `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`
+        :rtype: in the list `SolverOptions.DEFAULT`, `SolverOptions.YAIR_SHAPIRA_COARSENING`,         `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`
         """
         return self.__coarsening
       
@@ -395,8 +397,7 @@ class SolverOptions(object):
         :type preconditioner: in `SolverOptions.SSOR`, `SolverOptions.ILU0`, `SolverOptions.ILUT`, `SolverOptions.JACOBI`, 
                                     `SolverOptions.AMG`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`,
                                     `SolverOptions.NO_PRECONDITIONER`
-        :note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters
-        an unknown preconditioner. 
+        :note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters an unknown preconditioner. 
         """
 	if preconditioner==None: preconditioner=10
         if not preconditioner in [ SolverOptions.SSOR, SolverOptions.ILU0, SolverOptions.ILUT, SolverOptions.JACOBI, 
@@ -425,8 +426,7 @@ class SolverOptions(object):
                         `SolverOptions.GMRES`, `SolverOptions.PRES20`, `SolverOptions.LUMPING`, `SolverOptions.ITERATIVE`, 
                         `SolverOptions.AMG`, `SolverOptions.NONLINEAR_GMRES`, `SolverOptions.TFQMR`, `SolverOptions.MINRES`, 
                         `SolverOptions.GAUSS_SEIDEL`
-        :note: Not all packages support all solvers. It can be assumed that a package makes a reasonable choice if it encounters
-        an unknown solver method. 
+        :note: Not all packages support all solvers. It can be assumed that a package makes a reasonable choice if it encounters an unknown solver method. 
         """
 	if method==None: method=0
         if not method in [ SolverOptions.DEFAULT, SolverOptions.DIRECT, SolverOptions.CHOLEVSKY, SolverOptions.PCG, 
@@ -472,8 +472,7 @@ class SolverOptions(object):
         to optimize compute time and storage use during elimination. 
 
         :param ordering: selects the reordering strategy.
-        :type ordering: in `SolverOptions.NO_REORDERING`, `SolverOptions.NO_REORDERING`, 
-        `SolverOptions.NO_REORDERING`, `SolverOptions.DEFAULT_REORDERING`
+        :type ordering: in `SolverOptions.NO_REORDERING`, `SolverOptions.NO_REORDERING`, `SolverOptions.NO_REORDERING`, `SolverOptions.DEFAULT_REORDERING`
         """
         if not ordering in [self.NO_REORDERING, self.MINIMUM_FILL_IN, self.NESTED_DISSECTION, self.DEFAULT_REORDERING]:
              raise ValueError,"unknown reordering strategy %s"%ordering
@@ -482,16 +481,14 @@ class SolverOptions(object):
         """
         Returns the key of the reordering method to be applied if supported by the solver.
 
-        :rtype: in the list `SolverOptions.NO_REORDERING`, `SolverOptions.NO_REORDERING`, 
-        `SolverOptions.NO_REORDERING`, `SolverOptions.DEFAULT_REORDERING`
+        :rtype: in the list `SolverOptions.NO_REORDERING`, `SolverOptions.NO_REORDERING`,  `SolverOptions.NO_REORDERING`, `SolverOptions.DEFAULT_REORDERING`
         """
         return self.__reordering
     def setRestart(self,restart=None):
         """
         Sets the number of iterations steps after which GMRES is performing a restart.
 
-        :param restart: number of iteration steps after which to perform a restart. If equal to ``None`` no
-                        restart is performed.
+        :param restart: number of iteration steps after which to perform a restart. If equal to ``None`` no restart is performed.
         :type restart: ``int`` or ``None``
         """
         if restart == None:
@@ -704,8 +701,7 @@ class SolverOptions(object):
 
     def setInnerTolerance(self,rtol=0.9):
         """
-         Sets the relative tolerance for an inner iteration scheme for instance
-        on the coarsest level in a multi-level scheme.
+         Sets the relative tolerance for an inner iteration scheme for instance on the coarsest level in a multi-level scheme.
 
         :param rtol: inner relative tolerance
         :type rtol: positive ``float``
@@ -1348,11 +1344,11 @@ class LinearProblem(object):
        """
        Introduces new coefficients into the problem.
 
-       Use::
+       Use:
 
        p.introduceCoefficients(A=PDECoef(...), B=PDECoef(...))
 
-       to introduce the coefficients *A* ans *B*.
+       to introduce the coefficients *A* and *B*.
        """
        for name, type in coeff.items():
            if not isinstance(type,PDECoef):

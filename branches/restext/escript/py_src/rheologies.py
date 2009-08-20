@@ -104,7 +104,7 @@ class PowerLaw(object):
          returns the relative tolerance for the effectice viscosity.
  
          :return: relative tolerance
-         @rtype rtol: positive ``float``
+         :rtype: positive ``float``
          """
          return self.__rtol
     #===========================================================================
