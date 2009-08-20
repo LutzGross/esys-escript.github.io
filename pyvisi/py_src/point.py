@@ -81,7 +81,7 @@ class PointSource:
 		"""
 		Specity the sphere's center.
 		
-		:type center: `GLobalPosition` object
+		:type center: `GlobalPosition` object
 		:param center: Center of the sphere
 		"""
 		

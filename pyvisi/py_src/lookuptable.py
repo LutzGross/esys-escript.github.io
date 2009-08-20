@@ -86,7 +86,7 @@ class LookupTable:
 		Set the value range (brightness) for the lookup table (between 0 and 1).
 
 		:type lower_range: Number
-		:param lower_range:Lower value range 
+		:param lower_range: Lower value range 
 		:type upper_range: Number
 		:param upper_range: Upper value range
 		"""
@@ -98,7 +98,7 @@ class LookupTable:
 		Set the hue (color) range for the lookup table (between 0 and 1).
 
 		:type lower_range: Number
-		:param lower_range:Lower hue range 
+		:param lower_range: Lower hue range 
 		:type upper_range: Number
 		:param upper_range: Upper hue range
 		"""
@@ -111,7 +111,7 @@ class LookupTable:
 		(between 0 and 1).
 
 		:type lower_range: Number
-		:param lower_range:Lower saturantion range 
+		:param lower_range: Lower saturantion range 
 		:type upper_range: Number
 		:param upper_range: Upper saturation range
 		"""

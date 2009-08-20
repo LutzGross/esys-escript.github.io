@@ -99,8 +99,7 @@ class ContourModule:
 		"""
 		Generate the specified number of contours within the specified range.
 
-		:attention: In order to generate an iso surface, the 'lower_range' and 
-		'upper_range' must be equal.
+		:attention: In order to generate an iso surface, the 'lower_range' and 'upper_range' must be equal.
 		"""
 
 		self.__vtk_contour.GenerateValues(self.__contours, self.__lower_range, 

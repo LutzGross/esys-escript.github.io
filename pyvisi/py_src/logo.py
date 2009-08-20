@@ -53,8 +53,7 @@ class Logo(ImageMapper, ImageReslice, Actor2D):
 		"""
 		:type scene: `Scene` object
 		:param scene: Scene in which the logo is to be displayed
-		:type image_reader: `ImageReader`
-		object
+		:type image_reader: `ImageReader` object
 		:param image_reader: Deal with source of data for vizualisation
 		:type viewport: `Viewport` constant  
 		:param viewport: Viewport in which the logo is to be displayed

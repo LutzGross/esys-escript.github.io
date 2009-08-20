@@ -90,7 +90,7 @@ class Arrow3D:
 		Return the output of the 3D arrows.
 
 		:rtype: vtkPolyData
-		:return Polygonal data
+		:return: Polygonal data
 		"""
 
 		return self.__vtk_arrow3D.GetOutput()

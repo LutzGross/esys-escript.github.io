@@ -42,9 +42,7 @@ class Scene:
 	be divided into four smaller windows called viewports (if needed). 
 	Each viewport can render a different object.  
 
-	:attention: If the IV or VRML renderer type is used, then only one 
-	viewport can be used (four viewports are not supported for these two 
-	cases). 
+	:attention: If the IV or VRML renderer type is used, then only one viewport can be used (four viewports are not supported for these two cases). 
 	"""
 
 	def __init__(self, renderer = Renderer.ONLINE, num_viewport = 1, 
