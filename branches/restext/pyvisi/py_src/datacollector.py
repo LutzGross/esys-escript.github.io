@@ -44,10 +44,7 @@ class DataCollector:
 	files are expensive, but this approach has the advantage given that the 
 	results can be analyzed easily after the simulation has completed.   
 
-	:attention: A DataCollector instance can only be used to specify one 
-	scalar, vector and tensor attribute from a source at any one time. If a 
-	second scalar, vector or tensor attribute needs to be specified from the 
-	same source, a second DataCollector instance must be created. 
+	:attention: A DataCollector instance can only be used to specify one scalar, vector and tensor attribute from a source at any one time. If a second scalar, vector or tensor attribute needs to be specified from the same source, a second DataCollector instance must be created. 
 	"""
 
 	def __init__(self, source = Source.XML):

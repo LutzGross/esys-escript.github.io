@@ -176,7 +176,7 @@ class Actor2D:
 		Return the 2D actor.	
 
 		:rtype: vtkActor2D
-		:return 2D actor
+		:return: 2D actor
 		"""
 
 		return self._vtk_actor2D

@@ -50,10 +50,7 @@ class Image(DataSetMapper, Actor3D, Texture, PlaneSource, Transform,
 	and has interaction capability. The image can also be translated and 
 	rotated along the X, Y and Z axes.
 
-	:attention: Translating an image works differently (opposite) compared to 
-	translating a plane. For example, a positive translation along the 
-	z-axis moves a plane up. However, if the identical translation is applied 
-	on an image, the image moves down.
+	:attention: Translating an image works differently (opposite) compared to translating a plane. For example, a positive translation along the z-axis moves a plane up. However, if the identical translation is applied on an image, the image moves down.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.

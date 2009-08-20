@@ -56,12 +56,11 @@ class Legend(ScalarBar, DataSetMapper, Actor3D):
 
 		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type data_collector: `DataCollector`
-				object
+		:type data_collector: `DataCollector` object
 		:param data_collector: Deal with source of data for vizualisation
 		:type viewport: `Viewport` constant  
 		:param viewport: Viewport in which objects are to be rendered on 
-		:type lut : `Lut` constant
+		:type lut: `Lut` constant
 		:param lut: Lookup table color scheme
 		:type legend: `Lut` constant
 		:param legend: Type of legend

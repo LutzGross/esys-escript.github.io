@@ -66,8 +66,7 @@ class Movie:
         The image range from which the movie is to be generated from.
         
         :type input_directory: String
-        :param input_directory: Directory in which the series of images can 
-        be found
+        :param input_directory: Directory in which the series of images can be found
         :type first_image: String
         :param first_image: First image name (including the extension)
         :type last_image: String
@@ -92,8 +91,7 @@ class Movie:
         The image list from which the movie is to be generated from.
 
         :type input_directory: String
-        :param input_directory: Directory in which the series of images can 
-        be found
+        :param input_directory: Directory in which the series of images can be found
         :type image_list: List
         :param image_list: List of images name (including the extension)
         """

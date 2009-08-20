@@ -165,7 +165,7 @@ class StreamLineModule:
 		Return the output of the streamline.
 
 		:rtype: vtkPolyData
-		:return Polygonal data
+		:return: Polygonal data
 		"""
 
 		return self.__vtk_stream_line.GetOutput()

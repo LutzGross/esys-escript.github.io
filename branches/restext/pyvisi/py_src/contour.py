@@ -58,21 +58,15 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 		"""
 		Initialise the Contour.
 
-		:attention: The source can either be point or cell data. If the 
-		source is cell data, a conversion to point data may or may not be 
-		required, in order for the object to be rendered correctly. 
-		If a conversion is needed, the 'cell_to_point' flag must be set to 
-		'True', otherwise 'False' (which is the default). On occasions, an
-		inaccurate object may be rendered from cell data even after conversion.
+		:attention: The source can either be point or cell data. If the source is cell data, a conversion to point data may or may not be required, in order for the object to be rendered correctly. If a conversion is needed, the 'cell_to_point' flag must be set to 'True', otherwise 'False' (which is the default). On occasions, an inaccurate object may be rendered from cell data even after conversion.
 
 		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type data_collector: `DataCollector`
-				object
+		:type data_collector: `DataCollector` object
 		:param data_collector: Deal with source of data for visualisation
 		:type viewport: `Viewport` constant  
 		:param viewport: Viewport in which objects are to be rendered on 
-		:type lut : `Lut` constant
+		:type lut: `Lut` constant
 		:param lut: Lookup table color scheme
 		:type cell_to_point: Boolean
 		:param cell_to_point: Converts cell data to point data (by averaging)
@@ -207,20 +201,15 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 		"""
 		Initialise the ContourOnPlaneCut.
 
-		:attention: The source can either be point or cell data. If the 
-		source is cell data, a conversion to point data may or may not be 
-		required, in order for the object to be rendered correctly. 
-		If a conversion is needed, the 'cell_to_point' flag must be set to 
-		'True', otherwise 'False' (which is the default).
+		:attention: The source can either be point or cell data. If the source is cell data, a conversion to point data may or may not be required, in order for the object to be rendered correctly. If a conversion is needed, the 'cell_to_point' flag must be set to 'True', otherwise 'False' (which is the default).
 
 		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type data_collector: `DataCollector`
-				object
+		:type data_collector: `DataCollector` object
 		:param data_collector: Deal with source of data for visualisation
 		:type viewport: `Viewport` constant
 		:param viewport: Viewport in which objects are to be rendered on
-		:type lut : `Lut` constant
+		:type lut: `Lut` constant
 		:param lut: Lookup table color scheme
 		:type cell_to_point: Boolean
 		:param cell_to_point: Converts cell data to point data (by averaging)
@@ -360,20 +349,15 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 		"""
 		Initialise the ContourOnPlaneClip.
 
-		:attention: The source can either be point or cell data. If the 
-		source is cell data, a conversion to point data may or may not be 
-		required, in order for the object to be rendered correctly. 
-		If a conversion is needed, the 'cell_to_point' flag must be set to 
-		'True', otherwise 'False' (which is the default).
+		:attention: The source can either be point or cell data. If the source is cell data, a conversion to point data may or may not be required, in order for the object to be rendered correctly. If a conversion is needed, the 'cell_to_point' flag must be set to 'True', otherwise 'False' (which is the default).
 
 		:type scene: `Scene` object
 		:param scene: Scene in which objects are to be rendered on
-		:type data_collector: `DataCollector`
-				object
+		:type data_collector: `DataCollector`	object
 		:param data_collector: Deal with source of data for visualisation
 		:type viewport: `Viewport` constant
 		:param viewport: Viewport in which objects are to be rendered on
-		:type lut : `Lut` constant
+		:type lut: `Lut` constant
 		:param lut: Lookup table color scheme
 		:type cell_to_point: Boolean
 		:param cell_to_point: Converts cell data to point data (by averaging)

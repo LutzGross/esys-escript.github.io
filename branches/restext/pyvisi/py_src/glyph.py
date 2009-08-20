@@ -164,7 +164,7 @@ class Glyph3D:
 		Return the output of the 3D glyph.
 
 		:rtype: vtkPolyData
-		:return Polygonal data
+		:return: Polygonal data
 		"""
 
 		return self.__vtk_glyph3D.GetOutput()
