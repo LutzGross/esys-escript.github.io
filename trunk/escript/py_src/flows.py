@@ -465,7 +465,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 	     self.getSolverOptionsVelocity().setAbsoluteTolerance(0.)
 	     
 
-     def initialize(self,f=Data(),fixed_u_mask=Data(),eta=1,surface_stress=Data(),stress=Data()):
+     def initialize(self,f=Data(),fixed_u_mask=Data(),eta=1,surface_stress=Data(),stress=Data(), restoration_factor=0):
         """
         assigns values to the model parameters
 
@@ -488,8 +488,9 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 		for j in range(self.domain.getDim()):
 			A[i,j,j,i] += 1.
 			A[i,j,i,j] += 1.
+        n=self.domain.getNormal()
 	self.__pde_prec.setValue(D=1/self.eta)
-        self.__pde_u.setValue(A=A*self.eta,q=fixed_u_mask)
+        self.__pde_u.setValue(A=A*self.eta,q=fixed_u_mask, d=restoration_factor*util.outer(n,n))
         self.__f=f
         self.__surface_stress=surface_stress
         self.__stress=stress
