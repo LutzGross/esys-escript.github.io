@@ -114,12 +114,6 @@ class SimpleSolidMaterial(MaterialTable):
        """
        A simple matrial table which allows setting physical parameters of 
        a model.
-
-       :ivar density: density  (in/out)
-       :ivar heat_capacity: heat_capacity  (in/out)
-       :ivar thermal_permabilty: permabilty  (in/out)
-       :ivar viscosity: viscosity  (in/out)
-       :ivar radiation_coefficient:  (in/out)
        """
        def __init__(self,**kwargs):
            super(MaterialTable, self).__init__(**kwargs)
@@ -129,12 +123,6 @@ class SimpleSolidMaterial(MaterialTable):
 class SimpleFluidMaterial(MaterialTable):
        """
        A simple matrial table which allows setting physical ivar of a model.
-
-       :ivar density: density(in/out)
-       :ivar heat_capacity: heat_capacity(in/out)
-       :ivar thermal_permabilty: permabilty (in/out)
-       :ivar viscosity: viscosity (in/out)
-       :ivar radiation_coefficient:(in/out)
        """
        def __init__(self,**kwargs):
            super(MaterialTable, self).__init__(**kwargs)
