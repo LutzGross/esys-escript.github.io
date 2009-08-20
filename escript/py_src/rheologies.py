@@ -333,13 +333,8 @@ class Rheology(object):
          if stress == None: stress=Tensor(0.,Function(self.__domain))
          if v == None: v=Vector(0.,Solution(self.__domain))
          if p == None: p=Vector(0.,ReducedSolution(self.__domain))
-         self.setDeviatoricStress(stress)
-         self.setVelocity(v)
-         self.setPressure(p)
-         self.setDeviatoricStrain()
-         self.setTime(t)
-         #=============================================================
-         self.setExternals(F=Data(), f=Data(), fixed_v_mask=Data(), v_boundary=Data())
+         self.setStatus(t, v, p, stress)
+         self.setExternals(F=Data(), f=Data(), fixed_v_mask=Data(), v_boundary=Data(), restoration_factor=0)
          
       def getDomain(self):
           """
@@ -359,7 +354,7 @@ class Rheology(object):
           """
           return self.__t   
 
-      def setExternals(self, F=None, f=None, fixed_v_mask=None, v_boundary=None):
+      def setExternals(self, F=None, f=None, fixed_v_mask=None, v_boundary=None, restoration_factor=None):
           """
           sets external forces and velocity constraints
 
@@ -371,12 +366,15 @@ class Rheology(object):
           @type fixed_v_mask: vector value/field 
           @param v_boundary: value of velocity at location of constraints
           @type v_boundary: vector value/field 
+          @param restoration_factor: factor for normal restoration force
+          @type restoration_factor: scalar values/field
           @note: Only changing parameters need to be specified.
           """
           if F != None: self.__F=F
           if f != None: self.__f=f
           if fixed_v_mask != None: self.__fixed_v_mask=fixed_v_mask
           if v_boundary != None: self.__v_boundary=v_boundary 
+          if restoration_factor!=None: self.__restoration_factor=restoration_factor
           
       def getForce(self):
           """
@@ -405,6 +403,15 @@ class Rheology(object):
           @rtype: C{tuple} of L{Data}s
           """
           return self.__fixed_v_mask, self.__v_boundary       
+      def getRestorationFactor(self):
+          """
+          Returns the restoring force factor
+
+          @return:  restoring force factor
+          @rtype: C{float} or L{Data}
+          """
+          return self.__restoration_factor
+          
 
       def checkVerbose(self):
           """
@@ -490,6 +497,24 @@ class Rheology(object):
           @type v: vector L{Data} 
           """
           self.__v=util.interpolate(v,Solution(self.getDomain()))
+      def setStatus(self,t, v, p, stress):
+          """
+          Resets the current status given by pressure p and velocity v.
+    
+          @param t: new time mark
+          @type t: C{float}
+          @param v: new current velocity
+          @type v: vector L{Data} 
+          @param p: new deviatoric stress
+          @type p: scalar L{Data}
+          @param stress: new deviatoric stress
+          @type stress: L{Data} of rank 2
+          """
+          self.setDeviatoricStress(stress)
+          self.setVelocity(v)
+          self.setPressure(p)
+          self.setDeviatoricStrain()
+          self.setTime(t)
 
       def setDeviatoricStrain(self, D=None):
           """
@@ -630,6 +655,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
           s_last=self.getDeviatoricStress()
           F=self.getForce()
           f=self.getSurfaceForce()
+          rf=self.getRestorationFactor()
           mask_v,v_b=self.getVelocityConstraint()
           mu=self.getElasticShearModulus()
           #=========================================================================
@@ -665,7 +691,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
                 stress0=Data()
              else:
                 stress0=-(eta_eff/(dt*mu))*s_last
-             self.__solver.initialize(f=F,fixed_u_mask=mask_v,eta=eta_eff,surface_stress=f,stress=stress0)
+             self.__solver.initialize(f=F,fixed_u_mask=mask_v,eta=eta_eff,surface_stress=f,stress=stress0, restoration_factor=rf)
              # 
              # get a new velcocity and pressure:
              #

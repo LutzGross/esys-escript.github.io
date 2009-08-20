@@ -140,7 +140,7 @@ class TagMap(object):
         Passes the tag map to the L{esys.escript.Domain} C{domain}.
         """
         for tag, name in self.__mapping.items():
-          print name, ">>", tag
+          print "Tag",name, "is mapped to id ", tag
           domain.setTagMap(name,tag)
 
     def toDOM(self,dom):

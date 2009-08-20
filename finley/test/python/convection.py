@@ -24,7 +24,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
-from esys.escript.models import TemperatureCartesian, IncompressibleIsotropicFlowCartesian
+from esys.escript.models import TemperatureCartesian, IncompressibleIsotropicFlowCartesian, Mountains, SubSteppingException
 from esys.finley import Rectangle, Brick, LoadMesh
 from optparse import OptionParser
 from math import pi, ceil
@@ -35,17 +35,16 @@ import time
 DIM=2                           # spatial dimension
 H=1.                            # height
 L=H                           # length
-NE=50                           # number of elements in H-direction. 
+NE=40                           # number of elements in H-direction. 
 PERT=0.05               # initial temperature perturbation
 DT=1.e-7                        # initial time step size
-CREATE_TOPOGRAPHY=False          # create topgraphy
-TOPOGRAPHY_LOAD=False        # considers the loading of the topography in the flow
+CREATE_TOPOGRAPHY=True         # create topgraphy
 DT_MIN=1.e-10                    # minumum time step size
 T_END=0.1                       # end time
 
-RHO_0=1.                        # surface density
+RHO_0=100.                     # surface density  (lf ~ RHO_0**2) 
 G=1.                            # gravitational constant
-ALPHA_0=4.e3                      # thermal expansion coefficient
+ALPHA_0=0.1                    # thermal expansion coefficient (Ra ~ RHO_0**2 * ALPHA_0 = lf * ALPHA_0)
 T_0=0.                          # surface temperature
 T_1=1.                          # bottom temperature
 C_P=1                           # heat capacity 
@@ -57,23 +56,27 @@ BETA=0                          # Drucker-Prager friction factor
 TAU_0=2*10**(2.5)               # transition stress
 N=3                             # power for power law
 
-E=23                            # activation energy
+E=23*0                        # activation energy
 V=18*0                        # activation volume 
 T_OFFSET=1                      # temperature offset on surface (dimensionless formulation T_OFFSET=1 otherwise =0)
 R=1                             # gas constant
 ETA_N0=1.                       # viscosity at surface 
 
+TOPO_SMOOTH=1e-5                # smoothing factor of extrapolation of surface velocity to interior
+
 T_TOL=1.e-4                     # tolerance temperature transport
 TOL2=0.1                        # tolerance for flow update at a timestep. (large value will do only one correction step)
-FLOW_TOL=1.e-4                  # tolerance for inconcompressible flow solver
-FLOW_SUB_TOL=1.e-8             # sub-tolerance for inconcompressible flow solver
-NUSSELT_FN="nusselt.csv"
+FLOW_TOL=1.e-6                  # tolerance for inconcompressible flow solver
+FLOW_SUB_TOL=1.e-12             # sub-tolerance for inconcompressible flow solver
+TOPO_TOL=1.e-6                 # tolerance for update of topography
+DIAGNOSTICS_FN="diagnostics.csv"
 VERBOSE=True
 DT_VIS=T_END/500                # time distane between two visulaization files
 DN_VIS=5                        # maximum counter increment between two visulaization files
 VIS_DIR="results"               # name of the director for vis files
 DN_RESTART=1000000              # create a restart file every DN_RESTART step
 PREFIX_RESTART="restart"        # name prefix for restart directories
+TOPO_ITER_MAX=20                # maximum number of iteration steps to update topography
 # =========================================================================================
 
 def removeRestartDirectory(dir_name):
@@ -103,8 +106,6 @@ if options.param !=None:
      exec(open(options.param,'r'))
      print "Parameters are imported from file ",options.param
 
-CREATE_TOPOGRAPHY=CREATE_TOPOGRAPHY or TOPOGRAPHY_LOAD
-
 print "Input Parameters:"
 print "\tDimension                     DIM\t\t=\t",DIM
 print "\tHeight                        H\t\t\t=\t",H
@@ -115,7 +116,6 @@ print "\tinitial time step size        DT\t\t=\t",DT
 print "\tminimum time step size        DT_MIN\t\t=\t",DT_MIN
 print "\tend time                      T_END\t\t=\t",T_END
 print "\tcreate topgraphy              CREATE_TOPOGRAPHY\t=\t",CREATE_TOPOGRAPHY
-print "\tloading by topography         TOPOGRAPHY_LOAD\t=\t",TOPOGRAPHY_LOAD
 print "\tsurface density               RHO_0\t\t=\t",RHO_0
 print "\tgravitational constant        G\t\t\t=\t",G
 print "\tthermal expansion coefficient ALPHA_0\t\t=\t",ALPHA_0
@@ -134,17 +134,19 @@ print "\tactivation energy             E\t\t\t=\t",E
 print "\tactivation volume             V\t\t\t=\t",V
 print "\ttemperature offset            T_OFFSET\t\t=\t",T_OFFSET
 print "\tgas constant                  R\t\t\t=\t",R
+print "\ttopography smoothing          TOPO_SMOOTH\t=\t",TOPO_SMOOTH
 
+print "\ttolerance for topography      TOPO_TOL\t\t=\t",TOPO_TOL
 print "\ttransport tolerance           T_TOL\t\t=\t",T_TOL
 print "\ttolerance for flow updates    TOL2\t\t=\t",TOL2
 print "\tflow tolerance                FLOW_TOL\t\t=\t",FLOW_TOL
 print "\tflow sub-tolerance            FLOW_SUB_TOL\t=\t",FLOW_SUB_TOL
-print "\tfile for Nusselt number       NUSSELT_FN\t=\t",NUSSELT_FN
+print "\tfile for diagnostics          DIAGNOSTICS_FN\t=\t",DIAGNOSTICS_FN
 print "\tmin. time incr. for vis file  DT_VIS\t\t=\t",DT_VIS
 print "\tmin. count incr. for vis file DN_VIS\t\t=\t",DN_VIS
 print "\tvisualization dir             VIS_DIR\t\t=\t",VIS_DIR
-print "\trestart counter incerement    DN_RESTART\t\t=\t",DN_RESTART
-print "\tprefix for restart dirs       PREFIX_RESTART\t\t=\t",PREFIX_RESTART
+print "\trestart counter incerement    DN_RESTART\t=\t",DN_RESTART
+print "\tprefix for restart dirs       PREFIX_RESTART\t=\t",PREFIX_RESTART
 print "\tverbosity                     VERBOSE\t\t=\t",VERBOSE
 
 print "Control Parameters:"
@@ -159,6 +161,10 @@ T_OFFSET_REF=T_OFFSET/(T_1-T_0)
 Ra=RHO_0*G*H*(T_1-T_0)*ALPHA_0/P_REF
 Di=ALPHA_0*G*H/C_P
 CHI_REF=CHI*K*ETA_N0/(RHO_0**2*C_P**2*(T_1-T_0)*H**2)
+if CREATE_TOPOGRAPHY:
+   SURFACE_LOAD=RHO_0*G*H/P_REF
+else:
+   SURFACE_LOAD=0.
 if MUE == None:
   De=None
 else:
@@ -175,13 +181,14 @@ if MUE == None:
 else:
    print "\tDebora number surface         De\t\t=\t%e"%De
      
-print "\tbottom viscosity              \t\t\t=\t%e"%ETA_BOT
+print "\tBottom viscosity              \t\t\t=\t%e"%ETA_BOT
 print "\tRayleigh number bottom        \t\t\t=\t%e"%(RHO_0*G*H*(T_1-T_0)*ALPHA_0*t_REF/ETA_BOT)
 if MUE == None:
    print "\tDebora number bottom          \t\t\t=\t",None
 else:
    print "\tDebora number bottom          \t\t\t=\t%d"%(ETA_BOT/MUE/t_REF)
 print "\tArrhenius                     Ar\t\t=\t%e"%Ar
+print "\tsurface load factor           SURFACE_LOAD\t=\t%e"%SURFACE_LOAD
 print "\tscaled activation volume      V_REF\t\t=\t%e"%V_REF
 #  some control variables (will be overwritten in  case of a restart:
 #
@@ -191,8 +198,7 @@ dt=DT       # current time step size
 t_vis=0     
 n_vis=0
 counter_vis=0
-if getMPIRankWorld()==0:
-    if not os.path.isdir(VIS_DIR): os.mkdir(VIS_DIR)
+mkDir(VIS_DIR)
 #=========================
 #
 #   set up domain or read restart file
@@ -223,14 +229,16 @@ if restart:
    v=load(os.path.join(f,"v.nc"),dom)
    p=load(os.path.join(f,"p.nc"),dom)
    T=load(os.path.join(f,"T.nc"),dom)
+   if CREATE_TOPOGRAPHY:
+       topography=load(os.path.join(f,"topo.nc"),dom)
    
-   nusselt_file=FileWriter(NUSSELT_FN,append=True)
+   diagnostics_file=FileWriter(DIAGNOSTICS_FN,append=True)
    print "<%s> Restart from file %s at time step %s (t=%s) completed."%(time.asctime(),f,t,n)
 else:
   if DIM==2:
-    dom=Rectangle(int(ceil(L*NE/H)),NE,l0=L/H,l1=1,order=2, useFullElementOrder=True,optimize=True)
+    dom=Rectangle(int(ceil(L*NE/H)),NE,l0=L/H,l1=1,order=2, useFullElementOrder=False,optimize=True)
   else:
-    dom=Brick(int(ceil(L*NE/H)),int(ceil(L*NE/H)),NE,l0=L/H,l1=L/H,l2=1,order=2, useFullElementOrder=True,optimize=True)
+    dom=Brick(int(ceil(L*NE/H)),int(ceil(L*NE/H)),NE,l0=L/H,l1=L/H,l2=1,order=2, useFullElementOrder=False,optimize=True)
   try:
      dom.dump("mesh.nc")
   except:
@@ -248,7 +256,11 @@ else:
   stress=Tensor(0,Function(dom))
   x2=ReducedSolution(dom).getX()
   p=Ra*(x2[DIM-1]-0.5*x2[DIM-1]**2-0.5)
-  nusselt_file=FileWriter(NUSSELT_FN,append=False)
+
+  if CREATE_TOPOGRAPHY:
+      topography=Scalar(0.,ReducedSolution(dom))
+  diagnostics_file=FileWriter(DIAGNOSTICS_FN,append=False)
+  diagnostics_file.write("Ra = %e Lambda= %e\n"%(Ra, SURFACE_LOAD))
 
 p_last=p
 x=dom.getX()
@@ -267,15 +279,18 @@ heat.setValue(rhocp=1,k=1,given_T_mask=fixed_T_at)
 #
 x2=ReducedSolution(dom).getX()
 fixed_v_mask=Vector(0,Solution(dom))
+faces=Scalar(0.,Solution(dom))
 for d in range(DIM):
     if d == DIM-1: 
        ll = H
     else:
        ll = L
-    if TOPOGRAPHY_LOAD and d==DIM-1:
+    if CREATE_TOPOGRAPHY and d==DIM-1:
        fixed_v_mask+=whereZero(x[d])*unitVector(d,DIM)
     else:
-       fixed_v_mask+=(whereZero(x[d])+whereZero(x[d]-ll))*unitVector(d,DIM)
+       s=whereZero(x[d])+whereZero(x[d]-ll)
+       faces+=s
+       fixed_v_mask+=s*unitVector(d,DIM)
 #
 #   set up velovity problem
 #
@@ -289,35 +304,70 @@ flow.setEtaTolerance(FLOW_TOL)
 flow.setExternals(fixed_v_mask=fixed_v_mask)
 print "<%s> Flow solver has been set up."%time.asctime()
 #
+# topography set-up
+#
+boundary=FunctionOnBoundary(dom).getX()[DIM-1]
+top_boundary_mask=whereZero(boundary-sup(boundary))
+surface_area=integrate(top_boundary_mask)
+if CREATE_TOPOGRAPHY:
+    mts=Mountains(dom,eps=TOPO_SMOOTH,reduced=True)
+    mts.setTopography(topography)
+    print "<%s> topography has been set up."%time.asctime()
+#
 #  let the show begin:
 #
 t1 = time.time()
 print "<%s> Start time step %s (t=%s)."%(time.asctime(),n,t)
 while t<T_END:
+    topography_old=topography
+    v_old, p_old, stress_old=v, p, stress
+    T_old=T
     #======= solve for velovity ====================================================================
     eta_N=exp(Ar*((1.+V_REF*(1-Function(dom).getX()[DIM-1]))/(T_OFFSET_REF+interpolate(T,Function(dom)))-1./T_OFFSET_REF))
     print "viscosity range :", inf(eta_N), sup(eta_N)
     flow.setPowerLaws([eta_N, eta_N ], [ 1., TAU_0],  [1,N])
-    flow.setExternals(F=Ra*T*unitVector(DIM-1,DIM)) #f= add the mountanins here
-    flow.update(dt, iter_max=100, inner_iter_max=200, verbose=False)
+    flow.setExternals(F=Ra*T*unitVector(DIM-1,DIM))
+    # if dt<=0 or not CREATE_TOPOGRAPHY:
+    if not CREATE_TOPOGRAPHY:
+            flow.setExternals(f=-SURFACE_LOAD*topography*unitVector(DIM-1,DIM))
+            flow.update(dt, iter_max=100, inner_iter_max=200, verbose=False)
+    else:
+        topography_last=topography
+        Topo_norm, error_Topo=1,1
+        i=0
+        print "DDDDD : ====",dt
+        while error_Topo > TOPO_TOL * Topo_norm:
+            flow.setStatus(t, v_old, p_old, stress_old)
+            flow.setExternals(f=-SURFACE_LOAD*(topography-dt*v)*unitVector(DIM-1,DIM)*top_boundary_mask, restoration_factor=SURFACE_LOAD*dt*top_boundary_mask) 
+            flow.update(dt, iter_max=100, inner_iter_max=200, verbose=False)
+            v=flow.getVelocity()
+            mts.setTopography(topography_old)
+            mts.setVelocity(v)
+            topography_last, topography=topography, mts.update(dt, allow_substeps=True)
+            error_Topo=sqrt(integrate(((topography-topography_last)*top_boundary_mask)**2))
+            Topo_norm=sqrt(integrate((topography*top_boundary_mask)**2))
+            print "DDDDD :", "input=",integrate(v*top_boundary_mask)[DIM-1],"output=", integrate(topography*top_boundary_mask)/Lsup(topography), error_Topo, Topo_norm
+            print "topography update step %s error = %e, norm = %e."%(i, error_Topo, Topo_norm), Lsup(v)
+            i+=1
+            if i > TOPO_ITER_MAX: 
+               raise RuntimeError,"topography did not converge after %s steps."%TOPO_ITER_MAX
     v=flow.getVelocity()
     for d in range(DIM):
          print "range %d-velocity"%d,inf(v[d]),sup(v[d])
     print "<%s> flow solver completed."%time.asctime()
-    if t>=t_vis or n>n_vis:
-      saveVTK(os.path.join(VIS_DIR,"state.%d.vtu"%counter_vis),T=T,v=v,eta=flow.getCurrentEtaEff())
-      print "<%s> Visualization file %d for time step %e generated."%(time.asctime(),counter_vis,t)
-      counter_vis+=1
-      t_vis+=DT_VIS
-      n_vis+=DN_VIS
     n+=1
     t+=dt
+    print "influx= ",integrate(inner(v,dom.getNormal())), sqrt(integrate(length(v)**2,FunctionOnBoundary(dom))), integrate(1., FunctionOnBoundary(dom))
     print "<%s> Time step %s (t=%s) completed."%(time.asctime(),n,t)
-    #======= set Temperature problem ====================================================================
+    #======= setup Temperature problem ====================================================================
     #
     heat.setValue(v=v,Q=CHI_REF*flow.getTau()**2/flow.getCurrentEtaEff())
     dt=heat.getSafeTimeStepSize()
     print "<%s> New time step size is %e"%(time.asctime(),dt)
+    #======= set-up topography ==================================================================================
+    if CREATE_TOPOGRAPHY:
+        dt=min(mts.getSafeTimeStepSize()*0.5,dt)
+        print "<%s> New time step size is %e"%(time.asctime(),dt)
     print "<%s> Start time step %s (t=%s)."%(time.asctime(),n+1,t+dt)
     #
     #  solve temperature:
@@ -331,12 +381,33 @@ while t<T_END:
     #
     dTdz=grad(T)[DIM-1]
     Nu=1.-integrate(v[DIM-1]*T)/integrate(dTdz)
-    print "nusselt number = ",Nu
-    nusselt_file.write("%e %e\n"%(t,Nu))
     eta_bar=integrate(flow.getTau())/integrate(flow.getTau()/flow.getCurrentEtaEff())
     Ra_eff= (t_REF*RHO_0*G*H*(T_1-T_0)*ALPHA_0)/eta_bar
+    print "nusselt number = %e"%Nu
     print "av. eta = %e"%eta_bar
     print "effective Rayleigh number = %e"%Ra_eff
+    if CREATE_TOPOGRAPHY:
+       topo_level=integrate(topography*top_boundary_mask)/surface_area
+       valleys_deep=inf(topography)
+       mountains_heigh=sup(topography)
+       print "topography level = ",topo_level
+       print "valleys deep = ", valleys_deep
+       print "mountains_heigh = ", mountains_heigh
+       diagnostics_file.write("%e %e %e %e %e %e %e\n"%(t,Nu, topo_level, valleys_deep, mountains_heigh, eta_bar, Ra_eff))
+    else:
+       diagnostics_file.write("%e %e %e %e\n"%(t,Nu, eta_bar, Ra_eff))
+    #
+    #  .... visualization
+    #
+    if t>=t_vis or n>n_vis:
+      if CREATE_TOPOGRAPHY:
+         saveVTK(os.path.join(VIS_DIR,"state.%d.vtu"%counter_vis),T=T,v=v,eta=flow.getCurrentEtaEff(), topography=topography_old, vex=mts.getVelocity())
+      else:
+         saveVTK(os.path.join(VIS_DIR,"state.%d.vtu"%counter_vis),T=T,v=v,eta=flow.getCurrentEtaEff())
+      print "<%s> Visualization file %d for time step %e generated."%(time.asctime(),counter_vis,t)
+      counter_vis+=1
+      t_vis+=DT_VIS
+      n_vis+=DN_VIS
     # =========================
     #
     #    create restart files:
@@ -346,13 +417,13 @@ while t<T_END:
          c=(n-1)/DN_RESTART
          old_restart_dir="%s_%s_"%(PREFIX_RESTART,c-1)
          new_restart_dir="%s_%s_"%(PREFIX_RESTART,c)
-
-         if dom.onMasterProcessor() and not os.path.isdir(new_restart_dir): os.mkdir(new_restart_dir)
+         mkDir(new_restart_dir)
 	 dom.MPIBarrier()
          file(os.path.join(new_restart_dir,"stamp.%d"%dom.getMPIRank()),"w").write("%e; %e; %s; %s; %s; %e;\n"%(t, t_vis, n_vis, n, counter_vis, dt))
          v.dump(os.path.join(new_restart_dir,"v.nc"))
          p.dump(os.path.join(new_restart_dir,"p.nc"))
          T.dump(os.path.join(new_restart_dir,"T.nc"))
+         if CREATE_TOPOGRAPHY: topography.dump(os.path.join(new_restart_dir,"topo.nc"))
          removeRestartDirectory(old_restart_dir)
          print "<%s> Restart files written to %s."%(time.asctime(),new_restart_dir)
 print "<%s> Calculation finalized after %s sec."%(time.asctime(),time.time() - t1)

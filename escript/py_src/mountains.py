@@ -22,13 +22,21 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 from esys import finley
+import math
 import sys
+
+class SubSteppingException(Exception):
+   """
+   Thrown if the L{Mountains} class uses substepping.
+   """
+   pass
+
 
 class Mountains:
   """
   The Mountains class is defined by the following equations:
   
-  (1) w_i,aa+(1/eps)*w_i,33=0 where 0<eps<<1 and a=1,2 and w_i is the extension of the surface velocity where w_i(x_3=1)=v_i.
+  (1) eps*w_i,aa+w_i,33=0 where 0<=eps<<1 and a=1,2 and w_i is the extension of the surface velocity where w_i(x_3=1)=v_i.
   
   (2) Integration of topography PDE using Taylor-Galerkin upwinding to stabilize the advection terms
       H^(t+dt)=H^t+dt*w_3+w_hat*dt*[(div(w_hat*H^t)+w_3)+(dt/2)+H^t],
@@ -43,27 +51,26 @@ class Mountains:
     @param eps: the smoothing parameter for (1)
     @param reduced: if True topography reduced order is used for reconstruction of internal velocity and topography
     """
-    if eps<=0:
-        raise ValueError("Smmoting parameter eps must be positive.")
+    if eps<0:
+        raise ValueError("Smooting parameter eps must be non-negative.")
     self.__domain = domain
-    self.__eps = eps
     self.__reduced=reduced
     self.__DIM=domain.getDim()
     z=domain.getX()[self.__DIM-1]
 
     self.__PDE_W = LinearPDE(domain)
     self.__PDE_W.setSymmetryOn()
-    if reduced: self.__PDE_W.setReducedOrderOn()
-    A=kronecker(domain)
-    A[self.__DIM-1,self.__DIM-1]=1/self.__eps
-    self.__PDE_W.setValue(A=A, q=whereZero(sup(z)-z)+whereZero(inf(z)-z))
+    A=kronecker(domain)*eps*0
+    A[self.__DIM-1,self.__DIM-1]=(sup(FunctionOnBoundary(self.__domain).getSize())/log(2.))**2
+    self.__PDE_W.setValue(D=1, A=A, q=whereZero(sup(z)-z)) 
 
     self.__PDE_H = LinearPDE(domain)
     self.__PDE_H.setSymmetryOn()
     if reduced: self.__PDE_H.setReducedOrderOn()
+    A=kronecker(domain)*0
+    A[self.__DIM-1,self.__DIM-1]=0.1
     self.__PDE_H.setValue(D=1.0)
-    self.__PDE_H.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
-    self.__PDE_H.setValue(q=whereZero(inf(z)-z))
+    # self.__PDE_H.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
 
     self.setVelocity()
     self.setTopography()
@@ -92,18 +99,10 @@ class Mountains:
       @type v: vector
       """
       self.__dt=None
-      if self.__reduced:
-         fs=ReducedSolution(self.getDomain())
-      else:
-         fs=Solution(self.getDomain())
-      self.__v=Vector(0.,fs)
+      self.__v=Vector(0.,Solution(self.getDomain()))
       if not v == None:
-        z=self.getDomain().getX()[self.__DIM-1]
-        z_min=inf(z)
-        z_max=sup(z)
-        f=(z-z_min)/(z_max-z_min)
         for d in range(self.__DIM):
-           self.__PDE_W.setValue(r=v[d]*f)
+           self.__PDE_W.setValue(r=v[d])
            self.__v[d]=self.__PDE_W.getSolution()
   def getVelocity(self):
       """
@@ -143,9 +142,10 @@ class Mountains:
       @rtype: C{float}
       """
       if self.__dt == None:
-           self.__dt=0.5*inf(self.getDomain().getSize()/length(self.getVelocity()))
+           h=self.getDomain().getSize()
+           self.__dt=0.5*inf(h/length(interpolate(self.getVelocity(),h.getFunctionSpace())))
       return self.__dt
-  def update(self,dt=None):
+  def update(self,dt=None, allow_substeps=True):
       """
       Sets a new W and updates the H function.
 
@@ -157,17 +157,25 @@ class Mountains:
             dt = self.getSafeTimeStepSize()
       if dt<=0:
            raise ValueError("Time step size must be positive.")
-      if dt>self.getSafeTimeStepSize():
-           raise ValueError("Time step must be less than safe time step size = %e."%self.getSafeTimeStepSize())
-      
+      dt_safe=self.getSafeTimeStepSize()
+      n=max(int(math.ceil(dt/dt_safe)+0.5),1)
+      if n>1 and not allow_substeps:
+         raise SubSteppingException,"Substepping required."
+      dt/=n
+ 
       H=self.getTopography()
       w=self.getVelocity()
       w_tilda=1.*w
       w_tilda[self.__DIM-1]=0
       w_z=w[self.__DIM-1]
 
-      self.__PDE_H.setValue(X=((div(w_tilda*H)+w_z)*dt/2+H)*w_tilda*dt, Y=w_z*dt+H, r=H)
-      self.setTopography(self.__PDE_H.getSolution())
+      t=0
+      for i in range(n):
+         L=integrate(w_z*dt+H)/vol(self.__PDE_H.getDomain())
+         self.__PDE_H.setValue(X=(inner(w_tilda,grad(H))*dt/2+H)*w_tilda*dt, Y=w_z*dt+H-L)
+         H=self.__PDE_H.getSolution()
+         print "DDD : ava = ",integrate(H)
+         t+=dt
+      self.setTopography(H)
 
       return self.getTopography()
-

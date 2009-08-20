@@ -127,20 +127,27 @@ class Design(design.Design):
         else:
               opt=""
 
-        exe="gmsh -format msh -%s -algo %s -smooth %s %s-v 0 -order %s -o %s %s" % (
+        exe="gmsh -format msh -%s -algo %s -smooth %s %s-v 0 -order %s -o %s %%s" % (
                 self.getDim(), self.__algo, self.__smoothing, opt,
-                self.getElementOrder(), self.getMeshFileName(),
-                self.getScriptFileName())
+                self.getElementOrder(), self.getMeshFileName())
         return exe
+    def getScriptHandler(self):
+        """
+        Returns a handler to the script file to generate the geometry.
+        In the current implementation a script file name is returned.
+        """
+        if getMPIRankWorld() == 0:
+            open(self.getScriptFileName(),"w").write(self.getScriptString())
+        return self.getScriptFileName()
+
 
     def getMeshHandler(self):
         """
         Returns a handle to a mesh meshing the design. In the current
         implementation a mesh file name in gmsh format is returned.
         """
-        cmd = self.getCommandString()
+        cmd = self.getCommandString()%self.getScriptHandler()
         if getMPIRankWorld() == 0:
-            open(self.getScriptFileName(),"w").write(self.getScriptString())
             ret = os.system(cmd) / 256
         else:
             ret=0

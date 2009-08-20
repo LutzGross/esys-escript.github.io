@@ -350,11 +350,32 @@ class Point(Primitive, PrimitiveBase):
     def __init__(self,x=0.,y=0.,z=0.,local_scale=1.):
        """
        Creates a point with coordinates C{x}, C{y}, C{z} with the local
-       refinement factor C{local_scale}.
+       refinement factor C{local_scale}. If C{x} is a list or similar it needs to have
+       length less or equal 3. In this case C{y} and C{z} are overwritten by 
+       C{x[1]} and C{x[2]).
        """
        PrimitiveBase.__init__(self)
        Primitive.__init__(self)
-       self.setCoordinates(numpy.array([x,y,z],_TYPE))
+       try:
+          l=len(x)
+          if l>3:
+              raise ValueError,"x has a lanegth bigger than 3."
+          if l>1:
+             y=x[1]
+          else:
+             y=0.
+          if l>2:
+             z=x[2]
+          else:
+             z=0.
+          if l>0:
+             x=x[0]
+          else:
+             x=0.
+       except TypeError:
+          pass
+       a=numpy.array([x,y,z], _TYPE)
+       self.setCoordinates(a)
        self.setLocalScale(local_scale)
 
     def setLocalScale(self,factor=1.):
@@ -546,6 +567,7 @@ class Curve(CurveBase, Primitive):
        """
        Defines a curve from control points given by C{points}.
        """
+       if len(points)==1: points=tuple(points[0])
        if len(points)<2:
            raise ValueError("Curve needs at least two points")
        i=0
@@ -951,6 +973,7 @@ class CurveLoop(Primitive, PrimitiveBase):
        Creates a polygon from a list of line curves. The curves must form a
        closed loop.
        """
+       if len(curves)==1: curves=curves[0]
        if len(curves)<2:
             raise ValueError("at least two curves have to be given.")
        for i in range(len(curves)):
@@ -1444,6 +1467,7 @@ class SurfaceLoop(Primitive, PrimitiveBase):
        """
        Creates a surface loop.
        """
+       if len(surfaces)==1: surfaces=surfaces[0]
        if len(surfaces)<2:
             raise ValueError("at least two surfaces have to be given.")
        for i in range(len(surfaces)):
