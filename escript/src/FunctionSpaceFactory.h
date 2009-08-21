@@ -59,37 +59,37 @@ namespace escript {
   ESCRIPT_DLL_API FunctionSpace functionOnBoundary(const AbstractDomain& domain);
   /**
      \brief
-     Return a function on boundary FunctionSpace
+     Return a function on boundary FunctionSpace with reduced integration order
   */
   ESCRIPT_DLL_API FunctionSpace reducedFunctionOnBoundary(const AbstractDomain& domain);
   /**
      \brief
-     Return afunction on boundary FunctionSpace with reduced integration order
+     Return a FunctionSpace on left side of contact
   */
   ESCRIPT_DLL_API FunctionSpace functionOnContactZero(const AbstractDomain& domain);
   /**
      \brief
-     Return a FunctionSpace on left side of contact
+     Return a FunctionSpace  on left side of contact with reduced integration order
   */
   ESCRIPT_DLL_API FunctionSpace reducedFunctionOnContactZero(const AbstractDomain& domain);
   /**
      \brief
-     Return a FunctionSpace  on left side of contact with reduced integration order
+     Return a FunctionSpace on right side of contact
   */
   ESCRIPT_DLL_API FunctionSpace functionOnContactOne(const AbstractDomain& domain);
   /**
      \brief
-     Return a FunctionSpace on left side of contact
+     Return a FunctionSpace on right side of contact with reduced integration order
   */
   ESCRIPT_DLL_API FunctionSpace reducedFunctionOnContactOne(const AbstractDomain& domain);
   /**
      \brief
-     Return a FunctionSpace with reduced integration order
+     Return a FunctionSpace
   */
   ESCRIPT_DLL_API FunctionSpace solution(const AbstractDomain& domain);
   /**
      \brief
-     Return a FunctionSpace
+     Return a FunctionSpace with reduced integration order
   */
   ESCRIPT_DLL_API FunctionSpace reducedSolution(const AbstractDomain& domain);
   /**
