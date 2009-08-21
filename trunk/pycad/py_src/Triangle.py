@@ -22,12 +22,12 @@ __url__="https://launchpad.net/escript-finley"
 """
 mesh generation using Triangle
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Brett Tully, b.tully@uq.edu.au"
@@ -48,8 +48,8 @@ class Design(design.Design):
        """
        Initializes the Triangle design.
 
-       @param dim: spatial dimension
-       @param keep_files: flag to keep work files
+       :param dim: spatial dimension
+       :param keep_files: flag to keep work files
        """
        if dim != 2:
            raise ValueError("only dimension 2 is supported by Triangle.")
@@ -106,7 +106,7 @@ class Design(design.Design):
 
         	see U{http://www.cs.cmu.edu/~quake/triangle.switch.html}
 
-        @param cmdLineArgs: the switches you would ordinarily use at the
+        :param cmdLineArgs: the switches you would ordinarily use at the
                             command line (e.g. cmdLineArgs="pq25a7.5")
         """
         self.__cmdLineArgs=cmdLineArgs

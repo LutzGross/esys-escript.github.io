@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -56,8 +56,8 @@ class ContourModule:
 		"""
 		Setup the contour module.
 
-		@type object: vtkUnstructuredGrid, etc
-		@param object: Input for the contour
+		:type object: vtkUnstructuredGrid, etc
+		:param object: Input for the contour
 		"""
 
 		self.__object = object
@@ -80,12 +80,12 @@ class ContourModule:
 		"""
 		Set the number of contours to generate and its range.	
 
-		@type contours: Number
-		@param contours: Number of contours to generate
-		@type lower_range: Number
-		@param lower_range: Lower range of contour values
-		@type upper_range: Number
-		@param upper_range: Upper range of contours values
+		:type contours: Number
+		:param contours: Number of contours to generate
+		:type lower_range: Number
+		:param lower_range: Lower range of contour values
+		:type upper_range: Number
+		:param upper_range: Upper range of contours values
 		"""
 	
 		if(contours != None): # True if the contours is specified.
@@ -99,8 +99,7 @@ class ContourModule:
 		"""
 		Generate the specified number of contours within the specified range.
 
-		@attention: In order to generate an iso surface, the 'lower_range' and 
-		'upper_range' must be equal.
+		:attention: In order to generate an iso surface, the 'lower_range' and 'upper_range' must be equal.
 		"""
 
 		self.__vtk_contour.GenerateValues(self.__contours, self.__lower_range, 
@@ -110,8 +109,8 @@ class ContourModule:
 		"""
 		Return the output of the contour.
 
-		@rtype: vtkPolyData
-		@return: Polygonal data
+		:rtype: vtkPolyData
+		:return: Polygonal data
 		"""
 
 		return self.__vtk_contour.GetOutput()
@@ -120,8 +119,8 @@ class ContourModule:
 		"""
 		Return whether the number of contours have been specified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		if(self.__contours != None):
@@ -133,8 +132,8 @@ class ContourModule:
 		"""
 		Return whether the lower range has been specified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		if(self.__lower_range != None):
@@ -146,8 +145,8 @@ class ContourModule:
 		"""
 		Return whether the upper range has been specified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		if(self.__upper_range != None):

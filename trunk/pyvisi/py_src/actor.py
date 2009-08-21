@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -51,8 +51,8 @@ class Actor3D:
 		"""
 		Setup the 3D actor.
 
-		@type mapper: vtkDataSetMapper
-		@param mapper: Mapped data
+		:type mapper: vtkDataSetMapper
+		:param mapper: Mapped data
 		"""
 
 		self.__mapper = mapper
@@ -69,8 +69,8 @@ class Actor3D:
 		"""
 		Set the texture of the 3D actor.	
 
-		@type texture: vtkTexture
-		@param texture: Texture of the rendered object 
+		:type texture: vtkTexture
+		:param texture: Texture of the rendered object 
 		"""
 
 		self.__vtk_actor3D.SetTexture(texture)
@@ -79,8 +79,8 @@ class Actor3D:
 		"""
 		Set the opacity (transparency) of the 3D actor.
 
-		@type opacity: Number (between 0 and 1)
-		@param opacity: Opacity (transparency) of the 3D actor
+		:type opacity: Number (between 0 and 1)
+		:param opacity: Opacity (transparency) of the 3D actor
 		"""
 	
 		self.__vtk_actor3D.GetProperty().SetOpacity(opacity)
@@ -89,8 +89,8 @@ class Actor3D:
 		"""
 		Set the color of the 3D actor.
 
-		@type color: L{Color <constant.Color>} constant
-		@param color: Color of the 3D actor 
+		:type color: `Color` constant
+		:param color: Color of the 3D actor 
 		"""
 
 		# NOTE: Must be used before actor.GetProperty().SetColor()
@@ -109,8 +109,8 @@ class Actor3D:
 		"""
 		Set the line width of the 3D actor.
 
-		@type line_width: Number
-		@param line_width: 3D actor line width
+		:type line_width: Number
+		:param line_width: 3D actor line width
 		"""
 
 		self.__vtk_actor3D.GetProperty().SetLineWidth(line_width)		
@@ -119,8 +119,8 @@ class Actor3D:
 		"""
 		Return the 3D actor.
 
-		@rtype: vtkActor
-		@return: 3D actor
+		:rtype: vtkActor
+		:return: 3D actor
 		"""
 
 		return self.__vtk_actor3D
@@ -146,8 +146,8 @@ class Actor2D:
 		"""
 		Setup the 2D actor.
 
-		@type mapper: vtkMapper2D
-		@param mapper: Mapped data
+		:type mapper: vtkMapper2D
+		:param mapper: Mapped data
 		"""
 
 		self.__mapper = mapper
@@ -165,8 +165,8 @@ class Actor2D:
 		Set the position (XY) of the 2D actor. Default position is the lower 
 		left hand corner of the window / viewport.
 
-		@type position: L{LocalPosition <position.LocalPosition>} object
-		@param position: Position of the 2D actor 
+		:type position: `LocalPosition` object
+		:param position: Position of the 2D actor 
 		"""
 
 		self._vtk_actor2D.SetPosition(position._getLocalPosition())
@@ -175,8 +175,8 @@ class Actor2D:
 		"""
 		Return the 2D actor.	
 
-		@rtype: vtkActor2D
-		@return 2D actor
+		:rtype: vtkActor2D
+		:return: 2D actor
 		"""
 
 		return self._vtk_actor2D

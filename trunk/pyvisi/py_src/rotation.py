@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -52,8 +52,8 @@ class Rotation:
 		"""
 		Setup the rotation.
 
-		@type object: vtkUnstructuredGrid, etc
-		@param object: Input for the clipper
+		:type object: vtkUnstructuredGrid, etc
+		:param object: Input for the clipper
 		"""
 
 		self.__object = object
@@ -72,8 +72,8 @@ class Rotation:
 		Set the resolution of the sweep for the rotation, which controls the 
 		number of intermediate points
 
-		@type resolution: Number
-		@param resolution: Resolution of the rotation
+		:type resolution: Number
+		:param resolution: Resolution of the rotation
 		"""
 
 		self.__vtk_rotational_extrusion_filter.SetResolution(resolution)
@@ -82,8 +82,8 @@ class Rotation:
 		"""
 		Set the angle of rotation.
 
-		@type angle: Number
-		@param angle: Angle of rotation
+		:type angle: Number
+		:param angle: Angle of rotation
 		"""
 
 		self.__vtk_rotational_extrusion_filter.SetAngle(angle)
@@ -92,8 +92,8 @@ class Rotation:
 		"""
 		Return the output of the rotation.
 
-		@rtype: vtkPolyData
-		@return: Polygonal data
+		:rtype: vtkPolyData
+		:return: Polygonal data
 		"""
 
 		return self.__vtk_rotational_extrusion_filter.GetOutput()

@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -52,8 +52,8 @@ class Plane:
 		"""
 		Setup the plane.
 
-		@type transform: L{Transform <transform.Transform>} object
-		@param transform: Specifies the orientation of the plane
+		:type transform: `Transform` object
+		:param transform: Specifies the orientation of the plane
 		"""
 
 		self.__transform = transform
@@ -68,8 +68,8 @@ class Plane:
 		"""
 		Set the origin of the plane.
 
-		@type position: L{GlobalPosition <position.GlobalPosition>} object
-		@param position: Origin of the plane
+		:type position: `GlobalPosition` object
+		:param position: Origin of the plane
 		"""
 		self.__vtk_plane.SetOrigin(position._getGlobalPosition())
 
@@ -77,8 +77,8 @@ class Plane:
 		"""
 		Set the normal of the plane.
 
-		@type position: L{GlobalPosition <position.GlobalPosition>} object
-		@param position: Normal of the plane
+		:type position: `GlobalPosition` object
+		:param position: Normal of the plane
 		"""
 
 		self.__vtk_plane.SetNormal(position._getGlobalPosition())
@@ -94,8 +94,8 @@ class Plane:
 		"""
 		Return the plane.
 
-		@rtype: vtkPlane
-		@return: Plane that cuts through rendered objects
+		:rtype: vtkPlane
+		:return: Plane that cuts through rendered objects
 		"""
 
 		return self.__vtk_plane
@@ -130,8 +130,8 @@ class PlaneSource:
 		"""
 		Set the origin of the plane source.
 
-		@type position: L{GlobalPosition <position.GlobalPosition>} object
-		@param position: Plane source origin
+		:type position: `GlobalPosition` object
+		:param position: Plane source origin
 		"""
 
 		self.__vtk_plane_source.SetOrigin(position._getGlobalPosition())
@@ -140,8 +140,8 @@ class PlaneSource:
 		"""
 		Set the first point from the origin of the plane source.
 
-		@type position: L{GlobalPosition <position.GlobalPosition>} object
-		@param position: Position of the first axis of the plane source
+		:type position: `GlobalPosition` object
+		:param position: Position of the first axis of the plane source
 		"""
 
 		self.__vtk_plane_source.SetPoint1(position._getGlobalPosition())
@@ -150,8 +150,8 @@ class PlaneSource:
 		"""
 		Set the second point from the origin of the plane source.
 
-		@type position: L{GlobalPosition <position.GlobalPosition>} object
-		@param position: Position of the second axis of the plane source
+		:type position: `GlobalPosition` object
+		:param position: Position of the second axis of the plane source
 		"""
 
 		self.__vtk_plane_source.SetPoint2(position._getGlobalPosition())
@@ -160,8 +160,8 @@ class PlaneSource:
 		"""
 		Return the output of the plane source.
 
-		@rtype: vtkPolyData
-		@return: Polygonal data
+		:rtype: vtkPolyData
+		:return: Polygonal data
 		"""
 
 		return self.__vtk_plane_source.GetOutput()

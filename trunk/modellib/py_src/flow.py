@@ -26,13 +26,13 @@ from esys.escript.linearPDEs import LameEquation
 class SteadyIncompressibleFlow(Model):
        """
 
-       M{-\left(\eta\left(v_{i,j}+v_{j,i}\right)\right)_{,j}+p_{,i}=F_i}
+       *-\left(\eta\left(v_{i,j}+v_{j,i}\right)\right)_{,j}+p_{,i}=F_i*
        
-       M{\sigma_{ij}=2\eta D_{ij}-p\,\delta_{ij}}
+       *\sigma_{ij}=2\eta D_{ij}-p\,\delta_{ij}*
 
-       M{D_{ij}=\frac{1}{2}\left( v_{j,i} + v_{i,j }\right)}
+       *D_{ij}=\frac{1}{2}\left( v_{j,i} + v_{i,j }\right)*
        
-       M{v_{k,k} = 0}
+       *v_{k,k} = 0*
 
        """
 

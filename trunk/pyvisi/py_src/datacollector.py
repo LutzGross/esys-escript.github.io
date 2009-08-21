@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -44,18 +44,15 @@ class DataCollector:
 	files are expensive, but this approach has the advantage given that the 
 	results can be analyzed easily after the simulation has completed.   
 
-	@attention: A DataCollector instance can only be used to specify one 
-	scalar, vector and tensor attribute from a source at any one time. If a 
-	second scalar, vector or tensor attribute needs to be specified from the 
-	same source, a second DataCollector instance must be created. 
+	:attention: A DataCollector instance can only be used to specify one scalar, vector and tensor attribute from a source at any one time. If a second scalar, vector or tensor attribute needs to be specified from the same source, a second DataCollector instance must be created. 
 	"""
 
 	def __init__(self, source = Source.XML):
 		"""
 		Initialise the data collector.
 
-		@type source: L{Source <constant.Source>} constant
-		@param source: Source type
+		:type source: `Source` constant
+		:param source: Source type
 		"""
                 if getMPISizeWorld()>1:
                     raise ValueError,"pyvisi.DataCollector is not running on more than one processor"
@@ -99,8 +96,8 @@ class DataCollector:
 		"""
 		Set the XML file name to read. 
 
-		@type file_name: String
-		@param file_name: Name of the file to read
+		:type file_name: String
+		:param file_name: Name of the file to read
 		"""
 
 		self.__modified = True
@@ -158,8 +155,8 @@ class DataCollector:
 		"""
 		Specify the scalar field to load. 
 
-		@type scalar: String
-		@param scalar: Scalar field to load from the file. 
+		:type scalar: String
+		:param scalar: Scalar field to load from the file. 
 		"""
 
 		self.__set_scalar = True
@@ -191,8 +188,8 @@ class DataCollector:
 		"""
 		Specify the vector field to load.
 
-		@type vector: String
-		@param vector: Vector field to load from the file. 
+		:type vector: String
+		:param vector: Vector field to load from the file. 
 		"""
 
 		self.__set_vector = True
@@ -224,8 +221,8 @@ class DataCollector:
 		"""
 		Specify the tensor field to load.
 
-		@type tensor: String
-		@param tensor: Tensor field to load from the file. 
+		:type tensor: String
+		:param tensor: Tensor field to load from the file. 
 		"""
 
 		self.__set_tensor = True
@@ -256,10 +253,10 @@ class DataCollector:
 		Return whether an array type is scalar, vector or tensor by looking 
 		at the number of components in the array.
 
-		@type arr: vtkDataArray
-		@param arr: An array from the source.
-		@rtype: String
-		@return: Array type ('scalar', vector' or 'tensor')
+		:type arr: vtkDataArray
+		:param arr: An array from the source.
+		:rtype: String
+		:return: Array type ('scalar', vector' or 'tensor')
 		"""
 
 		# Number of components in an array.
@@ -277,10 +274,10 @@ class DataCollector:
 		Return the available scalar, vector and tensor attributes 
 		(either point or cell data).
 
-		@type data: vtkPointData or vtkCellData
-		@param data: Available point data or cell data from the source
-		@rtype: Dictionary
-		@return: Dictionary containing the available scalar, vector and \
+		:type data: vtkPointData or vtkCellData
+		:param data: Available point data or cell data from the source
+		:rtype: Dictionary
+		:return: Dictionary containing the available scalar, vector and \
 				tensor attributes
 		"""
 
@@ -313,8 +310,8 @@ class DataCollector:
 		"""
 		Return the scalar range.
 
-		@rtype: Two column tuple containing numbers
-		@return: Scalar range
+		:rtype: Two column tuple containing numbers
+		:return: Scalar range
 		"""
 
 		# Check whether any scalar is available in either point or cell data. 
@@ -335,8 +332,8 @@ class DataCollector:
 		"""
 		Return the vector range.
 	
-		@rtype: Two column tuple containing numbers
-		@return: Vector range
+		:rtype: Two column tuple containing numbers
+		:return: Vector range
 		"""
 		
 		# Check whether any vector is available in either point or cell data. 
@@ -367,8 +364,8 @@ class DataCollector:
 		"""
 		Return the tensor range.
 
-		@rtype: Two column tuple containing numbers
-		@return: Tensor range
+		:rtype: Two column tuple containing numbers
+		:return: Tensor range
 		"""
 
 		# Check whether any tensor is available in either point or cell data. 
@@ -389,8 +386,8 @@ class DataCollector:
 		"""
 		Return the output of the data collector.
 
-		@rtype: vtkUnstructuredGrid
-		@return: Unstructured grid
+		:rtype: vtkUnstructuredGrid
+		:return: Unstructured grid
 		"""
 		return self.__vtk_xml_reader.GetOutput()
 
@@ -398,8 +395,8 @@ class DataCollector:
 		"""
 		Return whether the DataCollector has been modified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		if(self.__modified == True):
@@ -419,8 +416,8 @@ class DataCollector:
 		"""
 		Return whether a specific scalar field has been specified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		return self.__set_scalar
@@ -429,8 +426,8 @@ class DataCollector:
 		"""
 		Return whether a specific vector field has been specified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		return self.__set_vector 
@@ -439,8 +436,8 @@ class DataCollector:
 		"""
 		Return whether a specific tensor field has been specified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		return self.__set_tensor 
@@ -449,8 +446,8 @@ class DataCollector:
 		"""
 		Return the center of the rendered object.
 
-		@rtype: Three column tuple containing numbers
-		@return: Center of the rendered object
+		:rtype: Three column tuple containing numbers
+		:return: Center of the rendered object
 		"""
 
 		return self._getDataCollectorOutput().GetCenter()

@@ -30,11 +30,11 @@ class TemperatureAdvection(Model):
 
        The conservation of internal heat energy is given by
 
-       M{S{rho} c_p ( dT/dt+v[j]*grad(T)[j])-grad(\kappa grad(T)_{,i}=Q}
+       *rho c_p ( dT/dt+v[j] * grad(T)[j])-grad(\kappa grad(T)_{,i}=Q*
 
-       M{n_i\kappa T_{,i}=0}
+       *n_i \kappa T_{,i}=0*
 
-       it is assummed that M{\rho c_p} is constant in time.
+       it is assummed that *\rho c_p* is constant in time.
 
        solved by Taylor Galerkin method
 

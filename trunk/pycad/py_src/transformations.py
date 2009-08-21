@@ -22,14 +22,14 @@ __url__="https://launchpad.net/escript-finley"
 """
 transformations
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
-@var DEG: unit of degree
-@var RAD: unit of radiant
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
+:var DEG: unit of degree
+:var RAD: unit of radiant
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -42,7 +42,7 @@ DEG=math.pi/180.
 RAD=1.
 class Transformation(object):
    """
-   General class to define an affine transformation M{x->Ax+b}.
+   General class to define an affine transformation *x->Ax+b*.
    """
    def __init__(self):
        """
@@ -52,24 +52,24 @@ class Transformation(object):
 
    def __call__(self,x=numpy.zeros((3,))):
        """
-       Applies transformation to C{x}.
+       Applies transformation to ``x``.
        """
        raise NotImplementeError()
 
 class Translation(Transformation):
     """
-    Defines a translation M{x->x+b}.
+    Defines a translation *x->x+b*.
     """
     def __init__(self,b=numpy.zeros((3,),dtype=_TYPE)):
        """
-       Creates the linear transformation M{x->x+b}.
+       Creates the linear transformation *x->x+b*.
        """
        super(Translation, self).__init__()
        self.__b=numpy.array(b,_TYPE)
 
     def __call__(self,x=numpy.zeros((3,))):
        """
-       Applies translation to C{x}.
+       Applies translation to ``x``.
        """
        return numpy.array(x,_TYPE)+self.__b
 
@@ -91,7 +91,7 @@ class Rotatation(Transformation):
 
     def __call__(self,x=numpy.zeros((3,))):
        """
-       Applies the rotation to C{x}.
+       Applies the rotation to ``x``.
        """
        x=numpy.array(x,_TYPE)
        z=x-self.__point
@@ -112,7 +112,7 @@ class Rotatation(Transformation):
 
 def _cross(x, y):
     """
-    Returns the cross product of C{x} and C{y}.
+    Returns the cross product of ``x`` and ``y``.
     """
     return numpy.array([x[1] * y[2] - x[2] * y[1], x[2] * y[0] - x[0] * y[2], x[0] * y[1] - x[1] * y[0]], _TYPE)
 
@@ -132,7 +132,7 @@ class Dilation(Transformation):
 
     def __call__(self,x=numpy.zeros((3,))):
        """
-       Applies dilation to C{x}.
+       Applies dilation to ``x``.
        """
        x=numpy.array(x,_TYPE)
        return self.__factor*(x-self.__center)+self.__center
@@ -157,7 +157,7 @@ class Reflection(Transformation):
 
     def __call__(self,x=numpy.zeros((3,))):
        """
-       Applies reflection to C{x}.
+       Applies reflection to ``x``.
        """
        x=numpy.array(x,_TYPE)
        return x - 2*(numpy.dot(x,self.__normal)-self.__offset)*self.__normal

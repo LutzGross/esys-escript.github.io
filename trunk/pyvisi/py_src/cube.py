@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -55,8 +55,8 @@ class CubeSource:
 		"""
 		Set the cube source center.
 
-		@type center: L{GlobalPosition <position.GlobalPosition>} object
-		@param center: Cube source center
+		:type center: `GlobalPosition` object
+		:param center: Cube source center
 		"""
 
 		self.__vtk_cube_source.SetCenter(center._getGlobalPosition())
@@ -65,8 +65,8 @@ class CubeSource:
 		"""
 		Set the cube source length along the x-axis.
 
-		@type length: Number
-		@param length: Cube source length along the x-axis
+		:type length: Number
+		:param length: Cube source length along the x-axis
 		"""
 		self.__vtk_cube_source.SetXLength(length)
 
@@ -74,8 +74,8 @@ class CubeSource:
 		"""
 		Set the cube source length along the y-axis.
 
-		@type length: Number
-		@param length: Cube source length along the y-axis
+		:type length: Number
+		:param length: Cube source length along the y-axis
 		"""
 
 		self.__vtk_cube_source.SetYLength(length)
@@ -84,8 +84,8 @@ class CubeSource:
 		"""
 		Set the cube source length along the z-axis.
 
-		@type length: Number
-		@param length: Cube source length along the z-axis
+		:type length: Number
+		:param length: Cube source length along the z-axis
 		"""
 
 		self.__vtk_cube_source.SetZLength(length)
@@ -94,8 +94,8 @@ class CubeSource:
 		"""
 		Return the output of the cube source
 
-		@rtype: vtkPolyData
-		@return: Polygonal data
+		:rtype: vtkPolyData
+		:return: Polygonal data
 		"""
 	
 		return self.__vtk_cube_source.GetOutput()

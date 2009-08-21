@@ -21,12 +21,12 @@ __url__="https://launchpad.net/escript-finley"
 """
 Some models for flow
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -40,23 +40,23 @@ class DarcyFlow(object):
     """
     solves the problem
 
-    M{u_i+k_{ij}*p_{,j} = g_i}
-    M{u_{i,i} = f}
+    *u_i+k_{ij}*p_{,j} = g_i*
+    *u_{i,i} = f*
 
-    where M{p} represents the pressure and M{u} the Darcy flux. M{k} represents the permeability,
+    where *p* represents the pressure and *u* the Darcy flux. *k* represents the permeability,
 
-    @note: The problem is solved in a least squares formulation.
+    :note: The problem is solved in a least squares formulation.
     """
 
     def __init__(self, domain, weight=None, useReduced=False, adaptSubTolerance=True):
         """
         initializes the Darcy flux problem
-        @param domain: domain of the problem
-        @type domain: L{Domain}
-	@param useReduced: uses reduced oreder on flux and pressure
-	@type useReduced: C{bool}
-	@param adaptSubTolerance: switches on automatic subtolerance selection
-	@type adaptSubTolerance: C{bool}	
+        :param domain: domain of the problem
+        :type domain: `Domain`
+	:param useReduced: uses reduced oreder on flux and pressure
+	:type useReduced: ``bool``
+	:param adaptSubTolerance: switches on automatic subtolerance selection
+	:type adaptSubTolerance: ``bool``	
         """
         self.domain=domain
         if weight == None:
@@ -83,40 +83,40 @@ class DarcyFlow(object):
 	"""
 	Returns the solver options used to solve the flux problems
 	
-	M{(I+D^*D)u=F}
+	*(I+D^*D)u=F*
 	
-	@return: L{SolverOptions}
+	:return: `SolverOptions`
 	"""
 	return self.__pde_v.getSolverOptions()
     def setSolverOptionsFlux(self, options=None):
 	"""
 	Sets the solver options used to solve the flux problems
 	
-	M{(I+D^*D)u=F}
+	*(I+D^*D)u=F*
 	
-	If C{options} is not present, the options are reset to default
-	@param options: L{SolverOptions}
-	@note: if the adaption of subtolerance is choosen, the tolerance set by C{options} will be overwritten before the solver is called.
+	If ``options`` is not present, the options are reset to default
+	:param options: `SolverOptions`
+	:note: if the adaption of subtolerance is choosen, the tolerance set by ``options`` will be overwritten before the solver is called.
 	"""
 	return self.__pde_v.setSolverOptions(options)
     def getSolverOptionsPressure(self):
 	"""
 	Returns the solver options used to solve the pressure problems
 	
-	M{(Q^*Q)p=Q^*G}
+	*(Q^*Q)p=Q^*G*
 	
-	@return: L{SolverOptions}
+	:return: `SolverOptions`
 	"""
 	return self.__pde_p.getSolverOptions()
     def setSolverOptionsPressure(self, options=None):
 	"""
 	Sets the solver options used to solve the pressure problems
 	
-	M{(Q^*Q)p=Q^*G}
+	*(Q^*Q)p=Q^*G*
 	
-	If C{options} is not present, the options are reset to default
-	@param options: L{SolverOptions}
-	@note: if the adaption of subtolerance is choosen, the tolerance set by C{options} will be overwritten before the solver is called.
+	If ``options`` is not present, the options are reset to default
+	:param options: `SolverOptions`
+	:note: if the adaption of subtolerance is choosen, the tolerance set by ``options`` will be overwritten before the solver is called.
 	"""
 	return self.__pde_p.setSolverOptions(options)
 
@@ -124,23 +124,23 @@ class DarcyFlow(object):
         """
         assigns values to model parameters
 
-        @param f: volumetic sources/sinks
-        @type f: scalar value on the domain (e.g. L{Data})
-        @param g: flux sources/sinks
-        @type g: vector values on the domain (e.g. L{Data})
-        @param location_of_fixed_pressure: mask for locations where pressure is fixed
-        @type location_of_fixed_pressure: scalar value on the domain (e.g. L{Data})
-        @param location_of_fixed_flux:  mask for locations where flux is fixed.
-        @type location_of_fixed_flux: vector values on the domain (e.g. L{Data})
-        @param permeability: permeability tensor. If scalar C{s} is given the tensor with
-                             C{s} on the main diagonal is used. If vector C{v} is given the tensor with
-                             C{v} on the main diagonal is used.
-        @type permeability: scalar, vector or tensor values on the domain (e.g. L{Data})
+        :param f: volumetic sources/sinks
+        :type f: scalar value on the domain (e.g. `Data`)
+        :param g: flux sources/sinks
+        :type g: vector values on the domain (e.g. `Data`)
+        :param location_of_fixed_pressure: mask for locations where pressure is fixed
+        :type location_of_fixed_pressure: scalar value on the domain (e.g. `Data`)
+        :param location_of_fixed_flux:  mask for locations where flux is fixed.
+        :type location_of_fixed_flux: vector values on the domain (e.g. `Data`)
+        :param permeability: permeability tensor. If scalar ``s`` is given the tensor with
+                             ``s`` on the main diagonal is used. If vector ``v`` is given the tensor with
+                             ``v`` on the main diagonal is used.
+        :type permeability: scalar, vector or tensor values on the domain (e.g. `Data`)
 
-        @note: the values of parameters which are not set by calling C{setValue} are not altered.
-        @note: at any point on the boundary of the domain the pressure (C{location_of_fixed_pressure} >0)
-               or the normal component of the flux (C{location_of_fixed_flux[i]>0} if direction of the normal
-               is along the M{x_i} axis.
+        :note: the values of parameters which are not set by calling ``setValue`` are not altered.
+        :note: at any point on the boundary of the domain the pressure (``location_of_fixed_pressure`` >0)
+               or the normal component of the flux (``location_of_fixed_flux[i]>0`` if direction of the normal
+               is along the *x_i* axis.
         """
         if f !=None:
            f=util.interpolate(f, self.__pde_v.getFunctionSpaceForCoefficient("X"))
@@ -177,14 +177,14 @@ class DarcyFlow(object):
 
     def setTolerance(self,rtol=1e-4):
         """
-        sets the relative tolerance C{rtol} used to terminate the solution process. The iteration is terminated if
+        sets the relative tolerance ``rtol`` used to terminate the solution process. The iteration is terminated if
 
-        M{|g-v-Qp| <= atol + rtol * min( max( |g-v|, |Qp| ), max( |v|, |g-Qp| ) ) }
+        *|g-v-Qp| <= atol + rtol * min( max( |g-v|, |Qp| ), max( |v|, |g-Qp| ) )*
 
-        where C{atol} is an absolut tolerance (see L{setAbsoluteTolerance}), M{|f|^2 = integrate(length(f)^2)} and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}.
+        where ``atol`` is an absolut tolerance (see `setAbsoluteTolerance`), *|f|^2 = integrate(length(f)^2)* and *(Qp)_i=k_{ij}p_{,j}* for the permeability *k_{ij}*.
 
-        @param rtol: relative tolerance for the pressure
-        @type rtol: non-negative C{float}
+        :param rtol: relative tolerance for the pressure
+        :type rtol: non-negative ``float``
         """
         if rtol<0:
             raise ValueError,"Relative tolerance needs to be non-negative."
@@ -193,21 +193,21 @@ class DarcyFlow(object):
         """
         returns the relative tolerance
 
-        @return: current relative tolerance
-        @rtype: C{float}
+        :return: current relative tolerance
+        :rtype: ``float``
         """
         return self.__rtol
 
     def setAbsoluteTolerance(self,atol=0.):
         """
-        sets the absolute tolerance C{atol} used to terminate the solution process. The iteration is terminated if
+        sets the absolute tolerance ``atol`` used to terminate the solution process. The iteration is terminated if
 
-        M{|g-v-Qp| <= atol + rtol * min( max( |g-v|, |Qp| ), max( |v|, |g-Qp| ) ) }
+        *|g-v-Qp| <= atol + rtol * min( max( |g-v|, |Qp| ), max( |v|, |g-Qp| ) )*
 
-        where C{rtol} is an absolut tolerance (see L{setTolerance}), M{|f|^2 = integrate(length(f)^2)} and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}.
+        where ``rtol`` is an absolut tolerance (see `setTolerance`), *|f|^2 = integrate(length(f)^2)* and *(Qp)_i=k_{ij}p_{,j}* for the permeability *k_{ij}*.
 
-        @param atol: absolute tolerance for the pressure
-        @type atol: non-negative C{float}
+        :param atol: absolute tolerance for the pressure
+        :type atol: non-negative ``float``
         """
         if atol<0:
             raise ValueError,"Absolute tolerance needs to be non-negative."
@@ -216,14 +216,14 @@ class DarcyFlow(object):
        """
        returns the absolute tolerance 
        
-       @return: current absolute tolerance
-       @rtype: C{float}
+       :return: current absolute tolerance
+       :rtype: ``float``
        """
        return self.__atol
     def getSubProblemTolerance(self):
 	"""
 	Returns a suitable subtolerance
-	@type: C{float}
+	@type: ``float``
 	"""
 	return max(util.EPSILON**(0.75),self.getTolerance()**2)
     def setSubProblemTolerance(self):
@@ -244,31 +244,31 @@ class DarcyFlow(object):
 
          The iteration is terminated if the residual norm is less then self.getTolerance().
 
-         @param u0: initial guess for the flux. At locations in the domain marked by C{location_of_fixed_flux} the value of C{u0} is kept unchanged.
-         @type u0: vector value on the domain (e.g. L{Data}).
-         @param p0: initial guess for the pressure. At locations in the domain marked by C{location_of_fixed_pressure} the value of C{p0} is kept unchanged.
-         @type p0: scalar value on the domain (e.g. L{Data}).
-         @param verbose: if set some information on iteration progress are printed
-         @type verbose: C{bool}
-         @return: flux and pressure
-         @rtype: C{tuple} of L{Data}.
+         :param u0: initial guess for the flux. At locations in the domain marked by ``location_of_fixed_flux`` the value of ``u0`` is kept unchanged.
+         :type u0: vector value on the domain (e.g. `Data`).
+         :param p0: initial guess for the pressure. At locations in the domain marked by ``location_of_fixed_pressure`` the value of ``p0`` is kept unchanged.
+         :type p0: scalar value on the domain (e.g. `Data`).
+         :param verbose: if set some information on iteration progress are printed
+         :type verbose: ``bool``
+         :return: flux and pressure
+         :rtype: ``tuple`` of `Data`.
 
-         @note: The problem is solved as a least squares form
+         :note: The problem is solved as a least squares form
 
-         M{(I+D^*D)u+Qp=D^*f+g}
-         M{Q^*u+Q^*Qp=Q^*g}
+         *(I+D^*D)u+Qp=D^*f+g*
+         *Q^*u+Q^*Qp=Q^*g*
 
-         where M{D} is the M{div} operator and M{(Qp)_i=k_{ij}p_{,j}} for the permeability M{k_{ij}}.
+         where *D* is the *div* operator and *(Qp)_i=k_{ij}p_{,j}* for the permeability *k_{ij}*.
          We eliminate the flux form the problem by setting
 
-         M{u=(I+D^*D)^{-1}(D^*f-g-Qp)} with u=u0 on location_of_fixed_flux
+         *u=(I+D^*D)^{-1}(D^*f-g-Qp)* with u=u0 on location_of_fixed_flux
 
          form the first equation. Inserted into the second equation we get
 
-         M{Q^*(I-(I+D^*D)^{-1})Qp= Q^*(g-(I+D^*D)^{-1}(D^*f+g))} with p=p0  on location_of_fixed_pressure
+         *Q^*(I-(I+D^*D)^{-1})Qp= Q^*(g-(I+D^*D)^{-1}(D^*f+g))* with p=p0  on location_of_fixed_pressure
 
-         which is solved using the PCG method (precondition is M{Q^*Q}). In each iteration step
-         PDEs with operator M{I+D^*D} and with M{Q^*Q} needs to be solved using a sub iteration scheme.
+         which is solved using the PCG method (precondition is *Q^*Q*). In each iteration step
+         PDEs with operator *I+D^*D* and with *Q^*Q* needs to be solved using a sub iteration scheme.
          """
          self.verbose=verbose
          rtol=self.getTolerance()
@@ -336,20 +336,18 @@ class DarcyFlow(object):
 
     def getFlux(self,p=None, fixed_flux=Data()):
         """
-        returns the flux for a given pressure C{p} where the flux is equal to C{fixed_flux}
-        on locations where C{location_of_fixed_flux} is positive (see L{setValue}).
-        Note that C{g} and C{f} are used, see L{setValue}.
+        returns the flux for a given pressure ``p`` where the flux is equal to ``fixed_flux``
+        on locations where ``location_of_fixed_flux`` is positive (see `setValue`).
+        Note that ``g`` and ``f`` are used, see `setValue`.
 
-        @param p: pressure.
-        @type p: scalar value on the domain (e.g. L{Data}).
-        @param fixed_flux: flux on the locations of the domain marked be C{location_of_fixed_flux}.
-        @type fixed_flux: vector values on the domain (e.g. L{Data}).
-        @param tol: relative tolerance to be used.
-        @type tol: positive C{float}.
-        @return: flux
-        @rtype: L{Data}
-        @note: the method uses the least squares solution M{u=(I+D^*D)^{-1}(D^*f-g-Qp)} where M{D} is the M{div} operator and M{(Qp)_i=k_{ij}p_{,j}}
-               for the permeability M{k_{ij}}
+        :param p: pressure.
+        :type p: scalar value on the domain (e.g. `Data`).
+        :param fixed_flux: flux on the locations of the domain marked be ``location_of_fixed_flux``.
+        :type fixed_flux: vector values on the domain (e.g. `Data`).
+        :return: flux
+        :rtype: `Data`
+        :note: the method uses the least squares solution *u=(I+D^*D)^{-1}(D^*f-g-Qp)* where *D* is the *div* operator and *(Qp)_i=k_{ij}p_{,j}*
+               for the permeability *k_{ij}*
         """
 	self.setSubProblemTolerance()
         g=self.__g
@@ -384,11 +382,11 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          """
          initialize the Stokes Problem
 
-         @param domain: domain of the problem. The approximation order needs to be two.
-         @type domain: L{Domain}
-	 @param adaptSubTolerance: If True the tolerance for subproblem is set automatically.
-	 @type adaptSubTolerance: C{bool}
-         @warning: The apprximation order needs to be two otherwise you may see oscilations in the pressure.
+         :param domain: domain of the problem. The approximation order needs to be two.
+         :type domain: `Domain`
+	 :param adaptSubTolerance: If True the tolerance for subproblem is set automatically.
+	 :type adaptSubTolerance: ``bool``
+         :warning: The apprximation order needs to be two otherwise you may see oscilations in the pressure.
          """
          HomogeneousSaddlePointProblem.__init__(self,adaptSubTolerance=adaptSubTolerance,**kwargs)
          self.domain=domain
@@ -409,28 +407,28 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          """
 	 returns the solver options used  solve the equation for velocity.
 	 
-	 @rtype: L{SolverOptions}
+	 :rtype: `SolverOptions`
 	 """
 	 return self.__pde_u.getSolverOptions()
      def setSolverOptionsVelocity(self, options=None):
          """
 	 set the solver options for solving the equation for velocity.
 	 
-	 @param options: new solver  options
-	 @type options: L{SolverOptions}
+	 :param options: new solver  options
+	 :type options: `SolverOptions`
 	 """
          self.__pde_u.setSolverOptions(options)
      def getSolverOptionsPressure(self):
          """
 	 returns the solver options used  solve the equation for pressure.
-	 @rtype: L{SolverOptions}
+	 :rtype: `SolverOptions`
 	 """
 	 return self.__pde_prec.getSolverOptions()
      def setSolverOptionsPressure(self, options=None):
          """
 	 set the solver options for solving the equation for pressure.
-	 @param options: new solver  options
-	 @type options: L{SolverOptions}
+	 :param options: new solver  options
+	 :type options: `SolverOptions`
 	 """
 	 self.__pde_prec.setSolverOptions(options)
 
@@ -439,8 +437,8 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 	 set the solver options for solving the equation to project the divergence of
 	 the velocity onto the function space of presure.
 	 
-	 @param options: new solver options
-	 @type options: L{SolverOptions}
+	 :param options: new solver options
+	 :type options: `SolverOptions`
 	 """
 	 self.__pde_prec.setSolverOptions(options)
      def getSolverOptionsDiv(self):
@@ -448,7 +446,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 	 returns the solver options for solving the equation to project the divergence of
 	 the velocity onto the function space of presure.
 	 
-	 @rtype: L{SolverOptions}
+	 :rtype: `SolverOptions`
 	 """
 	 return self.__pde_prec.getSolverOptions()
      def setSubProblemTolerance(self):
@@ -469,17 +467,17 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
         """
         assigns values to the model parameters
 
-        @param f: external force
-        @type f: L{Vector} object in L{FunctionSpace} L{Function} or similar
-        @param fixed_u_mask: mask of locations with fixed velocity.
-        @type fixed_u_mask: L{Vector} object on L{FunctionSpace} L{Solution} or similar
-        @param eta: viscosity
-        @type eta: L{Scalar} object on L{FunctionSpace} L{Function} or similar
-        @param surface_stress: normal surface stress
-        @type eta: L{Vector} object on L{FunctionSpace} L{FunctionOnBoundary} or similar
-        @param stress: initial stress
-	@type stress: L{Tensor} object on L{FunctionSpace} L{Function} or similar
-        @note: All values needs to be set.
+        :param f: external force
+        :type f: `Vector` object in `FunctionSpace` `Function` or similar
+        :param fixed_u_mask: mask of locations with fixed velocity.
+        :type fixed_u_mask: `Vector` object on `FunctionSpace` `Solution` or similar
+        :param eta: viscosity
+        :type eta: `Scalar` object on `FunctionSpace` `Function` or similar
+        :param surface_stress: normal surface stress
+        :type surface_stress: `Vector` object on `FunctionSpace` `FunctionOnBoundary` or similar
+        :param stress: initial stress
+	:type stress: `Tensor` object on `FunctionSpace` `Function` or similar
+        :note: All values needs to be set.
         """
         self.eta=eta
         A =self.__pde_u.createCoefficient("A")
@@ -499,10 +497,9 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          """
          returns inner product of element p and div(v)
 
-         @param p: a pressure increment
-         @param v: a residual
-         @return: inner product of element p and div(v)
-         @rtype: C{float}
+         :param v: a residual
+         :return: inner product of element p and div(v)
+         :rtype: ``float``
          """
          self.__pde_proj.setValue(Y=-util.div(v))
          return self.__pde_proj.getSolution()
@@ -511,10 +508,10 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          """
          returns inner product of element p and Bv=-div(v)
 
-         @param p: a pressure increment
-         @param v: a residual
-         @return: inner product of element p and Bv=-div(v)
-         @rtype: C{float}
+         :param p: a pressure increment
+         :param Bv: a residual
+         :return: inner product of element p and Bv=-div(v)
+         :rtype: ``float``
          """
          return util.integrate(util.interpolate(p,Function(self.domain))*util.interpolate(Bv,Function(self.domain)))
 
@@ -522,10 +519,10 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          """
          Returns inner product of p0 and p1
 
-         @param p0: a pressure
-         @param p1: a pressure
-         @return: inner product of p0 and p1
-         @rtype: C{float}
+         :param p0: a pressure
+         :param p1: a pressure
+         :return: inner product of p0 and p1
+         :rtype: ``float``
          """
          s0=util.interpolate(p0/self.eta,Function(self.domain))
          s1=util.interpolate(p1/self.eta,Function(self.domain))
@@ -535,9 +532,9 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          """
          returns the norm of v
 
-         @param v: a velovity
-         @return: norm of v
-         @rtype: non-negative C{float}
+         :param v: a velovity
+         :return: norm of v
+         :rtype: non-negative ``float``
          """
          return util.sqrt(util.integrate(util.length(util.grad(v))))
 
@@ -545,9 +542,9 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          """
          return the value for v for a given p (overwrite)
 
-         @param p: a pressure
-         @param v0: a initial guess for the value v to return.
-         @return: v given as M{v= A^{-1} (f-B^*p)}
+         :param p: a pressure
+         :param v0: a initial guess for the value v to return.
+         :return: v given as *v= A^{-1} (f-B^*p)*
          """
          self.__pde_u.setValue(Y=self.__f, y=self.__surface_stress, r=v0)
          if self.__stress.isEmpty():
@@ -561,18 +558,18 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
         """
         Returns Bv (overwrite).
 
-        @rtype: equal to the type of p
-        @note: boundary conditions on p should be zero!
+        :rtype: equal to the type of p
+        :note: boundary conditions on p should be zero!
         """
         return util.sqrt(util.integrate(util.interpolate(Bv,Function(self.domain))**2))
 
      def solve_AinvBt(self,p):
          """
-         Solves M{Av=B^*p} with accuracy L{self.getSubProblemTolerance()}
+         Solves *Av=B^*p* with accuracy `self.getSubProblemTolerance()`
 
-         @param p: a pressure increment
-         @return: the solution of M{Av=B^*p}
-         @note: boundary conditions on v should be zero!
+         :param p: a pressure increment
+         :return: the solution of *Av=B^*p*
+         :note: boundary conditions on v should be zero!
          """
          self.__pde_u.setValue(Y=Data(), y=Data(), r=Data(),X=-p*util.kronecker(self.domain))
          out=self.__pde_u.getSolution()
@@ -580,12 +577,12 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 
      def solve_prec(self,Bv):
          """
-         applies preconditioner for for M{BA^{-1}B^*} to M{Bv}
-         with accuracy L{self.getSubProblemTolerance()} 
+         applies preconditioner for for *BA^{-1}B^** to *Bv*
+         with accuracy `self.getSubProblemTolerance()` 
 
-         @param v: velocity increment
-         @return: M{p=P(Bv)} where M{P^{-1}} is an approximation of M{BA^{-1}B^*}
-         @note: boundary conditions on p are zero.
+         :param Bv: velocity increment
+         :return: *p=P(Bv)* where *P^{-1}* is an approximation of *BA^{-1}B^ * )*
+         :note: boundary conditions on p are zero.
          """
          self.__pde_prec.setValue(Y=Bv)
          return self.__pde_prec.getSolution()

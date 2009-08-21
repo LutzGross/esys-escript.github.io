@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -55,10 +55,10 @@ class DataSetMapper:
 		"""
 		Setup the data set mapper.	
 
-		@type object: vtkDataSet (i.e. vtkUnstructuredGrid, vtkPolyData, etc) 
-		@param object: Data source map
-		@type lookup_table: vtkLookupTable
-		@param lookup_table: Maps scalar values to colors
+		:type object: vtkDataSet (i.e. vtkUnstructuredGrid, vtkPolyData, etc) 
+		:param object: Data source map
+		:type lookup_table: vtkLookupTable
+		:param lookup_table: Maps scalar values to colors
 		"""
 
 		self.__object = object
@@ -78,8 +78,8 @@ class DataSetMapper:
 		"""
 		Set the lookup table for the data set mapper.
 	
-		@type lookup_table: vtkLookupTable
-		@param lookup_table: Map scalar values to colors
+		:type lookup_table: vtkLookupTable
+		:param lookup_table: Map scalar values to colors
 		"""
 
 		self.__vtk_data_set_mapper.SetLookupTable(lookup_table)
@@ -90,10 +90,10 @@ class DataSetMapper:
 		method is called when the range has been specified by the user. 
 		Therefore, the scalar range read from the source will be ignored. 
 		
-		@type lower_range: Lower range of scalar value
-		@param lower_range: Number
-		@type upper_range: Upper range of scalar value
-		@param upper_range: Number
+		:type lower_range: Lower range of scalar value
+		:param lower_range: Number
+		:type upper_range: Upper range of scalar value
+		:param upper_range: Number
 		"""
 
 		self.__scalar_range_set = True
@@ -105,8 +105,8 @@ class DataSetMapper:
 		method is called when the range has NOT been specified by the user. 
 		Therefore, the scalar range read from the source will be used instead. 
 		
-		@type range: Two column tuple containing numbers
-		@param range: Minimum and maximum data set mapper scalar range
+		:type range: Two column tuple containing numbers
+		:param range: Minimum and maximum data set mapper scalar range
 		"""
 		self.__scalar_range_set = True
 		self.__vtk_data_set_mapper.SetScalarRange(range) 
@@ -122,8 +122,8 @@ class DataSetMapper:
 		"""
 		Return the data set mapper.
 
-		@rtype: vtkDataSetMapper 	
-		@return: Data set mapper
+		:rtype: vtkDataSetMapper 	
+		:return: Data set mapper
 		"""
 
 		return self.__vtk_data_set_mapper
@@ -132,8 +132,8 @@ class DataSetMapper:
 		"""
 		Return the data set mapper's lookup table.
 
-		@rtype: vtkScalarsToColors 	
-		@return: Converts scalar data to colors
+		:rtype: vtkScalarsToColors 	
+		:return: Converts scalar data to colors
 		"""
 
 		return self.__vtk_data_set_mapper.GetLookupTable()
@@ -143,8 +143,8 @@ class DataSetMapper:
 		Return whether the data set mapper's scalar range has been specified \
 		by the user.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		return self.__scalar_range_set 
@@ -153,8 +153,8 @@ class DataSetMapper:
 		"""
 		Return the mapper's scalar range.
 
-		@rtype: Two column tuple containing numbers
-		@return: Minimum and maximum range of the data set mapper's scalar range
+		:rtype: Two column tuple containing numbers
+		:return: Minimum and maximum range of the data set mapper's scalar range
 		"""
 
 		return self.__vtk_data_set_mapper.GetScalarRange()
@@ -180,8 +180,8 @@ class ImageMapper:
 		"""
 		Setup the image mapper.
 		
-		@type object: vtkImageData
-		@param object: Image data
+		:type object: vtkImageData
+		:param object: Image data
 		"""
 
 		self.__object = object
@@ -217,8 +217,8 @@ class ImageMapper:
 		"""
 		Return the image mapper.
 
-		@rtype: vtkImageMapper
-		@return: Image mapper
+		:rtype: vtkImageMapper
+		:return: Image mapper
 		"""
 
 		return self.__vtk_image_mapper

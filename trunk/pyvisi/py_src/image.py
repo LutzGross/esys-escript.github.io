@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -50,23 +50,20 @@ class Image(DataSetMapper, Actor3D, Texture, PlaneSource, Transform,
 	and has interaction capability. The image can also be translated and 
 	rotated along the X, Y and Z axes.
 
-	@attention: Translating an image works differently (opposite) compared to 
-	translating a plane. For example, a positive translation along the 
-	z-axis moves a plane up. However, if the identical translation is applied 
-	on an image, the image moves down.
+	:attention: Translating an image works differently (opposite) compared to translating a plane. For example, a positive translation along the z-axis moves a plane up. However, if the identical translation is applied on an image, the image moves down.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	def __init__(self, scene, image_reader, viewport = Viewport.SOUTH_WEST):
 		"""
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which the image is to be displayed
-		@type image_reader: L{ImageReader <imagereader.ImageReader>}
+		:type scene: `Scene` object
+		:param scene: Scene in which the image is to be displayed
+		:type image_reader: `ImageReader`
 				object
-		@param image_reader: Deal with source of data for vizualisation
-		@type viewport: L{Viewport <constant.Viewport>} constant  
-		@param viewport: Viewport in which the image is to be displayed
+		:param image_reader: Deal with source of data for vizualisation
+		:type viewport: `Viewport` constant  
+		:param viewport: Viewport in which the image is to be displayed
 		"""
 
 		self.__image_reader = image_reader
@@ -98,8 +95,8 @@ class Image(DataSetMapper, Actor3D, Texture, PlaneSource, Transform,
 		"""
 		Return whether the Image has been modified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		if (self.__modified == True):
@@ -111,8 +108,8 @@ class Image(DataSetMapper, Actor3D, Texture, PlaneSource, Transform,
 		"""
 		Render the image.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which the image is to be displayed
+		:type scene: `Scene` object
+		:param scene: Scene in which the image is to be displayed
 		"""
 
 		if(self._isModified() == True):

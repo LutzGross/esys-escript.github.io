@@ -22,13 +22,13 @@ __url__="https://launchpad.net/escript-finley"
 """
 Test suite for input and output of meshes and data objects
 
-@remark:
+:remark:
 
-@var __author__: name of author
-@var __licence__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __licence__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 import unittest, sys

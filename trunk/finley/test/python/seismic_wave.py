@@ -22,11 +22,11 @@ __url__="https://launchpad.net/escript-finley"
 """
 seismic wave propagation
 
-@var __author__: name of author
-@var __licence__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __licence__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"

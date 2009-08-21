@@ -34,12 +34,12 @@ The tests must be linked with a Domain class object in the setUp method:
    suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinley))
    unittest.TextTestRunner(verbosity=2).run(suite)
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -57,7 +57,7 @@ class Test_linearPDEs(unittest.TestCase):
     VERBOSE=False
     def check(self,arg,ref_arg,tol=None):
         """
-        checks if arg and ref_arg are nearly identical using the L{Lsup<esys.escript.util.Lsup>}
+        checks if arg and ref_arg are nearly identical using the `Lsup`
         """
         if tol==None: tol=self.TOL
         return Lsup(arg-ref_arg)<=tol*Lsup(ref_arg)

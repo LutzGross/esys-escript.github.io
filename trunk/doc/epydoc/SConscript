@@ -23,7 +23,7 @@ dirname=os.path.join(env['prefix'],'release','doc','epydoc')
 
 env.Command(dirname, [], [Mkdir(dirname)])
 
-env.Alias('api_epydoc', [env['pyinstall'], dirname], "epydoc -v --html -o "+dirname+" esys")
+env.Alias('api_epydoc', [env['pyinstall'], dirname], "epydoc --docformat restructuredtext -v --html -o "+dirname+" esys")
 
 #This will need to be here at least until the output of api_epydoc properly depends on 
 #the libraries it uses as input

@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -58,26 +58,20 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 		"""
 		Initialise the Contour.
 
-		@attention: The source can either be point or cell data. If the 
-		source is cell data, a conversion to point data may or may not be 
-		required, in order for the object to be rendered correctly. 
-		If a conversion is needed, the 'cell_to_point' flag must be set to 
-		'True', otherwise 'False' (which is the default). On occasions, an
-		inaccurate object may be rendered from cell data even after conversion.
+		:attention: The source can either be point or cell data. If the source is cell data, a conversion to point data may or may not be required, in order for the object to be rendered correctly. If a conversion is needed, the 'cell_to_point' flag must be set to 'True', otherwise 'False' (which is the default). On occasions, an inaccurate object may be rendered from cell data even after conversion.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
-		@type data_collector: L{DataCollector <datacollector.DataCollector>}
-				object
-		@param data_collector: Deal with source of data for visualisation
-		@type viewport: L{Viewport <constant.Viewport>} constant  
-		@param viewport: Viewport in which objects are to be rendered on 
-		@type lut : L{Lut <constant.Lut>} constant
-		@param lut: Lookup table color scheme
-		@type cell_to_point: Boolean
-		@param cell_to_point: Converts cell data to point data (by averaging)
-		@type outline: Boolean
-		@param outline: Places an outline around the domain surface
+		:type scene: `Scene` object
+		:param scene: Scene in which objects are to be rendered on
+		:type data_collector: `DataCollector` object
+		:param data_collector: Deal with source of data for visualisation
+		:type viewport: `Viewport` constant  
+		:param viewport: Viewport in which objects are to be rendered on 
+		:type lut: `Lut` constant
+		:param lut: Lookup table color scheme
+		:type cell_to_point: Boolean
+		:param cell_to_point: Converts cell data to point data (by averaging)
+		:type outline: Boolean
+		:param outline: Places an outline around the domain surface
 		"""
 
 		self.__data_collector = data_collector
@@ -140,8 +134,8 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 		"""
 		Return whether the Contour or DataCollector has been modified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		return self.__modified or self.__data_collector._isModified()
@@ -150,8 +144,8 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 		"""
 		Render the contour.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		:type scene: `Scene` object
+		:param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):
@@ -194,7 +188,7 @@ from cutter import Cutter
 class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform, 
 		Plane, Cutter):
 	"""
-	This class works in a similar way to L{MapOnPlaneCut <map.MapOnPlaneCut>},
+	This class works in a similar way to `MapOnPlaneCut`,
 	except that it shows a scalar field by contour surfaces cut using a plane.
 	"""
 
@@ -207,25 +201,20 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 		"""
 		Initialise the ContourOnPlaneCut.
 
-		@attention: The source can either be point or cell data. If the 
-		source is cell data, a conversion to point data may or may not be 
-		required, in order for the object to be rendered correctly. 
-		If a conversion is needed, the 'cell_to_point' flag must be set to 
-		'True', otherwise 'False' (which is the default).
+		:attention: The source can either be point or cell data. If the source is cell data, a conversion to point data may or may not be required, in order for the object to be rendered correctly. If a conversion is needed, the 'cell_to_point' flag must be set to 'True', otherwise 'False' (which is the default).
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
-		@type data_collector: L{DataCollector <datacollector.DataCollector>}
-				object
-		@param data_collector: Deal with source of data for visualisation
-		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which objects are to be rendered on
-		@type lut : L{Lut <constant.Lut>} constant
-		@param lut: Lookup table color scheme
-		@type cell_to_point: Boolean
-		@param cell_to_point: Converts cell data to point data (by averaging)
-		@type outline: Boolean
-		@param outline: Places an outline around the domain surface
+		:type scene: `Scene` object
+		:param scene: Scene in which objects are to be rendered on
+		:type data_collector: `DataCollector` object
+		:param data_collector: Deal with source of data for visualisation
+		:type viewport: `Viewport` constant
+		:param viewport: Viewport in which objects are to be rendered on
+		:type lut: `Lut` constant
+		:param lut: Lookup table color scheme
+		:type cell_to_point: Boolean
+		:param cell_to_point: Converts cell data to point data (by averaging)
+		:type outline: Boolean
+		:param outline: Places an outline around the domain surface
 		"""
 
 		self.__data_collector = data_collector
@@ -294,8 +283,8 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 		"""
 		Return whether the ContourOnPlaneCut or DataCollector has been modified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		return self.__modified or self.__data_collector._isModified()
@@ -304,8 +293,8 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 		"""
 		Render the contour cut using a plane.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		:type scene: `Scene` object
+		:param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):
@@ -346,7 +335,7 @@ from clipper import Clipper
 class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform, 
 		Plane, Clipper):
 	"""
-	This class works in a similar way to L{MapOnPlaneClip <map.MapOnPlaneClip>}
+	This class works in a similar way to `MapOnPlaneClip`
 	, except that it shows a scalar field by contour surfaces clipped using
 	a plane.
 	"""
@@ -360,25 +349,20 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 		"""
 		Initialise the ContourOnPlaneClip.
 
-		@attention: The source can either be point or cell data. If the 
-		source is cell data, a conversion to point data may or may not be 
-		required, in order for the object to be rendered correctly. 
-		If a conversion is needed, the 'cell_to_point' flag must be set to 
-		'True', otherwise 'False' (which is the default).
+		:attention: The source can either be point or cell data. If the source is cell data, a conversion to point data may or may not be required, in order for the object to be rendered correctly. If a conversion is needed, the 'cell_to_point' flag must be set to 'True', otherwise 'False' (which is the default).
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
-		@type data_collector: L{DataCollector <datacollector.DataCollector>}
-				object
-		@param data_collector: Deal with source of data for visualisation
-		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which objects are to be rendered on
-		@type lut : L{Lut <constant.Lut>} constant
-		@param lut: Lookup table color scheme
-		@type cell_to_point: Boolean
-		@param cell_to_point: Converts cell data to point data (by averaging)
-		@type outline: Boolean
-		@param outline: Places an outline around the domain surface
+		:type scene: `Scene` object
+		:param scene: Scene in which objects are to be rendered on
+		:type data_collector: `DataCollector`	object
+		:param data_collector: Deal with source of data for visualisation
+		:type viewport: `Viewport` constant
+		:param viewport: Viewport in which objects are to be rendered on
+		:type lut: `Lut` constant
+		:param lut: Lookup table color scheme
+		:type cell_to_point: Boolean
+		:param cell_to_point: Converts cell data to point data (by averaging)
+		:type outline: Boolean
+		:param outline: Places an outline around the domain surface
 		"""
 
 		self.__data_collector = data_collector
@@ -451,8 +435,8 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 		Return whether the ContourOnPlaneClip or DataCollector has been 
 		modified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		return self.__modified or self.__data_collector._isModified()
@@ -461,8 +445,8 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 		"""
 		Render the contour clip using a plane.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		:type scene: `Scene` object
+		:param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):

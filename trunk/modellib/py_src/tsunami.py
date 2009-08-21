@@ -897,7 +897,7 @@ class TsunamiInDeepWater(Model):
     Runs the deep water tsunami model based on a simplified form of the
     shallow water equation.
 
-    M{d^2 h/dt^2 =div(c grad(h)) }
+    *d^2 h/dt^2 =div(c grad(h))*
 
     where h is the wave height above sea level, and c=sqrt(g*H),
     with H - depth of the water level, g - gravity constant
@@ -933,10 +933,10 @@ class TsunamiInDeepWater(Model):
         """
         Returns new step size
 
-        @param dt: last time step size used
-        @type dt: C{float}
-        @return: time step size that can safely be used
-        @rtype: C{float}
+        :param dt: last time step size used
+        :type dt: ``float``
+        :return: time step size that can safely be used
+        :rtype: ``float``
         """
         return self.__dt
 
@@ -944,8 +944,8 @@ class TsunamiInDeepWater(Model):
         """
         Performs the time step using the Verlet scheme
 
-        @param dt: time step size to be used
-        @type dt: C{float}
+        :param dt: time step size to be used
+        :type dt: ``float``
         """
         self.__pde.setValue(X=-self.__c2*grad(self.wave_height))
 
@@ -962,10 +962,10 @@ class SurfMovie(Model):
     """
     movie from a wave propagation on the sea
 
-    @ivar time: current time
-    @ivar bathymetry: scalar data set
-    @ivar wave_height: vector data set
-    @ivar filename: name of the movie file
+    :ivar time: current time
+    :ivar bathymetry: scalar data set
+    :ivar wave_height: vector data set
+    :ivar filename: name of the movie file
     """
     def __init__(self,**kwargs):
         Model.__init__(self,**kwargs)
@@ -1229,7 +1229,7 @@ class SurfMovie(Model):
         """
         Does any necessary postprocessing after each step
 
-        @param dt:
+        :param dt:
         """
         if self.t >= self.__next_t:
             prefix = os.path.join(WORKDIR, \
@@ -1250,10 +1250,10 @@ class SurfMovie(Model):
         """
         returns new step size
 
-        @param dt: last time step size used
-        @type dt: C{float}
-        @return: time step size that can savely be used
-        @rtype: C{float}
+        :param dt: last time step size used
+        :type dt: ``float``
+        :return: time step size that can savely be used
+        :rtype: ``float``
         """
         return self.__next_t-self.t
 

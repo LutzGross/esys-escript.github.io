@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -51,8 +51,8 @@ class Sphere:
 		"""
 		Set the theta resolution of the sphere.
 
-		@type resolution: Number
-		@param resolution: Theta resolution
+		:type resolution: Number
+		:param resolution: Theta resolution
 		"""
 
 		self.__vtk_sphere.SetThetaResolution(resolution)
@@ -61,8 +61,8 @@ class Sphere:
 		"""
 		Set the phi resolution of the sphere.
 
-		@type resolution: Number
-		@param resolution: Phi resolution
+		:type resolution: Number
+		:param resolution: Phi resolution
 		"""
 
 		self.__vtk_sphere.SetPhiResolution(resolution)
@@ -71,8 +71,8 @@ class Sphere:
 		"""
 		Return the output of the sphere.
 
-		@rtype: vtkPolyData
-		@return: Polygonal data
+		:rtype: vtkPolyData
+		:return: Polygonal data
 		"""
 
 		return self.__vtk_sphere.GetOutput()

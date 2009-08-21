@@ -22,12 +22,12 @@ __url__="https://launchpad.net/escript-finley"
 """
 Some models for heat advection-diffusion
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -40,9 +40,9 @@ class TemperatureCartesian(TransportPDE):
     """
     Represents and solves the temperature advection-diffusion problem
 
-    M{rhocp(T_{,t} + v_i T_{,i} - ( k T_{,i})_i = Q}
+    *rhocp(T_{,t} + v_i T_{,i} - ( k T_{,i})_i = Q*
 
-    M{k T_{,i}*n_i=surface_flux} and M{T_{,t} = 0} where C{given_T_mask}>0.
+    *k T_{,i}*n_i=surface_flux* and *T_{,t} = 0* where ``given_T_mask``>0.
 
     If surface_flux is not given 0 is assumed.
 
@@ -63,9 +63,9 @@ class TemperatureCartesian(TransportPDE):
         """
         Initializes the temperature advection-diffusion problem.
 
-        @param domain: domain of the problem
-        @param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Not that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. So other measures need to be applied to control the time step size. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
-        @type useBackwardEuler: C{bool}
+        :param domain: domain of the problem
+        :param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Not that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. So other measures need to be applied to control the time step size. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
+        :type useBackwardEuler: ``bool``
         """
         TransportPDE.__init__(self,domain,numEquations=1,useBackwardEuler=useBackwardEuler,**kwargs)
         self.setReducedOrderOn()
@@ -74,7 +74,7 @@ class TemperatureCartesian(TransportPDE):
 
     def setInitialTemperature(self,T):
         """
-        Same as L{setInitialSolution}.
+        Same as `setInitialSolution`.
         """
         self.setInitialSolution(T)
 
@@ -98,7 +98,7 @@ class TemperatureCartesian(TransportPDE):
 
     def getTemperature(self,dt,**kwargs):
         """
-        Same as L{getSolution}.
+        Same as `getSolution`.
         """
         return self.getSolution(dt,**kwargs)
 
@@ -107,10 +107,10 @@ class Tracer(TransportPDE):
     """
     Represents and solves the tracer problem
 
-    M{C_{,t} + v_i C_{,i} - ( k T_{,i})_i) = 0}
+    *C_{,t} + v_i C_{,i} - ( k T_{,i})_i) = 0*
 
-    M{C_{,t} = 0} where C{given_C_mask}>0.
-    M{C_{,i}*n_i=0} 
+    *C_{,t} = 0* where ``given_C_mask``>0.
+    *C_{,i}*n_i=0* 
 
     Typical usage::
 
@@ -130,9 +130,9 @@ class Tracer(TransportPDE):
         """
         Initializes the Tracer advection problem
 
-        @param domain: domain of the problem
-        @param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Not that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. So other measures need to be applied to control the time step size. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
-        @type useBackwardEuler: C{bool}
+        :param domain: domain of the problem
+        :param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Not that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. So other measures need to be applied to control the time step size. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
+        :type useBackwardEuler: ``bool``
         """
         TransportPDE.__init__(self,domain,numEquations=1,useBackwardEuler=useBackwardEuler,**kwargs)
         self.setReducedOrderOn()
@@ -140,7 +140,7 @@ class Tracer(TransportPDE):
 
     def setInitialTracer(self,C):
         """
-        Same as L{setInitialSolution}.
+        Same as `setInitialSolution`.
         """
         self.setInitialSolution(C)
 
@@ -154,7 +154,7 @@ class Tracer(TransportPDE):
 
     def getTracer(self,dt,**kwargs):
         """
-        Same as L{getSolution}.
+        Same as `getSolution`.
         """
         return self.getSolution(dt,**kwargs)
 

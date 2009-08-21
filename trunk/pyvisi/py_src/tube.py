@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -50,8 +50,8 @@ class Tube:
 		"""
 		Setup the tube.
 
-		@type object: vtkPolyData, etc
-		@param object: Input for the tube
+		:type object: vtkPolyData, etc
+		:param object: Input for the tube
 		"""
 
 		self.__object = object 
@@ -74,8 +74,8 @@ class Tube:
 		"""
 		Set the radius of the tube.
 		
-		@type radius: Number
-		@param radius: Radius of the tube
+		:type radius: Number
+		:param radius: Radius of the tube
 		"""
 
 		self.__vtk_tube.SetRadius(radius)
@@ -85,8 +85,8 @@ class Tube:
 		Set the number of sides for the tube. Minimum number of sides is 3.
 		The larger the number of sides, the higher the quality.
 		
-		@type sides: Number
-		@param sides: Number of sides for the tube
+		:type sides: Number
+		:param sides: Number of sides for the tube
 		"""
 
 		self.__vtk_tube.SetNumberOfSides(sides)
@@ -109,8 +109,8 @@ class Tube:
 		"""
 		Return the output of the tube.
 
-		@rtype: vtkPolyData
-		@return: Polygonal data
+		:rtype: vtkPolyData
+		:return: Polygonal data
 		"""
 
 		return self.__vtk_tube.GetOutput()

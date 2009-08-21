@@ -22,13 +22,13 @@ __url__="https://launchpad.net/escript-finley"
 """
 test for util operations for reduction operations with tagged data
 
-@remark: use see L{test_util}
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:remark: use see `test_util`
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"

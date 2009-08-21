@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -40,10 +40,10 @@ class LocalPosition:
 		"""
 		Initialise the local position.
 
-		@type x_coor: Number
-		@param x_coor: x coordinate
-		@type y_coor: Number
-		@param y_coor: y coordinate
+		:type x_coor: Number
+		:param x_coor: x coordinate
+		:type y_coor: Number
+		:param y_coor: y coordinate
 		"""
 
 		self.__x_coor = x_coor
@@ -54,8 +54,8 @@ class LocalPosition:
 		"""
 		Return the X coordinate.
 
-		@rtype: Number
-		@return: X coordinate
+		:rtype: Number
+		:return: X coordinate
 		"""
 
 		return self.__x_coor
@@ -64,8 +64,8 @@ class LocalPosition:
 		"""
 		Return the Y coordinate.
 
-		@rtype: Number
-		@return: Y coordinate
+		:rtype: Number
+		:return: Y coordinate
 		"""
 
 		return self.__y_coor
@@ -74,8 +74,8 @@ class LocalPosition:
 		"""
 		Return the local position.
 
-		@rtype: Two column tuple containing numbers
-		@return: Tuple with the x and y coordinates
+		:rtype: Two column tuple containing numbers
+		:return: Tuple with the x and y coordinates
 		"""
 
 		return self.__position
@@ -94,12 +94,12 @@ class GlobalPosition:
 		"""
 		Initialise the global position.
 
-		@type x_coor: Number
-		@param x_coor: x coordinate
-		@type y_coor: Number
-		@param y_coor: y coordinate
-		@type z_coor: Number
-		@param z_coor: z coordinate
+		:type x_coor: Number
+		:param x_coor: x coordinate
+		:type y_coor: Number
+		:param y_coor: y coordinate
+		:type z_coor: Number
+		:param z_coor: z coordinate
 		"""
 
 		self.__position = [x_coor, y_coor, z_coor]
@@ -108,8 +108,8 @@ class GlobalPosition:
 		"""
 		Return the global position.
 
-		@rtype: Three column tuple containing numbers
-		@return: Tuple with the x, y and z coordinates
+		:rtype: Three column tuple containing numbers
+		:return: Tuple with the x, y and z coordinates
 		"""
 
 		return self.__position

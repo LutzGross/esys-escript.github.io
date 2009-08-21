@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -51,10 +51,10 @@ class Cutter:
 		"""
 		Setup the cutter.
 
-		@type object: vtkUnstructuredGrid, etc
-		@param object: Input for the cutter
-		@type plane: vtkPlane
-		@param plane: Plane to cut the object
+		:type object: vtkUnstructuredGrid, etc
+		:param object: Input for the cutter
+		:type plane: vtkPlane
+		:param plane: Plane to cut the object
 		"""
 
 		self.__object = object
@@ -81,8 +81,8 @@ class Cutter:
 		"""
 		Return the output of the cutter.
 
-		@rtype: vtkPolyData
-		@return: Polygonal data
+		:rtype: vtkPolyData
+		:return: Polygonal data
 		"""
 
 		return self.__vtk_cutter.GetOutput()

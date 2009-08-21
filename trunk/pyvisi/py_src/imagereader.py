@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -44,8 +44,8 @@ class ImageReader:
 		"""	
 		Initialise the image reader.
 
-		@type format:  L{ImageFormat <constant.ImageFormat>} constant
-		@param format: Format of the image 
+		:type format:  `ImageFormat` constant
+		:param format: Format of the image 
 		"""
                 if getMPISizeWorld()>1:
                     raise ValueError,"pyvisi.ImageReader is not running on more than one processor."
@@ -57,8 +57,8 @@ class ImageReader:
 		Return the corresponding image reader based on the supplied image 
 		format.
 
-		@rtype: vtkImageReader2 (i.e. vtkJPEGReader, etc)
-		@return: Image reader 
+		:rtype: vtkImageReader2 (i.e. vtkJPEGReader, etc)
+		:return: Image reader 
 		"""
 
 		if(self.__format == ImageFormat.JPG):
@@ -76,8 +76,8 @@ class ImageReader:
 		"""
 		Set the image file name to be read.
 
-		@type image_name: String
-		@param image_name: Image name from which image data is to be read 
+		:type image_name: String
+		:param image_name: Image name from which image data is to be read 
 		"""
 
 		self.__vtk_image_reader.SetFileName(image_name)
@@ -86,8 +86,8 @@ class ImageReader:
 		"""
 		Return the output of the image reader.
 
-		@rtype: vtkImageData
-		@return: Image data 
+		:rtype: vtkImageData
+		:return: Image data 
 		"""
 
 		return self.__vtk_image_reader.GetOutput()
