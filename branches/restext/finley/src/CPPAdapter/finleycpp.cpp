@@ -315,15 +315,18 @@ args("filename" ,"arg",  "metadata", "metadata_schema"),
 
   class_<finley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >
       ("OperatorAdapter","A concrete class representing an operator. For more details, please see the c++ documentation.", no_init)
-      .def("print_matrix_info",&finley::SystemMatrixAdapter::Print_Matrix_Info,(arg("full")=false))
+      .def("print_matrix_info",&finley::SystemMatrixAdapter::Print_Matrix_Info,(arg("full")=false),"prints information about a system matrix")
       .def("nullifyRowsAndCols",&finley::SystemMatrixAdapter::nullifyRowsAndCols)
-      .def("resetValues",&finley::SystemMatrixAdapter::resetValues)
-      .def("saveMM",&finley::SystemMatrixAdapter::saveMM)
-      .def("saveHB",&finley::SystemMatrixAdapter::saveHB);
+      .def("resetValues",&finley::SystemMatrixAdapter::resetValues, "resets the matrix entries")
+      .def("saveMM",&finley::SystemMatrixAdapter::saveMM,args("fileName"), 
+"writes the matrix to a file using the Matrix Market file format")
+      .def("saveHB",&finley::SystemMatrixAdapter::saveHB, args("filename"),
+"writes the matrix to a file using the Harwell-Boeing file format");
 
   class_<finley::TransportProblemAdapter, bases<escript::AbstractTransportProblem> >
       ("TransportProblemAdapter","",no_init)
       .def("getSafeTimeStepSize",&finley::TransportProblemAdapter::getSafeTimeStepSize)
       .def("getUnlimitedTimeStepSize",&finley::TransportProblemAdapter::getUnlimitedTimeStepSize)
-      .def("resetTransport",&finley::TransportProblemAdapter::resetTransport);
+      .def("resetTransport",&finley::TransportProblemAdapter::resetTransport,
+"resets the transport operator typically as they have been updated");
 }
