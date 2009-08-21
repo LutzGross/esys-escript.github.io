@@ -127,12 +127,12 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("getSize",&escript::AbstractDomain::getSize,":return: the local size of samples. The function space is chosen appropriately\n:rtype: `Data`")
      .def("saveVTK",&escript::AbstractDomain::saveVTK,args("filename","arg", "metadata"
 , "metadata_schema"),
-":param filename: \n:type filename: `string`\n:param arg: items to be added"
+":param filename: \n:type filename: ``string``\n:param arg: items to be added"
 "\n:type arg: ``dict``\n:param metadata: string representing some meta data to be added\n:type metadata: ``string``"
-"\n:param metadata_schema: schema type for metadata\n:type metadata_schema: `string`")
+"\n:param metadata_schema: schema type for metadata\n:type metadata_schema: ``string``")
      .def("dump",&escript::AbstractDomain::dump,args("filename"),"Dumps the domain to a file"
 ":param filename:\n:type filename: string")
-     .def("saveDX",&escript::AbstractDomain::saveDX,args("filename","arg"),"Saves a dictonary of Data objects to an OpenDX input file.\n\n:param filename:\n:type filename: `string`"
+     .def("saveDX",&escript::AbstractDomain::saveDX,args("filename","arg"),"Saves a dictonary of Data objects to an OpenDX input file.\n\n:param filename:\n:type filename: ``string``"
 "\n:param arg:\n:type arg: `dict`")
      .def("getMPISize",&escript::AbstractDomain::getMPISize,":return: the number of processes used for this `Domain`\n:rtype: ``int``")
      .def("getMPIRank",&escript::AbstractDomain::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
@@ -146,8 +146,13 @@ BOOST_PYTHON_MODULE(escriptcpp)
   // Interface for AbstractContinuousDomain
   //
   class_<escript::AbstractContinuousDomain, bases<escript::AbstractDomain> >("ContinuousDomain","Class representing continuous domains",no_init)
-       .def("getSystemMatrixTypeId",&escript::AbstractContinuousDomain::getSystemMatrixTypeId)
-       .def("getTransportTypeId",&escript::AbstractContinuousDomain::getTransportTypeId);
+       .def("getSystemMatrixTypeId",&escript::AbstractContinuousDomain::getSystemMatrixTypeId,
+args("solver", "preconditioner", "package", "symmetry"),
+":return: the identifier of the matrix type to be used for the global stiffness matrix "
+"when a particular solver package and symmetric matrix is used.\n"
+":rtype: int")
+       .def("getTransportTypeId",&escript::AbstractContinuousDomain::getTransportTypeId,
+args("solver", "preconditioner", "package", "symmetry"));
 
 
   //
@@ -156,7 +161,9 @@ BOOST_PYTHON_MODULE(escriptcpp)
   class_ <escript::TestDomain, bases<escript::AbstractDomain> >("TestDomain", "Test Class for domains with no structure. May be removed from future releases without notice.", init<int,int>());
 
   // This is the only python visible way to get a TestDomain
-  def("getTestDomainFunctionSpace",&escript::getTestDomainFunctionSpace, "For testing only. May be removed without notice.");
+  def("getTestDomainFunctionSpace",&escript::getTestDomainFunctionSpace, args("dpps", 
+ "samples"),
+"For testing only. May be removed without notice.");
 
   //
   // Interface for FunctionSpace
@@ -334,45 +341,77 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Factory methods for function space
   //
-  def("ContinuousFunction",escript::continuousFunction);
-  def("ReducedContinuousFunction",escript::reducedContinuousFunction);
-  def("Function",escript::function);
-  def("ReducedFunction",escript::reducedFunction);
-  def("FunctionOnBoundary",escript::functionOnBoundary);
-  def("ReducedFunctionOnBoundary",escript::reducedFunctionOnBoundary);
-  def("FunctionOnContactZero",escript::functionOnContactZero);
-  def("ReducedFunctionOnContactZero",escript::reducedFunctionOnContactZero);
-  def("FunctionOnContactOne",escript::functionOnContactOne);
-  def("ReducedFunctionOnContactOne",escript::reducedFunctionOnContactOne);
-  def("Solution",escript::solution);
-  def("ReducedSolution",escript::reducedSolution);
-  def("DiracDeltaFunction",escript::diracDeltaFunction);
+  def("ContinuousFunction",escript::continuousFunction,args("domain"),
+":return: a continuous FunctionSpace (overlapped node values)\n"
+":rtype: `FunctionSpace`");
+  def("ReducedContinuousFunction",escript::reducedContinuousFunction,args("domain"),
+":return: a continuous with reduced order FunctionSpace (overlapped node values on reduced element order)\n"
+":rtype: `FunctionSpace`");
+  def("Function",escript::function,args("domain"),":return: a function `FunctionSpace`\n"
+":rtype: `FunctionSpace`");
+  def("ReducedFunction",escript::reducedFunction, args("domain"),":return: a function FunctionSpace with reduced integration order\n:rtype: `FunctionSpace`");
+  def("FunctionOnBoundary",escript::functionOnBoundary, args("domain"), ":return: a function on boundary FunctionSpace\n:rtype: `FunctionSpace`");
+  def("ReducedFunctionOnBoundary",escript::reducedFunctionOnBoundary, args("domain"), 
+":return: a function on boundary FunctionSpace with reduced integration order\n"
+":rtype: `FunctionSpace`");
+  def("FunctionOnContactZero",escript::functionOnContactZero, args("domain"), ":return: Return a FunctionSpace on left side of contact\n:rtype: `FunctionSpace`");
+  def("ReducedFunctionOnContactZero",escript::reducedFunctionOnContactZero, args("domain"),
+ ":return: a FunctionSpace  on left side of contact with reduced integration order\n:rtype: `FunctionSpace`");
+  def("FunctionOnContactOne",escript::functionOnContactOne, args("domain"), ":return: Return a FunctionSpace on right side of contact\n:rtype: `FunctionSpace`");
+  def("ReducedFunctionOnContactOne",escript::reducedFunctionOnContactOne, args("domain"),
+ ":return: Return a FunctionSpace on right side of contact with reduced integration order\n"
+":rtype: `FunctionSpace`");
+  def("Solution",escript::solution, args("domain"), ":rtype: `FunctionSpace`");
+  def("ReducedSolution",escript::reducedSolution, args("domain"), ":rtype: `FunctionSpace`");
+  def("DiracDeltaFunction",escript::diracDeltaFunction, args("domain"), ":rtype: `FunctionSpace`");
 
   //
   // Factory methods for Data
   //
-  def("load",escript::load);
-  def("loadIsConfigured",escript::loadConfigured);
+  def("load",escript::load, args("fileName","domain"), "reads Data on domain from file in netCDF format\n\n:param fileName:\n:type fileName: ``string``\n:param domain:\n:type domain: `Domain`");
+  def("loadIsConfigured",escript::loadConfigured,":return: True if the load function is configured.");
   def("Scalar",escript::Scalar,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),
-       arg("expanded")=false));
+       arg("expanded")=false),
+"Construct a Data object containing scalar data-points.\n\n:param value: scalar value for all points\n"
+"\n:rtype: `Data`\n:type value: float\n:param what: FunctionSpace for Data\n:type what: `FunctionSpace`\n"
+":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
+":type expanded: ``bool``");
   def("Vector",escript::Vector,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),
-       arg("expanded")=false));
+       arg("expanded")=false),
+"Construct a Data object containing rank1 data-points.\n\n:param value: scalar value for all points\n"
+"\n:rtype: `Data`\n:type value: float\n:param what: FunctionSpace for Data\n:type what: `FunctionSpace`\n"
+":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
+":type expanded: ``bool``");
   def("Tensor",escript::Tensor,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),
-       arg("expanded")=false));
+       arg("expanded")=false),
+"Construct a Data object containing rank2 data-points.\n\n:param value: scalar value for all points\n"
+"\n:rtype: `Data`\n:type value: float\n:param what: FunctionSpace for Data\n:type what: `FunctionSpace`\n"
+":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
+":type expanded: ``bool``");
   def("Tensor3",escript::Tensor3,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),
-       arg("expanded")=false));
+       arg("expanded")=false),
+"Construct a Data object containing rank3 data-points.\n\n:param value: scalar value for all points\n"
+"\n:rtype: `Data`\n:type value: float\n:param what: FunctionSpace for Data\n:type what: `FunctionSpace`\n"
+":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
+":type expanded: ``bool``"
+);
   def("Tensor4",escript::Tensor4,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),
-       arg("expanded")=false));
+       arg("expanded")=false),
+"Construct a Data object containing rank4 data-points.\n\n:param value: scalar value for all points\n"
+"\n:rtype: `Data`\n:type value: float\n:param what: FunctionSpace for Data\n:type what: `FunctionSpace`\n"
+":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
+":type expanded: ``bool``"
+);
 
   //
   // Binary operators
@@ -381,38 +420,56 @@ BOOST_PYTHON_MODULE(escriptcpp)
       (arg("arg0")=escript::Data(),
        arg("arg1")=escript::Data(),
        arg("axis_offset")=0,
-       arg("transpose")=0));
+       arg("transpose")=0),
+"Compute a tensor product of two Data objects.\n\n:rtype: `Data`\n:param arg0:\n"
+":param arg1:\n:param axis_offset:\n:type axis_offset: ``int``\n"
+":param transpose: 0: transpose neither, 1: transpose arg0, 2: transpose arg1\n"
+":type transpose: int");
 
   //
   // Interface for AbstractSystemMatrix
   //
   class_<escript::AbstractSystemMatrix>("Operator","",init<>())    // Doco goes in the empty string param
-     .def("isEmpty",&escript::AbstractSystemMatrix::isEmpty)
-     .def("solve",&escript::AbstractSystemMatrix::solve)
-     .def("of",&escript::AbstractSystemMatrix::vectorMultiply)
-     .def("saveMM",&escript::AbstractSystemMatrix::saveMM)
-     .def("saveHB",&escript::AbstractSystemMatrix::saveHB)
-     .def("resetValues",&escript::AbstractSystemMatrix::resetValues)
+     .def("isEmpty",&escript::AbstractSystemMatrix::isEmpty,":rtype: ``bool``\n"
+":return: True if matrix is empty")
+     .def("solve",&escript::AbstractSystemMatrix::solve, args("in","options"),
+":return: the solution *u* of the linear system *this*u=in*\n\n:param in:\n:type in: `Data`")
+     .def("of",&escript::AbstractSystemMatrix::vectorMultiply,args("right"),
+"matrix*vector multiplication")
+     .def("saveMM",&escript::AbstractSystemMatrix::saveMM, args("fileName"), 
+"writes the matrix to a file using the Matrix Market file format")
+     .def("saveHB",&escript::AbstractSystemMatrix::saveHB, args("filename"),
+"writes the matrix to a file using the Harwell-Boeing file format")
+     .def("resetValues",&escript::AbstractSystemMatrix::resetValues, "resets the matrix entries")
      .def(self*other<escript::Data>());
   //
   // Interface for AbstractTransportProblem
   //
   class_<escript::AbstractTransportProblem>("TransportProblem","",init<>())    // Doco goes in the empty string param
-     .def("isEmpty",&escript::AbstractTransportProblem::isEmpty)
-     .def("solve",&escript::AbstractTransportProblem::solve)
-     .def("setInitialValue",&escript::AbstractTransportProblem::setInitialValue)
-     .def("insertConstraint",&escript::AbstractTransportProblem::insertConstraint)
-     .def("reset",&escript::AbstractTransportProblem::resetTransport)
+     .def("isEmpty",&escript::AbstractTransportProblem::isEmpty,":rtype: ``int``")
+     .def("solve",&escript::AbstractTransportProblem::solve, args("source","dt", "options"),
+"returns the solution *u* for a time step *dt>0*\n\n:rtype: `Data`\n"
+":param source:\n:type source: `Data`")
+     .def("setInitialValue",&escript::AbstractTransportProblem::setInitialValue, args("u"),
+"sets the value for *u* at time *t=0*.")
+     .def("insertConstraint",&escript::AbstractTransportProblem::insertConstraint,
+args("source", "q", "r","factor"),
+"inserts constraint *u_{,t}=r* where *q>0*  into the problem using a weighting factor")
+     .def("reset",&escript::AbstractTransportProblem::resetTransport,
+"resets the transport operator typically as they have been updated.")
      .def("resetValues",&escript::AbstractTransportProblem::resetTransport)
      .def("getSafeTimeStepSize",&escript::AbstractTransportProblem::getSafeTimeStepSize)
      .def("getUnlimitedTimeStepSize",&escript::AbstractTransportProblem::getUnlimitedTimeStepSize);
 
   // Functions to modify global parameters
   def("setEscriptParamInt",escript::setEscriptParamInt,
-      (arg("value")=0));
+      (arg("name"), arg("value")=0), "Modify the value of an escript tuning parameter\n\n"
+":param name:\n:type name: ``string``\n:param value:\n:type value: ``int``");
   def("getEscriptParamInt",escript::getEscriptParamInt,
-      (arg("sentinel")=0));
-  def("listEscriptParams",escript::listEscriptParams);
+      (arg("name"),arg("sentinel")=0), "Read the value of an escript tuning paramter\n\n"
+":param name: parameter to lookup\n:type name: ``string``\n:param sentinel: Value to be returned if ``name`` is not a known parameter\n"
+":type sentinel: ``int``");
+  def("listEscriptParams",escript::listEscriptParams,":return: A list of pairs (p,d) where p is the name of a parameter for escript and d is a description.");
 
   //
   // Register esysExceptionTranslator
