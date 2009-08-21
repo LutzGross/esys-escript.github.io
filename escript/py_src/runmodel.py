@@ -23,12 +23,12 @@ __url__="https://launchpad.net/escript-finley"
 commandline utility to take an xml file, parse it, and run a simulation.
 invoke this by doing ./runmodel.py <filename.xml>
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Elspeth Thorne, e.thorne@uq.edu.au"

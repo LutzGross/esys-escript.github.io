@@ -27,17 +27,17 @@ class Visualization(Model):
     """
     Generic visualization Model
 
-    @ivar t: current time (in)
-    @ivar n: frame counter (in)
-    @ivar dt: increment for output  (in)
-    @ivar filename: name of the output file (in)
+    :ivar t: current time (in)
+    :ivar n: frame counter (in)
+    :ivar dt: increment for output  (in)
+    :ivar filename: name of the output file (in)
     """
 
     def __init__(self, **kwargs):
         """
         Initialisation of the visualisation model object
 
-        @keyword debug: Debugging flag
+        :keyword debug: Debugging flag
         """
         super(Visualization,self).__init__(**kwargs)
         self.declareParameter(t=0.,
@@ -86,10 +86,10 @@ class Visualization(Model):
        """
        returns new step size
 
-       @param dt: last time step size used
-       @type dt: C{float}
-       @return: time step size that can savely be used
-       @rtype: C{float}
+       :param dt: last time step size used
+       :type dt: ``float``
+       :return: time step size that can savely be used
+       :rtype: ``float``
        """
        return self.__last_t+self.dt-self.t
 
@@ -97,16 +97,16 @@ class Movie(Visualization):
     """
     Generic visualization of scalar, vector and/or tensorial data 
 
-    @ivar scalar: scalar data set (in)
-    @ivar vector: vector data set (in)
-    @ivar tensor: tensor data set (in)
+    :ivar scalar: scalar data set (in)
+    :ivar vector: vector data set (in)
+    :ivar tensor: tensor data set (in)
     """
 
     def __init__(self, **kwargs):
         """
         Initialisation of the visualisation model object
 
-        @keyword debug: Debugging flag
+        :keyword debug: Debugging flag
         """
         super(Movie,self).__init__(**kwargs)
         self.declareParameter(scalar=None,
@@ -144,7 +144,7 @@ class ShadePlot(Movie):
         """
         Do any necessary postprocessing operations after a timestep.
 
-        @param dt:
+        :param dt:
         """
         self.counter += 1
         if self.counter % self.stride == 0:
@@ -183,7 +183,7 @@ class ArrowPlot(Movie):
         """
         Do any necessary postprocessing operations after a timestep.
 
-        @param dt:
+        :param dt:
         """
         self.counter += 1
         if self.counter % self.stride == 0:
@@ -223,95 +223,95 @@ class WriteVTK(Visualization):
     Writes data into a VTK file.
 
     The Model can handel up to 20 data sets that are written into a single file tagged with the given name. If no name is given and 
-    the data are defined by a L{Link} the name of the target attribute is used as a tag. 
+    the data are defined by a `Link` the name of the target attribute is used as a tag. 
 
-    @ivar data0: data set 0 to be written
-    @type data0: L{escript.Data}
-    @ivar name0: name tag for data set 0
-    @type name0: C{str} or C{None}
-    @ivar data1: data set 1 to be written
-    @type data1: L{escript.Data}
-    @ivar name1: name tag for data set 1
-    @type name1: C{str} or C{None}
-    @ivar data2: data set 2 to be written
-    @type data2: L{escript.Data}
-    @ivar name2: name tag for data set 2
-    @type name2: C{str} or C{None}
-    @ivar data3: data set 3 to be written
-    @type data3: L{escript.Data}
-    @ivar name3: name tag for data set 3
-    @type name3: C{str} or C{None}
-    @ivar data4: data set 4 to be written
-    @type data4: L{escript.Data}
-    @ivar name4: name tag for data set 4
-    @type name4: C{str} or C{None}
-    @ivar data5: data set 5 to be written
-    @type data5: L{escript.Data}
-    @ivar name5: name tag for data set 5
-    @type name5: C{str} or C{None}
-    @ivar data6: data set 6 to be written
-    @type data6: L{escript.Data}
-    @ivar name6: name tag for data set 6
-    @type name6: C{str} or C{None}
-    @ivar data7: data set 7 to be written
-    @type data7: L{escript.Data}
-    @ivar name7: name tag for data set 7
-    @type name7: C{str} or C{None}
-    @ivar data8: data set 8 to be written
-    @type data8: L{escript.Data}
-    @ivar name8: name tag for data set 8
-    @type name8: C{str} or C{None}
-    @ivar data9: data set 9 to be written
-    @type data9: L{escript.Data}
-    @ivar name9: name tag for data set 9
-    @type name9: C{str} or C{None}
-    @ivar data10: data set 10 to be written
-    @type data10: L{escript.Data}
-    @ivar name10: name tag for data set 10
-    @type name10: C{str} or C{None}
-    @ivar data11: data set 11 to be written
-    @type data11: L{escript.Data}
-    @ivar name11: name tag for data set 11
-    @type name11: C{str} or C{None}
-    @ivar data12: data set 12 to be written
-    @type data12: L{escript.Data}
-    @ivar name12: name tag for data set 12
-    @type name12: C{str} or C{None}
-    @ivar data13: data set 13 to be written
-    @type data13: L{escript.Data}
-    @ivar name13: name tag for data set 13
-    @type name13: C{str} or C{None}
-    @ivar data14: data set 14 to be written
-    @type data14: L{escript.Data}
-    @ivar name14: name tag for data set 14
-    @type name14: C{str} or C{None}
-    @ivar data15: data set 15 to be written
-    @type data15: L{escript.Data}
-    @ivar name15: name tag for data set 15
-    @type name15: C{str} or C{None}
-    @ivar data16: data set 16 to be written
-    @type data16: L{escript.Data}
-    @ivar name16: name tag for data set 16
-    @type name16: C{str} or C{None}
-    @ivar data17: data set 17 to be written
-    @type data17: L{escript.Data}
-    @ivar name17: name tag for data set 17
-    @type name17: C{str} or C{None}
-    @ivar data18: data set 18 to be written
-    @type data18: L{escript.Data}
-    @ivar name18: name tag for data set 18
-    @type name18: C{str} or C{None}
-    @ivar data19: data set 19 to be written
-    @type data19: L{escript.Data}
-    @ivar name19: name tag for data set 19
-    @type name19: C{str} or C{None}
+    :ivar data0: data set 0 to be written
+    :type data0: `escript.Data`
+    :ivar name0: name tag for data set 0
+    :type name0: ``str`` or ``None``
+    :ivar data1: data set 1 to be written
+    :type data1: `escript.Data`
+    :ivar name1: name tag for data set 1
+    :type name1: ``str`` or ``None``
+    :ivar data2: data set 2 to be written
+    :type data2: `escript.Data`
+    :ivar name2: name tag for data set 2
+    :type name2: ``str`` or ``None``
+    :ivar data3: data set 3 to be written
+    :type data3: `escript.Data`
+    :ivar name3: name tag for data set 3
+    :type name3: ``str`` or ``None``
+    :ivar data4: data set 4 to be written
+    :type data4: `escript.Data`
+    :ivar name4: name tag for data set 4
+    :type name4: ``str`` or ``None``
+    :ivar data5: data set 5 to be written
+    :type data5: `escript.Data`
+    :ivar name5: name tag for data set 5
+    :type name5: ``str`` or ``None``
+    :ivar data6: data set 6 to be written
+    :type data6: `escript.Data`
+    :ivar name6: name tag for data set 6
+    :type name6: ``str`` or ``None``
+    :ivar data7: data set 7 to be written
+    :type data7: `escript.Data`
+    :ivar name7: name tag for data set 7
+    :type name7: ``str`` or ``None``
+    :ivar data8: data set 8 to be written
+    :type data8: `escript.Data`
+    :ivar name8: name tag for data set 8
+    :type name8: ``str`` or ``None``
+    :ivar data9: data set 9 to be written
+    :type data9: `escript.Data`
+    :ivar name9: name tag for data set 9
+    :type name9: ``str`` or ``None``
+    :ivar data10: data set 10 to be written
+    :type data10: `escript.Data`
+    :ivar name10: name tag for data set 10
+    :type name10: ``str`` or ``None``
+    :ivar data11: data set 11 to be written
+    :type data11: `escript.Data`
+    :ivar name11: name tag for data set 11
+    :type name11: ``str`` or ``None``
+    :ivar data12: data set 12 to be written
+    :type data12: `escript.Data`
+    :ivar name12: name tag for data set 12
+    :type name12: ``str`` or ``None``
+    :ivar data13: data set 13 to be written
+    :type data13: `escript.Data`
+    :ivar name13: name tag for data set 13
+    :type name13: ``str`` or ``None``
+    :ivar data14: data set 14 to be written
+    :type data14: `escript.Data`
+    :ivar name14: name tag for data set 14
+    :type name14: ``str`` or ``None``
+    :ivar data15: data set 15 to be written
+    :type data15: `escript.Data`
+    :ivar name15: name tag for data set 15
+    :type name15: ``str`` or ``None``
+    :ivar data16: data set 16 to be written
+    :type data16: `escript.Data`
+    :ivar name16: name tag for data set 16
+    :type name16: ``str`` or ``None``
+    :ivar data17: data set 17 to be written
+    :type data17: `escript.Data`
+    :ivar name17: name tag for data set 17
+    :type name17: ``str`` or ``None``
+    :ivar data18: data set 18 to be written
+    :type data18: `escript.Data`
+    :ivar name18: name tag for data set 18
+    :type name18: ``str`` or ``None``
+    :ivar data19: data set 19 to be written
+    :type data19: `escript.Data`
+    :ivar name19: name tag for data set 19
+    :type name19: ``str`` or ``None``
     """
     def __init__(self, **kwargs):
         """
         Initialisation of the WriteVTK object
 
-        @keyword debug: debugging flag
-        @type debug: C{bool}
+        :keyword debug: debugging flag
+        :type debug: ``bool``
         """
         super(WriteVTK,self).__init__(**kwargs)
         self.declareParameter(data0=None,name0=None,

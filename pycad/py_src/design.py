@@ -23,12 +23,12 @@ __url__="https://launchpad.net/escript-finley"
 Template for the Design which defines regions and features
 for a mesh generator.
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -51,7 +51,7 @@ class TagMap(object):
     """
     def __init__(self, mapping={}):
       """
-      Initializes the mapping. C{mapping} defines an initial mapping from tag
+      Initializes the mapping. ``mapping`` defines an initial mapping from tag
       to a name.
       """
       self.__mapping={}
@@ -76,7 +76,7 @@ class TagMap(object):
 
     def getTags(self,name=None):
         """
-        Returns a list of the tags assigned to C{name}. If name is not present
+        Returns a list of the tags assigned to ``name``. If name is not present
         a list of all tags is returned.
         """
         if name == None:
@@ -89,7 +89,7 @@ class TagMap(object):
 
     def getName(self,tag=None):
         """
-        Returns the name of a tag. If C{tag} is not present a list of all names
+        Returns the name of a tag. If ``tag`` is not present a list of all names
         is returned.
         """
         if tag == None:
@@ -127,7 +127,7 @@ class TagMap(object):
 
     def insert(self,data,default=0,**kwargs):
         """
-        Inserts values into the L{esys.escript.Data} object according to the
+        Inserts values into the `esys.escript.Data` object according to the
         given values assigned to the keywords. The default is used for tags
         which map onto name with unspecified values.
         """
@@ -137,7 +137,7 @@ class TagMap(object):
 
     def passToDomain(self,domain):
         """
-        Passes the tag map to the L{esys.escript.Domain} C{domain}.
+        Passes the tag map to the `esys.escript.Domain` ``domain``.
         """
         for tag, name in self.__mapping.items():
           print "Tag",name, "is mapped to id ", tag
@@ -145,7 +145,7 @@ class TagMap(object):
 
     def toDOM(self,dom):
          """
-         Adds object to C{dom}.
+         Adds object to ``dom``.
          """
          tm=dom.createElement("TagMap")
          dom.appendChild(tm)
@@ -162,7 +162,7 @@ class TagMap(object):
 
     def fromDom(self,node):
         """
-        Fills names and tags from dom C{node}.
+        Fills names and tags from dom ``node``.
         """
         for node in node.childNodes:
            if isinstance(node, minidom.Element):
@@ -189,7 +189,7 @@ class TagMap(object):
 
     def writeXML(self,iostream=None):
          """
-         Serializes self as XML into C{iostream} or if not present returns the
+         Serializes self as XML into ``iostream`` or if not present returns the
          XML as string.
          """
          dom=minidom.Document()
@@ -209,10 +209,10 @@ class Design(object):
        """
        Initializes a design.
 
-       @param dim: spatial dimension
-       @param element_size: global element size
-       @param order: element order
-       @param keep_files: flag to keep work files
+       :param dim: spatial dimension
+       :param element_size: global element size
+       :param order: element order
+       :param keep_files: flag to keep work files
        """
        self.clearItems()
        self.setElementSize(element_size)
@@ -327,7 +327,7 @@ class Design(object):
         """
         Sets options of the mesh generator.
 
-        @note: this method is typically overwritten by a particular design
+        :note: this method is typically overwritten by a particular design
                implementation.
         """
         pass
@@ -336,14 +336,14 @@ class Design(object):
         """
         Returns a handle to a mesh meshing the design.
 
-        @note: this method has to be overwritten by a particular design
+        :note: this method has to be overwritten by a particular design
                implementation.
         """
         raise NotImplementedError()
 
     def getTagMap(self):
         """
-        Returns a L{TagMap} to map the names of L{PropertySet}s to tags.
+        Returns a `TagMap` to map the names of `PropertySet` s to tags.
         """
         m={}
         for p in self.getAllPrimitives():

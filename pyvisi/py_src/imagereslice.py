@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -52,8 +52,8 @@ class ImageReslice:
 		"""
 		Setup the image reslice.
 
-		@type object: vtkImageData
-		@param object: Image Data
+		:type object: vtkImageData
+		:param object: Image Data
 		"""
 
 		self.__object = object
@@ -72,8 +72,8 @@ class ImageReslice:
 		Size 1 (one) displays the image in its original size 
 		(which is the default).  
 
-		@type size: Number
-		@param size: Size of the static image
+		:type size: Number
+		:param size: Size of the static image
 		"""
 
 		# By default, with image reslice, the larger the output spacing, the
@@ -92,8 +92,8 @@ class ImageReslice:
 		"""
 		Return the output of the image reslice.
 
-		@rtype: vtkImageData
-		@return: Image data
+		:rtype: vtkImageData
+		:return: Image data
 		"""
 
 		return self.__vtk_image_reslice.GetOutput()

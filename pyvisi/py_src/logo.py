@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -51,13 +51,12 @@ class Logo(ImageMapper, ImageReslice, Actor2D):
 	# This saves the user from specifying the viewport when there is only one.
 	def __init__(self, scene, image_reader, viewport = Viewport.SOUTH_WEST):
 		"""
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which the logo is to be displayed
-		@type image_reader: L{ImageReader <imagereader.ImageReader>}
-		object
-		@param image_reader: Deal with source of data for vizualisation
-		@type viewport: L{Viewport <constant.Viewport>} constant  
-		@param viewport: Viewport in which the logo is to be displayed
+		:type scene: `Scene` object
+		:param scene: Scene in which the logo is to be displayed
+		:type image_reader: `ImageReader` object
+		:param image_reader: Deal with source of data for vizualisation
+		:type viewport: `Viewport` constant  
+		:param viewport: Viewport in which the logo is to be displayed
 		"""
 
 		self.__image_reader = image_reader
@@ -81,8 +80,8 @@ class Logo(ImageMapper, ImageReslice, Actor2D):
 		"""
 		Return whether the Logo or DataCollector has been modified.
 
-		@rtype: Boolean
-		@return: True or False
+		:rtype: Boolean
+		:return: True or False
 		"""
 
 		return self.__modified or self.__data_collector._isModified()
@@ -91,8 +90,8 @@ class Logo(ImageMapper, ImageReslice, Actor2D):
 		"""
 		Render the logo.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which the logo is to be displayed
+		:type scene: `Scene` object
+		:param scene: Scene in which the logo is to be displayed
 		"""
 
 		if (self._isModified() == True):

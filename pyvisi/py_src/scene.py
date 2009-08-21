@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -42,9 +42,7 @@ class Scene:
 	be divided into four smaller windows called viewports (if needed). 
 	Each viewport can render a different object.  
 
-	@attention: If the IV or VRML renderer type is used, then only one 
-	viewport can be used (four viewports are not supported for these two 
-	cases). 
+	:attention: If the IV or VRML renderer type is used, then only one viewport can be used (four viewports are not supported for these two cases). 
 	"""
 
 	def __init__(self, renderer = Renderer.ONLINE, num_viewport = 1, 
@@ -52,14 +50,14 @@ class Scene:
 		"""
 		Initialise the scene.
 
-		@type renderer: L{Renderer <constant.Renderer>} constant
-		@param renderer: Type of renderer 
-		@type num_viewport: Number
-		@param num_viewport: Number of viewport(s) in the scene. Either 1 or 4 
-		@type x_size: Number
-		@param x_size: Size of the render window along the x-axis
-		@type y_size: Number
-		@param y_size: Size of the render window along the y-axis
+		:type renderer: `Renderer` constant
+		:param renderer: Type of renderer 
+		:type num_viewport: Number
+		:param num_viewport: Number of viewport(s) in the scene. Either 1 or 4 
+		:type x_size: Number
+		:param x_size: Size of the render window along the x-axis
+		:type y_size: Number
+		:param y_size: Size of the render window along the y-axis
 		"""
                 if getMPISizeWorld()>1:
                    raise ValueError,"pyvisi.Scene is not running on more than one processor."
@@ -137,8 +135,8 @@ class Scene:
 		"""
 		Set the background color of the scene.
 
-		@type color: L{Color <constant.Color>} constant
-		@param color: Scene background color
+		:type color: `Color` constant
+		:param color: Scene background color
 		"""
 		
 		# Color the entire scene (background) black initially. 
@@ -167,8 +165,8 @@ class Scene:
 		"""
 		Set the text on the title bar of the render window.
 
-		@type text: String
-		@param text: Text on the title bar
+		:type text: String
+		:param text: Text on the title bar
 		"""
 
 		self.__vtk_render_window.SetWindowName(text)
@@ -177,10 +175,10 @@ class Scene:
 		"""
 		Set the size of the render window.
 
-		@type x_size: Number
-		@param x_size: Size of the render window along the x-axis
-		@type y_size: Number
-		@param y_size: Size of the render window along the y-axis
+		:type x_size: Number
+		:param x_size: Size of the render window along the x-axis
+		:type y_size: Number
+		:param y_size: Size of the render window along the y-axis
 		"""
 
 		self.__vtk_render_window.SetSize(x_size, y_size)	
@@ -219,8 +217,8 @@ class Scene:
 		Return the appropriate image writer or exporter based on the 
 		specified renderer.
 
-		@rtype: vtkImageWriter or vtkExporter
-		@return: Image writer or exporter
+		:rtype: vtkImageWriter or vtkExporter
+		:return: Image writer or exporter
 		"""
 
 		if(self.__renderer.endswith(ImageFormat.JPG)):
@@ -244,8 +242,8 @@ class Scene:
 		"""
 		Save the rendered object as an image, vrml or open inventor file.
 
-		@type image_name: String
-		@param image_name: Name of the saved image, vrml or open inventor file
+		:type image_name: String
+		:param image_name: Name of the saved image, vrml or open inventor file
 		"""
 
 		# NOTE: Render and Modified must be called everytime before writing 
@@ -282,8 +280,8 @@ class Scene:
 		"""
 		Render the object using either the online, offline or display mode.
 
-		@type image_name: String
-		@param image_name: Name of the saved image, vrml or open inventor file
+		:type image_name: String
+		:param image_name: Name of the saved image, vrml or open inventor file
 		"""	
 
 		for i in range(0, len(self.__visualization_modules)):
@@ -310,10 +308,10 @@ class Scene:
 		"""
 		Add the actor3D to the appropriate viewport.
 
-		@type viewport: L{Viewport <constant.Viewport>} constant 
-		@param viewport: Viewport in which the actor3D is to be added to 
-		@type actor: vtkActor
-		@param actor: Actor3D which is to be added to the viewport 
+		:type viewport: `Viewport` constant 
+		:param viewport: Viewport in which the actor3D is to be added to 
+		:type actor: vtkActor
+		:param actor: Actor3D which is to be added to the viewport 
 		"""
 
 		self.__vtk_renderer[viewport].AddActor(actor)	
@@ -322,10 +320,10 @@ class Scene:
 		"""
 		Add the actor2D to the appropriate viewport.
 
-		@type viewport: L{Viewport <constant.Viewport>} constant 
-		@param viewport: Viewport in which the actor2D is to be added to 
-		@type actor: vtkActor2D
-		@param actor: Actor2D which is to be added to the viewport 
+		:type viewport: `Viewport` constant 
+		:param viewport: Viewport in which the actor2D is to be added to 
+		:type actor: vtkActor2D
+		:param actor: Actor2D which is to be added to the viewport 
 		"""
 
 		self.__vtk_renderer[viewport].AddActor2D(actor)	
@@ -334,10 +332,10 @@ class Scene:
 		"""
 		Set the camera to the appropriate viewport.	
 
-		@type viewport: L{Viewport <constant.Viewport>} constant 
-		@param viewport: Viewport in which the camera is to be added to 
-		@type camera: vtkCamera
-		@param camera: Camera which is to be assigned to the viewport
+		:type viewport: `Viewport` constant 
+		:param viewport: Viewport in which the camera is to be added to 
+		:type camera: vtkCamera
+		:param camera: Camera which is to be assigned to the viewport
 		"""
 
 		self.__vtk_renderer[viewport].SetActiveCamera(camera)
@@ -346,10 +344,10 @@ class Scene:
 		"""
 		Add the light to the appropriate viewport.
 
-		@type viewport: L{Viewport <constant.Viewport>} constant 
-		@param viewport: Viewport in which the camera is to be added to 
-		@type light: vtkLight
-		@param light: Light which is to be assigned to the viewport
+		:type viewport: `Viewport` constant 
+		:param viewport: Viewport in which the camera is to be added to 
+		:type light: vtkLight
+		:param light: Light which is to be assigned to the viewport
 		"""
 
 		self.__vtk_renderer[viewport].AddLight(light)
@@ -358,8 +356,8 @@ class Scene:
 		"""
 		Return the renderer(s)
 
-		@rtype: List 
-		@return: A list of renderer(s)
+		:rtype: List 
+		:return: A list of renderer(s)
 		"""
 	
 		return self.__vtk_renderer
@@ -369,8 +367,8 @@ class Scene:
 		Store visualization modules (i.e. Map, Velocity, Ellipsoid, etc) 
 		which needs to be rendered.
 		
-		@type module: Visualization modules
-		@param module: Visualization modules to be rendered
+		:type module: Visualization modules
+		:param module: Visualization modules to be rendered
 		"""
 
 		self.__visualization_modules.append(module)

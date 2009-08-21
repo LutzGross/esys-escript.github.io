@@ -20,81 +20,81 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-## @file unitsSI.py
+## :file unitsSI.py
 
 """
 some tools supporting physical units and conversion
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 
-@var Yotta : prefix yotta, symbol:   Y
-@var Zetta : prefix zetta, symbol: Z
-@var Exa : prefix exa, symbol: E
-@var Peta : prefix peta, symbol: P
-@var Tera : prefix tera, symbol: T
-@var Giga : prefix giga, symbol: G
-@var Mega : prefix mega, symbol: M
-@var Kilo : prefix kilo, symbol: k
-@var Hecto : prefix hecto, symbol: h
-@var Deca :  prefix deca, symbol: da
-@var Deci :  prefix deci, symbol: d
-@var Centi : prefix centi, symbol: c
-@var Milli : prefix milli, symbol: m
-@var Micro : prefix micro, symbol: mu
-@var Nano :  prefix nano, symbol: n
-@var Pico :  prefix pico, symbol: p
-@var Femto : prefix femto, symbol: f
-@var Atto : prefix atto, symbol: a
-@var Zepto : prefix zepto, symbol: z
-@var Yocto : prefix yocto, symbol: y
+:var Yotta : prefix yotta, symbol:   Y
+:var Zetta : prefix zetta, symbol: Z
+:var Exa : prefix exa, symbol: E
+:var Peta : prefix peta, symbol: P
+:var Tera : prefix tera, symbol: T
+:var Giga : prefix giga, symbol: G
+:var Mega : prefix mega, symbol: M
+:var Kilo : prefix kilo, symbol: k
+:var Hecto : prefix hecto, symbol: h
+:var Deca :  prefix deca, symbol: da
+:var Deci :  prefix deci, symbol: d
+:var Centi : prefix centi, symbol: c
+:var Milli : prefix milli, symbol: m
+:var Micro : prefix micro, symbol: mu
+:var Nano :  prefix nano, symbol: n
+:var Pico :  prefix pico, symbol: p
+:var Femto : prefix femto, symbol: f
+:var Atto : prefix atto, symbol: a
+:var Zepto : prefix zepto, symbol: z
+:var Yocto : prefix yocto, symbol: y
 
-@var km : unit of kilo meter
-@var m : unit of meter
-@var cm : unit of centi meter
-@var mm : unit of milli meter
-@var sec: unit of second
-@var minute : unit of minute
-@var h : unit of hour
-@var day : unit of day
-@var yr : unit of year
-@var Myr : unit of mega year
-@var Gyr : unit of giga year
-@var gram : unit of gram
-@var kg : unit of kilo gram
-@var lb : unit of pound
-@var ton : metric ton
-@var A : unit of Ampere
-@var Hz: unit of Hertz (frequenacy)
-@var N: unit of Newton (force)
-@var Pa: unit of Pascal (pressure, stress)
-@var atm: unit of atmosphere (pressure)
-@var J: unit of Joule (energy, work)
-@var W: unit of Watt (power)
-@var C: unit of Coulomb (electric charge)
-@var V: unit of Volt (electric potential)
-@var F: unit of Farad (capacitance)
-@var Ohm: unit of Ohm (electric resistance)
-@var K : unit of Kelvin (temperature)
-@var Mol : unit of Mole (temperature)
-@var Celsius: unit of Celsius (temperature)
-@var Fahrenheit : unit of Fahrenheit (temperature)
-@var Poise : unit of Poise (dynamic viscosity)
-@var R_Earth_equator: Earth's equatorial radius
-@var R_Earth_poles: Earth's polar radius
-@var R_Earth: Earth's radius
-@var v_light: speed of light
-@var pi: value of pi accurate to 10 decimal places
+:var km : unit of kilo meter
+:var m : unit of meter
+:var cm : unit of centi meter
+:var mm : unit of milli meter
+:var sec: unit of second
+:var minute : unit of minute
+:var h : unit of hour
+:var day : unit of day
+:var yr : unit of year
+:var Myr : unit of mega year
+:var Gyr : unit of giga year
+:var gram : unit of gram
+:var kg : unit of kilo gram
+:var lb : unit of pound
+:var ton : metric ton
+:var A : unit of Ampere
+:var Hz: unit of Hertz (frequenacy)
+:var N: unit of Newton (force)
+:var Pa: unit of Pascal (pressure, stress)
+:var atm: unit of atmosphere (pressure)
+:var J: unit of Joule (energy, work)
+:var W: unit of Watt (power)
+:var C: unit of Coulomb (electric charge)
+:var V: unit of Volt (electric potential)
+:var F: unit of Farad (capacitance)
+:var Ohm: unit of Ohm (electric resistance)
+:var K : unit of Kelvin (temperature)
+:var Mol : unit of Mole (temperature)
+:var Celsius: unit of Celsius (temperature)
+:var Fahrenheit : unit of Fahrenheit (temperature)
+:var Poise : unit of Poise (dynamic viscosity)
+:var R_Earth_equator: Earth's equatorial radius
+:var R_Earth_poles: Earth's polar radius
+:var R_Earth: Earth's radius
+:var v_light: speed of light
+:var pi: value of pi accurate to 10 decimal places
 """
 class Unit(object):
    """
    a general class to define a physical unit and convert from this unit to an appropriate SI unit.
 
-   L{Unit} object have a dual purpose: Firstly physical units can be combined through *,/ and ** to form new physical units or to add prefixes such as
+   `Unit` object have a dual purpose: Firstly physical units can be combined through *,/ and ** to form new physical units or to add prefixes such as
    Milli to m to form mm=Milli*m. Moreover, a given floating point number x (or any other arithmetic object) can be converted from the physical unit to 
    the SI system, eg. 10*mm to create the value for 10mm which is the float number 0.01 in the SI system. In addition, a value in the SI unit can be 
    converted back to the given unit, eg. to express 0.01m in physical units of mm use 0.01/mm which will return 10.
@@ -103,14 +103,14 @@ class Unit(object):
        """
        initializes the physical unit
        
-       @param name: short name of the physical unit or prefix
-       @type name: C{str}
-       @param longname: long name of the physical unit or prefix
-       @type longname: C{str}
-       @param a: absolute value in transformation
-       @type a: C{float}
-       @param b: slop in translation
-       @type b: C{float}
+       :param name: short name of the physical unit or prefix
+       :type name: ``str``
+       :param longname: long name of the physical unit or prefix
+       :type longname: ``str``
+       :param a: absolute value in transformation
+       :type a: ``float``
+       :param b: slop in translation
+       :type b: ``float``
        """
        self.setName(name)
        self.setLongName(longname)
@@ -124,8 +124,8 @@ class Unit(object):
        """
        Returns the name of the physical unit
  
-       @return: name of the physical unit
-       @rtype: C{str}
+       :return: name of the physical unit
+       :rtype: ``str``
        """
        return self.__name
 
@@ -133,8 +133,8 @@ class Unit(object):
        """
        Sets the name of the physical unit
  
-       @param name: new name of the physical unit
-       @type name: C{str}
+       :param name: new name of the physical unit
+       :type name: ``str``
        """
        self.__name=name
 
@@ -142,8 +142,8 @@ class Unit(object):
        """
        Returns the long name of the physical unit
  
-       @return: name of the physical unit
-       @rtype: C{str}
+       :return: name of the physical unit
+       :rtype: ``str``
        """
        return self.__longname
 
@@ -151,8 +151,8 @@ class Unit(object):
        """
        Sets the long name of the physical unit
  
-       @param name: new long name of the physical unit
-       @type name: C{str}
+       :param name: new long name of the physical unit
+       :type name: ``str``
        """
        self.__longname=name
 
@@ -160,18 +160,18 @@ class Unit(object):
        """
        Converts a value x in the physical unit self to SI 
 
-       @param x: value to convert
-       @type x: an arithmetic object
+       :param x: value to convert
+       :type x: an arithmetic object
        """
        return self.__b*x+self.__a
 
    def __mul__(self,other):
        """
-       Performs self*other operation for two L{Unit} objects
+       Performs self*other operation for two `Unit` objects
 
-       @param other: an other physical unit
-       @type other: L{Unit}
-       @rtype: L{Unit} or C{NotImplemented}
+       :param other: an other physical unit
+       :type other: `Unit`
+       :rtype: `Unit` or ``NotImplemented``
        """
        if isinstance(other, Unit):
           a=self(other(0.))
@@ -187,10 +187,9 @@ class Unit(object):
        """
        Performs other*self operation
 
-       @param other: an other L{Unit} or an arithmetic object. if other is a arithmetic object such as C{float} other is assumed to be given in the
-       physical unit C{self} and is converted into the corresponding SI unit.
-       @type other: L{Unit} or 
-       @rtype: L{Unit} of or an arithmetic object
+       :param other: an other `Unit` or an arithmetic object. if other is a arithmetic object such as ``float`` other is assumed to be given in the physical unit ``self`` and is converted into the corresponding SI unit.
+       :type other: `Unit` or
+       :rtype: `Unit` of or an arithmetic object
        """
        if isinstance(other, Unit):
           a=other(self(0.))
@@ -204,11 +203,11 @@ class Unit(object):
 
    def __div__(self,other):
        """
-       Performs self*other operation for two L{Unit} objects
+       Performs self*other operation for two `Unit` objects
 
-       @param other: an other physical unit
-       @type other: L{Unit}
-       @rtype: L{Unit} or C{NotImplemented}
+       :param other: an other physical unit
+       :type other: `Unit`
+       :rtype: `Unit` or ``NotImplemented``
        """
        if isinstance(other, Unit):
           if abs(self(0.))+abs(other(0.))>0:
@@ -224,9 +223,9 @@ class Unit(object):
        """
        Performs other/self operation
 
-       @param other: an other L{Unit} or an arithmetic object
-       @type other: L{Unit} or an arithmetic object
-       @rtype: L{Unit} or an arithmetic object
+       :param other: an other `Unit` or an arithmetic object
+       :type other: `Unit` or an arithmetic object
+       :rtype: `Unit` or an arithmetic object
        """
        if isinstance(other, Unit):
           if abs(self(0.))+abs(other(0.))>0:
@@ -242,9 +241,9 @@ class Unit(object):
        """
        Performs self**other operation
 
-       @param other: an exponent
-       @type other: C{int} or C{float}
-       @rtype: L{Unit} 
+       :param other: an exponent
+       :type other: ``int`` or ``float``
+       :rtype: `Unit` 
        """
        if isinstance(other, float) or isinstance(other, int):
           if abs(self(0.))>0:

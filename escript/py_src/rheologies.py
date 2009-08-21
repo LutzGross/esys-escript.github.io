@@ -21,12 +21,12 @@ __url__="https://launchpad.net/escript-finley"
 """
 Some models for flow
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -41,12 +41,12 @@ class PowerLaw(object):
     this implements the power law for a composition of a set of materials where the viscosity eta of each material is given by a 
     power law relationship of the form
 
-    M{eta=eta_N*(tau/tau_t)**(1./power-1.)}
+    *eta=eta_N*(tau/tau_t)**(1./power-1.)*
 
     where tau is equivalent stress and eta_N, tau_t and power are given constant. Moreover an elastic component can be considered. 
     Moreover tau meets the Drucker-Prager type yield condition
  
-    M{tau <= tau_Y + friction * pressure}
+    *tau <= tau_Y + friction * pressure*
 
     where gamma_dot is the equivalent. 
     """
@@ -54,10 +54,10 @@ class PowerLaw(object):
          """
          initializes a power law
    
-         @param numMaterials: number of materials
-         @type numMaterials: C{int}
-         @param verbose: if C{True} some informations are printed.
-         @type verbose: C{bool}
+         :param numMaterials: number of materials
+         :type numMaterials: ``int``
+         :param verbose: if ``True`` some informations are printed.
+         :type verbose: ``bool``
          """
          if numMaterials<1:
             raise ValueError,"at least one material must be defined."
@@ -75,26 +75,26 @@ class PowerLaw(object):
          """
          returns the numebr of materials
          
-         @return: number of materials
-         @rtype: C{int}
+         :return: number of materials
+         :rtype: ``int``
          """
          return self.__numMaterials
     def validMaterialId(self,id=0):
          """
          checks if a given material id is valid
    
-         @param id: a material id
-         @type id: C{int}
-         @return: C{True} is the id is valid
-         @rtype: C{bool}
+         :param id: a material id
+         :type id: ``int``
+         :return: ``True`` is the id is valid
+         :rtype: ``bool``
          """
          return 0<=id and id<self.getNumMaterials()
     def setEtaTolerance(self,rtol=1.e-4):
          """
          sets the relative tolerance for the effectice viscosity.
  
-         @param rtol: relative tolerance
-         @type rtol: positive C{float}
+         :param rtol: relative tolerance
+         :type rtol: positive ``float``
          """
          if rtol<=0:
              raise ValueError,"rtol needs to positive."
@@ -103,8 +103,8 @@ class PowerLaw(object):
          """
          returns the relative tolerance for the effectice viscosity.
  
-         @return: relative tolerance
-         @rtype rtol: positive C{float}
+         :return: relative tolerance
+         :rtype: positive ``float``
          """
          return self.__rtol
     #===========================================================================
@@ -112,8 +112,8 @@ class PowerLaw(object):
           """
           Sets the parameters for the Drucker-Prager model.
 
-          @param tau_Y: yield stress
-          @param friction: friction coefficient
+          :param tau_Y: yield stress
+          :param friction: friction coefficient
           """
           self.__tau_Y=tau_Y
           self.__friction=friction
@@ -121,14 +121,14 @@ class PowerLaw(object):
          """
          returns the friction coefficient
 
-         @return: friction coefficient
+         :return: friction coefficient
          """
          return self.__friction
     def getTauY(self):
          """
          returns the yield stress
 
-         @return: the yield stress
+         :return: the yield stress
          """
          return self.__tau_Y
     #===========================================================================
@@ -136,14 +136,14 @@ class PowerLaw(object):
         """
         returns the elastic shear modulus.
 
-        @return: elastic shear modulus
+        :return: elastic shear modulus
         """
         return self.__mu
     def setElasticShearModulus(self,mu=None):
         """
         Sets the elastic shear modulus.
 
-        @param mu: elastic shear modulus
+        :param mu: elastic shear modulus
         """
         self.__mu=mu
     #===========================================================================
@@ -151,9 +151,9 @@ class PowerLaw(object):
          """
          returns the power in the power law
 
-         @param id:  if present, the power for material C{id} is returned.
-         @type id: C{int}
-         @return: the list of the powers for all matrials is returned. If C{id} is present only the power for material C{id} is returned.
+         :param id:  if present, the power for material ``id`` is returned.
+         :type id: ``int``
+         :return: the list of the powers for all matrials is returned. If ``id`` is present only the power for material ``id`` is returned.
          """
          if id == None:
             return self.__power
@@ -166,9 +166,9 @@ class PowerLaw(object):
          """
          returns the viscosity
 
-         @param id:  if present, the viscosity for material C{id} is returned.
-         @type id: C{int}
-         @return: the list of the viscosities for all matrials is returned. If C{id} is present only the viscosity for material C{id} is returned.
+         :param id:  if present, the viscosity for material ``id`` is returned.
+         :type id: ``int``
+         :return: the list of the viscosities for all matrials is returned. If ``id`` is present only the viscosity for material ``id`` is returned.
          """
          if id == None:
             return self.__eta_N
@@ -181,9 +181,9 @@ class PowerLaw(object):
          """
          returns the transition stress
 
-         @param id:  if present, the transition stress for material C{id} is returned.
-         @type id: C{int}
-         @return: the list of the transition stresses for all matrials is returned. If C{id} is present only the transition stress for material C{id} is returned.
+         :param id:  if present, the transition stress for material ``id`` is returned.
+         :type id: ``int``
+         :return: the list of the transition stresses for all matrials is returned. If ``id`` is present only the transition stress for material ``id`` is returned.
          """
          if id == None:
             return self.__tau_t
@@ -197,11 +197,11 @@ class PowerLaw(object):
           """
           Sets the power-law parameters for material id
           
-          @param id: material id
-          @type id: C{int}
-          @param eta_N: viscosity for tau=tau_t
-          @param tau_t: transition stress
-          @param power: power law coefficient
+          :param id: material id
+          :type id: ``int``
+          :param eta_N: viscosity for tau=tau_t
+          :param tau_t: transition stress
+          :param power: power law coefficient
           """
           if self.validMaterialId(id):
              self.__eta_N[id]=eta_N
@@ -214,9 +214,9 @@ class PowerLaw(object):
           """
           Sets the parameters of the power-law for all materials.
 
-          @param eta_N: list of viscosities for tau=tau_t
-          @param tau_t: list of transition stresses
-          @param power: list of power law coefficient
+          :param eta_N: list of viscosities for tau=tau_t
+          :param tau_t: list of transition stresses
+          :param power: list of power law coefficient
           """
           if len(eta_N)!=self.__numMaterials or len(tau_t)!=self.__numMaterials or len(power)!=self.__numMaterials:
               raise ValueError,"%s materials are expected."%self.__numMaterials
@@ -228,18 +228,18 @@ class PowerLaw(object):
          """
          returns the effective viscosity eta_eff such that 
 
-         M{tau=eta_eff * gamma_dot}
+         *tau=eta_eff * gamma_dot*
 
          by solving a non-linear problem for tau.
 
-         @param gamma_dot: equivalent strain gamma_dot
-         @param eta0: initial guess for the effective viscosity (e.g from a previous time step). If not present, an initial guess is calculated.
-         @param pressure: pressure used to calculate yield condition
-         @param dt: time step size. only needed if elastic component is considered.
-         @type dt: positive C{float} if present
-         @param iter_max: maximum number of iteration steps.
-         @type iter_max: C{int}
-         @return: effective viscosity. 
+         :param gamma_dot: equivalent strain gamma_dot
+         :param eta0: initial guess for the effective viscosity (e.g from a previous time step). If not present, an initial guess is calculated.
+         :param pressure: pressure used to calculate yield condition
+         :param dt: time step size. only needed if elastic component is considered.
+         :type dt: positive ``float`` if present
+         :param iter_max: maximum number of iteration steps.
+         :type iter_max: ``int``
+         :return: effective viscosity. 
          """
          SMALL=1./(util.DBLE_MAX/100.)
          numMaterial=self.getNumMaterials()
@@ -312,16 +312,16 @@ class Rheology(object):
          """
          Initializes the rheology
 
-         @param domain: problem domain
-         @type domain: L{Domain}
-         @param stress: initial (deviatoric) stress
-         @type stress: a tensor value/field of order 2
-         @param v: initial velocity field
-         @type stress: a vector value/field
-         @param p: initial pressure
-         @type p: a scalar value/field
-         @param t: initial time
-         @type t: C{float}
+         :param domain: problem domain
+         :type domain: `Domain`
+         :param stress: initial (deviatoric) stress
+         :type stress: a tensor value/field of order 2
+         :param v: initial velocity field
+         :type v: a vector value/field
+         :param p: initial pressure
+         :type p: a scalar value/field
+         :param t: initial time
+         :type t: ``float``
          """
          self.__domain=domain
          self.__t=t
@@ -340,8 +340,8 @@ class Rheology(object):
           """
           returns the domain.
 
-          @return: the domain
-          @rtype: L{Domain}
+          :return: the domain
+          :rtype: `Domain`
           """
           return self.__domain
 
@@ -349,8 +349,8 @@ class Rheology(object):
           """
           Returns current time.
 
-          @return: current time
-          @rtype: C{float}
+          :return: current time
+          :rtype: ``float``
           """
           return self.__t   
 
@@ -358,17 +358,17 @@ class Rheology(object):
           """
           sets external forces and velocity constraints
 
-          @param F: external force
-          @type F: vector value/field 
-          @param f: surface force
-          @type f: vector value/field on boundary
-          @param fixed_v_mask: location of constraints maked by positive values
-          @type fixed_v_mask: vector value/field 
-          @param v_boundary: value of velocity at location of constraints
-          @type v_boundary: vector value/field 
-          @param restoration_factor: factor for normal restoration force
-          @type restoration_factor: scalar values/field
-          @note: Only changing parameters need to be specified.
+          :param F: external force
+          :type F: vector value/field 
+          :param f: surface force
+          :type f: vector value/field on boundary
+          :param fixed_v_mask: location of constraints maked by positive values
+          :type fixed_v_mask: vector value/field 
+          :param v_boundary: value of velocity at location of constraints
+          :type v_boundary: vector value/field 
+	  :param restoration_factor: factor for normal restoration force
+          :type restoration_factor: scalar values/field
+          :note: Only changing parameters need to be specified.
           """
           if F != None: self.__F=F
           if f != None: self.__f=f
@@ -380,8 +380,8 @@ class Rheology(object):
           """
           Returns the external force
 
-          @return:  external force
-          @rtype: L{Data}
+          :return:  external force
+          :rtype: `Data`
           """
           return self.__F
 
@@ -389,8 +389,8 @@ class Rheology(object):
           """
           Returns the surface force
 
-          @return:  surface force
-          @rtype: L{Data}
+          :return:  surface force
+          :rtype: `Data`
           """
           return self.__f
 
@@ -399,8 +399,8 @@ class Rheology(object):
           Returns the constraint for the velocity as a pair of the 
           mask of the location of the constraint and the values.
 
-          @return: the locations of fixed velocity and value of velocities at these locations
-          @rtype: C{tuple} of L{Data}s
+          :return: the locations of fixed velocity and value of velocities at these locations
+          :rtype: ``tuple`` of `Data` s
           """
           return self.__fixed_v_mask, self.__v_boundary       
       def getRestorationFactor(self):
@@ -417,8 +417,8 @@ class Rheology(object):
           """
           Returns True if verbose is switched on
 
-          @return: value of verbosity flag
-          @rtype: C{bool}
+          :return: value of verbosity flag
+          :rtype: ``bool``
           """
           return self.__verbose
 
@@ -426,8 +426,8 @@ class Rheology(object):
           """
           Updates current time.
 
-          @param t: new time mark
-          @type t: C{float}
+          :param t: new time mark
+          :type t: ``float``
           """
           self.__t=t
       #=======================================================================================
@@ -435,8 +435,8 @@ class Rheology(object):
           """
           Returns current stress. 
 
-          @return: current stress
-          @rtype: L{Data} of rank 2
+          :return: current stress
+          :rtype: `Data` of rank 2
           """
           s=self.getDeviatoricStress()
           p=self.getPressure()
@@ -447,8 +447,8 @@ class Rheology(object):
           """
           Returns current deviatoric stress.
 
-          @return: current deviatoric stress
-          @rtype: L{Data} of rank 2
+          :return: current deviatoric stress
+          :rtype: `Data` of rank 2
           """
           return self.__stress
 
@@ -456,8 +456,8 @@ class Rheology(object):
           """
           Sets the current deviatoric stress
 
-          @param stress: new deviatoric stress
-          @type stress: L{Data} of rank 2
+          :param stress: new deviatoric stress
+          :type stress: `Data` of rank 2
           """
           dom=self.getDomain()
           s=util.interpolate(stress,Function(dom))
@@ -467,16 +467,16 @@ class Rheology(object):
           """
           Returns current pressure.
 
-          @return: current stress
-          @rtype: scalar L{Data} 
+          :return: current stress
+          :rtype: scalar `Data` 
           """
           return self.__p
 
       def setPressure(self, p):
           """
           Sets current pressure.
-          @param p: new deviatoric stress
-          @type p: scalar L{Data}
+          :param p: new deviatoric stress
+          :type p: scalar `Data`
           """
           self.__p=util.interpolate(p,ReducedSolution(self.getDomain()))
 
@@ -484,8 +484,8 @@ class Rheology(object):
           """
           Returns current velocity.
 
-          @return: current velocity
-          @rtype: vector L{Data} 
+          :return: current velocity
+          :rtype: vector `Data` 
           """
           return self.__v
 
@@ -493,8 +493,8 @@ class Rheology(object):
           """
           Sets current velocity.
 
-          @param v: new current velocity
-          @type v: vector L{Data} 
+          :param v: new current velocity
+          :type v: vector `Data` 
           """
           self.__v=util.interpolate(v,Solution(self.getDomain()))
       def setStatus(self,t, v, p, stress):
@@ -520,8 +520,8 @@ class Rheology(object):
           """
           set deviatoric strain 
 
-          @param D: new deviatoric strain. If D is not present the current velocity is used.
-          @type D: L{Data} of rank 2
+          :param D: new deviatoric strain. If D is not present the current velocity is used.
+          :type D: `Data` of rank 2
           """
           if D==None: D=util.deviatoric(util.symmetric(util.grad(2.*self.getVelocity())))
           self.__D=util.deviatoric(util.interpolate(D,Function(self.getDomain())))
@@ -530,8 +530,8 @@ class Rheology(object):
           """
           Returns deviatoric strain of current velocity. 
 
-          @return: deviatoric strain
-          @rtype: L{Data}  of rank 2
+          :return: deviatoric strain
+          :rtype: `Data`  of rank 2
           """
           return self.__D
 
@@ -539,8 +539,8 @@ class Rheology(object):
           """
           Returns current second invariant of deviatoric stress
 
-          @return: second invariant of deviatoric stress
-          @rtype: scalar L{Data}
+          :return: second invariant of deviatoric stress
+          :rtype: scalar `Data`
           """
           s=self.getDeviatoricStress()
           return util.sqrt(0.5)*util.length(s)
@@ -549,8 +549,8 @@ class Rheology(object):
           """
           Returns current second invariant of deviatoric strain
 
-          @return: second invariant of deviatoric strain
-          @rtype: scalar L{Data}
+          :return: second invariant of deviatoric strain
+          :rtype: scalar `Data`
           """
           s=self.getDeviatoricStrain()
           return util.sqrt(2)*util.length(s)
@@ -560,8 +560,8 @@ class Rheology(object):
           Sets the tolerance used to terminate the iteration on a time step.
           See the implementation of the rheology for details.
 
-          @param tol: relative tolerance to terminate iteration on time step.
-          @type tol: positive C{float}
+          :param tol: relative tolerance to terminate iteration on time step.
+          :type tol: positive ``float``
           """
           if tol<=0.:
               raise ValueError,"tolerance must be non-negative."
@@ -571,7 +571,7 @@ class Rheology(object):
           """
           Returns the set tolerance for terminate the iteration on a time step.
 
-          @rtype: positive C{float}
+          :rtype: positive ``float``
           """
           return self.__tol
 
@@ -580,18 +580,18 @@ class Rheology(object):
           """
           Sets the relative tolerance for the flow solver
 
-          @param tol: desired relative tolerance for the flow solver
-          @type tol: positive C{float}
-          @note: Typically this method is overwritten by a subclass.
+          :param tol: desired relative tolerance for the flow solver
+          :type tol: positive ``float``
+          :note: Typically this method is overwritten by a subclass.
           """
           pass
       def getFlowTolerance(self):
           """
           Returns the relative tolerance for the flow solver
 
-          @return: tolerance of the flow solver
-          @rtype: C{float}
-          @note: Typically this method is overwritten by a subclass.
+          :return: tolerance of the flow solver
+          :rtype: ``float``
+          :note: Typically this method is overwritten by a subclass.
           """
           pass
 #====================================================================================================================================
@@ -607,7 +607,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
           sp.initialize(...)
           v,p = sp.solve()
 
-      @note: This model has been used in the self-consistent plate-mantle model
+      :note: This model has been used in the self-consistent plate-mantle model
              proposed in U{Hans-Bernd Muhlhaus<emailto:h.muhlhaus@uq.edu.au>}
              and U{Klaus Regenauer-Lieb<mailto:klaus.regenauer-lieb@csiro.au>}:
              I{Towards a self-consistent plate mantle model that includes elasticity: simple benchmarks and application to basic modes of convection},
@@ -617,22 +617,22 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
          """
          Initializes the model.
 
-         @param domain: problem domain
-         @type domain: L{Domain}
-         @param stress: initial (deviatoric) stress
-         @type stress: a tensor value/field of order 2
-         @param v: initial velocity field
-         @type stress: a vector value/field
-         @param p: initial pressure
-         @type p: a scalar value/field
-         @param t: initial time
-         @type t: C{float}
-         @param numMaterials: number of materials
-         @type numMaterials: C{int}
-         @param verbose: if C{True} some informations are printed.
-         @type verbose: C{bool}         
-	 @param adaptSubTolerance: If True the tolerance for subproblem is set automatically.
-	 @type adaptSubTolerance: C{bool}
+         :param domain: problem domain
+         :type domain: `Domain`
+         :param stress: initial (deviatoric) stress
+         :type stress: a tensor value/field of order 2
+         :param v: initial velocity field
+         :type v: a vector value/field
+         :param p: initial pressure
+         :type p: a scalar value/field
+         :param t: initial time
+         :type t: ``float``
+         :param numMaterials: number of materials
+         :type numMaterials: ``int``
+         :param verbose: if ``True`` some informations are printed.
+         :type verbose: ``bool``         
+	 :param adaptSubTolerance: If True the tolerance for subproblem is set automatically.
+	 :type adaptSubTolerance: ``bool``
          """
          PowerLaw. __init__(self, numMaterials,verbose)
          Rheology. __init__(self, domain, stress, v, p, t, verbose)
@@ -645,10 +645,10 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
           """
           Updates stress, velocity and pressure for time increment dt.
 
-          @param dt: time increment
-          @param inner_iter_max: maximum number of iteration steps in the
+          :param dt: time increment
+          :param inner_iter_max: maximum number of iteration steps in the
                                  incompressible solver
-          @param verbose: prints some infos in the incompressible solver
+          :param verbose: prints some infos in the incompressible solver
           """
           if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: start iteration for t = %s."%(self.getTime()+dt,)
           v_last=self.getVelocity()
@@ -750,52 +750,52 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
 
       def setFlowTolerance(self, tol=1.e-4):
           """
-          Sets the relative tolerance for the flow solver. See L{StokesProblemCartesian.setTolerance} for details.
+          Sets the relative tolerance for the flow solver. See `StokesProblemCartesian.setTolerance` for details.
 
-          @param tol: desired relative tolerance for the flow solver
-          @type tol: positive C{float}
+          :param tol: desired relative tolerance for the flow solver
+          :type tol: positive ``float``
           """
           self.__solver.setTolerance(tol)
       def getFlowTolerance(self):
           """
           Returns the relative tolerance for the flow solver
 
-          @return: tolerance of the flow solver
-          @rtype: C{float}
+          :return: tolerance of the flow solver
+          :rtype: ``float``
           """
           return self.__solver.getTolerance()
 	  
       def getSolverOptionsVelocity(self):
          """
 	 returns the solver options used solve the equation for velocity in the 
-	 incompressible solver, see L{StokesProblemCartesian.getSolverOptionsVelocity} for details.
+	 incompressible solver, see `StokesProblemCartesian.getSolverOptionsVelocity` for details.
 	 
-	 @rtype: L{SolverOptions}
+	 :rtype: `SolverOptions`
 	 """
 	 return self.__solver.getSolverOptionsVelocity()
       def setSolverOptionsVelocity(self, options=None):
          """
 	 set the solver options for solving the equation for velocity in the 
-	 incompressible solver, see L{StokesProblemCartesian.setSolverOptionsVelocity} for details.
+	 incompressible solver, see `StokesProblemCartesian.setSolverOptionsVelocity` for details.
 	 
-	 @param options: new solver  options
-	 @type options: L{SolverOptions}
+	 :param options: new solver  options
+	 :type options: `SolverOptions`
 	 """
          self.__solver.setSolverOptionsVelocity(options)
 	 
       def getSolverOptionsPressure(self):
          """
 	 returns the solver options used  solve the equation for pressure in the 
-	 incompressible solver, see L{StokesProblemCartesian.getSolverOptionsPressure} for details.
-	 @rtype: L{SolverOptions}
+	 incompressible solver, see `StokesProblemCartesian.getSolverOptionsPressure` for details.
+	 :rtype: `SolverOptions`
 	 """
 	 return self.__solver.getSolverOptionsPressure()
       def setSolverOptionsPressure(self, options=None):
          """
 	 set the solver options for solving the equation for pressure in the 
-	 incompressible solver, see L{StokesProblemCartesian.setSolverOptionsPressure} for details.
-	 @param options: new solver  options
-	 @type options: L{SolverOptions}
+	 incompressible solver, see `StokesProblemCartesian.setSolverOptionsPressure` for details.
+	 :param options: new solver  options
+	 :type options: `SolverOptions`
 	 """
 	 self.__solver.setSolverOptionsPressure(options)
 
@@ -803,19 +803,19 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
          """
 	 set the solver options for solving the equation to project the divergence of
 	 the velocity onto the function space of pressure in the 
-	 incompressible solver, see L{StokesProblemCartesian.setSolverOptionsDiv} for details.
+	 incompressible solver, see `StokesProblemCartesian.setSolverOptionsDiv` for details.
 	 
-	 @param options: new solver options
-	 @type options: L{SolverOptions}
+	 :param options: new solver options
+	 :type options: `SolverOptions`
 	 """
 	 self.__solver.setSolverOptionsDiv(options)
       def getSolverOptionsDiv(self):
          """
 	 returns the solver options for solving the equation to project the divergence of
 	 the velocity onto the function space of presure in the 
-	 incompressible solver, see L{StokesProblemCartesian.getSolverOptionsDiv} for details..
+	 incompressible solver, see `StokesProblemCartesian.getSolverOptionsDiv` for details..
 	 
-	 @rtype: L{SolverOptions}
+	 :rtype: `SolverOptions`
 	 """
 	 return self.__solver.getSolverOptionsDiv()
 

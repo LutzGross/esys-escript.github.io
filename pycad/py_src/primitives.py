@@ -25,12 +25,12 @@ Geometrical Primitives
 the concept is inspired by gmsh and very much focused on the fact that
 the classes are used to wrk with gmsh.
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -55,7 +55,7 @@ def resetGlobalPrimitiveIdCounter():
 
 def setToleranceForColocation(tol=1.e-11):
    """
-   Sets the global tolerance for colocation checks to C{tol}.
+   Sets the global tolerance for colocation checks to ``tol``.
    """
    global global_tolerance_for_colocation
    global_tolerance_for_colocation=tol
@@ -122,34 +122,34 @@ class PrimitiveBase(object):
 
     def __add__(self,other):
         """
-        Returns a new object shifted by C{other}.
+        Returns a new object shifted by ``other``.
         """
         return self.apply(Translation(numpy.array(other,_TYPE)))
 
     def __sub__(self,other):
         """
-        Returns a new object shifted by C{-other}.
+        Returns a new object shifted by ``-other``.
         """
         return self.apply(Translation(-numpy.array(other,_TYPE)))
 
     def __iadd__(self,other):
         """
-        Shifts the point inplace by C{other}.
+        Shifts the point inplace by ``other``.
         """
         self.modifyBy(Translation(numpy.array(other,_TYPE)))
         return self
 
     def __isub__(self,other):
         """
-        Shifts the point inplace by C{-other}.
+        Shifts the point inplace by ``-other``.
         """
         self.modifyBy(Translation(-numpy.array(other,_TYPE)))
         return self
 
     def __imul__(self,other):
         """
-        Modifies object by applying L{Transformation} C{other}. If C{other}
-        is not a L{Transformation} it is first tried to be converted.
+        Modifies object by applying `Transformation` ``other``. If ``other``
+        is not a `Transformation` it is first tried to be converted.
         """
         if isinstance(other,int) or isinstance(other,float):
             trafo=Dilation(other)
@@ -164,8 +164,8 @@ class PrimitiveBase(object):
 
     def __rmul__(self,other):
         """
-        Applies L{Transformation} C{other} to object. If C{other} is not a
-        L{Transformation} it is first tried to be converted.
+        Applies `Transformation` ``other`` to object. If ``other`` is not a
+        `Transformation` it is first tried to be converted.
         """
         if isinstance(other,int) or isinstance(other,float):
             trafo=Dilation(other)
@@ -228,7 +228,7 @@ class Primitive(object):
 
     def hasSameOrientation(self,other):
         """
-        Returns True if C{other} is the same primitive and has the same
+        Returns True if ``other`` is the same primitive and has the same
         orientation, False otherwise.
         """
         return self == other and isinstance(other,Primitive)
@@ -237,18 +237,18 @@ class Primitive(object):
         """
         Returns a view onto the curve with reversed ordering.
 
-        @note: This method is overwritten by subclasses.
+        :note: This method is overwritten by subclasses.
         """
         raise NotImplementedError("__neg__ is not implemented.")
 
     def substitute(self,sub_dict):
         """
         Returns a copy of self with substitutes for the primitives used to
-        construct it given by the dictionary C{sub_dict}. If a substitute for
-        the object is given by C{sub_dict} the value is returned, otherwise a
+        construct it given by the dictionary ``sub_dict``. If a substitute for
+        the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
 
-        @note: This method is overwritten by subclasses.
+        :note: This method is overwritten by subclasses.
         """
         raise NotImplementedError("substitute is not implemented.")
 
@@ -257,7 +257,7 @@ class Primitive(object):
         Returns a list of primitives used to construct the primitive. It may
         contain primitives twice.
 
-        @note: This method is overwritten by subclasses.
+        :note: This method is overwritten by subclasses.
         """
         raise NotImplementedError("collectPrimitiveBases is not implemented.")
 
@@ -265,7 +265,7 @@ class Primitive(object):
        """
        Rreturns True if the two primitives are located at the same position.
 
-       @note: This method is overwritten by subclasses.
+       :note: This method is overwritten by subclasses.
        """
        raise NotImplementedError("isColocated is not implemented.")
 
@@ -276,7 +276,7 @@ class ReversePrimitive(object):
     """
     def __init__(self,primitive):
        """
-       Instantiates a view onto C{primitive}.
+       Instantiates a view onto ``primitive``.
        """
        if not isinstance(primitive, Primitive):
            raise ValueError("argument needs to be a Primitive class object.")
@@ -296,7 +296,7 @@ class ReversePrimitive(object):
 
     def hasSameOrientation(self,other):
         """
-        Returns True if C{other} is the same primitive and has the same
+        Returns True if ``other`` is the same primitive and has the same
         orientation as self.
         """
         return self == other and isinstance(other,ReversePrimitive)
@@ -314,8 +314,8 @@ class ReversePrimitive(object):
     def substitute(self,sub_dict):
         """
         Returns a copy of self with substitutes for the primitives used to
-        construct it given by the dictionary C{sub_dict}. If a substitute for
-        the object is given by C{sub_dict} the value is returned, otherwise a
+        construct it given by the dictionary ``sub_dict``. If a substitute for
+        the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
@@ -339,7 +339,7 @@ class ReversePrimitive(object):
        """
        Returns True if the two primitives are located at the same position.
 
-       @note: This method is overwritten by subclasses.
+       :note: This method is overwritten by subclasses.
        """
        return self.__primitive.isColocated(primitive)
 
@@ -349,10 +349,10 @@ class Point(Primitive, PrimitiveBase):
     """
     def __init__(self,x=0.,y=0.,z=0.,local_scale=1.):
        """
-       Creates a point with coordinates C{x}, C{y}, C{z} with the local
-       refinement factor C{local_scale}. If C{x} is a list or similar it needs to have
-       length less or equal 3. In this case C{y} and C{z} are overwritten by 
-       C{x[1]} and C{x[2]).
+       Creates a point with coordinates ``x``, ``y``, ``z`` with the local
+       refinement factor ``local_scale``. If ``x`` is a list or similar it needs to have
+       length less or equal 3. In this case ``y`` and ``z`` are overwritten by 
+       ``x[1]`` and ``x[2]``.
        """
        PrimitiveBase.__init__(self)
        Primitive.__init__(self)
@@ -394,13 +394,13 @@ class Point(Primitive, PrimitiveBase):
 
     def getCoordinates(self):
        """
-       Returns the coodinates of the point as a C{numpy.ndarray} object.
+       Returns the coodinates of the point as a ``numpy.ndarray`` object.
        """
        return self._x
 
     def setCoordinates(self,x):
        """
-       Sets the coodinates of the point from a C{numpy.ndarray} object C{x}.
+       Sets the coodinates of the point from a ``numpy.ndarray`` object ``x``.
        """
        if not isinstance(x, numpy.ndarray):
           self._x=numpy.array(x,_TYPE)
@@ -415,9 +415,9 @@ class Point(Primitive, PrimitiveBase):
 
     def isColocated(self,primitive):
        """
-       Returns True if the L{Point} C{primitive} is colocated (has the same
+       Returns True if the `Point` ``primitive`` is colocated (has the same
        coordinates) with self. That is, if
-       M{|self-primitive| <= tol * max(|self|,|primitive|)}.
+       *|self - primitive| <= tol * max(\|self\|,|primitive|)*.
        """
        if isinstance(primitive,Point):
           primitive=primitive.getCoordinates()
@@ -433,8 +433,8 @@ class Point(Primitive, PrimitiveBase):
     def substitute(self,sub_dict):
         """
         Returns a copy of self with substitutes for the primitives used to
-        construct it given by the dictionary C{sub_dict}. If a substitute for
-        the object is given by C{sub_dict} the value is returned, otherwise a
+        construct it given by the dictionary ``sub_dict``. If a substitute for
+        the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
@@ -488,15 +488,15 @@ class Manifold1D(PrimitiveBase):
     def setElementDistribution(self,n,progression=1,createBump=False):
         """
         Defines the number of elements on the line. If set it overwrites the local length setting which would be applied.
-        The progression factor C{progression} defines the change of element size between naighboured elements. If C{createBump} is set
+        The progression factor ``progression`` defines the change of element size between naighboured elements. If ``createBump`` is set
         progression is applied towards the center of the line.
 
-        @param n: number of elements on the line
-        @type n: C{int}
-        @param progression: a positive progression factor
-        @type progression: positive C{float}
-        @param numberteBump: of elements on the line
-        @type createBump: C{bool}
+        :param n: number of elements on the line
+        :type n: ``int``
+        :param progression: a positive progression factor
+        :type progression: positive ``float``
+        :param createBump: of elements on the line
+        :type createBump: ``bool``
         """
         if n<1:
            raise ValueError,"number of elements must be positive."
@@ -517,8 +517,8 @@ class Manifold1D(PrimitiveBase):
         """
         Returns the element distribution.
 
-        @return: the tuple of the number of elements, the progression factor and the bump flag. If no element distribution is set C{None} is returned
-        @rtype: C{tuple}
+        :return: the tuple of the number of elements, the progression factor and the bump flag. If no element distribution is set ``None`` is returned
+        :rtype: ``tuple``
         """
         if self.__apply_elements:
            return (self.__n, self.__progression_factor, self.__createBump)
@@ -565,7 +565,7 @@ class Curve(CurveBase, Primitive):
     """
     def __init__(self,*points):
        """
-       Defines a curve from control points given by C{points}.
+       Defines a curve from control points given by ``points``.
        """
        if len(points)==1: points=tuple(points[0])
        if len(points)<2:
@@ -593,8 +593,8 @@ class Curve(CurveBase, Primitive):
     def substitute(self,sub_dict):
         """
         Returns a copy of self with substitutes for the primitives used to
-        construct it given by the dictionary C{sub_dict}. If a substitute for
-        the object is given by C{sub_dict} the value is returned, otherwise a
+        construct it given by the dictionary ``sub_dict``. If a substitute for
+        the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
@@ -711,7 +711,7 @@ class ArcBase(Manifold1D):
 
 class Arc(ArcBase, Primitive):
     """
-    Defines an arc which is strictly smaller than S{pi}.
+    Defines an arc which is strictly smaller than pi.
     """
     def __init__(self,center,start,end):
        """
@@ -757,8 +757,8 @@ class Arc(ArcBase, Primitive):
     def substitute(self,sub_dict):
         """
         Returns a copy of self with substitutes for the primitives used to
-        construct it given by the dictionary C{sub_dict}. If a substitute for
-        the object is given by C{sub_dict} the value is returned, otherwise a
+        construct it given by the dictionary ``sub_dict``. If a substitute for
+        the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
@@ -778,7 +778,7 @@ class Arc(ArcBase, Primitive):
 
 class ReverseArc(ArcBase, ReversePrimitive):
     """
-    Defines an arc which is strictly smaller than S{pi}.
+    Defines an arc which is strictly smaller than pi.
     """
     def __init__(self,arc):
        """
@@ -830,7 +830,7 @@ class EllipseBase(Manifold1D):
 
 class Ellipse(EllipseBase, Primitive):
     """
-    Defines an ellipse which is strictly smaller than S{pi}.
+    Defines an ellipse which is strictly smaller than pi.
     """
     def __init__(self,center,point_on_main_axis,start,end):
        """
@@ -886,8 +886,8 @@ class Ellipse(EllipseBase, Primitive):
     def substitute(self,sub_dict):
         """
         Returns a copy of self with substitutes for the primitives used to
-        construct it given by the dictionary C{sub_dict}. If a substitute for
-        the object is given by C{sub_dict} the value is returned, otherwise a
+        construct it given by the dictionary ``sub_dict``. If a substitute for
+        the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
@@ -925,7 +925,7 @@ class Ellipse(EllipseBase, Primitive):
 
 class ReverseEllipse(EllipseBase, ReversePrimitive):
     """
-    Defines an ellipse which is strictly smaller than S{pi}.
+    Defines an ellipse which is strictly smaller than pi.
     """
     def __init__(self,arc):
        """
@@ -965,7 +965,7 @@ class CurveLoop(Primitive, PrimitiveBase):
     """
     An oriented loop of one-dimensional manifolds (= curves and arcs).
 
-    The loop must be closed and the L{Manifold1D}s should be oriented
+    The loop must be closed and the `Manifold1D` s should be oriented
     consistently.
     """
     def __init__(self,*curves):
@@ -1014,8 +1014,8 @@ class CurveLoop(Primitive, PrimitiveBase):
     def substitute(self,sub_dict):
         """
         Returns a copy of self with substitutes for the primitives used to
-        construct it given by the dictionary C{sub_dict}. If a substitute for
-        the object is given by C{sub_dict} the value is returned, otherwise a
+        construct it given by the dictionary ``sub_dict``. If a substitute for
+        the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
@@ -1026,7 +1026,7 @@ class CurveLoop(Primitive, PrimitiveBase):
 
     def isColocated(self,primitive):
        """
-       Returns True if each curve is colocated with a curve in C{primitive}.
+       Returns True if each curve is colocated with a curve in ``primitive``.
        """
        if hasattr(primitive,"getUnderlyingPrimitive"):
           if isinstance(primitive.getUnderlyingPrimitive(),CurveLoop):
@@ -1072,9 +1072,9 @@ class Manifold2D(PrimitiveBase):
     """
     General two-dimensional manifold.
  
-    @var LEFT: left element orientation when meshing with transifinite meshing
-    @var RIGHT: right element orientation when meshing with transifinite meshing
-    @var ALTERNATE: alternate element orientation when meshing with transifinite meshing
+    :ivar LEFT: left element orientation when meshing with transifinite meshing
+    :ivar RIGHT: right element orientation when meshing with transifinite meshing
+    :ivar ALTERNATE: alternate element orientation when meshing with transifinite meshing
     """
     LEFT="Left"
     RIGHT="Right"
@@ -1104,8 +1104,8 @@ class Manifold2D(PrimitiveBase):
         """
         returns a list of points used to define the boundary
         
-        @return: list of points used to define the boundary
-        @rtype: C{list} of  L{Point}s
+        :return: list of points used to define the boundary
+        :rtype: ``list`` of  `Point` s
         """
         out=[]
         boundary=self.getBoundary()
@@ -1117,11 +1117,11 @@ class Manifold2D(PrimitiveBase):
     def setRecombination(self, max_deviation=45*DEG):
         """
         Recombines triangular meshes on the surface into mixed triangular/quadrangular meshes.
-        C{max_deviation} specifies the maximum derivation of the largest angle in the quadrangle 
-        from the right angle. Use C{max_deviation}==C{None} to switch off recombination.
+        ``max_deviation`` specifies the maximum derivation of the largest angle in the quadrangle 
+        from the right angle. Use ``max_deviation``==``None`` to switch off recombination.
 
-        @param max_deviation: maximum derivation of the largest angle in the quadrangle from the right angle. 
-        @type max_deviation: C{float} or C{None}.
+        :param max_deviation: maximum derivation of the largest angle in the quadrangle from the right angle. 
+        :type max_deviation: ``float`` or ``None``.
         """
         if not max_deviation==None:
             if max_deviation<=0:
@@ -1134,8 +1134,8 @@ class Manifold2D(PrimitiveBase):
         """
         returns max deviation from right angle in the recombination algorithm 
 
-        @return: max deviation from right angle in the recombination algorithm. If recombination is switched off, C{None} is returned.
-        @rtype: C{float} or C{None}
+        :return: max deviation from right angle in the recombination algorithm. If recombination is switched off, ``None`` is returned.
+        :rtype: ``float`` or ``None``
         """
         return self.__recombination_angle
 
@@ -1143,9 +1143,9 @@ class Manifold2D(PrimitiveBase):
         """
         applies 2D transfinite meshing to the surface. 
 
-        @param orientation: sets the orientation of the triangles. It is only used if recombination is not used.
-        @type orientation: L{Manifold2D.LEFT}, L{Manifold2D.RIGHT}, L{Manifold2D.ALTERNATE}
-        @note: Transfinite meshing can not be applied if holes are present.
+        :param orientation: sets the orientation of the triangles. It is only used if recombination is not used.
+        :type orientation: `Manifold2D.LEFT`, `Manifold2D.RIGHT`, `Manifold2D.ALTERNATE`
+        :note: Transfinite meshing can not be applied if holes are present.
         """
         if not orientation in [ Manifold2D.LEFT, Manifold2D.RIGHT, Manifold2D.ALTERNATE]:
               raise ValueError,"invalid orientation %s."%orientation
@@ -1195,10 +1195,10 @@ class Manifold2D(PrimitiveBase):
 
     def getTransfiniteMeshing(self):
         """
-        returns the transfinite meshing setings. If transfinite meshing is not set, C{None} is returned.
+        returns the transfinite meshing setings. If transfinite meshing is not set, ``None`` is returned.
         
-        @return: a tuple of the tuple of points used to define the transfinite meshing and the orientation. If no points are set the points tuple is returned as C{None}. If no ransfinite meshing is not set, C{None} is returned.
-        @rtype: C{tuple} of a C{tuple} of L{Point}s (or C{None}) and the orientation which is one of the values  L{Manifold2D.LEFT}, L{Manifold2D.RIGHT}, L{Manifold2D.ALTERNATE}
+        :return: a tuple of the tuple of points used to define the transfinite meshing and the orientation. If no points are set the points tuple is returned as ``None``. If no transfinite meshing is not set, ``None`` is returned.
+        :rtype: ``tuple`` of a ``tuple`` of `Point` s (or ``None``) and the orientation which is one of the values  `Manifold2D.LEFT` , `Manifold2D.RIGHT` , `Manifold2D.ALTERNATE`
         """
         if self.__transfinitemeshing:
             return (self.__points, self.__orientation)
@@ -1212,9 +1212,9 @@ class RuledSurface(Primitive, Manifold2D):
     """
     def __init__(self,loop):
        """
-       Creates a ruled surface with boundary C{loop}.
+       Creates a ruled surface with boundary ``loop``.
 
-       @param loop: L{CurveLoop} defining the boundary of the surface.
+       :param loop: `CurveLoop` defining the boundary of the surface.
        """
        if not isinstance(loop.getUnderlyingPrimitive(),CurveLoop):
            raise TypeError("argument loop needs to be a CurveLoop object.")
@@ -1254,8 +1254,8 @@ class RuledSurface(Primitive, Manifold2D):
     def substitute(self,sub_dict):
         """
         Returns a copy of self with substitutes for the primitives used to
-        construct it given by the dictionary C{sub_dict}. If a substitute for
-        the object is given by C{sub_dict} the value is returned, otherwise a
+        construct it given by the dictionary ``sub_dict``. If a substitute for
+        the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
@@ -1264,7 +1264,7 @@ class RuledSurface(Primitive, Manifold2D):
 
     def isColocated(self,primitive):
        """
-       Returns True if each curve is colocated with a curve in C{primitive}.
+       Returns True if each curve is colocated with a curve in ``primitive``.
        """
        if hasattr(primitive,"getUnderlyingPrimitive"):
           if isinstance(primitive.getUnderlyingPrimitive(),RuledSurface):
@@ -1279,14 +1279,14 @@ class RuledSurface(Primitive, Manifold2D):
 
 def createRuledSurface(*curves):
       """
-      An easier way to create a L{RuledSurface} from given curves.
+      An easier way to create a `RuledSurface` from given curves.
       """
       return RuledSurface(CurveLoop(*curves))
 
 
 class ReverseRuledSurface(ReversePrimitive, Manifold2D):
     """
-    Creates a view onto a L{RuledSurface} but with reverse orientation.
+    Creates a view onto a `RuledSurface` but with reverse orientation.
     """
     def __init__(self,surface):
        """
@@ -1326,11 +1326,11 @@ class PlaneSurface(Primitive, Manifold2D):
        """
        Creates a plane surface with holes.
 
-       @param loop: L{CurveLoop} defining the boundary of the surface
-       @param holes: list of L{CurveLoop}s defining holes in the surface
-       @note: A CurveLoop defining a hole should not have any lines in common
+       :param loop: `CurveLoop` defining the boundary of the surface
+       :param holes: list of `CurveLoop` s defining holes in the surface
+       :note: A CurveLoop defining a hole should not have any lines in common
               with the exterior CurveLoop.
-       @note: A CurveLoop defining a hole should not have any lines in common
+       :note: A CurveLoop defining a hole should not have any lines in common
               with another CurveLoop defining a hole in the same surface.
        """
        if not isinstance(loop.getUnderlyingPrimitive(),CurveLoop):
@@ -1366,8 +1366,8 @@ class PlaneSurface(Primitive, Manifold2D):
     def substitute(self,sub_dict):
         """
         Returns a copy of self with substitutes for the primitives used to
-        construct it given by the dictionary C{sub_dict}. If a substitute for
-        the object is given by C{sub_dict} the value is returned, otherwise a
+        construct it given by the dictionary ``sub_dict``. If a substitute for
+        the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
@@ -1376,7 +1376,7 @@ class PlaneSurface(Primitive, Manifold2D):
 
     def isColocated(self,primitive):
        """
-       Returns True if each curve is colocated with a curve in C{primitive}.
+       Returns True if each curve is colocated with a curve in ``primitive``.
        """
        if hasattr(primitive,"getUnderlyingPrimitive"):
           if isinstance(primitive.getUnderlyingPrimitive(),PlaneSurface):
@@ -1417,11 +1417,11 @@ class PlaneSurface(Primitive, Manifold2D):
 
 class ReversePlaneSurface(ReversePrimitive, Manifold2D):
     """
-    Creates a view onto a L{PlaneSurface} but with reverse orientation.
+    Creates a view onto a `PlaneSurface` but with reverse orientation.
     """
     def __init__(self,surface):
        """
-       Creates a polygon from a L{PlaneSurface}.
+       Creates a polygon from a `PlaneSurface`.
        """
        if not isinstance(surface, PlaneSurface):
            raise TypeError("arguments need to be an instance of PlaneSurface.")
@@ -1506,8 +1506,8 @@ class SurfaceLoop(Primitive, PrimitiveBase):
     def substitute(self,sub_dict):
         """
         Returns a copy of self with substitutes for the primitives used to
-        construct it given by the dictionary C{sub_dict}. If a substitute for
-        the object is given by C{sub_dict} the value is returned, otherwise a
+        construct it given by the dictionary ``sub_dict``. If a substitute for
+        the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
@@ -1518,7 +1518,7 @@ class SurfaceLoop(Primitive, PrimitiveBase):
 
     def isColocated(self,primitive):
        """
-       Returns True if each surface is colocated with a curve in C{primitive}
+       Returns True if each surface is colocated with a curve in ``primitive``
        and vice versa.
        """
        if hasattr(primitive,"getUnderlyingPrimitive"):
@@ -1586,11 +1586,11 @@ class Volume(Manifold3D, Primitive):
        """
        Creates a volume with holes.
 
-       @param loop: L{SurfaceLoop} defining the boundary of the surface
-       @param holes: list of L{SurfaceLoop} defining holes in the surface
-       @note: A SurfaceLoop defining a hole should not have any surfaces in
+       :param loop: `SurfaceLoop` defining the boundary of the surface
+       :param holes: list of `SurfaceLoop` defining holes in the surface
+       :note: A SurfaceLoop defining a hole should not have any surfaces in
               common with the exterior SurfaceLoop.
-       @note: A SurfaceLoop defining a hole should not have any surfaces in
+       :note: A SurfaceLoop defining a hole should not have any surfaces in
               common with another SurfaceLoop defining a hole in the same
               volume.
        """
@@ -1619,8 +1619,8 @@ class Volume(Manifold3D, Primitive):
     def substitute(self,sub_dict):
         """
         Returns a copy of self with substitutes for the primitives used to
-        construct it given by the dictionary C{sub_dict}. If a substitute for
-        the object is given by C{sub_dict} the value is returned, otherwise a
+        construct it given by the dictionary ``sub_dict``. If a substitute for
+        the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
         if not sub_dict.has_key(self):
@@ -1629,7 +1629,7 @@ class Volume(Manifold3D, Primitive):
 
     def isColocated(self,primitive):
        """
-       Returns True if each curve is colocated with a curve in C{primitive}.
+       Returns True if each curve is colocated with a curve in ``primitive``.
        """
        if hasattr(primitive,"getUnderlyingPrimitive"):
           if isinstance(primitive.getUnderlyingPrimitive(),Volume):
@@ -1664,7 +1664,7 @@ class Volume(Manifold3D, Primitive):
 
 class PropertySet(Primitive, PrimitiveBase):
     """
-    Defines a group of L{Primitive}s which can be accessed through a name.
+    Defines a group of `Primitive` s which can be accessed through a name.
     """
     def __init__(self,name,*items):
        Primitive.__init__(self)
@@ -1727,13 +1727,13 @@ class PropertySet(Primitive, PrimitiveBase):
 
     def addItems(self,*items):
         """
-        Adds items. An item my be any L{Primitive} but no L{PropertySet}.
+        Adds items. An item my be any `Primitive` but no `PropertySet`.
         """
         self.addItem(*items)
 
     def addItem(self,*items):
         """
-        Adds items. An item my be any L{Primitive} but no L{PropertySet}.
+        Adds items. An item my be any `Primitive` but no `PropertySet`.
         """
         for i in items:
             if not i in self.__items:

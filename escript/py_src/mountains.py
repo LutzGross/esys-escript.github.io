@@ -47,9 +47,9 @@ class Mountains:
     """
     Sets up the level set method.
 
-    @param domain: the domain where the mountains is used
-    @param eps: the smoothing parameter for (1)
-    @param reduced: if True topography reduced order is used for reconstruction of internal velocity and topography
+    :param domain: the domain where the mountains is used
+    :param eps: the smoothing parameter for (1)
+    :param reduced: if True topography reduced order is used for reconstruction of internal velocity and topography
     """
     if eps<0:
         raise ValueError("Smooting parameter eps must be non-negative.")
@@ -95,8 +95,8 @@ class Mountains:
       """
       set a new velocity. v is define on the entire domain but only the surface values are used.
 
-      @param v: velocity field. If None zero is used.
-      @type v: vector
+      :param v: velocity field. If None zero is used.
+      :type v: vector
       """
       self.__dt=None
       self.__v=Vector(0.,Solution(self.getDomain()))
@@ -107,7 +107,7 @@ class Mountains:
   def getVelocity(self):
       """
       returns the smoothed/extrapolated velocity
-      @rtype: vector L{Data} 
+      :rtype: vector `Data` 
       """
       return self.__v
 
@@ -115,8 +115,8 @@ class Mountains:
     """
     set the topography to H where H defines the vertical displacement. H is defined for the entire domain.
 
-    @param H: the topography.  If None zero is used.
-    @type H: scalar
+    :param H: the topography.  If None zero is used.
+    :type H: scalar
     """
     if self.__reduced:
          fs=ReducedSolution(self.getDomain())
@@ -131,7 +131,7 @@ class Mountains:
   def getTopography(self):
      """
      returns the current topography.
-     @rtype: scalar L{Data}
+     :rtype: scalar `Data`
      """
      return self.__H
 
@@ -139,7 +139,7 @@ class Mountains:
       """
       Returns the time step value.
 
-      @rtype: C{float}
+      :rtype: ``float``
       """
       if self.__dt == None:
            h=self.getDomain().getSize()
@@ -149,8 +149,8 @@ class Mountains:
       """
       Sets a new W and updates the H function.
 
-      @param dt: time step forward. If None the save time step size is used.
-      @type dt: positve C{float} which is less or equal than the safe time step size.
+      :param dt: time step forward. If None the save time step size is used.
+      :type dt: positve ``float`` which is less or equal than the safe time step size.
       
       """
       if dt == None: 

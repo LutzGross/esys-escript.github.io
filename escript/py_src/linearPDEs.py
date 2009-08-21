@@ -21,19 +21,19 @@ __url__="https://launchpad.net/escript-finley"
 
 """
 The module provides an interface to define and solve linear partial
-differential equations (PDEs) and Transport problems within L{escript}.
-L{linearPDEs} does not provide any solver capabilities in itself but hands the
-PDE over to the PDE solver library defined through the L{Domain<escript.Domain>}
-of the PDE. The general interface is provided through the L{LinearPDE} class.
-L{TransportProblem} provides an interface to initial value problems dominated
+differential equations (PDEs) and Transport problems within `escript`.
+`linearPDEs` does not provide any solver capabilities in itself but hands the
+PDE over to the PDE solver library defined through the `Domain`
+of the PDE. The general interface is provided through the `LinearPDE` class.
+`TransportProblem` provides an interface to initial value problems dominated
 by its advective terms.
 
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 import math
@@ -52,50 +52,51 @@ class SolverOptions(object):
     
     Typical usage is 
     
-    opts=SolverOptions()
-    print opts
-    opts.resetDiagnostics()
-    u=solver(opts)
-    print "number of iteration steps: =",opts.getDiagnostics("num_iter")
-    
+    ::
+	
+      opts=SolverOptions()
+      print opts
+      opts.resetDiagnostics()
+      u=solver(opts)
+      print "number of iteration steps: =",opts.getDiagnostics("num_iter")
 
-    @cvar DEFAULT: The default method used to solve the system of linear equations
-    @cvar DIRECT: The direct solver based on LDU factorization
-    @cvar CHOLEVSKY: The direct solver based on LDLt factorization (can only be applied for symmetric PDEs)
-    @cvar PCG: The preconditioned conjugate gradient method (can only be applied for symmetric PDEs)
-    @cvar CR: The conjugate residual method
-    @cvar CGS: The conjugate gradient square method
-    @cvar BICGSTAB: The stabilized Bi-Conjugate Gradient method
-    @cvar TFQMR: Transport Free Quasi Minimal Residual method
-    @cvar MINRES: Minimum residual method
-    @cvar SSOR: The symmetric over-relaxation method
-    @cvar ILU0: The incomplete LU factorization preconditioner with no fill-in
-    @cvar ILUT: The incomplete LU factorization preconditioner with fill-in
-    @cvar JACOBI: The Jacobi preconditioner
-    @cvar GMRES: The Gram-Schmidt minimum residual method
-    @cvar PRES20: Special GMRES with restart after 20 steps and truncation after 5 residuals
-    @cvar LUMPING: Matrix lumping
-    @cvar NO_REORDERING: No matrix reordering allowed
-    @cvar MINIMUM_FILL_IN: Reorder matrix to reduce fill-in during factorization
-    @cvar NESTED_DISSECTION: Reorder matrix to improve load balancing during factorization
-    @cvar PASO: PASO solver package
-    @cvar SCSL: SGI SCSL solver library
-    @cvar MKL: Intel's MKL solver library
-    @cvar UMFPACK: The UMFPACK library
-    @cvar TRILINOS: The TRILINOS parallel solver class library from Sandia National Labs
-    @cvar ITERATIVE: The default iterative solver
-    @cvar AMG: Algebraic Multi Grid
-    @cvar REC_ILU: recursive ILU0
-    @cvar RILU: relaxed ILU0
-    @cvar GAUSS_SEIDEL: Gauss-Seidel solver
-    @cvar DEFAULT_REORDERING: the reordering method recommended by the solver
-    @cvar SUPER_LU: the Super_LU solver package
-    @cvar PASTIX: the Pastix direct solver_package
-    @cvar YAIR_SHAPIRA_COARSENING: AMG coarsening method by Yair-Shapira
-    @cvar RUGE_STUEBEN_COARSENING: AMG coarsening method by Ruge and Stueben
-    @cvar AGGREGATION_COARSENING: AMG coarsening using (symmetric) aggregation
-    @cvar MIN_COARSE_MATRIX_SIZE: minimum size of the coarsest level matrix to use direct solver.
-    @cvar NO_PRECONDITIONER: no preconditioner is applied.
+    :cvar DEFAULT: The default method used to solve the system of linear equations
+    :cvar DIRECT: The direct solver based on LDU factorization
+    :cvar CHOLEVSKY: The direct solver based on LDLt factorization (can only be applied for symmetric PDEs)
+    :cvar PCG: The preconditioned conjugate gradient method (can only be applied for symmetric PDEs)
+    :cvar CR: The conjugate residual method
+    :cvar CGS: The conjugate gradient square method
+    :cvar BICGSTAB: The stabilized Bi-Conjugate Gradient method
+    :cvar TFQMR: Transport Free Quasi Minimal Residual method
+    :cvar MINRES: Minimum residual method
+    :cvar SSOR: The symmetric over-relaxation method
+    :cvar ILU0: The incomplete LU factorization preconditioner with no fill-in
+    :cvar ILUT: The incomplete LU factorization preconditioner with fill-in
+    :cvar JACOBI: The Jacobi preconditioner
+    :cvar GMRES: The Gram-Schmidt minimum residual method
+    :cvar PRES20: Special GMRES with restart after 20 steps and truncation after 5 residuals
+    :cvar LUMPING: Matrix lumping
+    :cvar NO_REORDERING: No matrix reordering allowed
+    :cvar MINIMUM_FILL_IN: Reorder matrix to reduce fill-in during factorization
+    :cvar NESTED_DISSECTION: Reorder matrix to improve load balancing during factorization
+    :cvar PASO: PASO solver package
+    :cvar SCSL: SGI SCSL solver library
+    :cvar MKL: Intel's MKL solver library
+    :cvar UMFPACK: The UMFPACK library
+    :cvar TRILINOS: The TRILINOS parallel solver class library from Sandia National Labs
+    :cvar ITERATIVE: The default iterative solver
+    :cvar AMG: Algebraic Multi Grid
+    :cvar REC_ILU: recursive ILU0
+    :cvar RILU: relaxed ILU0
+    :cvar GAUSS_SEIDEL: Gauss-Seidel solver
+    :cvar DEFAULT_REORDERING: the reordering method recommended by the solver
+    :cvar SUPER_LU: the Super_LU solver package
+    :cvar PASTIX: the Pastix direct solver_package
+    :cvar YAIR_SHAPIRA_COARSENING: AMG coarsening method by Yair-Shapira
+    :cvar RUGE_STUEBEN_COARSENING: AMG coarsening method by Ruge and Stueben
+    :cvar AGGREGATION_COARSENING: AMG coarsening using (symmetric) aggregation
+    :cvar MIN_COARSE_MATRIX_SIZE: minimum size of the coarsest level matrix to use direct solver.
+    :cvar NO_PRECONDITIONER: no preconditioner is applied.
     """
     DEFAULT= 0
     DIRECT= 1
@@ -209,7 +210,7 @@ class SolverOptions(object):
         """
         returns the name of a given key
         
-        @param key: a valid key
+        :param key: a valid key
         """
         if key == self.DEFAULT: return "DEFAULT"
         if key == self.DIRECT: return "DIRECT"
@@ -253,8 +254,8 @@ class SolverOptions(object):
         """
         resets the diagnostics
         
-        @param all: if C{all} is C{True} all diagnostics including accumulative counters are reset.
-        @type all: C{bool}
+        :param all: if ``all`` is ``True`` all diagnostics including accumulative counters are reset.
+        :type all: ``bool``
         """
         self.__num_iter=None
         self.__num_level=None
@@ -275,10 +276,10 @@ class SolverOptions(object):
         """
         Updates diagnostic information 
         
-        @param name: name of  diagnostic information
-        @type name: C{str} in the list "num_iter", "num_level", "num_inner_iter", "time", "set_up_time", "net_time", "residual_norm", "converged".
-        @param vale: new value of the diagnostic information
-        @note: this function is used by a solver to report diagnostics informations.
+        :param name: name of  diagnostic information
+        :type name: ``str`` in the list "num_iter", "num_level", "num_inner_iter", "time", "set_up_time", "net_time", "residual_norm", "converged".
+        :param value: new value of the diagnostic information
+        :note: this function is used by a solver to report diagnostics informations.
         """
         if name == "num_iter": 
             self.__num_iter=int(value)
@@ -303,10 +304,9 @@ class SolverOptions(object):
             self.__converged = (value == True)
     def getDiagnostics(self, name):
         """
-        Returns the diagnostic information C{name} 
-        
-        @param name: name of diagnostic information where
-        - "num_iter": the number of iteration steps
+        Returns the diagnostic information ``name``. Possible values are:
+	    
+	- "num_iter": the number of iteration steps
         - "cum_num_iter": the cumulative number of iteration steps
         - "num_level": the number of level in multi level solver
         - "num_inner_iter": the number of inner iteration steps
@@ -318,10 +318,14 @@ class SolverOptions(object):
         - "net_time": net execution time, excluding setup time for the solver and execution time for preconditioner
         - "cum_net_time": cumulative net execution time
         - "residual_norm": norm of the final residual
-        - "converged": return self.__converged     
-        @type name: C{str} in the list "num_iter", "num_level", "num_inner_iter", "time", "set_up_time", "net_time", "residual_norm", "converged".
-        @return: requested value. C{None} is returned if the value is undefined.
-        @note: If the solver has thrown an exception diagnostic values have an undefined status.
+        - "converged": return self.__converged
+    
+	
+        
+        :param name: name of diagnostic information to return
+        :type name: ``str`` in the list above.
+        :return: requested value. ``None`` is returned if the value is undefined.
+        :note: If the solver has thrown an exception diagnostic values have an undefined status.
         """
         if name == "num_iter": return self.__num_iter
         elif name == "cum_num_iter": return self.__cum_num_iter
@@ -340,17 +344,16 @@ class SolverOptions(object):
             raise ValueError,"unknown diagnostic item %s"%name
     def hasConverged(self):
         """
-        Returns C{True} if the last solver call has been finalized successfully.
-        @note: if an exception has been thrown by the solver the status of this flag is undefined.
+        Returns ``True`` if the last solver call has been finalized successfully.
+        :note: if an exception has been thrown by the solver the status of this flag is undefined.
         """
         return self.getDiagnostics("converged")
     def setCoarsening(self,method=0):
         """
         Sets the key of the coarsening method to be applied in AMG.
 
-        @param method: selects the coarsening method .
-        @type method: in {SolverOptions.DEFAULT}, L{SolverOptions.YAIR_SHAPIRA_COARSENING}, 
-        L{SolverOptions.RUGE_STUEBEN_COARSENING}, L{SolverOptions.AGGREGATION_COARSENING}
+        :param method: selects the coarsening method .
+        :type method: in {SolverOptions.DEFAULT}, `SolverOptions.YAIR_SHAPIRA_COARSENING`,  `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`
         """
 	if method==None: method=0
         if not method in [self.DEFAULT, self.YAIR_SHAPIRA_COARSENING, self.RUGE_STUEBEN_COARSENING, self.AGGREGATION_COARSENING]:
@@ -361,8 +364,7 @@ class SolverOptions(object):
         """
         Returns the key of the coarsening algorithm to be applied AMG.
 
-        @rtype: in the list L{SolverOptions.DEFAULT}, L{SolverOptions.YAIR_SHAPIRA_COARSENING}, 
-        L{SolverOptions.RUGE_STUEBEN_COARSENING}, L{SolverOptions.AGGREGATION_COARSENING}
+        :rtype: in the list `SolverOptions.DEFAULT`, `SolverOptions.YAIR_SHAPIRA_COARSENING`,         `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`
         """
         return self.__coarsening
       
@@ -370,8 +372,8 @@ class SolverOptions(object):
         """
         Sets the minumum size of the coarsest level matrix in AMG.
 
-        @param size: minumum size of the coarsest level matrix .
-        @type size: positive C{int} or C{None}
+        :param size: minumum size of the coarsest level matrix .
+        :type size: positive ``int`` or ``None``
         """
         size=int(size)
         if size<0:
@@ -383,7 +385,7 @@ class SolverOptions(object):
         """
         Returns the minumum size of the coarsest level matrix in AMG.
 
-        @rtype: C{int}
+        :rtype: ``int``
         """
         return self.__MinCoarseMatrixSize
       
@@ -391,12 +393,11 @@ class SolverOptions(object):
         """
         Sets the preconditioner to be used. 
 
-        @param preconditioner: key of the preconditioner to be used.
-        @type preconditioner: in L{SolverOptions.SSOR}, L{SolverOptions.ILU0}, L{SolverOptions.ILUT}, L{SolverOptions.JACOBI}, 
-                                    L{SolverOptions.AMG}, L{SolverOptions.REC_ILU}, L{SolverOptions.GAUSS_SEIDEL}, L{SolverOptions.RILU},
-                                    L{SolverOptions.NO_PRECONDITIONER}
-        @note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters
-        an unknown preconditioner. 
+        :param preconditioner: key of the preconditioner to be used.
+        :type preconditioner: in `SolverOptions.SSOR`, `SolverOptions.ILU0`, `SolverOptions.ILUT`, `SolverOptions.JACOBI`, 
+                                    `SolverOptions.AMG`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`,
+                                    `SolverOptions.NO_PRECONDITIONER`
+        :note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters an unknown preconditioner. 
         """
 	if preconditioner==None: preconditioner=10
         if not preconditioner in [ SolverOptions.SSOR, SolverOptions.ILU0, SolverOptions.ILUT, SolverOptions.JACOBI, 
@@ -408,25 +409,24 @@ class SolverOptions(object):
         """
         Returns key of the preconditioner to be used. 
 
-        @rtype: in the list L{SolverOptions.SSOR}, L{SolverOptions.ILU0}, L{SolverOptions.ILUT}, L{SolverOptions.JACOBI}, 
-                                    L{SolverOptions.AMG}, L{SolverOptions.REC_ILU}, L{SolverOptions.GAUSS_SEIDEL}, L{SolverOptions.RILU},
-                                    L{SolverOptions.NO_PRECONDITIONER}
+        :rtype: in the list `SolverOptions.SSOR`, `SolverOptions.ILU0`, `SolverOptions.ILUT`, `SolverOptions.JACOBI`, 
+                                    `SolverOptions.AMG`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`,
+                                    `SolverOptions.NO_PRECONDITIONER`
         """
         return self.__preconditioner
     def setSolverMethod(self, method=0):
         """
-        Sets the solver method to be used. Use C{method}=C{SolverOptions.DIRECT} to indicate that a direct rather than an iterative
-        solver should be used and Use C{method}=C{SolverOptions.ITERATIVE} to indicate that an iterative rather than a direct
+        Sets the solver method to be used. Use ``method``=``SolverOptions.DIRECT`` to indicate that a direct rather than an iterative
+        solver should be used and Use ``method``=``SolverOptions.ITERATIVE`` to indicate that an iterative rather than a direct
         solver should be used. 
 
-        @param method: key of the solver method to be used.
-        @type method: in L{SolverOptions.DEFAULT}, L{SolverOptions.DIRECT}, L{SolverOptions.CHOLEVSKY}, L{SolverOptions.PCG}, 
-                        L{SolverOptions.CR}, L{SolverOptions.CGS}, L{SolverOptions.BICGSTAB}, L{SolverOptions.SSOR}, 
-                        L{SolverOptions.GMRES}, L{SolverOptions.PRES20}, L{SolverOptions.LUMPING}, L{SolverOptions.ITERATIVE}, 
-                        L{SolverOptions.AMG}, L{SolverOptions.NONLINEAR_GMRES}, L{SolverOptions.TFQMR}, L{SolverOptions.MINRES}, 
-                        L{SolverOptions.GAUSS_SEIDEL}
-        @note: Not all packages support all solvers. It can be assumed that a package makes a reasonable choice if it encounters
-        an unknown solver method. 
+        :param method: key of the solver method to be used.
+        :type method: in `SolverOptions.DEFAULT`, `SolverOptions.DIRECT`, `SolverOptions.CHOLEVSKY`, `SolverOptions.PCG`, 
+                        `SolverOptions.CR`, `SolverOptions.CGS`, `SolverOptions.BICGSTAB`, `SolverOptions.SSOR`, 
+                        `SolverOptions.GMRES`, `SolverOptions.PRES20`, `SolverOptions.LUMPING`, `SolverOptions.ITERATIVE`, 
+                        `SolverOptions.AMG`, `SolverOptions.NONLINEAR_GMRES`, `SolverOptions.TFQMR`, `SolverOptions.MINRES`, 
+                        `SolverOptions.GAUSS_SEIDEL`
+        :note: Not all packages support all solvers. It can be assumed that a package makes a reasonable choice if it encounters an unknown solver method. 
         """
 	if method==None: method=0
         if not method in [ SolverOptions.DEFAULT, SolverOptions.DIRECT, SolverOptions.CHOLEVSKY, SolverOptions.PCG, 
@@ -439,11 +439,11 @@ class SolverOptions(object):
         """
         Returns key of the solver method to be used. 
 
-        @rtype: in the list L{SolverOptions.DEFAULT}, L{SolverOptions.DIRECT}, L{SolverOptions.CHOLEVSKY}, L{SolverOptions.PCG}, 
-                        L{SolverOptions.CR}, L{SolverOptions.CGS}, L{SolverOptions.BICGSTAB}, L{SolverOptions.SSOR}, 
-                        L{SolverOptions.GMRES}, L{SolverOptions.PRES20}, L{SolverOptions.LUMPING}, L{SolverOptions.ITERATIVE}, 
-                        L{SolverOptions.AMG}, L{SolverOptions.NONLINEAR_GMRES}, L{SolverOptions.TFQMR}, L{SolverOptions.MINRES}, 
-                        L{SolverOptions.GAUSS_SEIDEL}
+        :rtype: in the list `SolverOptions.DEFAULT`, `SolverOptions.DIRECT`, `SolverOptions.CHOLEVSKY`, `SolverOptions.PCG`, 
+                        `SolverOptions.CR`, `SolverOptions.CGS`, `SolverOptions.BICGSTAB`, `SolverOptions.SSOR`, 
+                        `SolverOptions.GMRES`, `SolverOptions.PRES20`, `SolverOptions.LUMPING`, `SolverOptions.ITERATIVE`, 
+                        `SolverOptions.AMG`, `SolverOptions.NONLINEAR_GMRES`, `SolverOptions.TFQMR`, `SolverOptions.MINRES`, 
+                        `SolverOptions.GAUSS_SEIDEL`
         """
         return self.__method
         
@@ -451,9 +451,9 @@ class SolverOptions(object):
         """
         Sets the solver package to be used as a solver.  
 
-        @param package: key of the solver package to be used.
-        @type package: in L{SolverOptions.DEFAULT}, L{SolverOptions.PASO}, L{SolverOptions.SUPER_LU}, L{SolverOptions.PASTIX}, L{SolverOptions.MKL}, L{SolverOptions.UMFPACK}, L{SolverOptions.TRILINOS}
-        @note: Not all packages are support on all implementation. An exception may be thrown on some platforms if a particular is requested. 
+        :param package: key of the solver package to be used.
+        :type package: in `SolverOptions.DEFAULT`, `SolverOptions.PASO`, `SolverOptions.SUPER_LU`, `SolverOptions.PASTIX`, `SolverOptions.MKL`, `SolverOptions.UMFPACK`, `SolverOptions.TRILINOS`
+        :note: Not all packages are support on all implementation. An exception may be thrown on some platforms if a particular is requested. 
         """
 	if package==None: package=0
         if not package in [SolverOptions.DEFAULT, SolverOptions.PASO, SolverOptions.SUPER_LU, SolverOptions.PASTIX, SolverOptions.MKL, SolverOptions.UMFPACK, SolverOptions.TRILINOS]:
@@ -463,7 +463,7 @@ class SolverOptions(object):
         """
         Returns the solver package key
 
-        @rtype: in the list L{SolverOptions.DEFAULT}, L{SolverOptions.PASO}, L{SolverOptions.SUPER_LU}, L{SolverOptions.PASTIX}, L{SolverOptions.MKL}, L{SolverOptions.UMFPACK}, L{SolverOptions.TRILINOS}
+        :rtype: in the list `SolverOptions.DEFAULT`, `SolverOptions.PASO`, `SolverOptions.SUPER_LU`, `SolverOptions.PASTIX`, `SolverOptions.MKL`, `SolverOptions.UMFPACK`, `SolverOptions.TRILINOS`
         """
         return self.__package
     def setReordering(self,ordering=30):
@@ -471,9 +471,8 @@ class SolverOptions(object):
         Sets the key of the reordering method to be applied if supported by the solver. Some direct solvers support reordering 
         to optimize compute time and storage use during elimination. 
 
-        @param ordering: selects the reordering strategy.
-        @type ordering: in L{SolverOptions.NO_REORDERING}, L{SolverOptions.NO_REORDERING}, 
-        L{SolverOptions.NO_REORDERING}, L{SolverOptions.DEFAULT_REORDERING}
+        :param ordering: selects the reordering strategy.
+        :type ordering: in `SolverOptions.NO_REORDERING`, `SolverOptions.NO_REORDERING`, `SolverOptions.NO_REORDERING`, `SolverOptions.DEFAULT_REORDERING`
         """
         if not ordering in [self.NO_REORDERING, self.MINIMUM_FILL_IN, self.NESTED_DISSECTION, self.DEFAULT_REORDERING]:
              raise ValueError,"unknown reordering strategy %s"%ordering
@@ -482,17 +481,15 @@ class SolverOptions(object):
         """
         Returns the key of the reordering method to be applied if supported by the solver.
 
-        @rtype: in the list L{SolverOptions.NO_REORDERING}, L{SolverOptions.NO_REORDERING}, 
-        L{SolverOptions.NO_REORDERING}, L{SolverOptions.DEFAULT_REORDERING}
+        :rtype: in the list `SolverOptions.NO_REORDERING`, `SolverOptions.NO_REORDERING`,  `SolverOptions.NO_REORDERING`, `SolverOptions.DEFAULT_REORDERING`
         """
         return self.__reordering
     def setRestart(self,restart=None):
         """
         Sets the number of iterations steps after which GMRES is performing a restart.
 
-        @param restart: number of iteration steps after which to perform a restart. If equal to C{None} no
-                        restart is performed.
-        @type restart: C{int} or C{None}
+        :param restart: number of iteration steps after which to perform a restart. If equal to ``None`` no restart is performed.
+        :type restart: ``int`` or ``None``
         """
         if restart == None:
             self.__restart=restart
@@ -505,9 +502,9 @@ class SolverOptions(object):
     def getRestart(self):
         """
         Returns the number of iterations steps after which GMRES is performing a restart.
-        If C{None} is returned no restart is performed.
+        If ``None`` is returned no restart is performed.
 
-        @rtype: C{int} or C{None}
+        :rtype: ``int`` or ``None``
         """
         if self.__restart < 0:
             return None
@@ -524,8 +521,8 @@ class SolverOptions(object):
         Sets the number of residuals in GMRES to be stored for orthogonalization.  The more residuals are stored
         the faster GMRES converged but
 
-        @param truncation: truncation
-        @type truncation: C{int}
+        :param truncation: truncation
+        :type truncation: ``int``
         """
         truncation=int(truncation)
         if truncation<1:
@@ -535,15 +532,15 @@ class SolverOptions(object):
         """
         Returns the number of residuals in GMRES to be stored for orthogonalization
 
-        @rtype: C{int}
+        :rtype: ``int``
         """
         return self.__truncation
     def setInnerIterMax(self,iter_max=10):
         """
         Sets the maximum number of iteration steps for the inner iteration.
 
-        @param iter_max: maximum number of inner iterations
-        @type iter_max: C{int}
+        :param iter_max: maximum number of inner iterations
+        :type iter_max: ``int``
         """
         iter_max=int(iter_max)
         if iter_max<1:
@@ -553,15 +550,15 @@ class SolverOptions(object):
         """
         Returns maximum number of inner iteration steps
 
-        @rtype: C{int}
+        :rtype: ``int``
         """
         return self.__inner_iter_max
     def setIterMax(self,iter_max=100000):
         """
         Sets the maximum number of iteration steps
 
-        @param iter_max: maximum number of iteration steps
-        @type iter_max: C{int}
+        :param iter_max: maximum number of iteration steps
+        :type iter_max: ``int``
         """
         iter_max=int(iter_max)
         if iter_max<1:
@@ -571,15 +568,15 @@ class SolverOptions(object):
         """
         Returns maximum number of iteration steps
 
-        @rtype: C{int}
+        :rtype: ``int``
         """
         return self.__iter_max
     def setLevelMax(self,level_max=10):
         """
         Sets the maximum number of coarsening levels to be used in an algebraic multi level solver or preconditioner
 
-        @param level_max: maximum number of levels
-        @type level_max: C{int}
+        :param level_max: maximum number of levels
+        :type level_max: ``int``
         """
         level_max=int(level_max)
         if level_max<0:
@@ -589,15 +586,15 @@ class SolverOptions(object):
         """
         Returns the maximum number of coarsening levels to be used in an algebraic multi level solver or preconditioner
 
-        @rtype: C{int}
+        :rtype: ``int``
         """
         return self.__level_max
     def setCoarseningThreshold(self,theta=0.05):
         """
         Sets the threshold for coarsening in the algebraic multi level solver or preconditioner
 
-        @param theta: threshold for coarsening
-        @type theta: positive C{float}
+        :param theta: threshold for coarsening
+        :type theta: positive ``float``
         """
         theta=float(theta)
         if theta<0 or theta>1:
@@ -607,15 +604,15 @@ class SolverOptions(object):
         """
         Returns the threshold for coarsening in the algebraic multi level solver or preconditioner
 
-        @rtype: C{float}
+        :rtype: ``float``
         """
         return self.__coarsening_threshold
     def setNumSweeps(self,sweeps=2):
         """
         Sets the number of sweeps in a Jacobi or Gauss-Seidel/SOR preconditioner.
 
-        @param sweeps: number of sweeps
-        @type theta: positive C{int}
+        :param sweeps: number of sweeps
+        :type sweeps: positive ``int``
         """
         sweeps=int(sweeps)
         if sweeps<1:
@@ -625,15 +622,15 @@ class SolverOptions(object):
         """
         Returns the number of sweeps in a Jacobi or Gauss-Seidel/SOR preconditioner.
 
-        @rtype: C{int}
+        :rtype: ``int``
         """
         return self.__sweeps
     def setNumPreSweeps(self,sweeps=2):
         """
         Sets the number of sweeps in the pre-smoothing step of a multi level solver or preconditioner
 
-        @param sweeps: number of sweeps
-        @type theta: positive C{int}
+        :param sweeps: number of sweeps
+        :type sweeps: positive ``int``
         """
         sweeps=int(sweeps)
         if sweeps<1:
@@ -643,15 +640,15 @@ class SolverOptions(object):
         """
         Returns he number of sweeps in the pre-smoothing step of a multi level solver or preconditioner
 
-        @rtype: C{int}
+        :rtype: ``int``
         """
         return self.__pre_sweeps
     def setNumPostSweeps(self,sweeps=2):
         """
         Sets the number of sweeps in the post-smoothing step of a multi level solver or preconditioner
 
-        @param sweeps: number of sweeps
-        @type theta: positive C{int}
+        :param sweeps: number of sweeps
+        :type sweeps: positive ``int``
         """
         sweeps=int(sweeps)
         if sweeps<1:
@@ -661,7 +658,7 @@ class SolverOptions(object):
         """
         Returns he number of sweeps in the post-smoothing step of a multi level solver or preconditioner
 
-        @rtype: C{int}
+        :rtype: ``int``
         """
         return self.__post_sweeps
 
@@ -669,8 +666,8 @@ class SolverOptions(object):
         """
         Sets the relative tolerance for the solver
 
-        @param rtol: relative tolerance
-        @type rtol: non-negative C{float}
+        :param rtol: relative tolerance
+        :type rtol: non-negative ``float``
         """
         rtol=float(rtol)
         if rtol<0 or rtol>1:
@@ -680,15 +677,15 @@ class SolverOptions(object):
         """
         Returns the relative tolerance for the solver
 
-        @rtype: C{float}
+        :rtype: ``float``
         """
         return self.__tolerance
     def setAbsoluteTolerance(self,atol=0.):
         """
         Sets the absolute tolerance for the solver
 
-        @param atol:  absolute tolerance
-        @type atol: non-negative C{float}
+        :param atol:  absolute tolerance
+        :type atol: non-negative ``float``
         """
         atol=float(atol)
         if atol<0:
@@ -698,17 +695,16 @@ class SolverOptions(object):
         """
         Returns the absolute tolerance for the solver
 
-        @rtype: C{float}
+        :rtype: ``float``
         """
         return self.__absolute_tolerance
 
     def setInnerTolerance(self,rtol=0.9):
         """
-         Sets the relative tolerance for an inner iteration scheme for instance
-        on the coarsest level in a multi-level scheme.
+         Sets the relative tolerance for an inner iteration scheme for instance on the coarsest level in a multi-level scheme.
 
-        @param rtol: inner relative tolerance
-        @type rtol: positive C{float}
+        :param rtol: inner relative tolerance
+        :type rtol: positive ``float``
         """
         rtol=float(rtol)
         if rtol<=0 or rtol>1:
@@ -718,15 +714,15 @@ class SolverOptions(object):
         """
         Returns the relative tolerance for an inner iteration scheme
 
-        @rtype: C{float}
+        :rtype: ``float``
         """
         return self.__inner_tolerance
     def setDropTolerance(self,drop_tol=0.01):
         """
         Sets the relative drop tolerance in ILUT
 
-        @param drop_tol: drop tolerance
-        @type drop_tol: positive C{float}
+        :param drop_tol: drop tolerance
+        :type drop_tol: positive ``float``
         """
         drop_tol=float(drop_tol)
         if drop_tol<=0 or drop_tol>1:
@@ -736,16 +732,16 @@ class SolverOptions(object):
         """
         Returns the relative drop tolerance in ILUT
 
-        @rtype: C{float}
+        :rtype: ``float``
         """
         return self.__drop_tolerance
     def setDropStorage(self,storage=2.):
         """
-        Sets the maximum allowed increase in storage for ILUT. C{storage}=2 would mean that
+        Sets the maximum allowed increase in storage for ILUT. ``storage`` =2 would mean that
         a doubling of the storage needed for the coefficient matrix is allowed in the ILUT factorization.
 
-        @param storage: allowed storage increase
-        @type storage: C{float}
+        :param storage: allowed storage increase
+        :type storage: ``float``
         """
         storage=float(storage)
         if storage<1:
@@ -756,16 +752,16 @@ class SolverOptions(object):
         """
         Returns the maximum allowed increase in storage for ILUT
 
-        @rtype: C{float}
+        :rtype: ``float``
         """
         return self.__drop_storage
     def setRelaxationFactor(self,factor=0.3):
         """
         Sets the relaxation factor used to add dropped elements in RILU to the main diagonal.
 
-        @param factor: relaxation factor
-        @type factor: C{float}
-        @note: RILU with a relaxation factor 0 is identical to ILU0
+        :param factor: relaxation factor
+        :type factor: ``float``
+        :note: RILU with a relaxation factor 0 is identical to ILU0
         """
         factor=float(factor)
         if factor<0: 
@@ -776,15 +772,15 @@ class SolverOptions(object):
         """
         Returns the relaxation factor used to add dropped elements in RILU to the main diagonal.
 
-        @rtype: C{float}
+        :rtype: ``float``
         """
         return self.__relaxation
     def isSymmetric(self):
         """
         Checks if symmetry of the  coefficient matrix is indicated.
 
-        @return: True if a symmetric PDE is indicated, False otherwise
-        @rtype: C{bool}
+        :return: True if a symmetric PDE is indicated, False otherwise
+        :rtype: ``bool``
         """
         return self.__symmetric
     def setSymmetryOn(self):
@@ -799,10 +795,10 @@ class SolverOptions(object):
         self.__symmetric=False
     def setSymmetry(self,flag=False):
         """
-        Sets the symmetry flag for the coefficient matrix to C{flag}.
+        Sets the symmetry flag for the coefficient matrix to ``flag``.
 
-        @param flag: If True, the symmetry flag is set otherwise reset.
-        @type flag: C{bool}
+        :param flag: If True, the symmetry flag is set otherwise reset.
+        :type flag: ``bool``
         """
         if flag:
             self.setSymmetryOn()
@@ -810,10 +806,10 @@ class SolverOptions(object):
             self.setSymmetryOff()
     def isVerbose(self):
         """
-        Returns C{True} if the solver is expected to be verbose.
+        Returns ``True`` if the solver is expected to be verbose.
 
-        @return: True if verbosity of switched on.
-        @rtype: C{bool}
+        :return: True if verbosity of switched on.
+        :rtype: ``bool``
         """
         return self.__verbose
 
@@ -829,10 +825,10 @@ class SolverOptions(object):
         self.__verbose=False
     def setVerbosity(self,verbose=False):
         """
-        Sets the verbosity flag for the solver to C{flag}.
+        Sets the verbosity flag for the solver to ``flag``.
 
-        @param flag: If C{True}, the verbosity of the solver is switched on.
-        @type flag: C{bool}
+        :param verbose: If ``True``, the verbosity of the solver is switched on.
+        :type verbose: ``bool``
         """
         if verbose:
             self.setVerbosityOn()
@@ -841,11 +837,11 @@ class SolverOptions(object):
 	    
     def adaptInnerTolerance(self):
         """
-        Returns C{True} if the tolerance of the inner solver is selected automatically. 
-        Otherwise the inner tolerance set by L{setInnerTolerance} is used.
+        Returns ``True`` if the tolerance of the inner solver is selected automatically. 
+        Otherwise the inner tolerance set by `setInnerTolerance` is used.
 
-        @return: C{True} if inner tolerance adaption is chosen.
-        @rtype: C{bool}
+        :return: ``True`` if inner tolerance adaption is chosen.
+        :rtype: ``bool``
         """
         return self.__adapt_inner_tolerance
 
@@ -863,8 +859,8 @@ class SolverOptions(object):
         """
         Sets a flag to indicate automatic selection of the inner tolerance. 
 
-        @param adapt: If C{True}, the inner tolerance is selected automatically.
-        @type adapt: C{bool}
+        :param adapt: If ``True``, the inner tolerance is selected automatically.
+        :type adapt: ``bool``
         """
         if adapt:
             self.setInnerToleranceAdaptionOn()
@@ -873,15 +869,15 @@ class SolverOptions(object):
 
     def acceptConvergenceFailure(self):
         """
-        Returns C{True} if a failure to meet the stopping criteria within the
+        Returns ``True`` if a failure to meet the stopping criteria within the
         given number of iteration steps is not raising in exception. This is useful 
         if a solver is used in a non-linear context where the non-linear solver can 
         continue even if the returned the solution does not necessarily meet the
-        stopping criteria. One can use the L{hasConverged} method to check if the
+        stopping criteria. One can use the `hasConverged` method to check if the
         last call to the solver was successful.
 
-        @return: C{True} if a failure to achieve convergence is accepted.
-        @rtype: C{bool}
+        :return: ``True`` if a failure to achieve convergence is accepted.
+        :rtype: ``bool``
         """
         return self.__accept_convergence_failure
 
@@ -899,8 +895,8 @@ class SolverOptions(object):
         """
         Sets a flag to indicate the acceptance of a failure of convergence. 
 
-        @param accept: If C{True}, any failure to achieve convergence is accepted.
-        @type accept: C{bool}
+        :param accept: If ``True``, any failure to achieve convergence is accepted.
+        :type accept: ``bool``
         """
         if accept:
             self.setAcceptanceConvergenceFailureOn()
@@ -936,36 +932,36 @@ class PDECoef(object):
     """
     A class for describing a PDE coefficient.
 
-    @cvar INTERIOR: indicator that coefficient is defined on the interior of
+    :cvar INTERIOR: indicator that coefficient is defined on the interior of
                     the PDE domain
-    @cvar BOUNDARY: indicator that coefficient is defined on the boundary of
+    :cvar BOUNDARY: indicator that coefficient is defined on the boundary of
                     the PDE domain
-    @cvar CONTACT: indicator that coefficient is defined on the contact region
+    :cvar CONTACT: indicator that coefficient is defined on the contact region
                    within the PDE domain
-    @cvar INTERIOR_REDUCED: indicator that coefficient is defined on the
+    :cvar INTERIOR_REDUCED: indicator that coefficient is defined on the
                             interior of the PDE domain using a reduced
                             integration order
-    @cvar BOUNDARY_REDUCED: indicator that coefficient is defined on the
+    :cvar BOUNDARY_REDUCED: indicator that coefficient is defined on the
                             boundary of the PDE domain using a reduced
                             integration order
-    @cvar CONTACT_REDUCED: indicator that coefficient is defined on the contact
+    :cvar CONTACT_REDUCED: indicator that coefficient is defined on the contact
                            region within the PDE domain using a reduced
                            integration order
-    @cvar SOLUTION: indicator that coefficient is defined through a solution of
+    :cvar SOLUTION: indicator that coefficient is defined through a solution of
                     the PDE
-    @cvar REDUCED: indicator that coefficient is defined through a reduced
+    :cvar REDUCED: indicator that coefficient is defined through a reduced
                    solution of the PDE
-    @cvar BY_EQUATION: indicator that the dimension of the coefficient shape is
+    :cvar BY_EQUATION: indicator that the dimension of the coefficient shape is
                        defined by the number of PDE equations
-    @cvar BY_SOLUTION: indicator that the dimension of the coefficient shape is
+    :cvar BY_SOLUTION: indicator that the dimension of the coefficient shape is
                        defined by the number of PDE solutions
-    @cvar BY_DIM: indicator that the dimension of the coefficient shape is
+    :cvar BY_DIM: indicator that the dimension of the coefficient shape is
                   defined by the spatial dimension
-    @cvar OPERATOR: indicator that the the coefficient alters the operator of
+    :cvar OPERATOR: indicator that the the coefficient alters the operator of
                     the PDE
-    @cvar RIGHTHANDSIDE: indicator that the the coefficient alters the right
+    :cvar RIGHTHANDSIDE: indicator that the the coefficient alters the right
                          hand side of the PDE
-    @cvar BOTH: indicator that the the coefficient alters the operator as well
+    :cvar BOTH: indicator that the the coefficient alters the operator as well
                 as the right hand side of the PDE
 
     """
@@ -988,24 +984,24 @@ class PDECoef(object):
        """
        Initialises a PDE coefficient type.
 
-       @param where: describes where the coefficient lives
-       @type where: one of L{INTERIOR}, L{BOUNDARY}, L{CONTACT}, L{SOLUTION},
-                    L{REDUCED}, L{INTERIOR_REDUCED}, L{BOUNDARY_REDUCED},
-                    L{CONTACT_REDUCED}
-       @param pattern: describes the shape of the coefficient and how the shape
+       :param where: describes where the coefficient lives
+       :type where: one of `INTERIOR`, `BOUNDARY`, `CONTACT`, `SOLUTION`,
+                    `REDUCED`, `INTERIOR_REDUCED`, `BOUNDARY_REDUCED`,
+                    `CONTACT_REDUCED`
+       :param pattern: describes the shape of the coefficient and how the shape
                        is built for a given spatial dimension and numbers of
                        equations and solutions in then PDE. For instance,
-                       (L{BY_EQUATION},L{BY_SOLUTION},L{BY_DIM}) describes a
+                       (`BY_EQUATION`,`BY_SOLUTION`,`BY_DIM`) describes a
                        rank 3 coefficient which is instantiated as shape (3,2,2)
                        in case of three equations and two solution components
                        on a 2-dimensional domain. In the case of single equation
                        and a single solution component the shape components
-                       marked by L{BY_EQUATION} or L{BY_SOLUTION} are dropped.
+                       marked by `BY_EQUATION` or `BY_SOLUTION` are dropped.
                        In this case the example would be read as (2,).
-       @type pattern: C{tuple} of L{BY_EQUATION}, L{BY_SOLUTION}, L{BY_DIM}
-       @param altering: indicates what part of the PDE is altered if the
+       :type pattern: ``tuple`` of `BY_EQUATION`, `BY_SOLUTION`, `BY_DIM`
+       :param altering: indicates what part of the PDE is altered if the
                         coefficient is altered
-       @type altering: one of L{OPERATOR}, L{RIGHTHANDSIDE}, L{BOTH}
+       :type altering: one of `OPERATOR`, `RIGHTHANDSIDE`, `BOTH`
        """
        super(PDECoef, self).__init__()
        self.what=where
@@ -1021,18 +1017,18 @@ class PDECoef(object):
 
     def getFunctionSpace(self,domain,reducedEquationOrder=False,reducedSolutionOrder=False):
        """
-       Returns the L{FunctionSpace<escript.FunctionSpace>} of the coefficient.
+       Returns the `FunctionSpace` of the coefficient.
 
-       @param domain: domain on which the PDE uses the coefficient
-       @type domain: L{Domain<escript.Domain>}
-       @param reducedEquationOrder: True to indicate that reduced order is used
+       :param domain: domain on which the PDE uses the coefficient
+       :type domain: `Domain`
+       :param reducedEquationOrder: True to indicate that reduced order is used
                                     to represent the equation
-       @type reducedEquationOrder: C{bool}
-       @param reducedSolutionOrder: True to indicate that reduced order is used
+       :type reducedEquationOrder: ``bool``
+       :param reducedSolutionOrder: True to indicate that reduced order is used
                                     to represent the solution
-       @type reducedSolutionOrder: C{bool}
-       @return: L{FunctionSpace<escript.FunctionSpace>} of the coefficient
-       @rtype: L{FunctionSpace<escript.FunctionSpace>}
+       :type reducedSolutionOrder: ``bool``
+       :return: `FunctionSpace` of the coefficient
+       :rtype: `FunctionSpace`
        """
        if self.what==self.INTERIOR:
             return escript.Function(domain)
@@ -1058,8 +1054,8 @@ class PDECoef(object):
        """
        Returns the value of the coefficient.
 
-       @return: value of the coefficient
-       @rtype: L{Data<escript.Data>}
+       :return: value of the coefficient
+       :rtype: `Data`
        """
        return self.value
 
@@ -1067,25 +1063,25 @@ class PDECoef(object):
        """
        Sets the value of the coefficient to a new value.
 
-       @param domain: domain on which the PDE uses the coefficient
-       @type domain: L{Domain<escript.Domain>}
-       @param numEquations: number of equations of the PDE
-       @type numEquations: C{int}
-       @param numSolutions: number of components of the PDE solution
-       @type numSolutions: C{int}
-       @param reducedEquationOrder: True to indicate that reduced order is used
+       :param domain: domain on which the PDE uses the coefficient
+       :type domain: `Domain`
+       :param numEquations: number of equations of the PDE
+       :type numEquations: ``int``
+       :param numSolutions: number of components of the PDE solution
+       :type numSolutions: ``int``
+       :param reducedEquationOrder: True to indicate that reduced order is used
                                     to represent the equation
-       @type reducedEquationOrder: C{bool}
-       @param reducedSolutionOrder: True to indicate that reduced order is used
+       :type reducedEquationOrder: ``bool``
+       :param reducedSolutionOrder: True to indicate that reduced order is used
                                     to represent the solution
-       @type reducedSolutionOrder: C{bool}
-       @param newValue: number of components of the PDE solution
-       @type newValue: any object that can be converted into a
-                       L{Data<escript.Data>} object with the appropriate shape
-                       and L{FunctionSpace<escript.FunctionSpace>}
-       @raise IllegalCoefficientValue: if the shape of the assigned value does
+       :type reducedSolutionOrder: ``bool``
+       :param newValue: number of components of the PDE solution
+       :type newValue: any object that can be converted into a
+                       `Data` object with the appropriate shape
+                       and `FunctionSpace`
+       :raise IllegalCoefficientValue: if the shape of the assigned value does
                                        not match the shape of the coefficient
-       @raise IllegalCoefficientFunctionSpace: if unable to interpolate value
+       :raise IllegalCoefficientFunctionSpace: if unable to interpolate value
                                                to appropriate function space
        """
        if newValue==None:
@@ -1108,9 +1104,9 @@ class PDECoef(object):
         """
         Checks if the coefficient alters the operator of the PDE.
 
-        @return: True if the operator of the PDE is changed when the
+        :return: True if the operator of the PDE is changed when the
                  coefficient is changed
-        @rtype: C{bool}
+        :rtype: ``bool``
         """
         if self.altering==self.OPERATOR or self.altering==self.BOTH:
             return not None
@@ -1121,9 +1117,9 @@ class PDECoef(object):
         """
         Checks if the coefficient alters the right hand side of the PDE.
 
-        @rtype: C{bool}
-        @return: True if the right hand side of the PDE is changed when the
-                 coefficient is changed, C{None} otherwise.
+        :rtype: ``bool``
+        :return: True if the right hand side of the PDE is changed when the
+                 coefficient is changed, ``None`` otherwise.
         """
         if self.altering==self.RIGHTHANDSIDE or self.altering==self.BOTH:
             return not None
@@ -1135,14 +1131,14 @@ class PDECoef(object):
        Tries to estimate the number of equations and number of solutions if
        the coefficient has the given shape.
 
-       @param domain: domain on which the PDE uses the coefficient
-       @type domain: L{Domain<escript.Domain>}
-       @param shape: suggested shape of the coefficient
-       @type shape: C{tuple} of C{int} values
-       @return: the number of equations and number of solutions of the PDE if
+       :param domain: domain on which the PDE uses the coefficient
+       :type domain: `Domain`
+       :param shape: suggested shape of the coefficient
+       :type shape: ``tuple`` of ``int`` values
+       :return: the number of equations and number of solutions of the PDE if
                 the coefficient has given shape. If no appropriate numbers
-                could be identified, C{None} is returned
-       @rtype: C{tuple} of two C{int} values or C{None}
+                could be identified, ``None`` is returned
+       :rtype: ``tuple`` of two ``int`` values or ``None``
        """
        dim=domain.getDim()
        if len(shape)>0:
@@ -1183,9 +1179,9 @@ class PDECoef(object):
        Checks if the coefficient allows to estimate the number of solution
        components.
 
-       @return: True if the coefficient allows an estimate of the number of
+       :return: True if the coefficient allows an estimate of the number of
                 solution components, False otherwise
-       @rtype: C{bool}
+       :rtype: ``bool``
        """
        for i in self.pattern:
              if i==self.BY_SOLUTION: return True
@@ -1195,9 +1191,9 @@ class PDECoef(object):
        """
        Checks if the coefficient allows to estimate the number of equations.
 
-       @return: True if the coefficient allows an estimate of the number of
+       :return: True if the coefficient allows an estimate of the number of
                 equations, False otherwise
-       @rtype: C{bool}
+       :rtype: ``bool``
        """
        for i in self.pattern:
              if i==self.BY_EQUATION: return True
@@ -1208,9 +1204,9 @@ class PDECoef(object):
       Compares two tuples of possible number of equations and number of
       solutions.
 
-      @param t1: the first tuple
-      @param t2: the second tuple
-      @return: 0, 1, or -1
+      :param t1: the first tuple
+      :param t2: the second tuple
+      :return: 0, 1, or -1
       """
 
       dif=t1[0]+t1[1]-(t2[0]+t2[1])
@@ -1222,14 +1218,14 @@ class PDECoef(object):
        """
        Builds the required shape of the coefficient.
 
-       @param domain: domain on which the PDE uses the coefficient
-       @type domain: L{Domain<escript.Domain>}
-       @param numEquations: number of equations of the PDE
-       @type numEquations: C{int}
-       @param numSolutions: number of components of the PDE solution
-       @type numSolutions: C{int}
-       @return: shape of the coefficient
-       @rtype: C{tuple} of C{int} values
+       :param domain: domain on which the PDE uses the coefficient
+       :type domain: `Domain`
+       :param numEquations: number of equations of the PDE
+       :type numEquations: ``int``
+       :param numSolutions: number of components of the PDE solution
+       :type numSolutions: ``int``
+       :return: shape of the coefficient
+       :rtype: ``tuple`` of ``int`` values
        """
        dim=domain.getDim()
        s=()
@@ -1247,31 +1243,31 @@ class PDECoef(object):
 class LinearProblem(object):
    """
    This is the base class to define a general linear PDE-type problem for
-   for an unknown function M{u} on a given domain defined through a
-   L{Domain<escript.Domain>} object. The problem can be given as a single
+   for an unknown function *u* on a given domain defined through a
+   `Domain` object. The problem can be given as a single
    equation or as a system of equations.
 
    The class assumes that some sort of assembling process is required to form
    a problem of the form
 
-   M{L u=f}
+   *L u=f*
 
-   where M{L} is an operator and M{f} is the right hand side. This operator
-   problem will be solved to get the unknown M{u}.
+   where *L* is an operator and *f* is the right hand side. This operator
+   problem will be solved to get the unknown *u*.
 
    """
    def __init__(self,domain,numEquations=None,numSolutions=None,debug=False):
      """
      Initializes a linear problem.
 
-     @param domain: domain of the PDE
-     @type domain: L{Domain<escript.Domain>}
-     @param numEquations: number of equations. If C{None} the number of
+     :param domain: domain of the PDE
+     :type domain: `Domain`
+     :param numEquations: number of equations. If ``None`` the number of
                           equations is extracted from the coefficients.
-     @param numSolutions: number of solution components. If C{None} the number
+     :param numSolutions: number of solution components. If ``None`` the number
                           of solution components is extracted from the
                           coefficients.
-     @param debug: if True debug information is printed
+     :param debug: if True debug information is printed
 
      """
      super(LinearProblem, self).__init__()
@@ -1301,8 +1297,8 @@ class LinearProblem(object):
      """
      Returns a string representation of the PDE.
 
-     @return: a simple representation of the PDE
-     @rtype: C{str}
+     :return: a simple representation of the PDE
+     :rtype: ``str``
      """
      return "<LinearProblem %d>"%id(self)
    # ==========================================================================
@@ -1322,10 +1318,10 @@ class LinearProblem(object):
 
    def setDebug(self, flag):
      """
-     Switches debug output on if C{flag} is True otherwise it is switched off.
+     Switches debug output on if ``flag`` is True otherwise it is switched off.
 
-     @param flag: desired debug status
-     @type flag: C{bool}
+     :param flag: desired debug status
+     :type flag: ``bool``
      """
      if flag:
          self.setDebugOn()
@@ -1336,8 +1332,8 @@ class LinearProblem(object):
      """
      Prints the text message if debug mode is switched on.
 
-     @param text: message to be printed
-     @type text: C{string}
+     :param text: message to be printed
+     :type text: ``string``
      """
      if self.__debug: print "%s: %s"%(str(self),text)
 
@@ -1348,11 +1344,11 @@ class LinearProblem(object):
        """
        Introduces new coefficients into the problem.
 
-       Use::
+       Use:
 
        p.introduceCoefficients(A=PDECoef(...), B=PDECoef(...))
 
-       to introduce the coefficients M{A} ans M{B}.
+       to introduce the coefficients *A* and *B*.
        """
        for name, type in coeff.items():
            if not isinstance(type,PDECoef):
@@ -1365,8 +1361,8 @@ class LinearProblem(object):
      """
      Returns the domain of the PDE.
 
-     @return: the domain of the PDE
-     @rtype: L{Domain<escript.Domain>}
+     :return: the domain of the PDE
+     :rtype: `Domain`
      """
      return self.__domain
    def getDomainStatus(self):
@@ -1382,7 +1378,7 @@ class LinearProblem(object):
      return self.__system_status
    def setSystemStatus(self,status=None):
      """
-     Sets the system status to C{status} if C{status} is not present the 
+     Sets the system status to ``status`` if ``status`` is not present the 
      current status of the domain is used.
      """
      if status == None:
@@ -1394,8 +1390,8 @@ class LinearProblem(object):
      """
      Returns the spatial dimension of the PDE.
 
-     @return: the spatial dimension of the PDE domain
-     @rtype: C{int}
+     :return: the spatial dimension of the PDE domain
+     :rtype: ``int``
      """
      return self.getDomain().getDim()
 
@@ -1403,9 +1399,9 @@ class LinearProblem(object):
      """
      Returns the number of equations.
 
-     @return: the number of equations
-     @rtype: C{int}
-     @raise UndefinedPDEError: if the number of equations is not specified yet
+     :return: the number of equations
+     :rtype: ``int``
+     :raise UndefinedPDEError: if the number of equations is not specified yet
      """
      if self.__numEquations==None:
          if self.__numSolutions==None:
@@ -1418,9 +1414,9 @@ class LinearProblem(object):
      """
      Returns the number of unknowns.
 
-     @return: the number of unknowns
-     @rtype: C{int}
-     @raise UndefinedPDEError: if the number of unknowns is not specified yet
+     :return: the number of unknowns
+     :rtype: ``int``
+     :raise UndefinedPDEError: if the number of unknowns is not specified yet
      """
      if self.__numSolutions==None:
         if self.__numEquations==None:
@@ -1433,9 +1429,9 @@ class LinearProblem(object):
      """
      Returns the status of order reduction for the equation.
 
-     @return: True if reduced interpolation order is used for the
+     :return: True if reduced interpolation order is used for the
               representation of the equation, False otherwise
-     @rtype: L{bool}
+     :rtype: `bool`
      """
      return self.__reduce_equation_order
 
@@ -1443,19 +1439,19 @@ class LinearProblem(object):
      """
      Returns the status of order reduction for the solution.
 
-     @return: True if reduced interpolation order is used for the
+     :return: True if reduced interpolation order is used for the
               representation of the solution, False otherwise
-     @rtype: L{bool}
+     :rtype: `bool`
      """
      return self.__reduce_solution_order
 
    def getFunctionSpaceForEquation(self):
      """
-     Returns the L{FunctionSpace<escript.FunctionSpace>} used to discretize
+     Returns the `FunctionSpace` used to discretize
      the equation.
 
-     @return: representation space of equation
-     @rtype: L{FunctionSpace<escript.FunctionSpace>}
+     :return: representation space of equation
+     :rtype: `FunctionSpace`
      """
      if self.reduceEquationOrder():
          return escript.ReducedSolution(self.getDomain())
@@ -1464,11 +1460,11 @@ class LinearProblem(object):
 
    def getFunctionSpaceForSolution(self):
      """
-     Returns the L{FunctionSpace<escript.FunctionSpace>} used to represent
+     Returns the `FunctionSpace` used to represent
      the solution.
 
-     @return: representation space of solution
-     @rtype: L{FunctionSpace<escript.FunctionSpace>}
+     :return: representation space of solution
+     :rtype: `FunctionSpace`
      """
      if self.reduceSolutionOrder():
          return escript.ReducedSolution(self.getDomain())
@@ -1482,9 +1478,9 @@ class LinearProblem(object):
        """
        Sets the solver options.
 
-       @param options: the new solver options. If equal C{None}, the solver options are set to the default.
-       @type options: L{SolverOptions} or C{None}
-       @note: The symmetry flag of options is overwritten by the symmetry flag of the L{LinearProblem}.
+       :param options: the new solver options. If equal ``None``, the solver options are set to the default.
+       :type options: `SolverOptions` or ``None``
+       :note: The symmetry flag of options is overwritten by the symmetry flag of the `LinearProblem`.
        """
        if options==None:
           self.__solver_options=SolverOptions()
@@ -1498,7 +1494,7 @@ class LinearProblem(object):
        """
        Returns the solver options
    
-       @rtype: L{SolverOptions}
+       :rtype: `SolverOptions`
        """
        self.__solver_options.setSymmetry(self.__sym)
        return self.__solver_options
@@ -1507,8 +1503,8 @@ class LinearProblem(object):
       """
       Checks if matrix lumping is the current solver method.
 
-      @return: True if the current solver method is lumping
-      @rtype: C{bool}
+      :return: True if the current solver method is lumping
+      :rtype: ``bool``
       """
       return self.getSolverOptions().getSolverMethod()==self.getSolverOptions().LUMPING
    # ==========================================================================
@@ -1518,16 +1514,16 @@ class LinearProblem(object):
       """
       Checks if symmetry is indicated.
 
-      @return: True if a symmetric PDE is indicated, False otherwise
-      @rtype: C{bool}
-      @note: the method is equivalent to use getSolverOptions().isSymmetric()
+      :return: True if a symmetric PDE is indicated, False otherwise
+      :rtype: ``bool``
+      :note: the method is equivalent to use getSolverOptions().isSymmetric()
       """
       self.getSolverOptions().isSymmetric()
 
    def setSymmetryOn(self):
       """
       Sets the symmetry flag. 
-      @note: The method overwrites the symmetry flag set by the solver options
+      :note: The method overwrites the symmetry flag set by the solver options
       """
       self.__sym=True
       self.getSolverOptions().setSymmetryOn()
@@ -1535,18 +1531,18 @@ class LinearProblem(object):
    def setSymmetryOff(self):
       """
       Clears the symmetry flag.
-      @note: The method overwrites the symmetry flag set by the solver options
+      :note: The method overwrites the symmetry flag set by the solver options
       """
       self.__sym=False
       self.getSolverOptions().setSymmetryOff()
 
    def setSymmetry(self,flag=False):
       """
-      Sets the symmetry flag to C{flag}.
+      Sets the symmetry flag to ``flag``.
 
-      @param flag: If True, the symmetry flag is set otherwise reset.
-      @type flag: C{bool}
-      @note: The method overwrites the symmetry flag set by the solver options
+      :param flag: If True, the symmetry flag is set otherwise reset.
+      :type flag: ``bool``
+      :note: The method overwrites the symmetry flag set by the solver options
       """
       self.getSolverOptions().setSymmetry(flag)
    # ==========================================================================
@@ -1556,7 +1552,7 @@ class LinearProblem(object):
      """
      Switches reduced order on for solution and equation representation.
 
-     @raise RuntimeError: if order reduction is altered after a coefficient has
+     :raise RuntimeError: if order reduction is altered after a coefficient has
                           been set
      """
      self.setReducedOrderForSolutionOn()
@@ -1566,7 +1562,7 @@ class LinearProblem(object):
      """
      Switches reduced order off for solution and equation representation
 
-     @raise RuntimeError: if order reduction is altered after a coefficient has
+     :raise RuntimeError: if order reduction is altered after a coefficient has
                           been set
      """
      self.setReducedOrderForSolutionOff()
@@ -1577,11 +1573,11 @@ class LinearProblem(object):
      Sets order reduction state for both solution and equation representation
      according to flag.
 
-     @param flag: if True, the order reduction is switched on for both solution
+     :param flag: if True, the order reduction is switched on for both solution
                   and equation representation, otherwise or if flag is not
                   present order reduction is switched off
-     @type flag: C{bool}
-     @raise RuntimeError: if order reduction is altered after a coefficient has
+     :type flag: ``bool``
+     :raise RuntimeError: if order reduction is altered after a coefficient has
                           been set
      """
      self.setReducedOrderForSolutionTo(flag)
@@ -1592,7 +1588,7 @@ class LinearProblem(object):
      """
      Switches reduced order on for solution representation.
 
-     @raise RuntimeError: if order reduction is altered after a coefficient has
+     :raise RuntimeError: if order reduction is altered after a coefficient has
                           been set
      """
      if not self.__reduce_solution_order:
@@ -1606,7 +1602,7 @@ class LinearProblem(object):
      """
      Switches reduced order off for solution representation
 
-     @raise RuntimeError: if order reduction is altered after a coefficient has
+     :raise RuntimeError: if order reduction is altered after a coefficient has
                           been set.
      """
      if self.__reduce_solution_order:
@@ -1620,11 +1616,11 @@ class LinearProblem(object):
      """
      Sets order reduction state for solution representation according to flag.
 
-     @param flag: if flag is True, the order reduction is switched on for
+     :param flag: if flag is True, the order reduction is switched on for
                   solution representation, otherwise or if flag is not present
                   order reduction is switched off
-     @type flag: C{bool}
-     @raise RuntimeError: if order reduction is altered after a coefficient has
+     :type flag: ``bool``
+     :raise RuntimeError: if order reduction is altered after a coefficient has
                           been set
      """
      if flag:
@@ -1636,7 +1632,7 @@ class LinearProblem(object):
      """
      Switches reduced order on for equation representation.
 
-     @raise RuntimeError: if order reduction is altered after a coefficient has
+     :raise RuntimeError: if order reduction is altered after a coefficient has
                           been set
      """
      if not self.__reduce_equation_order:
@@ -1650,7 +1646,7 @@ class LinearProblem(object):
      """
      Switches reduced order off for equation representation.
 
-     @raise RuntimeError: if order reduction is altered after a coefficient has
+     :raise RuntimeError: if order reduction is altered after a coefficient has
                           been set
      """
      if self.__reduce_equation_order:
@@ -1664,11 +1660,11 @@ class LinearProblem(object):
      """
      Sets order reduction state for equation representation according to flag.
 
-     @param flag: if flag is True, the order reduction is switched on for
+     :param flag: if flag is True, the order reduction is switched on for
                   equation representation, otherwise or if flag is not present
                   order reduction is switched off
-     @type flag: C{bool}
-     @raise RuntimeError: if order reduction is altered after a coefficient has
+     :type flag: ``bool``
+     :raise RuntimeError: if order reduction is altered after a coefficient has
                           been set
      """
      if flag:
@@ -1685,13 +1681,13 @@ class LinearProblem(object):
       """
       Tests a coefficient for symmetry.
 
-      @param name: name of the coefficient
-      @type name: C{str}
-      @param verbose: if set to True or not present a report on coefficients
+      :param name: name of the coefficient
+      :type name: ``str``
+      :param verbose: if set to True or not present a report on coefficients
                       which break the symmetry is printed.
-      @type verbose: C{bool}
-      @return: True if coefficient C{name} is symmetric
-      @rtype: C{bool}
+      :type verbose: ``bool``
+      :return: True if coefficient ``name`` is symmetric
+      :rtype: ``bool``
       """
       SMALL_TOLERANCE=util.EPSILON*10.
       A=self.getCoefficient(name)
@@ -1732,16 +1728,16 @@ class LinearProblem(object):
       """
       Tests two coefficients for reciprocal symmetry.
 
-      @param name0: name of the first coefficient
-      @type name0: C{str}
-      @param name1: name of the second coefficient
-      @type name1: C{str}
-      @param verbose: if set to True or not present a report on coefficients
+      :param name0: name of the first coefficient
+      :type name0: ``str``
+      :param name1: name of the second coefficient
+      :type name1: ``str``
+      :param verbose: if set to True or not present a report on coefficients
                       which break the symmetry is printed
-      @type verbose: C{bool}
-      @return: True if coefficients C{name0} and C{name1} are reciprocally
+      :type verbose: ``bool``
+      :return: True if coefficients ``name0`` and ``name1`` are reciprocally
                symmetric.
-      @rtype: C{bool}
+      :rtype: ``bool``
       """
       SMALL_TOLERANCE=util.EPSILON*10.
       B=self.getCoefficient(name0)
@@ -1790,13 +1786,13 @@ class LinearProblem(object):
 
    def getCoefficient(self,name):
      """
-     Returns the value of the coefficient C{name}.
+     Returns the value of the coefficient ``name``.
 
-     @param name: name of the coefficient requested
-     @type name: C{string}
-     @return: the value of the coefficient
-     @rtype: L{Data<escript.Data>}
-     @raise IllegalCoefficient: if C{name} is not a coefficient of the PDE
+     :param name: name of the coefficient requested
+     :type name: ``string``
+     :return: the value of the coefficient
+     :rtype: `Data`
+     :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
      """
      if self.hasCoefficient(name):
          return self.__COEFFICIENTS[name].getValue()
@@ -1805,24 +1801,24 @@ class LinearProblem(object):
 
    def hasCoefficient(self,name):
      """
-     Returns True if C{name} is the name of a coefficient.
+     Returns True if ``name`` is the name of a coefficient.
 
-     @param name: name of the coefficient enquired
-     @type name: C{string}
-     @return: True if C{name} is the name of a coefficient of the general PDE,
+     :param name: name of the coefficient enquired
+     :type name: ``string``
+     :return: True if ``name`` is the name of a coefficient of the general PDE,
               False otherwise
-     @rtype: C{bool}
+     :rtype: ``bool``
      """
      return self.__COEFFICIENTS.has_key(name)
 
    def createCoefficient(self, name):
      """
-     Creates a L{Data<escript.Data>} object corresponding to coefficient
-     C{name}.
+     Creates a `Data` object corresponding to coefficient
+     ``name``.
 
-     @return: the coefficient C{name} initialized to 0
-     @rtype: L{Data<escript.Data>}
-     @raise IllegalCoefficient: if C{name} is not a coefficient of the PDE
+     :return: the coefficient ``name`` initialized to 0
+     :rtype: `Data`
+     :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
      """
      if self.hasCoefficient(name):
         return escript.Data(0.,self.getShapeOfCoefficient(name),self.getFunctionSpaceForCoefficient(name))
@@ -1831,14 +1827,14 @@ class LinearProblem(object):
 
    def getFunctionSpaceForCoefficient(self,name):
      """
-     Returns the L{FunctionSpace<escript.FunctionSpace>} to be used for
-     coefficient C{name}.
+     Returns the `FunctionSpace` to be used for
+     coefficient ``name``.
 
-     @param name: name of the coefficient enquired
-     @type name: C{string}
-     @return: the function space to be used for coefficient C{name}
-     @rtype: L{FunctionSpace<escript.FunctionSpace>}
-     @raise IllegalCoefficient: if C{name} is not a coefficient of the PDE
+     :param name: name of the coefficient enquired
+     :type name: ``string``
+     :return: the function space to be used for coefficient ``name``
+     :rtype: `FunctionSpace`
+     :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
      """
      if self.hasCoefficient(name):
         return self.__COEFFICIENTS[name].getFunctionSpace(self.getDomain())
@@ -1847,13 +1843,13 @@ class LinearProblem(object):
 
    def getShapeOfCoefficient(self,name):
      """
-     Returns the shape of the coefficient C{name}.
+     Returns the shape of the coefficient ``name``.
 
-     @param name: name of the coefficient enquired
-     @type name: C{string}
-     @return: the shape of the coefficient C{name}
-     @rtype: C{tuple} of C{int}
-     @raise IllegalCoefficient: if C{name} is not a coefficient of the PDE
+     :param name: name of the coefficient enquired
+     :type name: ``string``
+     :return: the shape of the coefficient ``name``
+     :rtype: ``tuple`` of ``int``
+     :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
      """
      if self.hasCoefficient(name):
         return self.__COEFFICIENTS[name].getShape(self.getDomain(),self.getNumEquations(),self.getNumSolutions())
@@ -1869,12 +1865,12 @@ class LinearProblem(object):
 
    def alteredCoefficient(self,name):
      """
-     Announces that coefficient C{name} has been changed.
+     Announces that coefficient ``name`` has been changed.
 
-     @param name: name of the coefficient affected
-     @type name: C{string}
-     @raise IllegalCoefficient: if C{name} is not a coefficient of the PDE
-     @note: if C{name} is q or r, the method will not trigger a rebuild of the
+     :param name: name of the coefficient affected
+     :type name: ``string``
+     :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
+     :note: if ``name`` is q or r, the method will not trigger a rebuild of the
             system as constraints are applied to the solved system.
      """
      if self.hasCoefficient(name):
@@ -1981,7 +1977,7 @@ class LinearProblem(object):
      """
      Returns the operator of the linear problem.
 
-     @return: the operator of the problem
+     :return: the operator of the problem
      """
      return self.getSystem()[0]
 
@@ -1989,8 +1985,8 @@ class LinearProblem(object):
      """
      Returns the right hand side of the linear problem.
 
-     @return: the right hand side of the problem
-     @rtype: L{Data<escript.Data>}
+     :return: the right hand side of the problem
+     :rtype: `Data`
      """
      return self.getSystem()[1]
 
@@ -2090,7 +2086,7 @@ class LinearProblem(object):
       """
       Sets new values to coefficients.
 
-      @raise IllegalCoefficient: if an unknown coefficient keyword is used
+      :raise IllegalCoefficient: if an unknown coefficient keyword is used
       """
       # check if the coefficients are  legal:
       for i in coefficients.iterkeys():
@@ -2149,7 +2145,7 @@ class LinearProblem(object):
       """
       Returns the system type which needs to be used by the current set up.
 
-      @note: Typically this method is overwritten when implementing a
+      :note: Typically this method is overwritten when implementing a
              particular linear problem.
       """
       return None
@@ -2158,7 +2154,7 @@ class LinearProblem(object):
        """
        Returns an instance of a new operator.
 
-       @note: This method is overwritten when implementing a particular
+       :note: This method is overwritten when implementing a particular
               linear problem.
        """
        return escript.Operator()
@@ -2167,12 +2163,12 @@ class LinearProblem(object):
       """
       Tests the PDE for symmetry.
 
-      @param verbose: if set to True or not present a report on coefficients
+      :param verbose: if set to True or not present a report on coefficients
                       which break the symmetry is printed
-      @type verbose: C{bool}
-      @return: True if the problem is symmetric
-      @rtype: C{bool}
-      @note: Typically this method is overwritten when implementing a
+      :type verbose: ``bool``
+      :return: True if the problem is symmetric
+      :rtype: ``bool``
+      :note: Typically this method is overwritten when implementing a
              particular linear problem.
       """
       out=True
@@ -2182,10 +2178,10 @@ class LinearProblem(object):
        """
        Returns the solution of the problem.
 
-       @return: the solution
-       @rtype: L{Data<escript.Data>}
+       :return: the solution
+       :rtype: `Data`
 
-       @note: This method is overwritten when implementing a particular
+       :note: This method is overwritten when implementing a particular
               linear problem.
        """
        return self.getCurrentSolution()
@@ -2194,10 +2190,10 @@ class LinearProblem(object):
        """
        Returns the operator and right hand side of the PDE.
 
-       @return: the discrete version of the PDE
-       @rtype: C{tuple} of L{Operator,<escript.Operator>} and L{Data<escript.Data>}.
+       :return: the discrete version of the PDE
+       :rtype: ``tuple`` of `Operator` and `Data`.
 
-       @note: This method is overwritten when implementing a particular
+       :note: This method is overwritten when implementing a particular
               linear problem.
        """
        return (self.getCurrentOperator(), self.getCurrentRightHandSide())
@@ -2205,126 +2201,126 @@ class LinearProblem(object):
 class LinearPDE(LinearProblem):
    """
    This class is used to define a general linear, steady, second order PDE
-   for an unknown function M{u} on a given domain defined through a
-   L{Domain<escript.Domain>} object.
+   for an unknown function *u* on a given domain defined through a
+   `Domain` object.
 
    For a single PDE having a solution with a single component the linear PDE
    is defined in the following form:
 
-   M{-(grad(A[j,l]+A_reduced[j,l])*grad(u)[l]+(B[j]+B_reduced[j])u)[j]+(C[l]+C_reduced[l])*grad(u)[l]+(D+D_reduced)=-grad(X+X_reduced)[j,j]+(Y+Y_reduced)}
+   *-(grad(A[j,l]+A_reduced[j,l])*grad(u)[l]+(B[j]+B_reduced[j])u)[j]+(C[l]+C_reduced[l])*grad(u)[l]+(D+D_reduced)=-grad(X+X_reduced)[j,j]+(Y+Y_reduced)*
 
-   where M{grad(F)} denotes the spatial derivative of M{F}. Einstein's
+   where *grad(F)* denotes the spatial derivative of *F*. Einstein's
    summation convention, ie. summation over indexes appearing twice in a term
    of a sum performed, is used.
-   The coefficients M{A}, M{B}, M{C}, M{D}, M{X} and M{Y} have to be specified
-   through L{Data<escript.Data>} objects in L{Function<escript.Function>} and
-   the coefficients M{A_reduced}, M{B_reduced}, M{C_reduced}, M{D_reduced},
-   M{X_reduced} and M{Y_reduced} have to be specified through
-   L{Data<escript.Data>} objects in L{ReducedFunction<escript.ReducedFunction>}.
+   The coefficients *A*, *B*, *C*, *D*, *X* and *Y* have to be specified
+   through `Data` objects in `Function` and
+   the coefficients *A_reduced*, *B_reduced*, *C_reduced*, *D_reduced*,
+   *X_reduced* and *Y_reduced* have to be specified through
+   `Data` objects in `ReducedFunction`.
    It is also allowed to use objects that can be converted into such
-   L{Data<escript.Data>} objects. M{A} and M{A_reduced} are rank two, M{B},
-   M{C}, M{X}, M{B_reduced}, M{C_reduced} and M{X_reduced} are rank one and
-   M{D}, M{D_reduced}, M{Y} and M{Y_reduced} are scalar.
+   `Data` objects. *A* and *A_reduced* are rank two, *B*,
+   *C*, *X*, *B_reduced*, *C_reduced* and *X_reduced* are rank one and
+   *D*, *D_reduced*, *Y* and *Y_reduced* are scalar.
 
    The following natural boundary conditions are considered:
 
-   M{n[j]*((A[i,j]+A_reduced[i,j])*grad(u)[l]+(B+B_reduced)[j]*u)+(d+d_reduced)*u=n[j]*(X[j]+X_reduced[j])+y}
+   *n[j]*((A[i,j]+A_reduced[i,j])*grad(u)[l]+(B+B_reduced)[j]*u)+(d+d_reduced)*u=n[j]*(X[j]+X_reduced[j])+y*
 
-   where M{n} is the outer normal field. Notice that the coefficients M{A},
-   M{A_reduced}, M{B}, M{B_reduced}, M{X} and M{X_reduced} are defined in the
-   PDE. The coefficients M{d} and M{y} are each a scalar in
-   L{FunctionOnBoundary<escript.FunctionOnBoundary>} and the coefficients
-   M{d_reduced} and M{y_reduced} are each a scalar in
-   L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}.
+   where *n* is the outer normal field. Notice that the coefficients *A*,
+   *A_reduced*, *B*, *B_reduced*, *X* and *X_reduced* are defined in the
+   PDE. The coefficients *d* and *y* are each a scalar in
+   `FunctionOnBoundary` and the coefficients
+   *d_reduced* and *y_reduced* are each a scalar in
+   `ReducedFunctionOnBoundary`.
 
    Constraints for the solution prescribe the value of the solution at certain
    locations in the domain. They have the form
 
-   M{u=r} where M{q>0}
+   *u=r* where *q>0*
 
-   M{r} and M{q} are each scalar where M{q} is the characteristic function
+   *r* and *q* are each scalar where *q* is the characteristic function
    defining where the constraint is applied. The constraints override any
    other condition set by the PDE or the boundary condition.
 
    The PDE is symmetrical if
 
-   M{A[i,j]=A[j,i]}  and M{B[j]=C[j]} and M{A_reduced[i,j]=A_reduced[j,i]}
-   and M{B_reduced[j]=C_reduced[j]}
+   *A[i,j]=A[j,i]*  and *B[j]=C[j]* and *A_reduced[i,j]=A_reduced[j,i]*
+   and *B_reduced[j]=C_reduced[j]*
 
    For a system of PDEs and a solution with several components the PDE has the
    form
 
-   M{-grad((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])[j]+(C[i,k,l]+C_reduced[i,k,l])*grad(u[k])[l]+(D[i,k]+D_reduced[i,k]*u[k] =-grad(X[i,j]+X_reduced[i,j])[j]+Y[i]+Y_reduced[i] }
+   *-grad((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])[j]+(C[i,k,l]+C_reduced[i,k,l])*grad(u[k])[l]+(D[i,k]+D_reduced[i,k]*u[k] =-grad(X[i,j]+X_reduced[i,j])[j]+Y[i]+Y_reduced[i]*
 
-   M{A} and M{A_reduced} are of rank four, M{B}, M{B_reduced}, M{C} and
-   M{C_reduced} are each of rank three, M{D}, M{D_reduced}, M{X_reduced} and
-   M{X} are each of rank two and M{Y} and M{Y_reduced} are of rank one.
+   *A* and *A_reduced* are of rank four, *B*, *B_reduced*, *C* and
+   *C_reduced* are each of rank three, *D*, *D_reduced*, *X_reduced* and
+   *X* are each of rank two and *Y* and *Y_reduced* are of rank one.
    The natural boundary conditions take the form:
 
-   M{n[j]*((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])+(d[i,k]+d_reduced[i,k])*u[k]=n[j]*(X[i,j]+X_reduced[i,j])+y[i]+y_reduced[i]}
+   *n[j]*((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])+(d[i,k]+d_reduced[i,k])*u[k]=n[j]*(X[i,j]+X_reduced[i,j])+y[i]+y_reduced[i]*
 
-   The coefficient M{d} is of rank two and M{y} is of rank one both in
-   L{FunctionOnBoundary<escript.FunctionOnBoundary>}. The coefficients
-   M{d_reduced} is of rank two and M{y_reduced} is of rank one both in
-   L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}.
+   The coefficient *d* is of rank two and *y* is of rank one both in
+   `FunctionOnBoundary`. The coefficients
+   *d_reduced* is of rank two and *y_reduced* is of rank one both in
+   `ReducedFunctionOnBoundary`.
 
    Constraints take the form
 
-   M{u[i]=r[i]}  where  M{q[i]>0}
+   *u[i]=r[i]*  where  *q[i]>0*
 
-   M{r} and M{q} are each rank one. Notice that at some locations not
+   *r* and *q* are each rank one. Notice that at some locations not
    necessarily all components must have a constraint.
 
    The system of PDEs is symmetrical if
 
-      - M{A[i,j,k,l]=A[k,l,i,j]}
-      - M{A_reduced[i,j,k,l]=A_reduced[k,l,i,j]}
-      - M{B[i,j,k]=C[k,i,j]}
-      - M{B_reduced[i,j,k]=C_reduced[k,i,j]}
-      - M{D[i,k]=D[i,k]}
-      - M{D_reduced[i,k]=D_reduced[i,k]}
-      - M{d[i,k]=d[k,i]}
-      - M{d_reduced[i,k]=d_reduced[k,i]}
+      - *A[i,j,k,l]=A[k,l,i,j]*
+      - *A_reduced[i,j,k,l]=A_reduced[k,l,i,j]*
+      - *B[i,j,k]=C[k,i,j]*
+      - *B_reduced[i,j,k]=C_reduced[k,i,j]*
+      - *D[i,k]=D[i,k]*
+      - *D_reduced[i,k]=D_reduced[i,k]*
+      - *d[i,k]=d[k,i]*
+      - *d_reduced[i,k]=d_reduced[k,i]*
 
-   L{LinearPDE} also supports solution discontinuities over a contact region
+   `LinearPDE` also supports solution discontinuities over a contact region
    in the domain. To specify the conditions across the discontinuity we are
-   using the generalised flux M{J} which, in the case of a system of PDEs
+   using the generalised flux *J* which, in the case of a system of PDEs
    and several components of the solution, is defined as
 
-   M{J[i,j]=(A[i,j,k,l]+A_reduced[[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]-X[i,j]-X_reduced[i,j]}
+   *J[i,j]=(A[i,j,k,l]+A_reduced[[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]-X[i,j]-X_reduced[i,j]*
 
-   For the case of single solution component and single PDE M{J} is defined as
+   For the case of single solution component and single PDE *J* is defined as
 
-   M{J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[j]+(B[i]+B_reduced[i])*u-X[i]-X_reduced[i]}
+   *J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[j]+(B[i]+B_reduced[i])*u-X[i]-X_reduced[i]*
 
-   In the context of discontinuities M{n} denotes the normal on the
+   In the context of discontinuities *n* denotes the normal on the
    discontinuity pointing from side 0 towards side 1 calculated from
-   L{getNormal<escript.FunctionSpace.getNormal>} of L{FunctionOnContactZero<escript.FunctionOnContactZero>}.
+   `FunctionSpace.getNormal` of `FunctionOnContactZero`.
    For a system of PDEs the contact condition takes the form
 
-   M{n[j]*J0[i,j]=n[j]*J1[i,j]=(y_contact[i]+y_contact_reduced[i])- (d_contact[i,k]+d_contact_reduced[i,k])*jump(u)[k]}
+   *n[j]*J0[i,j]=n[j]*J1[i,j]=(y_contact[i]+y_contact_reduced[i])- (d_contact[i,k]+d_contact_reduced[i,k])*jump(u)[k]*
 
-   where M{J0} and M{J1} are the fluxes on side 0 and side 1 of the
-   discontinuity, respectively. M{jump(u)}, which is the difference of the
-   solution at side 1 and at side 0, denotes the jump of M{u} across
-   discontinuity along the normal calculated by L{jump<util.jump>}.
-   The coefficient M{d_contact} is of rank two and M{y_contact} is of rank one
-   both in L{FunctionOnContactZero<escript.FunctionOnContactZero>} or
-   L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
-   The coefficient M{d_contact_reduced} is of rank two and M{y_contact_reduced}
-   is of rank one both in L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>}
-   or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
+   where *J0* and *J1* are the fluxes on side 0 and side 1 of the
+   discontinuity, respectively. *jump(u)*, which is the difference of the
+   solution at side 1 and at side 0, denotes the jump of *u* across
+   discontinuity along the normal calculated by `jump`.
+   The coefficient *d_contact* is of rank two and *y_contact* is of rank one
+   both in `FunctionOnContactZero` or
+   `FunctionOnContactOne`.
+   The coefficient *d_contact_reduced* is of rank two and *y_contact_reduced*
+   is of rank one both in `ReducedFunctionOnContactZero`
+   or `ReducedFunctionOnContactOne`.
    In case of a single PDE and a single component solution the contact
    condition takes the form
 
-   M{n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)}
+   *n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)*
 
-   In this case the coefficient M{d_contact} and M{y_contact} are each scalar
-   both in L{FunctionOnContactZero<escript.FunctionOnContactZero>} or
-   L{FunctionOnContactOne<escript.FunctionOnContactOne>} and the coefficient
-   M{d_contact_reduced} and M{y_contact_reduced} are each scalar both in
-   L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or
-   L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
+   In this case the coefficient *d_contact* and *y_contact* are each scalar
+   both in `FunctionOnContactZero` or
+   `FunctionOnContactOne` and the coefficient
+   *d_contact_reduced* and *y_contact_reduced* are each scalar both in
+   `ReducedFunctionOnContactZero` or
+   `ReducedFunctionOnContactOne`.
 
    Typical usage::
 
@@ -2338,14 +2334,14 @@ class LinearPDE(LinearProblem):
      """
      Initializes a new linear PDE.
 
-     @param domain: domain of the PDE
-     @type domain: L{Domain<escript.Domain>}
-     @param numEquations: number of equations. If C{None} the number of
+     :param domain: domain of the PDE
+     :type domain: `Domain`
+     :param numEquations: number of equations. If ``None`` the number of
                           equations is extracted from the PDE coefficients.
-     @param numSolutions: number of solution components. If C{None} the number
+     :param numSolutions: number of solution components. If ``None`` the number
                           of solution components is extracted from the PDE
                           coefficients.
-     @param debug: if True debug information is printed
+     :param debug: if True debug information is printed
 
      """
      super(LinearPDE, self).__init__(domain,numEquations,numSolutions,debug)
@@ -2380,8 +2376,8 @@ class LinearPDE(LinearProblem):
      """
      Returns the string representation of the PDE.
 
-     @return: a simple representation of the PDE
-     @rtype: C{str}
+     :return: a simple representation of the PDE
+     :rtype: ``str``
      """
      return "<LinearPDE %d>"%id(self)
 
@@ -2396,12 +2392,12 @@ class LinearPDE(LinearProblem):
       """
       Tests the PDE for symmetry.
 
-      @param verbose: if set to True or not present a report on coefficients
+      :param verbose: if set to True or not present a report on coefficients
                       which break the symmetry is printed.
-      @type verbose: C{bool}
-      @return: True if the PDE is symmetric
-      @rtype: L{bool}
-      @note: This is a very expensive operation. It should be used for
+      :type verbose: ``bool``
+      :return: True if the PDE is symmetric
+      :rtype: `bool`
+      :note: This is a very expensive operation. It should be used for
              degugging only! The symmetry flag is not altered.
       """
       out=True
@@ -2434,8 +2430,8 @@ class LinearPDE(LinearProblem):
        """
        Returns the solution of the PDE.
 
-       @return: the solution
-       @rtype: L{Data<escript.Data>}
+       :return: the solution
+       :rtype: `Data`
        """
        option_class=self.getSolverOptions()
        if not self.isSolutionValid():
@@ -2452,9 +2448,9 @@ class LinearPDE(LinearProblem):
        """
        Returns the operator and right hand side of the PDE.
 
-       @return: the discrete version of the PDE
-       @rtype: C{tuple} of L{Operator,<escript.Operator>} and
-               L{Data<escript.Data>}
+       :return: the discrete version of the PDE
+       :rtype: ``tuple`` of `Operator` and
+               `Data`
        """
        if not self.isOperatorValid() or not self.isRightHandSideValid():
           if self.isUsingLumping():
@@ -2629,9 +2625,9 @@ class LinearPDE(LinearProblem):
       """
       Applies the constraints defined by q and r to the PDE.
 
-      @param rhs_only: if True only the right hand side is altered by the
+      :param rhs_only: if True only the right hand side is altered by the
                        constraint
-      @type rhs_only: C{bool}
+      :type rhs_only: ``bool``
       """
       q=self.getCoefficient("q")
       r=self.getCoefficient("r")
@@ -2659,79 +2655,79 @@ class LinearPDE(LinearProblem):
       """
       Sets new values to coefficients.
 
-      @param coefficients: new values assigned to coefficients
-      @keyword A: value for coefficient C{A}
-      @type A: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
-      @keyword A_reduced: value for coefficient C{A_reduced}
-      @type A_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
-      @keyword B: value for coefficient C{B}
-      @type B: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
-      @keyword B_reduced: value for coefficient C{B_reduced}
-      @type B_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
-      @keyword C: value for coefficient C{C}
-      @type C: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
-      @keyword C_reduced: value for coefficient C{C_reduced}
-      @type C_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
-      @keyword D: value for coefficient C{D}
-      @type D: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
-      @keyword D_reduced: value for coefficient C{D_reduced}
-      @type D_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
-      @keyword X: value for coefficient C{X}
-      @type X: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
-      @keyword X_reduced: value for coefficient C{X_reduced}
-      @type X_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
-      @keyword Y: value for coefficient C{Y}
-      @type Y: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
-      @keyword Y_reduced: value for coefficient C{Y_reduced}
-      @type Y_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.Function>}
-      @keyword d: value for coefficient C{d}
-      @type d: any type that can be cast to a L{Data<escript.Data>} object on
-               L{FunctionOnBoundary<escript.FunctionOnBoundary>}
-      @keyword d_reduced: value for coefficient C{d_reduced}
-      @type d_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}
-      @keyword y: value for coefficient C{y}
-      @type y: any type that can be cast to a L{Data<escript.Data>} object on
-               L{FunctionOnBoundary<escript.FunctionOnBoundary>}
-      @keyword d_contact: value for coefficient C{d_contact}
-      @type d_contact: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{FunctionOnContactOne<escript.FunctionOnContactOne>}
-                       or L{FunctionOnContactZero<escript.FunctionOnContactZero>}
-      @keyword d_contact_reduced: value for coefficient C{d_contact_reduced}
-      @type d_contact_reduced: any type that can be cast to a L{Data<escript.Data>}
-                               object on L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}
-                               or L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>}
-      @keyword y_contact: value for coefficient C{y_contact}
-      @type y_contact: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{FunctionOnContactOne<escript.FunctionOnContactOne>}
-                       or L{FunctionOnContactZero<escript.FunctionOnContactZero>}
-      @keyword y_contact_reduced: value for coefficient C{y_contact_reduced}
-      @type y_contact_reduced: any type that can be cast to a L{Data<escript.Data>}
-                               object on L{ReducedFunctionOnContactOne<escript.FunctionOnContactOne>}
-                               or L{ReducedFunctionOnContactZero<escript.FunctionOnContactZero>}
-      @keyword r: values prescribed to the solution at the locations of
+      :param coefficients: new values assigned to coefficients
+      :keyword A: value for coefficient ``A``
+      :type A: any type that can be cast to a `Data` object on
+               `Function`
+      :keyword A_reduced: value for coefficient ``A_reduced``
+      :type A_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
+      :keyword B: value for coefficient ``B``
+      :type B: any type that can be cast to a `Data` object on
+               `Function`
+      :keyword B_reduced: value for coefficient ``B_reduced``
+      :type B_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
+      :keyword C: value for coefficient ``C``
+      :type C: any type that can be cast to a `Data` object on
+               `Function`
+      :keyword C_reduced: value for coefficient ``C_reduced``
+      :type C_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
+      :keyword D: value for coefficient ``D``
+      :type D: any type that can be cast to a `Data` object on
+               `Function`
+      :keyword D_reduced: value for coefficient ``D_reduced``
+      :type D_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
+      :keyword X: value for coefficient ``X``
+      :type X: any type that can be cast to a `Data` object on
+               `Function`
+      :keyword X_reduced: value for coefficient ``X_reduced``
+      :type X_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
+      :keyword Y: value for coefficient ``Y``
+      :type Y: any type that can be cast to a `Data` object on
+               `Function`
+      :keyword Y_reduced: value for coefficient ``Y_reduced``
+      :type Y_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
+      :keyword d: value for coefficient ``d``
+      :type d: any type that can be cast to a `Data` object on
+               `FunctionOnBoundary`
+      :keyword d_reduced: value for coefficient ``d_reduced``
+      :type d_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunctionOnBoundary`
+      :keyword y: value for coefficient ``y``
+      :type y: any type that can be cast to a `Data` object on
+               `FunctionOnBoundary`
+      :keyword d_contact: value for coefficient ``d_contact``
+      :type d_contact: any type that can be cast to a `Data`
+                       object on `FunctionOnContactOne`
+                       or `FunctionOnContactZero`
+      :keyword d_contact_reduced: value for coefficient ``d_contact_reduced``
+      :type d_contact_reduced: any type that can be cast to a `Data`
+                               object on `ReducedFunctionOnContactOne`
+                               or `ReducedFunctionOnContactZero`
+      :keyword y_contact: value for coefficient ``y_contact``
+      :type y_contact: any type that can be cast to a `Data`
+                       object on `FunctionOnContactOne`
+                       or `FunctionOnContactZero`
+      :keyword y_contact_reduced: value for coefficient ``y_contact_reduced``
+      :type y_contact_reduced: any type that can be cast to a `Data`
+                               object on `ReducedFunctionOnContactOne`
+                               or `ReducedFunctionOnContactZero`
+      :keyword r: values prescribed to the solution at the locations of
                   constraints
-      @type r: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
+      :type r: any type that can be cast to a `Data` object on
+               `Solution` or `ReducedSolution`
                depending on whether reduced order is used for the solution
-      @keyword q: mask for location of constraints
-      @type q: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
+      :keyword q: mask for location of constraints
+      :type q: any type that can be cast to a `Data` object on
+               `Solution` or `ReducedSolution`
                depending on whether reduced order is used for the
                representation of the equation
-      @raise IllegalCoefficient: if an unknown coefficient keyword is used
+      :raise IllegalCoefficient: if an unknown coefficient keyword is used
       """
       super(LinearPDE,self).setValue(**coefficients)
       # check if the systrem is inhomogeneous:
@@ -2748,12 +2744,12 @@ class LinearPDE(LinearProblem):
      """
      Returns the residual of u or the current solution if u is not present.
 
-     @param u: argument in the residual calculation. It must be representable
-               in L{self.getFunctionSpaceForSolution()}. If u is not present
-               or equals C{None} the current solution is used.
-     @type u: L{Data<escript.Data>} or None
-     @return: residual of u
-     @rtype: L{Data<escript.Data>}
+     :param u: argument in the residual calculation. It must be representable
+               in `self.getFunctionSpaceForSolution()`. If u is not present
+               or equals ``None`` the current solution is used.
+     :type u: `Data` or None
+     :return: residual of u
+     :rtype: `Data`
      """
      if u==None:
         return self.getOperator()*self.getSolution()-self.getRightHandSide()
@@ -2762,19 +2758,19 @@ class LinearPDE(LinearProblem):
 
    def getFlux(self,u=None):
      """
-     Returns the flux M{J} for a given M{u}.
+     Returns the flux *J* for a given *u*.
 
-     M{J[i,j]=(A[i,j,k,l]+A_reduced[A[i,j,k,l]]*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])u[k]-X[i,j]-X_reduced[i,j]}
+     *J[i,j]=(A[i,j,k,l]+A_reduced[A[i,j,k,l]]*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])u[k]-X[i,j]-X_reduced[i,j]*
 
      or
 
-     M{J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[l]+(B[j]+B_reduced[j])u-X[j]-X_reduced[j]}
+     *J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[l]+(B[j]+B_reduced[j])u-X[j]-X_reduced[j]*
 
-     @param u: argument in the flux. If u is not present or equals L{None} the
+     :param u: argument in the flux. If u is not present or equals `None` the
                current solution is used.
-     @type u: L{Data<escript.Data>} or None
-     @return: flux
-     @rtype: L{Data<escript.Data>}
+     :type u: `Data` or None
+     :return: flux
+     :rtype: `Data`
      """
      if u==None: u=self.getSolution()
      return util.tensormult(self.getCoefficient("A"),util.grad(u,Funtion(self.getDomain))) \
@@ -2788,17 +2784,17 @@ class LinearPDE(LinearProblem):
 class Poisson(LinearPDE):
    """
    Class to define a Poisson equation problem. This is generally a
-   L{LinearPDE} of the form
+   `LinearPDE` of the form
 
-   M{-grad(grad(u)[j])[j] = f}
+   *-grad(grad(u)[j])[j] = f*
 
    with natural boundary conditions
 
-   M{n[j]*grad(u)[j] = 0 }
+   *n[j]*grad(u)[j] = 0*
 
    and constraints:
 
-   M{u=0} where M{q>0}
+   *u=0* where *q>0*
 
    """
 
@@ -2806,9 +2802,9 @@ class Poisson(LinearPDE):
      """
      Initializes a new Poisson equation.
 
-     @param domain: domain of the PDE
-     @type domain: L{Domain<escript.Domain>}
-     @param debug: if True debug information is printed
+     :param domain: domain of the PDE
+     :type domain: `Domain`
+     :param debug: if True debug information is printed
 
      """
      super(Poisson, self).__init__(domain,1,1,debug)
@@ -2821,30 +2817,30 @@ class Poisson(LinearPDE):
      """
      Sets new values to coefficients.
 
-     @param coefficients: new values assigned to coefficients
-     @keyword f: value for right hand side M{f}
-     @type f: any type that can be cast to a L{Scalar<escript.Scalar>} object
-              on L{Function<escript.Function>}
-     @keyword q: mask for location of constraints
-     @type q: any type that can be cast to a rank zero L{Data<escript.Data>}
-              object on L{Solution<escript.Solution>} or
-              L{ReducedSolution<escript.ReducedSolution>} depending on whether
+     :param coefficients: new values assigned to coefficients
+     :keyword f: value for right hand side *f*
+     :type f: any type that can be cast to a `Scalar` object
+              on `Function`
+     :keyword q: mask for location of constraints
+     :type q: any type that can be cast to a rank zero `Data`
+              object on `Solution` or
+              `ReducedSolution` depending on whether
               reduced order is used for the representation of the equation
-     @raise IllegalCoefficient: if an unknown coefficient keyword is used
+     :raise IllegalCoefficient: if an unknown coefficient keyword is used
      """
      super(Poisson, self).setValue(**coefficients)
 
 
    def getCoefficient(self,name):
      """
-     Returns the value of the coefficient C{name} of the general PDE.
+     Returns the value of the coefficient ``name`` of the general PDE.
 
-     @param name: name of the coefficient requested
-     @type name: C{string}
-     @return: the value of the coefficient C{name}
-     @rtype: L{Data<escript.Data>}
-     @raise IllegalCoefficient: invalid coefficient name
-     @note: This method is called by the assembling routine to map the Poisson
+     :param name: name of the coefficient requested
+     :type name: ``string``
+     :return: the value of the coefficient ``name``
+     :rtype: `Data`
+     :raise IllegalCoefficient: invalid coefficient name
+     :note: This method is called by the assembling routine to map the Poisson
             equation onto the general PDE.
      """
      if name == "A" :
@@ -2859,17 +2855,17 @@ class Poisson(LinearPDE):
 class Helmholtz(LinearPDE):
    """
    Class to define a Helmholtz equation problem. This is generally a
-   L{LinearPDE} of the form
+   `LinearPDE` of the form
 
-   M{S{omega}*u - grad(k*grad(u)[j])[j] = f}
+   *omega*u - grad(k*grad(u)[j])[j] = f*
 
    with natural boundary conditions
 
-   M{k*n[j]*grad(u)[j] = g- S{alpha}u }
+   *k*n[j]*grad(u)[j] = g- alphau*
 
    and constraints:
 
-   M{u=r} where M{q>0}
+   *u=r* where *q>0*
 
    """
 
@@ -2877,9 +2873,9 @@ class Helmholtz(LinearPDE):
      """
      Initializes a new Helmholtz equation.
 
-     @param domain: domain of the PDE
-     @type domain: L{Domain<escript.Domain>}
-     @param debug: if True debug information is printed
+     :param domain: domain of the PDE
+     :type domain: `Domain`
+     :param debug: if True debug information is printed
 
      """
      super(Helmholtz, self).__init__(domain,1,1,debug)
@@ -2897,45 +2893,45 @@ class Helmholtz(LinearPDE):
      """
      Sets new values to coefficients.
 
-     @param coefficients: new values assigned to coefficients
-     @keyword omega: value for coefficient M{S{omega}}
-     @type omega: any type that can be cast to a L{Scalar<escript.Scalar>}
-                  object on L{Function<escript.Function>}
-     @keyword k: value for coefficient M{k}
-     @type k: any type that can be cast to a L{Scalar<escript.Scalar>} object
-              on L{Function<escript.Function>}
-     @keyword f: value for right hand side M{f}
-     @type f: any type that can be cast to a L{Scalar<escript.Scalar>} object
-              on L{Function<escript.Function>}
-     @keyword alpha: value for right hand side M{S{alpha}}
-     @type alpha: any type that can be cast to a L{Scalar<escript.Scalar>}
-                  object on L{FunctionOnBoundary<escript.FunctionOnBoundary>}
-     @keyword g: value for right hand side M{g}
-     @type g: any type that can be cast to a L{Scalar<escript.Scalar>} object
-              on L{FunctionOnBoundary<escript.FunctionOnBoundary>}
-     @keyword r: prescribed values M{r} for the solution in constraints
-     @type r: any type that can be cast to a L{Scalar<escript.Scalar>} object
-              on L{Solution<escript.Solution>} or
-              L{ReducedSolution<escript.ReducedSolution>} depending on whether
+     :param coefficients: new values assigned to coefficients
+     :keyword omega: value for coefficient *omega*
+     :type omega: any type that can be cast to a `Scalar`
+                  object on `Function`
+     :keyword k: value for coefficient *k*
+     :type k: any type that can be cast to a `Scalar` object
+              on `Function`
+     :keyword f: value for right hand side *f*
+     :type f: any type that can be cast to a `Scalar` object
+              on `Function`
+     :keyword alpha: value for right hand side *alpha*
+     :type alpha: any type that can be cast to a `Scalar`
+                  object on `FunctionOnBoundary`
+     :keyword g: value for right hand side *g*
+     :type g: any type that can be cast to a `Scalar` object
+              on `FunctionOnBoundary`
+     :keyword r: prescribed values *r* for the solution in constraints
+     :type r: any type that can be cast to a `Scalar` object
+              on `Solution` or
+              `ReducedSolution` depending on whether
               reduced order is used for the representation of the equation
-     @keyword q: mask for the location of constraints
-     @type q: any type that can be cast to a L{Scalar<escript.Scalar>} object
-              on L{Solution<escript.Solution>} or
-              L{ReducedSolution<escript.ReducedSolution>} depending on whether
+     :keyword q: mask for the location of constraints
+     :type q: any type that can be cast to a `Scalar` object
+              on `Solution` or
+              `ReducedSolution` depending on whether
               reduced order is used for the representation of the equation
-     @raise IllegalCoefficient: if an unknown coefficient keyword is used
+     :raise IllegalCoefficient: if an unknown coefficient keyword is used
      """
      super(Helmholtz, self).setValue(**coefficients)
 
    def getCoefficient(self,name):
      """
-     Returns the value of the coefficient C{name} of the general PDE.
+     Returns the value of the coefficient ``name`` of the general PDE.
 
-     @param name: name of the coefficient requested
-     @type name: C{string}
-     @return: the value of the coefficient C{name}
-     @rtype: L{Data<escript.Data>}
-     @raise IllegalCoefficient: invalid name
+     :param name: name of the coefficient requested
+     :type name: ``string``
+     :return: the value of the coefficient ``name``
+     :rtype: `Data`
+     :raise IllegalCoefficient: invalid name
      """
      if name == "A" :
          if self.getCoefficient("k").isEmpty():
@@ -2961,15 +2957,15 @@ class LameEquation(LinearPDE):
    """
    Class to define a Lame equation problem. This problem is defined as:
 
-   M{-grad(S{mu}*(grad(u[i])[j]+grad(u[j])[i]))[j] - grad(S{lambda}*grad(u[k])[k])[j] = F_i -grad(S{sigma}[ij])[j] }
+   *-grad(mu*(grad(u[i])[j]+grad(u[j])[i]))[j] - grad(lambda*grad(u[k])[k])[j] = F_i -grad(sigma[ij])[j]*
 
    with natural boundary conditions:
 
-   M{n[j]*(S{mu}*(grad(u[i])[j]+grad(u[j])[i]) + S{lambda}*grad(u[k])[k]) = f_i +n[j]*S{sigma}[ij] }
+   *n[j]*(mu*(grad(u[i])[j]+grad(u[j])[i]) + lambda*grad(u[k])[k]) = f_i +n[j]*sigma[ij]*
 
    and constraints:
 
-   M{u[i]=r[i]} where M{q[i]>0}
+   *u[i]=r[i]* where *q[i]>0*
 
    """
 
@@ -2977,9 +2973,9 @@ class LameEquation(LinearPDE):
       """
       Initializes a new Lame equation.
 
-      @param domain: domain of the PDE
-      @type domain: L{Domain<escript.Domain>}
-      @param debug: if True debug information is printed
+      :param domain: domain of the PDE
+      :type domain: `Domain`
+      :param debug: if True debug information is printed
 
       """
       super(LameEquation, self).__init__(domain,\
@@ -2995,45 +2991,45 @@ class LameEquation(LinearPDE):
      """
      Sets new values to coefficients.
 
-     @param coefficients: new values assigned to coefficients
-     @keyword lame_mu: value for coefficient M{S{mu}}
-     @type lame_mu: any type that can be cast to a L{Scalar<escript.Scalar>}
-                    object on L{Function<escript.Function>}
-     @keyword lame_lambda: value for coefficient M{S{lambda}}
-     @type lame_lambda: any type that can be cast to a L{Scalar<escript.Scalar>}
-                        object on L{Function<escript.Function>}
-     @keyword F: value for internal force M{F}
-     @type F: any type that can be cast to a L{Vector<escript.Vector>} object
-              on L{Function<escript.Function>}
-     @keyword sigma: value for initial stress M{S{sigma}}
-     @type sigma: any type that can be cast to a L{Tensor<escript.Tensor>}
-                  object on L{Function<escript.Function>}
-     @keyword f: value for external force M{f}
-     @type f: any type that can be cast to a L{Vector<escript.Vector>} object
-              on L{FunctionOnBoundary<escript.FunctionOnBoundary>}
-     @keyword r: prescribed values M{r} for the solution in constraints
-     @type r: any type that can be cast to a L{Vector<escript.Vector>} object
-              on L{Solution<escript.Solution>} or
-              L{ReducedSolution<escript.ReducedSolution>} depending on whether
+     :param coefficients: new values assigned to coefficients
+     :keyword lame_mu: value for coefficient *mu*
+     :type lame_mu: any type that can be cast to a `Scalar`
+                    object on `Function`
+     :keyword lame_lambda: value for coefficient *lambda*
+     :type lame_lambda: any type that can be cast to a `Scalar`
+                        object on `Function`
+     :keyword F: value for internal force *F*
+     :type F: any type that can be cast to a `Vector` object
+              on `Function`
+     :keyword sigma: value for initial stress *sigma*
+     :type sigma: any type that can be cast to a `Tensor`
+                  object on `Function`
+     :keyword f: value for external force *f*
+     :type f: any type that can be cast to a `Vector` object
+              on `FunctionOnBoundary`
+     :keyword r: prescribed values *r* for the solution in constraints
+     :type r: any type that can be cast to a `Vector` object
+              on `Solution` or
+              `ReducedSolution` depending on whether
               reduced order is used for the representation of the equation
-     @keyword q: mask for the location of constraints
-     @type q: any type that can be cast to a L{Vector<escript.Vector>} object
-              on L{Solution<escript.Solution>} or
-              L{ReducedSolution<escript.ReducedSolution>} depending on whether
+     :keyword q: mask for the location of constraints
+     :type q: any type that can be cast to a `Vector` object
+              on `Solution` or
+              `ReducedSolution` depending on whether
               reduced order is used for the representation of the equation
-     @raise IllegalCoefficient: if an unknown coefficient keyword is used
+     :raise IllegalCoefficient: if an unknown coefficient keyword is used
      """
      super(LameEquation, self).setValues(**coefficients)
 
    def getCoefficient(self,name):
      """
-     Returns the value of the coefficient C{name} of the general PDE.
+     Returns the value of the coefficient ``name`` of the general PDE.
 
-     @param name: name of the coefficient requested
-     @type name: C{string}
-     @return: the value of the coefficient C{name}
-     @rtype: L{Data<escript.Data>}
-     @raise IllegalCoefficient: invalid coefficient name
+     :param name: name of the coefficient requested
+     :type name: ``string``
+     :return: the value of the coefficient ``name``
+     :rtype: `Data`
+     :raise IllegalCoefficient: invalid coefficient name
      """
      out =self.createCoefficient("A")
      if name == "A" :
@@ -3070,10 +3066,10 @@ def LinearSinglePDE(domain,debug=False):
    """
    Defines a single linear PDE.
 
-   @param domain: domain of the PDE
-   @type domain: L{Domain<escript.Domain>}
-   @param debug: if True debug information is printed
-   @rtype: L{LinearPDE}
+   :param domain: domain of the PDE
+   :type domain: `Domain`
+   :param debug: if True debug information is printed
+   :rtype: `LinearPDE`
    """
    return LinearPDE(domain,numEquations=1,numSolutions=1,debug=debug)
 
@@ -3081,10 +3077,10 @@ def LinearPDESystem(domain,debug=False):
    """
    Defines a system of linear PDEs.
 
-   @param domain: domain of the PDEs
-   @type domain: L{Domain<escript.Domain>}
-   @param debug: if True debug information is printed
-   @rtype: L{LinearPDE}
+   :param domain: domain of the PDEs
+   :type domain: `Domain`
+   :param debug: if True debug information is printed
+   :rtype: `LinearPDE`
    """
    return LinearPDE(domain,numEquations=domain.getDim(),numSolutions=domain.getDim(),debug=debug)
 
@@ -3093,129 +3089,129 @@ class TransportPDE(LinearProblem):
    """
    This class is used to define a transport problem given by a general linear,
    time dependent, second order PDE for an unknown, non-negative,
-   time-dependent function M{u} on a given domain defined through a
-   L{Domain<escript.Domain>} object.
+   time-dependent function *u* on a given domain defined through a
+   `Domain` object.
 
    For a single equation with a solution with a single component the transport
    problem is defined in the following form:
 
-   M{(M+M_reduced)*u_t=-(grad(A[j,l]+A_reduced[j,l])*grad(u)[l]+(B[j]+B_reduced[j])u)[j]+(C[l]+C_reduced[l])*grad(u)[l]+(D+D_reduced)-grad(X+X_reduced)[j,j]+(Y+Y_reduced)}
+   *(M+M_reduced)*u_t=-(grad(A[j,l]+A_reduced[j,l]) * grad(u)[l]+(B[j]+B_reduced[j])u)[j]+(C[l]+C_reduced[l])*grad(u)[l]+(D+D_reduced)-grad(X+X_reduced)[j,j]+(Y+Y_reduced)*
 
-   where M{u_t} denotes the time derivative of M{u} and M{grad(F)} denotes the
-   spatial derivative of M{F}. Einstein's summation convention,  ie. summation
+   where *u_t* denotes the time derivative of *u* and *grad(F)* denotes the
+   spatial derivative of *F*. Einstein's summation convention,  ie. summation
    over indexes appearing twice in a term of a sum performed, is used.
-   The coefficients M{M}, M{A}, M{B}, M{C}, M{D}, M{X} and M{Y} have to be
-   specified through L{Data<escript.Data>} objects in L{Function<escript.Function>}
-   and the coefficients M{M_reduced}, M{A_reduced}, M{B_reduced}, M{C_reduced},
-   M{D_reduced}, M{X_reduced} and M{Y_reduced} have to be specified through
-   L{Data<escript.Data>} objects in L{ReducedFunction<escript.ReducedFunction>}.
+   The coefficients *M*, *A*, *B*, *C*, *D*, *X* and *Y* have to be
+   specified through `Data` objects in `Function`
+   and the coefficients *M_reduced*, *A_reduced*, *B_reduced*, *C_reduced*,
+   *D_reduced*, *X_reduced* and *Y_reduced* have to be specified through
+   `Data` objects in `ReducedFunction`.
    It is also allowed to use objects that can be converted into such
-   L{Data<escript.Data>} objects. M{M} and M{M_reduced} are scalar, M{A} and
-   M{A_reduced} are rank two, M{B}, M{C}, M{X}, M{B_reduced}, M{C_reduced} and
-   M{X_reduced} are rank one and M{D}, M{D_reduced}, M{Y} and M{Y_reduced} are
+   `Data` objects. *M* and *M_reduced* are scalar, *A* and
+   *A_reduced* are rank two, *B*, *C*, *X*, *B_reduced*, *C_reduced* and
+   *X_reduced* are rank one and *D*, *D_reduced*, *Y* and *Y_reduced* are
    scalar.
 
    The following natural boundary conditions are considered:
 
-   M{n[j]*((A[i,j]+A_reduced[i,j])*grad(u)[l]+(B+B_reduced)[j]*u+X[j]+X_reduced[j])+(d+d_reduced)*u+y+y_reduced=(m+m_reduced)*u_t}
+   *n[j]*((A[i,j]+A_reduced[i,j])*grad(u)[l]+(B+B_reduced)[j]*u+X[j]+X_reduced[j])+(d+d_reduced)*u+y+y_reduced=(m+m_reduced)*u_t*
 
-   where M{n} is the outer normal field. Notice that the coefficients M{A},
-   M{A_reduced}, M{B}, M{B_reduced}, M{X} and M{X_reduced} are defined in the
-   transport problem. The coefficients M{m}, M{d} and M{y} are each a scalar in
-   L{FunctionOnBoundary<escript.FunctionOnBoundary>} and the coefficients
-   M{m_reduced}, M{d_reduced} and M{y_reduced} are each a scalar in
-   L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}.
+   where *n* is the outer normal field. Notice that the coefficients *A*,
+   *A_reduced*, *B*, *B_reduced*, *X* and *X_reduced* are defined in the
+   transport problem. The coefficients *m*, *d* and *y* are each a scalar in
+   `FunctionOnBoundary` and the coefficients
+   *m_reduced*, *d_reduced* and *y_reduced* are each a scalar in
+   `ReducedFunctionOnBoundary`.
 
    Constraints for the solution prescribing the value of the solution at
    certain locations in the domain have the form
 
-   M{u_t=r} where M{q>0}
+   *u_t=r* where *q>0*
 
-   M{r} and M{q} are each scalar where M{q} is the characteristic function
+   *r* and *q* are each scalar where *q* is the characteristic function
    defining where the constraint is applied. The constraints override any other
    condition set by the transport problem or the boundary condition.
 
    The transport problem is symmetrical if
 
-   M{A[i,j]=A[j,i]} and M{B[j]=C[j]} and M{A_reduced[i,j]=A_reduced[j,i]} and
-   M{B_reduced[j]=C_reduced[j]}
+   *A[i,j]=A[j,i]* and *B[j]=C[j]* and *A_reduced[i,j]=A_reduced[j,i]* and
+   *B_reduced[j]=C_reduced[j]*
 
    For a system and a solution with several components the transport problem
    has the form
 
-   M{(M[i,k]+M_reduced[i,k])*u[k]_t=-grad((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])[j]+(C[i,k,l]+C_reduced[i,k,l])*grad(u[k])[l]+(D[i,k]+D_reduced[i,k]*u[k]-grad(X[i,j]+X_reduced[i,j])[j]+Y[i]+Y_reduced[i] }
+   *(M[i,k]+M_reduced[i,k]) * u[k]_t=-grad((A[i,j,k,l]+A_reduced[i,j,k,l]) * grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k]) * u[k])[j]+(C[i,k,l]+C_reduced[i,k,l]) * grad(u[k])[l]+(D[i,k]+D_reduced[i,k] * u[k]-grad(X[i,j]+X_reduced[i,j])[j]+Y[i]+Y_reduced[i]*
 
-   M{A} and M{A_reduced} are of rank four, M{B}, M{B_reduced}, M{C} and
-   M{C_reduced} are each of rank three, M{M}, M{M_reduced}, M{D}, M{D_reduced},
-   M{X_reduced} and M{X} are each of rank two and M{Y} and M{Y_reduced} are of
+   *A* and *A_reduced* are of rank four, *B*, *B_reduced*, *C* and
+   *C_reduced* are each of rank three, *M*, *M_reduced*, *D*, *D_reduced*,
+   *X_reduced* and *X* are each of rank two and *Y* and *Y_reduced* are of
    rank one. The natural boundary conditions take the form:
 
-   M{n[j]*((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]+X[i,j]+X_reduced[i,j])+(d[i,k]+d_reduced[i,k])*u[k]+y[i]+y_reduced[i]= (m[i,k]+m_reduced[i,k])*u[k]_t}
+   *n[j]*((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]+X[i,j]+X_reduced[i,j])+(d[i,k]+d_reduced[i,k])*u[k]+y[i]+y_reduced[i]= (m[i,k]+m_reduced[i,k])*u[k]_t*
 
-   The coefficient M{d} and M{m} are of rank two and M{y} is of rank one with
-   all in L{FunctionOnBoundary<escript.FunctionOnBoundary>}. The coefficients
-   M{d_reduced} and M{m_reduced} are of rank two and M{y_reduced} is of rank
-   one all in L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}.
+   The coefficient *d* and *m* are of rank two and *y* is of rank one with
+   all in `FunctionOnBoundary`. The coefficients
+   *d_reduced* and *m_reduced* are of rank two and *y_reduced* is of rank
+   one all in `ReducedFunctionOnBoundary`.
 
    Constraints take the form
 
-   M{u[i]_t=r[i]} where M{q[i]>0}
+   *u[i]_t=r[i]* where *q[i]>0*
 
-   M{r} and M{q} are each rank one. Notice that at some locations not
+   *r* and *q* are each rank one. Notice that at some locations not
    necessarily all components must have a constraint.
 
    The transport problem is symmetrical if
 
-      - M{M[i,k]=M[i,k]}
-      - M{M_reduced[i,k]=M_reduced[i,k]}
-      - M{A[i,j,k,l]=A[k,l,i,j]}
-      - M{A_reduced[i,j,k,l]=A_reduced[k,l,i,j]}
-      - M{B[i,j,k]=C[k,i,j]}
-      - M{B_reduced[i,j,k]=C_reduced[k,i,j]}
-      - M{D[i,k]=D[i,k]}
-      - M{D_reduced[i,k]=D_reduced[i,k]}
-      - M{m[i,k]=m[k,i]}
-      - M{m_reduced[i,k]=m_reduced[k,i]}
-      - M{d[i,k]=d[k,i]}
-      - M{d_reduced[i,k]=d_reduced[k,i]}
+      - *M[i,k]=M[i,k]*
+      - *M_reduced[i,k]=M_reduced[i,k]*
+      - *A[i,j,k,l]=A[k,l,i,j]*
+      - *A_reduced[i,j,k,l]=A_reduced[k,l,i,j]*
+      - *B[i,j,k]=C[k,i,j]*
+      - *B_reduced[i,j,k]=C_reduced[k,i,j]*
+      - *D[i,k]=D[i,k]*
+      - *D_reduced[i,k]=D_reduced[i,k]*
+      - *m[i,k]=m[k,i]*
+      - *m_reduced[i,k]=m_reduced[k,i]*
+      - *d[i,k]=d[k,i]*
+      - *d_reduced[i,k]=d_reduced[k,i]*
 
-   L{TransportPDE} also supports solution discontinuities over a contact region
+   `TransportPDE` also supports solution discontinuities over a contact region
    in the domain. To specify the conditions across the discontinuity we are
-   using the generalised flux M{J} which, in the case of a system of PDEs and
+   using the generalised flux *J* which, in the case of a system of PDEs and
    several components of the solution, is defined as
 
-   M{J[i,j]=(A[i,j,k,l]+A_reduced[[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]+X[i,j]+X_reduced[i,j]}
+   *J[i,j]=(A[i,j,k,l]+A_reduced[[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]+X[i,j]+X_reduced[i,j]*
 
-   For the case of single solution component and single PDE M{J} is defined as
+   For the case of single solution component and single PDE *J* is defined as
 
-   M{J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[j]+(B[i]+B_reduced[i])*u+X[i]+X_reduced[i]}
+   *J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[j]+(B[i]+B_reduced[i])*u+X[i]+X_reduced[i]*
 
-   In the context of discontinuities M{n} denotes the normal on the
+   In the context of discontinuities *n* denotes the normal on the
    discontinuity pointing from side 0 towards side 1 calculated from
-   L{getNormal<escript.FunctionSpace.getNormal>} of L{FunctionOnContactZero<escript.FunctionOnContactZero>}.
+   `FunctionSpace.getNormal` of `FunctionOnContactZero`.
    For a system of transport problems the contact condition takes the form
 
-   M{n[j]*J0[i,j]=n[j]*J1[i,j]=(y_contact[i]+y_contact_reduced[i])- (d_contact[i,k]+d_contact_reduced[i,k])*jump(u)[k]}
+   *n[j]*J0[i,j]=n[j]*J1[i,j]=(y_contact[i]+y_contact_reduced[i])- (d_contact[i,k]+d_contact_reduced[i,k])*jump(u)[k]*
 
-   where M{J0} and M{J1} are the fluxes on side 0 and side 1 of the
-   discontinuity, respectively. M{jump(u)}, which is the difference of the
-   solution at side 1 and at side 0, denotes the jump of M{u} across
-   discontinuity along the normal calculated by L{jump<util.jump>}.
-   The coefficient M{d_contact} is of rank two and M{y_contact} is of rank one
-   both in L{FunctionOnContactZero<escript.FunctionOnContactZero>} or L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
-   The coefficient M{d_contact_reduced} is of rank two and M{y_contact_reduced}
-   is of rank one both in L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
+   where *J0* and *J1* are the fluxes on side 0 and side 1 of the
+   discontinuity, respectively. *jump(u)*, which is the difference of the
+   solution at side 1 and at side 0, denotes the jump of *u* across
+   discontinuity along the normal calculated by `jump`.
+   The coefficient *d_contact* is of rank two and *y_contact* is of rank one
+   both in `FunctionOnContactZero` or `FunctionOnContactOne`.
+   The coefficient *d_contact_reduced* is of rank two and *y_contact_reduced*
+   is of rank one both in `ReducedFunctionOnContactZero` or `ReducedFunctionOnContactOne`.
    In case of a single PDE and a single component solution the contact
    condition takes the form
 
-   M{n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)}
+   *n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)*
 
-   In this case the coefficient M{d_contact} and M{y_contact} are each scalar
-   both in L{FunctionOnContactZero<escript.FunctionOnContactZero>} or
-   L{FunctionOnContactOne<escript.FunctionOnContactOne>} and the coefficient
-   M{d_contact_reduced} and M{y_contact_reduced} are each scalar both in
-   L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or
-   L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
+   In this case the coefficient *d_contact* and *y_contact* are each scalar
+   both in `FunctionOnContactZero` or
+   `FunctionOnContactOne` and the coefficient
+   *d_contact_reduced* and *y_contact_reduced* are each scalar both in
+   `ReducedFunctionOnContactZero` or
+   `ReducedFunctionOnContactOne`.
 
    Typical usage::
 
@@ -3232,16 +3228,16 @@ class TransportPDE(LinearProblem):
      """
      Initializes a transport problem.
 
-     @param domain: domain of the PDE
-     @type domain: L{Domain<escript.Domain>}
-     @param numEquations: number of equations. If C{None} the number of
+     :param domain: domain of the PDE
+     :type domain: `Domain`
+     :param numEquations: number of equations. If ``None`` the number of
                           equations is extracted from the coefficients.
-     @param numSolutions: number of solution components. If C{None} the number
+     :param numSolutions: number of solution components. If ``None`` the number
                           of solution components is extracted from the
                           coefficients.
-     @param debug: if True debug information is printed
-     @param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Note that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
-     @type useBackwardEuler: C{bool}
+     :param debug: if True debug information is printed
+     :param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Note that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
+     :type useBackwardEuler: ``bool``
      """
      if useBackwardEuler:
          self.__useBackwardEuler=True
@@ -3285,15 +3281,15 @@ class TransportPDE(LinearProblem):
      """
      Returns the string representation of the transport problem.
 
-     @return: a simple representation of the transport problem
-     @rtype: C{str}
+     :return: a simple representation of the transport problem
+     :rtype: ``str``
      """
      return "<TransportPDE %d>"%id(self)
 
    def useBackwardEuler(self):
       """
       Returns true if backward Euler is used. Otherwise false is returned.
-      @rtype: bool
+      :rtype: bool
       """
       return self.__useBackwardEuler
 
@@ -3302,12 +3298,12 @@ class TransportPDE(LinearProblem):
       """
       Tests the transport problem for symmetry.
 
-      @param verbose: if set to True or not present a report on coefficients
+      :param verbose: if set to True or not present a report on coefficients
                       which break the symmetry is printed.
-      @type verbose: C{bool}
-      @return:  True if the PDE is symmetric
-      @rtype: C{bool}
-      @note: This is a very expensive operation. It should be used for
+      :type verbose: ``bool``
+      :return:  True if the PDE is symmetric
+      :rtype: ``bool``
+      :note: This is a very expensive operation. It should be used for
              degugging only! The symmetry flag is not altered.
       """
       out=True
@@ -3331,84 +3327,84 @@ class TransportPDE(LinearProblem):
       """
       Sets new values to coefficients.
 
-      @param coefficients: new values assigned to coefficients
-      @keyword M: value for coefficient C{M}
-      @type M: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
-      @keyword M_reduced: value for coefficient C{M_reduced}
-      @type M_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{Function<escript.ReducedFunction>}
-      @keyword A: value for coefficient C{A}
-      @type A: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
-      @keyword A_reduced: value for coefficient C{A_reduced}
-      @type A_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
-      @keyword B: value for coefficient C{B}
-      @type B: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
-      @keyword B_reduced: value for coefficient C{B_reduced}
-      @type B_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
-      @keyword C: value for coefficient C{C}
-      @type C: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
-      @keyword C_reduced: value for coefficient C{C_reduced}
-      @type C_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
-      @keyword D: value for coefficient C{D}
-      @type D: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
-      @keyword D_reduced: value for coefficient C{D_reduced}
-      @type D_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
-      @keyword X: value for coefficient C{X}
-      @type X: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
-      @keyword X_reduced: value for coefficient C{X_reduced}
-      @type X_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.ReducedFunction>}
-      @keyword Y: value for coefficient C{Y}
-      @type Y: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Function<escript.Function>}
-      @keyword Y_reduced: value for coefficient C{Y_reduced}
-      @type Y_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunction<escript.Function>}
-      @keyword m: value for coefficient C{m}
-      @type m: any type that can be cast to a L{Data<escript.Data>} object on
-               L{FunctionOnBoundary<escript.FunctionOnBoundary>}
-      @keyword m_reduced: value for coefficient C{m_reduced}
-      @type m_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{FunctionOnBoundary<escript.ReducedFunctionOnBoundary>}
-      @keyword d: value for coefficient C{d}
-      @type d: any type that can be cast to a L{Data<escript.Data>} object on
-               L{FunctionOnBoundary<escript.FunctionOnBoundary>}
-      @keyword d_reduced: value for coefficient C{d_reduced}
-      @type d_reduced: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}
-      @keyword y: value for coefficient C{y}
-      @type y: any type that can be cast to a L{Data<escript.Data>} object on
-               L{FunctionOnBoundary<escript.FunctionOnBoundary>}
-      @keyword d_contact: value for coefficient C{d_contact}
-      @type d_contact: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{FunctionOnContactOne<escript.FunctionOnContactOne>} or L{FunctionOnContactZero<escript.FunctionOnContactZero>}
-      @keyword d_contact_reduced: value for coefficient C{d_contact_reduced}
-      @type d_contact_reduced: any type that can be cast to a L{Data<escript.Data>} object on L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>} or L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>}
-      @keyword y_contact: value for coefficient C{y_contact}
-      @type y_contact: any type that can be cast to a L{Data<escript.Data>}
-                       object on L{FunctionOnContactOne<escript.FunctionOnContactOne>} or L{FunctionOnContactZero<escript.FunctionOnContactZero>}
-      @keyword y_contact_reduced: value for coefficient C{y_contact_reduced}
-      @type y_contact_reduced: any type that can be cast to a L{Data<escript.Data>} object on L{ReducedFunctionOnContactOne<escript.FunctionOnContactOne>} or L{ReducedFunctionOnContactZero<escript.FunctionOnContactZero>}
-      @keyword r: values prescribed to the solution at the locations of constraints
-      @type r: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
+      :param coefficients: new values assigned to coefficients
+      :keyword M: value for coefficient ``M``
+      :type M: any type that can be cast to a `Data` object on
+               `Function`
+      :keyword M_reduced: value for coefficient ``M_reduced``
+      :type M_reduced: any type that can be cast to a `Data`
+                       object on `Function`
+      :keyword A: value for coefficient ``A``
+      :type A: any type that can be cast to a `Data` object on
+               `Function`
+      :keyword A_reduced: value for coefficient ``A_reduced``
+      :type A_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
+      :keyword B: value for coefficient ``B``
+      :type B: any type that can be cast to a `Data` object on
+               `Function`
+      :keyword B_reduced: value for coefficient ``B_reduced``
+      :type B_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
+      :keyword C: value for coefficient ``C``
+      :type C: any type that can be cast to a `Data` object on
+               `Function`
+      :keyword C_reduced: value for coefficient ``C_reduced``
+      :type C_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
+      :keyword D: value for coefficient ``D``
+      :type D: any type that can be cast to a `Data` object on
+               `Function`
+      :keyword D_reduced: value for coefficient ``D_reduced``
+      :type D_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
+      :keyword X: value for coefficient ``X``
+      :type X: any type that can be cast to a `Data` object on
+               `Function`
+      :keyword X_reduced: value for coefficient ``X_reduced``
+      :type X_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
+      :keyword Y: value for coefficient ``Y``
+      :type Y: any type that can be cast to a `Data` object on
+               `Function`
+      :keyword Y_reduced: value for coefficient ``Y_reduced``
+      :type Y_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunction`
+      :keyword m: value for coefficient ``m``
+      :type m: any type that can be cast to a `Data` object on
+               `FunctionOnBoundary`
+      :keyword m_reduced: value for coefficient ``m_reduced``
+      :type m_reduced: any type that can be cast to a `Data`
+                       object on `FunctionOnBoundary`
+      :keyword d: value for coefficient ``d``
+      :type d: any type that can be cast to a `Data` object on
+               `FunctionOnBoundary`
+      :keyword d_reduced: value for coefficient ``d_reduced``
+      :type d_reduced: any type that can be cast to a `Data`
+                       object on `ReducedFunctionOnBoundary`
+      :keyword y: value for coefficient ``y``
+      :type y: any type that can be cast to a `Data` object on
+               `FunctionOnBoundary`
+      :keyword d_contact: value for coefficient ``d_contact``
+      :type d_contact: any type that can be cast to a `Data`
+                       object on `FunctionOnContactOne` or `FunctionOnContactZero`
+      :keyword d_contact_reduced: value for coefficient ``d_contact_reduced``
+      :type d_contact_reduced: any type that can be cast to a `Data` object on `ReducedFunctionOnContactOne` or `ReducedFunctionOnContactZero`
+      :keyword y_contact: value for coefficient ``y_contact``
+      :type y_contact: any type that can be cast to a `Data`
+                       object on `FunctionOnContactOne` or `FunctionOnContactZero`
+      :keyword y_contact_reduced: value for coefficient ``y_contact_reduced``
+      :type y_contact_reduced: any type that can be cast to a `Data` object on `ReducedFunctionOnContactOne` or `ReducedFunctionOnContactZero`
+      :keyword r: values prescribed to the solution at the locations of constraints
+      :type r: any type that can be cast to a `Data` object on
+               `Solution` or `ReducedSolution`
                depending on whether reduced order is used for the solution
-      @keyword q: mask for the location of constraints
-      @type q: any type that can be cast to a L{Data<escript.Data>} object on
-               L{Solution<escript.Solution>} or
-               L{ReducedSolution<escript.ReducedSolution>} depending on whether
+      :keyword q: mask for the location of constraints
+      :type q: any type that can be cast to a `Data` object on
+               `Solution` or
+               `ReducedSolution` depending on whether
                reduced order is used for the representation of the equation
-      @raise IllegalCoefficient: if an unknown coefficient keyword is used
+      :raise IllegalCoefficient: if an unknown coefficient keyword is used
       """
       super(TransportPDE,self).setValue(**coefficients)
 
@@ -3432,10 +3428,10 @@ class TransportPDE(LinearProblem):
        """
        Sets the initial solution.
 
-       @param u: new initial solution
-       @type u: any object that can be interpolated to a L{Data<escript.Data>}
-                object on L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
-       @note: C{u} must be non-negative
+       :param u: new initial solution
+       :type u: any object that can be interpolated to a `Data`
+                object on `Solution` or `ReducedSolution`
+       :note: ``u`` must be non-negative
        """
        u2=util.interpolate(u,self.getFunctionSpaceForSolution())
        if self.getNumSolutions() == 1:
@@ -3450,21 +3446,21 @@ class TransportPDE(LinearProblem):
       """
       Returns the system type which needs to be used by the current set up.
 
-      @return: a code to indicate the type of transport problem scheme used
-      @rtype: C{float}
+      :return: a code to indicate the type of transport problem scheme used
+      :rtype: ``float``
       """
       solver_options=self.getSolverOptions()
       return self.getDomain().getTransportTypeId(solver_options.getSolverMethod(), solver_options.getPreconditioner(),solver_options.getPackage(), solver_options.isSymmetric())
 
    def getUnlimitedTimeStepSize(self):
       """
-      Returns the value returned by the C{getSafeTimeStepSize} method to
+      Returns the value returned by the ``getSafeTimeStepSize`` method to
       indicate no limit on the safe time step size.
 
-       @return: the value used to indicate that no limit is set to the time
+       :return: the value used to indicate that no limit is set to the time
                 step size
-       @rtype: C{float}
-       @note: Typically the biggest positive float is returned
+       :rtype: ``float``
+       :note: Typically the biggest positive float is returned
       """
       return self.getOperator().getUnlimitedTimeStepSize()
 
@@ -3472,9 +3468,9 @@ class TransportPDE(LinearProblem):
        """
        Returns a safe time step size to do the next time step.
 
-       @return: safe time step size
-       @rtype: C{float}
-       @note: If not C{getSafeTimeStepSize()} < C{getUnlimitedTimeStepSize()}
+       :return: safe time step size
+       :rtype: ``float``
+       :note: If not ``getSafeTimeStepSize()`` < ``getUnlimitedTimeStepSize()``
               any time step size can be used.
        """
        return self.getOperator().getSafeTimeStepSize()
@@ -3483,8 +3479,8 @@ class TransportPDE(LinearProblem):
        """
        Sets the weighting factor used to insert the constraints into the problem
 
-       @param value: value for the weighting factor
-       @type value: large positive C{float}
+       :param value: value for the weighting factor
+       :type value: large positive ``float``
        """
        if not value>0:
          raise ValueError,"weighting factor needs to be positive."
@@ -3494,8 +3490,8 @@ class TransportPDE(LinearProblem):
    def getConstraintWeightingFactor(self):
        """
        returns the weighting factor used to insert the constraints into the problem
-       @return: value for the weighting factor
-       @rtype: C{float}
+       :return: value for the weighting factor
+       :rtype: ``float``
        """
        return self.__constraint_factor
    #====================================================================
@@ -3503,8 +3499,8 @@ class TransportPDE(LinearProblem):
        """
        Returns the solution of the problem.
 
-       @return: the solution
-       @rtype: L{Data<escript.Data>}
+       :return: the solution
+       :rtype: `Data`
        """
        option_class=self.getSolverOptions()
        if dt<=0:
@@ -3517,9 +3513,9 @@ class TransportPDE(LinearProblem):
        """
        Returns the operator and right hand side of the PDE.
 
-       @return: the discrete version of the PDE
-       @rtype: C{tuple} of L{Operator,<escript.Operator>} and
-               L{Data<escript.Data>}
+       :return: the discrete version of the PDE
+       :rtype: ``tuple`` of `Operator` and
+               `Data`
 
        """
        if not self.isOperatorValid() or not self.isRightHandSideValid():
@@ -3565,11 +3561,11 @@ class TransportPDE(LinearProblem):
 
    def setDebug(self, flag):
      """
-     Switches debug output on if C{flag} is True,
+     Switches debug output on if ``flag`` is True,
      otherwise it is switched off.
 
-     @param flag: desired debug status
-     @type flag: C{bool}
+     :param flag: desired debug status
+     :type flag: ``bool``
      """
      if flag:
          self.setDebugOn()

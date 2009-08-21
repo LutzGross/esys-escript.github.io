@@ -28,12 +28,12 @@ class Sequencer(Model):
     """
     Runs through time until t_end is reached. 
 
-    @ivar t_end: model is terminated when t_end is passed, default 1 (in).
-    @type t_end: C{float}
-    @ivar dt_max: maximum time step size, default L{Model.UNDEF_DT} (in)
-    @type dt_max: C{float}
-    @ivar t: current time stamp (in/out). By default it is initialized with zero.
-    @type t: C{float}
+    :ivar t_end: model is terminated when t_end is passed, default 1 (in).
+    :type t_end: ``float``
+    :ivar dt_max: maximum time step size, default `Model.UNDEF_DT` (in)
+    :type dt_max: ``float``
+    :ivar t: current time stamp (in/out). By default it is initialized with zero.
+    :type t: ``float``
 
     """
     def __init__(self,**kwargs):
@@ -58,13 +58,13 @@ class Sequencer(Model):
 
     def finalize(self):
         """
-        returns true when L{t} has reached L{t_end}
+        returns true when `t` has reached `t_end`
         """
         return self.t >= self.t_end
 
     def getSafeTimeStepSize(self, dt):
         """
-        returns L{dt_max}
+        returns `dt_max`
         """
         return self.dt_max
 
@@ -73,11 +73,11 @@ class GaussianProfile(ParameterSet):
     Generates a Gaussian profile at center x_c, width width and height A 
     over a domain
 
-    @ivar domain: domain
-    @ivar x_c: center of the Gaussian profile (default [0.,0.,0.])
-    @ivar A: (in) height of the profile. A maybe a vector. (default 1.)
-    @ivar width: (in) width of the profile (default 0.1)
-    @ivar r: (in) radius of the circle (default = 0)
+    :ivar domain: domain
+    :ivar x_c: center of the Gaussian profile (default [0.,0.,0.])
+    :ivar A: (in) height of the profile. A maybe a vector. (default 1.)
+    :ivar width: (in) width of the profile (default 0.1)
+    :ivar r: (in) radius of the circle (default = 0)
 
     In the case that the spatial dimension is two, The third component of 
     x_c is dropped.
@@ -108,15 +108,15 @@ class InterpolateOverBox(ParameterSet):
     Returns values at each time. The values are defined through given values 
     at time node. For two dimensional domains back values are ignored.
 
-    @ivar domain: domain
-    @ivar value_left_bottom_front: (in) value at left,bottom,front corner
-    @ivar value_right_bottom_front: (in) value at right, bottom, front corner
-    @ivar value_left_top_front: (in) value at left,top,front corner
-    @ivar value_right_top_front: (in) value at right,top,front corner
-    @ivar value_left_bottom_back: (in) value at  left,bottom,back corner
-    @ivar value_right_bottom_back: (in) value at right,bottom,back corner
-    @ivar value_left_top_back: (in) value at left,top,back  corner
-    @ivar value_right_top_back: (in) value at right,top,back corner
+    :ivar domain: domain
+    :ivar value_left_bottom_front: (in) value at left,bottom,front corner
+    :ivar value_right_bottom_front: (in) value at right, bottom, front corner
+    :ivar value_left_top_front: (in) value at left,top,front corner
+    :ivar value_right_top_front: (in) value at right,top,front corner
+    :ivar value_left_bottom_back: (in) value at  left,bottom,back corner
+    :ivar value_right_bottom_back: (in) value at right,bottom,back corner
+    :ivar value_left_top_back: (in) value at left,top,back  corner
+    :ivar value_right_top_back: (in) value at right,top,back corner
     """
 
     def __init__(self, **kwargs):
@@ -185,9 +185,9 @@ class InterpolatedTimeProfile(ParameterSet):
        For time t<nodes[0], value[0] is used and for t>nodes[l], values[l] 
        is used where l=len(nodes)-1.
  
-       @ivar t: (in) current time
-       @ivar node: (in) list of time nodes
-       @ivar values: (in) list of values at time nodes
+       :ivar t: (in) current time
+       :ivar node: (in) list of time nodes
+       :ivar values: (in) list of values at time nodes
        """
 
        def __init__(self,**kwargs):
@@ -218,49 +218,49 @@ class ScalarDistributionFromTags(ParameterSet):
     creates a scalar distribution on a domain from tags, If tag_map is given
     the tags can be given a names and tag_map is used to map it into domain tags.
             
-    @ivar domain: domain
-    @type domain: L{esys.escript.Domain}
-    @ivar default: default value 
-    @ivar tag0: tag 0
-    @type tag0: C{int}
-    @ivar value0: value for tag 0
-    @type value0: C{float}
-    @ivar tag1: tag 1
-    @type tag1: C{int}
-    @ivar value1: value for tag 1
-    @type value1: C{float}
-    @ivar tag2: tag 2
-    @type tag2: C{int}
-    @ivar value2: value for tag 2
-    @type value2: C{float}
-    @ivar tag3: tag 3
-    @type tag3: C{int}
-    @ivar value3: value for tag 3
-    @type value3: C{float}
-    @ivar tag4: tag 4
-    @type tag4: C{int}
-    @ivar value4: value for tag 4
-    @type value4: C{float}
-    @ivar tag5: tag 5
-    @type tag5: C{int}
-    @ivar value5: value for tag 5
-    @type value5: C{float}
-    @ivar tag6: tag 6
-    @type tag6: C{int}
-    @ivar value6: value for tag 6
-    @type value6: C{float}
-    @ivar tag7: tag 7
-    @type tag7: C{int}
-    @ivar value7: value for tag 7
-    @type value7: C{float}
-    @ivar tag8: tag 8
-    @type tag8: C{int}
-    @ivar value8: value for tag 8
-    @type value8: C{float}
-    @ivar tag9: tag 9
-    @type tag9: C{int}
-    @ivar value9: value for tag 9
-    @type value9: C{float}
+    :ivar domain: domain
+    :type domain: `esys.escript.Domain`
+    :ivar default: default value 
+    :ivar tag0: tag 0
+    :type tag0: ``int``
+    :ivar value0: value for tag 0
+    :type value0: ``float``
+    :ivar tag1: tag 1
+    :type tag1: ``int``
+    :ivar value1: value for tag 1
+    :type value1: ``float``
+    :ivar tag2: tag 2
+    :type tag2: ``int``
+    :ivar value2: value for tag 2
+    :type value2: ``float``
+    :ivar tag3: tag 3
+    :type tag3: ``int``
+    :ivar value3: value for tag 3
+    :type value3: ``float``
+    :ivar tag4: tag 4
+    :type tag4: ``int``
+    :ivar value4: value for tag 4
+    :type value4: ``float``
+    :ivar tag5: tag 5
+    :type tag5: ``int``
+    :ivar value5: value for tag 5
+    :type value5: ``float``
+    :ivar tag6: tag 6
+    :type tag6: ``int``
+    :ivar value6: value for tag 6
+    :type value6: ``float``
+    :ivar tag7: tag 7
+    :type tag7: ``int``
+    :ivar value7: value for tag 7
+    :type value7: ``float``
+    :ivar tag8: tag 8
+    :type tag8: ``int``
+    :ivar value8: value for tag 8
+    :type value8: ``float``
+    :ivar tag9: tag 9
+    :type tag9: ``int``
+    :ivar value9: value for tag 9
+    :type value9: ``float``
     """
     def __init__(self,**kwargs):
         super(ScalarDistributionFromTags, self).__init__(**kwargs)
@@ -290,7 +290,7 @@ class ScalarDistributionFromTags(ParameterSet):
 
     def out(self):
         """
-        returns a L{esys.escript.Data} object
+        returns a `esys.escript.Data` object
         Link against this method to get the output of this model.
         """
         d=Scalar(self.default,Function(self.domain))
@@ -310,49 +310,49 @@ class SmoothScalarDistributionFromTags(ParameterSet):
     """
     creates a smooth scalar distribution on a domain from region tags
             
-    @ivar domain: domain
-    @type domain: L{esys.escript.Domain}
-    @ivar default: default value 
-    @ivar tag0: tag 0
-    @type tag0: C{int}
-    @ivar value0: value for tag 0
-    @type value0: C{float}
-    @ivar tag1: tag 1
-    @type tag1: C{int}
-    @ivar value1: value for tag 1
-    @type value1: C{float}
-    @ivar tag2: tag 2
-    @type tag2: C{int}
-    @ivar value2: value for tag 2
-    @type value2: C{float}
-    @ivar tag3: tag 3
-    @type tag3: C{int}
-    @ivar value3: value for tag 3
-    @type value3: C{float}
-    @ivar tag4: tag 4
-    @type tag4: C{int}
-    @ivar value4: value for tag 4
-    @type value4: C{float}
-    @ivar tag5: tag 5
-    @type tag5: C{int}
-    @ivar value5: value for tag 5
-    @type value5: C{float}
-    @ivar tag6: tag 6
-    @type tag6: C{int}
-    @ivar value6: value for tag 6
-    @type value6: C{float}
-    @ivar tag7: tag 7
-    @type tag7: C{int}
-    @ivar value7: value for tag 7
-    @type value7: C{float}
-    @ivar tag8: tag 8
-    @type tag8: C{int}
-    @ivar value8: value for tag 8
-    @type value8: C{float}
-    @ivar tag9: tag 9
-    @type tag9: C{int}
-    @ivar value9: value for tag 9
-    @type value9: C{float}
+    :ivar domain: domain
+    :type domain: `esys.escript.Domain`
+    :ivar default: default value 
+    :ivar tag0: tag 0
+    :type tag0: ``int``
+    :ivar value0: value for tag 0
+    :type value0: ``float``
+    :ivar tag1: tag 1
+    :type tag1: ``int``
+    :ivar value1: value for tag 1
+    :type value1: ``float``
+    :ivar tag2: tag 2
+    :type tag2: ``int``
+    :ivar value2: value for tag 2
+    :type value2: ``float``
+    :ivar tag3: tag 3
+    :type tag3: ``int``
+    :ivar value3: value for tag 3
+    :type value3: ``float``
+    :ivar tag4: tag 4
+    :type tag4: ``int``
+    :ivar value4: value for tag 4
+    :type value4: ``float``
+    :ivar tag5: tag 5
+    :type tag5: ``int``
+    :ivar value5: value for tag 5
+    :type value5: ``float``
+    :ivar tag6: tag 6
+    :type tag6: ``int``
+    :ivar value6: value for tag 6
+    :type value6: ``float``
+    :ivar tag7: tag 7
+    :type tag7: ``int``
+    :ivar value7: value for tag 7
+    :type value7: ``float``
+    :ivar tag8: tag 8
+    :type tag8: ``int``
+    :ivar value8: value for tag 8
+    :type value8: ``float``
+    :ivar tag9: tag 9
+    :type tag9: ``int``
+    :ivar value9: value for tag 9
+    :type value9: ``float``
     """
     def __init__(self,**kwargs):
         super(SmoothScalarDistributionFromTags, self).__init__(**kwargs)
@@ -393,7 +393,7 @@ class SmoothScalarDistributionFromTags(ParameterSet):
 
     def out(self):
         """
-        returns a L{esys.escript.Data} object
+        returns a `esys.escript.Data` object
         Link against this method to get the output of this model.
         """
         d=Scalar(self.default,Solution(self.domain)) 
@@ -414,16 +414,16 @@ class LinearCombination(ParameterSet):
     """
     Returns a linear combination of the f0*v0+f1*v1+f2*v2+f3*v3+f4*v4
             
-    @ivar f0: numerical object or None, default=None (in)
-    @ivar v0: numerical object or None, default=None (in)
-    @ivar f1: numerical object or None, default=None (in)
-    @ivar v1: numerical object or None, default=None (in)
-    @ivar f2: numerical object or None, default=None (in)
-    @ivar v2: numerical object or None, default=None (in)
-    @ivar f3: numerical object or None, default=None (in)
-    @ivar v3: numerical object or None, default=None (in)
-    @ivar f4: numerical object or None, default=None (in)
-    @ivar v4: numerical object or None, default=None (in)
+    :ivar f0: numerical object or None, default=None (in)
+    :ivar v0: numerical object or None, default=None (in)
+    :ivar f1: numerical object or None, default=None (in)
+    :ivar v1: numerical object or None, default=None (in)
+    :ivar f2: numerical object or None, default=None (in)
+    :ivar v2: numerical object or None, default=None (in)
+    :ivar f3: numerical object or None, default=None (in)
+    :ivar v3: numerical object or None, default=None (in)
+    :ivar f4: numerical object or None, default=None (in)
+    :ivar v4: numerical object or None, default=None (in)
     """
     def __init__(self,**kwargs):
         super(LinearCombination, self).__init__(**kwargs)
@@ -500,8 +500,8 @@ class MergeConstraints(ParameterSet):
           """
           return the values used to constrain a solution
 
-          @return: the mask marking the locations of the constraints
-          @rtype: L{escript.Scalar}
+          :return: the mask marking the locations of the constraints
+          :rtype: `escript.Scalar`
           """
           out_loc=0
           if not self.location_of_constraint0 == None:
@@ -518,9 +518,9 @@ class MergeConstraints(ParameterSet):
           """
           return the values used to constrain a solution
 
-          @return: values to be used at the locations of the constraints. If
-                  C{value} is not given C{None} is rerturned.
-          @rtype: L{escript.Scalar}
+          :return: values to be used at the locations of the constraints. If
+                  ``value`` is not given ``None`` is rerturned.
+          :rtype: `escript.Scalar`
           """
           out_loc=0
           out=0

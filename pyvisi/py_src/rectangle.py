@@ -20,12 +20,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="John Ngui, john.ngui@uq.edu.au"
@@ -51,10 +51,10 @@ class Rectangle(CubeSource, DataSetMapper, Actor3D):
 		"""
 		Initialise the Rectangle.
 
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
-		@type viewport: L{Viewport <constant.Viewport>} constant  
-		@param viewport: Viewport in which objects are to be rendered on 
+		:type scene: `Scene` object
+		:param scene: Scene in which objects are to be rendered on
+		:type viewport: `Viewport` constant  
+		:param viewport: Viewport in which objects are to be rendered on 
 		"""
 
 		self.__viewport = viewport
