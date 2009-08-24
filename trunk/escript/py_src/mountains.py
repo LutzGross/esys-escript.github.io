@@ -61,14 +61,15 @@ class Mountains:
     self.__PDE_W = LinearPDE(domain)
     self.__PDE_W.setSymmetryOn()
     A=kronecker(domain)*eps*0
-    A[self.__DIM-1,self.__DIM-1]=(sup(FunctionOnBoundary(self.__domain).getSize())/log(2.))**2
+    A[self.__DIM-1,self.__DIM-1]=(0.3*(sup(z)-inf(z))/log(2.))**2
+    # A[self.__DIM-1,self.__DIM-1]=(sup(FunctionOnBoundary(self.__domain).getSize())/log(2.))**2
     self.__PDE_W.setValue(D=1, A=A, q=whereZero(sup(z)-z)) 
 
     self.__PDE_H = LinearPDE(domain)
     self.__PDE_H.setSymmetryOn()
     if reduced: self.__PDE_H.setReducedOrderOn()
-    A=kronecker(domain)*0
-    A[self.__DIM-1,self.__DIM-1]=0.1
+    # A=kronecker(domain)*0
+    # A[self.__DIM-1,self.__DIM-1]=0.1
     self.__PDE_H.setValue(D=1.0)
     # self.__PDE_H.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
 

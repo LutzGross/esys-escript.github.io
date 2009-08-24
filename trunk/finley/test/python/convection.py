@@ -40,7 +40,7 @@ PERT=0.05               # initial temperature perturbation
 DT=1.e-7                        # initial time step size
 CREATE_TOPOGRAPHY=True         # create topgraphy
 DT_MIN=1.e-10                    # minumum time step size
-T_END=0.1                       # end time
+T_END=10.                       # end time
 
 RHO_0=100.                     # surface density  (lf ~ RHO_0**2) 
 G=1.                            # gravitational constant
