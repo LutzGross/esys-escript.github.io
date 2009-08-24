@@ -567,7 +567,9 @@ class Curve(CurveBase, Primitive):
        """
        Defines a curve from control points given by ``points``.
        """
-       if len(points)==1: points=tuple(points[0])
+       if len(points)==1: 
+           points=points[0]
+           if not hasattr(points,'__iter__'): raise ValueError("Curve needs at least two points")
        if len(points)<2:
            raise ValueError("Curve needs at least two points")
        i=0
@@ -973,9 +975,11 @@ class CurveLoop(Primitive, PrimitiveBase):
        Creates a polygon from a list of line curves. The curves must form a
        closed loop.
        """
-       if len(curves)==1: curves=curves[0]
+       if len(curves)==1: 
+           curves=curves[0]
+           if not hasattr(curves,'__iter__'): raise ValueError("CurveLoop needs at least two points")
        if len(curves)<2:
-            raise ValueError("at least two curves have to be given.")
+            raise ValueError("At least two curves have to be given.")
        for i in range(len(curves)):
            if not isinstance(curves[i],Manifold1D):
               raise TypeError("%s-th argument is not a Manifold1D object."%i)
@@ -1467,7 +1471,9 @@ class SurfaceLoop(Primitive, PrimitiveBase):
        """
        Creates a surface loop.
        """
-       if len(surfaces)==1: surfaces=surfaces[0]
+       if len(surfaces)==1: 
+           surfaces=surfaces[0]
+           if not hasattr(surfaces,'__iter__'): raise ValueError("SurfaceLoop needs at least two points")
        if len(surfaces)<2:
             raise ValueError("at least two surfaces have to be given.")
        for i in range(len(surfaces)):
