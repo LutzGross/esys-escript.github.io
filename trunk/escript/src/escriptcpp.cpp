@@ -417,8 +417,8 @@ args("solver", "preconditioner", "package", "symmetry"));
   // Binary operators
   //
   def("C_GeneralTensorProduct",escript::C_GeneralTensorProduct,
-      (arg("arg0")=escript::Data(),
-       arg("arg1")=escript::Data(),
+      (arg("arg0"),
+       arg("arg1"),
        arg("axis_offset")=0,
        arg("transpose")=0),
 "Compute a tensor product of two Data objects.\n\n:rtype: `Data`\n:param arg0:\n"
