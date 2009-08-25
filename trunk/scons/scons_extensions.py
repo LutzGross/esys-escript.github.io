@@ -37,11 +37,11 @@ def runUnitTest(target, source, env):
      app = "cd "+pn+"; "+os.path.join(env['bininstall'],"escript")+" -bv "+os.path.join('.',sn)
   else:
       if env['usempi']:
-          app = "cd %s | mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
+          app = "cd %s & mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
             "FINLEY_TEST_DATA,PYVISI_TEST_DATA_ROOT,PYVISI_WORKDIR,PATH %s"\
             %(pn,env['ENV']['ESCRIPT_NUM_NODES'], sn)
       else:
-           app = "cd "+ pn +" | "+ sn
+           app = "cd "+ pn +" & "+sn
   print "Executing test: " + app
   if not env.Execute(app):
     open(str(target[0]),'w').write("PASSED\n")
@@ -56,11 +56,11 @@ def runPyUnitTest(target, source, env):
    pn, sn= os.path.split(app)
    if os.name== "nt":
        if env['usempi']:
-           app = "cd %s | mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
+           app = "cd %s & mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
               "FINLEY_TEST_DATA,PYVISI_TEST_DATA_ROOT,PYVISI_WORKDIR,PATH %s\pythonMPIredirect.exe %s"\
               %(pn,env['ENV']['ESCRIPT_NUM_NODES'],env['libinstall'],sn)
        else:
-           app = "cd "+ pn +" | "+sys.executable + " " + sn
+           app = "cd "+ pn +" & "+sys.executable + " " + sn
    else:
      app = "cd "+pn+"; "+os.path.join(env['bininstall'],"escript")+" -ov "+sn
    print "Executing test: ",app
