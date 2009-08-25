@@ -3028,6 +3028,112 @@ Data::freeSampleBuffer(BufferGroup* bufferg)
 }
 
 
+Data
+Data::interpolateFromTable(boost::python::object table, double Amin, double Astep,
+	     double undef, Data& B, double Bmin, double Bstep)
+{
+    WrappedArray t(table);
+    return interpolateFromTable2D(t, Amin, Astep, undef, B, Bmin, Bstep);
+}
+
+		
+Data
+Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Astep,
+                       double undef, Data& B, double Bmin, double Bstep)
+{
+    int error=0;
+    if ((getDataPointRank()!=0) || (B.getDataPointRank()!=0))
+    {
+        throw DataException("Inputs to 2D interpolation must be scalar");
+    }
+    if (table.getRank()!=2)
+    {
+	throw DataException("Table for 2D interpolation must be 2D");
+    }
+    if (getFunctionSpace()!=B.getFunctionSpace())
+    {
+	Data n=B.interpolate(getFunctionSpace());
+	return interpolateFromTable2D(table, Amin, Astep, undef, 
+		n , Bmin, Bstep);
+    }
+    if (!isExpanded())
+    {
+	expand();
+    }
+    if (!B.isExpanded())
+    {
+	B.expand();
+    }
+    Data res(0, DataTypes::scalarShape, getFunctionSpace(), true);
+    do                                   // to make breaks useful
+    {
+	try
+	{
+	    int numpts=getNumDataPoints();
+	    const DataVector& adat=getReady()->getVectorRO();
+	    const DataVector& bdat=B.getReady()->getVectorRO();
+	    DataVector& rdat=res.getReady()->getVectorRW();
+	    const DataTypes::ShapeType& ts=table.getShape();
+	    for (int l=0; l<numpts; ++l)
+	    {
+		double a=adat[l];
+		double b=bdat[l];
+		int x=static_cast<int>((a-Amin)/Astep);
+		int y=static_cast<int>((b-Bmin)/Bstep);
+		if ((a<Amin) || (b<Bmin))
+		{
+		    error=1;
+		    break;	
+		}
+		if ((x>=(ts[0]-1)) || (y>=(ts[1]-1)))
+		{
+		    error=1;
+		    break;
+		}
+		else		// x and y are in bounds
+		{
+		    double sw=table.getElt(x,y);
+		    double nw=table.getElt(x,y+1);
+		    double se=table.getElt(x+1,y);
+		    double ne=table.getElt(x+1,y+1);
+		    if ((sw>undef) || (nw>undef) || (se>undef) || (ne>undef))
+		    {
+			error=2;
+			break; 
+		    }
+		    // map x*Astep <= a << (x+1)*Astep to [-1,1] 
+		    // same with b
+		    double la = 2.0*(a-(x*Astep))/Astep-1;
+		    double lb = 2.0*(b-(y*Bstep))/Bstep-1;
+		    rdat[l]=((1-la)*(1-lb)*sw + (1-la)*(1+lb)*nw +
+			     (1+la)*(1-lb)*se + (1+la)*(1+lb)*ne)/4;
+		}
+	    }
+	} catch (DataException d)
+	{
+	    error=3;
+	    break;
+	}
+    } while (false);
+#ifdef PASO_MPI
+    int rerror=0;
+    MPI_Allreduce( &error, &rerror, 1, MPI_INT, MPI_MAX, get_MPIComm() );
+    error=rerror;
+#endif
+    if (error)
+    {
+	switch (error)
+	{
+	case 1: throw DataException("Point out of bounds");
+	case 2: throw DataException("Interpolated value too large");
+	default:
+		throw DataException("Unknown error in interpolation");		
+	}
+    }
+    return res;
+}
+
+
 /* Member functions specific to the MPI implementation */
 
 void
