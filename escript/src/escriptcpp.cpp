@@ -243,6 +243,22 @@ args("solver", "preconditioner", "package", "symmetry"));
 "\n:param dataPointNo: datapoint to access\n:type dataPointNo: int")
     .def("setToZero",&escript::Data::setToZero,"After this call the object will store values of the same shape as before but all components will be zero.")
     .def("interpolate",&escript::Data::interpolate,args("functionspace"),"Interpolate this object's values into a new functionspace.")
+    .def("interpolateTable", &escript::Data::interpolateFromTable, 
+args("table","Amin","Astep","undef", "B", "Bmin", "Bstep"),
+"Creates a new Data object by interpolating using the source data (which are\n"
+"looked up in ``table``)\n\n"
+":param table: two dimensional collection of values\n"
+":param Amin: The base of locations in table\n:type Amin: float\n"
+":param Astep: size of gap between each item in the table\n:type Astep: float\n"
+":param undef: upper bound on interpolated values\n:type undef: float\n"
+":param B: Scalar representing the second coordinate to be mapped into the table\n"
+":type B: `Data`\n"
+":param Bmin: The base of locations in table for 2nd dimension\n:type Bmin: float\n"
+":param Bstep: size of gap between each item in the table for 2nd dimension\n:type Bstep: float\n"
+":raise RuntimeError(DataException): if the cordinates do not map into the table or if the interpolated value is above ``undef``"
+"\n:rtype: `Data`"
+)
+
     .def("minGlobalDataPoint",&escript::Data::minGlobalDataPoint)
     .def("maxGlobalDataPoint",&escript::Data::maxGlobalDataPoint)
     .def("saveDX",&escript::Data::saveDX,args("fileName"),"Save the object in DX format.\n\n"

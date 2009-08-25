@@ -234,6 +234,7 @@ class TestDomain : public AbstractDomain {
   int* m_samplerefids;	// sample reference ids
 };
 
+ESCRIPT_DLL_API
 FunctionSpace
 getTestDomainFunctionSpace(int dpps, int samples);
 

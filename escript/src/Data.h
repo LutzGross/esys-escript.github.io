@@ -763,6 +763,20 @@ If false, the result is a list of scalars [1, 2, ...]
   ESCRIPT_DLL_API
   Data
   interpolate(const FunctionSpace& functionspace) const;
+
+
+  ESCRIPT_DLL_API
+  Data
+  interpolateFromTable2D(const WrappedArray& table, double Amin, double Astep,
+                       double undef, Data& B, double Bmin, double Bstep);
+
+
+  // This signature needs to be tuned
+  ESCRIPT_DLL_API
+  Data
+  interpolateFromTable(boost::python::object table, double Amin, double Astep,
+                       double undef, Data& B, double Bmin, double Bstep);
+
   /**
      \brief
      Calculates the gradient of the data at the data points of functionspace.
