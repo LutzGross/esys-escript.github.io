@@ -31,9 +31,9 @@ python_libs = ['python' + py_vers]
 
 # locations of libraries for boost
 dotdot = os.path.realpath('..')
-boost_path = os.path.join(dotdot,'boost-1.33')
-boost_lib_path = os.path.join(boost_path,'windows_binary','lib')
-boost_libs = ['boost_python-vc71-mt-1_33_1.lib']
+boost_path = os.path.join(dotdot,'boost_1_39_0')
+boost_lib_path = os.path.join(boost_path,'stage','lib')
+boost_libs = ['boost_python-vc71-mt-1_39']
 
 # locations of netcdf
 useNetCDF = "yes"
