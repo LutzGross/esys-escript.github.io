@@ -1,0 +1,660 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2009 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\chapter{Models}
+\label{MODELS CHAPTER}
+
+The following sections give a breif overview of the model classes and their corresponding methods.
+
+\section{Stokes Problem}
+The velocity \index{velocity} field $v$ and pressure $p$ of an incompressible fluid \index{incompressible fluid} is given as the solution of the Stokes problem\index{Stokes problem}
+\begin{equation}\label{Stokes 1}
+-\left(\eta(v\hackscore{i,j}+ v\hackscore{i,j})\right)\hackscore{,j}+p\hackscore{,i}=f\hackscore{i}-\sigma\hackscore{ij,j}
+\end{equation}
+where $\eta$ is the viscosity, $F\hackscore{i}$ defines an internal force \index{force, internal} and $\sigma\hackscore{ij}$ is an intial stress \index{stress, initial}. We assume an incompressible media:
+\begin{equation}\label{Stokes 2}
+-v\hackscore{i,i}=0
+\end{equation}
+Natural boundary conditions are taken in the form 
+\begin{equation}\label{Stokes Boundary}
+\left(\eta(v\hackscore{i,j}+ v\hackscore{i,j})\right)n\hackscore{j}-n\hackscore{i}p=s\hackscore{i}+\sigma\hackscore{ij} n\hackscore{j}
+\end{equation}
+which can be overwritten by constraints of the form 
+\begin{equation}\label{Stokes Boundary0}
+v\hackscore{i}(x)=v^D\hackscore{i}(x)
+\end{equation}
+at some locations $x$ at the boundary of the domain. The index $i$ may depend on the location $x$ on the boundary.
+$v^D$ is a given function on the domain.
+
+\subsection{Solution Method \label{STOKES SOLVE}}
+In block form equation equations~\ref{Stokes 1} and~\ref{Stokes 2} takes the form of a saddle point problem
+\index{saddle point problem}
+\begin{equation}
+\left[ \begin{array}{cc}
+A     & B^{*} \\
+B & 0 \\
+\end{array} \right]
+\left[ \begin{array}{c}
+v \\
+p \\
+\end{array} \right]
+=\left[ \begin{array}{c}
+G \\
+0 \\
+\end{array} \right]
+\label{SADDLEPOINT}
+\end{equation}
+where $A$ is coercive, self-adjoint linear operator in a suitable Hilbert space, $B$ is the $(-1) \cdot$ divergence operator and $B^{*}$ is it adjoint operator (=gradient operator). For more details on the mathematics see references \cite{AAMIRBERKYAN2008,MBENZI2005}. 
+We use iterative techniques to solve this problem. To make sure that the incomressibilty condition holds
+with sufficient accuracy we check for 
+\begin{equation}
+\|v\hackscore{k,k}\| \hackscore \le  \epsilon
+\|\sqrt{v\hackscore{j,k}v\hackscore{j,k}}\| 
+\label{STOKES STOP}
+\end{equation}
+where $\epsilon$ is the desired relative accuracy and 
+\begin{equation}
+\|p\|^2= \int\hackscore{\Omega} p^2 \; dx
+\label{PRESSURE NORM}
+\end{equation}
+defines the $L^2$-norm. We use the Uzawa scheme \index{Uzawa scheme} to solve the problem.
+ 
+In fact the first equation in~\ref{SADDLEPOINT} gives for a known pressure
+\begin{equation}
+v=A^{-1}(G-B^{*}p)
+\label{V CALC}
+\end{equation} 
+which is inserted into the second equation leading to
+\begin{equation}
+S p =  B A^{-1} G
+\end{equation}
+with the Schur complement \index{Schur complement} $S=BA^{-1}B^{*}$. This problem can be solved iteratively
+with the preconditioner $\hat{S}$ defined as $q=\hat{S}^{-1}p$ by solving
+\begin{equation} \label{P PREC}
+\frac{1}{\eta}q = p 
+\end{equation}
+see~\cite{ELMAN} for more details. Note that the residual for the current approximation $p$ is given as 
+\begin{equation}
+r=B A^{-1} (G - B^* p) = Bv 
+\end{equation}
+where $v$ is given by~\ref{V CALC}. 
+
+If one uses the generalized minimal residual method (GMRES) \index{generalized minimal residual method!GMRES}
+the method is directly applied to the preconditioned system 
+\begin{equation}
+\hat{S}^{-1} S p =  \hat{S}^{-1} B A^{-1} G
+\end{equation}
+We use the norm
+\begin{equation}
+\|p\|\hackscore{GMRES} = \|\hat{S} p \|
+\end{equation} 
+Notice that for the residual $\hat{r}=\hat{S}^{-1} r$ one has
+\begin{equation}
+\
+\end{equation} 
+If $p^{0}$ provides an initial guess for the pressure we use~\ref{V CALC} to get a first initial guess for the 
+velocity $v^{0}$ which we use to set an absolute tolerance $ATOL =\epsilon \|\sqrt{v^{0}\hackscore{j,k}v^{0}\hackscore{j,k}}\|$.
+The GMRES is terminated when 
+\begin{equation}
+\|\hat{r}\|\hackscore{GMRES} \le ATOL
+\end{equation} 
+Notice that $\|\hat{r}\|\hackscore{GMRES}= \|r \| = \|Bv\|  = \|v\hackscore{k,k}\|$ so we we can expect that
+the target stopping criterion~\ref{STOKES STOP} is fullfilled. However, if $v$ is very different from the
+initial choice of $v^{0}$ the value of $ATOL$ is corrected and GMRES is restarted with a new tolerance. For time dependend problems this apprach works well as value for $p$ form a previous time step provides a good initial guess.
+
+Alternatively, as $S$ is symmetric and positive definite one can apply the preconditioned conjugate gradient method (PCG) \index{preconditioned conjugate gradient method!PCG}. PCG use the norm 
+\begin{equation}
+\|r\|\hackscore{PCG}^2 = \int\hackscore{\Omega} r \hat{S}^{-1}r \; dx = \int\hackscore{\Omega}  \eta r^2 \; dx 
+\end{equation} 
+To take the extra factor $\eta$ into consideration when checking the stopping criterion we use the following
+definition for $ATOL$:
+\begin{equation}
+ATOL = \epsilon \frac{\|\sqrt{v^{0}\hackscore{j,k}v^{0}\hackscore{j,k}}\|  }{\|v^{0}\hackscore{k,k}\|} 
+\|v^{0}\hackscore{k,k}\|\hackscore{PCG}
+\end{equation} 
+
+
+
+\subsection{Functions}
+
+\begin{classdesc}{StokesProblemCartesian}{domain\optional{, adaptSubTolerance=\True}}
+opens the Stokes problem\index{Stokes problem} on the \Domain domain. The approximation
+order needs to be two.
+If \var{adaptSubTolerance} is \True 
+the tolerances for all subproblems are set automatically.
+\end{classdesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{initialize}{\optional{f=Data(), \optional{fixed_u_mask=Data(), \optional{eta=1, \optional{surface_stress=Data(), \optional{stress=Data()}}}}}}
+assigns values to the model parameters. In any call all values must be set.
+\var{f} defines the external force $f$, \var{eta} the viscosity $\eta$,
+\var{surface_stress} the surface stress $s$ and \var{stress} the initial stress $\sigma$.
+The locations and compontents where the velocity is fixed are set by 
+the values of \var{fixed_u_mask}. The method will try to cast the given values to appropriate 
+\Data class objects.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{solve}{v,p
+\optional{, max_iter=100 \optional{, verbose=False \optional{, usePCG=True }}}}
+solves the problem and return approximations for velocity and pressure. 
+The arguments \var{v} and \var{p} define initial guess. The values of \var{v} marked
+by \var{fixed_u_mask} remain unchanged. 
+If \var{usePCG} is set to \True 
+reconditioned conjugate gradient method (PCG) \index{preconditioned conjugate gradient method!PCG}  scheme is used. Otherwise the problem is solved generalized minimal residual method (GMRES) \index{generalized minimal residual method!GMRES}. In most cases 
+the PCG scheme is more efficient.
+\var{max_iter} defines the maximum number of iteration steps. 
+
+If \var{verbose} is set to \True informations on the progress of of the solver are printed.
+\end{methoddesc}
+
+
+\begin{methoddesc}[StokesProblemCartesian]{setTolerance}{\optional{tolerance=1.e-4}}
+sets the tolerance in an appropriate norm relative to the right hand side. The tolerance must be non-negative and less than 1.
+\end{methoddesc}
+\begin{methoddesc}[StokesProblemCartesian]{getTolerance}{}
+returns the current relative tolerance.
+\end{methoddesc}
+\begin{methoddesc}[StokesProblemCartesian]{setAbsoluteTolerance}{\optional{tolerance=0.}}
+sets the absolute tolerance for the error in the relevant norm. The tolerance must be non-negative. Typically the
+absolute talerance is set to 0.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{getAbsoluteTolerance}{}
+sreturns the current absolute tolerance.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{getSolverOptionsVelocity}{}
+returns the solver options used  solve the equations~(\ref{V CALC}) for velocity.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{getSolverOptionsPressure}{}
+returns the solver options used  solve the equation~(\ref{P PREC}) for pressure.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{getSolverOptionsDiv}{}
+set the solver options for solving the equation to project the divergence of the velocity onto the function space of pressure.
+\end{methoddesc}
+
+
+\subsection{Example: Lit Driven Cavity}
+ The following script \file{lit\hackscore driven\hackscore cavity.py} 
+\index{scripts!\file{helmholtz.py}} which is available in the \ExampleDirectory
+illustrates the usage of the \class{StokesProblemCartesian} class to solve
+the lit driven cavity problem:
+\begin{python}
+from esys.escript import *
+from esys.finley import Rectangle
+from esys.escript.models import StokesProblemCartesian
+NE=25
+dom = Rectangle(NE,NE,order=2)
+x = dom.getX()
+sc=StokesProblemCartesian(dom)
+mask= (whereZero(x[0])*[1.,0]+whereZero(x[0]-1))*[1.,0] + \
+      (whereZero(x[1])*[0.,1.]+whereZero(x[1]-1))*[1.,1]
+sc.initialize(eta=.1, fixed_u_mask= mask)
+v=Vector(0.,Solution(dom))
+v[0]+=whereZero(x[1]-1.)
+p=Scalar(0.,ReducedSolution(dom))
+v,p=sc.solve(v,p, verbose=True)
+saveVTK("u.xml",velocity=v,pressure=p)
+\end{python}
+
+\section{Darcy Flux}
+We want to calculate the velocity $u$ and pressure $p$ on a domain $\Omega$ solving 
+the Darcy flux problem \index{Darcy flux}\index{Darcy flow}
+\begin{equation}\label{DARCY PROBLEM}
+\begin{array}{rcl}
+u\hackscore{i} + \kappa\hackscore{ij} p\hackscore{,j} & = & g\hackscore{i} \\
+u\hackscore{k,k} & = & f
+\end{array}
+\end{equation} 
+with the boundary conditions
+\begin{equation}\label{DARCY BOUNDARY}
+\begin{array}{rcl}
+u\hackscore{i} \; n\hackscore{i}  = u^{N}\hackscore{i}  \; n\hackscore{i} & \mbox{ on } & \Gamma\hackscore{N} \\
+p = p^{D} &  \mbox{ on } & \Gamma\hackscore{D} \\ 
+\end{array}
+\end{equation} 
+where $\Gamma\hackscore{N}$ and $\Gamma\hackscore{D}$ are a partition of the boundary of $\Omega$ with $\Gamma\hackscore{D}$ non empty, $n\hackscore{i}$ is the outer normal field of the boundary of $\Omega$, $u^{N}\hackscore{i}$ and $p^{D}$ are given functions on $\Omega$, $g\hackscore{i}$ and $f$ are given source terms and $\kappa\hackscore{ij}$ is the given permability. We assume that $\kappa\hackscore{ij}$ is symmetric (which is not really required) and positive definite, i.e there are positive constants $\alpha\hackscore{0}$ and $\alpha\hackscore{1}$ wich are independent from the location in $\Omega$ such that
+\begin{equation}
+\alpha\hackscore{0} \; x\hackscore{i} x\hackscore{i} \le \kappa\hackscore{ij} x\hackscore{i} x\hackscore{j} \le \alpha\hackscore{1} \; x\hackscore{i} x\hackscore{i}
+\end{equation}
+for all $x\hackscore{i}$. 
+
+
+\subsection{Solution Method \label{DARCY SOLVE}}
+In practical applications it is an advantage to calculate the pressure $p$ as a correction of a 'static' pressure $p^{ref}$ which is the solution of
+\begin{equation}
+-(\kappa\hackscore{ki}\kappa\hackscore{kj} p\hackscore{,j}^{ref})\hackscore{,i} =  - (\kappa\hackscore{ki} (g\hackscore{k}- u^{N}\hackscore{k}))\hackscore{,i} 
+\mbox{ with } 
+p^{ref} = p^{D} \mbox{ on } \Gamma\hackscore{D}
+\end{equation} 
+With setting $u \leftarrow u-u^{N}$ and $p \leftarrow p-p^{ref}$ and 
+\begin{equation}
+\begin{array}{rcl}
+g\hackscore{i} & \leftarrow & g\hackscore{i} - u^{N}\hackscore{i} -  \kappa\hackscore{ij} p^{ref}\hackscore{,j }\\
+f & \leftarrow & f - u^{N}\hackscore{k,k}
+\end{array}
+\end{equation} 
+we can assume that $u^{N}\hackscore{i}  \; n\hackscore{i}=0$ and 
+$p^{D}=0$. 
+We set 
+\begin{equation}
+V = \{ q \in H^{1}(\Omega) : q=0 \mbox{ on } \Gamma\hackscore{D} \}
+\end{equation}
+and 
+\begin{equation}
+W = \{ v \in (L^2(\Omega))^{d} : v\hackscore{k,k} \in L^2(\Omega) \mbox{ and } u\hackscore{i} \; n\hackscore{i} =0  \mbox{ on } \Gamma\hackscore{N} \}
+\end{equation}
+and define the operator $Q: V \rightarrow (L^2(\Omega))^{d}$ defined by
+\begin{equation}
+(Qp)\hackscore{i} = \kappa\hackscore{ij} p\hackscore{,j}
+\end{equation}
+and the operator $D: W \rightarrow L^2(\Omega)$ defined by 
+\begin{equation}
+Dv = v\hackscore{k,k}
+\end{equation}
+In operator notation the Darcy problem~\ref{DARCY PROBLEM} is written in the form
+\begin{equation}
+\begin{array}{rcl}
+u + Qp & = & g \\
+Du & = & f 
+\end{array}
+\end{equation} 
+We solve this equation by minimising the functional
+\begin{equation}
+J(u,p):=\|u + Qp - g\|^2\hackscore{0} + \|Du-f\|\hackscore{0}^2 
+\end{equation} 
+over $W \times V$ where $\|.\|\hackscore{0}$ denotes the norm in $L^2(\Omega)$. A simple calculation shows that
+one has to solve
+\begin{equation}
+( v + Qq , u + Qp - g) + (Dv,Du-f) =0 
+\end{equation} 
+for all $v\in W$ and $q \in V$.which translates back into operator notation
+\begin{equation}
+\begin{array}{rcl}
+(I+D^*D)u + Qp & = & D^*f + g \\
+Q^*u  + Q^*Q p & = & Q^*g \\ 
+\end{array}
+\end{equation} 
+where $D^*$ and $Q^*$ denote the adjoint operators. 
+In~\cite{LEASTSQUARESFEM1994} it has been shown that this problem is continuous and coercive in $W \times V$ and therefore has a unique solution. Also standart FEM methods can be used for discretization. It is also possible 
+to solve the problem is coupled form, however this approach leads in some cases to a very ill-conditioned stiffness matrix in particular in the case of a very small or large permability ($\alpha\hackscore{1} \ll 1$ or $\alpha\hackscore{0} \gg 1$)  
+
+The approach we are taking is to eliminate the velocity $u$ from the problem. Assuming that $p$ is known we have
+\begin{equation}\label{DARCY V FORM}
+v= (I+D^*D)^{-1} (D^*f + g - Qp)
+\end{equation} 
+(notice that $(I+D^*D)$ is coercive in $W$) which is inserted into the second equation
+\begin{equation}
+Q^* (I+D^*D)^{-1} (D^*f + g - Qp) + Q^* Q p = Q^*g 
+\end{equation} 
+which is 
+\begin{equation}
+Q^* ( I - (I+D^*D)^{-1} ) Q p = Q^* (g-(I+D^*D)^{-1} (D^*f + g) ) 
+\end{equation} 
+We use the PCG \index{linear solver!PCG}\index{PCG} method to solve this. The residual $r$ ($\in V^*$) is given as
+\begin{equation}
+\begin{array}{rcl}
+r & = & Q^*  \left( g -(I+D^*D)^{-1} (D^*f + g) - Qp + (I+D^*D)^{-1}Q p \right)\\
+& =&  Q^* \left( g- Qp - (I+D^*D)^{-1} (D^*f + g - Qp) \right) \\
+& =&  Q^* \left( g - Qp - v \right)
+\end{array}
+\end{equation} 
+So in a partical implementation we use $\hat{r}=g-Qp-v$ to represent the residual. 
+The evaluation of the iteration operator for a given $p$ is then 
+returning $Qp+v$ where $v$ is the solution of 
+\begin{equation}\label{UPDATE W}
+(I+D^*D)v = Qp
+\end{equation}
+We use $(Q^*Q)^{-1}$ as a preconditioner for the iteration operator $Q^* ( I - (I+D^*D)^{-1} ) Q$. So the application of the preconditioner to $\hat{r}$ representing the residual is given by solving
+implemented by solving 
+\begin{equation}\label{UPDATE P}
+Q^*Q q  = Q^*\hat{r}
+\end{equation}
+The residual norm used in the PCG is given as
+\begin{equation}\label{DARCY R NORM}
+\|r\|\hackscore{PCG}^2 = \int r \cdot (Q^*Q)^{-1} r \; dx =\int \hat{r} \cdot Q (Q^*Q)^{-1} Q^* \hat{r} \; dx \approx
+\|\hat{r}\|\hackscore{0}^2
+\end{equation}
+The iteration is terminated if 
+\begin{equation}\label{DARCY STOP}
+\|r\|\hackscore{PCG} \le \mbox{ATOL}
+\end{equation}
+where we set 
+\begin{equation}\label{DARCY ATOL DEF}
+\mbox{ATOL} = \mbox{atol} + \mbox{rtol} \cdot \left(\frac{1}{\|v\|\hackscore{0}} + \frac{1}{\|Qp\|\hackscore{0}} \right)^{-1} 
+\end{equation}
+where rtol is a given relative tolerance and $\mbox{atol}$ is a given absolute tolerance (typically $=0$).  
+Notice that if $Qp$ and $v$ both are zero, the pair $(0,p)$ is a solution.
+The problem is that ATOL is depending on the solution $p$ (and $v$ calculated form~\ref{DARCY V FORM}). In partcice one use the initial guess for $p$ 
+to get a first value for ATOL. If the stopping crierion is met in the PCG iteration, a new $v$ is calculated from the current pressure approximation and ATOL is recalculated. If \ref{DARCY STOP} is still fullfilled the calculation is terminated and $(v,p)$ is returned. Otherwise PCG is restarted with a new ATOL.
+
+\subsection{Functions}
+\begin{classdesc}{DarcyFlow}{domain \optional{, adaptSubTolerance=\True}}
+opens the Darcy flux problem\index{Darcy flux} on the \Domain domain.
+If \var{adaptSubTolerance} is set to \True, 
+the relative tolerances for solving~(\ref{DARCY V FORM}),~(\ref{UPDATE W})
+and~(\ref{UPDATE P}) are set automatically.
+\end{classdesc}
+
+\begin{methoddesc}[DarcyFlow]{setValue}{\optional{f=None, \optional{g=None, \optional{location_of_fixed_pressure=None, \optional{location_of_fixed_flux=None, \optional{permeability=None}}}}}}
+assigns values to the model parameters. Values can be assigned using various calls - in particular 
+in a time dependend problem only values that change over time needs to be reset. The permability can be defined as scalar (isotropic), a vector (orthotropic) or a matrix (anisotropic). 
+\var{f} and \var{g} are the corresponding parameters in~\ref{DARCY PROBLEM}.
+The locations and compontents where the flux is prescribed are set by positive values in
+\var{location_of_fixed_flux}. 
+The locations where the pressure is prescribed are set by 
+by positive values of \var{location_of_fixed_pressure}. 
+The values of the pressure and flux are defined by the initial guess.
+Notice that at any point on the boundary of the domain the pressure or the normal component of
+the flux must be defined. There must be at least one point where the pressure is prescribed. 
+The method will try to cast the given values to appropriate 
+\Data class objects.
+\end{methoddesc}
+
+\begin{methoddesc}[DarcyFlow]{setTolerance}{\optional{rtol=1e-4}}
+sets the relative tolerance \mbox{rtol} in \ref{DARCY ATOL DEF}.
+\end{methoddesc}
+
+\begin{methoddesc}[DarcyFlow]{setAbsoluteTolerance}{\optional{atol=0.}}
+sets the absolute tolerance \mbox{atol} in \ref{DARCY ATOL DEF}.
+\end{methoddesc}
+
+\begin{methoddesc}[DarcyFlow]{getSolverOptionsFlux}{}
+Returns the solver options used to solve the flux problems~(\ref{DARCY V FORM}) and~(\ref{UPDATE W}). Use the returned \SolverOptions object to control the solution algorithms. If the adaption of subtolerance is choosen, the tolerance will 
+be overwritten before the solver is called.
+\end{methoddesc}
+
+\begin{methoddesc}[DarcyFlow]{getSolverOptionsPressure}{}
+Returns the solver options used to solve the pressure problems~(\ref{UPDATE P}). 
+Use the returned \SolverOptions object to control the solution algorithms. If the adaption of subtolerance is choosen, the tolerance will 
+be overwritten before the solver is called. 
+\end{methoddesc}
+
+\begin{methoddesc}[DarcyFlow]{solve}{u0,p0, \optional{max_iter=100, \optional{verbose=False}}}
+solves the problem. and returns approximations for the flux $v$ and the pressure $p$. 
+\var{u0} and \var{p0} define initial guess for flux and pressure. Values marked
+by positive values \var{location_of_fixed_flux} and \var{location_of_fixed_pressure}, respectively, are kept unchanged. \var{max_iter} sets the maximum number of iterations steps allowed for solving the coupled problem.
+\end{methoddesc}
+
+
+\subsection{Example: Gravity Flow}
+later
+
+%\input{levelsetmodel}
+
+
+
+\section{Isotropic Kelvin Material \label{IKM}}
+As proposed by Kelvin~\cite{Muhlhaus2005} material strain $D\hackscore{ij}=\frac{1}{2}(v\hackscore{i,j}+v\hackscore{j,i})$ can be decomposed into
+an elastic part $D\hackscore{ij}^{el}$ and visco-plastic part $D\hackscore{ij}^{vp}$:
+\begin{equation}\label{IKM-EQU-2}
+D\hackscore{ij}=D\hackscore{ij}^{el}+D\hackscore{ij}^{vp}
+\end{equation}
+with the elastic strain given as 
+\begin{equation}\label{IKM-EQU-3}
+D\hackscore{ij}^{el'}=\frac{1}{2 \mu} \dot{\sigma}\hackscore{ij}'
+\end{equation}
+where $\sigma'\hackscore{ij}$ is the deviatoric stress (Notice that $\sigma'\hackscore{ii}=0$).
+If the material is composed by materials $q$ the visco-plastic strain can be decomposed as
+\begin{equation}\label{IKM-EQU-4}
+D\hackscore{ij}^{vp'}=\sum\hackscore{q} D\hackscore{ij}^{q'} 
+\end{equation}
+where $D\hackscore{ij}^{q}$ is the strain in material $q$ given as 
+\begin{equation}\label{IKM-EQU-5}
+D\hackscore{ij}^{q'}=\frac{1}{2 \eta^{q}} \sigma'\hackscore{ij} 
+\end{equation}
+where $\eta^{q}$ is the viscosity of material $q$. We assume the following 
+betwee the the strain in material $q$ 
+\begin{equation}\label{IKM-EQU-5b}
+\eta^{q}=\eta^{q}\hackscore{N} \left(\frac{\tau}{\tau\hackscore{t}^q}\right)^{1-n^{q}}
+\mbox{ with } \tau=\sqrt{\frac{1}{2}\sigma'\hackscore{ij} \sigma'\hackscore{ij}}
+\end{equation}
+for a given power law coefficients $n^{q}\ge1$ and transition stresses $\tau\hackscore{t}^q$, see~\cite{Muhlhaus2005}.
+Notice that $n^{q}=1$ gives a constant viscosity.
+After inserting equation~\ref{IKM-EQU-5} into equation \ref{IKM-EQU-4} one gets:
+\begin{equation}\label{IKM-EQU-6}
+D\hackscore{ij}'^{vp}=\frac{1}{2 \eta^{vp}} \sigma'\hackscore{ij} \mbox{ with } \frac{1}{\eta^{vp}} = \sum\hackscore{q} \frac{1}{\eta^{q}} \;.
+\end{equation}
+and finally with~\ref{IKM-EQU-2} 
+\begin{equation}\label{IKM-EQU-2bb}
+D\hackscore{ij}'=\frac{1}{2 \eta^{vp}} \sigma'\hackscore{ij}+\frac{1}{2 \mu} \dot{\sigma}\hackscore{ij}'
+\end{equation}
+The total stress $\tau$ needs to fullfill the yield condition \index{yield condition} 
+\begin{equation}\label{IKM-EQU-8c}
+\tau \le \tau\hackscore{Y} + \beta \; p
+\end{equation}
+with the Drucker-Prager \index{Druck-Prager} cohesion factor \index{cohesion factor} $\tau\hackscore{Y}$, Drucker-Prager friction $\beta$ and total pressure $p$.
+The deviatoric stress needs to fullfill the equilibrion equation
+\begin{equation}\label{IKM-EQU-1}
+-\sigma'\hackscore{ij,j}+p\hackscore{,i}=F\hackscore{i}
+\end{equation}
+where $F\hackscore{j}$ is a given external fource. We assume an incompressible media:
+\begin{equation}\label{IKM-EQU-2bbb}
+-v\hackscore{i,i}=0
+\end{equation}
+Natural boundary conditions are taken in the form 
+\begin{equation}\label{IKM-EQU-Boundary}
+\sigma'\hackscore{ij}n\hackscore{j}-n\hackscore{i}p=f
+\end{equation}
+which can be overwritten by a constraint 
+\begin{equation}\label{IKM-EQU-Boundary0}
+v\hackscore{i}(x)=0
+\end{equation}
+where the index $i$ may depend on the location $x$ on the bondary.
+
+\subsection{Solution Method \label{IKM-SOLVE}}
+By using a first order finite difference approximation wit step size $dt>0$~\ref{IKM-EQU-3} get the form
+\begin{equation}\label{IKM-EQU-3b}
+\dot{\sigma}\hackscore{ij}=\frac{1}{dt } \left( \sigma\hackscore{ij} - \sigma\hackscore{ij}^{-} \right)
+\end{equation}
+and 
+\begin{equation}\label{IKM-EQU-2b}
+D\hackscore{ij}'=\left(\frac{1}{2 \eta^{vp}} + \frac{1}{2 \mu dt}\right) \sigma\hackscore{ij}'-\frac{1}{2 \mu dt } \sigma\hackscore{ij}^{-'}
+\end{equation}
+where $\sigma\hackscore{ij}^{-}$ is the stress at the precious time step. With 
+\begin{equation}\label{IKM-EQU-2c}
+\dot{\gamma} = \sqrt{ 2 \left( D\hackscore{ij}' +
+\frac{1}{  2 \mu \; dt} \sigma\hackscore{ij}^{-'}\right)^2}
+\end{equation} 
+we have
+\begin{equation}
+\tau = \eta\hackscore{eff} \cdot \dot{\gamma}
+\end{equation} 
+where
+\begin{equation}
+\eta\hackscore{eff}= min( \left(\frac{1}{\mu \; dt}+\frac{1}{\eta^{vp}}\right)^{-1} 
+, \eta\hackscore{max}) \mbox{ with } 
+\eta\hackscore{max} = \left\{ 
+\begin{array}{rcl}
+\frac{\tau\hackscore{Y} + \beta \; p}{\dot{\gamma}} & & \dot{\gamma}>0 \\
+&\mbox{ if } \\ 
+\infty & & \mbox{otherwise}
+\end{array}
+\right.
+\end{equation}
+The upper bound $\eta\hackscore{max}$ makes sure that yield condtion~\ref{IKM-EQU-8c} holds. With this setting the eqaution \ref{IKM-EQU-2b} takes the form 
+\begin{equation}\label{IKM-EQU-10}
+\sigma\hackscore{ij}' =  2 \eta\hackscore{eff}  \left( D\hackscore{ij}' +
+\frac{1}{  2 \mu \; dt} \sigma\hackscore{ij}^{'-}\right)  
+\end{equation}
+After inserting~\ref{IKM-EQU-10} into~\ref{IKM-EQU-1} we get
+\begin{equation}\label{IKM-EQU-1ib}
+-\left(\eta\hackscore{eff} (v\hackscore{i,j}+ v\hackscore{i,j})
+\right)\hackscore{,j}+p\hackscore{,i}=F\hackscore{i}+
+ \left(\frac{\eta\hackscore{eff}}{\mu dt } \sigma\hackscore{ij}^{'-} \right)\hackscore{,j}
+\end{equation}
+Combining this with the incomressibilty condition~\ref{IKM-EQU-2} we need to solve a
+Stokes problem as discussed in section~\ref{STOKES SOLVE} in each time step.
+
+If we set 
+\begin{equation}\label{IKM-EQU-44}
+\frac{1}{\eta(\tau)}= \frac{1}{\mu \; dt}+\frac{1}{\eta^{vp}}
+\end{equation}
+we need to solve the nonlinear problem
+\begin{equation}
+\eta\hackscore{eff} -  min(\eta( \dot{\gamma} \cdot \eta\hackscore{eff}) 
+, \eta\hackscore{max}) =0 
+\end{equation}
+We use the Newton-Raphson Scheme \index{Newton-Raphson scheme} to solve this problem
+\begin{equation}\label{IKM-EQU-45}
+\eta\hackscore{eff}^{(n+1)} = \min(\eta\hackscore{max}, 
+\eta\hackscore{eff}^{(n)} -
+\frac{\eta\hackscore{eff}^{(n)} - \eta( \tau^{(n)}) }
+{1-\dot{\gamma} \cdot \eta'( \tau^{(n)} )} )
+=\min(\eta\hackscore{max},
+\frac{\eta( \tau^{(n)}) -\tau^{(n)} \cdot  \eta'( \tau^{(n)} )  }
+{1-\dot{\gamma} \cdot \eta'( \tau^{(n)} )} )
+\end{equation} 
+where $\eta'$ denotes the derivative of $\eta$ with respect of $\tau$
+and $\tau^{(n)} =  \dot{\gamma} \cdot \eta\hackscore{eff}^{(n)}$. 
+
+Looking at the evaluation of $\eta$ in~\ref{IKM-EQU-44} it makes sense formulate
+the iteration~\ref{IKM-EQU-45} using $\Theta=\eta^{-1}$. 
+In fact we have 
+\begin{equation}
+\eta' = - \frac{\Theta'}{\Theta^2} 
+\mbox{ with } 
+\Theta' = \sum\hackscore{q} \left(\frac{1}{\eta^{q}} \right)'
+\label{IKM iteration 7}
+\end{equation} 
+As
+\begin{equation}\label{IKM-EQU-47}
+\left(\frac{1}{\eta^{q}} \right)'
+= \frac{n^{q}-1}{\eta^{q}\hackscore{N}} \cdot \frac{\tau^{n^{q}-2}}{(\tau\hackscore{t}^q)^{n^{q}-1}}
+= \frac{n^{q}-1}{\eta^{q}}\cdot\frac{1}{\tau} 
+\end{equation}
+we have
+\begin{equation}\label{IKM-EQU-48}
+\Theta' = \frac{1}{\tau} \omega \mbox{ with } \omega = \sum\hackscore{q}\frac{n^{q}-1}{\eta^{q}} 
+\end{equation}
+which leads to 
+\begin{equation}\label{IKM-EQU-49}
+\eta\hackscore{eff}^{(n+1)} = \min(\eta\hackscore{max}, 
+\eta\hackscore{eff}^{(n)}
+\frac{\Theta^{(n)}  + \omega^{(n)}  }
+{\eta\hackscore{eff}^{(n)} \Theta^{(n)^2}+\omega^{(n)} })
+\end{equation} 
+
+
+\subsection{Functions}
+
+\begin{classdesc}{IncompressibleIsotropicFlowCartesian}{
+domain
+\optional{, stress=0
+\optional{, v=0
+\optional{, p=0
+\optional{, t=0
+\optional{, numMaterials=1
+\optional{, verbose=True
+\optional{, adaptSubTolerance=True
+}}}}}}}}
+opens an incompressible, isotropic flow problem in Cartesian cooridninates
+on the domain \var{domain}.
+\var{stress},
+\var{v},
+\var{p}, and
+\var{t} set the initial deviatoric stress, velocity, pressure and time.
+\var{numMaterials} specifies the number of materials used in the power law
+model. Some progress information are printed if \var{verbose} is set to
+\True. If \var{adaptSubTolerance} is equal to True the tolerances for subproblems are set automatically.
+\end{classdesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getDomain}{}
+returns the domain.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getTime}{}
+Returns current time.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getStress}{}
+Returns current stress.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getDeviatoricStress}{}
+Returns current deviatoric stress.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getPressure}{}
+Returns current pressure.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getVelocity}{}
+Returns current velocity.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getDeviatoricStrain}{}
+Returns deviatoric strain of current velocity
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getTau}{}
+Returns current second invariant of deviatoric stress
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getGammaDot}{}
+Returns current second invariant of deviatoric strain
+\end{methoddesc}
+
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setTolerance}{tol=1.e-4}
+Sets the tolerance used to terminate the iteration on a time step.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setFlowTolerance}{tol=1.e-4}
+Sets the relative tolerance for the incompressible solver, see \class{StokesProblemCartesian} for details.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setElasticShearModulus}{mu=None}
+Sets the elastic shear modulus $\mu$. If \var{mu} is set to None (default) elasticity is not applied.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setEtaTolerance=}{rtol=1.e-8}
+sets the relative tolerance for the effectice viscosity. Iteration on a time step is completed if the realtive of the effective viscosity is less than \var{rtol}.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setDruckerPragerLaw}
+{\optional{tau_Y=None, \optional{friction=None}}}
+Sets the parameters $\tau\hackscore{Y}$ and $\beta$ for the Drucker-Prager model in condition~\ref{IKM-EQU-8c}. If \var{tau_Y} is set to None (default) Drucker-Prager
+condition is not applied.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setElasticShearModulus}{mu=None}
+Sets the elastic shear modulus $\mu$. If \var{mu} is set to None (default) elasticity is not applied.
+\end{methoddesc}
+
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setPowerLaws}{eta_N, tau_t, power}
+Sets the parameters of the power-law for all materials as defined in 
+equation~\ref{IKM-EQU-5b}.
+\var{eta_N} is the list of viscosities $\eta^{q}\hackscore{N}$,
+\var{tau_t} is the list of reference stresses  $\tau\hackscore{t}^q$,
+and \var{power} is the list of  power law coefficients $n^{q}$.
+\end{methoddesc}
+
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{update}{dt
+\optional{, iter_max=100
+\optional{, inner_iter_max=20
+}}}
+Updates stress, velocity and pressure for time increment \var{dt}.
+where \var{iter_max} is the maximum number of iteration steps on a time step to
+update the effective viscosity and \var{inner_iter_max} is the maximum
+number of itertion steps in the incompressible solver.
+\end{methoddesc}
+
+\subsection{Example}
+later
+
+% \section{Drucker Prager Model}
