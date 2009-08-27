@@ -439,6 +439,14 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
 
   /**
+    \brief given a vector of FunctionSpace typecodes, pass back a code which then can all be interpolated to.
+    \return true is result is valid, false if not
+  */
+  FINLEY_DLL_API
+  bool
+  commonFunctionSpace(const std::vector<int>& fs, int& resultcode) const;
+
+  /**
      \brief
      interpolates data given on source onto target where source and target are given on different domains.
      has to be implemented by the actual Domain adapter.

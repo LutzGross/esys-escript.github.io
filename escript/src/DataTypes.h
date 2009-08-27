@@ -328,6 +328,25 @@ namespace DataTypes {
    /**
       \brief Display a single value (with the specified shape) from the data.
 
+     Despite its similar name this function behaves differently to pointToString.
+     There are no prefixes or (i,j,k) identifiers on each field. each datapoint is printed without
+     new lines.
+     It also works with double* rather than vectors so be careful what you pass it.
+
+     \param os - stream to write to
+     \param data - vector containing the datapoint
+     \param shape - shape of the datapoint
+     \param offset - start of the datapoint within data
+     \param prefix - string to prepend to the output
+     \param needsep - Does this output need to start with a separator
+     \param sep - separator string to print between components
+   */
+   void
+   pointToStream(std::ostream& os, const ValueType::ElementType* data,const ShapeType& shape, int offset, bool needsep=true, const std::string& sep=",");
+
+   /**
+      \brief Display a single value (with the specified shape) from the data.
+
      \param data - vector containing the datapoint
      \param shape - shape of the datapoint
      \param offset - start of the datapoint within data

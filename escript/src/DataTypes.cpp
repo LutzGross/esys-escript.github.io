@@ -468,6 +468,97 @@ namespace DataTypes
 
    }
 
+
+   void
+   pointToStream(std::ostream& os, const ValueType::ElementType* data,const ShapeType& shape, int offset, bool needsep, const std::string& sep)
+   {
+      using namespace std;
+      EsysAssert(data!=0, "Error - data is null");
+//      EsysAssert(data.size()>0,"Error - Data object is empty.");
+      switch (getRank(shape)) {
+      case 0:
+	 if (needsep)
+	 {
+		os << sep;
+	 }
+	 else
+	 {
+		needsep=true;
+	 }
+         os << data[offset];
+         break;
+      case 1:
+         for (int i=0;i<shape[0];i++) {
+	    if (needsep)
+	    {
+		os << sep;
+	    }
+	    else
+	    {
+		needsep=true;
+	    }
+	    os << data[i+offset];
+         }
+         break;
+      case 2:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+		if (needsep)
+		{
+			os << sep;
+		}
+		else
+		{
+			needsep=true;
+		}
+                os << data[offset+getRelIndex(shape,i,j)];
+            }
+         }
+         break;
+      case 3:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+		   if (needsep)
+		   {
+			os << sep;
+		   }
+		   else
+		   {
+			needsep=true;
+		   }
+                   os << data[offset+getRelIndex(shape,i,j,k)];
+               }
+            }
+         }
+         break;
+      case 4:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+                  for (int l=0;l<shape[3];l++) {
+			if (needsep)
+			{
+				os << sep;
+			}
+			else
+			{
+				needsep=true;
+			}
+			os << data[offset+getRelIndex(shape,i,j,k,l)];
+                  }
+               }
+            }
+         }
+         break;
+      default:
+         stringstream mess;
+         os << mess << "Error - (pointToStream) Invalid rank: " << getRank(shape);
+         throw DataException(mess.str());
+      }
+   }
+
+
    std::string
    pointToString(const ValueType& data,const ShapeType& shape, int offset, const std::string& prefix)
    {

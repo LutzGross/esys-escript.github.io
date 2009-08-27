@@ -107,6 +107,11 @@ BOOST_PYTHON_MODULE(escriptcpp)
 " value for arg1. The values are added up and the total value is returned.\n\n:rtype: int");
   def("getMachinePrecision",escript::getMachinePrecision);
   def("getMaxFloat",escript::getMaxFloat);
+
+
+  def("_saveDataCSV",escript::saveDataCSV, (args("filename","arg","sep","csep"), arg("append")=false));
+
+
   //
   // Interface for AbstractDomain
   //
@@ -309,7 +314,6 @@ args("table","Amin","Astep","undef", "B", "Bmin", "Bstep"),
     .def("_sup",&escript::Data::sup,":return: the maximum value over all data points.\n:rtype: float\n:note: If the ``Data`` contains no values a large negative value will be returned instead.")
     .def("_inf",&escript::Data::inf,":return: minimum value over all components and all data points\n:rtype: float\n:note: If the ``Data`` contains no values a large positive value will be returned instead.")
     .def("_integrateToTuple",&escript::Data::integrateToTuple,":return: Calculate the integral over the function space domain as a python tuple\n:rtype: tuple")
-
     // following implements the python abs operator
     .def("__abs__",&escript::Data::abs,":return: absolute value\n\n:rtype: `Data`")
     // following implements the python "-" negation operator
@@ -354,6 +358,7 @@ args("table","Amin","Astep","undef", "B", "Bmin", "Bstep"),
     // the boost code. This calls operator << for Data.
     .def(self_ns::str(self));
 
+
   //
   // Factory methods for function space
   //
@@ -380,6 +385,10 @@ args("table","Amin","Astep","undef", "B", "Bmin", "Bstep"),
   def("Solution",escript::solution, args("domain"), ":rtype: `FunctionSpace`");
   def("ReducedSolution",escript::reducedSolution, args("domain"), ":rtype: `FunctionSpace`");
   def("DiracDeltaFunction",escript::diracDeltaFunction, args("domain"), ":rtype: `FunctionSpace`");
+
+
+
+
 
   //
   // Factory methods for Data

@@ -1661,149 +1661,293 @@ bool MeshAdapter::isCellOriented(int functionSpaceCode) const
    return false;
 }
 
+bool
+MeshAdapter::commonFunctionSpace(const std::vector<int>& fs, int& resultcode) const
+{
+   /* The idea is to use equivalence classes. [Types which can be interpolated back and forth]
+	class 1: DOF <-> Nodes
+	class 2: ReducedDOF <-> ReducedNodes
+	class 3: Points
+	class 4: Elements
+	class 5: ReducedElements
+	class 6: FaceElements
+	class 7: ReducedFaceElements
+	class 8: ContactElementZero <-> ContactElementOne
+	class 9: ReducedContactElementZero <-> ReducedContactElementOne
+
+   There is also a set of lines. Interpolation is possible down a line but not between lines.
+   class 1 and 2 belong to all lines so aren't considered.
+	line 0: class 3
+	line 1: class 4,5
+	line 2: class 6,7
+	line 3: class 8,9
+
+   For classes with multiple members (eg class 2) we have vars to record if there is at least one instance.
+   eg hasnodes is true if we have at least one instance of Nodes.
+   */
+    if (fs.size()==0)
+    {
+	return false;
+    }
+    std::vector<int> hasclass(10);
+    std::vector<int> hasline(4);	
+    bool hasnodes=false;
+    bool hasrednodes=false;
+    bool hascez=false;
+    bool hasrcez=false;
+    for (int i=0;i<fs.size();++i)
+    {
+	switch(fs[i])
+	{
+	case(Nodes):   hasnodes=true;	// no break is deliberate
+	case(DegreesOfFreedom):
+		hasclass[1]=1;
+		break;
+	case(ReducedNodes):    hasrednodes=true;	// no break is deliberate
+	case(ReducedDegreesOfFreedom):
+		hasclass[2]=1;
+		break;
+	case(Points):
+		hasline[0]=1;
+		hasclass[3]=1;
+		break;
+	case(Elements):
+		hasclass[4]=1;
+		hasline[1]=1;
+		break;
+	case(ReducedElements):
+		hasclass[5]=1;
+		hasline[1]=1;
+		break;
+	case(FaceElements):
+		hasclass[6]=1;
+		hasline[2]=1;
+		break;
+	case(ReducedFaceElements):
+		hasclass[7]=1;
+		hasline[2]=1;
+		break;
+	case(ContactElementsZero):  hascez=true;	// no break is deliberate
+	case(ContactElementsOne):
+		hasclass[8]=1;
+		hasline[3]=1;
+		break;
+	case(ReducedContactElementsZero):   hasrcez=true;   // no break is deliberate
+	case(ReducedContactElementsOne):
+		hasclass[9]=1;
+		hasline[3]=1;
+		break;
+	default:
+		return false;
+	}
+    }
+    int totlines=hasline[0]+hasline[1]+hasline[2]+hasline[3];
+    // fail if we have more than one leaf group
+
+    if (totlines>1)
+    {
+	return false;	// there are at least two branches we can't interpolate between
+    }
+    else if (totlines==1)
+    {
+	if (hasline[0]==1)		// we have points
+	{
+	    resultcode=Points;
+	}
+	else if (hasline[1]==1)
+	{
+	    if (hasclass[5]==1)
+	    {
+		resultcode=ReducedElements;
+	    }
+	    else
+	    {
+		resultcode=Elements;
+	    }
+	}
+	else if (hasline[2]==1)
+	{
+	    if (hasclass[7]==ReducedFaceElements)
+	    {
+		resultcode=ReducedFaceElements;
+	    }
+	    else
+	    {
+		resultcode=FaceElements;
+	    }
+	}
+	else	// so we must be in line3
+	{
+	    if (hasclass[9]==1)
+	    {
+		// need something from class 9
+		resultcode=(hasrcez?ReducedContactElementsZero:ReducedContactElementsOne);
+	    }
+	    else
+	    {
+		// something from class 8
+		resultcode=(hascez?ContactElementsZero:ContactElementsOne);
+	    }
+	}
+    }
+    else	// totlines==0
+    {
+	if (hasclass[2]==1)
+	{
+		// something from class 2
+		resultcode=(hasrednodes?ReducedNodes:ReducedDegreesOfFreedom);
+	}
+	else
+	{	// something from class 1
+		resultcode=(hasnodes?Nodes:DegreesOfFreedom);
+	}
+    }
+    return true;
+}
+
 bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const
 {
    switch(functionSpaceType_source) {
    case(Nodes):
-   switch(functionSpaceType_target) {
-   case(Nodes):
-   case(ReducedNodes):
-   case(ReducedDegreesOfFreedom):
-   case(DegreesOfFreedom):
-   case(Elements):
-   case(ReducedElements):
-   case(FaceElements):
-   case(ReducedFaceElements):
-   case(Points):
-   case(ContactElementsZero):
-   case(ReducedContactElementsZero):
-   case(ContactElementsOne):
-   case(ReducedContactElementsOne):
-   return true;
-   default:
-      stringstream temp;
-      temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << functionSpaceType_target;
-      throw FinleyAdapterException(temp.str());
+   	switch(functionSpaceType_target) {
+	case(Nodes):
+	case(ReducedNodes):
+	case(ReducedDegreesOfFreedom):
+	case(DegreesOfFreedom):
+	case(Elements):
+	case(ReducedElements):
+	case(FaceElements):
+	case(ReducedFaceElements):
+	case(Points):
+	case(ContactElementsZero):
+	case(ReducedContactElementsZero):
+	case(ContactElementsOne):
+	case(ReducedContactElementsOne):
+	return true;
+	default:
+	      stringstream temp;
+	      temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << functionSpaceType_target;
+	      throw FinleyAdapterException(temp.str());
    }
    break;
    case(ReducedNodes):
-   switch(functionSpaceType_target) {
-   case(ReducedNodes):
-   case(ReducedDegreesOfFreedom):
-   case(Elements):
-   case(ReducedElements):
-   case(FaceElements):
-   case(ReducedFaceElements):
-   case(Points):
-   case(ContactElementsZero):
-   case(ReducedContactElementsZero):
-   case(ContactElementsOne):
-   case(ReducedContactElementsOne):
-   return true;
-   case(Nodes):
-   case(DegreesOfFreedom):
-   return false;
-   default:
-      stringstream temp;
-      temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << functionSpaceType_target;
-      throw FinleyAdapterException(temp.str());
+	switch(functionSpaceType_target) {
+	case(ReducedNodes):
+	case(ReducedDegreesOfFreedom):
+	case(Elements):
+	case(ReducedElements):
+	case(FaceElements):
+	case(ReducedFaceElements):
+	case(Points):
+	case(ContactElementsZero):
+	case(ReducedContactElementsZero):
+	case(ContactElementsOne):
+	case(ReducedContactElementsOne):
+	return true;
+	case(Nodes):
+	case(DegreesOfFreedom):
+	return false;
+	default:
+		stringstream temp;
+		temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << functionSpaceType_target;
+		throw FinleyAdapterException(temp.str());
    }
    break;
    case(Elements):
-   if (functionSpaceType_target==Elements) {
-      return true;
-   } else if (functionSpaceType_target==ReducedElements) {
-      return true;
-   } else {
-      return false;
-   }
+	if (functionSpaceType_target==Elements) {
+	  return true;
+	} else if (functionSpaceType_target==ReducedElements) {
+	  return true;
+        } else {
+          return false;
+        }
    case(ReducedElements):
-   if (functionSpaceType_target==ReducedElements) {
-      return true;
-   } else {
-      return false;
-   }
+	if (functionSpaceType_target==ReducedElements) {
+	  return true;
+	} else {
+          return false;
+	}
    case(FaceElements):
-   if (functionSpaceType_target==FaceElements) {
-      return true;
-   } else if (functionSpaceType_target==ReducedFaceElements) {
-      return true;
-   } else {
-      return false;
-   }
+	if (functionSpaceType_target==FaceElements) {
+      		return true;
+	} else if (functionSpaceType_target==ReducedFaceElements) {
+      		return true;
+	} else {
+      		return false;
+	}
    case(ReducedFaceElements):
-   if (functionSpaceType_target==ReducedFaceElements) {
-      return true;
-   } else {
-      return false;
-   }
+	if (functionSpaceType_target==ReducedFaceElements) {
+      		return true;
+	} else {
+		return false;
+	}
    case(Points):
-   if (functionSpaceType_target==Points) {
-      return true;
-   } else {
-      return false;
-   }
+	if (functionSpaceType_target==Points) {
+      		return true;
+	} else {
+      		return false;
+	}
    case(ContactElementsZero):
    case(ContactElementsOne):
-   if (functionSpaceType_target==ContactElementsZero || functionSpaceType_target==ContactElementsOne) {
-      return true;
-   } else if (functionSpaceType_target==ReducedContactElementsZero || functionSpaceType_target==ReducedContactElementsOne) {
-      return true;
-   } else {
-      return false;
-   }
+	if (functionSpaceType_target==ContactElementsZero || functionSpaceType_target==ContactElementsOne) {
+      		return true;
+	} else if (functionSpaceType_target==ReducedContactElementsZero || functionSpaceType_target==ReducedContactElementsOne) {
+      		return true;
+	} else {
+      		return false;
+	}
    case(ReducedContactElementsZero):
    case(ReducedContactElementsOne):
-   if (functionSpaceType_target==ReducedContactElementsZero || functionSpaceType_target==ReducedContactElementsOne) {
-      return true;
-   } else {
-      return false;
-   }
+	if (functionSpaceType_target==ReducedContactElementsZero || functionSpaceType_target==ReducedContactElementsOne) {
+      		return true;
+	} else {
+      		return false;
+	}
    case(DegreesOfFreedom):
+	switch(functionSpaceType_target) {
+	case(ReducedDegreesOfFreedom):
+	case(DegreesOfFreedom):
+	case(Nodes):
+	case(ReducedNodes):
+	case(Elements):
+	case(ReducedElements):
+	case(Points):
+	case(FaceElements):
+	case(ReducedFaceElements):
+	case(ContactElementsZero):
+	case(ReducedContactElementsZero):
+	case(ContactElementsOne):
+	case(ReducedContactElementsOne):
+	return true;
+	default:
+		stringstream temp;
+		temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << functionSpaceType_target;
+		throw FinleyAdapterException(temp.str());
+	}
+   	break;
+   case(ReducedDegreesOfFreedom):
    switch(functionSpaceType_target) {
-   case(ReducedDegreesOfFreedom):
-   case(DegreesOfFreedom):
-   case(Nodes):
-   case(ReducedNodes):
-   case(Elements):
-   case(ReducedElements):
-   case(Points):
-   case(FaceElements):
-   case(ReducedFaceElements):
-   case(ContactElementsZero):
-   case(ReducedContactElementsZero):
-   case(ContactElementsOne):
-   case(ReducedContactElementsOne):
-   return true;
-   default:
-      stringstream temp;
-      temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << functionSpaceType_target;
-      throw FinleyAdapterException(temp.str());
-   }
-   break;
-   case(ReducedDegreesOfFreedom):
-   switch(functionSpaceType_target) {
-   case(ReducedDegreesOfFreedom):
-   case(ReducedNodes):
-   case(Elements):
-   case(ReducedElements):
-   case(FaceElements):
-   case(ReducedFaceElements):
-   case(Points):
-   case(ContactElementsZero):
-   case(ReducedContactElementsZero):
-   case(ContactElementsOne):
-   case(ReducedContactElementsOne):
-   return true;
-   case(Nodes):
-   case(DegreesOfFreedom):
-   return false;
-   default:
-      stringstream temp;
-      temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << functionSpaceType_target;
-      throw FinleyAdapterException(temp.str());
-   }
-   break;
+	case(ReducedDegreesOfFreedom):
+	case(ReducedNodes):
+	case(Elements):
+	case(ReducedElements):
+	case(FaceElements):
+	case(ReducedFaceElements):
+	case(Points):
+	case(ContactElementsZero):
+	case(ReducedContactElementsZero):
+	case(ContactElementsOne):
+	case(ReducedContactElementsOne):
+	return true;
+	case(Nodes):
+	case(DegreesOfFreedom):
+	return false;
+	default:
+		stringstream temp;
+		temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << functionSpaceType_target;
+		throw FinleyAdapterException(temp.str());
+	}
+	break;
    default:
       stringstream temp;
       temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << functionSpaceType_source;

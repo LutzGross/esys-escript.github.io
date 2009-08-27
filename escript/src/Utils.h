@@ -26,7 +26,8 @@ namespace escript {
 
   /**
      \brief
-     return the latest SVN version number
+     return the SVN version number used to build this version.
+     \warning Only gives accurate answers for clean checkouts
   */
   ESCRIPT_DLL_API int getSvnVersion();
 
@@ -87,6 +88,11 @@ namespace escript {
    return largest positive float
  */
  ESCRIPT_DLL_API double getMaxFloat();
+
+ ESCRIPT_DLL_API
+ void
+ saveDataCSV(const std::string& filename, boost::python::dict arg, const std::string& sep, const std::string& csep,
+bool append=false); 
 
 } // end of namespace
 #endif

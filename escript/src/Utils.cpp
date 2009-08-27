@@ -14,6 +14,10 @@
 
 #include <string.h>
 
+// added for saveCSV
+#include <boost/python.hpp>
+#include "Data.h"
+
 #include "Utils.h"
 #include "DataVector.h"
 
@@ -166,5 +170,199 @@ ESCRIPT_DLL_API void MPIBarrierWorld() {
   #endif
 }
 
+ESCRIPT_DLL_API
+void
+saveDataCSV(const std::string& filename, boost::python::dict arg, const std::string& sep, const std::string& csep, 
+bool append)
+{
+    using std::cout;
+    using std::endl;
+    boost::python::list keys=arg.keys();
+    int numdata = boost::python::extract<int>(arg.attr("__len__")());
+    if (numdata<1)
+    {
+	throw DataException("saveDataCSVcpp: no data to save specified.");
+    }
+    std::vector<int> step(numdata);
+    std::vector<std::string> names(numdata);
+    std::vector<Data> data(numdata);
+    std::vector<const DataAbstract::ValueType::value_type*> samples(numdata);
+    std::vector<int> offset(numdata);
+    std::vector<int> fstypes(numdata);		// FunctionSpace types for each data
+
+    // We need to interpret the samples correctly even if they are different types
+    // for this reason, we should interate over samples
+    for (int i=0;i<numdata;++i)
+    {
+	names[i]=boost::python::extract<std::string>(keys[i]);
+	data[i]=boost::python::extract<escript::Data>(arg[keys[i]]);
+	step[i]=(data[i].actsConstant()?0:DataTypes::noValues(data[i].getDataPointShape()));
+	fstypes[i]=data[i].getFunctionSpace().getTypeCode();
+	if (i>0) 
+	{
+	    if (data[i].getDomain()!=data[i-1].getDomain())
+	    {
+		throw DataException("saveDataCSVcpp: all data must be on the same domain.");
+	    }
+	}
+    }
+    int bestfnspace=0;
+    if (!data[0].getDomain()->commonFunctionSpace(fstypes, bestfnspace))
+    {
+	throw DataException("saveDataCSVcpp: FunctionSpaces of data are incompatible");
+    }
+    // now we interpolate all data to the same type
+    FunctionSpace best(data[0].getDomain(),bestfnspace);
+    for (int i=0;i<numdata;++i)
+    {
+	data[i]=data[i].interpolate(best);
+    }
+    int numsamples=data[0].getNumSamples();		// these must be the same for all data
+    int dpps=data[0].getNumDataPointsPerSample();
+
+    
+    std::ofstream os;
+    if (append)
+    {
+	os.open(filename.c_str(), std::ios_base::app);
+    }
+    else
+    {
+	os.open(filename.c_str());
+    }
+    if (!os.is_open())
+    {
+	throw DataException("saveDataCSVcpp: unable to open file for writing");
+    }
+
+    bool first=true;
+    for (int i=0;i<numdata;++i)
+    {
+	const DataTypes::ShapeType& s=data[i].getDataPointShape();
+        switch (data[i].getDataPointRank())
+	{
+	case 0: if (!first)
+		    {
+			os << sep;
+		    }
+		    else
+		    {
+			first=false;
+		    }
+		os << names[i]; break;
+	case 1: for (int j=0;j<s[0];++j)
+		{
+		    if (!first)
+		    {
+			os << sep;
+		    }
+		    else
+		    {
+			first=false;
+		    }
+		    os << names[i] << csep << j;
+		}
+		break;
+	case 2: for (int j=0;j<s[0];++j)
+		{
+		    for (int k=0;k<s[1];++k)
+		    {
+			if (!first)
+			{
+				os << sep;
+			}
+			else
+			{
+				first=false;
+			}
+		    	os << names[i] << csep << k << csep << j;
+		    }
+		}
+		break;
+	case 3: for (int j=0;j<s[0];++j)
+		{
+		    for (int k=0;k<s[1];++k)
+		    {
+			for (int l=0;l<s[2];++l)
+			{
+				if (!first)
+				{
+					os << sep;
+				}
+				else
+				{
+					first=false;
+				}
+				os << names[i] << csep << k << csep << j << csep << l;
+			}
+		    }
+		}
+		break;
+	case 4: for (int j=0;j<s[0];++j)
+		{
+		    for (int k=0;k<s[1];++k)
+		    {
+			for (int l=0;l<s[2];++l)
+			{
+			    for (int m=0;m<s[3];++m)
+			    {
+				if (!first)
+				{
+					os << sep;
+				}
+				else
+				{
+					first=false;
+				}
+				os << names[i] << csep << k << csep << j << csep << l << csep << m;
+			    }
+			}
+		    }
+		}
+		break;
+	default:
+		throw DataException("saveDataCSV: Illegal rank");
+	}
+    }
+    os << endl; 
+
+	//the use of shared_ptr here is just to ensure the buffer group is freed
+	//I would have used scoped_ptr but they don't work in vectors
+    std::vector<boost::shared_ptr<BufferGroup> > bg(numdata);
+    for (int d=0;d<numdata;++d)
+    {
+	bg[d].reset(data[d].allocSampleBuffer());
+    }
+
+    try{
+      for (int i=0;i<numsamples;++i)
+      {
+	for (int d=0;d<numdata;++d)
+	{
+	  	samples[d]=data[d].getSampleDataRO(i,bg[d].get());
+	}
+	for (int j=0;j<dpps;++j)
+	{
+	    bool needsep=false; 
+	    for (int d=0;d<numdata;++d)
+	    {
+		DataTypes::pointToStream(os, samples[d], data[d].getDataPointShape(), offset[d], needsep, sep);
+		needsep=true;
+		offset[d]+=step[d];
+	    }
+	    os << endl;
+	}
+	for (int d=0;d<numdata;++d)
+	{
+	    offset[d]=0;
+	}	
+      }
+    } catch (...)
+    {
+        os.close();
+	throw;
+    }
+    os.close();
+}
 
 }  // end of namespace

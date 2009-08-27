@@ -214,6 +214,13 @@ bool AbstractDomain::probeInterpolationOnDomain(int functionSpaceType_source,int
   return false;
 }
 
+bool AbstractDomain::commonFunctionSpace(const std::vector<int>& fs, int& resultcode) const
+{
+  throwStandardException("AbstractDomain::commonFunctionSpace");
+  return false;
+}
+
+
 bool AbstractDomain::probeInterpolationACross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const 
 {
   throwStandardException("AbstractDomain::probeInterpolationACross");

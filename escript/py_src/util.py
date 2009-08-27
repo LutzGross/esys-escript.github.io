@@ -43,6 +43,7 @@ from esys.escript import C_GeneralTensorProduct
 from esys.escript import getVersion, getMPIRankWorld, getMPIWorldMax
 from esys.escript import printParallelThreadCounts
 from esys.escript import listEscriptParams
+from esys.escript.escriptcpp import Data, _saveDataCSV
 
 #=========================================================
 #   some helpers:
@@ -92,6 +93,40 @@ def insertTaggedValues(target,**kwargs):
     for k in kwargs:
         target.setTaggedValue(k,kwargs[k])
     return target
+
+def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
+    """
+    Writes `Data` objects to a csv file.
+    These objects must have compatible FunctionSpaces. ie it must be possible to
+    interpolate all data to one `FunctionSpace`. 
+    Example::
+	s=Scalar(..)
+	v=Vector(..)
+	t=Tensor(..)
+	saveDataCSV("f.csv",a=s, b=v, c=t)
+    
+    Will result in a file
+    
+    a, b0, b1, c0_0, c0_1, .., c1_0
+    1.0, 1.5, 2.7, 3.1, 3.4, .., 0.89
+    0.9, 8.7, 1.9, 3.4, 7.8, .., 1.21
+    
+    The first line is a header, the remaining lines give the values.
+    
+    :param filename: file to save data to.
+    :type filename: ``string``
+    :param sep: separator between fields
+    :type sep: ``string``
+    :param csep: separator for components of rank2 and above eg ('_' -> c0_1)
+    
+    The keyword args are Data objects to save.
+    """
+    new_data={}
+    for n,d in data.items():
+	if not isinstance(d, Data):
+	    raise ValueError, "saveDataCSV: unknown non-data argument %s"%(str(n))
+	new_data[n]=d
+    _saveDataCSV(filename, new_data,sep, csep, append)
 
 def saveVTK(filename,domain=None, metadata=None, metadata_schema=None, **data):
     """

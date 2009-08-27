@@ -2517,4 +2517,11 @@ DataLazy::actsExpanded() const
 	return (m_readytype=='E');
 }
 
+bool
+DataLazy::actsConstant() const
+{
+	return (m_readytype=='C');
+}
+
+
 }	// end namespace
