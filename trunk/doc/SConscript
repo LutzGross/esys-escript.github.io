@@ -41,13 +41,13 @@ try:
    import matplotlib
    example_files_no_mpi.append('usersguide/poisson_matplotlib.py')
    example_files_allow_mpi.append('usersguide/wave.py')
-   example_files_no_mpi.append('cookbook/heatrefraction_mesher001.py')
-   example_files_no_mpi.append('cookbook/heatrefraction_mesher002.py')
-   example_files_no_mpi.append('cookbook/heatrefraction001.py')
-   example_files_no_mpi.append('cookbook/heatrefraction002.py')
-   example_files_no_mpi.append('cookbook/onedheatdiff001.py')
-   example_files_no_mpi.append('cookbook/onedheatdiff002.py')
-   example_files_no_mpi.append('cookbook/twodheatdiff.py')
+   #example_files_no_mpi.append('cookbook/heatrefraction_mesher001.py')
+   #example_files_no_mpi.append('cookbook/heatrefraction_mesher002.py')
+   #example_files_no_mpi.append('cookbook/heatrefraction001.py')
+   #example_files_no_mpi.append('cookbook/heatrefraction002.py')
+   #example_files_no_mpi.append('cookbook/onedheatdiff001.py')
+   #example_files_no_mpi.append('cookbook/onedheatdiff002.py')
+   #example_files_no_mpi.append('cookbook/twodheatdiff.py')
 except ImportError:
    print "matplotlib not found - skipping example"
 
