@@ -40,11 +40,20 @@ modal=1
 # note this folder path must exist to work
 save_path = "data/heatrefrac001" 
 
+#Model Parameters
+width=5000.0   #width of model
+depth=-6000.0  #depth of model
+sspl=51 #number of discrete points in spline
+dsp=width/(sspl-1) #dx of spline steps for width
+dep_sp=2500.0 #avg depth of spline
+h_sp=1500.0 #heigh of spline
+orit=-1.0 #orientation of spline 1.0=>up -1.0=>down
+
 # Overall Domain
-p0=Point(0.0,        0.0, 0.0)
-p1=Point(0.0,    -6000.0, 0.0)
-p2=Point(5000.0, -6000.0, 0.0)
-p3=Point(5000.0,     0.0, 0.0)
+p0=Point(0.0,      0.0, 0.0)
+p1=Point(0.0,    depth, 0.0)
+p2=Point(width, depth, 0.0)
+p3=Point(width,   0.0, 0.0)
 
 l01=Line(p0, p1)
 l12=Line(p1, p2)
@@ -54,8 +63,11 @@ l30=Line(p3, p0)
 c=CurveLoop(l01, l12, l23, l30)
 
 # Material Boundary
-
-x=[ Point(i*100.0,-2500+modal*1500.*cos(pi*i*100.0/2500.0+pi)) for i in range(0,51) ]
+x=[ Point(i*dsp\
+    ,-dep_sp+modal*orit*h_sp*cos(pi*i*dsp/dep_sp+pi))\
+     for i in range(0,sspl)\
+  ]
+     
 mysp = Spline(*tuple(x))
 x1=Spline.getStartPoint(mysp)
 x2=Spline.getEndPoint(mysp)

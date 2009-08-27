@@ -14,6 +14,8 @@
 \section{Steady-state heat refraction}
 Steady-state heat refraction will give us an opportunity to investigate some of the richer features that the \esc package has to offer. One of these is \pycad . The advantage of using \pycad is that it offers an easy method for developing and manipulating complex domains. In conjunction with \gmsh we can develop finite element grids that conform to our domain's shape providing accurate modelling of interfaces and boundaries. Another useful function of \pycad is that we can tag specific areas of our domain with labels as we construct them. These labels can then be used in escript to define properties like material constants and source locations. 
 
+\subsection{Creating the model with \pycad}
+
 Our first heat refraction model will be a large anticlinal structure that is experiencing a constant temperature at the surface and a steady heat flux at it's base. Our aim is to show that the temperature flux across the surface is not linear from bottom to top but is infact warped by the structure of model and is heavily dependant on the material properties and shape.
 
 \begin{figure}[h!]
@@ -22,7 +24,7 @@ Our first heat refraction model will be a large anticlinal structure that is exp
 \label{fig:anticlinehrmodel}
 \end{figure}
 
-We will start by defining our domain and material boundaries using \pycad. This example is located in the file _________  and a labeled diagram is available in \reffig{fig:anticlinehrmodel}. As always we start with dependencies. For this example we have:
+We will start by defining our domain and material boundaries using \pycad. This example is located in the \esc directory under \exf and a labeled diagram is available in \reffig{fig:anticlinehrmodel}. As always we start with dependencies. For this example we have:
 \begin{verbatim}
 from esys.pycad import * #domain constructor
 from esys.pycad.gmsh import Design #Finite Element meshing package
@@ -42,13 +44,24 @@ Line() #Creates a line from a number of points.
 CurveLoop() #Creates a closed loop from a number of lines.
 Surface() #Creates a surface based on a CurveLoop
 \end{verbatim}
-We start by inputting the four corners of our domain, which from the origin has the dimensions of 5000 meters width and -6000 meters depth. This is done with the \verb Point()  function which accepts and x, y and z coordinates. Our domain is in two dimensions so z should always be zero. Be careful to define all your constructs in an \textbf{anti-clockwise} manner otherwise the meshing algorithm may fail.
+We start by inputting the variables we need to construct the model.
+\begin{verbatim}
+#Model Parameters
+width=5000.0   #width of model
+depth=-6000.0  #depth of model
+sspl=51 #number of discrete points in spline
+dsp=width/(sspl-1) #dx of spline steps for width
+dep_sp=2500.0 #avg depth of spline
+h_sp=1500.0 #heigh of spline
+orit=-1.0 #orientation of spline 1.0=>up -1.0=>down
+\end{verbatim} 
+The variables are then used to construct the four corners of our domain, which from the origin has the dimensions of 5000 meters width and -6000 meters depth. This is done with the \verb Point()  function which accepts x, y and z coordinates. Our domain is in two dimensions so z should always be zero. Be careful to define all your constructs in an \textbf{anti-clockwise} manner otherwise the meshing algorithm may fail.
 \begin{verbatim}
 # Overall Domain
-p0=Point(0.0,        0.0, 0.0)
-p1=Point(0.0,    -6000.0, 0.0)
-p2=Point(5000.0, -6000.0, 0.0)
-p3=Point(5000.0,     0.0, 0.0)
+p0=Point(0.0,      0.0, 0.0)
+p1=Point(0.0,    depth, 0.0)
+p2=Point(width, depth, 0.0)
+p3=Point(width,   0.0, 0.0)
 \end{verbatim}
 Now lines are defined in an \textbf{anti-clockwise} direction using our points. This forms a rectangle around our domain.
 \begin{verbatim}
@@ -63,7 +76,11 @@ c=CurveLoop(l01, l12, l23, l30)
 \end{verbatim}
 The curve defining our clinal structure is located in approximately the middle of the domain and has a cosinusoidal shape. We define the curve by generating points at discrete intervals; 51 in this case, and then create a smooth curve through the points using the \verb Spline()  function.
 \begin{verbatim}
-x=[ Point(i*100.0,-2500+modal*1500.*cos(pi*i*100.0/2500.0+pi)) for i in range(0,51) ]
+# Material Boundary
+x=[ Point(i*dsp\
+    ,-dep_sp+modal*orit*h_sp*cos(pi*i*dsp/dep_sp+pi))\
+     for i in range(0,sspl)\
+    ]
 mysp = Spline(*tuple(x)) #*tuple() forces x to become a tuple
 \end{verbatim}
 The start and end points of the spline can be returned to help define the material boundaries.
@@ -112,4 +129,133 @@ domain.write(os.path.join(save_path,"heatrefraction_mesh001.fly"))
 \end{verbatim}
 The creation of our domain and its mesh is complete. Now we must create a solution for our steady state problem.
 
+\subsection{Steady-state PDE solution}
+While a steady-state solution will not give an indication as to the quantitative heat flow in a model, it is useful because it allows us to visualise the direction of heat transport and the equilibrium state of the model. Also, a steady-state model only requires one iteration to find a solution. We know from \refCh{CHAP HEAT DIFF} that the full form of the heat diffusion PDE can be expressed as follows.
+\begin{equation}
+\rho c\hackscore p \frac{\partial T}{\partial t} - \kappa \frac{\partial^{2} T}{\partial x^{2}} = q\hackscore H 
+\label{eqn:hd2}
+\end{equation}
+In the steady state PDE however, there is no time dependance. This means that \refEq{eqn:hd2} reduces to
+\begin{equation}
+- \kappa \frac{\partial^{2} T}{\partial x^{2}} = q\hackscore H 
+\label{eqn:sshd}
+\end{equation}
+where we see our only variables are $\kappa$ the thermal conductivity and the heat source term $q\hackscore H$. Our boundary conditions are similar to earlier problems with some exceptions. Our heat source $q\hackscore H$ is now located at the base of the model and is implemented using our \modpycad identity \textit{linebottom} and we have a constant temperature along the surface of the model where $z=0$. The \modLPDE module's general form as a provision for these cases of the form
+\begin{equation}
+u=r \textit{    where    } q>0
+\label{eqn:bdr}
+\end{equation}
+using this functionality forces the solution $u$ to equal the value or $r$ wherever the criterion supplied by $q>0$ is true.
+The structure of our solution script is similar to those we have used already. Firstly, the dependencies must be imported. Then the variables must be defined. In this case there are four major variables. \verb qin  is the temperature of our source, \verb Ti  is the temperature on the surface at $z=0$ and our width and depth of the model.
+\begin{verbatim}
+##ESTABLISHING VARIABLES
+qin=70*Milli*W/(m*m) #our heat source temperature is now zero
+Ti=290.15*K # Kelvin #the starting temperature of our iron bar
+width=5000.0*m
+depth=-6000.0*m
+\end{verbatim}
+The mesh is now imported via the \verb ReadMesh()  function and loaded into a domain variable \verb mymesh  . The structural polygons are next. With the mesh imported it is now possible to use our tagging property to set up our PDE coefficients. In this case $\kappa$ is set via the \verb setTaggedValue()  function which takes two arguments, the name of the tagged points and the value to assign to them. 
+\begin{verbatim}
+mymesh=ReadMesh(os.path.join(saved_path,"heatrefraction_mesh001.fly"))
+tpg = np.loadtxt(os.path.join(saved_path,"toppg"))
+tpgx = tpg[:,0]
+tpgy = tpg[:,1]
+bpg = np.loadtxt(os.path.join(saved_path,"botpg"))
+bpgx = bpg[:,0]
+bpgy = bpg[:,1]
+
+# set up kappa (thermal conductivity across domain) using tags
+kappa=Scalar(0,Function(mymesh))
+kappa.setTaggedValue("top",2.0)
+kappa.setTaggedValue("bottom",4.0)
+\end{verbatim}
+Setting up the PDE is a little more complicated. The linear PDE \verb mypde  is again assigned the domain \verb mymesh  and \verb A  is set. \verb qH  is set on the boundary by creating \verb qH  as a function space of type \verb FunctionOnBoundary  which is in turn based on \verb mymesh  . We can then set the tagged value \textit{linebottom} to the condition \verb qin  . We also need to use our condition from \refEq{eqn:bdr}. By extracting \verb x  we can set the domain at zero to 1 and everywhere else 0 via the \verb whereZero()  function. This is put into \verb q  and \verb r  is set to \verb Ti  our temperature at the surface. Note \verb y=qH  . As there is no time derivative in the equation we do not have any iterative steps and there is one solution to the problem. This is found in the step \verb T=mypde.getSolution()  .
+\begin{verbatim}
+#... generate functionspace...
+#... open PDE ...
+mypde=LinearPDE(mymesh)
+#define first coefficient
+mypde.setValue(A=kappa*kronecker(mymesh))
+
+# ... set initial temperature ....
+x=mymesh.getX()
+
+qH=Scalar(0,FunctionOnBoundary(mymesh))
+qH.setTaggedValue("linebottom",qin)
+mypde.setValue(q=whereZero(x[1]),r=Ti)
+mypde.setValue(y=qH)#,r=17*Celsius)
+
+# get steady state solution and export to vtk.
+T=mypde.getSolution()
+\end{verbatim}
+
+\subsection{Quiver plots in \mpl}
+\begin{verbatim}
+# rearrage mymesh to suit solution function space      
+oldspacecoords=mymesh.getX()
+coords=Data(oldspacecoords, T.getFunctionSpace())
+
+# calculate gradient of solution for quiver plot
+qu=-kappa*grad(T)
+
+# create quiver locations
+quivshape = [20,20] #quivers x and quivers y
+numquiv = quivshape[0]*quivshape[1] # total number of quivers
+maxx = 5000. # maximum x displacement
+dx = maxx/quivshape[0]+1. # quiver x spacing
+maxy = -6000. # maximum y displacement
+dy = maxy/quivshape[1]+1. # quiver y spacing
+qulocs=np.zeros([numquiv,2],float) # memory for quiver locations
+# fill qulocs
+for i in range(0,quivshape[0]-1):
+	for j in range(0,quivshape[1]-1):
+		qulocs[i*quivshape[0]+j,:] = [dx+dx*i,dy+dy*j]
+# retreive values for quivers direction and shape from qu
+quL = Locator(qu.getFunctionSpace(),qulocs.tolist())
+qu = quL(qu) #array of dx,dy for quivers
+qu = np.array(qu) #turn into a numpy array
+qulocs = quL.getX() #returns actual locations from data
+qulocs = np.array(qulocs) #turn into a numpy array
+
+kappaT = kappa.toListOfTuples(scalarastuple=False)
+coordsK = Data(oldspacecoords, kappa.getFunctionSpace())
+coordsK = np.array(coordsK.toListOfTuples())
+coordKX = coordsK[:,0]
+coordKY = coordsK[:,1]
+      
+coords = np.array(coords.toListOfTuples())
+tempT = T.toListOfTuples(scalarastuple=False)
+
+coordX = coords[:,0]
+coordY = coords[:,1]
+
+xi = np.linspace(0.0,5000.0,100)
+yi = np.linspace(-6000.0,0.0,100)
+# grid the data.
+zi = pl.matplotlib.mlab.griddata(coordX,coordY,tempT,xi,yi)
+ziK = pl.matplotlib.mlab.griddata(coordKX,coordKY,kappaT,xi,yi)
+# contour the gridded data, plotting dots at the randomly spaced data points.
+
+pl.matplotlib.pyplot.autumn()
+CKL = pl.fill(tpgx,tpgy,'brown',bpgx,bpgy,'red',zorder=-1000)
+#~ CK = pl.contourf(xi,yi,ziK,2)
+CS = pl.contour(xi,yi,zi,5,linewidths=0.5,colors='k')
+pl.clabel(CS, inline=1, fontsize=8)
+pl.title("Heat Refraction across a clinal structure.")
+pl.xlabel("Horizontal Displacement (m)")
+pl.ylabel("Depth (m)")
+#~ CB = pl.colorbar(CS, shrink=0.8, extend='both')
+pl.savefig(os.path.join(saved_path,"heatrefraction001_cont.png"))
+
+QUIV=pl.quiver(qulocs[:,0],qulocs[:,1],qu[:,0],qu[:,1],angles='xy',color="white")
+pl.title("Heat Refraction across a clinal structure \n with gradient quivers.")
+pl.savefig(os.path.join(saved_path,"heatrefraction001_contqu.png"))
+\end{verbatim} 
+
+
+\begin{figure}
+\centerline{\includegraphics[width=4.in]{figures/heatrefraction001contqu}}
+\caption{Heat refraction model with gradient indicated by quivers.}
+\label{fig:hr001qumodel}
+\end{figure}
 
