@@ -263,6 +263,13 @@ public:
   actsExpanded() const;
 
   /**
+  \brief if resolve() was called would it produce constant data.
+  */
+  ESCRIPT_DLL_API
+  bool
+  actsConstant() const;
+
+  /**
      \brief Produces an IDENTITY DataLazy containing zero.
      The result will have the same shape and functionspace as before.
   */

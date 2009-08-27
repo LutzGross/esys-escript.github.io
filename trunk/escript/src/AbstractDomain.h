@@ -17,6 +17,7 @@
 
 #include "system_dep.h"
 
+#include <vector>
 #include <string>
 #include <map>
 #include <boost/python/dict.hpp>
@@ -273,6 +274,16 @@ Note: This is _not_ equivalent to weak_ptr::lock.
   virtual void interpolateOnDomain(escript::Data& target,const escript::Data& source) const;
   ESCRIPT_DLL_API
   virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
+
+  /**
+    \brief given a vector of FunctionSpace type codes, pass back a code which then can all be interpolated to.
+    \note This method must be called on the domain which the FunctionSpaces point to
+    \return true is result is valid, false if not
+  */
+  ESCRIPT_DLL_API
+  virtual
+  bool
+  commonFunctionSpace(const std::vector<int>& fs, int& resultcode) const;
 
   /**
      \brief

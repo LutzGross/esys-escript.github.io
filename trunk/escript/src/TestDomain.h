@@ -88,6 +88,10 @@ class TestDomain : public AbstractDomain {
   ESCRIPT_DLL_API
   virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
 
+  ESCRIPT_DLL_API
+  bool
+  commonFunctionSpace(const std::vector<int>& fs, int& resultcode) const;
+
   /**
      \brief
      Interpolates data given on source onto target where source and target are given on different domains.

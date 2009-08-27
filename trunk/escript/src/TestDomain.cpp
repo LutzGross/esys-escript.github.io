@@ -84,6 +84,21 @@ bool TestDomain::probeInterpolationACross(int functionSpaceType_source,const Abs
    return false;
 }
 
+ESCRIPT_DLL_API
+bool TestDomain::commonFunctionSpace(const std::vector<int>& fs, int& resultcode) const
+{
+    for (int i=0;i<fs.size();++i)
+    {
+	if (fs[i]!=TestDomainFS)
+	{
+		return false;
+	}
+    }
+    resultcode=TestDomainFS;
+    return true;
+}
+
+
 int TestDomain::getDefaultCode() const
 {
     return TestDomainFS;
