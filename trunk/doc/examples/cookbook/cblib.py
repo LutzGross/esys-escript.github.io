@@ -11,5 +11,7 @@ from wavesolver2d import *
 from wavesolver2df import *
 from phones import *
 from getLoopCoords import *
+from toQuivLocs import *
+from toXYTuple import *
 #exit subdirectory
 del sys.path[0]

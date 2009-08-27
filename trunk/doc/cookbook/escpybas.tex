@@ -13,13 +13,6 @@
 
 \section{Escript and Python Basics} \label{sec:escpybas}
 
-\begin{enumerate}
- \item Important functions.
- \item Library tree!!! (Where to find stuff!!)
- \item os commands for file operations load save etc
- \item information on plotting depending on path chosen,
-\end{enumerate}
-
 The Python scripting language is a powerful and easy to learn environment with a wide variety of applications. \textit{Escript} has been developed as a packaged module for Python specifically to solve complex partial differential equations. As a result, all the conventions and programming syntaxes associated with Python are coherrent with \ESCRIPT. If you are unfamiliar with Python, there are a large number of simple to advanced guides and tutorials availabe online. These texts should provide an introduction that is comprehensive enough for the use of \ESCRIPT. A handful of python tutorials have been listed below.
 \begin{itemize}
 \item This is a very crisp introduction \url{http://hetland.org/writing/instant-python.html}. It covers everthing you need to get started with \ESCRIPT.
@@ -59,7 +52,7 @@ The second argument of \verb join \xspace contains a string which is the filenam
  \item \verb 3  tells us the amount of padding numbers that are required; and
  \item \verb d  indicates the end of the \verb %  operator.
 \end{itemize}
-To increment a \verb %i  is required directly after the operation the string is involed in. When correctly implemented the output files from this command would be place in the directory defined by \verb save_path  as;
+To increment the file name a \verb %i  is required directly after the operation the string is involed in. When correctly implemented the output files from this command would be place in the directory defined by \verb save_path  as;
 \begin{verbatim}
 data001.xml
 data002.xml
@@ -68,4 +61,5 @@ data003.xml
 \end{verbatim}
 and so on.
 
-Visualisation is then implemented through \verb mayavi  which provides a command line of gui interface to develop plots to suit our output data. For this example a surface plot is appropriate.
+\subsection{Visualisation and Plotting}
+\ESCRIPT does not have any inhouse plotting capabilities and will only provide a data output. the \esc package is however, shipped with two external and independent plotting packages. They are \mpl \footnote{\url{http://matplotlib.sourceforge.net/}} and \verb VTK \footnote{\url{http://www.vtk.org/}} . The \mpl package is fully functional with each \esc distribution. Based on the \numpy array package \mpl is good for basic graphs and plots. The \verb VTK  toolkit allows the \esc data to be exported in a standardised format with powerful visualisation capabilities. This format can be interpreted by many programs. In this cookbook \mayavi \footnote{\url{http://code.enthought.com/projects/mayavi/}} will be used to visualise \verb VTK  files. \mayavi is not included with any \esc distribution.
