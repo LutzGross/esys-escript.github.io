@@ -179,6 +179,18 @@ bool append)
     using std::endl;
     boost::python::list keys=arg.keys();
     int numdata = boost::python::extract<int>(arg.attr("__len__")());
+    bool hasmask=arg.has_key("mask");
+    Data mask;
+    if (hasmask)
+    {
+	mask=boost::python::extract<escript::Data>(arg["mask"]);
+	keys.remove("mask");
+	numdata--;
+        if (mask.getDataPointRank()!=0)
+	{
+		throw DataException("saveDataCSVcpp: masks must be scalar.");
+	}
+    }
     if (numdata<1)
     {
 	throw DataException("saveDataCSVcpp: no data to save specified.");
@@ -196,7 +208,7 @@ bool append)
     {
 	names[i]=boost::python::extract<std::string>(keys[i]);
 	data[i]=boost::python::extract<escript::Data>(arg[keys[i]]);
-	step[i]=(data[i].actsConstant()?0:DataTypes::noValues(data[i].getDataPointShape()));
+	step[i]=(data[i].actsExpanded()?DataTypes::noValues(data[i].getDataPointShape()):0);
 	fstypes[i]=data[i].getFunctionSpace().getTypeCode();
 	if (i>0) 
 	{
@@ -326,6 +338,9 @@ bool append)
     }
     os << endl; 
 
+    boost::scoped_ptr<BufferGroup> maskbuffer;	// sample buffer for the mask [if we have one]
+    const double* masksample=0;
+    int maskoffset=0;
 	//the use of shared_ptr here is just to ensure the buffer group is freed
 	//I would have used scoped_ptr but they don't work in vectors
     std::vector<boost::shared_ptr<BufferGroup> > bg(numdata);
@@ -334,23 +349,54 @@ bool append)
 	bg[d].reset(data[d].allocSampleBuffer());
     }
 
+    bool expandedmask=false;		// does the mask act expanded. Are there mask value for each point in the sample
+    bool wantrow=true;			// do we output this row?
+    if (hasmask)
+    {
+	maskbuffer.reset(mask.allocSampleBuffer());
+	if (mask.actsExpanded())
+	{
+		maskoffset=DataTypes::noValues(mask.getDataPointShape());
+		expandedmask=true;
+	}
+    }
     try{
       for (int i=0;i<numsamples;++i)
       {
+	wantrow=true;
 	for (int d=0;d<numdata;++d)
 	{
 	  	samples[d]=data[d].getSampleDataRO(i,bg[d].get());
 	}
+	if (hasmask)
+	{
+		masksample=mask.getSampleDataRO(i, maskbuffer.get());
+		if (!expandedmask)		// mask controls whole sample
+		{
+			if (masksample[0]<=0)		// masks are scalar
+			{
+				wantrow=false;
+			}
+		}
+	}
 	for (int j=0;j<dpps;++j)
 	{
-	    bool needsep=false; 
-	    for (int d=0;d<numdata;++d)
+	    // now we need to check if this point is masked off
+	    if (expandedmask)
 	    {
-		DataTypes::pointToStream(os, samples[d], data[d].getDataPointShape(), offset[d], needsep, sep);
-		needsep=true;
-		offset[d]+=step[d];
+		wantrow=(masksample[j]>0); // masks are scalar to the relevant value is at [j]
 	    }
-	    os << endl;
+	    if (wantrow)
+	    {
+		bool needsep=false; 
+		for (int d=0;d<numdata;++d)
+		{
+			DataTypes::pointToStream(os, samples[d], data[d].getDataPointShape(), offset[d], needsep, sep);
+			needsep=true;
+			offset[d]+=step[d];
+		}
+		os << endl;
+	    }
 	}
 	for (int d=0;d<numdata;++d)
 	{
@@ -363,6 +409,9 @@ bool append)
 	throw;
     }
     os.close();
+
+cout << "This method is not MPI safe" << endl;
+
 }
 
 }  // end of namespace
