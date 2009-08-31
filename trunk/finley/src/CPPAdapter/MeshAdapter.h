@@ -156,6 +156,14 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   FINLEY_DLL_API
   virtual bool onMasterProcessor() const;
 
+  FINLEY_DLL_API
+#ifdef PASO_MPI
+  MPI_Comm
+#else
+  unsigned int
+#endif
+  getMPIComm() const;
+
   /**
      \brief
      return this as an AbstractContinuousDomain.
