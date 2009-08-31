@@ -347,14 +347,15 @@ if IS_WINDOWS_PLATFORM:
 env.Append(ARFLAGS = env['ar_flags'])
 
 # Get the global Subversion revision number for getVersion() method
-try:
-   global_revision = os.popen("svnversion -n .").read()
-   global_revision = re.sub(":.*", "", global_revision)
-   global_revision = re.sub("[^0-9]", "", global_revision)
-except:
-   global_revision="-1"
-if global_revision == "": global_revision="-2"
-env.Append(CPPDEFINES = ["SVN_VERSION="+global_revision])
+#try:
+#   global_revision = os.popen("svnversion -n .").read()
+#   global_revision = re.sub(":.*", "", global_revision)
+#   global_revision = re.sub("[^0-9]", "", global_revision)
+#except:
+#   global_revision="-1"
+#if global_revision == "": 
+global_revision="2639"
+env.Append(CPPDEFINES = ["SVN_VERSION=2639"])
 
 ############ numpy (required) ###############################
 
