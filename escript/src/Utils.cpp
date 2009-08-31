@@ -12,10 +12,12 @@
 *******************************************************/
 
 
+#include <fstream>
 #include <string.h>
 
 // added for saveCSV
 #include <boost/python.hpp>
+#include <boost/scoped_ptr.hpp>
 #include "Data.h"
 
 #include "Utils.h"
@@ -233,23 +235,15 @@ bool append)
     int dpps=data[0].getNumDataPointsPerSample();
 
     
-    std::ofstream os;
-    if (append)
-    {
-	os.open(filename.c_str(), std::ios_base::app);
-    }
-    else
-    {
-	os.open(filename.c_str());
-    }
-    if (!os.is_open())
-    {
-	throw DataException("saveDataCSVcpp: unable to open file for writing");
-    }
+    std::ostringstream os;
+
 
     bool first=true;
-    for (int i=0;i<numdata;++i)
+    
+    if (data[0].getDomain()->getMPIRank()==0)
     {
+      for (int i=0;i<numdata;++i)
+      {
 	const DataTypes::ShapeType& s=data[i].getDataPointShape();
         switch (data[i].getDataPointRank())
 	{
@@ -335,9 +329,9 @@ bool append)
 	default:
 		throw DataException("saveDataCSV: Illegal rank");
 	}
+      }
+      os << endl; 
     }
-    os << endl; 
-
     boost::scoped_ptr<BufferGroup> maskbuffer;	// sample buffer for the mask [if we have one]
     const double* masksample=0;
     int maskoffset=0;
@@ -360,6 +354,12 @@ bool append)
 		expandedmask=true;
 	}
     }
+    os.setf(std::ios_base::scientific, std::ios_base::floatfield);
+    os.precision(15);
+
+    // errors prior to this point will occur on all processes anyway
+    // so there is no need to explicitly notify other ranks
+    int error=0;
     try{
       for (int i=0;i<numsamples;++i)
       {
@@ -405,13 +405,116 @@ bool append)
       }
     } catch (...)
     {
-        os.close();
+	error=1;
+#ifndef PASO_MPI
 	throw;
+#endif
     }
-    os.close();
+#ifdef PASO_MPI
+    MPI_Comm com=data[0].getDomain()->getMPIComm();
+    int rerror=0;
+    MPI_Allreduce( &error, &rerror, 1, MPI_INT, MPI_MAX, com );
+    error=rerror;
+    if (error)
+    {
+	throw DataException("saveDataCSVcpp: error building output");
+    }
+#endif
 
-cout << "This method is not MPI safe" << endl;
+    // at this point os will contain the text to be written
+#ifndef PASO_MPI
 
+    std::ofstream ofs;
+    if (append)
+    {
+	ofs.open(filename.c_str(), std::ios_base::app);
+    }
+    else
+    {
+	ofs.open(filename.c_str());
+    }
+    if (!ofs.is_open())
+    {
+	throw DataException("saveDataCSVcpp: unable to open file for writing");
+    }
+    ofs << os.str();
+    ofs.close();
+
+#else
+// here we have MPI
+    const char* mpistr=0;
+    MPI_File mpi_fileHandle_p;
+    MPI_Status mpi_status;
+    MPI_Info mpi_info = MPI_INFO_NULL;
+    char* fname_c=new char[filename.size()+1];
+    strcpy(fname_c,filename.c_str());
+    boost::scoped_ptr<char> fname_p(fname_c);
+     
+    int amode = MPI_MODE_CREATE|MPI_MODE_WRONLY|MPI_MODE_UNIQUE_OPEN;
+    if (append)
+    {
+	amode |= MPI_MODE_APPEND;
+    }
+    else
+    {
+	if (data[0].getDomain()->getMPIRank()==0)
+	{
+	    std::ifstream ifs(fname_p.get());	// if file exists, remove it
+	    if (ifs.is_open())
+	    {
+		ifs.close();
+	    	if (!remove(fname_p.get()))
+		{
+		    error=1;
+		}
+	    }
+	}
+	data[0].getDomain()->MPIBarrier();
+	int rerror=0;
+	MPI_Allreduce( &error, &rerror, 1, MPI_INT, MPI_MAX, com );
+	if (rerror!=0)
+	{
+	    std::ostringstream oss;
+	    oss << "saveDataCSVcpp: File " << filename << " already exists and could not be removed in preparation for new output.";
+	    throw DataException(oss.str());
+	}
+    }
+    int ierr;
+    ierr = MPI_File_open(com, fname_p.get(), amode, mpi_info, &mpi_fileHandle_p);
+    if (ierr != MPI_SUCCESS) 
+    {
+	std::ostringstream oss;
+	oss << "saveDataCSVcpp: File " << filename << " could not be opened for writing in parallel";
+	    // file is not open so we can throw
+	throw DataException(oss.str());
+    }
+    else
+    {
+            ierr=MPI_File_set_view(mpi_fileHandle_p,MPI_DISPLACEMENT_CURRENT,
+                    MPI_CHAR, MPI_CHAR, "native", mpi_info);
+// here we are assuming that std::string holds the same type of char as MPI_CHAR
+    }
+    std::string contents=os.str();
+    char* con=new char[contents.size()+1];
+    strcpy(con, contents.c_str());
+    boost::scoped_ptr<char> buff(con);
+    ierr=MPI_File_write_ordered(mpi_fileHandle_p, buff.get(), contents.size(), MPI_CHAR, &mpi_status);
+    if (ierr != MPI_SUCCESS)
+    {
+	error=1;
+    }
+
+    if (MPI_File_close(&mpi_fileHandle_p)!= MPI_SUCCESS)
+    {
+	error=1;
+    }
+    data[0].getDomain()->MPIBarrier();
+    if (error)	// any errors at this stage are from collective routines
+    {		// so there is no need to reduce_all
+	throw DataException("saveDataCSVcpp: Error writing and closing file");
+    }
+    
+#endif
 }
 
 }  // end of namespace
