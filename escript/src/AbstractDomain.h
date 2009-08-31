@@ -134,7 +134,17 @@ Note: This is _not_ equivalent to weak_ptr::lock.
   ESCRIPT_DLL_API
   virtual bool onMasterProcessor() const;
 
-
+  /**
+  \brief get the communicator for this domain.
+  Returns 0 on non-MPI builds
+  */
+  ESCRIPT_DLL_API
+#ifdef PASO_MPI
+  MPI_Comm
+#else
+  unsigned int
+#endif
+  getMPIComm() const;
 
   /**
      \brief

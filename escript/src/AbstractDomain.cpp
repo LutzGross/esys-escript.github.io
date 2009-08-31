@@ -71,6 +71,17 @@ bool AbstractDomain::onMasterProcessor() const
    return true;
 }
 
+ESCRIPT_DLL_API
+#ifdef PASO_MPI
+  MPI_Comm
+#else
+  unsigned int
+#endif
+AbstractDomain::getMPIComm() const
+{
+  throwStandardException("AbstractDomain::getMPIComm");
+  return false;
+}
 
 
 void AbstractDomain::throwStandardException(const std::string& functionName) const

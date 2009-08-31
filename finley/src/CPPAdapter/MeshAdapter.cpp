@@ -96,6 +96,21 @@ bool MeshAdapter::onMasterProcessor() const
 }
 
 
+#ifdef PASO_MPI
+  MPI_Comm
+#else
+  unsigned int
+#endif
+MeshAdapter::getMPIComm() const
+{
+#ifdef PASO_MPI
+	return mesh->MPIInfo->comm;
+#else
+	return 0;
+#endif
+}
+
+
 Finley_Mesh* MeshAdapter::getFinley_Mesh() const {
    return m_finleyMesh.get();
 }
