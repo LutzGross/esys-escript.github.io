@@ -139,6 +139,7 @@ Note: This is _not_ equivalent to weak_ptr::lock.
   Returns 0 on non-MPI builds
   */
   ESCRIPT_DLL_API
+  virtual
 #ifdef PASO_MPI
   MPI_Comm
 #else

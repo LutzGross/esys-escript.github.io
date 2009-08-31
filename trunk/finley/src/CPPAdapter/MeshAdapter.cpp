@@ -104,7 +104,7 @@ bool MeshAdapter::onMasterProcessor() const
 MeshAdapter::getMPIComm() const
 {
 #ifdef PASO_MPI
-	return mesh->MPIInfo->comm;
+	return m_finleyMesh->MPIInfo->comm;
 #else
 	return 0;
 #endif
