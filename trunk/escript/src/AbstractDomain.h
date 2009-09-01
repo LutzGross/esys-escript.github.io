@@ -389,6 +389,10 @@ Note: This is _not_ equivalent to weak_ptr::lock.
   ESCRIPT_DLL_API
   virtual void saveVTK(const std::string& filename,const boost::python::dict& arg, const std::string& metadata, const std::string& metadata_schema) const;
 
+
+  ESCRIPT_DLL_API
+  virtual bool ownSample(int fs_code, index_t id) const;
+
   /**
      \brief assigns new tag newTag to all samples of functionspace with a positive
      value of mask for any its sample point.

@@ -552,6 +552,9 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   FINLEY_DLL_API
   virtual void saveVTK(const std::string& filename,const boost::python::dict& arg,  const std::string& metadata, const std::string& metadata_schema) const;
 
+  FINLEY_DLL_API
+  virtual bool ownSample(int fs_code, index_t id) const;
+
   /**
      \brief
      returns the function space representation of the type functionSpaceCode on this domain

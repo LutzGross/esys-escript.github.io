@@ -219,6 +219,12 @@ void AbstractDomain::saveVTK(const std::string& filename,const boost::python::di
   return;
 }
 
+bool AbstractDomain::ownSample(int fs_code, index_t id) const
+{
+  throwStandardException("AbstractDomain::ownSample");
+  return false;
+}
+
 bool AbstractDomain::probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const
 {
   throwStandardException("AbstractDomain::probeInterpolationOnDomain");

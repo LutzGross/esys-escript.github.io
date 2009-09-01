@@ -1554,6 +1554,29 @@ void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict&
    TMPMEMFREE(names);
 }
 
+bool MeshAdapter::ownSample(int fs_code, index_t id) const
+{
+    index_t myFirstNode=0, myLastNode=0, k=0;
+    index_t* globalNodeIndex=0;
+    Finley_Mesh* mesh_p=m_finleyMesh.get();
+    if (fs_code == FINLEY_REDUCED_NODES) 
+    {
+	myFirstNode = Finley_NodeFile_getFirstReducedNode(mesh_p->Nodes);
+	myLastNode = Finley_NodeFile_getLastReducedNode(mesh_p->Nodes);
+	globalNodeIndex = Finley_NodeFile_borrowGlobalReducedNodesIndex(mesh_p->Nodes);
+    }
+    else
+    {
+	myFirstNode = Finley_NodeFile_getFirstNode(mesh_p->Nodes);
+	myLastNode = Finley_NodeFile_getLastNode(mesh_p->Nodes);
+	globalNodeIndex = Finley_NodeFile_borrowGlobalNodesIndex(mesh_p->Nodes);
+    }
+    k=globalNodeIndex[id];
+    return static_cast<bool>( (myFirstNode <= k) && (k < myLastNode) );
+}
+
+
+
 //
 // creates a SystemMatrixAdapter stiffness matrix an initializes it with zeros
 //

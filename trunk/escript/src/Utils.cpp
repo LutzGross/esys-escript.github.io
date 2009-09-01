@@ -172,6 +172,81 @@ ESCRIPT_DLL_API void MPIBarrierWorld() {
   #endif
 }
 
+
+/*
+ESCRIPT_DLL_API
+void
+saveDataCSV(const std::string& filename, boost::python::dict arg, const std::string& sep, const std::string& csep, 
+bool append)
+{
+    boost::python::list keys=arg.keys();
+    int numdata = boost::python::extract<int>(arg.attr("__len__")());
+    bool hasmask=arg.has_key("mask");
+    Data mask;
+    if (hasmask)
+    {
+	mask=boost::python::extract<escript::Data>(arg["mask"]);
+	keys.remove("mask");
+        if (mask.getDataPointRank()!=0)
+	{
+		throw DataException("saveDataCSVcpp: masks must be scalar.");
+	}
+    }
+    if (numdata<1)
+    {
+	throw DataException("saveDataCSVcpp: no data to save specified.");
+    }
+    std::vector<std::string> names(numdata);
+    std::vector<Data> data(numdata);
+    std::vector<int> fstypes(numdata);		// FunctionSpace types for each data
+ 
+    if (hasmask)
+    {
+	numdata--;
+    }
+
+    // We need to interpret the samples correctly even if they are different types
+    // for this reason, we should interate over samples
+    for (int i=0;i<numdata;++i)
+    {
+	names[i]=boost::python::extract<std::string>(keys[i]);
+	data[i]=boost::python::extract<escript::Data>(arg[keys[i]]);
+	fstypes[i]=data[i].getFunctionSpace().getTypeCode();
+	if (i>0) 
+	{
+	    if (data[i].getDomain()!=data[i-1].getDomain())
+	    {
+		throw DataException("saveDataCSVcpp: all data must be on the same domain.");
+	    }
+	}
+    }
+    const_Domain_ptr dom0=data[0].getDomain();
+    if (hasmask)
+    {
+	if (dom0!=mask.getDomain())
+	{
+	    throw DataException("saveDataCSVcpp: mask be on the same FunctionSpace as data.");
+	}
+	fstypes[numdata]=mask.getFunctionSpace().getTypeCode();
+	names[numdata]="mask";
+	data[numdata]=mask;
+    }
+    int bestfnspace=0;
+    if (!dom0->commonFunctionSpace(fstypes, bestfnspace))
+    {
+	throw DataException("saveDataCSVcpp: FunctionSpaces of data are incompatible");
+    }
+    // now we interpolate all data to the same type
+    FunctionSpace best(dom0,bestfnspace);
+    for (int i=0;i<data.size();++i)
+    {
+	data[i]=data[i].interpolate(best);
+    }
+    dom0->saveDataCSV(filename, data, names, sep, csep, append, hasmask);
+}
+*/
+
+
 ESCRIPT_DLL_API
 void
 saveDataCSV(const std::string& filename, boost::python::dict arg, const std::string& sep, const std::string& csep, 
@@ -363,6 +438,10 @@ bool append)
     try{
       for (int i=0;i<numsamples;++i)
       {
+        if (!best.ownSample(i))
+	{
+		continue;
+	}
 	wantrow=true;
 	for (int d=0;d<numdata;++d)
 	{
@@ -463,7 +542,7 @@ bool append)
 	    if (ifs.is_open())
 	    {
 		ifs.close();
-	    	if (!remove(fname_p.get()))
+	    	if (remove(fname_p.get()))
 		{
 		    error=1;
 		}
@@ -494,6 +573,7 @@ bool append)
                     MPI_CHAR, MPI_CHAR, "native", mpi_info);
 // here we are assuming that std::string holds the same type of char as MPI_CHAR
     }
+
     std::string contents=os.str();
     char* con=new char[contents.size()+1];
     strcpy(con, contents.c_str());
@@ -516,5 +596,6 @@ bool append)
     
 #endif
 }
+
 
 }  // end of namespace

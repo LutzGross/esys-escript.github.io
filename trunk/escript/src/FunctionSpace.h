@@ -208,6 +208,16 @@ public:
   {
       return borrowSampleReferenceIDs()[sampleNo];
   }
+
+
+  ESCRIPT_DLL_API
+  inline
+  bool 
+  ownSample(int sampleNo) const
+  {
+      return m_domain->ownSample(m_functionSpaceType, sampleNo);
+  }
+
   /**
    \brief
    Return a borrowed reference to the list of sample reference IDs
