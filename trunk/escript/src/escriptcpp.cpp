@@ -107,9 +107,20 @@ BOOST_PYTHON_MODULE(escriptcpp)
 " value for arg1. The values are added up and the total value is returned.\n\n:rtype: int");
   def("getMachinePrecision",escript::getMachinePrecision);
   def("getMaxFloat",escript::getMaxFloat);
-
-
-  def("_saveDataCSV",escript::saveDataCSV, (args("filename","arg","sep","csep"), arg("append")=false));
+  def("_saveDataCSV",escript::saveDataCSV, (args("filename","arg","sep","csep"), arg("append")=false),
+"Saves data objects passed in a python dictionary to a file.\n"
+"The data objects must be over the same domain and be able to be interpolated to the same FunctionSpace.\n"
+"If one of the dictionary keys is named ``mask``, then only samples where ``mask`` has a positive\n"
+"value will be written to the file.\n\n"
+"A header line giving the names of each column will be output first.\n"
+"The keys given in the dictionary will be used to name columns.\n"
+"Then the data will be output, one line per sample (for all data).\n"
+"\n:param filename:\n:type filename: ``string``\n"
+":param arg: dictionary of named `Data` objects. If one is called ``mask`` it must be scalar data."
+"\n:type arg: ``dict``\n"
+":param sep:separator for columns (defaults to \", \"\n:type sep:``string``\n"
+":param csep:separator for fields within data object (defaults to \"_\"\n:type csep:``string``\n"
+":param append: If True, write to the end of ``filename``\n:type append: ``string``\n");
 
 
   //

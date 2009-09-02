@@ -95,11 +95,6 @@ typedef DataReady parent;
     return true;
   };
 
-  ESCRIPT_DLL_API
-  virtual
-  bool
-  actsConstant() const {return true;}
-
   /**
      \brief
      Write the data as a string.

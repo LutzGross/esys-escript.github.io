@@ -868,13 +868,6 @@ Data::isConstant() const
 }
 
 bool
-Data::actsConstant() const
-{
-	return m_data->actsConstant();
-}
-
-
-bool
 Data::isLazy() const
 {
   return m_lazy;	// not asking m_data because we need to be able to ask this while m_data is changing

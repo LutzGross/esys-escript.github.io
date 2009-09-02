@@ -137,6 +137,7 @@ Note: This is _not_ equivalent to weak_ptr::lock.
   /**
   \brief get the communicator for this domain.
   Returns 0 on non-MPI builds
+  Routine must be implemented by the DomainAdapter
   */
   ESCRIPT_DLL_API
   virtual
@@ -389,7 +390,10 @@ Note: This is _not_ equivalent to weak_ptr::lock.
   ESCRIPT_DLL_API
   virtual void saveVTK(const std::string& filename,const boost::python::dict& arg, const std::string& metadata, const std::string& metadata_schema) const;
 
-
+  /**
+  \brief True if this rank owns the sample(id)
+  Must be implemented by the Domain adapter
+  */
   ESCRIPT_DLL_API
   virtual bool ownSample(int fs_code, index_t id) const;
 

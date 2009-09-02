@@ -1556,6 +1556,7 @@ void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict&
 
 bool MeshAdapter::ownSample(int fs_code, index_t id) const
 {
+#ifdef PASO_MPI
     index_t myFirstNode=0, myLastNode=0, k=0;
     index_t* globalNodeIndex=0;
     Finley_Mesh* mesh_p=m_finleyMesh.get();
@@ -1573,6 +1574,8 @@ bool MeshAdapter::ownSample(int fs_code, index_t id) const
     }
     k=globalNodeIndex[id];
     return static_cast<bool>( (myFirstNode <= k) && (k < myLastNode) );
+#endif
+    return true;
 }
 
 
@@ -1805,7 +1808,7 @@ MeshAdapter::commonFunctionSpace(const std::vector<int>& fs, int& resultcode) co
 	}
 	else if (hasline[2]==1)
 	{
-	    if (hasclass[7]==ReducedFaceElements)
+	    if (hasclass[7]==1)
 	    {
 		resultcode=ReducedFaceElements;
 	    }
