@@ -97,7 +97,6 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
   Paso_SparseMatrix * schur=NULL;
   Paso_SparseMatrix * schur_withFillIn=NULL;
   double S=0;
-  char fname[6];
   
   /*Make sure we have block sizes 1*/
   if (A_p->col_block_size>1) {
@@ -133,10 +132,6 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      /*out->GS=Paso_Solver_getGS(A_p,verbose);*/
      out->level=level;
      
-       sprintf(fname,"A%d.mat",level);
-  
-       Paso_SparseMatrix_saveMM(A_p,fname);
-  
      if (level==0 || n<=options->min_coarse_matrix_size) {
          out->coarsest_level=TRUE;
          #ifdef MKL
