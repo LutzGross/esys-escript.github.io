@@ -115,11 +115,15 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
     
     :param filename: file to save data to.
     :type filename: ``string``
+    :param append: If ``True``, then open file at end rather than beginning
+    :type append: ``bool``
     :param sep: separator between fields
     :type sep: ``string``
     :param csep: separator for components of rank2 and above eg ('_' -> c0_1)
     
     The keyword args are Data objects to save.
+    If a scalar `Data` object is passed with the name ``mask``, then only
+    samples which correspond to positive values in ``mask`` will be output.
     """
     new_data={}
     for n,d in data.items():

@@ -53,6 +53,56 @@ import os
 import numpy
 from esys.escript import *
 
+
+class Test_saveCSV(unittest.TestCase):
+
+   def test_save1(self):
+	X=self.domain.getX()
+	X0=X[0]
+	fname="test_save1.csv"
+	saveDataCSV(fname,C=X, D=X0)
+	saveDataCSV(fname,append=True, J=X0, H=X)
+	self.failUnless(os.path.exists(fname), "test file not created")
+	f=open(fname,'r')
+	line=f.readline()
+	self.failUnless(line=="C_0, C_1, D\n")    #This tests both separator strings
+	#Now we find out how many rows it has
+	linecount=0
+	while line != '':
+		linecount+=1
+		line=f.readline()
+	self.failUnless(linecount!=self.linecount1*2)
+	f.close()
+	#Now to other output
+	T2=Tensor(7,X.getFunctionSpace())
+	T3=Tensor3(8,X.getFunctionSpace())
+	T4=Tensor4(9,X.getFunctionSpace())
+	saveDataCSV(fname,A=T2,B=T3,C=T4)
+	f=open(fname,'r')
+	line=f.readline()
+	self.failUnless(line=='A_0_0, A_1_0, A_0_1, A_1_1, B_0_0_0, B_0_0_1, B_1_0_0, B_1_0_1, B_0_1_0, B_0_1_1, B_1_1_0, B_1_1_1, C_0_0_0_0, C_0_0_0_1, C_0_0_1_0, C_0_0_1_1, C_1_0_0_0, C_1_0_0_1, C_1_0_1_0, C_1_0_1_1, C_0_1_0_0, C_0_1_0_1, C_0_1_1_0, C_0_1_1_1, C_1_1_0_0, C_1_1_0_1, C_1_1_1_0, C_1_1_1_1\n')
+	line=f.readline()
+	self.failUnless(line=='7.000000000000000e+00, 7.000000000000000e+00, 7.000000000000000e+00, 7.000000000000000e+00, 8.000000000000000e+00, 8.000000000000000e+00, 8.000000000000000e+00, 8.000000000000000e+00, 8.000000000000000e+00, 8.000000000000000e+00, 8.000000000000000e+00, 8.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00\n')
+	linecount=1
+	while line != '':
+		linecount+=1
+		line=f.readline()
+	self.failUnless(linecount!=self.linecount1)
+	f.close()	
+	#Now to test separators and mask
+	saveDataCSV(fname, sep="+",csep="/", U=X, V=X0, mask=X0)
+	f=open(fname,'r')
+	line=f.readline()
+	self.failUnless(line=='U/0+U/1+V\n')
+	line=f.readline()
+	self.failUnless(line=='1.250000000000000e-01+0.000000000000000e+00+1.250000000000000e-01\n')
+	linecount=1
+	while line!='':
+		linecount+=1
+		line=f.readline()
+	self.failUnless(linecount==self.linecount2)
+	
+	
 class Test_Domain(unittest.TestCase):
 
    def test_getListOfTags(self): # requires self.boundary_tag_list

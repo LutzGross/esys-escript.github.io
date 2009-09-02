@@ -26,7 +26,7 @@ from esys.escript import *
 from esys.finley import Rectangle
 import sys
 import os
-from test_objects import Test_Dump, Test_SetDataPointValue
+from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV
 from test_objects import Test_Domain
 
 from test_shared import Test_Shared
@@ -168,12 +168,59 @@ class Test_TableInterpolation(unittest.TestCase):
 	zz=x0.interpolateTable(arr,0,1,100,x1,0,1)
 	
 		
+		
+class Test_CSVOnFinley(Test_saveCSV):
+   def setUp(self):
+       self.domain =Rectangle(NE,NE+1,2)
+       self.linecount1=20		#see test_save1 for the meaning of these params
+       self.linecount2=69
+       
+   def tearDown(self):
+       del self.domain
+       
+   #This test checks to see that all FunctionSpaces can be saved
+   def test_singleFS(self):
+	fname="test_singlefs.csv"
+	fss=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
+	FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain), 
+	FunctionOnContactZero(self.domain), FunctionOnContactOne(self.domain),
+	ReducedFunctionOnContactZero(self.domain), ReducedFunctionOnContactOne(self.domain)]
+	for f in fss:
+		d=Data(7,f)
+		print "Testing "+str(f)+"\n"
+		saveDataCSV(fname, D=d)
+
+   def test_multiFS(self):
+	fname="test_multifs.csv"
+	sol=Data(8,Solution(self.domain))
+	ctsfn=Data(9,ContinuousFunction(self.domain))
+	#test line 0
+	dirac=Data(-1,DiracDeltaFunction(self.domain))
+	saveDataCSV(fname, A=sol, B=ctsfn, C=dirac)
+	#test line 1
+	fun=Data(5,Function(self.domain))
+	rfun=Data(3,ReducedFunction(self.domain))
+	saveDataCSV(fname, A=sol,B=ctsfn,C=fun, D=rfun)
+	#test line 2
+	bound=Data(1,FunctionOnBoundary(self.domain))
+	rbound=Data(3,ReducedFunctionOnBoundary(self.domain))
+	saveDataCSV(fname,A=sol,B=ctsfn,C=bound, D=rbound)
+	#test line 3
+	conzz=Data(7,FunctionOnContactZero(self.domain))
+	rconz=Data(8,ReducedFunctionOnContactZero(self.domain))
+	saveDataCSV(fname,A=sol,B=ctsfn, C=conzz, D=rconz)
+	#check for cross line exceptions
+	self.failUnlessRaises(RuntimeError, saveDataCSV, fname, A=dirac, B=rfun)
+	self.failUnlessRaises(RuntimeError, saveDataCSV, fname, A=bound, B=conzz)
+
+	
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_SharedOnFinley))
    suite.addTest(unittest.makeSuite(Test_DataOpsOnFinley))
    suite.addTest(unittest.makeSuite(Test_DomainOnFinley))
    suite.addTest(unittest.makeSuite(Test_TableInterpolation))
+   suite.addTest(unittest.makeSuite(Test_CSVOnFinley))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
 

@@ -209,7 +209,10 @@ public:
       return borrowSampleReferenceIDs()[sampleNo];
   }
 
-
+  /**
+  \brief Does this process own the sample?
+  For non-MPI builds will always return true
+  */
   ESCRIPT_DLL_API
   inline
   bool 

@@ -413,16 +413,6 @@ class Data {
   isConstant() const;
 
   /**
-     \brief
-     Return true if this Data is constant or resolves to constant.
-     That is, if there is only one value stored, regardless of how many
-     datapoints there are per sample.
-  */
-  ESCRIPT_DLL_API
-  bool
-  actsConstant() const;
-
-  /**
      \brief Return true if this Data is lazy.
   */
   ESCRIPT_DLL_API

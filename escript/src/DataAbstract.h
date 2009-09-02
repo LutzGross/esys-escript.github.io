@@ -475,17 +475,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   bool
   actsExpanded() const {return false;}
 
-  /**
-     \brief
-     Return true if this Data is constant or resolves to constant.
-     That is, if there is only one value stored, regardless of how many
-     datapoints there are per sample.
-  */
-  ESCRIPT_DLL_API
-  virtual
-  bool
-  actsConstant() const {return false;}
-
   ESCRIPT_DLL_API
   virtual
   bool
