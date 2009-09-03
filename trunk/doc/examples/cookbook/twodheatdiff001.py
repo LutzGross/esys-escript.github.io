@@ -43,6 +43,7 @@ from esys.escript.unitsSI import *
 import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os #This package is necessary to handle saving our data.
+from cblib import toXYTuple
 
 #################################################ESTABLISHING VARIABLES
 #PDE related
@@ -102,18 +103,17 @@ T= Ti*whereNegative(bound)+Tc*wherePositive(bound)
 # rearrage mymesh to suit solution function space for contouring      
 oldspacecoords=model.getX()
 coords=Data(oldspacecoords, T.getFunctionSpace())
-coords = np.array(coords.toListOfTuples())
-coordX = coords[:,0]
-coordY = coords[:,1]
+#coords = np.array(coords.toListOfTuples())
+coordX, coordY = toXYTuple(coords)
 # create regular grid
-xi = np.linspace(0.0,600.0,100)
-yi = np.linspace(0.0,600.0,100)
+xi = np.linspace(0.0,mx,100)
+yi = np.linspace(0.0,my,100)
 
 #... start iteration:
 while t<=tend:
-      i+=1
-      t+=h
-      Y = T*D
+      i+=1 #counter
+      t+=h #curretn time
+      Y = T*D #
       mypde.setValue(Y=Y)
       T=mypde.getSolution()
       tempT = T.toListOfTuples(scalarastuple=False)
@@ -130,7 +130,6 @@ while t<=tend:
       pl.ylabel("Depth (m)")
       pl.savefig(os.path.join(save_path,"heatrefraction%03d.png") %i)
       pl.clf()            
-#     saveVTK(os.path.join(save_path,"data%03d.vtu") %i,sol=T)
 
 # compile the *.png files to create an *.avi video that shows T change
 # with time. This opperation uses linux mencoder.

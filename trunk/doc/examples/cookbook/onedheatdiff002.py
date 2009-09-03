@@ -60,8 +60,7 @@ kappa=2.2*W/m/K #watts/m.K thermal conductivity
 
 #Script/Iteration Related
 t=0. #our start time, usually zero
-tday=10*365. #the time we want to end the simulation in days
-tend=tday*24*60*60
+tend=10*yr #the time we want to end the simulation in years
 outputs = 400 # number of time steps required.
 h=(tend-t)/outputs #size of time step
 #user warning statement
