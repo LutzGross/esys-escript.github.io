@@ -50,24 +50,24 @@ and we can write \ref{eqn:commonform nabla} as;
 \begin{equation}\label{eqn:commonform}
 -A\frac{\partial^{2}u}{\partial x^{2}} + Du = f
 \end{equation}
-if $A$ is constant then  \ref{eqn:commonform} is consistent with our heat diffusion problem in \ref{eqn:hd} with the exception of $u$ and when comparing equations \ref{eqn:hd} and \ref{eqn:commonform} we see that;
+if $A$ is constant then  \ref{eqn:commonform} is consistent with our heat diffusion problem in \ref{eqn:hd} with the exception of $u$. Thus when comparing equations \ref{eqn:hd} and \ref{eqn:commonform} we see that;
 \begin{equation}
 A = \kappa; D = \rho c \hackscore{p}; f = q \hackscore{H}
 \end{equation}
 
 We can write the partial $\frac{\partial T}{\partial t}$ in terms of $u$ by discretising the time of our solution. The method we will use is the Backwards Euler approximation, which states;
 \begin{equation}
-f'(x) \approx \frac{f(x+h)-f(x)}{h}
+\frac{\partial f(x)}{\partial x} \approx \frac{f(x+h)-f(x)}{h}
 \label{eqn:beuler}
 \end{equation}
 where h is the the discrete step size $\Delta x$.
-Now let $f(x) = T(t)$ and from \ref{eqn:beuler} we see that;
+Now if the temperature $T(t)$ is substituted in by letting $f(x) = T(t)$ then from \ref{eqn:beuler} we see that;
 \begin{equation}
 T'(t) \approx \frac{T(t+h) - T(t)}{h}
 \end{equation}
 which can also be written as;
 \begin{equation}
-T\hackscore{,t}^{(n)} \approx \frac{T^{(n)} - T^{(n-1)}}{h}
+\frac{\partial T^{(n)}}{\partial t} \approx \frac{T^{(n)} - T^{(n-1)}}{h}
 \label{eqn:Tbeuler}
 \end{equation}
 where $n$ denotes the n\textsuperscript{th} time step. Substituting \ref{eqn:Tbeuler} into \ref{eqn:hd} we get;
@@ -77,12 +77,12 @@ where $n$ denotes the n\textsuperscript{th} time step. Substituting \ref{eqn:Tbe
 \end{equation}
 To fit our simplified general form we can rearrange \ref{eqn:hddisc};
 \begin{equation}
-\frac{\rho c\hackscore p}{h} T^{(n)} - (\kappa T^{(n)}\hackscore{,i})\hackscore{,i} = q\hackscore H +  \frac{\rho c\hackscore p}{h} T^{(n-1)}
+\frac{\rho c\hackscore p}{h} T^{(n)} - \kappa \frac{\partial^2 T^{(n)}}{\partial x^2} = q\hackscore H +  \frac{\rho c\hackscore p}{h} T^{(n-1)}
 \label{eqn:hdgenf}
 \end{equation}
-This is the form required for \ESCRIPT to solve our PDE across the domain for successive time nodes $t^{(n)}$ where 
+The PDE is now in a form that statisfies \refEq{eqn:commonform nabla} which is required for \ESCRIPT to solve our PDE. This can be done by generating a solution for sucessive increments in the time nodes $t^{(n)}$ where 
 $t^{(0)}=0$ and  $t^{(n)}=t^{(n-1)}+h$ where $h>0$ is the step size and assumed to be constant. 
-In the following the upper index ${(n)}$ refers to a value at time $t^{(n)}$. Now when comparing \ref{eqn:hdgenf} with \ref{eqn:commonform} it can be seen that;
+In the following the upper index ${(n)}$ refers to a value at time $t^{(n)}$. Finally, by comparing \ref{eqn:hdgenf} with \ref{eqn:commonform} it can be seen that;
 \begin{equation}
 A = \kappa; D = \frac{\rho c \hackscore{p}}{h}; f = q \hackscore{H} + \frac{\rho c\hackscore p}{h} T^{(n-1)}
 \end{equation}
@@ -96,16 +96,20 @@ for all $x$ in the domain.
 \subsection{Boundary Conditions}
 With the PDE sufficiently modified, consideration must now be given to the boundary conditions of our model. Typically there are two main types of boundary conditions known as Neumann and Dirichlet\footnote{More information on Boundary Conditions is available at Wikipedia \url{http://en.wikipedia.org/wiki/Boundary_conditions}}. In this example, we have utilised both conditions. Dirichlet is conceptually simpler and is used to prescribe a known value to the model on its boundary. This is like holding a snake by the tail; we know where the tail will be as we hold it however, we have no control over the rest of the snake. Dirichlet boundary conditions exist where we have applied our heat source. As the heat source is a constant, we can simulate its presence on that boundary. This is done by continuously resetting the temperature of the boundary, so that is is the same as the heat source.  
 
-Neumann boundary conditions describe the radiation or flux normal to the surface. This aptly describes our insulation conditions as we do not want to exert a constant temperature as with the heat source. However, we do want to prevent any loss of energy from the system. These natural boundary conditions can be described by specifying a radiation condition which prescribes the normal component of the flux $\kappa T\hackscore{,i}$ to be proportional
-to the difference of the current temperature to the surrounding temperature $T\hackscore{ref}$;
+Neumann boundary conditions describe the radiation or flux normal to the boundayor surface. This aptly describes our insulation conditions as we do not want to exert a constant temperature as with the heat source. However, we do want to prevent any loss of energy from the system. These natural boundary conditions can be described by specifying a radiation condition which prescribes the normal component of the flux $\kappa T\hackscore{,i}$ to be proportional
+to the difference of the current temperature to the surrounding temperature $T\hackscore{ref}$; in general terms this is;
 \begin{equation}
  \kappa T\hackscore{,i} n\hackscore i = \eta (T\hackscore{ref}-T) 
 \label{eqn:hdbc}
 \end{equation}
-where $\eta$ is a given material coefficient depending on the material of the block and the surrounding medium and $n\hackscore i$ is the $i$-th component of the outer normal field \index{outer normal field} at the surface of the domain. These two conditions form a boundary value problem that has to be solved for each time step. Due to the perfect insulation in our model $\eta = 0$ which results in zero flux - no energy in or out - we do not need to worry about the Neumann terms of the general form for this example.
+and simplified to our one dimensional model we have;
+\begin{equation}
+\kappa \frac{\partial T}{\partial dx} n\hackscore x = \eta (T\hackscore{ref}-T) 
+\end{equation}
+where $\eta$ is a given material coefficient depending on the material of the block and the surrounding medium and $n\hackscore i$ is the $i$-th component of the outer normal field \index{outer normal field} at the surface of the domain. These two conditions form a boundary value problem that has to be solved for each time step. Due to the perfect insulation in our model we can set $\eta = 0$ which results in zero flux - no energy in or out - we do not need to worry about the Neumann terms of the general form for this example.
 
 \subsection{A \textit{1D} Clarification}
-It is necessary for clarification that we revisit the general PDE from \refeq{eqn:commonform nabla} under the light of a two dimensional domain. \ESCRIPT is inherently designed to solve problems that are greater than one dimension and so \ref{eqn:commonform nabla} needs to be read as a higher dimensional problem. In the case of two spatial dimensions the \textit{Nabla operator} has in fact two components $\nabla = (\frac{\partial}{\partial x}, \frac{\partial}{\partial y})$. In full \ref{eqn:commonform nabla} assuming a constant coefficient $A$ takes the form;
+It is necessary for clarification that we revisit the general PDE from \refeq{eqn:commonform nabla} under the light of a two dimensional domain. \ESCRIPT is inherently designed to solve problems that are greater than one dimension and so \ref{eqn:commonform nabla} needs to be read as a higher dimensional problem. In the case of two spatial dimensions the \textit{Nabla operator} has in fact two components $\nabla = (\frac{\partial}{\partial x}, \frac{\partial}{\partial y})$. In full, \ref{eqn:commonform nabla} assuming a constant coefficient $A$, takes the form;
 \begin{equation}\label{eqn:commonform2D}
 -A\hackscore{00}\frac{\partial^{2}u}{\partial x^{2}} 
 -A\hackscore{01}\frac{\partial^{2}u}{\partial x\partial y} 
@@ -144,7 +148,7 @@ It is generally a good idea to import all of the \modescript library, although i
 
 Once our library dependencies have been established, defining the problem specific variables is the next step. In general the number of variables needed will vary between problems. These variables belong to two categories. They are either directly related to the PDE and can be used as inputs into the \ESCRIPT solver, or they are script variables used to control internal functions and iterations in our problem. For this PDE there are a number of constants which will need values. Firstly, the domain upon which we wish to solve our problem needs to be defined. There are many different types of domains in \modescript which we will demonstrate in later tutorials but for our iron rod, we will simply use a rectangular domain. 
 
-Using a rectangular domain simplifies our rod which would probably be a \textit{3D} object into a single dimension. The iron rod will have a lengthways cross section that looks like a rectangle.  As a result we do not need to model the volume of the rod because a cylinder is symmetrical about its centre. There are four arguments we must consider when we decide to create a rectangular domain, the model \textit{length}, \textit{width} and \textit{step size} in each direction. When defining the size of our problem it will help us determine appropriate values for our domain arguments. If we make our dimensions large but our step sizes very small we will to a point, increase the accuracy of our solution. Unfortunately we also increase the number of calculations that must be solved per time step. This means more computational time is required to produce a solution. In our \textit{1D} problem we will define our bar as being 1 metre long. An appropriate \verb|ndx| would be 1 to 10\% of the length. Our \verb|ndy| need only be 1, This is because our problem stipulates no partial derivatives in the $y$ direction so the temperature does not vary with $y$. Thus the domain parameters can be defined as follows; note we have used the \verb unitsSI  convention to make sure all our input units are converted to SI.
+Using a rectangular domain simplifies our rod which would be a \textit{3D} object, into a single dimension. The iron rod will have a lengthways cross section that looks like a rectangle.  As a result we do not need to model the volume of the rod because a cylinder is symmetrical about its centre. There are four arguments we must consider when we decide to create a rectangular domain, the model \textit{length}, \textit{width} and \textit{step size} in each direction. When defining the size of our problem it will help us determine appropriate values for our domain arguments. If we make our dimensions large but our step sizes very small we will to a point, increase the accuracy of our solution. Unfortunately we also increase the number of calculations that must be solved per time step. This means more computational time is required to produce a solution. In our \textit{1D} problem we will define our bar as being 1 metre long. An appropriate \verb|ndx| would be 1 to 10\% of the length. Our \verb|ndy| need only be 1, This is because our problem stipulates no partial derivatives in the $y$ direction so the temperature does not vary with $y$. Thus the domain parameters can be defined as follows; note we have used the \verb unitsSI  convention to make sure all our input units are converted to SI.
 \begin{verbatim}
 #Domain related.
 mx = 1*m #meters - model length
@@ -249,6 +253,14 @@ As there are two solution outputs, we will generate two plots and save each to a
 	pl.savefig(os.path.join(save_path+"/totT","ttrodpyplot%03d.png")%i)
 	pl.clf()
 \end{verbatim}
+\begin{figure}
+\begin{center}
+\includegraphics[width=4in]{figures/ttrodpyplot150}
+\caption{Total temperature ($T$) distribution in rod at $t=150$}
+\label{fig:onedheatout} 
+\end{center}
+\end{figure}
+
 \subsection{Make a video} 
 Our saved plots from the previous section can be cast into a video using the following command appended to the end of the script. \verb mencoder  is linux only however, and other platform users will need to use an alternative video encoder.
 \begin{verbatim}

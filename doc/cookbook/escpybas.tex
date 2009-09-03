@@ -23,13 +23,13 @@ The Python scripting language is a powerful and easy to learn environment with a
 \end{itemize} 
 
 \subsection{The \modesys Library Tree}
-The \verb esys  library tree has \textbf{3} main modules.\verb escript , \verb finley  and \verb pycad . 
+The \verb esys  library tree has \textbf{3} main modules, \verb escript , \verb finley  and \verb pycad . 
 \begin{enumerate}
 \item \modescript  is the PDE solving module.
-\item \modfinley is the discretisation tool and is the finite element package.
-\item \modpycad  is a special development for creating irregular domains and models. 
+\item \modfinley is the discretisation tool and finite element package.
+\item \modpycad  is a special development for creating irregular domains and models. That are easily interpretable by \esc . 
 \end{enumerate}
-Further explanations on each of these is available in the user guide or in the API documentation at \url{http://www.access.edu.au/esys13/nightly/epydoc/index.html} . \ESCRIPT is also dependent on a few other open-source packages which are not maintained by the \ESCRIPT developers. These are \modnumpy an array and matrix handling package, \modmpl a simple plotting and visualisation tool, \modvtk  the advanced plotting and visualisation package and ...... These packages are included with the binary release but may not be the most recent and up to date. 
+Further explanations on each of these is available in the user guide or in the API documentation at \url{https://launchpad.net/escript-finley/+download}. \ESCRIPT is also dependent on a few other open-source packages which are not maintained by the \ESCRIPT development team. These are \modnumpy an array and matrix handling package, \modmpl a simple plotting and visualisation tool, \modvtk  the advanced plotting and visualisation package and \verb gmsh  which is required by \modpycad. These packages (\textbf{except} for \verb gmsh ) are included with the binary release but may not be the most recent and up to date. 
 
 \subsection{File Commands and Opperations in \ESCRIPT}
 A number of common file opperations and commands are used throughout this cookbook. It is often advantageous to implement these commands when large numbers of output files are generated or dependencies are located in other locations.

@@ -16,12 +16,12 @@
  It is quite simple to now expand upon the 1D heat diffusion problem we just tackled. Suppose we have two blocks of isotropic material which are very large in all directions to the point that the interface between the two blocks appears infinite in length compared to the distance we are modelling perpendicular to the interface and accross the two blocks. If \textit{Block 1} is of a temperature \verb 0  and \textit{Block 2} is at a temperature \verb T  what would happen to the temperature distribution in each block if we placed them next to each other. This problem is very similar to our Iron Rod but instead of a constant heat source we instead have a heat disparity with a fixed amount of energy. In such a situation it is common knowledge that the heat energy in the warmer block will gradually conduct into the cooler block until the temperature between the blocks is balanced.
 
 \begin{figure}[h!]
-%\centerline{\includegraphics[width=4.in]{figures/onedheatdiff002}}
+\centerline{\includegraphics[width=4.in]{figures/onedheatdiff002}}
 \caption{Temperature differential along a single interface between two granite blocks.}
 \label{fig:onedgbmodel}
 \end{figure}
 
-By modifying our previous code it is possible to solve this new problem. In doing so we will also try to tackle a real world example and as a result, introduce and discuss some new variables. The linear model of the two blocks is very similar to the effect a large magmatic intrusion would have on a cold country rock. It is however, simpler at this stage to have both materials the same and for this example we will use granite \reffig{fig:onedgbmodel}.  The intrusion will have an initial temperature defined by \verb Tref and the granite properties required are:
+By modifying our previous code it is possible to solve this new problem. In doing so we will also try to tackle a real world example and as a result, introduce and discuss some new variables. The linear model of the two blocks is very similar to the effect a large magmatic intrusion would have on a cold country rock. It is however, simpler at this stage to have both materials the same and for this example we will use granite \reffig{fig:onedgbmodel}.  The intrusion will have an initial temperature defined by \verb Tref  and the granite properties required are:
 \begin{verbatim}
 #PDE related
 mx = 500*m #meters - model length
@@ -38,12 +38,11 @@ eta=0.  # RADIATION CONDITION
 kappa=2.2*W/m/K #watts/m.K thermal conductivity
 \end{verbatim}
 
-Since the scale and values involved in our problem have changed, the length and step size of the iteration must be considered. Instead of seconds which our units are in, it may be more prudent to decide the number of days or years we would like to run the simulation over. These can then be converted accordingly to SI units \editor{lutz new schema in here}. 
+Since the scale and values involved in our problem have changed, the length and step size of the iteration must be considered. Instead of seconds which our units are in, it may be more prudent to decide the number of days or years we would like to run the simulation over.
 \begin{verbatim}
 #Script/Iteration Related
 t=0. #our start time, usually zero
-tday=10*365. #the time we want to end the simulation in days
-tend=tday*24*60*60
+tend=10*yr #the time we want to end the simulation in years
 outputs = 400 # number of time steps required.
 h=(tend-t)/outputs #size of time step
 \end{verbatim}
