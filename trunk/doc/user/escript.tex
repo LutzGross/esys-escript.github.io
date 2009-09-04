@@ -50,7 +50,7 @@ PDE solutions on the \Domain \var{mydomain}:
 \begin{python}
   solution_space=Solution(mydomain)
 \end{python}
-The following generators for function spaces on a \Domain \var{mydomain} are available: 
+The following generators for function spaces on a \Domain \var{mydomain} are commonly used: 
 \begin{itemize}
 \item \var{Solution(mydomain)}: solutions of a PDE.
 \item \var{ReducedSolution(mydomain)}: solutions of a PDE with a reduced smoothness requirement.  
@@ -60,6 +60,17 @@ The following generators for function spaces on a \Domain \var{mydomain} are ava
 \item \var{FunctionOnContact0(mydomain)}: functions on side $0$ of the discontinuity. 
 \item \var{FunctionOnContact1(mydomain)}: functions on side $1$ of the discontinuity.
 \end{itemize}
+In some cases under-integration is used. For these cases the user may use a
+\FunctionSpace from the floowing list:
+\begin{itemize}
+\item \var{ReducedFunction(mydomain)}
+\item \var{ReducedFunctionOnBoundary(mydomain)}
+\item \var{ReducedFunctionOnContact0(mydomain)} 
+\item \var{ReducedFunctionOnContact1(mydomain)}
+\end{itemize}
+In comparison to the full teh corresponding full version
+they use a reduced number of integration nodes (typically one only) to represent values.
+
 
 The reduced smoothness for PDE solution is often used to fulfill the Ladyzhenskaya–-Babuska–-Brezzi condition \cite{LBB} when 
 solving saddle point problems \index{saddle point problems}, eg. the Stokes equation.

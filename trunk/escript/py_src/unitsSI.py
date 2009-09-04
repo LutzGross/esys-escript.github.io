@@ -90,6 +90,7 @@ some tools supporting physical units and conversion
 :var v_light: speed of light
 :var pi: value of pi accurate to 10 decimal places
 """
+from math import pi
 class Unit(object):
    """
    a general class to define a physical unit and convert from this unit to an appropriate SI unit.
@@ -334,6 +335,8 @@ C=Unit("C","Coulomb",0.,1.)
 V = Unit("V","Volt",0.,1.)
 F = Unit("F","Farad",0.,1.)
 Ohm=Unit("Ohm","Ohm",0.,1.)
+RAD=Unit("RAD","rad",0.,1.)
+DEG=Unit("Ohm","Ohm",0.,pi/180.)
 #
 #  Derived 
 #
