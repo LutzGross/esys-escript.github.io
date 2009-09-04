@@ -22,25 +22,24 @@ __url__="https://launchpad.net/escript-finley"
 import unittest
 import tempfile
       
-from esys.escript import *
-from esys.finley import Rectangle
-from esys.escript.models import DarcyFlow
-import sys
-import os
-try:
-     FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
-except KeyError:
-     FINLEY_WORKDIR='.'
 
 
 VERBOSE=False # or True
 
 from esys.escript import *
-from esys.escript.models import StokesProblemCartesian, PowerLaw, IncompressibleIsotropicFlowCartesian
+from esys.escript.models import StokesProblemCartesian, PowerLaw, IncompressibleIsotropicFlowCartesian, FaultSystem, DarcyFlow
+from esys.escript.models import Mountains
 from esys.finley import Rectangle, Brick
 
-from esys.escript.models import Mountains
 from math import pi
+import numpy
+import sys
+import os
+#====================================================================================================================
+try:
+     FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
+except KeyError:
+     FINLEY_WORKDIR='.'
 
 #====================================================================================================================
 class Test_StokesProblemCartesian2D(unittest.TestCase):
@@ -1093,8 +1092,164 @@ class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
        self.latestart=False
        self.runIt(free=0)
 
+
+class Test_FaultSystem(unittest.TestCase):
+   EPS=1.e-8
+   NE=10
+   def test_Fault2D_MaxValue(self):
+      dom=Rectangle(2*self.NE,2*self.NE)
+      x=dom.getX()
+      f=FaultSystem(dim=2)
+      f.addFault([[0.5,0.],[0.,0.5]], tag=1)
+      f.addFault([[1.,0.5],[0.5,0.5],[0.5,1.]], tag=2)
+
+      m, t, l=f.getMaxValue(x[0]*(1.-x[0])*(1-x[1]))
+      self.failUnless(  m == 0.25, "wrong max value")
+      self.failUnless(  t == 1, "wrong max tag")
+      self.failUnless(  l == 0., "wrong max location")
+      m, t, l=f.getMaxValue(x[1]*(1.-x[1])*(1-x[0])*x[0])
+      self.failUnless(  m == 0.0625, "wrong max value")
+      self.failUnless(  t == 2, "wrong max tag")
+      self.failUnless(  l == 0.5, "wrong max location")
+      m, t, l=f.getMaxValue(x[0]*(1.-x[0])*x[1])
+      self.failUnless(  m == 0.25, "wrong max value")
+      self.failUnless(  t == 2, "wrong max tag")
+      self.failUnless(  l == 1.0, "wrong max location")
+      m, t, l= f.getMaxValue(x[1]*(1.-x[1])*x[0])
+      self.failUnless(  m == 0.25, "wrong max value")
+      self.failUnless(  t == 2, "wrong max tag")
+      self.failUnless(  l == 0., "wrong max location")
+      m, t, l= f.getMaxValue(x[1]*(1.-x[1])*(1.-x[0]))
+      self.failUnless(  m == 0.25, "wrong max value")
+      self.failUnless(  t == 1, "wrong max tag")
+      self.failUnless(  abs(l-0.70710678118654) <= self.EPS,  "wrong max location")
+
+      
+   def xtest_Fault2D_TwoFaults(self):
+      f=FaultSystem(dim=2)
+      top1=[ [1.,0.], [1.,1.], [0.,1.] ]
+      self.failUnlessRaises(ValueError,f.addFault,top=top1,tag=1,bottom=top1)
+      f.addFault(top=top1,tag=1)
+      self.failUnless(f.getDim() == 2, "wrong dimension")
+      self.failUnless( [ 1 ] == f.getTags(), "tags wrong")
+      self.failUnless(  2. == f.getLength(1), "length wrong")
+      self.failUnless(  0. == f.getDepth(1), "depth wrong")
+      self.failUnless( (0., 2.) ==  f.getW0Range(1)," wrong W0 range")
+      self.failUnless( (0., 0.) ==  f.getW1Range(1)," wrong W1 range")
+      self.failUnless( [0., 1., 2.] ==  f.getW0Offsets(1)," wrong W0 offsets")
+      segs=f.getFaultSegments(1)[0]
+      self.failUnless( len(segs) == 3, "wrong number of segments")
+      self.failUnless( isinstance(segs[0], numpy.ndarray), "wrong class of vertex 0")
+      self.failUnless( segs[0].size == 2, "seg 0 has wrong size.")
+      self.failUnless( numpy.linalg.norm(segs[0]-[1.,0.]) < self.EPS, "wrong vertex. 0 ")
+      self.failUnless( isinstance(segs[1], numpy.ndarray), "wrong class of vertex 1")
+      self.failUnless( segs[1].size == 2, "seg 1 has wrong size.")
+      self.failUnless( numpy.linalg.norm(segs[1]-[1.,1.]) < self.EPS, "wrong vertex. 1 ")
+      self.failUnless( isinstance(segs[2], numpy.ndarray), "wrong class of vertex 2")
+      self.failUnless( segs[2].size == 2, "seg 2 has wrong size.")
+      self.failUnless( numpy.linalg.norm(segs[2]-[0.,1.]) < self.EPS, "wrong vertex. 2 ")
+      c=f.getCenterOnSurface()
+      self.failUnless( isinstance(c, numpy.ndarray), "center has wrong class")
+      self.failUnless( c.size == 2, "center size is wrong")
+      self.failUnless( numpy.linalg.norm(c-[2./3.,2./3.]) < self.EPS, "center has wrong coordinates.")
+      o=f.getOrientationOnSurface()/pi*180.
+      self.failUnless( abs(o-45.) < self.EPS, "wrong orientation.")
+
+      top2=[ [10.,0.], [0.,10.] ]
+      f.addFault(top2, tag=2, w0_offsets=[0,20], w1_max=20)
+      self.failUnless( [ 1, 2 ] == f.getTags(), "tags wrong")
+      self.failUnless(  abs(f.getLength(2)-14.1421356237) < self.EPS * 14.1421356237, "wrong length")
+      self.failUnless(  0. == f.getDepth(2), "depth wrong")
+      self.failUnless( (0., 20.) ==  f.getW0Range(2)," wrong W0 range")
+      self.failUnless( (0., 0.) ==  f.getW1Range(2)," wrong W1 range")
+      self.failUnless( [0., 20.] ==  f.getW0Offsets(2)," wrong W0 offsets")
+      segs=f.getFaultSegments(2)[0]
+      self.failUnless( len(segs) == 2, "wrong number of segments")
+      self.failUnless( isinstance(segs[0], numpy.ndarray), "wrong class of vertex 0")
+      self.failUnless( numpy.linalg.norm(segs[0]-[10.,0.]) < self.EPS, "wrong vertex. 0 ")
+      self.failUnless( isinstance(segs[1], numpy.ndarray), "wrong class of vertex 1")
+      self.failUnless( numpy.linalg.norm(segs[1]-[0.,10.]) < self.EPS, "wrong vertex. 1 ")
+      c=f.getCenterOnSurface()
+      self.failUnless( isinstance(c, numpy.ndarray), "center has wrong class")
+      self.failUnless( c.size == 2, "center size is wrong")
+      self.failUnless( numpy.linalg.norm(c-[12./5.,12./5.]) < self.EPS, "center has wrong coordinates.")
+      o=f.getOrientationOnSurface()/pi*180.
+      self.failUnless( abs(o-45.) < self.EPS, "wrong orientation.")
+
+      f.transform(rot=-pi/2., shift=[-1.,-1.])
+      self.failUnless( [ 1, 2 ] == f.getTags(), "tags after transformation wrong")
+      self.failUnless(  2. == f.getLength(1), "length after transformation wrong")
+      self.failUnless(  0. == f.getDepth(1), "depth after transformation wrong")
+      self.failUnless( (0., 2.) ==  f.getW0Range(1)," wrong W0 after transformation range")
+      self.failUnless( (0., 0.) ==  f.getW1Range(1)," wrong W1 rangeafter transformation ")
+      self.failUnless( [0., 1., 2.] ==  f.getW0Offsets(1)," wrong W0 offsetsafter transformation ")
+      segs=f.getFaultSegments(1)[0]
+      self.failUnless( len(segs) == 3, "wrong number of segmentsafter transformation ")
+      self.failUnless( isinstance(segs[0], numpy.ndarray), "wrong class of vertex 0 after transformation")
+      self.failUnless( segs[0].size == 2, "seg 0 has wrong size after transformation.")
+      self.failUnless( numpy.linalg.norm(segs[0]-[-1.,0.]) < self.EPS, "wrong vertex. 0  after transformation")
+      self.failUnless( isinstance(segs[1], numpy.ndarray), "wrong class of vertex  after transformation1")
+      self.failUnless( segs[1].size == 2, "seg 1 has wrong size after transformation.")
+      self.failUnless( numpy.linalg.norm(segs[1]-[0.,0.]) < self.EPS, "wrong vertex.  after transformation1 ")
+      self.failUnless( isinstance(segs[2], numpy.ndarray), "wrong class of vertex  after transformation2")
+      self.failUnless( segs[2].size == 2, "seg 2 has wrong size after transformation.")
+      self.failUnless( numpy.linalg.norm(segs[2]-[0., 1.]) < self.EPS, "wrong vertex after transformation. 2 ")
+      self.failUnless(  abs(f.getLength(2)-14.1421356237) < self.EPS * 14.1421356237, "wrong length after transformation")
+      self.failUnless(  0. == f.getDepth(2), "depth wrong after transformation")
+      self.failUnless( (0., 20.) ==  f.getW0Range(2)," wrong W0 range after transformation")
+      self.failUnless( (0., 0.) ==  f.getW1Range(2)," wrong W1 range after transformation")
+      self.failUnless( [0., 20.] ==  f.getW0Offsets(2)," wrong W0 offsets after transformation")
+      segs=f.getFaultSegments(2)[0]
+      self.failUnless( len(segs) == 2, "wrong number of segments after transformation")
+      self.failUnless( isinstance(segs[0], numpy.ndarray), "wrong class of vertex 0 after transformation")
+      self.failUnless( numpy.linalg.norm(segs[0]-[-1.,-9]) < self.EPS, "wrong vertex. 0  after transformation")
+      self.failUnless( isinstance(segs[1], numpy.ndarray), "wrong class of vertex 1 after transformation")
+      self.failUnless( numpy.linalg.norm(segs[1]-[9.,1.]) < self.EPS, "wrong vertex. 1  after transformation")
+
+      c=f.getCenterOnSurface()
+      self.failUnless( isinstance(c, numpy.ndarray), "center has wrong class")
+      self.failUnless( c.size == 2, "center size is wrong")
+      self.failUnless( numpy.linalg.norm(c-[7./5.,-7./5.]) < self.EPS, "center has wrong coordinates.")
+      o=f.getOrientationOnSurface()/pi*180.
+      self.failUnless( abs(o+45.) < self.EPS, "wrong orientation.")
+
+      p=f.getParametrization([-1.,0.],1)
+      self.failUnless(p[1]==1., "wrong value.")
+      self.failUnless(abs(p[0])<self.EPS, "wrong value.")
+      p=f.getParametrization([-0.5,0.],1)
+      self.failUnless(p[1]==1., "wrong value.")
+      self.failUnless(abs(p[0]-0.5)<self.EPS* 0.5, "wrong value.")
+      p=f.getParametrization([0.,0.],1)
+      self.failUnless(p[1]==1., "wrong value.")
+      self.failUnless(abs(p[0]-1.)<self.EPS, "wrong value.")
+      p=f.getParametrization([0.0000001,0.0000001],1, tol=1.e-8)
+      self.failUnless(p[1]==0., "wrong value.")
+      p=f.getParametrization([0.0000001,0.0000001],1, tol=1.e-6)
+      self.failUnless(p[1]==1., "wrong value.")
+      self.failUnless(abs(p[0]-1.0000001)<self.EPS, "wrong value.")
+      p=f.getParametrization([0.,0.5],1)
+      self.failUnless(p[1]==1., "wrong value.")
+      self.failUnless(abs(p[0]-1.5)<self.EPS, "wrong value.")
+      p=f.getParametrization([0,1.],1)
+      self.failUnless(p[1]==1., "wrong value.")
+      self.failUnless(abs(p[0]-2.)<self.EPS, "wrong value.")
+      p=f.getParametrization([1.,1.],1)
+      self.failUnless(p[1]==0., "wrong value.")
+      p=f.getParametrization([0,1.11],1)
+      self.failUnless(p[1]==0., "wrong value.")
+      p=f.getParametrization([-1,-9.],2)
+      self.failUnless(p[1]==1., "wrong value.")
+      self.failUnless(abs(p[0])<self.EPS, "wrong value.")
+      p=f.getParametrization([9,1],2)
+      self.failUnless(p[1]==1., "wrong value.")
+      self.failUnless(abs(p[0]-20.)<self.EPS, "wrong value.")
+
+
+
+
 if __name__ == '__main__':
    suite = unittest.TestSuite()
+   suite.addTest(unittest.makeSuite(Test_FaultSystem))
    suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian2D))
    suite.addTest(unittest.makeSuite(Test_Darcy3D))
    suite.addTest(unittest.makeSuite(Test_Darcy2D))

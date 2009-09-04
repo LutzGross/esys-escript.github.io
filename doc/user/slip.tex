@@ -1,0 +1,22 @@
+\section{Slip on a Fault}
+\label{Slip CHAP}
+
+In this next example we want to calculate the displacement field $u\hackscore{i}$ for any time $t>0$ by solving the wave equation:
+\index{wave equation}
+\begin{eqnarray}\label{WAVE general problem}
+\rho u\hackscore{i,tt} - \sigma\hackscore{ij,j}=0
+\end{eqnarray}
+in a three dimensional block of length $L$ in $x\hackscore{0}$
+and $x\hackscore{1}$ direction and height $H$
+in $x\hackscore{2}$ direction. $\rho$ is the known density which may be a function of its location.
+$\sigma\hackscore{ij}$ is the stress field \index{stress} which in case of an isotropic, linear elastic material is given by
+\begin{eqnarray} \label{WAVE stress}
+\sigma\hackscore{ij} & = & \lambda u\hackscore{k,k} \delta\hackscore{ij} + \mu ( u\hackscore{i,j} + u\hackscore{j,i})
+\end{eqnarray}
+where $\lambda$ and $\mu$ are the Lame coefficients 
+\index{Lame coefficients} and $\delta\hackscore{ij}$ denotes the Kronecker symbol\index{Kronecker symbol}.
+On the boundary the normal stress is given by
+\begin{eqnarray} \label{WAVE natural}
+\sigma\hackscore{ij}n\hackscore{j}=0
+\end{eqnarray}
+for all time $t>0$.

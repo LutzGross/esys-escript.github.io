@@ -45,11 +45,6 @@ import numpy
 import util
 import math
 
-##### Added by Artak
-# from Numeric import zeros,Int,Float64
-###################################
-
-
 class TimeIntegrationManager:
   """
   A simple mechanism to manage time dependend values.
@@ -1613,7 +1608,7 @@ class HomogeneousSaddlePointProblem(object):
 	  """
 	  Returns True if tolerance adaption for subproblem is choosen.
 	  """
-          self.__adaptSubTolerance
+          return self.__adaptSubTolerance
 	  
       def solve(self,v,p,max_iter=20, verbose=False, usePCG=True, iter_restart=20, max_correction_steps=10):
          """
