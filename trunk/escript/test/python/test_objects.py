@@ -54,6 +54,85 @@ import numpy
 from esys.escript import *
 
 
+class Test_TableInterpolation(unittest.TestCase):
+    RES_TOL=1.e-7 # RES_TOLerance to compare results	
+	
+	
+    def test_NullFunctionSpace(self):
+	arL=[[0, -1, -2, -3, -4], [1, 1, -2, -3, -4], [2, 2, 2, -3, -4], [3, 3, 3, 3, -4], [4, 4, 4, 4, 4]]
+	arn=numpy.array(arL)
+	ars=[arL,arn]
+	d0=Data(0)
+	d1=Data(1)
+	d2=Data(2)
+	d35=Data(3.5)
+	d4=Data(4)
+	dm05=Data(-0.5)
+	d175=Data(1.75)
+	d225=Data(2.25)
+	for arr in ars:
+	    self.failUnless(Lsup(d1.interpolateTable(arL,0, 1, d2, 0, 1, 100)+2)<self.RES_TOL)
+	    self.failUnless(Lsup(d1.interpolateTable(arL,0, 1, d35, 0, 1, 100)+3.5)<self.RES_TOL)
+	    self.failUnless(Lsup(d35.interpolateTable(arL,0,1, d2, 0, 1, 100)-3.5)<self.RES_TOL)
+	    self.failUnless(Lsup(d175.interpolateTable(arL,0,1,d225,0,1, 100)-0)<self.RES_TOL)
+	    self.failUnless(Lsup(d2.interpolateTable(arL, 1, 4, d2, -1, 4, 100)-0.25)<self.RES_TOL)
+	       # Point out of bounds
+	    self.failUnlessRaises(RuntimeError, d1.interpolateTable,arL,0, 1, d4, 0, 1, 100 )
+	    self.failUnlessRaises(RuntimeError, d4.interpolateTable, arL,0, 1, d1, 0, 1, 100 )
+	    self.failUnlessRaises(RuntimeError, dm05.interpolateTable, arL,0,1, d1 , 0,1, 100 )
+	    self.failUnlessRaises(RuntimeError, d1.interpolateTable, arL,0,1, dm05 , 0,1, 100 )
+	       # interpolated value too large
+	    self.failUnlessRaises(RuntimeError, d2.interpolateTable, arL, 0, 1, d2, 0, 1, 1 )
+
+
+    def test_FunctionSpace2D(self):
+	vs=[(1,3,5,7), (-1,1,-1,1), (0.5, 17, 0.25, 42)]   #There is no particular significance to these numbers
+	for fs in self.functionspaces:
+	    print fs
+	    points=fs.getX()
+	    if not points.hasNoSamples():
+	      for t in vs:
+		v0, v1, v2, v3 =t
+		x=points[0]
+		y=points[1]
+		xmax=sup(x)
+		xmin=inf(x)
+		ymax=sup(y)
+		ymin=inf(y)
+		xwidth=(xmax-xmin)/(self.xn-1)
+		ywidth=(ymax-ymin)/(self.yn-1)
+		table=[]
+		for j in xrange(self.yn+1):
+		      row=[]
+		      for i in xrange(self.xn+1):
+	   	 	row.append(v0+v1*xwidth*i+v2*ywidth*j+v3*i*j*xwidth*ywidth)
+	    	      table.append(row)
+	    	res=y.interpolateTable(table,ymin,ywidth,x, xmin, xwidth,500)
+	    	ref=v0+v1*x+v2*y+v3*x*y 
+	    	self.failUnless(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
+	    
+
+    def test_FunctionSpace1D(self):
+	vs=[(1,3), (-1,1), (0.5, 17)]     #There is no particular significance to these numbers
+	for fs in self.functionspaces:
+	    print fs
+	    points=fs.getX()
+	    if not points.hasNoSamples():
+	      for t in vs:
+		v0, v1 =t
+		x=points[0]
+		xmax=sup(x)
+		xmin=inf(x)
+		xwidth=(xmax-xmin)/(self.xn-1)
+		table=[]
+		for i in xrange(self.xn+1):
+	   	   table.append(v0+v1*xwidth*i)
+	    	res=x.interpolateTable(table, xmin, xwidth,500)
+	    	ref=v0+v1*x 
+	    	self.failUnless(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
+	    
+
+
 class Test_saveCSV(unittest.TestCase):
 
    def test_save1(self):

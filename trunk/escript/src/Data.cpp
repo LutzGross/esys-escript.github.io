@@ -3031,11 +3031,98 @@ Data::freeSampleBuffer(BufferGroup* bufferg)
 
 
 Data
-Data::interpolateFromTable(boost::python::object table, double Amin, double Astep,
-	     double undef, Data& B, double Bmin, double Bstep)
+Data::interpolateFromTable2DP(boost::python::object table, double Amin, double Astep,
+		Data& B, double Bmin, double Bstep, double undef)
 {
     WrappedArray t(table);
     return interpolateFromTable2D(t, Amin, Astep, undef, B, Bmin, Bstep);
+}
+
+Data
+Data::interpolateFromTable1DP(boost::python::object table, double Amin, double Astep,
+					      double undef)
+{
+	WrappedArray t(table);
+	return interpolateFromTable1D(t, Amin, Astep, undef);
+}
+
+
+Data
+Data::interpolateFromTable1D(const WrappedArray& table, double Amin, double Astep,
+					     double undef)
+{
+	int error=0;
+	if ((getDataPointRank()!=0))
+	{
+		throw DataException("Input to 1D interpolation must be scalar");
+	}
+	if (table.getRank()!=1)
+	{
+		throw DataException("Table for 1D interpolation must be 1D");
+	}
+	if (!isExpanded())
+	{
+		expand();
+	}
+	Data res(0, DataTypes::scalarShape, getFunctionSpace(), true);
+	do                                   // to make breaks useful
+	{
+		try
+		{
+			int numpts=getNumDataPoints();
+			const DataVector& adat=getReady()->getVectorRO();
+			DataVector& rdat=res.getReady()->getVectorRW();
+			int twidth=table.getShape()[0];
+			for (int l=0; l<numpts; ++l)
+			{
+				double a=adat[l];
+				int x=static_cast<int>((a-Amin)/Astep);
+				if (a<Amin)
+				{
+					error=1;
+					break;	
+				}
+				if (x>=(twidth-1))
+				{
+					error=1;
+					break;
+				}
+				else		// x and y are in bounds
+				{
+					double e=table.getElt(x);
+					double w=table.getElt(x+1);
+					if ((e>undef) || (w>undef))
+					{
+						error=2;
+						break; 
+					}
+		    // map x*Astep <= a << (x+1)*Astep to [-1,1] 
+					double la = 2.0*(a-(x*Astep))/Astep-1;
+					rdat[l]=((1-la)*e + (1+la)*w)/2;
+				}
+			}
+		} catch (DataException d)
+		{
+			error=3;
+			break;
+		}
+	} while (false);
+#ifdef PASO_MPI
+	int rerror=0;
+	MPI_Allreduce( &error, &rerror, 1, MPI_INT, MPI_MAX, get_MPIComm() );
+	error=rerror;
+#endif
+	if (error)
+	{
+		switch (error)
+		{
+			case 1: throw DataException("Point out of bounds");
+			case 2: throw DataException("Interpolated value too large");
+			default:
+				throw DataException("Unknown error in interpolation");		
+		}
+	}
+	return res;
 }
 
 		

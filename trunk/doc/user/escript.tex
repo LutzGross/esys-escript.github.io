@@ -1097,6 +1097,126 @@ returns a function which is $1$ where \var{a} equals zero with tolerance \var{to
 returns a function which is $1$ where \var{a} different from zero with tolerance \var{tol} and $0$ otherwise. If \var{tol} is not present, the absolute maximum value of C{a} times C{rtol} is used.
 \end{funcdesc}
 
+\subsection{Interpolating Data}
+\index{interpolateTable}
+In some cases, it may be useful to produce Data objects which fit some user defined function.
+Manually modifying each value in the Data object is not a good idea since it depends on 
+knowing the location and order of each datapoint in the domain.
+Instead \escript can use an interpolation table to produce a Data object.
+
+The following example is available as `int_save.py` in the examples directory.
+We will produce a \Data object which aproximates a sine curve.
+
+\begin{python}
+from esys.escript import saveDataCSV, sup
+import numpy
+from esys.finley import Rectangle
+
+n=4		
+r=Rectangle(n,n)
+x=r.getX()
+x0=x[0]
+x1=x[1]    #we'll use this later
+toobig=100	
+\end{python}
+
+First we produce an interpolation table.
+\begin{python}
+sine_table=[0, 0.70710678118654746, 1, 0.70710678118654746, 0, 
+           -0.70710678118654746, -1, -0.70710678118654746, 0, 
+            0.70710678118654746]
+\end{python}
+
+We wish to identify $0$ and $1$ with the ends of the curve.
+That is, with the first and eighth values in the table. 
+But \var{x0} contains values between $0$ and $1$ inclusive so we need to continue the table to the ninth entry.
+
+\begin{python}
+numslices=len(sine_table)-1
+
+minval=0
+maxval=1.125	# The extra 0.25 is to account for the extra entry in the table
+
+step=sup(maxval-minval)/numslices
+\end{python}
+
+So the values $v$ from the input lie in the interval minval$\leq v < $maxval.
+\var{step} represents the gap (in the input range) between entries in the table.
+Now we produce our new \Data object.
+
+\begin{python}
+result=x0.interpolateTable(sine_table, minval, step, toobig)
+\end{python}
+Any values which interpolate to larger than \var{toobig} will raise an exception.
+
+Now for a 2D example.
+We will interpolate a surface such that the bottom edge is the sine curve described above.
+The amplitude of the curve decreases as we move towards the top edge.
+
+Our interpolation table will have three rows.
+\begin{python}
+st=numpy.array(sine_table)
+
+table=[st, 0.5*st, 0*st ]
+\end{python}
+
+The use of numpy and multiplication here is just to save typing.
+
+\begin{python}
+result2=x1.interpolateTable(table, 0, 0.55, x0, minval, step, toobig)
+\end{python}
+
+In the 2D case, the params for the x1 direction (min=0, step=0.55) come first followed by the x0 data object and 
+its params.
+In this case, the upper bound in the x1 direction is $1.10$ not $1$ so we don't need to add an extra row to the table.
+
+\subsection{Saving Data as CSV}
+\index{saveDataCSV}
+\index{CSV}
+For simple post-processing, \Data objects can be saved in comma separated value format.
+
+If \var{mydata1} and \var{mydata2} are scalar data, the following command:
+\begin{python}
+saveDataCSV('output.csv',U=mydata1, V=mydata2)
+\end{python}
+will record the values of mydata in \texttt{output.csv} in the following format:
+\begin{verbatim}
+U, V
+1.0000000e+0, 2.0000000e-1
+5.0000000e-0, 1.0000000e+1
+...
+\end{verbatim}
+
+The names of the keyword parameters form the names of columns in the ouput.
+If the data objects are over different function spaces, then saveDataCSV will attempt to
+interpolate to a common function space.
+If this is not possible, then an exception will be raised.
+
+Output can be restricted using a scalar mask.
+\begin{python}
+saveDataCSV('outfile.csv', U=mydata1, V=mydata2, mask=myscalar)
+\end{python}
+Will only output those rows which correspond to to positive values of \var{myscalar}.
+Some aspects of the output can be tuned using additional params.
+\begin{python}
+saveDataCSV('data.csv', append=True, sep=' ', csep='/', mask=mymask, e=mat1)
+\end{python}
+
+\begin{itemize}
+ \item \var{append} - specifies that the output should be written to the end of an existing file.
+\item \var{sep} - defines the separator between fields.
+\item \var{csep} - defines the separator between components in the header line. For example between the components of a matrix. 
+\end{itemize}
+
+The above command would produce output like this:
+\begin{verbatim}
+e/0/0 e/1/0 e/0/1 e/1/1
+1.0000000000e+00 2.0000000000e+00 3.0000000000e+00 4.0000000000e+00
+... 
+\end{verbatim}
+
+
+
 \subsection{\Operator Class}
 The \Operator class provides an abstract access to operators build
 within the \LinearPDE class. \Operator objects are created 

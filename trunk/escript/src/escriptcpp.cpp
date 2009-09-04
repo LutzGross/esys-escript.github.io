@@ -240,6 +240,8 @@ args("solver", "preconditioner", "package", "symmetry"));
     .def("isConstant",&escript::Data::isConstant,":rtype: ``bool``\n:return: True if this ``Data`` is an instance of ``DataConstant``\n:note: This does not mean the data is immutable.")
     .def("isLazy",&escript::Data::isLazy,":rtype: ``bool``\n:return: True if this ``Data`` is lazy.")
     .def("isReady",&escript::Data::isReady,":rtype: ``bool``\n:return: True if this ``Data`` is not lazy.")
+    .def("hasNoSamples", &escript::Data::hasNoSamples,":rtype: ``bool``\n:return: True if this ``Data`` (locally)"
+" contains no samples.")
     .def("expand",&escript::Data::expand,"Convert the data to expanded representation if it is not expanded already.")
     .def("tag",&escript::Data::tag,"Convert data to tagged representation if it is not already tagged or expanded")
     .def("resolve",&escript::Data::resolve,"Convert the data to non-lazy representation.")
@@ -259,10 +261,10 @@ args("solver", "preconditioner", "package", "symmetry"));
 "\n:param dataPointNo: datapoint to access\n:type dataPointNo: int")
     .def("setToZero",&escript::Data::setToZero,"After this call the object will store values of the same shape as before but all components will be zero.")
     .def("interpolate",&escript::Data::interpolate,args("functionspace"),"Interpolate this object's values into a new functionspace.")
-    .def("interpolateTable", &escript::Data::interpolateFromTable, 
-args("table","Amin","Astep","undef", "B", "Bmin", "Bstep"),
+    .def("interpolateTable", &escript::Data::interpolateFromTable2DP, 
+args("table","Amin","Astep", "B", "Bmin", "Bstep","undef"),
 "Creates a new Data object by interpolating using the source data (which are\n"
-"looked up in ``table``)\n\n"
+"looked up in ``table``)\n``A`` must be the outer dimension on the table\n\n"
 ":param table: two dimensional collection of values\n"
 ":param Amin: The base of locations in table\n:type Amin: float\n"
 ":param Astep: size of gap between each item in the table\n:type Astep: float\n"
@@ -274,6 +276,18 @@ args("table","Amin","Astep","undef", "B", "Bmin", "Bstep"),
 ":raise RuntimeError(DataException): if the cordinates do not map into the table or if the interpolated value is above ``undef``"
 "\n:rtype: `Data`"
 )
+    .def("interpolateTable", &escript::Data::interpolateFromTable1DP, 
+args("table","Amin","Astep","undef"),
+"Creates a new Data object by interpolating using the source data (which are\n"
+"looked up in ``table``)\n\n"
+":param table: one dimensional collection of values\n"
+":param Amin: The base of locations in table\n:type Amin: float\n"
+":param Astep: size of gap between each item in the table\n:type Astep: float\n"
+":param undef: upper bound on interpolated values\n:type undef: float\n"
+":raise RuntimeError(DataException): if the cordinates do not map into the table or if the interpolated value is above ``undef``"
+"\n:rtype: `Data`"
+)
+
 
     .def("minGlobalDataPoint",&escript::Data::minGlobalDataPoint)
     .def("maxGlobalDataPoint",&escript::Data::maxGlobalDataPoint)
@@ -330,7 +344,7 @@ args("table","Amin","Astep","undef", "B", "Bmin", "Bstep"),
     // following implements the python "-" negation operator
     .def("__neg__",&escript::Data::neg, ":return: negation of the values in this object\n:rtype: `Data`")
     // following implements the python "+" identity operator
-    .def("__pos__",&escript::Data::pos, "\nThe unary + operator\n\n:rtype: Data`")
+    .def("__pos__",&escript::Data::pos, "\nThe unary + operator\n\n:rtype: `Data`")
     // following two functions implement the python [] operator
     .def("__getitem__",&escript::Data::getItem,"Used by the python [] operator\n\n:rtype: `Data`")
     .def("__setitem__",&escript::Data::setItemO,"Used by the python [] operator")
