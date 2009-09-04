@@ -684,7 +684,16 @@ If false, the result is a list of scalars [1, 2, ...]
   DataTypes::ValueType::size_type
   getLength() const;
 
-
+  /**
+  \brief Return true if this object contains no samples.
+  This is not the same as isEmpty() 
+  */
+  ESCRIPT_DLL_API
+  bool
+  hasNoSamples() const
+  {
+	return getLength()==0;
+  }
 
   /**
      \brief
@@ -770,12 +779,23 @@ If false, the result is a list of scalars [1, 2, ...]
   interpolateFromTable2D(const WrappedArray& table, double Amin, double Astep,
                        double undef, Data& B, double Bmin, double Bstep);
 
-
-  // This signature needs to be tuned
   ESCRIPT_DLL_API
   Data
-  interpolateFromTable(boost::python::object table, double Amin, double Astep,
-                       double undef, Data& B, double Bmin, double Bstep);
+  interpolateFromTable1D(const WrappedArray& table, double Amin, double Astep,
+                       double undef);
+
+
+
+
+  ESCRIPT_DLL_API
+  Data
+  interpolateFromTable2DP(boost::python::object table, double Amin, double Astep,
+                        Data& B, double Bmin, double Bstep, double undef);
+
+  ESCRIPT_DLL_API
+  Data
+  interpolateFromTable1DP(boost::python::object table, double Amin, double Astep,
+                        double undef);
 
   /**
      \brief
