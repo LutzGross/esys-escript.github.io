@@ -242,9 +242,9 @@ class FaultSystem:
      if self.getDim()==2:
         self.__depth[tag]=0.
      else:
-        self.__depth[tag]=sum([numpy.linalg.norm(faults[1][i]-faults[0][i]) for i in xrange(len_faults)])/len_faults
+        self.__depth[tag]=float(sum([numpy.linalg.norm(faults[1][i]-faults[0][i]) for i in xrange(len_faults)])/len_faults)
      if w1_max==None or self.getDim()==2: w1_max=self.__depth[tag]
-     self.__length[tag]=sum([numpy.linalg.norm(faults[0][i]-faults[0][i-1]) for i in xrange(1,len_faults)])
+     self.__length[tag]=float(sum([numpy.linalg.norm(faults[0][i]-faults[0][i-1]) for i in xrange(1,len_faults)]))
      self.__w1_max[tag]=w1_max
      #
      # 
@@ -254,7 +254,7 @@ class FaultSystem:
      else:
         self.__offsets[tag]=[0.]
         for  i in xrange(1,len_faults):
-            self.__offsets[tag].append(self.__offsets[tag][-1]+numpy.linalg.norm(faults[0][i]-faults[0][i-1]))
+            self.__offsets[tag].append(self.__offsets[tag][-1]+float(numpy.linalg.norm(faults[0][i]-faults[0][i-1])))
      w0_max=max(self.__offsets[tag])
      self.__w0_max[tag]=w0_max
 
@@ -338,6 +338,33 @@ class FaultSystem:
        raise ValueError,"3D is not supported yet."
     
     return p, updated
+ 
+def __getSignedDistance(self,x,tag=None):
+    """
+    returns the signed distance at ``x`` from the fault ``tag`` where the first and the last segments are extended to infinity.
+
+    :param x: location(s)
+    :type x: `escript.Data` object or `numpy.ndarray`
+    :param tag: the tage of the fault
+    """
+    p=x[0]*0 
+    if self.getDim()==2:
+        mat=numpy.array([[0., -1.], [1., 0.] ])
+        #
+        #
+        s=self.getFaultSegments(tag)[0]
+        for i in xrange(1,len(s)):
+           d=(s[i]-s[i-1])
+           h=x-s[i-1]
+           d_l=length(d)
+           if not d_l>0:
+              raise ValueError,"segement %s in fault %s has zero length."%(i,tag)
+           dt=numpy.dot(mat,d)/d_l
+           a=numpy.dot(h,dt)
+           p=maximum(a,p)
+    else:
+       raise ValueError,"3D is not supported yet."
+    return p
 
 
 def patchMap(v,v1,v2,v3,v4,x_offset,x_length,depth):
@@ -383,3 +410,4 @@ def patchMap(v,v1,v2,v3,v4,x_offset,x_length,depth):
     s=numpy.dot(h,d4-st*numpy.dot(v3-v4,d4))/numpy.dot(v4-v1,d4)
     t=numpy.dot(h,d2-st*numpy.dot(v3-v2,d2))/numpy.dot(v2-v1,d2)
     return x_offset+s*x_length, -depth*t
+

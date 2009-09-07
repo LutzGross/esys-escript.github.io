@@ -262,7 +262,7 @@ args("solver", "preconditioner", "package", "symmetry"));
     .def("setToZero",&escript::Data::setToZero,"After this call the object will store values of the same shape as before but all components will be zero.")
     .def("interpolate",&escript::Data::interpolate,args("functionspace"),"Interpolate this object's values into a new functionspace.")
     .def("interpolateTable", &escript::Data::interpolateFromTable2DP, 
-args("table","Amin","Astep", "B", "Bmin", "Bstep","undef"),
+(arg("table"),arg("Amin"),arg("Astep"), arg("B"), arg("Bmin"), arg("Bstep"), arg("undef")=1.e50),
 "Creates a new Data object by interpolating using the source data (which are\n"
 "looked up in ``table``)\n``A`` must be the outer dimension on the table\n\n"
 ":param table: two dimensional collection of values\n"
@@ -277,7 +277,7 @@ args("table","Amin","Astep", "B", "Bmin", "Bstep","undef"),
 "\n:rtype: `Data`"
 )
     .def("interpolateTable", &escript::Data::interpolateFromTable1DP, 
-args("table","Amin","Astep","undef"),
+(arg("table"),arg("Amin"),arg("Astep"), arg("undef")=1.e50),
 "Creates a new Data object by interpolating using the source data (which are\n"
 "looked up in ``table``)\n\n"
 ":param table: one dimensional collection of values\n"
