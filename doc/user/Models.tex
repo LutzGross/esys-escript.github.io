@@ -348,7 +348,8 @@ the relative tolerances for solving~(\ref{DARCY V FORM}),~(\ref{UPDATE W})
 and~(\ref{UPDATE P}) are set automatically.
 \end{classdesc}
 
-\begin{methoddesc}[DarcyFlow]{setValue}{\optional{f=None, \optional{g=None, \optional{location_of_fixed_pressure=None, \optional{location_of_fixed_flux=None, \optional{permeability=None}}}}}}
+\begin{methoddesc}[DarcyFlow]{setValue}{\optional{f=None, \optional{g=None, \optional{location_of_fixed_pressure=None, \optional{location_of_fixed_flux=None, 
+\\\optional{permeability=None}}}}}}
 assigns values to the model parameters. Values can be assigned using various calls - in particular 
 in a time dependend problem only values that change over time needs to be reset. The permability can be defined as scalar (isotropic), a vector (orthotropic) or a matrix (anisotropic). 
 \var{f} and \var{g} are the corresponding parameters in~\ref{DARCY PROBLEM}.

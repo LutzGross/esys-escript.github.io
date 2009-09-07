@@ -324,8 +324,8 @@ The \code{U_pc.out} stores 4 columns of data: $t,u\hackscore x,u\hackscore y,u\h
 respectively, where $u\hackscore x,u\hackscore y,u\hackscore z$ are the $x\hackscore 0,x\hackscore 1,x\hackscore 2$ components of the displacement vector $u$ at the point source. These can be
 plotted easily using any plotting package. In \gnuplot the command:
 \begin{verbatim}
- plot 'U_pc.out' u 1:2 title 'U_x' w l lw 2, 'U_pc.out' u 1:3 title 'U_y' w l lw 2, 
-'U_pc.out' u 1:4 title 'U_z' w l lw 2
+ plot 'U_pc.out' u 1:2 title 'U_x' w l lw 2, 'U_pc.out' u 1:3 title 'U_y' w l 
+lw 2, 'U_pc.out' u 1:4 title 'U_z' w l lw 2
 \end{verbatim}
 will reproduce Figure~\ref{WAVE FIG 1} (As expected this is identical to the input signal shown in Figure~\ref{WAVE FIG 1.2})2. It is pointed out that we are not using the
 standard \PYTHON \function{open} to write to the file \code{U_pc.out} as it is not safe
