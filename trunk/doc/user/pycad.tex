@@ -70,9 +70,11 @@ in the shape of a trapezoid with a cutout area.
 	# Create the geometry, mesh and Escript domain
 	d.setScriptFileName("trapezoid.geo")
 	d.setMeshFileName("trapezoid.msh")
-	domain=MakeDomain(d, integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True)
+	domain=MakeDomain(d, integrationOrder=-1, reducedIntegrationOrder=-1, 
+	optimizeLabeling=True)
 
-	# Create a file that can be read back in to python with mesh=ReadMesh(fileName)
+	# Create a file that can be read back in to python with 
+	# mesh=ReadMesh(fileName)
 	domain.write("trapezoid.fly")
 \end{python}
 
