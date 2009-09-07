@@ -41,6 +41,8 @@ from esys.escript.unitsSI import *
 import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os #This package is necessary to handle saving our data.
+import cblib
+
 
 #################################################ESTABLISHING VARIABLES
 #Domain related.
@@ -67,7 +69,9 @@ print "Expected Number of time outputs is: ", (tend-t)/h
 i=0 #loop counter
 #the folder to put our outputs in, leave blank "" for script path 
 save_path="data/onedheatdiff001"
-########## note this folder path must exist to work ###################
+
+#ensure the dir exists
+cblib.needdirs([save_path, os.path.join(save_path,"tempT"), os.path.join(save_path, "totT")])
 
 ################################################ESTABLISHING PARAMETERS
 #generate domain using rectangle

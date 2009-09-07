@@ -28,7 +28,7 @@ from esys.escript import * # This imports everything from the escript library
 from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE
 from esys.finley import Rectangle # This imports the rectangle domain function from finley
 import os #This package is necessary to handle saving our data.
-
+from cblib import needdirs
 
 
 ##ESTABLISHING VARIABLES
@@ -47,6 +47,7 @@ print "Expected Number of Output Files is: ", (tend-t)/h
 
 i=0 #loop counter 
 save_path = "data/onedheatdiff" #the folder to put our outputs in, leave blank "" for script path - note this folder path must exist to work
+needdirs([save_path])
 
 #... generate domain ...
 rod = Rectangle(l0=0.05,l1=.01,n0=500, n1=1)

@@ -29,6 +29,8 @@ from esys.finley import MakeDomain
 import os
 import numpy as np
 from math import *
+from cblib import needdirs
+
 
 # routine to find consecutive coordinates of a loop in pycad
 def loopcoords(loop):
@@ -43,6 +45,7 @@ def loopcoords(loop):
 	return coords
 
 save_path = "data/heatrefrac002"
+needdirs([save_path])
 
 # Overall Domain
 p0=Point(0.0,        0.0, 0.0)

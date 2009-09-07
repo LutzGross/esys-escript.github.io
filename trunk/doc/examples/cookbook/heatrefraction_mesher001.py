@@ -30,7 +30,7 @@ import os #file path tool
 import numpy as np #numerial python for arrays
 from math import * # math package
 #used to construct polygons for plotting from pycad
-from cblib import getLoopCoords 
+from cblib import getLoopCoords, needdirs
 
 #set modal to 1 for a syncline or -1 for an anticline structural 
 #configuration	
@@ -39,6 +39,7 @@ modal=1
 # the folder to put our outputs in, leave blank "" for script path - 
 # note this folder path must exist to work
 save_path = "data/heatrefrac001" 
+needdirs([save_path])
 
 #Model Parameters
 width=5000.0   #width of model

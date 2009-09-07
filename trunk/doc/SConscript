@@ -14,6 +14,9 @@
 
 import os
 Import('*')
+
+example_deps = ['cookbook/cblib.py']
+
 #
 # these are the release examples in example sub directory:
 #
@@ -38,20 +41,26 @@ example_files_no_mpi = [
 
 #Now we add tests which depend on matplotlib
 try:
-   import matplotlib
+   from matplotlib.mlab import griddata
    example_files_no_mpi.append('usersguide/poisson_matplotlib.py')
    example_files_allow_mpi.append('usersguide/wave.py')
-   #example_files_no_mpi.append('cookbook/heatrefraction_mesher001.py')
-   #example_files_no_mpi.append('cookbook/heatrefraction_mesher002.py')
-   #example_files_no_mpi.append('cookbook/heatrefraction001.py')
-   #example_files_no_mpi.append('cookbook/heatrefraction002.py')
-   #example_files_no_mpi.append('cookbook/onedheatdiff001.py')
-   #example_files_no_mpi.append('cookbook/onedheatdiff002.py')
-   #example_files_no_mpi.append('cookbook/twodheatdiff.py')
+#   example_deps.append('cookbook/heatrefraction_mesher001.py')
+#   example_deps.append('cookbook/heatrefraction_mesher002.py')
+#   example_deps.append('cookbook/heatrefraction001.py')
+#   example_deps.append('cookbook/heatrefraction002.py')
+#   example_files_no_mpi.append('cookbook/onedheatdiff001.py')
+#   example_files_no_mpi.append('cookbook/onedheatdiff002.py')
+#   example_files_no_mpi.append('cookbook/twodheatdiff.py')
+   import os
+   if os.system("gmsh -version")/256 ==0:	#gmsh found on this system
+#	example_files_no_mpi.append('cookbook/test_heatref.py')
+	pass
+   else:
+	print "gmsh not found skipping examples"
 except ImportError:
    print "matplotlib not found - skipping example"
 
-example_files= example_files_allow_mpi + example_files_no_mpi
+example_files= example_files_allow_mpi + example_files_no_mpi + example_deps
 
 
 ex2=[ os.path.join("examples",str(x)) for x in example_files] 
@@ -81,6 +90,6 @@ local_env.SConscript(dirs = ['#/doc/user'], build_dir='#/build/$PLATFORM/doc/use
 local_env.SConscript(dirs = ['#/doc/epydoc'], build_dir='#/build/$PLATFORM/doc/epydoc', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/doxygen'], build_dir='#/build/$PLATFORM/doc/doxygen', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/install'], build_dir='#/build/$PLATFORM/doc/install', duplicate=1)
-local_env.SConscript(dirs = ['#/doc/examples'], build_dir='#/build/$PLATFORM/doc/examples', duplicate=1, exports=[ 'example_files_allow_mpi' , 'example_files_no_mpi' ])
+local_env.SConscript(dirs = ['#/doc/examples'], build_dir='#/build/$PLATFORM/doc/examples', duplicate=1, exports=[ 'example_files_allow_mpi' , 'example_files_no_mpi', 'example_deps' ])
 
 
