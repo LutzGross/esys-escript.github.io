@@ -90,8 +90,7 @@ class Test_TableInterpolation(unittest.TestCase):
 	for fs in self.functionspaces:
 	    print fs
 	    points=fs.getX()
-	    if not points.hasNoSamples():
-	      for t in vs:
+	    for t in vs:
 		v0, v1, v2, v3 =t
 		x=points[0]
 		y=points[1]
@@ -109,7 +108,9 @@ class Test_TableInterpolation(unittest.TestCase):
 	    	      table.append(row)
 	    	res=y.interpolateTable(table,ymin,ywidth,x, xmin, xwidth,500)
 	    	ref=v0+v1*x+v2*y+v3*x*y 
-	    	self.failUnless(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
+		lsupref=Lsup(ref)
+		if lsupref!=0:		#This will happen in cases where there are no samples on this rank
+	    	    self.failUnless(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
 	    
 
     def test_FunctionSpace1D(self):
@@ -117,8 +118,7 @@ class Test_TableInterpolation(unittest.TestCase):
 	for fs in self.functionspaces:
 	    print fs
 	    points=fs.getX()
-	    if not points.hasNoSamples():
-	      for t in vs:
+	    for t in vs:
 		v0, v1 =t
 		x=points[0]
 		xmax=sup(x)
@@ -128,9 +128,10 @@ class Test_TableInterpolation(unittest.TestCase):
 		for i in xrange(self.xn+1):
 	   	   table.append(v0+v1*xwidth*i)
 	    	res=x.interpolateTable(table, xmin, xwidth,500)
-	    	ref=v0+v1*x 
-	    	self.failUnless(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
-	    
+	    	ref=v0+v1*x
+		lsupref=Lsup(ref)
+		if lsupref!=0:		#This will happen in cases where there are no samples on this rank
+	    	   self.failUnless(Lsup(res-ref)/lsupref<self.RES_TOL,"Failed for %s"%str(fs))
 
 
 class Test_saveCSV(unittest.TestCase):
