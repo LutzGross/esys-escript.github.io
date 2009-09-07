@@ -42,6 +42,8 @@ from esys.escript.unitsSI import *
 import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os #This package is necessary to handle saving our data.
+from cblib import needdirs
+
 
 #################################################ESTABLISHING VARIABLES
 #PDE related
@@ -69,6 +71,7 @@ print "Step size is: ", h/(24.*60*60), "days"
 i=0 #loop counter 
 #the folder to put our outputs in, leave blank "" for script path 
 save_path="data/onedheatdiff002"
+needdirs([save_path])
 ########## note this folder path must exist to work ###################
 
 ################################################ESTABLISHING PARAMETERS

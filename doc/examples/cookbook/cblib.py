@@ -75,3 +75,16 @@ def toXYTuple(coords):
     coords = np.array(coords.toListOfTuples()) #convert to Tuple
     coordX = coords[:,0]; coordY = coords[:,1] #X and Y components.
     return coordX,coordY
+
+
+import os
+def needdirs(dirlist):
+    for name in dirlist:
+	if name == '':
+		continue
+	if not os.path.exists(name):
+    	   try:
+		os.makedirs(name)
+    	   except OSError:
+		if not os.path.exists(save_path):
+	   	    raise

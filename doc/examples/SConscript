@@ -32,6 +32,12 @@ for i in example_files:
     f_in=File(os.path.join(src_dir,i))
     f_out=File(i,test_dir)
     data_files.append(Command(f_out, f_in, Copy("$TARGET", "$SOURCE")))
+
+#We need this because of cblib.py which needs to be present for other tests to work
+for i in example_deps:
+    f_in=File(os.path.join(src_dir,i))
+    f_out=File(i,test_dir)
+    data_files.append(Command(f_out, f_in, Copy("$TARGET", "$SOURCE")))
 Depends(cc, data_files)
 
 np=int(local_env['ENV']['ESCRIPT_NUM_NODES'])

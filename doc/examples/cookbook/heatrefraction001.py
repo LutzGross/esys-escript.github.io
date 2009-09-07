@@ -41,7 +41,7 @@ import numpy as np
 # pylab for matplotlib and plotting
 import pylab as pl
 # cblib functions
-from cblib import toQuivLocs, toXYTuple
+from cblib import toQuivLocs, toXYTuple, needdirs
 
 ##ESTABLISHING VARIABLES
 qin=70*Milli*W/(m*m) #our heat source temperature is now zero
@@ -52,6 +52,8 @@ depth=-6000.0*m
 # the folder to gett our outputs from, leave blank "" for script path - 
 # note these depen. are generated from heatrefraction_mesher001.py
 saved_path = "data/heatrefrac001" 
+
+needdirs([saved_path])
 
 ###### 2 BLOCK MODEL #########
 ## DOMAIN
@@ -122,9 +124,11 @@ ziK = pl.matplotlib.mlab.griddata(coordKX,coordKY,kappaT,xi,yi)
 # contour the gridded data, plotting dots at the randomly spaced data points.
 
 pl.matplotlib.pyplot.autumn()
+
 CKL = pl.fill(tpgx,tpgy,'brown',bpgx,bpgy,'red',zorder=-1000)
 #~ CK = pl.contourf(xi,yi,ziK,2)
 CS = pl.contour(xi,yi,zi,5,linewidths=0.5,colors='k')
+
 pl.clabel(CS, inline=1, fontsize=8)
 pl.title("Heat Refraction across a clinal structure.")
 pl.xlabel("Horizontal Displacement (m)")

@@ -33,6 +33,7 @@ import numpy as np
 import pylab as pl
 
 from esys.escript.pdetools import *
+from cblib import needdirs
 
 ##ESTABLISHING VARIABLES
 qin=300.*Milli*W/(m*m) #our heat source temperature is now zero
@@ -41,6 +42,7 @@ Ti=290.15*K # Kelvin #the starting temperature of our iron bar
 # the folder to gett our outputs from, leave blank "" for script path - 
 # note these depen. are generated from heatrefraction_mesher001.py
 saved_path = "data/heatrefrac002" 
+needdirs([saved_path])
 
 ###### 2 BLOCK MODEL #########
 ## DOMAIN

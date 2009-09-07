@@ -30,11 +30,7 @@ from cblib import *
 
 # Establish a save path.
 savepath = "data/wavesolver2d001nwtest"
-# Creating a directory automatically to store the output data.
-if not os.path.isdir("data"):
-   os.mkdir("data")
-if not os.path.isdir(savepath):
-   os.mkdir(savepath)
+needdirs([savepath])
 
 
 #Geometric and material property related variables.
