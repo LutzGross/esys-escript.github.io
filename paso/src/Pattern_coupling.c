@@ -39,7 +39,7 @@
 #define IS_IN_SET -3   /* Week connection */
 #define IS_REMOVED -4  /* strong */
 
-void Paso_Pattern_coup(Paso_SparseMatrix* A, index_t* mis_marker, double threshold) {
+void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold) {
 
   dim_t i,j;
   /*double sum;*/
@@ -407,8 +407,6 @@ void Paso_Pattern_greedy_color(Paso_Pattern* pattern, index_t* mis_marker) {
     
     MEMFREE(colorOf); 
 }
-
-
 
 #undef IS_AVAILABLE 
 #undef IS_IN_SET 

@@ -150,7 +150,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
          for (i=0;i<n;++i) mis_marker[i]=-1;
 
          if (options->coarsening_method == PASO_YAIR_SHAPIRA_COARSENING) {
-              Paso_Pattern_coup(A_p,mis_marker,options->coarsening_threshold);
+              Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);
          }
          else if (options->coarsening_method == PASO_RUGE_STUEBEN_COARSENING) {
               Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);
@@ -160,8 +160,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
         }
         else {
            /*Default coarseneing*/
-            Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold); 
-
+            /*Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);*/ 
+            Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);
              /*Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);*/
         }
      
@@ -365,14 +365,14 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
        #else
           #ifdef UMFPACK
              ptr=(Paso_UMFPACK_Handler *)(amg->solver);
-             Paso_UMFPACK1(&ptr,amg->A,x,b,0);
+             Paso_UMFPACK1(&ptr,amg->A,x,b,verbose);
              amg->solver=(void*) ptr;
           #else
              Paso_Solver_solveJacobi(amg->GS,x,b);
           #endif
        #endif
        time0=Paso_timer()-time0;
-       if (verbose) fprintf(stderr,"timing: DIRECT SOLVER: %e\n\n\n",time0);
+       if (verbose) fprintf(stderr,"timing: DIRECT SOLVER: %e\n",time0);
        
      } else {
         /* presmoothing */
