@@ -87,10 +87,6 @@ using namespace escript;
 	return Data(c);\
   }
 
-// Do not use the following unless you want to make copies on assignment rather than
-// share data.  CopyOnWrite should make this unnescessary.
-// #define ASSIGNMENT_MEANS_DEEPCOPY
-
 namespace
 {
 
@@ -1989,13 +1985,14 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
 		}
   }
   MPI_Bcast( &lowProc, 1, MPI_INT, 0, get_MPIComm() );
-
+  DataPointNo = lowj + lowi * numDPPSample;
+  MPI_Bcast(&DataPointNo, 1, MPI_INT, lowProc, get_MPIComm() );
   delete [] globalMins;
   ProcNo = lowProc;
 #else
   ProcNo = 0;
-#endif
   DataPointNo = lowj + lowi * numDPPSample;
+#endif
 }
 
 
@@ -2021,7 +2018,7 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
   int i,j;
   int highi=0,highj=0;
 //-------------
-  double max=numeric_limits<double>::min();
+  double max= -numeric_limits<double>::max();
 
   Data temp=maxval();
 
@@ -2052,7 +2049,6 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
       highj=local_highj;
     }
   }
-
 #ifdef PASO_MPI
   // determine the processor on which the maximum occurs
   next = temp.getDataPointRO(highi,highj);
@@ -2060,22 +2056,27 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
   double *globalMaxs = new double[get_MPISize()+1];
   int error;
   error = MPI_Gather ( &next, 1, MPI_DOUBLE, globalMaxs, 1, MPI_DOUBLE, 0, get_MPIComm() );
-
   if( get_MPIRank()==0 ){
-  next = globalMaxs[highProc];
-  for( i=1; i<get_MPISize(); i++ )
-	if( next>globalMaxs[i] ){
+    next = globalMaxs[highProc];
+    for( i=1; i<get_MPISize(); i++ )
+    {
+	if( next<globalMaxs[i] )
+	{
 		highProc = i;
 		next = globalMaxs[i];
 	}
+    }
   }
   MPI_Bcast( &highProc, 1, MPI_INT, 0, get_MPIComm() );
+  DataPointNo = highj + highi * numDPPSample;  
+  MPI_Bcast(&DataPointNo, 1, MPI_INT, highProc, get_MPIComm() );
+
   delete [] globalMaxs;
   ProcNo = highProc;
 #else
   ProcNo = 0;
-#endif
   DataPointNo = highj + highi * numDPPSample;
+#endif
 }
 
 void
@@ -2147,15 +2148,9 @@ Data::operator+=(const boost::python::object& right)
 Data&
 Data::operator=(const Data& other)
 {
-#if defined ASSIGNMENT_MEANS_DEEPCOPY	
-// This should not be used.
-// Just leaving this here until I have completed transition
-  copy(other);
-#else
   m_protected=false;		// since any changes should be caught by exclusiveWrite();
 //   m_data=other.m_data;
   set_m_data(other.m_data);
-#endif
   return (*this);
 }
 

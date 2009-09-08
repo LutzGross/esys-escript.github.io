@@ -11,6 +11,7 @@
 *
 *******************************************************/
 
+#include <boost/python/tuple.hpp>
 #include "WrappedArray.h"
 #include "DataException.h"
 
@@ -34,10 +35,6 @@ void checkFeatures(const boost::python::object& obj)
 	catch (...)
 	{
 	   PyErr_Clear();
-	   string s=extract<std::string>(obj.attr("__str__")());
-	   cerr << "Failure for object: " << s << endl;
-	   s=extract<std::string>(obj.attr("__repr__")());
-	   cerr << "Failurr for object: " << s << endl;
 	   throw DataException("Object passed to WrappedArray must support __len__");
 	}
 	try

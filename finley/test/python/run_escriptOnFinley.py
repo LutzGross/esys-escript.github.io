@@ -27,7 +27,7 @@ from esys.finley import Rectangle
 import sys
 import os
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation
-from test_objects import Test_Domain
+from test_objects import Test_Domain, Test_GlobalMinMax
 
 from test_shared import Test_Shared
 
@@ -103,7 +103,7 @@ class Test_DomainOnFinley(Test_Domain):
        self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
        for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
 
-class Test_DataOpsOnFinley(Test_Dump, Test_SetDataPointValue):
+class Test_DataOpsOnFinley(Test_Dump, Test_SetDataPointValue, Test_GlobalMinMax):
    def setUp(self):
        self.domain =Rectangle(NE,NE+1,2)
        self.domain_with_different_number_of_samples =Rectangle(2*NE,NE+1,2)

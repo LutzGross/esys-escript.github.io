@@ -19,8 +19,6 @@
 #include "DataReady.h"
 #include "DataBlocks2D.h"
 
-#include <boost/python/numeric.hpp>
-
 namespace escript {
 
 //

@@ -39,7 +39,6 @@ extern "C" {
 #include <boost/python/def.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/tuple.hpp>
-#include <boost/python/numeric.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/version.hpp>
 
@@ -240,8 +239,6 @@ args("solver", "preconditioner", "package", "symmetry"));
     .def("isConstant",&escript::Data::isConstant,":rtype: ``bool``\n:return: True if this ``Data`` is an instance of ``DataConstant``\n:note: This does not mean the data is immutable.")
     .def("isLazy",&escript::Data::isLazy,":rtype: ``bool``\n:return: True if this ``Data`` is lazy.")
     .def("isReady",&escript::Data::isReady,":rtype: ``bool``\n:return: True if this ``Data`` is not lazy.")
-    .def("hasNoSamples", &escript::Data::hasNoSamples,":rtype: ``bool``\n:return: True if this ``Data`` (locally)"
-" contains no samples.")
     .def("expand",&escript::Data::expand,"Convert the data to expanded representation if it is not expanded already.")
     .def("tag",&escript::Data::tag,"Convert data to tagged representation if it is not already tagged or expanded")
     .def("resolve",&escript::Data::resolve,"Convert the data to non-lazy representation.")

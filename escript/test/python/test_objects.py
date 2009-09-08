@@ -322,6 +322,26 @@ class Test_Domain(unittest.TestCase):
         if self.domain.getDim()>1: self.failUnless(sup(x[1])<=1.)
         if self.domain.getDim()>2: self.failUnless(sup(x[2])<=1.)
    #===========================================================================
+
+class Test_GlobalMinMax(unittest.TestCase):
+   def test_GlobalMinMax(self):
+	myrank=getMPIRankWorld()
+	d=Data(myrank,Function(self.domain))
+	minproc=inf(d)
+	maxproc=sup(d)		#This tells us where to expect values to be
+	if d.getNumberOfDataPoints()>0:
+		d.setValueOfDataPoint(0,myrank-0.001);
+	p,n=d.minGlobalDataPoint()
+	self.failUnless(p==minproc,"Incorrect process indentified as holding min")
+	self.failUnless(n==0,"Incorrect position for min")
+	if d.getNumberOfDataPoints()>0:
+		d.setValueOfDataPoint(0,myrank+0.001)
+	p,n=d.maxGlobalDataPoint()	
+	self.failUnless(p==maxproc,"Incorrect process indentified as holding min")
+	self.failUnless(n==0,"Incorrect position for min")
+
+	
+
 class Test_SetDataPointValue(unittest.TestCase):
    arg0=9.81
    arg1=numpy.array([3.098, -3.111])
