@@ -21,7 +21,6 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include <boost/python/numeric.hpp>
 
 namespace escript {
 

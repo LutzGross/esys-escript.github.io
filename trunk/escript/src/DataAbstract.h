@@ -20,7 +20,6 @@
 #include "FunctionSpace.h"
 
 #include <boost/scoped_ptr.hpp>
-#include <boost/python/numeric.hpp>
 
 #include "DataException.h"
 

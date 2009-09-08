@@ -19,7 +19,6 @@
 #include "DataReady.h"
 #include "WrappedArray.h"
 
-#include <boost/python/numeric.hpp>
 
 namespace escript {
 
