@@ -1,22 +1,165 @@
+\begin{figure} [ht]
+\centerline{\includegraphics[width=\figwidth]{figures/Slip1}}
+\caption{Domain $\Omega=[0,1]^2$ with a vertical fault of length $0.5$.}
+\label{fig:slip.1}
+\end{figure}
+
 \section{Slip on a Fault}
 \label{Slip CHAP}
 
-In this next example we want to calculate the displacement field $u\hackscore{i}$ for any time $t>0$ by solving the wave equation:
-\index{wave equation}
-\begin{eqnarray}\label{WAVE general problem fault}
-\rho u\hackscore{i,tt} - \sigma\hackscore{ij,j}=0
-\end{eqnarray}
-in a three dimensional block of length $L$ in $x\hackscore{0}$
-and $x\hackscore{1}$ direction and height $H$
-in $x\hackscore{2}$ direction. $\rho$ is the known density which may be a function of its location.
-$\sigma\hackscore{ij}$ is the stress field \index{stress} which in case of an isotropic, linear elastic material is given by
-\begin{eqnarray} \label{WAVE stress fault}
+In this example we illustrate how to calculate the stress distribution around a fault \index{fault} in the 
+Earth's crust caused by a slip \index{slip} through an earthquake.
+
+To simplify the presentation we assume a simple domain $\Omega=[0,1]^2$ with
+a vertical fault in its center. We assume that the slip distribution $s\hackscore{i}$ on the fault is known. We want to calculate the distribution of the displacements $u\hackscore{i}$\index{displacement} and stress $\sigma_{ij}$\index{stress} in the domain. We assume an isotropic, linear elastic material model of the form
+\begin{eqnarray} \label{Slip  stress}
 \sigma\hackscore{ij} & = & \lambda u\hackscore{k,k} \delta\hackscore{ij} + \mu ( u\hackscore{i,j} + u\hackscore{j,i})
 \end{eqnarray}
 where $\lambda$ and $\mu$ are the Lame coefficients 
 \index{Lame coefficients} and $\delta\hackscore{ij}$ denotes the Kronecker symbol\index{Kronecker symbol}.
 On the boundary the normal stress is given by
-\begin{eqnarray} \label{WAVE natural fault}
+\begin{eqnarray} \label{Slip natural fault}
 \sigma\hackscore{ij}n\hackscore{j}=0
 \end{eqnarray}
-for all time $t>0$.
+and normal displacements are set to zero:
+\begin{eqnarray} \label{Slip constraint}
+u\hackscore{i}n\hackscore{i} =0 
+\end{eqnarray}
+The stress needs to fulfill the momentum equation
+\index{momentum equation}
+\begin{eqnarray}\label{Slip general problem}
+- \sigma\hackscore{ij,j}=0
+\end{eqnarray}
+This problem is very similar to the elastic deformation problem presented in Section~\ref{ELASTIC CHAP}.
+
+However, we need to address an additional challenge: The displacement $u\hackscore{i}$ is in fact discontinuous across the fault
+but we are in the lucky situation that we know the jump of the displacements across the fault. This is
+in fact the the given slip $s\hackscore{i}$. So we can split the total distribution $u\hackscore{i}$ into a component $v\hackscore{i}$ 
+which is continuous across the fault and the known slip $s\hackscore{i}$
+\begin{eqnarray}\label{Slip Split}
+u\hackscore{i} = v\hackscore{i} + \frac{1}{2} s^{\pm}\hackscore{i}
+\end{eqnarray}
+where $s^{\pm}=s$ when right of the fault and $s^{\pm}=-s$ 
+when left of the fault. We assume that $s^{\pm}=0$ sufficiently away from the fault.
+
+We insert this into the stress definition~\ref{Slip  stress}
+\begin{eqnarray} \label{Slip  stress split}
+\sigma\hackscore{ij} & = &
+\sigma^c\hackscore{ij} + 
+\frac{1}{2} \sigma^s\hackscore{ij}
+\end{eqnarray}
+ with 
+\begin{eqnarray} \label{Slip  stress split 1 }
+\sigma^c\hackscore{ij} = \lambda v\hackscore{k,k} \delta\hackscore{ij} + \mu ( v\hackscore{i,j} + v\hackscore{j,i})
+\end{eqnarray}
+and 
+\begin{eqnarray} \label{Slip  stress split 2 }
+\sigma^s\hackscore{ij} = \lambda s^{\pm}\hackscore{k,k} \delta\hackscore{ij} + \mu ( s^{\pm}\hackscore{i,j} + s^{\pm}\hackscore{j,i})
+\end{eqnarray}
+In fact $\sigma^s\hackscore{ij}$ defines a stress jump across the fault. In easy way to construct this 
+function is to us a function $\chi$ which is $1$ on the right and $-1$ on the left side from the fault. One can then
+set 
+\begin{eqnarray} \label{Slip  stress split 23 }
+\sigma^s\hackscore{ij} = \chi \cdot  ( \lambda s\hackscore{k,k} \delta\hackscore{ij} + \mu ( s\hackscore{i,j} + s\hackscore{j,i}) )
+\end{eqnarray}
+assuming that $s$ is extended by zero away from the fault. After inserting~\ref{Slip  stress split} into~\ref{Slip general problem} we get the differential equation
+\index{momentum equation}
+\begin{eqnarray}\label{Slip general problem 2 }
+- \sigma^c\hackscore{ij,j}=\frac{1}{2} \sigma^s\hackscore{ij,j}
+\end{eqnarray}
+Together with the definition~\ref{Slip  stress split 1} we have a differential equation for the
+continuous function $v_i$. Notice that the boundary condition~\ref{Slip constraint}
+and~\ref{Slip natural fault} transfer to $v_i$ and $\sigma^c\hackscore{ij}$ as 
+$s$ is zero away from the fault. In Section~\ref{ELASTIC CHAP} we have discussed how this problem
+is solved using the \LinearPDE class. We refer to this section for further details. 
+
+To define the fault we use the \class{FaultSystem} class introduced in Section~\ref{Fault System}. 
+The following statements define a fault system \var{fs} and add the fault \var{1} 
+to the system.
+\begin{python}
+fault_start=[0.5,0.25]
+fault_end=[0.5,0.75]
+fs=FaultSystem(dim=2)
+fs.addFault(top=[fault_start, fault_end], tag=1)
+\end{python}
+The main purpose of the \class{FaultSystem} class is to define a parameterization
+of the fault using a local coordinate system. One can enquire the class
+to get the range used to parameterize a fault.
+\begin{python}
+p0,p1= fs.getW0Range(tag=1)
+\end{python}
+Typically \var{p0} is equal to zero while \var{p1} is equal to the length of the fault. The parameterization
+is given as a mapping from a set of local coordinates onto parameter range (in our case 
+the range \var{p0} to \var{p1}). For instance to map the entire domain \var{mydomain} anto the fault 
+one can use
+\begin{python}
+x=mydomain.getX()
+p, m=fs.getParametrization(x,tag=1)
+\end{python}
+Of course there is the problem that not all location are on the fault. For those locations which are on the 
+fault \var{m} is set to $1$ otherwise $0$ is used. So on return the values of \var{p} are defining
+the value of the fault parameterization (typically the distance from the starting point of the fault along the fault) 
+where \var{m} is positive. On all other locations the value if \var{p} is undefined. Now \var{p} can
+be used to define a slip distribution on the fault via
+\begin{python}
+s=m*(p-p0)*(p1-p)/((p1-p0)/2)**2*slip_max*[0.,1.]
+\end{python}
+Notice that the factor \var{m} which makes sure that \var{s} is zero away from the fault. It is important
+that the slip is zero at the ends of the faults.
+
+\begin{figure} [ht]
+\centerline{\includegraphics[width=\figwidth]{figures/Slip2}}
+\caption{Total Displacement after slip event.}
+\label{fig:slip.2}
+\end{figure}
+
+We can now put all components together to get the script:
+\begin{python}
+from esys.escript import *
+from esys.escript.linearPDEs import LinearPDE
+from esys.escript.models import FaultSystem
+from esys.finley import Rectangle
+#... set some parameters ...
+lam=1.
+mu=1
+slip_max=1.
+fault_start=[0.5,0.25]
+fault_end=[0.5,0.75]
+
+mydomain = Rectangle(l0=1.,l1=1.,n0=16, n1=16)  # n1 need to be multiple of 4!!!
+# .. create the fault system
+fs=FaultSystem(dim=2)
+fs.addFault(top=[fault_start, fault_end], tag=1)
+# ... create a slip distribution on the fault:
+p, m=fs.getParametrization(mydomain.getX(),tag=1)
+p0,p1= fs.getW0Range(tag=1)
+s=m*(p-p0)*(p1-p)/((p1-p0)/2)**2*slip_max*[0.,1.]
+# ... calculate stress according to slip:
+D=symmetric(grad(s))
+chi, d=fs.getSideAndDistance(D.getFunctionSpace().getX(),tag=1)
+sigma_s=(mu*D+lam*trace(D)*kronecker(mydomain))*chi
+#... open symmetric PDE ...
+mypde=LinearPDE(mydomain)
+mypde.setSymmetryOn()
+#... set coefficients ...
+C=Tensor4(0.,Function(mydomain))
+for i in range(mydomain.getDim()):
+  for j in range(mydomain.getDim()):
+     C[i,i,j,j]+=lam
+     C[j,i,j,i]+=mu
+     C[j,i,i,j]+=mu
+# ... fix displacement in normal direction 
+x=mydomain.getX()
+msk=whereZero(x[0])*[1.,0.] + whereZero(x[0]-1.)*[1.,0.] \
+   +whereZero(x[1])*[0.,1.] + whereZero(x[1]-1.)*[0.,1.]
+mypde.setValue(A=C,X=-0.5*sigma_s,q=msk)
+#... solve pde ...
+mypde.getSolverOptions().setVerbosityOn()
+v=mypde.getSolution()
+# .. write the displacement to file:
+D=symmetric(grad(v))
+sigma=(mu*D+lam*trace(D)*kronecker(mydomain))+0.5*sigma_s
+saveVTK("slip.vtu",disp=v+0.5*chi*s, stress= sigma)
+\end{python}
+The script creates the \file{slip.vtu} giving the total displacements and stress. These values are stored as cell 
+centered data. See Figure~\ref{fig:slip.2} for the result.

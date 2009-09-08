@@ -339,33 +339,43 @@ class FaultSystem:
     
     return p, updated
  
-def __getSignedDistance(self,x,tag=None):
+  def getSideAndDistance(self,x,tag=None):
     """
-    returns the signed distance at ``x`` from the fault ``tag`` where the first and the last segments are extended to infinity.
+    returns the side and the distance at ``x`` from the fault ``tag``. 
 
     :param x: location(s)
     :type x: `escript.Data` object or `numpy.ndarray`
     :param tag: the tage of the fault
+    :return: the side of ``x`` (positive means to the right of the fault, negative to the left) and the distance to the fault. Note that a value zero for the side means that that the side is undefined.
     """
-    p=x[0]*0 
+    d=None
+    side=None
     if self.getDim()==2:
-        mat=numpy.array([[0., -1.], [1., 0.] ])
-        #
-        #
+        mat=numpy.array([[0., 1.], [-1., 0.] ])
         s=self.getFaultSegments(tag)[0]
         for i in xrange(1,len(s)):
-           d=(s[i]-s[i-1])
+           q=(s[i]-s[i-1])
            h=x-s[i-1]
-           d_l=length(d)
-           if not d_l>0:
+           q_l=length(q)
+           if not q_l>0:
               raise ValueError,"segement %s in fault %s has zero length."%(i,tag)
-           dt=numpy.dot(mat,d)/d_l
-           a=numpy.dot(h,dt)
-           p=maximum(a,p)
+           qt=matrixmult(mat,q)   # orthogonal direction
+           t=inner(q,h)/q_l**2
+           t=maximum(minimum(t,1,),0.)
+           p=h-t*q
+           dist=length(p)
+           lside=sign(inner(p,qt))
+           if d == None:
+               d=dist
+               side=lside
+           else:
+               m=whereNegative(d-dist)
+               m2=wherePositive(whereZero(abs(lside))+m)
+               d=dist*(1-m)+d*m
+               side=lside*(1-m2)+side*m2
     else:
        raise ValueError,"3D is not supported yet."
-    return p
-
+    return side, d
 
 def patchMap(v,v1,v2,v3,v4,x_offset,x_length,depth):
     """
