@@ -33,7 +33,7 @@ example_files_allow_mpi = [
  'usersguide/fluid.py',
  'usersguide/poisson.py',
  'usersguide/diffusion.py',
- 'usersguide/poisson_vtk.py'
+ 'usersguide/poisson_vtk.py',
  'usersguide/slip.py'
 ]
 
