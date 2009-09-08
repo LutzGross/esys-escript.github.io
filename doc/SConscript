@@ -34,6 +34,7 @@ example_files_allow_mpi = [
  'usersguide/poisson.py',
  'usersguide/diffusion.py',
  'usersguide/poisson_vtk.py'
+ 'usersguide/slip.py'
 ]
 
 example_files_no_mpi = [

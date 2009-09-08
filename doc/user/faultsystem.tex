@@ -1,12 +1,13 @@
 \begin{figure}
 \includegraphics[width=\textwidth]{figures/FaultSystem2D}
-\caption{\label{FAULTSYSTEM2D}Two dimensional fault system with one fault named `t` in the $(x\hackscore{0},x\hackscore{1})$ and its parametrization in the
+\caption{\label{FAULTSYSTEM2D}Two dimensional fault system with one fault named `t` in the $(x\hackscore{0},x\hackscore{1})$ and its parameterization in the
 $w\hackscore{0}$ space. The fault has three segments.}
 \end{figure}
 
 \section{Fault System}
-The \class{FaultSystem} is an easy to use interface to handle 2D and 3D fault systems \index{faults} as used for instance in simulating fault ruptures. The main purpose of the class is to provide a parametrization of an individual fault in the system of fault. In case of a 2D fault the fault is parametrized by a single value $w\hackscore{0}$ and in the case of a 3D fault two parameters $w\hackscore{0}$ and $w\hackscore{1}$ are used. Thsi parametrization can be used
-to impose data (e.g. a slip distribution) onto the fault. It can also be a useful tool to visualize or analyse the results on the fault if the fault is not straight. 
+\label{Fault System}
+The \class{FaultSystem} is an easy to use interface to handle 2D and 3D fault systems \index{faults} as used for instance in simulating fault ruptures. The main purpose of the class is to provide a parameterization of an individual fault in the system of fault. In case of a 2D fault the fault is parameterized by a single value $w\hackscore{0}$ and in the case of a 3D fault two parameters $w\hackscore{0}$ and $w\hackscore{1}$ are used. This parameterization can be used
+to impose data (e.g. a slip distribution) onto the fault. It can also be a useful tool to visualize or analyze the results on the fault if the fault is not straight. 
 
 A fault $t$ in the fault system is represented by two polygons $(V^{ti})$ and $(v^{ti})$
 defining the top and bottom line of the fault $t$.
@@ -20,7 +21,7 @@ is called the $i$-th segment of the fault `t`. In 2D the the line with the start
 and the end point $V^{ti}$ is called the $i$-th segment, see Figure~\ref{FAULTSYSTEM2D}.
 
 In general a fault does not define a plane surface (or a straight line in 2D). In order to simplify working on 
-a fault in a fault system a parametrization $P^t: (w\hackscore{0},w\hackscore{1}) \rightarrow (x\hackscore{0},x\hackscore{1},x\hackscore{2})$ over a rectangular domain is introduced such that 
+a fault in a fault system a parameterization $P^t: (w\hackscore{0},w\hackscore{1}) \rightarrow (x\hackscore{0},x\hackscore{1},x\hackscore{2})$ over a rectangular domain is introduced such that 
 \begin{equation}
 0\le w\hackscore{0} \le w^t\hackscore{0 max} \mbox{ and }  -w^t\hackscore{1max}\le w\hackscore{1} \le 0
 \label{eq:fault 1}
@@ -39,14 +40,14 @@ W^{ti}=(d^{ti},0) \mbox{ and } w^{ti}=(d^{ti},-w^t\hackscore{1 max})
 \end{equation}
 and $d^{ti}$ is the unrolled distance of $W^{ti}$ from $W^{t0}$. In the 2D case $w^t\hackscore{1 max}$ is set to zero and therefore the second component is dropped, see Figure~\ref{FAULTSYSTEM2D}.
 
-In the case of 2D the parametrization $P^t$ is constructed as follows:
+In the case of 2D the parameterization $P^t$ is constructed as follows:
 The line connecting $V^{t(i-1)}$ and $V^{ti}$ is given by
 \begin{equation}
 x=V^{t(i-1)} + s \cdot (V^{ti}-V^{t(i-1)})
 \label{eq:2D line 1}
 \end{equation}
-where $s$ is between $0$ and $1$. The point $x$ is on $i$-th fault segement if and only if 
-such an $s$ esxists. If assume $x$ is on the fault one can calculate $s$ as
+where $s$ is between $0$ and $1$. The point $x$ is on $i$-th fault segment if and only if 
+such an $s$ exists. If assume $x$ is on the fault one can calculate $s$ as
 \begin{equation}
 s = \frac{ (x- V^{t(i-1)})^t \cdot (V^{ti}-V^{t(i-1)}) }{\|V^{ti}-V^{t(i-1)}\|^2} 
 \label{eq:2D line 1b}
@@ -59,7 +60,7 @@ w\hackscore{0}=d^{ti}+s \cdot (d^{ti}-d^{t(i-1)})
 to get $P^t(w\hackscore{0})=x$.
 It remains the question if the given $x$ is actual on the segment $i$ of fault $t$. To test this $s$ is restricted 
 between $0$ and $1$ (so if $s<0$ $s$ is set to $0$ and if $s>1$ $s$ is set to $1$) and the we check the 
-residual of equation~\ref{eq:2D line 1}, ie. $x$ is been accepted to be in the segement if
+residual of equation~\ref{eq:2D line 1}, ie. $x$ is been accepted to be in the segment if
 \begin{equation}
 \|x-V^{t(i-1)} - s \cdot (V^{ti}-V^{t(i-1)}) \| \le tol \cdot max(\|V^{ti}-V^{t(i-1)}\|, \|x-V^{t(i-1)} \|) 
 \label{eq:2D line 3}
@@ -104,7 +105,7 @@ For tag $t$ this is the pair $(-w^t\hackscore{1max},0)$.
 \end{methoddesc}
 
 \begin{methoddesc}[FaultSystem]{getW0Offsets}{tag}
-returns the offsets for the parametrization of fault \var{tag}.
+returns the offsets for the parameterization of fault \var{tag}.
 For tag \var{tag}=$t$ this is the list $[d^{ti}]$.
 \end{methoddesc}
 
@@ -135,27 +136,33 @@ adds the  fault \var{tag} to the fault system.
 while \var{bottom} is the list of the vertices defing the bottom of the fault.
 In the case of 2D \var{bottom} must not be present. Both list, if present, must have the same length.
 \var{w1_max} defines the range of the $w\hackscore{1}$. If not present the mean value over the depth of 
-all segement edges in the fault is used.
-\var{w0_offsets} sets the offsets $d^{ti}$. If not present it i schoosen such that $d^{ti}-d^{t(i-1)}$ is the length of the $i$-th segment. In some cases, eg. when kinks in the fault are relevant, it can be useful
-to explicitly specify the offsets in order to simplify the signamnt of values.
+all segment edges in the fault is used.
+\var{w0_offsets} sets the offsets $d^{ti}$. If not present it i chosen such that $d^{ti}-d^{t(i-1)}$ is the length of the $i$-th segment. In some cases, eg. when kinks in the fault are relevant, it can be useful
+to explicitly specify the offsets in order to simplify the assignment of values.
 \end{methoddesc}
 
 \begin{methoddesc}[FaultSystem]{getMaxValue}{f\optional{, tol=1.e-8}}
-returns the maximum value of \var{f}, the fault wher the maximum is found and the location on the fault in fault coordinates. \var{f} must be a \Scalar. When the maximum is calculated only \DataSamplePoints are considered
+returns the maximum value of \var{f}, the fault where the maximum is found and the location on the fault in fault coordinates. \var{f} must be a \Scalar. When the maximum is calculated only \DataSamplePoints are considered
 which are on a fault in the fault system in the sense of condition~\label{eq:2D line 3} or \label{eq:3D line 3}, respectively. In the case no \DataSamplePoints is found the returned tag is \var{None} and
 the maximum value as well as the location of the maximum value are undefined.
 \end{methoddesc}
 
 \begin{methoddesc}[FaultSystem]{getParametrization}{x,tag \optional{\optional{, tol=1.e-8}, outsider=None}}
-resturns the argument $w$ of the parameterization $P^t$ for \var{tag}=$t$ to provide \var{x}
+returns the argument $w$ of the parameterization $P^t$ for \var{tag}=$t$ to provide \var{x}
 together with a mask indicating where the given location if on a fault in the fault system by the value $1$ (otherwise the value is set to $0$). \var{x} needs to be \Vector or \numpyNDA object. \var{tol} defines the tolerance to decide if a given \DataSamplePoints is on fault \var{tag}. The value
 \var{outside} is the value used as a replacement value for $w$ where the corresponding value in \var{x} is not 
 on a fault. If not \var{outside} is not present an appropriate value is used.
 \end{methoddesc}
 
+\begin{methoddesc}[FaultSystem]{getSideAndDistance}{x,tag}
+returns the side and the distance at locations \var{x} from the fault \tag{tag}.
+\var{x} needs to be \Vector or \numpyNDA object. Positive values for side means that the corresponding location is 
+to the right of the fault, a negative value means that the corresponding location is 
+to the left of the fault. The value zero means that the side is undefined.
+\end{methoddesc}
+
 \subsection{Example}
 See section~\ref{Slip CHAP}
-
 
 
 

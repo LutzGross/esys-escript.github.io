@@ -1125,7 +1125,7 @@ class Test_FaultSystem(unittest.TestCase):
       self.failUnless(  abs(l-0.70710678118654) <= self.EPS,  "wrong max location")
 
       
-   def xtest_Fault2D_TwoFaults(self):
+   def test_Fault2D_TwoFaults(self):
       f=FaultSystem(dim=2)
       top1=[ [1.,0.], [1.,1.], [0.,1.] ]
       self.failUnlessRaises(ValueError,f.addFault,top=top1,tag=1,bottom=top1)
@@ -1175,6 +1175,29 @@ class Test_FaultSystem(unittest.TestCase):
       self.failUnless( numpy.linalg.norm(c-[12./5.,12./5.]) < self.EPS, "center has wrong coordinates.")
       o=f.getOrientationOnSurface()/pi*180.
       self.failUnless( abs(o-45.) < self.EPS, "wrong orientation.")
+
+      s,d=f.getSideAndDistance([0.,0.], tag=1)
+      self.failUnless( s<0, "wrong side.")
+      self.failUnless( abs(d-1.)<self.EPS, "wrong distance.")
+      s,d=f.getSideAndDistance([0.,2.], tag=1)
+      self.failUnless( s>0, "wrong side.")
+      self.failUnless( abs(d-1.)<self.EPS, "wrong distance.")
+      s,d=f.getSideAndDistance([1.,2.], tag=1)
+      self.failUnless( s>0, "wrong side.")
+      self.failUnless( abs(d-1.)<self.EPS, "wrong distance.")
+      s,d=f.getSideAndDistance([2.,1.], tag=1)
+      self.failUnless( s>0, "wrong side.")
+      self.failUnless( abs(d-1.)<self.EPS, "wrong distance.")
+      s,d=f.getSideAndDistance([2.,0.], tag=1)
+      self.failUnless( s>0, "wrong side.")
+      self.failUnless( abs(d-1.)<self.EPS, "wrong distance.")
+      s,d=f.getSideAndDistance([0.,-1.], tag=1)
+      self.failUnless( s<0, "wrong side.")
+      self.failUnless( abs(d-1.41421356237)<self.EPS, "wrong distance.")
+      s,d=f.getSideAndDistance([-1.,0], tag=1)
+      self.failUnless( s<0, "wrong side.")
+      self.failUnless( abs(d-1.41421356237)<self.EPS, "wrong distance.")
+
 
       f.transform(rot=-pi/2., shift=[-1.,-1.])
       self.failUnless( [ 1, 2 ] == f.getTags(), "tags after transformation wrong")
