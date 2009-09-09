@@ -143,7 +143,7 @@ to explicitly specify the offsets in order to simplify the assignment of values.
 
 \begin{methoddesc}[FaultSystem]{getMaxValue}{f\optional{, tol=1.e-8}}
 returns the maximum value of \var{f}, the fault where the maximum is found and the location on the fault in fault coordinates. \var{f} must be a \Scalar. When the maximum is calculated only \DataSamplePoints are considered
-which are on a fault in the fault system in the sense of condition~\label{eq:2D line 3} or \label{eq:3D line 3}, respectively. In the case no \DataSamplePoints is found the returned tag is \var{None} and
+which are on a fault in the fault system in the sense of condition~\ref{eq:2D line 3} or \ref{eq:3D line 3}, respectively. In the case no \DataSamplePoints is found the returned tag is \var{None} and
 the maximum value as well as the location of the maximum value are undefined.
 \end{methoddesc}
 
@@ -155,7 +155,7 @@ on a fault. If not \var{outside} is not present an appropriate value is used.
 \end{methoddesc}
 
 \begin{methoddesc}[FaultSystem]{getSideAndDistance}{x,tag}
-returns the side and the distance at locations \var{x} from the fault \tag{tag}.
+returns the side and the distance at locations \var{x} from the fault \var{tag}.
 \var{x} needs to be \Vector or \numpyNDA object. Positive values for side means that the corresponding location is 
 to the right of the fault, a negative value means that the corresponding location is 
 to the left of the fault. The value zero means that the side is undefined.
