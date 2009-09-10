@@ -206,12 +206,9 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                 #pragma omp parallel for private(i) schedule(static)
                 for (i=0;i<prec->amgSystem->amgblock1->n;i++) {
                     b1[i]=b[2*i];
-                }
-                
-                #pragma omp parallel for private(i) schedule(static)
-                for (i=0;i<prec->amgSystem->amgblock2->n;i++) {
                     b2[i]=b[2*i+1];
                 }
+                
                 
                 Paso_Solver_solveAMG(prec->amgSystem->amgblock1,x1,b1);
                 Paso_Solver_solveAMG(prec->amgSystem->amgblock2,x2,b2);
@@ -219,13 +216,9 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                 #pragma omp parallel for private(i) schedule(static)
                 for (i=0;i<prec->amgSystem->amgblock1->n;i++) {
                     x[2*i]=x1[i];
-                }
-                
-                #pragma omp parallel for private(i) schedule(static)
-                for (i=0;i<prec->amgSystem->amgblock2->n;i++) {
                     x[2*i+1]=x2[i];
                 }
-                                                
+                
                 MEMFREE(x1);
                 MEMFREE(x2);
                 MEMFREE(b1);
@@ -245,18 +238,9 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                 #pragma omp parallel for private(i) schedule(static)
                 for (i=0;i<prec->amgSystem->amgblock1->n;i++) {
                     b1[i]=b[3*i];
-                 }
-                
-                #pragma omp parallel for private(i) schedule(static)
-                for (i=0;i<prec->amgSystem->amgblock2->n;i++) {
                     b2[i]=b[3*i+1];
-                }
-                
-                #pragma omp parallel for private(i) schedule(static)
-                for (i=0;i<prec->amgSystem->amgblock3->n;i++) {
                     b3[i]=b[3*i+2];
-                }
-                
+                 }
                 
                 Paso_Solver_solveAMG(prec->amgSystem->amgblock1,x1,b1);
                 Paso_Solver_solveAMG(prec->amgSystem->amgblock2,x2,b2);
@@ -265,15 +249,7 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                 #pragma omp parallel for private(i) schedule(static)
                 for (i=0;i<prec->amgSystem->amgblock1->n;i++) {
                     x[3*i]=x1[i];
-                }
-                
-                #pragma omp parallel for private(i) schedule(static)
-                for (i=0;i<prec->amgSystem->amgblock2->n;i++) {
                     x[3*i+1]=x2[i];
-                }
-                
-                #pragma omp parallel for private(i) schedule(static)
-                for (i=0;i<prec->amgSystem->amgblock3->n;i++) {
                     x[3*i+2]=x3[i];
                 }
                 
