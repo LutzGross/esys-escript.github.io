@@ -13,7 +13,7 @@
 
 \section{Escript and Python Basics} \label{sec:escpybas}
 
-The Python scripting language is a powerful and easy to learn environment with a wide variety of applications. \textit{Escript} has been developed as a packaged module for Python specifically to solve complex partial differential equations. As a result, all the conventions and programming syntaxes associated with Python are coherrent with \ESCRIPT. If you are unfamiliar with Python, there are a large number of simple to advanced guides and tutorials availabe online. These texts should provide an introduction that is comprehensive enough for the use of \ESCRIPT. A handful of python tutorials have been listed below.
+The Python scripting language is a powerful and easy to learn environment with a wide variety of applications. \textit{Escript} has been developed as a packaged module for Python specifically to solve complex partial differential equations. As a result, all the conventions and programming syntax associated with Python are coherent with \ESCRIPT. If you are unfamiliar with Python, there are a large number of simple to advanced guides and tutorials availabe online. These texts should provide an introduction that is comprehensive enough for the use of \ESCRIPT. A handful of python tutorials have been listed below.
 \begin{itemize}
 \item This is a very crisp introduction \url{http://hetland.org/writing/instant-python.html}. It covers everthing you need to get started with \ESCRIPT.
 \item A nice and easy to follow introduction: \url{http://www.sthurlow.com/python/}
@@ -31,12 +31,12 @@ The \verb esys  library tree has \textbf{3} main modules, \verb escript , \verb 
 \end{enumerate}
 Further explanations on each of these is available in the user guide or in the API documentation at \url{https://launchpad.net/escript-finley/+download}. \ESCRIPT is also dependent on a few other open-source packages which are not maintained by the \ESCRIPT development team. These are \modnumpy an array and matrix handling package, \modmpl a simple plotting and visualisation tool, \modvtk  the advanced plotting and visualisation package and \verb gmsh  which is required by \modpycad. These packages (\textbf{except} for \verb gmsh ) are included with the binary release but may not be the most recent and up to date. 
 
-\subsection{File Commands and Opperations in \ESCRIPT}
-A number of common file opperations and commands are used throughout this cookbook. It is often advantageous to implement these commands when large numbers of output files are generated or dependencies are located in other locations.
+\subsection{File Commands and Operations in \ESCRIPT}
+A number of common file operations and commands are used throughout this cookbook. It is often advantageous to implement these commands when large numbers of output files are generated or dependencies are located in other locations.
 
 To develop an incrementing file name we can use the following convention. For this example we are going to use the \verb|os.path.join| command to join a subdirectory which already exists with the file name which we want to use for our output. The command is; 
 \begin{verbatim}
-os.path.join(save_path,"data%03d.xml") %i
+os.path.join(save_path, "data%03d.xml"%i )
 \end{verbatim}
 There are two arguments to the \verb join  command. The \verb save_path  variable is a predefined string pointing to the directory we want to save our data in, for example a single subfolder called \verb data  would be defined by;
 \begin{verbatim}
@@ -46,13 +46,13 @@ while a subfolder of \verb data  called \verb ans_one  would be defined by;
 \begin{verbatim}
 save_path = "data/ans_one"
 \end{verbatim}
-The second argument of \verb join \xspace contains a string which is the filename. We can use the opperator \verb|%| to increment our file names with the value \verb|i| our incrementing counter. The substring \verb %03d  does this by defining the following parameters; 
+The second argument of \verb join \xspace contains a string which is the filename. We can use the operator \verb|%| to increment our file names with the value \verb|i| our incrementing counter. The substring \verb %03d  does this by defining the following parameters; 
 \begin{itemize}
  \item \verb 0  becomes the padding number;
  \item \verb 3  tells us the amount of padding numbers that are required; and
  \item \verb d  indicates the end of the \verb %  operator.
 \end{itemize}
-To increment the file name a \verb %i  is required directly after the operation the string is involed in. When correctly implemented the output files from this command would be place in the directory defined by \verb save_path  as;
+To increment the file name a \verb %i  is required directly after the operation the string is involved in. When correctly implemented the output files from this command would be place in the directory defined by \verb save_path  as;
 \begin{verbatim}
 data001.xml
 data002.xml
@@ -62,4 +62,6 @@ data003.xml
 and so on.
 
 \subsection{Visualisation and Plotting}
-\ESCRIPT does not have any inhouse plotting capabilities and will only provide a data output. the \esc package is however, shipped with two external and independent plotting packages. They are \mpl \footnote{\url{http://matplotlib.sourceforge.net/}} and \verb VTK \footnote{\url{http://www.vtk.org/}} . The \mpl package is fully functional with each \esc distribution. Based on the \numpy array package \mpl is good for basic graphs and plots. The \verb VTK  toolkit allows the \esc data to be exported in a standardised format with powerful visualisation capabilities. This format can be interpreted by many programs. In this cookbook \mayavi \footnote{\url{http://code.enthought.com/projects/mayavi/}} will be used to visualise \verb VTK  files. \mayavi is not included with any \esc distribution.
+\ESCRIPT does not include its own plotting capabilities however it works with a number of free visualisation systems.
+We will dicsuss two types of systems in this document: \mpl\footnote{\url{http://matplotlib.sourceforge.net/}} and \verb VTK \footnote{\url{http://www.vtk.org/}} visualisation. 
+The \mpl package is based on the \numpy array package and is good for basic graphs and plots. The \verb VTK  toolkit allows the \esc data to be exported in a standardised format with powerful visualisation capabilities. This format can be interpreted by many programs. In this cookbook \mayavi \footnote{\url{http://code.enthought.com/projects/mayavi/}} will be used to visualise \verb VTK  files. 
