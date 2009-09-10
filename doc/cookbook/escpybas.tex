@@ -31,6 +31,25 @@ The \verb esys  library tree has \textbf{3} main modules, \verb escript , \verb 
 \end{enumerate}
 Further explanations on each of these is available in the user guide or in the API documentation at \url{https://launchpad.net/escript-finley/+download}. \ESCRIPT is also dependent on a few other open-source packages which are not maintained by the \ESCRIPT development team. These are \modnumpy an array and matrix handling package, \modmpl a simple plotting and visualisation tool, \modvtk  the advanced plotting and visualisation package and \verb gmsh  which is required by \modpycad. These packages (\textbf{except} for \verb gmsh ) are included with the binary release but may not be the most recent and up to date. 
 
+\subsection{The Domain Constructor in \ESCRIPT}
+\label{ss:domcon}
+It is important at this paticular stage to describe how domains and data are organised and related to each other in escript.
+\begin{figure}[t]
+ \centering
+   \includegraphics[width=4in]{figures/functionspace}
+   \label{fig:fs}
+   \caption{\ESCRIPT domain construction overview}
+\end{figure}
+When the domain variables are submitted to the domain constructor or meshing algorithm, three function spaces are also created. They are;
+\begin{enumerate}
+\item the nodes, called by \verb|ContinuousFunction(domain)| ;
+\item the elements/coefficients, called by \verb|Function(domain)| ; and
+\item the boundary, called by \verb|FunctionOnBoundary(domain)| .
+\end{enumerate}
+Domains in \ESCRIPT are constructed this way to allow for varying degrees of smoothness in a PDE problem. That is, the continuity of the first derivative of each data input. For example, the coefficients of a PDE need not be continuous, thus this qualifies as a \verb Function()  type, while a temperature distribution must be a \verb ContinuousFunction()  and a flux condition may only exist at a boundary as a \verb FunctionOnBoundary()  .  The domain constructor is able to interpret the data in each of these situations for the solver so that a solution can be produced. It should be noted that a solution has its own function space \verb Solution()  which is located depending on the required output. The domain also allows certain transformations of the function spaces. A \verb ContinuousFunction()  can be transformed into a \verb FunctionOnBoundary()  or \verb Function() . On the other hand there is not enough information in a \verb FunctionOnBoundary()  to transform it to a \verb ContinuousFunction()  .
+
+The domain also handles an ability of \ESCRIPT known as tagging which allows areas and lines to be given a name for easier referencing later on. 
+
 \subsection{File Commands and Operations in \ESCRIPT}
 A number of common file operations and commands are used throughout this cookbook. It is often advantageous to implement these commands when large numbers of output files are generated or dependencies are located in other locations.
 
@@ -60,6 +79,13 @@ data003.xml
 ...
 \end{verbatim}
 and so on.
+
+A subfolder check/constructur is available in the cookbook \verb cblib  library called \verb needdirs . The command;
+\begin{verbatim}
+needdirs(save_path)
+\end{verbatim}
+will check for the existence of \verb save_path  and if needed, make the required directories.
+
 
 \subsection{Visualisation and Plotting}
 \ESCRIPT does not include its own plotting capabilities however it works with a number of free visualisation systems.

@@ -12,6 +12,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Two Dimensional Heat Diffusion for a basic Magmatic Intrusion}
+\sslist{twodheatdiff001.py and cblib.py}
 %\label{Sec:2DHD}
  Building upon our success from the 1D models it is now prudent to expand our domain by another dimension. For this example we will be using a very simple magmatic intrusion as the basis for our model. The simulation will be a single event where some molten granite has formed a hemisphericle dome at the base of some cold sandstone country rock. A hemisphere is symmetric so taking a cross-section through its centre will effectively model a 3D problem in 2D. New concepts will include non-linear boundaries and the ability to prescribe location specific variables.
 
@@ -48,7 +49,8 @@ mypde.setValue(A=A*kronecker(model),D=D,d=eta,y=eta*Tc)
 \end{verbatim}
 Our PDE has now been properly established. The initial conditions for temperature are set out in a similar matter:
 \begin{verbatim}
- T= Ti*whereNegative(bound)+Tc*wherePositive(bound) #defining the initial temperatures.
+#defining the initial temperatures.
+ T= Ti*whereNegative(bound)+Tc*wherePositive(bound) 
 \end{verbatim}
 The iteration process now begins as before, but using our new conditions for \verb D  as defined above.
 

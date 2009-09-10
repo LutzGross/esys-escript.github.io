@@ -39,11 +39,20 @@ from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle 
 # A useful unit handling package which will make sure all our units
 # match up in the equations under SI.
-from esys.escript.unitsSI import * 
+from esys.escript.unitsSI import *
+#For interactive use, you can comment out the next two lines
+import matplotlib
+matplotlib.use('agg') #It's just here for automated testing
 import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os #This package is necessary to handle saving our data.
 from cblib import toXYTuple, needdirs
+
+########################################################MPI WORLD CHECK
+if getMPISizeWorld() > 1:
+	import sys
+	print "This example will not run in an MPI world."
+	sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
 #PDE related
@@ -80,7 +89,7 @@ print "Expected Number of Output Files is: ", outputs
 print "Step size is: ", h/(24.*60*60), "days"
 i=0 #loop counter 
 #the folder to put our outputs in, leave blank "" for script path 
-save_path="data/twodheatdiff"
+save_path= os.path.join("data","twodheatdiff")
 needdirs([save_path])
 ########## note this folder path must exist to work ###################
 
@@ -110,7 +119,7 @@ coordX, coordY = toXYTuple(coords)
 xi = np.linspace(0.0,mx,100)
 yi = np.linspace(0.0,my,100)
 
-#... start iteration:
+########################################################START ITERATION
 while t<=tend:
       i+=1 #counter
       t+=h #curretn time
@@ -120,7 +129,8 @@ while t<=tend:
       tempT = T.toListOfTuples(scalarastuple=False)
       # grid the data.
       zi = pl.matplotlib.mlab.griddata(coordX,coordY,tempT,xi,yi)
-      # contour the gridded data, plotting dots at the randomly spaced data points.
+      # contour the gridded data, plotting dots at the 
+      # randomly spaced data points.
       pl.matplotlib.pyplot.autumn()
       pl.contourf(xi,yi,zi,10)
       CS = pl.contour(xi,yi,zi,5,linewidths=0.5,colors='k')
@@ -129,7 +139,9 @@ while t<=tend:
       pl.title("Heat diffusion from an intrusion.")
       pl.xlabel("Horizontal Displacement (m)")
       pl.ylabel("Depth (m)")
-      pl.savefig(os.path.join(save_path,"heatrefraction%03d.png") %i)
+      if getMPIRankWorld() == 0:
+	      pl.savefig(os.path.join(save_path,\
+	                               "heatrefraction%03d.png"%i))
       pl.clf()            
 
 # compile the *.png files to create an *.avi video that shows T change

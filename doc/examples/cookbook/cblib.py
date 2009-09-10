@@ -22,18 +22,18 @@ __url__="https://launchpad.net/escript-finley"
 Author: Antony Hallam antony.hallam@uqconnect.edu.au
 """
 
-from esys.pycad import *
+from esys.pycad import CurveLoop
 import numpy as np
 # To run the function it is necessary to import the modules we 
 # require.
 # This imports everything from the escript library
-from esys.escript import * 
+#from esys.escript import Locator 
 # numpy for array handling
 import numpy as np
 # pylab for matplotlib and plotting
 import pylab as pl
 # tools for dealing with PDEs - contains locator
-from esys.escript.pdetools import *
+from esys.escript.pdetools import Locator
 
 # routine to find consecutive coordinates of a loop in pycad
 def getLoopCoords(loop):
@@ -76,7 +76,7 @@ def toXYTuple(coords):
     coordX = coords[:,0]; coordY = coords[:,1] #X and Y components.
     return coordX,coordY
 
-
+# joel wrote this to create directories for you
 import os
 def needdirs(dirlist):
     for name in dirlist:

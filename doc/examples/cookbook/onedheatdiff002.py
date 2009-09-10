@@ -38,12 +38,20 @@ from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle 
 # A useful unit handling package which will make sure all our units
 # match up in the equations under SI.
-from esys.escript.unitsSI import * 
+from esys.escript.unitsSI import *
+#For interactive use, you can comment out the next two lines
+import matplotlib
+matplotlib.use('agg') #It's just here for automated testing
 import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os #This package is necessary to handle saving our data.
 from cblib import needdirs
 
+########################################################MPI WORLD CHECK
+if getMPISizeWorld() > 1:
+	import sys
+	print "This example will not run in an MPI world."
+	sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
 #PDE related
@@ -69,8 +77,8 @@ h=(tend-t)/outputs #size of time step
 print "Expected Number of Output Files is: ", outputs
 print "Step size is: ", h/(24.*60*60), "days"
 i=0 #loop counter 
-#the folder to put our outputs in, leave blank "" for script path 
-save_path="data/onedheatdiff002"
+#the folder to put our outputs in, leave blank "" for script path
+save_path= os.path.join("data","onedheatdiff002")
 needdirs([save_path])
 ########## note this folder path must exist to work ###################
 
@@ -106,11 +114,16 @@ while t<=tend:
 	pl.plot(plx,tempT)
 	pl.axis([0,500,0,2500])
 	pl.title("Temperature accross Interface")
-	pl.savefig(os.path.join(save_path,"intpyplot%03d.png") %i)
+	if getMPIRankWorld() == 0:
+		pl.savefig(os.path.join(save_path,"intpyplot%03d.png" %i))
 	pl.clf()
 	
-# compile the *.png files to create an *.avi video that shows T change
-# with time. This opperation uses linux mencoder.
-os.system("mencoder mf://"+save_path+"/*.png -mf type=png:\
-w=800:h=600:fps=25 -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o \
-onedheatdiff002tempT.avi")
+# compile the *.png files to create two *.avi videos that show T change
+# with time. This opperation uses linux mencoder. For other operating 
+# systems it is possible to use your favourite video compiler to
+# convert image files to videos. To enable this step uncomment the
+# following lines.
+
+#os.system("mencoder mf://"+save_path+"/*.png -mf type=png:\
+#w=800:h=600:fps=25 -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o \
+#onedheatdiff002tempT.avi")
