@@ -71,7 +71,8 @@ For our example we will use;
 \end{verbatim}
 Next we must define the values of our entire domain for the first and second time step. For the purposes of this example it is sufficient to have these two timesteps as equal. Setting the source is similar to earlier problems where we can use \esc functions to set specific areas of the domain to certain values. We must also smooth our sourse to its surrounds to prevent ?diffusion? errors. This is acheived by using a cosine taper. Our source terms then become;
 \begin{verbatim}
- u=U0*(cos(length(x-xc)*3.1415/src_radius)+1)*whereNegative(length(x-xc)-src_radius)*dunit
+ u=U0*(cos(length(x-xc)*3.1415/src_radius)+1)*\
+              whereNegative(length(x-xc)-src_radius)*dunit
  u_m1=u
 \end{verbatim}
 

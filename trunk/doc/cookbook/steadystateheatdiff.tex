@@ -15,8 +15,9 @@
 Steady-state heat refraction will give us an opportunity to investigate some of the richer features that the \esc package has to offer. One of these is \pycad . The advantage of using \pycad is that it offers an easy method for developing and manipulating complex domains. In conjunction with \gmsh we can develop finite element grids that conform to our domain's shape providing accurate modelling of interfaces and boundaries. Another useful function of \pycad is that we can tag specific areas of our domain with labels as we construct them. These labels can then be used in escript to define properties like material constants and source locations. 
 
 \subsection{Creating the model with \pycad}
+\sslist{heatrefraction_mesher001.py and cblib.py}
 
-Our first heat refraction model will be a large anticlinal structure that is experiencing a constant temperature at the surface and a steady heat flux at it's base. Our aim is to show that the temperature flux across the surface is not linear from bottom to top but is infact warped by the structure of the model and is heavily dependant on the material properties and shape.
+Our first heat refraction model will be a large anticlinal structure that is experiencing a constant temperature at the surface and a steady heat flux at it's base. Our aim is to show that the temperature flux across the surface is not linear from bottom to top but is in fact warped by the structure of the model and is heavily dependant on the material properties and shape.
 
 \begin{figure}[h!]
 \centerline{\includegraphics[width=4.in]{figures/anticlineheatrefraction}}
@@ -24,7 +25,7 @@ Our first heat refraction model will be a large anticlinal structure that is exp
 \label{fig:anticlinehrmodel}
 \end{figure}
 
-We will start by defining our domain and material boundaries using \pycad. This example is located in the \esc directory under \exf and a labeled diagram is available in \reffig{fig:anticlinehrmodel}. As always we start with dependencies. For this example we have:
+We will start by defining our domain and material boundaries using the \pycad module. This example is located in the \esc directory under \exf and a labelled diagram is available in \reffig{fig:anticlinehrmodel}. As always we start with dependencies. For this example we have:
 \begin{verbatim}
 from esys.pycad import * #domain constructor
 from esys.pycad.gmsh import Design #Finite Element meshing package
@@ -35,9 +36,9 @@ from math import * # math package
 #used to construct polygons for plotting from pycad
 from cblib import getLoopCoords 
 \end{verbatim}
-There are two modes available in our example. When \verb modal=1  we indicate to the script that we wish to model an anticline. Othewise when \verb modal=-1  we wish to modal a syncline. The modal operator simply changes the phase of the boundary function so that it is either upwards or downwards curving. A \verb save_path  has also been defined so that we can easily separate our data from other examples and our scripts. 
+There are two modes available in our example. When \verb modal=1  we indicate to the script that we wish to model an anticline. Otherwise when \verb modal=-1  we wish to modal a syncline. The modal operator simply changes the orientation of the boundary function so that it is either upwards or downwards curving. A \verb save_path  has also been defined so that we can easily separate our data from other examples and our scripts. 
 
-It is now possible to start defining our domain and boundaries. There are a few primary constructors in \pycad that build upon each other to define domains and boundaries; the one we will use are:
+It is now possible to start defining our domain and boundaries. There are a few primary constructors in \pycad that build upon each other to define domains and boundaries; the ones we will use are:
 \begin{verbatim}
 Point() #Create a point in space.
 Line() #Creates a line from a number of points.
@@ -97,12 +98,12 @@ tbl3=Line(x2,p3)
 tblockloop = CurveLoop(tbl1,tbl2,tbl3,l30)
 tblock = PlaneSurface(tblockloop)
 \end{verbatim}
-It is also necessary to create and export a polygon for \esc so that we can plot the boundaries of our subdomains. First we take the loop from our block and retreive its point coordinates with the function \verb getLoopCoords()  and then output it with \modnumpy for our solution script.
+It is also necessary to create and export a polygon for \esc so that we can plot the boundaries of our subdomains. First we take the loop from our block and retrieve its point coordinates with the function \verb getLoopCoords()  and then output it with \modnumpy for our solution script.
 \begin{verbatim}
 tpg = getLoopCoords(tblockloop)
 np.savetxt(os.path.join(save_path,"toppg"),tpg,delimiter=" ")
 \end{verbatim}
-We must repeat the above for our every other subdomain. We have only one other, the bottom block. The process is the fairly similar to the top block but with a few differences. The spline points must be reversed by setting the spline as negative.
+We must repeat the above for our every other subdomain. We have only one other, the bottom block. The process is fairly similar to the top block but with a few differences. The spline points must be reversed by setting the spline as negative.
 \begin{verbatim}
 bbl4=-mysp
 \end{verbatim}
@@ -114,28 +115,31 @@ bpg = getLoopCoords(bblockloop2)
 np.savetxt(os.path.join(save_path,"botpg"),bpg,delimiter=" ")
 \end{verbatim}
 The last few steps in creating our model take the previously defined domain and subdomain points and generate a mesh that can be imported into \esc.
-To initial the mesh it first needs some design parameters. In this case we have 2 dimensions \verb dim  and a specified number of finite elements we wish to apply to the domain \verb element_size  . It then becomes a simlpe task of adding the subdomains and flux boundaries to the design. If we wish to give the elements names as in the example we can use the \verb PropertySet()  function. This will allow us to easily define the subdomain properties in the solution scirpt. We then save the geometry, mesh and create our \esc domain. 
+To initialise the mesh it first needs some design parameters. In this case we have 2 dimensions \verb dim  and a specified number of finite elements we wish to apply to the domain \verb element_size  . It then becomes a simple task of adding the subdomains and flux boundaries to the design. If we wish to give the elements names as in the example we can use the \verb PropertySet()  function. This will allow us to easily define the subdomain properties in the solution script. We then save the geometry, mesh and create our \esc domain. 
 \begin{verbatim}
 # Create a Design which can make the mesh
 d=Design(dim=2, element_size=200)
 # Add the subdomains and flux boundaries.
-d.addItems(PropertySet("top",tblock),PropertySet("bottom",bblock),PropertySet("linebottom",l12))
+d.addItems(PropertySet("top",tblock),PropertySet("bottom",bblock),\
+                   PropertySet("linebottom",l12))
 # Create the geometry, mesh and Escript domain
 d.setScriptFileName(os.path.join(save_path,"heatrefraction_mesh001.geo"))
 d.setMeshFileName(os.path.join(save_path,"heatrefraction_mesh001.msh"))
-domain=MakeDomain(d, integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True)
+domain=MakeDomain(d, integrationOrder=-1, reducedIntegrationOrder=-1,\
+                                   optimizeLabeling=True)
 # Create a file that can be read back in to python with mesh=ReadMesh(fileName)
 domain.write(os.path.join(save_path,"heatrefraction_mesh001.fly"))
 \end{verbatim}
 The creation of our domain and its mesh is complete. Now we must create a solution for our steady state problem.
 
 \subsection{Steady-state PDE solution}
+\sslist{heatrefraction.py and cblib.py}
 While a steady-state solution will not give an indication as to the quantitative heat flow in a model, it is useful because it allows us to visualise the direction of heat transport and the equilibrium state of the model. Also, a steady-state model only requires one iteration to find a solution. We know from \refCh{CHAP HEAT DIFF} that the full form of the heat diffusion PDE can be expressed as follows.
 \begin{equation}
 \rho c\hackscore p \frac{\partial T}{\partial t} - \kappa \frac{\partial^{2} T}{\partial x^{2}} = q\hackscore H 
 \label{eqn:hd2}
 \end{equation}
-In the steady state PDE however, there is no time dependance. This means that \refEq{eqn:hd2} reduces to
+In the steady state PDE however, there is no time dependence. This means that \refEq{eqn:hd2} reduces to
 \begin{equation}
 - \kappa \frac{\partial^{2} T}{\partial x^{2}} = q\hackscore H 
 \label{eqn:sshd}
@@ -183,63 +187,52 @@ x=mymesh.getX()
 qH=Scalar(0,FunctionOnBoundary(mymesh))
 qH.setTaggedValue("linebottom",qin)
 mypde.setValue(q=whereZero(x[1]),r=Ti)
-mypde.setValue(y=qH)#,r=17*Celsius)
+mypde.setValue(y=qH)
 
-# get steady state solution and export to vtk.
+# get steady state solution.
 T=mypde.getSolution()
 \end{verbatim}
+The problem is now solved and plotting is required to visualise the data.
 
 \subsection{Quiver plots in \mpl}
-\begin{verbatim}
-# rearrage mymesh to suit solution function space      
-oldspacecoords=mymesh.getX()
-coords=Data(oldspacecoords, T.getFunctionSpace())
+To visualise this data we are going to do three things. Firstly we will generate the gradient of the solution and create some quivers or arrows that describe the gradient. Then we need to generate some temperatur contours and thirdly, we will create some polygons from our meshing output files to show our material boundaries.
 
+The first step is very easily provided by \ESCRIPT, where we can use the \verb grad()  function to generate our gradient. It is then necessary to mold the solution to the domain node points. We do this by first extracting the nodes to \verb oldspacecoords  and transforming them via interpolation to suit our solution which is in the function space form of \verb T  .
+\begin{verbatim}
 # calculate gradient of solution for quiver plot
 qu=-kappa*grad(T)
 
-# create quiver locations
+# rearrage mymesh to suit solution function space      
+oldspacecoords=mymesh.getX()
+coords=Data(oldspacecoords, T.getFunctionSpace())
+\end{verbatim}
+Now the number of quivers we want is specified as $20 \times 20 = 400$ and their locations calculated based on our coordinates in \verb qu  . All our date is then transformed to tuples for \modmpl .
+\begin{verbatim}
 quivshape = [20,20] #quivers x and quivers y
-numquiv = quivshape[0]*quivshape[1] # total number of quivers
-maxx = 5000. # maximum x displacement
-dx = maxx/quivshape[0]+1. # quiver x spacing
-maxy = -6000. # maximum y displacement
-dy = maxy/quivshape[1]+1. # quiver y spacing
-qulocs=np.zeros([numquiv,2],float) # memory for quiver locations
-# fill qulocs
-for i in range(0,quivshape[0]-1):
-	for j in range(0,quivshape[1]-1):
-		qulocs[i*quivshape[0]+j,:] = [dx+dx*i,dy+dy*j]
-# retreive values for quivers direction and shape from qu
-quL = Locator(qu.getFunctionSpace(),qulocs.tolist())
-qu = quL(qu) #array of dx,dy for quivers
-qu = np.array(qu) #turn into a numpy array
-qulocs = quL.getX() #returns actual locations from data
-qulocs = np.array(qulocs) #turn into a numpy array
+# function to calculate quiver locations
+qu,qulocs = toQuivLocs(quivshape,width,depth,qu)
 
 kappaT = kappa.toListOfTuples(scalarastuple=False)
 coordsK = Data(oldspacecoords, kappa.getFunctionSpace())
-coordsK = np.array(coordsK.toListOfTuples())
-coordKX = coordsK[:,0]
-coordKY = coordsK[:,1]
+coordKX, coordKY = toXYTuple(coordsK)
       
-coords = np.array(coords.toListOfTuples())
 tempT = T.toListOfTuples(scalarastuple=False)
-
-coordX = coords[:,0]
-coordY = coords[:,1]
-
-xi = np.linspace(0.0,5000.0,100)
-yi = np.linspace(-6000.0,0.0,100)
+coordX, coordY = toXYTuple(coords)
+\end{verbatim}
+In a similar fashion to the contouring, our data needs to be transferred to a regular grid to contour the temperature. Our polygons are handled by the \verb fill()  function making sure they are ordered to the lowest level of the plot beneath all other data. Labeling is then added and finally the Quivers using the \verb quiver()  function. More detail on each \modmpl function is available from the \modmpl website.
+\begin{verbatim}
+xi = np.linspace(0.0,width,100)
+yi = np.linspace(depth,0.0,100)
 # grid the data.
 zi = pl.matplotlib.mlab.griddata(coordX,coordY,tempT,xi,yi)
 ziK = pl.matplotlib.mlab.griddata(coordKX,coordKY,kappaT,xi,yi)
 # contour the gridded data, plotting dots at the randomly spaced data points.
-
 pl.matplotlib.pyplot.autumn()
+
 CKL = pl.fill(tpgx,tpgy,'brown',bpgx,bpgy,'red',zorder=-1000)
 #~ CK = pl.contourf(xi,yi,ziK,2)
 CS = pl.contour(xi,yi,zi,5,linewidths=0.5,colors='k')
+
 pl.clabel(CS, inline=1, fontsize=8)
 pl.title("Heat Refraction across a clinal structure.")
 pl.xlabel("Horizontal Displacement (m)")
@@ -251,11 +244,18 @@ QUIV=pl.quiver(qulocs[:,0],qulocs[:,1],qu[:,0],qu[:,1],angles='xy',color="white"
 pl.title("Heat Refraction across a clinal structure \n with gradient quivers.")
 pl.savefig(os.path.join(saved_path,"heatrefraction001_contqu.png"))
 \end{verbatim} 
-
-
-\begin{figure}
+The data has now been plotted.
+\begin{figure}[h]
 \centerline{\includegraphics[width=4.in]{figures/heatrefraction001contqu}}
 \caption{Heat refraction model with gradient indicated by quivers.}
 \label{fig:hr001qumodel}
+\end{figure}
+
+\newpage
+\subsection{Fault and Overburden Model}
+A slightly more complicated model can be found in the examples \textit{heatrefraction_mesher002.py} and \textit{heatrefractoin002.py} where three blocks are used within the model.
+\begin{figure}[h]
+\centerline{\includegraphics[width=4.in]{figures/heatrefraction002contqu}}
+\caption{Heat refraction model with three blocks and gradient quivers.}
 \end{figure}
 

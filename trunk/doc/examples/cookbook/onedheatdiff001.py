@@ -38,11 +38,19 @@ from esys.finley import Rectangle
 # A useful unit handling package which will make sure all our units
 # match up in the equations under SI.
 from esys.escript.unitsSI import * 
+#For interactive use, you can comment out the next two lines
+import matplotlib
+matplotlib.use('agg') #It's just here for automated testing
 import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os #This package is necessary to handle saving our data.
 import cblib
 
+########################################################MPI WORLD CHECK
+if getMPISizeWorld() > 1:
+	import sys
+	print "This example will not run in an MPI world."
+	sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
 #Domain related.
@@ -68,10 +76,11 @@ h=(tend-t)/outputs #size of time step
 print "Expected Number of time outputs is: ", (tend-t)/h
 i=0 #loop counter
 #the folder to put our outputs in, leave blank "" for script path 
-save_path="data/onedheatdiff001"
+save_path= os.path.join("data","onedheatdiff001")
 
 #ensure the dir exists
-cblib.needdirs([save_path, os.path.join(save_path,"tempT"), os.path.join(save_path, "totT")])
+cblib.needdirs([save_path, os.path.join(save_path,"tempT"),\
+                         os.path.join(save_path, "totT")])
 
 ################################################ESTABLISHING PARAMETERS
 #generate domain using rectangle
@@ -106,7 +115,9 @@ while t<=tend:
 	pl.axis([0,1.0,273.14990+0.00008,0.004+273.1499])
 	pl.title("Temperature accross Rod")
 		#save figure to file
-	pl.savefig(os.path.join(save_path+"/tempT","rodpyplot%03d.png") %i)
+	if getMPIRankWorld() == 0:
+		pl.savefig(os.path.join(save_path,"tempT",\
+		                                  "rodpyplot%03d.png"%i))
 	pl.clf() #clear figure
 	
 	#establish figure 2 for total temperature vs x plots and repeat
@@ -115,18 +126,21 @@ while t<=tend:
 	pl.plot(plx,tottempT)
 	pl.axis([0,1.0,9.657E08,12000+9.657E08])
 	pl.title("Total temperature accross Rod")
-	pl.savefig(os.path.join(save_path+"/totT","ttrodpyplot%03d.png")%i)
+	if getMPIRankWorld() == 0:
+		pl.savefig(os.path.join(save_path,"totT",\
+		                                  "ttrodpyplot%03d.png"%i))
 	pl.clf()
 
 # compile the *.png files to create two *.avi videos that show T change
 # with time. This opperation uses linux mencoder. For other operating 
 # systems it is possible to use your favourite video compiler to
-# convert image files to videos.
+# convert image files to videos. To enable this step uncomment the
+# following lines.
 
-os.system("mencoder mf://"+save_path+"/tempT"+"/*.png -mf type=png:\
-w=800:h=600:fps=25 -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o \
-onedheatdiff001tempT.avi")
+#os.system("mencoder mf://"+save_path+"/tempT"+"/*.png -mf type=png:\
+#w=800:h=600:fps=25 -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o \
+#onedheatdiff001tempT.avi")
 
-os.system("mencoder mf://"+save_path+"/totT"+"/*.png -mf type=png:\
-w=800:h=600:fps=25 -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o \
-onedheatdiff001totT.avi")
+#os.system("mencoder mf://"+save_path+"/totT"+"/*.png -mf type=png:\
+#w=800:h=600:fps=25 -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o \
+#onedheatdiff001totT.avi")

@@ -12,6 +12,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{One Dimensional Heat Diffusion in an Iron Rod}
+\sslist{onedheatdiff001.py and cblib.py}
 %\label{Sec:1DHDv0}
 We will start by examining a simple one dimensional heat diffusion example. This problem will provide a good launch pad to build our knowledge of \ESCRIPT and how to solve simple partial differential equations (PDEs)\footnote{Wikipedia provides an excellent and comprehensive introduction to \textit{Partial Differential Equations} \url{http://en.wikipedia.org/wiki/Partial_differential_equation}, however their relevance to \ESCRIPT and implementation should become a clearer as we develop our understanding further into the cookbook.}
 
@@ -183,11 +184,13 @@ Now that we know our inputs we will build a domain using the \verb Rectangle() f
 #generate domain using rectangle
 rod = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
 \end{verbatim}
-In this form \verb rod  does not represent any discrete points, but rather an area of \verb ndx*ndy  cells that fit into a rectangular space with opposing vertices at the origin and the point \verb [mx,my] . Our domain is constructed this way to allow the user to determine where the discrete points of each model will be located. Discretisation may be at the corners of each cell, the middle point of a cell, halfway along each side of the cell and so on. Depending on the PDE or the model there may be advantages and disadvantages for each case. Fortunately \modescript offers an easy way to extract finite points from the domain \verb|rod| using the domain property function \verb|getX()| . This function sets the vertices of each cell as finite points to solve in the solution. If we let \verb|x| be these finite points, then;
+\verb rod  now describes a domain in the manner of Section \ref{ss:domcon}. As we define our variables, various function spaces will be created to accomodate them. There is an easy way to extract finite points from the domain \verb|rod| using the domain property function \verb|getX()| . This function sets the vertices of each cell as finite points to solve in the solution. If we let \verb|x| be these finite points, then;
 \begin{verbatim}
 #extract finite points - the solution points
 x=rod.getX()
 \end{verbatim}
+The data locations of specific function spaces can be returned in a similar manner by extracting the relevent function space from the domain followed by the \verb .getX()  operator.
+
 With a domain and all our required variables established, it is now possible to set up our PDE so that it can be solved by \ESCRIPT. The first step is to define the type of PDE that we are trying to solve in each time step. In this example it is a single linear PDE\footnote{in comparison to a system of PDEs which will be discussed later.}. We also need to state the values of our general form variables.
 \begin{verbatim}
 mypde=LinearSinglePDE(rod)
