@@ -35,6 +35,22 @@
 
 /* free all memory used by AMG                                */
 
+void Paso_Solver_AMG_System_free(Paso_Solver_AMG_System * in) {
+     if (in!=NULL) {
+        Paso_Solver_AMG_free(in->amgblock1);
+        Paso_Solver_AMG_free(in->amgblock2);
+        Paso_Solver_AMG_free(in->amgblock3);
+        Paso_SparseMatrix_free(in->block1);
+        Paso_SparseMatrix_free(in->block2);
+        Paso_SparseMatrix_free(in->block3);
+
+        MEMFREE(in);
+     }
+}
+
+
+/* free all memory used by AMG                                */
+
 void Paso_Solver_AMG_free(Paso_Solver_AMG * in) {
      if (in!=NULL) {
         Paso_Solver_AMG_free(in->AMG_of_Schur);
@@ -160,8 +176,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
         }
         else {
            /*Default coarseneing*/
-            /*Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);*/ 
-            Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);
+            Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold); 
+            /*Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);*/
              /*Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);*/
         }
      
@@ -194,14 +210,14 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
               #pragma omp parallel for private(i,iPtr,j,S) schedule(static)
               for (i = 0; i < out->n_F; ++i) {
                 S=0;
-/*printf("%d : %d -> ",i, out->rows_in_F[i]);*/
+/*printf("[%d ]: [%d] -> ",i, out->rows_in_F[i]);*/
                 for (iPtr=A_p->pattern->ptr[out->rows_in_F[i]];iPtr<A_p->pattern->ptr[out->rows_in_F[i] + 1]; ++iPtr) {
                  j=A_p->pattern->index[iPtr];
 /*if (j==out->rows_in_F[i]) printf("diagonal %e",A_p->val[iPtr]);*/
-                 if (mis_marker[j] && j==out->rows_in_F[i])
-                     S=A_p->val[iPtr];
+                 if (mis_marker[j])
+                     S+=A_p->val[iPtr];
                 }
-/*printf("-> %e\n",S);*/
+/*printf("-> %e \n",S);*/
                 out->inv_A_FF[i]=1./S;
               }
            }

@@ -19,8 +19,8 @@
 # cc_flags		= '-ansi'
 # cc_optim		= '-O2'
 # cc_debug		= '-g'
-#omp_optim		= '-fopenmp'
-#omp_debug		= '-fopenmp'
+omp_optim		= '-fopenmp'
+omp_debug		= '-fopenmp'
 # omp_libs		= ['guide']
 
 # Use the default C/C++ flags but add something only for this host:
@@ -77,7 +77,7 @@ blas_libs		= ['blas']
 useopenmp		= 'no'
 
 # MPI MPT (no module load required)
-# usempi		= 'no'
+#usempi			= 'no'
 mpi_path		= '/usr/local/include'
 mpi_lib_path		= '/usr/local/lib'
 mpi_libs		= ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']

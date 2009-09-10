@@ -76,9 +76,10 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
         Paso_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires a square matrix.");
         return;
      }
-     if (A->block_size != 1 && options->preconditioner==PASO_AMG) {
+     /*if (A->block_size != 1 && options->preconditioner==PASO_AMG) {
         Paso_setError(TYPE_ERROR,"Paso_Solver: AMG on systems not supported yet.");
      }
+     */
      time_iter=Paso_timer();
      /* this for testing only */
      if (method==PASO_NONLINEAR_GMRES) {
@@ -214,7 +215,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                     #endif
                     norm2_of_residual =sqrt(norm2_of_residual);
                     options->residual_norm=norm2_of_residual;
-             
+
                   if (options->verbose) printf("Paso_Solver: Step %5d: l2/lmax-norm of residual is  %e/%e",totIter,norm2_of_residual,norm_max_of_residual);
                   if (totIter>1 && norm2_of_residual>=last_norm2_of_residual &&  norm_max_of_residual>=last_norm_max_of_residual) {
                      if (options->verbose) printf(" divergence!\n");

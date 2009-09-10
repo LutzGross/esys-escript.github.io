@@ -122,6 +122,17 @@ struct Paso_Solver_AMG {
 };
 typedef struct Paso_Solver_AMG Paso_Solver_AMG;
 
+/* AMG preconditioner on blocks*/
+struct Paso_Solver_AMG_System {
+    Paso_SparseMatrix* block1;
+    Paso_SparseMatrix* block2;
+    Paso_SparseMatrix* block3;
+    Paso_Solver_AMG *amgblock1;
+    Paso_Solver_AMG *amgblock2;
+    Paso_Solver_AMG *amgblock3;
+};
+typedef struct Paso_Solver_AMG_System Paso_Solver_AMG_System;
+
 
 /* general preconditioner interface */
 
@@ -137,7 +148,9 @@ typedef struct Paso_Solver_Preconditioner {
   Paso_Solver_GS* gs;
   /* amg preconditioner */
   Paso_Solver_AMG* amg;
-
+  /* amg on System */
+  Paso_Solver_AMG_System* amgSystem;
+  
 } Paso_Solver_Preconditioner;
 
 void Paso_Solver(Paso_SystemMatrix*,double*,double*,Paso_Options*,Paso_Performance* pp);
@@ -164,6 +177,7 @@ void Paso_Solver_RILU_free(Paso_Solver_RILU * in);
 Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix * A_p,bool_t verbose);
 void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b);
 
+void Paso_Solver_AMG_System_free(Paso_Solver_AMG_System * in);
 void Paso_Solver_AMG_free(Paso_Solver_AMG * in);
 Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix * A_p,dim_t level,Paso_Options* options);
 void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b);

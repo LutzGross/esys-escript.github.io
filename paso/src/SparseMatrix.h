@@ -78,6 +78,8 @@ void Paso_SparseMatrix_nullifyRowsAndCols_CSR(Paso_SparseMatrix* A, double* mask
 void Paso_SparseMatrix_nullifyRows_CSR_BLK1(Paso_SparseMatrix* A, double* mask_row, double main_diagonal_value);
 void Paso_SparseMatrix_saveHB_CSC(Paso_SparseMatrix *, FILE*);
 Paso_SparseMatrix* Paso_SparseMatrix_getSubmatrix(Paso_SparseMatrix* A,dim_t,dim_t,index_t*,index_t*);
+Paso_SparseMatrix* Paso_SparseMatrix_getBlock(Paso_SparseMatrix* A, int blockid);
+
 void Paso_SparseMatrix_setValues(Paso_SparseMatrix*,double);
 void Paso_SparseMatrix_saveMM_CSC(Paso_SparseMatrix *, FILE *);
 void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(const double alpha, const dim_t nRows, const dim_t row_block_size, const dim_t col_block_size, const index_t* ptr, const index_t* index, const double* val, const double* in, const double beta, double* out);
