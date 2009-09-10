@@ -74,3 +74,74 @@ Paso_SparseMatrix* Paso_SparseMatrix_getSubmatrix(Paso_SparseMatrix* A,int n_row
       }
       return out;
 }
+
+Paso_SparseMatrix* Paso_SparseMatrix_getBlock(Paso_SparseMatrix* A, int blockid){
+      
+      dim_t blocksize=A->row_block_size,i;
+      dim_t n=A->numRows;
+      index_t iptr;
+      
+      Paso_SparseMatrix* out=NULL;
+     
+      out=Paso_SparseMatrix_alloc(A->type,A->pattern, 1, 1, 0);
+      
+      if (blocksize==1) {
+            if (blockid==1) {
+                  for(i=0;i<n;++i) {
+                      for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+                              out->val[iptr]=A->val[iptr];
+                      }
+                  }
+            }
+            else {
+                  Paso_setError(VALUE_ERROR,"Requested and actual block sizes do not match.");
+            }
+      }
+      else if (blocksize==2) {
+            if (blockid==1) {
+                  for(i=0;i<n;i++) {
+                        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+                              out->val[iptr]=A->val[4*iptr];
+                        }
+                  }
+            }
+            else if (blockid==2) {
+                  for(i=0;i<n;i++) {
+                        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+                              out->val[iptr]=A->val[4*iptr+3];
+                        }
+                  }
+            }
+            else {
+                  Paso_setError(VALUE_ERROR,"Requested and actual block sizes do not match.");
+            }
+      }
+      else if (blocksize==3) {
+            if (blockid==1) {
+                  for(i=0;i<n;i++) {
+                        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+                                    out->val[iptr]=A->val[9*iptr];
+                        }
+                  }
+            }
+            else if (blockid==2) {
+                  for(i=0;i<n;i++) {
+                        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+                                    out->val[iptr]=A->val[9*iptr+4];
+                        }
+                  }
+            }
+            else if (blockid==3) {
+                  for(i=0;i<n;i++) {
+                        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+                                    out->val[iptr]=A->val[9*iptr+8];
+                        }
+                  }
+            }
+            else {
+                  Paso_setError(VALUE_ERROR,"Requested and actual block sizes do not match.");
+            }
+      }
+            
+         return  out;
+}
