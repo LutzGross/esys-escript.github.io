@@ -39,7 +39,7 @@ Potentially, it is now possible to solve \ref{eqn:hd} analytically and this woul
 $-(A\hackscore{jl} u\hackscore{,l})\hackscore{,j}+D u =Y$}
 is described by;
 \begin{equation}\label{eqn:commonform nabla}
--\nabla.(A.\nabla u) + Du = f
+-\nabla\cdot(A\cdot\nabla u) + Du = f
 \end{equation}
 where $A$, $D$ and $f$ are known values. The symbol $\nabla$ which is called the \textit{Nabla operator} or \textit{del operator} represents
 the spatial derivative of its subject - in this case $u$. Lets assume for a moment that we deal with a one-dimensional problem then ;
@@ -80,7 +80,7 @@ To fit our simplified general form we can rearrange \ref{eqn:hddisc};
 \frac{\rho c\hackscore p}{h} T^{(n)} - \kappa \frac{\partial^2 T^{(n)}}{\partial x^2} = q\hackscore H +  \frac{\rho c\hackscore p}{h} T^{(n-1)}
 \label{eqn:hdgenf}
 \end{equation}
-The PDE is now in a form that statisfies \refEq{eqn:commonform nabla} which is required for \ESCRIPT to solve our PDE. This can be done by generating a solution for sucessive increments in the time nodes $t^{(n)}$ where 
+The PDE is now in a form that satisfies \refEq{eqn:commonform nabla} which is required for \ESCRIPT to solve our PDE. This can be done by generating a solution for successive increments in the time nodes $t^{(n)}$ where 
 $t^{(0)}=0$ and  $t^{(n)}=t^{(n-1)}+h$ where $h>0$ is the step size and assumed to be constant. 
 In the following the upper index ${(n)}$ refers to a value at time $t^{(n)}$. Finally, by comparing \ref{eqn:hdgenf} with \ref{eqn:commonform} it can be seen that;
 \begin{equation}
@@ -96,7 +96,7 @@ for all $x$ in the domain.
 \subsection{Boundary Conditions}
 With the PDE sufficiently modified, consideration must now be given to the boundary conditions of our model. Typically there are two main types of boundary conditions known as Neumann and Dirichlet\footnote{More information on Boundary Conditions is available at Wikipedia \url{http://en.wikipedia.org/wiki/Boundary_conditions}}. In this example, we have utilised both conditions. Dirichlet is conceptually simpler and is used to prescribe a known value to the model on its boundary. This is like holding a snake by the tail; we know where the tail will be as we hold it however, we have no control over the rest of the snake. Dirichlet boundary conditions exist where we have applied our heat source. As the heat source is a constant, we can simulate its presence on that boundary. This is done by continuously resetting the temperature of the boundary, so that is is the same as the heat source.  
 
-Neumann boundary conditions describe the radiation or flux normal to the boundayor surface. This aptly describes our insulation conditions as we do not want to exert a constant temperature as with the heat source. However, we do want to prevent any loss of energy from the system. These natural boundary conditions can be described by specifying a radiation condition which prescribes the normal component of the flux $\kappa T\hackscore{,i}$ to be proportional
+Neumann boundary conditions describe the radiation or flux normal to the boundary surface. This aptly describes our insulation conditions as we do not want to exert a constant temperature as with the heat source. However, we do want to prevent any loss of energy from the system. These natural boundary conditions can be described by specifying a radiation condition which prescribes the normal component of the flux $\kappa T\hackscore{,i}$ to be proportional
 to the difference of the current temperature to the surrounding temperature $T\hackscore{ref}$; in general terms this is;
 \begin{equation}
  \kappa T\hackscore{,i} n\hackscore i = \eta (T\hackscore{ref}-T) 
@@ -231,7 +231,7 @@ plx = x.toListOfTuples()
 plx = np.array(plx) #convert to tuple to numpy array
 plx = plx[:,0] #extract x locations
 \end{verbatim}
-As there are two solution outputs, we will generate two plots and save each to a file for every time step in the solution. The following is appended to the end of the \verb while  loop and creates two figures. The first figure is for the temperature distribution, and the second the total temperature in the bar. Both cases are similar with a few minor changes for scale and labeling. We start by converting the solution to a tuple and then plotting this against our \textit{x coordinates} \verb plx  from before. The axis is then standardised and a title applied. The figure is then saved to a *.png file and cleared for the following iteration.
+As there are two solution outputs, we will generate two plots and save each to a file for every time step in the solution. The following is appended to the end of the \verb while  loop and creates two figures. The first figure is for the temperature distribution, and the second the total temperature in the bar. Both cases are similar with a few minor changes for scale and labelling. We start by converting the solution to a tuple and then plotting this against our \textit{x coordinates} \verb plx  from before. The axis is then standardised and a title applied. The figure is then saved to a *.png file and cleared for the following iteration.
 \begin{verbatim}
 	#establish figure 1 for temperature vs x plots
 	tempT = T.toListOfTuples(scalarastuple=False)
@@ -261,11 +261,26 @@ As there are two solution outputs, we will generate two plots and save each to a
 \end{center}
 \end{figure}
 
+\subsubsection{Parallel scripts (MPI)}
+In some of the example files for this cookbook the plot part of the script looks a little different.
+For example,
+\begin{verbatim}
+	pl.title("Total temperature accross Rod")
+	if getMPIRankWorld() == 0:
+	    pl.savefig(os.path.join(save_path+"/totT","ttrodpyplot%03d.png")%i)
+	pl.clf()	
+\end{verbatim}
+
+The additional \verb if  statement is not necessary for normal desktop use.
+It becomes important for scripts run on parallel computers.
+Its purpose is to ensure that only one copy of the file is written.
+For more details on writing scripts for parallel computers please consult the \emph{user's guide}.
+
 \subsection{Make a video} 
 Our saved plots from the previous section can be cast into a video using the following command appended to the end of the script. \verb mencoder  is linux only however, and other platform users will need to use an alternative video encoder.
 \begin{verbatim}
 # compile the *.png files to create two *.avi videos that show T change
-# with time. This opperation uses linux mencoder. For other operating 
+# with time. This operation uses linux mencoder. For other operating 
 # systems it is possible to use your favourite video compiler to
 # convert image files to videos.
 
