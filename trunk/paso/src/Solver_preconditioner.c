@@ -253,6 +253,7 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                     x[3*i+2]=x3[i];
                 }
                 
+                
                 MEMFREE(x1);
                 MEMFREE(x2);
                 MEMFREE(x3);

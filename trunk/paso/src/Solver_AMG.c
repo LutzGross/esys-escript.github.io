@@ -43,7 +43,6 @@ void Paso_Solver_AMG_System_free(Paso_Solver_AMG_System * in) {
         Paso_SparseMatrix_free(in->block1);
         Paso_SparseMatrix_free(in->block2);
         Paso_SparseMatrix_free(in->block3);
-
         MEMFREE(in);
      }
 }
@@ -147,6 +146,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      out->solver=NULL;
      /*out->GS=Paso_Solver_getGS(A_p,verbose);*/
      out->level=level;
+     out->n=n;
+     out->n_block=n_block;
      
      if (level==0 || n<=options->min_coarse_matrix_size) {
          out->coarsest_level=TRUE;
@@ -185,8 +186,6 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
            #pragma omp parallel for private(i) schedule(static)
            for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
 
-           out->n=n;
-           out->n_block=n_block;
            out->n_F=Paso_Util_cumsum(n,counter);
            out->mask_F=MEMALLOC(n,index_t);
            out->rows_in_F=MEMALLOC(out->n_F,index_t);
