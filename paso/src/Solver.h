@@ -32,6 +32,8 @@
 #define PASO_ONE (double)(1.0)
 #define PASO_ZERO (double)(0.0)
 
+#define MAX_BLOCK_SIZE 3
+
 /* static double ONE=1.; */
 /* static double ZERO=0.;*/
 /*static double TOLERANCE_FOR_SCALARS=0.;*/
@@ -124,12 +126,9 @@ typedef struct Paso_Solver_AMG Paso_Solver_AMG;
 
 /* AMG preconditioner on blocks*/
 struct Paso_Solver_AMG_System {
-    Paso_SparseMatrix* block1;
-    Paso_SparseMatrix* block2;
-    Paso_SparseMatrix* block3;
-    Paso_Solver_AMG *amgblock1;
-    Paso_Solver_AMG *amgblock2;
-    Paso_Solver_AMG *amgblock3;
+    dim_t block_size;
+    Paso_SparseMatrix *block[MAX_BLOCK_SIZE];
+    Paso_Solver_AMG *amgblock[MAX_BLOCK_SIZE];
 };
 typedef struct Paso_Solver_AMG_System Paso_Solver_AMG_System;
 

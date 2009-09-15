@@ -36,13 +36,12 @@
 /* free all memory used by AMG                                */
 
 void Paso_Solver_AMG_System_free(Paso_Solver_AMG_System * in) {
+     dim_t i;
      if (in!=NULL) {
-        Paso_Solver_AMG_free(in->amgblock1);
-        Paso_Solver_AMG_free(in->amgblock2);
-        Paso_Solver_AMG_free(in->amgblock3);
-        Paso_SparseMatrix_free(in->block1);
-        Paso_SparseMatrix_free(in->block2);
-        Paso_SparseMatrix_free(in->block3);
+        for (i=0;i<in->block_size;++i) {
+          Paso_Solver_AMG_free(in->amgblock[i]);
+           Paso_SparseMatrix_free(in->block[i]);
+        }
         MEMFREE(in);
      }
 }
@@ -185,7 +184,6 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
         if (Paso_noError()) {
            #pragma omp parallel for private(i) schedule(static)
            for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
-
            out->n_F=Paso_Util_cumsum(n,counter);
            out->mask_F=MEMALLOC(n,index_t);
            out->rows_in_F=MEMALLOC(out->n_F,index_t);
