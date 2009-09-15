@@ -245,12 +245,11 @@ void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double
      for (i=0;i<n;++i) {
        if (mis_marker[i]==IS_AVAILABLE) {
         eps_Aii = theta*theta*diags[i];
-        val=0.;
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             j=A->pattern->index[iptr];
             val=A->val[iptr];
             if(j!= i) {
-              if(val*val>=eps_Aii * diags[j]) {
+              if((val*val)>=(eps_Aii*diags[j])) {
                Paso_IndexList_insertIndex(&(index_list[i]),j);
               }
             }
