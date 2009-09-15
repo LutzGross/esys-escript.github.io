@@ -9,19 +9,68 @@ $w\hackscore{0}$ space. The fault has three segments.}
 The \class{FaultSystem} is an easy to use interface to handle 2D and 3D fault systems \index{faults} as used for instance in simulating fault ruptures. The main purpose of the class is to provide a parameterization of an individual fault in the system of fault. In case of a 2D fault the fault is parameterized by a single value $w\hackscore{0}$ and in the case of a 3D fault two parameters $w\hackscore{0}$ and $w\hackscore{1}$ are used. This parameterization can be used
 to impose data (e.g. a slip distribution) onto the fault. It can also be a useful tool to visualize or analyze the results on the fault if the fault is not straight. 
 
-A fault $t$ in the fault system is represented by two polygons $(V^{ti})$ and $(v^{ti})$
-defining the top and bottom line of the fault $t$.
-$V^{ti}$ defines the $i$-th fault vertex at the top of the fault (typically at the surface of the Earth) and
-$v^{ti}$ defines the $i$-th fault vertex at the bottom of the fault. Both polygons need to contain the same number of 
-vertices. For the 2D case the polygon $(v^{ti})$ for the bottom edge of the fault is dropped. 
-The patch with the vertices 
-$V^{t(i-1)}$, $V^{ti}$
-$v^{t(i-1)}$, and $v^{ti}$
-is called the $i$-th segment of the fault `t`. In 2D the the line with the start point $V^{t(i-1)}$ 
-and the end point $V^{ti}$ is called the $i$-th segment, see Figure~\ref{FAULTSYSTEM2D}.
-
-In general a fault does not define a plane surface (or a straight line in 2D). In order to simplify working on 
-a fault in a fault system a parameterization $P^t: (w\hackscore{0},w\hackscore{1}) \rightarrow (x\hackscore{0},x\hackscore{1},x\hackscore{2})$ over a rectangular domain is introduced such that 
+A fault $t$ in the fault system is represented by a staring point $V^{t0}$ and series of
+direction, called strikes~\index{strike}, and the lengths $(l^{ti})$. 
+The strike of segment $i$ is defined by the angle $\sigma^{ti}$ between the $x\hackscore{0}$-axis and the 
+direction of the fault, see Figure~\ref{FAULTSYSTEM2D}. The length and strike defines the  
+polyline $(V^{ti})$ of the fault by
+\begin{equation}
+V^{ti} = V^{t(i-1)} + 
+l^{ti} \cdot  S^{ti}
+\mbox{ with }
+S^{ti} =
+\left[
+\begin{array}{c}
+ cos(\sigma^{ti})  \\
+ sin(\sigma^{ti}) \\
+ 0 
+\end{array}
+\right]
+\label{eq:fault 00}
+\end{equation}
+In the 3D case each fault segment $i$ has an additional dip \index{dip} $\theta^{ti}$ and
+and at each vertex $i$ a depth $\delta^{ti}$ is given. The fault segment normal $n^{ti}$ is given by
+\begin{equation}
+n^{ti} = 
+\left[
+\begin{array}{c}
+ -sin(\theta^{ti}) \cdot S^{ti}\hackscore{1} \\
+ sin(\theta^{ti}) \cdot S^{ti}\hackscore{0} \\
+ cos(\theta^{ti}) 
+\end{array}
+\right]
+\label{eq:fault 0}
+\end{equation}
+At each vertex we define a depth vector $d^{ti}$ defined as the
+intersect of the fault planes of segment $(i-1)$ and $i$ where 
+for the first segment and last segment the vector orthogonal to strike vector $S^{ti}$\index{strike}
+and the segment normal $n^{ti}$ is used. The direction $\tilde{d}^{ti}$ of the depth vector is 
+given as 
+\begin{equation}
+\tilde{d}^{ti} = n^{ti} \times n^{t(i-1)}
+\label{eq:fault b}
+\end{equation}
+If $\tilde{d}^{ti}$ is zero the strike vectors $L^{t(i-1)}$ and $L^{ti}$ are collinear and
+we can set $\tilde{d}^{ti} = l^{ti} \times n^{ti}$. If the two fault segments are almost 
+orthogonal $\tilde{d}^{ti}$ is pointing in the direction of $L^{t(i-1)}$ and $L^{ti}$. In this case no 
+depth can be defined. So we will reject a fault system if 
+\begin{equation}
+min(\| \tilde{d}^{ti}  \times  L^{t(i-1)} \|,\| \tilde{d}^{ti}  \times  L^{ti} \|) 
+\le 0.1 \cdot \| \tilde{d}^{ti} | 
+\label{eq:fault c}
+\end{equation}
+which corresponds to an angle of less then $10^o$ between the depth vector and the strike. We then set
+\begin{equation}
+d^{ti}=\delta^{ti} \cdot \frac{\tilde{d}^{ti}}{\|\tilde{d}^{ti}\|}
+\label{eq:fault d}
+\end{equation}
+We can then define the polyline $(v^{ti})$ for the bottom of the fault as
+\begin{equation}
+v^{ti}= V^{ti}+d^{ti}
+\label{eq:fault e}
+\end{equation}
+In order to simplify working on 
+a fault $t$ in a fault system a parameterization $P^t: (w\hackscore{0},w\hackscore{1}) \rightarrow (x\hackscore{0},x\hackscore{1},x\hackscore{2})$ over a rectangular domain is introduced such that 
 \begin{equation}
 0\le w\hackscore{0} \le w^t\hackscore{0 max} \mbox{ and }  -w^t\hackscore{1max}\le w\hackscore{1} \le 0
 \label{eq:fault 1}
@@ -35,26 +84,26 @@ P^t(W^{ti})=V^{ti}\mbox{ and } P^t(w^{ti})=v^{ti}\
 \end{equation}
 where 
 \begin{equation}
-W^{ti}=(d^{ti},0) \mbox{ and } w^{ti}=(d^{ti},-w^t\hackscore{1 max})
+W^{ti}=(\Omega^{ti},0) \mbox{ and } w^{ti}=(\Omega^{ti},-w^t\hackscore{1 max})
 \label{eq:fault 3}
 \end{equation}
-and $d^{ti}$ is the unrolled distance of $W^{ti}$ from $W^{t0}$. In the 2D case $w^t\hackscore{1 max}$ is set to zero and therefore the second component is dropped, see Figure~\ref{FAULTSYSTEM2D}.
+and $\Omega^{ti}$ is the unrolled distance of $W^{ti}$ from $W^{t0}$, ie $l^{ti}=\Omega^{t(i+1)}-\Omega^{ti}$. In the 2D case $w^t\hackscore{1 max}$ is set to zero and therefore the second component is dropped, see Figure~\ref{FAULTSYSTEM2D}.
 
 In the case of 2D the parameterization $P^t$ is constructed as follows:
 The line connecting $V^{t(i-1)}$ and $V^{ti}$ is given by
 \begin{equation}
-x=V^{t(i-1)} + s \cdot (V^{ti}-V^{t(i-1)})
+x=V^{ti} + s  \cdot  ( V^{t(i+1)}- V^{ti} )
 \label{eq:2D line 1}
 \end{equation}
 where $s$ is between $0$ and $1$. The point $x$ is on $i$-th fault segment if and only if 
 such an $s$ exists. If assume $x$ is on the fault one can calculate $s$ as
 \begin{equation}
-s = \frac{ (x- V^{t(i-1)})^t \cdot (V^{ti}-V^{t(i-1)}) }{\|V^{ti}-V^{t(i-1)}\|^2} 
+s = \frac{ (x- V^{ti})^t \cdot (V^{t(i+1)}- V^{ti}) }{ \|V^{t(i+1)}- V^{ti}\|^2} 
 \label{eq:2D line 1b}
 \end{equation}
 We then can set
 \begin{equation}
-w\hackscore{0}=d^{ti}+s \cdot (d^{ti}-d^{t(i-1)})
+w\hackscore{0}=\Omega^{ti}+s \cdot (\Omega^{ti}-\Omega^{t(i-1)})
 \label{eq:2D line 2}
 \end{equation}
 to get $P^t(w\hackscore{0})=x$.
@@ -62,12 +111,47 @@ It remains the question if the given $x$ is actual on the segment $i$ of fault $
 between $0$ and $1$ (so if $s<0$ $s$ is set to $0$ and if $s>1$ $s$ is set to $1$) and the we check the 
 residual of equation~\ref{eq:2D line 1}, ie. $x$ is been accepted to be in the segment if
 \begin{equation}
-\|x-V^{t(i-1)} - s \cdot (V^{ti}-V^{t(i-1)}) \| \le tol \cdot max(\|V^{ti}-V^{t(i-1)}\|, \|x-V^{t(i-1)} \|) 
+\|x-V^{ti} - s \cdot (V^{t(i+1)}- V^{ti}) \| \le tol \cdot  
+max(l^{ti}, \|x-V^{ti} \|) 
 \label{eq:2D line 3}
 \end{equation}
 where $tol$ is a given tolerance.
 
-ADD DISCRIPTION FOR 3D case.
+In the 3D case the situation is a bit more complicated: we split the fault segment across 
+the diagonal $V^{ti}$-$v^{t(i+1)}$ to produce two triangles. In the upper triangle we use the
+parameterization 
+\begin{equation}
+x= V^{ti} + s \cdot (V^{t(i+1)}-V^{ti})  + r \cdot (v^{t(i+1)}-V^{t(i+1)})
+\mbox{ with } r \le s; 
+\label{eq:2D line 4}
+\end{equation}
+while in the lower triangle we use
+\begin{equation}
+x= V^{ti} +  s \cdot (v^{t(i+1)}-v^{ti}) + r \cdot (v^{ti}-V^{ti})
+\mbox{ with } s \le r; 
+\label{eq:2D line 4b}
+\end{equation}
+where $0\le s,r \le 1$. Both equations are solved in the least-squares sense e.g. using the Moore–Penrose pseudo-inverse for the coefficient matrices.  The resulting $s$ and $r$  are then restricted to the unit square. Similar to the 2D case (see equation~\ref{eq:2D line 3}) we identify $x$ to be in the upper triangle of the segment if
+\begin{equation}
+\|x- V^{ti} - s \cdot (V^{t(i+1)}-V^{ti})  - r \cdot (v^{t(i+1)}-V^{t(i+1)}) \|
+\le tol \cdot  max(\|x-V^{ti} \|,\|v^{t(i+1)}-V^{t(i)})\|) 
+\label{eq:2D line 4c}
+\end{equation}
+and in the lower part 
+\begin{equation}
+\|x-V^{ti} -  s \cdot (v^{t(i+1)}-v^{ti}) - r \cdot (v^{ti}-V^{ti}) \|
+\le tol \cdot  max(\|x-V^{ti} \|,\|v^{t(i+1)}-V^{t(i)})\|)  
+\label{eq:2D line 4d}
+\end{equation}
+after the restriction of $(s,t)$ to the unit square. Note that $\|v^{t(i+1)}-V^{t(i)})\|$ is length of the
+diagonal of the fault segment. For those $x$ which have been located in the $i$-th segment  we then set
+\begin{equation}
+w\hackscore{0}=\Omega^{ti}+s \cdot (\Omega^{ti}-\Omega^{t(i-1)})
+\mbox{ and }
+w\hackscore{1}=w^t\hackscore{1max} (r-1) 
+\label{eq:2D line 5}
+\end{equation}
+
 
 \subsection{Functions}
 
@@ -76,16 +160,7 @@ ADD DISCRIPTION FOR 3D case.
 Creates a fault system in the \var{dim} dimensional space.
 \end{classdesc}
 
-
-
-\begin{methoddesc}[FaultSystem]{getDim}{}
-returns the spatial dimension
-\end{methoddesc}
-\begin{methoddesc}[FaultSystem]{getLength}{tag}
-returns the unrolled length of fault \var{tag}.
-\end{methoddesc}
-
-\begin{methoddesc}[FaultSystem]{getDepth}{tag}
+\begin{methoddesc}[FaultSystem]{getMediumDepth}{tag}
 returns the medium depth of fault \var{tag}.
 \end{methoddesc}
 
@@ -93,10 +168,66 @@ returns the medium depth of fault \var{tag}.
 returns a list of the tags used by the fault system
 \end{methoddesc}
 
+\begin{methoddesc}[FaultSystem]{getStart}{tag}
+returns the starting point of fault \var{tag} as a \numpyNDA object.
+\end{methoddesc}
+
+\begin{methoddesc}[FaultSystem]{getDim}{}
+returns the spatial dimension
+\end{methoddesc}
+
+\begin{methoddesc}[FaultSystem]{getDepths}{tag}
+returns the list of the depths of the segements in fault \var{tag}.
+\end{methoddesc}
+
+
+\begin{methoddesc}[FaultSystem]{getTopPolyline}{tag}
+returns the polyline used to describe fault tagged by \var{tag} 
+\end{methoddesc}
+
+\begin{methoddesc}[FaultSystem]{getStrikes}{tag}
+returns the list of strikes $\sigma^{ti}$ of the segements in fault $t=$\var{tag}
+\end{methoddesc}
+
+
+\begin{methoddesc}[FaultSystem]{getStrikeVectors}{tag}
+returns the strike vectors $S^{ti}$ of fault $t=$\var{tag}
+\end{methoddesc}
+
+
+\begin{methoddesc}[FaultSystem]{getLengths}{tag}
+returns the lengths $l^{ti}$ of segments in fault $t=$\var{tag}
+\end{methoddesc}
+
+
+\begin{methoddesc}[FaultSystem]{getTotalLength}{tag}
+returns the total unrolled length of fault \var{tag}
+\end{methoddesc}
+
+\begin{methoddesc}[FaultSystem]{getDips}{tag}
+returns the list of the dips of the segements in fault \var{tag}.
+\end{methoddesc}
+
+\begin{methoddesc}[FaultSystem]{getBottomPolyline}{tag}
+returns the list of the vertices defining the bottom of the fault \var{tag}.
+\end{methoddesc}
+
+\begin{methoddesc}[FaultSystem]{getSegmentNormals}{tag}
+returns the list of the normals of the segments in fault \var{tag}.
+\end{methoddesc}
+
+\begin{methoddesc}[FaultSystem]{getDepthVectors}{tag}
+returns the list of the depth vectors $d^{ti}$ for fault $t=$\var{tag}.
+\end{methoddesc}
+
+\begin{methoddesc}[FaultSystem]{getDepths}{tag}
+returns the list of the depths of the segements in fault \var{tag}.
+\end{methoddesc}
+
 \begin{methoddesc}[FaultSystem]{getW0Range}{tag}
 returns the range of the parameterization in $w\hackscore{0}$.
-For tag $t$ this is the pair $(d^{t0},d^{tn})$ where $n$ is the number of segments in the fault.
-In most cases one has $(d^{t0},d^{tn})=(0,w^t\hackscore{0 max})$.
+For tag $t$ this is the pair $(\Omega^{t0},\Omega^{tn})$ where $n$ is the number of segments in the fault.
+In most cases one has $(\Omega^{t0},\Omega^{tn})=(0,w^t\hackscore{0 max})$.
 \end{methoddesc}
 
 \begin{methoddesc}[FaultSystem]{getW1Range}{tag}
@@ -106,14 +237,7 @@ For tag $t$ this is the pair $(-w^t\hackscore{1max},0)$.
 
 \begin{methoddesc}[FaultSystem]{getW0Offsets}{tag}
 returns the offsets for the parameterization of fault \var{tag}.
-For tag \var{tag}=$t$ this is the list $[d^{ti}]$.
-\end{methoddesc}
-
-
-\begin{methoddesc}[FaultSystem]{getFaultSegments}{tag}
-returns the polygons used to describe fault \var{tag}. For \var{tag}=$t$ this is the list of the vertices
-$[V^{ti}]$ for the 2D and the pair of lists of the top vertices $[V^{ti}]$ and the bottom vertices  $[v^{ti}]$ in 3D.
-Note that the coordinates are represented as \numpyNDA objects.
+For tag \var{tag}=$t$ this is the list $[\Omega^{ti}]$.
 \end{methoddesc}
 
 \begin{methoddesc}[FaultSystem]{getCenterOnSurface}{}
@@ -129,18 +253,6 @@ applies a shift \var{shift} and a consecutive rotation in the $x\hackscore{2}=0$
 \var{rot} is a float number and \var{shift} an \numpyNDA object.
 \end{methoddesc}
 
-\begin{methoddesc}[FaultSystem]{addFault}{top, tag \optional{, bottom=None \optional{, w0_offsets=None\optional{, w1_max=None}}}}
-adds the  fault \var{tag} to the fault system. 
-
-\var{top} is the list of the vertices defing the top of the fault
-while \var{bottom} is the list of the vertices defing the bottom of the fault.
-In the case of 2D \var{bottom} must not be present. Both list, if present, must have the same length.
-\var{w1_max} defines the range of the $w\hackscore{1}$. If not present the mean value over the depth of 
-all segment edges in the fault is used.
-\var{w0_offsets} sets the offsets $d^{ti}$. If not present it i chosen such that $d^{ti}-d^{t(i-1)}$ is the length of the $i$-th segment. In some cases, eg. when kinks in the fault are relevant, it can be useful
-to explicitly specify the offsets in order to simplify the assignment of values.
-\end{methoddesc}
-
 \begin{methoddesc}[FaultSystem]{getMaxValue}{f\optional{, tol=1.e-8}}
 returns the maximum value of \var{f}, the fault where the maximum is found and the location on the fault in fault coordinates. \var{f} must be a \Scalar. When the maximum is calculated only \DataSamplePoints are considered
 which are on a fault in the fault system in the sense of condition~\ref{eq:2D line 3} or \ref{eq:3D line 3}, respectively. In the case no \DataSamplePoints is found the returned tag is \var{None} and
@@ -153,12 +265,43 @@ together with a mask indicating where the given location if on a fault in the fa
 \var{outside} is the value used as a replacement value for $w$ where the corresponding value in \var{x} is not 
 on a fault. If not \var{outside} is not present an appropriate value is used.
 \end{methoddesc}
-
+ 
 \begin{methoddesc}[FaultSystem]{getSideAndDistance}{x,tag}
 returns the side and the distance at locations \var{x} from the fault \var{tag}.
 \var{x} needs to be \Vector or \numpyNDA object. Positive values for side means that the corresponding location is 
 to the right of the fault, a negative value means that the corresponding location is 
 to the left of the fault. The value zero means that the side is undefined.
+\end{methoddesc}
+
+
+
+
+\begin{methoddesc}[FaultSystem]{getFaultSegments}{tag}
+returns the polylines used to describe fault \var{tag}. For \var{tag}=$t$ this is the list of the vertices
+$[V^{ti}]$ for the 2D and the pair of lists of the top vertices $[V^{ti}]$ and the bottom vertices  $[v^{ti}]$ in 3D.
+Note that the coordinates are represented as \numpyNDA objects.
+\end{methoddesc}
+
+\begin{methoddesc}[FaultSystem]{addFault}{
+strikes\optional{, 
+ls\optional{, 
+V0=[0.,0.,0.]\optional{,
+tag=None\optional{, 
+dips=None\optional{, 
+depths= None\optional{, 
+w0_offsets=None\optional{, 
+w1_max=None}}}}}}}}
+adds the  fault \var{tag} to the fault system. 
+\var{V0} defines the start point of fault names $t=$\var{tag}. The polyline
+defining the fault segments on the surface are set 
+by the strike angles \var{strikes} (=$\sigma^{ti}$, north = $\pi/2$, the orientation is counter clockwise.) and
+the length \var{ls} (=$l^{ti}$). In the 3D one also needs to define the 
+dip angles \var{dips} (=$\delta^{ti}$, vertical=$0$, right-hand rule applies.) and 
+the depth \var{depths} for each segment.
+\var{w1_max} defines the range of the $w\hackscore{1}$. If not present the mean value over the depth of 
+all segment edges in the fault is used.
+\var{w0_offsets} sets the offsets $\Omega^{ti}$. If not present it i chosen such that $\Omega^{ti}-\Omega^{t(i-1)}$ is the length of the $i$-th segment. In some cases, eg. when kinks in the fault are relevant, it can be useful
+to explicitly specify the offsets in order to simplify the assignment of values.
 \end{methoddesc}
 
 \subsection{Example}
