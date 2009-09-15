@@ -24,17 +24,16 @@ from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.models import FaultSystem
 from esys.finley import Rectangle
+from esys.escript.unitsSI import DEG
 #... set some parameters ...
 lam=1.
 mu=1
 slip_max=1.
-fault_start=[0.5,0.25]
-fault_end=[0.5,0.75]
 
 mydomain = Rectangle(l0=1.,l1=1.,n0=16, n1=16)  # n1 need to be multiple of 4!!!
 # .. create the fault system
 fs=FaultSystem(dim=2)
-fs.addFault(top=[fault_start, fault_end], tag=1)
+fs.addFault(V0=[0.5,0.25], strikes=90*DEG, ls=0.5, tag=1)
 # ... create a slip distribution on the fault:
 p, m=fs.getParametrization(mydomain.getX(),tag=1)
 p0,p1= fs.getW0Range(tag=1)
