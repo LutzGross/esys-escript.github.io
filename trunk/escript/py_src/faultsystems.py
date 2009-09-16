@@ -413,21 +413,32 @@ class FaultSystem:
            normals.append(numpy.array([sin(dips[i])*strike_vectors[i][1], -sin(dips[i])*strike_vectors[i][0], cos(dips[i])]) )
   
         d=numpy.cross(strike_vectors[0],normals[0])
-        depth_vectors=[depths[0]*d/numpy.linalg.norm(d) ]
+        if d[2]>0:
+             f=-1
+        else:
+             f=1
+        depth_vectors=[f*depths[0]*d/numpy.linalg.norm(d) ]
         for i in xrange(1,n_segs):
             d=-numpy.cross(normals[i-1],normals[i])
             d_l=numpy.linalg.norm(d)
             if d_l<=0:
                  d=numpy.cross(strike_vectors[i],normals[i])
-                 depth_vectors.append([depths[d]*d/numpy.linalg.norm(d)])
+                 d_l=numpy.linalg.norm(d)
             else:
-                 d=depths[i]*d/d_l
                  for L in [ strike_vectors[i], strike_vectors[i-1]]:
-                    if numpy.linalg.norm(numpy.cross(L,d)) <= self.MIN_DEPTH_ANGLE * numpy.linalg.norm(L) * depths[i]:
+                    if numpy.linalg.norm(numpy.cross(L,d)) <= self.MIN_DEPTH_ANGLE * numpy.linalg.norm(L) * d_l:
                          raise ValueError,"%s-th depth vector %s too flat."%(i, d)
-                 depth_vectors.append(d)
+            if d[2]>0:
+                f=-1
+            else:
+                f=1
+            depth_vectors.append(f*d*depths[i]/d_l)
         d=numpy.cross(strike_vectors[n_segs-1],normals[n_segs-1])
-        depth_vectors.append(depths[n_segs]*d/numpy.linalg.norm(d))
+        if d[2]>0:
+             f=-1
+        else:
+             f=1
+        depth_vectors.append(f*depths[n_segs]*d/numpy.linalg.norm(d))
         bottom_polyline=[ top_polyline[i]+depth_vectors[i] for i in xrange(n_segs+1) ]
      #
      #   calculate offsets if required:
