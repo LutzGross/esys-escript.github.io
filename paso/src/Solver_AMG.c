@@ -220,6 +220,12 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
            }
         }
 
+        /*check whether coarsening process actually makes sense to continue.
+        if coarse matrix at least smaller by 30% then continue, otherwise we stop.*/
+        if ((out->n_F*100/n)<30) {
+              level=1;
+          }
+   
         if ( Paso_noError()) {
               /* if there are no nodes in the coarse level there is no more work to do */
               out->n_C=n-out->n_F;
