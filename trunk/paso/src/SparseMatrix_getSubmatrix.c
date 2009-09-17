@@ -87,6 +87,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getBlock(Paso_SparseMatrix* A, int blockid)
       
       if (blocksize==1) {
             if (blockid==1) {
+                  #pragma omp parallel for private(i,iptr) schedule(static)
                   for(i=0;i<n;++i) {
                       for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
                               out->val[iptr]=A->val[iptr];
@@ -99,6 +100,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getBlock(Paso_SparseMatrix* A, int blockid)
       }
       else if (blocksize==2) {
             if (blockid==1) {
+                  #pragma omp parallel for private(i,iptr) schedule(static)
                   for(i=0;i<n;i++) {
                         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
                               out->val[iptr]=A->val[4*iptr];
@@ -106,6 +108,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getBlock(Paso_SparseMatrix* A, int blockid)
                   }
             }
             else if (blockid==2) {
+                  #pragma omp parallel for private(i,iptr) schedule(static)
                   for(i=0;i<n;i++) {
                         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
                               out->val[iptr]=A->val[4*iptr+3];
@@ -118,6 +121,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getBlock(Paso_SparseMatrix* A, int blockid)
       }
       else if (blocksize==3) {
             if (blockid==1) {
+                  #pragma omp parallel for private(i,iptr) schedule(static)
                   for(i=0;i<n;i++) {
                         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
                                     out->val[iptr]=A->val[9*iptr];
@@ -125,6 +129,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getBlock(Paso_SparseMatrix* A, int blockid)
                   }
             }
             else if (blockid==2) {
+                  #pragma omp parallel for private(i,iptr) schedule(static)
                   for(i=0;i<n;i++) {
                         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
                                     out->val[iptr]=A->val[9*iptr+4];
@@ -132,6 +137,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getBlock(Paso_SparseMatrix* A, int blockid)
                   }
             }
             else if (blockid==3) {
+                  #pragma omp parallel for private(i,iptr) schedule(static)
                   for(i=0;i<n;i++) {
                         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
                                     out->val[iptr]=A->val[9*iptr+8];
