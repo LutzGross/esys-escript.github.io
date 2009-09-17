@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2009 by University of Queensland
+# Copyright (c) 2009 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2009 by University of Queensland
+__copyright__="""Copyright (c) 2009 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -120,7 +120,7 @@ while t<=tend:
 	
 # compile the *.png files to create two *.avi videos that show T change
 # with time. This opperation uses linux mencoder. For other operating 
-# systems it is possible to use your favourite video compiler to
+# systems it may be possible to use your favourite video compiler to
 # convert image files to videos. To enable this step uncomment the
 # following lines.
 
