@@ -777,12 +777,12 @@ If false, the result is a list of scalars [1, 2, ...]
   ESCRIPT_DLL_API
   Data
   interpolateFromTable2D(const WrappedArray& table, double Amin, double Astep,
-                       double undef, Data& B, double Bmin, double Bstep);
+                       double undef, Data& B, double Bmin, double Bstep,bool check_boundaries);
 
   ESCRIPT_DLL_API
   Data
   interpolateFromTable1D(const WrappedArray& table, double Amin, double Astep,
-                       double undef);
+                       double undef,bool check_boundaries);
 
 
 
@@ -790,12 +790,12 @@ If false, the result is a list of scalars [1, 2, ...]
   ESCRIPT_DLL_API
   Data
   interpolateFromTable2DP(boost::python::object table, double Amin, double Astep,
-                        Data& B, double Bmin, double Bstep, double undef);
+                        Data& B, double Bmin, double Bstep, double undef,bool check_boundaries);
 
   ESCRIPT_DLL_API
   Data
   interpolateFromTable1DP(boost::python::object table, double Amin, double Astep,
-                        double undef);
+                        double undef,bool check_boundaries);
 
   /**
      \brief

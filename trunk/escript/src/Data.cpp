@@ -3027,24 +3027,24 @@ Data::freeSampleBuffer(BufferGroup* bufferg)
 
 Data
 Data::interpolateFromTable2DP(boost::python::object table, double Amin, double Astep,
-		Data& B, double Bmin, double Bstep, double undef)
+		Data& B, double Bmin, double Bstep, double undef, bool check_boundaries)
 {
     WrappedArray t(table);
-    return interpolateFromTable2D(t, Amin, Astep, undef, B, Bmin, Bstep);
+    return interpolateFromTable2D(t, Amin, Astep, undef, B, Bmin, Bstep,check_boundaries);
 }
 
 Data
 Data::interpolateFromTable1DP(boost::python::object table, double Amin, double Astep,
-					      double undef)
+					      double undef,bool check_boundaries)
 {
 	WrappedArray t(table);
-	return interpolateFromTable1D(t, Amin, Astep, undef);
+	return interpolateFromTable1D(t, Amin, Astep, undef, check_boundaries);
 }
 
 
 Data
 Data::interpolateFromTable1D(const WrappedArray& table, double Amin, double Astep,
-					     double undef)
+			     double undef, bool check_boundaries)
 {
 	int error=0;
 	if ((getDataPointRank()!=0))
@@ -3071,16 +3071,31 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin, double Aste
 			for (int l=0; l<numpts; ++l)
 			{
 				double a=adat[l];
-				int x=static_cast<int>((a-Amin)/Astep);
-				if (a<Amin)
+				int x=static_cast<int>(((a-Amin)/Astep));
+                                if (check_boundaries) {
+				    if ( (x<0) || (a>Amin) )
+				    {
+					    error=1;
+					    break;	
+				    }
+				    if ( (x>=twidth) ||  (a>Amin+Astep*twidth)) 
+				    {
+					    error=4;
+					    break;
+				    }
+                                } 
+                                if (x<0) x=0;
+                                if (x>=twidth) x=twidth-1;
+
+				if (x==(twidth-1))
 				{
-					error=1;
-					break;	
-				}
-				if (x>=(twidth-1))
-				{
-					error=1;
-					break;
+					double e=table.getElt(x);
+					if (e>undef)
+					{
+						error=2;
+						break; 
+					}
+					rdat[l]=e;
 				}
 				else		// x and y are in bounds
 				{
@@ -3111,8 +3126,9 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin, double Aste
 	{
 		switch (error)
 		{
-			case 1: throw DataException("Point out of bounds");
+			case 1: throw DataException("Value below lower table range.");
 			case 2: throw DataException("Interpolated value too large");
+			case 4: throw DataException("Value greater than upper table range.");
 			default:
 				throw DataException("Unknown error in interpolation");		
 		}
@@ -3123,7 +3139,7 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin, double Aste
 		
 Data
 Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Astep,
-                       double undef, Data& B, double Bmin, double Bstep)
+                       double undef, Data& B, double Bmin, double Bstep, bool check_boundaries)
 {
     int error=0;
     if ((getDataPointRank()!=0) || (B.getDataPointRank()!=0))
@@ -3138,7 +3154,7 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
     {
 	Data n=B.interpolate(getFunctionSpace());
 	return interpolateFromTable2D(table, Amin, Astep, undef, 
-		n , Bmin, Bstep);
+		n , Bmin, Bstep, check_boundaries);
     }
     if (!isExpanded())
     {
@@ -3162,36 +3178,79 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 	    {
 		double a=adat[l];
 		double b=bdat[l];
-		int x=static_cast<int>((a-Amin)/Astep);
-		int y=static_cast<int>((b-Bmin)/Bstep);
-		if ((a<Amin) || (b<Bmin))
-		{
-		    error=1;
-		    break;	
-		}
-		if ((x>=(ts[0]-1)) || (y>=(ts[1]-1)))
-		{
-		    error=1;
-		    break;
-		}
-		else		// x and y are in bounds
-		{
-		    double sw=table.getElt(x,y);
-		    double nw=table.getElt(x,y+1);
-		    double se=table.getElt(x+1,y);
-		    double ne=table.getElt(x+1,y+1);
-		    if ((sw>undef) || (nw>undef) || (se>undef) || (ne>undef))
-		    {
-			error=2;
-			break; 
-		    }
-		    // map x*Astep <= a << (x+1)*Astep to [-1,1] 
-		    // same with b
-		    double la = 2.0*(a-(x*Astep))/Astep-1;
-		    double lb = 2.0*(b-(y*Bstep))/Bstep-1;
-		    rdat[l]=((1-la)*(1-lb)*sw + (1-la)*(1+lb)*nw +
-			     (1+la)*(1-lb)*se + (1+la)*(1+lb)*ne)/4;
-		}
+		int x=static_cast<int>(((a-Amin)/Astep));
+		int y=static_cast<int>(((b-Bmin)/Bstep));
+                if (check_boundaries) {
+			    if ( (x<0) || (a>Amin) || (y<0) || (y>Amin) )
+			    {
+				    error=1;
+				    break;	
+			    }
+			    if ( (x>=ts[0]) || (a>Amin+Astep*ts[0]) || (y>=ts[1]) || (b>Bmin+Bstep*ts[1]) )
+			    {
+				    error=4;
+				    break;
+			    }
+                } 
+                if (x<0) x=0;
+                if (y<0) y=0;
+                if (x>=ts[0]) x=ts[0]-1;
+                if (y>=ts[0]) y=ts[1]-1;
+
+                if (x == ts[0] - 1 ) {
+                     if (y == ts[1] - 1 ) {
+		         double sw=table.getElt(x,y);
+		         if ((sw>undef))
+		         {
+			     error=2;
+			     break; 
+		         }
+		         rdat[l]=sw;
+
+                     } else {
+		         double sw=table.getElt(x,y);
+		         double nw=table.getElt(x,y+1);
+		         if ((sw>undef) || (nw>undef))
+		         {
+			     error=2;
+			     break; 
+		         }
+		         double lb = 2.0*(b-(y*Bstep))/Bstep-1;
+		         rdat[l]=((1-lb)*sw + (1+lb)*nw )/2.;
+
+                     }
+                } else {
+                     if (y == ts[1] - 1 ) {
+		         double sw=table.getElt(x,y);
+		         double se=table.getElt(x+1,y);
+		         if ((sw>undef) || (se>undef) )
+		         {
+			     error=2;
+			     break; 
+		         }
+		         double la = 2.0*(a-(x*Astep))/Astep-1;
+		         rdat[l]=((1-la)*sw + (1+la)*se )/2;
+
+                     } else {
+		         double sw=table.getElt(x,y);
+		         double nw=table.getElt(x,y+1);
+		         double se=table.getElt(x+1,y);
+		         double ne=table.getElt(x+1,y+1);
+		         if ((sw>undef) || (nw>undef) || (se>undef) || (ne>undef))
+		         {
+			     error=2;
+			     break; 
+		         }
+		         // map x*Astep <= a << (x+1)*Astep to [-1,1] 
+		         // same with b
+		         double la = 2.0*(a-(x*Astep))/Astep-1;
+		         double lb = 2.0*(b-(y*Bstep))/Bstep-1;
+		         rdat[l]=((1-la)*(1-lb)*sw + (1-la)*(1+lb)*nw +
+			          (1+la)*(1-lb)*se + (1+la)*(1+lb)*ne)/4;
+
+                     }
+
+                }
 	    }
 	} catch (DataException d)
 	{
@@ -3208,10 +3267,11 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
     {
 	switch (error)
 	{
-	case 1: throw DataException("Point out of bounds");
-	case 2: throw DataException("Interpolated value too large");
-	default:
-		throw DataException("Unknown error in interpolation");		
+			case 1: throw DataException("Value below lower table range.");
+			case 2: throw DataException("Interpolated value too large");
+			case 4: throw DataException("Value greater than upper table range.");
+	                default:
+		              throw DataException("Unknown error in interpolation");		
 	}
     }
     return res;
