@@ -75,12 +75,11 @@ class Test_TableInterpolation(unittest.TestCase):
 	    self.failUnless(Lsup(d1.interpolateTable(arL,0, 1, d35, 0, 1, 100)+3.5)<self.RES_TOL)
 	    self.failUnless(Lsup(d35.interpolateTable(arL,0,1, d2, 0, 1, 100)-3.5)<self.RES_TOL)
 	    self.failUnless(Lsup(d175.interpolateTable(arL,0,1,d225,0,1, 100)-0)<self.RES_TOL)
-	    self.failUnless(Lsup(d2.interpolateTable(arL, 1, 4, d2, -1, 4, 100)-0.25)<self.RES_TOL)
 	       # Point out of bounds
-	    self.failUnlessRaises(RuntimeError, d1.interpolateTable,arL,0, 1, d4, 0, 1, 100 )
-	    self.failUnlessRaises(RuntimeError, d4.interpolateTable, arL,0, 1, d1, 0, 1, 100 )
-	    self.failUnlessRaises(RuntimeError, dm05.interpolateTable, arL,0,1, d1 , 0,1, 100 )
-	    self.failUnlessRaises(RuntimeError, d1.interpolateTable, arL,0,1, dm05 , 0,1, 100 )
+	    self.failUnlessRaises(RuntimeError, d1.interpolateTable,arL,0, 1, d4, 0, 0.5, 100, check_boundaries=True )
+	    self.failUnlessRaises(RuntimeError, d4.interpolateTable, arL,0, 0.5, d1, 0, 1, 100, check_boundaries=True  )
+	    self.failUnlessRaises(RuntimeError, dm05.interpolateTable, arL,0,1, d1 , 0,1, 100, check_boundaries=True  )
+	    self.failUnlessRaises(RuntimeError, d1.interpolateTable, arL,0,1, dm05 , 0,1, 100,check_boundaries=True  )
 	       # interpolated value too large
 	    self.failUnlessRaises(RuntimeError, d2.interpolateTable, arL, 0, 1, d2, 0, 1, 1 )
 

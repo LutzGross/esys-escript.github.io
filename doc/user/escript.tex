@@ -1115,7 +1115,7 @@ Manually modifying each value in the Data object is not a good idea since it dep
 knowing the location and order of each datapoint in the domain.
 Instead \escript can use an interpolation table to produce a Data object.
 
-The following example is available as `int_save.py` in the examples directory.
+The following example is available as \file{int_save.py} in the examples directory.
 We will produce a \Data object which aproximates a sine curve.
 
 \begin{python}
@@ -1123,7 +1123,7 @@ from esys.escript import saveDataCSV, sup
 import numpy
 from esys.finley import Rectangle
 
-n=4		
+n=4
 r=Rectangle(n,n)
 x=r.getX()
 x0=x[0]
@@ -1146,19 +1146,25 @@ But \var{x0} contains values between $0$ and $1$ inclusive so we need to continu
 numslices=len(sine_table)-1
 
 minval=0
-maxval=1.125	# The extra 0.25 is to account for the extra entry in the table
+maxval=1.125 # The extra 0.25 is to account for the extra entry in the table
 
 step=sup(maxval-minval)/numslices
 \end{python}
 
 So the values $v$ from the input lie in the interval minval$\leq v < $maxval.
 \var{step} represents the gap (in the input range) between entries in the table.
+By default values of $v$ outside the table argument range (minval, maxval) will
+be pushed back into the range, ie. if $v <$ minval the value minval will be used to
+evaluate the table. Simularly, for values $v>$ maxval the value maxval is used.
+
 Now we produce our new \Data object.
 
 \begin{python}
 result=x0.interpolateTable(sine_table, minval, step, toobig)
 \end{python}
-Any values which interpolate to larger than \var{toobig} will raise an exception.
+Any values which interpolate to larger than \var{toobig} will raise an exception. You can 
+switch on boundary checking by adding ''check_boundaries=True`` the argument list.
+
 
 Now for a 2D example.
 We will interpolate a surface such that the bottom edge is the sine curve described above.

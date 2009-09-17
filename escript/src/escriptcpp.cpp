@@ -259,7 +259,7 @@ args("solver", "preconditioner", "package", "symmetry"));
     .def("setToZero",&escript::Data::setToZero,"After this call the object will store values of the same shape as before but all components will be zero.")
     .def("interpolate",&escript::Data::interpolate,args("functionspace"),"Interpolate this object's values into a new functionspace.")
     .def("interpolateTable", &escript::Data::interpolateFromTable2DP, 
-(arg("table"),arg("Amin"),arg("Astep"), arg("B"), arg("Bmin"), arg("Bstep"), arg("undef")=1.e50),
+(arg("table"),arg("Amin"),arg("Astep"), arg("B"), arg("Bmin"), arg("Bstep"), arg("undef")=1.e50, arg("check_boundaries")=false),
 "Creates a new Data object by interpolating using the source data (which are\n"
 "looked up in ``table``)\n``A`` must be the outer dimension on the table\n\n"
 ":param table: two dimensional collection of values\n"
@@ -270,17 +270,19 @@ args("solver", "preconditioner", "package", "symmetry"));
 ":type B: `Data`\n"
 ":param Bmin: The base of locations in table for 2nd dimension\n:type Bmin: float\n"
 ":param Bstep: size of gap between each item in the table for 2nd dimension\n:type Bstep: float\n"
+":param check_boundaries: if true table boundaries are checked.\n"
 ":raise RuntimeError(DataException): if the cordinates do not map into the table or if the interpolated value is above ``undef``"
 "\n:rtype: `Data`"
 )
     .def("interpolateTable", &escript::Data::interpolateFromTable1DP, 
-(arg("table"),arg("Amin"),arg("Astep"), arg("undef")=1.e50),
+(arg("table"),arg("Amin"),arg("Astep"), arg("undef")=1.e50, arg("check_boundaries")=false),
 "Creates a new Data object by interpolating using the source data (which are\n"
 "looked up in ``table``)\n\n"
 ":param table: one dimensional collection of values\n"
 ":param Amin: The base of locations in table\n:type Amin: float\n"
 ":param Astep: size of gap between each item in the table\n:type Astep: float\n"
 ":param undef: upper bound on interpolated values\n:type undef: float\n"
+":param check_boundaries: if true table boundaries are checked.\n"
 ":raise RuntimeError(DataException): if the cordinates do not map into the table or if the interpolated value is above ``undef``"
 "\n:rtype: `Data`"
 )
