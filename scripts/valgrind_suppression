@@ -796,3 +796,783 @@
    fun:Py_Main
    fun:main
 }
+
+{
+   PythonErrorSuppression55_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyImport_ImportModuleLevel
+   obj:/usr/bin/python*.*
+   fun:PyObject_Call
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+}
+{
+   PythonErrorSuppression56_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyImport_ImportModuleLevel
+   obj:/usr/bin/python*.*
+   fun:PyObject_Call
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+}
+{
+   PythonErrorSuppression57_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyImport_ImportModuleLevel
+   obj:/usr/bin/python*.*
+   fun:PyObject_Call
+   fun:PyEval_CallObjectWithKeywords
+}
+{
+   PythonErrorSuppression58_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyImport_ImportModuleLevel
+   obj:/usr/bin/python*.*
+   fun:PyObject_Call
+   fun:PyEval_CallObjectWithKeywords
+}
+{
+   PythonErrorSuppression59_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyImport_ImportModuleLevel
+   obj:/usr/bin/python*.*
+   fun:PyObject_Call
+}
+{
+   PythonErrorSuppression60_092009
+   Memcheck:Cond
+   fun:PyObject_Free
+   fun:PyGrammar_AddAccelerators
+   fun:PyParser_New
+   obj:/usr/bin/python*.*
+   fun:PyRun_StringFlags
+   obj:/usr/bin/python*.*
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalCode
+   fun:PyImport_ExecCodeModuleEx
+   obj:/usr/bin/python*.*
+}
+{
+   PythonErrorSuppression61_092009
+   Memcheck:Value8
+   fun:PyObject_Free
+   fun:PyGrammar_AddAccelerators
+   fun:PyParser_New
+   obj:/usr/bin/python*.*
+   fun:PyRun_StringFlags
+   obj:/usr/bin/python*.*
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalCode
+   fun:PyImport_ExecCodeModuleEx
+   obj:/usr/bin/python*.*
+}
+{
+   PythonErrorSuppression62_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   fun:PyGrammar_AddAccelerators
+   fun:PyParser_New
+   obj:/usr/bin/python*.*
+   fun:PyRun_StringFlags
+   obj:/usr/bin/python*.*
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalCode
+   fun:PyImport_ExecCodeModuleEx
+   obj:/usr/bin/python*.*
+}
+{
+   PythonErrorSuppression63_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   fun:PyAST_Compile
+   fun:PyRun_StringFlags
+   obj:/usr/bin/python*.*
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalCode
+   fun:PyImport_ExecCodeModuleEx
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+}
+{
+   PythonErrorSuppression64_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   fun:PyAST_Compile
+   fun:PyRun_StringFlags
+   obj:/usr/bin/python*.*
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalCode
+   fun:PyImport_ExecCodeModuleEx
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+}
+{
+   PythonErrorSuppression65_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyDict_DelItem
+   fun:PyDict_DelItemString
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalCode
+   fun:PyImport_ExecCodeModuleEx
+}
+{
+   PythonErrorSuppression66_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   fun:PyRun_StringFlags
+   obj:/usr/bin/python*.*
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalCode
+   fun:PyImport_ExecCodeModuleEx
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+}
+{
+   PythonErrorSuppression67_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyNode_Free
+   fun:PyRun_StringFlags
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+}
+{
+   PythonErrorSuppression68_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   fun:PyNode_Free
+   fun:PyRun_StringFlags
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+}
+{
+   PythonErrorSuppression69_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   fun:PyRun_StringFlags
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalCode
+}
+{
+   PythonErrorSuppression70_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalCode
+   fun:PyImport_ExecCodeModuleEx
+}
+{
+   PythonErrorSuppression71_092009
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   fun:PyDict_SetItem
+   fun:PyFrame_FastToLocals
+   fun:PyEval_GetLocals
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+}
+{
+   PythonErrorSuppression72_092009
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   fun:PyDict_SetItem
+   fun:PyFrame_FastToLocals
+   fun:PyEval_GetLocals
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+}
+{
+   PythonErrorSuppression72_092009
+   Memcheck:Cond
+   fun:PyObject_Realloc
+   fun:PyNode_AddChild
+   fun:PyParser_AddToken
+   obj:/usr/bin/python*.*
+   fun:PyRun_StringFlags
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+}
+{
+   PythonErrorSuppression73_092009
+   Memcheck:Value8
+   fun:PyObject_Realloc
+   fun:PyNode_AddChild
+   fun:PyParser_AddToken
+   obj:/usr/bin/python*.*
+   fun:PyRun_StringFlags
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+}
+{
+   PythonErrorSuppression74_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyNode_Free
+   fun:PyRun_StringFlags
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+}
+{
+   PythonErrorSuppression75_092009
+   Memcheck:Addr4
+   fun:PyObject_Realloc
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyAST_Compile
+   fun:PyRun_StringFlags
+   fun:PyEval_EvalFrameEx
+}
+{
+   PythonErrorSuppression76_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   fun:PyDict_SetItem
+   fun:PyFrame_FastToLocals
+   fun:PyEval_GetLocals
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+}
+{
+   PythonErrorSuppression77_092009
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyImport_ImportModuleLevel
+   obj:/usr/bin/python*.*
+   fun:PyObject_Call
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+}
+{
+   PythonErrorSuppression78_092009
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyImport_ImportModuleLevel
+   obj:/usr/bin/python*.*
+   fun:PyObject_Call
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+}
+{
+   PythonErrorSuppression79_092009
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyImport_ImportModuleLevel
+   obj:/usr/bin/python*.*
+   fun:PyObject_Call
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+}
+{
+   PythonErrorSuppression80_092009
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyImport_ImportModuleLevel
+   obj:/usr/bin/python*.*
+   fun:PyObject_Call
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+}
+{
+   PythonErrorSuppression81_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyImport_ImportModuleLevel
+}
+{
+   PythonErrorSuppression82_092009
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyImport_ImportModuleLevel
+}
+{
+   PythonErrorSuppression83_092009
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyImport_ImportModuleLevel
+}
+{
+   PythonErrorSuppression84_092009
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   fun:PyNode_Free
+   fun:PyRun_FileExFlags
+   fun:PyRun_SimpleFileExFlags
+   fun:Py_Main
+}
+{
+   PythonErrorSuppression85_092009
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   fun:PyNode_Free
+   fun:PyRun_FileExFlags
+   fun:PyRun_SimpleFileExFlags
+   fun:Py_Main
+}
+{
+   PythonErrorSuppression86_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   fun:PyNode_Free
+   fun:PyRun_FileExFlags
+   fun:PyRun_SimpleFileExFlags
+   fun:Py_Main
+}
+{
+   PythonErrorSuppression87_092009
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyAST_Compile
+   fun:PyRun_FileExFlags
+   fun:PyRun_SimpleFileExFlags
+   fun:Py_Main
+}
+{
+   PythonErrorSuppression88_092009
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyAST_Compile
+}
+{
+   PythonErrorSuppression89_092009
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyAST_Compile
+}
+{
+   PythonErrorSuppression90_092009
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyAST_Compile
+}
+{
+   PythonErrorSuppression91_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyAST_Compile
+}
+{
+   PythonErrorSuppression92_092009
+   Memcheck:Addr4
+   fun:PyObject_Realloc
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyAST_Compile
+}
+{
+   PythonErrorSuppression93_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyAST_Compile
+}
+{
+   PythonErrorSuppression94_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyAST_Compile
+}
+{
+   PythonErrorSuppression95_092009
+   Memcheck:Addr4
+   fun:PyObject_Realloc
+   fun:PyNode_AddChild
+   fun:PyParser_AddToken
+   obj:/usr/bin/python*.*
+   fun:PyParser_ASTFromFile
+}
+{
+   PythonErrorSuppression96_092009
+   Memcheck:Addr4
+   fun:PyObject_Realloc
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyAST_Compile
+}
+
+{
+   PythonErrorSuppression97_092009
+   Memcheck:Addr4
+   fun:PyObject_Realloc
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyAST_Compile
+}
+{
+   PythonErrorSuppression98_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   fun:PyAST_Compile
+}
+{
+   PythonErrorSuppression99_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   fun:_ZN5boost6python7objects8function16add_to_namespace*
+   fun:_ZN5boost6python6detail17scope_setattr_doc*
+   fun:_ZN5boost6python6detail15def_from_helper*
+   fun:_ZN5boost6python3def*
+   fun:_Z*init_module_*
+}
+{
+   PythonErrorSuppression100_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   fun:_ZN5boost6python7objects8function16add_to_namespace*
+   fun:_ZN5boost6python6class_IN*
+   fun:_ZN5boost6python6class_IN*
+   fun:_Z*init_module_*
+}
+{
+   PythonErrorSuppression101_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   fun:PyNode_Free
+   fun:PyParser_ASTFromFile
+}
+{
+   PythonErrorSuppression102_092009
+   Memcheck:Addr4
+   fun:PyObject_Realloc
+   fun:_PyString_Resize
+   obj:/usr/bin/python*.*
+   fun:PyAST_Compile
+}
+{
+   PythonErrorSuppression103_092009
+   Memcheck:Addr4
+   fun:PyObject_Realloc
+   fun:_PyObject_GC_Resize
+   fun:PyFrame_New
+   fun:PyEval_EvalFrameEx
+}
+{
+   PythonErrorSuppression104_092009
+   Memcheck:Addr4
+   fun:PyObject_Realloc
+   fun:_PyString_Resize
+   fun:PyString_Format
+}
+{
+   PythonErrorSuppression105_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   fun:PyNode_Free
+   fun:PyRun_StringFlags
+   fun:initcPickle
+}
+{
+   PythonErrorSuppression106_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   fun:PyRun_StringFlags
+}
+{
+   PythonErrorSuppression107_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   fun:PyAST_Compile
+}
+{
+   PythonErrorSuppression108_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   fun:PyRun_StringFlags
+   fun:initcPickle
+}
+{
+   PythonErrorSuppression109_092009
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+}
+{
+   PythonErrorSuppression110_092009
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+}
+{
+   PythonErrorSuppression111_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+   obj:/usr/bin/python*.*
+}
+{
+   PythonErrorSuppression112_092009
+   Memcheck:Addr4
+   fun:PyObject_Realloc
+   fun:_PyString_Resize
+   obj:/usr/bin/python*.*
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+}
+{
+   PythonErrorSuppression113_092009
+   Memcheck:Cond
+   fun:PyObject_Realloc
+   fun:_PyString_Resize
+   obj:/usr/bin/python*.*
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+}
+{
+   PythonErrorSuppression114_092009
+   Memcheck:Value8
+   fun:PyObject_Realloc
+   fun:_PyString_Resize
+   obj:/usr/bin/python*.*
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+}
+{
+   PythonErrorSuppression114_092009
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python*.*
+   fun:_PyObject_GC_Malloc
+   fun:PyType_GenericAlloc
+}
+{
+   PythonErrorSuppression115_092009
+   Memcheck:Cond
+   fun:PyObject_Realloc
+   fun:_PyString_Resize
+   fun:PyString_Format
+   obj:/usr/bin/python*.*
+}
+
