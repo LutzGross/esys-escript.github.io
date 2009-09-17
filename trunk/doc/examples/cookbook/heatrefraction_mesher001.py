@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2009 by University of Queensland
+# Copyright (c) 2009 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2009 by University of Queensland
+__copyright__="""Copyright (c) 2009 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -35,8 +35,11 @@ from esys.finley import MakeDomain #Converter for escript
 import os #file path tool
 import numpy as np #numerial python for arrays
 from math import * # math package
+
 #used to construct polygons for plotting from pycad
 from cblib import getLoopCoords, needdirs
+
+
 
 #################################################ESTABLISHING VARIABLES
 #set modal to 1 for a syncline or -1 for an anticline structural 

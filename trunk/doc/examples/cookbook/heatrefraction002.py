@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2009 by University of Queensland
+# Copyright (c) 2009 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2009 by University of Queensland
+__copyright__="""Copyright (c) 2009 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -45,9 +45,10 @@ from esys.escript.unitsSI import *
 # numpy for array handling
 import numpy as np
 import matplotlib
-#For interactive use, you can comment out the next two lines
-import matplotlib
+
+#For interactive use, you can comment out the next line
 matplotlib.use('agg') #It's just here for automated testing
+
 # pylab for matplotlib and plotting
 import pylab as pl
 # cblib functions

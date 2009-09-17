@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2009 by University of Queensland
+# Copyright (c) 2009 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2009 by University of Queensland
+__copyright__="""Copyright (c) 2009 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -46,10 +46,11 @@ tend=0.1    #end time
 h=(1./5.)*sqrt(rho/(lam+2*mu))*(mx/ndx)
 #Check to make sure number of time steps is not too large.
 print "Time step size= ",h, "Expected number of outputs= ",tend/h
-proceeder = raw_input("Is this ok?(y/n)")
-#Exit if user thinks too many outputs.
-if proceeder == "n":
-   sys.exit()
+
+#uncomment the following lines to give the user a chance to stop
+#proceeder = raw_input("Is this ok?(y/n)")
+#if proceeder == "n":
+#   sys.exit()
 
 U0=0.01 # amplitude of point source
 #  spherical source at middle of bottom face
