@@ -40,7 +40,7 @@ void Paso_Solver_AMG_System_free(Paso_Solver_AMG_System * in) {
      if (in!=NULL) {
         for (i=0;i<in->block_size;++i) {
           Paso_Solver_AMG_free(in->amgblock[i]);
-           Paso_SparseMatrix_free(in->block[i]);
+          Paso_SparseMatrix_free(in->block[i]);
         }
         MEMFREE(in);
      }
