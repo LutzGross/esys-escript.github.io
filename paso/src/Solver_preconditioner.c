@@ -53,6 +53,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
         prec=MEMALLOC(1,Paso_Solver_Preconditioner);
         prec->amgSystem=MEMALLOC(1,Paso_Solver_AMG_System);
         if (Paso_checkPtr(prec)) return;
+        if (Paso_checkPtr(prec->amgSystem)) return;
         prec->type=UNKNOWN;
         prec->rilu=NULL;
         prec->ilu=NULL;
@@ -104,7 +105,6 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
                 prec->amgSystem->amgblock[i]=Paso_Solver_getAMG(prec->amgSystem->block[i],options->level_max,options);
                 }
               }
-
               prec->type=PASO_AMG;
               break;
  
@@ -122,9 +122,12 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
 void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
     Paso_Solver_Preconditioner* prec=(Paso_Solver_Preconditioner*) A->solver;
     dim_t i,j;
-    dim_t n=Paso_SystemMatrix_getGlobalNumRows(A);
+    dim_t n=A->mainBlock->numRows;
     double **xx;
     double **bb;
+    xx=MEMALLOC(A->row_block_size,double*);
+    bb=MEMALLOC(A->row_block_size,double*);
+    if (Paso_checkPtr(xx) && Paso_checkPtr(bb)) return;
 
     switch (prec->type) {
         default:
@@ -188,42 +191,40 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
             }
             else {
            
-                xx=MEMALLOC(A->row_block_size,double*);
-                bb=MEMALLOC(A->row_block_size,double*);
                 
-                for (i=0;i<A->row_block_size;i++) {
+                 for (i=0;i<A->row_block_size;i++) {
                     xx[i]=MEMALLOC(n,double);
                     bb[i]=MEMALLOC(n,double);
+                    if (Paso_checkPtr(xx[i]) && Paso_checkPtr(bb[i])) return;
                 }
-
+                
                 #pragma omp parallel for private(i,j) schedule(static)
                 for (i=0;i<n;i++) {
                     for (j=0;j<A->row_block_size;j++) {
                      bb[j][i]=b[A->row_block_size*i+j];
                     }
                  }
-                                
+                
+                
                 for (i=0;i<A->row_block_size;i++) {
                 Paso_Solver_solveAMG(prec->amgSystem->amgblock[i],xx[i],bb[i]);
                 }
-
+                               
                 #pragma omp parallel for private(i,j) schedule(static)
                 for (i=0;i<n;i++) {
                     for (j=0;j<A->row_block_size;j++) {
                     x[A->row_block_size*i+j]=xx[j][i];
                     }
                  }
-                 
+                
                 for (i=0;i<A->row_block_size;i++) {
                 MEMFREE(xx[i]);
                 MEMFREE(bb[i]);
                 }
-                
-                MEMFREE(xx);
-                MEMFREE(bb);
+               
             }
-            
         break;
     }
-
+    MEMFREE(xx);
+    MEMFREE(bb);
 }
