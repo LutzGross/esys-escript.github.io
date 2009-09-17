@@ -3107,7 +3107,7 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin, double Aste
 						break; 
 					}
 		    // map x*Astep <= a << (x+1)*Astep to [-1,1] 
-					double la = 2.0*(a-(x*Astep))/Astep-1;
+					double la = 2.0*(a-Amin-(x*Astep))/Astep-1;
 					rdat[l]=((1-la)*e + (1+la)*w)/2;
 				}
 			}
@@ -3215,7 +3215,7 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 			     error=2;
 			     break; 
 		         }
-		         double lb = 2.0*(b-(y*Bstep))/Bstep-1;
+		         double lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;
 		         rdat[l]=((1-lb)*sw + (1+lb)*nw )/2.;
 
                      }
@@ -3228,7 +3228,7 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 			     error=2;
 			     break; 
 		         }
-		         double la = 2.0*(a-(x*Astep))/Astep-1;
+		         double la = 2.0*(a-Amin-(x*Astep))/Astep-1;
 		         rdat[l]=((1-la)*sw + (1+la)*se )/2;
 
                      } else {
@@ -3243,11 +3243,10 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 		         }
 		         // map x*Astep <= a << (x+1)*Astep to [-1,1] 
 		         // same with b
-		         double la = 2.0*(a-(x*Astep))/Astep-1;
-		         double lb = 2.0*(b-(y*Bstep))/Bstep-1;
+		         double la = 2.0*(a-Amin-(x*Astep))/Astep-1;
+		         double lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;
 		         rdat[l]=((1-la)*(1-lb)*sw + (1-la)*(1+lb)*nw +
 			          (1+la)*(1-lb)*se + (1+la)*(1+lb)*ne)/4;
-
                      }
 
                 }
