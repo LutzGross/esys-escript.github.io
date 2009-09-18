@@ -3055,6 +3055,10 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin, double Aste
 	{
 		throw DataException("Table for 1D interpolation must be 1D");
 	}
+	if (Astep<=0)
+	{
+		throw DataException("Astep must be positive");
+	}
 	if (!isExpanded())
 	{
 		expand();
@@ -3067,27 +3071,27 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin, double Aste
 			int numpts=getNumDataPoints();
 			const DataVector& adat=getReady()->getVectorRO();
 			DataVector& rdat=res.getReady()->getVectorRW();
-			int twidth=table.getShape()[0];
+			int twidth=table.getShape()[0]-1;
 			for (int l=0; l<numpts; ++l)
 			{
 				double a=adat[l];
 				int x=static_cast<int>(((a-Amin)/Astep));
                                 if (check_boundaries) {
-				    if ( (x<0) || (a>Amin) )
+				    if ((a<Amin) || (x<0))
 				    {
 					    error=1;
 					    break;	
 				    }
-				    if ( (x>=twidth) ||  (a>Amin+Astep*twidth)) 
+ 				    if (a>Amin+Astep*twidth) 
 				    {
 					    error=4;
 					    break;
 				    }
                                 } 
                                 if (x<0) x=0;
-                                if (x>=twidth) x=twidth-1;
+                                if (x>twidth) x=twidth;
 
-				if (x==(twidth-1))
+				if (x==twidth)			// value is on the far end of the table
 				{
 					double e=table.getElt(x);
 					if (e>undef)
@@ -3150,6 +3154,10 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
     {
 	throw DataException("Table for 2D interpolation must be 2D");
     }
+    if ((Astep<=0) || (Bstep<=0))
+    {
+	throw DataException("Astep and Bstep must be postive");
+    }
     if (getFunctionSpace()!=B.getFunctionSpace())
     {
 	Data n=B.interpolate(getFunctionSpace());
@@ -3174,6 +3182,8 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 	    const DataVector& bdat=B.getReady()->getVectorRO();
 	    DataVector& rdat=res.getReady()->getVectorRW();
 	    const DataTypes::ShapeType& ts=table.getShape();
+	    int twx=ts[0]-1;	// table width x
+	    int twy=ts[1]-1;	// table width y
 	    for (int l=0; l<numpts; ++l)
 	    {
 		double a=adat[l];
@@ -3181,12 +3191,12 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 		int x=static_cast<int>(((a-Amin)/Astep));
 		int y=static_cast<int>(((b-Bmin)/Bstep));
                 if (check_boundaries) {
-			    if ( (x<0) || (a>Amin) || (y<0) || (y>Amin) )
+			    if ( (a<Amin) || (b<Bmin) || (x<0) || (y<0) )
 			    {
 				    error=1;
 				    break;	
 			    }
-			    if ( (x>=ts[0]) || (a>Amin+Astep*ts[0]) || (y>=ts[1]) || (b>Bmin+Bstep*ts[1]) )
+			    if ( (a>Amin+Astep*twx) || (b>Bmin+Bstep*twy) )
 			    {
 				    error=4;
 				    break;
@@ -3194,11 +3204,11 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
                 } 
                 if (x<0) x=0;
                 if (y<0) y=0;
-                if (x>=ts[0]) x=ts[0]-1;
-                if (y>=ts[0]) y=ts[1]-1;
+                if (x>twx) x=twx;
+                if (y>twx) y=twy;
 
-                if (x == ts[0] - 1 ) {
-                     if (y == ts[1] - 1 ) {
+                if (x == twx ) {
+                     if (y == twy ) {
 		         double sw=table.getElt(x,y);
 		         if ((sw>undef))
 		         {
@@ -3220,7 +3230,7 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 
                      }
                 } else {
-                     if (y == ts[1] - 1 ) {
+                     if (y == twy ) {
 		         double sw=table.getElt(x,y);
 		         double se=table.getElt(x+1,y);
 		         if ((sw>undef) || (se>undef) )
@@ -3248,7 +3258,6 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 		         rdat[l]=((1-la)*(1-lb)*sw + (1-la)*(1+lb)*nw +
 			          (1+la)*(1-lb)*se + (1+la)*(1+lb)*ne)/4;
                      }
-
                 }
 	    }
 	} catch (DataException d)

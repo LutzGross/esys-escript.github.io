@@ -270,7 +270,7 @@ args("solver", "preconditioner", "package", "symmetry"));
 ":type B: `Data`\n"
 ":param Bmin: The base of locations in table for 2nd dimension\n:type Bmin: float\n"
 ":param Bstep: size of gap between each item in the table for 2nd dimension\n:type Bstep: float\n"
-":param check_boundaries: if true table boundaries are checked.\n"
+":param check_boundaries: if true, then values outside the boundaries will be rejected. If false, then boundary values will be used.\n"
 ":raise RuntimeError(DataException): if the cordinates do not map into the table or if the interpolated value is above ``undef``"
 "\n:rtype: `Data`"
 )
@@ -282,7 +282,7 @@ args("solver", "preconditioner", "package", "symmetry"));
 ":param Amin: The base of locations in table\n:type Amin: float\n"
 ":param Astep: size of gap between each item in the table\n:type Astep: float\n"
 ":param undef: upper bound on interpolated values\n:type undef: float\n"
-":param check_boundaries: if true table boundaries are checked.\n"
+":param check_boundaries: if true, then values outside the boundaries will be rejected. If false, then boundary values will be used.\n"
 ":raise RuntimeError(DataException): if the cordinates do not map into the table or if the interpolated value is above ``undef``"
 "\n:rtype: `Data`"
 )
