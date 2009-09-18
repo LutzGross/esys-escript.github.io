@@ -44,7 +44,7 @@ from cblib import getLoopCoords, needdirs
 #################################################ESTABLISHING VARIABLES
 #set modal to 1 for a syncline or -1 for an anticline structural 
 #configuration	
-modal=1
+modal=-1
 
 # the folder to put our outputs in, leave blank "" for script path - 
 # note this folder path must exist to work

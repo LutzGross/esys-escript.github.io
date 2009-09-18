@@ -26,8 +26,9 @@ from esys.pycad import CurveLoop
 
 # numpy for array handling
 import numpy as np
+import pylab as pl
 # tools for dealing with PDEs - contains locator
-from esys.escript.pdetools import Locator
+from esys.escript.pdetools import Locator, Projector
 
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
@@ -64,7 +65,10 @@ def toQuivLocs(quivshape,lenxax,lenyax,qu):
     qu = np.array(qu) #turn into a numpy array
     qulocs = quL.getX() #returns actual locations from data
     qulocs = np.array(qulocs) #turn into a numpy array
-    return qu,qulocs	
+    return qu,qulocs
+    
+
+ 	
 
 # Extract the X and Y coordinates of an array
 # coords :: escript coordiantes from .getX function
@@ -73,7 +77,32 @@ def toXYTuple(coords):
     coordX = coords[:,0]; coordY = coords[:,1] #X and Y components.
     return coordX,coordY
 
-
+def toRegGrid(grid,domain,newx,newy,width,depth):
+	oldspacecoords=domain.getX()
+	gridT = grid.toListOfTuples(scalarastuple=False)
+	cxy = Data(oldspacecoords, grid.getFunctionSpace())
+	cX, cY = toXYTuple(cxy)
+	xi = np.linspace(0.0,width,newx)	
+	yi = np.linspace(depth,0.0,newy)
+	# grid the data.
+	zi = pl.matplotlib.mlab.griddata(cX,cY,gridT,xi,yi)
+	return xi,yi,zi
+	
+def gradtoRegGrid(grid,domain,newx,newy,width,depth,dim):
+	cxy = grid.getFunctionSpace().getX()
+	gridT = grid.toListOfTuples()#(scalarastuple=False)
+	#cxy = Data(oldspacecoords, grid.getFunctionSpace())
+	cX, cY = toXYTuple(cxy)
+	xi = np.linspace(0.0,width,newx)	
+	yi = np.linspace(depth,0.0,newy)
+	
+	gridT = np.array(gridT)
+	gridT = gridT[:,dim]
+	
+    # grid the data.
+	
+	zi = pl.matplotlib.mlab.griddata(cX,cY,gridT,xi,yi)
+	return xi,yi,zi
 ########################################################
 # subroutine: cbphones
 # Allows us to record the values of a PDE at various 

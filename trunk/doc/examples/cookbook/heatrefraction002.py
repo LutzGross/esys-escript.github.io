@@ -63,6 +63,8 @@ if getMPISizeWorld() > 1:
 #################################################ESTABLISHING VARIABLES
 qin=300.*Milli*W/(m*m) #our heat source temperature is now zero
 Ti=290.15*K # Kelvin #the starting temperature of our iron bar
+width=5000.0*m
+depth=-6000.0*m
 
 # the folder to gett our outputs from, leave blank "" for script path - 
 # note these depen. are generated from heatrefraction_mesher001.py
@@ -85,7 +87,7 @@ bpgry = bpgr[:,1]
 # set up kappa (thermal conductivity across domain) using tags
 kappa=Scalar(0,Function(mymesh))
 kappa.setTaggedValue("top",2.0)
-kappa.setTaggedValue("bottomleft",18.0)
+kappa.setTaggedValue("bottomleft",4.0)
 kappa.setTaggedValue("bottomright",6.0)
 
 #... generate functionspace...
@@ -133,14 +135,17 @@ ziK = pl.matplotlib.mlab.griddata(coordKX,coordKY,kappaT,xi,yi)
 # contour the gridded data, plotting dots at the randomly 
 # spaced data points.
 
-pl.matplotlib.pyplot.autumn()
-CKL = pl.fill(tpgx,tpgy,'brown',bpglx,bpgly,'red',\
-              bpgrx,bpgry,'orange',zorder=-1000)
+pl.matplotlib.pyplot.autumn()              
+CKL = pl.fill(tpgx,tpgy,'brown',label='2 W/m/k',zorder=-1000)
+CKM = pl.fill(bpglx,bpgly,'red',label='4 W/m/k',zorder=-1000)
+CKN = pl.fill(bpgrx,bpgry,'orange',label='6 W/m/k',zorder=-1000)              
+              
 CS = pl.contour(xi,yi,zi,5,linewidths=0.5,colors='k')
 pl.clabel(CS, inline=1, fontsize=8)
 pl.title("Heat Refraction across an anisotropic structure.")
 pl.xlabel("Horizontal Displacement (m)")
 pl.ylabel("Depth (m)")
+pl.legend()
 if getMPIRankWorld() == 0: #check for MPI processing
 	pl.savefig(os.path.join(saved_path,"heatrefraction002_cont.png"))
 
