@@ -80,6 +80,12 @@ class Test_TableInterpolation(unittest.TestCase):
 	    self.failUnlessRaises(RuntimeError, d4.interpolateTable, arL,0, 0.5, d1, 0, 1, 100, check_boundaries=True  )
 	    self.failUnlessRaises(RuntimeError, dm05.interpolateTable, arL,0,1, d1 , 0,1, 100, check_boundaries=True  )
 	    self.failUnlessRaises(RuntimeError, d1.interpolateTable, arL,0,1, dm05 , 0,1, 100,check_boundaries=True  )
+	       #Test to ensure not check_boundaries does not throw in the above cases
+	    d1.interpolateTable(arL,0, 1, d4, 0, 0.5, 100, check_boundaries=False)
+	    d4.interpolateTable( arL,0, 0.5, d1, 0, 1, 100, check_boundaries=False  )
+	    dm05.interpolateTable( arL,0,1, d1 , 0,1, 100, check_boundaries=False  )
+	    d1.interpolateTable( arL,0,1, dm05 , 0,1, 100,check_boundaries=False  )
+	       
 	       # interpolated value too large
 	    self.failUnlessRaises(RuntimeError, d2.interpolateTable, arL, 0, 1, d2, 0, 1, 1 )
 
@@ -100,15 +106,15 @@ class Test_TableInterpolation(unittest.TestCase):
 		xwidth=(xmax-xmin)/(self.xn-1)
 		ywidth=(ymax-ymin)/(self.yn-1)
 		table=[]
-		for j in xrange(self.yn+1):
+		for j in xrange(self.yn):
 		      row=[]
-		      for i in xrange(self.xn+1):
+		      for i in xrange(self.xn):
 	   	 	row.append(v0+v1*xwidth*i+v2*ywidth*j+v3*i*j*xwidth*ywidth)
 	    	      table.append(row)
-	    	res=y.interpolateTable(table,ymin,ywidth,x, xmin, xwidth,500)
-	    	ref=v0+v1*x+v2*y+v3*x*y 
+	    	ref=v0+v1*(x-xmin)+v2*(y-ymin)+v3*(x-xmin)*(y-ymin) 
 		lsupref=Lsup(ref)
-		if lsupref!=0:		#This will happen in cases where there are no samples on this rank
+		if lsupref!=0 and xwidth>0:		#This will happen in cases where there are no samples on this rank
+	    	    res=y.interpolateTable(table,ymin,ywidth,x, xmin, xwidth,500)
 	    	    self.failUnless(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
 	    
 
@@ -124,14 +130,13 @@ class Test_TableInterpolation(unittest.TestCase):
 		xmin=inf(x)
 		xwidth=(xmax-xmin)/(self.xn-1)
 		table=[]
-		for i in xrange(self.xn+1):
+		for i in xrange(self.xn):
 	   	   table.append(v0+v1*xwidth*i)
-	    	res=x.interpolateTable(table, xmin, xwidth,500)
-	    	ref=v0+v1*x
+	    	ref=v0+v1*(x-xmin)
 		lsupref=Lsup(ref)
-		if lsupref!=0:		#This will happen in cases where there are no samples on this rank
-	    	   self.failUnless(Lsup(res-ref)/lsupref<self.RES_TOL,"Failed for %s"%str(fs))
-
+		if lsupref!=0 and xwidth>0:		#This will happen in cases where there are no samples on this rank
+		   res=x.interpolateTable(table, xmin, xwidth,500)
+		   self.failUnless(Lsup(res-ref)/lsupref<self.RES_TOL,"Failed for %s"%str(fs))
 
 class Test_saveCSV(unittest.TestCase):
 
