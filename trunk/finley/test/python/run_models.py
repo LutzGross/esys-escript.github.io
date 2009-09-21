@@ -1103,23 +1103,42 @@ class Test_FaultSystem(unittest.TestCase):
       f.addFault(V0=[0.5,0.], strikes=[3.*pi/4], ls=[0.70710678118654757], tag=1)
       f.addFault(V0=[1.,0.5], strikes=[pi, pi/2], ls=[0.5,0.5], tag=2)
 
-      m, t, l=f.getMaxValue(x[0]*(1.-x[0])*(1-x[1]))
+      u=x[0]*(1.-x[0])*(1-x[1])
+      t, loc=f.getMaxValue(u)
+      p=f.getParametrization(x,t)[0]
+      m, l=loc(u), loc(p)
       self.failUnless(  m == 0.25, "wrong max value")
       self.failUnless(  t == 1, "wrong max tag")
       self.failUnless(  l == 0., "wrong max location")
-      m, t, l=f.getMaxValue(x[1]*(1.-x[1])*(1-x[0])*x[0])
+
+      u=x[1]*(1.-x[1])*(1-x[0])*x[0]
+      t, loc=f.getMaxValue(u)
+      p=f.getParametrization(x,t)[0]
+      m, l=loc(u), loc(p)
       self.failUnless(  m == 0.0625, "wrong max value")
       self.failUnless(  t == 2, "wrong max tag")
       self.failUnless(  l == 0.5, "wrong max location")
-      m, t, l=f.getMaxValue(x[0]*(1.-x[0])*x[1])
+
+      u=x[0]*(1.-x[0])*x[1]
+      t, loc=f.getMaxValue(u)
+      p=f.getParametrization(x,t)[0]
+      m, l=loc(u), loc(p)
       self.failUnless(  m == 0.25, "wrong max value")
       self.failUnless(  t == 2, "wrong max tag")
       self.failUnless(  l == 1.0, "wrong max location")
-      m, t, l= f.getMaxValue(x[1]*(1.-x[1])*x[0])
+
+      u=x[1]*(1.-x[1])*x[0]
+      t, loc=f.getMaxValue(u)
+      p=f.getParametrization(x,t)[0]
+      m, l=loc(u), loc(p)
       self.failUnless(  m == 0.25, "wrong max value")
       self.failUnless(  t == 2, "wrong max tag")
       self.failUnless(  l == 0., "wrong max location")
-      m, t, l= f.getMaxValue(x[1]*(1.-x[1])*(1.-x[0]))
+
+      u=x[1]*(1.-x[1])*(1.-x[0])
+      t, loc=f.getMaxValue(u)
+      p=f.getParametrization(x,t)[0]
+      m, l=loc(u), loc(p)
       self.failUnless(  m == 0.25, "wrong max value")
       self.failUnless(  t == 1, "wrong max tag")
       self.failUnless(  abs(l-0.70710678118654) <= self.EPS,  "wrong max location")
@@ -1130,23 +1149,38 @@ class Test_FaultSystem(unittest.TestCase):
       f.addFault(V0=[0.5,0.], strikes=[3.*pi/4], ls=[0.70710678118654757], tag=1)
       f.addFault(V0=[1.,0.5], strikes=[pi, pi/2], ls=[0.5,0.5], tag=2)
 
-      m, t, l=f.getMinValue(-x[0]*(1.-x[0])*(1-x[1]))
+      u=-x[0]*(1.-x[0])*(1-x[1])
+      t, loc=f.getMinValue(u)
+      p=f.getParametrization(x,t)[0]
+      m, l=loc(u), loc(p)
       self.failUnless(  m == -0.25, "wrong min value")
       self.failUnless(  t == 1, "wrong min tag")
       self.failUnless(  l == 0., "wrong min location")
-      m, t, l=f.getMinValue(-x[1]*(1.-x[1])*(1-x[0])*x[0])
+      u=-x[1]*(1.-x[1])*(1-x[0])*x[0]
+      t, loc=f.getMinValue(u)
+      p=f.getParametrization(x,t)[0]
+      m, l=loc(u), loc(p)
       self.failUnless(  m == -0.0625, "wrong min value")
       self.failUnless(  t == 2, "wrong min tag")
       self.failUnless(  l == 0.5, "wrong min location")
-      m, t, l=f.getMinValue(-x[0]*(1.-x[0])*x[1])
+      u=-x[0]*(1.-x[0])*x[1]
+      t, loc=f.getMinValue(u)
+      p=f.getParametrization(x,t)[0]
+      m, l=loc(u), loc(p)
       self.failUnless(  m == -0.25, "wrong min value")
       self.failUnless(  t == 2, "wrong min tag")
       self.failUnless(  l == 1.0, "wrong min location")
-      m, t, l= f.getMinValue(-x[1]*(1.-x[1])*x[0])
+      u=-x[1]*(1.-x[1])*x[0]
+      t, loc=f.getMinValue(u)
+      p=f.getParametrization(x,t)[0]
+      m, l=loc(u), loc(p)
       self.failUnless(  m == -0.25, "wrong min value")
       self.failUnless(  t == 2, "wrong min tag")
       self.failUnless(  l == 0., "wrong min location")
-      m, t, l= f.getMinValue(-x[1]*(1.-x[1])*(1.-x[0]))
+      u=-x[1]*(1.-x[1])*(1.-x[0])
+      t, loc=f.getMinValue(u)
+      p=f.getParametrization(x,t)[0]
+      m, l=loc(u), loc(p)
       self.failUnless(  m == -0.25, "wrong min value")
       self.failUnless(  t == 1, "wrong min tag")
       self.failUnless(  abs(l-0.70710678118654) <= self.EPS,  "wrong min location")

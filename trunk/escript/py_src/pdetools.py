@@ -349,7 +349,7 @@ class Locator:
        Returns the coordinates of the Locator as a string.
        """
        x=self.getX()
-       if instance(x,list):
+       if isinstance(x,list):
           out="["
           first=True
           for xx in x:

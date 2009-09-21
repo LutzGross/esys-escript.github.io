@@ -19,6 +19,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
+from esys.escript.pdetools import Locator
 import numpy
 import math
 
@@ -410,7 +411,7 @@ class FaultSystem:
      if self.getDim()==3:
         normals=[]
         for i in xrange(n_segs):
-           normals.append(numpy.array([sin(dips[i])*strike_vectors[i][1], -sin(dips[i])*strike_vectors[i][0], cos(dips[i])]) )
+           normals.append(numpy.array([sin(dips[i])*strike_vectors[i][1],-sin(dips[i])*strike_vectors[i][0], cos(dips[i])]) )
   
         d=numpy.cross(strike_vectors[0],normals[0])
         if d[2]>0:
@@ -474,18 +475,18 @@ class FaultSystem:
 
   def getMaxValue(self,f, tol=sqrt(EPSILON)):
      """
-     returns the maximum value of ``f``, the fault and the location on the fault in fault coordinates.
+     returns the tag of the fault of where ``f`` takes the maximum value and a `Locator` object which can be used to collect values from `Data` class objects at the location where the minimum is taken.
 
      :param f: a distribution of values 
      :type f: `escript.Data`
      :param tol: relative tolerance used to decide if point is on fault 
      :type f: ``tol``
-     :return: the maximum value of across all faults in the fault system, the fault tag the maximum is taken, and the coordinates of the location in the coordinates of the fault. The returned fault tag is ``None`` if no points on the fault are available
+     :return: the fault tag the maximum is taken, and a `Locator` object to collect the value at location of maximum value.
      """
      ref=-Lsup(f)*2
      f_max=ref
      t_max=None
-     p_max=None
+     loc_max=None
      x=f.getFunctionSpace().getX()
      for t in self.getTags():
         p,m=self.getParametrization(x,tag=t, tol=tol)
@@ -494,24 +495,27 @@ class FaultSystem:
         if f_t>f_max:
            f_max=f_t
            t_max=t
-           p_max=p.getTupleForGlobalDataPoint(*loc)[0]
+           loc_max=loc
 
-     return f_max, t_max, p_max
+     if loc_max == None:
+         return None, None
+     else:
+         return t_max, Locator(x.getFunctionSpace(),x.getTupleForGlobalDataPoint(*loc_max))
 
   def getMinValue(self,f, tol=sqrt(EPSILON)):
      """
-     returns the minimum value of ``f``, the fault and the location on the fault in fault coordinates.
+     returns the tag of the fault of where ``f`` takes the minimum value and a `Locator` object which can be used to collect values from `Data` class objects at the location where the minimum is taken.
 
      :param f: a distribution of values 
      :type f: `escript.Data`
      :param tol: relative tolerance used to decide if point is on fault 
      :type f: ``tol``
-     :return: the minimum value of across all faults in the fault system, the fault tag the minimum is taken, and the coordinates of the location in the coordinates of the fault. The returned fault tag is ``None`` if no points on the fault are available
+     :return: the fault tag the minimum is taken, and a `Locator` object to collect the value at location of minimum value.
      """
      ref=Lsup(f)*2
      f_min=ref
      t_min=None
-     p_min=None
+     loc_min=None
      x=f.getFunctionSpace().getX()
      for t in self.getTags():
         p,m=self.getParametrization(x,tag=t, tol=tol)
@@ -520,9 +524,12 @@ class FaultSystem:
         if f_t<f_min:
            f_min=f_t
            t_min=t
-           p_min=p.getTupleForGlobalDataPoint(*loc)[0]
+           loc_min=loc
 
-     return f_min, t_min, p_min
+     if loc_min == None:
+         return None, None
+     else:
+         return t_min, Locator(x.getFunctionSpace(),x.getTupleForGlobalDataPoint(*loc_min))
 
   def getParametrization(self,x,tag=None, tol=sqrt(EPSILON), outsider=None):
     """
