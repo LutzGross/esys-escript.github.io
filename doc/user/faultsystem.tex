@@ -254,15 +254,29 @@ applies a shift \var{shift} and a consecutive rotation in the $x\hackscore{2}=0$
 \end{methoddesc}
 
 \begin{methoddesc}[FaultSystem]{getMaxValue}{f\optional{, tol=1.e-8}}
-returns the maximum value of \var{f}, the fault where the maximum is found and the location on the fault in fault coordinates. \var{f} must be a \Scalar. When the maximum is calculated only \DataSamplePoints are considered
+returns the tag of the fault of where \var{f} takes the maximum value and a \class{Locator} object which can be used to collect values from \Data objects at the location where the maximum is taken, e.g.
+\begin{python}
+fs=FaultSystem()
+f=Scalar(..)
+t, loc=fs.getMaxValue(f)
+print `maximum value of f on the fault %s is %s at location.'%(t,loc(f),loc.getX())
+\end{python}
+\var{f} must be a \Scalar. When the maximum is calculated only \DataSamplePoints are considered
 which are on a fault in the fault system in the sense of condition~\ref{eq:2D line 3} or \ref{eq:3D line 3}, respectively. In the case no \DataSamplePoints is found the returned tag is \var{None} and
 the maximum value as well as the location of the maximum value are undefined.
 \end{methoddesc}
 
 \begin{methoddesc}[FaultSystem]{getMinValue}{f\optional{, tol=1.e-8}}
-returns the minimum value of \var{f}, the fault where the minimum is found and the location on the fault in fault coordinates. \var{f} must be a \Scalar. When the minimum is calculated only \DataSamplePoints are considered
+returns the tag of the fault of where \var{f} takes the minimum value and a \class{Locator} object which can be used to collect values from \Data objects at the location where the minimum is taken, e.g.
+\begin{python}
+fs=FaultSystem()
+f=Scalar(..)
+t, loc=fs.getMinValue(f)
+print `minimum value of f on the fault %s is %s at location.'%(t,loc(f),loc.getX())
+\end{python}
+\var{f} must be a \Scalar. When the minimum is calculated only \DataSamplePoints are considered
 which are on a fault in the fault system in the sense of condition~\ref{eq:2D line 3} or \ref{eq:3D line 3}, respectively. In the case no \DataSamplePoints is found the returned tag is \var{None} and
-the minimum value as well as the location of the mimimum value are undefined.
+the minimum value as well as the location of the minimum value are undefined.
 \end{methoddesc}
 
 \begin{methoddesc}[FaultSystem]{getParametrization}{x,tag \optional{\optional{, tol=1.e-8}, outsider=None}}
