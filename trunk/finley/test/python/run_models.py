@@ -1123,6 +1123,33 @@ class Test_FaultSystem(unittest.TestCase):
       self.failUnless(  m == 0.25, "wrong max value")
       self.failUnless(  t == 1, "wrong max tag")
       self.failUnless(  abs(l-0.70710678118654) <= self.EPS,  "wrong max location")
+   def test_Fault_MinValue(self):
+      dom=Rectangle(2*self.NE,2*self.NE)
+      x=dom.getX()
+      f=FaultSystem(dim=2)
+      f.addFault(V0=[0.5,0.], strikes=[3.*pi/4], ls=[0.70710678118654757], tag=1)
+      f.addFault(V0=[1.,0.5], strikes=[pi, pi/2], ls=[0.5,0.5], tag=2)
+
+      m, t, l=f.getMinValue(-x[0]*(1.-x[0])*(1-x[1]))
+      self.failUnless(  m == -0.25, "wrong min value")
+      self.failUnless(  t == 1, "wrong min tag")
+      self.failUnless(  l == 0., "wrong min location")
+      m, t, l=f.getMinValue(-x[1]*(1.-x[1])*(1-x[0])*x[0])
+      self.failUnless(  m == -0.0625, "wrong min value")
+      self.failUnless(  t == 2, "wrong min tag")
+      self.failUnless(  l == 0.5, "wrong min location")
+      m, t, l=f.getMinValue(-x[0]*(1.-x[0])*x[1])
+      self.failUnless(  m == -0.25, "wrong min value")
+      self.failUnless(  t == 2, "wrong min tag")
+      self.failUnless(  l == 1.0, "wrong min location")
+      m, t, l= f.getMinValue(-x[1]*(1.-x[1])*x[0])
+      self.failUnless(  m == -0.25, "wrong min value")
+      self.failUnless(  t == 2, "wrong min tag")
+      self.failUnless(  l == 0., "wrong min location")
+      m, t, l= f.getMinValue(-x[1]*(1.-x[1])*(1.-x[0]))
+      self.failUnless(  m == -0.25, "wrong min value")
+      self.failUnless(  t == 1, "wrong min tag")
+      self.failUnless(  abs(l-0.70710678118654) <= self.EPS,  "wrong min location")
 
       
    def test_Fault2D(self):

@@ -259,6 +259,12 @@ which are on a fault in the fault system in the sense of condition~\ref{eq:2D li
 the maximum value as well as the location of the maximum value are undefined.
 \end{methoddesc}
 
+\begin{methoddesc}[FaultSystem]{getMinValue}{f\optional{, tol=1.e-8}}
+returns the minimum value of \var{f}, the fault where the minimum is found and the location on the fault in fault coordinates. \var{f} must be a \Scalar. When the minimum is calculated only \DataSamplePoints are considered
+which are on a fault in the fault system in the sense of condition~\ref{eq:2D line 3} or \ref{eq:3D line 3}, respectively. In the case no \DataSamplePoints is found the returned tag is \var{None} and
+the minimum value as well as the location of the mimimum value are undefined.
+\end{methoddesc}
+
 \begin{methoddesc}[FaultSystem]{getParametrization}{x,tag \optional{\optional{, tol=1.e-8}, outsider=None}}
 returns the argument $w$ of the parameterization $P^t$ for \var{tag}=$t$ to provide \var{x}
 together with a mask indicating where the given location if on a fault in the fault system by the value $1$ (otherwise the value is set to $0$). \var{x} needs to be \Vector or \numpyNDA object. \var{tol} defines the tolerance to decide if a given \DataSamplePoints is on fault \var{tag}. The value
