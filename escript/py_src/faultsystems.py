@@ -498,6 +498,32 @@ class FaultSystem:
 
      return f_max, t_max, p_max
 
+  def getMinValue(self,f, tol=sqrt(EPSILON)):
+     """
+     returns the minimum value of ``f``, the fault and the location on the fault in fault coordinates.
+
+     :param f: a distribution of values 
+     :type f: `escript.Data`
+     :param tol: relative tolerance used to decide if point is on fault 
+     :type f: ``tol``
+     :return: the minimum value of across all faults in the fault system, the fault tag the minimum is taken, and the coordinates of the location in the coordinates of the fault. The returned fault tag is ``None`` if no points on the fault are available
+     """
+     ref=Lsup(f)*2
+     f_min=ref
+     t_min=None
+     p_min=None
+     x=f.getFunctionSpace().getX()
+     for t in self.getTags():
+        p,m=self.getParametrization(x,tag=t, tol=tol)
+        loc=((m*f)+(1.-m)*ref).minGlobalDataPoint()
+        f_t=f.getTupleForGlobalDataPoint(*loc)[0]
+        if f_t<f_min:
+           f_min=f_t
+           t_min=t
+           p_min=p.getTupleForGlobalDataPoint(*loc)[0]
+
+     return f_min, t_min, p_min
+
   def getParametrization(self,x,tag=None, tol=sqrt(EPSILON), outsider=None):
     """
     returns the parametrization of the fault ``tag`` in the fault system. In fact the values of the parametrization for at given coordinates ``x`` is returned. In addition to the value of the parametrization a mask is returned indicating if the given location is on the fault with given tolerance ``tol``.
