@@ -78,6 +78,7 @@ void getObjShape(const boost::python::object& obj, DataTypes::ShapeType& s)
 WrappedArray::WrappedArray(const boost::python::object& obj_in)
 :obj(obj_in)
 {
+	dat=0;
 	// First we check for scalars
 	try
 	{
@@ -87,7 +88,7 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 	   return;
 	} 
 	catch (...)
-	{		// so we 
+	{		// so we clear the failure
 	   PyErr_Clear();
 	}
 	try
@@ -98,7 +99,7 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 	   return;
 	} 
 	catch (...)
-	{		// so we 
+	{		// so we clear the failure
 	   PyErr_Clear();
 	}
 
@@ -109,5 +110,67 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 	rank=shape.size();
 }
 
+void WrappedArray::convertArray() const
+{
+	if ((dat!=0) || (rank<=0) || (rank>4))	// checking illegal rank here to avoid memory issues later
+	{					// yes the failure is silent here but not doing the copy 
+	    return;				// will just cause an error to be raised later
+	}
+	int size=DataTypes::noValues(shape);
+	double* tdat=new double[size];
+	switch (rank)
+	{
+	case 1: for (int i=0;i<shape[0];i++)
+		{
+			tdat[i]=getElt(i);
+		}
+		break;
+	case 2: for (int i=0;i<shape[0];i++)
+		{
+		    for (int j=0;j<shape[1];j++)
+		    {
+			tdat[DataTypes::getRelIndex(shape,i,j)]=getElt(i,j);
+		    }
+		}
+		break;
+	case 3: for (int i=0;i<shape[0];i++)
+		{
+		    for (int j=0;j<shape[1];j++)
+		    {
+			for (int k=0;k<shape[2];k++)
+			{
+			    tdat[DataTypes::getRelIndex(shape,i,j,k)]=getElt(i,j,k);
+			}
+		    }
+		}
+		break;
+	case 4: for (int i=0;i<shape[0];i++)
+		{
+		    for (int j=0;j<shape[1];j++)
+		    {
+			for (int k=0;k<shape[2];k++)
+			{
+			    for (int m=0;m<shape[3];m++)
+			    {
+			    	tdat[DataTypes::getRelIndex(shape,i,j,k,m)]=getElt(i,j,k,m);
+			    }
+			}
+		    }
+		}
+		break;
+	default:
+		;  // do nothing
+		// can't happen. We've already checked the bounds above
+	}
+	dat=tdat;
+}
+
+WrappedArray::~WrappedArray()
+{
+	if (dat!=0)
+	{
+	    delete dat;
+	}
+}
 
 

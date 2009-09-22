@@ -1134,19 +1134,17 @@ toobig=100
 First we produce an interpolation table.
 \begin{python}
 sine_table=[0, 0.70710678118654746, 1, 0.70710678118654746, 0, 
-           -0.70710678118654746, -1, -0.70710678118654746, 0, 
-            0.70710678118654746]
+           -0.70710678118654746, -1, -0.70710678118654746, 0]
 \end{python}
 
 We wish to identify $0$ and $1$ with the ends of the curve.
 That is, with the first and eighth values in the table. 
-But \var{x0} contains values between $0$ and $1$ inclusive so we need to continue the table to the ninth entry.
 
 \begin{python}
 numslices=len(sine_table)-1
 
 minval=0
-maxval=1.125 # The extra 0.25 is to account for the extra entry in the table
+maxval=1
 
 step=sup(maxval-minval)/numslices
 \end{python}
@@ -1185,7 +1183,9 @@ result2=x1.interpolateTable(table, 0, 0.55, x0, minval, step, toobig)
 
 In the 2D case, the params for the x1 direction (min=0, step=0.55) come first followed by the x0 data object and 
 its params.
-In this case, the upper bound in the x1 direction is $1.10$ not $1$ so we don't need to add an extra row to the table.
+By default, if a point is specified which is outside the boundary, then \var{interpolateTable} will operate
+as if the point was on the boundary.
+Passing \var{check_boundaries}=\var{True} will \var{interpolateTable} to reject any points outside the boundaries.
 
 \subsection{Saving Data as CSV}
 \index{saveDataCSV}

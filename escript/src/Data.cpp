@@ -3046,6 +3046,7 @@ Data
 Data::interpolateFromTable1D(const WrappedArray& table, double Amin, double Astep,
 			     double undef, bool check_boundaries)
 {
+	table.convertArray();		// critical!  Calling getElt on an unconverted array is not thread safe
 	int error=0;
 	if ((getDataPointRank()!=0))
 	{
@@ -3064,63 +3065,84 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin, double Aste
 		expand();
 	}
 	Data res(0, DataTypes::scalarShape, getFunctionSpace(), true);
-	do                                   // to make breaks useful
+	try
 	{
-		try
+		int numpts=getNumDataPoints();
+		const DataVector& adat=getReady()->getVectorRO();
+		DataVector& rdat=res.getReady()->getVectorRW();
+		int twidth=table.getShape()[0]-1;
+		bool haserror=false;
+		int l=0;
+		#pragma omp parallel for private(l) schedule(static)
+		for (l=0;l<numpts; ++l)
 		{
-			int numpts=getNumDataPoints();
-			const DataVector& adat=getReady()->getVectorRO();
-			DataVector& rdat=res.getReady()->getVectorRW();
-			int twidth=table.getShape()[0]-1;
-			for (int l=0; l<numpts; ++l)
-			{
-				double a=adat[l];
-				int x=static_cast<int>(((a-Amin)/Astep));
-                                if (check_boundaries) {
-				    if ((a<Amin) || (x<0))
-				    {
-					    error=1;
-					    break;	
-				    }
- 				    if (a>Amin+Astep*twidth) 
-				    {
-					    error=4;
-					    break;
-				    }
-                                } 
-                                if (x<0) x=0;
-                                if (x>twidth) x=twidth;
+		  #pragma omp flush(haserror)		// In case haserror was in register
+		  if (!haserror)		
+		  {
+		   int lerror=0;
+		   try
+		   {
+		     do			// so we can use break
+		     {
+			double a=adat[l];
+			int x=static_cast<int>(((a-Amin)/Astep));
+			if (check_boundaries) {
+				if ((a<Amin) || (x<0))
+				{
+					lerror=1;
+					break;	
+				}
+				if (a>Amin+Astep*twidth) 
+				{
+				        lerror=4;
+					break;
+				}
+			} 
+			if (x<0) x=0;
+			if (x>twidth) x=twidth;
 
-				if (x==twidth)			// value is on the far end of the table
+			if (x==twidth)			// value is on the far end of the table
+			{
+				double e=table.getElt(x);
+				if (e>undef)
 				{
-					double e=table.getElt(x);
-					if (e>undef)
-					{
-						error=2;
-						break; 
-					}
-					rdat[l]=e;
+					lerror=2;
+					break; 
 				}
-				else		// x and y are in bounds
-				{
-					double e=table.getElt(x);
-					double w=table.getElt(x+1);
-					if ((e>undef) || (w>undef))
-					{
-						error=2;
-						break; 
-					}
-		    // map x*Astep <= a << (x+1)*Astep to [-1,1] 
-					double la = 2.0*(a-Amin-(x*Astep))/Astep-1;
-					rdat[l]=((1-la)*e + (1+la)*w)/2;
-				}
+				rdat[l]=e;
 			}
-		} catch (DataException d)
-		{
-			error=3;
-			break;
-		}
-	} while (false);
+			else		// x and y are in bounds
+			{
+				double e=table.getElt(x);
+				double w=table.getElt(x+1);
+				if ((e>undef) || (w>undef))
+				{
+					lerror=2;
+					break; 
+				}
+		// map x*Astep <= a << (x+1)*Astep to [-1,1] 
+				double la = 2.0*(a-Amin-(x*Astep))/Astep-1;
+				rdat[l]=((1-la)*e + (1+la)*w)/2;
+			}	
+		      } while (false);
+		    } catch (DataException d)
+		    {
+			    lerror=3;
+		    }
+		    if (lerror!=0)
+		    {
+			#pragma omp critical	// Doco says there is a flush associated with critical
+			{
+			    haserror=true;	// We only care that one error is recorded. We don't care which 
+			    error=lerror;	// one
+			}
+		    }
+		  } // if (!error)
+		}	// parallelised for
+	} catch (DataException d)
+	{
+		error=3;		// this is outside the parallel region so assign directly
+	}
 #ifdef PASO_MPI
 	int rerror=0;
 	MPI_Allreduce( &error, &rerror, 1, MPI_INT, MPI_MAX, get_MPIComm() );
@@ -3145,6 +3167,7 @@ Data
 Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Astep,
                        double undef, Data& B, double Bmin, double Bstep, bool check_boundaries)
 {
+    table.convertArray();		// critical!   Calling getElt on an unconverted array is not thread safe
     int error=0;
     if ((getDataPointRank()!=0) || (B.getDataPointRank()!=0))
     {
@@ -3173,19 +3196,28 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 	B.expand();
     }
     Data res(0, DataTypes::scalarShape, getFunctionSpace(), true);
-    do                                   // to make breaks useful
+    try
     {
-	try
+	int numpts=getNumDataPoints();
+	const DataVector& adat=getReady()->getVectorRO();
+	const DataVector& bdat=B.getReady()->getVectorRO();
+	DataVector& rdat=res.getReady()->getVectorRW();
+	const DataTypes::ShapeType& ts=table.getShape();
+	int twx=ts[0]-1;	// table width x
+	int twy=ts[1]-1;	// table width y
+	bool haserror=false;
+	int l=0;
+	#pragma omp parallel for private(l) schedule(static) 
+	for (l=0; l<numpts; ++l)
 	{
-	    int numpts=getNumDataPoints();
-	    const DataVector& adat=getReady()->getVectorRO();
-	    const DataVector& bdat=B.getReady()->getVectorRO();
-	    DataVector& rdat=res.getReady()->getVectorRW();
-	    const DataTypes::ShapeType& ts=table.getShape();
-	    int twx=ts[0]-1;	// table width x
-	    int twy=ts[1]-1;	// table width y
-	    for (int l=0; l<numpts; ++l)
-	    {
+	   #pragma omp flush(haserror)		// In case haserror was in register
+	   if (!haserror)		
+	   {
+	     int lerror=0;
+	     try
+	     {
+	       do
+	       {
 		double a=adat[l];
 		double b=bdat[l];
 		int x=static_cast<int>(((a-Amin)/Astep));
@@ -3193,13 +3225,19 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
                 if (check_boundaries) {
 			    if ( (a<Amin) || (b<Bmin) || (x<0) || (y<0) )
 			    {
-				    error=1;
-				    break;	
+				#pragma omp critical
+				{
+				    lerror=1;
+				}
+				break;	
 			    }
 			    if ( (a>Amin+Astep*twx) || (b>Bmin+Bstep*twy) )
 			    {
-				    error=4;
-				    break;
+				#pragma omp critical
+				{
+				    lerror=4;
+				}
+				break;
 			    }
                 } 
                 if (x<0) x=0;
@@ -3212,7 +3250,10 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 		         double sw=table.getElt(x,y);
 		         if ((sw>undef))
 		         {
-			     error=2;
+			     #pragma omp critical
+			     {
+			         lerror=2;
+			     }
 			     break; 
 		         }
 		         rdat[l]=sw;
@@ -3222,7 +3263,10 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 		         double nw=table.getElt(x,y+1);
 		         if ((sw>undef) || (nw>undef))
 		         {
-			     error=2;
+			     #pragma omp critical
+			     {
+			        lerror=2;
+			     }
 			     break; 
 		         }
 		         double lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;
@@ -3235,7 +3279,10 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 		         double se=table.getElt(x+1,y);
 		         if ((sw>undef) || (se>undef) )
 		         {
-			     error=2;
+			     #pragma omp critical
+			     {
+			     	lerror=2;
+			     }
 			     break; 
 		         }
 		         double la = 2.0*(a-Amin-(x*Astep))/Astep-1;
@@ -3248,8 +3295,11 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 		         double ne=table.getElt(x+1,y+1);
 		         if ((sw>undef) || (nw>undef) || (se>undef) || (ne>undef))
 		         {
-			     error=2;
-			     break; 
+			    #pragma omp critical
+			    {
+			         lerror=2;
+			    }
+			    break; 
 		         }
 		         // map x*Astep <= a << (x+1)*Astep to [-1,1] 
 		         // same with b
@@ -3259,13 +3309,25 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 			          (1+la)*(1-lb)*se + (1+la)*(1+lb)*ne)/4;
                      }
                 }
-	    }
-	} catch (DataException d)
-	{
+	       } while (false);
+	      } catch (DataException d)
+	      {
+		lerror=3;
+	      }
+	      if (lerror!=0)
+	      {
+			#pragma omp critical	// Doco says there is a flush associated with critical
+			{
+			    haserror=true;	// We only care that one error is recorded. We don't care which 
+			    error=lerror;	// one
+			}		
+	      }
+	    }  // if (!error)
+	}	// parallel for
+    } catch (DataException d)
+    {
 	    error=3;
-	    break;
-	}
-    } while (false);
+    }
 #ifdef PASO_MPI
     int rerror=0;
     MPI_Allreduce( &error, &rerror, 1, MPI_INT, MPI_MAX, get_MPIComm() );

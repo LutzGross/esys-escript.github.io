@@ -38,15 +38,13 @@ toobig=100	#An exception will be thrown if interpolation produces a value larger
 
 #In this example we will interpolate a sine curve
 #The values we take from the domain will range from 0 to 1 (inclusive)
-#Because we will actually see the maximum value in the input we need to add
-#an extra entry to the table (so we have 1.125 sine cycles)
 
-sine_table=[0, 0.70710678118654746, 1, 0.70710678118654746, 0, -0.70710678118654746, -1, -0.70710678118654746, 0, 0.70710678118654746]
+sine_table=[0, 0.70710678118654746, 1, 0.70710678118654746, 0, -0.70710678118654746, -1, -0.70710678118654746, 0]
 
 numslices=len(sine_table)-1
 
 minval=0
-maxval=1.125	# The extra 0.25 is to account for the extra entry in the table
+maxval=1
 
 step=sup(maxval-minval)/numslices	#The width of the gap between entries in the table
 
@@ -60,15 +58,13 @@ saveDataCSV("1d.csv", inp=x0, out=result)
 
 #This time the sine curve will be at full height along the x (ie x0) axis.
 #Its amplitude will decrease to a flat line along x1=1.1
-#Since 1.1 is larger than any value in the input we don't need to add an extra row
-#to our table
 
 #Interpolate works with numpy arrays so we'll use them
-#st=numpy.array(sine_table)
+st=numpy.array(sine_table)
 
-#table=[st, 0.5*st, 0*st ]   #Note that this table is 2D
+table=[st, 0.5*st, 0*st ]   #Note that this table is 2D
 
 ##note that we call the interpolate table method on the object
 ##which corresponds to the outer dimension of the table
-#result2=x1.interpolateTable(table, 0, 0.55, x0, minval, step, 500)
-#saveDataCSV("2d.csv",inp0=x0, inp2=x1, out=result2)
+result2=x1.interpolateTable(table, 0, 0.55, x0, minval, step, 500)
+saveDataCSV("2d.csv",inp0=x0, inp2=x1, out=result2)
