@@ -449,7 +449,6 @@ bool append)
 
 #else
 // here we have MPI
-    const char* mpistr=0;
     MPI_File mpi_fileHandle_p;
     MPI_Status mpi_status;
     MPI_Info mpi_info = MPI_INFO_NULL;
@@ -498,7 +497,7 @@ bool append)
     else
     {
             ierr=MPI_File_set_view(mpi_fileHandle_p,MPI_DISPLACEMENT_CURRENT,
-                    MPI_CHAR, MPI_CHAR, "native", mpi_info);
+                    MPI_CHAR, MPI_CHAR, const_cast<char*>("native"), mpi_info);
 // here we are assuming that std::string holds the same type of char as MPI_CHAR
     }
 
