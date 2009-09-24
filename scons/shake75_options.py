@@ -43,7 +43,7 @@ ld_extra        = '-fopenmp'
 # Boost libraries
 boost_path          = '/usr/include/'
 # boost_lib_path    = '/usr/lib'
-boost_libs          = ['boost_python-mt']
+boost_libs          = ['boost_python']
 
 # Specify whether or not to use VTK
 # usevtk            = 'yes'
@@ -61,7 +61,7 @@ boost_libs          = ['boost_python-mt']
 # mkl_libs      = ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide', 'pthread']
 
 # UMFPACK (requires AMD and BLAS)
-# useumfpack    = 'yes'
+useumfpack    = 'yes'
 # ufc_path      = '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
 # umf_path      = '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
 # umf_lib_path  = '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
