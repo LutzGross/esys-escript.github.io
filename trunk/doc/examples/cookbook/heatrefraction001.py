@@ -37,7 +37,8 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 # This imports everything from the escript library
 from esys.escript import * 
 # This defines LinearPDE as LinearPDE
-from esys.escript.linearPDEs import LinearPDE, Poisson 
+from esys.escript.linearPDEs import LinearPDE, Poisson
+# smoothing operator 
 from esys.escript.pdetools import Projector
 # This imports the rectangle domain function from finley
 from esys.finley import Rectangle, ReadMesh, Domain 
@@ -116,18 +117,65 @@ quT=qu.toListOfTuples()
 proj=Projector(mymesh)
 smthT=proj(T)
 
+#move data to a regular grid for plotting
+xi,yi,zi = toRegGrid(smthT,mymesh,200,200,width,depth)
+
+#Temperature Depth Profile along x[50]
+cut=int(len(xi)/2)
+pl.clf()
+pl.plot(zi[:,cut],yi)
+pl.title("Heat Refraction Temperature Depth Profile")
+pl.xlabel("Temperature (K)")
+pl.ylabel("Depth (m)")
+if getMPIRankWorld() == 0: #check for MPI processing
+    pl.savefig(os.path.join(saved_path,"heatrefraction001_tdp.png"))
+    
+# Heat flow depth profile.
+pl.clf()
+# grid the data.
+qu=proj(-kappa*grad(T))
+xiq,yiq,ziq = gradtoRegGrid(qu,mymesh,200,200,width,depth,1)
+cut=int(len(xiq)/2)
+pl.plot(ziq[:,cut]*1000.,yiq)
+pl.title("Heat Flow Depth Profile")
+pl.xlabel("Heat Flow (mW/m^2)")
+pl.ylabel("Depth (m)")
+if getMPIRankWorld() == 0: #check for MPI processing
+	pl.savefig(os.path.join(saved_path,"heatrefraction001_hf.png"))
+
+# Temperature Gradient Depth Profile at x[50]
+pl.clf()
+zT=proj(-grad(T))
+xt,yt,zt=gradtoRegGrid(zT,mymesh,200,200,width,depth,1)
+cut=int(len(xt)/2)
+pl.plot(zt[:,cut]*1000.,yt)
+pl.title("Heat Refraction Temperature Gradient \n Depth Profile")
+pl.xlabel("Temperature (K/Km)")
+pl.ylabel("Depth (m)")
+if getMPIRankWorld() == 0: #check for MPI processing
+    pl.savefig(os.path.join(saved_path,"heatrefraction001_tgdp.png"))
+
+# Thermal Conditions Depth Profile    
+pl.clf()
+xk,yk,zk = toRegGrid(kappa,mymesh,200,200,width,depth)
+cut=int(len(xk)/2)
+pl.plot(zk[:,cut],yk)
+pl.title("Heat Refraction Thermal Conductivity Depth Profile")
+pl.xlabel("Conductivity (W/K/m)")
+pl.ylabel("Depth (m)")
+pl.axis([1,5,-6000,0])
+if getMPIRankWorld() == 0: #check for MPI processing
+    pl.savefig(os.path.join(saved_path,"heatrefraction001_tcdp.png"))
+
+# contour the gridded data, 
+# plotting dots at the randomly spaced data points.
 quivshape = [20,20] #quivers x and quivers y
 # function to calculate quiver locations
 qu,qulocs = toQuivLocs(quivshape,width,depth,qu)
 
-#move data to a regular grid for plotting
-xi,yi,zi = toRegGrid(smthT,mymesh,200,200,width,depth)
-
-# contour the gridded data, 
-# plotting dots at the randomly spaced data points.
-
 # select colour
 pl.matplotlib.pyplot.autumn()
+pl.clf()
 # plot polygons for boundaries
 CKL = pl.fill(tpgx,tpgy,'brown',label='2 W/m/k',zorder=-1000)
 CKM = pl.fill(bpgx,bpgy,'red',label='4 W/m/k',zorder=-1000)
@@ -150,52 +198,4 @@ gradient quivers.")
 if getMPIRankWorld() == 0: #check for MPI processing
 	pl.savefig(os.path.join(saved_path,"heatrefraction001_contqu.png"))
 
-#Temperature Depth Profile along x[50]
-cut=int(len(xi)/2)
-pl.clf()
-pl.plot(zi[:,cut],yi)
-pl.title("Heat Refraction Temperature Depth Profile")
-pl.xlabel("Temperature (K)")
-pl.ylabel("Depth (m)")
-if getMPIRankWorld() == 0: #check for MPI processing
-    pl.savefig(os.path.join(saved_path,"heatrefraction001_tdp.png"))
-    
-#Temperature Gradient Profile along x[50]
 
-
-
-pl.clf()
-# grid the data.
-qu=proj(-kappa*grad(T))
-xiq,yiq,ziq = gradtoRegGrid(qu,mymesh,200,200,width,depth,1)
-cut=int(len(xiq)/2)
-pl.plot(ziq[:,cut]*1000.,yiq)
-pl.title("Heat Flow Depth Profile")
-pl.xlabel("Heat Flow (mW/m^2)")
-pl.ylabel("Depth (m)")
-if getMPIRankWorld() == 0: #check for MPI processing
-	pl.savefig(os.path.join(saved_path,"heatrefraction001_hf.png"))
-
-pl.clf()
-zT=proj(-grad(T))
-
-xt,yt,zt=gradtoRegGrid(zT,mymesh,200,200,width,depth,1)
-cut=int(len(xt)/2)
-pl.plot(zt[:,cut]*1000.,yt)
-pl.title("Heat Refraction Temperature Gradient \n Depth Profile")
-pl.xlabel("Temperature (K/Km)")
-pl.ylabel("Depth (m)")
-if getMPIRankWorld() == 0: #check for MPI processing
-    pl.savefig(os.path.join(saved_path,"heatrefraction001_tgdp.png"))
-    
-pl.clf()
-xk,yk,zk = toRegGrid(kappa,mymesh,200,200,width,depth)
-cut=int(len(xk)/2)
-pl.plot(zk[:,cut],yk)
-pl.title("Heat Refraction Thermal Conductivity Depth Profile")
-pl.xlabel("Conductivity (W/K/m)")
-pl.ylabel("Depth (m)")
-pl.axis([1,5,-6000,0])
-if getMPIRankWorld() == 0: #check for MPI processing
-    pl.savefig(os.path.join(saved_path,"heatrefraction001_tcdp.png"))
-    

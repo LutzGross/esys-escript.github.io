@@ -100,14 +100,14 @@ With the PDE sufficiently modified, consideration must now be given to the bound
 Neumann boundary conditions describe the radiation or flux normal to the boundary surface. This aptly describes our insulation conditions as we do not want to exert a constant temperature as with the heat source. However, we do want to prevent any loss of energy from the system. These natural boundary conditions can be described by specifying a radiation condition which prescribes the normal component of the flux $\kappa T\hackscore{,i}$ to be proportional
 to the difference of the current temperature to the surrounding temperature $T\hackscore{ref}$; in general terms this is;
 \begin{equation}
- \kappa T\hackscore{,i} n\hackscore i = \eta (T\hackscore{ref}-T) 
+ \kappa T\hackscore{,i} \hat{n}\hackscore i = \eta (T\hackscore{ref}-T) 
 \label{eqn:hdbc}
 \end{equation}
 and simplified to our one dimensional model we have;
 \begin{equation}
-\kappa \frac{\partial T}{\partial dx} n\hackscore x = \eta (T\hackscore{ref}-T) 
+\kappa \frac{\partial T}{\partial dx} \hat{n}\hackscore x = \eta (T\hackscore{ref}-T) 
 \end{equation}
-where $\eta$ is a given material coefficient depending on the material of the block and the surrounding medium and $n\hackscore i$ is the $i$-th component of the outer normal field \index{outer normal field} at the surface of the domain. These two conditions form a boundary value problem that has to be solved for each time step. Due to the perfect insulation in our model we can set $\eta = 0$ which results in zero flux - no energy in or out - we do not need to worry about the Neumann terms of the general form for this example.
+where $\eta$ is a given material coefficient depending on the material of the block and the surrounding medium and $\hat{n}\hackscore i$ is the $i$-th component of the outer normal field \index{outer normal field} at the surface of the domain. These two conditions form a boundary value problem that has to be solved for each time step. Due to the perfect insulation in our model we can set $\eta = 0$ which results in zero flux - no energy in or out - we do not need to worry about the Neumann terms of the general form for this example.
 
 \subsection{A \textit{1D} Clarification}
 It is necessary for clarification that we revisit the general PDE from \refeq{eqn:commonform nabla} under the light of a two dimensional domain. \ESCRIPT is inherently designed to solve problems that are greater than one dimension and so \ref{eqn:commonform nabla} needs to be read as a higher dimensional problem. In the case of two spatial dimensions the \textit{Nabla operator} has in fact two components $\nabla = (\frac{\partial}{\partial x}, \frac{\partial}{\partial y})$. In full, \ref{eqn:commonform nabla} assuming a constant coefficient $A$, takes the form;

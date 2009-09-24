@@ -194,6 +194,39 @@ T=mypde.getSolution()
 \end{verbatim}
 The problem is now solved and plotting is required to visualise the data.
 
+\subsection{Line profiles of 2D data}
+It is possible to take slices or profile sections of 2d data using \mpl. To acheive this there are three major steps, firstly the solution must be smoothed across the domain using the \verb projector()  function.
+\begin{verbatim}
+proj=Projector(mymesh)
+smthT=proj(T)
+\end{verbatim}
+The data must then be moved to a regular grid.
+\begin{verbatim}
+xi,yi,zi = toRegGrid(smthT,mymesh,200,200,width,depth)
+\end{verbatim}
+The profile can then be plotted by taking a slice of the data output \verb zi  . 
+\begin{verbatim}
+cut=int(len(xi)/2)
+pl.clf()
+pl.plot(zi[:,cut],yi)
+pl.title("Heat Refraction Temperature Depth Profile")
+pl.xlabel("Temperature (K)")
+pl.ylabel("Depth (m)")
+\end{verbatim}
+This process can be repeated for various variations of the solultion. In this case we have temperature, temperature gradient, thermal conductivity and heat flow \reffig{figs:dps}.
+\begin{figure}
+\centering
+    \subfigure[Temperature Depth Profile]{\includegraphics[width=3in]{figures/heatrefraction001tdp.png}\label{fig:tdp}}
+    \subfigure[Temperature Gradient Depth Profile]{\includegraphics[width=3in]{figures/heatrefraction001tgdp.png}\label{fig:tgdp}}
+    \subfigure[Thermal Conductivity Profile]{\includegraphics[width=3in]{figures/heatrefraction001tcdp.png}\label{fig:tcdp}}
+    \subfigure[Heat Flow Depth Profile]{\includegraphics[width=3in]{figures/heatrefraction001hf.png}\label{fig:hf}}
+  \caption{Depth profiles down centre of model.}
+  \label{figs:dps}
+\end{figure}
+
+
+
+
 \subsection{Quiver plots in \mpl}
 To visualise this data we are going to do three things. Firstly we will generate the gradient of the solution and create some quivers or arrows that describe the gradient. Then we need to generate some temperatur contours and thirdly, we will create some polygons from our meshing output files to show our material boundaries.
 
@@ -245,7 +278,7 @@ pl.title("Heat Refraction across a clinal structure \n with gradient quivers.")
 pl.savefig(os.path.join(saved_path,"heatrefraction001_contqu.png"))
 \end{verbatim} 
 The data has now been plotted.
-\begin{figure}[h]
+\begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/heatrefraction001contqu}}
 \caption{Heat refraction model with gradient indicated by quivers.}
 \label{fig:hr001qumodel}
@@ -254,7 +287,7 @@ The data has now been plotted.
 \newpage
 \subsection{Fault and Overburden Model}
 A slightly more complicated model can be found in the examples \textit{heatrefraction_mesher002.py} and \textit{heatrefractoin002.py} where three blocks are used within the model.
-\begin{figure}[h]
+\begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/heatrefraction002contqu}}
 \caption{Heat refraction model with three blocks and gradient quivers.}
 \end{figure}
