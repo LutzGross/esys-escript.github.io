@@ -1,0 +1,35 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2009 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Introduction}
+\label{CHAP INTRO}
+\section{Why \esc?}
+\esc is a scripting environment for mathematical modelling of partial differential equations (PDEs) that provides a high-level of abstraction from the underlying numerical schemes and their implementation. By absolving the user from tasks like data constructs, meshing and parallelization the user can concentrate on the modelling aspects of their problem while still properly utilising the powerful mathematical capabilities of PDEs. \esc is built upon the interpretive programming language Python\footnote{see \url{www.python.org}}; a basic scripting language with many intrinsic functions and capabilities. There are also a large number of software tools for python which can be run in conjunction with \esc; these include packages for linear algebra, visualization, image processing and data plotting among others. Additionally most \esc scripts are scalable and able to run on desktop computers right through to supercomputers\footnote{\esc supports distributed memory architectures with multi-core processors through MPI and threading.} with no modifications to the scripts. 
+
+There are many benefits to using a software platform like \esc for your mathematical modelling project. Using an existing environment such as \esc rather than starting from scratch saves software development time and solves fundamental numerical problems such as selecting appropriate data structures and establishing numerical algorithms. \esc has already covered these problems and their implementation has been heavily tested for bugs. It is a fact that developed environments may not provide the user with the fastest algorithms for their problem. However, it is generally the case, that the overall time needed to implement and test an optimal algorithm will exceed the time needed to learn, implement and solve the problem with pre-developed and tested software. This is particularly true if a simulation does not need to be executed repetitively or has relatively short lifetime. A model for publication or thesis would be one such instance. 
+
+When it comes to solving partial differential equations \esc provides an advantage as it is especially designed for PDEs rather than being an add-on to a linear algebra focused system (\textit{i.e.} MATLAB). The \esc approach gives the user a cleaner environment to work with and provides better efficiency when dealing with PDE coefficients such as permeability. Data structures in \esc allow the user to abstract themself from problems like the data type of these coefficients. For example; if a model has been tested with constant permeability the unchanged code can be run with a variable permeability set from a data base or as a spatially dependent variable like temperature dependence. This capability of \esc is possible because \esc uses the language of PDEs (as opposed to linear algebra) to describe a model. As it turns out, the \esc approach can efficiently be applied in very large software projects as it leads to a clearer structure for the code by separating modelling issues from low-level numerical and code performance issues and at the same time, allows the implementation of complex model coupling on a higher-level. Moreover, the usage of python as a development platform for \esc greatly simplifies the development of models from a user prospective as python is intuitive and easy to learn. At the same time python is more than sufficient for the most experienced as it also provides direct access to a very large number of tools which makes python an attractive environment to work in.
+
+Best of all, \esc is released under an open software license and is available freely for download.
+
+\section{How to use this Cookbook}
+This manual is written with the intention of giving new users a practical introduction to \esc. This is acheived by demonstrating how to solve a variety of simple to advanced problems. There exist many modules, dependencies and subtleties that are properly explained throughout this cookbook. It is recommended that new users work through the \textit{Introduction} (\refCh{CHAP INTRO}) and the \textit{first two sets of examples} (\refCh{CHAP HEAT DIFF} and \refCh{CHAP HEAT 2}) which present the necessary basic knowledge and explain some of the more common aspects and modules of \esc. The examples are simple but they give reference to the implementation of PDEs, data structures, how to create models and visualising the solution.
+
+Future chapters will cover more advanced topics with more complex models and methods.
+
+The examples covered in this cookbook have all been scripted and are ready to run. They are available from the \exf folder in the escript directory. The scripts provide a basis for users to develop their own models while at the same time demonstrating the steps required to completely solve and visualise the PDE problems.
+
+All of the examples in this cookbook have been developed on a linux based operating system. Windows and mac support cannot be guarenteed. Minor modifications to scripts will generally solve most problems.
+
+\input{quickstart}
+\input{escpybas}
