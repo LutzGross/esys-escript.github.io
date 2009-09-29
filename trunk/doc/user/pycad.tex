@@ -83,6 +83,9 @@ for the script file. In our case we use
 \begin{python}
 d.setScriptFileName("quad.geo")
 \end{python}
+It is also useful to check error messages generated during the mesh generation process. \gmshextern writes
+messages to the \file{.gmsh-errors} in your home directory.
+
 If we put everything together we get the script
 \begin{python}
 from esys.pycad import *
@@ -100,7 +103,6 @@ c=CurveLoop(l01,l12,l23,l30)
 s=PlaneSurface(c)
 d=Design(dim=2,element_size=0.05)
 d.setScriptFileName("quad.geo")
-d.setMeshFileName("quad.msh")
 d.addItems(s)
 pl1=PropertySet("sides",l01,l23)
 pl2=PropertySet("top_and_bottom",l12,l30)
