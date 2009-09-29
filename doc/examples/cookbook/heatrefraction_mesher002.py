@@ -70,7 +70,7 @@ tbl4=Line(p7,p3)
 tblockloop = CurveLoop(tbl1,tbl2,tbl3,tbl4,l30)
 tblock = PlaneSurface(tblockloop)
 # python plotting polygon
-tpg = loopcoords(tblockloop)
+tpg = getLoopCoords(tblockloop)
 np.savetxt(os.path.join(save_path,"toppg"),tpg,delimiter=" ")
 
 # Create BOTTOM BLOCK LEFT

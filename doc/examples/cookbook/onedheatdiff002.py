@@ -71,11 +71,11 @@ kappa=2.2*W/m/K #watts/m.K thermal conductivity
 #Script/Iteration Related
 t=0. #our start time, usually zero
 tend=10*yr #the time we want to end the simulation in years
-outputs = 400 # number of time steps required.
+outputs = 40 # number of time steps required.
 h=(tend-t)/outputs #size of time step
 #user warning statement
 print "Expected Number of Output Files is: ", outputs
-print "Step size is: ", h/(24.*60*60), "days"
+print "Step size is: ", h/day, "days"
 i=0 #loop counter 
 #the folder to put our outputs in, leave blank "" for script path
 save_path= os.path.join("data","onedheatdiff002")
@@ -106,6 +106,7 @@ plx = plx[:,0] #extract x locations
 while t<=tend:
 	i+=1 #increment the counter
 	t+=h #increment the current time
+        print "time step ",i," at time  ",t/day," days."
 	mypde.setValue(Y=rhocp/h*T) #reset variable PDE coefficients
 	T=mypde.getSolution() #find temperature solution
 	#set up for plotting
