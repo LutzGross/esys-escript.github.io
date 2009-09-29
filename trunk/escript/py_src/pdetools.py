@@ -146,12 +146,12 @@ class Projector:
     self.__pde.setValue(D = 1.)
     return
   def getSolverOptions(self):
-	"""
-	Returns the solver options of the PDE solver.
-	
-	:rtype: `linearPDEs.SolverOptions`
-	"""
-        return self.__pde.getSolverOptions()
+    """
+    Returns the solver options of the PDE solver.
+    
+    :rtype: `linearPDEs.SolverOptions`
+    """
+    return self.__pde.getSolverOptions()
 
   def __call__(self, input_data):
     """
