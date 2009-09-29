@@ -45,7 +45,6 @@ l30=Line(p3,p0)
 c=CurveLoop(l01,l12,l23,l30)
 s=PlaneSurface(c)
 
-
 d=Design(dim=2,element_size=0.05)
 d.setScriptFileName("quad.geo")
 d.setMeshFileName("quad.msh")
