@@ -56,12 +56,12 @@ void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold
    #pragma omp parallel for private(i) schedule(static)
    for (i=0;i<n;++i)
         if(mis_marker[i]==IS_AVAILABLE)
-                    mis_marker[i]=IS_IN_SET;
+                    mis_marker[i]=IS_REMOVED;
 
     #pragma omp parallel for private(i,index,where_p) schedule(static) 
     for (i=0;i<n;++i) {
          diagptr[i]=A->pattern->ptr[i];
-         index=&(A->pattern->index[diagptr[i]]);
+         index=&(A->pattern->index[A->pattern->ptr[i]]);
          where_p=(index_t*)bsearch(&i,
                                 index,
                                 A->pattern->ptr[i + 1]-A->pattern->ptr[i],
@@ -78,11 +78,11 @@ void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold
 
     /*This loop cannot be parallelized, as order matters here.*/ 
     for (i=0;i<n;++i) {
-      if (mis_marker[i]==IS_IN_SET) {
+      if (mis_marker[i]==IS_REMOVED) {
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
              j=A->pattern->index[iptr];
              if (j!=i && ABS(A->val[iptr])>=threshold*ABS(A->val[diagptr[i]])) {
-                mis_marker[j]=IS_REMOVED;
+                mis_marker[j]=IS_IN_SET;
              }
         }
       }
@@ -92,11 +92,11 @@ void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold
      
       /*This loop cannot be parallelized, as order matters here.*/ 
     for (i=0;i<n;i++) {
-        if (mis_marker[i]==IS_REMOVED) {
+        if (mis_marker[i]==IS_IN_SET) {
            passed=TRUE;
            for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
               j=A->pattern->index[iptr];
-              if (mis_marker[j]==IS_IN_SET) {
+              if (mis_marker[j]==IS_REMOVED) {
                 if ((A->val[iptr]/A->val[diagptr[i]])>=-threshold) {
                     passed=TRUE;
                 }
@@ -106,7 +106,7 @@ void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold
                 }
               } 
            }
-           if (passed) mis_marker[i]=IS_IN_SET;
+           if (passed) mis_marker[i]=IS_REMOVED;
         }
     }
     /* This check is to make sure we dont get some nusty rows which were not removed durring coarsening process.*/
@@ -141,7 +141,7 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
 {
   dim_t i,n,j;
   index_t iptr;
-  double threshold,min_offdiagonal;
+  double threshold,max_offdiagonal;
   
   Paso_Pattern *out=NULL;
   
@@ -162,24 +162,22 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
     Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
     return;
   }
-    #pragma omp parallel for private(i,iptr,min_offdiagonal,threshold,j) schedule(static)
+    #pragma omp parallel for private(i,iptr,max_offdiagonal,threshold,j) schedule(static)
     for (i=0;i<n;++i) {
       if(mis_marker[i]==IS_AVAILABLE) {
-        min_offdiagonal = DBL_MAX;
+        max_offdiagonal = DBL_MIN;
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             if(A->pattern->index[iptr] != i){
-                min_offdiagonal = MIN(min_offdiagonal,A->val[iptr]);
+                max_offdiagonal = MAX(max_offdiagonal,-A->val[iptr]);
             }
         }
         
-        threshold = theta*min_offdiagonal;
+        threshold = theta*max_offdiagonal;
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             j=A->pattern->index[iptr];
-            if(A->val[iptr]<=threshold) {
-               if(j!=i) {
+            if((-A->val[iptr])>=threshold) {
                 Paso_IndexList_insertIndex(&(index_list[i]),j);
-                /*Paso_IndexList_insertIndex(&(index_list[j]),i);*/
-                }
+                Paso_IndexList_insertIndex(&(index_list[j]),i);
             }
         }
        }
@@ -293,14 +291,14 @@ void Paso_Pattern_greedy(Paso_Pattern* pattern, index_t* mis_marker) {
    #pragma omp parallel for private(i) schedule(static)
    for (i=0;i<n;++i)
         if(mis_marker[i]==IS_AVAILABLE)
-                    mis_marker[i]=IS_IN_SET;
+                    mis_marker[i]=IS_REMOVED;
 
 
     for (i=0;i<n;++i) {
-      if (mis_marker[i]==IS_IN_SET) {
+      if (mis_marker[i]==IS_REMOVED) {
         for (iptr=pattern->ptr[i];iptr<pattern->ptr[i+1]; ++iptr) {
              j=pattern->index[iptr];
-             mis_marker[j]=IS_REMOVED;
+             mis_marker[j]=IS_IN_SET;
         }
       }
     }
@@ -308,11 +306,11 @@ void Paso_Pattern_greedy(Paso_Pattern* pattern, index_t* mis_marker) {
     
      
     for (i=0;i<n;i++) {
-        if (mis_marker[i]==IS_REMOVED) {
+        if (mis_marker[i]==IS_IN_SET) {
            passed=TRUE;
            for (iptr=pattern->ptr[i];iptr<pattern->ptr[i+1]; ++iptr) {
               j=pattern->index[iptr];
-                if (mis_marker[j]==IS_REMOVED) {
+                if (mis_marker[j]==IS_IN_SET) {
                     passed=TRUE;
                 }
                 else {
@@ -321,7 +319,7 @@ void Paso_Pattern_greedy(Paso_Pattern* pattern, index_t* mis_marker) {
                 }
               } 
            }
-           if (passed) mis_marker[i]=IS_IN_SET;
+           if (passed) mis_marker[i]=IS_REMOVED;
         }
 
      /* swap to TRUE/FALSE in mis_marker */
@@ -410,3 +408,13 @@ void Paso_Pattern_greedy_color(Paso_Pattern* pattern, index_t* mis_marker) {
 #undef IS_AVAILABLE 
 #undef IS_IN_SET 
 #undef IS_REMOVED
+
+
+
+
+
+
+
+
+
+
