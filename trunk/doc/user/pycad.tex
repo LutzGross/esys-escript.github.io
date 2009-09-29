@@ -133,12 +133,11 @@ See Figure~\ref{fig:PYCAD 0} for a result.
 
 In most cases it is best practice to generate the mesh and to solve the mathematical 
 model in to different scripts. In our example you can read the \finley mesh into your simulation
-code using
+code\footnote{\gmshextern files can be directly read using the \function{ReadGmsh}, see Chapter~\ref{CHAPTER ON FINLEY}} using
 \begin{python}
 from finley import ReadMesh
 mesh=ReadMesh("quad.fly")
 \end{python}
-
 Note that the underlying mesh generation software will not accept all
 the geometries you can create with \pycad.  For example, \pycad
 will happily allow you to create a 2-D \class{Design} that is a
@@ -290,7 +289,9 @@ The example script of the cube is included with the software in
 
 \begin{figure}
 \centerline{\includegraphics[width=\figwidth]{figures/refine1.eps}}
-\caption{Local refinement at the origin by \code{local_scale=0.01} with \code{element_size=0.3} and number of elements on the top set to 10.}
+\caption{Local refinement at the origin by
+\var{local_scale=0.01} 
+with \var{element_size=0.3} and number of elements on the top set to 10.}
 \label{fig:PYCAD 5}
 \end{figure}
 

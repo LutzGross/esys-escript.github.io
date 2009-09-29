@@ -262,7 +262,7 @@ t, loc=fs.getMaxValue(f)
 print `maximum value of f on the fault %s is %s at location.'%(t,loc(f),loc.getX())
 \end{python}
 \var{f} must be a \Scalar. When the maximum is calculated only \DataSamplePoints are considered
-which are on a fault in the fault system in the sense of condition~\ref{eq:2D line 3} or \ref{eq:3D line 3}, respectively. In the case no \DataSamplePoints is found the returned tag is \var{None} and
+which are on a fault in the fault system in the sense of condition~\ref{eq:2D line 3} or \ref{eq:2D line 4d}, respectively. In the case no \DataSamplePoints is found the returned tag is \var{None} and
 the maximum value as well as the location of the maximum value are undefined.
 \end{methoddesc}
 
@@ -275,7 +275,7 @@ t, loc=fs.getMinValue(f)
 print `minimum value of f on the fault %s is %s at location.'%(t,loc(f),loc.getX())
 \end{python}
 \var{f} must be a \Scalar. When the minimum is calculated only \DataSamplePoints are considered
-which are on a fault in the fault system in the sense of condition~\ref{eq:2D line 3} or \ref{eq:3D line 3}, respectively. In the case no \DataSamplePoints is found the returned tag is \var{None} and
+which are on a fault in the fault system in the sense of condition~\ref{eq:2D line 3} or \ref{eq:2D line 4d}, respectively. In the case no \DataSamplePoints is found the returned tag is \var{None} and
 the minimum value as well as the location of the minimum value are undefined.
 \end{methoddesc}
 

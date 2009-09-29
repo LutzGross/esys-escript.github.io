@@ -67,7 +67,7 @@ assuming that $s$ is extended by zero away from the fault. After inserting~\ref{
 \begin{eqnarray}\label{Slip general problem 2 }
 - \sigma^c\hackscore{ij,j}=\frac{1}{2} \sigma^s\hackscore{ij,j}
 \end{eqnarray}
-Together with the definition~\ref{Slip  stress split 1} we have a differential equation for the
+Together with the definition~\ref{Slip  stress split 1 } we have a differential equation for the
 continuous function $v_i$. Notice that the boundary condition~\ref{Slip constraint}
 and~\ref{Slip natural fault} transfer to $v_i$ and $\sigma^c\hackscore{ij}$ as 
 $s$ is zero away from the fault. In Section~\ref{ELASTIC CHAP} we have discussed how this problem
@@ -82,14 +82,14 @@ fs.addFault(fs.addFault(V0=[0.5,0.25], strikes=90*DEG, ls=0.5, tag=1)
 \end{python}
 The fault added starts at point $(0.5,0.25)$ has length $0.5$ and is pointing north.
 The main purpose of the \class{FaultSystem} class is to define a parameterization
-of the fault using a local coordinate system. One can enquire the class
+of the fault using a local coordinate system. One can inquire the class
 to get the range used to parameterize a fault.
 \begin{python}
 p0,p1= fs.getW0Range(tag=1)
 \end{python}
 Typically \var{p0} is equal to zero while \var{p1} is equal to the length of the fault. The parameterization
 is given as a mapping from a set of local coordinates onto parameter range (in our case 
-the range \var{p0} to \var{p1}). For instance to map the entire domain \var{mydomain} anto the fault 
+the range \var{p0} to \var{p1}). For instance to map the entire domain \var{mydomain} onto the fault 
 one can use
 \begin{python}
 x=mydomain.getX()
