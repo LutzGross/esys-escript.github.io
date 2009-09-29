@@ -151,7 +151,7 @@ class Projector:
 	
 	:rtype: `linearPDEs.SolverOptions`
 	"""
-    return self.__pde.getSolverOptions()
+        return self.__pde.getSolverOptions()
 
   def __call__(self, input_data):
     """
