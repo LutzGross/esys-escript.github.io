@@ -643,12 +643,12 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_SolverOptions(self):
         so=SolverOptions()
 
-        self.failUnless(so.getLevelMax() == 10, "initial  LevelMax is wrong.")
+        self.failUnless(so.getLevelMax() == 3, "initial  LevelMax is wrong.")
         self.failUnlessRaises(ValueError,so.setLevelMax,-1)
-        so.setLevelMax(3)
-        self.failUnless(so.getLevelMax() == 3, "LevelMax is wrong.")
+        so.setLevelMax(20)
+        self.failUnless(so.getLevelMax() == 20, "LevelMax is wrong.")
 
-        self.failUnless(so.getCoarseningThreshold() == 0.05, "initial  CoarseningThreshold is wrong.")
+        self.failUnless(so.getCoarseningThreshold() == 0.25, "initial  CoarseningThreshold is wrong.")
         self.failUnlessRaises(ValueError,so.setCoarseningThreshold,-1)
         so.setCoarseningThreshold(0.1)
         self.failUnless(so.getCoarseningThreshold() == 0.1, "CoarseningThreshold is wrong.")

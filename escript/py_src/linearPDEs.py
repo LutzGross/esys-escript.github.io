@@ -571,7 +571,7 @@ class SolverOptions(object):
         :rtype: ``int``
         """
         return self.__iter_max
-    def setLevelMax(self,level_max=10):
+    def setLevelMax(self,level_max=3):
         """
         Sets the maximum number of coarsening levels to be used in an algebraic multi level solver or preconditioner
 
@@ -589,7 +589,7 @@ class SolverOptions(object):
         :rtype: ``int``
         """
         return self.__level_max
-    def setCoarseningThreshold(self,theta=0.05):
+    def setCoarseningThreshold(self,theta=0.25):
         """
         Sets the threshold for coarsening in the algebraic multi level solver or preconditioner
 
