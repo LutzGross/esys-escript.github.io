@@ -1,4 +1,3 @@
-
 ########################################################
 #
 # Copyright (c) 2003-2009 by University of Queensland
@@ -18,11 +17,6 @@ Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
-
-"""
-a trapezoid with a cutout
- 
-"""
 
 from esys.pycad import *
 from esys.pycad.gmsh import Design
@@ -62,6 +56,5 @@ d.setScriptFileName("trapezoid.geo")
 d.setMeshFileName("trapezoid.msh")
 domain=MakeDomain(d, integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True)
 
-# Create a file that can be read back in to python with mesh=ReadMesh(fileName)
+# Create a file that can be read back in to python with 
 domain.write("trapezoid.fly")
-

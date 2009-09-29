@@ -19,41 +19,47 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-"""
-a simple 1x1 quad`
- 
-:var __author__: name of author
-:var __licence__: licence agreement
-:var __url__: url entry point on documentation
-:var __version__: version
-:var __date__: date of the version
-"""
-
-__author__="Lutz Gross, l.gross@uq.edu.au"
-
+from esys.escript import *
 from esys.pycad import *
 from esys.pycad.gmsh import Design
 from esys.finley import MakeDomain
-from esys.escript import getTagNames
+
+
 p0=Point(0.,0.,0.)
 p1=Point(1.,0.,0.)
-p2=Point(1.,1.,0.)
-p3=Point(0.,1.,0.)
-l01=Line(p0,p1)
-l12=Line(p1,p2)
-l23=Line(p2,p3)
-l30=Line(p3,p0)
-c=CurveLoop(l01,l12,l23,l30)
-s=PlaneSurface(c)
-ps=PropertySet("The_whole_domain",s)
-pl1=PropertySet("sides",l01,l23)
-pl2=PropertySet("top_and_bottom",l12,l30)
+p2=Point(0.,1.,0.)
+p3=Point(1.,1.,0.)
+p4=Point(0.,0.,1.)
+p5=Point(1.,0.,1.)
+p6=Point(0.,1.,1.)
+p7=Point(1.,1.,1.)
 
-d=Design(dim=2,element_size=0.005)
-d.addItems(pl1,pl2)
-d.addItems(ps)
-d.setScriptFileName("quad.geo")
-d.setMeshFileName("quad.msh")
-dom=MakeDomain(d,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True)
-print getTagNames(dom)
-dom.write("quad.fly")
+l01=Line(p0,p1)
+l13=Line(p1,p3)
+l32=Line(p3,p2)
+l20=Line(p2,p0)
+
+l45=Line(p4,p5)
+l57=Line(p5,p7)
+l76=Line(p7,p6)
+l64=Line(p6,p4)
+
+l15=Line(p1,p5)
+l40=Line(p4,p0)
+l37=Line(p3,p7)
+l62=Line(p6,p2)
+
+bottom=PlaneSurface(CurveLoop(l01,l13,l32,l20))
+top=PlaneSurface(CurveLoop(l45,l57,l76,l64))
+front=PlaneSurface(CurveLoop(l01,l15,-l45,l40))
+back=PlaneSurface(CurveLoop(l32,-l62,-l76,-l37))
+left=PlaneSurface(CurveLoop(-l40,-l64,l62,l20))
+right=PlaneSurface(CurveLoop(-l15,l13,l37,-l57))
+v=Volume(SurfaceLoop(top,-bottom,front,back,left,right))
+
+des=Design(dim=3, order=2, element_size = 0.1, keep_files=True)
+des.setScriptFileName("brick.geo")
+des.addItems(v, top, bottom, back, front, left , right)
+
+dom=MakeDomain(des)
+dom.write("brick.fly")
