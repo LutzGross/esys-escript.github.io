@@ -655,7 +655,7 @@ class FaultSystem:
             m_ul=wherePositive(s_upper[0]-s_upper[1])
             s=s_upper*m_ul+s_lower*(1-m_ul)
             s=maximum(minimum(s,1.),0)
-            p=h-s[0]*(R*m_ul+(1-m_ul)*r)-s[1]*(D1*m_ul+(1-m_ul)*D0)
+            p=h-(m_ul*R+(1-m_ul)*r)*s[0]-(m_ul*D1+(1-m_ul)*D0)*s[1]
             dist=length(p)
             lside=sign(inner(p,ns[i]))
             if d == None:

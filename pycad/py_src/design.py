@@ -287,16 +287,20 @@ class Design(object):
        """
        Adds items to the design.
        """
+       new_items=[]
        for i in range(len(items)):
           if not isinstance(items[i],(Primitive, ReversePrimitive)):
              raise TypeError("%s-th argument is not a Primitive object"%i)
           if isinstance(items[i],PropertySet):
-             for p in self.getAllPrimitives():
-                if isinstance(p, PropertySet): 
-                   if items[i].getName() == p.getName():
-                       raise ValueError("Property set name %s is allready in use."%items[i].getName())
-       for i in items:
-          self.__items.append(i)
+             q=items[i]
+          else:
+             q=PropertySet("__%s__"%(items[i].getID()), items[i])
+          for p in self.getAllPrimitives():
+              if isinstance(p, PropertySet): 
+                if q.getName() == p.getName():
+                   raise ValueError("Property set name %s is allready in use."%q.getName())
+          new_items.append(q)
+       for q in new_items: self.__items.append(q)
 
     def getItems(self):
         """

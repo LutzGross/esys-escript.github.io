@@ -39,7 +39,7 @@ example_files_allow_mpi = [
  'usersguide/diffusion.py',
  'usersguide/poisson_vtk.py',
  'usersguide/slip.py',
- 'usersguide/int_save.py'
+ 'usersguide/int_save.py',
 ]
 
 example_files_no_mpi = [
@@ -86,10 +86,20 @@ if haveMPL:
 	example_files_allow_mpi.append('usersguide/wave.py')
 	if haveGMSH:
 	    example_files_no_mpi.append('cookbook/run_heatrefraction.py')
+if haveGMSH:
+  example_files_allow_mpi.append('usersguide/trapezoid.py')
+  example_files_allow_mpi.append('usersguide/quad.py')
+  example_files_allow_mpi.append('usersguide/brick.py')
+  example_files_allow_mpi.append('usersguide/refine.py')
+
 
 # we want to make sure these are still added to the examples bundle even if we can't run them
 if not haveGMSH:
    example_deps.append('cookbook/run_heatrefraction.py')
+   example_deps.append('usersguide/trapezoid.py')
+   example_deps.append('usersguide/quad.py')
+   example_deps.append('usersguide/brick.py')
+   example_deps.append('usersguide/refine.py')
 if not haveGD:
    example_deps.append('cookbook/twodheatdiff001.py')
    example_deps.append('usersguide/poisson_matplotlib.py')

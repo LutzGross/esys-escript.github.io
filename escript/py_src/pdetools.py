@@ -591,7 +591,7 @@ class Defect(object):
     def __call__(self,x):
         return self.eval(x)
 
-    def setDerivativeIncrementLength(self,inc=math.sqrt(util.EPSILON)):
+    def setDerivativeIncrementLength(self,inc=1000.*math.sqrt(util.EPSILON)):
         """
         Sets the relative length of the increment used to approximate the
         derivative of the defect. The increment is inc*norm(x)/norm(v)*v in the
