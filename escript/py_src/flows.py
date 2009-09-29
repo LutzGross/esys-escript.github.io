@@ -63,7 +63,7 @@ class DarcyFlow(object):
            s=self.domain.getSize()
            self.__l=(3.*util.longestEdge(self.domain)*s/util.sup(s))**2
            # self.__l=(3.*util.longestEdge(self.domain))**2
-           # self.__l=(0.1*util.longestEdge(self.domain)*s/util.sup(s))**2
+           #self.__l=(0.1*util.longestEdge(self.domain)*s/util.sup(s))**2
         else:
            self.__l=weight
         self.__pde_v=LinearPDESystem(domain)
@@ -274,7 +274,6 @@ class DarcyFlow(object):
          rtol=self.getTolerance()
          atol=self.getAbsoluteTolerance()
 	 self.setSubProblemTolerance()
-	 
          num_corrections=0
          converged=False
          p=p0
@@ -440,7 +439,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 	 :param options: new solver options
 	 :type options: `SolverOptions`
 	 """
-	 self.__pde_prec.setSolverOptions(options)
+	 self.__pde_proj.setSolverOptions(options)
      def getSolverOptionsDiv(self):
          """
 	 returns the solver options for solving the equation to project the divergence of
@@ -448,7 +447,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 	 
 	 :rtype: `SolverOptions`
 	 """
-	 return self.__pde_prec.getSolverOptions()
+	 return self.__pde_proj.getSolverOptions()
      def setSubProblemTolerance(self):
          """
 	 Updates the tolerance for subproblems
