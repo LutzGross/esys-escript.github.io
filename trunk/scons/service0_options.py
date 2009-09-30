@@ -78,7 +78,7 @@ mkl_libs                =  [ "mkl_core", "mkl_intel_lp64",  "mkl_intel_thread", 
 # blas_libs		= ['blas']
 
 # ParMETIS (for use with MPI) (these setting my be overwritten depending on the mpi version used)
-useparmetis		= 'yes'
+useparmetis		= 'no'
 parmetis_path		= '/sw/libs/parmetis/x86_64/gcc-4.1.2/intelmpi/parmetis-3.1/include'
 parmetis_lib_path	= '/sw/libs/parmetis/x86_64/gcc-4.1.2/intelmpi/parmetis-3.1/lib'
 parmetis_libs		= ['parmetis', 'metis']
@@ -94,10 +94,10 @@ useopenmp		= 'yes'
 
 usempi		= 'yes'
 # MPI MPT (no module load required)
-# mpi_path		= '/usr/include'
-# mpi_lib_path		= '/usr/lib64'
-# mpi_libs		= ['mpi']
-# mpi_flavour     = "MPT"
+mpi_path		= '/sw/sdev/mpt/1.24/include'
+mpi_lib_path		= '/sw/sdev/mpt/1.24/lib'
+mpi_libs		= ['mpi']
+mpi_flavour     = "MPT"
 
 # MPICH2 (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
 # mpi_path		= '/sw/libs/mpich2/x86_64/gcc-4.1.2/mpich2-1.0.7/include'
@@ -106,10 +106,11 @@ usempi		= 'yes'
 # mpi_flavour		= 'MPICH2'
 
 # Intel MPI (to run Escript use: module load intel-mpi/3.2.0.011
-mpi_path		= '/sw/sdev/intel/mpi/3.2.0.011/x86_64/include64'
-mpi_lib_path		= '/sw/sdev/intel/mpi/3.2.0.011/x86_64/lib64'
-mpi_libs		= ['mpi']
-mpi_flavour		= 'INTELMPI'
+# (When use Intel MPI, compile with "useparmetis = yes")
+# mpi_path		= '/sw/sdev/intel/mpi/3.2.0.011/x86_64/include64'
+# mpi_lib_path		= '/sw/sdev/intel/mpi/3.2.0.011/x86_64/lib64'
+# mpi_libs		= ['mpi']
+# mpi_flavour		= 'INTELMPI'
 
 # ParMETIS setting needs to be overwritten in intel-mpi is used
 # parmetis_path = "/sw/libs/parmetis/x86_64/gcc-4.1.2/intelmpi/parmetis-3.1/include"
