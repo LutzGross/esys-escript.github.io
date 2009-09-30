@@ -51,7 +51,6 @@ void Paso_Solver_AMG_System_free(Paso_Solver_AMG_System * in) {
 
 void Paso_Solver_AMG_free(Paso_Solver_AMG * in) {
      if (in!=NULL) {
-        Paso_Solver_AMG_free(in->AMG_of_Schur);
         Paso_Solver_Jacobi_free(in->GS);
         MEMFREE(in->inv_A_FF);
         MEMFREE(in->A_FF_pivot);
@@ -66,13 +65,11 @@ void Paso_Solver_AMG_free(Paso_Solver_AMG * in) {
         MEMFREE(in->b_F);
         MEMFREE(in->x_C);
         MEMFREE(in->b_C);
-        #ifdef MKL
-        #else 
-           #ifdef UMFPACK
-           Paso_UMFPACK1_free((Paso_UMFPACK_Handler*)(in->solver));
-           #endif
+        #ifdef UMFPACK
+        Paso_UMFPACK1_free((Paso_UMFPACK_Handler*)(in->solver));
         #endif
         in->solver=NULL;
+        Paso_Solver_AMG_free(in->AMG_of_Schur);
         MEMFREE(in->b_C);
         MEMFREE(in);
      }
@@ -150,9 +147,9 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      
      if (level==0 || n<=options->min_coarse_matrix_size) {
          out->coarsest_level=TRUE;
-         #ifdef MKL
+         #ifdef UMFPACK 
          #else
-            #ifdef UMFPACK 
+            #ifdef MKL 
             #else 
                 out->GS=Paso_Solver_getJacobi(A_p);
             #endif
@@ -188,7 +185,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
         if (out->n_F==n) {
            out->coarsest_level=TRUE;
            if (verbose) { 
-               printf("AMG coarsening eliminates all unknowns, switching to direct solver.\n");
+               printf("AMG coarsening eliminates all unknowns, switching to Jacobi preconditioner.\n");
            }
         } else {
      
@@ -370,11 +367,11 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      double time0=0;
      double *r=NULL, *x0=NULL;
      bool_t verbose=0;
-     #ifdef MKL
-        Paso_SparseMatrix *temp=NULL;
-     #else
-        #ifdef UMFPACK 
-           Paso_UMFPACK_Handler * ptr=NULL;
+     #ifdef UMFPACK 
+          Paso_UMFPACK_Handler * ptr=NULL;
+     #else     
+        #ifdef MKL
+          Paso_SparseMatrix *temp=NULL;
         #endif
      #endif
      r=MEMALLOC(amg->n,double);
@@ -383,23 +380,31 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      if (amg->coarsest_level) {
       
       time0=Paso_timer();
-       #ifdef MKL
-        temp=Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, amg->A->pattern,1,1, FALSE);
-        #pragma omp parallel for private(i) schedule(static)
-        for (i=0;i<amg->A->len;++i) {
-             temp->val[i]=amg->A->val[i];
-        }
-        Paso_MKL1(temp,x,b,0);
-        Paso_SparseMatrix_free(temp);
-       #else
-          #ifdef UMFPACK
+      /*If all unknown are eliminated then Jacobi is the best preconditioner*/
+      if (amg->n_F==amg->n) {
+        Paso_Solver_solveJacobi(amg->GS,x,b);
+      }
+       else {
+       #ifdef UMFPACK
              ptr=(Paso_UMFPACK_Handler *)(amg->solver);
              Paso_UMFPACK1(&ptr,amg->A,x,b,verbose);
              amg->solver=(void*) ptr;
-          #else
-             Paso_Solver_solveJacobi(amg->GS,x,b);
-          #endif
+       #else      
+         #ifdef MKL
+          ptr=(Paso_MKL_Handler *)(amg->solver);
+          temp=Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, amg->A->pattern,1,1, FALSE);
+          #pragma omp parallel for private(i) schedule(static)
+          for (i=0;i<amg->A->len;++i) {
+               temp->val[i]=amg->A->val[i];
+          }
+          Paso_MKL1(ptr,temp,x,b,verbose);
+          amg->solver=(void*) ptr;
+          Paso_SparseMatrix_free(temp);
+         #else
+          Paso_Solver_solveJacobi(amg->GS,x,b);
+         #endif
        #endif
+       }
        time0=Paso_timer()-time0;
        if (verbose) fprintf(stderr,"timing: DIRECT SOLVER: %e\n",time0);
        
