@@ -1742,6 +1742,9 @@ class PropertySet(Primitive, PrimitiveBase):
         Adds items. An item my be any `Primitive` but no `PropertySet`.
         """
         for i in items:
+            if not (isinstance(i, Manifold1D) or isinstance(i, Manifold2D) or isinstance(i, Manifold3D) ):
+                  raise TypeError, "Illegal argument type %s added to PropertySet."%(i.__class__)
+        for i in items:
             if not i in self.__items:
                if len(self.__items)>0:
                   m=self.getManifoldClass()
