@@ -162,7 +162,7 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
     Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
     return;
   }
-    #pragma omp parallel for private(i,iptr,max_offdiagonal,threshold,j) schedule(static)
+    /*#pragma omp parallel for private(i,iptr,max_offdiagonal,threshold,j) schedule(static)*/
     for (i=0;i<n;++i) {
       if(mis_marker[i]==IS_AVAILABLE) {
         max_offdiagonal = DBL_MIN;
@@ -287,7 +287,7 @@ void Paso_Pattern_greedy(Paso_Pattern* pattern, index_t* mis_marker) {
     return;
   }
    
-   /* We do not need this loop if we set IS_IN_MIS=IS_AVAILABLE. */
+   /* We do not need this loop if we set IS_REMOVED=IS_AVAILABLE. */
    #pragma omp parallel for private(i) schedule(static)
    for (i=0;i<n;++i)
         if(mis_marker[i]==IS_AVAILABLE)
@@ -318,8 +318,8 @@ void Paso_Pattern_greedy(Paso_Pattern* pattern, index_t* mis_marker) {
                     break;
                 }
               } 
-           }
            if (passed) mis_marker[i]=IS_REMOVED;
+           }
         }
 
      /* swap to TRUE/FALSE in mis_marker */
