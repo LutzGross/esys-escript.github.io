@@ -44,7 +44,7 @@ matplotlib.use('agg') #It's just here for automated testing
 import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os #This package is necessary to handle saving our data.
-import cblib
+from cblib1 import needdirs
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
@@ -79,7 +79,7 @@ i=0 #loop counter
 save_path= os.path.join("data","onedheatdiff001")
 
 #ensure the dir exists
-cblib.needdirs([save_path, os.path.join(save_path,"tempT"),\
+needdirs([save_path, os.path.join(save_path,"tempT"),\
                          os.path.join(save_path, "totT")])
 
 ################################################ESTABLISHING PARAMETERS

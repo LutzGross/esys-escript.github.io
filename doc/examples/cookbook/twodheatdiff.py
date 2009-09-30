@@ -29,7 +29,7 @@ from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as Linear
 from esys.finley import Rectangle # This imports the rectangle domain function from finley
 import os #This package is necessary to handle saving our data.
 
-from cblib import needdirs
+from cblib1 import needdirs
 
 
 ##ESTABLISHING VARIABLES
