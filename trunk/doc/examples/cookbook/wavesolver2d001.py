@@ -26,7 +26,7 @@ from esys.escript import *
 from esys.finley import Rectangle
 import sys
 import os
-from cblib import *
+from cblib1 import needdirs, wavesolver2d
 
 # Establish a save path.
 savepath = "data/wavesolver2d001nwtest"
