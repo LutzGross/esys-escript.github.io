@@ -391,13 +391,11 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
              amg->solver=(void*) ptr;
        #else      
          #ifdef MKL
-          ptr=(Paso_MKL_Handler *)(amg->solver);
           temp=Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, amg->A->pattern,1,1, FALSE);
           #pragma omp parallel for private(i) schedule(static)
           for (i=0;i<amg->A->len;++i) {
                temp->val[i]=amg->A->val[i];
           }
-          Paso_MKL1(ptr,temp,x,b,verbose);
           amg->solver=(void*) ptr;
           Paso_SparseMatrix_free(temp);
          #else
