@@ -212,6 +212,9 @@ void Paso_SparseMatrix_free(Paso_SparseMatrix* in) {
      if (in->reference_counter<=0) {
         Paso_Pattern_free(in->pattern);
         MEMFREE(in->val);
+	if(in->solver!=NULL) {
+		MEMFREE(in->solver);
+	}
         MEMFREE(in);
         #ifdef Paso_TRACE
         printf("Paso_SparseMatrix_free: system matrix as been deallocated.\n");

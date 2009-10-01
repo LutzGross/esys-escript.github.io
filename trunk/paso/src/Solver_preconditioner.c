@@ -198,7 +198,7 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                     if (Paso_checkPtr(xx[i]) && Paso_checkPtr(bb[i])) return;
                 }
                 
-                #pragma omp parallel for private(i,j) schedule(static)
+                /*#pragma omp parallel for private(i,j) schedule(static)*/
                 for (i=0;i<n;i++) {
                     for (j=0;j<A->row_block_size;j++) {
                      bb[j][i]=b[A->row_block_size*i+j];
@@ -210,7 +210,7 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                 Paso_Solver_solveAMG(prec->amgSystem->amgblock[i],xx[i],bb[i]);
                 }
                                
-                #pragma omp parallel for private(i,j) schedule(static)
+                /*#pragma omp parallel for private(i,j) schedule(static)*/
                 for (i=0;i<n;i++) {
                     for (j=0;j<A->row_block_size;j++) {
                     x[A->row_block_size*i+j]=xx[j][i];
