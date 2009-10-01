@@ -54,27 +54,47 @@ int main( int argc, char **argv ) {
      * Start the python parser
      */
     status = Py_Main(argc, argv);
-  
+ 
+    /*
+     * Close down MPI.
+     * status==1 : uncaught python exception
+     * status==2 : invalid python cmd line
+     * status>2 : supposed to be param of sys.exit()
+     *            sys.exit doesn't return as it should.
+     *
+     * I have made an exception for 2 because calling MPI_Abort
+     * can display pretty ugly messages for not typing params
+     * properly.
+     */ 
+    if ((status!=0) && (status!=2))
+    {
+	MPI_Abort(MPI_COMM_WORLD,status);
+    }
+    else
+    { 
     /*
      * Finalise MPI for a clean exit.
      */
-    MPI_Finalize();
-
+        MPI_Finalize();
+    }
     Paso_MPIInfo_free( mpi_info );
   }
   catch (std::runtime_error &e)
   {
     std::cerr << "EXCEPTION: " << e.what() << std::endl;
+    MPI_Abort(MPI_COMM_WORLD,1);
     throw;
   }
   catch (char *e)
   {
     std::cerr << "EXCEPTION: " << e << std::endl;
+    MPI_Abort(MPI_COMM_WORLD,1);
     throw;
   }
   catch (...)
   {
     std::cerr << "EXCEPTION: " << "UNKNOWN." << std::endl;
+    MPI_Abort(MPI_COMM_WORLD,1);
     throw;
   }
 
