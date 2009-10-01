@@ -246,11 +246,9 @@ void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             j=A->pattern->index[iptr];
             val=A->val[iptr];
-            if(j!= i) {
               if((val*val)>=(eps_Aii*diags[j])) {
                Paso_IndexList_insertIndex(&(index_list[i]),j);
               }
-            }
         }
        }
      }
@@ -291,14 +289,14 @@ void Paso_Pattern_greedy(Paso_Pattern* pattern, index_t* mis_marker) {
    #pragma omp parallel for private(i) schedule(static)
    for (i=0;i<n;++i)
         if(mis_marker[i]==IS_AVAILABLE)
-                    mis_marker[i]=IS_REMOVED;
+                    mis_marker[i]=IS_IN_SET;
 
 
     for (i=0;i<n;++i) {
-      if (mis_marker[i]==IS_REMOVED) {
+      if (mis_marker[i]==IS_IN_SET) {
         for (iptr=pattern->ptr[i];iptr<pattern->ptr[i+1]; ++iptr) {
              j=pattern->index[iptr];
-             mis_marker[j]=IS_IN_SET;
+             mis_marker[j]=IS_REMOVED;
         }
       }
     }
@@ -306,11 +304,11 @@ void Paso_Pattern_greedy(Paso_Pattern* pattern, index_t* mis_marker) {
     
      
     for (i=0;i<n;i++) {
-        if (mis_marker[i]==IS_IN_SET) {
+        if (mis_marker[i]==IS_REMOVED) {
            passed=TRUE;
            for (iptr=pattern->ptr[i];iptr<pattern->ptr[i+1]; ++iptr) {
               j=pattern->index[iptr];
-                if (mis_marker[j]==IS_IN_SET) {
+                if (mis_marker[j]==IS_REMOVED) {
                     passed=TRUE;
                 }
                 else {
@@ -318,13 +316,13 @@ void Paso_Pattern_greedy(Paso_Pattern* pattern, index_t* mis_marker) {
                     break;
                 }
               } 
-           if (passed) mis_marker[i]=IS_REMOVED;
+           if (passed) mis_marker[i]=IS_IN_SET;
            }
         }
 
      /* swap to TRUE/FALSE in mis_marker */
      #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]!=IS_IN_SET);
+     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]!=IS_REMOVED);
      
 }
 
@@ -392,8 +390,9 @@ void Paso_Pattern_greedy_color(Paso_Pattern* pattern, index_t* mis_marker) {
                 }
               }
            }
-           }
            if (passed) mis_marker[i]=IS_IN_SET;
+           }
+           
         }
     }
    }
