@@ -37,7 +37,7 @@ import numpy as np #numerial python for arrays
 from math import * # math package
 
 #used to construct polygons for plotting from pycad
-from cblib import getLoopCoords, needdirs
+from cblib1 import getLoopCoords, needdirs
 
 
 
