@@ -46,7 +46,8 @@ matplotlib.use('agg') #It's just here for automated testing
 import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os #This package is necessary to handle saving our data.
-from cblib import toXYTuple, needdirs
+from cblib2 import toXYTuple
+from cblib1 import needdirs
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:

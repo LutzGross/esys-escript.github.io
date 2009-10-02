@@ -26,7 +26,7 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 #Please ensure that if you need to use the agg back-end that you have chosen it before 
 #calling functions in this file
 
-
+import numpy as np
 # Calculate the location of quivers for a matplotlib plot
 # quivshape :: [x,y] :: number of quivers in x and y direction
 # lenxax :: length of model along x

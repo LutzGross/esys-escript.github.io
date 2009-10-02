@@ -34,7 +34,7 @@ from esys.finley import MakeDomain
 import os
 import numpy as np
 from math import *
-from cblib import needdirs, getLoopCoords
+from cblib1 import needdirs, getLoopCoords
 
 #################################################ESTABLISHING VARIABLES
 # where to put output files
