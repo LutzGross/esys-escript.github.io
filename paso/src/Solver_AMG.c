@@ -396,7 +396,6 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
           for (i=0;i<amg->A->len;++i) {
                temp->val[i]=amg->A->val[i];
           }
-          amg->solver=(void*) ptr;
           Paso_SparseMatrix_free(temp);
          #else
           Paso_Solver_solveJacobi(amg->GS,x,b);
