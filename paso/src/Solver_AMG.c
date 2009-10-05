@@ -143,6 +143,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      /*out->GS=Paso_Solver_getGS(A_p,verbose);*/
      out->level=level;
      out->n=n;
+     out->n_F=0;
      out->n_block=n_block;
      
      if (level==0 || n<=options->min_coarse_matrix_size) {
