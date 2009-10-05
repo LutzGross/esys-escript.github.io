@@ -553,7 +553,7 @@ namespace DataTypes
          break;
       default:
          stringstream mess;
-         os << mess << "Error - (pointToStream) Invalid rank: " << getRank(shape);
+         mess << "Error - (pointToStream) Invalid rank: " << getRank(shape);
          throw DataException(mess.str());
       }
    }
