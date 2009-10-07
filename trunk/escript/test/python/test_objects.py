@@ -166,7 +166,9 @@ class Test_saveCSV(unittest.TestCase):
 	line=f.readline()
 	self.failUnless(line=='A_0_0, A_1_0, A_0_1, A_1_1, B_0_0_0, B_0_0_1, B_1_0_0, B_1_0_1, B_0_1_0, B_0_1_1, B_1_1_0, B_1_1_1, C_0_0_0_0, C_0_0_0_1, C_0_0_1_0, C_0_0_1_1, C_1_0_0_0, C_1_0_0_1, C_1_0_1_0, C_1_0_1_1, C_0_1_0_0, C_0_1_0_1, C_0_1_1_0, C_0_1_1_1, C_1_1_0_0, C_1_1_0_1, C_1_1_1_0, C_1_1_1_1\n')
 	line=f.readline()
-	self.failUnless(line=='7.000000000000000e+00, 7.000000000000000e+00, 7.000000000000000e+00, 7.000000000000000e+00, 8.000000000000000e+00, 8.000000000000000e+00, 8.000000000000000e+00, 8.000000000000000e+00, 8.000000000000000e+00, 8.000000000000000e+00, 8.000000000000000e+00, 8.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00, 9.000000000000000e+00\n')
+	line_expected=[7.]*4+[8.]*8+[9.]*16
+	line_got=[float(elt) for elt in line.split(',')]
+	self.failUnless(line_got==line_expected)
 	linecount=1
 	while line != '':
 		linecount+=1
@@ -174,12 +176,14 @@ class Test_saveCSV(unittest.TestCase):
 	self.failUnless(linecount!=self.linecount1)
 	f.close()	
 	#Now to test separators and mask
-	saveDataCSV(fname, sep="+",csep="/", U=X, V=X0, mask=X0)
+	saveDataCSV(fname, sep="|",csep="/", U=X, V=X0, mask=X0)
 	f=open(fname,'r')
 	line=f.readline()
-	self.failUnless(line=='U/0+U/1+V\n')
+	self.failUnless(line=='U/0|U/1|V\n')
 	line=f.readline()
-	self.failUnless(line=='1.250000000000000e-01+0.000000000000000e+00+1.250000000000000e-01\n')
+	line_expected=[0.125, 0., 0.125]
+	line_got=[float(elt) for elt in line.split('|')]
+	self.failUnless(line_expected==line_got)
 	linecount=1
 	while line!='':
 		linecount+=1
