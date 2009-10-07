@@ -155,15 +155,15 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      
      if (level==0 || n<=options->min_coarse_matrix_size) {
          out->coarsest_level=TRUE;
-         #ifdef UMFPACK 
-         #else
-            #ifdef MKL
+         #ifdef MKL
                   out->AOffset1=Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, out->A->pattern,1,1, FALSE);
                   #pragma omp parallel for private(i) schedule(static)
                   for (i=0;i<out->A->len;++i) {
                        out->AOffset1->val[i]=out->A->val[i];
                   }
-            #else 
+         #else
+            #ifdef UMFPACK 
+            #else
                 out->GS=Paso_Solver_getJacobi(A_p);
             #endif
          #endif
@@ -394,15 +394,15 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         Paso_Solver_solveJacobi(amg->GS,x,b);
       }
        else {
-       #ifdef UMFPACK
+       #ifdef MKL
+          Paso_MKL1(amg->AOffset1,x,b,verbose);
+       #else
+          #ifdef UMFPACK
              ptr=(Paso_UMFPACK_Handler *)(amg->solver);
              Paso_UMFPACK1(&ptr,amg->A,x,b,verbose);
              amg->solver=(void*) ptr;
-       #else      
-         #ifdef MKL
-          Paso_MKL1(amg->AOffset1,x,b,verbose);
-         #else
-          Paso_Solver_solveJacobi(amg->GS,x,b);
+          #else      
+             Paso_Solver_solveJacobi(amg->GS,x,b);
          #endif
        #endif
        }
