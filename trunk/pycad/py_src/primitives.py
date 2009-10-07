@@ -1174,11 +1174,11 @@ class Manifold2D(PrimitiveBase):
         if top==None or bottom == None: 
              raise ValueError,"transfinite meshing cannot be applied to boundary is not closed. Most likely the orientation of some boundray segments is wrong."
         if opposite == None:  # three sides only
-             if not top.getElementDistribution() == bottom.getElementDistribution(): start, top, bottom= bottom, start, top
+             if not top.getElementDistribution()[0] == bottom.getElementDistribution()[0]: start, top, bottom= bottom, start, top
         if not top.getElementDistribution() == bottom.getElementDistribution():
              raise ValueError,"transfinite meshing requires oposite faces to be have the same element distribution."
         if not opposite == None:
-            if not start.getElementDistribution() == opposite.getElementDistribution():
+            if not start.getElementDistribution()[0] == opposite.getElementDistribution()[0]:
                 raise ValueError,"transfinite meshing requires oposite faces to be have the same element distribution."
         if opposite == None:
             if bottom.getEndPoint ==  top.getStartPoint():
