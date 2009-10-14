@@ -204,7 +204,26 @@ class TagMap(object):
 class Design(object):
     """
     Template for a design which defines the input for a mesh generator.
+
+    :cvar GMSH: U{gmsh<http://www.geuz.org/gmsh/>} file formatt
+    :cvar IDEAS: U{I_DEAS<http://www.plm.automation.siemens.com/en_us/products/nx/>} universal file format
+    :cvar VRML: U{VRML<http://www.w3.org/MarkUp/VRML/>} file format
+    :cvar STL: U{STL<http://en.wikipedia.org/wiki/STL_(file_format)>} file format
+    :cvar NASTRAN: U{Nastran<http://simcompanion.mscsoftware.com/infocenter/index?page=content&channel=DOCUMENTATION>} bulk data format
+    :cvar MEDIT: U{Medit<http://www-rocq.inria.fr/OpenFEM/Doc/>} file format
+    :cvar CGNS: U{CGNS<http://cgns.sourceforge.net/>} file format
+    :cvar PLOT3D:  U{Plot3D<http://www.plot3d.net/>} file format
+    :cvar DIFFPACK: U{Diffpack<http://www.diffpack.com/>} file format
     """
+    GMSH="msh"
+    IDEAS="unv"
+    VRML="vrml"
+    STL="stl"
+    NASTRAN="bdf"
+    MEDIT="mesh"
+    CGNS="cgns"
+    PLOT3D="p3d"
+    DIFFPACK="diff"
     def __init__(self,dim=3,element_size=1.,order=1,keep_files=False):
        """
        Initializes a design.
@@ -218,6 +237,8 @@ class Design(object):
        self.setElementSize(element_size)
        self.setDim(dim)
        self.setElementOrder(order)
+       self.setFileFormat()
+       self.setMeshFileName()
        if keep_files:
           self.setKeepFilesOn()
        else:
@@ -335,6 +356,14 @@ class Design(object):
                implementation.
         """
         pass
+    def generate(self):
+        """
+        generate output file 
+        
+        :note: this method may be overwritten by a particular design
+               implementation.
+        """
+        self.getMeshHandler()
 
     def getMeshHandler(self):
         """
@@ -353,4 +382,41 @@ class Design(object):
         for p in self.getAllPrimitives():
            if isinstance(p, PropertySet): m[ p.getTag() ] = p.getName()
         return TagMap(m)
+
+    def setFileFormat(self,format='msh'):
+       """
+       Sets the file format to be used.
+
+       :param format: format to be used. needs to be one of 
+
+       """
+       if not format in [ self.GMSH, self.IDEAS, self.VRML, self.STL, self.NASTRAN, self.MEDIT, self.CGNS, self.PLOT3D, self.DIFFPACK] :
+           raise ValueError,"unknown file format %s."%format
+       self.__fileformat=format
+           
+    def getFileFormat(self):
+       """
+       Returns the file format
+       """
+       return self.__fileformat
+
+    def setMeshFileName(self, name=None):
+       """
+       Sets the name for the mesh file. If no name is given a name is generated.
+       """
+       if name == None:
+           tmp_f_id=tempfile.mkstemp(suffix="."+self.getFileFormat())
+           self.__mshname=tmp_f_id[1]
+           os.close(tmp_f_id[0])
+       else:
+           self.__mshname=name
+           self.setKeepFilesOn()
+
+    def getMeshFileName(self):
+       """
+       Returns the name of the mesh file.
+       """
+       return self.__mshname
+
+
 

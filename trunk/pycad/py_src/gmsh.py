@@ -60,6 +60,7 @@ class Design(design.Design):
        self.setScriptFileName()
        self.setMeshFileName()
        self.setOptions()
+       self.setFileFormat(self.GMSH)
 
     def setScriptFileName(self,name=None):
        """
@@ -79,19 +80,6 @@ class Design(design.Design):
        Returns the name of the gmsh script file.
        """
        return self.__scriptname
-
-    def setMeshFileName(self, name=None):
-       """
-       Sets the name for the gmsh mesh file. If no name is given a name with
-       extension I{msh} is generated.
-       """
-       if name == None:
-           tmp_f_id=tempfile.mkstemp(suffix=".msh")
-           self.__mshname=tmp_f_id[1]
-           os.close(tmp_f_id[0])
-       else:
-           self.__mshname=name
-           self.setKeepFilesOn()
 
     def getMeshFileName(self):
        """
@@ -127,7 +115,8 @@ class Design(design.Design):
         else:
               opt=""
 
-        exe="gmsh -format msh -%s -algo %s -smooth %s %s-v 3 -order %s -o %s %%s" % (
+        exe="gmsh -format %s -%s -algo %s -smooth %s %s-v 3 -order %s -o %s %%s" % (
+                self.getFileFormat(), 
                 self.getDim(), self.__algo, self.__smoothing, opt,
                 self.getElementOrder(), self.getMeshFileName())
         return exe
@@ -139,7 +128,6 @@ class Design(design.Design):
         if getMPIRankWorld() == 0:
             open(self.getScriptFileName(),"w").write(self.getScriptString())
         return self.getScriptFileName()
-
 
     def getMeshHandler(self):
         """
