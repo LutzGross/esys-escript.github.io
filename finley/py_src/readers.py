@@ -53,12 +53,15 @@ def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeL
     :rtype: `Domain`
     """
     if isinstance(design, GMSHDesign):
+        ff=design.getFileFormat()
+        design.setFileFormat(design.GMSH)
         mshname=design.getMeshHandler()
         dom = ReadGmsh(mshname,
                        design.getDim(),
                        integrationOrder,
                        reducedIntegrationOrder,
                        optimizeLabeling)
+        design.setFileFormat(ff)
     else:
         raise TypeError("Finley does not support %s designs."%design.__class__.__name__)
     # fill in the tag map
