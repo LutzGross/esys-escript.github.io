@@ -377,19 +377,16 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
             sp.initialize(...)
             v,p=sp.solve(v0,p0)
      """
-     def __init__(self,domain,adaptSubTolerance=True, **kwargs):
+     def __init__(self,domain,**kwargs):
          """
          initialize the Stokes Problem
 
          :param domain: domain of the problem. The approximation order needs to be two.
          :type domain: `Domain`
-	 :param adaptSubTolerance: If True the tolerance for subproblem is set automatically.
-	 :type adaptSubTolerance: ``bool``
          :warning: The apprximation order needs to be two otherwise you may see oscilations in the pressure.
          """
-         HomogeneousSaddlePointProblem.__init__(self,adaptSubTolerance=adaptSubTolerance,**kwargs)
+         HomogeneousSaddlePointProblem.__init__(self,**kwargs)
          self.domain=domain
-         self.vol=util.integrate(1.,Function(self.domain))
          self.__pde_u=LinearPDE(domain,numEquations=self.domain.getDim(),numSolutions=self.domain.getDim())
          self.__pde_u.setSymmetryOn()
 	 
@@ -448,19 +445,6 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 	 :rtype: `SolverOptions`
 	 """
 	 return self.__pde_proj.getSolverOptions()
-     def setSubProblemTolerance(self):
-         """
-	 Updates the tolerance for subproblems
-         """
-	 if self.adaptSubTolerance():
-             sub_tol=self.getSubProblemTolerance()
-	     self.getSolverOptionsDiv().setTolerance(sub_tol)
-	     self.getSolverOptionsDiv().setAbsoluteTolerance(0.)
-	     self.getSolverOptionsPressure().setTolerance(sub_tol)
-	     self.getSolverOptionsPressure().setAbsoluteTolerance(0.)
-	     self.getSolverOptionsVelocity().setTolerance(sub_tol)
-	     self.getSolverOptionsVelocity().setAbsoluteTolerance(0.)
-	     
 
      def initialize(self,f=Data(),fixed_u_mask=Data(),eta=1,surface_stress=Data(),stress=Data(), restoration_factor=0):
         """
@@ -492,7 +476,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
         self.__surface_stress=surface_stress
         self.__stress=stress
 
-     def Bv(self,v):
+     def Bv(self,v,tol):
          """
          returns inner product of element p and div(v)
 
@@ -500,8 +484,11 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          :return: inner product of element p and div(v)
          :rtype: ``float``
          """
-         self.__pde_proj.setValue(Y=-util.div(v))
-         return self.__pde_proj.getSolution()
+         self.__pde_proj.setValue(Y=-util.div(v)) # -???
+	 self.getSolverOptionsDiv().setTolerance(tol)
+	 self.getSolverOptionsDiv().setAbsoluteTolerance(0.)
+         out=self.__pde_proj.getSolution()
+         return out
 
      def inner_pBv(self,p,Bv):
          """
@@ -523,8 +510,8 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          :return: inner product of p0 and p1
          :rtype: ``float``
          """
-         s0=util.interpolate(p0/self.eta,Function(self.domain))
-         s1=util.interpolate(p1/self.eta,Function(self.domain))
+         s0=util.interpolate(p0,Function(self.domain))
+         s1=util.interpolate(p1,Function(self.domain))
          return util.integrate(s0*s1)
 
      def norm_v(self,v):
@@ -535,21 +522,23 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          :return: norm of v
          :rtype: non-negative ``float``
          """
-         return util.sqrt(util.integrate(util.length(util.grad(v))))
+         return util.sqrt(util.integrate(util.length(util.grad(v))**2))
 
-     def getV(self, p, v0):
+     def getDV(self, p, v, tol):
          """
          return the value for v for a given p (overwrite)
 
          :param p: a pressure
-         :param v0: a initial guess for the value v to return.
-         :return: v given as *v= A^{-1} (f-B^*p)*
+         :param v: a initial guess for the value v to return.
+         :return: dv given as *Adv=(f-Av-B^*p)*
          """
-         self.__pde_u.setValue(Y=self.__f, y=self.__surface_stress, r=v0)
+         self.__pde_u.setValue(Y=self.__f, y=self.__surface_stress)
+	 self.getSolverOptionsVelocity().setTolerance(tol)
+	 self.getSolverOptionsVelocity().setAbsoluteTolerance(0.)
          if self.__stress.isEmpty():
-            self.__pde_u.setValue(X=p*util.kronecker(self.domain))
+            self.__pde_u.setValue(X=p*util.kronecker(self.domain)-2*self.eta*util.symmetric(util.grad(v)))
          else:
-            self.__pde_u.setValue(X=self.__stress+p*util.kronecker(self.domain))
+            self.__pde_u.setValue(X=self.__stress+p*util.kronecker(self.domain)-2*self.eta*util.symmetric(util.grad(v)))
          out=self.__pde_u.getSolution()
          return  out
 
@@ -562,19 +551,19 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
         """
         return util.sqrt(util.integrate(util.interpolate(Bv,Function(self.domain))**2))
 
-     def solve_AinvBt(self,p):
+     def solve_AinvBt(self,p, tol):
          """
-         Solves *Av=B^*p* with accuracy `self.getSubProblemTolerance()`
+         Solves *Av=B^*p* with accuracy `tol`
 
          :param p: a pressure increment
          :return: the solution of *Av=B^*p*
          :note: boundary conditions on v should be zero!
          """
-         self.__pde_u.setValue(Y=Data(), y=Data(), r=Data(),X=-p*util.kronecker(self.domain))
+         self.__pde_u.setValue(Y=Data(), y=Data(), X=-p*util.kronecker(self.domain))
          out=self.__pde_u.getSolution()
          return  out
 
-     def solve_prec(self,Bv):
+     def solve_prec(self,Bv, tol):
          """
          applies preconditioner for for *BA^{-1}B^** to *Bv*
          with accuracy `self.getSubProblemTolerance()` 
@@ -584,4 +573,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          :note: boundary conditions on p are zero.
          """
          self.__pde_prec.setValue(Y=Bv)
-         return self.__pde_prec.getSolution()
+	 self.getSolverOptionsPressure().setTolerance(tol)
+	 self.getSolverOptionsPressure().setAbsoluteTolerance(0.)
+         out=self.__pde_prec.getSolution()
+         return out
