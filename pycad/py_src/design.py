@@ -35,6 +35,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from primitives import Primitive, ReversePrimitive, PropertySet, Point, Manifold1D, Manifold2D, Manifold3D
 from xml.dom import minidom
+import tempfile, os
 
 class TagMap(object):
     """
