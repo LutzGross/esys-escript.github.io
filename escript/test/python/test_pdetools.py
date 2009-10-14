@@ -965,31 +965,31 @@ class Test_pdetools_noLumping(unittest.TestCase):
                                  [  806.289245589733468,-1630.506196356609053, 2145.65035816388945 ]])
            def inner_pBv(self,p,Bv):
               return dot(p,Bv)
-           def Bv(self,v):
+           def Bv(self,v, tol):
               return dot(transpose(self.Bt),v)
            def inner_p(self,p0,p1):
               return dot(p0,p1)
            def norm_v(self,v):
                return sqrt(dot(v,v))
-           def getV(self,p,v):
-               out=self.b-dot(self.Bt,p)
-               return solve_linear_equations(self.A,out)+v*self.getSubProblemTolerance()
+           def getDV(self,p,v, tol):
+               dv=solve_linear_equations(self.A, self.b-dot(self.Bt,p)-dot(self.A,v))
+               return dv*(1+tol)
            def norm_Bv(self,Bv):
                return sqrt(dot(Bv,Bv))
-           def solve_AinvBt(self,p):
-               out=dot(self.Bt,p)
-               return solve_linear_equations(self.A,out)
-           def solve_prec(self,Bv):
+           def solve_AinvBt(self,p, tol):
+               out=solve_linear_equations(self.A, dot(self.Bt,p))
+               return out*(1.+tol)
+           def solve_prec(self,Bv, tol):
                out=Bv*1.
                for i in xrange(size(out)): out[i]*=self.Sinv[i,i]
-               return out
+               return out*(1-tol)
 
       tol=1.e-8
       ll=LL()
       ll.initialize()
       ll.setTolerance(tol)
       # ll.setSubToleranceReductionFactor(0.1)
-      x,p=ll.solve(ll.x_ref*1.20,ll.p_ref*(-2),max_iter=20, verbose=False, usePCG=True, iter_restart=20,max_correction_steps=3)
+      x,p=ll.solve(ll.x_ref*1.20,ll.p_ref*(-2),max_iter=20, verbose=False, usePCG=True, iter_restart=20,max_correction_steps=10)
       self.failUnless(Lsup(x-ll.x_ref)<=Lsup(ll.x_ref)*tol*10.,"wrong x solution")
       self.failUnless(Lsup(p-ll.p_ref)<=Lsup(ll.p_ref)*tol*10.,"wrong p solution")
 
@@ -1075,31 +1075,31 @@ class Test_pdetools_noLumping(unittest.TestCase):
                                  [  806.289245589733468,-1630.506196356609053, 2145.65035816388945 ]])
            def inner_pBv(self,p,Bv):
               return dot(p,Bv)
-           def Bv(self,v):
+           def Bv(self,v, tol):
               return dot(transpose(self.Bt),v)
            def inner_p(self,p0,p1):
               return dot(p0,p1)
            def norm_v(self,v):
                return sqrt(dot(v,v))
-           def getV(self,p,v):
-               out=self.b-dot(self.Bt,p)
-               return solve_linear_equations(self.A,out)+v*self.getSubProblemTolerance()
+           def getDV(self,p,v, tol):
+               dv=solve_linear_equations(self.A, self.b-dot(self.Bt,p)-dot(self.A,v))
+               return dv*(1+tol)
            def norm_Bv(self,Bv):
                return sqrt(dot(Bv,Bv))
-           def solve_AinvBt(self,p):
-               out=dot(self.Bt,p)
-               return solve_linear_equations(self.A,out)
-           def solve_prec(self,Bv):
+           def solve_AinvBt(self,p, tol):
+               out=solve_linear_equations(self.A, dot(self.Bt,p))
+               return out*(1.+tol)
+           def solve_prec(self,Bv, tol):
                out=Bv*1.
                for i in xrange(size(out)): out[i]*=self.Sinv[i,i]
-               return out
-              
+               return out*(1-tol)
+
       tol=1.e-8
       ll=LL()
       ll.initialize()
       ll.setTolerance(tol)
       # ll.setSubToleranceReductionFactor(0.1)
-      x,p=ll.solve(ll.x_ref*1.20,ll.p_ref*(-2),max_iter=20, verbose=False, usePCG=False, iter_restart=20,max_correction_steps=3)
+      x,p=ll.solve(ll.x_ref*1.20,ll.p_ref*(-2),max_iter=20, verbose=False, usePCG=False, iter_restart=20,max_correction_steps=10)
       self.failUnless(Lsup(x-ll.x_ref)<=Lsup(ll.x_ref)*tol*10.,"wrong x solution")
       self.failUnless(Lsup(p-ll.p_ref)<=Lsup(ll.p_ref)*tol*10.,"wrong p solution")
 

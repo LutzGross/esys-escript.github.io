@@ -91,7 +91,7 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
-       sp.setTolerance(self.TOL*0.2)
+       sp.setTolerance(self.TOL)
        u,p=sp.solve(u0,p0, verbose=VERBOSE,max_iter=100,usePCG=True)
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
@@ -118,6 +118,7 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
        p0=Scalar(-P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
        u,p=sp.solve(u0,p0, verbose=VERBOSE,max_iter=100,usePCG=True)
+       # u,p=sp.solve(u0,p0, verbose=VERBOSE,max_iter=100,usePCG=True)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
@@ -168,12 +169,13 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
-       sp.setTolerance(self.TOL*0.1)
+       sp.setTolerance(self.TOL)
        u,p=sp.solve(u0,p0, verbose=VERBOSE,max_iter=20,usePCG=False)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
        error_p=Lsup(P1*x[0]*x[1]+p)
+
        self.failUnless(error_p<10*self.TOL, "pressure error too large.")
        self.failUnless(error_v0<10*self.TOL, "0-velocity error too large.")
        self.failUnless(error_v1<10*self.TOL, "1-velocity error too large.")
@@ -262,7 +264,7 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
-       sp.setTolerance(self.TOL*0.1)
+       sp.setTolerance(self.TOL)
        u,p=sp.solve(u0,p0, verbose=VERBOSE ,max_iter=100,usePCG=True)
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
@@ -293,7 +295,7 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
-       u,p=sp.solve(u0,-p0, verbose=VERBOSE ,max_iter=100,usePCG=True)
+       u,p=sp.solve(u0,p0, verbose=VERBOSE ,max_iter=100,usePCG=True)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
@@ -354,7 +356,7 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
-       sp.setTolerance(self.TOL*0.1)
+       sp.setTolerance(self.TOL/10)
        u,p=sp.solve(u0,p0, verbose=VERBOSE,max_iter=100,usePCG=False)
        
        error_v0=Lsup(u[0]-u0[0])
