@@ -43,6 +43,7 @@ class DataTestCase : public CppUnitTest::TestCase
   void testDataTaggedExceptions();
   void testSlicing();
   void testOperations();
+  void testMoreOperations();
   void testMemAlloc();
   void testCopying();
   void testResolveType();

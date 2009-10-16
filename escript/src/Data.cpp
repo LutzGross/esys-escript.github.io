@@ -87,6 +87,8 @@ using namespace escript;
 	return Data(c);\
   }
 
+#define CHECK_DO_CRES escriptParams.getRESOLVE_COLLECTIVE()
+
 namespace
 {
 
@@ -552,8 +554,12 @@ Data::copy(const Data& other)
 Data
 Data::delay()
 {
-  DataLazy* dl=new DataLazy(m_data);
-  return Data(dl);
+  if (!isLazy())
+  {
+      DataLazy* dl=new DataLazy(m_data);
+      return Data(dl);
+  }
+  return *this;
 }
 
 void
@@ -1199,7 +1205,6 @@ Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::object& o
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-  forceResolve();
 
   WrappedArray w(obj);
   //
@@ -1213,6 +1218,9 @@ Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::object& o
     if (w.getShape()[i]!=getDataPointShape()[i])
        throw DataException("Shape of array does not match Data object rank");
   }
+
+  exclusiveWrite();
+
   //
   // make sure data is expanded:
   //
@@ -1236,7 +1244,7 @@ Data::setValueOfDataPoint(int dataPointNo, const double value)
   }
   //
   // make sure data is expanded:
-  forceResolve();
+  exclusiveWrite();
   if (!isExpanded()) {
     expand();
   }
@@ -1318,8 +1326,8 @@ Data::integrateToTuple()
 {
   if (isLazy())
   {
-	expand(); 
-  }
+	expand(); 	// Can't do a non-resolving version of this without changing the domain object
+  }			// see the dom->setToIntegrals call. Not saying it can't be done, just not doing it yet.
   return integrateWorker();
 
 }
@@ -1546,7 +1554,18 @@ Data::Lsup()
 {
    if (isLazy())
    {
-	resolve();
+	if (!actsExpanded() || CHECK_DO_CRES)
+	{
+	    resolve();
+	}
+	else
+	{
+#ifdef PASO_MPI
+	    return lazyAlgWorker<AbsMax>(0,MPI_MAX);
+#else
+	    return lazyAlgWorker<AbsMax>(0,0);
+#endif
+	}
    }
    return LsupWorker();
 }
@@ -1566,7 +1585,18 @@ Data::sup()
 {
    if (isLazy())
    {
-	resolve();
+	if (!actsExpanded() || CHECK_DO_CRES)
+	{
+	    resolve();
+	}
+	else
+	{
+#ifdef PASO_MPI
+	    return lazyAlgWorker<FMax>(numeric_limits<double>::max()*-1, MPI_MAX);
+#else
+	    return lazyAlgWorker<FMax>(numeric_limits<double>::max()*-1, 0);
+#endif
+	}
    }
    return supWorker();
 }
@@ -1586,9 +1616,63 @@ Data::inf()
 {
    if (isLazy())
    {
-	resolve();
+	if (!actsExpanded() || CHECK_DO_CRES)
+	{
+	    resolve();
+	}
+	else
+	{
+#ifdef PASO_MPI
+	    return lazyAlgWorker<FMin>(numeric_limits<double>::max(), MPI_MIN);
+#else
+	    return lazyAlgWorker<FMin>(numeric_limits<double>::max(), 0);
+#endif
+	}
    }
    return infWorker();
+}
+
+template <class BinaryOp>
+double
+Data::lazyAlgWorker(double init, int mpiop_type)
+{
+   if (!isLazy() || !m_data->actsExpanded())
+   {
+	throw DataException("Error - lazyAlgWorker can only be called on lazy(expanded) data.");
+   }
+   DataLazy* dl=dynamic_cast<DataLazy*>(m_data.get());
+   EsysAssert((dl!=0), "Programming error - casting to DataLazy.");
+   BufferGroup* bg=allocSampleBuffer();
+   double val=init;
+   int i=0;
+   const size_t numsamples=getNumSamples();
+   const size_t samplesize=getNoValues()*getNumDataPointsPerSample();
+   BinaryOp operation;
+   #pragma omp parallel private(i)
+   {
+	double localtot=init;
+	#pragma omp for schedule(static) private(i)
+	for (i=0;i<numsamples;++i)
+	{
+	    size_t roffset=0;
+	    const DataTypes::ValueType* v=dl->resolveSample(*bg, i, roffset);
+	    // Now we have the sample, run operation on all points
+	    for (size_t j=0;j<samplesize;++j)
+	    {
+		localtot=operation(localtot,(*v)[j+roffset]);
+	    }
+	}
+	#pragma omp critical
+	val=operation(val,localtot);
+   }
+   freeSampleBuffer(bg);
+#ifdef PASO_MPI
+   double globalValue;
+   MPI_Allreduce( &val, &globalValue, 1, MPI_DOUBLE, mpiop_type, MPI_COMM_WORLD );
+   return globalValue;
+#else
+   return val;
+#endif
 }
 
 double
@@ -1648,12 +1732,7 @@ Data::infWorker() const
 Data
 Data::maxval() const
 {
-  if (isLazy())
-  {
-	Data temp(*this);	// to get around the fact that you can't resolve a const Data
-	temp.resolve();
-	return temp.maxval();
-  }
+   MAKELAZYOP(MAXVAL)
   //
   // set the initial maximum value to min possible double
   FMax fmax_func;
@@ -1663,12 +1742,7 @@ Data::maxval() const
 Data
 Data::minval() const
 {
-  if (isLazy())
-  {
-	Data temp(*this);	// to get around the fact that you can't resolve a const Data
-	temp.resolve();
-	return temp.minval();
-  }
+  MAKELAZYOP(MINVAL)
   //
   // set the initial minimum value to max possible double
   FMin fmin_func;
@@ -1854,6 +1928,7 @@ Data::transpose(int axis_offset) const
         throw DataException("Error - Data::transpose must have 0 <= axis_offset <= rank=" + rank);
      }
      for (int i=0; i<rank; i++) {
+
        int index = (axis_offset+i)%rank;
        ev_shape.push_back(s[index]); // Append to new shape
      }

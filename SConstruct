@@ -102,6 +102,7 @@ adder(
   BoolVariable('usepedantic', 'Compile with -pedantic if using gcc', 'no'),
   BoolVariable('usewarnings','Compile with warnings as errors if using gcc','yes'),
   ('forcelazy','for testing use only - set the default value for autolazy','leave_alone'),
+  ('forcecollres','for testing use only - set the default value for force resolving collective ops','leave_alone'),
 # Python
   ('python_path', 'Path to Python includes', '/usr/include/'+python_version),
   ('python_lib_path', 'Path to Python libs', usr_lib),
@@ -269,10 +270,20 @@ if env["omp_libs"]	== "-DEFAULT_6": env['omp_libs'] = omp_libs
 #set up the autolazy values
 if env['forcelazy']    != "leave_alone":
   if env['forcelazy'] == 'on':
-	env.Append(CPPDEFINES='FAUTOLAZYON')
+	env.Append(CPPDEFINES=['FAUTOLAZYON'])
   else:
      if env['forcelazy'] == 'off':
-	env.Append(CPPDEFINES='FAUTOLAZYOFF')
+	env.Append(CPPDEFINES=['FAUTOLAZYOFF'])
+
+#set up the colective resolve values
+if env['forcecollres']    != "leave_alone":
+  print env['forcecollres']
+  if env['forcecollres'] == 'on':
+	env.Append(CPPDEFINES=['FRESCOLLECTON'])
+  else:
+     if env['forcecollres'] == 'off':
+	env.Append(CPPDEFINES=['FRESCOLLECTOFF'])
+ 
 
 # OpenMP is disabled if useopenmp=no or both variables omp_optim and omp_debug are empty
 if not env["useopenmp"]:

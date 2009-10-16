@@ -750,6 +750,69 @@ void DataTestCase::testConstructors() {
   }
 }
 
+void DataTestCase::testMoreOperations()
+{
+   cout << endl;
+   DataTypes::ShapeType shape;
+   shape.push_back(3);
+   shape.push_back(3);
+
+  // allocate the data 
+  DataTypes::ValueType data(DataTypes::noValues(shape),0);
+
+  // assign values to the data
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      data[getRelIndex(shape,i,j)]=getRelIndex(shape,i,j);
+    }
+  }
+
+
+
+  Data dats[]={Data(data,shape,FunctionSpace(),false),
+		Data(data,shape,FunctionSpace(),false),
+		Data(data,shape,FunctionSpace(),true),
+		Data(data,shape,FunctionSpace(),false),
+		Data(data,shape,FunctionSpace(),false),
+		Data(data,shape,FunctionSpace(),true)};
+  const int NUMDATS=6;
+//  const int LAZY=3;		// where do the lazy objects start?
+
+//   Data baseEx(data,shape,FunctionSpace(),true);
+//   Data baseCon(data,shape,FunctionSpace(),false);
+//   Data baseTag(data,shape,FunctionSpace(),false);
+  Data& baseCon=dats[0];
+  Data& baseTag=dats[1];
+  Data& baseEx=dats[2];
+  baseTag.tag();
+  dats[4].tag();
+  dats[3].delaySelf();
+  dats[4].delaySelf();
+  dats[5].delaySelf();
+
+  assert(baseEx.isExpanded());
+  assert(baseCon.isConstant());
+  assert(baseTag.isTagged());
+
+  Data results[NUMDATS];
+  double tmp;
+  cout << "\tTest Data::trace(0)." << endl;
+  for (int z=0;z<NUMDATS;++z)
+  {
+    results[z].copy(dats[z].trace(0));
+  }
+  for (int z=0;z<NUMDATS;++z)
+  {
+	tmp=0;
+	for (int i=0;i<shape[0];++i)
+	{
+	   tmp+=getRef(dats[z],i,i);
+	}
+	assert(std::abs(results[z].getDataAtOffsetRO(0) - tmp) <= REL_TOL*std::abs(tmp));
+  }
+
+
+}
 
 void DataTestCase::testOperations()
 {
@@ -1320,6 +1383,65 @@ void DataTestCase::testOperations()
     assert(std::abs(results[z].getDataAtOffsetRO(0) - 5) <= REL_TOL*5);
   }
 
+  cout << "\tTest Data::whereZero." << endl;
+  for (int z=0;z<NUMDATS;++z)
+  {
+    results[z].copy(dats[z].whereZero(2));
+  }
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=(getRelIndex(shape,i,j)<=2);
+      for (int z=0;z<NUMDATS;++z)
+      {
+	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      }
+    }
+  } 
+
+  cout << "\tTest Data::whereNonZero." << endl;
+  for (int z=0;z<NUMDATS;++z)
+  {
+    results[z].copy(dats[z].whereNonZero(2));
+  }
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=!(getRelIndex(shape,i,j)<=2);
+      for (int z=0;z<NUMDATS;++z)
+      {
+	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      }
+    }
+  } 
+
+  cout << "\tTest Data::transpose(1)." << endl;
+  for (int z=0;z<NUMDATS;++z)
+  {
+    results[z].copy(dats[z].transpose(1));
+  }
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+     for (int z=0;z<NUMDATS;++z)
+     {
+        tmp=getRef(dats[z],i,j);
+	assert(std::abs(getRef(results[z],j,i) - tmp) <= REL_TOL*std::abs(tmp));
+     }
+    }
+  } 
+
+  cout << "\tTest Data::swapaxes(0,1)." << endl;
+  for (int z=0;z<NUMDATS;++z)
+  {
+    results[z].copy(dats[z].swapaxes(0,1));
+  }
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+     for (int z=0;z<NUMDATS;++z)
+     {
+        tmp=getRef(dats[z],i,j);
+	assert(std::abs(getRef(results[z],j,i) - tmp) <= REL_TOL*std::abs(tmp));
+     }
+    }
+  } 
 }
 
 
@@ -1423,8 +1545,9 @@ TestSuite* DataTestCase::suite ()
   testSuite->addTest (new TestCaller< DataTestCase>("testConstructors",&DataTestCase::testConstructors));
   testSuite->addTest (new TestCaller< DataTestCase>("testSlicing",&DataTestCase::testSlicing));
   testSuite->addTest (new TestCaller< DataTestCase>("testOperations",&DataTestCase::testOperations));
+  testSuite->addTest (new TestCaller< DataTestCase>("testMoreOperations",&DataTestCase::testMoreOperations));
   testSuite->addTest (new TestCaller< DataTestCase>("testMemAlloc",&DataTestCase::testMemAlloc));
   testSuite->addTest (new TestCaller< DataTestCase>("Resolving",&DataTestCase::testResolveType));
-
+  
   return testSuite;
 }

@@ -119,7 +119,8 @@ enum ES_opgroup
    G_NP1OUT,		// non-pointwise op with one output
    G_NP1OUT_P,		// non-pointwise op with one output requiring a parameter
    G_TENSORPROD,	// general tensor product
-   G_NP1OUT_2P		// non-pointwise op with one output requiring two params
+   G_NP1OUT_2P,		// non-pointwise op with one output requiring two params
+   G_REDUCTION		// non-pointwise unary op with a scalar output
 };
 
 
@@ -134,8 +135,9 @@ string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","^",
 			"symmetric","nonsymmetric",
 			"prod",
 			"transpose", "trace",
-			"swapaxes"};
-int ES_opcount=41;
+			"swapaxes",
+			"minval", "maxval"};
+int ES_opcount=43;
 ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY, G_BINARY,
 			G_UNARY,G_UNARY,G_UNARY, //10
 			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,	// 17
@@ -145,7 +147,8 @@ ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY,
 			G_NP1OUT,G_NP1OUT,
 			G_TENSORPROD,
 			G_NP1OUT_P, G_NP1OUT_P,
-			G_NP1OUT_2P};
+			G_NP1OUT_2P,
+			G_REDUCTION, G_REDUCTION};
 inline
 ES_opgroup
 getOpgroup(ES_optype op)
@@ -190,6 +193,7 @@ resultShape(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
 	  {
 		throw DataException("Shapes not the name - shapes must match for (point)binary operations.");
 	  }
+
 	  if (left->getRank()==0)	// we need to allow scalar * anything
 	  {
 		return right->getShape();
@@ -407,6 +411,7 @@ calcBuffs(const DataLazy_ptr& left, const DataLazy_ptr& right, ES_optype op)
    {
    case G_IDENTITY: return 1;
    case G_BINARY: return 1+max(left->getBuffsRequired(),right->getBuffsRequired()+1);
+   case G_REDUCTION:
    case G_UNARY: 
    case G_UNARY_P: return max(left->getBuffsRequired(),1);
    case G_NP1OUT: return 1+max(left->getBuffsRequired(),1);
@@ -480,13 +485,13 @@ LAZYDEBUG(cout << "(1)Lazy created with " << m_samplesize << endl;)
 }
 
 DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
-	: parent(left->getFunctionSpace(),left->getShape()),
+	: parent(left->getFunctionSpace(),(getOpgroup(op)!=G_REDUCTION)?left->getShape():DataTypes::scalarShape),
 	m_op(op),
 	m_axis_offset(0),
 	m_transpose(0),
 	m_SL(0), m_SM(0), m_SR(0)
 {
-   if ((getOpgroup(op)!=G_UNARY) && (getOpgroup(op)!=G_NP1OUT))
+   if ((getOpgroup(op)!=G_UNARY) && (getOpgroup(op)!=G_NP1OUT) && (getOpgroup(op)!=G_REDUCTION))
    {
 	throw DataException("Programmer error - constructor DataLazy(left, op) will only process UNARY operations.");
    }
@@ -933,6 +938,12 @@ DataLazy::collapseToReady()
     case SWAP:
 	result=left.swapaxes(m_axis_offset, m_transpose);
 	break;
+    case MINVAL:
+	result=left.minval();
+	break;
+    case MAXVAL:
+	result=left.minval();
+	break;
     default:
 	throw DataException("Programmer error - collapseToReady does not know how to resolve operator "+opToString(m_op)+".");
   }
@@ -1099,7 +1110,50 @@ DataLazy::resolveUnary(ValueType& v, size_t offset, int sampleNo, size_t& roffse
 }
 
 
+/*
+  \brief Compute the value of the expression (reduction operation) for the given sample.
+  \return Vector which stores the value of the subexpression for the given sample.
+  \param v A vector to store intermediate results.
+  \param offset Index in v to begin storing results.
+  \param sampleNo Sample number to evaluate.
+  \param roffset (output parameter) the offset in the return vector where the result begins.
 
+  The return value will be an existing vector so do not deallocate it.
+  If the result is stored in v it should be stored at the offset given.
+  Everything from offset to the end of v should be considered available for this method to use.
+*/
+DataTypes::ValueType*
+DataLazy::resolveReduction(ValueType& v, size_t offset, int sampleNo, size_t& roffset) const
+{
+	// we assume that any collapsing has been done before we get here
+	// since we only have one argument we don't need to think about only
+	// processing single points.
+  if (m_readytype!='E')
+  {
+    throw DataException("Programmer error - resolveUnary should only be called on expanded Data.");
+  }
+  const ValueType* vleft=m_left->resolveVectorSample(v,offset,sampleNo,roffset);
+  double* result=&(v[offset]);
+  roffset=offset;
+  switch (m_op)
+  {
+    case MINVAL:
+	{
+	  FMin op;
+	  *result=DataMaths::reductionOp(*vleft, m_left->getShape(), roffset, op, numeric_limits<double>::max());
+	}
+	break;
+    case MAXVAL:
+	{
+	  FMax op;
+	  *result=DataMaths::reductionOp(*vleft, m_left->getShape(), roffset, op, numeric_limits<double>::max()*-1);
+	}
+	break;
+    default:
+	throw DataException("Programmer error - resolveReduction can not resolve operator "+opToString(m_op)+".");
+  }
+  return &v;
+}
 
 
 
@@ -1628,6 +1682,7 @@ LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
   case G_NP1OUT_P: return resolveNodeNP1OUT_P(tid, sampleNo, roffset);
   case G_TENSORPROD: return resolveNodeTProd(tid, sampleNo, roffset);
   case G_NP1OUT_2P: return resolveNodeNP1OUT_2P(tid, sampleNo, roffset);
+  case G_REDUCTION: return resolveNodeReduction(tid, sampleNo, roffset);
   default:
     throw DataException("Programmer Error - resolveSample does not know how to process "+opToString(m_op)+".");
   }
@@ -1764,6 +1819,46 @@ DataLazy::resolveNodeUnary(int tid, int sampleNo, size_t& roffset)
   return &(m_samples);
 }
 
+
+const DataTypes::ValueType*
+DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset)
+{
+	// we assume that any collapsing has been done before we get here
+	// since we only have one argument we don't need to think about only
+	// processing single points.
+	// we will also know we won't get identity nodes
+  if (m_readytype!='E')
+  {
+    throw DataException("Programmer error - resolveUnary should only be called on expanded Data.");
+  }
+  if (m_op==IDENTITY)
+  {
+    throw DataException("Programmer error - resolveNodeUnary should not be called on identity nodes.");
+  }
+  size_t loffset=0;
+  const DataTypes::ValueType* leftres=m_left->resolveNodeSample(tid, sampleNo, loffset);
+
+  roffset=m_samplesize*tid;
+  double* result=&(m_samples[roffset]);
+  switch (m_op)
+  {
+    case MINVAL:
+	{
+	  FMin op;
+	  *result=DataMaths::reductionOp(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max());
+	}
+	break;
+    case MAXVAL:
+	{
+	  FMax op;
+	  *result=DataMaths::reductionOp(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max()*-1);
+	}
+	break;
+    default:
+	throw DataException("Programmer error - resolveUnary can not resolve operator "+opToString(m_op)+".");
+  }
+  return &(m_samples);
+}
 
 const DataTypes::ValueType*
 DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset)
@@ -2172,6 +2267,7 @@ LAZYDEBUG(cout << "Finish  sample " << toString() << endl;)
   case G_NP1OUT_P: return resolveNP1OUT_P(v, offset, sampleNo,roffset);
   case G_TENSORPROD: return resolveTProd(v,offset, sampleNo,roffset);
   case G_NP1OUT_2P: return resolveNP1OUT_2P(v, offset, sampleNo, roffset);
+  case G_REDUCTION: return resolveReduction(v, offset, sampleNo, roffset);
   default:
     throw DataException("Programmer Error - resolveSample does not know how to process "+opToString(m_op)+".");
   }
@@ -2381,6 +2477,7 @@ DataLazy::intoString(ostringstream& oss) const
   case G_UNARY_P:
   case G_NP1OUT:
   case G_NP1OUT_P:
+  case G_REDUCTION:
 	oss << opToString(m_op) << '(';
 	m_left->intoString(oss);
 	oss << ')';
@@ -2409,14 +2506,19 @@ DataLazy::deepCopy()
   switch (getOpgroup(m_op))
   {
   case G_IDENTITY:  return new DataLazy(m_id->deepCopy()->getPtr());
-  case G_UNARY:	return new DataLazy(m_left->deepCopy()->getPtr(),m_op);
+  case G_UNARY:	
+  case G_REDUCTION:      return new DataLazy(m_left->deepCopy()->getPtr(),m_op);
+  case G_UNARY_P:	return new DataLazy(m_left->deepCopy()->getPtr(), m_op, m_tol);
   case G_BINARY:	return new DataLazy(m_left->deepCopy()->getPtr(),m_right->deepCopy()->getPtr(),m_op);
   case G_NP1OUT: return new DataLazy(m_left->deepCopy()->getPtr(), m_right->deepCopy()->getPtr(),m_op);
   case G_TENSORPROD: return new DataLazy(m_left->deepCopy()->getPtr(), m_right->deepCopy()->getPtr(), m_op, m_axis_offset, m_transpose);
+  case G_NP1OUT_P:   return new DataLazy(m_left->deepCopy()->getPtr(),m_op,  m_axis_offset);
+  case G_NP1OUT_2P:  return new DataLazy(m_left->deepCopy()->getPtr(), m_op, m_axis_offset, m_transpose);
   default:
 	throw DataException("Programmer error - do not know how to deepcopy operator "+opToString(m_op)+".");
   }
 }
+
 
 
 // There is no single, natural interpretation of getLength on DataLazy.
