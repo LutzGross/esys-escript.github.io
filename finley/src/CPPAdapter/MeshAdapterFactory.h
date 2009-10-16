@@ -80,14 +80,15 @@ namespace finley {
 				     int numDim, 
 				     int integrationOrder=-1,
 				     int reducedIntegrationOrder=-1, 
-				     int optimize=0);
+				     int optimize=0,
+                                     int useMacroElements=0);
   /**
      \brief
      Creates a rectangular mesh with n0 x n1 x n2 elements over the brick 
      [0,l0] x [0,l1] x [0,l2].
 
      \param n0,n1,n2 Input - number of elements in each dimension
-     \param order Input - =1 or =2 gives the order of shape function
+     \param order Input - =1, =-1 or =2 gives the order of shape function (-1= macro elements of order 1)
      \param l0,l1,l2 Input - length of each side of brick
      \param integrationOrder Input - order of the quadrature scheme.  
      If integrationOrder<0 the integration order is selected independently.
@@ -97,6 +98,7 @@ namespace finley {
      \param periodic0, periodic1, periodic2 Input - whether or not boundary 
      conditions of the dimension are periodic
      \param useFullElementOrder
+     \param useMacroElements
      \param optimize
   */
   FINLEY_DLL_API
@@ -116,7 +118,7 @@ namespace finley {
      [0,l0] x [0,l1].
 
      \param n0,n1 Input - number of elements in each dimension
-     \param order Input - =1 or =2 gives the order of shape function
+     \param order Input - =1, =-1 or =2 gives the order of shape function (-1= macro elements of order 1)
      \param l0,l1 Input - length of each side of brick
      \param integrationOrder Input - order of the quadrature scheme. 
      If integrationOrder<0 the integration order is selected 

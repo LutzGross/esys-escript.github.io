@@ -33,11 +33,13 @@ Finley_RefElementInfo Finley_RefElement_InfoList[]={
      Finley_Shape_Line2,  Finley_Quad_getNodesLine,        Finley_Quad_getNumNodesLine,
      2,{0,1},
      2,{0,1}, {1,0},{-1}},
+
   {Line3, "Line3", 1,      1,  3,  3, 2, 2, 
      Line2, {0,1},
      Finley_Shape_Line3,  Finley_Quad_getNodesLine,        Finley_Quad_getNumNodesLine,
      3,{0,1,2},
      3,{0,1,2}, {1,0,2},{-1}},
+
   {Line4, "Line4", 1,      1,  4,  4, 3, 2, 
      Line2, {0,1},
      Finley_Shape_Line4,  Finley_Quad_getNodesLine,        Finley_Quad_getNumNodesLine,
@@ -380,6 +382,36 @@ Finley_RefElementInfo Finley_RefElement_InfoList[]={
      Hex8Face_Contact, {0,1,2,3,4,5,6,7, 32,33,34,35,36,37,38,39},
      Finley_Shape_Hex32,  Finley_Quad_getNodesRecOnFace,   Finley_Quad_getNumNodesRec,
      12,{0,1,2,3,8,9,10,11,12,13,14,15},
+     -1,{999}, {999},{999}},
+
+  {Line3Macro, "Line3Macro", 1,      1,  3,  3, 2, 2, 
+     Line2, {0,1},
+     Finley_Shape_Line3,  Finley_Quad_getNodesLine,        Finley_Quad_getNumNodesLine,
+     3,{0,1,2},
+     3,{0,1,2}, {1,0,2},{-1}},
+
+  {Tri6Macro,       "Tri6Macro", 2,      2,  6,  6, 2, 3, 
+     Tri3, {0,1,2},
+     Finley_Shape_Tri6,   Finley_Quad_getNodesTri,         Finley_Quad_getNumNodesTri,
+     6,{0,1,2,3,4,5}, 
+     6,{0,1,2,3,4,5}, {1,2,0,4,5,3},{0,2,1,5,4,3}},
+
+  {Rec9Macro,       "Rec9Macro", 2,       2,  9,  9, 2, 4, 
+     Rec4, {0,1,2,3},
+     Finley_Shape_Rec9,   Finley_Quad_getNodesRec,         Finley_Quad_getNumNodesRec, 
+     9,{0,1,2,3,4,5,6,7,8}, 
+     9,{0,1,2,3,4,5,6,7,8}, {1,2,3,0,5,6,7,4,8},{0,3,2,1,7,6,5,4,8}},
+
+  {Tet10Macro,      "Tet10Macro", 3,      3, 10, 10, 2, 4, 
+     Tet4, {0,1,2,3},
+     Finley_Shape_Tet10,  Finley_Quad_getNodesTet,         Finley_Quad_getNumNodesTet,
+     10,{0,1,2,3,4,5,6,7,8,9},
+     -1,{999}, {999},{999}},
+
+  {Hex27Macro,      "Hex27Macro", 3,      3, 27, 27, 2, 8, 
+     Hex8, {0,1,2,3,4,5,6,7},
+     Finley_Shape_Hex27,  Finley_Quad_getNodesHex,         Finley_Quad_getNumNodesHex,
+     27,{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26},
      -1,{999}, {999},{999}},
 
   {NoType, "noElement", 0, 0,  0,  0, 0, 0, NoType, {999}, Finley_Shape_Point1, Finley_Quad_getNodesPoint, Finley_Quad_getNumNodesPoint,0,{999},-1,{999},{999},{999}}  /* marks end of list */

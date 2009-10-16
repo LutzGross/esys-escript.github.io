@@ -31,6 +31,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
                                           index_t reduced_order, 
                                           bool_t useElementsOnFace,
                                           bool_t useFullElementOrder,
+                                          bool_t useMacroElements,
                                           bool_t optimize) 
 {
   #define N_PER_E 2
@@ -42,6 +43,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
   Finley_Mesh* out;
   Paso_MPIInfo *mpi_info = NULL;
   char name[50];
+  bool_t generateAllNodes= useFullElementOrder || useMacroElements;
   #ifdef Finley_TRACE
   double time0=Finley_timer();
   #endif
@@ -68,18 +70,32 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
       return NULL;
   }
 
-  if (useFullElementOrder) {
-     Finley_Mesh_setElements(out,Finley_ElementFile_alloc(Rec9,
-                                            out->order,
-                                            out->reduced_order,
-                                            mpi_info));
+  if (generateAllNodes) {
+     if (useMacroElements) {
+         Finley_Mesh_setElements(out,Finley_ElementFile_alloc(Rec9Macro,
+                                                                out->order,
+                                                                out->reduced_order,
+                                                                mpi_info));
+     } else {
+         Finley_Mesh_setElements(out,Finley_ElementFile_alloc(Rec9,
+                                                                out->order,
+                                                                out->reduced_order,
+                                                                mpi_info));
+     }
      if (useElementsOnFace) {
          Finley_setError(SYSTEM_ERROR,"rich elements for Rec9 elements is not supported yet.");
      } else {
-         Finley_Mesh_setFaceElements(out,Finley_ElementFile_alloc(Line3,
+         if (useMacroElements) {
+               Finley_Mesh_setFaceElements(out,Finley_ElementFile_alloc(Line3Macro,
                                                     out->order,
                                                     out->reduced_order,
                                                     mpi_info));
+         } else {
+               Finley_Mesh_setFaceElements(out,Finley_ElementFile_alloc(Line3,
+                                                    out->order,
+                                                    out->reduced_order,
+                                                    mpi_info));
+         }
          Finley_Mesh_setContactElements(out,Finley_ElementFile_alloc(Line3_Contact,
                                                        out->order,
                                                        out->reduced_order,
@@ -198,7 +214,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
            out->Elements->Nodes[INDEX2(5,k,NN)]=node0+Nstride1+2*Nstride0;
            out->Elements->Nodes[INDEX2(6,k,NN)]=node0+2*Nstride1+1*Nstride0;
            out->Elements->Nodes[INDEX2(7,k,NN)]=node0+Nstride1;
-           if (useFullElementOrder) {
+           if (generateAllNodes) {
               out->Elements->Nodes[INDEX2(8,k,NN)]=node0+1*Nstride1+1*Nstride0;
            }
          }

@@ -506,7 +506,8 @@ namespace finley {
                                      int numDim,
                                      int integrationOrder,
                                      int reducedIntegrationOrder,
-                                     int optimize)
+                                     int optimize,
+		                     int useMacroElements)
   {
     //
     // create a copy of the filename to overcome the non-constness of call
@@ -523,7 +524,7 @@ namespace finley {
     strcpy(fName,fileName.c_str());
     double blocktimer_start = blocktimer_time();
 
-    fMesh=Finley_Mesh_readGmsh(fName, numDim, integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE));
+    fMesh=Finley_Mesh_readGmsh(fName, numDim, integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE), (useMacroElements ? TRUE : FALSE));
     checkFinleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     
@@ -554,12 +555,14 @@ namespace finley {
     Finley_Mesh* fMesh=NULL;
 
     if (order==1) {
-      fMesh=Finley_RectangularMesh_Hex8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
+           fMesh=Finley_RectangularMesh_Hex8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
 					useElementsOnFace,useFullElementOrder,(optimize ? TRUE : FALSE)) ;
-    } 
-		else if (order==2) {
-      fMesh=Finley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
-					 useElementsOnFace,useFullElementOrder,(optimize ? TRUE : FALSE)) ;
+    } else if (order==2) {
+           fMesh=Finley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
+					      useElementsOnFace,useFullElementOrder,FALSE, (optimize ? TRUE : FALSE)) ;
+    } else if (order==-1) {
+           fMesh=Finley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
+					      useElementsOnFace,useFullElementOrder,TRUE,(optimize ? TRUE : FALSE)) ;
     } else {
       stringstream temp;
       temp << "Illegal interpolation order: " << order;
@@ -588,14 +591,15 @@ namespace finley {
 
     Finley_Mesh* fMesh=0;
     if (order==1) {
-      fMesh=Finley_RectangularMesh_Rec4(numElements, length,periodic,integrationOrder,reducedIntegrationOrder,
+            fMesh=Finley_RectangularMesh_Rec4(numElements, length,periodic,integrationOrder,reducedIntegrationOrder,
 					useElementsOnFace,useFullElementOrder,(optimize ? TRUE : FALSE));
-    }
-    else if (order==2) {
-      fMesh=Finley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
-					useElementsOnFace,useFullElementOrder,(optimize ? TRUE : FALSE));
-    }
-    else {
+    } else if (order==2) {
+            fMesh=Finley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
+					      useElementsOnFace,useFullElementOrder,FALSE,(optimize ? TRUE : FALSE));
+    } else if (order==-1) {
+            fMesh=Finley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
+					      useElementsOnFace,useFullElementOrder,TRUE,(optimize ? TRUE : FALSE));
+    } else {
       stringstream temp;
       temp << "Illegal interpolation order: " << order;
       setFinleyError(VALUE_ERROR,temp.str().c_str());

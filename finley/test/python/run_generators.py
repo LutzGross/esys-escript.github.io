@@ -44,11 +44,11 @@ FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 #   FINLEY_TEST_MESH_PATH = os.path.join(FINLEY_TEST_MESH_PATH,"win32")
 FINLEY_WORKDIR_PATH=FINLEY_WORKDIR
 
-TEST_FILE_EXT=".test"
+TEST_FILE_PRE="test_"
 class Test_Generators(unittest.TestCase):
 
    def checker(self,dom,reference):
-      dom_file=os.path.join(FINLEY_WORKDIR_PATH,TEST_FILE_EXT)
+      dom_file=os.path.join(FINLEY_WORKDIR_PATH,TEST_FILE_PRE+reference)
       dom.write(dom_file)
 # Uncomment this section to dump the files for regression testing
 #      if True:
@@ -77,6 +77,11 @@ class Test_Generators(unittest.TestCase):
       my_dom=Rectangle(1,1,2)
       self.checker(my_dom,file)
 
+   def test_hex_2D_order1_macro(self):
+      file="hex_2D_order1_macro.msh"
+      my_dom=Rectangle(1,1,-1)
+      self.checker(my_dom,file)
+
    def test_hex_2D_order2_onFace(self):
       file="hex_2D_order2_onFace.msh"
       my_dom=Rectangle(1,1,2,useElementsOnFace=1)
@@ -95,6 +100,11 @@ class Test_Generators(unittest.TestCase):
    def test_hex_3D_order2(self):
       file="hex_3D_order2.msh"
       my_dom=Brick(1,1,1,2)
+      self.checker(my_dom,file)
+
+   def test_hex_3D_order2(self):
+      file="hex_3D_order1_macro.msh"
+      my_dom=Brick(1,1,1,-1)
       self.checker(my_dom,file)
 
    def test_hex_3D_order2_onFace(self):
@@ -188,8 +198,16 @@ class Test_GMSHReader(unittest.TestCase):
    def test_Tri6(self):
          file="tri6_gmsh.msh"
          ref="tri6.fly"
-         test = os.path.join(FINLEY_WORKDIR,"tri8_test.fly")
+         test = os.path.join(FINLEY_WORKDIR,"tri6_test.fly")
          dom = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,file),2,optimize=False)
+         dom.write(test)
+         self.compare(test, os.path.join(FINLEY_TEST_MESH_PATH,ref))
+
+   def test_Tri6_macro(self):
+         file="tri6_gmsh.msh"
+         ref="tri6_macro.fly"
+         test = os.path.join(FINLEY_WORKDIR,"tri6_macro_test.fly")
+         dom = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,file),2,useMacroElements=True,optimize=False)
          dom.write(test)
          self.compare(test, os.path.join(FINLEY_TEST_MESH_PATH,ref))
 
@@ -206,6 +224,14 @@ class Test_GMSHReader(unittest.TestCase):
          ref="tet10.fly"
          test = os.path.join(FINLEY_WORKDIR,"tet10_test.fly")
          dom = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,file),3,optimize=False)
+         dom.write(test)
+         self.compare(test, os.path.join(FINLEY_TEST_MESH_PATH,ref))
+
+   def test_Tet10_macro(self):
+         file="tet10_gmsh.msh"
+         ref="tet10_macro.fly"
+         test = os.path.join(FINLEY_WORKDIR,"tet10_macro_test.fly")
+         dom = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,file),3,useMacroElements=True,optimize=False)
          dom.write(test)
          self.compare(test, os.path.join(FINLEY_TEST_MESH_PATH,ref))
 
@@ -227,7 +253,7 @@ class Test_Reader(unittest.TestCase):
        self.failUnless(dom2.isValidTagName("B"))
 
 class Test_Integration(unittest.TestCase):
-   TOL=EPSILON*100.
+   TOL=EPSILON*500.
    def __test_2DQ(self,dom,order):
        x=Function(dom).getX()
        x_bound=FunctionOnBoundary(dom).getX()
@@ -286,7 +312,7 @@ class Test_Integration(unittest.TestCase):
              res=integrate(x[0]**i*x[1]**j*x[2]**k)
              ref=1./((i+1)*(j+1)*(k+1))
              error=abs(res-ref)/abs(ref)
-             self.failUnless(error<=self.TOL,"integration for order (%s,%s,%s) failed. True value = %s, calculated = %s"%(i,j,k,ref,res))
+             self.failUnless(error<=self.TOL,"integration for order (%s,%s,%s) failed. True value = %s, calculated = %s (error=%e)"%(i,j,k,ref,res, error))
 
              res=integrate(x_bound[0]**i*x_bound[1]**j*x_bound[2]**k)
              ref=0
@@ -303,7 +329,7 @@ class Test_Integration(unittest.TestCase):
              else:
                 ref += 1./((i+1)*(j+1))
              error=abs(res-ref)/abs(ref)
-             self.failUnless(error<=self.TOL,"surface integration for order (%s,%s,%s) failed. True value = %s, calculated = %s"%(i,j,k,ref,res))
+             self.failUnless(error<=self.TOL,"surface integration for order (%s,%s,%s) failed. True value = %s, calculated = %s (error=%e)"%(i,j,k,ref,res, error))
 
    def __test_3DT(self,dom,order,raise_tol=1.):
        x=Function(dom).getX()
@@ -315,7 +341,7 @@ class Test_Integration(unittest.TestCase):
                 res=integrate(x[0]**i*x[1]**j*x[2]**k)
                 ref=1./((i+1)*(j+1)*(k+1))
                 error=abs(res-ref)/abs(ref)
-                self.failUnless(error<=self.TOL*raise_tol,"integration for order (%s,%s,%s) failed. True value = %s, calculated = %s"%(i,j,k,ref,res))
+                self.failUnless(error<=self.TOL*raise_tol,"integration for order (%s,%s,%s) failed. True value = %s, calculated = %s (error=%e)"%(i,j,k,ref,res,error))
 
                 res=integrate(x_bound[0]**i*x_bound[1]**j*x_bound[2]**k)
                 ref=0
@@ -332,151 +358,440 @@ class Test_Integration(unittest.TestCase):
                 else:
                    ref += 1./((i+1)*(j+1))
                 error=abs(res-ref)/abs(ref)
-                self.failUnless(error<=self.TOL*raise_tol,"surface integration for order (%s,%s,%s) failed. True value = %s, calculated = %s"%(i,j,k,ref,res))
+                self.failUnless(error<=self.TOL*raise_tol,"surface integration for order (%s,%s,%s) failed. True value = %s, calculated = %s (error=%e)"%(i,j,k,ref,res,error))
 
-   def test_hex2D_order1(self):
+   #===================================================================================================
+   def test_hex2D_order1_integorder1(self):
       NE=getMPIRankWorld()
       my_dom=Rectangle(NE,NE,integrationOrder=1)
       self.__test_2DQ(my_dom,1)
-   def test_hex2D_order2(self):
+   def test_hex2D_order1_integorder2(self):
       NE=getMPIRankWorld()
       my_dom=Rectangle(NE,NE,integrationOrder=2)
       self.__test_2DQ(my_dom,2)
-   def test_hex2D_order3(self):
+   def test_hex2D_order1_integorder3(self):
       NE=getMPIRankWorld()
       my_dom=Rectangle(NE,NE,integrationOrder=3)
       self.__test_2DQ(my_dom,3)
-   def test_hex2D_order4(self):
+   def test_hex2D_order1_integorder4(self):
       NE=getMPIRankWorld()
       my_dom=Rectangle(NE,NE,integrationOrder=4)
       self.__test_2DQ(my_dom,4)
-   def test_hex2D_order5(self):
+   def test_hex2D_order1_integorder5(self):
       NE=getMPIRankWorld()
       my_dom=Rectangle(NE,NE,integrationOrder=5)
       self.__test_2DQ(my_dom,5)
-   def test_hex2D_order6(self):
+   def test_hex2D_order1_integorder6(self):
       NE=getMPIRankWorld()
       my_dom=Rectangle(NE,NE,integrationOrder=6)
       self.__test_2DQ(my_dom,6)
-   def test_hex2D_order7(self):
+   def test_hex2D_order1_integorder7(self):
       NE=getMPIRankWorld()
       my_dom=Rectangle(NE,NE,integrationOrder=7)
       self.__test_2DQ(my_dom,7)
-   def test_hex2D_order8(self):
+   def test_hex2D_order1_integorder8(self):
       NE=getMPIRankWorld()
       my_dom=Rectangle(NE,NE,integrationOrder=8)
       self.__test_2DQ(my_dom,8)
-   def test_hex2D_order9(self):
+   def test_hex2D_order1_integorder9(self):
       NE=getMPIRankWorld()
       my_dom=Rectangle(NE,NE,integrationOrder=9)
       self.__test_2DQ(my_dom,9)
-   def test_hex2D_order10(self):
+   def test_hex2D_order1_integorder10(self):
       NE=getMPIRankWorld()
       my_dom=Rectangle(NE,NE,integrationOrder=10)
       self.__test_2DQ(my_dom,10)
-
-   def test_Tet2D_order1(self):
+   #===================================================================================================
+   def test_hex2D_order2_integorder1(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=2,integrationOrder=1)
+      self.__test_2DQ(my_dom,1)
+   def test_hex2D_order2_integorder2(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=2,integrationOrder=2)
+      self.__test_2DQ(my_dom,2)
+   def test_hex2D_order2_integorder3(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=2,integrationOrder=3)
+      self.__test_2DQ(my_dom,3)
+   def test_hex2D_order2_integorder4(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=2,integrationOrder=4)
+      self.__test_2DQ(my_dom,4)
+   def test_hex2D_order2_integorder5(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=2,integrationOrder=5)
+      self.__test_2DQ(my_dom,5)
+   def test_hex2D_order2_integorder6(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=2,integrationOrder=6)
+      self.__test_2DQ(my_dom,6)
+   def test_hex2D_order2_integorder7(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=2,integrationOrder=7)
+      self.__test_2DQ(my_dom,7)
+   def test_hex2D_order2_integorder8(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=2,integrationOrder=8)
+      self.__test_2DQ(my_dom,8)
+   def test_hex2D_order2_integorder9(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=2,integrationOrder=9)
+      self.__test_2DQ(my_dom,9)
+   def test_hex2D_order2_integorder10(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=2,integrationOrder=10)
+      self.__test_2DQ(my_dom,10)
+   #===================================================================================================
+   def test_hex2D_macro_integorder1(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=1)
+      self.__test_2DQ(my_dom,1)
+   def test_hex2D_macro_integmacro(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=2)
+      self.__test_2DQ(my_dom,2)
+   def test_hex2D_macro_integorder3(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=3)
+      self.__test_2DQ(my_dom,3)
+   def test_hex2D_macro_integorder4(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=4)
+      self.__test_2DQ(my_dom,4)
+   def test_hex2D_macro_integorder5(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=5)
+      self.__test_2DQ(my_dom,5)
+   def test_hex2D_macro_integorder6(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=6)
+      self.__test_2DQ(my_dom,6)
+   def test_hex2D_macro_integorder7(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=7)
+      self.__test_2DQ(my_dom,7)
+   def test_hex2D_macro_integorder8(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=8)
+      self.__test_2DQ(my_dom,8)
+   def test_hex2D_macro_integorder9(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=9)
+      self.__test_2DQ(my_dom,9)
+   def test_hex2D_macro_integorder10(self):
+      NE=getMPIRankWorld()
+      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=10)
+      self.__test_2DQ(my_dom,10)
+   #===================================================================================================
+   def test_Tet2D_order1_integorder1(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=1)
       self.__test_2DT(my_dom,1)
-   def test_Tet2D_order2(self):
+   def test_Tet2D_order1_integorder2(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=2)
       self.__test_2DT(my_dom,2)
-   def test_Tet2D_order3(self):
+   def test_Tet2D_order1_integorder3(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=3)
       self.__test_2DT(my_dom,3)
-   def test_Tet2D_order4(self):
+   def test_Tet2D_order1_integorder4(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=4)
       self.__test_2DT(my_dom,4)
-   def test_Tet2D_order5(self):
+   def test_Tet2D_order1_integorder5(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=5)
       self.__test_2DT(my_dom,5)
-   def test_Tet2D_order6(self):
+   def test_Tet2D_order1_integorder6(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=6)
       self.__test_2DT(my_dom,6)
-   def test_Tet2D_order7(self):
+   def test_Tet2D_order1_integorder7(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=7)
       self.__test_2DT(my_dom,7)
-   def test_Tet2D_order8(self):
+   def test_Tet2D_order1_integorder8(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=8)
       self.__test_2DT(my_dom,8,1./sqrt(EPSILON))
-   def test_Tet2D_order9(self):
+   def test_Tet2D_order1_integorder9(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=9)
       self.__test_2DT(my_dom,9,1./sqrt(EPSILON))
-   def test_Tet2D_order10(self):
+   def test_Tet2D_order1_integorder10(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=10)
       self.__test_2DT(my_dom,10)
-
-   def test_hex3D_order1(self):
+   #===================================================================================================
+   def test_Tet2D_order2_integorder2(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=1)
+      self.__test_2DT(my_dom,1)
+   def test_Tet2D_order2_integorder2(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=2)
+      self.__test_2DT(my_dom,2)
+   def test_Tet2D_order2_integorder3(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=3)
+      self.__test_2DT(my_dom,3)
+   def test_Tet2D_order2_integorder4(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=4)
+      self.__test_2DT(my_dom,4)
+   def test_Tet2D_order2_integorder5(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=5)
+      self.__test_2DT(my_dom,5)
+   def test_Tet2D_order2_integorder6(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=6)
+      self.__test_2DT(my_dom,6)
+   def test_Tet2D_order2_integorder7(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=7)
+      self.__test_2DT(my_dom,7)
+   def test_Tet2D_order2_integorder8(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=8)
+      self.__test_2DT(my_dom,8,1./sqrt(EPSILON))
+   def test_Tet2D_order2_integorder9(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=9)
+      self.__test_2DT(my_dom,9,1./sqrt(EPSILON))
+   def test_Tet2D_order2_integorder10(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=10)
+      self.__test_2DT(my_dom,10)
+   #===================================================================================================
+   def test_Tet2D_macro_integmacro(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=1)
+      self.__test_2DT(my_dom,1)
+   def test_Tet2D_macro_integmacro(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=2)
+      self.__test_2DT(my_dom,2)
+   def test_Tet2D_macro_integorder3(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=3)
+      self.__test_2DT(my_dom,3)
+   def test_Tet2D_macro_integorder4(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=4)
+      self.__test_2DT(my_dom,4)
+   def test_Tet2D_macro_integorder5(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=5)
+      self.__test_2DT(my_dom,5)
+   def test_Tet2D_macro_integorder6(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=6)
+      self.__test_2DT(my_dom,6)
+   def test_Tet2D_macro_integorder7(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=7)
+      self.__test_2DT(my_dom,7)
+   def test_Tet2D_macro_integorder8(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=8)
+      self.__test_2DT(my_dom,8,1./sqrt(EPSILON))
+   def test_Tet2D_macro_integorder9(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=9)
+      self.__test_2DT(my_dom,9,1./sqrt(EPSILON))
+   def test_Tet2D_macro_integorder10(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=10)
+      self.__test_2DT(my_dom,10)
+   #===================================================================================================
+   def test_hex3D_order1_integorder1(self):
       NE=getMPIRankWorld()
       my_dom=Brick(NE,NE,NE,integrationOrder=1)
       self.__test_3DQ(my_dom,1)
-   def test_hex3D_order2(self):
+   def test_hex3D_order1_integorder2(self):
       NE=getMPIRankWorld()
       my_dom=Brick(NE,NE,NE,integrationOrder=2)
       self.__test_3DQ(my_dom,2)
-   def test_hex3D_order3(self):
+   def test_hex3D_order1_integorder3(self):
       NE=getMPIRankWorld()
       my_dom=Brick(NE,NE,NE,integrationOrder=3)
       self.__test_3DQ(my_dom,3)
-   def test_hex3D_order4(self):
+   def test_hex3D_order1_integorder4(self):
       NE=getMPIRankWorld()
       my_dom=Brick(NE,NE,NE,integrationOrder=4)
       self.__test_3DQ(my_dom,4)
-   def test_hex3D_order5(self):
+   def test_hex3D_order1_integorder5(self):
       NE=getMPIRankWorld()
       my_dom=Brick(NE,NE,NE,integrationOrder=5)
       self.__test_3DQ(my_dom,5)
-   def test_hex3D_order6(self):
+   def test_hex3D_order1_integorder6(self):
       NE=getMPIRankWorld()
       my_dom=Brick(NE,NE,NE,integrationOrder=6)
       self.__test_3DQ(my_dom,6)
-   def test_hex3D_order7(self):
+   def test_hex3D_order1_integorder7(self):
       NE=getMPIRankWorld()
       my_dom=Brick(NE,NE,NE,integrationOrder=7)
       self.__test_3DQ(my_dom,7)
-   def test_hex3D_order8(self):
+   def test_hex3D_order1_integorder8(self):
       NE=getMPIRankWorld()
       my_dom=Brick(NE,NE,NE,integrationOrder=8)
       self.__test_3DQ(my_dom,8)
-   def test_hex3D_order9(self):
+   def test_hex3D_order1_integorder9(self):
       NE=getMPIRankWorld()
       my_dom=Brick(NE,NE,NE,integrationOrder=9)
       self.__test_3DQ(my_dom,9)
-   def test_hex3D_order10(self):
+   def test_hex3D_order1_integorder10(self):
       NE=getMPIRankWorld()
       my_dom=Brick(NE,NE,NE,integrationOrder=10)
       self.__test_3DQ(my_dom,10)
-
-   def test_Tet3D_order1(self):
+   #===================================================================================================
+   def test_hex3D_order2_integorder2(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=2,integrationOrder=1)
+      self.__test_3DQ(my_dom,1)
+   def test_hex3D_order2_integorder2(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=2,integrationOrder=2)
+      self.__test_3DQ(my_dom,2)
+   def test_hex3D_order2_integorder3(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=2,integrationOrder=3)
+      self.__test_3DQ(my_dom,3)
+   def test_hex3D_order2_integorder4(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=2,integrationOrder=4)
+      self.__test_3DQ(my_dom,4)
+   def test_hex3D_order2_integorder5(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=2,integrationOrder=5)
+      self.__test_3DQ(my_dom,5)
+   def test_hex3D_order2_integorder6(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=2,integrationOrder=6)
+      self.__test_3DQ(my_dom,6)
+   def test_hex3D_order2_integorder7(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=2,integrationOrder=7)
+      self.__test_3DQ(my_dom,7)
+   def test_hex3D_order2_integorder8(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=2,integrationOrder=8)
+      self.__test_3DQ(my_dom,8)
+   def test_hex3D_order2_integorder9(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=2,integrationOrder=9)
+      self.__test_3DQ(my_dom,9)
+   def test_hex3D_order2_integorder10(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=2,integrationOrder=10)
+      self.__test_3DQ(my_dom,10)
+   #===================================================================================================
+   def test_hex3D_macro_integmacro(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=1)
+      self.__test_3DQ(my_dom,1)
+   def test_hex3D_macro_integmacro(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=2)
+      self.__test_3DQ(my_dom,2)
+   def test_hex3D_macro_integorder3(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=3)
+      self.__test_3DQ(my_dom,3)
+   def test_hex3D_macro_integorder4(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=4)
+      self.__test_3DQ(my_dom,4)
+   def test_hex3D_macro_integorder5(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=5)
+      self.__test_3DQ(my_dom,5)
+   def test_hex3D_macro_integorder6(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=6)
+      self.__test_3DQ(my_dom,6)
+   def test_hex3D_macro_integorder7(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=7)
+      self.__test_3DQ(my_dom,7)
+   def test_hex3D_macro_integorder8(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=8)
+      self.__test_3DQ(my_dom,8)
+   def test_hex3D_macro_integorder9(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=9)
+      self.__test_3DQ(my_dom,9)
+   def test_hex3D_macro_integorder10(self):
+      NE=getMPIRankWorld()
+      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=10)
+      self.__test_3DQ(my_dom,10)
+   #==========================================================================================
+   def test_Tet3D_order1_integorder1(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=1)
       self.__test_3DT(my_dom,1)
-   def test_Tet3D_order2(self):
+   def test_Tet3D_order1_integorder2(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=2)
       self.__test_3DT(my_dom,2)
-   def test_Tet3D_order3(self):
+   def test_Tet3D_order1_integorder3(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=3)
       self.__test_3DT(my_dom,3)
-   def test_Tet3D_order4(self):
+   def test_Tet3D_order1_integorder4(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=4)
       self.__test_3DT(my_dom,4)
-   def test_Tet3D_order5(self):
+   def test_Tet3D_order1_integorder5(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=5)
       self.__test_3DT(my_dom,5)
-   def test_Tet3D_order6(self):
+   def test_Tet3D_order1_integorder6(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=6)
       self.__test_3DT(my_dom,6,1./sqrt(EPSILON))
-   def test_Tet3D_order7(self):
+   def test_Tet3D_order1_integorder7(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=7)
       self.__test_3DT(my_dom,7,1./sqrt(EPSILON))
-   def test_Tet3D_order8(self):
+   def test_Tet3D_order1_integorder8(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=8)
       self.__test_3DT(my_dom,8,1./sqrt(EPSILON))
-   def test_Tet3D_order9(self):
+   def test_Tet3D_order1_integorder9(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=9)
       self.__test_3DT(my_dom,9,1./sqrt(EPSILON))
-   def test_Tet3D_order10(self):
+   def test_Tet3D_order1_integorder10(self):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=10)
-      self.__test_3DT(my_dom,10)
+      self.__test_3DT(my_dom,10,1./sqrt(EPSILON))
+   #==========================================================================================
+   def test_Tet3D_order2_integorder2(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=1)
+      self.__test_3DT(my_dom,1)
+   def test_Tet3D_order2_integorder2(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=2)
+      self.__test_3DT(my_dom,2)
+   def test_Tet3D_order2_integorder3(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=3)
+      self.__test_3DT(my_dom,3)
+   def test_Tet3D_order2_integorder4(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=4)
+      self.__test_3DT(my_dom,4)
+   def test_Tet3D_order2_integorder5(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=5)
+      self.__test_3DT(my_dom,5)
+   def test_Tet3D_order2_integorder6(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=6)
+      self.__test_3DT(my_dom,6,1./sqrt(EPSILON))
+   def test_Tet3D_order2_integorder7(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=7)
+      self.__test_3DT(my_dom,7,1./sqrt(EPSILON))
+   def test_Tet3D_order2_integorder8(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=8)
+      self.__test_3DT(my_dom,8,1./sqrt(EPSILON))
+   def test_Tet3D_order2_integorder9(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=9)
+      self.__test_3DT(my_dom,9,1./sqrt(EPSILON))
+   def test_Tet3D_order2_integorder10(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=10)
+      self.__test_3DT(my_dom,10,1./sqrt(EPSILON))
+   #==========================================================================================
+   def test_Tet3D_macro_integmacro(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=1)
+      self.__test_3DT(my_dom,1)
+   def test_Tet3D_macro_integmacro(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=2)
+      self.__test_3DT(my_dom,2)
+   def test_Tet3D_macro_integorder3(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=3)
+      self.__test_3DT(my_dom,3)
+   def test_Tet3D_macro_integorder4(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=4)
+      self.__test_3DT(my_dom,4)
+   def test_Tet3D_macro_integorder5(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=5)
+      self.__test_3DT(my_dom,5)
+   def test_Tet3D_macro_integorder6(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=6)
+      self.__test_3DT(my_dom,6,1./sqrt(EPSILON))
+   def test_Tet3D_macro_integorder7(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=7)
+      self.__test_3DT(my_dom,7,1./sqrt(EPSILON))
+   def test_Tet3D_macro_integorder8(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=8)
+      self.__test_3DT(my_dom,8,1./sqrt(EPSILON))
+   def test_Tet3D_macro_integorder9(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=9)
+      self.__test_3DT(my_dom,9,1./sqrt(EPSILON))
+   def test_Tet3D_macro_integorder10(self):
+      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=10)
+      self.__test_3DT(my_dom,10,1./sqrt(EPSILON))
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
