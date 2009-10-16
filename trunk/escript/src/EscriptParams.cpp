@@ -28,6 +28,7 @@ EscriptParams::EscriptParams()
    autolazy=0;
    too_many_levels=70;
    too_many_nodes=15000;
+   resolve_collective=0;
 			// These #defs are for performance testing only
 			// in general, I don't want people tweaking the
 			// default value using compiler options
@@ -38,6 +39,14 @@ EscriptParams::EscriptParams()
 #ifdef FAUTOLAZYOFF
    autolazy=0;
 #endif
+
+#ifdef FRESCOLLECTON
+   resolve_collective=1;
+#endif
+#ifdef FRESCOLLECTOFF
+   resolve_collective=0;
+#endif
+
 }
 
 int 
@@ -58,6 +67,10 @@ EscriptParams::getInt(const char* name, int sentinel) const
    if (!strcmp(name,"TOO_MANY_NODES"))
    {
 	return too_many_nodes;
+   }
+   if (!strcmp(name,"RESOLVE_COLLECTIVE"))
+   {
+	return resolve_collective;
    }
    return sentinel;
 }
@@ -81,6 +94,10 @@ EscriptParams::setInt(const char* name, int value)
    {
 	too_many_nodes=value;
    }
+   if (!strcmp(name,"RESOLVE_COLLECTIVE"))
+   {
+	resolve_collective=value;
+   }
 }
 
 void 
@@ -97,14 +114,19 @@ getEscriptParamInt(const char* name, int sentinel)
 }
 
 boost::python::list
-listEscriptParams()
+EscriptParams::listEscriptParams()
 {
    using namespace boost::python;
    boost::python::list l;
-   l.append(make_tuple("TOO_MANY_LINES","Maximum number of lines to output when printing data before printing a summary instead."));
-   l.append(make_tuple("AUTOLAZY","{0,1} Operations involving Expanded Data will create lazy results."));
+   l.append(make_tuple("TOO_MANY_LINES", too_many_lines, "Maximum number of lines to output when printing data before printing a summary instead."));
+   l.append(make_tuple("AUTOLAZY", autolazy, "{0,1} Operations involving Expanded Data will create lazy results."));
+   l.append(make_tuple("RESOLVE_COLLECTIVE",resolve_collective ,"(TESTING ONLY) {0.1} Collective operations will resolve their data."));
+   l.append(make_tuple("TOO_MANY_LEVELS", too_many_levels, "(TESTING ONLY) maximum levels allowed in an expression."));
+   l.append(make_tuple("TOO_MANY_NODES", too_many_nodes, "(TESTING ONLY) maximum number of nodes in a expression."));
    return l;
 }
+
+
 
 
 }	// end namespace

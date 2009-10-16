@@ -35,6 +35,9 @@ public:
   ESCRIPT_DLL_API
   void setInt(const char* name, int value);
 
+  boost::python::list
+  listEscriptParams();
+
 private:
 
   // If we get more params we can replace this with a map
@@ -42,6 +45,7 @@ private:
 	int autolazy;
 	int too_many_levels;
 	int too_many_nodes;
+	int resolve_collective;
 
 protected: 
   // This is to provide fast access for methods in Data.
@@ -52,6 +56,7 @@ protected:
   int getAUTOLAZY() { return autolazy;}
   int getTOO_MANY_LEVELS() {return too_many_levels;}
   int getTOO_MANY_NODES() {return too_many_nodes;}
+  int getRESOLVE_COLLECTIVE() {return resolve_collective;}
 
   friend class escript::Data;
   friend class escript::DataLazy;
@@ -69,7 +74,6 @@ protected:
   friend Data operator/(const escript::Data&, const boost::python::api::object&);
   friend Data C_GeneralTensorProduct(escript::Data& arg_0, escript::Data& arg_1,
                      int axis_offset, int transpose);
-
 };
 
 
@@ -91,10 +95,15 @@ int getEscriptParamInt(const char* name, int sentinel=0);
 
 /**
   \brief describe available paramters.
-  \return a list of tuples (parameter name, description)
+  \return a list of tuples (parameter name, value, description)
 */
 ESCRIPT_DLL_API
-boost::python::list listEscriptParams();
+inline boost::python::list listEscriptParams()
+{
+   return escriptParams.listEscriptParams();
+}
+
+
 
 }
 #endif

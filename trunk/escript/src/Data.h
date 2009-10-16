@@ -1536,6 +1536,10 @@ ESCRIPT_DLL_API void freeSampleBuffer(BufferGroup* buffer);
 
  private:
 
+template <class BinaryOp>
+  double 
+  lazyAlgWorker(double init, int mpiop_type);
+
   double
   LsupWorker() const;
 

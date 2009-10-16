@@ -73,7 +73,9 @@ enum ES_optype
 	PROD=NSYM+1,
 	TRANS=PROD+1,
 	TRACE=TRANS+1,
-	SWAP=TRACE+1
+	SWAP=TRACE+1,
+	MINVAL=SWAP+1,
+	MAXVAL=MINVAL+1
 };
 
 ESCRIPT_DLL_API
@@ -309,6 +311,10 @@ private:
   const DataTypes::ValueType*
   resolveNodeUnary(int tid, int sampleNo, size_t& roffset);
 
+
+  const DataTypes::ValueType*
+  resolveNodeReduction(int tid, int sampleNo, size_t& roffset);  
+
   const DataTypes::ValueType*
   resolveNodeSample(int tid, int sampleNo, size_t& roffset);
 
@@ -409,6 +415,21 @@ private:
   */
   ValueType*
   resolveUnary(ValueType& v,  size_t offset,int sampleNo,  size_t& roffset) const;
+
+  /**
+  \brief Compute the value of the expression (reduction operation) for the given sample.
+  \return Vector which stores the value of the subexpression for the given sample.
+  \param v A vector to store intermediate results.
+  \param offset Index in v to begin storing results.
+  \param sampleNo Sample number to evaluate.
+  \param roffset (output parameter) the offset in the return vector where the result begins.
+
+  The return value will be an existing vector so do not deallocate it.
+  If the result is stored in v it should be stored at the offset given.
+  Everything from offset to the end of v should be considered available for this method to use.
+  */
+  ValueType*
+  resolveReduction(ValueType& v, size_t offset, int sampleNo, size_t& roffset) const;
 
   /**
   \brief Compute the value of the expression (unary non-pointwise operation) for the given sample.
