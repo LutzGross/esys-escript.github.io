@@ -29,7 +29,7 @@
 
 #define MAX_numNodes_gmsh 10
 
-Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, index_t reduced_order, bool_t optimize) {
+Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, index_t reduced_order, bool_t optimize, bool_t useMacroElements) {
 
   double version = 1.0;
   int format = 0, size = sizeof(double), scan_ret;
@@ -45,6 +45,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
 #endif
   FILE * fileHandle_p = NULL;
   ElementTypeId* element_type=NULL;
+
 
   Paso_MPIInfo *mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
   Finley_resetError();
@@ -169,22 +170,38 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                       element_dim=3;
                       break;
                   case 8:  /* line order 2 */
-                      element_type[e]=Line3;
+                      if (useMacroElements) {
+                          element_type[e]=Line3Macro;
+                      } else {
+                          element_type[e]=Line3;
+                      }
                       numNodesPerElement= 3;
                       element_dim=1;
                       break;
                   case 9:  /* traingle order 2 */
-                      element_type[e]=Tri6;
+                      if (useMacroElements) {
+                           element_type[e]=Tri6Macro;
+                      } else {
+                           element_type[e]=Tri6;
+                      }
                       numNodesPerElement= 6;
                       element_dim=2;
                       break;
                   case 10:  /* quadrilateral order 2 */
-                      element_type[e]=Rec9;
+                      if (useMacroElements) {
+                          element_type[e]=Rec9Macro;
+                      } else {
+                          element_type[e]=Rec9;
+                      }
                       numNodesPerElement= 9;
                       element_dim=2;
                       break;
                   case 11:  /* tetrahedron order 2 */
-                      element_type[e]=Tet10;
+                      if (useMacroElements) {
+                          element_type[e]=Tet10Macro;
+                      } else {
+                          element_type[e]=Tet10;
+                      }
                       numNodesPerElement= 10;
                       element_dim=3;
                       break;
@@ -250,7 +267,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
 	        FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
 	      }
               /* for tet10 the last two nodes need to be swapped */
-              if (element_type[e]==Tet10) {
+              if ((element_type[e]==Tet10) || (element_type[e]==Tet10Macro)) {
                    itmp=vertices[INDEX2(9,e,MAX_numNodes_gmsh)];
                    vertices[INDEX2(9,e,MAX_numNodes_gmsh)]=vertices[INDEX2(8,e,MAX_numNodes_gmsh)];
                    vertices[INDEX2(8,e,MAX_numNodes_gmsh)]=itmp;
@@ -280,11 +297,11 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
               }
               if (final_face_element_type == Line2) {
                   contact_element_type=Line2_Contact;
-              } else  if (final_face_element_type == Line3) {
+              } else  if ( (final_face_element_type == Line3) || (final_face_element_type == Line3Macro) ) {
                   contact_element_type=Line3_Contact;
               } else  if (final_face_element_type == Tri3) {
                   contact_element_type=Tri3_Contact;
-              } else  if (final_face_element_type == Tri6) {
+              } else  if ( (final_face_element_type == Tri6) || (final_face_element_type == Tri6Macro)) {
                   contact_element_type=Tri6_Contact;
               } else {
                   contact_element_type=Point1_Contact;

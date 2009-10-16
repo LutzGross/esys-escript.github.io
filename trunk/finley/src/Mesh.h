@@ -123,7 +123,7 @@ void Finley_PrintMesh_Info(Finley_Mesh *, bool_t);
 Finley_Mesh* Finley_Mesh_load(char* fname);
 Finley_Mesh* Finley_Mesh_read(char*,index_t, index_t, bool_t);
 Finley_Mesh* Finley_Mesh_read_MPI(char*,index_t, index_t, bool_t);
-Finley_Mesh* Finley_Mesh_readGmsh(char*,index_t, index_t, index_t, bool_t);
+Finley_Mesh* Finley_Mesh_readGmsh(char*,index_t, index_t, index_t, bool_t, bool_t);
 void Finley_Mesh_setCoordinates(Finley_Mesh*,escriptDataC*);
 void Finley_Mesh_setElements(Finley_Mesh* self,Finley_ElementFile *elements);
 void Finley_Mesh_setFaceElements(Finley_Mesh* self,Finley_ElementFile *elements);
@@ -156,7 +156,6 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
 void Finley_Mesh_optimizeNodeLabeling(Finley_Mesh* mesh_p);
 dim_t Finley_Mesh_FindMinDegreeNode(Paso_SystemMatrixPattern* pattern_p,index_t* available,index_t indicator);
 index_t Finley_Mesh_getDegree(Paso_SystemMatrixPattern* pattern_p, index_t *label);
-
 
 void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp, const char* metadata, const char*metadata_schema);
 void Finley_Mesh_setTagsInUse(Finley_Mesh* in);

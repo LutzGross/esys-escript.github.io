@@ -63,6 +63,14 @@ class Test_Util_SpatialFunctionsOnFinleyTet2DOrder2(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
+class Test_Util_SpatialFunctionsOnFinleyTet2DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+    def setUp(self):
+        self.order=1
+        self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_macro.fly"),optimize=False)
+    def tearDown(self):
+        del self.order
+        del self.domain
+
 class Test_Util_SpatialFunctionsOnFinleyTet3DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
@@ -75,6 +83,14 @@ class Test_Util_SpatialFunctionsOnFinleyTet3DOrder2(Test_Util_SpatialFunctions_n
     def setUp(self):
         self.order=2
         self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
+    def tearDown(self):
+        del self.order
+        del self.domain
+
+class Test_Util_SpatialFunctionsOnFinleyTet3DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+    def setUp(self):
+        self.order=1
+        self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_macro.fly"),optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
@@ -173,8 +189,10 @@ if __name__ == '__main__':
       suite.addTest(unittest.makeSuite(Test_UtilOnFinley))
       suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet2DOrder1))
       suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet2DOrder2))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet2DMacro))
       suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet3DOrder1))
       suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet3DOrder2))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet3DMacro))
       # These tests use JoinFaces and are not MPI parallel
       if getMPISizeWorld() == 1:
         suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DOrder1))

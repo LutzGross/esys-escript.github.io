@@ -32,6 +32,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
                                           index_t reduced_order, 
                                           bool_t useElementsOnFace,
                                           bool_t useFullElementOrder,
+                                          bool_t useMacroElements,
                                           bool_t optimize) 
 {
   #define N_PER_E 2
@@ -42,6 +43,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
   Finley_Mesh* out;
   Paso_MPIInfo *mpi_info = NULL;
   char name[50];
+  bool_t generateAllNodes= useFullElementOrder || useMacroElements;
   #ifdef Finley_TRACE
   double time0=Finley_timer();
   #endif
@@ -63,26 +65,40 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
   N2=N_PER_E*NE2+1;
 
   /*  allocate mesh: */  
-  sprintf(name,"Rectangular %d x %d x %d mesh",N0,N1,N2);
+  sprintf(name,"Brick %d x %d x %d mesh",N0,N1,N2);
   out=Finley_Mesh_alloc(name,DIM,order, reduced_order, mpi_info);
   if (! Finley_noError()) { 
       Paso_MPIInfo_free( mpi_info );
       return NULL;
   }
 
-  if (useFullElementOrder) {
+  if (generateAllNodes) {
      /* Finley_setError(SYSTEM_ERROR,"full element order for Hex elements is not supported yet."); */
-     Finley_Mesh_setElements(out,Finley_ElementFile_alloc(Hex27,
-                                            out->order,
-                                            out->reduced_order,
-                                            mpi_info));
+     if (useMacroElements) {
+          Finley_Mesh_setElements(out,Finley_ElementFile_alloc(Hex27Macro,
+                                                 out->order,
+                                                 out->reduced_order,
+                                                 mpi_info));
+     } else {
+          Finley_Mesh_setElements(out,Finley_ElementFile_alloc(Hex27,
+                                                 out->order,
+                                                 out->reduced_order,
+                                                 mpi_info));
+     }
      if (useElementsOnFace) {
          Finley_setError(SYSTEM_ERROR,"rich elements for Hex27 elements is not supported yet.");
      } else {
-         Finley_Mesh_setFaceElements(out,Finley_ElementFile_alloc(Rec9,
-                                                    out->order,
-                                                    out->reduced_order,
-                                                    mpi_info));
+         if (useMacroElements) { 
+             Finley_Mesh_setFaceElements(out,Finley_ElementFile_alloc(Rec9Macro,
+                                                        out->order,
+                                                        out->reduced_order,
+                                                        mpi_info));
+         } else {
+             Finley_Mesh_setFaceElements(out,Finley_ElementFile_alloc(Rec9,
+                                                        out->order,
+                                                        out->reduced_order,
+                                                        mpi_info));
+         }
          Finley_Mesh_setContactElements(out,Finley_ElementFile_alloc(Rec9_Contact,
                                                        out->order,
                                                        out->reduced_order,
@@ -244,7 +260,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
            out->Elements->Nodes[INDEX2(17,k,NN)]=node0+2*Nstride2+1*Nstride1+2*Nstride0;
            out->Elements->Nodes[INDEX2(18,k,NN)]=node0+2*Nstride2+2*Nstride1+1*Nstride0;
            out->Elements->Nodes[INDEX2(19,k,NN)]=node0+2*Nstride2+1*Nstride1           ;
-           if (useFullElementOrder) {
+           if (generateAllNodes) {
               out->Elements->Nodes[INDEX2(20,k,NN)]=node0+           1*Nstride1+1*Nstride0;
               out->Elements->Nodes[INDEX2(21,k,NN)]=node0+1*Nstride2           +1*Nstride0;
               out->Elements->Nodes[INDEX2(22,k,NN)]=node0+1*Nstride2+1*Nstride1+2*Nstride0;
@@ -305,7 +321,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
                  out->FaceElements->Nodes[INDEX2(5,k,NN)] =node0+           2*Nstride1+1*Nstride0;
                  out->FaceElements->Nodes[INDEX2(6,k,NN)] =node0+           1*Nstride1+2*Nstride0;
                  out->FaceElements->Nodes[INDEX2(7,k,NN)] =node0+                      1*Nstride0;
-                 if (useFullElementOrder){
+                 if (generateAllNodes){
                     out->FaceElements->Nodes[INDEX2(8,k,NN)] =node0+           1*Nstride1+1*Nstride0;
                  }
               }
@@ -361,7 +377,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
                  out->FaceElements->Nodes[INDEX2(5,k,NN)] =node0+2*Nstride2+1*Nstride1+2*Nstride0;
                  out->FaceElements->Nodes[INDEX2(6,k,NN)] =node0+2*Nstride2+2*Nstride1+1*Nstride0;
                  out->FaceElements->Nodes[INDEX2(7,k,NN)] =node0+2*Nstride2+1*Nstride1           ;
-                 if (useFullElementOrder){
+                 if (generateAllNodes){
                  out->FaceElements->Nodes[INDEX2(8,k,NN)] =node0+2*Nstride2+1*Nstride1+1*Nstride0;
                  }
               }
@@ -420,7 +436,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
                   out->FaceElements->Nodes[INDEX2(5,k,NN)] =node0+2*Nstride2+1*Nstride1           ;
                   out->FaceElements->Nodes[INDEX2(6,k,NN)] =node0+1*Nstride2+2*Nstride1           ;
                   out->FaceElements->Nodes[INDEX2(7,k,NN)] =node0+           1*Nstride1           ;
-                 if (useFullElementOrder){
+                 if (generateAllNodes){
                     out->FaceElements->Nodes[INDEX2(8,k,NN)] =node0+1*Nstride2+1*Nstride1           ;
                  }
                }
@@ -476,7 +492,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
                   out->FaceElements->Nodes[INDEX2(5,k,NN)]=node0+1*Nstride2+2*Nstride1+2*Nstride0;
                   out->FaceElements->Nodes[INDEX2(6,k,NN)]=node0+2*Nstride2+1*Nstride1+2*Nstride0;
                   out->FaceElements->Nodes[INDEX2(7,k,NN)]=node0+1*Nstride2           +2*Nstride0;
-                 if (useFullElementOrder){
+                 if (generateAllNodes){
                     out->FaceElements->Nodes[INDEX2(8,k,NN)] =node0+1*Nstride2+1*Nstride1+2*Nstride0;
                  }
                }
@@ -534,7 +550,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
                   out->FaceElements->Nodes[INDEX2(5,k,NN)]=node0+1*Nstride2+           2*Nstride0;
                   out->FaceElements->Nodes[INDEX2(6,k,NN)]=node0+2*Nstride2+           1*Nstride0;
                   out->FaceElements->Nodes[INDEX2(7,k,NN)]=node0+1*Nstride2                      ;
-                 if (useFullElementOrder){
+                 if (generateAllNodes){
                     out->FaceElements->Nodes[INDEX2(8,k,NN)] =node0+1*Nstride2+         1*Nstride0;
                  }
                }
@@ -589,7 +605,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
                   out->FaceElements->Nodes[INDEX2(5,k,NN)]=node0+2*Nstride2+2*Nstride1+1*Nstride0;
                   out->FaceElements->Nodes[INDEX2(6,k,NN)]=node0+1*Nstride2+2*Nstride1+2*Nstride0;
                   out->FaceElements->Nodes[INDEX2(7,k,NN)]=node0+           2*Nstride1+1*Nstride0;
-                 if (useFullElementOrder){
+                 if (generateAllNodes){
                     out->FaceElements->Nodes[INDEX2(8,k,NN)] =node0+1*Nstride2+2*Nstride1+1*Nstride0;
                  }
                }

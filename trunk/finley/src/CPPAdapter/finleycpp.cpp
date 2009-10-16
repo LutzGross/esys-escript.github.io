@@ -107,14 +107,21 @@ BOOST_PYTHON_MODULE(finleycpp)
 ":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``");
 
   def("ReadGmsh",finley::readGmsh,
-      (arg("fileName")="file.msh",arg("numDim"), arg("integrationOrder")=-1, arg("reducedIntegrationOrder")=-1, arg("optimize")=true)
+      (arg("fileName")="file.msh",
+       arg("numDim"), 
+       arg("integrationOrder")=-1, 
+       arg("reducedIntegrationOrder")=-1, 
+       arg("optimize")=true,  
+       arg("useMacroElements")=false)
 //       ,return_value_policy<manage_new_object>());
 ,"Read a gmsh mesh file\n\n"
 ":rtype: `Domain`\n:param fileName:\n:type fileName: ``string``\n"
 ":param integrationOrder: order of the quadrature scheme. If *integrationOrder<0* the integration order is selected independently.\n"
 ":type integrationOrder: ``int``\n"
 ":param reducedIntegrationOrder: order of the quadrature scheme. If *reducedIntegrationOrder<0* the integration order is selected independently.\n"
-":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``");
+":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``\n"
+":param useMacroElements: Enable the usage of macro elements instead of second order elements.\n:type useMacroElements: ``bool``"
+);
 
   def ("Brick",finley::brick,
       (arg("n0")=1,arg("n1")=1,arg("n2")=1,
@@ -125,10 +132,11 @@ BOOST_PYTHON_MODULE(finleycpp)
       arg("useElementsOnFace")=false,
       arg("useFullElementOrder")=false,
       arg("optimize")=false)
+      
 //       ,return_value_policy<manage_new_object>());
 ,"Creates a rectangular mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2]."
 "\n\n:param n0:\n:type n0:\n:param n1:\n:type n1:\n:param n2:\n:type n2:\n"
-":param order: =1 or =2 gives the order of shape function\n"
+":param order: =1, =-1 or =2 gives the order of shape function. If -1 macro elements of order 1 are used.\n"
 ":param l0: length of side 0\n:param l1:\n:param l2:\n"
 ":param integrationOrder: order of the quadrature scheme. If integrationOrder<0 the integration order is selected independently.\n"
 ":param reducedIntegrationOrder: order of the quadrature scheme. If reducedIntegrationOrder<0 the integration order is selected independently.\n"
@@ -137,6 +145,7 @@ BOOST_PYTHON_MODULE(finleycpp)
 ":param periodic0:  whether or not boundary conditions are periodic\n"
 ":param periodic1:\n:param periodic2:\n"
 ":param useFullElementOrder:\n:param optimize:\n"
+":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``"
 );
 
   def ("Rectangle",finley::rectangle,
@@ -150,7 +159,7 @@ BOOST_PYTHON_MODULE(finleycpp)
 //       ,return_value_policy<manage_new_object>());
 ,"Creates a rectangular mesh with n0 x n1 elements over the brick [0,l0] x [0,l1]."
 "\n\n:param n0:\n:type n0:\n:param n1:\n:type n1:\n"
-":param order: =1 or =2 gives the order of shape function\n"
+":param order: =1, =-1 or =2 gives the order of shape function. If -1 macro elements of order 1 are used.\n"
 ":param l0: length of side 0\n:param l1:\n"
 ":param integrationOrder: order of the quadrature scheme. If integrationOrder<0 the integration order is selected independently.\n"
 ":param reducedIntegrationOrder: order of the quadrature scheme. If reducedIntegrationOrder<0 the integration order is selected independently.\n"
@@ -158,7 +167,10 @@ BOOST_PYTHON_MODULE(finleycpp)
 ":type useElementsOnFace: ``int``"
 ":param periodic0:  whether or not boundary conditions are periodic\n"
 ":param periodic1:\n"
-":param useFullElementOrder:\n:param optimize:\n");
+":param useFullElementOrder:\n:param optimize:\n"
+":param useMacroElements: Enable the usage of first order macro elements.\n:type useMacroElements: ``bool``\n"
+":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``"
+);
 
   def("Merge",finley::meshMerge,args("meshList")
 //       ,return_value_policy<manage_new_object>());

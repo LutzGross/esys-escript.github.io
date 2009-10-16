@@ -106,6 +106,12 @@ typedef enum {
   Hex20Face_Contact,
   Hex27Face_Contact, 
   Hex32Face_Contact, 
+  Line3Macro, 
+  Tri6Macro, 
+  Rec9Macro,
+  Tet10Macro,
+  Hex27Macro,
+
   NoType   /* marks end of list */
 } ElementTypeId;
 
