@@ -1634,7 +1634,11 @@ Data::inf()
 
 template <class BinaryOp>
 double
-Data::lazyAlgWorker(double init, int mpiop_type)
+#ifdef PASO_MPI
+Data::lazyAlgWorker(double init, MPI_Op mpiop_type)
+#else
+Data::lazyAlgWorker(double init)
+#endif
 {
    if (!isLazy() || !m_data->actsExpanded())
    {
