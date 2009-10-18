@@ -1563,7 +1563,7 @@ Data::Lsup()
 #ifdef PASO_MPI
 	    return lazyAlgWorker<AbsMax>(0,MPI_MAX);
 #else
-	    return lazyAlgWorker<AbsMax>(0,0);
+	    return lazyAlgWorker<AbsMax>(0);
 #endif
 	}
    }
@@ -1594,7 +1594,7 @@ Data::sup()
 #ifdef PASO_MPI
 	    return lazyAlgWorker<FMax>(numeric_limits<double>::max()*-1, MPI_MAX);
 #else
-	    return lazyAlgWorker<FMax>(numeric_limits<double>::max()*-1, 0);
+	    return lazyAlgWorker<FMax>(numeric_limits<double>::max()*-1);
 #endif
 	}
    }
@@ -1625,7 +1625,7 @@ Data::inf()
 #ifdef PASO_MPI
 	    return lazyAlgWorker<FMin>(numeric_limits<double>::max(), MPI_MIN);
 #else
-	    return lazyAlgWorker<FMin>(numeric_limits<double>::max(), 0);
+	    return lazyAlgWorker<FMin>(numeric_limits<double>::max());
 #endif
 	}
    }
