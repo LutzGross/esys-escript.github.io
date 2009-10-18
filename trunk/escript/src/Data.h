@@ -1538,7 +1538,11 @@ ESCRIPT_DLL_API void freeSampleBuffer(BufferGroup* buffer);
 
 template <class BinaryOp>
   double 
-  lazyAlgWorker(double init, int mpiop_type);
+#ifdef PASO_MPI
+  lazyAlgWorker(double init, MPI_Op mpiop_type);
+#else
+  lazyAlgWorker(double init);
+#endif
 
   double
   LsupWorker() const;
