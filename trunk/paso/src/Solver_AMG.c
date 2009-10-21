@@ -116,6 +116,13 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
   Paso_SparseMatrix * schur_withFillIn=NULL;
   double S=0;
   
+  
+ /* char filename[8];
+  sprintf(filename,"AMGLevel%d",level);
+  
+ Paso_SparseMatrix_saveMM(A_p,filename);
+  */
+  
   /*Make sure we have block sizes 1*/
   if (A_p->col_block_size>1) {
      Paso_setError(TYPE_ERROR,"Paso_Solver_getAMG: AMG requires column block size 1.");
@@ -150,7 +157,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      /*out->GS=Paso_Solver_getGS(A_p,verbose);*/
      out->level=level;
      out->n=n;
-     out->n_F=0;
+     out->n_F=n+1;
      out->n_block=n_block;
      
      if (level==0 || n<=options->min_coarse_matrix_size) {
@@ -188,18 +195,31 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
            /*Default coarseneing*/
             Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);
             /*Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);*/
-             /*Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);*/
+            /*Paso_Pattern_greedy_diag(A_p,mis_marker,options->coarsening_threshold);*/
+            /*Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);*/
         }
         
         #pragma omp parallel for private(i) schedule(static)
         for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
+        
         out->n_F=Paso_Util_cumsum(n,counter);
         
-        if (out->n_F==n) {
+        if (out->n_F==0) {
            out->coarsest_level=TRUE;
+           level=0;
            if (verbose) { 
-               printf("AMG coarsening eliminates all unknowns, switching to Jacobi preconditioner.\n");
+               /*printf("AMG coarsening eliminates all unknowns, switching to Jacobi preconditioner.\n");*/
+               printf("AMG coarsening does not eliminate any of the unknowns, switching to Jacobi preconditioner.\n");
            }
+        }
+        else if (out->n_F==n) {
+          out->coarsest_level=TRUE;
+           level=0;
+           if (verbose) { 
+               /*printf("AMG coarsening eliminates all unknowns, switching to Jacobi preconditioner.\n");*/
+               printf("AMG coarsening eliminates all of the unknowns, switching to Jacobi preconditioner.\n");
+          
+            }
         } else {
      
               if (Paso_noError()) {
@@ -390,7 +410,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
       
       time0=Paso_timer();
       /*If all unknown are eliminated then Jacobi is the best preconditioner*/
-      if (amg->n_F==amg->n) {
+      if (amg->n_F==0 || amg->n_F==amg->n) {
         Paso_Solver_solveJacobi(amg->GS,x,b);
       }
        else {
@@ -425,7 +445,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
          /*r=b-Ax*/ 
          Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
        
-        /* b->[b_F,b_C]     */
+        /* r->[b_F,b_C]     */
         #pragma omp parallel for private(i) schedule(static)
         for (i=0;i<amg->n_F;++i) amg->b_F[i]=r[amg->rows_in_F[i]];
         
@@ -449,8 +469,8 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A_FC,amg->x_C,1.,amg->b_F);
         /* x_F=invA_FF*b_F  */
         Paso_Solver_applyBlockDiagonalMatrix(1,amg->n_F,amg->inv_A_FF,amg->A_FF_pivot,amg->x_F,amg->b_F);
+        
         /* x<-[x_F,x_C]     */
-
         #pragma omp parallel for private(i) schedule(static)
         for (i=0;i<amg->n;++i) {
             if (amg->mask_C[i]>-1) {
