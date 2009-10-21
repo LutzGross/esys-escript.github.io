@@ -36,8 +36,8 @@
 /***************************************************************/
  
 #define IS_AVAILABLE -1
-#define IS_IN_SET -3   /* Week connection */
-#define IS_REMOVED -4  /* strong */
+#define IS_IN_F -3   /* in F (strong) */
+#define IS_IN_C -4  /* in C (weak) */ 
 
 void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold) {
 
@@ -56,9 +56,9 @@ void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold
    #pragma omp parallel for private(i) schedule(static)
    for (i=0;i<n;++i)
         if(mis_marker[i]==IS_AVAILABLE)
-                    mis_marker[i]=IS_REMOVED;
+                    mis_marker[i]=IS_IN_C;
 
-    #pragma omp parallel for private(i,index,where_p) schedule(static) 
+    /*#pragma omp parallel for private(i,index,where_p) schedule(static)*/
     for (i=0;i<n;++i) {
          diagptr[i]=A->pattern->ptr[i];
          index=&(A->pattern->index[A->pattern->ptr[i]]);
@@ -78,11 +78,11 @@ void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold
 
     /*This loop cannot be parallelized, as order matters here.*/ 
     for (i=0;i<n;++i) {
-      if (mis_marker[i]==IS_REMOVED) {
+      if (mis_marker[i]==IS_IN_C) {
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
              j=A->pattern->index[iptr];
              if (j!=i && ABS(A->val[iptr])>=threshold*ABS(A->val[diagptr[i]])) {
-                mis_marker[j]=IS_IN_SET;
+                mis_marker[j]=IS_IN_F;
              }
         }
       }
@@ -92,11 +92,11 @@ void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold
      
       /*This loop cannot be parallelized, as order matters here.*/ 
     for (i=0;i<n;i++) {
-        if (mis_marker[i]==IS_IN_SET) {
+        if (mis_marker[i]==IS_IN_F) {
            passed=TRUE;
            for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
               j=A->pattern->index[iptr];
-              if (mis_marker[j]==IS_REMOVED) {
+              if (mis_marker[j]==IS_IN_C) {
                 if ((A->val[iptr]/A->val[diagptr[i]])>=-threshold) {
                     passed=TRUE;
                 }
@@ -106,32 +106,17 @@ void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold
                 }
               } 
            }
-           if (passed) mis_marker[i]=IS_REMOVED;
+           if (passed) mis_marker[i]=IS_IN_C;
         }
     }
-    /* This check is to make sure we dont get some nusty rows which were not removed durring coarsening process.*/
-    /* TODO: we have to mechanism that this does not happend at all, and get rid of this 'If'. */
-    /*#pragma omp parallel for private(i,iptr,j,sum) schedule(static)
-    for (i=0;i<n;i++) {
-        if (mis_marker[i]==IS_REMOVED) {
-           sum=0;
-           for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-             j=A->pattern->index[iptr];
-             if (mis_marker[j]==IS_REMOVED)
-                sum+=A->val[iptr];
-           }
-           if(ABS(sum)<1.e-25)
-             mis_marker[i]=IS_IN_SET;
-        }
-    }
-    */
 
      /* swap to TRUE/FALSE in mis_marker */
      #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]!=IS_IN_SET);
+     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_F);
      
      MEMFREE(diagptr);
 }
+
 
 /*
  * Ruge-Stueben strength of connection mask.
@@ -285,18 +270,17 @@ void Paso_Pattern_greedy(Paso_Pattern* pattern, index_t* mis_marker) {
     return;
   }
    
-   /* We do not need this loop if we set IS_REMOVED=IS_AVAILABLE. */
    #pragma omp parallel for private(i) schedule(static)
    for (i=0;i<n;++i)
         if(mis_marker[i]==IS_AVAILABLE)
-                    mis_marker[i]=IS_IN_SET;
+                    mis_marker[i]=IS_IN_C;
 
 
     for (i=0;i<n;++i) {
-      if (mis_marker[i]==IS_IN_SET) {
+      if (mis_marker[i]==IS_IN_C) {
         for (iptr=pattern->ptr[i];iptr<pattern->ptr[i+1]; ++iptr) {
              j=pattern->index[iptr];
-             mis_marker[j]=IS_REMOVED;
+             mis_marker[j]=IS_IN_F;
         }
       }
     }
@@ -304,11 +288,11 @@ void Paso_Pattern_greedy(Paso_Pattern* pattern, index_t* mis_marker) {
     
      
     for (i=0;i<n;i++) {
-        if (mis_marker[i]==IS_REMOVED) {
+        if (mis_marker[i]==IS_IN_F) {
            passed=TRUE;
            for (iptr=pattern->ptr[i];iptr<pattern->ptr[i+1]; ++iptr) {
               j=pattern->index[iptr];
-                if (mis_marker[j]==IS_REMOVED) {
+                if (mis_marker[j]==IS_IN_F) {
                     passed=TRUE;
                 }
                 else {
@@ -316,13 +300,13 @@ void Paso_Pattern_greedy(Paso_Pattern* pattern, index_t* mis_marker) {
                     break;
                 }
               } 
-           if (passed) mis_marker[i]=IS_IN_SET;
+           if (passed) mis_marker[i]=IS_IN_C;
            }
         }
 
      /* swap to TRUE/FALSE in mis_marker */
      #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]!=IS_REMOVED);
+     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_F);
      
 }
 
@@ -352,18 +336,18 @@ void Paso_Pattern_greedy_color(Paso_Pattern* pattern, index_t* mis_marker) {
    #pragma omp parallel for private(i) schedule(static)
    for (i=0;i<n;++i)
         if(mis_marker[i]==IS_AVAILABLE)
-                    mis_marker[i]=IS_IN_SET;
+                    mis_marker[i]=IS_IN_F;
 
    #pragma omp barrier
    for (color=0;color<num_colors;++color) {
     #pragma omp parallel for schedule(static) private(i,iptr,j)
     for (i=0;i<n;++i) {
      if (colorOf[i]==color) {  
-      if (mis_marker[i]==IS_IN_SET) {
+      if (mis_marker[i]==IS_IN_F) {
         for (iptr=pattern->ptr[i];iptr<pattern->ptr[i+1]; ++iptr) {
              j=pattern->index[iptr];
              if (colorOf[j]<color)
-              mis_marker[j]=IS_REMOVED;
+              mis_marker[j]=IS_IN_C;
         }
       }
      }
@@ -376,12 +360,12 @@ void Paso_Pattern_greedy_color(Paso_Pattern* pattern, index_t* mis_marker) {
    #pragma omp parallel for schedule(static) private(i,iptr,j) 
     for (i=0;i<n;i++) {
       if (colorOf[i]==color) {  
-        if (mis_marker[i]==IS_REMOVED) {
+        if (mis_marker[i]==IS_IN_C) {
            passed=TRUE;
            for (iptr=pattern->ptr[i];iptr<pattern->ptr[i+1]; ++iptr) {
               j=pattern->index[iptr];
                if (colorOf[j]<color && passed) {
-                if (mis_marker[j]==IS_REMOVED) {
+                if (mis_marker[j]==IS_IN_C) {
                     passed=TRUE;
                 }
                 else {
@@ -390,7 +374,7 @@ void Paso_Pattern_greedy_color(Paso_Pattern* pattern, index_t* mis_marker) {
                 }
               }
            }
-           if (passed) mis_marker[i]=IS_IN_SET;
+           if (passed) mis_marker[i]=IS_IN_F;
            }
            
         }
@@ -399,14 +383,111 @@ void Paso_Pattern_greedy_color(Paso_Pattern* pattern, index_t* mis_marker) {
 
      /* swap to TRUE/FALSE in mis_marker */
      #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]!=IS_IN_SET);
+     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_F);
     
     MEMFREE(colorOf); 
 }
 
+/*For testing */
+void Paso_Pattern_greedy_diag(Paso_SparseMatrix* A, index_t* mis_marker, double threshold) {
+
+  dim_t i,j=0,k;
+  double *theta;
+  index_t iptr;
+  dim_t n=A->numRows;
+  double rsum,diag=0;
+  index_t *AvADJ;
+  theta=MEMALLOC(n,double);
+  AvADJ=MEMALLOC(n,index_t);
+
+
+  
+
+  if (A->pattern->type & PATTERN_FORMAT_SYM) {
+    Paso_setError(TYPE_ERROR,"Paso_Pattern_coup: symmetric matrix pattern is not supported yet");
+    return;
+  }
+   
+
+    #pragma omp parallel for private(i,iptr,j,rsum) schedule(static) 
+    for (i=0;i<n;++i) {
+        rsum=0;
+        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+            j=A->pattern->index[iptr];
+            if(j!=i) {
+              rsum+=ABS(A->val[iptr]);    
+            }
+            else {
+                diag=ABS(A->val[iptr]);
+            }
+        }
+        theta[i]=diag/rsum;
+        if(theta[i]>threshold) {
+            mis_marker[i]=IS_IN_F;
+        }
+    }
+    
+    while (Paso_Util_isAny(n,mis_marker,IS_AVAILABLE)) {
+         k=0;
+         #pragma omp parallel for private(i,j,k) schedule(static) 
+         for (i=0;i<n;++i) {
+           if(mis_marker[i]==IS_AVAILABLE) {
+                if(k==0) {
+                    j=i;
+                    k++;
+                }
+                if(theta[j]>theta[i]) {
+                    j=i;
+                }
+            }
+         }
+         mis_marker[j]=IS_IN_C;
+         
+         for (iptr=A->pattern->ptr[j];iptr<A->pattern->ptr[j+1]; ++iptr) {
+            k=A->pattern->index[iptr];
+            if(mis_marker[k]==IS_AVAILABLE) {
+               AvADJ[k]=1; 
+            }
+            else {
+                AvADJ[k]=-1;
+            }
+            
+         }
+            
+         #pragma omp parallel for private(i,iptr,j,rsum) schedule(static) 
+        for (i=0;i<n;++i) {
+            if(AvADJ[i]) {
+                rsum=0;
+                for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+                    k=A->pattern->index[iptr];
+                    if(k!=i && mis_marker[k]!=IS_IN_C ) {
+                      rsum+=ABS(A->val[iptr]);    
+                    }
+                    if(j==i) {
+                        diag=ABS(A->val[iptr]);
+                    }
+                }
+                theta[i]=diag/rsum;
+                if(theta[i]>threshold) {
+                   mis_marker[i]=IS_IN_F;
+                }
+            }
+        }
+         
+        
+    }
+
+     /* swap to TRUE/FALSE in mis_marker */
+     #pragma omp parallel for private(i) schedule(static)
+     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_F);
+     
+     MEMFREE(AvADJ);
+     MEMFREE(theta);
+}
+
 #undef IS_AVAILABLE 
-#undef IS_IN_SET 
-#undef IS_REMOVED
+#undef IS_IN_F 
+#undef IS_IN_C
 
 
 
