@@ -59,6 +59,7 @@ class Test_LinearPDEOnFinleyHex2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemb
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = Rectangle(NE,NE,1)
+        self.order = 1
    def tearDown(self):
         del self.domain
 
@@ -67,6 +68,7 @@ class Test_LinearPDEOnFinleyHex2DOrder2(Test_LinearPDE,Test_pdetools,Test_assemb
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = Rectangle(NE,NE,2)
+        self.order = 2
    def tearDown(self):
         del self.domain
 
@@ -75,12 +77,16 @@ class Test_LinearPDEOnFinleyHex3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemb
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = Brick(NE,NE,NE,1)
+        self.order = 1
+   def tearDown(self):
+        del self.domain
 
 class Test_LinearPDEOnFinleyHex3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do2, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = Brick(NE,NE,NE,2)
+        self.order = 2
    def tearDown(self):
         del self.domain
 

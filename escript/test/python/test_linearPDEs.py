@@ -1587,13 +1587,14 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_PCG_AMG(self):
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        u=mypde.getSolution()
-        self.failUnless(self.check(u,1.),'solution is wrong.')
+        if self.order!=2:
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+            u=mypde.getSolution()
+            self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_PCG_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1634,13 +1635,14 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_BICGSTAB_AMG(self):
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        u=mypde.getSolution()
-        self.failUnless(self.check(u,1.),'solution is wrong.')
+        if self.order!=2:
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
+            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+            mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+            u=mypde.getSolution()
+            self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_BICGSTAB_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1674,13 +1676,14 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_MINRES_AMG(self):
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        u=mypde.getSolution()
-        self.failUnless(self.check(u,1.),'solution is wrong.')
+        if self.order!=2:
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
+            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+            mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+            u=mypde.getSolution()
+            self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_MINRES_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1714,13 +1717,15 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_TFQMR_AMG(self):
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        u=mypde.getSolution()
-        self.failUnless(self.check(u,1.),'solution is wrong.')
+        if self.order!=2:
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
+            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+            mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+            mypde.getSolverOptions().setVerbosity(True)
+            u=mypde.getSolution()
+            self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_TFQMR_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1754,13 +1759,14 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_PRES20_AMG(self):
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        u=mypde.getSolution()
-        self.failUnless(self.check(u,1.),'solution is wrong.')
+        if self.order!=2:
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
+            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+            u=mypde.getSolution()
+            self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_PRES20_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1795,14 +1801,15 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_AMG(self):
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-	mypde.getSolverOptions().setTruncation(50)
-        u=mypde.getSolution()
-        self.failUnless(self.check(u,1.),'solution is wrong.')
+        if self.order!=2:
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+            mypde.getSolverOptions().setTruncation(50)
+            u=mypde.getSolution()
+            self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1839,13 +1846,14 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRES_AMG(self):
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        u=mypde.getSolution()
-        self.failUnless(self.check(u,1.),'solution is wrong.')        
+        if self.order!=2:
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+            u=mypde.getSolution()
+            self.failUnless(self.check(u,1.),'solution is wrong.')        
     def test_GMRES_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1881,15 +1889,16 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRES_truncation_restart_AMG(self):
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-	mypde.getSolverOptions().setTruncation(10)
-	mypde.getSolverOptions().setRestart(20)
-        u=mypde.getSolution()
-        self.failUnless(self.check(u,1.),'solution is wrong.')
+        if self.order!=2:
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+            mypde.getSolverOptions().setTruncation(10)
+            mypde.getSolverOptions().setRestart(20)
+            u=mypde.getSolution()
+            self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRES_truncation_restart_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1966,20 +1975,21 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_PCG_AMG_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-        mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        u=mypde.getSolution()
-        self.failUnless(self.check(u,1.),'solution is wrong.')
+        if self.order!=2:
+            A=Tensor4(0.,Function(self.domain))
+            D=Tensor(1.,Function(self.domain))
+            Y=Vector(self.domain.getDim(),Function(self.domain))
+            for i in range(self.domain.getDim()): 
+                A[i,:,i,:]=kronecker(self.domain)
+                D[i,i]+=i
+                Y[i]+=i
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(A=A,D=D,Y=Y)
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+            u=mypde.getSolution()
+            self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_PCG_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2025,20 +2035,21 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_BICGSTAB_AMG_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        u=mypde.getSolution()
-        self.failUnless(self.check(u,1.),'solution is wrong.')
+        if self.order!=2:
+            A=Tensor4(0.,Function(self.domain))
+            D=Tensor(1.,Function(self.domain))
+            Y=Vector(self.domain.getDim(),Function(self.domain))
+            for i in range(self.domain.getDim()): 
+                A[i,:,i,:]=kronecker(self.domain)
+                D[i,i]+=i
+                Y[i]+=i
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(A=A,D=D,Y=Y)
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
+            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+            u=mypde.getSolution()
+            self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_BICGSTAB_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2070,20 +2081,21 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_PRES20_AMG_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        u=mypde.getSolution()
-        self.failUnless(self.check(u,1.),'solution is wrong.')
+        if self.order!=2:
+            A=Tensor4(0.,Function(self.domain))
+            D=Tensor(1.,Function(self.domain))
+            Y=Vector(self.domain.getDim(),Function(self.domain))
+            for i in range(self.domain.getDim()): 
+                A[i,:,i,:]=kronecker(self.domain)
+                D[i,i]+=i
+                Y[i]+=i
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(A=A,D=D,Y=Y)
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
+            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+            u=mypde.getSolution()
+            self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_PRES20_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2116,21 +2128,22 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_AMG_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-        # u=mypde.getSolution(verbose=self.VERBOSE,truncation=5)
-        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        u=mypde.getSolution()
-        self.failUnless(self.check(u,1.),'solution is wrong.')
+        if self.order!=2:
+            A=Tensor4(0.,Function(self.domain))
+            D=Tensor(1.,Function(self.domain))
+            Y=Vector(self.domain.getDim(),Function(self.domain))
+            for i in range(self.domain.getDim()): 
+                A[i,:,i,:]=kronecker(self.domain)
+                D[i,i]+=i
+                Y[i]+=i
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(A=A,D=D,Y=Y)
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+            # u=mypde.getSolution(verbose=self.VERBOSE,truncation=5)
+            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+            u=mypde.getSolution()
+            self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2163,20 +2176,21 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRES_AMG_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        u=mypde.getSolution()
-        self.failUnless(self.check(u,1.),'solution is wrong.')
+        if self.order!=2:
+            A=Tensor4(0.,Function(self.domain))
+            D=Tensor(1.,Function(self.domain))
+            Y=Vector(self.domain.getDim(),Function(self.domain))
+            for i in range(self.domain.getDim()): 
+                A[i,:,i,:]=kronecker(self.domain)
+                D[i,i]+=i
+                Y[i]+=i
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(A=A,D=D,Y=Y)
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+            u=mypde.getSolution()
+            self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRES_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2210,22 +2224,23 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRES_truncation_restart_AMG_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-	mypde.getSolverOptions().setTruncation(10)
-	mypde.getSolverOptions().setRestart(20)
-        u=mypde.getSolution()
-        self.failUnless(self.check(u,1.),'solution is wrong.')
+        if self.order!=2:
+            A=Tensor4(0.,Function(self.domain))
+            D=Tensor(1.,Function(self.domain))
+            Y=Vector(self.domain.getDim(),Function(self.domain))
+            for i in range(self.domain.getDim()): 
+                A[i,:,i,:]=kronecker(self.domain)
+                D[i,i]+=i
+                Y[i]+=i
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(A=A,D=D,Y=Y)
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+            mypde.getSolverOptions().setTruncation(10)
+            mypde.getSolverOptions().setRestart(20)
+            u=mypde.getSolution()
+            self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRES_truncation_restart_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
