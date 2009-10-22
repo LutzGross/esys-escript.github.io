@@ -59,6 +59,7 @@ class Test_LinearPDEOnFinleyTet2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemb
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
+        self.order = 1
    def tearDown(self):
         del self.domain
 
@@ -67,6 +68,7 @@ class Test_LinearPDEOnFinleyTet2DOrder2(Test_LinearPDE_noLumping,Test_pdetools_n
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
+        self.order = 2
    def tearDown(self):
         del self.domain
 
@@ -75,6 +77,7 @@ class Test_LinearPDEOnFinleyTet3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemb
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
+        self.order = 1
    def tearDown(self):
         del self.domain
 
@@ -83,6 +86,7 @@ class Test_LinearPDEOnFinleyTet3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemb
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
+        self.order = 2
    def tearDown(self):
         del self.domain
 
