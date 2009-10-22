@@ -391,7 +391,7 @@ void Paso_Pattern_greedy_color(Paso_Pattern* pattern, index_t* mis_marker) {
 /*For testing */
 void Paso_Pattern_greedy_diag(Paso_SparseMatrix* A, index_t* mis_marker, double threshold) {
 
-  dim_t i,j=0,k;
+  dim_t i,j,k;
   double *theta;
   index_t iptr;
   dim_t n=A->numRows;
@@ -408,10 +408,10 @@ void Paso_Pattern_greedy_diag(Paso_SparseMatrix* A, index_t* mis_marker, double 
     return;
   }
    
+  j=0;
 
-    #pragma omp parallel for private(i,iptr,j,rsum) schedule(static) 
     for (i=0;i<n;++i) {
-        rsum=0;
+	rsum=0;
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             j=A->pattern->index[iptr];
             if(j!=i) {
@@ -429,7 +429,6 @@ void Paso_Pattern_greedy_diag(Paso_SparseMatrix* A, index_t* mis_marker, double 
     
     while (Paso_Util_isAny(n,mis_marker,IS_AVAILABLE)) {
          k=0;
-         #pragma omp parallel for private(i,j,k) schedule(static) 
          for (i=0;i<n;++i) {
            if(mis_marker[i]==IS_AVAILABLE) {
                 if(k==0) {
@@ -454,7 +453,6 @@ void Paso_Pattern_greedy_diag(Paso_SparseMatrix* A, index_t* mis_marker, double 
             
          }
             
-         #pragma omp parallel for private(i,iptr,j,rsum) schedule(static) 
         for (i=0;i<n;++i) {
             if(AvADJ[i]) {
                 rsum=0;
