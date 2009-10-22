@@ -124,7 +124,7 @@ adder(
   ('mpi_path', 'Path to MPI includes', '/usr/include'),
   ('mpi_run', 'mpirun name' , 'mpiexec -np 1'),
   ('mpi_lib_path', 'Path to MPI libs (needs to be added to the LD_LIBRARY_PATH)', usr_lib),
-  ('mpi_libs', 'MPI libraries to link with (needs to be shared!)', ['mpich' , 'pthread', 'rt']),
+  ('mpi_libs', 'MPI libraries to link with (needs to be shared!)', []),
   ('mpi_flavour','Type of MPI execution environment','none'), 
 # ParMETIS
   BoolVariable('useparmetis', 'Compile parallel version using ParMETIS', 'yes'),
@@ -237,7 +237,7 @@ elif env["CC"] == "gcc":
   cc_debug		= "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
   omp_optim		= "-fopenmp"
   omp_debug		= "-fopenmp"
-  omp_libs		= ['gomp']
+  omp_libs		= []
   pedantic		= "-pedantic-errors -Wno-long-long"
   fatalwarning		= "-Werror"
   sysheaderopt		= "-isystem "
