@@ -159,7 +159,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
     offsetInShared[numNeighbors]=lastn;
 
     /* assign new DOF labels to nodes */
-    #pragma omp parallel for private(i) schedule(static)
+    #pragma omp parallel for private(i,k) schedule(static)
     for (i=0;i<numNodes;++i) {
        k=globalDOFIndex[i];
        if (k>-1) nodeMask[i]=locDOFMask[k-min_DOF];
