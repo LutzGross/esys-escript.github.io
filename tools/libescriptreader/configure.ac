@@ -32,6 +32,22 @@ AC_CHECK_FUNCS([pow sqrt])
 
 CXXFLAGS="-Wall -O2"
 
+AC_ARG_ENABLE([debug],
+              AC_HELP_STRING([--enable-debug],
+                             [enable debug output]),
+              [
+               if test "x$enableval" = "xyes"; then
+                   wants_debug=true
+               else
+                   wants_debug=false
+               fi
+              ],
+              [wants_debug=false]
+             )
+if test "$wants_debug" = "true"; then
+    CXXFLAGS="-D_DEBUG $CXXFLAGS"
+fi
+
 AC_ARG_ENABLE([esdcreate],
               AC_HELP_STRING([--disable-esdcreate],
                              [do not build the esdcreate tool]),
