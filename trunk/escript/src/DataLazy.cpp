@@ -1135,18 +1135,30 @@ DataLazy::resolveReduction(ValueType& v, size_t offset, int sampleNo, size_t& ro
   const ValueType* vleft=m_left->resolveVectorSample(v,offset,sampleNo,roffset);
   double* result=&(v[offset]);
   roffset=offset;
+  unsigned int ndpps=getNumDPPSample();
+  unsigned int psize=DataTypes::noValues(getShape());
   switch (m_op)
   {
     case MINVAL:
 	{
-	  FMin op;
-	  *result=DataMaths::reductionOp(*vleft, m_left->getShape(), roffset, op, numeric_limits<double>::max());
+	  for (unsigned int z=0;z<ndpps;++z)
+	  {
+	     FMin op;
+	     *result=DataMaths::reductionOp(*vleft, m_left->getShape(), roffset, op, numeric_limits<double>::max());
+	     roffset+=psize;
+	     result++;
+	  }
 	}
 	break;
     case MAXVAL:
 	{
-	  FMax op;
-	  *result=DataMaths::reductionOp(*vleft, m_left->getShape(), roffset, op, numeric_limits<double>::max()*-1);
+	  for (unsigned int z=0;z<ndpps;++z)
+	  {
+	     FMax op;
+	     *result=DataMaths::reductionOp(*vleft, m_left->getShape(), roffset, op, numeric_limits<double>::max()*-1);
+	     roffset+=psize;
+	     result++;
+	  }
 	}
 	break;
     default:
@@ -1839,19 +1851,31 @@ DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset)
   const DataTypes::ValueType* leftres=m_left->resolveNodeSample(tid, sampleNo, loffset);
 
   roffset=m_samplesize*tid;
+  unsigned int ndpps=getNumDPPSample();
+  unsigned int psize=DataTypes::noValues(getShape());
   double* result=&(m_samples[roffset]);
   switch (m_op)
   {
     case MINVAL:
 	{
-	  FMin op;
-	  *result=DataMaths::reductionOp(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max());
+	  for (unsigned int z=0;z<ndpps;++z)
+	  {
+	    FMin op;
+	    *result=DataMaths::reductionOp(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max());
+	    loffset+=psize;
+	    result++;
+	  }
 	}
 	break;
     case MAXVAL:
 	{
+	  for (unsigned int z=0;z<ndpps;++z)
+	  {
 	  FMax op;
 	  *result=DataMaths::reductionOp(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max()*-1);
+	  loffset+=psize;
+	  result++;
+	  }
 	}
 	break;
     default:
