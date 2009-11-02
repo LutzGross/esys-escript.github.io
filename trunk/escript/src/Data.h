@@ -1562,6 +1562,15 @@ template <class BinaryOp>
   void
   calc_maxGlobalDataPoint(int& ProcNo,  int& DataPointNo) const;
 
+  // For internal use in Data.cpp only!
+  // other uses should call the main entry points and allow laziness
+  Data
+  minval_nonlazy() const;
+
+  // For internal use in Data.cpp only!
+  Data
+  maxval_nonlazy() const;
+
 
   /**
      \brief
