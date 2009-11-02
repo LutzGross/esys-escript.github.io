@@ -91,7 +91,7 @@ hosts defined in \var{hostfile} must be equal to the number of requested compute
  \item[\programopt{-c}] prints the information about the settings used to compile {\it escript} and stops execution..
  \item[\programopt{-V}] prints the version of {\it escript} and stops execution.
  \item[\programopt{-h}] prints a help message and stops execution.
- \item[\programopt{-i}] executes the script \var{file} and switches to interactive mode after the execution is finished or an exception has occurred. This option is useful for debugging a script. The option cannot be used if more then one process ($\var{nn} \cdot \var{np}>1$) is used.
+ \item[\programopt{-i}] executes the script \var{file} and switches to interactive mode after the execution is finished or an exception has occurred. This option is useful for debugging a script. The option cannot be used if more than one process ($\var{nn} \cdot \var{np}>1$) is used.
 \item[\programopt{-b}] do not invoke python. This is used to run non-python programs.
 
  \item[\programopt{-e}] shows additional environment variables and commands used during \program{escript} execution. This option is useful if users wish to execute scripts without using the \program{escript} command.
@@ -111,14 +111,14 @@ hosts defined in \var{hostfile} must be equal to the number of requested compute
 \end{itemize}
 
 \section{Input and Output}
-When \MPI is used on more than one process ($\var{nn} \cdot \var{np} >1$) no input from the standard input is accepted. Standard output on any process other the the master process (\var{rank}=0) will not be available.
+When \MPI is used on more than one process ($\var{nn} \cdot \var{np} >1$) no input from the standard input is accepted. Standard output on any process other than the master process (\var{rank}=0) will not be available.
 Error output from any processor will be redirected to the node where \program{escript} has been invoked.
 If the \programopt{-o} or \env{ESCRIPT_STDFILES} is set\footnote{That is, it has a non-empty value.}, then the standard and error output from any process other than the master process will be written to files of the names \file{stdout_\var{r}.out} and \file{stderr_\var{r}.out} (where 
 \var{r} is the rank of the process).
 
 If files are created or read by individual \MPI processes with information local to the process (e.g in the \function{dump} function)  and more than one process is used ($\var{nn} \cdot \var{np} >1$), the \MPI process rank is appended to the file names.
 This will avoid problems if processes are using a shared file system.
-Files which collect data which are global for all \MPI processors will created by the process with \MPI rank 0 only.
+Files which collect data which are global for all \MPI processors will be created by the process with \MPI rank 0 only.
 Users should keep in mind that if the file system is not shared, then a file containing global information
 which is read by all processors needs to be copied to the local file system before \program{escript} is invoked.
  
@@ -133,8 +133,8 @@ and \numpy has an identical value across all processors. All
 values of these types returned by \escript have the same value on all processors.
 If values produced by other modules are used as arguments the user has to make sure that the argument values are identical on all processors. For instance, the usage of a random number generator to create argument values bears the risk that the value may depend on the processor. 
 
-Special attention is required when using files on more then one processor as 
-several processors access the file at the same time. Open a file for
+Special attention is required when using files on more than one processor as 
+several processors access the file at the same time. Opening a file for
 reading is safe, however the user has to make sure that the variables which are 
 set from reading data from files are identical on all processors.
 
@@ -150,10 +150,10 @@ f = FileWriter('test.txt')
 f.write('test message')
 f.close()
 \end{python}
-It is highly recommendable to use this class rather than the build \function{open}
+It is highly recommendable to use this class rather than the built-in \function{open}
 function as it will guarantee a script which will run in single processor mode as well as under \MPI.
 
-If there is the situation that on one of the processors is throwing an exception, 
+If there is the situation that one of the processors is throwing an exception, 
 for instance as opening a file for writing fails, the other processors 
 are not automatically made aware of this as \MPI
 is not handling exceptions. However, \MPI will terminate the other processes but 
