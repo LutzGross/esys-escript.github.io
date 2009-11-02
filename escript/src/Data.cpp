@@ -1731,27 +1731,45 @@ Data::infWorker() const
 #endif
 }
 
-/* TODO */
 /* global reduction */
-Data
-Data::maxval() const
+
+
+inline Data
+Data::minval_nonlazy() const
 {
-   MAKELAZYOP(MAXVAL)
+  //
+  // set the initial minimum value to max possible double
+  FMin fmin_func;
+  return dp_algorithm(fmin_func,numeric_limits<double>::max());
+}
+
+
+inline Data
+Data::maxval_nonlazy() const
+{
   //
   // set the initial maximum value to min possible double
   FMax fmax_func;
   return dp_algorithm(fmax_func,numeric_limits<double>::max()*-1);
 }
 
+
+
+Data
+Data::maxval() const
+{
+   MAKELAZYOP(MAXVAL)
+   return maxval_nonlazy();
+}
+
+
 Data
 Data::minval() const
 {
   MAKELAZYOP(MINVAL)
-  //
-  // set the initial minimum value to max possible double
-  FMin fmin_func;
-  return dp_algorithm(fmin_func,numeric_limits<double>::max());
+  return minval_nonlazy();
 }
+
 
 Data
 Data::swapaxes(const int axis0, const int axis1) const
@@ -2017,7 +2035,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
   int lowi=0,lowj=0;
   double min=numeric_limits<double>::max();
 
-  Data temp=minval();
+  Data temp=minval_nonlazy();	// need to do this to prevent autolazy from reintroducing laziness
 
   int numSamples=temp.getNumSamples();
   int numDPPSample=temp.getNumDataPointsPerSample();
@@ -2099,7 +2117,7 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
 //-------------
   double max= -numeric_limits<double>::max();
 
-  Data temp=maxval();
+  Data temp=maxval_nonlazy();   // need to do this to prevent autolazy from reintroducing laziness
 
   int numSamples=temp.getNumSamples();
   int numDPPSample=temp.getNumDataPointsPerSample();
