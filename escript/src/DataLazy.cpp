@@ -2460,7 +2460,15 @@ DataLazy::toString() const
 {
   ostringstream oss;
   oss << "Lazy Data:";
-  intoString(oss);
+  if (escriptParams.getPRINT_LAZY_TREE()==0)
+  {
+      intoString(oss);
+  }
+  else
+  {
+	oss << endl;
+	intoTreeString(oss,"");
+  }
   return oss.str();
 }
 
@@ -2523,6 +2531,64 @@ DataLazy::intoString(ostringstream& oss) const
 	oss << "UNKNOWN";
   }
 }
+
+
+void
+DataLazy::intoTreeString(ostringstream& oss, string indent) const
+{
+  oss << '[' << m_rank << ':' << setw(3) << m_samplesize << "] " << indent;
+  switch (getOpgroup(m_op))
+  {
+  case G_IDENTITY:
+	if (m_id->isExpanded())
+	{
+	   oss << "E";
+	}
+	else if (m_id->isTagged())
+	{
+	  oss << "T";
+	}
+	else if (m_id->isConstant())
+	{
+	  oss << "C";
+	}
+	else
+	{
+	  oss << "?";
+	}
+	oss << '@' << m_id.get() << endl;
+	break;
+  case G_BINARY:
+	oss << opToString(m_op) << endl;
+	indent+='.';
+	m_left->intoTreeString(oss, indent);
+	m_right->intoTreeString(oss, indent);
+	break;
+  case G_UNARY:
+  case G_UNARY_P:
+  case G_NP1OUT:
+  case G_NP1OUT_P:
+  case G_REDUCTION:
+	oss << opToString(m_op) << endl;
+	indent+='.';
+	m_left->intoTreeString(oss, indent);
+	break;
+  case G_TENSORPROD:
+	oss << opToString(m_op) << endl;
+	indent+='.';
+	m_left->intoTreeString(oss, indent);
+	m_right->intoTreeString(oss, indent);
+	break;
+  case G_NP1OUT_2P:
+	oss << opToString(m_op) << ", " << m_axis_offset << ", " << m_transpose<< endl;
+	indent+='.';
+	m_left->intoTreeString(oss, indent);
+	break;
+  default:
+	oss << "UNKNOWN";
+  }
+}
+
 
 DataAbstract* 
 DataLazy::deepCopy()
