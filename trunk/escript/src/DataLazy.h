@@ -342,6 +342,12 @@ private:
   intoString(std::ostringstream& oss) const;
 
   /**
+  \warning internal use only!!
+  */
+  void
+  intoTreeString(std::ostringstream& oss,std::string indent) const;
+
+  /**
    \brief Converts the DataLazy into an IDENTITY storing the value of the expression.
    This method uses the original methods on the Data class to evaluate the expressions.
    For this reason, it should not be used on DataExpanded instances. (To do so would defeat

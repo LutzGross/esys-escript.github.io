@@ -29,6 +29,7 @@ EscriptParams::EscriptParams()
    too_many_levels=70;
    too_many_nodes=15000;
    resolve_collective=0;
+   print_lazy_tree=0;
 			// These #defs are for performance testing only
 			// in general, I don't want people tweaking the
 			// default value using compiler options
@@ -72,6 +73,10 @@ EscriptParams::getInt(const char* name, int sentinel) const
    {
 	return resolve_collective;
    }
+   if (!strcmp(name,"PRINT_LAZY_TREE"))
+   {
+	return print_lazy_tree;
+   }
    return sentinel;
 }
   
@@ -97,6 +102,10 @@ EscriptParams::setInt(const char* name, int value)
    if (!strcmp(name,"RESOLVE_COLLECTIVE"))
    {
 	resolve_collective=value;
+   }
+   if (!strcmp(name,"PRINT_LAZY_TREE"))
+   {
+	print_lazy_tree=value;
    }
 }
 

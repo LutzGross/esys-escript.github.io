@@ -28,7 +28,7 @@ omp_optim		= '-openmp  -openmp-report2'
 # omp_libs		= ['guide']
 
 # Use the default C/C++ flags but add something only for this host:
-# cc_extra		= ''
+cc_extra		= '-sox'		# Embed compiler version and compile options in binaries
 ld_extra		= '-shared-intel'	# Fix warning about feupdate in icc v10
 
 # Be picky about errors
