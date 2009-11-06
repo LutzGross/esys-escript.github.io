@@ -53,7 +53,7 @@ try:
 	# interpolate u to a rectangular grid:
 	matplotlib.pyplot.contourf(x_grid, y_grid, z_grid, 5)
 	matplotlib.pyplot.savefig("u.png")
-	# uncommend this line if you want to interact with a plot window
+	# uncomment this line if you want to interact with a plot window
 	#matplotlib.pyplot.show()
 
 except AttributeError:

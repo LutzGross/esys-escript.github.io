@@ -41,6 +41,9 @@ class ESCRIPT_DLL_API Taipan {
 
  public:
 
+typedef long size_type;			// needs to be parallelised by openmp. It should not take negative values.
+					// do not assume that it is unsigned though
+
   /**
      \brief
      Default constructor for Taipan data-array manager.
@@ -80,7 +83,7 @@ class ESCRIPT_DLL_API Taipan {
      on block boundaries only. N defines the number of "blocks" in the array.
   */
   double*
-  new_array(int dim, int N);
+  new_array(size_type dim, size_type N);
 
   /**
      \brief
@@ -111,14 +114,14 @@ class ESCRIPT_DLL_API Taipan {
      Calculate the total number of arrays of N blocks currently under management.
   */
   int
-  num_arrays(int N);
+  num_arrays(size_type N);
 
   /**
      \brief
      Calculate the total number of free arrays of N blocks currently under management.
   */
   int
-  num_free(int N);
+  num_free(size_type N);
 
   /**
      \brief
@@ -163,8 +166,8 @@ class ESCRIPT_DLL_API Taipan {
 
   typedef struct Taipan_MemTable {
     double* array;
-    int dim;
-    int N;
+    size_type dim;
+    size_type N;
     int numThreads;
     bool free;
     struct Taipan_MemTable* next;

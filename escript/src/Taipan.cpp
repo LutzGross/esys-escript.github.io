@@ -93,16 +93,16 @@ Taipan::release_unused_arrays()
   }
   totalElements -= len;
   statTable->deallocated_elements += len;
-  cout << len*8./1048576 << " Mbytes unused memory has been released." << endl;
+  cout << static_cast<double>(len*sizeof(double))/1048576 << " Mbytes unused memory has been released." << endl;
 }
 
 
 double*
-Taipan::new_array(int dim, int N) {
+Taipan::new_array(size_type dim, size_type N) {
 
   assert(totalElements >= 0);
 
-  int len = 0;
+  size_type len = 0;
   #ifdef _OPENMP
   int numThreads = omp_get_num_threads();
   #else
@@ -158,7 +158,7 @@ Taipan::new_array(int dim, int N) {
      cerr << "Memory manager failed to create array of size " << len << " doubles" << endl;
      throw;
   }
-  int i,j;
+  size_type i,j;
   if (N==1) {
     for (j=0; j<dim; j++) 
       new_tab->array[j]=0.0;
@@ -189,8 +189,8 @@ Taipan::delete_array(double* array) {
 
   assert(totalElements >= 0);
 
-  int N;
-  int len = 0;
+  size_type N;
+  size_type len = 0;
   bool found = false;
 
   Taipan_MemTable *tab;
@@ -287,7 +287,7 @@ Taipan::num_arrays() {
 }
 
 int
-Taipan::num_arrays(int N) {
+Taipan::num_arrays(size_type N) {
 
   assert(totalElements >= 0);
 
@@ -308,7 +308,7 @@ Taipan::num_arrays(int N) {
 }
 
 int
-Taipan::num_free(int N) {
+Taipan::num_free(size_type N) {
 
   assert(totalElements >= 0);
 

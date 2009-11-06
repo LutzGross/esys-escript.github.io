@@ -6034,19 +6034,24 @@ def mkDir(pathname):
 
     :param pathname: valid path name
     :type pathname: ``str``
-    :note: The method is MPI save.
+    :note: The method is MPI safe.
     """
     errno=0
     if getMPIRankWorld()==0:
-       if not os.path.isdir(pathname):
+       if os.path.exists(pathname):
+	   if not os.path.isdir(pathname):
+		errno=2
+       else:
           try:
-              os.mkdir(pathname)
+              os.makedirs(pathname)
           except Exception, e:
               errno=1
     
     errno=getMPIWorldMax(errno)
     if errno>0:
-         if e==None:
+	 if errno==2:
+	    raise IOError,"Unable to create directory %s. It already exists and is not a directory."%pathname
+         elif e==None:
             raise IOError,"Unable to create directory%s."%pathname
          else:
             if hasattr(e,"message"):
@@ -6056,9 +6061,9 @@ def mkDir(pathname):
 
 class FileWriter(object):
     """
-    Interface to write data to a file. In essence this class wrappes the standart ``file`` object to write data that are global in MPI
+    Interface to write data to a file. In essence this class wrappes the standard ``file`` object to write data that are global in MPI
     to a file. In fact, data are writen on the processor with MPI rank 0 only. It is recommended to use ``FileWriter`` rather than ``open`` in order to write
-    code that is running with as well as with MPI. It is save to use ``open`` onder MPI to read data which are global under MPI.
+    code that is running with as well as with MPI. It is safe to use ``open`` onder MPI to read data which are global under MPI.
     :var name: name of file
     :var mode: access mode (='w' or ='a')
     :var closed: True to indicate closed file
