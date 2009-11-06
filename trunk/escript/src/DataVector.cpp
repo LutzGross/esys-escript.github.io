@@ -89,12 +89,22 @@ DataVector::resize(const DataVector::size_type newSize,
 {
   assert(m_size >= 0);
 
-  if ( newBlockSize == 0) {
-    throw DataException("DataVector: invalid blockSize specified (newBlockSize)");
+			// The < 1 is to catch both ==0 and negatives
+  if ( newBlockSize < 1) {
+    ostringstream oss;
+    oss << "DataVector: invalid blockSize specified (" << newBlockSize << ')';    
+    throw DataException(oss.str());
   }
 
+  if ( newSize < 0 ) {
+    ostringstream oss;
+    oss << "DataVector: invalid new size specified (" << newSize << ')';
+    throw DataException(oss.str());
+  }
   if ( (newSize % newBlockSize) != 0) {
-    throw DataException("DataVector: invalid blockSize specified");
+    ostringstream oss;
+    oss << "DataVector: newSize is not a multiple of blockSize: (" << newSize << ", " << newBlockSize<< ')';
+    throw DataException(oss.str());
   }
 
   if (m_array_data!=0) {

@@ -216,7 +216,7 @@ L=Locator(domain,xc)
 u=...
 u_pc=L.getValue(u)
 \end{python}
-The return value \code{u_pc} is the value of \code{u} at the location \code{xc}\footnote{In fact the finite element node which is closest to the given position. The usage of  \class{Locator} is MPI save.}. The values
+The return value \code{u_pc} is the value of \code{u} at the location \code{xc}\footnote{In fact the finite element node which is closest to the given position. The usage of  \class{Locator} is MPI safe.}. The values
 are collected in the lists \var{u_pc0}, \var{u_pc1} and \var{u_pc2} together with the 
 corresponding time marker in \var{ts}. The values are handed back to the caller. Later we will show to ways to
 access these data.
