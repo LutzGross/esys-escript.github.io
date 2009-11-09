@@ -380,7 +380,8 @@ args("solver", "preconditioner", "package", "symmetry"));
     .def(self /= self)
     // Need scope resolution due to a bug either in the compiler or
     // the boost code. This calls operator << for Data.
-    .def(self_ns::str(self));
+    .def(self_ns::str(self))
+    .def("_inverse", &escript::Data::matrixInverse, ":return: inverse of square matricies\n");
 
 
   //

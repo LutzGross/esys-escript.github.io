@@ -744,6 +744,29 @@ DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const 
 }
 
 void
+DataTagged::matrixInverse(DataAbstract* out) const
+{
+  DataTagged* temp=dynamic_cast<DataTagged*>(out);
+  if (temp==0)
+  {
+	throw DataException("Error - DataTagged::matrixInverse: casting to DataTagged failed (propably a programming error).");
+  }
+  const DataTagged::DataMapType& thisLookup=getTagLookup();
+  DataTagged::DataMapType::const_iterator i;
+  DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
+  ValueType& outVec=temp->getVectorRW();
+  const ShapeType& outShape=temp->getShape();
+  for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+      temp->addTag(i->first);
+      DataTypes::ValueType::size_type inoffset=getOffsetForTag(i->first);
+      DataTypes::ValueType::size_type outoffset=temp->getOffsetForTag(i->first);
+
+      DataMaths::matrix_inverse(m_data, getShape(), inoffset, outVec, outShape, outoffset, 1);
+  }
+  DataMaths::matrix_inverse(m_data, getShape(), getDefaultOffset(), outVec, outShape, temp->getDefaultOffset(), 1);
+}
+
+void
 DataTagged::setToZero(){
     CHECK_FOR_EX_WRITE
     DataTypes::ValueType::size_type n=m_data.size();

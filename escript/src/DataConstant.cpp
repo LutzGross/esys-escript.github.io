@@ -239,6 +239,19 @@ DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
   DataMaths::eigenvalues_and_eigenvectors(m_data, getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,temp_V->getVectorRW(), temp_V->getShape(),0,tol);
 }
 
+
+
+void
+DataConstant::matrixInverse(DataAbstract* out) const
+{
+  DataConstant* temp=dynamic_cast<DataConstant*>(out);
+  if (temp==0)
+  {
+	throw DataException("Error - DataConstant::matrixInverse: casting to DataConstant failed (propably a programming error).");
+  }
+  DataMaths::matrix_inverse(m_data, getShape(), 0, temp->getVectorRW(), temp->getShape(), 0, 1);
+}
+
 void
 DataConstant::setToZero()
 {

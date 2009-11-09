@@ -164,6 +164,15 @@ TODO Note that this constructor will also copy data to all points if it only con
   void
   dump(const std::string fileName) const;
 
+
+  /**
+    \brief invert square matricies
+    \param out - Where to store the results
+  */
+  ESCRIPT_DLL_API
+  virtual void
+  matrixInverse(DataAbstract* out) const;
+
  /**
      \brief
     sets all values to zero

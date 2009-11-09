@@ -888,7 +888,28 @@ reductionOp(const DataTypes::ValueType& left,
   return current_value;
 }
 
+/**
+     \brief
+     computes the inverses of square (up to 3x3) matricies 
 
+     \param in - vector containing the input matricies
+     \param inShape - shape of the input matricies
+     \param inOffset - the beginning of the input matricies within the vector "in"
+     \param out - vector to store the inverses
+     \param outShape - expected shape of the inverses
+     \param outOffset - starting location for storing the inverses in out
+     \param count - number of matricies to invert
+
+     \exception DataException if input and output are not the correct shape or if any of the matricies are not invertible.
+*/
+void
+matrix_inverse(const DataTypes::ValueType& in, 
+	    const DataTypes::ShapeType& inShape,
+            DataTypes::ValueType::size_type inOffset,
+            DataTypes::ValueType& out,
+	    const DataTypes::ShapeType& outShape,
+            DataTypes::ValueType::size_type outOffset,
+	    int count);
 
 }  // end namespace DataMath
 }  // end namespace escript
