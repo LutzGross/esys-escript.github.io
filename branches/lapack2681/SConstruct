@@ -160,6 +160,10 @@ adder(
   ('blas_path', 'Path to BLAS includes', '/usr/include/suitesparse'),
   ('blas_lib_path', 'Path to BLAS libs', usr_lib),
   ('blas_libs', 'BLAS libraries to link with', ['blas']),
+#Lapack options
+  ('lapack_path', 'Path to Lapack includes','/usr/include'),
+  ('lapack_lib_path', 'Path to Lapack libs', usr_lib),
+  ('lapack_libs', 'Lapack libraries to link with', ['lapack']),
 # An option for specifying the compiler tools set (see windows branch).
   ('tools_names', 'allow control over the tools in the env setup', ['intelc']),
 # finer control over library building, intel aggressive global optimisation

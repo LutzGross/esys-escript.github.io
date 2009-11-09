@@ -167,6 +167,122 @@ namespace DataMaths
    }
 
 
+
+// Copied from the python version in util.py
+void
+matrix_inverse(const DataTypes::ValueType& in, 
+	    const DataTypes::ShapeType& inShape,
+            DataTypes::ValueType::size_type inOffset,
+            DataTypes::ValueType& out,
+	    const DataTypes::ShapeType& outShape,
+            DataTypes::ValueType::size_type outOffset,
+	    int count)
+{
+    using namespace DataTypes;
+    using namespace std;
+    int inRank=getRank(inShape);
+    int outRank=getRank(outShape);
+    int size=DataTypes::noValues(inShape);
+    if ((inRank!=2) || (outRank!=2))
+    {
+	throw DataException("matrix_inverse: input and output must be rank 2.");
+    }
+    if (inShape[0]!=inShape[1])
+    {
+	throw DataException("matrix_inverse: matrix must be square.");
+    }
+    if (inShape!=outShape)
+    {
+	throw DataException("matrix_inverse: programmer error input and output must be the same shape.");
+    }
+
+#ifndef USE_LAPACK_INV
+
+    if (inShape[0]==1)
+    {
+	for (int i=0;i<count;++i)
+	{
+	    if (in[inOffset+i]!=0)
+	    {
+	    	out[outOffset+i]=1/in[inOffset+i];
+	    }
+	    else
+	    {
+		throw DataException("matrix_inverse: argument not invertible.");
+	    }
+	}
+    }
+    else if (inShape[0]==2)
+    {
+	int step=0;
+	for (int i=0;i<count;++i)
+	{	
+          double A11=in[inOffset+step+getRelIndex(inShape,0,0)];
+          double A12=in[inOffset+step+getRelIndex(inShape,0,1)];
+          double A21=in[inOffset+step+getRelIndex(inShape,1,0)];
+          double A22=in[inOffset+step+getRelIndex(inShape,1,1)];
+          double D = A11*A22-A12*A21;
+	  if (D!=0)
+	  {
+          	D=1/D;
+		out[outOffset+step+getRelIndex(inShape,0,0)]= A22*D;
+         	out[outOffset+step+getRelIndex(inShape,1,0)]=-A21*D;
+          	out[outOffset+step+getRelIndex(inShape,0,1)]=-A12*D;
+          	out[outOffset+step+getRelIndex(inShape,1,1)]= A11*D;
+	  }
+	  else
+	  {
+		throw DataException("matrix_inverse: argument not invertible.");
+	  }
+	  step+=size;
+	}
+    }
+    else if (inShape[0]==3)
+    {
+	int step=0;
+	for (int i=0;i<count;++i)
+	{	
+          double A11=in[inOffset+step+getRelIndex(inShape,0,0)];
+          double A21=in[inOffset+step+getRelIndex(inShape,1,0)];
+          double A31=in[inOffset+step+getRelIndex(inShape,2,0)];
+          double A12=in[inOffset+step+getRelIndex(inShape,0,1)];
+          double A22=in[inOffset+step+getRelIndex(inShape,1,1)];
+          double A32=in[inOffset+step+getRelIndex(inShape,2,1)];
+          double A13=in[inOffset+step+getRelIndex(inShape,0,2)];
+          double A23=in[inOffset+step+getRelIndex(inShape,1,2)];
+          double A33=in[inOffset+step+getRelIndex(inShape,2,2)];
+          double D = A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22);
+	  if (D!=0)
+	  {
+		D=1/D;
+          	out[outOffset+step+getRelIndex(inShape,0,0)]=(A22*A33-A23*A32)*D;
+          	out[outOffset+step+getRelIndex(inShape,1,0)]=(A31*A23-A21*A33)*D;
+          	out[outOffset+step+getRelIndex(inShape,2,0)]=(A21*A32-A31*A22)*D;
+          	out[outOffset+step+getRelIndex(inShape,0,1)]=(A13*A32-A12*A33)*D;
+          	out[outOffset+step+getRelIndex(inShape,1,1)]=(A11*A33-A31*A13)*D;
+          	out[outOffset+step+getRelIndex(inShape,2,1)]=(A12*A31-A11*A32)*D;
+          	out[outOffset+step+getRelIndex(inShape,0,2)]=(A12*A23-A13*A22)*D;
+          	out[outOffset+step+getRelIndex(inShape,1,2)]=(A13*A21-A11*A23)*D;
+          	out[outOffset+step+getRelIndex(inShape,2,2)]=(A11*A22-A12*A21)*D;
+          }
+	  else
+	  {
+		throw DataException("matrix_inverse: argument not invertible.");
+	  }
+	  step+=size;
+	}
+    }
+    else
+    {
+	throw DataException("matrix_inverse: matricies larger than 3x3 require lapack support."); 
+    }
+#else	// We are to use lapack for inverse
+
+	throw DataException("No LAPACK support yet.")
+
+#endif
+}
+
 }    // end namespace
 }    // end namespace
 

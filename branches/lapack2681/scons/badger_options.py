@@ -55,6 +55,11 @@ netCDF_path		= '/usr/include/netcdf-3'
 netCDF_lib_path		= '/usr/lib'
 # netCDF_libs		= ['netcdf_c++', 'netcdf']
 
+#Lapack
+lapack_path		= '/usr/include'
+lapack_lib_path		= '/usr/lib'
+lapack_libs		= ['lapack']
+
 # MKL
 # usemkl		= 'yes'
 # mkl_path		= '/sw/sdev/cmkl/10.0.2.18/include'

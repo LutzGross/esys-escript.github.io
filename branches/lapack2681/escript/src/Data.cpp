@@ -2224,6 +2224,23 @@ Data::operator/=(const boost::python::object& right)
 }
 
 Data
+Data::matrixInverse() const
+{
+  if (isLazy())
+  {
+	Data d(*this);
+	d.resolve();
+	return d.matrixInverse();
+  }
+
+  Data out(0.,getDataPointShape(),getFunctionSpace());
+  out.typeMatchRight(*this);
+  m_data->matrixInverse(out.getReadyPtr().get());
+  return out;
+}
+
+
+Data
 Data::rpowO(const boost::python::object& left) const
 {
   Data left_d(left,*this);
