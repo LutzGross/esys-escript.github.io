@@ -751,19 +751,34 @@ DataTagged::matrixInverse(DataAbstract* out) const
   {
 	throw DataException("Error - DataTagged::matrixInverse: casting to DataTagged failed (propably a programming error).");
   }
+  if (getRank()!=2)
+  {
+	throw DataException("Error - DataExpanded::matrixInverse: input must be rank 2.");
+  }
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
   ValueType& outVec=temp->getVectorRW();
   const ShapeType& outShape=temp->getShape();
+  int* p=new int[getShape()[0]];
+  boost::scoped_ptr<int> piv(p);
+  int err=0;
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp->addTag(i->first);
       DataTypes::ValueType::size_type inoffset=getOffsetForTag(i->first);
       DataTypes::ValueType::size_type outoffset=temp->getOffsetForTag(i->first);
 
-      DataMaths::matrix_inverse(m_data, getShape(), inoffset, outVec, outShape, outoffset, 1);
+      err=DataMaths::matrix_inverse(m_data, getShape(), inoffset, outVec, outShape, outoffset, 1, p);
+      if (!err) break;
   }
-  DataMaths::matrix_inverse(m_data, getShape(), getDefaultOffset(), outVec, outShape, temp->getDefaultOffset(), 1);
+  if (!err)
+  {
+      DataMaths::matrix_inverse(m_data, getShape(), getDefaultOffset(), outVec, outShape, temp->getDefaultOffset(), 1, p);
+  }
+  if (err)
+  {
+     DataMaths::matrixInverseError(err);	// throws exceptions
+  }
 }
 
 void

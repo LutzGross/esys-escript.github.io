@@ -567,15 +567,32 @@ DataExpanded::matrixInverse(DataAbstract* out) const
 	throw DataException("Error - DataExpanded::matrixInverse: casting to DataExpanded failed (propably a programming error).");
   }
 
+  if (getRank()!=2)
+  {
+	throw DataException("Error - DataExpanded::matrixInverse: input must be rank 2.");
+
+  }
   int  sampleNo;
   const int numdpps=getNumDPPSample();
   const int numSamples = getNumSamples();
   const ValueType& vec=m_data.getData();
-  #pragma omp parallel for private(sampleNo,p) schedule(static)
-  for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
-			// not sure I like all those virtual calls
-    DataTypes::ValueType::size_type offset=getPointOffset(sampleNo,0);
-    DataMaths::matrix_inverse(vec, getShape(), offset, temp->getVectorRW(), temp->getShape(), offset, numdpps);
+  int errorcode=0;
+  #pragma omp parallel private(sampleNo) reduction(MAX:errorcode)
+  {
+     int* p=new int[getShape()[0]];
+     scoped_ptr<int> piv(p);
+     #pragma omp parallel for private(sampleNo) schedule(static)
+     for (sampleNo = 0; sampleNo < numSamples; sampleNo++)
+     {
+			// not sure I like all those virtual calls to getPointOffset
+    	DataTypes::ValueType::size_type offset=getPointOffset(sampleNo,0);
+    	int res=DataMaths::matrix_inverse(vec, getShape(), offset, temp->getVectorRW(), temp->getShape(), offset, numdpps, p);
+	errorcode=(res>errorcode)?res:errorcode;
+     }
+  }
+  if (errorcode)
+  {
+	DataMaths::matrixInverseError(errorcode);	// throws exceptions
   }
 }
 

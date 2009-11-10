@@ -899,17 +899,30 @@ reductionOp(const DataTypes::ValueType& left,
      \param outShape - expected shape of the inverses
      \param outOffset - starting location for storing the inverses in out
      \param count - number of matricies to invert
+     \param piv - array of int with at least N elements (matrix is NxN) only required for Lapack interface
 
      \exception DataException if input and output are not the correct shape or if any of the matricies are not invertible.
+     \return 0 on success, on failure the return value should be passed to matrixInverseError(int err).
 */
-void
+int
 matrix_inverse(const DataTypes::ValueType& in, 
 	    const DataTypes::ShapeType& inShape,
             DataTypes::ValueType::size_type inOffset,
             DataTypes::ValueType& out,
 	    const DataTypes::ShapeType& outShape,
             DataTypes::ValueType::size_type outOffset,
-	    int count);
+	    int count,
+	    int* piv);
+
+/**
+   \brief
+   throws an appropriate exception based on failure of matrix_inverse.
+
+   \param err - error code returned from matrix_inverse
+   \warning do not call in a parallel region since it throws.
+*/
+void 
+matrixInverseError(int err);
 
 }  // end namespace DataMath
 }  // end namespace escript

@@ -42,6 +42,7 @@ private:
 	int autolazy;
 	int too_many_levels;
 	int too_many_nodes;
+	int lapack_support;
 
 protected: 
   // This is to provide fast access for methods in Data.
