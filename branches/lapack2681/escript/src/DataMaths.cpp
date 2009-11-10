@@ -16,6 +16,25 @@
 #include "DataMaths.h"
 #include <sstream>
 
+#ifdef USE_LAPACK
+extern "C"
+{
+#include <clapack.h>
+}
+#endif
+
+namespace
+{
+const int SUCCESS=0;
+const int BADRANK=1;
+const int NOTSQUARE=2;
+const int SHAPEMISMATCH=3;
+const int NOINVERSE=4;
+const int NEEDLAPACK=5;
+const int ERRFACTORISE=6;
+const int ERRINVERT=7;
+}
+
 namespace escript
 {
 namespace DataMaths
@@ -168,15 +187,36 @@ namespace DataMaths
 
 
 
+
+void matrixInverseError(int err)
+{
+    switch (err)
+    {
+    case 0: break;	// not an error
+    case BADRANK: throw DataException("matrix_inverse: input and output must be rank 2.");
+    case NOTSQUARE: throw DataException("matrix_inverse: matrix must be square.");
+    case SHAPEMISMATCH: throw DataException("matrix_inverse: programmer error input and output must be the same shape.");
+    case NOINVERSE: throw DataException("matrix_inverse: argument not invertible.");
+    case NEEDLAPACK:throw DataException("matrix_inverse: matrices larger than 3x3 require lapack support."); 
+    case ERRFACTORISE: throw DataException("matrix_inverse: argument not invertible (factorise stage).");
+    case ERRINVERT: throw DataException("matrix_inverse: argument not invertible (inverse stage).");
+    default:
+	throw DataException("matrix_inverse: unknown error.");
+    }
+}
+
+
+
 // Copied from the python version in util.py
-void
+int
 matrix_inverse(const DataTypes::ValueType& in, 
 	    const DataTypes::ShapeType& inShape,
             DataTypes::ValueType::size_type inOffset,
             DataTypes::ValueType& out,
 	    const DataTypes::ShapeType& outShape,
             DataTypes::ValueType::size_type outOffset,
-	    int count)
+	    int count,
+	    int* piv)
 {
     using namespace DataTypes;
     using namespace std;
@@ -185,19 +225,16 @@ matrix_inverse(const DataTypes::ValueType& in,
     int size=DataTypes::noValues(inShape);
     if ((inRank!=2) || (outRank!=2))
     {
-	throw DataException("matrix_inverse: input and output must be rank 2.");
+	return BADRANK;		
     }
     if (inShape[0]!=inShape[1])
     {
-	throw DataException("matrix_inverse: matrix must be square.");
+	return NOTSQUARE; 		
     }
     if (inShape!=outShape)
     {
-	throw DataException("matrix_inverse: programmer error input and output must be the same shape.");
+	return SHAPEMISMATCH;	
     }
-
-#ifndef USE_LAPACK_INV
-
     if (inShape[0]==1)
     {
 	for (int i=0;i<count;++i)
@@ -208,7 +245,7 @@ matrix_inverse(const DataTypes::ValueType& in,
 	    }
 	    else
 	    {
-		throw DataException("matrix_inverse: argument not invertible.");
+		return NOINVERSE;
 	    }
 	}
     }
@@ -232,7 +269,7 @@ matrix_inverse(const DataTypes::ValueType& in,
 	  }
 	  else
 	  {
-		throw DataException("matrix_inverse: argument not invertible.");
+		return NOINVERSE;
 	  }
 	  step+=size;
 	}
@@ -267,20 +304,36 @@ matrix_inverse(const DataTypes::ValueType& in,
           }
 	  else
 	  {
-		throw DataException("matrix_inverse: argument not invertible.");
+		return NOINVERSE;
 	  }
 	  step+=size;
 	}
     }
-    else
+    else	// inShape[0] >3  (or negative but that can hopefully never happen)
     {
-	throw DataException("matrix_inverse: matricies larger than 3x3 require lapack support."); 
-    }
-#else	// We are to use lapack for inverse
-
-	throw DataException("No LAPACK support yet.")
-
+#ifndef USE_LAPACK
+	return NEEDLAPACK;
+#else
+	int step=0;
+	
+	
+	for (int i=0;i<count;++i)
+	{
+		// need to make a copy since blas overwrites its input
+		for (int j=0;j<size;++j)
+		{
+		    out[outOffset+step+j]=in[inOffset+step+j];
+		}
+		double* arr=&(out[outOffset+step]);
+		int res1=clapack_dgetrf(CblasColMajor, inShape[0], inShape[0], arr, inShape[0], piv);
+		if (res1) {return ERRFACTORISE;}
+		res1=clapack_dgetri(CblasColMajor, inShape[0], arr, inShape[0],piv);
+		if (res1) {return ERRINVERT;}
+		step+=size;
+	}
 #endif
+    }
+    return SUCCESS;
 }
 
 }    // end namespace

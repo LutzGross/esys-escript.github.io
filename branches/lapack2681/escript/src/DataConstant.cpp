@@ -27,6 +27,7 @@
 #endif
 
 #include <boost/python/extract.hpp>
+#include <boost/scoped_ptr.hpp>
 #include "DataMaths.h"
 
 // #define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {throw DataException("Attempt to modify shared object");}
@@ -249,7 +250,17 @@ DataConstant::matrixInverse(DataAbstract* out) const
   {
 	throw DataException("Error - DataConstant::matrixInverse: casting to DataConstant failed (propably a programming error).");
   }
-  DataMaths::matrix_inverse(m_data, getShape(), 0, temp->getVectorRW(), temp->getShape(), 0, 1);
+  if (getRank()!=2)
+  {
+	throw DataException("Error - DataExpanded::matrixInverse: input must be rank 2.");
+  }
+  int* p=new int[getShape()[0]];
+  boost::scoped_ptr<int> piv(p);
+  int res=DataMaths::matrix_inverse(m_data, getShape(), 0, temp->getVectorRW(), temp->getShape(), 0, 1, p);
+  if (res)
+  {
+	DataMaths::matrixInverseError(res);	// throws exceptions
+  }
 }
 
 void

@@ -161,6 +161,7 @@ adder(
   ('blas_lib_path', 'Path to BLAS libs', usr_lib),
   ('blas_libs', 'BLAS libraries to link with', ['blas']),
 #Lapack options
+  BoolVariable('uselapack','switch on/off use of Lapack','no'),
   ('lapack_path', 'Path to Lapack includes','/usr/include'),
   ('lapack_lib_path', 'Path to Lapack libs', usr_lib),
   ('lapack_libs', 'Lapack libraries to link with', ['lapack']),
@@ -596,6 +597,18 @@ if env['usesilo']:
   env.AppendUnique(LIBPATH = [env['silo_lib_path']])
   env.Append(CPPDEFINES = ['HAVE_SILO'])
 
+########### Lapack (optional) ##################################
+
+
+if env['uselapack']:
+	env.Append(CPPDEFINES='USE_LAPACK')
+	env.AppendUnique(CPPATH = [env['lapack_path']])
+	env.AppendUnique(LIBPATH =[env['lapack_lib_path']])
+
+	env.Append(LIBPATH = '/usr/lib/atlas')
+	env.Append(LIBS = [env['lapack_libs']])
+	#env.Append(LIBS = ['blas'])
+
 ############ Add the compiler flags ############################
 
 # Enable debug by choosing either cc_debug or cc_optim
@@ -822,7 +835,12 @@ else:
     out+="n"
 buildvars.write(out+"\n")
 buildvars.write("mpi_flavour="+env['mpi_flavour']+'\n')
-
+buildvars.write("lapack=")
+if env['uselapack']:
+   buildvars.write('y')
+else:
+   buildvars.write('n')
+buildvars.write('\n')
 buildvars.close()
 
 
