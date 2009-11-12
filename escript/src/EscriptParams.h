@@ -47,6 +47,7 @@ private:
 	int too_many_nodes;
 	int resolve_collective;
 	int print_lazy_tree;
+	int lapack_support;
 
 protected: 
   // This is to provide fast access for methods in Data.

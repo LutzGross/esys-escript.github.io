@@ -57,6 +57,7 @@ netCDF_path		= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/include'
 netCDF_lib_path		= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/lib'
 # netCDF_libs		= ['netcdf_c++', 'netcdf']
 
+
 # MKL
 usemkl		= 'yes'
 mkl_path		= '/sw/sdev/intel/cmkl/10.1.0.015/include'
@@ -76,6 +77,15 @@ amd_libs		= ['amd']
 blas_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
 blas_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
 blas_libs		= ['blas']
+
+
+#Lapack
+uselapack		= 'yes'
+lapack_path		= '/sw/sdev/intel/cmkl/10.1.0.015/include'
+lapack_lib_path		= '/sw/sdev/intel/cmkl/10.1.0.015/lib/em64t'
+lapack_libs		= ['mkl_lapack','mkl','guide','pthread']
+lapack_type		= 'mkl'	
+
 
 # ParMETIS (for use with MPI) (these setting my be overwritten depending on the mpi version used)
 useparmetis		= 'yes'

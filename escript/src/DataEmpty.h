@@ -126,6 +126,13 @@ typedef DataReady parent;
   setSlice(const DataAbstract* value,
            const DataTypes::RegionType& region);
 
+  /**
+    \brief invert square matricies
+    \param out - Where to store the results
+  */
+  ESCRIPT_DLL_API
+  void
+  matrixInverse(DataAbstract* out) const;
 
   void
   dump(const std::string fileName) const;

@@ -30,6 +30,12 @@ EscriptParams::EscriptParams()
    too_many_nodes=15000;
    resolve_collective=0;
    print_lazy_tree=0;
+
+#ifdef USE_LAPACK
+   lapack_support=1;
+#else
+   lapack_support=0;
+#endif
 			// These #defs are for performance testing only
 			// in general, I don't want people tweaking the
 			// default value using compiler options
@@ -77,6 +83,10 @@ EscriptParams::getInt(const char* name, int sentinel) const
    {
 	return print_lazy_tree;
    }
+   if (!strcmp(name,"LAPACK_SUPPORT"))
+   {
+	return lapack_support;
+   }
    return sentinel;
 }
   
@@ -107,6 +117,7 @@ EscriptParams::setInt(const char* name, int value)
    {
 	print_lazy_tree=value;
    }
+   // Note: there is no way to modifiy the LAPACK_SUPPORT variable atm
 }
 
 void 

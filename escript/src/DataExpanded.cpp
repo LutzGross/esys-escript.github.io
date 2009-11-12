@@ -557,10 +557,57 @@ DataExpanded::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
   }
 }
 
+
+void
+DataExpanded::matrixInverse(DataAbstract* out) const
+{
+  DataExpanded* temp=dynamic_cast<DataExpanded*>(out);
+  if (temp==0)
+  {
+	throw DataException("Error - DataExpanded::matrixInverse: casting to DataExpanded failed (propably a programming error).");
+  }
+
+  if (getRank()!=2)
+  {
+	throw DataException("Error - DataExpanded::matrixInverse: input must be rank 2.");
+
+  }
+  int  sampleNo;
+  const int numdpps=getNumDPPSample();
+  const int numSamples = getNumSamples();
+  const ValueType& vec=m_data.getData();
+  int errcode=0;
+  #pragma omp parallel private(sampleNo)
+  {
+     int errorcode=0;
+     LapackInverseHelper h(getShape()[0]);
+     #pragma omp for schedule(static)
+     for (sampleNo = 0; sampleNo < numSamples; sampleNo++)
+     {
+			// not sure I like all those virtual calls to getPointOffset
+    	DataTypes::ValueType::size_type offset=getPointOffset(sampleNo,0);
+    	int res=DataMaths::matrix_inverse(vec, getShape(), offset, temp->getVectorRW(), temp->getShape(), offset, numdpps, h);
+	if (res>errorcode)
+	{
+	    errorcode=res;
+	    #pragma omp critical
+	    {
+	      errcode=errorcode;	// I'm not especially concerned which error gets reported as long as one is
+	    }
+	}
+     }
+  }
+  if (errcode)
+  {
+	DataMaths::matrixInverseError(errcode);	// throws exceptions
+  }
+}
+
 void
 DataExpanded::setToZero(){
 // TODO: Surely there is a more efficient way to do this????
 // Why is there no memset here? Parallel issues?
+// A: This ensures that memory is touched by the correct thread.
   CHECK_FOR_EX_WRITE
   int numSamples = getNumSamples();
   int numDataPointsPerSample = getNumDPPSample();

@@ -46,6 +46,7 @@ sources = """
 	FunctionSpace.cpp
 	FunctionSpaceException.cpp
 	FunctionSpaceFactory.cpp
+	LapackInverseHelper.cpp
 	NullDomain.cpp
 	SystemMatrixException.cpp
 	Taipan.cpp
@@ -83,6 +84,7 @@ headers = """
 	FunctionSpace.h
 	FunctionSpaceException.h
 	FunctionSpaceFactory.h
+	LapackInverseHelper.h
 	LocalOps.h
 	NullDomain.h
 	Pointers.h

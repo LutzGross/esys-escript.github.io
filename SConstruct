@@ -161,6 +161,12 @@ adder(
   ('blas_path', 'Path to BLAS includes', '/usr/include/suitesparse'),
   ('blas_lib_path', 'Path to BLAS libs', usr_lib),
   ('blas_libs', 'BLAS libraries to link with', ['blas']),
+#Lapack options
+  BoolVariable('uselapack','switch on/off use of Lapack','no'),
+  ('lapack_path', 'Path to Lapack includes','/usr/include'),
+  ('lapack_lib_path', 'Path to Lapack libs', usr_lib),
+  ('lapack_libs', 'Lapack libraries to link with', []),
+  ('lapack_type', '{clapack,mkl}','clapack'),
 # An option for specifying the compiler tools set (see windows branch).
   ('tools_names', 'allow control over the tools in the env setup', ['intelc']),
 # finer control over library building, intel aggressive global optimisation
@@ -603,6 +609,19 @@ if env['usesilo']:
   env.AppendUnique(LIBPATH = [env['silo_lib_path']])
   env.Append(CPPDEFINES = ['HAVE_SILO'])
 
+########### Lapack (optional) ##################################
+
+
+if env['uselapack']:
+	env.AppendUnique(CPPDEFINES='USE_LAPACK')
+	env.AppendUnique(CPPPATH = [env['lapack_path']])
+	env.AppendUnique(LIBPATH =[env['lapack_lib_path']])
+
+	env.Append(LIBPATH = '/usr/lib/atlas')
+	env.Append(LIBS = [env['lapack_libs']])
+	if env['lapack_type']=='mkl':
+	   env.AppendUnique(CPPDEFINES='MKL_LAPACK')
+
 ############ Add the compiler flags ############################
 
 # Enable debug by choosing either cc_debug or cc_optim
@@ -829,7 +848,12 @@ else:
     out+="n"
 buildvars.write(out+"\n")
 buildvars.write("mpi_flavour="+env['mpi_flavour']+'\n')
-
+buildvars.write("lapack=")
+if env['uselapack']:
+   buildvars.write('y')
+else:
+   buildvars.write('n')
+buildvars.write('\n')
 buildvars.close()
 
 

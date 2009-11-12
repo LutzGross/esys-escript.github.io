@@ -198,6 +198,14 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   void
   dump(const std::string fileName) const;
 
+  /**
+    \brief invert square matricies
+    \param out - Where to store the results
+  */
+  ESCRIPT_DLL_API
+  virtual void
+  matrixInverse(DataAbstract* out) const;
+
  /**
      \brief
     sets all values to zero

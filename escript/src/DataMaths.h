@@ -17,6 +17,7 @@
 #include "DataAbstract.h"
 #include "DataException.h"
 #include "LocalOps.h"
+#include "LapackInverseHelper.h"
 
 /**
 \file DataMaths.h 
@@ -888,7 +889,41 @@ reductionOp(const DataTypes::ValueType& left,
   return current_value;
 }
 
+/**
+     \brief
+     computes the inverses of square (up to 3x3) matricies 
 
+     \param in - vector containing the input matricies
+     \param inShape - shape of the input matricies
+     \param inOffset - the beginning of the input matricies within the vector "in"
+     \param out - vector to store the inverses
+     \param outShape - expected shape of the inverses
+     \param outOffset - starting location for storing the inverses in out
+     \param count - number of matricies to invert
+     \param helper - associated working storage
+
+     \exception DataException if input and output are not the correct shape or if any of the matricies are not invertible.
+     \return 0 on success, on failure the return value should be passed to matrixInverseError(int err).
+*/
+int
+matrix_inverse(const DataTypes::ValueType& in, 
+	    const DataTypes::ShapeType& inShape,
+            DataTypes::ValueType::size_type inOffset,
+            DataTypes::ValueType& out,
+	    const DataTypes::ShapeType& outShape,
+            DataTypes::ValueType::size_type outOffset,
+	    int count,
+	    LapackInverseHelper& helper);
+
+/**
+   \brief
+   throws an appropriate exception based on failure of matrix_inverse.
+
+   \param err - error code returned from matrix_inverse
+   \warning do not call in a parallel region since it throws.
+*/
+void 
+matrixInverseError(int err);
 
 }  // end namespace DataMath
 }  // end namespace escript

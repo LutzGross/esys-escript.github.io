@@ -16,6 +16,18 @@
 #include "DataMaths.h"
 #include <sstream>
 
+namespace
+{
+const int SUCCESS=0;
+const int BADRANK=1;
+const int NOTSQUARE=2;
+const int SHAPEMISMATCH=3;
+const int NOINVERSE=4;
+const int NEEDLAPACK=5;
+const int ERRFACTORISE=6;
+const int ERRINVERT=7;
+}
+
 namespace escript
 {
 namespace DataMaths
@@ -166,6 +178,157 @@ namespace DataMaths
       return result;
    }
 
+
+
+
+void matrixInverseError(int err)
+{
+    switch (err)
+    {
+    case 0: break;	// not an error
+    case BADRANK: throw DataException("matrix_inverse: input and output must be rank 2.");
+    case NOTSQUARE: throw DataException("matrix_inverse: matrix must be square.");
+    case SHAPEMISMATCH: throw DataException("matrix_inverse: programmer error input and output must be the same shape.");
+    case NOINVERSE: throw DataException("matrix_inverse: argument not invertible.");
+    case NEEDLAPACK:throw DataException("matrix_inverse: matrices larger than 3x3 require lapack support."); 
+    case ERRFACTORISE: throw DataException("matrix_inverse: argument not invertible (factorise stage).");
+    case ERRINVERT: throw DataException("matrix_inverse: argument not invertible (inverse stage).");
+    default:
+	throw DataException("matrix_inverse: unknown error.");
+    }
+}
+
+
+
+// Copied from the python version in util.py
+int
+matrix_inverse(const DataTypes::ValueType& in, 
+	    const DataTypes::ShapeType& inShape,
+            DataTypes::ValueType::size_type inOffset,
+            DataTypes::ValueType& out,
+	    const DataTypes::ShapeType& outShape,
+            DataTypes::ValueType::size_type outOffset,
+	    int count,
+	    LapackInverseHelper& helper)
+{
+    using namespace DataTypes;
+    using namespace std;
+    int inRank=getRank(inShape);
+    int outRank=getRank(outShape);
+    int size=DataTypes::noValues(inShape);
+    if ((inRank!=2) || (outRank!=2))
+    {
+	return BADRANK;		
+    }
+    if (inShape[0]!=inShape[1])
+    {
+	return NOTSQUARE; 		
+    }
+    if (inShape!=outShape)
+    {
+	return SHAPEMISMATCH;	
+    }
+    if (inShape[0]==1)
+    {
+	for (int i=0;i<count;++i)
+	{
+	    if (in[inOffset+i]!=0)
+	    {
+	    	out[outOffset+i]=1/in[inOffset+i];
+	    }
+	    else
+	    {
+		return NOINVERSE;
+	    }
+	}
+    }
+    else if (inShape[0]==2)
+    {
+	int step=0;
+	for (int i=0;i<count;++i)
+	{	
+          double A11=in[inOffset+step+getRelIndex(inShape,0,0)];
+          double A12=in[inOffset+step+getRelIndex(inShape,0,1)];
+          double A21=in[inOffset+step+getRelIndex(inShape,1,0)];
+          double A22=in[inOffset+step+getRelIndex(inShape,1,1)];
+          double D = A11*A22-A12*A21;
+	  if (D!=0)
+	  {
+          	D=1/D;
+		out[outOffset+step+getRelIndex(inShape,0,0)]= A22*D;
+         	out[outOffset+step+getRelIndex(inShape,1,0)]=-A21*D;
+          	out[outOffset+step+getRelIndex(inShape,0,1)]=-A12*D;
+          	out[outOffset+step+getRelIndex(inShape,1,1)]= A11*D;
+	  }
+	  else
+	  {
+		return NOINVERSE;
+	  }
+	  step+=size;
+	}
+    }
+    else if (inShape[0]==3)
+    {
+	int step=0;
+	for (int i=0;i<count;++i)
+	{	
+          double A11=in[inOffset+step+getRelIndex(inShape,0,0)];
+          double A21=in[inOffset+step+getRelIndex(inShape,1,0)];
+          double A31=in[inOffset+step+getRelIndex(inShape,2,0)];
+          double A12=in[inOffset+step+getRelIndex(inShape,0,1)];
+          double A22=in[inOffset+step+getRelIndex(inShape,1,1)];
+          double A32=in[inOffset+step+getRelIndex(inShape,2,1)];
+          double A13=in[inOffset+step+getRelIndex(inShape,0,2)];
+          double A23=in[inOffset+step+getRelIndex(inShape,1,2)];
+          double A33=in[inOffset+step+getRelIndex(inShape,2,2)];
+          double D = A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22);
+	  if (D!=0)
+	  {
+		D=1/D;
+          	out[outOffset+step+getRelIndex(inShape,0,0)]=(A22*A33-A23*A32)*D;
+          	out[outOffset+step+getRelIndex(inShape,1,0)]=(A31*A23-A21*A33)*D;
+          	out[outOffset+step+getRelIndex(inShape,2,0)]=(A21*A32-A31*A22)*D;
+          	out[outOffset+step+getRelIndex(inShape,0,1)]=(A13*A32-A12*A33)*D;
+          	out[outOffset+step+getRelIndex(inShape,1,1)]=(A11*A33-A31*A13)*D;
+          	out[outOffset+step+getRelIndex(inShape,2,1)]=(A12*A31-A11*A32)*D;
+          	out[outOffset+step+getRelIndex(inShape,0,2)]=(A12*A23-A13*A22)*D;
+          	out[outOffset+step+getRelIndex(inShape,1,2)]=(A13*A21-A11*A23)*D;
+          	out[outOffset+step+getRelIndex(inShape,2,2)]=(A11*A22-A12*A21)*D;
+          }
+	  else
+	  {
+		return NOINVERSE;
+	  }
+	  step+=size;
+	}
+    }
+    else	// inShape[0] >3  (or negative but that can hopefully never happen)
+    {
+#ifndef USE_LAPACK
+	return NEEDLAPACK;
+#else
+	int step=0;
+	
+	
+	for (int i=0;i<count;++i)
+	{
+		// need to make a copy since blas overwrites its input
+		for (int j=0;j<size;++j)
+		{
+		    out[outOffset+step+j]=in[inOffset+step+j];
+		}
+		double* arr=&(out[outOffset+step]);
+		int res=helper.invert(arr);
+		if (res!=0)
+		{
+		    return res;
+		}
+		step+=size;
+	}
+#endif
+    }
+    return SUCCESS;
+}
 
 }    // end namespace
 }    // end namespace

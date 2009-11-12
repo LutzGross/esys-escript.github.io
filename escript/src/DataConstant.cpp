@@ -27,6 +27,7 @@
 #endif
 
 #include <boost/python/extract.hpp>
+#include <boost/scoped_ptr.hpp>
 #include "DataMaths.h"
 
 // #define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {throw DataException("Attempt to modify shared object");}
@@ -237,6 +238,28 @@ DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
     throw DataException("Error - DataConstant::eigenvalues_and_eigenvectors: casting to DataConstant failed (propably a programming error).");
   }
   DataMaths::eigenvalues_and_eigenvectors(m_data, getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,temp_V->getVectorRW(), temp_V->getShape(),0,tol);
+}
+
+
+
+void
+DataConstant::matrixInverse(DataAbstract* out) const
+{
+  DataConstant* temp=dynamic_cast<DataConstant*>(out);
+  if (temp==0)
+  {
+	throw DataException("Error - DataConstant::matrixInverse: casting to DataConstant failed (propably a programming error).");
+  }
+  if (getRank()!=2)
+  {
+	throw DataException("Error - DataExpanded::matrixInverse: input must be rank 2.");
+  }
+  LapackInverseHelper h(getShape()[0]);
+  int res=DataMaths::matrix_inverse(m_data, getShape(), 0, temp->getVectorRW(), temp->getShape(), 0, 1, h);
+  if (res)
+  {
+	DataMaths::matrixInverseError(res);	// throws exceptions
+  }
 }
 
 void

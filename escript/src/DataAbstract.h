@@ -406,6 +406,14 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   eigenvalues(DataAbstract* ev);
 
   /**
+    \brief invert square matricies
+    \param out - Where to store the results
+  */
+  ESCRIPT_DLL_API
+  virtual void
+  matrixInverse(DataAbstract* out) const;
+
+  /**
      \brief
      sets values to zero
 
