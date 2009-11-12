@@ -1354,6 +1354,13 @@ instead of manually manipulating process and point IDs.
   Data& operator/=(const boost::python::object& right);
 
   /**
+	\brief return inverse of matricies.
+  */
+  ESCRIPT_DLL_API
+  Data
+  matrixInverse() const;
+
+  /**
      \brief
      Returns true if this can be interpolated to functionspace.
   */

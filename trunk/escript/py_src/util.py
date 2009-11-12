@@ -4049,55 +4049,57 @@ def inverse(arg):
 
 def escript_inverse(arg): # this should be escript._inverse and use LAPACK
       "arg is a Data object!!!"
-      if not arg.getRank()==2:
-        raise ValueError,"escript_inverse: argument must have rank 2"
-      s=arg.getShape()
-      if not s[0] == s[1]:
-        raise ValueError,"escript_inverse: argument must be a square matrix."
-      out=escript.Data(0.,s,arg.getFunctionSpace())
-      if s[0]==1:
-          if inf(abs(arg[0,0]))==0: # in c this should be done point wise as abs(arg[0,0](i))<=0.
-              raise ZeroDivisionError,"escript_inverse: argument not invertible"
-          out[0,0]=1./arg[0,0]
-      elif s[0]==2:
-          A11=arg[0,0]
-          A12=arg[0,1]
-          A21=arg[1,0]
-          A22=arg[1,1]
-          D = A11*A22-A12*A21
-          if inf(abs(D))==0: # in c this should be done point wise as abs(D(i))<=0.
-              raise ZeroDivisionError,"escript_inverse: argument not invertible"
-          D=1./D
-          out[0,0]= A22*D
-          out[1,0]=-A21*D
-          out[0,1]=-A12*D
-          out[1,1]= A11*D
-      elif s[0]==3:
-          A11=arg[0,0]
-          A21=arg[1,0]
-          A31=arg[2,0]
-          A12=arg[0,1]
-          A22=arg[1,1]
-          A32=arg[2,1]
-          A13=arg[0,2]
-          A23=arg[1,2]
-          A33=arg[2,2]
-          D = A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22)
-          if inf(abs(D))==0: # in c this should be done point wise as abs(D(i))<=0.
-              raise ZeroDivisionError,"escript_inverse: argument not invertible"
-          D=1./D
-          out[0,0]=(A22*A33-A23*A32)*D
-          out[1,0]=(A31*A23-A21*A33)*D
-          out[2,0]=(A21*A32-A31*A22)*D
-          out[0,1]=(A13*A32-A12*A33)*D
-          out[1,1]=(A11*A33-A31*A13)*D
-          out[2,1]=(A12*A31-A11*A32)*D
-          out[0,2]=(A12*A23-A13*A22)*D
-          out[1,2]=(A13*A21-A11*A23)*D
-          out[2,2]=(A11*A22-A12*A21)*D
-      else:
-         raise TypeError,"escript_inverse: only matrix dimensions 1,2,3 are supported right now."
-      return out
+      return arg._inverse()
+
+      #if not arg.getRank()==2:
+        #raise ValueError,"escript_inverse: argument must have rank 2"
+      #s=arg.getShape()
+      #if not s[0] == s[1]:
+        #raise ValueError,"escript_inverse: argument must be a square matrix."
+      #out=escript.Data(0.,s,arg.getFunctionSpace())
+      #if s[0]==1:
+          #if inf(abs(arg[0,0]))==0: # in c this should be done point wise as abs(arg[0,0](i))<=0.
+              #raise ZeroDivisionError,"escript_inverse: argument not invertible"
+          #out[0,0]=1./arg[0,0]
+      #elif s[0]==2:
+          #A11=arg[0,0]
+          #A12=arg[0,1]
+          #A21=arg[1,0]
+          #A22=arg[1,1]
+          #D = A11*A22-A12*A21
+          #if inf(abs(D))==0: # in c this should be done point wise as abs(D(i))<=0.
+              #raise ZeroDivisionError,"escript_inverse: argument not invertible"
+          #D=1./D
+          #out[0,0]= A22*D
+          #out[1,0]=-A21*D
+          #out[0,1]=-A12*D
+          #out[1,1]= A11*D
+      #elif s[0]==3:
+          #A11=arg[0,0]
+          #A21=arg[1,0]
+          #A31=arg[2,0]
+          #A12=arg[0,1]
+          #A22=arg[1,1]
+          #A32=arg[2,1]
+          #A13=arg[0,2]
+          #A23=arg[1,2]
+          #A33=arg[2,2]
+          #D = A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22)
+          #if inf(abs(D))==0: # in c this should be done point wise as abs(D(i))<=0.
+              #raise ZeroDivisionError,"escript_inverse: argument not invertible"
+          #D=1./D
+          #out[0,0]=(A22*A33-A23*A32)*D
+          #out[1,0]=(A31*A23-A21*A33)*D
+          #out[2,0]=(A21*A32-A31*A22)*D
+          #out[0,1]=(A13*A32-A12*A33)*D
+          #out[1,1]=(A11*A33-A31*A13)*D
+          #out[2,1]=(A12*A31-A11*A32)*D
+          #out[0,2]=(A12*A23-A13*A22)*D
+          #out[1,2]=(A13*A21-A11*A23)*D
+          #out[2,2]=(A11*A22-A12*A21)*D
+      #else:
+         #raise TypeError,"escript_inverse: only matrix dimensions 1,2,3 are supported right now."
+      #return out
 
 class Inverse_Symbol(DependendSymbol):
    """

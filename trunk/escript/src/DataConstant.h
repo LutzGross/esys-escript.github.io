@@ -270,6 +270,14 @@ typedef DataReady parent;
 
 
   /**
+    \brief invert square matricies
+    \param out - Where to store the results
+  */
+  ESCRIPT_DLL_API
+  virtual void
+  matrixInverse(DataAbstract* out) const;
+
+  /**
      \brief
      Return a reference to the underlying DataVector.
   */

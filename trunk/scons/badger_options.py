@@ -74,6 +74,13 @@ netCDF_lib_path		= '/usr/lib'
 # blas_lib_path		= '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
 # blas_libs		= ['blas']
 
+#Lapack
+uselapack		= 'yes'
+lapack_path		= ''#'/usr/include'
+lapack_lib_path		= ''#'/usr/lib/atlas'
+lapack_libs		= ['lapack-3','blas-3']	
+lapack_type		= 'clapack'
+
 # OpenMP
 #useopenmp		= 'yes'
 

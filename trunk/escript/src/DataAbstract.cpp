@@ -230,6 +230,13 @@ DataAbstract::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
     throw DataException("Error - DataAbstract::eigenvalues_and_eigenvectors is not supported.");
 
 }
+
+void
+DataAbstract::matrixInverse(DataAbstract* out) const
+{
+   throw DataException("Error - DataAbstract::matrixInverse is not supported.");
+}
+
 void
 DataAbstract::setToZero() 
 {

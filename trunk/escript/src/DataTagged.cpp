@@ -744,6 +744,43 @@ DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const 
 }
 
 void
+DataTagged::matrixInverse(DataAbstract* out) const
+{
+  DataTagged* temp=dynamic_cast<DataTagged*>(out);
+  if (temp==0)
+  {
+	throw DataException("Error - DataTagged::matrixInverse: casting to DataTagged failed (propably a programming error).");
+  }
+  if (getRank()!=2)
+  {
+	throw DataException("Error - DataExpanded::matrixInverse: input must be rank 2.");
+  }
+  const DataTagged::DataMapType& thisLookup=getTagLookup();
+  DataTagged::DataMapType::const_iterator i;
+  DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
+  ValueType& outVec=temp->getVectorRW();
+  const ShapeType& outShape=temp->getShape();
+  LapackInverseHelper h(getShape()[0]);
+  int err=0;
+  for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+      temp->addTag(i->first);
+      DataTypes::ValueType::size_type inoffset=getOffsetForTag(i->first);
+      DataTypes::ValueType::size_type outoffset=temp->getOffsetForTag(i->first);
+
+      err=DataMaths::matrix_inverse(m_data, getShape(), inoffset, outVec, outShape, outoffset, 1, h);
+      if (!err) break;
+  }
+  if (!err)
+  {
+      DataMaths::matrix_inverse(m_data, getShape(), getDefaultOffset(), outVec, outShape, temp->getDefaultOffset(), 1, h);
+  }
+  if (err)
+  {
+     DataMaths::matrixInverseError(err);	// throws exceptions
+  }
+}
+
+void
 DataTagged::setToZero(){
     CHECK_FOR_EX_WRITE
     DataTypes::ValueType::size_type n=m_data.size();
