@@ -22,13 +22,13 @@
 #include "paso/PasoUtil.h"
 
 #define INT_FORMAT "%d "
-#define LEN_INT_FORMAT (unsigned int)(9+1)
+#define LEN_INT_FORMAT (unsigned int)(9+2)
 #define INT_NEWLINE_FORMAT "%d\n"
 #define SCALAR_FORMAT "%12.6e\n"
 #define VECTOR_FORMAT "%12.6e %12.6e %12.6e\n"
 #define TENSOR_FORMAT "%12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e\n"
-/* strlen("-1.234567e+78 ") == 14 */
-#define LEN_TENSOR_FORMAT (unsigned int)(9*14+1)
+/* strlen("-1.234567e+789 ") == 15 */
+#define LEN_TENSOR_FORMAT (unsigned int)(9*15+2)
 #define NEWLINE "\n"
 #define LEN_TMP_BUFFER LEN_TENSOR_FORMAT+(MAX_numNodes*LEN_INT_FORMAT+1)+2
 #define NCOMP_MAX (unsigned int)9
