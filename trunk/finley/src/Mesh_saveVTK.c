@@ -27,7 +27,8 @@
 #define SCALAR_FORMAT "%12.6e\n"
 #define VECTOR_FORMAT "%12.6e %12.6e %12.6e\n"
 #define TENSOR_FORMAT "%12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e\n"
-#define LEN_TENSOR_FORMAT (unsigned int)(9*(12+1)+1)
+/* strlen("-1.234567e+78 ") == 14 */
+#define LEN_TENSOR_FORMAT (unsigned int)(9*14+1)
 #define NEWLINE "\n"
 #define LEN_TMP_BUFFER LEN_TENSOR_FORMAT+(MAX_numNodes*LEN_INT_FORMAT+1)+2
 #define NCOMP_MAX (unsigned int)9
@@ -493,7 +494,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
 
     txtBufferSize = strlen(vtkHeader) + 3*LEN_INT_FORMAT + (30+3*maxNameLen)+strlen(metadata)+strlen(metadata_schema); 
     if (mpi_size > 1) {
-       txtBufferSize = MAX(txtBufferSize, myNumPoints * LEN_TMP_BUFFER);
+        txtBufferSize = MAX(txtBufferSize, myNumPoints * LEN_TMP_BUFFER);
         txtBufferSize = MAX(txtBufferSize, numCellFactor * myNumCells *
                 (LEN_INT_FORMAT * numVTKNodesPerElement + 1));
         txtBufferSize = MAX(txtBufferSize,
@@ -778,7 +779,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                 txtBufferInUse = 0;
                 for (i=0; i<numCells; i++) {
                     if (elements->Owner[i] == my_mpi_rank) {
-			void* sampleBuffer=allocSampleBuffer(data_pp[dataIdx]);
+                        void* sampleBuffer=allocSampleBuffer(data_pp[dataIdx]);
                         __const double *values = getSampleDataRO(data_pp[dataIdx], i,sampleBuffer);
                         for (l = 0; l < numCellFactor; l++) {
                             double sampleAvg[NCOMP_MAX];
@@ -845,7 +846,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                                 fputs(tmpBuffer, fileHandle_p);
                             }
                         } /* for l (numCellFactor) */
-			freeSampleBuffer(sampleBuffer);
+                        freeSampleBuffer(sampleBuffer);
                     } /* if I am the owner */
                 } /* for i (numCells) */
 
@@ -961,7 +962,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                 for (i=0; i<mesh_p->Nodes->numNodes; i++) {
                     k = globalNodeIndex[i];
                     if ( (myFirstNode <= k) && (k < myLastNode) ) {
-			void* sampleBuffer=allocSampleBuffer(data_pp[dataIdx]);
+                        void* sampleBuffer=allocSampleBuffer(data_pp[dataIdx]);
                         __const double *values = getSampleDataRO(data_pp[dataIdx], nodeMapping->target[i], sampleBuffer);
                         /* if the number of mpi_required components is more than
                          * the number of actual components, pad with zeros.
@@ -1002,7 +1003,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                         } else {
                             fputs(tmpBuffer, fileHandle_p);
                         }
-			freeSampleBuffer(sampleBuffer);			/* no-one needs values anymore */
+                        freeSampleBuffer(sampleBuffer);                 /* no-one needs values anymore */
                     } /* if this is my node */
                 } /* for i (numNodes) */
 
@@ -1035,7 +1036,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
     if ( mpi_size > 1) {
 #ifdef PASO_MPI
         MPI_File_close(&mpi_fileHandle_p);
-	MPI_Barrier(mesh_p->Nodes->MPIInfo->comm);
+        MPI_Barrier(mesh_p->Nodes->MPIInfo->comm);
 #endif
     } else {
         fclose(fileHandle_p);
