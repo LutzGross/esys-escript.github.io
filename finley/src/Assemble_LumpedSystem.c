@@ -47,9 +47,9 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
   double *S=NULL, *EM_lumpedMat=NULL, *Vol=NULL, *lumpedMat_p=NULL;
   register double rtmp;
   size_t len_EM_lumpedMat_size;
-  #if (defined NEW_LUMPING) || (defined _OPENMP)
+#ifdef NEW_LUMPING
   register double m_t=0., diagS=0.;
-  #endif
+#endif
  
   Finley_resetError();
 
@@ -113,8 +113,12 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
     
     expandedD=isExpanded(D);
     S=p.row_jac->BasisFunctions->S;
-    
+ 
+#ifdef NEW_LUMPING
     #pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp, diagS, m_t)
+#else
+    #pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp)
+#endif
     {
        EM_lumpedMat=THREAD_MEMALLOC(len_EM_lumpedMat,double);
        row_index=THREAD_MEMALLOC(p.row_numShapesTotal,index_t);

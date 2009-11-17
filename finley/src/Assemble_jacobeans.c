@@ -57,7 +57,7 @@ void Assemble_jacobeans_1D(double* coordinates, dim_t numQuad,double* QuadWeight
      #pragma omp parallel 
      {
        register double D,invD, X0_loc;
-       #pragma omp for private(e,q,s,D,invD,X0_loc, q) schedule(static) 
+       #pragma omp for private(e,q,s,D,invD,X0_loc) schedule(static) 
        for(e=0;e<numElements;e++){
            for (q=0;q<numQuad;q++) {
               D=0;
@@ -98,7 +98,7 @@ void Assemble_jacobeans_2D(double* coordinates, dim_t numQuad,double* QuadWeight
        register double dXdv00,dXdv10,dXdv01,dXdv11,
                        dvdX00,dvdX10,dvdX01,dvdX11, D,invD,
                        X0_loc, X1_loc;
-       #pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv01,dXdv11,dvdX00,dvdX10,dvdX01,dvdX11, D,invD,X0_loc, X1_loc, q) schedule(static) 
+       #pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv01,dXdv11,dvdX00,dvdX10,dvdX01,dvdX11, D,invD,X0_loc, X1_loc) schedule(static) 
        for(e=0;e<numElements;e++){
            for (q=0;q<numQuad;q++) {
               dXdv00=0;
@@ -154,7 +154,7 @@ void Assemble_jacobeans_2D_M1D_E1D(double* coordinates, dim_t numQuad,double* Qu
      {
        register double dXdv00,dXdv10,dvdX00,dvdX01,D,invD,
                        X0_loc, X1_loc;
-       #pragma omp for private(e,q,s,dXdv00,dXdv10,dvdX00,dvdX01,D,invD,X0_loc, X1_loc, q) schedule(static) 
+       #pragma omp for private(e,q,s,dXdv00,dXdv10,dvdX00,dvdX01,D,invD,X0_loc, X1_loc) schedule(static) 
        for(e=0;e<numElements;e++){
            for (q=0;q<numQuad;q++) {
               dXdv00=0;
@@ -203,7 +203,7 @@ void Assemble_jacobeans_2D_M1D_E1D_C(double* coordinates, dim_t numQuad,double* 
        register double dXdv00_0,dXdv10_0,dvdX00_0,dvdX01_0,D_0,invD_0,
                        dXdv00_1,dXdv10_1,dvdX00_1,dvdX01_1,D_1,invD_1,
                        X0_loc_0, X1_loc_0, X0_loc_1, X1_loc_1;
-       #pragma omp for private(e,q,s,dXdv00_0,dXdv10_0,dvdX00_0,dvdX01_0,D_0,invD_0,dXdv00_1,dXdv10_1,dvdX00_1,dvdX01_1,D_1,invD_1,X0_loc_0, X1_loc_0, X0_loc_1, X1_loc_1, q) schedule(static) 
+       #pragma omp for private(e,q,s,dXdv00_0,dXdv10_0,dvdX00_0,dvdX01_0,D_0,invD_0,dXdv00_1,dXdv10_1,dvdX00_1,dvdX01_1,D_1,invD_1,X0_loc_0, X1_loc_0, X0_loc_1, X1_loc_1) schedule(static) 
        for(e=0;e<numElements;e++){
            for (q=0;q<numQuad;q++) {
               dXdv00_0=0;
@@ -264,7 +264,7 @@ void Assemble_jacobeans_2D_M1D_E2D(double* coordinates, dim_t numQuad,double* Qu
        register double dXdv00,dXdv10,dXdv01,dXdv11,
                        dvdX00,dvdX10,dvdX01,dvdX11, D,invD,
                        X0_loc, X1_loc;
-       #pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv01,dXdv11,dvdX00,dvdX10,dvdX01,dvdX11, D,invD,X0_loc, X1_loc, q) schedule(static) 
+       #pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv01,dXdv11,dvdX00,dvdX10,dvdX01,dvdX11, D,invD,X0_loc, X1_loc) schedule(static) 
        for(e=0;e<numElements;e++){
            for (q=0;q<numQuad;q++) {
               dXdv00=0;
@@ -320,7 +320,7 @@ void Assemble_jacobeans_2D_M1D_E2D_C(double* coordinates, dim_t numQuad,double* 
        register double dXdv00_0,dXdv10_0,dXdv01_0,dXdv11_0,dvdX00_0,dvdX10_0,dvdX01_0,dvdX11_0, D_0,invD_0,
                        dXdv00_1,dXdv10_1,dXdv01_1,dXdv11_1,dvdX00_1,dvdX10_1,dvdX01_1,dvdX11_1, D_1,invD_1,
                        X0_loc_0, X1_loc_0, X0_loc_1, X1_loc_1;
-       #pragma omp for private(e,q,s,dXdv00_0,dXdv10_0,dXdv01_0,dXdv11_0,dvdX00_0,dvdX10_0,dvdX01_0,dvdX11_0, D_0,invD_0,dXdv00_1,dXdv10_1,dXdv01_1,dXdv11_1,dvdX00_1,dvdX10_1,dvdX01_1,dvdX11_1, D_1,invD_1,X0_loc_0, X1_loc_0, X0_loc_1, X1_loc_1, q) schedule(static) 
+       #pragma omp for private(e,q,s,dXdv00_0,dXdv10_0,dXdv01_0,dXdv11_0,dvdX00_0,dvdX10_0,dvdX01_0,dvdX11_0, D_0,invD_0,dXdv00_1,dXdv10_1,dXdv01_1,dXdv11_1,dvdX00_1,dvdX10_1,dvdX01_1,dvdX11_1, D_1,invD_1,X0_loc_0, X1_loc_0, X0_loc_1, X1_loc_1) schedule(static) 
        for(e=0;e<numElements;e++){
            for (q=0;q<numQuad;q++) {
               dXdv00_0=0;
@@ -398,7 +398,7 @@ void Assemble_jacobeans_3D(double* coordinates, dim_t numQuad,double* QuadWeight
                        dvdX00,dvdX10,dvdX20,dvdX01,dvdX11,dvdX21,dvdX02,dvdX12,dvdX22, D,invD,
                        X0_loc,X1_loc,X2_loc;
 
-      #pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv20,dXdv01,dXdv11,dXdv21,dXdv02,dXdv12,dXdv22,dvdX00,dvdX10,dvdX20,dvdX01,dvdX11,dvdX21,dvdX02,dvdX12,dvdX22,D,invD,X0_loc,X1_loc,X2_loc, q) schedule(static)
+      #pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv20,dXdv01,dXdv11,dXdv21,dXdv02,dXdv12,dXdv22,dvdX00,dvdX10,dvdX20,dvdX01,dvdX11,dvdX21,dvdX02,dvdX12,dvdX22,D,invD,X0_loc,X1_loc,X2_loc) schedule(static)
        for(e=0;e<numElements;e++){
            for (q=0;q<numQuad;q++) {
               dXdv00=0;
@@ -471,7 +471,7 @@ void Assemble_jacobeans_3D_M2D_E3D(double* coordinates, dim_t numQuad,double* Qu
        register double dXdv00,dXdv10,dXdv20,dXdv01,dXdv11,dXdv21,dXdv02,dXdv12,dXdv22, m0, m1, m2,
                        dvdX00,dvdX10,dvdX20,dvdX01,dvdX11,dvdX21,dvdX02,dvdX12,dvdX22, D,invD,
                        X0_loc, X1_loc, X2_loc;
-       #pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv20,dXdv01,dXdv11,dXdv21,dXdv02,dXdv12,dXdv22, m0, m1, m2,dvdX00,dvdX10,dvdX20,dvdX01,dvdX11,dvdX21,dvdX02,dvdX12,dvdX22, D,invD,X0_loc, X1_loc, X2_loc, q) schedule(static) 
+       #pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv20,dXdv01,dXdv11,dXdv21,dXdv02,dXdv12,dXdv22, m0, m1, m2,dvdX00,dvdX10,dvdX20,dvdX01,dvdX11,dvdX21,dvdX02,dvdX12,dvdX22, D,invD,X0_loc, X1_loc, X2_loc) schedule(static) 
        for(e=0;e<numElements;e++){
            for (q=0;q<numQuad;q++) {
               dXdv00=0;
@@ -552,7 +552,7 @@ void Assemble_jacobeans_3D_M2D_E3D_C(double* coordinates, dim_t numQuad,double* 
                        dXdv00_1,dXdv10_1,dXdv20_1,dXdv01_1,dXdv11_1,dXdv21_1,dXdv02_1,dXdv12_1,dXdv22_1, m0_1, m1_1, m2_1,
                        dvdX00_1,dvdX10_1,dvdX20_1,dvdX01_1,dvdX11_1,dvdX21_1,dvdX02_1,dvdX12_1,dvdX22_1, D_1,invD_1,
                        X0_loc_0, X1_loc_0, X2_loc_0, X0_loc_1, X1_loc_1, X2_loc_1;
-       #pragma omp for private(e,q,s,dXdv00_0,dXdv10_0,dXdv20_0,dXdv01_0,dXdv11_0,dXdv21_0,dXdv02_0,dXdv12_0,dXdv22_0, m0_0, m1_0, m2_0,dvdX00_0,dvdX10_0,dvdX20_0,dvdX01_0,dvdX11_0,dvdX21_0,dvdX02_0,dvdX12_0,dvdX22_0, D_0,invD_0,dXdv00_1,dXdv10_1,dXdv20_1,dXdv01_1,dXdv11_1,dXdv21_1,dXdv02_1,dXdv12_1,dXdv22_1, m0_1, m1_1, m2_1,dvdX00_1,dvdX10_1,dvdX20_1,dvdX01_1,dvdX11_1,dvdX21_1,dvdX02_1,dvdX12_1,dvdX22_1, D_1,invD_1,X0_loc_0, X1_loc_0, X2_loc_0, X0_loc_1, X1_loc_1, X2_loc_1, q) schedule(static) 
+       #pragma omp for private(e,q,s,dXdv00_0,dXdv10_0,dXdv20_0,dXdv01_0,dXdv11_0,dXdv21_0,dXdv02_0,dXdv12_0,dXdv22_0, m0_0, m1_0, m2_0,dvdX00_0,dvdX10_0,dvdX20_0,dvdX01_0,dvdX11_0,dvdX21_0,dvdX02_0,dvdX12_0,dvdX22_0, D_0,invD_0,dXdv00_1,dXdv10_1,dXdv20_1,dXdv01_1,dXdv11_1,dXdv21_1,dXdv02_1,dXdv12_1,dXdv22_1, m0_1, m1_1, m2_1,dvdX00_1,dvdX10_1,dvdX20_1,dvdX01_1,dvdX11_1,dvdX21_1,dvdX02_1,dvdX12_1,dvdX22_1, D_1,invD_1,X0_loc_0, X1_loc_0, X2_loc_0, X0_loc_1, X1_loc_1, X2_loc_1) schedule(static) 
        for(e=0;e<numElements;e++){
            for (q=0;q<numQuad;q++) {
               dXdv00_0=0;
@@ -673,7 +673,7 @@ void Assemble_jacobeans_3D_M2D_E2D(double* coordinates, dim_t numQuad,double* Qu
        register double dXdv00,dXdv10,dXdv20,dXdv01,dXdv11,dXdv21,m00,m01,m11,
                        dvdX00,dvdX01,dvdX02,dvdX10,dvdX11,dvdX12,D,invD,
                        X0_loc, X1_loc, X2_loc;
-       #pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv20,dXdv01,dXdv11,dXdv21,m00,m01,m11,dvdX00,dvdX01,dvdX02,dvdX10,dvdX11,dvdX12,D,invD, X0_loc, X1_loc, X2_loc, q) schedule(static) 
+       #pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv20,dXdv01,dXdv11,dXdv21,m00,m01,m11,dvdX00,dvdX01,dvdX02,dvdX10,dvdX11,dvdX12,D,invD, X0_loc, X1_loc, X2_loc) schedule(static) 
        for(e=0;e<numElements;e++){
            for (q=0;q<numQuad;q++) {
               dXdv00=0;
@@ -741,7 +741,7 @@ void Assemble_jacobeans_3D_M2D_E2D_C(double* coordinates, dim_t numQuad,double* 
                        dXdv00_1,dXdv10_1,dXdv20_1,dXdv01_1,dXdv11_1,dXdv21_1,m00_1,m01_1,m11_1,
                        dvdX00_1,dvdX01_1,dvdX02_1,dvdX10_1,dvdX11_1,dvdX12_1,D_1,invD_1,
                        X0_loc_0, X1_loc_0, X2_loc_0, X0_loc_1, X1_loc_1, X2_loc_1;
-       #pragma omp for private(e,q,s,dXdv00_0,dXdv10_0,dXdv20_0,dXdv01_0,dXdv11_0,dXdv21_0,m00_0,m01_0,m11_0,dvdX00_0,dvdX01_0,dvdX02_0,dvdX10_0,dvdX11_0,dvdX12_0,D_0,invD_0,dXdv00_1,dXdv10_1,dXdv20_1,dXdv01_1,dXdv11_1,dXdv21_1,m00_1,m01_1,m11_1,dvdX00_1,dvdX01_1,dvdX02_1,dvdX10_1,dvdX11_1,dvdX12_1,D_1,invD_1,X0_loc_0, X1_loc_0, X2_loc_0, X0_loc_1, X1_loc_1, X2_loc_1, q) schedule(static) 
+       #pragma omp for private(e,q,s,dXdv00_0,dXdv10_0,dXdv20_0,dXdv01_0,dXdv11_0,dXdv21_0,m00_0,m01_0,m11_0,dvdX00_0,dvdX01_0,dvdX02_0,dvdX10_0,dvdX11_0,dvdX12_0,D_0,invD_0,dXdv00_1,dXdv10_1,dXdv20_1,dXdv01_1,dXdv11_1,dXdv21_1,m00_1,m01_1,m11_1,dvdX00_1,dvdX01_1,dvdX02_1,dvdX10_1,dvdX11_1,dvdX12_1,D_1,invD_1,X0_loc_0, X1_loc_0, X2_loc_0, X0_loc_1, X1_loc_1, X2_loc_1) schedule(static) 
        for(e=0;e<numElements;e++){
            for (q=0;q<numQuad;q++) {
               dXdv00_0=0;
