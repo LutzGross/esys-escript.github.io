@@ -2040,18 +2040,19 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
   int numSamples=temp.getNumSamples();
   int numDPPSample=temp.getNumDataPointsPerSample();
 
-  double next,local_min;
+  double local_val, local_min;
+  double next[2];
   int local_lowi=0,local_lowj=0;	
 
-  #pragma omp parallel firstprivate(local_lowi,local_lowj) private(next,local_min)
+  #pragma omp parallel firstprivate(local_lowi,local_lowj) private(local_val,local_min)
   {
     local_min=min;
     #pragma omp for private(i,j) schedule(static)
     for (i=0; i<numSamples; i++) {
       for (j=0; j<numDPPSample; j++) {
-        next=temp.getDataAtOffsetRO(temp.getDataOffset(i,j));
-        if (next<local_min) {
-          local_min=next;
+        local_val=temp.getDataAtOffsetRO(temp.getDataOffset(i,j));
+        if (local_val<local_min) {
+          local_min=local_val;
           local_lowi=i;
           local_lowj=j;
         }
@@ -2067,18 +2068,23 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
 
 #ifdef PASO_MPI
   // determine the processor on which the minimum occurs
-  next = temp.getDataPointRO(lowi,lowj);
+  next[0] = min;
+  next[1] = numSamples;
   int lowProc = 0;
-  double *globalMins = new double[get_MPISize()+1];
+  double *globalMins = new double[get_MPISize()*2+1];
   int error;
-  error = MPI_Gather ( &next, 1, MPI_DOUBLE, globalMins, 1, MPI_DOUBLE, 0, get_MPIComm() );
+printf("before gather %d\n", numSamples);
+  error = MPI_Gather (next, 2, MPI_DOUBLE, globalMins, 2, MPI_DOUBLE, 0, get_MPIComm() );
+printf("after gather\n");
 
   if( get_MPIRank()==0 ){
-	next = globalMins[lowProc];
-	for( i=1; i<get_MPISize(); i++ )
-		if( next>globalMins[i] ){
+	for (lowProc=0; lowProc<get_MPISize(); lowProc++)
+		if (globalMins[lowProc*2+1] > 0) break;
+	min = globalMins[lowProc];
+	for( i=lowProc+1; i<get_MPISize(); i++ )
+		if( globalMins[i*2+1]>0 && min>globalMins[i*2] ){
 			lowProc = i;
-			next = globalMins[i];
+			min = globalMins[i*2];
 		}
   }
   MPI_Bcast( &lowProc, 1, MPI_INT, 0, get_MPIComm() );
@@ -2122,18 +2128,19 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
   int numSamples=temp.getNumSamples();
   int numDPPSample=temp.getNumDataPointsPerSample();
 
-  double next,local_max;
+  double local_val, local_max;
+  double next[2];
   int local_highi=0,local_highj=0;	
 
-  #pragma omp parallel firstprivate(local_highi,local_highj) private(next,local_max)
+  #pragma omp parallel firstprivate(local_highi,local_highj) private(local_val,local_max)
   {
     local_max=max;
     #pragma omp for private(i,j) schedule(static)
     for (i=0; i<numSamples; i++) {
       for (j=0; j<numDPPSample; j++) {
-        next=temp.getDataAtOffsetRO(temp.getDataOffset(i,j));
-        if (next>local_max) {
-          local_max=next;
+        local_val=temp.getDataAtOffsetRO(temp.getDataOffset(i,j));
+        if (local_val>local_max) {
+          local_max=local_val;
           local_highi=i;
           local_highj=j;
         }
@@ -2148,19 +2155,22 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
   }
 #ifdef PASO_MPI
   // determine the processor on which the maximum occurs
-  next = temp.getDataPointRO(highi,highj);
+  next[0] = max;
+  next[1] = numSamples;
   int highProc = 0;
-  double *globalMaxs = new double[get_MPISize()+1];
+  double *globalMaxs = new double[get_MPISize()*2+1];
   int error;
-  error = MPI_Gather ( &next, 1, MPI_DOUBLE, globalMaxs, 1, MPI_DOUBLE, 0, get_MPIComm() );
+  error = MPI_Gather ( &next[0], 2, MPI_DOUBLE, globalMaxs, 2, MPI_DOUBLE, 0, get_MPIComm() );
   if( get_MPIRank()==0 ){
-    next = globalMaxs[highProc];
-    for( i=1; i<get_MPISize(); i++ )
+    for (highProc=0; highProc<get_MPISize(); highProc++)
+	if (globalMaxs[highProc*2+1] > 0) break;
+    max = globalMaxs[highProc];
+    for( i=highProc+1; i<get_MPISize(); i++ )
     {
-	if( next<globalMaxs[i] )
+	if( globalMaxs[i*2+1]>0 && max<globalMaxs[i*2] )
 	{
 		highProc = i;
-		next = globalMaxs[i];
+		max = globalMaxs[i*2];
 	}
     }
   }
