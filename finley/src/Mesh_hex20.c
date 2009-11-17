@@ -37,11 +37,12 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
 {
   #define N_PER_E 2
   #define DIM 3
-  dim_t N0,N1,N2,NE0,NE1,NE2,i0,i1,i2,k,Nstride0,Nstride1,Nstride2, local_NE0, local_NE1, local_NE2;
-  dim_t totalNECount,faceNECount,NDOF0,NDOF1,NDOF2,NFaceElements, local_N0, local_N1, local_N2, NN;
-  index_t node0, myRank, e_offset0, e_offset1, e_offset2, offset0, offset1, offset2, global_i0, global_i1, global_i2;
+  dim_t N0,N1,N2,NE0,NE1,NE2,i0,i1,i2,k,Nstride0=0, Nstride1=0, Nstride2=0, local_NE0, local_NE1, local_NE2;
+  dim_t totalNECount,faceNECount,NDOF0=0, NDOF1=0, NDOF2=0, NFaceElements=0, local_N0=0, local_N1=0, local_N2=0, NN;
+  index_t node0, myRank, e_offset0, e_offset1, e_offset2, offset0=0, offset1=0, offset2=0, global_i0, global_i1, global_i2;
   Finley_Mesh* out;
   Paso_MPIInfo *mpi_info = NULL;
+  Finley_ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
   char name[50];
   bool_t generateAllNodes= useFullElementOrder || useMacroElements;
   #ifdef Finley_TRACE
@@ -75,139 +76,115 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
   if (generateAllNodes) {
      /* Finley_setError(SYSTEM_ERROR,"full element order for Hex elements is not supported yet."); */
      if (useMacroElements) {
-          Finley_Mesh_setElements(out,Finley_ElementFile_alloc(Hex27Macro,
-                                                 out->order,
-                                                 out->reduced_order,
-                                                 mpi_info));
+		  refElements= Finley_ReferenceElementSet_alloc(Hex27Macro,out->order,out->reduced_order);
      } else {
-          Finley_Mesh_setElements(out,Finley_ElementFile_alloc(Hex27,
-                                                 out->order,
-                                                 out->reduced_order,
-                                                 mpi_info));
+		  refElements=Finley_ReferenceElementSet_alloc(Hex27, out->order,out->reduced_order);
      }
      if (useElementsOnFace) {
          Finley_setError(SYSTEM_ERROR,"rich elements for Hex27 elements is not supported yet.");
      } else {
          if (useMacroElements) { 
-             Finley_Mesh_setFaceElements(out,Finley_ElementFile_alloc(Rec9Macro,
-                                                        out->order,
-                                                        out->reduced_order,
-                                                        mpi_info));
+			 refFaceElements=Finley_ReferenceElementSet_alloc(Rec9Macro, out->order, out->reduced_order);
          } else {
-             Finley_Mesh_setFaceElements(out,Finley_ElementFile_alloc(Rec9,
-                                                        out->order,
-                                                        out->reduced_order,
-                                                        mpi_info));
+			 refFaceElements=Finley_ReferenceElementSet_alloc(Rec9, out->order, out->reduced_order);
          }
-         Finley_Mesh_setContactElements(out,Finley_ElementFile_alloc(Rec9_Contact,
-                                                       out->order,
-                                                       out->reduced_order,
-                                                       mpi_info));
+		 refContactElements=Finley_ReferenceElementSet_alloc(Rec9_Contact, out->order, out->reduced_order);
      }
 
   } else  {
-     Finley_Mesh_setElements(out,Finley_ElementFile_alloc(Hex20,out->order,out->reduced_order,mpi_info));
+	 refElements= Finley_ReferenceElementSet_alloc(Hex20,out->order,out->reduced_order);
      if (useElementsOnFace) {
-         Finley_Mesh_setFaceElements(out,Finley_ElementFile_alloc(Hex20Face,
-                                                                  out->order,
-                                                                  out->reduced_order,
-                                                                  mpi_info));
-         Finley_Mesh_setContactElements(out,Finley_ElementFile_alloc(Hex20Face_Contact,
-                                                                    out->order,
-                                                                    out->reduced_order,
-                                                                    mpi_info));
+		 refFaceElements = Finley_ReferenceElementSet_alloc(Hex20Face ,out->order,out->reduced_order);
+		 refContactElements=Finley_ReferenceElementSet_alloc(Hex20Face_Contact, out->order, out->reduced_order);
+
      } else {
-         Finley_Mesh_setFaceElements(out,Finley_ElementFile_alloc(Rec8,
-                                                                  out->order,
-                                                                  out->reduced_order,
-                                                                  mpi_info));
-         Finley_Mesh_setContactElements(out,Finley_ElementFile_alloc(Rec8_Contact,
-                                                                     out->order,
-                                                                     out->reduced_order,
-                                                                     mpi_info));
+		 refFaceElements = Finley_ReferenceElementSet_alloc(Rec8 ,out->order,out->reduced_order);
+		 refContactElements=Finley_ReferenceElementSet_alloc(Rec8_Contact, out->order, out->reduced_order);
+
      }
   }
-  Finley_Mesh_setPoints(out,Finley_ElementFile_alloc(Point1,
-                                                 out->order,
-                                                 out->reduced_order,
-                                                 mpi_info));
-  if (! Finley_noError()) {
-      Paso_MPIInfo_free( mpi_info );
-      Finley_Mesh_free(out);
-      return NULL;
-  }
+  refPoints=Finley_ReferenceElementSet_alloc(Point1, out->order, out->reduced_order);
 
-  /* work out the largest dimension */
-  if (N2==MAX3(N0,N1,N2)) {
-     Nstride0=1;
-     Nstride1=N0;
-     Nstride2=N0*N1;
-     local_NE0=NE0;
-     e_offset0=0;
-     local_NE1=NE1;
-     e_offset1=0;
-     Paso_MPIInfo_Split(mpi_info,NE2,&local_NE2,&e_offset2);
-  } else if (N1==MAX3(N0,N1,N2)) {
-     Nstride0=N2;
-     Nstride1=N0*N2;
-     Nstride2=1;
-     local_NE0=NE0;
-     e_offset0=0;
-     Paso_MPIInfo_Split(mpi_info,NE1,&local_NE1,&e_offset1);
-     local_NE2=NE2;
-     e_offset2=0;
-  } else {
-     Nstride0=N1*N2;
-     Nstride1=1;
-     Nstride2=N1;
-     Paso_MPIInfo_Split(mpi_info,NE0,&local_NE0,&e_offset0);
-     local_NE1=NE1;
-     e_offset1=0;
-     local_NE2=NE2;
-     e_offset2=0;
-  }
-  offset0=e_offset0*N_PER_E;
-  offset1=e_offset1*N_PER_E;
-  offset2=e_offset2*N_PER_E;
-  local_N0=local_NE0>0 ? local_NE0*N_PER_E+1 : 0;
-  local_N1=local_NE1>0 ? local_NE1*N_PER_E+1 : 0;
-  local_N2=local_NE2>0 ? local_NE2*N_PER_E+1 : 0;
+  if ( Finley_noError()) {
+  
+	  Finley_Mesh_setPoints(out,Finley_ElementFile_alloc(refPoints, mpi_info));
+	  Finley_Mesh_setContactElements(out,Finley_ElementFile_alloc(refContactElements, mpi_info));
+	  Finley_Mesh_setFaceElements(out,Finley_ElementFile_alloc(refFaceElements, mpi_info));
+	  Finley_Mesh_setElements(out,Finley_ElementFile_alloc(refElements, mpi_info));
 
-  /* get the number of surface elements */
+	  /* work out the largest dimension */
+	  if (N2==MAX3(N0,N1,N2)) {
+		  Nstride0=1;
+		  Nstride1=N0;
+		  Nstride2=N0*N1;
+		  local_NE0=NE0;
+		  e_offset0=0;
+		  local_NE1=NE1;
+		  e_offset1=0;
+		  Paso_MPIInfo_Split(mpi_info,NE2,&local_NE2,&e_offset2);
+	  } else if (N1==MAX3(N0,N1,N2)) {
+		  Nstride0=N2;
+		  Nstride1=N0*N2;
+		  Nstride2=1;
+		  local_NE0=NE0;
+		  e_offset0=0;
+		  Paso_MPIInfo_Split(mpi_info,NE1,&local_NE1,&e_offset1);
+		  local_NE2=NE2;
+		  e_offset2=0;
+	  } else {
+		  Nstride0=N1*N2;
+		  Nstride1=1;
+		  Nstride2=N1;
+		  Paso_MPIInfo_Split(mpi_info,NE0,&local_NE0,&e_offset0);
+		  local_NE1=NE1;
+		  e_offset1=0;
+		  local_NE2=NE2;
+		  e_offset2=0;
+	  }
+	  offset0=e_offset0*N_PER_E;
+	  offset1=e_offset1*N_PER_E;
+	  offset2=e_offset2*N_PER_E;
+	  local_N0=local_NE0>0 ? local_NE0*N_PER_E+1 : 0;
+	  local_N1=local_NE1>0 ? local_NE1*N_PER_E+1 : 0;
+	  local_N2=local_NE2>0 ? local_NE2*N_PER_E+1 : 0;
 
-  NFaceElements=0;
-  if (!periodic[2] && (local_NE2>0) ) {
-    NDOF2=N2;
-    if (offset2==0) NFaceElements+=local_NE1*local_NE0;
-    if (local_NE2+e_offset2 == NE2) NFaceElements+=local_NE1*local_NE0;
-  } else {
-      NDOF2=N2-1;
-  }
+	  /* get the number of surface elements */
+
+	  NFaceElements=0;	
+	  if (!periodic[2] && (local_NE2>0) ) {
+		  NDOF2=N2;
+		  if (offset2==0) NFaceElements+=local_NE1*local_NE0;
+		  if (local_NE2+e_offset2 == NE2) NFaceElements+=local_NE1*local_NE0;
+	  } else {
+		  NDOF2=N2-1;
+	  }
  
-  if (!periodic[0] && (local_NE0>0) ) {
-     NDOF0=N0;
-     if (e_offset0 == 0) NFaceElements+=local_NE1*local_NE2;
-     if (local_NE0+e_offset0 == NE0) NFaceElements+=local_NE1*local_NE2;
-  } else {
-      NDOF0=N0-1;
-  }
-  if (!periodic[1] && (local_NE1>0) ) {
-     NDOF1=N1;
-     if (e_offset1 == 0) NFaceElements+=local_NE0*local_NE2;
-     if (local_NE1+e_offset1 == NE1) NFaceElements+=local_NE0*local_NE2;
-  } else {
-      NDOF1=N1-1;
+	  if (!periodic[0] && (local_NE0>0) ) {
+		  NDOF0=N0;
+		  if (e_offset0 == 0) NFaceElements+=local_NE1*local_NE2;
+		  if (local_NE0+e_offset0 == NE0) NFaceElements+=local_NE1*local_NE2;
+	  } else {
+		  NDOF0=N0-1;
+	  }
+	  if (!periodic[1] && (local_NE1>0) ) {
+		  NDOF1=N1;
+		  if (e_offset1 == 0) NFaceElements+=local_NE0*local_NE2;
+		  if (local_NE1+e_offset1 == NE1) NFaceElements+=local_NE0*local_NE2;
+	  } else {
+		  NDOF1=N1-1;
+	  }
   }
   /*  allocate tables: */
-
-  Finley_NodeFile_allocTable(out->Nodes,local_N0*local_N1*local_N2);
-  Finley_ElementFile_allocTable(out->Elements,local_NE0*local_NE1*local_NE2);
-  Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
-
   if (Finley_noError()) {
-     /* create nodes */
+	  Finley_NodeFile_allocTable(out->Nodes,local_N0*local_N1*local_N2);
+	  Finley_ElementFile_allocTable(out->Elements,local_NE0*local_NE1*local_NE2);
+	  Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
+  }
+  if (Finley_noError()) {
+
+	  /* create nodes */
    
-     #pragma omp parallel for private(i0,i1,i2,k,global_i0,global_i1,global_i2)
+		  #pragma omp parallel for private(i0,i1,i2,k,global_i0,global_i1,global_i2)
      for (i2=0;i2<local_N2;i2++) {
        for (i1=0;i1<local_N1;i1++) {
          for (i0=0;i0<local_N0;i0++) {
@@ -615,31 +592,33 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
         }
         totalNECount+=NE0*NE2;
      }
-     /* add tag names */
-     Finley_Mesh_addTagMap(out,"top", 200);
-     Finley_Mesh_addTagMap(out,"bottom", 100);
-     Finley_Mesh_addTagMap(out,"left", 1);
-     Finley_Mesh_addTagMap(out,"right", 2);
-     Finley_Mesh_addTagMap(out,"front", 10);
-     Finley_Mesh_addTagMap(out,"back", 20);
-   
-     /* prepare mesh for further calculatuions:*/
-     if (Finley_noError()) {
+	 if (Finley_noError()) {
+		 /* add tag names */
+		 Finley_Mesh_addTagMap(out,"top", 200);
+		 Finley_Mesh_addTagMap(out,"bottom", 100);
+		 Finley_Mesh_addTagMap(out,"left", 1);
+		 Finley_Mesh_addTagMap(out,"right", 2);
+		 Finley_Mesh_addTagMap(out,"front", 10);
+		 Finley_Mesh_addTagMap(out,"back", 20);
+     }
+  }
+  /* prepare mesh for further calculatuions:*/
+  if (Finley_noError()) {
          Finley_Mesh_resolveNodeIds(out);
-     }
-     if (Finley_noError()) {
+  }
+  if (Finley_noError()) {
          Finley_Mesh_prepare(out, optimize);
-     }
   }
 
   if (!Finley_noError()) {
       Finley_Mesh_free(out);
   }
-  /* free up memory */
+    /* free up memory */
+  Finley_ReferenceElementSet_dealloc(refPoints);
+  Finley_ReferenceElementSet_dealloc(refContactElements);
+  Finley_ReferenceElementSet_dealloc(refFaceElements);
+  Finley_ReferenceElementSet_dealloc(refElements);
   Paso_MPIInfo_free( mpi_info );  
-  #ifdef Finley_TRACE
-  printf("timing: mesh generation: %.4e sec\n",Finley_timer()-time0);
-  #endif
 
   return out;
 }

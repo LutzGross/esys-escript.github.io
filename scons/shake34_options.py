@@ -18,7 +18,7 @@
 # C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
 # cc_flags		= '-ansi'
 # cc_optim		= '-O2'
-# usedebug= 'no'
+# usedebug= 'yes'
 # cc_debug		= '-g'
 # omp_optim		= '-openmp'
 # omp_debug		= '-openmp'

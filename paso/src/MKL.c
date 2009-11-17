@@ -128,6 +128,7 @@ void Paso_MKL(Paso_SystemMatrix* A,
                  &n, A->mainBlock->val, A->mainBlock->pattern->ptr, A->mainBlock->pattern->index, &idum, &nrhs,
                  iparm, &msglvl, in, out, &error);
         if (error != MKL_ERROR_NO) {
+             if (options->verbose) printf("MKL: symbolic factorization factorization failed.\n");
              Paso_setError(VALUE_ERROR,"symbolic factorization in paradiso library failed.");
              Paso_MKL_free(A);
         } else {
@@ -137,6 +138,7 @@ void Paso_MKL(Paso_SystemMatrix* A,
                 &n, A->mainBlock->val, A->mainBlock->pattern->ptr, A->mainBlock->pattern->index, &idum, &nrhs,
                 iparm, &msglvl, in, out, &error);
            if (error != MKL_ERROR_NO) {
+             if (options->verbose) printf("MKL: LDU factorization failed.\n");
              Paso_setError(ZERO_DIVISION_ERROR,"factorization in paradiso library failed. Most likely the matrix is singular.");
              Paso_MKL_free(A);
            }
@@ -155,8 +157,10 @@ void Paso_MKL(Paso_SystemMatrix* A,
                  iparm, &msglvl, in, out, &error);
         if (options->verbose) printf("MKL: solve completed.\n");
         if (error != MKL_ERROR_NO) {
-              Paso_setError(VALUE_ERROR,"forward/backward substition in paradiso library failed. Most likely the matrix is singular.");
+              if (options->verbose) printf("MKL: forward/backward substitution failed.\n");
+              Paso_setError(VALUE_ERROR,"forward/backward substitution in paradiso library failed. Most likely the matrix is singular.");
         } else {
+            if (options->verbose) printf("MKL: forward/backward substitution completed.\n");
             options->residual_norm=0.;
             options->num_iter=0;
             options->num_level=0;

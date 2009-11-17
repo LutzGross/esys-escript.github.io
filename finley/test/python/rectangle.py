@@ -37,6 +37,7 @@ l30=Line(p3,p0)
 
 s=PlaneSurface(CurveLoop(l01,l12,l23,l30))
 des=Design(dim=2, order=1, element_size = 1, keep_files=True)
+des.setMeshFileName("rec.geo")
 des.addItems(s)
 
 dom=MakeDomain(des)

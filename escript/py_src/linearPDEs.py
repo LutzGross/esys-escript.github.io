@@ -81,7 +81,7 @@ class SolverOptions(object):
     :cvar NESTED_DISSECTION: Reorder matrix to improve load balancing during factorization
     :cvar PASO: PASO solver package
     :cvar SCSL: SGI SCSL solver library
-    :cvar MKL: Intel's MKL solver library
+    :cvar MKL: Intel's MKL solver library.  If the stiffness matrix is non-regular MKL may return without returning a proper error code. If you observe suspicious solutions when using MKL, this may cause by a non-invertible operator.
     :cvar UMFPACK: The UMFPACK library
     :cvar TRILINOS: The TRILINOS parallel solver class library from Sandia National Labs
     :cvar ITERATIVE: The default iterative solver

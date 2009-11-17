@@ -2041,7 +2041,9 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
   int numDPPSample=temp.getNumDataPointsPerSample();
 
   double local_val, local_min;
+  #ifdef PASO_MPI
   double next[2];
+  #endif
   int local_lowi=0,local_lowj=0;	
 
   #pragma omp parallel firstprivate(local_lowi,local_lowj) private(local_val,local_min)
@@ -2127,7 +2129,9 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
   int numDPPSample=temp.getNumDataPointsPerSample();
 
   double local_val, local_max;
+  #ifdef PASO_MPI
   double next[2];
+  #endif
   int local_highi=0,local_highj=0;	
 
   #pragma omp parallel firstprivate(local_highi,local_highj) private(local_val,local_max)

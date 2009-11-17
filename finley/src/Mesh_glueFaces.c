@@ -30,24 +30,27 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
    Finley_NodeFile *newNodeFile=NULL;
    Finley_ElementFile *newFaceElementsFile=NULL;
    dim_t numPairs,e,i,n, NNFace, NN, numDim, new_numFaceElements, newNumNodes;
-   index_t face_node, *elem1=NULL,*elem0=NULL,*elem_mask=NULL,*new_node_label=NULL,*new_node_list=NULL,*new_node_mask=NULL,*matching_nodes_in_elem1=NULL;
-
+   index_t face_node, *elem1=NULL,*elem0=NULL,*elem_mask=NULL,*new_node_label=NULL,*new_node_list=NULL,*new_node_mask=NULL,*matching_nodes_in_elem1=NULL, *faceNodes=NULL;
+   Finley_ReferenceElement*  faceRefElement=NULL;
+   
    if (self->MPIInfo->size>1) {
      Finley_setError(TYPE_ERROR,"Finley_Mesh_glueFaces: MPI is not supported yet.");
      return;
    }
        
    if (self->FaceElements==NULL) return;
-
-   if (self->FaceElements->ReferenceElement->Type->numNodesOnFace<=0) {
-     sprintf(error_msg,"Finley_Mesh_glueFaces:glueing faces cannot be applied to face elements of type %s",self->FaceElements->ReferenceElement->Type->Name);
+   faceRefElement= Finley_ReferenceElementSet_borrowReferenceElement(self->FaceElements->referenceElementSet, FALSE);
+   NNFace=faceRefElement->Type->numNodesOnFace;
+   NN=self->FaceElements->numNodes;
+   numDim=self->Nodes->numDim;
+   faceNodes=faceRefElement->Type->faceNodes;
+   
+   if (NNFace<=0) {
+     sprintf(error_msg,"Finley_Mesh_glueFaces:glueing faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
      Finley_setError(TYPE_ERROR,error_msg);
      return;
    }
 
-   NNFace=self->FaceElements->ReferenceElement->Type->numNodesOnFace;
-   NN=self->FaceElements->ReferenceElement->Type->numNodes;
-   numDim=self->Nodes->numDim;
    /* allocate work arrays */
    elem1=TMPMEMALLOC(self->FaceElements->numElements,index_t);
    elem0=TMPMEMALLOC(self->FaceElements->numElements,index_t);
@@ -67,7 +70,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
              elem_mask[elem0[e]]=1;
              elem_mask[elem1[e]]=1;
              for (i=0;i<NNFace;i++) {
-                face_node=self->FaceElements->ReferenceElement->Type->faceNode[i];
+                face_node=faceNodes[i];
                 new_node_label[matching_nodes_in_elem1[INDEX2(face_node,e,NN)]]=self->FaceElements->Nodes[INDEX2(face_node,elem0[e],NN)];
              }
          }
@@ -97,10 +100,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
          if (Finley_noError()) {
              Finley_NodeFile_allocTable(newNodeFile,newNumNodes);
              if (Finley_noError()) {
-                newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->ReferenceElement->Type->TypeId,
-                                                             self->FaceElements->order, 
-                                                             self->FaceElements->reduced_order,
-                                                             self->MPIInfo);
+                newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->referenceElementSet, self->MPIInfo);
                 if (Finley_noError()) {
                    Finley_ElementFile_allocTable(newFaceElementsFile,new_numFaceElements);
                  }

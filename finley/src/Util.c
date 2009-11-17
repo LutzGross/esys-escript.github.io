@@ -89,12 +89,12 @@ void Finley_Util_AddScatter(dim_t len,index_t* index,dim_t numData,double* in,do
 
 void Finley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
     dim_t i,j,s;
-    for (i=0;i<A1*A2;i++) A[i]=0;
+    register double rtmp;
        for (i=0;i<A1;i++) {
           for (j=0;j<A2;j++) {
-             for (s=0;s<B2;s++) {
-                A[INDEX2(i,j,A1)]+=B[INDEX2(i,s,A1)]*C[INDEX2(s,j,B2)];
-             }
+             rtmp=0;
+             for (s=0;s<B2;s++) rtmp+=B[INDEX2(i,s,A1)]*C[INDEX2(s,j,B2)];
+			 A[INDEX2(i,j,A1)]=rtmp;
           }
        }
 }
@@ -105,13 +105,30 @@ void Finley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, double*B, 
 
 void Finley_Util_SmallMatSetMult(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
     dim_t q,i,j,s;
-    for (i=0;i<A1*A2*len;i++) A[i]=0;
+    register double rtmp;
     for (q=0;q<len;q++) {
        for (i=0;i<A1;i++) {
           for (j=0;j<A2;j++) {
-             for (s=0;s<B2;s++) {
-                A[INDEX3(i,j,q,A1,A2)]+=B[INDEX3(i,s,q,A1,B2)]*C[INDEX3(s,j,q,B2,A2)];
-             }
+             rtmp=0;
+             for (s=0;s<B2;s++) rtmp+=B[INDEX3(i,s,q,A1,B2)]*C[INDEX3(s,j,q,B2,A2)];
+             A[INDEX3(i,j,q, A1,A2)]=rtmp;
+          }
+       }
+    }
+}
+/*    multiplies a set of matries with a single matrix: */
+
+/*        A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2) i=1,len */
+
+void Finley_Util_SmallMatSetMult1(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
+    dim_t q,i,j,s;
+    register double rtmp;
+    for (q=0;q<len;q++) {
+       for (i=0;i<A1;i++) {
+          for (j=0;j<A2;j++) {
+             rtmp=0;
+             for (s=0;s<B2;s++) rtmp+=B[INDEX3(i,s,q, A1,B2)]*C[INDEX2(s,j,B2)];
+             A[INDEX3(i,j,q,A1,A2)]=rtmp;
           }
        }
     }

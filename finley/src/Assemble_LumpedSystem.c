@@ -40,18 +40,17 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
   bool_t reducedIntegrationOrder=FALSE, expandedD;
   char error_msg[LenErrorMsg_MAX];
   Assemble_Parameters p;
-  dim_t dimensions[ESCRIPT_MAX_DATA_RANK], k, e, len_EM_lumpedMat, q, s;
+  dim_t dimensions[ESCRIPT_MAX_DATA_RANK], k, e, len_EM_lumpedMat, q, s, isub;
   type_t funcspace;
   index_t color,*row_index=NULL;
   __const double *D_p=NULL;
   double *S=NULL, *EM_lumpedMat=NULL, *Vol=NULL, *lumpedMat_p=NULL;
   register double rtmp;
   size_t len_EM_lumpedMat_size;
-
-#ifdef NEW_LUMPING
-  register double m_t, diagS;
-#endif
-
+  #if (defined NEW_LUMPING) || (defined _OPENMP)
+  register double m_t=0., diagS=0.;
+  #endif
+ 
   Finley_resetError();
 
   if (nodes==NULL || elements==NULL) return;
@@ -81,8 +80,8 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
 
   /* check if all function spaces are the same */
 
-  if (! numSamplesEqual(D,p.numQuad,elements->numElements) ) {
-        sprintf(error_msg,"Assemble_LumpedSystem: sample points of coefficient D don't match (%d,%d)",p.numQuad,elements->numElements);
+  if (! numSamplesEqual(D,p.numQuadSub,elements->numElements) ) {
+        sprintf(error_msg,"Assemble_LumpedSystem: sample points of coefficient D don't match (%d,%d)",p.numQuadSub,elements->numElements);
         Finley_setError(TYPE_ERROR,error_msg);
   }
 
@@ -109,104 +108,104 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
     void* buffer=allocSampleBuffer(D);
     requireWrite(lumpedMat);
     lumpedMat_p=getSampleDataRW(lumpedMat,0);
-    len_EM_lumpedMat=p.row_NN*p.numEqu;
+    len_EM_lumpedMat=p.row_numShapesTotal*p.numEqu;
     len_EM_lumpedMat_size=len_EM_lumpedMat*sizeof(double);
+    
     expandedD=isExpanded(D);
-    S=p.row_jac->ReferenceElement->S;
-    #pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp)
+    S=p.row_jac->BasisFunctions->S;
+    
+    #pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp, diagS, m_t)
     {
        EM_lumpedMat=THREAD_MEMALLOC(len_EM_lumpedMat,double);
-       row_index=THREAD_MEMALLOC(p.row_NN,index_t);
+       row_index=THREAD_MEMALLOC(p.row_numShapesTotal,index_t);
        if ( !Finley_checkPtr(EM_lumpedMat) && !Finley_checkPtr(row_index) ) {
           if (p.numEqu == 1) {
              if (expandedD) {
+		     
                  for (color=elements->minColor;color<=elements->maxColor;color++) {
                     /*  open loop over all elements: */
                     #pragma omp for private(e) schedule(static)
                     for(e=0;e<elements->numElements;e++){
-                       if (elements->Color[e]==color) {
-                          Vol=&(p.row_jac->volume[INDEX2(0,e,p.numQuad)]);
-                          memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
-                          D_p=getSampleDataRO(D,e,buffer);
-                          #ifdef NEW_LUMPING /* HRZ lumping */
-                          /*
-                           *           Number of PDEs: 1
-                           *  D_p varies over element: True
-                           */
-                          #pragma omp parallel private(m_t)
-                          m_t=0; /* mass of the element: m_t */
-                          for (q=0;q<p.numQuad;q++) {
-                              m_t+=Vol[q]*D_p[q];
-                          }                           
-                          #pragma omp parallel private(diagS)
-                          diagS=0; /* diagonal sum: S */
-                          for (s=0;s<p.row_NS;s++) {
-                              rtmp=0;
-                              for (q=0;q<p.numQuad;q++) {
-                                  rtmp+=Vol[q]*D_p[q]*S[INDEX2(s,q,p.row_NS)]*S[INDEX2(s,q,p.row_NS)];
-                              }
-                              EM_lumpedMat[INDEX2(0,s,p.numEqu)]+=rtmp;
-                              diagS+=EM_lumpedMat[INDEX2(0,s,p.numEqu)];
-                          }
-                          /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
-                          for (s=0;s<p.row_NS;s++) {
-                              EM_lumpedMat[INDEX2(0,s,p.numEqu)]*=m_t/diagS;
-                          }
-                          #else /* row-sum lumping */
-                          for (s=0;s<p.row_NS;s++) {
-                              rtmp=0;
-                              for (q=0;q<p.numQuad;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_NS)]*D_p[q];
-                              EM_lumpedMat[INDEX2(0,s,p.numEqu)]+=rtmp;
-                          }
-                          #endif
-                          for (q=0;q<p.row_NN;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[q],e,p.NN)]];
-                          Finley_Util_AddScatter(p.row_NN,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
+                    
+						if (elements->Color[e]==color) {
+                            for (isub=0; isub<p.numSub; isub++) {
+                               Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
+                               memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
+			     
+                               D_p=getSampleDataRO(D,e,buffer);                          
+							   #ifdef NEW_LUMPING /* HRZ lumping */
+                                   m_t=0; /* mass of the element: m_t */
+                                   for (q=0;q<p.numQuadSub;q++) m_t+=Vol[q]*D_p[INDEX2(q, isub,p.numQuadSub) ];
+                         
+                                   diagS=0; /* diagonal sum: S */
+                                   for (s=0;s<p.row_numShapes;s++) {
+                                      rtmp=0;
+                                      for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*D_p[INDEX2(q, isub,p.numQuadSub)]*S[INDEX2(s,q,p.row_numShapes)]*S[INDEX2(s,q,p.row_numShapes)];
+                                      EM_lumpedMat[INDEX2(0,s,p.numEqu)]=rtmp;
+                                      diagS+=rtmp;
+                                   }
+                                   /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
+								   rtmp=m_t/diagS;
+                                   for (s=0;s<p.row_numShapes;s++) EM_lumpedMat[INDEX2(0,s,p.numEqu)]*=rtmp;
+                          
+                               #else /* row-sum lumping */
+                                   for (s=0;s<p.row_numShapes;s++) {
+                                       rtmp=0;
+                                       for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*D_p[INDEX2(q, isub,p.numQuadSub)];
+                                       EM_lumpedMat[INDEX2(0,s,p.numEqu)]+=rtmp;
+                                   }
+                               #endif
+                               for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
+                               Finley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
+			    } /* end of isub loop */ 
                        } /* end color check */
+		       
                     } /* end element loop */
                   } /* end color loop */
-             } else  {
+             } else  {		     
                  for (color=elements->minColor;color<=elements->maxColor;color++) {
-                 /*  open loop over all elements: */
-                 #pragma omp for private(e) schedule(static)
-                 for(e=0;e<elements->numElements;e++){
-                    if (elements->Color[e]==color) {
-                          Vol=&(p.row_jac->volume[INDEX2(0,e,p.numQuad)]);
-                          memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
-                          D_p=getSampleDataRO(D,e,buffer);
-                          #ifdef NEW_LUMPING /* HRZ lumping */
-                          /*
-                           *           Number of PDEs: 1
-                           *  D_p varies over element: False
-                           */
-                          m_t=0; /* mass of the element: m_t */
-                          for (q=0;q<p.numQuad;q++) {
-                              m_t+=Vol[q]*D_p[0];
-                          }                           
-                          diagS=0; /* diagonal sum: S */
-                          for (s=0;s<p.row_NS;s++) {
-                              rtmp=0;
-                              for (q=0;q<p.numQuad;q++) {
-                                  rtmp+=Vol[q]*D_p[0]*S[INDEX2(s,q,p.row_NS)]*S[INDEX2(s,q,p.row_NS)];
-                              }
-                              EM_lumpedMat[INDEX2(0,s,p.numEqu)]+=rtmp;
-                              diagS+=EM_lumpedMat[INDEX2(0,s,p.numEqu)];
-                          }
-                          /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
-                          for (s=0;s<p.row_NS;s++) {
-                              EM_lumpedMat[INDEX2(0,s,p.numEqu)]*=m_t/diagS;
-                          }
-                          #else /* row-sum lumping */
-                          for (s=0;s<p.row_NS;s++) {
-                              rtmp=0;
-                              for (q=0;q<p.numQuad;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_NS)];
-                              EM_lumpedMat[INDEX2(0,s,p.numEqu)]+=rtmp*D_p[0];
-                          }
-                          #endif
-                          for (q=0;q<p.row_NN;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[q],e,p.NN)]];
-                          Finley_Util_AddScatter(p.row_NN,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
-                      } /* end color check */
+                    /*  open loop over all elements: */
+                    #pragma omp for private(e) schedule(static)
+                    for(e=0;e<elements->numElements;e++){
+                    
+						if (elements->Color[e]==color) {
+                            for (isub=0; isub<p.numSub; isub++) {
+                             
+								Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
+								memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
+			     
+                               D_p=getSampleDataRO(D,e,buffer);                          
+							   #ifdef NEW_LUMPING /* HRZ lumping */
+                                   m_t=0; /* mass of the element: m_t */
+                                   for (q=0;q<p.numQuadSub;q++) m_t+=Vol[q];
+                                   m_t*=D_p[0];
+				   
+                                   diagS=0; /* diagonal sum: S */
+                                   for (s=0;s<p.row_numShapes;s++) {
+                                      rtmp=0;
+                                      for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*S[INDEX2(s,q,p.row_numShapes)];
+									  rtmp*=D_p[0];
+                                      EM_lumpedMat[INDEX2(0,s,p.numEqu)]=rtmp;
+                                      diagS+=rtmp;
+                                   }
+                                   /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
+								   rtmp=m_t/diagS;
+                                   for (s=0;s<p.row_numShapes;s++) EM_lumpedMat[INDEX2(0,s,p.numEqu)]*=rtmp;
+                          
+                               #else /* row-sum lumping */
+                                   for (s=0;s<p.row_numShapes;s++) {
+                                       rtmp=0;
+                                       for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)];
+                                       EM_lumpedMat[INDEX2(0,s,p.numEqu)]+=rtmp*D_p[0];
+                                   }
+                               #endif
+                               for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
+                               Finley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
+							} /* end of isub loop */ 
+                       } /* end color check */ 
                     } /* end element loop */
-                 } /* end color loop */
+                  } /* end color loop */
+		 
              }
           } else {
              if (expandedD) {
@@ -215,89 +214,82 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                     #pragma omp for private(e) schedule(static)
                     for(e=0;e<elements->numElements;e++){
                        if (elements->Color[e]==color) {
-                          Vol=&(p.row_jac->volume[INDEX2(0,e,p.numQuad)]);
-                          memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
-                          D_p=getSampleDataRO(D,e,buffer);
-                          #ifdef NEW_LUMPING /* HRZ lumping */
-                          /*
-                           *           Number of PDEs: Multiple
-                           *  D_p varies over element: True
-                           */
-                          for (k=0;k<p.numEqu;k++) {
-                              m_t=0; /* mass of the element: m_t */
-                              for (q=0;q<p.numQuad;q++) {
-                                  m_t+=Vol[q]*D_p[INDEX2(k,q,p.numEqu)];
-                              }                           
-                              diagS=0; /* diagonal sum: S */
-                              for (s=0;s<p.row_NS;s++) {
-                                  rtmp=0;
-                                  for (q=0;q<p.numQuad;q++) {
-                                      rtmp+=Vol[q]*D_p[INDEX2(k,q,p.numEqu)]*S[INDEX2(s,q,p.row_NS)]*S[INDEX2(s,q,p.row_NS)];
+						   for (isub=0; isub<p.numSub; isub++) {     
+                              Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
+                              memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
+                              D_p=getSampleDataRO(D,e,buffer);
+			  
+                              #ifdef NEW_LUMPING /* HRZ lumping */
+                                  for (k=0;k<p.numEqu;k++) {
+                                      m_t=0; /* mass of the element: m_t */
+                                      for (q=0;q<p.numQuadSub;q++) m_t+=Vol[q]*D_p[INDEX3(k,q,isub,p.numEqu,p.numQuadSub)];
+                                                   
+                                      diagS=0; /* diagonal sum: S */
+                                      for (s=0;s<p.row_numShapes;s++) {
+                                          rtmp=0;
+                                          for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*D_p[INDEX3(k,q,isub,p.numEqu,p.numQuadSub)]*S[INDEX2(s,q,p.row_numShapes)]*S[INDEX2(s,q,p.row_numShapes)];
+                                          EM_lumpedMat[INDEX2(k,s,p.numEqu)]=rtmp;
+                                          diagS+=rtmp;
+                                      }
+									  /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
+									  rtmp=m_t/diagS;
+									  for (s=0;s<p.row_numShapes;s++) EM_lumpedMat[INDEX2(k,s,p.numEqu)]*=rtmp;
+								  }
+							  #else /* row-sum lumping */
+                              	for (s=0;s<p.row_numShapes;s++) {
+                                  for (k=0;k<p.numEqu;k++) {
+                                      rtmp=0.;
+                                      for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*D_p[INDEX3(k,q,isub,p.numEqu,p.numQuadSub)];
+                                      EM_lumpedMat[INDEX2(k,s,p.numEqu)]+=rtmp;
                                   }
-                                  EM_lumpedMat[INDEX2(k,s,p.numEqu)]+=rtmp;
-                                  diagS+=EM_lumpedMat[INDEX2(k,s,p.numEqu)];
-                              }
-                              /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
-                              for (s=0;s<p.row_NS;s++) {
-                                  EM_lumpedMat[INDEX2(k,s,p.numEqu)]*=m_t/diagS;
-                              }
-                          }
-                          #else /* row-sum lumping */
-                          for (s=0;s<p.row_NS;s++) {
-                              for (k=0;k<p.numEqu;k++) {
-                                  rtmp=0.;
-                                  for (q=0;q<p.numQuad;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_NS)]*D_p[INDEX2(k,q,p.numEqu)];
-                                  EM_lumpedMat[INDEX2(k,s,p.numEqu)]+=rtmp;
-                              }
-                          }
-                          #endif
-                          for (q=0;q<p.row_NN;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[q],e,p.NN)]];
-                          Finley_Util_AddScatter(p.row_NN,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
+								}
+							  #endif
+							  for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
+							  Finley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
+						   } /* end of isub loop */
                        } /* end color check */
                     } /* end element loop */
                 } /* end color loop */
              } else {
-                 /*  open loop over all elements: */
                  for (color=elements->minColor;color<=elements->maxColor;color++) {
+                    /*  open loop over all elements: */
                     #pragma omp for private(e) schedule(static)
                     for(e=0;e<elements->numElements;e++){
                        if (elements->Color[e]==color) {
-                          Vol=&(p.row_jac->volume[INDEX2(0,e,p.numQuad)]);
-                          memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
-                          D_p=getSampleDataRO(D,e,buffer);
-                          #ifdef NEW_LUMPING /* HRZ lumping */
-                          /*
-                           *           Number of PDEs: Multiple
-                           *  D_p varies over element: False
-                           */
-                          for (k=0;k<p.numEqu;k++) {
-                              m_t=0; /* mass of the element: m_t */
-                              for (q=0;q<p.numQuad;q++) {
-                                  m_t+=Vol[q]*D_p[k];
-                              }                           
-                              diagS=0; /* diagonal sum: S */
-                              for (s=0;s<p.row_NS;s++) {
-                                  rtmp=0;
-                                  for (q=0;q<p.numQuad;q++) {
-                                      rtmp+=Vol[q]*D_p[k]*S[INDEX2(s,q,p.row_NS)]*S[INDEX2(s,q,p.row_NS)];
-                                  }
-                                  EM_lumpedMat[INDEX2(k,s,p.numEqu)]+=rtmp;
-                                  diagS+=EM_lumpedMat[INDEX2(k,s,p.numEqu)];
-                              }
-                              /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
-                              for (s=0;s<p.row_NS;s++) {
-                                  EM_lumpedMat[INDEX2(k,s,p.numEqu)]*=m_t/diagS;
-                              }
-                          }
-                          #else /* row-sum lumping */
-                          for (s=0;s<p.row_NS;s++) {
-                              rtmp=0;
-                              for (q=0;q<p.numQuad;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_NS)];
-                              for (k=0;k<p.numEqu;k++) EM_lumpedMat[INDEX2(k,s,p.numEqu)]+=rtmp*D_p[k];
-                          }
-                          #endif
-                          for (q=0;q<p.row_NN;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[q],e,p.NN)]];
-                          Finley_Util_AddScatter(p.row_NN,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
+						   for (isub=0; isub<p.numSub; isub++) {     
+                              Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
+                              memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
+                              D_p=getSampleDataRO(D,e,buffer);
+			  
+                              #ifdef NEW_LUMPING /* HRZ lumping */
+                                  for (k=0;k<p.numEqu;k++) {
+                                      m_t=0; /* mass of the element: m_t */
+                                      for (q=0;q<p.numQuadSub;q++) m_t+=Vol[q]*D_p[INDEX3(k,q,isub,p.numEqu,p.numQuadSub)];
+                                      m_t*=D_p[k];          
+                                      diagS=0; /* diagonal sum: S */
+                                      for (s=0;s<p.row_numShapes;s++) {
+                                          rtmp=0;
+                                          for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*S[INDEX2(s,q,p.row_numShapes)];
+                                          rtmp*=D_p[k];
+										  EM_lumpedMat[INDEX2(k,s,p.numEqu)]=rtmp;
+                                          diagS+=rtmp;
+                                      }
+									  /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
+									  rtmp=m_t/diagS;
+									  for (s=0;s<p.row_numShapes;s++) EM_lumpedMat[INDEX2(k,s,p.numEqu)]*=rtmp;
+								  }
+							 #else /* row-sum lumping */
+                             	 for (s=0;s<p.row_numShapes;s++) {
+									 for (k=0;k<p.numEqu;k++) {
+                                        rtmp=0.;
+                                        for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)];
+                                        EM_lumpedMat[INDEX2(k,s,p.numEqu)]+=rtmp*D_p[k];
+                                     }
+								 }
+							  #endif
+							  for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
+							  Finley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
+						  } /* end of isub loop */
                        } /* end color check */
                     } /* end element loop */
                 } /* end color loop */

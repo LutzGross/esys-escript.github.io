@@ -30,29 +30,33 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
    index_t e0,e1,*elem1=NULL,*elem0=NULL,*elem_mask=NULL,*matching_nodes_in_elem1=NULL;
    Finley_ElementFile *newFaceElementsFile=NULL,*newContactElementsFile=NULL;
    dim_t e,i,numPairs, NN, NN_Contact,c, new_numFaceElements;
+   Finley_ReferenceElement*  faceRefElement=NULL, *contactRefElement=NULL;
 
    if (self->MPIInfo->size>1) {
      Finley_setError(TYPE_ERROR,"Finley_Mesh_joinFaces: MPI is not supported yet.");
-     return;
-   }
-   if (self->FaceElements==NULL) return;
-
-   if (self->FaceElements->ReferenceElement->Type->numNodesOnFace<=0) {
-     sprintf(error_msg,"Finley_Mesh_joinFaces:joining faces cannot be applied to face elements of type %s",self->FaceElements->ReferenceElement->Type->Name);
-     Finley_setError(TYPE_ERROR,error_msg);
      return;
    }
    if (self->ContactElements==NULL) {
      Finley_setError(TYPE_ERROR,"Finley_Mesh_joinFaces: no contact element file present.");
      return;
    }
+   if (self->FaceElements==NULL) return;
+   faceRefElement= Finley_ReferenceElementSet_borrowReferenceElement(self->FaceElements->referenceElementSet, FALSE);
+   contactRefElement= Finley_ReferenceElementSet_borrowReferenceElement(self->ContactElements->referenceElementSet, FALSE);
+   
 
-   NN=self->FaceElements->ReferenceElement->Type->numNodes;
-   NN_Contact=self->ContactElements->ReferenceElement->Type->numNodes;
+   NN=self->FaceElements->numNodes;
+   NN_Contact=self->ContactElements->numNodes;
 
-   if (2*NN!=NN_Contact) {
-     sprintf(error_msg,"Finley_Mesh_joinFaces:contact element file for %s cannot hold elements created from face elements %s",
-           self->ContactElements->ReferenceElement->Type->Name,self->FaceElements->ReferenceElement->Type->Name);
+   if (faceRefElement->Type->numNodesOnFace<=0) {
+     sprintf(error_msg,"Finley_Mesh_joinFaces:joining faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
+     Finley_setError(TYPE_ERROR,error_msg);
+     return;
+   }
+
+
+   if (contactRefElement->Type->numNodes != 2*faceRefElement->Type->numNodes) {
+     sprintf(error_msg,"Finley_Mesh_joinFaces:contact element file for %s need to hold elements created from face elements %s", contactRefElement->Type->Name,faceRefElement->Type->Name);
      Finley_setError(TYPE_ERROR,error_msg);
      return;
    }
@@ -84,8 +88,8 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
              }
          }
          /*  allocate new face element and Contact element files */
-         newContactElementsFile=Finley_ElementFile_alloc(self->ContactElements->ReferenceElement->Type->TypeId,self->ContactElements->order,self->ContactElements->reduced_order, self->MPIInfo);
-         newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->ReferenceElement->Type->TypeId,self->FaceElements->order,self->FaceElements->reduced_order, self->MPIInfo);
+         newContactElementsFile=Finley_ElementFile_alloc(self->ContactElements->referenceElementSet, self->MPIInfo);
+         newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->referenceElementSet, self->MPIInfo);
          if (Finley_noError()) {
                Finley_ElementFile_allocTable(newContactElementsFile,numPairs+self->ContactElements->numElements);
                Finley_ElementFile_allocTable(newFaceElementsFile,new_numFaceElements);

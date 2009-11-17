@@ -24,11 +24,9 @@
 
 void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* elements,Paso_SystemMatrix* S, 
                                         escriptDataC* F, bool_t reducedIntegrationOrder, Assemble_Parameters *parm) {
-  dim_t i;
+  dim_t  numSub,  numQuadSub;
   Finley_resetError();
-
-  for (i=0;i<MAX_numNodes;i++) parm->id[i]=i;
-
+  
   if (!isEmpty(F) && !isExpanded(F) ) {
       Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: Right hand side is not expanded.");
       return;
@@ -62,7 +60,6 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
         parm->numComp=S->logical_col_block_size;
      }
   }
-
   parm->col_DOF=nodes->degreesOfFreedomMapping->target;
   parm->row_DOF=nodes->degreesOfFreedomMapping->target;
   /* get the information for the labeling of the degrees of freedom from matrix */
@@ -71,30 +68,24 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
       if ( Paso_Distribution_getMyNumComponents(S->row_distribution)*S->row_block_size==parm->numEqu* Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution)) {
            parm->row_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
            parm->row_DOF=nodes->degreesOfFreedomMapping->target;
-
-           parm->row_node=&(parm->id[0]);
            parm->row_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
       } 
       else if ( Paso_Distribution_getMyNumComponents(S->row_distribution)*S->row_block_size==parm->numEqu* Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution)) {
            parm->row_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
            parm->row_DOF=nodes->reducedDegreesOfFreedomMapping->target;
-           parm->row_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
-           parm->row_node=parm->row_jac->ReferenceElement->Type->linearNodes;
+	   parm->row_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
       } else {
            Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of rows in matrix does not match the number of degrees of freedom in mesh");
       }
       /* Make sure # cols in matrix == num DOF for one of: full or reduced (use numLocalDOF for MPI) */
       if ( Paso_Distribution_getMyNumComponents(S->col_distribution)*S->col_block_size==parm->numComp* Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution)) {
            parm->col_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
-           parm->col_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
-           parm->col_DOF=nodes->degreesOfFreedomMapping->target;
-           parm->col_node=&(parm->id[0]);
-      } 
-      else if ( Paso_Distribution_getMyNumComponents(S->col_distribution)*S->col_block_size==parm->numComp* Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution)) {
+		   parm->col_DOF=nodes->degreesOfFreedomMapping->target;
+		   parm->col_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
+      } else if ( Paso_Distribution_getMyNumComponents(S->col_distribution)*S->col_block_size==parm->numComp* Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution)) {
            parm->col_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
            parm->col_DOF=nodes->reducedDegreesOfFreedomMapping->target;
            parm->col_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
-           parm->col_node=parm->row_jac->ReferenceElement->Type->linearNodes;
       } else {
            Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of columns in matrix does not match the number of degrees of freedom in mesh");
       }
@@ -106,33 +97,72 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
            parm->row_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
            parm->row_DOF=nodes->degreesOfFreedomMapping->target;
            parm->row_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
-           parm->row_node=&(parm->id[0]);
       } 
       else if (numSamplesEqual(F,1, Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution))) {
            parm->row_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
            parm->row_DOF=nodes->reducedDegreesOfFreedomMapping->target;
-           parm->row_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
-           parm->row_node=parm->row_jac->ReferenceElement->Type->linearNodes;
+	   parm->row_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
       } else {
            Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: length of RHS vector does not match the number of degrees of freedom in mesh");
       }
       if (S==NULL) {
            parm->col_DOF_UpperBound=parm->row_DOF_UpperBound;
            parm->col_DOF=parm->row_DOF;
-           parm->col_node=parm->row_node;
            parm->col_jac=parm->row_jac;
       } 
   }
-  if (! Finley_noError()) return;
-  if (parm->row_jac!=parm->col_jac) {
-      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: assemblage cannot handle different shape functions for rows and columns (yet).");
+
+  numSub=MIN(parm->row_jac->numSub, parm->col_jac->numSub);
+  numQuadSub=parm->row_jac->numQuadTotal/numSub;
+  if ( parm->row_jac->numSides !=parm->col_jac->numSides) {
+      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of sides for row and column shape functions must match.");
+  } 
+  if ( parm->row_jac->numDim !=parm->col_jac->numDim) {
+      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: spacial dimension for row and column shape function must match.");
   }
-  if (! Finley_noError()) return;
-  parm->NN=elements->ReferenceElement->Type->numNodes;
+  
+  if (elements->numNodes < parm->row_jac->numShapesTotal) {
+      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: too many nodes are expected by row.");  
+  }
+  if (elements->numNodes < parm->row_jac->numShapesTotal) {
+      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: too many nodes are expected by col.");  
+  }
+  if ( parm->row_jac->numElements !=elements->numElements) {
+      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of elements for row is wrong.");
+  }
+  if ( parm->col_jac->numElements !=elements->numElements) {
+      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of elements for column is wrong.");
+  }
+  if ( parm->row_jac->numQuadTotal !=parm->col_jac->numQuadTotal) {
+      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of quadrature points for row and column shape functions must match.");
+  }
+    /* to consider different basis function for rows and columns this will require some work :*/
+  if (numQuadSub * numSub != parm->row_jac->numQuadTotal) {
+     Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of quadrature points for row is not correct.");
+  }
+  if (numQuadSub  * numSub != parm->row_jac->numQuadTotal) {
+     Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters:   number of quadrature points for column is not correct.");
+  }
+  if (numQuadSub != parm->row_jac->BasisFunctions->numQuadNodes) {
+     Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: Incorrect number of quadrature points for row.");
+  }
+  if (numQuadSub != parm->col_jac->BasisFunctions->numQuadNodes) {
+     Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: Incorrect number of quadrature points for row.");
+  }
+  
+  parm->numQuadSub=numQuadSub;
+  parm->numSub=numSub;
+  parm->numQuadTotal=parm->row_jac->numQuadTotal; 
+  parm->NN=elements->numNodes;
+  parm->numElements=elements->numElements;
   parm->numDim=parm->row_jac->numDim;
-  parm->numQuad=parm->row_jac->ReferenceElement->numQuadNodes;
-  parm->row_NN=parm->row_jac->ReferenceElement->Type->numNodes;
-  parm->row_NS=parm->row_jac->ReferenceElement->Type->numShapes;
-  parm->col_NN=parm->col_jac->ReferenceElement->Type->numNodes;
-  parm->col_NS=parm->col_jac->ReferenceElement->Type->numShapes;
+  parm->col_node=parm->col_jac->node_selection;
+  parm->row_node=parm->row_jac->node_selection;
+  parm->numSides=parm->row_jac->numSides;
+  parm->row_numShapesTotal=parm->row_jac->numShapesTotal;
+  parm->row_numShapes=parm->row_jac->BasisFunctions->Type->numShapes;
+  parm->col_numShapesTotal=parm->col_jac->numShapesTotal;
+  parm->col_numShapes=parm->col_jac->BasisFunctions->Type->numShapes;
+	
+
 }

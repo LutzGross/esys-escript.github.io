@@ -79,7 +79,7 @@ void Paso_UMFPACK(Paso_SystemMatrix* A,
      if (!Paso_noError()) {
          Paso_UMFPACK_free(A);
      } else {
-        if (options->verbose) printf("UMFPACK: solve completed.");
+        if (options->verbose) printf("UMFPACK: solve completed.\n");
         A->solver=(void*) pt;
         options->converged=TRUE;
         options->residual_norm=0;

@@ -12,15 +12,15 @@
 *******************************************************/
 
 
-/**************************************************************/
-/*                                                                                            */
-/*   Finley: ElementFile                                                                      */
-/*                                                                                            */
-/*   scatter the ElementFile in into the  ElementFile out using index[0:out->numElements-1].  */
-/*   index has to be between 0 and in->numElements-1.                                         */
-/*   a conservative assumtion on the coloring is made                                         */
-/*                                                                                            */
-/**************************************************************/
+/**************************************************************
+*                                                                                            
+*   Finley: ElementFile                                                                      
+*                                                                                            
+*   scatter the ElementFile in into the  ElementFile out using index[0:out->numElements-1].  
+*   index has to be between 0 and in->numElements-1.                                         
+*   a conservative assumtion on the coloring is made                                         
+*                                                                                            
+**************************************************************/
 
 #include "ElementFile.h"
 
@@ -30,8 +30,8 @@ void Finley_ElementFile_scatter(index_t* index, Finley_ElementFile* in, Finley_E
    index_t k;
    dim_t e,j;
    if (in!=NULL) {
-     dim_t NN_in=in->ReferenceElement->Type->numNodes;
-     dim_t NN_out=out->ReferenceElement->Type->numNodes;
+     dim_t NN_in=in->numNodes;
+     dim_t NN_out=out->numNodes;
      /*OMP */
      #pragma omp parallel for private(e,k,j) schedule(static)
      for (e=0;e<in->numElements;e++) {

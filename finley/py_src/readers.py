@@ -35,7 +35,7 @@ from esys.escript import *
 from esys.pycad.gmsh import Design as GMSHDesign
 from finleycpp import ReadGmsh
 
-def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True):
+def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True, useMacroElements=False):
     """
     Creates a Finley `Domain` from a `esys.pycad.design.Design` object.
     Currently only gmsh is supported.
@@ -49,10 +49,13 @@ def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeL
     :type reducedIntegrationOrder: ``int``
     :param optimizeLabeling: if set the labeling of the mesh nodes is optimized
     :type optimizeLabeling: ``bool``
+    :param useMacroElements: uses macro elements.
+    :type useMacroElements: ``bool``
     :return: the Finley domain defined by the design
     :rtype: `Domain`
     """
     if isinstance(design, GMSHDesign):
+        if useMacroElements: design.setElementOrder(2)
         ff=design.getFileFormat()
         design.setFileFormat(design.GMSH)
         mshname=design.getMeshHandler()
@@ -60,7 +63,8 @@ def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeL
                        design.getDim(),
                        integrationOrder,
                        reducedIntegrationOrder,
-                       optimizeLabeling)
+                       optimizeLabeling,
+                       useMacroElements)
         design.setFileFormat(ff)
     else:
         raise TypeError("Finley does not support %s designs."%design.__class__.__name__)

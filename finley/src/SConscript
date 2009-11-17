@@ -102,6 +102,7 @@ sources = """
 	ShapeFunctions.c
 	TagMap.c
 	Util.c
+	ReferenceElementSets.c
 	CPPAdapter/FinleyAdapterException.cpp
 	CPPAdapter/FinleyError.cpp
 	CPPAdapter/MeshAdapter.cpp
@@ -124,6 +125,7 @@ headers = """
 	ShapeFunctions.h
 	TagMap.h
 	Util.h
+	ReferenceElementSets.h
 	vtkCellType.h
 """.split()
 cppadapter_headers = """

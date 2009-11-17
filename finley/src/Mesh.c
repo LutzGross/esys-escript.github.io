@@ -24,8 +24,6 @@
 /*   allocates a Mesh with name name for elements of type id using an integration order. If order is negative, */
 /*   the most appropriate order is selected indepently. */
 
-extern Finley_RefElementInfo Finley_RefElement_InfoList[];
-
 Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order, index_t reduced_order, Paso_MPIInfo *mpi_info) 
 {
   Finley_Mesh *out;
@@ -90,13 +88,6 @@ void Finley_Mesh_free(Finley_Mesh* in) {
   if (in!=NULL) {
      in->reference_counter--;
      if (in->reference_counter<1) {
-       #ifdef Finley_TRACE
-       if (in->Name!=NULL) {
-           printf("Finley_Mesh_free: mesh %s is freed.\n",in->Name);
-       } else {
-           printf("Finley_Mesh_free\n");
-       }
-       #endif
        MEMFREE(in->Name);
        Finley_NodeFile_free(in->Nodes);
        Finley_ElementFile_free(in->FaceElements);

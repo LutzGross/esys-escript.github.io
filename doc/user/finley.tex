@@ -67,7 +67,8 @@ is quite a poor approximation of the ellipse. It can be improved by introducing 
 positioning those nodes located on an edge expected to describe the boundary, onto the boundary.
 In this case the triangle gets a curved edge which requires a parametrization of the triangle using a 
 quadratic polynomial. For this case, the solution is also approximated by a piecewise quadratic polynomial
-(which explains the name isoparametrical elements), see \Ref{Zienc,NumHand} for more details.   
+(which explains the name isoparametrical elements), see \Ref{Zienc,NumHand} for more details.  
+\finley supports macro elements\index{macro elements}. For these elements a piecewise linear approximation is used on an element which is further subdivided (in the case \finley halved). As such these elements do not provide more than a further mesh refinement but should be used in the case of incompressible flows, see \class{StokesProblemCartesian}. For these problems a linear approximation of the pressure across the element is used (use the \ReducedSolutionFS \FunctionSpace) while the refined element is used to approximate velocity. So a macro element provides a continuous pressure approximation together with a velocity approximation on a refined mesh. This approach is necessary to make sure that the  incompressible flow has a unique solution.
 
 The union of all elements defines the domain of the PDE.
 Each element is defined by the nodes used to describe its shape. In \fig{FINLEY FIG 0} the element,
@@ -116,6 +117,8 @@ contact regions line up.  The rich version of element
 $4$ is of type \finleyelement{Rec4Face_Contact} and is defined by the nodes $9$, $12$, $16$, $18$, $6$, $5$, $0$ and 
 $2$.
 
+
+
 \tab{FINLEY TAB 1} shows the interior element types and the corresponding element types to be used
 on the face and contacts. \fig{FINLEY.FIG:1}, \fig{FINLEY.FIG:2} and \fig{FINLEY.FIG:4} show the ordering of
 the nodes within an element.
@@ -133,6 +136,11 @@ the nodes within an element.
 \linev{\finleyelement{Tet10}}{\finleyelement{Tri9}}{\finleyelement{Tet10Face}}{\finleyelement{Tri9_Contact}}{\finleyelement{Tet10Face_Contact}}
 \linev{\finleyelement{Hex8}}{\finleyelement{Rec4}}{\finleyelement{Hex8Face}}{\finleyelement{Rec4_Contact}}{\finleyelement{Hex8Face_Contact}}
 \linev{\finleyelement{Hex20}}{\finleyelement{Rec8}}{\finleyelement{Hex20Face}}{\finleyelement{Rec8_Contact}}{\finleyelement{Hex20Face_Contact}}
+\linev{\finleyelement{Hex27}}{\finleyelement{Rec9}}{N\textbackslash A}{N\textbackslash A}{N\textbackslash A}
+\linev{\finleyelement{Hex27Macro}}{\finleyelement{Rec9Macro}}{N\textbackslash A}{N\textbackslash A}{N\textbackslash A}
+\linev{\finleyelement{Tet10Macro}}{\finleyelement{Tri6Macro}}{N\textbackslash A}{N\textbackslash A}{N\textbackslash A}
+\linev{\finleyelement{Rec9Macro}}{\finleyelement{Line3Macro}}{N\textbackslash A}{N\textbackslash A}{N\textbackslash A}
+\linev{\finleyelement{Tri6Macro}}{\finleyelement{Line3Macro}}{N\textbackslash A}{N\textbackslash A}{N\textbackslash A}
 \end{tablev}
 \caption{Finley elements and corresponding elements to be used on domain faces and contacts.
 The rich types have to be used if the gradient of function is to be calculated on faces and contacts, respectively.}
@@ -253,6 +261,10 @@ $7$, $10$, $15$ and $20$, respectively. The node section of the \finley mesh get
 \clearpage
 \input{finleyelements}
 \clearpage
+
+\section{Macro Elements}
+\label{SEC FINLEY MACRO}
+
 
 
 \begin{table}
@@ -447,7 +459,8 @@ Table~\ref{TAB FINLEY SOLVER OPTIONS 2} show the solvers and preconditioners sup
 \finley through the \PASO library. Currently direct solvers are not supported under MPI. 
 By default, \finley is using the iterative solvers \PCG for symmetric and \BiCGStab for non-symmetric problems. 
 If the direct solver is selected which can be useful when solving very ill-posedequations
-\finley uses the \MKL solver package. If \MKL is not available \UMFPACK is used. If \UMFPACK is not available 
+\finley uses the \MKL \footnote{If the stiffness matrix is non-regular \MKL may return without 
+returning a proper error code. If you observe suspicious solutions when using MKL, this may cause by a non-invertible operator. } solver package. If \MKL is not available \UMFPACK is used. If \UMFPACK is not available 
 a suitable iterative solver from the \PASO is used.
 
 \subsection{Functions}
@@ -462,7 +475,7 @@ By default the labeling of mesh nodes and element distribution is
 optimized. Set \var{optimize=False} to switch off relabeling and redistribution.
 \end{funcdesc}
 
-\begin{funcdesc}{ReadGmsh}{fileName \optional{, \optional{integrationOrder=-1}, optimize=True}}
+\begin{funcdesc}{ReadGmsh}{fileName \optional{, \optional{integrationOrder=-1}, optimize=True\optional{, useMacroElements=False}}}
 creates a \Domain object form the FEM mesh defined in 
 file \var{fileName}. The file must be given the \gmshextern file format.
 If \var{integrationOrder} is positive, a numerical integration scheme
@@ -471,7 +484,20 @@ degree \var{integrationOrder} \index{integration order}. Otherwise
 an appropriate integration order is chosen independently.
 By default the labeling of mesh nodes and element distribution is 
 optimized. Set \var{optimize=False} to switch off relabeling and redistribution. 
+If \var{useMacroElements} is set, second order elements are interpreated as macro elements~\index{macro elements}.
 Currently \function{ReadGmsh} does not support MPI.  
+\end{funcdesc}
+
+\begin{funcdesc}{MakeDomain}{design\optional{, integrationOrder=-1\optional{, optimizeLabeling=True\optional{, useMacroElements=False}}}}
+Creates a Finley \Domain from a \class{Design} object using \gmshextern. 
+The \class{Design} \var{design} defines the geometry.
+If \var{integrationOrder} is positive, a numerical integration scheme
+chosen which is accurate on each element up to a polynomial of
+degree \var{integrationOrder} \index{integration order}. Otherwise
+an appropriate integration order is chosen independently.
+Set \var{optimizeLabeling=False} to switch off relabeling and redistribution (not recommended).
+If \var{useMacroElements} is set, macro elements~\index{macro elements} are used.
+Currently \function{MakeDomain} does not support MPI.  
 \end{funcdesc}
 
 
@@ -485,8 +511,9 @@ degree \var{integrationOrder} \index{integration order}. Otherwise
 an appropriate integration order is chosen independently.
 \end{funcdesc}
 
+
 \begin{funcdesc}{Rectangle}{n0,n1,order=1,l0=1.,l1=1., integrationOrder=-1, \\
-  periodic0=\False,periodic1=\False,useElementsOnFace=\False,optimize=\False}
+  periodic0=\False, periodic1=\False, useElementsOnFace=\False, useMacroElements=\False, optimize=\False}
 Generates a \Domain object representing a two dimensional rectangle between
 $(0,0)$ and $(l0,l1)$ with orthogonal edges. The rectangle is filled with
 \var{n0} elements along the $x_0$-axis and
@@ -497,6 +524,7 @@ For \var{order}=1 and \var{order}=2
 In the case of \var{useElementsOnFace}=\False,
 \finleyelement{Line2} and  
 \finleyelement{Line3} are used to subdivide the edges of the rectangle, respectively. 
+If \var{order}=-1, \finleyelement{Rec8Macro} and \finleyelement{Line3Macro}~\index{macro elements}. This option should be used when solving incompressible fluid flow problem, e.g. \class{StokesProblemCartesian}.
 In the case of \var{useElementsOnFace}=\True (this option should be used if gradients
 are calculated on domain faces),
 \finleyelement{Rec4Face} and  
@@ -515,7 +543,7 @@ If \var{optimize}=\True mesh node relabeling will be attempted to reduce the com
 \end{funcdesc}
 
 \begin{funcdesc}{Brick}{n0,n1,n2,order=1,l0=1.,l1=1.,l2=1., integrationOrder=-1, \\
-  periodic0=\False,periodic1=\False,periodic2=\False,useElementsOnFace=\False,useMacroElements=\False, optimize=\False}
+  periodic0=\False,periodic1=\False,periodic2=\False,useElementsOnFace=\False, useMacroElements=\False, optimize=\False}
 Generates a \Domain object representing a three dimensional brick between
 $(0,0,0)$ and $(l0,l1,l2)$ with orthogonal faces. The brick is filled with
 \var{n0} elements along the $x_0$-axis, 
@@ -531,6 +559,7 @@ In the case of \var{useElementsOnFace}=\True (this option should be used if grad
 are calculated on domain faces),
 \finleyelement{Hex8Face} and  
 \finleyelement{Hex20Face} are used on the brick faces, respectively.  
+If \var{order}=-1, \finleyelement{Hex20Macro} and \finleyelement{Rec8Macro}~\index{macro elements}. This option should be used when solving incompressible fluid flow problem, e.g. \class{StokesProblemCartesian}.
 If \var{integrationOrder} is positive, a numerical integration scheme
 chosen which is accurate on each element up to a polynomial of
 degree \var{integrationOrder} \index{integration order}. Otherwise

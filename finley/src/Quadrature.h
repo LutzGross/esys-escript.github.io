@@ -29,11 +29,46 @@
 
 #define MAX_numQuadNodesLine 10
 
+typedef enum {
+  PointQuad,
+  LineQuad,
+  TriQuad,
+  RecQuad,
+  TetQuad,
+  HexQuad,
+  NoQuad   /* marks end of list */
+} Finley_QuadTypeId;
+
+typedef void (Finley_Quad_getNodes) (dim_t,double*,double*);
+typedef dim_t (Finley_Quad_getNumNodes) (dim_t);
+typedef dim_t(Finley_Quad_getMacro)(dim_t numSubElements, int numQuadNodes, double* quadNodes, double* quadWeights, 
+                                        dim_t numF, double* dFdv, 
+					dim_t new_len, double* new_quadNodes, double* new_quadWeights,
+                                        double* new_dFfv );
+
+typedef struct Finley_QuadInfo {
+  Finley_QuadTypeId TypeId;                  /* the id */
+  char* Name;                                /* the name in text form e.g. Line,Rec,... */
+  dim_t numDim;                              /* spacial dimension */
+  dim_t numVertices;                         /* number of vertices of the element */
+  Finley_Quad_getNodes* getQuadNodes;        /* function to set the quadrature points for a given order */
+  Finley_Quad_getNumNodes* getNumQuadNodes;  /* function selects the number of quadrature nodes for a given accuracy order */
+  Finley_Quad_getMacro *getMacro;         		 /* transfers a given quadrature scheme to a macro element structure */
+}  Finley_QuadInfo;
+
 /**************************************************************/
 
 /*     Interfaces: */
 
-typedef void (Finley_Quad_getNodes) (dim_t,double*,double*);
+
+Finley_Quad_getMacro Finley_Quad_MacroPoint;
+Finley_Quad_getMacro Finley_Quad_MacroLine;
+Finley_Quad_getMacro Finley_Quad_MacroTri;
+Finley_Quad_getMacro Finley_Quad_MacroRec;
+Finley_Quad_getMacro Finley_Quad_MacroTet;
+Finley_Quad_getMacro Finley_Quad_MacroHex;
+
+
 Finley_Quad_getNodes Finley_Quad_getNodesTri;
 Finley_Quad_getNodes Finley_Quad_getNodesTet;
 Finley_Quad_getNodes Finley_Quad_getNodesRec;
@@ -44,8 +79,14 @@ Finley_Quad_getNodes Finley_Quad_getNodesTriOnFace;
 Finley_Quad_getNodes Finley_Quad_getNodesRecOnFace;
 Finley_Quad_getNodes Finley_Quad_getNodesLineOnFace;
 Finley_Quad_getNodes Finley_Quad_getNodesPointOnFace;
+Finley_Quad_getNodes Finley_Quad_getNodesTriMacro;
+Finley_Quad_getNodes Finley_Quad_getNodesTetMacro;
+Finley_Quad_getNodes Finley_Quad_getNodesRecMacro;
+Finley_Quad_getNodes Finley_Quad_getNodesHexMacro;
+Finley_Quad_getNodes Finley_Quad_getNodesLineMacro;
 
-typedef dim_t (Finley_Quad_getNumNodes) (dim_t);
+
+
 Finley_Quad_getNumNodes Finley_Quad_getNumNodesPoint;
 Finley_Quad_getNumNodes Finley_Quad_getNumNodesLine;
 Finley_Quad_getNumNodes Finley_Quad_getNumNodesTri;
@@ -54,28 +95,7 @@ Finley_Quad_getNumNodes Finley_Quad_getNumNodesTet;
 Finley_Quad_getNumNodes Finley_Quad_getNumNodesHex;
 
 void Finley_Quad_makeNodesOnFace(dim_t, dim_t,double*,double*, Finley_Quad_getNodes);
+Finley_QuadInfo* Finley_QuadInfo_getInfo(Finley_QuadTypeId id);
 
 #endif /* #ifndef INC_FINLEY_QUADRATURE */
 
-/*
- * $Log$
- * Revision 1.3  2005/09/15 03:44:23  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.2.2.1  2005/09/07 06:26:20  gross
- * the solver from finley are put into the standalone package paso now
- *
- * Revision 1.2  2005/07/08 04:07:56  jgs
- * Merge of development branch back to main trunk on 2005-07-08
- *
- * Revision 1.1.1.1.2.1  2005/06/29 02:34:55  gross
- * some changes towards 64 integers in finley
- *
- * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
- * initial import of project esys2
- *
- * Revision 1.1.1.1  2004/06/24 04:00:40  johng
- * Initial version of eys using boost-python.
- *
- *
- */

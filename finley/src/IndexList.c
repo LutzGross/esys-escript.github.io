@@ -31,51 +31,59 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Elemen
                                        bool_t reduce_row_order, index_t* row_map,
                                        bool_t reduce_col_order, index_t* col_map) {
   /* index_list is an array of linked lists. Each entry is a row (DOF) and contains the indices to the non-zero columns */
-  index_t color, *id=NULL;
-  dim_t e,kr,kc,NN_row,NN_col,i,icol,irow, NN, *row_node=NULL,*col_node=NULL;
+  index_t color;
+  Finley_ReferenceElement*refElement; 
+  dim_t e, kr, kc, NN_row, NN_col, icol, irow, NN, *row_node=NULL, *col_node=NULL, isub, numSub;
   if (elements!=NULL) {
     NN=elements->numNodes;
-    id=TMPMEMALLOC(NN, index_t);
-    if (! Finley_checkPtr(id) ) {
-       for (i=0;i<NN;i++) id[i]=i;
-       if (reduce_col_order) {
-          col_node=elements->ReferenceElement->Type->linearNodes;
-          NN_col=elements->LinearReferenceElement->Type->numNodes;
-       } else {
-          col_node=id;
-          NN_col=elements->ReferenceElement->Type->numNodes;
-       }
-       if (reduce_row_order) {
-          row_node=elements->ReferenceElement->Type->linearNodes;
-          NN_row=elements->LinearReferenceElement->Type->numNodes;
-       } else {
-          row_node=id;
-          NN_row=elements->ReferenceElement->Type->numNodes;
-       }
-       for (color=elements->minColor;color<=elements->maxColor;color++) {
-           #pragma omp for private(e,irow,kr,kc,icol) schedule(static)
+    refElement= Finley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, FALSE);
+	   
+    if (reduce_col_order) {
+		  numSub=1;
+          col_node=refElement->Type->linearNodes;
+          NN_col=(refElement->LinearBasisFunctions->Type->numShapes) * (refElement->Type->numSides) ;
+    } else {
+		  numSub=refElement->Type->numSubElements;
+          col_node=refElement->Type->subElementNodes;
+          NN_col=(refElement->BasisFunctions->Type->numShapes) * (refElement->Type->numSides) ;
+    }
+
+    if (reduce_row_order) {
+		  numSub=1;
+          row_node=refElement->Type->linearNodes;
+          NN_row=(refElement->LinearBasisFunctions->Type->numShapes) * (refElement->Type->numSides) ;
+    } else {
+		  numSub=refElement->Type->numSubElements;
+          row_node=refElement->Type->subElementNodes;
+          NN_row=(refElement->BasisFunctions->Type->numShapes) * (refElement->Type->numSides) ;
+	}
+
+	for (color=elements->minColor;color<=elements->maxColor;color++) {
+           #pragma omp for private(e,irow,kr,kc,icol,isub) schedule(static)
            for (e=0;e<elements->numElements;e++) {
                if (elements->Color[e]==color) {
-                   for (kr=0;kr<NN_row;kr++) {
-                     irow=row_map[elements->Nodes[INDEX2(row_node[kr],e,NN)]];
-                     for (kc=0;kc<NN_col;kc++) {
-                          icol=col_map[elements->Nodes[INDEX2(col_node[kc],e,NN)]];
-                          Finley_IndexList_insertIndex(&(index_list[irow]),icol);
-                     }
-                   }
+				   for (isub=0;isub<numSub; isub++) {
+					   for (kr=0;kr<NN_row;kr++) {
+						   irow=row_map[elements->Nodes[INDEX2(row_node[INDEX2(kr,isub,NN_row)],e,NN)]];
+						   for (kc=0;kc<NN_col;kc++) {
+							   icol=col_map[elements->Nodes[INDEX2(col_node[INDEX2(kc,isub,NN_col)],e,NN)]];
+							   Finley_IndexList_insertIndex(&(index_list[irow]),icol);
+						   }
+					   }
+				   }
                }
            }
        }
-       TMPMEMFREE(id);
-    }
   }
   return;
 }
 
+
 void Finley_IndexList_insertElementsWithRowRange(Finley_IndexList* index_list, index_t firstRow, index_t lastRow,
                                                  Finley_ElementFile* elements, index_t* row_map, index_t* col_map)
 {
-  index_t color;
+/* this does not resolve macro elements */
+	index_t color;
   dim_t e,kr,kc,icol,irow, NN;
   if (elements!=NULL) {
     NN=elements->numNodes;
@@ -101,6 +109,7 @@ void Finley_IndexList_insertElementsWithRowRange(Finley_IndexList* index_list, i
 void Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(Finley_IndexList* index_list, index_t firstRow, index_t lastRow,
                                                               Finley_ElementFile* elements, index_t* row_map, index_t* col_map)
 {
+  /* this does not resolve macro elements */
   index_t color;
   dim_t e,kr,kc,icol,irow, NN,irow_loc;
   if (elements!=NULL) {

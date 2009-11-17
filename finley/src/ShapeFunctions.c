@@ -20,6 +20,147 @@
 
 #include "ShapeFunctions.h"
 
+
+
+Finley_ShapeFunctionInfo Finley_ShapeFunction_InfoList[]={
+	{Point1Shape, "Point1", 0,  1, 1, 1,	Finley_Shape_Point1 } ,
+        {Line2Shape,  "Line2",  1,  2, 1, 2,	Finley_Shape_Line2  } ,
+	{Line3Shape,  "Line3",  1,  3, 2, 2,	Finley_Shape_Line3  },
+	{Line4Shape,  "Line4",  1,  4, 3, 2,	Finley_Shape_Line4  },
+	{Tri3Shape,   "Tri3",   2,  3, 1, 3,	Finley_Shape_Tri3   },
+	{Tri6Shape,   "Tri6",   2,  6, 2, 3,	Finley_Shape_Tri6   },
+	{Tri9Shape,   "Tri9",   2,  9, 3, 3,	Finley_Shape_Tri9   },
+	{Tri10Shape,  "Tri10",  2, 10, 3, 3,	Finley_Shape_Tri10, },
+	{Rec4Shape,   "Rec4",   2,  4, 1, 4,	Finley_Shape_Rec4,  },
+	{Rec8Shape,   "Rec8",   2,  8, 2, 4,	Finley_Shape_Rec8,  },
+	{Rec9Shape,   "Rec9",   2,  9, 2, 4,	Finley_Shape_Rec9,  }, 
+	{Rec12Shape,  "Rec12",  2, 12, 3, 4,	Finley_Shape_Rec12, },
+	{Rec16Shape,  "Rec16",  2, 16, 3, 4,	Finley_Shape_Rec16, },
+	{Tet4Shape,   "Tet4",   3,  4, 1, 4,	Finley_Shape_Tet4,  },
+	{Tet10Shape,  "Tet10",  3, 10, 2, 4,	Finley_Shape_Tet10, },
+	{Tet16Shape,  "Tet16",  3, 16, 3, 4,	Finley_Shape_Tet16, },
+	{Hex8Shape,   "Hex8",   3,  8, 1, 8,	Finley_Shape_Hex8,  },
+	{Hex20Shape,  "Hex20",  3, 20, 2, 8,	Finley_Shape_Hex20, },
+	{Hex27Shape,  "Hex27",  3, 27, 2, 8,	Finley_Shape_Hex27, },
+	{Hex32Shape,  "Hex32",  3, 32, 3, 8,	Finley_Shape_Hex32, },
+	{NoShape, "NoType", 0,  1, 1, 1,	Finley_Shape_Point1  }
+};
+
+
+/******************************************************************************************************************************
+   
+    creates an evaluation of the ShapeFunction on the given quadrature scheme. 
+    if the spatial dimension of the scheme and the shape functions don't match
+    
+    if QuadNodes==Null or QuadWeights==Null the shape functions method is used to generate a quadrature scheme with numQuasNodes
+    nodes. otherwise its assumed that a quadraure scheme is given on these array and copy is created within the structure.
+
+*/
+Finley_ShapeFunction* Finley_ShapeFunction_alloc(Finley_ShapeFunctionTypeId id,int numQuadDim, int numQuadNodes, double *QuadNodes, double *QuadWeights) {
+	Finley_ShapeFunction *out=NULL;
+	int numDim, numShapes, i, q;
+  
+	numDim=Finley_ShapeFunction_InfoList[id].numDim;
+        numShapes=Finley_ShapeFunction_InfoList[id].numShapes;
+  
+    if (numQuadDim>numDim) {    
+	    Finley_setError(VALUE_ERROR,"Finley_ShapeFunction_alloc: spatial dimension of quadrature scheme is bigger then spatial dimension of shape function.");
+	    return NULL;
+    }
+	
+	/*  allocate the Finley_ShapeFunction to be returned: */
+  
+	out=MEMALLOC(1,Finley_ShapeFunction);
+	if (Finley_checkPtr(out)) return NULL;
+
+  
+	out->Type=Finley_ShapeFunction_getInfo(id);
+	out->numQuadNodes=numQuadNodes;
+	out->QuadNodes=NULL;
+	out->QuadWeights=NULL;
+	out->S=NULL;
+	out->dSdv=NULL;
+	out->reference_counter=0;
+  
+	/*  allocate memory: */
+  
+	out->QuadNodes=MEMALLOC(numQuadNodes*numDim,double);
+	out->QuadWeights=MEMALLOC(numQuadNodes,double);
+	out->S=MEMALLOC(numShapes*numQuadNodes,double);
+	out->dSdv=MEMALLOC(numShapes*numDim*numQuadNodes,double);
+	if ( Finley_checkPtr(out->QuadNodes) || Finley_checkPtr(out->QuadWeights) || Finley_checkPtr(out->S) || Finley_checkPtr(out->dSdv) ) {
+         Finley_ShapeFunction_dealloc(out);
+         return NULL;
+	}
+  
+	/*  set the quadrature nodes (missing values are filled with 0): */
+
+    for (q=0;q<numQuadNodes;q++) {
+       for (i=0;i<numQuadDim;i++) 	 out->QuadNodes[INDEX2(i,q,numDim)]=QuadNodes[INDEX2(i,q,numQuadDim)];
+       for (i=numQuadDim;i<numDim;i++) out->QuadNodes[INDEX2(i,q,numDim)]=0;
+       out->QuadWeights[q]=QuadWeights[q];
+    }
+	
+	/*  eval shape functions on quadrature node: */
+  
+	out->Type->getValues(numQuadNodes,out->QuadNodes,out->S,out->dSdv);
+
+	if (! Finley_noError()) {
+         Finley_ShapeFunction_dealloc(out);
+         return NULL;
+	} 
+  
+	/*  all done: */
+	out->reference_counter=1;
+	return out;
+}
+
+Finley_ShapeFunction* Finley_ShapeFunction_reference(Finley_ShapeFunction* in) {
+     if (in!=NULL) ++(in->reference_counter);
+     return in;
+}
+/**************************************************************/
+
+void Finley_ShapeFunction_dealloc(Finley_ShapeFunction* in) {
+  if (in!=NULL) { 
+	  in->reference_counter--;
+	  if (in->reference_counter<1) {
+		  MEMFREE(in->QuadNodes);
+		  MEMFREE(in->QuadWeights);
+		  MEMFREE(in->S);
+		  MEMFREE(in->dSdv);
+		  MEMFREE(in);
+	  }
+  }
+}
+
+/**************************************************************/
+
+Finley_ShapeFunctionTypeId Finley_ShapeFunction_getTypeId(char* element_type) 
+{
+    int ptr=0;
+    Finley_ShapeFunctionTypeId out=NoShape;
+    while (Finley_ShapeFunction_InfoList[ptr].TypeId!=NoShape && out==NoShape) {
+       if (strcmp(element_type,Finley_ShapeFunction_InfoList[ptr].Name)==0) out=Finley_ShapeFunction_InfoList[ptr].TypeId;
+       ptr++;
+    }
+    return out;
+}
+
+Finley_ShapeFunctionInfo* Finley_ShapeFunction_getInfo(Finley_ShapeFunctionTypeId id)
+{
+    int ptr=0;
+    Finley_ShapeFunctionInfo* out=NULL;
+    while (Finley_ShapeFunction_InfoList[ptr].TypeId!=NoShape && out==NULL) {
+       if (Finley_ShapeFunction_InfoList[ptr].TypeId==id) out=&(Finley_ShapeFunction_InfoList[ptr]);
+       ptr++;
+    }
+    if (out==NULL) {
+        Finley_setError(VALUE_ERROR,"Finley_ShapeFunctionInfo_getInfo: canot find requested shape function");
+    }
+    return out;
+}
+
 /**************************************************************/
 
 #define V(_K_,_I_) v[INDEX2((_K_)-1,(_I_),DIM)]
@@ -1079,19 +1220,4 @@ void Finley_Shape_Hex32(int NumV,double* v,double* s,double* dsdv) {
 #undef S
 #undef DSDV
 
-/* 
-* $Log$
-* Revision 1.2  2005/09/15 03:44:23  jgs
-* Merge of development branch dev-02 back to main trunk on 2005-09-15
-*
-* Revision 1.1.1.1.6.1  2005/09/07 06:26:21  gross
-* the solver from finley are put into the standalone package paso now
-*
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.1.1.1  2004/06/24 04:00:40  johng
-* Initial version of eys using boost-python.
-*
-*
-*/
+
