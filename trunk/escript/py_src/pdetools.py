@@ -422,6 +422,32 @@ class Locator:
         else:
            return data
 
+
+def getInfLocator(arg):
+    """
+    Return a Locator for a point with the inf value over all arg.
+    """
+    if not isinstance(arg, escript.Data):
+	raise TypeError,"getInfLocator: Unknown argument type."
+    a_inf=util.inf(arg)
+    loc=util.length(arg-a_inf).minGlobalDataPoint()	# This gives us the location but not coords
+    x=arg.getFunctionSpace().getX()
+    x_min=x.getTupleForGlobalDataPoint(*loc)
+    return Locator(arg.getFunctionSpace(),x_min)
+
+def getSupLocator(arg):
+    """
+    Return a Locator for a point with the sup value over all arg.
+    """
+    if not isinstance(arg, escript.Data):
+	raise TypeError,"getInfLocator: Unknown argument type."
+    a_inf=util.sup(arg)
+    loc=util.length(arg-a_inf).minGlobalDataPoint()	# This gives us the location but not coords
+    x=arg.getFunctionSpace().getX()
+    x_min=x.getTupleForGlobalDataPoint(*loc)
+    return Locator(arg.getFunctionSpace(),x_min)
+	
+
 class SolverSchemeException(Exception):
    """
    This is a generic exception thrown by solvers.

@@ -6197,3 +6197,22 @@ def showEscriptParams():
     for name,desc in p:
 	print name+':\t'+desc
 
+#Lazy related things
+#These are just wrappers
+def resolve(arg):
+   """
+   Returns the value of arg resolved.
+   """
+   if not isinstance(arg,Data):
+	raise TypeError, "Can only resolve Data."
+   if arg.isLazy():
+	arg.resolve()
+   return arg
+   
+def delay(arg):
+   """
+   Returns a lazy version of arg
+   """
+   if not isinstance(arg,Data):
+	raise TypeError, "Can only delay Data."
+   return arg.delay()
