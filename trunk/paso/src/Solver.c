@@ -127,9 +127,10 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
            }
            #endif
            norm2_of_b=sqrt(norm2_of_b);
-    
          /* if norm2_of_b==0 we are ready: x=0 */
-         if (norm2_of_b <=0.) {
+         if ( IS_NAN(norm2_of_b) || IS_NAN(norm_max_of_b) ) {
+            Paso_setError(VALUE_ERROR,"Paso_Solver: Matrix or right hand side contains undefined values.");
+         } else if (norm2_of_b <=0.) {
             #pragma omp parallel for private(i) schedule(static)
             for (i = 0; i < numSol; i++) x[i]=0.;
             if (options->verbose) printf("right hand side is identical zero.\n");

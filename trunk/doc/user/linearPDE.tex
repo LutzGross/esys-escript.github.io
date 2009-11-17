@@ -445,7 +445,11 @@ Returns key of the preconditioner to be used.
 Sets the solver package to be used as a solver.  
 The value of \var{method} must be one of the constants in \member{SolverOptions.DEFAULT}, \member{SolverOptions.PASO}, \member{SolverOptions.SUPER_LU}, \member{SolverOptions.PASTIX}, \member{SolverOptions.MKL}, \member{SolverOptions.UMFPACK}, \member{SolverOptions.TRILINOS}.
 Not all packages are support on all implementation. An exception may be thrown on some platforms if a particular package is requested. Currently \finley supports \member{SolverOptions.PASO} (as default)
-and, if available, \member{SolverOptions.MKL} and \member{SolverOptions.UMFPACK}.
+and, if available, \member{SolverOptions.MKL}
+\footnote{If the stiffness matrix is non-regular \MKL may return without 
+returning a proper error code. If you observe suspicious solutions when using MKL, this may cause by a non-invertible operator. }
+and \member{SolverOptions.UMFPACK}
+
 \end{methoddesc}
 
 \begin{methoddesc}[SolverOptions]{getPackage}{}

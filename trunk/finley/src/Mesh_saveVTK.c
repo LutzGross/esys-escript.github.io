@@ -95,7 +95,7 @@ int nodeInQuadrant(const double *coords, ElementTypeId type, int idx, int q)
 #define INSIDE_3D(_X_,_Y_,_Z_,_CX_,_CY_,_CZ_,_R_) ( INSIDE_1D(_X_,_CX_,_R_) && INSIDE_1D(_Y_,_CY_,_R_) && INSIDE_1D(_Z_,_CZ_,_R_) )
 
     int ret;
-    if (type == Rec9) {
+    if ( (type == Rec9) || (type == Rec9Macro) ) {
         if (q==0)
             ret = INSIDE_2D(coords[2*idx], coords[2*idx+1], 0.25, 0.25, 0.25);
         else if (q==1)
@@ -106,7 +106,7 @@ int nodeInQuadrant(const double *coords, ElementTypeId type, int idx, int q)
             ret = INSIDE_2D(coords[2*idx], coords[2*idx+1], 0.75, 0.75, 0.25);
         else
             ret = 0;
-    } else if (type == Hex27) {
+    } else if ((type == Hex27) || (type == Hex27Macro) ){
         if (q==0)
             ret = INSIDE_3D(coords[3*idx], coords[3*idx+1], coords[3*idx+2],
                     0.25, 0.25, 0.25, 0.25);
@@ -170,7 +170,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
     int mpi_size, i, j, l;
     int cellType=0, nodeType=FINLEY_NODES, elementType=FINLEY_UNKNOWN;
     Finley_ElementFile *elements = NULL;
-    ElementTypeId typeId = NoType;
+    ElementTypeId typeId = NoRef;
 
     const char *vtkHeader = \
       "<?xml version=\"1.0\"?>\n" \
@@ -375,18 +375,19 @@ void Finley_Mesh_saveVTK(const char *filename_p,
             myFirstCell = Finley_ElementFile_getFirstElement(elements);
             NN = elements->numNodes;
             if (nodeType==FINLEY_REDUCED_NODES) {
-                typeId = elements->LinearReferenceElement->Type->TypeId;
+		typeId = elements->referenceElementSet->referenceElement->LinearType->TypeId;
                 if (hasReducedElements) {
-                    quadNodes_p=elements->LinearReferenceElementReducedOrder->QuadNodes;
+                    quadNodes_p=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->QuadNodes;
                 } else {
-                    quadNodes_p=elements->LinearReferenceElement->QuadNodes;
+                    quadNodes_p=elements->referenceElementSet->referenceElement->Parametrization->QuadNodes;
                 }
             } else {
-                typeId = elements->ReferenceElement->Type->TypeId;
-                if (hasReducedElements)
-                    quadNodes_p=elements->ReferenceElementReducedOrder->QuadNodes;
-                else
-                    quadNodes_p=elements->ReferenceElement->QuadNodes;
+                typeId = elements->referenceElementSet->referenceElement->Type->TypeId;
+                if (hasReducedElements) {
+                    quadNodes_p=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->QuadNodes;
+                } else {
+                    quadNodes_p=elements->referenceElementSet->referenceElement->Parametrization->QuadNodes;
+                }
             }
             switch (typeId) {
                 case Point1:
@@ -425,7 +426,8 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                     numVTKNodesPerElement = 4;
                 break;
 
-                case Rec9:
+                case Rec9Macro:
+		case Rec9:
                     numCellFactor = 4;
                     cellType = VTK_QUAD;
                     numVTKNodesPerElement = 4;
@@ -442,6 +444,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                 break;
 
                 case Line3:
+				case Line3Macro:
                 case Tri6Face:
                 case Rec8Face:
                 case Line3_Contact:
@@ -452,6 +455,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                 break;
 
                 case Tri6:
+		case Tri6Macro:		
                 case Tet10Face:
                 case Tri6_Contact:
                 case Tet10Face_Contact:
@@ -467,6 +471,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                     numVTKNodesPerElement = 8;
                 break;
 
+		case Tet10Macro:
                 case Tet10:
                     cellType = VTK_QUADRATIC_TETRA;
                     numVTKNodesPerElement = 10;
@@ -477,6 +482,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                     numVTKNodesPerElement = 20;
                 break;
 
+		case Hex27Macro:
                 case Hex27:
                     numCellFactor = 8;
                     cellType = VTK_HEXAHEDRON;
@@ -484,7 +490,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                 break;
 
                 default:
-                    sprintf(errorMsg, "saveVTK: Element type %s is not supported by VTK.", elements->ReferenceElement->Type->Name);
+                    sprintf(errorMsg, "saveVTK: Element type %s is not supported by VTK.", elements->referenceElementSet->referenceElement->Type->Name);
                     Finley_setError(VALUE_ERROR, errorMsg);
             }
         }
@@ -512,15 +518,15 @@ void Finley_Mesh_saveVTK(const char *filename_p,
     if (Finley_noError()) {
         const index_t *nodeIndex;
         if (FINLEY_REDUCED_NODES == nodeType) {
-            nodeIndex = elements->ReferenceElement->Type->linearNodes;
-        } else if (Rec9 == typeId) {
+            nodeIndex = elements->referenceElementSet->referenceElement->Type->linearNodes;
+        } else if ( (Rec9 == typeId) || (Rec9Macro == typeId) ) {
             nodeIndex = VTK_REC9_INDEX;
         } else if (Hex20 == typeId) {
             nodeIndex = VTK_HEX20_INDEX;
-        } else if (Hex27 == typeId) {
+        } else if ( (Hex27 == typeId) || (Hex27Macro == typeId) ){
             nodeIndex = VTK_HEX27_INDEX;
-        } else if (numVTKNodesPerElement != NN) {
-            nodeIndex = elements->ReferenceElement->Type->geoNodes;
+        } else if (numVTKNodesPerElement  !=  elements->referenceElementSet->referenceElement->Type->numNodes) {
+            nodeIndex = elements->referenceElementSet->referenceElement->Type->relevantGeoNodes;
         } else {
             nodeIndex = NULL;
         }
@@ -787,10 +793,9 @@ void Finley_Mesh_saveVTK(const char *filename_p,
 
                             /* average over number of points in the sample */
                             if (isExpanded(data_pp[dataIdx])) {
-                                dim_t hits=0, hits_old;
+                                dim_t hits=0;
                                 for (k=0; k<nCompUsed; k++) sampleAvg[k]=0;
                                 for (j=0; j<numPointsPerSample; j++) {
-                                    hits_old=hits;
                                     if (nodeInQuadrant(quadNodes_p, typeId, j, l)) {
                                         hits++;
                                         for (k=0; k<nCompUsed; k++) {

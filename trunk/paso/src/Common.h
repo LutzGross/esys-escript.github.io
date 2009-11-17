@@ -64,6 +64,11 @@ typedef int err_t;
 #define EPSILON DBL_EPSILON
 #define LARGE_POSITIVE_FLOAT DBL_MAX
 #define SMALL_NEGATIVE_FLOAT -DBL_MAX
+#ifndef NAN
+   #define NAN (0.0/0.0)
+#endif
+#define IS_NAN(__VAL__)  ( (__VAL__) == NAN )  /* this does not work */
+/* #define IS_NAN(__VAL__)  ( ! ( ( (__VAL__) >= 0. ) ||  ( (__VAL__) <= 0. ) ) )  this does not work */
 
 /**************************************************************/
 

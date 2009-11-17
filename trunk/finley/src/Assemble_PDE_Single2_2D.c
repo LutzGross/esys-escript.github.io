@@ -50,8 +50,8 @@ void  Finley_Assemble_PDE_Single2_2D(Assemble_Parameters p, Finley_ElementFile* 
 
     #define DIM 2
     index_t color;
-    dim_t e;
-    __const double  *A_p, *B_p, *C_p, *D_p, *X_p, *Y_p;
+    dim_t e,isub;
+    __const double  *A_p, *B_p, *C_p, *D_p, *X_p, *Y_p, *A_q, *B_q, *C_q, *D_q, *X_q, *Y_q;
     double *EM_S, *EM_F, *Vol, *DSDX;
     index_t *row_index;
     register dim_t q, s,r;
@@ -65,9 +65,9 @@ void  Finley_Assemble_PDE_Single2_2D(Assemble_Parameters p, Finley_ElementFile* 
     bool_t extendedX=isExpanded(X);
     bool_t extendedY=isExpanded(Y);
     double *F_p=(requireWrite(F), getSampleDataRW(F,0));	/* use comma, to get around the mixed code and declarations thing */
-    double *S=p.row_jac->ReferenceElement->S;
-    dim_t len_EM_S=p.row_NN*p.col_NN;
-    dim_t len_EM_F=p.row_NN;
+    double *S=p.row_jac->BasisFunctions->S;
+    dim_t len_EM_S=p.row_numShapesTotal*p.col_numShapesTotal;
+    dim_t len_EM_F=p.row_numShapesTotal;
 
     void* ABuff=allocSampleBuffer(A);
     void* BBuff=allocSampleBuffer(B);
@@ -75,11 +75,11 @@ void  Finley_Assemble_PDE_Single2_2D(Assemble_Parameters p, Finley_ElementFile* 
     void* DBuff=allocSampleBuffer(D);
     void* XBuff=allocSampleBuffer(X);
     void* YBuff=allocSampleBuffer(Y);
-    #pragma omp parallel private(color,EM_S, EM_F, Vol, DSDX, A_p, B_p, C_p, D_p, X_p, Y_p,row_index,q, s,r,rtmp00, rtmp01, rtmp10, rtmp11, rtmp, rtmp0, rtmp1,add_EM_F, add_EM_S)
+    #pragma omp parallel private(color,EM_S, EM_F, Vol, DSDX, A_p, B_p, C_p, D_p, X_p, Y_p, A_q, B_q, C_q, D_q, X_q, Y_q,row_index,q, s,r,rtmp00, rtmp01, rtmp10, rtmp11, rtmp, rtmp0, rtmp1,add_EM_F, add_EM_S, isub)
     {
        EM_S=THREAD_MEMALLOC(len_EM_S,double);
        EM_F=THREAD_MEMALLOC(len_EM_F,double);
-       row_index=THREAD_MEMALLOC(p.row_NN,index_t);
+       row_index=THREAD_MEMALLOC(p.row_numShapesTotal,index_t);
                                                                                                                                                                                                      
        if (!Finley_checkPtr(EM_S) && !Finley_checkPtr(EM_F) && !Finley_checkPtr(row_index) ) {
 
@@ -88,196 +88,208 @@ void  Finley_Assemble_PDE_Single2_2D(Assemble_Parameters p, Finley_ElementFile* 
              #pragma omp for private(e) schedule(static)
              for(e=0;e<elements->numElements;e++){
                 if (elements->Color[e]==color) {
-                   Vol=&(p.row_jac->volume[INDEX2(0,e,p.numQuad)]);
-                   DSDX=&(p.row_jac->DSDX[INDEX4(0,0,0,e,p.row_NN,DIM,p.numQuad)]);
-                   for (q=0;q<len_EM_S;++q) EM_S[q]=0;
-                   for (q=0;q<len_EM_F;++q) EM_F[q]=0;
-                   add_EM_F=FALSE;
-                   add_EM_S=FALSE;
-                   /**************************************************************/
-                   /*   process A: */
-                   /**************************************************************/
+
                    A_p=getSampleDataRO(A,e,ABuff);
-                   if (NULL!=A_p) {
-                      add_EM_S=TRUE;
-                      if (extendedA) {
-                         for (s=0;s<p.row_NS;s++) {
-                           for (r=0;r<p.col_NS;r++) {
-                             rtmp=0;
-                             for (q=0;q<p.numQuad;q++) {
-                                 rtmp+=Vol[q]*(DSDX[INDEX3(s,0,q,p.row_NN,DIM)]*A_p[INDEX3(0,0,q,DIM,DIM)]*DSDX[INDEX3(r,0,q,p.row_NN,DIM)] 
-                                             + DSDX[INDEX3(s,0,q,p.row_NN,DIM)]*A_p[INDEX3(0,1,q,DIM,DIM)]*DSDX[INDEX3(r,1,q,p.row_NN,DIM)] 
-                                             + DSDX[INDEX3(s,1,q,p.row_NN,DIM)]*A_p[INDEX3(1,0,q,DIM,DIM)]*DSDX[INDEX3(r,0,q,p.row_NN,DIM)] 
-                                             + DSDX[INDEX3(s,1,q,p.row_NN,DIM)]*A_p[INDEX3(1,1,q,DIM,DIM)]*DSDX[INDEX3(r,1,q,p.row_NN,DIM)] );
-                             }
-                             EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_NN)]+=rtmp;
-                           }
-                         }
-                      } else {
-                         for (s=0;s<p.row_NS;s++) {
-                           for (r=0;r<p.col_NS;r++) {
-                               rtmp00=0;
-                               rtmp01=0;
-                               rtmp10=0;
-                               rtmp11=0;
-                               for (q=0;q<p.numQuad;q++) {
-                                     rtmp0=Vol[q]*DSDX[INDEX3(s,0,q,p.row_NN,DIM)];
-                                     rtmp1=Vol[q]*DSDX[INDEX3(s,1,q,p.row_NN,DIM)];
-                                     rtmp00+=rtmp0*DSDX[INDEX3(r,0,q,p.row_NN,DIM)];
-                                     rtmp01+=rtmp0*DSDX[INDEX3(r,1,q,p.row_NN,DIM)];
-                                     rtmp10+=rtmp1*DSDX[INDEX3(r,0,q,p.row_NN,DIM)];
-                                     rtmp11+=rtmp1*DSDX[INDEX3(r,1,q,p.row_NN,DIM)];
-                               }
-                                EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_NN)]+= rtmp00*A_p[INDEX2(0,0,DIM)]
-                                                                                  + rtmp01*A_p[INDEX2(0,1,DIM)]
-                                                                                  + rtmp10*A_p[INDEX2(1,0,DIM)]
-                                                                                  + rtmp11*A_p[INDEX2(1,1,DIM)];
-                           }
-                         }
-                       }
-                   }
-                   /**************************************************************/
-                   /*   process B: */
-                   /**************************************************************/
                    B_p=getSampleDataRO(B,e,BBuff);
-                   if (NULL!=B_p) {
-                      add_EM_S=TRUE;
-                      if (extendedB) {
-                         for (s=0;s<p.row_NS;s++) {
-                           for (r=0;r<p.col_NS;r++) {
-                             rtmp=0.;
-                             for (q=0;q<p.numQuad;q++) {
-                                rtmp+=Vol[q]*S[INDEX2(r,q,p.row_NS)]*(DSDX[INDEX3(s,0,q,p.row_NN,DIM)]*B_p[INDEX2(0,q,DIM)] 
-                                                                    + DSDX[INDEX3(s,1,q,p.row_NN,DIM)]*B_p[INDEX2(1,q,DIM)]);
-                             }
-                             EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_NN)]+=rtmp;
-                           }
-                         }
-                      } else {
-                         for (s=0;s<p.row_NS;s++) {
-                           for (r=0;r<p.col_NS;r++) {
-                             rtmp0=0;
-                             rtmp1=0;
-                             for (q=0;q<p.numQuad;q++) {
-                                  rtmp=Vol[q]*S[INDEX2(r,q,p.row_NS)];
-                                  rtmp0+=rtmp*DSDX[INDEX3(s,0,q,p.row_NN,DIM)];
-                                  rtmp1+=rtmp*DSDX[INDEX3(s,1,q,p.row_NN,DIM)];
-                             }
-                             EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_NN)]+=rtmp0*B_p[0]+rtmp1*B_p[1];
-                           }
-                         }
-                      }
-                   }
-                   /**************************************************************/
-                   /*   process C: */
-                   /**************************************************************/
                    C_p=getSampleDataRO(C,e,CBuff);
-                   if (NULL!=C_p) {
-                     add_EM_S=TRUE;
-                     if (extendedC) {
-                         for (s=0;s<p.row_NS;s++) {
-                           for (r=0;r<p.col_NS;r++) {
-                              rtmp=0;
-                              for (q=0;q<p.numQuad;q++) {
-                                  rtmp+=Vol[q]*S[INDEX2(s,q,p.row_NS)]*(C_p[INDEX2(0,q,DIM)]*DSDX[INDEX3(r,0,q,p.row_NN,DIM)]
-                                                                      + C_p[INDEX2(1,q,DIM)]*DSDX[INDEX3(r,1,q,p.row_NN,DIM)]);
-                               }
-                               EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_NN)]+=rtmp;
-                           }
-                         }
-                     } else {
-                         for (s=0;s<p.row_NS;s++) {
-                           for (r=0;r<p.col_NS;r++) {
-                              rtmp0=0;
-                              rtmp1=0;
-                              for (q=0;q<p.numQuad;q++) {
-                                   rtmp=Vol[q]*S[INDEX2(s,q,p.row_NS)];
-                                   rtmp0+=rtmp*DSDX[INDEX3(r,0,q,p.row_NN,DIM)];
-                                   rtmp1+=rtmp*DSDX[INDEX3(r,1,q,p.row_NN,DIM)];
-                              }
-                              EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_NN)]+=rtmp0*C_p[0]+rtmp1*C_p[1];
-                           }
-                         }
-                     }
-                   }
-                   /************************************************************* */
-                   /* process D */
-                   /**************************************************************/
                    D_p=getSampleDataRO(D,e,DBuff);
-                   if (NULL!=D_p) {
-                     add_EM_S=TRUE;
-                     if (extendedD) {
-                         for (s=0;s<p.row_NS;s++) {
-                           for (r=0;r<p.col_NS;r++) {
-                             rtmp=0;
-                             for (q=0;q<p.numQuad;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_NS)]*D_p[q]*S[INDEX2(r,q,p.row_NS)];
-                             EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_NN)]+=rtmp;
-                           }
-                         }
-                     } else {
-                         for (s=0;s<p.row_NS;s++) {
-                           for (r=0;r<p.col_NS;r++) {
-                               rtmp=0;
-                               for (q=0;q<p.numQuad;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_NS)]*S[INDEX2(r,q,p.row_NS)];
-                               EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_NN)]+=rtmp*D_p[0];
-                           }
-                         }
-                     }
-                   }
-                   /**************************************************************/
-                   /*   process X: */
-                   /**************************************************************/
                    X_p=getSampleDataRO(X,e,XBuff);
-                   if (NULL!=X_p) {
-                     add_EM_F=TRUE;
-                     if (extendedX) {
-                        for (s=0;s<p.row_NS;s++) {
-                            rtmp=0.;
-                            for (q=0;q<p.numQuad;q++) {
-                                rtmp+=Vol[q]*( DSDX[INDEX3(s,0,q,p.row_NN,DIM)]*X_p[INDEX2(0,q,DIM)]
-                                             + DSDX[INDEX3(s,1,q,p.row_NN,DIM)]*X_p[INDEX2(1,q,DIM)]);
+                   Y_p=getSampleDataRO(Y,e,YBuff);
+
+                   for (isub=0; isub<p.numSub; isub++) {
+
+                     Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
+                     DSDX=&(p.row_jac->DSDX[INDEX5(0,0,0,isub,e, p.row_numShapesTotal,DIM,p.numQuadSub,p.numSub)]);
+                     for (q=0;q<len_EM_S;++q) EM_S[q]=0;
+                     for (q=0;q<len_EM_F;++q) EM_F[q]=0;
+                     add_EM_F=FALSE;
+                     add_EM_S=FALSE;
+                     /**************************************************************/
+                     /*   process A: */
+                     /**************************************************************/
+                     if (NULL!=A_p) {
+                        add_EM_S=TRUE;
+                        if (extendedA) {
+			   A_q=&(A_p[INDEX4(0,0,0,isub, DIM,DIM,p.numQuadSub)]);
+                           for (s=0;s<p.row_numShapes;s++) {
+                             for (r=0;r<p.col_numShapes;r++) {
+                               rtmp=0;
+                               for (q=0;q<p.numQuadSub;q++) {
+                                   rtmp+=Vol[q]*(DSDX[INDEX3(s,0,q,p.row_numShapesTotal,DIM)]*A_q[INDEX3(0,0,q,DIM,DIM)]*DSDX[INDEX3(r,0,q,p.row_numShapesTotal,DIM)] 
+                                               + DSDX[INDEX3(s,0,q,p.row_numShapesTotal,DIM)]*A_q[INDEX3(0,1,q,DIM,DIM)]*DSDX[INDEX3(r,1,q,p.row_numShapesTotal,DIM)] 
+                                               + DSDX[INDEX3(s,1,q,p.row_numShapesTotal,DIM)]*A_q[INDEX3(1,0,q,DIM,DIM)]*DSDX[INDEX3(r,0,q,p.row_numShapesTotal,DIM)] 
+                                               + DSDX[INDEX3(s,1,q,p.row_numShapesTotal,DIM)]*A_q[INDEX3(1,1,q,DIM,DIM)]*DSDX[INDEX3(r,1,q,p.row_numShapesTotal,DIM)] );
+                               }
+                               EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_numShapesTotal)]+=rtmp;
                              }
-                             EM_F[INDEX2(0,s,p.numEqu)]+=rtmp;
-                        }
-                     } else {
-                        for (s=0;s<p.row_NS;s++) {
-                           rtmp0=0.;
-                           rtmp1=0.;
-                           for (q=0;q<p.numQuad;q++) {
-                               rtmp0+=Vol[q]*DSDX[INDEX3(s,0,q,p.row_NN,DIM)];
-                               rtmp1+=Vol[q]*DSDX[INDEX3(s,1,q,p.row_NN,DIM)];
                            }
-                           EM_F[INDEX2(0,s,p.numEqu)]+=rtmp0*X_p[0]+rtmp1*X_p[1];
+                        } else {
+                           for (s=0;s<p.row_numShapes;s++) {
+                             for (r=0;r<p.col_numShapes;r++) {
+                                 rtmp00=0;
+                                 rtmp01=0;
+                                 rtmp10=0;
+                                 rtmp11=0;
+                                 for (q=0;q<p.numQuadSub;q++) {
+                                       rtmp0=Vol[q]*DSDX[INDEX3(s,0,q,p.row_numShapesTotal,DIM)];
+                                       rtmp1=Vol[q]*DSDX[INDEX3(s,1,q,p.row_numShapesTotal,DIM)];
+                                       rtmp00+=rtmp0*DSDX[INDEX3(r,0,q,p.row_numShapesTotal,DIM)];
+                                       rtmp01+=rtmp0*DSDX[INDEX3(r,1,q,p.row_numShapesTotal,DIM)];
+                                       rtmp10+=rtmp1*DSDX[INDEX3(r,0,q,p.row_numShapesTotal,DIM)];
+                                       rtmp11+=rtmp1*DSDX[INDEX3(r,1,q,p.row_numShapesTotal,DIM)];
+                                 }
+                                  EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_numShapesTotal)]+= rtmp00*A_p[INDEX2(0,0,DIM)]
+                                                                                    + rtmp01*A_p[INDEX2(0,1,DIM)]
+                                                                                    + rtmp10*A_p[INDEX2(1,0,DIM)]
+                                                                                    + rtmp11*A_p[INDEX2(1,1,DIM)];
+                             }
+                           }
+                         }
+                     }
+                     /**************************************************************/
+                     /*   process B: */
+                     /**************************************************************/
+                     if (NULL!=B_p) {
+                        add_EM_S=TRUE;
+                        if (extendedB) {
+			   B_q=&(B_p[INDEX3(0,0,isub, DIM,p.numQuadSub)]);
+                           for (s=0;s<p.row_numShapes;s++) {
+                             for (r=0;r<p.col_numShapes;r++) {
+                               rtmp=0.;
+                               for (q=0;q<p.numQuadSub;q++) {
+                                  rtmp+=Vol[q]*S[INDEX2(r,q,p.row_numShapes)]*(DSDX[INDEX3(s,0,q,p.row_numShapesTotal,DIM)]*B_q[INDEX2(0,q,DIM)] 
+                                                                      + DSDX[INDEX3(s,1,q,p.row_numShapesTotal,DIM)]*B_q[INDEX2(1,q,DIM)]);
+                               }
+                               EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_numShapesTotal)]+=rtmp;
+                             }
+                           }
+                        } else {
+                           for (s=0;s<p.row_numShapes;s++) {
+                             for (r=0;r<p.col_numShapes;r++) {
+                               rtmp0=0;
+                               rtmp1=0;
+                               for (q=0;q<p.numQuadSub;q++) {
+                                    rtmp=Vol[q]*S[INDEX2(r,q,p.row_numShapes)];
+                                    rtmp0+=rtmp*DSDX[INDEX3(s,0,q,p.row_numShapesTotal,DIM)];
+                                    rtmp1+=rtmp*DSDX[INDEX3(s,1,q,p.row_numShapesTotal,DIM)];
+                               }
+                               EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_numShapesTotal)]+=rtmp0*B_p[0]+rtmp1*B_p[1];
+                             }
+                           }
                         }
                      }
-                  }
-                  /**************************************************************/
-                  /*   process Y: */
-                  /**************************************************************/
-                   Y_p=getSampleDataRO(Y,e,YBuff);
-                   if (NULL!=Y_p) {
-                     add_EM_F=TRUE;
-                     if (extendedY) {
-                        for (s=0;s<p.row_NS;s++) {
-                           rtmp=0;
-                           for (q=0;q<p.numQuad;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_NS)]*Y_p[q];
-                           EM_F[INDEX2(0,s,p.numEqu)]+=rtmp;
-                        }
-                      } else {
-                        for (s=0;s<p.row_NS;s++) {
-                            rtmp=0;
-                            for (q=0;q<p.numQuad;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_NS)];
-                            EM_F[INDEX2(0,s,p.numEqu)]+=rtmp*Y_p[0];
+                     /**************************************************************/
+                     /*   process C: */
+                     /**************************************************************/
+                     if (NULL!=C_p) {
+                       add_EM_S=TRUE;
+                       if (extendedC) {
+			   C_q=&(C_p[INDEX3(0,0,isub, DIM, p.numQuadSub)]);
+                           for (s=0;s<p.row_numShapes;s++) {
+                             for (r=0;r<p.col_numShapes;r++) {
+                                rtmp=0;
+                                for (q=0;q<p.numQuadSub;q++) {
+                                    rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*(C_q[INDEX2(0,q,DIM)]*DSDX[INDEX3(r,0,q,p.row_numShapesTotal,DIM)]
+                                                                        + C_q[INDEX2(1,q,DIM)]*DSDX[INDEX3(r,1,q,p.row_numShapesTotal,DIM)]);
+                                 }
+                                 EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_numShapesTotal)]+=rtmp;
+                             }
+                           }
+                       } else {
+                           for (s=0;s<p.row_numShapes;s++) {
+                             for (r=0;r<p.col_numShapes;r++) {
+                                rtmp0=0;
+                                rtmp1=0;
+                                for (q=0;q<p.numQuadSub;q++) {
+                                     rtmp=Vol[q]*S[INDEX2(s,q,p.row_numShapes)];
+                                     rtmp0+=rtmp*DSDX[INDEX3(r,0,q,p.row_numShapesTotal,DIM)];
+                                     rtmp1+=rtmp*DSDX[INDEX3(r,1,q,p.row_numShapesTotal,DIM)];
+                                }
+                                EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_numShapesTotal)]+=rtmp0*C_p[0]+rtmp1*C_p[1];
+                             }
+                           }
+                       }
+                     }
+                     /************************************************************* */
+                     /* process D */
+                     /**************************************************************/
+                     if (NULL!=D_p) {
+                       add_EM_S=TRUE;
+                       if (extendedD) {
+			   D_q=&(D_p[INDEX2(0,isub, p.numQuadSub)]);
+                           for (s=0;s<p.row_numShapes;s++) {
+                             for (r=0;r<p.col_numShapes;r++) {
+                               rtmp=0;
+                               for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*D_q[q]*S[INDEX2(r,q,p.row_numShapes)];
+                               EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_numShapesTotal)]+=rtmp;
+                             }
+                           }
+                       } else {
+                           for (s=0;s<p.row_numShapes;s++) {
+                             for (r=0;r<p.col_numShapes;r++) {
+                                 rtmp=0;
+                                 for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*S[INDEX2(r,q,p.row_numShapes)];
+                                 EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_numShapesTotal)]+=rtmp*D_p[0];
+                             }
+                           }
+                       }
+                     }
+                     /**************************************************************/
+                     /*   process X: */
+                     /**************************************************************/
+                     if (NULL!=X_p) {
+                       add_EM_F=TRUE;
+                       if (extendedX) {
+						   X_q=&(X_p[INDEX3(0,0,isub, DIM,p.numQuadSub)]);
+                          for (s=0;s<p.row_numShapes;s++) {
+                              rtmp=0.;
+                              for (q=0;q<p.numQuadSub;q++) {
+                                  rtmp+=Vol[q]*( DSDX[INDEX3(s,0,q,p.row_numShapesTotal,DIM)]*X_q[INDEX2(0,q,DIM)]
+                                               + DSDX[INDEX3(s,1,q,p.row_numShapesTotal,DIM)]*X_q[INDEX2(1,q,DIM)]);
+                               }
+                               EM_F[INDEX2(0,s,p.numEqu)]+=rtmp;
+                          }
+                       } else {
+                          for (s=0;s<p.row_numShapes;s++) {
+                             rtmp0=0.;
+                             rtmp1=0.;
+                             for (q=0;q<p.numQuadSub;q++) {
+                                 rtmp0+=Vol[q]*DSDX[INDEX3(s,0,q,p.row_numShapesTotal,DIM)];
+                                 rtmp1+=Vol[q]*DSDX[INDEX3(s,1,q,p.row_numShapesTotal,DIM)];
+                             }
+                             EM_F[INDEX2(0,s,p.numEqu)]+=rtmp0*X_p[0]+rtmp1*X_p[1];
+                          }
+                       }
+                    }
+                    /**************************************************************/
+                    /*   process Y: */
+                    /**************************************************************/
+                     if (NULL!=Y_p) {
+                       add_EM_F=TRUE;
+                       if (extendedY) {
+			  Y_q=&(Y_p[INDEX2(0,isub, p.numQuadSub)]);
+                          for (s=0;s<p.row_numShapes;s++) {
+                             rtmp=0;
+                             for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*Y_q[q];
+                             EM_F[INDEX2(0,s,p.numEqu)]+=rtmp;
+                          }
+                        } else {
+                          for (s=0;s<p.row_numShapes;s++) {
+                              rtmp=0;
+                              for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)];
+                              EM_F[INDEX2(0,s,p.numEqu)]+=rtmp*Y_p[0];
+                          }
                         }
                       }
-                    }
-                    /***********************************************************************************************/
-                    /* add the element matrices onto the matrix and right hand side                                */
-                    /***********************************************************************************************/
-                    for (q=0;q<p.row_NN;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[q],e,p.NN)]];
-                    if (add_EM_F) Finley_Util_AddScatter(p.row_NN,row_index,p.numEqu,EM_F,F_p, p.row_DOF_UpperBound);
-                    if (add_EM_S) Finley_Assemble_addToSystemMatrix(Mat,p.row_NN,row_index,p.numEqu,p.col_NN,row_index,p.numComp,EM_S);
-   
+                      /***********************************************************************************************/
+                      /* add the element matrices onto the matrix and right hand side                                */
+                      /***********************************************************************************************/
+		      
+                      for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
+		      if (add_EM_F) Finley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_F,F_p, p.row_DOF_UpperBound);
+                      if (add_EM_S) Finley_Assemble_addToSystemMatrix(Mat,p.row_numShapesTotal,row_index,p.numEqu,p.col_numShapesTotal,row_index,p.numComp,EM_S);
+
+                  } /* end of isub */
                 } /* end color check */
              } /* end element loop */
          } /* end color loop */
@@ -295,6 +307,3 @@ void  Finley_Assemble_PDE_Single2_2D(Assemble_Parameters p, Finley_ElementFile* 
    freeSampleBuffer(XBuff);
    freeSampleBuffer(YBuff);
 }
-/*
- * $Log$
- */

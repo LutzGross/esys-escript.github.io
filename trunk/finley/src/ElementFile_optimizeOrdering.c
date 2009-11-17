@@ -32,12 +32,12 @@ void Finley_ElementFile_optimizeOrdering(Finley_ElementFile** in) {
      index_t *index=NULL;
      if (*in != NULL) {
         if ((*in)->numElements<1) return;
-        NN=(*in)->ReferenceElement->Type->numNodes;
+        NN=(*in)->referenceElementSet->numNodes;
         item_list=TMPMEMALLOC((*in)->numElements,Finley_Util_ValueAndIndex);
         index=TMPMEMALLOC((*in)->numElements,index_t);
         if (! (Finley_checkPtr(item_list) || Finley_checkPtr(index)) ) {
 
-           out=Finley_ElementFile_alloc((*in)->ReferenceElement->Type->TypeId,(*in)->order, (*in)->reduced_order, (*in)->MPIInfo);
+           out=Finley_ElementFile_alloc((*in)->referenceElementSet, (*in)->MPIInfo);
            if (Finley_noError()) {
                Finley_ElementFile_allocTable(out,(*in)->numElements);
                if (Finley_noError()) {

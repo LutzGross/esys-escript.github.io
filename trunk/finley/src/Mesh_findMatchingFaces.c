@@ -22,6 +22,7 @@
 
 #include "Util.h"
 #include "Mesh.h"
+
 /**************************************************************/
 
 static double  Finley_Mesh_lockingGridSize=0;
@@ -56,15 +57,28 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
       _dist_=0; \
       for (i=0;i<numDim;i++) _dist_=MAX(_dist_,ABS(X[INDEX3(i,_i0_,_e0_,numDim,NN)]-X[INDEX3(i,_i1_,_e1_,numDim,NN)])); \
       } 
-
+	Finley_ReferenceElement*  refElement=NULL;
     char error_msg[LenErrorMsg_MAX];
-    double h=DBLE(HUGE_VAL),h_local,dist,*X=NULL;
-    dim_t NN=faces->ReferenceElement->Type->numNodes;
-    dim_t numDim=nodes->numDim;
+    double h=DBLE(HUGE_VAL),h_local,dist,*X=NULL;   
     Finley_Mesh_findMatchingFaces_center *center;
-    index_t e_0,e_1,*a1=NULL,*a2=NULL,*perm=NULL,*perm_tmp=NULL,*itmp_ptr=NULL;
-    dim_t e,i,i0,i1,n;
+    index_t e_0,e_1,*a1=NULL,*a2=NULL,*perm=NULL,*perm_tmp=NULL,*itmp_ptr=NULL, *faceNodes=NULL, *shiftNodes=NULL, *reverseNodes=NULL ;
+    dim_t e,i,i0,i1,n,NN,numNodesOnFace;
+	
+	dim_t numDim=nodes->numDim;
 
+	refElement= Finley_ReferenceElementSet_borrowReferenceElement(faces->referenceElementSet, FALSE);
+    NN=faces->numNodes;
+	
+	numNodesOnFace=refElement->Type->numNodesOnFace;
+	faceNodes=refElement->Type->faceNodes;
+	shiftNodes=refElement->Type->shiftNodes;
+	reverseNodes=refElement->Type->reverseNodes;
+	
+	if (numNodesOnFace<=0) {
+     sprintf(error_msg,"Finley_Mesh_findMatchingFaces: matching faces cannot be applied to face elements of type %s",refElement->Type->Name);
+     Finley_setError(TYPE_ERROR,error_msg);
+     return;
+    }
     X=TMPMEMALLOC(NN*numDim*faces->numElements,double);
     center=TMPMEMALLOC(faces->numElements,Finley_Mesh_findMatchingFaces_center);
     a1=TMPMEMALLOC(NN,int);
@@ -77,14 +91,14 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
             /* get the element center */
             center[e].refId=e;
             for (i=0;i<MAX_numDim;i++) center[e].x[i]=0;
-            for (i0=0;i0<faces->ReferenceElement->Type->numNodesOnFace;i0++) {
-               for (i=0;i<numDim;i++) center[e].x[i]+=X[INDEX3(i,faces->ReferenceElement->Type->faceNode[i0],e,numDim,NN)];
+            for (i0=0;i0<numNodesOnFace;i0++) {
+               for (i=0;i<numDim;i++) center[e].x[i]+=X[INDEX3(i,faceNodes[i0],e,numDim,NN)];
             }
-            for (i=0;i<numDim;i++) center[e].x[i]/=faces->ReferenceElement->Type->numNodesOnFace;
+            for (i=0;i<numDim;i++) center[e].x[i]/=numNodesOnFace;
             /* get the minimum distance between nodes in the element */
-            for (i0=0;i0<faces->ReferenceElement->Type->numNodesOnFace;i0++) {
-               for (i1=i0+1;i1<faces->ReferenceElement->Type->numNodesOnFace;i1++) {
-                  getDist(h_local,e,faces->ReferenceElement->Type->faceNode[i0],e,faces->ReferenceElement->Type->faceNode[i1]);
+            for (i0=0;i0<numNodesOnFace;i0++) {
+               for (i1=i0+1;i1<numNodesOnFace;i1++) {
+                  getDist(h_local,e,faceNodes[i0],e,faceNodes[i1]);
                   h=MIN(h,h_local);
                }
             }
@@ -116,13 +130,13 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
                  /* if node 0 and perm[0] are the same we are ready */
                  getDist(dist,e_0,0,e_1,perm[0]);
                  if (dist<=h*tolerance) break;
-                 if (faces->ReferenceElement->Type->shiftNodes[0]>=0) {
+                 if (shiftNodes[0]>=0) {
                     /* rotate the nodes */
                     itmp_ptr=perm;
                     perm=perm_tmp;
                     perm_tmp=itmp_ptr;
                     #pragma ivdep
-                    for (i=0;i<NN;i++) perm[i]=perm_tmp[faces->ReferenceElement->Type->shiftNodes[i]];
+                    for (i=0;i<NN;i++) perm[i]=perm_tmp[shiftNodes[i]];
                  }
                  /* if the permutation is back at the identity, ie. perm[0]=0, the faces don't match: */
                  if (perm[0]==0) {
@@ -132,12 +146,12 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
               }
               /* now we check if the second nodes match */
               if (Finley_noError()) {
-                 if (faces->ReferenceElement->Type->numNodesOnFace>1) {
-                    getDist(dist,e_0,1,e_1,perm[faces->ReferenceElement->Type->faceNode[1]]);
+                 if (numNodesOnFace>1) {
+                    getDist(dist,e_0,1,e_1,perm[faceNodes[1]]);
                     /* if the second node does not match we reverse the direction of the nodes */
                     if (dist>h*tolerance) {
                           /* rotate the nodes */
-                          if (faces->ReferenceElement->Type->reverseNodes[0]<0) {
+                          if (reverseNodes[0]<0) {
                              sprintf(error_msg,"Mesh_findMatchingFaces:couldn't match the second node of element %d to touching element %d",e_0,e_1);
                              Finley_setError(VALUE_ERROR,error_msg);
                           } else {
@@ -145,8 +159,8 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
                              perm=perm_tmp;
                              perm_tmp=itmp_ptr;
                              #pragma ivdep
-                             for (i=0;i<NN;i++) perm[i]=perm_tmp[faces->ReferenceElement->Type->reverseNodes[i]];
-                             getDist(dist,e_0,1,e_1,perm[faces->ReferenceElement->Type->faceNode[1]]);
+                             for (i=0;i<NN;i++) perm[i]=perm_tmp[reverseNodes[i]];
+                             getDist(dist,e_0,1,e_1,perm[faceNodes[1]]);
                              if (dist>h*tolerance) {
                                  sprintf(error_msg,"Mesh_findMatchingFaces:couldn't match the second node of element %d to touching element %d",e_0,e_1);
                                  Finley_setError(VALUE_ERROR,error_msg);
@@ -157,8 +171,8 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
               }
               /* we check if the rest of the face nodes match: */
               if (Finley_noError()) {
-                 for (i=2;i<faces->ReferenceElement->Type->numNodesOnFace;i++) {
-                    n=faces->ReferenceElement->Type->faceNode[i];
+                 for (i=2;i<numNodesOnFace;i++) {
+                    n=faceNodes[i];
                     getDist(dist,e_0,n,e_1,perm[n]);
                     if (dist>h*tolerance) {
                        sprintf(error_msg,"Mesh_findMatchingFaces:couldn't match the %d-th node of element %d to touching element %d",i,e_0,e_1);

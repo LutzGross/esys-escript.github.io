@@ -41,9 +41,9 @@ void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* 
 
     numElements=elements->numElements;
     if (Finley_Assemble_reducedIntegrationOrder(in)) {
-       numQuad=elements->ReferenceElementReducedOrder->numQuadNodes;
+       numQuad=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
     } else {
-       numQuad=elements->ReferenceElement->numQuadNodes;
+       numQuad=elements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
     }
 
     /* check out and in */

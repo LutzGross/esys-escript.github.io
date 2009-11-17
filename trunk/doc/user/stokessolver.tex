@@ -43,7 +43,8 @@ G \\
 \end{array} \right]
 \label{SADDLEPOINT}
 \end{equation}
-where $A$ is coercive (assuming $A$ is not depending on $v$ or $p$), self-adjoint linear operator in a suitable Hilbert space, $B$ is the $(-1) \cdot$ divergence operator and $B^{*}$ is it adjoint operator (=gradient operator). For more details on the mathematics see references \cite{AAMIRBERKYAN2008,MBENZI2005}. 
+where $A$ is coercive (assuming $A$ is not depending on $v$ or $p$), self-adjoint linear operator in a suitable Hilbert space, $B$ is the $(-1) \cdot$ divergence operator and $B^{*}$ is it adjoint operator (=gradient operator).
+For more details on the mathematics see references \cite{AAMIRBERKYAN2008,MBENZI2005}. 
 We use iterative techniques to solve this problem: Given an approximation $v$ and $p$ for 
 velocity and pressure we perform the following steps in the Uzawa scheme \index{Uzawa scheme} style:
 \begin{enumerate}
@@ -88,7 +89,7 @@ A w = B^{*} s
 \end{equation}
 with sufficient accuracy to return $q=Bw$. Notice that the residual $r$ is given as
 \begin{equation} \label{STOKES RES }
- r= B (v\hackscore{1} - B A^{-1} B^{*} dp) =  B (v\hackscore{1} - A^{-1} B^{*} dp) = B (v\hackscore{1}-dv\hackscore{2}) = B v\hackscore{2}
+ r= B (v\hackscore{1} -  A^{-1} B^{*} dp) =  B (v\hackscore{1} - A^{-1} B^{*} dp) = B (v\hackscore{1}-dv\hackscore{2}) = B v\hackscore{2}
 \end{equation}
 so in fact the residual $r$ is represented by the updated velocity $v\hackscore{2}$. This saves the recovery of 
 $dv\hackscore{2}$ in~\ref{SADDLEPOINT ITER STEP 2} after $dp$ has been calculated as iterative method such as PCG calculate the solution approximations along with the their residual. In PCG the iteration is terminated if

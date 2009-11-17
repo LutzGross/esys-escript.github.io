@@ -170,10 +170,10 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
   }
 
   /* map finley element type to DX element type */
-  TypeId = elements->ReferenceElement->Type->TypeId;
+  TypeId = elements->referenceElementSet->referenceElement->Type->TypeId;
   numDXNodesPerElement=0;
   numCells = elements->numElements;
-  if (TypeId==Line2 || TypeId==Line3 || TypeId==Line4 ) {
+  if (TypeId==Line2 || TypeId==Line3 || TypeId==Line4 || TypeId==Line3Macro ) {
      numDXNodesPerElement=2;
      resortIndex=resort[0];
      strcpy(elemTypeStr, "lines");
@@ -181,11 +181,11 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
      numDXNodesPerElement = 3;
      resortIndex=resort[1];
      strcpy(elemTypeStr, "triangles");
-   } else if (TypeId==Rec4 || TypeId==Rec8 || TypeId==Rec9 || TypeId==Rec12 || TypeId==Rec16 ) {
+   } else if (TypeId==Rec4 || TypeId==Rec8 || TypeId==Rec9 || TypeId==Rec12 || TypeId==Rec16 || TypeId==Rec9Macro ) {
      numDXNodesPerElement = 4;
      resortIndex=resort[3];
      strcpy(elemTypeStr, "quads");
-   } else if (TypeId==Tet4 || TypeId==Tet10 || TypeId==Tet16 ) {
+   } else if (TypeId==Tet4 || TypeId==Tet10 || TypeId==Tet16 || TypeId==Tet10Macro ) {
      numDXNodesPerElement = 4;
      resortIndex=resort[2];
      strcpy(elemTypeStr, "tetrahedra");
@@ -194,7 +194,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
      resortIndex=resort[4];
      strcpy(elemTypeStr, "cubes");
    } else {
-     sprintf(error_msg,"saveDX: Element type %s is not supported by DX",elements->ReferenceElement->Type->Name);
+     sprintf(error_msg,"saveDX: Element type %s is not supported by DX",elements->referenceElementSet->referenceElement->Type->Name);
      Finley_setError(VALUE_ERROR,error_msg);
      MEMFREE(isCellCentered);
      fclose(fileHandle_p);
@@ -233,12 +233,12 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
          }
          if (isCellCentered[i_data]) {
              if (Finley_Assemble_reducedIntegrationOrder(data_pp[i_data])) {
-                numPointsPerSample=elements->ReferenceElementReducedOrder->numQuadNodes;
+                numPointsPerSample=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
              } else {
-                numPointsPerSample=elements->ReferenceElement->numQuadNodes;
+                numPointsPerSample=elements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
              }
              if (numPointsPerSample>0) {
-		void* buffer=allocSampleBuffer(data_pp[i_data]);
+				void* buffer=allocSampleBuffer(data_pp[i_data]);
                 fprintf(fileHandle_p, "items %d data follows\n", numCells);
                 for (i=0;i<elements->numElements;i++) {
                     values=getSampleDataRO(data_pp[i_data],i,buffer);

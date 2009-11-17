@@ -33,8 +33,6 @@
 /*     The ids of the allowed reference ellements: */
 
 #define MAX_numNodes 64
-#define MAX_numSubElements 8
-#define MAX_numSides 2
 
 typedef enum {
   Point1,
@@ -113,7 +111,8 @@ typedef enum {
   Rec9Macro,
   Tet10Macro,
   Hex27Macro,
-  NoRef   /* marks end of list */
+
+  NoType   /* marks end of list */
 } ElementTypeId;
 
 /**************************************************************/
@@ -123,25 +122,18 @@ typedef enum {
 typedef struct Finley_ReferenceElementInfo {
   ElementTypeId TypeId;                      /* the id */
   char* Name;                                /* the name in text form e.g. Line1,Rec12,... */
+  dim_t numLocalDim;                         /* local dimension of the element */
+  dim_t numDim;                              /* dimension of the element */
   dim_t numNodes;                            /* number of nodes defining the element*/
-  dim_t numSubElements;                      /* number of subelements. >1 is macro elements are used. */
-  dim_t numSides;							 /* specifies the number of sides the element supports. This =2 if contatact elements are used
-                                                otherwise =1. */
-                                                
-
-  index_t offsets[MAX_numSides+1];			 /* offset to the side nodes: offsets[s]...offset[s+1]-1 referes to the nodes to be used for side s*/								
-
-  
+  dim_t numShapes;                           /* number of shape functions, typically = numNodes*/
+  dim_t numOrder;                            /* order of the shape functions */
+  dim_t numVertices;                         /* number of vertices of the element */
   ElementTypeId LinearTypeId;                /* id of the linear version of the element */
+  index_t linearNodes[MAX_numNodes];         /* gives the list of nodes defining the linear or macro element, typically it is linearNodes[i]=i */
+  Finley_Shape_Function* getValues;          /* function to evaluate the shape functions at a set of points */
+  Finley_Quad_getNodes* getQuadNodes;        /* function to set the quadrature points */
+  Finley_Quad_getNumNodes* getNumQuadNodes;  /* function selects the number of quadrature nodes for a given accuracy order */
   
-  index_t linearNodes[MAX_numNodes*MAX_numSides];         /* gives the list of nodes defining the linear or macro element */
-  
-  Finley_QuadTypeId Quadrature;                /* quadrature scheme */
-  Finley_ShapeFunctionTypeId Parametrization;  /* shape function for parametrization of the element */
-  Finley_ShapeFunctionTypeId BasisFunctions;   /* shape function for the basis functions */ 
-
-  index_t subElementNodes[MAX_numNodes*MAX_numSides*MAX_numSubElements];         /* gives the list of nodes defining the subelements:
-																		subElementNodes[INDEX2(i,s,BasisFunctions->numShape*numSides)] is the i-th node in the s-th subelement.*/ 
 /*********************************************************************************************************************************** */  
   dim_t numRelevantGeoNodes;                 /* number of nodes used to describe the geometry of the geometrically relevant part of the element
                                                 typically this is numNodes but for 'Face' elements where the quadrature points are defined on face of the element 
@@ -157,24 +149,17 @@ typedef struct Finley_ReferenceElementInfo {
                                               /* shiftNodes={-1} or reverseNodes={-1} are ignored. */
 }  Finley_ReferenceElementInfo;
 
-
 /**************************************************************/
 
 /*  this struct holds the realization of a reference element */
 
 typedef struct Finley_ReferenceElement {
-	Finley_ReferenceElementInfo* Type;     /* type of the reference element */
-	Finley_ReferenceElementInfo* LinearType;     /* type of the linear reference element */
-	index_t reference_counter;	       /* reference counter */
-	dim_t numNodes;
-        dim_t numLocalDim;
-	dim_t numLinearNodes;
-	Finley_ShapeFunction* Parametrization;
-	Finley_ShapeFunction* BasisFunctions;
-	Finley_ShapeFunction* LinearBasisFunctions;
-        double* DBasisFunctionDv;                              /* pointer to derivatives to basis function corresponding to the Parametrization quad points */
-        bool_t DBasisFunctionDvShared;                /* TRUE to indicate that DBasisFunctionDv is shared with another object which is managing it */
-
+  Finley_ReferenceElementInfo* Type;     /* type of the reference element */
+  int numQuadNodes;                /* number of quadrature points */
+  double *QuadNodes;               /* coordinates of quadrature nodes */
+  double *QuadWeights;             /* weights of the quadrature scheme */
+  double *S;                       /* shape functions at quadrature nodes */
+  double *dSdv;                    /* derivative of the shape functions at quadrature nodes */
 }  Finley_ReferenceElement;
 
 /**************************************************************/
@@ -184,10 +169,5 @@ typedef struct Finley_ReferenceElement {
 Finley_ReferenceElement* Finley_ReferenceElement_alloc(ElementTypeId,int);
 void Finley_ReferenceElement_dealloc(Finley_ReferenceElement*);
 ElementTypeId Finley_ReferenceElement_getTypeId(char*);
-Finley_ReferenceElement* Finley_ReferenceElement_reference(Finley_ReferenceElement* in);
-Finley_ReferenceElementInfo* Finley_ReferenceElement_getInfo(ElementTypeId id);
-
-
-#define Finley_ReferenceElement_getNumNodes(__in__) (__in__)->Type->numNodes
 
 #endif /* #ifndef INC_FINLEY_REFERENCEELEMENTS */

@@ -28,6 +28,7 @@
 
 void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* elements,escriptDataC* data,double* out) {
 /*    type_t data_type=getFunctionSpaceType(data);*/
+    dim_t numQuadTotal;
     dim_t numComps=getDataPointSize(data);
     Finley_ElementFile_Jacobeans* jac=NULL;
     Paso_MPI_rank my_mpi_rank;
@@ -38,18 +39,18 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
     /* set some parameter */
     jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,Finley_Assemble_reducedIntegrationOrder(data));
     if (Finley_noError()) {
-
+		numQuadTotal=jac->numQuadTotal;
         /* check the shape of the data  */
-        if (! numSamplesEqual(data,jac->ReferenceElement->numQuadNodes,elements->numElements)) {
+        if (! numSamplesEqual(data,numQuadTotal,elements->numElements)) {
            Finley_setError(TYPE_ERROR,"Finley_Assemble_integrate: illegal number of samples of integrant kernel Data object");
         }
         /* now we can start */
 
         if (Finley_noError()) {
             dim_t q,e,i;
-	    __const double *data_array=NULL;
+        	__const double *data_array=NULL;
             double *out_local=NULL, rtmp;
-	    void* buffer=allocSampleBuffer(data);
+			void* buffer=allocSampleBuffer(data);
             for (q=0;q<numComps;q++) out[q]=0;
             #pragma omp parallel private(q,i,rtmp,data_array,out_local)
             {
@@ -57,7 +58,7 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
                 if (! Finley_checkPtr(out_local) ) {
                    /* initialize local result */
 
-	           for (i=0;i<numComps;i++) out_local[i]=0;
+				   for (i=0;i<numComps;i++) out_local[i]=0;
 
                    /* open the element loop */
    
@@ -66,8 +67,8 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
                        for(e=0;e<elements->numElements;e++) {
                           if (elements->Owner[e] == my_mpi_rank) {
                             data_array=getSampleDataRO(data,e,buffer);
-                            for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
-                                  for (i=0;i<numComps;i++) out_local[i]+=data_array[INDEX2(i,q,numComps)]*jac->volume[INDEX2(q,e,jac->ReferenceElement->numQuadNodes)];
+                            for (q=0;q<numQuadTotal;q++) {
+                                  for (i=0;i<numComps;i++) out_local[i]+=data_array[INDEX2(i,q,numComps)]*jac->volume[INDEX2(q,e,numQuadTotal)];
                             }
                          }
                        }
@@ -77,7 +78,7 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
                           if (elements->Owner[e] == my_mpi_rank) {
                            data_array=getSampleDataRO(data,e,buffer);
                            rtmp=0.;
-                           for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) rtmp+=jac->volume[INDEX2(q,e,jac->ReferenceElement->numQuadNodes)];
+                           for (q=0;q<numQuadTotal;q++) rtmp+=jac->volume[INDEX2(q,e,numQuadTotal)];
                            for (i=0;i<numComps;i++) out_local[i]+=data_array[i]*rtmp;
                           }
                       }
@@ -88,30 +89,8 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
                 }
                 THREAD_MEMFREE(out_local);
             }
-	    freeSampleBuffer(buffer);
-       }
-   }
+			freeSampleBuffer(buffer);
+		}
+	}
 }
 
-/*
- * $Log$
- * Revision 1.6  2005/09/15 03:44:21  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.5.2.1  2005/09/07 06:26:18  gross
- * the solver from finley are put into the standalone package paso now
- *
- * Revision 1.5  2005/07/08 04:07:48  jgs
- * Merge of development branch back to main trunk on 2005-07-08
- *
- * Revision 1.4  2004/12/15 07:08:32  jgs
- * *** empty log message ***
- * Revision 1.1.1.1.2.2  2005/06/29 02:34:48  gross
- * some changes towards 64 integers in finley
- *
- * Revision 1.1.1.1.2.1  2004/11/24 01:37:12  gross
- * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
- *
- *
- *
- */

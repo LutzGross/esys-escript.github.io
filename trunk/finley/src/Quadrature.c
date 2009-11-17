@@ -14,14 +14,41 @@
 
 /**************************************************************/
 
-/*   Finley:  */
+/*   Finley: quadrature schemes */
 
 /**************************************************************/
 
 #include "Quadrature.h"
 
+
 #define QUADNODES(_K_,_I_) quadNodes[INDEX2(_K_,_I_,DIM)]
 #define QUADWEIGHTS(_I_) quadWeights[_I_]
+
+/**************************************************************/
+
+Finley_QuadInfo Finley_QuadInfoList[]={
+	{PointQuad, "Point", 0,  1, 	Finley_Quad_getNodesPoint,		Finley_Quad_getNumNodesPoint, 	Finley_Quad_MacroPoint} ,
+    {LineQuad,  "Line",  1,  2,		Finley_Quad_getNodesLine,		Finley_Quad_getNumNodesLine, 	Finley_Quad_MacroLine} ,
+	{TriQuad,   "Tri",   2,  3,   	Finley_Quad_getNodesTri,        Finley_Quad_getNumNodesTri, 	Finley_Quad_MacroTri},
+	{RecQuad,   "Rec",   2,  4,   	Finley_Quad_getNodesRec,        Finley_Quad_getNumNodesRec, 	Finley_Quad_MacroRec},
+	{TetQuad,   "Tet",   3,  4,   	Finley_Quad_getNodesTet,        Finley_Quad_getNumNodesTet,		Finley_Quad_MacroTet},
+	{HexQuad,   "Hex",   3,  8,  	Finley_Quad_getNodesHex,        Finley_Quad_getNumNodesHex,		Finley_Quad_MacroHex},
+	{NoQuad, "NoType", 0,  1,	Finley_Quad_getNodesPoint,		Finley_Quad_getNumNodesPoint,	Finley_Quad_MacroPoint}
+};
+
+Finley_QuadInfo* Finley_QuadInfo_getInfo(Finley_QuadTypeId id) 
+{
+    int ptr=0;
+    Finley_QuadInfo* out=NULL;
+    while (Finley_QuadInfoList[ptr].TypeId!=NoQuad && out==NULL) {
+       if (Finley_QuadInfoList[ptr].TypeId==id) out=&(Finley_QuadInfoList[ptr]);
+       ptr++;
+    }
+    if (out==NULL) {
+        Finley_setError(VALUE_ERROR,"Finley_QuadInfo_getInfo: canot find requested quadrature scheme.");
+    }
+    return out;
+}
 
 /**************************************************************/
 
@@ -1078,8 +1105,10 @@ void Finley_Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeig
 /*   an error. */
 
 void Finley_Quad_getNodesPoint(int numQuadNodes,double* quadNodes,double* quadWeights) {
-  if (numQuadNodes!=0) {
-       Finley_setError(VALUE_ERROR,"Finley_Quad_getNodesPoint: There is no quadrature scheme on points.");
+  if (numQuadNodes==0) {
+        return;
+  } else {
+       Finley_setError(VALUE_ERROR,"Finley_Quad_getNodesPoint: Illegal number of quadrature nodes.");
   }
 }
 
@@ -1231,49 +1260,11 @@ void Finley_Quad_getNodesLine(int numQuadNodes,double* quadNodes,double* quadWei
         break;
 
       default:
-        Finley_setError(VALUE_ERROR,"__FILE__: Negative intergration order.");
+        Finley_setError(VALUE_ERROR,"Finley_Quad_getNodesLine: Negative intergration order.");
         break;
   }
 }
-/**************************************************************/
-/*                                                            */
-/*  the following function are used define the meshes on the surface in the xy-plane */
 
-/* triangle surface on a tetrahedron */
-void Finley_Quad_getNodesTriOnFace(int numQuadNodes,double* quadNodes,double* quadWeights) {
-       Finley_Quad_makeNodesOnFace(3,numQuadNodes,quadNodes,quadWeights,Finley_Quad_getNodesTri);
-}
-/* rectangular surface on a hexahedron */
-void Finley_Quad_getNodesRecOnFace(int numQuadNodes,double* quadNodes,double* quadWeights) {
-       Finley_Quad_makeNodesOnFace(3,numQuadNodes,quadNodes,quadWeights,Finley_Quad_getNodesRec);
-}
-/* line surface on a triangle or rectangle */
-void Finley_Quad_getNodesLineOnFace(int numQuadNodes,double* quadNodes,double* quadWeights) {
-       Finley_Quad_makeNodesOnFace(2,numQuadNodes,quadNodes,quadWeights,Finley_Quad_getNodesLine);
-}
-/* point surface on a line */
-void Finley_Quad_getNodesPointOnFace(int numQuadNodes,double* quadNodes,double* quadWeights) {
-     Finley_Quad_makeNodesOnFace(1,numQuadNodes,quadNodes,quadWeights,Finley_Quad_getNodesPoint);
-}
-
-void Finley_Quad_makeNodesOnFace(int dim, int numQuadNodes,double* quadNodes,double* quadWeights, Finley_Quad_getNodes getFaceNodes) {
-    int q,i;
-    double *quadNodesOnFace=NULL;
-    #define DIM dim
-    quadNodesOnFace=TMPMEMALLOC(numQuadNodes*(dim-1),double);
-
-    if (! Finley_checkPtr(quadNodesOnFace) ) {
-       getFaceNodes(numQuadNodes,quadNodesOnFace,quadWeights);
-       if (Finley_noError()) {
-          for (q=0;q<numQuadNodes;q++) {
-             for (i=0;i<dim-1;i++) QUADNODES(i,q)=quadNodesOnFace[INDEX2(i,q,dim-1)];
-             QUADNODES(dim-1,q)=0;
-          }
-       }
-       TMPMEMFREE(quadNodesOnFace);
-    }
-    #undef DIM
-}
 
 /**************************************************************/
 
@@ -1283,12 +1274,7 @@ void Finley_Quad_makeNodesOnFace(int dim, int numQuadNodes,double* quadNodes,dou
 
 
 int Finley_Quad_getNumNodesPoint(int order) {
-  if (order <0 ) {
-    Finley_setError(VALUE_ERROR,"Finley_Quad_getNumNodesPoint: Negative intergration order.");
-    return -1;
-  } else { 
     return 0;
-  }
 }
 
 int Finley_Quad_getNumNodesLine(int order) {
@@ -1385,4 +1371,457 @@ int Finley_Quad_getNumNodesHex(int order) {
   } else {
       return -1;
   }
+}
+dim_t Finley_Quad_MacroPoint(dim_t numSubElements, int numQuadNodes, double* quadNodes, double* quadWeights, dim_t numF, double* dFdv, 
+							dim_t new_len, double* new_quadNodes, double* new_quadWeights, double* new_dFdv ) 
+{
+	return 0;
+	
+}
+dim_t Finley_Quad_MacroLine(dim_t numSubElements, int numQuadNodes, double* quadNodes, double* quadWeights, dim_t numF, double* dFdv, 
+							dim_t new_len, double* new_quadNodes, double* new_quadWeights, double* new_dFdv  ) 
+{
+	#define DIM 1
+	dim_t s,q,i;
+	register double x0, w;
+	const double f=1./((double)numSubElements);
+	
+	if (new_len < numSubElements*numQuadNodes) {
+		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroLine: array for new qurature scheme is too small");
+	}
+	for (q=0; q<numQuadNodes; ++q) {
+			
+		x0=quadNodes[INDEX2(0,q,DIM)];
+		w=f*quadWeights[q];
+		
+		for (s=0; s<numSubElements; ++s) {
+		   new_quadWeights[INDEX2(q,s, numQuadNodes)]	=w;
+	           new_quadNodes[INDEX3(0,q,s, DIM,numQuadNodes)]	=(x0+s)*f;
+                   for (i=0;i<numF;i++) new_dFdv[INDEX4(i,0,q,s, numF, DIM,numQuadNodes)] = dFdv[INDEX3(i,0,numF, q,DIM)]*f;
+		}
+
+	}
+	#undef DIM
+	return numSubElements*numQuadNodes;
+}
+#define HALF 0.5
+#define TWO 2.
+dim_t Finley_Quad_MacroTri(dim_t numSubElements, int numQuadNodes, double* quadNodes, double* quadWeights, dim_t numF, double* dFdv,
+									dim_t new_len, double* new_quadNodes, double* new_quadWeights, double* new_dFdv  ) 
+{
+
+	#define DIM 2
+	dim_t q,i;
+	register double x0, x1, w, df0, df1;
+	
+    if (new_len < numSubElements*numQuadNodes) {
+		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroTri: array for new qurature scheme is too small");
+		return -1;
+	}
+	if (numSubElements==1) {
+		
+		for (q=0; q<numQuadNodes; ++q) {
+			
+			x0=quadNodes[INDEX2(0,q,DIM)];
+			x1=quadNodes[INDEX2(1,q,DIM)];
+			w=quadWeights[q];
+			
+			new_quadWeights[INDEX2(q,0,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,0,DIM,numQuadNodes)]	=x0;
+		        new_quadNodes[INDEX3(1,q,0,DIM,numQuadNodes)]	=x1;
+                        for (i=0;i<numF;i++) {
+                            new_dFdv[INDEX4(i,0,q,0, numF,DIM,numQuadNodes)] = dFdv[INDEX3(i,0,q, numF, DIM)];
+                            new_dFdv[INDEX4(i,1,q,0, numF,DIM,numQuadNodes)] = dFdv[INDEX3(i,1,q, numF, DIM)];
+                        }
+
+	    }
+		
+	} else if (numSubElements==4) {
+                const double f = 0.25;
+		for (q=0; q<numQuadNodes; ++q) {
+			
+			x0=quadNodes[INDEX2(0,q,DIM)];
+			x1=quadNodes[INDEX2(1,q,DIM)];
+			w=f*quadWeights[q];
+			
+			new_quadWeights[INDEX2(q,0,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,0,DIM,numQuadNodes)]	=HALF*x0;
+		        new_quadNodes[INDEX3(1,q,0,DIM,numQuadNodes)]	=HALF*x1;
+			
+			new_quadWeights[INDEX2(q,1,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,1,DIM,numQuadNodes)]	=HALF*x0;
+		        new_quadNodes[INDEX3(1,q,1,DIM,numQuadNodes)]	=HALF*(x1+1);
+			
+			new_quadWeights[INDEX2(q,2,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,2,DIM,numQuadNodes)]	=HALF*(x0+1);
+		        new_quadNodes[INDEX3(1,q,2,DIM,numQuadNodes)]	=HALF*x1;
+			
+			new_quadWeights[INDEX2(q,3,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,3,DIM,numQuadNodes)]	=HALF*(1-x0);
+		        new_quadNodes[INDEX3(1,q,3,DIM,numQuadNodes)]	=HALF*(1-x1);
+
+                        for (i=0;i<numF;i++) {
+                            df0=dFdv[INDEX3(i,0,q, numF, DIM)]*TWO;
+                            df1=dFdv[INDEX3(i,1,q, numF, DIM)]*TWO;
+
+                            new_dFdv[INDEX4(i,0,q,0, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,0, numF,DIM,numQuadNodes)] = df1;
+
+                            new_dFdv[INDEX4(i,0,q,1, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,1, numF,DIM,numQuadNodes)] = df1;
+
+                            new_dFdv[INDEX4(i,0,q,2, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,2, numF,DIM,numQuadNodes)] = df1;
+
+                            new_dFdv[INDEX4(i,0,q,3, numF,DIM,numQuadNodes)] = -df0;
+                            new_dFdv[INDEX4(i,1,q,3, numF,DIM,numQuadNodes)] = -df1;
+                        }
+
+
+	    }
+	} else {
+		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroTri: unable to create quadrature scheme for macro element.");
+		return -1;
+	}
+	#undef DIM
+	return numSubElements*numQuadNodes;
+}
+
+dim_t Finley_Quad_MacroRec(dim_t numSubElements, int numQuadNodes, double* quadNodes, double* quadWeights, dim_t numF, double* dFdv,
+						dim_t new_len, double* new_quadNodes, double* new_quadWeights, double* new_dFdv   )
+{
+
+	#define DIM 2
+	dim_t q,i;
+	register double x0, x1, w, df0, df1;
+	
+    if (new_len < numSubElements*numQuadNodes) {
+		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroRec: array for new qurature scheme is too small");
+		return -1;
+	}
+	if (numSubElements==1) {
+		
+		for (q=0; q<numQuadNodes; ++q) {
+			
+			x0=quadNodes[INDEX2(0,q,DIM)];
+			x1=quadNodes[INDEX2(1,q,DIM)];
+			w=quadWeights[q];
+			
+			new_quadWeights[INDEX2(q,0,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,0,DIM,numQuadNodes)]	=x0;
+		        new_quadNodes[INDEX3(1,q,0,DIM,numQuadNodes)]	=x1;
+                        for (i=0;i<numF;i++) {
+                            new_dFdv[INDEX4(i,0,q,0, numF, DIM,numQuadNodes)] = dFdv[INDEX3(i,0, q,numF, DIM)];
+                            new_dFdv[INDEX4(i,1,q,0, numF, DIM,numQuadNodes)] = dFdv[INDEX3(i,1, q,numF, DIM)];
+                        }
+
+	    }
+		
+	} else if (numSubElements==4) {
+                const double f = 0.25;
+		for (q=0; q<numQuadNodes; ++q) {
+			
+			x0=quadNodes[INDEX2(0,q,DIM)];
+			x1=quadNodes[INDEX2(1,q,DIM)];
+			w=f*quadWeights[q];
+			
+			new_quadWeights[INDEX2(q,0,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,0,DIM,numQuadNodes)]	=HALF*x0;
+		        new_quadNodes[INDEX3(1,q,0,DIM,numQuadNodes)]	=HALF*x1;
+			
+			new_quadWeights[INDEX2(q,1,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,1,DIM,numQuadNodes)]	=HALF*x0;
+		        new_quadNodes[INDEX3(1,q,1,DIM,numQuadNodes)]	=HALF*(x1+1);
+			
+			new_quadWeights[INDEX2(q,2,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,2,DIM,numQuadNodes)]	=HALF*(x0+1);
+		        new_quadNodes[INDEX3(1,q,2,DIM,numQuadNodes)]	=HALF*x1;
+			
+			new_quadWeights[INDEX2(q,3,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,3,DIM,numQuadNodes)]	=HALF*(x0+1);
+		        new_quadNodes[INDEX3(1,q,3,DIM,numQuadNodes)]	=HALF*(x1+1);
+
+                        for (i=0;i<numF;i++) {
+                            df0=dFdv[INDEX3(i,0,q, numF, DIM)]*TWO;
+                            df1=dFdv[INDEX3(i,1,q, numF, DIM)]*TWO;
+
+                            new_dFdv[INDEX4(i,0,q,0, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,0, numF,DIM,numQuadNodes)] = df1;
+
+                            new_dFdv[INDEX4(i,0,q,1, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,1, numF,DIM,numQuadNodes)] = df1;
+
+                            new_dFdv[INDEX4(i,0,q,2, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,2, numF,DIM,numQuadNodes)] = df1;
+
+                            new_dFdv[INDEX4(i,0,q,3, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,3, numF,DIM,numQuadNodes)] = df1;
+                        }
+
+	    }
+	} else {
+		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroRec: unable to create quadrature scheme for macro element.");
+		return -1;
+	}
+	#undef DIM
+	return numSubElements*numQuadNodes;
+}
+
+
+dim_t Finley_Quad_MacroTet(dim_t numSubElements, int numQuadNodes, double* quadNodes, double* quadWeights, dim_t numF, double* dFdv,
+								dim_t new_len, double* new_quadNodes, double* new_quadWeights, double* new_dFdv )
+{
+	#define DIM 3
+	dim_t q, i;
+	register double x0, x1, x2, w, df0, df1, df2;
+	
+    if (new_len < numSubElements*numQuadNodes) {
+		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroTet: array for new qurature scheme is too small");
+		return -1;
+	}
+	if (numSubElements==1) {
+		
+		for (q=0; q<numQuadNodes; ++q) {
+			
+			x0=quadNodes[INDEX2(0,q,DIM)];
+			x1=quadNodes[INDEX2(1,q,DIM)];
+			x2=quadNodes[INDEX2(2,q,DIM)];
+			w=quadWeights[q];
+			
+			new_quadWeights[INDEX2(q,0,numQuadNodes)]		=w;
+     		        new_quadNodes[INDEX3(0,q,0,DIM,numQuadNodes)]	=x0;
+		        new_quadNodes[INDEX3(1,q,0,DIM,numQuadNodes)]	=x1;
+			new_quadNodes[INDEX3(2,q,0,DIM,numQuadNodes)]	=x2;
+
+                        for (i=0;i<numF;i++) {
+                            new_dFdv[INDEX4(i,0,q,0, numF, DIM,numQuadNodes)] = dFdv[INDEX3(i,0,q, numF, DIM)];
+                            new_dFdv[INDEX4(i,1,q,0, numF, DIM,numQuadNodes)] = dFdv[INDEX3(i,1,q, numF, DIM)];
+                            new_dFdv[INDEX4(i,2,q,0, numF, DIM,numQuadNodes)] = dFdv[INDEX3(i,2,q, numF, DIM)];
+                        }
+	    }
+		
+	} else if (numSubElements==8) {
+                const double f = 0.125;
+		for (q=0; q<numQuadNodes; ++q) {
+			
+			x0=quadNodes[INDEX2(0,q,DIM)];
+			x1=quadNodes[INDEX2(1,q,DIM)];
+			x2=quadNodes[INDEX2(2,q,DIM)];
+			w=f*quadWeights[q];
+			
+			new_quadWeights[INDEX2(q,0,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,0,DIM,numQuadNodes)]	=HALF*x0;
+		        new_quadNodes[INDEX3(1,q,0,DIM,numQuadNodes)]	=HALF*x1;
+			new_quadNodes[INDEX3(2,q,0,DIM,numQuadNodes)]	=HALF*x2;
+			
+			new_quadWeights[INDEX2(q,1,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,1,DIM,numQuadNodes)]	=HALF*(x0+1);
+		        new_quadNodes[INDEX3(1,q,1,DIM,numQuadNodes)]	=HALF*x1;
+			new_quadNodes[INDEX3(2,q,1,DIM,numQuadNodes)]	=HALF*x2;
+			
+			new_quadWeights[INDEX2(q,2,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,2,DIM,numQuadNodes)]	=HALF*x0;
+		        new_quadNodes[INDEX3(1,q,2,DIM,numQuadNodes)]	=HALF*(x1+1);
+			new_quadNodes[INDEX3(2,q,2,DIM,numQuadNodes)]	=HALF*x2;
+			
+			new_quadWeights[INDEX2(q,3,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,3,DIM,numQuadNodes)]	=HALF*x0;
+		        new_quadNodes[INDEX3(1,q,3,DIM,numQuadNodes)]	=HALF*x1;
+			new_quadNodes[INDEX3(2,q,3,DIM,numQuadNodes)]	=HALF*(x2+1);
+
+			new_quadWeights[INDEX2(q,4,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,4,DIM,numQuadNodes)]	=HALF*(1-x1);
+		        new_quadNodes[INDEX3(1,q,4,DIM,numQuadNodes)]	=HALF*(x0+x1);
+			new_quadNodes[INDEX3(2,q,4,DIM,numQuadNodes)]	=HALF*x2;
+			
+			new_quadWeights[INDEX2(q,5,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,5,DIM,numQuadNodes)]	=HALF*(1-x0-x2);
+		        new_quadNodes[INDEX3(1,q,5,DIM,numQuadNodes)]	=HALF*(1-x1);
+			new_quadNodes[INDEX3(2,q,5,DIM,numQuadNodes)]	=HALF*(x0+x1);
+			
+			new_quadWeights[INDEX2(q,6,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,6,DIM,numQuadNodes)]	=HALF*x2;
+		        new_quadNodes[INDEX3(1,q,6,DIM,numQuadNodes)]	=HALF*(1-x0-x2);
+			new_quadNodes[INDEX3(2,q,6,DIM,numQuadNodes)]	=HALF*(1-x1);
+			
+			new_quadWeights[INDEX2(q,7,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,7,DIM,numQuadNodes)]	=HALF*(x0+x2);
+		        new_quadNodes[INDEX3(1,q,7,DIM,numQuadNodes)]	=HALF*x1;
+			new_quadNodes[INDEX3(2,q,7,DIM,numQuadNodes)]	=HALF*(1-x0-x1);
+
+                        for (i=0;i<numF;i++) {
+                            df0=dFdv[INDEX3(i,0,q, numF, DIM)]*TWO;
+                            df1=dFdv[INDEX3(i,1,q, numF, DIM)]*TWO;
+                            df2=dFdv[INDEX3(i,2,q, numF, DIM)]*TWO;
+
+                            new_dFdv[INDEX4(i,0,q,0, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,0, numF,DIM,numQuadNodes)] = df1;
+                            new_dFdv[INDEX4(i,2,q,0, numF,DIM,numQuadNodes)] = df2;
+
+                            new_dFdv[INDEX4(i,0,q,1, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,1, numF,DIM,numQuadNodes)] = df1;
+                            new_dFdv[INDEX4(i,2,q,1, numF,DIM,numQuadNodes)] = df2;
+
+                            new_dFdv[INDEX4(i,0,q,2, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,2, numF,DIM,numQuadNodes)] = df1;
+                            new_dFdv[INDEX4(i,2,q,2, numF,DIM,numQuadNodes)] = df2;
+
+                            new_dFdv[INDEX4(i,0,q,3, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,3, numF,DIM,numQuadNodes)] = df1;
+                            new_dFdv[INDEX4(i,2,q,3, numF,DIM,numQuadNodes)] = df2;
+
+                            new_dFdv[INDEX4(i,0,q,4, numF,DIM,numQuadNodes)] = df0-df1;
+                            new_dFdv[INDEX4(i,1,q,4, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,2,q,4, numF,DIM,numQuadNodes)] = df2;
+
+                            new_dFdv[INDEX4(i,0,q,5, numF,DIM,numQuadNodes)] = -df2;
+                            new_dFdv[INDEX4(i,1,q,5, numF,DIM,numQuadNodes)] = df0-df2-df1;
+                            new_dFdv[INDEX4(i,2,q,5, numF,DIM,numQuadNodes)] = df0-df2;
+
+                            new_dFdv[INDEX4(i,0,q,6, numF,DIM,numQuadNodes)] = -df0+df2;
+                            new_dFdv[INDEX4(i,1,q,6, numF,DIM,numQuadNodes)] = -df0;
+                            new_dFdv[INDEX4(i,2,q,6, numF,DIM,numQuadNodes)] = -df1;
+
+                            new_dFdv[INDEX4(i,0,q,7, numF,DIM,numQuadNodes)] = df2;
+                            new_dFdv[INDEX4(i,1,q,7, numF,DIM,numQuadNodes)] = -df0+df1+df2;
+                            new_dFdv[INDEX4(i,2,q,7, numF,DIM,numQuadNodes)] = -df0+df2;
+                        }
+
+	    }
+	} else {
+		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroTet: unable to create quadrature scheme for macro element.");
+		return -1;
+	}
+	#undef DIM
+	return numSubElements*numQuadNodes;
+}
+
+
+dim_t Finley_Quad_MacroHex(dim_t numSubElements, int numQuadNodes, double* quadNodes, double* quadWeights, dim_t numF, double* dFdv,
+     			   dim_t new_len, double* new_quadNodes, double* new_quadWeights , double* new_dFdv)
+{
+
+	#define DIM 3
+	dim_t q, i;
+	register double x0, x1, x2, w, df0, df1, df2;
+	
+    if (new_len < numSubElements*numQuadNodes) {
+		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroHex: array for new qurature scheme is too small");
+		return -1;
+	}
+	if (numSubElements==1) {
+		
+		for (q=0; q<numQuadNodes; ++q) {
+			
+			x0=quadNodes[INDEX2(0,q,DIM)];
+			x1=quadNodes[INDEX2(1,q,DIM)];
+			x2=quadNodes[INDEX2(2,q,DIM)];
+			w=quadWeights[q];
+			
+			new_quadWeights[INDEX2(q,0,numQuadNodes)]		=w;
+    		        new_quadNodes[INDEX3(0,q,0,DIM,numQuadNodes)]	=x0;
+		        new_quadNodes[INDEX3(1,q,0,DIM,numQuadNodes)]	=x1;
+			new_quadNodes[INDEX3(2,q,0,DIM,numQuadNodes)]	=x2;
+
+                        for (i=0;i<numF;i++) {
+                            new_dFdv[INDEX4(i,0,q,0, numF, DIM,numQuadNodes)] = dFdv[INDEX3(i,0,q,numF, DIM)];
+                            new_dFdv[INDEX4(i,1,q,0, numF, DIM,numQuadNodes)] = dFdv[INDEX3(i,1,q,numF, DIM)];
+                            new_dFdv[INDEX4(i,2,q,0, numF, DIM,numQuadNodes)] = dFdv[INDEX3(i,2,q,numF, DIM)];
+                        }
+	    }
+		
+	} else if (numSubElements==8) {
+                const double f = 0.125;
+		for (q=0; q<numQuadNodes; ++q) {
+			
+			x0=quadNodes[INDEX2(0,q,DIM)];
+			x1=quadNodes[INDEX2(1,q,DIM)];
+			x2=quadNodes[INDEX2(2,q,DIM)];
+			w=f*quadWeights[q];
+			
+			new_quadWeights[INDEX2(q,0,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,0,DIM,numQuadNodes)]	=HALF*x0;
+		        new_quadNodes[INDEX3(1,q,0,DIM,numQuadNodes)]	=HALF*x1;
+			new_quadNodes[INDEX3(2,q,0,DIM,numQuadNodes)]	=HALF*x2;
+			
+			new_quadWeights[INDEX2(q,1,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,1,DIM,numQuadNodes)]	=HALF*(x0+1);
+		        new_quadNodes[INDEX3(1,q,1,DIM,numQuadNodes)]	=HALF*x1;
+			new_quadNodes[INDEX3(2,q,1,DIM,numQuadNodes)]	=HALF*x2;
+			
+			new_quadWeights[INDEX2(q,2,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,2,DIM,numQuadNodes)]	=HALF*x0;
+		        new_quadNodes[INDEX3(1,q,2,DIM,numQuadNodes)]	=HALF*(x1+1);
+			new_quadNodes[INDEX3(2,q,2,DIM,numQuadNodes)]	=HALF*x2;
+			
+			new_quadWeights[INDEX2(q,3,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,3,DIM,numQuadNodes)]	=HALF*(x0+1);
+		        new_quadNodes[INDEX3(1,q,3,DIM,numQuadNodes)]	=HALF*(x1+1);
+			new_quadNodes[INDEX3(2,q,3,DIM,numQuadNodes)]	=HALF*x2;
+			
+			new_quadWeights[INDEX2(q,4,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,4,DIM,numQuadNodes)]	=HALF*x0;
+		        new_quadNodes[INDEX3(1,q,4,DIM,numQuadNodes)]	=HALF*x1;
+			new_quadNodes[INDEX3(2,q,4,DIM,numQuadNodes)]	=HALF*(x2+1);
+			
+			new_quadWeights[INDEX2(q,5,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,5,DIM,numQuadNodes)]	=HALF*(x0+1);
+		        new_quadNodes[INDEX3(1,q,5,DIM,numQuadNodes)]	=HALF*x1;
+			new_quadNodes[INDEX3(2,q,5,DIM,numQuadNodes)]	=HALF*(x2+1);
+			
+			new_quadWeights[INDEX2(q,6,numQuadNodes)]		=w;
+		        new_quadNodes[INDEX3(0,q,6,DIM,numQuadNodes)]	=HALF*x0;
+		        new_quadNodes[INDEX3(1,q,6,DIM,numQuadNodes)]	=HALF*(x1+1);
+			new_quadNodes[INDEX3(2,q,6,DIM,numQuadNodes)]	=HALF*(x2+1);
+			
+			new_quadWeights[INDEX2(q,7,numQuadNodes)]		=w;
+			new_quadNodes[INDEX3(0,q,7,DIM,numQuadNodes)]	=HALF*(x0+1);
+		        new_quadNodes[INDEX3(1,q,7,DIM,numQuadNodes)]	=HALF*(x1+1);
+			new_quadNodes[INDEX3(2,q,7,DIM,numQuadNodes)]	=HALF*(x2+1);
+
+                        for (i=0;i<numF;i++) {
+                            df0=dFdv[INDEX3(i,0,q, numF, DIM)]*TWO;
+                            df1=dFdv[INDEX3(i,1,q, numF, DIM)]*TWO;
+                            df2=dFdv[INDEX3(i,2,q, numF, DIM)]*TWO;
+
+                            new_dFdv[INDEX4(i,0,q,0, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,0, numF,DIM,numQuadNodes)] = df1;
+                            new_dFdv[INDEX4(i,2,q,0, numF,DIM,numQuadNodes)] = df2;
+
+                            new_dFdv[INDEX4(i,0,q,1, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,1, numF,DIM,numQuadNodes)] = df1;
+                            new_dFdv[INDEX4(i,2,q,1, numF,DIM,numQuadNodes)] = df2;
+
+                            new_dFdv[INDEX4(i,0,q,2, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,2, numF,DIM,numQuadNodes)] = df1;
+                            new_dFdv[INDEX4(i,2,q,2, numF,DIM,numQuadNodes)] = df2;
+
+                            new_dFdv[INDEX4(i,0,q,3, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,3, numF,DIM,numQuadNodes)] = df1;
+                            new_dFdv[INDEX4(i,2,q,3, numF,DIM,numQuadNodes)] = df2;
+
+                            new_dFdv[INDEX4(i,0,q,4, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,4, numF,DIM,numQuadNodes)] = df1;
+                            new_dFdv[INDEX4(i,2,q,4, numF,DIM,numQuadNodes)] = df2;
+
+                            new_dFdv[INDEX4(i,0,q,5, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,5, numF,DIM,numQuadNodes)] = df1;
+                            new_dFdv[INDEX4(i,2,q,5, numF,DIM,numQuadNodes)] = df2;
+
+                            new_dFdv[INDEX4(i,0,q,6, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,6, numF,DIM,numQuadNodes)] = df1;
+                            new_dFdv[INDEX4(i,2,q,6, numF,DIM,numQuadNodes)] = df2;
+
+                            new_dFdv[INDEX4(i,0,q,7, numF,DIM,numQuadNodes)] = df0;
+                            new_dFdv[INDEX4(i,1,q,7, numF,DIM,numQuadNodes)] = df1;
+                            new_dFdv[INDEX4(i,2,q,7, numF,DIM,numQuadNodes)] = df2;
+                        }
+
+	    }
+	} else {
+		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroHex: unable to create quadrature scheme for macro element.");
+		return -1;
+	}
+	#undef DIM
+	return numSubElements*numQuadNodes;
 }

@@ -122,13 +122,14 @@ void Finley_Mesh_dump(Finley_Mesh *in,char* fname);
 void Finley_PrintMesh_Info(Finley_Mesh *, bool_t);
 Finley_Mesh* Finley_Mesh_load(char* fname);
 Finley_Mesh* Finley_Mesh_read(char*,index_t, index_t, bool_t);
-Finley_Mesh* Finley_Mesh_read_MPI(char*,index_t, index_t, bool_t);
 Finley_Mesh* Finley_Mesh_readGmsh(char*,index_t, index_t, index_t, bool_t, bool_t);
+
 void Finley_Mesh_setCoordinates(Finley_Mesh*,escriptDataC*);
 void Finley_Mesh_setElements(Finley_Mesh* self,Finley_ElementFile *elements);
 void Finley_Mesh_setFaceElements(Finley_Mesh* self,Finley_ElementFile *elements);
 void Finley_Mesh_setContactElements(Finley_Mesh* self,Finley_ElementFile *elements);
 void Finley_Mesh_setPoints(Finley_Mesh* self,Finley_ElementFile *elements);
+
 void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution);
 void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize);
 void Finley_Mesh_createColoring(Finley_Mesh* in, index_t *node_localDOF_map);

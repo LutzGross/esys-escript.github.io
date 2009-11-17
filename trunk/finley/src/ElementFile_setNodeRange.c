@@ -28,8 +28,8 @@
 
 void Finley_ElementFile_setNodeRange(index_t* min_id,index_t* max_id,Finley_ElementFile* in) {
    if (in!=NULL) {
-      *min_id=Finley_Util_getMinInt(in->ReferenceElement->Type->numNodes,in->numElements,in->Nodes);
-      *max_id=Finley_Util_getMaxInt(in->ReferenceElement->Type->numNodes,in->numElements,in->Nodes);
+      *min_id=Finley_Util_getMinInt(in->numNodes, in->numElements,in->Nodes);
+      *max_id=Finley_Util_getMaxInt(in->numNodes, in->numElements,in->Nodes);
    } else {
        *min_id=INDEX_T_MAX;
        *max_id=-INDEX_T_MAX;

@@ -240,13 +240,13 @@ void MeshAdapter::dump(const std::string& fileName) const
       throw DataException("Error - MeshAdapter::dump: appending num_FaceElements_numNodes to NetCDF file failed: " + *newFileName);
    if (!dataFile.add_att("num_ContactElements_numNodes",num_ContactElements_numNodes) )
       throw DataException("Error - MeshAdapter::dump: appending num_ContactElements_numNodes to NetCDF file failed: " + *newFileName);
-   if (!dataFile.add_att("Elements_TypeId", mesh->Elements->ReferenceElement->Type->TypeId) )
+   if (!dataFile.add_att("Elements_TypeId", mesh->Elements->referenceElementSet->referenceElement->Type->TypeId) )
       throw DataException("Error - MeshAdapter::dump: appending Elements_TypeId to NetCDF file failed: " + *newFileName);
-   if (!dataFile.add_att("FaceElements_TypeId", mesh->FaceElements->ReferenceElement->Type->TypeId) )
+   if (!dataFile.add_att("FaceElements_TypeId", mesh->FaceElements->referenceElementSet->referenceElement->Type->TypeId) )
       throw DataException("Error - MeshAdapter::dump: appending FaceElements_TypeId to NetCDF file failed: " + *newFileName);
-   if (!dataFile.add_att("ContactElements_TypeId", mesh->ContactElements->ReferenceElement->Type->TypeId) )
+   if (!dataFile.add_att("ContactElements_TypeId", mesh->ContactElements->referenceElementSet->referenceElement->Type->TypeId) )
       throw DataException("Error - MeshAdapter::dump: appending ContactElements_TypeId to NetCDF file failed: " + *newFileName);
-   if (!dataFile.add_att("Points_TypeId", mesh->Points->ReferenceElement->Type->TypeId) )
+   if (!dataFile.add_att("Points_TypeId", mesh->Points->referenceElementSet->referenceElement->Type->TypeId) )
       throw DataException("Error - MeshAdapter::dump: appending Points_TypeId to NetCDF file failed: " + *newFileName);
    if (!dataFile.add_att("num_Tags", num_Tags) )
       throw DataException("Error - MeshAdapter::dump: appending num_Tags to NetCDF file failed: " + *newFileName);
@@ -693,24 +693,24 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
    case(Elements):
    if (mesh->Elements!=NULL) {
       numSamples=mesh->Elements->numElements;
-      numDataPointsPerSample=mesh->Elements->ReferenceElement->numQuadNodes;
+      numDataPointsPerSample=mesh->Elements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
    }
    break;
    case(ReducedElements):
    if (mesh->Elements!=NULL) {
       numSamples=mesh->Elements->numElements;
-      numDataPointsPerSample=mesh->Elements->ReferenceElementReducedOrder->numQuadNodes;
+      numDataPointsPerSample=mesh->Elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
    }
    break;
    case(FaceElements):
    if (mesh->FaceElements!=NULL) {
-      numDataPointsPerSample=mesh->FaceElements->ReferenceElement->numQuadNodes;
+      numDataPointsPerSample=mesh->FaceElements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
       numSamples=mesh->FaceElements->numElements;
    }
    break;
    case(ReducedFaceElements):
    if (mesh->FaceElements!=NULL) {
-      numDataPointsPerSample=mesh->FaceElements->ReferenceElementReducedOrder->numQuadNodes;
+      numDataPointsPerSample=mesh->FaceElements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
       numSamples=mesh->FaceElements->numElements;
    }
    break;
@@ -722,25 +722,25 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
    break;
    case(ContactElementsZero):
    if (mesh->ContactElements!=NULL) {
-      numDataPointsPerSample=mesh->ContactElements->ReferenceElement->numQuadNodes;
+      numDataPointsPerSample=mesh->ContactElements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
       numSamples=mesh->ContactElements->numElements;
    }
    break;
    case(ReducedContactElementsZero):
    if (mesh->ContactElements!=NULL) {
-      numDataPointsPerSample=mesh->ContactElements->ReferenceElementReducedOrder->numQuadNodes;
+      numDataPointsPerSample=mesh->ContactElements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
       numSamples=mesh->ContactElements->numElements;
    }
    break;
    case(ContactElementsOne):
    if (mesh->ContactElements!=NULL) {
-      numDataPointsPerSample=mesh->ContactElements->ReferenceElement->numQuadNodes;
+      numDataPointsPerSample=mesh->ContactElements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
       numSamples=mesh->ContactElements->numElements;
    }
    break;
    case(ReducedContactElementsOne):
    if (mesh->ContactElements!=NULL) {
-      numDataPointsPerSample=mesh->ContactElements->ReferenceElementReducedOrder->numQuadNodes;
+      numDataPointsPerSample=mesh->ContactElements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
       numSamples=mesh->ContactElements->numElements;
    }
    break;

@@ -64,8 +64,8 @@ void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
   /*  write elements: */
 
   if (in->Elements!=NULL) {
-    fprintf(f, "%s %d\n",in->Elements->ReferenceElement->Type->Name,in->Elements->numElements);
-    NN=in->Elements->numNodes;
+    fprintf(f, "%s %d\n",in->Elements->referenceElementSet->referenceElement->Type->Name,in->Elements->numElements);
+    NN=in->Elements->numNodes; 
     for (i=0;i<in->Elements->numElements;i++) {
       fprintf(f,"%d %d",in->Elements->Id[i],in->Elements->Tag[i]);
       for (j=0;j<NN;j++) fprintf(f," %d",in->Nodes->Id[in->Elements->Nodes[INDEX2(j,i,NN)]]);
@@ -77,7 +77,7 @@ void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
 
   /*  write face elements: */
   if (in->FaceElements!=NULL) {
-    fprintf(f, "%s %d\n", in->FaceElements->ReferenceElement->Type->Name,in->FaceElements->numElements);
+    fprintf(f, "%s %d\n", in->FaceElements->referenceElementSet->referenceElement->Type->Name,in->FaceElements->numElements);
     NN=in->FaceElements->numNodes;
     for (i=0;i<in->FaceElements->numElements;i++) {
       fprintf(f,"%d %d",in->FaceElements->Id[i],in->FaceElements->Tag[i]);
@@ -90,7 +90,7 @@ void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
 
   /*  write Contact elements : */
   if (in->ContactElements!=NULL) {
-    fprintf(f, "%s %d\n",in->ContactElements->ReferenceElement->Type->Name,in->ContactElements->numElements);
+    fprintf(f, "%s %d\n",in->ContactElements->referenceElementSet->referenceElement->Type->Name,in->ContactElements->numElements);
     NN=in->ContactElements->numNodes;
     for (i=0;i<in->ContactElements->numElements;i++) {
       fprintf(f,"%d %d",in->ContactElements->Id[i],in->ContactElements->Tag[i]);
@@ -103,7 +103,7 @@ void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
   
   /*  write points: */
   if (in->Points!=NULL) {
-    fprintf(f, "%s %d\n",in->Points->ReferenceElement->Type->Name,in->Points->numElements);
+    fprintf(f, "%s %d\n",in->Points->referenceElementSet->referenceElement->Type->Name,in->Points->numElements);
     for (i=0;i<in->Points->numElements;i++) {
       fprintf(f,"%d %d %d\n",in->Points->Id[i],in->Points->Tag[i],in->Nodes->Id[in->Points->Nodes[INDEX2(0,i,1)]]);
     }
@@ -157,7 +157,7 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
       if (in->Elements->Owner[i] == in->MPIInfo->rank) mine++;
       else overlap++;
     }
-    fprintf(stdout, "\tElements: %s %d (TypeId=%d) owner=%d overlap=%d\n",in->Elements->ReferenceElement->Type->Name,in->Elements->numElements,in->Elements->ReferenceElement->Type->TypeId, mine, overlap);
+    fprintf(stdout, "\tElements: %s %d (TypeId=%d) owner=%d overlap=%d\n",in->Elements->referenceElementSet->referenceElement->Type->Name,in->Elements->numElements,in->Elements->referenceElementSet->referenceElement->Type->TypeId, mine, overlap);
     NN=in->Elements->numNodes;
     if (full) {
       fprintf(stdout, "\t     Id   Tag Owner Color:  Nodes\n");
@@ -178,7 +178,7 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
       if (in->FaceElements->Owner[i] == in->MPIInfo->rank) mine++;
       else overlap++;
     }
-    fprintf(stdout, "\tFace elements: %s %d (TypeId=%d) owner=%d overlap=%d\n", in->FaceElements->ReferenceElement->Type->Name,in->FaceElements->numElements,in->FaceElements->ReferenceElement->Type->TypeId, mine, overlap);
+    fprintf(stdout, "\tFace elements: %s %d (TypeId=%d) owner=%d overlap=%d\n", in->FaceElements->referenceElementSet->referenceElement->Type->Name,in->FaceElements->numElements,in->FaceElements->referenceElementSet->referenceElement->Type->TypeId, mine, overlap);
     NN=in->FaceElements->numNodes;
     if (full) {
       fprintf(stdout, "\t     Id   Tag Owner Color:  Nodes\n");
@@ -199,7 +199,7 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
       if (in->ContactElements->Owner[i] == in->MPIInfo->rank) mine++;
       else overlap++;
     }
-    fprintf(stdout, "\tContact elements: %s %d (TypeId=%d) owner=%d overlap=%d\n",in->ContactElements->ReferenceElement->Type->Name,in->ContactElements->numElements,in->ContactElements->ReferenceElement->Type->TypeId, mine, overlap);
+    fprintf(stdout, "\tContact elements: %s %d (TypeId=%d) owner=%d overlap=%d\n",in->ContactElements->referenceElementSet->referenceElement->Type->Name,in->ContactElements->numElements,in->ContactElements->referenceElementSet->referenceElement->Type->TypeId, mine, overlap);
     NN=in->ContactElements->numNodes;
     if (full) {
       fprintf(stdout, "\t     Id   Tag Owner Color:  Nodes\n");
@@ -220,7 +220,7 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
       if (in->Points->Owner[i] == in->MPIInfo->rank) mine++;
       else overlap++;
     }
-    fprintf(stdout, "\tPoints: %s %d (TypeId=%d) owner=%d overlap=%d\n",in->Points->ReferenceElement->Type->Name,in->Points->numElements,in->Points->ReferenceElement->Type->TypeId, mine, overlap);
+    fprintf(stdout, "\tPoints: %s %d (TypeId=%d) owner=%d overlap=%d\n",in->Points->referenceElementSet->referenceElement->Type->Name,in->Points->numElements,in->Points->referenceElementSet->referenceElement->Type->TypeId, mine, overlap);
     if (full) {
       fprintf(stdout, "\t     Id   Tag Owner Color:  Nodes\n");
       for (i=0;i<in->Points->numElements;i++) {

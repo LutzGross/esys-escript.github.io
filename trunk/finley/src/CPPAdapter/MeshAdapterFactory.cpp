@@ -192,12 +192,16 @@ namespace finley {
 
         /* read elements */
         if (Finley_noError()) {
-          mesh_p->Elements=Finley_ElementFile_alloc((ElementTypeId)Elements_TypeId,mesh_p->order, mesh_p->reduced_order, mpi_info);
+		  Finley_ReferenceElementSet  *refElements=	Finley_ReferenceElementSet_alloc((ElementTypeId)Elements_TypeId,mesh_p->order, mesh_p->reduced_order);
+		  if (Finley_noError())  {
+			  mesh_p->Elements=Finley_ElementFile_alloc(refElements, mpi_info);
+		  }
+		  Finley_ReferenceElementSet_dealloc(refElements);
           if (Finley_noError()) Finley_ElementFile_allocTable(mesh_p->Elements, num_Elements);
-          mesh_p->Elements->minColor=0;
-          mesh_p->Elements->maxColor=num_Elements-1;
-          if (num_Elements>0) {
-                 if (Finley_noError()) {
+		  if (Finley_noError()) {
+			  mesh_p->Elements->minColor=0;
+			  mesh_p->Elements->maxColor=num_Elements-1;
+			  if (num_Elements>0) {
 	           // Elements_Id
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Id")) )
                      throw DataException("Error - loadMesh:: unable to read Elements_Id from netCDF file: " + *fName);
@@ -227,7 +231,7 @@ namespace finley {
                      throw DataException("Error - loadMesh:: unable to recover Elements_Color from NetCDF file: " + *fName);
                    }
 	           // Elements_Nodes
-		   int *Elements_Nodes = TMPMEMALLOC(num_Elements*num_Elements_numNodes,int);
+			   		int *Elements_Nodes = TMPMEMALLOC(num_Elements*num_Elements_numNodes,int);
                    if (!(nc_var_temp = dataFile.get_var("Elements_Nodes"))) {
                      TMPMEMFREE(mesh_p->Elements->Nodes);
                      throw DataException("Error - loadMesh:: unable to read Elements_Nodes from netCDF file: " + *fName);
@@ -236,26 +240,31 @@ namespace finley {
                      TMPMEMFREE(Elements_Nodes);
                      throw DataException("Error - load:: unable to recover Elements_Nodes from netCDF file: " + *fName);
                    }
-		   // Copy temp array into mesh_p->Elements->Nodes
-		   for (int i=0; i<num_Elements; i++) {
-		     for (int j=0; j<num_Elements_numNodes; j++) {
-		       mesh_p->Elements->Nodes[INDEX2(j,i,num_Elements_numNodes)]
-		         = Elements_Nodes[INDEX2(j,i,num_Elements_numNodes)];
-		     }
-		   }
-		   TMPMEMFREE(Elements_Nodes);
-		 }
-	  } /* num_Elements>0 */
+				   // Copy temp array into mesh_p->Elements->Nodes
+				   for (int i=0; i<num_Elements; i++) {
+					   for (int j=0; j<num_Elements_numNodes; j++) {
+						   mesh_p->Elements->Nodes[INDEX2(j,i,num_Elements_numNodes)]
+						   = Elements_Nodes[INDEX2(j,i,num_Elements_numNodes)];
+					   }
+				   }
+				   TMPMEMFREE(Elements_Nodes);
+				
+			  } /* num_Elements>0 */
+		  }
 	}
 
         /* get the face elements */
         if (Finley_noError()) {
-          mesh_p->FaceElements=Finley_ElementFile_alloc((ElementTypeId)FaceElements_TypeId,mesh_p->order, mesh_p->reduced_order, mpi_info);
+		  Finley_ReferenceElementSet *refFaceElements=	Finley_ReferenceElementSet_alloc((ElementTypeId)FaceElements_TypeId	,mesh_p->order, mesh_p->reduced_order);
+		  if (Finley_noError())  {
+			  mesh_p->FaceElements=Finley_ElementFile_alloc(refFaceElements, mpi_info);
+		  }
+		  Finley_ReferenceElementSet_dealloc(refFaceElements);	
           if (Finley_noError()) Finley_ElementFile_allocTable(mesh_p->FaceElements, num_FaceElements);
-          mesh_p->FaceElements->minColor=0;
-          mesh_p->FaceElements->maxColor=num_FaceElements-1;
-          if (num_FaceElements>0) {
-                 if (Finley_noError()) {
+		  if (Finley_noError()) {
+			  mesh_p->FaceElements->minColor=0;
+			  mesh_p->FaceElements->maxColor=num_FaceElements-1;
+			  if (num_FaceElements>0) {
 	           // FaceElements_Id
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Id")) )
                      throw DataException("Error - loadMesh:: unable to read FaceElements_Id from netCDF file: " + *fName);
@@ -285,7 +294,7 @@ namespace finley {
                      throw DataException("Error - loadMesh:: unable to recover FaceElements_Color from NetCDF file: " + *fName);
                    }
 	           // FaceElements_Nodes
-		   int *FaceElements_Nodes = TMPMEMALLOC(num_FaceElements*num_FaceElements_numNodes,int);
+			   		int *FaceElements_Nodes = TMPMEMALLOC(num_FaceElements*num_FaceElements_numNodes,int);
                    if (!(nc_var_temp = dataFile.get_var("FaceElements_Nodes"))) {
                      TMPMEMFREE(mesh_p->FaceElements->Nodes);
                      throw DataException("Error - loadMesh:: unable to read FaceElements_Nodes from netCDF file: " + *fName);
@@ -294,26 +303,29 @@ namespace finley {
                      TMPMEMFREE(FaceElements_Nodes);
                      throw DataException("Error - load:: unable to recover FaceElements_Nodes from netCDF file: " + *fName);
                    }
-		   // Copy temp array into mesh_p->FaceElements->Nodes
-		   for (int i=0; i<num_FaceElements; i++) {
-		     for (int j=0; j<num_FaceElements_numNodes; j++) {
-		       mesh_p->FaceElements->Nodes[INDEX2(j,i,num_FaceElements_numNodes)]
-		         = FaceElements_Nodes[INDEX2(j,i,num_FaceElements_numNodes)];
-		     }
-		   }
-		   TMPMEMFREE(FaceElements_Nodes);
-		 }
-	  } /* num_FaceElements>0 */
+				 // Copy temp array into mesh_p->FaceElements->Nodes
+				 	for (int i=0; i<num_FaceElements; i++) {
+						for (int j=0; j<num_FaceElements_numNodes; j++) {
+							mesh_p->FaceElements->Nodes[INDEX2(j,i,num_FaceElements_numNodes)] = FaceElements_Nodes[INDEX2(j,i,num_FaceElements_numNodes)];
+						}
+					}
+					TMPMEMFREE(FaceElements_Nodes);
+			  } /* num_FaceElements>0 */
+		  }
 	}
 
         /* get the Contact elements */
         if (Finley_noError()) {
-          mesh_p->ContactElements=Finley_ElementFile_alloc((ElementTypeId)ContactElements_TypeId,mesh_p->order, mesh_p->reduced_order, mpi_info);
+		  Finley_ReferenceElementSet *refContactElements=	Finley_ReferenceElementSet_alloc((ElementTypeId)ContactElements_TypeId,mesh_p->order, mesh_p->reduced_order);
+		  if (Finley_noError())  {
+			  mesh_p->ContactElements=Finley_ElementFile_alloc(refContactElements, mpi_info);
+		  }
+		  Finley_ReferenceElementSet_dealloc(refContactElements);	
           if (Finley_noError()) Finley_ElementFile_allocTable(mesh_p->ContactElements, num_ContactElements);
-          mesh_p->ContactElements->minColor=0;
-          mesh_p->ContactElements->maxColor=num_ContactElements-1;
-          if (num_ContactElements>0) {
-                 if (Finley_noError()) {
+		  if (Finley_noError()) {
+			  mesh_p->ContactElements->minColor=0;
+			  mesh_p->ContactElements->maxColor=num_ContactElements-1;
+			  if (num_ContactElements>0) {
 	           // ContactElements_Id
                    if (! ( nc_var_temp = dataFile.get_var("ContactElements_Id")) )
                      throw DataException("Error - loadMesh:: unable to read ContactElements_Id from netCDF file: " + *fName);
@@ -343,7 +355,7 @@ namespace finley {
                      throw DataException("Error - loadMesh:: unable to recover ContactElements_Color from NetCDF file: " + *fName);
                    }
 	           // ContactElements_Nodes
-		   int *ContactElements_Nodes = TMPMEMALLOC(num_ContactElements*num_ContactElements_numNodes,int);
+			   		int *ContactElements_Nodes = TMPMEMALLOC(num_ContactElements*num_ContactElements_numNodes,int);
                    if (!(nc_var_temp = dataFile.get_var("ContactElements_Nodes"))) {
                      TMPMEMFREE(mesh_p->ContactElements->Nodes);
                      throw DataException("Error - loadMesh:: unable to read ContactElements_Nodes from netCDF file: " + *fName);
@@ -352,26 +364,30 @@ namespace finley {
                      TMPMEMFREE(ContactElements_Nodes);
                      throw DataException("Error - load:: unable to recover ContactElements_Nodes from netCDF file: " + *fName);
                    }
-		   // Copy temp array into mesh_p->ContactElements->Nodes
-		   for (int i=0; i<num_ContactElements; i++) {
-		     for (int j=0; j<num_ContactElements_numNodes; j++) {
-		       mesh_p->ContactElements->Nodes[INDEX2(j,i,num_ContactElements_numNodes)]
-		         = ContactElements_Nodes[INDEX2(j,i,num_ContactElements_numNodes)];
-		     }
-		   }
-		   TMPMEMFREE(ContactElements_Nodes);
-		 }
-	  } /* num_ContactElements>0 */
+				   // Copy temp array into mesh_p->ContactElements->Nodes
+				   	for (int i=0; i<num_ContactElements; i++) {
+						for (int j=0; j<num_ContactElements_numNodes; j++) {
+							mesh_p->ContactElements->Nodes[INDEX2(j,i,num_ContactElements_numNodes)]= ContactElements_Nodes[INDEX2(j,i,num_ContactElements_numNodes)];
+						}
+					}
+					TMPMEMFREE(ContactElements_Nodes);
+				 } /* num_ContactElements>0 */
+			  } 
+		  
 	}
 
         /* get the Points (nodal elements) */
         if (Finley_noError()) {
-          mesh_p->Points=Finley_ElementFile_alloc((ElementTypeId)Points_TypeId,mesh_p->order, mesh_p->reduced_order, mpi_info);
+		  Finley_ReferenceElementSet *refPoints=	Finley_ReferenceElementSet_alloc((ElementTypeId)Points_TypeId,mesh_p->order, mesh_p->reduced_order);
+		  if (Finley_noError())  {
+			  mesh_p->Points=Finley_ElementFile_alloc(refPoints, mpi_info);
+		  }
+		  Finley_ReferenceElementSet_dealloc(refPoints);
           if (Finley_noError()) Finley_ElementFile_allocTable(mesh_p->Points, num_Points);
-          mesh_p->Points->minColor=0;
-          mesh_p->Points->maxColor=num_Points-1;
-          if (num_Points>0) {
-             if (Finley_noError()) {
+		  if (Finley_noError()) {
+			  mesh_p->Points->minColor=0;
+			  mesh_p->Points->maxColor=num_Points-1;
+			  if (num_Points>0) {
 	           // Points_Id
                    if (! ( nc_var_temp = dataFile.get_var("Points_Id")) )
                      throw DataException("Error - loadMesh:: unable to read Points_Id from netCDF file: " + *fName);
@@ -415,9 +431,10 @@ namespace finley {
 		     mesh_p->Nodes->Id[mesh_p->Points->Nodes[INDEX2(0,i,1)]] = Points_Nodes[i];
 		   }
 		   TMPMEMFREE(Points_Nodes);
-	     }
-	  } /* num_Points>0 */
-	}
+	     
+			  } /* num_Points>0 */
+		  }
+		}
 
         /* get the tags */
         if (Finley_noError()) {
@@ -491,7 +508,7 @@ namespace finley {
     strcpy(fName,fileName.c_str());
     double blocktimer_start = blocktimer_time();
 
-    fMesh=Finley_Mesh_read_MPI(fName,integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE));
+    fMesh=Finley_Mesh_read(fName,integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE));
     checkFinleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     

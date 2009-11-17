@@ -811,7 +811,9 @@ env.Alias('remember_options', remember_list)
 ############### Record python interpreter version ##############
 
 if not IS_WINDOWS_PLATFORM:
+
   versionstring="Python "+str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])
+  if sys.version_info[4] >0 : versionstring+="rc%s"%sys.version_info[4]
   os.system("echo "+versionstring+" > "+os.path.join(env['libinstall'],"pyversion"))
 
 ############## Populate the buildvars file #####################

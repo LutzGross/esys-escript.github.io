@@ -30,7 +30,7 @@ void Finley_ElementFile_relableNodes(index_t* newNode,index_t offset,Finley_Elem
    dim_t i,j,NN;
 
    if (in!=NULL) {
-     NN=in->ReferenceElement->Type->numNodes;
+     NN=in->numNodes;
      #pragma omp parallel for private(j,i) schedule(static)
      for (j=0;j<in->numElements;j++) {
        for (i=0;i<NN;i++) {

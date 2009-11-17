@@ -3094,11 +3094,12 @@ class Test_DXFiles(Test_VisualizationInterface):
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   #suite.addTest(Test_VTKFiles("test_metadata_3"))
+   suite.addTest(Test_VTKFiles("test_metadata_3"))
    suite.addTest(unittest.makeSuite(Test_VTKFiles))
    # saveDX is not MPI parallel
    if getMPISizeWorld() == 1: 
        suite.addTest(unittest.makeSuite(Test_DXFiles))
+       pass
    else:
        print "Test_DXFiles is dropped as number of processors >1"
    s=unittest.TextTestRunner(verbosity=2).run(suite)

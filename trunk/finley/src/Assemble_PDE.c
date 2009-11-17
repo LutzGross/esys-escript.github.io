@@ -141,33 +141,33 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
 
   /* check if all function spaces are the same */
 
-  if (! numSamplesEqual(A,p.numQuad,elements->numElements) ) {
-        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient A don't match (%d,%d)",p.numQuad,elements->numElements);
+  if (! numSamplesEqual(A,p.numQuadTotal,elements->numElements) ) {
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient A don't match (%d,%d)",p.numQuadTotal,elements->numElements);
         Finley_setError(TYPE_ERROR,error_msg);
   }
 
-  if (! numSamplesEqual(B,p.numQuad,elements->numElements) ) {
-        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient B don't match (%d,%d)",p.numQuad,elements->numElements);
+  if (! numSamplesEqual(B,p.numQuadTotal,elements->numElements) ) {
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient B don't match (%d,%d)",p.numQuadTotal,elements->numElements);
         Finley_setError(TYPE_ERROR,error_msg);
   }
 
-  if (! numSamplesEqual(C,p.numQuad,elements->numElements) ) {
-        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient C don't match (%d,%d)",p.numQuad,elements->numElements);
+  if (! numSamplesEqual(C,p.numQuadTotal,elements->numElements) ) {
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient C don't match (%d,%d)",p.numQuadTotal,elements->numElements);
         Finley_setError(TYPE_ERROR,error_msg);
   }
 
-  if (! numSamplesEqual(D,p.numQuad,elements->numElements) ) {
-        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient D don't match (%d,%d)",p.numQuad,elements->numElements);
+  if (! numSamplesEqual(D,p.numQuadTotal,elements->numElements) ) {
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient D don't match (%d,%d)",p.numQuadTotal,elements->numElements);
         Finley_setError(TYPE_ERROR,error_msg);
   }
 
-  if (! numSamplesEqual(X,p.numQuad,elements->numElements) ) {
-        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient X don't match (%d,%d)",p.numQuad,elements->numElements);
+  if (! numSamplesEqual(X,p.numQuadTotal,elements->numElements) ) {
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient X don't match (%d,%d)",p.numQuadTotal,elements->numElements);
         Finley_setError(TYPE_ERROR,error_msg);
   }
 
-  if (! numSamplesEqual(Y,p.numQuad,elements->numElements) ) {
-        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient Y don't match (%d,%d)",p.numQuad,elements->numElements);
+  if (! numSamplesEqual(Y,p.numQuadTotal,elements->numElements) ) {
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient Y don't match (%d,%d)",p.numQuadTotal,elements->numElements);
         Finley_setError(TYPE_ERROR,error_msg);
   }
 
@@ -272,9 +272,9 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
         if (p.numEqu > 1) {
           /* system of PDESs */
           if (p.numDim==3) {
-            if (p.row_NS == p.col_NS && p.row_NS == p.row_NN && p.col_NS == p.col_NN ) {
+            if ( p.numSides == 1 ) {
                Finley_Assemble_PDE_System2_3D(p,elements,S,F,A,B,C,D,X,Y);
-            } else if ( p.row_NS == p.col_NS &&  2*p.row_NS == p.row_NN && 2*p.col_NS == p.col_NN ) {
+            } else if ( p.numSides == 2 ) {
                if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
                   Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
                } else {
@@ -284,9 +284,9 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
                Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
             }
           } else if (p.numDim==2) {
-            if ((p.row_NS == p.col_NS) && (p.row_NS == p.row_NN) && (p.col_NS == p.col_NN )) {
+            if ( p.numSides == 1 ) {
                Finley_Assemble_PDE_System2_2D(p,elements,S,F,A,B,C,D,X,Y);
-            } else if ( p.row_NS == p.col_NS &&  2*p.row_NS == p.row_NN && 2*p.col_NS == p.col_NN ) {
+            } else if (  p.numSides == 2 ) {
                if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
                   Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
                } else {
@@ -295,10 +295,10 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
             } else {
                Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
             }
-          } else if (p.numDim==2) {
-            if (p.row_NS == p.col_NS && p.row_NS == p.row_NN && p.col_NS == p.col_NN ) {
+          } else if (p.numDim==1) {
+            if ( p.numSides == 1  ) {
                Finley_Assemble_PDE_System2_1D(p,elements,S,F,A,B,C,D,X,Y);
-            } else if ( p.row_NS == p.col_NS &&  2*p.row_NS == p.row_NN && 2*p.col_NS == p.col_NN ) {
+            } else if ( p.numSides == 2 ) {
                if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
                   Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
                } else {
@@ -313,9 +313,9 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
         } else {
           /* single PDES */
           if (p.numDim==3) {
-            if (p.row_NS == p.col_NS && p.row_NS == p.row_NN && p.col_NS == p.col_NN ) {
+            if ( p.numSides == 1  ) {
                Finley_Assemble_PDE_Single2_3D(p,elements,S,F,A,B,C,D,X,Y);
-            } else if ( p.row_NS == p.col_NS &&  2*p.row_NS == p.row_NN && 2*p.col_NS == p.col_NN ) {
+            } else if ( p.numSides == 2 ) {
                if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
                   Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
                } else {
@@ -325,9 +325,9 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
                Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
             }
           } else if (p.numDim==2) {
-            if ((p.row_NS == p.col_NS) && (p.row_NS == p.row_NN) && (p.col_NS == p.col_NN )) {
+            if ( p.numSides == 1 ) {
                Finley_Assemble_PDE_Single2_2D(p,elements,S,F,A,B,C,D,X,Y);
-            } else if ( p.row_NS == p.col_NS &&  2*p.row_NS == p.row_NN && 2*p.col_NS == p.col_NN ) {
+            } else if ( p.numSides == 2 ) {
                if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
                   Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
                } else {
@@ -337,9 +337,9 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
                Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
             }
           } else if (p.numDim==1) {
-            if (p.row_NS == p.col_NS && p.row_NS == p.row_NN && p.col_NS == p.col_NN ) {
+            if ( p.numSides == 1 ) {
                Finley_Assemble_PDE_Single2_1D(p,elements,S,F,A,B,C,D,X,Y);
-            } else if ( p.row_NS == p.col_NS &&  2*p.row_NS == p.row_NN && 2*p.col_NS == p.col_NN ) {
+            } else if ( p.numSides == 2  ) {
                if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
                   Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
                } else {
@@ -355,43 +355,6 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
      } else {
           Finley_setError(VALUE_ERROR,"Finley_Assemble_PDE requires number of equations == number of solutions  .");
      }
-     #ifdef Finley_TRACE
-     printf("timing: assemblage PDE: %.4e sec\n",Finley_timer()-time0);
-     #endif
   }
   blocktimer_increment("Finley_Assemble_PDE()", blocktimer_start);
 }
-/*
- * $Log$
- * Revision 1.8  2005/09/15 03:44:21  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.7  2005/09/01 03:31:35  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-01
- *
- * Revision 1.6  2005/08/12 01:45:42  jgs
- * erge of development branch dev-02 back to main trunk on 2005-08-12
- *
- * Revision 1.5.2.3  2005/09/07 06:26:17  gross
- * the solver from finley are put into the standalone package paso now
- *
- * Revision 1.5.2.2  2005/08/24 02:02:18  gross
- * timing output switched off. solver output can be swiched through getSolution(verbose=True) now.
- *
- * Revision 1.5.2.1  2005/08/03 08:54:27  gross
- * contact element assemblage was called with wrong element table pointer
- *
- * Revision 1.5  2005/07/08 04:07:46  jgs
- * Merge of development branch back to main trunk on 2005-07-08
- *
- * Revision 1.4  2004/12/15 07:08:32  jgs
- * *** empty log message ***
- * Revision 1.1.1.1.2.2  2005/06/29 02:34:47  gross
- * some changes towards 64 integers in finley
- *
- * Revision 1.1.1.1.2.1  2004/11/24 01:37:12  gross
- * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
- *
- *
- *
- */
