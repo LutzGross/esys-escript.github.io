@@ -2073,9 +2073,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
   int lowProc = 0;
   double *globalMins = new double[get_MPISize()*2+1];
   int error;
-printf("before gather %d\n", numSamples);
   error = MPI_Gather (next, 2, MPI_DOUBLE, globalMins, 2, MPI_DOUBLE, 0, get_MPIComm() );
-printf("after gather\n");
 
   if( get_MPIRank()==0 ){
 	for (lowProc=0; lowProc<get_MPISize(); lowProc++)
