@@ -37,13 +37,13 @@ cc_extra = ''
 
 # Python libraries
 python_path		= '/usr/include/python2.5'
-python_lib_path		= '/usr/lib'
+python_lib_path		= ''
 python_libs		= 'python2.5'
 # python_cmd		= 'python'
 
 # Boost libraries
 boost_path		= '/usr/include/'
-boost_lib_path		= '/usr/lib'
+boost_lib_path		= ''
 boost_libs		= ['boost_python']
 
 # Specify whether or not to use VTK
@@ -52,7 +52,7 @@ boost_libs		= ['boost_python']
 # NetCDF
 # usenetcdf		= 'yes'
 netCDF_path		= '/usr/include/netcdf-3'
-netCDF_lib_path		= '/usr/lib'
+netCDF_lib_path		= ''
 # netCDF_libs		= ['netcdf_c++', 'netcdf']
 
 # MKL
