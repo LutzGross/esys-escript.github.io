@@ -43,12 +43,6 @@ extern "C" {
 #include <string>
 #include <sstream>
 
-//
-// forward declarations
-class Data;
-
-//using namespace escript;
-
 namespace finley {
 
 struct null_deleter
