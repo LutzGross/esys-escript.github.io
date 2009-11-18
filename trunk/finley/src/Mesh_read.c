@@ -34,7 +34,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
     char error_msg[LenErrorMsg_MAX];
     FILE *fileHandle_p = NULL;
     ElementTypeId typeID=NoRef;
-    int scan_ret;
+    int scan_ret, error_code;
 
     Finley_resetError();
     mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
@@ -648,7 +648,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			while ((len>1) && isspace(remainder[--len])) {remainder[len]=0;}
 			len = strlen(remainder);
 			TMPMEMREALLOC(remainder,remainder,len+1,char);
-        }
+        } /* Master */
 		#ifdef PASO_MPI
 
         	len_i=(int) len;
@@ -658,8 +658,9 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 				remainder = TMPMEMALLOC(len+1, char);
 				remainder[0] = 0;
 			}
-			MPI_Bcast (remainder, len+1, MPI_CHAR,  0, mpi_info->comm) !=
-            MPI_SUCCESS)
+			if (MPI_Bcast (remainder, len+1, MPI_CHAR,  0, mpi_info->comm) !=
+				   	MPI_SUCCESS)
+				Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: broadcast of remainder failed");
 		#endif
 
 		if (remainder[0]) {
@@ -669,8 +670,9 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 				if (*name) Finley_Mesh_addTagMap(mesh_p,name,tag_key);
 				ptr++;
 			} while(NULL != (ptr = strchr(ptr, '\n')) && *ptr);
-			TMPMEMFREE(remainder);
 		}
+		if (remainder)
+			TMPMEMFREE(remainder);
 	}
 
 	/* close file */
@@ -693,3 +695,4 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 	Paso_MPIInfo_free( mpi_info );
 	return mesh_p;
 }
+
