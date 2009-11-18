@@ -95,7 +95,14 @@ int nodeInQuadrant(const double *coords, ElementTypeId type, int idx, int q)
 #define INSIDE_3D(_X_,_Y_,_Z_,_CX_,_CY_,_CZ_,_R_) ( INSIDE_1D(_X_,_CX_,_R_) && INSIDE_1D(_Y_,_CY_,_R_) && INSIDE_1D(_Z_,_CZ_,_R_) )
 
     int ret;
-    if ( (type == Rec9) || (type == Rec9Macro) ) {
+    if ( type == Line3Macro ) {
+        if (q==0)
+            ret = INSIDE_1D(coords[idx],0.25,0.25);
+        else if (q==1)
+            ret = INSIDE_1D(coords[idx],0.75,0.25);
+        else
+            ret=1;
+    } else if ( (type == Rec9) || (type == Rec9Macro) ) {
         if (q==0)
             ret = INSIDE_2D(coords[2*idx], coords[2*idx+1], 0.25, 0.25, 0.25);
         else if (q==1)
@@ -186,6 +193,9 @@ void Finley_Mesh_saveVTK(const char *filename_p,
     char *tags_End_Offset_and_Start_Type = "</DataArray>\n<DataArray Name=\"types\" type=\"UInt8\" format=\"ascii\">\n";
     char *tag_End_DataArray = "</DataArray>\n";
 
+    const int VTK_LINE3_INDEX[] =
+      { 0, 2,
+        2, 1 };
     const int VTK_HEX20_INDEX[] =
       { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 18, 19, 12, 13, 14, 15 };
     const int VTK_REC9_INDEX[] =
@@ -411,6 +421,12 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                     numVTKNodesPerElement = 2;
                 break;
 
+		case Line3Macro:
+                    cellType = VTK_LINE;
+                    numCellFactor = 2;
+                    numVTKNodesPerElement = 2;
+                break;
+
                 case Tri3:
                 case Tet4Face:
                 case Tet4Face_Contact:
@@ -444,7 +460,6 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                 break;
 
                 case Line3:
-				case Line3Macro:
                 case Tri6Face:
                 case Rec8Face:
                 case Line3_Contact:
@@ -462,6 +477,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                     cellType = VTK_QUADRATIC_TRIANGLE;
                     numVTKNodesPerElement = 6;
                 break;
+
 
                 case Rec8:
                 case Hex20Face:
@@ -519,6 +535,8 @@ void Finley_Mesh_saveVTK(const char *filename_p,
         const index_t *nodeIndex;
         if (FINLEY_REDUCED_NODES == nodeType) {
             nodeIndex = elements->referenceElementSet->referenceElement->Type->linearNodes;
+        } else if (Line3Macro == typeId) {
+             nodeIndex = VTK_LINE3_INDEX;
         } else if ( (Rec9 == typeId) || (Rec9Macro == typeId) ) {
             nodeIndex = VTK_REC9_INDEX;
         } else if (Hex20 == typeId) {

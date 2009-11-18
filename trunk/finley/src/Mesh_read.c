@@ -34,7 +34,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
     char error_msg[LenErrorMsg_MAX];
     FILE *fileHandle_p = NULL;
     ElementTypeId typeID=NoRef;
-    int scan_ret, error_code;
+    int scan_ret;
 
     Finley_resetError();
     mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
@@ -76,10 +76,6 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
             numDim = temp1[0];
             numNodes = temp1[1];
             error_code = MPI_Bcast (name, temp1[2], MPI_CHAR, 0, mpi_info->comm);
-            if (error_code != MPI_SUCCESS) {
-                Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: broadcast of name failed");
-                return NULL;
-            }
         }
     #endif
 
