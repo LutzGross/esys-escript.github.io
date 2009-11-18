@@ -2080,7 +2080,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
   if( get_MPIRank()==0 ){
 	for (lowProc=0; lowProc<get_MPISize(); lowProc++)
 		if (globalMins[lowProc*2+1] > 0) break;
-	min = globalMins[lowProc];
+	min = globalMins[lowProc*2];
 	for( i=lowProc+1; i<get_MPISize(); i++ )
 		if( globalMins[i*2+1]>0 && min>globalMins[i*2] ){
 			lowProc = i;
@@ -2162,11 +2162,11 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
   int highProc = 0;
   double *globalMaxs = new double[get_MPISize()*2+1];
   int error;
-  error = MPI_Gather ( &next[0], 2, MPI_DOUBLE, globalMaxs, 2, MPI_DOUBLE, 0, get_MPIComm() );
+  error = MPI_Gather ( next, 2, MPI_DOUBLE, globalMaxs, 2, MPI_DOUBLE, 0, get_MPIComm() );
   if( get_MPIRank()==0 ){
     for (highProc=0; highProc<get_MPISize(); highProc++)
 	if (globalMaxs[highProc*2+1] > 0) break;
-    max = globalMaxs[highProc];
+    max = globalMaxs[highProc*2];
     for( i=highProc+1; i<get_MPISize(); i++ )
     {
 	if( globalMaxs[i*2+1]>0 && max<globalMaxs[i*2] )
