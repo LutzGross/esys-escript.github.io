@@ -3058,9 +3058,11 @@ std::string
 Data::toString() const
 {
     int localNeedSummary=0;
+#ifdef PASO_MPI
     int size = get_MPISize();
     int* globalNeedSummary = new int[size];
-    int i, flag;
+#endif
+    int i, flag=0;
 
     if (!m_data->isEmpty() &&
 	!m_data->isLazy() && 
@@ -3068,9 +3070,12 @@ Data::toString() const
     {
 	localNeedSummary=1;
     }
+
+#ifdef PASO_MPI
     flag = MPI_Gather (&localNeedSummary, 1, MPI_INT, globalNeedSummary, 1, MPI_INT, 0, get_MPIComm() );
 
     if( get_MPIRank()==0 ){
+	flag = 0;
         for (i=0; i<size; i++)
 	    if (globalNeedSummary[i] == 1) break;
 	if (i < size) flag = 1;
@@ -3078,6 +3083,12 @@ Data::toString() const
 
     MPI_Bcast( &flag, 1, MPI_INT, 0, get_MPIComm() );
     delete [] globalNeedSummary;
+
+#else
+
+   if (localNeedSummary == 1) flag = 1;
+
+#endif
 
     if (flag){
 	stringstream temp;
