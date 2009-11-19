@@ -3057,10 +3057,29 @@ Data::borrowReadyPtr() const
 std::string
 Data::toString() const
 {
+    int localNeedSummary=0;
+    int size = get_MPISize();
+    int* globalNeedSummary = new int[size];
+    int i, flag;
+
     if (!m_data->isEmpty() &&
 	!m_data->isLazy() && 
 	getLength()>escriptParams.getInt("TOO_MANY_LINES"))
     {
+	localNeedSummary=1;
+    }
+    flag = MPI_Gather (&localNeedSummary, 1, MPI_INT, globalNeedSummary, 1, MPI_INT, 0, get_MPIComm() );
+
+    if( get_MPIRank()==0 ){
+        for (i=0; i<size; i++)
+	    if (globalNeedSummary[i] == 1) break;
+	if (i < size) flag = 1;
+    }
+
+    MPI_Bcast( &flag, 1, MPI_INT, 0, get_MPIComm() );
+    delete [] globalNeedSummary;
+
+    if (flag){
 	stringstream temp;
 	temp << "Summary: inf="<< inf_const() << " sup=" << sup_const() << " data points=" << getNumDataPoints();
 	return  temp.str();
