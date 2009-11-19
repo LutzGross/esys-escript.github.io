@@ -27,6 +27,9 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 #calling functions in this file
 
 import numpy as np
+from esys.escript import Data
+from esys.escript.pdetools import Locator
+
 # Calculate the location of quivers for a matplotlib plot
 # quivshape :: [x,y] :: number of quivers in x and y direction
 # lenxax :: length of model along x
