@@ -436,7 +436,7 @@ void Paso_Pattern_greedy_diag(Paso_SparseMatrix* A, index_t* mis_marker, double 
     
     while (Paso_Util_isAny(n,mis_marker,IS_AVAILABLE)) {
          k=0;
-         #pragma omp parallel for private(i,j,k) schedule(static) 
+         
          for (i=0;i<n;++i) {
            if(mis_marker[i]==IS_AVAILABLE) {
                 if(k==0) {
@@ -461,7 +461,6 @@ void Paso_Pattern_greedy_diag(Paso_SparseMatrix* A, index_t* mis_marker, double 
             
          }
             
-         #pragma omp parallel for private(i,iptr,j,rsum) schedule(static) 
         for (i=0;i<n;++i) {
             if(AvADJ[i]) {
                 rsum=0;
