@@ -127,6 +127,8 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_PASO;
        case  ESCRIPT_AMG:
           return PASO_AMG;
+       case  ESCRIPT_AMLI:
+          return PASO_AMLI;
        case  ESCRIPT_REC_ILU:
           return PASO_REC_ILU;
        case  ESCRIPT_TRILINOS:

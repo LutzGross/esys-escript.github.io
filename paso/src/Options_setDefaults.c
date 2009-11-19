@@ -124,6 +124,8 @@ const char* Paso_Options_name(const index_t key){
           return "PASO";
        case  PASO_AMG:
           return "AMG";
+       case  PASO_AMLI:
+          return "AMLI";
        case  PASO_REC_ILU:
           return "REC_ILU";
        case  PASO_TRILINOS:

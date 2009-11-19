@@ -105,6 +105,42 @@ struct Paso_Solver_AMG {
   dim_t n_block;
   dim_t n_F;
   dim_t n_C;
+  
+  Paso_SparseMatrix * A_FF;
+  Paso_SparseMatrix * A_FC;
+  Paso_SparseMatrix * A_CF;
+  Paso_SparseMatrix * W_FC;
+  
+  Paso_SparseMatrix * P;
+  Paso_SparseMatrix * R;
+  
+  index_t* rows_in_F;
+  index_t* rows_in_C;
+  index_t* mask_F;
+  index_t* mask_C;
+  double* x_F;
+  double* b_F;
+  double* x_C;
+  double* b_C;
+  Paso_SparseMatrix * A;
+  Paso_SparseMatrix * AOffset1;
+  void* solver;
+  Paso_Solver_Jacobi* GS;
+  struct Paso_Solver_AMG * AMG_of_Coarse;
+};
+typedef struct Paso_Solver_AMG Paso_Solver_AMG;
+
+
+
+
+/* AMLI preconditioner */
+struct Paso_Solver_AMLI {
+  dim_t n;
+  dim_t level;
+  bool_t coarsest_level;
+  dim_t n_block;
+  dim_t n_F;
+  dim_t n_C;
   double* inv_A_FF;
   index_t* A_FF_pivot;
   Paso_SparseMatrix * A_FC;
@@ -121,9 +157,19 @@ struct Paso_Solver_AMG {
   Paso_SparseMatrix * AOffset1;
   void* solver;
   Paso_Solver_Jacobi* GS;
-  struct Paso_Solver_AMG * AMG_of_Schur;
+  struct Paso_Solver_AMLI * AMLI_of_Schur;
 };
-typedef struct Paso_Solver_AMG Paso_Solver_AMG;
+typedef struct Paso_Solver_AMLI Paso_Solver_AMLI;
+
+
+/* AMLI preconditioner on blocks*/
+struct Paso_Solver_AMLI_System {
+    dim_t block_size;
+    Paso_SparseMatrix *block[MAX_BLOCK_SIZE];
+    Paso_Solver_AMLI *amliblock[MAX_BLOCK_SIZE];
+};
+typedef struct Paso_Solver_AMLI_System Paso_Solver_AMLI_System;
+
 
 /* AMG preconditioner on blocks*/
 struct Paso_Solver_AMG_System {
@@ -132,7 +178,6 @@ struct Paso_Solver_AMG_System {
     Paso_Solver_AMG *amgblock[MAX_BLOCK_SIZE];
 };
 typedef struct Paso_Solver_AMG_System Paso_Solver_AMG_System;
-
 
 /* general preconditioner interface */
 
@@ -150,6 +195,10 @@ typedef struct Paso_Solver_Preconditioner {
   Paso_Solver_AMG* amg;
   /* amg on System */
   Paso_Solver_AMG_System* amgSystem;
+  /* amg preconditioner */
+  Paso_Solver_AMLI* amli;
+  /* amg on System */
+  Paso_Solver_AMLI_System* amliSystem;
   
 } Paso_Solver_Preconditioner;
 
@@ -181,6 +230,11 @@ void Paso_Solver_AMG_System_free(Paso_Solver_AMG_System * in);
 void Paso_Solver_AMG_free(Paso_Solver_AMG * in);
 Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix * A_p,dim_t level,Paso_Options* options);
 void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b);
+
+void Paso_Solver_AMLI_System_free(Paso_Solver_AMLI_System * in);
+void Paso_Solver_AMLI_free(Paso_Solver_AMLI * in);
+Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix * A_p,dim_t level,Paso_Options* options);
+void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b);
 
 void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC, Paso_SparseMatrix *A_CF,double* invA_FF,index_t* A_FF_pivot, Paso_SparseMatrix *A_FC);
 Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SparseMatrix * A_p);
