@@ -80,6 +80,12 @@ void Paso_SparseMatrix_saveHB_CSC(Paso_SparseMatrix *, FILE*);
 Paso_SparseMatrix* Paso_SparseMatrix_getSubmatrix(Paso_SparseMatrix* A,dim_t,dim_t,index_t*,index_t*);
 Paso_SparseMatrix* Paso_SparseMatrix_getBlock(Paso_SparseMatrix* A, int blockid);
 
+Paso_SparseMatrix* Paso_SparseMatrix_getProlongation(Paso_SparseMatrix* W, index_t* mis_marker);
+Paso_SparseMatrix* Paso_SparseMatrix_getRestriction(Paso_SparseMatrix* P);
+void Paso_SparseMatrix_updateWeights(Paso_SparseMatrix* A,Paso_SparseMatrix* W_FC, index_t* mis_marker);
+Paso_SparseMatrix* Paso_Solver_getCoarseMatrix(Paso_SparseMatrix *A, Paso_SparseMatrix *R, Paso_SparseMatrix *P);
+Paso_SparseMatrix* Paso_SparseMatrix_MatrixMatrix(Paso_SparseMatrix* A, Paso_SparseMatrix* B);
+
 void Paso_SparseMatrix_setValues(Paso_SparseMatrix*,double);
 void Paso_SparseMatrix_saveMM_CSC(Paso_SparseMatrix *, FILE *);
 void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(const double alpha, const dim_t nRows, const dim_t row_block_size, const dim_t col_block_size, const index_t* ptr, const index_t* index, const double* val, const double* in, const double beta, double* out);
@@ -89,6 +95,7 @@ void Paso_SparseMatrix_saveMM(Paso_SparseMatrix * A_p, char * fileName_p);
 /*
 void Paso_SparseMatrix_add(Paso_SparseMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
 Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR(char *);
+void Paso_Solver_getCoarseMatrix(Paso_SparseMatrix* A_c, Paso_SparseMatrix* A,Paso_SparseMatrix *R,Paso_SparseMatrix *P);
 */
 
 #endif /* #ifndef INC_PASO_SPARSEMATRIX */

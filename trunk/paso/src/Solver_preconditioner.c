@@ -39,6 +39,8 @@ void Paso_Preconditioner_free(Paso_Solver_Preconditioner* in) {
       Paso_Solver_GS_free(in->gs);
       Paso_Solver_AMG_free(in->amg);
       Paso_Solver_AMG_System_free(in->amgSystem);
+      Paso_Solver_AMLI_free(in->amli);
+      Paso_Solver_AMLI_System_free(in->amliSystem);
       MEMFREE(in);
     }
 }
@@ -52,14 +54,20 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
         /* allocate structure to hold preconditioner */
         prec=MEMALLOC(1,Paso_Solver_Preconditioner);
         prec->amgSystem=MEMALLOC(1,Paso_Solver_AMG_System);
+        prec->amliSystem=MEMALLOC(1,Paso_Solver_AMLI_System);
         if (Paso_checkPtr(prec)) return;
+        
+        if (Paso_checkPtr(prec->amliSystem)) return;
+        
         if (Paso_checkPtr(prec->amgSystem)) return;
+        
         prec->type=UNKNOWN;
         prec->rilu=NULL;
         prec->ilu=NULL;
         prec->jacobi=NULL;
         prec->gs=NULL;
         prec->amg=NULL;
+        prec->amli=NULL;
         
         prec->amgSystem->block_size=A->row_block_size;
         for (i=0;i<A->row_block_size;++i) {
@@ -67,6 +75,11 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
           prec->amgSystem->block[i]=NULL;
         }
         
+        prec->amliSystem->block_size=A->row_block_size;
+        for (i=0;i<A->row_block_size;++i) {
+          prec->amliSystem->amliblock[i]=NULL;
+          prec->amliSystem->block[i]=NULL;
+        }
 
         A->solver=prec;
         switch (options->preconditioner) {
@@ -106,6 +119,21 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
                 }
               }
               prec->type=PASO_AMG;
+              break;
+            case PASO_AMLI:
+              if (options->verbose) printf("AMLI preconditioner is used.\n");
+              
+              /*For performace reasons we check if block_size is one. If yes, then we do not need to separate blocks.*/
+              if (A->row_block_size==1) {
+                prec->amli=Paso_Solver_getAMLI(A->mainBlock,options->level_max,options);  
+              }
+              else {
+                for (i=0;i<A->row_block_size;++i) {
+                prec->amliSystem->block[i]=Paso_SparseMatrix_getBlock(A->mainBlock,i+1);
+                prec->amliSystem->amliblock[i]=Paso_Solver_getAMLI(prec->amliSystem->block[i],options->level_max,options);
+                }
+              }
+              prec->type=PASO_AMLI;
               break;
  
         }
@@ -208,6 +236,47 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                 
                 for (i=0;i<A->row_block_size;i++) {
                 Paso_Solver_solveAMG(prec->amgSystem->amgblock[i],xx[i],bb[i]);
+                }
+                               
+                /*#pragma omp parallel for private(i,j) schedule(static)*/
+                for (i=0;i<n;i++) {
+                    for (j=0;j<A->row_block_size;j++) {
+                    x[A->row_block_size*i+j]=xx[j][i];
+                    }
+                 }
+                
+                for (i=0;i<A->row_block_size;i++) {
+                MEMFREE(xx[i]);
+                MEMFREE(bb[i]);
+                }
+               
+            }
+        break;
+        case PASO_AMLI:
+            
+            /*For performace reasons we check if block_size is one. If yes, then we do not need to do unnecessary copying.*/
+            if (A->row_block_size==1) {
+                Paso_Solver_solveAMLI(prec->amli,x,b);
+            }
+            else {
+           
+                
+                 for (i=0;i<A->row_block_size;i++) {
+                    xx[i]=MEMALLOC(n,double);
+                    bb[i]=MEMALLOC(n,double);
+                    if (Paso_checkPtr(xx[i]) && Paso_checkPtr(bb[i])) return;
+                }
+                
+                /*#pragma omp parallel for private(i,j) schedule(static)*/
+                for (i=0;i<n;i++) {
+                    for (j=0;j<A->row_block_size;j++) {
+                     bb[j][i]=b[A->row_block_size*i+j];
+                    }
+                 }
+                
+                
+                for (i=0;i<A->row_block_size;i++) {
+                Paso_Solver_solveAMLI(prec->amliSystem->amliblock[i],xx[i],bb[i]);
                 }
                                
                 /*#pragma omp parallel for private(i,j) schedule(static)*/

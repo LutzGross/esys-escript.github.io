@@ -81,20 +81,21 @@ class SolverOptions(object):
     :cvar NESTED_DISSECTION: Reorder matrix to improve load balancing during factorization
     :cvar PASO: PASO solver package
     :cvar SCSL: SGI SCSL solver library
-    :cvar MKL: Intel's MKL solver library.  If the stiffness matrix is non-regular MKL may return without returning a proper error code. If you observe suspicious solutions when using MKL, this may cause by a non-invertible operator.
+    :cvar MKL: Intel's MKL solver library
     :cvar UMFPACK: The UMFPACK library
     :cvar TRILINOS: The TRILINOS parallel solver class library from Sandia National Labs
     :cvar ITERATIVE: The default iterative solver
     :cvar AMG: Algebraic Multi Grid
+    :cvar AMLI: Algebraic Multi Level Iteration
     :cvar REC_ILU: recursive ILU0
     :cvar RILU: relaxed ILU0
     :cvar GAUSS_SEIDEL: Gauss-Seidel solver
     :cvar DEFAULT_REORDERING: the reordering method recommended by the solver
     :cvar SUPER_LU: the Super_LU solver package
     :cvar PASTIX: the Pastix direct solver_package
-    :cvar YAIR_SHAPIRA_COARSENING: AMG coarsening method by Yair-Shapira
-    :cvar RUGE_STUEBEN_COARSENING: AMG coarsening method by Ruge and Stueben
-    :cvar AGGREGATION_COARSENING: AMG coarsening using (symmetric) aggregation
+    :cvar YAIR_SHAPIRA_COARSENING: AMLI coarsening method by Yair-Shapira
+    :cvar RUGE_STUEBEN_COARSENING: AMLI coarsening method by Ruge and Stueben
+    :cvar AGGREGATION_COARSENING: AMLI coarsening using (symmetric) aggregation
     :cvar MIN_COARSE_MATRIX_SIZE: minimum size of the coarsest level matrix to use direct solver.
     :cvar NO_PRECONDITIONER: no preconditioner is applied.
     """
@@ -135,7 +136,8 @@ class SolverOptions(object):
     AGGREGATION_COARSENING=35
     NO_PRECONDITIONER=36
     MIN_COARSE_MATRIX_SIZE=37
-    
+    AMLI=38	   
+ 
     def __init__(self):
         self.setLevelMax()
         self.setCoarseningThreshold()
@@ -197,7 +199,13 @@ class SolverOptions(object):
                 out+="\nCoarsening threshold = %e"%self.getMinCoarseMatrixSize()
                 out+="\nMinimum size of the coarsest level matrix = %e"%self.getCoarseningThreshold()
                 out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
-            if self.getPreconditioner() == self.GAUSS_SEIDEL:
+            if self.getPreconditioner() == self.AMLI:
+                out+="\nMaximum number of levels = %s"%self.LevelMax()
+                out+="\nCoarsening method = %s"%self.getName(self.getCoarsening())
+                out+="\nCoarsening threshold = %e"%self.getMinCoarseMatrixSize()
+                out+="\nMinimum size of the coarsest level matrix = %e"%self.getCoarseningThreshold()
+                out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
+	    if self.getPreconditioner() == self.GAUSS_SEIDEL:
                 out+="\nNumber of sweeps = %s"%self.getNumSweeps()
             if self.getPreconditioner() == self.ILUT:
                 out+="\nDrop tolerance = %e"%self.getDropTolerance()
@@ -234,6 +242,7 @@ class SolverOptions(object):
         if key == self.ITERATIVE: return "ITERATIVE"
         if key == self.PASO: return "PASO"
         if key == self.AMG: return "AMG"
+        if key == self.AMLI: return "AMLI"
         if key == self.REC_ILU: return "REC_ILU"
         if key == self.TRILINOS: return "TRILINOS"
         if key == self.NONLINEAR_GMRES: return "NONLINEAR_GMRES"
@@ -395,13 +404,13 @@ class SolverOptions(object):
 
         :param preconditioner: key of the preconditioner to be used.
         :type preconditioner: in `SolverOptions.SSOR`, `SolverOptions.ILU0`, `SolverOptions.ILUT`, `SolverOptions.JACOBI`, 
-                                    `SolverOptions.AMG`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`,
+                                    `SolverOptions.AMG`, `SolverOptions.AMLI`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`,
                                     `SolverOptions.NO_PRECONDITIONER`
         :note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters an unknown preconditioner. 
         """
 	if preconditioner==None: preconditioner=10
         if not preconditioner in [ SolverOptions.SSOR, SolverOptions.ILU0, SolverOptions.ILUT, SolverOptions.JACOBI, 
-                                    SolverOptions.AMG, SolverOptions.REC_ILU, SolverOptions.GAUSS_SEIDEL, SolverOptions.RILU,
+                                    SolverOptions.AMG, SolverOptions.AMLI, SolverOptions.REC_ILU, SolverOptions.GAUSS_SEIDEL, SolverOptions.RILU,
                                     SolverOptions.NO_PRECONDITIONER] :
              raise ValueError,"unknown preconditioner %s"%preconditioner
         self.__preconditioner=preconditioner    

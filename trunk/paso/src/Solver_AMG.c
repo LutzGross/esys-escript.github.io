@@ -52,10 +52,13 @@ void Paso_Solver_AMG_System_free(Paso_Solver_AMG_System * in) {
 void Paso_Solver_AMG_free(Paso_Solver_AMG * in) {
      if (in!=NULL) {
         Paso_Solver_Jacobi_free(in->GS);
-        MEMFREE(in->inv_A_FF);
-        MEMFREE(in->A_FF_pivot);
         Paso_SparseMatrix_free(in->A_FC);
+        Paso_SparseMatrix_free(in->A_FF);
+        Paso_SparseMatrix_free(in->W_FC);
         Paso_SparseMatrix_free(in->A_CF);
+        Paso_SparseMatrix_free(in->P);
+        Paso_SparseMatrix_free(in->R);
+        
         Paso_SparseMatrix_free(in->A);
         if(in->coarsest_level==TRUE) {
         #ifdef MKL
@@ -76,7 +79,7 @@ void Paso_Solver_AMG_free(Paso_Solver_AMG * in) {
         MEMFREE(in->x_C);
         MEMFREE(in->b_C);
         in->solver=NULL;
-        Paso_Solver_AMG_free(in->AMG_of_Schur);
+        Paso_Solver_AMG_free(in->AMG_of_Coarse);
         MEMFREE(in->b_C);
         MEMFREE(in);
      }
@@ -103,24 +106,29 @@ to
 */
 Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Options* options) {
   Paso_Solver_AMG* out=NULL;
-  Paso_Pattern* temp1=NULL;
+  /*
+   Paso_Pattern* temp1=NULL;
   Paso_Pattern* temp2=NULL;
+  */
   bool_t verbose=options->verbose;
   dim_t n=A_p->numRows;
   dim_t n_block=A_p->row_block_size;
   index_t* mis_marker=NULL;  
   index_t* counter=NULL;
-  index_t iPtr,*index, *where_p, iPtr_s;
-  dim_t i,j;
-  Paso_SparseMatrix * schur=NULL;
-  Paso_SparseMatrix * schur_withFillIn=NULL;
-  double S=0;
+  /*index_t iPtr,*index, *where_p;*/
+  dim_t i;
+  Paso_SparseMatrix * A_c=NULL;
   
+  /*
+  double *temp,*temp_1;
+  double S;
+  index_t iptr;
+  */
   
- /* char filename[8];
-  sprintf(filename,"AMGLevel%d",level);
+  /*char filename[8];*/
+  /*sprintf(filename,"AMGLevel%d",level);
   
- Paso_SparseMatrix_saveMM(A_p,filename);
+  Paso_SparseMatrix_saveMM(A_p,filename);
   */
   
   /*Make sure we have block sizes 1*/
@@ -137,11 +145,13 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
   mis_marker=TMPMEMALLOC(n,index_t);
   counter=TMPMEMALLOC(n,index_t);
   if ( !( Paso_checkPtr(mis_marker) || Paso_checkPtr(counter) || Paso_checkPtr(out)) ) {
-     out->AMG_of_Schur=NULL;
-     out->inv_A_FF=NULL;
-     out->A_FF_pivot=NULL;
+     out->AMG_of_Coarse=NULL;
+     out->A_FF=NULL;
      out->A_FC=NULL;
      out->A_CF=NULL;
+     out->W_FC=NULL;
+     out->P=NULL;
+     out->R=NULL;
      out->rows_in_F=NULL;
      out->rows_in_C=NULL;
      out->mask_F=NULL;
@@ -193,12 +203,13 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
         }
         else {
            /*Default coarseneing*/
-            Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);
+            Paso_Pattern_RS_MI(A_p,mis_marker,options->coarsening_threshold);
             /*Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);*/
-            /*Paso_Pattern_greedy_diag(A_p,mis_marker,options->coarsening_threshold);*/
+            /*Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);*/
             /*Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);*/
+            
         }
-        
+
         #pragma omp parallel for private(i) schedule(static)
         for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
         
@@ -228,11 +239,10 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                  for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
                  out->n_F=Paso_Util_cumsum(n,counter);
                  */
+                 
                  out->mask_F=MEMALLOC(n,index_t);
                  out->rows_in_F=MEMALLOC(out->n_F,index_t);
-                 out->inv_A_FF=MEMALLOC(n_block*n_block*out->n_F,double);
-                 out->A_FF_pivot=NULL; /* later use for block size>3 */
-                 if (! (Paso_checkPtr(out->mask_F) || Paso_checkPtr(out->inv_A_FF) || Paso_checkPtr(out->rows_in_F) ) ) {
+                 if (! (Paso_checkPtr(out->mask_F) || Paso_checkPtr(out->rows_in_F) ) ) {
                     /* creates an index for F from mask */
                     #pragma omp parallel for private(i) schedule(static)
                     for (i = 0; i < out->n_F; ++i) out->rows_in_F[i]=-1;
@@ -246,20 +256,6 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                        }
                     }
                     
-                    /* Compute row-sum for getting rs(A_FF)^-1*/
-                    #pragma omp parallel for private(i,iPtr,j,S) schedule(static)
-                    for (i = 0; i < out->n_F; ++i) {
-                      S=0;
-      /*printf("[%d ]: [%d] -> ",i, out->rows_in_F[i]);*/
-                      for (iPtr=A_p->pattern->ptr[out->rows_in_F[i]];iPtr<A_p->pattern->ptr[out->rows_in_F[i] + 1]; ++iPtr) {
-                       j=A_p->pattern->index[iPtr];
-      /*if (j==out->rows_in_F[i]) printf("diagonal %e",A_p->val[iPtr]);*/
-                       if (mis_marker[j])
-                           S+=A_p->val[iPtr];
-                      }
-      /*printf("-> %e \n",S);*/
-                      out->inv_A_FF[i]=1./S;
-                    }
                  }
               }
       
@@ -295,43 +291,54 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                     }
               } 
               if ( Paso_noError()) {
-                      /* get A_CF block: */
+                      /* get A_FF block: */
+                      /*
+                       out->A_FF=Paso_SparseMatrix_getSubmatrix(A_p,out->n_F,out->n_F,out->rows_in_F,out->mask_F);
                       out->A_CF=Paso_SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_F,out->rows_in_C,out->mask_F);
-                      /* get A_FC block: */
                       out->A_FC=Paso_SparseMatrix_getSubmatrix(A_p,out->n_F,out->n_C,out->rows_in_F,out->mask_C);
-                      /* get A_CC block: */
-                      schur=Paso_SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_C,out->rows_in_C,out->mask_C);
-      
+                      */
+                      
+                      /*Compute W_FC*/
+                      /*initialy W_FC=A_FC*/
+                      out->W_FC=Paso_SparseMatrix_getSubmatrix(A_p,out->n_F,out->n_C,out->rows_in_F,out->mask_C);
+                      
+                      /*sprintf(filename,"W_FCbefore_%d",level);
+                      Paso_SparseMatrix_saveMM(out->W_FC,filename);
+                      */
+                      Paso_SparseMatrix_updateWeights(A_p,out->W_FC,mis_marker);
+                      
+                      /*
+                       printf("GOT W_FC, but n=%d,n_F=%d,n_C=%d\n",out->n,out->n_F,out->n_C);
+                      sprintf(filename,"W_FCafter_%d",level);
+                      Paso_SparseMatrix_saveMM(out->W_FC,filename);
+                      */
+                      /* get Prolongation and Restriction */
+                      out->P=Paso_SparseMatrix_getProlongation(out->W_FC,mis_marker);
+                      
+                      /*
+                       printf("GOT Prolongation P->nxc %dx%d\n",out->P->numRows,out->P->numCols);
+                      sprintf(filename,"P_%d",level);
+                      Paso_SparseMatrix_saveMM(out->P,filename);
+                      */
+                      
+                      out->R=Paso_SparseMatrix_getRestriction(out->P);
+                      /*
+                      printf("GOT Restriction->cxn %dx%d\n",out->R->numRows,out->R->numCols);
+                      sprintf(filename,"R_%d",level);
+                      Paso_SparseMatrix_saveMM(out->R,filename);
+                      */
+                     
               }
               if ( Paso_noError()) {
-                     /*find the pattern of the schur complement with fill in*/
-                    temp1=Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,out->A_CF->pattern,out->A_FC->pattern);
-                    temp2=Paso_Pattern_binop(PATTERN_FORMAT_DEFAULT, schur->pattern, temp1);
-                    schur_withFillIn=Paso_SparseMatrix_alloc(A_p->type,temp2,1,1, TRUE);
-                    Paso_Pattern_free(temp1);
-                    Paso_Pattern_free(temp2);
+                    A_c=Paso_Solver_getCoarseMatrix(A_p,out->R,out->P);
+                    /*Paso_Solver_getCoarseMatrix(A_c, A_p,out->R,out->P);*/
+                    /*
+                     sprintf(filename,"A_C_%d",level);
+                    Paso_SparseMatrix_saveMM(A_c,filename);
+                    */ 
+                    out->AMG_of_Coarse=Paso_Solver_getAMG(A_c,level-1,options);
               }
-              if ( Paso_noError()) {
-                    /* copy values over*/ 
-                    #pragma omp parallel for private(i,iPtr,j,iPtr_s,index,where_p) schedule(static)
-                    for (i = 0; i < schur_withFillIn->numRows; ++i) {
-                      for (iPtr=schur_withFillIn->pattern->ptr[i];iPtr<schur_withFillIn->pattern->ptr[i + 1]; ++iPtr) {
-                         j=schur_withFillIn->pattern->index[iPtr];
-                         iPtr_s=schur->pattern->ptr[i];
-                         index=&(schur->pattern->index[iPtr_s]);
-                         where_p=(index_t*)bsearch(&j,
-                                              index,
-                                              schur->pattern->ptr[i + 1]-schur->pattern->ptr[i],
-                                              sizeof(index_t),
-                                              Paso_comparIndex);
-                         if (where_p!=NULL) {
-                                schur_withFillIn->val[iPtr]=schur->val[iPtr_s+(index_t)(where_p-index)];
-                         }
-                       }
-                    }
-                    Paso_Solver_updateIncompleteSchurComplement(schur_withFillIn,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
-                    out->AMG_of_Schur=Paso_Solver_getAMG(schur_withFillIn,level-1,options);
-              }
+
               /* allocate work arrays for AMG application */
               if (Paso_noError()) {
                          out->x_F=MEMALLOC(n_block*out->n_F,double);
@@ -352,8 +359,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                               }
                          }
               }
-            Paso_SparseMatrix_free(schur);
-            Paso_SparseMatrix_free(schur_withFillIn);
+            Paso_SparseMatrix_free(A_c);
          }
      }
   }
@@ -403,6 +409,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      #ifdef UMFPACK 
           Paso_UMFPACK_Handler * ptr=NULL;
      #endif
+     
      r=MEMALLOC(amg->n,double);
      x0=MEMALLOC(amg->n,double);
      
@@ -444,45 +451,26 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
          
          /*r=b-Ax*/ 
          Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
-       
-        /* r->[b_F,b_C]     */
-        #pragma omp parallel for private(i) schedule(static)
-        for (i=0;i<amg->n_F;++i) amg->b_F[i]=r[amg->rows_in_F[i]];
-        
-        #pragma omp parallel for private(i) schedule(static)
-        for (i=0;i<amg->n_C;++i) amg->b_C[i]=r[amg->rows_in_C[i]];
-
-        /* x_F=invA_FF*b_F  */
-        Paso_Solver_applyBlockDiagonalMatrix(1,amg->n_F,amg->inv_A_FF,amg->A_FF_pivot,amg->x_F,amg->b_F);
-        
-        /* b_C=b_C-A_CF*x_F */
-        Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A_CF,amg->x_F,1.,amg->b_C);
+         
+         
+        /* b_c <- R*r  */
+         Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(1.,amg->R,r,0.,amg->b_C);
         
         time0=Paso_timer()-time0;
         if (verbose) fprintf(stderr,"timing: Before next level: %e\n",time0);
         
         /* x_C=AMG(b_C)     */
-        Paso_Solver_solveAMG(amg->AMG_of_Schur,amg->x_C,amg->b_C);
+        Paso_Solver_solveAMG(amg->AMG_of_Coarse,amg->x_C,amg->b_C);
         
         time0=Paso_timer();
-        /* b_F=b_F-A_FC*x_C */
-        Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A_FC,amg->x_C,1.,amg->b_F);
-        /* x_F=invA_FF*b_F  */
-        Paso_Solver_applyBlockDiagonalMatrix(1,amg->n_F,amg->inv_A_FF,amg->A_FF_pivot,amg->x_F,amg->b_F);
         
-        /* x<-[x_F,x_C]     */
+        /* x_0 <- P*x_c */
+        Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(1.,amg->P,amg->x_C,0.,x0);
+        
+        /* x=x+x0 */
         #pragma omp parallel for private(i) schedule(static)
-        for (i=0;i<amg->n;++i) {
-            if (amg->mask_C[i]>-1) {
-                 x[i]=amg->x_C[amg->mask_C[i]];
-            } else {
-                 x[i]=amg->x_F[amg->mask_F[i]];
-            }
-        }
+        for (i=0;i<amg->n;++i) x[i]+=x0[i];
         
-        time0=Paso_timer()-time0;
-        if (verbose) fprintf(stderr,"timing: After next level: %e\n",time0);
-
      /*postsmoothing*/
      time0=Paso_timer();
      #pragma omp parallel for private(i) schedule(static)
@@ -492,8 +480,12 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
      Paso_Solver_solveJacobi(amg->GS,x0,r);
      
+     
      #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<amg->n;++i) x[i]+=x0[i];
+     for (i=0;i<amg->n;++i)  {
+      x[i]+=x0[i];
+      /*printf("x[%d]=%e \n",i,x[i]);*/
+     }
      
      time0=Paso_timer()-time0;
      if (verbose) fprintf(stderr,"timing: Postsmoothing: %e\n",time0);
@@ -503,5 +495,6 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      }
      MEMFREE(r);
      MEMFREE(x0);
+
      return;
 }

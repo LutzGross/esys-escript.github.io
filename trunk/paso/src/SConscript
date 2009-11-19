@@ -55,6 +55,7 @@ sources = """
 	Solver_ILU.c
 	Solver_RILU.c
 	Solver_AMG.c
+	Solver_AMLI.c
 	Solver_SchurComplement.c
 	Solver_applyBlockDiagonalMatrix.c
 	Solver_jacobi.c
@@ -64,6 +65,7 @@ sources = """
 	SparseMatrix_addAbsRow.c
 	SparseMatrix_addRow.c
 	SparseMatrix_getSubmatrix.c
+	SparseMatrix_AMGcomponents.c
 	SparseMatrix_nullifyRowsAndCols.c
 	SparseMatrix_saveHB.c
 	SparseMatrix_setValues.c
