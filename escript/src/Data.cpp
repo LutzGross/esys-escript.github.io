@@ -3061,8 +3061,9 @@ Data::toString() const
 #ifdef PASO_MPI
     int size = get_MPISize();
     int* globalNeedSummary = new int[size];
+    int i;
 #endif
-    int i, flag=0;
+    int flag=0;
 
     if (!m_data->isEmpty() &&
 	!m_data->isLazy() && 
