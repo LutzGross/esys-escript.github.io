@@ -639,14 +639,18 @@ void Paso_Pattern_YS_plus(Paso_SparseMatrix* A, index_t* mis_marker, double alph
 void Paso_Pattern_RS_MI(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
 {
   dim_t i,n,j,k;
-  index_t iptr,*index,*where_p;
+  index_t iptr,jptr;
+  /*index_t *index,*where_p;*/
   double threshold,max_offdiagonal;
   dim_t *lambda;   /*mesure of importance */
   /*bool_t breakloop=FALSE;*/
   dim_t maxlambda=0;
   index_t index_maxlambda=0;
+  double time0=0;
+  bool_t verbose=0;
   
   Paso_Pattern *S=NULL;
+  Paso_Pattern *ST=NULL;
   Paso_IndexList* index_list=NULL;
 
  index_list=TMPMEMALLOC(A->pattern->numOutput,Paso_IndexList);
@@ -664,6 +668,8 @@ void Paso_Pattern_RS_MI(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
     Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
     return;
   }
+  
+    time0=Paso_timer();
   
     /*S_i={j \in N_i; i strongly coupled to j}*/
     /*#pragma omp parallel for private(i,iptr,max_offdiagonal,threshold,j) schedule(static)*/
@@ -687,24 +693,30 @@ void Paso_Pattern_RS_MI(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
         }
        }
       }
-    
    
-    S=Paso_IndexList_createPattern(0, A->pattern->numOutput,index_list,0,A->pattern->numInput,0);
+  S=Paso_IndexList_createPattern(0, A->pattern->numOutput,index_list,0,A->pattern->numInput,0);
+  ST=Paso_Pattern_getTranspose(S);
+  
+  time0=Paso_timer()-time0;
+  if (verbose) fprintf(stderr,"timing: RS filtering and pattern creation: %e\n",time0);
   
   lambda=TMPMEMALLOC(n,dim_t);
   
-  for (i=0;i<n;++i) {
-     lambda[i]=-1;
-   }
+  #pragma omp parallel for private(i) schedule(static)
+  for (i=0;i<n;++i) { lambda[i]=-1; }
   
   /*S_i={j \in N_i; i strongly coupled to j}*/
 
   k=0;
   maxlambda=0;
   
+  
+  time0=Paso_timer();
+  
     for (i=0;i<n;++i) {
       if(mis_marker[i]==IS_AVAILABLE) {
-        lambda[i]=how_many(i,S,TRUE);
+        lambda[i]=how_many(i,ST,FALSE);
+        /*lambda[i]=how_many(i,S,TRUE);*/
         /*printf("lambda[%d]=%d, ",i,lambda[i]);*/
         if(maxlambda<lambda[i]) {
             maxlambda=lambda[i];
@@ -712,6 +724,11 @@ void Paso_Pattern_RS_MI(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
         }
       }
     }
+ 
+  time0=Paso_timer()-time0;
+  if (verbose) fprintf(stderr,"timing: Lambdas computations at the begining: %e\n",time0);
+  
+  time0=Paso_timer();
   
   while (Paso_Util_isAny(n,mis_marker,IS_AVAILABLE)) {
     
@@ -720,6 +737,34 @@ void Paso_Pattern_RS_MI(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
         break;
     }
 
+
+
+    for (i=0;i<n;++i) {
+        if(mis_marker[i]==IS_AVAILABLE) {
+            if (i==index_maxlambda) {
+                mis_marker[index_maxlambda]=IS_IN_C;
+                lambda[index_maxlambda]=-1;
+                for (iptr=ST->ptr[i];iptr<ST->ptr[i+1]; ++iptr) {
+                    j=ST->index[iptr];
+                    if(mis_marker[j]==IS_AVAILABLE) {
+                        mis_marker[j]=IS_IN_F;
+                        lambda[j]=-1;
+                        for (jptr=S->ptr[j];jptr<S->ptr[j+1]; ++jptr) {
+                                k=S->index[jptr];
+                                if(mis_marker[k]==IS_AVAILABLE) {
+                                   lambda[k]++; 
+                                }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    
+   /* Used when transpose of S is not available */
+   /*
     for (i=0;i<n;++i) {
         if(mis_marker[i]==IS_AVAILABLE) {
             if (i==index_maxlambda) {
@@ -750,45 +795,17 @@ void Paso_Pattern_RS_MI(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
             }
         }
     }
-    
+   */
   }
   
+  time0=Paso_timer()-time0;
+  if (verbose) fprintf(stderr,"timing: Loop : %e\n",time0);
+  
+  #pragma omp parallel for private(i) schedule(static)
   for (i=0;i<n;++i) 
       if(mis_marker[i]==IS_AVAILABLE)
         mis_marker[i]=IS_IN_F;
 
-    /*update lambdas*/
-    /*for (i=0;i<n;++i) {
-      if(mis_marker[i]==IS_AVAILABLE) {
-        lambda[i]=how_many(n,S_T[i], IS_STRONG, mis_marker, IS_AVAILABLE)+2*how_many(n,S_T[i], IS_STRONG, mis_marker, IS_IN_F);
-        if(maxlambda<lambda[i]) {
-            maxlambda=lambda[i];
-            index_maxlambda=i;
-        }
-      }
-      if(lambda[i]==0) {
-        breakloop=TRUE;
-        break;
-      }
-    }
-    if(breakloop) {
-        break;
-    }
-    
-    for (i=0;i<n;++i) {
-        if(mis_marker[i]==IS_AVAILABLE) {
-            mis_marker[index_maxlambda]=IS_IN_C;
-        }
-        
-        for (j=0;j<n;++j) {
-            if(S_T_[i][j]=IS_STRONG && mis_marker[i]==IS_AVAILABLE) {
-                mis_marker[j]==IS__IN_F;
-            }
-        }
-    }
-    
-    }
-    */
 
     TMPMEMFREE(lambda);
     
@@ -851,6 +868,48 @@ dim_t arg_max(dim_t n, dim_t* lambda, dim_t mask) {
         }
     }
     return argmax;
+}
+
+
+Paso_Pattern* Paso_Pattern_getTranspose(Paso_Pattern* P){
+ 
+  Paso_Pattern *outpattern=NULL;
+  
+  Paso_IndexList* index_list=NULL;
+  dim_t C=P->numInput;
+  dim_t F=P->numOutput-C;
+  dim_t n=C+F;
+  dim_t i,j;
+  index_t iptr;
+
+  index_list=TMPMEMALLOC(C,Paso_IndexList);
+   if (! Paso_checkPtr(index_list)) {
+        #pragma omp parallel for private(i) schedule(static)
+        for(i=0;i<C;++i) {
+             index_list[i].extension=NULL;
+             index_list[i].n=0;
+        }
+    }
+  
+
+    /*#pragma omp parallel for private(i,iptr,j) schedule(static)*/
+    for (i=0;i<n;++i) {
+          for (iptr=P->ptr[i];iptr<P->ptr[i+1]; ++iptr) {
+             j=P->index[iptr];
+             Paso_IndexList_insertIndex(&(index_list[j]),i);
+        }
+    }
+   
+    outpattern=Paso_IndexList_createPattern(0, C,index_list,0,C+F,0);
+    
+     /* clean up */
+   if (index_list!=NULL) {
+        #pragma omp parallel for private(i) schedule(static)
+        for(i=0;i<C;++i) Paso_IndexList_free(index_list[i].extension);
+     }
+    TMPMEMFREE(index_list);
+
+    return outpattern;
 }
 
 
