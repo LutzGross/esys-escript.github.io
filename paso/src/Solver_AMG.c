@@ -214,6 +214,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
             
         }
         
+        if (verbose) fprintf(stderr,"timing: Profilining for level %d:\n",level);
+        
         time0=Paso_timer()-time0;
         if (verbose) fprintf(stderr,"timing: Coarsening: %e\n",time0);
 
@@ -356,26 +358,35 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                     if (verbose) fprintf(stderr,"timing: getCoarseMatrix: %e\n",time0);
                     
                     /*Paso_Solver_getCoarseMatrix(A_c, A_p,out->R,out->P);*/
+                    
                     /*
-                     sprintf(filename,"A_C_%d",level);
+                    sprintf(filename,"A_C_%d",level);
                     Paso_SparseMatrix_saveMM(A_c,filename);
-                    */ 
+                    */
+                     
                     out->AMG_of_Coarse=Paso_Solver_getAMG(A_c,level-1,options);
               }
 
               /* allocate work arrays for AMG application */
               if (Paso_noError()) {
-                         out->x_F=MEMALLOC(n_block*out->n_F,double);
+                         /*
+                          out->x_F=MEMALLOC(n_block*out->n_F,double);
                          out->b_F=MEMALLOC(n_block*out->n_F,double);
+                         */
                          out->x_C=MEMALLOC(n_block*out->n_C,double);
                          out->b_C=MEMALLOC(n_block*out->n_C,double);
       
-                         if (! (Paso_checkPtr(out->x_F) || Paso_checkPtr(out->b_F) || Paso_checkPtr(out->x_C) || Paso_checkPtr(out->b_C) ) ) {
-                             #pragma omp parallel for private(i) schedule(static)
+                         /*if (! (Paso_checkPtr(out->x_F) || Paso_checkPtr(out->b_F) || Paso_checkPtr(out->x_C) || Paso_checkPtr(out->b_C) ) ) {*/
+                         if ( ! ( Paso_checkPtr(out->x_C) || Paso_checkPtr(out->b_C) ) ) {
+                             
+                             /*
+                              #pragma omp parallel for private(i) schedule(static)
                              for (i = 0; i < out->n_F; ++i) {
                                          out->x_F[i]=0.;
                                          out->b_F[i]=0.;
                               }
+                             */
+                             
                               #pragma omp parallel for private(i) schedule(static)
                               for (i = 0; i < out->n_C; ++i) {
                                      out->x_C[i]=0.;
@@ -495,26 +506,26 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         #pragma omp parallel for private(i) schedule(static)
         for (i=0;i<amg->n;++i) x[i]+=x0[i];
         
-     /*postsmoothing*/
-     time0=Paso_timer();
-     #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<amg->n;++i) r[i]=b[i];
-     
-     /*r=b-Ax */
-     Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
-     Paso_Solver_solveJacobi(amg->GS,x0,r);
-     
-     
-     #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<amg->n;++i)  {
-      x[i]+=x0[i];
-      /*printf("x[%d]=%e \n",i,x[i]);*/
-     }
-     
-     time0=Paso_timer()-time0;
-     if (verbose) fprintf(stderr,"timing: Postsmoothing: %e\n",time0);
-
-     /*end of postsmoothing*/
+      /*postsmoothing*/
+      time0=Paso_timer();
+      #pragma omp parallel for private(i) schedule(static)
+      for (i=0;i<amg->n;++i) r[i]=b[i];
+      
+      /*r=b-Ax */
+      Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
+      Paso_Solver_solveJacobi(amg->GS,x0,r);
+      
+      
+      #pragma omp parallel for private(i) schedule(static)
+      for (i=0;i<amg->n;++i)  {
+       x[i]+=x0[i];
+       /*printf("x[%d]=%e \n",i,x[i]);*/
+      }
+      
+      time0=Paso_timer()-time0;
+      if (verbose) fprintf(stderr,"timing: Postsmoothing: %e\n",time0);
+ 
+      /*end of postsmoothing*/
      
      }
      MEMFREE(r);
