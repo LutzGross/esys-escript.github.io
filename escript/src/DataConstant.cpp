@@ -76,10 +76,19 @@ DataConstant::DataConstant(const FunctionSpace& what,
   //
   // copy the data in the correct format
   m_data=data;
-  //
-  // create the view of the data
-//   DataArrayView tempView(m_data,shape);
-//   setPointDataView(tempView);
+}
+
+bool
+DataConstant::hasNaN() const
+{
+	for (ValueType::size_type i=0;i<m_data.size();++i)
+	{
+		if (nancheck(m_data[i]))	
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 string

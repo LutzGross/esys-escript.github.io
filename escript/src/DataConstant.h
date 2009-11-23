@@ -95,6 +95,13 @@ typedef DataReady parent;
   };
 
   /**
+  \brief Return true if the value contains a NaN. 
+  */
+  ESCRIPT_DLL_API
+  bool
+  hasNaN() const;
+
+  /**
      \brief
      Write the data as a string.
   */

@@ -73,6 +73,14 @@ public:
   virtual const DataTypes::ValueType&
   getVectorRO() const=0;
 
+  /**
+  \brief return true if data contains NaN.
+  \warning This is dependent on the ability to reliably detect NaNs on your compiler.
+   See the nancheck function in LocalOps for details.
+  */
+  ESCRIPT_DLL_API
+  virtual bool
+  hasNaN() const=0;
 
   /**
      \brief

@@ -114,6 +114,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
 "A header line giving the names of each column will be output first.\n"
 "The keys given in the dictionary will be used to name columns.\n"
 "Then the data will be output, one line per sample (for all data).\n"
+"That is, items in each column will be printed in the same order.\n"
+"So you can be sure that values in the same row correspond to the same input value.\n"
 "\n:param filename:\n:type filename: ``string``\n"
 ":param arg: dictionary of named `Data` objects. If one is called ``mask`` it must be scalar data."
 "\n:type arg: ``dict``\n"

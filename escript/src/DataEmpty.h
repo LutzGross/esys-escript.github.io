@@ -137,6 +137,12 @@ typedef DataReady parent;
   void
   dump(const std::string fileName) const;
 
+  ESCRIPT_DLL_API
+  bool
+  hasNaN() const
+  {
+	return false;
+  }
  protected:
 
  /**

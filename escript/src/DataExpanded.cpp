@@ -267,6 +267,21 @@ DataExpanded::initialise(int noSamples,
   m_data.resize(noSamples,noDataPointsPerSample,getNoValues());
 }
 
+bool
+DataExpanded::hasNaN() const
+{
+	const ValueType& v=m_data.getData();
+	for (ValueType::size_type i=0;i<v.size();++i)
+	{
+		if (nancheck(v[i]))	
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
 string
 DataExpanded::toString() const
 {

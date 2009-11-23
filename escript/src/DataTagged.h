@@ -151,6 +151,12 @@ TODO Make sure to document the relationship between tags and data, ie: data also
     return true;
   };
 
+  /**
+  \brief Return true if any one of the datapoints contains a NaN.
+  */
+  ESCRIPT_DLL_API
+  bool
+  hasNaN() const;
 
   /**
      \brief Return a deep copy of the current object.

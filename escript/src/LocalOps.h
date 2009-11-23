@@ -34,6 +34,35 @@ For operations on DataVector see DataMaths.h.
 
 namespace escript {
 
+/**
+\brief acts as a wrapper to isnan.
+\warning if compiler does not support FP_NAN this function will always return false.
+*/
+inline
+bool nancheck(double d)
+{
+#ifndef FP_NAN		// Q: so why not just test d!=d?
+    return false;	// A: Coz it doesn't always work [I've checked].
+#else			// One theory is that the optimizer skips the test.
+    return isnan(d);
+#endif
+}
+
+/**
+\brief returns a NaN.
+\warning Should probably only used where you know you can test for NaNs
+*/
+inline
+double makeNaN()
+{
+#ifndef FP_NAN
+    return nan();
+#else
+    return sqrt(-1);
+#endif
+
+}
+
 
 /**
    \brief
