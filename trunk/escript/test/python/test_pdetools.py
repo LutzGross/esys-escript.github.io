@@ -319,7 +319,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       p=NoPDE(self.domain)
       x=self.domain.getX()
       msk=whereZero(x[0])
-      p.setValue(D=x[0],Y=2*x[0],q=msk,r=2.)
+      p.setValue(D=10,Y=2*x[0],q=msk,r=2.)
       u=p.getSolution()
       u_ex=2.
       self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
