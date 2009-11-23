@@ -371,7 +371,7 @@ Paso_SparseMatrix* Paso_Solver_getCoarseMatrix(Paso_SparseMatrix* A,Paso_SparseM
         for(iptrA = A->pattern->ptr[k]; iptrA < A->pattern->ptr[k+1]; ++iptrA) {
          l= A->pattern->index[iptrA];
          p_lj=0;
-        /*This loop has to be replaced by bsearch */
+        /*This loop can be replaced by bsearch */
          for(iptrP = P->pattern->ptr[l]; iptrP < P->pattern->ptr[l+1]; ++iptrP) {
            m=P->pattern->index[iptrP];
            if(m==j) {
