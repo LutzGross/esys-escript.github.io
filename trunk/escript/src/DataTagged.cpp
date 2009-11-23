@@ -42,33 +42,7 @@ DataTagged::DataTagged()
 
   // create a scalar default value
   m_data.resize(1,0.,1);
-/*  DataArrayView temp(m_data,DataTypes::ShapeType());
-  setPointDataView(temp);*/
 }
-
-// DataTagged::DataTagged(const TagListType& tagKeys, 
-// 		       const ValueListType& values,
-// 		       const DataArrayView& defaultValue,
-// 		       const FunctionSpace& what)
-//   : DataAbstract(what)
-// {
-//   // constructor
-// 
-//   // initialise the array of data values
-//   // the default value is always the first item in the values list
-//   int len = defaultValue.noValues();
-//   m_data.resize(len,0.,len);
-//   for (int i=0; i<defaultValue.noValues(); i++) {
-//     m_data[i]=defaultValue.getData(i);
-//   }
-// 
-//   // create the data view
-//   DataArrayView temp(m_data,defaultValue.getShape());
-//   setPointDataView(temp);
-// 
-//   // add remaining tags and values
-//   addTaggedValues(tagKeys,values);
-// }
 
 DataTagged::DataTagged(const FunctionSpace& what,
                        const DataTypes::ShapeType &shape,
@@ -86,10 +60,6 @@ DataTagged::DataTagged(const FunctionSpace& what,
   }
   // copy the data
   m_data=data;
-
-  // create the view of the data
-//   DataArrayView tempView(m_data,shape);
-//   setPointDataView(tempView);
 
   // we can't rely on the tag array to give us the number of tags so 
   // use the data we have been passed
@@ -494,6 +464,20 @@ DataTagged::getSampleDataByTag(int tag)
     // return the data-point corresponding to the given tag
     return &(m_data[pos->second]);
   }
+}
+
+
+bool
+DataTagged::hasNaN() const
+{
+	for (ValueType::size_type i=0;i<m_data.size();++i)
+	{
+		if (nancheck(m_data[i]))	// can't assume we have new standard NaN checking
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 string

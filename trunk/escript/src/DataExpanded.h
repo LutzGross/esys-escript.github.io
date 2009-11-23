@@ -138,6 +138,13 @@ TODO Note that this constructor will also copy data to all points if it only con
   }
 
   /**
+  \brief Return true if any value in the data contains a NaN. 
+  */
+  ESCRIPT_DLL_API
+  bool
+  hasNaN() const;
+
+  /**
      \brief
      Return a textual representation of the data.
   */

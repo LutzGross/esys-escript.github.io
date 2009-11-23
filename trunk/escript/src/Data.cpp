@@ -1679,17 +1679,39 @@ Data::lazyAlgWorker(double init)
 #endif
 }
 
+// Do not call this on Lazy Data use the proper entry point
 double
 Data::LsupWorker() const
 {
-  double localValue;
+  bool haveNaN=getReady()->hasNaN();
+  double localValue=0;
+  
+#ifdef PASO_MPI
+  if (haveNaN)
+  {
+	localValue=1.0;
+  }
+  double globalValue;
+  MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
+  if (globalValue!=0)
+  {
+	return makeNaN();
+  }
+#else
+  if (haveNaN) 
+  {
+	return makeNaN();
+  }
+#endif
+
   //
   // set the initial absolute maximum value to zero
 
   AbsMax abs_max_func;
   localValue = algorithm(abs_max_func,0);
+
 #ifdef PASO_MPI
-  double globalValue;
+  
   MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
   return globalValue;
 #else
@@ -1700,13 +1722,32 @@ Data::LsupWorker() const
 double
 Data::supWorker() const
 {
-  double localValue;
+  bool haveNaN=getReady()->hasNaN();
+  double localValue=0;
+
+#ifdef PASO_MPI
+  if (haveNaN)
+  {
+	localValue=1.0;
+  }
+  double globalValue;
+  MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
+  if (globalValue!=0)
+  {
+	return makeNaN();
+  }
+#else
+  if (haveNaN) 
+  {
+	return makeNaN();
+  }
+#endif
+
   //
   // set the initial maximum value to min possible double
   FMax fmax_func;
-  localValue = algorithm(fmax_func,numeric_limits<double>::max()*-1);
+  localValue = algorithm(fmax_func,numeric_limits<double>::infinity()*-1);
 #ifdef PASO_MPI
-  double globalValue;
   MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
   return globalValue;
 #else
@@ -1717,13 +1758,31 @@ Data::supWorker() const
 double
 Data::infWorker() const
 {
-  double localValue;
+  bool haveNaN=getReady()->hasNaN();
+  double localValue=0;
+
+#ifdef PASO_MPI
+  if (haveNaN)
+  {
+	localValue=1.0;
+  }
+  double globalValue;
+  MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
+  if (globalValue!=0)
+  {
+	return makeNaN();
+  }
+#else
+  if (haveNaN) 
+  {
+	return makeNaN();
+  }
+#endif
   //
   // set the initial minimum value to max possible double
   FMin fmin_func;
-  localValue = algorithm(fmin_func,numeric_limits<double>::max());
+  localValue = algorithm(fmin_func,numeric_limits<double>::infinity());
 #ifdef PASO_MPI
-  double globalValue;
   MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD );
   return globalValue;
 #else
