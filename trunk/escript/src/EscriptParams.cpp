@@ -15,6 +15,7 @@
 #include "EscriptParams.h"
 #include <cstring>
 #include <boost/python/tuple.hpp>
+#include <cmath>			// to test if we know how to check for nan
 
 namespace escript
 {
@@ -86,6 +87,14 @@ EscriptParams::getInt(const char* name, int sentinel) const
    if (!strcmp(name,"LAPACK_SUPPORT"))
    {
 	return lapack_support;
+   }
+   if (!strcmp(name, "NAN_CHECK"))
+   {
+#ifdef FP_NAN	
+	return 1;
+#else
+	return 0;
+#endif
    }
    return sentinel;
 }
