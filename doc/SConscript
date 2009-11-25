@@ -91,10 +91,10 @@ if haveMPL:
 	if haveGMSH:
 	    example_files_no_mpi.append('cookbook/run_heatrefraction.py')
 if haveGMSH:
-  example_files_allow_mpi.append('usersguide/trapezoid.py')
-  example_files_allow_mpi.append('usersguide/quad.py')
-  example_files_allow_mpi.append('usersguide/brick.py')
-  example_files_allow_mpi.append('usersguide/refine.py')
+  example_files_no_mpi.append('usersguide/trapezoid.py')
+  example_files_no_mpi.append('usersguide/quad.py')
+  example_files_no_mpi.append('usersguide/brick.py')
+  example_files_no_mpi.append('usersguide/refine.py')
 
 
 # we want to make sure these are still added to the examples bundle even if we can't run them
