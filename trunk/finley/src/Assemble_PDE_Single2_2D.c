@@ -69,12 +69,6 @@ void  Finley_Assemble_PDE_Single2_2D(Assemble_Parameters p, Finley_ElementFile* 
     dim_t len_EM_S=p.row_numShapesTotal*p.col_numShapesTotal;
     dim_t len_EM_F=p.row_numShapesTotal;
 
-    void* ABuff=allocSampleBuffer(A);
-    void* BBuff=allocSampleBuffer(B);
-    void* CBuff=allocSampleBuffer(C);
-    void* DBuff=allocSampleBuffer(D);
-    void* XBuff=allocSampleBuffer(X);
-    void* YBuff=allocSampleBuffer(Y);
     #pragma omp parallel private(color,EM_S, EM_F, Vol, DSDX, A_p, B_p, C_p, D_p, X_p, Y_p, A_q, B_q, C_q, D_q, X_q, Y_q,row_index,q, s,r,rtmp00, rtmp01, rtmp10, rtmp11, rtmp, rtmp0, rtmp1,add_EM_F, add_EM_S, isub)
     {
        EM_S=THREAD_MEMALLOC(len_EM_S,double);
@@ -89,12 +83,12 @@ void  Finley_Assemble_PDE_Single2_2D(Assemble_Parameters p, Finley_ElementFile* 
              for(e=0;e<elements->numElements;e++){
                 if (elements->Color[e]==color) {
 
-                   A_p=getSampleDataRO(A,e,ABuff);
-                   B_p=getSampleDataRO(B,e,BBuff);
-                   C_p=getSampleDataRO(C,e,CBuff);
-                   D_p=getSampleDataRO(D,e,DBuff);
-                   X_p=getSampleDataRO(X,e,XBuff);
-                   Y_p=getSampleDataRO(Y,e,YBuff);
+                   A_p=getSampleDataRO(A,e);
+                   B_p=getSampleDataRO(B,e);
+                   C_p=getSampleDataRO(C,e);
+                   D_p=getSampleDataRO(D,e);
+                   X_p=getSampleDataRO(X,e);
+                   Y_p=getSampleDataRO(Y,e);
 
                    for (isub=0; isub<p.numSub; isub++) {
 
@@ -300,10 +294,4 @@ void  Finley_Assemble_PDE_Single2_2D(Assemble_Parameters p, Finley_ElementFile* 
 
       } /* end of pointer check */
    } /* end parallel region */
-   freeSampleBuffer(ABuff);
-   freeSampleBuffer(BBuff);
-   freeSampleBuffer(CBuff);
-   freeSampleBuffer(DBuff);
-   freeSampleBuffer(XBuff);
-   freeSampleBuffer(YBuff);
 }

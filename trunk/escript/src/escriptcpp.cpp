@@ -290,8 +290,8 @@ args("solver", "preconditioner", "package", "symmetry"));
 )
 
 
-    .def("minGlobalDataPoint",&escript::Data::minGlobalDataPoint)
-    .def("maxGlobalDataPoint",&escript::Data::maxGlobalDataPoint)
+    .def("minGlobalDataPoint",&escript::Data::minGlobalDataPoint,"Please consider using getInfLocator() from pdetools instead.")
+    .def("maxGlobalDataPoint",&escript::Data::maxGlobalDataPoint, "Please consider using getSupLocator() from pdetools instead.")
     .def("saveDX",&escript::Data::saveDX,args("fileName"),"Save the object in DX format.\n\n"
 ":param fileName: filename\n:type fileName: string")
     .def("saveVTK",&escript::Data::saveVTK, args("fileName"),"Save the object in VTK format.\n\n"

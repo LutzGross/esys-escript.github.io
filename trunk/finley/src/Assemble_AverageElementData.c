@@ -69,16 +69,15 @@ void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,escriptData
 
     if (Finley_noError()) {
          if (isExpanded(in)) {
-			 void* buffer=allocSampleBuffer(in);
-				 vol=0;
-				 for (q=0; q< numQuad_in;++q) vol+=wq[q];
-				 volinv=1./vol;
+			 vol=0;
+			 for (q=0; q< numQuad_in;++q) vol+=wq[q];
+			 volinv=1./vol;
 			 requireWrite(out);
 			 #pragma omp parallel private(n, i, rtmp, q, in_array, out_array)
 			 {
 				   # pragma omp for schedule(static)
 				   for (n=0;n<numElements;n++) {
-					 in_array=getSampleDataRO(in,n,buffer);
+					 in_array=getSampleDataRO(in,n);
 					 out_array=getSampleDataRW(out,n);
 					 for (i=0; i<numComps; ++i) {
 						 rtmp=0;
@@ -88,21 +87,18 @@ void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,escriptData
 					 }
 				   }
 			 }
-			 freeSampleBuffer(buffer);
          } else {
-			 void* buffer=allocSampleBuffer(in);
-				 numComps_size=numComps*sizeof(double);
+			 numComps_size=numComps*sizeof(double);
 			 requireWrite(out);
 			 #pragma omp parallel private(q,n,out_array,in_array)
 			 {
 				   # pragma omp for schedule(static)
 				   for (n=0;n<numElements;n++) {
-					 in_array=getSampleDataRO(in,n,buffer);
+					 in_array=getSampleDataRO(in,n);
 					 out_array=getSampleDataRW(out,n);
 					 for (q=0;q<numQuad_out;q++) memcpy(out_array+q*numComps,in_array,numComps_size);
 				   }
 			 }
-			 freeSampleBuffer(buffer);
          }
     }
     return;

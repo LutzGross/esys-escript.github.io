@@ -41,8 +41,6 @@ extern "C" {
 #include <boost/python/object.hpp>
 #include <boost/python/tuple.hpp>
 
-#include "BufferGroup.h"
-
 namespace escript {
 
 //
@@ -322,14 +320,6 @@ class Data {
   escriptDataC
   getDataC() const;
 
-  /**
-	\brief How much space is required to evaulate a sample of the Data.
-  */
-  ESCRIPT_DLL_API
-  size_t
-  getSampleBufferSize() const;
-
-
 
   /**
      \brief
@@ -576,13 +566,12 @@ If false, the result is a list of scalars [1, 2, ...]
     preferred interface but is provided for use by C code.
     The bufferg parameter is only required for LazyData.
     \param sampleNo - Input - the given sample no.
-    \param bufferg - A buffer to compute (and store) sample data in will be selected from this group.
     \return pointer to the sample data.
 */
   ESCRIPT_DLL_API
   inline
   const DataAbstract::ValueType::value_type*
-  getSampleDataRO(DataAbstract::ValueType::size_type sampleNo, BufferGroup* bufferg=0);
+  getSampleDataRO(DataAbstract::ValueType::size_type sampleNo);
 
 
   /**
@@ -1518,27 +1507,7 @@ instead of manually manipulating process and point IDs.
         getDataAtOffsetRW(DataTypes::ValueType::size_type i);
 
 
-
-/**
-   \brief Create a buffer for use by getSample
-   Allocates a DataVector large enough for DataLazy::resolveSample to operate on for the current Data.
-   Do not use this buffer for other Data instances (unless you are sure they will be the same size).
-   
-   In multi-threaded sections, this needs to be called on each thread.
-
-   \return A BufferGroup* if Data is lazy, NULL otherwise.
-   \warning This pointer must be deallocated using freeSampleBuffer to avoid cross library memory issues.
-*/
-  ESCRIPT_DLL_API
-  BufferGroup*
-  allocSampleBuffer() const;
-
-/**
-   \brief Free a buffer allocated with allocSampleBuffer.
-   \param buffer Input - pointer to the buffer to deallocate.
-*/
-ESCRIPT_DLL_API void freeSampleBuffer(BufferGroup* buffer);
-
+ 
  protected:
 
  private:
@@ -1851,17 +1820,13 @@ Data::getSampleDataRW(DataAbstract::ValueType::size_type sampleNo)
 
 inline
 const DataAbstract::ValueType::value_type*
-Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo, BufferGroup* bufferg)
+Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo)
 {
    DataLazy* l=dynamic_cast<DataLazy*>(m_data.get());
    if (l!=0)
    {
 	size_t offset=0;
-	if (bufferg==NULL)
-	{
-		throw DataException("Error, attempt to getSampleDataRO for lazy Data with buffer==NULL");
-	}
-	const DataTypes::ValueType* res=l->resolveSample(*bufferg,sampleNo,offset);
+	const DataTypes::ValueType* res=l->resolveSample(sampleNo,offset);
 	return &((*res)[offset]);
    }
    return getReady()->getSampleDataRO(sampleNo);

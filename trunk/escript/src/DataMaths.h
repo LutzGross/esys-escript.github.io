@@ -925,6 +925,24 @@ matrix_inverse(const DataTypes::ValueType& in,
 void 
 matrixInverseError(int err);
 
+/**
+   \brief returns true if the vector contains NaN
+
+*/
+inline 
+bool
+vectorHasNaN(const DataTypes::ValueType& in, DataTypes::ValueType::size_type inOffset, size_t count)
+{
+	for (size_t z=inOffset;z<inOffset+count;++z)
+	{
+	    if (nancheck(in[z]))
+	    {
+		return true;
+	    }
+	}
+	return false;
+}
+
 }  // end namespace DataMath
 }  // end namespace escript
 #endif

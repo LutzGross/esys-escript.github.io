@@ -502,13 +502,6 @@ Data::getDataC() const
   return temp;
 }
 
-size_t
-Data::getSampleBufferSize() const
-{
-  return m_data->getSampleBufferSize();
-}
-
-
 const boost::python::tuple
 Data::getShapeTuple() const
 {
@@ -1646,12 +1639,13 @@ Data::lazyAlgWorker(double init)
    }
    DataLazy* dl=dynamic_cast<DataLazy*>(m_data.get());
    EsysAssert((dl!=0), "Programming error - casting to DataLazy.");
-   BufferGroup* bg=allocSampleBuffer();
    double val=init;
    int i=0;
    const size_t numsamples=getNumSamples();
    const size_t samplesize=getNoValues()*getNumDataPointsPerSample();
    BinaryOp operation;
+   bool foundnan=false;
+   double localval=0;
    #pragma omp parallel private(i)
    {
 	double localtot=init;
@@ -1659,19 +1653,37 @@ Data::lazyAlgWorker(double init)
 	for (i=0;i<numsamples;++i)
 	{
 	    size_t roffset=0;
-	    const DataTypes::ValueType* v=dl->resolveSample(*bg, i, roffset);
+	    const DataTypes::ValueType* v=dl->resolveSample(i, roffset);
 	    // Now we have the sample, run operation on all points
 	    for (size_t j=0;j<samplesize;++j)
 	    {
 		localtot=operation(localtot,(*v)[j+roffset]);
 	    }
+	    if (DataMaths::vectorHasNaN(*v,roffset, samplesize))
+	    {
+		#pragma omp critical
+		{
+			foundnan=true;
+			localval=1.0;
+		}
+	    }
 	}
 	#pragma omp critical
 	val=operation(val,localtot);
    }
-   freeSampleBuffer(bg);
 #ifdef PASO_MPI
    double globalValue;
+   MPI_Allreduce( &localval, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
+   if (globalValue!=0)
+   {
+	foundnan=true;
+   }
+#endif
+   if (foundnan)
+   {
+	return makeNaN();
+   }
+#ifdef PASO_MPI
    MPI_Allreduce( &val, &globalValue, 1, MPI_DOUBLE, mpiop_type, MPI_COMM_WORLD );
    return globalValue;
 #else
@@ -3212,34 +3224,6 @@ Data::getDataPointRW(int sampleNo, int dataPointNo)
   DataReady* dr=getReady();
   return dr->getDataAtOffsetRW(dr->getPointOffset(sampleNo, dataPointNo));
 }
-
-BufferGroup* 
-Data::allocSampleBuffer() const
-{
-     if (isLazy())
-     {
-	#ifdef _OPENMP
-	int tnum=omp_get_max_threads();
-	#else
-	int tnum=1;
-	#endif
-	return new BufferGroup(getSampleBufferSize(),tnum);
-     }
-     else
-     {
-	return NULL;
-     }
-}
-
-void
-Data::freeSampleBuffer(BufferGroup* bufferg)
-{
-     if (bufferg!=0)
-     {
-	delete bufferg;
-     }
-}
-
 
 Data
 Data::interpolateFromTable2DP(boost::python::object table, double Amin, double Astep,
