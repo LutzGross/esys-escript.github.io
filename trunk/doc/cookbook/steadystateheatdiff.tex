@@ -230,7 +230,7 @@ This process can be repeated for various variations of the solultion. In this ca
 \subsection{Quiver plots in \mpl}
 To visualise this data we are going to do three things. Firstly we will generate the gradient of the solution and create some quivers or arrows that describe the gradient. Then we need to generate some temperatur contours and thirdly, we will create some polygons from our meshing output files to show our material boundaries.
 
-The first step is very easily provided by \ESCRIPT, where we can use the \verb grad()  function to generate our gradient. It is then necessary to mold the solution to the domain node points. We do this by first extracting the nodes to \verb oldspacecoords  and transforming them via interpolation to suit our solution which is in the function space form of \verb T  .
+The first step is very easily provided by \esc, where we can use the \verb grad()  function to generate our gradient. It is then necessary to mold the solution to the domain node points. We do this by first extracting the nodes to \verb oldspacecoords  and transforming them via interpolation to suit our solution which is in the function space form of \verb T  .
 \begin{verbatim}
 # calculate gradient of solution for quiver plot
 qu=-kappa*grad(T)
