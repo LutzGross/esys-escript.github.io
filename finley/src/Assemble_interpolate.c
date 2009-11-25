@@ -132,7 +132,6 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
   /* now we can start */
 
   if (Finley_noError()) {
-	   void* buffer=allocSampleBuffer(data);
 	   requireWrite(interpolated_data);
 	   #pragma omp parallel private(local_data, numComps_size, isub)
 	   {
@@ -147,7 +146,7 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
 				  for (isub=0; isub<numSub; isub++) {
 					  for (q=0;q<NS_DOF;q++) {											  
 						  i=elements->Nodes[INDEX2(resort_nodes[INDEX2(dof_offset+q,isub,numShapesTotal2)],e,NN)];
-						  data_array=getSampleDataRO(data,map[i],buffer);
+						  data_array=getSampleDataRO(data,map[i]);
 						  memcpy(&(local_data[INDEX3(0,q,isub, numComps,NS_DOF)]), data_array, numComps_size);
 					  }
 				  }
@@ -157,7 +156,6 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
 		  }
 		   THREAD_MEMFREE(local_data);
 	 	} /* end of parallel region */
-		freeSampleBuffer(buffer);
   }
   #undef NODES 
   #undef REDUCED_NODES 

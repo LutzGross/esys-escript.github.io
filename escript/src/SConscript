@@ -25,7 +25,6 @@ sources = """
 	AbstractDomain.cpp
 	AbstractSystemMatrix.cpp
 	AbstractTransportProblem.cpp
-	BufferGroup.cpp
 	Data.cpp
 	DataAbstract.cpp
 	DataBlocks2D.cpp
@@ -62,7 +61,6 @@ headers = """
 	AbstractSystemMatrix.h
 	AbstractTransportProblem.h
 	BinaryOp.h
-	BufferGroup.h
 	Data.h
 	DataAbstract.h
 	DataAlgorithm.h

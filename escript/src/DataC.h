@@ -136,24 +136,15 @@ ESCRIPT_DLL_API int isExpanded(escriptDataC* data);
    data may be NULL, in which case NULL is returnd.
   \param data Input - C wrapper for Data.
   \param sampleNo Input - The sample number.
-  \param buffer - storage to be used when computing the value of the sample.
 
   Buffers can be created and freed using the allocSampleBuffer and freeSampleBuffer calls.
 */
-ESCRIPT_DLL_API double __const * getSampleDataRO(escriptDataC* data, int sampleNo, void* buffer);
+ESCRIPT_DLL_API double __const * getSampleDataRO(escriptDataC* data, int sampleNo);
 /* Placement of __const might be important. See .cpp */
 
 
 ESCRIPT_DLL_API double* getSampleDataRW(escriptDataC* data, int sampleNo);
 
-
-/*   \brief
-   Return a pointer to the data for the given sample number.
-   Fast version of getSampledata: does no error checking.
-  \param data Input - C wrapper for Data.
-  \param sampleNo Input - The sample number.
-*/
-/*ESCRIPT_DLL_API double* getSampleDataFast(escriptDataC* data, int sampleNo);*/
 
 /**
    \brief
@@ -161,11 +152,10 @@ ESCRIPT_DLL_API double* getSampleDataRW(escriptDataC* data, int sampleNo);
    Fast version of getSampledataRO: does no error checking.
   \param data Input - C wrapper for Data.
   \param sampleNo Input - The sample number.
-  \param buffer - storage to be used when computing the value of the sample.
 
   Buffers can be created and freed using the allocSampleBuffer and freeSampleBuffer calls.
 */
-ESCRIPT_DLL_API double __const* getSampleDataROFast(escriptDataC* data, int sampleNo, void* buffer);
+ESCRIPT_DLL_API double __const* getSampleDataROFast(escriptDataC* data, int sampleNo);
 
 /**
    \brief
@@ -187,25 +177,6 @@ ESCRIPT_DLL_API double* getSampleDataRWFast(escriptDataC* data, int sampleNo);
 */
 ESCRIPT_DLL_API double* getDataRW(escriptDataC* data);
 
-
-/**
-   \brief Create a buffer for use by getSample
-   Allocates a DataVector large enough for DataLazy::resolveSample to operate on for the current Data.
-   Do not use this buffer for other DataC instances (unless you are sure they will be the same size).
-
-   In multi-threaded sections, this needs to be called for each thread.
-   
-   \return A DataVector* if Data is not-NULL and lazy, NULL otherwise.
-   \warning This pointer must be deallocated using freeSampleBuffer to avoid cross library memory issues.
-   \param data Input - C wrapper for Data.
-*/
-ESCRIPT_DLL_API void* allocSampleBuffer(escriptDataC* data);
-
-/**
-   \brief Free a buffer allocated with allocSampleBuffer.
-   \param buffer Input - pointer to the buffer to deallocate.
-*/
-ESCRIPT_DLL_API void freeSampleBuffer(void* buffer);
 
 /**
    \brief Ensure that this object is ready for writing.

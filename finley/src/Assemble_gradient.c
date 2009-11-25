@@ -115,7 +115,6 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
   /* now we can start */
 
   if (Finley_noError()) {
-      void* buffer=allocSampleBuffer(data);     
       requireWrite(grad_data);
       #pragma omp parallel private(e,q,l,s,n,data_array,grad_data_e, isub)
       {
@@ -130,7 +129,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
 					for (isub=0; isub<numSub; isub++) {
 						for (s=0;s<numShapes;s++) {
 							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-							data_array=getSampleDataRO(data,n,buffer);
+							data_array=getSampleDataRO(data,n);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
@@ -150,7 +149,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
 					for (isub=0; isub<numSub; isub++) {
 						for (s=0;s<numShapes;s++) {
 							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-							data_array=getSampleDataRO(data,n,buffer);
+							data_array=getSampleDataRO(data,n);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
@@ -172,7 +171,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
 					for (isub=0; isub<numSub; isub++) {
 						for (s=0;s<numShapes;s++) {
 							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-							data_array=getSampleDataRO(data,n,buffer);
+							data_array=getSampleDataRO(data,n);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
@@ -196,7 +195,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
 					for (isub=0; isub<numSub; isub++) {
 						for (s=0;s<numShapes;s++) {
 							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-							data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n],buffer);            
+							data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);            
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {								
@@ -216,7 +215,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
 					for (isub=0; isub<numSub; isub++) {
 						for (s=0;s<numShapes;s++) {
 							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-							data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n],buffer);
+							data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
@@ -237,7 +236,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
 					for (isub=0; isub<numSub; isub++) {
                     	for (s=0;s<numShapes;s++) {
 							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-							data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n],buffer);
+							data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);
 							for (q=0;q<numQuad;q++) {	
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
@@ -262,7 +261,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
 					for (isub=0; isub<numSub; isub++) {
 						for (s=0;s<numShapes;s++) {
 							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-							data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n],buffer);
+							data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
@@ -282,7 +281,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
 					for (isub=0; isub<numSub; isub++) {
 						for (s=0;s<numShapes;s++) {
 							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-							data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n],buffer);
+							data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
@@ -303,7 +302,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
 					for (isub=0; isub<numSub; isub++) {
 						for (s=0;s<numShapes;s++) {
 							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-							data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n],buffer);
+							data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
@@ -327,7 +326,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
 					for (isub=0; isub<numSub; isub++) {
 						for (s=0;s<numShapes;s++) {
 							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-							data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n],buffer);
+							data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
@@ -347,7 +346,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
 					for (isub=0; isub<numSub; isub++) {
 						for (s=0;s<numShapes;s++) {
 							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-							data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n],buffer);
+							data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
@@ -369,7 +368,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
 					for (isub=0; isub<numSub; isub++) {
 						for (s=0;s<numShapes;s++) {
 							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-							data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n],buffer);
+							data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
@@ -385,6 +384,5 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
             }
          }
       } /* end parallel region */
-      freeSampleBuffer(buffer);
   }
 }

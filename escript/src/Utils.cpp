@@ -335,22 +335,15 @@ bool append)
       }
       os << endl; 
     }
-    boost::scoped_ptr<BufferGroup> maskbuffer;	// sample buffer for the mask [if we have one]
+
     const double* masksample=0;
     int maskoffset=0;
-	//the use of shared_ptr here is just to ensure the buffer group is freed
-	//I would have used scoped_ptr but they don't work in vectors
-    std::vector<boost::shared_ptr<BufferGroup> > bg(numdata);
-    for (int d=0;d<numdata;++d)
-    {
-	bg[d].reset(data[d].allocSampleBuffer());
-    }
+
 
     bool expandedmask=false;		// does the mask act expanded. Are there mask value for each point in the sample
     bool wantrow=true;			// do we output this row?
     if (hasmask)
     {
-	maskbuffer.reset(mask.allocSampleBuffer());
 	if (mask.actsExpanded())
 	{
 		maskoffset=DataTypes::noValues(mask.getDataPointShape());
@@ -373,11 +366,11 @@ bool append)
 	wantrow=true;
 	for (int d=0;d<numdata;++d)
 	{
-	  	samples[d]=data[d].getSampleDataRO(i,bg[d].get());
+	  	samples[d]=data[d].getSampleDataRO(i);
 	}
 	if (hasmask)
 	{
-		masksample=mask.getSampleDataRO(i, maskbuffer.get());
+		masksample=mask.getSampleDataRO(i);
 		if (!expandedmask)		// mask controls whole sample
 		{
 			if (masksample[0]<=0)		// masks are scalar

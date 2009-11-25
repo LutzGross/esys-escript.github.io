@@ -22,11 +22,10 @@
 #include <functional>
 
 #include "LocalOps.h"		// for tensor_binary_op
-#include "BufferGroup.h"
 #include "DataVector.h"		// for ElementType
 
 
-#define LAZY_NODE_STORAGE
+//#define LAZY_NODE_STORAGE
 
 namespace escript {
 
@@ -222,14 +221,6 @@ public:
   getPointOffset(int sampleNo,
                  int dataPointNo);
 
-
-  /**
-    \return the number of samples which need to be stored to evaluate the expression.
-  */
-  ESCRIPT_DLL_API
-  int
-  getBuffsRequired() const;
-
   /**
     \return the largest samplesize required to evaluate the expression.
   */
@@ -237,17 +228,9 @@ public:
   size_t
   getMaxSampleSize() const;
 
-  /**
-    \return the size of the buffer required to evaulate a sample for this object
-  */
-  ESCRIPT_DLL_API
-  size_t
-  getSampleBufferSize() const;
-
    /**
   \brief Compute the value of the expression for the given sample.
   \return Vector which stores the value of the subexpression for the given sample.
-  \param bg A BufferGroup to store intermediate results.
   \param sampleNo Sample number to evaluate.
   \param roffset (output parameter) the offset in the return vector where the result begins.
 
@@ -255,7 +238,7 @@ public:
   */
   ESCRIPT_DLL_API
   const ValueType*
-  resolveSample(BufferGroup& bg, int sampleNo, size_t& roffset); 
+  resolveSample(int sampleNo, size_t& roffset); 
 
   /**
   \brief if resolve() was called would it produce expanded data.
@@ -277,7 +260,6 @@ private:
   DataLazy_ptr m_left, m_right;	// operands for operation.
   ES_optype m_op;	// operation to perform.
 
-  int m_buffsRequired;	// how many samples are required to evaluate this expression
   size_t m_samplesize;	// number of values required to store a sample
 
   char m_readytype;	// E for expanded, T for tagged, C for constant
@@ -289,19 +271,12 @@ private:
 
   double m_tol;		// required extra info for <>0 and ==0
 
-  size_t m_maxsamplesize;	// largest samplesize required by any node in the expression
   size_t m_children;
   size_t m_height;
-
-#ifdef LAZY_NODE_STORAGE
 
   int* m_sampleids;		// may be NULL
   DataVector m_samples;  
 
-#endif // LAZY_NODE_STORAGE
-
-
-#ifdef LAZY_NODE_STORAGE
   /**
   Allocates sample storage at each node
   */
@@ -332,8 +307,6 @@ private:
 
   const DataTypes::ValueType*
   resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset);
-  
-#endif
 
   /**
   Does the work for toString. 
@@ -378,145 +351,12 @@ private:
   void 
   makeIdentity(const DataReady_ptr& p);
 
-  /**
-  \brief resolve to a ReadyData object using a vector buffer.
-  */
-  DataReady_ptr
-  resolveVectorWorker();
 
-#ifdef LAZY_NODE_STORAGE
   /**
   \brief resolve to a ReadyData object using storage at nodes
   */
   DataReady_ptr
   resolveNodeWorker();
-#endif
-
-  /**
-  \brief Compute the value of the expression for the given sample - using the vector buffer approach.
-  \return Vector which stores the value of the subexpression for the given sample.
-  \param v A vector to store intermediate results.
-  \param offset Index in v to begin storing results.
-  \param sampleNo Sample number to evaluate.
-  \param roffset (output parameter) the offset in the return vector where the result begins.
-
-  The return value will be an existing vector so do not deallocate it.
-  */
-  ESCRIPT_DLL_API
-  const ValueType*
-  resolveVectorSample(ValueType& v,  size_t offset, int sampleNo, size_t& roffset);
-
-
-  /**
-  \brief Compute the value of the expression (unary operation) for the given sample.
-  \return Vector which stores the value of the subexpression for the given sample.
-  \param v A vector to store intermediate results.
-  \param offset Index in v to begin storing results.
-  \param sampleNo Sample number to evaluate.
-  \param roffset (output parameter) the offset in the return vector where the result begins.
-
-  The return value will be an existing vector so do not deallocate it.
-  If the result is stored in v it should be stored at the offset given.
-  Everything from offset to the end of v should be considered available for this method to use.
-  */
-  ValueType*
-  resolveUnary(ValueType& v,  size_t offset,int sampleNo,  size_t& roffset) const;
-
-  /**
-  \brief Compute the value of the expression (reduction operation) for the given sample.
-  \return Vector which stores the value of the subexpression for the given sample.
-  \param v A vector to store intermediate results.
-  \param offset Index in v to begin storing results.
-  \param sampleNo Sample number to evaluate.
-  \param roffset (output parameter) the offset in the return vector where the result begins.
-
-  The return value will be an existing vector so do not deallocate it.
-  If the result is stored in v it should be stored at the offset given.
-  Everything from offset to the end of v should be considered available for this method to use.
-  */
-  ValueType*
-  resolveReduction(ValueType& v, size_t offset, int sampleNo, size_t& roffset) const;
-
-  /**
-  \brief Compute the value of the expression (unary non-pointwise operation) for the given sample.
-  \return Vector which stores the value of the subexpression for the given sample.
-  \param v A vector to store intermediate results.
-  \param offset Index in v to begin storing results.
-  \param sampleNo Sample number to evaluate.
-  \param roffset (output parameter) the offset in the return vector where the result begins.
-
-  The return value will be an existing vector so do not deallocate it.
-  If the result is stored in v it should be stored at the offset given.
-  Everything from offset to the end of v should be considered available for this method to use.
-
-  This method differs from the one above in that deals with operations that are not
-  point-wise. That is, the answer cannot just be written on top of the input.
-  Extra buffers are required for these operations.
-  */
-
-  ValueType*
-  resolveNP1OUT(ValueType& v, size_t offset, int sampleNo, size_t& roffset) const;
-
-/**
-  \brief Compute the value of the expression (unary operation) for the given sample.
-  \return Vector which stores the value of the subexpression for the given sample.
-  \param v A vector to store intermediate results.
-  \param offset Index in v to begin storing results.
-  \param sampleNo Sample number to evaluate.
-  \param roffset (output parameter) the offset in the return vector where the result begins.
-
-  The return value will be an existing vector so do not deallocate it.
-  If the result is stored in v it should be stored at the offset given.
-  Everything from offset to the end of v should be considered available for this method to use.
-*/
-DataTypes::ValueType*
-resolveNP1OUT_P(ValueType& v, size_t offset, int sampleNo, size_t& roffset) const;
-
-/**
-  \brief Compute the value of the expression (unary operation with int params) for the given sample.
-  \return Vector which stores the value of the subexpression for the given sample.
-  \param v A vector to store intermediate results.
-  \param offset Index in v to begin storing results.
-  \param sampleNo Sample number to evaluate.
-  \param roffset (output parameter) the offset in the return vector where the result begins.
-
-  The return value will be an existing vector so do not deallocate it.
-  If the result is stored in v it should be stored at the offset given.
-  Everything from offset to the end of v should be considered available for this method to use.
-*/
-DataTypes::ValueType*
-resolveNP1OUT_2P(ValueType& v, size_t offset, int sampleNo, size_t& roffset) const;
-
-
-  /**
-  \brief Compute the value of the expression (binary operation) for the given sample.
-  \return Vector which stores the value of the subexpression for the given sample.
-  \param v A vector to store intermediate results.
-  \param offset Index in v to begin storing results.
-  \param sampleNo Sample number to evaluate.
-  \param roffset (output parameter) the offset in the return vector where the result begins.
-
-  The return value will be an existing vector so do not deallocate it.
-  If the result is stored in v it should be stored at the offset given.
-  Everything from offset to the end of v should be considered available for this method to use.
-  */
-  ValueType*
-  resolveBinary(ValueType& v,  size_t offset,int sampleNo,  size_t& roffset) const;
-
-  /**
-  \brief Compute the value of the expression (tensor product) for the given sample.
-  \return Vector which stores the value of the subexpression for the given sample.
-  \param v A vector to store intermediate results.
-  \param offset Index in v to begin storing results.
-  \param sampleNo Sample number to evaluate.
-  \param roffset (output parameter) the offset in the return vector where the result begins.
-
-  The return value will be an existing vector so do not deallocate it.
-  If the result is stored in v it should be stored at the offset given.
-  Everything from offset to the end of v should be considered available for this method to use.
-  */
-  DataTypes::ValueType*
-  resolveTProd(ValueType& v,  size_t offset, int sampleNo, size_t& roffset) const;
 
 };
 

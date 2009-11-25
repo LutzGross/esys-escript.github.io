@@ -70,12 +70,6 @@ void  Finley_Assemble_PDE_System2_2D(Assemble_Parameters p, Finley_ElementFile* 
     dim_t len_EM_S=p.row_numShapesTotal*p.col_numShapesTotal*p.numEqu*p.numComp;
     dim_t len_EM_F=p.row_numShapesTotal*p.numEqu;
 
-    void* ABuff=allocSampleBuffer(A);
-    void* BBuff=allocSampleBuffer(B);
-    void* CBuff=allocSampleBuffer(C);
-    void* DBuff=allocSampleBuffer(D);
-    void* XBuff=allocSampleBuffer(X);
-    void* YBuff=allocSampleBuffer(Y);
     #pragma omp parallel private(color,EM_S, EM_F, Vol, DSDX, A_p, B_p, C_p, D_p, X_p, Y_p, A_q, B_q, C_q, D_q, X_q, Y_q,row_index,q, s,r,k,m,rtmp, rtmp0, rtmp1, rtmp00, rtmp10, rtmp01, rtmp11,add_EM_F, add_EM_S, isub)
     {
 
@@ -91,12 +85,12 @@ void  Finley_Assemble_PDE_System2_2D(Assemble_Parameters p, Finley_ElementFile* 
              for(e=0;e<elements->numElements;e++){
                 if (elements->Color[e]==color) {
                       
-		   A_p=getSampleDataRO(A,e,ABuff);
-		   B_p=getSampleDataRO(B,e,BBuff);
-                   C_p=getSampleDataRO(C,e,CBuff);	
-                   D_p=getSampleDataRO(D,e,DBuff);
-                   X_p=getSampleDataRO(X,e,XBuff);
-                   Y_p=getSampleDataRO(Y,e,YBuff);
+		   A_p=getSampleDataRO(A,e);
+		   B_p=getSampleDataRO(B,e);
+                   C_p=getSampleDataRO(C,e);	
+                   D_p=getSampleDataRO(D,e);
+                   X_p=getSampleDataRO(X,e);
+                   Y_p=getSampleDataRO(Y,e);
 		   
                    for (isub=0; isub<p.numSub; isub++) {
 
@@ -110,7 +104,7 @@ void  Finley_Assemble_PDE_System2_2D(Assemble_Parameters p, Finley_ElementFile* 
                       /**************************************************************/
                       /*   process A: */
                       /**************************************************************/
-                      A_p=getSampleDataRO(A,e,ABuff);
+                      A_p=getSampleDataRO(A,e);
                       if (NULL!=A_p) {
                          add_EM_S=TRUE;
                          if (extendedA) {
@@ -163,7 +157,7 @@ void  Finley_Assemble_PDE_System2_2D(Assemble_Parameters p, Finley_ElementFile* 
                       /**************************************************************/
                       /*   process B: */
                       /**************************************************************/
-                      B_p=getSampleDataRO(B,e,BBuff);
+                      B_p=getSampleDataRO(B,e);
                       if (NULL!=B_p) {
                          add_EM_S=TRUE;
                          if (extendedB) {
@@ -206,7 +200,7 @@ void  Finley_Assemble_PDE_System2_2D(Assemble_Parameters p, Finley_ElementFile* 
                       /**************************************************************/
                       /*   process C: */
                       /**************************************************************/
-                      C_p=getSampleDataRO(C,e,CBuff);
+                      C_p=getSampleDataRO(C,e);
                       if (NULL!=C_p) {
                         add_EM_S=TRUE;
                         if (extendedC) {
@@ -249,7 +243,7 @@ void  Finley_Assemble_PDE_System2_2D(Assemble_Parameters p, Finley_ElementFile* 
                       /************************************************************* */
                       /* process D */
                       /**************************************************************/
-                      D_p=getSampleDataRO(D,e,DBuff);
+                      D_p=getSampleDataRO(D,e);
                       if (NULL!=D_p) {
                         add_EM_S=TRUE;
                         if (extendedD) {
@@ -284,7 +278,7 @@ void  Finley_Assemble_PDE_System2_2D(Assemble_Parameters p, Finley_ElementFile* 
                       /**************************************************************/
                       /*   process X: */
                       /**************************************************************/
-                      X_p=getSampleDataRO(X,e,XBuff);
+                      X_p=getSampleDataRO(X,e);
                       if (NULL!=X_p) {
                         add_EM_F=TRUE;
                         if (extendedX) {
@@ -314,7 +308,7 @@ void  Finley_Assemble_PDE_System2_2D(Assemble_Parameters p, Finley_ElementFile* 
                      /**************************************************************/
                      /*   process Y: */
                      /**************************************************************/
-                      Y_p=getSampleDataRO(Y,e,YBuff);
+                      Y_p=getSampleDataRO(Y,e);
                       if (NULL!=Y_p) {
                         add_EM_F=TRUE;
                         if (extendedY) {
@@ -353,12 +347,6 @@ void  Finley_Assemble_PDE_System2_2D(Assemble_Parameters p, Finley_ElementFile* 
 
       } /* end of pointer check */
    } /* end parallel region */
-   freeSampleBuffer(ABuff);
-   freeSampleBuffer(BBuff);
-   freeSampleBuffer(CBuff);
-   freeSampleBuffer(DBuff);
-   freeSampleBuffer(XBuff);
-   freeSampleBuffer(YBuff);
 }
 /*
  * $Log$

@@ -37,7 +37,6 @@ class DataLazyTestCase : public CppUnitTest::TestCase
   void testLazy2p();
   void testLazy3();
   void testLazy4();
-  void testBuffers();
 
   DataLazyTestCase (std::string name) : TestCase (name) {}
   ~DataLazyTestCase() {}

@@ -158,7 +158,6 @@ void DataLazyTestCase::testLazy1()
   DataTypes::ShapeType shape;
   DataAbstract_ptr d1=getLazy(shape);
   assert(d1->isLazy());
-  assert(dynamic_pointer_cast<DataLazy>(d1)->getBuffsRequired()==1);
 
   for (int i=0;i<5;++i)
   {
@@ -196,7 +195,6 @@ void DataLazyTestCase::testLazy2()
     	TESTOPU(getShape,shape,op);
     	TESTOPU(getNumDPPSample,1,op);
     	TESTOPU(getNumSamples,1,op);
-	TESTOPU(getBuffsRequired,1,op);
     	shape.push_back(3);
     }
   }
@@ -234,7 +232,6 @@ void DataLazyTestCase::testLazy2p()
 
     	      TESTOPUP(getNumDPPSample,1,op);
     	      TESTOPUP(getNumSamples,1,op);
-	      TESTOPUP(getBuffsRequired,2,op);
 	      traceshape.push_back(3);
 	   }
 	}
@@ -245,7 +242,6 @@ void DataLazyTestCase::testLazy2p()
     	   TESTOPUP(getShape,shape,op);
     	   TESTOPUP(getNumDPPSample,1,op);
     	   TESTOPUP(getNumSamples,1,op);
-	   TESTOPUP(getBuffsRequired,2,op);
 	}
     	shape.push_back(3);
     }
@@ -277,7 +273,6 @@ void DataLazyTestCase::testLazy3()
     	TESTOPB(getShape,shape,op);
     	TESTOPB(getNumDPPSample,1,op);
     	TESTOPB(getNumSamples,1,op);
-	TESTOPB(getBuffsRequired,3,op);
     	shape.push_back(3);
     }
   }
@@ -320,37 +315,11 @@ void DataLazyTestCase::testLazy4()
     	TESTOPGTP(getShape,ns,op);
     	TESTOPGTP(getNumDPPSample,1,op);
     	TESTOPGTP(getNumSamples,1,op);
-	TESTOPGTP(getBuffsRequired,3,op);
     	shape.push_back(3);
     }
   }
 }
 
-
-
-void DataLazyTestCase::testBuffers()
-{
-  cout << endl;
-  cout << "\tTesting Buffs required\n";
-  DataTypes::ShapeType shape;
-  DataAbstract_ptr p=(new DataLazy(getLazy(shape),getLazy(shape),ADD))->getPtr();
-  DataAbstract_ptr p2=(new DataLazy(p,SIN))->getPtr();
-  DataAbstract_ptr p3=(new DataLazy(p2,COS))->getPtr();
-  DataAbstract_ptr p4=(new DataLazy(p3,getLazy(shape),ADD))->getPtr();
-  assert(dynamic_pointer_cast<DataLazy>(p4)->getBuffsRequired()==4);
-  DataAbstract_ptr p5=(new DataLazy(p2,p4,ADD))->getPtr();
-  assert(dynamic_pointer_cast<DataLazy>(p5)->getBuffsRequired()==6);
-  DataAbstract_ptr p6=(new DataLazy(p5,TRANS,0))->getPtr();
-  assert(dynamic_pointer_cast<DataLazy>(p6)->getBuffsRequired()==7);
-  DataAbstract_ptr p7=(new DataLazy(p6,p6,PROD,0,0))->getPtr();
-  assert(dynamic_pointer_cast<DataLazy>(p7)->getBuffsRequired()==9);
-
-  DataTypes::ShapeType r2;
-  r2.push_back(4);
-  r2.push_back(4);
-  DataAbstract_ptr p8=(new DataLazy(getLazy(r2),TRACE,0))->getPtr();
-  assert(dynamic_pointer_cast<DataLazy>(p8)->getBuffsRequired()==2);
-}
 
 
 TestSuite* DataLazyTestCase::suite ()
@@ -364,6 +333,5 @@ TestSuite* DataLazyTestCase::suite ()
   testSuite->addTest (new TestCaller< DataLazyTestCase>("Unary (params)",&DataLazyTestCase::testLazy2p));
   testSuite->addTest (new TestCaller< DataLazyTestCase>("Binary",&DataLazyTestCase::testLazy3));
   testSuite->addTest (new TestCaller< DataLazyTestCase>("GTP",&DataLazyTestCase::testLazy4));
-  testSuite->addTest (new TestCaller< DataLazyTestCase>("Buffers",&DataLazyTestCase::testBuffers));
   return testSuite;
 }

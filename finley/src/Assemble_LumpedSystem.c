@@ -105,7 +105,6 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
   }
 
   if (Finley_noError()) {
-    void* buffer=allocSampleBuffer(D);
     requireWrite(lumpedMat);
     lumpedMat_p=getSampleDataRW(lumpedMat,0);
     len_EM_lumpedMat=p.row_numShapesTotal*p.numEqu;
@@ -136,7 +135,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                                Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
                                memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
 			     
-                               D_p=getSampleDataRO(D,e,buffer);                          
+                               D_p=getSampleDataRO(D,e);                          
 							   #ifdef NEW_LUMPING /* HRZ lumping */
                                    m_t=0; /* mass of the element: m_t */
                                    for (q=0;q<p.numQuadSub;q++) m_t+=Vol[q]*D_p[INDEX2(q, isub,p.numQuadSub) ];
@@ -178,7 +177,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
 								Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
 								memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
 			     
-                               D_p=getSampleDataRO(D,e,buffer);                          
+                               D_p=getSampleDataRO(D,e);                          
 							   #ifdef NEW_LUMPING /* HRZ lumping */
                                    m_t=0; /* mass of the element: m_t */
                                    for (q=0;q<p.numQuadSub;q++) m_t+=Vol[q];
@@ -221,7 +220,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
 						   for (isub=0; isub<p.numSub; isub++) {     
                               Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
                               memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
-                              D_p=getSampleDataRO(D,e,buffer);
+                              D_p=getSampleDataRO(D,e);
 			  
                               #ifdef NEW_LUMPING /* HRZ lumping */
                                   for (k=0;k<p.numEqu;k++) {
@@ -263,7 +262,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
 						   for (isub=0; isub<p.numSub; isub++) {     
                               Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
                               memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
-                              D_p=getSampleDataRO(D,e,buffer);
+                              D_p=getSampleDataRO(D,e);
 			  
                               #ifdef NEW_LUMPING /* HRZ lumping */
                                   for (k=0;k<p.numEqu;k++) {
@@ -303,6 +302,5 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
        THREAD_MEMFREE(EM_lumpedMat);
        THREAD_MEMFREE(row_index);
     } /* end parallel region */
-    freeSampleBuffer(buffer);
   }
 }
