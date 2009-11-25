@@ -199,4 +199,4 @@ gradient quivers.")
 if getMPIRankWorld() == 0: #check for MPI processing
 	pl.savefig(os.path.join(saved_path,"heatrefraction001_contqu.png"))
 
-
+pl.clf()
