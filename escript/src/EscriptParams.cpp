@@ -90,7 +90,7 @@ EscriptParams::getInt(const char* name, int sentinel) const
    }
    if (!strcmp(name, "NAN_CHECK"))
    {
-#ifdef FP_NAN	
+#ifdef isnan	
 	return 1;
 #else
 	return 0;
