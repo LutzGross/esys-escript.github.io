@@ -32,6 +32,10 @@ extern "C" {
 //#include <omp.h>
 }
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include "esysmpi.h"
 #include <string>
 #include <algorithm>
