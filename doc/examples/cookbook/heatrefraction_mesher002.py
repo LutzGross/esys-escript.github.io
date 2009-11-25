@@ -83,7 +83,7 @@ bblockl = PlaneSurface(bblockloopl)
 
 #clockwise check
 #bblockloopl2=CurveLoop(mysp,Line(x2,p2),Line(p2,p1),Line(p1,x1))
-bpg = loopcoords(bblockloopl)
+bpg = getLoopCoords(bblockloopl)
 np.savetxt(os.path.join(save_path,"botpgl"),bpg,delimiter=" ")
 
 # Create BOTTOM BLOCK RIGHT
@@ -96,7 +96,7 @@ bblockr = PlaneSurface(bblockloopr)
 
 #clockwise check
 #bblockloopr2=CurveLoop(mysp,Line(x2,p2),Line(p2,p1),Line(p1,x1))
-bpg = loopcoords(bblockloopr)
+bpg = getLoopCoords(bblockloopr)
 np.savetxt(os.path.join(save_path,"botpgr"),bpg,delimiter=" ")
 
 #############################################EXPORTING MESH FOR ESCRIPT
@@ -106,7 +106,7 @@ d=Design(dim=2, element_size=200)
 d.addItems(PropertySet("top",tblock),\
                        PropertySet("bottomleft",bblockl),\
                        PropertySet("bottomright",bblockr),\
-                       PropertySet("linebottom",bbll21, bbrl1))
+                       PropertySet("linebottom",bbll2, bbrl1))
 
 # Create the geometry, mesh and Escript domain
 d.setScriptFileName(os.path.join(save_path,\
