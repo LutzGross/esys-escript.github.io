@@ -55,7 +55,7 @@ bool nancheck(double d)
 inline
 double makeNaN()
 {
-#ifndef isnan
+#ifdef isnan
     return nan();
 #else
     return sqrt(-1);
