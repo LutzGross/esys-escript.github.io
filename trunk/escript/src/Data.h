@@ -2473,18 +2473,21 @@ C_TensorBinaryOperation(Data const &arg_0,
       int numSamples_1 = arg_1_Z.getNumSamples();
       int numDataPointsPerSample_1 = arg_1_Z.getNumDataPointsPerSample();
       int offset_0 = tmp_0->getPointOffset(0,0);
+      const double *ptr_src = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+      double ptr_0 = ptr_src[0];
+      int size = size1*numDataPointsPerSample_1;
       res.requireWrite();
       #pragma omp parallel for private(sampleNo_1,dataPointNo_1) schedule(static)
       for (sampleNo_1 = 0; sampleNo_1 < numSamples_1; sampleNo_1++) {
-        for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
-          int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
-          const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+//        for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
+          int offset_1 = tmp_1->getPointOffset(sampleNo_1,0);
+          int offset_2 = tmp_2->getPointOffset(sampleNo_1,0);
+//          const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
           const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
           double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
-          tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
+          tensor_binary_operation(size, ptr_0, ptr_1, ptr_2, operation);
 
-        }
+//        }
       }
 
     }
@@ -2846,17 +2849,20 @@ C_TensorBinaryOperation(Data const &arg_0,
       int numSamples_0 = arg_0_Z.getNumSamples();
       int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
       int offset_1 = tmp_1->getPointOffset(0,0);
+      const double *ptr_src = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+      double ptr_1 = ptr_src[0];
+      int size = size0 * numDataPointsPerSample_0;
       res.requireWrite();
       #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
       for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-        for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
-          int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+//        for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+          int offset_0 = tmp_0->getPointOffset(sampleNo_0,0);
+          int offset_2 = tmp_2->getPointOffset(sampleNo_0,0);
           const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-          const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+//          const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
           double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
-          tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
-        }
+          tensor_binary_operation(size, ptr_0, ptr_1, ptr_2, operation);
+//        }
       }
 
 
