@@ -109,6 +109,26 @@ namespace escript
 namespace
 {
 
+
+// enabling this will print out when ever the maximum stacksize used by resolve increases
+// it assumes _OPENMP is also in use
+//#define LAZY_STACK_PROF
+
+
+
+#ifndef _OPENMP
+  #ifdef LAZY_STACK_PROF
+  #undef LAZY_STACK_PROF
+  #endif
+#endif
+
+
+#ifdef LAZY_STACK_PROF
+std::vector<void*> stackstart(getNumberOfThreads());
+std::vector<void*> stackend(getNumberOfThreads());
+size_t maxstackuse=0;
+#endif
+
 enum ES_opgroup
 {
    G_UNKNOWN,
@@ -930,6 +950,13 @@ LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
   {
     const ValueType& vec=m_id->getVectorRO();
     roffset=m_id->getPointOffset(sampleNo, 0);
+#ifdef LAZY_STACK_PROF
+int x;
+if (&x<stackend[omp_get_thread_num()])
+{
+       stackend[omp_get_thread_num()]=&x;
+}
+#endif
     return &(vec);
   }
   if (m_readytype!='E')
@@ -1505,7 +1532,22 @@ DataLazy::resolveSample(int sampleNo, size_t& roffset)
 #else
 	int tid=0;
 #endif 
+
+#ifdef LAZY_STACK_PROF
+	stackstart[tid]=&tid;
+	stackend[tid]=&tid;
+	const DataTypes::ValueType* r=resolveNodeSample(tid, sampleNo, roffset);
+	size_t d=(size_t)stackstart[tid]-(size_t)stackend[tid];
+	#pragma omp critical
+	if (d>maxstackuse)
+	{
+cout << "Max resolve Stack use " << d << endl;
+		maxstackuse=d;
+	}
+	return r;
+#else
 	return resolveNodeSample(tid, sampleNo, roffset);
+#endif
 }
 
 
@@ -1565,20 +1607,40 @@ DataLazy::resolveNodeWorker()
   int totalsamples=getNumSamples();
   const ValueType* res=0;	// Storage for answer
 LAZYDEBUG(cout << "Total number of samples=" <<totalsamples << endl;)
-  #pragma omp parallel for private(sample,res) schedule(static)
-  for (sample=0;sample<totalsamples;++sample)
+  #pragma omp parallel private(sample,res)
   {
-    size_t roffset=0;
+	size_t roffset=0;
+#ifdef LAZY_STACK_PROF
+	stackstart[omp_get_thread_num()]=&roffset;
+	stackend[omp_get_thread_num()]=&roffset;
+#endif
+	#pragma omp for schedule(static)
+  	for (sample=0;sample<totalsamples;++sample)
+  	{
+		roffset=0;
 #ifdef _OPENMP
-    res=resolveNodeSample(omp_get_thread_num(),sample,roffset);
+    		res=resolveNodeSample(omp_get_thread_num(),sample,roffset);
 #else
-    res=resolveNodeSample(0,sample,roffset);
+    		res=resolveNodeSample(0,sample,roffset);
 #endif
 LAZYDEBUG(cout << "Sample #" << sample << endl;)
 LAZYDEBUG(cout << "Final res[" << roffset<< "]=" << (*res)[roffset] << (*res)[roffset]<< endl; )
-    DataVector::size_type outoffset=result->getPointOffset(sample,0);
-    memcpy(&(resvec[outoffset]),&((*res)[roffset]),m_samplesize*sizeof(DataVector::ElementType));
+    		DataVector::size_type outoffset=result->getPointOffset(sample,0);
+    		memcpy(&(resvec[outoffset]),&((*res)[roffset]),m_samplesize*sizeof(DataVector::ElementType));
+  	}
   }
+#ifdef LAZY_STACK_PROF
+  for (int i=0;i<getNumberOfThreads();++i)
+  {
+	size_t r=((size_t)stackstart[i] - (size_t)stackend[i]);
+//	cout << i << " " << stackstart[i] << " .. " << stackend[i] << " = " <<  r << endl;
+	if (r>maxstackuse)
+	{
+		maxstackuse=r;
+	}
+  }
+  cout << "Max resolve Stack use=" << maxstackuse << endl;
+#endif
   return resptr;
 }
 
