@@ -56,7 +56,7 @@ inline
 double makeNaN()
 {
 #ifdef isnan
-    return nan();
+    return nan("");
 #else
     return sqrt(-1);
 #endif

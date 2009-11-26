@@ -137,7 +137,6 @@ ESCRIPT_DLL_API int isExpanded(escriptDataC* data);
   \param data Input - C wrapper for Data.
   \param sampleNo Input - The sample number.
 
-  Buffers can be created and freed using the allocSampleBuffer and freeSampleBuffer calls.
 */
 ESCRIPT_DLL_API double __const * getSampleDataRO(escriptDataC* data, int sampleNo);
 /* Placement of __const might be important. See .cpp */
@@ -153,7 +152,6 @@ ESCRIPT_DLL_API double* getSampleDataRW(escriptDataC* data, int sampleNo);
   \param data Input - C wrapper for Data.
   \param sampleNo Input - The sample number.
 
-  Buffers can be created and freed using the allocSampleBuffer and freeSampleBuffer calls.
 */
 ESCRIPT_DLL_API double __const* getSampleDataROFast(escriptDataC* data, int sampleNo);
 
