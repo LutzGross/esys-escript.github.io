@@ -67,7 +67,7 @@ void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold
         if(mis_marker[i]==IS_AVAILABLE)
                     mis_marker[i]=IS_IN_C;
 
-    /*#pragma omp parallel for private(i,index,where_p) schedule(static)*/
+    #pragma omp parallel for private(i,index,where_p) schedule(static)
     for (i=0;i<n;++i) {
          diagptr[i]=A->pattern->ptr[i];
          index=&(A->pattern->index[A->pattern->ptr[i]]);
@@ -826,25 +826,36 @@ void Paso_Pattern_RS_MI(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
 */
 dim_t how_many(dim_t i,Paso_Pattern * S, bool_t transpose) {
     dim_t j,n;
-    dim_t total;
+    dim_t total,ltotal;
     index_t *index,*where_p;
     /*index_t iptr,*index,*where_p;*/
     total=0;
+    ltotal=0;
     
     n=S->numOutput;
     
     if(transpose) {
-        for (j=0;j<n;++j) {
-            index=&(S->index[S->ptr[j]]);
-            where_p=(index_t*)bsearch(&i,
-                                    index,
-                                    S->ptr[j + 1]-S->ptr[j],
-                                    sizeof(index_t),
-                                    Paso_comparIndex);
-            if (where_p!=NULL) {
-                total++;
+        #pragma omp parallel 
+        {
+            ltotal=0;
+            #pragma omp for private(j,index,where_p,ltotal) schedule(static)
+            for (j=0;j<n;++j) {
+                index=&(S->index[S->ptr[j]]);
+                where_p=(index_t*)bsearch(&i,
+                                        index,
+                                        S->ptr[j + 1]-S->ptr[j],
+                                        sizeof(index_t),
+                                        Paso_comparIndex);
+                if (where_p!=NULL) {
+                    ltotal++;
+                }
             }
         }
+        #pragma omp critical
+        {
+            total+=ltotal;
+        }
+        
     }
     else {
         total=S->ptr[i+1]-S->ptr[i];
@@ -863,13 +874,15 @@ dim_t arg_max(dim_t n, dim_t* lambda, dim_t mask) {
     dim_t i;
     dim_t max=0;
     dim_t argmax=-1;
-    
+
     #ifdef _OPENMP
-        #pragma omp parallel
+        dim_t lmax=0;
+        dim_t li=-1;
+        #pragma omp parallel private(i,lmax,li)
         {
-            dim_t lmax=0;
-            dim_t li=-1;
-            #pragma omp for private(i,lmax,li) schedule(static)
+            lmax=0;
+            li=-1;
+            #pragma omp for schedule(static)
             for (i=0;i<n;++i) {
                 if(lmax<lambda[i] && lambda[i]!=mask){
                   lmax=lambda[i];

@@ -58,7 +58,6 @@ void Paso_Solver_AMG_free(Paso_Solver_AMG * in) {
         Paso_SparseMatrix_free(in->A_CF);
         Paso_SparseMatrix_free(in->P);
         Paso_SparseMatrix_free(in->R);
-        
         Paso_SparseMatrix_free(in->A);
         if(in->coarsest_level==TRUE) {
         #ifdef MKL
@@ -119,13 +118,15 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
   dim_t i;
   Paso_SparseMatrix * A_c=NULL;
   double time0=0;
+  Paso_SparseMatrix * Atemp=NULL;
+  double sparsity=0;
   
   /*
   double *temp,*temp_1;
   double S;
   index_t iptr;
   */
-  
+  verbose=1;
   /*char filename[8];*/
   /*sprintf(filename,"AMGLevel%d",level);
   
@@ -171,8 +172,19 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      out->n_F=n+1;
      out->n_block=n_block;
      
+     sparsity=(A_p->len*1.)/(1.*A_p->numRows*A_p->numCols);
+     
+     if (verbose) fprintf(stdout,"Stats: Sparsity of the Coarse Matrix with %d non-zeros (%d,%d) in level %d is %.6f\n",A_p->len,A_p->numRows,A_p->numCols,level,sparsity);
+     
+    if(sparsity>0.01) {
+      level=0;
+     }
+    
+     
      if (level==0 || n<=options->min_coarse_matrix_size) {
          out->coarsest_level=TRUE;
+         /*out->GS=Paso_Solver_getJacobi(A_p);*/
+         
          #ifdef MKL
                   out->AOffset1=Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, out->A->pattern,1,1, FALSE);
                   #pragma omp parallel for private(i) schedule(static)
@@ -185,6 +197,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                 out->GS=Paso_Solver_getJacobi(A_p);
             #endif
          #endif
+         
      } else {
          out->coarsest_level=FALSE;
          out->GS=Paso_Solver_getJacobi(A_p);
@@ -214,10 +227,10 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
             
         }
         
-        if (verbose) fprintf(stderr,"timing: Profilining for level %d:\n",level);
+        if (verbose) fprintf(stdout,"timing: Profilining for level %d:\n",level);
         
         time0=Paso_timer()-time0;
-        if (verbose) fprintf(stderr,"timing: Coarsening: %e\n",time0);
+        if (verbose) fprintf(stdout,"timing: Coarsening: %e\n",time0);
 
         #pragma omp parallel for private(i) schedule(static)
         for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
@@ -314,11 +327,11 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                       /*sprintf(filename,"W_FCbefore_%d",level);
                       Paso_SparseMatrix_saveMM(out->W_FC,filename);
                       */
-                      
+                                            
                       time0=Paso_timer();
                       Paso_SparseMatrix_updateWeights(A_p,out->W_FC,mis_marker);
                       time0=Paso_timer()-time0;
-                      if (verbose) fprintf(stderr,"timing: updateWeights: %e\n",time0);
+                      if (verbose) fprintf(stdout,"timing: updateWeights: %e\n",time0);
         
                       /*
                        printf("GOT W_FC, but n=%d,n_F=%d,n_C=%d\n",out->n,out->n_F,out->n_C);
@@ -330,7 +343,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                       time0=Paso_timer();
                       out->P=Paso_SparseMatrix_getProlongation(out->W_FC,mis_marker);
                       time0=Paso_timer()-time0;
-                      if (verbose) fprintf(stderr,"timing: getProlongation: %e\n",time0);
+                      if (verbose) fprintf(stdout,"timing: getProlongation: %e\n",time0);
                       
                       /*
                        printf("GOT Prolongation P->nxc %dx%d\n",out->P->numRows,out->P->numCols);
@@ -341,7 +354,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                       time0=Paso_timer();
                       out->R=Paso_SparseMatrix_getRestriction(out->P);
                       time0=Paso_timer()-time0;
-                      if (verbose) fprintf(stderr,"timing: getRestriction: %e\n",time0);
+                      if (verbose) fprintf(stdout,"timing: getRestriction: %e\n",time0);
                       
                       /*
                       printf("GOT Restriction->cxn %dx%d\n",out->R->numRows,out->R->numCols);
@@ -353,14 +366,21 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
               if ( Paso_noError()) {
                     
                     time0=Paso_timer();
-                    A_c=Paso_Solver_getCoarseMatrix(A_p,out->R,out->P);
-                    time0=Paso_timer()-time0;
-                    if (verbose) fprintf(stderr,"timing: getCoarseMatrix: %e\n",time0);
                     
+                    Atemp=Paso_SparseMatrix_MatrixMatrix(A_p,out->P);
+                    A_c=Paso_SparseMatrix_MatrixMatrix(out->R,Atemp);
+                    
+                    Paso_SparseMatrix_free(Atemp);
+                    
+                    /*A_c=Paso_Solver_getCoarseMatrix(A_p,out->R,out->P);*/
+                    time0=Paso_timer()-time0;
+                    if (verbose) fprintf(stdout,"timing: getCoarseMatrix: %e\n",time0);
+                    
+                                        
                     /*Paso_Solver_getCoarseMatrix(A_c, A_p,out->R,out->P);*/
                     
-                    /*
-                    sprintf(filename,"A_C_%d",level);
+                    
+                    /*sprintf(filename,"A_C_%d",level);
                     Paso_SparseMatrix_saveMM(A_c,filename);
                     */
                      
@@ -441,10 +461,12 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      double time0=0;
      double *r=NULL, *x0=NULL;
      bool_t verbose=0;
+     
      #ifdef UMFPACK 
           Paso_UMFPACK_Handler * ptr=NULL;
      #endif
      
+          
      r=MEMALLOC(amg->n,double);
      x0=MEMALLOC(amg->n,double);
      
@@ -452,6 +474,8 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
       
       time0=Paso_timer();
       /*If all unknown are eliminated then Jacobi is the best preconditioner*/
+      /*Paso_Solver_solveJacobi(amg->GS,x,b);*/
+      
       if (amg->n_F==0 || amg->n_F==amg->n) {
         Paso_Solver_solveJacobi(amg->GS,x,b);
       }
@@ -468,15 +492,16 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
          #endif
        #endif
        }
+      
        time0=Paso_timer()-time0;
-       if (verbose) fprintf(stderr,"timing: DIRECT SOLVER: %e\n",time0);
+       if (verbose) fprintf(stdout,"timing: DIRECT SOLVER: %e\n",time0);
        
      } else {
         /* presmoothing */
          time0=Paso_timer();
          Paso_Solver_solveJacobi(amg->GS,x,b);
          time0=Paso_timer()-time0;
-         if (verbose) fprintf(stderr,"timing: Presmooting: %e\n",time0);
+         if (verbose) fprintf(stdout,"timing: Presmooting: %e\n",time0);
         /* end of presmoothing */
         
         
@@ -492,7 +517,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
          Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(1.,amg->R,r,0.,amg->b_C);
         
         time0=Paso_timer()-time0;
-        if (verbose) fprintf(stderr,"timing: Before next level: %e\n",time0);
+        if (verbose) fprintf(stdout,"timing: Before next level: %e\n",time0);
         
         /* x_C=AMG(b_C)     */
         Paso_Solver_solveAMG(amg->AMG_of_Coarse,amg->x_C,amg->b_C);
@@ -523,7 +548,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
       }
       
       time0=Paso_timer()-time0;
-      if (verbose) fprintf(stderr,"timing: Postsmoothing: %e\n",time0);
+      if (verbose) fprintf(stdout,"timing: Postsmoothing: %e\n",time0);
  
       /*end of postsmoothing*/
      
