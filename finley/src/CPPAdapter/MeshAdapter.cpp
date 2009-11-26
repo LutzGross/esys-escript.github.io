@@ -115,7 +115,7 @@ Finley_Mesh* MeshAdapter::getFinley_Mesh() const {
    return m_finleyMesh.get();
 }
 
-void MeshAdapter::write(const std::string& fileName) const
+void MeshAdapter::write(const string& fileName) const
 {
    char *fName = (fileName.size()+1>0) ? TMPMEMALLOC(fileName.size()+1,char) : (char*)NULL;
    strcpy(fName,fileName.c_str());
@@ -129,7 +129,7 @@ void MeshAdapter::Print_Mesh_Info(const bool full) const
    Finley_PrintMesh_Info(m_finleyMesh.get(), full);
 }
 
-void MeshAdapter::dump(const std::string& fileName) const
+void MeshAdapter::dump(const string& fileName) const
 {
 #ifdef USE_NETCDF
    const NcDim* ncdims[12] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -164,159 +164,160 @@ void MeshAdapter::dump(const std::string& fileName) const
    /* Figure out how much storage is required for tags */
    tag_map = mesh->TagMap;
    num_Tags = 0;
-   if (tag_map) {
-      while (tag_map) {
-         num_Tags++;
-         tag_map=tag_map->next;
-      }
+   while (tag_map) {
+      num_Tags++;
+      tag_map=tag_map->next;
    }
 
    // NetCDF error handler
    NcError err(NcError::verbose_nonfatal);
    // Create the file.
    NcFile dataFile(newFileName, NcFile::Replace);
+   string msgPrefix("Error in MeshAdapter::dump: NetCDF operation failed - ");
    // check if writing was successful
    if (!dataFile.is_valid())
-      throw DataException("Error - MeshAdapter::dump: opening of NetCDF file for output failed: " + *newFileName);
+      throw DataException(msgPrefix+"Open file for output");
 
-   // Define dimensions (num_Elements and dim_Elements are identical, dim_Elements only appears if > 0)
+   // Define dimensions (num_Elements and dim_Elements are identical,
+   // dim_Elements only appears if > 0)
    if (! (ncdims[0] = dataFile.add_dim("numNodes", numNodes)) )
-      throw DataException("Error - MeshAdapter::dump: appending dimension numNodes to netCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_dim(numNodes)");
    if (! (ncdims[1] = dataFile.add_dim("numDim", numDim)) )
-      throw DataException("Error - MeshAdapter::dump: appending dimension numDim to netCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_dim(numDim)");
    if (! (ncdims[2] = dataFile.add_dim("mpi_size_plus_1", mpi_size+1)) )
-      throw DataException("Error - MeshAdapter::dump: appending dimension mpi_size to netCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_dim(mpi_size)");
    if (num_Elements>0)
       if (! (ncdims[3] = dataFile.add_dim("dim_Elements", num_Elements)) )
-         throw DataException("Error - MeshAdapter::dump: appending dimension dim_Elements to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_dim(dim_Elements)");
    if (num_FaceElements>0)
       if (! (ncdims[4] = dataFile.add_dim("dim_FaceElements", num_FaceElements)) )
-         throw DataException("Error - MeshAdapter::dump: appending dimension dim_FaceElements to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_dim(dim_FaceElements)");
    if (num_ContactElements>0)
       if (! (ncdims[5] = dataFile.add_dim("dim_ContactElements", num_ContactElements)) )
-         throw DataException("Error - MeshAdapter::dump: appending dimension dim_ContactElements to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_dim(dim_ContactElements)");
    if (num_Points>0)
       if (! (ncdims[6] = dataFile.add_dim("dim_Points", num_Points)) )
-         throw DataException("Error - MeshAdapter::dump: appending dimension dim_Points to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_dim(dim_Points)");
    if (num_Elements>0)
       if (! (ncdims[7] = dataFile.add_dim("dim_Elements_Nodes", num_Elements_numNodes)) )
-         throw DataException("Error - MeshAdapter::dump: appending dimension dim_Elements_Nodes to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_dim(dim_Elements_Nodes)");
    if (num_FaceElements>0)
       if (! (ncdims[8] = dataFile.add_dim("dim_FaceElements_numNodes", num_FaceElements_numNodes)) )
-         throw DataException("Error - MeshAdapter::dump: appending dimension dim_FaceElements_numNodes to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_dim(dim_FaceElements_numNodes)");
    if (num_ContactElements>0)
       if (! (ncdims[9] = dataFile.add_dim("dim_ContactElements_numNodes", num_ContactElements_numNodes)) )
-         throw DataException("Error - MeshAdapter::dump: appending dimension dim_ContactElements_numNodes to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_dim(dim_ContactElements_numNodes)");
    if (num_Tags>0)
       if (! (ncdims[10] = dataFile.add_dim("dim_Tags", num_Tags)) )
-         throw DataException("Error - MeshAdapter::dump: appending dimension dim_Tags to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_dim(dim_Tags)");
 
    // Attributes: MPI size, MPI rank, Name, order, reduced_order
    if (!dataFile.add_att("mpi_size", mpi_size) )
-      throw DataException("Error - MeshAdapter::dump: appending mpi_size to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(mpi_size)");
    if (!dataFile.add_att("mpi_rank", mpi_rank) )
-      throw DataException("Error - MeshAdapter::dump: appending mpi_rank to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(mpi_rank)");
    if (!dataFile.add_att("Name",mesh->Name) )
-      throw DataException("Error - MeshAdapter::dump: appending Name to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(Name)");
    if (!dataFile.add_att("numDim",numDim) )
-      throw DataException("Error - MeshAdapter::dump: appending order to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(order)");
    if (!dataFile.add_att("order",mesh->order) )
-      throw DataException("Error - MeshAdapter::dump: appending order to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(order)");
    if (!dataFile.add_att("reduced_order",mesh->reduced_order) )
-      throw DataException("Error - MeshAdapter::dump: appending reduced_order to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(reduced_order)");
    if (!dataFile.add_att("numNodes",numNodes) )
-      throw DataException("Error - MeshAdapter::dump: appending numNodes to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(numNodes)");
    if (!dataFile.add_att("num_Elements",num_Elements) )
-      throw DataException("Error - MeshAdapter::dump: appending num_Elements to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(num_Elements)");
    if (!dataFile.add_att("num_FaceElements",num_FaceElements) )
-      throw DataException("Error - MeshAdapter::dump: appending num_FaceElements to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(num_FaceElements)");
    if (!dataFile.add_att("num_ContactElements",num_ContactElements) )
-      throw DataException("Error - MeshAdapter::dump: appending num_ContactElements to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(num_ContactElements)");
    if (!dataFile.add_att("num_Points",num_Points) )
-      throw DataException("Error - MeshAdapter::dump: appending num_Points to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(num_Points)");
    if (!dataFile.add_att("num_Elements_numNodes",num_Elements_numNodes) )
-      throw DataException("Error - MeshAdapter::dump: appending num_Elements_numNodes to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(num_Elements_numNodes)");
    if (!dataFile.add_att("num_FaceElements_numNodes",num_FaceElements_numNodes) )
-      throw DataException("Error - MeshAdapter::dump: appending num_FaceElements_numNodes to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(num_FaceElements_numNodes)");
    if (!dataFile.add_att("num_ContactElements_numNodes",num_ContactElements_numNodes) )
-      throw DataException("Error - MeshAdapter::dump: appending num_ContactElements_numNodes to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(num_ContactElements_numNodes)");
    if (!dataFile.add_att("Elements_TypeId", mesh->Elements->referenceElementSet->referenceElement->Type->TypeId) )
-      throw DataException("Error - MeshAdapter::dump: appending Elements_TypeId to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(Elements_TypeId)");
    if (!dataFile.add_att("FaceElements_TypeId", mesh->FaceElements->referenceElementSet->referenceElement->Type->TypeId) )
-      throw DataException("Error - MeshAdapter::dump: appending FaceElements_TypeId to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(FaceElements_TypeId)");
    if (!dataFile.add_att("ContactElements_TypeId", mesh->ContactElements->referenceElementSet->referenceElement->Type->TypeId) )
-      throw DataException("Error - MeshAdapter::dump: appending ContactElements_TypeId to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(ContactElements_TypeId)");
    if (!dataFile.add_att("Points_TypeId", mesh->Points->referenceElementSet->referenceElement->Type->TypeId) )
-      throw DataException("Error - MeshAdapter::dump: appending Points_TypeId to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(Points_TypeId)");
    if (!dataFile.add_att("num_Tags", num_Tags) )
-      throw DataException("Error - MeshAdapter::dump: appending num_Tags to NetCDF file failed: " + *newFileName);
+      throw DataException(msgPrefix+"add_att(num_Tags)");
 
    // // // // // Nodes // // // // //
 
-   // Only write nodes if non-empty because NetCDF doesn't like empty arrays (it treats them as NC_UNLIMITED)
+   // Only write nodes if non-empty because NetCDF doesn't like empty arrays
+   // (it treats them as NC_UNLIMITED)
    if (numNodes>0) {
 
       // Nodes Id
       if (! ( ids = dataFile.add_var("Nodes_Id", ncInt, ncdims[0])) )
-         throw DataException("Error - MeshAdapter::dump: appending Nodes_Id to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Nodes_Id)");
       int_ptr = &mesh->Nodes->Id[0];
       if (! (ids->put(int_ptr, numNodes)) )
-         throw DataException("Error - MeshAdapter::dump: copy Nodes_Id to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Nodes_Id)");
 
       // Nodes Tag
       if (! ( ids = dataFile.add_var("Nodes_Tag", ncInt, ncdims[0])) )
-         throw DataException("Error - MeshAdapter::dump: appending Nodes_Tag to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Nodes_Tag)");
       int_ptr = &mesh->Nodes->Tag[0];
       if (! (ids->put(int_ptr, numNodes)) )
-         throw DataException("Error - MeshAdapter::dump: copy Nodes_Tag to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Nodes_Tag)");
 
       // Nodes gDOF
       if (! ( ids = dataFile.add_var("Nodes_gDOF", ncInt, ncdims[0])) )
-         throw DataException("Error - MeshAdapter::dump: appending Nodes_gDOF to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Nodes_gDOF)");
       int_ptr = &mesh->Nodes->globalDegreesOfFreedom[0];
       if (! (ids->put(int_ptr, numNodes)) )
-         throw DataException("Error - MeshAdapter::dump: copy Nodes_gDOF to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Nodes_gDOF)");
 
       // Nodes global node index
       if (! ( ids = dataFile.add_var("Nodes_gNI", ncInt, ncdims[0])) )
-         throw DataException("Error - MeshAdapter::dump: appending Nodes_gNI to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Nodes_gNI)");
       int_ptr = &mesh->Nodes->globalNodesIndex[0];
       if (! (ids->put(int_ptr, numNodes)) )
-         throw DataException("Error - MeshAdapter::dump: copy Nodes_gNI to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Nodes_gNI)");
 
       // Nodes grDof
       if (! ( ids = dataFile.add_var("Nodes_grDfI", ncInt, ncdims[0])) )
-         throw DataException("Error - MeshAdapter::dump: appending Nodes_grDfI to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Nodes_grDfI)");
       int_ptr = &mesh->Nodes->globalReducedDOFIndex[0];
       if (! (ids->put(int_ptr, numNodes)) )
-         throw DataException("Error - MeshAdapter::dump: copy Nodes_grDfI to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Nodes_grDfI)");
 
       // Nodes grNI
       if (! ( ids = dataFile.add_var("Nodes_grNI", ncInt, ncdims[0])) )
-         throw DataException("Error - MeshAdapter::dump: appending Nodes_grNI to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Nodes_grNI)");
       int_ptr = &mesh->Nodes->globalReducedNodesIndex[0];
       if (! (ids->put(int_ptr, numNodes)) )
-         throw DataException("Error - MeshAdapter::dump: copy Nodes_grNI to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Nodes_grNI)");
 
       // Nodes Coordinates
       if (! ( ids = dataFile.add_var("Nodes_Coordinates", ncDouble, ncdims[0], ncdims[1]) ) )
-         throw DataException("Error - MeshAdapter::dump: appending Nodes_Coordinates to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Nodes_Coordinates)");
       if (! (ids->put(&(mesh->Nodes->Coordinates[INDEX2(0,0,numDim)]), numNodes, numDim)) )
-         throw DataException("Error - MeshAdapter::dump: copy Nodes_Coordinates to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Nodes_Coordinates)");
 
       // Nodes degreesOfFreedomDistribution
       if (! ( ids = dataFile.add_var("Nodes_DofDistribution", ncInt, ncdims[2])) )
-         throw DataException("Error - MeshAdapter::dump: appending Nodes_DofDistribution to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Nodes_DofDistribution)");
       int_ptr = &mesh->Nodes->degreesOfFreedomDistribution->first_component[0];
       if (! (ids->put(int_ptr, mpi_size+1)) )
-         throw DataException("Error - MeshAdapter::dump: copy Nodes_DofDistribution to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Nodes_DofDistribution)");
 
       // Nodes nodeDistribution
       if (! ( ids = dataFile.add_var("Nodes_NodeDistribution", ncInt, ncdims[2])) )
-         throw DataException("Error - MeshAdapter::dump: appending Nodes_NodeDistribution to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Nodes_NodeDistribution)");
       int_ptr = &mesh->Nodes->nodesDistribution->first_component[0];
       if (! (ids->put(int_ptr, mpi_size+1)) )
-         throw DataException("Error - MeshAdapter::dump: copy Nodes_NodeDistribution to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Nodes_NodeDistribution)");
 
    }
 
@@ -326,37 +327,37 @@ void MeshAdapter::dump(const std::string& fileName) const
 
       // Elements_Id
       if (! ( ids = dataFile.add_var("Elements_Id", ncInt, ncdims[3])) )
-         throw DataException("Error - MeshAdapter::dump: appending Elements_Id to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Elements_Id)");
       int_ptr = &mesh->Elements->Id[0];
       if (! (ids->put(int_ptr, num_Elements)) )
-         throw DataException("Error - MeshAdapter::dump: copy Elements_Id to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Elements_Id)");
 
       // Elements_Tag
       if (! ( ids = dataFile.add_var("Elements_Tag", ncInt, ncdims[3])) )
-         throw DataException("Error - MeshAdapter::dump: appending Elements_Tag to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Elements_Tag)");
       int_ptr = &mesh->Elements->Tag[0];
       if (! (ids->put(int_ptr, num_Elements)) )
-         throw DataException("Error - MeshAdapter::dump: copy Elements_Tag to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Elements_Tag)");
 
       // Elements_Owner
       if (! ( ids = dataFile.add_var("Elements_Owner", ncInt, ncdims[3])) )
-         throw DataException("Error - MeshAdapter::dump: appending Elements_Owner to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Elements_Owner)");
       int_ptr = &mesh->Elements->Owner[0];
       if (! (ids->put(int_ptr, num_Elements)) )
-         throw DataException("Error - MeshAdapter::dump: copy Elements_Owner to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Elements_Owner)");
 
       // Elements_Color
       if (! ( ids = dataFile.add_var("Elements_Color", ncInt, ncdims[3])) )
-         throw DataException("Error - MeshAdapter::dump: appending Elements_Color to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Elements_Color)");
       int_ptr = &mesh->Elements->Color[0];
       if (! (ids->put(int_ptr, num_Elements)) )
-         throw DataException("Error - MeshAdapter::dump: copy Elements_Color to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Elements_Color)");
 
       // Elements_Nodes
       if (! ( ids = dataFile.add_var("Elements_Nodes", ncInt, ncdims[3], ncdims[7]) ) )
-         throw DataException("Error - MeshAdapter::dump: appending Elements_Nodes to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Elements_Nodes)");
       if (! (ids->put(&(mesh->Elements->Nodes[0]), num_Elements, num_Elements_numNodes)) )
-         throw DataException("Error - MeshAdapter::dump: copy Elements_Nodes to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Elements_Nodes)");
 
    }
 
@@ -366,37 +367,37 @@ void MeshAdapter::dump(const std::string& fileName) const
 
       // FaceElements_Id
       if (! ( ids = dataFile.add_var("FaceElements_Id", ncInt, ncdims[4])) )
-         throw DataException("Error - MeshAdapter::dump: appending FaceElements_Id to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(FaceElements_Id)");
       int_ptr = &mesh->FaceElements->Id[0];
       if (! (ids->put(int_ptr, num_FaceElements)) )
-         throw DataException("Error - MeshAdapter::dump: copy FaceElements_Id to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(FaceElements_Id)");
 
       // FaceElements_Tag
       if (! ( ids = dataFile.add_var("FaceElements_Tag", ncInt, ncdims[4])) )
-         throw DataException("Error - MeshAdapter::dump: appending FaceElements_Tag to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(FaceElements_Tag)");
       int_ptr = &mesh->FaceElements->Tag[0];
       if (! (ids->put(int_ptr, num_FaceElements)) )
-         throw DataException("Error - MeshAdapter::dump: copy FaceElements_Tag to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(FaceElements_Tag)");
 
       // FaceElements_Owner
       if (! ( ids = dataFile.add_var("FaceElements_Owner", ncInt, ncdims[4])) )
-         throw DataException("Error - MeshAdapter::dump: appending FaceElements_Owner to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(FaceElements_Owner)");
       int_ptr = &mesh->FaceElements->Owner[0];
       if (! (ids->put(int_ptr, num_FaceElements)) )
-         throw DataException("Error - MeshAdapter::dump: copy FaceElements_Owner to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(FaceElements_Owner)");
 
       // FaceElements_Color
       if (! ( ids = dataFile.add_var("FaceElements_Color", ncInt, ncdims[4])) )
-         throw DataException("Error - MeshAdapter::dump: appending FaceElements_Color to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(FaceElements_Color)");
       int_ptr = &mesh->FaceElements->Color[0];
       if (! (ids->put(int_ptr, num_FaceElements)) )
-         throw DataException("Error - MeshAdapter::dump: copy FaceElements_Color to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(FaceElements_Color)");
 
       // FaceElements_Nodes
       if (! ( ids = dataFile.add_var("FaceElements_Nodes", ncInt, ncdims[4], ncdims[8]) ) )
-         throw DataException("Error - MeshAdapter::dump: appending FaceElements_Nodes to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(FaceElements_Nodes)");
       if (! (ids->put(&(mesh->FaceElements->Nodes[0]), num_FaceElements, num_FaceElements_numNodes)) )
-         throw DataException("Error - MeshAdapter::dump: copy FaceElements_Nodes to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(FaceElements_Nodes)");
 
    }
 
@@ -406,37 +407,37 @@ void MeshAdapter::dump(const std::string& fileName) const
 
       // ContactElements_Id
       if (! ( ids = dataFile.add_var("ContactElements_Id", ncInt, ncdims[5])) )
-         throw DataException("Error - MeshAdapter::dump: appending ContactElements_Id to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(ContactElements_Id)");
       int_ptr = &mesh->ContactElements->Id[0];
       if (! (ids->put(int_ptr, num_ContactElements)) )
-         throw DataException("Error - MeshAdapter::dump: copy ContactElements_Id to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(ContactElements_Id)");
 
       // ContactElements_Tag
       if (! ( ids = dataFile.add_var("ContactElements_Tag", ncInt, ncdims[5])) )
-         throw DataException("Error - MeshAdapter::dump: appending ContactElements_Tag to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(ContactElements_Tag)");
       int_ptr = &mesh->ContactElements->Tag[0];
       if (! (ids->put(int_ptr, num_ContactElements)) )
-         throw DataException("Error - MeshAdapter::dump: copy ContactElements_Tag to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(ContactElements_Tag)");
 
       // ContactElements_Owner
       if (! ( ids = dataFile.add_var("ContactElements_Owner", ncInt, ncdims[5])) )
-         throw DataException("Error - MeshAdapter::dump: appending ContactElements_Owner to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(ContactElements_Owner)");
       int_ptr = &mesh->ContactElements->Owner[0];
       if (! (ids->put(int_ptr, num_ContactElements)) )
-         throw DataException("Error - MeshAdapter::dump: copy ContactElements_Owner to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(ContactElements_Owner)");
 
       // ContactElements_Color
       if (! ( ids = dataFile.add_var("ContactElements_Color", ncInt, ncdims[5])) )
-         throw DataException("Error - MeshAdapter::dump: appending ContactElements_Color to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(ContactElements_Color)");
       int_ptr = &mesh->ContactElements->Color[0];
       if (! (ids->put(int_ptr, num_ContactElements)) )
-         throw DataException("Error - MeshAdapter::dump: copy ContactElements_Color to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(ContactElements_Color)");
 
       // ContactElements_Nodes
       if (! ( ids = dataFile.add_var("ContactElements_Nodes", ncInt, ncdims[5], ncdims[9]) ) )
-         throw DataException("Error - MeshAdapter::dump: appending ContactElements_Nodes to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(ContactElements_Nodes)");
       if (! (ids->put(&(mesh->ContactElements->Nodes[0]), num_ContactElements, num_ContactElements_numNodes)) )
-         throw DataException("Error - MeshAdapter::dump: copy ContactElements_Nodes to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(ContactElements_Nodes)");
 
    }
 
@@ -448,38 +449,38 @@ void MeshAdapter::dump(const std::string& fileName) const
 
       // Points_Id
       if (! ( ids = dataFile.add_var("Points_Id", ncInt, ncdims[6])) )
-         throw DataException("Error - MeshAdapter::dump: appending Points_Id to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Points_Id)");
       int_ptr = &mesh->Points->Id[0];
       if (! (ids->put(int_ptr, num_Points)) )
-         throw DataException("Error - MeshAdapter::dump: copy Points_Id to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Points_Id)");
 
       // Points_Tag
       if (! ( ids = dataFile.add_var("Points_Tag", ncInt, ncdims[6])) )
-         throw DataException("Error - MeshAdapter::dump: appending Points_Tag to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Points_Tag)");
       int_ptr = &mesh->Points->Tag[0];
       if (! (ids->put(int_ptr, num_Points)) )
-         throw DataException("Error - MeshAdapter::dump: copy Points_Tag to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Points_Tag)");
 
       // Points_Owner
       if (! ( ids = dataFile.add_var("Points_Owner", ncInt, ncdims[6])) )
-         throw DataException("Error - MeshAdapter::dump: appending Points_Owner to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Points_Owner)");
       int_ptr = &mesh->Points->Owner[0];
       if (! (ids->put(int_ptr, num_Points)) )
-         throw DataException("Error - MeshAdapter::dump: copy Points_Owner to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Points_Owner)");
 
       // Points_Color
       if (! ( ids = dataFile.add_var("Points_Color", ncInt, ncdims[6])) )
-         throw DataException("Error - MeshAdapter::dump: appending Points_Color to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Points_Color)");
       int_ptr = &mesh->Points->Color[0];
       if (! (ids->put(int_ptr, num_Points)) )
-         throw DataException("Error - MeshAdapter::dump: copy Points_Color to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Points_Color)");
 
       // Points_Nodes
       // mesh->Nodes->Id[mesh->Points->Nodes[INDEX2(0,i,1)]]
       if (! ( ids = dataFile.add_var("Points_Nodes", ncInt, ncdims[6]) ) )
-         throw DataException("Error - MeshAdapter::dump: appending Points_Nodes to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Points_Nodes)");
       if (! (ids->put(&(mesh->Points->Nodes[0]), num_Points)) )
-         throw DataException("Error - MeshAdapter::dump: copy Points_Nodes to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Points_Nodes)");
 
    }
 
@@ -503,28 +504,28 @@ void MeshAdapter::dump(const std::string& fileName) const
 
       // Tags_keys
       if (! ( ids = dataFile.add_var("Tags_keys", ncInt, ncdims[10])) )
-         throw DataException("Error - MeshAdapter::dump: appending Tags_keys to netCDF file failed: " + *newFileName);
+         throw DataException(msgPrefix+"add_var(Tags_keys)");
       int_ptr = &Tags_keys[0];
       if (! (ids->put(int_ptr, num_Tags)) )
-         throw DataException("Error - MeshAdapter::dump: copy Tags_keys to netCDF buffer failed: " + *newFileName);
+         throw DataException(msgPrefix+"put(Tags_keys)");
 
       // Tags_names_*
-      // This is an array of strings, it should be stored as an array but instead I have hacked in one attribute per string
-      // because the NetCDF manual doesn't tell how to do an array of strings
+      // This is an array of strings, it should be stored as an array but
+      // instead I have hacked in one attribute per string because the NetCDF
+      // manual doesn't tell how to do an array of strings
       tag_map = mesh->TagMap;
       if (tag_map) {
          int i = 0;
          while (tag_map) {
             sprintf(name_temp, "Tags_name_%d", i);
             if (!dataFile.add_att(name_temp, tag_map->name) )
-               throw DataException("Error - MeshAdapter::dump: appending Tags_names_ to NetCDF file failed: " + *newFileName);
+               throw DataException(msgPrefix+"add_att(Tags_names_XX)");
             tag_map=tag_map->next;
             i++;
          }
       }
 
       TMPMEMFREE(Tags_keys);
-
    }
 
 /* Send token to next MPI process so he can take his turn */
@@ -1259,7 +1260,7 @@ void MeshAdapter::interpolateACross(escript::Data& target,const escript::Data& s
 //
 // calculates the integral of a function defined of arg:
 //
-void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const
+void MeshAdapter::setToIntegrals(vector<double>& integrals,const escript::Data& arg) const
 {
    const MeshAdapter& argDomain=dynamic_cast<const MeshAdapter&>(*(arg.getFunctionSpace().getDomain()));
    if (argDomain!=*this) 
@@ -1493,7 +1494,7 @@ void MeshAdapter::extractArgsFromDict(const boost::python::dict& arg, int& numDa
 
    boost::python::list keys=arg.keys();
    for (int i=0; i<numData; ++i) {
-      std::string n=boost::python::extract<std::string>(keys[i]);
+      string n=boost::python::extract<string>(keys[i]);
       escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
       if (dynamic_cast<const MeshAdapter&>(*(d.getFunctionSpace().getDomain())) !=*this) 
          throw FinleyAdapterException("Error: Data must be defined on same Domain");
@@ -1507,7 +1508,7 @@ void MeshAdapter::extractArgsFromDict(const boost::python::dict& arg, int& numDa
 //
 // saves mesh and optionally data arrays in openDX format
 //
-void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& arg) const
+void MeshAdapter::saveDX(const string& filename,const boost::python::dict& arg) const
 {
    int num_data;
    char **names;
@@ -1533,7 +1534,7 @@ void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& 
 //
 // saves mesh and optionally data arrays in VTK format
 //
-void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict& arg,  const std::string& metadata, const std::string& metadata_schema) const
+void MeshAdapter::saveVTK(const string& filename,const boost::python::dict& arg,  const string& metadata, const string& metadata_schema) const
 {
    int num_data;
    char **names;
@@ -1703,7 +1704,7 @@ bool MeshAdapter::isCellOriented(int functionSpaceCode) const
 }
 
 bool
-MeshAdapter::commonFunctionSpace(const std::vector<int>& fs, int& resultcode) const
+MeshAdapter::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
 {
    /* The idea is to use equivalence classes. [Types which can be interpolated back and forth]
 	class 1: DOF <-> Nodes
@@ -1728,10 +1729,10 @@ MeshAdapter::commonFunctionSpace(const std::vector<int>& fs, int& resultcode) co
    */
     if (fs.size()==0)
     {
-	return false;
+        return false;
     }
-    std::vector<int> hasclass(10);
-    std::vector<int> hasline(4);	
+    vector<int> hasclass(10);
+    vector<int> hasline(4);	
     bool hasnodes=false;
     bool hasrednodes=false;
     bool hascez=false;
@@ -2208,7 +2209,7 @@ void MeshAdapter::setTags(const int functionSpaceType, const int newTag, const e
    return;
 }
 
-void MeshAdapter::setTagMap(const std::string& name,  int tag)
+void MeshAdapter::setTagMap(const string& name,  int tag)
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
    Finley_Mesh_addTagMap(mesh, name.c_str(),tag);
@@ -2216,7 +2217,7 @@ void MeshAdapter::setTagMap(const std::string& name,  int tag)
    // throwStandardException("MeshAdapter::set TagMap is not implemented.");
 }
 
-int MeshAdapter::getTag(const std::string& name) const
+int MeshAdapter::getTag(const string& name) const
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
    int tag=0;
@@ -2226,13 +2227,13 @@ int MeshAdapter::getTag(const std::string& name) const
    return tag;
 }
 
-bool MeshAdapter::isValidTagName(const std::string& name) const
+bool MeshAdapter::isValidTagName(const string& name) const
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
    return Finley_Mesh_isValidTagName(mesh,name.c_str());
 }
 
-std::string MeshAdapter::showTagNames() const
+string MeshAdapter::showTagNames() const
 {
    stringstream temp;
    Finley_Mesh* mesh=m_finleyMesh.get();
