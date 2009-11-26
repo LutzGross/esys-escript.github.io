@@ -64,12 +64,12 @@ These packages may be required for some of the optional capabilities of the syst
   \end{itemize}
  \item netpbm (\url{http://netpbm.sourceforge.com}) \\-
         Tools for producing movies from images
- \item mpich2-1.0.7 (\url{http://www.mcs.anl.gov/research/projects/mpich2}) \\-
-        Parallelization with \mpi
  \item parmetis-3.1 (\url{http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview}) \\-
         Optimization of the stiffness matrix
  \item MKL \\(\url{http://www.intel.com/cd/software/products/asmo-na/eng/307757.htm}) \\-
         Intel's Math Kernel Library for use with their C compiler.
+\item Lapack - Available in various versions from various places. \\ 
+Currently only used to invert dense square matrices larger than 3x3. 
 \end{itemize}
 
 The following packages might be useful for mesh generation:
@@ -104,7 +104,7 @@ Please note that if your hostname has non-alphanumeric characters in it (eg - ) 
 For example the options file for \texttt{bob-desktop} would be named \filename{bob_desktop_options.py}.
 
 From now on all paths will be relative to the top level of the source.
-As a starting point copy the contents one of the following files :
+As a starting point copy the contents one of the following files into your options file:
 \begin{itemize}
  \item \filename{scons/linux_options_example.py} (\linux desktop)
 \item \filename{scons/mac_options_example.py} (\macosx desktop)
@@ -112,6 +112,17 @@ As a starting point copy the contents one of the following files :
 \item \filename{scons/winxp_options_example.py} (\winxp)
 \end{itemize}
 
+Check through the file and ensure that the relevant paths and names are correct for your system.
+For optional features, you will need to set their use variable as well.
+For example, to use netcdf, you will need to find the 
+usevtk line and make sure it reads
+\begin{shellCode}
+usevtk = 'yes' 
+\end{shellCode}
+(and is not commented out - ie it does not begin with \#)
+
+If a line is commented out and you do not require those features, then it can be ignored.
+ 
 To actually compile (if you have $n$ processors, then you can use \texttt{scons -j$n$} instead):
 
 \begin{shellCode}

@@ -127,11 +127,33 @@ which is read by all processors needs to be copied to the local file system befo
 In general a script based on the \escript module does not require modifications when running under \MPI. However, one needs to be careful if other modules are used. 
 
 When \MPI is used on more than one process ($\var{nn} \cdot \var{np} >1$) the user needs to keep in mind that several copies of his script are executed at the same time 
-\footnote{In case of OpenMP only one copy is running but \escript temporarily spawns threads.} while data exchange is performed through the \escript module. At any time, 
-\escript assumes that an argument of the type \var{int}, \var{float}, \var{str} 
-and \numpy has an identical value across all processors. All 
-values of these types returned by \escript have the same value on all processors.
-If values produced by other modules are used as arguments the user has to make sure that the argument values are identical on all processors. For instance, the usage of a random number generator to create argument values bears the risk that the value may depend on the processor. 
+\footnote{In case of OpenMP only one copy is running but \escript temporarily spawns threads.} while data exchange is performed through the \escript module. 
+
+This has three main implications:
+\begin{enumerate}
+ \item most arguments (\var{Data} excluded) should the same values on all processors. eg \var{int}, \var{float}, \var{str} 
+and \numpy parameters.
+\item the same operations will be called on processors.
+\item different processors may store different amounts of information.
+\end{enumerate}
+
+With a few exceptions\footnote{getTupleForDataPoint}, values of types \var{int}, \var{float}, \var{str} 
+and \numpy returned by \escript will have the same value on all processors.
+If values produced by other modules are used as arguments, the user has to make sure that the argument values are identical
+ on all processors. For instance, the usage of a random number generator to create argument values bears the risk that 
+the value may depend on the processor. 
+
+Some operations in \escript require communication with all processors executing the job.
+It is not always obvious which operations these are.
+For example, \var{Lsup} returns the largest value on all processors.
+\var{getValue} on \var{Locator} may refer to a value stored on another processor.
+For this reason it is better if scripts do not have conditional operations (which manipulate data) based on which processor the script is on.
+Crashing or hanging scripts can be an indication that this has happened.
+
+It is not always possible to divide data evenly amongst processors.
+In fact some processors might not have any data at all.
+Try to avoid writing scripts which iterate over data points,
+instead try to describe the operation you wish to perform as a whole.
 
 Special attention is required when using files on more than one processor as 
 several processors access the file at the same time. Opening a file for
@@ -150,12 +172,13 @@ f = FileWriter('test.txt')
 f.write('test message')
 f.close()
 \end{python}
-It is highly recommendable to use this class rather than the built-in \function{open}
+We strongly recommend using this class rather than the built-in \function{open}
 function as it will guarantee a script which will run in single processor mode as well as under \MPI.
 
 If there is the situation that one of the processors is throwing an exception, 
 for instance as opening a file for writing fails, the other processors 
-are not automatically made aware of this as \MPI
-is not handling exceptions. However, \MPI will terminate the other processes but 
+are not automatically made aware of this since \MPI
+dioes not handle exceptions.
+However, \MPI will terminate the other processes but 
 may not inform the user of the reason in an obvious way. The user needs to inspect the
 error output files to identify the exception.
