@@ -1860,6 +1860,7 @@ Data::swapaxes(const int axis0, const int axis1) const
         throw DataException(e.str());
      }
      if (axis1<0 || axis1>rank-1) {
+        stringstream e;
         e << "Error - Data::swapaxes: axis1 must be between 0 and rank-1=" << (rank-1);
         throw DataException(e.str());
      }
