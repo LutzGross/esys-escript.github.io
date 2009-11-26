@@ -2469,7 +2469,7 @@ C_TensorBinaryOperation(Data const &arg_0,
       DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
       DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
 
-      int sampleNo_1,dataPointNo_1;
+      int sampleNo_1;
       int numSamples_1 = arg_1_Z.getNumSamples();
       int numDataPointsPerSample_1 = arg_1_Z.getNumDataPointsPerSample();
       int offset_0 = tmp_0->getPointOffset(0,0);
@@ -2477,7 +2477,7 @@ C_TensorBinaryOperation(Data const &arg_0,
       double ptr_0 = ptr_src[0];
       int size = size1*numDataPointsPerSample_1;
       res.requireWrite();
-      #pragma omp parallel for private(sampleNo_1,dataPointNo_1) schedule(static)
+      #pragma omp parallel for private(sampleNo_1) schedule(static)
       for (sampleNo_1 = 0; sampleNo_1 < numSamples_1; sampleNo_1++) {
 //        for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
           int offset_1 = tmp_1->getPointOffset(sampleNo_1,0);
@@ -2845,7 +2845,7 @@ C_TensorBinaryOperation(Data const &arg_0,
       DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1_Z.borrowData());
       DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
 
-      int sampleNo_0,dataPointNo_0;
+      int sampleNo_0;
       int numSamples_0 = arg_0_Z.getNumSamples();
       int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
       int offset_1 = tmp_1->getPointOffset(0,0);
@@ -2853,7 +2853,7 @@ C_TensorBinaryOperation(Data const &arg_0,
       double ptr_1 = ptr_src[0];
       int size = size0 * numDataPointsPerSample_0;
       res.requireWrite();
-      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+      #pragma omp parallel for private(sampleNo_0) schedule(static)
       for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
 //        for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,0);
