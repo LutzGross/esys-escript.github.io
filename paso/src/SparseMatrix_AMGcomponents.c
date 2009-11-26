@@ -72,6 +72,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getProlongation(Paso_SparseMatrix* W, index
     out=Paso_SparseMatrix_alloc(W->type,outpattern,1,1,TRUE);
     
     k=0;
+
     for (i=0;i<out->numRows;++i) {
       if (mis_marker[i]) {
         wptr=W->pattern->ptr[k];
@@ -123,7 +124,6 @@ Paso_SparseMatrix* Paso_SparseMatrix_getRestriction(Paso_SparseMatrix* P){
     }
   
 
-    /*#pragma omp parallel for private(i,iptr,j) schedule(static)*/
     for (i=0;i<n;++i) {
           for (iptr=P->pattern->ptr[i];iptr<P->pattern->ptr[i+1]; ++iptr) {
              j=P->pattern->index[iptr];
@@ -225,7 +225,7 @@ void Paso_SparseMatrix_updateWeights(Paso_SparseMatrix* A,Paso_SparseMatrix* W_F
        /*printf("Got in row=%d, alpha[%d]=%e, beta[%d]=%e, a_den=%e, b_den=%e \n",i,k-1,alpha[k-1],k-1,beta[k-1],alpha_den[k-1],beta_den[k-1]);*/
       }
    }
-  
+      #pragma omp parallel for private(i,iPtr,j) schedule(static)
       for (i = 0; i < W_FC->numRows; ++i) {
             for (iPtr=W_FC->pattern->ptr[i];iPtr<W_FC->pattern->ptr[i + 1]; ++iPtr) {
                  j=W_FC->pattern->index[iPtr];
@@ -246,51 +246,6 @@ void Paso_SparseMatrix_updateWeights(Paso_SparseMatrix* A,Paso_SparseMatrix* W_F
       TMPMEMFREE(beta_den);
 }
 
-/*A_c=R*A*P taking into account coarseneing */
-/*
-void Paso_Solver_getCoarseMatrix(Paso_SparseMatrix* A_c, Paso_SparseMatrix* A,Paso_SparseMatrix *R,Paso_SparseMatrix *P) {
-
-  index_t iptrA_c,iptrR,iptrP,iptrA;
-  dim_t i,j,k,l,m;
-  double first_sum=0,second_sum=0,p_lj=0,a_kl=0,r_ik=0;
- */
-  /*a^c_ij=sum_k^n(r_ik)sum_l^n(a_kl*P_lj)*/
- /* 
-  for(i = 0; i < A_c->numRows; i++) {
-     for(iptrA_c = A_c->pattern->ptr[i]; iptrA_c < A_c->pattern->ptr[i+1]; ++iptrA_c) {
-      j = A_c->pattern->index[iptrA_c];
-      second_sum=0;
-      for(iptrR = R->pattern->ptr[i]; iptrR < R->pattern->ptr[i+1]; ++iptrR) {
-    	k = R->pattern->index[iptrR];
-        first_sum=0;
-        for(iptrA = A->pattern->ptr[k]; iptrA < A->pattern->ptr[k+1]; ++iptrA) {
-         l= A->pattern->index[iptrA];
- */        /*This loop has to be replaced by bsearch */
-  /*       for(iptrP = P->pattern->ptr[l]; iptrP < P->pattern->ptr[l+1]; ++iptrP) {
-           m=P->pattern->index[iptrP];
-           if(m==j) {
-            p_lj=P->val[iptrP];
-            break;
-           }
-         }
-         a_kl=A->val[iptrA];
-         first_sum+=a_kl*p_lj;
-        }
-        r_ik=R->val[iptrR];
-        second_sum+=r_ik*first_sum;
-        if(i==0) {
-        printf("row %d, col %d, k=%d, firstsum = %e, r_ik=%e \n",i,j,k,first_sum,r_ik);
-        }
-      }
-      if(i==0) {
-        printf("row %d, col %d, secondsum = %e \n",i,j,second_sum);
-      }
-      A_c->val[iptrA_c]=second_sum;
-     }
-    }
-
-}
-  */
   
 /*A_c=R*A*P taking into account coarseneing */
 /*Paso_SparseMatrix* Paso_Solver_getCoarseMatrix(Paso_SparseMatrix* A, Paso_SparseMatrix *R, Paso_SparseMatrix *P) {
@@ -314,18 +269,28 @@ Paso_SparseMatrix* Paso_SparseMatrix_MatrixMatrix(Paso_SparseMatrix* A, Paso_Spa
   Paso_SparseMatrix *out=NULL;
   double sum,b_lj=0;
   
+  double time0=0;
+  bool_t verbose=0;
+  
+  time0=Paso_timer();
+  
   outpattern=Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,A->pattern,B->pattern);
   out=Paso_SparseMatrix_alloc(A->type,outpattern,1,1, TRUE);
   
+  time0=Paso_timer()-time0;
+  if (verbose) fprintf(stdout,"timing: Paso_SparseMatrix_MatrixMatrix: Pattern creation: %e\n",time0);
   
+  time0=Paso_timer();
+  
+  #pragma omp parallel for private(i,iptrC,j,sum,iptrA,k,b_lj,iptrB,l) schedule(static)
   for(i = 0; i < out->numRows; i++) {
     for(iptrC = out->pattern->ptr[i]; iptrC < out->pattern->ptr[i+1]; ++iptrC) {
       j = out->pattern->index[iptrC];
       sum=0;
-      b_lj=0;
       for(iptrA = A->pattern->ptr[i]; iptrA < A->pattern->ptr[i+1]; ++iptrA) {
             k=A->pattern->index[iptrA];
             /*can be replaced by bsearch */
+            b_lj=0;
             for(iptrB = B->pattern->ptr[k]; iptrB < B->pattern->ptr[k+1]; ++iptrB) {
                l=B->pattern->index[iptrB];
                if(l==j) {
@@ -338,6 +303,9 @@ Paso_SparseMatrix* Paso_SparseMatrix_MatrixMatrix(Paso_SparseMatrix* A, Paso_Spa
       out->val[iptrC]=sum;
    }
   }
+  
+  time0=Paso_timer()-time0;
+  if (verbose) fprintf(stdout,"timing: Paso_SparseMatrix_MatrixMatrix: Matrix multiplication: %e\n",time0);
       
   Paso_Pattern_free(outpattern);
 
@@ -354,13 +322,23 @@ Paso_SparseMatrix* Paso_Solver_getCoarseMatrix(Paso_SparseMatrix* A,Paso_SparseM
   Paso_Pattern* outpattern=NULL;
   Paso_SparseMatrix *A_c=NULL;
   
+  double time0=0;
+  bool_t verbose=0;
+  
+  time0=Paso_timer();
+  
   temp=Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,A->pattern,P->pattern);
   outpattern=Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,R->pattern,temp);
   A_c=Paso_SparseMatrix_alloc(A->type,outpattern,1,1, TRUE);
   
+  time0=Paso_timer()-time0;
+  if (verbose) fprintf(stdout,"timing: Paso_Solver_getCoarseMatrix: Pattern creation: %e\n",time0);
   
   /*a^c_ij=sum_k^n(r_ik)sum_l^n(a_kl*P_lj)*/
 
+  time0=Paso_timer();
+  
+  #pragma omp parallel for private(i,iptrA_c,j,second_sum,iptrR,k,first_sum,p_lj,iptrP,m,a_kl,r_ik) schedule(static)
   for(i = 0; i < A_c->numRows; i++) {
      for(iptrA_c = A_c->pattern->ptr[i]; iptrA_c < A_c->pattern->ptr[i+1]; ++iptrA_c) {
       j = A_c->pattern->index[iptrA_c];
@@ -387,10 +365,12 @@ Paso_SparseMatrix* Paso_Solver_getCoarseMatrix(Paso_SparseMatrix* A,Paso_SparseM
       }
       A_c->val[iptrA_c]=second_sum;
      }
-    }
+  }
+  time0=Paso_timer()-time0;
+  if (verbose) fprintf(stdout,"timing: Paso_Solver_getCoarseMatrix: Matrix multiplication: %e\n",time0);
     
-    Paso_Pattern_free(outpattern);
-    Paso_Pattern_free(temp);
+  Paso_Pattern_free(outpattern);
+  Paso_Pattern_free(temp);
     
 return A_c;
 }
