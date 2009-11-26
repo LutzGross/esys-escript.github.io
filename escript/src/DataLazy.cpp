@@ -241,13 +241,15 @@ resultShape(DataAbstract_ptr left, ES_optype op, int axis_offset)
 		int rank=left->getRank();
 		if (axis_offset<0 || axis_offset>rank)
 		{
-        	   throw DataException("Error - Data::transpose must have 0 <= axis_offset <= rank=" + rank);
-     		}
-     		for (int i=0; i<rank; i++)
+            stringstream e;
+            e << "Error - Data::transpose must have 0 <= axis_offset <= rank=" << rank;
+            throw DataException(e.str());
+     	}
+     	for (int i=0; i<rank; i++)
 		{
 		   int index = (axis_offset+i)%rank;
-       		   sh.push_back(s[index]); // Append to new shape
-     		}
+       	   sh.push_back(s[index]); // Append to new shape
+     	}
 		return sh;
 	   }
 	break;
@@ -326,10 +328,13 @@ SwapShape(DataAbstract_ptr left, const int axis0, const int axis1)
         throw DataException("Error - Data::swapaxes argument must have at least rank 2.");
      }
      if (axis0<0 || axis0>rank-1) {
-        throw DataException("Error - Data::swapaxes: axis0 must be between 0 and rank-1=" + rank-1);
+        stringstream e;
+        e << "Error - Data::swapaxes: axis0 must be between 0 and rank-1=" << (rank-1);
+        throw DataException(e.str());
      }
      if (axis1<0 || axis1>rank-1) {
-         throw DataException("Error - Data::swapaxes: axis1 must be between 0 and rank-1=" + rank-1);
+        e << "Error - Data::swapaxes: axis1 must be between 0 and rank-1=" << (rank-1);
+        throw DataException(e.str());
      }
      if (axis0 == axis1) {
          throw DataException("Error - Data::swapaxes: axis indices must be different.");
