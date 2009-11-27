@@ -3433,7 +3433,7 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 	int twy=ts[1]-1;	// table width y
 	bool haserror=false;
 	int l=0;
-	#pragma omp parallel for private(l) shared(res,rdat, adat, bdat, ts) schedule(static) 
+	#pragma omp parallel for private(l) shared(res,rdat, adat, bdat) schedule(static) 
 	for (l=0; l<numpts; ++l)
 	{
 	   #pragma omp flush(haserror)		// In case haserror was in register
