@@ -66,8 +66,8 @@ mkl_lib_path		= '/sw/sdev/intel/cmkl/10.1.0.015/lib/em64t'
 mkl_libs                =  [ "mkl_core", "mkl_intel_lp64",  "mkl_intel_thread", "mkl_lapack", 'guide', 'pthread' , "mkl_mc", "mkl_def"]
 # mkl_libs		= ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide', 'pthread']
 #MKL for version 10.2.1.017
-mkl_path		= '/sw/sdev/intel/cmkl/10.2.1.017/include'
-mkl_lib_path		= '/sw/sdev/intel/cmkl/10.2.1.017/lib/em64t'
+#mkl_path		= '/sw/sdev/intel/cmkl/10.2.1.017/include'
+#mkl_lib_path		= '/sw/sdev/intel/cmkl/10.2.1.017/lib/em64t'
 
 
 # UMFPACK (requires AMD and BLAS)
