@@ -3271,70 +3271,81 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin, double Aste
 		expand();
 	}
 	Data res(0, DataTypes::scalarShape, getFunctionSpace(), true);
+	int numpts=getNumDataPoints();
+	int twidth=table.getShape()[0]-1;	
+	bool haserror=false;
+	const DataVector* adat=0;
+	DataVector* rdat=0;
 	try
 	{
-		int numpts=getNumDataPoints();
-		const DataVector& adat=getReady()->getVectorRO();
-		DataVector& rdat=res.getReady()->getVectorRW();
-		int twidth=table.getShape()[0]-1;
-		bool haserror=false;
-		int l=0;
-		#pragma omp parallel for private(l) schedule(static)
-		for (l=0;l<numpts; ++l)
-		{
+	    adat=&(getReady()->getVectorRO());
+	    rdat=&(res.getReady()->getVectorRW());
+	} catch (DataException d)
+	{
+	    haserror=true;
+	    error=3;
+	}
+	if (!haserror)
+	{
+	    int l=0;
+	    #pragma omp parallel for private(l) schedule(static)
+	    for (l=0;l<numpts; ++l)
+	    {
+		  int lerror=0;
 		  #pragma omp flush(haserror)		// In case haserror was in register
 		  if (!haserror)		
 		  {
-		   int lerror=0;
-		   try
-		   {
-		     do			// so we can use break
-		     {
-			double a=adat[l];
+			double a=(*adat)[l];
 			int x=static_cast<int>(((a-Amin)/Astep));
-			if (check_boundaries) {
+			if (check_boundaries)
+			{
 				if ((a<Amin) || (x<0))
 				{
 					lerror=1;
-					break;	
-				}
-				if (a>Amin+Astep*twidth) 
+				} 
+				else if (a>Amin+Astep*twidth) 
 				{
 				        lerror=4;
-					break;
 				}
-			} 
-			if (x<0) x=0;
-			if (x>twidth) x=twidth;
-
-			if (x==twidth)			// value is on the far end of the table
-			{
-				double e=table.getElt(x);
-				if (e>undef)
-				{
-					lerror=2;
-					break; 
-				}
-				rdat[l]=e;
 			}
-			else		// x and y are in bounds
+			if (!lerror)
 			{
-				double e=table.getElt(x);
-				double w=table.getElt(x+1);
-				if ((e>undef) || (w>undef))
-				{
+			    if (x<0) x=0;
+			    if (x>twidth) x=twidth;
+			    try{
+			  	if (x==twidth)			// value is on the far end of the table
+			  	{
+				    double e=table.getElt(x);
+				    if (e>undef)
+				    {
 					lerror=2;
-					break; 
-				}
-		// map x*Astep <= a << (x+1)*Astep to [-1,1] 
-				double la = 2.0*(a-Amin-(x*Astep))/Astep-1;
-				rdat[l]=((1-la)*e + (1+la)*w)/2;
-			}	
-		      } while (false);
-		    } catch (DataException d)
-		    {
-			    lerror=3;
-		    }
+				    }
+				    else
+				    {
+				   	(*rdat)[l]=e;
+				    }
+			  	}
+			  	else		// x and y are in bounds
+			  	{
+				    double e=table.getElt(x);
+				    double w=table.getElt(x+1);
+				    if ((e>undef) || (w>undef))
+				    {
+					lerror=2;
+				    }
+				    else
+				    {
+				    	// map x*Astep <= a << (x+1)*Astep to [-1,1] 
+					double la = 2.0*(a-Amin-(x*Astep))/Astep-1;
+					  (*rdat)[l]=((1-la)*e + (1+la)*w)/2;
+				    }
+			  	}
+			    }
+			    catch (DataException d)
+			    {
+				lerror=3;
+			    }	
+			}	// if !lerror
 		    if (lerror!=0)
 		    {
 			#pragma omp critical	// Doco says there is a flush associated with critical
@@ -3344,11 +3355,8 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin, double Aste
 			}
 		    }
 		  } // if (!error)
-		}	// parallelised for
-	} catch (DataException d)
-	{
-		error=3;		// this is outside the parallel region so assign directly
-	}
+	    }	// parallelised for
+	} // if !haserror
 #ifdef PASO_MPI
 	int rerror=0;
 	MPI_Allreduce( &error, &rerror, 1, MPI_INT, MPI_MAX, get_MPIComm() );
@@ -3401,146 +3409,150 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
     {
 	B.expand();
     }
+
     Data res(0, DataTypes::scalarShape, getFunctionSpace(), true);
+
+    int numpts=getNumDataPoints();
+    const DataVector* adat=0;
+    const DataVector* bdat=0;
+    DataVector* rdat=0;
+    const DataTypes::ShapeType& ts=table.getShape();
     try
     {
-	int numpts=getNumDataPoints();
-	const DataVector& adat=getReady()->getVectorRO();
-	const DataVector& bdat=B.getReady()->getVectorRO();
-	DataVector& rdat=res.getReady()->getVectorRW();
-	const DataTypes::ShapeType& ts=table.getShape();
+	adat=&(getReady()->getVectorRO());
+	bdat=&(B.getReady()->getVectorRO());
+	rdat=&(res.getReady()->getVectorRW());
+    }
+    catch (DataException e)
+    {
+	error=3;
+    }
+    if (!error)
+    {
 	int twx=ts[0]-1;	// table width x
 	int twy=ts[1]-1;	// table width y
 	bool haserror=false;
 	int l=0;
-	#pragma omp parallel for private(l) schedule(static) 
+	#pragma omp parallel for private(l) shared(res,rdat, adat, bdat, ts) schedule(static) 
 	for (l=0; l<numpts; ++l)
 	{
 	   #pragma omp flush(haserror)		// In case haserror was in register
 	   if (!haserror)		
 	   {
-	     int lerror=0;
-	     try
-	     {
-	       do
-	       {
-		double a=adat[l];
-		double b=bdat[l];
+		int lerror=0;
+		double a=(*adat)[l];
+		double b=(*bdat)[l];
 		int x=static_cast<int>(((a-Amin)/Astep));
 		int y=static_cast<int>(((b-Bmin)/Bstep));
-                if (check_boundaries) {
+                if (check_boundaries)
+		{
 			    if ( (a<Amin) || (b<Bmin) || (x<0) || (y<0) )
 			    {
-				#pragma omp critical
-				{
-				    lerror=1;
-				}
-				break;	
+				lerror=1;
 			    }
-			    if ( (a>Amin+Astep*twx) || (b>Bmin+Bstep*twy) )
+			    else if ( (a>Amin+Astep*twx) || (b>Bmin+Bstep*twy) )
 			    {
-				#pragma omp critical
-				{
-				    lerror=4;
-				}
-				break;
+				lerror=4;
 			    }
                 } 
-                if (x<0) x=0;
-                if (y<0) y=0;
-                if (x>twx) x=twx;
-                if (y>twx) y=twy;
-
-                if (x == twx ) {
-                     if (y == twy ) {
-		         double sw=table.getElt(x,y);
-		         if ((sw>undef))
-		         {
-			     #pragma omp critical
-			     {
-			         lerror=2;
-			     }
-			     break; 
-		         }
-		         rdat[l]=sw;
-
-                     } else {
-		         double sw=table.getElt(x,y);
-		         double nw=table.getElt(x,y+1);
-		         if ((sw>undef) || (nw>undef))
-		         {
-			     #pragma omp critical
-			     {
-			        lerror=2;
-			     }
-			     break; 
-		         }
-		         double lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;
-		         rdat[l]=((1-lb)*sw + (1+lb)*nw )/2.;
-
-                     }
-                } else {
-                     if (y == twy ) {
-		         double sw=table.getElt(x,y);
-		         double se=table.getElt(x+1,y);
-		         if ((sw>undef) || (se>undef) )
-		         {
-			     #pragma omp critical
-			     {
-			     	lerror=2;
-			     }
-			     break; 
-		         }
-		         double la = 2.0*(a-Amin-(x*Astep))/Astep-1;
-		         rdat[l]=((1-la)*sw + (1+la)*se )/2;
-
-                     } else {
-		         double sw=table.getElt(x,y);
-		         double nw=table.getElt(x,y+1);
-		         double se=table.getElt(x+1,y);
-		         double ne=table.getElt(x+1,y+1);
-		         if ((sw>undef) || (nw>undef) || (se>undef) || (ne>undef))
-		         {
-			    #pragma omp critical
+		if (lerror==0)
+		{
+                    if (x<0) x=0;
+                    if (y<0) y=0;
+                    if (x>twx) x=twx;
+		    if (y>twx) y=twy;
+		    try
+		    {
+           		if (x == twx )
+		   	{
+                     	    if (y == twy )
 			    {
-			         lerror=2;
-			    }
-			    break; 
-		         }
-		         // map x*Astep <= a << (x+1)*Astep to [-1,1] 
-		         // same with b
-		         double la = 2.0*(a-Amin-(x*Astep))/Astep-1;
-		         double lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;
-		         rdat[l]=((1-la)*(1-lb)*sw + (1-la)*(1+lb)*nw +
-			          (1+la)*(1-lb)*se + (1+la)*(1+lb)*ne)/4;
-                     }
-                }
-	       } while (false);
-	      } catch (DataException d)
-	      {
-		lerror=3;
-	      }
-	      if (lerror!=0)
-	      {
+				double sw=table.getElt(x,y);
+				if ((sw>undef))
+				{
+					lerror=2;
+				}
+				else
+				{
+					(*rdat)[l]=sw;
+				}
+                     	    } 
+			    else
+			    {
+				double sw=table.getElt(x,y);
+				double nw=table.getElt(x,y+1);
+				if ((sw>undef) || (nw>undef))
+				{
+					lerror=2;
+				}
+				else
+				{
+					double lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;
+					(*rdat)[l]=((1-lb)*sw + (1+lb)*nw )/2.;
+				}
+                            }
+                    	}
+		    	else	// x != twx
+		    	{
+				if (y == twy )
+				{
+				    double sw=table.getElt(x,y);
+				    double se=table.getElt(x+1,y);
+				    if ((sw>undef) || (se>undef) )
+				    {
+					lerror=2;
+				    }
+				    else
+				    {
+					double la = 2.0*(a-Amin-(x*Astep))/Astep-1;
+					(*rdat)[l]=((1-la)*sw + (1+la)*se )/2;
+				    }
+				}
+				else
+				{
+			    	    double sw=table.getElt(x,y);
+		            	    double nw=table.getElt(x,y+1);
+				    double se=table.getElt(x+1,y);
+				    double ne=table.getElt(x+1,y+1);
+				    if ((sw>undef) || (nw>undef) || (se>undef) || (ne>undef))
+				    {
+					lerror=2;
+		            	    }
+			    	    else
+			    	    {
+					// map x*Astep <= a << (x+1)*Astep to [-1,1] 
+					// same with b
+					double la = 2.0*(a-Amin-(x*Astep))/Astep-1;
+					double lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;
+					(*rdat)[l]=((1-la)*(1-lb)*sw + (1-la)*(1+lb)*nw +
+					    (1+la)*(1-lb)*se + (1+la)*(1+lb)*ne)/4;
+			    	    }
+				}  //else  (y != twy)
+		     	}	// else x != twx
+		    }
+		    catch (DataException d)
+		    {
+			lerror=3;
+		    }
+		}
+		if (lerror!=0)
+		{
 			#pragma omp critical	// Doco says there is a flush associated with critical
 			{
 			    haserror=true;	// We only care that one error is recorded. We don't care which 
 			    error=lerror;	// one
 			}		
-	      }
-	    }  // if (!error)
+		}
+	    }  // if (!haserror)
 	}	// parallel for
-    } catch (DataException d)
-    {
-	    error=3;
-    }
+     } // !error
 #ifdef PASO_MPI
-    int rerror=0;
-    MPI_Allreduce( &error, &rerror, 1, MPI_INT, MPI_MAX, get_MPIComm() );
-    error=rerror;
+     int rerror=0;
+     MPI_Allreduce( &error, &rerror, 1, MPI_INT, MPI_MAX, get_MPIComm() );
+     error=rerror;
 #endif
-    if (error)
-    {
+     if (error)
+     {
 	switch (error)
 	{
 			case 1: throw DataException("Value below lower table range.");
@@ -3549,8 +3561,8 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 	                default:
 		              throw DataException("Unknown error in interpolation");		
 	}
-    }
-    return res;
+     }
+     return res;
 }
 
 

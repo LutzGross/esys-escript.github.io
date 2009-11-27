@@ -549,6 +549,7 @@ if env['usemkl']:
 if env['usemkl'] and not conf.CheckCHeader('mkl_solver.h'): env['usemkl'] = 0
 if env['usemkl'] and not conf.CheckFunc('pardiso'): env['usemkl'] = 0
 
+
 # Add MKL to environment env if it was found
 if env['usemkl']:
   env = conf.Finish()
@@ -620,7 +621,13 @@ if env['uselapack']:
 	env.Append(LIBPATH = '/usr/lib/atlas')
 	env.Append(LIBS = [env['lapack_libs']])
 	if env['lapack_type']=='mkl':
-	   env.AppendUnique(CPPDEFINES='MKL_LAPACK')
+	   if not env['usemkl']:
+		env['uselapack']=0
+		print "mkl_lapack requires mkl"
+	   else:
+	   	env.AppendUnique(CPPDEFINES='MKL_LAPACK')
+	   
+
 
 ############ Add the compiler flags ############################
 
@@ -745,6 +752,8 @@ if env['useparmetis']: print "	Using ParMETIS"
 else: print "	Not using ParMETIS (requires MPI)"
 if env['usepapi']: print "	Using PAPI"
 else: print "	Not using PAPI"
+if env['uselapack']: print "	Using Lapack"
+else: print "	Not using Lapack"
 if env['usedebug']: print "	Compiling for debug"
 else: print "	Not compiling for debug"
 print "	Installing in", prefix
