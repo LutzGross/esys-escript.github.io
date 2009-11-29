@@ -60,7 +60,7 @@ netCDF_lib_path		= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/lib'
 
 # MKL
 usemkl		= 'yes'
-#MKL for version 10.1.0.015
+#MKL for 10.1.0.015
 mkl_path		= '/sw/sdev/intel/cmkl/10.1.0.015/include'
 mkl_lib_path		= '/sw/sdev/intel/cmkl/10.1.0.015/lib/em64t'
 mkl_libs                =  [ "mkl_core", "mkl_intel_lp64",  "mkl_intel_thread", "mkl_lapack", 'guide', 'pthread' , "mkl_mc", "mkl_def"]
@@ -89,6 +89,11 @@ uselapack		= 'yes'
 #lapack_path		= '/sw/sdev/intel/cmkl/10.1.0.015/include'
 #lapack_lib_path		= '/sw/sdev/intel/cmkl/10.1.0.015/lib/em64t'
 #lapack_libs		= ['mkl_lapack','mkl','guide','pthread']
+#We will pull these in with MKL
+#If you are not using MKL then switch off Lapack or use the lines above
+lapack_path		= ''
+lapack_lib_path		= ''
+lapack_libs		= []
 lapack_type		= 'mkl'	
 
 
