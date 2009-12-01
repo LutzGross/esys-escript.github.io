@@ -129,9 +129,10 @@ typedef DataReady parent;
   /**
     \brief invert square matricies
     \param out - Where to store the results
+    \return errorcode (0 indicates success)
   */
   ESCRIPT_DLL_API
-  void
+  int
   matrixInverse(DataAbstract* out) const;
 
   void

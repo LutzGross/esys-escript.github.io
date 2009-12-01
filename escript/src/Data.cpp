@@ -2409,6 +2409,10 @@ Data::operator/=(const boost::python::object& right)
   return (*this);
 }
 
+/* Be careful trying to make this operation lazy.
+At time of writing, resolve() and resolveSample() do not throw.
+Changing this would mean that any resolve call would need to use MPI (to check for global errors)
+*/
 Data
 Data::matrixInverse() const
 {
@@ -2421,7 +2425,16 @@ Data::matrixInverse() const
 
   Data out(0.,getDataPointShape(),getFunctionSpace());
   out.typeMatchRight(*this);
-  m_data->matrixInverse(out.getReadyPtr().get());
+  int errcode=m_data->matrixInverse(out.getReadyPtr().get());
+#ifdef PASO_MPI
+  int globalval=0;
+  MPI_Allreduce( &errcode, &globalval, 1, MPI_INT, MPI_MAX, get_MPIComm() );
+  errcode=globalval;
+#endif
+  if (errcode)
+  {
+  	DataMaths::matrixInverseError(errcode);	// throws exceptions
+  }
   return out;
 }
 

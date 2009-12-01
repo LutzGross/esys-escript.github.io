@@ -573,7 +573,7 @@ DataExpanded::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
 }
 
 
-void
+int
 DataExpanded::matrixInverse(DataAbstract* out) const
 {
   DataExpanded* temp=dynamic_cast<DataExpanded*>(out);
@@ -612,6 +612,7 @@ DataExpanded::matrixInverse(DataAbstract* out) const
 	}
      }
   }
+  return errcode;
   if (errcode)
   {
 	DataMaths::matrixInverseError(errcode);	// throws exceptions

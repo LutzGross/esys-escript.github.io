@@ -92,10 +92,11 @@ DataEmpty::setSlice(const DataAbstract* value,
   throwStandardException("setSlice");
 }
 
-void
+int
 DataEmpty::matrixInverse(DataAbstract* out) const
 {
   throwStandardException("matrixInverse");
+  return 0;
 }
 
 
