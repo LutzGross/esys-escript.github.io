@@ -251,7 +251,7 @@ DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
 
 
 
-void
+int
 DataConstant::matrixInverse(DataAbstract* out) const
 {
   DataConstant* temp=dynamic_cast<DataConstant*>(out);
@@ -265,10 +265,7 @@ DataConstant::matrixInverse(DataAbstract* out) const
   }
   LapackInverseHelper h(getShape()[0]);
   int res=DataMaths::matrix_inverse(m_data, getShape(), 0, temp->getVectorRW(), temp->getShape(), 0, 1, h);
-  if (res)
-  {
-	DataMaths::matrixInverseError(res);	// throws exceptions
-  }
+  return res;
 }
 
 void

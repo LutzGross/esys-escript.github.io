@@ -175,9 +175,10 @@ TODO Note that this constructor will also copy data to all points if it only con
   /**
     \brief invert square matricies
     \param out - Where to store the results
+    \return errorcode (0 indicates success)
   */
   ESCRIPT_DLL_API
-  virtual void
+  virtual int
   matrixInverse(DataAbstract* out) const;
 
  /**

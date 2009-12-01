@@ -727,7 +727,7 @@ DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const 
 
 }
 
-void
+int
 DataTagged::matrixInverse(DataAbstract* out) const
 {
   DataTagged* temp=dynamic_cast<DataTagged*>(out);
@@ -758,10 +758,7 @@ DataTagged::matrixInverse(DataAbstract* out) const
   {
       DataMaths::matrix_inverse(m_data, getShape(), getDefaultOffset(), outVec, outShape, temp->getDefaultOffset(), 1, h);
   }
-  if (err)
-  {
-     DataMaths::matrixInverseError(err);	// throws exceptions
-  }
+  return err;
 }
 
 void
