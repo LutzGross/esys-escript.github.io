@@ -381,9 +381,12 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          """
          initialize the Stokes Problem
 
-         :param domain: domain of the problem. The approximation order needs to be two.
+         The approximation spaces used for velocity (=Solution(domain)) and pressure (=ReducedSolution(domain)) must be
+         LBB complient, for instance using quadratic and linear approximation on the same element or using linear approximation
+         with macro elements for the pressure. 
+
+         :param domain: domain of the problem.
          :type domain: `Domain`
-         :warning: The apprximation order needs to be two otherwise you may see oscilations in the pressure.
          """
          HomogeneousSaddlePointProblem.__init__(self,**kwargs)
          self.domain=domain
@@ -446,6 +449,42 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 	 """
 	 return self.__pde_proj.getSolverOptions()
 
+     def updateStokesEquation(self, v, p):
+         """
+         updates the Stokes equation to consider dependencies from ``v`` and ``p``
+         :note: This method can be overwritten by a subclass. Use `setStokesEquation` to set new values.
+         """
+         pass
+     def setStokesEquation(self, f=None,fixed_u_mask=None,eta=None,surface_stress=None,stress=None, restoration_factor=None):
+        """
+        assigns new values to the model parameters. 
+
+        :param f: external force
+        :type f: `Vector` object in `FunctionSpace` `Function` or similar
+        :param fixed_u_mask: mask of locations with fixed velocity.
+        :type fixed_u_mask: `Vector` object on `FunctionSpace` `Solution` or similar
+        :param eta: viscosity
+        :type eta: `Scalar` object on `FunctionSpace` `Function` or similar
+        :param surface_stress: normal surface stress
+        :type surface_stress: `Vector` object on `FunctionSpace` `FunctionOnBoundary` or similar
+        :param stress: initial stress
+	:type stress: `Tensor` object on `FunctionSpace` `Function` or similar
+        """
+        if eta !=None:
+            k=util.kronecker(self.domain.getDim())
+            kk=util.outer(k,k)
+            self.eta=util.interpolate(eta, Function(self.domain))
+	    self.__pde_prec.setValue(D=1/self.eta)
+            self.__pde_u.setValue(A=self.eta*(util.swap_axes(kk,0,3)+util.swap_axes(kk,1,3)))
+        if restoration_factor!=None:
+            n=self.domain.getNormal()
+            self.__pde_u.setValue(d=restoration_factor*util.outer(n,n))
+        if fixed_u_mask!=None:
+            self.__pde_u.setValue(q=fixed_u_mask)
+        if f!=None: self.__f=f
+        if surface_stress!=None: self.__surface_stress=surface_stress
+        if stress!=None: self.__stress=stress
+
      def initialize(self,f=Data(),fixed_u_mask=Data(),eta=1,surface_stress=Data(),stress=Data(), restoration_factor=0):
         """
         assigns values to the model parameters
@@ -460,21 +499,8 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
         :type surface_stress: `Vector` object on `FunctionSpace` `FunctionOnBoundary` or similar
         :param stress: initial stress
 	:type stress: `Tensor` object on `FunctionSpace` `Function` or similar
-        :note: All values needs to be set.
         """
-        self.eta=eta
-        A =self.__pde_u.createCoefficient("A")
-	self.__pde_u.setValue(A=Data())
-        for i in range(self.domain.getDim()):
-		for j in range(self.domain.getDim()):
-			A[i,j,j,i] += 1.
-			A[i,j,i,j] += 1.
-        n=self.domain.getNormal()
-	self.__pde_prec.setValue(D=1/self.eta)
-        self.__pde_u.setValue(A=A*self.eta,q=fixed_u_mask, d=restoration_factor*util.outer(n,n))
-        self.__f=f
-        self.__surface_stress=surface_stress
-        self.__stress=stress
+        self.setStokesEquation(f,fixed_u_mask, eta, surface_stress, stress, restoration_factor)
 
      def Bv(self,v,tol):
          """
@@ -484,7 +510,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          :return: inner product of element p and div(v)
          :rtype: ``float``
          """
-         self.__pde_proj.setValue(Y=-util.div(v)) # -???
+         self.__pde_proj.setValue(Y=-util.div(v)) 
 	 self.getSolverOptionsDiv().setTolerance(tol)
 	 self.getSolverOptionsDiv().setAbsoluteTolerance(0.)
          out=self.__pde_proj.getSolution()
@@ -524,6 +550,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          """
          return util.sqrt(util.integrate(util.length(util.grad(v))**2))
 
+
      def getDV(self, p, v, tol):
          """
          return the value for v for a given p (overwrite)
@@ -532,6 +559,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          :param v: a initial guess for the value v to return.
          :return: dv given as *Adv=(f-Av-B^*p)*
          """
+         self.updateStokesEquation(v,p)
          self.__pde_u.setValue(Y=self.__f, y=self.__surface_stress)
 	 self.getSolverOptionsVelocity().setTolerance(tol)
 	 self.getSolverOptionsVelocity().setAbsoluteTolerance(0.)

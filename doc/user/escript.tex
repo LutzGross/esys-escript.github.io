@@ -53,7 +53,8 @@ PDE solutions on the \Domain \var{mydomain}:
 The following generators for function spaces on a \Domain \var{mydomain} are commonly used: 
 \begin{itemize}
 \item \var{Solution(mydomain)}: solutions of a PDE.
-\item \var{ReducedSolution(mydomain)}: solutions of a PDE with a reduced smoothness requirement.  
+\item \var{ReducedSolution(mydomain)}: solutions of a PDE with a reduced smoothness requirement, eg. using a
+lower order approximation onon the same element or using macro elements\index{macro elements}.  
 \item \var{ContinuousFunction(mydomain)}: continuous functions, eg. a temperature distribution.
 \item \var{Function(mydomain)}: general functions which are not necessarily continuous, eg. a stress field.
 \item \var{FunctionOnBoundary(mydomain)}: functions on the boundary of the domain, eg. a surface pressure.

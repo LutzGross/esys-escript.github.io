@@ -1507,7 +1507,7 @@ class HomogeneousSaddlePointProblem(object):
         self.resetControlParameters()
         self.setTolerance()
         self.setAbsoluteTolerance()
-      def resetControlParameters(self,gamma=0.85, gamma_min=1.e-8,chi_max=0.1, omega_div=0.2, omega_conv=1.1, rtol_min=1.e-7, rtol_max=0.1, chi=1., C_p=1., C_v=1., safety_factor=0.3):
+      def resetControlParameters(self,gamma=0.85, gamma_min=1.e-2,chi_max=0.1, omega_div=0.2, omega_conv=1.1, rtol_min=1.e-7, rtol_max=0.9, chi=1., C_p=1., C_v=1., safety_factor=0.3):
          """
          sets a control parameter
 
@@ -1647,12 +1647,6 @@ class HomogeneousSaddlePointProblem(object):
          self.__safety_factor = safety_factor
 
       #=============================================================
-      def initialize(self):
-        """
-        Initializes the problem (overwrite).
-        """
-        pass
-
       def inner_pBv(self,p,Bv):
          """
          Returns inner product of element p and Bv (overwrite).
@@ -1782,6 +1776,13 @@ class HomogeneousSaddlePointProblem(object):
          :type verbose: ``bool``
          :type iter_restart: ``int``
          :rtype: ``tuple`` of `Data` objects
+         :note: typically this method is overwritten by a subclass. It provides a wrapper for the ``_solve`` method.
+         """
+         return self._solve(v=v,p=p,max_iter=max_iter,verbose=verbose, usePCG=usePCG, iter_restart=iter_restart, max_correction_steps=max_correction_steps)
+
+      def _solve(self,v,p,max_iter=20, verbose=False, usePCG=True, iter_restart=20, max_correction_steps=10):
+         """
+         see `_solve` method.
          """
          self.verbose=verbose
          rtol=self.getTolerance()
@@ -1842,12 +1843,15 @@ class HomogeneousSaddlePointProblem(object):
                   if self.verbose: print "HomogeneousSaddlePointProblem: step %s (part 2): Bv = %e, dv = %e, v=%e"%(correction_step,norm_Bv2, norm_dv2, norm_v2)
                   if error !=None:
                       chi_new=error_new/error
-                      if self.verbose: print "HomogeneousSaddlePointProblem: step %s: convergence rate = %e"%(correction_step,chi_new)
+                      if self.verbose: print "HomogeneousSaddlePointProblem: step %s: convergence rate = %e, est. error = %e"%(correction_step,chi_new, error_new)
                       if chi != None:
                           gamma0=max(gamma, 1-chi/chi_new) 
                           C_p*=gamma0/gamma
                           C_v*=gamma0/gamma*(1+gamma)/(1+gamma0)
                       chi=chi_new
+                  else:
+                      if self.verbose: print "HomogeneousSaddlePointProblem: step %s: est. error = %e"%(correction_step, error_new)
+
                   error = error_new
                   correction_step+=1
                   if correction_step>max_correction_steps:

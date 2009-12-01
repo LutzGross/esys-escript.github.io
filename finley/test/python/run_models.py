@@ -24,7 +24,7 @@ import tempfile
       
 
 
-VERBOSE=False # or True
+VERBOSE=False or True
 
 from esys.escript import *
 from esys.escript.models import StokesProblemCartesian, PowerLaw, IncompressibleIsotropicFlowCartesian, FaultSystem, DarcyFlow
@@ -46,7 +46,7 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
    def setUp(self):
        NE=6
        self.TOL=1e-3
-       self.domain=Rectangle(NE,NE,order=2,useFullElementOrder=True)
+       self.domain=Rectangle(NE,NE,order=-1)
    def tearDown(self):
        del self.domain
    def test_PCG_P_0(self):
@@ -66,7 +66,7 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
-       u,p=sp.solve(u0,p0,verbose=VERBOSE,max_iter=100,usePCG=True)
+       u,p=sp.solve(u0*mask,p0,verbose=VERBOSE,max_iter=100,usePCG=True)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
@@ -210,7 +210,7 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
    def setUp(self):
        NE=6
        self.TOL=1e-4
-       self.domain=Brick(NE,NE,NE,order=2,useFullElementOrder=True)
+       self.domain=Brick(NE,NE,NE,order=-1)
    def tearDown(self):
        del self.domain
    def test_PCG_P_0(self):
@@ -915,10 +915,10 @@ class Test_Rheologies(unittest.TestCase):
 
 class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
    TOL=1.e-6
-   VERBOSE=False
+   VERBOSE=False or True
    A=1.
    P_max=100
-   NE=2*getMPISizeWorld()
+   NE=2*getMPISizeWorld()*2
    tau_Y=10.
    N_dt=10
 
@@ -967,7 +967,7 @@ class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
       mod.setElasticShearModulus(self.mu)
       mod.setPowerLaws([self.eta_0, self.eta_1, self.eta_2], [ 1., self.tau_1, self.tau_2],  [1.,self.N_1,self.N_2])
       mod.setTolerance(self.TOL)
-      mod.setFlowTolerance(self.TOL)
+      mod.setEtaTolerance(self.TOL*1.e-3)
 
       BF=Vector(self.P_max,Function(self.dom))
       for d in range(self.dom.getDim()):
@@ -992,7 +992,7 @@ class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
          t_ref=t+dt
          v_ref, s_ref,p_ref=self.getReference(t_ref)
          mod.setExternals(f=matrixmult(s_ref,n)-p_ref*n, v_boundary=v_ref)
-         mod.update(dt, iter_max=100, inner_iter_max=20, verbose=self.VERBOSE, usePCG=True)
+         mod.update(dt, eta_iter_max=10, iter_max=50, verbose=self.VERBOSE, usePCG=True, max_correction_steps=30)
          self.check(N_t,mod,t_ref,v_ref, s_ref,p_ref)
          t+=dt
          N_t+=1
@@ -1734,15 +1734,16 @@ class Test_FaultSystem(unittest.TestCase):
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_FaultSystem))
-   suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian2D))
-   suite.addTest(unittest.makeSuite(Test_Darcy3D))
-   suite.addTest(unittest.makeSuite(Test_Darcy2D))
-   suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian3D))
-   suite.addTest(unittest.makeSuite(Test_Mountains3D))
-   suite.addTest(unittest.makeSuite(Test_Mountains2D))
-   suite.addTest(unittest.makeSuite(Test_Rheologies))
-   suite.addTest(unittest.makeSuite(Test_IncompressibleIsotropicFlowCartesian))
+   # suite.addTest(unittest.makeSuite(Test_FaultSystem))
+   # suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian2D))
+   # suite.addTest(unittest.makeSuite(Test_Darcy3D))
+   # suite.addTest(unittest.makeSuite(Test_Darcy2D))
+   # suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian3D))
+   # suite.addTest(unittest.makeSuite(Test_Mountains3D))
+   # suite.addTest(unittest.makeSuite(Test_Mountains2D))
+   # suite.addTest(unittest.makeSuite(Test_Rheologies))
+   suite.addTest(Test_IncompressibleIsotropicFlowCartesian("test_D2_Fixed_Mu"))
+   # suite.addTest(unittest.makeSuite(Test_IncompressibleIsotropicFlowCartesian))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
 
