@@ -1654,7 +1654,7 @@ std::string
 DataLazy::toString() const
 {
   ostringstream oss;
-  oss << "Lazy Data:";
+  oss << "Lazy Data: [depth=" << m_height<< "] ";
   if (escriptParams.getPRINT_LAZY_TREE()==0)
   {
       intoString(oss);
