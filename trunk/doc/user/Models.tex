@@ -381,6 +381,17 @@ on the domain \var{domain}.
 \var{numMaterials} specifies the number of materials used in the power law
 model. Some progress information are printed if \var{verbose} is set to
 \True. If \var{adaptSubTolerance} is equal to True the tolerances for subproblems are set automatically.
+
+The domain
+needs to support LBB compliant elements for the Stokes problem, see~\cite{LBB} for detials~\index{LBB condition}.
+For instance one can use second order polynomials for velocity and 
+first order polynomials for the pressure on the same element. Alternativly, one can use 
+macro elements\index{macro elements} using linear polynomial for both pressure and velocity bu with a subdivided
+element for the velocity. Typically, the macro element is more cost effective. The fact that pressure and velocity are represented in different way is expressed by
+\begin{python}
+velocity=Vector(0.0, Solution(mesh))
+pressure=Scalar(0.0, ReducedSolution(mesh))
+\end{python}
 \end{classdesc}
 
 \begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getDomain}{}

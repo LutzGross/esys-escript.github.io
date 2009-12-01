@@ -241,6 +241,7 @@ class PowerLaw(object):
          :type iter_max: ``int``
          :return: effective viscosity. 
          """
+         p2=(abs(pressure)+pressure)/2.
          SMALL=1./(util.DBLE_MAX/100.)
          numMaterial=self.getNumMaterials()
          s=[p-1. for p in self.getPower() ]
@@ -262,10 +263,9 @@ class PowerLaw(object):
                  raise ValueError,"initial guess for eta_eff is not positive."
              eta_eff=eta0
 
-         if mu !=None and dt == None:
-             raise ValueError,"Time stepsize dt must be given."
-         if dt !=None:
-             if dt<=0: raise ValueError,"time step size must be positive."
+         if mu !=None:
+             if dt == None: raise ValueError,"Time stepsize dt must be given."
+             if dt<=0: raise ValueError,"Time step size must be positive."
          if tau_Y==None and fric==None:
              eta_max=None
          else:
@@ -275,7 +275,7 @@ class PowerLaw(object):
                 if tau_Y==None: tau_Y==0
                 if util.inf(fric)<=0: 
                     raise ValueError,"if friction present it needs to be positive."
-                eta_max=fric*util.clip(tau_Y/fric+pressure,minval=0)/(gamma_dot+SMALL*util.whereZero(gamma_dot))
+                eta_max=fric*util.clip(tau_Y/fric+p2,minval=0)/(gamma_dot+SMALL*util.whereZero(gamma_dot))
          rtol=self.getEtaTolerance()
          iter =0
          converged=False
@@ -403,6 +403,7 @@ class Rheology(object):
           :rtype: ``tuple`` of `Data` s
           """
           return self.__fixed_v_mask, self.__v_boundary       
+
       def getRestorationFactor(self):
           """
           Returns the restoring force factor
@@ -555,65 +556,25 @@ class Rheology(object):
           s=self.getDeviatoricStrain()
           return util.sqrt(2)*util.length(s)
 
-      def setTolerance(self,tol=1.e-4):
-          """
-          Sets the tolerance used to terminate the iteration on a time step.
-          See the implementation of the rheology for details.
-
-          :param tol: relative tolerance to terminate iteration on time step.
-          :type tol: positive ``float``
-          """
-          if tol<=0.:
-              raise ValueError,"tolerance must be non-negative."
-          self.__tol=tol
-
-      def getTolerance(self):
-          """
-          Returns the set tolerance for terminate the iteration on a time step.
-
-          :rtype: positive ``float``
-          """
-          return self.__tol
-
-      #=======================================================================
-      def setFlowTolerance(self, tol=1.e-4):
-          """
-          Sets the relative tolerance for the flow solver
-
-          :param tol: desired relative tolerance for the flow solver
-          :type tol: positive ``float``
-          :note: Typically this method is overwritten by a subclass.
-          """
-          pass
-      def getFlowTolerance(self):
-          """
-          Returns the relative tolerance for the flow solver
-
-          :return: tolerance of the flow solver
-          :rtype: ``float``
-          :note: Typically this method is overwritten by a subclass.
-          """
-          pass
 #====================================================================================================================================
 
-class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
-      """
-      This class implements the rheology of an isotropic Kelvin material.
+class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCartesian):
+     """
+     This class implements the rheology of an isotropic Kelvin material.
 
-      Typical usage::
+     Typical usage::
 
-          sp = IncompressibleIsotropicFlow(domain, stress=0, v=0)
-          sp.setTolerance()
+          sp = IncompressibleIsotropicFlowCartesian(domain, stress=0, v=0)
           sp.initialize(...)
           v,p = sp.solve()
 
-      :note: This model has been used in the self-consistent plate-mantle model
+     :note: This model has been used in the self-consistent plate-mantle model
              proposed in U{Hans-Bernd Muhlhaus<emailto:h.muhlhaus@uq.edu.au>}
              and U{Klaus Regenauer-Lieb<mailto:klaus.regenauer-lieb@csiro.au>}:
              I{Towards a self-consistent plate mantle model that includes elasticity: simple benchmarks and application to basic modes of convection},
              see U{doi: 10.1111/j.1365-246X.2005.02742.x<http://www3.interscience.wiley.com/journal/118661486/abstract>}
-      """
-      def __init__(self, domain, stress=0, v=0, p=0, t=0, numMaterials=1, verbose=True, adaptSubTolerance=True):
+     """
+     def __init__(self, domain, stress=0, v=0, p=0, t=0, numMaterials=1, verbose=True):
          """
          Initializes the model.
 
@@ -634,188 +595,122 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology):
 	 :param adaptSubTolerance: If True the tolerance for subproblem is set automatically.
 	 :type adaptSubTolerance: ``bool``
          """
-         PowerLaw. __init__(self, numMaterials,verbose)
-         Rheology. __init__(self, domain, stress, v, p, t, verbose)
-         self.__solver=StokesProblemCartesian(self.getDomain(),verbose=verbose,adaptSubTolerance=adaptSubTolerance)
+         PowerLaw. __init__(self, numMaterials,verbose=verbose)
+         Rheology. __init__(self, domain, stress, v, p, t,verbose=verbose)
+         StokesProblemCartesian.__init__(self,domain,verbose=verbose)
          self.__eta_eff=None
-         self.setTolerance()
-         self.setFlowTolerance()
 
-      def update(self, dt, iter_max=100, inner_iter_max=20, verbose=False, usePCG=True):
+     def getCurrentEtaEff(self):
           """
-          Updates stress, velocity and pressure for time increment dt.
-
-          :param dt: time increment
-          :param inner_iter_max: maximum number of iteration steps in the
-                                 incompressible solver
-          :param verbose: prints some infos in the incompressible solver
-          """
-          if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: start iteration for t = %s."%(self.getTime()+dt,)
-          v_last=self.getVelocity()
-          s_last=self.getDeviatoricStress()
-          F=self.getForce()
-          f=self.getSurfaceForce()
-          rf=self.getRestorationFactor()
-          mask_v,v_b=self.getVelocityConstraint()
-          mu=self.getElasticShearModulus()
-          #=========================================================================
-          #
-          #   we use velocity and pressure from the last time step as initial guess:
-          #
-          v=v_last
-          p=self.getPressure()
-          #
-          #  calculate eta_eff  if we don't have one or elasticity is present.
-          #
-          if self.__eta_eff == None or  mu!=None: 
-             D=self.__getDeviatoricStrain(v)
-             if mu==None:
-                 gamma=util.sqrt(2.)*util.length(D)
-             else:
-                 gamma=util.sqrt(2.)*util.length(D+s_last/(2*dt*mu))
-             if self.__eta_eff == None:
-                 eta0=None
-             else:
-                  eta0=self.__eta_eff
-             eta_eff=self.getEtaEff(gamma, pressure=p,dt=dt, eta0=eta0, iter_max=iter_max)
-             if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: eta_eff has been initialied."
-          else:
-             eta_eff = self.__eta_eff
-          iter=0 
-          converged=False
-          while not converged:
-             #
-             #   intialize the solver 
-             #
-             if mu==None:          
-                stress0=Data()
-             else:
-                stress0=-(eta_eff/(dt*mu))*s_last
-             self.__solver.initialize(f=F,fixed_u_mask=mask_v,eta=eta_eff,surface_stress=f,stress=stress0, restoration_factor=rf)
-             # 
-             # get a new velcocity and pressure:
-             #
-             if mask_v.isEmpty() or v_b.isEmpty():
-                v0=v
-             else:
-                v0=v_b*mask_v+v*(1.-mask_v)
-             v,p=self.__solver.solve(v0,p,verbose=self.checkVerbose(),max_iter=inner_iter_max,usePCG=usePCG)
-             # 
-             #   update eta_eff:
-             #
-             D=self.__getDeviatoricStrain(v)
-             if mu==None:
-                 gamma=util.sqrt(2.)*util.length(D)
-             else:
-                 gamma=util.sqrt(2.)*util.length(D+s_last/(2*dt*mu))
-             eta_eff_old ,eta_eff=eta_eff, self.getEtaEff(gamma, pressure=p,dt=dt, eta0=eta_eff, iter_max=iter_max)
-             if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: eta_eff has been updated."
-             #
-             # check the change on eta_eff:
-             #
-             diff=util.Lsup(eta_eff_old-eta_eff)
-             n=util.Lsup(eta_eff)
-             if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: step %s: max. rel. change in eta_eff is %s."%(iter,diff/n)
-             converged = diff <= self.getTolerance()* n
-             iter+=1
-             if iter >= iter_max:
-                 raise MaxIterReached,"maximum number of iteration steps on time step %e reached."%(self.getTime()+dt)
-          #
-          #   finally we can update the return values:
-          #
-          self.setPressure(p)
-          self.setVelocity(v)
-          self.setDeviatoricStrain(D)
-          if mu==None:          
-              stress=(2*eta_eff)*D
-          else:
-              stress=(2.*eta_eff)*(D+s_last/(2*dt*mu))
-          self.setDeviatoricStress(stress)
-          self.__eta_eff = eta_eff 
-          self.setTime(self.getTime()+dt)
-          if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: iteration on time step %s completed after %s steps."%(self.getTime(),iter)
-          return self.getVelocity(), self.getPressure()
-
-      def getCurrentEtaEff(self):
-          """
-          returns the effective viscosity
+          returns the effective viscosity used in the last iteration step of the last time step.
           """
           return self.__eta_eff
 
-      def __getDeviatoricStrain(self, v):
+     def __getDeviatoricStrain(self, v):
           """
           Returns deviatoric strain of velocity v:
           """
           return util.deviatoric(util.symmetric(util.grad(v)))
 
-      def setFlowTolerance(self, tol=1.e-4):
-          """
-          Sets the relative tolerance for the flow solver. See `StokesProblemCartesian.setTolerance` for details.
+     def updateStokesEquation(self, v, p):
+         """
+         updates the underlying Stokes equation to consider dependencies from ``v`` and ``p``
+         """
+         dt=self.__dt
+         mu=self.getElasticShearModulus()
+         F=self.getForce()
+         f=self.getSurfaceForce()
+         mask_v,v_b=self.getVelocityConstraint()
+         s_last=self.getDeviatoricStress()
+         #
+         #  calculate eta_eff if we don't have one or elasticity is present.
+         #
+         D=self.__getDeviatoricStrain(v)
+         if mu==None:
+             gamma=util.sqrt(2.)*util.length(D)
+         else:
+             gamma=util.sqrt(2.)*util.length(D+s_last/(2*dt*mu))
 
-          :param tol: desired relative tolerance for the flow solver
-          :type tol: positive ``float``
-          """
-          self.__solver.setTolerance(tol)
-      def getFlowTolerance(self):
-          """
-          Returns the relative tolerance for the flow solver
+         self.__eta_eff_save=self.getEtaEff(gamma, pressure=p,dt=dt, eta0=self.__eta_eff_save, iter_max=self.__eta_iter_max)
 
-          :return: tolerance of the flow solver
-          :rtype: ``float``
-          """
-          return self.__solver.getTolerance()
-	  
-      def getSolverOptionsVelocity(self):
-         """
-	 returns the solver options used solve the equation for velocity in the 
-	 incompressible solver, see `StokesProblemCartesian.getSolverOptionsVelocity` for details.
-	 
-	 :rtype: `SolverOptions`
-	 """
-	 return self.__solver.getSolverOptionsVelocity()
-      def setSolverOptionsVelocity(self, options=None):
-         """
-	 set the solver options for solving the equation for velocity in the 
-	 incompressible solver, see `StokesProblemCartesian.setSolverOptionsVelocity` for details.
-	 
-	 :param options: new solver  options
-	 :type options: `SolverOptions`
-	 """
-         self.__solver.setSolverOptionsVelocity(options)
-	 
-      def getSolverOptionsPressure(self):
-         """
-	 returns the solver options used  solve the equation for pressure in the 
-	 incompressible solver, see `StokesProblemCartesian.getSolverOptionsPressure` for details.
-	 :rtype: `SolverOptions`
-	 """
-	 return self.__solver.getSolverOptionsPressure()
-      def setSolverOptionsPressure(self, options=None):
-         """
-	 set the solver options for solving the equation for pressure in the 
-	 incompressible solver, see `StokesProblemCartesian.setSolverOptionsPressure` for details.
-	 :param options: new solver  options
-	 :type options: `SolverOptions`
-	 """
-	 self.__solver.setSolverOptionsPressure(options)
+         if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: eta_eff has been updated."
 
-      def setSolverOptionsDiv(self, options=None):
-         """
-	 set the solver options for solving the equation to project the divergence of
-	 the velocity onto the function space of pressure in the 
-	 incompressible solver, see `StokesProblemCartesian.setSolverOptionsDiv` for details.
-	 
-	 :param options: new solver options
-	 :type options: `SolverOptions`
-	 """
-	 self.__solver.setSolverOptionsDiv(options)
-      def getSolverOptionsDiv(self):
-         """
-	 returns the solver options for solving the equation to project the divergence of
-	 the velocity onto the function space of presure in the 
-	 incompressible solver, see `StokesProblemCartesian.getSolverOptionsDiv` for details..
-	 
-	 :rtype: `SolverOptions`
-	 """
-	 return self.__solver.getSolverOptionsDiv()
+         if mu==None:          
+             stress0=Data()
+         else:
+             stress0=-(self.__eta_eff_save/(dt*mu))*s_last
+ 
+         self.setStokesEquation(eta=self.__eta_eff_save,stress=stress0)
+
+
+     def initialize(self, F=None, f=None, fixed_v_mask=None, v_boundary=None, restoration_factor=None):
+          """
+          sets external forces and velocity constraints
+
+          :param F: external force
+          :type F: vector value/field 
+          :param f: surface force
+          :type f: vector value/field on boundary
+          :param fixed_v_mask: location of constraints maked by positive values
+          :type fixed_v_mask: vector value/field 
+          :param v_boundary: value of velocity at location of constraints
+          :type v_boundary: vector value/field 
+	  :param restoration_factor: factor for normal restoration force
+          :type restoration_factor: scalar values/field
+          :note: Only changing parameters need to be specified.
+          """
+          self.setExternals(F, f, fixed_v_mask, v_boundary, restoration_factor)
+
+     def update(self, dt, iter_max=10, eta_iter_max=20, verbose=False, usePCG=True, max_correction_steps=50):
+          """
+          Updates stress, velocity and pressure for time increment dt.
+
+          :param dt: time increment
+          :param iter_max: maximum number of iteration steps in the incompressible solver
+          :param eta_iter_max: maximum number of iteration steps in the incompressible solver
+          :param verbose: prints some infos in the incompressible solver
+          """
+          mu=self.getElasticShearModulus()
+          if mu != None:
+             if not dt > 0.:
+                 raise ValueError,"dt must be positive."
+          else:
+             dt=max(0,dt)
+          self.__dt=dt
+          self.__eta_iter_max=max(eta_iter_max,1)
+          v_last=self.getVelocity() 
+          s_last=self.getDeviatoricStress()
+          mask_v,v_b=self.getVelocityConstraint()
+          p_last=self.getPressure()
+          self.__eta_eff_save=self.getCurrentEtaEff()
+
+          self.setStokesEquation(f=self.getForce(),fixed_u_mask=mask_v,surface_stress=self.getSurfaceForce(), restoration_factor=self.getRestorationFactor())
+
+          if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: start iteration for t = %s."%(self.getTime()+dt,)
+          # 
+          # get a new velcocity and pressure:
+          #
+          if mask_v.isEmpty() or v_b.isEmpty():
+               v0=v_last
+          else:
+              v0=v_b*mask_v+v_last*(1.-mask_v)
+
+          v,p=self._solve(v0,p_last,verbose=self.checkVerbose(),max_iter=iter_max,usePCG=usePCG, max_correction_steps=max_correction_steps)
+          #
+          #   finally we can update the return values:
+          #
+          self.setPressure(p)
+          self.setVelocity(v)
+          D=self.__getDeviatoricStrain(v)
+          self.setDeviatoricStrain(D)
+          self.__eta_eff = self.getEtaEff(self.getGammaDot(), pressure=p,dt=dt, eta0=self.__eta_eff_save, iter_max=self.__eta_iter_max)
+          if mu==None:          
+              stress=(2*self.__eta_eff)*D
+          else:
+              stress=(2.*self.__eta_eff)*(D+s_last/(2*dt*mu))
+          self.setDeviatoricStress(stress)
+          self.setTime(self.getTime()+dt)
+          if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: iteration on time step %s completed."%(self.getTime(),)
+          return self.getVelocity(), self.getPressure()
+
 

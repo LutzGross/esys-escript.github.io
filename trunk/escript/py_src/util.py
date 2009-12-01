@@ -6216,3 +6216,22 @@ def delay(arg):
    if not isinstance(arg,Data):
 	raise TypeError, "Can only delay Data."
    return arg.delay()
+
+def positive(arg):
+   """
+   returns the positive part of arg
+   """
+   return (abs(arg)+arg)/2.
+
+def negative(arg):
+   """
+   returns the negative part of arg
+   """
+   return (arg-abs(arg))/2.
+
+def safeDiv(arg0, arg1):
+    """
+    returns arg0/arg1 but return 0 where arg1 is zero
+    """
+    m1=whereZero(arg1)
+    return arg0/(arg1+m1)*(1-m1)

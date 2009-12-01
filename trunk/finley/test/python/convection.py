@@ -236,9 +236,9 @@ if restart:
    print "<%s> Restart from file %s at time step %s (t=%s) completed."%(time.asctime(),f,t,n)
 else:
   if DIM==2:
-    dom=Rectangle(int(ceil(L*NE/H)),NE,l0=L/H,l1=1,order=2, useFullElementOrder=False,optimize=True)
+    dom=Rectangle(int(ceil(L*NE/H)),NE,l0=L/H,l1=1,order=-1,optimize=True)
   else:
-    dom=Brick(int(ceil(L*NE/H)),int(ceil(L*NE/H)),NE,l0=L/H,l1=L/H,l2=1,order=2, useFullElementOrder=False,optimize=True)
+    dom=Brick(int(ceil(L*NE/H)),int(ceil(L*NE/H)),NE,l0=L/H,l1=L/H,l2=1,order=-1,optimize=True)
   try:
      dom.dump("mesh.nc")
   except:

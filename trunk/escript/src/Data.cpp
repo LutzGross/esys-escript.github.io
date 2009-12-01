@@ -3171,10 +3171,6 @@ Data::toString() const
 	    if (globalNeedSummary[i] == 1) break;
 	if (i < size) flag = 1;
     }
-
-    MPI_Bcast( &flag, 1, MPI_INT, 0, get_MPIComm() );
-    delete [] globalNeedSummary;
-
 #else
 
    if (localNeedSummary == 1) flag = 1;

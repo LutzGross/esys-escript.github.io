@@ -55,6 +55,7 @@ A\hackscore{jl} \cdot v\hackscore{,j}u\hackscore{,l}+ B\hackscore{j} \cdot v\hac
 \end{equation}
 
 \section{Meshes}
+\label{FINLEY MESHES}
 To understand the usage of \finley one needs to have an understanding of how the finite element meshes
 \index{FEM!mesh} are defined. \fig{FINLEY FIG 0} shows an example of the
 subdivision of an ellipse into so called elements \index{FEM!elements} \index{element}. 
@@ -65,7 +66,7 @@ which is a polynomial of a certain order and is continuous across it boundary to
 In the example of \fig{FINLEY FIG 0} a linear polynomial is used on each triangle. As one can see, the triangulation
 is quite a poor approximation of the ellipse. It can be improved by introducing a midpoint on each element edge then
 positioning those nodes located on an edge expected to describe the boundary, onto the boundary.
-In this case the triangle gets a curved edge which requires a parametrization of the triangle using a 
+In this case the triangle gets a curved edge which requires a parameterization of the triangle using a 
 quadratic polynomial. For this case, the solution is also approximated by a piecewise quadratic polynomial
 (which explains the name isoparametrical elements), see \Ref{Zienc,NumHand} for more details.  
 \finley supports macro elements\index{macro elements}. For these elements a piecewise linear approximation is used on an element which is further subdivided (in the case \finley halved). As such these elements do not provide more than a further mesh refinement but should be used in the case of incompressible flows, see \class{StokesProblemCartesian}. For these problems a linear approximation of the pressure across the element is used (use the \ReducedSolutionFS \FunctionSpace) while the refined element is used to approximate velocity. So a macro element provides a continuous pressure approximation together with a velocity approximation on a refined mesh. This approach is necessary to make sure that the  incompressible flow has a unique solution.
@@ -262,8 +263,28 @@ $7$, $10$, $15$ and $20$, respectively. The node section of the \finley mesh get
 \input{finleyelements}
 \clearpage
 
+\begin{figure}[th]
+\begin{center}
+\subfigure[Triangle]{\label{FINLEY MACRO TRI}\includegraphics[scale=0.25]{figures/FinleyMacroTri}}
+\subfigure[Quadrilateral]{\label{FINLEY MACRO REC}\includegraphics[scale=0.25]{figures/FinleyMacroRec}}
+\includegraphics[scale=0.2]{figures/FinleyMacroLeg}
+\end{center}
+Macro elements in \finley.
+\end{figure}
+
 \section{Macro Elements}
 \label{SEC FINLEY MACRO}
+\finley supports the usage of macro elements~\index{macro elements} which can be used to
+achieve LBB compliance when solving incompressible fluid flow problems. LBB compliance is required to 
+get a problem which has a unique solution for pressure and velocity. For macro elements the 
+pressure and velocity are approximated by a polynomial of order 1 but the velocity approximation bases on a refinement of the element. The nodes of a triangle and quadrilateral element is shown in Figures~\ref{FINLEY MACRO TRI} and~\ref{FINLEY MACRO REC}, respectively. In essence, the velocity uses the same nodes like a quadratic polynomial approximation but replaces the quadratic polynomial by piecewise linear polynomials. In fact, this is the
+way \finley is defining the macro elements. In particular \finley uses the same local ordering of the nodes for the macro element as for the corresponding quadratic element. Another interpretation is that 
+one uses a linear approximation of the velocity together with a linear approximation of the pressure but on elements
+created by combining elements to macro elements. Notice that the macro elements still use quadratic interpolation to represent the element and domain boundary. However, if elements have linear boundary 
+a macro element approximation for the velocity is equivalent to using a linear approximation on a mesh which is created through a one step, global refinement. 
+Typically macro elements are only required to use when an incompressible fluid flow problem 
+is solved, e.g the Stokes problem in Section \ref{STOKES PROBLEM}. Please see Section~\ref{FINLEY MESHES} for
+more details on the supported macro elements. 
 
 
 
@@ -453,17 +474,17 @@ $\checkmark$  &
 \caption{Preconditioners available for \finley and the \PASO package and the relevant options in \class{SolverOptions}. \label{TAB FINLEY SOLVER OPTIONS 2}} 
 \end{table}
 
-\subsection{Linear Solvers in \SolverOptions}
+\section{Linear Solvers in \SolverOptions}
 Table~\ref{TAB FINLEY SOLVER OPTIONS 1} and
 Table~\ref{TAB FINLEY SOLVER OPTIONS 2} show the solvers and preconditioners supported by 
 \finley through the \PASO library. Currently direct solvers are not supported under MPI. 
 By default, \finley is using the iterative solvers \PCG for symmetric and \BiCGStab for non-symmetric problems. 
-If the direct solver is selected which can be useful when solving very ill-posedequations
+If the direct solver is selected which can be useful when solving very ill-posed equations
 \finley uses the \MKL \footnote{If the stiffness matrix is non-regular \MKL may return without 
 returning a proper error code. If you observe suspicious solutions when using MKL, this may cause by a non-invertible operator. } solver package. If \MKL is not available \UMFPACK is used. If \UMFPACK is not available 
 a suitable iterative solver from the \PASO is used.
 
-\subsection{Functions}
+\section{Functions}
 \begin{funcdesc}{ReadMesh}{fileName \optional{, \optional{integrationOrder=-1}, optimize=True}}
 creates a \Domain object form the FEM mesh defined in 
 file \var{fileName}. The file must be given the \finley file format.
@@ -484,12 +505,12 @@ degree \var{integrationOrder} \index{integration order}. Otherwise
 an appropriate integration order is chosen independently.
 By default the labeling of mesh nodes and element distribution is 
 optimized. Set \var{optimize=False} to switch off relabeling and redistribution. 
-If \var{useMacroElements} is set, second order elements are interpreated as macro elements~\index{macro elements}.
+If \var{useMacroElements} is set, second order elements are interpreted as macro elements~\index{macro elements}.
 Currently \function{ReadGmsh} does not support MPI.  
 \end{funcdesc}
 
 \begin{funcdesc}{MakeDomain}{design\optional{, integrationOrder=-1\optional{, optimizeLabeling=True\optional{, useMacroElements=False}}}}
-Creates a Finley \Domain from a \class{Design} object using \gmshextern. 
+Creates a Finley \Domain from a \class{Design} object from \pycad using \gmshextern. 
 The \class{Design} \var{design} defines the geometry.
 If \var{integrationOrder} is positive, a numerical integration scheme
 chosen which is accurate on each element up to a polynomial of
@@ -503,12 +524,8 @@ Currently \function{MakeDomain} does not support MPI.
 
 \begin{funcdesc}{load}{fileName}
 recovers a \Domain object from a dump file created by the \ 
-eateseates a \Domain object form the FEM mesh defined in 
-file \var{fileName}. The file must be given the \finley file format.
-If \var{integrationOrder} is positive, a numerical integration scheme
-chosen which is accurate on each element up to a polynomial of
-degree \var{integrationOrder} \index{integration order}. Otherwise
-an appropriate integration order is chosen independently.
+\function{dump} method of a \Domain object defined in 
+file \var{fileName}.
 \end{funcdesc}
 
 
