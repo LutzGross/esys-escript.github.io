@@ -28,9 +28,10 @@ EscriptParams::EscriptParams()
    too_many_lines=80;
    autolazy=0;
    too_many_levels=70;
-   too_many_nodes=15000;
+//    too_many_nodes=15000;
    resolve_collective=0;
-   print_lazy_tree=0;
+   lazy_str_fmt=0;
+   lazy_verbose=0;
 
 #ifdef USE_LAPACK
    lapack_support=1;
@@ -72,17 +73,17 @@ EscriptParams::getInt(const char* name, int sentinel) const
    {
 	return too_many_levels;
    }
-   if (!strcmp(name,"TOO_MANY_NODES"))
-   {
-	return too_many_nodes;
-   }
+//    if (!strcmp(name,"TOO_MANY_NODES"))
+//    {
+// 	return too_many_nodes;
+//    }
    if (!strcmp(name,"RESOLVE_COLLECTIVE"))
    {
 	return resolve_collective;
    }
-   if (!strcmp(name,"PRINT_LAZY_TREE"))
+   if (!strcmp(name,"LAZY_STR_FMT"))
    {
-	return print_lazy_tree;
+	return lazy_str_fmt;
    }
    if (!strcmp(name,"LAPACK_SUPPORT"))
    {
@@ -95,6 +96,10 @@ EscriptParams::getInt(const char* name, int sentinel) const
 #else
 	return 0;
 #endif
+   }
+   if (!strcmp(name,"LAZY_VERBOSE"))
+   {
+	return lazy_verbose;
    }
    return sentinel;
 }
@@ -114,17 +119,21 @@ EscriptParams::setInt(const char* name, int value)
    {
 	too_many_levels=value;
    }
-   if (!strcmp(name,"TOO_MANY_NODES"))
-   {
-	too_many_nodes=value;
-   }
+//    if (!strcmp(name,"TOO_MANY_NODES"))
+//    {
+// 	too_many_nodes=value;
+//    }
    if (!strcmp(name,"RESOLVE_COLLECTIVE"))
    {
 	resolve_collective=value;
    }
-   if (!strcmp(name,"PRINT_LAZY_TREE"))
+   if (!strcmp(name,"LAZY_STR_FMT"))
    {
-	print_lazy_tree=value;
+	lazy_str_fmt=value;
+   }
+   if (!strcmp(name,"LAZY_VERBOSE"))
+   {
+	lazy_verbose=value;
    }
    // Note: there is no way to modifiy the LAPACK_SUPPORT variable atm
 }
@@ -151,7 +160,9 @@ EscriptParams::listEscriptParams()
    l.append(make_tuple("AUTOLAZY", autolazy, "{0,1} Operations involving Expanded Data will create lazy results."));
    l.append(make_tuple("RESOLVE_COLLECTIVE",resolve_collective ,"(TESTING ONLY) {0.1} Collective operations will resolve their data."));
    l.append(make_tuple("TOO_MANY_LEVELS", too_many_levels, "(TESTING ONLY) maximum levels allowed in an expression."));
-   l.append(make_tuple("TOO_MANY_NODES", too_many_nodes, "(TESTING ONLY) maximum number of nodes in a expression."));
+//    l.append(make_tuple("TOO_MANY_NODES", too_many_nodes, "(TESTING ONLY) maximum number of nodes in a expression."));
+   l.append(make_tuple("LAZY_STR_FMT", lazy_str_fmt, "{0,1,2}(TESTING ONLY) change output format for lazy expressions."));
+   l.append(make_tuple("LAZY_VERBOSE", lazy_verbose, "{0,1} Print a warning when expressions are resolved because they are too large."));
    return l;
 }
 

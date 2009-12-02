@@ -44,8 +44,10 @@ bool privdebug=false;
 
 // #define SIZELIMIT if ((m_height>escript::escriptParams.getTOO_MANY_LEVELS()) || (m_children>escript::escriptParams.getTOO_MANY_NODES())) {cerr << "\n!!!!!!! SIZE LIMIT EXCEEDED " << m_children << ";" << m_height << endl << toString() << endl;resolveToIdentity();}
 
-#define SIZELIMIT if ((m_height>escript::escriptParams.getTOO_MANY_LEVELS()) || (m_children>escript::escriptParams.getTOO_MANY_NODES())) {resolveToIdentity();}
+// #define SIZELIMIT if ((m_height>escript::escriptParams.getTOO_MANY_LEVELS()) || (m_children>escript::escriptParams.getTOO_MANY_NODES())) {cerr << "SIZE LIMIT EXCEEDED " << m_height << endl;resolveToIdentity();}
 
+
+#define SIZELIMIT if (m_height>escript::escriptParams.getTOO_MANY_LEVELS())  {if (escript::escriptParams.getLAZY_VERBOSE()){cerr << "SIZE LIMIT EXCEEDED height=" << m_height << endl;}resolveToIdentity();}
 
 /*
 How does DataLazy work?
@@ -1655,14 +1657,17 @@ DataLazy::toString() const
 {
   ostringstream oss;
   oss << "Lazy Data: [depth=" << m_height<< "] ";
-  if (escriptParams.getPRINT_LAZY_TREE()==0)
+  switch (escriptParams.getLAZY_STR_FMT())
   {
-      intoString(oss);
-  }
-  else
-  {
+  case 1:	// tree format
 	oss << endl;
-	intoTreeString(oss,"");
+	intoTreeString(oss,"");	
+	break;
+  case 2:	// just the depth
+	break;
+  default:
+	intoString(oss);
+	break;
   }
   return oss.str();
 }
