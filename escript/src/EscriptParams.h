@@ -44,10 +44,11 @@ private:
 	int too_many_lines;
 	int autolazy;
 	int too_many_levels;
-	int too_many_nodes;
+// 	int too_many_nodes;
 	int resolve_collective;
-	int print_lazy_tree;
+	int lazy_str_fmt;
 	int lapack_support;
+	int lazy_verbose;
 
 protected: 
   // This is to provide fast access for methods in Data.
@@ -57,9 +58,10 @@ protected:
   int getTOO_MANY_LINES() {return too_many_lines;}
   int getAUTOLAZY() { return autolazy;}
   int getTOO_MANY_LEVELS() {return too_many_levels;}
-  int getTOO_MANY_NODES() {return too_many_nodes;}
+//   int getTOO_MANY_NODES() {return too_many_nodes;}
   int getRESOLVE_COLLECTIVE() {return resolve_collective;}
-  int getPRINT_LAZY_TREE() {return print_lazy_tree;}
+  int getLAZY_STR_FMT() {return lazy_str_fmt;}
+  int getLAZY_VERBOSE() {return lazy_verbose;}
 
   friend class escript::Data;
   friend class escript::DataLazy;
