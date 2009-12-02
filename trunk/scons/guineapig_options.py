@@ -51,7 +51,7 @@ boost_libs		= ['libboost_python-gcc44-mt']
 
 # NetCDF
 usenetcdf		= 'yes'
-netCDF_path		= '/usr/local/py2.6.2/netcdf4.0'
+netCDF_path		= '/usr/local/py2.6.2/netcdf4.0/include'
 netCDF_lib_path		= '/usr/local/py2.6.2/netcdf4.0/lib'
 netCDF_libs		= ['netcdf_c++', 'netcdf']
 
