@@ -22,10 +22,10 @@
 # cc_debug      = '-g'
 omp_optim       = '-fopenmp'
 omp_debug       = ''
-# omp_libs      = []
+omp_libs        = []
 
 # Use the default C/C++ flags but add something only for this host:
-cc_extra        = '-Wall -mmmx'
+cc_extra        = '-Wall -mmmx -msse'
 ld_extra        = '-fopenmp'
 
 # Be picky about errors
