@@ -122,6 +122,10 @@ struct Paso_Solver_AMG {
   double* b_F;
   double* x_C;
   double* b_C;
+  
+  dim_t post_sweeps;
+  dim_t pre_sweeps;
+  
   Paso_SparseMatrix * A;
   Paso_SparseMatrix * AOffset1;
   void* solver;

@@ -170,16 +170,18 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      out->n=n;
      out->n_F=n+1;
      out->n_block=n_block;
+     out->post_sweeps=options->post_sweeps;
+     out->pre_sweeps=options->pre_sweeps;
      
      sparsity=(A_p->len*1.)/(1.*A_p->numRows*A_p->numCols);
      
      if (verbose) fprintf(stdout,"Stats: Sparsity of the Coarse Matrix with %d non-zeros (%d,%d) in level %d is %.6f\n",A_p->len,A_p->numRows,A_p->numCols,level,sparsity);
      
     
-     if(sparsity>0.01) {
+     /*if(sparsity>0.01) {
       level=0;
      }
-     
+     */
          
      if (level==0 || n<=options->min_coarse_matrix_size) {
          out->coarsest_level=TRUE;
@@ -220,8 +222,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
         }
         else {
            /*Default coarseneing*/
-            /*Paso_Pattern_RS_MI_Aggressive(A_p,mis_marker,options->coarsening_threshold);*/
-            Paso_Pattern_RS_MI(A_p,mis_marker,options->coarsening_threshold);
+            Paso_Pattern_RS_MI_Aggressive(A_p,mis_marker,options->coarsening_threshold);
+            /*Paso_Pattern_RS_MI(A_p,mis_marker,options->coarsening_threshold);*/
             /*Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);*/
             /*Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);*/
             /*Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);*/
@@ -468,6 +470,9 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      double *r=NULL, *x0=NULL;
      bool_t verbose=0;
      
+     dim_t post_sweeps=amg->post_sweeps;
+     dim_t pre_sweeps=amg->pre_sweeps;
+     
      #ifdef UMFPACK 
           Paso_UMFPACK_Handler * ptr=NULL;
      #endif
@@ -506,10 +511,26 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         /* presmoothing */
          time0=Paso_timer();
          Paso_Solver_solveJacobi(amg->GS,x,b);
+        
+        /***********/
+        #pragma omp parallel for private(i) schedule(static)
+        for (i=0;i<amg->n;++i) r[i]=b[i];
+   
+        while(pre_sweeps>1) {
+           #pragma omp parallel for private(i) schedule(static)
+           for (i=0;i<amg->n;++i) r[i]+=b[i];
+           
+            /* Compute the residual b=b-Ax*/
+           Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
+           /* Go round again*/
+           Paso_Solver_solveJacobi(amg->GS,x,r);
+           pre_sweeps-=1;
+        }
+         /***********/
+         
          time0=Paso_timer()-time0;
          if (verbose) fprintf(stdout,"timing: Presmooting: %e\n",time0);
-        /* end of presmoothing */
-        
+         /* end of presmoothing */
         
          time0=Paso_timer();
          #pragma omp parallel for private(i) schedule(static)
@@ -517,7 +538,6 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
          
          /*r=b-Ax*/ 
          Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
-         
          
         /* b_c <- R*r  */
          Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(1.,amg->R,r,0.,amg->b_C);
@@ -538,6 +558,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         for (i=0;i<amg->n;++i) x[i]+=x0[i];
         
       /*postsmoothing*/
+
       time0=Paso_timer();
       #pragma omp parallel for private(i) schedule(static)
       for (i=0;i<amg->n;++i) r[i]=b[i];
@@ -551,6 +572,21 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
       for (i=0;i<amg->n;++i)  {
        x[i]+=x0[i];
       }
+        /***************/ 
+        while(post_sweeps>1) {
+           
+           #pragma omp parallel for private(i) schedule(static)
+           for (i=0;i<amg->n;++i) r[i]=b[i];
+           
+           Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
+           Paso_Solver_solveJacobi(amg->GS,x0,r);
+           #pragma omp parallel for private(i) schedule(static)
+            for (i=0;i<amg->n;++i)  {
+             x[i]+=x0[i];
+            }
+           post_sweeps-=1;
+        }
+        /**************/
       
       time0=Paso_timer()-time0;
       if (verbose) fprintf(stdout,"timing: Postsmoothing: %e\n",time0);
