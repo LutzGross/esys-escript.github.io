@@ -11,18 +11,17 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+We will start by examining a simple one dimensional heat diffusion example. This problem will provide a good launch pad to build our knowledge of \esc and demonstrate how to solve simple partial differential equations (PDEs)\footnote{Wikipedia provides an excellent and comprehensive introduction to \textit{Partial Differential Equations} \url{http://en.wikipedia.org/wiki/Partial_differential_equation}, however their relevance to \esc and implementation should become a clearer as we develop our understanding further into the cookbook.}
+
 \section{One Dimensional Heat Diffusion in an Iron Rod}
 \sslist{onedheatdiff001.py and cblib.py}
 %\label{Sec:1DHDv0}
-We will start by examining a simple one dimensional heat diffusion example. This problem will provide a good launch pad to build our knowledge of \esc and how to solve simple partial differential equations (PDEs)\footnote{Wikipedia provides an excellent and comprehensive introduction to \textit{Partial Differential Equations} \url{http://en.wikipedia.org/wiki/Partial_differential_equation}, however their relevance to \esc and implementation should become a clearer as we develop our understanding further into the cookbook.}
-
+The first model consists of a simple cold iron bar at a constant temperature of zero \reffig{fig:onedhdmodel}. The bar is perfectly insulated on all sides with a heating element at one end. Intuition tells us that as heat is applied; energy will disperse along the bar via conduction. With time the bar will reach a constant temperature equivalent to that of the heat source.
 \begin{figure}[h!]
 \centerline{\includegraphics[width=4.in]{figures/onedheatdiff}}
 \caption{One dimensional model of an Iron bar.}
 \label{fig:onedhdmodel}
 \end{figure}
-The first model consists of a simple cold iron bar at a constant temperature of zero \reffig{fig:onedhdmodel}. The bar is perfectly insulated on all sides with a heating element at one end. Intuition tells us that as heat is applied; energy will disperse along the bar via conduction. With time the bar will reach a constant temperature equivalent to the heat source.
-
 \subsection{1D Heat Diffusion Equation}
 We can model the heat distribution of this problem over time using the one dimensional heat diffusion equation\footnote{A detailed discussion on how the heat diffusion equation is derived can be found at \url{http://online.redwoods.edu/instruct/darnold/DEProj/sp02/AbeRichards/paper.pdf}};
 which is defined as:
@@ -33,7 +32,7 @@ which is defined as:
 where $\rho$ is the material density, $c\hackscore p$ is the specific heat and $\kappa$ is the thermal conductivity constant for a given material\footnote{A list of some common thermal conductivities is available from Wikipedia \url{http://en.wikipedia.org/wiki/List_of_thermal_conductivities}}. 
 The heat source is defined by the right hand side of \ref{eqn:hd} as $q\hackscore{H}$; this can take the form of a constant or a function of time and space. For example $q\hackscore{H} = Te^{-\gamma t}$ where we have the output of our heat source decaying with time. There are also two partial derivatives in \ref{eqn:hd}; $\frac{\partial T}{\partial t}$ describes the change in temperature with time while $\frac{\partial ^2 T}{\partial x^2}$ is the spatial change of temperature. As there is only a single spatial dimension to our problem, our temperature solution $T$ is only dependent on the time $t$ and our position along the iron bar $x$.
 
-\subsection{Escript, PDEs and The General Form}
+\subsection{\esc, PDEs and The General Form}
 Potentially, it is now possible to solve \ref{eqn:hd} analytically and this would produce an exact solution to our problem. However, it is not always possible or practical to solve a problem this way. Alternatively, computers can be used to solve these kinds of problems when a large number of sums or a more complex visualisation is required. To do this, a numerical approach is required - \esc can help us here -  and it becomes necessary to discretize the equation so that we are left with a finite number of equations for a finite number of spatial and time steps in the model. While discretization introduces approximations and a degree of error, we find that a sufficiently sampled model is generally accurate enough for the requirements of the modeller.
 
 \esc interfaces with any given PDE via a general form. In this example we will illustrate a simpler version of the full linear PDE general form which is available in the \esc user's guide. A simplified form that suits our heat diffusion problem\footnote{In the form of the \esc users guide which using the Einstein convention is written as 
@@ -95,9 +94,11 @@ T(x,0) = T\hackscore{ref} = 0
 for all $x$ in the domain. 
 
 \subsection{Boundary Conditions}
-With the PDE sufficiently modified, consideration must now be given to the boundary conditions of our model. Typically there are two main types of boundary conditions known as Neumann and Dirichlet\footnote{More information on Boundary Conditions is available at Wikipedia \url{http://en.wikipedia.org/wiki/Boundary_conditions}}. In this example, we have utilised both conditions. Dirichlet is conceptually simpler and is used to prescribe a known value to the model on its boundary. This is like holding a snake by the tail; we know where the tail will be as we hold it however, we have no control over the rest of the snake. Dirichlet boundary conditions exist where we have applied our heat source. As the heat source is a constant, we can simulate its presence on that boundary. This is done by continuously resetting the temperature of the boundary, so that is is the same as the heat source.  
+With the PDE sufficiently modified, consideration must now be given to the boundary conditions of our model. Typically there are two main types of boundary conditions known as Neumann and Dirichlet\footnote{More information on Boundary Conditions is available at Wikipedia \url{http://en.wikipedia.org/wiki/Boundary_conditions}}. In this example, we have utilised both conditions. Dirichlet is conceptually simpler and is used to prescribe a known value to the model on its boundary. For this model Dirichlet boundary conditions exist where we have applied our heat source. As the heat source is a constant, we can simulate its presence on that boundary. This is done by continuously resetting the temperature of the boundary, so that it is the same as the heat source.  
 
-Neumann boundary conditions describe the radiation or flux normal to the boundary surface. This aptly describes our insulation conditions as we do not want to exert a constant temperature as with the heat source. However, we do want to prevent any loss of energy from the system. These natural boundary conditions can be described by specifying a radiation condition which prescribes the normal component of the flux $\kappa T\hackscore{,i}$ to be proportional
+Neumann boundary conditions describe the radiation or flux that is normal to the boundary surface. This aptly describes our insulation conditions as we do not want to exert a constant temperature as with the heat source. However, we do want to prevent any loss of energy from the system. 
+
+While the flux for this model is zero, it is important to note the requirements for Neumann boundary conditions. For heat diffusion these can be described by specifying a radiation condition which prescribes the normal component of the flux $\kappa T\hackscore{,i}$ to be proportional
 to the difference of the current temperature to the surrounding temperature $T\hackscore{ref}$; in general terms this is;
 \begin{equation}
  \kappa T\hackscore{,i} \hat{n}\hackscore i = \eta (T\hackscore{ref}-T) 
@@ -128,9 +129,10 @@ A\hackscore{00}=A; A\hackscore{01}=A\hackscore{10}=A\hackscore{11}=0
 \end{equation}
 
 \subsection{Developing a PDE Solution Script}
-To solve \ref{eqn:hd} we will write a simple python script which uses the \modescript, \modfinley and \modmpl modules. At this point we assume that you have some basic understanding of the python programming language. If not there are some pointers and links available in Section \ref{sec:escpybas} .
+\label{sec:key}
+To solve the heat diffusion equation (equation \ref{eqn:hd}) we will write a simple \pyt script which uses the \modescript, \modfinley and \modmpl modules. At this point we assume that you have some basic understanding of the \pyt programming language. If not there are some pointers and links available in Section \ref{sec:escpybas} .
 
-Our goal here is to develop a script for \esc that will solve the heat equation at successive time steps for a predefined period using our general form \ref{eqn:hdgenf}. Firstly it is necessary to import all the libraries\footnote{The libraries contain predefined scripts that are required to solve certain problems, these can be simple like sin and cos functions or more complicated like those from our \esc library.} 
+By developing a script for \esc, the heat diffusion equation can be solved at successive time steps for a predefined period using our general form \ref{eqn:hdgenf}. Firstly it is necessary to import all the libraries\footnote{The libraries contain predefined scripts that are required to solve certain problems, these can be simple like $sine$ and $cosine$ functions or more complicated like those from our \esc library.} 
 that we will require.
 \begin{python}
 from esys.escript import *
@@ -145,11 +147,11 @@ import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os #This package is necessary to handle saving our data.
 \end{python}
-It is generally a good idea to import all of the \modescript library, although if you know the packages you need you can specify them individually. The function \verb|LinearPDE| has been imported for ease of use later in the script. \verb|Rectangle| is going to be our type of domain. The package \verb unitsSI  is a module of \esc that provides support for units definitions with our variables; and the \verb|os| package is needed to handle file outputs once our PDE has been solved. \verb pylab  and \verb numpy  are modules developed independently of \esc. They are used because they have efficient plotting and array handling capabilities.
+It is generally a good idea to import all of the \modescript library, although if the functions and classes required are known they can be specified individually. The function \verb|LinearPDE| has been imported explicitly for ease of use later in the script. \verb|Rectangle| is going to be our type of model. The module \verb unitsSI  provides support for SI unit definitions with our variables; and the \verb|os| module is needed to handle file outputs once our PDE has been solved. \verb pylab  and \verb numpy  are modules developed independently of \esc. They are used because they have efficient plotting and array handling capabilities.
 
-Once our library dependencies have been established, defining the problem specific variables is the next step. In general the number of variables needed will vary between problems. These variables belong to two categories. They are either directly related to the PDE and can be used as inputs into the \esc solver, or they are script variables used to control internal functions and iterations in our problem. For this PDE there are a number of constants which will need values. Firstly, the domain upon which we wish to solve our problem needs to be defined. There are many different types of domains in \modescript which we will demonstrate in later tutorials but for our iron rod, we will simply use a rectangular domain. 
+Once our library dependencies have been established, defining the problem specific variables is the next step. In general the number of variables needed will vary between problems. These variables belong to two categories. They are either directly related to the PDE and can be used as inputs into the \esc solver, or they are script variables used to control internal functions and iterations in our problem. For this PDE there are a number of constants which will need values. Firstly, the model upon which we wish to solve our problem needs to be defined. There are many different types of models in \modescript which we will demonstrate in later tutorials but for our iron rod, we will simply use a rectangular model. 
 
-Using a rectangular domain simplifies our rod which would be a \textit{3D} object, into a single dimension. The iron rod will have a lengthways cross section that looks like a rectangle.  As a result we do not need to model the volume of the rod because a cylinder is symmetrical about its centre. There are four arguments we must consider when we decide to create a rectangular domain, the model \textit{length}, \textit{width} and \textit{step size} in each direction. When defining the size of our problem it will help us determine appropriate values for our domain arguments. If we make our dimensions large but our step sizes very small we will to a point, increase the accuracy of our solution. Unfortunately we also increase the number of calculations that must be solved per time step. This means more computational time is required to produce a solution. In our \textit{1D} problem we will define our bar as being 1 metre long. An appropriate \verb|ndx| would be 1 to 10\% of the length. Our \verb|ndy| need only be 1, This is because our problem stipulates no partial derivatives in the $y$ direction so the temperature does not vary with $y$. Thus the domain parameters can be defined as follows; note we have used the \verb unitsSI  convention to make sure all our input units are converted to SI.
+Using a rectangular model simplifies our rod which would be a \textit{3D} object, into a single dimension. The iron rod will have a lengthways cross section that looks like a rectangle.  As a result we do not need to model the volume of the rod because a cylinder is symmetrical about its centre. There are four arguments we must consider when we decide to create a rectangular model, the model \textit{length}, \textit{width} and \textit{step size} in each direction. When defining the size of our problem it will help us determine appropriate values for our model arguments. If we make our dimensions large but our step sizes very small we will to a point, increase the accuracy of our solution. Unfortunately we also increase the number of calculations that must be solved per time step. This means more computational time is required to produce a solution. In this \textit{1D} problem, the bar is defined as being 1 metre long. An appropriate step size \verb|ndx| would be 1 to 10\% of the length. Our \verb|ndy| need only be 1, this is because our problem stipulates no partial derivatives in the $y$ direction. Thus the temperature does not vary with $y$. Hence, the model parameters can be defined as follows; note we have used the \verb unitsSI  convention to make sure all our input units are converted to SI.
 \begin{python}
 #Domain related.
 mx = 1*m #meters - model length
@@ -184,12 +186,12 @@ Now that we know our inputs we will build a domain using the \verb Rectangle() f
 #generate domain using rectangle
 rod = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
 \end{python}
-\verb rod  now describes a domain in the manner of Section \ref{ss:domcon}. As we define our variables, various function spaces will be created to accomodate them. There is an easy way to extract finite points from the domain \verb|rod| using the domain property function \verb|getX()| . This function sets the vertices of each cell as finite points to solve in the solution. If we let \verb|x| be these finite points, then;
+\verb rod  now describes a domain in the manner of Section \ref{ss:domcon}. As we define our variables, various function spaces will be created to accommodate them. There is an easy way to extract finite points from the domain \verb|rod| using the domain property function \verb|getX()| . This function sets the vertices of each cell as finite points to solve in the solution. If we let \verb|x| be these finite points, then;
 \begin{python}
 #extract finite points - the solution points
 x=rod.getX()
 \end{python}
-The data locations of specific function spaces can be returned in a similar manner by extracting the relevent function space from the domain followed by the \verb .getX()  operator.
+The data locations of specific function spaces can be returned in a similar manner by extracting the relevant function space from the domain followed by the \verb .getX()  operator.
 
 With a domain and all our required variables established, it is now possible to set up our PDE so that it can be solved by \esc. The first step is to define the type of PDE that we are trying to solve in each time step. In this example it is a single linear PDE\footnote{in comparison to a system of PDEs which will be discussed later.}. We also need to state the values of our general form variables.
 \begin{python}
@@ -201,22 +203,22 @@ In a few special cases it may be possible to decrease the computational time of 
 \begin{equation}\label{eqn:symm}
 A\hackscore{jl}=A\hackscore{lj}
 \end{equation}
-Symmetry is only dependent on the $A$ coefficient in the general form and the others $D$ and $d$ as well as the RHS coefficients $Y$ and $y$ may take any value. From the above definition we can see that our PDE is symmetric. The \verb LinearPDE  class provides the method \method{checkSymmetry} to check if the given PDE is symmetric. As our PDE is symmetrical we will enable symmetry via;
+Symmetry is only dependent on the $A$ coefficient in the general form and the other coefficients $D$ and $d$ as well as the RHS $Y$ and $y$ may take any value. From the above definition we can see that our PDE is symmetric. The \verb LinearPDE  class provides the method \method{checkSymmetry} to check if the given PDE is symmetric. As our PDE is symmetrical we will enable symmetry via;
 \begin{python}
  myPDE.setSymmetryOn()
 \end{python}
 
-We now need to specify our boundary conditions and initial values. The initial values required to solve this PDE are temperatures for each discrete point in our domain. We will set our bar to:
+We now need to specify our boundary conditions and initial values. The initial values required to solve this PDE are temperatures for each discrete point in our model. We will set our bar to:
 \begin{python}
  T = Tref
 \end{python}
-Boundary conditions are a little more difficult. Fortunately the escript solver will handle our insulated boundary conditions by default with a zero flux operator. However, we will need to apply our heat source $q_{H}$ to the end of the bar at $x=0$ . \esc makes this easy by letting us define areas in our domain. The finite points in the domain were previously defined as \verb x  and it is possible to set all of points that satisfy $x=0$ to \verb q  via the \verb whereZero()  function. There are a few \verb where  functions available in \esc. They will return a value \verb 1  where they are satisfied and \verb 0  where they are not. In this case our \verb qH  is only applied to the far LHS of our model as required.
+Boundary conditions are a little more difficult. Fortunately the \esc solver will handle our insulated boundary conditions by default with a zero flux operator. However, we will need to apply our heat source $q_{H}$ to the end of the bar at $x=0$ . \esc makes this easy by letting us define areas in our model. The finite points in the model were previously defined as \verb x  and it is possible to set all of points that satisfy $x=0$ to \verb q  via the \verb whereZero()  function. There are a few \verb where  functions available in \esc. They will return a value \verb 1  where they are satisfied and \verb 0  where they are not. In this case our \verb qH  is only applied to the far LHS of our model as required.
 \begin{python}
 # ... set heat source: ....
 qH=q*whereZero(x[0])
 \end{python}
 
-Finally we will initialise an iteration loop to solve our PDE for all the time steps we specified in the variable section. As the RHS of the general form is dependent on the previous values for temperature \verb T  across the bar this must be updated in the loop. Our output at each timestep is \verb T  the heat distribution and \verb totT  the total heat in the system.
+Finally we will initialise an iteration loop to solve our PDE for all the time steps we specified in the variable section. As the RHS of the general form is dependent on the previous values for temperature \verb T  across the bar this must be updated in the loop. Our output at each time step is \verb T  the heat distribution and \verb totT  the total heat in the system.
 \begin{python}
 while t<=tend:
 	i+=1 #increment the counter
@@ -227,14 +229,14 @@ while t<=tend:
 \end{python}
 
 \subsection{Plotting the heat solutions} 
-Visualisation of the solution can be achieved using \mpl a module contained with \pylab. We start by modifying our solution script from before. Prior to the \verb while  loop we will need to extract our finite solution points to a data object that is compatible with \mpl. First it is necessary to convert \verb x  to a list of tuples. These are then converted to a \numpy array and the $x$ locations extracted via an array slice to the variable \verb plx  .
+Visualisation of the solution can be achieved using \mpl a module contained within \pylab. We start by modifying our solution script from before. Prior to the \verb while  loop we will need to extract our finite solution points to a data object that is compatible with \mpl. First it is necessary to convert \verb x  to a list of tuples. These are then converted to a \numpy array and the $x$ locations extracted via an array slice to the variable \verb plx  .
 \begin{python}
 #convert solution points for plotting
 plx = x.toListOfTuples() 
 plx = np.array(plx) #convert to tuple to numpy array
 plx = plx[:,0] #extract x locations
 \end{python}
-As there are two solution outputs, we will generate two plots and save each to a file for every time step in the solution. The following is appended to the end of the \verb while  loop and creates two figures. The first figure is for the temperature distribution, and the second the total temperature in the bar. Both cases are similar with a few minor changes for scale and labelling. We start by converting the solution to a tuple and then plotting this against our \textit{x coordinates} \verb plx  from before. The axis is then standardised and a title applied. The figure is then saved to a *.png file and cleared for the following iteration.
+As there are two solution outputs, we will generate two plots and save each to a file for every time step in the solution. The following is appended to the end of the \verb while  loop and creates two figures. The first figure is for the temperature distribution, and the second the total temperature in the bar. Both cases are similar with a few minor changes for scale and labelling. We start by converting the solution to a tuple and then plotting this against our \textit{x coordinates} \verb plx  from before. The axis is then standardised and a title applied. Finally, the figure is saved to a *.png file and cleared for the following iteration.
 \begin{python}
 	#establish figure 1 for temperature vs x plots
 	tempT = T.toListOfTuples(scalarastuple=False)
@@ -252,7 +254,7 @@ As there are two solution outputs, we will generate two plots and save each to a
 	pl.figure(2)
 	pl.plot(plx,tottempT)
 	pl.axis([0,1.0,9.657E08,12000+9.657E08])
-	pl.title("Total temperature accross Rod")
+	pl.title("Total temperature across Rod")
 	pl.savefig(os.path.join(save_path+"/totT","ttrodpyplot%03d.png")%i)
 	pl.clf()
 \end{python}
@@ -265,10 +267,9 @@ As there are two solution outputs, we will generate two plots and save each to a
 \end{figure}
 
 \subsubsection{Parallel scripts (MPI)}
-In some of the example files for this cookbook the plot part of the script looks a little different.
+In some of the example files for this cookbook the plotting commands are a little different.
 For example,
 \begin{python}
-	pl.title("Total temperature accross Rod")
 	if getMPIRankWorld() == 0:
 	    pl.savefig(os.path.join(save_path+"/totT","ttrodpyplot%03d.png")%i)
 	pl.clf()	
@@ -277,7 +278,7 @@ For example,
 The additional \verb if  statement is not necessary for normal desktop use.
 It becomes important for scripts run on parallel computers.
 Its purpose is to ensure that only one copy of the file is written.
-For more details on writing scripts for parallel computers please consult the \emph{user's guide}.
+For more details on writing scripts for parallel computing please consult the \emph{user's guide}.
 
 \subsection{Make a video} 
 Our saved plots from the previous section can be cast into a video using the following command appended to the end of the script. \verb mencoder  is linux only however, and other platform users will need to use an alternative video encoder.
