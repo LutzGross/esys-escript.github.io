@@ -1464,3 +1464,40 @@ class Test_Dump(unittest.TestCase):
 	self.failUnlessRaises(RuntimeError,d.setTaggedValue,1,self.arg0*2)
 	d=Data(self.arg0,ReducedSolution(self.domain))
 	self.failUnlessRaises(RuntimeError,d.setTaggedValue,1,self.arg0*2)
+	
+class Test_Lazy(unittest.TestCase):
+  def makeLazyObj(self):
+	d=delay(Data(1,self.mainfs,True))
+	e=delay(Data(2,self.mainfs,True))
+	p=(d+e*d)/e
+	q=p/(3*d)
+	r1=q*q
+	r2=q+q
+	r3=q/4
+	f=delay(Data(4,self.otherfs,True))
+	t=Data(4,self.mainfs)
+	t.tag()
+	t=delay(t)
+	t=t*2
+	return r1,r2,r3,f,t
+  
+  def test_GroupRes(self):
+	rr1,rr2,rr3,rf,rt=self.makeLazyObj()
+	rr1=resolve(rr1)
+	rr2=resolve(rr2)
+	rr3=resolve(rr3)
+	rf=resolve(rf)
+	rt=resolve(rt)
+	r1,r2,r3,f,t=self.makeLazyObj()
+	resolveGroup((r1,r2,r3))
+	err=Lsup(rr1-r1)+Lsup(rr2-r2)+Lsup(rr3-r3)
+	self.failUnless(err<0.001, "Same functionspace group resolve")
+	r1,r2,r3,f,t=self.makeLazyObj()
+	resolveGroup((r1,r2,r3,rt))
+	err=Lsup(rr1-r1)+Lsup(rr2-r2)+Lsup(rr3-r3)+Lsup(rt-t)
+	self.failUnless(err<0.001, "Same functionspace group resolve with early collapse")
+	r1,r2,r3,f,t=self.makeLazyObj()
+	err=Lsup(rr1-r1)+Lsup(rr2-r2)+Lsup(rr3-r3)+Lsup(rt-t)+Lsup(rf-f)
+	self.failUnless(err<0.001, "Same functionspace group resolve with mixed functionspaces")
+	
+	

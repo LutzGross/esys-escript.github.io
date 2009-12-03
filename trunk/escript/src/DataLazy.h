@@ -255,6 +255,12 @@ public:
   virtual void
   setToZero();
 
+  
+  ESCRIPT_DLL_API
+  void
+  resolveGroupWorker(std::vector<DataLazy*>& dats);
+
+
 private:
   DataReady_ptr m_id;	//  For IDENTITY nodes, stores a wrapped value.
   DataLazy_ptr m_left, m_right;	// operands for operation.

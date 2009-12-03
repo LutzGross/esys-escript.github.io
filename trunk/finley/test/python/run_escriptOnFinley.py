@@ -27,7 +27,7 @@ from esys.finley import Rectangle
 import sys
 import os
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation
-from test_objects import Test_Domain, Test_GlobalMinMax
+from test_objects import Test_Domain, Test_GlobalMinMax, Test_Lazy
 
 from test_shared import Test_Shared
 
@@ -103,19 +103,23 @@ class Test_DomainOnFinley(Test_Domain):
        self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
        for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
 
-class Test_DataOpsOnFinley(Test_Dump, Test_SetDataPointValue, Test_GlobalMinMax):
+class Test_DataOpsOnFinley(Test_Dump, Test_SetDataPointValue, Test_GlobalMinMax, Test_Lazy):
    def setUp(self):
        self.domain =Rectangle(NE,NE+1,2)
        self.domain_with_different_number_of_samples =Rectangle(2*NE,NE+1,2)
        self.domain_with_different_number_of_data_points_per_sample =Rectangle(2*NE,NE+1,2,integrationOrder=2)
        self.domain_with_different_sample_ordering =Rectangle(NE,NE+1,2, optimize=True)
        self.filename_base=FINLEY_WORKDIR
+       self.mainfs=Function(self.domain)
+       self.otherfs=Solution(self.domain)
 
    def tearDown(self):
        del self.domain
        del self.domain_with_different_number_of_samples
        del self.domain_with_different_number_of_data_points_per_sample
        del self.domain_with_different_sample_ordering
+       del self.mainfs
+       del self.otherfs
        
 
 
