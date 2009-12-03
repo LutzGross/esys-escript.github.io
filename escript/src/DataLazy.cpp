@@ -1594,6 +1594,87 @@ DataLazy::resolve()
     return m_id;
 }
 
+
+/* This is really a static method but I think that caused problems in windows */
+void
+DataLazy::resolveGroupWorker(std::vector<DataLazy*>& dats)
+{
+  if (dats.empty())
+  {
+	return;
+  }
+  vector<DataLazy*> work;
+  FunctionSpace fs=dats[0]->getFunctionSpace();
+  bool match=true;
+  for (int i=dats.size()-1;i>0;--i)
+  {
+	if (dats[i]->m_readytype!='E')
+	{
+		dats[i]->collapse();
+	}
+	if (dats[i]->m_op!=IDENTITY)
+	{
+		work.push_back(dats[i]);
+		if (fs!=dats[i]->getFunctionSpace())
+		{
+			match=false;
+		}
+	}
+  }
+  if (work.empty())
+  {
+	return;		// no work to do
+  }
+  if (match)	// all functionspaces match.  Yes I realise this is overly strict
+  {		// it is possible that dats[0] is one of the objects which we discarded and
+		// all the other functionspaces match.
+	vector<DataExpanded*> dep;
+	vector<ValueType*> vecs;
+	for (int i=0;i<work.size();++i)
+	{
+		dep.push_back(new DataExpanded(fs,work[i]->getShape(), ValueType(work[i]->getNoValues())));
+		vecs.push_back(&(dep[i]->getVectorRW()));
+	}
+	int totalsamples=work[0]->getNumSamples();
+	const ValueType* res=0;	// Storage for answer
+	int sample;
+	#pragma omp parallel private(sample, res)
+	{
+	    size_t roffset=0;
+	    #pragma omp for schedule(static)
+	    for (sample=0;sample<totalsamples;++sample)
+	    {
+		roffset=0;
+		int j;
+		for (j=work.size()-1;j>0;--j)
+		{
+#ifdef _OPENMP
+    		    res=work[j]->resolveNodeSample(omp_get_thread_num(),sample,roffset);
+#else
+    		    res=work[j]->resolveNodeSample(0,sample,roffset);
+#endif
+    		    DataVector::size_type outoffset=dep[j]->getPointOffset(sample,0);
+    		    memcpy(&((*vecs[j])[outoffset]),&((*res)[roffset]),work[j]->m_samplesize*sizeof(DataVector::ElementType));
+		}
+	    }
+	}
+	// Now we need to load the new results as identity ops into the lazy nodes
+	for (int i=work.size()-1;i>0;--i)
+	{
+	    work[i]->makeIdentity(boost::dynamic_pointer_cast<DataReady>(dep[i]->getPtr()));
+	}
+  }
+  else	// functionspaces do not match
+  {
+	for (int i=0;i<work.size();++i)
+	{
+		work[i]->resolveToIdentity();
+	}
+  }
+}
+
+
+
 // This version of resolve uses storage in each node to hold results
 DataReady_ptr
 DataLazy::resolveNodeWorker()

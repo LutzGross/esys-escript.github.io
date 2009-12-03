@@ -518,4 +518,41 @@ bool append)
 }
 
 
+void 
+resolveGroup(boost::python::object obj)
+{
+	int len=0;
+	try
+	{
+	   len=boost::python::extract<int>(obj.attr("__len__")());
+	}
+	catch(...)
+	{
+	   PyErr_Clear();		// tell python the error isn't there anymore
+	   throw DataException("Error - resolveGroup expects a sequence object.");
+	}
+	std::vector<DataLazy*> dats;
+	for (int i=0;i<len;++i)
+	{
+		Data* p=0;
+		try
+		{
+			p=boost::python::extract<Data*>(obj[i]);
+		}
+		catch(...)
+		{
+			PyErr_Clear();
+			throw DataException("Error - resolveGroup only accepts Data objects.");
+		}
+		if (p->isLazy())
+		{
+			dats.push_back(dynamic_cast<DataLazy*>(p->borrowData()));
+		}
+	}
+	if (dats.size()>0)
+	{
+		dats[0]->resolveGroupWorker(dats);
+	}
+}
+
 }  // end of namespace

@@ -523,6 +523,8 @@ args("source", "q", "r","factor"),
 ":type sentinel: ``int``");
   def("listEscriptParams",escript::listEscriptParams,":return: A list of pairs (p,d) where p is the name of a parameter for escript and d is a description.");
 
+
+  def("resolveGroup", escript::resolveGroup);
   //
   // Register esysExceptionTranslator
   //

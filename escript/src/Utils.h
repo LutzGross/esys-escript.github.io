@@ -94,5 +94,16 @@ namespace escript {
  saveDataCSV(const std::string& filename, boost::python::dict arg, const std::string& sep, const std::string& csep,
 bool append=false); 
 
+
+ /**
+ Resolve a collection of Data objects together now.
+ To get performance improvements, the objects will need to have the same function space and share Dag components.
+ \param obj A python list or tuple of Data objects to be resolved together.
+ 
+ */
+ ESCRIPT_DLL_API
+ void 
+ resolveGroup(boost::python::object obj);
+
 } // end of namespace
 #endif
