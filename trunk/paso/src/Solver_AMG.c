@@ -126,7 +126,6 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
   double S;
   index_t iptr;
   */
-  verbose=1;
   /*char filename[8];*/
   /*sprintf(filename,"AMGLevel%d",level);
   
@@ -176,11 +175,12 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      
      if (verbose) fprintf(stdout,"Stats: Sparsity of the Coarse Matrix with %d non-zeros (%d,%d) in level %d is %.6f\n",A_p->len,A_p->numRows,A_p->numCols,level,sparsity);
      
-    if(sparsity>0.01) {
+    
+     if(sparsity>0.01) {
       level=0;
      }
-    
      
+         
      if (level==0 || n<=options->min_coarse_matrix_size) {
          out->coarsest_level=TRUE;
          /*out->GS=Paso_Solver_getJacobi(A_p);*/
@@ -220,6 +220,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
         }
         else {
            /*Default coarseneing*/
+            /*Paso_Pattern_RS_MI_Aggressive(A_p,mis_marker,options->coarsening_threshold);*/
             Paso_Pattern_RS_MI(A_p,mis_marker,options->coarsening_threshold);
             /*Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);*/
             /*Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);*/
@@ -280,7 +281,14 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                     
                  }
               }
-      
+              
+               /*if(level==1) {
+                   printf("##TOTAL: %d, ELIMINATED: %d\n",n,out->n_F);
+                   for (i = 0; i < n; ++i) {
+                    printf("##%d %d\n",i,mis_marker[i]);
+                   }
+                 }
+               */
               /*check whether coarsening process actually makes sense to continue.
               if coarse matrix at least smaller by 30% then continue, otherwise we stop.*/
               if ((out->n_F*100/n)<30) {
@@ -288,10 +296,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                 }
              
               if ( Paso_noError()) {
-                    /* if there are no nodes in the coarse level there is no more work to do */
                     out->n_C=n-out->n_F;
-                   
-                   /*if (out->n_F>500) */
                     out->rows_in_C=MEMALLOC(out->n_C,index_t);
                     out->mask_C=MEMALLOC(n,index_t);
                     if (! (Paso_checkPtr(out->mask_C) || Paso_checkPtr(out->rows_in_C) ) ) {
@@ -327,27 +332,29 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                       /*sprintf(filename,"W_FCbefore_%d",level);
                       Paso_SparseMatrix_saveMM(out->W_FC,filename);
                       */
-                                            
+                      /* for (i = 0; i < n; ++i) {
+                                  printf("##mis_marker[%d]=%d\n",i,mis_marker[i]);
+                       }
+                      */                    
                       time0=Paso_timer();
                       Paso_SparseMatrix_updateWeights(A_p,out->W_FC,mis_marker);
                       time0=Paso_timer()-time0;
                       if (verbose) fprintf(stdout,"timing: updateWeights: %e\n",time0);
         
-                      /*
-                       printf("GOT W_FC, but n=%d,n_F=%d,n_C=%d\n",out->n,out->n_F,out->n_C);
-                      sprintf(filename,"W_FCafter_%d",level);
+                      
+                      /*sprintf(filename,"W_FCafter_%d",level);
                       Paso_SparseMatrix_saveMM(out->W_FC,filename);
                       */
-                      /* get Prolongation and Restriction */
                       
+                      /* get Prolongation and Restriction */
                       time0=Paso_timer();
                       out->P=Paso_SparseMatrix_getProlongation(out->W_FC,mis_marker);
                       time0=Paso_timer()-time0;
                       if (verbose) fprintf(stdout,"timing: getProlongation: %e\n",time0);
                       
-                      /*
-                       printf("GOT Prolongation P->nxc %dx%d\n",out->P->numRows,out->P->numCols);
-                      sprintf(filename,"P_%d",level);
+                      
+                      
+                      /* sprintf(filename,"P_%d",level);
                       Paso_SparseMatrix_saveMM(out->P,filename);
                       */
                       
@@ -356,9 +363,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                       time0=Paso_timer()-time0;
                       if (verbose) fprintf(stdout,"timing: getRestriction: %e\n",time0);
                       
-                      /*
-                      printf("GOT Restriction->cxn %dx%d\n",out->R->numRows,out->R->numCols);
-                      sprintf(filename,"R_%d",level);
+                      
+                      /*sprintf(filename,"R_%d",level);
                       Paso_SparseMatrix_saveMM(out->R,filename);
                       */
                      
@@ -544,7 +550,6 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
       #pragma omp parallel for private(i) schedule(static)
       for (i=0;i<amg->n;++i)  {
        x[i]+=x0[i];
-       /*printf("x[%d]=%e \n",i,x[i]);*/
       }
       
       time0=Paso_timer()-time0;

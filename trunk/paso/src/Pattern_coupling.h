@@ -38,10 +38,12 @@ void Paso_Pattern_greedy_diag(Paso_SparseMatrix* A, index_t* mis_marker, double 
 
 void Paso_Pattern_YS_plus(Paso_SparseMatrix* A, index_t* mis_marker, double alpha, double taw, double delta);
 void Paso_Pattern_RS_MI(Paso_SparseMatrix* A, index_t* mis_marker, double theta);
+void Paso_Pattern_RS_MI_Aggressive(Paso_SparseMatrix* A, index_t* mis_marker, double theta);
 /*dim_t how_many(dim_t n,dim_t* S_i, int value1, dim_t* addedSet, int value2);*/
 
 dim_t how_many(dim_t i,Paso_Pattern * S, bool_t transpose);
 dim_t arg_max(dim_t n, dim_t* lambda, dim_t mask);
 Paso_Pattern* Paso_Pattern_getTranspose(Paso_Pattern* P);
+void Paso_Pattern_getReport(dim_t n,index_t* mis_marker);
 
 #endif 

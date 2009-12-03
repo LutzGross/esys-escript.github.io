@@ -58,10 +58,10 @@ Paso_SparseMatrix* Paso_SparseMatrix_getProlongation(Paso_SparseMatrix* W, index
     for (i=0;i<n;++i) {
       if (mis_marker[i]) {
           for (iptr=W->pattern->ptr[k];iptr<W->pattern->ptr[k+1]; ++iptr) {
-          j=W->pattern->index[iptr];
-          Paso_IndexList_insertIndex(&(index_list[i]),j);
-        }
-        k++;
+            j=W->pattern->index[iptr];
+            Paso_IndexList_insertIndex(&(index_list[i]),j);
+          }
+          k++;
       }
       else {
           Paso_IndexList_insertIndex(&(index_list[i]),i-k);
@@ -73,7 +73,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getProlongation(Paso_SparseMatrix* W, index
     
     k=0;
 
-    for (i=0;i<out->numRows;++i) {
+    for (i=0;i<n;++i) {
       if (mis_marker[i]) {
         wptr=W->pattern->ptr[k];
         for (iptr=out->pattern->ptr[i];iptr<out->pattern->ptr[i+1]; ++iptr) {
