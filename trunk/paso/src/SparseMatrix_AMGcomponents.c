@@ -162,66 +162,66 @@ void Paso_SparseMatrix_updateWeights(Paso_SparseMatrix* A,Paso_SparseMatrix* W_F
  
   double *alpha;
   double *beta;
-  double *alpha_den;
-  double *beta_den;
   double a_ii=0;
+  double sum_all_neg,sum_all_pos,sum_strong_neg,sum_strong_pos;
   
   dim_t n=A->numRows;
   dim_t F=W_FC->numRows;
   dim_t i,j,k;
   
-  index_t iPtr,*index, *where_p;
+  index_t iPtr,dptr=0;
+  /*index_t *index, *where_p;*/
  
   alpha=TMPMEMALLOC(F,double);
   beta=TMPMEMALLOC(F,double);
-  alpha_den=TMPMEMALLOC(F,double);
-  beta_den=TMPMEMALLOC(F,double);
 
-  k=0;  
+
+  k=0;
   for (i = 0; i < n; ++i) {
       if(mis_marker[i]) {
-            iPtr=A->pattern->ptr[i];
-            index=&(A->pattern->index[iPtr]);
-            where_p=(index_t*)bsearch(&i,
-                                     index,
-                                     A->pattern->ptr[i + 1]-A->pattern->ptr[i],
-                                     sizeof(index_t),
-                                     Paso_comparIndex);
-            if (where_p!=NULL) {
-                   a_ii=A->val[iPtr+(index_t)(where_p-index)];
-            }
-            else {
-             Paso_setError(VALUE_ERROR,"Paso_Solver_getAMG: Main diagonal element of system matrix is missing.");
-            }
             alpha[k]=0;
             beta[k]=0;
-            alpha_den[k]=0;
-            beta_den[k]=0;
+            sum_all_neg=0;
+            sum_all_pos=0;
+            sum_strong_neg=0;
+            sum_strong_pos=0;
             /*compute beta_i=sum_{j\inN_i}a^{+}_ij and alpha_i=sum_{j\inN_i}a^{-}_ij and denominators for both alpha_i and beta_i*/
             for (iPtr=A->pattern->ptr[i];iPtr<A->pattern->ptr[i + 1]; ++iPtr) {
                  j=A->pattern->index[iPtr];
                  if(j!=i) {
                         if(A->val[iPtr]<0) {
-                          alpha[k]+=A->val[iPtr];
+                          sum_all_neg+=A->val[iPtr];
                           if(!mis_marker[j]) {
-                            alpha_den[k]+=A->val[iPtr];
+                            sum_strong_neg+=A->val[iPtr];
                           }
                         }
                         else if(A->val[iPtr]>0) {
-                          beta[k]+=A->val[iPtr];
+                          sum_all_pos+=A->val[iPtr];
                           if(!mis_marker[j]) {
-                            beta_den[k]+=A->val[iPtr];
+                            sum_strong_pos+=A->val[iPtr];
                           }
                         }
                  }
+                 else {
+                      a_ii=A->val[iPtr];
+                      dptr=iPtr;
+                 }
              }
-            if(alpha_den[k]!=0) {
-                 alpha[k]=alpha[k]/(alpha_den[k]*a_ii);
+
+            if(sum_strong_neg!=0) {
+                 alpha[k]=sum_all_neg/(sum_strong_neg);
             }
-            if(beta_den[k]!=0) {
-                 beta[k]=beta[k]/(beta_den[k]*a_ii);
+            if(sum_strong_pos!=0) {
+                 beta[k]=sum_all_pos/(sum_strong_pos);
             }
-            k++;
+/*            else {
+              a_ii+=beta[k];
+              A->val[dptr]=a_ii;
+              beta[k]=0;
+            }
+*/           alpha[k]=alpha[k]/(a_ii);
+            beta[k]=beta[k]/(a_ii);
+          k++;
        /*printf("Got in row=%d, alpha[%d]=%e, beta[%d]=%e, a_den=%e, b_den=%e \n",i,k-1,alpha[k-1],k-1,beta[k-1],alpha_den[k-1],beta_den[k-1]);*/
       }
    }
@@ -229,21 +229,17 @@ void Paso_SparseMatrix_updateWeights(Paso_SparseMatrix* A,Paso_SparseMatrix* W_F
       for (i = 0; i < W_FC->numRows; ++i) {
             for (iPtr=W_FC->pattern->ptr[i];iPtr<W_FC->pattern->ptr[i + 1]; ++iPtr) {
                  j=W_FC->pattern->index[iPtr];
-                 /*if(!mis_marker[j]) {*/
                    if(W_FC->val[iPtr]<0) {
                       W_FC->val[iPtr]=-alpha[i]*W_FC->val[iPtr];
                     }
                    else if(W_FC->val[iPtr]>0) {
                       W_FC->val[iPtr]=-beta[i]*W_FC->val[iPtr];
                    }
-                 /*}*/
             }
          }
       
       TMPMEMFREE(alpha);
       TMPMEMFREE(beta);
-      TMPMEMFREE(alpha_den);
-      TMPMEMFREE(beta_den);
 }
 
   
