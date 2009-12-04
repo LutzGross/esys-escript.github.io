@@ -26,7 +26,7 @@ HOSTFILE=/tmp/escript.$$
 HOSTFILE2=/tmp/escript2.$$
 
 #Begin finding ESCRIPT_ROOT
-if [ $STDLOCATION != 0 ]
+if [ $STDLOCATION -ne 0 ]
 then
     ESCRIPT_ROOT=/usr/lib/escript
 else
@@ -43,8 +43,8 @@ else
       tscriptdir=`which $0`
       if [ $? != 0 ]
       then
-          echo "Error unable to determine script directory. Exiting."
-	  exit 1
+          echo "Error! Unable to determine script directory. Exiting."
+          exit 1
       fi
       scriptdir=`dirname $tscriptdir`
   fi
@@ -58,6 +58,11 @@ else
 fi
 ##### End finding ESCRIPT_ROOT  ########
 
+if [ ! -r $ESCRIPT_ROOT/lib/buildvars ]; then
+    echo "Error! Unable to read escript build information. Exiting."
+    exit 1
+fi
+
 PYTHON_MPI_NULL="$ESCRIPT_ROOT/lib/pythonMPI"
 PYTHON_MPI_REDIRECT="$ESCRIPT_ROOT/lib/pythonMPIredirect"
 PYTHON_CMD=python
@@ -70,7 +75,7 @@ EXTRA_PATH=$ESCRIPT_ROOT/bin
 EXTRA_PYTHONPATH=$ESCRIPT_ROOT
 EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib
 
-if [ $STANDALONE == 1 ]
+if [ $STANDALONE -eq 1 ]
 then
     EXTRA_PATH=$ESCRIPT_PARENT/pkg/python/bin:$EXTRA_PATH
     EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/pkg/boost/lib:$ESCRIPT_PARENT/pkg/netcdf/lib/:$EXTRA_LD_LIBRARY_PATH
@@ -126,7 +131,7 @@ do
 	  "c")  cat $ESCRIPT_ROOT/lib/buildvars
 		exit 0
 		;;
-	  "V")	echo "escript-pre2.0(build "`grep svn_revision $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`")"
+	  "V")	echo "escript-pre4.0(build "`grep svn_revision $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`")"
 		exit 0
 		;;
 	  "h")  echo "$HELPTEXT"
@@ -137,7 +142,7 @@ do
 	  "e")  echo "export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:\$LD_LIBRARY_PATH"
 		echo "export PYTHONPATH=$EXTRA_PYTHONPATH:\$PYTHONPATH"
 		echo "export PATH=$EXTRA_PATH:\$PATH"
-		if [ `uname` == Darwin ]
+		if [ "`uname`" = "Darwin" ]
 		then
 		    echo "export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:\$DYLD_LIBRARY_PATH"
 		fi
@@ -163,8 +168,11 @@ shift `expr $OPTIND - 1`
 MPI_FLAVOUR=`grep mpi_flavour $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`
 WITH_OPENMP=`grep useopenmp $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`
 
-if [ ! -z $ESCRIPT_VERBOSE  ]; then echo "MPI flavor is $MPI_FLAVOUR."; fi
-if [ ! -z $ESCRIPT_VERBOSE ] && [  $WITH_OPENMP == "y"  ]; then echo "OpenMP enabled."; fi
+if [ ! -z $ESCRIPT_VERBOSE ]; then
+    echo "MPI flavour is $MPI_FLAVOUR."
+    if [ "$WITH_OPENMP" = "y" ]; then echo "OpenMP enabled."; fi
+fi
+
 #
 #  extend path variables
 #
@@ -172,12 +180,12 @@ export PATH=$EXTRA_PATH:$PATH
 export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:$LD_LIBRARY_PATH
 export PYTHONPATH=$EXTRA_PYTHONPATH:$PYTHONPATH
 EXPORT_ENV="PATH,LD_LIBRARY_PATH,PYTHONPATH"
-if [ `uname` == Darwin ]
+if [ "`uname`" = "Darwin" ]
 then
     export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH
     EXPORT_ENV="$EXPORT_ENV,DYLD_LIBRARY_PATH"
 fi
-if [ ! -z $ESCRIPT_VERBOSE  ] 
+if [ ! -z $ESCRIPT_VERBOSE ] 
 then 
     echo "PATH = $PATH "
     echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH "
@@ -188,7 +196,7 @@ fi
 #
 #  Ensure the variables have sensible values
 #
-if [ $MPI_FLAVOUR  == "none" ] 
+if [ "$MPI_FLAVOUR" = "none" ] 
 then
     if [ ! -z $ESCRIPT_NUM_NODES ]
     then
@@ -239,14 +247,14 @@ else
       ESCRIPT_NUM_PROCS=1
     fi
 
-    if [ ! -z $ESCRIPT_VERBOSE  ]
+    if [ ! -z $ESCRIPT_VERBOSE ]
     then 
           echo "ESCRIPT_NUM_NODES = $ESCRIPT_NUM_NODES "
           echo "ESCRIPT_NUM_PROCS = $ESCRIPT_NUM_PROCS "
     fi
 fi
 
-if [  $WITH_OPENMP == "y"  ]
+if [ "$WITH_OPENMP" = "y" ]
 then
    if [ -z $ESCRIPT_NUM_THREADS ]
    then
@@ -288,7 +296,7 @@ fi
 
 if [ $TOTPROC -gt 1 ] 
 then
-   if [ "$ESCRIPT_CREATESTDFILES" == "yes" ]
+   if [ "$ESCRIPT_CREATESTDFILES" = "yes" ]
    then
        PYTHON_MPI=$PYTHON_MPI_REDIRECT
    else
@@ -313,7 +321,7 @@ if [ ! -z $DOBINARY ]
 then
     EXEC_CMD="$@"
 else
-    if [ $MPI_FLAVOUR  == "none" ]
+    if [ "$MPI_FLAVOUR" = "none" ]
     then
         # Check to see if the python version we were compiled with matches the one of EXEC_CMD
         # We should only do this check if they are running a python script
@@ -343,19 +351,19 @@ if [ ! -z $ESCRIPT_VERBOSE ]; then echo "Command to be executed is \"$EXEC_CMD\"
 #
 #   now we start to spwan things:
 #
-if [  $WITH_OPENMP == "y"  ]
+if [ "$WITH_OPENMP" = "y" ]
 then
    export OMP_NUM_THREADS=$ESCRIPT_NUM_THREADS
    EXPORT_ENV="$EXPORT_ENV,OMP_NUM_THREADS"
 fi
 EXIT_CODE=1
 #=============== no MPI ===================================
-if [ $MPI_FLAVOUR  == "none" ] 
+if [ "$MPI_FLAVOUR" = "none" ] 
 then
    $EXEC_CMD 
    EXIT_CODE=$?
 #=============== OpenMPI ===================================
-elif [ $MPI_FLAVOUR == "OPENMPI" ] 
+elif [ "$MPI_FLAVOUR" = "OPENMPI" ] 
 then 
    if [ ! -z $HOSTFILE ] 
    then
@@ -369,10 +377,10 @@ then
    EXIT_CODE=$?
 
 #=============== Intel MPI ===================================
-elif [ $MPI_FLAVOUR == "INTELMPI" ]
+elif [ "$MPI_FLAVOUR" = "INTELMPI" ]
 then
 
-   if [  $WITH_OPENMP == "y"  ]
+   if [ "$WITH_OPENMP" = "y" ]
    then
        export I_MPI_PIN_DOMAIN=omp
        EXPORT_ENV="$EXPORT_ENV, I_MPI_PIN_DOMAIN"
@@ -399,7 +407,7 @@ then
        if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdallexit executed."; fi
    fi 
 #=============== SGI's MPIMPT ===================================
-elif [ $MPI_FLAVOUR == "MPT" ]
+elif [ "$MPI_FLAVOUR" = "MPT" ]
 then
    export MPI_NUM_MEMORY_REGIONS=0
    EXPORT_ENV="$EXPORT_ENV,MPI_NUM_MEMORY_REGIONS"
@@ -414,7 +422,7 @@ then
    $CMD
    EXIT_CODE=$?
 #=============== MPICH ===================================
-elif [ $MPI_FLAVOUR == "MPICH" ]
+elif [ "$MPI_FLAVOUR" = "MPICH" ]
 then
    if [ ! -z $HOSTFILE ] 
    then
@@ -428,7 +436,7 @@ then
    $CMD
    EXIT_CODE=$?
 #=============== MPICH2 ===================================
-elif [ $MPI_FLAVOUR == "MPICH2" ]
+elif [ "$MPI_FLAVOUR" = "MPICH2" ]
 then
    if [ ! -z $HOSTFILE ] 
    then
@@ -451,6 +459,6 @@ then
        if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdallexit executed."; fi
    fi 
 else
-   echo "unknown MPI falvour $MPI_FLAVOUR."
+   echo "unknown MPI flavour '$MPI_FLAVOUR'."
 fi
 exit $EXIT_CODE
