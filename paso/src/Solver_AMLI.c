@@ -484,9 +484,9 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
         #pragma omp parallel for private(i) schedule(static)
         for (i=0;i<amli->n;++i) {
             if (amli->mask_C[i]>-1) {
-                 x[i]=amli->x_C[amli->mask_C[i]];
+                 x[i]+=amli->x_C[amli->mask_C[i]];
             } else {
-                 x[i]=amli->x_F[amli->mask_F[i]];
+                 x[i]+=amli->x_F[amli->mask_F[i]];
             }
         }
         
