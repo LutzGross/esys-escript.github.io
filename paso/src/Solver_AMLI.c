@@ -195,8 +195,8 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
         }
         else {
            /*Default coarseneing*/
-            Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);
-            /*Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);*/
+            /*Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);*/
+            Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);
             /*Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);*/
             
         }
@@ -277,7 +277,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
               if coarse matrix at least smaller by 30% then continue, otherwise we stop.*/
               if ((out->n_F*100/n)<30) {
                     level=1;
-                }
+               }
              
               if ( Paso_noError()) {
                     /* if there are no nodes in the coarse level there is no more work to do */
