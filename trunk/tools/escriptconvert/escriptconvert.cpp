@@ -11,19 +11,19 @@
 *
 *******************************************************/
 
-//
-// escript2silo.cpp
-//
-#include <escriptreader/MPDataSet.h>
-#include <escriptreader/MeshWithElements.h>
-#include <escriptreader/DataVar.h>
+#include <escriptexport/EscriptDataset.h>
+#include <escriptexport/FinleyMesh.h>
+#include <escriptexport/DataVar.h>
+
+#if USE_SILO
 #include <silo.h>
-#include <netcdf.hh>
+#endif
+
 #include <cstring>
 #include <fstream>
 
 using namespace std;
-using namespace EscriptReader;
+using namespace escriptexport;
 
 string insertTimestep(const string& fString, int timeStep, int tsMultiplier)
 {
@@ -43,6 +43,11 @@ string insertTimestep(const string& fString, int timeStep, int tsMultiplier)
 
 int main(int argc, char** argv)
 {
+#if HAVE_MPI
+    MPI_Init(&argc, &argv);
+#endif
+
+#if USE_SILO
     // turn off for debugging purposes
     bool writeMultiMesh = true;
 
@@ -51,7 +56,7 @@ int main(int argc, char** argv)
     bool writeMeshOnce = true;
 
     if (argc < 2) {
-        cerr << "Usage: " << argv[0] << " <file.esd>" << endl;
+        cerr << "Usage: " << argv[0] << " <file.esd>" << endl; fflush(stderr);
         return -1;
     }
 
@@ -134,10 +139,10 @@ int main(int argc, char** argv)
         if (nTimesteps > 1)
             cout << "T = " << timeStep << endl;
 
-        MPDataSet* ds = new MPDataSet();
+        EscriptDataset* ds = new EscriptDataset();
 
         if (writeMeshOnce && timeStep > 0) {
-            if (!ds->load(meshFromTzero, meshFile, varFilesTS, varNames)) {
+            if (!ds->loadNetCDF(meshFromTzero, varFilesTS, varNames)) {
                 delete ds;
                 break;
             }
@@ -148,7 +153,7 @@ int main(int argc, char** argv)
             else
                 meshTS.append(".nc");
 
-            if (!ds->load(meshTS, varFilesTS, varNames, nParts)) {
+            if (!ds->loadNetCDF(meshTS, varFilesTS, varNames, nParts)) {
                 delete ds;
                 break;
             }
@@ -165,7 +170,8 @@ int main(int argc, char** argv)
             siloFile << "." << timeStep;
         siloFile << ".silo";
 
-        ds->saveAsSilo(siloFile.str(), writeMultiMesh);
+        ds->setCycleAndTime(timeStep, (double)timeStep);
+        ds->saveSilo(siloFile.str(), writeMultiMesh);
 
         // keep mesh from first timestep if it should be reused
         if (writeMeshOnce && nTimesteps > 1 && timeStep == 0) {
@@ -188,10 +194,16 @@ int main(int argc, char** argv)
     
     // clean up
     MeshBlocks::iterator meshIt;
-    for (meshIt = meshFromTzero.begin(); meshIt != meshFromTzero.end(); meshIt++)
-        delete *meshIt;
 
     cout << "All done." << endl;
+#else // !USE_SILO
+    cerr << "Error: escriptconvert was compiled without Silo support! Exiting."
+        << endl;
+#endif
+
+#if HAVE_MPI
+    MPI_Finalize();
+#endif
 
     return 0;
 }

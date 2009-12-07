@@ -604,11 +604,11 @@ if env['usesilo']:
 
 # Add the path to Silo to environment env if it was found.
 # Note that we do not add the libs since they are only needed for the
-# escriptreader library and tools.
+# escriptexport library and tools.
 if env['usesilo']:
   env.AppendUnique(CPPPATH = [env['silo_path']])
   env.AppendUnique(LIBPATH = [env['silo_lib_path']])
-  env.Append(CPPDEFINES = ['HAVE_SILO'])
+  env.Append(CPPDEFINES = ['USE_SILO'])
 
 ########### Lapack (optional) ##################################
 
@@ -787,8 +787,9 @@ Export(
   )
 
 env.SConscript(dirs = ['tools/CppUnitTest/src'], build_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
-env.SConscript(dirs = ['tools/libescriptreader/src'], build_dir='build/$PLATFORM/tools/libescriptreader', duplicate=0)
+env.SConscript(dirs = ['tools/escriptconvert'], build_dir='build/$PLATFORM/tools/escriptconvert', duplicate=0)
 env.SConscript(dirs = ['paso/src'], build_dir='build/$PLATFORM/paso', duplicate=0)
+env.SConscript(dirs = ['dataexporter/src'], build_dir='build/$PLATFORM/dataexporter', duplicate=0)
 env.SConscript(dirs = ['escript/src'], build_dir='build/$PLATFORM/escript', duplicate=0)
 env.SConscript(dirs = ['esysUtils/src'], build_dir='build/$PLATFORM/esysUtils', duplicate=0)
 env.SConscript(dirs = ['finley/src'], build_dir='build/$PLATFORM/finley', duplicate=0)
@@ -859,12 +860,17 @@ else:
     out+="n"
 buildvars.write(out+"\n")
 buildvars.write("mpi_flavour="+env['mpi_flavour']+'\n')
-buildvars.write("lapack=")
+out="lapack="
 if env['uselapack']:
-   buildvars.write('y')
+   out+="y"
 else:
-   buildvars.write('n')
-buildvars.write('\n')
+   out+="n"
+out+="\nsilo="
+if env['usesilo']:
+   out+="y"
+else:
+   out+="n"
+buildvars.write(out+"\n")
 buildvars.close()
 
 
@@ -880,6 +886,9 @@ env.Alias('install_esysUtils', ['build_esysUtils', 'target_install_esysUtils_a']
 env.Alias('build_paso', ['target_install_paso_headers', 'target_paso_a'])
 env.Alias('install_paso', ['build_paso', 'target_install_paso_a'])
 
+env.Alias('build_dataexporter', ['target_install_escriptexport_headers', 'target_escriptexport_so'])
+env.Alias('install_dataexporter', ['build_dataexporter', 'target_install_escriptexport_so'])
+
 env.Alias('build_escript', ['target_install_escript_headers', 'target_escript_so', 'target_escriptcpp_so'])
 env.Alias('install_escript', ['build_escript', 'target_install_escript_so', 'target_install_escriptcpp_so', 'target_install_escript_py'])
 
@@ -890,17 +899,19 @@ env.Alias('install_finley', ['build_finley', 'target_install_finley_so', 'target
 build_all_list = []
 build_all_list += ['build_esysUtils']
 build_all_list += ['build_paso']
+build_all_list += ['build_dataexporter']
 build_all_list += ['build_escript']
 build_all_list += ['build_finley']
 if env['usempi']:		build_all_list += ['target_pythonMPI_exe']
 #if not IS_WINDOWS_PLATFORM:	build_all_list += ['target_escript_wrapper']
-if env['usesilo']:	build_all_list += ['target_escript2silo']
+if env['usesilo']:	build_all_list += ['target_escriptconvert']
 env.Alias('build_all', build_all_list)
 
 install_all_list = []
 install_all_list += ['target_init']
 install_all_list += ['install_esysUtils']
 install_all_list += ['install_paso']
+install_all_list += ['install_dataexporter']
 install_all_list += ['install_escript']
 install_all_list += ['install_finley']
 install_all_list += ['target_install_pyvisi_py']
@@ -908,7 +919,7 @@ install_all_list += ['target_install_modellib_py']
 install_all_list += ['target_install_pycad_py']
 if env['usempi']:		install_all_list += ['target_install_pythonMPI_exe']
 #if not IS_WINDOWS_PLATFORM:	install_all_list += ['target_install_escript_wrapper']
-if env['usesilo']:	install_all_list += ['target_install_escript2silo']
+if env['usesilo']:	install_all_list += ['target_install_escriptconvert']
 install_all_list += ['remember_options']
 env.Alias('install_all', install_all_list)
 

@@ -11,90 +11,95 @@
 *
 *******************************************************/
 
-//
-// DataVar.h
-//
 #ifndef __DATAVAR_H__
 #define __DATAVAR_H__
 
-#include <escriptreader/common.h>
+#include <escriptexport/escriptexport.h>
 
 class DBfile;
 class NcFile;
 
-namespace EscriptReader {
+namespace escript {
+    class Data;
+}
 
-class MeshWithElements;
+namespace escriptexport {
 
-/// \brief A class that provides functionality to read an escript data object in
-/// the native NetCDF format and to write that data in Silo format (if available).
+class FinleyMesh;
+
+/// \brief A class that provides functionality to read an escript data object
+/// from NetCDF file or an escript::Data instance and write that data in Silo
+/// or VTK XML formats.
 class DataVar
 {
 public:
     /// \brief Constructor with variable name
+    ESCRIPTEXPORT_DLL_API
     DataVar(const std::string& name);
 
     /// \brief Copy constructor. Performs a deep copy of the data values.
+    ESCRIPTEXPORT_DLL_API
     DataVar(const DataVar& d);
 
-    /// \brief Special constructor for integral mesh variables like node IDs
-    DataVar(const std::string& name, const IntVec& data,
-            MeshWithElements* mesh);
-
     /// \brief Destructor
+    ESCRIPTEXPORT_DLL_API
     ~DataVar();
 
-    /// \brief Appends raw data and IDs from rhs.
+    /// \brief Initialises values and IDs from an escript::Data instance.
     ///
-    /// Reordered data becomes invalid, i.e. you have to call setMesh() again
-    /// before getData().
-    /// \return true if rhs is compatible and appending succeeded, false
-    /// otherwise.
-    bool append(const DataVar& rhs);
+    /// \return true if a valid instance of expanded data was supplied,
+    ///         false if the initialisation was unsuccessful.
+    ESCRIPTEXPORT_DLL_API
+    bool initFromEscript(escript::Data& escriptData, FinleyMesh_ptr mesh);
+
+    /// \brief Initialises with integral mesh data like IDs or tags.
+    ///
+    /// The data is retrieved from the mesh using the variable name.
+    ESCRIPTEXPORT_DLL_API
+    bool initFromMesh(FinleyMesh_ptr mesh);
 
     /// \brief Reads values and IDs for this variable from escript NetCDF file.
     ///
-    /// \return true if the file was found and contains valid escript data with
-    /// at least one sample, false otherwise.
-    /// \note Only expanded data of up to rank 2 is supported at the
-    /// moment.
-    bool readFromNc(const std::string& filename);
-
-    /// \brief Associates the data with the given mesh and reorders the samples
-    /// according to the corresponding node IDs.
-    ///
-    /// \return true if the function space is supported and the number of
-    /// elements or nodes corresponds to the number of data samples.
-    /// \note This method must be called before writeToSilo() or getData().
-    bool setMesh(MeshWithElements* mesh);
+    /// \return true if the file was found and contains valid escript data
+    ///         with at least one sample, false otherwise.
+    /// \note Only expanded data with rank <=2 is supported at the moment.
+    ESCRIPTEXPORT_DLL_API
+    bool initFromNetCDF(const std::string& filename, FinleyMesh_ptr mesh);
 
     /// \brief Writes the data into given directory in given Silo file.
     ///
     /// If Silo was not available at compile time or the mesh was not set
     /// beforehand using setMesh() or if a Silo function fails this method
     /// returns false.
+    ESCRIPTEXPORT_DLL_API
     bool writeToSilo(DBfile* dbfile, const std::string& siloPath);
 
     /// \brief Returns the rank of the data.
+    ESCRIPTEXPORT_DLL_API
     int getRank() const { return rank; }
 
-    /// \brief Returns true if the variable is node centered, false if zone
-    /// centered.
+    /// \brief Returns true if the variable data is node centered, false if
+    ///        zone centered.
+    ESCRIPTEXPORT_DLL_API
     bool isNodeCentered() const;
 
     /// \brief Returns the name of the associated mesh.
     ///
-    /// The returned name is one of the meshes in mainMesh depending on function
-    /// space type and whether reduced elements are used or not.
-    std::string getMeshName(MeshWithElements* mainMesh) const;
+    /// The returned name is one of the sub-meshes of the mesh set with
+    /// setMesh() determined on the basis of the function space type and
+    /// whether reduced elements are used or not.
+    ESCRIPTEXPORT_DLL_API
+    std::string getMeshName() const { return meshName; }
 
     /// \brief Returns the shape vector of the data.
     ///
     /// The shape vector has as many elements as the rank of this variable.
+    ESCRIPTEXPORT_DLL_API
     const IntVec& getShape() const { return shape; }
 
     /// \brief Returns the variable name.
-    const std::string& getName() const { return varName; }
+    ESCRIPTEXPORT_DLL_API
+    std::string getName() const { return varName; }
 
     /// \brief Returns the Silo tensor definition for this tensor.
     ///
@@ -102,15 +107,21 @@ public:
     /// separately in the Silo file. This method then returns a string that
     /// contains the proper Silo expression to put the tensor together again.
     /// For non-tensor data this method returns an empty string.
+    ESCRIPTEXPORT_DLL_API
     std::string getTensorDef() const;
 
     /// \brief Returns the number of data values.
-    int getNumberOfSamples() const { return reorderedNumSamples; }
+    ESCRIPTEXPORT_DLL_API
+    int getNumberOfSamples() const { return numSamples; }
 
-    /// \brief Returns the reordered (not raw!) data values.
-    const CoordArray& getData() const { return reorderedData; }
+    /// \brief Returns the array of data values where array[i] is the i-th
+    ///        component of the data.
+    ESCRIPTEXPORT_DLL_API
+    const CoordArray& getData() const { return dataArray; }
 
 private:
+    void cleanup();
+
     /// \brief Averages and filters data.
     ///
     /// If a sample consists of more than one data point then this method
@@ -119,44 +130,36 @@ private:
     float* averageData(const float* src, size_t stride);
 
     /// \brief Prepares a sample ID -> index mapping which is used to reorder
-    /// data.
-    void buildIndexMap();
+    ///        data.
+    IndexMap buildIndexMap();
 
-    void reorderSamples(const IndexMap& id2idxMap, const IntVec& requiredIDs);
+    /// \brief Reorders the samples according to the corresponding node IDs.
+    ///
+    /// \return true if the function space is supported and the number of
+    ///         elements or nodes corresponds to the number of data samples.
+    bool filterSamples(const FinleyMesh_ptr mesh);
 
-    void handleGhostZones(const IntVec& reorderArray);
-
-    /// \brief Reads scalar data from NetCDF file.
-    void readRank0Data(NcFile* ncfile);
-
-    /// \brief Reads vector data from NetCDF file.
-    void readRank1Data(NcFile* ncfile);
-
-    /// \brief Reads tensor data from NetCDF file.
-    void readRank2Data(NcFile* ncfile);
-
+    bool initialized;
     std::string varName;
     int numSamples, rank, ptsPerSample, centering, funcSpace;
     IntVec shape;
     IntVec sampleID;
-    IndexMap sampleID2idx;
-    CoordArray rawData;       /// data as read from NetCDF file
-    CoordArray reorderedData; /// reordered and filtered data
-    int reorderedNumSamples;
-    std::string siloMeshName;
-    MeshWithElements* fullMesh;
+    CoordArray dataArray;
+    std::string meshName, siloMeshName;
 };
 
-inline void DataVar::buildIndexMap()
+inline IndexMap DataVar::buildIndexMap()
 {
-    sampleID2idx.clear();
+    IndexMap sampleID2idx;
     int idx = 0;
     IntVec::const_iterator idIt;
     for (idIt = sampleID.begin(); idIt != sampleID.end(); idIt++, idx++)
         sampleID2idx[*idIt] = idx;
+
+    return sampleID2idx;
 }
 
-} // namespace EscriptReader
+} // namespace escriptexport
 
 #endif // __DATAVAR_H__
 
