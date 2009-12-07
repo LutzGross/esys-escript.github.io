@@ -15,6 +15,7 @@
 #include "DomainException.h"
 #include "TestDomain.h" 
 #include "Data.h"
+#include "Utils.h"	// for MPI functions
 
 namespace escript {
 
@@ -28,6 +29,15 @@ const int TestDomainFS=1;		// Null domains only support 1 functionspace type.
 TestDomain::TestDomain(int pointspersample, int numsamples)
 	: m_samples(numsamples), m_dpps(pointspersample)
 {
+#ifdef PASO_MPI
+    int world=getMPISizeWorld();
+    int rank=getMPIRankWorld();
+    m_samples/=world;
+    if (rank<(numsamples%world))
+    {
+	m_samples++;
+    }
+#endif
     m_samplerefids=new int[numsamples];
     for (int i=0;i<numsamples;++i)
     {
