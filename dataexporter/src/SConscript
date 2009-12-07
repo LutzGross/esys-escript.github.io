@@ -32,7 +32,9 @@ headers = """
     NodeData.h
 """.split()
 
-local_env.AppendUnique(LIBS = [ 'finley' ] + env['sys_libs'] + env['silo_libs'])
+local_env.AppendUnique(LIBS = [ 'finley' ] + env['sys_libs'])
+if local_env['usesilo']:
+  local_env.AppendUnique(LIBS = [env['silo_libs']])
 
 if IS_WINDOWS_PLATFORM :
   local_env.Append(CPPDEFINES = ['ESCRIPTEXPORT_EXPORTS'])
