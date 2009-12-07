@@ -655,6 +655,7 @@ void Paso_Pattern_RS_MI(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
   Paso_IndexList* index_list=NULL;
   
   index_t* counter;
+  /*dim_t lk;*/
 
   index_list=TMPMEMALLOC(A->pattern->numOutput,Paso_IndexList);
    if (! Paso_checkPtr(index_list)) {
@@ -711,13 +712,15 @@ void Paso_Pattern_RS_MI(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
   /*S_i={j \in N_i; i strongly coupled to j}*/
 
   /*
-   #pragma omp parallel for private(i,k) schedule(static)
+  #pragma omp parallel for private(i,iptr,lk) schedule(static)
   for (i=0;i<n;++i) {
-        k=0;
+        lk=0;
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             if(ABS(A->val[iptr])>1.e-15 && A->pattern->index[iptr]!=i )
-               k++;
+               lk++;
         }
+        #pragma omp critical
+        k+=lk;
         if(k==0) {
             mis_marker[i]=IS_IN_F;
         }

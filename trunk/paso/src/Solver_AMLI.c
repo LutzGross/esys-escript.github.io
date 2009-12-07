@@ -159,6 +159,8 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
      out->n=n;
      out->n_F=n+1;
      out->n_block=n_block;
+     out->post_sweeps=options->post_sweeps;
+     out->pre_sweeps=options->pre_sweeps;
      
      if (level==0 || n<=options->min_coarse_matrix_size) {
          out->coarsest_level=TRUE;
@@ -406,14 +408,19 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
 void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
      dim_t i;
      double time0=0;
-     double *r=NULL, *x0=NULL;
+     double *r=NULL, *x0=NULL,*x_F_temp=NULL;
      bool_t verbose=0;
+     
+     dim_t post_sweeps=amli->post_sweeps;
+     dim_t pre_sweeps=amli->pre_sweeps;
+     
      #ifdef UMFPACK 
           Paso_UMFPACK_Handler * ptr=NULL;
      #endif
      
      r=MEMALLOC(amli->n,double);
      x0=MEMALLOC(amli->n,double);
+     x_F_temp=MEMALLOC(amli->n_F,double);
      
      if (amli->coarsest_level) {
       
@@ -442,6 +449,23 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
         /* presmoothing */
          time0=Paso_timer();
          Paso_Solver_solveJacobi(amli->GS,x,b);
+         
+         /***************/
+         #pragma omp parallel for private(i) schedule(static)
+         for (i=0;i<amli->n;++i) r[i]=b[i];
+   
+         while(pre_sweeps>1) {
+             #pragma omp parallel for private(i) schedule(static)
+             for (i=0;i<amli->n;++i) r[i]+=b[i];
+             
+              /* Compute the residual b=b-Ax*/
+             Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A,x,1.,r);
+             /* Go round again*/
+             Paso_Solver_solveJacobi(amli->GS,x,r);
+             pre_sweeps-=1;
+         }
+         /***************/  
+         
          time0=Paso_timer()-time0;
          if (verbose) fprintf(stderr,"timing: Presmooting: %e\n",time0);
         /* end of presmoothing */
@@ -475,10 +499,15 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
         
         time0=Paso_timer();
         
-        /* b_F=b_F-A_FC*x_C */ 
-        Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A_FC,amli->x_C,1.,amli->b_F);
-        /* x_F=invA_FF*b_F  */
-        Paso_Solver_applyBlockDiagonalMatrix(1,amli->n_F,amli->inv_A_FF,amli->A_FF_pivot,amli->x_F,amli->b_F);
+        /* b_F=-A_FC*x_C */ 
+        Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A_FC,amli->x_C,0.,amli->b_F);
+        /* x_F_temp=invA_FF*b_F  */
+        Paso_Solver_applyBlockDiagonalMatrix(1,amli->n_F,amli->inv_A_FF,amli->A_FF_pivot,x_F_temp,amli->b_F);
+        
+        #pragma omp parallel for private(i) schedule(static)
+        for (i=0;i<amli->n_F;++i) {
+                 amli->x_F[i]+=x_F_temp[i];
+        }
         
         /* x<-[x_F,x_C]     */
         #pragma omp parallel for private(i) schedule(static)
@@ -505,6 +534,23 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<amli->n;++i) x[i]+=x0[i];
      
+     
+     /***************/ 
+       while(post_sweeps>1) {
+          
+          #pragma omp parallel for private(i) schedule(static)
+          for (i=0;i<amli->n;++i) r[i]=b[i];
+          
+          Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A,x,1.,r);
+          Paso_Solver_solveJacobi(amli->GS,x0,r);
+          #pragma omp parallel for private(i) schedule(static)
+           for (i=0;i<amli->n;++i)  {
+            x[i]+=x0[i];
+           }
+          post_sweeps-=1;
+       }
+       /**************/
+     
      time0=Paso_timer()-time0;
      if (verbose) fprintf(stderr,"timing: Postsmoothing: %e\n",time0);
 
@@ -513,5 +559,6 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
      }
      MEMFREE(r);
      MEMFREE(x0);
+     MEMFREE(x_F_temp);
      return;
 }
