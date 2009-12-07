@@ -35,6 +35,7 @@ namespace escript {
 
    \warning This class exists to support testing and should not be used
    as a general domain without ensuring that it works the way you expect.
+   Also, other doco says that this class can be removed without notice.
 
 */
 
