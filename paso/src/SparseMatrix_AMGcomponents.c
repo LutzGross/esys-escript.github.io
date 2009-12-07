@@ -54,7 +54,8 @@ Paso_SparseMatrix* Paso_SparseMatrix_getProlongation(Paso_SparseMatrix* W, index
              index_list[i].n=0;
         }
     }
-  
+
+
     for (i=0;i<n;++i) {
       if (mis_marker[i]) {
           for (iptr=W->pattern->ptr[k];iptr<W->pattern->ptr[k+1]; ++iptr) {
