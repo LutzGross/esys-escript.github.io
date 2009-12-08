@@ -192,6 +192,7 @@ class PrimitiveBase(object):
         out.modifyBy(transformation)
         return out
 
+
 class Primitive(object):
     """
     Class that represents a general primitive.
@@ -268,6 +269,11 @@ class Primitive(object):
        :note: This method is overwritten by subclasses.
        """
        raise NotImplementedError("isColocated is not implemented.")
+    def isReversed(self):
+        """
+        returns True is the primitive is a reversed primitive.
+        """
+        return False
 
 
 class ReversePrimitive(object):
@@ -299,7 +305,7 @@ class ReversePrimitive(object):
         Returns True if ``other`` is the same primitive and has the same
         orientation as self.
         """
-        return self == other and isinstance(other,ReversePrimitive)
+        return self == other and isinstance(other, ReversePrimitive)
 
     def __repr__(self):
        return "-%s(%s)"%(self.__primitive.__class__.__name__,self.getID())
@@ -342,6 +348,12 @@ class ReversePrimitive(object):
        :note: This method is overwritten by subclasses.
        """
        return self.__primitive.isColocated(primitive)
+
+    def isReversed(self):
+        """
+        returns True is the primitive is a reversed primitive.
+        """
+        return True
 
 class Point(Primitive, PrimitiveBase):
     """
@@ -464,7 +476,7 @@ class Manifold1D(PrimitiveBase):
         Initializes the one-dimensional manifold.
         """
         PrimitiveBase.__init__(self)
-        self.resetElementDistribution()
+        self.__apply_elements=False
 
     def getStartPoint(self):
          """
@@ -498,20 +510,26 @@ class Manifold1D(PrimitiveBase):
         :param createBump: of elements on the line
         :type createBump: ``bool``
         """
-        if n<1:
-           raise ValueError,"number of elements must be positive."
-        if progression<=0:
-           raise ValueError,"progression factor must be positive."
-        self.__apply_elements=True
-        self.__n=n
-        self.__progression_factor=progression
-        self.__createBump=createBump
+        if isinstance(self, ReversePrimitive):
+           self.getUnderlyingPrimitive().setElementDistribution(n,progression,createBump)
+        else:
+           if n<1:
+              raise ValueError,"number of elements must be positive."
+           if progression<=0:
+              raise ValueError,"progression factor must be positive."
+           self.__apply_elements=True
+           self.__n=n
+           self.__progression_factor=progression
+           self.__createBump=createBump
 
     def resetElementDistribution(self):
         """
         removes the a previously set element distribution from the line.
         """
-        self.__apply_elements=False
+        if isinstance(self, ReversePrimitive):
+           self.getUnderlyingPrimitive().resetElementDistribution()
+        else:
+           self.__apply_elements=False
 
     def getElementDistribution(self):
         """
@@ -520,10 +538,13 @@ class Manifold1D(PrimitiveBase):
         :return: the tuple of the number of elements, the progression factor and the bump flag. If no element distribution is set ``None`` is returned
         :rtype: ``tuple``
         """
-        if self.__apply_elements:
-           return (self.__n, self.__progression_factor, self.__createBump)
+        if isinstance(self, ReversePrimitive):
+           return self.getUnderlyingPrimitive().getElementDistribution()
         else:
-           return None
+           if self.__apply_elements:
+              return (self.__n, self.__progression_factor, self.__createBump)
+           else:
+              return None
 
 class CurveBase(Manifold1D):
     """
@@ -1088,8 +1109,8 @@ class Manifold2D(PrimitiveBase):
        Creates a two-dimensional manifold.
        """
        PrimitiveBase.__init__(self)
-       self.setRecombination(None)
-       self.resetTransfiniteMeshing()
+       self.__transfinitemeshing=False
+       self.__recombination_angle=None
 
     def getBoundary(self):
         """
@@ -1127,12 +1148,15 @@ class Manifold2D(PrimitiveBase):
         :param max_deviation: maximum derivation of the largest angle in the quadrangle from the right angle. 
         :type max_deviation: ``float`` or ``None``.
         """
-        if not max_deviation==None:
-            if max_deviation<=0:
-               raise ValueError, "max_deviation must be positive."
-            if max_deviation/DEG>=90:
-               raise ValueError, "max_deviation must be smaller than 90 DEG"
-        self.__recombination_angle=max_deviation
+        if isinstance(self, ReversePrimitive):
+           self.getUnderlyingPrimitive().setRecombination(max_deviation)
+        else:
+            if not max_deviation==None:
+                if max_deviation<=0:
+                   raise ValueError, "max_deviation must be positive."
+                if max_deviation/DEG>=90:
+                   raise ValueError, "max_deviation must be smaller than 90 DEG"
+            self.__recombination_angle=max_deviation
 
     def getRecombination(self):
         """
@@ -1141,7 +1165,10 @@ class Manifold2D(PrimitiveBase):
         :return: max deviation from right angle in the recombination algorithm. If recombination is switched off, ``None`` is returned.
         :rtype: ``float`` or ``None``
         """
-        return self.__recombination_angle
+        if isinstance(self, ReversePrimitive):
+           return self.getUnderlyingPrimitive().getRecombination()
+        else:
+           return self.__recombination_angle
 
     def setTransfiniteMeshing(self,orientation="Left"):
         """
@@ -1151,51 +1178,57 @@ class Manifold2D(PrimitiveBase):
         :type orientation: `Manifold2D.LEFT`, `Manifold2D.RIGHT`, `Manifold2D.ALTERNATE`
         :note: Transfinite meshing can not be applied if holes are present.
         """
-        if not orientation in [ Manifold2D.LEFT, Manifold2D.RIGHT, Manifold2D.ALTERNATE]:
-              raise ValueError,"invalid orientation %s."%orientation
-        if self.hasHole():
-             raise ValueError,"transfinite meshing cannot be appled to surfaces with a hole."
-        b=self.getBoundary()
-        if len(b)>4 or len(b)<3:
-             raise ValueError,"transfinite meshing permits 3 or 4 boundary lines only."
-        for l in b: 
-            if l.getElementDistribution() == None: raise  ValueError,"transfinite meshing requires element distribution on all boundary lines."
-        start=b[0]
-        opposite=None
-        top=None
-        bottom=None
-        for l in b[1:]:
-             if l.getEndPoint() == start.getStartPoint():
-                 bottom=l
-             elif l.getStartPoint() == start.getEndPoint(): 
-                 top=l
-             else:
-                 opposite=l
-        if top==None or bottom == None: 
-             raise ValueError,"transfinite meshing cannot be applied to boundary is not closed. Most likely the orientation of some boundray segments is wrong."
-        if opposite == None:  # three sides only
-             if not top.getElementDistribution()[0] == bottom.getElementDistribution()[0]: start, top, bottom= bottom, start, top
-        if not top.getElementDistribution() == bottom.getElementDistribution():
-             raise ValueError,"transfinite meshing requires oposite faces to be have the same element distribution."
-        if not opposite == None:
-            if not start.getElementDistribution()[0] == opposite.getElementDistribution()[0]:
-                raise ValueError,"transfinite meshing requires oposite faces to be have the same element distribution."
-        if opposite == None:
-            if bottom.getEndPoint ==  top.getStartPoint():
-                raise ValueError,"cannot identify corner proints for transfinite meshing."
-            else:
-                points=[ bottom.getStartPoint(), bottom.getEndPoint(), top.getStartPoint() ]
+        if isinstance(self, ReversePrimitive):
+           return self.getUnderlyingPrimitive().setTransfiniteMeshing(orientation)
         else:
-            points=[ bottom.getStartPoint(), bottom.getEndPoint(), top.getStartPoint(), top.getEndPoint() ]
-        self.__points=points
-        self.__orientation=orientation
-        self.__transfinitemeshing=True
+           if not orientation in [ Manifold2D.LEFT, Manifold2D.RIGHT, Manifold2D.ALTERNATE]:
+              raise ValueError,"invalid orientation %s."%orientation
+           if self.hasHole():
+             raise ValueError,"transfinite meshing cannot be appled to surfaces with a hole."
+           b=self.getBoundary()
+           if len(b)>4 or len(b)<3:
+             raise ValueError,"transfinite meshing permits 3 or 4 boundary lines only."
+           for l in b: 
+               if l.getElementDistribution() == None: raise  ValueError,"transfinite meshing requires element distribution on all boundary lines."
+           start=b[0]
+           opposite=None
+           top=None
+           bottom=None
+           for l in b[1:]:
+                if l.getEndPoint() == start.getStartPoint():
+                    bottom=l
+                elif l.getStartPoint() == start.getEndPoint(): 
+                    top=l
+                else:
+                    opposite=l
+           if top==None or bottom == None: 
+                raise ValueError,"transfinite meshing cannot be applied to boundary is not closed. Most likely the orientation of some boundray segments is wrong."
+           if opposite == None:  # three sides only
+                if not top.getElementDistribution()[0] == bottom.getElementDistribution()[0]: start, top, bottom= bottom, start, top
+           if not top.getElementDistribution() == bottom.getElementDistribution():
+                raise ValueError,"transfinite meshing requires oposite faces to be have the same element distribution."
+           if not opposite == None:
+               if not start.getElementDistribution()[0] == opposite.getElementDistribution()[0]:
+                   raise ValueError,"transfinite meshing requires oposite faces to be have the same element distribution."
+           if opposite == None:
+               if bottom.getEndPoint ==  top.getStartPoint():
+                   raise ValueError,"cannot identify corner proints for transfinite meshing."
+               else:
+                   points=[ bottom.getStartPoint(), bottom.getEndPoint(), top.getStartPoint() ]
+           else:
+               points=[ bottom.getStartPoint(), bottom.getEndPoint(), top.getStartPoint(), top.getEndPoint() ]
+           self.__points=points
+           self.__orientation=orientation
+           self.__transfinitemeshing=True
 
     def resetTransfiniteMeshing(self):
         """
         removes the transfinite meshing from the surface
         """
-        self.__transfinitemeshing=False
+        if isinstance(self, ReversePrimitive):
+           self.getUnderlyingPrimitive().resetTransfiniteMeshing()
+        else:
+           self.__transfinitemeshing=False
 
     def getTransfiniteMeshing(self):
         """
@@ -1204,10 +1237,13 @@ class Manifold2D(PrimitiveBase):
         :return: a tuple of the tuple of points used to define the transfinite meshing and the orientation. If no points are set the points tuple is returned as ``None``. If no transfinite meshing is not set, ``None`` is returned.
         :rtype: ``tuple`` of a ``tuple`` of `Point` s (or ``None``) and the orientation which is one of the values  `Manifold2D.LEFT` , `Manifold2D.RIGHT` , `Manifold2D.ALTERNATE`
         """
-        if self.__transfinitemeshing:
-            return (self.__points, self.__orientation)
+        if isinstance(self, ReversePrimitive):
+           return self.getUnderlyingPrimitive().getTransfiniteMeshing()
         else:
-            return None
+            if self.__transfinitemeshing:
+                return (self.__points, self.__orientation)
+            else:
+                return None
            
 class RuledSurface(Primitive, Manifold2D):
     """
