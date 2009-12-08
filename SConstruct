@@ -886,8 +886,8 @@ env.Alias('install_esysUtils', ['build_esysUtils', 'target_install_esysUtils_a']
 env.Alias('build_paso', ['target_install_paso_headers', 'target_paso_a'])
 env.Alias('install_paso', ['build_paso', 'target_install_paso_a'])
 
-env.Alias('build_dataexporter', ['target_install_escriptexport_headers', 'target_escriptexport_so'])
-env.Alias('install_dataexporter', ['build_dataexporter', 'target_install_escriptexport_so'])
+env.Alias('build_dataexporter', ['target_install_escriptexport_headers', 'target_escriptexport_so', 'target_escriptexportcpp_so'])
+env.Alias('install_dataexporter', ['build_dataexporter', 'target_install_escriptexport_so', 'target_install_escriptexportcpp_so', 'target_install_dataexporter_py'])
 
 env.Alias('build_escript', ['target_install_escript_headers', 'target_escript_so', 'target_escriptcpp_so'])
 env.Alias('install_escript', ['build_escript', 'target_install_escript_so', 'target_install_escriptcpp_so', 'target_install_escript_py'])
