@@ -384,20 +384,15 @@ void Finley_Mesh_saveVTK(const char *filename_p,
             myNumCells = Finley_ElementFile_getMyNumElements(elements);
             myFirstCell = Finley_ElementFile_getFirstElement(elements);
             NN = elements->numNodes;
+            if (hasReducedElements) {
+                quadNodes_p=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->QuadNodes;
+            } else {
+                quadNodes_p=elements->referenceElementSet->referenceElement->Parametrization->QuadNodes;
+            }
             if (nodeType==FINLEY_REDUCED_NODES) {
-		typeId = elements->referenceElementSet->referenceElement->LinearType->TypeId;
-                if (hasReducedElements) {
-                    quadNodes_p=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->QuadNodes;
-                } else {
-                    quadNodes_p=elements->referenceElementSet->referenceElement->Parametrization->QuadNodes;
-                }
+                typeId = elements->referenceElementSet->referenceElement->LinearType->TypeId;
             } else {
                 typeId = elements->referenceElementSet->referenceElement->Type->TypeId;
-                if (hasReducedElements) {
-                    quadNodes_p=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->QuadNodes;
-                } else {
-                    quadNodes_p=elements->referenceElementSet->referenceElement->Parametrization->QuadNodes;
-                }
             }
             switch (typeId) {
                 case Point1:
