@@ -18,6 +18,8 @@ extern "C" {
 #include <finley/ElementFile.h>
 }
 
+#include <iostream>
+
 #if USE_NETCDF
 #include <netcdf.hh>
 #endif
