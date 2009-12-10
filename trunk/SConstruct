@@ -934,6 +934,7 @@ env.Alias('run_tests', ['install_all', 'target_install_cppunittest_a'])
 env.Alias('all_tests', ['install_all', 'target_install_cppunittest_a', 'run_tests', 'py_tests'])
 env.Alias('build_full',['install_all','build_tests','build_py_tests'])
 
+
 ############ Targets to build the documentation ################
 
 env.Alias('api_epydoc','install_all')
@@ -960,3 +961,7 @@ if not IS_WINDOWS_PLATFORM:
    if not os.path.isfile(os.path.join(env['bininstall'],'escript')):
        print "Copying escript wrapper"
        shutil.copy("bin/escript",os.path.join(env['bininstall'],'escript'))
+
+############ Targets to build PasoTests suite ################
+
+env.Alias('build_PasoTests','build/'+build_platform+'/paso/profiling/PasoTests')

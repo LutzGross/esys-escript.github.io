@@ -18,7 +18,7 @@
 
 /**************************************************************/
 
-/* Copyrights by ACcESS Australia 2003 */
+/* Copyrights by ACcESS Australia 2009 */
 /* Author: artak@uq.edu.au */
 
 /**************************************************************/
@@ -84,7 +84,7 @@ void Paso_test_run(Paso_SystemMatrix* A,double* b,dim_t level) {
  else if (level==2) /* Preconditiones only with default solver*/
     {
       Paso_Options_setDefaults(&options);
-      options.method=PASO_PCG;
+      options.method=PASO_DEFAULT;
       options.verbose=TRUE;
       options.preconditioner=PASO_JACOBI;
       fprintf(stdout,"Test preconditioner: PASO_DEFAULT with JACOBI\n");
@@ -92,7 +92,7 @@ void Paso_test_run(Paso_SystemMatrix* A,double* b,dim_t level) {
       
       Paso_Options_setDefaults(&options);
       A->solver=NULL;
-      options.method=PASO_PCG;
+      options.method=PASO_DEFAULT;
       options.verbose=TRUE;
       fprintf(stdout,"Test preconditioner: PASO_DEFAULT with ILU\n");
       options.preconditioner=PASO_ILU0;
@@ -100,7 +100,7 @@ void Paso_test_run(Paso_SystemMatrix* A,double* b,dim_t level) {
       
       Paso_Options_setDefaults(&options);
       A->solver=NULL;
-      options.method=PASO_PCG;
+      options.method=PASO_DEFAULT;
       options.verbose=TRUE;
       fprintf(stdout,"Test preconditioner: PASO_DEFAULT with RILU\n");
       options.preconditioner=PASO_RILU;
@@ -108,7 +108,7 @@ void Paso_test_run(Paso_SystemMatrix* A,double* b,dim_t level) {
 
       Paso_Options_setDefaults(&options);
       A->solver=NULL;
-      options.method=PASO_PCG;
+      options.method=PASO_DEFAULT;
       options.verbose=TRUE;
       fprintf(stdout,"Test preconditioner: PASO_DEFAULT with GS\n");
       options.preconditioner=PASO_GS;
@@ -116,10 +116,18 @@ void Paso_test_run(Paso_SystemMatrix* A,double* b,dim_t level) {
 
       Paso_Options_setDefaults(&options);
       A->solver=NULL;
-      options.method=PASO_PCG;
+      options.method=PASO_DEFAULT;
       options.verbose=TRUE;
       fprintf(stdout,"Test preconditioner: PASO_DEFAULT with AMG\n");
       options.preconditioner=PASO_AMG;
+      Paso_test_matrix(A,b,&options);
+      
+      Paso_Options_setDefaults(&options);
+      A->solver=NULL;
+      options.method=PASO_DEFAULT;
+      options.verbose=TRUE;
+      fprintf(stdout,"Test preconditioner: PASO_DEFAULT with AMLI\n");
+      options.preconditioner=PASO_AMLI;
       Paso_test_matrix(A,b,&options);  
       
     }
