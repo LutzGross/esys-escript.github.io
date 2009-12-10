@@ -152,6 +152,8 @@ const char* Paso_Options_name(const index_t key){
           return "RUGE_STUEBEN_COARSENING";
        case  PASO_AGGREGATION_COARSENING:
           return "AGGREGATION_COARSENING";
+       case  PASO_STANDARD_COARSENING:
+          return "STANDARD_COARSENING";
        case  PASO_NO_PRECONDITIONER:
           return "NO_PRECONDITIONER";
        case  PASO_MIN_COARSE_MATRIX_SIZE:
