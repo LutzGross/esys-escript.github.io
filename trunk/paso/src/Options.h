@@ -69,6 +69,7 @@
 #define PASO_NO_PRECONDITIONER 36
 #define PASO_MIN_COARSE_MATRIX_SIZE 37
 #define PASO_AMLI 38
+#define PASO_STANDARD_COARSENING 39
 
 typedef struct {
     index_t method;

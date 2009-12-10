@@ -163,7 +163,6 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      out->b_C=NULL;
      out->GS=NULL;
      out->A=Paso_SparseMatrix_getReference(A_p);
-     out->GS=NULL;
      out->solver=NULL;
      /*out->GS=Paso_Solver_getGS(A_p,verbose);*/
      out->level=level;
@@ -220,12 +219,16 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
          else if (options->coarsening_method == PASO_AGGREGATION_COARSENING) {
              Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);
         }
+        else if (options->coarsening_method == PASO_STANDARD_COARSENING) {
+             Paso_Pattern_Standard(A_p,mis_marker,options->coarsening_threshold);
+        }
         else {
            /*Default coarseneing*/
-            Paso_Pattern_RS_MI_Aggressive(A_p,mis_marker,options->coarsening_threshold);
-            /*Paso_Pattern_RS_MI(A_p,mis_marker,options->coarsening_threshold);*/
+            /*Paso_Pattern_RS_MI_Aggressive(A_p,mis_marker,options->coarsening_threshold);*/
+            Paso_Pattern_Standard(A_p,mis_marker,options->coarsening_threshold);
             /*Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);*/
             /*Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);*/
+            /*Paso_Pattern_greedy(A_p->pattern,mis_marker);*/
             /*Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);*/
             
         }
@@ -284,13 +287,14 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                  }
               }
               
-               /*if(level==1) {
+              /* if(level==1) {
                    printf("##TOTAL: %d, ELIMINATED: %d\n",n,out->n_F);
                    for (i = 0; i < n; ++i) {
                     printf("##%d %d\n",i,mis_marker[i]);
                    }
-                 }
-               */
+                }
+              */
+              
               /*check whether coarsening process actually makes sense to continue.
               if coarse matrix at least smaller by 30% then continue, otherwise we stop.*/
               if ((out->n_F*100/n)<30) {
@@ -513,14 +517,16 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
          Paso_Solver_solveJacobi(amg->GS,x,b);
         
         /***********/
-        #pragma omp parallel for private(i) schedule(static)
-        for (i=0;i<amg->n;++i) r[i]=b[i];
+        if (pre_sweeps>1) {
+            #pragma omp parallel for private(i) schedule(static)
+            for (i=0;i<amg->n;++i) r[i]=b[i];
+        }
    
         while(pre_sweeps>1) {
            #pragma omp parallel for private(i) schedule(static)
            for (i=0;i<amg->n;++i) r[i]+=b[i];
            
-            /* Compute the residual b=b-Ax*/
+            /* Compute the residual r=r-Ax*/
            Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
            /* Go round again*/
            Paso_Solver_solveJacobi(amg->GS,x,r);

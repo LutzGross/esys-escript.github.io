@@ -153,6 +153,8 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_YAIR_SHAPIRA_COARSENING;
        case  ESCRIPT_RUGE_STUEBEN_COARSENING:
           return PASO_RUGE_STUEBEN_COARSENING;
+       case  ESCRIPT_STANDARD_COARSENING:
+          return PASO_STANDARD_COARSENING;   
        case  ESCRIPT_AGGREGATION_COARSENING:
           return PASO_AGGREGATION_COARSENING;
        case  ESCRIPT_NO_PRECONDITIONER:

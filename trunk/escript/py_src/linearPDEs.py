@@ -93,9 +93,10 @@ class SolverOptions(object):
     :cvar DEFAULT_REORDERING: the reordering method recommended by the solver
     :cvar SUPER_LU: the Super_LU solver package
     :cvar PASTIX: the Pastix direct solver_package
-    :cvar YAIR_SHAPIRA_COARSENING: AMLI coarsening method by Yair-Shapira
-    :cvar RUGE_STUEBEN_COARSENING: AMLI coarsening method by Ruge and Stueben
-    :cvar AGGREGATION_COARSENING: AMLI coarsening using (symmetric) aggregation
+    :cvar YAIR_SHAPIRA_COARSENING: AMG and AMLI coarsening method by Yair-Shapira
+    :cvar RUGE_STUEBEN_COARSENING: AMG and AMLI coarsening method by Ruge and Stueben
+    :cvar AGGREGATION_COARSENING: AMG and AMLI coarsening using (symmetric) aggregation
+    :cvar STANDARD_COARSENING: AMG and AMLI standard coarsening using mesure of importance of the unknowns 
     :cvar MIN_COARSE_MATRIX_SIZE: minimum size of the coarsest level matrix to use direct solver.
     :cvar NO_PRECONDITIONER: no preconditioner is applied.
     """
@@ -136,7 +137,8 @@ class SolverOptions(object):
     AGGREGATION_COARSENING=35
     NO_PRECONDITIONER=36
     MIN_COARSE_MATRIX_SIZE=37
-    AMLI=38	   
+    AMLI=38
+    STANDARD_COARSENING=39
  
     def __init__(self):
         self.setLevelMax()
@@ -255,6 +257,7 @@ class SolverOptions(object):
         if key == self.PASTIX: return "PASTIX"
         if key == self.YAIR_SHAPIRA_COARSENING: return "YAIR_SHAPIRA_COARSENING"
         if key == self.RUGE_STUEBEN_COARSENING: return "RUGE_STUEBEN_COARSENING"
+        if key == self.STANDARD_COARSENING: return "STANDARD_COARSENING"
         if key == self.AGGREGATION_COARSENING: return "AGGREGATION_COARSENING"
         if key == self.NO_PRECONDITIONER: return "NO_PRECONDITIONER"
         if key == self.MIN_COARSE_MATRIX_SIZE: return "MIN_COARSE_MATRIX_SIZE"
@@ -365,7 +368,7 @@ class SolverOptions(object):
         :type method: in {SolverOptions.DEFAULT}, `SolverOptions.YAIR_SHAPIRA_COARSENING`,  `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`
         """
 	if method==None: method=0
-        if not method in [self.DEFAULT, self.YAIR_SHAPIRA_COARSENING, self.RUGE_STUEBEN_COARSENING, self.AGGREGATION_COARSENING]:
+        if not method in [self.DEFAULT, self.YAIR_SHAPIRA_COARSENING, self.RUGE_STUEBEN_COARSENING, self.AGGREGATION_COARSENING, self.STANDARD_COARSENING,]:
              raise ValueError,"unknown coarsening method %s"%method
         self.__coarsening=method
     
