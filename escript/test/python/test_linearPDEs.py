@@ -858,6 +858,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.failUnless(so.getCoarsening() == 34, "RUGE_STUEBEN_COARSENING is not set.")
         so.setCoarsening(so.AGGREGATION_COARSENING)
         self.failUnless(so.getCoarsening() == 35, "AGREGATION_COARSENING is not set.")
+        so.setCoarsening(so.STANDARD_COARSENING)
+        self.failUnless(so.getCoarsening() == 39, "STANDARD_COARSENING is not set.")
         so.setCoarsening(so.DEFAULT)
         self.failUnless(so.getCoarsening() == 0, "DEFAULT is not set.")
 
