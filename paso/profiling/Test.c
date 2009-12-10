@@ -10,7 +10,7 @@
 #define PI (3.141592653589793)
 
 /*
- Usage: PasoTests -f filename [-s solver] [-p preconditioner] [-l level] [-r rhs matrix] [-c coupling parameter for AMG]
+ Usage: PasoTests -f filename [-s solver] [-p preconditioner] [-l level] [-r rhs matrix] [-c coarsening method] [-t threshold parameter for AMG coarsening] 
         filename - matrix to be loaded in CSR Matrix-Market format 
         solver   - PCG, GMRES, PRES20, TFQMR and MINRES
         preconditioner - ILU0, RILU, JACOBI, GS and AMG
@@ -19,8 +19,8 @@
                    1 - test all solvers with default preconditioner
                    2 - test all preconditioners with default solver
                    3 - compare solution obtained by using AMG and Jacobi precondioners
-        rhs matrix - right hand side vector in CSR Matrix Market format.
-        coupling parameter for AMG - this is the threshold value used in AMG in courenening process. Default is 0.05. 
+        coarsening method - YS, RS, AGG and STD.
+        threshold parameter for AMG - this is the threshold value used in AMG in courenening process. Default is 0.25. For YS and AGG, please, use 0.05.            
 */
 
 double Lsup(double* x, int n) {
@@ -53,7 +53,7 @@ int main (int argc, char *argv[]) {
     
     options.verbose=TRUE;
 
-    while ((c = getopt(argc, argv, "s:p:f:r:l:c:h")) != -1) {
+    while ((c = getopt(argc, argv, "s:p:f:r:l:t:c:h")) != -1) {
       switch(c) {
         case 's':
             solver=optarg;
@@ -87,6 +87,9 @@ int main (int argc, char *argv[]) {
             else if (strcmp(prec,"AMG")==0) {
                 options.preconditioner=PASO_AMG;
             }
+            else if (strcmp(prec,"AMLI")==0) {
+                options.preconditioner=PASO_AMG;
+            }
         break;
         case 'f':
             filename = optarg;
@@ -105,7 +108,7 @@ int main (int argc, char *argv[]) {
         case 'r':
             rhs=optarg;
             if (A==NULL) {
-             fprintf(stderr,"Left hand side not loaded yet.\n");
+             fprintf(stderr,"System matrix is not loaded yet.\n");
              break;
             }
             n=Paso_SystemMatrix_getTotalNumRows(A);
@@ -114,14 +117,24 @@ int main (int argc, char *argv[]) {
         case 'l':
             level=atoi(optarg);
             break;
-        case 'c':
+        case 't':
             options.coarsening_threshold=atof(optarg);
+        case 'c':
+            prec=optarg;
+            if (strcmp(prec,"RS")==0) 
+                options.coarsening_method=PASO_RUGE_STUEBEN_COARSENING;
+            else if (strcmp(prec,"YS")==0) 
+                options.coarsening_method=PASO_YAIR_SHAPIRA_COARSENING;
+            else if (strcmp(prec,"AGG")==0)
+                options.coarsening_method=PASO_AGGREGATION_COARSENING;
+            else if (strcmp(prec,"STD")==0)
+                options.coarsening_method=PASO_STANDARD_COARSENING;
         break;
         case '?':
             printf("unknown arg %c\n", optopt);
             break;
         case 'h':
-            printf("Usage: PasoTests -f filename [-s solver] [-p preconditioner] [-l level] [-r rhs matrix] [-c coupling parameter for AMG]\n");
+            printf("Usage: PasoTests -f filename [-s solver] [-p preconditioner] [-l level] [-r rhs vector] [-c coarsening method] [-t threshold parameter for AMG coarsening] \n");
             printf("\t filename - matrix to be loaded in CSR Matrix-Market format\n");
             printf("\t solver   - PCG, GMRES, PRES20, TFQMR and MINRES\n");
             printf("\t preconditioner - ILU0, RILU, JACOBI, GS and AMG\n");
@@ -130,8 +143,9 @@ int main (int argc, char *argv[]) {
             printf("\t\t 1 - test all solvers with default preconditioner\n");            
             printf("\t\t 2 - test all preconditioners with default solver\n");
             printf("\t\t 3 - compare solution obtained by using AMG and Jacobi precondioners\n");            
-            printf("\trhs matrix - right hand side vector in CSR Matrix Market format.\n");
-            printf("\tcoupling parameter for AMG - this is the threshold value used in AMG in courenening process. Default is 0.05.\n");            
+            printf("\trhs vector - right hand side vector in CSR Matrix Market format.\n");
+            printf("\tcoarsening method - YS, RS, AGG and STD.\n");
+            printf("\tthreshold parameter for AMG - this is the threshold value used in AMG in courenening process. Default is 0.25. For YS and AGG, please, use 0.05.\n");            
             break;
         }
     }
@@ -178,7 +192,7 @@ int main (int argc, char *argv[]) {
         Paso_Solver_setPreconditioner(A,&options);
         Paso_Solver_solvePreconditioner(A,x,b);
  
-
+ 
         for(i=0;i<n;i++) {
           error[i]=x[i]-x_ref[i];
         }
