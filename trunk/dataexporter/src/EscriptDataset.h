@@ -59,9 +59,15 @@ typedef std::vector<VarInfo> VarVector;
 class EscriptDataset
 {
 public:
-    /// \brief Constructor.
+    /// \brief Default constructor.
     ESCRIPTEXPORT_DLL_API
     EscriptDataset();
+
+#if HAVE_MPI
+    /// \brief Constructor with communicator.
+    ESCRIPTEXPORT_DLL_API
+    EscriptDataset(MPI_Comm comm);
+#endif
 
     /// \brief Destructor.
     ESCRIPTEXPORT_DLL_API

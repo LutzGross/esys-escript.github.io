@@ -37,7 +37,7 @@ const char* MESH_VARS = "mesh_vars/";
 const int NUM_SILO_FILES = 1;
 
 //
-// Constructor
+// Default constructor
 //
 EscriptDataset::EscriptDataset() :
     numParts(0),
@@ -48,12 +48,24 @@ EscriptDataset::EscriptDataset() :
     mpiRank(0),
     mpiSize(1)
 {
+}
+
+//
+// Constructor with communicator
+//
 #if HAVE_MPI
-    mpiComm = MPI_COMM_WORLD;
+EscriptDataset::EscriptDataset(MPI_Comm comm) :
+    numParts(0),
+    cycle(0),
+    time(0.),
+    keepMesh(false),
+    externalMesh(false),
+    mpiComm(comm)
+{
     MPI_Comm_rank(mpiComm, &mpiRank);
     MPI_Comm_size(mpiComm, &mpiSize);
-#endif
 }
+#endif
 
 //
 // Destructor
