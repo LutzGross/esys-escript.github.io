@@ -79,9 +79,19 @@ public:
                          DataVec& escriptVars, const StringVec& varNames);
                          
     /// \brief Loads mesh and variables from escript NetCDF files.
+    ///
+    /// \param meshFilePattern a printf-style pattern for the mesh file names
+    ///                        (e.g. "mesh.%02d.nc")
+    /// \param varFiles a vector of file name patterns for variables
+    /// \param varNames a vector of variable names
+    /// \param nBlocks number of blocks/chunks to load
+    ///
+    /// \note If MPI is enabled nBlocks must be equal to the size of the
+    ///       communicator or this method fails.
     ESCRIPTEXPORT_DLL_API
-    bool loadNetCDF(const std::string meshFile, const StringVec& varFiles,
-                    const StringVec& varNames, int nBlocks);
+    bool loadNetCDF(const std::string meshFilePattern,
+                    const StringVec& varFiles, const StringVec& varNames,
+                    int nBlocks);
 
     /// \brief Loads only variables from escript NetCDF files using given mesh.
     ESCRIPTEXPORT_DLL_API

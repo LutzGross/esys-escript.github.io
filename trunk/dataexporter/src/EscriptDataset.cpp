@@ -122,12 +122,18 @@ bool EscriptDataset::initFromEscript(escript::const_Domain_ptr escriptDomain,
 //
 //
 //
-bool EscriptDataset::loadNetCDF(const string meshFile,
+bool EscriptDataset::loadNetCDF(const string meshFilePattern,
                                 const StringVec& varFiles,
                                 const StringVec& varNames, int nBlocks)
 {
+    if (mpiSize > 1 && nBlocks != mpiSize) {
+        cerr << "Cannot load " << nBlocks << " chunks on " << mpiSize
+            << " MPI ranks!" << endl;
+        return false;
+    }
+
     numParts = nBlocks;
-    meshFmt = meshFile;
+    meshFmt = meshFilePattern;
     
     // initialize variables
     StringVec::const_iterator fileIt = varFiles.begin();
@@ -165,6 +171,11 @@ bool EscriptDataset::loadNetCDF(const MeshBlocks& mesh,
                                 const StringVec& varFiles,
                                 const StringVec& varNames)
 {
+    if (mpiSize > 1 && mesh.size() > 1) {
+        cerr << "Can only read one mesh block per rank when using MPI!" << endl;
+        return false;
+    }
+
     externalMesh = true;
     meshBlocks = mesh;
     numParts = meshBlocks.size();
@@ -363,18 +374,31 @@ bool EscriptDataset::loadMeshFromNetCDF()
 {
     bool ok = true;
     char* str = new char[meshFmt.length()+10];
-    for (int idx=0; idx < numParts; idx++) {
+    if (mpiSize > 1) {
         FinleyMesh_ptr meshPart(new FinleyMesh());
-        sprintf(str, meshFmt.c_str(), idx);
+        sprintf(str, meshFmt.c_str(), mpiRank);
         string meshfile = str;
         if (meshPart->initFromNetCDF(meshfile)) {
-            if (numParts > 1)
-                meshPart->reorderGhostZones(idx);
+            meshPart->reorderGhostZones(mpiRank);
             meshBlocks.push_back(meshPart);
         } else {
             meshPart.reset();
             ok = false;
-            break;
+        }
+    } else {
+        for (int idx=0; idx < numParts; idx++) {
+            FinleyMesh_ptr meshPart(new FinleyMesh());
+            sprintf(str, meshFmt.c_str(), idx);
+            string meshfile = str;
+            if (meshPart->initFromNetCDF(meshfile)) {
+                if (numParts > 1)
+                    meshPart->reorderGhostZones(idx);
+                meshBlocks.push_back(meshPart);
+            } else {
+                meshPart.reset();
+                ok = false;
+                break;
+            }
         }
     }
     delete[] str;
@@ -393,9 +417,10 @@ void EscriptDataset::convertMeshVariables()
         vi.varName = *it;
         vi.valid = true;
         // get all parts of current variable
-        for (int idx=0; idx < numParts; idx++) {
+        MeshBlocks::iterator mIt;
+        for (mIt = meshBlocks.begin(); mIt != meshBlocks.end(); mIt++) {
             DataVar_ptr var(new DataVar(*it));
-            if (var->initFromMesh(meshBlocks[idx])) {
+            if (var->initFromMesh(*mIt)) {
                 vi.dataBlocks.push_back(var);
             } else {
                 cerr << "Error converting mesh variable " << *it << endl;
@@ -422,11 +447,13 @@ bool EscriptDataset::loadVariablesFromNetCDF()
         VarInfo& vi = (*it);
         char* str = new char[vi.fileName.length()+10];
         // read all parts of current variable
-        for (int idx=0; idx < numParts; idx++) {
+        MeshBlocks::iterator mIt;
+        int idx = (mpiSize > 1) ? mpiRank : 0;
+        for (mIt = meshBlocks.begin(); mIt != meshBlocks.end(); mIt++, idx++) {
             sprintf(str, vi.fileName.c_str(), idx);
             string dfile = str;
             DataVar_ptr var(new DataVar(vi.varName));
-            if (var->initFromNetCDF(dfile, meshBlocks[idx]))
+            if (var->initFromNetCDF(dfile, *mIt))
                 vi.dataBlocks.push_back(var);
             else {
                 cerr << "Error reading " << dfile << endl;
