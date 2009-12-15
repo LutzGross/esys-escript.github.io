@@ -1,0 +1,93 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2009 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Escript and Python Basics} \label{sec:escpybas}
+
+The \pyt scripting language is a powerful and easy to learn environment with a wide variety of applications. \esc has been developed as a packaged module for \pyt specifically to solve complex partial differential equations. As a result, all the conventions and programming syntax associated with \pyt are coherrent with \esc. If you are unfamiliar with \pyt, there are a large number of simple to advanced guides and tutorials availabe online. These texts should provide an introduction that is comprehensive enough for the use of \esc. A handful of \pyt tutorials have been listed below.
+\begin{itemize}
+\item This is a very crisp introduction \url{http://hetland.org/writing/instant-python.html}. It covers everthing you need to get started with \esc.
+\item A nice and easy to follow introduction: \url{http://www.sthurlow.com/python/}
+\item Another crisp tutorial \url{http://www.zetcode.com/tutorials/pythontutorial/}. 
+ \item A very comprehensive tutorial from the \pyt authors: \url{http://www.python.org/doc/2.5.2/tut/tut.html}. It covers much more than what you will ever need for \esc.
+\item Another comprehensive tutorial: \url{http://www.tutorialspoint.com/python/index.htm}
+\end{itemize} 
+
+\subsection{The \modesys Library Tree}
+The \esys  library tree has three main modules, \verb escript , \verb finley  and \verb pycad . These three modules contain the bulk of the \esc package functions and data structures.
+\begin{enumerate}
+\item \modescript  is the PDE solving module.
+\item \modfinley is the discretisation tool and finite element package.
+\item \modpycad  is a special development for creating irregular domains and models. That are easily interpretable by \esc . 
+\end{enumerate}
+Further explanations on each of these is available in the \esc user guide or in the API documentation \footnote{Available from \url{https://launchpad.net/escript-finley/+download}}. \esc is also dependent on a few other open-source packages which are not maintained by the \esc development team. These are \modnumpy an array and matrix handling package, \modmpl \footnote{\modnumpy and \modmpl are maintained by SciPy, \url{http://www.scipy.org/}} a simple plotting and visualisation tool, \modvtk \footnote{See \url{http://www.vtk.org/}} an advanced plotting and visualisation package and \verb gmsh \footnote{See \url{http://www.geuz.org/gmsh/}} which is required by \modpycad. These packages (\textbf{except} for \verb gmsh ) are included with the binary release but may not be the most recent and up to date. 
+
+\subsection{The Domain Constructor in \esc}
+\label{ss:domcon}
+It is important at this particular stage, to describe how domains and data are organised and related to each other in \esc.
+\begin{figure}[t]
+ \centering
+   \includegraphics[width=6in]{figures/functionspace.pdf}
+   \label{fig:fs}
+   \caption{\esc domain construction overview}
+\end{figure}
+When the domain variables are submitted to the domain constructor or meshing algorithm, three function spaces are also created (Figure \ref{fig:fs.}) They are;
+\begin{enumerate}
+\item the nodes, called by \verb|ContinuousFunction(domain)| ;
+\item the elements/coefficients, called by \verb|Function(domain)| ; and
+\item the boundary, called by \verb|FunctionOnBoundary(domain)| .
+\end{enumerate}
+Domains in \esc are constructed this way to allow for varying degrees of smoothness in a PDE problem. That is, the continuity of the first derivative of each data input. For example, the coefficients of a PDE need not be continuous, thus this qualifies as a \verb Function()  type, while a temperature distribution must be a \verb ContinuousFunction()  and a flux condition may only exist at a boundary as a \verb FunctionOnBoundary()  .  The domain constructor is able to interpret the data in each of these situations for the solver so that a solution can be produced. It should be noted that a solution has its own function space \verb Solution()  which takes a form of one of the aforementioned function spaces depending on the required output. The domain also allows certain transformations of the function spaces. A \verb ContinuousFunction()  can be transformed into a \verb FunctionOnBoundary()  or \verb Function() . On the other hand there is not enough information in a \verb FunctionOnBoundary()  to transform it to a \verb ContinuousFunction()  .
+
+Domains also make it easier to define specific areas within a model. This is known as tagging and it makes for much easier scripting. Surfaces, blocks and boundaries can be given variable names simplifing PDE coefficient and flux definitions.
+
+\subsection{File Commands and Operations in \esc}
+A number of common file operations and commands are used throughout this cookbook. It is often advantageous to implement these commands when large numbers of output files are generated or dependencies are located in other locations.
+
+To develop an incrementing file name we can use the following convention. For this example we are going to use the \verb|os.path.join| command to join a subdirectory which already exists with the file name which we want to use for our output. The command is; 
+\begin{python}
+os.path.join(save_path, "data%03d.xml"%i )
+\end{python}
+There are two arguments to the \verb join  command. The \verb save_path  variable is a predefined string pointing to the directory we want to save our data in, for example a single subfolder called \verb data  would be defined by;
+\begin{verbatim}
+save_path = "data"
+\end{verbatim}
+while a subfolder of \verb data  called \verb ans_one  would be defined by;
+\begin{verbatim}
+save_path = "data/ans_one"
+\end{verbatim}
+The second argument of \verb join \xspace contains a string which is the filename. We can use the operator \verb|%| to increment our file names with the value \verb|i| denoting a incrementing counter. The substring \verb %03d  does this by defining the following parameters; 
+\begin{itemize}
+ \item \verb 0  becomes the padding number;
+ \item \verb 3  tells us the amount of padding numbers that are required; and
+ \item \verb d  indicates the end of the \verb %  operator.
+\end{itemize}
+To increment the file name a \verb %i  is required directly after the operation the string is involved in. When correctly implemented the output files from this command would be place in the directory defined by \verb save_path  as;
+\begin{verbatim}
+data001.xml
+data002.xml
+data003.xml
+...
+\end{verbatim}
+and so on.
+
+A subfolder check/constructor is available in the cookbook \verb cblib  library called \verb needdirs . The command;
+\begin{verbatim}
+needdirs(save_path)
+\end{verbatim}
+will check for the existence of \verb save_path  and if missing, make the required directories.
+
+
+\subsection{Visualisation and Plotting}
+\esc does not include its own plotting capabilities. However, it is possible to use a variety of free \pyt packages for visualisation.
+Two types will be demonstrated in this cookbook; \mpl\footnote{\url{http://matplotlib.sourceforge.net/}} and \verb VTK \footnote{\url{http://www.vtk.org/}} visualisation. 
+The \mpl package is a component of SciPy\footnote{\url{http://www.scipy.org}} and is good for basic graphs and plots. The \verb VTK  toolkit allows the \esc data to be exported in a standardised format with powerful visualisation capabilities. This format can be interpreted by many programs, \mayavi \footnote{\url{http://code.enthought.com/projects/mayavi/}} as an example. 
