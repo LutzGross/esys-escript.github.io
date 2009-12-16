@@ -532,6 +532,7 @@ resolveGroup(boost::python::object obj)
 	   throw DataException("Error - resolveGroup expects a sequence object.");
 	}
 	std::vector<DataLazy*> dats;
+	std::vector<Data*> dp;
 	for (int i=0;i<len;++i)
 	{
 		Data* p=0;
@@ -547,12 +548,20 @@ resolveGroup(boost::python::object obj)
 		if (p->isLazy())
 		{
 			dats.push_back(dynamic_cast<DataLazy*>(p->borrowData()));
+			dp.push_back(p);
 		}
 	}
 	if (dats.size()>0)
 	{
 		dats[0]->resolveGroupWorker(dats);
 	}
+	// all the data will be identities now but its still lazy
+	// convert it to ready
+	for (int i=dp.size()-1;i>=0;--i)
+	{
+		dp[i]->resolve();
+	}
 }
+
 
 }  // end of namespace
