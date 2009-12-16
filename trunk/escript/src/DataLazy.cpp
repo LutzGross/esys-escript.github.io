@@ -1606,7 +1606,7 @@ DataLazy::resolveGroupWorker(std::vector<DataLazy*>& dats)
   vector<DataLazy*> work;
   FunctionSpace fs=dats[0]->getFunctionSpace();
   bool match=true;
-  for (int i=dats.size()-1;i>0;--i)
+  for (int i=dats.size()-1;i>=0;--i)
   {
 	if (dats[i]->m_readytype!='E')
 	{
@@ -1659,7 +1659,7 @@ DataLazy::resolveGroupWorker(std::vector<DataLazy*>& dats)
 	    }
 	}
 	// Now we need to load the new results as identity ops into the lazy nodes
-	for (int i=work.size()-1;i>0;--i)
+	for (int i=work.size()-1;i>=0;--i)
 	{
 	    work[i]->makeIdentity(boost::dynamic_pointer_cast<DataReady>(dep[i]->getPtr()));
 	}
