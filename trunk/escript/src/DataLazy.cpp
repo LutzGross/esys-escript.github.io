@@ -1646,7 +1646,7 @@ DataLazy::resolveGroupWorker(std::vector<DataLazy*>& dats)
 	    {
 		roffset=0;
 		int j;
-		for (j=work.size()-1;j>0;--j)
+		for (j=work.size()-1;j>=0;--j)
 		{
 #ifdef _OPENMP
     		    res=work[j]->resolveNodeSample(omp_get_thread_num(),sample,roffset);
