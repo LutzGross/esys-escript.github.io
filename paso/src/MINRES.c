@@ -135,6 +135,8 @@ err_t Paso_Solver_MINRES(
   Paso_zeroes(n,w);
   Paso_zeroes(n,w2);
   
+    Paso_zeroes(n,x);
+  
   Paso_Copy(n,r2,r1);
   
   Anorm = 0;
@@ -153,7 +155,7 @@ err_t Paso_Solver_MINRES(
   sn     = 0;
   eps    = 0.000001;
  
-  while (!(convergeFlag || maxIterFlag || breakFlag || (status !=SOLVER_NO_ERROR) ))
+  while (!(convergeFlag || (status !=SOLVER_NO_ERROR) ))
   {
           
      s=1/beta;
@@ -238,15 +240,17 @@ err_t Paso_Solver_MINRES(
 
      rnorm  = phibar;
      epsx   = Anorm*ynorm*eps;
-
-     maxIterFlag = (num_iter > maxit);
-     norm_of_residual=rnorm;
-     convergeFlag=((norm_of_residual/(Anorm*ynorm))<(*tolerance) || 1+(norm_of_residual/(Anorm*ynorm)) <=1);
-    
-     if (maxIterFlag) {
-         status = SOLVER_MAXITER_REACHED;
-     } else if (breakFlag) {
-         status = SOLVER_BREAKDOWN;
+     
+     
+     if (status==SOLVER_NO_ERROR) {   
+        maxIterFlag = (num_iter > maxit);
+        norm_of_residual=rnorm;
+        convergeFlag=((norm_of_residual/(Anorm*ynorm))<(*tolerance) || 1+(norm_of_residual/(Anorm*ynorm)) <=1);
+        if (maxIterFlag) {
+            status = SOLVER_MAXITER_REACHED;
+        } else if (breakFlag) {
+            status = SOLVER_BREAKDOWN;
+        }
      }
     ++(num_iter);
   }

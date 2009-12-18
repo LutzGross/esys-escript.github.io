@@ -119,6 +119,8 @@ err_t Paso_Solver_TFQMR(
     status=SOLVER_INPUT_ERROR;
   }
   
+  Paso_zeroes(n,x);
+  
   Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
   Paso_Solver_solvePreconditioner(A,res,r);
   Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
