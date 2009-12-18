@@ -27,6 +27,7 @@
 #include "DataException.h"
 
 
+
 extern "C" {
 #include "DataC.h"
 //#include <omp.h>
@@ -568,7 +569,6 @@ If false, the result is a list of scalars [1, 2, ...]
     \brief
     Return the sample data for the given sample no. This is not the
     preferred interface but is provided for use by C code.
-    The bufferg parameter is only required for LazyData.
     \param sampleNo - Input - the given sample no.
     \return pointer to the sample data.
 */
@@ -1756,8 +1756,18 @@ template <class BinaryOp>
   void set_m_data(DataAbstract_ptr p);
 
   friend class DataAbstract;		// To allow calls to updateShareStatus
-
+#ifdef IKNOWWHATIMDOING
+  friend Data applyBinaryCFunction(boost::python::object cfunc, boost::python::tuple shape, escript::Data& d, escript::Data& e);
+#endif
 };
+
+
+#ifdef IKNOWWHATIMDOING
+ESCRIPT_DLL_API
+Data
+applyBinaryCFunction(boost::python::object func, boost::python::tuple shape, escript::Data& d, escript::Data& e);
+#endif
+
 
 }   // end namespace escript
 
