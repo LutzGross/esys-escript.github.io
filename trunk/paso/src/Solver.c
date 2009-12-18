@@ -54,6 +54,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
    dim_t numSol = Paso_SystemMatrix_getTotalNumCols(A);
    dim_t numEqua = Paso_SystemMatrix_getTotalNumRows(A);
    double blocktimer_precond, blocktimer_start = blocktimer_time();
+   double *x0=NULL;
 
  
      Paso_resetError();
@@ -93,6 +94,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
         Paso_Function_LinearSystem_free(F);
         return;
      }
+     
      /* ========================= */
      Performance_startMonitor(pp,PERFORMANCE_ALL);
      if (Paso_noError()) {
@@ -175,6 +177,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
               Paso_Solver_solvePreconditioner(A,x,b);
               /* start the iteration process :*/
               r=TMPMEMALLOC(numEqua,double);
+              x0=TMPMEMALLOC(numEqua,double);
               Paso_checkPtr(r);
               if (Paso_noError()) {
                  totIter = 1;
@@ -237,10 +240,20 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                            errorCode = Paso_Solver_PCG(A, r, x, &cntIter, &tol, pp);
                            break;
                         case PASO_TFQMR:
-                           errorCode = Paso_Solver_TFQMR(A, r, x, &cntIter, &tol, pp);
+                           tol=tolerance*norm2_of_residual/norm2_of_b; 
+                           errorCode = Paso_Solver_TFQMR(A, r, x0, &cntIter, &tol, pp);
+                           #pragma omp for private(i) schedule(static)
+                           for (i = 0; i < numEqua; i++) {
+                            x[i]+= x0[i];
+                           }
                            break;
                         case PASO_MINRES:
-                           errorCode = Paso_Solver_MINRES(A, r, x, &cntIter, &tol, pp);
+                           tol=tolerance*norm2_of_residual/norm2_of_b; 
+                           errorCode = Paso_Solver_MINRES(A, r, x0, &cntIter, &tol, pp);
+                           #pragma omp for private(i) schedule(static)
+                           for (i = 0; i < numEqua; i++) {
+                            x[i]+= x0[i];
+                           }
                            break;
                         case PASO_PRES20:
                            errorCode = Paso_Solver_GMRES(A, r, x, &cntIter, &tol,5,20, pp); 
@@ -277,6 +290,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                  options->net_time=Paso_timer()-net_time_start;
               }
               MEMFREE(r);
+              MEMFREE(x0);
               options->num_level=0;
               options->num_inner_iter=0;
               options->num_iter=totIter;
