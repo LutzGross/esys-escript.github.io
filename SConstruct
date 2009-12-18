@@ -173,7 +173,9 @@ adder(
 # works with dynamic libraries on windows.
   ('share_esysUtils', 'control static or dynamic esysUtils lib', False),
   ('share_paso', 'control static or dynamic paso lib', False),
-  ('env_export','Environment variables to be passed to children',[])
+  ('env_export','Environment variables to be passed to children',[]),
+#To enable passing function pointers through python
+  BoolVariable('iknowwhatimdoing','allow nonstandard C',False)
 )
 
 
@@ -290,6 +292,9 @@ if env['forcecollres']    != "leave_alone":
      if env['forcecollres'] == 'off':
 	env.Append(CPPDEFINES=['FRESCOLLECTOFF'])
  
+
+if env['iknowwhatimdoing']:
+	env.Append(CPPDEFINES=['IKNOWWHATIMDOING'])
 
 # OpenMP is disabled if useopenmp=no or both variables omp_optim and omp_debug are empty
 if not env["useopenmp"]:
@@ -612,7 +617,6 @@ if env['usesilo']:
 
 ########### Lapack (optional) ##################################
 
-
 if env['uselapack']:
 	env.AppendUnique(CPPDEFINES='USE_LAPACK')
 	env.AppendUnique(CPPPATH = [env['lapack_path']])
@@ -627,7 +631,6 @@ if env['uselapack']:
 	   else:
 	   	env.AppendUnique(CPPDEFINES='MKL_LAPACK')
 	   
-
 
 ############ Add the compiler flags ############################
 
@@ -690,7 +693,6 @@ else:
 
 env['usempi'] = env_mpi['usempi']
 
-
 ############ ParMETIS (optional) ###############################
 
 # Start a new configure environment that reflects what we've already found
@@ -718,14 +720,6 @@ else:
   conf.Finish()
 
 env['useparmetis'] = env_mpi['useparmetis']
-
-############ Now we switch on Warnings as errors ###############
-
-#this needs to be done after configuration because the scons test files have warnings in them
-
-if ((fatalwarning != "") and (env['usewarnings'])):
-  env.Append(CCFLAGS		= fatalwarning)
-  env_mpi.Append(CCFLAGS		= fatalwarning)
 
 ############ Summarize our environment #########################
 
@@ -773,14 +767,29 @@ if not env['usempi']: Execute(Delete(os.path.join(env['libinstall'],"pythonMPI")
 
 ############ Build the subdirectories ##########################
 
+if env['usepedantic']: env_mpi.Append(CCFLAGS = pedantic)
+
+
 from grouptest import *
 
 TestGroups=[]
+
+dodgy_env=clone_env(env_mpi)	# Environment without pedantic options
+
+############ Now we switch on Warnings as errors ###############
+
+#this needs to be done after configuration because the scons test files have warnings in them
+
+if ((fatalwarning != "") and (env['usewarnings'])):
+  env.Append(CCFLAGS		= fatalwarning)
+  env_mpi.Append(CCFLAGS		= fatalwarning)
+
 
 Export(
   ["env",
    "env_mpi",
    "clone_env",
+   "dodgy_env",
    "IS_WINDOWS_PLATFORM",
    "TestGroups"
    ]

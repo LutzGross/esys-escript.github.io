@@ -25,6 +25,10 @@
 #include "FunctionSpaceException.h"
 #include "EscriptParams.h"
 
+#ifdef IKNOWWHATIMDOING
+#include "Dodgy.h"
+#endif
+
 extern "C" {
 #include "esysUtils/blocktimer.h"
 }
@@ -3649,3 +3653,177 @@ Data::get_MPIComm() const
 #endif
 }
 
+#ifdef IKNOWWHATIMDOING
+
+// Considered having a generic option argument for extra info for function.
+// If you pass a python object in we may have threading issues, if it's a C object then it's not python friendly.
+// It's better if the library supplying the C function has its own interface for doing configuration
+ESCRIPT_DLL_API
+Data
+escript::applyBinaryCFunction(boost::python::object cfunc, boost::python::tuple shape, escript::Data& ind, escript::Data& ine)
+{
+    int err=255;
+    PyObject* p=cfunc.ptr();
+    if (!PyCObject_Check(p))
+    {
+	throw DataException("applyBinaryCFunction: function must be a PyCObject.");
+    }
+    void* v=PyCObject_AsVoidPtr(p);
+    binOpFnPtr func=binOpFnPtrFromVoidPtr(v);
+    Data d(ind),e(ine);
+    if (ind.getFunctionSpace()!=ine.getFunctionSpace())
+    {
+	if (ind.getDomain()!=ine.getDomain())
+	{
+	    throw DataException("applyBinaryCFunction: can't interpolate between domains.");
+	}
+	std::vector<int> fstypes(2);
+	fstypes[0]=ind.getFunctionSpace().getTypeCode();
+	fstypes[1]=ine.getFunctionSpace().getTypeCode();
+	int bestfs;
+	ind.getDomain()->commonFunctionSpace(fstypes, bestfs);
+	FunctionSpace best(ind.getDomain(),bestfs);
+	d=ind.interpolate(best);
+	e=ine.interpolate(best);
+    }
+    // now we find the result shape
+    DataTypes::ShapeType resultshape;
+    for (int i = 0; i < shape.attr("__len__")(); ++i) {
+    	resultshape.push_back(extract<const int>(shape[i]));
+    }
+
+    if (d.isLazy() && !d.actsExpanded())
+    {
+	d.resolve();		// If you aren't expanded you probably won't get benefit from lazy anyway
+    }
+    if (e.isLazy() && !e.actsExpanded())
+    {
+	e.resolve();
+    }
+    Data res(0,resultshape,d.getFunctionSpace());
+    int dpointsize=d.getNoValues();
+    int epointsize=e.getNoValues();
+    int rpointsize=res.getNoValues();
+    if (d.actsExpanded() && !e.actsExpanded())
+    {
+	e.expand();
+    }
+    else if (!d.actsExpanded() && e.actsExpanded())
+    {
+	d.expand();
+    }
+    else if (d.isTagged() && e.isConstant())
+    {
+	e.tag();
+    }
+    else if (e.isTagged() && d.isConstant())
+    {
+	d.tag();
+    }
+    if (d.isConstant() && e.isConstant())
+    {
+	const double* src=d.getSampleDataRO(0);
+	const double* src2=e.getSampleDataRO(0);
+	double* dest=res.getSampleDataRW(0);
+	err=func(dest,src,src2,rpointsize, dpointsize, epointsize);
+    }
+    else if (d.isTagged() && e.isTagged())
+    {
+	res.tag();
+	DataTagged& srcd=*dynamic_cast<DataTagged*>(d.m_data.get());
+	DataTagged& srce=*dynamic_cast<DataTagged*>(e.m_data.get());
+	DataTagged& destd=*dynamic_cast<DataTagged*>(res.m_data.get());
+	std::list<int> alltags;
+	const DataTagged::DataMapType& srcLookupd=srcd.getTagLookup();
+	DataTagged::DataMapType::const_iterator i;
+	DataTagged::DataMapType::const_iterator srcLookupEnd=srcLookupd.end();
+	for (i=srcLookupd.begin();i!=srcLookupEnd;i++)
+	{
+	   alltags.push_back(i->first);
+  	}		
+	const DataTagged::DataMapType& srcLookupe=srce.getTagLookup();
+	srcLookupEnd=srcLookupe.end();
+	for (i=srcLookupe.begin();i!=srcLookupEnd;i++)
+	{
+	   if (find(alltags.begin(), alltags.end(), i->first)==alltags.end())	// we have already seen the tag
+	   {
+		alltags.push_back(i->first);
+	   }
+	}
+	err=0;
+	// now all tags will be a complete list of tags from both inputs
+	for (std::list<int>::iterator j=alltags.begin();(j!=alltags.end()) && (err==0);++j)
+	{
+	    destd.addTag(*j);
+            const double *ptr_0 = &(srcd.getDataByTagRO(*j,0));
+            const double *ptr_1 = &(srce.getDataByTagRO(*j,0));
+            double *ptr_2 = &(destd.getDataByTagRW(*j,0));
+	    err=func(ptr_2,ptr_0,ptr_1,rpointsize, dpointsize, epointsize);
+	}
+	if (err==0)
+	{
+	    // now we do the default tag
+	    const double *ptr_0 = &(srcd.getDefaultValueRO(0));
+	    const double *ptr_1 = &(srce.getDefaultValueRO(0));
+	    double *ptr_2 = &(destd.getDefaultValueRW(0));
+	    err=func(ptr_2,ptr_0,ptr_1,rpointsize, dpointsize, epointsize);
+	}
+    }
+    else if (e.actsExpanded() && d.actsExpanded())
+    {
+	res.expand();
+	int numsamples=d.getNumSamples();
+	
+	int dpps=d.getNumDataPointsPerSample();
+	err=0;
+	#pragma omp parallel shared(err)
+	{
+	   int localerr=0;
+	   int sampleid;
+	   #pragma omp for schedule(dynamic)
+	   for (sampleid=0;sampleid<numsamples;++sampleid)
+	   {
+	     if(!localerr)
+	     {
+		const double* src=d.getSampleDataRO(sampleid);
+		const double* src2=e.getSampleDataRO(sampleid);
+		double* dest=res.getSampleDataRW(sampleid);
+		for (int pointnum=0;pointnum<dpps;++pointnum)
+		{
+			localerr=func(dest,src,src2,rpointsize, dpointsize, epointsize);
+			if (localerr!=0)
+			{
+			    break;
+			}
+			src+=dpointsize;
+			src2+=epointsize;
+			dest+=rpointsize;
+		}
+	     }
+	   }
+	   if (localerr)
+	   {
+		#pragma omp critical
+		err=localerr;
+	   }
+	}
+    }
+    else
+    {
+	throw DataException("applyBinaryCFunction: Unsupported combination of inputs.");
+    }
+#ifdef PASO_MPI
+    int global;
+    MPI_Allreduce(&err, &global, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+    err=global;
+#endif
+    if (err>0)
+    {
+	ostringstream oss;
+	oss << "applyBinaryCFunction: error code " << err << " from C function.";
+	throw DataException(oss.str());
+    }
+    return res;
+}
+
+#endif // IKNOWWHATIMDOING

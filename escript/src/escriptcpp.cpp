@@ -525,6 +525,15 @@ args("source", "q", "r","factor"),
 
 
   def("resolveGroup", escript::resolveGroup);
+
+#ifdef IKNOWWHATIMDOING
+
+  def("applyBinaryCFunction", escript::applyBinaryCFunction, (arg("function"), arg("outshape"),
+arg("in1"), 
+arg("in2"))
+);
+#endif
+
   //
   // Register esysExceptionTranslator
   //

@@ -15,6 +15,7 @@ import os
 Import('*')
 
 local_env = clone_env(env_mpi)
+local_dodgy = clone_env(dodgy_env)
 py_wrapper_local_env = clone_env(env_mpi)
 
 # Remove the sharedlibrary prefix on all platform - we don't want 'lib' mucking with our python modules
@@ -77,6 +78,7 @@ headers = """
 	DataTagged.h
 	DataTypes.h
 	DataVector.h
+	Dodgy.h
 	DomainException.h
 	EscriptParams.h
 	FunctionSpace.h
@@ -100,17 +102,29 @@ headers = """
 """.split()
 	# blocktimer.h
 
+dodgy_sources = """
+	Dodgy.cpp
+""".split()
+
 local_env.Append(LIBS = [ 'esysUtils'] + env['sys_libs'] )
+local_dodgy.Append(LIBS = [ 'esysUtils'] + env['sys_libs'] )
 
 if IS_WINDOWS_PLATFORM :
   local_env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
+  local_dodgy.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
 
 py_wrapper_local_env.Append(LIBS = [ 'escript', 'esysUtils'] + env['sys_libs'])
 
 module_name = 'escript'
 py_wrapper_name = module_name + 'cpp'
 
-lib = local_env.SharedLibrary(module_name, sources)
+#Specify to build shared object
+if local_env['iknowwhatimdoing']:
+   nonped=[local_dodgy.SharedObject(x) for x in dodgy_sources]
+else:
+   nonped=[]
+
+lib = local_env.SharedLibrary(module_name, sources+nonped)
 env.Alias('target_escript_so', lib)
 
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'escriptcpp.cpp')
