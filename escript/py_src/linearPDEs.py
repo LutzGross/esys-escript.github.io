@@ -143,6 +143,7 @@ class SolverOptions(object):
     def __init__(self):
         self.setLevelMax()
         self.setCoarseningThreshold()
+        self.setSmoother()
         self.setNumSweeps()
         self.setNumPreSweeps()
         self.setNumPostSweeps()
@@ -199,6 +200,7 @@ class SolverOptions(object):
                 out+="\nMaximum number of levels = %s"%self.LevelMax()
                 out+="\nCoarsening method = %s"%self.getName(self.getCoarsening())
                 out+="\nCoarsening threshold = %e"%self.getMinCoarseMatrixSize()
+                out+="\nSmoother = %e"%self.getName(self.getSmoother())
                 out+="\nMinimum size of the coarsest level matrix = %e"%self.getCoarseningThreshold()
                 out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
             if self.getPreconditioner() == self.AMLI:
@@ -426,6 +428,25 @@ class SolverOptions(object):
                                     `SolverOptions.NO_PRECONDITIONER`
         """
         return self.__preconditioner
+    def setSmoother(self, smoother=10):
+        """
+        Sets the smoother to be used. 
+
+        :param smoother: key of the smoother to be used.
+        :type smoother: in `SolverOptions.JACOBI`, `SolverOptions.GAUSS_SEIDEL`
+        :note: Not all packages support all smoothers. It can be assumed that a package makes a reasonable choice if it encounters an unknown smoother. 
+        """
+	if smoother==None: smoother=10
+        if not smoother in [ SolverOptions.JACOBI, SolverOptions.GAUSS_SEIDEL ] :
+             raise ValueError,"unknown smoother %s"%preconditioner
+        self.__smoother=smoother    
+    def getSmoother(self):
+        """
+        Returns key of the smoother to be used. 
+
+        :rtype: in the list `SolverOptions.JACOBI`, `SolverOptions.GAUSS_SEIDEL`
+        """
+        return self.__smoother  
     def setSolverMethod(self, method=0):
         """
         Sets the solver method to be used. Use ``method``=``SolverOptions.DIRECT`` to indicate that a direct rather than an iterative

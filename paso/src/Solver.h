@@ -97,6 +97,13 @@ struct Paso_Solver_RILU {
 };
 typedef struct Paso_Solver_RILU Paso_Solver_RILU;
 
+struct Paso_Solver_Smoother {
+  dim_t ID;  
+  Paso_Solver_Jacobi* Jacobi;
+  Paso_Solver_GS* GS;
+};
+typedef struct  Paso_Solver_Smoother  Paso_Solver_Smoother;
+
 /* AMG preconditioner */
 struct Paso_Solver_AMG {
   dim_t n;
@@ -129,12 +136,10 @@ struct Paso_Solver_AMG {
   Paso_SparseMatrix * A;
   Paso_SparseMatrix * AOffset1;
   void* solver;
-  Paso_Solver_Jacobi* GS;
+  Paso_Solver_Smoother* Smoother;
   struct Paso_Solver_AMG * AMG_of_Coarse;
 };
 typedef struct Paso_Solver_AMG Paso_Solver_AMG;
-
-
 
 
 /* AMLI preconditioner */

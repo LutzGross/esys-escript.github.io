@@ -93,6 +93,7 @@ typedef struct {
     dim_t post_sweeps;
     dim_t level_max;
     dim_t min_coarse_matrix_size;
+    dim_t smoother;
     double coarsening_threshold;
     bool_t accept_failed_convergence;
     index_t coarsening_method;

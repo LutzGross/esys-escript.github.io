@@ -56,6 +56,7 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->accept_failed_convergence=FALSE;
   options->coarsening_method=PASO_DEFAULT;
   options->relaxation_factor=0.95;
+  options->smoother=PASO_GS;
 
   /* diagnostic values */
   options->num_iter=-1;
