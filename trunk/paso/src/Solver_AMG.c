@@ -51,7 +51,13 @@ void Paso_Solver_AMG_System_free(Paso_Solver_AMG_System * in) {
 
 void Paso_Solver_AMG_free(Paso_Solver_AMG * in) {
      if (in!=NULL) {
-        Paso_Solver_Jacobi_free(in->GS);
+        
+        if(in->Smoother->ID==PASO_JACOBI)
+            Paso_Solver_Jacobi_free(in->Smoother->Jacobi);
+        else if (in->Smoother->ID==PASO_GS)    
+            Paso_Solver_GS_free(in->Smoother->GS);
+        MEMFREE(in->Smoother);
+            
         Paso_SparseMatrix_free(in->A_FC);
         Paso_SparseMatrix_free(in->A_FF);
         Paso_SparseMatrix_free(in->W_FC);
@@ -142,6 +148,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      return NULL;
   }
   out=MEMALLOC(1,Paso_Solver_AMG);
+  out->Smoother=MEMALLOC(1,Paso_Solver_Smoother);
   /* identify independend set of rows/columns */
   mis_marker=TMPMEMALLOC(n,index_t);
   counter=TMPMEMALLOC(n,index_t);
@@ -161,9 +168,11 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      out->b_F=NULL;
      out->x_C=NULL;
      out->b_C=NULL;
-     out->GS=NULL;
      out->A=Paso_SparseMatrix_getReference(A_p);
      out->solver=NULL;
+     out->Smoother->ID=options->smoother;
+     out->Smoother->Jacobi=NULL;
+     out->Smoother->GS=NULL;
      /*out->GS=Paso_Solver_getGS(A_p,verbose);*/
      out->level=level;
      out->n=n;
@@ -195,13 +204,20 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
          #else
             #ifdef UMFPACK 
             #else
-                out->GS=Paso_Solver_getJacobi(A_p);
+              if (options->smoother == PASO_JACOBI)
+                out->Smoother->Jacobi=Paso_Solver_getJacobi(A_p);
+              else if (options->smoother == PASO_GS)
+                out->Smoother->GS=Paso_Solver_getGS(A_p,verbose));
             #endif
          #endif
          
      } else {
          out->coarsest_level=FALSE;
-         out->GS=Paso_Solver_getJacobi(A_p);
+        
+        if (options->smoother == PASO_JACOBI)
+                out->Smoother->Jacobi=Paso_Solver_getJacobi(A_p);
+        else if (options->smoother == PASO_GS)
+                out->Smoother->GS=Paso_Solver_getGS(A_p,verbose);
  
          /* identify independend set of rows/columns */
          #pragma omp parallel for private(i) schedule(static)
@@ -224,10 +240,9 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
         }
         else {
            /*Default coarseneing*/
-            /*Paso_Pattern_RS_MI_Aggressive(A_p,mis_marker,options->coarsening_threshold);*/
             Paso_Pattern_Standard(A_p,mis_marker,options->coarsening_threshold);
             /*Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);*/
-            /*Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);*/
+            /*Paso_Pattern_greedy_Agg(A_p,mis_marker,options->coarsening_threshold);*/
             /*Paso_Pattern_greedy(A_p->pattern,mis_marker);*/
             /*Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);*/
             
@@ -286,8 +301,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                     
                  }
               }
-              
-              /* if(level==1) {
+              /*
+               if(level==1) {
                    printf("##TOTAL: %d, ELIMINATED: %d\n",n,out->n_F);
                    for (i = 0; i < n; ++i) {
                     printf("##%d %d\n",i,mis_marker[i]);
@@ -359,8 +374,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                       if (verbose) fprintf(stdout,"timing: getProlongation: %e\n",time0);
                       
                       
-                      
-                      /* sprintf(filename,"P_%d",level);
+                      /*
+                       sprintf(filename,"P_%d",level);
                       Paso_SparseMatrix_saveMM(out->P,filename);
                       */
                       
@@ -492,7 +507,10 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
       /*Paso_Solver_solveJacobi(amg->GS,x,b);*/
       
       if (amg->n_F==0 || amg->n_F==amg->n) {
-        Paso_Solver_solveJacobi(amg->GS,x,b);
+        if(amg->Smoother->ID==PASO_JACOBI)
+            Paso_Solver_solveJacobi(amg->Smoother->Jacobi,x,b);
+        else if (amg->Smoother->ID==PASO_GS)    
+            Paso_Solver_solveGS(amg->Smoother->GS,x,b);
       }
        else {
        #ifdef MKL
@@ -503,7 +521,10 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
              Paso_UMFPACK1(&ptr,amg->A,x,b,verbose);
              amg->solver=(void*) ptr;
           #else      
-             Paso_Solver_solveJacobi(amg->GS,x,b);
+           if(amg->Smoother->ID==PASO_JACOBI)
+             Paso_Solver_solveJacobi(amg->Smoother->Jacobi,x,b);
+          else if (amg->Smoother->ID==PASO_GS)    
+            Paso_Solver_solveGS(amg->Smoother->GS,x,b);
          #endif
        #endif
        }
@@ -514,7 +535,10 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      } else {
         /* presmoothing */
          time0=Paso_timer();
-         Paso_Solver_solveJacobi(amg->GS,x,b);
+         if(amg->Smoother->ID==PASO_JACOBI)
+            Paso_Solver_solveJacobi(amg->Smoother->Jacobi,x,b);
+        else if (amg->Smoother->ID==PASO_GS)    
+            Paso_Solver_solveGS(amg->Smoother->GS,x,b);
         
         /***********/
         if (pre_sweeps>1) {
@@ -529,7 +553,12 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
             /* Compute the residual r=r-Ax*/
            Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
            /* Go round again*/
-           Paso_Solver_solveJacobi(amg->GS,x,r);
+           
+           if(amg->Smoother->ID==PASO_JACOBI)
+            Paso_Solver_solveJacobi(amg->Smoother->Jacobi,x,r);
+           else if (amg->Smoother->ID==PASO_GS)    
+            Paso_Solver_solveGS(amg->Smoother->GS,x,r);
+           
            pre_sweeps-=1;
         }
          /***********/
@@ -571,7 +600,10 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
       
       /*r=b-Ax */
       Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
-      Paso_Solver_solveJacobi(amg->GS,x0,r);
+      if(amg->Smoother->ID==PASO_JACOBI)
+            Paso_Solver_solveJacobi(amg->Smoother->Jacobi,x0,r);
+      else if (amg->Smoother->ID==PASO_GS)    
+            Paso_Solver_solveGS(amg->Smoother->GS,x0,r);
       
       
       #pragma omp parallel for private(i) schedule(static)
@@ -585,7 +617,12 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
            for (i=0;i<amg->n;++i) r[i]=b[i];
            
            Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
-           Paso_Solver_solveJacobi(amg->GS,x0,r);
+           
+           if(amg->Smoother->ID==PASO_JACOBI)
+              Paso_Solver_solveJacobi(amg->Smoother->Jacobi,x0,r);
+           else if (amg->Smoother->ID==PASO_GS)    
+              Paso_Solver_solveGS(amg->Smoother->GS,x0,r);
+              
            #pragma omp parallel for private(i) schedule(static)
             for (i=0;i<amg->n;++i)  {
              x[i]+=x0[i];

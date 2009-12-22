@@ -84,9 +84,8 @@ Paso_SparseMatrix* Paso_SparseMatrix_getProlongation(Paso_SparseMatrix* W, index
         k++;   
       }
       else {
-           for (iptr=out->pattern->ptr[i];iptr<out->pattern->ptr[i+1]; ++iptr){
-             out->val[iptr]=1;
-           }
+           iptr=out->pattern->ptr[i];
+           out->val[iptr]=1;
       }
     }
     
@@ -215,21 +214,19 @@ void Paso_SparseMatrix_updateWeights(Paso_SparseMatrix* A,Paso_SparseMatrix* W_F
             if(sum_strong_pos!=0) {
                  beta[k]=sum_all_pos/(sum_strong_pos);
             }
-/*            else {
-              a_ii+=beta[k];
-              A->val[dptr]=a_ii;
+            else {
+              a_ii+=sum_all_pos;
               beta[k]=0;
             }
-*/           alpha[k]=alpha[k]/(a_ii);
+            alpha[k]=alpha[k]/(a_ii);
             beta[k]=beta[k]/(a_ii);
           k++;
        /*printf("Got in row=%d, alpha[%d]=%e, beta[%d]=%e, a_den=%e, b_den=%e \n",i,k-1,alpha[k-1],k-1,beta[k-1],alpha_den[k-1],beta_den[k-1]);*/
       }
    }
-      #pragma omp parallel for private(i,iPtr,j) schedule(static)
+      #pragma omp parallel for private(i,iPtr) schedule(static)
       for (i = 0; i < W_FC->numRows; ++i) {
             for (iPtr=W_FC->pattern->ptr[i];iPtr<W_FC->pattern->ptr[i + 1]; ++iPtr) {
-                 j=W_FC->pattern->index[iPtr];
                    if(W_FC->val[iPtr]<0) {
                       W_FC->val[iPtr]=-alpha[i]*W_FC->val[iPtr];
                     }

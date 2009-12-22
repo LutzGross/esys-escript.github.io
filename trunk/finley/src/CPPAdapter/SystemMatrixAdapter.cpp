@@ -337,7 +337,8 @@ void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const
    EXTRACT("getMinCoarseMatrixSize", min_coarse_matrix_size, dim_t);
    EXTRACT("getCoarseningThreshold", coarsening_threshold, double);
    EXTRACT("acceptConvergenceFailure", accept_failed_convergence, bool_t);
-   EXTRACT_OPTION("getCoarsening", coarsening_method, index_t); 
+   EXTRACT_OPTION("getCoarsening", coarsening_method, index_t);
+   EXTRACT_OPTION("getSmoother", smoother, index_t); 
    EXTRACT("getRelaxationFactor",  relaxation_factor,  double);  
   
 #undef EXTRACT
