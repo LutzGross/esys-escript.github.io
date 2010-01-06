@@ -36,27 +36,27 @@ from esys.escript.linearPDEs import LinearPDE
 
 # routine to find consecutive coordinates of a loop in pycad
 def getLoopCoords(loop):
-	# return all construction points of input
-	temp = loop.getConstructionPoints()
-	#create a numpy array for xyz components or construction points
-	coords = np.zeros([len(temp),3],float)
-	#place construction points in array
-	for i in range(0,len(temp)):
-		coords[i,:]=temp[i].getCoordinates()
-	#return a numpy array
-	return coords
-	
+    # return all construction points of input
+    temp = loop.getConstructionPoints()
+    #create a numpy array for xyz components or construction points
+    coords = np.zeros([len(temp),3],float)
+    #place construction points in array
+    for i in range(0,len(temp)):
+        coords[i,:]=temp[i].getCoordinates()
+    #return a numpy array
+    return coords
+    
 
 ########################################################
 # subroutine: cbphones
 # Allows us to record the values of a PDE at various 
 # specified locations in the model.
 # Arguments:
-#	domain  : domain of model
-#	U       : Current time state displacement solution.
-#	phones  : Geophone Locations
-#	dim     : model dimesions
-#	savepath: where to output the data files local is default
+#   domain  : domain of model
+#   U       : Current time state displacement solution.
+#   phones  : Geophone Locations
+#   dim     : model dimesions
+#   savepath: where to output the data files local is default
 ########################################################
 def cbphones(domain,U,phones,dim,savepath=""):
    #find the number of geophones
@@ -79,16 +79,16 @@ def cbphones(domain,U,phones,dim,savepath=""):
 # Can solve a generic 2D wave propagation problem with a
 # point source in a homogeneous medium.
 # Arguments:
-#	domain  : domain to solve over
-#	h       : time step
-#	tend    : end time
-#	lam, mu : lames constants for domain
-#	rho	: density of domain
-#	U0	: magnitude of source
-#	xc	: source location in domain (Vector)
-#	savepath: where to output the data files
+#   domain  : domain to solve over
+#   h       : time step
+#   tend    : end time
+#   lam, mu : lames constants for domain
+#   rho : density of domain
+#   U0  : magnitude of source
+#   xc  : source location in domain (Vector)
+#   savepath: where to output the data files
 ########################################################
-def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath):
+def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath,output="vtk"):
    from esys.escript.linearPDEs import LinearPDE
    x=domain.getX()
    # ... open new PDE ...
@@ -126,44 +126,71 @@ def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath):
    u_pc_data=open(os.path.join(savepath,'U_pc.out'),'w')
    u_pc_data.write("%f %f %f %f %f %f %f\n"%(t,u_pc_x1,u_pc_y1,u_pc_x2,u_pc_y2,u_pc_x3,u_pc_y3))
  
-   while t<tend:
+#   while t<tend:
+   while t<1.:
+   
      # ... get current stress ....
-     
+      t=1.
 ##OLD WAY
-     g=grad(u)
-     stress=lam*trace(g)*kmat+mu*(g+transpose(g))
+      break
+      g=grad(u)
+      stress=lam*trace(g)*kmat+mu*(g+transpose(g))
      ### ... get new acceleration ....
      #mypde.setValue(X=-stress)          
      #a=mypde.getSolution()
      ### ... get new displacement ...
      #u_p1=2*u-u_m1+h*h*a
 ###NEW WAY
-     mypde.setValue(X=-stress*(h*h),Y=(rho*2*u-rho*u_m1))
-     u_p1 = mypde.getSolution()
+      mypde.setValue(X=-stress*(h*h),Y=(rho*2*u-rho*u_m1))
+      u_p1 = mypde.getSolution()
      # ... shift displacements ....
-     u_m1=u
-     u=u_p1
+      u_m1=u
+      u=u_p1
      #stress = 
-     t+=h
-     n+=1
-     print n,"-th time step t ",t
-     u_pot = cbphones(domain,u,[[300.,200.],[500.,200.],[750.,200.]],2)
+      t+=h
+      n+=1
+      print n,"-th time step t ",t
+      u_pot = cbphones(domain,u,[[300.,200.],[500.,200.],[750.,200.]],2)
 
 #     print "u at point charge=",u_pc
-     u_pc_x1 = u_pot[0,0]
-     u_pc_y1 = u_pot[0,1]
-     u_pc_x2 = u_pot[1,0]
-     u_pc_y2 = u_pot[1,1]
-     u_pc_x3 = u_pot[2,0]
-     u_pc_y3 = u_pot[2,1]
-           
+      u_pc_x1 = u_pot[0,0]
+      u_pc_y1 = u_pot[0,1]
+      u_pc_x2 = u_pot[1,0]
+      u_pc_y2 = u_pot[1,1]
+      u_pc_x3 = u_pot[2,0]
+      u_pc_y3 = u_pot[2,1]
+          
      # save displacements at point source to file for t > 0
-     u_pc_data.write("%f %f %f %f %f %f %f\n"%(t,u_pc_x1,u_pc_y1,u_pc_x2,u_pc_y2,u_pc_x3,u_pc_y3))
+      u_pc_data.write("%f %f %f %f %f %f %f\n"%(t,u_pc_x1,u_pc_y1,u_pc_x2,u_pc_y2,u_pc_x3,u_pc_y3))
  
      # ... save current acceleration in units of gravity and displacements 
      #saveVTK(os.path.join(savepath,"usoln.%i.vtu"%n),acceleration=length(a)/9.81,
      #displacement = length(u), tensor = stress, Ux = u[0] )
-     saveVTK(os.path.join(savepath,"tonysol.%i.vtu"%n),output1 = length(u),tensor=stress)
+      if output == "vtk":
+         saveVTK(os.path.join(savepath,"tonysol.%i.vtu"%n),output1 = length(u),tensor=stress)
+      else:
+         quT=qu.toListOfTuples()
+    #Projector is used to smooth the data.
+         proj=Projector(mymesh)
+         smthT=proj(T)
+
+    #move data to a regular grid for plotting
+         xi,yi,zi = toRegGrid(smthT,mymesh,200,200,width,depth)
+
+    # contour the gridded data, 
+    # select colour
+         pl.matplotlib.pyplot.autumn()
+         pl.clf()
+    # contour temperature
+         CS = pl.contour(xi,yi,zi,5,linewidths=0.5,colors='k')
+    # labels and formatting
+         pl.clabel(CS, inline=1, fontsize=8)
+         pl.title("Heat Refraction across a clinal structure.")
+         pl.xlabel("Horizontal Displacement (m)")
+         pl.ylabel("Depth (m)")
+         pl.legend()
+         if getMPIRankWorld() == 0: #check for MPI processing
+            pl.savefig(os.path.join(saved_path,"heatrefraction001_cont.png"))
 
    u_pc_data.close()
    
@@ -173,14 +200,14 @@ def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath):
 # Can solve a generic 2D wave propagation problem with a
 # point source in a homogeneous medium with friction.
 # Arguments:
-#	domain  : domain to solve over
-#	h       : time step
-#	tend    : end time
-#	lam, mu : lames constants for domain
-#	rho	: density of domain
-#	U0	: magnitude of source
-#	xc	: source location in domain (Vector)
-#	savepath: where to output the data files
+#   domain  : domain to solve over
+#   h       : time step
+#   tend    : end time
+#   lam, mu : lames constants for domain
+#   rho : density of domain
+#   U0  : magnitude of source
+#   xc  : source location in domain (Vector)
+#   savepath: where to output the data files
 ########################################################
 def wavesolver2df(domain,h,tend,lam,mu,rho,U0,xc,savepath):
    x=domain.getX()
@@ -268,11 +295,11 @@ def wavesolver2df(domain,h,tend,lam,mu,rho,U0,xc,savepath):
 import os
 def needdirs(dirlist):
     for name in dirlist:
-	if name == '':
-		continue
-	if not os.path.exists(name):
-    	   try:
-		os.makedirs(name)
-    	   except OSError:
-		if not os.path.exists(save_path):
-	   	    raise
+        if name == '':
+            continue
+        if not os.path.exists(name):
+            try:
+                os.makedirs(name)
+            except OSError:
+                if not os.path.exists(save_path):
+                    raise
