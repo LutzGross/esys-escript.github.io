@@ -47,7 +47,39 @@
 
 
 #define IS_IN_FA -5  /* test */
-#define IS_IN_FB -6  /* test */ 
+#define IS_IN_FB -6  /* test */
+
+
+void Paso_Pattern_Read(char *fileName,dim_t n,index_t* mis_marker) {
+    
+    dim_t i;
+    int scan_ret;
+    
+    FILE *fileHandle_p = NULL;
+    
+    fileHandle_p = fopen( fileName, "r" );
+    if( fileHandle_p == NULL )
+	{
+		Paso_setError(IO_ERROR, "Paso_Pattern_Read: Cannot open file for reading.");
+		return;
+	}
+    
+    for (i=0;i<n;++i) {    
+        scan_ret=fscanf( fileHandle_p, "%d\n", &mis_marker[i]);
+        if (scan_ret!=1) {
+            Paso_setError(IO_ERROR, "Paso_Pattern_Read: Cannot read line from file.");
+	    return;
+        }
+    }
+    
+    fclose(fileHandle_p);
+    
+    /* swap to TRUE/FALSE in mis_marker */
+     #pragma omp parallel for private(i) schedule(static)
+     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]!=1);
+}
+
+
 
 void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold) {
 
@@ -157,14 +189,14 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
         max_offdiagonal = DBL_MIN;
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             if(A->pattern->index[iptr] != i){
-                  max_offdiagonal = MAX(max_offdiagonal,-A->val[iptr]);
+                  max_offdiagonal = MAX(max_offdiagonal,ABS(A->val[iptr]));
             }
         }
         
         threshold = theta*max_offdiagonal;
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             j=A->pattern->index[iptr];
-            if((-A->val[iptr])>=threshold) {
+            if(ABS(A->val[iptr])>=threshold && i!=j) {
                 Paso_IndexList_insertIndex(&(index_list[i]),j);
                 /*Paso_IndexList_insertIndex(&(index_list[j]),i);*/
             }
@@ -675,15 +707,13 @@ void Paso_Pattern_Standard(Paso_SparseMatrix* A, index_t* mis_marker, double the
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             j=A->pattern->index[iptr];
             if( j != i){
-                if(A->val[iptr]<0) {
                   max_offdiagonal = MAX(max_offdiagonal,ABS(A->val[iptr]));
-                }
             }
         }
         threshold = theta*max_offdiagonal;
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             j=A->pattern->index[iptr];
-            if(ABS(A->val[iptr])>=threshold) {
+            if(ABS(A->val[iptr])>=threshold && i!=j) {
                 Paso_IndexList_insertIndex(&(index_list[i]),j);
             }
         }
@@ -692,7 +722,6 @@ void Paso_Pattern_Standard(Paso_SparseMatrix* A, index_t* mis_marker, double the
    
   S=Paso_IndexList_createPattern(0, A->pattern->numOutput,index_list,0,A->pattern->numInput,0);
   ST=Paso_Pattern_getTranspose(S);
-  
     
   time0=Paso_timer()-time0;
   if (verbose) fprintf(stdout,"timing: RS filtering and pattern creation: %e\n",time0);
@@ -730,7 +759,7 @@ void Paso_Pattern_Standard(Paso_SparseMatrix* A, index_t* mis_marker, double the
       if(mis_marker[i]==IS_AVAILABLE) {
         lambda[i]=how_many(k,ST,FALSE);   /* if every row is available then k and i are the same.*/
         /*lambda[i]=how_many(i,S,TRUE);*/
-        /*printf("lambda[%d]=%d, k=%d ",i,lambda[i],k);*/
+        /*printf("lambda[%d]=%d, k=%d \n",i,lambda[i],k);*/
         k++;
         if(maxlambda<lambda[i]) {
             maxlambda=lambda[i];
@@ -770,6 +799,13 @@ void Paso_Pattern_Standard(Paso_SparseMatrix* A, index_t* mis_marker, double the
                 }
             }
         }
+        for (iptr=S->ptr[i];iptr<S->ptr[i+1]; ++iptr) {
+            j=S->index[iptr];
+            if(mis_marker[j]==IS_AVAILABLE) {
+                           lambda[j]--; 
+            }
+        }
+            
     }
     
    /* Used when transpose of S is not available */
