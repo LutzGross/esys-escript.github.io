@@ -79,8 +79,9 @@ NodeData::NodeData(NodeData_ptr fullNodes, IntVec& requiredNodes,
         float* c = new float[numNodes];
         coords.push_back(c);
         IndexMap::const_iterator mIt;
-        for (mIt = indexMap.begin(); mIt != indexMap.end(); mIt++)
+        for (mIt = indexMap.begin(); mIt != indexMap.end(); mIt++) {
             c[mIt->second] = origC[mIt->first];
+        }
     }
 }
 
@@ -254,7 +255,7 @@ bool NodeData::readFromNc(NcFile* ncFile)
 //
 //
 //
-const IntVec& NodeData::getVarDataByName(const std::string& name) const
+const IntVec& NodeData::getVarDataByName(const string& name) const
 {
     if (name == "Nodes_Id")
         return nodeID;
@@ -300,6 +301,12 @@ void NodeData::removeGhostNodes(int ownIndex)
     int firstId = nodeDist[ownIndex];
     int lastId = nodeDist[ownIndex+1];
 
+    // no ghost nodes
+    if (lastId-firstId == numNodes)
+        return;
+
+    // we have at most lastId-firstId nodes, it could be less however if
+    // nodes were culled already
     numNodes = lastId-firstId;
 
     CoordArray newCoords;
@@ -313,12 +320,17 @@ void NodeData::removeGhostNodes(int ownIndex)
     IntVec newNodeGDOF, newNodeGNI, newNodeGRDFI, newNodeGRNI;
 
     IndexMap nodeID2idx = getIndexMap();
-    
+    int destIdx = 0;
     for (int i=firstId; i<lastId; i++) {
-        int idx = nodeID2idx[i];
-        for (int j=0; j<numDims; j++) {
-            newCoords[j][i-firstId] = coords[j][idx];
+        IndexMap::iterator it = nodeID2idx.find(i);
+        if (it == nodeID2idx.end()) {
+            continue;
         }
+        int idx = it->second;
+        for (int dim=0; dim<numDims; dim++) {
+            newCoords[dim][destIdx] = coords[dim][idx];
+        }
+        destIdx++;
         newNodeID.push_back(i);
         newNodeTag.push_back(nodeTag[idx]);
         newNodeGDOF.push_back(nodeGDOF[idx]);
@@ -326,6 +338,8 @@ void NodeData::removeGhostNodes(int ownIndex)
         newNodeGRDFI.push_back(nodeGRDFI[idx]);
         newNodeGRNI.push_back(nodeGRNI[idx]);
     }
+
+    numNodes = destIdx;
 
     for (it = coords.begin(); it != coords.end(); it++)
         delete[] *it;

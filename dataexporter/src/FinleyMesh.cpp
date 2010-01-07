@@ -149,16 +149,8 @@ NodeData_ptr FinleyMesh::getMeshForFinleyFS(int functionSpace) const
         return result;
 
     ElementData_ptr elements = getElementsForFinleyFS(functionSpace);
-    if (elements != NULL) {
-        if (functionSpace == FINLEY_NODES)
-            result = elements->getNodeMesh();
-        else {
-            if (elements->getReducedNumElements() > 0)
-                result = elements->getReducedNodeMesh();
-            else
-                result = elements->getNodeMesh();
-        }
-    }
+    if (elements != NULL)
+        result = elements->getNodeMesh();
  
     return result;
 }
@@ -176,22 +168,31 @@ ElementData_ptr FinleyMesh::getElementsForFinleyFS(int functionSpace) const
 
     switch (functionSpace) {
         case FINLEY_NODES:
+            result = cells;
+            break;
+
         case FINLEY_REDUCED_NODES:
         case FINLEY_REDUCED_ELEMENTS:
         case FINLEY_ELEMENTS:
-            result = cells;
+            result = cells->getReducedElements();
+            if (!result)
+                result = cells;
             break;
 
         case FINLEY_REDUCED_FACE_ELEMENTS:
         case FINLEY_FACE_ELEMENTS:
-            result = faces;
+            result = faces->getReducedElements();
+            if (!result)
+                result = faces;
             break;
 
         case FINLEY_REDUCED_CONTACT_ELEMENTS_1:
         case FINLEY_REDUCED_CONTACT_ELEMENTS_2:
         case FINLEY_CONTACT_ELEMENTS_1:
         case FINLEY_CONTACT_ELEMENTS_2:
-            result = contacts;
+            result = contacts->getReducedElements();
+            if (!result)
+                result = contacts;
             break;
 
         default:
@@ -218,31 +219,6 @@ StringVec FinleyMesh::getMeshNames() const
         res.insert(res.end(), tmpVec.begin(), tmpVec.end());
     }
     return res;
-}
-
-//
-//
-//
-NodeData_ptr FinleyMesh::getMeshByName(const string& name) const
-{
-    NodeData_ptr ret;
-    if (!initialized) {
-        return ret;
-    }
-    if (name == "Elements")
-        ret = cells->getNodeMesh();
-    else if (name == "ReducedElements")
-        ret = cells->getReducedNodeMesh();
-    else if (name == "FaceElements")
-        ret = faces->getNodeMesh();
-    else if (name == "ReducedFaceElements")
-        ret = faces->getReducedNodeMesh();
-    else if (name == "ContactElements")
-        ret = contacts->getNodeMesh();
-    else if (name == "ReducedContactElements")
-        ret = contacts->getReducedNodeMesh();
-
-    return ret;
 }
 
 //
@@ -274,15 +250,15 @@ const IntVec& FinleyMesh::getVarDataByName(const string& name) const
     if (!initialized) {
         throw "Mesh not initialized";
     }
-    
-    if (name.compare(0, 6, "Nodes_") == 0)
-        return nodes->getVarDataByName(name);
-    else if (name.compare(0, 9, "Elements_") == 0)
-        return cells->getVarDataByName(name);
-    else if (name.compare(0, 13, "FaceElements_") == 0)
-        return faces->getVarDataByName(name);
-    else if (name.compare(0, 16, "ContactElements_") == 0)
+
+    if (name.find("ContactElements_") != name.npos)
         return contacts->getVarDataByName(name);
+    else if (name.find("FaceElements_") != name.npos)
+        return faces->getVarDataByName(name);
+    else if (name.find("Elements_") != name.npos)
+        return cells->getVarDataByName(name);
+    else if (name.find("Nodes_") != name.npos)
+        return nodes->getVarDataByName(name);
     else
         throw "Invalid variable name";
 }
@@ -293,12 +269,33 @@ const IntVec& FinleyMesh::getVarDataByName(const string& name) const
 ElementData_ptr FinleyMesh::getElementsByName(const string& name) const
 {
     ElementData_ptr ret;
-    if (name == "Elements" || name == "ReducedElements")
+    if (name == "Elements")
         ret = cells;
-    else if (name == "FaceElements" || name == "ReducedFaceElements")
+    else if (name == "ReducedElements")
+        ret = cells->getReducedElements();
+    else if (name == "FaceElements")
         ret = faces;
-    else if (name == "ContactElements" || name == "ReducedContactElements")
+    else if (name == "ReducedFaceElements")
+        ret = faces->getReducedElements();
+    else if (name == "ContactElements")
         ret = contacts;
+    else if (name == "ReducedContactElements")
+        ret = contacts->getReducedElements();
+
+    return ret;
+}
+
+//
+//
+//
+NodeData_ptr FinleyMesh::getMeshByName(const string& name) const
+{
+    NodeData_ptr ret;
+    if (initialized) {
+        ElementData_ptr els = getElementsByName(name);
+        if (els)
+            ret = els->getNodeMesh();
+    }
 
     return ret;
 }
@@ -314,12 +311,9 @@ void FinleyMesh::reorderGhostZones(int ownIndex)
         contacts->reorderGhostZones(ownIndex);
 #ifdef _DEBUG
         cout << "block " << ownIndex << " has " << cells->getGhostCount()
-             << " (reduced=" << cells->getReducedGhostCount()
-             << ") ghost zones," << endl;
-        cout << "\t" << faces->getGhostCount() << " ("
-             << faces->getReducedGhostCount() << ") ghost faces," << endl;
-        cout << "\t" << contacts->getGhostCount() << " ("
-             << contacts->getReducedGhostCount() << ") ghost contacts." << endl;
+             << " ghost zones," << endl;
+        cout << "\t" << faces->getGhostCount() << " ghost faces," << endl;
+        cout << "\t" << contacts->getGhostCount() << " ghost contacts." << endl;
 #endif
     }
 }

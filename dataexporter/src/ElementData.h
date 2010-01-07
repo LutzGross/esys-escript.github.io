@@ -16,6 +16,7 @@
 
 #include <escriptexport/escriptexport.h>
 #include <finley/ReferenceElements.h> // for ElementTypeId
+#include <finley/vtkCellType.h>
 
 class DBfile;
 class NcFile;
@@ -27,12 +28,12 @@ namespace escriptexport {
 class NodeData;
 
 typedef enum {
-    ZONETYPE_BEAM=1,
-    ZONETYPE_HEX,
-    ZONETYPE_POLYGON,
-    ZONETYPE_QUAD,
-    ZONETYPE_TET,
-    ZONETYPE_TRIANGLE
+    ZONETYPE_BEAM=VTK_LINE,
+    ZONETYPE_HEX=VTK_HEXAHEDRON,
+    ZONETYPE_POLYGON=VTK_POLYGON,
+    ZONETYPE_QUAD=VTK_QUAD,
+    ZONETYPE_TET=VTK_TETRA,
+    ZONETYPE_TRIANGLE=VTK_TRIANGLE
 } ZoneType;
 
 /// \brief Holds information that is used to convert from finley element types
@@ -107,41 +108,21 @@ public:
     ESCRIPTEXPORT_DLL_API
     int getNumElements() const { return numElements; }
 
-    /// \brief Returns the number of reduced elements.
-    ESCRIPTEXPORT_DLL_API
-    int getReducedNumElements() const { return reducedNumElements; }
-
     /// \brief Returns the number of nodes per element.
     ESCRIPTEXPORT_DLL_API
     int getNodesPerElement() const { return nodesPerElement; }
-
-    /// \brief Returns the number of nodes per reduced element.
-    ESCRIPTEXPORT_DLL_API
-    int getReducedNodesPerElement() const { return reducedNodesPerElement; }
 
     /// \brief Returns the number of "ghost" elements.
     ESCRIPTEXPORT_DLL_API
     int getGhostCount() const { return numGhostElements; }
 
-    /// \brief Returns the number of "ghost" reduced elements.
-    ESCRIPTEXPORT_DLL_API
-    int getReducedGhostCount() const { return numReducedGhostElements; }
-
     /// \brief Returns the type of the elements.
     ESCRIPTEXPORT_DLL_API
     ZoneType getType() const { return type; }
 
-    /// \brief Returns the type of reduced elements.
-    ESCRIPTEXPORT_DLL_API
-    ZoneType getReducedType() const { return reducedType; }
-
     /// \brief Returns a vector of the node IDs used by the elements.
     ESCRIPTEXPORT_DLL_API
     const IntVec& getNodeList() const { return nodes; }
-
-    /// \brief Returns a vector of the node IDs used by the reduced elements.
-    ESCRIPTEXPORT_DLL_API
-    const IntVec& getReducedNodeList() const { return reducedNodes; }
 
     /// \brief Returns a vector of element IDs.
     ESCRIPTEXPORT_DLL_API
@@ -159,35 +140,33 @@ public:
 
     /// \brief Returns the node mesh instance used by the elements.
     ESCRIPTEXPORT_DLL_API
-    NodeData_ptr getNodeMesh() const { return fullMesh; }
+    NodeData_ptr getNodeMesh() const { return nodeMesh; }
 
-    /// \brief Returns the node mesh instance used by the reduced elements.
+    /// \brief Returns the reduced elements.
     ESCRIPTEXPORT_DLL_API
-    NodeData_ptr getReducedNodeMesh() const { return reducedMesh; }
+    ElementData_ptr getReducedElements() const { return reducedElements; }
  
 private:
     ElementData() {}
     FinleyElementInfo getFinleyTypeInfo(ElementTypeId typeId);
     void buildMeshes();
     void buildReducedElements(const FinleyElementInfo& f);
-    void prepareGhostIndices(int ownIndex, IntVec& indexArray,
-                             IntVec& reducedIndexArray);
+    IntVec prepareGhostIndices(int ownIndex);
     void reorderArray(IntVec& v, const IntVec& idx, int elementsPerIndex);
 
+    ElementData_ptr reducedElements;
+    NodeData_ptr nodeMesh;
+    NodeData_ptr originalMesh;
     std::string name;
-    int numElements, reducedNumElements;
-    int numGhostElements, numReducedGhostElements;
-    NodeData_ptr fullMesh;
-    NodeData_ptr reducedMesh;
-    NodeData_ptr originalNodes;
-    bool fullMeshIsOriginalMesh;
-
+    int numElements;
+    int numGhostElements;
     int numDims;
-    ZoneType type, reducedType;
-    int nodesPerElement, reducedNodesPerElement;
-    IntVec nodes, reducedNodes;
+    int nodesPerElement;
+    bool nodeMeshIsOriginalMesh;
+    ZoneType type;
+    IntVec nodes;
     IntVec color, ID, tag;
-    IntVec owner, reducedOwner;
+    IntVec owner;
 };
 
 
