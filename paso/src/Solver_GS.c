@@ -77,8 +77,9 @@ Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A,bool_t verbose) {
 
           if (! (Paso_checkPtr(out->diag))) {
              if (n_block==1) {
-                #pragma omp parallel for private(i, iPtr) schedule(static)
+                #pragma omp parallel for private(i,iPtr,iptr_main) schedule(static)
                 for (i = 0; i < A->pattern->numOutput; i++) {
+                   iptr_main=0; 
                    out->diag[i]=1.;
                    /* find main diagonal */
                    for (iPtr = A->pattern->ptr[i]; iPtr < A->pattern->ptr[i + 1]; iPtr++) {
@@ -91,12 +92,13 @@ Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A,bool_t verbose) {
                    out->main_iptr[i]=iptr_main;
                 }
              } else if (n_block==2) {
-                #pragma omp parallel for private(i, iPtr) schedule(static)
+                #pragma omp parallel for private(i,iPtr,iptr_main) schedule(static)
                 for (i = 0; i < A->pattern->numOutput; i++) {
                    out->diag[i*4+0]= 1.;
                    out->diag[i*4+1]= 0.;
                    out->diag[i*4+2]= 0.;
                    out->diag[i*4+3]= 1.;
+                   iptr_main=0;
                    /* find main diagonal */
                    for (iPtr = A->pattern->ptr[i]; iPtr < A->pattern->ptr[i + 1]; iPtr++) {
                        if (A->pattern->index[iPtr]==i) {
@@ -111,7 +113,7 @@ Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A,bool_t verbose) {
                    out->main_iptr[i]=iptr_main;
                 }  
              } else if (n_block==3) {
-                #pragma omp parallel for private(i, iPtr) schedule(static)
+                #pragma omp parallel for private(i, iPtr,iptr_main) schedule(static)
                 for (i = 0; i < A->pattern->numOutput; i++) {
                    out->diag[i*9  ]=1.;
                    out->diag[i*9+1]=0.;
@@ -122,6 +124,7 @@ Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A,bool_t verbose) {
                    out->diag[i*9+6]=0.;
                    out->diag[i*9+7]=0.;
                    out->diag[i*9+8]=1.;
+                   iptr_main=0;
                    /* find main diagonal */
                    for (iPtr = A->pattern->ptr[i]; iPtr < A->pattern->ptr[i + 1]; iPtr++) {
                        if (A->pattern->index[iPtr]==i) {
