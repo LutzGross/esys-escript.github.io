@@ -46,5 +46,6 @@ dim_t how_many(dim_t i,Paso_Pattern * S, bool_t transpose);
 dim_t arg_max(dim_t n, dim_t* lambda, dim_t mask);
 Paso_Pattern* Paso_Pattern_getTranspose(Paso_Pattern* P);
 void Paso_Pattern_getReport(dim_t n,index_t* mis_marker);
+void Paso_Pattern_Read(char *fileName,dim_t n,index_t* mis_marker);
 
 #endif 
