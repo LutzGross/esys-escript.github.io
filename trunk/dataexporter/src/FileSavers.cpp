@@ -51,7 +51,14 @@ void saveSilo(const string& filename, int cycle, double time,
 
     unpackDict(datavars, vars, varNames);
 
-    EscriptDataset_ptr dataset = EscriptDataset_ptr(new EscriptDataset());
+    EscriptDataset_ptr dataset;
+#ifdef PASO_MPI
+    MPI_Comm comm = domain->getMPIComm();
+    dataset.reset(new EscriptDataset(comm));
+#else
+    dataset.reset(new EscriptDataset());
+#endif
+
     if (!dataset->initFromEscript(domain, vars, varNames))
         throw escript::DataException("saveSilo: Error initialising dataset. No Silo support?!");
 
