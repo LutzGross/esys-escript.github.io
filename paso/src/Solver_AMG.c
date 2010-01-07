@@ -242,11 +242,11 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
         }
         else {
            /*Default coarseneing*/
-            /*Paso_Pattern_Standard(A_p,mis_marker,options->coarsening_threshold);*/
+            Paso_Pattern_Standard(A_p,mis_marker,options->coarsening_threshold);
             /*Paso_Pattern_Read("RS.spl",n,mis_marker);*/
             /*Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);*/
             /*Paso_Pattern_greedy_Agg(A_p,mis_marker,options->coarsening_threshold);*/
-            Paso_Pattern_greedy(A_p->pattern,mis_marker);
+            /*Paso_Pattern_greedy(A_p->pattern,mis_marker);*/
             /*Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);*/
             
         }
