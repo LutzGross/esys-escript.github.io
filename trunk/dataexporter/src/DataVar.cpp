@@ -176,30 +176,30 @@ bool DataVar::initFromMesh(FinleyMesh_ptr mesh)
         for (it=data.begin(); it != data.end(); it++)
             *c++ = static_cast<float>(*it);
 
-        if (varName.compare(0, 6, "Nodes_") == 0) {
-            funcSpace = FINLEY_NODES;
-            centering = NODE_CENTERED;
-            sampleID.insert(sampleID.end(),
-                    mesh->getNodes()->getNodeIDs().begin(),
-                    mesh->getNodes()->getNodeIDs().end());
-        } else if (varName.compare(0, 9, "Elements_") == 0) {
-            funcSpace = FINLEY_ELEMENTS;
-            centering = ZONE_CENTERED;
-            sampleID.insert(sampleID.end(),
-                    mesh->getElements()->getIDs().begin(),
-                    mesh->getElements()->getIDs().end());
-        } else if (varName.compare(0, 13, "FaceElements_") == 0) {
-            funcSpace = FINLEY_FACE_ELEMENTS;
-            centering = ZONE_CENTERED;
-            sampleID.insert(sampleID.end(),
-                    mesh->getFaceElements()->getIDs().begin(),
-                    mesh->getFaceElements()->getIDs().end());
-        } else if (varName.compare(0, 16, "ContactElements_") == 0) {
+        if (varName.find("ContactElements_") != varName.npos) {
             funcSpace = FINLEY_CONTACT_ELEMENTS_1;
             centering = ZONE_CENTERED;
             sampleID.insert(sampleID.end(),
                     mesh->getContactElements()->getIDs().begin(),
                     mesh->getContactElements()->getIDs().end());
+        } else if (varName.find("FaceElements_") != varName.npos) {
+            funcSpace = FINLEY_FACE_ELEMENTS;
+            centering = ZONE_CENTERED;
+            sampleID.insert(sampleID.end(),
+                    mesh->getFaceElements()->getIDs().begin(),
+                    mesh->getFaceElements()->getIDs().end());
+        } else if (varName.find("Elements_") != varName.npos) {
+            funcSpace = FINLEY_ELEMENTS;
+            centering = ZONE_CENTERED;
+            sampleID.insert(sampleID.end(),
+                    mesh->getElements()->getIDs().begin(),
+                    mesh->getElements()->getIDs().end());
+        } else if (varName.find("Nodes_") != varName.npos) {
+            funcSpace = FINLEY_NODES;
+            centering = NODE_CENTERED;
+            sampleID.insert(sampleID.end(),
+                    mesh->getNodes()->getNodeIDs().begin(),
+                    mesh->getNodes()->getNodeIDs().end());
         } else {
             return false;
         }
@@ -385,11 +385,7 @@ bool DataVar::filterSamples(FinleyMesh_ptr finleyMesh)
 
         id2idxMap = cells->getIndexMap();
         requiredIDs = &cells->getIDs();
-        if (cells->getReducedNumElements() > 0) {
-            requiredNumSamples = cells->getReducedNumElements();
-        } else {
-            requiredNumSamples = cells->getNumElements();
-        }
+        requiredNumSamples = cells->getNumElements();
     }
 
     if (requiredNumSamples > numSamples) {

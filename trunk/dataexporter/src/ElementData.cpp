@@ -98,9 +98,8 @@ namespace escriptexport {
 // Constructor
 //
 ElementData::ElementData(const string& elementName, NodeData_ptr nodeData)
-    : name(elementName), numElements(0), reducedNumElements(0),
-    numGhostElements(0), numReducedGhostElements(0), originalNodes(nodeData),
-    fullMeshIsOriginalMesh(false)
+    : originalMesh(nodeData), name(elementName), numElements(0),
+      numGhostElements(0), nodeMeshIsOriginalMesh(false)
 {
 }
 
@@ -111,32 +110,25 @@ ElementData::ElementData(const ElementData& e)
 {
     name = e.name;
     numElements = e.numElements;
-    reducedNumElements = e.reducedNumElements;
     numGhostElements = e.numGhostElements;
-    numReducedGhostElements = e.numReducedGhostElements;
     numDims = e.numDims;
     type = e.type;
-    reducedType = e.reducedType;
     nodesPerElement = e.nodesPerElement;
-    reducedNodesPerElement = e.reducedNodesPerElement;
-
-    originalNodes = e.originalNodes;
-    fullMeshIsOriginalMesh = e.fullMeshIsOriginalMesh;
-    if (fullMeshIsOriginalMesh)
-        fullMesh = originalNodes;
-    else if (e.fullMesh)
-        fullMesh = NodeData_ptr(new NodeData(*e.fullMesh));
-
-    if (e.reducedMesh)
-        reducedMesh = NodeData_ptr(new NodeData(*e.reducedMesh));
+    originalMesh = e.originalMesh;
+    nodeMeshIsOriginalMesh = e.nodeMeshIsOriginalMesh;
+    if (nodeMeshIsOriginalMesh)
+        nodeMesh = originalMesh;
+    else if (e.nodeMesh)
+        nodeMesh = NodeData_ptr(new NodeData(*e.nodeMesh));
 
     nodes = e.nodes;
-    reducedNodes = e.reducedNodes;
     ID = e.ID;
     color = e.color;
     tag = e.tag;
     owner = e.owner;
-    reducedOwner = e.reducedOwner;
+
+    if (e.reducedElements)
+        reducedElements = ElementData_ptr(new ElementData(*e.reducedElements));
 }
 
 //
@@ -184,7 +176,6 @@ bool ElementData::initFromFinley(const Finley_ElementFile* finleyFile)
             referenceElement->Type->TypeId;
         FinleyElementInfo f = getFinleyTypeInfo(tid);
         type = f.elementType;
-        reducedType = f.reducedElementType;
         if (f.elementFactor > 1 || f.reducedElementSize != nodesPerElement)
             buildReducedElements(f);
 
@@ -196,10 +187,13 @@ bool ElementData::initFromFinley(const Finley_ElementFile* finleyFile)
 StringVec ElementData::getMeshNames() const
 {
     StringVec res;
-    if (fullMesh && !fullMeshIsOriginalMesh)
-        res.push_back(fullMesh->getName());
-    if (reducedMesh)
-        res.push_back(reducedMesh->getName());
+    if (nodeMesh && !nodeMeshIsOriginalMesh)
+        res.push_back(nodeMesh->getName());
+    if (reducedElements) {
+        StringVec rNames = reducedElements->getMeshNames();
+        if (rNames.size() > 0)
+            res.insert(res.end(), rNames.begin(), rNames.end());
+    }
     return res;
 }
 
@@ -212,6 +206,11 @@ StringVec ElementData::getVarNames() const
         res.push_back(name + string("_Owner"));
         res.push_back(name + string("_Tag"));
     }
+    if (reducedElements) {
+        StringVec rNames = reducedElements->getVarNames();
+        if (rNames.size() > 0)
+            res.insert(res.end(), rNames.begin(), rNames.end());
+    }
     return res;
 }
 
@@ -222,12 +221,11 @@ const IntVec& ElementData::getVarDataByName(const string varName) const
     else if (varName == name+string("_Id"))
         return ID;
     else if (varName == name+string("_Owner")) {
-        if (reducedNumElements > 0)
-            return reducedOwner;
-        else
-            return owner;
+        return owner;
     } else if (varName == name+string("_Tag"))
         return tag;
+    else if (reducedElements)
+        return reducedElements->getVarDataByName(varName);
     else
         throw "Invalid variable name";
 }
@@ -273,7 +271,6 @@ bool ElementData::readFromNc(NcFile* ncfile)
         att = ncfile->get_att((name + string("_TypeId")).c_str());
         FinleyElementInfo f = getFinleyTypeInfo((ElementTypeId)att->as_int(0));
         type = f.elementType;
-        reducedType = f.reducedElementType;
 
         if (f.elementFactor > 1 || f.reducedElementSize != nodesPerElement)
             buildReducedElements(f);
@@ -315,44 +312,69 @@ void ElementData::reorderArray(IntVec& v, const IntVec& idx,
 //
 void ElementData::buildReducedElements(const FinleyElementInfo& f)
 {
-    reducedNodes.clear();
-    reducedNodes.insert(reducedNodes.end(),
-            f.reducedElementSize*numElements, 0);
+    // create the node list for the new element type
+    IntVec reducedNodes(f.reducedElementSize*numElements, 0);
+
     IntVec::iterator reducedIt = reducedNodes.begin();
     IntVec::const_iterator origIt;
     for (origIt=nodes.begin(); origIt!=nodes.end();
          origIt+=nodesPerElement)
     {
-        std::copy(origIt, origIt+f.reducedElementSize, reducedIt);
+        copy(origIt, origIt+f.reducedElementSize, reducedIt);
         reducedIt += f.reducedElementSize;
     }
 
-    // Remove comment to save disk space - we don't really need the full
-    // elements except for the main mesh
-    if (f.elementFactor > 1 /*&& name == "Elements"*/) {
-        // replace each element by multiple smaller ones
+    if (f.elementFactor > 1) {
+        // replace each element by multiple smaller ones which will be the
+        // new 'full' elements, whereas the original ones are the reduced
+        // elements, e.g.:
+        //
+        // new reduced:         new full:
+        //   _________           _________
+        //  |         |         |    |    |
+        //  |         |    >    |____|____|
+        //  |         |    >    |    |    |
+        //  |_________|         |____|____|
+        //
+
+        // create the reduced elements which are basically a copy of the
+        // current elements
+        reducedElements = ElementData_ptr(new ElementData(
+                    "Reduced"+name, originalMesh));
+        reducedElements->nodes = reducedNodes;
+        reducedElements->numElements = numElements;
+        reducedElements->type = f.reducedElementType;
+        reducedElements->nodesPerElement = f.reducedElementSize;
+        reducedElements->owner = owner;
+        reducedElements->color = color;
+        reducedElements->ID = ID;
+        reducedElements->tag = tag;
+
+        // now update full element data
         IntVec fullNodes(f.elementSize*f.elementFactor*numElements);
         IntVec::iterator cellIt = fullNodes.begin();
 
-        // copy owner data
-        owner.swap(reducedOwner);
         owner.clear();
+        color.clear();
+        ID.clear();
+        tag.clear();
         for (int i=0; i < numElements; i++) {
-            owner.insert(owner.end(), f.elementFactor, reducedOwner[i]);
+            owner.insert(owner.end(), f.elementFactor, reducedElements->owner[i]);
+            color.insert(color.end(), f.elementFactor, reducedElements->color[i]);
+            ID.insert(ID.end(), f.elementFactor, reducedElements->ID[i]);
+            tag.insert(tag.end(), f.elementFactor, reducedElements->tag[i]);
             for (int j=0; j < f.elementFactor*f.elementSize; j++)
-                *cellIt++ = nodes[
-                    nodesPerElement*i+f.multiCellIndices[j]];
+                *cellIt++ = nodes[nodesPerElement*i+f.multiCellIndices[j]];
         }
+
         nodes.swap(fullNodes);
-        reducedNumElements = numElements;
-        reducedNodesPerElement = f.reducedElementSize;
         nodesPerElement = f.elementSize;
         numElements *= f.elementFactor;
+
     } else {
-        // we only keep the reduced elements but treat them as regular
-        // ones, so replace the data accordingly
+        // we merely converted element types and don't need reduced elements
+        // so just replace node list and type
         nodes.swap(reducedNodes);
-        reducedNodes.clear();
         nodesPerElement = f.reducedElementSize;
         type = f.reducedElementType;
     }
@@ -361,35 +383,25 @@ void ElementData::buildReducedElements(const FinleyElementInfo& f)
 //
 //
 //
-void ElementData::prepareGhostIndices(int ownIndex, IntVec& indexArray,
-                                      IntVec& reducedIndexArray)
+IntVec ElementData::prepareGhostIndices(int ownIndex)
 {
-    indexArray.clear();
-    reducedIndexArray.clear();
+    IntVec indexArray;
     numGhostElements = 0;
-    numReducedGhostElements = 0;
     
     // move indices of "ghost zones" to the end to be able to reorder
     // data accordingly
-    for (int i=0; i<numElements; i++)
+    for (int i=0; i<numElements; i++) {
         if (owner[i] == ownIndex)
             indexArray.push_back(i);
+    }
 
-    for (int i=0; i<numElements; i++)
+    for (int i=0; i<numElements; i++) {
         if (owner[i] != ownIndex) {
             numGhostElements++;
             indexArray.push_back(i);
         }
-
-    for (int i=0; i<reducedNumElements; i++)
-        if (reducedOwner[i] == ownIndex)
-            reducedIndexArray.push_back(i);
-
-    for (int i=0; i<reducedNumElements; i++)
-        if (reducedOwner[i] != ownIndex) {
-            numReducedGhostElements++;
-            reducedIndexArray.push_back(i);
-        }
+    }
+    return indexArray;
 }
 
 //
@@ -397,27 +409,19 @@ void ElementData::prepareGhostIndices(int ownIndex, IntVec& indexArray,
 //
 void ElementData::reorderGhostZones(int ownIndex)
 {
-    IntVec indexArray, reducedIndexArray;
-    prepareGhostIndices(ownIndex, indexArray, reducedIndexArray);
+    IntVec indexArray = prepareGhostIndices(ownIndex);
 
     // move "ghost data" to the end of the arrays
     if (numGhostElements > 0) {
         reorderArray(nodes, indexArray, nodesPerElement);
         reorderArray(owner, indexArray, 1);
-        if (reducedNumElements == 0) {
-            reorderArray(color, indexArray, 1);
-            reorderArray(ID, indexArray, 1);
-            reorderArray(tag, indexArray, 1);
-        }
+        reorderArray(color, indexArray, 1);
+        reorderArray(ID, indexArray, 1);
+        reorderArray(tag, indexArray, 1);
     }
 
-    if (numReducedGhostElements > 0) {
-        reorderArray(reducedNodes, reducedIndexArray, reducedNodesPerElement);
-        reorderArray(reducedOwner, reducedIndexArray, 1);
-        reorderArray(color, reducedIndexArray, 1);
-        reorderArray(ID, reducedIndexArray, 1);
-        reorderArray(tag, reducedIndexArray, 1);
-    }
+    if (reducedElements)
+        reducedElements->reorderGhostZones(ownIndex);
 }
 
 //
@@ -431,28 +435,18 @@ void ElementData::removeGhostZones(int ownIndex)
         numElements -= numGhostElements;
         nodes.resize(numElements*nodesPerElement);
         owner.resize(numElements);
-        if (reducedNumElements == 0) {
-            color.resize(numElements);
-            ID.resize(numElements);
-            tag.resize(numElements);
-        }
+        color.resize(numElements);
+        ID.resize(numElements);
+        tag.resize(numElements);
         numGhostElements = 0;
     }
 
-    if (numReducedGhostElements > 0) {
-        reducedNumElements -= numReducedGhostElements;
-        reducedNodes.resize(reducedNumElements*reducedNodesPerElement);
-        reducedOwner.resize(reducedNumElements);
-        color.resize(reducedNumElements);
-        ID.resize(reducedNumElements);
-        tag.resize(reducedNumElements);
-        numReducedGhostElements = 0;
-    }
     buildMeshes();
     if (numElements > 0)
-        fullMesh->removeGhostNodes(ownIndex);
-    if (reducedNumElements > 0)
-        reducedMesh->removeGhostNodes(ownIndex);
+        nodeMesh->removeGhostNodes(ownIndex);
+
+    if (reducedElements)
+        reducedElements->removeGhostZones(ownIndex);
 }
 
 //
@@ -462,23 +456,20 @@ void ElementData::buildMeshes()
 {
     // build a new mesh containing only the required nodes
     if (numElements > 0) {
-        fullMesh = NodeData_ptr(new NodeData(originalNodes, nodes, name));
-
+        if (nodeMesh) {
+            NodeData_ptr newMesh(new NodeData(nodeMesh, nodes, name));
+            nodeMesh.swap(newMesh);
+        } else {
+            nodeMesh.reset(new NodeData(originalMesh, nodes, name));
+        }
 #ifdef _DEBUG
-        cout << fullMesh->getName() << " has " << fullMesh->getNumNodes()
-            << " nodes, " << numElements << " elements" << endl;
+        cout << nodeMesh->getName() << " has " << nodeMesh->getNumNodes()
+            << " nodes and " << numElements << " elements" << endl;
 #endif
     }
 
-    // build a reduced mesh if necessary
-    if (reducedNumElements > 0) {
-        reducedMesh = NodeData_ptr(new NodeData(
-                    originalNodes, reducedNodes, "Reduced"+name));
-#ifdef _DEBUG
-        cout << reducedMesh->getName() << " has " << newIdx
-            << " nodes, " << reducedNumElements << " elements" << endl;
-#endif
-    }
+    if (reducedElements)
+        reducedElements->buildMeshes();
 }
 
 #if USE_SILO
@@ -508,8 +499,6 @@ bool ElementData::writeToSilo(DBfile* dbfile, const string& siloPath)
     if (numElements == 0)
         return true;
 
-    int numCells;
-    string varName, siloMeshNameStr;
     int ret;
 
     if (siloPath != "") {
@@ -519,86 +508,67 @@ bool ElementData::writeToSilo(DBfile* dbfile, const string& siloPath)
     }
 
     // write out the full mesh in any case
-    fullMesh->setSiloPath(siloPath);
-    siloMeshNameStr = fullMesh->getFullSiloName();
+    nodeMesh->setSiloPath(siloPath);
+    string siloMeshNameStr = nodeMesh->getFullSiloName();
     const char* siloMeshName = siloMeshNameStr.c_str();
     int arraylen = numElements * nodesPerElement;
     int eltype = toSiloElementType(type);
 
-    varName = name + string("_zones");
+    string varName = name + string("_zones");
     ret = DBPutZonelist2(dbfile, varName.c_str(), numElements,
-            fullMesh->getNumDims(), &nodes[0], arraylen, 0, 0,
+            nodeMesh->getNumDims(), &nodes[0], arraylen, 0, 0,
             numGhostElements, &eltype, &nodesPerElement, &numElements, 1, NULL);
     if (ret == 0) {
-        CoordArray& coordbase = const_cast<CoordArray&>(fullMesh->getCoords());
+        CoordArray& coordbase = const_cast<CoordArray&>(nodeMesh->getCoords());
         ret = DBPutUcdmesh(dbfile, siloMeshName,
-                fullMesh->getNumDims(), NULL, &coordbase[0],
-                fullMesh->getNumNodes(), numElements, varName.c_str(),
+                nodeMesh->getNumDims(), NULL, &coordbase[0],
+                nodeMesh->getNumNodes(), numElements, varName.c_str(),
                 /*"facelist"*/NULL, DB_FLOAT, NULL);
     }
     
     // Point mesh is useful for debugging
     if (0) {
-        CoordArray& coordbase = const_cast<CoordArray&>(fullMesh->getCoords());
-        DBPutPointmesh(dbfile, "/pointmesh",
-              originalNodes->getNumDims(), &coordbase[0],
-              fullMesh->getNumNodes(), DB_FLOAT, NULL);
+        CoordArray& coordbase = const_cast<CoordArray&>(nodeMesh->getCoords());
+        DBPutPointmesh(dbfile, "/pointmesh", nodeMesh->getNumDims(),
+                &coordbase[0], nodeMesh->getNumNodes(), DB_FLOAT, NULL);
     }
 
     if (ret != 0)
         return false;
 
-    // decide whether to additionally write out the reduced mesh
-    if (reducedNumElements > 0) {
-        reducedMesh->setSiloPath(siloPath);
-        siloMeshNameStr = reducedMesh->getFullSiloName();
-        siloMeshName = siloMeshNameStr.c_str();
-        arraylen = reducedNumElements * reducedNodesPerElement;
-        eltype = toSiloElementType(reducedType);
-        varName = string("Reduced") + name + string("_zones");
-        ret = DBPutZonelist2(dbfile, varName.c_str(), reducedNumElements,
-                originalNodes->getNumDims(), &reducedNodes[0], arraylen, 0, 0,
-                numReducedGhostElements, &eltype, &reducedNodesPerElement,
-                &reducedNumElements, 1, NULL);
-        if (ret == 0) {
-            CoordArray& coordbase = const_cast<CoordArray&>(reducedMesh->getCoords());
-            ret = DBPutUcdmesh(dbfile, siloMeshName,
-                   reducedMesh->getNumDims(), NULL, &coordbase[0],
-                   reducedMesh->getNumNodes(), reducedNumElements, varName.c_str(),
-                   NULL, DB_FLOAT, NULL);
-        }
-        if (ret != 0)
-            return false;
-        numCells = reducedNumElements;
-    } else {
-        numCells = numElements;
-    }
-
-    // finally, write out the element-centered variables on the correct mesh
+    // write out the element-centered variables
     varName = name + string("_Color");
     ret = DBPutUcdvar1(dbfile, varName.c_str(), siloMeshName,
-            (float*)&color[0], numCells, NULL, 0, DB_INT, DB_ZONECENT, NULL);
+            (float*)&color[0], numElements, NULL, 0, DB_INT, DB_ZONECENT,
+            NULL);
     if (ret == 0) {
         varName = name + string("_Id");
         ret = DBPutUcdvar1(dbfile, varName.c_str(), siloMeshName,
-            (float*)&ID[0], numCells, NULL, 0, DB_INT, DB_ZONECENT, NULL);
+            (float*)&ID[0], numElements, NULL, 0, DB_INT, DB_ZONECENT,
+            NULL);
     }
     if (ret == 0) {
         varName = name + string("_Owner");
         ret = DBPutUcdvar1(dbfile, varName.c_str(), siloMeshName,
-            (float*)&owner[0], numCells, NULL, 0, DB_INT, DB_ZONECENT, NULL);
+            (float*)&owner[0], numElements, NULL, 0, DB_INT, DB_ZONECENT,
+            NULL);
     }
     if (ret == 0) {
         varName = name + string("_Tag");
         ret = DBPutUcdvar1(dbfile, varName.c_str(), siloMeshName,
-            (float*)&tag[0], numCells, NULL, 0, DB_INT, DB_ZONECENT, NULL);
+            (float*)&tag[0], numElements, NULL, 0, DB_INT, DB_ZONECENT,
+            NULL);
     }
 
+    if (reducedElements) {
+        reducedElements->writeToSilo(dbfile, siloPath);
+    }
+
+    // "Elements" is a special case
     if (name == "Elements") {
-        fullMesh->writeToSilo(dbfile);
+        nodeMesh->writeToSilo(dbfile);
     }
 
-    DBSetDir(dbfile, "/");
     return (ret == 0);
 
 #else // !USE_SILO
