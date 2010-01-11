@@ -188,10 +188,10 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      if (verbose) fprintf(stdout,"Stats: Sparsity of the Coarse Matrix with %d non-zeros (%d,%d) in level %d is %.6f\n",A_p->len,A_p->numRows,A_p->numCols,level,sparsity);
      
     
-     /*if(sparsity>0.01) {
+     if(sparsity>0.5) {
       level=0;
      }
-     */
+     
          
      if (level==0 || n<=options->min_coarse_matrix_size) {
          out->coarsest_level=TRUE;
