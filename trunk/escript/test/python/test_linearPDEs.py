@@ -643,10 +643,12 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_SolverOptions(self):
         so=SolverOptions()
         
-        self.failUnless(so.getSmoother() == 10, "initial Smoother is wrong.")
+        self.failUnless(so.getSmoother() == 28, "initial Smoother is wrong.")
         self.failUnlessRaises(ValueError,so.setSmoother,-1)
         so.setSmoother(so.GAUSS_SEIDEL)
         self.failUnless(so.getSmoother() == 28, "Gauss-Seidel smoother is not set.")
+        so.setSmoother(so.JACOBI)
+        self.failUnless(so.getSmoother() == 10, "Jacobi smoother is not set.")
 
         self.failUnless(so.getLevelMax() == 3, "initial  LevelMax is wrong.")
         self.failUnlessRaises(ValueError,so.setLevelMax,-1)

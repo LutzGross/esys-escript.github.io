@@ -428,7 +428,7 @@ class SolverOptions(object):
                                     `SolverOptions.NO_PRECONDITIONER`
         """
         return self.__preconditioner
-    def setSmoother(self, smoother=10):
+    def setSmoother(self, smoother=28):
         """
         Sets the smoother to be used. 
 
@@ -436,7 +436,7 @@ class SolverOptions(object):
         :type smoother: in `SolverOptions.JACOBI`, `SolverOptions.GAUSS_SEIDEL`
         :note: Not all packages support all smoothers. It can be assumed that a package makes a reasonable choice if it encounters an unknown smoother. 
         """
-	if smoother==None: smoother=10
+	if smoother==None: smoother=28
         if not smoother in [ SolverOptions.JACOBI, SolverOptions.GAUSS_SEIDEL ] :
              raise ValueError,"unknown smoother %s"%preconditioner
         self.__smoother=smoother    
