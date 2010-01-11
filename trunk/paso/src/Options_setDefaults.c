@@ -52,7 +52,7 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->post_sweeps=2;
   options->coarsening_threshold=0.25;
   options->min_coarse_matrix_size=500;
-  options->level_max=3;
+  options->level_max=10;
   options->accept_failed_convergence=FALSE;
   options->coarsening_method=PASO_DEFAULT;
   options->relaxation_factor=0.95;
