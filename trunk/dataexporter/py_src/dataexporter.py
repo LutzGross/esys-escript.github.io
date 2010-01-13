@@ -24,6 +24,7 @@ def __checkAndFilterData(domain, data):
     # function space and ensure all data is defined on same domain
     from esys.escript import Solution, ReducedSolution
     from esys.escript import ContinuousFunction, ReducedContinuousFunction
+    from esys.escript.util import interpolate
     new_data={}
     for n,d in data.items():
         if not d.isEmpty():
