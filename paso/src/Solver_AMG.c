@@ -413,8 +413,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                                         
                     /*Paso_Solver_getCoarseMatrix(A_c, A_p,out->R,out->P);*/
                     
-                    /*
-                    sprintf(filename,"A_C_%d",level);
+                    
+                    /*sprintf(filename,"A_C_%d",level);
                     Paso_SparseMatrix_saveMM(A_c,filename);
                     */
                      
@@ -519,7 +519,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
       }
        else {
        #ifdef MKL
-          Paso_MKL1(amg->AOffset1,x,b,verbose);
+          Paso_MKL1(amg->AOffset1,x,b,timing);
        #else
           #ifdef UMFPACK
              ptr=(Paso_UMFPACK_Handler *)(amg->solver);
