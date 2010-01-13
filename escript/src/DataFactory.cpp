@@ -50,12 +50,40 @@ Vector(double value,
 }
 
 Data
+VectorFromObj(boost::python::object o,
+	const FunctionSpace& what,
+	bool expanded)
+{
+    DataTypes::ShapeType shape(1,what.getDomain()->getDim());
+    Data d(o,what,expanded);
+    if (d.getDataPointShape()!=shape)
+    {
+	throw DataException("VectorFromObj: Shape of vector passed to function does not match the dimension of the domain. ");
+    }
+    return d;
+}
+
+Data
 Tensor(double value,
        const FunctionSpace& what,
        bool expanded)
 {
     DataTypes::ShapeType shape(2,what.getDomain()->getDim());
     return Data(value,shape,what,expanded);
+}
+
+Data
+TensorFromObj(boost::python::object o,
+	const FunctionSpace& what,
+	bool expanded)
+{
+    DataTypes::ShapeType shape(2,what.getDomain()->getDim());
+    Data d(o,what,expanded);
+    if (d.getDataPointShape()!=shape)
+    {
+	throw DataException("TensorFromObj: Shape of tensor passed to function does not match the dimension of the domain. ");
+    }
+    return d;
 }
 
 Data
@@ -68,6 +96,20 @@ Tensor3(double value,
 }
 
 Data
+Tensor3FromObj(boost::python::object o,
+	const FunctionSpace& what,
+	bool expanded)
+{
+    DataTypes::ShapeType shape(3,what.getDomain()->getDim());
+    Data d(o,what,expanded);
+    if (d.getDataPointShape()!=shape)
+    {
+	throw DataException("Tensor3FromObj: Shape of tensor passed to function does not match the dimension of the domain. ");
+    }
+    return d;
+}
+
+Data
 Tensor4(double value,
         const FunctionSpace& what,
         bool expanded)
@@ -75,6 +117,21 @@ Tensor4(double value,
     DataTypes::ShapeType shape(4,what.getDomain()->getDim());
     return Data(value,shape,what,expanded);
 }
+
+Data
+Tensor4FromObj(boost::python::object o,
+	const FunctionSpace& what,
+	bool expanded)
+{
+    DataTypes::ShapeType shape(4,what.getDomain()->getDim());
+    Data d(o,what,expanded);
+    if (d.getDataPointShape()!=shape)
+    {
+	throw DataException("VectorFromObj: Shape of tensor passed to function does not match the dimension of the domain. ");
+    }
+    return d;
+}
+
 
 Data 
 load(const std::string fileName,

@@ -438,6 +438,10 @@ args("solver", "preconditioner", "package", "symmetry"));
 "\n:rtype: `Data`\n:type value: float\n:param what: FunctionSpace for Data\n:type what: `FunctionSpace`\n"
 ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
 ":type expanded: ``bool``");
+ def("Vector", escript::VectorFromObj,
+      (arg("value"),
+	arg("what")=escript::FunctionSpace(),
+	arg("expanded")=false));
   def("Tensor",escript::Tensor,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),
@@ -446,6 +450,10 @@ args("solver", "preconditioner", "package", "symmetry"));
 "\n:rtype: `Data`\n:type value: float\n:param what: FunctionSpace for Data\n:type what: `FunctionSpace`\n"
 ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
 ":type expanded: ``bool``");
+ def("Tensor", escript::TensorFromObj,
+      (arg("value"),
+	arg("what")=escript::FunctionSpace(),
+	arg("expanded")=false));
   def("Tensor3",escript::Tensor3,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),
@@ -455,6 +463,10 @@ args("solver", "preconditioner", "package", "symmetry"));
 ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
 ":type expanded: ``bool``"
 );
+ def("Tensor3", escript::Tensor3FromObj,
+      (arg("value"),
+	arg("what")=escript::FunctionSpace(),
+	arg("expanded")=false));
   def("Tensor4",escript::Tensor4,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),
@@ -464,6 +476,10 @@ args("solver", "preconditioner", "package", "symmetry"));
 ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
 ":type expanded: ``bool``"
 );
+ def("Tensor4", escript::Tensor4FromObj,
+      (arg("value"),
+	arg("what")=escript::FunctionSpace(),
+	arg("expanded")=false));
 
   //
   // Binary operators
