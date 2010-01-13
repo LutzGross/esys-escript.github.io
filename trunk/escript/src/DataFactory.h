@@ -55,6 +55,12 @@ Vector(double value,
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
 
+ESCRIPT_DLL_API
+Data
+VectorFromObj(boost::python::object o,
+	const FunctionSpace& what=FunctionSpace(),
+	bool expanded=false);
+
 /**
    \brief
    Return a Data object containing tensor datapoints.
@@ -65,6 +71,11 @@ Tensor(double value,
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
 
+ESCRIPT_DLL_API
+Data
+TensorFromObj(boost::python::object o,
+	const FunctionSpace& what=FunctionSpace(),
+	bool expanded=false);
 /**
    \brief
    Return a Data object containing tensor3 datapoints.
@@ -75,6 +86,12 @@ Tensor3(double value,
         const FunctionSpace& what=FunctionSpace(),
         bool expanded=false);
 
+ESCRIPT_DLL_API
+Data
+Tensor3FromObj(boost::python::object o,
+	const FunctionSpace& what=FunctionSpace(),
+	bool expanded=false);
+
 /**
    \brief
    Return a Data object containing tensor4 datapoints.
@@ -84,6 +101,13 @@ ESCRIPT_DLL_API Data
 Tensor4(double value,
         const FunctionSpace& what=FunctionSpace(),
         bool expanded=false);
+
+ESCRIPT_DLL_API
+Data
+Tensor4FromObj(boost::python::object o,
+	const FunctionSpace& what=FunctionSpace(),
+	bool expanded=false);
+
 /**
    \brief
    reads Data on domain from file in netCDF format
