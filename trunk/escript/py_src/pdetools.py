@@ -1507,97 +1507,49 @@ class HomogeneousSaddlePointProblem(object):
         self.resetControlParameters()
         self.setTolerance()
         self.setAbsoluteTolerance()
-      def resetControlParameters(self,gamma=0.85, gamma_min=1.e-2,chi_max=0.1, omega_div=0.2, omega_conv=1.1, rtol_min=1.e-7, rtol_max=0.9, chi=1., C_p=1., C_v=1., safety_factor=0.3):
+      def resetControlParameters(self, K_p=1., K_v=1., rtol_max=0.1, rtol_min = 1.e-8, chi_max=0.5, reduction_factor=0.3, theta = 0.1):
          """
          sets a control parameter
 
-         :param gamma: ``1/(1-gamma)`` controls the perturbation of the converegence rate due to termination errors in the subproblems.
-         :type gamma: ``float``
-         :param gamma_min: minimum value for ``gamma``.
-         :type gamma_min: ``float``
-         :param chi_max: maximum tolerable converegence rate.
-         :type chi_max: ``float``
-         :param omega_div: reduction fact for ``gamma`` if no convergence is detected.
-         :type omega_div: ``float``
-         :param omega_conv: raise fact for ``gamma`` if convergence is detected.
-         :type omega_conv: ``float``
-         :param rtol_min: minimum relative tolerance used to calculate presssure and velocity increment.
-         :type rtol_min: ``float``
+         :param K_p: initial value for constant to adjust pressure tolerance
+         :type K_p: ``float``
+         :param K_v: initial value for constant to adjust velocity tolerance
+         :type K_v: ``float``
          :param rtol_max: maximuim relative tolerance used to calculate presssure and velocity increment.
          :type rtol_max: ``float``
-         :param chi: initial convergence measure.
-         :type chi: ``float``
-         :param C_p: initial value for constant to adjust pressure tolerance
-         :type C_p: ``float``
-         :param C_v: initial value for constant to adjust velocity tolerance
-         :type C_v: ``float``
-         :param safety_factor: safety factor for addjustment of pressure and velocity tolerance from stopping criteria
-         :type safety_factor: ``float``
+         :param chi_max: maximum tolerable converegence rate.
+         :type chi_max: ``float``
+         :param reduction_factor: reduction factor for adjustment factors.
+         :type reduction_factor: ``float``
          """
-         self.setControlParameter(gamma, gamma_min ,chi_max , omega_div , omega_conv, rtol_min , rtol_max, chi,C_p, C_v,safety_factor)
+         self.setControlParameter(K_p, K_v, rtol_max, rtol_min, chi_max, reduction_factor, theta)
 
-      def setControlParameter(self,gamma=None, gamma_min=None ,chi_max=None, omega_div=None, omega_conv=None, rtol_min=None, rtol_max=None, chi=None, C_p=None, C_v=None, safety_factor=None):
+      def setControlParameter(self,K_p=None, K_v=None, rtol_max=None, rtol_min=None, chi_max=None, reduction_factor=None, theta=None):
          """
          sets a control parameter
 
-         :param gamma: ``1/(1-gamma)`` controls the perturbation of the converegence rate due to termination errors in the subproblems.
-         :type gamma: ``float``
-         :param gamma_min: minimum value for ``gamma``.
-         :type gamma_min: ``float``
-         :param chi_max: maximum tolerable converegence rate.
-         :type chi_max: ``float``
-         :param omega_div: reduction fact for ``gamma`` if no convergence is detected.
-         :type omega_div: ``float``
-         :param omega_conv: raise fact for ``gamma`` if convergence is detected.
-         :type omega_conv: ``float``
-         :param rtol_min: minimum relative tolerance used to calculate presssure and velocity increment.
-         :type rtol_min: ``float``
+
+         :param K_p: initial value for constant to adjust pressure tolerance
+         :type K_p: ``float``
+         :param K_v: initial value for constant to adjust velocity tolerance
+         :type K_v: ``float``
          :param rtol_max: maximuim relative tolerance used to calculate presssure and velocity increment.
          :type rtol_max: ``float``
-         :param chi: initial convergence measure.
-         :type chi: ``float``
-         :param C_p: initial value for constant to adjust pressure tolerance
-         :type C_p: ``float``
-         :param C_v: initial value for constant to adjust velocity tolerance
-         :type C_v: ``float``
-         :param safety_factor: safety factor for addjustment of pressure and velocity tolerance from stopping criteria
-         :type safety_factor: ``float``
+         :param chi_max: maximum tolerable converegence rate.
+         :type chi_max: ``float``
+         :type reduction_factor: ``float``
          """
-         if not gamma == None:
-            if gamma<=0 or gamma>=1: 
-               raise ValueError,"Initial gamma needs to be positive and less than 1."
+         if not K_p == None:
+            if K_p<1:
+               raise ValueError,"K_p need to be greater or equal to 1."
          else:
-            gamma=self.__gamma
+            K_p=self.__K_p
 
-         if not gamma_min == None:
-            if gamma_min<=0 or gamma_min>=1: 
-               raise ValueError,"gamma_min needs to be positive and less than 1."
+         if not K_v == None:
+            if K_v<1:
+               raise ValueError,"K_v need to be greater or equal to 1."
          else:
-            gamma_min = self.__gamma_min
-
-         if not chi_max == None:
-            if chi_max<=0 or chi_max>=1: 
-               raise ValueError,"chi_max needs to be positive and less than 1."
-         else:
-            chi_max = self.__chi_max 
-
-         if not omega_div == None:
-            if omega_div<=0 or omega_div >=1: 
-               raise ValueError,"omega_div needs to be positive and less than 1."
-         else:
-            omega_div=self.__omega_div
-
-         if not omega_conv == None:
-            if omega_conv<1:
-               raise ValueError,"omega_conv needs to be greater or equal to 1."
-         else:
-            omega_conv=self.__omega_conv
-
-         if not rtol_min == None:
-            if rtol_min<=0 or rtol_min>=1: 
-               raise ValueError,"rtol_min needs to be positive and less than 1."
-         else:
-            rtol_min=self.__rtol_min
+            K_v=self.__K_v
 
          if not rtol_max == None:
             if rtol_max<=0 or rtol_max>=1: 
@@ -1605,46 +1557,39 @@ class HomogeneousSaddlePointProblem(object):
          else:
             rtol_max=self.__rtol_max
 
-         if not chi == None:
-            if chi<=0 or chi>1:
-               raise ValueError,"chi needs to be positive and less than 1."
+         if not rtol_min == None:
+            if rtol_min<=0 or rtol_min>=1: 
+               raise ValueError,"rtol_min needs to be positive and less than 1."
          else:
-            chi=self.__chi
+            rtol_min=self.__rtol_min
 
-         if not C_p == None:
-            if C_p<1:
-               raise ValueError,"C_p need to be greater or equal to 1."
+         if not chi_max == None:
+            if chi_max<=0 or chi_max>=1: 
+               raise ValueError,"chi_max needs to be positive and less than 1."
          else:
-            C_p=self.__C_p
+            chi_max = self.__chi_max 
 
-         if not C_v == None:
-            if C_v<1:
-               raise ValueError,"C_v need to be greater or equal to 1."
+         if not reduction_factor == None:
+            if reduction_factor<=0 or reduction_factor>1:
+               raise ValueError,"reduction_factor need to be between zero and one."
          else:
-            C_v=self.__C_v
+            reduction_factor=self.__reduction_factor
 
-         if not safety_factor == None:
-            if safety_factor<=0 or safety_factor>1:
-               raise ValueError,"safety_factor need to be between zero and one."
+         if not theta == None:
+            if theta<=0 or theta>1:
+               raise ValueError,"theta need to be between zero and one."
          else:
-            safety_factor=self.__safety_factor
+            theta=self.__theta
 
-         if gamma<gamma_min:
-               raise ValueError,"gamma = %e needs to be greater or equal gamma_min = %e."%(gamma,gamma_min)
-         if rtol_max<=rtol_min:
-               raise ValueError,"rtol_max = %e needs to be greater rtol_min = %e."%(rtol_max,rtol_min)
-            
-         self.__gamma = gamma
-         self.__gamma_min = gamma_min
+         if rtol_min>=rtol_max:
+             raise ValueError,"rtol_max = %e needs to be greater than rtol_min = %e"%(rtol_max,rtol_min)
          self.__chi_max = chi_max
-         self.__omega_div = omega_div
-         self.__omega_conv = omega_conv
-         self.__rtol_min = rtol_min
          self.__rtol_max = rtol_max
-         self.__chi = chi
-         self.__C_p = C_p
-         self.__C_v = C_v
-         self.__safety_factor = safety_factor
+         self.__K_p = K_p
+         self.__K_v = K_v
+         self.__reduction_factor = reduction_factor
+         self.__theta = theta
+         self.__rtol_min=rtol_min
 
       #=============================================================
       def inner_pBv(self,p,Bv):
@@ -1787,79 +1732,83 @@ class HomogeneousSaddlePointProblem(object):
          self.verbose=verbose
          rtol=self.getTolerance()
          atol=self.getAbsoluteTolerance()
+
+         K_p=self.__K_p
+         K_v=self.__K_v
          correction_step=0
          converged=False
-         error=None
          chi=None
-         gamma=self.__gamma
-         C_p=self.__C_p
-         C_v=self.__C_v
+         eps=None
+
+         if self.verbose: print "HomogeneousSaddlePointProblem: start iteration: rtol= %e, atol=%e"%(rtol, atol)
          while not converged:
-              if error== None or chi == None:
-                  gamma_new=gamma/self.__omega_conv
-              else:
-                 if chi < self.__chi_max: 
-                    gamma_new=min(max(gamma*self.__omega_conv,1-chi*error/(self.__safety_factor*ATOL)), 1-chi/self.__chi_max)
-                 else:
-                    gamma_new=gamma*self.__omega_div
-              gamma=max(gamma_new, self.__gamma_min)
-              # calculate velocity for current pressure:
-              rtol_v=min(max(gamma/(1.+gamma)/C_v,self.__rtol_min), self.__rtol_max)
-              rtol_p=min(max(gamma/C_p, self.__rtol_min), self.__rtol_max)
-              self.__subtol=rtol_p**2
-              if self.verbose: print "HomogeneousSaddlePointProblem: step %s: gamma = %e, rtol_v= %e, rtol_p=%e"%(correction_step,gamma,rtol_v,rtol_p)
-              if self.verbose: print "HomogeneousSaddlePointProblem: subtolerance: %e"%self.__subtol
-              # calculate velocity for current pressure: A*dv= F-A*v-B*p
-              dv1=self.getDV(p,v,rtol_v)
-              v1=v+dv1
-              Bv1=self.Bv(v1, self.__subtol)
-              norm_Bv1=self.norm_Bv(Bv1)
-              norm_dv1=self.norm_v(dv1)
-              norm_v1=self.norm_v(v1)
-              ATOL=norm_v1*rtol+atol
-              if self.verbose: print "HomogeneousSaddlePointProblem: step %s: Bv = %e, dv = %e, v=%e"%(correction_step,norm_Bv1, norm_dv1, norm_v1)
-              if not ATOL>0: raise ValueError,"overall absolute tolerance needs to be positive."
-              if max(norm_Bv1, norm_dv1) <= ATOL:
-                  converged=True
-                  v=v1
-              else:
-                  # now we solve for the pressure increment dp from B*A^{-1}B^* dp = Bv1
-                  if usePCG:
+
+             # get tolerance for velecity increment:
+             if chi == None:
+                rtol_v=self.__rtol_max 
+             else:
+                rtol_v=min(chi/K_v,self.__rtol_max)
+             rtol_v=max(rtol_v, self.__rtol_min)
+             if self.verbose: print "HomogeneousSaddlePointProblem: step %s: rtol_v= %e"%(correction_step,rtol_v)
+             # get velocity increment:
+             dv1=self.getDV(p,v,rtol_v)
+             v1=v+dv1
+             Bv1=self.Bv(v1, rtol_v)
+             norm_Bv1=self.norm_Bv(Bv1)
+             norm_dv1=self.norm_v(dv1)
+             if self.verbose: print "HomogeneousSaddlePointProblem: step %s: norm_Bv1 = %e, norm_dv1 = %e"%(correction_step, norm_Bv1, norm_dv1)
+             if norm_dv1*self.__theta < norm_Bv1:
+                # get tolerance for pressure increment:
+                large_Bv1=True
+                if chi == None or eps == None:
+                   rtol_p=self.__rtol_max 
+                else:
+                   rtol_p=min(chi**2*eps/K_p/norm_Bv1, self.__rtol_max)
+                self.__subtol=max(rtol_p**2, self.__rtol_min)
+                if self.verbose: print "HomogeneousSaddlePointProblem: step %s: rtol_p= %e"%(correction_step,rtol_p)
+                # now we solve for the pressure increment dp from B*A^{-1}B^* dp = Bv1
+                if usePCG:
                     dp,r,a_norm=PCG(ArithmeticTuple(v1,Bv1),self.__Aprod_PCG,0*p,self.__Msolve_PCG,self.__inner_PCG,atol=0, rtol=rtol_p,iter_max=max_iter, verbose=self.verbose)
                     v2=r[0]
                     Bv2=r[1]
-                  else:
+                else:
+                    # don't use!!!!
                     dp=GMRES(self.solve_prec(Bv1,self.__subtol),self.__Aprod_GMRES, 0*p, self.__inner_GMRES,atol=0, rtol=rtol_p,iter_max=max_iter, iter_restart=iter_restart, verbose=self.verbose)
                     dv2=self.solve_AinvBt(dp, self.__subtol)
                     v2=v1-dv2
                     Bv2=self.Bv(v2, self.__subtol)
-                  # 
-                  # convergence indicators:
-                  #
-                  norm_v2=self.norm_v(v2)
-                  norm_dv2=self.norm_v(v2-v)
-                  error_new=max(norm_dv2, norm_Bv1)
-                  norm_Bv2=self.norm_Bv(Bv2)
-                  if self.verbose: print "HomogeneousSaddlePointProblem: step %s (part 2): Bv = %e, dv = %e, v=%e"%(correction_step,norm_Bv2, norm_dv2, norm_v2)
-                  if error !=None:
-                      chi_new=error_new/error
-                      if self.verbose: print "HomogeneousSaddlePointProblem: step %s: convergence rate = %e, est. error = %e"%(correction_step,chi_new, error_new)
-                      if chi != None:
-                          gamma0=max(gamma, 1-chi/chi_new) 
-                          C_p*=gamma0/gamma
-                          C_v*=gamma0/gamma*(1+gamma)/(1+gamma0)
-                      chi=chi_new
-                  else:
-                      if self.verbose: print "HomogeneousSaddlePointProblem: step %s: est. error = %e"%(correction_step, error_new)
-
-                  error = error_new
-                  correction_step+=1
-                  if correction_step>max_correction_steps:
-                        raise CorrectionFailed,"Given up after %d correction steps."%correction_step
-                  v,p=v2,p+dp
+                p2=p+dp
+             else:
+                large_Bv1=False
+                v2=v1
+                p2=p
+             # update business:
+             norm_dv2=self.norm_v(v2-v)
+             norm_v2=self.norm_v(v2)
+             if self.verbose: print "HomogeneousSaddlePointProblem: step %s: v2 = %e, norm_dv2 = %e"%(correction_step, norm_v2, self.norm_v(v2-v))
+             eps, eps_old = max(norm_Bv1, norm_dv2), eps
+             if eps_old == None:
+                  chi, chi_old = None, chi
+             else:
+                  chi, chi_old = min(eps/ eps_old, self.__chi_max), chi
+             if eps != None:
+                 if chi !=None:
+                    if self.verbose: print "HomogeneousSaddlePointProblem: step %s: convergence rate = %e, correction = %e"%(correction_step,chi, eps)
+                 else:
+                    if self.verbose: print "HomogeneousSaddlePointProblem: step %s: correction = %e"%(correction_step, eps)
+             if eps <= rtol*norm_v2+atol :
+                 converged = True
+             else:
+                 if correction_step>=max_correction_steps:
+                      raise CorrectionFailed,"Given up after %d correction steps."%correction_step
+                 if chi_old!=None:
+                    K_p=max(1,self.__reduction_factor*K_p,(chi-chi_old)/chi_old**2*K_p)
+                    K_v=max(1,self.__reduction_factor*K_v,(chi-chi_old)/chi_old**2*K_p)
+                    if self.verbose: print "HomogeneousSaddlePointProblem: step %s: new adjustment factor K = %e"%(correction_step,K_p)
+             correction_step+=1
+             v,p =v2, p2
          if self.verbose: print "HomogeneousSaddlePointProblem: tolerance reached after %s steps."%correction_step
  	 return v,p
-
       #========================================================================
       def setTolerance(self,tolerance=1.e-4):
          """

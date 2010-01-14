@@ -438,7 +438,7 @@ class SolverOptions(object):
         """
 	if smoother==None: smoother=28
         if not smoother in [ SolverOptions.JACOBI, SolverOptions.GAUSS_SEIDEL ] :
-             raise ValueError,"unknown smoother %s"%preconditioner
+             raise ValueError,"unknown smoother %s"%smoother
         self.__smoother=smoother    
     def getSmoother(self):
         """

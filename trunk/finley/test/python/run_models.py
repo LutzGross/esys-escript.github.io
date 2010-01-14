@@ -1740,11 +1740,12 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(Test_Darcy3D))
    suite.addTest(unittest.makeSuite(Test_Darcy2D))
    suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian3D))
+   # suite.addTest(Test_StokesProblemCartesian3D("test_PCG_P_large"))
    suite.addTest(unittest.makeSuite(Test_Mountains3D))
    suite.addTest(unittest.makeSuite(Test_Mountains2D))
    suite.addTest(unittest.makeSuite(Test_Rheologies))
    # suite.addTest(Test_IncompressibleIsotropicFlowCartesian("test_D2_Fixed_Mu"))
-   suite.addTest(unittest.makeSuite(Test_IncompressibleIsotropicFlowCartesian))
+   # suite.addTest(unittest.makeSuite(Test_IncompressibleIsotropicFlowCartesian))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
 
