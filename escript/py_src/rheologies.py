@@ -241,7 +241,10 @@ class PowerLaw(object):
          :type iter_max: ``int``
          :return: effective viscosity. 
          """
-         p2=(abs(pressure)+pressure)/2.
+         if pressure == None:
+            p2 = None
+         else:
+            p2=(abs(pressure)+pressure)/2.
          SMALL=1./(util.DBLE_MAX/100.)
          numMaterial=self.getNumMaterials()
          s=[p-1. for p in self.getPower() ]
@@ -269,7 +272,7 @@ class PowerLaw(object):
          if tau_Y==None and fric==None:
              eta_max=None
          else:
-            if fric == None:
+            if fric == None or p2==None:
                 eta_max=tau_Y/(gamma_dot+SMALL*util.whereZero(gamma_dot))
             else:
                 if tau_Y==None: tau_Y==0
