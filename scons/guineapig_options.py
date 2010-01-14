@@ -55,6 +55,12 @@ boost_libs		= ['libboost_python-gcc44-mt']
 #netCDF_lib_path		= '/usr/local/py2.6.2/netcdf4.0/lib'
 #netCDF_libs		= ['netcdf_c++', 'netcdf']
 
+# Silo
+usesilo         = 'yes'
+silo_path       = '/usr/local/py2.6.2/silo4.7.2/include'
+silo_lib_path   = '/usr/local/py2.6.2/silo4.7.2/lib'
+silo_libs       = ['siloh5', 'hdf5']
+
 # MKL
 # usemkl		= 'yes'
 # mkl_path		= '/sw/sdev/cmkl/10.0.2.18/include'
