@@ -253,6 +253,20 @@ void MeshAdapter::dump(const string& fileName) const
 
    // // // // // Nodes // // // // //
 
+   // Nodes nodeDistribution
+   if (! ( ids = dataFile.add_var("Nodes_NodeDistribution", ncInt, ncdims[2])) )
+      throw DataException(msgPrefix+"add_var(Nodes_NodeDistribution)");
+   int_ptr = &mesh->Nodes->nodesDistribution->first_component[0];
+   if (! (ids->put(int_ptr, mpi_size+1)) )
+      throw DataException(msgPrefix+"put(Nodes_NodeDistribution)");
+
+   // Nodes degreesOfFreedomDistribution
+   if (! ( ids = dataFile.add_var("Nodes_DofDistribution", ncInt, ncdims[2])) )
+      throw DataException(msgPrefix+"add_var(Nodes_DofDistribution)");
+   int_ptr = &mesh->Nodes->degreesOfFreedomDistribution->first_component[0];
+   if (! (ids->put(int_ptr, mpi_size+1)) )
+      throw DataException(msgPrefix+"put(Nodes_DofDistribution)");
+
    // Only write nodes if non-empty because NetCDF doesn't like empty arrays
    // (it treats them as NC_UNLIMITED)
    if (numNodes>0) {
@@ -304,20 +318,6 @@ void MeshAdapter::dump(const string& fileName) const
          throw DataException(msgPrefix+"add_var(Nodes_Coordinates)");
       if (! (ids->put(&(mesh->Nodes->Coordinates[INDEX2(0,0,numDim)]), numNodes, numDim)) )
          throw DataException(msgPrefix+"put(Nodes_Coordinates)");
-
-      // Nodes degreesOfFreedomDistribution
-      if (! ( ids = dataFile.add_var("Nodes_DofDistribution", ncInt, ncdims[2])) )
-         throw DataException(msgPrefix+"add_var(Nodes_DofDistribution)");
-      int_ptr = &mesh->Nodes->degreesOfFreedomDistribution->first_component[0];
-      if (! (ids->put(int_ptr, mpi_size+1)) )
-         throw DataException(msgPrefix+"put(Nodes_DofDistribution)");
-
-      // Nodes nodeDistribution
-      if (! ( ids = dataFile.add_var("Nodes_NodeDistribution", ncInt, ncdims[2])) )
-         throw DataException(msgPrefix+"add_var(Nodes_NodeDistribution)");
-      int_ptr = &mesh->Nodes->nodesDistribution->first_component[0];
-      if (! (ids->put(int_ptr, mpi_size+1)) )
-         throw DataException(msgPrefix+"put(Nodes_NodeDistribution)");
 
    }
 
