@@ -199,6 +199,66 @@ class Test_Domain(unittest.TestCase):
        for i in self.boundary_tag_list:
            self.failUnless(i in tags, "tag %s is missing."%i)
 
+   def test_Factories(self):
+	fs=Function(self.domain)	# The choice of functionspace is arbitrary
+	dime=self.domain.getDim()
+	if dime>0:
+	   z=[]
+	   bad=[]
+	   for i in range(dime):
+		z+=[i]
+		bad+=[i]
+	   bad+=[i]
+	   d=Vector(z,fs)
+	   self.failUnless(d.getShape()==(dime,))
+	   self.failUnlessRaises(RuntimeError, Vector, bad,fs)	#test wrong shape
+	   y=[]
+	   bad=[]
+	   for i in range(dime):
+		y+=[z]
+		bad+=[z]
+	   bad+=[z]
+	   z=y
+	   d=Tensor(z,fs)
+	   self.failUnless(d.getShape()==(dime,dime))
+	   try:
+		Tensor(bad,fs)
+	   except RuntimeError:
+		pass
+	   else:
+		self.fail("Tensor should have rejected bad shape")
+	   y=[]
+	   bad=[]
+	   for i in range(dime):
+		y+=[z]
+		bad+=[z]
+	   bad+=[z]
+	   z=y
+	   d=Tensor3(z,fs)
+	   self.failUnless(d.getShape()==(dime,dime,dime))
+	   try:
+		Tensor3(bad,fs)
+	   except RuntimeError:
+		pass
+	   else:
+		self.fail("Tensor3 should have rejected bad shape")
+	   y=[]
+	   bad=[]
+	   for i in range(dime):
+		y+=[z]
+		bad+=[z]
+	   bad+=[z]
+	   z=y
+	   d=Tensor4(z,fs)
+	   self.failUnless(d.getShape()==(dime,dime,dime,dime))
+	   try:
+		Tensor4(bad,fs)
+	   except RuntimeError:
+		pass
+	   else:
+		self.fail("Tensor4 should have rejected bad shape")
+
+
    def test_addTags(self):
         tag1="A"
         tag2="B"

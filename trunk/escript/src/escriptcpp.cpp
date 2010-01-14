@@ -195,6 +195,8 @@ args("solver", "preconditioner", "package", "symmetry"));
   fs_definer.def("getSize",&escript::FunctionSpace::getSize,":return: sample size\n:rtype: `Data`");
   fs_definer.def("setTags",&escript::FunctionSpace::setTags,args("newtag","mask"),
 "Set tags according to a mask\n\n:param newtag: tag number to set\n:type newtag: non-zero ``int``\n:param mask: Samples which correspond to positive values in the mask will be set to ``newtag``.\n:type mask: scalar `Data`");
+  fs_definer.def("setTags",&escript::FunctionSpace::setTagsByString,args("newtag","mask"),
+"Set tags according to a mask\n\n:param newtag: tag name to set\n:type newtag: string\n:param mask: Samples which correspond to positive values in the mask will be set to ``newtag``.\n:type mask: scalar `Data`");
   fs_definer.def("getTagFromDataPointNo",
                  &escript::FunctionSpace::getTagFromDataPointNo,":return: the tag associated with the given sample number.\n:rtype: int");
   fs_definer.def("getReferenceIDFromDataPointNo", &escript::FunctionSpace::getReferenceIDFromDataPointNo,args("dataPointNo"),":return: the reference number associated with ``dataPointNo``\n:rtype: int ");

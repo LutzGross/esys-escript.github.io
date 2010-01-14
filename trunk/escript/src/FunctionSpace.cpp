@@ -252,6 +252,17 @@ FunctionSpace::setTags(const int newTag, const escript::Data& mask) const
    }
 }
 
+void
+FunctionSpace::setTagsByString(const std::string& name, const escript::Data& mask) const
+{
+   int newTag=m_domain->getTag(name);
+   if (mask.getFunctionSpace()== *this) {
+          m_domain->setTags(m_functionSpaceType,newTag,mask);
+   } else {
+          throw FunctionSpaceException("illegal function space of mask.");
+   }
+}
+
 int 
 FunctionSpace::getNumberOfTagsInUse() const
 {
