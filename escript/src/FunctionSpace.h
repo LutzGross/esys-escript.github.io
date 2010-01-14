@@ -120,11 +120,14 @@ public:
   /**
      \brief assigns new tag newTag to all samples with a positive
      value of mask for any its sample point.
-
   */
   ESCRIPT_DLL_API
   void setTags(const int newTag, const escript::Data& mask) const;
 
+
+  ESCRIPT_DLL_API
+  void setTagsByString(const std::string& name, const escript::Data& mask) const;
+  
 
   /**
    \brief

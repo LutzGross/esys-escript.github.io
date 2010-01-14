@@ -53,7 +53,17 @@ Data
 VectorFromObj(boost::python::object o,
 	const FunctionSpace& what,
 	bool expanded)
-{
+{    
+    double v;
+    try			// first try to get a double and route it to the other method
+    {
+	v=boost::python::extract<double>(o);
+	return Vector(v,what,expanded);
+    }
+    catch(...)
+    {
+	PyErr_Clear();
+    }
     DataTypes::ShapeType shape(1,what.getDomain()->getDim());
     Data d(o,what,expanded);
     if (d.getDataPointShape()!=shape)
@@ -72,11 +82,23 @@ Tensor(double value,
     return Data(value,shape,what,expanded);
 }
 
+
+// We need to take some care here because this signature trumps the other one from boost's point of view
 Data
 TensorFromObj(boost::python::object o,
 	const FunctionSpace& what,
 	bool expanded)
 {
+    double v;
+    try			// first try to get a double and route it to the other method
+    {
+	v=boost::python::extract<double>(o);
+	return Tensor(v,what,expanded);
+    }
+    catch(...)
+    {
+	PyErr_Clear();
+    }
     DataTypes::ShapeType shape(2,what.getDomain()->getDim());
     Data d(o,what,expanded);
     if (d.getDataPointShape()!=shape)
@@ -100,6 +122,16 @@ Tensor3FromObj(boost::python::object o,
 	const FunctionSpace& what,
 	bool expanded)
 {
+    double v;
+    try			// first try to get a double and route it to the other method
+    {
+	v=boost::python::extract<double>(o);
+	return Tensor3(v,what,expanded);
+    }
+    catch(...)
+    {
+	PyErr_Clear();
+    }
     DataTypes::ShapeType shape(3,what.getDomain()->getDim());
     Data d(o,what,expanded);
     if (d.getDataPointShape()!=shape)
@@ -123,6 +155,16 @@ Tensor4FromObj(boost::python::object o,
 	const FunctionSpace& what,
 	bool expanded)
 {
+    double v;
+    try			// first try to get a double and route it to the other method
+    {
+	v=boost::python::extract<double>(o);
+	return Tensor4(v,what,expanded);
+    }
+    catch(...)
+    {
+	PyErr_Clear();
+    }
     DataTypes::ShapeType shape(4,what.getDomain()->getDim());
     Data d(o,what,expanded);
     if (d.getDataPointShape()!=shape)
