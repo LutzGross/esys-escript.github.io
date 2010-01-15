@@ -96,10 +96,6 @@ public:
     ESCRIPTEXPORT_DLL_API
     int getNumNodes() const { return numNodes; }
 
-    /// \brief Removes "ghost" nodes.
-    ESCRIPTEXPORT_DLL_API
-    void removeGhostNodes(int ownIndex);
-
 protected:
     CoordArray coords;         /// x, y[, z] coordinates of nodes
     int numDims;               /// dimensionality (2 or 3)
