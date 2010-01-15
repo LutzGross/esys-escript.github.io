@@ -293,69 +293,6 @@ StringVec NodeData::getVarNames() const
 //
 //
 //
-void NodeData::removeGhostNodes(int ownIndex)
-{
-    if (nodeDist.empty() || ownIndex > nodeDist.size()-1)
-        return;
-
-    int firstId = nodeDist[ownIndex];
-    int lastId = nodeDist[ownIndex+1];
-
-    // no ghost nodes
-    if (lastId-firstId == numNodes)
-        return;
-
-    // we have at most lastId-firstId nodes, it could be less however if
-    // nodes were culled already
-    numNodes = lastId-firstId;
-
-    CoordArray newCoords;
-    CoordArray::iterator it;
-    for (int i=0; i<numDims; i++) {
-        float* c = new float[numNodes];
-        newCoords.push_back(c);
-    }
-
-    IntVec newNodeID, newNodeTag;
-    IntVec newNodeGDOF, newNodeGNI, newNodeGRDFI, newNodeGRNI;
-
-    IndexMap nodeID2idx = getIndexMap();
-    int destIdx = 0;
-    for (int i=firstId; i<lastId; i++) {
-        IndexMap::iterator it = nodeID2idx.find(i);
-        if (it == nodeID2idx.end()) {
-            continue;
-        }
-        int idx = it->second;
-        for (int dim=0; dim<numDims; dim++) {
-            newCoords[dim][destIdx] = coords[dim][idx];
-        }
-        destIdx++;
-        newNodeID.push_back(i);
-        newNodeTag.push_back(nodeTag[idx]);
-        newNodeGDOF.push_back(nodeGDOF[idx]);
-        newNodeGNI.push_back(nodeGNI[idx]);
-        newNodeGRDFI.push_back(nodeGRDFI[idx]);
-        newNodeGRNI.push_back(nodeGRNI[idx]);
-    }
-
-    numNodes = destIdx;
-
-    for (it = coords.begin(); it != coords.end(); it++)
-        delete[] *it;
-
-    coords = newCoords;
-    nodeID = newNodeID;
-    nodeTag = newNodeTag;
-    nodeGDOF = newNodeGDOF;
-    nodeGNI = newNodeGNI;
-    nodeGRDFI = newNodeGRDFI;
-    nodeGRNI = newNodeGRNI;
-}
-
-//
-//
-//
 bool NodeData::writeToSilo(DBfile* dbfile)
 {
 #if USE_SILO

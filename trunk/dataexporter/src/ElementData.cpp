@@ -441,10 +441,6 @@ void ElementData::removeGhostZones(int ownIndex)
         numGhostElements = 0;
     }
 
-    buildMeshes();
-    if (numElements > 0)
-        nodeMesh->removeGhostNodes(ownIndex);
-
     if (reducedElements)
         reducedElements->removeGhostZones(ownIndex);
 }
