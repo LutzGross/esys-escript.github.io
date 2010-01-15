@@ -28,8 +28,8 @@
 
 Finley_QuadInfo Finley_QuadInfoList[]={
 	{PointQuad, "Point", 0,  1, 	Finley_Quad_getNodesPoint,		Finley_Quad_getNumNodesPoint, 	Finley_Quad_MacroPoint} ,
-    {LineQuad,  "Line",  1,  2,		Finley_Quad_getNodesLine,		Finley_Quad_getNumNodesLine, 	Finley_Quad_MacroLine} ,
-	{TriQuad,   "Tri",   2,  3,   	Finley_Quad_getNodesTri,        Finley_Quad_getNumNodesTri, 	Finley_Quad_MacroTri},
+        {LineQuad,  "Line",  1,  2,	Finley_Quad_getNodesLine,		Finley_Quad_getNumNodesLine, 	Finley_Quad_MacroLine} ,
+	{TriQuad,   "Tri",   2,  3,   	Finley_Quad_getNodesTri,   	       Finley_Quad_getNumNodesTri, 	Finley_Quad_MacroTri},
 	{RecQuad,   "Rec",   2,  4,   	Finley_Quad_getNodesRec,        Finley_Quad_getNumNodesRec, 	Finley_Quad_MacroRec},
 	{TetQuad,   "Tet",   3,  4,   	Finley_Quad_getNodesTet,        Finley_Quad_getNumNodesTet,		Finley_Quad_MacroTet},
 	{HexQuad,   "Hex",   3,  8,  	Finley_Quad_getNodesHex,        Finley_Quad_getNumNodesHex,		Finley_Quad_MacroHex},

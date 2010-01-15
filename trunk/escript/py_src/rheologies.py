@@ -518,26 +518,35 @@ class Rheology(object):
           self.setVelocity(v)
           self.setPressure(p)
           self.setDeviatoricStrain()
+          self.setGammaDot()
           self.setTime(t)
 
       def setDeviatoricStrain(self, D=None):
           """
           set deviatoric strain 
 
-          :param D: new deviatoric strain. If D is not present the current velocity is used.
+          :param D: new deviatoric strain. If ``D`` is not present the current velocity is used.
           :type D: `Data` of rank 2
           """
-          if D==None: D=util.deviatoric(util.symmetric(util.grad(2.*self.getVelocity())))
-          self.__D=util.deviatoric(util.interpolate(D,Function(self.getDomain())))
+          if D==None: 
+              self.__D=self.getDeviatoricStrain(self.getVelocity())
+          else:
+              self.__D=util.deviatoric(util.interpolate(D,Function(self.getDomain())))
 
-      def getDeviatoricStrain(self):
+      def getDeviatoricStrain(self, v=None):
           """
-          Returns deviatoric strain of current velocity. 
+          Returns deviatoric strain of current velocity or if ``v`` is present the 
+          deviatoric strain of velocity ``v``:
 
-          :return: deviatoric strain
+          :param v: a velocity field
+          :type v: `Data` of rank 1
+          :return: deviatoric strain of the current velocity field or if ``v`` is present the deviatoric strain of velocity ``v``
           :rtype: `Data`  of rank 2
           """
-          return self.__D
+          if v==None:
+             return self.__D
+          else:
+             return util.deviatoric(util.symmetric(util.grad(v)))
 
       def getTau(self):
           """
@@ -549,15 +558,32 @@ class Rheology(object):
           s=self.getDeviatoricStress()
           return util.sqrt(0.5)*util.length(s)
 
-      def getGammaDot(self):
+      def setGammaDot(self, gammadot=None):
           """
-          Returns current second invariant of deviatoric strain
+          set the second invariant of deviatoric strain rate. If ``gammadot`` is not present zero is used.
 
+          :param gammadot: second invariant of deviatoric strain rate. 
+          :type gammadot: `Data` of rank 1
+          """
+          if gammadot == None:
+               self.__gammadot = Scalar(0.,Function(self.getDomain()))
+          else:
+               self.__gammadot=gammadot
+          
+      def getGammaDot(self, D=None):
+          """
+          Returns current second invariant of deviatoric strain rate or if ``D`` is present the second invariant of ``D``.
+
+          :param D: deviatoric strain rate tensor
+          :type D: `Data`  of rank 0
           :return: second invariant of deviatoric strain
           :rtype: scalar `Data`
           """
-          s=self.getDeviatoricStrain()
-          return util.sqrt(2)*util.length(s)
+          if D==None: 
+              return self.__gammadot
+          else:
+              return util.sqrt(2.)*util.length(D)
+           
 
 #====================================================================================================================================
 
@@ -609,11 +635,6 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
           """
           return self.__eta_eff
 
-     def __getDeviatoricStrain(self, v):
-          """
-          Returns deviatoric strain of velocity v:
-          """
-          return util.deviatoric(util.symmetric(util.grad(v)))
 
      def updateStokesEquation(self, v, p):
          """
@@ -628,11 +649,10 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
          #
          #  calculate eta_eff if we don't have one or elasticity is present.
          #
-         D=self.__getDeviatoricStrain(v)
          if mu==None:
-             gamma=util.sqrt(2.)*util.length(D)
+             gamma=self.getGammaDot(self.getDeviatoricStrain(v))
          else:
-             gamma=util.sqrt(2.)*util.length(D+s_last/(2*dt*mu))
+             gamma=self.getGammaDot(self.getDeviatoricStrain(v)+s_last/(2*dt*mu))
 
          self.__eta_eff_save=self.getEtaEff(gamma, pressure=p,dt=dt, eta0=self.__eta_eff_save, iter_max=self.__eta_iter_max)
 
@@ -693,10 +713,13 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
           # 
           # get a new velcocity and pressure:
           #
-          if mask_v.isEmpty() or v_b.isEmpty():
+          if mask_v.isEmpty():
                v0=v_last
           else:
-              v0=v_b*mask_v+v_last*(1.-mask_v)
+              if v_b.isEmpty():
+                 v0=v_last*(1.-mask_v)
+              else:
+                 v0=v_b*mask_v+v_last*(1.-mask_v)
 
           v,p=self._solve(v0,p_last,verbose=self.checkVerbose(),max_iter=iter_max,usePCG=usePCG, max_correction_steps=max_correction_steps)
           #
@@ -704,14 +727,15 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
           #
           self.setPressure(p)
           self.setVelocity(v)
-          D=self.__getDeviatoricStrain(v)
-          self.setDeviatoricStrain(D)
-          self.__eta_eff = self.getEtaEff(self.getGammaDot(), pressure=p,dt=dt, eta0=self.__eta_eff_save, iter_max=self.__eta_iter_max)
-          if mu==None:          
-              stress=(2*self.__eta_eff)*D
+          self.setDeviatoricStrain(self.getDeviatoricStrain(v))
+          if mu==None:
+             D=self.getDeviatoricStrain(v)
           else:
-              stress=(2.*self.__eta_eff)*(D+s_last/(2*dt*mu))
-          self.setDeviatoricStress(stress)
+             D=self.getDeviatoricStrain(v)+s_last/(2*dt*mu)
+          gamma=self.getGammaDot(D)
+          self.setGammaDot(gamma)
+          self.__eta_eff = self.getEtaEff(self.getGammaDot(), pressure=p,dt=dt, eta0=self.__eta_eff_save, iter_max=self.__eta_iter_max)
+          self.setDeviatoricStress(2.*self.__eta_eff*D)
           self.setTime(self.getTime()+dt)
           if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: iteration on time step %s completed."%(self.getTime(),)
           return self.getVelocity(), self.getPressure()

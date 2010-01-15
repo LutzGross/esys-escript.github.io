@@ -24,7 +24,7 @@ import tempfile
       
 
 
-VERBOSE=False or True
+VERBOSE=False # or True
 
 from esys.escript import *
 from esys.escript.models import StokesProblemCartesian, PowerLaw, IncompressibleIsotropicFlowCartesian, FaultSystem, DarcyFlow
@@ -914,8 +914,8 @@ class Test_Rheologies(unittest.TestCase):
          for i in xrange(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i],dt=dt),taus[i])
 
 class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
-   TOL=1.e-6
-   VERBOSE=False or True
+   TOL=1.e-5
+   VERBOSE=False # or True
    A=1.
    P_max=100
    NE=2*getMPISizeWorld()
@@ -967,7 +967,7 @@ class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
       mod.setElasticShearModulus(self.mu)
       mod.setPowerLaws([self.eta_0, self.eta_1, self.eta_2], [ 1., self.tau_1, self.tau_2],  [1.,self.N_1,self.N_2])
       mod.setTolerance(self.TOL)
-      mod.setEtaTolerance(self.TOL*1.e-3)
+      mod.setEtaTolerance(self.TOL*0.1)
 
       BF=Vector(self.P_max,Function(self.dom))
       for d in range(self.dom.getDim()):
@@ -1006,10 +1006,10 @@ class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
          error_v=Lsup(mod.getVelocity()-v_ref)/Lsup(v_ref)
          error_t=abs(mod.getTime()-t_ref)/abs(t_ref)
          if self.VERBOSE: print "time step ",N_t,"time = ",mod.getTime(),"errors s,p,v = ",error_s, error_p, error_v
-         self.failUnless( error_p <= 80*self.TOL, "time step %s: pressure error %s too high."%(N_t,error_p) )
-         self.failUnless( error_v <= 80*self.TOL, "time step %s: velocity error %s too high."%(N_t,error_v) )
-         self.failUnless( error_t <= 80*self.TOL, "time step %s: time marker error %s too high."%(N_t,error_t) )
-         self.failUnless( error_s <= 99*self.TOL, "time step %s: stress error %s too high."%(N_t,error_s) )
+         self.failUnless( error_p <= 10*self.TOL, "time step %s: pressure error %s too high."%(N_t,error_p) )
+         self.failUnless( error_v <= 10*self.TOL, "time step %s: velocity error %s too high."%(N_t,error_v) )
+         self.failUnless( error_t <= 10*self.TOL, "time step %s: time marker error %s too high."%(N_t,error_t) )
+         self.failUnless( error_s <= 10*self.TOL, "time step %s: stress error %s too high."%(N_t,error_s) )
    def tearDown(self):
         del self.dom
 
@@ -1744,8 +1744,8 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(Test_Mountains3D))
    suite.addTest(unittest.makeSuite(Test_Mountains2D))
    suite.addTest(unittest.makeSuite(Test_Rheologies))
-   # suite.addTest(Test_IncompressibleIsotropicFlowCartesian("test_D2_Fixed_Mu"))
-   # suite.addTest(unittest.makeSuite(Test_IncompressibleIsotropicFlowCartesian))
+   # suite.addTest(Test_IncompressibleIsotropicFlowCartesian("test_D2_Fixed_MuNone"))
+   suite.addTest(unittest.makeSuite(Test_IncompressibleIsotropicFlowCartesian))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
 

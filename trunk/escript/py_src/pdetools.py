@@ -1507,7 +1507,7 @@ class HomogeneousSaddlePointProblem(object):
         self.resetControlParameters()
         self.setTolerance()
         self.setAbsoluteTolerance()
-      def resetControlParameters(self, K_p=1., K_v=1., rtol_max=0.1, rtol_min = 1.e-8, chi_max=0.5, reduction_factor=0.3, theta = 0.1):
+      def resetControlParameters(self, K_p=1., K_v=1., rtol_max=0.1, rtol_min = 1.e-7, chi_max=0.5, reduction_factor=0.3, theta = 0.1):
          """
          sets a control parameter
 
