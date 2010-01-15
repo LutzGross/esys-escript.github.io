@@ -140,7 +140,12 @@ int main(int argc, char** argv)
         if (nTimesteps > 1)
             cout << "T = " << timeStep << endl;
 
-        EscriptDataset* ds = new EscriptDataset();
+        EscriptDataset* ds;
+#if HAVE_MPI
+        ds = new EscriptDataset(MPI_COMM_WORLD);
+#else
+        ds = new EscriptDataset();
+#endif
 
         if (writeMeshOnce && timeStep > 0) {
             if (!ds->loadNetCDF(meshFromTzero, varFilesTS, varNames)) {
