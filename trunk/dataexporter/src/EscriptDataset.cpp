@@ -81,19 +81,27 @@ bool EscriptDataset::initFromEscript(escript::const_Domain_ptr escriptDomain,
                                      DataVec& escriptVars,
                                      const StringVec& varNames)
 {
-    bool ok = false;
+    int myError;
     numParts = 1;
     FinleyMesh_ptr mesh(new FinleyMesh());
     if (mesh->initFromEscript(escriptDomain)) {
         if (mpiSize > 1)
             mesh->reorderGhostZones(mpiRank);
         meshBlocks.push_back(mesh);
-        ok = true;
+        myError = false;
     } else {
         mesh.reset();
+        myError = true;
     }
 
-    if (ok) {
+    int gError;
+#if HAVE_MPI
+    MPI_Allreduce(&myError, &gError, 1, MPI_LOGICAL, MPI_LOR, mpiComm);
+#else
+    gError = myError;
+#endif
+
+    if (!gError) {
         // initialize variables
         DataVec::iterator varIt = escriptVars.begin();
         StringVec::const_iterator nameIt = varNames.begin();
@@ -104,6 +112,7 @@ bool EscriptDataset::initFromEscript(escript::const_Domain_ptr escriptDomain,
             DataVar_ptr var(new DataVar(vi.varName));
             if (var->initFromEscript(*varIt, mesh)) {
                 vi.dataBlocks.push_back(var);
+                updateSampleDistribution(vi);
                 vi.valid = true;
             } else {
                 var.reset();
@@ -116,7 +125,7 @@ bool EscriptDataset::initFromEscript(escript::const_Domain_ptr escriptDomain,
         convertMeshVariables();
     }
 
-    return ok;
+    return !gError;
 }
 
 //
@@ -135,17 +144,6 @@ bool EscriptDataset::loadNetCDF(const string meshFilePattern,
     numParts = nBlocks;
     meshFmt = meshFilePattern;
     
-    // initialize variables
-    StringVec::const_iterator fileIt = varFiles.begin();
-    StringVec::const_iterator nameIt = varNames.begin();
-    for (; fileIt != varFiles.end(); fileIt++, nameIt++) {
-        VarInfo vi;
-        vi.fileName = *fileIt;
-        vi.varName = *nameIt;
-        vi.valid = true;
-        variables.push_back(vi);
-    }
-
     // Load the mesh files
     if (!loadMeshFromNetCDF()) {
         cerr << "Reading the domain failed." << endl;
@@ -156,9 +154,10 @@ bool EscriptDataset::loadNetCDF(const string meshFilePattern,
     convertMeshVariables();
 
     // Load the variables
-    if (!loadVariablesFromNetCDF()) {
-        cerr << "Reading the variables failed." << endl;
-        return false;
+    StringVec::const_iterator fileIt = varFiles.begin();
+    StringVec::const_iterator nameIt = varNames.begin();
+    for (; fileIt != varFiles.end(); fileIt++, nameIt++) {
+        loadVarFromNetCDF(*fileIt, *nameIt);
     }
 
     return true;
@@ -181,21 +180,11 @@ bool EscriptDataset::loadNetCDF(const MeshBlocks& mesh,
     numParts = meshBlocks.size();
     keepMesh = true;
 
-    // initialize variables
+    // Load the variables
     StringVec::const_iterator fileIt = varFiles.begin();
     StringVec::const_iterator nameIt = varNames.begin();
     for (; fileIt != varFiles.end(); fileIt++, nameIt++) {
-        VarInfo vi;
-        vi.fileName = *fileIt;
-        vi.varName = *nameIt;
-        vi.valid = true;
-        variables.push_back(vi);
-    }
-
-    // Load the variables
-    if (!loadVariablesFromNetCDF()) {
-        cerr << "Reading the variables failed." << endl;
-        return false;
+        loadVarFromNetCDF(*fileIt, *nameIt);
     }
 
     return true;
@@ -428,6 +417,7 @@ void EscriptDataset::convertMeshVariables()
                 break;
             }
         }
+        updateSampleDistribution(vi);
         meshVariables.push_back(vi);
     }
 }
@@ -435,43 +425,78 @@ void EscriptDataset::convertMeshVariables()
 //
 //
 //
-bool EscriptDataset::loadVariablesFromNetCDF()
+bool EscriptDataset::loadVarFromNetCDF(const string& fileName,
+                                       const string& varName)
 {
-    if (variables.size() == 0)
-        return true;
+    int myError = false;
+    char* str = new char[fileName.length()+10];
+    VarInfo vi;
 
-    VarVector::iterator it;
-    bool ok = false;
-    for (it = variables.begin(); it != variables.end(); it++) {
-        bool curVarOk = true;
-        VarInfo& vi = (*it);
-        char* str = new char[vi.fileName.length()+10];
-        // read all parts of current variable
-        MeshBlocks::iterator mIt;
-        int idx = (mpiSize > 1) ? mpiRank : 0;
-        for (mIt = meshBlocks.begin(); mIt != meshBlocks.end(); mIt++, idx++) {
-            sprintf(str, vi.fileName.c_str(), idx);
-            string dfile = str;
-            DataVar_ptr var(new DataVar(vi.varName));
-            if (var->initFromNetCDF(dfile, *mIt))
-                vi.dataBlocks.push_back(var);
-            else {
-                cerr << "Error reading " << dfile << endl;
-                var.reset();
-                curVarOk = false;
-                break;
-            }
-        }
-        delete[] str;
-        if (curVarOk) {
-            // at least one variable was read without problems
-            ok = true;
-        } else {
-            vi.dataBlocks.clear();
-            vi.valid = false;
+    vi.varName = varName;
+    vi.valid = true;
+
+    // read all parts of the variable
+    MeshBlocks::iterator mIt;
+    int idx = (mpiSize > 1) ? mpiRank : 0;
+    for (mIt = meshBlocks.begin(); mIt != meshBlocks.end(); mIt++, idx++) {
+        sprintf(str, fileName.c_str(), idx);
+        string dfile = str;
+        DataVar_ptr var(new DataVar(varName));
+        if (var->initFromNetCDF(dfile, *mIt))
+            vi.dataBlocks.push_back(var);
+        else {
+            cerr << "Error reading " << dfile << endl;
+            var.reset();
+            myError = true;
+            break;
         }
     }
-    return ok;
+    delete[] str;
+
+    int gError;
+#if HAVE_MPI
+    MPI_Allreduce(&myError, &gError, 1, MPI_LOGICAL, MPI_LOR, mpiComm);
+#else
+    gError = myError;
+#endif
+
+    if (gError) {
+        // at least one chunk was not read correctly
+        vi.dataBlocks.clear();
+        vi.valid = false;
+    }
+
+    updateSampleDistribution(vi);
+    variables.push_back(vi);
+    return vi.valid;
+}
+
+// returns the number of samples at each block - used to determine which
+// blocks contribute to given variable if any.
+void EscriptDataset::updateSampleDistribution(VarInfo& vi)
+{
+    IntVec sampleDist;
+    int numBlocks = 0;
+    const DataBlocks& varBlocks = vi.dataBlocks;
+
+    if (mpiSize > 1) {
+#if HAVE_MPI
+        int myNumSamples = varBlocks[0]->getNumberOfSamples();
+        if (mpiRank == 0) {
+            numBlocks = mpiSize;
+            sampleDist.insert(sampleDist.end(), numBlocks, 0);
+        }
+        MPI_Gather(
+            &myNumSamples, 1, MPI_INT, &sampleDist[0], 1, MPI_INT, 0, mpiComm);
+#endif
+    } else {
+        numBlocks = varBlocks.size();
+        DataBlocks::const_iterator it;
+        for (it = varBlocks.begin(); it != varBlocks.end(); it++) {
+            sampleDist.push_back((*it)->getNumberOfSamples());
+        }
+    }
+    vi.sampleDistribution = sampleDist;
 }
 
 //
@@ -516,12 +541,16 @@ void EscriptDataset::putSiloMultiMesh(DBfile* dbfile, const string& meshName)
         tempstrings.push_back(siloPath.str());
         meshnames.push_back((char*)tempstrings.back().c_str());
     }
-    DBoptlist* optList = DBMakeOptlist(2);
-    DBAddOption(optList, DBOPT_CYCLE, &cycle);
-    DBAddOption(optList, DBOPT_DTIME, &time);
-    DBPutMultimesh(dbfile, meshName.c_str(), numBlocks, &meshnames[0],
-            &meshtypes[0], optList);
-    DBFreeOptlist(optList);
+
+    // ignore empty mesh
+    if (meshnames.size() > 0) {
+        DBoptlist* optList = DBMakeOptlist(2);
+        DBAddOption(optList, DBOPT_CYCLE, &cycle);
+        DBAddOption(optList, DBOPT_DTIME, &time);
+        DBPutMultimesh(dbfile, meshName.c_str(), numBlocks, &meshnames[0],
+                &meshtypes[0], optList);
+        DBFreeOptlist(optList);
+    }
 #endif
 }
 
@@ -532,18 +561,7 @@ void EscriptDataset::putSiloMultiVar(DBfile* dbfile, const VarInfo& vi,
                                      bool useMeshFile)
 {
 #if USE_SILO
-    int numBlocks = 0;
-    if (mpiSize > 1) {
-        // FIXME: empty ranks are not accounted for
-        numBlocks = mpiSize;
-    } else {
-        DataBlocks::const_iterator it;
-        for (it = vi.dataBlocks.begin(); it != vi.dataBlocks.end(); it++) {
-            if ((*it)->getNumberOfSamples() > 0)
-                numBlocks++;
-        }
-    }
-    vector<int> vartypes(numBlocks, DB_UCDVAR);
+    vector<int> vartypes;
     vector<string> tempstrings;
     vector<char*> varnames;
     string pathPrefix;
@@ -554,31 +572,38 @@ void EscriptDataset::putSiloMultiVar(DBfile* dbfile, const VarInfo& vi,
         }
     }
 
-    for (size_t idx = 0; idx < numBlocks; idx++) {
-        stringstream siloPath;
-        siloPath << pathPrefix << "/block";
-        int prevWidth = siloPath.width(4);
-        char prevFill = siloPath.fill('0');
-        siloPath << right << idx;
-        siloPath.width(prevWidth);
-        siloPath.fill(prevFill);
-        siloPath << "/";
-        siloPath << vi.varName;
-        tempstrings.push_back(siloPath.str());
-        varnames.push_back((char*)tempstrings.back().c_str());
+    for (size_t idx = 0; idx < vi.sampleDistribution.size(); idx++) {
+        if (vi.sampleDistribution[idx] > 0) {
+            stringstream siloPath;
+            siloPath << pathPrefix << "/block";
+            int prevWidth = siloPath.width(4);
+            char prevFill = siloPath.fill('0');
+            siloPath << right << idx;
+            siloPath.width(prevWidth);
+            siloPath.fill(prevFill);
+            siloPath << "/";
+            siloPath << vi.varName;
+            tempstrings.push_back(siloPath.str());
+            varnames.push_back((char*)tempstrings.back().c_str());
+            vartypes.push_back(DB_UCDVAR);
+        }
     }
-    DBoptlist* optList = DBMakeOptlist(2);
-    DBAddOption(optList, DBOPT_CYCLE, &cycle);
-    DBAddOption(optList, DBOPT_DTIME, &time);
-    if (useMeshFile) {
-        string vpath = string(MESH_VARS)+vi.varName;
-        DBPutMultivar(dbfile, vpath.c_str(), numBlocks, &varnames[0],
-                &vartypes[0], optList);
-    } else {
-        DBPutMultivar(dbfile, vi.varName.c_str(), numBlocks, &varnames[0],
-                &vartypes[0], optList);
+
+    // ignore empty variables
+    if (varnames.size() > 0) {
+        DBoptlist* optList = DBMakeOptlist(2);
+        DBAddOption(optList, DBOPT_CYCLE, &cycle);
+        DBAddOption(optList, DBOPT_DTIME, &time);
+        if (useMeshFile) {
+            string vpath = string(MESH_VARS)+vi.varName;
+            DBPutMultivar(dbfile, vpath.c_str(), varnames.size(),
+                    &varnames[0], &vartypes[0], optList);
+        } else {
+            DBPutMultivar(dbfile, vi.varName.c_str(), varnames.size(),
+                    &varnames[0], &vartypes[0], optList);
+        }
+        DBFreeOptlist(optList);
     }
-    DBFreeOptlist(optList);
 #endif
 }
 

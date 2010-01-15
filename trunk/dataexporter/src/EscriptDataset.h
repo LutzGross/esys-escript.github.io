@@ -33,9 +33,9 @@ typedef std::vector<DataVar_ptr>    DataBlocks;
 typedef std::vector<FinleyMesh_ptr> MeshBlocks;
 
 struct VarInfo {
-    std::string fileName;
     std::string varName;
     DataBlocks dataBlocks;
+    IntVec sampleDistribution;
     bool valid;
 };
 
@@ -132,8 +132,10 @@ public:
 
 private:
     bool loadMeshFromNetCDF();
-    bool loadVariablesFromNetCDF();
+    bool loadVarFromNetCDF(const std::string& fileName,
+                           const std::string& varName);
     void convertMeshVariables();
+    void updateSampleDistribution(VarInfo& vi);
     void putSiloMultiMesh(DBfile* dbfile, const std::string& meshName);
     void putSiloMultiTensor(DBfile* dbfile, const VarInfo& vi);
     void putSiloMultiVar(DBfile* dbfile, const VarInfo& vi,
