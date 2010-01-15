@@ -116,7 +116,6 @@ ElementData::ElementData(const ElementData& e)
     type = e.type;
     nodesPerElement = e.nodesPerElement;
     originalMesh = e.originalMesh;
-    nodeMeshIsOriginalMesh = e.nodeMeshIsOriginalMesh;
     if (e.nodeMesh)
         nodeMesh.reset(new NodeData(*e.nodeMesh));
 
