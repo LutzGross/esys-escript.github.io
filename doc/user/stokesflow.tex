@@ -60,8 +60,8 @@ C = \frac{v \delta t}{h}.
 where $\delta t$, $v$, and $h$ are the time-step, velocity, and the width of an element in the mesh, respectively. The velocity $v$ may be chosen as the maximum velocity in the domain. In this problem the time-step size was calculated for a Courant number of 0.4.
 
 The following PYTHON script is the setup for the Stokes flow simulation, and is available in the example directory as \file{fluid.py}. It starts off by importing the classes, such as the \class{StokesProblemCartesian} class, for solving the Stokes equation and the incompressibility condition for velocity and pressure. Physical constants are defined for the viscosity and density of the fluid, along with the acceleration due to gravity. Solver settings are set for the maximum iterations and tolerance; the default solver used is PCG. The mesh is defined as a rectangle, to represent the body of fluid. We are using $20 \times 20$ elements with piecewise linear elements for the pressure and
-for velocity but the element is subdivided for the velocity. This approach is called \textit{macro elements}\index{macro elements} and needs to be appled to make sure that the discretised problem has a unique 
-solution, see~\cite{LBB} for detials\footnote{Alternative, one can use second order elements for the velocity and first order for pressure on the same element. You may use \code{order=2} in \class{esys.finley.Rectangle}}. The fact that pressure and velocity are represented in different way is expressed by
+for velocity but the element is subdivided for the velocity. This approach is called \textit{macro elements}\index{macro elements} and needs to be applied to make sure that the discretised problem has a unique 
+solution, see~\cite{LBB} for details\footnote{Alternative, one can use second order elements for the velocity and first order for pressure on the same element. You may use \code{order=2} in \class{esys.finley.Rectangle}}. The fact that pressure and velocity are represented in different way is expressed by
 \begin{python}
 velocity=Vector(0.0, Solution(mesh))
 pressure=Scalar(0.0, ReducedSolution(mesh))
