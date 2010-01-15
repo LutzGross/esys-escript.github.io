@@ -27,7 +27,7 @@ omp_libs		= []
 #cc_extra		= '-Wall -pedantic -isystem /usr/include/boost/ -isystem /usr/include/python2.5/ -Wno-sign-compare -Wno-long-long'
 #cc_extra		= '-fopenmp'
 ld_extra		= '-fopenmp'
-cc_extra = ''
+cc_extra = '-isystem /usr/local/py2.6.2/silo4.7.2/include'
 
 # Be picky about errors
 # usepedantic		= 'no'
@@ -57,6 +57,7 @@ boost_libs		= ['libboost_python-gcc44-mt']
 
 # Silo
 usesilo         = 'yes'
+#silo_path       = '/usr/local/py2.6.2/silo4.7.2/include'
 silo_path       = '/usr/local/py2.6.2/silo4.7.2/include'
 silo_lib_path   = '/usr/local/py2.6.2/silo4.7.2/lib'
 silo_libs       = ['siloh5', 'hdf5']
