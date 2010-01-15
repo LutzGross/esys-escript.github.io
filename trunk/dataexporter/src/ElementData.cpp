@@ -99,7 +99,8 @@ namespace escriptexport {
 //
 ElementData::ElementData(const string& elementName, NodeData_ptr nodeData)
     : originalMesh(nodeData), name(elementName), numElements(0),
-      numGhostElements(0), nodeMeshIsOriginalMesh(false)
+      numGhostElements(0), numDims(0), nodesPerElement(0),
+      type(ZONETYPE_UNKNOWN)
 {
 }
 
@@ -116,10 +117,8 @@ ElementData::ElementData(const ElementData& e)
     nodesPerElement = e.nodesPerElement;
     originalMesh = e.originalMesh;
     nodeMeshIsOriginalMesh = e.nodeMeshIsOriginalMesh;
-    if (nodeMeshIsOriginalMesh)
-        nodeMesh = originalMesh;
-    else if (e.nodeMesh)
-        nodeMesh = NodeData_ptr(new NodeData(*e.nodeMesh));
+    if (e.nodeMesh)
+        nodeMesh.reset(new NodeData(*e.nodeMesh));
 
     nodes = e.nodes;
     ID = e.ID;
@@ -187,7 +186,7 @@ bool ElementData::initFromFinley(const Finley_ElementFile* finleyFile)
 StringVec ElementData::getMeshNames() const
 {
     StringVec res;
-    if (nodeMesh && !nodeMeshIsOriginalMesh)
+    if (nodeMesh)
         res.push_back(nodeMesh->getName());
     if (reducedElements) {
         StringVec rNames = reducedElements->getMeshNames();
@@ -242,7 +241,7 @@ bool ElementData::readFromNc(NcFile* ncfile)
     NcAtt* att = ncfile->get_att(num_str.c_str());
     numElements = att->as_int(0);
 
-    // Only attempt to read data if there are any elements.
+    // Only attempt to read further if there are any elements.
     // Having no elements is not an error.
     if (numElements > 0) {
         att = ncfile->get_att((num_str + string("_numNodes")).c_str());
