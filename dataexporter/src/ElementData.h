@@ -28,6 +28,7 @@ namespace escriptexport {
 class NodeData;
 
 typedef enum {
+    ZONETYPE_UNKNOWN=0,
     ZONETYPE_BEAM=VTK_LINE,
     ZONETYPE_HEX=VTK_HEXAHEDRON,
     ZONETYPE_POLYGON=VTK_POLYGON,
@@ -162,7 +163,6 @@ private:
     int numGhostElements;
     int numDims;
     int nodesPerElement;
-    bool nodeMeshIsOriginalMesh;
     ZoneType type;
     IntVec nodes;
     IntVec color, ID, tag;
