@@ -43,14 +43,19 @@ class Mountains:
       where w_hat=w*[1,1,0], dt<0.5*d/max(w_i), d is a characteristic element size; H(x_3=1)=lambda (?) 
       
   """
-  def __init__(self,domain,eps=0.01, reduced=False):
+  def __init__(self,domain,eps=0.01):
     """
     Sets up the level set method.
 
     :param domain: the domain where the mountains is used
     :param eps: the smoothing parameter for (1)
-    :param reduced: if True topography reduced order is used for reconstruction of internal velocity and topography
     """
+    order=Solution(domain).getApproximationOrder()
+    if order>1:
+        reduced = True
+        if ReducedSolution(domain).getApproximationOrder()>1: raise ValueError,"Reduced order needs to be equal to 1."
+    else:
+        reduced = False
     if eps<0:
         raise ValueError("Smooting parameter eps must be non-negative.")
     self.__domain = domain

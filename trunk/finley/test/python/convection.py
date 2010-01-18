@@ -242,7 +242,7 @@ else:
   except:
      pass
   x=dom.getX()
-  T=Scalar(1,ReducedSolution(dom))
+  T=Scalar(1,Solution(dom))
   for d in range(DIM):
       if d == DIM-1: 
          T*=sin(x[d]/H*pi)
@@ -256,7 +256,7 @@ else:
   p=Ra*(x2[DIM-1]-0.5*x2[DIM-1]**2-0.5)
 
   if CREATE_TOPOGRAPHY:
-      topography=Scalar(0.,ReducedSolution(dom))
+      topography=Scalar(0.,Solution(dom))
   diagnostics_file=FileWriter(DIAGNOSTICS_FN,append=False)
   diagnostics_file.write("Ra = %e Lambda= %e\n"%(Ra, SURFACE_LOAD))
 
@@ -275,7 +275,6 @@ heat.setValue(rhocp=1,k=1,given_T_mask=fixed_T_at)
 #
 #   velocity constraints:
 #
-x2=ReducedSolution(dom).getX()
 fixed_v_mask=Vector(0,Solution(dom))
 faces=Scalar(0.,Solution(dom))
 for d in range(DIM):
@@ -307,7 +306,7 @@ boundary=FunctionOnBoundary(dom).getX()[DIM-1]
 top_boundary_mask=whereZero(boundary-sup(boundary))
 surface_area=integrate(top_boundary_mask)
 if CREATE_TOPOGRAPHY:
-    mts=Mountains(dom,eps=TOPO_SMOOTH,reduced=True)
+    mts=Mountains(dom,eps=TOPO_SMOOTH)
     mts.setTopography(topography)
     print "<%s> topography has been set up."%time.asctime()
 #
