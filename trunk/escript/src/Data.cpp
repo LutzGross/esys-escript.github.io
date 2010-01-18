@@ -3154,7 +3154,6 @@ Data::toString() const
 
     int localNeedSummary=0;
 #ifdef PASO_MPI
-    int i;
     int globalNeedSummary=0;
 #endif
     if (!m_data->isEmpty() &&
