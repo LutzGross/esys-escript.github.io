@@ -161,7 +161,6 @@ private:
     std::string name;
     int numElements;
     int numGhostElements;
-    int numDims;
     int nodesPerElement;
     ZoneType type;
     IntVec nodes;

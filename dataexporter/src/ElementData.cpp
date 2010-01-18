@@ -99,7 +99,7 @@ namespace escriptexport {
 //
 ElementData::ElementData(const string& elementName, NodeData_ptr nodeData)
     : originalMesh(nodeData), name(elementName), numElements(0),
-      numGhostElements(0), numDims(0), nodesPerElement(0),
+      numGhostElements(0), nodesPerElement(0),
       type(ZONETYPE_UNKNOWN)
 {
 }
@@ -112,7 +112,6 @@ ElementData::ElementData(const ElementData& e)
     name = e.name;
     numElements = e.numElements;
     numGhostElements = e.numGhostElements;
-    numDims = e.numDims;
     type = e.type;
     nodesPerElement = e.nodesPerElement;
     originalMesh = e.originalMesh;
