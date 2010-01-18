@@ -37,8 +37,8 @@ H=1.                            # height
 L=H                           # length
 NE=40                           # number of elements in H-direction. 
 PERT=0.05               # initial temperature perturbation
-DT=1.e-7                        # initial time step size
-CREATE_TOPOGRAPHY=True         # create topgraphy
+DT=1.e-4                        # initial time step size
+CREATE_TOPOGRAPHY=False         # create topgraphy
 DT_MIN=1.e-10                    # minumum time step size
 T_END=10.                       # end time
 
@@ -56,7 +56,7 @@ BETA=0                          # Drucker-Prager friction factor
 TAU_0=2*10**(2.5)               # transition stress
 N=3                             # power for power law
 
-E=23*0                        # activation energy
+E=23                        # activation energy
 V=18*0                        # activation volume 
 T_OFFSET=1                      # temperature offset on surface (dimensionless formulation T_OFFSET=1 otherwise =0)
 R=1                             # gas constant
@@ -65,9 +65,8 @@ ETA_N0=1.                       # viscosity at surface
 TOPO_SMOOTH=1e-5                # smoothing factor of extrapolation of surface velocity to interior
 
 T_TOL=1.e-4                     # tolerance temperature transport
-TOL2=0.1                        # tolerance for flow update at a timestep. (large value will do only one correction step)
+TOL2=0.1e-3                        # tolerance for flow update at a timestep. (large value will do only one correction step)
 FLOW_TOL=1.e-6                  # tolerance for inconcompressible flow solver
-FLOW_SUB_TOL=1.e-12             # sub-tolerance for inconcompressible flow solver
 TOPO_TOL=1.e-6                 # tolerance for update of topography
 DIAGNOSTICS_FN="diagnostics.csv"
 VERBOSE=True
@@ -140,7 +139,6 @@ print "\ttolerance for topography      TOPO_TOL\t\t=\t",TOPO_TOL
 print "\ttransport tolerance           T_TOL\t\t=\t",T_TOL
 print "\ttolerance for flow updates    TOL2\t\t=\t",TOL2
 print "\tflow tolerance                FLOW_TOL\t\t=\t",FLOW_TOL
-print "\tflow sub-tolerance            FLOW_SUB_TOL\t=\t",FLOW_SUB_TOL
 print "\tfile for diagnostics          DIAGNOSTICS_FN\t=\t",DIAGNOSTICS_FN
 print "\tmin. time incr. for vis file  DT_VIS\t\t=\t",DT_VIS
 print "\tmin. count incr. for vis file DN_VIS\t\t=\t",DN_VIS
@@ -299,7 +297,6 @@ flow.setDruckerPragerLaw(tau_Y=TAU_Y/P_REF+BETA*(1.-Function(dom).getX()[DIM-1])
 
 flow.setElasticShearModulus(MUE)
 flow.setTolerance(TOL2)
-flow.setFlowTolerance(FLOW_TOL)
 flow.setEtaTolerance(FLOW_TOL)
 flow.setExternals(fixed_v_mask=fixed_v_mask)
 print "<%s> Flow solver has been set up."%time.asctime()
@@ -319,7 +316,7 @@ if CREATE_TOPOGRAPHY:
 t1 = time.time()
 print "<%s> Start time step %s (t=%s)."%(time.asctime(),n,t)
 while t<T_END:
-    topography_old=topography
+    if CREATE_TOPOGRAPHY: topography_old=topography
     v_old, p_old, stress_old=v, p, stress
     T_old=T
     #======= solve for velovity ====================================================================
@@ -329,8 +326,7 @@ while t<T_END:
     flow.setExternals(F=Ra*T*unitVector(DIM-1,DIM))
     # if dt<=0 or not CREATE_TOPOGRAPHY:
     if not CREATE_TOPOGRAPHY:
-            flow.setExternals(f=-SURFACE_LOAD*topography*unitVector(DIM-1,DIM))
-            flow.update(dt, iter_max=100, inner_iter_max=200, verbose=False)
+            flow.update(dt, iter_max=100, verbose=False)
     else:
         topography_last=topography
         Topo_norm, error_Topo=1,1

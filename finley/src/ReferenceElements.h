@@ -166,6 +166,7 @@ typedef struct Finley_ReferenceElement {
 	Finley_ReferenceElementInfo* Type;     /* type of the reference element */
 	Finley_ReferenceElementInfo* LinearType;     /* type of the linear reference element */
 	index_t reference_counter;	       /* reference counter */
+        dim_t integrationOrder;                /* used integration order */
 	dim_t numNodes;
         dim_t numLocalDim;
 	dim_t numLinearNodes;

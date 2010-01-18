@@ -116,6 +116,13 @@ public:
   bool
   canTag() const;
 
+   /**
+   \brief returns the approximation order used for this function space
+   */
+
+    ESCRIPT_DLL_API
+    int
+    getApproximationOrder() const;
 
   /**
      \brief assigns new tag newTag to all samples with a positive

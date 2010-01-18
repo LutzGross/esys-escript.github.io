@@ -58,15 +58,15 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 			  return NULL;
 		 }
 	}
-	order=msh[0]->order;
-	reduced_order=msh[0]->reduced_order;
+	order=msh[0]->integrationOrder;
+	reduced_order=msh[0]->reducedIntegrationOrder;
 	numDim=msh[0]->Nodes->numDim;
 	mpi_info=msh[0]->MPIInfo;
 	strcpy(newName,"");
 	for (i=0;i<numMsh;i++) {
 	   /* check if all mesh have the same type and dimensions */
-	   order=MAX(order,msh[i]->order);
-	   reduced_order=MIN(reduced_order,msh[i]->reduced_order);
+	   order=MAX(order,msh[i]->integrationOrder);
+	   reduced_order=MIN(reduced_order,msh[i]->reducedIntegrationOrder);
 	   numNodes+=msh[i]->Nodes->numNodes;
 	   if (mpi_info->comm!=msh[i]->MPIInfo->comm) {
 		  Finley_setError(TYPE_ERROR,"Finley_Mesh_merge: MPI communicators of meshes don't match.");
@@ -129,7 +129,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 	/* allocate */
 
 	if (Finley_noError()) {
-	  out=Finley_Mesh_alloc(newName,numDim,order,reduced_order,mpi_info);
+	  out=Finley_Mesh_alloc(newName,numDim,mpi_info);
     }
 	if (Finley_noError()) {
 		refElements= Finley_ReferenceElementSet_alloc(elementTypeId,order,reduced_order);

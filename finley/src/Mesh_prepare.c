@@ -28,6 +28,8 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
      if (in==NULL) return;
      if (in->Nodes == NULL) return;
 
+     Mesh_setOrders(in);
+
      /* first step is to distribute the elements according to a global distribution of DOF */
 
      distribution=TMPMEMALLOC(in->MPIInfo->size+1,index_t);

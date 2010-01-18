@@ -24,7 +24,7 @@
 /*   allocates a Mesh with name name for elements of type id using an integration order. If order is negative, */
 /*   the most appropriate order is selected indepently. */
 
-Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order, index_t reduced_order, Paso_MPIInfo *mpi_info) 
+Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, Paso_MPIInfo *mpi_info) 
 {
   Finley_Mesh *out;
   
@@ -65,8 +65,11 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order, index_t r
       Finley_Mesh_free(out);
       return NULL;
   }
-  out->order=order;
-  out->reduced_order=reduced_order;
+  out->approximationOrder=-1;
+  out->reducedApproximationOrder=-1;
+  out->integrationOrder=-1;
+  out->reducedIntegrationOrder=-1;
+
   out->Elements=NULL;
   out->FaceElements=NULL;
   out->Points=NULL;
@@ -138,3 +141,57 @@ int  Finley_Mesh_getStatus(Finley_Mesh* in) {
         return in->Nodes->status;
    }
 }
+
+void Mesh_setOrders(Finley_Mesh *in) 
+{
+   const dim_t order_max=9999999;
+   dim_t locals[4];
+   #ifdef PASO_MPI
+       dim_t globals[4];
+   #endif
+   locals[0]=order_max; locals[1]=order_max; locals[2]=order_max; locals[3]=order_max;
+
+  if ( in->Elements!=NULL) {
+     if (in->Elements->numElements > 0) {
+         locals[0]=MIN(locals[0], in->Elements->referenceElementSet->referenceElement->BasisFunctions->Type->numOrder);
+         locals[1]=MIN(locals[1], in->Elements->referenceElementSet->referenceElement->LinearBasisFunctions->Type->numOrder);
+         locals[2]=MIN(locals[2], in->Elements->referenceElementSet->referenceElement->integrationOrder);
+         locals[3]=MIN(locals[3], in->Elements->referenceElementSet->referenceElementReducedQuadrature->integrationOrder);
+     }
+  }
+  if ( in->FaceElements!=NULL) {
+     if (in->FaceElements->numElements > 0) {
+         locals[0]=MIN(locals[0], in->FaceElements->referenceElementSet->referenceElement->BasisFunctions->Type->numOrder);
+         locals[1]=MIN(locals[1], in->FaceElements->referenceElementSet->referenceElement->LinearBasisFunctions->Type->numOrder);
+         locals[2]=MIN(locals[2], in->FaceElements->referenceElementSet->referenceElement->integrationOrder);
+         locals[3]=MIN(locals[3], in->FaceElements->referenceElementSet->referenceElementReducedQuadrature->integrationOrder);
+     }
+
+
+  }
+  if ( in->ContactElements!=NULL) {
+     if (in->ContactElements->numElements > 0) {
+         locals[0]=MIN(locals[0], in->ContactElements->referenceElementSet->referenceElement->BasisFunctions->Type->numOrder);
+         locals[1]=MIN(locals[1], in->ContactElements->referenceElementSet->referenceElement->LinearBasisFunctions->Type->numOrder);
+         locals[2]=MIN(locals[2], in->ContactElements->referenceElementSet->referenceElement->integrationOrder);
+         locals[3]=MIN(locals[3], in->ContactElements->referenceElementSet->referenceElementReducedQuadrature->integrationOrder);
+     }
+
+  }
+
+   #ifdef PASO_MPI
+       MPI_Allreduce( locals, globals, 4, MPI_INT, MPI_MIN, in->MPIInfo->comm );
+       in->approximationOrder=(globals[0] < order_max ? globals[0] : -1 );
+       in->reducedApproximationOrder=(globals[1] < order_max ? globals[1] : -1 );
+       in->integrationOrder=(globals[2] < order_max ? globals[2] : -1 );
+       in->reducedIntegrationOrder=(globals[3] < order_max ? globals[3] : -1 );
+   #else
+       in->approximationOrder=(locals[0] < order_max ? locals[0] : -1 );
+       in->reducedApproximationOrder=(locals[1] < order_max ? locals[1] : -1 );
+       in->integrationOrder=(locals[2] < order_max ? locals[2] : -1 );
+       in->reducedIntegrationOrder=(locals[3] < order_max ? locals[3] : -1 );
+   #endif
+
+
+}
+  

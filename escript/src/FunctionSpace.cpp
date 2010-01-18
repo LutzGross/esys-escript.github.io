@@ -302,4 +302,10 @@ FunctionSpace::canTag() const
   return m_domain->canTag(m_functionSpaceType);
 }
 
+int 
+FunctionSpace::getApproximationOrder() const
+{
+   return m_domain->getApproximationOrder(m_functionSpaceType);
+}
+
 }  // end of namespace

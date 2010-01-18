@@ -120,7 +120,7 @@ namespace finley {
     string msgPrefix("Error in loadMesh: NetCDF operation failed - ");
 
     /* allocate mesh */
-    mesh_p = Finley_Mesh_alloc(name,numDim,order,reduced_order,mpi_info);
+    mesh_p = Finley_Mesh_alloc(name,numDim,mpi_info);
     if (Finley_noError()) {
 
         /* read nodes */
@@ -194,7 +194,7 @@ namespace finley {
 
         /* read elements */
         if (Finley_noError()) {
-		  Finley_ReferenceElementSet  *refElements=	Finley_ReferenceElementSet_alloc((ElementTypeId)Elements_TypeId,mesh_p->order, mesh_p->reduced_order);
+		  Finley_ReferenceElementSet  *refElements=	Finley_ReferenceElementSet_alloc((ElementTypeId)Elements_TypeId,order, reduced_order);
 		  if (Finley_noError())  {
 			  mesh_p->Elements=Finley_ElementFile_alloc(refElements, mpi_info);
 		  }
@@ -257,7 +257,7 @@ namespace finley {
 
         /* get the face elements */
         if (Finley_noError()) {
-		  Finley_ReferenceElementSet *refFaceElements=	Finley_ReferenceElementSet_alloc((ElementTypeId)FaceElements_TypeId	,mesh_p->order, mesh_p->reduced_order);
+		  Finley_ReferenceElementSet *refFaceElements=	Finley_ReferenceElementSet_alloc((ElementTypeId)FaceElements_TypeId	,order, reduced_order);
 		  if (Finley_noError())  {
 			  mesh_p->FaceElements=Finley_ElementFile_alloc(refFaceElements, mpi_info);
 		  }
@@ -318,7 +318,7 @@ namespace finley {
 
         /* get the Contact elements */
         if (Finley_noError()) {
-		  Finley_ReferenceElementSet *refContactElements=	Finley_ReferenceElementSet_alloc((ElementTypeId)ContactElements_TypeId,mesh_p->order, mesh_p->reduced_order);
+		  Finley_ReferenceElementSet *refContactElements=	Finley_ReferenceElementSet_alloc((ElementTypeId)ContactElements_TypeId,order, reduced_order);
 		  if (Finley_noError())  {
 			  mesh_p->ContactElements=Finley_ElementFile_alloc(refContactElements, mpi_info);
 		  }
@@ -380,7 +380,7 @@ namespace finley {
 
         /* get the Points (nodal elements) */
         if (Finley_noError()) {
-		  Finley_ReferenceElementSet *refPoints=	Finley_ReferenceElementSet_alloc((ElementTypeId)Points_TypeId,mesh_p->order, mesh_p->reduced_order);
+		  Finley_ReferenceElementSet *refPoints=	Finley_ReferenceElementSet_alloc((ElementTypeId)Points_TypeId,order, reduced_order);
 		  if (Finley_noError())  {
 			  mesh_p->Points=Finley_ElementFile_alloc(refPoints, mpi_info);
 		  }

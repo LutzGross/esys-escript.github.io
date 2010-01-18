@@ -131,8 +131,10 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
 
   fprintf(stdout, "Finley_PrintMesh_Info running on CPU %d of %d\n",in->MPIInfo->rank, in->MPIInfo->size);
   fprintf(stdout, "\tMesh name '%s'\n",in->Name);
-  fprintf(stdout, "\tOrder %d\n",in->order);
-  fprintf(stdout, "\tReduced order %d\n",in->reduced_order);
+  fprintf(stdout, "\tApproximation order %d\n",in->approximationOrder);
+  fprintf(stdout, "\tReduced Approximation order %d\n",in->reducedApproximationOrder);
+  fprintf(stdout, "\tIntegration order %d\n",in->integrationOrder);
+  fprintf(stdout, "\tReduced Integration order %d\n",in->reducedIntegrationOrder);
 
   /* write nodes: */
   if (in->Nodes!=NULL) {

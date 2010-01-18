@@ -64,20 +64,20 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
 
   /*  allocate mesh: */  
   sprintf(name,"Rectangular %d x %d mesh",N0,N1);
-  out=Finley_Mesh_alloc(name,DIM,order, reduced_order, mpi_info);
+  out=Finley_Mesh_alloc(name,DIM, mpi_info);
   if (! Finley_noError()) { 
       Paso_MPIInfo_free( mpi_info );
       return NULL;
   }
-  refElements= Finley_ReferenceElementSet_alloc(Rec4,out->order,out->reduced_order);
+  refElements= Finley_ReferenceElementSet_alloc(Rec4,order,reduced_order);
   if (useElementsOnFace) {
-	  	refFaceElements=Finley_ReferenceElementSet_alloc(Rec4Face, out->order, out->reduced_order);
-		refContactElements=Finley_ReferenceElementSet_alloc(Rec4Face_Contact, out->order, out->reduced_order);
+	  	refFaceElements=Finley_ReferenceElementSet_alloc(Rec4Face, order, reduced_order);
+		refContactElements=Finley_ReferenceElementSet_alloc(Rec4Face_Contact, order, reduced_order);
   } else {
-	  	refFaceElements=Finley_ReferenceElementSet_alloc(Line2, out->order, out->reduced_order);
-		refContactElements=Finley_ReferenceElementSet_alloc(Line2_Contact, out->order, out->reduced_order);
+	  	refFaceElements=Finley_ReferenceElementSet_alloc(Line2, order, reduced_order);
+		refContactElements=Finley_ReferenceElementSet_alloc(Line2_Contact, order, reduced_order);
   }
-  refPoints=Finley_ReferenceElementSet_alloc(Point1, out->order, out->reduced_order);
+  refPoints=Finley_ReferenceElementSet_alloc(Point1, order, reduced_order);
   
   if ( Finley_noError()) {
   

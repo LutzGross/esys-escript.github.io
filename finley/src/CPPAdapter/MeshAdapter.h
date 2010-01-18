@@ -676,6 +676,14 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   virtual
   bool canTag(int functionSpaceCode) const;
 
+   /**
+   \brief returns the approximation order used for a function space functionSpaceCode
+   */
+
+  FINLEY_DLL_API
+  virtual 
+  int getApproximationOrder(const int functionSpaceCode) const;
+
 
  protected:
 
