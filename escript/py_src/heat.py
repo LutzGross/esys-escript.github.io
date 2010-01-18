@@ -66,9 +66,17 @@ class TemperatureCartesian(TransportPDE):
         :param domain: domain of the problem
         :param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Not that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. So other measures need to be applied to control the time step size. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
         :type useBackwardEuler: ``bool``
+        :note: the approximation order is switched to reduced if the approximation order is nnot linear (equal to 1).
         """
         TransportPDE.__init__(self,domain,numEquations=1,useBackwardEuler=useBackwardEuler,**kwargs)
-        self.setReducedOrderOn()
+        order=Solution(domain).getApproximationOrder()
+        if order>1:
+            if ReducedSolution(domain).getApproximationOrder()>1: raise ValueError,"Reduced order needs to be equal to 1."
+            self.setReducedOrderOn()
+        else:
+            self.setReducedOrderOff()
+
+        self.__reduced = reduced
         self.__rhocp=None
         self.__v=None
 
@@ -133,9 +141,15 @@ class Tracer(TransportPDE):
         :param domain: domain of the problem
         :param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Not that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. So other measures need to be applied to control the time step size. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
         :type useBackwardEuler: ``bool``
+        :note: the approximation order is switched to reduced if the approximation order is nnot linear (equal to 1).
         """
         TransportPDE.__init__(self,domain,numEquations=1,useBackwardEuler=useBackwardEuler,**kwargs)
-        self.setReducedOrderOn()
+        order=Solution(domain).getApproximationOrder()
+        if order>1:
+            if ReducedSolution(domain).getApproximationOrder()>1: raise ValueError,"Reduced order needs to be equal to 1."
+            self.setReducedOrderOn()
+        else:
+            self.setReducedOrderOff()
         super(Tracer,self).setValue(M=1.)
 
     def setInitialTracer(self,C):
