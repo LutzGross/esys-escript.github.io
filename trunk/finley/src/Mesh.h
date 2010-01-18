@@ -74,9 +74,11 @@
 
 struct Finley_Mesh {
   char* Name;                           /* the name of the mesh */
-  index_t order;                        /* integration order */
-  index_t reduced_order;                /* reduced integration order */
   dim_t reference_counter;              /* counts the number of references to the mesh; */
+  dim_t approximationOrder;                        
+  dim_t reducedApproximationOrder;                
+  dim_t integrationOrder;                
+  dim_t reducedIntegrationOrder;           
   Finley_NodeFile* Nodes;               /* the table of the nodes */
   Finley_ElementFile* Elements;         /* the table of the elements */
   Finley_ElementFile* FaceElements;     /* the table of the face elements */
@@ -106,7 +108,7 @@ typedef struct Finley_Mesh_findMatchingFaces_center Finley_Mesh_findMatchingFace
 /**************************************************************/
 
 /*  interfaces: */
-Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order, index_t reduced_order, Paso_MPIInfo *mpi_info);
+Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, Paso_MPIInfo *mpi_info);
 Finley_Mesh* Finley_Mesh_reference(Finley_Mesh*);
 dim_t Finley_Mesh_getDim(Finley_Mesh*);
 void Finley_Mesh_free(Finley_Mesh*);
@@ -123,6 +125,7 @@ void Finley_PrintMesh_Info(Finley_Mesh *, bool_t);
 Finley_Mesh* Finley_Mesh_load(char* fname);
 Finley_Mesh* Finley_Mesh_read(char*,index_t, index_t, bool_t);
 Finley_Mesh* Finley_Mesh_readGmsh(char*,index_t, index_t, index_t, bool_t, bool_t);
+void Mesh_setOrders(Finley_Mesh *in);
 
 void Finley_Mesh_setCoordinates(Finley_Mesh*,escriptDataC*);
 void Finley_Mesh_setElements(Finley_Mesh* self,Finley_ElementFile *elements);

@@ -67,7 +67,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
 
   /*  allocate mesh: */  
   sprintf(name,"Brick %d x %d x %d mesh",N0,N1,N2);
-  out=Finley_Mesh_alloc(name,DIM,order, reduced_order, mpi_info);
+  out=Finley_Mesh_alloc(name,DIM, mpi_info);
   if (! Finley_noError()) { 
       Paso_MPIInfo_free( mpi_info );
       return NULL;
@@ -76,34 +76,34 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
   if (generateAllNodes) {
      /* Finley_setError(SYSTEM_ERROR,"full element order for Hex elements is not supported yet."); */
      if (useMacroElements) {
-		  refElements= Finley_ReferenceElementSet_alloc(Hex27Macro,out->order,out->reduced_order);
+		  refElements= Finley_ReferenceElementSet_alloc(Hex27Macro,order,reduced_order);
      } else {
-		  refElements=Finley_ReferenceElementSet_alloc(Hex27, out->order,out->reduced_order);
+		  refElements=Finley_ReferenceElementSet_alloc(Hex27, order,reduced_order);
      }
      if (useElementsOnFace) {
          Finley_setError(SYSTEM_ERROR,"rich elements for Hex27 elements is not supported yet.");
      } else {
          if (useMacroElements) { 
-			 refFaceElements=Finley_ReferenceElementSet_alloc(Rec9Macro, out->order, out->reduced_order);
+			 refFaceElements=Finley_ReferenceElementSet_alloc(Rec9Macro, order, reduced_order);
          } else {
-			 refFaceElements=Finley_ReferenceElementSet_alloc(Rec9, out->order, out->reduced_order);
+			 refFaceElements=Finley_ReferenceElementSet_alloc(Rec9, order, reduced_order);
          }
-		 refContactElements=Finley_ReferenceElementSet_alloc(Rec9_Contact, out->order, out->reduced_order);
+		 refContactElements=Finley_ReferenceElementSet_alloc(Rec9_Contact, order, reduced_order);
      }
 
   } else  {
-	 refElements= Finley_ReferenceElementSet_alloc(Hex20,out->order,out->reduced_order);
+	 refElements= Finley_ReferenceElementSet_alloc(Hex20,order,reduced_order);
      if (useElementsOnFace) {
-		 refFaceElements = Finley_ReferenceElementSet_alloc(Hex20Face ,out->order,out->reduced_order);
-		 refContactElements=Finley_ReferenceElementSet_alloc(Hex20Face_Contact, out->order, out->reduced_order);
+		 refFaceElements = Finley_ReferenceElementSet_alloc(Hex20Face ,order,reduced_order);
+		 refContactElements=Finley_ReferenceElementSet_alloc(Hex20Face_Contact, order, reduced_order);
 
      } else {
-		 refFaceElements = Finley_ReferenceElementSet_alloc(Rec8 ,out->order,out->reduced_order);
-		 refContactElements=Finley_ReferenceElementSet_alloc(Rec8_Contact, out->order, out->reduced_order);
+		 refFaceElements = Finley_ReferenceElementSet_alloc(Rec8 ,order,reduced_order);
+		 refContactElements=Finley_ReferenceElementSet_alloc(Rec8_Contact, order, reduced_order);
 
      }
   }
-  refPoints=Finley_ReferenceElementSet_alloc(Point1, out->order, out->reduced_order);
+  refPoints=Finley_ReferenceElementSet_alloc(Point1, order, reduced_order);
 
   if ( Finley_noError()) {
   

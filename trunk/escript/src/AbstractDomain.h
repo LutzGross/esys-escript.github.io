@@ -450,6 +450,14 @@ Note: This is _not_ equivalent to weak_ptr::lock.
   ESCRIPT_DLL_API
   virtual bool canTag(int functionspacecode) const;
 
+   /**
+   \brief returns the approximation order used for a function space functionSpaceCode
+   */
+
+   ESCRIPT_DLL_API
+   virtual int getApproximationOrder(const int functionSpaceCode) const;
+
+
  protected:
 
  private:

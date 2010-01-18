@@ -305,5 +305,12 @@ bool AbstractDomain::canTag(int functionspacecode) const
   return false;
 }
 
+int AbstractDomain::getApproximationOrder(const int functionSpaceCode) const
+{
+  throwStandardException("AbstractContinuousDomain::getApproximationOrder");
+  return 0;
+}
+
+
 
 } // end of namespace

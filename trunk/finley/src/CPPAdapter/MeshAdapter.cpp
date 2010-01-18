@@ -220,9 +220,9 @@ void MeshAdapter::dump(const string& fileName) const
       throw DataException(msgPrefix+"add_att(Name)");
    if (!dataFile.add_att("numDim",numDim) )
       throw DataException(msgPrefix+"add_att(order)");
-   if (!dataFile.add_att("order",mesh->order) )
+   if (!dataFile.add_att("order",mesh->integrationOrder) )
       throw DataException(msgPrefix+"add_att(order)");
-   if (!dataFile.add_att("reduced_order",mesh->reduced_order) )
+   if (!dataFile.add_att("reduced_order",mesh->reducedIntegrationOrder) )
       throw DataException(msgPrefix+"add_att(reduced_order)");
    if (!dataFile.add_att("numNodes",numNodes) )
       throw DataException(msgPrefix+"add_att(numNodes)");
@@ -2360,6 +2360,39 @@ AbstractDomain::StatusType MeshAdapter::getStatus() const
   return Finley_Mesh_getStatus(mesh);
 }
 
-
+int MeshAdapter::getApproximationOrder(const int functionSpaceCode) const
+{
+   
+  Finley_Mesh* mesh=m_finleyMesh.get();
+  int order =-1;
+  switch(functionSpaceCode) {
+   case(Nodes):
+   case(DegreesOfFreedom):
+          order=mesh->approximationOrder;
+          break;
+   case(ReducedNodes):
+   case(ReducedDegreesOfFreedom):
+          order=mesh->reducedApproximationOrder;
+          break;
+   case(Elements):
+   case(FaceElements):
+   case(Points):
+   case(ContactElementsZero):
+   case(ContactElementsOne):
+          order=mesh->integrationOrder;
+          break;
+   case(ReducedElements):
+   case(ReducedFaceElements):
+   case(ReducedContactElementsZero):
+   case(ReducedContactElementsOne):
+          order=mesh->reducedIntegrationOrder;
+          break;
+   default:
+      stringstream temp;
+      temp << "Error - Finley does not know anything about function space type " << functionSpaceCode;
+      throw FinleyAdapterException(temp.str());
+  }
+  return order;
+}
 
 }  // end of namespace

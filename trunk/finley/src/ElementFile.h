@@ -82,8 +82,6 @@ struct Finley_ElementFile {
                                                  are don't share a node so they can be processed simultaneously 
                                                  at anytime Color must provide a valid value. In any case one can set  
                                                  Color[e]=e  for all e */
-  index_t order;                                /* order of the element integration scheme*/
-  index_t reduced_order;                        /* order of the reduced element integration scheme*/
 
   Finley_ElementFile_Jacobeans* jacobeans;           /* jacobeans of the shape function used for solution approximation */
   Finley_ElementFile_Jacobeans* jacobeans_reducedS;  /* jacobeans of the shape function used for solution approximation for reduced order of shape function*/

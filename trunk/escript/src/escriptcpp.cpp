@@ -201,6 +201,7 @@ args("solver", "preconditioner", "package", "symmetry"));
                  &escript::FunctionSpace::getTagFromDataPointNo,":return: the tag associated with the given sample number.\n:rtype: int");
   fs_definer.def("getReferenceIDFromDataPointNo", &escript::FunctionSpace::getReferenceIDFromDataPointNo,args("dataPointNo"),":return: the reference number associated with ``dataPointNo``\n:rtype: int ");
   fs_definer.def("getListOfTags",&escript::FunctionSpace::getListOfTags,":return: a list of the tags used in this function space\n:rtype: ``list``");
+  fs_definer.def("getApproximationOrder", &escript::FunctionSpace::getApproximationOrder,":return: the approximation order refering to the maximum degree of a polynomial which can be represenred exactly in interplation and/or integration.\n:rtype: ``int``");
   fs_definer.def("__str__", &escript::FunctionSpace::toString);
   fs_definer.def(self == self);
   fs_definer.def(self != self);

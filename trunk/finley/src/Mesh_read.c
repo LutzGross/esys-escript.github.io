@@ -80,7 +80,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
     #endif
 
     /* allocate mesh */
-    mesh_p = Finley_Mesh_alloc(name,numDim,order,reduced_order,mpi_info);
+    mesh_p = Finley_Mesh_alloc(name,numDim,mpi_info);
 	
     if (Finley_noError()) {
 		/* Each CPU will get at most chunkSize nodes so the message has to be sufficiently large */
@@ -204,7 +204,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 
     /* Allocate the ElementFile */
 	if (Finley_noError()) {
-		refElements= Finley_ReferenceElementSet_alloc(typeID,mesh_p->order, mesh_p->reduced_order);
+		refElements= Finley_ReferenceElementSet_alloc(typeID,order, reduced_order);
 		mesh_p->Elements=Finley_ElementFile_alloc(refElements, mpi_info);
 		numNodes = mesh_p->Elements->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
 	}
@@ -305,7 +305,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
         }
 		if (Finley_noError()) {
 			/* Allocate the ElementFile */
-			refFaceElements= Finley_ReferenceElementSet_alloc(typeID,mesh_p->order, mesh_p->reduced_order);
+			refFaceElements= Finley_ReferenceElementSet_alloc(typeID,order, reduced_order);
 			mesh_p->FaceElements=Finley_ElementFile_alloc(refFaceElements, mpi_info);
 			numNodes = mesh_p->FaceElements->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
 		}
@@ -409,7 +409,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 
 	if (Finley_noError()) {
 		/* Allocate the ElementFile */
-		refContactElements= Finley_ReferenceElementSet_alloc(typeID,mesh_p->order, mesh_p->reduced_order);
+		refContactElements= Finley_ReferenceElementSet_alloc(typeID,order, reduced_order);
 		mesh_p->ContactElements=Finley_ElementFile_alloc(refContactElements, mpi_info);
         numNodes = mesh_p->ContactElements->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
 	}
@@ -506,7 +506,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 
 	if (Finley_noError()) {
 		/* Allocate the ElementFile */
-		refPoints= Finley_ReferenceElementSet_alloc(typeID,mesh_p->order, mesh_p->reduced_order);
+		refPoints= Finley_ReferenceElementSet_alloc(typeID,order, reduced_order);
 		mesh_p->Points=Finley_ElementFile_alloc(refPoints, mpi_info);
 		numNodes = mesh_p->Points->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
 	}

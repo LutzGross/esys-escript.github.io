@@ -607,6 +607,7 @@ Finley_ReferenceElement* Finley_ReferenceElement_alloc(ElementTypeId id, int ord
 	out->numNodes=out->Type->numNodes;
 	out->LinearType=linear_type;
 	out->numLinearNodes=out->LinearType->numNodes;
+        out->integrationOrder=-1;
         out->DBasisFunctionDv=NULL;
         out->DBasisFunctionDvShared=TRUE;
 
@@ -623,7 +624,8 @@ Finley_ReferenceElement* Finley_ReferenceElement_alloc(ElementTypeId id, int ord
 	*/
 	
 	if (order<0) order=MAX(2*basisfunction->numOrder,0);
-	
+        out->integrationOrder=order;
+
     numQuadNodes=quadscheme->getNumQuadNodes(order);
 	
     quadNodes=MEMALLOC(numQuadNodes*quadscheme->numDim*nsub,double);
