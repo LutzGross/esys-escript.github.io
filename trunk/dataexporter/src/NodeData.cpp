@@ -126,7 +126,7 @@ bool NodeData::initFromFinley(const Finley_NodeFile* finleyFile)
     numNodes = finleyFile->numNodes;
 
     int mpisize = finleyFile->MPIInfo->size;
-    iPtr = finleyFile->nodesDistribution->first_component;
+    int* iPtr = finleyFile->nodesDistribution->first_component;
     nodeDist.clear();
     nodeDist.insert(nodeDist.end(), mpisize+1, 0);
     copy(iPtr, iPtr+mpisize+1, nodeDist.begin());
@@ -152,8 +152,6 @@ bool NodeData::initFromFinley(const Finley_NodeFile* finleyFile)
             }
         }
 
-        int* iPtr;
- 
         iPtr = finleyFile->Id;
         nodeID.insert(nodeID.end(), numNodes, 0);
         copy(iPtr, iPtr+numNodes, nodeID.begin());
