@@ -125,10 +125,22 @@ bool NodeData::initFromFinley(const Finley_NodeFile* finleyFile)
     numDims = finleyFile->numDim;
     numNodes = finleyFile->numNodes;
 
+    int mpisize = finleyFile->MPIInfo->size;
+    iPtr = finleyFile->nodesDistribution->first_component;
+    nodeDist.clear();
+    nodeDist.insert(nodeDist.end(), mpisize+1, 0);
+    copy(iPtr, iPtr+mpisize+1, nodeDist.begin());
+
     CoordArray::iterator it;
     for (it = coords.begin(); it != coords.end(); it++)
         delete[] *it;
     coords.clear();
+    nodeID.clear();
+    nodeTag.clear();
+    nodeGDOF.clear();
+    nodeGNI.clear();
+    nodeGRDFI.clear();
+    nodeGRNI.clear();
 
     if (numNodes > 0) {
         for (int i=0; i<numDims; i++) {
@@ -143,40 +155,29 @@ bool NodeData::initFromFinley(const Finley_NodeFile* finleyFile)
         int* iPtr;
  
         iPtr = finleyFile->Id;
-        nodeID.clear();
         nodeID.insert(nodeID.end(), numNodes, 0);
         copy(iPtr, iPtr+numNodes, nodeID.begin());
 
         iPtr = finleyFile->Tag;
-        nodeTag.clear();
         nodeTag.insert(nodeTag.end(), numNodes, 0);
         copy(iPtr, iPtr+numNodes, nodeTag.begin());
 
         iPtr = finleyFile->globalDegreesOfFreedom;
-        nodeGDOF.clear();
         nodeGDOF.insert(nodeGDOF.end(), numNodes, 0);
         copy(iPtr, iPtr+numNodes, nodeGDOF.begin());
 
         iPtr = finleyFile->globalNodesIndex;
-        nodeGNI.clear();
         nodeGNI.insert(nodeGNI.end(), numNodes, 0);
         copy(iPtr, iPtr+numNodes, nodeGNI.begin());
 
         iPtr = finleyFile->globalReducedDOFIndex;
-        nodeGRDFI.clear();
         nodeGRDFI.insert(nodeGRDFI.end(), numNodes, 0);
         copy(iPtr, iPtr+numNodes, nodeGRDFI.begin());
 
         iPtr = finleyFile->globalReducedNodesIndex;
-        nodeGRNI.clear();
         nodeGRNI.insert(nodeGRNI.end(), numNodes, 0);
         copy(iPtr, iPtr+numNodes, nodeGRNI.begin());
 
-        int mpisize = finleyFile->MPIInfo->size;
-        iPtr = finleyFile->nodesDistribution->first_component;
-        nodeDist.clear();
-        nodeDist.insert(nodeDist.end(), mpisize+1, 0);
-        copy(iPtr, iPtr+mpisize+1, nodeDist.begin());
     }
     return true;
 }
@@ -199,52 +200,57 @@ bool NodeData::readFromNc(NcFile* ncFile)
     att = ncFile->get_att("mpi_size");
     int mpisize = att->as_int(0);
 
-    CoordArray::iterator it;
-    for (it = coords.begin(); it != coords.end(); it++)
-        delete[] *it;
-    coords.clear();
-    var = ncFile->get_var("Nodes_Coordinates");
-    for (int i=0; i<numDims; i++) {
-        float* c = new float[numNodes];
-        var->set_cur(0, i);
-        var->get(c, numNodes, 1);
-        coords.push_back(c);
-    }
-
-    nodeID.clear();
-    nodeID.insert(nodeID.end(), numNodes, 0);
-    var = ncFile->get_var("Nodes_Id");
-    var->get(&nodeID[0], numNodes);
-
-    nodeTag.clear();
-    nodeTag.insert(nodeTag.end(), numNodes, 0);
-    var = ncFile->get_var("Nodes_Tag");
-    var->get(&nodeTag[0], numNodes);
-
-    nodeGDOF.clear();
-    nodeGDOF.insert(nodeGDOF.end(), numNodes, 0);
-    var = ncFile->get_var("Nodes_gDOF");
-    var->get(&nodeGDOF[0], numNodes);
-
-    nodeGNI.clear();
-    nodeGNI.insert(nodeGNI.end(), numNodes, 0);
-    var = ncFile->get_var("Nodes_gNI");
-    var->get(&nodeGNI[0], numNodes);
-
-    nodeGRDFI.clear();
-    nodeGRDFI.insert(nodeGRDFI.end(), numNodes, 0);
-    var = ncFile->get_var("Nodes_grDfI");
-    var->get(&nodeGRDFI[0], numNodes);
-
-    nodeGRNI.clear();
-    nodeGRNI.insert(nodeGRNI.end(), numNodes, 0);
-    var = ncFile->get_var("Nodes_grNI");
-    var->get(&nodeGRNI[0], numNodes);
-
     nodeDist.clear();
     nodeDist.insert(nodeDist.end(), mpisize+1, 0);
     var = ncFile->get_var("Nodes_NodeDistribution");
     var->get(&nodeDist[0], mpisize+1);
+
+    CoordArray::iterator it;
+    for (it = coords.begin(); it != coords.end(); it++)
+        delete[] *it;
+    coords.clear();
+    nodeID.clear();
+    nodeTag.clear();
+    nodeGDOF.clear();
+    nodeGNI.clear();
+    nodeGRDFI.clear();
+    nodeGRNI.clear();
+
+    // Only attempt to read further if there are any nodes.
+    // Having no nodes is not an error.
+    if (numNodes > 0) {
+        var = ncFile->get_var("Nodes_Coordinates");
+        for (int i=0; i<numDims; i++) {
+            float* c = new float[numNodes];
+            var->set_cur(0, i);
+            var->get(c, numNodes, 1);
+            coords.push_back(c);
+        }
+
+        nodeID.insert(nodeID.end(), numNodes, 0);
+        var = ncFile->get_var("Nodes_Id");
+        var->get(&nodeID[0], numNodes);
+
+        nodeTag.insert(nodeTag.end(), numNodes, 0);
+        var = ncFile->get_var("Nodes_Tag");
+        var->get(&nodeTag[0], numNodes);
+
+        nodeGDOF.insert(nodeGDOF.end(), numNodes, 0);
+        var = ncFile->get_var("Nodes_gDOF");
+        var->get(&nodeGDOF[0], numNodes);
+
+        nodeGNI.insert(nodeGNI.end(), numNodes, 0);
+        var = ncFile->get_var("Nodes_gNI");
+        var->get(&nodeGNI[0], numNodes);
+
+        nodeGRDFI.insert(nodeGRDFI.end(), numNodes, 0);
+        var = ncFile->get_var("Nodes_grDfI");
+        var->get(&nodeGRDFI[0], numNodes);
+
+        nodeGRNI.insert(nodeGRNI.end(), numNodes, 0);
+        var = ncFile->get_var("Nodes_grNI");
+        var->get(&nodeGRNI[0], numNodes);
+    }
 
     return true;
 #else // !USE_NETCDF
