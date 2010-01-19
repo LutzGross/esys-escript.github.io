@@ -139,8 +139,8 @@ void Paso_Pattern_color(Paso_Pattern* pattern, index_t* num_colors, index_t* col
 
        #pragma omp parallel for private(i) schedule(static)
        for (i = 0; i < n; ++i) {
-        if (mis_marker[i]) colorOf[i]=out;
-        mis_marker[i]=colorOf[i];
+            if (mis_marker[i]) colorOf[i]=out;
+            mis_marker[i]=colorOf[i];
        }
        ++out;
     }

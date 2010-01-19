@@ -31,10 +31,22 @@
 /* returns true if array contains value */
 bool_t Paso_Util_isAny(dim_t N,index_t* array,index_t value) {
    bool_t out=FALSE;
+   register bool_t out2;
    dim_t i;
-   #pragma omp parallel for private(i) schedule(static) reduction(||:out)
-   for (i=0;i<N;i++) {
-            out = out || (array[i]==value);
+
+   #pragma omp parallel private(i, out2) 
+   {
+	   out2=FALSE;
+           #pragma omp for schedule(static)
+           for (i=0;i<N;i++) out2 = out2 || (array[i]==value);
+          #pragma omp critical
+           {
+	               out = out || out2;
+	   }
+	   /*  this how this should look like but gcc 4.4 seems to have a problem with this:
+               #pragma omp parallel for private(i) schedule(static) reduction(||:out)
+               for (i=0;i<N;i++) out = out || (array[i]==value);
+	   */
    }
    return out;
 }
