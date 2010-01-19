@@ -93,7 +93,6 @@ class Test_TableInterpolation(unittest.TestCase):
     def test_FunctionSpace2D(self):
 	vs=[(1,3,5,7), (-1,1,-1,1), (0.5, 17, 0.25, 42)]   #There is no particular significance to these numbers
 	for fs in self.functionspaces:
-	    print fs
 	    points=fs.getX()
 	    for t in vs:
 		v0, v1, v2, v3 =t
@@ -121,7 +120,6 @@ class Test_TableInterpolation(unittest.TestCase):
     def test_FunctionSpace1D(self):
 	vs=[(1,3), (-1,1), (0.5, 17)]     #There is no particular significance to these numbers
 	for fs in self.functionspaces:
-	    print fs
 	    points=fs.getX()
 	    for t in vs:
 		v0, v1 =t
