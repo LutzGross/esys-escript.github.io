@@ -1732,7 +1732,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
             mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
             mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-            mypde.getSolverOptions().setVerbosity(True)
             u=mypde.getSolution()
             self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_TFQMR_ILU0(self):
