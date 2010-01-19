@@ -33,6 +33,7 @@ Some models for heat advection-diffusion
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 # from escript import *
+import escript
 import util
 from linearPDEs import TransportPDE
 
@@ -69,14 +70,12 @@ class TemperatureCartesian(TransportPDE):
         :note: the approximation order is switched to reduced if the approximation order is nnot linear (equal to 1).
         """
         TransportPDE.__init__(self,domain,numEquations=1,useBackwardEuler=useBackwardEuler,**kwargs)
-        order=Solution(domain).getApproximationOrder()
+        order=escript.Solution(domain).getApproximationOrder()
         if order>1:
-            if ReducedSolution(domain).getApproximationOrder()>1: raise ValueError,"Reduced order needs to be equal to 1."
+            if escript.ReducedSolution(domain).getApproximationOrder()>1: raise ValueError,"Reduced order needs to be equal to 1."
             self.setReducedOrderOn()
         else:
             self.setReducedOrderOff()
-
-        self.__reduced = reduced
         self.__rhocp=None
         self.__v=None
 
@@ -144,9 +143,9 @@ class Tracer(TransportPDE):
         :note: the approximation order is switched to reduced if the approximation order is nnot linear (equal to 1).
         """
         TransportPDE.__init__(self,domain,numEquations=1,useBackwardEuler=useBackwardEuler,**kwargs)
-        order=Solution(domain).getApproximationOrder()
+        order=escript.Solution(domain).getApproximationOrder()
         if order>1:
-            if ReducedSolution(domain).getApproximationOrder()>1: raise ValueError,"Reduced order needs to be equal to 1."
+            if escript.ReducedSolution(domain).getApproximationOrder()>1: raise ValueError,"Reduced order needs to be equal to 1."
             self.setReducedOrderOn()
         else:
             self.setReducedOrderOff()
