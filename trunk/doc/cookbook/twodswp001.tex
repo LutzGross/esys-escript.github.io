@@ -25,7 +25,7 @@ where $\sigma$ represents stress and is given by:
 \begin{equation} \label{eqn:sigw}
  \sigma \hackscore{ij} = \lambda u\hackscore{k,k} \delta\hackscore{ij} + \mu ( u\hackscore{i,j} + u\hackscore{j,i})
 \end{equation}
-$\lambda$ and $\mu$ are the Lame Coefficients. Specifically $\mu$ is the bulk modulus. Equation \ref{eqn:wav} can be written with the Einstein summation convention as:
+$\lambda$ and $\mu$ are the Lame Coefficients. Specifically $\mu$ is the bulk modulus. The \refEq{eqn:wav} can be written with the Einstein summation convention as:
 \begin{equation}
  \rho u\hackscore{i,tt} = \sigma\hackscore{ij,j}
 \end{equation}
@@ -94,12 +94,12 @@ This places the receivers on the surface at the source location and two location
 u_pc_data=open(os.path.join(savepath,'U_pc.out'),'w')
 u_pc_data.write("%f %f %f %f %f %f %f\n"%(t,u_pc_x1,u_pc_y1,u_pc_x2,u_pc_y2,u_pc_x3,u_pc_y3))
 \end{verbatim}
-Convieniently this saves the time, x direction displacement and y direction displacement values for these locations. Now that the initial conditions have been defined we can tackle the task of solving the wave equation for the number of required time steps. To do this we require a while loop and form of the wave equation which fits our general linear PDE form. We start with the form of the equation for stress \ref{eqn:sigw}. We can define the kronecker matrix using the domain and take the derivative of \verb u  via the function \verb|grad(u)|  . As $\lambda$ and $\mu$ are constants we can now define $\sigma$;
+Convieniently this saves the time, x direction displacement and y direction displacement values for these locations. Now that the initial conditions have been defined we can tackle the task of solving the wave equation for the number of required time steps. To do this we require a while loop and form of the wave equation which fits our general linear PDE form. We start with the form of the equation for stress \refEq{eqn:sigw}. We can define the kronecker matrix using the domain and take the derivative of \verb u  via the function \verb|grad(u)|  . As $\lambda$ and $\mu$ are constants we can now define $\sigma$;
 \begin{verbatim}
 g=grad(u)
 stress=lam*trace(g)*kmat+mu*(g+transpose(g))
 \end{verbatim}
-Solving for the double time derivative of u on the LHS of \ref{eqn:wav} required us to use the centred difference forumlua which returns;
+Solving for the double time derivative of u on the LHS of \refEq{eqn:wav} required us to use the centred difference forumlua which returns;
 \begin{equation}
 u^n = 2u^{n-1}-u^{n-2}+h^2 \biggl(\frac{\partial ^2 u}{\partial t^2}\biggr)^n
 \end{equation}

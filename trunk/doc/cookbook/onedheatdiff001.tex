@@ -29,72 +29,100 @@ which is defined as:
 \rho c\hackscore p \frac{\partial T}{\partial t} - \kappa \frac{\partial^{2} T}{\partial x^{2}} = q\hackscore H 
 \label{eqn:hd}
 \end{equation}
-where $\rho$ is the material density, $c\hackscore p$ is the specific heat and $\kappa$ is the thermal conductivity constant for a given material\footnote{A list of some common thermal conductivities is available from Wikipedia \url{http://en.wikipedia.org/wiki/List_of_thermal_conductivities}}. 
-The heat source is defined by the right hand side of \ref{eqn:hd} as $q\hackscore{H}$; this can take the form of a constant or a function of time and space. For example $q\hackscore{H} = Te^{-\gamma t}$ where we have the output of our heat source decaying with time. There are also two partial derivatives in \ref{eqn:hd}; $\frac{\partial T}{\partial t}$ describes the change in temperature with time while $\frac{\partial ^2 T}{\partial x^2}$ is the spatial change of temperature. As there is only a single spatial dimension to our problem, our temperature solution $T$ is only dependent on the time $t$ and our position along the iron bar $x$.
+where $\rho$ is the material density, $c\hackscore p$ is the specific heat and $\kappa$ is the thermal 
+conductivity\footnote{A list of some common thermal conductivities is available from Wikipedia \url{http://en.wikipedia.org/wiki/List_of_thermal_conductivities}}. Here we assume that these material 
+parameters are \textbf{constant}. 
+The heat source is defined by the right hand side of \refEq{eqn:hd} as $q\hackscore{H}$; this can take the form of a constant or a function of time and space. For example $q\hackscore{H} = q\hackscore{0}e^{-\gamma t}$ where we have the output of our heat source decaying with time. There are also two partial derivatives in \refEq{eqn:hd}; $\frac{\partial T}{\partial t}$ describes the change in temperature with time while $\frac{\partial ^2 T}{\partial x^2}$ is the spatial change of temperature. As there is only a single spatial dimension to our problem, our temperature solution $T$ is only dependent on the time $t$ and our position along the iron bar $x$.
 
-\subsection{\esc, PDEs and The General Form}
-Potentially, it is now possible to solve \ref{eqn:hd} analytically and this would produce an exact solution to our problem. However, it is not always possible or practical to solve a problem this way. Alternatively, computers can be used to solve these kinds of problems when a large number of sums or a more complex visualisation is required. To do this, a numerical approach is required - \esc can help us here -  and it becomes necessary to discretize the equation so that we are left with a finite number of equations for a finite number of spatial and time steps in the model. While discretization introduces approximations and a degree of error, we find that a sufficiently sampled model is generally accurate enough for the requirements of the modeller.
+\subsection{PDEs and the General Form}
+Potentially, it is now possible to solve PDE \refEq{eqn:hd} analytically and this would produce an exact solution to our problem. However, it is not always possible or practical to solve a problem this way. Alternatively, computers can be used to solve these kinds of problems. To do this, a numerical approach is required to discretised 
+the PDE \refEq{eqn:hd} in time and space so finally we are left with a finite number of equations for a finite number of spatial and time steps in the model. While discretization introduces approximations and a degree of error, we find that a sufficiently sampled model is generally accurate enough for the requirements of the modeler.
 
-\esc interfaces with any given PDE via a general form. In this example we will illustrate a simpler version of the full linear PDE general form which is available in the \esc user's guide. A simplified form that suits our heat diffusion problem\footnote{In the form of the \esc users guide which using the Einstein convention is written as 
+Firstly, we will discretise the PDE \refEq{eqn:hd} in the time direction which will
+leave as with a steady linear PDE which is involving spatial derivatives only and needs to be solved in each time 
+step to progress in time - \esc can help us here.
+
+For the discretization in time we will use is the Backwards Euler approximation scheme\footnote{see \url{http://en.wikipedia.org/wiki/Euler_method}}. It bases on the
+approximation 
+\begin{equation}
+\frac{\partial T(t)}{\partial t} \approx \frac{T(t)-T(t-h)}{h}
+\label{eqn:beuler}
+\end{equation}
+for  $\frac{\partial T}{\partial t}$  at time $t$ 
+where $h$ is the time step size. This can also be written as;
+\begin{equation}
+\frac{\partial T}{\partial t}(t^{(n)}) \approx \frac{T^{(n)} - T^{(n-1)}}{h}
+\label{eqn:Tbeuler}
+\end{equation}
+where the upper index $n$ denotes the n\textsuperscript{th} time step. So one has
+\begin{equation}
+\begin{array}{rcl}
+t^{(n)} & = & t^{(n-1)}+h \\
+T^{(n)} & = & T(t^{(n-1)}) \\ 
+\end{array}
+\label{eqn:Neuler}
+\end{equation}
+Substituting \refEq{eqn:Tbeuler} into \refEq{eqn:hd} we get;
+\begin{equation}
+\frac{\rho c\hackscore p}{h} (T^{(n)} - T^{(n-1)}) - \kappa \frac{\partial^{2} T^{(n)}}{\partial x^{2}} = q\hackscore H 
+\label{eqn:hddisc}
+\end{equation}
+Notice that we evaluate the spatial derivative term at current time $t^{(n)}$ - therefore the name \textbf{backward Euler} scheme. Alternatively, one can use evaluate the spatial derivative term at the previous time $t^{(n-1)}$. This 
+approach is called the \textbf{forward Euler} scheme. This scheme can provide some computational advantages which
+we are not discussed here but has the major disadvantage that depending on the 
+material parameter as well as the discretiztion of the spatial derivative term the time step size $h$ needs to be chosen sufficiently small to achieve a stable temperature when progressing in time. The term \textit{stable} means
+that the approximation of the temperature will not grow beyond its initial bounds and becomes unphysical. 
+The backward Euler which we use here is unconditionally stable meaning that under the assumption of
+physically correct problem set-up the temperature approximation remains physical for all times. 
+The user needs to keep in mind that the discretization error introduced by \refEq{eqn:beuler} 
+is sufficiently small so a good approximation of the true temperature is calculated. It is
+therefore crucial that the user remains critical about his/her results and for instance compares 
+the results for different time and spatial step sizes. 
+
+To get the temperature $T^{(n)}$ at time $t^{(n)}$ we need to solve the linear 
+differential equation \refEq{eqn:hddisc} which is only including spatial derivatives. To solve this problem
+we want to to use \esc. 
+
+\esc interfaces with any given PDE via a general form. For the purpose of this introduction we will illustrate a simpler version of the full linear PDE general form which is available in the \esc user's guide. A simplified form that suits our heat diffusion problem\footnote{In the form of the \esc users guide which using the Einstein convention is written as 
 $-(A\hackscore{jl} u\hackscore{,l})\hackscore{,j}+D u =Y$}
 is described by;
 \begin{equation}\label{eqn:commonform nabla}
 -\nabla\cdot(A\cdot\nabla u) + Du = f
 \end{equation}
-where $A$, $D$ and $f$ are known values. The symbol $\nabla$ which is called the \textit{Nabla operator} or \textit{del operator} represents
+where $A$, $D$ and $f$ are known values and $u$ is the unknown solution. The symbol $\nabla$ which is called the \textit{Nabla operator} or \textit{del operator} represents
 the spatial derivative of its subject - in this case $u$. Lets assume for a moment that we deal with a one-dimensional problem then ;
 \begin{equation}
 \nabla = \frac{\partial}{\partial x}
 \end{equation}
-and we can write \ref{eqn:commonform nabla} as;
+and we can write \refEq{eqn:commonform nabla} as;
 \begin{equation}\label{eqn:commonform}
 -A\frac{\partial^{2}u}{\partial x^{2}} + Du = f
 \end{equation}
-if $A$ is constant then  \ref{eqn:commonform} is consistent with our heat diffusion problem in \ref{eqn:hd} with the exception of $u$. Thus when comparing equations \ref{eqn:hd} and \ref{eqn:commonform} we see that;
-\begin{equation}
-A = \kappa; D = \rho c \hackscore{p}; f = q \hackscore{H}
-\end{equation}
-
-We can write the partial $\frac{\partial T}{\partial t}$ in terms of $u$ by discretising the time of our solution. The method we will use is the Backwards Euler approximation, which states;
-\begin{equation}
-\frac{\partial f(x)}{\partial x} \approx \frac{f(x+h)-f(x)}{h}
-\label{eqn:beuler}
-\end{equation}
-where h is the the discrete step size $\Delta x$.
-Now if the temperature $T(t)$ is substituted in by letting $f(x) = T(t)$ then from \ref{eqn:beuler} we see that;
-\begin{equation}
-T'(t) \approx \frac{T(t+h) - T(t)}{h}
-\end{equation}
-which can also be written as;
-\begin{equation}
-\frac{\partial T^{(n)}}{\partial t} \approx \frac{T^{(n)} - T^{(n-1)}}{h}
-\label{eqn:Tbeuler}
-\end{equation}
-where $n$ denotes the n\textsuperscript{th} time step. Substituting \ref{eqn:Tbeuler} into \ref{eqn:hd} we get;
-\begin{equation}
-\frac{\rho c\hackscore p}{h} (T^{(n)} - T^{(n-1)}) - \kappa \frac{\partial^{2} T}{\partial x^{2}} = q\hackscore H 
-\label{eqn:hddisc}
-\end{equation}
-To fit our simplified general form we can rearrange \ref{eqn:hddisc};
+if $A$ is constant. To match this simplified general form to our problem \refEq{eqn:hddisc} 
+we rearrange \refEq{eqn:hddisc};
 \begin{equation}
 \frac{\rho c\hackscore p}{h} T^{(n)} - \kappa \frac{\partial^2 T^{(n)}}{\partial x^2} = q\hackscore H +  \frac{\rho c\hackscore p}{h} T^{(n-1)}
 \label{eqn:hdgenf}
 \end{equation}
 The PDE is now in a form that satisfies \refEq{eqn:commonform nabla} which is required for \esc to solve our PDE. This can be done by generating a solution for successive increments in the time nodes $t^{(n)}$ where 
 $t^{(0)}=0$ and  $t^{(n)}=t^{(n-1)}+h$ where $h>0$ is the step size and assumed to be constant. 
-In the following the upper index ${(n)}$ refers to a value at time $t^{(n)}$. Finally, by comparing \ref{eqn:hdgenf} with \ref{eqn:commonform} it can be seen that;
+In the following the upper index ${(n)}$ refers to a value at time $t^{(n)}$. Finally, by comparing \refEq{eqn:hdgenf} with \refEq{eqn:commonform} it can be seen that;
 \begin{equation}
+u=T^{(n)}; 
 A = \kappa; D = \frac{\rho c \hackscore{p}}{h}; f = q \hackscore{H} + \frac{\rho c\hackscore p}{h} T^{(n-1)}
 \end{equation}
 
-Now that the general form has been established, it can be submitted to \esc. Note that it is necessary to establish the state of our system at time zero or $T^{(n=0)}$. This is due to the time derivative approximation we have used from \ref{eqn:Tbeuler}. Our model stipulates a starting temperature in the iron bar of 0\textcelsius. Thus the temperature distribution is simply;
+Now that the general form has been established, it can be submitted to \esc. Note that it is necessary to establish the state of our system at time zero or $T^{(n=0)}$. This is due to the time derivative approximation we have used from \refEq{eqn:Tbeuler}. Our model stipulates a starting temperature in the iron bar of 0\textcelsius. Thus the temperature distribution is simply;
 \begin{equation}
 T(x,0) = T\hackscore{ref} = 0
 \end{equation}
 for all $x$ in the domain. 
 
 \subsection{Boundary Conditions}
-With the PDE sufficiently modified, consideration must now be given to the boundary conditions of our model. Typically there are two main types of boundary conditions known as Neumann and Dirichlet\footnote{More information on Boundary Conditions is available at Wikipedia \url{http://en.wikipedia.org/wiki/Boundary_conditions}}. In this example, we have utilised both conditions. Dirichlet is conceptually simpler and is used to prescribe a known value to the model on its boundary. For this model Dirichlet boundary conditions exist where we have applied our heat source. As the heat source is a constant, we can simulate its presence on that boundary. This is done by continuously resetting the temperature of the boundary, so that it is the same as the heat source.  
+With the PDE sufficiently modified, consideration must now be given to the boundary conditions of our model. Typically there are two main types of boundary conditions known as Neumann and Dirichlet boundary conditions\footnote{More information on Boundary Conditions is available at Wikipedia \url{http://en.wikipedia.org/wiki/Boundary_conditions}}, respectively. 
+A Dirichlet boundary condition is conceptually simpler and is used to prescribe a known value to the unknown - in our example the temperature - on boundary of the region of interest. 
+\editor{LUTZ: This is not correct!!}
+For this model Dirichlet boundary conditions exist where we have applied our heat source. As the heat source is a constant, we can simulate its presence on that boundary. This is done by continuously resetting the temperature of the boundary, so that it is the same as the heat source.  
 
 Neumann boundary conditions describe the radiation or flux that is normal to the boundary surface. This aptly describes our insulation conditions as we do not want to exert a constant temperature as with the heat source. However, we do want to prevent any loss of energy from the system. 
 
@@ -111,7 +139,7 @@ and simplified to our one dimensional model we have;
 where $\eta$ is a given material coefficient depending on the material of the block and the surrounding medium and $\hat{n}\hackscore i$ is the $i$-th component of the outer normal field \index{outer normal field} at the surface of the domain. These two conditions form a boundary value problem that has to be solved for each time step. Due to the perfect insulation in our model we can set $\eta = 0$ which results in zero flux - no energy in or out - we do not need to worry about the Neumann terms of the general form for this example.
 
 \subsection{A \textit{1D} Clarification}
-It is necessary for clarification that we revisit the general PDE from \refeq{eqn:commonform nabla} under the light of a two dimensional domain. \esc is inherently designed to solve problems that are greater than one dimension and so \ref{eqn:commonform nabla} needs to be read as a higher dimensional problem. In the case of two spatial dimensions the \textit{Nabla operator} has in fact two components $\nabla = (\frac{\partial}{\partial x}, \frac{\partial}{\partial y})$. In full, \ref{eqn:commonform nabla} assuming a constant coefficient $A$, takes the form;
+It is necessary for clarification that we revisit the general PDE from \refeq{eqn:commonform nabla} under the light of a two dimensional domain. \esc is inherently designed to solve problems that are greater than one dimension and so \refEq{eqn:commonform nabla} needs to be read as a higher dimensional problem. In the case of two spatial dimensions the \textit{Nabla operator} has in fact two components $\nabla = (\frac{\partial}{\partial x}, \frac{\partial}{\partial y})$. In full, \refEq{eqn:commonform nabla} assuming a constant coefficient $A$, takes the form;
 \begin{equation}\label{eqn:commonform2D}
 -A\hackscore{00}\frac{\partial^{2}u}{\partial x^{2}} 
 -A\hackscore{01}\frac{\partial^{2}u}{\partial x\partial y} 
@@ -122,17 +150,17 @@ It is necessary for clarification that we revisit the general PDE from \refeq{eq
 Notice that for the higher dimensional case $A$ becomes a matrix. It is also
 important to notice that the usage of the Nabla operator creates
 a compact formulation which is also independent from the spatial dimension. 
-So to make the general PDE~\ref{eqn:commonform2D} one dimensional as
-shown in~\ref{eqn:commonform} we need to set
+So to make the general PDE \refEq{eqn:commonform2D} one dimensional as
+shown in \refEq{eqn:commonform} we need to set
 \begin{equation}
 A\hackscore{00}=A; A\hackscore{01}=A\hackscore{10}=A\hackscore{11}=0
 \end{equation}
 
 \subsection{Developing a PDE Solution Script}
 \label{sec:key}
-To solve the heat diffusion equation (equation \ref{eqn:hd}) we will write a simple \pyt script which uses the \modescript, \modfinley and \modmpl modules. At this point we assume that you have some basic understanding of the \pyt programming language. If not there are some pointers and links available in Section \ref{sec:escpybas} .
+To solve the heat diffusion equation (equation \refEq{eqn:hd}) we will write a simple \pyt script which uses the \modescript, \modfinley and \modmpl modules. At this point we assume that you have some basic understanding of the \pyt programming language. If not there are some pointers and links available in Section \ref{sec:escpybas} .
 
-By developing a script for \esc, the heat diffusion equation can be solved at successive time steps for a predefined period using our general form \ref{eqn:hdgenf}. Firstly it is necessary to import all the libraries\footnote{The libraries contain predefined scripts that are required to solve certain problems, these can be simple like $sine$ and $cosine$ functions or more complicated like those from our \esc library.} 
+By developing a script for \esc, the heat diffusion equation can be solved at successive time steps for a predefined period using our general form \refEq{eqn:hdgenf}. Firstly it is necessary to import all the libraries\footnote{The libraries contain predefined scripts that are required to solve certain problems, these can be simple like $sine$ and $cosine$ functions or more complicated like those from our \esc library.} 
 that we will require.
 \begin{python}
 from esys.escript import *
