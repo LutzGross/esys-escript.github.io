@@ -22,25 +22,35 @@ The \pyt scripting language is a powerful and easy to learn environment with a w
 \item Another comprehensive tutorial: \url{http://www.tutorialspoint.com/python/index.htm}
 \end{itemize} 
 
-\subsection{The \modesys Library Tree}
-The \esys  library tree has three main modules, \verb escript , \verb finley  and \verb pycad . These three modules contain the bulk of the \esc package functions and data structures.
+\subsection{The \modesys Modules}
+\esc is part of the \esys package. 
+Besides the particle simualation code
+\verb|ESyS-Particle|\footnote{see \url{https://launchpad.net/esys-particle}} which is not covered
+in this tutorial \esys includes the following modules
 \begin{enumerate}
-\item \modescript  is the PDE solving module.
+\item \modescript is the PDE solving module.
 \item \modfinley is the discretisation tool and finite element package.
-\item \modpycad  is a special development for creating irregular domains and models. That are easily interpretable by \esc . 
+\item \modpycad  is a special development for creating irregular shaped domains.
 \end{enumerate}
-Further explanations on each of these is available in the \esc user guide or in the API documentation \footnote{Available from \url{https://launchpad.net/escript-finley/+download}}. \esc is also dependent on a few other open-source packages which are not maintained by the \esc development team. These are \modnumpy an array and matrix handling package, \modmpl \footnote{\modnumpy and \modmpl are maintained by SciPy, \url{http://www.scipy.org/}} a simple plotting and visualisation tool, \modvtk \footnote{See \url{http://www.vtk.org/}} an advanced plotting and visualisation package and \verb gmsh \footnote{See \url{http://www.geuz.org/gmsh/}} which is required by \modpycad. These packages (\textbf{except} for \verb gmsh ) are included with the binary release but may not be the most recent and up to date. 
+Further explanations on each of these is available in the \esc user guide or in the API documentation\footnote{Available from \url{https://launchpad.net/escript-finley/+download}}. 
+\esc is also dependent on a few other open-source packages which are not maintained by the \esc development team. These are \modnumpy an array and matrix handling package, \modmpl \footnote{\modnumpy and \modmpl are part of the SciPy package, see \url{http://www.scipy.org/}} a simple plotting tool, \modvtk \footnote{See \url{http://www.vtk.org/}} an advanced visualisation package and \verb gmsh \footnote{See \url{http://www.geuz.org/gmsh/}} which is required by \modpycad. These packages (\textbf{except} for \verb gmsh ) are included with the support bundles. 
 
-\subsection{The Domain Constructor in \esc}
-\label{ss:domcon}
-It is important at this particular stage, to describe how domains and data are organised and related to each other in \esc.
+
+
+
+
 \begin{figure}[t]
  \centering
    \includegraphics[width=6in]{figures/functionspace.pdf}
    \label{fig:fs}
    \caption{\esc domain construction overview}
 \end{figure}
-When the domain variables are submitted to the domain constructor or meshing algorithm, three function spaces are also created (Figure \ref{fig:fs.}) They are;
+
+\subsection{The Domain Constructor in \esc}
+\label{ss:domcon}
+It is important at this particular stage, to describe how domains and data are organised and related to each other in \esc.
+
+When the domain variables are submitted to the domain constructor or meshing algorithm, three function spaces are also created (Figure \ref{fig:fs}) They are;
 \begin{enumerate}
 \item the nodes, called by \verb|ContinuousFunction(domain)| ;
 \item the elements/coefficients, called by \verb|Function(domain)| ; and
