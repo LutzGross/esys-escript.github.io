@@ -107,7 +107,7 @@ we rearrange \refEq{eqn:hddisc};
 The PDE is now in a form that satisfies \refEq{eqn:commonform nabla} which is required for \esc to solve our PDE. This can be done by generating a solution for successive increments in the time nodes $t^{(n)}$ where 
 $t^{(0)}=0$ and  $t^{(n)}=t^{(n-1)}+h$ where $h>0$ is the step size and assumed to be constant. 
 In the following the upper index ${(n)}$ refers to a value at time $t^{(n)}$. Finally, by comparing \refEq{eqn:hdgenf} with \refEq{eqn:commonform} it can be seen that;
-\begin{equation}
+\begin{equation}\label{ESCRIPT SET}
 u=T^{(n)}; 
 A = \kappa; D = \frac{\rho c \hackscore{p}}{h}; f = q \hackscore{H} + \frac{\rho c\hackscore p}{h} T^{(n-1)}
 \end{equation}
@@ -119,24 +119,58 @@ T(x,0) = T\hackscore{ref} = 0
 for all $x$ in the domain. 
 
 \subsection{Boundary Conditions}
-With the PDE sufficiently modified, consideration must now be given to the boundary conditions of our model. Typically there are two main types of boundary conditions known as Neumann and Dirichlet boundary conditions\footnote{More information on Boundary Conditions is available at Wikipedia \url{http://en.wikipedia.org/wiki/Boundary_conditions}}, respectively. 
-A Dirichlet boundary condition is conceptually simpler and is used to prescribe a known value to the unknown - in our example the temperature - on boundary of the region of interest. 
-\editor{LUTZ: This is not correct!!}
-For this model Dirichlet boundary conditions exist where we have applied our heat source. As the heat source is a constant, we can simulate its presence on that boundary. This is done by continuously resetting the temperature of the boundary, so that it is the same as the heat source.  
+With the PDE sufficiently modified, consideration must now be given to the boundary conditions of our model. Typically there are two main types of boundary conditions known as \textbf{Neumann} and \textbf{Dirichlet} boundary conditions\footnote{More information on Boundary Conditions is available at Wikipedia \url{http://en.wikipedia.org/wiki/Boundary_conditions}}, respectively. 
+A \textbf{Dirichlet boundary condition} is conceptually simpler and is used to prescribe a known value to the unknown - in our example the temperature - on parts of or the entire boundary of the region of interest.
+For our model problem we want to keep the initial temperature setting on the left side of the 
+iron bar over time. This defines a Dirichlet boundary condition for the PDE \refEq{eqn:hddisc} to be solved at each time step. 
 
-Neumann boundary conditions describe the radiation or flux that is normal to the boundary surface. This aptly describes our insulation conditions as we do not want to exert a constant temperature as with the heat source. However, we do want to prevent any loss of energy from the system. 
+On the other end of the iron rod we want to add an appropriate boundary condition to define insolation to prevent
+any loss or inflow of energy at the right end of the rod. Mathematically this is expressed by prescribing
+the heat flux $\kappa \frac{\partial T}{\partial x}$  to zero on the right end of the rod 
+In our simplified one dimensional model this is expressed
+in the form;
+\begin{equation}
+\kappa \frac{\partial T}{\partial x}  = 0 
+\end{equation}
+or in a more general case as
+\begin{equation}\label{NEUMAN 1}
+\kappa \nabla T \cdot n  = 0 
+\end{equation}
+where $n$  is the outer normal field \index{outer normal field} at the surface of the domain. 
+For the iron rod the outer normal field on the right hand side is the vector $(1,0)$. The $\cdot$ (dot) refers to the 
+dot product of the vectors $\nabla T$ and $n$. In fact, the term $\nabla T \cdot n$ is the normal derivative of 
+the temperature $T$. Other notations which are used are\footnote{The \esc notation for the normal
+derivative is $T\hackscore{,i} n\hackscore i$.};
+\begin{equation}
+\nabla T \cdot n  = \frac{\partial T}{\partial n} \; .
+\end{equation}
+A condition of the type \refEq{NEUMAN 1} defines a \textbf{Neuman boundary condition} for the PDE. 
 
-While the flux for this model is zero, it is important to note the requirements for Neumann boundary conditions. For heat diffusion these can be described by specifying a radiation condition which prescribes the normal component of the flux $\kappa T\hackscore{,i}$ to be proportional
-to the difference of the current temperature to the surrounding temperature $T\hackscore{ref}$; in general terms this is;
-\begin{equation}
- \kappa T\hackscore{,i} \hat{n}\hackscore i = \eta (T\hackscore{ref}-T) 
-\label{eqn:hdbc}
+The PDE \refEq{eqn:hdgenf} together with the Dirichlet boundary condition set on the left face of the rod
+and the Neuman boundary condition~\ref{eqn:hdgenf} define a \textbf{boundary value problem}. 
+It is a nature of a boundary value problem that it allows to make statements on the solution in the
+interior of the domain from information known on the boundary only. In most cases
+we use the term partial differential equation but in fact mean a boundary value problem. 
+It is important to keep in mind that boundary conditions need to be complete and consistent in the sense that 
+at any point on the boundary either a Dirichlet or a Neuman boundary condition must be set.
+
+Conviniently, \esc makes default assumption on the boundary conditions which the user may modify where appropriate. 
+For a problem of the form in~\refEq{eqn:commonform nabla} the default condition\footnote{In the form of the \esc users guide which is using the Einstein convention is written as 
+$n\hackscore{j}A\hackscore{jl} u\hackscore{,l}=0$.} is;
+\begin{equation}\label{NEUMAN 2}
+n\cdot A \cdot\nabla u = 0 
 \end{equation}
-and simplified to our one dimensional model we have;
-\begin{equation}
-\kappa \frac{\partial T}{\partial dx} \hat{n}\hackscore x = \eta (T\hackscore{ref}-T) 
+which is used everywhere on the boundary. Again $n$ denotes the outer normal field. 
+Notice that the coefficient $A$ is the same as in the \esc PDE~\ref{eqn:commonform nabla}. 
+With the settings for the coefficients we have already identified in \refEq{ESCRIPT SET} this
+condition translates into 
+\begin{equation}\label{NEUMAN 2}
+\kappa \frac{\partial T}{\partial x} = 0 
 \end{equation}
-where $\eta$ is a given material coefficient depending on the material of the block and the surrounding medium and $\hat{n}\hackscore i$ is the $i$-th component of the outer normal field \index{outer normal field} at the surface of the domain. These two conditions form a boundary value problem that has to be solved for each time step. Due to the perfect insulation in our model we can set $\eta = 0$ which results in zero flux - no energy in or out - we do not need to worry about the Neumann terms of the general form for this example.
+for the right hand side of the rod. This is identical to the Neuman boundary condition we want to set. \esc will take care of this condition for us. We will discuss the Dirichlet boundary condition later.
+
+
+
 
 \subsection{A \textit{1D} Clarification}
 It is necessary for clarification that we revisit the general PDE from \refeq{eqn:commonform nabla} under the light of a two dimensional domain. \esc is inherently designed to solve problems that are greater than one dimension and so \refEq{eqn:commonform nabla} needs to be read as a higher dimensional problem. In the case of two spatial dimensions the \textit{Nabla operator} has in fact two components $\nabla = (\frac{\partial}{\partial x}, \frac{\partial}{\partial y})$. In full, \refEq{eqn:commonform nabla} assuming a constant coefficient $A$, takes the form;
