@@ -68,14 +68,14 @@ class Mountains:
     A=kronecker(domain)*eps*0
     A[self.__DIM-1,self.__DIM-1]=(0.3*(sup(z)-inf(z))/log(2.))**2
     # A[self.__DIM-1,self.__DIM-1]=(sup(FunctionOnBoundary(self.__domain).getSize())/log(2.))**2
-    self.__PDE_W.setValue(D=1, A=A, q=whereZero(sup(z)-z)) 
+    self.__PDE_W.setValue(D=1, A=A, q=whereZero(sup(z)-z)+whereZero(inf(z)-z)) 
 
     self.__PDE_H = LinearPDE(domain)
     self.__PDE_H.setSymmetryOn()
     if reduced: self.__PDE_H.setReducedOrderOn()
     # A=kronecker(domain)*0
     # A[self.__DIM-1,self.__DIM-1]=0.1
-    self.__PDE_H.setValue(D=1.0)
+    self.__PDE_H.setValue(D=1.0, q=whereZero(inf(z)-z))
     # self.__PDE_H.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
 
     self.setVelocity()
@@ -107,6 +107,8 @@ class Mountains:
       self.__dt=None
       self.__v=Vector(0.,Solution(self.getDomain()))
       if not v == None:
+        xi=self.getDomain().getX()[self.getDomain().getDim()-1]
+        v=(xi-inf(xi))/(sup(xi)-inf(xi))*v
         for d in range(self.__DIM):
            self.__PDE_W.setValue(r=v[d])
            self.__v[d]=self.__PDE_W.getSolution()
@@ -174,11 +176,17 @@ class Mountains:
       w_tilda=1.*w
       w_tilda[self.__DIM-1]=0
       w_z=w[self.__DIM-1]
+      V=vol(self.__PDE_H.getDomain())
 
       t=0
       for i in range(n):
-         L=integrate(w_z*dt+H)/vol(self.__PDE_H.getDomain())
-         self.__PDE_H.setValue(X=(inner(w_tilda,grad(H))*dt/2+H)*w_tilda*dt, Y=w_z*dt+H-L)
+         # L=integrate(w_z*dt+H)/vol(self.__PDE_H.getDomain())
+         # self.__PDE_H.setValue(X=(inner(w_tilda,grad(H))*dt/2+H)*w_tilda*dt, Y=w_z*dt+H-L)
+         # H=self.__PDE_H.getSolution()
+         L=integrate(w_z*dt+H)/V
+         self.__PDE_H.setValue(X=w_tilda*H*(dt/2), Y=w_z*(dt/2)+H-L)
+         Hhalf=self.__PDE_H.getSolution()
+         self.__PDE_H.setValue(X=w_tilda*Hhalf*dt, Y=w_z*dt+H-L)
          H=self.__PDE_H.getSolution()
          print "DDD : ava = ",integrate(H)
          t+=dt
