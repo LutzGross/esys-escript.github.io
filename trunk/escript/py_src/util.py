@@ -103,13 +103,14 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
 	s=Scalar(..)
 	v=Vector(..)
 	t=Tensor(..)
-	saveDataCSV("f.csv",a=s, b=v, c=t)
+        f=float()
+	saveDataCSV("f.csv",a=s, b=v, c=t, d=f)
     
     Will result in a file
     
-    a, b0, b1, c0_0, c0_1, .., c1_0
-    1.0, 1.5, 2.7, 3.1, 3.4, .., 0.89
-    0.9, 8.7, 1.9, 3.4, 7.8, .., 1.21
+    a, b0, b1, c0_0, c0_1, .., c1_0    d
+    1.0, 1.5, 2.7, 3.1, 3.4, .., 0.89  0.0
+    0.9, 8.7, 1.9, 3.4, 7.8, .., 1.21  0.0
     
     The first line is a header, the remaining lines give the values.
     
@@ -125,11 +126,22 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
     If a scalar `Data` object is passed with the name ``mask``, then only
     samples which correspond to positive values in ``mask`` will be output.
     """
+    # find a function space:
+    fs = None
+    for n,d in data.items():
+	if isinstance(d, Data): fs=d.getFunctionSpace()
+    if fs == None:
+	raise ValueError, "saveDataCSV: there must be at least one Data object in the argument list."
+    
     new_data={}
     for n,d in data.items():
-	if not isinstance(d, Data):
-	    raise ValueError, "saveDataCSV: unknown non-data argument %s"%(str(n))
-	new_data[n]=d
+	if isinstance(d, Data):
+     	    new_data[n]=d
+        else:
+            try:
+               new_data[n]=Data(d,fs)
+            except:
+	       raise ValueError, "saveDataCSV: unknown non-data argument type for %s"%(str(n))
     _saveDataCSV(filename, new_data,sep, csep, append)
 
 def saveVTK(filename,domain=None, metadata=None, metadata_schema=None, **data):
