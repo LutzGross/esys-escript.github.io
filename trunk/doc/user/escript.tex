@@ -20,7 +20,8 @@
 \includegraphics[width=\textwidth]{figures/EscriptDiagram1}
 \caption{\label{ESCRIPT DEP}Dependency of Function Spaces in Finley. An arrow indicates that a function in the 
 function space at the starting point can be interpolated to the function space of the arrow target.
-All functionspaces on the left side can be interpolated to any of the functionspaces on the right.}
+All function spaces on the left side can be interpolated to any of the \FunctionSpace-s on the right.
+See also Section~\ref{SEC Projection}.}
 \end{figure}
 
 \escript is a Python module that allows you to represent the values of
@@ -54,7 +55,7 @@ The following generators for function spaces on a \Domain \var{mydomain} are com
 \begin{itemize}
 \item \var{Solution(mydomain)}: solutions of a PDE.
 \item \var{ReducedSolution(mydomain)}: solutions of a PDE with a reduced smoothness requirement, eg. using a
-lower order approximation onon the same element or using macro elements\index{macro elements}.  
+lower order approximation on the same element or using macro elements\index{macro elements}.  
 \item \var{ContinuousFunction(mydomain)}: continuous functions, eg. a temperature distribution.
 \item \var{Function(mydomain)}: general functions which are not necessarily continuous, eg. a stress field.
 \item \var{FunctionOnBoundary(mydomain)}: functions on the boundary of the domain, eg. a surface pressure.
@@ -62,14 +63,14 @@ lower order approximation onon the same element or using macro elements\index{ma
 \item \var{FunctionOnContact1(mydomain)}: functions on side $1$ of the discontinuity.
 \end{itemize}
 In some cases under-integration is used. For these cases the user may use a
-\FunctionSpace from the floowing list:
+\FunctionSpace from the following list:
 \begin{itemize}
 \item \var{ReducedFunction(mydomain)}
 \item \var{ReducedFunctionOnBoundary(mydomain)}
 \item \var{ReducedFunctionOnContact0(mydomain)} 
 \item \var{ReducedFunctionOnContact1(mydomain)}
 \end{itemize}
-In comparison to the full teh corresponding full version
+In comparison to the corresponding full version
 they use a reduced number of integration nodes (typically one only) to represent values.
 
 
@@ -77,7 +78,7 @@ The reduced smoothness for PDE solution is often used to fulfill the Ladyzhenska
 solving saddle point problems \index{saddle point problems}, eg. the Stokes equation.
 A discontinuity \index{discontinuity} is a region within the domain across which functions may be discontinuous.  
 The location of discontinuity is defined in the \Domain object.
-\fig{ESCRIPT DEP} shows the dependency between the types of function spaces in Finley (other libraries may have different relationships).
+\fig{ESCRIPT DEP} shows the dependency between the types of function spaces in \finley (other libraries may have different relationships). 
 
 The solution of a PDE is a continuous function. Any continuous function can be seen as a general function
 on the domain and can be restricted to the boundary as well as to one side of
@@ -107,8 +108,13 @@ So, when seen as a general function,
 a continuous function which is typically represented by its values
 on the node of the FEM mesh or finite difference grid 
 must be interpolated to the element centers or the cell edges,
-respectively. Interpolation happens automatically in \escript
-whenever it is required.
+respectively\index{interpolation}. Interpolation happens automatically in \escript
+whenever it is required\index{interpolation}. The user needs to be aware that an
+interpolation is not always possible, see Figure~\ref{ESCRIPT DEP} for \finley.
+An alternative approach to change the representation (=\FunctionSpace) is 
+projection, see Section~\ref{SEC Projection}
+\index{projection}\index{interpolation}.
+
 
 In \escript the class that stores these functions is called \Data.
 The function is represented through its values on \DataSamplePoints where
@@ -1154,7 +1160,7 @@ So the values $v$ from the input lie in the interval minval$\leq v < $maxval.
 \var{step} represents the gap (in the input range) between entries in the table.
 By default values of $v$ outside the table argument range (minval, maxval) will
 be pushed back into the range, ie. if $v <$ minval the value minval will be used to
-evaluate the table. Simularly, for values $v>$ maxval the value maxval is used.
+evaluate the table. Similarly, for values $v>$ maxval the value maxval is used.
 
 Now we produce our new \Data object.
 
@@ -1182,8 +1188,8 @@ The use of numpy and multiplication here is just to save typing.
 result2=x1.interpolateTable(table, 0, 0.55, x0, minval, step, toobig)
 \end{python}
 
-In the 2D case, the params for the x1 direction (min=0, step=0.55) come first followed by the x0 data object and 
-its params.
+In the 2D case, the parameters for the x1 direction (min=0, step=0.55) come first followed by the x0 data object and 
+its parameters.
 By default, if a point is specified which is outside the boundary, then \var{interpolateTable} will operate
 as if the point was on the boundary.
 Passing \var{check_boundaries}=\var{True} will \var{interpolateTable} to reject any points outside the boundaries.
@@ -1205,7 +1211,7 @@ U, V
 ...
 \end{verbatim}
 
-The names of the keyword parameters form the names of columns in the ouput.
+The names of the keyword parameters form the names of columns in the output.
 If the data objects are over different function spaces, then saveDataCSV will attempt to
 interpolate to a common function space.
 If this is not possible, then an exception will be raised.
@@ -1215,7 +1221,7 @@ Output can be restricted using a scalar mask.
 saveDataCSV('outfile.csv', U=mydata1, V=mydata2, mask=myscalar)
 \end{python}
 Will only output those rows which correspond to to positive values of \var{myscalar}.
-Some aspects of the output can be tuned using additional params.
+Some aspects of the output can be tuned using additional parameters.
 \begin{python}
 saveDataCSV('data.csv', append=True, sep=' ', csep='/', mask=mymask, e=mat1)
 \end{python}

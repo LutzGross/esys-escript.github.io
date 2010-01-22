@@ -141,8 +141,8 @@ mypde.getSolverOptions().setTolerance(1e-8)
 mypde.getSolverOptions().setIterMax(1000)
 u=mypde.getSolution()
 \end{python}
-In this code the preconditoned conjugate gradient method \PCG
-with preconditioner \AMG. The relative tolerance is set tto $10^{-8}$ and
+In this code the preconditioned conjugate gradient method \PCG
+with preconditioner \AMG. The relative tolerance is set to $10^{-8}$ and
 the maximum number of iteration steps to $1000$.
 
 Moreover, after a completed solution call
@@ -394,6 +394,86 @@ assigns new values to
 \var{q}
 By default all values are set to be zero.
 \end{methoddesc}
+
+
+
+\section{Projection}
+\declaremodule{extension}{esys.escript.pdetools}
+\label{SEC Projection}
+
+Using the \LinearPDE class provides an option to change the \FunctionSpace attribute in addition
+to the standard interpolation mechanism\index{interpolation} as
+discussed on in Chapter~\ref{ESCRIPT CHAP}. If one looks the
+stripped down version 
+\begin{equation}\label{PROJ.1}
+u = Y
+\end{equation}
+of the general scalar PDE~\ref{LINEARPDE.SINGLE.1} (boundary conditions are irrelevant) 
+one can see the solution $u$ of this PDE as a project of the input function $Y$
+which has the \Function attribute to a function with the \SolutionFS or \ReducedSolutionFS
+attribute. In fact, the solution maps values defined at 
+element centers representing a possibly discontinuous function 
+onto a continuous function represented by its values at the nodes of the FEM mesh. 
+This mapping is called a projection\index{projection}. Projection 
+can be a useful tool but needs to be applied with some care due to the fact that
+a potentially discontinuous function is projected onto a continuous function but it can
+also be a desirable effect for instance to smooth a function. The projection of the
+gradient of a function typically calculated on the element center to the 
+nodes of a FEM mesh can be evaluated on the domain boundary and so projection provides a tool to extrapolate 
+the gradient from the internal to the boundary. This is only a reasonable procedure in the absence of singularities at the boundary. 
+
+As projection is used often in simulations \escript provides an easy to use class \class{Projector}
+which is part of the \pdetools module. The following script demonstrates
+the usage of the class to project the piecewise constant function ($=1$ for $x\hackscore{0}\ge 0.5$ and
+$=-1$ for $x\hackscore{0}<0.5$ ) to a function with the \ReducedSolutionFS attribute (default target) 
+\begin{python}
+from esys.escript.pdetools import Projector
+proj=Projector(domain)
+x0=domain.getX()[0]
+jmp=1.-2.*wherePositive(x0-0.5)
+u=proj.getValue(jmp)
+# alternative call:
+u=proj(jmp)
+\end{python}
+By default the class uses lumping to solve the PDE~\ref{PROJ.1}. This technique is faster
+then using the standard solver techniques of PDEs. In essence it leads to using the average of
+neighbor element values to calculate the value at each FEM node. 
+
+The following script illustrate how to evaluate the normal stress
+on the boundary from a given displacement field \var{u}:
+\begin{python}
+from esys.escript.pdetools import Projector
+u=...
+proj=Projector(u.getDomin())
+e=symmetric(grad(u))
+stress = G*e+ (K-2./3.*G)*trace(e)*kronecker(u.getDomin())
+normal_stress = inner(u.getDomin().getNormal(), proj(stress))
+\end{python}
+
+
+
+\begin{classdesc}{Projector}{domain\optional{, reduce=\True \optional{, fast=\True}}}
+This class defines the projector on the domain \var{domain}. 
+If \var{reduce} is set to \True the projection will be returned  
+as a \ReducedSolutionFS \Data object. Otherwise \SolutionFS representation is returned. 
+If \var{reduce} is set to \True lumping is used when 
+the equation~\ref{PROJ.1} is solved. Otherwise the standard 
+PDE solver is used. Notice, that lumping is requires significant less 
+compute time and memory. The class is callable.
+\end{classdesc}
+
+\begin{methoddesc}[Projector]{getSolverOptions}{}
+returns the solver options for solving the PDE. In fact the method returns
+a \SolverOptions class object which can be used to modify the tolerance, 
+the solver or the preconditioner, see Section~\ref{SEC Solver Options} for details.
+\end{methoddesc}
+
+\begin{methoddesc}[Projector]{getValue}{input_data}
+projects the \var{input_data}. This method is equivalent to call an instance 
+of the class with argument \var{input_data}:
+
+\end{methoddesc}
+
 
 % \section{Transport Problems}
 % \label{SEC Transport}
