@@ -38,7 +38,7 @@ L=2*H                           # length
 NE=30                           # number of elements in H-direction. 
 PERT=0.15               # initial temperature perturbation
 DT=1.e-4                        # initial time step size
-CREATE_TOPOGRAPHY=True         # create topgraphy
+CREATE_TOPOGRAPHY=False         # create topgraphy
 DT_MIN=1.e-10                    # minumum time step size
 T_END=10.                       # end time
 
@@ -347,16 +347,18 @@ while t<T_END:
     v=flow.getVelocity()
     for d in range(DIM):
          print "range %d-velocity"%d,inf(v[d]),sup(v[d])
+    print "Courant = ",inf(dom.getSize()/(length(v)+1e-19)), inf(dom.getSize()**2)
     print "<%s> flow solver completed."%time.asctime()
     n+=1
     t+=dt
-    print "influx= ",integrate(inner(v,dom.getNormal())), sqrt(integrate(length(v)**2,FunctionOnBoundary(dom))), integrate(1., FunctionOnBoundary(dom))
+    # print "influx= ",integrate(inner(v,dom.getNormal())), sqrt(integrate(length(v)**2,FunctionOnBoundary(dom))), integrate(1., FunctionOnBoundary(dom))
     print "<%s> Time step %s (t=%s) completed."%(time.asctime(),n,t)
     #======= setup Temperature problem ====================================================================
     #
     heat.setValue(v=v,Q=CHI_REF*flow.getTau()**2/flow.getCurrentEtaEff())
     dt=heat.getSafeTimeStepSize()
     print "<%s> New time step size is %e"%(time.asctime(),dt)
+    if n == 10: 1/0
     #======= set-up topography ==================================================================================
     if CREATE_TOPOGRAPHY:
         dt=min(mts.getSafeTimeStepSize()*0.5,dt)

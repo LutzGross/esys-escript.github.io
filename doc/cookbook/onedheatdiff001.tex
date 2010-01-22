@@ -164,13 +164,10 @@ which is used everywhere on the boundary. Again $n$ denotes the outer normal fie
 Notice that the coefficient $A$ is the same as in the \esc PDE~\ref{eqn:commonform nabla}. 
 With the settings for the coefficients we have already identified in \refEq{ESCRIPT SET} this
 condition translates into 
-\begin{equation}\label{NEUMAN 2}
+\begin{equation}\label{NEUMAN 2b}
 \kappa \frac{\partial T}{\partial x} = 0 
 \end{equation}
 for the right hand side of the rod. This is identical to the Neuman boundary condition we want to set. \esc will take care of this condition for us. We will discuss the Dirichlet boundary condition later.
-
-
-
 
 \subsection{A \textit{1D} Clarification}
 It is necessary for clarification that we revisit the general PDE from \refeq{eqn:commonform nabla} under the light of a two dimensional domain. \esc is inherently designed to solve problems that are greater than one dimension and so \refEq{eqn:commonform nabla} needs to be read as a higher dimensional problem. In the case of two spatial dimensions the \textit{Nabla operator} has in fact two components $\nabla = (\frac{\partial}{\partial x}, \frac{\partial}{\partial y})$. In full, \refEq{eqn:commonform nabla} assuming a constant coefficient $A$, takes the form;
@@ -189,6 +186,10 @@ shown in \refEq{eqn:commonform} we need to set
 \begin{equation}
 A\hackscore{00}=A; A\hackscore{01}=A\hackscore{10}=A\hackscore{11}=0
 \end{equation}
+
+\subsection{Outline of the PDE Solution Script}
+
+
 
 \subsection{Developing a PDE Solution Script}
 \label{sec:key}

@@ -153,6 +153,14 @@ class Projector:
     """
     return self.__pde.getSolverOptions()
 
+  def getValue(self, input_data):
+    """
+    Projects ``input_data`` onto a continuous function.
+
+    :param input_data: the data to be projected
+    """
+    return self(input_data)
+
   def __call__(self, input_data):
     """
     Projects ``input_data`` onto a continuous function.
