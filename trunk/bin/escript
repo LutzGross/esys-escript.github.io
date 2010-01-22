@@ -315,6 +315,16 @@ then
     exit 1
   fi
 fi
+if [ -z $@ ]
+then
+   if [ ! -z $DOBINARY ]
+   then
+       echo "Program must be given."
+       exit 1
+   else
+      DOINTERACTIVE="yes"
+   fi
+fi
 
 #=========================================================================================================
 if [ ! -z $DOBINARY ]
