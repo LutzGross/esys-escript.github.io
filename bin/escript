@@ -343,7 +343,12 @@ else
            EXEC_CMD="$PYTHON_CMD $@"
         fi
     else
-        EXEC_CMD="$PYTHON_MPI $@"
+	if [ ! -z $DOINTERACTIVE ]
+        then
+           EXEC_CMD="$PYTHON_MPI -i $@"
+        else
+           EXEC_CMD="$PYTHON_MPI $@"
+        fi
     fi
 fi
 if [ ! -z $ESCRIPT_VERBOSE ]; then echo "Command to be executed is \"$EXEC_CMD\"."; fi
