@@ -136,30 +136,11 @@ class Design(design.Design):
         """
         cmd = self.getCommandString()%self.getScriptHandler()
         if getMPIRankWorld() == 0:
-            print cmd
-            i,o,e=os.popen3("/usr/bin/"+cmd,'r')
-            emsg=e.read()
-            omsg=o.read()
-            print omsg
-            print emsg
-            i.close()
-            o.close()
-            e.close()
-            if len(emsg)>0:
-                ret=1
-            else:
-                ret=0
+            ret = os.system(cmd) / 256
         else:
             ret=0
         ret=getMPIWorldMax(ret)
-        if ret > 0:
-          if getMPIRankWorld() == 0:
-              print "gmsh failed with "+emsg+"\n"+"gmsh messages:\n"+omsg
-          raise RuntimeError, "Could not build mesh: %s"%cmd
-        else:
-          if getMPIRankWorld() == 0:
-              print omsg
-        1/0
+        if ret > 0: raise RuntimeError, "Could not build mesh: %s"%cmd
         return self.getMeshFileName()
 
         
