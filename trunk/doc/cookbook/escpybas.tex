@@ -35,31 +35,6 @@ in this tutorial \esys includes the following modules
 Further explanations on each of these is available in the \esc user guide or in the API documentation\footnote{Available from \url{https://launchpad.net/escript-finley/+download}}. 
 \esc is also dependent on a few other open-source packages which are not maintained by the \esc development team. These are \modnumpy an array and matrix handling package, \modmpl \footnote{\modnumpy and \modmpl are part of the SciPy package, see \url{http://www.scipy.org/}} a simple plotting tool, \modvtk \footnote{See \url{http://www.vtk.org/}} an advanced visualisation package and \verb gmsh \footnote{See \url{http://www.geuz.org/gmsh/}} which is required by \modpycad. These packages (\textbf{except} for \verb gmsh ) are included with the support bundles. 
 
-
-
-
-
-\begin{figure}[t]
- \centering
-   \includegraphics[width=6in]{figures/functionspace.pdf}
-   \label{fig:fs}
-   \caption{\esc domain construction overview}
-\end{figure}
-
-\subsection{The Domain Constructor in \esc}
-\label{ss:domcon}
-It is important at this particular stage, to describe how domains and data are organised and related to each other in \esc.
-
-When the domain variables are submitted to the domain constructor or meshing algorithm, three function spaces are also created (Figure \ref{fig:fs}) They are;
-\begin{enumerate}
-\item the nodes, called by \verb|ContinuousFunction(domain)| ;
-\item the elements/coefficients, called by \verb|Function(domain)| ; and
-\item the boundary, called by \verb|FunctionOnBoundary(domain)| .
-\end{enumerate}
-Domains in \esc are constructed this way to allow for varying degrees of smoothness in a PDE problem. That is, the continuity of the first derivative of each data input. For example, the coefficients of a PDE need not be continuous, thus this qualifies as a \verb Function()  type, while a temperature distribution must be a \verb ContinuousFunction()  and a flux condition may only exist at a boundary as a \verb FunctionOnBoundary()  .  The domain constructor is able to interpret the data in each of these situations for the solver so that a solution can be produced. It should be noted that a solution has its own function space \verb Solution()  which takes a form of one of the aforementioned function spaces depending on the required output. The domain also allows certain transformations of the function spaces. A \verb ContinuousFunction()  can be transformed into a \verb FunctionOnBoundary()  or \verb Function() . On the other hand there is not enough information in a \verb FunctionOnBoundary()  to transform it to a \verb ContinuousFunction()  .
-
-Domains also make it easier to define specific areas within a model. This is known as tagging and it makes for much easier scripting. Surfaces, blocks and boundaries can be given variable names simplifing PDE coefficient and flux definitions.
-
 \subsection{File Commands and Operations in \esc}
 A number of common file operations and commands are used throughout this cookbook. It is often advantageous to implement these commands when large numbers of output files are generated or dependencies are located in other locations.
 

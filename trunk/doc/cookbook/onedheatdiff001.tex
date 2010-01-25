@@ -112,11 +112,11 @@ u=T^{(n)};
 A = \kappa; D = \frac{\rho c \hackscore{p}}{h}; f = q \hackscore{H} + \frac{\rho c\hackscore p}{h} T^{(n-1)}
 \end{equation}
 
-Now that the general form has been established, it can be submitted to \esc. Note that it is necessary to establish the state of our system at time zero or $T^{(n=0)}$. This is due to the time derivative approximation we have used from \refEq{eqn:Tbeuler}. Our model stipulates a starting temperature in the iron bar of 0\textcelsius. Thus the temperature distribution is simply;
-\begin{equation}
-T(x,0) = T\hackscore{ref} = 0
-\end{equation}
-for all $x$ in the domain. 
+% Now that the general form has been established, it can be submitted to \esc. Note that it is necessary to establish the state of our system at time zero or $T^{(n=0)}$. This is due to the time derivative approximation we have used from \refEq{eqn:Tbeuler}. Our model stipulates a starting temperature in the iron bar of 0\textcelsius. Thus the temperature distribution is simply;
+% \begin{equation}
+% T(x,0) = \left 
+% \end{equation}
+% for all $x$ in the domain. 
 
 \subsection{Boundary Conditions}
 With the PDE sufficiently modified, consideration must now be given to the boundary conditions of our model. Typically there are two main types of boundary conditions known as \textbf{Neumann} and \textbf{Dirichlet} boundary conditions\footnote{More information on Boundary Conditions is available at Wikipedia \url{http://en.wikipedia.org/wiki/Boundary_conditions}}, respectively. 
@@ -169,7 +169,75 @@ condition translates into
 \end{equation}
 for the right hand side of the rod. This is identical to the Neuman boundary condition we want to set. \esc will take care of this condition for us. We will discuss the Dirichlet boundary condition later.
 
-\subsection{A \textit{1D} Clarification}
+\subsection{Outline of the Implementation}
+\label{sec:outline}
+To solve the heat diffusion equation (equation \refEq{eqn:hd}) we will write a simple \pyt script. At this point we assume that you have some basic understanding of the \pyt programming language. If not there are some pointers and links available in Section \ref{sec:escpybas}. The script we will discuss later in details will have four major steps. Firstly we need to define the domain where we want to 
+calculate the temperature. For our problem this is the iron rod which has a rectangular shape. Secondly we need to define the PDE 
+we need to solve in each time step to get the updated temperature. Thirdly we need to define the the coefficients of the PDE and finally we need to solve the PDE. The last two steps need to be repeated until the final time marker has been reached.
+ 
+In the terminology of \pyt the domain and PDE are represented by \textbf{objects}. The nice feature of an object is that it defined by it usage and features
+rather than its actual representation. So we will create a domain object to decribe the geometry of our iron rod. The main feature 
+of the object we will use is the fact that we can define PDEs and spatially distributed values such as the temperature 
+on a domain. In fact the domain object has many more features - most of them you will 
+never use and do not need to understand. Similar a PDE object is defined by the fact that we can define the coefficients of the PDE and solve the PDE. At a 
+later stage you may use more advanved features of the PDE class but you need to worry about them only at the point when you use them.
+
+
+\begin{figure}[t]
+ \centering
+   \includegraphics[width=6in]{figures/functionspace.pdf}
+   \label{fig:fs}
+   \caption{\esc domain construction overview}
+\end{figure}
+
+\subsection{The Domain Constructor in \esc}
+\label{ss:domcon}
+It is helpful to have a better understanding how spatially distributed value such as the temperature or PDE coefficients are interpreted in \esc. Again
+from the user's point of view the representation of these spatially distributed values is not relevant. 
+
+There are various ways to construct domain objects. The simplest form is as rectangular shaped region with a length and height. There is
+a ready to use function call for this. Besides the spatial dimensions the function call will require you to specify the number
+elements or cells to be used along the length and height, see Figure~\ref{fig:fs}. Any spacially distributed value 
+and the PDE is represented in discrete form using this element representation\footnote{We will use the finite element method (FEM), see \url{http://en.wikipedia.org/wiki/Finite_element_method}i for details.}. Therefore we will have access to an approximation of the true PDE solution only. 
+The quality of the approximation depends - besides other factors- mainly on the number of elements being used. In fact, the 
+approximation becomes better the more elements are used. However, computational costs and compute time grow with the number of
+elements being used. It therefore important that you find the right balance between the demand in accuarcy and acceptable resource usage.
+
+In general, one can thinks about a domain object as a composition of nodes and elements. 
+As shown in Figure~\ref{fig:fs}, an element is defined by the nodes used to describe its vertices. 
+To represent spatial distributed values the user can use 
+the values at the nodes, at the elements in the interior of the domain or at elements located at the surface of the domain. 
+The different approach used to represent values is called \textbf{function space} and is attached to all objects
+in \esc representing a spatial distributed value such as the solution of a PDE. The three 
+function spaces we will use at the moment are;
+\begin{enumerate}
+\item the nodes, called by \verb|ContinuousFunction(domain)| ;
+\item the elements/cells, called by \verb|Function(domain)| ; and
+\item the boundary, called by \verb|FunctionOnBoundary(domain)| .
+\end{enumerate}
+A function space object such as \verb|ContinuousFunction(domain)| has the method \verb|getX| attached to it. This method returns the
+location of the so-called \textbf{sample points} used to represent values with the particular function space attached to it. So the
+call \verb|ContinuousFunction(domain).getX()| will return the coordinates of the nodes used to describe the domain while
+the  \verb|Function(domain).getX()| returns the coordinates of numerical integration points within elements, see
+Figure~\ref{fig:fs}. 
+
+This distiction between different representations of spatial distributed values 
+is important in order to be able to vary the degrees of smoothness in a PDE problem. 
+The coefficients of a PDE need not be continuous thus this qualifies as a \verb|Function()| type. 
+On the other hand a temperature distribution must be continuous and needs to be represented with a \verb|ContinuousFunction()| function space.
+An influx may only be defined at the boundary and is therefore a \verb FunctionOnBoundary()  object.  
+\esc allows certain transformations of the function spaces. A \verb ContinuousFunction()  can be transformed into a \verb|FunctionOnBoundary()|
+or \verb|Function()|. On the other hand there is not enough information in a \verb FunctionOnBoundary()  to transform it to a \verb ContinuousFunction()  .
+These transformations, which ar ecalled \textbf{interpolation} are invoked autmatically by \esc if needed.
+
+Later in this introduction we will discuss how
+to define specific areas of geometry with different materials which are represented by different material coefficients such the
+thermal conductivities $kappa$. A very powerful techique to define these types of PDE 
+coefficients is tagging. Blocks of materials and boundaries can be named and values can be defined on subregions based on their names.
+This is simplifing PDE coefficient and flux definitions. It makes for much easier scripting. We will discuss this technique in Section~\ref{STEADY-STATE HEAT REFRACTION}.
+
+
+\subsection{A Clarification for the 1D Case}
 It is necessary for clarification that we revisit the general PDE from \refeq{eqn:commonform nabla} under the light of a two dimensional domain. \esc is inherently designed to solve problems that are greater than one dimension and so \refEq{eqn:commonform nabla} needs to be read as a higher dimensional problem. In the case of two spatial dimensions the \textit{Nabla operator} has in fact two components $\nabla = (\frac{\partial}{\partial x}, \frac{\partial}{\partial y})$. In full, \refEq{eqn:commonform nabla} assuming a constant coefficient $A$, takes the form;
 \begin{equation}\label{eqn:commonform2D}
 -A\hackscore{00}\frac{\partial^{2}u}{\partial x^{2}} 
@@ -187,14 +255,10 @@ shown in \refEq{eqn:commonform} we need to set
 A\hackscore{00}=A; A\hackscore{01}=A\hackscore{10}=A\hackscore{11}=0
 \end{equation}
 
-\subsection{Outline of the PDE Solution Script}
-
-
 
 \subsection{Developing a PDE Solution Script}
 \label{sec:key}
-To solve the heat diffusion equation (equation \refEq{eqn:hd}) we will write a simple \pyt script which uses the \modescript, \modfinley and \modmpl modules. At this point we assume that you have some basic understanding of the \pyt programming language. If not there are some pointers and links available in Section \ref{sec:escpybas} .
-
+We will write a simple \pyt script which uses the \modescript, \modfinley and \modmpl modules. 
 By developing a script for \esc, the heat diffusion equation can be solved at successive time steps for a predefined period using our general form \refEq{eqn:hdgenf}. Firstly it is necessary to import all the libraries\footnote{The libraries contain predefined scripts that are required to solve certain problems, these can be simple like $sine$ and $cosine$ functions or more complicated like those from our \esc library.} 
 that we will require.
 \begin{python}
