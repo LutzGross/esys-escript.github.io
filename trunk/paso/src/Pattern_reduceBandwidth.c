@@ -140,7 +140,7 @@ void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
    /* check input */
    if (N != pattern->numInput) {
       Paso_setError(VALUE_ERROR,"Paso_Pattern_reduceBandwidth: pattern needs to be for a square matrix.");
-   } else {
+   } else if (N > 0) {
 /* printf("relabeling of %d DOFs started.\n",N); */
       degAndIdx=TMPMEMALLOC(N,Paso_DegreeAndIdx);
       oldLabel=TMPMEMALLOC(N,bool_t);
