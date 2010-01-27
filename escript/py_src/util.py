@@ -6047,7 +6047,7 @@ def mkDir(pathname):
     creates a directory of name ``pathname`` if the directory does not exist.
 
     :param pathname: valid path name
-    :type pathname: ``str``
+    :type pathname: ``str`` or ``sequence of strings``
     :note: The method is MPI safe.
     """
     errno=0

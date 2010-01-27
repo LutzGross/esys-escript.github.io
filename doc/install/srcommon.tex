@@ -21,7 +21,7 @@ If you would prefer to build all the dependecies from source in the escript-supp
 \esfinley is known to compile and run on the following systems:
 \begin{itemize}
  \item \linux using gcc\footnote{There are some problems with \openmp under gcc prior to version 4.3.2. Also do not link the gomp library with gcc 4.3.3 - it causes problems.}
-\item \linux using icc on SGI ICE 8200
+\item \linux using icc on SGI ICE 8200. (At this stage, we do not recommend building with intel-11)\footnote{There is a bug in icpc-11 related to exception handling and openmp. This results in binaries which crash.}
 \item \macosx using gcc
 \item \winxp using the Visual C compiler (we do not specifically discuss Windows builds in this guide).
 \end{itemize}
