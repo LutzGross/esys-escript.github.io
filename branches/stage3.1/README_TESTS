@@ -1,0 +1,49 @@
+
+
+
+The tests are now bundled with the rest of the software.  You can run
+them by hand with
+
+	scons run_tests		(C++ tests only)
+	scons py_tests		(python tests only)
+	scons all_tests		(C++ and python tests)
+
+The target run_tests takes about 15 minutes to run on ess.  The target
+all_tests takes quite a while to run, over a day on ess.  Both sets of
+tests are run nightly on ess, so it's probably not necessary for you
+to run them yourself.  The output of these nightly runs is available
+to you in this directory on ess:
+
+	/raid3/ksteube/AutoTests
+
+The autotest-scons script is run on ess nightly.  It submits a PBS job
+which does these things:
+
+	Check out trunk from esys13
+	Run scons run_tests or scons all_tests (command-line arg chooses which)
+	Report success or failure via e-mail
+	Clean up
+
+The autotest-scons file should be maintained in SVN as
+esys13/trunk/autotest-scons, be sure to copy it there and commit after
+modification.
+
+Log files, output and daily PBS scripts are maintained in
+/raid3/ksteube/AutoTests/Logs
+
+All files older than 3 weeks are deleted from here nightly.  See the
+find command in autotest-scons to change this behavior
+
+Here is the crontab file I use to run it:
+
+	# min  hour day  month weekday          command
+	# 0-59 0-23 1-31 1-12  0-6 (0 = Sunday)
+	#
+	SHELL=/bin/sh
+	MAILTO=k.steube@uq.edu.au
+	#
+	# Run 'autotest-scons run_tests' in the wee hours every weekday
+	0      1    *    *     1-5	/raid3/ksteube/AutoTests/autotest-scons run_tests
+	# Run 'autotest-scons all_tests' in the wee hours only on Saturdays because it takes a long time to run
+	0      1    *    *     6	/raid3/ksteube/AutoTests/autotest-scons all_tests
+
