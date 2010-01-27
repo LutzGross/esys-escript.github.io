@@ -131,7 +131,7 @@ do
 	  "c")  cat $ESCRIPT_ROOT/lib/buildvars
 		exit 0
 		;;
-	  "V")	echo "escript-pre4.0(build "`grep svn_revision $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`")"
+	  "V")	echo "escript-3.1(build "`grep svn_revision $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`")"
 		exit 0
 		;;
 	  "h")  echo "$HELPTEXT"
