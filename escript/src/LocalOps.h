@@ -41,10 +41,15 @@ namespace escript {
 inline
 bool nancheck(double d)
 {
-#ifndef isnan		// Q: so why not just test d!=d?
-    return false;	// A: Coz it doesn't always work [I've checked].
-#else			// One theory is that the optimizer skips the test.
+		// Q: so why not just test d!=d?
+		// A: Coz it doesn't always work [I've checked].
+		// One theory is that the optimizer skips the test.
+#ifdef isnan
     return isnan(d);
+#elif defined _isnan
+    return _isnan(d);
+#else
+    return false;
 #endif
 }
 
@@ -55,7 +60,7 @@ bool nancheck(double d)
 inline
 double makeNaN()
 {
-#ifdef isnan
+#ifdef nan
     return nan("");
 #else
     return sqrt(-1);
