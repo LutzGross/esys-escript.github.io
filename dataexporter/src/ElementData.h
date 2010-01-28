@@ -45,6 +45,16 @@ struct FinleyElementInfo
     int elementFactor;
     int elementSize, reducedElementSize;
     const size_t* multiCellIndices;
+    bool useQuadNodes;
+    int quadDim;
+};
+
+/// \brief This struct holds a mask (0's and 1's) that indicates which quad
+///        nodes contribute to a sub-element when full element order is used.
+///        factor[i] contains the number of non-zeroes in mask[i].
+struct QuadMaskInfo {
+    std::vector<IntVec> mask;
+    IntVec factor;
 };
 
 /// \brief Stores and manipulates one type of finley mesh elements (cells,
@@ -74,7 +84,7 @@ public:
 
     /// \brief Destructor
     ESCRIPTEXPORT_DLL_API
-    ~ElementData();
+    ~ElementData() {}
 
     /// \brief Reads element data from escript/finley NetCDF file.
     ESCRIPTEXPORT_DLL_API
@@ -121,6 +131,10 @@ public:
     ESCRIPTEXPORT_DLL_API
     ZoneType getType() const { return type; }
 
+    /// \brief Returns the original type id of the Finley reference elements.
+    ESCRIPTEXPORT_DLL_API
+    ElementTypeId getFinleyTypeId() const { return finleyTypeId; }
+
     /// \brief Returns a vector of the node IDs used by the elements.
     ESCRIPTEXPORT_DLL_API
     const IntVec& getNodeList() const { return nodes; }
@@ -128,10 +142,6 @@ public:
     /// \brief Returns a vector of element IDs.
     ESCRIPTEXPORT_DLL_API
     const IntVec& getIDs() const { return ID; }
-
-    /// \brief Returns a mapping of element IDs to array index.
-    ESCRIPTEXPORT_DLL_API
-    IndexMap getIndexMap() const;
 
     /// \brief Returns an array of data values for the name provided.
     ///
@@ -147,6 +157,14 @@ public:
     ESCRIPTEXPORT_DLL_API
     ElementData_ptr getReducedElements() const { return reducedElements; }
  
+    /// \brief Returns a QuadMaskInfo structure for given functionspace code.
+    const QuadMaskInfo& getQuadMask(int functionSpace) const;
+ 
+    /// \brief If the original element type is not supported they are
+    ///        subdivided into N smaller elements (e.g. one Rec9 -> four Rec4)
+    ///        and this method returns the multiplication factor N.
+    int getElementFactor() const { return elementFactor; }
+
 private:
     ElementData() {}
     FinleyElementInfo getFinleyTypeInfo(ElementTypeId typeId);
@@ -154,6 +172,7 @@ private:
     void buildReducedElements(const FinleyElementInfo& f);
     IntVec prepareGhostIndices(int ownIndex);
     void reorderArray(IntVec& v, const IntVec& idx, int elementsPerIndex);
+    QuadMaskInfo buildQuadMask(const CoordArray& quadNodes, int numQNodes);
 
     ElementData_ptr reducedElements;
     NodeData_ptr nodeMesh;
@@ -163,21 +182,13 @@ private:
     int numGhostElements;
     int nodesPerElement;
     ZoneType type;
+    ElementTypeId finleyTypeId;
     IntVec nodes;
     IntVec color, ID, tag;
     IntVec owner;
+    QuadMaskInfo quadMask, reducedQuadMask;
+    int elementFactor;
 };
-
-
-inline IndexMap ElementData::getIndexMap() const
-{
-    IndexMap ID2idx;
-    size_t idx = 0;
-    IntVec::const_iterator idIt;
-    for (idIt = ID.begin(); idIt != ID.end(); idIt++, idx++)
-        ID2idx[*idIt] = idx;
-    return ID2idx;
-}
 
 } // namespace escriptexport
 

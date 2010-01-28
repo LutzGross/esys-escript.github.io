@@ -47,6 +47,7 @@ DataVar::DataVar(const string& name) :
 // Copy constructor
 //
 DataVar::DataVar(const DataVar& d) :
+    initialized(d.initialized), finleyMesh(d.finleyMesh),
     varName(d.varName), numSamples(d.numSamples),
     rank(d.rank), ptsPerSample(d.ptsPerSample), centering(d.centering),
     funcSpace(d.funcSpace), shape(d.shape), sampleID(d.sampleID)
@@ -59,7 +60,6 @@ DataVar::DataVar(const DataVar& d) :
             dataArray.push_back(c);
         }
     }
-    initialized = d.initialized;
 }
 
 //
@@ -97,6 +97,7 @@ bool DataVar::initFromEscript(escript::Data& escriptData, FinleyMesh_ptr mesh)
         return false;
     }
 
+    finleyMesh = mesh;
     rank = escriptData.getDataPointRank();
     ptsPerSample = escriptData.getNumDataPointsPerSample();
     shape = escriptData.getDataPointShape();
@@ -114,8 +115,15 @@ bool DataVar::initFromEscript(escript::Data& escriptData, FinleyMesh_ptr mesh)
         << ptsPerSample << " pts/s,  rank: " << rank << endl;
 #endif
 
+    NodeData_ptr nodes = finleyMesh->getMeshForFinleyFS(funcSpace);
+    if (nodes == NULL)
+        return false;
+
+    meshName = nodes->getName();
+    siloMeshName = nodes->getFullSiloName();
     initialized = true;
 
+    // no samples? Nothing more to do.
     if (numSamples == 0)
         return true;
 
@@ -151,7 +159,7 @@ bool DataVar::initFromEscript(escript::Data& escriptData, FinleyMesh_ptr mesh)
         }
         delete[] tempData;
 
-        initialized = filterSamples(mesh);
+        initialized = reorderSamples();
     }
 
     return initialized;
@@ -164,9 +172,46 @@ bool DataVar::initFromMesh(FinleyMesh_ptr mesh)
 {
     cleanup();
     
-    const IntVec& data = mesh->getVarDataByName(varName);
+    finleyMesh = mesh;
     rank = 0;
     ptsPerSample = 1;
+    NodeData_ptr nodes;
+
+    if (varName.find("ContactElements_") != varName.npos) {
+        funcSpace = FINLEY_CONTACT_ELEMENTS_1;
+        centering = ZONE_CENTERED;
+        string elementName = varName.substr(0, varName.find('_'));
+        ElementData_ptr elements = mesh->getElementsByName(elementName);
+        nodes = elements->getNodeMesh();
+        sampleID = elements->getIDs();
+    } else if (varName.find("FaceElements_") != varName.npos) {
+        funcSpace = FINLEY_FACE_ELEMENTS;
+        centering = ZONE_CENTERED;
+        string elementName = varName.substr(0, varName.find('_'));
+        ElementData_ptr elements = mesh->getElementsByName(elementName);
+        nodes = elements->getNodeMesh();
+        sampleID = elements->getIDs();
+    } else if (varName.find("Elements_") != varName.npos) {
+        funcSpace = FINLEY_ELEMENTS;
+        centering = ZONE_CENTERED;
+        string elementName = varName.substr(0, varName.find('_'));
+        ElementData_ptr elements = mesh->getElementsByName(elementName);
+        nodes = elements->getNodeMesh();
+        sampleID = elements->getIDs();
+    } else if (varName.find("Nodes_") != varName.npos) {
+        funcSpace = FINLEY_NODES;
+        centering = NODE_CENTERED;
+        nodes = mesh->getNodes();
+        sampleID = nodes->getNodeIDs();
+    } else {
+        cerr << "WARNING: Unrecognized mesh variable '" << varName << "'\n";
+        return false;
+    }
+
+    meshName = nodes->getName();
+    siloMeshName = nodes->getFullSiloName();
+
+    const IntVec& data = mesh->getVarDataByName(varName);
     numSamples = data.size();
 
     if (numSamples > 0) {
@@ -175,38 +220,6 @@ bool DataVar::initFromMesh(FinleyMesh_ptr mesh)
         IntVec::const_iterator it;
         for (it=data.begin(); it != data.end(); it++)
             *c++ = static_cast<float>(*it);
-
-        if (varName.find("ContactElements_") != varName.npos) {
-            funcSpace = FINLEY_CONTACT_ELEMENTS_1;
-            centering = ZONE_CENTERED;
-            sampleID.insert(sampleID.end(),
-                    mesh->getContactElements()->getIDs().begin(),
-                    mesh->getContactElements()->getIDs().end());
-        } else if (varName.find("FaceElements_") != varName.npos) {
-            funcSpace = FINLEY_FACE_ELEMENTS;
-            centering = ZONE_CENTERED;
-            sampleID.insert(sampleID.end(),
-                    mesh->getFaceElements()->getIDs().begin(),
-                    mesh->getFaceElements()->getIDs().end());
-        } else if (varName.find("Elements_") != varName.npos) {
-            funcSpace = FINLEY_ELEMENTS;
-            centering = ZONE_CENTERED;
-            sampleID.insert(sampleID.end(),
-                    mesh->getElements()->getIDs().begin(),
-                    mesh->getElements()->getIDs().end());
-        } else if (varName.find("Nodes_") != varName.npos) {
-            funcSpace = FINLEY_NODES;
-            centering = NODE_CENTERED;
-            sampleID.insert(sampleID.end(),
-                    mesh->getNodes()->getNodeIDs().begin(),
-                    mesh->getNodes()->getNodeIDs().end());
-        } else {
-            return false;
-        }
-
-        NodeData_ptr nodes = mesh->getMeshForFinleyFS(funcSpace);
-        meshName = nodes->getName();
-        siloMeshName = nodes->getFullSiloName();
     }
     initialized = true;
 
@@ -263,17 +276,16 @@ bool DataVar::initFromNetCDF(const string& filename, FinleyMesh_ptr mesh)
         << ptsPerSample << " pts/s,  rank: " << rank << endl;
 #endif
 
-    initialized = true;
-
-    // if there are no data samples we're done
-    if (numSamples == 0) {
+    finleyMesh = mesh;
+    NodeData_ptr nodes = finleyMesh->getMeshForFinleyFS(funcSpace);
+    if (nodes == NULL) {
         delete input;
-        return true;
+        return false;
     }
 
-    sampleID.insert(sampleID.end(), numSamples, 0);
-    NcVar* var = input->get_var("id");
-    var->get(&sampleID[0], numSamples);
+    meshName = nodes->getName();
+    siloMeshName = nodes->getFullSiloName();
+    initialized = true;
 
     size_t dimSize = 1;
     vector<long> counts;
@@ -297,12 +309,16 @@ bool DataVar::initFromNetCDF(const string& filename, FinleyMesh_ptr mesh)
         initialized = false;
     }
  
-    if (initialized) {
+    if (initialized && numSamples > 0) {
+        sampleID.insert(sampleID.end(), numSamples, 0);
+        NcVar* var = input->get_var("id");
+        var->get(&sampleID[0], numSamples);
+
         size_t dataSize = dimSize*numSamples*ptsPerSample;
         counts.push_back(ptsPerSample);
         counts.push_back(numSamples);
         float* tempData = new float[dataSize];
-        NcVar* var = input->get_var("data");
+        var = input->get_var("data");
         var->get(tempData, &counts[0]);
 
         const float* srcPtr = tempData;
@@ -312,7 +328,7 @@ bool DataVar::initFromNetCDF(const string& filename, FinleyMesh_ptr mesh)
         }
         delete[] tempData;
 
-        initialized = filterSamples(mesh);
+        initialized = reorderSamples();
     }
 
     delete input;
@@ -337,45 +353,64 @@ bool DataVar::isNodeCentered() const
 //
 float* DataVar::averageData(const float* src, size_t stride)
 {
-    float* res = new float[numSamples];
+    float* res;
 
     if (ptsPerSample == 1) {
+        res = new float[numSamples];
         float* dest = res;
         for (int i=0; i<numSamples; i++, src+=stride)
             *dest++ = *src;
     } else {
+        ElementData_ptr cells = finleyMesh->getElementsForFinleyFS(funcSpace);
+        int cellFactor = cells->getElementFactor();
+        res = new float[cellFactor * numSamples];
         float* dest = res;
-        for (int i=0; i<numSamples; i++) {
-            double tmpVal = 0.0;
-            for (int j=0; j<ptsPerSample; j++, src+=stride)
-                tmpVal += *src;
-            *dest++ = (float)(tmpVal / ptsPerSample);
+        QuadMaskInfo qmi = cells->getQuadMask(funcSpace);
+        if (qmi.mask.size() > 0) {
+            const float* tmpSrc = src;
+            for (int i=0; i<numSamples; i++, tmpSrc+=stride*ptsPerSample) {
+                for (int l=0; l<cellFactor; l++) {
+                    double tmpVal = 0.0;
+                    for (int j=0; j<ptsPerSample; j++) {
+                        if (qmi.mask[l][j] != 0) {
+                            tmpVal += *(tmpSrc+stride*j);
+                        }
+                    }
+                    *dest++ = (float)(tmpVal / qmi.factor[l]);
+                }
+            }
+        } else {
+            for (int i=0; i<numSamples; i++) {
+                double tmpVal = 0.0;
+                for (int j=0; j<ptsPerSample; j++, src+=stride) {
+                    tmpVal += *src;
+                }
+                tmpVal /= ptsPerSample;
+                for (int l=0; l<cellFactor; l++) {
+                    *dest++ = static_cast<float>(tmpVal);
+                }
+            }
         }
     }
     return res;
 }
 
 //
-// Filters and reorders the raw sample values according to the IDs provided
-// in 'requiredIDs'. This is used to have data arrays ordered according to
-// the underlying mesh (i.e. DataID[i]==MeshNodeID[i])
+// Filters and reorders the raw sample values according to the node/element
+// IDs. This is used to have data arrays ordered according to the underlying
+// mesh (i.e. DataID[i]==MeshNodeID[i])
 //
-bool DataVar::filterSamples(FinleyMesh_ptr finleyMesh)
+bool DataVar::reorderSamples()
 {
     if (numSamples == 0)
         return true;
 
-    IndexMap id2idxMap;
     const IntVec* requiredIDs = NULL;
-
-    NodeData_ptr nodes = finleyMesh->getMeshForFinleyFS(funcSpace);
-    if (nodes == NULL)
-        return false;
-
     int requiredNumSamples = 0;
+    int cellFactor = 1;
 
     if (centering == NODE_CENTERED) {
-        id2idxMap = nodes->getIndexMap();
+        NodeData_ptr nodes = finleyMesh->getMeshForFinleyFS(funcSpace);
         requiredIDs = &nodes->getNodeIDs();
         requiredNumSamples = nodes->getNumNodes();
     } else {
@@ -383,9 +418,20 @@ bool DataVar::filterSamples(FinleyMesh_ptr finleyMesh)
         if (cells == NULL)
             return false;
 
-        id2idxMap = cells->getIndexMap();
         requiredIDs = &cells->getIDs();
         requiredNumSamples = cells->getNumElements();
+        cellFactor = cells->getElementFactor();
+        if (cellFactor > 1) {
+            numSamples *= cellFactor;
+            // update sample IDs
+            IntVec newSampleID(numSamples);
+            IntVec::const_iterator idIt = sampleID.begin();
+            IntVec::iterator newIDit = newSampleID.begin();
+            for (; idIt != sampleID.end(); idIt++, newIDit+=cellFactor) {
+                fill(newIDit, newIDit+cellFactor, *idIt);
+            }
+            sampleID.swap(newSampleID);
+        }
     }
 
     if (requiredNumSamples > numSamples) {
@@ -393,9 +439,6 @@ bool DataVar::filterSamples(FinleyMesh_ptr finleyMesh)
             << " instead of " << requiredNumSamples << " samples!" << endl;
         return false;
     }
-
-    meshName = nodes->getName();
-    siloMeshName = nodes->getFullSiloName();
 
     IndexMap sampleID2idx = buildIndexMap();
     numSamples = requiredNumSamples;
@@ -405,14 +448,18 @@ bool DataVar::filterSamples(FinleyMesh_ptr finleyMesh)
         float* c = new float[numSamples];
         const float* src = dataArray[i];
         IntVec::const_iterator idIt = requiredIDs->begin();
-        for (; idIt != requiredIDs->end(); idIt++) {
+        size_t destIdx = 0;
+        for (; idIt != requiredIDs->end(); idIt+=cellFactor, destIdx+=cellFactor) {
             size_t srcIdx = sampleID2idx.find(*idIt)->second;
-            size_t destIdx = id2idxMap.find(*idIt)->second;
-            c[destIdx] = src[srcIdx];
+            copy(&src[srcIdx], &src[srcIdx+cellFactor], &c[destIdx]);
         }
         delete[] dataArray[i];
         dataArray[i] = c;
     }
+
+    // sample IDs now = mesh node/element IDs
+    sampleID = *requiredIDs;
+
     return true;
 }
 

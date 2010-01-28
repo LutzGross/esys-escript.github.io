@@ -283,14 +283,12 @@ const IntVec& NodeData::getVarDataByName(const string& name) const
 StringVec NodeData::getVarNames() const
 {
     StringVec res;
-    if (numNodes > 0) {
-        res.push_back("Nodes_Id");
-        res.push_back("Nodes_Tag");
-        res.push_back("Nodes_gDOF");
-        res.push_back("Nodes_gNI");
-        res.push_back("Nodes_grDfI");
-        res.push_back("Nodes_grNI");
-    }
+    res.push_back("Nodes_Id");
+    res.push_back("Nodes_Tag");
+    res.push_back("Nodes_gDOF");
+    res.push_back("Nodes_gNI");
+    res.push_back("Nodes_grDfI");
+    res.push_back("Nodes_grNI");
     return res;
 }
 

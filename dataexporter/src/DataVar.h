@@ -133,13 +133,15 @@ private:
     ///        data.
     IndexMap buildIndexMap();
 
-    /// \brief Reorders the samples according to the corresponding node IDs.
+    /// \brief Reorders the samples according to the corresponding node or
+    ///        element IDs.
     ///
     /// \return true if the function space is supported and the number of
-    ///         elements or nodes corresponds to the number of data samples.
-    bool filterSamples(const FinleyMesh_ptr mesh);
+    ///         elements or nodes matches the number of data samples.
+    bool reorderSamples();
 
     bool initialized;
+    FinleyMesh_ptr finleyMesh;
     std::string varName;
     int numSamples, rank, ptsPerSample, centering, funcSpace;
     IntVec shape;
@@ -151,9 +153,9 @@ private:
 inline IndexMap DataVar::buildIndexMap()
 {
     IndexMap sampleID2idx;
-    int idx = 0;
-    IntVec::const_iterator idIt;
-    for (idIt = sampleID.begin(); idIt != sampleID.end(); idIt++, idx++)
+    int idx = sampleID.size()-1;
+    IntVec::const_reverse_iterator idIt;
+    for (idIt = sampleID.rbegin(); idIt != sampleID.rend(); idIt++, idx--)
         sampleID2idx[*idIt] = idx;
 
     return sampleID2idx;

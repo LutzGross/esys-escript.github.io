@@ -166,39 +166,44 @@ ElementData_ptr FinleyMesh::getElementsForFinleyFS(int functionSpace) const
         return result;
     }
 
-    switch (functionSpace) {
-        case FINLEY_NODES:
+    if (functionSpace == FINLEY_NODES) {
+        result = cells;
+    } else if (functionSpace == FINLEY_REDUCED_NODES) {
+        result = cells->getReducedElements();
+        if (!result)
             result = cells;
-            break;
-
-        case FINLEY_REDUCED_NODES:
-        case FINLEY_REDUCED_ELEMENTS:
-        case FINLEY_ELEMENTS:
-            result = cells->getReducedElements();
-            if (!result)
+    } else {
+        switch (functionSpace) {
+            case FINLEY_REDUCED_ELEMENTS:
+            case FINLEY_ELEMENTS:
                 result = cells;
-            break;
+                break;
 
-        case FINLEY_REDUCED_FACE_ELEMENTS:
-        case FINLEY_FACE_ELEMENTS:
-            result = faces->getReducedElements();
-            if (!result)
+            case FINLEY_REDUCED_FACE_ELEMENTS:
+            case FINLEY_FACE_ELEMENTS:
                 result = faces;
-            break;
+                break;
 
-        case FINLEY_REDUCED_CONTACT_ELEMENTS_1:
-        case FINLEY_REDUCED_CONTACT_ELEMENTS_2:
-        case FINLEY_CONTACT_ELEMENTS_1:
-        case FINLEY_CONTACT_ELEMENTS_2:
-            result = contacts->getReducedElements();
-            if (!result)
+            case FINLEY_REDUCED_CONTACT_ELEMENTS_1:
+            case FINLEY_REDUCED_CONTACT_ELEMENTS_2:
+            case FINLEY_CONTACT_ELEMENTS_1:
+            case FINLEY_CONTACT_ELEMENTS_2:
                 result = contacts;
-            break;
+                break;
 
-        default:
-            cerr << "Unsupported function space type " << functionSpace
-                << "!" << endl;
+            default: {
+                cerr << "Unsupported function space type " << functionSpace
+                    << "!" << endl;
+                return result;
+            }
+        }
+        if (result->getFinleyTypeId() != Rec9 &&
+                result->getFinleyTypeId() != Hex27) {
+            if (result->getReducedElements())
+                result = result->getReducedElements();
+        }
     }
+
     return result;
 }
 
