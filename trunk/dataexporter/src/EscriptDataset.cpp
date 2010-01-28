@@ -384,6 +384,7 @@ bool EscriptDataset::saveVTK(string fileName)
         }
     }
 
+    MeshBlocks::iterator meshIt;
     int gNumPoints;
     int gNumCells = 0;
     int gCellSizeAndType[2] = { 0, 0 };
@@ -464,7 +465,6 @@ bool EscriptDataset::saveVTK(string fileName)
 
     ofstream ofs(fileName.c_str());
 
-    MeshBlocks::iterator meshIt;
     int idx = 0;
     for (meshIt = meshBlocks.begin(); meshIt != meshBlocks.end(); meshIt++, idx++) {
         if (numParts > 1)
