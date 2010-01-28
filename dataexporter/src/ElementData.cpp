@@ -567,6 +567,25 @@ void ElementData::buildMeshes()
         reducedElements->buildMeshes();
 }
 
+//
+//
+//
+void ElementData::writeConnectivityVTK(ostream& os)
+{
+    if (numElements > 0) {
+        const IntVec& gNI = nodeMesh->getGlobalNodeIndices();
+        IntVec::const_iterator it;
+        int count = 1;
+        for (it=nodes.begin(); it!=nodes.end(); it++, count++) {
+            os << gNI[*it];
+            if (count % nodesPerElement == 0)
+                os << endl;
+            else
+                os << " ";
+        }
+    }
+}
+
 #if USE_SILO
 //
 //

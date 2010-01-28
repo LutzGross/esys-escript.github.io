@@ -66,5 +66,29 @@ void saveSilo(const string& filename, int cycle, double time,
     dataset->saveSilo(filename);
 }
 
+void saveVTK(const string& filename, int cycle, double time, Domain_ptr domain,
+             const boost::python::dict& datavars, const string& metadata,
+             const string& metadata_schema)
+{
+    DataVec vars;
+    StringVec varNames;
+
+    unpackDict(datavars, vars, varNames);
+
+    EscriptDataset_ptr dataset;
+#ifdef PASO_MPI
+    MPI_Comm comm = domain->getMPIComm();
+    dataset.reset(new EscriptDataset(comm));
+#else
+    dataset.reset(new EscriptDataset());
+#endif
+
+    if (!dataset->initFromEscript(domain, vars, varNames))
+        throw escript::DataException("saveVTK: Error initialising dataset.");
+
+    dataset->setCycleAndTime(cycle, time);
+    dataset->saveVTK(filename);
+}
+
 } // namespace escriptexport
 

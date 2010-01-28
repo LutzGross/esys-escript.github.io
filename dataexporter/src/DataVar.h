@@ -15,6 +15,7 @@
 #define __DATAVAR_H__
 
 #include <escriptexport/escriptexport.h>
+#include <ostream>
 
 class DBfile;
 class NcFile;
@@ -73,6 +74,10 @@ public:
     /// returns false.
     ESCRIPTEXPORT_DLL_API
     bool writeToSilo(DBfile* dbfile, const std::string& siloPath);
+
+    /// \brief Writes the data values to ostream in VTK text format.
+    ESCRIPTEXPORT_DLL_API
+    void writeToVTK(std::ostream& os, int ownIndex);
 
     /// \brief Returns the rank of the data.
     ESCRIPTEXPORT_DLL_API
@@ -139,6 +144,9 @@ private:
     /// \return true if the function space is supported and the number of
     ///         elements or nodes matches the number of data samples.
     bool reorderSamples();
+
+    /// \brief Outputs sample at index to output stream in VTK XML format
+    void sampleToStream(std::ostream& os, int index);
 
     bool initialized;
     FinleyMesh_ptr finleyMesh;
