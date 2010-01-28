@@ -950,10 +950,12 @@ env.Alias('api_epydoc','install_all')
 
 env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_doxygen', 'guide_pdf', 'guide_html','install_pdf'])
 
+build_platform=os.name
+
 if not IS_WINDOWS_PLATFORM:
    try:
    	utest=open("utest.sh","w")
-	build_platform=os.name		#Sometimes Mac python says it is posix
+	#Sometimes Mac python says it is posix
 	if (build_platform=='posix') and platform.system()=="Darwin":
 		build_platform='darwin'
 	utest.write(GroupTest.makeHeader(build_platform))
