@@ -100,8 +100,9 @@ namespace escriptexport {
 ElementData::ElementData(const string& elementName, NodeData_ptr nodeData)
     : originalMesh(nodeData), name(elementName), numElements(0),
       numGhostElements(0), nodesPerElement(0),
-      type(ZONETYPE_UNKNOWN)
+      type(ZONETYPE_UNKNOWN), finleyTypeId(NoRef), elementFactor(1)
 {
+    nodeMesh.reset(new NodeData(name));
 }
 
 //
@@ -113,10 +114,14 @@ ElementData::ElementData(const ElementData& e)
     numElements = e.numElements;
     numGhostElements = e.numGhostElements;
     type = e.type;
+    finleyTypeId = e.finleyTypeId;
     nodesPerElement = e.nodesPerElement;
+    elementFactor = e.elementFactor;
     originalMesh = e.originalMesh;
     if (e.nodeMesh)
         nodeMesh.reset(new NodeData(*e.nodeMesh));
+    else
+        nodeMesh.reset(new NodeData(name));
 
     nodes = e.nodes;
     ID = e.ID;
@@ -129,12 +134,8 @@ ElementData::ElementData(const ElementData& e)
 }
 
 //
-// Destructor
 //
-ElementData::~ElementData()
-{
-}
-
+//
 bool ElementData::initFromFinley(const Finley_ElementFile* finleyFile)
 {
     numElements = finleyFile->numElements;
@@ -169,62 +170,55 @@ bool ElementData::initFromFinley(const Finley_ElementFile* finleyFile)
         tag.insert(tag.end(), numElements, 0);
         copy(iPtr, iPtr+numElements, tag.begin());
 
-        ElementTypeId tid = finleyFile->referenceElementSet->
-            referenceElement->Type->TypeId;
-        FinleyElementInfo f = getFinleyTypeInfo(tid);
+        finleyTypeId = finleyFile->referenceElementSet->referenceElement
+            ->Type->TypeId;
+        FinleyElementInfo f = getFinleyTypeInfo(finleyTypeId);
         type = f.elementType;
-        if (f.elementFactor > 1 || f.reducedElementSize != nodesPerElement)
+        elementFactor = f.elementFactor;
+        if (elementFactor > 1 || f.reducedElementSize != nodesPerElement)
             buildReducedElements(f);
+
+        if (f.useQuadNodes) {
+            CoordArray quadNodes;
+            int numQuadNodes;
+            Finley_ShapeFunction* sf = finleyFile->referenceElementSet
+                ->referenceElement->Parametrization;
+            numQuadNodes = sf->numQuadNodes;
+            for (int i=0; i<f.quadDim; i++) {
+                double* srcPtr = sf->QuadNodes+i;
+                float* c = new float[numQuadNodes];
+                quadNodes.push_back(c);
+                for (int j=0; j<numQuadNodes; j++, srcPtr+=f.quadDim) {
+                    *c++ = (float) *srcPtr;
+                }
+            }
+            quadMask = buildQuadMask(quadNodes, numQuadNodes);
+            for (int i=0; i<f.quadDim; i++)
+                delete[] quadNodes[i];
+            quadNodes.clear();
+
+
+            // now the reduced quadrature
+            sf = finleyFile->referenceElementSet
+                ->referenceElementReducedQuadrature->Parametrization;
+            numQuadNodes = sf->numQuadNodes;
+            for (int i=0; i<f.quadDim; i++) {
+                double* srcPtr = sf->QuadNodes+i;
+                float* c = new float[numQuadNodes];
+                quadNodes.push_back(c);
+                for (int j=0; j<numQuadNodes; j++, srcPtr+=f.quadDim) {
+                    *c++ = (float) *srcPtr;
+                }
+            }
+            reducedQuadMask = buildQuadMask(quadNodes, numQuadNodes);
+            for (int i=0; i<f.quadDim; i++)
+                delete[] quadNodes[i];
+            quadNodes.clear();
+        }
 
         buildMeshes();
     }
     return true;
-}
-
-StringVec ElementData::getMeshNames() const
-{
-    StringVec res;
-    if (nodeMesh)
-        res.push_back(nodeMesh->getName());
-    if (reducedElements) {
-        StringVec rNames = reducedElements->getMeshNames();
-        if (rNames.size() > 0)
-            res.insert(res.end(), rNames.begin(), rNames.end());
-    }
-    return res;
-}
-
-StringVec ElementData::getVarNames() const
-{
-    StringVec res;
-    if (numElements > 0) {
-        res.push_back(name + string("_Color"));
-        res.push_back(name + string("_Id"));
-        res.push_back(name + string("_Owner"));
-        res.push_back(name + string("_Tag"));
-    }
-    if (reducedElements) {
-        StringVec rNames = reducedElements->getVarNames();
-        if (rNames.size() > 0)
-            res.insert(res.end(), rNames.begin(), rNames.end());
-    }
-    return res;
-}
-
-const IntVec& ElementData::getVarDataByName(const string varName) const
-{
-    if (varName == name+string("_Color"))
-        return color;
-    else if (varName == name+string("_Id"))
-        return ID;
-    else if (varName == name+string("_Owner")) {
-        return owner;
-    } else if (varName == name+string("_Tag"))
-        return tag;
-    else if (reducedElements)
-        return reducedElements->getVarDataByName(varName);
-    else
-        throw "Invalid variable name";
 }
 
 //
@@ -266,11 +260,57 @@ bool ElementData::readFromNc(NcFile* ncfile)
         var->get(&tag[0], numElements);
 
         att = ncfile->get_att((name + string("_TypeId")).c_str());
-        FinleyElementInfo f = getFinleyTypeInfo((ElementTypeId)att->as_int(0));
+        finleyTypeId = (ElementTypeId)att->as_int(0);
+        FinleyElementInfo f = getFinleyTypeInfo(finleyTypeId);
         type = f.elementType;
-
+        elementFactor = f.elementFactor;
         if (f.elementFactor > 1 || f.reducedElementSize != nodesPerElement)
             buildReducedElements(f);
+
+        if (f.useQuadNodes) {
+            att = ncfile->get_att("order");
+            int order = att->as_int(0);
+            att = ncfile->get_att("reduced_order");
+            int reduced_order = att->as_int(0);
+            Finley_ReferenceElementSet* refElements =
+                Finley_ReferenceElementSet_alloc(finleyTypeId, order,
+                        reduced_order);
+
+            CoordArray quadNodes;
+            int numQuadNodes;
+            Finley_ShapeFunction* sf = refElements->referenceElement
+                ->Parametrization;
+            numQuadNodes = sf->numQuadNodes;
+            for (int i=0; i<f.quadDim; i++) {
+                double* srcPtr = sf->QuadNodes+i;
+                float* c = new float[numQuadNodes];
+                quadNodes.push_back(c);
+                for (int j=0; j<numQuadNodes; j++, srcPtr+=f.quadDim) {
+                    *c++ = (float) *srcPtr;
+                }
+            }
+            quadMask = buildQuadMask(quadNodes, numQuadNodes);
+            for (int i=0; i<f.quadDim; i++)
+                delete[] quadNodes[i];
+            quadNodes.clear();
+
+            // now the reduced quadrature
+            sf = refElements->referenceElementReducedQuadrature->Parametrization;
+            numQuadNodes = sf->numQuadNodes;
+            for (int i=0; i<f.quadDim; i++) {
+                double* srcPtr = sf->QuadNodes+i;
+                float* c = new float[numQuadNodes];
+                quadNodes.push_back(c);
+                for (int j=0; j<numQuadNodes; j++, srcPtr+=f.quadDim) {
+                    *c++ = (float) *srcPtr;
+                }
+            }
+            reducedQuadMask = buildQuadMask(quadNodes, numQuadNodes);
+            for (int i=0; i<f.quadDim; i++)
+                delete[] quadNodes[i];
+            quadNodes.clear();
+            Finley_ReferenceElementSet_dealloc(refElements);
+        }
 
         buildMeshes();
     }
@@ -279,6 +319,68 @@ bool ElementData::readFromNc(NcFile* ncfile)
 #else // !USE_NETCDF
     return false;
 #endif
+}
+
+//
+//
+//
+StringVec ElementData::getMeshNames() const
+{
+    StringVec res;
+    if (nodeMesh)
+        res.push_back(nodeMesh->getName());
+    if (reducedElements) {
+        StringVec rNames = reducedElements->getMeshNames();
+        if (rNames.size() > 0)
+            res.insert(res.end(), rNames.begin(), rNames.end());
+    }
+    return res;
+}
+
+//
+//
+//
+StringVec ElementData::getVarNames() const
+{
+    StringVec res;
+    res.push_back(name + string("_Color"));
+    res.push_back(name + string("_Id"));
+    res.push_back(name + string("_Owner"));
+    res.push_back(name + string("_Tag"));
+    return res;
+}
+
+//
+//
+//
+const IntVec& ElementData::getVarDataByName(const string varName) const
+{
+    if (varName == name+string("_Color"))
+        return color;
+    else if (varName == name+string("_Id"))
+        return ID;
+    else if (varName == name+string("_Owner")) {
+        return owner;
+    } else if (varName == name+string("_Tag"))
+        return tag;
+    else if (reducedElements)
+        return reducedElements->getVarDataByName(varName);
+    else
+        throw "Invalid variable name";
+}
+
+//
+//
+//
+const QuadMaskInfo& ElementData::getQuadMask(int functionSpace) const
+{
+    if (functionSpace == FINLEY_REDUCED_ELEMENTS ||
+            functionSpace == FINLEY_REDUCED_FACE_ELEMENTS ||
+            functionSpace == FINLEY_REDUCED_CONTACT_ELEMENTS_1) {
+        return reducedQuadMask;
+    } else {
+        return quadMask;
+    }
 }
 
 //
@@ -449,7 +551,7 @@ void ElementData::buildMeshes()
 {
     // build a new mesh containing only the required nodes
     if (numElements > 0) {
-        if (nodeMesh) {
+        if (nodeMesh && nodeMesh->getNumNodes() > 0) {
             NodeData_ptr newMesh(new NodeData(nodeMesh, nodes, name));
             nodeMesh.swap(newMesh);
         } else {
@@ -577,6 +679,8 @@ FinleyElementInfo ElementData::getFinleyTypeInfo(ElementTypeId typeId)
     FinleyElementInfo ret;
     ret.multiCellIndices = NULL;
     ret.elementFactor = 1;
+    ret.useQuadNodes = false;
+    ret.quadDim = 0;
 
     switch (typeId) {
         case Point1_Contact://untested
@@ -633,6 +737,8 @@ FinleyElementInfo ElementData::getFinleyTypeInfo(ElementTypeId typeId)
             break;
 
         case Rec9:
+            ret.useQuadNodes = true;
+            ret.quadDim = 2;
             ret.multiCellIndices = rec9indices;
             ret.elementFactor = 4;
             // fall through
@@ -691,6 +797,8 @@ FinleyElementInfo ElementData::getFinleyTypeInfo(ElementTypeId typeId)
             break;
 
         case Hex27:
+            ret.useQuadNodes = true;
+            ret.quadDim = 3;
             ret.multiCellIndices = hex27indices;
             ret.elementFactor = 8;
             // fall through
@@ -704,6 +812,103 @@ FinleyElementInfo ElementData::getFinleyTypeInfo(ElementTypeId typeId)
             break;
     }
     return ret;
+}
+
+//
+//
+//
+inline bool inside1D(float x, float c, float r)
+{
+    return (ABS(x-c) <= r);
+}
+
+//
+//
+//
+inline bool inside2D(float x, float y, float cx, float cy, float r)
+{
+    return (inside1D(x, cx, r) && inside1D(y, cy, r));
+}
+
+//
+//
+//
+inline bool inside3D(float x, float y, float z,
+                     float cx, float cy, float cz, float r)
+{
+    return (inside2D(x, y, cx, cy, r) && inside1D(z, cz, r));
+}
+
+//
+//
+//
+QuadMaskInfo ElementData::buildQuadMask(const CoordArray& qnodes, int numQNodes)
+{
+    QuadMaskInfo qmi;
+
+    if (numQNodes == 0)
+        return qmi;
+    
+    if (finleyTypeId == Line3Macro) {
+        for (int i=0; i<elementFactor; i++) {
+            const float bounds[] = { 0.25, 0.75 };
+            IntVec m(numQNodes, 0);
+            int hits = 0;
+            for (size_t j=0; j<numQNodes; j++) {
+                if (inside1D(qnodes[0][j], bounds[i], .25)) {
+                    m[j] = 1;
+                    hits++;
+                }
+            }
+            qmi.mask.push_back(m);
+            if (hits == 0)
+                qmi.factor.push_back(1);
+            else
+                qmi.factor.push_back(hits);
+        }
+    } else if ((finleyTypeId == Rec9) || (finleyTypeId == Rec9Macro)) {
+        for (int i=0; i<elementFactor; i++) {
+            const float bounds[][2] = { { 0.25, 0.25 }, { 0.75, 0.25 },
+                                        { 0.25, 0.75 }, { 0.75, 0.75 } };
+            IntVec m(numQNodes, 0);
+            int hits = 0;
+            for (size_t j=0; j<numQNodes; j++) {
+                if (inside2D(qnodes[0][j], qnodes[1][j],
+                        bounds[i][0], bounds[i][1], 0.25)) {
+                    m[j] = 1;
+                    hits++;
+                }
+            }
+            qmi.mask.push_back(m);
+            if (hits == 0)
+                qmi.factor.push_back(1);
+            else
+                qmi.factor.push_back(hits);
+        }
+    } else if ((finleyTypeId == Hex27) || (finleyTypeId == Hex27Macro) ){
+        for (int i=0; i<elementFactor; i++) {
+            const float bounds[][3] = {
+                { 0.25, 0.25, 0.25 }, { 0.75, 0.25, 0.25 },
+                { 0.25, 0.75, 0.25 }, { 0.75, 0.75, 0.25 },
+                { 0.25, 0.25, 0.75 }, { 0.75, 0.25, 0.75 },
+                { 0.25, 0.75, 0.75 }, { 0.75, 0.75, 0.75 } };
+            IntVec m(numQNodes, 0);
+            int hits = 0;
+            for (size_t j=0; j<numQNodes; j++) {
+                if (inside3D(qnodes[0][j], qnodes[1][j], qnodes[2][j],
+                        bounds[i][0], bounds[i][1], bounds[i][2], 0.25)) {
+                    m[j] = 1;
+                    hits++;
+                }
+            }
+            qmi.mask.push_back(m);
+            if (hits == 0)
+                qmi.factor.push_back(1);
+            else
+                qmi.factor.push_back(hits);
+        }
+    }
+    return qmi;
 }
 
 } // namespace escriptexport

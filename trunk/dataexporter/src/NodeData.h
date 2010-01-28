@@ -80,10 +80,6 @@ public:
     ESCRIPTEXPORT_DLL_API
     const IntVec& getNodeIDs() const { return nodeID; }
 
-    /// \brief Returns a node ID to index mapping for this mesh.
-    ESCRIPTEXPORT_DLL_API
-    IndexMap getIndexMap() const;
-
     /// \brief Returns the coordinates of the mesh nodes.
     ESCRIPTEXPORT_DLL_API
     const CoordArray& getCoords() const { return coords; }
@@ -107,16 +103,6 @@ protected:
     std::string siloPath;      /// the path to this mesh within the SILO file
 };
 
-
-inline IndexMap NodeData::getIndexMap() const
-{
-    IndexMap nodeID2idx;
-    int idx = 0;
-    IntVec::const_iterator idIt;
-    for (idIt = nodeID.begin(); idIt != nodeID.end(); idIt++, idx++)
-        nodeID2idx[*idIt] = idx;
-    return nodeID2idx;
-}
 
 inline std::string NodeData::getFullSiloName() const
 {
