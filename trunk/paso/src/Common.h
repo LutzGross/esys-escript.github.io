@@ -73,6 +73,8 @@ typedef int err_t;
 
 #ifdef isnan
   #define IS_NAN(__VAL__) (isnan(__VAL__))
+#elif defined _isnan
+  #define IS_NAN(__VAL__) (_isnan(__VAL__))
 #else
 /* If we do not have isnan then we can't reliably check for NaN - return false */
   #define IS_NAN(__VAL__) (0)
