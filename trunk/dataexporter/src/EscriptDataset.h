@@ -112,9 +112,6 @@ public:
     bool saveVTK(const std::string fileName);
 
     /// \brief Returns the dataset's mesh.
-    ///
-    /// \note The caller is responsible for freeing the memory of the returned
-    /// mesh.
     ESCRIPTEXPORT_DLL_API
     MeshBlocks extractMesh() { keepMesh = true; return meshBlocks; }
 
