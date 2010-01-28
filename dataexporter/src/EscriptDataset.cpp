@@ -298,6 +298,7 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
         }
 
         if (tensorDefs.size()) {
+            DBSetDir(dbfile, "/");
             DBoptlist* optList = DBMakeOptlist(2);
             DBAddOption(optList, DBOPT_CYCLE, &cycle);
             DBAddOption(optList, DBOPT_DTIME, &time);
@@ -476,21 +477,16 @@ bool EscriptDataset::loadVarFromNetCDF(const string& fileName,
 void EscriptDataset::updateSampleDistribution(VarInfo& vi)
 {
     IntVec sampleDist;
-    int numBlocks = 0;
     const DataBlocks& varBlocks = vi.dataBlocks;
 
     if (mpiSize > 1) {
 #if HAVE_MPI
         int myNumSamples = varBlocks[0]->getNumberOfSamples();
-        if (mpiRank == 0) {
-            numBlocks = mpiSize;
-            sampleDist.insert(sampleDist.end(), numBlocks, 0);
-        }
-        MPI_Gather(
-            &myNumSamples, 1, MPI_INT, &sampleDist[0], 1, MPI_INT, 0, mpiComm);
+        sampleDist.insert(sampleDist.end(), mpiSize, 0);
+        MPI_Allgather(
+            &myNumSamples, 1, MPI_INT, &sampleDist[0], 1, MPI_INT, mpiComm);
 #endif
     } else {
-        numBlocks = varBlocks.size();
         DataBlocks::const_iterator it;
         for (it = varBlocks.begin(); it != varBlocks.end(); it++) {
             sampleDist.push_back((*it)->getNumberOfSamples());
@@ -505,50 +501,61 @@ void EscriptDataset::updateSampleDistribution(VarInfo& vi)
 void EscriptDataset::putSiloMultiMesh(DBfile* dbfile, const string& meshName)
 {
 #if USE_SILO
-    int numBlocks = 0;
-
-    if (mpiSize > 1) {
-        // FIXME: empty ranks are not accounted for
-        numBlocks = mpiSize;
-    } else {
-        MeshBlocks::iterator meshIt;
-        for (meshIt = meshBlocks.begin(); meshIt != meshBlocks.end(); meshIt++) {
-            const StringVec& meshNames = (*meshIt)->getMeshNames();
-            if (find(meshNames.begin(), meshNames.end(), meshName) != meshNames.end()) {
-                numBlocks++;
-            }
-        }
-    }
-    vector<int> meshtypes(numBlocks, DB_UCDMESH);
+    vector<int> meshtypes;
     vector<string> tempstrings;
     vector<char*> meshnames;
     string pathPrefix;
+
     int ppIndex = meshBlocks[0]->getSiloPath().find(':');
     if (ppIndex != string::npos) {
         pathPrefix = meshBlocks[0]->getSiloPath().substr(0, ppIndex+1);
     }
 
-    for (size_t idx = 0; idx < numBlocks; idx++) {
-        stringstream siloPath;
-        siloPath << pathPrefix << "/block";
-        int prevWidth = siloPath.width(4);
-        char prevFill = siloPath.fill('0');
-        siloPath << right << idx;
-        siloPath.width(prevWidth);
-        siloPath.fill(prevFill);
-        siloPath << "/";
-        siloPath << meshName;
-        tempstrings.push_back(siloPath.str());
-        meshnames.push_back((char*)tempstrings.back().c_str());
+    // find a variable belonging to this mesh to get the sample
+    // distribution (which tells us which ranks contribute to this mesh).
+    // Try mesh variables first, then regular ones.
+    VarVector::const_iterator viIt;
+    for (viIt = meshVariables.begin(); viIt != meshVariables.end(); viIt++) {
+        if (meshName == viIt->dataBlocks[0]->getMeshName())
+            break;
+    }
+
+    if (viIt == meshVariables.end()) {
+        for (viIt = variables.begin(); viIt != variables.end(); viIt++) {
+            if (meshName == viIt->dataBlocks[0]->getMeshName())
+                break;
+        }
+    }
+    // this probably means that the mesh is empty
+    if (viIt == variables.end()) {
+        return;
+    }
+
+    for (size_t idx = 0; idx < viIt->sampleDistribution.size(); idx++) {
+        if (viIt->sampleDistribution[idx] > 0) {
+            stringstream siloPath;
+            siloPath << pathPrefix << "/block";
+            int prevWidth = siloPath.width(4);
+            char prevFill = siloPath.fill('0');
+            siloPath << right << idx;
+            siloPath.width(prevWidth);
+            siloPath.fill(prevFill);
+            siloPath << "/";
+            siloPath << meshName;
+            tempstrings.push_back(siloPath.str());
+            meshnames.push_back((char*)tempstrings.back().c_str());
+            meshtypes.push_back(DB_UCDMESH);
+        }
     }
 
     // ignore empty mesh
     if (meshnames.size() > 0) {
+        DBSetDir(dbfile, "/");
         DBoptlist* optList = DBMakeOptlist(2);
         DBAddOption(optList, DBOPT_CYCLE, &cycle);
         DBAddOption(optList, DBOPT_DTIME, &time);
-        DBPutMultimesh(dbfile, meshName.c_str(), numBlocks, &meshnames[0],
-                &meshtypes[0], optList);
+        DBPutMultimesh(dbfile, meshName.c_str(), meshnames.size(),
+                &meshnames[0], &meshtypes[0], optList);
         DBFreeOptlist(optList);
     }
 #endif
@@ -591,6 +598,7 @@ void EscriptDataset::putSiloMultiVar(DBfile* dbfile, const VarInfo& vi,
 
     // ignore empty variables
     if (varnames.size() > 0) {
+        DBSetDir(dbfile, "/");
         DBoptlist* optList = DBMakeOptlist(2);
         DBAddOption(optList, DBOPT_CYCLE, &cycle);
         DBAddOption(optList, DBOPT_DTIME, &time);
@@ -613,17 +621,6 @@ void EscriptDataset::putSiloMultiVar(DBfile* dbfile, const VarInfo& vi,
 void EscriptDataset::putSiloMultiTensor(DBfile* dbfile, const VarInfo& vi)
 {
 #if USE_SILO
-    int numBlocks = 0;
-    if (mpiSize > 1) {
-        // FIXME: empty ranks are not accounted for
-        numBlocks = mpiSize;
-    } else {
-        DataBlocks::const_iterator it;
-        for (it = vi.dataBlocks.begin(); it != vi.dataBlocks.end(); it++) {
-            if ((*it)->getNumberOfSamples() > 0)
-                numBlocks++;
-        }
-    }
     string tensorDir = vi.varName+string("_comps/");
     DBSetDir(dbfile, "/");
     DBMkdir(dbfile, tensorDir.c_str());
@@ -632,30 +629,36 @@ void EscriptDataset::putSiloMultiTensor(DBfile* dbfile, const VarInfo& vi)
     DBAddOption(optList, DBOPT_CYCLE, &cycle);
     DBAddOption(optList, DBOPT_DTIME, &time);
     DBAddOption(optList, DBOPT_HIDE_FROM_GUI, &one);
-    vector<int> vartypes(numBlocks, DB_UCDVAR);
     const IntVec& shape = vi.dataBlocks[0]->getShape();
+
     for (int i=0; i<shape[1]; i++) {
         for (int j=0; j<shape[0]; j++) {
             vector<string> tempstrings;
             vector<char*> varnames;
+            vector<int> vartypes;
             stringstream comp;
             comp << vi.varName << "_comps/a_";
             comp << i;
             comp << j;
-            for (size_t idx = 0; idx < numBlocks; idx++) {
-                stringstream siloPath;
-                siloPath << "/block";
-                int prevWidth = siloPath.width(4);
-                char prevFill = siloPath.fill('0');
-                siloPath << right << idx;
-                siloPath.width(prevWidth);
-                siloPath.fill(prevFill);
-                siloPath << "/" << comp.str();
-                tempstrings.push_back(siloPath.str());
-                varnames.push_back((char*)tempstrings.back().c_str());
+            for (size_t idx = 0; idx < vi.sampleDistribution.size(); idx++) {
+                if (vi.sampleDistribution[idx] > 0) {
+                    stringstream siloPath;
+                    siloPath << "/block";
+                    int prevWidth = siloPath.width(4);
+                    char prevFill = siloPath.fill('0');
+                    siloPath << right << idx;
+                    siloPath.width(prevWidth);
+                    siloPath.fill(prevFill);
+                    siloPath << "/" << comp.str();
+                    tempstrings.push_back(siloPath.str());
+                    varnames.push_back((char*)tempstrings.back().c_str());
+                    vartypes.push_back(DB_UCDVAR);
+                }
             }
-            DBPutMultivar(dbfile, comp.str().c_str(), numBlocks, &varnames[0],
-                    &vartypes[0], optList);
+            if (varnames.size() > 0) {
+                DBPutMultivar(dbfile, comp.str().c_str(), varnames.size(),
+                        &varnames[0], &vartypes[0], optList);
+            }
         }
     }
     DBFreeOptlist(optList);
