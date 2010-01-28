@@ -14,7 +14,7 @@
 We will start by examining a simple one dimensional heat diffusion example. This problem will provide a good launch pad to build our knowledge of \esc and demonstrate how to solve simple partial differential equations (PDEs)\footnote{Wikipedia provides an excellent and comprehensive introduction to \textit{Partial Differential Equations} \url{http://en.wikipedia.org/wiki/Partial_differential_equation}, however their relevance to \esc and implementation should become a clearer as we develop our understanding further into the cookbook.}
 
 \section{One Dimensional Heat Diffusion in an Iron Rod}
-\sslist{onedheatdiff001.py and cblib.py}
+
 %\label{Sec:1DHDv0}
 The first model consists of a simple cold iron bar at a constant temperature of zero \reffig{fig:onedhdmodel}. The bar is perfectly insulated on all sides with a heating element at one end. Intuition tells us that as heat is applied; energy will disperse along the bar via conduction. With time the bar will reach a constant temperature equivalent to that of the heat source.
 \begin{figure}[h!]
@@ -119,12 +119,13 @@ A = \kappa; D = \frac{\rho c \hackscore{p}}{h}; f = q \hackscore{H} + \frac{\rho
 % for all $x$ in the domain. 
 
 \subsection{Boundary Conditions}
+\label{SEC BOUNDARY COND}
 With the PDE sufficiently modified, consideration must now be given to the boundary conditions of our model. Typically there are two main types of boundary conditions known as \textbf{Neumann} and \textbf{Dirichlet} boundary conditions\footnote{More information on Boundary Conditions is available at Wikipedia \url{http://en.wikipedia.org/wiki/Boundary_conditions}}, respectively. 
 A \textbf{Dirichlet boundary condition} is conceptually simpler and is used to prescribe a known value to the unknown - in our example the temperature - on parts of or the entire boundary of the region of interest.
 For our model problem we want to keep the initial temperature setting on the left side of the 
 iron bar over time. This defines a Dirichlet boundary condition for the PDE \refEq{eqn:hddisc} to be solved at each time step. 
 
-On the other end of the iron rod we want to add an appropriate boundary condition to define insolation to prevent
+On the other end of the iron rod we want to add an appropriate boundary condition to define insulation to prevent
 any loss or inflow of energy at the right end of the rod. Mathematically this is expressed by prescribing
 the heat flux $\kappa \frac{\partial T}{\partial x}$  to zero on the right end of the rod 
 In our simplified one dimensional model this is expressed
@@ -154,7 +155,7 @@ we use the term partial differential equation but in fact mean a boundary value 
 It is important to keep in mind that boundary conditions need to be complete and consistent in the sense that 
 at any point on the boundary either a Dirichlet or a Neuman boundary condition must be set.
 
-Conviniently, \esc makes default assumption on the boundary conditions which the user may modify where appropriate. 
+Conveniently, \esc makes default assumption on the boundary conditions which the user may modify where appropriate. 
 For a problem of the form in~\refEq{eqn:commonform nabla} the default condition\footnote{In the form of the \esc users guide which is using the Einstein convention is written as 
 $n\hackscore{j}A\hackscore{jl} u\hackscore{,l}=0$.} is;
 \begin{equation}\label{NEUMAN 2}
@@ -173,14 +174,24 @@ for the right hand side of the rod. This is identical to the Neuman boundary con
 \label{sec:outline}
 To solve the heat diffusion equation (equation \refEq{eqn:hd}) we will write a simple \pyt script. At this point we assume that you have some basic understanding of the \pyt programming language. If not there are some pointers and links available in Section \ref{sec:escpybas}. The script we will discuss later in details will have four major steps. Firstly we need to define the domain where we want to 
 calculate the temperature. For our problem this is the iron rod which has a rectangular shape. Secondly we need to define the PDE 
-we need to solve in each time step to get the updated temperature. Thirdly we need to define the the coefficients of the PDE and finally we need to solve the PDE. The last two steps need to be repeated until the final time marker has been reached.
- 
+we need to solve in each time step to get the updated temperature. Thirdly we need to define the the coefficients of the PDE and finally we need to solve the PDE. The last two steps need to be repeated until the final time marker has been reached. As a work flow this takes the form;
+\begin{enumerate}
+ \item create domain
+ \item create PDE
+ \item while end time not reached:
+\begin{enumerate}
+ \item set PDE coefficients
+ \item solve PDE
+ \item update time marker
+\end{enumerate}
+\item end of calculation
+\end{enumerate}
 In the terminology of \pyt the domain and PDE are represented by \textbf{objects}. The nice feature of an object is that it defined by it usage and features
-rather than its actual representation. So we will create a domain object to decribe the geometry of our iron rod. The main feature 
+rather than its actual representation. So we will create a domain object to describe the geometry of our iron rod. The main feature 
 of the object we will use is the fact that we can define PDEs and spatially distributed values such as the temperature 
 on a domain. In fact the domain object has many more features - most of them you will 
 never use and do not need to understand. Similar a PDE object is defined by the fact that we can define the coefficients of the PDE and solve the PDE. At a 
-later stage you may use more advanved features of the PDE class but you need to worry about them only at the point when you use them.
+later stage you may use more advanced features of the PDE class but you need to worry about them only at the point when you use them.
 
 
 \begin{figure}[t]
@@ -197,11 +208,11 @@ from the user's point of view the representation of these spatially distributed 
 
 There are various ways to construct domain objects. The simplest form is as rectangular shaped region with a length and height. There is
 a ready to use function call for this. Besides the spatial dimensions the function call will require you to specify the number
-elements or cells to be used along the length and height, see Figure~\ref{fig:fs}. Any spacially distributed value 
+elements or cells to be used along the length and height, see Figure~\ref{fig:fs}. Any specially distributed value 
 and the PDE is represented in discrete form using this element representation\footnote{We will use the finite element method (FEM), see \url{http://en.wikipedia.org/wiki/Finite_element_method}i for details.}. Therefore we will have access to an approximation of the true PDE solution only. 
 The quality of the approximation depends - besides other factors- mainly on the number of elements being used. In fact, the 
 approximation becomes better the more elements are used. However, computational costs and compute time grow with the number of
-elements being used. It therefore important that you find the right balance between the demand in accuarcy and acceptable resource usage.
+elements being used. It therefore important that you find the right balance between the demand in accuracy and acceptable resource usage.
 
 In general, one can thinks about a domain object as a composition of nodes and elements. 
 As shown in Figure~\ref{fig:fs}, an element is defined by the nodes used to describe its vertices. 
@@ -221,20 +232,20 @@ call \verb|ContinuousFunction(domain).getX()| will return the coordinates of the
 the  \verb|Function(domain).getX()| returns the coordinates of numerical integration points within elements, see
 Figure~\ref{fig:fs}. 
 
-This distiction between different representations of spatial distributed values 
+This distinction between different representations of spatial distributed values 
 is important in order to be able to vary the degrees of smoothness in a PDE problem. 
 The coefficients of a PDE need not be continuous thus this qualifies as a \verb|Function()| type. 
 On the other hand a temperature distribution must be continuous and needs to be represented with a \verb|ContinuousFunction()| function space.
 An influx may only be defined at the boundary and is therefore a \verb FunctionOnBoundary()  object.  
 \esc allows certain transformations of the function spaces. A \verb ContinuousFunction()  can be transformed into a \verb|FunctionOnBoundary()|
 or \verb|Function()|. On the other hand there is not enough information in a \verb FunctionOnBoundary()  to transform it to a \verb ContinuousFunction()  .
-These transformations, which ar ecalled \textbf{interpolation} are invoked autmatically by \esc if needed.
+These transformations, which are called \textbf{interpolation} are invoked automatically by \esc if needed.
 
 Later in this introduction we will discuss how
 to define specific areas of geometry with different materials which are represented by different material coefficients such the
-thermal conductivities $kappa$. A very powerful techique to define these types of PDE 
+thermal conductivities $kappa$. A very powerful technique to define these types of PDE 
 coefficients is tagging. Blocks of materials and boundaries can be named and values can be defined on subregions based on their names.
-This is simplifing PDE coefficient and flux definitions. It makes for much easier scripting. We will discuss this technique in Section~\ref{STEADY-STATE HEAT REFRACTION}.
+This is simplifying PDE coefficient and flux definitions. It makes for much easier scripting. We will discuss this technique in Section~\ref{STEADY-STATE HEAT REFRACTION}.
 
 
 \subsection{A Clarification for the 1D Case}
@@ -258,6 +269,7 @@ A\hackscore{00}=A; A\hackscore{01}=A\hackscore{10}=A\hackscore{11}=0
 
 \subsection{Developing a PDE Solution Script}
 \label{sec:key}
+\sslist{onedheatdiffbase.py}
 We will write a simple \pyt script which uses the \modescript, \modfinley and \modmpl modules. 
 By developing a script for \esc, the heat diffusion equation can be solved at successive time steps for a predefined period using our general form \refEq{eqn:hdgenf}. Firstly it is necessary to import all the libraries\footnote{The libraries contain predefined scripts that are required to solve certain problems, these can be simple like $sine$ and $cosine$ functions or more complicated like those from our \esc library.} 
 that we will require.
@@ -270,11 +282,8 @@ from esys.finley import Rectangle
 # A useful unit handling package which will make sure all our units
 # match up in the equations under SI.
 from esys.escript.unitsSI import * 
-import pylab as pl #Plotting package.
-import numpy as np #Array package.
-import os #This package is necessary to handle saving our data.
 \end{python}
-It is generally a good idea to import all of the \modescript library, although if the functions and classes required are known they can be specified individually. The function \verb|LinearPDE| has been imported explicitly for ease of use later in the script. \verb|Rectangle| is going to be our type of model. The module \verb unitsSI  provides support for SI unit definitions with our variables; and the \verb|os| module is needed to handle file outputs once our PDE has been solved. \verb pylab  and \verb numpy  are modules developed independently of \esc. They are used because they have efficient plotting and array handling capabilities.
+It is generally a good idea to import all of the \modescript library, although if the functions and classes required are known they can be specified individually. The function \verb|LinearPDE| has been imported explicitly for ease of use later in the script. \verb|Rectangle| is going to be our type of model. The module \verb unitsSI  provides support for SI unit definitions with our variables.
 
 Once our library dependencies have been established, defining the problem specific variables is the next step. In general the number of variables needed will vary between problems. These variables belong to two categories. They are either directly related to the PDE and can be used as inputs into the \esc solver, or they are script variables used to control internal functions and iterations in our problem. For this PDE there are a number of constants which will need values. Firstly, the model upon which we wish to solve our problem needs to be defined. There are many different types of models in \modescript which we will demonstrate in later tutorials but for our iron rod, we will simply use a rectangular model. 
 
@@ -289,138 +298,248 @@ ndy = 1 # mesh steps in y direction - one dimension means one element
 The material constants and the temperature variables must also be defined. For the iron rod in the model they are defined as:
 \begin{python}
 #PDE related
-q=200. * Celsius #Kelvin - our heat source temperature
-Tref = 0. * Celsius #Kelvin - starting temp of iron bar
 rho = 7874. *kg/m**3 #kg/m^{3} density of iron
-cp = 449.*J/(kg*K) #j/Kg.K thermal capacity
-rhocp = rho*cp
-kappa = 80.*W/m/K #watts/m.Kthermal conductivity
+cp = 449.*J/(kg*K) # J/Kg.K thermal capacity
+rhocp = rho*cp 
+kappa = 80.*W/m/K   # watts/m.Kthermal conductivity
+qH=0 * J/(sec*m**3) # J/(sec.m^{3}) no heat source
+T0=100 * Celsius # initial temperature at left end of rod
+Tref=20 * Celsius # base temperature
 \end{python}
 Finally, to control our script we will have to specify our timing controls and where we would like to save the output from the solver. This is simple enough:
 \begin{python}
-t=0 #our start time, usually zero
-tend=5.*minute #seconds - time to end simulation
+t=0 * day  #our start time, usually zero
+tend=1. * day # - time to end simulation
 outputs = 200 # number of time steps required.
 h=(tend-t)/outputs #size of time step
 #user warning statement
 print "Expected Number of time outputs is: ", (tend-t)/h
 i=0 #loop counter
-#the folder to put our outputs in, leave blank "" for script path 
-save_path="data/onedheatdiff001"
 \end{python}
 Now that we know our inputs we will build a domain using the \verb Rectangle() function from \verb finley . The four arguments allow us to define our domain \verb rod  as:
 \begin{python}
 #generate domain using rectangle
 rod = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
 \end{python}
-\verb rod  now describes a domain in the manner of Section \ref{ss:domcon}. As we define our variables, various function spaces will be created to accommodate them. There is an easy way to extract finite points from the domain \verb|rod| using the domain property function \verb|getX()| . This function sets the vertices of each cell as finite points to solve in the solution. If we let \verb|x| be these finite points, then;
+\verb rod  now describes a domain in the manner of Section \ref{ss:domcon}. There is an easy way to extract 
+the coordinates of the nodes used to describe the domain \verb|rod| using the
+domain property function \verb|getX()| . This function sets the vertices of each cell as finite points to solve in the solution. If we let \verb|x| be these finite points, then;
 \begin{python}
-#extract finite points - the solution points
+#extract data points - the solution points
 x=rod.getX()
 \end{python}
-The data locations of specific function spaces can be returned in a similar manner by extracting the relevant function space from the domain followed by the \verb .getX()  operator.
+The data locations of specific function spaces can be returned in a similar manner by extracting the relevant function space from the domain followed by the \verb|.getX()| method.
 
 With a domain and all our required variables established, it is now possible to set up our PDE so that it can be solved by \esc. The first step is to define the type of PDE that we are trying to solve in each time step. In this example it is a single linear PDE\footnote{in comparison to a system of PDEs which will be discussed later.}. We also need to state the values of our general form variables.
 \begin{python}
 mypde=LinearSinglePDE(rod)
-mypde.setValue(A=kappa*kronecker(rod),D=rhocp/h)
+A=zeros((2,2)))
+A[0,0]=kappa
+q=whereZero(x[0])
+mypde.setValue(A=A, D=rhocp/h, q=q, r=T0)
 \end{python}
+The argument \verb|q| has not been discussed yet: In fact the arguments \verb|q| and \verb|r| are used to define 
+Dirichlet boundary condition as discussed in Section~\ref{SEC BOUNDARY COND}. In the \esc
+PDE from the argument \verb|q| indicates by a positive value for which nodes we want to apply a 
+Dirichlet boundary condition, ie. where we want to prescribe the value of the PDE solution
+rather then using the PDE. The actually value for the solution to be taken is set by the argument \verb|r|. 
+In our case we want to keep the initial temperature $T0$ on the left face of the rode for all times. Notice,
+that as set to a constant value \verb|r| is assumed to have the same value 
+at all nodes, however only the value at those nodes marked by a positive value by \verb|q| are actually used.
 
-In a few special cases it may be possible to decrease the computational time of the solver if our PDE is symmetric. Symmetry of a PDE is defined by;
+In order to set \verb|q| we use 
+\verb|whereZero| function. The function returns the value (positive) one for those data points (=nodes) where the argument is equal to zero and otherwise returns (non-positive) value zero. 
+As \verb|x[0]| given the $x$-coordinates of the nodes for the domain, 
+\verb|whereZero(x[0])| gives the value $1$ for the nodes at the left end of the rod $x=x_0=0$ and
+zero elsewhere which is exactly what we need.
+
+In a many cases it may be possible to decrease the computational time of the solver if the PDE is symmetric. 
+Symmetry of a PDE is defined by;
 \begin{equation}\label{eqn:symm}
 A\hackscore{jl}=A\hackscore{lj}
 \end{equation}
-Symmetry is only dependent on the $A$ coefficient in the general form and the other coefficients $D$ and $d$ as well as the RHS $Y$ and $y$ may take any value. From the above definition we can see that our PDE is symmetric. The \verb LinearPDE  class provides the method \method{checkSymmetry} to check if the given PDE is symmetric. As our PDE is symmetrical we will enable symmetry via;
+Symmetry is only dependent on the $A$ coefficient in the general form and the other coefficients $D$ as well as the right hand side $Y$ may take any value. From the above definition we can see that our PDE is symmetric. The \verb LinearPDE  class provides the method \method{checkSymmetry} to check if the given PDE is symmetric. As our PDE is symmetrical we will enable symmetry via;
 \begin{python}
  myPDE.setSymmetryOn()
 \end{python}
-
-We now need to specify our boundary conditions and initial values. The initial values required to solve this PDE are temperatures for each discrete point in our model. We will set our bar to:
+Next we need to establish the initial temperature distribution \verb|T|. We want to have this initial 
+value to be \verb|Tref| except at the left end of the rod $x=0$ where we have the temperature \verb|T0|. We use;
 \begin{python}
- T = Tref
+# ... set initial temperature ....
+T = T0*whereZero(x[0])+Tref*(1-whereZero(x[0]))
 \end{python}
-Boundary conditions are a little more difficult. Fortunately the \esc solver will handle our insulated boundary conditions by default with a zero flux operator. However, we will need to apply our heat source $q_{H}$ to the end of the bar at $x=0$ . \esc makes this easy by letting us define areas in our model. The finite points in the model were previously defined as \verb x  and it is possible to set all of points that satisfy $x=0$ to \verb q  via the \verb whereZero()  function. There are a few \verb where  functions available in \esc. They will return a value \verb 1  where they are satisfied and \verb 0  where they are not. In this case our \verb qH  is only applied to the far LHS of our model as required.
+Finally we will initialize an iteration loop to solve our PDE for all the time steps we specified in the variable section. As the right hand side of the general form is dependent on the previous values for temperature \verb T  across the bar this must be updated in the loop. Our output at each time step is \verb T  the heat distribution and \verb totT  the total heat in the system.
 \begin{python}
-# ... set heat source: ....
-qH=q*whereZero(x[0])
-\end{python}
-
-Finally we will initialise an iteration loop to solve our PDE for all the time steps we specified in the variable section. As the RHS of the general form is dependent on the previous values for temperature \verb T  across the bar this must be updated in the loop. Our output at each time step is \verb T  the heat distribution and \verb totT  the total heat in the system.
-\begin{python}
-while t<=tend:
+while t < tend:
 	i+=1 #increment the counter
 	t+=h #increment the current time
-	mypde.setValue(Y=qH+rhocp/h*T) #set variable PDE coefficients
+	mypde.setValue(Y=qH+rhocp/h*T) # set variable PDE coefficients
 	T=mypde.getSolution() #get the PDE solution
-	totT = rhocp*T #get the total heat solution in the system
+	totE = integrate(rhocp*T) #get the total heat (energy) in the system
 \end{python}
+The last statement in this script calculates the total energy in the system as volume integral 
+of $\rho \c_p T$ over the rod.  
 
-\subsection{Plotting the heat solutions} 
-Visualisation of the solution can be achieved using \mpl a module contained within \pylab. We start by modifying our solution script from before. Prior to the \verb while  loop we will need to extract our finite solution points to a data object that is compatible with \mpl. First it is necessary to convert \verb x  to a list of tuples. These are then converted to a \numpy array and the $x$ locations extracted via an array slice to the variable \verb plx  .
-\begin{python}
-#convert solution points for plotting
-plx = x.toListOfTuples() 
-plx = np.array(plx) #convert to tuple to numpy array
-plx = plx[:,0] #extract x locations
-\end{python}
-As there are two solution outputs, we will generate two plots and save each to a file for every time step in the solution. The following is appended to the end of the \verb while  loop and creates two figures. The first figure is for the temperature distribution, and the second the total temperature in the bar. Both cases are similar with a few minor changes for scale and labelling. We start by converting the solution to a tuple and then plotting this against our \textit{x coordinates} \verb plx  from before. The axis is then standardised and a title applied. Finally, the figure is saved to a *.png file and cleared for the following iteration.
-\begin{python}
-	#establish figure 1 for temperature vs x plots
-	tempT = T.toListOfTuples(scalarastuple=False)
-	pl.figure(1) #current figure
-	pl.plot(plx,tempT) #plot solution
-		#define axis extents and title
-	pl.axis([0,1.0,273.14990+0.00008,0.004+273.1499])
-	pl.title("Temperature accross Rod")
-		#save figure to file
-	pl.savefig(os.path.join(save_path+"/tempT","rodpyplot%03d.png") %i)
-	pl.clf() #clear figure
-	
-	#establish figure 2 for total temperature vs x plots and repeat
-	tottempT = totT.toListOfTuples(scalarastuple=False)
-	pl.figure(2)
-	pl.plot(plx,tottempT)
-	pl.axis([0,1.0,9.657E08,12000+9.657E08])
-	pl.title("Total temperature across Rod")
-	pl.savefig(os.path.join(save_path+"/totT","ttrodpyplot%03d.png")%i)
-	pl.clf()
-\end{python}
+\subsection{Plotting the Total Energy} 
+\sslist{onedheatdiff001.py}
+
+\esc does not include its own plotting capabilities. However, it is possible to use a variety of free \pyt packages for visualization.
+Two types will be demonstrated in this cookbook; \mpl\footnote{\url{http://matplotlib.sourceforge.net/}} and \verb VTK \footnote{\url{http://www.vtk.org/}} visualisation. 
+The \mpl package is a component of SciPy\footnote{\url{http://www.scipy.org}} and is good for basic graphs and plots. 
+For more complex visualisation tasks in particular when it comes to  two and three dimensional problems it is recommended to us more advanced tools for instance  \mayavi \footnote{\url{http://code.enthought.com/projects/mayavi/}}
+which bases the \verb|VTK| toolkit. We will discuss the usage of \verb|VTK| based 
+visualization in Chapter~\ref{Sec:2DHD} where will discuss a two dimensional PDE. 
+
+For our simple problem we have two plotting tasks: Firstly we are interested in showing the
+behavior of the total energy over time and secondly in how the temperature distribution within the rod is 
+developing over time. Lets start with the first task.
+
 \begin{figure}
 \begin{center}
 \includegraphics[width=4in]{figures/ttrodpyplot150}
-\caption{Total temperature ($T$) distribution in rod at $t=150$}
+\caption{Total Energy in Rod over Time (in seconds).}
+\label{fig:onedheatout1} 
+\end{center}
+\end{figure}
+
+The trick is to create a record of the time marks and the corresponding total energies observed.
+\pyt provides the concept of lists for this. Before 
+the time loop is opened we create empty lists for the time marks \verb|t_list| and the total energies \verb|E_list|. 
+After the new temperature as been calculated by solving the PDE we append the new time marker and total energy
+to the corresponding list using the \verb|append| method. With these modifications the script looks as follows:
+\begin{python}
+t_list=[]
+E_list=[]
+# ... start iteration:
+while t<tend:
+      t+=h
+      mypde.setValue(Y=qH+rhocp/h*T) # set variable PDE coefficients
+      T=mypde.getSolution() #get the PDE solution
+      totE=integrate(rhocp*T) 
+      t_list.append(t)   # add current time mark to record
+      E_list.append(totE) # add current total energy to record
+\end{python}
+To plot $t$ over $totE$ we use the \mpl a module contained within \pylab which needs to be loaded before used;
+\begin{python}
+import pylab as pl # plotting package.
+\end{python}
+Here we are not using the \verb|from pylab import *| in order to name clashes for function names 
+with \esc. 
+
+The following statements are added to the script after the time loop has been completed;
+\begin{python}
+pl.plot(t_list,E_list)
+pl.title("Total Energy")
+pl.savefig("totE.png")
+\end{python}
+The first statement hands over the time marks and corresponding total energies to the plotter. 
+The second statement is setting the title for the plot. The last statement renders the plot and writes the 
+result into the file \verb|totE.png| which can be displayed by (almost) any image viewer. Your result should look
+similar to Figure~\ref{fig:onedheatout1}.
+
+\subsection{Plotting the Temperature Distribution}
+\sslist{onedheatdiff001b.py}
+For plotting the spatial distribution of the temperature we need to modify the strategy we have used
+for the total energy. Instead of producing a final plot at the end we will generate a 
+picture at each time step which can be browsed as slide show or composed to a movie.
+The first problem we encounter is that if we produce an image in each time step we need
+to make sure that the images previously generated are not overwritten.
+
+To develop an incrementing file name we can use the following convention. It is convenient to
+put all image file showing the same variable - in our case the temperature distribution -
+into a separate directory. As part of the \verb|os| module\footnote{The \texttt{os} module provides 
+a powerful interface to interact with the operating system, see \url{http://docs.python.org/library/os.html}.} \pyt 
+provides the  \verb|os.path.join| command to build file and
+directory names in a platform independent way. Assuming that 
+\verb|save_path| is name of directory we want to put the results the command is; 
+\begin{python}
+import os
+os.path.join(save_path, "tempT%03d.png"%i )
+\end{python}
+where \verb|i| is the time step counter.
+There are two arguments to the \verb join  command. The \verb save_path  variable is a predefined string pointing to the directory we want to save our data in, for example a single sub-folder called \verb data  would be defined by;
+\begin{verbatim}
+save_path = "data"
+\end{verbatim}
+while a sub-folder of \verb data  called \verb onedheatdiff001  would be defined by;
+\begin{verbatim}
+save_path = os.path.join("data","onedheatdiff001")
+\end{verbatim}
+The second argument of \verb join \xspace contains a string which is the filename or subdirectory name. We can use the operator \verb|%| to increment our file names with the value \verb|i| denoting a incrementing counter. The substring \verb %03d  does this by defining the following parameters; 
+\begin{itemize}
+ \item \verb 0  becomes the padding number;
+ \item \verb 3  tells us the amount of padding numbers that are required; and
+ \item \verb d  indicates the end of the \verb %  operator.
+\end{itemize}
+To increment the file name a \verb %i  is required directly after the operation the string is involved in. When correctly implemented the output files from this command would be place in the directory defined by \verb save_path  as;
+\begin{verbatim}
+rodpyplot.png
+rodpyplot.png
+rodpyplot.png
+...
+\end{verbatim}
+and so on.
+
+A sub-folder check/constructor is available in \esc. The command;
+\begin{verbatim}
+mkDir(save_path)
+\end{verbatim}
+will check for the existence of \verb save_path  and if missing, make the required directories.
+
+We start by modifying our solution script from before.
+Prior to the \verb|while| loop we will need to extract our finite solution points to a data object that is compatible with \mpl. First we create the node coordinates of the data points used to represent
+the temperature as a \pyt list of tuples. As a solution of a PDE 
+the temperature has the \verb|Solution(rod)| function space attribute. We use 
+the \verb|getX()| method to get the coordinates of the data points as an \esc object 
+which is then converted to a \numpy array. The $x$ component is then extracted via an array slice to the variable \verb|plx|; 
+\begin{python}
+import numpy as np # array package.
+#convert solution points for plotting
+plx = Solution(rod).getX().toListOfTuples() 
+plx = np.array(plx) # convert to tuple to numpy array
+plx = plx[:,0] # extract x locations
+\end{python}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=4in]{figures/rodpyplot001}
+\includegraphics[width=4in]{figures/rodpyplot050}
+\includegraphics[width=4in]{figures/rodpyplot200}
+\caption{Temperature ($T$) distribution in rod at time steps $1$, $50$ and $200$.}
 \label{fig:onedheatout} 
 \end{center}
 \end{figure}
 
-\subsubsection{Parallel scripts (MPI)}
-In some of the example files for this cookbook the plotting commands are a little different.
-For example,
+For each time step we will generate a plot of the temperature distribution and save each to a file. We use the same
+techniques provided by \mpl as we have used to plot the total energy over time.
+The following is appended to the end of the \verb while  loop and creates one figure of the temperature distribution. We start by converting the solution to a tuple and then plotting this against our \textit{x coordinates} \verb plx  we have generated before. We add a title to the diagram before it is rendered into a file. 
+Finally, the figure is saved to a \verb|*.png| file and cleared for the following iteration.
 \begin{python}
-	if getMPIRankWorld() == 0:
-	    pl.savefig(os.path.join(save_path+"/totT","ttrodpyplot%03d.png")%i)
-	pl.clf()	
+# ... start iteration:
+while t<tend:
+        ....
+	T=mypde.getSolution() #get the PDE solution
+        tempT = T.toListOfTuples() # convert to a tuple
+        pl.plot(plx,tempT) # plot solution
+	# set scale (Temperature should be between Tref and T0)
+        pl.axis([0,mx,Tref*.9,T0*1.1])
+        # add title
+	pl.title("Temperature across rod at time %e minutes"%(t/minutes))
+	#save figure to file
+	pl.savefig(os.path.join(save_path,"tempT","rodpyplot%03d.png") %i)
 \end{python}
-
-The additional \verb if  statement is not necessary for normal desktop use.
-It becomes important for scripts run on parallel computers.
-Its purpose is to ensure that only one copy of the file is written.
-For more details on writing scripts for parallel computing please consult the \emph{user's guide}.
+Some results are shown in Figure~\ref{fig:onedheatout}. 
 
 \subsection{Make a video} 
-Our saved plots from the previous section can be cast into a video using the following command appended to the end of the script. \verb mencoder  is linux only however, and other platform users will need to use an alternative video encoder.
+Our saved plots from the previous section can be cast into a video using the following command appended to the end of the script. \verb mencoder  is Linux only however, and other platform users will need to use an alternative video encoder.
 \begin{python}
-# compile the *.png files to create two *.avi videos that show T change
-# with time. This operation uses linux mencoder. For other operating 
-# systems it is possible to use your favourite video compiler to
+# compile the *.png files to create a *.avi videos that show T change
+# with time. This operation uses Linux mencoder. For other operating 
+# systems it is possible to use your favorite video compiler to
 # convert image files to videos.
 
 os.system("mencoder mf://"+save_path+"/tempT"+"/*.png -mf type=png:\
-w=800:h=600:fps=25 -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o \
-onedheatdiff001tempT.avi")
-
-os.system("mencoder mf://"+save_path+"/totT"+"/*.png -mf type=png:\
-w=800:h=600:fps=25 -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o \
-onedheatdiff001totT.avi")
+           w=800:h=600:fps=25 -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o \
+           onedheatdiff001tempT.avi")
 \end{python}
  
