@@ -19,6 +19,7 @@
 #include <escript/Data.h>
 
 #include <iostream>
+#include <numeric> // for std::accumulate
 
 #if USE_SILO
 #include <silo.h>
@@ -331,30 +332,313 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
 //
 bool EscriptDataset::saveVTK(string fileName)
 {
-#if 0
     if (numParts == 0)
         return false;
 
-    int globalNumPointsAndCells[2] = { 0, 0 };
+    string meshName;
+
+    // determine mesh type and variables to write
+    VarVector nodalVars, cellVars;
+    VarVector::iterator viIt;
+    for (viIt = variables.begin(); viIt != variables.end(); viIt++) {
+        const DataBlocks& varBlocks = viIt->dataBlocks;
+        // skip empty variable
+        int numSamples = accumulate(viIt->sampleDistribution.begin(),
+                viIt->sampleDistribution.end(), 0);
+        if (numSamples == 0 || !viIt->valid) {
+            continue;
+        }
+        string tmpName = varBlocks[0]->getMeshName();
+        if (meshName != "") {
+            if (meshName != tmpName) {
+                cerr << "VTK supports only one mesh! Skipping variable "
+                    << varBlocks[0]->getName() << " on " << tmpName << endl;
+                continue;
+            }
+        } else {
+            meshName = tmpName;
+        }
+
+        if (varBlocks[0]->isNodeCentered()) {
+            nodalVars.push_back(*viIt);
+        } else {
+            cellVars.push_back(*viIt);
+        }
+    }
+
+    // no valid variables so use default mesh
+    if (meshName == "")
+        meshName = "Elements";
+
+    // add mesh variables
+    for (viIt = meshVariables.begin(); viIt != meshVariables.end(); viIt++) {
+        DataVar_ptr var = viIt->dataBlocks[0];
+        if (meshName == var->getMeshName()) {
+            VarInfo vi = *viIt;
+            vi.varName = string(MESH_VARS)+vi.varName;
+            if (var->isNodeCentered()) {
+                nodalVars.push_back(vi);
+            } else {
+                cellVars.push_back(vi);
+            }
+        }
+    }
+
+    int gNumPoints;
+    int gNumCells = 0;
+    int gCellSizeAndType[2] = { 0, 0 };
 
 #if HAVE_MPI
-    int myNumPointsAndCells[2];
-    meshBlocks[0]->removeGhostZones(mpiRank);
-    ElementData_ptr elements = meshBlocks[0]->getElements();
-    myNumPointsAndCells[0] = elements->getNodeMesh()->getNumNodes();
-    myNumPointsAndCells[1] = elements->getNumElements();
-    MPI_Reduce(&myNumPointsAndCells[0], &globalNumPointsAndCells[0], 2,
-               MPI_INT, MPI_SUM, 0, mpiComm);
-#else
-    MeshBlocks::iterator meshIt;
-    for (meshIt = meshBlocks.begin(); meshIt != meshBlocks.end(); meshIt++) {
-        ElementData_ptr elements = (*meshIt)->getElements();
-        globalNumPointsAndCells[0] += elements->getNodeMesh()->getNumNodes();
-        globalNumPointsAndCells[1] += elements->getNumElements();
+    // remove file first if it exists
+    int error = 0;
+    int mpiErr;
+    if (mpiRank == 0) {
+        ifstream f(fileName.c_str());
+        if (f.is_open()) {
+            f.close();
+            if (remove(fileName.c_str())) {
+                error=1;
+            }
+        }
     }
+    MPI_Allreduce(&error, &mpiErr, 1, MPI_INT, MPI_MAX, mpiComm);
+    if (mpiErr != 0) {
+        cerr << "Error removing " << fileName << "!" << endl;
+        return false;
+    }
+
+    MPI_File mpiFileHandle;
+    MPI_Info mpiInfo = MPI_INFO_NULL;
+    int amode = MPI_MODE_CREATE|MPI_MODE_WRONLY|MPI_MODE_UNIQUE_OPEN;
+    mpiErr = MPI_File_open(mpiComm, const_cast<char*>(fileName.c_str()),
+            amode, mpiInfo, &mpiFileHandle);
+    if (mpiErr == MPI_SUCCESS) {
+        mpiErr = MPI_File_set_view(mpiFileHandle, 0, MPI_CHAR, MPI_CHAR,
+                const_cast<char*>("native"), mpiInfo);
+    }
+    if (mpiErr != MPI_SUCCESS) {
+        cerr << "Error opening " << fileName << " for parallel writing!" << endl;
+        return false;
+    }
+
+    int myNumCells;
+    if (mpiSize > 1)
+        meshBlocks[0]->removeGhostZones(mpiRank);
+    ElementData_ptr elements = meshBlocks[0]->getElementsByName(meshName);
+    myNumCells = elements->getNumElements();
+    MPI_Reduce(&myNumCells, &gNumCells, 1, MPI_INT, MPI_SUM, 0, mpiComm);
+
+    int myCellSizeAndType[2];
+    myCellSizeAndType[0] = elements->getNodesPerElement();
+    myCellSizeAndType[1] = elements->getType();
+
+    // rank 0 needs to know element type and size but it's possible that this
+    // information is only available on other ranks (value=0) so retrieve it
+    MPI_Reduce(&myCellSizeAndType, &gCellSizeAndType, 2, MPI_INT, MPI_MAX, 0,
+            mpiComm);
+
+    // these definitions make the code more readable and life easier -
+    // WRITE_ORDERED causes all ranks to write the contents of the stream while
+    // WRITE_SHARED should only be called for rank 0.
+#define WRITE_ORDERED(_stream) \
+    do {\
+        MPI_Status mpiStatus;\
+        string contents = _stream.str();\
+        mpiErr = MPI_File_write_ordered(\
+            mpiFileHandle, const_cast<char*>(contents.c_str()),\
+            contents.length(), MPI_CHAR, &mpiStatus);\
+        _stream.str("");\
+    } while(0)
+
+#define WRITE_SHARED(_stream) \
+    do {\
+        MPI_Status mpiStatus;\
+        string contents = _stream.str();\
+        mpiErr = MPI_File_write_shared(\
+            mpiFileHandle, const_cast<char*>(contents.c_str()),\
+            contents.length(), MPI_CHAR, &mpiStatus);\
+        _stream.str("");\
+    } while(0)
+
+#else /*********** non-MPI version follows ************/
+
+    ofstream ofs(fileName.c_str());
+
+    MeshBlocks::iterator meshIt;
+    int idx = 0;
+    for (meshIt = meshBlocks.begin(); meshIt != meshBlocks.end(); meshIt++, idx++) {
+        if (numParts > 1)
+            (*meshIt)->removeGhostZones(idx);
+        ElementData_ptr elements = (*meshIt)->getElementsByName(meshName);
+        gNumCells += elements->getNumElements();
+        if (gCellSizeAndType[0] == 0)
+            gCellSizeAndType[0] = elements->getNodesPerElement();
+        if (gCellSizeAndType[1] == 0)
+            gCellSizeAndType[1] = elements->getType();
+    }
+
+    // the non-MPI versions of WRITE_ORDERED and WRITE_SHARED are
+    // identical.
+#define WRITE_ORDERED(_stream) \
+    do {\
+        ofs << _stream.str();\
+        _stream.str("");\
+    } while(0)
+
+#define WRITE_SHARED(_stream) \
+    do {\
+        ofs << _stream.str();\
+        _stream.str("");\
+    } while(0)
+
 #endif
+
+    gNumPoints = meshBlocks[0]->getNodes()->getGlobalNumNodes();
+
+    ostringstream oss;
+    oss.setf(ios_base::scientific, ios_base::floatfield);
+
+    if (mpiRank == 0) {
+#ifdef _DEBUG
+        cout << meshName << ": pts=" << gNumPoints << ", cells=" << gNumCells
+            << ", cellsize=" << gCellSizeAndType[0] << ", type="
+            << gCellSizeAndType[1] << ", numNodalVars=" << nodalVars.size()
+            << ", numCellVars=" << cellVars.size()
+            << endl;
 #endif
-    return false;
+
+        oss << "<?xml version=\"1.0\"?>" << endl;
+        oss << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\">" << endl;
+        oss << "<UnstructuredGrid>" << endl;
+
+        // write time and cycle values
+        oss << "<FieldData>" << endl;
+        oss << "<DataArray Name=\"TIME\" type=\"Float64\" format=\"ascii\" NumberOfTuples=\"1\">" << endl;
+        oss << time << endl;
+        oss << "</DataArray>" << endl << "</FieldData>" << endl;
+        oss << "<FieldData>" << endl;
+        oss << "<DataArray Name=\"CYCLE\" type=\"Int32\" format=\"ascii\" NumberOfTuples=\"1\">" << endl;
+        oss << cycle << endl;
+        oss << "</DataArray>" << endl << "</FieldData>" << endl;
+
+        // write mesh header
+        oss << "<Piece NumberOfPoints=\"" << gNumPoints
+            << "\" NumberOfCells=\"" << gNumCells << "\">" << endl;
+        oss << "<Points>" << endl;
+        oss << "<DataArray NumberOfComponents=\"3\" type=\"Float64\" format=\"ascii\">" << endl;
+    }
+
+    //
+    // coordinates (note that we are using the original nodes)
+    // 
+    for (meshIt = meshBlocks.begin(); meshIt != meshBlocks.end(); meshIt++) {
+        (*meshIt)->getNodes()->writeCoordinatesVTK(oss, mpiRank);
+    }
+
+    WRITE_ORDERED(oss);
+
+    if (mpiRank == 0) {
+        oss << "</DataArray>" << endl << "</Points>" << endl;
+        oss << "<Cells>" << endl;
+        oss << "<DataArray Name=\"connectivity\" type=\"Int32\" format=\"ascii\">" << endl;
+    }
+
+    //
+    // connectivity
+    //
+    for (meshIt = meshBlocks.begin(); meshIt != meshBlocks.end(); meshIt++) {
+        ElementData_ptr el = (*meshIt)->getElementsByName(meshName);
+        el->writeConnectivityVTK(oss);
+    }
+
+    WRITE_ORDERED(oss);
+
+    //
+    // offsets & types
+    // 
+    if (mpiRank == 0) {
+        oss << "</DataArray>" << endl;
+        oss << "<DataArray Name=\"offsets\" type=\"Int32\" format=\"ascii\">" << endl;
+        for (int i=1; i < gNumCells+1; i++) {
+            oss << i*gCellSizeAndType[0] << endl;
+        }
+        oss << "</DataArray>" << endl;
+        oss << "<DataArray Name=\"types\" type=\"UInt8\" format=\"ascii\">" << endl;
+        for (int i=1; i < gNumCells+1; i++) {
+            oss << gCellSizeAndType[1] << endl;
+        }
+        oss << "</DataArray>" << endl << "</Cells>" << endl;
+        WRITE_SHARED(oss);
+    }
+
+    // now write all variables - first the nodal data, then cell data
+
+    // write nodal data if any
+    if (nodalVars.size() > 0) {
+        if (mpiRank == 0)
+            oss << "<PointData>" << endl;
+        for (viIt = nodalVars.begin(); viIt != nodalVars.end(); viIt++) {
+            writeVarToVTK(*viIt, oss);
+            WRITE_ORDERED(oss);
+            if (mpiRank == 0)
+                oss << "</DataArray>" << endl;
+        }
+        if (mpiRank == 0)
+            oss << "</PointData>" << endl;
+    }
+
+    // write cell data if any
+    if (cellVars.size() > 0) {
+        if (mpiRank == 0)
+            oss << "<CellData>" << endl;
+        for (viIt = cellVars.begin(); viIt != cellVars.end(); viIt++) {
+            writeVarToVTK(*viIt, oss);
+            WRITE_ORDERED(oss);
+            if (mpiRank == 0)
+                oss << "</DataArray>" << endl;
+        }
+        if (mpiRank == 0)
+            oss << "</CellData>" << endl;
+    }
+
+    if (mpiRank == 0) {
+        oss << "</Piece>" << endl << "</UnstructuredGrid>" << endl
+            << "</VTKFile>" << endl;
+        WRITE_SHARED(oss);
+    }
+
+#if HAVE_MPI
+    mpiErr = MPI_File_close(&mpiFileHandle);
+#else
+    ofs.close();
+#endif
+
+    return true;
+}
+
+//
+//
+//
+void EscriptDataset::writeVarToVTK(const VarInfo& varInfo, ostream& os)
+{
+    const DataBlocks& varBlocks = varInfo.dataBlocks;
+    int rank = varBlocks[0]->getRank();
+    int numComps = 1;
+    if (rank > 0)
+        numComps *= 3;
+    if (rank > 1)
+        numComps *= 3;
+
+    if (mpiRank == 0) {
+        os << "<DataArray Name=\"" << varInfo.varName
+            << "\" type=\"Float64\" NumberOfComponents=\"" << numComps
+            << "\" format=\"ascii\">" << endl;
+    }
+
+    DataBlocks::const_iterator blockIt;
+    for (blockIt = varBlocks.begin(); blockIt != varBlocks.end(); blockIt++) {
+        (*blockIt)->writeToVTK(os, mpiRank);
+    }
 }
 
 //
@@ -393,34 +677,6 @@ bool EscriptDataset::loadMeshFromNetCDF()
     }
     delete[] str;
     return ok;
-}
-
-//
-//
-//
-void EscriptDataset::convertMeshVariables()
-{
-    const StringVec& varNames = meshBlocks[0]->getVarNames();
-    StringVec::const_iterator it;
-    for (it = varNames.begin(); it != varNames.end(); it++) {
-        VarInfo vi;
-        vi.varName = *it;
-        vi.valid = true;
-        // get all parts of current variable
-        MeshBlocks::iterator mIt;
-        for (mIt = meshBlocks.begin(); mIt != meshBlocks.end(); mIt++) {
-            DataVar_ptr var(new DataVar(*it));
-            if (var->initFromMesh(*mIt)) {
-                vi.dataBlocks.push_back(var);
-            } else {
-                cerr << "Error converting mesh variable " << *it << endl;
-                vi.valid = false;
-                break;
-            }
-        }
-        updateSampleDistribution(vi);
-        meshVariables.push_back(vi);
-    }
 }
 
 //
@@ -472,7 +728,35 @@ bool EscriptDataset::loadVarFromNetCDF(const string& fileName,
     return vi.valid;
 }
 
-// returns the number of samples at each block - used to determine which
+//
+//
+//
+void EscriptDataset::convertMeshVariables()
+{
+    const StringVec& varNames = meshBlocks[0]->getVarNames();
+    StringVec::const_iterator it;
+    for (it = varNames.begin(); it != varNames.end(); it++) {
+        VarInfo vi;
+        vi.varName = *it;
+        vi.valid = true;
+        // get all parts of current variable
+        MeshBlocks::iterator mIt;
+        for (mIt = meshBlocks.begin(); mIt != meshBlocks.end(); mIt++) {
+            DataVar_ptr var(new DataVar(*it));
+            if (var->initFromMesh(*mIt)) {
+                vi.dataBlocks.push_back(var);
+            } else {
+                cerr << "Error converting mesh variable " << *it << endl;
+                vi.valid = false;
+                break;
+            }
+        }
+        updateSampleDistribution(vi);
+        meshVariables.push_back(vi);
+    }
+}
+
+// retrieves the number of samples at each block - used to determine which
 // blocks contribute to given variable if any.
 void EscriptDataset::updateSampleDistribution(VarInfo& vi)
 {

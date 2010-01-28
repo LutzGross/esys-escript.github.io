@@ -17,6 +17,8 @@
 #include <escriptexport/escriptexport.h>
 #include <escript/AbstractDomain.h>
 
+#include <ostream>
+
 class DBfile;
 
 namespace escript {
@@ -137,6 +139,7 @@ private:
     void putSiloMultiTensor(DBfile* dbfile, const VarInfo& vi);
     void putSiloMultiVar(DBfile* dbfile, const VarInfo& vi,
                          bool useMeshFile = false);
+    void writeVarToVTK(const VarInfo& varInfo, std::ostream& os);
 
     int numParts;
     int cycle;

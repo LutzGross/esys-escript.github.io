@@ -295,6 +295,38 @@ StringVec NodeData::getVarNames() const
 //
 //
 //
+int NodeData::getGlobalNumNodes() const
+{
+    int ret=0;
+    if (!nodeDist.empty())
+        ret = nodeDist[nodeDist.size()-1];
+    return ret;
+}
+
+//
+//
+//
+void NodeData::writeCoordinatesVTK(ostream& os, int ownIndex)
+{
+    if (numNodes > 0) {
+        int firstId = nodeDist[ownIndex];
+        int lastId = nodeDist[ownIndex+1];
+        for (size_t i=0; i<numNodes; i++) {
+            if (firstId <= nodeGNI[i] && nodeGNI[i] < lastId) {
+                os << coords[0][i] << " " << coords[1][i] << " ";
+                if (numDims == 3)
+                    os << coords[2][i];
+                else
+                    os << 0.;
+                os << endl;
+            }
+        }
+    }
+}
+
+//
+//
+//
 bool NodeData::writeToSilo(DBfile* dbfile)
 {
 #if USE_SILO

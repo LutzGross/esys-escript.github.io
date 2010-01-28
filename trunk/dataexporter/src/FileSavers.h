@@ -25,6 +25,12 @@ void saveSilo(const std::string& filename, int cycle, double time,
               escript::Domain_ptr domain,
               const boost::python::dict& datavars);
 
+void saveVTK(const std::string& filename, int cycle, double time,
+             escript::Domain_ptr domain,
+             const boost::python::dict& datavars, const std::string& metadata,
+             const std::string& metadata_schema);
+
+
 } // namespace escriptexport
 
 #endif // __FILESAVERS_H__

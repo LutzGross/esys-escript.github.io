@@ -17,6 +17,7 @@
 #include <escriptexport/escriptexport.h>
 #include <finley/ReferenceElements.h> // for ElementTypeId
 #include <finley/vtkCellType.h>
+#include <ostream>
 
 class DBfile;
 class NcFile;
@@ -98,6 +99,10 @@ public:
     /// \brief Removes "ghost" elements.
     ESCRIPTEXPORT_DLL_API
     void removeGhostZones(int ownIndex);
+
+    /// \brief Writes connectivity data to a stream in VTK text format.
+    ESCRIPTEXPORT_DLL_API
+    void writeConnectivityVTK(std::ostream& os);
 
     /// \brief Writes element data into given directory in given Silo file.
     ///

@@ -15,6 +15,7 @@
 #define __NODEDATA_H__
 
 #include <escriptexport/escriptexport.h>
+#include <ostream>
 
 class DBfile;
 class NcFile;
@@ -54,6 +55,10 @@ public:
     ESCRIPTEXPORT_DLL_API
     bool writeToSilo(DBfile* dbfile);
 
+    /// \brief Writes coordinates to a stream in VTK text format.
+    ESCRIPTEXPORT_DLL_API
+    void writeCoordinatesVTK(std::ostream& os, int ownIndex);
+
     /// \brief Sets the silo path to be used when saving.
     ESCRIPTEXPORT_DLL_API
     void setSiloPath(const std::string& path) { siloPath = path; }
@@ -80,6 +85,14 @@ public:
     ESCRIPTEXPORT_DLL_API
     const IntVec& getNodeIDs() const { return nodeID; }
 
+    /// \brief Returns the node distribution array
+    ESCRIPTEXPORT_DLL_API
+    const IntVec& getNodeDistribution() const { return nodeDist; }
+
+    /// \brief Returns the global node index array.
+    ESCRIPTEXPORT_DLL_API
+    const IntVec& getGlobalNodeIndices() const { return nodeGNI; }
+
     /// \brief Returns the coordinates of the mesh nodes.
     ESCRIPTEXPORT_DLL_API
     const CoordArray& getCoords() const { return coords; }
@@ -91,6 +104,10 @@ public:
     /// \brief Returns the number of mesh nodes.
     ESCRIPTEXPORT_DLL_API
     int getNumNodes() const { return numNodes; }
+
+    /// \brief Returns the total number of mesh nodes for a distributed mesh.
+    ESCRIPTEXPORT_DLL_API
+    int getGlobalNumNodes() const;
 
 protected:
     CoordArray coords;         /// x, y[, z] coordinates of nodes
