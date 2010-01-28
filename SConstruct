@@ -86,6 +86,8 @@ adder(
   BoolVariable('usedebug', 'Do you want a debug build?', 'no'),
   BoolVariable('usevtk', 'Do you want to use VTK?', 'yes'),
   ('options_file', 'File of paths/options. Default: scons/<hostname>_options.py', options_file),
+  ('cc', 'path to C compiler', 'DEFAULT'),
+  ('cxx', 'path to C++ compiler', 'DEFAULT'),
   ('win_cc_name', 'windows C compiler name if needed', 'msvc'),
   # The strings -DDEFAULT_ get replaced by scons/<hostname>_options.py or by defaults below
   ('cc_flags', 'C compiler flags to use', '-DEFAULT_1'),
@@ -198,8 +200,12 @@ else:
          env['LINK'] = env['CXX'] # version >=9 of intel c++ compiler requires use of icpc to link in C++ runtimes (icc does not)
    else:
       env = Environment(tools = ['default'], options = opts)
-Help(opts.GenerateHelpText(env))
 
+# Override compiler choice if provided
+if env['cc'] != 'DEFAULT': env['CC']=env['cc']
+if env['cxx'] != 'DEFAULT': env['CXX']=env['cxx']
+
+Help(opts.GenerateHelpText(env))
 
 ############ Make sure target directories exist ################
 
@@ -226,6 +232,13 @@ if env['useMPI']: env['usempi'] = 1
 
 sysheaderopt = ""		# how do we indicate that a header is a system header. Use "" for no action.
 
+cc_flags = ""
+cc_optim = ""
+cc_debug = ""
+omp_optim = ""
+omp_debug = ""
+omp_libs = []
+
 if env["CC"] == "icc":
   # Intel compilers
   cc_flags		= "-fPIC -ansi -wd161 -w1 -vec-report0 -DBLOCKTIMER -DCORE_ID1"
@@ -237,7 +250,7 @@ if env["CC"] == "icc":
   pedantic		= ""
   fatalwarning		= ""		# Switch to turn warnings into errors
   sysheaderopt		= ""
-elif env["CC"] == "gcc":
+elif env["CC"][:3] == "gcc":
   # GNU C on any system
   cc_flags		= "-pedantic -Wall -fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER  -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing"
 #the long long warning occurs on the Mac
