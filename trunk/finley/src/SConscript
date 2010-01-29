@@ -126,6 +126,7 @@ headers = """
 	TagMap.h
 	Util.h
 	ReferenceElementSets.h
+	system_dep.h
 	vtkCellType.h
 """.split()
 cppadapter_headers = """
@@ -135,7 +136,6 @@ cppadapter_headers = """
 	CPPAdapter/MeshAdapterFactory.h
 	CPPAdapter/SystemMatrixAdapter.h
 	CPPAdapter/TransportProblemAdapter.h
-	CPPAdapter/system_dep.h
 """.split()
 
 local_env.Append(LIBS = ['escript', 'esysUtils', 'paso'] + env['sys_libs'] )

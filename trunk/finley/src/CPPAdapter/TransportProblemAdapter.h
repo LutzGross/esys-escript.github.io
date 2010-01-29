@@ -14,7 +14,7 @@
 
 #if !defined  finley_TransportProblemAdapter_H
 #define finley_TransportProblemAdapter_H
-#include "system_dep.h"
+#include "finley/system_dep.h"
 
 extern "C" {
 #include "paso/SolverFCT.h"

@@ -14,10 +14,10 @@
 
 #if !defined  finley_FinleyError_20040528_H
 #define finley_FinleyError_20040528_H
-#include "system_dep.h"
+#include "finley/system_dep.h"
 
 extern "C" {
-#include "../Finley.h"
+#include "finley/Finley.h"
 }
 
 #include "FinleyAdapterException.h"
