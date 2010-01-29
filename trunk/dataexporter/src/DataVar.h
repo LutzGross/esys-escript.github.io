@@ -162,8 +162,11 @@ inline IndexMap DataVar::buildIndexMap()
 {
     IndexMap sampleID2idx;
     int idx = sampleID.size()-1;
-    IntVec::const_reverse_iterator idIt;
-    for (idIt = sampleID.rbegin(); idIt != sampleID.rend(); idIt++, idx--)
+    // see this thread for why this is done the way it's done:
+    // http://www.tech-archive.net/Archive/VC/microsoft.public.vc.stl/2005-01/0075.html
+    IntVec::const_reverse_iterator idIt = sampleID.rbegin();
+    IntVec::const_reverse_iterator endIt = sampleID.rend();
+    for (; idIt != endIt; idIt++, idx--)
         sampleID2idx[*idIt] = idx;
 
     return sampleID2idx;
