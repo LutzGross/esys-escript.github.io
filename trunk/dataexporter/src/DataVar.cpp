@@ -18,7 +18,7 @@
 #include <escript/Data.h>
 
 #if USE_NETCDF
-#include <netcdf.hh>
+#include <netcdfcpp.h>
 #endif
 
 #if USE_SILO
