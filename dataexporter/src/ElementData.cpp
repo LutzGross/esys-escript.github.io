@@ -21,7 +21,7 @@ extern "C" {
 #include <iostream>
 
 #if USE_NETCDF
-#include <netcdf.hh>
+#include <netcdfcpp.h>
 #endif
 
 #if USE_SILO
