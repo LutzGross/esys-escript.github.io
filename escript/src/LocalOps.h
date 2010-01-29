@@ -63,7 +63,7 @@ double makeNaN()
 #ifdef nan
     return nan("");
 #else
-    return sqrt(-1);
+    return sqrt(-1.);
 #endif
 
 }
