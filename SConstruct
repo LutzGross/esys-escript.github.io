@@ -798,7 +798,6 @@ Export(
 env.SConscript(dirs = ['tools/CppUnitTest/src'], build_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
 env.SConscript(dirs = ['tools/escriptconvert'], build_dir='build/$PLATFORM/tools/escriptconvert', duplicate=0)
 env.SConscript(dirs = ['paso/src'], build_dir='build/$PLATFORM/paso', duplicate=0)
-env.SConscript(dirs = ['dataexporter/src'], build_dir='build/$PLATFORM/dataexporter', duplicate=0)
 env.SConscript(dirs = ['escript/src'], build_dir='build/$PLATFORM/escript', duplicate=0)
 env.SConscript(dirs = ['esysUtils/src'], build_dir='build/$PLATFORM/esysUtils', duplicate=0)
 env.SConscript(dirs = ['finley/src'], build_dir='build/$PLATFORM/finley', duplicate=0)
@@ -895,9 +894,6 @@ env.Alias('install_esysUtils', ['build_esysUtils', 'target_install_esysUtils_a']
 env.Alias('build_paso', ['target_install_paso_headers', 'target_paso_a'])
 env.Alias('install_paso', ['build_paso', 'target_install_paso_a'])
 
-env.Alias('build_dataexporter', ['target_install_escriptexport_headers', 'target_escriptexport_so', 'target_escriptexportcpp_so'])
-env.Alias('install_dataexporter', ['build_dataexporter', 'target_install_escriptexport_so', 'target_install_escriptexportcpp_so', 'target_install_dataexporter_py'])
-
 env.Alias('build_escript', ['target_install_escript_headers', 'target_escript_so', 'target_escriptcpp_so'])
 env.Alias('install_escript', ['build_escript', 'target_install_escript_so', 'target_install_escriptcpp_so', 'target_install_escript_py'])
 
@@ -908,7 +904,6 @@ env.Alias('install_finley', ['build_finley', 'target_install_finley_so', 'target
 build_all_list = []
 build_all_list += ['build_esysUtils']
 build_all_list += ['build_paso']
-build_all_list += ['build_dataexporter']
 build_all_list += ['build_escript']
 build_all_list += ['build_finley']
 if env['usempi']:		build_all_list += ['target_pythonMPI_exe']
@@ -920,7 +915,6 @@ install_all_list = []
 install_all_list += ['target_init']
 install_all_list += ['install_esysUtils']
 install_all_list += ['install_paso']
-install_all_list += ['install_dataexporter']
 install_all_list += ['install_escript']
 install_all_list += ['install_finley']
 install_all_list += ['target_install_pyvisi_py']
@@ -948,7 +942,7 @@ env.Alias('build_full',['install_all','build_tests','build_py_tests'])
 
 env.Alias('api_epydoc','install_all')
 
-env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_doxygen', 'guide_pdf', 'guide_html','install_pdf'])
+env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_doxygen', 'guide_pdf', 'guide_html','install_pdf', 'cookbook_pdf'])
 
 if not IS_WINDOWS_PLATFORM:
    try:

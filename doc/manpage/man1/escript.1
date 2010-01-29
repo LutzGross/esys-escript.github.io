@@ -1,9 +1,10 @@
-.TH escript 1 "" "" "esys Escript-Finley" 
+.TH run-escript 1 "" "" "esys Escript-Finley" 
 
 .SH NAME
-escript - a launcher for programs and scripts using the escript libraries.
+run-escript, escript - a launcher for programs and scripts using the escript libraries.
 .SH SYNOPSIS
-escript [-n 
+.B run-escript
+[-n 
 .I nn
 ] [-p 
 .I
@@ -17,10 +18,18 @@ hostfile
 ] [-x ] [-V ] [-e ] [-h ] [-v ] [-o ] [-c ] [-i ] [-b ] [
 .I
 file
-] [
+[
 .I
 ARGS
-]
+] ]
+
+.SH NOTE
+
+The command
+.B escript
+is deprecated, where possible please use 
+.B run-escript
+instead.
 
 .SH OPTIONS
 
@@ -30,7 +39,7 @@ file
 is the name of a script, 
 .I ARGS
 are arguments for the script.  
-.B escript 
+.B run-escript 
 will import your current
 environment variables. If no
 .I
@@ -99,7 +108,7 @@ hosts defined in hostfile must be equal to the number of requsted compute nodes
 .IR nn .
 The option
 overwrites the value of the
-.B ESCRIPT HOSTFILE 
+.B ESCRIPT_HOSTFILE 
 environment variable. By default value no host file is
 used.
 .HP
