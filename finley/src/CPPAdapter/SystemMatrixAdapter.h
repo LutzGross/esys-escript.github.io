@@ -14,7 +14,7 @@
 
 #if !defined  finley_SystemMatrixAdapter_20040610_H
 #define finley_SystemMatrixAdapter_20040610_H
-#include "system_dep.h"
+#include "finley/system_dep.h"
 
 extern "C" {
 #include "paso/SystemMatrix.h"

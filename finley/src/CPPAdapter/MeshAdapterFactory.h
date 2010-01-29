@@ -14,12 +14,12 @@
 
 #if !defined  finley_MeshAdapterFactory_20040526_H
 #define finley_MeshAdapterFactory_20040526_H
-#include "system_dep.h"
+#include "finley/system_dep.h"
 
 extern "C" {
-#include "../Finley.h"
-#include "../Mesh.h"
-#include "../RectangularMesh.h"
+#include "finley/Finley.h"
+#include "finley/Mesh.h"
+#include "finley/RectangularMesh.h"
 }
 
 #include "MeshAdapter.h"

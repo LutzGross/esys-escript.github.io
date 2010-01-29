@@ -14,12 +14,12 @@
 
 #if !defined finley_MeshAdapter_20040526_H
 #define finley_MeshAdapter_20040526_H
-#include "system_dep.h"
+#include "finley/system_dep.h"
 
 extern "C" {
-#include "../Mesh.h"
-#include "../Finley.h"
-#include "../Assemble.h"
+#include "finley/Mesh.h"
+#include "finley/Finley.h"
+#include "finley/Assemble.h"
 #include "paso/SystemMatrix.h"
 #include "paso/SolverFCT.h"
 #include "paso/Paso_MPI.h"
