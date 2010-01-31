@@ -15,7 +15,11 @@
 #define __ELEMENTDATA_H__
 
 #include <escriptexport/escriptexport.h>
+
+extern "C" {
 #include <finley/ReferenceElements.h> // for ElementTypeId
+}
+
 #include <finley/vtkCellType.h>
 #include <ostream>
 
