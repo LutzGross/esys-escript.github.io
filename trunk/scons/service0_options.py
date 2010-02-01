@@ -104,8 +104,8 @@ parmetis_lib_path	= '/sw/libs/parmetis/x86_64/gcc-4.1.2/intelmpi/parmetis-3.1/li
 parmetis_libs		= ['parmetis', 'metis']
 # Silo
 # usesilo		= 'yes'
-silo_path		= '/sw/libs/silo/x86_64/gcc-4.1.2/silo-4.7/include'
-silo_lib_path		= '/sw/libs/silo/x86_64/gcc-4.1.2/silo-4.7/lib'
+silo_path		= '/sw/libs/silo/x86_64/gcc-4.1.2/silo-4.7.2/include'
+silo_lib_path	        = '/sw/libs/silo/x86_64/gcc-4.1.2/silo-4.7.2/lib'
 # silo_libs		= ['siloh5', 'hdf5']
 
 
