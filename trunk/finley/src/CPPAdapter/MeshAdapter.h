@@ -14,7 +14,7 @@
 
 #if !defined finley_MeshAdapter_20040526_H
 #define finley_MeshAdapter_20040526_H
-#include "finley/system_dep.h"
+#include "system_dep.h"
 
 extern "C" {
 #include "finley/Mesh.h"
@@ -699,6 +699,20 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
 
 };
+
+// Do not use this class. It is a convenience wrapper for the dataexporter.
+class FINLEY_DLL_API ReferenceElementSetWrapper {
+ public:
+  ReferenceElementSetWrapper(ElementTypeId id, index_t order,
+                             index_t reducedOrder);
+  ~ReferenceElementSetWrapper();
+
+  Finley_ReferenceElementSet* getElementSet() const { return m_refSet; }
+
+ private:
+  Finley_ReferenceElementSet* m_refSet;
+};
+
 
 } // end of namespace
 

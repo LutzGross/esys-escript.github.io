@@ -14,7 +14,7 @@
 
 #if !defined  finley_FinleyError_20040528_H
 #define finley_FinleyError_20040528_H
-#include "finley/system_dep.h"
+#include "system_dep.h"
 
 extern "C" {
 #include "finley/Finley.h"

@@ -2395,4 +2395,14 @@ int MeshAdapter::getApproximationOrder(const int functionSpaceCode) const
   return order;
 }
 
+ReferenceElementSetWrapper::ReferenceElementSetWrapper(ElementTypeId id, index_t order, index_t reducedOrder)
+{
+  m_refSet = Finley_ReferenceElementSet_alloc(id, order, reducedOrder);
+}
+
+ReferenceElementSetWrapper::~ReferenceElementSetWrapper()
+{
+  Finley_ReferenceElementSet_dealloc(m_refSet);
+}
+
 }  // end of namespace

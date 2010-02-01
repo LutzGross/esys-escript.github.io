@@ -14,9 +14,7 @@
 #include <escriptexport/ElementData.h>
 #include <escriptexport/NodeData.h>
 
-extern "C" {
-#include <finley/ElementFile.h>
-}
+#include <finley/CppAdapter/MeshAdapter.h>
 
 #include <iostream>
 
@@ -272,9 +270,9 @@ bool ElementData::readFromNc(NcFile* ncfile)
             int order = att->as_int(0);
             att = ncfile->get_att("reduced_order");
             int reduced_order = att->as_int(0);
-            Finley_ReferenceElementSet* refElements =
-                Finley_ReferenceElementSet_alloc(finleyTypeId, order,
-                        reduced_order);
+            finley::ReferenceElementSetWrapper wrapper(finleyTypeId, order,
+                    reduced_order);
+            Finley_ReferenceElementSet* refElements = wrapper.getElementSet();
 
             CoordArray quadNodes;
             int numQuadNodes;
@@ -309,7 +307,6 @@ bool ElementData::readFromNc(NcFile* ncfile)
             for (int i=0; i<f.quadDim; i++)
                 delete[] quadNodes[i];
             quadNodes.clear();
-            Finley_ReferenceElementSet_dealloc(refElements);
         }
 
         buildMeshes();
