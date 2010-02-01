@@ -24,7 +24,6 @@
 
 /**************************************************************/
 
-#include "system_dep.h" /* for declspecs */
 #include "Finley.h"
 #include "ShapeFunctions.h"
 #include "Quadrature.h"
@@ -183,12 +182,7 @@ typedef struct Finley_ReferenceElement {
 
 /*    interfaces: */
 
-/* NOTE: Do NOT use these functions externally! They are exported for use by
- * the escriptexport library.
- */
-FINLEY_DLL_API
 Finley_ReferenceElement* Finley_ReferenceElement_alloc(ElementTypeId,int);
-FINLEY_DLL_API
 void Finley_ReferenceElement_dealloc(Finley_ReferenceElement*);
 ElementTypeId Finley_ReferenceElement_getTypeId(char*);
 Finley_ReferenceElement* Finley_ReferenceElement_reference(Finley_ReferenceElement* in);

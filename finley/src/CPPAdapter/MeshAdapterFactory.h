@@ -14,7 +14,7 @@
 
 #if !defined  finley_MeshAdapterFactory_20040526_H
 #define finley_MeshAdapterFactory_20040526_H
-#include "finley/system_dep.h"
+#include "system_dep.h"
 
 extern "C" {
 #include "finley/Finley.h"
