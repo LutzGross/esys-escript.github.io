@@ -968,3 +968,5 @@ if not IS_WINDOWS_PLATFORM:
 ############ Targets to build PasoTests suite ################
 
 env.Alias('build_PasoTests','build/'+build_platform+'/paso/profiling/PasoTests')
+
+env.Alias('release_prep',['docs', 'install_all'])
