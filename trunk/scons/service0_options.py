@@ -99,8 +99,10 @@ lapack_type		= 'mkl'
 
 # ParMETIS (for use with MPI) (these setting my be overwritten depending on the mpi version used)
 useparmetis		= 'yes'
-parmetis_path		= '/sw/libs/parmetis/x86_64/gcc-4.1.2/intelmpi/parmetis-3.1/include'
-parmetis_lib_path	= '/sw/libs/parmetis/x86_64/gcc-4.1.2/intelmpi/parmetis-3.1/lib'
+#parmetis_path		= '/sw/libs/parmetis/x86_64/gcc-4.1.2/intelmpi/parmetis-3.1/include'
+#parmetis_lib_path	= '/sw/libs/parmetis/x86_64/gcc-4.1.2/intelmpi/parmetis-3.1/lib'
+parmetis_path          = '/sw/libs/parmetis/x86_64/icc-10.1.015/intelmpi/parmetis-3.1.1/include'
+parmetis_lib_path      = '/sw/libs/parmetis/x86_64/icc-10.1.015/intelmpi/parmetis-3.1.1/lib'
 parmetis_libs		= ['parmetis', 'metis']
 # Silo
 # usesilo		= 'yes'
