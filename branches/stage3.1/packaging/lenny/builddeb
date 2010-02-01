@@ -186,6 +186,7 @@ cd ..
 
 ar rcu $pkgname-$VERSION-$distro\_$ARCH.deb debian-binary control.tar.gz data.tar.gz
 
-
+mkdir -p $SRCDIR/release/pkg
+cp $pkgname-$VERSION-$distro\_$ARCH.deb $SRCDIR/release/pkg
 
 

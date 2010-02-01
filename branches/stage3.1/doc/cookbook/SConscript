@@ -20,20 +20,21 @@ local_env = clone_env(env)
 latexmode='-interaction=nonstopmode'
 
 tex_dir = local_env.Dir('.').srcnode().abspath
-
+dir_cmd = "cd "+tex_dir+" && "
 tex= [ env.File(x) for x in os.listdir(tex_dir) if not x.startswith('.') and not os.path.isdir(tex_dir+os.path.sep+x) and os.path.splitext(x)[1] in ['.tex', '.bib', '.sty', '.cfg', '.cls'] ] + \
      [ env.File('figures'+os.path.sep+x) for x in os.listdir(tex_dir+os.path.sep+'figures') if not x.startswith('.') ]
 
 
-latexcmd="pdflatex %s \\\\newcommand{\\\\RepVersion}{`svnversion`\\\\xspace}\\\\input{cookbook.tex}"%latexmode
+latexcmd=dir_cmd+"pdflatex %s \\\\newcommand{\\\\RepVersion}{`svnversion`\\\\xspace}\\\\input{cookbook.tex}"%latexmode
 
-env.Command(env['prefix']+'/doc/cookbook/cookbook.pdf',[tex], \
+local_env.Command(env['prefix']+'/doc/cookbook/cookbook.pdf',[tex], \
 	    [ latexcmd,  \
 #              "bibtex cookbook",                  \
-              "makeindex cookbook",               \
+              dir_cmd+"makeindex cookbook",               \
               latexcmd,      \
               latexcmd],      \
-            chdir=tex_dir)
+#            chdir=tex_dir
+)
 
 tmp=local_env.InstallAs(target=env['prefix']+'/release/doc/cookbook/cookbook.pdf', source=env['prefix']+'/doc/cookbook/cookbook.pdf')
 

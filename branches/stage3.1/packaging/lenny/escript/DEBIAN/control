@@ -6,7 +6,7 @@ Description: Escript/Finley finite elements python system.
 Maintainer: Escript team <esys@esscc.uq.edu.au>
 Priority: extra
 Section: main
-Depends: python2.5, libboost-python1.35.0, python-numpy, libnetcdf4
+Depends: python2.5, libboost-python1.35.0, python-numpy, libnetcdf4, doc-base(>=0.8.4)
 Conflicts: erlang-base, escript-noalias (<=3.1-1)
 Recommends: python-matplotlib
 Architecture: i386
