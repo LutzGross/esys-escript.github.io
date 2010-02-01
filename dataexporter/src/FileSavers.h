@@ -14,6 +14,7 @@
 #ifndef __FILESAVERS_H__
 #define __FILESAVERS_H__
 
+#include <escriptexport/escriptexport.h>
 #include <escript/AbstractDomain.h>
 
 #include <boost/python/dict.hpp>
@@ -21,10 +22,12 @@
 
 namespace escriptexport {
 
+ESCRIPTEXPORT_DLL_API
 void saveSilo(const std::string& filename, int cycle, double time,
               escript::Domain_ptr domain,
               const boost::python::dict& datavars);
 
+ESCRIPTEXPORT_DLL_API
 void saveVTK(const std::string& filename, int cycle, double time,
              escript::Domain_ptr domain,
              const boost::python::dict& datavars, const std::string& metadata,
