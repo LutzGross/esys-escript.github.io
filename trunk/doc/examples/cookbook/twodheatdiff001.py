@@ -47,7 +47,6 @@ import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os #This package is necessary to handle saving our data.
 from cblib2 import toXYTuple
-from cblib1 import needdirs
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
@@ -91,7 +90,7 @@ print "Step size is: ", h/(24.*60*60), "days"
 i=0 #loop counter 
 #the folder to put our outputs in, leave blank "" for script path 
 save_path= os.path.join("data","twodheatdiff")
-needdirs([save_path])
+mkDir(save_path)
 ########## note this folder path must exist to work ###################
 
 ################################################ESTABLISHING PARAMETERS

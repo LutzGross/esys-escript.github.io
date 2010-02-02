@@ -43,42 +43,43 @@ if getMPISizeWorld() > 1:
 
 ##ESTABLISHING VARIABLES
 #Domain related.
-mx = 1*m #meters - model length
-my = .1*m #meters - model width
+mx = 500*m #meters - model length
+my = 100*m #meters - model width
 ndx = 100 # mesh steps in x direction 
 ndy = 1 # mesh steps in y direction - one dimension means one element
+boundloc = mx/2 # location of boundary between the two blocks
 #PDE related
 rho = 7874. *kg/m**3 #kg/m^{3} density of iron
 cp = 449.*J/(kg*K) # J/Kg.K thermal capacity
 rhocp = rho*cp 
 kappa = 80.*W/m/K   # watts/m.Kthermal conductivity
 qH=0 * J/(sec*m**3) # J/(sec.m^{3}) no heat source
-Tref = 20 * Celsius  # base temperature of the rod
-T0 = 100 * Celsius # temperature at heating element
+T1=20 * Celsius # initial temperature at Block 1
+T2=2273. * Celsius # initial temperature at Block 2
 
 t=0 * day  # our start time, usually zero
-tend= 0.5 *day  # - time to end simulation
+tend=50 * yr # - time to end simulation
 outputs = 200 # number of time steps required.
 h=(tend-t)/outputs #size of time step
 #user warning statement
 print "Expected Number of time outputs is: ", (tend-t)/h
 i=0 #loop counter
 #the folder to put our outputs in, leave blank "" for script path 
-save_path= os.path.join("data","onedheatdiff002")
+save_path= os.path.join("data","onedheatdiff001")
 #ensure the dir exists
 mkDir(save_path, os.path.join(save_path,"tempT"))
 
 #... generate domain ...
-rod = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
-x=Solution(rod).getX()
+blocks = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
 #... open PDE and set coefficients ...
-mypde=LinearPDE(rod)
+mypde=LinearPDE(blocks)
+mypde.setSymmetryOn()
 A=zeros((2,2))
 A[0,0]=kappa
-q=whereZero(x[0])
-mypde.setValue(A=A, D=rhocp/h, q=q, r=T0)
+mypde.setValue(A=A,D=rhocp/h)
 # ... set initial temperature ....
-T= T0*whereZero(x[0])+Tref*(1-whereZero(x[0]))
+x=Solution(blocks).getX()
+T= T1*whereNegative(x[0]-boundloc)+T2*(1-whereNegative(x[0]-boundloc))
 
 # ... open a collector for the time marks and corresponding total energy
 t_list=[]
@@ -94,7 +95,7 @@ while t<tend:
       mypde.setValue(Y=qH+rhocp/h*T)
       T=mypde.getSolution()
       totE=integrate(rhocp*T)
-      print "time step %s at t=%e minutes completed. total energy = %e."%(i,t/minute,totE)
+      print "time step %s at t=%e days completed. total energy = %e."%(i,t/day,totE)
       t_list.append(t)
       E_list.append(totE)
 
@@ -103,16 +104,16 @@ while t<tend:
       pl.figure(1) #current figure
       pl.plot(plx,tempT) #plot solution
       # add title
-      pl.axis([0,mx,Tref*.9,T0*1.1])
-      pl.title("Temperature across rod at time %e hours"%(t/hour))
+      pl.axis([0,mx,T1*.9,T2*1.1])
+      pl.title("Temperature across blocks at time %d days"%(t/day))
       #save figure to file
-      pl.savefig(os.path.join(save_path,"tempT", "rodpyplot%03d.png"%i))
+      pl.savefig(os.path.join(save_path,"tempT", "blockspyplot%03d.png"%i))
       pl.clf() #clear figure
 # plot the total energy over time:
 pl.figure(2)
 pl.plot(t_list,E_list)
 pl.title("Total Energy")
-# pl.axis([0,max(t_list),0,max(E_list)*1.1])
+pl.axis([0,max(t_list),0,max(E_list)*1.1])
 pl.savefig(os.path.join(save_path,"totE.png"))
 pl.clf()
 

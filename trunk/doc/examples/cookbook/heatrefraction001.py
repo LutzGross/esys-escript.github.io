@@ -58,7 +58,6 @@ matplotlib.use('agg') #It's just here for automated testing
 import pylab as pl
 # cblib functions
 from cblib2 import toQuivLocs, toXYTuple, toRegGrid, gradtoRegGrid
-from cblib1 import needdirs
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
@@ -75,7 +74,7 @@ depth=-6000.0*m
 # the folder to gett our outputs from, leave blank "" for script path - 
 # note these depen. are generated from heatrefraction_mesher001.py
 saved_path = save_path= os.path.join("data","heatrefrac001" )
-needdirs([saved_path])
+mkDir(saved_path)
 
 ################################################ESTABLISHING PARAMETERS
 ## DOMAIN

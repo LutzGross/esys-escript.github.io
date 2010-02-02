@@ -34,6 +34,7 @@ from esys.escript.pdetools import Locator, Projector
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 
+
 # routine to find consecutive coordinates of a loop in pycad
 def getLoopCoords(loop):
     # return all construction points of input
@@ -289,17 +290,3 @@ def wavesolver2df(domain,h,tend,lam,mu,rho,U0,xc,savepath):
 
    u_pc_data.close()
 
-# joel wrote this to create directories for you
-# It only needs to be this complicated to accomodate our
-# automated tests
-import os
-def needdirs(dirlist):
-    for name in dirlist:
-        if name == '':
-            continue
-        if not os.path.exists(name):
-            try:
-                os.makedirs(name)
-            except OSError:
-                if not os.path.exists(save_path):
-                    raise
