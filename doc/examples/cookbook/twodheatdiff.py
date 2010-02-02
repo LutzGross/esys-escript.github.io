@@ -29,9 +29,6 @@ from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as Linear
 from esys.finley import Rectangle # This imports the rectangle domain function from finley
 import os #This package is necessary to handle saving our data.
 
-from cblib1 import needdirs
-
-
 ##ESTABLISHING VARIABLES
 #PDE related
 mx = 600 # model lenght
@@ -69,7 +66,7 @@ print "Step size is: ", h/(24.*60*60), "days"
 
 i=0 #loop counter 
 save_path = "data/twodheatdiff" #the folder to put our outputs in, leave blank "" for script path - note this folder path must exist to work
-needdirs([save_path])
+mkDir(save_path)
 
 #... generate domain ...
 model = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)

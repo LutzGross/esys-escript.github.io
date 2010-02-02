@@ -34,12 +34,12 @@ from esys.finley import MakeDomain
 import os
 import numpy as np
 from math import *
-from cblib1 import needdirs, getLoopCoords
+from cblib1 import getLoopCoords
 
 #################################################ESTABLISHING VARIABLES
 # where to put output files
 save_path= os.path.join("data","heatrefrac002")
-needdirs([save_path])
+mkDir(save_path)
 
 ################################################ESTABLISHING PARAMETERS
 # Overall Domain

@@ -37,7 +37,7 @@ import numpy as np #numerial python for arrays
 from math import * # math package
 
 #used to construct polygons for plotting from pycad
-from cblib1 import getLoopCoords, needdirs
+from cblib1 import getLoopCoords
 
 
 
@@ -49,7 +49,7 @@ modal=-1
 # the folder to put our outputs in, leave blank "" for script path - 
 # note this folder path must exist to work
 save_path= os.path.join("data","heatrefrac001") 
-needdirs([save_path])
+mkdir(save_path)
 
 ################################################ESTABLISHING PARAMETERS
 #Model Parameters
