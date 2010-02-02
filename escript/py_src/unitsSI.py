@@ -60,6 +60,7 @@ some tools supporting physical units and conversion
 :var sec: unit of second
 :var minute : unit of minute
 :var h : unit of hour
+:var hour : unit of hour
 :var day : unit of day
 :var yr : unit of year
 :var Myr : unit of mega year
@@ -299,9 +300,11 @@ mm=Milli*m
 #
 sec=Unit("sec","second",0.,1.)
 minute=Unit("min","minute",0.,60.)
-h=Unit("h","hour",0.,60.*60.)
+hour=Unit("h","hour",0.,60.*60.)
+h=hour
 day=Unit("d","day",0.,60.*60.*24.)
 yr=Unit("yr","year",0.,60.*60.*24.*365.2425)
+year=yr
 Myr=Mega*yr
 Gyr=Giga*yr
 #
