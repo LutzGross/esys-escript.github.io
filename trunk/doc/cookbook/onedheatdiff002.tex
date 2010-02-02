@@ -10,57 +10,126 @@
 % http://www.opensource.org/licenses/osl-3.0.php
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{One Dimensional Heat Diffusion accross an Interface}
-\sslist{onedheatdiff002.py and cblib.py}
-%\label{Sec:1DHDv1}
- It is quite simple to now expand upon the 1D heat diffusion problem we just tackled. Suppose we have two blocks of isotropic material which are very large in all directions to the point that the interface between the two blocks appears infinite in length compared to the distance we are modelling perpendicular to the interface and accross the two blocks. If \textit{Block 1} is of a temperature \verb 0  and \textit{Block 2} is at a temperature \verb T  what would happen to the temperature distribution in each block if we placed them next to each other. This problem is very similar to our Iron Rod but instead of a constant heat source we instead have a heat disparity with a fixed amount of energy. In such a situation it is common knowledge that the heat energy in the warmer block will gradually conduct into the cooler block until the temperature between the blocks is balanced.
-
 \begin{figure}[h!]
 \centerline{\includegraphics[width=4.in]{figures/onedheatdiff002}}
-\caption{Temperature differential along a single interface between two granite blocks.}
-\label{fig:onedgbmodel}
+\caption{One dimensional model of an Iron bar.}
+\label{fig:onedhdmodel}
 \end{figure}
 
-By modifying our previous code it is possible to solve this new problem. In doing so we will also try to tackle a real world example and as a result, introduce and discuss some new variables. The linear model of the two blocks is very similar to the effect a large magmatic intrusion would have on a cold country rock. It is however, simpler at this stage to have both materials the same and for this example we will use granite \reffig{fig:onedgbmodel}.  The intrusion will have an initial temperature defined by \verb Tref  and the granite properties required are:
+\section{One Dimensional Heat Diffusion in an Iron Rod}
+\sslist{onedheatdiff002.py}
+\label{Sec:1DHDv0}
+
+Our second example is a cold iron bar at a constant temperature of $T\hackscore{ref}=20^{\circ} C$, see \reffig{fig:onedhdmodel}. The bar is perfectly insulated on all sides with a heating element at one end keeping the the temperature at a constant level $T\hackscore0=100^{\circ} C$.  as heat is applied; energy will disperse along the bar via conduction. With time the bar will reach a constant temperature equivalent to that of the heat source.
+
+This problem is very similar to the example of temperature diffusion in granit blocks presented in the previous section~\ref{Sec:1DHDv00}. So we will modify the script we have already developed for the granit blocks to adjust 
+it to the iron bar problem.  
+The obvious difference between the two problems are the dimensions of the domain and different materials involved. This will change the time scale of the model from years to hours. 
+The new settings are;
 \begin{python}
+#Domain related.
+mx = 1*m #meters - model length
+my = .1*m #meters - model width
+ndx = 100 # mesh steps in x direction 
+ndy = 1 # mesh steps in y direction - one dimension means one element
 #PDE related
-mx = 500*m #meters - model length
-my = 100*m #meters - model width
-ndx = 500 # mesh steps in x direction 
-ndy = 1 # mesh steps in y direction
-boundloc = mx/2 # location of boundary between two blocks
-q=0.*Celsius #our heat source temperature is now zero
-Tref=2273.*Celsius # Kelvin -the starting temperature of our RHS Block
-rho = 2750*kg/m**3 #kg/m^{3} density of granite
-cp = 790.*J/(kg*K) #j/Kg.K thermal capacity
-rhocp = rho*cp	#DENSITY * SPECIFIC HEAT
-eta=0.  # RADIATION CONDITION
-kappa=2.2*W/m/K #watts/m.K thermal conductivity
+rho = 7874. *kg/m**3 #kg/m^{3} density of iron
+cp = 449.*J/(kg*K) # J/Kg.K thermal capacity
+rhocp = rho*cp 
+kappa = 80.*W/m/K   # watts/m.Kthermal conductivity
+qH = 0 * J/(sec*m**3) # J/(sec.m^{3}) no heat source
+Tref = 20 * Celsius  # base temperature of the rod
+T0 = 100 * Celsius # temperature at heating element
+tend= 0.5 * day # - time to end simulation
 \end{python}
-
-Since the scale and values involved in our problem have changed, the length and step size of the iteration must be considered. Instead of seconds which our units are in, it may be more prudent to decide the number of days or years we would like to run the simulation over.
+We also need to alter the initial value for the temperature. Now we need to set the 
+temperature to $T\hackscore{0}$ at the left end of the rod where we have $x\hackscore{0}=0$ and 
+$T\hackscore{ref}$ elsewhere. Instead of \verb|whereNegative| function we use now the 
+\verb|whereZero| which returns the value one for those sample points where 
+the argument (almost) equals zero and the value zero elsewhere. The initial
+temperature is set to;
 \begin{python}
-#Script/Iteration Related
-t=0. #our start time, usually zero
-tend=10*yr #the time we want to end the simulation in years
-outputs = 400 # number of time steps required.
-h=(tend-t)/outputs #size of time step
+# ... set initial temperature ....
+T= T0*whereZero(x[0])+Tref*(1-whereZero(x[0]))
 \end{python}
 
-If we assume that the dimensions of the blocks are continuous and extremely large compared with the model size then we need only model a small proportion of the boundary. It is practical to locate the boundary between the two blocks at the center of our model. As there is no heat source our \verb q  variable can be set to zero. The new initial conditions are defined using the following:
+\subsection{Dirchlet Boundary Conditions}
+In iron rod model  we want to keep the initial temperature $T\hackscore0$ on the left side of the domain over time. 
+So when we solve the PDE~\refEq{eqn:hddisc} the solution must have the value $T\hackscore0$ on the left hand
+side of the domain. As mentioned already in Section~\ref{SEC BOUNDARY COND} where we discussed
+boundary condition this kind of condition are called a \textbf{Dirichlet boundary condition}. Some people also
+use the term \textbf{constraint} for the PDE. 
+
+To define a Dirichlet boundary condition we need to define where to apply the condition and what value the 
+solution should have at these locations. In \esc we use $q$ and $r$ to define the Dirichlet boundary conditions
+for a PDE. The solution $u$ of the PDE is set to $r$ for all sample points where $q$ has a positive value.
+Mathematically this is expressed in the form;
+\begin{equation}
+  u(x) = r(x) \mbox{ for any } x \mbox{ with } q(x) > 0
+\end{equation} 
+In the case of the iron rod 
+we can set;
 \begin{python}
-#establish location of boundary between two blocks
-bound = x[0]-boundloc
-#set initial temperature
-T= 0*Tref*whereNegative(bound)+Tref*wherePositive(bound)
+q=whereZero(x[0])
+r=T0
 \end{python}
-The \verb bound statement sets the boundary to the location along the \textit{x-axis} defined by \verb boundloc  .
-The PDE can then be solved as before.
+to prescibe the value $T0$ for the temperature at the left end of the rod where $x\hackscore{0}=0$. 
+Here we use the \verb|whereZero| function again which we have alread used to set the initial value.
+Notice that $r$ is set to the constant value $r$ for all sample points. In fact, 
+values of $r$ are used only where $q$ is positive. Where $q$ is non-positive,
+$r$ may have any value as these values are not used by the PDE solver. 
 
-FOR THE READER:
+To set the Dirichlet boundary conditions for the PDE to be solved in each time step we need
+to add some statements;
+\begin{python}
+mypde=LinearPDE(rod)
+A=zeros((2,2)))
+A[0,0]=kappa
+q=whereZero(x[0])
+mypde.setValue(A=A, D=rhocp/h, q=q, r=T0)
+\end{python}
+It is important to remark here that the Dirichlet condition \textbf{overwrites} any Neuman boundary 
+condition \esc sets by default (or you may set).  
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=4in]{figures/ttrodpyplot150}
+\caption{Total Energy in the Iron Rod over Time (in seconds).}
+\label{fig:onedheatout1 002} 
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=4in]{figures/rodpyplot001}
+\includegraphics[width=4in]{figures/rodpyplot050}
+\includegraphics[width=4in]{figures/rodpyplot200}
+\caption{Temperature ($T$) distribution in the iron rod at time steps $1$, $50$ and $200$.}
+\label{fig:onedheatout 002} 
+\end{center}
+\end{figure}
+
+Besides some cosmetic modification this all we need to change. The total energy over time is shown in \reffig{fig:onedheatout1 002}. As heat
+is transfered into the rod by the heater the total energy is growing over time but reaches a plateau 
+when the temperature is constant is the rod, see \reffig{fig:onedheatout 002}. 
+YOu will notice that the time scale of this model is several order of magnitudes faster than
+for the granite rock problem due to the different length scale and material parameters. 
+In practice it can take a few models run before the right time scale has been chosen\footnote{An estimate of the
+time scale for a diffusion problem is given by the formula $\frac{\rho c\hackscore{p} L\hackscore{0}^2}{4 \kappa}$, see
+\url{http://en.wikipedia.org/wiki/Fick\%27s_laws_of_diffusion}}.
+
+
+
+
+
+
+\section{For the Reader}
 \begin{enumerate}
- \item Move the boundary line between the two blocks to another part of the domain.
- \item Try splitting the domain in to multiple blocks with varying temperatures.
+ \item Move the boundary line between the two granite blocks to another part of the domain.
+ \item Split the domain into multiple granite blocks with varying temperatures.
+ \item Vary the mesh step size. Do you see a difference in the answers? What does happen with the compute time?
+ \item Insert an internal heat source (Hint: The internal heat source is given by $q\hackscore{H}$.)
+ \item Change the boundary condition for iron rod example such that the temperature 
+ at the right end is kept at a constant level $T\hackscore{ref}$, which corresponds to the installation of a cooling element (Hint: Modify $q$ and $r$). 
 \end{enumerate}
 
