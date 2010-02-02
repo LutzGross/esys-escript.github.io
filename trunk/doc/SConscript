@@ -73,8 +73,7 @@ else:
 if not haveGMSH:
    print "gmsh not found"
 
-example_files_no_mpi.append('cookbook/onedheatdiff.py')
-example_files_no_mpi.append('cookbook/onedheatdiff_var001.py')
+example_files_allow_mpi.append('cookbook/onedheatdiffbase.py')
 #example_files_no_mpi.append('cookbook/sandbox.py')
 example_files_no_mpi.append('cookbook/twodheatdiff.py')
 example_files_no_mpi.append('cookbook/wavesolver2d001.py')
@@ -83,6 +82,7 @@ example_files_no_mpi.append('cookbook/wavesolver2d002.py')
 
 if haveMPL:
    example_files_no_mpi.append('cookbook/onedheatdiff001.py')
+   example_files_no_mpi.append('cookbook/onedheatdiff001b.py')
    example_files_no_mpi.append('cookbook/onedheatdiff002.py') 
    if mplversion>=mplmagicversion:
 	example_files_no_mpi.append('cookbook/twodheatdiff001.py')
@@ -110,6 +110,7 @@ if not haveGD:
    example_deps.append('usersguide/wave.py')
 if not haveMPL:
    example_deps.append('cookbook/onedheatdiff001.py')
+   example_deps.append('cookbook/onedheatdiff001b.py')
    example_deps.append('cookbook/onedheatdiff002.py') 
 
 
