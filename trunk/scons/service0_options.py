@@ -60,14 +60,10 @@ netCDF_lib_path		= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/lib'
 
 # MKL
 usemkl		= 'yes'
-#MKL for 10.1.0.015
-mkl_path		= '/sw/sdev/intel/cmkl/10.1.0.015/include'
-mkl_lib_path		= '/sw/sdev/intel/cmkl/10.1.0.015/lib/em64t'
+#MKL for 10.2.2.025
+mkl_path                = '/sw/sdev/intel/cmkl/10.2.2.025/include'
+mkl_lib_path            = '/sw/sdev/intel/cmkl/10.2.2.025/lib/em64t'
 mkl_libs                =  [ "mkl_core", "mkl_intel_lp64",  "mkl_intel_thread", "mkl_lapack", 'guide', 'pthread' , "mkl_mc", "mkl_def"]
-# mkl_libs		= ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide', 'pthread']
-#MKL for version 10.2.1.017
-#mkl_path		= '/sw/sdev/intel/cmkl/10.2.1.017/include'
-#mkl_lib_path		= '/sw/sdev/intel/cmkl/10.2.1.017/lib/em64t'
 
 
 # UMFPACK (requires AMD and BLAS)
@@ -99,8 +95,6 @@ lapack_type		= 'mkl'
 
 # ParMETIS (for use with MPI) (these setting my be overwritten depending on the mpi version used)
 useparmetis		= 'yes'
-#parmetis_path		= '/sw/libs/parmetis/x86_64/gcc-4.1.2/intelmpi/parmetis-3.1/include'
-#parmetis_lib_path	= '/sw/libs/parmetis/x86_64/gcc-4.1.2/intelmpi/parmetis-3.1/lib'
 parmetis_path          = '/sw/libs/parmetis/x86_64/icc-10.1.015/intelmpi/parmetis-3.1.1/include'
 parmetis_lib_path      = '/sw/libs/parmetis/x86_64/icc-10.1.015/intelmpi/parmetis-3.1.1/lib'
 parmetis_libs		= ['parmetis', 'metis']
