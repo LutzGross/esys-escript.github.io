@@ -15,11 +15,20 @@ import os
 Import('*')
 
 local_env = clone_env(env_mpi)
+visitplugin_env = clone_env(env_mpi)
 py_wrapper_local_env = clone_env(env_mpi)
 
 # Remove the shared library prefix on all platforms - we don't want 'lib'
 # mucking with our python modules
 del py_wrapper_local_env['SHLIBPREFIX']
+
+plugin_sources = """
+    DataVar.cpp
+    ElementData.cpp
+    EscriptDataset.cpp
+    FinleyMesh.cpp
+    NodeData.cpp
+""".split()
 
 sources = """
     DataVar.cpp
@@ -40,12 +49,17 @@ headers = """
     NodeData.h
 """.split()
 
+visitplugin_env.AppendUnique(LIBS = ['esysUtils' ] + env['sys_libs'])
+visitplugin_env.Append(CPPDEFINES = ['VISIT_PLUGIN'])
+
 local_env.AppendUnique(LIBS = ['esysUtils', 'finley', 'escript'] + env['sys_libs'])
 if local_env['usesilo']:
+  local_env.Append(CPPDEFINES = ['USE_SILO'])
   local_env.AppendUnique(LIBS = [env['silo_libs']])
 
 if IS_WINDOWS_PLATFORM :
   local_env.Append(CPPDEFINES = ['ESCRIPTEXPORT_EXPORTS'])
+  visitplugin_env.Append(CPPDEFINES = ['ESCRIPTEXPORT_EXPORTS'])
 
 module_name = 'escriptexport'
 
@@ -54,11 +68,18 @@ env.Alias('target_escriptexport_so', lib)
 
 include_path = Dir('escriptexport', local_env['incinstall'])
 
-tmp1 = local_env.Install(include_path, headers)
-env.Alias('target_install_escriptexport_headers', [tmp1])
+tmp = local_env.Install(include_path, headers)
+env.Alias('target_install_escriptexport_headers', [tmp])
 
-tmp2 = local_env.Install(local_env['libinstall'], lib)
-env.Alias('target_install_escriptexport_so', tmp2)
+tmp = local_env.Install(local_env['libinstall'], lib)
+env.Alias('target_install_escriptexport_so', tmp)
+
+### Plugin library ###
+plugin_lib = visitplugin_env.StaticLibrary('escriptreader', plugin_sources)
+env.Alias('target_escriptreader_a', plugin_lib)
+
+tmp = local_env.Install(local_env['libinstall'], plugin_lib)
+env.Alias('target_install_escriptreader_a', tmp)
 
 ### Python wrapper ###
 py_wrapper_local_env.Append(LIBS = ['escriptexport'] + env['sys_libs'])

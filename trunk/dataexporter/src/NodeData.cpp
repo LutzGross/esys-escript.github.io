@@ -13,10 +13,12 @@
 
 #include <escriptexport/NodeData.h>
 
+#ifndef VISIT_PLUGIN
 extern "C" {
 #include <finley/Mesh.h>
 #include <finley/NodeFile.h>
 }
+#endif
 
 #if USE_NETCDF
 #include <netcdfcpp.h>
@@ -122,6 +124,7 @@ NodeData::~NodeData()
 //
 bool NodeData::initFromFinley(const Finley_NodeFile* finleyFile)
 {
+#ifndef VISIT_PLUGIN
     numDims = finleyFile->numDim;
     numNodes = finleyFile->numNodes;
 
@@ -178,6 +181,9 @@ bool NodeData::initFromFinley(const Finley_NodeFile* finleyFile)
 
     }
     return true;
+#else // VISIT_PLUGIN
+    return false;
+#endif
 }
 
 //

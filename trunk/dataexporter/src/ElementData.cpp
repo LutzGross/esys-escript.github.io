@@ -14,7 +14,9 @@
 #include <escriptexport/ElementData.h>
 #include <escriptexport/NodeData.h>
 
+#ifndef VISIT_PLUGIN
 #include <finley/CppAdapter/MeshAdapter.h>
+#endif
 
 #include <iostream>
 
@@ -136,6 +138,7 @@ ElementData::ElementData(const ElementData& e)
 //
 bool ElementData::initFromFinley(const Finley_ElementFile* finleyFile)
 {
+#ifndef VISIT_PLUGIN
     numElements = finleyFile->numElements;
 
     if (numElements > 0) {
@@ -217,6 +220,10 @@ bool ElementData::initFromFinley(const Finley_ElementFile* finleyFile)
         buildMeshes();
     }
     return true;
+
+#else // VISIT_PLUGIN
+    return false;
+#endif
 }
 
 //
@@ -265,6 +272,9 @@ bool ElementData::readFromNc(NcFile* ncfile)
         if (f.elementFactor > 1 || f.reducedElementSize != nodesPerElement)
             buildReducedElements(f);
 
+        // if we don't link with finley we can't get the quadrature nodes
+        // and hence cannot interpolate data properly
+#ifndef VISIT_PLUGIN
         if (f.useQuadNodes) {
             att = ncfile->get_att("order");
             int order = att->as_int(0);
@@ -308,6 +318,7 @@ bool ElementData::readFromNc(NcFile* ncfile)
                 delete[] quadNodes[i];
             quadNodes.clear();
         }
+#endif // VISIT_PLUGIN
 
         buildMeshes();
     }
