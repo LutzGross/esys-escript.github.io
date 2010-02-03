@@ -400,6 +400,21 @@ def identity(shape=()):
       out=1.
    return out
 
+def zeros(shape=()):
+   """
+   Returns the ``shape`` zero tensor.
+
+   :param shape: input shape for the identity tensor
+   :type shape: ``tuple`` of ``int``
+   :return: array of shape filled with zeros
+   :rtype: ``numpy.ndarray``
+   """
+   if len(shape)>0:
+      out=numpy.zeros(shape,numpy.float64)
+   else:
+      out=0.
+   return out
+
 def identityTensor(d=3):
    """
    Returns the ``d`` x ``d`` identity matrix.
@@ -6042,7 +6057,7 @@ def longestEdge(domain):
     """
     return max([v[1]-v[0] for v in boundingBox(domain) ])
 
-def mkDir(pathname):
+def mkDir(*pathname):
     """
     creates a directory of name ``pathname`` if the directory does not exist.
 
@@ -6051,27 +6066,40 @@ def mkDir(pathname):
     :note: The method is MPI safe.
     """
     errno=0
+    p_fail=None
     if getMPIRankWorld()==0:
-       if os.path.exists(pathname):
-	   if not os.path.isdir(pathname):
+      for p in pathname:
+       if os.path.exists(p):
+	   if not os.path.isdir(p):
 		errno=2
+                p_fail=p
        else:
           try:
-              os.makedirs(pathname)
+              os.makedirs(p)
           except Exception, e:
               errno=1
+              p_fail=p
     
     errno=getMPIWorldMax(errno)
     if errno>0:
 	 if errno==2:
-	    raise IOError,"Unable to create directory %s. It already exists and is not a directory."%pathname
+            if p_fail == None:
+	       raise IOError,"Unable to create directory."
+            else:
+	       raise IOError,"Unable to create directory %s. It already exists and is not a directory."%p_fail
          elif e==None:
-            raise IOError,"Unable to create directory%s."%pathname
+            if p_fail == None:
+	       raise IOError,"Unable to create directory."
+            else:
+	       raise IOError,"Unable to create directory %s."%p_fail
          else:
             if hasattr(e,"message"):
                raise IOError,e.message
             else:
-               raise IOError,"Unable to create directory%s."%pathname
+               if p_fail == None:
+	          raise IOError,"Unable to create directory."
+               else:
+	          raise IOError,"Unable to create directory %s."%p_fail
 
 class FileWriter(object):
     """
