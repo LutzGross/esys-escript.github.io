@@ -35,6 +35,7 @@ import os
 import numpy as np
 from math import *
 from cblib1 import getLoopCoords
+from esys.escript import mkDir
 
 #################################################ESTABLISHING VARIABLES
 # where to put output files

@@ -35,6 +35,7 @@ from esys.finley import MakeDomain #Converter for escript
 import os #file path tool
 import numpy as np #numerial python for arrays
 from math import * # math package
+from esys.escript import mkDir
 
 #used to construct polygons for plotting from pycad
 from cblib1 import getLoopCoords
