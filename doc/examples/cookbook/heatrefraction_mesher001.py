@@ -49,7 +49,7 @@ modal=-1
 # the folder to put our outputs in, leave blank "" for script path - 
 # note this folder path must exist to work
 save_path= os.path.join("data","heatrefrac001") 
-mkdir(save_path)
+mkDir(save_path)
 
 ################################################ESTABLISHING PARAMETERS
 #Model Parameters
