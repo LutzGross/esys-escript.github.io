@@ -26,7 +26,7 @@ from esys.escript import *
 from esys.finley import Rectangle
 import sys
 import os
-from cblib1 import needdirs, wavesolver2d
+from cblib1 import wavesolver2d
 # smoothing operator 
 from esys.escript.pdetools import Projector
 import numpy as np
@@ -35,7 +35,7 @@ import matplotlib.cm as cm
 
 # Establish a save path.
 savepath = "data/wavesolver2d008mpltestABC"
-needdirs([savepath])
+mkDir(savepath)
 
 
 #Geometric and material property related variables.

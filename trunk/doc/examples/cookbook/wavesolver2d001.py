@@ -26,11 +26,11 @@ from esys.escript import *
 from esys.finley import Rectangle
 import sys
 import os
-from cblib1 import needdirs, wavesolver2d
+from cblib1 import wavesolver2d
 
 # Establish a save path.
 savepath = "data/wavesolver2d001nwtest"
-needdirs([savepath])
+mkDir(savepath)
 
 
 #Geometric and material property related variables.
