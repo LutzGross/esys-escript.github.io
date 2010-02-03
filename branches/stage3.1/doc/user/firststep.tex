@@ -157,11 +157,11 @@ For more details we refer the reader to the literature, for instance \Ref{Zienc,
 
 The \escript solver we want to use to solve this problem is embedded into the python interpreter language. So you can solve the problem interactively but you will learn quickly 
 that is more efficient to use scripts which you can edit with your favorite editor. 
-To enter the escript environment you use \program{escript} command\footnote{\program{escript} is not available under Windows yet. If you run under windows you can just use the
+To enter the escript environment you use \program{run-escript} command\footnote{\program{run-escript} is not available under Windows yet. If you run under windows you can just use the
 \program{python} command and the \env{OMP_NUM_THREADS} environment variable to control the number
 of threads.}:
 \begin{verbatim}
-  escript
+  run-escript
 \end{verbatim}
 which will pass you on to the python prompt
 \begin{verbatim}
@@ -401,7 +401,7 @@ matplotlib.pyplot.savefig("u.png")
 The entire code is available as \file{poisson\hackscore matplotlib.py} in the \ExampleDirectory.
 You can run the script using the {\it escript} environment
 \begin{verbatim}
-  escript poisson_matplotlib.py
+  run-escript poisson_matplotlib.py
 \end{verbatim}
 This will create the \file{u.png}, see Figure~\fig{fig:FirstSteps.3b}.
 For details on the usage of the \MATPLOTLIB module we refer to the documentation~\cite{matplotlib}.
@@ -448,7 +448,7 @@ The entire code is available as \file{poisson\hackscore VTK.py} in the \ExampleD
 You can run the script using the {\it escript} environment
 and visualize the solution using \mayavi:
 \begin{verbatim}
-  escript poisson\hackscore VTK.py
+  run-escript poisson\hackscore VTK.py
   mayavi2 -d u.xml -m SurfaceMap
 \end{verbatim}
 The result is shown in Figure~\fig{fig:FirstSteps.3}. 

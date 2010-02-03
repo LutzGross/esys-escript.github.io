@@ -2,53 +2,56 @@
 \label{EXECUTION}
 
 \section{Overview}
-A typical way of starting your {\it escript} script \file{myscript.py} is with the \program{escript} command\footnote{The \program{escript} launcher is not supported under \WINDOWS yet.}:
+A typical way of starting your {\it escript} script \file{myscript.py} is with the \program{run-escript} command\index{run-escript}\footnote{The \program{run-escript} launcher is not supported under \WINDOWS yet.}
+This command was renamed from \program{escript} (used in previous releases) to avoid clashing with an unrelated program installed by default on
+some systems.
+Most 3.1~releases\footnote{ie. not \WINDOWS or Ubuntu~9.10} of \escript allow either \program{run-escript} or \program{escript} to be used but the latter name will be removed in future releases:
 \begin{verbatim}
 escript myscript.py
 \end{verbatim}
-as already shown in section~\ref{FirstSteps}\footnote{For this discussion, it is assumed that \program{escript} is included in your \env{PATH} environment. See installation guide for details.}
+as already shown in section~\ref{FirstSteps}\footnote{For this discussion, it is assumed that \program{run-escript} is included in your \env{PATH} environment. See installation guide for details.}
 . In some cases 
 it can be useful to work interactively e.g. when debugging a script, with the command 
 \begin{verbatim}
-escript -i myscript.py
+run-escript -i myscript.py
 \end{verbatim}
 This will execute \var{myscript.py} and when it completes (or an error occurs), a \PYTHON prompt will be provided.
 To leave the prompt press \kbd{Control-d}.
 
 To start 
-\program{escript} using four threads (eg. if you use a multi-core processor) you can use
+\program{run-escript} using four threads (eg. if you use a multi-core processor) you can use
 \begin{verbatim}
-escript -t 4 myscript.py
+run-escript -t 4 myscript.py
 \end{verbatim}
 This will require {\it escript} to be compiled for \OPENMP\cite{OPENMP}. 
 
-To start \program{escript} using \MPI\cite{MPI} with $8$ processes you use
+To start \program{run-escript} using \MPI\cite{MPI} with $8$ processes you use
 \begin{verbatim}
-escript -p 8 myscript.py
+run-escript -p 8 myscript.py
 \end{verbatim}
 If the processors which are used are multi--core processors or multi--processor shared memory architectures you can use threading in addition to \MPI. For instance to run $8$ \MPI processes with using $4$ threads each, you use the command
 \begin{verbatim}
-escript -p 8 -t 4 myscript.py
+run-escript -p 8 -t 4 myscript.py
 \end{verbatim}
 In the case of a super computer or a cluster, you may wish to distribute the workload over a number of nodes\footnote{For simplicity, we will use the term node to refer to either a node in a super computer or an individual machine in a cluster}.
 For example, to use $8$ nodes, with $4$ \MPI processes per node, write
 \begin{verbatim}
-escript -n 8 -p 4 myscript.py
+run-escript -n 8 -p 4 myscript.py
 \end{verbatim}
 Since threading has some performance advantages over processes, you may specify a number of threads as well.
 \begin{verbatim}
-escript -n 8 -p 4 -t 2 myscript.py
+run-escript -n 8 -p 4 -t 2 myscript.py
 \end{verbatim}
 This runs the script on $8$ nodes, with $4$ processes per node and $2$ threads per process.
 
 \section{Options}
-The general form of the \program{escript} launcher is as follows:
+The general form of the \program{run-escript} launcher is as follows:
 
 %%%%
 % If you are thinking about changing this please remember to update the man page as well
 %%%%
 
-\program{escript} 
+\program{run-escript} 
 \optional{\programopt{-n \var{nn}}} 
 \optional{\programopt{-p \var{np}}}
 \optional{\programopt{-t \var{nt}}}
@@ -66,7 +69,7 @@ The general form of the \program{escript} launcher is as follows:
 \optional{\var{ARGS}}
 
 where \var{file} is the name of a script, \var{ARGS} are arguments for the script.
-The \program{escript} program will import your current environment variables. 
+The \program{run-escript} program will import your current environment variables. 
 If no \var{file} is given, then you will be given a \PYTHON prompt (see \programopt{-i} for restrictions).
 
 The options are used as follows:
@@ -94,7 +97,8 @@ hosts defined in \var{hostfile} must be equal to the number of requested compute
  \item[\programopt{-i}] executes the script \var{file} and switches to interactive mode after the execution is finished or an exception has occurred. This option is useful for debugging a script. The option cannot be used if more than one process ($\var{nn} \cdot \var{np}>1$) is used.
 \item[\programopt{-b}] do not invoke python. This is used to run non-python programs.
 
- \item[\programopt{-e}] shows additional environment variables and commands used during \program{escript} execution. This option is useful if users wish to execute scripts without using the \program{escript} command.
+ \item[\programopt{-e}] shows additional environment variables and commands used to set up the \escript environment.
+This option is useful if users wish to execute scripts without using the \program{run-escript} command.
 
  \item[\programopt{-o}] switches on the redirection of output of processors with \MPI rank greater than zero to the files \file{stdout_\var{r}.out} and \file{stderr_\var{r}.out} where \var{r} is the rank of the processor. The option overwrites the value of the \env{ESCRIPT_STDFILES} environment variable 
 
@@ -107,12 +111,12 @@ hosts defined in \var{hostfile} must be equal to the number of requested compute
 \begin{itemize}
  \item Make sure that \program{mpiexec} is in your \env{PATH}. 
  \item For MPICH and INTELMPI and for the case a hostfile is present 
-\program{escript} will start the \program{mpd} demon before execution.
+\program{run-escript} will start the \program{mpd} demon before execution.
 \end{itemize}
 
 \section{Input and Output}
 When \MPI is used on more than one process ($\var{nn} \cdot \var{np} >1$) no input from the standard input is accepted. Standard output on any process other than the master process (\var{rank}=0) will not be available.
-Error output from any processor will be redirected to the node where \program{escript} has been invoked.
+Error output from any processor will be redirected to the node where \program{run-escript} has been invoked.
 If the \programopt{-o} or \env{ESCRIPT_STDFILES} is set\footnote{That is, it has a non-empty value.}, then the standard and error output from any process other than the master process will be written to files of the names \file{stdout_\var{r}.out} and \file{stderr_\var{r}.out} (where 
 \var{r} is the rank of the process).
 
@@ -120,11 +124,12 @@ If files are created or read by individual \MPI processes with information local
 This will avoid problems if processes are using a shared file system.
 Files which collect data which are global for all \MPI processors will be created by the process with \MPI rank 0 only.
 Users should keep in mind that if the file system is not shared, then a file containing global information
-which is read by all processors needs to be copied to the local file system before \program{escript} is invoked.
+which is read by all processors needs to be copied to the local file system before \program{run-escript} is invoked.
  
 
 \section{Hints for MPI Programming}
-In general a script based on the \escript module does not require modifications when running under \MPI. However, one needs to be careful if other modules are used. 
+In general a script based on the \escript module does not require modifications to run under \MPI.
+However, one needs to be careful if other modules are used. 
 
 When \MPI is used on more than one process ($\var{nn} \cdot \var{np} >1$) the user needs to keep in mind that several copies of his script are executed at the same time 
 \footnote{In case of OpenMP only one copy is running but \escript temporarily spawns threads.} while data exchange is performed through the \escript module. 
@@ -133,7 +138,7 @@ This has three main implications:
 \begin{enumerate}
  \item most arguments (\var{Data} excluded) should the same values on all processors. eg \var{int}, \var{float}, \var{str} 
 and \numpy parameters.
-\item the same operations will be called on processors.
+\item the same operations will be called on all processors.
 \item different processors may store different amounts of information.
 \end{enumerate}
 
