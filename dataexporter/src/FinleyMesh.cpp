@@ -15,10 +15,12 @@
 #include <escriptexport/ElementData.h>
 #include <escriptexport/NodeData.h>
 
+#ifndef VISIT_PLUGIN
 #include <finley/CppAdapter/MeshAdapter.h>
 extern "C" {
 #include <finley/Mesh.h>
 }
+#endif
 
 #include <iostream>
 
@@ -77,11 +79,12 @@ void FinleyMesh::cleanup()
 //
 //
 //
-bool FinleyMesh::initFromEscript(escript::const_Domain_ptr escriptDomain)
+bool FinleyMesh::initFromEscript(const escript::AbstractDomain* escriptDomain)
 {
+#ifndef VISIT_PLUGIN
     cleanup();
 
-    finleyMesh = dynamic_cast<const finley::MeshAdapter*>(escriptDomain.get())->getFinley_Mesh();
+    finleyMesh = dynamic_cast<const finley::MeshAdapter*>(escriptDomain)->getFinley_Mesh();
     if (!finleyMesh) {
         return false;
     }
@@ -99,6 +102,9 @@ bool FinleyMesh::initFromEscript(escript::const_Domain_ptr escriptDomain)
     }
 
     return initialized;
+#else // VISIT_PLUGIN
+    return false;
+#endif
 }
 
 //

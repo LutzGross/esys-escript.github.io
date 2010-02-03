@@ -15,16 +15,14 @@
 #define __ESCRIPTDATASET_H__
 
 #include <escriptexport/escriptexport.h>
-#include <escript/AbstractDomain.h>
 
 #include <ostream>
 
 class DBfile;
 
 namespace escript {
-
-class Data;
-
+    class AbstractDomain;
+    class Data;
 }
 
 
@@ -77,7 +75,7 @@ public:
 
     /// \brief Initialises with instances of escript domain and data.
     ESCRIPTEXPORT_DLL_API
-    bool initFromEscript(escript::const_Domain_ptr mesh,
+    bool initFromEscript(const escript::AbstractDomain* mesh,
                          DataVec& escriptVars, const StringVec& varNames);
                          
     /// \brief Loads mesh and variables from escript NetCDF files.

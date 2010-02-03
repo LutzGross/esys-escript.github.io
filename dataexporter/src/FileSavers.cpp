@@ -59,7 +59,7 @@ void saveSilo(const string& filename, int cycle, double time,
     dataset.reset(new EscriptDataset());
 #endif
 
-    if (!dataset->initFromEscript(domain, vars, varNames))
+    if (!dataset->initFromEscript(domain.get(), vars, varNames))
         throw escript::DataException("saveSilo: Error initialising dataset. No Silo support?!");
 
     dataset->setCycleAndTime(cycle, time);
@@ -83,7 +83,7 @@ void saveVTK(const string& filename, int cycle, double time, Domain_ptr domain,
     dataset.reset(new EscriptDataset());
 #endif
 
-    if (!dataset->initFromEscript(domain, vars, varNames))
+    if (!dataset->initFromEscript(domain.get(), vars, varNames))
         throw escript::DataException("saveVTK: Error initialising dataset.");
 
     dataset->setCycleAndTime(cycle, time);

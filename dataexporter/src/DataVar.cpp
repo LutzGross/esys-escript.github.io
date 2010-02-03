@@ -15,7 +15,9 @@
 #include <escriptexport/ElementData.h>
 #include <escriptexport/FinleyMesh.h>
 #include <escriptexport/NodeData.h>
+#ifndef VISIT_PLUGIN
 #include <escript/Data.h>
+#endif
 
 #if USE_NETCDF
 #include <netcdfcpp.h>
@@ -90,6 +92,7 @@ void DataVar::cleanup()
 //
 bool DataVar::initFromEscript(escript::Data& escriptData, FinleyMesh_ptr mesh)
 {
+#ifndef VISIT_PLUGIN
     cleanup();
 
     if (!escriptData.actsExpanded()) {
@@ -163,6 +166,10 @@ bool DataVar::initFromEscript(escript::Data& escriptData, FinleyMesh_ptr mesh)
     }
 
     return initialized;
+
+#else // VISIT_PLUGIN
+    return false;
+#endif
 }
 
 //

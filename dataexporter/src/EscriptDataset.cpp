@@ -16,10 +16,15 @@
 #include <escriptexport/ElementData.h>
 #include <escriptexport/FinleyMesh.h>
 #include <escriptexport/NodeData.h>
-#include <escript/Data.h>
 
+#ifndef VISIT_PLUGIN
+#include <escript/Data.h>
+#endif
+
+#include <fstream>
 #include <iostream>
 #include <numeric> // for std::accumulate
+#include <sstream>
 
 #if USE_SILO
 #include <silo.h>
@@ -78,10 +83,12 @@ EscriptDataset::~EscriptDataset()
 //
 //
 //
-bool EscriptDataset::initFromEscript(escript::const_Domain_ptr escriptDomain,
-                                     DataVec& escriptVars,
-                                     const StringVec& varNames)
+bool EscriptDataset::initFromEscript(
+        const escript::AbstractDomain* escriptDomain,
+        DataVec& escriptVars,
+        const StringVec& varNames)
 {
+#ifndef VISIT_PLUGIN
     int myError;
     numParts = 1;
     FinleyMesh_ptr mesh(new FinleyMesh());
@@ -127,6 +134,10 @@ bool EscriptDataset::initFromEscript(escript::const_Domain_ptr escriptDomain,
     }
 
     return !gError;
+
+#else // VISIT_PLUGIN
+    return false;
+#endif
 }
 
 //
@@ -711,11 +722,13 @@ bool EscriptDataset::loadVarFromNetCDF(const string& fileName,
     delete[] str;
 
     int gError;
+    if (mpiSize > 1) {
 #if HAVE_MPI
-    MPI_Allreduce(&myError, &gError, 1, MPI_LOGICAL, MPI_LOR, mpiComm);
-#else
-    gError = myError;
+        MPI_Allreduce(&myError, &gError, 1, MPI_LOGICAL, MPI_LOR, mpiComm);
 #endif
+    } else {
+        gError = myError;
+    }
 
     if (gError) {
         // at least one chunk was not read correctly

@@ -15,10 +15,13 @@
 #define __FINLEYMESH_H__
 
 #include <escriptexport/escriptexport.h>
-#include <escript/AbstractDomain.h>
 
 class DBfile;
 struct Finley_Mesh;
+
+namespace escript {
+    class AbstractDomain;
+}
 
 namespace escriptexport {
 
@@ -56,7 +59,7 @@ public:
     /// \brief Initialises the mesh using an escript domain instance.
     /// \note Finley_Mesh is the only supported domain.
     ESCRIPTEXPORT_DLL_API
-    bool initFromEscript(escript::const_Domain_ptr escriptDomain);
+    bool initFromEscript(const escript::AbstractDomain* escriptDomain);
 
     /// \brief Reads the mesh from a NetCDF file
     ESCRIPTEXPORT_DLL_API
