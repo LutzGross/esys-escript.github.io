@@ -721,14 +721,10 @@ bool EscriptDataset::loadVarFromNetCDF(const string& fileName,
     }
     delete[] str;
 
-    int gError;
-    if (mpiSize > 1) {
+    int gError = myError;
 #if HAVE_MPI
-        MPI_Allreduce(&myError, &gError, 1, MPI_LOGICAL, MPI_LOR, mpiComm);
+    MPI_Allreduce(&myError, &gError, 1, MPI_LOGICAL, MPI_LOR, mpiComm);
 #endif
-    } else {
-        gError = myError;
-    }
 
     if (gError) {
         // at least one chunk was not read correctly
