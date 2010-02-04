@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2009 by University of Queensland
+# Copyright (c) 2003-2010 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -86,6 +86,8 @@ adder(
   BoolVariable('usedebug', 'Do you want a debug build?', 'no'),
   BoolVariable('usevtk', 'Do you want to use VTK?', 'yes'),
   ('options_file', 'File of paths/options. Default: scons/<hostname>_options.py', options_file),
+  ('cc', 'path to C compiler', 'DEFAULT'),
+  ('cxx', 'path to C++ compiler', 'DEFAULT'),
   ('win_cc_name', 'windows C compiler name if needed', 'msvc'),
   # The strings -DDEFAULT_ get replaced by scons/<hostname>_options.py or by defaults below
   ('cc_flags', 'C compiler flags to use', '-DEFAULT_1'),
@@ -198,8 +200,12 @@ else:
          env['LINK'] = env['CXX'] # version >=9 of intel c++ compiler requires use of icpc to link in C++ runtimes (icc does not)
    else:
       env = Environment(tools = ['default'], options = opts)
-Help(opts.GenerateHelpText(env))
 
+# Override compiler choice if provided
+if env['cc'] != 'DEFAULT': env['CC']=env['cc']
+if env['cxx'] != 'DEFAULT': env['CXX']=env['cxx']
+
+Help(opts.GenerateHelpText(env))
 
 ############ Make sure target directories exist ################
 
@@ -226,9 +232,16 @@ if env['useMPI']: env['usempi'] = 1
 
 sysheaderopt = ""		# how do we indicate that a header is a system header. Use "" for no action.
 
+cc_flags = ""
+cc_optim = ""
+cc_debug = ""
+omp_optim = ""
+omp_debug = ""
+omp_libs = []
+
 if env["CC"] == "icc":
   # Intel compilers
-  cc_flags		= "-fPIC -ansi -wd161 -w1 -vec-report0 -DBLOCKTIMER -DCORE_ID1"
+  cc_flags		= "-std=c99 -fPIC -wd161 -w1 -vec-report0 -DBLOCKTIMER -DCORE_ID1"
   cc_optim		= "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias"
   cc_debug		= "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
   omp_optim		= "-openmp -openmp_report0"
@@ -237,9 +250,9 @@ if env["CC"] == "icc":
   pedantic		= ""
   fatalwarning		= ""		# Switch to turn warnings into errors
   sysheaderopt		= ""
-elif env["CC"] == "gcc":
+elif env["CC"][:3] == "gcc":
   # GNU C on any system
-  cc_flags		= "-pedantic -Wall -fPIC -ansi -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER  -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing"
+  cc_flags		= "-pedantic -Wall -fPIC -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER  -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing"
 #the long long warning occurs on the Mac
   cc_optim		= "-O3"
   cc_debug		= "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
@@ -613,7 +626,6 @@ if env['usesilo']:
 if env['usesilo']:
   env.AppendUnique(CPPPATH = [env['silo_path']])
   env.AppendUnique(LIBPATH = [env['silo_lib_path']])
-  env.Append(CPPDEFINES = ['USE_SILO'])
 
 ########### Lapack (optional) ##################################
 
@@ -894,6 +906,9 @@ env.Alias('install_esysUtils', ['build_esysUtils', 'target_install_esysUtils_a']
 env.Alias('build_paso', ['target_install_paso_headers', 'target_paso_a'])
 env.Alias('install_paso', ['build_paso', 'target_install_paso_a'])
 
+#env.Alias('build_escriptreader', ['target_install_escriptexport_headers', 'target_escriptreader_a'])
+#env.Alias('install_escriptreader', ['build_escriptreader', 'target_install_escriptreader_a'])
+
 env.Alias('build_escript', ['target_install_escript_headers', 'target_escript_so', 'target_escriptcpp_so'])
 env.Alias('install_escript', ['build_escript', 'target_install_escript_so', 'target_install_escriptcpp_so', 'target_install_escript_py'])
 
@@ -944,10 +959,12 @@ env.Alias('api_epydoc','install_all')
 
 env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_doxygen', 'guide_pdf', 'guide_html','install_pdf', 'cookbook_pdf'])
 
+build_platform=os.name
+
 if not IS_WINDOWS_PLATFORM:
    try:
    	utest=open("utest.sh","w")
-	build_platform=os.name		#Sometimes Mac python says it is posix
+	#Sometimes Mac python says it is posix
 	if (build_platform=='posix') and platform.system()=="Darwin":
 		build_platform='darwin'
 	utest.write(GroupTest.makeHeader(build_platform))

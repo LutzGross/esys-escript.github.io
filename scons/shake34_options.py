@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2009 by University of Queensland
+# Copyright (c) 2003-2010 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -82,7 +82,7 @@ useumfpack		= 'yes'
 useopenmp		= 'yes'
 
 # OPENMP
-usempi= 'yes'
+usempi= 'no'
 mpi_path		= '/usr/include/mpi'
 mpi_lib_path		= '/usr/lib'
 mpi_libs                = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']

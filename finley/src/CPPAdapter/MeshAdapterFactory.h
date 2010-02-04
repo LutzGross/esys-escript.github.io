@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2009 by University of Queensland
+* Copyright (c) 2003-2010 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -17,9 +17,9 @@
 #include "system_dep.h"
 
 extern "C" {
-#include "../Finley.h"
-#include "../Mesh.h"
-#include "../RectangularMesh.h"
+#include "finley/Finley.h"
+#include "finley/Mesh.h"
+#include "finley/RectangularMesh.h"
 }
 
 #include "MeshAdapter.h"

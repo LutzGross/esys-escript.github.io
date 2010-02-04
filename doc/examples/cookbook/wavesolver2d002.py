@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2009 by University of Queensland
+# Copyright (c) 2009-2010 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2009 by University of Queensland
+__copyright__="""Copyright (c) 2009-2010 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -30,7 +30,7 @@ from cblib1 import *
 
 # Establish a save path.
 savepath = "data/wavesolver2d002nwtest"
-needdirs([savepath])
+mkDir(savepath)
 
 #Geometric and material property related variables.
 mx = 1000 # model lenght

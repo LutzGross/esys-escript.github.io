@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2009 by University of Queensland
+* Copyright (c) 2003-2010 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -17,9 +17,9 @@
 #include "system_dep.h"
 
 extern "C" {
-#include "../Mesh.h"
-#include "../Finley.h"
-#include "../Assemble.h"
+#include "finley/Mesh.h"
+#include "finley/Finley.h"
+#include "finley/Assemble.h"
 #include "paso/SystemMatrix.h"
 #include "paso/SolverFCT.h"
 #include "paso/Paso_MPI.h"
@@ -699,6 +699,20 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
 
 };
+
+// Do not use this class. It is a convenience wrapper for the dataexporter.
+class FINLEY_DLL_API ReferenceElementSetWrapper {
+ public:
+  ReferenceElementSetWrapper(ElementTypeId id, index_t order,
+                             index_t reducedOrder);
+  ~ReferenceElementSetWrapper();
+
+  Finley_ReferenceElementSet* getElementSet() const { return m_refSet; }
+
+ private:
+  Finley_ReferenceElementSet* m_refSet;
+};
+
 
 } // end of namespace
 

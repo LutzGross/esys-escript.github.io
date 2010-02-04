@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2009 by University of Queensland
+# Copyright (c) 2009-2010 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2009 by University of Queensland
+__copyright__="""Copyright (c) 2009-2010 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -34,12 +34,13 @@ from esys.finley import MakeDomain
 import os
 import numpy as np
 from math import *
-from cblib1 import needdirs, getLoopCoords
+from cblib1 import getLoopCoords
+from esys.escript import mkDir
 
 #################################################ESTABLISHING VARIABLES
 # where to put output files
 save_path= os.path.join("data","heatrefrac002")
-needdirs([save_path])
+mkDir(save_path)
 
 ################################################ESTABLISHING PARAMETERS
 # Overall Domain
