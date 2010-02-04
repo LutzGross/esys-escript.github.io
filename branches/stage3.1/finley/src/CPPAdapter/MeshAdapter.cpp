@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2009 by University of Queensland
+* Copyright (c) 2003-2010 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -2393,6 +2393,16 @@ int MeshAdapter::getApproximationOrder(const int functionSpaceCode) const
       throw FinleyAdapterException(temp.str());
   }
   return order;
+}
+
+ReferenceElementSetWrapper::ReferenceElementSetWrapper(ElementTypeId id, index_t order, index_t reducedOrder)
+{
+  m_refSet = Finley_ReferenceElementSet_alloc(id, order, reducedOrder);
+}
+
+ReferenceElementSetWrapper::~ReferenceElementSetWrapper()
+{
+  Finley_ReferenceElementSet_dealloc(m_refSet);
 }
 
 }  // end of namespace

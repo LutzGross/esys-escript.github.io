@@ -23,108 +23,105 @@ __url__="https://launchpad.net/escript-finley"
 Author: Antony Hallam antony.hallam@uqconnect.edu.au
 """
 
-############################################################FILE HEADER
-# onedheatdiff002.py
-# Model temperature diffusion between two granite blocks. This is a one
-# dimensional problem with no heat source and a single heat disparity.
-
-#######################################################EXTERNAL MODULES
-#To solve the problem it is necessary to import the modules we require.
-#This imports everything from the escript library
-from esys.escript import *
-# This defines the LinearPDE module as LinearPDE
-from esys.escript.linearPDEs import LinearPDE 
-# This imports the rectangle domain function from finley.
-from esys.finley import Rectangle 
-# A useful unit handling package which will make sure all our units
-# match up in the equations under SI.
-from esys.escript.unitsSI import *
+# To solve the problem it is necessary to import the modules we require.
+from esys.escript import * # This imports everything from the escript library
+from esys.escript.unitsSI import * 
+from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE
+from esys.finley import Rectangle # This imports the rectangle domain function from finley
 #For interactive use, you can comment out the next two lines
 import matplotlib
 matplotlib.use('agg') #It's just here for automated testing
 import pylab as pl #Plotting package.
 import numpy as np #Array package.
-import os #This package is necessary to handle saving our data.
-from cblib1 import needdirs
+import os, sys #This package is necessary to handle saving our data.
 
-########################################################MPI WORLD CHECK
+# .. MPI WORLD CHECK
 if getMPISizeWorld() > 1:
-	import sys
-	print "This example will not run in an MPI world."
-	sys.exit(0)
+    import sys
+    print "This example will not run in an MPI world."
+    sys.exit(0)
 
-#################################################ESTABLISHING VARIABLES
+##ESTABLISHING VARIABLES
+#Domain related.
+mx = 1*m #meters - model length
+my = .1*m #meters - model width
+ndx = 100 # mesh steps in x direction 
+ndy = 1 # mesh steps in y direction - one dimension means one element
 #PDE related
-mx = 500*m #meters - model length
-my = 100*m #meters - model width
-ndx = 500 # mesh steps in x direction 
-ndy = 1 # mesh steps in y direction
-boundloc = mx/2 # location of boundary between two blocks
-q=0.*Celsius #our heat source temperature is now zero
-Tref=2273.*Celsius # Kelvin -the starting temperature of our RHS Block
-rho = 2750*kg/m**3 #kg/m^{3} density of granite
-cp = 790.*J/(kg*K) #j/Kg.K thermal capacity
-rhocp = rho*cp	#DENSITY * SPECIFIC HEAT
-eta=0.  # RADIATION CONDITION
-kappa=2.2*W/m/K #watts/m.K thermal conductivity
+rho = 7874. *kg/m**3 #kg/m^{3} density of iron
+cp = 449.*J/(kg*K) # J/Kg.K thermal capacity
+rhocp = rho*cp 
+kappa = 80.*W/m/K   # watts/m.Kthermal conductivity
+qH=0 * J/(sec*m**3) # J/(sec.m^{3}) no heat source
+Tref = 20 * Celsius  # base temperature of the rod
+T0 = 100 * Celsius # temperature at heating element
 
-#Script/Iteration Related
-t=0. #our start time, usually zero
-tend=10*yr #the time we want to end the simulation in years
-outputs = 40 # number of time steps required.
+t=0 * day  # our start time, usually zero
+tend= 0.5 *day  # - time to end simulation
+outputs = 200 # number of time steps required.
 h=(tend-t)/outputs #size of time step
 #user warning statement
-print "Expected Number of Output Files is: ", outputs
-print "Step size is: ", h/day, "days"
-i=0 #loop counter 
-#the folder to put our outputs in, leave blank "" for script path
+print "Expected Number of time outputs is: ", (tend-t)/h
+i=0 #loop counter
+#the folder to put our outputs in, leave blank "" for script path 
 save_path= os.path.join("data","onedheatdiff002")
-needdirs([save_path])
-########## note this folder path must exist to work ###################
+#ensure the dir exists
+mkDir(save_path, os.path.join(save_path,"tempT"))
 
-################################################ESTABLISHING PARAMETERS
-#generate domain using rectangle
-model = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
-#extract finite points - the solution points
-x=model.getX()
-#create the PDE
-mypde=LinearPDE(model) #assigns a domain to our PDE
-mypde.setSymmetryOn() #set the fast solver on for symmetry
-#define our PDE coeffs
-mypde.setValue(A=kappa*kronecker(model),D=rhocp/h,d=eta,y=eta*Tref)
-#establish location of boundary between two blocks
-bound = x[0]-boundloc
-#set initial temperature
-T= 0*Tref*whereNegative(bound)+Tref*wherePositive(bound)
+#... generate domain ...
+rod = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
+x=Solution(rod).getX()
+#... open PDE and set coefficients ...
+mypde=LinearPDE(rod)
+A=zeros((2,2))
+A[0,0]=kappa
+q=whereZero(x[0])
+mypde.setValue(A=A, D=rhocp/h, q=q, r=T0)
+# ... set initial temperature ....
+T= T0*whereZero(x[0])+Tref*(1-whereZero(x[0]))
 
-#convert solution points for plotting
+# ... open a collector for the time marks and corresponding total energy
+t_list=[]
+E_list=[]
+# ... convert solution points for plotting
 plx = x.toListOfTuples() 
 plx = np.array(plx) #convert to tuple to numpy array
 plx = plx[:,0] #extract x locations
+# ... start iteration:
+while t<tend:
+      i+=1
+      t+=h
+      mypde.setValue(Y=qH+rhocp/h*T)
+      T=mypde.getSolution()
+      totE=integrate(rhocp*T)
+      print "time step %s at t=%e minutes completed. total energy = %e."%(i,t/minute,totE)
+      t_list.append(t)
+      E_list.append(totE)
 
-########################################################START ITERATION
-while t<=tend:
-	i+=1 #increment the counter
-	t+=h #increment the current time
-        print "time step ",i," at time  ",t/day," days."
-	mypde.setValue(Y=rhocp/h*T) #reset variable PDE coefficients
-	T=mypde.getSolution() #find temperature solution
-	#set up for plotting
-	tempT = T.toListOfTuples(scalarastuple=False)
-	pl.figure(1)
-	pl.plot(plx,tempT)
-	pl.axis([0,500,0,2500])
-	pl.title("Temperature accross Interface")
-	if getMPIRankWorld() == 0:
-		pl.savefig(os.path.join(save_path,"intpyplot%03d.png" %i))
-	pl.clf()
-	
-# compile the *.png files to create two *.avi videos that show T change
+      #establish figure 1 for temperature vs x plots
+      tempT = T.toListOfTuples()
+      pl.figure(1) #current figure
+      pl.plot(plx,tempT) #plot solution
+      # add title
+      pl.axis([0,mx,Tref*.9,T0*1.1])
+      pl.title("Temperature across rod at time %e hours"%(t/hour))
+      #save figure to file
+      pl.savefig(os.path.join(save_path,"tempT", "rodpyplot%03d.png"%i))
+      pl.clf() #clear figure
+# plot the total energy over time:
+pl.figure(2)
+pl.plot(t_list,E_list)
+pl.title("Total Energy")
+# pl.axis([0,max(t_list),0,max(E_list)*1.1])
+pl.savefig(os.path.join(save_path,"totE.png"))
+pl.clf()
+
+# compile the *.png files to create a*.avi video that show T change
 # with time. This opperation uses linux mencoder. For other operating 
 # systems it may be possible to use your favourite video compiler to
 # convert image files to videos. To enable this step uncomment the
 # following lines.
 
-#os.system("mencoder mf://"+save_path+"/*.png -mf type=png:\
+#os.system("mencoder mf://"+save_path+"/tempT"+"/*.png -mf type=png:\
 #w=800:h=600:fps=25 -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o \
-#onedheatdiff002tempT.avi")
+#onedheatdiff001tempT.avi")

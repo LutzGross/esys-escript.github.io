@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2009 by University of Queensland
+# Copyright (c) 2009-2010 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2009 by University of Queensland
+__copyright__="""Copyright (c) 2009-2010 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -35,9 +35,10 @@ from esys.finley import MakeDomain #Converter for escript
 import os #file path tool
 import numpy as np #numerial python for arrays
 from math import * # math package
+from esys.escript import mkDir
 
 #used to construct polygons for plotting from pycad
-from cblib1 import getLoopCoords, needdirs
+from cblib1 import getLoopCoords
 
 
 
@@ -49,7 +50,7 @@ modal=-1
 # the folder to put our outputs in, leave blank "" for script path - 
 # note this folder path must exist to work
 save_path= os.path.join("data","heatrefrac001") 
-needdirs([save_path])
+mkDir(save_path)
 
 ################################################ESTABLISHING PARAMETERS
 #Model Parameters

@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2009 by University of Queensland
+* Copyright (c) 2003-2010 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -28,6 +28,37 @@
 #ifdef USE_PARMETIS
 #include "parmetis.h"
 #endif
+
+/**************************************************************
+   Check whether there is any node which has no vertex. In case 
+   such node exists, we don't use parmetis since parmetis requires
+   that every node has at least 1 vertex (at line 129 of file
+   "xyzpart.c" in parmetis 3.1.1, variable "nvtxs" would be 0 if 
+   any node has no vertex).
+ **************************************************************/
+#ifdef USE_PARMETIS
+int Check_Inputs_For_Parmetis(dim_t mpiSize, dim_t rank, dim_t *distribution, MPI_Comm *comm)
+{
+  dim_t i, len;
+  int ret_val = 1;
+
+  if (rank == 0){
+    for (i=0; i<mpiSize; i++){
+      len = distribution[i+1] - distribution[i];
+      if (len == 0){
+        ret_val = 0;
+        break;
+      }
+    }
+  } 
+  MPI_Bcast(&ret_val, 1, MPI_INTEGER, 0, *comm);
+  if (ret_val == 0) 
+    printf("INFO: Parmetis is not used since some nodes have no vertex!\n");
+  return ret_val;
+}
+#endif
+
+
 
 /**************************************************************/
 
@@ -122,7 +153,8 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
 
 #ifdef USE_PARMETIS
 
-	      if (in->MPIInfo->size>1) {
+	      if (mpiSize>1 && 
+		  Check_Inputs_For_Parmetis(mpiSize, myRank, distribution, &(in->MPIInfo->comm))>0 ) {
 		 int i;
 		 int wgtflag = 0;
 		 int numflag = 0;	/* pattern->ptr is C style: starting from 0 instead of 1 */

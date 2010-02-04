@@ -8,42 +8,16 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="400"
-   height="300"
+   width="620.09003"
+   height="150"
    id="svg2"
    sodipodi:version="0.32"
    inkscape:version="0.46"
-   sodipodi:docname="onedheatdiff002.svg"
+   sodipodi:docname="onedheatdiff.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    version="1.0">
   <defs
      id="defs4">
-    <marker
-       inkscape:stockid="DiamondS"
-       orient="auto"
-       refY="0"
-       refX="0"
-       id="DiamondS"
-       style="overflow:visible">
-      <path
-         id="path3282"
-         d="M 0,-7.0710768 L -7.0710894,0 L 0,7.0710589 L 7.0710462,0 L 0,-7.0710768 z"
-         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none"
-         transform="scale(0.2,0.2)" />
-    </marker>
-    <marker
-       inkscape:stockid="Arrow1Lend"
-       orient="auto"
-       refY="0"
-       refX="0"
-       id="Arrow1Lend"
-       style="overflow:visible">
-      <path
-         id="path3199"
-         d="M 0,0 L 5,-5 L -12.5,0 L 5,5 L 0,0 z"
-         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none"
-         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
-    </marker>
     <inkscape:perspective
        sodipodi:type="inkscape:persp3d"
        inkscape:vp_x="0 : 526.18109 : 1"
@@ -62,14 +36,14 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.979899"
-     inkscape:cx="201.16113"
-     inkscape:cy="171.3784"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="251.19156"
+     inkscape:cy="203.24304"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1020"
-     inkscape:window-height="859"
+     inkscape:window-width="1280"
+     inkscape:window-height="953"
      inkscape:window-x="0"
      inkscape:window-y="24" />
   <metadata
@@ -86,97 +60,87 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1"
-     transform="translate(-19.261939,-9.657251)">
+     id="layer1">
     <rect
-       y="56.172565"
-       x="46.473171"
-       height="160"
-       width="174.28572"
-       id="rect2405"
-       style="opacity:1;fill:none;fill-opacity:1;stroke:#00ff00;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+       style="fill:#666666"
+       id="rect2383"
+       width="551.42859"
+       height="65.714287"
+       x="56.563442"
+       y="44.711697" />
     <rect
-       y="56.17255"
-       x="222.18747"
-       height="160"
-       width="174.28572"
-       id="rect3177"
-       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
-    <text
-       xml:space="preserve"
-       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#00ff00;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"
-       x="130.15019"
-       y="73.544327"
-       id="text3179"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan3975"
-         x="130.15019"
-         y="73.544327"
-         style="text-align:center;text-anchor:middle">Granite Block 1</tspan><tspan
-         sodipodi:role="line"
-         id="tspan3977"
-         x="130.15019"
-         y="93.544334"
-         style="text-align:center;text-anchor:middle" /><tspan
-         sodipodi:role="line"
-         id="tspan3979"
-         x="130.15019"
-         y="113.54433"
-         style="text-align:center;text-anchor:middle">Temp=0</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"
-       x="311.474"
-       y="73.448273"
-       id="text3183"><tspan
-         sodipodi:role="line"
-         id="tspan3185"
-         x="311.474"
-         y="73.448273"
-         style="text-align:center;text-anchor:middle;fill:#ff0000;fill-opacity:1">Granite Block 2</tspan><tspan
-         sodipodi:role="line"
-         x="311.474"
-         y="93.44828"
-         style="text-align:center;text-anchor:middle;fill:#ff0000;fill-opacity:1"
-         id="tspan3981" /><tspan
-         sodipodi:role="line"
-         x="311.474"
-         y="113.44828"
-         style="text-align:center;text-anchor:middle;fill:#ff0000;fill-opacity:1"
-         id="tspan3983">Temp=T</tspan></text>
+       style="fill:#ff0000"
+       id="rect2385"
+       width="27.142857"
+       height="65.714287"
+       x="33.706303"
+       y="44.711697" />
     <text
        xml:space="preserve"
        style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"
-       x="-173.9882"
-       y="216.76486"
-       id="text3187"
-       transform="matrix(0,-1,1,0,0,0)"><tspan
+       x="286.56345"
+       y="23.283129"
+       id="text2387"><tspan
          sodipodi:role="line"
-         id="tspan3189"
-         x="-173.9882"
-         y="216.76486">Interface</tspan></text>
-    <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;marker-end:url(#Arrow1Lend);stroke-opacity:1"
-       d="M 210.96238,179.10528 C 210.96238,251.33119 210.96238,251.33119 210.96238,251.33119"
-       id="path3191" />
-    <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;marker-end:url(#Arrow1Lend);stroke-opacity:1"
-       d="M 212.47761,99.050678 C 212.47761,26.824768 212.47761,26.824768 212.47761,26.824768"
-       id="path3973" />
-    <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;marker-start:url(#DiamondS);marker-end:url(#DiamondS);stroke-opacity:1"
-       d="M 396.07284,255.87687 C 46.560038,255.87687 46.560038,255.87687 46.560038,255.87687"
-       id="path3985" />
+         id="tspan2389"
+         x="286.56345"
+         y="23.283129">Iron Bar</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"
-       x="227.12482"
-       y="271.53424"
-       id="text5031"><tspan
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"
+       x="-142.15758"
+       y="21.408861"
+       id="text2391"
+       transform="matrix(0,-1,1,0,0,0)"><tspan
          sodipodi:role="line"
-         id="tspan5033"
-         x="227.12482"
-         y="271.53424">600m</tspan></text>
+         id="tspan2393"
+         x="-142.15758"
+         y="21.408861">Heating Element</tspan></text>
+    <path
+       style="fill:#000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.99999994px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 64.889761,121.85456 L 602.83896,120.42599 L 604.24353,120.42599"
+       id="path2395" />
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"
+       x="310.84918"
+       y="137.56885"
+       id="text3169"><tspan
+         sodipodi:role="line"
+         id="tspan3171"
+         x="310.84918"
+         y="137.56885">x</tspan></text>
+    <path
+       sodipodi:type="star"
+       style="fill:#000000"
+       id="path3183"
+       sodipodi:sides="3"
+       sodipodi:cx="108.33886"
+       sodipodi:cy="172.26678"
+       sodipodi:r1="4.5456867"
+       sodipodi:r2="2.2728431"
+       sodipodi:arg1="3.1415927"
+       sodipodi:arg2="4.1887902"
+       inkscape:flatsided="true"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       d="M 103.79317,172.26678 L 110.6117,168.3301 L 110.6117,176.20346 L 103.79317,172.26678 z"
+       transform="translate(-43.436559,-50.507627)" />
+    <path
+       sodipodi:type="star"
+       style="fill:#000000"
+       id="path3185"
+       sodipodi:sides="3"
+       sodipodi:cx="649.02301"
+       sodipodi:cy="171.00409"
+       sodipodi:r1="3.661803"
+       sodipodi:r2="1.8309015"
+       sodipodi:arg1="0"
+       sodipodi:arg2="1.0471976"
+       inkscape:flatsided="true"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       d="M 652.68481,171.00409 L 647.19211,174.1753 L 647.19211,167.83287 L 652.68481,171.00409 z"
+       transform="translate(-43.436559,-50.507627)" />
   </g>
 </svg>

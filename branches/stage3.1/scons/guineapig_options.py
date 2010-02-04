@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2009 by University of Queensland
+# Copyright (c) 2003-2010 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -16,6 +16,8 @@
 
 # If you cannot use the default compiler flags set in SConstruct, then change them here
 # C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
+cc='gcc-4.4'
+cxx='g++-4.4'
 # cc_flags		= '-ansi'
 # cc_optim		= '-O2'
 # cc_debug		= '-g'
