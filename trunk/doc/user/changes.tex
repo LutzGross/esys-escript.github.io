@@ -14,6 +14,28 @@
 \section{Changes from previous releases}
 \label{app:changes}
 
+\subsection*{3.0 to 3.1}
+\begin{itemize}
+\item{The \emph{escript} launcher has been renamed to \emph{run-escript} the old-name will still work in this version
+but will be removed in future.}
+\item Lazy evaluation features have been improved and documented (See Section~\ref{sec:lazy}).
+ \item Escript documentation includes a new Cookbook which demonstrates how to solve sample problems using escript.
+\item Macro elements have been introduced.
+\item The saveDataCSV method allows one or more Data objects to be exported in CSV format.
+\item Data objects can be populated by interpolating from a values in a table.
+\item The new getInfLocator and getSupLocator functions in esys.escript.pdetools return Locators to a minimal/maximal point over the data.
+\item There is a new class to model fault systems (esys.escript.faultsystems.FaultSystem).
+\item A beta version of an Algebraic Multigrid (AMG) solver is included.
+\item Inverting square matricies larger than 3x3 is now permitted if escript is compiled with Lapack support.
+\item If escript is compiled with a modern compiler, then inf/sup/Lsup will now report NaN, +/-inf as appropriate if those values appear in the data.
+\item Data.setTags will take tag names as well as tag numbers.
+\item The Scalar, Vector, Tensor, Tensor3, Tensor4 factory methods can now take array/nested sequence like objects as their initial values.
+\item escript.util.mkDir can now take a list of directories to create.
+\item Behind the scenes, python docstrings have been rewritten from epydoc to restructured text.
+\item Various other bug fixes and performance tweaks.
+\end{itemize}
+
+
 \subsection*{2.0 to 3.0}
 \begin{itemize}
 \item The major change here was replacing \module{numarray} with \numpy.

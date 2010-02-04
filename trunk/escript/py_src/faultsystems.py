@@ -25,7 +25,7 @@ import math
 
 class FaultSystem:
   """
-  The FaultSystem class defines a system of faults in the Earth crust. 
+  The FaultSystem class defines a system of faults in the Earth's crust. 
  
   A fault system is defined by set of faults index by a tag. Each fault is defined by a starting point V0 and a list of 
   strikes ``strike`` and length ``l``. The strikes and the length is used to define a polyline with points ``V[i]`` such that
