@@ -733,6 +733,7 @@ FinleyElementInfo ElementData::getFinleyTypeInfo(ElementTypeId typeId)
             break;
 
         case Line3:
+        case Line3Macro:
             ret.multiCellIndices = line3indices;
             ret.elementFactor = 2;
             // fall through
@@ -764,6 +765,7 @@ FinleyElementInfo ElementData::getFinleyTypeInfo(ElementTypeId typeId)
             break;
 
         case Rec9:
+        case Rec9Macro:
             ret.useQuadNodes = true;
             ret.quadDim = 2;
             ret.multiCellIndices = rec9indices;
@@ -780,6 +782,7 @@ FinleyElementInfo ElementData::getFinleyTypeInfo(ElementTypeId typeId)
             break;
 
         case Tri6:
+        case Tri6Macro:
             ret.multiCellIndices = tri6indices;
             ret.elementFactor = 4;
             // fall through
@@ -806,6 +809,7 @@ FinleyElementInfo ElementData::getFinleyTypeInfo(ElementTypeId typeId)
             break;
 
         case Tet10:
+        case Tet10Macro:
             //VTK_QUADRATIC_TETRA
             ret.multiCellIndices = tet10indices;
             ret.elementFactor = 8;
@@ -824,6 +828,7 @@ FinleyElementInfo ElementData::getFinleyTypeInfo(ElementTypeId typeId)
             break;
 
         case Hex27:
+        case Hex27Macro:
             ret.useQuadNodes = true;
             ret.quadDim = 3;
             ret.multiCellIndices = hex27indices;
