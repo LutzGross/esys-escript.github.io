@@ -479,13 +479,17 @@ conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['boost_lib_path'])	# The wrappe
 conf.env.PrependENVPath('PYTHONPATH', prefix)
 conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['libinstall'])
 
-if not conf.CheckCXXHeader('boost/python.hpp'):
-  print "Cannot find boost include files (tried boost/python.hpp in directory %s)" % (env['boost_path'])
-  sys.exit(1)
 
-if not conf.CheckFunc('PyObject_SetAttr'):
-  print "Cannot find boost library method PyObject_SetAttr (tried method PyObject_SetAttr in library %s in directory %s)" % (env['boost_libs'], env['boost_lib_path'])
-  sys.exit(1)
+#Yep we still cant figure this one out. - working on it.
+if not IS_WINDOWS_PLATFORM:
+  if not conf.CheckCXXHeader('boost/python.hpp'):
+    print "Cannot find boost include files (tried boost/python.hpp in directory %s)" % (env['boost_path'])
+    sys.exit(1)
+
+  if not conf.CheckFunc('PyObject_SetAttr'):
+    print "Cannot find boost library method PyObject_SetAttr (tried method PyObject_SetAttr in library %s in directory %s)" % (env['boost_libs'], env['boost_lib_path'])
+    sys.exit(1)
+
 
 # Commit changes to environment
 env = conf.Finish()
