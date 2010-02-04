@@ -963,7 +963,7 @@ env.Alias('build_full',['install_all','build_tests','build_py_tests'])
 
 env.Alias('api_epydoc','install_all')
 
-env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_doxygen', 'guide_pdf', 'guide_html','install_pdf'])
+env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_doxygen', 'guide_pdf', 'guide_html','install_pdf', 'cookbook_pdf'])
 
 build_platform=os.name
 
@@ -991,3 +991,5 @@ if not IS_WINDOWS_PLATFORM:
 ############ Targets to build PasoTests suite ################
 
 env.Alias('build_PasoTests','build/'+build_platform+'/paso/profiling/PasoTests')
+
+env.Alias('release_prep', ['docs', 'install_all'])

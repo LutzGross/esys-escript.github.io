@@ -6,7 +6,7 @@
 
 #A ~ in front of the version number indicates a pre-release and will sort earlier than versions without ~
 SRCDIR=`pwd`
-WRAPPERNAME=escript
+WRAPPERNAME=run-escript
 #ALTWRAPPERNAME=finleypython
 OUTPUTROOT=$SRCDIR/build/package/lenny/escript
 LIBOUT=$OUTPUTROOT/usr/lib/escript
@@ -37,8 +37,9 @@ fi
 distro=$1
 
 case "$distro" in
-  "lenny" ) echo "" ;;
-  "jaunty" ) echo "";;
+  "lenny" ) ;;
+  "jaunty" ) needpy26=yes;;
+  "karmic" ) needalt=yes;;
   *) echo "Unknown distro $distro"; exit 4;;
 esac
 
@@ -84,20 +85,39 @@ mkdir -p $OUTPUTROOT
 
 #First copy debian skeleton 
 cp -r $PKGFILES/escript/* $OUTPUTROOT
+find $OUTPUTROOT -name ".svn" | xargs rm -rf 
 
+pkgname=escript
+
+#If we are building transitional package we may need replacement files
+if [ -n "$needalt" ]
+then
+  echo "Switching to alternative package"
+  cp -r $PKGFILES/escript-noalias/* $OUTPUTROOT
+  pkgname=escript-noalias
+  find $OUTPUTROOT -name ".svn" | xargs rm -rf 
+fi
 
 mkdir -p $OUTPUTROOT/usr/share/man/man1
 
 #copy the man page
 cp $SRCDIR/doc/manpage/man1/$WRAPPERNAME.1 $OUTPUTROOT/usr/share/man/man1
-#cp $SRCDIR/doc/manpage/man1/$WRAPPERNAME.1 $OUTPUTROOT/usr/share/man/man1/$ALTWRAPPERNAME.1
+
 gzip $OUTPUTROOT/usr/share/man/man1/$WRAPPERNAME.1
-#gzip $OUTPUTROOT/usr/share/man/man1/$ALTWRAPPERNAME.1
+if [ -z "$needalt" ]			#We are not building the alt package
+then
+	pushd $OUTPUTROOT/usr/share/man/man1 > /dev/null || (echo "A directory has disappeared" ; exit 8)
+	ln -s $WRAPPERNAME.1.gz escript.1.gz
+	popd > /dev/null
+fi
+
+
 
 #copy the documentation
 cp $SRCDIR/release/doc/escript_examples.tar.gz $OUTPUTROOT/usr/share/doc/escript/
 cp $SRCDIR/release/doc/install/install.pdf $OUTPUTROOT/usr/share/doc/escript
 cp $SRCDIR/release/doc/user/guide.pdf $OUTPUTROOT/usr/share/doc/escript
+cp $SRCDIR/release/doc/cookbook/cookbook.pdf $OUTPUTROOT/usr/share/doc/escript
 cp -r $SRCDIR/release/doc/epydoc $OUTPUTROOT/usr/share/doc/escript/python_html
 
 mkdir -p $LIBOUT/lib
@@ -109,13 +129,18 @@ cp -r $SRCDIR/esys $LIBOUT
 # We should be using the standard python
 export ESCRIPT_ROOT=/usr/lib/escript
 
-sed	-e "s%STDLOCATION=0%STDLOCATION=1%" \
-< $SRCDIR/bin/escript > $BINOUT/$WRAPPERNAME
+sed -e "s%STDLOCATION=0%STDLOCATION=1%" < $SRCDIR/bin/$WRAPPERNAME > $BINOUT/$WRAPPERNAME
+
+if [ -z "$needalt" ]
+then
+	pushd $BINOUT > /dev/null || (echo "A directory has disappeared" ; exit 8)
+	ln -s $WRAPPERNAME escript
+	popd > /dev/null
+fi
 
 #end content from finley_wrapper_writer.sh
 
 cd $BINOUT
-#ln -s $WRAPPERNAME $ALTWRAPPERNAME
 cd $SRCDIR
 
 #Nuke any svn stuff that made it in
@@ -145,24 +170,23 @@ chmod -R og-w .
 cd DEBIAN
 
 #Now we need to update the architecture
-mv control control.old
-sed -e "s%Architecture: i386%Architecture: $ARCH%" < control.old > control
-if [ $distro == "jaunty" ]
+sed -i -e "s%Architecture: i386%Architecture: $ARCH%" control
+if [ -n "$needpy26" ]
 then
   echo "Replacing python2.5 dependency with python2.6 for jaunty"
-  rm control.old
-  mv control control.old
-  sed -e "s%Depends: python2.5%Depends: python2.6%" < control.old > control 
+  sed -i -e "s%Depends: python2.5%Depends: python2.6%" control 
 fi
-rm control.old
 
 tar czf ../../control.tar.gz .
 cd ..
 tar czf ../data.tar.gz usr
 cd ..
 
-ar rcu escript-$VERSION-$distro\_$ARCH.deb debian-binary control.tar.gz data.tar.gz
 
 
+ar rcu $pkgname-$VERSION-$distro\_$ARCH.deb debian-binary control.tar.gz data.tar.gz
+
+mkdir -p $SRCDIR/release/pkg
+cp $pkgname-$VERSION-$distro\_$ARCH.deb $SRCDIR/release/pkg
 
 

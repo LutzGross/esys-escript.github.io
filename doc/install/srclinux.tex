@@ -335,7 +335,7 @@ PKG_ROOT="/home/bob/stand/pkg"
 cd ../bin
 \end{shellCode}
 
-Modify the STANDALONE line of \filename{escript} to read:
+Modify the STANDALONE line of \filename{run-escript} to read:
  
 STANDALONE=1
 
@@ -344,7 +344,7 @@ Start a new terminal and go to the \filename{stand} directory.
 \begin{shellCode}
 export PATH=$(pwd)/pkg/scons/bin:$PATH
 cd escript.d
-eval $(bin/escript -e)
+eval $(bin/run-escript -e)
 scons
 \end{shellCode}
 

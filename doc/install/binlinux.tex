@@ -18,9 +18,10 @@ Alternatively, if we have a package for your distribution you can use the standa
 Please note, however, that the current binary packages do not support \openmp\footnote{This is due to a bug related to gcc 4.3.2.} or \mpi\footnote{Producing packages for \mpi requires knowing something about your computer's configuration.}.
 If you need these features you may need to compile \esfinley from source (see \Sec{sec:compilesrc} and \Sec{sec:compileescriptlinux}.)
 
-For more information on using the \filename{escript} command please see the User's Guide.
+For more information on using the \filename{run-escript} command please see the User's Guide.
 
 If you are using Debian (5.0 - ``Lenny'') or Ubuntu (8.10-``Intrepid Ibex'', 9.04-``Jaunty Jackalope'') then see \Sec{sec:debian}.
+For Ubuntu 9.10-``karmic koala'' see \Sec{sec:karmic}.
 For other Linux distributions refer to \Sec{sec:standalonelinux}.
 
 \subsection{Debian 5.0(``Lenny''), Ubuntu 8.10(``Intrepid Ibex'') or 9.04(``Jaunty Jakalope'')}\label{sec:debian}
@@ -30,18 +31,29 @@ The package file will be named \filename{escript-X-D_A.deb} where \texttt{X} is 
 For example, \filename{escript-3.0-1-lenny_amd64.deb} would be the file for lenny (and intrepid) for 64bit processors.
 To install \esfinley download the appropriate \filename{.deb} file and execute the following commands as root (you need to be in the directory containing the file):
 \begin{shellCode}
-dpkg --unpack escript.deb
+dpkg --unpack escript*.deb
 aptitude install escript
 \end{shellCode}
 
 If you use sudo (for example on Ubuntu) enter the following instead:
 \begin{shellCode}
-sudo dpkg --unpack escript.deb
+sudo dpkg --unpack escript*.deb
 sudo aptitude install escript
 \end{shellCode}
 
 This should install \esfinley and its dependencies on your system.
 Please notify the development team if something goes wrong.
+
+\subsection{Ubuntu 9.10(``Karmic Koala'')}\label{sec:karmic}
+
+You will need to download either \filename{escript-noalias-3.1-1-lenny_i386.deb} (for 32bit processors) or \filename{escript-noalias-3.1-1-lenny_amd64.deb} (for 64bit processors).
+
+Type the following in the directory containing the file.
+\begin{shellCode}
+sudo dpkg --unpack escript-noalias*.deb
+sudo aptitude install escript
+\end{shellCode}
+
 
 
 \subsection{Stand-alone bundle}\label{sec:standalonelinux}
@@ -56,7 +68,7 @@ This will produce a directory called \filename{stand} which contains a stand-alo
 You can rename or move it as is convenient to you, no installation is required.
 Test your installation by running:
 \begin{shellCode}
-stand/escript.d/bin/escript
+stand/escript.d/bin/run-escript
 \end{shellCode}
 This should give you a normal python shell.
 If you wish to save on typing you can add \filename{x/stand/escript.d/bin}\footnote{or whatever you renamed \texttt{stand} to.} to your \texttt{PATH} variable (where x is the absolute path to your install).
