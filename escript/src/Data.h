@@ -1757,7 +1757,7 @@ template <class BinaryOp>
 
   friend class DataAbstract;		// To allow calls to updateShareStatus
 #ifdef IKNOWWHATIMDOING
-  friend Data applyBinaryCFunction(boost::python::object cfunc, boost::python::tuple shape, escript::Data& d, escript::Data& e);
+  friend ESCRIPT_DLL_API Data applyBinaryCFunction(boost::python::object cfunc, boost::python::tuple shape, escript::Data& d, escript::Data& e);
 #endif
 };
 
