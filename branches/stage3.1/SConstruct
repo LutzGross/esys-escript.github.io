@@ -986,4 +986,4 @@ if not IS_WINDOWS_PLATFORM:
 
 env.Alias('build_PasoTests','build/'+build_platform+'/paso/profiling/PasoTests')
 
-env.Alias('release_prep',['docs', 'install_all'])
+env.Alias('release_prep',['install_all', 'examples_tarfile', 'api_epydoc', 'api_doxygen', 'guide_pdf','install_pdf', 'cookbook_pdf'])
