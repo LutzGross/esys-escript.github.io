@@ -44,7 +44,7 @@ python_libs		= 'python2.6'
 # Boost libraries
 boost_path		= '/usr/include/'
 boost_lib_path		= ''
-boost_libs		= ['boost_python']
+boost_libs		= ['boost_python-mt']
 
 # Specify whether or not to use VTK
 # usevtk		= 'yes'
