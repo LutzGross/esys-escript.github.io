@@ -28,13 +28,18 @@ then
   exit 3
 fi
 
+distro=$1
+
 if [ $# -lt 1 ]
 then
-  echo "Usage: builddeb distro"
-  exit 4
+  distro=`lsb_release -c | cut -f2`
+  if [ $? -ne 0 ]
+  then
+	echo "lsb_release had some error. Exiting."
+	exit 4
+  fi
+  echo "Building for default distro $distro"
 fi
-
-distro=$1
 
 case "$distro" in
   "lenny" ) ;;
