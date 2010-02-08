@@ -179,9 +179,9 @@ void Paso_FCTransportProblem_checkinSolution(Paso_FCTransportProblem* in, double
          local_u_min=u_min;
          MPI_Allreduce(&local_u_min,&u_min, 1, MPI_DOUBLE, MPI_MIN, in->mpi_info->comm);
     #endif
-    if (u_min<0) {
+    /* if (u_min<0) {
        Paso_setError(VALUE_ERROR, "Paso_FCTransportProblem_checkinSolution: initial guess must be non-negative.");
-    }
+    } */
 }
 dim_t Paso_FCTransportProblem_getBlockSize(const Paso_FCTransportProblem* in)
 {

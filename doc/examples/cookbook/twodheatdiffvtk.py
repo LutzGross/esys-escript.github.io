@@ -24,10 +24,12 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 """
 
 ############################################################FILE HEADER
-# twodheatdiff002.py
+# twodheatdiffvtk.py
 # Model temperature diffusion between a granite intrusion and sandstone 
 # country rock. This is a two dimensional problem with the granite as a
-# heat source.
+# heat source. It creates vtk files.
+# 
+#  This program is MPI safe.
 
 #######################################################EXTERNAL MODULES
 #To solve the problem it is necessary to import the modules we require.
@@ -40,19 +42,6 @@ from esys.finley import Rectangle
 # A useful unit handling package which will make sure all our units
 # match up in the equations under SI.
 from esys.escript.unitsSI import *
-#For interactive use, you can comment out the next two lines
-import matplotlib
-matplotlib.use('agg') #It's just here for automated testing
-import pylab as pl #Plotting package.
-import numpy as np #Array package.
-import os #This package is necessary to handle saving our data.
-from cblib import toXYTuple
-
-########################################################MPI WORLD CHECK
-if getMPISizeWorld() > 1:
-	import sys
-	print "This example will not run in an MPI world."
-	sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
 #PDE related
@@ -110,38 +99,19 @@ x=Solution(model).getX()
 bound = length(x-ic)-r #where the boundary will be located
 T= Ti*whereNegative(bound)+Tc*(1-whereNegative(bound))
 
-# rearrage mymesh to suit solution function space for contouring      
-coordX, coordY = toXYTuple(T.getFunctionSpace().getX())
-# create regular grid
-xi = np.linspace(0.0,mx,75)
-yi = np.linspace(0.0,my, 75)
-
 ########################################################START ITERATION
 while t<=tend:
       i+=1 #counter
       t+=h #current time
       mypde.setValue(Y=qH+T*rhocp/h)
       T=mypde.getSolution()
-      print T
-      tempT = T.toListOfTuples()
-      # grid the data.
-      zi = pl.matplotlib.mlab.griddata(coordX,coordY,tempT,xi,yi)
-      # contour the gridded data, plotting dots at the 
-      # randomly spaced data points.
-      pl.matplotlib.pyplot.autumn()
-      pl.contourf(xi,yi,zi,10)
-      CS = pl.contour(xi,yi,zi,5,linewidths=0.5,colors='k')
-      pl.clabel(CS, inline=1, fontsize=8)
-      pl.axis([0,600,0,600])
-      pl.title("Heat diffusion from an intrusion.")
-      pl.xlabel("Horizontal Displacement (m)")
-      pl.ylabel("Depth (m)")
-      pl.savefig(os.path.join(save_path,"heatrefraction%03d.png"%i))
-      pl.clf()            
+      saveVTK(os.path.join(save_path,"data.%03d.vtu"%i), T=T)
       print "time step %s at t=%e days completed."%(i,t/day)
 
-# compile the *.png files to create an *.avi video that shows T change
-# with time. This opperation uses linux mencoder.
-os.system("mencoder mf://"+save_path+"/*.png -mf type=png:\
-w=800:h=600:fps=25 -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o \
-twodheatdiff001tempT.avi")
+# use 
+#
+#  cd data/twodheatdiff
+#  mayavi2 -d data.001.vtu -m Surface
+#
+# to visualize the results (mayavi2 must be installed on your system).
+#

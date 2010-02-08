@@ -64,13 +64,13 @@ void Paso_FCTransportProblem_setLowOrderOperator(Paso_FCTransportProblem * fc) {
       for (i = 0; i < n; ++i) {
           sum=fc->transport_matrix->mainBlock->val[fc->main_iptr[i]];
           /* look at a[i,j] */
-          #pragma ivdep
           for (iptr_ij=pattern->mainPattern->ptr[i];iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
               j=pattern->mainPattern->index[iptr_ij];
               if (j!=i) {
                  /* find entry a[j,i] */
+                 #pragma ivdep
                  for (iptr_ji=pattern->mainPattern->ptr[j]; iptr_ji<pattern->mainPattern->ptr[j+1]; ++iptr_ji) {
-                    if (pattern->mainPattern->index[iptr_ji]==i) {
+                    if ( pattern->mainPattern->index[iptr_ji] == i) {
                         rtmp1=fc->transport_matrix->mainBlock->val[iptr_ij];
                         rtmp2=fc->transport_matrix->mainBlock->val[iptr_ji];
                         d_ij=-MIN3(0.,rtmp1,rtmp2);
@@ -80,11 +80,11 @@ void Paso_FCTransportProblem_setLowOrderOperator(Paso_FCTransportProblem * fc) {
                     }
                  }
              }
-         }
-          #pragma ivdep
+          }
           for (iptr_ij=pattern->col_couplePattern->ptr[i];iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
               j=pattern->col_couplePattern->index[iptr_ij];
               /* find entry a[j,i] */
+              #pragma ivdep
               for (iptr_ji=pattern->row_couplePattern->ptr[j]; iptr_ji<pattern->row_couplePattern->ptr[j+1]; ++iptr_ji) {
                     if (pattern->row_couplePattern->index[iptr_ji]==i) {
                         rtmp1=fc->transport_matrix->col_coupleBlock->val[iptr_ij];
@@ -103,7 +103,7 @@ void Paso_FCTransportProblem_setLowOrderOperator(Paso_FCTransportProblem * fc) {
   }
 }
 /*
- * out_i=m_i u_i + alpha \sum_{j <> i} l_{ij} (u_j-u_i) + beta q_i
+ * out_i=m_i u_i + a * \sum_{j <> i} l_{ij} (u_j-u_i) + b * q_i
  *
  */
 void Paso_SolverFCT_setMuPaLuPbQ(double* out,
@@ -120,7 +120,7 @@ void Paso_SolverFCT_setMuPaLuPbQ(double* out,
   const double *remote_u=Paso_Coupler_borrowRemoteData(u_coupler);
   register double sum, u_i, l_ij;
   register index_t iptr_ij;
-
+printf("Paso_SolverFCT_setMuPaLuPbQ a,b = %e %e\n",a,b);
   n=Paso_SystemMatrix_getTotalNumRows(L);
 
   #pragma omp parallel for private(i) schedule(static)
@@ -207,6 +207,7 @@ void Paso_FCTransportProblem_setAntiDiffusionFlux(const double dt, const Paso_FC
   const double f2=  dt * fc->theta;
   register double m_ij, d_ij, u_i, u_last_i, d_u_last, d_u;
   const Paso_SystemMatrixPattern *pattern=fc->iteration_matrix->pattern;
+printf("Paso_FCTransportProblem_setAntiDiffusionFlux f1,f1 = %e %e\n",f1,f2);
   n=Paso_SystemMatrix_getTotalNumRows(fc->iteration_matrix);
   if ( (ABS(f1) >0 ) ) {
      if ( (ABS(f2) >0 ) ) {
@@ -409,6 +410,7 @@ void Paso_FCTransportProblem_addCorrectedFluxes(double* f,const Paso_SystemMatri
   dim_t n, i, j;
   Paso_SystemMatrixPattern *pattern;
   register double RN_i, RP_i, f_i, f_ij;
+  double alpha_i;
   register index_t iptr_ij;
   const double *RN=Paso_Coupler_borrowLocalData(RN_coupler);
   const double *remote_RN=Paso_Coupler_borrowRemoteData(RN_coupler);
@@ -416,9 +418,11 @@ void Paso_FCTransportProblem_addCorrectedFluxes(double* f,const Paso_SystemMatri
   const double *remote_RP=Paso_Coupler_borrowRemoteData(RP_coupler);
   n=Paso_SystemMatrix_getTotalNumRows(flux_matrix);
 
-  pattern=flux_matrix->pattern;
+  pattern=flux_matrix->pattern; 
   #pragma omp parallel for schedule(static) private(i, RN_i, RP_i, iptr_ij, j, f_ij, f_i)
   for (i = 0; i < n; ++i) {
+    
+     alpha_i=0;
      RN_i=RN[i];
      RP_i=RP[i];
      f_i=0;
@@ -428,9 +432,13 @@ void Paso_FCTransportProblem_addCorrectedFluxes(double* f,const Paso_SystemMatri
          f_ij=flux_matrix->mainBlock->val[iptr_ij];
          if (f_ij >=0) {
               f_i+=f_ij*MIN(RP_i,RN[j]);
+printf("alpha %d %d = %e %e\n",i,j,MIN(RP_i,RN[j]),f_ij);	      
+alpha_i=MAX(alpha_i,MIN(RP_i,RN[j]) );
          } else {
               f_i+=f_ij*MIN(RN_i,RP[j]);
-         }
+printf("alpha %d %d = %e %e\n",i,j,MIN(RN_i,RP[j]),f_ij);	
+alpha_i=MAX(alpha_i,MIN(RN_i,RP[j]) );
+	 }
      }
      #pragma ivdep
      for (iptr_ij=(pattern->col_couplePattern->ptr[i]);iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
@@ -442,6 +450,7 @@ void Paso_FCTransportProblem_addCorrectedFluxes(double* f,const Paso_SystemMatri
               f_i+=f_ij*MIN(RN_i,remote_RP[j]);
           }
       }
+printf("alpha %d = %e -> %e (%e, %e)\n",i,alpha_i, f_i, f[i],f[i]+f_i);
       f[i]+=f_i;
   }
 }
