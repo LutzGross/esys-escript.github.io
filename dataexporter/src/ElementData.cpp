@@ -39,9 +39,9 @@ static const size_t line3indices[2*2] = {
 };
 static const size_t tri6indices[4*3] = {
     0, 3, 5,
-    3, 1, 4,
     5, 4, 2,
-    3, 4, 5
+    3, 1, 4,
+    4, 5, 3
 };
 static const size_t rec8indices[6*3] = {
     0, 4, 7,
@@ -58,14 +58,14 @@ static const size_t rec9indices[4*4] = {
     8, 5, 2, 6
 };
 static const size_t tet10indices[8*4] = {
-    6, 0, 7, 4,
-    2, 6, 9, 5,
-    9, 7, 3, 8,
-    4, 1, 8, 5,
-    6, 7, 9, 8,
-    5, 6, 9, 8,
+    6, 4, 0, 7,
     6, 5, 4, 8,
-    7, 6, 4, 8
+    5, 1, 4, 8,
+    9, 8, 7, 3,
+    2, 5, 6, 9,
+    8, 9, 5, 6,
+    6, 7, 9, 8,
+    6, 4, 7, 8
 };
 static const size_t hex20indices[36*3] = {
      0,  8, 12,   8,  1, 13,  13,  5, 16,
@@ -783,6 +783,8 @@ FinleyElementInfo ElementData::getFinleyTypeInfo(ElementTypeId typeId)
 
         case Tri6:
         case Tri6Macro:
+            ret.useQuadNodes = true;
+            ret.quadDim = 2;
             ret.multiCellIndices = tri6indices;
             ret.elementFactor = 4;
             // fall through
@@ -811,6 +813,8 @@ FinleyElementInfo ElementData::getFinleyTypeInfo(ElementTypeId typeId)
         case Tet10:
         case Tet10Macro:
             //VTK_QUADRATIC_TETRA
+            ret.useQuadNodes = true;
+            ret.quadDim = 3;
             ret.multiCellIndices = tet10indices;
             ret.elementFactor = 8;
             ret.elementSize = ret.reducedElementSize = 4;
@@ -846,29 +850,112 @@ FinleyElementInfo ElementData::getFinleyTypeInfo(ElementTypeId typeId)
     return ret;
 }
 
-//
-//
-//
+/////////////////////////////////
+// Helpers for buildQuadMask() //
+/////////////////////////////////
+
+// returns true if |x-c| <= r, false otherwise
 inline bool inside1D(float x, float c, float r)
 {
     return (ABS(x-c) <= r);
 }
 
-//
-//
-//
+// returns true if |x-cx| <= r and |y-cy| <= r, false otherwise
 inline bool inside2D(float x, float y, float cx, float cy, float r)
 {
     return (inside1D(x, cx, r) && inside1D(y, cy, r));
 }
 
-//
-//
-//
+// returns true if |x-cx| <= r and |y-cy| <= r and |z-cz| <= r, false otherwise
 inline bool inside3D(float x, float y, float z,
                      float cx, float cy, float cz, float r)
 {
     return (inside2D(x, y, cx, cy, r) && inside1D(z, cz, r));
+}
+
+// returns true if d1 and d2 have the same sign or at least one of them is
+// close to 0, false otherwise
+inline bool sameSide(float d1, float d2)
+{
+    const float TOL = 1.e-8f;
+    return (ABS(d1) < TOL || ABS(d2) < TOL || d1*d2>=0.);
+}
+
+// computes the determinant of the 4x4 matrix given by its elements m_ij
+static float det4x4(float m_00, float m_01, float m_02, float m_03,
+                    float m_10, float m_11, float m_12, float m_13,
+                    float m_20, float m_21, float m_22, float m_23,
+                    float m_30, float m_31, float m_32, float m_33)
+{
+    float det1 = m_12 * m_23 - m_22 * m_13;
+    float det2 = m_11 * m_23 - m_21 * m_13;
+    float det3 = m_11 * m_22 - m_21 * m_12;
+    float det4 = m_10 * m_23 - m_20 * m_13;
+    float det5 = m_10 * m_22 - m_20 * m_12;
+    float det6 = m_10 * m_21 - m_20 * m_11;
+    return -m_30 * (m_01 * det1 - m_02 * det2 + m_03 * det3) +
+            m_31 * (m_00 * det1 - m_02 * det4 + m_03 * det5) -
+            m_32 * (m_00 * det2 - m_01 * det4 + m_03 * det6) +
+            m_33 * (m_00 * det3 - m_01 * det5 + m_02 * det6);
+}
+
+// returns true if point (x,y,z) is in or on the tetrahedron given by its
+// corner points p0, p1, p2 and p3, false otherwise.
+static bool pointInTet(float x, float y, float z,
+                       const float* p0, const float* p1,
+                       const float* p2, const float* p3)
+{
+    float d0 = det4x4(
+            p0[0], p0[1], p0[2], 1.f,
+            p1[0], p1[1], p1[2], 1.f,
+            p2[0], p2[1], p2[2], 1.f,
+            p3[0], p3[1], p3[2], 1.f);
+    float d1 = det4x4(
+                x,     y,     z, 1.f,
+            p1[0], p1[1], p1[2], 1.f,
+            p2[0], p2[1], p2[2], 1.f,
+            p3[0], p3[1], p3[2], 1.f);
+    float d2 = det4x4(
+            p0[0], p0[1], p0[2], 1.f,
+                x,     y,     z, 1.f,
+            p2[0], p2[1], p2[2], 1.f,
+            p3[0], p3[1], p3[2], 1.f);
+    float d3 = det4x4(
+            p0[0], p0[1], p0[2], 1.f,
+            p1[0], p1[1], p1[2], 1.f,
+                x,     y,     z, 1.f,
+            p3[0], p3[1], p3[2], 1.f);
+    float d4 = det4x4(
+            p0[0], p0[1], p0[2], 1.f,
+            p1[0], p1[1], p1[2], 1.f,
+            p2[0], p2[1], p2[2], 1.f,
+                x,     y,     z, 1.f);
+
+    return (sameSide(d0,d1) && sameSide(d1,d2) &&
+            sameSide(d2,d3) && sameSide(d3,d4));
+}
+
+// returns true if point (x,y) is in or on the triangle given by its corner
+// points p0, p1 and p2, false otherwise
+static bool pointInTri(float x, float y,
+                       const float* p0, const float* p1, const float* p2)
+{
+    const float TOL = 1.e-8f;
+    float v0[2] = { p2[0]-p0[0], p2[1]-p0[1] };
+    float v1[2] = { p1[0]-p0[0], p1[1]-p0[1] };
+    float v2[2] = { x - p0[0],   y - p0[1] };
+
+    float dot00 = v0[0]*v0[0]+v0[1]*v0[1];
+    float dot01 = v0[0]*v1[0]+v0[1]*v1[1];
+    float dot02 = v0[0]*v2[0]+v0[1]*v2[1];
+    float dot11 = v1[0]*v1[0]+v1[1]*v1[1];
+    float dot12 = v1[0]*v2[0]+v1[1]*v2[1];
+    float invDenom = dot00*dot11 - dot01*dot01;
+    if (ABS(invDenom) < TOL) invDenom = TOL;
+    invDenom = 1./invDenom;
+    float u = (dot11*dot02 - dot01*dot12) * invDenom;
+    float v = (dot00*dot12 - dot01*dot02) * invDenom;
+    return (u>=0.f) && (v>=0.f) && (u+v<=1.f);
 }
 
 //
@@ -877,10 +964,9 @@ inline bool inside3D(float x, float y, float z,
 QuadMaskInfo ElementData::buildQuadMask(const CoordArray& qnodes, int numQNodes)
 {
     QuadMaskInfo qmi;
-
     if (numQNodes == 0)
         return qmi;
-    
+
     if (finleyTypeId == Line3Macro) {
         for (int i=0; i<elementFactor; i++) {
             const float bounds[] = { 0.25, 0.75 };
@@ -897,6 +983,72 @@ QuadMaskInfo ElementData::buildQuadMask(const CoordArray& qnodes, int numQNodes)
                 qmi.factor.push_back(1);
             else
                 qmi.factor.push_back(hits);
+        }
+    } else if ((finleyTypeId == Tri6) || (finleyTypeId == Tri6Macro)) {
+        for (int i=0; i<elementFactor; i++) {
+            const float bounds[][2] = { { 0., 0. }, { 1., 0. },
+                                        { 0., 1. }, { .5, 0. },
+                                        { .5, .5 }, { 0., .5 } };
+            const size_t* nodeIdx = &tri6indices[i*nodesPerElement];
+            IntVec m(numQNodes, 0);
+            int hits = 0;
+            for (size_t j=0; j<numQNodes; j++) {
+                // check if point j is in triangle i
+                if (pointInTri(qnodes[0][j], qnodes[1][j],
+                        bounds[nodeIdx[0]], bounds[nodeIdx[1]],
+                        bounds[nodeIdx[2]])) {
+                    m[j] = 1;
+                    hits++;
+                }
+            }
+            if (hits == 0) {
+                // if an element does not contain any quadrature points we
+                // simply average over all data points within that element
+                m = IntVec(numQNodes, 1);
+                qmi.factor.push_back(numQNodes);
+                qmi.factor.push_back(1);
+            } else {
+                qmi.factor.push_back(hits);
+            }
+            qmi.mask.push_back(m);
+        }
+    } else if ((finleyTypeId == Tet10) || (finleyTypeId == Tet10Macro)) {
+        for (int i=0; i<elementFactor; i++) {
+            const float bounds[][3] = {
+                { 0., 0., 0. },
+                { 1., 0., 0. },
+                { 0., 0., 1. },
+                { 0., 1., 0. },
+                { .5, 0., 0. },
+                { .5, 0., .5 },
+                { 0., 0., .5 },
+                { 0., .5, 0. },
+                { .5, .5, 0. },
+                { 0., .5, .5 }
+            };
+            // need to reorder the elements
+            const size_t elNumIdx[] = { 0,1,2,4,3,5,6,7 };
+            const size_t* nodeIdx = &tet10indices[elNumIdx[i]*nodesPerElement];
+            IntVec m(numQNodes, 0);
+            int hits = 0;
+            for (size_t j=0; j<numQNodes; j++) {
+                // check if point j is in tetrahedron i
+                if (pointInTet(qnodes[0][j], qnodes[1][j], qnodes[2][j],
+                               bounds[nodeIdx[0]], bounds[nodeIdx[1]],
+                               bounds[nodeIdx[2]], bounds[nodeIdx[3]])) {
+                    m[j] = 1;
+                    hits++;
+                }
+            }
+            if (hits == 0) {
+                // if an element does not contain any quadrature points we
+                // simply average over all data points within that element
+                m = IntVec(numQNodes, 1);
+                qmi.factor.push_back(numQNodes);
+            } else {
+                qmi.factor.push_back(hits);
+            }
+            qmi.mask.push_back(m);
         }
     } else if ((finleyTypeId == Rec9) || (finleyTypeId == Rec9Macro)) {
         for (int i=0; i<elementFactor; i++) {
