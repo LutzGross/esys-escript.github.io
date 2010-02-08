@@ -204,7 +204,13 @@ ElementData_ptr FinleyMesh::getElementsForFinleyFS(int functionSpace) const
             }
         }
         if (result->getFinleyTypeId() != Rec9 &&
-                result->getFinleyTypeId() != Hex27) {
+                result->getFinleyTypeId() != Rec9Macro &&
+                result->getFinleyTypeId() != Hex27 &&
+                result->getFinleyTypeId() != Hex27Macro &&
+                result->getFinleyTypeId() != Tri6 &&
+                result->getFinleyTypeId() != Tri6Macro &&
+                result->getFinleyTypeId() != Tet10 &&
+                result->getFinleyTypeId() != Tet10Macro) {
             if (result->getReducedElements())
                 result = result->getReducedElements();
         }
