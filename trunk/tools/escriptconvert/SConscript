@@ -16,16 +16,20 @@ import os
 Import('*')
 
 local_env = clone_env(env_mpi)
-local_env.AppendUnique(LIBS = [env["silo_libs"], "escriptexport"])
-prog = local_env.Program("escriptconvert", ["escriptconvert.cpp"])
-env.Alias("target_escriptconvert", prog)
-inst_escriptconvert = local_env.Install(local_env["bininstall"], prog)
-env.Alias("target_install_escriptconvert", inst_escriptconvert)
+if local_env['usesilo']:
+  local_env.Append(CPPDEFINES = ['USE_SILO'])
+  local_env.AppendUnique(LIBS = [env['silo_libs']])
+
+local_env.AppendUnique(LIBS = ['escriptexport'])
+prog = local_env.Program('escriptconvert', ['escriptconvert.cpp'])
+env.Alias('target_escriptconvert', prog)
+inst_escriptconvert = local_env.Install(local_env['bininstall'], prog)
+env.Alias('target_install_escriptconvert', inst_escriptconvert)
 
 # esdcreate has no other dependencies
 local_env = clone_env(env)
-prog = local_env.Program("esdcreate", "esdcreate.cpp")
-env.Alias("target_esdcreate", prog)
-inst_esdcreate = local_env.Install(local_env["bininstall"], prog)
-env.Alias("target_install_esdcreate", inst_esdcreate)
+prog = local_env.Program('esdcreate', 'esdcreate.cpp')
+env.Alias('target_esdcreate', prog)
+inst_esdcreate = local_env.Install(local_env['bininstall'], prog)
+env.Alias('target_install_esdcreate', inst_esdcreate)
 

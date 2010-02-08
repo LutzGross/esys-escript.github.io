@@ -43,26 +43,58 @@ string insertTimestep(const string& fString, int timeStep, int tsMultiplier)
     return s;
 }
 
+int usage()
+{
+#if USE_SILO
+    cerr << "Usage: escriptconvert {-vtk|-silo} <file.esd>" << endl;
+#else
+    cerr << "Note: escriptconvert was compiled without Silo support!" << endl;
+    cerr << "Usage: escriptconvert [-vtk] <file.esd>" << endl;
+#endif
+    fflush(stderr);
+    return -1;
+}
+
 int main(int argc, char** argv)
 {
 #if HAVE_MPI
     MPI_Init(&argc, &argv);
 #endif
 
-#if USE_SILO
     // turn off for debugging purposes
     bool writeMultiMesh = true;
 
     // whether time-varying datasets should use the same mesh (from T=0)
     // TODO: Add a command line option for this
     bool writeMeshOnce = true;
+    bool doVTK = false, doSilo = false;
+    string esdFile;
 
-    if (argc < 2) {
-        cerr << "Usage: " << argv[0] << " <file.esd>" << endl; fflush(stderr);
-        return -1;
+#if USE_SILO
+    if (argc != 3)
+        return usage();
+
+    if (!strcmp(argv[1], "-vtk")) {
+        doVTK = true;
+    } else if (!strcmp(argv[1], "-silo")) {
+        doSilo = true;
+    } else {
+        return usage();
     }
-
-    string esdFile(argv[1]);
+    esdFile = string(argv[2]);
+    
+#else // !USE_SILO
+    if (argc == 2) {
+        esdFile = string(argv[1]);
+    } else if (argc == 3) {
+        if (strcmp(argv[1], "-vtk"))
+            return usage();
+        esdFile = string(argv[2]);
+    } else {
+        return usage();
+    }
+    doVTK = true;
+#endif
 
     ifstream in(esdFile.c_str());
     if (!in.is_open()) {
@@ -171,28 +203,37 @@ int main(int argc, char** argv)
         if (dot != baseName.npos)
             baseName.erase(dot, baseName.length()-dot);
 
-        ostringstream siloFile;
-        siloFile << baseName;
-        if (nTimesteps > 1)
-            siloFile << "." << timeStep;
-        siloFile << ".silo";
-
         ds->setCycleAndTime(timeStep, (double)timeStep);
-        ds->saveSilo(siloFile.str(), writeMultiMesh);
+
+        ostringstream outFilename;
+        outFilename << baseName;
+        if (nTimesteps > 1)
+            outFilename << "." << timeStep;
+        if (doSilo) {
+            outFilename << ".silo";
+            ds->saveSilo(outFilename.str(), writeMultiMesh);
+        } else {
+            outFilename << ".vtu";
+            ds->saveVTK(outFilename.str());
+        }
+
 
         // keep mesh from first timestep if it should be reused
         if (writeMeshOnce && nTimesteps > 1 && timeStep == 0) {
             meshFromTzero = ds->extractMesh();
-            meshFile = siloFile.str();
+            meshFile = outFilename.str();
             MeshBlocks::iterator meshIt;
-            for (meshIt = meshFromTzero.begin(); meshIt != meshFromTzero.end();
-                    meshIt++)
-            {
-                // Prepend Silo mesh paths with the filename of the mesh to be
-                // used
-                string fullSiloPath = meshFile + string(":");
-                fullSiloPath += (*meshIt)->getSiloPath();
-                (*meshIt)->setSiloPath(fullSiloPath);
+            if (doSilo) {
+                for (meshIt = meshFromTzero.begin();
+                        meshIt != meshFromTzero.end();
+                        meshIt++)
+                {
+                    // Prepend Silo mesh paths with the filename of the mesh
+                    // to be used
+                    string fullSiloPath = meshFile + string(":");
+                    fullSiloPath += (*meshIt)->getSiloPath();
+                    (*meshIt)->setSiloPath(fullSiloPath);
+                }
             }
         }
 
@@ -203,10 +244,6 @@ int main(int argc, char** argv)
     MeshBlocks::iterator meshIt;
 
     cout << "All done." << endl;
-#else // !USE_SILO
-    cerr << "Error: escriptconvert was compiled without Silo support! Exiting."
-        << endl;
-#endif
 
 #if HAVE_MPI
     MPI_Finalize();
