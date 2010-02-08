@@ -29,6 +29,7 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 import numpy as np
 from esys.escript import Data
 from esys.escript.pdetools import Locator
+from cblib import toXYTuple
 
 # Calculate the location of quivers for a matplotlib plot
 # quivshape :: [x,y] :: number of quivers in x and y direction
@@ -52,16 +53,6 @@ def toQuivLocs(quivshape,lenxax,lenyax,qu):
     qulocs = np.array(qulocs) #turn into a numpy array
     return qu,qulocs
     
-
- 	
-
-# Extract the X and Y coordinates of an array
-# coords :: escript coordiantes from .getX function
-def toXYTuple(coords):
-    coords = np.array(coords.toListOfTuples()) #convert to Tuple
-    coordX = coords[:,0]; coordY = coords[:,1] #X and Y components.
-    return coordX,coordY
-
 def toRegGrid(grid,domain,newx,newy,width,depth):
 	import pylab as pl
 	oldspacecoords=domain.getX()
