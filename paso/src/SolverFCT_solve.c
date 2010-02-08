@@ -98,10 +98,11 @@ err_t Paso_FCT_setUpRightHandSide(Paso_FCTransportProblem* fctp, const double dt
      */
    Paso_SolverFCT_setMuPaLuPbQ(z_m,fctp->lumped_mass_matrix, u_m_coupler,dt*fctp->theta,fctp->iteration_matrix,dt,sourceN);
    /* z_m=b-z_m */
- {
+ /*{
  int kk;
  for (kk=0;kk<n;kk++) printf("z_m %d : %e %e -> %e\n",kk,z_m[kk], b[kk],z_m[kk]-b[kk]);
  }
+*/
    Paso_Update(n,-1.,z_m,1.,b);
 
    Paso_Coupler_finishCollect(RN_m_coupler);
