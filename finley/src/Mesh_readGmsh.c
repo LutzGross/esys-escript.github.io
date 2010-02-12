@@ -27,7 +27,7 @@
 
 /*  reads a mesh from a Finley file of name fname */
 
-#define MAX_numNodes_gmsh 10
+#define MAX_numNodes_gmsh 20
 
 Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, index_t reduced_order, bool_t optimize, bool_t useMacroElements) {
 
@@ -204,6 +204,16 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                           element_type[e]=Tet10;
                       }
                       numNodesPerElement= 10;
+                      element_dim=3;
+                      break;
+                  case 16:  /* rectangular order 2 */
+                      element_type[e]=Rec8;
+                      numNodesPerElement= 8;
+                      element_dim=2;
+                      break;
+                  case 17:  /* hexahedron order 2 */
+                      element_type[e]=Hex20;
+                      numNodesPerElement= 20;
                       element_dim=3;
                       break;
                   case 15 :  /* point */
