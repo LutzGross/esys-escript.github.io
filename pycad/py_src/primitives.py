@@ -1706,6 +1706,7 @@ if ``orientation`` is equal to ``None``.
         :type orientation: `Manifold2D.LEFT`, `Manifold2D.RIGHT`, `Manifold2D.ALTERNATE`
         :note: Transfinite meshing can not be applied if holes are present.
         :note: only five or six surfaces may be used.
+        :warning: The functionality of transfinite meshing without recombination is not entirely clear in `gmsh`. So please apply this method with care.
         """
         if isinstance(self, ReversePrimitive):
            return self.getUnderlyingPrimitive().setTransfiniteMeshing(orientation)
