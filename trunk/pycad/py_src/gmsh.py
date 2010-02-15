@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ########################################################
 #
@@ -193,9 +194,9 @@ class Design(design.Design):
            elif isinstance(p, Volume):
                line=self.__mkArgs(p.getHoles())
                if len(line)>0:
-                 out+="Volume(%s) = {%s, %s};\n"%(p.getID(),p.getSurfaceLoop().getDirectedID(), line)
+                 out+="Volume(%s) = {%s, %s};\n"%(p.getID(),p.getSurfaceLoop().getDirectedID(), line)+self.__mkTransfiniteVolume(p)
                else:
-                 out+="Volume(%s) = {%s};\n"%(p.getID(),p.getSurfaceLoop().getDirectedID())
+                 out+="Volume(%s) = {%s};\n"%(p.getID(),p.getSurfaceLoop().getDirectedID())+self.__mkTransfiniteVolume(p)
 
            elif isinstance(p, PropertySet):
                if p.getNumItems()>0:
@@ -249,11 +250,26 @@ class Design(design.Design):
                       out2="%s"%q.getID()
                   else:
                       out2="%s,%s"%(out2,q.getID())
-             if o == None:
+             if s[1] == None:
                 out+="Transfinite Surface{%s} = {%s};\n"%(p.getID(),out2)
              else:
                 out+="Transfinite Surface{%s} = {%s} %s;\n"%(p.getID(),out2,s[1])
          if not o == None:
            out+="Recombine Surface {%s} = %s;\n"%(p.getID(),o/DEG)
+         return out
+    def __mkTransfiniteVolume(self,p):
+         out=""
+         s=p.getTransfiniteMeshing()
+         if not s == None:
+             if len(s)>0:
+		    out2=""
+         	    for q in s[0]:
+			if len(out2)==0:
+			    out2="%s"%q.getID()
+			else:
+			     out2="%s,%s"%(out2,q.getID())
+		    out+="Transfinite Volume{%s} = {%s};\n"%(p.getID(),out2)
+	     else:
+		    out+="Transfinite Volume{%s};\n"%(p.getID(),)
          return out
      
