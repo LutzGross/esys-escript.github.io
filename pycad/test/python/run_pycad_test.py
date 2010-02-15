@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ########################################################
 #
@@ -3336,6 +3337,61 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(cc[cc.index(s6_i)].hasSameOrientation(s6_i),"s6_i in modified object has wrong orientation.")
         self.failUnless(s6_i.isColocated(s6_i_m),"s6_i in dilated object as wrong location.")
 
+        # transfinite meshing
+        v=Volume(s_out)
+        # l01=Line(p0,p1)
+        # l15=Line(p1,p5)
+        # l54=Line(p5,p4)
+        # l40=Line(p4,p0)
+        # l23=Line(p2,p3)
+        # l37=Line(p3,p7)
+        # l76=Line(p7,p6)
+        # l62=Line(p6,p2)
+        # l13=Line(p1,p3)
+        # l57=Line(p5,p7)
+        # l02=Line(p0,p2)
+        # l46=Line(p4,p6)
+        self.failUnlessRaises(ValueError,v.setRecombination,-10*DEG)
+        self.failUnless(v.getTransfiniteMeshing() == None, "transfinite meshing set.")
+        
+        v.setElementDistribution(6)
+        self.failUnless( l01.getElementDistribution()[0] == 6 , "element distribution wrong")
+        self.failUnless( l15.getElementDistribution()[0] == 6 , "element distribution wrong")
+        self.failUnless( l54.getElementDistribution()[0] == 6 , "element distribution wrong")
+        self.failUnless( l40.getElementDistribution()[0] == 6 , "element distribution wrong")
+        self.failUnless( l23.getElementDistribution()[0] == 6 , "element distribution wrong")
+        self.failUnless( l37.getElementDistribution()[0] == 6 , "element distribution wrong")
+        self.failUnless( l76.getElementDistribution()[0] == 6 , "element distribution wrong")
+        self.failUnless( l62.getElementDistribution()[0] == 6 , "element distribution wrong")
+        self.failUnless( l13.getElementDistribution()[0] == 6 , "element distribution wrong")
+        self.failUnless( l57.getElementDistribution()[0] == 6 , "element distribution wrong")
+        self.failUnless( l02.getElementDistribution()[0] == 6 , "element distribution wrong")
+        self.failUnless( l46.getElementDistribution()[0] == 6 , "element distribution wrong")
+
+        v.setRecombination(30*DEG)
+        self.failUnless(s1.getRecombination() == 30*DEG, "recombination parameter wrong.")
+        self.failUnless(s2.getRecombination() == 30*DEG, "recombination parameter wrong.")
+        self.failUnless(s3.getRecombination() == 30*DEG, "recombination parameter wrong.")
+        self.failUnless(s4.getRecombination() == 30*DEG, "recombination parameter wrong.")
+        self.failUnless(s5.getRecombination() == 30*DEG, "recombination parameter wrong.")
+        self.failUnless(s6.getRecombination() == 30*DEG, "recombination parameter wrong.")
+        # now the same but without holes:
+        self.failUnlessRaises(ValueError,v.setTransfiniteMeshing,orientation="X")
+        v.setTransfiniteMeshing(RuledSurface.RIGHT)
+        q=v.getTransfiniteMeshing()
+        self.failUnless(not q == None, "transfinite meshing not set.")
+        self.failUnless(not s1.getTransfiniteMeshing() == None, "recombination parameter wrong.")
+        self.failUnless(s1.getTransfiniteMeshing()[1] == RuledSurface.RIGHT, "orientation is wrong.")
+        self.failUnless(not s2.getTransfiniteMeshing() == None, "recombination parameter wrong.")
+        self.failUnless(s2.getTransfiniteMeshing()[1] == RuledSurface.RIGHT, "orientation is wrong.")
+        self.failUnless(not s3.getTransfiniteMeshing() == None, "recombination parameter wrong.")
+        self.failUnless(s3.getTransfiniteMeshing()[1] == RuledSurface.RIGHT, "orientation is wrong.")
+        self.failUnless(not s4.getTransfiniteMeshing() == None, "recombination parameter wrong.")
+        self.failUnless(s4.getTransfiniteMeshing()[1] == RuledSurface.RIGHT, "orientation is wrong.")
+        self.failUnless(not s5.getTransfiniteMeshing() == None, "recombination parameter wrong.")
+        self.failUnless(s5.getTransfiniteMeshing()[1] == RuledSurface.RIGHT, "orientation is wrong.")
+        self.failUnless(not s6.getTransfiniteMeshing() == None, "recombination parameter wrong.")
+        self.failUnless(s6.getTransfiniteMeshing()[1] == RuledSurface.RIGHT, "orientation is wrong.")
    def test_PropertySet1D(self):
        p0=Point(1.,2.,3.,local_scale=9.)
        p1=Point(0.,0.,0.,local_scale=9.)
@@ -4444,6 +4500,114 @@ Physical Volume(68) = {67};
 """
        self.failUnless(scrpt == ref )
 
+   def test_generate_VolumeTransfinite(self):
+       d=GMSHDesign(dim=3, element_size=0.01)
+       p0=Point(-2,-2,-2,0.1)
+       p1=Point(2,-2,-2,0.1)
+       p2=Point(-2,2,-2,0.1)
+       p3=Point(2,2,-2,0.1)
+       p4=Point(-2,-2,2,0.1)
+       p5=Point(2,-2,2,0.1)
+       p6=Point(-2,2,2,0.1)
+       p7=Point(2,2,2,0.1)
+       l01=Line(p0,p1)
+       l15=Line(p1,p5)
+       l54=Line(p5,p4)
+       l40=Line(p4,p0)
+       l23=Line(p2,p3)
+       l37=Line(p3,p7)
+       l76=Line(p7,p6)
+       l62=Line(p6,p2)
+       l13=Line(p1,p3)
+       l57=Line(p5,p7)
+       l02=Line(p0,p2)
+       l46=Line(p4,p6)
+       cl1=CurveLoop(l01,l15,l54,l40)
+       s1=PlaneSurface(cl1)
+       cl2=CurveLoop(l23,l37,l76,l62)
+       s2=PlaneSurface(-cl2)
+       cl3=CurveLoop(l13,l37,-l57,-l15)
+       s3=PlaneSurface(cl3)
+       cl4=CurveLoop(l46,l62,-l02,-l40)
+       s4=PlaneSurface(-cl4)
+       cl5=CurveLoop(-l01,l02,l23,-l13)
+       s5=PlaneSurface(-cl5)
+       cl6=CurveLoop(-l54,l57,l76,-l46)
+       s6=PlaneSurface(-cl6)
+       s_out=SurfaceLoop(s1,s2,s3,s4,s5,s6)
+
+       v=Volume(s_out)
+       v.setElementDistribution(5)
+       v.setRecombination()
+       v.setTransfiniteMeshing()
+       d.addItems(v)
+
+       scrpt=d.getScriptString(); 
+       ref = \
+"""// generated by esys.pycad
+General.Terminal = 1;
+Point(1) = {-2.0 , -2.0, -2.0 , 0.001 };
+Point(2) = {2.0 , -2.0, -2.0 , 0.001 };
+Point(3) = {-2.0 , 2.0, -2.0 , 0.001 };
+Point(4) = {2.0 , 2.0, -2.0 , 0.001 };
+Point(5) = {-2.0 , -2.0, 2.0 , 0.001 };
+Point(6) = {2.0 , -2.0, 2.0 , 0.001 };
+Point(7) = {-2.0 , 2.0, 2.0 , 0.001 };
+Point(8) = {2.0 , 2.0, 2.0 , 0.001 };
+Line(9) = {1, 2};
+Transfinite Line{9} = 5 Using Progression 1;
+Line(10) = {2, 6};
+Transfinite Line{10} = 5 Using Progression 1;
+Line(11) = {6, 5};
+Transfinite Line{11} = 5 Using Progression 1;
+Line(12) = {5, 1};
+Transfinite Line{12} = 5 Using Progression 1;
+Line(13) = {3, 4};
+Transfinite Line{13} = 5 Using Progression 1;
+Line(14) = {4, 8};
+Transfinite Line{14} = 5 Using Progression 1;
+Line(15) = {8, 7};
+Transfinite Line{15} = 5 Using Progression 1;
+Line(16) = {7, 3};
+Transfinite Line{16} = 5 Using Progression 1;
+Line(17) = {2, 4};
+Transfinite Line{17} = 5 Using Progression 1;
+Line(18) = {6, 8};
+Transfinite Line{18} = 5 Using Progression 1;
+Line(19) = {1, 3};
+Transfinite Line{19} = 5 Using Progression 1;
+Line(20) = {5, 7};
+Transfinite Line{20} = 5 Using Progression 1;
+Line Loop(21) = {9, 10, 11, 12};
+Plane Surface(22) = {21};
+Transfinite Surface{22} = {5,1,2,6} Left;
+Recombine Surface {22} = 45.0;
+Line Loop(23) = {13, 14, 15, 16};
+Plane Surface(24) = {-23};
+Transfinite Surface{24} = {8,4,3,7} Left;
+Recombine Surface {24} = 45.0;
+Line Loop(25) = {17, 14, -18, -10};
+Plane Surface(26) = {25};
+Transfinite Surface{26} = {6,2,4,8} Left;
+Recombine Surface {26} = 45.0;
+Line Loop(27) = {20, 16, -19, -12};
+Plane Surface(28) = {-27};
+Transfinite Surface{28} = {3,7,5,1} Left;
+Recombine Surface {28} = 45.0;
+Line Loop(29) = {-9, 19, 13, -17};
+Plane Surface(30) = {-29};
+Transfinite Surface{30} = {3,1,2,4} Left;
+Recombine Surface {30} = 45.0;
+Line Loop(31) = {-11, 18, 15, -20};
+Plane Surface(32) = {-31};
+Transfinite Surface{32} = {8,6,5,7} Left;
+Recombine Surface {32} = 45.0;
+Surface Loop(33) = {22, 24, 26, 28, 30, 32};
+Volume(34) = {33};
+Transfinite Volume{34};
+Physical Volume(35) = {34};
+"""
+       self.failUnless(scrpt == ref )
        
    def test_generate_PropertySet1D(self):
        d=GMSHDesign(dim=2, element_size=0.01)
