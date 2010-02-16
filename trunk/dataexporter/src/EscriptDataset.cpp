@@ -104,7 +104,7 @@ bool EscriptDataset::initFromEscript(
 
     int gError;
 #if HAVE_MPI
-    MPI_Allreduce(&myError, &gError, 1, MPI_LOGICAL, MPI_LOR, mpiComm);
+    MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_LOR, mpiComm);
 #else
     gError = myError;
 #endif
@@ -725,7 +725,7 @@ bool EscriptDataset::loadVarFromNetCDF(const string& fileName,
 
     if (mpiSize > 1) {
 #if HAVE_MPI
-        MPI_Allreduce(&myError, &gError, 1, MPI_LOGICAL, MPI_LOR, mpiComm);
+        MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_LOR, mpiComm);
 #endif
     }
 
