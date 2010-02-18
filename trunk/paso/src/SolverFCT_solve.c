@@ -203,12 +203,11 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                      * now we solve the linear system to get the correction dt:
                      *
                      */
-/* for (i=0;i<n;++i) printf("%d %f \n", i,z_m[i]); */
                      if (fctp->theta > 0) {
                           omega=1./(dt2*fctp->theta);
                           Paso_Solver_solvePreconditioner(fctp->iteration_matrix,du_m,z_m);  
                           Paso_Update(n,1.,u,omega,du_m);
-for (i = 0; i < n; ++i) printf("u %d = %e %e <= %e \n",i,u[i], du_m[i], z_m[i]);
+/* for (i = 0; i < n; ++i) printf("u %d = %e %e <= %e \n",i,u[i], du_m[i], z_m[i]); */
 		     } else {
                           omega=1;
                           #pragma omp parallel for private(i,mass,rtmp)
@@ -368,7 +367,7 @@ void Paso_FCT_setUp(Paso_FCTransportProblem* fctp, const double dt, const double
               if (ABS(u_tilde_i)>0) rtmp4+=sourceN[i]*factor/u_tilde_i;
               fctp->iteration_matrix->mainBlock->val[fctp->main_iptr[i]]=rtmp4;
               uTilde[i]=u_tilde_i;
-printf("uTilde %d %e and %e : %e : %e %e\n",i,u_tilde_i, b[i], rtmp4, m, fctp->main_diagonal_low_order_transport_matrix[i]);
+/* printf("uTilde %d %e and %e : %e : %e %e\n",i,u_tilde_i, b[i], rtmp4, m, fctp->main_diagonal_low_order_transport_matrix[i]); */
          }
          Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
          Paso_Solver_setPreconditioner(fctp->iteration_matrix,options);
