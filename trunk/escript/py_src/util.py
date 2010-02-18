@@ -298,10 +298,10 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
     :keyword <name>: writes the assigned value to the file using <name> as
                      identifier
     :type <name>: `Data` object
-    :note: The data objects have to be defined on the same domain. They may not
-           be in the same `FunctionSpace` but one cannot expect that all
-           `FunctionSpace` s can be mixed. Typically, data on the boundary and
-           data on the interior cannot be mixed.
+    :note: The ESD concept is experimental and the file format likely to
+           change so use this function with caution.
+    :note: The data objects have to be defined on the same domain (but not
+           necessarily on the same `FunctionSpace`).
     :note: When saving a time series the first timestep must be 0 and it is
            assumed that data from all timesteps share the domain. The dataset
            file is updated in each iteration.
@@ -356,7 +356,7 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
             outputString += "V=%s:%s\n" % (varFile, varName)
 
     if domain.onMasterProcessor():
-        esdfile = open(datasetName+".esd", "w")
+        esdfile = open(os.path.join(dataDir, datasetName+".esd"), "w")
         esdfile.write(outputString)
         esdfile.close()
 
