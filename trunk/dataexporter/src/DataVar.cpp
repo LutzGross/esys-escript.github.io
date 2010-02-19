@@ -373,7 +373,7 @@ float* DataVar::averageData(const float* src, size_t stride)
         res = new float[cellFactor * numSamples];
         float* dest = res;
         QuadMaskInfo qmi = cells->getQuadMask(funcSpace);
-        if (qmi.mask.size() > 0) {
+        if (!qmi.mask.empty()) {
             const float* tmpSrc = src;
             for (int i=0; i<numSamples; i++, tmpSrc+=stride*ptsPerSample) {
                 for (int l=0; l<cellFactor; l++) {
