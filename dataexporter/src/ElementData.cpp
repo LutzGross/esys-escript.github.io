@@ -339,7 +339,7 @@ StringVec ElementData::getMeshNames() const
         res.push_back(nodeMesh->getName());
     if (reducedElements) {
         StringVec rNames = reducedElements->getMeshNames();
-        if (rNames.size() > 0)
+        if (!rNames.empty())
             res.insert(res.end(), rNames.begin(), rNames.end());
     }
     return res;

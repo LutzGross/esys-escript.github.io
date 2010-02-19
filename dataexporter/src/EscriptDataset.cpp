@@ -585,7 +585,7 @@ bool EscriptDataset::saveVTK(string fileName)
     // now write all variables - first the nodal data, then cell data
 
     // write nodal data if any
-    if (nodalVars.size() > 0) {
+    if (!nodalVars.empty()) {
         if (mpiRank == 0)
             oss << "<PointData>" << endl;
         for (viIt = nodalVars.begin(); viIt != nodalVars.end(); viIt++) {
@@ -599,7 +599,7 @@ bool EscriptDataset::saveVTK(string fileName)
     }
 
     // write cell data if any
-    if (cellVars.size() > 0) {
+    if (!cellVars.empty()) {
         if (mpiRank == 0)
             oss << "<CellData>" << endl;
         for (viIt = cellVars.begin(); viIt != cellVars.end(); viIt++) {
@@ -845,7 +845,7 @@ void EscriptDataset::putSiloMultiMesh(DBfile* dbfile, const string& meshName)
     }
 
     // ignore empty mesh
-    if (meshnames.size() > 0) {
+    if (!meshnames.empty()) {
         DBSetDir(dbfile, "/");
         DBoptlist* optList = DBMakeOptlist(2);
         DBAddOption(optList, DBOPT_CYCLE, &cycle);
@@ -893,7 +893,7 @@ void EscriptDataset::putSiloMultiVar(DBfile* dbfile, const VarInfo& vi,
     }
 
     // ignore empty variables
-    if (varnames.size() > 0) {
+    if (!varnames.empty()) {
         DBSetDir(dbfile, "/");
         DBoptlist* optList = DBMakeOptlist(2);
         DBAddOption(optList, DBOPT_CYCLE, &cycle);
@@ -951,7 +951,7 @@ void EscriptDataset::putSiloMultiTensor(DBfile* dbfile, const VarInfo& vi)
                     vartypes.push_back(DB_UCDVAR);
                 }
             }
-            if (varnames.size() > 0) {
+            if (!varnames.empty()) {
                 DBPutMultivar(dbfile, comp.str().c_str(), varnames.size(),
                         &varnames[0], &vartypes[0], optList);
             }
