@@ -324,16 +324,16 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
     if domain.onMasterProcessor() and not os.path.isdir(dataDir):
         os.mkdir(dataDir)
 
-    meshFile = os.path.join(dataDir, datasetName+"_mesh")
+    meshFile = datasetName+"_mesh"
     fileNumber = timeStep / deltaT
 
     if dynamicMesh == 0:
         # later timesteps reuse mesh from t=0
         if timeStep == 0:
-            domain.dump(meshFile + ".nc")
+            domain.dump(os.path.join(dataDir, meshFile + ".nc"))
     else:
         meshFile += ".%04d"
-        domain.dump((meshFile + ".nc") % fileNumber)
+        domain.dump(os.path.join(dataDir, (meshFile + ".nc") % fileNumber))
 
     outputString = ""
 
@@ -350,8 +350,8 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
 
     # now add the variables
     for varName, d in new_data.items():
-        varFile = os.path.join(dataDir, datasetName+"_"+varName+".%04d")
-        d.dump((varFile + ".nc") % fileNumber)
+        varFile = datasetName+"_"+varName+".%04d"
+        d.dump(os.path.join(dataDir, (varFile + ".nc") % fileNumber))
         if domain.onMasterProcessor():
             outputString += "V=%s:%s\n" % (varFile, varName)
 
