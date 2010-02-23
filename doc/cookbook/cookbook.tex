@@ -21,13 +21,7 @@
 % title, author, etc stuff
 \title{The \textit{escript} COOKBOOK}
 
-\ifpdf
-\pdfinfo {
-/Author (Antony Hallam and Lutz Gross)
-/Title (escript COOKBOOK)
-/Keywords (escript, PDEs)
-}
-\fi
+
 
 \author{Antony Hallam, Lutz Gross, et. al.}
 \authoraddress{
@@ -47,6 +41,15 @@ Email: \email{esys@esscc.uq.edu.au}
 \begin{document}
 
 \maketitle
+
+% This must come after maketitle or you'll get latex in the pdf title
+\ifpdf
+\pdfinfo {
+/Author (Antony Hallam and Lutz Gross)
+/Title (escript COOKBOOK)
+/Keywords (escript, PDEs)
+}
+\fi
 
 \input{../user/copyrights}
 
