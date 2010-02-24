@@ -98,12 +98,17 @@ err_t Paso_FCT_setUpRightHandSide(Paso_FCTransportProblem* fctp, const double dt
      */
    Paso_SolverFCT_setMuPaLuPbQ(z_m,fctp->lumped_mass_matrix, u_m_coupler,dt*fctp->theta,fctp->iteration_matrix,dt,sourceN);
    /* z_m=b-z_m */
+ /*{
+ int kk;
+ for (kk=0;kk<n;kk++) printf("z_m %d : %e %e -> %e\n",kk,z_m[kk], b[kk],z_m[kk]-b[kk]);
+ }
+*/
    Paso_Update(n,-1.,z_m,1.,b);
 
    Paso_Coupler_finishCollect(RN_m_coupler);
    Paso_Coupler_finishCollect(RP_m_coupler);
    /* add corrected fluxes into z_m */
-   Paso_FCTransportProblem_addCorrectedFluxes(z_m,flux_matrix,RN_m_coupler,RP_m_coupler); 
+    Paso_FCTransportProblem_addCorrectedFluxes(z_m,flux_matrix,RN_m_coupler,RP_m_coupler);
    return NO_ERROR;
 }
 
@@ -198,12 +203,12 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                      * now we solve the linear system to get the correction dt:
                      *
                      */
-/* for (i=0;i<n;++i) printf("%d %f \n", i,z_m[i]); */
                      if (fctp->theta > 0) {
                           omega=1./(dt2*fctp->theta);
                           Paso_Solver_solvePreconditioner(fctp->iteration_matrix,du_m,z_m);  
                           Paso_Update(n,1.,u,omega,du_m);
-                     } else {
+/* for (i = 0; i < n; ++i) printf("u %d = %e %e <= %e \n",i,u[i], du_m[i], z_m[i]); */
+		     } else {
                           omega=1;
                           #pragma omp parallel for private(i,mass,rtmp)
                           for (i = 0; i < n; ++i) {
@@ -216,14 +221,14 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                               du_m[i]=rtmp;
                               u[i]+=rtmp;
                           }
-                   }
-                   norm_u_m=Paso_lsup(n,u, fctp->mpi_info);
-                   norm_du_m=Paso_lsup(n,du_m, fctp->mpi_info)*omega;
-                   if (options->verbose) printf("iteration step %d completed: norm increment= %e (tolerance = %e)\n",m+1, norm_du_m, rtol * norm_u_m + atol);
+                     }
+                     norm_u_m=Paso_lsup(n,u, fctp->mpi_info);
+                     norm_du_m=Paso_lsup(n,du_m, fctp->mpi_info)*omega;
+                     if (options->verbose) printf("iteration step %d completed: norm increment= %e (tolerance = %e)\n",m+1, norm_du_m, rtol * norm_u_m + atol);
 
-                   max_m_reached=(m>max_m);
-                   converged=(norm_du_m <= rtol * norm_u_m + atol);
-                   m++;
+                     max_m_reached=(m>max_m);
+                     converged=(norm_du_m <= rtol * norm_u_m + atol);
+                     m++;
             }
             if (converged) {
                     Failed=0;
@@ -362,6 +367,7 @@ void Paso_FCT_setUp(Paso_FCTransportProblem* fctp, const double dt, const double
               if (ABS(u_tilde_i)>0) rtmp4+=sourceN[i]*factor/u_tilde_i;
               fctp->iteration_matrix->mainBlock->val[fctp->main_iptr[i]]=rtmp4;
               uTilde[i]=u_tilde_i;
+/* printf("uTilde %d %e and %e : %e : %e %e\n",i,u_tilde_i, b[i], rtmp4, m, fctp->main_diagonal_low_order_transport_matrix[i]); */
          }
          Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
          Paso_Solver_setPreconditioner(fctp->iteration_matrix,options);

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ########################################################
 #
@@ -496,6 +497,7 @@ class Manifold1D(PrimitiveBase):
         of the curve.
         """
         return [ self.getStartPoint(), self.getEndPoint()]
+
 
     def setElementDistribution(self,n,progression=1,createBump=False):
         """
@@ -1005,10 +1007,13 @@ class CurveLoop(Primitive, PrimitiveBase):
            if not isinstance(curves[i],Manifold1D):
               raise TypeError("%s-th argument is not a Manifold1D object."%i)
        # for the curves a loop:
-       used=[ False for i in curves]
-       self.__curves=list(curves)
+       #used=[ False for i in curves]
+       self.__curves=[]
+       for c in curves:
+            if not c in self.__curves: self.__curves.append(c)
        Primitive.__init__(self)
        PrimitiveBase.__init__(self)
+       
 
     def getCurves(self):
        """
@@ -1066,6 +1071,9 @@ class CurveLoop(Primitive, PrimitiveBase):
                 return True
        return False
 
+      
+       
+
 class ReverseCurveLoop(ReversePrimitive, PrimitiveBase):
     """
     An oriented loop of one-dimensional manifolds (= curves and arcs).
@@ -1091,7 +1099,6 @@ class ReverseCurveLoop(ReversePrimitive, PrimitiveBase):
 
     def __len__(self):
         return len(self.getUnderlyingPrimitive())
-
 #=
 class Manifold2D(PrimitiveBase):
     """
@@ -1124,6 +1131,19 @@ class Manifold2D(PrimitiveBase):
         Returns True if a hole is present.
         """
         raise NotImplementedError()
+
+    def setElementDistribution(self,n,progression=1,createBump=False):
+        """
+        Defines the number of elements on the lines 
+
+        :param n: number of elements on the line
+        :type n: ``int``
+        :param progression: a positive progression factor
+        :type progression: positive ``float``
+        :param createBump: of elements on the line
+        :type createBump: ``bool``
+        """
+        for i in self.getBoundary(): i.setElementDistribution(n,progression,createBump)
 
     def getPoints(self):
         """
@@ -1174,7 +1194,7 @@ class Manifold2D(PrimitiveBase):
         """
         applies 2D transfinite meshing to the surface. 
 
-        :param orientation: sets the orientation of the triangles. It is only used if recombination is not used.
+        :param orientation: sets the orientation of the triangles. It is only relevant if recombination is not used.
         :type orientation: `Manifold2D.LEFT`, `Manifold2D.RIGHT`, `Manifold2D.ALTERNATE`
         :note: Transfinite meshing can not be applied if holes are present.
         """
@@ -1206,7 +1226,7 @@ class Manifold2D(PrimitiveBase):
            if opposite == None:  # three sides only
                 if not top.getElementDistribution()[0] == bottom.getElementDistribution()[0]: start, top, bottom= bottom, start, top
            if not top.getElementDistribution() == bottom.getElementDistribution():
-                raise ValueError,"transfinite meshing requires oposite faces to be have the same element distribution."
+                raise ValueError,"transfinite meshing requires opposite faces to be have the same element distribution."
            if not opposite == None:
                if not start.getElementDistribution()[0] == opposite.getElementDistribution()[0]:
                    raise ValueError,"transfinite meshing requires oposite faces to be have the same element distribution."
@@ -1244,7 +1264,30 @@ class Manifold2D(PrimitiveBase):
                 return (self.__points, self.__orientation)
             else:
                 return None
-           
+    def getPolygon(self):
+       """
+       Returns a list of start/end points of the 1D mainfold form the loop. If not closed and exception is thrown.
+       """
+       curves=self.getBoundary()
+       s=[curves[0].getStartPoint(), curves[0].getEndPoint()]
+       found= [ curves[0] ]
+       restart=True
+       while restart:
+          restart=False
+	  for k in curves:
+	      if not k in found:
+		  if k.getStartPoint() == s[-1]:
+                      found.append(k)
+                      if k.getEndPoint() == s[0]: 
+                           if len(found) == len(curves):
+                             return s
+                           else:
+			     raise ValueError,"loop %s is not closed."%self.getID()
+		      s.append(k.getEndPoint())
+		      restart=True
+		      break
+	  if not restart:
+               raise ValueError,"loop %s is not closed."%self.getID()           
 class RuledSurface(Primitive, Manifold2D):
     """
     A ruled surface, i.e. a surface that can be interpolated using transfinite
@@ -1612,13 +1655,125 @@ class Manifold3D(PrimitiveBase):
        Creates a three-dimensional manifold.
        """
        PrimitiveBase.__init__(self)
+       self.__transfinitemeshing=False
 
     def getBoundary(self):
         """
-        Returns a list of the one-dimensional manifolds forming the boundary
+        Returns a list of the 2-dimensional manifolds forming the boundary
         of the volume (including holes).
         """
         raise NotImplementedError()
+
+    def setElementDistribution(self,n,progression=1,createBump=False):
+        """
+        Defines the number of elements on the lines and surfaces
+
+        :param n: number of elements on the line
+        :type n: ``int``
+        :param progression: a positive progression factor
+        :type progression: positive ``float``
+        :param createBump: of elements on the line
+        :type createBump: ``bool``
+        """
+        for i in self.getBoundary(): i.setElementDistribution(n,progression,createBump)
+
+    def setRecombination(self, max_deviation=45*DEG):
+        """
+        Recombines triangular meshes on all surface into mixed triangular/quadrangular meshes. These meshes
+        are then used to generate the volume mesh if possible. Recombination requires 3D transfinite meshing.
+
+        ``max_deviation`` specifies the maximum derivation of the largest angle in the quadrangle 
+        from the right angle. Use ``max_deviation``==``None`` to switch off recombination.
+
+        :param max_deviation: maximum derivation of the largest angle in the quadrangle from the right angle. 
+        :type max_deviation: ``float`` or ``None``.
+        """
+        if not max_deviation==None:
+           if max_deviation<=0:
+                raise ValueError, "max_deviation must be positive."
+           if max_deviation/DEG>=90:
+                raise ValueError, "max_deviation must be smaller than 90 DEG"
+        for i in self.getBoundary(): i.setRecombination(max_deviation)
+        self.setTransfiniteMeshing()
+
+    def setTransfiniteMeshing(self,orientation="Left"):
+        """
+        applies 3D transfinite meshing to the volume and all surface. It requires transfinite meshing on all faces which will be enforced (except 
+if ``orientation`` is equal to ``None``.
+
+        :param orientation: sets the orientation of the triangles on the surfaces. It is only relevant if recombination is not used.
+        If orientation is equal to ``None``, the transinite meshing is not applied to the surfaces but must be set by the user.
+        :type orientation: `Manifold2D.LEFT`, `Manifold2D.RIGHT`, `Manifold2D.ALTERNATE`
+        :note: Transfinite meshing can not be applied if holes are present.
+        :note: only five or six surfaces may be used.
+        :warning: The functionality of transfinite meshing without recombination is not entirely clear in `gmsh`. So please apply this method with care.
+        """
+        if isinstance(self, ReversePrimitive):
+           return self.getUnderlyingPrimitive().setTransfiniteMeshing(orientation)
+        else:
+           if not orientation == None:
+              if not orientation in [ Manifold2D.LEFT, Manifold2D.RIGHT, Manifold2D.ALTERNATE]:
+                 raise ValueError,"invalid orientation %s."%orientation
+       
+           if self.hasHole():
+             raise ValueError,"transfinite meshing cannot be appled to surfaces with a hole."
+           b=self.getBoundary()
+           # find a face with 3/4 Points:
+           if len(b) == 6 :
+                des_len=4
+           elif len(b) == 5:
+                des_len=3   
+           else:
+                raise ValueError,"transfinite meshing permits 5 or 6 surface only."  
+           # start_b=None
+           # for l in b:
+           #     if len(l.getPolygon()) == des_len:
+           #          start_b = l
+           #          break
+           # if start_b == None:
+           #     raise ValueError,"Expect face with %s points."%des_len
+           # start_poly=start_b.getPolygon()
+           # now we need to find the opposite face:
+           # opposite = None   
+           # for l in b: 
+           #    if all( [ not k in start_poly for k in l.getPolygon() ]): 
+           #       opposite = l
+           #       break
+           # if opposite == None:
+           #     raise ValueError,"Unable to find face for transfinite interpolation."
+           # opposite_poly=opposite.getPolygon()
+           # if not len(opposite_poly) == des_len:
+           #     raise ValueError,"Unable to find face for transfinite interpolation."
+           # this needs more work to find the points!!!!
+           points = []
+           self.__points=points
+           if not orientation == None: 
+                 for i in b: i.setTransfiniteMeshing(orientation)
+           self.__transfinitemeshing=True
+
+    def resetTransfiniteMeshing(self):
+        """
+        removes the transfinite meshing from the volume but not from the surfaces
+        """
+        if isinstance(self, ReversePrimitive):
+           self.getUnderlyingPrimitive().resetTransfiniteMeshing()
+        else:
+           self.__transfinitemeshing=False
+
+    def getTransfiniteMeshing(self):
+        """
+        returns the transfinite meshing setings. If transfinite meshing is not set, ``None`` is returned.
+        
+        :return: a tuple of the tuple of points used to define the transfinite meshing and the orientation. If no points are set the points tuple is returned as ``None``. If no transfinite meshing is not set, ``None`` is returned.
+        :rtype: ``tuple`` of a ``tuple`` of `Point` s (or ``None``) and the orientation which is one of the values  `Manifold2D.LEFT` , `Manifold2D.RIGHT` , `Manifold2D.ALTERNATE`
+        """
+        if isinstance(self, ReversePrimitive):
+           return self.getUnderlyingPrimitive().getTransfiniteMeshing()
+        else:
+            if self.__transfinitemeshing:
+                return self.__points
+            else:
+                return None
 
 class Volume(Manifold3D, Primitive):
     """
@@ -1645,6 +1800,7 @@ class Volume(Manifold3D, Primitive):
        Manifold3D.__init__(self)
        self.__loop=loop
        self.__holes=holes
+       self.__transfinitemeshing=False
 
     def getHoles(self):
        """
@@ -1697,13 +1853,17 @@ class Volume(Manifold3D, Primitive):
 
     def getBoundary(self):
         """
-        Returns a list of the one-dimensional manifolds forming the boundary
-        of the Surface (including holes).
+        Returns a list of the 2-dimensional manifolds forming the surface of the Volume (including holes).
         """
         out = []+ self.getSurfaceLoop().getSurfaces()
         for h in self.getHoles(): out+=h.getSurfaces()
         return out
 
+    def hasHole(self):
+        """
+        Returns True if a hole is present.
+        """
+        return len(self.getHoles())>0
 class PropertySet(Primitive, PrimitiveBase):
     """
     Defines a group of `Primitive` s which can be accessed through a name.

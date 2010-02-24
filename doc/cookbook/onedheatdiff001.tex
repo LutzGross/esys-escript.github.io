@@ -248,6 +248,7 @@ This is simplifying PDE coefficient and flux definitions. It makes for much easi
 
 
 \subsection{A Clarification for the 1D Case}
+\label{SEC: 1D CLARIFICATION}
 It is necessary for clarification that we revisit the general PDE from \refeq{eqn:commonform nabla} under the light of a two dimensional domain. \esc is inherently designed to solve problems that are greater than one dimension and so \refEq{eqn:commonform nabla} needs to be read as a higher dimensional problem. In the case of two spatial dimensions the \textit{Nabla operator} has in fact two components $\nabla = (\frac{\partial}{\partial x}, \frac{\partial}{\partial y})$. In full, \refEq{eqn:commonform nabla} assuming a constant coefficient $A$, takes the form;
 \begin{equation}\label{eqn:commonform2D}
 -A\hackscore{00}\frac{\partial^{2}u}{\partial x^{2}} 
@@ -453,6 +454,7 @@ result into the file \verb|totE.png| which can be displayed by (almost) any imag
 As expected the total energy is constant over time, see \reffig{fig:onedheatout1}.
 
 \subsection{Plotting the Temperature Distribution}
+\label{sec: plot T}
 \sslist{onedheatdiff001b.py}
 For plotting the spatial distribution of the temperature we need to modify the strategy we have used
 for the total energy. Instead of producing a final plot at the end we will generate a 

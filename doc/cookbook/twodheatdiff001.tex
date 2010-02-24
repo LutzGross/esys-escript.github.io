@@ -11,62 +11,207 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Two Dimensional Heat Diffusion for a basic Magmatic Intrusion}
-\sslist{twodheatdiff001.py and cblib.py}
-\label{Sec:2DHD}
- Building upon our success from the 1D models, it is now prudent to expand our domain by another dimension. For this example we will be using a very simple magmatic intrusion as the basis for our model. The simulation will be a single event where some molten granite has formed a hemispherical dome at the base of some cold sandstone country rock. A hemisphere is symmetric so taking a cross-section through its centre will effectively model a 3D problem in 2D. New concepts will include non-linear boundaries and the ability to prescribe location specific variables.
-
-\begin{figure}[h!]
+\begin{figure}[t]
 \centerline{\includegraphics[width=4.in]{figures/twodheatdiff}}
 \caption{2D model: granitic intrusion of sandstone country rock.}
 \label{fig:twodhdmodel}
 \end{figure}
 
-To expand upon our 1D problem, the domain must first be expanded. This will be done in our definition phase by creating a square domain in $x$ and $y$ that is 600 meters along each side \reffig{fig:twodhdmodel}. The number of discrete spatial cells will be 100 in either direction. The radius of the intrusion will be 200 meters with the centre located at the 300 meter mark on the x-axis. The domain variables are;
+\sslist{twodheatdiff001.py and cblib.py}
+
+Building upon our success from the 1D models, it is now prudent to expand our domain by another dimension. 
+For this example we will be using a very simple magmatic intrusion as the basis for our model. The simulation will be a single event where some molten granite has formed a cylindrical dome at the base of some cold sandstone country rock. Assuming that the cylinder is very long 
+we model a cross-section as shown in \reffig{fig:twodhdmodel}. We will implement the same 
+diffusion model as we have use for the granite blocks in \refSec{Sec:1DHDv00}
+but will add the second spatial dimension and show how to define 
+variables depending on the location of the domain. 
+We use \file{onedheatdiff001b.py} as the starting point for develop this model. 
+
+\section{Two Dimensional Heat Diffusion for a basic Magmatic Intrusion}
+\label{Sec:2DHD}
+
+To expand upon our 1D problem, the domain must first be expanded. In fact, we have solved a two dimensional problem already but didn't put much 
+attention to the second dimension. This will be changed now. 
+In our definition phase by creating a square domain in $x$ and $y$\footnote{In \esc the notation
+$x\hackscore{0}$ and $x\hackscore{1}$ is used for $x$ and $y$, respectively.} that is $600$ meters along each side \reffig{fig:twodhdmodel}. The number of discrete spatial cells will be 100 in either direction. The radius of the intrusion will be $200$ meters with the centre located at the $300$ meter mark on the $x$-axis. The domain variables are;
 \begin{python}
 mx = 600*m #meters - model length
 my = 600*m #meters - model width
-ndx = 100 #mesh steps in x direction 
-ndy = 100 #mesh steps in y direction
+ndx = 150 #mesh steps in x direction 
+ndy = 150 #mesh steps in y direction
 r = 200*m #meters - radius of intrusion
-ic = [300, 0] #centre of intrusion (meters)
-q=0.*Celsius #our heat source temperature is now zero
+ic = [300*m, 0] #coordinates of the centre of intrusion (meters)
+qH=0.*J/(sec*m**3) #our heat source temperature is zero
 \end{python}
-The next step is to define our variables for each material in the model in a manner similar to the previous tutorial. Note that each material has its own unique set of values. The time steps and set up for the domain remain as in Section \ref{sec:key}. Prior to setting up the PDE the boundary between the two materials must be established. The distance $s$ between two points in Cartesian coordinates is defined as:
+As before we use 
+\begin{python}
+model = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
+\end{python}
+to generate the domain. 
+
+There are two fundamental changes to the PDE has we have discussed PDEs in \refSec{Sec:1DHDv00}. Firstly,
+as the material coefficients for granite and sandstone is different, we need to deal with 
+PDE coefficients which vary with there location in the domain. Secondly, we need 
+to deal with the second spatial dimension. We will look at these two modification at the same time. 
+In fact our temperature model \refEq{eqn:hd} we have used in \refSec{Sec:1DHDv00} applies for the 
+1D case with constant material parameter only. For the more general case we are interested 
+in this chapter the correct model equation is 
 \begin{equation}
- (x_{1}-x_{0})^{2}+(y_{1}-y_{0})^{2} = s^{2}
+\rho c\hackscore p \frac{\partial T}{\partial t} -  \frac{\partial }{\partial x} \kappa \frac{\partial T}{\partial x} -  \frac{\partial }{\partial y} \kappa \frac{\partial T}{\partial y} = q\hackscore H 
+\label{eqn:hd2}
 \end{equation}
-If we define the point $[x_{0},y_{0}]$ as $c$ which denotes the centre of the semi-circle of our intrusion, then for all the points $[x,y]$ in our model we can calculate a distance to $c$. All the points that fall within the radius $r$ of our intrusion will have a corresponding value $s < r$ and all those belonging to the country rock will have a value $s > r$. By subtracting $r$ from both of these conditions we find $s-r < 0$ for all intrusion points and $s-r > 0$ for all country rock points. Defining these conditions within the script is quite simple and is done using the following command:
+Notice, that for the 1D case we have $\frac{\partial T}{\partial y}=0$ and
+for the case of constant material parameters $\frac{\partial }{\partial x} \kappa = \kappa  \frac{\partial }{\partial x}$ so this new equation coincides with simplified model equation for this case. It is more convenient 
+to write this equation using the $\nabla$ notation as we have already seen in \refEq{eqn:commonform nabla};
+\begin{equation}\label{eqn:Tform nabla}
+\rho c\hackscore p \frac{\partial T}{\partial t} 
+-\nabla \cdot \kappa \nabla T = q\hackscore H
+\end{equation}
+We can easily apply the backward Euler scheme as before to end up with 
+\begin{equation}
+\frac{\rho c\hackscore p}{h} T^{(n)} -\nabla \cdot \kappa \nabla T^{(n)}  = q\hackscore H +  \frac{\rho c\hackscore p}{h} T^{(n-1)}
+\label{eqn:hdgenf2}
+\end{equation}
+which is very similar to \refEq{eqn:hdgenf} used to define the temperature update in the simple 1D case. 
+The difference is in the second order derivate term $\nabla \cdot \kappa \nabla T^{(n)}$. Under 
+the light of the more general case we need to revisit the \esc PDE form as 
+shown in \ref{eqn:commonform2D}. For the 2D case with variable PDE coefficients 
+the form needs to be read as 
+\begin{equation}\label{eqn:commonform2D 2}
+-\frac{\partial }{\partial x} A\hackscore{00}\frac{\partial u}{\partial x} 
+-\frac{\partial }{\partial x} A\hackscore{01}\frac{\partial u}{\partial y} 
+-\frac{\partial }{\partial y} A\hackscore{10}\frac{\partial u}{\partial x} 
+-\frac{\partial }{\partial x} A\hackscore{11}\frac{\partial u}{\partial y} 
++ Du = f
+\end{equation}
+So besides the settings $u=T^{(n)}$, $D = \frac{\rho c \hackscore{p}}{h}$ and
+$f = q \hackscore{H} + \frac{\rho c\hackscore p}{h} T^{(n-1)}$ as we have used before (see \refEq{ESCRIPT SET}) we need to set
+\begin{equation}\label{eqn: kappa general}
+A\hackscore{00}=A\hackscore{11}=\kappa; A\hackscore{01}=A\hackscore{10}=0
+\end{equation}
+The fundamental difference to the 1D case is that $A\hackscore{11}$ is not set to zero but $\kappa$ 
+which brings in the second dimension. Important to notice that the fact that the coefficients 
+of the PDE may depend on their location in the domain now does not influence the usage of the PDE form. This is very convenient as we can introduce spatial dependence to the PDE coefficients without modification to the way we call the PDE solver. 
+
+A very convenient way to define the matrix $A$ is required in \refEq{eqn: kappa general} is using the 
+Kronecker $\delta$ symbol\footnote{see \url{http://en.wikipedia.org/wiki/Kronecker_delta}}. The 
+\esc function \verb|kronecker| returns this matrix;
+\begin{equation}
+\verb|kronecker(model)| = \left[ 
+\begin{array}{cc}
+ 1 & 0 \\
+ 0 & 1 \\
+\end{array}
+\right]
+\end{equation}
+As the argument \verb|model| represents a two dimensional domain the matrix is returned as $2 \times 2$ matrix
+(In case of a three-dimensional domain a $3 \times 3$ matrix is returned). The call 
+\begin{python}
+mypde.setValue(A=kappa*kronecker(model),D=rhocp/h)
+\end{python}
+sets the PDE coefficients according to \refEq{eqn: kappa general}.  
+
+Before we turn the question how we set $\kappa$ we need to check the boundary conditions. As
+pointed out in \refEq{NEUMAN 2} makes certain assumptions on the boundary conditions. In our case
+this assumptions translates to;
+\begin{equation}
+-n\hackscore{0} \cdot \kappa \frac{\partial T^{(n)}}{\partial x} - n\hackscore{1} \cdot  \kappa \frac{\partial T^{(n)}}{\partial y} = 0
+\end{equation}
+which sets the normal component of the heat flux $- \kappa \cdot (\frac{\partial T^{(n)}}{\partial x}, \frac{\partial T^{(n)}}{\partial y})$ to zero. This means that the regions is insulated which is what we want. 
+On the left and right face of the domain where we have $(n\hackscore{0},n\hackscore{1} ) = (\mp 1,0)$ 
+this means $\frac{\partial T^{(n)}}{\partial x}=0$ and on the top and bottom on the domain 
+where we have  $(n\hackscore{0},n\hackscore{1} ) = (\pm 1,0)$ this is $\frac{\partial T^{(n)}}{\partial y}=0$. 
+
+\section{Setting Variable PDE Coefficients}
+Now we need to look into the problem how we define the material coefficients
+$\kappa$ and $\rho c\hackscore p$ depending on there location in the domain. 
+We have used the technique we discuss here already when we set up the initial
+temperature in the granite block example in \refSec{Sec:1DHDv00}. However,
+the situation is more complicated here as we have to deal with a
+curved interface between the two sub-domain.
+
+Prior to setting up the PDE the interface between the two materials must be established. 
+The distance $s\ge 0$ between two points $[x,y]$ and $[x\hackscore{0},y\hackscore{0}]$ in Cartesian coordinates is defined as:
+\begin{equation}
+ (x-x\hackscore{0})^{2}+(y-y\hackscore{0})^{2} = s^{2}
+\end{equation}
+If we define the point $[x\hackscore{0},y\hackscore{0}]$ as $ic$ which denotes the centre of the semi-circle of our intrusion, then for all the points $[x,y]$ in our model we can calculate a distance to $ic$. 
+All the points that fall within the given radius $r$ of our intrusion will have a corresponding 
+value $s < r$ and all those belonging to the country rock will have a value $s > r$. By subtracting $r$ from both of these conditions we find $s-r < 0$ for all intrusion points and $s-r > 0$ 
+for all country rock points. 
+Defining these conditions within the script is quite simple and is done using the following command:
 \begin{python}
  bound = length(x-ic)-r #where the boundary will be located
 \end{python}
-This definition of the boundary can now be used with the \verb wherePositive()  and \verb whereNegative()  commands to help define the material constants and temperatures in our domain. By examining the general form we solved in the earlier tutorials, it is obvious that both \verb A  and \verb D  depend on the predefined variables. To set these variables accordingly and complete our PDE we use:
+This definition of the boundary can now be used with \verb|whereNegative| command again to help define the material constants and temperatures in our domain. 
+If \verb|kappai| and \verb|kappac| are the 
+thermal conductivities for the intrusion material granite and for the surrounding sandstone we set; 
 \begin{python}
-A = (kappai)*whereNegative(bound)+(kappac)*wherePositive(bound)
-D = (rhocpi/h)*whereNegative(bound)+(rhocpc/h)*wherePositive(bound)
-
-mypde.setValue(A=A*kronecker(model),D=D,d=eta,y=eta*Tc)
+x=Function(model).getX()
+bound = length(x-ic)-r
+kappa = kappai * whereNegative(bound) + kappac * (1-whereNegative(bound))
+mypde.setValue(A=kappa*kronecker(model))
 \end{python}
+Notice that we are using the sample points of the \verb|Function| function space as expected for the 
+PDE coefficient \verb|A|\footnote{For the experience user: use \texttt{x=mypde.getFunctionSpace("A").getX()}.}
+The corresponding statements are used to set $\rho c\hackscore p$. 
+
 Our PDE has now been properly established. The initial conditions for temperature are set out in a similar matter:
 \begin{python}
 #defining the initial temperatures.
- T= Ti*whereNegative(bound)+Tc*wherePositive(bound) 
+x=Solution(model).getX()
+bound = length(x-ic)-r
+T= Ti*whereNegative(bound)+Tc*(1-whereNegative(bound))
 \end{python}
-The iteration process now begins as before, but using our new conditions for \verb D  as defined above.
+where \verb|Ti| and \verb|Tc| are the initial temperature
+in the regions of the granite and surrounding sandstone, respectively. It is important to
+notice that we have reset \verb|x| and \verb|bound| to refer to the appropriate 
+sample points of a PDE solution\footnote{For the experience user: use \texttt{x=mypde.getFunctionSpace("r").getX()}.}.
 
-\subsection{Contouring escript data}
-It is possible to contour our solution using \modmpl . Unfortunately the \modmpl contouring function only accepts regularly gridded data. As our solution is not regularly gridded, it is necessary to interpolate our solution onto a regular grid. First we extract the model coordinates using \verb getX  these are then transformed to a \verb numpy  array known as a \verb tuple . Ths multi-dimensional array is then broken down into individual $x$ and $y$ arrays. This is a one step process using the function \verb toXYTuple . We also need to generate our regular grid which is done using the \modnumpy function \verb linspace  . 
+\begin{figure}[h]
+\centerline{\includegraphics[width=4.in]{figures/heatrefraction001.png}}
+\centerline{\includegraphics[width=4.in]{figures/heatrefraction030.png}}
+\centerline{\includegraphics[width=4.in]{figures/heatrefraction200.png}}
+\caption{2D model: Total temperature distribution ($T$) at time step $1$, $20$ and $200$. Contour lines show temperature.}
+\label{fig:twodhdans}
+\end{figure}
+
+\section{Contouring \esc data using \modmpl.}
+To complete our transition from a 1D to a 2D model we also need to modify the 
+plotting procedure. As before we use the  \modmpl to do the plotting 
+in this case a contour plot. For 2D contour plots \modmpl expects that the
+data are regularly gridded. We have no control on the location and ordering of the sample points
+used to represent the solution. Therefore it is necessary to interpolate our solution onto a regular grid.
+
+In \refSec{sec: plot T} we have already learned how to extract the $x$ coordinates of sample points as 
+\verb|numpy| array to hand the values to \modmpl. This can easily be extended to extract both the
+$x$ and the $y$ coordinates;
 \begin{python}
-# rearrage mymesh to suit solution function space for contouring      
-oldspacecoords=model.getX()
-coords=Data(oldspacecoords, T.getFunctionSpace())
-coordX, coordY = toXYTuple(coords)
-# create regular grid
-xi = np.linspace(0.0,mx,100)
-yi = np.linspace(0.0,my,100)
+import numpy as np
+def toXYTuple(coords):
+    coords = np.array(coords.toListOfTuples()) #convert to Tuple
+    coordX = coords[:,0] #X components.
+    coordY = coords[:,1] #Y components.
+    return coordX,coordY
 \end{python}
-The remainder of our contouring commands reside within a \verb while  loop so that a new contour is generated for each time step. For each time step the solution must be regridded for \modmpl using the \verb griddata  function. This function interprets an irregular grid and solution from \verb tempT  , \verb xi   and \verb yi . This is transformed to the new coordinates defined by \verb coordX  and \verb coordY  with an output \verb zi  . It is now possible to use the \verb contourf  function which generates colour filled contours. The colour gradient of our plots is set via the command \verb pl.matplotlib.pyplot.autumn() , other colours are listed on the \modmpl web page. Our results are then contoured, visually adjusted using the \modmpl functions and then saved to file. \verb pl.clf()  clears the figure in readiness for the next time iteration.
+For convenience we have put this function into \file{clib.py} file so we can use this
+function in other scripts more easily. 
 
+
+We now generate a regular $100 \times 100$ grid over the domain ($mx$ and $my$ 
+are the dimensions in $x$ and $y$ direction) which is done using the \modnumpy function \verb|linspace|  . 
+\begin{python}
+from clib import toXYTuple
+# get sample points for temperature as  for contouring      
+coordX, coordY = toXYTuple(T.getFunctionSpace().getX())
+# create regular grid
+xi = np.linspace(0.0,mx,75)
+yi = np.linspace(0.0,my,75)
+\end{python}
+The values \verb|[xi[k], yi[l]]| are the grid points.
+
+The remainder of our contouring commands reside within a \verb while  loop so that a new contour is generated for each time step. For each time step the solution must be regridded for \modmpl using the \verb griddata  function. This function interprets a potentially irregularly located values \verb tempT  at locations defined by \verb coordX  and \verb coordY as values at the new coordinates of a rectangular grid defined by
+\verb xi   and \verb yi . The output is \verb zi  . It is now possible to use the \verb contourf  function which generates colour filled contours. The colour gradient of our plots is set via the command \verb pl.matplotlib.pyplot.autumn() , other colours are listed on the \modmpl web page\footnote{see \url{http://matplotlib.sourceforge.net/api/}}. Our results are then contoured, visually adjusted using the \modmpl functions and then saved to file. \verb pl.clf()  clears the figure in readiness for the next time iteration.
 \begin{python}
 #grid the data.
 zi = pl.matplotlib.mlab.griddata(coordX,coordY,tempT,xi,yi)
@@ -82,25 +227,72 @@ pl.ylabel("Depth (m)")
 pl.savefig(os.path.join(save_path,"heatrefraction%03d.png") %i)
 pl.clf()        
 \end{python}
+The function \verb|pl.contour| is used to add labeled contour lines to the plot. 
+The results for selected time steps are shown in \reffig{fig:twodhdans}.
 
-\begin{figure}[h!]
-\centerline{\includegraphics[width=4.in]{figures/heatrefraction050}}
-\caption{2D model: Total temperature distribution ($T$) at time $t=50$.}
-\label{fig:twodhdans}
+
+
+\section{Advanced Visualization using VTK}
+
+\sslist{twodheatdiffvtk.py}
+An alternative approach to \modmpl for visualization is the usage of a package which base on 
+visualization tool kit (VTK) library\footnote{see \url{http://www.vtk.org/}}. There is a variety 
+of package available. Here we will use the package \mayavi\footnote{see \url{http://code.enthought.com/projects/mayavi/}} as an example. 
+
+\mayavi is an interactive, GUI driven tool which is 
+really designed to visualize large three dimensional data sets where \modmpl 
+is not suitable. But it is very useful when it comes to two dimensional problems. 
+The decision which tool is best is finally the user's decision. The main 
+difference between using \mayavi (and other VTK based tools)
+or \modmpl is the fact that actually visualization is detached from the 
+calculation by writing the results to external files
+and import them into \mayavi. In 3D where the best camera position for rendering a scene is not obvious 
+before the results are available. Therefore the user may need to try 
+different position before the best is found. Moreover, in many cases in 3D the interactive 
+visualization is the only way to really understand the results (e.g. using stereographic projection). 
+
+To write the temperatures at each time step to data files in the VTK file format one
+needs to insert a \verb|saveVTK| call into the code;
+\begin{python}
+while t<=tend:
+      i+=1 #counter
+      t+=h #current time
+      mypde.setValue(Y=qH+T*rhocp/h)
+      T=mypde.getSolution()
+      saveVTK(os.path.join(save_path,"data.%03d.vtu"%i, T=T)
+\end{python}
+The data files, eg. \file{data.001.vtu}, contains all necessary information to 
+visualize the temperature and can directly processed by \mayavi. Notice that there is no 
+regridding required. It is recommended to use the file extension \file{.vtu} for files
+created by \verb|saveVTK|. 
+
+\begin{figure}[h]
+\centerline{\includegraphics[width=4.in]{figures/ScreeshotMayavi2n1}}
+\caption{\mayavi start up Window.}
+\label{fig:mayavi window}
 \end{figure}
 
-\subsection{Advanced Visualization using VTK}
-
-\subsubsection{Parallel scripts (MPI)}
-In some of the example files for this cookbook the plotting commands are a little different.
-For example,
+\begin{figure}[h]
+\centerline{\includegraphics[width=4.in]{figures/ScreeshotMayavi2n2}}
+\caption{\mayavi data control window.}
+\label{fig:mayavi window2}
+\end{figure}
+After you have run the script you will find the 
+result files \file{data.*.vtu} in the result directory \file{data/twodheatdiff}. Run the 
+command
 \begin{python}
-	if getMPIRankWorld() == 0:
-	    pl.savefig(os.path.join(save_path+"/totT","ttrodpyplot%03d.png")%i)
-	pl.clf()	
+>> mayavi2 -d data.001.vtu -m Surface &
 \end{python}
+from the result directory. \mayavi will start up a window similar to \reffig{fig:mayavi window}.
+The right hand side shows the temperature at the first time step. To show
+the results at other time steps you can click at the item \texttt{VTK XML file (data.001.vtu) (timeseries)}
+at the top left hand side. This will bring up a new window similar to tye window shown in  \reffig{fig:mayavi window2}. By clicking at the arrows in the top right corner you can move forwards and backwards in time. 
+You will also notice the text \textbf{T} next to the item \texttt{Point scalars name}. The
+name \textbf{T} corresponds to the keyword argument name \texttt{T} we have used 
+in the \verb|saveVTK| call. In this menu item you can select other results 
+you may have written to the output file for visualization.
 
-The additional \verb if  statement is not necessary for normal desktop use.
-It becomes important for scripts run on parallel computers.
-Its purpose is to ensure that only one copy of the file is written.
+\textbf{For the advanced user}: Using the \modmpl to visualize spatially distributed data 
+is not MPI compatible. However, the \verb|saveVTK| function can be used with MPI. In fact,
+the function collects the values of the sample points spread across processor ranks into a single.
 For more details on writing scripts for parallel computing please consult the \emph{user's guide}.

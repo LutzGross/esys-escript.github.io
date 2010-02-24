@@ -21,13 +21,7 @@
 % title, author, etc stuff
 \title{The \textit{escript} COOKBOOK}
 
-\ifpdf
-\pdfinfo {
-/Author (Antony Hallam and Lutz Gross)
-/Title (escript COOKBOOK)
-/Keywords (escript, PDEs)
-}
-\fi
+
 
 \author{Antony Hallam, Lutz Gross, et. al.}
 \authoraddress{
@@ -48,10 +42,19 @@ Email: \email{esys@esscc.uq.edu.au}
 
 \maketitle
 
+% This must come after maketitle or you'll get latex in the pdf title
+\ifpdf
+\pdfinfo {
+/Author (Antony Hallam and Lutz Gross)
+/Title (escript COOKBOOK)
+/Keywords (escript, PDEs)
+}
+\fi
+
 \input{../user/copyrights}
 
 \begin{abstract}
-\esc is a \pyt based environment that has been developed to solve complex mathematical models, particularly coupled, non-linear and time-dependent partial differential equations. The intention of this cookbook, is to give new \esc users a comprehensive introduction, and to create a fundamental knowledge base and example set, that can be used as templates or references for new problems. While most of the examples in this cookbook are focused on the disciplines of geophysics and geology they all provide a solid introduction to \esc and it's capabilities.
+\esc is a \pyt based environment that has been developed to solve complex mathematical models, particularly coupled, non-linear and time-dependent partial differential equations. The intention of this cookbook, is to give new \esc users a comprehensive introduction, and to create a fundamental knowledge base and example set, that can be used as templates or references for new problems. While most of the examples in this cookbook are focused on the disciplines of geophysics and geology they all provide a solid introduction to \esc and its capabilities.
 \end{abstract}
 \tableofcontents
 
@@ -66,14 +69,18 @@ We will start by examining a simple one dimensional heat diffusion example. This
 \input{onedheatdiff001}
 \input{onedheatdiff002}
 
-\chapter{Another Dimension, Complex Models and Visualisation}
-\label{CHAP HEAT 2}
+\chapter{The Second Dimension}
+\label{CHAP HEAT 2a}
 \input{twodheatdiff001}
+
+
+\chapter{Complex Geometries}
+\label{CHAP HEAT 2}
 \input{steadystateheatdiff}
 
 % Moving into 2D and 3D wave propagations in next chapters.
-\chapter{Seismic Wave Propagation}
-\input{twodswp001}
+% \chapter{Seismic Wave Propagation}
+% \input{twodswp001}
 
 \include{einsteinETA}
 \end{document}

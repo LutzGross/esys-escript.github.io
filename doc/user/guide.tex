@@ -20,13 +20,7 @@
 % title, author, etc stuff
 \title{\module{esys} User's Guide:\\ Solving Partial Differential Equations\\ with Escript and Finley}
 
-\ifpdf
-\pdfinfo {
-/Author (Lutz Gross et al (Editor))
-/Title (escript User's Guide)
-/Keywords (escript, PDEs)
-}
-\fi
+
 
 \author{Lutz Gross\etal~(Editor)}
 \authoraddress{
@@ -47,6 +41,15 @@ Email: \email{esys@esscc.uq.edu.au}
 \begin{document}
 
 \maketitle
+
+% This must be after the make title or latex markup will end up in the title 
+\ifpdf
+\pdfinfo {
+/Author (Lutz Gross et al (Editor))
+/Title (escript User's Guide)
+/Keywords (escript, PDEs)
+}
+\fi
 
 \input{copyrights}
 
