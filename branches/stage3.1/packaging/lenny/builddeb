@@ -33,9 +33,13 @@ distro=$1
 if [ $# -lt 1 ]
 then
   distro=`lsb_release -c | cut -f2`
-  if [ $? -ne 0 ]
+  if [ "$distro" == "" ]
   then
+	echo ""
 	echo "lsb_release had some error. Exiting."
+	echo "If your system has both a system python and a custom python on the path"
+	echo "you will need to name the distribution explicitly."
+	echo ""
 	exit 4
   fi
   echo "Building for default distro $distro"
