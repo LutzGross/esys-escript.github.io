@@ -810,7 +810,7 @@ Export(
   )
 
 env.SConscript(dirs = ['tools/CppUnitTest/src'], build_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
-env.SConscript(dirs = ['tools/escriptconvert'], build_dir='build/$PLATFORM/tools/escriptconvert', duplicate=0)
+#env.SConscript(dirs = ['tools/escriptconvert'], build_dir='build/$PLATFORM/tools/escriptconvert', duplicate=0)
 env.SConscript(dirs = ['paso/src'], build_dir='build/$PLATFORM/paso', duplicate=0)
 env.SConscript(dirs = ['escript/src'], build_dir='build/$PLATFORM/escript', duplicate=0)
 env.SConscript(dirs = ['esysUtils/src'], build_dir='build/$PLATFORM/esysUtils', duplicate=0)
@@ -925,7 +925,7 @@ build_all_list += ['build_escript']
 build_all_list += ['build_finley']
 if env['usempi']:		build_all_list += ['target_pythonMPI_exe']
 #if not IS_WINDOWS_PLATFORM:	build_all_list += ['target_escript_wrapper']
-if env['usesilo']:	build_all_list += ['target_escriptconvert']
+#if env['usesilo']:	build_all_list += ['target_escriptconvert']
 env.Alias('build_all', build_all_list)
 
 install_all_list = []
@@ -939,7 +939,7 @@ install_all_list += ['target_install_modellib_py']
 install_all_list += ['target_install_pycad_py']
 if env['usempi']:		install_all_list += ['target_install_pythonMPI_exe']
 #if not IS_WINDOWS_PLATFORM:	install_all_list += ['target_install_escript_wrapper']
-if env['usesilo']:	install_all_list += ['target_install_escriptconvert']
+#if env['usesilo']:	install_all_list += ['target_install_escriptconvert']
 install_all_list += ['remember_options']
 env.Alias('install_all', install_all_list)
 
