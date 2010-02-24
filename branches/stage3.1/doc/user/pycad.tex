@@ -335,8 +335,6 @@ l23.setElementDistribution(20)
 \end{python}
 Setting the number of elements on a curve overwrites the global mesh size \code{element_size}. The result is shown in Figure~\ref{fig:PYCAD 5}. 
 
-
-
 \section{\pycad Classes}
 \declaremodule{extension}{esys.pycad}
 \modulesynopsis{Python geometry description and meshing interface}
@@ -346,10 +344,22 @@ Setting the number of elements on a curve overwrites the global mesh size \code{
 Some of the most commonly-used objects in \pycad are listed here. For a more complete
 list see the full API documentation.
 
+
 \begin{classdesc}{Point}{x=0.,y=0.,z=0.\optional{,local_scale=1.}}
 Create a point with from coordinates with local characteristic length \var{local_scale}
 \end{classdesc}
 
+\begin{classdesc}{CurveLoop}{list}
+Create a closed curve from the \code{list}. of
+\class{Line}, \class{Arc}, \class{Spline}, \class{BSpline},
+\class{BrezierSpline}.
+\end{classdesc}
+
+\begin{classdesc}{SurfaceLoop}{list}
+Create a loop of \class{PlaneSurface} or \class{RuledSurface}, which defines the shell of a volume.
+\end{classdesc}
+
+\subsubsection{Lines}
 \begin{classdesc}{Line}{point1, point2}
 Create a line with between starting and ending points.
 \end{classdesc}
@@ -366,7 +376,7 @@ number of elements, progression factor and bump flag. If
 no element distribution is set None is returned.
 \end{methoddesc}
 
-
+\subsubsection{Splines}
 \begin{classdesc}{Spline}{point0, point1, ...}
 A spline curve defined by a list of points \var{point0}, \var{point1},....
 \end{classdesc}
@@ -383,6 +393,7 @@ number of elements, progression factor and bump flag. If
 no element distribution is set None is returned.
 \end{methoddesc}
 
+\subsubsection{BSplines}
 \begin{classdesc}{BSpline}{point0, point1, ...}
 A B-spline curve defined by a list of points \var{point0}, \var{point1},....
 \end{classdesc}
@@ -399,6 +410,7 @@ number of elements, progression factor and bump flag. If
 no element distribution is set None is returned.
 \end{methoddesc}
 
+\subsubsection{Brezier Curves}
 \begin{classdesc}{BezierCurve}{point0, point1, ...}
 A Brezier spline curve defined by a list of points \var{point0}, \var{point1},....
 \end{classdesc}
@@ -415,6 +427,7 @@ number of elements, progression factor and bump flag. If
 no element distribution is set None is returned.
 \end{methoddesc}
 
+\subsubsection{Arcs}
 \begin{classdesc}{Arc}{centre_point, start_point, end_point}
 Create an arc by specifying a centre for a circle and start and end points. An arc may subtend an angle of at most $\pi$ radians.
 \end{classdesc}
@@ -431,17 +444,18 @@ number of elements, progression factor and bump flag. If
 no element distribution is set None is returned.
 \end{methoddesc}
 
-\begin{classdesc}{CurveLoop}{list}
-Create a closed curve from the \code{list}. of
-\class{Line}, \class{Arc}, \class{Spline}, \class{BSpline},
-\class{BrezierSpline}.
-\end{classdesc}
 
+
+\subsubsection{Plain surfaces}
 \begin{classdesc}{PlaneSurface}{loop, \optional{holes=[list]}}
 Create a plane surface from a \class{CurveLoop}, which may have one or more holes
 described by \var{list} of \class{CurveLoop}.
 \end{classdesc}
-\begin{methoddesc}[PlaneSurface]{setRecombination}{max_deviation}
+\begin{methoddesc}[PlaneSurface]{setElementDistribution}{n\optional{,progression=1\optional{,createBump=\False}}}
+Defines the number of elements on all lines.
+\end{methoddesc}
+
+\begin{methoddesc}[PlaneSurface]{setRecombination}{\optional{max_deviation=45 * \var{DEG} }}
 the mesh generator will try to recombine triangular elements 
 into quadrilateral elements. \var{max_deviation} (in radians) defines the
 maximum deviation of any angle in the quadrilaterals from the right angle.  
@@ -458,17 +472,20 @@ faces uses the same element distribution. No holes must be present.
 
 
 
+\subsubsection{Ruled Surfaces}
 \begin{classdesc}{RuledSurface}{list}
 Create a surface that can be interpolated using transfinite interpolation.
 \var{list} gives a list of three or four lines defining the boundary of the
 surface.
 \end{classdesc}
-\begin{methoddesc}[RuledSurface]{setRecombination}{max_deviation}
+
+\begin{methoddesc}[RuledSurface]{setRecombination}{\optional{max_deviation=45 * \var{DEG} }}
 the mesh generator will try to recombine triangular elements 
 into quadrilateral elements. \var{max_deviation} (in radians) defines the
 maximum deviation of any angle in the quadrilaterals from the right angle.  
 Set \var{max_deviation}=\var{None} to remove recombination.
 \end{methoddesc}
+
 \begin{methoddesc}[RuledSurface]{setTransfiniteMeshing}{\optional{orientation="Left"}}
 applies 2D transfinite meshing to the surface. 
 \var{orientation} defines the orientation of triangles. Allowed values
@@ -478,19 +495,42 @@ element distribution must be defined on all faces where opposite
 faces uses the same element distribution. No holes must be present.
 \end{methoddesc}
 
+\begin{methoddesc}[RuledSurface]{setElementDistribution}{n\optional{,progression=1\optional{,createBump=\False}}}
+Defines the number of elements on all lines.
+\end{methoddesc}
 
-\begin{classdesc}{SurfaceLoop}{list}
-Create a loop of \class{PlaneSurface} or \class{RuledSurface}, which defines the shell of a volume.
-\end{classdesc}
+\subsubsection{Volumes}
 
 \begin{classdesc}{Volume}{loop, \optional{holes=[list]}}
 Create a volume given a \class{SurfaceLoop}, which may have one or more holes
 define by the list of \class{SurfaceLoop}.
 \end{classdesc}
 
-\begin{classdesc}{PropertySet}{list}
-Create a PropertySet given a list of 1-D, 2-D or 3-D items. See the section on Properties below for more information.
-\end{classdesc}
+\begin{methoddesc}[Volume]{setElementDistribution}{n\optional{,progression=1\optional{,createBump=\False}}}
+Defines the number of elements on all lines.
+\end{methoddesc}
+
+\begin{methoddesc}[Volume]{setRecombination}{\optional{max_deviation=45 * \var{DEG} }}
+the mesh generator will try to recombine triangular elements 
+into quadrilateral elements. These meshes are then used to generate the volume mesh if possible. 
+Together with transfinite meshing one can construct rectanglar meshes.
+\var{max_deviation} (in radians) defines the maximum deviation of any angle in the quadrilaterals from the right angle.  
+Set \var{max_deviation}=\var{None} to remove recombination.
+\end{methoddesc}
+
+\begin{methoddesc}[Volume]{setTransfiniteMeshing}{\optional{orientation="Left"}}
+applies transfinite meshing to the volume and all surfaces (if \var{orientation} is not equal to \var{None}) 
+\var{orientation} defines the orientation of triangles. Allowed values
+are \var{``Left''}, \var{``Right''} or \var{``Alternate''}. The 
+boundary of the surface must be defined by three or four lines where an
+element distribution must be defined on all faces where opposite 
+faces uses the same element distribution. 
+If \var{orientation} is equal to \var{None} transfinite meshing is not switched on for the surfaces but needs
+to be set by the user. No holes must be present.
+\textbf{Warning: The functionality of transfinite meshing without recombination is not entirely clear in \gmshextern. 
+So please apply this method with care.}
+\end{methoddesc}
+
 
 %============================================================================================================
 \subsection{Transformations}

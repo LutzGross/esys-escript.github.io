@@ -57,7 +57,8 @@ matplotlib.use('agg') #It's just here for automated testing
 # pylab for matplotlib and plotting
 import pylab as pl
 # cblib functions
-from cblib2 import toQuivLocs, toXYTuple, toRegGrid, gradtoRegGrid
+from cblib import toXYTuple
+from cblib2 import toQuivLocs, toRegGrid, gradtoRegGrid
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:

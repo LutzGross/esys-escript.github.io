@@ -1727,7 +1727,7 @@ MeshAdapter::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
    For classes with multiple members (eg class 2) we have vars to record if there is at least one instance.
    eg hasnodes is true if we have at least one instance of Nodes.
    */
-    if (fs.size()==0)
+    if (fs.empty())
     {
         return false;
     }

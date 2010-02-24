@@ -100,7 +100,7 @@ void TestRunner::run (int ac, char **av)
     }
     mappings::iterator it;
     Test *testToRun;
-    if (tCases.size()==0) {
+    if (tCases.empty()) {
       //
       // no particular cases have been selected so run all cases
       for (it = m_mappings.begin (); it!=m_mappings.end(); ++it) {

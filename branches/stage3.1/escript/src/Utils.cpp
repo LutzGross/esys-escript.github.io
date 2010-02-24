@@ -551,7 +551,7 @@ resolveGroup(boost::python::object obj)
 			dp.push_back(p);
 		}
 	}
-	if (dats.size()>0)
+	if (!dats.empty())
 	{
 		dats[0]->resolveGroupWorker(dats);
 	}
