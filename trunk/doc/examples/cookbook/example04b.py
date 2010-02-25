@@ -24,7 +24,7 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 """
 
 ############################################################FILE HEADER
-# simple_mesher001.py
+# example04b.py
 # Create either a 2D mesh for a rectangle model using pycad meshing
 # tools.
 #
@@ -48,7 +48,7 @@ if getMPISizeWorld() > 1:
 	sys.exit(0)
 
 # make sure path exists
-save_path= os.path.join("data","simpleheat")
+save_path= os.path.join("data","example04")
 mkDir(save_path)
 
 ################################################ESTABLISHING PARAMETERS
@@ -103,5 +103,5 @@ pl.matplotlib.pyplot.autumn()
 pl.contourf(xi,yi,zi,10)
 pl.xlabel("Horizontal Displacement (m)")
 pl.ylabel("Depth (m)")
-pl.savefig(os.path.join(save_path,"simpleheat.png"))
+pl.savefig(os.path.join(save_path,"example04.png"))
 print "Solution has been plotted  ..."

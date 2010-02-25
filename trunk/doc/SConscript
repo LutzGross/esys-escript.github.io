@@ -92,6 +92,8 @@ sortOutExample('cookbook/example01c.py', needsMPL=True, allowsMPI=False)
 sortOutExample('cookbook/example02.py', needsMPL=True, allowsMPI=False)
 sortOutExample('cookbook/example03a.py', needsGD=True, allowsMPI=False)
 sortOutExample('cookbook/example03b.py')
+sortOutExample('cookbook/example04a.py', needsGMSH=True)
+sortOutExample('cookbook/example04b.py', needsGMSH=True, needsGD=True)
 
 print example_deps
 print example_files_allow_mpi
@@ -103,25 +105,13 @@ print example_files_no_mpi
 
 #   if mplversion>=mplmagicversion:
 #sortOutExample('cookbook/run_heatrefraction.py',  needsMagicMPL=True)
-#  example_files_no_mpi.append('usersguide/trapezoid.py')
-#  example_files_no_mpi.append('usersguide/quad.py')
-#  example_files_no_mpi.append('usersguide/brick.py')
-#  example_files_no_mpi.append('usersguide/refine.py')
-#  example_files_no_mpi.append('cookbook/simple_mesher001.py')
-#  example_files_no_mpi.append('cookbook/simple_solver001.py')
 #  example_files_no_mpi.append('cookbook/twodheatdiff001.py') 
 
 # we want to make sure these are still added to the examples bundle even if we can't run them
 #if not haveGMSH:
-#   example_deps.append('cookbook/simple_mesher001.py')
-#   example_deps.append('cookbook/simple_solver001.py')
 #   example_deps.append('cookbook/twodheatdiff001.py')
 #if not haveGD:
 #   example_deps.append('cookbook/twodheatdiff001.py')
-#if not haveMPL:
-#   example_deps.append('cookbook/example01b.py')
-#   example_deps.append('cookbook/example01c.py')
-#   example_deps.append('cookbook/example02.py') 
 
 
 example_files= example_files_allow_mpi + example_files_no_mpi + example_deps
