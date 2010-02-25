@@ -340,7 +340,7 @@ class Locator:
        iterative=False
        if isinstance(x, list):
            if len(x)==0: 
-              raise "ValueError", "At least one point must be given."
+              raise ValueError, "At least one point must be given."
            try:
              iter(x[0])
              iterative=True
@@ -348,10 +348,11 @@ class Locator:
              iterative=False
        if iterative:
            self.__id=[]
+           xxx=self.__function_space.getX()
            for p in x:
-              self.__id.append(util.length(self.__function_space.getX()-p[:self.__function_space.getDim()]).minGlobalDataPoint())
+              self.__id.append(util.length(xxx-p[:self.__function_space.getDim()]).minGlobalDataPoint())
        else:
-           self.__id=util.length(self.__function_space.getX()-x[:self.__function_space.getDim()]).minGlobalDataPoint()
+           self.__id=util.length(xxx-x[:self.__function_space.getDim()]).minGlobalDataPoint()
 
      def __str__(self):
        """

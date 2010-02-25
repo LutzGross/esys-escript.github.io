@@ -17,11 +17,11 @@ Import('*')
 
 #_deps is for files which end in .py and are required for
 # testing but should not be invoked directly themselves
-example_deps = ['cookbook/heatrefraction_mesher001.py', 
+example_deps = ['cookbook/cblib.py',
+  'cookbook/heatrefraction_mesher001.py', 
   'cookbook/heatrefraction_mesher002.py',
   'cookbook/heatrefraction001.py',
   'cookbook/heatrefraction002.py',
-  'cookbook/cblib.py',
   'cookbook/cblib1.py',
   'cookbook/cblib2.py'
 ]
@@ -83,7 +83,7 @@ example_files_no_mpi.append('cookbook/wavesolver2d002.py')
 if haveMPL:
    example_files_no_mpi.append('cookbook/onedheatdiff001.py')
    example_files_no_mpi.append('cookbook/onedheatdiff001b.py')
-   example_files_no_mpi.append('cookbook/onedheatdiff002.py') 
+   example_files_no_mpi.append('cookbook/onedheatdiff002.py')
    if mplversion>=mplmagicversion:
 	example_files_no_mpi.append('cookbook/twodheatdiff001.py')
 	example_files_no_mpi.append('usersguide/poisson_matplotlib.py')
@@ -95,7 +95,9 @@ if haveGMSH:
   example_files_no_mpi.append('usersguide/quad.py')
   example_files_no_mpi.append('usersguide/brick.py')
   example_files_no_mpi.append('usersguide/refine.py')
-
+  example_files_no_mpi.append('cookbook/simple_mesher001.py')
+  example_files_no_mpi.append('cookbook/simple_solver001.py')
+  example_files_no_mpi.append('cookbook/twodheatdiff001.py') 
 
 # we want to make sure these are still added to the examples bundle even if we can't run them
 if not haveGMSH:
@@ -104,6 +106,9 @@ if not haveGMSH:
    example_deps.append('usersguide/quad.py')
    example_deps.append('usersguide/brick.py')
    example_deps.append('usersguide/refine.py')
+   example_deps.append('cookbook/simple_mesher001.py')
+   example_deps.append('cookbook/simple_solver001.py')
+   example_deps.append('cookbook/twodheatdiff001.py')
 if not haveGD:
    example_deps.append('cookbook/twodheatdiff001.py')
    example_deps.append('usersguide/poisson_matplotlib.py')

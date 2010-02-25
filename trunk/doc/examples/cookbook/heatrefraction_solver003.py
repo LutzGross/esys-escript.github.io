@@ -29,18 +29,26 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 # tools.
 
 #######################################################EXTERNAL MODULES
+import matplotlib
+matplotlib.use('agg') #It's just here for automated testing
 from esys.pycad import * #domain constructor
 from esys.pycad.gmsh import Design #Finite Element meshing package
 from esys.finley import MakeDomain #Converter for escript
 import os #file path tool
-import numpy as np #numerial python for arrays
 from math import * # math package
-from esys.escript import mkDir
+from esys.escript import *
+from esys.escript.unitsSI import *
+from esys.escript.linearPDEs import LinearPDE
+from esys.escript.pdetools import Projector
+from cblib import toRegGrid, subsample
+import pylab as pl #Plotting package
+import numpy as np
 
-#used to construct polygons for plotting from pycad
-from cblib1 import getLoopCoords
-
-
+########################################################MPI WORLD CHECK
+if getMPISizeWorld() > 1:
+	import sys
+	print "This example will not run in an MPI world."
+	sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
 #set modal to 1 for a syncline or -1 for an anticline structural 
@@ -49,17 +57,20 @@ modal=-1
 
 # the folder to put our outputs in, leave blank "" for script path - 
 # note this folder path must exist to work
-save_path= os.path.join("data","heatrefrac001") 
+save_path= os.path.join("data","heatrefrac") 
 mkDir(save_path)
 
 ################################################ESTABLISHING PARAMETERS
 #Model Parameters
-width=5000.0   #width of model
-depth=-6000.0  #depth of model
+width=5000.0*m   #width of model
+depth=-6000.0*m  #depth of model
+Ttop=20*K       # top temperature
+qin=70*Milli*W/(m*m) # bottom heat influx
+
 sspl=51 #number of discrete points in spline
 dsp=width/(sspl-1) #dx of spline steps for width
-dep_sp=2500.0 #avg depth of spline
-h_sp=1500.0 #heigh of spline
+dep_sp=2500.0*m #avg depth of spline
+h_sp=1500.0*m #heigh of spline
 orit=-1.0 #orientation of spline 1.0=>up -1.0=>down
 
 ####################################################DOMAIN CONSTRUCTION
@@ -68,13 +79,7 @@ p0=Point(0.0,      0.0, 0.0)
 p1=Point(0.0,    depth, 0.0)
 p2=Point(width, depth, 0.0)
 p3=Point(width,   0.0, 0.0)
-# Join corners in anti-clockwise manner.
-l01=Line(p0, p1)
-l12=Line(p1, p2)
-l23=Line(p2, p3)
-l30=Line(p3, p0)
-# Join line segments to create domain boundary.
-c=CurveLoop(l01, l12, l23, l30)
+
 # Generate Material Boundary
 x=[ Point(i*dsp\
     ,-dep_sp+modal*orit*h_sp*cos(pi*i*dsp/dep_sp+pi))\
@@ -82,53 +87,80 @@ x=[ Point(i*dsp\
   ]
 mysp = Spline(*tuple(x))
 # Start and end of material boundary.
-x1=Spline.getStartPoint(mysp)
-x2=Spline.getEndPoint(mysp)
+x1=mysp.getStartPoint()
+x2=mysp.getEndPoint()
 	
 #  Create TOP BLOCK
 # lines
 tbl1=Line(p0,x1)
 tbl2=mysp
 tbl3=Line(x2,p3)
+l30=Line(p3, p0)
 # curve
 tblockloop = CurveLoop(tbl1,tbl2,tbl3,l30)
 # surface
 tblock = PlaneSurface(tblockloop)
-# polygon for python plotting
-tpg = getLoopCoords(tblockloop)
-np.savetxt(os.path.join(save_path,"toppg"),tpg,delimiter=" ")
-
 # Create BOTTOM BLOCK
 # lines
 bbl1=Line(x1,p1)
 bbl3=Line(p2,x2)
 bbl4=-mysp
+l12=Line(p1, p2)
 # curve
 bblockloop = CurveLoop(bbl1,l12,bbl3,bbl4)
+
 # surface
 bblock = PlaneSurface(bblockloop)
 
 #clockwise check as splines must be set as polygons in the point order
 #they were created. Otherwise get a line across plot.
 bblockloop2=CurveLoop(mysp,Line(x2,p2),Line(p2,p1),Line(p1,x1))
-bpg = getLoopCoords(bblockloop2)
-np.savetxt(os.path.join(save_path,"botpg"),bpg,delimiter=" ")
 
-#############################################EXPORTING MESH FOR ESCRIPT
+#############################################CREATE MESH FOR ESCRIPT
 # Create a Design which can make the mesh
 d=Design(dim=2, element_size=200)
 # Add the subdomains and flux boundaries.
 d.addItems(PropertySet("top",tblock),PropertySet("bottom",bblock),\
                                      PropertySet("linebottom",l12))
 # Create the geometry, mesh and Escript domain
-d.setScriptFileName(os.path.join(save_path,\
-                                   "heatrefraction_mesh001.geo"))
-
-d.setMeshFileName(os.path.join(save_path,"heatrefraction_mesh001.msh"))
-domain=MakeDomain(d, integrationOrder=-1, reducedIntegrationOrder=-1,\
-                   optimizeLabeling=True)
-# Create a file that can be read back in to python with
-# mesh=ReadMesh(fileName)
-domain.write(os.path.join(save_path,"heatrefraction_mesh001.fly"))
-
-
+d.setScriptFileName(os.path.join(save_path,"heatrefraction.geo"))
+d.setMeshFileName(os.path.join(save_path,"heatrefraction.msh"))
+domain=MakeDomain(d, optimizeLabeling=True)
+print "Domain has been generated ..."
+############################################# solve PDE
+mypde=LinearPDE(domain)
+mypde.getSolverOptions().setVerbosityOn()
+mypde.setSymmetryOn()
+kappa=Scalar(0,Function(domain))
+kappa.setTaggedValue("top",2.0*W/m/K)
+kappa.setTaggedValue("bottom",4.0*W/m/K)
+mypde.setValue(A=kappa*kronecker(domain))
+x=Solution(domain).getX()
+mypde.setValue(q=whereZero(x[1]-sup(x[1])),r=Ttop)
+qS=Scalar(0,FunctionOnBoundary(domain))
+qS.setTaggedValue("linebottom",qin)
+mypde.setValue(y=qS)
+print "PDE has been generated ..."
+###########################################################GET SOLUTION
+T=mypde.getSolution()
+print "PDE has been solved  ..."
+###########################################################PLOTTING
+# show temperature:
+xi, yi, zi = toRegGrid(T, nx=50, ny=50)
+CS = pl.contour(xi,yi,zi,5,linewidths=0.5,colors='k')
+pl.clabel(CS, inline=1, fontsize=8)
+# show sub domains:
+tpg=np.array([p.getCoordinates() for p in tblockloop.getPolygon() ])
+pl.fill(tpg[:,0],tpg[:,1],'brown',label='2 W/m/k',zorder=-1000)
+bpg=np.array([p.getCoordinates() for p in bblockloop.getPolygon() ])
+pl.fill(bpg[:,0],bpg[:,1],'red',label='4 W/m/k',zorder=-1000)
+# show flux:
+xflux, flux=subsample(-kappa*grad(T), nx=20, ny=20)
+pl.quiver(xflux[:,0],xflux[:,1],flux[:,0],flux[:,1], angles='xy',color="white")
+# create plot
+pl.title("Heat Refraction across a clinal structure\n with heat flux.")
+pl.xlabel("Horizontal Displacement (m)")
+pl.ylabel("Depth (m)")
+pl.legend()
+pl.savefig(os.path.join(save_path,"heatrefractionflux.png"))
+print "Flux has been plotted  ..."
