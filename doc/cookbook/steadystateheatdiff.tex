@@ -14,54 +14,48 @@
 \section{Steady-state Heat Refraction}
 \label{STEADY-STATE HEAT REFRACTION}
 
+In this chapter we will learn how to handle more complex geometries. 
 
-New concepts will include non-linear boundaries and the ability to prescribe location specific variables.
+Steady-state heat refraction will give us an opportunity to investigate some of the richer features that the \esc package has to offer. One of these is \pycad . The advantage of using \pycad is that it offers an easy method for developing and manipulating complex models. In conjunction with \gmsh we can generate finite element meshes that conform to our domain's shape providing accurate modeling of interfaces and boundaries. Another useful function of \pycad is that we can tag specific areas of our domain with labels as we construct them. These labels can then be used in \esc to define properties like material constants and source locations. 
 
-Steady-state heat refraction will give us an opportunity to investigate some of the richer features that the \esc package has to offer. One of these is \pycad . The advantage of using \pycad is that it offers an easy method for developing and manipulating complex models. In conjunction with \gmsh we can develop finite element grids that conform to our domain's shape providing accurate modeling of interfaces and boundaries. Another useful function of \pycad is that we can tag specific areas of our domain with labels as we construct them. These labels can then be used in \esc to define properties like material constants and source locations. 
+We will introduce in two stages. First we will look at a very simple geometry. In fact,  we will solve 
+the steady-state heat equation over a rectangular domain. This is not a very interesting problem but in a second
+step we will extend our script by introducing an internal, curved interface.
 
-\subsection{Creating the model with \pycad}
-\sslist{heatrefraction_mesher001.py and cblib.py}
-
-Our first heat refraction model will be a large anticlinal structure that is experiencing a constant temperature at the surface and a steady heat flux at it's base. Our aim is to show that the temperature flux across the surface is not linear from bottom to top but is in fact warped by the structure of the model and is heavily dependant upon the material properties and shape.
-
-\begin{figure}[h!]
-\centerline{\includegraphics[width=4.in]{figures/anticlineheatrefraction}}
-\caption{Heat refraction model with point and line labels.}
-\label{fig:anticlinehrmodel}
+\begin{figure}[ht]
+\centerline{\includegraphics[width=4.in]{figures/pycadrec}}
+\caption{Rectangular Domain for \pycad.}
+\label{fig:pycad rec}
 \end{figure}
 
-We will start by defining our domain and material boundaries using the \pycad module. This example is located in the \esc directory under \exf and a labelled diagram is available in \reffig{fig:anticlinehrmodel}. The dependencies come first and for this example we have:
-\begin{python}
-from esys.pycad import * #domain constructor
-from esys.pycad.gmsh import Design #Finite Element meshing package
-from esys.finley import MakeDomain #Converter for escript
-import os #file path tool
-import numpy as np #numerial python for arrays
-from math import * # math package
-#used to construct polygons for plotting from pycad
-from cblib import getLoopCoords 
-\end{python}
-There are two modes available in our example. When \verb modal=1  this indicates to the script that we wish to model an anticline. Otherwise when \verb modal=-1  this will model a syncline. The modal operator simply changes the orientation of the boundary function so that it is either upwards or downwards curving. A \verb save_path  has also been defined so that we can easily separate our data from other examples and our scripts. 
+\section{Creating the model with \pycad}
+\sslist{steadyheat_mesher001.py}
 
-It is now possible to start defining our domain and boundaries. There are a few primary constructors in \pycad that build upon each other to define domains and boundaries; the ones we will use are:
+We will modify the example in Chapter~\ref{CHAP HEAT 2a} in two ways: firstly we will look the steady state 
+case with slightly modified boundary conditions and secondly we will use a more flexible tool 
+to generate to generate the geometry. Lets look at the geometry first. 
+
+We want to define a rectangular domain of width $5 km$ and depth $6 km$ below the surface of the Earth. Under the assumption of a known temperature at the surface, a known heat flux at the bottom and 
+insulation to both sides we want to calculate the steady-state temperature distribution. 
+
+In \pycad there are a few primary constructors that build upon each other to define domains and boundaries; 
+the ones we will use are:
 \begin{python}
+from esys.pycad import *
 Point() #Create a point in space.
 Line() #Creates a line from a number of points.
 CurveLoop() #Creates a closed loop from a number of lines.
-Surface() #Creates a surface based on a CurveLoop
+PlaneSurface() #Creates a surface based on a CurveLoop
 \end{python}
+So to build-up our domain as shown in \reffig{fig:pycad rec} we first need to create
+the corner points. From the corner points we build the four edges of the rectangle. The four edges
+form then a closed loop which defines our domain as a surface.
 We start by inputting the variables we need to construct the model.
 \begin{python}
-#Model Parameters
-width=5000.0   #width of model
-depth=-6000.0  #depth of model
-sspl=51 #number of discrete points in spline
-dsp=width/(sspl-1) #dx of spline steps for width
-dep_sp=2500.0 #avg depth of spline
-h_sp=1500.0 #heigh of spline
-orit=-1.0 #orientation of spline 1.0=>up -1.0=>down
+width=5000.0*m   #width of model
+depth=-6000.0*m  #depth of model
 \end{python} 
-The variables are then used to construct the four corners of our domain, which from the origin has the dimensions of 5000 meters width and -6000 meters depth. This is done with the \verb Point()  function which accepts x, y and z coordinates. Our domain is in two dimensions so z should always be zero. Be careful to define all your constructs in an \textbf{anti-clockwise} manner otherwise the meshing algorithm may fail.
+The variables are then used to construct the four corners of our domain, which from the origin has the dimensions of 5000 meters width and -6000 meters depth. This is done with the \verb Point()  function which accepts x, y and z coordinates. Our domain is in two dimensions so z should always be zero. 
 \begin{python}
 # Overall Domain
 p0=Point(0.0,      0.0, 0.0)
@@ -69,18 +63,188 @@ p1=Point(0.0,    depth, 0.0)
 p2=Point(width, depth, 0.0)
 p3=Point(width,   0.0, 0.0)
 \end{python}
-Now lines are defined in an \textbf{anti-clockwise} direction using our points. This forms a rectangle around our domain.
+Now lines are defined using our points. This forms a rectangle around our domain;
 \begin{python}
 l01=Line(p0, p1)
 l12=Line(p1, p2)
 l23=Line(p2, p3)
 l30=Line(p3, p0)
 \end{python}
-These lines form the basis for our domain boundary, which is a closed loop.
+Notice that lines have a direction. These lines form the basis for our domain boundary, which is a closed loop.
 \begin{python}
 c=CurveLoop(l01, l12, l23, l30)
 \end{python}
-The curve defining our clinal structure is located in approximately the middle of the domain and has a sinusoidal shape. We define the curve by generating points at discrete intervals; 51 in this case, and then create a smooth curve through the points using the \verb Spline()  function.
+Be careful to define the curved loop in an \textbf{anti-clockwise} manner otherwise the meshing algorithm may fail.
+Finally we can define the domain as
+\begin{python}
+rec = PlaneSurface(c)
+\end{python}
+At this point the introduction of the curved loop seems to be unnecessary but this concept plays an important role 
+if holes are introduced. 
+
+Now we are ready to handover the domain \verb|rec| to a mesher which subdivides the domain into triangles (or tetrahedron in 3D). In our case we use \gmsh. We create 
+an instance of the \verb|Design| class which will handle the interface to \gmsh: 
+\begin{python}
+from esys.pycad.gmsh import Design 
+d=Design(dim=2, element_size=200*m)
+\end{python}
+The argument \verb|dim| defines the spatial dimension of the domain\footnote{If \texttt{dim}=3 the rectangle would be interpreted as a surface in the three dimensional space.}. The second argument \verb|element_size| defines element size which is the maximum length of a triangle edge in the mesh. The element size needs to be choose with care in order to avoid very large meshes if you don't want to. In our case with an element size of $200$m 
+and a domain length of $6000$m we will end up with about $\frac{6000m}{200m}=30$ triangles in each spatial direction. So will end up with about $30 \times 30 = 900$ triangles which is a size that can be handled easily.
+We can easily add our domain \verb|rec| to the \verb|Design|;
+\begin{python}
+d.addItem(rec)
+\end{python}
+We have the plan to set a heat flux on the bottom of the domain. One can use the masking technique to do this
+but \pycad offers a more convenient technique called tagging. With this techniques items in the domain are
+named using the \verb|PropertySet| class. We can then later use this name to set values secifically for
+those sample points located on the named items. Here we name the bottom face of the 
+domain where we will set the heat influx:
+\begin{python}
+ps=PropertySet("linebottom",l12))
+d.addItem(ps)
+\end{python}
+Now we are ready to hand over the \verb|Design| to \FINLEY:
+\begin{python}
+from esys.finley import MakeDomain
+domain=MakeDomain(d)
+\end{python}
+The \verb|domain| object can now be used in the same way like the return object of the \verb|Rectangle| 
+object we have used previously to generate a mesh. It is common practice to separate the 
+mesh generation from the PDE solution. The main reason for this is that mesh generation can be computationally very expensive in particular in 3D. So it is more efficient to generate the mesh once and write it to a file. The mesh
+can then be read in every time a new simulation is run. \FINLEY supports this in the following 
+way~\footnote{An alternative are the \texttt{dump} and \texttt{load} functions. They using a binary format and tend to be much smaller.}
+\begin{python}
+# write domain to an text file
+domain.write("simple.fly")
+\end{python}
+and then for recovery in another script;
+\begin{python}
+# read domain from text file
+from esys.finley import ReadMesh
+domain =ReadMesh("simple.fly")
+\end{python}
+
+\begin{figure}[ht]
+\centerline{\includegraphics[width=4.in]{figures/simplemesh}}
+\caption{Mesh over rectangular domain, see \reffig{fig:pycad rec}.}
+\label{fig:pycad rec mesh}
+\end{figure}
+
+Before we discuss how we solve the PDE for the 
+problem it is useful to present two additional options of the \verb|Design|. 
+They allow the user accessing the script which is used to by \gmsh to generate the mesh as well as
+the mesh as it has been generated by \gmsh. This is done by setting specific names for these files: 
+\begin{python}
+d.setScriptFileName("simple.geo")
+d.setMeshFileName("simple.msh")
+\end{python}
+Usually the extension \texttt{geo} is used for the script file of the \gmsh geometry and
+the extension \texttt{msh} for the mesh file. Normally these files are deleted after usage. 
+Accessing these file can be helpful to debug the generation of more complex geometries. The geometry and the mesher can be visualise with \gmsh from the command line using
+\begin{verbatim}
+gmsh simple.geo  # show geometry
+gmsh simple.msh  # show mesh
+\end{verbatim}
+The mesh is shown in \reffig{fig:pycad rec mesh}.
+\begin{figure}[ht]
+\centerline{\includegraphics[width=4.in]{figures/simpleheat}}
+\caption{REsult of simple steady state heat problem.}
+\label{fig:steady state heat}
+\end{figure}
+
+
+\section{The Steady-state Heat Equation}
+\sslist{simple_solver001.py, cblib}
+
+Steady state is reached in the temperature is not changing in time. So to calculate the 
+the steady state we set the time derivative term in \refEq{eqn:Tform nabla} to zero;
+\begin{equation}\label{eqn:Tform nabla steady}
+-\nabla \cdot \kappa \nabla T = q\hackscore H
+\end{equation}
+This PDE is easier then the PDE in \refEq{eqn:hdgenf2} we needed to solve in each time step. We can just drop
+the \verb|D| term;
+\begin{python}
+mypde=LinearPDE(domain)
+mypde.setValue(A=kappa*kronecker(model), Y=qH)
+\end{python}
+The temperature at the top face of the domain is known as \verb|Ttop| (=$20 C$). In \refSec{Sec:1DHDv0} we have 
+already discussed how this constraint is added to the PDE:
+\begin{python}
+x=Solution(domain).getX()
+mypde.setValue(q=whereZero(x[1]-sup(x[1])),r=Ttop)
+\end{python}
+Notice that we have use the \verb|sup| function to calculate the maximum $y$ coordinator of the relevant sample points.
+
+In all cases so far we have assumed that the domain is insulated which translates 
+into a zero normal flux $-n \cdot \kappa \nabla T$, see \refEq{eq:hom flux}. In the modeling
+set-up of this chapter we want to set the normal heat flux at the bottom to \verb|qin| while we still
+maintain insulation at the left and right face. Mathematically we can express this as the format
+\begin{equation}
+-n \cdot \kappa \nabla T = q\hackscore{S}
+\label{eq:inhom flux}
+\end{equation}
+where $q\hackscore{S}$ is a function of its location on the boundary. Its value becomes zero
+for locations on the left or right face of the domain while it has the value \verb|qin| at the bottom face.
+Notice that the value of $q\hackscore{S}$ at the top face is not relevant as we prescribe the temperature here.
+One could use the masking techniques we have already extensively used to define $q\hackscore{S}$ in \esc
+but the tagging mechanism provides an alternative and in many cases more convenient way of defining piecewise 
+constant functions such as $q\hackscore{S}$. You need to remember now that we
+marked the bottom face with the name \verb|linebottom| when we defined the domain. 
+We can use this now to create $q\hackscore{S}$;
+\begin{python}
+qS=Scalar(0,FunctionOnBoundary(domain))
+qS.setTaggedValue("linebottom",qin)
+\end{python}
+In the first line \verb|qS| is defined as a scalar value over the sample points on the boundary of the domain. It is
+initialized to zero for all sample points. In the second statement the values for those sample points which
+on the line marked by \verb|linebottom| are set to \verb|qin|. 
+
+The Neuman boundary condition assumed by \esc has in fact the form
+\begin{equation}\label{NEUMAN 2b}
+n\cdot A \cdot\nabla u = y 
+\end{equation}
+In comparison to the version in \refEq{NEUMAN 2} we have used so far the right hand side is now 
+the new PDE coefficient $y$. As we have not specific $y$ in our previous examples \esc has assumed
+the value zero for $y$. A comparison of \refEq{NEUMAN 2b} and \refEq{eq:inhom flux} reveals that one need to
+choose $y=-q\hackscore{S}$;
+\begin{python}
+qS=Scalar(0,FunctionOnBoundary(domain))
+qS.setTaggedValue("linebottom",qin)
+mypde.setValue(y=-qS)
+\end{python}
+To plot the results we are using the \modmpl library as shown \refSec{Sec:2DHD plot}. For convenience
+the interpolation of the temperature to a rectangular grid for contour plotting is made available
+via the \verb|toRegGrid| function in the \verb|cblib| module. Your result should look similar to 
+\reffig{fig:steady state heat}.
+
+\begin{figure}[ht]
+\centerline{\includegraphics[width=4.in]{figures/anticlineheatrefraction}}
+\caption{Heat refraction model with point and line labels.}
+\label{fig:anticlinehrmodel}
+\end{figure}
+
+\begin{figure}[ht]
+\centerline{\includegraphics[width=4.in]{figures/heatrefraction}}
+\caption{Temperature Distribution in the Heat Refraction Model.}
+\label{fig:anticlinetemp}
+\end{figure}
+
+\section{A Heat Refraction model}
+\sslist{heatrefraction_solver001.py and cblib.py}
+
+Our heat refraction model will be a large anticlinal structure that is experiencing a constant temperature at the surface and a steady heat flux at it's base. Our aim is to show that the temperature flux across the surface is not linear from bottom to top but is in fact warped by the structure of the model and is heavily dependent upon the material properties and shape.
+
+
+We will modify the example of the previous section by subdividing the block into two parts. The curve
+separating the two blocks is given as a spline, see \reffig{fig:anticlinehrmodel}. The data points
+used to define the curve may be measurement but for simplicity we assume here that there coordinates are
+known in analytic form.
+
+There are two modes available in our example. When \verb modal=1  this indicates to the script that we wish to model an anticline. Otherwise when \verb modal=-1  this will model a syncline. The modal operator simply changes the orientation of the boundary function so that it is either upwards or downwards curving. A \verb save_path  has also been defined so that we can easily separate our data from other examples and our scripts. 
+
+It is now possible to start defining our domain and boundaries. 
+
+The curve defining our clinal structure is located in approximately the middle of the domain and has a sinusoidal shape. We define the curve by generating points at discrete intervals; $51$ in this case, and then create a smooth curve through the points using the \verb Spline()  function.
 \begin{python}
 # Material Boundary
 x=[ Point(i*dsp\
@@ -91,8 +255,8 @@ mysp = Spline(*tuple(x)) #*tuple() forces x to become a tuple
 \end{python}
 The start and end points of the spline can be returned to help define the material boundaries.
 \begin{python}
-x1=Spline.getStartPoint(mysp)
-x2=Spline.getEndPoint(mysp)
+x1=mysp.getStartPoint()
+x2=mysp.getEndPoint()
 \end{python}
 The top block or material above the clinal/spline boundary is defined in a \textbf{anti-clockwise} manner by creating lines and then a closed loop. As we will be meshing the sub-domain we also need to assign it a planar surface. 
 \begin{python}
@@ -100,13 +264,9 @@ The top block or material above the clinal/spline boundary is defined in a \text
 tbl1=Line(p0,x1)
 tbl2=mysp
 tbl3=Line(x2,p3)
+l30=Line(p3, p0)
 tblockloop = CurveLoop(tbl1,tbl2,tbl3,l30)
 tblock = PlaneSurface(tblockloop)
-\end{python}
-It is also necessary to create and export a polygon for \esc so that we can plot the boundaries of our sub-domains. First we take the loop from our block and retrieve its point coordinates with the function \verb getLoopCoords()  and then output it with \modnumpy for our solution script.
-\begin{python}
-tpg = getLoopCoords(tblockloop)
-np.savetxt(os.path.join(save_path,"toppg"),tpg,delimiter=" ")
 \end{python}
 We must repeat the above for every other sub-domain. In this example there is only one other, the bottom block. The process is fairly similar to the top block but with a few differences. The spline points must be reversed by setting the spline as negative.
 \begin{python}
@@ -115,9 +275,7 @@ bbl4=-mysp
 This reverse spline option unfortunately does not work for the getLoopCoords command, however, the \modmpl polygon tool will accept clock-wise oriented points so we can define a new curve.
 \begin{python}
 #clockwise check
-bblockloop2=CurveLoop(mysp,Line(x2,p2),Line(p2,p1),Line(p1,x1))
-bpg = getLoopCoords(bblockloop2)
-np.savetxt(os.path.join(save_path,"botpg"),bpg,delimiter=" ")
+bblockloop=CurveLoop(mysp,Line(x2,p2),Line(p2,p1),Line(p1,x1))
 \end{python}
 The last few steps in creating the model take the previously defined domain and sub-domain points and generate a mesh that can be imported into \esc.
 To initialise the mesh it first needs some design parameters. In this case we have 2 dimensions \verb dim  and a specified number of finite elements that need to be applied to the domain \verb element_size  . It then becomes a simple task of adding the sub-domains and flux boundaries to the design. Each element of our model can be given an identifier which makes it easier to define the sub-domain properties in the solution script. This is done using the \verb PropertySet()  function. The geometry and mesh are then saved so the \esc domain can be created.
@@ -128,172 +286,163 @@ d=Design(dim=2, element_size=200)
 d.addItems(PropertySet("top",tblock),PropertySet("bottom",bblock),\
                    PropertySet("linebottom",l12))
 # Create the geometry, mesh and \esc domain
-d.setScriptFileName(os.path.join(save_path,"heatrefraction_mesh001.geo"))
-d.setMeshFileName(os.path.join(save_path,"heatrefraction_mesh001.msh"))
-domain=MakeDomain(d, integrationOrder=-1, reducedIntegrationOrder=-1,\
-                                   optimizeLabeling=True)
-# Create a file that can be read back in to python with mesh=ReadMesh(fileName)
-domain.write(os.path.join(save_path,"heatrefraction_mesh001.fly"))
+d.setScriptFileName(os.path.join(save_path,"heatrefraction.geo"))
+d.setMeshFileName(os.path.join(save_path,"heatrefraction.msh"))
+domain=MakeDomain(d,optimizeLabeling=True)
 \end{python}
-The creation of our domain and its mesh is complete. Now we must create a solution for our steady state problem.
+The creation of our domain and its mesh is complete.
 
-\subsection{Steady-state PDE solution}
-\sslist{heatrefraction.py and cblib.py}
-While a steady-state solution will not give an indication as to the quantitative heat flow in a model, it is useful because it allows us to visualise the direction of heat transport and the equilibrium state of the model. Also, a steady-state model only requires one iteration to find a solution. We know from \refCh{CHAP HEAT DIFF} that the full form of the heat diffusion PDE can be expressed as follows.
-\begin{equation}
-\rho c\hackscore p \frac{\partial T}{\partial t} - \kappa \frac{\partial^{2} T}{\partial x^{2}} = q\hackscore H 
-\label{eqn:hd2}
-\end{equation}
-In the steady state PDE however, there is no time dependence. This means that \refEq{eqn:hd2} reduces to
-\begin{equation}
-- \kappa \frac{\partial^{2} T}{\partial x^{2}} = q\hackscore H 
-\label{eqn:sshd}
-\end{equation}
-where we see our only variables are $\kappa$ the thermal conductivity and the heat source term $q\hackscore H$. Our boundary conditions are similar to earlier problems with some exceptions. Our heat source $q\hackscore H$ is now located at the base of the model and is implemented using our \modpycad identity \textit{linebottom} and we have a constant temperature along the surface of the model where $z=0$. The \modLPDE module's general form as a provision for these cases of the form
-\begin{equation}
-u=r \textit{    where    } q>0
-\label{eqn:bdr}
-\end{equation}
-using this functionality forces the solution $u$ to equal the value or $r$ wherever the criterion supplied by $q>0$ is true.
-The structure of our solution script is similar to those we have used already. We begin by importing the dependencies and defining the PDE and script variables. In this case there are four major variables; \verb qin  is the temperature of our source, \verb Ti  is the temperature on the surface at $z=0$ and our width and depth of the model.
+With the mesh imported it is now possible to use our tagging property to set up our PDE coefficients. In this case $\kappa$ is set via the \verb setTaggedValue()  function which takes two arguments, the name of the tagged points and the value to assign to them. 
 \begin{python}
-##ESTABLISHING VARIABLES
-qin=70*Milli*W/(m*m) #our heat source temperature is now zero
-Ti=290.15*K # Kelvin #the starting temperature of our iron bar
-width=5000.0*m
-depth=-6000.0*m
-\end{python}
-The mesh is now imported via the \verb ReadMesh()  function and loaded into a domain variable \verb mymesh . This is followed by the structural polygons. With the mesh imported it is now possible to use our tagging property to set up our PDE coefficients. In this case $\kappa$ is set via the \verb setTaggedValue()  function which takes two arguments, the name of the tagged points and the value to assign to them. 
-\begin{python}
-mymesh=ReadMesh(os.path.join(saved_path,"heatrefraction_mesh001.fly"))
-tpg = np.loadtxt(os.path.join(saved_path,"toppg"))
-tpgx = tpg[:,0]
-tpgy = tpg[:,1]
-bpg = np.loadtxt(os.path.join(saved_path,"botpg"))
-bpgx = bpg[:,0]
-bpgy = bpg[:,1]
-
 # set up kappa (thermal conductivity across domain) using tags
-kappa=Scalar(0,Function(mymesh))
-kappa.setTaggedValue("top",2.0)
-kappa.setTaggedValue("bottom",4.0)
+kappa=Scalar(0,Function(domain))
+kappa.setTaggedValue("top",2.0*W/m/K)
+kappa.setTaggedValue("bottom",4.0*W/m/K)
 \end{python}
-Setting up the PDE is a little more complicated. The linear PDE \verb mypde  is again assigned the domain \verb mymesh  and \verb A  is set. \verb qH  is set on the boundary by creating \verb qH  as a function space of type \verb FunctionOnBoundary  which is in turn based on \verb mymesh  . We can then set the tagged value \textit{linebottom} to the condition \verb qin  . We also need to use our condition from \refEq{eqn:bdr}. By extracting \verb x  we can set the domain at zero to 1 and everywhere else 0 via the \verb whereZero()  function. This is put into \verb q  and \verb r  is set to \verb Ti  our temperature at the surface. Note \verb y=qH  . As there is no time derivative in the equation we do not have any iterative steps and there is one solution to the problem. This is found in the step \verb T=mypde.getSolution()  .
-\begin{python}
-#... generate functionspace...
-#... open PDE ...
-mypde=LinearPDE(mymesh)
-#define first coefficient
-mypde.setValue(A=kappa*kronecker(mymesh))
+No further changes are required to the PDE solution step, see \reffig{fig:anticlinetemp} for the result. 
 
-# ... set initial temperature ....
-x=mymesh.getX()
-
-qH=Scalar(0,FunctionOnBoundary(mymesh))
-qH.setTaggedValue("linebottom",qin)
-mypde.setValue(q=whereZero(x[1]),r=Ti)
-mypde.setValue(y=qH)
-
-# get steady state solution.
-T=mypde.getSolution()
-\end{python}
-The problem is now solved and plotting is required to visualise the data.
-
-\subsection{Line profiles of 2D data}
-It is possible to take slices or profile sections of 2d data using \mpl. To achieve this there are three major steps, firstly the solution must be smoothed across the domain using the \verb projector()  function.
-\begin{python}
-proj=Projector(mymesh)
-smthT=proj(T)
-\end{python}
-The data must then be moved to a regular grid.
-\begin{python}
-xi,yi,zi = toRegGrid(smthT,mymesh,200,200,width,depth)
-\end{python}
-The profile can then be plotted by taking a slice of the data output \verb zi  . 
-\begin{python}
-cut=int(len(xi)/2)
-pl.clf()
-pl.plot(zi[:,cut],yi)
-pl.title("Heat Refraction Temperature Depth Profile")
-pl.xlabel("Temperature (K)")
-pl.ylabel("Depth (m)")
-\end{python}
-This process can be repeated for various variations of the solution. In this case we have temperature, temperature gradient, thermal conductivity and heat flow \reffig{figs:dps}.
 \begin{figure}
 \centering
-    \subfigure[Temperature Depth Profile]{\includegraphics[width=3in]{figures/heatrefraction001tdp.png}\label{fig:tdp}}
-    \subfigure[Temperature Gradient Depth Profile]{\includegraphics[width=3in]{figures/heatrefraction001tgdp.png}\label{fig:tgdp}}
-    \subfigure[Thermal Conductivity Profile]{\includegraphics[width=3in]{figures/heatrefraction001tcdp.png}\label{fig:tcdp}}
-    \subfigure[Heat Flow Depth Profile]{\includegraphics[width=3in]{figures/heatrefraction001hf.png}\label{fig:hf}}
+    \subfigure[Temperature Depth Profile]{\includegraphics[width=3in]{figures/heatrefractiontdp.png}\label{fig:tdp}}
+    \subfigure[Temperature Gradient Depth Profile]{\includegraphics[width=3in]{figures/heatrefractiontgdp.png}\label{fig:tgdp}}
+    \subfigure[Thermal Conductivity Profile]{\includegraphics[width=3in]{figures/heatrefractiontcdp.png}\label{fig:tcdp}}
+    \subfigure[Heat Flow Depth Profile]{\includegraphics[width=3in]{figures/heatrefractionhf.png}\label{fig:hf}}
   \caption{Depth profiles down centre of model.}
   \label{figs:dps}
 \end{figure}
 
+\section{Line profiles of 2D data}
+\sslist{heatrefraction_solver002.py and cblib.py}
 
+We want to investigate the profile of the data of the last example. 
+We are particularly interested in the deepth profile of the heat flux which is
+the second component of $-\kappa \nabla T$. We will extend the script developed in the 
+previous section to show how for instance vertical profile can be plotted.
 
-
-\subsection{Quiver plots in \mpl}
-To visualise this data we are going to do three things. Firstly we will generate the gradient of the solution and create some quivers or arrows that describe the gradient. Then we need to generate some temperature contours and thirdly, we will create some polygons from our meshing output files to show our material boundaries.
-
-The first step is very easily provided by \esc, where we can use the \verb grad()  function to generate our gradient. It is then necessary to mould the solution to the domain node points. We do this by first extracting the nodes to \verb oldspacecoords  and transforming them via interpolation to suit our solution which is in the function space form of \verb T  .
+The first important information is that \esc assumes that $-\kappa \nabla T$ is not smooth and
+will in fact represent the values at numerical interpolation points. This assumption is reasonable as
+the flux is the product of the piecewise constant function $\kappa$ and 
+the gradient of the temperature $T$ which has a kink across the rock interface. 
+Before plotting this function we need to smooth it using the 
+\verb|Projector()| factory;
 \begin{python}
-# calculate gradient of solution for quiver plot
-qu=-kappa*grad(T)
-
-# rearrange mymesh to suit solution function space      
-oldspacecoords=mymesh.getX()
-coords=Data(oldspacecoords, T.getFunctionSpace())
+from esys.escript.pdetools import Projector
+proj=Projector(domain)
+qu=proj(-kappa*grad(T))
 \end{python}
-Now the number of quivers we want is specified as $20 \times 20 = 400$ and their locations calculated based on our coordinates in \verb qu  . All our data is then transformed to tuples for \modmpl .
+The \verb|proj| object provides a mechanism to distribute values given at the numerical interpolation points
+- in this case the heat flux - to the nodes of the FEM mesh. \verb|qu| has the same attached function space
+like the temperature \verb|T|. The smoothed flux is interpolated 
+to a regular $200\times 200$ grid;
 \begin{python}
-quivshape = [20,20] #quivers x and quivers y
-# function to calculate quiver locations
-qu,qulocs = toQuivLocs(quivshape,width,depth,qu)
-
-kappaT = kappa.toListOfTuples(scalarastuple=False)
-coordsK = Data(oldspacecoords, kappa.getFunctionSpace())
-coordKX, coordKY = toXYTuple(coordsK)
-      
-tempT = T.toListOfTuples(scalarastuple=False)
-coordX, coordY = toXYTuple(coords)
+xiq,yiq,ziq = toRegGrid(qu[1],200,200)
 \end{python}
-In a similar fashion to the contouring, our data needs to be transferred to a regular grid to contour the temperature. Our polygons are handled by the \verb fill()  function making sure they are ordered to the lowest level of the plot beneath all other data. Labelling is then added and finally the Quivers using the \verb quiver()  function. More detail on each \modmpl function is available from the \modmpl website.
+using the \verb|toRegGrid| function from the cookbook library which we are already using for the contour plot.
+At return \verb|ziq[j,i]| is the value of vertical heat flux at point 
+(\verb|xiq[i]|,\verb|yiq[j]|). We can easily create deep profiles now by
+plotting slices \verb|ziq[:,i]| over \verb|yiq|. The following script
+creates a deep profile at $x_{0}=\frac{width}{2}$;
 \begin{python}
-xi = np.linspace(0.0,width,100)
-yi = np.linspace(depth,0.0,100)
-# grid the data.
-zi = pl.matplotlib.mlab.griddata(coordX,coordY,tempT,xi,yi)
-ziK = pl.matplotlib.mlab.griddata(coordKX,coordKY,kappaT,xi,yi)
-# contour the gridded data, plotting dots at the randomly spaced data points.
-pl.matplotlib.pyplot.autumn()
-
-CKL = pl.fill(tpgx,tpgy,'brown',bpgx,bpgy,'red',zorder=-1000)
-#~ CK = pl.contourf(xi,yi,ziK,2)
-CS = pl.contour(xi,yi,zi,5,linewidths=0.5,colors='k')
-
-pl.clabel(CS, inline=1, fontsize=8)
-pl.title("Heat Refraction across a clinal structure.")
-pl.xlabel("Horizontal Displacement (m)")
+cut=int(len(xiq)/2)
+pl.plot(ziq[:,cut]*1000.,yiq)
+pl.title("Vertical Heat Flow Depth Profile")
+pl.xlabel("Heat Flow (mW/m^2)")
 pl.ylabel("Depth (m)")
-#~ CB = pl.colorbar(CS, shrink=0.8, extend='both')
-pl.savefig(os.path.join(saved_path,"heatrefraction001_cont.png"))
+pl.savefig(os.path.join(save_path,"heatrefraction_hf.png"))
+\end{python}
+This process can be repeated for various variations of the solution. In this case we have temperature, temperature gradient, thermal conductivity and heat flow \reffig{figs:dps}.
 
-QUIV=pl.quiver(qulocs[:,0],qulocs[:,1],qu[:,0],qu[:,1],angles='xy',color="white")
-pl.title("Heat Refraction across a clinal structure \n with gradient quivers.")
-pl.savefig(os.path.join(saved_path,"heatrefraction001_contqu.png"))
-\end{python} 
-The data has now been plotted.
 \begin{figure}[ht]
-\centerline{\includegraphics[width=4.in]{figures/heatrefraction001contqu}}
-\caption{Heat refraction model with gradient indicated by quivers.}
+\centerline{\includegraphics[width=5.in]{figures/heatrefractionflux}}
+\caption{Heat refraction model with gradient indicated by vectors.}
 \label{fig:hr001qumodel}
 \end{figure}
 
-\newpage
-\subsection{Fault and Overburden Model}
-A slightly more complicated model can be found in the examples \textit{heatrefraction_mesher002.py} and \textit{heatrefractoin002.py} where three blocks are used within the model.
+\section{Arrow plots in \mpl}
+\sslist{heatrefraction_solver003.py and cblib.py}
+We would like to visualize the distribution of the flux $-\kappa \nabla T$ over the domain 
+and produce a plot like shown in \reffig{fig:hr001qumodel}. 
+The plot puts together three components. A contour plot of the temperature,
+a colored representation of the two sub-domains where colour represents the thermal conductivity 
+in the particular region and finally the arrows representing the direction of flux.
+
+Contours have already been discussed in \refSec{Sec:2DHD plot}. To show sub-domains, 
+we need to go back to \pycad data to get the points used to describe the boundary of the 
+sub-domains. We have created the \verb|CurveLoop| class object 
+\verb|tblockloop| to define the boundary of the upper sub-domain. 
+We use the \verb|getPolygon()| method of \verb|CurveLoop| to get
+access to the \verb|Point|s used top define the boundary. The statement
+\begin{python}
+[ p.getCoordinates() for p in tblockloop.getPolygon() ])
+\end{python}
+creates a list of the node coordinates of all the points in question. In order 
+to simplify the selection of the $x$ and $y$ coordinates the list is converted 
+into \modnumpy array. To add the area colored in brown to the plot we use; 
+\begin{python}
+import pylab as pl
+import numarray as np
+tpg=np.array([p.getCoordinates() for p in tblockloop.getPolygon() ])
+pl.fill(tpg[:,0],tpg[:,1],'brown',label='2 W/m/k',zorder=-1000)
+\end{python}
+We can apply the same code to \verb|bblockloop| to a red area for this sub-domain to the block.
+
+To plot vectors representing the flux orientation we use the 
+\verb|quiver| function in \pylab. The function places vectors at locations in the domain.
+For instance one can plot vectors at the locations of the sample points used by \esc 
+to represent the flux \verb|-kappa*grad(T)|. As a vector is plotted at each sample point one typically ends
+up with two many vectors. So one needs to select a subset of points:
+First we create a coarse grid of points on a rectangular mesh, e.g. $20 \times 20$ points. Here we choose a grid of points which are located at the center of a \verb|nx| $\times$ \verb|ny| grid;
+\begin{python}
+dx = width/nx # x spacing
+dy = depth/ny # y spacing
+grid = [ ] # the grid points
+for j in xrange(0,ny-1):
+    for i in xrange(0,nx-1):
+           grid.append([dx/2+dx*i,dy/2+dy*j])
+\end{python}
+With the \verb|Locator| \esc provides a mechanism to identify sample points that are closest 
+to the the grid points we have selected and to get the data at these data points; 
+\begin{python}
+from esys.escript.pdetools import Locator
+flux=-kappa*grad(T)
+fluxLoc = Locator(flux.getFunctionSpace(),grid)
+subflux= fluxLoc(flux) 
+\end{python}
+\verb|subflux| gives now a list of flux component at certain sample points. To get the 
+list of the sample point coordinates one can use the \verb|getX()| method of the 
+\verb|Locator|;
+\begin{python}
+subfluxloc = fluxLoc.getX()
+\end{python}
+To simplify the selection of $x$ and $y$ components it is convenient 
+to transform \verb|subflux| and \verb|subfluxloc| to \numpy arrays
+\verb|xflux|, \verb|flux|.
+This function is implemented in the \verb|subsample| 
+in the  \file{clib.py} file so we can use it in other examples. One can easily use this function 
+to create a vector plot of the flux;
+\begin{python}
+from cblib import subsample
+xflux, flux=subsample(-kappa*grad(T), nx=20, ny=20)
+pl.quiver(xflux[:,0],xflux[:,1],flux[:,0],flux[:,1], angles='xy',color="white")
+\end{python}
+We add title and labels;
+\begin{python}
+pl.title("Heat Refraction across a clinal structure.")
+pl.xlabel("Horizontal Displacement (m)")
+pl.ylabel("Depth (m)")
+pl.title("Heat Refraction across a clinal structure \n with gradient quivers.")
+pl.savefig(os.path.join(saved_path,"heatrefractionflux.png"))
+\end{python} 
+to get the desired result, see \reffig{fig:hr001qumodel}.
+
 \begin{figure}[ht]
-\centerline{\includegraphics[width=4.in]{figures/heatrefraction002contqu}}
-\caption{Heat refraction model with three blocks and gradient quivers.}
+\centerline{\includegraphics[width=4.in]{figures/heatrefraction2flux}}
+\caption{Heat refraction model with three blocks and heat flux.}
+\label{fig:hr002qumodel}
 \end{figure}
+
+\section{Fault and Overburden Model}
+\sslist{heatrefraction2_solver.py and cblib.py}
+A slightly more complicated model can be found in the examples \textit{heatrefraction2_solver.py} where three blocks are used within the model, see~\reffig{fig:hr002qumodel}. It is left to the reader to work through this example.
+
 

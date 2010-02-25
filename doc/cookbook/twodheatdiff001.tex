@@ -115,7 +115,9 @@ Before we turn the question how we set $\kappa$ we need to check the boundary co
 pointed out in \refEq{NEUMAN 2} makes certain assumptions on the boundary conditions. In our case
 this assumptions translates to;
 \begin{equation}
+-n \cdot \kappa \nabla T^{(n)} = 
 -n\hackscore{0} \cdot \kappa \frac{\partial T^{(n)}}{\partial x} - n\hackscore{1} \cdot  \kappa \frac{\partial T^{(n)}}{\partial y} = 0
+\label{eq:hom flux}
 \end{equation}
 which sets the normal component of the heat flux $- \kappa \cdot (\frac{\partial T^{(n)}}{\partial x}, \frac{\partial T^{(n)}}{\partial y})$ to zero. This means that the regions is insulated which is what we want. 
 On the left and right face of the domain where we have $(n\hackscore{0},n\hackscore{1} ) = (\mp 1,0)$ 
@@ -177,6 +179,7 @@ sample points of a PDE solution\footnote{For the experience user: use \texttt{x=
 \end{figure}
 
 \section{Contouring \esc data using \modmpl.}
+\label{Sec:2DHD plot}
 To complete our transition from a 1D to a 2D model we also need to modify the 
 plotting procedure. As before we use the  \modmpl to do the plotting 
 in this case a contour plot. For 2D contour plots \modmpl expects that the
@@ -266,13 +269,13 @@ visualize the temperature and can directly processed by \mayavi. Notice that the
 regridding required. It is recommended to use the file extension \file{.vtu} for files
 created by \verb|saveVTK|. 
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/ScreeshotMayavi2n1}}
 \caption{\mayavi start up Window.}
 \label{fig:mayavi window}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/ScreeshotMayavi2n2}}
 \caption{\mayavi data control window.}
 \label{fig:mayavi window2}

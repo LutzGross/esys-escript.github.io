@@ -411,6 +411,12 @@ class Point(Primitive, PrimitiveBase):
        """
        return self._x
 
+    def getCoordinatesAsList(self):
+       """
+       Returns the coodinates of the point as a ``list`` object.
+       """
+       return [self._x[0], self._x[1], self._x[2] ]
+
     def setCoordinates(self,x):
        """
        Sets the coodinates of the point from a ``numpy.ndarray`` object ``x``.
@@ -1071,8 +1077,31 @@ class CurveLoop(Primitive, PrimitiveBase):
                 return True
        return False
 
-      
-       
+    def getPolygon(self):
+       """
+       Returns a list of start/end points of the 1D mainfold form the loop. If not closed and exception is thrown.
+       """
+       curves=self.getCurves()
+       s=[curves[0].getStartPoint(), curves[0].getEndPoint()]
+       found= [ curves[0], ]
+       restart=True
+       while restart:
+          restart=False
+	  for k in curves:
+	      if not k in found:
+		  if k.getStartPoint() == s[-1]:
+                      found.append(k)
+                      if hasattr(k,"getControlPoints"): s+=k.getControlPoints()[1:-1]
+                      if k.getEndPoint() == s[0]: 
+                           if len(found) == len(curves):
+                             return s
+                           else:
+			     raise ValueError,"loop %s is not closed."%self.getID()
+		      s.append(k.getEndPoint())
+		      restart=True
+		      break
+	  if not restart:
+               raise ValueError,"loop %s is not closed."%self.getID()           
 
 class ReverseCurveLoop(ReversePrimitive, PrimitiveBase):
     """
@@ -1264,30 +1293,6 @@ class Manifold2D(PrimitiveBase):
                 return (self.__points, self.__orientation)
             else:
                 return None
-    def getPolygon(self):
-       """
-       Returns a list of start/end points of the 1D mainfold form the loop. If not closed and exception is thrown.
-       """
-       curves=self.getBoundary()
-       s=[curves[0].getStartPoint(), curves[0].getEndPoint()]
-       found= [ curves[0] ]
-       restart=True
-       while restart:
-          restart=False
-	  for k in curves:
-	      if not k in found:
-		  if k.getStartPoint() == s[-1]:
-                      found.append(k)
-                      if k.getEndPoint() == s[0]: 
-                           if len(found) == len(curves):
-                             return s
-                           else:
-			     raise ValueError,"loop %s is not closed."%self.getID()
-		      s.append(k.getEndPoint())
-		      restart=True
-		      break
-	  if not restart:
-               raise ValueError,"loop %s is not closed."%self.getID()           
 class RuledSurface(Primitive, Manifold2D):
     """
     A ruled surface, i.e. a surface that can be interpolated using transfinite
