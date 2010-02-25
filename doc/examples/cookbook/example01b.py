@@ -65,7 +65,7 @@ h=(tend-t)/outputs #size of time step
 print "Expected Number of time outputs is: ", (tend-t)/h
 i=0 #loop counter
 #the folder to put our outputs in, leave blank "" for script path 
-save_path= os.path.join("data","onedheatdiff001")
+save_path= os.path.join("data","example01")
 #ensure the dir exists
 mkDir(save_path, os.path.join(save_path,"tempT"))
 
@@ -102,13 +102,3 @@ pl.title("Total Energy")
 pl.axis([0,max(t_list),0,max(E_list)*1.1])
 pl.savefig(os.path.join(save_path,"totE.png"))
 pl.clf()
-
-# compile the *.png files to create a*.avi video that show T change
-# with time. This opperation uses linux mencoder. For other operating 
-# systems it may be possible to use your favourite video compiler to
-# convert image files to videos. To enable this step uncomment the
-# following lines.
-
-#os.system("mencoder mf://"+save_path+"/tempT"+"/*.png -mf type=png:\
-#w=800:h=600:fps=25 -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o \
-#onedheatdiff001tempT.avi")

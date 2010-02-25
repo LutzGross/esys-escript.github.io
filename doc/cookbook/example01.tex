@@ -17,7 +17,7 @@
 \label{fig:onedgbmodel}
 \end{figure}
 
-\section{One Dimensional Heat Diffusion in Granite}
+\section{Example 1: One Dimensional Heat Diffusion in Granite}
 \label{Sec:1DHDv00}
 
 The first model consists of two blocks of isotropic material, for instance granite, sitting next to each other.
@@ -269,7 +269,7 @@ A\hackscore{00}=A; A\hackscore{01}=A\hackscore{10}=A\hackscore{11}=0
 
 \subsection{Developing a PDE Solution Script}
 \label{sec:key}
-\sslist{onedheatdiffbase.py}
+\sslist{example01a.py}
 We will write a simple \pyt script which uses the \modescript, \modfinley and \modmpl modules. 
 By developing a script for \esc, the heat diffusion equation can be solved at successive time steps for a predefined period using our general form \refEq{eqn:hdgenf}. Firstly it is necessary to import all the libraries\footnote{The libraries contain predefined scripts that are required to solve certain problems, these can be simple like sine and cosine functions or more complicated like those from our \esc library.} 
 that we will require.
@@ -380,16 +380,16 @@ The total energy should stay constant for the example discussed here.
 
 \subsection{Running the Script} 
 The script presented so for is available under 
-\verb|onedheatdiffbase.py|. You can edit this file with your favourite text editor. 
+\verb|example01a.py|. You can edit this file with your favourite text editor. 
 On most operating systems\footnote{The you can use \texttt{run-escript} launcher is not supported under {\it MS Windows} yet.} you can use the \program{run-escript} command 
 to launch {\it escript} scripts. For the example script use;
 \begin{verbatim}
-run-escript onedheatdiffbase.py
+run-escript example01a.py
 \end{verbatim}
 The program will print a progress report. Alternatively, you can use 
 the python interpreter directly;
 \begin{verbatim}
-python onedheatdiffbase.py
+python example01a.py
 \end{verbatim}
 if the system is configured correctly (Please talk to your system administrator).
 
@@ -402,7 +402,7 @@ if the system is configured correctly (Please talk to your system administrator)
 \end{figure}
 
 \subsection{Plotting the Total Energy} 
-\sslist{onedheatdiff001.py}
+\sslist{example01b.py}
 
 \esc does not include its own plotting capabilities. However, it is possible to use a variety of free \pyt packages for visualisation.
 Two types will be demonstrated in this cookbook; \mpl\footnote{\url{http://matplotlib.sourceforge.net/}} and \verb VTK \footnote{\url{http://www.vtk.org/}} visualisation. 
@@ -455,7 +455,7 @@ As expected the total energy is constant over time, see \reffig{fig:onedheatout1
 
 \subsection{Plotting the Temperature Distribution}
 \label{sec: plot T}
-\sslist{onedheatdiff001b.py}
+\sslist{example01c.py}
 For plotting the spatial distribution of the temperature we need to modify the strategy we have used
 for the total energy. Instead of producing a final plot at the end we will generate a 
 picture at each time step which can be browsed as slide show or composed to a movie.
@@ -478,9 +478,9 @@ There are two arguments to the \verb join  command. The \verb save_path  variabl
 \begin{verbatim}
 save_path = "data"
 \end{verbatim}
-while a sub-folder of \verb data  called \verb onedheatdiff001  would be defined by;
+while a sub-folder of \verb data  called \verb example01  would be defined by;
 \begin{verbatim}
-save_path = os.path.join("data","onedheatdiff001")
+save_path = os.path.join("data","example01")
 \end{verbatim}
 The second argument of \verb join \xspace contains a string which is the file name or subdirectory name. We can use the operator \verb|%| to increment our file names with the value \verb|i| denoting a incrementing counter. The sub-string \verb %03d  does this by defining the following parameters; 
 \begin{itemize}
@@ -556,6 +556,6 @@ Our saved plots from the previous section can be cast into a video using the fol
 
 os.system("mencoder mf://"+save_path+"/tempT"+"/*.png -mf type=png:\
            w=800:h=600:fps=25 -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o \
-           onedheatdiff001tempT.avi")
+           example01tempT.avi")
 \end{python}
  

@@ -53,7 +53,7 @@ h=(tend-t)/outputs #size of time step
 print "Expected Number of time outputs is: ", (tend-t)/h
 i=0 #loop counter
 #the folder to put our outputs in, leave blank "" for script path 
-save_path= os.path.join("data","onedheatdiff001")
+save_path= os.path.join("data","example01")
 #ensure the dir exists
 mkDir(save_path, os.path.join(save_path,"tempT"))
 
