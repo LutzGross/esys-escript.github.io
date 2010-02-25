@@ -22,8 +22,6 @@ example_deps = ['cookbook/cblib.py',
   'cookbook/heatrefraction_mesher002.py',
   'cookbook/heatrefraction001.py',
   'cookbook/heatrefraction002.py',
-  'cookbook/cblib1.py',
-  'cookbook/cblib2.py'
 ]
 
 #
@@ -74,16 +72,16 @@ else:
 if not haveGMSH:
    print "gmsh not found"
 
-example_files_allow_mpi.append('cookbook/onedheatdiffbase.py')
+example_files_allow_mpi.append('cookbook/example01a.py')
 example_files_allow_mpi.append('cookbook/twodheatdiffvtk.py')
 example_files_no_mpi.append('cookbook/wavesolver2d001.py')
 example_files_no_mpi.append('cookbook/wavesolver2d002.py')
 
 
 if haveMPL:
-   example_files_no_mpi.append('cookbook/onedheatdiff001.py')
-   example_files_no_mpi.append('cookbook/onedheatdiff001b.py')
-   example_files_no_mpi.append('cookbook/onedheatdiff002.py')
+   example_files_no_mpi.append('cookbook/example01b.py')
+   example_files_no_mpi.append('cookbook/example01c.py')
+   example_files_no_mpi.append('cookbook/example02.py')
    if mplversion>=mplmagicversion:
 	example_files_no_mpi.append('cookbook/twodheatdiff001.py')
 	example_files_no_mpi.append('usersguide/poisson_matplotlib.py')
@@ -114,9 +112,9 @@ if not haveGD:
    example_deps.append('usersguide/poisson_matplotlib.py')
    example_deps.append('usersguide/wave.py')
 if not haveMPL:
-   example_deps.append('cookbook/onedheatdiff001.py')
-   example_deps.append('cookbook/onedheatdiff001b.py')
-   example_deps.append('cookbook/onedheatdiff002.py') 
+   example_deps.append('cookbook/example01b.py')
+   example_deps.append('cookbook/example01c.py')
+   example_deps.append('cookbook/example02.py') 
 
 
 example_files= example_files_allow_mpi + example_files_no_mpi + example_deps
