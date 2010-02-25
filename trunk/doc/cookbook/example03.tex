@@ -17,7 +17,7 @@
 \label{fig:twodhdmodel}
 \end{figure}
 
-\sslist{twodheatdiff001.py and cblib.py}
+\sslist{example03a.py and cblib.py}
 
 Building upon our success from the 1D models, it is now prudent to expand our domain by another dimension. 
 For this example we will be using a very simple magmatic intrusion as the basis for our model. The simulation will be a single event where some molten granite has formed a cylindrical dome at the base of some cold sandstone country rock. Assuming that the cylinder is very long 
@@ -27,7 +27,7 @@ but will add the second spatial dimension and show how to define
 variables depending on the location of the domain. 
 We use \file{onedheatdiff001b.py} as the starting point for develop this model. 
 
-\section{Two Dimensional Heat Diffusion for a basic Magmatic Intrusion}
+\section{Example 3: Two Dimensional Heat Diffusion for a basic Magmatic Intrusion}
 \label{Sec:2DHD}
 
 To expand upon our 1D problem, the domain must first be expanded. In fact, we have solved a two dimensional problem already but didn't put much 
@@ -170,7 +170,7 @@ in the regions of the granite and surrounding sandstone, respectively. It is imp
 notice that we have reset \verb|x| and \verb|bound| to refer to the appropriate 
 sample points of a PDE solution\footnote{For the experience user: use \texttt{x=mypde.getFunctionSpace("r").getX()}.}.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/heatrefraction001.png}}
 \centerline{\includegraphics[width=4.in]{figures/heatrefraction030.png}}
 \centerline{\includegraphics[width=4.in]{figures/heatrefraction200.png}}
@@ -237,7 +237,7 @@ The results for selected time steps are shown in \reffig{fig:twodhdans}.
 
 \section{Advanced Visualization using VTK}
 
-\sslist{twodheatdiffvtk.py}
+\sslist{example03b.py}
 An alternative approach to \modmpl for visualization is the usage of a package which base on 
 visualization tool kit (VTK) library\footnote{see \url{http://www.vtk.org/}}. There is a variety 
 of package available. Here we will use the package \mayavi\footnote{see \url{http://code.enthought.com/projects/mayavi/}} as an example. 
@@ -281,7 +281,7 @@ created by \verb|saveVTK|.
 \label{fig:mayavi window2}
 \end{figure}
 After you have run the script you will find the 
-result files \file{data.*.vtu} in the result directory \file{data/twodheatdiff}. Run the 
+result files \file{data.*.vtu} in the result directory \file{data/example03}. Run the 
 command
 \begin{python}
 >> mayavi2 -d data.001.vtu -m Surface &

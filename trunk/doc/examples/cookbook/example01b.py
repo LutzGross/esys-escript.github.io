@@ -35,12 +35,6 @@ import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os, sys #This package is necessary to handle saving our data.
 
-# .. MPI WORLD CHECK
-if getMPISizeWorld() > 1:
-    import sys
-    print "This example will not run in an MPI world."
-    sys.exit(0)
-
 ##ESTABLISHING VARIABLES
 #Domain related.
 mx = 500*m #meters - model length
@@ -96,9 +90,8 @@ while t<tend:
       E_list.append(totE)
 
 # plot the total energy over time:
-pl.figure(2)
-pl.plot(t_list,E_list)
-pl.title("Total Energy")
-pl.axis([0,max(t_list),0,max(E_list)*1.1])
-pl.savefig(os.path.join(save_path,"totE.png"))
-pl.clf()
+if getMPIRankWorld() == 0:
+    pl.plot(t_list,E_list)
+    pl.title("Total Energy")
+    pl.axis([0,max(t_list),0,max(E_list)*1.1])
+    pl.savefig(os.path.join(save_path,"totE.png"))
