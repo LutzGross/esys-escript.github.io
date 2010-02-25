@@ -24,13 +24,11 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 """
 
 ############################################################FILE HEADER
-# heatrefraction_mesher001.py
+# example05a.py
 # Create either a 2D syncline or anticline model using pycad meshing 
 # tools.
 
 #######################################################EXTERNAL MODULES
-import matplotlib
-matplotlib.use('agg') #It's just here for automated testing
 from esys.pycad import * #domain constructor
 from esys.pycad.gmsh import Design #Finite Element meshing package
 from esys.finley import MakeDomain #Converter for escript
@@ -39,10 +37,10 @@ from math import * # math package
 from esys.escript import *
 from esys.escript.unitsSI import *
 from esys.escript.linearPDEs import LinearPDE
-from esys.escript.pdetools import Projector
-from cblib import toRegGrid, subsample
+import matplotlib
+matplotlib.use('agg') #It's just here for automated testing
+from cblib import toRegGrid
 import pylab as pl #Plotting package
-import numpy as np
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
@@ -57,7 +55,7 @@ modal=-1
 
 # the folder to put our outputs in, leave blank "" for script path - 
 # note this folder path must exist to work
-save_path= os.path.join("data","heatrefrac") 
+save_path= os.path.join("data","example05") 
 mkDir(save_path)
 
 ################################################ESTABLISHING PARAMETERS
@@ -100,6 +98,8 @@ l30=Line(p3, p0)
 tblockloop = CurveLoop(tbl1,tbl2,tbl3,l30)
 # surface
 tblock = PlaneSurface(tblockloop)
+
+
 # Create BOTTOM BLOCK
 # lines
 bbl1=Line(x1,p1)
@@ -108,7 +108,6 @@ bbl4=-mysp
 l12=Line(p1, p2)
 # curve
 bblockloop = CurveLoop(bbl1,l12,bbl3,bbl4)
-
 # surface
 bblock = PlaneSurface(bblockloop)
 
@@ -123,8 +122,8 @@ d=Design(dim=2, element_size=200)
 d.addItems(PropertySet("top",tblock),PropertySet("bottom",bblock),\
                                      PropertySet("linebottom",l12))
 # Create the geometry, mesh and Escript domain
-d.setScriptFileName(os.path.join(save_path,"heatrefraction.geo"))
-d.setMeshFileName(os.path.join(save_path,"heatrefraction.msh"))
+d.setScriptFileName(os.path.join(save_path,"example05.geo"))
+d.setMeshFileName(os.path.join(save_path,"example05.msh"))
 domain=MakeDomain(d, optimizeLabeling=True)
 print "Domain has been generated ..."
 ############################################# solve PDE
@@ -144,23 +143,12 @@ print "PDE has been generated ..."
 ###########################################################GET SOLUTION
 T=mypde.getSolution()
 print "PDE has been solved  ..."
-###########################################################PLOTTING
-# show temperature:
+
+###########################################################
 xi, yi, zi = toRegGrid(T, nx=50, ny=50)
-CS = pl.contour(xi,yi,zi,5,linewidths=0.5,colors='k')
-pl.clabel(CS, inline=1, fontsize=8)
-# show sub domains:
-tpg=np.array([p.getCoordinates() for p in tblockloop.getPolygon() ])
-pl.fill(tpg[:,0],tpg[:,1],'brown',label='2 W/m/k',zorder=-1000)
-bpg=np.array([p.getCoordinates() for p in bblockloop.getPolygon() ])
-pl.fill(bpg[:,0],bpg[:,1],'red',label='4 W/m/k',zorder=-1000)
-# show flux:
-xflux, flux=subsample(-kappa*grad(T), nx=20, ny=20)
-pl.quiver(xflux[:,0],xflux[:,1],flux[:,0],flux[:,1], angles='xy',color="white")
-# create plot
-pl.title("Heat Refraction across a clinal structure\n with heat flux.")
+pl.matplotlib.pyplot.autumn()
+pl.contourf(xi,yi,zi,10)
 pl.xlabel("Horizontal Displacement (m)")
 pl.ylabel("Depth (m)")
-pl.legend()
-pl.savefig(os.path.join(save_path,"heatrefractionflux.png"))
-print "Flux has been plotted  ..."
+pl.savefig(os.path.join(save_path,"Tcontour.png"))
+print "Solution has been plotted  ..."
