@@ -24,7 +24,7 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 """
 
 ############################################################FILE HEADER
-# heatrefraction_mesher001.py
+# example05c.py
 # Create either a 2D syncline or anticline model using pycad meshing 
 # tools.
 
@@ -40,8 +40,9 @@ from esys.escript import *
 from esys.escript.unitsSI import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.pdetools import Projector
-from cblib import toRegGrid
+from cblib import toRegGrid, subsample
 import pylab as pl #Plotting package
+import numpy as np
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
@@ -56,7 +57,7 @@ modal=-1
 
 # the folder to put our outputs in, leave blank "" for script path - 
 # note this folder path must exist to work
-save_path= os.path.join("data","heatrefrac") 
+save_path= os.path.join("data","example05") 
 mkDir(save_path)
 
 ################################################ESTABLISHING PARAMETERS
@@ -99,8 +100,6 @@ l30=Line(p3, p0)
 tblockloop = CurveLoop(tbl1,tbl2,tbl3,l30)
 # surface
 tblock = PlaneSurface(tblockloop)
-
-
 # Create BOTTOM BLOCK
 # lines
 bbl1=Line(x1,p1)
@@ -109,6 +108,7 @@ bbl4=-mysp
 l12=Line(p1, p2)
 # curve
 bblockloop = CurveLoop(bbl1,l12,bbl3,bbl4)
+
 # surface
 bblock = PlaneSurface(bblockloop)
 
@@ -123,8 +123,8 @@ d=Design(dim=2, element_size=200)
 d.addItems(PropertySet("top",tblock),PropertySet("bottom",bblock),\
                                      PropertySet("linebottom",l12))
 # Create the geometry, mesh and Escript domain
-d.setScriptFileName(os.path.join(save_path,"heatrefraction.geo"))
-d.setMeshFileName(os.path.join(save_path,"heatrefraction.msh"))
+d.setScriptFileName(os.path.join(save_path,"example05.geo"))
+d.setMeshFileName(os.path.join(save_path,"example05.msh"))
 domain=MakeDomain(d, optimizeLabeling=True)
 print "Domain has been generated ..."
 ############################################# solve PDE
@@ -144,61 +144,23 @@ print "PDE has been generated ..."
 ###########################################################GET SOLUTION
 T=mypde.getSolution()
 print "PDE has been solved  ..."
-
-###########################################################
+###########################################################PLOTTING
+# show temperature:
 xi, yi, zi = toRegGrid(T, nx=50, ny=50)
-pl.matplotlib.pyplot.autumn()
-pl.contourf(xi,yi,zi,10)
+CS = pl.contour(xi,yi,zi,5,linewidths=0.5,colors='k')
+pl.clabel(CS, inline=1, fontsize=8)
+# show sub domains:
+tpg=np.array([p.getCoordinates() for p in tblockloop.getPolygon() ])
+pl.fill(tpg[:,0],tpg[:,1],'brown',label='2 W/m/k',zorder=-1000)
+bpg=np.array([p.getCoordinates() for p in bblockloop.getPolygon() ])
+pl.fill(bpg[:,0],bpg[:,1],'red',label='4 W/m/k',zorder=-1000)
+# show flux:
+xflux, flux=subsample(-kappa*grad(T), nx=20, ny=20)
+pl.quiver(xflux[:,0],xflux[:,1],flux[:,0],flux[:,1], angles='xy',color="white")
+# create plot
+pl.title("Heat Refraction across a clinal structure\n with heat flux.")
 pl.xlabel("Horizontal Displacement (m)")
 pl.ylabel("Depth (m)")
-pl.savefig(os.path.join(save_path,"heatrefraction.png"))
-print "Solution has been plotted  ..."
-##########################################################VISUALISATION
-# calculate gradient of solution for quiver plot
-#Projector is used to smooth the data.
-proj=Projector(domain)
-#move data to a regular grid for plotting
-xi,yi,zi = toRegGrid(T,200,200)
-cut=int(len(xi)/2)
-pl.clf()
-pl.plot(zi[:,cut],yi)
-pl.title("Temperature Depth Profile")
-pl.xlabel("Temperature (K)")
-pl.ylabel("Depth (m)")
-pl.savefig(os.path.join(save_path,"heatrefraction_tdp.png"))
-pl.clf()
-    
-# Heat flow depth profile.
-# grid the data.
-qu=proj(-kappa*grad(T))
-xiq,yiq,ziq = toRegGrid(qu[1],50,50)
-cut=int(len(xiq)/2)
-pl.plot(ziq[:,cut]*1000.,yiq)
-pl.title("Vertical Heat Flow Depth Profile")
-pl.xlabel("Heat Flow (mW/m^2)")
-pl.ylabel("Depth (m)")
-pl.savefig(os.path.join(save_path,"heatrefraction_hf.png"))
-pl.clf()
-
-# Temperature Gradient Depth Profile at x[50]
-zT=proj(-grad(T))
-xt,yt,zt=toRegGrid(zT[1],200,200)
-cut=int(len(xt)/2)
-pl.plot(zt[:,cut]*1000.,yt)
-pl.title("Vertical Temperature Gradient \n Depth Profile")
-pl.xlabel("Temperature gradient (K/Km)")
-pl.ylabel("Depth (m)")
-pl.savefig(os.path.join(save_path,"heatrefraction_tgdp.png"))
-pl.clf()
-
-# Thermal Conditions Depth Profile    
-xk,yk,zk = toRegGrid(proj(kappa),200,200)
-cut=int(len(xk)/2)
-pl.plot(zk[:,cut],yk)
-pl.title("Thermal Conductivity Depth Profile")
-pl.xlabel("Conductivity (W/K/m)")
-pl.ylabel("Depth (m)")
-pl.axis([1,5,-6000,0])
-pl.savefig(os.path.join(save_path,"heatrefraction_tcdp.png"))
-pl.clf()
-print "vertical profiles created ..."
+pl.legend()
+pl.savefig(os.path.join(save_path,"flux.png"))
+print "Flux has been plotted  ..."

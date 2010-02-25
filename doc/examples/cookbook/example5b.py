@@ -24,11 +24,13 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 """
 
 ############################################################FILE HEADER
-# heatrefraction_mesher001.py
+# example05b.py
 # Create either a 2D syncline or anticline model using pycad meshing 
 # tools.
 
 #######################################################EXTERNAL MODULES
+import matplotlib
+matplotlib.use('agg') #It's just here for automated testing
 from esys.pycad import * #domain constructor
 from esys.pycad.gmsh import Design #Finite Element meshing package
 from esys.finley import MakeDomain #Converter for escript
@@ -37,8 +39,7 @@ from math import * # math package
 from esys.escript import *
 from esys.escript.unitsSI import *
 from esys.escript.linearPDEs import LinearPDE
-import matplotlib
-matplotlib.use('agg') #It's just here for automated testing
+from esys.escript.pdetools import Projector
 from cblib import toRegGrid
 import pylab as pl #Plotting package
 
@@ -55,7 +56,7 @@ modal=-1
 
 # the folder to put our outputs in, leave blank "" for script path - 
 # note this folder path must exist to work
-save_path= os.path.join("data","heatrefrac") 
+save_path= os.path.join("data","example05") 
 mkDir(save_path)
 
 ################################################ESTABLISHING PARAMETERS
@@ -122,8 +123,8 @@ d=Design(dim=2, element_size=200)
 d.addItems(PropertySet("top",tblock),PropertySet("bottom",bblock),\
                                      PropertySet("linebottom",l12))
 # Create the geometry, mesh and Escript domain
-d.setScriptFileName(os.path.join(save_path,"heatrefraction.geo"))
-d.setMeshFileName(os.path.join(save_path,"heatrefraction.msh"))
+d.setScriptFileName(os.path.join(save_path,"example05.geo"))
+d.setMeshFileName(os.path.join(save_path,"example05.msh"))
 domain=MakeDomain(d, optimizeLabeling=True)
 print "Domain has been generated ..."
 ############################################# solve PDE
@@ -150,5 +151,54 @@ pl.matplotlib.pyplot.autumn()
 pl.contourf(xi,yi,zi,10)
 pl.xlabel("Horizontal Displacement (m)")
 pl.ylabel("Depth (m)")
-pl.savefig(os.path.join(save_path,"heatrefraction.png"))
+pl.savefig(os.path.join(save_path,"Tcontour.png"))
 print "Solution has been plotted  ..."
+##########################################################VISUALISATION
+# calculate gradient of solution for quiver plot
+#Projector is used to smooth the data.
+proj=Projector(domain)
+#move data to a regular grid for plotting
+xi,yi,zi = toRegGrid(T,200,200)
+cut=int(len(xi)/2)
+pl.clf()
+pl.plot(zi[:,cut],yi)
+pl.title("Temperature Depth Profile")
+pl.xlabel("Temperature (K)")
+pl.ylabel("Depth (m)")
+pl.savefig(os.path.join(save_path,"tdp.png"))
+pl.clf()
+    
+# Heat flow depth profile.
+# grid the data.
+qu=proj(-kappa*grad(T))
+xiq,yiq,ziq = toRegGrid(qu[1],50,50)
+cut=int(len(xiq)/2)
+pl.plot(ziq[:,cut]*1000.,yiq)
+pl.title("Vertical Heat Flow Depth Profile")
+pl.xlabel("Heat Flow (mW/m^2)")
+pl.ylabel("Depth (m)")
+pl.savefig(os.path.join(save_path,"hf.png"))
+pl.clf()
+
+# Temperature Gradient Depth Profile at x[50]
+zT=proj(-grad(T))
+xt,yt,zt=toRegGrid(zT[1],200,200)
+cut=int(len(xt)/2)
+pl.plot(zt[:,cut]*1000.,yt)
+pl.title("Vertical Temperature Gradient \n Depth Profile")
+pl.xlabel("Temperature gradient (K/Km)")
+pl.ylabel("Depth (m)")
+pl.savefig(os.path.join(save_path,"tgdp.png"))
+pl.clf()
+
+# Thermal Conditions Depth Profile    
+xk,yk,zk = toRegGrid(proj(kappa),200,200)
+cut=int(len(xk)/2)
+pl.plot(zk[:,cut],yk)
+pl.title("Thermal Conductivity Depth Profile")
+pl.xlabel("Conductivity (W/K/m)")
+pl.ylabel("Depth (m)")
+pl.axis([1,5,-6000,0])
+pl.savefig(os.path.join(save_path,"tcdp.png"))
+pl.clf()
+print "vertical profiles created ..."

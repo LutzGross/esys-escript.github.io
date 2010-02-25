@@ -13,7 +13,7 @@
 
 \begin{figure}[t]
 \centerline{\includegraphics[width=4.in]{figures/twodheatdiff}}
-\caption{2D model: granitic intrusion of sandstone country rock.}
+\caption{Example 3: 2D model: granitic intrusion of sandstone country rock.}
 \label{fig:twodhdmodel}
 \end{figure}
 
@@ -174,7 +174,7 @@ sample points of a PDE solution\footnote{For the experience user: use \texttt{x=
 \centerline{\includegraphics[width=4.in]{figures/heatrefraction001.png}}
 \centerline{\includegraphics[width=4.in]{figures/heatrefraction030.png}}
 \centerline{\includegraphics[width=4.in]{figures/heatrefraction200.png}}
-\caption{2D model: Total temperature distribution ($T$) at time step $1$, $20$ and $200$. Contour lines show temperature.}
+\caption{Example 3a: 2D model: Total temperature distribution ($T$) at time step $1$, $20$ and $200$. Contour lines show temperature.}
 \label{fig:twodhdans}
 \end{figure}
 
@@ -227,7 +227,7 @@ pl.axis([0,600,0,600])
 pl.title("Heat diffusion from an intrusion.")
 pl.xlabel("Horizontal Displacement (m)")
 pl.ylabel("Depth (m)")
-pl.savefig(os.path.join(save_path,"heatrefraction%03d.png") %i)
+pl.savefig(os.path.join(save_path,"Tcontour%03d.png") %i)
 pl.clf()        
 \end{python}
 The function \verb|pl.contour| is used to add labeled contour lines to the plot. 
@@ -271,13 +271,13 @@ created by \verb|saveVTK|.
 
 \begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/ScreeshotMayavi2n1}}
-\caption{\mayavi start up Window.}
+\caption{Example 3b: \mayavi start up Window.}
 \label{fig:mayavi window}
 \end{figure}
 
 \begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/ScreeshotMayavi2n2}}
-\caption{\mayavi data control window.}
+\caption{Example 3b: \mayavi data control window.}
 \label{fig:mayavi window2}
 \end{figure}
 After you have run the script you will find the 
@@ -289,7 +289,7 @@ command
 from the result directory. \mayavi will start up a window similar to \reffig{fig:mayavi window}.
 The right hand side shows the temperature at the first time step. To show
 the results at other time steps you can click at the item \texttt{VTK XML file (data.001.vtu) (timeseries)}
-at the top left hand side. This will bring up a new window similar to tye window shown in  \reffig{fig:mayavi window2}. By clicking at the arrows in the top right corner you can move forwards and backwards in time. 
+at the top left hand side. This will bring up a new window similar to the window shown in  \reffig{fig:mayavi window2}. By clicking at the arrows in the top right corner you can move forwards and backwards in time. 
 You will also notice the text \textbf{T} next to the item \texttt{Point scalars name}. The
 name \textbf{T} corresponds to the keyword argument name \texttt{T} we have used 
 in the \verb|saveVTK| call. In this menu item you can select other results 

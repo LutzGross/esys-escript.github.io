@@ -24,7 +24,7 @@ step we will extend our script by introducing an internal, curved interface.
 
 \begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/pycadrec}}
-\caption{Rectangular Domain for \pycad.}
+\caption{Example 4: Rectangular Domain for \pycad.}
 \label{fig:pycad rec}
 \end{figure}
 
@@ -126,7 +126,7 @@ domain =ReadMesh("example04.fly")
 
 \begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/simplemesh}}
-\caption{Mesh over rectangular domain, see \reffig{fig:pycad rec}.}
+\caption{Example 4a: Mesh over rectangular domain, see \reffig{fig:pycad rec}.}
 \label{fig:pycad rec mesh}
 \end{figure}
 
@@ -148,7 +148,7 @@ gmsh example04.msh  # show mesh
 The mesh is shown in \reffig{fig:pycad rec mesh}.
 \begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/simpleheat}}
-\caption{Result of simple steady state heat problem.}
+\caption{Example 4b: Result of simple steady state heat problem.}
 \label{fig:steady state heat}
 \end{figure}
 
@@ -219,18 +219,18 @@ via the \verb|toRegGrid| function in the \verb|cblib| module. Your result should
 
 \begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/anticlineheatrefraction}}
-\caption{Heat refraction model with point and line labels.}
+\caption{Example 5a: Heat refraction model with point and line labels.}
 \label{fig:anticlinehrmodel}
 \end{figure}
 
 \begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/heatrefraction}}
-\caption{Temperature Distribution in the Heat Refraction Model.}
+\caption{Example 5a: Temperature Distribution in the Heat Refraction Model.}
 \label{fig:anticlinetemp}
 \end{figure}
 
-\section{A Heat Refraction model}
-\sslist{heatrefraction_solver001.py and cblib.py}
+\section{Example 5: A Heat Refraction model}
+\sslist{example05a.py and cblib.py}
 
 Our heat refraction model will be a large anticlinal structure that is experiencing a constant temperature at the surface and a steady heat flux at it's base. Our aim is to show that the temperature flux across the surface is not linear from bottom to top but is in fact warped by the structure of the model and is heavily dependent upon the material properties and shape.
 
@@ -286,8 +286,8 @@ d=Design(dim=2, element_size=200)
 d.addItems(PropertySet("top",tblock),PropertySet("bottom",bblock),\
                    PropertySet("linebottom",l12))
 # Create the geometry, mesh and \esc domain
-d.setScriptFileName(os.path.join(save_path,"heatrefraction.geo"))
-d.setMeshFileName(os.path.join(save_path,"heatrefraction.msh"))
+d.setScriptFileName(os.path.join(save_path,"example05.geo"))
+d.setMeshFileName(os.path.join(save_path,"example05.msh"))
 domain=MakeDomain(d,optimizeLabeling=True)
 \end{python}
 The creation of our domain and its mesh is complete.
@@ -307,12 +307,12 @@ No further changes are required to the PDE solution step, see \reffig{fig:anticl
     \subfigure[Temperature Gradient Depth Profile]{\includegraphics[width=3in]{figures/heatrefractiontgdp.png}\label{fig:tgdp}}
     \subfigure[Thermal Conductivity Profile]{\includegraphics[width=3in]{figures/heatrefractiontcdp.png}\label{fig:tcdp}}
     \subfigure[Heat Flow Depth Profile]{\includegraphics[width=3in]{figures/heatrefractionhf.png}\label{fig:hf}}
-  \caption{Depth profiles down centre of model.}
+  \caption{Example 5b: Depth profiles down centre of model.}
   \label{figs:dps}
 \end{figure}
 
 \section{Line profiles of 2D data}
-\sslist{heatrefraction_solver002.py and cblib.py}
+\sslist{example05b.py and cblib.py}
 
 We want to investigate the profile of the data of the last example. 
 We are particularly interested in the deepth profile of the heat flux which is
@@ -348,18 +348,18 @@ pl.plot(ziq[:,cut]*1000.,yiq)
 pl.title("Vertical Heat Flow Depth Profile")
 pl.xlabel("Heat Flow (mW/m^2)")
 pl.ylabel("Depth (m)")
-pl.savefig(os.path.join(save_path,"heatrefraction_hf.png"))
+pl.savefig(os.path.join(save_path,"hf.png"))
 \end{python}
 This process can be repeated for various variations of the solution. In this case we have temperature, temperature gradient, thermal conductivity and heat flow \reffig{figs:dps}.
 
 \begin{figure}[ht]
 \centerline{\includegraphics[width=5.in]{figures/heatrefractionflux}}
-\caption{Heat refraction model with gradient indicated by vectors.}
+\caption{Example 5c: Heat refraction model with gradient indicated by vectors.}
 \label{fig:hr001qumodel}
 \end{figure}
 
 \section{Arrow plots in \mpl}
-\sslist{heatrefraction_solver003.py and cblib.py}
+\sslist{example05c.py and cblib.py}
 We would like to visualize the distribution of the flux $-\kappa \nabla T$ over the domain 
 and produce a plot like shown in \reffig{fig:hr001qumodel}. 
 The plot puts together three components. A contour plot of the temperature,
@@ -431,18 +431,18 @@ pl.title("Heat Refraction across a clinal structure.")
 pl.xlabel("Horizontal Displacement (m)")
 pl.ylabel("Depth (m)")
 pl.title("Heat Refraction across a clinal structure \n with gradient quivers.")
-pl.savefig(os.path.join(saved_path,"heatrefractionflux.png"))
+pl.savefig(os.path.join(saved_path,"flux.png"))
 \end{python} 
 to get the desired result, see \reffig{fig:hr001qumodel}.
 
 \begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/heatrefraction2flux}}
-\caption{Heat refraction model with three blocks and heat flux.}
+\caption{Example 6: Heat refraction model with three blocks and heat flux.}
 \label{fig:hr002qumodel}
 \end{figure}
 
-\section{Fault and Overburden Model}
-\sslist{heatrefraction2_solver.py and cblib.py}
+\section{Example 6:Fault and Overburden Model}
+\sslist{example06.py and cblib.py}
 A slightly more complicated model can be found in the examples \textit{heatrefraction2_solver.py} where three blocks are used within the model, see~\reffig{fig:hr002qumodel}. It is left to the reader to work through this example.
 
 

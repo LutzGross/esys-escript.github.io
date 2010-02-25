@@ -94,25 +94,10 @@ sortOutExample('cookbook/example03a.py', needsGD=True, allowsMPI=False)
 sortOutExample('cookbook/example03b.py')
 sortOutExample('cookbook/example04a.py', needsGMSH=True)
 sortOutExample('cookbook/example04b.py', needsGMSH=True, needsGD=True)
-
-print example_deps
-print example_files_allow_mpi
-print example_files_no_mpi
-
-# sortOutExample('cookbook/wavesolver2d001.py', allowsMPI=True)
-# sortOutExample('cookbook/wavesolver2d002.py', allowsMPI=True)
-
-
-#   if mplversion>=mplmagicversion:
-#sortOutExample('cookbook/run_heatrefraction.py',  needsMagicMPL=True)
-#  example_files_no_mpi.append('cookbook/twodheatdiff001.py') 
-
-# we want to make sure these are still added to the examples bundle even if we can't run them
-#if not haveGMSH:
-#   example_deps.append('cookbook/twodheatdiff001.py')
-#if not haveGD:
-#   example_deps.append('cookbook/twodheatdiff001.py')
-
+sortOutExample('cookbook/example05a.py', needsGMSH=True, needsGD=True)
+sortOutExample('cookbook/example05b.py', needsGMSH=True, needsGD=True)
+sortOutExample('cookbook/example05c.py', needsGMSH=True, needsGD=True)
+sortOutExample('cookbook/example06.py', needsGMSH=True, needsGD=True)
 
 example_files= example_files_allow_mpi + example_files_no_mpi + example_deps
 
