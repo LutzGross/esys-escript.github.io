@@ -122,7 +122,6 @@ while t<=tend:
       t+=h #current time
       mypde.setValue(Y=qH+T*rhocp/h)
       T=mypde.getSolution()
-      print T
       tempT = T.toListOfTuples()
       # grid the data.
       zi = pl.matplotlib.mlab.griddata(coordX,coordY,tempT,xi,yi)

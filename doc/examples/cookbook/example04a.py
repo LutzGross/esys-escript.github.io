@@ -33,7 +33,7 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 from esys.pycad import * #domain constructor
 from esys.pycad.gmsh import Design #Finite Element meshing package
 from esys.finley import MakeDomain #Converter for escript
-from esys.escript import mkDir
+from esys.escript import mkDir, getMPISizeWorld
 from esys.escript.unitsSI import *
 import os
 ########################################################MPI WORLD CHECK
@@ -43,7 +43,7 @@ if getMPISizeWorld() > 1:
 	sys.exit(0)
 
 # make sure path exists 
-save_path= os.path.join("data","example4") 
+save_path= os.path.join("data","example04") 
 mkDir(save_path)
 
 ################################################ESTABLISHING PARAMETERS

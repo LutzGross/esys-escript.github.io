@@ -22,7 +22,7 @@
 
 Our second example is a cold iron bar at a constant temperature of $T\hackscore{ref}=20^{\circ} C$, see \reffig{fig:onedhdmodel}. The bar is perfectly insulated on all sides with a heating element at one end keeping the the temperature at a constant level $T\hackscore0=100^{\circ} C$.  as heat is applied; energy will disperse along the bar via conduction. With time the bar will reach a constant temperature equivalent to that of the heat source.
 
-This problem is very similar to the example of temperature diffusion in granit blocks presented in the previous section~\ref{Sec:1DHDv00}. So we will modify the script we have already developed for the granit blocks to adjust 
+This problem is very similar to the example of temperature diffusion in granite blocks presented in the previous section~\ref{Sec:1DHDv00}. So we will modify the script we have already developed for the granite blocks to adjust 
 it to the iron bar problem.  
 The obvious difference between the two problems are the dimensions of the domain and different materials involved. This will change the time scale of the model from years to hours. 
 The new settings are;
@@ -53,7 +53,7 @@ temperature is set to;
 T= T0*whereZero(x[0])+Tref*(1-whereZero(x[0]))
 \end{python}
 
-\subsection{Dirchlet Boundary Conditions}
+\subsection{Dirichlet Boundary Conditions}
 In iron rod model  we want to keep the initial temperature $T\hackscore0$ on the left side of the domain over time. 
 So when we solve the PDE~\refEq{eqn:hddisc} the solution must have the value $T\hackscore0$ on the left hand
 side of the domain. As mentioned already in Section~\ref{SEC BOUNDARY COND} where we discussed
@@ -73,8 +73,8 @@ we can set;
 q=whereZero(x[0])
 r=T0
 \end{python}
-to prescibe the value $T0$ for the temperature at the left end of the rod where $x\hackscore{0}=0$. 
-Here we use the \verb|whereZero| function again which we have alread used to set the initial value.
+to prescribe the value $T0$ for the temperature at the left end of the rod where $x\hackscore{0}=0$. 
+Here we use the \verb|whereZero| function again which we have already used to set the initial value.
 Notice that $r$ is set to the constant value $r$ for all sample points. In fact, 
 values of $r$ are used only where $q$ is positive. Where $q$ is non-positive,
 $r$ may have any value as these values are not used by the PDE solver. 
