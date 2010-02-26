@@ -346,9 +346,9 @@ class Locator:
              iterative=True
            except TypeError:
              iterative=False
+       xxx=self.__function_space.getX()
        if iterative:
            self.__id=[]
-           xxx=self.__function_space.getX()
            for p in x:
               self.__id.append(util.length(xxx-p[:self.__function_space.getDim()]).minGlobalDataPoint())
        else:
