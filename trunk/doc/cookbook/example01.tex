@@ -180,12 +180,10 @@ calculate the temperature. For our problem this is the joint blocks of granite w
 \end{enumerate}
 \item end of calculation
 \end{enumerate}
-In the terminology of \pyt the domain and PDE are represented by \textbf{objects}. The nice feature of an object is that it is defined by its usage and features
+In the terminology of \pyt, the domain and PDE are represented by \textbf{objects}. The nice feature of an object is that it is defined by its usage and features
 rather than its actual representation. So we will create a domain object to describe the geometry of the two
-granite blocks. The main feature 
-of the object we use, is the fact that we can define PDEs and spatially distributed values such as the temperature 
-on a domain. In fact the domain object has many more features - most of them you will 
-never use and do not need to understand. Similarly, to define a PDE object we use the fact that one needs only to define the coefficients of the PDE and solve the PDE. At a later stage you may use more advanced features of the PDE class, but you need to worry about them only at the point when you use them.
+granite blocks. Then we define PDEs and spatially distributed values such as the temperature 
+on this domain. Similarly, to define a PDE object we use the fact that one needs only to define the coefficients of the PDE and solve the PDE. The PDE object has advanced features, but these are not required in simple cases.
 
 
 \begin{figure}[t]
