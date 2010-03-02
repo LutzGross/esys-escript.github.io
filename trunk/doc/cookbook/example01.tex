@@ -24,7 +24,7 @@ The first model consists of two blocks of isotropic material, for instance grani
 Initial temperature in \textit{Block 1} is \verb|T1| and in \textit{Block 2} is \verb|T2|.
 We assume that the system is insulated.
 What would happen to the temperature distribution in each block over time? 
-Intuition tells us that heat will be transported from the hotter block to the cooler until both
+Intuition tells us that heat will be transported from the hotter block to the cooler one until both
 blocks have the same temperature.
 
 \subsection{1D Heat Diffusion Equation}
@@ -40,14 +40,12 @@ parameters are \textbf{constant}.
 The heat source is defined by the right hand side of \refEq{eqn:hd} as $q\hackscore{H}$; this can take the form of a constant or a function of time and space. For example $q\hackscore{H} = q\hackscore{0}e^{-\gamma t}$ where we have the output of our heat source decaying with time. There are also two partial derivatives in \refEq{eqn:hd}; $\frac{\partial T}{\partial t}$ describes the change in temperature with time while $\frac{\partial ^2 T}{\partial x^2}$ is the spatial change of temperature. As there is only a single spatial dimension to our problem, our temperature solution $T$ is only dependent on the time $t$ and our position along the iron bar $x$.
 
 \subsection{PDEs and the General Form}
-Potentially, it is now possible to solve PDE \refEq{eqn:hd} analytically and this would produce an exact solution to our problem. However, it is not always possible or practical to solve a problem this way. Alternatively, computers can be used to solve these kinds of problems. To do this, a numerical approach is required to discretised 
-the PDE \refEq{eqn:hd} in time and space so finally we are left with a finite number of equations for a finite number of spatial and time steps in the model. While discretization introduces approximations and a degree of error, we find that a sufficiently sampled model is generally accurate enough for the requirements of the modeller.
+Potentially, it is possible to solve PDE \refEq{eqn:hd} analytically and obtain an exact solution to our problem. However, it is not always possible or practical to solve a problem this way. Alternatively, computers can be used to solve these kinds of problems. To do this, a numerical approach is required to discretise 
+the PDE \refEq{eqn:hd} in time and space, then we left with a finite number of equations for a finite number of spatial points and time steps in the model. While discretisation introduces approximations and a degree of error, a sufficiently sampled model is generally accurate enough to satisfy the requirements of the modeller.
 
-Firstly, we will discretise the PDE \refEq{eqn:hd} in the time direction which will
-leave as with a steady linear PDE which is involving spatial derivatives only and needs to be solved in each time 
-step to progress in time - \esc can help us here.
+Firstly, we discretise the PDE \refEq{eqn:hd} in time. This leaves us with a steady linear PDE which involves spatial derivatives only and needs to be solved in each time step to progress in time. \esc can help us here.
 
-For the discretization in time we will use is the Backwards Euler approximation scheme\footnote{see \url{http://en.wikipedia.org/wiki/Euler_method}}. It bases on the
+For time discretization we use the Backwards Euler approximation scheme\footnote{see \url{http://en.wikipedia.org/wiki/Euler_method}}. It is based on the
 approximation 
 \begin{equation}
 \frac{\partial T(t)}{\partial t} \approx \frac{T(t)-T(t-h)}{h}
@@ -72,23 +70,23 @@ Substituting \refEq{eqn:Tbeuler} into \refEq{eqn:hd} we get;
 \frac{\rho c\hackscore p}{h} (T^{(n)} - T^{(n-1)}) - \kappa \frac{\partial^{2} T^{(n)}}{\partial x^{2}} = q\hackscore H 
 \label{eqn:hddisc}
 \end{equation}
-Notice that we evaluate the spatial derivative term at current time $t^{(n)}$ - therefore the name \textbf{backward Euler} scheme. Alternatively, one can use evaluate the spatial derivative term at the previous time $t^{(n-1)}$. This 
-approach is called the \textbf{forward Euler} scheme. This scheme can provide some computational advantages which
-we are not discussed here but has the major disadvantage that depending on the 
-material parameter as well as the discretization of the spatial derivative term the time step size $h$ needs to be chosen sufficiently small to achieve a stable temperature when progressing in time. The term \textit{stable} means
-that the approximation of the temperature will not grow beyond its initial bounds and becomes non-physical. 
-The backward Euler which we use here is unconditionally stable meaning that under the assumption of
-physically correct problem set-up the temperature approximation remains physical for all times. 
+Notice that we evaluate the spatial derivative term at current time $t^{(n)}$ - therefore the name \textbf{backward Euler} scheme. Alternatively, one can evaluate the spatial derivative term at the previous time $t^{(n-1)}$. This 
+approach is called the \textbf{forward Euler} scheme. This scheme can provide some computational advantages, which
+are not discussed here. However, this scheme has a major disadvantage, namely depending on the 
+material parameter as well as the discretization of the spatial derivative term, the time step size $h$ needs to be chosen sufficiently small to achieve a stable temperature when progressing in time. The term \textit{stable} means
+that the approximation of the temperature will not grow beyond its initial bounds and become non-physical. 
+The backward Euler scheme, which we use here, is unconditionally stable meaning that under the assumption of
+physically correct problem set-up the temperature approximation remains physical for all time steps. 
 The user needs to keep in mind that the discretization error introduced by \refEq{eqn:beuler} 
-is sufficiently small so a good approximation of the true temperature is calculated. It is
+is sufficiently small, thus a good approximation of the true temperature is computed. It is
 therefore crucial that the user remains critical about his/her results and for instance compares 
 the results for different time and spatial step sizes. 
 
 To get the temperature $T^{(n)}$ at time $t^{(n)}$ we need to solve the linear 
-differential equation \refEq{eqn:hddisc} which is only including spatial derivatives. To solve this problem
-we want to to use \esc. 
+differential equation \refEq{eqn:hddisc} which only includes spatial derivatives. To solve this problem
+we want to use \esc. 
 
-\esc interfaces with any given PDE via a general form. For the purpose of this introduction we will illustrate a simpler version of the full linear PDE general form which is available in the \esc user's guide. A simplified form that suits our heat diffusion problem\footnote{In the form of the \esc users guide which using the Einstein convention is written as 
+In \esc any given PDE described by general form. For the purpose of this introduction we illustrate a simpler version of the general form for full linear PDEs which is available in the \esc user's guide. A simplified form that suits our heat diffusion problem\footnote{The form in the \esc users guide which uses the Einstein convention is written as 
 $-(A\hackscore{jl} u\hackscore{,l})\hackscore{,j}+D u =Y$}
 is described by;
 \begin{equation}\label{eqn:commonform nabla}
@@ -111,7 +109,7 @@ we rearrange \refEq{eqn:hddisc};
 \end{equation}
 The PDE is now in a form that satisfies \refEq{eqn:commonform nabla} which is required for \esc to solve our PDE. This can be done by generating a solution for successive increments in the time nodes $t^{(n)}$ where 
 $t^{(0)}=0$ and  $t^{(n)}=t^{(n-1)}+h$ where $h>0$ is the step size and assumed to be constant. 
-In the following the upper index ${(n)}$ refers to a value at time $t^{(n)}$. Finally, by comparing \refEq{eqn:hdgenf} with \refEq{eqn:commonform} it can be seen that;
+In the following the upper index ${(n)}$ refers to a value at time $t^{(n)}$. Finally, by comparing \refEq{eqn:hdgenf} with \refEq{eqn:commonform} one can see that;
 \begin{equation}\label{ESCRIPT SET}
 u=T^{(n)}; 
 A = \kappa; D = \frac{\rho c \hackscore{p}}{h}; f = q \hackscore{H} + \frac{\rho c\hackscore p}{h} T^{(n-1)}
@@ -120,7 +118,7 @@ A = \kappa; D = \frac{\rho c \hackscore{p}}{h}; f = q \hackscore{H} + \frac{\rho
 \subsection{Boundary Conditions}
 \label{SEC BOUNDARY COND}
 With the PDE sufficiently modified, consideration must now be given to the boundary conditions of our model. Typically there are two main types of boundary conditions known as \textbf{Neumann} and \textbf{Dirichlet} boundary conditions\footnote{More information on Boundary Conditions is available at Wikipedia \url{http://en.wikipedia.org/wiki/Boundary_conditions}}, respectively. 
-A \textbf{Dirichlet boundary condition} is conceptually simpler and is used to prescribe a known value to the unknown - in our example the temperature - on parts of the boundary or on the entire boundary of the region of interest. 
+A \textbf{Dirichlet boundary condition} is conceptually simpler and is used to prescribe a known value to the unknown solution (in our example the temperature) on parts of the boundary or on the entire boundary of the region of interest. 
 We discuss Dirichlet boundary condition in our second example presented in Section~\ref{Sec:1DHDv0}.
 
 We make the model assumption that the system is insulated so we need
@@ -137,7 +135,7 @@ or in a more general case as
 \end{equation}
 where $n$  is the outer normal field \index{outer normal field} at the surface of the domain. 
 The $\cdot$ (dot) refers to the  dot product of the vectors $\nabla T$ and $n$. In fact, the term $\nabla T \cdot n$ is the normal derivative of 
-the temperature $T$. Other notations which are used are\footnote{The \esc notation for the normal
+the temperature $T$. Other notations used here are\footnote{The \esc notation for the normal
 derivative is $T\hackscore{,i} n\hackscore i$.};
 \begin{equation}
 \nabla T \cdot n  = \frac{\partial T}{\partial n} \; .
@@ -145,10 +143,10 @@ derivative is $T\hackscore{,i} n\hackscore i$.};
 A condition of the type \refEq{NEUMAN 1} defines a \textbf{Neuman boundary condition} for the PDE. 
 
 The PDE \refEq{eqn:hdgenf} 
-and the Neuman boundary condition~\ref{eqn:hdgenf} (potentially together with the Dirichlet boundary condition set)  define a \textbf{boundary value problem}. 
-It is a nature of a boundary value problem that it allows to make statements on the solution in the
+and the Neuman boundary condition~\ref{eqn:hdgenf} (potentially together with the Dirichlet boundary conditions)  define a \textbf{boundary value problem}. 
+It is the nature of a boundary value problem to allow making statements about the solution in the
 interior of the domain from information known on the boundary only. In most cases
-we use the term partial differential equation but in fact mean a boundary value problem. 
+we use the term partial differential equation but in fact it is a boundary value problem. 
 It is important to keep in mind that boundary conditions need to be complete and consistent in the sense that 
 at any point on the boundary either a Dirichlet or a Neuman boundary condition must be set.
 
@@ -165,13 +163,12 @@ condition translates into
 \begin{equation}\label{NEUMAN 2b}
 \kappa \frac{\partial T}{\partial x} = 0 
 \end{equation}
-for the boundary of the domain. This is identical to the Neuman boundary condition we want to set. \esc will take care of this condition for us. We will discuss the Dirichlet boundary condition later.
+for the boundary of the domain. This is identical to the Neuman boundary condition we want to set. \esc will take care of this condition for us. We discuss the Dirichlet boundary condition later.
 
 \subsection{Outline of the Implementation}
 \label{sec:outline}
-To solve the heat diffusion equation (equation \refEq{eqn:hd}) we will write a simple \pyt script. At this point we assume that you have some basic understanding of the \pyt programming language. If not there are some pointers and links available in Section \ref{sec:escpybas}. The script we will discuss later in details will have four major steps. Firstly we need to define the domain where we want to 
-calculate the temperature. For our problem this is the joint blocks of granite which has a rectangular shape. Secondly we need to define the PDE 
-we need to solve in each time step to get the updated temperature. Thirdly we need to define the the coefficients of the PDE and finally we need to solve the PDE. The last two steps need to be repeated until the final time marker has been reached. As a work flow this takes the form;
+To solve the heat diffusion equation (equation \refEq{eqn:hd}) we write a simple \pyt script. At this point we assume that you have some basic understanding of the \pyt programming language. If not, there are some pointers and links available in Section \ref{sec:escpybas}. The script we discuss later in details have four major steps. Firstly, we need to define the domain where we want to 
+calculate the temperature. For our problem this is the joint blocks of granite which has a rectangular shape. Secondly, we need to define the PDE to solve in each time step to get the updated temperature. Thirdly, we need to define the coefficients of the PDE and finally we need to solve the PDE. The last two steps need to be repeated until the final time marker has been reached. The work flow is as follows:
 \begin{enumerate}
  \item create domain
  \item create PDE
@@ -183,13 +180,12 @@ we need to solve in each time step to get the updated temperature. Thirdly we ne
 \end{enumerate}
 \item end of calculation
 \end{enumerate}
-In the terminology of \pyt the domain and PDE are represented by \textbf{objects}. The nice feature of an object is that it defined by it usage and features
+In the terminology of \pyt the domain and PDE are represented by \textbf{objects}. The nice feature of an object is that it is defined by its usage and features
 rather than its actual representation. So we will create a domain object to describe the geometry of the two
 granite blocks. The main feature 
-of the object we will use is the fact that we can define PDEs and spatially distributed values such as the temperature 
+of the object we use, is the fact that we can define PDEs and spatially distributed values such as the temperature 
 on a domain. In fact the domain object has many more features - most of them you will 
-never use and do not need to understand. Similar a PDE object is defined by the fact that we can define the coefficients of the PDE and solve the PDE. At a 
-later stage you may use more advanced features of the PDE class but you need to worry about them only at the point when you use them.
+never use and do not need to understand. Similarly, to define a PDE object we use the fact that one needs only to define the coefficients of the PDE and solve the PDE. At a later stage you may use more advanced features of the PDE class, but you need to worry about them only at the point when you use them.
 
 
 \begin{figure}[t]
