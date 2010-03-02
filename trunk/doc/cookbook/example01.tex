@@ -21,15 +21,14 @@
 \label{Sec:1DHDv00}
 
 The first model consists of two blocks of isotropic material, for instance granite, sitting next to each other.
-Initially, \textit{Block 1} is of a temperature
-\verb|T1| and \textit{Block 2} is at a temperature \verb|T2|.
+Initial temperature in \textit{Block 1} is \verb|T1| and in \textit{Block 2} is \verb|T2|.
 We assume that the system is insulated.
 What would happen to the temperature distribution in each block over time? 
-Intuition tells us that heat will transported from the hotter block to the cooler until both
+Intuition tells us that heat will be transported from the hotter block to the cooler until both
 blocks have the same temperature.
 
 \subsection{1D Heat Diffusion Equation}
-We can model the heat distribution of this problem over time using the one dimensional heat diffusion equation\footnote{A detailed discussion on how the heat diffusion equation is derived can be found at \url{http://online.redwoods.edu/instruct/darnold/DEProj/sp02/AbeRichards/paper.pdf}};
+We can model the heat distribution of this problem over time using one dimensional heat diffusion equation\footnote{A detailed discussion on how the heat diffusion equation is derived can be found at \url{http://online.redwoods.edu/instruct/darnold/DEProj/sp02/AbeRichards/paper.pdf}};
 which is defined as:
 \begin{equation}
 \rho c\hackscore p \frac{\partial T}{\partial t} - \kappa \frac{\partial^{2} T}{\partial x^{2}} = q\hackscore H 
