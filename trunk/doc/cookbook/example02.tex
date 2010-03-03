@@ -20,9 +20,9 @@
 \sslist{example02.py}
 \label{Sec:1DHDv0}
 
-Our second example is a cold iron bar at a constant temperature of $T\hackscore{ref}=20^{\circ} C$, see \reffig{fig:onedhdmodel}. The bar is perfectly insulated on all sides with a heating element at one end keeping the the temperature at a constant level $T\hackscore0=100^{\circ} C$.  as heat is applied; energy will disperse along the bar via conduction. With time the bar will reach a constant temperature equivalent to that of the heat source.
+Our second example is a cold iron bar at a constant temperature of $T\hackscore{ref}=20^{\circ} C$, see \reffig{fig:onedhdmodel}. The bar is perfectly insulated on all sides with a heating element at one end keeping the the temperature at a constant level $T\hackscore0=100^{\circ} C$.  As heat is applied; energy will disperse along the bar via conduction. With time the bar will reach a constant temperature equivalent to that of the heat source.
 
-This problem is very similar to the example of temperature diffusion in granite blocks presented in the previous section~\ref{Sec:1DHDv00}. So we will modify the script we have already developed for the granite blocks to adjust 
+This problem is very similar to the example of temperature diffusion in granite blocks presented in the previous section~\ref{Sec:1DHDv00}. So we modify the script we have already developed for the granite blocks to adjust 
 it to the iron bar problem.  
 The obvious difference between the two problems are the dimensions of the domain and different materials involved. This will change the time scale of the model from years to hours. 
 The new settings are;
@@ -112,7 +112,7 @@ condition \esc sets by default (or you may set).
 Besides some cosmetic modification this all we need to change. The total energy over time is shown in \reffig{fig:onedheatout1 002}. As heat
 is transfered into the rod by the heater the total energy is growing over time but reaches a plateau 
 when the temperature is constant is the rod, see \reffig{fig:onedheatout 002}. 
-YOu will notice that the time scale of this model is several order of magnitudes faster than
+You will notice that the time scale of this model is several order of magnitudes faster than
 for the granite rock problem due to the different length scale and material parameters. 
 In practice it can take a few models run before the right time scale has been chosen\footnote{An estimate of the
 time scale for a diffusion problem is given by the formula $\frac{\rho c\hackscore{p} L\hackscore{0}^2}{4 \kappa}$, see
