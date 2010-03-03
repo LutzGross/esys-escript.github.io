@@ -70,7 +70,7 @@ typedef struct Paso_SystemMatrix {
   /* this comes into play when PASO is used */
   Paso_SparseMatrix* mainBlock;                      /* main block */
   Paso_SparseMatrix* col_coupleBlock;                    /* coupling to naighbouring processors (row - col) */
-  Paso_SparseMatrix* row_coupleBlock;                /* coupling to naighbouring processors (col - row) (uses CSC if coupleBlock uses CSR) */
+  Paso_SparseMatrix* row_coupleBlock;                /* coupling to naighbouring processors (col - row)  */
   bool_t normalizer_is_valid;
   double *normalizer; /* vector with a inverse of the absolute row/col sum (set by Solver.c)*/
   index_t solver_package;  /* package controling the solver pointer */
