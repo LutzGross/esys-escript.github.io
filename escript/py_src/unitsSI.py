@@ -73,6 +73,7 @@ some tools supporting physical units and conversion
 :var Hz: unit of Hertz (frequenacy)
 :var N: unit of Newton (force)
 :var Pa: unit of Pascal (pressure, stress)
+:var bar: unit of bar (pressure)
 :var atm: unit of atmosphere (pressure)
 :var J: unit of Joule (energy, work)
 :var W: unit of Watt (power)
@@ -331,6 +332,7 @@ Mol=Unit("mole","Mole",0.,1.)
 Hz=one/sec
 N = Unit("N","Newton",0.,1.)
 Pa = Unit("Pa","Pascal",0.,1.)
+bar=100*Kilo*Pa
 atm= Unit("atm","atmosphere",0.,101325.024)
 J = Unit("J","Joule",0.,1.)
 W= Unit("W","Watt",0.,1.)
