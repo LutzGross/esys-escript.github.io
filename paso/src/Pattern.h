@@ -35,11 +35,11 @@
 
 typedef struct Paso_Pattern {
   int type;
-  dim_t numOutput;
-  dim_t numInput;
-  dim_t len;
-  index_t* ptr;
-  index_t* index;
+  dim_t numOutput;	/* Number of rows the ptr array [CSR] for CSC it's the number of cols*/
+  dim_t numInput;	/* Number of cols [CSR] */
+  dim_t len;		/* number of non-zeros */
+  index_t* ptr;		/* ptr[n] to ptr[n+1] lists indicies (in index) of non-zeros in row n*/
+  index_t* index;	/* Non-major indicies of non-zeros (in CSR this will be col numbers) */ 
   dim_t reference_counter;
 } Paso_Pattern;
 
