@@ -20,7 +20,7 @@
 \sslist{example03a.py and cblib.py}
 
 Building upon our success from the 1D models, it is now prudent to expand our domain by another dimension. 
-For this example we will be using a very simple magmatic intrusion as the basis for our model. The simulation will be a single event where some molten granite has formed a cylindrical dome at the base of some cold sandstone country rock. Assuming that the cylinder is very long 
+For this example we use a very simple magmatic intrusion as the basis for our model. The simulation will be a single event where some molten granite has formed a cylindrical dome at the base of some cold sandstone country rock. Assuming that the cylinder is very long 
 we model a cross-section as shown in \reffig{fig:twodhdmodel}. We will implement the same 
 diffusion model as we have use for the granite blocks in \refSec{Sec:1DHDv00}
 but will add the second spatial dimension and show how to define 
@@ -31,9 +31,9 @@ We use \file{onedheatdiff001b.py} as the starting point for develop this model.
 \label{Sec:2DHD}
 
 To expand upon our 1D problem, the domain must first be expanded. In fact, we have solved a two dimensional problem already but didn't put much 
-attention to the second dimension. This will be changed now. 
-In our definition phase by creating a square domain in $x$ and $y$\footnote{In \esc the notation
-$x\hackscore{0}$ and $x\hackscore{1}$ is used for $x$ and $y$, respectively.} that is $600$ meters along each side \reffig{fig:twodhdmodel}. The number of discrete spatial cells will be 100 in either direction. The radius of the intrusion will be $200$ meters with the centre located at the $300$ meter mark on the $x$-axis. The domain variables are;
+attention to the second dimension.
+In our definition phase we create a square domain in $x$ and $y$\footnote{In \esc the notation
+$x\hackscore{0}$ and $x\hackscore{1}$ is used for $x$ and $y$, respectively.} that is $600$ meters along each side \reffig{fig:twodhdmodel}. Now we set the number of discrete spatial cells to 150 in both direction and the radius of the intrusion to $200$ meters with the centre located at the $300$ meter mark on the $x$-axis. Thus, the domain variables are;
 \begin{python}
 mx = 600*m #meters - model length
 my = 600*m #meters - model width
@@ -49,10 +49,10 @@ model = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
 \end{python}
 to generate the domain. 
 
-There are two fundamental changes to the PDE has we have discussed PDEs in \refSec{Sec:1DHDv00}. Firstly,
+There are two fundamental changes to the PDE that we have discussed PDEs in \refSec{Sec:1DHDv00}. Firstly,
 as the material coefficients for granite and sandstone is different, we need to deal with 
-PDE coefficients which vary with there location in the domain. Secondly, we need 
-to deal with the second spatial dimension. We will look at these two modification at the same time. 
+PDE coefficients which vary with their location in the domain. Secondly, we need 
+to deal with the second spatial dimension. We look at these two modification at the same time. 
 In fact our temperature model \refEq{eqn:hd} we have used in \refSec{Sec:1DHDv00} applies for the 
 1D case with constant material parameter only. For the more general case we are interested 
 in this chapter the correct model equation is 
@@ -89,9 +89,9 @@ $f = q \hackscore{H} + \frac{\rho c\hackscore p}{h} T^{(n-1)}$ as we have used b
 \begin{equation}\label{eqn: kappa general}
 A\hackscore{00}=A\hackscore{11}=\kappa; A\hackscore{01}=A\hackscore{10}=0
 \end{equation}
-The fundamental difference to the 1D case is that $A\hackscore{11}$ is not set to zero but $\kappa$ 
-which brings in the second dimension. Important to notice that the fact that the coefficients 
-of the PDE may depend on their location in the domain now does not influence the usage of the PDE form. This is very convenient as we can introduce spatial dependence to the PDE coefficients without modification to the way we call the PDE solver. 
+The fundamental difference to the 1D case is that $A\hackscore{11}$ is not set to zero but $\kappa$,
+which brings in the second dimension. Important to notice that the coefficients 
+of the PDE may depend on their location in the domain and does not influence the usage of the PDE form. This is very convenient as we can introduce spatial dependence to the PDE coefficients without modification to the way we call the PDE solver. 
 
 A very convenient way to define the matrix $A$ is required in \refEq{eqn: kappa general} is using the 
 Kronecker $\delta$ symbol\footnote{see \url{http://en.wikipedia.org/wiki/Kronecker_delta}}. The 
@@ -111,7 +111,7 @@ mypde.setValue(A=kappa*kronecker(model),D=rhocp/h)
 \end{python}
 sets the PDE coefficients according to \refEq{eqn: kappa general}.  
 
-Before we turn the question how we set $\kappa$ we need to check the boundary conditions. As
+We need to check the boundary conditions before we turn to the question: how we set $\kappa$. As
 pointed out in \refEq{NEUMAN 2} makes certain assumptions on the boundary conditions. In our case
 this assumptions translates to;
 \begin{equation}
@@ -126,13 +126,13 @@ where we have  $(n\hackscore{0},n\hackscore{1} ) = (\pm 1,0)$ this is $\frac{\pa
 
 \section{Setting Variable PDE Coefficients}
 Now we need to look into the problem how we define the material coefficients
-$\kappa$ and $\rho c\hackscore p$ depending on there location in the domain. 
-We have used the technique we discuss here already when we set up the initial
-temperature in the granite block example in \refSec{Sec:1DHDv00}. However,
+$\kappa$ and $\rho c\hackscore p$ depending on their location in the domain. 
+We can make use of the technique used in the granite block example in \refSec{Sec:1DHDv00}
+to set up the initial temperature. However,
 the situation is more complicated here as we have to deal with a
 curved interface between the two sub-domain.
 
-Prior to setting up the PDE the interface between the two materials must be established. 
+Prior to setting up the PDE, the interface between the two materials must be established. 
 The distance $s\ge 0$ between two points $[x,y]$ and $[x\hackscore{0},y\hackscore{0}]$ in Cartesian coordinates is defined as:
 \begin{equation}
  (x-x\hackscore{0})^{2}+(y-y\hackscore{0})^{2} = s^{2}
@@ -147,7 +147,7 @@ Defining these conditions within the script is quite simple and is done using th
 \end{python}
 This definition of the boundary can now be used with \verb|whereNegative| command again to help define the material constants and temperatures in our domain. 
 If \verb|kappai| and \verb|kappac| are the 
-thermal conductivities for the intrusion material granite and for the surrounding sandstone we set; 
+thermal conductivities for the intrusion material granite and for the surrounding sandstone, then we set; 
 \begin{python}
 x=Function(model).getX()
 bound = length(x-ic)-r
@@ -167,7 +167,7 @@ T= Ti*whereNegative(bound)+Tc*(1-whereNegative(bound))
 \end{python}
 where \verb|Ti| and \verb|Tc| are the initial temperature
 in the regions of the granite and surrounding sandstone, respectively. It is important to
-notice that we have reset \verb|x| and \verb|bound| to refer to the appropriate 
+notice that we reset \verb|x| and \verb|bound| to refer to the appropriate 
 sample points of a PDE solution\footnote{For the experience user: use \texttt{x=mypde.getFunctionSpace("r").getX()}.}.
 
 \begin{figure}[ht]
@@ -213,8 +213,8 @@ yi = np.linspace(0.0,my,75)
 \end{python}
 The values \verb|[xi[k], yi[l]]| are the grid points.
 
-The remainder of our contouring commands reside within a \verb while  loop so that a new contour is generated for each time step. For each time step the solution must be regridded for \modmpl using the \verb griddata  function. This function interprets a potentially irregularly located values \verb tempT  at locations defined by \verb coordX  and \verb coordY as values at the new coordinates of a rectangular grid defined by
-\verb xi   and \verb yi . The output is \verb zi  . It is now possible to use the \verb contourf  function which generates colour filled contours. The colour gradient of our plots is set via the command \verb pl.matplotlib.pyplot.autumn() , other colours are listed on the \modmpl web page\footnote{see \url{http://matplotlib.sourceforge.net/api/}}. Our results are then contoured, visually adjusted using the \modmpl functions and then saved to file. \verb pl.clf()  clears the figure in readiness for the next time iteration.
+The remainder of our contouring commands reside within a \verb while  loop so that a new contour is generated for each time step. For each time step the solution must be regridded for \modmpl using the \verb griddata  function. This function interprets a potentially irregularly located values \verb tempT  at locations defined by \verb coordX  and \verb coordY  as values at the new coordinates of a rectangular grid defined by
+\verb xi   and \verb yi . The output is \verb zi . It is now possible to use the \verb contourf  function which generates colour filled contours. The colour gradient of our plots is set via the command \verb pl.matplotlib.pyplot.autumn() , other colours are listed on the \modmpl web page\footnote{see \url{http://matplotlib.sourceforge.net/api/}}. Our results are then contoured, visually adjusted using the \modmpl functions and then saved to file. \verb pl.clf()  clears the figure in readiness for the next time iteration.
 \begin{python}
 #grid the data.
 zi = pl.matplotlib.mlab.griddata(coordX,coordY,tempT,xi,yi)
@@ -239,17 +239,17 @@ The results for selected time steps are shown in \reffig{fig:twodhdans}.
 
 \sslist{example03b.py}
 An alternative approach to \modmpl for visualization is the usage of a package which base on 
-visualization tool kit (VTK) library\footnote{see \url{http://www.vtk.org/}}. There is a variety 
-of package available. Here we will use the package \mayavi\footnote{see \url{http://code.enthought.com/projects/mayavi/}} as an example. 
+visualization tool kit (VTK) library\footnote{see \url{http://www.vtk.org/}}. There are variety 
+of packages available. Here we use the package \mayavi\footnote{see \url{http://code.enthought.com/projects/mayavi/}} as an example. 
 
 \mayavi is an interactive, GUI driven tool which is 
 really designed to visualize large three dimensional data sets where \modmpl 
 is not suitable. But it is very useful when it comes to two dimensional problems. 
-The decision which tool is best is finally the user's decision. The main 
+The decision which tool is the best depends on the user's decision. The main 
 difference between using \mayavi (and other VTK based tools)
 or \modmpl is the fact that actually visualization is detached from the 
 calculation by writing the results to external files
-and import them into \mayavi. In 3D where the best camera position for rendering a scene is not obvious 
+and import them into \mayavi. In 3D the best camera position for rendering a scene is not obvious 
 before the results are available. Therefore the user may need to try 
 different position before the best is found. Moreover, in many cases in 3D the interactive 
 visualization is the only way to really understand the results (e.g. using stereographic projection). 
@@ -280,7 +280,7 @@ created by \verb|saveVTK|.
 \caption{Example 3b: \mayavi data control window.}
 \label{fig:mayavi window2}
 \end{figure}
-After you have run the script you will find the 
+After you run the script you will find the 
 result files \file{data.*.vtu} in the result directory \file{data/example03}. Run the 
 command
 \begin{python}
