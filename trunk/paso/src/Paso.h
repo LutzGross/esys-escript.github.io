@@ -45,7 +45,8 @@ enum Paso_ErrorCodeType {
   OS_ERROR,
   OVERFLOW_ERROR,
   SYSTEM_ERROR,
-  PASO_MPI_ERROR 
+  PASO_MPI_ERROR,
+  NO_PROGRESS_ERROR
 };
 
 typedef enum Paso_ErrorCodeType Paso_ErrorCodeType;

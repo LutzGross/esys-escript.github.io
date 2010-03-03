@@ -76,6 +76,7 @@ sources = """
 	SystemMatrix_borrowNormalization.c
 	SystemMatrix_getSystemMatrixTypeId.c
 	SystemMatrix_loadMM.c
+        SystemMatrix_MIS.c
 	SystemMatrix_nullifyRows.c
 	SystemMatrix_nullifyRowsAndCols.c
 	SystemMatrix_rowSum.c
@@ -106,6 +107,7 @@ headers = """
 	SolverFCT.h
 	SparseMatrix.h
 	SystemMatrix.h
+        SystemMatrix_MIS.h
 	SystemMatrixPattern.h
 	UMFPACK.h
 	mmio.h
