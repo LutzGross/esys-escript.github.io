@@ -475,17 +475,18 @@ while a sub-folder of \verb data  called \verb example01  would be defined by;
 \begin{verbatim}
 save_path = os.path.join("data","example01")
 \end{verbatim}
-The second argument of \verb join \xspace contains a string which is the file name or subdirectory name. We can use the operator \verb|%| to increment our file names with the value \verb|i| denoting a incrementing counter. The sub-string \verb %03d  does this by defining the following parameters; 
+The second argument of \verb join \xspace contains a string which is the file name or subdirectory name. We can use the operator \verb|%| to use the value of \verb|i| as part of our filename. The sub-string \verb %03d  indicates that we want to substitude a value into the name; 
 \begin{itemize}
- \item \verb 0  becomes the padding number;
- \item \verb 3  tells us the amount of padding numbers that are required; and
- \item \verb d  indicates the end of the \verb %  operator.
+ \item \verb 0  means that small numbers should have leading zeroes;
+ \item \verb 3  means that numbers should be written using at least 3 digits; and
+ \item \verb d  means that the value to substitute will be an integer.
 \end{itemize}
-To increment the file name a \verb %i  is required directly after the operation the string is involved in. When correctly implemented the output files from this command would be place in the directory defined by \verb save_path  as;
+To actually substitute the value of \verb|i| into the name write \verb %i after the string.
+When done correctly, the output files from this command would be place in the directory defined by \verb save_path  as;
 \begin{verbatim}
-blockspyplot.png
-blockspyplot.png
-blockspyplot.png
+blockspyplot001.png
+blockspyplot002.png
+blockspyplot003.png
 ...
 \end{verbatim}
 and so on.
