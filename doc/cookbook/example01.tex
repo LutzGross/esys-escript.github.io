@@ -400,19 +400,19 @@ if the system is configured correctly (Please talk to your system administrator)
 \esc does not include its own plotting capabilities. However, it is possible to use a variety of free \pyt packages for visualisation.
 Two types will be demonstrated in this cookbook; \mpl\footnote{\url{http://matplotlib.sourceforge.net/}} and \verb VTK \footnote{\url{http://www.vtk.org/}} visualisation. 
 The \mpl package is a component of SciPy\footnote{\url{http://www.scipy.org}} and is good for basic graphs and plots. 
-For more complex visualisation tasks in particular when it comes to  two and three dimensional problems it is recommended to us more advanced tools for instance  \mayavi \footnote{\url{http://code.enthought.com/projects/mayavi/}}
-which bases on the \verb|VTK| toolkit. We will discuss the usage of \verb|VTK| based 
-visualization in Chapter~\ref{Sec:2DHD} where will discuss a two dimensional PDE. 
+For more complex visualisation tasks in particular when it comes to  two and three dimensional problems we recommend to use more advanced tools for instance  \mayavi \footnote{\url{http://code.enthought.com/projects/mayavi/}}
+which bases on the \verb|VTK| toolkit. We discuss the usage of \verb|VTK| based 
+visualization in Chapter~\ref{Sec:2DHD} where focus on a two dimensional PDE. 
 
-For our simple problem we have two plotting tasks: Firstly we are interested in showing the
-behaviour of the total energy over time and secondly in how the temperature distribution within the block is 
+For our simple problem we have two plotting tasks: we are interested in showing the
+behaviour of the total energy over time and how the temperature distribution within the block is 
 developing over time. Lets start with the first task.
 
 The trick is to create a record of the time marks and the corresponding total energies observed.
 \pyt provides the concept of lists for this. Before 
 the time loop is opened we create empty lists for the time marks \verb|t_list| and the total energies \verb|E_list|. 
 After the new temperature as been calculated by solving the PDE we append the new time marker and total energy
-to the corresponding list using the \verb|append| method. With these modifications the script looks as follows:
+to the corresponding list using the \verb|append| method. With these modifications our script looks as follows:
 \begin{python}
 t_list=[]
 E_list=[]
@@ -467,7 +467,7 @@ import os
 os.path.join(save_path, "tempT%03d.png"%i )
 \end{python}
 where \verb|i| is the time step counter.
-There are two arguments to the \verb join  command. The \verb save_path  variable is a predefined string pointing to the directory we want to save our data in, for example a single sub-folder called \verb data  would be defined by;
+There are two arguments to the \verb join  command. The \verb save_path  variable is a predefined string pointing to the directory we want to save our data, for example a single sub-folder called \verb data  would be defined by;
 \begin{verbatim}
 save_path = "data"
 \end{verbatim}
@@ -497,10 +497,10 @@ mkDir(save_path)
 \end{verbatim}
 will check for the existence of \verb save_path  and if missing, make the required directories.
 
-We start by modifying our solution script from before.
+We start by modifying our solution script.
 Prior to the \verb|while| loop we will need to extract our finite solution points to a data object that is compatible with \mpl. First we create the node coordinates of the sample points used to represent
 the temperature as a \pyt list of tuples or a \numpy array as requested by the plotting function. 
-We need to convert thearray \verb|x| previously set as \verb|Solution(blocks).getX()| into a \pyt list 
+We need to convert the array \verb|x| previously set as \verb|Solution(blocks).getX()| into a \pyt list 
 and then to a \numpy array. The $x\hackscore{0}$ component is then extracted via an array slice to the variable \verb|plx|; 
 \begin{python}
 import numpy as np # array package.
@@ -520,8 +520,8 @@ plx = plx[:,0] # extract x locations
 \end{center}
 \end{figure}
 
-For each time step we will generate a plot of the temperature distribution and save each to a file. We use the same
-techniques provided by \mpl as we have used to plot the total energy over time.
+We use the same techniques provided by \mpl as we have used to plot the total energy over time. 
+For each time step we generate a plot of the temperature distribution and save each to a file. 
 The following is appended to the end of the \verb while  loop and creates one figure of the temperature distribution. We start by converting the solution to a tuple and then plotting this against our \textit{x coordinates} \verb plx  we have generated before. We add a title to the diagram before it is rendered into a file. 
 Finally, the figure is saved to a \verb|*.png| file and cleared for the following iteration.
 \begin{python}
@@ -541,7 +541,7 @@ while t<tend:
 Some results are shown in \reffig{fig:onedheatout}. 
 
 \subsection{Make a video} 
-Our saved plots from the previous section can be cast into a video using the following command appended to the end of the script. \verb mencoder  is Linux only however, and other platform users will need to use an alternative video encoder.
+Our saved plots from the previous section can be cast into a video using the following command appended to the end of the script. The \verb mencoder command is Linux only, so other platform users need to use an alternative video encoder.
 \begin{python}
 # compile the *.png files to create a *.avi videos that show T change
 # with time. This operation uses Linux mencoder. For other operating 
