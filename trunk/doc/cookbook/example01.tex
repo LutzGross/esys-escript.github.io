@@ -195,54 +195,54 @@ on this domain. Similarly, to define a PDE object we use the fact that one needs
 
 \subsection{The Domain Constructor in \esc}
 \label{ss:domcon}
-It is helpful to have a better understanding how spatially distributed value such as the temperature or PDE coefficients are interpreted in \esc. Again
+It is helpful to have a better understanding how spatially distributed value such as temperature or PDE coefficients are interpreted in \esc. Again
 from the user's point of view the representation of these spatially distributed values is not relevant. 
 
-There are various ways to construct domain objects. The simplest form is as rectangular shaped region with a length and height. There is
-a ready to use function call for this. Besides the spatial dimensions the function call will require you to specify the number
+There are various ways to construct domain objects. The simplest form is a rectangular shaped region with a length and height. There is
+a ready to use function for this named \verb rectangle(). Besides the spatial dimensions this function requires to specify the number of
 elements or cells to be used along the length and height, see \reffig{fig:fs}. Any spatially distributed value 
-and the PDE is represented in discrete form using this element representation\footnote{We will use the finite element method (FEM), see \url{http://en.wikipedia.org/wiki/Finite_element_method} for details.}. Therefore we will have access to an approximation of the true PDE solution only. 
+and the PDE is represented in discrete form using this element representation\footnote{We use the finite element method (FEM), see \url{http://en.wikipedia.org/wiki/Finite_element_method} for details.}. Therefore we will have access to an approximation of the true PDE solution only. 
 The quality of the approximation depends - besides other factors- mainly on the number of elements being used. In fact, the 
-approximation becomes better the more elements are used. However, computational costs and compute time grow with the number of
-elements being used. It therefore important that you find the right balance between the demand in accuracy and acceptable resource usage.
+approximation becomes better when more elements are used. However, computational costs and compute time grow with the number of
+elements being used. It is therefore important that you find the right balance between the demand in accuracy and acceptable resource usage.
 
-In general, one can thinks about a domain object as a composition of nodes and elements. 
-As shown in \reffig{fig:fs}, an element is defined by the nodes used to describe its vertices. 
+In general, one can think about a domain object as a composition of nodes and elements. 
+As shown in \reffig{fig:fs}, an element is defined by the nodes that are used to describe its vertices. 
 To represent spatial distributed values the user can use 
-the values at the nodes, at the elements in the interior of the domain or at elements located at the surface of the domain. 
+the values at the nodes, at the elements in the interior of the domain or at the elements located at the surface of the domain. 
 The different approach used to represent values is called \textbf{function space} and is attached to all objects
 in \esc representing a spatial distributed value such as the solution of a PDE. The three 
-function spaces we will use at the moment are;
+function spaces we use at the moment are;
 \begin{enumerate}
 \item the nodes, called by \verb|ContinuousFunction(domain)| ;
 \item the elements/cells, called by \verb|Function(domain)| ; and
 \item the boundary, called by \verb|FunctionOnBoundary(domain)| .
 \end{enumerate}
 A function space object such as \verb|ContinuousFunction(domain)| has the method \verb|getX| attached to it. This method returns the
-location of the so-called \textbf{sample points} used to represent values with the particular function space attached to it. So the
+location of the so-called \textbf{sample points} used to represent values of the particular function space. So the
 call \verb|ContinuousFunction(domain).getX()| will return the coordinates of the nodes used to describe the domain while
 the  \verb|Function(domain).getX()| returns the coordinates of numerical integration points within elements, see
 \reffig{fig:fs}. 
 
-This distinction between different representations of spatial distributed values 
+This distinction between different representations of spatially distributed values 
 is important in order to be able to vary the degrees of smoothness in a PDE problem. 
-The coefficients of a PDE need not be continuous thus this qualifies as a \verb|Function()| type. 
+The coefficients of a PDE do not need be continuous, thus this qualifies as a \verb|Function()| type. 
 On the other hand a temperature distribution must be continuous and needs to be represented with a \verb|ContinuousFunction()| function space.
 An influx may only be defined at the boundary and is therefore a \verb FunctionOnBoundary()  object.  
 \esc allows certain transformations of the function spaces. A \verb ContinuousFunction()  can be transformed into a \verb|FunctionOnBoundary()|
 or \verb|Function()|. On the other hand there is not enough information in a \verb FunctionOnBoundary()  to transform it to a \verb ContinuousFunction()  .
 These transformations, which are called \textbf{interpolation} are invoked automatically by \esc if needed.
 
-Later in this introduction we will discuss how
+Later in this introduction we discuss how
 to define specific areas of geometry with different materials which are represented by different material coefficients such the
 thermal conductivities $kappa$. A very powerful technique to define these types of PDE 
 coefficients is tagging. Blocks of materials and boundaries can be named and values can be defined on subregions based on their names.
-This is simplifying PDE coefficient and flux definitions. It makes for much easier scripting. We will discuss this technique in Section~\ref{STEADY-STATE HEAT REFRACTION}.
+This is simplifying PDE coefficient and flux definitions. It makes scripting much easier. We will discuss this technique in Section~\ref{STEADY-STATE HEAT REFRACTION}.
 
 
 \subsection{A Clarification for the 1D Case}
 \label{SEC: 1D CLARIFICATION}
-It is necessary for clarification that we revisit the general PDE from \refeq{eqn:commonform nabla} under the light of a two dimensional domain. \esc is inherently designed to solve problems that are greater than one dimension and so \refEq{eqn:commonform nabla} needs to be read as a higher dimensional problem. In the case of two spatial dimensions the \textit{Nabla operator} has in fact two components $\nabla = (\frac{\partial}{\partial x}, \frac{\partial}{\partial y})$. In full, \refEq{eqn:commonform nabla} assuming a constant coefficient $A$, takes the form;
+It is necessary for clarification that we revisit our general PDE from \refeq{eqn:commonform nabla} for two dimensional domain. \esc is inherently designed to solve problems that are greater than one dimension and so \refEq{eqn:commonform nabla} needs to be read as a higher dimensional problem. In the case of two spatial dimensions the \textit{Nabla operator} has in fact two components $\nabla = (\frac{\partial}{\partial x}, \frac{\partial}{\partial y})$. Assuming the coefficient $A$ is constant, the \refEq{eqn:commonform nabla} takes the following form;
 \begin{equation}\label{eqn:commonform2D}
 -A\hackscore{00}\frac{\partial^{2}u}{\partial x^{2}} 
 -A\hackscore{01}\frac{\partial^{2}u}{\partial x\partial y} 
@@ -253,7 +253,7 @@ It is necessary for clarification that we revisit the general PDE from \refeq{eq
 Notice that for the higher dimensional case $A$ becomes a matrix. It is also
 important to notice that the usage of the Nabla operator creates
 a compact formulation which is also independent from the spatial dimension. 
-So to make the general PDE \refEq{eqn:commonform2D} one dimensional as
+To make the general PDE \refEq{eqn:commonform2D} one dimensional as
 shown in \refEq{eqn:commonform} we need to set
 \begin{equation}
 A\hackscore{00}=A; A\hackscore{01}=A\hackscore{10}=A\hackscore{11}=0
@@ -263,7 +263,7 @@ A\hackscore{00}=A; A\hackscore{01}=A\hackscore{10}=A\hackscore{11}=0
 \subsection{Developing a PDE Solution Script}
 \label{sec:key}
 \sslist{example01a.py}
-We will write a simple \pyt script which uses the \modescript, \modfinley and \modmpl modules. 
+We write a simple \pyt script which uses the \modescript, \modfinley and \modmpl modules. 
 By developing a script for \esc, the heat diffusion equation can be solved at successive time steps for a predefined period using our general form \refEq{eqn:hdgenf}. Firstly it is necessary to import all the libraries\footnote{The libraries contain predefined scripts that are required to solve certain problems, these can be simple like sine and cosine functions or more complicated like those from our \esc library.} 
 that we will require.
 \begin{python}
@@ -276,11 +276,11 @@ from esys.finley import Rectangle
 # match up in the equations under SI.
 from esys.escript.unitsSI import * 
 \end{python}
-It is generally a good idea to import all of the \modescript library, although if the functions and classes required are known they can be specified individually. The function \verb|LinearPDE| has been imported explicitly for ease of use later in the script. \verb|Rectangle| is going to be our type of model. The module \verb unitsSI  provides support for SI unit definitions with our variables.
+It is generally a good idea to import all of the \modescript library, although if the functions and classes required are known they can be specified individually. The function \verb|LinearPDE| has been imported explicitly for ease of use later in the script. \verb|Rectangle| is going to be our type of domain. The module \verb unitsSI  provides support for SI unit definitions with our variables.
 
-Once our library dependencies have been established, defining the problem specific variables is the next step. In general the number of variables needed will vary between problems. These variables belong to two categories. They are either directly related to the PDE and can be used as inputs into the \esc solver, or they are script variables used to control internal functions and iterations in our problem. For this PDE there are a number of constants which will need values. Firstly, the model upon which we wish to solve our problem needs to be defined. There are many different types of models in \modescript which we will demonstrate in later tutorials but for our granite blocks, we will simply use a rectangular model. 
+Once our library dependencies have been established, defining the problem specific variables is the next step. In general the number of variables needed will vary between problems. These variables belong to two categories. They are either directly related to the PDE and can be used as inputs into the \esc solver, or they are script variables used to control internal functions and iterations in our problem. For this PDE there are a number of constants which need values. Firstly, the domain upon which we wish to solve our problem needs to be defined. There are different types of domains in \modescript which we demonstrate in later tutorials but for our granite blocks, we simply use a rectangular domain. 
 
-Using a rectangular model simplifies our granite blocks which would in reality be a \textit{3D} object, into a single dimension. The granite blocks will have a lengthways cross section that looks like a rectangle.  As a result we do not need to model the volume of the block. There are four arguments we must consider when we decide to create a rectangular model, the model \textit{length}, \textit{width} and \textit{step size} in each direction. When defining the size of our problem it will help us determine appropriate values for our model arguments. If we make our dimensions large but our step sizes very small we will to a point, increase the accuracy of our solution. Unfortunately we also increase the number of calculations that must be solved per time step. This means more computational time is required to produce a solution. In this \textit{1D} problem, the bar is defined as being 1 metre long. An appropriate step size \verb|ndx| would be 1 to 10\% of the length. Our \verb|ndy| need only be 1, this is because our problem stipulates no partial derivatives in the $y$ direction. Thus the temperature does not vary with $y$. Hence, the model parameters can be defined as follows; note we have used the \verb unitsSI  convention to make sure all our input units are converted to SI.
+Using a rectangular domain simplifies our granite blocks (which would in reality be a \textit{3D} object) into a single dimension. The granite blocks will have a lengthways cross section that looks like a rectangle.  As a result we do not need to model the volume of the block. There are four arguments we must consider when we decide to create a rectangular domain, the domain \textit{length}, \textit{width} and \textit{step size} in each direction. When defining the size of our problem it will help us determine appropriate values for our model arguments. If we make our dimensions large but our step sizes very small we increase the accuracy of our solution. Unfortunately we also increase the number of calculations that must be solved per time step. This means more computational time is required to produce a solution. In this \textit{1D} problem, the bar is defined as being 1 metre long. An appropriate step size \verb|ndx| would be 1 to 10\% of the length. Our \verb|ndy| need only be 1, this is because our problem stipulates no partial derivatives in the $y$ direction. Thus the temperature does not vary with $y$. Hence, the model parameters can be defined as follows; note we have used the \verb unitsSI  convention to make sure all our input units are converted to SI.
 \begin{python}
 mx = 500.*m #meters - model length
 my = 100.*m #meters - model width
@@ -314,9 +314,9 @@ Now that we know our inputs we will build a domain using the \verb Rectangle() f
 #generate domain using rectangle
 blocks = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
 \end{python}
-\verb blocks  now describes a domain in the manner of Section \ref{ss:domcon}. T
+\verb blocks  now describes a domain in the manner of Section \ref{ss:domcon}.
 
-With a domain and all our required variables established, it is now possible to set up our PDE so that it can be solved by \esc. The first step is to define the type of PDE that we are trying to solve in each time step. In this example it is a single linear PDE\footnote{in comparison to a system of PDEs which will be discussed later.}. We also need to state the values of our general form variables.
+With a domain and all our required variables established, it is now possible to set up our PDE so that it can be solved by \esc. The first step is to define the type of PDE that we are trying to solve in each time step. In this example it is a single linear PDE\footnote{in comparison to a system of PDEs which we discuss later.}. We also need to state the values of our general form variables.
 \begin{python}
 mypde=LinearPDE(blocks)
 A=zeros((2,2)))
@@ -328,7 +328,7 @@ Symmetry of a PDE is defined by;
 \begin{equation}\label{eqn:symm}
 A\hackscore{jl}=A\hackscore{lj}
 \end{equation}
-Symmetry is only dependent on the $A$ coefficient in the general form and the other coefficients $D$ as well as the right hand side $Y$ may take any value. From the above definition we can see that our PDE is symmetric. The \verb LinearPDE  class provides the method \method{checkSymmetry} to check if the given PDE is symmetric. As our PDE is symmetrical we will enable symmetry via;
+Symmetry is only dependent on the $A$ coefficient in the general form and the other coefficients $D$ as well as the right hand side $Y$. From the above definition we can see that our PDE is symmetric. The \verb LinearPDE  class provides the method \method{checkSymmetry} to check if the given PDE is symmetric. As our PDE is symmetrical we enable symmetry via;
 \begin{python}
  myPDE.setSymmetryOn()
 \end{python}
@@ -358,7 +358,7 @@ Although \esc is trying to be forgiving with the choice of sample points and to 
 where necessary the adjustment of the function space is not always possible. So it is 
 advisable to make a careful choice on the function space used.  
 
-Finally we will initialise an iteration loop to solve our PDE for all the time steps we specified in the variable section. As the right hand side of the general form is dependent on the previous values for temperature \verb T  across the bar this must be updated in the loop. Our output at each time step is \verb T  the heat distribution and \verb totT  the total heat in the system.
+Finally we initialise an iteration loop to solve our PDE for all the time steps we specified in the variable section. As the right hand side of the general form is dependent on the previous values for temperature \verb T  across the bar this must be updated in the loop. Our output at each time step is \verb T  the heat distribution and \verb totT  the total heat in the system.
 \begin{python}
 while t < tend:
 	i+=1 #increment the counter
@@ -481,7 +481,7 @@ The second argument of \verb join \xspace contains a string which is the file na
  \item \verb 3  means that numbers should be written using at least 3 digits; and
  \item \verb d  means that the value to substitute will be an integer.
 \end{itemize}
-To actually substitute the value of \verb|i| into the name write \verb %i after the string.
+To actually substitute the value of \verb|i| into the name write \verb %i  after the string.
 When done correctly, the output files from this command would be place in the directory defined by \verb save_path  as;
 \begin{verbatim}
 blockspyplot001.png
