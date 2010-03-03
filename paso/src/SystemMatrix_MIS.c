@@ -66,9 +66,9 @@ void Paso_SystemMatrix_CalcBorderMIS(Paso_SystemMatrix* A, index_t* border, inde
 	    for (j=0;j<bordercount;++j) {
 		index_t bnode=border[j];
 		if (ISAVAILABLE(weights[bnode])) {
+		    Paso_Pattern* p=A->mainBlock->pattern;
 		    weights[bnode]=MISIN;
 		    /* Now walk the neighbours and mark them unavailable */
-		    Paso_Pattern* p=A->mainBlock->pattern;
 		    for (k=p->ptr[bnode];k<p->ptr[bnode+1];++k) {	/* Walk along the row */
 			if (p->index[k]!=bnode) {	/* ignore diagonal link to self */
 			    weights[p->index[k]]=MISOUT;	/* node can't be in the set */
