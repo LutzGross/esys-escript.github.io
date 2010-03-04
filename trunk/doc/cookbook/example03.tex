@@ -30,9 +30,7 @@ We use \file{onedheatdiff001b.py} as the starting point for develop this model.
 \section{Example 3: Two Dimensional Heat Diffusion for a basic Magmatic Intrusion}
 \label{Sec:2DHD}
 
-To expand upon our 1D problem, the domain must first be expanded. In fact, we have solved a two dimensional problem already but didn't put much 
-attention to the second dimension.
-In our definition phase we create a square domain in $x$ and $y$\footnote{In \esc the notation
+To expand upon our 1D problem, the domain must first be expanded. In fact, we have solved a two dimensional problem already but essentially ignored the second dimension. In our definition phase we create a square domain in $x$ and $y$\footnote{In \esc the notation
 $x\hackscore{0}$ and $x\hackscore{1}$ is used for $x$ and $y$, respectively.} that is $600$ meters along each side \reffig{fig:twodhdmodel}. Now we set the number of discrete spatial cells to 150 in both direction and the radius of the intrusion to $200$ meters with the centre located at the $300$ meter mark on the $x$-axis. Thus, the domain variables are;
 \begin{python}
 mx = 600*m #meters - model length
@@ -49,19 +47,18 @@ model = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
 \end{python}
 to generate the domain. 
 
-There are two fundamental changes to the PDE that we have discussed PDEs in \refSec{Sec:1DHDv00}. Firstly,
-as the material coefficients for granite and sandstone is different, we need to deal with 
+There are two fundamental changes to the PDE that we have discussed in \refSec{Sec:1DHDv00}. Firstly,
+because the material coefficients for granite and sandstone are different, we need to deal with 
 PDE coefficients which vary with their location in the domain. Secondly, we need 
-to deal with the second spatial dimension. We look at these two modification at the same time. 
-In fact our temperature model \refEq{eqn:hd} we have used in \refSec{Sec:1DHDv00} applies for the 
-1D case with constant material parameter only. For the more general case we are interested 
-in this chapter the correct model equation is 
+to deal with the second spatial dimension. We can investigate these two modification at the same time. 
+In fact, the temperature model \refEq{eqn:hd} we utilised in \refSec{Sec:1DHDv00} applied for the 
+1D case with a constant material parameter only. For the more general case examined in this chapter, the correct model equation is 
 \begin{equation}
 \rho c\hackscore p \frac{\partial T}{\partial t} -  \frac{\partial }{\partial x} \kappa \frac{\partial T}{\partial x} -  \frac{\partial }{\partial y} \kappa \frac{\partial T}{\partial y} = q\hackscore H 
 \label{eqn:hd2}
 \end{equation}
 Notice, that for the 1D case we have $\frac{\partial T}{\partial y}=0$ and
-for the case of constant material parameters $\frac{\partial }{\partial x} \kappa = \kappa  \frac{\partial }{\partial x}$ so this new equation coincides with simplified model equation for this case. It is more convenient 
+for the case of constant material parameters $\frac{\partial }{\partial x} \kappa = \kappa  \frac{\partial }{\partial x}$ thus this new equation coincides with a simplified model equation for this case. It is more convenient 
 to write this equation using the $\nabla$ notation as we have already seen in \refEq{eqn:commonform nabla};
 \begin{equation}\label{eqn:Tform nabla}
 \rho c\hackscore p \frac{\partial T}{\partial t} 
@@ -72,7 +69,7 @@ We can easily apply the backward Euler scheme as before to end up with
 \frac{\rho c\hackscore p}{h} T^{(n)} -\nabla \cdot \kappa \nabla T^{(n)}  = q\hackscore H +  \frac{\rho c\hackscore p}{h} T^{(n-1)}
 \label{eqn:hdgenf2}
 \end{equation}
-which is very similar to \refEq{eqn:hdgenf} used to define the temperature update in the simple 1D case. 
+which is very similar to \refEq{eqn:hdgenf} used to define the temperature solution in the simple 1D case. 
 The difference is in the second order derivate term $\nabla \cdot \kappa \nabla T^{(n)}$. Under 
 the light of the more general case we need to revisit the \esc PDE form as 
 shown in \ref{eqn:commonform2D}. For the 2D case with variable PDE coefficients 
@@ -93,7 +90,7 @@ The fundamental difference to the 1D case is that $A\hackscore{11}$ is not set t
 which brings in the second dimension. Important to notice that the coefficients 
 of the PDE may depend on their location in the domain and does not influence the usage of the PDE form. This is very convenient as we can introduce spatial dependence to the PDE coefficients without modification to the way we call the PDE solver. 
 
-A very convenient way to define the matrix $A$ is required in \refEq{eqn: kappa general} is using the 
+A very convenient way to define the matrix $A$ in \refEq{eqn: kappa general} can be carried out using the 
 Kronecker $\delta$ symbol\footnote{see \url{http://en.wikipedia.org/wiki/Kronecker_delta}}. The 
 \esc function \verb|kronecker| returns this matrix;
 \begin{equation}
@@ -125,7 +122,7 @@ this means $\frac{\partial T^{(n)}}{\partial x}=0$ and on the top and bottom on 
 where we have  $(n\hackscore{0},n\hackscore{1} ) = (\pm 1,0)$ this is $\frac{\partial T^{(n)}}{\partial y}=0$. 
 
 \section{Setting Variable PDE Coefficients}
-Now we need to look into the problem how we define the material coefficients
+Now we need to look into the problem of how we define the material coefficients
 $\kappa$ and $\rho c\hackscore p$ depending on their location in the domain. 
 We can make use of the technique used in the granite block example in \refSec{Sec:1DHDv00}
 to set up the initial temperature. However,
@@ -155,10 +152,10 @@ kappa = kappai * whereNegative(bound) + kappac * (1-whereNegative(bound))
 mypde.setValue(A=kappa*kronecker(model))
 \end{python}
 Notice that we are using the sample points of the \verb|Function| function space as expected for the 
-PDE coefficient \verb|A|\footnote{For the experience user: use \texttt{x=mypde.getFunctionSpace("A").getX()}.}
+PDE coefficient \verb|A|\footnote{For the experienced user: use \texttt{x=mypde.getFunctionSpace("A").getX()}.}
 The corresponding statements are used to set $\rho c\hackscore p$. 
 
-Our PDE has now been properly established. The initial conditions for temperature are set out in a similar matter:
+Our PDE has now been properly established. The initial conditions for temperature are set out in a similar manner:
 \begin{python}
 #defining the initial temperatures.
 x=Solution(model).getX()
@@ -168,7 +165,7 @@ T= Ti*whereNegative(bound)+Tc*(1-whereNegative(bound))
 where \verb|Ti| and \verb|Tc| are the initial temperature
 in the regions of the granite and surrounding sandstone, respectively. It is important to
 notice that we reset \verb|x| and \verb|bound| to refer to the appropriate 
-sample points of a PDE solution\footnote{For the experience user: use \texttt{x=mypde.getFunctionSpace("r").getX()}.}.
+sample points of a PDE solution\footnote{For the experienced user: use \texttt{x=mypde.getFunctionSpace("r").getX()}.}.
 
 \begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/heatrefraction001.png}}
@@ -183,7 +180,7 @@ sample points of a PDE solution\footnote{For the experience user: use \texttt{x=
 To complete our transition from a 1D to a 2D model we also need to modify the 
 plotting procedure. As before we use the  \modmpl to do the plotting 
 in this case a contour plot. For 2D contour plots \modmpl expects that the
-data are regularly gridded. We have no control on the location and ordering of the sample points
+data are regularly gridded. We have no control over the location and ordering of the sample points
 used to represent the solution. Therefore it is necessary to interpolate our solution onto a regular grid.
 
 In \refSec{sec: plot T} we have already learned how to extract the $x$ coordinates of sample points as 
@@ -202,7 +199,7 @@ function in other scripts more easily.
 
 
 We now generate a regular $100 \times 100$ grid over the domain ($mx$ and $my$ 
-are the dimensions in $x$ and $y$ direction) which is done using the \modnumpy function \verb|linspace|  . 
+are the dimensions in the $x$ and $y$ directions) which is done using the \modnumpy function \verb|linspace|  . 
 \begin{python}
 from clib import toXYTuple
 # get sample points for temperature as  for contouring      
@@ -213,7 +210,7 @@ yi = np.linspace(0.0,my,75)
 \end{python}
 The values \verb|[xi[k], yi[l]]| are the grid points.
 
-The remainder of our contouring commands reside within a \verb while  loop so that a new contour is generated for each time step. For each time step the solution must be regridded for \modmpl using the \verb griddata  function. This function interprets a potentially irregularly located values \verb tempT  at locations defined by \verb coordX  and \verb coordY  as values at the new coordinates of a rectangular grid defined by
+The remainder of our contouring commands reside within a \verb while  loop so that a new contour is generated for each time step. For each time step the solution must be regridded for \modmpl using the \verb griddata  function. This function interprets irregularly located values \verb tempT  at locations defined by \verb coordX  and \verb coordY  as values at the new coordinates of a rectangular grid defined by
 \verb xi   and \verb yi . The output is \verb zi . It is now possible to use the \verb contourf  function which generates colour filled contours. The colour gradient of our plots is set via the command \verb pl.matplotlib.pyplot.autumn() , other colours are listed on the \modmpl web page\footnote{see \url{http://matplotlib.sourceforge.net/api/}}. Our results are then contoured, visually adjusted using the \modmpl functions and then saved to file. \verb pl.clf()  clears the figure in readiness for the next time iteration.
 \begin{python}
 #grid the data.
@@ -245,13 +242,12 @@ of packages available. Here we use the package \mayavi\footnote{see \url{http://
 \mayavi is an interactive, GUI driven tool which is 
 really designed to visualize large three dimensional data sets where \modmpl 
 is not suitable. But it is very useful when it comes to two dimensional problems. 
-The decision which tool is the best depends on the user's decision. The main 
-difference between using \mayavi (and other VTK based tools)
-or \modmpl is the fact that actually visualization is detached from the 
+The decision of which tool is the best can be subjective and the user should determine which package they require and are most comfortable with. The main difference between using \mayavi (and other VTK based tools)
+or \modmpl is that the actual visualization is detached from the 
 calculation by writing the results to external files
-and import them into \mayavi. In 3D the best camera position for rendering a scene is not obvious 
+and importing them into \mayavi. In 3D the best camera position for rendering a scene is not obvious 
 before the results are available. Therefore the user may need to try 
-different position before the best is found. Moreover, in many cases in 3D the interactive 
+different position before the best is found. Moreover, in many cases a 3D interactive 
 visualization is the only way to really understand the results (e.g. using stereographic projection). 
 
 To write the temperatures at each time step to data files in the VTK file format one

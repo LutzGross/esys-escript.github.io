@@ -14,7 +14,7 @@
 \section{Steady-state Heat Refraction}
 \label{STEADY-STATE HEAT REFRACTION}
 
-In this chapter we show how to handle more complex geometries. 
+In this chapter we demonstrate how to handle more complex geometries. 
 
 Steady-state heat refraction will give us an opportunity to investigate some of the richer features that the \esc package has to offer. One of these is \pycad . The advantage of using \pycad is that it offers an easy method for developing and manipulating complex domains. In conjunction with \gmsh we can generate finite element meshes that conform to our domain's shape providing accurate modelling of interfaces and boundaries. Another useful function of \pycad is that we can tag specific areas of our domain with labels as we construct them. These labels can then be used in \esc to define properties like material constants and source locations. 
 
@@ -30,12 +30,11 @@ the steady-state heat equation over a rectangular domain. This is not a very int
 \section{Example 4: Creating the domain with \pycad}
 \sslist{example04a.py}
 
-We modify the example in Chapter~\ref{CHAP HEAT 2a} in two ways: we look the steady state 
-case with slightly modified boundary conditions and use a more flexible tool 
-to generate to generate the geometry. Lets look at the geometry first. 
+We modify the example in Chapter~\ref{CHAP HEAT 2a} in two ways. Firstly, we look at the steady state 
+case with slightly modified boundary conditions and then we use a more flexible tool 
+to generate the geometry. Lets look at the geometry first. 
 
-We want to define a rectangular domain of width $5 km$ and depth $6 km$ below the surface of the Earth. Under the assumption of a known temperature at the surface, a known heat flux at the bottom and 
-insulation to both sides we want to calculate the steady-state temperature distribution. 
+We want to define a rectangular domain of width $5 km$ and depth $6 km$ below the surface of the Earth. The domain is subject to a few conditions. The temperature is known at the surface and the basement has a known heat flux. Each side of the domain is insulated and the aim is to calculate the final temperature distribution.
 
 In \pycad there are a few primary constructors that build upon each other to define domains and boundaries; 
 the ones we use are:
@@ -46,9 +45,9 @@ Line() #Creates a line from a number of points.
 CurveLoop() #Creates a closed loop from a number of lines.
 PlaneSurface() #Creates a surface based on a CurveLoop
 \end{python}
-So to build-up our domain as shown in \reffig{fig:pycad rec} we first need to create
+So to construct our domain as shown in \reffig{fig:pycad rec}, we first need to create
 the corner points. From the corner points we build the four edges of the rectangle. The four edges
-form then a closed loop which defines our domain as a surface.
+then form a closed loop which defines our domain as a surface.
 We start by inputting the variables we need to construct the model.
 \begin{python}
 width=5000.0*m   #width of model
