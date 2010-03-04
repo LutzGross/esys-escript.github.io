@@ -97,7 +97,7 @@ sortOutExample('cookbook/example04b.py', needsGMSH=True, needsGD=True)
 sortOutExample('cookbook/example05a.py', needsGMSH=True, needsGD=True)
 sortOutExample('cookbook/example05b.py', needsGMSH=True, needsGD=True)
 sortOutExample('cookbook/example05c.py', needsGMSH=True, needsGD=True, needsMagicMPL=True)
-sortOutExample('cookbook/example06.py', needsGMSH=True, needsGD=True)
+sortOutExample('cookbook/example06.py', needsGMSH=True, needsGD=True, needsMagicMPL=True)
 
 example_files= example_files_allow_mpi + example_files_no_mpi + example_deps
 
