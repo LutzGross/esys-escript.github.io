@@ -10,20 +10,21 @@
 % http://www.opensource.org/licenses/osl-3.0.php
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Example 2: One Dimensional Heat Diffusion in an Iron Rod}
+\sslist{example02.py}
+
+\label{Sec:1DHDv0}
 \begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/onedheatdiff002}}
 \caption{Example 2: One dimensional model of an Iron bar.}
 \label{fig:onedhdmodel}
 \end{figure}
 
-\section{Example 2: One Dimensional Heat Diffusion in an Iron Rod}
-\sslist{example02.py}
-\label{Sec:1DHDv0}
+Our second example is of a cold iron bar at a constant temperature of $T\hackscore{ref}=20^{\circ} C$, see \reffig{fig:onedhdmodel}. The bar is perfectly insulated on all sides with a heating element at one end keeping the the temperature at a constant level $T\hackscore0=100^{\circ} C$.  As heat is applied; energy will disperse along the bar via conduction. With time the bar will reach a constant temperature equivalent to that of the heat source.
 
-Our second example is a cold iron bar at a constant temperature of $T\hackscore{ref}=20^{\circ} C$, see \reffig{fig:onedhdmodel}. The bar is perfectly insulated on all sides with a heating element at one end keeping the the temperature at a constant level $T\hackscore0=100^{\circ} C$.  As heat is applied; energy will disperse along the bar via conduction. With time the bar will reach a constant temperature equivalent to that of the heat source.
-
-This problem is very similar to the example of temperature diffusion in granite blocks presented in the previous section~\ref{Sec:1DHDv00}. So we modify the script we have already developed for the granite blocks to adjust 
-it to the iron bar problem.  
+This problem is very similar to the example of temperature diffusion in granite blocks presented in the previous section~\ref{Sec:1DHDv00}. Thus, it is possible to modify the script we have already developed for the granite blocks to suit the iron bar problem.  
 The obvious difference between the two problems are the dimensions of the domain and different materials involved. This will change the time scale of the model from years to hours. 
 The new settings are;
 \begin{python}
@@ -54,13 +55,13 @@ T= T0*whereZero(x[0])+Tref*(1-whereZero(x[0]))
 \end{python}
 
 \subsection{Dirichlet Boundary Conditions}
-In iron rod model  we want to keep the initial temperature $T\hackscore0$ on the left side of the domain over time. 
-So when we solve the PDE~\refEq{eqn:hddisc} the solution must have the value $T\hackscore0$ on the left hand
+In the iron rod model  we want to keep the initial temperature $T\hackscore0$ on the left side of the domain constant with time. 
+This implies that when we solve the PDE~\refEq{eqn:hddisc}, the solution must have the value $T\hackscore0$ on the left hand
 side of the domain. As mentioned already in Section~\ref{SEC BOUNDARY COND} where we discussed
-boundary condition this kind of condition are called a \textbf{Dirichlet boundary condition}. Some people also
+boundary conditions, this kind of scenario can be expressed using a \textbf{Dirichlet boundary condition}. Some people also
 use the term \textbf{constraint} for the PDE. 
 
-To define a Dirichlet boundary condition we need to define where to apply the condition and what value the 
+To define a Dirichlet boundary condition we need to identify where to apply the condition and determine what value the 
 solution should have at these locations. In \esc we use $q$ and $r$ to define the Dirichlet boundary conditions
 for a PDE. The solution $u$ of the PDE is set to $r$ for all sample points where $q$ has a positive value.
 Mathematically this is expressed in the form;
@@ -73,9 +74,9 @@ we can set;
 q=whereZero(x[0])
 r=T0
 \end{python}
-to prescribe the value $T0$ for the temperature at the left end of the rod where $x\hackscore{0}=0$. 
+to prescribe the value $T\hackscore{0}$ for the temperature at the left end of the rod where $x\hackscore{0}=0$. 
 Here we use the \verb|whereZero| function again which we have already used to set the initial value.
-Notice that $r$ is set to the constant value $r$ for all sample points. In fact, 
+Notice that $r$ is set to the constant value $T\hackscore{0}$ for all sample points. In fact, 
 values of $r$ are used only where $q$ is positive. Where $q$ is non-positive,
 $r$ may have any value as these values are not used by the PDE solver. 
 
@@ -89,7 +90,7 @@ q=whereZero(x[0])
 mypde.setValue(A=A, D=rhocp/h, q=q, r=T0)
 \end{python}
 It is important to remark here that the Dirichlet condition \textbf{overwrites} any Neuman boundary 
-condition \esc sets by default (or you may set).  
+condition \esc sets by default (or those defined by the user).  
 
 \begin{figure}
 \begin{center}

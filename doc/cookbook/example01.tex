@@ -37,11 +37,11 @@ which is defined as:
 where $\rho$ is the material density, $c\hackscore p$ is the specific heat and $\kappa$ is the thermal 
 conductivity\footnote{A list of some common thermal conductivities is available from Wikipedia \url{http://en.wikipedia.org/wiki/List_of_thermal_conductivities}}. Here we assume that these material 
 parameters are \textbf{constant}. 
-The heat source is defined by the right hand side of \refEq{eqn:hd} as $q\hackscore{H}$; this can take the form of a constant or a function of time and space. For example $q\hackscore{H} = q\hackscore{0}e^{-\gamma t}$ where we have the output of our heat source decaying with time. There are also two partial derivatives in \refEq{eqn:hd}; $\frac{\partial T}{\partial t}$ describes the change in temperature with time while $\frac{\partial ^2 T}{\partial x^2}$ is the spatial change of temperature. As there is only a single spatial dimension to our problem, our temperature solution $T$ is only dependent on the time $t$ and our position along the iron bar $x$.
+The heat source is defined by the right hand side of \refEq{eqn:hd} as $q\hackscore{H}$; this can take the form of a constant or a function of time and space. For example $q\hackscore{H} = q\hackscore{0}e^{-\gamma t}$ where we have the output of our heat source decaying with time. There are also two partial derivatives in \refEq{eqn:hd}; $\frac{\partial T}{\partial t}$ describes the change in temperature with time while $\frac{\partial ^2 T}{\partial x^2}$ is the spatial change of temperature. As there is only a single spatial dimension to our problem, our temperature solution $T$ is only dependent on the time $t$ and our signed distance from the the block-block interface $x$.
 
 \subsection{PDEs and the General Form}
-Potentially, it is possible to solve PDE \refEq{eqn:hd} analytically and obtain an exact solution to our problem. However, it is not always possible or practical to solve a problem this way. Alternatively, computers can be used to solve these kinds of problems. To do this, a numerical approach is required to discretise 
-the PDE \refEq{eqn:hd} in time and space, then we left with a finite number of equations for a finite number of spatial points and time steps in the model. While discretisation introduces approximations and a degree of error, a sufficiently sampled model is generally accurate enough to satisfy the requirements of the modeller.
+It is possible to solve PDE \refEq{eqn:hd} analytically and obtain an exact solution to our problem. However, it is not always possible or practical to solve the problem this way. Alternatively, computers can be used to find the solution. To do this, a numerical approach is required to discretise 
+the PDE \refEq{eqn:hd} across time and space, this reduces the problem to a finite number of equations for a finite number of spatial points and time steps. These parameters together define the model. While discretisation introduces approximations and a degree of error, a sufficiently sampled model is generally accurate enough to satisfy the accuracy requirements for the final solution.
 
 Firstly, we discretise the PDE \refEq{eqn:hd} in time. This leaves us with a steady linear PDE which involves spatial derivatives only and needs to be solved in each time step to progress in time. \esc can help us here.
 
@@ -72,21 +72,20 @@ Substituting \refEq{eqn:Tbeuler} into \refEq{eqn:hd} we get;
 \end{equation}
 Notice that we evaluate the spatial derivative term at current time $t^{(n)}$ - therefore the name \textbf{backward Euler} scheme. Alternatively, one can evaluate the spatial derivative term at the previous time $t^{(n-1)}$. This 
 approach is called the \textbf{forward Euler} scheme. This scheme can provide some computational advantages, which
-are not discussed here. However, this scheme has a major disadvantage, namely depending on the 
-material parameter as well as the discretization of the spatial derivative term, the time step size $h$ needs to be chosen sufficiently small to achieve a stable temperature when progressing in time. The term \textit{stable} means
-that the approximation of the temperature will not grow beyond its initial bounds and become non-physical. 
+are not discussed here. However, the \textbf{forward Euler} scheme has a major disadvantage. Depending on the 
+material parameter as well as the discretization of the spatial derivative term, the time step size $h$ needs to be chosen sufficiently small to achieve a stable temperature when progressing in time. Stabiliy is achieved if the temperature does not grow beyond its initial bounds and become non-physical. 
 The backward Euler scheme, which we use here, is unconditionally stable meaning that under the assumption of
 physically correct problem set-up the temperature approximation remains physical for all time steps. 
 The user needs to keep in mind that the discretization error introduced by \refEq{eqn:beuler} 
 is sufficiently small, thus a good approximation of the true temperature is computed. It is
-therefore crucial that the user remains critical about his/her results and for instance compares 
-the results for different time and spatial step sizes. 
+therefore crucial that the user remains sceptical about their results and for instance compares 
+the results for different time and spatial step sizes for correlation. 
 
 To get the temperature $T^{(n)}$ at time $t^{(n)}$ we need to solve the linear 
 differential equation \refEq{eqn:hddisc} which only includes spatial derivatives. To solve this problem
 we want to use \esc. 
 
-In \esc any given PDE described by general form. For the purpose of this introduction we illustrate a simpler version of the general form for full linear PDEs which is available in the \esc user's guide. A simplified form that suits our heat diffusion problem\footnote{The form in the \esc users guide which uses the Einstein convention is written as 
+In \esc any given PDE can be described by the general form. For the purpose of this introduction we illustrate a simpler version of the general form for full linear PDEs which is available in the \esc user's guide. A simplified form that suits our heat diffusion problem\footnote{The form in the \esc users guide which uses the Einstein convention is written as 
 $-(A\hackscore{jl} u\hackscore{,l})\hackscore{,j}+D u =Y$}
 is described by;
 \begin{equation}\label{eqn:commonform nabla}
@@ -121,9 +120,9 @@ With the PDE sufficiently modified, consideration must now be given to the bound
 A \textbf{Dirichlet boundary condition} is conceptually simpler and is used to prescribe a known value to the unknown solution (in our example the temperature) on parts of the boundary or on the entire boundary of the region of interest. 
 We discuss Dirichlet boundary condition in our second example presented in Section~\ref{Sec:1DHDv0}.
 
-We make the model assumption that the system is insulated so we need
+However, for this example we have made the model assumption that the system is insulated, so we need
 to add an appropriate boundary condition to prevent
-any loss or inflow of energy at boundary of our domain. Mathematically this is expressed by prescribing
+any loss or inflow of energy at the boundary of our domain. Mathematically this is expressed by prescribing
 the heat flux $\kappa \frac{\partial T}{\partial x}$  to zero. In our simplified one dimensional model this is expressed
 in the form;
 \begin{equation}
@@ -167,19 +166,27 @@ for the boundary of the domain. This is identical to the Neuman boundary conditi
 
 \subsection{Outline of the Implementation}
 \label{sec:outline}
-To solve the heat diffusion equation (equation \refEq{eqn:hd}) we write a simple \pyt script. At this point we assume that you have some basic understanding of the \pyt programming language. If not, there are some pointers and links available in Section \ref{sec:escpybas}. The script we discuss later in details have four major steps. Firstly, we need to define the domain where we want to 
-calculate the temperature. For our problem this is the joint blocks of granite which has a rectangular shape. Secondly, we need to define the PDE to solve in each time step to get the updated temperature. Thirdly, we need to define the coefficients of the PDE and finally we need to solve the PDE. The last two steps need to be repeated until the final time marker has been reached. The work flow is as follows:
-\begin{enumerate}
- \item create domain
- \item create PDE
- \item while end time not reached:
-\begin{enumerate}
- \item set PDE coefficients
- \item solve PDE
- \item update time marker
-\end{enumerate}
-\item end of calculation
-\end{enumerate}
+To solve the heat diffusion equation (\refEq{eqn:hd}) we write a simple \pyt script. At this point we assume that you have some basic understanding of the \pyt programming language. If not, there are some pointers and links available in Section \ref{sec:escpybas}. The script (discussed in \refSec{sec:key}) has four major steps. Firstly, we need to define the domain where we want to 
+calculate the temperature. For our problem this is the joint blocks of granite which has a rectangular shape. Secondly, we need to define the PDE to solve in each time step to get the updated temperature. Thirdly, we need to define the coefficients of the PDE and finally we need to solve the PDE. The last two steps need to be repeated until the final time marker has been reached. The work flow described in \reffig{fig:wf}.
+% \begin{enumerate}
+%  \item create domain
+%  \item create PDE
+%  \item while end time not reached:
+% \begin{enumerate}
+%  \item set PDE coefficients
+%  \item solve PDE
+%  \item update time marker
+% \end{enumerate}
+% \item end of calculation
+% \end{enumerate}
+
+\begin{figure}[h!]
+ \centering
+   \includegraphics[width=1in]{figures/workflow.png}
+   \caption{Workflow for developing an \esc model and solution.}
+   \label{fig:wf}
+\end{figure}
+
 In the terminology of \pyt, the domain and PDE are represented by \textbf{objects}. The nice feature of an object is that it is defined by its usage and features
 rather than its actual representation. So we will create a domain object to describe the geometry of the two
 granite blocks. Then we define PDEs and spatially distributed values such as the temperature 
@@ -189,21 +196,20 @@ on this domain. Similarly, to define a PDE object we use the fact that one needs
 \begin{figure}[t]
  \centering
    \includegraphics[width=6in]{figures/functionspace.pdf}
-   \label{fig:fs}
    \caption{\esc domain construction overview}
+   \label{fig:fs}
 \end{figure}
 
 \subsection{The Domain Constructor in \esc}
 \label{ss:domcon}
-It is helpful to have a better understanding how spatially distributed value such as temperature or PDE coefficients are interpreted in \esc. Again
-from the user's point of view the representation of these spatially distributed values is not relevant. 
+While it is not strictly relevant or necessary, it can be helpful to have a better understanding of how values are spatially distributed and how PDE coefficients are interpreted in \esc. The example in this case would be temperature.
 
 There are various ways to construct domain objects. The simplest form is a rectangular shaped region with a length and height. There is
 a ready to use function for this named \verb rectangle(). Besides the spatial dimensions this function requires to specify the number of
 elements or cells to be used along the length and height, see \reffig{fig:fs}. Any spatially distributed value 
 and the PDE is represented in discrete form using this element representation\footnote{We use the finite element method (FEM), see \url{http://en.wikipedia.org/wiki/Finite_element_method} for details.}. Therefore we will have access to an approximation of the true PDE solution only. 
 The quality of the approximation depends - besides other factors- mainly on the number of elements being used. In fact, the 
-approximation becomes better when more elements are used. However, computational costs and compute time grow with the number of
+approximation becomes better when more elements are used. However, computational costs and time grow with the number of
 elements being used. It is therefore important that you find the right balance between the demand in accuracy and acceptable resource usage.
 
 In general, one can think about a domain object as a composition of nodes and elements. 
@@ -226,7 +232,7 @@ the  \verb|Function(domain).getX()| returns the coordinates of numerical integra
 
 This distinction between different representations of spatially distributed values 
 is important in order to be able to vary the degrees of smoothness in a PDE problem. 
-The coefficients of a PDE do not need be continuous, thus this qualifies as a \verb|Function()| type. 
+The coefficients of a PDE do not need to be continuous, thus this qualifies as a \verb|Function()| type. 
 On the other hand a temperature distribution must be continuous and needs to be represented with a \verb|ContinuousFunction()| function space.
 An influx may only be defined at the boundary and is therefore a \verb FunctionOnBoundary()  object.  
 \esc allows certain transformations of the function spaces. A \verb ContinuousFunction()  can be transformed into a \verb|FunctionOnBoundary()|
@@ -235,9 +241,9 @@ These transformations, which are called \textbf{interpolation} are invoked autom
 
 Later in this introduction we discuss how
 to define specific areas of geometry with different materials which are represented by different material coefficients such the
-thermal conductivities $kappa$. A very powerful technique to define these types of PDE 
+thermal conductivities $\kappa$. A very powerful technique to define these types of PDE 
 coefficients is tagging. Blocks of materials and boundaries can be named and values can be defined on subregions based on their names.
-This is simplifying PDE coefficient and flux definitions. It makes scripting much easier. We will discuss this technique in Section~\ref{STEADY-STATE HEAT REFRACTION}.
+This is a method for simplifying PDE coefficient and flux definitions. It makes scripting much easier and we will discuss this technique in Section~\ref{STEADY-STATE HEAT REFRACTION}.
 
 
 \subsection{A Clarification for the 1D Case}
@@ -280,7 +286,7 @@ It is generally a good idea to import all of the \modescript library, although i
 
 Once our library dependencies have been established, defining the problem specific variables is the next step. In general the number of variables needed will vary between problems. These variables belong to two categories. They are either directly related to the PDE and can be used as inputs into the \esc solver, or they are script variables used to control internal functions and iterations in our problem. For this PDE there are a number of constants which need values. Firstly, the domain upon which we wish to solve our problem needs to be defined. There are different types of domains in \modescript which we demonstrate in later tutorials but for our granite blocks, we simply use a rectangular domain. 
 
-Using a rectangular domain simplifies our granite blocks (which would in reality be a \textit{3D} object) into a single dimension. The granite blocks will have a lengthways cross section that looks like a rectangle.  As a result we do not need to model the volume of the block. There are four arguments we must consider when we decide to create a rectangular domain, the domain \textit{length}, \textit{width} and \textit{step size} in each direction. When defining the size of our problem it will help us determine appropriate values for our model arguments. If we make our dimensions large but our step sizes very small we increase the accuracy of our solution. Unfortunately we also increase the number of calculations that must be solved per time step. This means more computational time is required to produce a solution. In this \textit{1D} problem, the bar is defined as being 1 metre long. An appropriate step size \verb|ndx| would be 1 to 10\% of the length. Our \verb|ndy| need only be 1, this is because our problem stipulates no partial derivatives in the $y$ direction. Thus the temperature does not vary with $y$. Hence, the model parameters can be defined as follows; note we have used the \verb unitsSI  convention to make sure all our input units are converted to SI.
+Using a rectangular domain simplifies our granite blocks (which would in reality be a \textit{3D} object) into a single dimension. The granite blocks will have a lengthways cross section that looks like a rectangle.  As a result we do not need to model the volume of the block due to symmetry. There are four arguments we must consider when we decide to create a rectangular domain, the domain \textit{length}, \textit{width} and \textit{step size} in each direction. When defining the size of our problem it will help us determine appropriate values for our model arguments. If we make our dimensions large but our step sizes very small we increase the accuracy of our solution. Unfortunately we also increase the number of calculations that must be solved per time step. This means more computational time is required to produce a solution. In this \textit{1D} problem, the bar is defined as being 1 metre long. An appropriate step size \verb|ndx| would be 1 to 10\% of the length. Our \verb|ndy| need only be 1, this is because our problem stipulates no partial derivatives in the $y$ direction. Thus the temperature does not vary with $y$. Hence, the model parameters can be defined as follows; note we have used the \verb unitsSI  convention to make sure all our input units are converted to SI.
 \begin{python}
 mx = 500.*m #meters - model length
 my = 100.*m #meters - model width
@@ -372,7 +378,7 @@ of $\rho c\hackscore{p} T$ over the block. As the blocks are insulated no energy
 The total energy should stay constant for the example discussed here.
 
 \subsection{Running the Script} 
-The script presented so for is available under 
+The script presented so far is available under 
 \verb|example01a.py|. You can edit this file with your favourite text editor. 
 On most operating systems\footnote{The you can use \texttt{run-escript} launcher is not supported under {\it MS Windows} yet.} you can use the \program{run-escript} command 
 to launch {\it escript} scripts. For the example script use;
@@ -400,18 +406,18 @@ if the system is configured correctly (Please talk to your system administrator)
 \esc does not include its own plotting capabilities. However, it is possible to use a variety of free \pyt packages for visualisation.
 Two types will be demonstrated in this cookbook; \mpl\footnote{\url{http://matplotlib.sourceforge.net/}} and \verb VTK \footnote{\url{http://www.vtk.org/}} visualisation. 
 The \mpl package is a component of SciPy\footnote{\url{http://www.scipy.org}} and is good for basic graphs and plots. 
-For more complex visualisation tasks in particular when it comes to  two and three dimensional problems we recommend to use more advanced tools for instance  \mayavi \footnote{\url{http://code.enthought.com/projects/mayavi/}}
-which bases on the \verb|VTK| toolkit. We discuss the usage of \verb|VTK| based 
-visualization in Chapter~\ref{Sec:2DHD} where focus on a two dimensional PDE. 
+For more complex visualisation tasks in particular, two and three dimensional problems we recommend the use of more advanced tools. For instance,  \mayavi \footnote{\url{http://code.enthought.com/projects/mayavi/}}
+which is based upon the \verb|VTK| toolkit. The usage of \verb|VTK| based 
+visualization is discussed in Chapter~\ref{Sec:2DHD} which focusses on a two dimensional PDE. 
 
-For our simple problem we have two plotting tasks: we are interested in showing the
-behaviour of the total energy over time and how the temperature distribution within the block is 
+For our simple granite block problem, we have two plotting tasks. Firstly, we are interested in showing the
+behaviour of the total energy over time and secondly, how the temperature distribution within the block is 
 developing over time. Lets start with the first task.
 
 The trick is to create a record of the time marks and the corresponding total energies observed.
 \pyt provides the concept of lists for this. Before 
 the time loop is opened we create empty lists for the time marks \verb|t_list| and the total energies \verb|E_list|. 
-After the new temperature as been calculated by solving the PDE we append the new time marker and total energy
+After the new temperature has been calculated by solving the PDE we append the new time marker and the total energy value for that time
 to the corresponding list using the \verb|append| method. With these modifications our script looks as follows:
 \begin{python}
 t_list=[]
@@ -425,7 +431,7 @@ while t<tend:
       t_list.append(t)   # add current time mark to record
       E_list.append(totE) # add current total energy to record
 \end{python}
-To plot $t$ over $totE$ we use the \mpl a module contained within \pylab which needs to be loaded before used;
+To plot $t$ over $totE$ we use \mpl a module contained within \pylab which needs to be loaded before used;
 \begin{python}
 import pylab as pl # plotting package.
 \end{python}
@@ -451,8 +457,8 @@ As expected the total energy is constant over time, see \reffig{fig:onedheatout1
 \sslist{example01c.py}
 For plotting the spatial distribution of the temperature we need to modify the strategy we have used
 for the total energy. Instead of producing a final plot at the end we will generate a 
-picture at each time step which can be browsed as slide show or composed to a movie.
-The first problem we encounter is that if we produce an image in each time step we need
+picture at each time step which can be browsed as a slide show or composed into a movie.
+The first problem we encounter is that if we produce an image at each time step we need
 to make sure that the images previously generated are not overwritten.
 
 To develop an incrementing file name we can use the following convention. It is convenient to
