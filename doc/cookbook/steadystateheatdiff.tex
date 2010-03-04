@@ -14,13 +14,12 @@
 \section{Steady-state Heat Refraction}
 \label{STEADY-STATE HEAT REFRACTION}
 
-In this chapter we will learn how to handle more complex geometries. 
+In this chapter we show how to handle more complex geometries. 
 
-Steady-state heat refraction will give us an opportunity to investigate some of the richer features that the \esc package has to offer. One of these is \pycad . The advantage of using \pycad is that it offers an easy method for developing and manipulating complex models. In conjunction with \gmsh we can generate finite element meshes that conform to our domain's shape providing accurate modeling of interfaces and boundaries. Another useful function of \pycad is that we can tag specific areas of our domain with labels as we construct them. These labels can then be used in \esc to define properties like material constants and source locations. 
+Steady-state heat refraction will give us an opportunity to investigate some of the richer features that the \esc package has to offer. One of these is \pycad . The advantage of using \pycad is that it offers an easy method for developing and manipulating complex domains. In conjunction with \gmsh we can generate finite element meshes that conform to our domain's shape providing accurate modelling of interfaces and boundaries. Another useful function of \pycad is that we can tag specific areas of our domain with labels as we construct them. These labels can then be used in \esc to define properties like material constants and source locations. 
 
-We will introduce in two stages. First we will look at a very simple geometry. In fact,  we will solve 
-the steady-state heat equation over a rectangular domain. This is not a very interesting problem but in a second
-step we will extend our script by introducing an internal, curved interface.
+We proceed in this chapter by first looking at a very simple geometry. In fact, we solve 
+the steady-state heat equation over a rectangular domain. This is not a very interesting problem but then we extend our script by introducing an internal, curved interface.
 
 \begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/pycadrec}}
@@ -28,18 +27,18 @@ step we will extend our script by introducing an internal, curved interface.
 \label{fig:pycad rec}
 \end{figure}
 
-\section{Example 4: Creating the model with \pycad}
+\section{Example 4: Creating the domain with \pycad}
 \sslist{example04a.py}
 
-We will modify the example in Chapter~\ref{CHAP HEAT 2a} in two ways: firstly we will look the steady state 
-case with slightly modified boundary conditions and secondly we will use a more flexible tool 
+We modify the example in Chapter~\ref{CHAP HEAT 2a} in two ways: we look the steady state 
+case with slightly modified boundary conditions and use a more flexible tool 
 to generate to generate the geometry. Lets look at the geometry first. 
 
 We want to define a rectangular domain of width $5 km$ and depth $6 km$ below the surface of the Earth. Under the assumption of a known temperature at the surface, a known heat flux at the bottom and 
 insulation to both sides we want to calculate the steady-state temperature distribution. 
 
 In \pycad there are a few primary constructors that build upon each other to define domains and boundaries; 
-the ones we will use are:
+the ones we use are:
 \begin{python}
 from esys.pycad import *
 Point() #Create a point in space.
@@ -88,14 +87,14 @@ an instance of the \verb|Design| class which will handle the interface to \gmsh:
 from esys.pycad.gmsh import Design 
 d=Design(dim=2, element_size=200*m)
 \end{python}
-The argument \verb|dim| defines the spatial dimension of the domain\footnote{If \texttt{dim}=3 the rectangle would be interpreted as a surface in the three dimensional space.}. The second argument \verb|element_size| defines element size which is the maximum length of a triangle edge in the mesh. The element size needs to be choose with care in order to avoid very large meshes if you don't want to. In our case with an element size of $200$m 
-and a domain length of $6000$m we will end up with about $\frac{6000m}{200m}=30$ triangles in each spatial direction. So will end up with about $30 \times 30 = 900$ triangles which is a size that can be handled easily.
+The argument \verb|dim| defines the spatial dimension of the domain\footnote{If \texttt{dim}=3 the rectangle would be interpreted as a surface in the three dimensional space.}. The second argument \verb|element_size| defines element size which is the maximum length of a triangle edge in the mesh. The element size needs to be chosen with care in order to avoid very large meshes if you don't want to. In our case with an element size of $200$m 
+and a domain length of $6000$m we will end up with about $\frac{6000m}{200m}=30$ triangles in each spatial direction. So we end up with about $30 \times 30 = 900$ triangles which is a size that can be handled easily.
 We can easily add our domain \verb|rec| to the \verb|Design|;
 \begin{python}
 d.addItem(rec)
 \end{python}
 We have the plan to set a heat flux on the bottom of the domain. One can use the masking technique to do this
-but \pycad offers a more convenient technique called tagging. With this techniques items in the domain are
+but \pycad offers a more convenient technique called tagging. With this technique items in the domain are
 named using the \verb|PropertySet| class. We can then later use this name to set values secifically for
 those sample points located on the named items. Here we name the bottom face of the 
 domain where we will set the heat influx:
@@ -117,7 +116,7 @@ way~\footnote{An alternative are the \texttt{dump} and \texttt{load} functions. 
 # write domain to an text file
 domain.write("example04.fly")
 \end{python}
-and then for recovery in another script;
+and then for reading in another script;
 \begin{python}
 # read domain from text file
 from esys.finley import ReadMesh
@@ -132,7 +131,7 @@ domain =ReadMesh("example04.fly")
 
 Before we discuss how we solve the PDE for the 
 problem it is useful to present two additional options of the \verb|Design|. 
-They allow the user accessing the script which is used to by \gmsh to generate the mesh as well as
+They allow the user accessing the script which is used by \gmsh to generate the mesh as well as
 the mesh as it has been generated by \gmsh. This is done by setting specific names for these files: 
 \begin{python}
 d.setScriptFileName("example04.geo")
@@ -140,7 +139,7 @@ d.setMeshFileName("example04.msh")
 \end{python}
 Usually the extension \texttt{geo} is used for the script file of the \gmsh geometry and
 the extension \texttt{msh} for the mesh file. Normally these files are deleted after usage. 
-Accessing these file can be helpful to debug the generation of more complex geometries. The geometry and the mesher can be visualise with \gmsh from the command line using
+Accessing these file can be helpful to debug the generation of more complex geometries. The geometry and the mesh can be visualised from the command line using
 \begin{verbatim}
 gmsh example04.geo  # show geometry
 gmsh example04.msh  # show mesh
@@ -156,12 +155,12 @@ The mesh is shown in \reffig{fig:pycad rec mesh}.
 \section{The Steady-state Heat Equation}
 \sslist{example04b.py, cblib}
 
-Steady state is reached in the temperature is not changing in time. So to calculate the 
+Steady state is reached in the temperature when it is not changing in time. So to calculate the 
 the steady state we set the time derivative term in \refEq{eqn:Tform nabla} to zero;
 \begin{equation}\label{eqn:Tform nabla steady}
 -\nabla \cdot \kappa \nabla T = q\hackscore H
 \end{equation}
-This PDE is easier then the PDE in \refEq{eqn:hdgenf2} we needed to solve in each time step. We can just drop
+This PDE is easier to solve, than the PDE in \refEq{eqn:hdgenf2} in each time step. We can just drop
 the \verb|D| term;
 \begin{python}
 mypde=LinearPDE(domain)
@@ -173,7 +172,7 @@ already discussed how this constraint is added to the PDE:
 x=Solution(domain).getX()
 mypde.setValue(q=whereZero(x[1]-sup(x[1])),r=Ttop)
 \end{python}
-Notice that we have use the \verb|sup| function to calculate the maximum $y$ coordinator of the relevant sample points.
+Notice that we use the \verb|sup| function to calculate the maximum of $y$ coordinates of the relevant sample points.
 
 In all cases so far we have assumed that the domain is insulated which translates 
 into a zero normal flux $-n \cdot \kappa \nabla T$, see \refEq{eq:hom flux}. In the modeling
@@ -186,8 +185,7 @@ maintain insulation at the left and right face. Mathematically we can express th
 where $q\hackscore{S}$ is a function of its location on the boundary. Its value becomes zero
 for locations on the left or right face of the domain while it has the value \verb|qin| at the bottom face.
 Notice that the value of $q\hackscore{S}$ at the top face is not relevant as we prescribe the temperature here.
-One could use the masking techniques we have already extensively used to define $q\hackscore{S}$ in \esc
-but the tagging mechanism provides an alternative and in many cases more convenient way of defining piecewise 
+We could define $q\hackscore{S}$ by using the masking techniques demonstrated earlier. The tagging mechanism provides an alternative and in many cases more convenient way of defining piecewise 
 constant functions such as $q\hackscore{S}$. You need to remember now that we
 marked the bottom face with the name \verb|linebottom| when we defined the domain. 
 We can use this now to create $q\hackscore{S}$;
@@ -235,7 +233,7 @@ via the \verb|toRegGrid| function in the \verb|cblib| module. Your result should
 Our heat refraction model will be a large anticlinal structure that is experiencing a constant temperature at the surface and a steady heat flux at it's base. Our aim is to show that the temperature flux across the surface is not linear from bottom to top but is in fact warped by the structure of the model and is heavily dependent upon the material properties and shape.
 
 
-We will modify the example of the previous section by subdividing the block into two parts. The curve
+We modify the example of the previous section by subdividing the block into two parts. The curve
 separating the two blocks is given as a spline, see \reffig{fig:anticlinehrmodel}. The data points
 used to define the curve may be measurement but for simplicity we assume here that there coordinates are
 known in analytic form.
@@ -244,7 +242,7 @@ There are two modes available in our example. When \verb modal=1  this indicates
 
 It is now possible to start defining our domain and boundaries. 
 
-The curve defining our clinal structure is located in approximately the middle of the domain and has a sinusoidal shape. We define the curve by generating points at discrete intervals; $51$ in this case, and then create a smooth curve through the points using the \verb Spline()  function.
+The curve defining our clinal structure is located approximately in the middle of the domain and has a sinusoidal shape. We define the curve by generating points at discrete intervals; $51$ in this case, and then create a smooth curve through the points using the \verb Spline()  function.
 \begin{python}
 # Material Boundary
 x=[ Point(i*dsp\
@@ -277,7 +275,7 @@ This reverse spline option unfortunately does not work for the getLoopCoords com
 #clockwise check
 bblockloop=CurveLoop(mysp,Line(x2,p2),Line(p2,p1),Line(p1,x1))
 \end{python}
-The last few steps in creating the model take the previously defined domain and sub-domain points and generate a mesh that can be imported into \esc.
+The last few steps in creating the model are: take the previously defined domain and sub-domain points and generate a mesh that can be imported into \esc.
 To initialise the mesh it first needs some design parameters. In this case we have 2 dimensions \verb dim  and a specified number of finite elements that need to be applied to the domain \verb element_size  . It then becomes a simple task of adding the sub-domains and flux boundaries to the design. Each element of our model can be given an identifier which makes it easier to define the sub-domain properties in the solution script. This is done using the \verb PropertySet()  function. The geometry and mesh are then saved so the \esc domain can be created.
 \begin{python}
 # Create a Design which can make the mesh
@@ -315,8 +313,8 @@ No further changes are required to the PDE solution step, see \reffig{fig:anticl
 \sslist{example05b.py and cblib.py}
 
 We want to investigate the profile of the data of the last example. 
-We are particularly interested in the deepth profile of the heat flux which is
-the second component of $-\kappa \nabla T$. We will extend the script developed in the 
+We are particularly interested in the depth profile of the heat flux which is
+the second component of $-\kappa \nabla T$. We extend the script developed in the 
 previous section to show how for instance vertical profile can be plotted.
 
 The first important information is that \esc assumes that $-\kappa \nabla T$ is not smooth and
@@ -324,7 +322,7 @@ will in fact represent the values at numerical interpolation points. This assump
 the flux is the product of the piecewise constant function $\kappa$ and 
 the gradient of the temperature $T$ which has a kink across the rock interface. 
 Before plotting this function we need to smooth it using the 
-\verb|Projector()| factory;
+\verb|Projector()| class;
 \begin{python}
 from esys.escript.pdetools import Projector
 proj=Projector(domain)
@@ -337,7 +335,7 @@ to a regular $200\times 200$ grid;
 \begin{python}
 xiq,yiq,ziq = toRegGrid(qu[1],200,200)
 \end{python}
-using the \verb|toRegGrid| function from the cookbook library which we are already using for the contour plot.
+using the \verb|toRegGrid| function from the cookbook library which we are using for the contour plot.
 At return \verb|ziq[j,i]| is the value of vertical heat flux at point 
 (\verb|xiq[i]|,\verb|yiq[j]|). We can easily create deep profiles now by
 plotting slices \verb|ziq[:,i]| over \verb|yiq|. The following script
@@ -360,7 +358,7 @@ This process can be repeated for various variations of the solution. In this cas
 
 \section{Arrow plots in \mpl}
 \sslist{example05c.py and cblib.py}
-We would like to visualize the distribution of the flux $-\kappa \nabla T$ over the domain 
+We would like to visualise the distribution of the flux $-\kappa \nabla T$ over the domain 
 and produce a plot like shown in \reffig{fig:hr001qumodel}. 
 The plot puts together three components. A contour plot of the temperature,
 a colored representation of the two sub-domains where colour represents the thermal conductivity 
