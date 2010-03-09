@@ -30,9 +30,9 @@ We proceed in this chapter by first looking at a very simple geometry. Whilst a 
 \label{example4}
 \sslist{example04a.py}
 
-We modify the example in Chapter~\ref{CHAP HEAT 2a} in two ways. Firstly, we look at the steady state 
-case with slightly modified boundary conditions and then we use a more flexible tool 
-to generate the geometry. Lets look at the geometry first. 
+We modify the example in Chapter~\ref{CHAP HEAT 2a} in two ways: we look the steady state 
+case with slightly modified boundary conditions and use a more flexible tool 
+to generate to generate the geometry. Lets look at the geometry first. 
 
 We want to define a rectangular domain of width $5 km$ and depth $6 km$ below the surface of the Earth. The domain is subject to a few conditions. The temperature is known at the surface and the basement has a known heat flux. Each side of the domain is insulated and the aim is to calculate the final temperature distribution.
 
@@ -238,7 +238,7 @@ There are two modes available in this example. When \verb modal=1 , this indicat
 
 It is now possible to start defining our domain and boundaries. 
 
-The curve defining our clinal structure is approximately located in the middle of the domain and has a sinusoidal shape. We define the curve by generating points at discrete intervals; $51$ in this case, and then create a smooth curve through the points using the \verb Spline()  function.
+The curve defining our clinal structure is located approximately in the middle of the domain and has a sinusoidal shape. We define the curve by generating points at discrete intervals; $51$ in this case, and then create a smooth curve through the points using the \verb Spline()  function.
 \begin{python}
 # Material Boundary
 x=[ Point(i*dsp\
