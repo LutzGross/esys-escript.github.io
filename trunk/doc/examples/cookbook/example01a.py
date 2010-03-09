@@ -67,6 +67,8 @@ mkDir(save_path, os.path.join(save_path,"tempT"))
 blocks = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
 
 ###############################################ESCRIPT PDE CONSTRUCTION
+#... open PDE and set coefficients ...
+mypde=LinearPDE(blocks)
 mypde.setSymmetryOn()
 A=zeros((2,2))
 A[0,0]=kappa
