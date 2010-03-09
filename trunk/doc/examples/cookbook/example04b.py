@@ -83,7 +83,7 @@ d.addItems(rec, PropertySet("linebottom",l12))
 #############################################MAKE THE FINLEY DOMAIN
 domain=MakeDomain(d, optimizeLabeling=True)
 print "Domain has been generated ..."
-############################################# solve PDE
+##############################################################SOLVE PDE
 mypde=LinearPDE(domain)
 mypde.getSolverOptions().setVerbosityOn()
 mypde.setSymmetryOn()

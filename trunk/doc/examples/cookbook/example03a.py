@@ -139,6 +139,7 @@ while t<=tend:
       pl.clf()            
       print "time step %s at t=%e days completed."%(i,t/day)
 
+#########################################################CREATE A MOVIE
 # compile the *.png files to create an *.avi video that shows T change
 # with time. This opperation uses linux mencoder.
 os.system("mencoder mf://"+save_path+"/*.png -mf type=png:\

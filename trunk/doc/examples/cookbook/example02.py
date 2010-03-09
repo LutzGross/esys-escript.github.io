@@ -23,6 +23,12 @@ __url__="https://launchpad.net/escript-finley"
 Author: Antony Hallam antony.hallam@uqconnect.edu.au
 """
 
+############################################################FILE HEADER
+# example02.py
+# Model temperature diffusion along an insulated iron rod with a 
+# heating element at the left hand side.
+
+#######################################################EXTERNAL MODULES
 # To solve the problem it is necessary to import the modules we require.
 from esys.escript import * # This imports everything from the escript library
 from esys.escript.unitsSI import * 
@@ -35,13 +41,13 @@ import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os, sys #This package is necessary to handle saving our data.
 
-# .. MPI WORLD CHECK
+########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
     import sys
     print "This example will not run in an MPI world."
     sys.exit(0)
 
-##ESTABLISHING VARIABLES
+#################################################ESTABLISHING VARIABLES
 #Domain related.
 mx = 1*m #meters - model length
 my = .1*m #meters - model width
@@ -56,6 +62,7 @@ qH=0 * J/(sec*m**3) # J/(sec.m^{3}) no heat source
 Tref = 20 * Celsius  # base temperature of the rod
 T0 = 100 * Celsius # temperature at heating element
 
+################################################ESTABLISHING PARAMETERS
 t=0 * day  # our start time, usually zero
 tend= 0.5 *day  # - time to end simulation
 outputs = 200 # number of time steps required.
@@ -68,10 +75,10 @@ save_path= os.path.join("data","example02")
 #ensure the dir exists
 mkDir(save_path, os.path.join(save_path,"tempT"))
 
-#... generate domain ...
+####################################################DOMAIN CONSTRUCTION
 rod = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
 x=Solution(rod).getX()
-#... open PDE and set coefficients ...
+###############################################ESCRIPT PDE CONSTRUCTION
 mypde=LinearPDE(rod)
 A=zeros((2,2))
 A[0,0]=kappa
@@ -87,7 +94,7 @@ E_list=[]
 plx = x.toListOfTuples() 
 plx = np.array(plx) #convert to tuple to numpy array
 plx = plx[:,0] #extract x locations
-# ... start iteration:
+########################################################START ITERATION
 while t<tend:
       i+=1
       t+=h
@@ -108,6 +115,8 @@ while t<tend:
       #save figure to file
       pl.savefig(os.path.join(save_path,"tempT", "rodpyplot%03d.png"%i))
       pl.clf() #clear figure
+      
+###############################################################PLOTTING
 # plot the total energy over time:
 pl.figure(2)
 pl.plot(t_list,E_list)
@@ -116,6 +125,7 @@ pl.title("Total Energy")
 pl.savefig(os.path.join(save_path,"totE.png"))
 pl.clf()
 
+#########################################################CREATE A MOVIE
 # compile the *.png files to create a*.avi video that show T change
 # with time. This opperation uses linux mencoder. For other operating 
 # systems it may be possible to use your favourite video compiler to
