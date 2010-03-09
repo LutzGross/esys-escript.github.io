@@ -26,7 +26,7 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 ############################################################FILE HEADER
 # example05b.py
 # Create either a 2D syncline or anticline model using pycad meshing 
-# tools.
+# tools. Then model steady state heat solution. Look at some line profiles.
 
 #######################################################EXTERNAL MODULES
 import matplotlib
@@ -116,7 +116,7 @@ bblock = PlaneSurface(bblockloop)
 #they were created. Otherwise get a line across plot.
 bblockloop2=CurveLoop(mysp,Line(x2,p2),Line(p2,p1),Line(p1,x1))
 
-#############################################CREATE MESH FOR ESCRIPT
+################################################CREATE MESH FOR ESCRIPT
 # Create a Design which can make the mesh
 d=Design(dim=2, element_size=200)
 # Add the subdomains and flux boundaries.
@@ -127,7 +127,7 @@ d.setScriptFileName(os.path.join(save_path,"example05.geo"))
 d.setMeshFileName(os.path.join(save_path,"example05.msh"))
 domain=MakeDomain(d, optimizeLabeling=True)
 print "Domain has been generated ..."
-############################################# solve PDE
+##############################################################SOLVE PDE
 mypde=LinearPDE(domain)
 mypde.getSolverOptions().setVerbosityOn()
 mypde.setSymmetryOn()
@@ -145,7 +145,7 @@ print "PDE has been generated ..."
 T=mypde.getSolution()
 print "PDE has been solved  ..."
 
-###########################################################
+##################################################REGRIDDING & PLOTTING
 xi, yi, zi = toRegGrid(T, nx=50, ny=50)
 pl.matplotlib.pyplot.autumn()
 pl.contourf(xi,yi,zi,10)

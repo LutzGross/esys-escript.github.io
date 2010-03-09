@@ -89,7 +89,6 @@ bbll4=-tbl2
 bblockloopl = CurveLoop(bbll1,bbll2,bbll3,bbll4)
 bblockl = PlaneSurface(bblockloopl)
 
-
 # Create BOTTOM BLOCK RIGHT
 bbrl1=Line(p6,p2)
 bbrl2=Line(p2,p7)
@@ -97,7 +96,6 @@ bbrl3=-tbl3
 bbrl4=-bbll3
 bblockloopr = CurveLoop(bbrl1,bbrl2,bbrl3,bbrl4)
 bblockr = PlaneSurface(bblockloopr)
-
 
 #############################################EXPORTING MESH FOR ESCRIPT
 # Create a Design which can make the mesh
@@ -120,7 +118,7 @@ kappa=Scalar(0,Function(domain))
 kappa.setTaggedValue("top",2.0)
 kappa.setTaggedValue("bottomleft",10.0)
 kappa.setTaggedValue("bottomright",6.0)
-############################################# solve PDE
+##############################################################SOLVE PDE
 mypde=LinearPDE(domain)
 mypde.getSolverOptions().setVerbosityOn()
 mypde.setSymmetryOn()
@@ -134,7 +132,7 @@ print "PDE has been generated ..."
 ###########################################################GET SOLUTION
 T=mypde.getSolution()
 print "PDE has been solved ..."
-###########################################################PLOTTING
+###############################################################PLOTTING
 # show temperature:
 xi, yi, zi = toRegGrid(T, nx=50, ny=50)
 CS = pl.contour(xi,yi,zi,5,linewidths=0.5,colors='k')

@@ -22,7 +22,13 @@ __url__="https://launchpad.net/escript-finley"
 """
 Author: Antony Hallam antony.hallam@uqconnect.edu.au
 """
+############################################################FILE HEADER
+# example01b.py
+# Model temperature diffusion between two granite blocks of unequal 
+# initial temperature. Solve for total energy in the system. Use 
+# matplotlib to visualise the answer.
 
+#######################################################EXTERNAL MODULES
 # To solve the problem it is necessary to import the modules we require.
 from esys.escript import * # This imports everything from the escript library
 from esys.escript.unitsSI import * 
@@ -35,7 +41,7 @@ import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os, sys #This package is necessary to handle saving our data.
 
-##ESTABLISHING VARIABLES
+#################################################ESTABLISHING VARIABLES
 #Domain related.
 mx = 500*m #meters - model length
 my = 100*m #meters - model width
@@ -51,6 +57,7 @@ qH=0 * J/(sec*m**3) # J/(sec.m^{3}) no heat source
 T1=20 * Celsius # initial temperature at Block 1
 T2=2273. * Celsius # initial temperature at Block 2
 
+################################################ESTABLISHING PARAMETERS
 t=0 * day  # our start time, usually zero
 tend=50 * yr # - time to end simulation
 outputs = 200 # number of time steps required.
@@ -63,8 +70,10 @@ save_path= os.path.join("data","example01")
 #ensure the dir exists
 mkDir(save_path, os.path.join(save_path,"tempT"))
 
-#... generate domain ...
+####################################################DOMAIN CONSTRUCTION
 blocks = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
+
+###############################################ESCRIPT PDE CONSTRUCTION
 #... open PDE and set coefficients ...
 mypde=LinearPDE(blocks)
 mypde.setSymmetryOn()
@@ -78,7 +87,7 @@ T= T1*whereNegative(x[0]-boundloc)+T2*(1-whereNegative(x[0]-boundloc))
 # ... open a collector for the time marks and corresponding total energy
 t_list=[]
 E_list=[]
-# ... start iteration:
+########################################################START ITERATION
 while t<tend:
       i+=1
       t+=h
@@ -89,6 +98,7 @@ while t<tend:
       t_list.append(t)
       E_list.append(totE)
 
+###############################################################PLOTTING
 # plot the total energy over time:
 if getMPIRankWorld() == 0:
     pl.plot(t_list,E_list)

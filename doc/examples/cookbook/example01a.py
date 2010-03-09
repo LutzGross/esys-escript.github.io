@@ -22,14 +22,19 @@ __url__="https://launchpad.net/escript-finley"
 """
 Author: Antony Hallam antony.hallam@uqconnect.edu.au
 """
+############################################################FILE HEADER
+# example01a.py
+# Model temperature diffusion between two granite blocks of unequal 
+# initial temperature. Solve for total energy in the system.
 
+#######################################################EXTERNAL MODULES
 # To solve the problem it is necessary to import the modules we require.
 from esys.escript import * # This imports everything from the escript library
 from esys.escript.unitsSI import * 
 from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE
 from esys.finley import Rectangle # This imports the rectangle domain function from finley
 
-##ESTABLISHING VARIABLES
+#################################################ESTABLISHING VARIABLES
 #Domain related.
 mx = 500*m #meters - model length
 my = 100*m #meters - model width
@@ -45,6 +50,7 @@ qH=0 * J/(sec*m**3) # J/(sec.m^{3}) no heat source
 T1=20 * Celsius # initial temperature at Block 1
 T2=2273. * Celsius # initial temperature at Block 2
 
+################################################ESTABLISHING PARAMETERS
 t=0 * day  # our start time, usually zero
 tend=50 * yr # - time to end simulation
 outputs = 200 # number of time steps required.
@@ -57,10 +63,10 @@ save_path= os.path.join("data","example01")
 #ensure the dir exists
 mkDir(save_path, os.path.join(save_path,"tempT"))
 
-#... generate domain ...
+####################################################DOMAIN CONSTRUCTION
 blocks = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
-#... open PDE and set coefficients ...
-mypde=LinearPDE(blocks)
+
+###############################################ESCRIPT PDE CONSTRUCTION
 mypde.setSymmetryOn()
 A=zeros((2,2))
 A[0,0]=kappa
@@ -69,7 +75,7 @@ mypde.setValue(A=A,D=rhocp/h)
 x=Solution(blocks).getX()
 T= T1*whereNegative(x[0]-boundloc)+T2*(1-whereNegative(x[0]-boundloc))
 
-# ... start iteration:
+########################################################START ITERATION
 while t<tend:
       i+=1
       t+=h
