@@ -15,40 +15,6 @@
 import os
 Import('*')
 
-#_deps is for files which end in .py and are required for
-# testing but should not be invoked directly themselves
-example_deps = ['cookbook/heatrefraction_mesher001.py', 
-  'cookbook/heatrefraction_mesher002.py',
-  'cookbook/heatrefraction001.py',
-  'cookbook/heatrefraction002.py',
-  'cookbook/cblib.py',
-  'cookbook/cblib1.py',
-  'cookbook/cblib2.py'
-]
-
-#
-# these are the release examples in example sub directory:
-#
-example_files_allow_mpi = [
- 'geotutorial/steadystate_variablek.py', 
- 'geotutorial/steadystate.py', 
- 'geotutorial/forward_euler.py', 
- 'geotutorial/myfirstscript.py', 
- 'geotutorial/backward_euler.py', 
- 'usersguide/lit_driven_cavity.py',
- 'usersguide/mount.py',
- 'usersguide/heatedblock.py',
- 'usersguide/helmholtz.py',
- 'usersguide/fluid.py',
- 'usersguide/poisson.py',
- 'usersguide/diffusion.py',
- 'usersguide/poisson_vtk.py',
- 'usersguide/slip.py',
- 'usersguide/int_save.py',
-]
-
-example_files_no_mpi = [
-]
 
 haveGMSH=(os.system("gmsh -version")/256==0)	#Do we have gmsh installed?
 haveMPL=False					#Do we have matplotlib?
@@ -74,45 +40,64 @@ else:
 if not haveGMSH:
    print "gmsh not found"
 
-example_files_allow_mpi.append('cookbook/onedheatdiffbase.py')
-example_files_allow_mpi.append('cookbook/twodheatdiffvtk.py')
-example_files_no_mpi.append('cookbook/wavesolver2d001.py')
-example_files_no_mpi.append('cookbook/wavesolver2d002.py')
+example_files_allow_mpi = [ ]
+example_files_no_mpi = [ ]
+example_deps = [ ]
 
+def sortOutExample(name, needsGMSH=False, needsMPL=False, needsMagicMPL=False, needsGD=False, allowsMPI=True):
+     if needsMagicMPL: needsMPL=True
+     if needsGD: needsMPL=True
+     if needsGMSH: allowsMPI=False
 
-if haveMPL:
-   example_files_no_mpi.append('cookbook/onedheatdiff001.py')
-   example_files_no_mpi.append('cookbook/onedheatdiff001b.py')
-   example_files_no_mpi.append('cookbook/onedheatdiff002.py') 
-   if mplversion>=mplmagicversion:
-	example_files_no_mpi.append('cookbook/twodheatdiff001.py')
-	example_files_no_mpi.append('usersguide/poisson_matplotlib.py')
-	example_files_allow_mpi.append('usersguide/wave.py')
-	if haveGMSH:
-	    example_files_no_mpi.append('cookbook/run_heatrefraction.py')
-if haveGMSH:
-  example_files_no_mpi.append('usersguide/trapezoid.py')
-  example_files_no_mpi.append('usersguide/quad.py')
-  example_files_no_mpi.append('usersguide/brick.py')
-  example_files_no_mpi.append('usersguide/refine.py')
+     if (not needsGMSH or haveGMSH) and (not needsMPL or haveMPL) and (not needsMagicMPL or mplversion>=mplmagicversion) and (not needsGD or haveGD):
+          if allowsMPI:
+              example_files_allow_mpi.append(name)
+          else:
+              example_files_no_mpi.append(name)
+     else:
+          example_deps.append(name)
+#
+# these are the release examples in example sub directory:
+#
+#_deps is for files which end in .py and are required for
+# testing but should not be invoked directly themselves
 
+sortOutExample( 'usersguide/lit_driven_cavity.py')
+sortOutExample( 'usersguide/mount.py')
+sortOutExample( 'usersguide/heatedblock.py')
+sortOutExample( 'usersguide/helmholtz.py')
+sortOutExample( 'usersguide/fluid.py')
+sortOutExample( 'usersguide/poisson.py')
+sortOutExample( 'usersguide/diffusion.py')
+sortOutExample( 'usersguide/poisson_vtk.py')
+sortOutExample( 'usersguide/slip.py')
+sortOutExample( 'usersguide/int_save.py')
+sortOutExample( 'usersguide/wave.py', needsMPL=True)
+sortOutExample( 'usersguide/trapezoid.py', needsGMSH=True)
+sortOutExample( 'usersguide/quad.py', needsGMSH=True)
+sortOutExample( 'usersguide/brick.py', needsGMSH=True)
+sortOutExample( 'usersguide/refine.py', needsGMSH=True)
+sortOutExample( 'usersguide/poisson_matplotlib.py',  needsGD=True, allowsMPI=False)
 
-# we want to make sure these are still added to the examples bundle even if we can't run them
-if not haveGMSH:
-   example_deps.append('cookbook/run_heatrefraction.py')
-   example_deps.append('usersguide/trapezoid.py')
-   example_deps.append('usersguide/quad.py')
-   example_deps.append('usersguide/brick.py')
-   example_deps.append('usersguide/refine.py')
-if not haveGD:
-   example_deps.append('cookbook/twodheatdiff001.py')
-   example_deps.append('usersguide/poisson_matplotlib.py')
-   example_deps.append('usersguide/wave.py')
-if not haveMPL:
-   example_deps.append('cookbook/onedheatdiff001.py')
-   example_deps.append('cookbook/onedheatdiff001b.py')
-   example_deps.append('cookbook/onedheatdiff002.py') 
+sortOutExample( 'geotutorial/steadystate_variablek.py')
+sortOutExample( 'geotutorial/steadystate.py')
+sortOutExample( 'geotutorial/forward_euler.py')
+sortOutExample( 'geotutorial/myfirstscript.py')
+sortOutExample( 'geotutorial/backward_euler.py')
 
+example_deps.append('cookbook/cblib.py')
+sortOutExample('cookbook/example01a.py')
+sortOutExample('cookbook/example01b.py', needsMPL=True)
+sortOutExample('cookbook/example01c.py', needsMPL=True, allowsMPI=False)
+sortOutExample('cookbook/example02.py', needsMPL=True, allowsMPI=False)
+sortOutExample('cookbook/example03a.py', needsGD=True, allowsMPI=False)
+sortOutExample('cookbook/example03b.py')
+sortOutExample('cookbook/example04a.py', needsGMSH=True)
+sortOutExample('cookbook/example04b.py', needsGMSH=True, needsGD=True)
+sortOutExample('cookbook/example05a.py', needsGMSH=True, needsGD=True)
+sortOutExample('cookbook/example05b.py', needsGMSH=True, needsGD=True)
+sortOutExample('cookbook/example05c.py', needsGMSH=True, needsGD=True, needsMagicMPL=True)
+sortOutExample('cookbook/example06.py', needsGMSH=True, needsGD=True, needsMagicMPL=True)
 
 example_files= example_files_allow_mpi + example_files_no_mpi + example_deps
 
