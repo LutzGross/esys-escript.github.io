@@ -90,13 +90,14 @@ adder(
   ('cxx', 'path to C++ compiler', 'DEFAULT'),
   ('win_cc_name', 'windows C compiler name if needed', 'msvc'),
   # The strings -DDEFAULT_ get replaced by scons/<hostname>_options.py or by defaults below
-  ('cc_flags', 'C compiler flags to use', '-DEFAULT_1'),
-  ('cc_optim', 'C compiler optimization flags to use', '-DEFAULT_2'),
-  ('cc_debug', 'C compiler debug flags to use', '-DEFAULT_3'),
+  ('cc_flags', 'C/C++ compiler flags to use', '-DEFAULT_1'),
+  ('cc_optim', 'C/C++ optimization flags to use', '-DEFAULT_2'),
+  ('cc_debug', 'C/C++ debug flags to use', '-DEFAULT_3'),
   ('omp_optim', 'OpenMP compiler flags to use (Release build)', '-DEFAULT_4'),
   ('omp_debug', 'OpenMP compiler flags to use (Debug build)', '-DEFAULT_5'),
   ('omp_libs', 'OpenMP compiler libraries to link with', '-DEFAULT_6'),
-  ('cc_extra', 'Extra C/C++ flags', ''),
+  ('cc_extra', 'Extra C compiler flags', ''),
+  ('cxx_extra', 'Extra C++ compiler flags', ''),
   ('ld_extra', 'Extra linker flags', ''),
   ('sys_libs', 'System libraries to link with', []),
   ('ar_flags', 'Static library archiver flags to use', ''),
@@ -388,7 +389,8 @@ env.Append(CPPPATH		= [Dir('include')])
 # Add cc option -L<Escript>/trunk/lib
 env.Append(LIBPATH		= [Dir(env['libinstall'])])
 
-if env['cc_extra'] != '': env.Append(CCFLAGS = env['cc_extra'])
+if env['cc_extra'] != '': env.Append(CFLAGS = env['cc_extra'])
+if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
 if env['ld_extra'] != '': env.Append(LINKFLAGS = env['ld_extra'])
 
 if env['usepedantic']: env.Append(CCFLAGS = pedantic)

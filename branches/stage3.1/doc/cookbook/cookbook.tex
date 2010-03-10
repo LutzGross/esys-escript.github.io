@@ -18,6 +18,16 @@
 \setcounter{secnumdepth}{3}
 % grab the handy definitions and \usepackage statements etc
 \input{cookbook_defs}
+
+\ifpdf
+\pdfinfo {
+/Author (Antony Hallam and Lutz Gross)
+/Title (escript COOKBOOK)
+/Keywords (escript, PDEs)
+}
+\fi
+
+
 % title, author, etc stuff
 \title{The \textit{escript} COOKBOOK}
 
@@ -54,33 +64,34 @@ Email: \email{esys@esscc.uq.edu.au}
 \input{../user/copyrights}
 
 \begin{abstract}
-\esc is a \pyt based environment that has been developed to solve complex mathematical models, particularly coupled, non-linear and time-dependent partial differential equations. The intention of this cookbook, is to give new \esc users a comprehensive introduction, and to create a fundamental knowledge base and example set, that can be used as templates or references for new problems. While most of the examples in this cookbook are focused on the disciplines of geophysics and geology they all provide a solid introduction to \esc and its capabilities.
+\esc is a \pyt based environment that has been developed to solve complex mathematical models, particularly coupled, non-linear and time-dependent partial differential equations. The intention of this cookbook is to introduce new users to \esc and provide a set of examples which demonstrate the major concepts and can be adapted to new problems. Although most of the examples in this cookbook are focused on the disciplines of geophysics and geology, they provide solid introduction to \esc and its capabilities.
 \end{abstract}
 \tableofcontents
 
 \newpage
 
+\chapter{Introduction}
+\label{CHAP INTRO}
 \input{intro}
-
 
 \chapter{Getting Started with Heat Diffusion}
 \label{CHAP HEAT DIFF}
-We will start by examining a simple one dimensional heat diffusion example. This problem will provide a good launch pad to build our knowledge of \esc and demonstrate how to solve simple partial differential equations (PDEs)\footnote{Wikipedia provides an excellent and comprehensive introduction to \textit{Partial Differential Equations} \url{http://en.wikipedia.org/wiki/Partial_differential_equation}, however their relevance to \esc and implementation should become a clearer as we develop our understanding further into the cookbook.}
-\input{onedheatdiff001}
-\input{onedheatdiff002}
+We start by examining a simple one dimensional heat diffusion equation. This problem provides a good starting example to build our knowledge of \esc and demonstrate how to solve simple partial differential equations (PDEs)\footnote{Wikipedia provides an excellent and comprehensive introduction to \textit{Partial Differential Equations} \url{http://en.wikipedia.org/wiki/Partial_differential_equation}, however their relevance to \esc and implementation should become much clearer as we develop our understanding further into the cookbook.}
+\input{example01}
+\input{example02}
 
-\chapter{The Second Dimension}
+\chapter{Heat Diffusion in Two Dimensions}
 \label{CHAP HEAT 2a}
-\input{twodheatdiff001}
-
+\input{example03}
 
 \chapter{Complex Geometries}
 \label{CHAP HEAT 2}
 \input{steadystateheatdiff}
 
 % Moving into 2D and 3D wave propagations in next chapters.
+% not part of release 3.1
 % \chapter{Seismic Wave Propagation}
 % \input{twodswp001}
-
-\include{einsteinETA}
+\appendix
+%\include{einsteinETA}
 \end{document}
