@@ -32,7 +32,7 @@ cooler one until both
 blocks have the same temperature.
 
 \subsection{1D Heat Diffusion Equation}
-We can model the heat distribution of this problem over time using one
+We can model the heat distribution of this problem over time using the one
 dimensional heat diffusion equation\footnote{A detailed discussion on how the
 heat diffusion equation is derived can be found at
 \url{
@@ -58,7 +58,7 @@ derivatives in \refEq{eqn:hd}; $\frac{\partial T}{\partial t}$ describes the
 change in temperature with time while $\frac{\partial ^2 T}{\partial x^2}$ is
 the spatial change of temperature. As there is only a single spatial dimension
 to our problem, our temperature solution $T$ is only dependent on the time $t$
-and our signed distance from the the block-block interface $x$.
+and our signed distance from the block-block interface $x$.
 
 \subsection{PDEs and the General Form}
 It is possible to solve PDE \refEq{eqn:hd} analytically and obtain an exact
@@ -75,10 +75,9 @@ Firstly, we discretise the PDE \refEq{eqn:hd} in time. This leaves us with a
 steady linear PDE which involves spatial derivatives only and needs to be solved
 in each time step to progress in time. \esc can help us here.
 
-For time discretization we use the Backwards Euler approximation
+For time discretisation we use the Backward Euler approximation
 scheme\footnote{see \url{http://en.wikipedia.org/wiki/Euler_method}}. It is
-based on the
-approximation 
+based on the approximation 
 \begin{equation}
 \frac{\partial T(t)}{\partial t} \approx \frac{T(t)-T(t-h)}{h}
 \label{eqn:beuler}
@@ -107,31 +106,29 @@ T^{(n)}}{\partial x^{2}} = q\hackscore H
 Notice that we evaluate the spatial derivative term at the current time
 $t^{(n)}$ - therefore the name \textbf{backward Euler} scheme. Alternatively,
 one can evaluate the spatial derivative term at the previous time $t^{(n-1)}$.
-This 
-approach is called the \textbf{forward Euler} scheme. This scheme can provide
-some computational advantages, which
+This approach is called the \textbf{forward Euler} scheme. This scheme can
+provide some computational advantages, which
 are not discussed here. However, the \textbf{forward Euler} scheme has a major
 disadvantage. Namely, depending on the 
 material parameters as well as the domain discretization of the spatial
 derivative term, the time step size $h$ needs to be chosen sufficiently small to
-achieve a stable temperature when progressing in time. Stabiliy is achieved if
-the temperature does not grow beyond its initial bounds and become
+achieve a stable temperature when progressing in time. Stability is achieved if
+the temperature does not grow beyond its initial bounds and becomes
 non-physical. 
 The backward Euler scheme, which we use here, is unconditionally stable meaning
 that under the assumption of a
 physically correct problem set-up the temperature approximation remains physical
 for all time steps. 
-The user needs to keep in mind that the discretization error introduced by
+The user needs to keep in mind that the discretisation error introduced by
 \refEq{eqn:beuler} 
 is sufficiently small, thus a good approximation of the true temperature is
-computed. It is
-therefore very important that any results are viewed with caution. For example, 
-one may compare the results for different time and spatial step sizes.
+computed. It is therefore very important that any results are viewed with
+caution. For example, one may compare the results for different time and
+spatial step sizes.
 
 To get the temperature $T^{(n)}$ at time $t^{(n)}$ we need to solve the linear 
 differential equation \refEq{eqn:hddisc} which only includes spatial
-derivatives. To solve this problem
-we want to use \esc. 
+derivatives. To solve this problem we want to use \esc. 
 
 In \esc any given PDE can be described by the general form. For the purpose of
 this introduction we illustrate a simpler version of the general form for full
@@ -188,12 +185,11 @@ respectively.
 A \textbf{Dirichlet boundary condition} is conceptually simpler and is used to
 prescribe a known value to the unknown solution (in our example the temperature)
 on parts of the boundary or on the entire boundary of the region of interest. 
-We discuss Dirichlet boundary condition in our second example presented in
+We discuss the Dirichlet boundary condition in our second example presented in
 Section~\ref{Sec:1DHDv0}.
 
 However, for this example we have made the model assumption that the system is
-insulated, so we need
-to add an appropriate boundary condition to prevent
+insulated, so we need to add an appropriate boundary condition to prevent
 any loss or inflow of energy at the boundary of our domain. Mathematically this
 is expressed by prescribing
 the heat flux $\kappa \frac{\partial T}{\partial x}$  to zero. In our simplified
@@ -208,7 +204,7 @@ or in a more general case as
 \end{equation}
 where $n$  is the outer normal field \index{outer normal field} at the surface
 of the domain. 
-The $\cdot$ (dot) refers to the  dot product of the vectors $\nabla T$ and $n$.
+The $\cdot$ (dot) refers to the dot product of the vectors $\nabla T$ and $n$.
 In fact, the term $\nabla T \cdot n$ is the normal derivative of 
 the temperature $T$. Other notations used here are\footnote{The \esc notation
 for the normal
@@ -216,28 +212,27 @@ derivative is $T\hackscore{,i} n\hackscore i$.};
 \begin{equation}
 \nabla T \cdot n  = \frac{\partial T}{\partial n} \; .
 \end{equation}
-A condition of the type \refEq{NEUMAN 1} defines a \textbf{Neuman boundary
+A condition of the type \refEq{NEUMAN 1} defines a \textbf{Neumann boundary
 condition} for the PDE. 
 
 The PDE \refEq{eqn:hdgenf} 
-and the Neuman boundary condition~\ref{eqn:hdgenf} (potentially together with
+and the Neumann boundary condition~\ref{eqn:hdgenf} (potentially together with
 the Dirichlet boundary conditions)  define a \textbf{boundary value problem}. 
 It is the nature of a boundary value problem to allow making statements about
 the solution in the
 interior of the domain from information known on the boundary only. In most
-cases
-we use the term partial differential equation but in fact it is a boundary value
-problem. 
+cases we use the term partial differential equation but in fact it is a
+boundary value problem. 
 It is important to keep in mind that boundary conditions need to be complete and
 consistent in the sense that 
-at any point on the boundary either a Dirichlet or a Neuman boundary condition
+at any point on the boundary either a Dirichlet or a Neumann boundary condition
 must be set.
 
-Conveniently, \esc makes default assumption on the boundary conditions which the
-user may modify where appropriate. 
+Conveniently, \esc makes a default assumption on the boundary conditions which
+the user may modify where appropriate. 
 For a problem of the form in~\refEq{eqn:commonform nabla} the default
-condition\footnote{In the form of the \esc users guide which is using the
-Einstein convention is written as 
+condition\footnote{In the \esc user guide which uses the Einstein convention
+this is written as 
 $n\hackscore{j}A\hackscore{jl} u\hackscore{,l}=0$.} is;
 \begin{equation}\label{NEUMAN 2}
 -n\cdot A \cdot\nabla u = 0 
@@ -252,7 +247,7 @@ condition translates into
 \begin{equation}\label{NEUMAN 2b}
 \kappa \frac{\partial T}{\partial x} = 0 
 \end{equation}
-for the boundary of the domain. This is identical to the Neuman boundary
+for the boundary of the domain. This is identical to the Neumann boundary
 condition we want to set. \esc will take care of this condition for us. We
 discuss the Dirichlet boundary condition later.
 
@@ -268,7 +263,7 @@ which has a rectangular shape. Secondly, we need to define the PDE to solve in
 each time step to get the updated temperature. Thirdly, we need to define the
 coefficients of the PDE and finally we need to solve the PDE. The last two steps
 need to be repeated until the final time marker has been reached. The work flow
-described in \reffig{fig:wf}.
+is described in \reffig{fig:wf}.
 % \begin{enumerate}
 %  \item create domain
 %  \item create PDE
@@ -284,7 +279,7 @@ described in \reffig{fig:wf}.
 \begin{figure}[h!]
  \centering
    \includegraphics[width=1in]{figures/workflow.png}
-   \caption{Workflow for developing an \esc model and solution.}
+   \caption{Workflow for developing an \esc model and solution}
    \label{fig:wf}
 \end{figure}
 
@@ -310,7 +305,7 @@ advanced features, but these are not required in simple cases.
 \subsection{The Domain Constructor in \esc}
 \label{ss:domcon}
 Whilst it is not strictly relevant or necessary, a better understanding of
- how values are spatially distributed (\textit{e.g.} Temperature) and how PDE
+how values are spatially distributed (\textit{e.g.} Temperature) and how PDE
 coefficients are interpreted in \esc can be helpful.
 
 There are various ways to construct domain objects. The simplest form is a
@@ -324,7 +319,7 @@ representation\footnote{We use the finite element method (FEM), see
 \url{http://en.wikipedia.org/wiki/Finite_element_method} for details.}.
 Therefore we will have access to an approximation of the true PDE solution
 only. 
-The quality of the approximation depends - besides other factors- mainly on the
+The quality of the approximation depends - besides other factors - mainly on the
 number of elements being used. In fact, the 
 approximation becomes better when more elements are used. However, computational
 cost grows with the number of
@@ -335,18 +330,17 @@ In general, one can think about a domain object as a composition of nodes and
 elements. 
 As shown in \reffig{fig:fs}, an element is defined by the nodes that are used to
 describe its vertices. 
-To represent spatial distributed values the user can use 
+To represent spatially distributed values the user can use 
 the values at the nodes, at the elements in the interior of the domain or at the
-elements located at the surface of the domain. 
+elements located on the surface of the domain. 
 The different approach used to represent values is called \textbf{function
 space} and is attached to all objects
-in \esc representing a spatial distributed value such as the solution of a PDE.
-The three 
-function spaces we use at the moment are;
+in \esc representing a spatially distributed value such as the solution of
+a PDE. The three function spaces we use at the moment are;
 \begin{enumerate}
 \item the nodes, called by \verb|ContinuousFunction(domain)| ;
 \item the elements/cells, called by \verb|Function(domain)| ; and
-\item the boundary, called by \verb|FunctionOnBoundary(domain)| .
+\item the boundary, called by \verb|FunctionOnBoundary(domain)|.
 \end{enumerate}
 A function space object such as \verb|ContinuousFunction(domain)| has the method
 \verb|getX| attached to it. This method returns the
@@ -354,9 +348,8 @@ location of the so-called \textbf{sample points} used to represent values of the
 particular function space. So the
 call \verb|ContinuousFunction(domain).getX()| will return the coordinates of the
 nodes used to describe the domain while
-the  \verb|Function(domain).getX()| returns the coordinates of numerical
-integration points within elements, see
-\reffig{fig:fs}. 
+\verb|Function(domain).getX()| returns the coordinates of numerical
+integration points within elements, see \reffig{fig:fs}. 
 
 This distinction between different representations of spatially distributed
 values 
@@ -366,18 +359,19 @@ The coefficients of a PDE do not need to be continuous, thus this qualifies as a
 \verb|Function()| type. 
 On the other hand a temperature distribution must be continuous and needs to be
 represented with a \verb|ContinuousFunction()| function space.
-An influx may only be defined at the boundary and is therefore a \verb
-FunctionOnBoundary()  object.  
-\esc allows certain transformations of the function spaces. A \verb
-ContinuousFunction()  can be transformed into a \verb|FunctionOnBoundary()|
-or \verb|Function()|. On the other hand there is not enough information in a
-\verb FunctionOnBoundary()  to transform it to a \verb ContinuousFunction()  .
+An influx may only be defined at the boundary and is therefore a
+\verb|FunctionOnBoundary()| object.  
+\esc allows certain transformations of the function spaces. A
+\verb|ContinuousFunction()| can be transformed into a
+\verb|FunctionOnBoundary()| or \verb|Function()|. On the other hand there is
+not enough information in a \verb|FunctionOnBoundary()| to transform it to a
+\verb|ContinuousFunction()|.
 These transformations, which are called \textbf{interpolation} are invoked
 automatically by \esc if needed.
 
 Later in this introduction we discuss how
 to define specific areas of geometry with different materials which are
-represented by different material coefficients such the
+represented by different material coefficients such as the
 thermal conductivities $\kappa$. A very powerful technique to define these types
 of PDE 
 coefficients is tagging. Blocks of materials and boundaries can be named and
@@ -390,8 +384,8 @@ Section~\ref{STEADY-STATE HEAT REFRACTION}.
 \subsection{A Clarification for the 1D Case}
 \label{SEC: 1D CLARIFICATION}
 It is necessary for clarification that we revisit our general PDE from
-\refeq{eqn:commonform nabla} for two dimensional domain. \esc is inherently
-designed to solve problems that are greater than one dimension and so
+\refeq{eqn:commonform nabla} for a two dimensional domain. \esc is inherently
+designed to solve problems that are multi-dimensional and so
 \refEq{eqn:commonform nabla} needs to be read as a higher dimensional problem.
 In the case of two spatial dimensions the \textit{Nabla operator} has in fact
 two components $\nabla = (\frac{\partial}{\partial x}, \frac{\partial}{\partial
@@ -440,7 +434,7 @@ It is generally a good idea to import all of the \modescript library, although
 if the functions and classes required are known they can be specified
 individually. The function \verb|LinearPDE| has been imported explicitly for
 ease of use later in the script. \verb|Rectangle| is going to be our type of
-domain. The module \verb unitsSI  provides support for SI unit definitions with
+domain. The module \verb|unitsSI| provides support for SI unit definitions with
 our variables.
 
 Once our library dependencies have been established, defining the problem
@@ -466,10 +460,11 @@ small we increase the accuracy of our solution. Unfortunately we also increase
 the number of calculations that must be solved per time step. This means more
 computational time is required to produce a solution. In this \textit{1D}
 problem, the bar is defined as being 1 metre long. An appropriate step size
-\verb|ndx| would be 1 to 10\% of the length. Our \verb|ndy| need only be 1, this
-is because our problem stipulates no partial derivatives in the $y$ direction.
+\verb|ndx| would be 1 to 10\% of the length. Our \verb|ndy| needs only be 1,
+this is because our problem stipulates no partial derivatives in the $y$
+direction.
 Thus the temperature does not vary with $y$. Hence, the model parameters can be
-defined as follows; note we have used the \verb unitsSI  convention to make sure
+defined as follows; note we have used the \verb|unitsSI| convention to make sure
 all our input units are converted to SI.
 \begin{python}
 mx = 500.*m #meters - model length
@@ -502,18 +497,18 @@ print "Expected Number of time outputs is: ", (tend-t)/h
 i=0 #loop counter
 \end{python}
 Now that we know our inputs we will build a domain using the
- \verb Rectangle() function from \verb finley . The four arguments allow us to define our domain
-\verb model  as:
+\verb|Rectangle()| function from \FINLEY. The four arguments allow us to
+define our domain \verb|model| as:
 \begin{python}
 #generate domain using rectangle
 blocks = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
 \end{python}
-\verb blocks  now describes a domain in the manner of Section \ref{ss:domcon}.
+\verb|blocks| now describes a domain in the manner of Section \ref{ss:domcon}.
 
-With a domain and all our required variables established, it is now possible to
+With a domain and all the required variables established, it is now possible to
 set up our PDE so that it can be solved by \esc. The first step is to define the
 type of PDE that we are trying to solve in each time step. In this example it is
-a single linear PDE\footnote{in comparison to a system of PDEs which we discuss
+a single linear PDE\footnote{in contrast to a system of PDEs which we discuss
 later.}. We also need to state the values of our general form variables.
 \begin{python}
 mypde=LinearPDE(blocks)
@@ -521,7 +516,7 @@ A=zeros((2,2)))
 A[0,0]=kappa
 mypde.setValue(A=A, D=rhocp/h)
 \end{python}
-In a many cases it may be possible to decrease the computational time of the
+In many cases it may be possible to decrease the computational time of the
 solver if the PDE is symmetric. 
 Symmetry of a PDE is defined by;
 \begin{equation}\label{eqn:symm}
@@ -529,22 +524,21 @@ A\hackscore{jl}=A\hackscore{lj}
 \end{equation}
 Symmetry is only dependent on the $A$ coefficient in the general form and the
 other coefficients $D$ as well as the right hand side $Y$. From the above
-definition we can see that our PDE is symmetric. The \verb LinearPDE  class
+definition we can see that our PDE is symmetric. The \verb|LinearPDE| class
 provides the method \method{checkSymmetry} to check if the given PDE is
 symmetric. As our PDE is symmetrical we enable symmetry via;
 \begin{python}
- myPDE.setSymmetryOn()
+myPDE.setSymmetryOn()
 \end{python}
 Next we need to establish the initial temperature distribution \verb|T|. We need
 to 
 assign the value \verb|T1| to all sample points left to the contact interface at
 $x\hackscore{0}=\frac{mx}{2}$
 and the value \verb|T2| right to the contact interface. \esc
-provides the \verb|whereNegative| function to construct this. In fact,
-\verb|whereNegative| returns the value $1$ at those sample points where the
-argument 
-has a negative value. Otherwise zero is returned. If \verb|x| are the
-$x\hackscore{0}$ 
+provides the \verb|whereNegative| function to construct this. More
+specifically, \verb|whereNegative| returns the value $1$ at those sample points
+where the argument has a negative value. Otherwise zero is returned.
+If \verb|x| are the $x\hackscore{0}$ 
 coordinates of the sample points used to represent the temperature distribution 
 then \verb|x[0]-boundloc| gives us a negative value for 
 all sample points left to the interface and non-negative value to 
@@ -554,9 +548,8 @@ the right of the interface. So with;
 T= T1*whereNegative(x[0]-boundloc)+T2*(1-whereNegative(x[0]-boundloc))
 \end{python}
 we get the desired temperature distribution. To get the actual sample points
-\verb|x| we use
-the  \verb|getX()| method of the function space \verb|Solution(blocks)|
-which is used to represent the solution of a PDE;
+\verb|x| we use the \verb|getX()| method of the function space
+\verb|Solution(blocks)| which is used to represent the solution of a PDE;
 \begin{python}
 x=Solution(blocks).getX()
 \end{python}
@@ -565,10 +558,9 @@ As \verb|x| are the sample points for the function space
 the initial temperature \verb|T| is using these sample points for
 representation.
 Although \esc is trying to be forgiving with the choice of sample points and to
-convert 
+convert
 where necessary the adjustment of the function space is not always possible. So
-it is 
-advisable to make a careful choice on the function space used.  
+it is advisable to make a careful choice on the function space used.  
 
 Finally we initialise an iteration loop to solve our PDE for all the time steps
 we specified in the variable section. As the right hand side of the general form
@@ -584,16 +576,15 @@ while t < tend:
 	totE = integrate(rhocp*T) #get the total heat (energy) in the system
 \end{python}
 The last statement in this script calculates the total energy in the system as
-volume integral 
-of $\rho c\hackscore{p} T$ over the block. As the blocks are insulated no energy
-should be get lost or added. 
+the volume integral of $\rho c\hackscore{p} T$ over the block.
+As the blocks are insulated no energy should be lost or added. 
 The total energy should stay constant for the example discussed here.
 
 \subsection{Running the Script} 
 The script presented so far is available under 
 \verb|example01a.py|. You can edit this file with your favourite text editor. 
-On most operating systems\footnote{The you can use \texttt{run-escript} launcher
-is not supported under {\it MS Windows} yet.} you can use the
+On most operating systems\footnote{The \texttt{run-escript} launcher is not
+supported under {\it MS Windows} yet.} you can use the
 \program{run-escript} command 
 to launch {\it escript} scripts. For the example script use;
 \begin{verbatim}
@@ -604,13 +595,13 @@ the python interpreter directly;
 \begin{verbatim}
 python example01a.py
 \end{verbatim}
-if the system is configured correctly (Please talk to your system
+if the system is configured correctly (please talk to your system
 administrator).
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=4in]{figures/ttblockspyplot150}
-\caption{Example 1b: Total Energy in the Blocks over Time (in seconds).}
+\caption{Example 1b: Total Energy in the Blocks over Time (in seconds)}
 \label{fig:onedheatout1} 
 \end{center}
 \end{figure}
@@ -622,23 +613,23 @@ administrator).
 use a variety of free \pyt packages for visualisation.
 Two types will be demonstrated in this cookbook;
 \mpl\footnote{\url{http://matplotlib.sourceforge.net/}} and 
-\verb VTK  \footnote{\url{http://www.vtk.org/}} visualisation. 
+\verb|VTK|\footnote{\url{http://www.vtk.org/}}. 
 The \mpl package is a component of SciPy\footnote{\url{http://www.scipy.org}}
 and is good for basic graphs and plots. 
-For more complex visualisation tasks in particular, two and three dimensional
+For more complex visualisation tasks, in particular two and three dimensional
 problems we recommend the use of more advanced tools. For instance,  \mayavi
 \footnote{\url{http://code.enthought.com/projects/mayavi/}}
 which is based upon the \verb|VTK| toolkit. The usage of \verb|VTK| based 
-visualization is discussed in Chapter~\ref{Sec:2DHD} which focusses on a two
+visualisation is discussed in Chapter~\ref{Sec:2DHD} which focuses on a two
 dimensional PDE. 
 
 For our simple granite block problem, we have two plotting tasks. Firstly, we
 are interested in showing the
 behaviour of the total energy over time and secondly, how the temperature
-distribution within the block is 
-developing over time. Lets start with the first task.
+distribution within the block is developing over time.
+Let us start with the first task.
 
-The trick is to create a record of the time marks and the corresponding total
+The idea is to create a record of the time marks and the corresponding total
 energies observed.
 \pyt provides the concept of lists for this. Before 
 the time loop is opened we create empty lists for the time marks \verb|t_list|
@@ -660,13 +651,12 @@ while t<tend:
       E_list.append(totE) # add current total energy to record
 \end{python}
 To plot $t$ over $totE$ we use \mpl a module contained within \pylab which needs
-to be loaded before used;
+to be loaded before use;
 \begin{python}
 import pylab as pl # plotting package.
 \end{python}
-Here we are not using the \verb|from pylab import *| in order to avoid name
-clashes for function names 
-within \esc. 
+Here we are not using \verb|from pylab import *| in order to avoid name
+clashes for function names within \esc. 
 
 The following statements are added to the script after the time loop has been
 completed;
@@ -677,13 +667,12 @@ pl.axis([0,max(t_list),0,max(E_list)*1.1])
 pl.savefig("totE.png")
 \end{python}
 The first statement hands over the time marks and corresponding total energies
-to the plotter. 
-The second statment is setting the title for the plot. The third statement
+to the plotter.
+The second statement sets the title for the plot. The third statement
 sets the axis ranges. In most cases these are set appropriately by the plotter.
  
-The last statement renders the plot and writes the 
-result into the file \verb|totE.png| which can be displayed by (almost) any
-image viewer. 
+The last statement generates the plot and writes the result into the file
+\verb|totE.png| which can be displayed by (almost) any image viewer. 
 As expected the total energy is constant over time, see
 \reffig{fig:onedheatout1}.
 
@@ -691,55 +680,51 @@ As expected the total energy is constant over time, see
 \label{sec: plot T}
 \sslist{example01c.py}
 For plotting the spatial distribution of the temperature we need to modify the
-strategy we have used
-for the total energy. Instead of producing a final plot at the end we will
-generate a 
+strategy we have used for the total energy.
+Instead of producing a final plot at the end we will generate a 
 picture at each time step which can be browsed as a slide show or composed into
 a movie.
 The first problem we encounter is that if we produce an image at each time step
-we need
-to make sure that the images previously generated are not overwritten.
+we need to make sure that the images previously generated are not overwritten.
 
 To develop an incrementing file name we can use the following convention. It is
-convenient to
-put all image file showing the same variable - in our case the temperature
-distribution -
-into a separate directory. As part of the \verb|os| module\footnote{The
-\texttt{os} module provides 
+convenient to put all image files showing the same variable - in our case the
+temperature distribution - into a separate directory.
+As part of the \verb|os| module\footnote{The \texttt{os} module provides 
 a powerful interface to interact with the operating system, see
 \url{http://docs.python.org/library/os.html}.} \pyt 
-provides the  \verb|os.path.join| command to build file and
-directory names in a platform independent way. Assuming that 
-\verb|save_path| is name of directory we want to put the results the command
-is; 
+provides the \verb|os.path.join| command to build file and directory names in a
+platform independent way. Assuming that 
+\verb|save_path| is the name of the directory we want to put the results in the
+command is; 
 \begin{python}
 import os
 os.path.join(save_path, "tempT%03d.png"%i )
 \end{python}
 where \verb|i| is the time step counter.
-There are two arguments to the \verb join  command. The 
-\verb save_path  variable is a predefined string pointing to the directory we want to save our
-data, for example a single sub-folder called \verb data  would be defined by;
+There are two arguments to the \verb|join| command. The \verb|save_path|
+variable is a predefined string pointing to the directory we want to save our
+data, for example a single sub-folder called \verb|data| would be defined by;
 \begin{verbatim}
 save_path = "data"
 \end{verbatim}
-while a sub-folder of \verb data  called \verb example01  would be defined by;
+while a sub-folder of \verb|data| called \verb|example01| would be defined by;
 \begin{verbatim}
 save_path = os.path.join("data","example01")
 \end{verbatim}
-The second argument of \verb join \xspace contains a string which is the file
+The second argument of \verb|join| contains a string which is the file
 name or subdirectory name. We can use the operator \verb|%| to use the value of
-\verb|i| as part of our filename. The sub-string \verb %03d  indicates that we
-want to substitude a value into the name; 
+\verb|i| as part of our filename. The sub-string \verb|%03d| indicates that we
+want to substitute a value into the name; 
 \begin{itemize}
  \item \verb 0  means that small numbers should have leading zeroes;
  \item \verb 3  means that numbers should be written using at least 3 digits;
 and
- \item \verb d  means that the value to substitute will be an integer.
+ \item \verb d  means that the value to substitute will be a decimal integer.
 \end{itemize}
-To actually substitute the value of \verb|i| into the name write \verb %i  after
+To actually substitute the value of \verb|i| into the name write \verb|%i| after
 the string.
-When done correctly, the output files from this command would be place in the
+When done correctly, the output files from this command will be placed in the
 directory defined by \verb save_path  as;
 \begin{verbatim}
 blockspyplot001.png
@@ -753,11 +738,11 @@ A sub-folder check/constructor is available in \esc. The command;
 \begin{verbatim}
 mkDir(save_path)
 \end{verbatim}
-will check for the existence of \verb save_path  and if missing, make the
+will check for the existence of \verb save_path  and if missing, create the
 required directories.
 
 We start by modifying our solution script.
-Prior to the \verb|while| loop we will need to extract our finite solution
+Prior to the \verb|while| loop we need to extract our finite solution
 points to a data object that is compatible with \mpl. First we create the node
 coordinates of the sample points used to represent
 the temperature as a \pyt list of tuples or a \numpy array as requested by the
@@ -780,7 +765,7 @@ plx = plx[:,0] # extract x locations
 \includegraphics[width=4in]{figures/blockspyplot050}
 \includegraphics[width=4in]{figures/blockspyplot200}
 \caption{Example 1c: Temperature ($T$) distribution in the blocks at time steps
-$1$, $50$ and $200$.}
+$1$, $50$ and $200$}
 \label{fig:onedheatout} 
 \end{center}
 \end{figure}
@@ -789,9 +774,9 @@ We use the same techniques provided by \mpl as we have used to plot the total
 energy over time. 
 For each time step we generate a plot of the temperature distribution and save
 each to a file. 
-The following is appended to the end of the \verb while  loop and creates one
+The following is appended to the end of the \verb|while| loop and creates one
 figure of the temperature distribution. We start by converting the solution to a
-tuple and then plotting this against our \textit{x coordinates} \verb plx  we
+tuple and then plotting this against our \textit{x coordinates} \verb|plx| we
 have generated before. We add a title to the diagram before it is rendered into
 a file. 
 Finally, the figure is saved to a \verb|*.png| file and cleared for the
@@ -812,12 +797,13 @@ while t<tend:
 \end{python}
 Some results are shown in \reffig{fig:onedheatout}. 
 
-\subsection{Make a video} 
+\subsection{Making a Video} 
 Our saved plots from the previous section can be cast into a video using the
 following command appended to the end of the script. The \verb mencoder command
-is Linux only, so other platform users need to use an alternative video encoder.
+is not available on every platform, so some users need to use an alternative
+video encoder.
 \begin{python}
-# compile the *.png files to create a *.avi videos that show T change
+# compile the *.png files to create a *.avi video that shows T change
 # with time. This operation uses Linux mencoder. For other operating 
 # systems it is possible to use your favourite video compiler to
 # convert image files to videos.
