@@ -1,0 +1,10 @@
+#!/bin/sh 
+set -e
+
+if [ "$1" = configure ]
+then
+	install-docs -i /usr/share/doc-base/escript-pde-userguide \
+			/usr/share/doc-base/escript-pde-install \
+			/usr/share/doc-base/escript-pde-pythonapi \
+			/usr/share/doc-base/escript-pde-cookbook
+fi
