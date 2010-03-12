@@ -58,10 +58,7 @@ else
 fi
 ##### End finding ESCRIPT_ROOT  ########
 
-if [ ! -r $ESCRIPT_ROOT/lib/buildvars ]; then
-    echo "Error! Unable to read escript build information. Exiting."
-    exit 1
-fi
+
 
 PYTHON_MPI_NULL="$ESCRIPT_ROOT/lib/pythonMPI"
 PYTHON_MPI_REDIRECT="$ESCRIPT_ROOT/lib/pythonMPIredirect"
@@ -113,6 +110,7 @@ fi
 # Avoid bug in hybrid runs with MPT MPI
 
 
+
 # Parse the command-line options
 # option e should not be followed by a :
 while getopts 'bn:p:t:f:h:ecVviox' option
@@ -128,10 +126,18 @@ do
 		;;
 	  "f")	ESCRIPT_HOSTFILE=$OPTARG
 		;;
-	  "c")  cat $ESCRIPT_ROOT/lib/buildvars
+	  "c")  if [ ! -r $ESCRIPT_ROOT/lib/buildvars ]; then
+    			echo "Error! Unable to read escript build information. Exiting."
+    			exit 1
+		fi
+		cat $ESCRIPT_ROOT/lib/buildvars
 		exit 0
 		;;
-	  "V")	echo "escript-3.1(build "`grep svn_revision $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`")"
+	  "V")	if [ ! -r $ESCRIPT_ROOT/lib/buildvars ]; then
+    			echo "Error! Unable to read escript build information. Exiting."
+    			exit 1
+		fi
+		echo "escript-3.1(build "`grep svn_revision $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`")"
 		exit 0
 		;;
 	  "h")  echo "$HELPTEXT"
@@ -160,6 +166,12 @@ do
 		;;
 	esac
 done
+
+if [ ! -r $ESCRIPT_ROOT/lib/buildvars ]; then
+    echo "Error! Unable to read escript build information. Exiting."
+    exit 1
+fi
+
 shift `expr $OPTIND - 1`
 #==============================================
 #
