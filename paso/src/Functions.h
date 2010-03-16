@@ -21,7 +21,8 @@
 #include "performance.h"
 
 enum Paso_FunctionType {
-  LINEAR_SYSTEM
+  LINEAR_SYSTEM,
+  FCT
 };
 
 typedef enum Paso_FunctionType Paso_FunctionType;
@@ -35,7 +36,8 @@ typedef struct Paso_Function {
   void *more;
 } Paso_Function;
 
-err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, const double *f0, const double *x0, double* setoff, const bool_t w_is_normalized, Paso_Performance *pp);
+err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, const double *f0, const double *x0, double* setoff, Paso_Performance *pp);
 err_t Paso_FunctionCall(Paso_Function * F,double* value, const double* arg, Paso_Performance *pp);
+void Paso_Function_free(Paso_Function * F);
 
 #endif

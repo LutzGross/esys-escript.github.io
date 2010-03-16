@@ -58,7 +58,7 @@ class AbstractTransportProblem {
   AbstractTransportProblem();
 
   ESCRIPT_DLL_API
-  AbstractTransportProblem(const double theta,
+  AbstractTransportProblem(const bool useBackwardEuler,
                            const int blocksize,
                            const FunctionSpace& functionspace);
 
@@ -98,17 +98,11 @@ class AbstractTransportProblem {
 
   /**
      \brief
-     returns the solution u for a time step dt>0
+     returns the solution u for a time step dt>0 with initial value u0 at time t=0
   */
   ESCRIPT_DLL_API
-  Data solve(Data& source, const double dt, boost::python::object& options) const;
+  Data solve(Data& u0, Data& source, const double dt, boost::python::object& options) const;
 
-  /**
-     \brief
-     sets the value for u at time t=0.
-  */
-  ESCRIPT_DLL_API
-  void setInitialValue(Data& u) const;
 
   /**
      \brief resets the transport operator typically as they have been updated.
@@ -143,14 +137,8 @@ class AbstractTransportProblem {
      sets solution out by time step dt.
   */
   ESCRIPT_DLL_API
-  virtual void setToSolution(Data& out,Data& source,const double dt, boost::python::object& options) const;
+  virtual void setToSolution(Data& out, Data& u0, Data& source, const double dt, boost::python::object& options) const;
 
-  /**
-     \brief
-     copies the initial value into the problem
-  */
-  ESCRIPT_DLL_API
-  virtual void copyInitialValue(Data& u) const;
   /**
      \brief
      copy constraint u_{,t}=r where q>0  into the problem 
@@ -162,7 +150,7 @@ class AbstractTransportProblem {
 
   int m_empty;
   int m_blocksize;
-  double m_theta;
+  bool m_useBackwardEuler;
   FunctionSpace m_functionspace;
 
 };

@@ -36,11 +36,11 @@ TransportProblemAdapter::TransportProblemAdapter()
 }
 
 
-TransportProblemAdapter::TransportProblemAdapter(Paso_FCTransportProblem* transport_problem,
-                                                 const double theta,
+TransportProblemAdapter::TransportProblemAdapter(Paso_TransportProblem* transport_problem,
+                                                 const bool useBackwardEuler,
                                                  const int block_size,
                                                  const escript::FunctionSpace& functionspace):
-AbstractTransportProblem(theta, block_size, functionspace)
+AbstractTransportProblem(useBackwardEuler, block_size, functionspace)
 {
     m_transport_problem.reset(transport_problem,null_deleter());
 }
@@ -48,20 +48,20 @@ AbstractTransportProblem(theta, block_size, functionspace)
 TransportProblemAdapter::~TransportProblemAdapter()
 { 
     if (m_transport_problem.unique()) {
-        Paso_FCTransportProblem* transp=m_transport_problem.get();
-        Paso_FCTransportProblem_free(transp);
+        Paso_TransportProblem* transp=m_transport_problem.get();
+        Paso_TransportProblem_free(transp);
     }
 }
 
-Paso_FCTransportProblem* TransportProblemAdapter::getPaso_FCTransportProblem() const 
+Paso_TransportProblem* TransportProblemAdapter::getPaso_TransportProblem() const 
 {
    return m_transport_problem.get();
 }
 
 
-void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& source, const double dt, boost::python::object& options) const
+void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& u0, escript::Data& source, const double dt, boost::python::object& options) const
 {
-    Paso_FCTransportProblem* transp=getPaso_FCTransportProblem();
+    Paso_TransportProblem* transp=getPaso_TransportProblem();
     Paso_Options paso_options;
     SystemMatrixAdapter::escriptToPasoOptions(&paso_options,options);
     options.attr("resetDiagnostics")();
@@ -81,16 +81,17 @@ void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& s
     out.requireWrite();
     source.requireWrite();
     double* out_dp=out.getSampleDataRW(0);
+    double* u0_dp=u0.getSampleDataRW(0);
     double* source_dp=source.getSampleDataRW(0);
-    Paso_SolverFCT_solve(transp,out_dp,dt,source_dp,&paso_options);
+    Paso_TransportProblem_solve(transp,out_dp,dt,u0_dp,source_dp,&paso_options);
     SystemMatrixAdapter::pasoToEscriptOptions(&paso_options,options);
     checkPasoError();
 }
 
 void TransportProblemAdapter::resetTransport() const
 {
-   Paso_FCTransportProblem* transp = getPaso_FCTransportProblem();
-   Paso_FCTransportProblem_reset(transp);
+   Paso_TransportProblem* transp = getPaso_TransportProblem();
+   Paso_TransportProblem_reset(transp);
    checkPasoError();
 }
 void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Data& q, escript::Data& r, const double factor) const
@@ -108,7 +109,7 @@ void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Dat
     } else if ( source.getFunctionSpace()  != getFunctionSpace()) {
      throw FinleyAdapterException("copyConstraint : function spaces of transport problem and source don't match.");
     }
-    Paso_FCTransportProblem* transp=getPaso_FCTransportProblem();
+    Paso_TransportProblem* transp=getPaso_TransportProblem();
 
     /* r2=r where q>0, 0 elsewhere */
     escript::Data r2(0.,q.getDataPointShape(),q.getFunctionSpace());
@@ -140,32 +141,17 @@ void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Dat
 
        source.copyWithMask(escript::Data(0.,q.getDataPointShape(),q.getFunctionSpace()),q);
    } else {
-       Paso_FCTransportProblem_setUpConstraint(transp, q_dp, factor);
+       Paso_TransportProblem_setUpConstraint(transp, q_dp, factor);
        checkPasoError();
-       Paso_FCTransportProblem_insertConstraint(transp,r2_dp, source_dp);
+       Paso_TransportProblem_insertConstraint(transp,r2_dp, source_dp);
        checkPasoError();
    }
 }
 
-void TransportProblemAdapter::copyInitialValue(escript::Data& u) const
-{
-    Paso_FCTransportProblem* transp=getPaso_FCTransportProblem();
-    if ( u.getDataPointSize()  != getBlockSize()) {
-     throw FinleyAdapterException("copyInitialValue : block size of solution does not match block size of transport problems.");
-    } else if ( u.getFunctionSpace()  != getFunctionSpace()) {
-     throw FinleyAdapterException("copyInitialValue : function spaces of solution and of transport problem don't match.");
-    }
-    u.expand();
-    u.requireWrite();
-    double* u_dp=u.getSampleDataRW(0);
-    Paso_FCTransportProblem_checkinSolution( transp,u_dp);
-    checkPasoError();
-}
-
 double TransportProblemAdapter::getSafeTimeStepSize() const
 {
-    Paso_FCTransportProblem* transp=getPaso_FCTransportProblem();
-    double dt=Paso_FCTransportProblem_getSafeTimeStepSize(transp);
+    Paso_TransportProblem* transp=getPaso_TransportProblem();
+    double dt=Paso_TransportProblem_getSafeTimeStepSize(transp);
     checkPasoError();
     return dt;
 }

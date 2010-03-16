@@ -27,6 +27,7 @@
 #define SOLVER_MEMORY_ERROR -9
 #define SOLVER_BREAKDOWN -10
 #define SOLVER_NEGATIVE_NORM_ERROR -11
+#define SOLVER_DIVERGENCE -12
 
 #define TOLERANCE_FOR_SCALARS (double)(0.)
 #define PASO_ONE (double)(1.0)

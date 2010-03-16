@@ -42,7 +42,7 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->adapt_inner_tolerance=TRUE;
   options->preconditioner=PASO_JACOBI;
   options->iter_max=10000;
-  options->inner_iter_max=10;
+  options->inner_iter_max=5;
   options->drop_tolerance=0.01;
   options->drop_storage=2.;
   options->restart=-1;

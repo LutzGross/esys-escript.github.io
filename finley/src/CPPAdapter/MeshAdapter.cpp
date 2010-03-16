@@ -865,7 +865,7 @@ void MeshAdapter::addPDEToTransportProblem(
    escriptDataC _y_contact=y_contact.getDataC();
 
    Finley_Mesh* mesh=m_finleyMesh.get();
-   Paso_FCTransportProblem* _tp = tp.getPaso_FCTransportProblem();
+   Paso_TransportProblem* _tp = tp.getPaso_TransportProblem();
 
    Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,_tp->mass_matrix, &_source, 0, 0, 0, &_M, 0, 0 );
    checkFinleyError();
@@ -1638,7 +1638,7 @@ SystemMatrixAdapter MeshAdapter::newSystemMatrix(
 // creates a TransportProblemAdapter
 //
 TransportProblemAdapter MeshAdapter::newTransportProblem(
-                                                         const double theta,
+                                                         const bool useBackwardEuler,
                                                          const int blocksize,
                                                          const escript::FunctionSpace& functionspace,
                                                          const int type) const
@@ -1660,11 +1660,11 @@ TransportProblemAdapter MeshAdapter::newTransportProblem(
  
    Paso_SystemMatrixPattern* fsystemMatrixPattern=Finley_getPattern(getFinley_Mesh(),reduceOrder,reduceOrder);
    checkFinleyError();
-   Paso_FCTransportProblem* transportProblem;
-   transportProblem=Paso_FCTransportProblem_alloc(theta,fsystemMatrixPattern,blocksize);
+   Paso_TransportProblem* transportProblem;
+   transportProblem=Paso_TransportProblem_alloc(useBackwardEuler,fsystemMatrixPattern,blocksize);
    checkPasoError();
    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
-   return TransportProblemAdapter(transportProblem,theta,blocksize,functionspace);
+   return TransportProblemAdapter(transportProblem,useBackwardEuler,blocksize,functionspace);
 }
 
 //
@@ -2030,7 +2030,7 @@ int MeshAdapter::getSystemMatrixTypeId(const int solver, const int preconditione
 int MeshAdapter::getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
-   int out=Paso_FCTransportProblem_getTypeId(SystemMatrixAdapter::mapOptionToPaso(solver),SystemMatrixAdapter::mapOptionToPaso(preconditioner), SystemMatrixAdapter::mapOptionToPaso(package),symmetry?1:0, mesh->MPIInfo);
+   int out=Paso_TransportProblem_getTypeId(SystemMatrixAdapter::mapOptionToPaso(solver),SystemMatrixAdapter::mapOptionToPaso(preconditioner), SystemMatrixAdapter::mapOptionToPaso(package),symmetry?1:0, mesh->MPIInfo);
    checkPasoError();
    return out;
 }

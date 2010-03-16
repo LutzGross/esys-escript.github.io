@@ -25,19 +25,17 @@ AbstractTransportProblem::AbstractTransportProblem() {
     m_empty=1;
 }
 
-AbstractTransportProblem::AbstractTransportProblem(const double theta, const int blocksize,
+AbstractTransportProblem::AbstractTransportProblem(const bool useBackwardEuler, const int blocksize,
                                                    const FunctionSpace& functionspace)
 :m_functionspace(functionspace)
 {
   if (blocksize<=0) 
      throw TransportProblemException("Error - negative block size of transport problem.");
-  if ((theta<0.) || (theta>1.))
-     throw TransportProblemException("Error - theta needs to be between 0. and 1..");
 
    m_empty=0;
    m_blocksize=blocksize;
 //    m_functionspace=functionspace;
-   m_theta=theta;
+   m_useBackwardEuler=useBackwardEuler;
 }
 
 AbstractTransportProblem::~AbstractTransportProblem() {
@@ -48,7 +46,7 @@ int AbstractTransportProblem::isEmpty() const {
 }
 
 
-Data AbstractTransportProblem::solve(Data& source, const double dt, boost::python::object& options) const
+Data AbstractTransportProblem::solve(Data& u0, Data& source, const double dt, boost::python::object& options) const
 {
      if (isEmpty())
           throw TransportProblemException("Error - transport problem is empty.");
@@ -56,31 +54,20 @@ Data AbstractTransportProblem::solve(Data& source, const double dt, boost::pytho
           throw TransportProblemException("Error - dt needs to be positive.");
      if (source.getFunctionSpace()!=getFunctionSpace())
           throw TransportProblemException("Error - function space of transport problem and function space of source do not match.");
+     if (u0.getFunctionSpace()!=getFunctionSpace())
+          throw TransportProblemException("Error - function space of transport problem and function space of initial value do not match.");
      if (source.getDataPointSize()!=getBlockSize())
           throw TransportProblemException("Error - block size of transport problem and source do not match.");
+     if (u0.getDataPointSize()!=getBlockSize())
+          throw TransportProblemException("Error - block size of transport problem and initial value do not match.");
+
      DataTypes::ShapeType shape;
      if (getBlockSize()>1) shape.push_back(getBlockSize());
      Data out=Data(0.,shape,getFunctionSpace(),true);
-     setToSolution(out,source,dt,options);
+     setToSolution(out, u0, source, dt, options);
      return out;
 }
 
-void AbstractTransportProblem::setInitialValue(Data& u) const
-{
-     if (isEmpty())
-          throw TransportProblemException("Error - transport problem is empty.");
-     if (u.isEmpty())
-          throw TransportProblemException("Error - empty initial value.");
-
-     if (((getBlockSize()==1) && (u.getDataPointRank()>0)) || (u.getDataPointRank()>1))
-          throw TransportProblemException("Error - illegal rank of initial value.");
-
-     if (u.getDataPointSize()!=getBlockSize())
-          throw TransportProblemException("Error - block size of transport problem and initial value do not match.");
-
-     Data u2=Data(u,getFunctionSpace());
-     copyInitialValue(u2);
-}
 void AbstractTransportProblem::insertConstraint(Data& source, Data& q, Data& r, const double factor) const
 {
      if (factor <= 0.)
@@ -114,11 +101,8 @@ void AbstractTransportProblem::copyConstraint(Data& source, Data& q, Data& r, co
 {
     throw TransportProblemException("Error - copyConstraint is not available");
 }
-void AbstractTransportProblem::copyInitialValue(Data& u) const
-{
-    throw TransportProblemException("Error - copyInitialValue is not available");
-}
-void AbstractTransportProblem::setToSolution(Data& out,Data& source,const double dt, boost::python::object& options) const
+
+void AbstractTransportProblem::setToSolution(Data& out, Data &u0, Data& source,const double dt, boost::python::object& options) const
 {
     throw TransportProblemException("Error - setToSolution is not available");
 }

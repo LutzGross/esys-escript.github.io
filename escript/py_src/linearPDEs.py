@@ -2053,16 +2053,16 @@ class LinearProblem(object):
            self.__solution.setToZero()
            self.trace("Solution is reset to zero.")
 
-   def setSolution(self,u):
+   def setSolution(self,u, validate=True):
        """
        Sets the solution assuming that makes the system valid with the tolrance
        defined by the solver options
        """
-       self.__solution_rtol=self.getSolverOptions().getTolerance()
-       self.__solution_atol=self.getSolverOptions().getAbsoluteTolerance()
+       if validate:
+	  self.__solution_rtol=self.getSolverOptions().getTolerance()
+	  self.__solution_atol=self.getSolverOptions().getAbsoluteTolerance()
+	  self.validSolution()
        self.__solution=u
-       self.validSolution()
-
    def getCurrentSolution(self):
        """
        Returns the solution in its current state.
@@ -3445,35 +3445,14 @@ class TransportPDE(LinearProblem):
        """
        Returns an instance of a new transport operator.
        """
-       if self.useBackwardEuler():
-         theta=1.
-       else:
-         theta=0.5
        optype=self.getRequiredOperatorType()
        self.trace("New Transport problem pf type %s is allocated."%optype)
        return self.getDomain().newTransportProblem( \
-                               theta,
+                               self.useBackwardEuler(),
                                self.getNumEquations(), \
                                self.getFunctionSpaceForSolution(), \
                                optype)
 
-   def setInitialSolution(self,u):
-       """
-       Sets the initial solution.
-
-       :param u: new initial solution
-       :type u: any object that can be interpolated to a `Data`
-                object on `Solution` or `ReducedSolution`
-       :note: ``u`` must be non-negative
-       """
-       u2=util.interpolate(u,self.getFunctionSpaceForSolution())
-       if self.getNumSolutions() == 1:
-          if u2.getShape()!=():
-              raise ValueError,"Illegal shape %s of initial solution."%(u2.getShape(),)
-       else:
-          if u2.getShape()!=(self.getNumSolutions(),):
-              raise ValueError,"Illegal shape %s of initial solution."%(u2.getShape(),)
-       self.getOperator().setInitialValue(u2)
 
    def getRequiredOperatorType(self):
       """
@@ -3528,19 +3507,54 @@ class TransportPDE(LinearProblem):
        """
        return self.__constraint_factor
    #====================================================================
-   def getSolution(self,dt):
+   def getSolution(self, dt=None, u0=None):
        """
-       Returns the solution of the problem.
+       Returns the solution by marching forward by time step dt. if ''u0'' is present,
+       ''u0'' is used as the initial value otherwise the solution from the last call is used.
 
+       :param dt: time step size. If ``None`` the last solution is returned.
+       :type dt: positive ``float`` or ``None``
+       :param u0: new initial solution or ``None``
+       :type u0: any object that can be interpolated to a `Data`
+                object on `Solution` or `ReducedSolution`
        :return: the solution
        :rtype: `Data`
        """
-       option_class=self.getSolverOptions()
-       if dt<=0:
-           raise ValueError,"step size needs to be positive."
-       self.setSolution(self.getOperator().solve(self.getRightHandSide(),dt,option_class))
-       self.validSolution()
+       if not dt == None:
+	  option_class=self.getSolverOptions()
+	  if dt<=0:
+	      raise ValueError,"step size needs to be positive."
+	  if u0 == None:
+	      u0=self.getCurrentSolution()
+	  else:
+	      u0=util.interpolate(u0,self.getFunctionSpaceForSolution())
+	      if self.getNumSolutions() == 1:
+		if u0.getShape()!=():
+		    raise ValueError,"Illegal shape %s of initial solution."%(u0.getShape(),)
+		else:
+		    if u0.getShape()!=(self.getNumSolutions(),):
+		      raise ValueError,"Illegal shape %s of initial solution."%(u0.getShape(),)
+	  self.setSolution(self.getOperator().solve(u0, self.getRightHandSide(),dt,option_class))
+	  self.validSolution()
        return self.getCurrentSolution()
+
+   def setInitialSolution(self,u):
+       """
+       Sets the initial solution.
+
+       :param u: initial solution
+       :type u: any object that can be interpolated to a `Data`
+                object on `Solution` or `ReducedSolution`
+       """
+       u2=util.interpolate(u,self.getFunctionSpaceForSolution())
+       if self.getNumSolutions() == 1:
+          if u2.getShape()!=():
+              raise ValueError,"Illegal shape %s of initial solution."%(u2.getShape(),)
+       else:
+          if u2.getShape()!=(self.getNumSolutions(),):
+              raise ValueError,"Illegal shape %s of initial solution."%(u2.getShape(),)
+       self.setSolution(u2,validate=False)
+
 
    def getSystem(self):
        """

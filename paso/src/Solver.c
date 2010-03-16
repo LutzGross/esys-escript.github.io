@@ -50,7 +50,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
 #endif
    dim_t i,totIter=0,cntIter,method;
    bool_t finalizeIteration;
-   err_t errorCode=NO_ERROR;
+   err_t errorCode=SOLVER_NO_ERROR;
    dim_t numSol = Paso_SystemMatrix_getTotalNumCols(A);
    dim_t numEqua = Paso_SystemMatrix_getTotalNumRows(A);
    double blocktimer_precond, blocktimer_start = blocktimer_time();
@@ -264,7 +264,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                         }
                         totIter += cntIter;
                         /* error handling  */
-                        if (errorCode==NO_ERROR) {
+                        if (errorCode==SOLVER_NO_ERROR) {
                            finalizeIteration = FALSE;
                         } else if (errorCode==SOLVER_MAXITER_REACHED) {
                            Paso_setError(DIVERGED,"Paso_Solver: maximum number of iteration step reached.\nReturned solution does not fulfil stopping criterion.");
