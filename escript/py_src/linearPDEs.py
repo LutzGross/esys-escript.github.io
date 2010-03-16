@@ -2542,7 +2542,7 @@ class LinearPDE(LinearProblem):
 
                  self.resetOperator()
                  operator=self.getCurrentOperator()
-                 if False and hasattr(self.getDomain(), "addPDEToLumpedSystem") :
+                 if hasattr(self.getDomain(), "addPDEToLumpedSystem") :
                     self.getDomain().addPDEToLumpedSystem(operator, D_times_e, d_times_e)
                     self.getDomain().addPDEToLumpedSystem(operator, D_reduced_times_e, d_reduced_times_e)
                  else:
