@@ -17,7 +17,7 @@
 #include "system_dep.h"
 
 extern "C" {
-#include "paso/SolverFCT.h"
+#include "paso/Transport.h"
 #include "paso/Options.h"
 }
 
@@ -38,10 +38,10 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
 
 /**
    \brief
-   Wrapper for Paso_FCTransportProblem. 
+   Wrapper for Paso_TransportProblem. 
 
    Description:
-   Wrapper for Paso_FCTransportProblem.
+   Wrapper for Paso_TransportProblem.
 */
 
  public:
@@ -59,8 +59,8 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
      Constructor for TransportProblemAdapter.
   */
   FINLEY_DLL_API
-  TransportProblemAdapter(Paso_FCTransportProblem* transport_problem,
-                          const double theta,
+  TransportProblemAdapter(Paso_TransportProblem* transport_problem,
+                          const bool useBackwardEuler,
                           const int block_size,
                           const escript::FunctionSpace& functionspace);
 
@@ -77,7 +77,7 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
      Returns the pointer to the transport problem.
   */
   FINLEY_DLL_API
-  Paso_FCTransportProblem* getPaso_FCTransportProblem() const;
+  Paso_TransportProblem* getPaso_TransportProblem() const;
 
   /**
      \brief
@@ -124,14 +124,8 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
     *           sets solution out by time step dt.
     *             */
     FINLEY_DLL_API
-    virtual void setToSolution(escript::Data& out,escript::Data& source,const double dt, boost::python::object& options) const;
+    virtual void setToSolution(escript::Data& out,escript::Data& u0, escript::Data& source,const double dt, boost::python::object& options) const;
    
-   /**
-   *      \brief
-   *           copies the initial value into the problem
-   *             */
-    FINLEY_DLL_API
-    virtual void copyInitialValue(escript::Data& u) const;
 
    /**
     *      \brief
@@ -145,7 +139,7 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
    //
    // pointer to the externally created finley mesh - transport_problem.
    //
-   boost::shared_ptr<Paso_FCTransportProblem> m_transport_problem;
+   boost::shared_ptr<Paso_TransportProblem> m_transport_problem;
 
 };
 

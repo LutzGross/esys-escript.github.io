@@ -518,11 +518,9 @@ args("solver", "preconditioner", "package", "symmetry"));
   //
   class_<escript::AbstractTransportProblem>("TransportProblem","",init<>())    // Doco goes in the empty string param
      .def("isEmpty",&escript::AbstractTransportProblem::isEmpty,":rtype: ``int``")
-     .def("solve",&escript::AbstractTransportProblem::solve, args("source","dt", "options"),
-"returns the solution *u* for a time step *dt>0*\n\n:rtype: `Data`\n"
+     .def("solve",&escript::AbstractTransportProblem::solve, args("u0","source","dt", "options"),
+"returns the solution *u* for a time step *dt>0* with initial value u0\n\n:rtype: `Data`\n"
 ":param source:\n:type source: `Data`")
-     .def("setInitialValue",&escript::AbstractTransportProblem::setInitialValue, args("u"),
-"sets the value for *u* at time *t=0*.")
      .def("insertConstraint",&escript::AbstractTransportProblem::insertConstraint,
 args("source", "q", "r","factor"),
 "inserts constraint *u_{,t}=r* where *q>0*  into the problem using a weighting factor")

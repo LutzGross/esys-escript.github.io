@@ -2420,10 +2420,6 @@ class Test_TransportPDE(Test_linearPDEs):
         mypde=TransportPDE(self.domain,numSolutions=1,debug=self.DEBUG)
         mypde.setInitialSolution(1.)
 
-    def test_setInitialSolution_scalar_negative(self):
-        mypde=TransportPDE(self.domain,numSolutions=1,debug=self.DEBUG)
-        self.failUnlessRaises(RuntimeError, mypde.setInitialSolution,-1.)
-
     def test_setInitialSolution_scalar_WithWrongShape(self):
         mypde=TransportPDE(self.domain,numSolutions=1,debug=self.DEBUG)
         self.failUnlessRaises(ValueError,mypde.setInitialSolution,[1.,2.])
@@ -2432,14 +2428,9 @@ class Test_TransportPDE(Test_linearPDEs):
         mypde=TransportPDE(self.domain,numSolutions=2,debug=self.DEBUG)
         mypde.setInitialSolution([1.,2.])
 
-    def test_setInitialSolution_system(self):
-        mypde=TransportPDE(self.domain,numSolutions=2,debug=self.DEBUG)
-        self.failUnlessRaises(RuntimeError, mypde.setInitialSolution,[-1,2.])
-
     def test_setInitialSolution_system_WithWrongShape(self):
         mypde=TransportPDE(self.domain,numSolutions=2,debug=self.DEBUG)
         self.failUnlessRaises(ValueError, mypde.setInitialSolution,1.)
-
 
     def test_attemptToChangeOrderAfterDefinedCoefficient(self):
         mypde=TransportPDE(self.domain,debug=self.DEBUG)

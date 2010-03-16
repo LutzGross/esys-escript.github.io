@@ -29,9 +29,11 @@ err_t Paso_Solver_GMRES2(
     Paso_Performance* pp) 
 {
   double static RENORMALIZATION_CONST=0.001;
-  dim_t l=(*iter)+1, iter_max=*iter,k=0,i,j;
+  const dim_t l=(*iter)+1, iter_max=*iter;
+  dim_t k=0,i,j;
   const dim_t n=F->n;
-  double rel_tol=*tolerance, abs_tol, normf0, normv, normv2, hh, hr, nu, norm_of_residual=0.;
+  const double rel_tol=*tolerance;
+  double abs_tol, normf0, normv, normv2, hh, hr, nu, norm_of_residual=0.;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   double *h=NULL, **v=NULL, *c=NULL,*s=NULL,*g=NULL, *work=NULL;
   err_t Status=SOLVER_NO_ERROR;
@@ -64,6 +66,7 @@ err_t Paso_Solver_GMRES2(
       convergeFlag=(ABS(normf0)<=0);
       if (! convergeFlag) {
           abs_tol=rel_tol*normf0;
+          printf("GMRES2 initial residual norm %e (rel. tol=%e)\n",normf0,rel_tol);
           v[0]=TMPMEMALLOC(n,double);
           if (v[0]==NULL) {
              Status=SOLVER_MEMORY_ERROR;
@@ -81,7 +84,7 @@ err_t Paso_Solver_GMRES2(
                   /*
                   *      call directional derivative function
                   */
-                  Paso_FunctionDerivative(v[k],v[k-1],F,f0,x0,work,TRUE,pp);
+                  Paso_FunctionDerivative(v[k],v[k-1],F,f0,x0,work,pp);
                   normv=Paso_l2(n,v[k],F->mpi_info);
                   /*
                    * Modified Gram-Schmidt
@@ -130,7 +133,7 @@ err_t Paso_Solver_GMRES2(
                    norm_of_residual=fabs(g[k]);
                    maxIterFlag = (k>=iter_max);
                    convergeFlag = (fabs(g[k]) <= abs_tol);
-                   printf("GMRES2 step %d: error %e (tol=%e)\n",k,fabs(g[k]),abs_tol);
+                   printf("GMRES2 step %d: residual %e (abs. tol=%e)\n",k,fabs(g[k]),abs_tol);
               }
           }
       }

@@ -46,10 +46,11 @@ sources = """
 	Pattern_unrollBlocks.c
 	SharedComponents.c
 	Solver.c
-	SolverFCT.c
-	SolverFCT_FluxControl.c
-	SolverFCT_reset.c
-	SolverFCT_solve.c
+	Transport.c
+	Transport_solve.c
+	FCTSolver.c
+	FCTSolver_util.c
+	ReactiveSolver.c
 	Solver_Function.c
 	Solver_GS.c
 	Solver_ILU.c
@@ -104,7 +105,9 @@ headers = """
 	Pattern_coupling.h
 	SharedComponents.h
 	Solver.h
-	SolverFCT.h
+	Transport.h
+	FCTSolver.h
+	ReactiveSolver.h
 	SparseMatrix.h
 	SystemMatrix.h
         SystemMatrix_MIS.h

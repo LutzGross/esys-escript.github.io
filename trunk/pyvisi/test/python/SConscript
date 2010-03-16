@@ -58,6 +58,7 @@ testruns += ['run_streamline_with_lazy_evaluation.py']
 testruns += ['run_text.py']
 testruns += ['run_velocity.py']
 testruns += ['run_velocity_with_lazy_evaluation.py']
+
 #
 # files defining tests run locally (not as part of a release)
 #

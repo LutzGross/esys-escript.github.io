@@ -21,7 +21,7 @@ extern "C" {
 #include "finley/Finley.h"
 #include "finley/Assemble.h"
 #include "paso/SystemMatrix.h"
-#include "paso/SolverFCT.h"
+#include "paso/Transport.h"
 #include "paso/Paso_MPI.h"
 }
 
@@ -619,7 +619,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   FINLEY_DLL_API
   TransportProblemAdapter newTransportProblem(
-                      const double theta,
+                      const bool useBackwardEuler,
                       const int blocksize,
                       const escript::FunctionSpace& functionspace,
                       const int type) const;

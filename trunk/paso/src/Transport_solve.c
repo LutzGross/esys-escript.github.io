@@ -1,0 +1,162 @@
+
+/*******************************************************
+*
+* Copyright (c) 2003-2010 by University of Queensland
+* Earth Systems Science Computational Center (ESSCC)
+* http://www.uq.edu.au/esscc
+*
+* Primary Business: Queensland, Australia
+* Licensed under the Open Software License version 3.0
+* http://www.opensource.org/licenses/osl-3.0.php
+*
+*******************************************************/
+
+
+/**************************************************************/
+
+/* Paso: Transport solver
+ *
+ * solves Mu_t=Ku+q
+ *        
+ *  using an operator splitting approach (K=L+D where L is row sum zero and D is a diagonal matrix):
+ *
+ *   - Mu_t=Du+q u(0)=u             (reactive part)
+ *   - Mv_t=Lv   v(0)=u(dt/2)       (transport part uses flux correction (FCT))
+ *   - Mu_t=Du+q u(dt/2)=v(dt/2)    (reactive part)
+ *
+ *  to return u(dt)
+ *
+*/
+/**************************************************************/
+
+/* Author: l.gross@uq.edu.au */
+
+/**************************************************************/
+
+#include "Transport.h"
+#include "FCTSolver.h"
+#include "ReactiveSolver.h"
+#include "Solver.h"
+#include "PasoUtil.h"
+
+
+void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double dt, double* u0, double* q, Paso_Options* options) {
+   Paso_Performance pp;  
+   Paso_Function *fctfunction=NULL;
+   Paso_ReactiveSolver *rsolver=NULL;
+   const dim_t FAILURES_MAX=100;
+   dim_t i_substeps, Failed=0;
+   double *u_save=NULL;
+   double dt_max=LARGE_POSITIVE_FLOAT, dt2,t=0;
+   err_t errorCode=SOLVER_NO_ERROR;
+   const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
+   const dim_t blockSize=Paso_TransportProblem_getBlockSize(fctp);
+
+
+   if (dt<=0.) {
+       Paso_setError(VALUE_ERROR,"Paso_TransportProblem_solve: dt must be positive.");
+   }
+   if (blockSize>1) {
+       Paso_setError(VALUE_ERROR,"Paso_TransportProblem_solve: block size >0 is not supported.");
+    } 
+   if (Paso_noError()) {
+        dt_max=Paso_TransportProblem_getSafeTimeStepSize(fctp);
+        /* 
+         *  allocate memory
+         *
+         */
+          fctfunction=Paso_FCTSolver_Function_alloc(fctp,options);
+          rsolver=Paso_ReactiveSolver_alloc(fctp); 
+	  u_save=TMPMEMALLOC(n,double);
+          Paso_checkPtr(u_save);
+    }
+   if (Paso_noError()) {  
+       /*
+        * let the show begin!!!!
+        *
+        */
+        i_substeps=0;
+	
+        /* while(i_substeps<n_substeps && Paso_noError()) */
+        if (dt_max < LARGE_POSITIVE_FLOAT) {
+            dt2=MIN(dt_max,dt);
+        } else {
+             dt2=dt;
+        }
+	Failed=0;
+	
+	Paso_Copy(n,u,u0);
+	Paso_Copy(n,u_save, u);
+	while( (t<dt*(1.-sqrt(EPSILON))) && Paso_noError()) {
+
+	    if (options->verbose) printf("substep step %d at t=%e (step size= %e)\n",i_substeps+1,t+dt2,dt2);
+	    
+	    /* updates u */
+	    errorCode=Paso_ReactiveSolver_solve(rsolver,fctp,u,dt2/2,q, options, &pp); /* Mu_t=Du+q u(0)=u */ 
+	    if (errorCode == NO_ERROR) {   
+	        errorCode=Paso_FCTSolver_solve(fctfunction, u,dt2,options, &pp); /* Mv_t=Lv   v(0)=u(dt/2) */
+	    }
+	    if (errorCode == NO_ERROR) {   
+                errorCode=Paso_ReactiveSolver_solve(rsolver,fctp,u,dt2/2,q, options, &pp); /*  Mu_t=Du+q u(dt/2)=v(dt/2) */
+	    }
+            /*
+	     * error handeling:
+	     */
+            if (errorCode == SOLVER_NO_ERROR) {
+                    Failed=0;
+                    i_substeps++;
+                    t+=dt2;
+                    if (fctp->dt_max < LARGE_POSITIVE_FLOAT) {
+                       dt2=MIN3(dt_max,dt2*1.1,dt-t);
+                    } else {
+                       dt2=MIN(dt2*1.1,dt-t);
+                    }
+		    Paso_Copy(n,u_save, u);
+            } else if ( (errorCode == SOLVER_MAXITER_REACHED) || (errorCode == SOLVER_DIVERGENCE) ) {
+                    /* if FAILURES_MAX failures in a row: give up */
+                    if (Failed > FAILURES_MAX) {
+                       Paso_setError(VALUE_ERROR,"Paso_TransportProblem_solve: no convergence after time step reduction.");
+                    } else {
+                       if (options->verbose) printf("Paso_TransportProblem_solve: no convergence. Time step size is reduced.\n");
+                       dt2*=0.5;
+                       Failed++;
+		       Paso_Copy(n,u, u_save);
+                    }
+            } else if (errorCode == SOLVER_INPUT_ERROR) {
+	        Paso_setError(VALUE_ERROR,"Paso_TransportProblem_solve: input error for solver.");
+	    } else if (errorCode == SOLVER_MEMORY_ERROR) {
+	        Paso_setError(MEMORY_ERROR,"Paso_TransportProblem_solve: memory allication failed.");
+	    } else if (errorCode == SOLVER_BREAKDOWN) {
+	        Paso_setError(VALUE_ERROR,"Paso_TransportProblem_solve: solver break down.");
+	    } else if (errorCode == SOLVER_NEGATIVE_NORM_ERROR) {
+	        Paso_setError(VALUE_ERROR,"Paso_TransportProblem_solve: neagtove norm.");
+	    } else {
+	        Paso_setError(SYSTEM_ERROR,"Paso_TransportProblem_solve: general error.");
+	    }
+	}
+     }
+    /* 
+     *  clean-up:
+     *
+     */
+    Paso_FCTSolver_Function_free(fctfunction);
+    Paso_ReactiveSolver_free(rsolver);
+    TMPMEMFREE(u_save);
+   
+}
+double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
+{
+   double dt_max, dt1, dt2;
+   if ( ! fctp->valid_matrices) {
+     dt1=Paso_ReactiveSolver_getSafeTimeStepSize(fctp);
+     dt2=Paso_FCTSolver_getSafeTimeStepSize(fctp);
+     dt_max=MIN(dt1,dt2);
+
+     if (dt_max <= 0.)  {
+            Paso_setError(TYPE_ERROR,"Paso_TransportProblem_solve: dt must be positive.");
+      } 
+     fctp->dt_max=dt_max;
+     fctp->valid_matrices=Paso_noError();
+   }
+   return fctp->dt_max;
+}

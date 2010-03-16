@@ -22,8 +22,8 @@
 # C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
 # cc_flags		= '-ansi'
 # cc_optim		= '-O2'
-# usedebug= 'yes'
-# cc_debug		= '-g'
+usedebug= 'no'
+cc_debug		= '-g'
 omp_optim       = '-fopenmp'
 omp_debug       = '-fopenmp'
 omp_libs        = []
@@ -79,7 +79,7 @@ useumfpack		= 'yes'
 # blas_libs		= ['blas']
 
 # OpenMP
-useopenmp		= 'yes'
+useopenmp		= 'no'
 
 # OPENMP
 usempi= 'no'
