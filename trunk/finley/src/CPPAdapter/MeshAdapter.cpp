@@ -811,9 +811,11 @@ void  MeshAdapter::addPDEToLumpedSystem(
    Finley_Mesh* mesh=m_finleyMesh.get();
 
    Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->Elements,&_mat, &_D);
-   Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements,&_mat, &_d);
-
    checkFinleyError();
+   
+   Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements,&_mat, &_d);
+   checkFinleyError();
+
 }
 
 

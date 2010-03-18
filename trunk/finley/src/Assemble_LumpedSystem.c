@@ -30,7 +30,7 @@
 
 
 /* Disabled until the tests pass */
-#define NEW_LUMPING 
+/* #define NEW_LUMPING */ 
 
 /**************************************************************/
 
@@ -50,7 +50,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
 #ifdef NEW_LUMPING
   register double m_t=0., diagS=0.;
 #endif
- 
+
   Finley_resetError();
 
   if (nodes==NULL || elements==NULL) return;
@@ -77,16 +77,14 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
   /* set all parameters in p*/
   Assemble_getAssembleParameters(nodes,elements,NULL,lumpedMat, reducedIntegrationOrder, &p);
   if (! Finley_noError()) return;
-
+ 
   /* check if all function spaces are the same */
-
-  if (! numSamplesEqual(D,p.numQuadSub,elements->numElements) ) {
+  if (! numSamplesEqual(D,p.numQuadTotal,elements->numElements) ) {
         sprintf(error_msg,"Assemble_LumpedSystem: sample points of coefficient D don't match (%d,%d)",p.numQuadSub,elements->numElements);
         Finley_setError(TYPE_ERROR,error_msg);
   }
 
   /*  check the dimensions: */
-  
   if (p.numEqu==1) {
     if (!isEmpty(D)) {
        if (!isDataPointShapeEqual(D,0,dimensions)) {
@@ -103,8 +101,8 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
       }
     }
   }
-
   if (Finley_noError()) {
+     printf("SADSADSADAS 2\n");
     requireWrite(lumpedMat);
     lumpedMat_p=getSampleDataRW(lumpedMat,0);
     len_EM_lumpedMat=p.row_numShapesTotal*p.numEqu;
@@ -112,7 +110,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
     
     expandedD=isExpanded(D);
     S=p.row_jac->BasisFunctions->S;
- 
+
 #ifdef NEW_LUMPING
     #pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp, diagS, m_t)
 #else
@@ -130,8 +128,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                     for(e=0;e<elements->numElements;e++){              
 			if (elements->Color[e]==color) {
                             for (isub=0; isub<p.numSub; isub++) {
-                               Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);;
-			     
+                               Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
                                D_p=getSampleDataRO(D,e);                          
 			       #ifdef NEW_LUMPING /* HRZ lumping */
 
@@ -153,8 +150,9 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                                    for (s=0;s<p.row_numShapes;s++) {
                                        rtmp=0;
                                        for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*D_p[INDEX2(q, isub,p.numQuadSub)];
-                                       EM_lumpedMat[INDEX2(0,s,p.numEqu)]+=rtmp;
+                                       EM_lumpedMat[INDEX2(0,s,p.numEqu)]=rtmp;
                                    }
+
                                #endif
                                for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
                                Finley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
@@ -163,6 +161,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                     } /* end element loop */
                   } /* end color loop */
              } else  {	/* with constant D */	
+printf("SADSADSADAS\n");
                  for (color=elements->minColor;color<=elements->maxColor;color++) {
                     /*  open loop over all elements: */
                     #pragma omp for private(e) schedule(static)
@@ -174,7 +173,6 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
 			       #ifdef NEW_LUMPING /* HRZ lumping */
                                    m_t=0; /* mass of the element: m_t */
                                    for (q=0;q<p.numQuadSub;q++) m_t+=Vol[q];
-				   
                                    diagS=0; /* diagonal sum: S */
                                    for (s=0;s<p.row_numShapes;s++) {
                                       rtmp=0;
@@ -185,13 +183,13 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                                    /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
 				   rtmp=m_t/diagS*D_p[0];
                                    for (s=0;s<p.row_numShapes;s++) EM_lumpedMat[INDEX2(0,s,p.numEqu)]*=rtmp;
-                          
                                #else /* row-sum lumping */
                                    for (s=0;s<p.row_numShapes;s++) {
                                        rtmp=0;
                                        for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)];
                                        EM_lumpedMat[INDEX2(0,s,p.numEqu)]=rtmp*D_p[0];
                                    }
+for (s=0;s<p.row_numShapes;s++) printf(" %d %d : %e\n",isub,s,EM_lumpedMat[INDEX2(0,s,p.numEqu)]);
                                #endif
                                for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
                                Finley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
@@ -251,7 +249,6 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                        if (elements->Color[e]==color) {
 			   for (isub=0; isub<p.numSub; isub++) {     
                               Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
-                              memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
                               D_p=getSampleDataRO(D,e);
 			  
                               #ifdef NEW_LUMPING /* HRZ lumping */
@@ -274,7 +271,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
 				    for (k=0;k<p.numEqu;k++) {
                                         rtmp=0.;
                                         for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)];
-                                        EM_lumpedMat[INDEX2(k,s,p.numEqu)]+=rtmp*D_p[k];
+                                        EM_lumpedMat[INDEX2(k,s,p.numEqu)]=rtmp*D_p[k];
                                      }
 				 }
 			      #endif
