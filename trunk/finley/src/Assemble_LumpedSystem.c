@@ -102,7 +102,6 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
     }
   }
   if (Finley_noError()) {
-     printf("SADSADSADAS 2\n");
     requireWrite(lumpedMat);
     lumpedMat_p=getSampleDataRW(lumpedMat,0);
     len_EM_lumpedMat=p.row_numShapesTotal*p.numEqu;
@@ -161,7 +160,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                     } /* end element loop */
                   } /* end color loop */
              } else  {	/* with constant D */	
-printf("SADSADSADAS\n");
+
                  for (color=elements->minColor;color<=elements->maxColor;color++) {
                     /*  open loop over all elements: */
                     #pragma omp for private(e) schedule(static)
@@ -189,7 +188,6 @@ printf("SADSADSADAS\n");
                                        for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)];
                                        EM_lumpedMat[INDEX2(0,s,p.numEqu)]=rtmp*D_p[0];
                                    }
-for (s=0;s<p.row_numShapes;s++) printf(" %d %d : %e\n",isub,s,EM_lumpedMat[INDEX2(0,s,p.numEqu)]);
                                #endif
                                for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
                                Finley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
