@@ -111,9 +111,9 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
     S=p.row_jac->BasisFunctions->S;
 
 #ifdef NEW_LUMPING
-    #pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp, diagS, m_t)
+    #pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp, diagS, m_t, isub)
 #else
-    #pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp)
+    #pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp, isub)
 #endif
     {
        EM_lumpedMat=THREAD_MEMALLOC(len_EM_lumpedMat,double);
