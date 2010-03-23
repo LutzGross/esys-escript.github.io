@@ -378,7 +378,7 @@ class SolverOptions(object):
         """
         Returns the key of the coarsening algorithm to be applied AMG.
 
-        :rtype: in the list `SolverOptions.DEFAULT`, `SolverOptions.YAIR_SHAPIRA_COARSENING`,         `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`
+        :rtype: in the list `SolverOptions.DEFAULT`, `SolverOptions.YAIR_SHAPIRA_COARSENING`, `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`
         """
         return self.__coarsening
       
@@ -604,7 +604,7 @@ class SolverOptions(object):
         :rtype: ``int``
         """
         return self.__iter_max
-    def setLevelMax(self,level_max=3):
+    def setLevelMax(self,level_max=5):
         """
         Sets the maximum number of coarsening levels to be used in an algebraic multi level solver or preconditioner
 
