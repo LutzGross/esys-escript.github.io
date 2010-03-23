@@ -50,6 +50,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
 
     Paso_Solver_Preconditioner* prec=NULL;
     dim_t i;
+    /*char filename[7];*/
     if (A->solver==NULL) {
         /* allocate structure to hold preconditioner */
         prec=MEMALLOC(1,Paso_Solver_Preconditioner);
@@ -106,6 +107,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
               prec->type=PASO_GS;
               break;
             case PASO_AMG:
+                
               if (options->verbose) printf("AMG preconditioner is used.\n");
               
               /*For performace reasons we check if block_size is one. If yes, then we do not need to separate blocks.*/
@@ -115,11 +117,17 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
               else {
                 for (i=0;i<A->row_block_size;++i) {
                 prec->amgSystem->block[i]=Paso_SparseMatrix_getBlock(A->mainBlock,i+1);
+                /*sprintf(filename,"ABlock%d",i);
+                Paso_SparseMatrix_saveMM(prec->amgSystem->block[i],filename);
+                */
                 prec->amgSystem->amgblock[i]=Paso_Solver_getAMG(prec->amgSystem->block[i],options->level_max,options);
                 }
               }
+              
+                          
               prec->type=PASO_AMG;
               break;
+
             case PASO_AMLI:
               if (options->verbose) printf("AMLI preconditioner is used.\n");
               
@@ -153,6 +161,7 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
     dim_t n=A->mainBlock->numRows;
     double **xx;
     double **bb;
+    
     xx=MEMALLOC(A->row_block_size,double*);
     bb=MEMALLOC(A->row_block_size,double*);
     if (Paso_checkPtr(xx) && Paso_checkPtr(bb)) return;
@@ -182,21 +191,23 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
               b_old=b_new
               
               b_new=b_old+b
+              b_new=b_new-Ax_2=b_new-AP^{-1}(2b-AP^{-1}b)
               x_3=....=P^{-1}(b_new-AP^{-1}b_old)
               b_old=b_new
               
               So for n- steps we will use loop, but we always make sure that every value calculated only once!
             */
-
+            
            Paso_Solver_solveGS(prec->gs,x,b);
            if (prec->gs->sweeps>1) {
                 double *bold=MEMALLOC(prec->gs->n*prec->gs->n_block,double);
                 double *bnew=MEMALLOC(prec->gs->n*prec->gs->n_block,double);
+                dim_t sweeps=prec->gs->sweeps;
            
                 #pragma omp parallel for private(i) schedule(static)
                 for (i=0;i<prec->gs->n*prec->gs->n_block;++i) bold[i]=b[i];
            
-                while(prec->gs->sweeps>1) {
+                while(sweeps>1) {
                    #pragma omp parallel for private(i) schedule(static)
                    for (i=0;i<prec->gs->n*prec->gs->n_block;++i) bnew[i]=bold[i]+b[i];
                     /* Compute the residual b=b-Ax*/
@@ -205,14 +216,14 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                    Paso_Solver_solveGS(prec->gs,x,bnew);
                    #pragma omp parallel for private(i) schedule(static)
                    for (i=0;i<prec->gs->n*prec->gs->n_block;++i) bold[i]=bnew[i];
-                   prec->gs->sweeps=prec->gs->sweeps-1;
+                   sweeps=sweeps-1;
                 }
                 MEMFREE(bold);
                 MEMFREE(bnew); 
            }
            break;
         case PASO_AMG:
-            
+
             /*For performace reasons we check if block_size is one. If yes, then we do not need to do unnecessary copying.*/
             if (A->row_block_size==1) {
                 Paso_Solver_solveAMG(prec->amg,x,b);
