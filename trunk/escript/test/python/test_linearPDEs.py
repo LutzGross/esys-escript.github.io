@@ -650,7 +650,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         so.setSmoother(so.JACOBI)
         self.failUnless(so.getSmoother() == 10, "Jacobi smoother is not set.")
 
-        self.failUnless(so.getLevelMax() == 3, "initial  LevelMax is wrong.")
+        self.failUnless(so.getLevelMax() == 5, "initial  LevelMax is wrong.")
         self.failUnlessRaises(ValueError,so.setLevelMax,-1)
         so.setLevelMax(20)
         self.failUnless(so.getLevelMax() == 20, "LevelMax is wrong.")
@@ -831,8 +831,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.failUnless(so.getSolverMethod() == 26, "TFQMR is not set.")
         so.setSolverMethod(so.MINRES)
         self.failUnless(so.getSolverMethod() == 27, "MINRES is not set.")
-        so.setSolverMethod(so.GAUSS_SEIDEL)
-        self.failUnless(so.getSolverMethod() == 28, "GAUSS_SEIDEL is not set.")
         so.setSolverMethod(so.DEFAULT)
         self.failUnless(so.getSolverMethod() == 0, "DEFAULT is not set.")
 
