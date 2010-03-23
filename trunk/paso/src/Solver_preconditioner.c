@@ -200,25 +200,21 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
             
            Paso_Solver_solveGS(prec->gs,x,b);
            if (prec->gs->sweeps>1) {
-                double *bold=MEMALLOC(prec->gs->n*prec->gs->n_block,double);
                 double *bnew=MEMALLOC(prec->gs->n*prec->gs->n_block,double);
                 dim_t sweeps=prec->gs->sweeps;
            
                 #pragma omp parallel for private(i) schedule(static)
-                for (i=0;i<prec->gs->n*prec->gs->n_block;++i) bold[i]=b[i];
+                for (i=0;i<prec->gs->n*prec->gs->n_block;++i) bnew[i]=b[i];
            
                 while(sweeps>1) {
                    #pragma omp parallel for private(i) schedule(static)
-                   for (i=0;i<prec->gs->n*prec->gs->n_block;++i) bnew[i]=bold[i]+b[i];
+                   for (i=0;i<prec->gs->n*prec->gs->n_block;++i) bnew[i]+=b[i];
                     /* Compute the residual b=b-Ax*/
                    Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A, x, DBLE(1), bnew);
                    /* Go round again*/
                    Paso_Solver_solveGS(prec->gs,x,bnew);
-                   #pragma omp parallel for private(i) schedule(static)
-                   for (i=0;i<prec->gs->n*prec->gs->n_block;++i) bold[i]=bnew[i];
                    sweeps=sweeps-1;
                 }
-                MEMFREE(bold);
                 MEMFREE(bnew); 
            }
            break;
