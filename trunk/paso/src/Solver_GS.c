@@ -203,7 +203,7 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
                    }
               }
            } else if (n_block==2) {
-              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,iptr_main,S1,S2,R1,R2)
+              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,iptr_main,S1,S2,R1,R2,A11,A21,A12,A22,D,S11,S21,S12,S22)
               for (i = 0; i < n; ++i) {
                    if (gs->colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
@@ -239,7 +239,7 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
 
               }
            } else if (n_block==3) {
-              #pragma omp parallel for schedule(static) private(i,iptr_ik,iptr_main,k,S1,S2,S3,R1,R2,R3)
+              #pragma omp parallel for schedule(static) private(i,iptr_ik,iptr_main,k,S1,S2,S3,R1,R2,R3,A11,A21,A31,A12,A22,A32,A13,A23,A33,D,S11,S21,S31,S12,S22,S32,S13,S23,S33)
               for (i = 0; i < n; ++i) {
                    if (gs->colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
@@ -297,7 +297,7 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
      /* backward substitution */
      for (color=(gs->num_colors)-1;color>-1;--color) {
            if (n_block==1) {
-              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,R1,iptr_main)
+              /*#pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,R1,iptr_main)*/
               for (i = 0; i < n; ++i) {
                    if (gs->colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
@@ -315,7 +315,7 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
                    }
               }
            } else if (n_block==2) {
-              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,S2,R1,R2,iptr_main,D)
+              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,S2,R1,R2,iptr_main,D,A11,A21,A12,A22,S11,S21,S12,S22)
               for (i = 0; i < n; ++i) {
                    if (gs->colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
@@ -353,7 +353,7 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
                     }
               }
            } else if (n_block==3) {
-              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,S2,S3,R1,R2,R3,iptr_main,D)
+              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,S2,S3,R1,R2,R3,iptr_main,D,A11,A21,A31,A12,A22,A32,A13,A23,A33,S11,S21,S31,S12,S22,S32,S13,S23,S33)
               for (i = 0; i < n; ++i) {
                    if (gs->colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
