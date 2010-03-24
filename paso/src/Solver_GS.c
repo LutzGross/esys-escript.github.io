@@ -297,7 +297,7 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
      /* backward substitution */
      for (color=(gs->num_colors)-1;color>-1;--color) {
            if (n_block==1) {
-              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,R1)
+              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,R1,iptr_main)
               for (i = 0; i < n; ++i) {
                    if (gs->colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
@@ -315,7 +315,7 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
                    }
               }
            } else if (n_block==2) {
-              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,S2,R1,R2)
+              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,S2,R1,R2,iptr_main,D)
               for (i = 0; i < n; ++i) {
                    if (gs->colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
@@ -353,7 +353,7 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
                     }
               }
            } else if (n_block==3) {
-              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,S2,S3,R1,R2,R3)
+              #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,S2,S3,R1,R2,R3,iptr_main,D)
               for (i = 0; i < n; ++i) {
                    if (gs->colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
