@@ -52,7 +52,7 @@ except KeyError:
 
 FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
-NE=6 # number of element in each spatial direction (must be even)
+NE=10 # number of element in each spatial direction (must be even)
 
 class Test_LinearPDEOnFinleyHex2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1, Test_TransportPDE):
    RES_TOL=1.e-7
