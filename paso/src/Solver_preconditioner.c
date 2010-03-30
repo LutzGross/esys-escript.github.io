@@ -210,7 +210,7 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                    #pragma omp parallel for private(i) schedule(static)
                    for (i=0;i<prec->gs->n*prec->gs->n_block;++i) bnew[i]+=b[i];
                     /* Compute the residual b=b-Ax*/
-                   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A, x, DBLE(1), bnew);
+                   Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A->mainBlock, x, DBLE(1), bnew);
                    /* Go round again*/
                    Paso_Solver_solveGS(prec->gs,x,bnew);
                    sweeps=sweeps-1;
