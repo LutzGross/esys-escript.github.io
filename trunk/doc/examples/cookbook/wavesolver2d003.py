@@ -20,6 +20,8 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 # You can shorten the execution time by reducing variable tend from 60 to 0.5
+# Antony Hallam
+# Acoustic Wave Equation Simulation
 
 # Importing all the necessary modules required.
 from esys.escript import *
