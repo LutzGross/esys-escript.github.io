@@ -687,14 +687,14 @@ Diffpack 3D file format~\cite{DIFFPACK}.
 \end{memberdesc}
 
 \begin{memberdesc}[Design]{DELAUNAY}
-the gmsh Delauny triangulator.
+the Delauny triangulator, see \gmshextern,~\cite{TETGEN}.
 \end{memberdesc}
 
-\begin{memberdesc}[Design]{TETGEN}
-the TetGen~\cite{TETGEN} triangulator.
+\begin{memberdesc}[Design]{MESHADAPT}
+the gmsh triangulator, see \gmshextern.
 \end{memberdesc}
 
-\begin{memberdesc}[Design]{NETGEN}
+\begin{memberdesc}[Design]{FRONTAL}
 the NETGEN~\cite{NETGEN} triangulator.
 \end{memberdesc}
 
@@ -791,11 +791,25 @@ returns the gmsh script to generate the mesh as a string.
 returns the gmsh command used to generate the mesh as string.
 \end{methoddesc}
 
-\begin{methoddesc}[Design]{setOptions}{\optional{algorithm=None, \optional{ optimize_quality=True,\optional{ smoothing=1}}}}
-sets options for the mesh generator. \var{algorithm} sets the algorithm to be used.
+\begin{methoddesc}[Design]{setOptions}{
+\optional{optimize_quality=\True
+\optional{, smoothing=1 
+\optional{, curvature_based_element_size=\False
+\optional{, algorithm2D=\var{Design.MESHADAPT} 
+\optional{, algorithm3D=\var{Design.FRONTAL} 
+\optional{, generate_hexahedra=False}}}}}}}
+sets options for the mesh generator. \var{algorithm2D} sets the 2D meshing algorithm to be used.
 The algorithm needs to be \var{Design.DELAUNAY}
-\var{Design.TETGEN}
-or \var{Design.NETGEN}. By default \var{Design.DELAUNAY} is used. \var{optimize_quality}=\True invokes an optimization of the mesh quality. \var{smoothing} sets the number of smoothing steps to be applied to the mesh.  
+\var{Design.FRONTAL}
+or \var{Design.MESHADAPT}. By default \var{Design.MESHADAPT} is used. 
+\var{algorithm3D} sets the 3D  meshing algorithm to be used.
+The algorithm needs to be \var{Design.DELAUNAY}
+or \var{Design.FRONTAL}
+. By default \var{Design.FRONTAL} is used.
+\var{optimize_quality}=\True invokes an optimization of the mesh quality.
+\var{smoothing} sets the number of smoothing steps to be applied to the mesh.  
+\var{curvature_based_element_size}=\True switches on curvature based definition of element size.
+\var{generate_hexahedra}=\True switches on the usage of quadrilateral/hexahedra elements.
 \end{methoddesc}
 
 \begin{methoddesc}[Design]{getTagMap}{}
