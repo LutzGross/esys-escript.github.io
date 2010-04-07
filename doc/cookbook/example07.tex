@@ -1,0 +1,90 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2010 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+The acoustic wave equation governs the propagation of pressure waves. Wave
+types that obey this law tend to travel in liquids or gases where shear waves
+or longitudinal style wave motion is not possible. The obvious example is sound
+waves.
+
+The acoustic wave equation is;
+\begin{equation}
+ \nabla ^2 p - \frac{1}{c^2} \frac{\partial ^2 p}{\partial t^2} = 0
+\label{eqn:acswave}
+\end{equation}
+where $p$ is the pressure, $t$ is the time and $c$ is the wave velocity.
+
+
+
+\section{Numerical Solution Stability}
+Unfortunately, the wave equation is belongs to a class of equations called
+\textbf{stiff} PDEs. This types of equations can be difficult to solve
+numerically as they tend to oscilate about the exact solution and can
+eventually blow up. To counter this problem, explicitly stable schemes like the
+backwards Euler method are required. In terms of the wave equation, the
+analytical wave must not propagate faster than the numerical wave is able to,
+and in general, needs to be much slower than the numerical wave.
+
+For example, a line 100m long is discretised into 1m intervals or 101 nodes. If
+a wave enters with a propagation velocity of 100m/s then the travel time for
+the wave between each node will be 0.01 seconds. The time step, must therefore
+be significantly less than this. Of the order $10E-4$ would be appropriate. 
+
+This requirement for very small step sizes makes stiff equations difficult to
+solve numerically due to the large number of time iterations required in each
+solution. Models with very high velocities and fine meshes will be the worst
+affected by this problem.
+
+
+\section{Displacement Solution}
+\sslist{example07a.py}
+
+We begin the solution to this PDE with the centred difference formula for the
+second derivative;
+\begin{equation}
+ f''(x) \approx \frac{f(x+h - 2f(x) + f(x-h)}{h^2}
+\label{eqn:centdiff}
+\end{equation}
+substituting \refEq{eqn:centdiff} for $\frac{\partial ^2 p }{\partial t ^2}$
+in \refEq{eqn:acswave};
+\begin{equation}
+ \nabla ^2 p - \frac{1}{c^2h^2} \left[p_{(t+1)} - 2p_{(t)} + p_{(t-1)} \right]
+= 0
+\label{eqn:waveu}
+\end{equation}
+Rearranging for $p_{(t+1)}$;
+\begin{equation}
+ p_{(t+1)} = c^2 h^2 \nabla ^2 p_{(t)} +2p_{(t)} - p_{(t-1)}
+\end{equation}
+this can be compared with the general form of the \modLPDE module and it
+becomes clear that $D=1$, $X=-c^2 h^2 \nabla ^2 p_{(t)}$ and $Y=2p_{(t)} -
+p_{(t-1)}$.
+
+\section{Acceleration Solution}
+\sslist{example07b.py}
+
+An alternative method is to solve for the acceleration $\frac{\partial ^2
+p}{\partial t^2}$ directly, and derive the the displacement solution from the
+PDE solution. \refEq{eqn:waveu} is thus modified;
+\begin{equation}
+  \nabla ^2 p - \frac{1}{c^2} a = 0
+\label{eqn:wavea}
+\end{equation}
+and can be solved directly with $Y=0$ and $X=-c^2 \nabla ^2 p_{(t)}$.
+After each iteration the displacement is re-evaluated via;
+\begin{equation}
+ p_{(t+1)}=2p_{(t)} - p_{(t-1)} + h^2a
+\end{equation}
+
+
