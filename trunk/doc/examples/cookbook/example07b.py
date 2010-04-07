@@ -20,7 +20,8 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 # Antony Hallam
-# Acoustic Wave Equation Simulation
+# Acoustic Wave Equation Simulation using acceleration solution
+# and lumping.
 
 # Importing all the necessary modules required.
 from esys.escript import *
@@ -35,7 +36,7 @@ import matplotlib.cm as cm
 from esys.escript.linearPDEs import LinearPDE
 
 # Establish a save path.
-savepath = "data/example07"
+savepath = "data/example07b"
 mkDir(savepath)
 
 #Geometric and material property related variables.
@@ -52,7 +53,7 @@ csq=c*c
 # Time related variables.
 tend=1.5    #end time
 #calculating )the timestep
-h=tend/1000.
+h=0.001
 #Check to make sure number of time steps is not too large.
 print "Time step size= ",h, "Expected number of outputs= ",tend/h
 
@@ -75,14 +76,12 @@ x=mydomain.getX()
 mypde=LinearPDE(mydomain)
 print mypde.isUsingLumping()
 print mypde.getSolverOptions()
-#mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
+mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
 mypde.setSymmetryOn()
-#kmat = kronecker(mydomain)
-mypde.setValue(D=1.)#kmat)
+mypde.setValue(D=1.)
 
 # define small radius around point xc
-# Lsup(x) returns the maximum value of the argument x
-src_radius = 30#2*Lsup(domain.getSize())
+src_radius = 30
 print "src_radius = ",src_radius
 
 # ... set initial values ....
@@ -98,56 +97,27 @@ uT=np.reshape(uT,(ndx+1,ndy+1))
 source_line=uT[ndx/2,:]
 pl.plot(source_line)
 pl.plot(source_line,'ro')
-pl.axis([70,130,0,0.2])
+pl.axis([70,130,0,0.05])
 pl.savefig(os.path.join(savepath,"source_line.png"))
-#~ u_pc_x1 = u_pot[0,0]
-#~ u_pc_y1 = u_pot[0,1]
-#~ u_pc_x2 = u_pot[1,0]
-#~ u_pc_y2 = u_pot[1,1]
-#~ u_pc_x3 = u_pot[2,0]
-#~ u_pc_y3 = u_pot[2,1]
-#~ 
-#~ # open file to save displacement at point source
-#~ u_pc_data=open(os.path.join(savepath,'U_pc.out'),'w')
-#~ u_pc_data.write("%f %f %f %f %f %f %f\n"%(t,u_pc_x1,u_pc_y1,u_pc_x2,u_pc_y2,u_pc_x3,u_pc_y3))
 
 while t<tend:
-    # ... get current stress ....
-#    t=1.
-    ##OLD WAY
+    # get current pressure
     g=grad(u)
-    pres=csq*h*h*g
-    ### ... get new acceleration ....
-    #mypde.setValue(X=-stress)          
-    #a=mypde.getSolution()
-    ### ... get new displacement ...
-    #u_p1=2*u-u_m1+h*h*a
-    ###NEW WAY
-    mypde.setValue(X=-pres,Y=(2.*u-u_m1))
-    u_p1 = mypde.getSolution()
-    # ... shift displacements ....
+    pres=csq*g
+    # set values
+    mypde.setValue(X=-pres)
+    # get new acceleration
+    accel = mypde.getSolution()
+    # shift displacements
+    u_p1=(2.*u-u_m1)+h*h*accel
     u_m1=u
     u=u_p1
-    #stress = 
+	# increment loop values
     t+=h
     n+=1
     print n,"-th time step t ",t
-    #~ u_pot = cbphones(domain,u,[[300.,200.],[500.,200.],[750.,200.]],2)
-    #~ 
-    #~ #     print "u at point charge=",u_pc
-    #~ u_pc_x1 = u_pot[0,0]
-    #~ u_pc_y1 = u_pot[0,1]
-    #~ u_pc_x2 = u_pot[1,0]
-    #~ u_pc_y2 = u_pot[1,1]
-    #~ u_pc_x3 = u_pot[2,0]
-    #~ u_pc_y3 = u_pot[2,1]
-
-    # save displacements at point source to file for t > 0
-    #~ u_pc_data.write("%f %f %f %f %f %f %f\n"%(t,u_pc_x1,u_pc_y1,u_pc_x2,u_pc_y2,u_pc_x3,u_pc_y3))
-
     # ... save current acceleration in units of gravity and displacements 
-    saveVTK(os.path.join(savepath,"tonysol.%i.vtu"%n),output1 = length(u),tensor=pres)
-
+    saveVTK(os.path.join(savepath,"ex07b.%i.vtu"%n),output1 = length(u),tensor=pres)
 
 #~ u_pc_data.close()
 #~ os.system("mencoder mf://"+savepath+"/*.png -mf type=png:\
