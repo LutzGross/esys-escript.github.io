@@ -63,8 +63,6 @@ mydomain=Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
 x=mydomain.getX()
 # ... open new PDE ...
 mypde=LinearPDE(mydomain)
-print mypde.isUsingLumping()
-print mypde.getSolverOptions()
 mypde.setSymmetryOn()
 mypde.setValue(D=1.)
 # define small radius around point xc
