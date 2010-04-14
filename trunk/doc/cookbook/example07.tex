@@ -15,37 +15,121 @@
 
 The acoustic wave equation governs the propagation of pressure waves. Wave
 types that obey this law tend to travel in liquids or gases where shear waves
-or longitudinal style wave motion is not possible. The obvious example is sound
+or longitudinal style wave motion is not possible. An obvious example is sound
 waves.
 
-The acoustic wave equation is;
+The acoustic wave equation is defined as;
 \begin{equation}
  \nabla ^2 p - \frac{1}{c^2} \frac{\partial ^2 p}{\partial t^2} = 0
 \label{eqn:acswave}
 \end{equation}
-where $p$ is the pressure, $t$ is the time and $c$ is the wave velocity.
+where $p$ is the pressure, $t$ is the time and $c$ is the wave velocity. 
 
+\section{The Laplacian in \esc}
+The Laplacian opperator which can be written as $\Delta$ or $\nabla^2$  is
+calculated via the divergence of the gradient of the object, which is in this
+example $p$. Thus we can write;
+\begin{equation}
+ \nabla^2 p = \nabla \cdot \nabla p = \frac{\partial^2 p}{\partial
+x^2\hackscore{i}}
+ \label{eqn:laplacian}
+\end{equation}
+For the two dimensional case in Cartesian coordinates \refEq{eqn:laplacian}
+becomes;
+\begin{equation}
+ \nabla^2 p = \frac{\partial^2 p}{\partial x^2} 
+		   + \frac{\partial^2 p}{\partial y^2}
+\end{equation}
 
+In \esc the Laplacian is calculated using the divergence representation and the
+intrinsic functions \textit{grad()} and \textit{trace()}. The fucntion
+\textit{grad{}} will return the spatial gradients of an object.  
+For a rank 0 solution, this is of the form;
+\begin{equation}
+ \nabla p = \left[
+	   \frac{\partial p}{\partial x \hackscore{0}},  
+	   \frac{\partial p}{\partial x \hackscore{1}}
+                  \right]
+\label{eqn:grad}
+\end{equation}
+Larger ranked solution objects will return gradient tensors. For example, a
+pressure field which acts in the directions $p \hackscore{0}$ and $p
+\hackscore{1}$ would return;
+\begin{equation}
+  \nabla p = \begin{bmatrix}
+	   \frac{\partial p \hackscore{0}}{\partial x \hackscore{0}} &
+		\frac{\partial p \hackscore{1}}{\partial x \hackscore{0}} \\
+	  \frac{\partial p \hackscore{0}}{\partial x \hackscore{1}} &
+		\frac{\partial p \hackscore{1}}{\partial x \hackscore{1}} 
+                  \end{bmatrix}
+\label{eqn:gradrank1}
+\end{equation}
+
+\refEq{eqn:grad} corresponds to the Linear PDE general form value
+$X$. Notice however that the gernal form contains the term $X \hackscore{i,j}$,
+hence for a rank 0 object there is no need to do more than calculate the
+gradient and submit it to the solver. In the case of the rank 1 or greater
+object, it is nesscary to calculate the trace also. This is the sum of the
+diagonal in \refeq{eqn:gradrank1}. 
+
+Thus when solving for equations containing the Laplacian one of two things must
+be completed. If the object \verb p   is less than rank 1 the gradient is
+calculated via;
+\begin{verbatim}
+ gradient=grad(p)
+\end{verbatim}
+and if the object is greater thank or equal to a rank 1 tensor, the trace of
+the gradient is calculated.
+\begin{verbatim}
+ gradient=trace(grad(p))
+\end{verbatim}
+
+These valuse can then be submitted to the PDE solver via the general form term
+$X$. The Laplacian is then computed in the solution process by taking the
+divergence of $X$.
 
 \section{Numerical Solution Stability}
-Unfortunately, the wave equation is belongs to a class of equations called
-\textbf{stiff} PDEs. This types of equations can be difficult to solve
+Unfortunately, the wave equation belongs to a class of equations called
+\textbf{stiff} PDEs. These types of equations can be difficult to solve
 numerically as they tend to oscilate about the exact solution and can
-eventually blow up. To counter this problem, explicitly stable schemes like the
-backwards Euler method are required. In terms of the wave equation, the
+eventually fail. To counter this problem, explicitly stable schemes like
+the backwards Euler method are required. There are two variables which must be
+considered for stability when numerically trying to solve the wave equation.
+
+\begin{equation} \label{eqn:freqvel}
+f=\frac{v}{\lambda}
+\end{equation}
+
+
+Velocity is one of these variables. For stability the
 analytical wave must not propagate faster than the numerical wave is able to,
 and in general, needs to be much slower than the numerical wave.
-
 For example, a line 100m long is discretised into 1m intervals or 101 nodes. If
 a wave enters with a propagation velocity of 100m/s then the travel time for
 the wave between each node will be 0.01 seconds. The time step, must therefore
 be significantly less than this. Of the order $10E-4$ would be appropriate. 
 
-This requirement for very small step sizes makes stiff equations difficult to
-solve numerically due to the large number of time iterations required in each
-solution. Models with very high velocities and fine meshes will be the worst
-affected by this problem.
+The wave frequency content also plays a part in numerical stability. The
+nyquist-sampling theorem states that a signals bandwidth content will be
+accurately represented when an equispaced sampling rate $f \hackscore{n}$ is
+equal to or greater than twice the maximum frequency of the signal
+$f\hackscore{s}$, or;
+\begin{equation} \label{eqn:samptheorem}
+ f\hackscore{n} \geqslant f\hackscore{s}
+\end{equation}
+For example a 50Hz signal will require a sampling rate greater than 100Hz or
+one sample every 0.01 seconds. The wave equation relies on a spatial frequency,
+thus the sampling theorem in this case applies to the solution mesh spacing. In
+this way, the frequency content of the input signal directly affects the time
+discretisation of the problem.  
 
+To accurately model the wave equation with high resolutions and velocities
+means that very fine spatial and time discretisation is necessary for most
+problems.
+This requirement makes the wave equation arduous to
+solve numerically due to the large number of time iterations required in each
+solution. Models with very high velocities and frequencies will be the worst
+effected by this problem.
 
 \section{Displacement Solution}
 \sslist{example07a.py}
@@ -59,17 +143,54 @@ second derivative;
 substituting \refEq{eqn:centdiff} for $\frac{\partial ^2 p }{\partial t ^2}$
 in \refEq{eqn:acswave};
 \begin{equation}
- \nabla ^2 p - \frac{1}{c^2h^2} \left[p_{(t+1)} - 2p_{(t)} + p_{(t-1)} \right]
+ \nabla ^2 p - \frac{1}{c^2h^2} \left[p\hackscore{(t+1)} - 2p\hackscore{(t)} +
+p\hackscore{(t-1)} \right]
 = 0
 \label{eqn:waveu}
 \end{equation}
 Rearranging for $p_{(t+1)}$;
 \begin{equation}
- p_{(t+1)} = c^2 h^2 \nabla ^2 p_{(t)} +2p_{(t)} - p_{(t-1)}
+ p\hackscore{(t+1)} = c^2 h^2 \nabla ^2 p\hackscore{(t)} +2p\hackscore{(t)} -
+p\hackscore{(t-1)}
 \end{equation}
 this can be compared with the general form of the \modLPDE module and it
-becomes clear that $D=1$, $X=-c^2 h^2 \nabla ^2 p_{(t)}$ and $Y=2p_{(t)} -
-p_{(t-1)}$.
+becomes clear that $D=1$, $X\hackscore{i,j}=-c^2 h^2 \nabla ^2 p_{(t)}$ and
+$Y=2p_{(t)} - p_{(t-1)}$.
+
+The solution script is similar to other that we have created in previous
+chapters. The general steps are;
+\begin{enumerate}
+ \item The necessary libraries must be imported.
+ \item The domain needs to be defined.
+ \item The time iteration and control parameters need to be defined.
+ \item The PDE is initialised with source and boundary conditions.
+ \item The time loop is started and the PDE is solved at consecutive time steps.
+ \item All or select solutions are saved to file for visualisation lated on.
+\end{enumerate}
+
+Parts of the script which warrant more attention are the definition of the
+source, visualising the source, the solution time loop and the VTK data export.
+
+\subsection{Pressure Sources}
+As the pressure is a scalar, one need only define the pressure for two 
+time steps prior to the start of the solution loop. Two known solutions are
+required because the wave equation contains a double partial derivative with
+respect to time. This is often a good opportunity to introduce a source to the
+solution. This model has the source located at it's centre. The source should
+be smooth and cover a number of samples to satisfy the frequency stability
+criterion. Small sources will generate high frequency signals. Here, the source
+is defined by a cosine function.
+\begin{verbatim}
+U0=0.01 # amplitude of point source
+xc=[500,500] #location of point source
+# define small radius around point xc
+src_radius = 30
+# for first two time steps
+u=U0*(cos(length(x-xc)*3.1415/src_radius)+1)*whereNegative(length(x-xc)-src_radi
+us)
+u_m1=u
+\end{verbatim}
+When using a rectangular domain
 
 \section{Acceleration Solution}
 \sslist{example07b.py}
@@ -81,10 +202,39 @@ PDE solution. \refEq{eqn:waveu} is thus modified;
   \nabla ^2 p - \frac{1}{c^2} a = 0
 \label{eqn:wavea}
 \end{equation}
-and can be solved directly with $Y=0$ and $X=-c^2 \nabla ^2 p_{(t)}$.
+and can be solved directly with $Y=0$ and $X=-c^2 \nabla ^2 p\hackscore{(t)}$.
 After each iteration the displacement is re-evaluated via;
 \begin{equation}
- p_{(t+1)}=2p_{(t)} - p_{(t-1)} + h^2a
+ p\hackscore{(t+1)}=2p\hackscore{(t)} - p\hackscore{(t-1)} + h^2a
 \end{equation}
+
+For \esc, the acceleration solution is prefered as it allows the use of matrix
+lumping. Lumping or mass lumping as it is sometimes known, is the process of
+aggressively approximating the density elements of a mass matrix into the main
+diagonal. The use of Lumping is motivaed by the simplicity of diagonal matrix
+ inversion. As a result, Lumping can significantly reduce the computational
+requirements of a problem.
+
+To turn lumping on in \esc one can use the command;
+\begin{verbatim}
+ mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
+\end{verbatim}
+It is also possible to check if lumping is set using;
+\begin{verbatim}
+  print mypde.isUsingLumping()
+\end{verbatim}
+
+\section{Stability Investigation}
+It is now prudent to investigate the stability limitations of this problem.
+First, we let the frequency content of the source be very small. If the radius
+of the source which equals the wavelength is 5 meters, than the frequency is
+the inverse of the wavelength  The velocity is $c=380.0ms^{-1}$ thus the source
+frequency is $f\hackscore{r} = \frac{380.0}{5} = 76.0 Hz$. The sampling
+frequency must be at least twice this. Assuming a rectangular equispaced grid,
+the sampling interval is $\Delta x = \frac{1000.0}{400} = 2.5$ and the sampling
+frequency $f\hackscore{s}=\frac{380.0}{2.5}=152$ this is just equal to the
+required rate satisfying \refeq{eqn:samptheorem}. 
+
+
 
 

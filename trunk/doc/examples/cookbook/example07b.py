@@ -54,6 +54,9 @@ csq=c*c
 tend=1.5    #end time
 #calculating )the timestep
 h=0.001
+#recording times
+rtime=0.0
+rtime_inc=tend/20.0
 #Check to make sure number of time steps is not too large.
 print "Time step size= ",h, "Expected number of outputs= ",tend/h
 
@@ -81,7 +84,7 @@ mypde.setSymmetryOn()
 mypde.setValue(D=1.)
 
 # define small radius around point xc
-src_radius = 30
+src_radius = 2.5
 print "src_radius = ",src_radius
 
 # ... set initial values ....
@@ -112,12 +115,15 @@ while t<tend:
     u_p1=(2.*u-u_m1)+h*h*accel
     u_m1=u
     u=u_p1
+    # ... save current acceleration in units of gravity and displacements
+    if (t >= rtime):
+        saveVTK(os.path.join(savepath,"ex07b.%i.vtu"%n),output1 = length(u),tensor=pres)
+        rtime=rtime+rtime_inc
+
 	# increment loop values
     t+=h
     n+=1
     print n,"-th time step t ",t
-    # ... save current acceleration in units of gravity and displacements 
-    saveVTK(os.path.join(savepath,"ex07b.%i.vtu"%n),output1 = length(u),tensor=pres)
 
 #~ u_pc_data.close()
 #~ os.system("mencoder mf://"+savepath+"/*.png -mf type=png:\
