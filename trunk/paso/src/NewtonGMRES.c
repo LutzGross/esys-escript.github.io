@@ -53,9 +53,9 @@ err_t Paso_Solver_NewtonGMRES(
    const double atol=options->absolute_tolerance;  /* absolute tolerance */
    const double rtol=options->tolerance;           /* relative tolerance */
    const dim_t maxit=options->iter_max;            /* max iteration counter */
-   const dim_t lmaxit=options->inner_iter_max;     /* max inner iteration counter */
+   const dim_t lmaxit=options->inner_iter_max*10;     /* max inner iteration counter */
    const bool_t adapt_inner_tolerance=options->adapt_inner_tolerance;
-   const double max_inner_tolerance=options->inner_tolerance;  
+   const double max_inner_tolerance=options->inner_tolerance *1.e-11;  
    double inner_tolerance=max_inner_tolerance;
   /*
    * max_inner_tolerance = Maximum error tolerance for residual in inner
@@ -88,15 +88,15 @@ err_t Paso_Solver_NewtonGMRES(
        iteration_count=1;
        if (debug) {
 	    printf("NewtonGMRES: Start Jacobi-free Newton scheme\n");
-	    printf("NewtonGMRES: tolerance rel/abs= %e/%e\n",rtol,atol);
-	    printf("NewtonGMRES: stopping tolerance = %e\n",stop_tol);
+	    printf("NewtonGMRES: lsup tolerance rel/abs= %e/%e\n",rtol,atol);
+	    printf("NewtonGMRES: lsup stopping tolerance = %e\n",stop_tol);
 	    
 	    printf("NewtonGMRES: max. inner iterations (GMRES) = %d\n",lmaxit);
 	    if (adapt_inner_tolerance) {
 	        printf("NewtonGMRES: inner tolerance is adapted.\n");
-		printf("NewtonGMRES: max. inner tolerance (GMRES) = %e\n",max_inner_tolerance);
+		printf("NewtonGMRES: max. inner l2 tolerance (GMRES) = %e\n",max_inner_tolerance);
 	    } else {
-	        printf("NewtonGMRES: inner tolerance (GMRES) = %e\n",inner_tolerance);
+	        printf("NewtonGMRES: inner l2 tolerance (GMRES) = %e\n",inner_tolerance);
 	    }
        }
        /* 
@@ -149,7 +149,9 @@ err_t Paso_Solver_NewtonGMRES(
          maxIterFlag = (iteration_count > maxit);
          }
          if (debug) {
-              if (convergeFlag) printf("NewtonGMRES: convergence reached after %d steps with lsup-residual %e.\n",iteration_count,normsup_f);
+              printf("NewtonGMRES: iteration step %d: lsup-norm of F =%e\n",iteration_count,normsup_f);
+
+              if (convergeFlag) printf("NewtonGMRES: convergence reached after %d steps.\n",iteration_count);
               if (breakFlag)  printf("NewtonGMRES: iteration break down after %d steps.\n",iteration_count);
               if (maxIterFlag)  printf("NewtonGMRES: maximum number of iteration step %d is reached.\n",maxit);
          }

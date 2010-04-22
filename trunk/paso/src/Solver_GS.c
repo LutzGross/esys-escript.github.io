@@ -199,7 +199,7 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
                            }
                      }
                      iptr_main=gs->main_iptr[i];
-                     x[i]=(1/gs->factors->val[iptr_main])*S1;
+                     x[i]=(1./gs->factors->val[iptr_main])*S1;
                    }
               }
            } else if (n_block==2) {

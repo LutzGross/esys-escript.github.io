@@ -15,8 +15,9 @@
 #ifndef INC_PASOFCT
 #define INC_PASOFCT
 
-#include "Transport.h"
 #include "Functions.h"
+#include "Transport.h"
+
 
 typedef struct Paso_FCTSolver {
       Paso_TransportProblem* transportproblem;

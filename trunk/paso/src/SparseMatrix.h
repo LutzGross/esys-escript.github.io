@@ -55,6 +55,7 @@ typedef struct Paso_SparseMatrix {
   dim_t numCols;
   Paso_Pattern* pattern;
   dim_t len;
+
   double *val;         /* this is used for classical CSR or CSC */
   void* solver;
 } Paso_SparseMatrix;
@@ -91,7 +92,12 @@ void Paso_SparseMatrix_saveMM_CSC(Paso_SparseMatrix *, FILE *);
 void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(const double alpha, const dim_t nRows, const dim_t row_block_size, const dim_t col_block_size, const index_t* ptr, const index_t* index, const double* val, const double* in, const double beta, double* out);
 Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR( char *fileName_p );
 void Paso_SparseMatrix_saveMM(Paso_SparseMatrix * A_p, char * fileName_p);
-
+void Paso_SparseMatrix_nullifyRows_CSR(Paso_SparseMatrix*, double*, double);
+index_t* Paso_SparseMatrix_borrowMainDiagonalPointer(Paso_SparseMatrix * A_p);
+void Paso_SparseMatrix_copyFromMainDiagonal(Paso_SparseMatrix * A_p, double* out);
+void Paso_SparseMatrix_copyToMainDiagonal(Paso_SparseMatrix * A_p, const double* in);
+void Paso_SparseMatrix_copyBlockFromMainDiagonal(Paso_SparseMatrix * A_p, double* out);
+void Paso_SparseMatrix_copyBlockToMainDiagonal(Paso_SparseMatrix * A_p, const double* in);
 /*
 void Paso_SparseMatrix_add(Paso_SparseMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
 Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR(char *);

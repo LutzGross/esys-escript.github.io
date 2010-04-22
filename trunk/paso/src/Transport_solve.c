@@ -129,7 +129,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
 	    } else if (errorCode == SOLVER_BREAKDOWN) {
 	        Paso_setError(VALUE_ERROR,"Paso_TransportProblem_solve: solver break down.");
 	    } else if (errorCode == SOLVER_NEGATIVE_NORM_ERROR) {
-	        Paso_setError(VALUE_ERROR,"Paso_TransportProblem_solve: neagtove norm.");
+	        Paso_setError(VALUE_ERROR,"Paso_TransportProblem_solve: negative norm.");
 	    } else {
 	        Paso_setError(SYSTEM_ERROR,"Paso_TransportProblem_solve: general error.");
 	    }
@@ -148,6 +148,15 @@ double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 {
    double dt_max, dt1, dt2;
    if ( ! fctp->valid_matrices) {
+     /* set row-sum of mass_matrix */
+     Paso_SystemMatrix_rowSum(fctp->mass_matrix,fctp->lumped_mass_matrix);
+     /* split off row-sum from transport_matrix */
+     Paso_SystemMatrix_makeZeroRowSums(fctp->transport_matrix,fctp->reactive_matrix);
+     /* get a copy of the main diagonal of the mass matrix */
+     Paso_SystemMatrix_copyFromMainDiagonal(fctp->mass_matrix,fctp->main_diagonal_mass_matrix);
+
+     
+     /* XXXXXXXXX hier geht es weiter XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX */ 
      dt1=Paso_ReactiveSolver_getSafeTimeStepSize(fctp);
      dt2=Paso_FCTSolver_getSafeTimeStepSize(fctp);
      dt_max=MIN(dt1,dt2);

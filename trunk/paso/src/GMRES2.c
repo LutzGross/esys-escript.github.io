@@ -23,7 +23,7 @@ err_t Paso_Solver_GMRES2(
     Paso_Function * F,
     const double* f0,
     const double* x0,
-    double * x,
+    double * dx,
     dim_t *iter,
     double* tolerance,
     Paso_Performance* pp) 
@@ -42,7 +42,7 @@ err_t Paso_Solver_GMRES2(
   if (n < 0 || iter_max<=0 || l<1 || rel_tol<0) {
     return SOLVER_INPUT_ERROR;
   }
-  Paso_zeroes(n,x);
+  Paso_zeroes(n,dx);
   /*     
    *  allocate memory: 
    */
@@ -72,7 +72,7 @@ err_t Paso_Solver_GMRES2(
              Status=SOLVER_MEMORY_ERROR;
           } else {
              Paso_zeroes(n,v[0]);
-             Paso_Update(n,1.,v[0],-1./normf0,f0);
+             Paso_Update(n,1.,v[0],-1./normf0,f0); /* v = -1./normf0*f0 */
              g[0]=normf0;
           }
           while( (! (breakFlag || maxIterFlag || convergeFlag)) && (Status ==SOLVER_NO_ERROR) ) {
@@ -91,40 +91,51 @@ err_t Paso_Solver_GMRES2(
                    */
                    for (j=0;j<k;j++){
                       hh=Paso_InnerProduct(n,v[j],v[k],F->mpi_info);
-                      Paso_Update(n,1.,v[k],(-hh),v[j]);
-                      h[INDEX2(j,k-1,l)]=hh;
-                   }
+                      Paso_Update(n,1.,v[k],(-hh),v[j]); /* v[k]-hh*v[j] */
+                      h[INDEX2(j,k-1,l)]=hh; 
+ /* printf("%d :  %d = %e\n",k,j,hh); */ 
+		   }
                    normv2=Paso_l2(n,v[k],F->mpi_info);
                    h[INDEX2(k,k-1,l)]=normv2;
                    /*
                     * reorthogonalize
                     */
                    if (! (normv + RENORMALIZATION_CONST*normv2 > normv)) {
+/* printf("GMRES2: renormalization!"); */
                         for (j=0;j<k;j++){
                             hr=Paso_InnerProduct(n,v[j],v[k],F->mpi_info);
+
 	                    h[INDEX2(j,k-1,l)]+=hr;
                             Paso_Update(n,1.,v[k],(-hr),v[j]);
                         }
                         normv2=Paso_l2(n,v[k],F->mpi_info);
                         h[INDEX2(k,k-1,l)]=normv2;
                     }
+{int p,q;
+   for (p=0;p<k+1;p++){
+   for (q=0;q<k+1;q++)printf("%e ",h[INDEX2(p,q,l)]);
+    printf("\n");
+   
+   }
+}
                    /* 
                     *   watch out for happy breakdown
                     */
                    if(normv2 > 0.) {
-                      Paso_Update(n,1./normv2,v[k],0.,v[k]);
+                      Paso_Update(n,1./normv2,v[k],0.,v[k]); /* normalize v[k] */
                    } 
                    /*
                     *   Form and store the information for the new Givens rotation
                     */
                    ApplyGivensRotations(k,&h[INDEX2(0,k-1,l)],c,s);
+
                    /*
                     *  Don't divide by zero if solution has  been found
                     */
                    g[k]=0;
-                   nu=sqrt(h[INDEX2(k-1,k-1,l)]*h[INDEX2(k-1,k-1,l)]+h[INDEX2(k,k-1,l)]*h[INDEX2(k,k-1,l)]);
+		   nu=sqrt(h[INDEX2(k-1,k-1,l)]*h[INDEX2(k-1,k-1,l)]+h[INDEX2(k,k-1,l)]*h[INDEX2(k,k-1,l)]);
                    if (nu>0) {
-                       c[k-1]=h[INDEX2(k-1,k-1,l)]/nu;
+                       c[k-1]= h[INDEX2(k-1,k-1,l)]/nu;
                        s[k-1]=-h[INDEX2(k,k-1,l)]/nu;
                        h[INDEX2(k-1,k-1,l)]=c[k-1]*h[INDEX2(k-1,k-1,l)]-s[k-1]*h[INDEX2(k,k-1,l)];
                        h[INDEX2(k,k-1,l)]=0;
@@ -132,7 +143,7 @@ err_t Paso_Solver_GMRES2(
                    }
                    norm_of_residual=fabs(g[k]);
                    maxIterFlag = (k>=iter_max);
-                   convergeFlag = (fabs(g[k]) <= abs_tol);
+                   convergeFlag = (norm_of_residual <= abs_tol);
                    printf("GMRES2 step %d: residual %e (abs. tol=%e)\n",k,fabs(g[k]),abs_tol);
               }
           }
@@ -140,12 +151,15 @@ err_t Paso_Solver_GMRES2(
       /*
        * all done and ready for the forward substitution:
       */
+printf("k =  %d\n", k);
+
       for (i=k-1;i>=0;--i) {
            for (j=i+1;j<k;j++) {
+printf("%d %d : %e\n", i,j,h[INDEX2(i,j,l)]);
               g[i]-=h[INDEX2(i,j,l)]*g[j];
            }
            g[i]/=h[INDEX2(i,i,l)];
-           Paso_Update(n,1.,x,g[i],v[i]);
+           Paso_Update(n,1.,dx,g[i],v[i]); /* dx = dx+g[i]*v[i] */ 
       }
  }
  /*     

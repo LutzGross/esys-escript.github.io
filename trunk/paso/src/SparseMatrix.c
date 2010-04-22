@@ -216,9 +216,6 @@ void Paso_SparseMatrix_free(Paso_SparseMatrix* in) {
 		MEMFREE(in->solver);
 	}
         MEMFREE(in);
-        #ifdef Paso_TRACE
-        printf("Paso_SparseMatrix_free: system matrix as been deallocated.\n");
-        #endif
      }
    }
 }
@@ -399,5 +396,10 @@ void Paso_SparseMatrix_saveMM(Paso_SparseMatrix * A_p, char * fileName_p) {
   fclose(fileHandle_p);
   
   return;
+}
+
+index_t* Paso_SparseMatrix_borrowMainDiagonalPointer(Paso_SparseMatrix * A_p) 
+{
+    return Paso_Pattern_borrowMainDiagonalPointer(A_p->pattern);
 }
 

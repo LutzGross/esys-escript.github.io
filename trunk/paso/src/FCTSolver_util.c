@@ -37,6 +37,7 @@
  * b= low_order_transport_matrix = - iteration_matrix
  * c=main diagonal low_order_transport_matrix 
  * initialize c[i] mit a[i,i] 
+ *
  *    d_ij=max(0,-a[i,j],-a[j,i])  
  *    b[i,j]=-(a[i,j]+d_ij)         
  *    c[i]-=d_ij                  
@@ -44,11 +45,13 @@
 
 void Paso_FCTSolver_setLowOrderOperator(Paso_TransportProblem * fc) {
   dim_t n=Paso_SystemMatrix_getTotalNumRows(fc->transport_matrix),i;
+  const index_t* main_iptr=NULL;
   index_t iptr_ij,j,iptr_ji;
   Paso_SystemMatrixPattern *pattern;
   register double d_ij, sum, rtmp1, rtmp2;
 
   if (fc==NULL) return;
+  main_iptr=Paso_TransportProblem_borrowMainDiagonalPointer(fc);
   if (fc->iteration_matrix==NULL) {
       fc->iteration_matrix=Paso_SystemMatrix_alloc(fc->transport_matrix->type,
                                                    fc->transport_matrix->pattern,
@@ -61,19 +64,28 @@ void Paso_FCTSolver_setLowOrderOperator(Paso_TransportProblem * fc) {
       n=Paso_SystemMatrix_getTotalNumRows(fc->iteration_matrix);
       #pragma omp parallel for private(i,sum,iptr_ij,j,iptr_ji,rtmp1, rtmp2,d_ij)  schedule(static)
       for (i = 0; i < n; ++i) {
-          sum=fc->transport_matrix->mainBlock->val[fc->main_iptr[i]];
+          sum=fc->transport_matrix->mainBlock->val[main_iptr[i]];
+	  
+/* printf("sum[%d] = %e -> ", i, sum); */
           /* look at a[i,j] */
           for (iptr_ij=pattern->mainPattern->ptr[i];iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
               j=pattern->mainPattern->index[iptr_ij];
-              if (j!=i) {
+              rtmp1=fc->transport_matrix->mainBlock->val[iptr_ij];
+	      if (j!=i) {
                  /* find entry a[j,i] */
                  #pragma ivdep
                  for (iptr_ji=pattern->mainPattern->ptr[j]; iptr_ji<pattern->mainPattern->ptr[j+1]; ++iptr_ji) {
+		   
                     if ( pattern->mainPattern->index[iptr_ji] == i) {
-                        rtmp1=fc->transport_matrix->mainBlock->val[iptr_ij];
-                        rtmp2=fc->transport_matrix->mainBlock->val[iptr_ji];
+		        rtmp2=fc->transport_matrix->mainBlock->val[iptr_ji];
+/*
+printf("a[%d,%d]=%e\n",i,j,rtmp1);
+printf("a[%d,%d]=%e\n",j,i,rtmp2);
+*/
+
                         d_ij=-MIN3(0.,rtmp1,rtmp2);
                         fc->iteration_matrix->mainBlock->val[iptr_ij]=-(rtmp1+d_ij);
+/* printf("l[%d,%d]=%e\n",i,j,fc->iteration_matrix->mainBlock->val[iptr_ij]); */
                         sum-=d_ij;
                         break;
                     }
@@ -82,11 +94,11 @@ void Paso_FCTSolver_setLowOrderOperator(Paso_TransportProblem * fc) {
           }
           for (iptr_ij=pattern->col_couplePattern->ptr[i];iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
               j=pattern->col_couplePattern->index[iptr_ij];
-              /* find entry a[j,i] */
+              rtmp1=fc->transport_matrix->col_coupleBlock->val[iptr_ij];
+	      /* find entry a[j,i] */
               #pragma ivdep
               for (iptr_ji=pattern->row_couplePattern->ptr[j]; iptr_ji<pattern->row_couplePattern->ptr[j+1]; ++iptr_ji) {
                     if (pattern->row_couplePattern->index[iptr_ji]==i) {
-                        rtmp1=fc->transport_matrix->col_coupleBlock->val[iptr_ij];
                         rtmp2=fc->transport_matrix->row_coupleBlock->val[iptr_ji];
                         d_ij=-MIN3(0.,rtmp1,rtmp2);
                         fc->iteration_matrix->col_coupleBlock->val[iptr_ij]=-(rtmp1+d_ij);
@@ -98,7 +110,9 @@ void Paso_FCTSolver_setLowOrderOperator(Paso_TransportProblem * fc) {
          }
          /* set main diagonal entry */
          fc->main_diagonal_low_order_transport_matrix[i]=sum;
+/*	 printf("%e \n", sum); */
       }
+
   }
 }
 /*
@@ -199,8 +213,9 @@ void Paso_FCTSolver_setAntiDiffusionFlux(const double dt, const Paso_TransportPr
   const double *u_last= Paso_Coupler_borrowLocalData(fc->u_coupler);
   const double *remote_u=Paso_Coupler_borrowRemoteData(u_coupler);
   const double *remote_u_last=Paso_Coupler_borrowRemoteData(fc->u_coupler);
-  const double f1=  - dt * ( 1.-  ( (fc->useBackwardEuler) ? 1. : 0.5 ) );
-  const double f2=    dt *  ( (fc->useBackwardEuler) ? 1. : 0.5 );
+  const double theta= (fc->useBackwardEuler) ? 1. : 0.5;
+  const double f1=  - dt * ( 1.- theta );
+  const double f2=    dt *  theta;
   register double m_ij, d_ij, u_i, u_last_i, d_u_last, d_u;
   const Paso_SystemMatrixPattern *pattern=fc->iteration_matrix->pattern;
   n=Paso_SystemMatrix_getTotalNumRows(fc->iteration_matrix);
@@ -445,5 +460,6 @@ void Paso_FCTSolver_addCorrectedFluxes(double* f,const Paso_SystemMatrix *flux_m
           }
       }
       f[i]+=f_i;
+
   }
 }

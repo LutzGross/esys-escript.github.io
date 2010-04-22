@@ -73,7 +73,6 @@ Paso_Function* Paso_FCTSolver_Function_alloc(Paso_TransportProblem *fctp, Paso_O
 						    fctp->transport_matrix->col_block_size, TRUE);
 						    
         }
-        Paso_Solver_setPreconditioner(fctp->iteration_matrix,options);
     }
     if (Paso_noError()) {
         return out;
@@ -115,11 +114,10 @@ double Paso_FCTSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
    double dt_max=LARGE_POSITIVE_FLOAT, dt_max_loc;
    register double l_ii,m;
    n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
-   /* extract the row sum of the advective part */
-   Paso_SystemMatrix_rowSum(fctp->mass_matrix,fctp->lumped_mass_matrix);
 
-   /* set low order transport operator */
-   Paso_FCTSolver_setLowOrderOperator(fctp);
+
+     /* set low order transport operator */
+     Paso_FCTSolver_setLowOrderOperator(fctp);
           
    if (Paso_noError()) {
         /*
@@ -158,8 +156,10 @@ double Paso_FCTSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
  */
 err_t Paso_FCTSolver_Function_call(Paso_Function * F,double* value, const double* arg, Paso_Performance *pp)
 {
+     Paso_Options options;
      Paso_FCTSolver *more=(Paso_FCTSolver *) (F->more);
-
+     Paso_Options_setDefaults(&options);
+     options.verbose=TRUE;
 
      /* set z_m in tmp */
       Paso_FCTSolver_setUpRightHandSide(more->transportproblem,more->dt,arg,more->u_m_coupler,F->tmp,more->flux_matrix_m,
@@ -167,6 +167,9 @@ err_t Paso_FCTSolver_Function_call(Paso_Function * F,double* value, const double
                                         more->QN_n_coupler,more->QP_n_coupler,more->RN_m,
 					more->RN_m_coupler,more->RP_m,more->RP_m_coupler,pp);
       /* apply preconditoner do get du = */
+      /* Paso_Solver(more->transportproblem->iteration_matrix,value,F->tmp,&options,pp); */ 
+      
+      
       Paso_Solver_solvePreconditioner(more->transportproblem->iteration_matrix,value,F->tmp);
       return NO_ERROR;
 }
@@ -194,7 +197,7 @@ err_t Paso_FCTSolver_solve(Paso_Function* F, double* u, double dt, Paso_Options*
     norm_u_tilde=Paso_lsup(n,more->uTilde_n,F->mpi_info);
     ATOL= rtol * norm_u_tilde + atol ;
     if (options->verbose) printf("Paso_FCTSolver_solve: iteration starts u_tilda lsup = %e (abs. tol = %e)\n",norm_u_tilde,ATOL);
-    if  (more->transportproblem->useBackwardEuler && FALSE) {
+    if  (more->transportproblem->useBackwardEuler && FALSE ) {
         options->absolute_tolerance = ATOL/omega;
         options->tolerance=0;
         errorCode=Paso_Solver_NewtonGMRES(F,u,options,pp);
@@ -243,7 +246,7 @@ err_t Paso_FCTSolver_setUpRightHandSide(Paso_TransportProblem* fctp, const doubl
 					double *RN_m, Paso_Coupler* RN_m_coupler, double* RP_m, Paso_Coupler* RP_m_coupler, 
 					Paso_Performance* pp)
 {
-   const double omega=1./dt* (fctp->useBackwardEuler ? 1. : 2.);
+   const double omega=dt* (fctp->useBackwardEuler ? 1. : 0.5);
    const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
    /* distribute u */
    Paso_Coupler_startCollect(u_m_coupler,u_m);
@@ -271,7 +274,7 @@ err_t Paso_FCTSolver_setUpRightHandSide(Paso_TransportProblem* fctp, const doubl
      * note that iteration_matrix stores the negative values of the 
      * low order transport matrix l therefore a=dt*theta is used.
      */
-     Paso_FCTSolver_setMuPaLu(z_m,fctp->lumped_mass_matrix, u_m_coupler,1./omega,fctp->iteration_matrix);
+     Paso_FCTSolver_setMuPaLu(z_m, fctp->lumped_mass_matrix, u_m_coupler, omega, fctp->iteration_matrix);
  /*{
  int kk;
  for (kk=0;kk<n;kk++) printf("z_m %d : %e %e -> %e\n",kk,z_m[kk], b[kk],z_m[kk]-b[kk]);
@@ -283,7 +286,7 @@ err_t Paso_FCTSolver_setUpRightHandSide(Paso_TransportProblem* fctp, const doubl
    Paso_Coupler_finishCollect(RN_m_coupler);
    Paso_Coupler_finishCollect(RP_m_coupler);
    /* add corrected fluxes into z_m */
-   Paso_FCTSolver_addCorrectedFluxes(z_m,flux_matrix,RN_m_coupler,RP_m_coupler); 
+    Paso_FCTSolver_addCorrectedFluxes(z_m,flux_matrix,RN_m_coupler,RP_m_coupler);  
    return SOLVER_NO_ERROR;
 }
 
@@ -292,9 +295,12 @@ void Paso_FCTSolver_setUp(Paso_TransportProblem* fctp, const double dt, const do
                           Paso_Options* options, Paso_Performance* pp)
 {
    dim_t i;
+   const index_t* main_iptr=NULL;
    const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
-   const double omega=1./dt* (fctp->useBackwardEuler ? 1. : 2.);
-   register double m, u_tilde_i, rtmp4; 
+   const double theta = (fctp->useBackwardEuler ? 1. : 0.5);
+   const double omega=1./(dt* theta);
+   register double m, u_tilde_i, rtmp4;
+   main_iptr=Paso_TransportProblem_borrowMainDiagonalPointer(fctp);
    /* distribute u */
    Paso_Coupler_startCollect(fctp->u_coupler,u);
    Paso_Coupler_finishCollect(fctp->u_coupler);
@@ -316,16 +322,14 @@ void Paso_FCTSolver_setUp(Paso_TransportProblem* fctp, const double dt, const do
     *   fctp->iteration_matrix[i,i]=m[i]/(dt theta) -l[i,i]
     *
     */
-
     Paso_solve_free(fctp->iteration_matrix);     
     #pragma omp parallel for private(i,m,u_tilde_i,rtmp4)
     for (i = 0; i < n; ++i) {
            m=fctp->lumped_mass_matrix[i];
            u_tilde_i=b[i]/m;
-           rtmp4=m*omega-fctp->main_diagonal_low_order_transport_matrix[i];
-           fctp->iteration_matrix->mainBlock->val[fctp->main_iptr[i]]=rtmp4;
+           rtmp4=m*omega-(fctp->main_diagonal_low_order_transport_matrix[i]);
+           fctp->iteration_matrix->mainBlock->val[main_iptr[i]]=rtmp4;
            uTilde[i]=u_tilde_i;
-/* printf("uTilde %d %e and %e : %e : %e %e\n",i,u_tilde_i, b[i], rtmp4, m, fctp->main_diagonal_low_order_transport_matrix[i]); */
     }
     Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
     Paso_Solver_setPreconditioner(fctp->iteration_matrix,options);
