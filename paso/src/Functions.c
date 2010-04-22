@@ -56,7 +56,7 @@ err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, co
        double local_v[2], v[2];
        local_v[0]=s;
        local_v[1]=norm_w;
-       MPI_Allreduce(local_v,v, 2, MPI_DOUBLE, MPI_MAX, F->mpi_info);
+       MPI_Allreduce(local_v,v, 2, MPI_DOUBLE, MPI_MAX, F->mpi_info->comm);
        s=v[0];
        norm_w=v[1];
    }
