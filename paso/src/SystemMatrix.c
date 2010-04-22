@@ -250,3 +250,51 @@ dim_t Paso_SystemMatrix_getNumOutput(Paso_SystemMatrix* A) {
    return Paso_SystemMatrixPattern_getNumOutput(A->pattern);
 }
 
+index_t* Paso_SystemMatrix_borrowMainDiagonalPointer(Paso_SystemMatrix * A_p) 
+{
+    return  Paso_SparseMatrix_borrowMainDiagonalPointer(A_p->mainBlock);
+}
+
+void Paso_SystemMatrix_makeZeroRowSums(Paso_SystemMatrix * A_p, double* left_over) 
+{
+   index_t ir, ib, irow;
+   register double rtmp1, rtmp2;
+   const dim_t n = Paso_SystemMatrixPattern_getNumOutput(A_p->pattern);
+   const dim_t nblk = A_p->block_size;
+   const dim_t blk = A_p->row_block_size;
+   const index_t* main_ptr=Paso_SystemMatrix_borrowMainDiagonalPointer(A_p);
+   
+   
+   Paso_SystemMatrix_rowSum(A_p, left_over); /* left_over now hold the row sum */
+
+   #pragma omp parallel for private(ir,ib, rtmp1, rtmp2) schedule(static)
+   for (ir=0;ir< n;ir++) {
+       for (ib=0;ib<blk; ib++) {
+	     irow=ib+blk*ir;
+	     rtmp1=left_over[irow];
+	     rtmp2=A_p->mainBlock->val[main_ptr[ir]*nblk+ib+blk*ib];
+	     A_p->mainBlock->val[main_ptr[ir]*nblk+ib+blk*ib] = -rtmp1;
+	     left_over[irow]=rtmp2+rtmp1;
+       }
+   }
+}
+void Paso_SystemMatrix_copyBlockFromMainDiagonal(Paso_SystemMatrix * A_p, double* out)
+{
+    Paso_SparseMatrix_copyBlockFromMainDiagonal(A_p->mainBlock, out);
+    return;
+}
+void Paso_SystemMatrix_copyBlockToMainDiagonal(Paso_SystemMatrix * A_p, const double* in) 
+{
+    Paso_SparseMatrix_copyBlockToMainDiagonal(A_p->mainBlock, in);
+    return;
+}
+void Paso_SystemMatrix_copyFromMainDiagonal(Paso_SystemMatrix * A_p, double* out)
+{
+    Paso_SparseMatrix_copyFromMainDiagonal(A_p->mainBlock, out);
+    return;
+}
+void Paso_SystemMatrix_copyToMainDiagonal(Paso_SystemMatrix * A_p, const double* in) 
+{
+    Paso_SparseMatrix_copyToMainDiagonal(A_p->mainBlock, in);
+    return;
+}

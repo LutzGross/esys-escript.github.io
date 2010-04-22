@@ -38,11 +38,11 @@ typedef struct Paso_TransportProblem {
     Paso_SystemMatrix * mass_matrix;
     
     Paso_Coupler* u_coupler;
-
-    index_t *main_iptr;
     Paso_SystemMatrix * iteration_matrix;
     double* main_diagonal_low_order_transport_matrix;
     double* lumped_mass_matrix;
+    double* reactive_matrix;
+    double* main_diagonal_mass_matrix;
 
     Paso_MPIInfo *mpi_info;
     dim_t reference_counter;
@@ -62,8 +62,6 @@ dim_t Paso_TransportProblem_getBlockSize(const Paso_TransportProblem* in);
 
 PASO_DLL_API
 double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* in);
-
-
 
 PASO_DLL_API
 Paso_SystemMatrix* Paso_TransportProblem_borrowTransportMatrix(Paso_TransportProblem* in);
@@ -99,5 +97,7 @@ void Paso_TransportProblem_insertConstraint(Paso_TransportProblem* fctp,  const 
 PASO_DLL_API
 void Paso_TransportProblem_setUpConstraint(Paso_TransportProblem* fctp,  const double* q, const double factor);
 
+#define Paso_TransportProblem_borrowMainDiagonalPointer(_fct_) Paso_SparseMatrix_borrowMainDiagonalPointer((_fct_)->mass_matrix->mainBlock)
+#define Paso_Transport_getTheta(_fct_) ( ( (_fct_)->useBackwardEuler ) ? 1. : 0.5 )
 
 #endif /* #ifndef INC_PASOTRANSPORT */

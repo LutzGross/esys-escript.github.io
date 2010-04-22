@@ -44,6 +44,8 @@ void Paso_Preconditioner_free(Paso_Solver_Preconditioner* in) {
       MEMFREE(in);
     }
 }
+
+
 /*  call the iterative solver: */
 
 void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
@@ -54,13 +56,8 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
     if (A->solver==NULL) {
         /* allocate structure to hold preconditioner */
         prec=MEMALLOC(1,Paso_Solver_Preconditioner);
-        prec->amgSystem=MEMALLOC(1,Paso_Solver_AMG_System);
-        prec->amliSystem=MEMALLOC(1,Paso_Solver_AMLI_System);
+
         if (Paso_checkPtr(prec)) return;
-        
-        if (Paso_checkPtr(prec->amliSystem)) return;
-        
-        if (Paso_checkPtr(prec->amgSystem)) return;
         
         prec->type=UNKNOWN;
         prec->rilu=NULL;
@@ -69,18 +66,8 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
         prec->gs=NULL;
         prec->amg=NULL;
         prec->amli=NULL;
-        
-        prec->amgSystem->block_size=A->row_block_size;
-        for (i=0;i<A->row_block_size;++i) {
-          prec->amgSystem->amgblock[i]=NULL;
-          prec->amgSystem->block[i]=NULL;
-        }
-        
-        prec->amliSystem->block_size=A->row_block_size;
-        for (i=0;i<A->row_block_size;++i) {
-          prec->amliSystem->amliblock[i]=NULL;
-          prec->amliSystem->block[i]=NULL;
-        }
+        prec->amgSystem=NULL;
+        prec->amliSystem=NULL;
 
         A->solver=prec;
         switch (options->preconditioner) {
@@ -107,9 +94,15 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
               prec->type=PASO_GS;
               break;
             case PASO_AMG:
+	      prec->amgSystem=MEMALLOC(1,Paso_Solver_AMG_System);
+	      if (Paso_checkPtr(prec->amgSystem)) return;
+	      prec->amgSystem->block_size=A->row_block_size;
+	      for (i=0;i<A->row_block_size;++i) {
+		prec->amgSystem->amgblock[i]=NULL;
+		prec->amgSystem->block[i]=NULL;
+	      }
                 
-              if (options->verbose) printf("AMG preconditioner is used.\n");
-              
+              if (options->verbose) printf("AMG preconditioner is used.\n");             
               /*For performace reasons we check if block_size is one. If yes, then we do not need to separate blocks.*/
               if (A->row_block_size==1) {
                 prec->amg=Paso_Solver_getAMG(A->mainBlock,options->level_max,options);  
@@ -129,7 +122,15 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
               break;
 
             case PASO_AMLI:
-              if (options->verbose) printf("AMLI preconditioner is used.\n");
+	      prec->amliSystem->block_size=A->row_block_size;
+	      if (Paso_checkPtr(prec->amliSystem)) return;
+ 
+	      for (i=0;i<A->row_block_size;++i) {
+		  prec->amliSystem->amliblock[i]=NULL;
+		  prec->amliSystem->block[i]=NULL;
+	      }
+
+	      if (options->verbose) printf("AMLI preconditioner is used.\n");
               
               /*For performace reasons we check if block_size is one. If yes, then we do not need to separate blocks.*/
               if (A->row_block_size==1) {
@@ -164,7 +165,7 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
     
     xx=MEMALLOC(A->row_block_size,double*);
     bb=MEMALLOC(A->row_block_size,double*);
-    if (Paso_checkPtr(xx) && Paso_checkPtr(bb)) return;
+    if (Paso_checkPtr(xx) || Paso_checkPtr(bb)) return;
 
     switch (prec->type) {
         default:
@@ -213,7 +214,7 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                    Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A->mainBlock, x, DBLE(1), bnew);
                    /* Go round again*/
                    Paso_Solver_solveGS(prec->gs,x,bnew);
-                   sweeps=sweeps-1;
+                   sweeps--;
                 }
                 MEMFREE(bnew); 
            }

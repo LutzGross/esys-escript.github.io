@@ -116,8 +116,13 @@ void Paso_SystemMatrix_setValues(Paso_SystemMatrix*,double);
 void Paso_SystemMatrix_add(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
 void Paso_SystemMatrix_rowSum(Paso_SystemMatrix* A, double* row_sum);
 void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, double main_diagonal_value);
-void Paso_SparseMatrix_nullifyRows_CSR(Paso_SparseMatrix*, double*, double);
 
+void Paso_SystemMatrix_makeZeroRowSums(Paso_SystemMatrix * A_p, double* left_over); 
+void Paso_SystemMatrix_copyBlockFromMainDiagonal(Paso_SystemMatrix * A_p, double* out);
+void Paso_SystemMatrix_copyBlockToMainDiagonal(Paso_SystemMatrix * A_p, const double* in); 
+void Paso_SystemMatrix_copyFromMainDiagonal(Paso_SystemMatrix * A_p, double* out);
+void Paso_SystemMatrix_copyToMainDiagonal(Paso_SystemMatrix * A_p, const double* in); 
 
+  
 #endif /* #ifndef INC_PASO_SYSTEMMATRIX */
 

@@ -179,6 +179,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
               r=TMPMEMALLOC(numEqua,double);
               x0=TMPMEMALLOC(numEqua,double);
               Paso_checkPtr(r);
+	      Paso_checkPtr(x0);
               if (Paso_noError()) {
                  totIter = 1;
                  finalizeIteration = FALSE;

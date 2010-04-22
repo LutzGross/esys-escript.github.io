@@ -40,6 +40,7 @@ typedef struct Paso_Pattern {
   dim_t len;		/* number of non-zeros */
   index_t* ptr;		/* ptr[n] to ptr[n+1] lists indicies (in index) of non-zeros in row n*/
   index_t* index;	/* Non-major indicies of non-zeros (in CSR this will be col numbers) */ 
+  index_t *main_iptr;  /* pointer to main diagonal entry */
   dim_t reference_counter;
 } Paso_Pattern;
 
@@ -89,6 +90,8 @@ Paso_Pattern* Paso_Pattern_multiply(int type, Paso_Pattern* A, Paso_Pattern* B);
 PASO_DLL_API
 Paso_Pattern* Paso_Pattern_binop(int type, Paso_Pattern* A, Paso_Pattern* B);
 
+PASO_DLL_API
+index_t* Paso_Pattern_borrowMainDiagonalPointer(Paso_Pattern* A);
 
 PASO_DLL_API
 void Paso_IndexList_insertIndex(Paso_IndexList*, index_t);
@@ -104,5 +107,7 @@ void Paso_IndexList_free(Paso_IndexList*);
 
 PASO_DLL_API
 Paso_Pattern* Paso_IndexList_createPattern(dim_t n0, dim_t n,Paso_IndexList* index_list,index_t range_min,index_t range_max, index_t index_offset);
+
+
 
 #endif /* #ifndef INC_PASO_SYSTEMPATTERN */

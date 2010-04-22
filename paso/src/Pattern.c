@@ -92,6 +92,7 @@ Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, dim_t numInput, inde
       out->numInput=numInput;
       out->ptr=ptr;
       out->index=index;
+      out->main_iptr = NULL;
 
       if (out->ptr == NULL) {
           out->len=0;
@@ -99,9 +100,6 @@ Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, dim_t numInput, inde
           out->len=out->ptr[out->numOutput] - index_offset;
       }
   }
-  #ifdef Paso_TRACE
-  printf("Paso_Pattern_alloc: system matrix pattern has been allocated.\n");
-  #endif
   return out;
 }
 
@@ -122,10 +120,8 @@ void Paso_Pattern_free(Paso_Pattern* in) {
      if (in->reference_counter<=0) {
         MEMFREE(in->ptr);
         MEMFREE(in->index);
+	MEMFREE(in->main_iptr);
         MEMFREE(in);
-        #ifdef Paso_TRACE
-        printf("Paso_Pattern_free: pattern as been deallocated.\n");
-        #endif
      }
    }
 }
@@ -189,10 +185,6 @@ Paso_Pattern* Paso_Pattern_multiply(int type, Paso_Pattern* A, Paso_Pattern* B) 
   }
     
   out=Paso_IndexList_createPattern(0, A->numOutput,index_list,0,B->numInput,0);
-
-  #ifdef Paso_TRACE
-  printf("Paso_Pattern_multipy: new pattern has been allocated.\n");
-  #endif
 
  /* clean up */
    if (index_list!=NULL) {
@@ -385,4 +377,42 @@ Paso_Pattern* Paso_IndexList_createPattern(dim_t n0, dim_t n,Paso_IndexList* ind
         Paso_Pattern_free(out);
   }
   return out;
+}
+
+index_t* Paso_Pattern_borrowMainDiagonalPointer(Paso_Pattern* A) 
+{
+    const dim_t n=A->numOutput;
+    int fail=0;
+    index_t i,iptr,iptr_main;
+    
+     if (A->main_iptr == NULL) {
+         A->main_iptr=MEMALLOC(n,index_t);
+         if (! Paso_checkPtr(A->main_iptr) ) {
+	     #pragma omp parallel 
+             {
+                 /* identify the main diagonals */
+                 #pragma omp for schedule(static) private(i,iptr,iptr_main)
+                 for (i = 0; i < n; ++i) {
+                        iptr_main=A->ptr[0]-1;
+                        for (iptr=A->ptr[i];iptr<A->ptr[i+1]; iptr++) {
+                              if (A->index[iptr]==i) {
+                                   iptr_main=iptr;
+                                   break;
+                              }
+                        }
+                        A->main_iptr[i]=iptr_main;
+                        if (iptr_main==A->ptr[0]-1) fail=1;
+                  }
+     
+             }
+	     #ifdef PASO_MPI
+	     {
+                  int fail_loc = fail;
+                  MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MAX, A->mpi_info->comm);
+	     }
+             #endif
+             if (fail>0) Paso_setError(VALUE_ERROR, "Paso_TransportProblem_alloc: no main diagonal");
+	 }
+     }
+     return A->main_iptr;
 }
