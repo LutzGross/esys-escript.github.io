@@ -35,7 +35,7 @@ err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, co
    norm_w=Paso_lsup(n,w,F->mpi_info);
    tt=EPSILON*norm_x0;
    ttt=sqrt(EPSILON)*norm_w;
-   #pragma omp parallel private(local_s, local_norm_w) 
+   #pragma omp parallel private(local_s) 
    {
       local_s=s;
       #pragma omp for private(i, aw) 
@@ -61,10 +61,10 @@ err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, co
        norm_w=v[1];
    }
    #endif
-printf("s ::  = %e, %e \n",s, norm_x0/norm_w);
+/* printf("s ::  = %e, %e \n",s, norm_x0/norm_w); */
    if (norm_w>0) {
         s=s*epsnew;
-printf("s = %e\n",s);
+/* printf("s = %e\n",s); */
         Paso_LinearCombination(n,setoff,1.,x0,s,w); 
         err=Paso_FunctionCall(F,J0w,setoff,pp);
         if (err==SOLVER_NO_ERROR) {
