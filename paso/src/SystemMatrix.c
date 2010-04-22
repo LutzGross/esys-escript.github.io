@@ -252,7 +252,18 @@ dim_t Paso_SystemMatrix_getNumOutput(Paso_SystemMatrix* A) {
 
 index_t* Paso_SystemMatrix_borrowMainDiagonalPointer(Paso_SystemMatrix * A_p) 
 {
-    return  Paso_SparseMatrix_borrowMainDiagonalPointer(A_p->mainBlock);
+    index_t* out=NULL;
+    int fail=0;
+    out=Paso_SparseMatrix_borrowMainDiagonalPointer(A_p->mainBlock);
+    if (out==NULL) fail=1;
+    #ifdef PASO_MPI
+    {
+         int fail_loc = fail;
+         MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MAX, A_p->mpi_info->comm);
+    }
+    #endif
+    if (fail>0) Paso_setError(VALUE_ERROR, "Paso_SystemMatrix_borrowMainDiagonalPointer: no main diagonal");
+    return out;
 }
 
 void Paso_SystemMatrix_makeZeroRowSums(Paso_SystemMatrix * A_p, double* left_over) 
