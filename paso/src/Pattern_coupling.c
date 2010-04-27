@@ -79,18 +79,41 @@ void Paso_Pattern_Read(char *fileName,dim_t n,index_t* mis_marker) {
      for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]!=1);
 }
 
+void Paso_Pattern_Write(char *fileName,dim_t n,index_t* mis_marker) {
+    
+    dim_t i;
+    
+    FILE *fileHandle_p = NULL;
+    
+    fileHandle_p = fopen( fileName, "w+" );
+    if( fileHandle_p == NULL )
+	{
+		Paso_setError(IO_ERROR, "Paso_Pattern_Write: Cannot open file for writing.");
+		return;
+	}
+    
+    for (i=0;i<n;++i) {    
+        fprintf(fileHandle_p, "%d\n", mis_marker[i]);
+    }
+    
+    fclose(fileHandle_p);
+    
+}
 
 
 void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold) {
 
-  dim_t i,j;
+  dim_t i,j,bi;
   /*double sum;*/
   index_t iptr;
   /*index_t *index,*where_p;*/
   bool_t passed=FALSE;
   dim_t n=A->numRows;
+  dim_t block_size=A->row_block_size;
   double *diags;
+  double fnorm;
   diags=MEMALLOC(n,double);
+
 
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
     Paso_setError(TYPE_ERROR,"Paso_Pattern_coup: symmetric matrix pattern is not supported yet");
@@ -102,12 +125,23 @@ void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold
         if(mis_marker[i]==IS_AVAILABLE)
                     mis_marker[i]=IS_IN_C;
 
-    #pragma omp parallel for private(i,j) schedule(static)
+    #pragma omp parallel for private(i,j,fnorm,bi) schedule(static)
     for (i=0;i<n;++i) {
          for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             j=A->pattern->index[iptr];
             if(i==j) {
-                diags[i]=A->val[iptr];
+                if(block_size==1) {
+                  diags[i]=A->val[iptr];    
+                } else {
+                   fnorm=0;
+                   for(bi=0;bi<block_size*block_size;++bi)
+                   {
+                    fnorm+=A->val[iptr*block_size*block_size+bi]*A->val[iptr*block_size*block_size+bi];
+                   }
+                   fnorm=sqrt(fnorm);
+                   diags[i]=fnorm;
+                }
+                
             }
         }
     }
@@ -117,14 +151,26 @@ void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold
       if (mis_marker[i]==IS_IN_C) {
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
              j=A->pattern->index[iptr];
-             if (j!=i && ABS(A->val[iptr])>=threshold*ABS(diags[i])) {
-                mis_marker[j]=IS_IN_F;
+             if(block_size==1) {
+                if (j!=i && ABS(A->val[iptr])>=threshold*ABS(diags[i])) {
+                   mis_marker[j]=IS_IN_F;
+                }
+             } else {
+                   if (j!=i) {
+                        fnorm=0;
+                        for(bi=0;bi<block_size*block_size;++bi)
+                        {
+                         fnorm+=A->val[iptr*block_size*block_size+bi]*A->val[iptr*block_size*block_size+bi];
+                        }
+                        fnorm=sqrt(fnorm);
+                        if (fnorm>=threshold*diags[i]) {
+                           mis_marker[j]=IS_IN_F;
+                        }
+                   }
              }
         }
       }
     }
-    
-    
      
       /*This loop cannot be parallelized, as order matters here.*/ 
     for (i=0;i<n;i++) {
@@ -133,14 +179,32 @@ void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold
            for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
               j=A->pattern->index[iptr];
               if (mis_marker[j]==IS_IN_C) {
-                if ((A->val[iptr]/diags[i])>=-threshold) {
-                    passed=TRUE;
+                if(block_size==1) {
+                    if ((A->val[iptr]/diags[i])>=-threshold) {
+                        passed=TRUE;
+                    }
+                    else {
+                        passed=FALSE;
+                        break;
+                    }
+                } else {
+                    fnorm=0;
+                    for(bi=0;bi<block_size*block_size;++bi)
+                    {
+                       fnorm+=A->val[iptr*block_size*block_size+bi]*A->val[iptr*block_size*block_size+bi];
+                    }
+                    fnorm=sqrt(fnorm);
+                    if ((fnorm/diags[i])<=threshold) {
+                        passed=TRUE;
+                    }
+                    else {
+                        passed=FALSE;
+                        break;
+                    }
                 }
-                else {
-                    passed=FALSE;
-                    break;
-                }
-              } 
+                    
+              }
+              
            }
            if (passed) mis_marker[i]=IS_IN_C;
         }
@@ -160,9 +224,11 @@ void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold
  */
 void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
 {
-  dim_t i,n,j;
+  dim_t i,n,j,bi;
   index_t iptr;
   double threshold,max_offdiagonal;
+  double fnorm;
+  dim_t block_size=A->row_block_size;
   
   Paso_Pattern *out=NULL;
   
@@ -183,23 +249,48 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
     Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
     return;
   }
-    /*#pragma omp parallel for private(i,iptr,max_offdiagonal,threshold,j) schedule(static)*/
+    /*#pragma omp parallel for private(i,iptr,max_offdiagonal,threshold,j,fnorm,bi) schedule(static)*/
     for (i=0;i<n;++i) {
       if(mis_marker[i]==IS_AVAILABLE) {
         max_offdiagonal = DBL_MIN;
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             if(A->pattern->index[iptr] != i){
+                if(block_size==1) {
                   max_offdiagonal = MAX(max_offdiagonal,ABS(A->val[iptr]));
+                } else {
+                    fnorm=0;
+                    for(bi=0;bi<block_size*block_size;++bi)
+                    {
+                       fnorm+=A->val[iptr*block_size*block_size+bi]*A->val[iptr*block_size*block_size+bi];
+                    }
+                    fnorm=sqrt(fnorm);
+                    max_offdiagonal = MAX(max_offdiagonal,fnorm);
+                }
             }
         }
         
         threshold = theta*max_offdiagonal;
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             j=A->pattern->index[iptr];
-            if(ABS(A->val[iptr])>=threshold && i!=j) {
-                Paso_IndexList_insertIndex(&(index_list[i]),j);
-                /*Paso_IndexList_insertIndex(&(index_list[j]),i);*/
-            }
+             if(block_size==1) {
+                    if(ABS(A->val[iptr])>=threshold && i!=j) {
+                        Paso_IndexList_insertIndex(&(index_list[i]),j);
+                        /*Paso_IndexList_insertIndex(&(index_list[j]),i);*/
+                    }
+             } else {
+                    if (i!=j) {
+                        fnorm=0;
+                        for(bi=0;bi<block_size*block_size;++bi)
+                        {
+                           fnorm+=A->val[iptr*block_size*block_size+bi]*A->val[iptr*block_size*block_size+bi];
+                        }
+                        fnorm=sqrt(fnorm);
+                        if(fnorm>=threshold) {
+                            Paso_IndexList_insertIndex(&(index_list[i]),j);
+                            /*Paso_IndexList_insertIndex(&(index_list[j]),i);*/
+                        }
+                    }
+             }
         }
        }
       }
@@ -221,10 +312,12 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
 
 void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
 {
-  dim_t i,j,n;
+  dim_t i,j,n,bi;
   index_t iptr;
   double diag,eps_Aii,val;
   double* diags;
+  double fnorm;
+  dim_t block_size=A->row_block_size;
 
 
   Paso_Pattern *out=NULL;
@@ -248,25 +341,47 @@ void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double
   }
 
 
-    #pragma omp parallel for private(i,iptr,diag) schedule(static)
+    #pragma omp parallel for private(i,iptr,diag,fnorm,bi) schedule(static)
       for (i=0;i<n;++i) {
         diag = 0;
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             if(A->pattern->index[iptr] == i){
-                diag+=A->val[iptr];
+                if(block_size==1) {
+                    diag+=A->val[iptr];
+                } else {
+                    fnorm=0;
+                    for(bi=0;bi<block_size*block_size;++bi)
+                    {
+                       fnorm+=A->val[iptr*block_size*block_size+bi]*A->val[iptr*block_size*block_size+bi];
+                    }
+                    fnorm=sqrt(fnorm);
+                    diag+=fnorm;
+                }
+                
             }
         }
         diags[i]=ABS(diag);
       }
 
 
-    #pragma omp parallel for private(i,iptr,j,val,eps_Aii) schedule(static)
+    #pragma omp parallel for private(i,iptr,j,val,eps_Aii,fnorm,bi) schedule(static)
      for (i=0;i<n;++i) {
        if (mis_marker[i]==IS_AVAILABLE) {
         eps_Aii = theta*theta*diags[i];
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             j=A->pattern->index[iptr];
-            val=A->val[iptr];
+            if(block_size==1) {
+                val=A->val[iptr];
+            } else {
+                fnorm=0;
+                for(bi=0;bi<block_size*block_size;++bi)
+                {
+                   fnorm+=A->val[iptr*block_size*block_size+bi]*A->val[iptr*block_size*block_size+bi];
+                }
+                fnorm=sqrt(fnorm);
+                val=fnorm;
+            }
+            
               if((val*val)>=(eps_Aii*diags[j])) {
                Paso_IndexList_insertIndex(&(index_list[i]),j);
               }
@@ -713,7 +828,7 @@ void Paso_Pattern_Standard(Paso_SparseMatrix* A, index_t* mis_marker, double the
         threshold = theta*max_offdiagonal;
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             j=A->pattern->index[iptr];
-            if(ABS(A->val[iptr])>=threshold && i!=j) {
+            if(ABS(A->val[iptr])>threshold && i!=j) {
                 Paso_IndexList_insertIndex(&(index_list[i]),j);
             }
         }
@@ -799,13 +914,12 @@ void Paso_Pattern_Standard(Paso_SparseMatrix* A, index_t* mis_marker, double the
                 }
             }
         }
-        for (iptr=S->ptr[i];iptr<S->ptr[i+1]; ++iptr) {
+       for (iptr=S->ptr[i];iptr<S->ptr[i+1]; ++iptr) {
             j=S->index[iptr];
             if(mis_marker[j]==IS_AVAILABLE) {
                            lambda[j]--; 
             }
         }
-            
     }
     
    /* Used when transpose of S is not available */
@@ -1045,6 +1159,243 @@ Paso_Pattern* Paso_Pattern_getTranspose(Paso_Pattern* P){
 
     return outpattern;
 }
+
+
+/************** BLOCK COARSENENING *********************/
+
+void Paso_Pattern_Standard_Block(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
+{
+  dim_t i,n,j,k;
+  index_t iptr,jptr;
+  /*index_t *index,*where_p;*/
+  double threshold,max_offdiagonal;
+  dim_t *lambda;   /*mesure of importance */
+  dim_t maxlambda=0;
+  index_t index_maxlambda=0;
+  double time0=0;
+  bool_t verbose=0;
+  dim_t n_block=A->row_block_size;
+  
+  double fnorm=0;
+  dim_t bi;
+  
+  Paso_Pattern *S=NULL;
+  Paso_Pattern *ST=NULL;
+  Paso_IndexList* index_list=NULL;
+  
+  /*dim_t lk;*/
+
+  index_list=TMPMEMALLOC(A->pattern->numOutput,Paso_IndexList);
+   if (! Paso_checkPtr(index_list)) {
+        #pragma omp parallel for private(i) schedule(static)
+        for(i=0;i<A->pattern->numOutput;++i) {
+             index_list[i].extension=NULL;
+             index_list[i].n=0;
+        }
+    }
+  
+  
+  n=A->numRows;
+  if (A->pattern->type & PATTERN_FORMAT_SYM) {
+    Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
+    return;
+  }
+  
+    time0=Paso_timer();
+   k=0;
+   /*Paso_Pattern_getReport(n,mis_marker);*/
+   /*printf("Blocks %d %d\n",n_block,A->len);*/
+   
+    /*S_i={j \in N_i; i strongly coupled to j}*/
+    #pragma omp parallel for private(i,bi,fnorm,iptr,max_offdiagonal,threshold,j) schedule(static)
+    for (i=0;i<n;++i) {
+      if(mis_marker[i]==IS_AVAILABLE) {
+        max_offdiagonal = DBL_MIN;
+        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+            j=A->pattern->index[iptr];
+            if( j != i){
+                fnorm=0;
+                for(bi=0;bi<n_block*n_block;++bi)
+                   {
+                    fnorm+=A->val[iptr*n_block*n_block+bi]*A->val[iptr*n_block*n_block+bi];
+                   }
+                fnorm=sqrt(fnorm);
+                max_offdiagonal = MAX(max_offdiagonal,fnorm);
+            }
+        }
+        threshold = theta*max_offdiagonal;
+        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+            j=A->pattern->index[iptr];
+            if( j != i){
+                fnorm=0;
+                for(bi=0;bi<n_block*n_block;++bi)
+                   {
+                    fnorm+=A->val[iptr*n_block*n_block+bi]*A->val[iptr*n_block*n_block+bi];
+                   }
+                fnorm=sqrt(fnorm);
+            if(fnorm>=threshold) {
+                Paso_IndexList_insertIndex(&(index_list[i]),j);
+            }
+            }
+        }
+      }
+    }
+   
+  S=Paso_IndexList_createPattern(0, A->pattern->numOutput,index_list,0,A->pattern->numInput,0);
+  ST=Paso_Pattern_getTranspose(S);
+  
+  /*printf("Patterns len %d %d\n",S->len,ST->len);*/
+    
+  time0=Paso_timer()-time0;
+  if (verbose) fprintf(stdout,"timing: RS filtering and pattern creation: %e\n",time0);
+  
+  lambda=TMPMEMALLOC(n,dim_t);
+  
+  #pragma omp parallel for private(i) schedule(static)
+  for (i=0;i<n;++i) { lambda[i]=IS_NOT_AVAILABLE; }
+  
+  /*S_i={j \in N_i; i strongly coupled to j}*/
+
+  /*
+  #pragma omp parallel for private(i,iptr,lk) schedule(static)
+  for (i=0;i<n;++i) {
+        lk=0;
+        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+            if(ABS(A->val[iptr])>1.e-15 && A->pattern->index[iptr]!=i )
+               lk++;
+        }
+        #pragma omp critical
+        k+=lk;
+        if(k==0) {
+            mis_marker[i]=IS_IN_F;
+        }
+  }
+  */
+
+
+  k=0;
+  maxlambda=0;
+  
+  time0=Paso_timer();
+  
+    for (i=0;i<n;++i) {
+      if(mis_marker[i]==IS_AVAILABLE) {
+        lambda[i]=how_many(k,ST,FALSE);   /* if every row is available then k and i are the same.*/
+        /*lambda[i]=how_many(i,S,TRUE);*/
+        /*printf("lambda[%d]=%d, k=%d \n",i,lambda[i],k);*/
+        k++;
+        if(maxlambda<lambda[i]) {
+            maxlambda=lambda[i];
+            index_maxlambda=i;
+        }
+      }
+    }
+ 
+  k=0;
+  time0=Paso_timer()-time0;
+  if (verbose) fprintf(stdout,"timing: Lambdas computations at the begining: %e\n",time0);
+  
+  time0=Paso_timer();
+  
+  /*Paso_Pattern_getReport(n,mis_marker);*/
+  
+  while (Paso_Util_isAny(n,mis_marker,IS_AVAILABLE)) {
+    
+    if(index_maxlambda<0) {
+        break;
+    }
+    
+    i=index_maxlambda;
+    if(mis_marker[i]==IS_AVAILABLE) {
+        mis_marker[index_maxlambda]=IS_IN_C;
+        lambda[index_maxlambda]=IS_NOT_AVAILABLE;
+        for (iptr=ST->ptr[i];iptr<ST->ptr[i+1]; ++iptr) {
+            j=ST->index[iptr];
+            if(mis_marker[j]==IS_AVAILABLE) {
+                mis_marker[j]=IS_IN_F;
+                lambda[j]=IS_NOT_AVAILABLE;
+                for (jptr=S->ptr[j];jptr<S->ptr[j+1]; ++jptr) {
+                        k=S->index[jptr];
+                        if(mis_marker[k]==IS_AVAILABLE) {
+                           lambda[k]++; 
+                        }
+                }
+            }
+        }
+       for (iptr=S->ptr[i];iptr<S->ptr[i+1]; ++iptr) {
+            j=S->index[iptr];
+            if(mis_marker[j]==IS_AVAILABLE) {
+                           lambda[j]--; 
+            }
+        }
+    }
+    
+   /* Used when transpose of S is not available */
+   /*
+    for (i=0;i<n;++i) {
+        if(mis_marker[i]==IS_AVAILABLE) {
+            if (i==index_maxlambda) {
+                mis_marker[index_maxlambda]=IS_IN_C;
+                lambda[index_maxlambda]=-1;
+                for (j=0;j<n;++j) {
+                    if(mis_marker[j]==IS_AVAILABLE) {
+                        index=&(S->index[S->ptr[j]]);
+                        where_p=(index_t*)bsearch(&i,
+                                        index,
+                                        S->ptr[j + 1]-S->ptr[j],
+                                        sizeof(index_t),
+                                        Paso_comparIndex);
+                        if (where_p!=NULL) {
+                            mis_marker[j]=IS_IN_F;
+                            lambda[j]=-1;
+                            for (iptr=S->ptr[j];iptr<S->ptr[j+1]; ++iptr) {
+                                k=S->index[iptr];
+                                if(mis_marker[k]==IS_AVAILABLE) {
+                                   lambda[k]++; 
+                                }
+                            }
+                        }
+                        
+                    }
+                }
+                
+            }
+        }
+    }
+   */
+   index_maxlambda=arg_max(n,lambda, IS_NOT_AVAILABLE);
+  }
+  
+  time0=Paso_timer()-time0;
+  if (verbose) fprintf(stdout,"timing: Loop : %e\n",time0);
+
+  /*Paso_Pattern_getReport(n,mis_marker);*/
+  
+  #pragma omp parallel for private(i) schedule(static)
+  for (i=0;i<n;++i) 
+      if(mis_marker[i]==IS_AVAILABLE) {
+        mis_marker[i]=IS_IN_F;
+       }
+       
+  /*Paso_Pattern_getReport(n,mis_marker);*/
+
+    TMPMEMFREE(lambda);
+    
+     /* clean up */
+    if (index_list!=NULL) {
+        #pragma omp parallel for private(i) schedule(static)
+        for(i=0;i<A->pattern->numOutput;++i) Paso_IndexList_free(index_list[i].extension);
+     }
+
+    TMPMEMFREE(index_list);
+    Paso_Pattern_free(S);
+
+    /* swap to TRUE/FALSE in mis_marker */
+     #pragma omp parallel for private(i) schedule(static)
+     for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_F);
+     
+}
+
 
 
 #undef IS_AVAILABLE

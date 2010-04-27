@@ -209,6 +209,17 @@ void Paso_MKL1(Paso_SparseMatrix* A,
                           bool_t verbose) {
 #ifdef MKL
      index_t i;
+     
+     /***** FOR AMG **/
+     double **xx;
+     double **bb;
+     Paso_SparseMatrix *block[MAX_BLOCK_SIZE];
+    
+     xx=MEMALLOC(A->row_block_size,double*);
+     bb=MEMALLOC(A->row_block_size,double*);
+     if (Paso_checkPtr(xx) || Paso_checkPtr(bb)) return;
+     /****/
+
 
      if (! (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
         Paso_setError(TYPE_ERROR,"Paso_MKL: MKL requires CSR format with index offset 1 and block size 1.");
@@ -246,44 +257,83 @@ void Paso_MKL1(Paso_SparseMatrix* A,
      iparm[18] =0; /* =-1 report flops */
 
 
-     if (pt==NULL) {
-        /* allocate address pointer */
-        pt=MEMALLOC(64,_MKL_DSS_HANDLE_t);
-        if (Paso_checkPtr(pt)) return;
-        A->solver=(void*) pt;
-        for (i=0;i<64;++i) pt[i]=NULL;
-        /* symbolic factorization */
-        phase = MKL_PHASE_SYMBOLIC_FACTORIZATION;
-        PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
-                 &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
-                 iparm, &msglvl, in, out, &error);
-        if (error != MKL_ERROR_NO) {
-             Paso_setError(VALUE_ERROR,"symbolic factorization in paradiso library failed.");
-             Paso_MKL_free1(A);
-        } else {
-           /* LDU factorization */
-           phase = MKL_PHASE_FACTORIZATION;
-           PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
-                &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
-                iparm, &msglvl, in, out, &error);
-           if (error != MKL_ERROR_NO) {
-             Paso_setError(ZERO_DIVISION_ERROR,"factorization in paradiso library failed. Most likely the matrix is singular.");
-             Paso_MKL_free1(A);
-           }
-           if (verbose) printf("MKL: LDU factorization completed.\n");
-        }
+     /******* FOR AMG ****/
+     for (i=0;i<A->row_block_size;i++) {
+          xx[i]=MEMALLOC(A->numRows,double);
+          bb[i]=MEMALLOC(A->numRows,double);
+          if (Paso_checkPtr(xx[i]) && Paso_checkPtr(bb[i])) return;
      }
-     /* forward backward substitution\ */
-     if (Paso_noError())  {
-        phase = MKL_PHASE_SOLVE;
-        PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
-                 &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
-                 iparm, &msglvl, in, out, &error);
-        if (verbose) printf("MKL: solve completed.\n");
-        if (error != MKL_ERROR_NO) {
-              Paso_setError(VALUE_ERROR,"forward/backward substition in paradiso library failed. Most likely the matrix is singular.");
-        }
+     
+     /*#pragma omp parallel for private(i,j) schedule(static)*/
+     for (i=0;i<A->numRows;i++) {
+         for (j=0;j<A->row_block_size;j++) {
+          bb[j][i]=in[A->row_block_size*i+j];
+          xx[j][i]=0;  
+         }
+      }
+     
+     for (i=0;i<MAX_BLOCK_SIZE;++i) {
+          block[i]=NULL;
      }
+     /*****************/
+
+     for (i=0;i<A->row_block_size;++i) {
+        block[i]=Paso_SparseMatrix_getBlock(A,i+1);
+        
+          if (pt==NULL) {
+             /* allocate address pointer */
+             pt=MEMALLOC(64,_MKL_DSS_HANDLE_t);
+             if (Paso_checkPtr(pt)) return;
+             block[i]->solver=(void*) pt;
+             for (i=0;i<64;++i) pt[i]=NULL;
+             /* symbolic factorization */
+             phase = MKL_PHASE_SYMBOLIC_FACTORIZATION;
+             PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+                      &n, block[i]->val, block[i]->pattern->ptr, block[i]->pattern->index, &idum, &nrhs,
+                      iparm, &msglvl, bb[i], xx[i], &error);
+             if (error != MKL_ERROR_NO) {
+                  Paso_setError(VALUE_ERROR,"symbolic factorization in paradiso library failed.");
+                  Paso_MKL_free1(block[i]);
+             } else {
+                /* LDU factorization */
+                phase = MKL_PHASE_FACTORIZATION;
+                PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+                     &n, block[i]->val, block[i]->pattern->ptr, block[i]->pattern->index, &idum, &nrhs,
+                     iparm, &msglvl, bb[i], xx[i], &error);
+                if (error != MKL_ERROR_NO) {
+                  Paso_setError(ZERO_DIVISION_ERROR,"factorization in paradiso library failed. Most likely the matrix is singular.");
+                  Paso_MKL_free1(block[i]);
+                }
+                if (verbose) printf("MKL: LDU factorization completed.\n");
+             }
+          }
+          /* forward backward substitution\ */
+          if (Paso_noError())  {
+             phase = MKL_PHASE_SOLVE;
+             PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+                      &n, block[i]->val, block[i]->pattern->ptr, block[i]->pattern->index, &idum, &nrhs,
+                      iparm, &msglvl, bb[i], xx[i], &error);
+             if (verbose) printf("MKL: solve completed.\n");
+             if (error != MKL_ERROR_NO) {
+                   Paso_setError(VALUE_ERROR,"forward/backward substition in paradiso library failed. Most likely the matrix is singular.");
+             }
+          }
+     }
+     
+     /***** FOR AMG ********/
+     /*#pragma omp parallel for private(i,j) schedule(static)*/
+      for (i=0;i<A->numRows;i++) {
+          for (j=0;j<A->row_block_size;j++) {
+          out[A->row_block_size*i+j]=xx[j][i];
+          }
+       }
+       
+     for (i=0;i<A->row_block_size;i++) {
+                MEMFREE(xx[i]);
+                MEMFREE(bb[i]);
+                Paso_SparseMatrix_free(block[i]);
+      }
+      /*****************/
 #else
     Paso_setError(SYSTEM_ERROR,"Paso_MKL:MKL is not avialble.");
 #endif

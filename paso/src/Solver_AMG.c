@@ -123,7 +123,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
   index_t* mis_marker=NULL;  
   index_t* counter=NULL;
   /*index_t iPtr,*index, *where_p;*/
-  dim_t i;
+  dim_t i,j;
   Paso_SparseMatrix * A_c=NULL;
   double time0=0;
   Paso_SparseMatrix * Atemp=NULL;
@@ -134,21 +134,23 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
   double S;
   index_t iptr;
   */
-  /*char filename[8];*/
-  /*sprintf(filename,"AMGLevel%d",level);
+  /*
+  char filename[8];
+    
+  sprintf(filename,"AMGLevel%d",level);
   
   Paso_SparseMatrix_saveMM(A_p,filename);
   */
   
   /*Make sure we have block sizes 1*/
-  if (A_p->col_block_size>1) {
+  /*if (A_p->col_block_size>1) {
      Paso_setError(TYPE_ERROR,"Paso_Solver_getAMG: AMG requires column block size 1.");
      return NULL;
   }
   if (A_p->row_block_size>1) {
      Paso_setError(TYPE_ERROR,"Paso_Solver_getAMG: AMG requires row block size 1.");
      return NULL;
-  }
+  }*/
   out=MEMALLOC(1,Paso_Solver_AMG);
   out->Smoother=MEMALLOC(1,Paso_Solver_Smoother);
   /* identify independend set of rows/columns */
@@ -238,12 +240,12 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
              Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);
         }
         else if (options->coarsening_method == PASO_STANDARD_COARSENING) {
-             Paso_Pattern_Standard(A_p,mis_marker,options->coarsening_threshold);
+             Paso_Pattern_Standard_Block(A_p,mis_marker,options->coarsening_threshold);
         }
         else {
            /*Default coarseneing*/
-            Paso_Pattern_Standard(A_p,mis_marker,options->coarsening_threshold);
-            /*Paso_Pattern_Read("RS.spl",n,mis_marker);*/
+            Paso_Pattern_Standard_Block(A_p,mis_marker,options->coarsening_threshold);
+            /*Paso_Pattern_Read("Standard.spl",n,mis_marker);*/
             /*Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);*/
             /*Paso_Pattern_greedy_Agg(A_p,mis_marker,options->coarsening_threshold);*/
             /*Paso_Pattern_greedy(A_p->pattern,mis_marker);*/
@@ -359,14 +361,14 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                       /* for (i = 0; i < n; ++i) {
                                   printf("##mis_marker[%d]=%d\n",i,mis_marker[i]);
                        }
-                      */                    
+                      */                   
                       time0=Paso_timer();
                       Paso_SparseMatrix_updateWeights(A_p,out->W_FC,mis_marker);
                       time0=Paso_timer()-time0;
                       if (timing) fprintf(stdout,"timing: updateWeights: %e\n",time0);
         
-                      
-                      /*sprintf(filename,"W_FCafter_%d",level);
+                      /*
+                      sprintf(filename,"W_FCafter_%d",level);
                       Paso_SparseMatrix_saveMM(out->W_FC,filename);
                       */
                       
@@ -377,8 +379,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                       if (timing) fprintf(stdout,"timing: getProlongation: %e\n",time0);
                       /*out->P=Paso_SparseMatrix_loadMM_toCSR("P1.mtx");*/
                       
-                      
-                      /*sprintf(filename,"P_%d",level);
+                      /*
+                      sprintf(filename,"P_%d",level);
                       Paso_SparseMatrix_saveMM(out->P,filename);
                       */
                       
@@ -412,12 +414,11 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                     
                                         
                     /*Paso_Solver_getCoarseMatrix(A_c, A_p,out->R,out->P);*/
-                    
-                    
-                    /*sprintf(filename,"A_C_%d",level);
+                    /*                    
+                    sprintf(filename,"A_C_%d",level);
                     Paso_SparseMatrix_saveMM(A_c,filename);
                     */
-                     
+                                         
                     out->AMG_of_Coarse=Paso_Solver_getAMG(A_c,level-1,options);
               }
 
@@ -441,10 +442,12 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                               }
                              */
                              
-                              #pragma omp parallel for private(i) schedule(static)
+                              #pragma omp parallel for private(i,j) schedule(static)
                               for (i = 0; i < out->n_C; ++i) {
-                                     out->x_C[i]=0.;
-                                     out->b_C[i]=0.;
+                                     for(j=0;j<n_block;++j) {
+                                        out->x_C[i*n_block+j]=0.;
+                                        out->b_C[i*n_block+j]=0.;
+                                     }
                               }
                          }
               }
@@ -491,7 +494,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
 */
 
 void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
-     dim_t i;
+     dim_t i,j;
      double time0=0;
      double *r=NULL, *x0=NULL;
      bool_t timing=0;
@@ -503,8 +506,8 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
           Paso_UMFPACK_Handler * ptr=NULL;
      #endif
           
-     r=MEMALLOC(amg->n,double);
-     x0=MEMALLOC(amg->n,double);
+     r=MEMALLOC(amg->n*amg->n_block,double);
+     x0=MEMALLOC(amg->n*amg->n_block,double);
      
      if (amg->coarsest_level) {
       
@@ -547,13 +550,22 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         
         /***********/
         if (pre_sweeps>1) {
-            #pragma omp parallel for private(i) schedule(static)
-            for (i=0;i<amg->n;++i) r[i]=b[i];
+             #pragma omp parallel for private(i,j) schedule(static)
+           for (i=0;i<amg->n;++i) {
+            for (j=0;j<amg->n_block;++j) {
+              r[i*amg->n_block+j]=b[i*amg->n_block+j];  
+            }
+           }
         }
    
         while(pre_sweeps>1) {
-           #pragma omp parallel for private(i) schedule(static)
-           for (i=0;i<amg->n;++i) r[i]+=b[i];
+           #pragma omp parallel for private(i,j) schedule(static)
+           for (i=0;i<amg->n;++i) {
+            for (j=0;j<amg->n_block;++j) {
+              r[i*amg->n_block+j]+=b[i*amg->n_block+j];  
+            }
+           }
+           
            
             /* Compute the residual r=r-Ax*/
            Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
@@ -573,8 +585,12 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
          /* end of presmoothing */
         
          time0=Paso_timer();
-         #pragma omp parallel for private(i) schedule(static)
-         for (i=0;i<amg->n;++i) r[i]=b[i];
+          #pragma omp parallel for private(i,j) schedule(static)
+           for (i=0;i<amg->n;++i) {
+            for (j=0;j<amg->n_block;++j) {
+              r[i*amg->n_block+j]=b[i*amg->n_block+j];  
+            }
+           }
          
          /*r=b-Ax*/ 
          Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
@@ -594,14 +610,22 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(1.,amg->P,amg->x_C,0.,x0);
         
         /* x=x+x0 */
-        #pragma omp parallel for private(i) schedule(static)
-        for (i=0;i<amg->n;++i) x[i]+=x0[i];
+         #pragma omp parallel for private(i,j) schedule(static)
+           for (i=0;i<amg->n;++i) {
+            for (j=0;j<amg->n_block;++j) {
+              x[i*amg->n_block+j]+=x0[i*amg->n_block+j];  
+            }
+           }
         
       /*postsmoothing*/
 
       time0=Paso_timer();
-      #pragma omp parallel for private(i) schedule(static)
-      for (i=0;i<amg->n;++i) r[i]=b[i];
+       #pragma omp parallel for private(i,j) schedule(static)
+           for (i=0;i<amg->n;++i) {
+            for (j=0;j<amg->n_block;++j) {
+              r[i*amg->n_block+j]=b[i*amg->n_block+j];  
+            }
+           }
       
       /*r=b-Ax */
       Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
@@ -610,16 +634,22 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
       else if (amg->Smoother->ID==PASO_GS)    
             Paso_Solver_solveGS(amg->Smoother->GS,x0,r);
       
-      #pragma omp parallel for private(i) schedule(static)
-      for (i=0;i<amg->n;++i)  {
-       x[i]+=x0[i];
-      }
+           #pragma omp parallel for private(i,j) schedule(static)
+           for (i=0;i<amg->n;++i) {
+            for (j=0;j<amg->n_block;++j) {
+              x[i*amg->n_block+j]+=x0[i*amg->n_block+j];  
+            }
+           }
       
         /***************/ 
         while(post_sweeps>1) {
            
-           #pragma omp parallel for private(i) schedule(static)
-           for (i=0;i<amg->n;++i) r[i]=b[i];
+            #pragma omp parallel for private(i,j) schedule(static)
+           for (i=0;i<amg->n;++i) {
+            for (j=0;j<amg->n_block;++j) {
+              r[i*amg->n_block+j]=b[i*amg->n_block+j];  
+            }
+           }
            
            Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amg->A,x,1.,r);
            
@@ -628,10 +658,12 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
            else if (amg->Smoother->ID==PASO_GS)    
               Paso_Solver_solveGS(amg->Smoother->GS,x0,r);
               
-           #pragma omp parallel for private(i) schedule(static)
-            for (i=0;i<amg->n;++i)  {
-             x[i]+=x0[i];
+            #pragma omp parallel for private(i,j) schedule(static)
+           for (i=0;i<amg->n;++i) {
+            for (j=0;j<amg->n_block;++j) {
+              x[i*amg->n_block+j]+=x0[i*amg->n_block+j];  
             }
+           }
            post_sweeps-=1;
         }
         /**************/
