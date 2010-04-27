@@ -104,7 +104,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
                 
               if (options->verbose) printf("AMG preconditioner is used.\n");             
               /*For performace reasons we check if block_size is one. If yes, then we do not need to separate blocks.*/
-              if (A->row_block_size==1) {
+              if (A->row_block_size<4) {
                 prec->amg=Paso_Solver_getAMG(A->mainBlock,options->level_max,options);  
               }
               else {
@@ -222,7 +222,7 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
         case PASO_AMG:
 
             /*For performace reasons we check if block_size is one. If yes, then we do not need to do unnecessary copying.*/
-            if (A->row_block_size==1) {
+            if (A->row_block_size<4) {
                 Paso_Solver_solveAMG(prec->amg,x,b);
             }
             else {
