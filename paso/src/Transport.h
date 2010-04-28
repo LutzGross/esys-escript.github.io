@@ -15,7 +15,7 @@
 #ifndef INC_PASOTRANSPORT
 #define INC_PASOTRANSPORT
 
-#define DT_FACTOR_MAX 1000.
+#define DT_FACTOR_MAX 100000.
 
 #include "SystemMatrix.h"
 #include "Options.h"
@@ -27,9 +27,12 @@ typedef struct Paso_TransportProblem {
     bool_t useBackwardEuler;
 
     bool_t valid_matrices;
-/****************** REVISE ****************************/
+    double dt_max;       /* safe time step size */
+    double dt_failed;
+
+    /****************** REVISE ****************************/
     double dt_factor;  
-    double dt_max; 
+
     double constraint_factor;  
     double* constraint_weights;
 /*****************************************************/

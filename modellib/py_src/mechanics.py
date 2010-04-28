@@ -91,6 +91,10 @@ class Mechanics(Model):
            # open PDE:
            self.__pde=LinearPDE(self.domain)
            self.__pde.setSolverMethod(self.__pde.DIRECT)
+           self.__solver_options=self.__pde.getSolverOptions()
+           self.__solver_options.setSolverMethod(self.__solver_options.DIRECT)
+           self.__solver_options.setVerbosity(self.debug)
+
            # self.__pde.setSymmetryOn()
 
       def doStepPreprocessing(self,dt):
@@ -130,8 +134,8 @@ class Mechanics(Model):
           if not self.prescribed_velocity.isEmpty() and self.__iter==1:
                self.__pde.setValue(r=dt*self.prescribed_velocity)
           # solve the PDE:
-          self.__pde.setTolerance(self.rel_tol**2)
-          self.du=self.__pde.getSolution(verbose=self.debug)
+          self.__solver_options.setTolerance(self.rel_tol**2)
+          self.du=self.__pde.getSolution()
           # update geometry
           self.displacement=self.displacement+self.du
           self.domain.setX(self.__x+self.displacement)

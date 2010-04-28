@@ -34,4 +34,7 @@ void Paso_ReactiveSolver_free(Paso_ReactiveSolver* in);
 PASO_DLL_API
 double Paso_ReactiveSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp);
 
+PASO_DLL_API
+void Paso_ReactiveSolver_initialize(const double dt, Paso_TransportProblem* fctp, Paso_Options* options);
+
 #endif /* #ifndef INC_PASOREACTIVE */

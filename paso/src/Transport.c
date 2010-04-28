@@ -84,12 +84,13 @@ Paso_TransportProblem* Paso_TransportProblem_alloc(bool_t useBackwardEuler, Paso
      out->reference_counter=0;
      out->useBackwardEuler=useBackwardEuler;
      out->dt_max=LARGE_POSITIVE_FLOAT;
+     out->dt_failed=LARGE_POSITIVE_FLOAT;
 /****************** REVISE ****************************/
      out->constraint_factor=sqrt(LARGE_POSITIVE_FLOAT);
      if (out->useBackwardEuler) {
             out->dt_factor=DT_FACTOR_MAX;
      } else {
-            out->dt_factor=2;
+            out->dt_factor=2.;
      }
 /*****************************************************/
      out->valid_matrices=FALSE;
