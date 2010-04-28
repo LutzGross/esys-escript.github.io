@@ -69,9 +69,11 @@ void Paso_Solver_AMG_free(Paso_Solver_AMG * in) {
         #ifdef MKL
           Paso_MKL_free1(in->AOffset1);
           Paso_SparseMatrix_free(in->AOffset1);
+          Paso_SparseMatrix_free(in->AUnrolled);
         #else
           #ifdef UMFPACK
           Paso_UMFPACK1_free((Paso_UMFPACK_Handler*)(in->solver));
+          Paso_SparseMatrix_free(in->AUnrolled);
           #endif
         #endif
         }
@@ -134,9 +136,10 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
   double S;
   index_t iptr;
   */
-  /*
-  char filename[8];
-    
+  
+  /*char filename[8];*/
+  
+  /*  
   sprintf(filename,"AMGLevel%d",level);
   
   Paso_SparseMatrix_saveMM(A_p,filename);
@@ -173,6 +176,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      out->x_C=NULL;
      out->b_C=NULL;
      out->A=Paso_SparseMatrix_getReference(A_p);
+     out->AUnrolled=NULL;
+     out->AOffset1=NULL;
      out->solver=NULL;
      out->Smoother->ID=options->smoother;
      out->Smoother->Jacobi=NULL;
@@ -200,13 +205,15 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
          /*out->GS=Paso_Solver_getJacobi(A_p);*/
          
          #ifdef MKL
-                  out->AOffset1=Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, out->A->pattern,1,1, FALSE);
+                  out->AUnrolled=Paso_SparseMatrix_unroll(A_p);
+                  out->AOffset1=Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, out->AUnrolled->pattern,1,1, FALSE);
                   #pragma omp parallel for private(i) schedule(static)
                   for (i=0;i<out->A->len;++i) {
                        out->AOffset1->val[i]=out->A->val[i];
                   }
          #else
-            #ifdef UMFPACK 
+            #ifdef UMFPACK
+                out->AUnrolled=Paso_SparseMatrix_unroll(A_p);
             #else
               if (options->smoother == PASO_JACOBI)
                 out->Smoother->Jacobi=Paso_Solver_getJacobi(A_p);
@@ -526,7 +533,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
        #else
           #ifdef UMFPACK
              ptr=(Paso_UMFPACK_Handler *)(amg->solver);
-             Paso_UMFPACK1(&ptr,amg->A,x,b,timing);
+             Paso_UMFPACK1(&ptr,amg->AUnrolled,x,b,timing);
              amg->solver=(void*) ptr;
           #else      
            if(amg->Smoother->ID==PASO_JACOBI)

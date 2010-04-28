@@ -86,6 +86,8 @@ Paso_SparseMatrix* Paso_SparseMatrix_getRestriction(Paso_SparseMatrix* P);
 void Paso_SparseMatrix_updateWeights(Paso_SparseMatrix* A,Paso_SparseMatrix* W_FC, index_t* mis_marker);
 Paso_SparseMatrix* Paso_Solver_getCoarseMatrix(Paso_SparseMatrix *A, Paso_SparseMatrix *R, Paso_SparseMatrix *P);
 Paso_SparseMatrix* Paso_SparseMatrix_MatrixMatrix(Paso_SparseMatrix* A, Paso_SparseMatrix* B);
+Paso_SparseMatrix* Paso_SparseMatrix_RemovePositiveOffdiagonals(Paso_SparseMatrix* P);
+Paso_SparseMatrix* Paso_SparseMatrix_unroll(Paso_SparseMatrix* A);
 
 void Paso_SparseMatrix_setValues(Paso_SparseMatrix*,double);
 void Paso_SparseMatrix_saveMM_CSC(Paso_SparseMatrix *, FILE *);
