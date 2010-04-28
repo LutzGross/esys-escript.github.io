@@ -423,7 +423,7 @@ void Paso_FCTSolver_addCorrectedFluxes(double* f,const Paso_SystemMatrix *flux_m
 {
   dim_t i, j;
   Paso_SystemMatrixPattern *pattern;
-  register double RN_i, RP_i, f_i, f_ij;
+  register double RN_i, RP_i, f_i, f_ij, rtmp;
   register index_t iptr_ij;
   const double *RN=Paso_Coupler_borrowLocalData(RN_coupler);
   const double *remote_RN=Paso_Coupler_borrowRemoteData(RN_coupler);
@@ -432,7 +432,7 @@ void Paso_FCTSolver_addCorrectedFluxes(double* f,const Paso_SystemMatrix *flux_m
   const dim_t n=Paso_SystemMatrix_getTotalNumRows(flux_matrix);
 
   pattern=flux_matrix->pattern; 
-  #pragma omp parallel for schedule(static) private(i, RN_i, RP_i, iptr_ij, j, f_ij, f_i)
+  #pragma omp parallel for schedule(static) private(i, RN_i, RP_i, iptr_ij, j, f_ij, f_i, rtmp)
   for (i = 0; i < n; ++i) {
     
      RN_i=RN[i];
@@ -442,23 +442,16 @@ void Paso_FCTSolver_addCorrectedFluxes(double* f,const Paso_SystemMatrix *flux_m
      for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
          j=pattern->mainPattern->index[iptr_ij];
          f_ij=flux_matrix->mainBlock->val[iptr_ij];
-         if (f_ij >=0) {
-              f_i+=f_ij*MIN(RP_i,RN[j]);
-         } else {
-              f_i+=f_ij*MIN(RN_i,RP[j]);
-	 }
-
+         rtmp=(f_ij >=0 ) ? MIN(RP_i,RN[j]) : MIN(RN_i,RP[j]) ;
+	 f_i+=f_ij*rtmp;
      }
      #pragma ivdep
      for (iptr_ij=(pattern->col_couplePattern->ptr[i]);iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
           j=pattern->col_couplePattern->index[iptr_ij];
           f_ij=flux_matrix->col_coupleBlock->val[iptr_ij];
-          if (f_ij >=0) {
-              f_i+=f_ij*MIN(RP_i,remote_RN[j]);
-          }else {
-              f_i+=f_ij*MIN(RN_i,remote_RP[j]);
-          }
-      }
+          rtmp=(f_ij >=0 ) ? MIN(RP_i,remote_RN[j]) : MIN(RN_i,remote_RP[j]) ;
+          f_i+=f_ij*rtmp;
+     }
       f[i]+=f_i;
 
   }

@@ -111,6 +111,7 @@ err_t Paso_Solver_GMRES2(
                         normv2=Paso_l2(n,v[k],F->mpi_info);
                         h[INDEX2(k,k-1,l)]=normv2;
                     }
+/*
 {int p,q;
    for (p=0;p<k+1;p++){
    for (q=0;q<k+1;q++)printf("%e ",h[INDEX2(p,q,l)]);
@@ -118,6 +119,7 @@ err_t Paso_Solver_GMRES2(
    
    }
 }
+*/
                    /* 
                     *   watch out for happy breakdown
                     */
@@ -151,11 +153,9 @@ err_t Paso_Solver_GMRES2(
       /*
        * all done and ready for the forward substitution:
       */
-printf("k =  %d\n", k);
 
       for (i=k-1;i>=0;--i) {
            for (j=i+1;j<k;j++) {
-printf("%d %d : %e\n", i,j,h[INDEX2(i,j,l)]);
               g[i]-=h[INDEX2(i,j,l)]*g[j];
            }
            g[i]/=h[INDEX2(i,i,l)];

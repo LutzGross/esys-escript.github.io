@@ -86,6 +86,7 @@ err_t Paso_FCTSolver_setUpRightHandSide(Paso_TransportProblem* fctp, const doubl
                                         Paso_Coupler* QN_coupler, Paso_Coupler* QP_coupler,
                                         double *RN_m, Paso_Coupler* RN_m_coupler, double* RP_m, Paso_Coupler* RP_m_coupler,
                                         Paso_Performance* pp);
-
+PASO_DLL_API
+void Paso_FCTSolver_Function_initialize(const double dt3, Paso_TransportProblem* fctp, Paso_Options* options, Paso_Performance* pp);
 
 #endif /* #ifndef INC_PASOFCT */

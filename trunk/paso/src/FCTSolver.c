@@ -116,8 +116,8 @@ double Paso_FCTSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
    n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
 
 
-     /* set low order transport operator */
-     Paso_FCTSolver_setLowOrderOperator(fctp);
+   /* set low order transport operator */
+   Paso_FCTSolver_setLowOrderOperator(fctp);
           
    if (Paso_noError()) {
         /*
@@ -176,17 +176,20 @@ err_t Paso_FCTSolver_Function_call(Paso_Function * F,double* value, const double
 
 err_t Paso_FCTSolver_solve(Paso_Function* F, double* u, double dt, Paso_Options* options, Paso_Performance *pp) 
 {
-   double norm_u_tilde, ATOL, norm_u, norm_du, *du=NULL;
+   const dim_t num_critical_rates_max=3; /* number of rates >=critical_rate accepted before divergence is triggered */
+   const double critical_rate=0.6;   /* expected value of convergence rate */
+   
+   double norm_u_tilde, ATOL, norm_u, norm_du=LARGE_POSITIVE_FLOAT, norm_du_old, *du=NULL, rate;
    err_t errorCode=SOLVER_NO_ERROR;
    Paso_FCTSolver *more=(Paso_FCTSolver *) (F->more);
-   const double omega=1./dt*( more->transportproblem->useBackwardEuler ? 1. : 2.);
+   const double omega=1./(dt*Paso_Transport_getTheta(more->transportproblem));
    Paso_TransportProblem* fctp=more->transportproblem;
    const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
    const double atol=options->absolute_tolerance;  
    const double rtol=options->tolerance;
    const dim_t max_m=options->iter_max;
-   dim_t m=0;
-   bool_t converged=FALSE, max_m_reached=FALSE;
+   dim_t m=0, num_critical_rates=0 ;
+   bool_t converged=FALSE, max_m_reached=FALSE,diverged=FALSE;
 
    /* tolerance? */
     more->dt=dt;
@@ -205,21 +208,35 @@ err_t Paso_FCTSolver_solve(Paso_Function* F, double* u, double dt, Paso_Options*
         options->tolerance=rtol;
     } else {
             m=0;
-            converged=FALSE;
-            max_m_reached=FALSE;
 	    du=MEMALLOC(n,double);
 	    if (Paso_checkPtr(du)) {
                    errorCode=SOLVER_MEMORY_ERROR;
 	    } else {
 	         /* tolerance? */
 	         
-                 while ( (!converged) && (! max_m_reached) && Paso_noError()) {
+                 while ( (!converged) && (!diverged) && (! max_m_reached) && Paso_noError()) {
 	            errorCode=Paso_FCTSolver_Function_call(F,du, u, pp);
                     Paso_Update(n,1.,u,omega,du);
                      norm_u=Paso_lsup(n,u, fctp->mpi_info);
+		     norm_du_old=norm_du;
                      norm_du=Paso_lsup(n,du, fctp->mpi_info);
-                     if (options->verbose) printf("Paso_FCTSolver_solve: step %d: increment= %e (tolerance = %e)\n",m+1, norm_du*omega, ATOL);
+		     if (m ==0) {
+                         if (options->verbose) printf("Paso_FCTSolver_solve: step %d: increment= %e\n",m+1, norm_du*omega);
+
+		     } else {
+		         if (norm_du_old > 0.) {
+		             rate=norm_du/norm_du_old;
+			 } else if (norm_du <= 0.) {
+			     rate=0.;
+			 } else {
+			     rate=LARGE_POSITIVE_FLOAT;
+			 }
+                         if (options->verbose) printf("Paso_FCTSolver_solve: step %d: increment= %e (rate = %e)\n",m+1, norm_du*omega, rate);
+			 num_critical_rates+=( rate<critical_rate ? 0 : 1);
+		     }
+ 
                      max_m_reached=(m>max_m);
+		     diverged = (num_critical_rates >= num_critical_rates_max);
                      converged=(norm_du*omega <= ATOL) ;
                      m++;
                  }
@@ -229,7 +246,11 @@ err_t Paso_FCTSolver_solve(Paso_Function* F, double* u, double dt, Paso_Options*
 	        if (converged) {
 	            if (options->verbose) printf("Paso_FCTSolver_solve: iteration is completed.\n"); 
                     errorCode=SOLVER_NO_ERROR;
-                } else if (max_m_reached) {
+                } else if (diverged) {
+		    if (options->verbose) printf("Paso_FCTSolver_solve: divergence.\n");
+		    errorCode=SOLVER_DIVERGENCE;
+		} else if (max_m_reached) {
+		     if (options->verbose) printf("Paso_FCTSolver_solve: maximum number of iteration steps reached.\n");
 		    errorCode=SOLVER_MAXITER_REACHED;
 		}
 	    }
@@ -246,7 +267,7 @@ err_t Paso_FCTSolver_setUpRightHandSide(Paso_TransportProblem* fctp, const doubl
 					double *RN_m, Paso_Coupler* RN_m_coupler, double* RP_m, Paso_Coupler* RP_m_coupler, 
 					Paso_Performance* pp)
 {
-   const double omega=dt* (fctp->useBackwardEuler ? 1. : 0.5);
+   const double omega=dt* Paso_Transport_getTheta(fctp);
    const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
    /* distribute u */
    Paso_Coupler_startCollect(u_m_coupler,u_m);
@@ -290,17 +311,38 @@ err_t Paso_FCTSolver_setUpRightHandSide(Paso_TransportProblem* fctp, const doubl
    return SOLVER_NO_ERROR;
 }
 
+void Paso_FCTSolver_Function_initialize(const double dt, Paso_TransportProblem* fctp, Paso_Options* options, Paso_Performance* pp) 
+{
+   dim_t i;
+   const index_t* main_iptr=Paso_TransportProblem_borrowMainDiagonalPointer(fctp);
+   const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
+   const double theta = Paso_Transport_getTheta(fctp);
+   const double omega=1./(dt* theta);
+   register double m, rtmp4;
+
+   /*
+    *   fctp->iteration_matrix[i,i]=m[i]/(dt theta) -l[i,i]
+    *
+    */
+    Paso_solve_free(fctp->iteration_matrix);     
+    #pragma omp parallel for private(i,m,rtmp4)
+    for (i = 0; i < n; ++i) {
+           m=fctp->lumped_mass_matrix[i];
+           rtmp4=m*omega-(fctp->main_diagonal_low_order_transport_matrix[i]);
+           fctp->iteration_matrix->mainBlock->val[main_iptr[i]]=rtmp4;
+    }
+    Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
+    Paso_Solver_setPreconditioner(fctp->iteration_matrix,options);
+    Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
+}
+
 void Paso_FCTSolver_setUp(Paso_TransportProblem* fctp, const double dt, const double *u, double* b, double* uTilde, 
                           Paso_Coupler* uTilde_coupler, double *QN, Paso_Coupler* QN_coupler, double *QP, Paso_Coupler* QP_coupler,
                           Paso_Options* options, Paso_Performance* pp)
 {
    dim_t i;
-   const index_t* main_iptr=NULL;
    const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
-   const double theta = (fctp->useBackwardEuler ? 1. : 0.5);
-   const double omega=1./(dt* theta);
-   register double m, u_tilde_i, rtmp4;
-   main_iptr=Paso_TransportProblem_borrowMainDiagonalPointer(fctp);
+   register double m;
    /* distribute u */
    Paso_Coupler_startCollect(fctp->u_coupler,u);
    Paso_Coupler_finishCollect(fctp->u_coupler);
@@ -319,22 +361,12 @@ void Paso_FCTSolver_setUp(Paso_TransportProblem* fctp, const double dt, const do
    /*
     *   uTilde[i]=b[i]/m[i]
     *
-    *   fctp->iteration_matrix[i,i]=m[i]/(dt theta) -l[i,i]
-    *
-    */
-    Paso_solve_free(fctp->iteration_matrix);     
-    #pragma omp parallel for private(i,m,u_tilde_i,rtmp4)
+    */   
+    #pragma omp parallel for private(i,m)
     for (i = 0; i < n; ++i) {
            m=fctp->lumped_mass_matrix[i];
-           u_tilde_i=b[i]/m;
-           rtmp4=m*omega-(fctp->main_diagonal_low_order_transport_matrix[i]);
-           fctp->iteration_matrix->mainBlock->val[main_iptr[i]]=rtmp4;
-           uTilde[i]=u_tilde_i;
-    }
-    Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
-    Paso_Solver_setPreconditioner(fctp->iteration_matrix,options);
-    Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
-        
+           uTilde[i]=b[i]/m;
+    }        
     /* distribute uTilde: */
     Paso_Coupler_startCollect(uTilde_coupler,uTilde);
     Paso_Coupler_finishCollect(uTilde_coupler);

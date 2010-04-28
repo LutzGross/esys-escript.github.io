@@ -89,7 +89,7 @@ double Paso_ReactiveSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
   }
   #ifdef PASO_MPI
      rtmp_loc[0]=beta_0;
-     rtmp_loc[1]=1.*((double) fail );
+     rtmp_loc[1]=( (double) fail );
      MPI_Allreduce(rtmp_loc, rtmp, 2, MPI_DOUBLE, MPI_MAX, fctp->mpi_info->comm);
      beta_0=rtmp_loc[0];
      fail= (rtmp_loc[0] > 0) ? 1 : 0;
@@ -132,4 +132,7 @@ printf("beta = %e from beta_0 = %e\n",beta, beta_0-1);
       #endif
   }
   return dt_max;
+}
+void Paso_ReactiveSolver_initialize(const double dt, Paso_TransportProblem* fctp, Paso_Options* options)
+{
 }
