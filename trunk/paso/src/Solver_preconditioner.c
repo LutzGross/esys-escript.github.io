@@ -94,29 +94,29 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
               prec->type=PASO_GS;
               break;
             case PASO_AMG:
-	      prec->amgSystem=MEMALLOC(1,Paso_Solver_AMG_System);
+              if (options->verbose) printf("AMG preconditioner is used.\n");
+              prec->amg=Paso_Solver_getAMG(A->mainBlock,options->level_max,options);  
+	      /*
+              prec->amgSystem=MEMALLOC(1,Paso_Solver_AMG_System);
 	      if (Paso_checkPtr(prec->amgSystem)) return;
 	      prec->amgSystem->block_size=A->row_block_size;
 	      for (i=0;i<A->row_block_size;++i) {
 		prec->amgSystem->amgblock[i]=NULL;
 		prec->amgSystem->block[i]=NULL;
 	      }
-                
-              if (options->verbose) printf("AMG preconditioner is used.\n");             
+              */
+                       
               /*For performace reasons we check if block_size is one. If yes, then we do not need to separate blocks.*/
-              if (A->row_block_size<4) {
+              /*if (A->row_block_size==1) {
                 prec->amg=Paso_Solver_getAMG(A->mainBlock,options->level_max,options);  
               }
               else {
                 for (i=0;i<A->row_block_size;++i) {
                 prec->amgSystem->block[i]=Paso_SparseMatrix_getBlock(A->mainBlock,i+1);
-                /*sprintf(filename,"ABlock%d",i);
-                Paso_SparseMatrix_saveMM(prec->amgSystem->block[i],filename);
-                */
                 prec->amgSystem->amgblock[i]=Paso_Solver_getAMG(prec->amgSystem->block[i],options->level_max,options);
                 }
               }
-              
+              */
                           
               prec->type=PASO_AMG;
               break;
@@ -220,8 +220,10 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
            }
            break;
         case PASO_AMG:
+            Paso_Solver_solveAMG(prec->amg,x,b);
 
             /*For performace reasons we check if block_size is one. If yes, then we do not need to do unnecessary copying.*/
+            /*
             if (A->row_block_size<4) {
                 Paso_Solver_solveAMG(prec->amg,x,b);
             }
@@ -234,7 +236,6 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                     if (Paso_checkPtr(xx[i]) && Paso_checkPtr(bb[i])) return;
                 }
                 
-                /*#pragma omp parallel for private(i,j) schedule(static)*/
                 for (i=0;i<n;i++) {
                     for (j=0;j<A->row_block_size;j++) {
                      bb[j][i]=b[A->row_block_size*i+j];
@@ -246,7 +247,6 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                 Paso_Solver_solveAMG(prec->amgSystem->amgblock[i],xx[i],bb[i]);
                 }
                                
-                /*#pragma omp parallel for private(i,j) schedule(static)*/
                 for (i=0;i<n;i++) {
                     for (j=0;j<A->row_block_size;j++) {
                     x[A->row_block_size*i+j]=xx[j][i];
@@ -257,8 +257,8 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                 MEMFREE(xx[i]);
                 MEMFREE(bb[i]);
                 }
-               
             }
+            */
         break;
         case PASO_AMLI:
             
