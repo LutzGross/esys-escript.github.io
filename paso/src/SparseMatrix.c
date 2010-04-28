@@ -407,13 +407,11 @@ Paso_SparseMatrix* Paso_SparseMatrix_unroll(Paso_SparseMatrix* A) {
 	Paso_SparseMatrix *out = NULL;
 	/*Paso_Pattern* mainPattern=NULL;*/
 	int i;
-	dim_t output_block_size=A->row_block_size;
-	dim_t input_block_size=A->col_block_size;
 	dim_t block_size=A->row_block_size;
 	index_t iptr, optr1=0, optr2=0, optr3=0;
 	
-	/*mainPattern= Paso_Pattern_unrollBlocks(A->pattern, PATTERN_FORMAT_DEFAULT, output_block_size,input_block_size);*/
-	out  = Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1, A->pattern, output_block_size,input_block_size, FALSE);
+	/*mainPattern= Paso_Pattern_unrollBlocks(A->pattern, PATTERN_FORMAT_DEFAULT,  A->row_block_size,A->col_block_size);*/
+	out  = Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1, A->pattern, A->row_block_size,A->col_block_size, FALSE);
 	
 	#pragma omp parallel for private(i,optr1,optr2,optr3,iptr) schedule(static)
 	for (i=0;i<A->numRows;++i) {
