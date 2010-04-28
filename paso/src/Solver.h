@@ -136,6 +136,7 @@ struct Paso_Solver_AMG {
   
   Paso_SparseMatrix * A;
   Paso_SparseMatrix * AOffset1;
+  Paso_SparseMatrix * AUnrolled;
   void* solver;
   Paso_Solver_Smoother* Smoother;
   struct Paso_Solver_AMG * AMG_of_Coarse;
