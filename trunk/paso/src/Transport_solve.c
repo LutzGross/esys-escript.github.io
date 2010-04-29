@@ -174,7 +174,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
 
 double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 {
-   double dt_max, dt1, dt2;
+   double dt_max, dt1=LARGE_POSITIVE_FLOAT, dt2=LARGE_POSITIVE_FLOAT;
    if ( ! fctp->valid_matrices) {
      fctp->dt_failed=LARGE_POSITIVE_FLOAT;
      /* set row-sum of mass_matrix */
@@ -186,11 +186,11 @@ double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 
      
      /* XXXXXXXXX hier geht es weiter XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX */ 
-     dt1=Paso_ReactiveSolver_getSafeTimeStepSize(fctp);
-     dt2=Paso_FCTSolver_getSafeTimeStepSize(fctp);
+     if (Paso_noError()) dt1=Paso_ReactiveSolver_getSafeTimeStepSize(fctp);
+     if (Paso_noError()) dt2=Paso_FCTSolver_getSafeTimeStepSize(fctp);
      dt_max=MIN(dt1,dt2);
 
-     if (dt_max <= 0.)  {
+     if ( (dt_max <= 0.) &&  Paso_noError() ) {
             Paso_setError(TYPE_ERROR,"Paso_TransportProblem_solve: dt must be positive.");
       } 
      fctp->dt_max=dt_max;

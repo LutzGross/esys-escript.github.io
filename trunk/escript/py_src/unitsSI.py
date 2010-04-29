@@ -346,6 +346,7 @@ DEG=Unit("Ohm","Ohm",0.,pi/180.)
 #  Derived 
 #
 Poise= gram/cm/sec
+Darcy= 9.869233e-13*m**2
 #
 #  some constants
 #
