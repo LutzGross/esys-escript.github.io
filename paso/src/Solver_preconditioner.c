@@ -122,9 +122,12 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
               break;
 
             case PASO_AMLI:
-	      prec->amliSystem->block_size=A->row_block_size;
-	      if (Paso_checkPtr(prec->amliSystem)) return;
- 
+	      
+	      prec->amliSystem=MEMALLOC(1,Paso_Solver_AMLI_System);
+              if (Paso_checkPtr(prec->amliSystem)) return;
+                
+              prec->amliSystem->block_size=A->row_block_size;
+              
 	      for (i=0;i<A->row_block_size;++i) {
 		  prec->amliSystem->amliblock[i]=NULL;
 		  prec->amliSystem->block[i]=NULL;
