@@ -17,13 +17,17 @@
 
 #include "Transport.h"
 
+#define PASO_RT_EXP_LIM_MIN  sqrt(EPSILON) /* exp(h)-1 ~ h + h**2/2 for abs(h) <  PASO_RT_EXP_LIM_MIN */
+#define PASO_RT_EXP_LIM_MAX  log(1./sqrt(EPSILON)) /* it is assumed that exp(h) with  h>PASO_RT_EXP_LIM_MAX is not reliable */ 
+
+    
 typedef struct Paso_ReactiveSolver {
   double A;
 } Paso_ReactiveSolver;
 
 
 PASO_DLL_API
-err_t Paso_ReactiveSolver_solve(Paso_ReactiveSolver* support, Paso_TransportProblem* fctp, double* u, double dt, double* source, Paso_Options* options, Paso_Performance *pp);
+err_t Paso_ReactiveSolver_solve(Paso_ReactiveSolver* support, Paso_TransportProblem* fctp, double* u, const double dt, const double* source, Paso_Options* options, Paso_Performance *pp);
 
 PASO_DLL_API
 Paso_ReactiveSolver* Paso_ReactiveSolver_alloc(Paso_TransportProblem* fctp);

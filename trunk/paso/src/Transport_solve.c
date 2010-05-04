@@ -184,10 +184,10 @@ double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
      /* get a copy of the main diagonal of the mass matrix */
      Paso_SystemMatrix_copyFromMainDiagonal(fctp->mass_matrix,fctp->main_diagonal_mass_matrix);
 
-     
-     /* XXXXXXXXX hier geht es weiter XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX */ 
-     if (Paso_noError()) dt1=Paso_ReactiveSolver_getSafeTimeStepSize(fctp);
+     if (Paso_noError()) dt1=2*Paso_ReactiveSolver_getSafeTimeStepSize(fctp); /* factor 2 comes in as the RT solver is called with dt/2 */
      if (Paso_noError()) dt2=Paso_FCTSolver_getSafeTimeStepSize(fctp);
+     printf("Paso_TransportProblem_getSafeTimeStepSize: dt_max from reactive part = %e\n",dt1);
+     printf("Paso_TransportProblem_getSafeTimeStepSize: dt_max from transport part = %e\n",dt2);
      dt_max=MIN(dt1,dt2);
 
      if ( (dt_max <= 0.) &&  Paso_noError() ) {

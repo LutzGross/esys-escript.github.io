@@ -112,10 +112,9 @@ double Paso_FCTSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 {
    dim_t i, n;
    double dt_max=LARGE_POSITIVE_FLOAT, dt_max_loc;
-   register double l_ii,m;
+   register double l_ii,m_i;
+   index_t fail=0, fail_loc;
    n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
-
-
    /* set low order transport operator */
    Paso_FCTSolver_setLowOrderOperator(fctp);
           
@@ -124,27 +123,44 @@ double Paso_FCTSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
          *  calculate time step size:                                           
         */
         dt_max=LARGE_POSITIVE_FLOAT;
-        #pragma omp parallel private(dt_max_loc)
+	fail=0;
+        #pragma omp parallel private(dt_max_loc, fail_loc)
         {
                dt_max_loc=LARGE_POSITIVE_FLOAT;
-               #pragma omp for schedule(static) private(i,l_ii,m) 
+
+	       fail_loc=0;
+               #pragma omp for schedule(static) private(i,l_ii,m_i) 
                for (i=0;i<n;++i) {
                   l_ii=fctp->main_diagonal_low_order_transport_matrix[i];
-                  m=fctp->lumped_mass_matrix[i];
-                  if ( (l_ii<0 && m>0.) || (l_ii>0 && m<0) ) {
-                     dt_max_loc=MIN(dt_max_loc,-m/l_ii);
-                  }
+                  m_i=fctp->lumped_mass_matrix[i];
+		  if ( (m_i > 0) && (l_ii < 0 ) ) {
+		      dt_max_loc=MIN(dt_max_loc,-m_i/l_ii);
+		  } else {
+		      fail_loc=-1;
+		  }
                }
                #pragma omp critical 
                {
                   dt_max=MIN(dt_max,dt_max_loc);
+		  fail=MIN(fail, fail_loc);
                }
         }
         #ifdef PASO_MPI
-               dt_max_loc = dt_max;
-               MPI_Allreduce(&dt_max_loc, &dt_max, 1, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
+        {
+	       double rtmp_loc[2], rtmp[2];
+               rtmp_loc[0]=dt_max;
+	       rtmp_loc[1]= (double) fail;
+               MPI_Allreduce(rtmp_loc, rtmp, 2, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
+	       dt_max=rtmp[0];
+	       fail = rtmp[1] < 0 ? -1 : 0;
+	}
         #endif
-	if (dt_max<LARGE_POSITIVE_FLOAT) dt_max*=fctp->dt_factor;
+        if (fail < 0 ) {
+	   Paso_setError(VALUE_ERROR, "Paso_FCTSolver_getSafeTimeStepSize: negative mass or positive diffusion term detected.");
+	   return -1;
+	} else {
+	    if (dt_max<LARGE_POSITIVE_FLOAT) dt_max*=fctp->dt_factor;
+	}
    }
    return dt_max;
 }
