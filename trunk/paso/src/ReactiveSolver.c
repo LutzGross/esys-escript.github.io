@@ -44,7 +44,7 @@ err_t  Paso_ReactiveSolver_solve(Paso_ReactiveSolver* support, Paso_TransportPro
      dim_t i;
      const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
     
-     #pragma omp for schedule(static) private(i, d_ii, m_i, x_i, e_i, u_i. F_i) 
+     #pragma omp parallel for schedule(static) private(i, d_ii, m_i, x_i, e_i, u_i. F_i) 
      for (i=0;i<n;++i) {
         d_ii=fctp->reactive_matrix[i];
         m_i=fctp->lumped_mass_matrix[i];
@@ -66,7 +66,7 @@ err_t  Paso_ReactiveSolver_solve(Paso_ReactiveSolver* support, Paso_TransportPro
     #ifdef PASO_MPI
     {
         index_t fail_loc = fail;
-        MPI_Allreduce(&fail_loc, fail, 2, MPI_INT, MPI_MAX, fctp->mpi_info->comm);
+        MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MAX, fctp->mpi_info->comm);
     }
     #endif
     if (fail < 0 ) {
