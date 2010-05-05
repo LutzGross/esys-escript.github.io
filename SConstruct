@@ -193,7 +193,7 @@ if IS_WINDOWS_PLATFORM:
       env = Environment(tools = ['default'] + env['tools_names'],
                         options = opts)
 else:
-   if effective_hostname == 'service0':
+   if effective_hostname == 'savanna':
       env = Environment(tools = ['default', 'intelc'], options = opts)
    elif os.uname()[4]=='ia64':
       env = Environment(tools = ['default', 'intelc'], options = opts)
