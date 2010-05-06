@@ -22,7 +22,8 @@ __url__="https://launchpad.net/escript-finley"
 ############################################################FILE HEADER
 # example07a.py
 # Antony Hallam
-# Acoustic Wave Equation Simulation using displacement solution
+# Seismic Wave Equation Simulation using acceleration solution.
+# You can shorten the execution time by reducing variable tend from 60 to 0.5
 
 #######################################################EXTERNAL MODULES
 from esys.escript import *
@@ -37,82 +38,70 @@ import pylab as pl
 import matplotlib.cm as cm
 from esys.escript.linearPDEs import LinearPDE
 
-########################################################MPI WORLD CHECK
-if getMPISizeWorld() > 1:
-	import sys
-	print "This example will not run in an MPI world."
-	sys.exit(0)
-
 #################################################ESTABLISHING VARIABLES
 # where to save output data
-savepath = "data/example07"
+savepath = "data/example07a"
 mkDir(savepath)
 #Geometric and material property related variables.
 mx = 1000. # model lenght
-my = 1000. # model width
-ndx = 400 # steps in x direction 
-ndy = 400 # steps in y direction
+my = -1000. # model width
+ndx = 200 # steps in x direction 
+ndy = 200 # steps in y direction
 xstep=mx/ndx # calculate the size of delta x
-ystep=my/ndy # calculate the size of delta y
-
-c=380.0*m/sec  # velocity of sound in air
-csq=c*c #square of c
+ystep=abs(my/ndy) # calculate the size of delta y
+lam=3.462e9 #lames constant
+mu=3.462e9  #bulk modulus
+rho=1154.   #density
 # Time related variables.
 tend=1.5    # end time
 h=0.001     # time step
-# data recording times
-rtime=0.0 # first time to record
-rtime_inc=tend/20.0 # time increment to record
 #Check to make sure number of time steps is not too large.
 print "Time step size= ",h, "Expected number of outputs= ",tend/h
 
-U0=0.005 # amplitude of point source
-# want a spherical source in the middle of area
-xc=[500,500] # with reference to mx,my this is the source location
+U0=0.01 # amplitude of point source
+# will introduce a spherical source at middle left of bottom face
+xc=[ndx/2-ndx/4,0]
 
 ####################################################DOMAIN CONSTRUCTION
-mydomain=Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy) # create the domain
-x=mydomain.getX() # get the node locations of the domain
+domain=Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy) # create the domain
+x=domain.getX() # get the locations of the nodes in the domani
 
 ##########################################################ESTABLISH PDE
-mypde=LinearPDE(mydomain) # create pde
+mypde=LinearPDE(domain) # create pde
 mypde.setSymmetryOn() # turn symmetry on
 mypde.setValue(D=1.) # set the value of D in the general form to 1.
+# turn lumping on for more efficient solving
+mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
+kmat = kronecker(domain) # create the kronecker delta function of the domain
+mypde.setValue(D=kmat*rho) #set the general form value D
 
 ############################################FIRST TIME STEPS AND SOURCE
 # define small radius around point xc
-src_radius = 30
-print "src_radius = ",src_radius
+src_length = 20; print "src_length = ",src_length
 # set initial values for first two time steps with source terms
-u=U0*(cos(length(x-xc)*3.1415/src_radius)+1)*whereNegative(length(x-xc)-src_radius)
+src_dir=numpy.array([0.,-1.]) # defines direction of point source as down
+y=U0*(cos(length(x-xc)*3.1415/src_length)+1)*whereNegative(length(x-xc)-src_length)*src_dir
+mypde.setValue(y=y) #set the source as a function on the boundary
+# initial value of displacement at point source is constant (U0=0.01)
+# for first two time steps
+u=[0.0,0.0]*whereNegative(x)
 u_m1=u
-#plot source shape
-cut_loc=[] #where the cross section of the source along x will be
-src_cut=[] #where the cross section of the source will be
-# create locations for source cross section
-for i in range(ndx/2-ndx/10,ndx/2+ndx/10):
-    cut_loc.append(xstep*i)
-    src_cut.append([xstep*i,xc[1]])
-# locate the nearest nodes to the points in src_cut
-src=Locator(mydomain,src_cut)
-src_cut=src.getValue(u) #retrieve the values from the nodes
-# plot the x locations vs value and save the figure
-pl.plot(cut_loc,src_cut)
-pl.axis([xc[0]-src_radius*3,xc[0]+src_radius*3,0.,2.*U0])
-pl.savefig(os.path.join(savepath,"source_line.png"))
 
 ####################################################ITERATION VARIABLES
 n=0 # iteration counter
 t=0 # time counter
 ##############################################################ITERATION
 while t<tend:
-    g=grad(u); pres=csq*h*h*g # get current pressure
-    mypde.setValue(X=-pres,Y=(2.*u-u_m1)) # set values in pde
-    u_p1 = mypde.getSolution() # get the new displacement
-    u_m1=u; u=u_p1 # shift values back one time step for next iteration
-        # save current displacement, acceleration and pressure
+	# get current stress
+    g=grad(u); stress=lam*trace(g)*kmat+mu*(g+transpose(g))
+    mypde.setValue(X=-stress) # set PDE values
+    accel = mypde.getSolution() #get PDE solution for accelleration
+    u_p1=(2.*u-u_m1)+h*h*accel #calculate displacement
+    u_m1=u; u=u_p1 # shift values by 1
+    # save current displacement, acceleration and pressure
     if (t >= rtime):
-        saveVTK(os.path.join(savepath,"ex07b.%i.vtu"%n),displacement=length(u),tensor=pres)
+        saveVTK(os.path.join(savepath,"ex07b.%i.vtu"%n),displacement=length(u),\
+                                    acceleration=length(accel),tensor=pres)
         rtime=rtime+rtime_inc #increment data save time
     # increment loop values
     t=t+h; n=n+1

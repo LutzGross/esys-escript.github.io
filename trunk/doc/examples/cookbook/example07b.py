@@ -19,115 +19,115 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
+############################################################FILE HEADER
+# example07b.py
 # Antony Hallam
 # Acoustic Wave Equation Simulation using acceleration solution
 # and lumping.
 
-# Importing all the necessary modules required.
+#######################################################EXTERNAL MODULES
 from esys.escript import *
 from esys.finley import Rectangle
 import sys
 import os
 # smoothing operator 
-from esys.escript.pdetools import Projector
+from esys.escript.pdetools import Projector, Locator
+from esys.escript.unitsSI import *
 import numpy as np
 import pylab as pl
 import matplotlib.cm as cm
 from esys.escript.linearPDEs import LinearPDE
 
-# Establish a save path.
-savepath = "data/example07b"
-mkDir(savepath)
+########################################################MPI WORLD CHECK
+if getMPISizeWorld() > 1:
+	import sys
+	print "This example will not run in an MPI world."
+	sys.exit(0)
 
+#################################################ESTABLISHING VARIABLES
+# where to save output data
+savepath = "data/example07b2"
+mkDir(savepath) #make sure savepath exists
 #Geometric and material property related variables.
 mx = 1000. # model lenght
 my = 1000. # model width
-ndx = 400 # steps in x direction 
-ndy = 400 # steps in y direction
+ndx = 200 # steps in x direction 
+ndy = 200 # steps in y direction
+xstep=mx/ndx # calculate the size of delta x
+ystep=my/ndy # calculate the size of delta y
 
-xstep=mx/ndx
-ystep=my/ndy
-
-c=380.0
-csq=c*c
+c=380.0*m/sec # velocity of sound in air
+csq=c*c #square of c
 # Time related variables.
-tend=1.5    #end time
-#calculating )the timestep
-h=0.001
-#recording times
-rtime=0.0
-rtime_inc=tend/20.0
+tend=1.5    # end time
+h=0.005     # time step
+# data recording times
+rtime=0.0 # first time to record
+rtime_inc=tend/20.0 # time increment to record
 #Check to make sure number of time steps is not too large.
 print "Time step size= ",h, "Expected number of outputs= ",tend/h
 
-#uncomment the following lines to give the user a chance to stop
-#proceeder = raw_input("Is this ok?(y/n)")
-#Exit if user thinks too many outputs.
-#if proceeder == "n":
-#   sys.exit()
+U0=0.005 # amplitude of point source
+# want a spherical source in the middle of area
+xc=[500,500] # with reference to mx,my this is the source location
 
-U0=0.01 # amplitude of point source
-#  spherical source at middle of bottom face
+####################################################DOMAIN CONSTRUCTION
+mydomain=Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy) #create the domain
+x=mydomain.getX() #get the node locations of the domain
 
-xc=[500,500]
-
-mydomain=Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
-#wavesolver2d(mydomain,h,tend,lam,mu,rho,U0,xc,savepath,output="mpl")
-x=mydomain.getX()
-
-# ... open new PDE ...
-mypde=LinearPDE(mydomain)
-print mypde.isUsingLumping()
-print mypde.getSolverOptions()
+##########################################################ESTABLISH PDE
+mypde=LinearPDE(mydomain) # create pde
+# turn lumping on for more efficient solving
 mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
-mypde.setSymmetryOn()
-mypde.setValue(D=1.)
+mypde.setSymmetryOn() # turn symmetry on
+mypde.setValue(D=1.) # set the value of D in the general form to 1.
 
+############################################FIRST TIME STEPS AND SOURCE
 # define small radius around point xc
-src_radius = 2.5
+src_radius = 25.
 print "src_radius = ",src_radius
-
-# ... set initial values ....
-n=0
-# for first two time steps
+# set initial values for first two time steps with source terms
 u=U0*(cos(length(x-xc)*3.1415/src_radius)+1)*whereNegative(length(x-xc)-src_radius)
 u_m1=u
-t=0
-
 #plot source shape
-uT=np.array(u.toListOfTuples())
-uT=np.reshape(uT,(ndx+1,ndy+1))
-source_line=uT[ndx/2,:]
-pl.plot(source_line)
-pl.plot(source_line,'ro')
-pl.axis([70,130,0,0.05])
+cut_loc=[] #where the cross section of the source along x will be
+src_cut=[] #where the cross section of the source will be
+# create locations for source cross section
+for i in range(ndx/2-ndx/10,ndx/2+ndx/10):
+    cut_loc.append(xstep*i)
+    src_cut.append([xstep*i,xc[1]])
+# locate the nearest nodes to the points in src_cut
+src=Locator(mydomain,src_cut)
+src_cut=src.getValue(u) #retrieve the values from the nodes
+# plot the x locations vs value and save the figure
+pl.plot(cut_loc,src_cut)
+pl.axis([xc[0]-src_radius*3,xc[0]+src_radius*3,0.,2.*U0])
 pl.savefig(os.path.join(savepath,"source_line.png"))
 
-while t<tend:
-    # get current pressure
-    g=grad(u)
-    pres=csq*g
-    # set values
-    mypde.setValue(X=-pres)
-    # get new acceleration
-    accel = mypde.getSolution()
-    # shift displacements
-    u_p1=(2.*u-u_m1)+h*h*accel
-    u_m1=u
-    u=u_p1
-    # ... save current acceleration in units of gravity and displacements
-    if (t >= rtime):
-        saveVTK(os.path.join(savepath,"ex07b.%i.vtu"%n),output1 = length(u),tensor=pres)
-        rtime=rtime+rtime_inc
+###########################SAVING THE VALUE AT A LOC FOR EACH TIME STEP
+u_rec0=[] # array to hold values
+rec=Locator(mydomain,[250.,250.]) #location to record
+u_rec=rec.getValue(u); u_rec0.append(u_rec) #get the first two time steps
 
-	# increment loop values
-    t+=h
-    n+=1
+####################################################ITERATION VARIABLES
+n=0 # iteration counter
+t=0 # time counter
+##############################################################ITERATION
+while t<tend:
+    g=grad(u); pres=csq*g # get current pressure
+    mypde.setValue(X=-pres) # set values in pde
+    accel = mypde.getSolution() # get new acceleration
+    u_p1=(2.*u-u_m1)+h*h*accel # calculate the displacement for the next time step
+    u_m1=u; u=u_p1 # shift values back one time step for next iteration
+    # save current displacement, acceleration and pressure
+    if (t >= rtime):
+        saveVTK(os.path.join(savepath,"ex07b.%i.vtu"%n),displacement=length(u),\
+                                    acceleration=length(accel),tensor=pres)
+        rtime=rtime+rtime_inc #increment data save time
+    u_rec0.append(rec.getValue(u)) #location specific recording
+    # increment loop values
+    t=t+h; n=n+1
     print n,"-th time step t ",t
 
-#~ u_pc_data.close()
-#~ os.system("mencoder mf://"+savepath+"/*.png -mf type=png:\
-#~ w=800:h=600:fps=25 -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o \
-#~ wsmpl.avi")
-
-#mencoder mf://*.png -mf type=png:\w=800:h=600:fps=25 -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o wsmpl.avi
+# save location specific recording to file
+pl.savetxt(os.path.join(savepath,'u_rec.asc'),u_rec0)
