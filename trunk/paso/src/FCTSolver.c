@@ -127,7 +127,6 @@ double Paso_FCTSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
         #pragma omp parallel private(dt_max_loc, fail_loc)
         {
                dt_max_loc=LARGE_POSITIVE_FLOAT;
-
 	       fail_loc=0;
                #pragma omp for schedule(static) private(i,l_ii,m_i) 
                for (i=0;i<n;++i) {
