@@ -177,7 +177,7 @@ void Paso_TransportProblem_setUpConstraint(Paso_TransportProblem* fctp,  const d
    }
 
    
-   #pragma omp for schedule(static) private(i,m,rtmp)
+   #pragma omp parallel for schedule(static) private(i,m,rtmp)
    for (i=0;i<n;++i) {
         if (q[i]>0) {
            m=fctp->mass_matrix->mainBlock->val[main_iptr[i]];
@@ -196,7 +196,7 @@ void Paso_TransportProblem_insertConstraint(Paso_TransportProblem* fctp,  const 
    dim_t i, n;
    n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
 
-   #pragma omp for schedule(static) private(i)
+   #pragma omp parallel for schedule(static) private(i)
    for (i=0;i<n;++i) source[i]+=fctp->constraint_weights[i] * r[i];
 }
 /*****************************************************/
