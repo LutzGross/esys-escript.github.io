@@ -46,7 +46,7 @@ if getMPISizeWorld() > 1:
 
 #################################################ESTABLISHING VARIABLES
 # where to save output data
-savepath = "data/example07b2"
+savepath = "data/example07b"
 mkDir(savepath) #make sure savepath exists
 #Geometric and material property related variables.
 mx = 1000. # model lenght

@@ -30,8 +30,9 @@ The Laplacian opperator which can be written as $\Delta$ or $\nabla^2$  is
 calculated via the divergence of the gradient of the object, which is in this
 example $p$. Thus we can write;
 \begin{equation}
- \nabla^2 p = \nabla \cdot \nabla p = \frac{\partial^2 p}{\partial
-x^2\hackscore{i}}
+ \nabla^2 p = \nabla \cdot \nabla p = 
+	\sum\hackscore{i}^n
+	\frac{\partial^2 p}{\partial x^2\hackscore{i}}
  \label{eqn:laplacian}
 \end{equation}
 For the two dimensional case in Cartesian coordinates \refEq{eqn:laplacian}
@@ -66,7 +67,9 @@ pressure field which acts in the directions $p \hackscore{0}$ and $p
 \end{equation}
 
 \refEq{eqn:grad} corresponds to the Linear PDE general form value
-$X$. Notice however that the gernal form contains the term $X \hackscore{i,j}$,
+$X$. Notice however that the general form contains the term $X
+\hackscore{i,j}$\footnote{This is the first derivative in the $j^{th}$
+direction for the $i^{th}$ component of the solution.},
 hence for a rank 0 object there is no need to do more than calculate the
 gradient and submit it to the solver. In the case of the rank 1 or greater
 object, it is nesscary to calculate the trace also. This is the sum of the
@@ -134,7 +137,7 @@ problems.
 This requirement makes the wave equation arduous to
 solve numerically due to the large number of time iterations required in each
 solution. Models with very high velocities and frequencies will be the worst
-effected by this problem.
+affected by this problem.
 
 \section{Displacement Solution}
 \sslist{example07a.py}
@@ -232,7 +235,8 @@ pl.axis([xc[0]-src_radius*3,xc[0]+src_radius*3,0.,2*U0])
 pl.savefig(os.path.join(savepath,"source_line.png"))
 \end{python}
 \begin{figure}[h]
- \includegraphics[width=5in]{figures/sourceline.png}
+ \centering
+ \includegraphics[width=6in]{figures/sourceline.png}
  \caption{Cross section of the source function.}
  \label{fig:cxsource}
 \end{figure}
@@ -245,7 +249,7 @@ function.
 \begin{python}
  rec=Locator(mydomain,[250.,250.])
 \end{python}
- When the solution \verb u  is update we can extract the value at that point
+ When the solution \verb u  is updated we can extract the value at that point
 via;
 \begin{python}
  u_rec=rec.getValue(u)
@@ -265,7 +269,7 @@ the \verb Locator  function.
 \sslist{example07b.py}
 
 An alternative method is to solve for the acceleration $\frac{\partial ^2
-p}{\partial t^2}$ directly, and derive the the displacement solution from the
+p}{\partial t^2}$ directly, and derive the displacement solution from the
 PDE solution. \refEq{eqn:waveu} is thus modified;
 \begin{equation}
   \nabla ^2 p - \frac{1}{c^2} a = 0
@@ -277,12 +281,15 @@ After each iteration the displacement is re-evaluated via;
  p\hackscore{(t+1)}=2p\hackscore{(t)} - p\hackscore{(t-1)} + h^2a
 \end{equation}
 
+\subsection{Lumping}
 For \esc, the acceleration solution is prefered as it allows the use of matrix
 lumping. Lumping or mass lumping as it is sometimes known, is the process of
 aggressively approximating the density elements of a mass matrix into the main
 diagonal. The use of Lumping is motivaed by the simplicity of diagonal matrix
  inversion. As a result, Lumping can significantly reduce the computational
-requirements of a problem.
+requirements of a problem. Care should be taken however, as this
+function can only be used when the $A$, $B$ and $C$ coefficients of the
+general form are zero. 
 
 To turn lumping on in \esc one can use the command;
 \begin{python}
