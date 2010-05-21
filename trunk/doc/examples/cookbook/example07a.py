@@ -45,7 +45,7 @@ if getMPISizeWorld() > 1:
 
 #################################################ESTABLISHING VARIABLES
 # where to save output data
-savepath = "data/example07"
+savepath = "data/example07a"
 mkDir(savepath)
 #Geometric and material property related variables.
 mx = 1000. # model lenght
@@ -112,7 +112,7 @@ while t<tend:
     u_m1=u; u=u_p1 # shift values back one time step for next iteration
         # save current displacement, acceleration and pressure
     if (t >= rtime):
-        saveVTK(os.path.join(savepath,"ex07b.%i.vtu"%n),displacement=length(u),tensor=pres)
+        saveVTK(os.path.join(savepath,"ex07a.%i.vtu"%n),displacement=length(u),tensor=pres)
         rtime=rtime+rtime_inc #increment data save time
     # increment loop values
     t=t+h; n=n+1

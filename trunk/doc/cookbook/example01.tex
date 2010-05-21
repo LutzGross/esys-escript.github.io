@@ -295,7 +295,7 @@ only to define the coefficients of the PDE and solve the PDE. The PDE object has
 advanced features, but these are not required in simple cases.
 
 
-\begin{figure}[t]
+\begin{figure}[htp]
  \centering
    \includegraphics[width=6in]{figures/functionspace.pdf}
    \caption{\esc domain construction overview}
@@ -598,14 +598,6 @@ python example01a.py
 if the system is configured correctly (please talk to your system
 administrator).
 
-\begin{figure}
-\begin{center}
-\includegraphics[width=4in]{figures/ttblockspyplot150}
-\caption{Example 1b: Total Energy in the Blocks over Time (in seconds)}
-\label{fig:onedheatout1} 
-\end{center}
-\end{figure}
-
 \subsection{Plotting the Total Energy} 
 \sslist{example01b.py}
 
@@ -675,6 +667,15 @@ The last statement generates the plot and writes the result into the file
 \verb|totE.png| which can be displayed by (almost) any image viewer. 
 As expected the total energy is constant over time, see
 \reffig{fig:onedheatout1}.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=4in]{figures/ttblockspyplot150}
+\caption{Example 1b: Total Energy in the Blocks over Time (in seconds)}
+\label{fig:onedheatout1} 
+\end{center}
+\end{figure}
+\clearpage
 
 \subsection{Plotting the Temperature Distribution}
 \label{sec: plot T}
@@ -769,6 +770,7 @@ $1$, $50$ and $200$}
 \label{fig:onedheatout} 
 \end{center}
 \end{figure}
+\clearpage
 
 We use the same techniques provided by \mpl as we have used to plot the total
 energy over time. 
