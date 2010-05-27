@@ -3814,3 +3814,193 @@ escript::applyBinaryCFunction(boost::python::object cfunc, boost::python::tuple 
 }
 
 #endif // IKNOWWHATIMDOING
+
+Data
+escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval)
+{
+    // First, we need to make sure that trueval and falseval are compatible types.
+    // also need to ensure that mask is a proper type for a mask
+    // Need to choose a functionspace and shape for result
+    // need to catch DataEmpty as well ?
+
+    // only allowing scalar masks
+
+    if (mask.getDataPointRank()!=0) 
+    {
+	throw DataException("Only supporting scalar masks");
+	// Allowing people to slice two different objects together within a single datapoint - not allowing that
+
+    }
+
+
+
+//     if (trueval.isLazy() || falseval.isLazy() || mask.isLazy())
+//     {
+// 	throw DataException("Not supporting laziness yet");
+// 
+//     }
+
+    if (trueval.getDataPointShape()!=falseval.getDataPointShape()) 
+    {
+	throw DataException("condEval: shapes of true and false values must match.");
+    }
+    
+
+    FunctionSpace fs=trueval.getFunctionSpace();	// should check this for compatibility as well
+    if (trueval.getFunctionSpace()!=falseval.getFunctionSpace())
+    {
+	throw DataException("FunctionSpaces must match atm");
+    }
+
+    if (mask.isLazy() && !mask.actsExpanded())
+    {
+	mask.resolve();
+    }
+    if (trueval.isLazy() && !trueval.actsExpanded())
+    {
+	trueval.resolve();
+    }
+    if (falseval.isLazy() && !falseval.actsExpanded())
+    {
+	falseval.resolve();
+    }
+
+    if (mask.isConstant() && trueval.isConstant() && falseval.isConstant())
+    {
+	Data result(0,trueval.getDataPointShape(), fs , false);
+	if (mask.getSampleDataRO(0)[0]>0)
+	{
+	    result.copy(trueval);
+	}
+	else
+	{
+	    result.copy(falseval);
+	}
+	return result;
+    }
+    // Now we need to promote to correct ReadyData types
+    // If they are lazy, they must be expanded
+    if (mask.actsExpanded() || trueval.actsExpanded() || falseval.actsExpanded())
+    {
+	if (!mask.isLazy()) {mask.expand();}
+	if (!trueval.isLazy()) {trueval.expand();}
+	if (!falseval.isLazy()) {falseval.expand();}
+    }
+    else if (mask.isTagged() || trueval.isTagged() || falseval.isTagged())
+    {
+	mask.tag();
+	trueval.tag();
+	falseval.tag();
+    }
+    // by this point all data will be of the same ready type.
+    if (mask.isTagged())
+    {
+	Data result(0,trueval.getDataPointShape(), fs , false);
+	result.tag();
+	DataTagged* rdat=dynamic_cast<DataTagged*>(result.getReady());
+	DataTagged* tdat=dynamic_cast<DataTagged*>(trueval.getReady());
+	DataTagged* fdat=dynamic_cast<DataTagged*>(falseval.getReady());
+	const DataTagged* mdat=dynamic_cast<DataTagged*>(mask.getReady());
+	DataTypes::ValueType::ValueType srcptr;
+
+	// default value first
+	if (mdat->getDefaultValueRO(0)>0)
+	{
+	    srcptr=&(tdat->getDefaultValueRW(0));
+	} else {
+	    srcptr=&(fdat->getDefaultValueRW(0));
+	}
+	for (int i=0;i<trueval.getDataPointSize();++i)
+	{
+	    *(&(rdat->getDefaultValueRW(0))+i)=*(srcptr+i);
+	}
+
+	// now we copy the tags from the mask - if the mask does not have it then it doesn't appear
+  	const DataTagged::DataMapType& maskLookup=mdat->getTagLookup();
+  	DataTagged::DataMapType::const_iterator i;
+  	DataTagged::DataMapType::const_iterator thisLookupEnd=maskLookup.end();
+	for (i=maskLookup.begin();i!=thisLookupEnd;i++)
+	{
+	    if (mdat->getDataByTagRO(i->first,0)>0)
+	    {
+		rdat->addTaggedValue(i->first,trueval.getDataPointShape(), tdat->getVectorRO(), tdat->getOffsetForTag(i->first));
+	    }
+	    else
+	    {
+		rdat->addTaggedValue(i->first,falseval.getDataPointShape(), fdat->getVectorRO(), fdat->getOffsetForTag(i->first));
+	    }
+	}
+
+	return result;
+    }
+    if (!trueval.actsExpanded() || !falseval.actsExpanded() || !mask.actsExpanded())
+    {
+	throw DataException("Only supporting all expanded args to condEval atm");
+    }
+    else if (mask.actsExpanded() && trueval.actsExpanded() && falseval.actsExpanded())
+    {
+	// Here is the code for all expanded objects
+	
+	Data result(0,trueval.getDataPointShape(), fs , true);	// Need to support non-expanded as well
+	// OPENMP 3.0 allows unsigned loop vars.
+	#if defined(_OPENMP) && (_OPENMP < 200805)
+	long i;
+	#else
+	size_t i;
+	#endif
+	DataVector& rvec=result.getReady()->getVectorRW();		// don't need to get aquireWrite since we made it
+	unsigned int psize=result.getDataPointSize();
+	
+	size_t numsamples=result.getNumSamples();
+	size_t dppsample=result.getNumDataPointsPerSample();
+	#pragma omp parallel for private(i) schedule(static)
+	for (i=0;i<numsamples;++i)
+	{
+			// We are assuming that the first datapoint in the sample determines which side to use
+			// for the whole sample.
+		const DataAbstract::ValueType::value_type* src=0;
+		const DataAbstract::ValueType::value_type* masksample=mask.getSampleDataRO(i);
+		if (masksample[0]>0)	// first scalar determines whole sample
+		{
+		    src=trueval.getSampleDataRO(i);
+		}
+		else
+		{
+		    src=falseval.getSampleDataRO(i);
+		}
+/*		const DataAbstract::ValueType::value_type* truesample=0;
+		const DataAbstract::ValueType::value_type* falsesample=0;*/
+		for (int j=0;j<dppsample;++j)
+		{
+		    size_t offset=j*psize;
+// 		    const DataAbstract::ValueType::value_type* src=0;
+// 		    if (masksample[j] <= 0) // scalar mask remember
+// 		    {
+// 			if (falsesample==0)
+// 			{
+// 				falsesample=falseval.getSampleDataRO(i);
+// 			} 
+// 			src=falsesample;
+// 		    }
+// 		    else
+// 		    {
+// 			if (truesample==0)
+// 			{
+// 				truesample=trueval.getSampleDataRO(i);
+// 			} 
+// 			src=truesample;
+// 		    }
+		    for (long k=0;k<psize;++k)
+		    {
+			rvec[i*dppsample*psize+offset+k]=(src)[offset+k];
+		    }
+		}
+	
+	}
+	return result;
+    } else {
+	throw DataException("Unsupported combination of DataAbstracts");
+
+    }
+
+}
