@@ -567,8 +567,8 @@ If false, the result is a list of scalars [1, 2, ...]
 
  /**
     \brief
-    Return the sample data for the given sample no. This is not the
-    preferred interface but is provided for use by C code.
+    Return the sample data for the given sample no.
+    Please do not use this unless you NEED to access samples individually
     \param sampleNo - Input - the given sample no.
     \return pointer to the sample data.
 */
@@ -580,8 +580,8 @@ If false, the result is a list of scalars [1, 2, ...]
 
   /**
      \brief
-     Return the sample data for the given sample no. This is not the
-     preferred interface but is provided for use by C code.
+     Return the sample data for the given sample no.
+    Please do not use this unless you NEED to access samples individually
      \param sampleNo - Input - the given sample no.
      \return pointer to the sample data.
   */
@@ -1759,6 +1759,8 @@ template <class BinaryOp>
 #ifdef IKNOWWHATIMDOING
   friend ESCRIPT_DLL_API Data applyBinaryCFunction(boost::python::object cfunc, boost::python::tuple shape, escript::Data& d, escript::Data& e);
 #endif
+  friend ESCRIPT_DLL_API Data condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
+
 };
 
 
@@ -1767,6 +1769,11 @@ ESCRIPT_DLL_API
 Data
 applyBinaryCFunction(boost::python::object func, boost::python::tuple shape, escript::Data& d, escript::Data& e);
 #endif
+
+
+ESCRIPT_DLL_API
+Data
+condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
 
 
 }   // end namespace escript
