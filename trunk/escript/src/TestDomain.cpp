@@ -201,7 +201,7 @@ bool TestDomain::operator!=(const AbstractDomain& other) const
 
 bool TestDomain::canTag(int functionSpaceCode) const
 {
-  return false;
+  return true;
 }
 
 int TestDomain::getNumberOfTagsInUse(int functionSpaceCode) const
@@ -212,6 +212,20 @@ int TestDomain::getNumberOfTagsInUse(int functionSpaceCode) const
 const int* TestDomain::borrowListOfTagsInUse(int functionSpaceCode) const
 {
   return defaultList;
+}
+
+escript::Data TestDomain::getX() const
+{
+  Data res(0,DataTypes::scalarShape,FunctionSpace( getPtr(), getDefaultCode()),true);
+  DataTypes::ValueType& vec=res.getReady()->getVectorRW();
+  for (int i=0;i<m_samples;++i)
+  {
+    for (int j=0;j<m_dpps;++j)
+    {
+	vec[i*m_dpps+j]=i+(1.0*j)/m_dpps;
+    }
+  }
+  return res;
 }
 
 FunctionSpace

@@ -1756,6 +1756,7 @@ template <class BinaryOp>
   void set_m_data(DataAbstract_ptr p);
 
   friend class DataAbstract;		// To allow calls to updateShareStatus
+  friend class TestDomain;		// so its getX will work quickly
 #ifdef IKNOWWHATIMDOING
   friend ESCRIPT_DLL_API Data applyBinaryCFunction(boost::python::object cfunc, boost::python::tuple shape, escript::Data& d, escript::Data& e);
 #endif
