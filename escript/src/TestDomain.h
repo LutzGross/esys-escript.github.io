@@ -95,6 +95,14 @@ class TestDomain : public AbstractDomain {
 
   /**
      \brief
+     Returns locations in the domain.
+  */
+  ESCRIPT_DLL_API
+  virtual escript::Data getX() const;
+
+
+  /**
+     \brief
      Interpolates data given on source onto target where source and target are given on different domains.
      We do not permit interpolation into the TestDomain so this method always throws.
   */
