@@ -114,14 +114,14 @@ double Paso_ReactiveSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
                   d_ii=fctp->reactive_matrix[i];
                   m_i=fctp->lumped_mass_matrix[i];
 		  if (m_i > 0) {
-		      if (d_ii>0) dt_max_loc=MIN(dt_max_loc, m_i/d_ii);
+		      if ( d_ii>0 ) dt_max_loc=MIN(dt_max_loc, m_i/d_ii);
 		  } else {
 		      fail_loc=-1;
 		  }
                }
                #pragma omp critical 
                {
-                  dt_max=MIN(dt_max,dt_max_loc);
+                  dt_max=MIN(dt_max, dt_max_loc);
 		  fail=MIN(fail, fail_loc);
                }
         }
@@ -139,7 +139,11 @@ double Paso_ReactiveSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 	   Paso_setError(VALUE_ERROR, "Paso_ReactiveSolver_getSafeTimeStepSize: negative mass term detected.");
 	   return -1;
 	} else {
-	    if (dt_max<LARGE_POSITIVE_FLOAT) dt_max*=0.5*EXP_LIM_MAX;
+	    if (dt_max < LARGE_POSITIVE_FLOAT ) {
+               dt_max*=0.5*EXP_LIM_MAX;
+            } else {
+               dt_max=LARGE_POSITIVE_FLOAT;
+            }
 	}
    }
    return dt_max;
