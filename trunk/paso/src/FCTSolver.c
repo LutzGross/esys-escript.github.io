@@ -112,7 +112,7 @@ double Paso_FCTSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 {
    dim_t i, n;
    double dt_max=LARGE_POSITIVE_FLOAT, dt_max_loc;
-   register double l_ii,m_i;
+   register double l_ii,m_i,al_ii;
    index_t fail=0, fail_loc;
    n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
    /* set low order transport operator */
@@ -128,12 +128,13 @@ double Paso_FCTSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
         {
                dt_max_loc=LARGE_POSITIVE_FLOAT;
 	       fail_loc=0;
-               #pragma omp for schedule(static) private(i,l_ii,m_i) 
+               #pragma omp for schedule(static) private(i,l_ii,m_i, al_ii) 
                for (i=0;i<n;++i) {
                   l_ii=fctp->main_diagonal_low_order_transport_matrix[i];
                   m_i=fctp->lumped_mass_matrix[i];
-		  if ( (m_i > 0) && (l_ii < 0 ) ) {
-		      dt_max_loc=MIN(dt_max_loc,-m_i/l_ii);
+                  al_ii=ABS(l_ii); /* al_ii should be negative, abs is taken to avoid problems with almost zero but positive values for l_ii */
+		  if ( (m_i > 0) ) {
+		      if (al_ii>0) dt_max_loc=MIN(dt_max_loc,m_i/al_ii);
 		  } else {
 		      fail_loc=-1;
 		  }
@@ -155,7 +156,7 @@ double Paso_FCTSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 	}
         #endif
         if (fail < 0 ) {
-	   Paso_setError(VALUE_ERROR, "Paso_FCTSolver_getSafeTimeStepSize: negative mass or positive diffusion term detected.");
+	   Paso_setError(VALUE_ERROR, "Paso_FCTSolver_getSafeTimeStepSize: negative mass matrix entries detected.");
 	   return -1;
 	} else {
 	    if (dt_max<LARGE_POSITIVE_FLOAT) dt_max*=fctp->dt_factor;
