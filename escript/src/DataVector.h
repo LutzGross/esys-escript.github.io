@@ -49,6 +49,7 @@ class ESCRIPT_DLL_API DataVector {
   //
   // The underlying type used to implement the vector.
   typedef ElementType *  ValueType;
+  typedef const ElementType * ConstValueType;
 
   //
   // Various types exported to clients of this class.
