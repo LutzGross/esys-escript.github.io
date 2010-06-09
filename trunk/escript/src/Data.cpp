@@ -3832,14 +3832,6 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
 
     }
 
-
-
-//     if (trueval.isLazy() || falseval.isLazy() || mask.isLazy())
-//     {
-// 	throw DataException("Not supporting laziness yet");
-// 
-//     }
-
     if (trueval.getDataPointShape()!=falseval.getDataPointShape()) 
     {
 	throw DataException("condEval: shapes of true and false values must match.");
@@ -3898,17 +3890,17 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
 	Data result(0,trueval.getDataPointShape(), fs , false);
 	result.tag();
 	DataTagged* rdat=dynamic_cast<DataTagged*>(result.getReady());
-	DataTagged* tdat=dynamic_cast<DataTagged*>(trueval.getReady());
-	DataTagged* fdat=dynamic_cast<DataTagged*>(falseval.getReady());
+	const DataTagged* tdat=dynamic_cast<const DataTagged*>(trueval.getReady());
+	const DataTagged* fdat=dynamic_cast<const DataTagged*>(falseval.getReady());
 	const DataTagged* mdat=dynamic_cast<DataTagged*>(mask.getReady());
-	DataVector::ValueType srcptr;
+	DataVector::ConstValueType srcptr;
 
 	// default value first
 	if (mdat->getDefaultValueRO(0)>0)
 	{
-	    srcptr=&(tdat->getDefaultValueRW(0));
+	    srcptr=&(tdat->getDefaultValueRO(0));
 	} else {
-	    srcptr=&(fdat->getDefaultValueRW(0));
+	    srcptr=&(fdat->getDefaultValueRO(0));
 	}
 	for (int i=0;i<trueval.getDataPointSize();++i)
 	{
