@@ -74,7 +74,8 @@ enum ES_optype
 	TRACE=TRANS+1,
 	SWAP=TRACE+1,
 	MINVAL=SWAP+1,
-	MAXVAL=MINVAL+1
+	MAXVAL=MINVAL+1,
+	CONDEVAL=MAXVAL+1
 };
 
 ESCRIPT_DLL_API
@@ -179,6 +180,16 @@ public:
   ESCRIPT_DLL_API
   DataLazy(DataAbstract_ptr left, ES_optype op, const int axis0, const int axis1);
 
+  /**
+  \brief Produce a DataLazy for a unary operation which requires two integer parameters.
+  \param mask scalar mask to select values.
+  \param left DataAbstract to use for true mask.
+  \param right DataAbstract to use for false mask.
+  \param tol tolerance
+  */
+  ESCRIPT_DLL_API
+  DataLazy(DataAbstract_ptr mask, DataAbstract_ptr left, DataAbstract_ptr right/*, double tol*/);
+
   ESCRIPT_DLL_API
   ~DataLazy();
 
@@ -263,7 +274,7 @@ public:
 
 private:
   DataReady_ptr m_id;	//  For IDENTITY nodes, stores a wrapped value.
-  DataLazy_ptr m_left, m_right;	// operands for operation.
+  DataLazy_ptr m_left, m_right, m_mask;	// operands for operation.
   ES_optype m_op;	// operation to perform.
 
   size_t m_samplesize;	// number of values required to store a sample
@@ -313,6 +324,9 @@ private:
 
   const DataTypes::ValueType*
   resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset);
+
+  const DataTypes::ValueType*
+  resolveNodeCondEval(int tid, int sampleNo, size_t& roffset);
 
   /**
   Does the work for toString. 

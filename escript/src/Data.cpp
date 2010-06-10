@@ -3841,9 +3841,9 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
     FunctionSpace fs=trueval.getFunctionSpace();	// should check this for compatibility as well
     if (trueval.getFunctionSpace()!=falseval.getFunctionSpace())
     {
-	throw DataException("FunctionSpaces must match atm");
+	throw DataException("condEval: FunctionSpaces must match.");
     }
-
+    // We aren't going to both with anything lazy except expanded data
     if (mask.isLazy() && !mask.actsExpanded())
     {
 	mask.resolve();
@@ -3927,71 +3927,66 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
     }
     if (!trueval.actsExpanded() || !falseval.actsExpanded() || !mask.actsExpanded())
     {
-	throw DataException("Only supporting all expanded args to condEval atm");
+	throw DataException("Programmer Error - Only actsExpanded Data should reach this point.");
     }
     else if (mask.actsExpanded() && trueval.actsExpanded() && falseval.actsExpanded())
     {
 	// Here is the code for all expanded objects
-	
-	Data result(0,trueval.getDataPointShape(), fs , true);	// Need to support non-expanded as well
-	// OPENMP 3.0 allows unsigned loop vars.
-	#if defined(_OPENMP) && (_OPENMP < 200805)
-	long i;
-	#else
-	size_t i;
-	#endif
-	DataVector& rvec=result.getReady()->getVectorRW();		// don't need to get aquireWrite since we made it
-	unsigned int psize=result.getDataPointSize();
-	
-	size_t numsamples=result.getNumSamples();
-	size_t dppsample=result.getNumDataPointsPerSample();
-	#pragma omp parallel for private(i) schedule(static)
-	for (i=0;i<numsamples;++i)
+        // this code will handle lazy data without expanding it just fine but lets allow people to lazyfy things
+
+	if (mask.isLazy() || trueval.isLazy() || falseval.isLazy() || AUTOLAZYON)
 	{
-			// We are assuming that the first datapoint in the sample determines which side to use
-			// for the whole sample.
-		const DataAbstract::ValueType::value_type* src=0;
-		const DataAbstract::ValueType::value_type* masksample=mask.getSampleDataRO(i);
-		if (masksample[0]>0)	// first scalar determines whole sample
-		{
-		    src=trueval.getSampleDataRO(i);
-		}
-		else
-		{
-		    src=falseval.getSampleDataRO(i);
-		}
-/*		const DataAbstract::ValueType::value_type* truesample=0;
-		const DataAbstract::ValueType::value_type* falsesample=0;*/
-		for (int j=0;j<dppsample;++j)
-		{
-		    size_t offset=j*psize;
-// 		    const DataAbstract::ValueType::value_type* src=0;
-// 		    if (masksample[j] <= 0) // scalar mask remember
-// 		    {
-// 			if (falsesample==0)
-// 			{
-// 				falsesample=falseval.getSampleDataRO(i);
-// 			} 
-// 			src=falsesample;
-// 		    }
-// 		    else
-// 		    {
-// 			if (truesample==0)
-// 			{
-// 				truesample=trueval.getSampleDataRO(i);
-// 			} 
-// 			src=truesample;
-// 		    }
-		    for (long k=0;k<psize;++k)
-		    {
-			rvec[i*dppsample*psize+offset+k]=(src)[offset+k];
-		    }
-		}
-	
+		DataAbstract_ptr pm=mask.borrowDataPtr();
+		DataAbstract_ptr pt=trueval.borrowDataPtr();
+		DataAbstract_ptr pf=falseval.borrowDataPtr();
+		// now we create a lazy node for this
+		DataLazy* p=new DataLazy(pm, pt, pf);
+		return Data(p);
 	}
-	return result;
+	else
+	{
+		
+		Data result(0,trueval.getDataPointShape(), fs , true);	// Need to support non-expanded as well
+		// OPENMP 3.0 allows unsigned loop vars.
+		#if defined(_OPENMP) && (_OPENMP < 200805)
+		long i;
+		#else
+		size_t i;
+		#endif
+		DataVector& rvec=result.getReady()->getVectorRW();		// don't need to get aquireWrite since we made it
+		unsigned int psize=result.getDataPointSize();
+		
+		size_t numsamples=result.getNumSamples();
+		size_t dppsample=result.getNumDataPointsPerSample();
+		#pragma omp parallel for private(i) schedule(static)
+		for (i=0;i<numsamples;++i)
+		{
+				// We are assuming that the first datapoint in the sample determines which side to use
+				// for the whole sample.
+			const DataAbstract::ValueType::value_type* src=0;
+			const DataAbstract::ValueType::value_type* masksample=mask.getSampleDataRO(i);
+			if (masksample[0]>0)	// first scalar determines whole sample
+			{
+			src=trueval.getSampleDataRO(i);
+			}
+			else
+			{
+			src=falseval.getSampleDataRO(i);
+			}
+			for (int j=0;j<dppsample;++j)
+			{
+			size_t offset=j*psize;
+			for (long k=0;k<psize;++k)
+			{
+				rvec[i*dppsample*psize+offset+k]=(src)[offset+k];
+			}
+			}
+		
+		}
+		return result;
+	}
     } else {
-	throw DataException("Unsupported combination of DataAbstracts");
+	throw DataException("condEval: Unsupported combination of DataAbstracts");
 
     }
 
