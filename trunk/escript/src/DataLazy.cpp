@@ -142,7 +142,8 @@ enum ES_opgroup
    G_NP1OUT_P,		// non-pointwise op with one output requiring a parameter
    G_TENSORPROD,	// general tensor product
    G_NP1OUT_2P,		// non-pointwise op with one output requiring two params
-   G_REDUCTION		// non-pointwise unary op with a scalar output
+   G_REDUCTION,		// non-pointwise unary op with a scalar output
+   G_CONDEVAL
 };
 
 
@@ -158,8 +159,9 @@ string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","^",
 			"prod",
 			"transpose", "trace",
 			"swapaxes",
-			"minval", "maxval"};
-int ES_opcount=43;
+			"minval", "maxval",
+			"condEval"};
+int ES_opcount=44;
 ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY, G_BINARY,
 			G_UNARY,G_UNARY,G_UNARY, //10
 			G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,	// 17
@@ -170,7 +172,8 @@ ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY,
 			G_TENSORPROD,
 			G_NP1OUT_P, G_NP1OUT_P,
 			G_NP1OUT_2P,
-			G_REDUCTION, G_REDUCTION};
+			G_REDUCTION, G_REDUCTION,
+			G_CONDEVAL};
 inline
 ES_opgroup
 getOpgroup(ES_optype op)
@@ -740,6 +743,71 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, const int axis0, const i
 LAZYDEBUG(cout << "(7)Lazy created with " << m_samplesize << endl;)
 }
 
+
+namespace
+{
+
+    inline int max3(int a, int b, int c)
+    {
+	int t=(a>b?a:b);
+	return (t>c?t:c);
+
+    }
+}
+
+DataLazy::DataLazy(DataAbstract_ptr mask, DataAbstract_ptr left, DataAbstract_ptr right/*, double tol*/)
+	: parent(left->getFunctionSpace(), left->getShape()),
+	m_op(CONDEVAL),
+	m_axis_offset(0),
+	m_transpose(0),
+	m_tol(0)
+{
+
+   DataLazy_ptr lmask;
+   DataLazy_ptr lleft;
+   DataLazy_ptr lright;
+   if (!mask->isLazy())
+   {
+	lmask=DataLazy_ptr(new DataLazy(mask));
+   }
+   else
+   {
+	lmask=dynamic_pointer_cast<DataLazy>(mask);
+   }
+   if (!left->isLazy())
+   {
+	lleft=DataLazy_ptr(new DataLazy(left));
+   }
+   else
+   {
+	lleft=dynamic_pointer_cast<DataLazy>(left);
+   }
+   if (!right->isLazy())
+   {
+	lright=DataLazy_ptr(new DataLazy(right));
+   }
+   else
+   {
+	lright=dynamic_pointer_cast<DataLazy>(right);
+   }
+   m_readytype=lmask->m_readytype;
+   if ((lleft->m_readytype!=lright->m_readytype) || (lmask->m_readytype!=lleft->m_readytype))
+   {
+	throw DataException("Programmer Error - condEval arguments must have the same readytype");
+   }
+   m_left=lleft;
+   m_right=lright;
+   m_mask=lmask;
+   m_samplesize=getNumDPPSample()*getNoValues();
+   m_children=m_left->m_children+m_right->m_children+m_mask->m_children+1;
+   m_height=max3(m_left->m_height,m_right->m_height,m_mask->m_height)+1;
+   LazyNodeSetup();
+   SIZELIMIT
+LAZYDEBUG(cout << "(8)Lazy created with " << m_samplesize << endl;)
+}
+
+
+
 DataLazy::~DataLazy()
 {
    delete[] m_sampleids;
@@ -977,6 +1045,7 @@ if (&x<stackend[omp_get_thread_num()])
 	return &(m_samples);		// sample is already resolved
   }
   m_sampleids[tid]=sampleNo;
+
   switch (getOpgroup(m_op))
   {
   case G_UNARY:
@@ -987,6 +1056,7 @@ if (&x<stackend[omp_get_thread_num()])
   case G_TENSORPROD: return resolveNodeTProd(tid, sampleNo, roffset);
   case G_NP1OUT_2P: return resolveNodeNP1OUT_2P(tid, sampleNo, roffset);
   case G_REDUCTION: return resolveNodeReduction(tid, sampleNo, roffset);
+  case G_CONDEVAL: return resolveNodeCondEval(tid, sampleNo, roffset);
   default:
     throw DataException("Programmer Error - resolveSample does not know how to process "+opToString(m_op)+".");
   }
@@ -1305,7 +1375,43 @@ DataLazy::resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset)
   return &m_samples;
 }
 
+const DataTypes::ValueType*
+DataLazy::resolveNodeCondEval(int tid, int sampleNo, size_t& roffset)
+{
+  if (m_readytype!='E')
+  {
+    throw DataException("Programmer error - resolveNodeCondEval should only be called on expanded Data.");
+  }
+  if (m_op!=CONDEVAL)
+  {
+    throw DataException("Programmer error - resolveNodeCondEval should only be called on CONDEVAL nodes.");
+  }
+  size_t subroffset;
+  size_t offset;
 
+
+  const ValueType* maskres=m_mask->resolveNodeSample(tid, sampleNo, subroffset);
+  const ValueType* srcres=0;
+  if ((*maskres)[subroffset]>0)
+  {
+	srcres=m_left->resolveNodeSample(tid, sampleNo, subroffset);
+  }
+  else
+  {
+	srcres=m_right->resolveNodeSample(tid, sampleNo, subroffset);
+  }
+
+  // Now we need to copy the result
+
+  roffset=m_samplesize*tid;
+  offset=roffset;
+  for (int i=0;i<m_samplesize;++i)
+  {
+	m_samples[roffset+i]=(*srcres)[subroffset+i];	
+  }
+
+  return &m_samples;
+}
 
 // This method assumes that any subexpressions which evaluate to Constant or Tagged Data
 // have already been collapsed to IDENTITY. So we must have at least one expanded child.
@@ -1806,6 +1912,15 @@ DataLazy::intoString(ostringstream& oss) const
 	oss << opToString(m_op) << '(';
 	m_left->intoString(oss);
 	oss << ", " << m_axis_offset << ", " << m_transpose;
+	oss << ')';
+	break;
+  case G_CONDEVAL:
+	oss << opToString(m_op)<< '(' ;
+	m_mask->intoString(oss);
+	oss << " ? ";
+	m_left->intoString(oss);
+	oss << " : ";
+	m_right->intoString(oss); 
 	oss << ')';
 	break;
   default:
