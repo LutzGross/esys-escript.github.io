@@ -14,99 +14,99 @@
 #ifndef __NODEDATA_H__
 #define __NODEDATA_H__
 
-#include <escriptexport/escriptexport.h>
+#include <weipa/weipa.h>
 #include <ostream>
 
 class DBfile;
 class NcFile;
 struct Finley_NodeFile;
 
-namespace escriptexport {
+namespace weipa {
 
 /// \brief
 class NodeData
 {
 public:
     /// \brief Constructor with mesh name.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     NodeData(const std::string& meshName);
     
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     NodeData(NodeData_ptr fullNodes, IntVec& requiredNodes,
              const std::string& meshName);
 
     /// \brief Copy constructor.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     NodeData(const NodeData& m);
 
     /// \brief Virtual destructor
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     virtual ~NodeData();
 
     /// \brief Initialises with finley node file.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     bool initFromFinley(const Finley_NodeFile* finleyFile);
 
     /// \brief Reads node data from a NetCDF file.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     bool readFromNc(NcFile* ncFile);
 
     /// \brief Writes node data to a Silo file.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     bool writeToSilo(DBfile* dbfile);
 
     /// \brief Writes coordinates to a stream in VTK text format.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     void writeCoordinatesVTK(std::ostream& os, int ownIndex);
 
     /// \brief Sets the silo path to be used when saving.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     void setSiloPath(const std::string& path) { siloPath = path; }
 
     /// \brief Returns an array of nodal data by the given name.
     ///
     /// The name must be one of the names returned by getVarNames().
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     const IntVec& getVarDataByName(const std::string& name) const;
 
     /// \brief Returns a vector with the mesh variable names.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     StringVec getVarNames() const;
 
     /// \brief Returns the name of this node mesh.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     std::string getName() const { return name; }
 
     /// \brief Returns full Silo mesh name, e.g. "/block0000/Nodes".
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     std::string getFullSiloName() const;
     
     /// \brief Returns the node ID array.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     const IntVec& getNodeIDs() const { return nodeID; }
 
     /// \brief Returns the node distribution array
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     const IntVec& getNodeDistribution() const { return nodeDist; }
 
     /// \brief Returns the global node index array.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     const IntVec& getGlobalNodeIndices() const { return nodeGNI; }
 
     /// \brief Returns the coordinates of the mesh nodes.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     const CoordArray& getCoords() const { return coords; }
 
     /// \brief Returns the dimensionality of this mesh (2 or 3).
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     int getNumDims() const { return numDims; }
 
     /// \brief Returns the number of mesh nodes.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     int getNumNodes() const { return numNodes; }
 
     /// \brief Returns the total number of mesh nodes for a distributed mesh.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     int getGlobalNumNodes() const;
 
 protected:
@@ -130,7 +130,7 @@ inline std::string NodeData::getFullSiloName() const
     return result;
 }
 
-} // namespace escriptexport
+} // namespace weipa
 
 #endif // __NODEDATA_H__
 

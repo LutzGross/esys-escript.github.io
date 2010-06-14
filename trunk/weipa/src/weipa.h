@@ -11,8 +11,8 @@
 *
 *******************************************************/
 
-#ifndef __ESCRIPTEXPORT_H__
-#define __ESCRIPTEXPORT_H__
+#ifndef __WEIPA_H__
+#define __WEIPA_H__
 
 #include <string>
 #include <vector>
@@ -27,20 +27,20 @@
 #include <mpi.h>
 #endif
 
-#define ESCRIPTEXPORT_DLL_API
+#define WEIPA_DLL_API
 
 #ifdef _WIN32
-#   ifndef ESCRIPTEXPORT_STATIC_LIB
-#       undef ESCRIPTEXPORT_DLL_API
-#       ifdef ESCRIPTEXPORT_EXPORTS
-#           define ESCRIPTEXPORT_DLL_API __declspec(dllexport)
+#   ifndef WEIPA_STATIC_LIB
+#       undef WEIPA_DLL_API
+#       ifdef WEIPA_EXPORTS
+#           define WEIPA_DLL_API __declspec(dllexport)
 #       else
-#           define ESCRIPTEXPORT_DLL_API __declspec(dllimport)
+#           define WEIPA_DLL_API __declspec(dllimport)
 #       endif
 #   endif
 #endif
 
-namespace escriptexport {
+namespace weipa {
 
 class DataVar;
 class ElementData;
@@ -60,7 +60,7 @@ typedef boost::shared_ptr<FinleyMesh> FinleyMesh_ptr;
 typedef boost::shared_ptr<NodeData> NodeData_ptr;
 typedef boost::shared_ptr<EscriptDataset> EscriptDataset_ptr;
 
-} // namespace escriptexport
+} // namespace weipa
 
-#endif // __ESCRIPTEXPORT_H__
+#endif // __WEIPA_H__
 

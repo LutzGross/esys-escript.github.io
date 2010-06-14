@@ -11,9 +11,9 @@
 *
 *******************************************************/
 
-#include <escriptexport/EscriptDataset.h>
-#include <escriptexport/FinleyMesh.h>
-#include <escriptexport/DataVar.h>
+#include <weipa/EscriptDataset.h>
+#include <weipa/FinleyMesh.h>
+#include <weipa/DataVar.h>
 
 #if USE_SILO
 #include <silo.h>
@@ -25,7 +25,7 @@
 #include <sstream>
 
 using namespace std;
-using namespace escriptexport;
+using namespace weipa;
 
 string insertTimestep(const string& fString, int timeStep, int tsMultiplier)
 {

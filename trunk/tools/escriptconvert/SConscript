@@ -20,7 +20,7 @@ if local_env['usesilo']:
   local_env.Append(CPPDEFINES = ['USE_SILO'])
   local_env.AppendUnique(LIBS = [env['silo_libs']])
 
-local_env.AppendUnique(LIBS = ['escriptexport'])
+local_env.AppendUnique(LIBS = ['weipa'])
 prog = local_env.Program('escriptconvert', ['escriptconvert.cpp'])
 env.Alias('target_escriptconvert', prog)
 inst_escriptconvert = local_env.Install(local_env['bininstall'], prog)

@@ -11,8 +11,8 @@
 *
 *******************************************************/
 
-#include <escriptexport/FileSavers.h>
-#include <escriptexport/EscriptDataset.h>
+#include <weipa/FileSavers.h>
+#include <weipa/EscriptDataset.h>
 #include <escript/Data.h>
 
 #include <boost/python/extract.hpp>
@@ -22,7 +22,7 @@ using boost::python::dict;
 using escript::Domain_ptr;
 using std::string;
 
-namespace escriptexport
+namespace weipa
 {
 
 // extracts Data objects and their names from src into vars and names
@@ -90,5 +90,5 @@ void saveVTK(const string& filename, int cycle, double time, Domain_ptr domain,
     dataset->saveVTK(filename);
 }
 
-} // namespace escriptexport
+} // namespace weipa
 
