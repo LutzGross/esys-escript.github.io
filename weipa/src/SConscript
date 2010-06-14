@@ -34,10 +34,10 @@ headers = """
     DataVar.h
     ElementData.h
     EscriptDataset.h
-    escriptexport.h
     FileSavers.h
     FinleyMesh.h
     NodeData.h
+    weipa.h
 """.split()
 
 local_env.AppendUnique(LIBS = ['esysUtils', 'finley', 'escript'] + env['sys_libs'])
@@ -46,28 +46,28 @@ if local_env['usesilo']:
   local_env.AppendUnique(LIBS = [env['silo_libs']])
 
 if IS_WINDOWS_PLATFORM :
-  local_env.Append(CPPDEFINES = ['ESCRIPTEXPORT_EXPORTS'])
+  local_env.Append(CPPDEFINES = ['WEIPA_EXPORTS'])
 
-module_name = 'escriptexport'
+module_name = 'weipa'
 
 lib = local_env.SharedLibrary(module_name, sources)
-env.Alias('target_escriptexport_so', lib)
+env.Alias('target_weipa_so', lib)
 
-include_path = Dir('escriptexport', local_env['incinstall'])
+include_path = Dir('weipa', local_env['incinstall'])
 
 tmp = local_env.Install(include_path, headers)
-env.Alias('target_install_escriptexport_headers', [tmp])
+env.Alias('target_install_weipa_headers', [tmp])
 
 tmp = local_env.Install(local_env['libinstall'], lib)
-env.Alias('target_install_escriptexport_so', tmp)
+env.Alias('target_install_weipa_so', tmp)
 
 ### Python wrapper ###
-py_wrapper_local_env.Append(LIBS = ['escriptexport'] + env['sys_libs'])
+py_wrapper_local_env.Append(LIBS = ['weipa'] + env['sys_libs'])
 py_wrapper_name = module_name + 'cpp'
-py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'escriptexportcpp.cpp')
-env.Alias('target_escriptexportcpp_so', py_wrapper_lib)
+py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'weipacpp.cpp')
+env.Alias('target_weipacpp_so', py_wrapper_lib)
 
-tmp_inst = os.path.join(local_env['pyinstall'], 'dataexporter')
+tmp_inst = os.path.join(local_env['pyinstall'], 'weipa')
 #windows specific mod
 if os.name == 'nt':
   wrapper_postfix = '.pyd'
@@ -77,7 +77,7 @@ else:
 share_name = os.path.join(tmp_inst, py_wrapper_name + wrapper_postfix)
 tmp3 = py_wrapper_local_env.InstallAs(target=share_name,
                                       source=py_wrapper_lib[0])
-env.Alias('target_install_escriptexportcpp_so', tmp3)
+env.Alias('target_install_weipacpp_so', tmp3)
 
 # export the lib target since tests will depend on it
 # the lib target is a list of file nodes (why? win32 produces more than one
@@ -115,8 +115,8 @@ if not IS_WINDOWS_PLATFORM:
 
 
 # Call the python SConscript
-env.SConscript(dirs = ['#/dataexporter/py_src'], build_dir='py', duplicate=0)
+env.SConscript(dirs = ['#/weipa/py_src'], build_dir='py', duplicate=0)
 
 # Call the unit tests SConscript
-#local_env.SConscript(dirs = ['#/dataexporter/test'], build_dir='#/build/$PLATFORM/dataexporter/test', duplicate=0)
+#local_env.SConscript(dirs = ['#/weipa/test'], build_dir='#/build/$PLATFORM/weipa/test', duplicate=0)
 

@@ -11,7 +11,7 @@
 *
 *******************************************************/
 
-#include <escriptexport/NodeData.h>
+#include <weipa/NodeData.h>
 
 #ifndef VISIT_PLUGIN
 extern "C" {
@@ -30,7 +30,7 @@ extern "C" {
 
 using namespace std;
 
-namespace escriptexport {
+namespace weipa {
 
 //
 // Constructor with name
@@ -381,5 +381,5 @@ bool NodeData::writeToSilo(DBfile* dbfile)
 #endif
 }
 
-} // namespace escriptexport
+} // namespace weipa
 

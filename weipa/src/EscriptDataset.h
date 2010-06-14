@@ -14,7 +14,7 @@
 #ifndef __ESCRIPTDATASET_H__
 #define __ESCRIPTDATASET_H__
 
-#include <escriptexport/escriptexport.h>
+#include <weipa/weipa.h>
 
 #include <ostream>
 
@@ -26,7 +26,7 @@ namespace escript {
 }
 
 
-namespace escriptexport {
+namespace weipa {
 
 typedef std::vector<escript::Data>  DataVec;
 typedef std::vector<DataVar_ptr>    DataBlocks;
@@ -60,21 +60,21 @@ class EscriptDataset
 {
 public:
     /// \brief Default constructor.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     EscriptDataset();
 
 #if HAVE_MPI
     /// \brief Constructor with communicator.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     EscriptDataset(MPI_Comm comm);
 #endif
 
     /// \brief Destructor.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     ~EscriptDataset();
 
     /// \brief Initialises with instances of escript domain and data.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     bool initFromEscript(const escript::AbstractDomain* mesh,
                          DataVec& escriptVars, const StringVec& varNames);
                          
@@ -88,43 +88,43 @@ public:
     ///
     /// \note If MPI is enabled nBlocks must be equal to the size of the
     ///       communicator or this method fails.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     bool loadNetCDF(const std::string meshFilePattern,
                     const StringVec& varFiles, const StringVec& varNames,
                     int nBlocks);
 
     /// \brief Loads only variables from escript NetCDF files using given mesh.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     bool loadNetCDF(const MeshBlocks& mesh, const StringVec& varFiles,
                     const StringVec& varNames);
 
     /// \brief Sets the cycle number and time value for this dataset.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     void setCycleAndTime(int c, double t) { cycle=c; time=t; }
 
     /// \brief Saves the dataset in the Silo file format.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     bool saveSilo(const std::string fileName, bool useMultiMesh=true);
 
     /// \brief Saves the dataset in the VTK XML file format.
     /// \note NOT IMPLEMENTED.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     bool saveVTK(const std::string fileName);
 
     /// \brief Returns the dataset's mesh.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     MeshBlocks extractMesh() { keepMesh = true; return meshBlocks; }
 
     /// \brief Returns the dataset's mesh.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     const MeshBlocks& getMesh() const { return meshBlocks; }
 
     /// \brief Returns a vector with the dataset's variables.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     const VarVector& getVariables() const { return variables; }
 
     /// \brief Returns a vector with the mesh variables.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     const VarVector& getMeshVariables() const { return meshVariables; }
 
 private:
@@ -154,7 +154,7 @@ private:
 #endif
 };
 
-} // namespace escriptexport
+} // namespace weipa
 
 #endif // __ESCRIPTDATASET_H__
 

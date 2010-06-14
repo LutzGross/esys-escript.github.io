@@ -14,7 +14,7 @@
 #ifndef __ELEMENTDATA_H__
 #define __ELEMENTDATA_H__
 
-#include <escriptexport/escriptexport.h>
+#include <weipa/weipa.h>
 
 extern "C" {
 #include <finley/ReferenceElements.h> // for ElementTypeId
@@ -28,7 +28,7 @@ class NcFile;
 
 struct Finley_ElementFile;
 
-namespace escriptexport {
+namespace weipa {
     
 class NodeData;
 
@@ -76,36 +76,36 @@ class ElementData
 public:
 
     /// \brief Constructor with name and accompanying NodeData object.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     ElementData(const std::string& elementName, NodeData_ptr nodes);
 
     /// \brief Copy constructor
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     ElementData(const ElementData& e);
 
     /// \brief Initialises with data from a Finley_ElementFile instance.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     bool initFromFinley(const Finley_ElementFile* finleyFile);
 
     /// \brief Destructor
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     ~ElementData() {}
 
     /// \brief Reads element data from escript/finley NetCDF file.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     bool readFromNc(NcFile* ncfile);
 
     /// \brief Moves "ghost" elements (whose owner does not match ownIndex)
     ///        and the corresponding data to the end of the arrays.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     void reorderGhostZones(int ownIndex);
 
     /// \brief Removes "ghost" elements.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     void removeGhostZones(int ownIndex);
 
     /// \brief Writes connectivity data to a stream in VTK text format.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     void writeConnectivityVTK(std::ostream& os);
 
     /// \brief Writes element data into given directory in given Silo file.
@@ -113,57 +113,57 @@ public:
     /// Since the mesh depends on element information this method also writes
     /// the node mesh itself. If Silo was not available at compile time or if
     /// a Silo function fails this method returns false.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     bool writeToSilo(DBfile* dbfile, const std::string& siloPath);
 
     /// \brief Returns the names of the meshes associated with the elements.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     StringVec getMeshNames() const;
 
     /// \brief Returns a vector with the mesh variable names.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     StringVec getVarNames() const;
 
     /// \brief Returns the number of elements.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     int getNumElements() const { return numElements; }
 
     /// \brief Returns the number of nodes per element.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     int getNodesPerElement() const { return nodesPerElement; }
 
     /// \brief Returns the number of "ghost" elements.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     int getGhostCount() const { return numGhostElements; }
 
     /// \brief Returns the type of the elements.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     ZoneType getType() const { return type; }
 
     /// \brief Returns the original type id of the Finley reference elements.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     ElementTypeId getFinleyTypeId() const { return finleyTypeId; }
 
     /// \brief Returns a vector of the node IDs used by the elements.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     const IntVec& getNodeList() const { return nodes; }
 
     /// \brief Returns a vector of element IDs.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     const IntVec& getIDs() const { return ID; }
 
     /// \brief Returns an array of data values for the name provided.
     ///
     /// The name must be one of the names returned from getVarNames().
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     const IntVec& getVarDataByName(const std::string varName) const;
 
     /// \brief Returns the node mesh instance used by the elements.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     NodeData_ptr getNodeMesh() const { return nodeMesh; }
 
     /// \brief Returns the reduced elements.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     ElementData_ptr getReducedElements() const { return reducedElements; }
  
     /// \brief Returns a QuadMaskInfo structure for given functionspace code.
@@ -199,7 +199,7 @@ private:
     int elementFactor;
 };
 
-} // namespace escriptexport
+} // namespace weipa
 
 #endif // __ELEMENTDATA_H__
 

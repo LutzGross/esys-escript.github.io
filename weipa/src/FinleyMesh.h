@@ -14,7 +14,7 @@
 #ifndef __FINLEYMESH_H__
 #define __FINLEYMESH_H__
 
-#include <escriptexport/escriptexport.h>
+#include <weipa/weipa.h>
 
 class DBfile;
 struct Finley_Mesh;
@@ -23,7 +23,7 @@ namespace escript {
     class AbstractDomain;
 }
 
-namespace escriptexport {
+namespace weipa {
 
 class ElementData;
 class NodeData;
@@ -45,89 +45,89 @@ class FinleyMesh
 {
 public:
     /// \brief Default constructor.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     FinleyMesh();
 
     /// \brief Copy constructor.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     FinleyMesh(const FinleyMesh& m);
  
     /// \brief Virtual destructor.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     virtual ~FinleyMesh();
 
     /// \brief Initialises the mesh using an escript domain instance.
     /// \note Finley_Mesh is the only supported domain.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     bool initFromEscript(const escript::AbstractDomain* escriptDomain);
 
     /// \brief Reads the mesh from a NetCDF file
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     bool initFromNetCDF(const std::string& filename);
 
     /// \brief Writes the mesh to a Silo file
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     bool writeToSilo(DBfile* dbfile, const std::string& pathInSilo);
 
     /// \brief Reorders elements so that 'ghost' elements appear last
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     void reorderGhostZones(int ownIndex);
 
     /// \brief Removes 'ghost' elements and nodes
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     void removeGhostZones(int ownIndex);
 
     /// \brief Returns the names of all meshes
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     StringVec getMeshNames() const;
 
     /// \brief Returns the names of all 'special' Finley mesh variables
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     StringVec getVarNames() const;
 
     /// \brief Returns element data with given name
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     ElementData_ptr getElementsByName(const std::string& name) const;
 
     /// \brief Returns node data with given name
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     NodeData_ptr getMeshByName(const std::string& name) const;
 
     /// \brief Returns mesh variable data
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     const IntVec& getVarDataByName(const std::string& name) const;
 
     /// \brief Returns the node mesh for given function space
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     NodeData_ptr getMeshForFinleyFS(int functionSpace) const;
 
     /// \brief Returns the element data for given function space
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     ElementData_ptr getElementsForFinleyFS(int functionSpace) const;
 
     /// \brief Returns a pointer to the nodes.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     NodeData_ptr getNodes() const { return nodes; }
 
     /// \brief Returns a pointer to the elements.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     ElementData_ptr getElements() { return cells; }
 
     /// \brief Returns a pointer to the face elements.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     ElementData_ptr getFaceElements() { return faces; }
 
     /// \brief Returns a pointer to the contact elements.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     ElementData_ptr getContactElements() { return contacts; }
 
     /// \brief Returns the absolute path within Silo file if writeToSilo()
     ///        or setSiloPath() was called before, the empty string otherwise.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     std::string getSiloPath() const { return siloPath; }
 
     /// \brief Sets the silo path to be used when saving to a Silo file.
-    ESCRIPTEXPORT_DLL_API
+    WEIPA_DLL_API
     void setSiloPath(const std::string& path)  { siloPath = path; }
 
 private:
@@ -142,7 +142,7 @@ private:
     std::string siloPath;
 };
 
-} // namespace escriptexport
+} // namespace weipa
 
 #endif // __FINLEYMESH_H__
 

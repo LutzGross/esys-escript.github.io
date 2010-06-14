@@ -11,10 +11,10 @@
 *
 *******************************************************/
 
-#include <escriptexport/DataVar.h>
-#include <escriptexport/ElementData.h>
-#include <escriptexport/FinleyMesh.h>
-#include <escriptexport/NodeData.h>
+#include <weipa/DataVar.h>
+#include <weipa/ElementData.h>
+#include <weipa/FinleyMesh.h>
+#include <weipa/NodeData.h>
 #ifndef VISIT_PLUGIN
 #include <escript/Data.h>
 #endif
@@ -29,7 +29,7 @@
 
 using namespace std;
 
-namespace escriptexport {
+namespace weipa {
     
 enum {
     NODE_CENTERED = 1,
@@ -657,5 +657,5 @@ bool DataVar::writeToSilo(DBfile* dbfile, const string& siloPath)
 #endif
 }
 
-} // namespace escriptexport
+} // namespace weipa
 

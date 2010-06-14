@@ -11,11 +11,11 @@
 *
 *******************************************************/
 
-#include <escriptexport/EscriptDataset.h>
-#include <escriptexport/DataVar.h>
-#include <escriptexport/ElementData.h>
-#include <escriptexport/FinleyMesh.h>
-#include <escriptexport/NodeData.h>
+#include <weipa/EscriptDataset.h>
+#include <weipa/DataVar.h>
+#include <weipa/ElementData.h>
+#include <weipa/FinleyMesh.h>
+#include <weipa/NodeData.h>
 
 #ifndef VISIT_PLUGIN
 #include <escript/Data.h>
@@ -37,7 +37,7 @@
 
 using namespace std;
 
-namespace escriptexport {
+namespace weipa {
 
 const char* MESH_VARS = "mesh_vars/";
 const int NUM_SILO_FILES = 1;
@@ -961,5 +961,5 @@ void EscriptDataset::putSiloMultiTensor(DBfile* dbfile, const VarInfo& vi)
 #endif
 }
 
-} // namespace escriptexport
+} // namespace weipa
 

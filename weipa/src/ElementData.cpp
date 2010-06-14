@@ -11,8 +11,8 @@
 *
 *******************************************************/
 
-#include <escriptexport/ElementData.h>
-#include <escriptexport/NodeData.h>
+#include <weipa/ElementData.h>
+#include <weipa/NodeData.h>
 
 #ifndef VISIT_PLUGIN
 #include <finley/CppAdapter/MeshAdapter.h>
@@ -92,7 +92,7 @@ static const size_t hex27indices[8*8] = {
     26, 22, 14, 23, 25, 17,  6, 18
 };
 
-namespace escriptexport {
+namespace weipa {
     
 //
 // Constructor
@@ -1095,5 +1095,5 @@ QuadMaskInfo ElementData::buildQuadMask(const CoordArray& qnodes, int numQNodes)
     return qmi;
 }
 
-} // namespace escriptexport
+} // namespace weipa
 

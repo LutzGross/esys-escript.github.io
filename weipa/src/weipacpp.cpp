@@ -12,7 +12,7 @@
 *******************************************************/
 
 
-#include <escriptexport/FileSavers.h>
+#include <weipa/FileSavers.h>
 
 #include <boost/python.hpp>
 #include <boost/python/module.hpp>
@@ -36,8 +36,8 @@ using namespace boost::python;
  *
  */
 
-/*! \page escriptexport EscriptExport
- * EscriptExport is the python module that contains the interfaces
+/*! \page weipa Weipa
+ * Weipa is the python module that contains the interfaces
  * to the C++ side of the escript data exporter.
  *
  * 
@@ -56,14 +56,14 @@ using namespace boost::python;
  *
  */
 
-BOOST_PYTHON_MODULE(escriptexportcpp)
+BOOST_PYTHON_MODULE(weipacpp)
 {
 #if BOOST_VERSION >= 103500
 // params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
   docstring_options docopt(true,true,false);
 #endif
 
-  def("_saveSilo", escriptexport::saveSilo, (args("filename", "cycle", "time", "domain", "datavars")));
+  def("_saveSilo", weipa::saveSilo, (args("filename", "cycle", "time", "domain", "datavars")));
 
 }
 

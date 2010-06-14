@@ -74,7 +74,7 @@ def saveSilo(filename, cycle=0, time=0., domain=None, **data):
     :note: If escript was compiled without Silo support then this function
            will throw an exception.
     """
-    from escriptexportcpp import _saveSilo
+    from weipacpp import _saveSilo
     domain, newData = __checkAndFilterData(domain, data)
     if domain==None:
         raise ValueError,"saveSilo: no domain detected."

@@ -11,9 +11,9 @@
 *
 *******************************************************/
 
-#include <escriptexport/FinleyMesh.h>
-#include <escriptexport/ElementData.h>
-#include <escriptexport/NodeData.h>
+#include <weipa/FinleyMesh.h>
+#include <weipa/ElementData.h>
+#include <weipa/NodeData.h>
 
 #ifndef VISIT_PLUGIN
 #include <finley/CppAdapter/MeshAdapter.h>
@@ -34,7 +34,7 @@ extern "C" {
 
 using namespace std;
 
-namespace escriptexport {
+namespace weipa {
 
 //
 //
@@ -375,5 +375,5 @@ bool FinleyMesh::writeToSilo(DBfile* dbfile, const string& pathInSilo)
 #endif
 }
 
-} // namespace escriptexport
+} // namespace weipa
 
