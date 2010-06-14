@@ -706,6 +706,8 @@ if env_mpi['usempi'] and not conf.CheckCHeader('mpi.h'): env_mpi['usempi'] = 0
 if env_mpi['usempi']:
   env_mpi = conf.Finish()
   env_mpi.Append(CPPDEFINES = ['PASO_MPI', 'MPI_NO_CPPBIND', env_mpi['MPICH_IGNORE_CXX_SEEK']])
+  if env['usenetcdf']:
+    env_mpi.Append(CPPDEFINES = ['MPI_INCLUDED']) # needed for NetCDF 4.1
 else:
   conf.Finish()
 
