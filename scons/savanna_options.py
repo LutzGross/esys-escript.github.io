@@ -122,10 +122,10 @@ usempi		= 'yes'
 # mpi_libs		= ['mpich', 'rt']
 # mpi_flavour		= 'MPICH2'
 
-# Intel MPI (to run Escript use: module load intel-mpi/3.2.0.011
+# Intel MPI (to run Escript use: module load intel-mpi/4.0.0.027
 # (When use Intel MPI, compile with "useparmetis = yes")
-mpi_path		= '/sw/sdev/intel/mpi/3.2.0.011/x86_64/include64'
-mpi_lib_path		= '/sw/sdev/intel/mpi/3.2.0.011/x86_64/lib64'
+mpi_path		= '/sw/sdev/intel/impi/4.0.0.027/include64'
+mpi_lib_path		= '/sw/sdev/intel/impi/4.0.0.027/lib64'
 mpi_libs		= ['mpi']
 mpi_flavour		= 'INTELMPI'
 
