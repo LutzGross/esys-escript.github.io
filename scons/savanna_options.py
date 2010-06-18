@@ -60,10 +60,10 @@ netCDF_lib_path		= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/lib'
 
 
 # MKL
-usemkl		= 'yes'
-#MKL for 10.2.2.025
-mkl_path                = '/sw/sdev/intel/cmkl/10.2.2.025/include'
-mkl_lib_path            = '/sw/sdev/intel/cmkl/10.2.2.025/lib/em64t'
+usemkl		= 'no'
+#MKL for 10.2.5.035
+mkl_path                = '/sw/sdev/intel/mkl/10.2.5.035/include'
+mkl_lib_path            = '/sw/sdev/intel/mkl/10.2.5.035/lib/em64t'
 mkl_libs                =  [ "mkl_core", "mkl_intel_lp64",  "mkl_intel_thread", "mkl_lapack", 'guide', 'pthread' , "mkl_mc", "mkl_def"]
 
 
