@@ -60,7 +60,7 @@ netCDF_lib_path		= '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2/lib'
 
 
 # MKL
-usemkl		= 'no'
+usemkl		= 'yes'
 #MKL for 10.2.5.035
 mkl_path                = '/sw/sdev/intel/mkl/10.2.5.035/include'
 mkl_lib_path            = '/sw/sdev/intel/mkl/10.2.5.035/lib/em64t'
@@ -82,7 +82,7 @@ blas_libs		= ['blas']
 
 
 #Lapack
-uselapack		= 'no'
+uselapack		= 'yes'
 #lapack_path		= '/sw/sdev/intel/cmkl/10.1.0.015/include'
 #lapack_lib_path		= '/sw/sdev/intel/cmkl/10.1.0.015/lib/em64t'
 #lapack_libs		= ['mkl_lapack','mkl','guide','pthread']
