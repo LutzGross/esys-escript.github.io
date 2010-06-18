@@ -209,7 +209,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                   out->AOffset1=Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, out->AUnrolled->pattern,1,1, FALSE);
                   #pragma omp parallel for private(i) schedule(static)
                   for (i=0;i<out->A->len;++i) {
-                       out->AOffset1->val[i]=out->A->val[i];
+                       out->AOffset1->val[i]=out->AUnrolled->val[i];
                   }
          #else
             #ifdef UMFPACK
