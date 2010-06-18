@@ -52,6 +52,11 @@ int main (int argc, char *argv[]) {
     
     
     options.verbose=TRUE;
+    options.level_max=2;
+    options.tolerance=1.E-6;
+    options.smoother=PASO_GAUSS_SEIDEL;
+    options.pre_sweeps=5;
+    options.post_sweeps=5;
 
     while ((c = getopt(argc, argv, "s:p:f:r:l:t:c:h")) != -1) {
       switch(c) {
@@ -119,6 +124,7 @@ int main (int argc, char *argv[]) {
             break;
         case 't':
             options.coarsening_threshold=atof(optarg);
+            break;
         case 'c':
             prec=optarg;
             if (strcmp(prec,"RS")==0) 
@@ -129,7 +135,7 @@ int main (int argc, char *argv[]) {
                 options.coarsening_method=PASO_AGGREGATION_COARSENING;
             else if (strcmp(prec,"STD")==0)
                 options.coarsening_method=PASO_STANDARD_COARSENING;
-        break;
+            break;
         case '?':
             printf("unknown arg %c\n", optopt);
             break;

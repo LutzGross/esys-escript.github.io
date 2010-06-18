@@ -92,13 +92,13 @@ class Test_LinearPDEOnFinleyHex3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemb
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   if True :
+   if False :
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex2DOrder1))
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex2DOrder2))
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DOrder1))
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DOrder2))
    else:
-      suite.addTest(Test_LinearPDEOnFinleyHex2DOrder1("test_DIRECT"))
+      suite.addTest(Test_LinearPDEOnFinleyHex3DOrder1("test_BICGSTAB_AMG_System"))
       pass
 
    s=unittest.TextTestRunner(verbosity=2).run(suite)
