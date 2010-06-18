@@ -195,7 +195,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getRestriction(Paso_SparseMatrix* P){
           for (i=0;i<out->numRows;++i) {
                  for (iptr=out->pattern->ptr[i];iptr<out->pattern->ptr[i+1]; ++iptr) {
                        j=out->pattern->index[iptr];
-                        /*This for later will be replaced by bsearch!!*/
+                        /*This can be replaced by bsearch!!*/
                         for (jptr=P->pattern->ptr[j];jptr<P->pattern->ptr[j+1]; ++jptr) {
                               k=P->pattern->index[jptr];
                               if(k==i) {
@@ -208,7 +208,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getRestriction(Paso_SparseMatrix* P){
            for (i=0;i<out->numRows;++i) {
                  for (iptr=out->pattern->ptr[i];iptr<out->pattern->ptr[i+1]; ++iptr) {
                        j=out->pattern->index[iptr];
-                        /*This for later will be replaced by bsearch!!*/
+                        /*This can be replaced by bsearch!!*/
                         for (jptr=P->pattern->ptr[j];jptr<P->pattern->ptr[j+1]; ++jptr) {
                               k=P->pattern->index[jptr];
                               if(k==i) {
@@ -224,7 +224,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getRestriction(Paso_SparseMatrix* P){
            for (i=0;i<out->numRows;++i) {
                  for (iptr=out->pattern->ptr[i];iptr<out->pattern->ptr[i+1]; ++iptr) {
                        j=out->pattern->index[iptr];
-                        /*This for later will be replaced by bsearch!!*/
+                        /*This can be replaced by bsearch!!*/
                         for (jptr=P->pattern->ptr[j];jptr<P->pattern->ptr[j+1]; ++jptr) {
                               k=P->pattern->index[jptr];
                               if(k==i) {
@@ -681,14 +681,14 @@ Paso_SparseMatrix* Paso_SparseMatrix_MatrixMatrix(Paso_SparseMatrix* A, Paso_Spa
                         break;
                      }
                   }
-                  sum1+=A->val[iptrA*block_size*block_size]*b_lj1+A->val[iptrA*block_size*block_size+1]*b_lj3;
-                  sum2+=A->val[iptrA*block_size*block_size]*b_lj2+A->val[iptrA*block_size*block_size+1]*b_lj4;
-                  sum3+=A->val[iptrA*block_size*block_size+2]*b_lj1+A->val[iptrA*block_size*block_size+3]*b_lj3;
-                  sum4+=A->val[iptrA*block_size*block_size+2]*b_lj2+A->val[iptrA*block_size*block_size+3]*b_lj4;
+                  sum1+=A->val[iptrA*block_size*block_size]*b_lj1+A->val[iptrA*block_size*block_size+2]*b_lj2;
+                  sum2+=A->val[iptrA*block_size*block_size]*b_lj3+A->val[iptrA*block_size*block_size+2]*b_lj4;
+                  sum3+=A->val[iptrA*block_size*block_size+1]*b_lj1+A->val[iptrA*block_size*block_size+3]*b_lj2;
+                  sum4+=A->val[iptrA*block_size*block_size+1]*b_lj3+A->val[iptrA*block_size*block_size+3]*b_lj4;
             }
             out->val[iptrC*block_size*block_size]=sum1;
-            out->val[iptrC*block_size*block_size+1]=sum2;
-            out->val[iptrC*block_size*block_size+2]=sum3;
+            out->val[iptrC*block_size*block_size+2]=sum2;
+            out->val[iptrC*block_size*block_size+1]=sum3;
             out->val[iptrC*block_size*block_size+3]=sum4;
          }
         }
@@ -733,24 +733,24 @@ Paso_SparseMatrix* Paso_SparseMatrix_MatrixMatrix(Paso_SparseMatrix* A, Paso_Spa
                         break;
                      }
                   }
-                  sum1+=A->val[iptrA*block_size*block_size]*b_lj1+A->val[iptrA*block_size*block_size+1]*b_lj4+A->val[iptrA*block_size*block_size+2]*b_lj7;
-                  sum2+=A->val[iptrA*block_size*block_size]*b_lj2+A->val[iptrA*block_size*block_size+1]*b_lj5+A->val[iptrA*block_size*block_size+2]*b_lj8;
-                  sum3+=A->val[iptrA*block_size*block_size]*b_lj3+A->val[iptrA*block_size*block_size+1]*b_lj6+A->val[iptrA*block_size*block_size+2]*b_lj9;
-                  sum4+=A->val[iptrA*block_size*block_size+3]*b_lj1+A->val[iptrA*block_size*block_size+4]*b_lj4+A->val[iptrA*block_size*block_size+5]*b_lj7;
-                  sum5+=A->val[iptrA*block_size*block_size+3]*b_lj2+A->val[iptrA*block_size*block_size+4]*b_lj5+A->val[iptrA*block_size*block_size+5]*b_lj8;
-                  sum6+=A->val[iptrA*block_size*block_size+3]*b_lj3+A->val[iptrA*block_size*block_size+4]*b_lj6+A->val[iptrA*block_size*block_size+5]*b_lj9;
-                  sum7+=A->val[iptrA*block_size*block_size+6]*b_lj1+A->val[iptrA*block_size*block_size+7]*b_lj4+A->val[iptrA*block_size*block_size+8]*b_lj7;
-                  sum8+=A->val[iptrA*block_size*block_size+6]*b_lj2+A->val[iptrA*block_size*block_size+7]*b_lj5+A->val[iptrA*block_size*block_size+8]*b_lj8;
-                  sum9+=A->val[iptrA*block_size*block_size+6]*b_lj3+A->val[iptrA*block_size*block_size+7]*b_lj6+A->val[iptrA*block_size*block_size+8]*b_lj9;
+                  sum1+=A->val[iptrA*block_size*block_size]*b_lj1+A->val[iptrA*block_size*block_size+3]*b_lj2+A->val[iptrA*block_size*block_size+6]*b_lj3;
+                  sum2+=A->val[iptrA*block_size*block_size]*b_lj4+A->val[iptrA*block_size*block_size+3]*b_lj5+A->val[iptrA*block_size*block_size+6]*b_lj6;
+                  sum3+=A->val[iptrA*block_size*block_size]*b_lj7+A->val[iptrA*block_size*block_size+3]*b_lj8+A->val[iptrA*block_size*block_size+6]*b_lj9;
+                  sum4+=A->val[iptrA*block_size*block_size+1]*b_lj1+A->val[iptrA*block_size*block_size+4]*b_lj2+A->val[iptrA*block_size*block_size+7]*b_lj3;
+                  sum5+=A->val[iptrA*block_size*block_size+1]*b_lj4+A->val[iptrA*block_size*block_size+4]*b_lj5+A->val[iptrA*block_size*block_size+7]*b_lj6;
+                  sum6+=A->val[iptrA*block_size*block_size+1]*b_lj7+A->val[iptrA*block_size*block_size+4]*b_lj8+A->val[iptrA*block_size*block_size+7]*b_lj9;
+                  sum7+=A->val[iptrA*block_size*block_size+2]*b_lj1+A->val[iptrA*block_size*block_size+5]*b_lj2+A->val[iptrA*block_size*block_size+8]*b_lj3;
+                  sum8+=A->val[iptrA*block_size*block_size+2]*b_lj4+A->val[iptrA*block_size*block_size+5]*b_lj5+A->val[iptrA*block_size*block_size+8]*b_lj6;
+                  sum9+=A->val[iptrA*block_size*block_size+2]*b_lj7+A->val[iptrA*block_size*block_size+5]*b_lj8+A->val[iptrA*block_size*block_size+8]*b_lj9;
             }
             out->val[iptrC*block_size*block_size]=sum1;
-            out->val[iptrC*block_size*block_size+1]=sum2;
-            out->val[iptrC*block_size*block_size+2]=sum3;
-            out->val[iptrC*block_size*block_size+3]=sum4;
+            out->val[iptrC*block_size*block_size+3]=sum2;
+            out->val[iptrC*block_size*block_size+6]=sum3;
+            out->val[iptrC*block_size*block_size+1]=sum4;
             out->val[iptrC*block_size*block_size+4]=sum5;
-            out->val[iptrC*block_size*block_size+5]=sum6;
-            out->val[iptrC*block_size*block_size+6]=sum7;
-            out->val[iptrC*block_size*block_size+7]=sum8;
+            out->val[iptrC*block_size*block_size+7]=sum6;
+            out->val[iptrC*block_size*block_size+2]=sum7;
+            out->val[iptrC*block_size*block_size+5]=sum8;
             out->val[iptrC*block_size*block_size+8]=sum9;
          }
         }
@@ -765,7 +765,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_MatrixMatrix(Paso_SparseMatrix* A, Paso_Spa
 return out;      
 }
 
-
+/* for block_size=1 only */
 Paso_SparseMatrix* Paso_Solver_getCoarseMatrix(Paso_SparseMatrix* A,Paso_SparseMatrix *R,Paso_SparseMatrix *P) {
 
   index_t iptrA_c,iptrR,iptrP,iptrA;
@@ -826,65 +826,6 @@ Paso_SparseMatrix* Paso_Solver_getCoarseMatrix(Paso_SparseMatrix* A,Paso_SparseM
   Paso_Pattern_free(temp);
     
 return A_c;
-}
-
-
-Paso_SparseMatrix* Paso_SparseMatrix_RemovePositiveOffdiagonals(Paso_SparseMatrix* P){
- 
-  Paso_Pattern *outpattern=NULL;
-  Paso_SparseMatrix *out=NULL;
-  
-  Paso_IndexList* index_list=NULL;
-  dim_t n=P->numRows;
-  dim_t i,j,k=0;
-  index_t iptr,jptr;
-
-  index_list=TMPMEMALLOC(n,Paso_IndexList);
-   if (! Paso_checkPtr(index_list)) {
-        #pragma omp parallel for private(i) schedule(static)
-        for(i=0;i<n;++i) {
-             index_list[i].extension=NULL;
-             index_list[i].n=0;
-        }
-    }
-  
-
-    for (i=0;i<n;++i) {
-          for (iptr=P->pattern->ptr[i];iptr<P->pattern->ptr[i+1]; ++iptr) {
-             j=P->pattern->index[iptr];
-             if(P->val[iptr]<0) {
-             Paso_IndexList_insertIndex(&(index_list[j]),i);
-             }
-             if(i==j) {
-              Paso_IndexList_insertIndex(&(index_list[j]),i);
-             }
-        }
-    }
-   
-    outpattern=Paso_IndexList_createPattern(0, n,index_list,0,n,0);
-    out=Paso_SparseMatrix_alloc(P->type,outpattern,1,1,TRUE);
-    
-    for (i=0;i<out->numRows;++i) {
-           for (iptr=out->pattern->ptr[i];iptr<out->pattern->ptr[i+1]; ++iptr) {
-                 j=out->pattern->index[iptr];
-                  /*This for later will be replaced by bsearch!!*/
-                  for (jptr=P->pattern->ptr[j];jptr<P->pattern->ptr[j+1]; ++jptr) {
-                        k=P->pattern->index[jptr];
-                        if(k==i) {
-                             out->val[iptr]=P->val[jptr];
-                        }
-                  }
-           }
-      }
-    
-     /* clean up */
-   if (index_list!=NULL) {
-        #pragma omp parallel for private(i) schedule(static)
-        for(i=0;i<n;++i) Paso_IndexList_free(index_list[i].extension);
-     }
-    TMPMEMFREE(index_list);
-    Paso_Pattern_free(outpattern);
-    return out;
 }
 
 

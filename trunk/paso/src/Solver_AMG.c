@@ -195,7 +195,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      if (verbose) fprintf(stdout,"Stats: Sparsity of the Coarse Matrix with %d non-zeros (%d,%d) in level %d is %.6f\n",A_p->len,A_p->numRows,A_p->numCols,level,sparsity);
      
     
-     if(sparsity>0.5) {
+     if(sparsity>0.05) {
       level=0;
      }
      
@@ -214,6 +214,9 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
          #else
             #ifdef UMFPACK
                 out->AUnrolled=Paso_SparseMatrix_unroll(A_p);
+                /*Paso_SparseMatrix_saveMM(out->AUnrolled,"AUnroll.mat");
+                Paso_SparseMatrix_saveMM(A_p,"Aorg.mat");
+                */
             #else
               if (options->smoother == PASO_JACOBI)
                 out->Smoother->Jacobi=Paso_Solver_getJacobi(A_p);

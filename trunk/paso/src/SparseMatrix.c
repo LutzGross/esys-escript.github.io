@@ -413,52 +413,59 @@ Paso_SparseMatrix* Paso_SparseMatrix_unroll(Paso_SparseMatrix* A) {
 	/*mainPattern= Paso_Pattern_unrollBlocks(A->pattern, PATTERN_FORMAT_DEFAULT,  A->row_block_size,A->col_block_size);*/
 	out  = Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1, A->pattern, A->row_block_size,A->col_block_size, FALSE);
 	
-	#pragma omp parallel for private(i,iptr) firstprivate(optr1,optr2,optr3) schedule(static)
-	for (i=0;i<A->numRows;++i) {
-		if (block_size==1) {
-		    optr1=out->pattern->ptr[i];
-		} else if (block_size==2) {
-		    optr1=out->pattern->ptr[i*block_size];
-		    optr2=out->pattern->ptr[i*block_size+1];
-		} else if (block_size==3) {
-		    optr1=out->pattern->ptr[i*block_size];
-		    optr2=out->pattern->ptr[i*block_size+1];
-		    optr3=out->pattern->ptr[i*block_size+2];
-		}
-            for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-                if (block_size==1) {
-			out->val[optr1]=A->val[iptr];
-			optr1++;
-		} else if (block_size==2) {
-			out->val[optr1]=A->val[iptr*block_size*block_size];
-			optr1++;
-			out->val[optr1]=A->val[iptr*block_size*block_size+1];
-			optr1++;
-			out->val[optr2]=A->val[iptr*block_size*block_size+2];
-			optr2++;
-			out->val[optr2]=A->val[iptr*block_size*block_size+3];
-			optr2++;
-		} else if (block_size==3) {
-			out->val[optr1]=A->val[iptr*block_size*block_size];
-			optr1++;
-			out->val[optr1]=A->val[iptr*block_size*block_size+1];
+	if (block_size==1) {
+	   #pragma omp parallel for private(i,iptr) schedule(static)
+	   for (i=0;i<A->numRows;++i) {
+		 for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+		     out->val[iptr]=A->val[iptr];
+		 }
+	   }
+	} else if (block_size==2) {
+	   #pragma omp parallel for private(i,iptr,optr1,optr2) schedule(static)
+	   for (i=0;i<A->numRows;++i) {
+		 optr1=out->pattern->ptr[i*block_size];
+		 optr2=out->pattern->ptr[i*block_size+1];
+		 for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+		        out->val[optr1]=A->val[iptr*block_size*block_size];
 			optr1++;
 			out->val[optr1]=A->val[iptr*block_size*block_size+2];
 			optr1++;
+			out->val[optr2]=A->val[iptr*block_size*block_size+1];
+			optr2++;
 			out->val[optr2]=A->val[iptr*block_size*block_size+3];
+			optr2++;
+		 }
+	   }
+		
+	} else if (block_size==3) {
+	   #pragma omp parallel for private(i,iptr,optr1,optr2,optr3) schedule(static)
+	   for (i=0;i<A->numRows;++i) {
+		    optr1=out->pattern->ptr[i*block_size];
+		    optr2=out->pattern->ptr[i*block_size+1];
+		    optr3=out->pattern->ptr[i*block_size+2];
+		 for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+			out->val[optr1]=A->val[iptr*block_size*block_size];
+			optr1++;
+			out->val[optr1]=A->val[iptr*block_size*block_size+3];
+			optr1++;
+			out->val[optr1]=A->val[iptr*block_size*block_size+6];
+			optr1++;
+			out->val[optr2]=A->val[iptr*block_size*block_size+1];
 			optr2++;
 			out->val[optr2]=A->val[iptr*block_size*block_size+4];
 			optr2++;
-			out->val[optr2]=A->val[iptr*block_size*block_size+5];
+			out->val[optr2]=A->val[iptr*block_size*block_size+7];
 			optr2++;
-			out->val[optr3]=A->val[iptr*block_size*block_size+6];
+			out->val[optr3]=A->val[iptr*block_size*block_size+2];
 			optr3++;
-			out->val[optr3]=A->val[iptr*block_size*block_size+7];
+			out->val[optr3]=A->val[iptr*block_size*block_size+5];
 			optr3++;
 			out->val[optr3]=A->val[iptr*block_size*block_size+8];
 			optr3++;
-		}
-            }
+		 }
+	   }
+		
+		
 	}
 
  return out;
