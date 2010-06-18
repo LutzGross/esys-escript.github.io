@@ -82,7 +82,7 @@ blas_libs		= ['blas']
 
 
 #Lapack
-uselapack		= 'yes'
+uselapack		= 'no'
 #lapack_path		= '/sw/sdev/intel/cmkl/10.1.0.015/include'
 #lapack_lib_path		= '/sw/sdev/intel/cmkl/10.1.0.015/lib/em64t'
 #lapack_libs		= ['mkl_lapack','mkl','guide','pthread']
