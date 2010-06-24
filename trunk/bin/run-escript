@@ -22,8 +22,8 @@ CURDIR=`pwd`
 #Environment vars which control operations:
 # ESCRIPT_NUM_NODES, ESCRIPT_NUM_PROCS, ESCRIPT_NUM_THREADS, ESCRIPT_HOSTFILE, ESCRIPT_CREATESTDFILES
 
-HOSTFILE=/tmp/escript.$$
-HOSTFILE2=/tmp/escript2.$$
+HOSTFILE=/tmp/escript.$USER.$$
+HOSTFILE2=/tmp/escript2.$USER.$$
 
 #Begin finding ESCRIPT_ROOT
 if [ $STDLOCATION -ne 0 ]
