@@ -79,5 +79,5 @@ def eps2pdf(target, source, env):
 def effectiveName(inname):
    m=re.compile("^r1i[0-9]{1,2}n[0-9]{1,2}$")	# savanna names take the form r1i?n?
    if m.match(inname):
-	return "service0"
+	return "savanna"
    return inname
