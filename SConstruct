@@ -145,6 +145,14 @@ adder(
   ('mkl_path', 'Path to MKL includes', '/sw/sdev/cmkl/10.0.2.18/include'),
   ('mkl_lib_path', 'Path to MKL libs', '/sw/sdev/cmkl/10.0.2.18/lib/em64t'),
   ('mkl_libs', 'MKL libraries to link with', ['mkl_solver', 'mkl_em64t', 'guide', 'pthread']),
+# PASTIX
+  BoolVariable('usepastix', 'switch on/off the usage of PASTIX', 'no'),
+  ('pastix_path', 'Path to PASTIX includes', '/sw/libs/pastix/x86_64/gcc-4.3.2/pastix-2995/include'),
+  ('pastix_lib_path', 'Path to PASTIX libs', '/sw/libs/pastix/x86_64/gcc-4.3.2/pastix-2995/lib'),
+  ('pastix_libs', 'PASTIX libraries to link with', ['pastix']),
+  ('scotch_path', 'Path to SCOTCH includes', '/sw/libs/scotch/x86_64/gcc-4.3.2/scotch-5.1.8a/include'),
+  ('scotch_lib_path', 'Path to SCOTCH libs', '/sw/libs/scotch/x86_64/gcc-4.3.2/scotch-5.1.8a/lib'),
+  ('scotch_libs', 'SCOTCH libraries to link with', ['ptscotch','ptscotcherr','ptscotcherrexit']),
 # UMFPACK
   BoolVariable('useumfpack', 'switch on/off the usage of UMFPACK', 'no'),
   ('ufc_path', 'Path to UFconfig includes', '/usr/include/suitesparse'),
@@ -744,6 +752,39 @@ else:
 
 env['useparmetis'] = env_mpi['useparmetis']
 
+############ PASTIX (optional) ####################################
+
+# Start a new configure environment that reflects what we've already found
+conf = Configure(clone_env(env_mpi))
+
+if not env_mpi['usempi']: env_mpi['usepastix'] = 0
+
+if env_mpi['usepastix']:
+  conf.env.AppendUnique(CPPPATH = [env_mpi['pastix_path']])
+  conf.env.AppendUnique(LIBPATH = [env_mpi['pastix_lib_path']])
+  conf.env.AppendUnique(LIBS    = [env_mpi['pastix_libs']])
+  conf.env.AppendUnique(CPPPATH = [env_mpi['scotch_path']])
+  conf.env.AppendUnique(LIBPATH = [env_mpi['scotch_lib_path']])
+  conf.env.AppendUnique(LIBS    = [env_mpi['scotch_libs']])
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['pastix_lib_path'])     # The wrapper script needs to find these libs
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['scotch_lib_path'])     # The wrapper script needs to find these libs
+  #ensure that our path entries remain at the front
+  conf.env.PrependENVPath('PYTHONPATH', prefix)
+  conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['libinstall'])
+
+if env_mpi['usepastix'] and not conf.CheckCHeader('pastix.h'): env_mpi['usepastix'] = 0
+if env_mpi['usepastix'] and not conf.CheckFunc('dpastix'): env_mpi['usepastix'] = 0
+
+
+# Add PASTIX to environment env_mpi if it was found
+if env_mpi['usepastix']:
+  env_mpi = conf.Finish()
+  env_mpi.Append(CPPDEFINES = ['PASTIX'])
+else:
+  conf.Finish()
+
+env['usepastix'] = env_mpi['usepastix']
+
 ############ Summarize our environment #########################
 
 print ""
@@ -757,6 +798,8 @@ if env['usevtk']: print "	Using VTK"
 else: print "	Not using VTK"
 if env['usemkl']: print "	Using MKL"
 else: print "	Not using MKL"
+if env['usepastix']: print "	Using PASTIX"
+else: print "	Not using PASTIX"
 if env['useumfpack']: print "	Using UMFPACK"
 else: print "	Not using UMFPACK"
 if env['usesilo']: print "	Using Silo"

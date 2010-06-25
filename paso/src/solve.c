@@ -35,6 +35,10 @@
 #include "UMFPACK.h"
 #endif
 
+#ifdef PASTIX
+#include "PASTIX.h"
+#endif
+
 /**************************************************************/
 
 void Paso_solve(Paso_SystemMatrix* A,
@@ -83,6 +87,14 @@ void Paso_solve(Paso_SystemMatrix* A,
           break;
         #endif
 
+        #ifdef PASTIX
+        case PASO_PASTIX:
+          Paso_PASTIX(A,out,in,options,&pp);
+          A->solver_package=PASO_PASTIX;
+          break;
+        #endif
+
+
         default:
            Paso_setError(VALUE_ERROR,"Paso_solve: unknown package code");
            break;
@@ -126,5 +138,10 @@ void Paso_solve_free(Paso_SystemMatrix* in) {
           break;
         #endif
 
+        #ifdef PASTIX
+        case PASO_PASTIX:
+          Paso_PASTIX_free(in);
+          break;
+        #endif
    }
 }

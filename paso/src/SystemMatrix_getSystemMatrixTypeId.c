@@ -30,6 +30,7 @@
 /**************************************************************/
 
 index_t Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool_t symmetry, Paso_MPIInfo *mpi_info) {
+  char errmessage[40];
   index_t true_package;
   index_t out=MATRIX_FORMAT_DEFAULT;
   true_package=Paso_Options_getPackage(solver,package,symmetry, mpi_info);
@@ -58,6 +59,10 @@ index_t Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index
            return -1;
        }
        out=MATRIX_FORMAT_CSC + MATRIX_FORMAT_BLK1;
+      break;
+
+    case PASO_PASTIX:
+      out=MATRIX_FORMAT_CSC + MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1;
       break;
 
     case PASO_TRILINOS:

@@ -140,6 +140,9 @@ cppadapter_headers = """
 
 local_env.Append(LIBS = ['escript', 'esysUtils', 'paso'] + env['sys_libs'] )
 
+if local_env['usepastix']:
+  local_env.AppendUnique(LIBS = ['pastix','ptscotch','ptscotcherr','ptscotcherrexit'])
+
 if IS_WINDOWS_PLATFORM :
   local_env.Append(CPPDEFINES = ['FINLEY_EXPORTS'])
 

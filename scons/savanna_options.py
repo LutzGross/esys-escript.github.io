@@ -106,6 +106,17 @@ silo_lib_path	        = '/sw/libs/silo/x86_64/gcc-4.3.2/silo-4.7.2/lib'
 # silo_libs		= ['siloh5', 'hdf5']
 
 
+# PASTIX
+usepastix               = 'yes'
+pastix_path             = '/sw/libs/pastix/x86_64/gcc-4.3.2/pastix-2995/include'
+pastix_lib_path         = '/sw/libs/pastix/x86_64/gcc-4.3.2/pastix-2995/lib'
+pastix_libs             = ['pastix']
+scotch_path             = '/sw/libs/scotch/x86_64/gcc-4.3.2/scotch-5.1.8a/include'
+scotch_lib_path         = '/sw/libs/scotch/x86_64/gcc-4.3.2/scotch-5.1.8a/lib'
+#scotch_libs             = ['scotch','scotcherr','scotcherrexit','scotchmetis']
+scotch_libs             = ['ptscotch','ptscotcherr','ptscotcherrexit']
+
+
 # OpenMP
 useopenmp		= 'yes'
 

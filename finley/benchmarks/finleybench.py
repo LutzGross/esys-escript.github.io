@@ -112,7 +112,8 @@ class FinleyOptions(Options):
                       SolverOptions.TRILINOS: "TRILINOS",
                       SolverOptions.PASO:  "PASO",
                       SolverOptions.RILU: "RILU",
-                      SolverOptions.AMG:  "AMG"
+                      SolverOptions.AMG:  "AMG",
+                      SolverOptions.PASTIX:  "PASTIX"
                   }
        name=""
        if solver_method==None: 
