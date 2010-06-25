@@ -41,7 +41,16 @@ void  Paso_SystemMatrix_MatrixVector(const double alpha,
   Paso_MPIInfo *mpi_info=A->mpi_info;
 
   if (A->type & MATRIX_FORMAT_CSC) {
-     if ( mpi_info->size>1) {
+     if (A->type & MATRIX_FORMAT_OFFSET1) {
+         Paso_SystemMatrix_MatrixVector_CSC_OFFSET1(alpha,A,in,beta,out);
+     } else {
+         if (mpi_info->size>1) {
+             Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_MatrixVector: CSC with index 0 is not supported by MPI.");
+             return;
+         } else {
+             Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(alpha,A->mainBlock,in,beta,out);
+         }
+/*     if ( mpi_info->size>1) {
            Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_MatrixVector: CSC is not supported by MPI.");
            return;
      } else {
@@ -49,7 +58,7 @@ void  Paso_SystemMatrix_MatrixVector(const double alpha,
          Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(alpha,A->mainBlock,in,beta,out);
        } else {
          Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(alpha,A->mainBlock,in,beta,out);
-       }
+       } */
      }
   } else if (A->type & MATRIX_FORMAT_TRILINOS_CRS) {
            Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_MatrixVector: TRILINOS is not supported with MPI.");
@@ -89,3 +98,24 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha,
   }
   
 }
+
+void  Paso_SystemMatrix_MatrixVector_CSC_OFFSET1(double alpha,
+                                                 Paso_SystemMatrix* A,
+                                                 const double* in,
+                                                 const double beta,
+                                                 double* out)
+{
+  double *remote_values=NULL;
+  /* start exchange */
+  Paso_SystemMatrix_startRowCollect(A,in);
+  /* process main block */
+  Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(alpha,A->mainBlock,in,beta,out);
+  /* finish exchange */
+  remote_values=Paso_SystemMatrix_finishRowCollect(A);
+  /* process couple block */
+  if (A->row_coupleBlock->pattern->ptr!=NULL) {
+      Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(alpha,A->row_coupleBlock,remote_values,1.,out);
+  }
+
+}
+

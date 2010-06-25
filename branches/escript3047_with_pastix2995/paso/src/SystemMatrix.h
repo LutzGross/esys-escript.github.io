@@ -89,6 +89,7 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix*);
 
 void Paso_SystemMatrix_MatrixVector(const double alpha, Paso_SystemMatrix* A, const double* in, const double beta, double* out);
 void Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha, Paso_SystemMatrix* A, const double* in, const double beta, double* out);
+void Paso_SystemMatrix_MatrixVector_CSC_OFFSET1(double alpha, Paso_SystemMatrix* A, const double* in, const double beta, double* out);
 void Paso_solve(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
 void Paso_solve_free(Paso_SystemMatrix* in);
 void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A,const double* in);
@@ -123,6 +124,9 @@ void Paso_SystemMatrix_copyBlockToMainDiagonal(Paso_SystemMatrix * A_p, const do
 void Paso_SystemMatrix_copyFromMainDiagonal(Paso_SystemMatrix * A_p, double* out);
 void Paso_SystemMatrix_copyToMainDiagonal(Paso_SystemMatrix * A_p, const double* in); 
 
+void Paso_SystemMatrix_mergeMainAndCouple(Paso_SystemMatrix *A, index_t **p_ptr, index_t **p_idx, double **p_val);
+void Paso_SystemMatrix_mergeMainAndCouple_CSC_OFFSET1(Paso_SystemMatrix *A, index_t **p_ptr, index_t **p_idx, double **p_val);
+void Paso_SystemMatrix_copyMain_CSC_OFFSET1(Paso_SystemMatrix* A, index_t** p_ptr, index_t** p_idx, double** p_val);
   
 #endif /* #ifndef INC_PASO_SYSTEMMATRIX */
 

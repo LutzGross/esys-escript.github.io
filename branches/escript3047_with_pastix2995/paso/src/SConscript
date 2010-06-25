@@ -84,12 +84,14 @@ sources = """
 	SystemMatrix_saveHB.c
 	SystemMatrix_saveMM.c
 	SystemMatrix_setValues.c
+        SystemMatrix_mergeMainAndCouple.c
 	TFQMR.c
 	MINRES.c
 	UMFPACK.c
 	mmio.c
 	performance.c
 	solve.c
+        PASTIX.c
 """.split()
 headers = """
 	Common.h
@@ -116,6 +118,7 @@ headers = """
 	mmio.h
 	mpi_C.h
 	performance.h
+        PASTIX.h
 """.split()
 
 if IS_WINDOWS_PLATFORM :
