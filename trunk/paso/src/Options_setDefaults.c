@@ -139,6 +139,8 @@ const char* Paso_Options_name(const index_t key){
           return "MINRES";
        case  PASO_GAUSS_SEIDEL:
           return "GAUSS_SEIDEL";
+       case  PASO_GAUSS_SEIDEL_MPI:
+          return "GAUSS_SEIDEL_MPI";
        case  PASO_RILU:
           return "RILU";
        case  PASO_DEFAULT_REORDERING:

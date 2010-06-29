@@ -26,6 +26,7 @@
 #include "Paso.h"
 #include "SystemMatrix.h"
 #include "Solver.h"
+#include "PasoUtil.h"
 
 /***********************************************************************************/
 
@@ -36,7 +37,10 @@ void Paso_Preconditioner_free(Paso_Solver_Preconditioner* in) {
       Paso_Solver_ILU_free(in->ilu);
       Paso_Solver_RILU_free(in->rilu);
       Paso_Solver_Jacobi_free(in->jacobi);
-      Paso_Solver_GS_free(in->gs);
+      if (in->type==PASO_GAUSS_SEIDEL_MPI)
+        Paso_Solver_GSMPI_free(in->gs);
+      else 
+        Paso_Solver_GS_free(in->gs);
       Paso_Solver_AMG_free(in->amg);
       Paso_Solver_AMG_System_free(in->amgSystem);
       Paso_Solver_AMLI_free(in->amli);
@@ -92,6 +96,12 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
               prec->gs=Paso_Solver_getGS(A->mainBlock,options->verbose);
               prec->gs->sweeps=options->sweeps;
               prec->type=PASO_GS;
+              break;
+            case PASO_GAUSS_SEIDEL_MPI:
+              if (options->verbose) printf("MPI versioned Gauss-Seidel preconditioner is used.\n");
+              prec->gs=Paso_Solver_getGSMPI(A->mainBlock,options->verbose);
+              prec->gs->sweeps=options->sweeps;
+              prec->type=PASO_GAUSS_SEIDEL_MPI;
               break;
             case PASO_AMG:
               if (options->verbose) printf("AMG preconditioner is used.\n");
@@ -221,6 +231,9 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                 }
                 MEMFREE(bnew); 
            }
+           break;
+        case PASO_GAUSS_SEIDEL_MPI:
+           Paso_Solver_solveGSMPI(A,prec->gs,x,b);
            break;
         case PASO_AMG:
             Paso_Solver_solveAMG(prec->amg,x,b);

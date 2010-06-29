@@ -76,6 +76,22 @@ struct Paso_Solver_GS {
 };
 typedef struct Paso_Solver_GS Paso_Solver_GS;
 
+/* GaussSeidel preconditioner */
+struct Paso_Solver_GaussSeidel {
+  dim_t n_block;
+  dim_t n;
+  index_t num_colors;
+  index_t* colorOf;
+  index_t* main_iptr;
+  double* diag;
+  Paso_SparseMatrix * factors;
+  Paso_Pattern* pattern;
+  dim_t sweeps;
+  double* x_old;
+};
+typedef struct Paso_Solver_GaussSeidel Paso_Solver_GaussSeidel;
+
+
 /* RILU preconditioner */
 struct Paso_Solver_RILU {
   dim_t n;
@@ -236,6 +252,10 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b);
 void Paso_Solver_GS_free(Paso_Solver_GS * in);
 Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A_p,bool_t verbose);
 void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b);
+
+void Paso_Solver_GSMPI_free(Paso_Solver_GS * in);
+Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A_p,bool_t verbose);
+void Paso_Solver_solveGSMPI(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * x, double * b);
 
 void Paso_Solver_RILU_free(Paso_Solver_RILU * in);
 Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix * A_p,bool_t verbose);
