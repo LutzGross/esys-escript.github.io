@@ -90,6 +90,7 @@ class SolverOptions(object):
     :cvar REC_ILU: recursive ILU0
     :cvar RILU: relaxed ILU0
     :cvar GAUSS_SEIDEL: Gauss-Seidel solver
+    :cvar GAUSS_SEIDEL_MPI: MPI versioned Gauss-Seidel solver
     :cvar DEFAULT_REORDERING: the reordering method recommended by the solver
     :cvar SUPER_LU: the Super_LU solver package
     :cvar PASTIX: the Pastix direct solver_package
@@ -139,6 +140,7 @@ class SolverOptions(object):
     MIN_COARSE_MATRIX_SIZE=37
     AMLI=38
     STANDARD_COARSENING=39
+    GAUSS_SEIDEL_MPI=40
  
     def __init__(self):
         self.setLevelMax()
@@ -211,6 +213,8 @@ class SolverOptions(object):
                 out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
 	    if self.getPreconditioner() == self.GAUSS_SEIDEL:
                 out+="\nNumber of sweeps = %s"%self.getNumSweeps()
+            if self.getPreconditioner() == self.GAUSS_SEIDEL_MPI:
+                out+="\nNumber of sweeps = %s"%self.getNumSweeps()
             if self.getPreconditioner() == self.ILUT:
                 out+="\nDrop tolerance = %e"%self.getDropTolerance()
                 out+="\nStorage increase = %e"%self.getDropStorage()
@@ -253,6 +257,7 @@ class SolverOptions(object):
         if key == self.TFQMR: return "TFQMR"
         if key == self.MINRES: return "MINRES"
         if key == self.GAUSS_SEIDEL: return "GAUSS_SEIDEL"
+        if key == self.GAUSS_SEIDEL_MPI: return "GAUSS_SEIDEL_MPI"
         if key == self.RILU: return "RILU"
         if key == self.DEFAULT_REORDERING: return "DEFAULT_REORDERING"
         if key == self.SUPER_LU: return "SUPER_LU"
@@ -409,13 +414,13 @@ class SolverOptions(object):
 
         :param preconditioner: key of the preconditioner to be used.
         :type preconditioner: in `SolverOptions.SSOR`, `SolverOptions.ILU0`, `SolverOptions.ILUT`, `SolverOptions.JACOBI`, 
-                                    `SolverOptions.AMG`, `SolverOptions.AMLI`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`,
+                                    `SolverOptions.AMG`, `SolverOptions.AMLI`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.GAUSS_SEIDEL_MPI`, `SolverOptions.RILU`,
                                     `SolverOptions.NO_PRECONDITIONER`
         :note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters an unknown preconditioner. 
         """
 	if preconditioner==None: preconditioner=10
         if not preconditioner in [ SolverOptions.SSOR, SolverOptions.ILU0, SolverOptions.ILUT, SolverOptions.JACOBI, 
-                                    SolverOptions.AMG, SolverOptions.AMLI, SolverOptions.REC_ILU, SolverOptions.GAUSS_SEIDEL, SolverOptions.RILU,
+                                    SolverOptions.AMG, SolverOptions.AMLI, SolverOptions.REC_ILU, SolverOptions.GAUSS_SEIDEL, SolverOptions.GAUSS_SEIDEL_MPI, SolverOptions.RILU,
                                     SolverOptions.NO_PRECONDITIONER] :
              raise ValueError,"unknown preconditioner %s"%preconditioner
         self.__preconditioner=preconditioner    
@@ -424,7 +429,7 @@ class SolverOptions(object):
         Returns key of the preconditioner to be used. 
 
         :rtype: in the list `SolverOptions.SSOR`, `SolverOptions.ILU0`, `SolverOptions.ILUT`, `SolverOptions.JACOBI`, 
-                                    `SolverOptions.AMG`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`,
+                                    `SolverOptions.AMG`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.GAUSS_SEIDEL_MPI`, `SolverOptions.RILU`,
                                     `SolverOptions.NO_PRECONDITIONER`
         """
         return self.__preconditioner
@@ -458,14 +463,14 @@ class SolverOptions(object):
                         `SolverOptions.CR`, `SolverOptions.CGS`, `SolverOptions.BICGSTAB`, `SolverOptions.SSOR`, 
                         `SolverOptions.GMRES`, `SolverOptions.PRES20`, `SolverOptions.LUMPING`, `SolverOptions.ITERATIVE`, 
                         `SolverOptions.AMG`, `SolverOptions.NONLINEAR_GMRES`, `SolverOptions.TFQMR`, `SolverOptions.MINRES`, 
-                        `SolverOptions.GAUSS_SEIDEL`
+                        `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.GAUSS_SEIDEL_MPI`
         :note: Not all packages support all solvers. It can be assumed that a package makes a reasonable choice if it encounters an unknown solver method. 
         """
 	if method==None: method=0
         if not method in [ SolverOptions.DEFAULT, SolverOptions.DIRECT, SolverOptions.CHOLEVSKY, SolverOptions.PCG, 
                            SolverOptions.CR, SolverOptions.CGS, SolverOptions.BICGSTAB, SolverOptions.SSOR, 
                            SolverOptions.GMRES, SolverOptions.PRES20, SolverOptions.LUMPING, SolverOptions.ITERATIVE, SolverOptions.AMG, 
-                           SolverOptions.NONLINEAR_GMRES, SolverOptions.TFQMR, SolverOptions.MINRES, SolverOptions.GAUSS_SEIDEL]:
+                           SolverOptions.NONLINEAR_GMRES, SolverOptions.TFQMR, SolverOptions.MINRES, SolverOptions.GAUSS_SEIDEL, SolverOptions.GAUSS_SEIDEL_MPI]:
              raise ValueError,"unknown solver method %s"%method
         self.__method=method
     def getSolverMethod(self):
@@ -476,7 +481,7 @@ class SolverOptions(object):
                         `SolverOptions.CR`, `SolverOptions.CGS`, `SolverOptions.BICGSTAB`, `SolverOptions.SSOR`, 
                         `SolverOptions.GMRES`, `SolverOptions.PRES20`, `SolverOptions.LUMPING`, `SolverOptions.ITERATIVE`, 
                         `SolverOptions.AMG`, `SolverOptions.NONLINEAR_GMRES`, `SolverOptions.TFQMR`, `SolverOptions.MINRES`, 
-                        `SolverOptions.GAUSS_SEIDEL`
+                        `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.GAUSS_SEIDEL_MPI`
         """
         return self.__method
         

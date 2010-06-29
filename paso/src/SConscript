@@ -53,6 +53,7 @@ sources = """
 	ReactiveSolver.c
 	Solver_Function.c
 	Solver_GS.c
+        Solver_GSMPI.c
 	Solver_ILU.c
 	Solver_RILU.c
 	Solver_AMG.c

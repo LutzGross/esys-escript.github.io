@@ -141,6 +141,8 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_MINRES;
        case  ESCRIPT_GAUSS_SEIDEL:
           return PASO_GAUSS_SEIDEL;
+       case  ESCRIPT_GAUSS_SEIDEL_MPI:
+          return PASO_GAUSS_SEIDEL_MPI;
        case  ESCRIPT_RILU:
           return PASO_RILU;
        case  ESCRIPT_DEFAULT_REORDERING:
