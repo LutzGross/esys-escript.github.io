@@ -72,7 +72,8 @@ def runPyUnitTest(target, source, env):
    return None
 
 def eps2pdf(target, source, env):
-   if env.Execute("epstopdf "+str(source[0].abspath)+" -o "+str(target[0].abspath))!=0:
+#   if env.Execute("epstopdf "+str(source[0].abspath)+" -o "+str(target[0].abspath))!=0:
+   if env.Execute("ps2pdf "+str(source[0].abspath)+" "+str(target[0].abspath))!=0:
 	   return 1
    return None
 
